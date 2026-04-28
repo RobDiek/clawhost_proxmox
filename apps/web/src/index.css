@@ -165,7 +165,7 @@
         --coral-bright: #ef5350;
         --coral-dark: #c62828;
         --cyan-bright: #4dd0e1;
-        --bg-deep: #0a0a0f;
+        --bg-deep: #020204;
     }
 
     .dark {
@@ -509,8 +509,8 @@ html {
 
 .v2-grid {
     background-image:
-        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
     background-size: 40px 40px;
     position: fixed;
     inset: 0;
@@ -520,13 +520,11 @@ html {
 
 .v2-content {
     position: relative;
-    z-index: 5;
 }
 
 .v2-section {
     position: relative;
-    z-index: 15;
-    background: #0a0a0f;
+    background: #020204;
 }
 
 @keyframes v2-pulse {
@@ -542,7 +540,7 @@ html {
     position: relative;
     overflow: hidden;
     z-index: 5;
-    background: transparent;
+    background: #020204;
 }
 
 .v2-video-wrap .v2-hover-video {
@@ -578,9 +576,11 @@ html {
 
 .v2-footer-video {
     filter: invert(1) brightness(0.3);
-    opacity: 0.2;
+    opacity: 0.12;
     object-fit: cover;
     transform: rotate(180deg) scaleX(-1);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 50%, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 50%, black 70%, transparent 100%);
 }
 
 .hermes {

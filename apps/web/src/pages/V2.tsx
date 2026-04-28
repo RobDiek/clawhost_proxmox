@@ -1,7 +1,7 @@
 import type { FC, MouseEvent, ReactNode } from 'react'
 import type { Faq } from '@/ts/Interfaces'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { motion } from 'framer-motion'
@@ -14,9 +14,10 @@ import {
     ComparisonTableV2,
     FaqSectionV2,
     FooterV2,
+    ScrollRevealV2,
     SectionLabelV2
 } from '@/components'
-import { getBaseDomain, ROUTES, SCROLL_SECTIONS } from '@/lib'
+import { getBaseDomain, ROUTES } from '@/lib'
 import { useAuth } from '@/lib/auth'
 import { usePlans, useGitHubStars, GITHUB_REPO_URL } from '@/hooks'
 import { OpenClawIcon, HermesIcon } from '@/components/icons'
@@ -33,7 +34,6 @@ import {
     StackIcon,
     GitBranchIcon,
     ArrowRightIcon,
-    LightningIcon,
     GithubLogoIcon,
     RocketLaunchIcon,
     TerminalIcon
@@ -58,18 +58,17 @@ const agents = [
 ]
 
 const getFaqs = (): Faq[] => [
-    { question: t('landing.faq1Question'), answer: t('landing.faq1Answer') },
-    { question: t('landing.faq2Question'), answer: t('landing.faq2Answer') },
-    { question: t('landing.faq3Question'), answer: t('landing.faq3Answer') },
-    { question: t('landing.faq4Question'), answer: t('landing.faq4Answer') },
-    { question: t('landing.faq5Question'), answer: t('landing.faq5Answer') },
-    { question: t('landing.faq6Question'), answer: t('landing.faq6Answer') },
-    { question: t('landing.faq7Question'), answer: t('landing.faq7Answer') }
+    { question: t('v2.faq1Question'), answer: t('v2.faq1Answer') },
+    { question: t('v2.faq2Question'), answer: t('v2.faq2Answer') },
+    { question: t('v2.faq3Question'), answer: t('v2.faq3Answer') },
+    { question: t('v2.faq4Question'), answer: t('v2.faq4Answer') },
+    { question: t('v2.faq5Question'), answer: t('v2.faq5Answer') },
+    { question: t('v2.faq6Question'), answer: t('v2.faq6Answer') },
+    { question: t('v2.faq7Question'), answer: t('v2.faq7Answer') }
 ]
 
 const V2: FC = (): ReactNode => {
     const { user } = useAuth()
-    const [activeSection, setActiveSection] = useState('')
     const { data: gitHubStars } = useGitHubStars()
 
     const {
@@ -110,12 +109,14 @@ const V2: FC = (): ReactNode => {
         const el = e.currentTarget
         const rect = el.getBoundingClientRect()
         const mx = e.clientX - rect.left
-        const my = e.clientY - rect.top
+        const videoOffset = rect.height * 0.2
+        const my = e.clientY - rect.top + videoOffset
+        const videoHeight = rect.height + videoOffset
         const size = 200
         const half = size / 2
         const top = Math.max(0, my - half)
         const left = Math.max(0, mx - half)
-        const bottom = Math.max(0, rect.height - my - half)
+        const bottom = Math.max(0, videoHeight - my - half)
         const right = Math.max(0, rect.width - mx - half)
         el.style.setProperty('--sq-clip-top', `${top}px`)
         el.style.setProperty('--sq-clip-right', `${right}px`)
@@ -139,35 +140,15 @@ const V2: FC = (): ReactNode => {
         el.style.setProperty('--sq-h', '0px')
     }, [])
 
-    useEffect(() => {
-        const handleScroll = () => {
-            if (window.scrollY < 200) {
-                setActiveSection('')
-                return
-            }
-            const sections = SCROLL_SECTIONS
-            for (const section of sections) {
-                const el = document.getElementById(section)
-                if (el && window.scrollY >= el.offsetTop - 100) {
-                    setActiveSection(section)
-                    break
-                }
-            }
-        }
-        window.addEventListener('scroll', handleScroll, { passive: true })
-        return () => window.removeEventListener('scroll', handleScroll)
-    }, [])
-
     const navLinks = [
         { label: t('landing.features'), href: ROUTES.FEATURES, id: 'features' },
         { label: t('landing.pricing'), href: ROUTES.PRICING, id: 'pricing' },
         { label: t('landing.comparison'), href: ROUTES.COMPARE, id: 'comparison' },
-        { label: t('nav.openClaw'), href: ROUTES.HOME, id: 'openclaw' },
-        { label: t('nav.hermes'), href: ROUTES.HERMES, id: 'hermes' }
+        { label: t('nav.agentistGo'), href: ROUTES.GO, id: 'go' }
     ]
 
     return (
-        <div className='relative min-h-screen bg-[#0a0a0f] text-white'>
+        <div className='relative min-h-screen bg-[#020204] text-white'>
             <PageTitle
                 title={t('v2.title')}
                 description={t('v2.description')}
@@ -190,18 +171,17 @@ const V2: FC = (): ReactNode => {
             <HeaderV2
                 showNavLinks={true}
                 navLinks={navLinks}
-                activeSection={activeSection}
             />
 
             <main className='v2-content'>
                 <section
-                    className='v2-video-wrap relative flex h-[85vh] cursor-crosshair flex-col justify-start overflow-hidden bg-black px-6 pt-[18vh]'
+                    className='v2-video-wrap relative flex h-[85vh] cursor-crosshair flex-col justify-start overflow-hidden px-6 pt-[18vh]'
                     onMouseMove={handleVideoMouseMove}
                     onMouseLeave={handleVideoMouseLeave}
                 >
                     <video
                         ref={baseVideoRef}
-                        className='v2-base-video absolute inset-0 h-full w-full object-cover'
+                        className='v2-base-video absolute inset-0 h-full w-full -translate-y-[20%] object-cover'
                         autoPlay
                         muted
                         loop
@@ -211,7 +191,7 @@ const V2: FC = (): ReactNode => {
                     </video>
                     <video
                         ref={ditherVideoRef}
-                        className='v2-hover-video absolute inset-0 h-full w-full object-cover brightness-125 contrast-110'
+                        className='v2-hover-video absolute inset-0 h-full w-full -translate-y-[20%] object-cover brightness-125 contrast-110'
                         autoPlay
                         muted
                         loop
@@ -220,39 +200,50 @@ const V2: FC = (): ReactNode => {
                         <source src={DITHER_VIDEO} type='video/mp4' />
                     </video>
 
-                    <div className='pointer-events-none absolute inset-0 bg-gradient-to-b from-[#0a0a0f]/90 via-[#0a0a0f]/50 to-transparent' />
+                    <div className='pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(10,10,15,0.9)_0%,rgba(10,10,15,0.3)_30%,#020204_70%)]' />
 
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 1.2 }}
-                        className='z-10 mx-auto w-full absolute max-w-6xl inset-0 flex flex-col justify-end px-6 pb-16'
-                    >
-                        <div className='mb-6 flex items-center gap-4'>
+                    <div className='z-10 mx-auto w-full absolute max-w-6xl inset-0 flex flex-col justify-end px-6 pb-16'>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                            className='mb-6 flex items-center gap-4'
+                        >
                             <SectionLabelV2 label='Multi Agent Platform' />
                             <div className='h-px flex-1 bg-white/10' />
-                        </div>
+                        </motion.div>
 
-                        <h1 className='mb-6 font-syne text-4xl font-bold uppercase leading-[0.95] tracking-tight text-white/90 md:text-6xl lg:text-[4.2rem]'>
+                        <motion.h1
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.4 }}
+                            className='mb-6 font-syne text-4xl font-bold uppercase leading-[0.95] tracking-tight text-white/90 md:text-6xl lg:text-[4.2rem]'
+                        >
                             {t('v2.heroTitle1')}{' '}
                             <span className='font-extrabold italic text-[#6B5CE7]'>
                                 {t('v2.heroTitle2')}
                             </span>
                             <br />
                             {t('v2.heroTitle3')}
-                        </h1>
+                        </motion.h1>
 
-                        <div className='flex flex-col gap-8 md:flex-row md:items-end md:justify-between'>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.7 }}
+                            className='flex flex-col gap-8 md:flex-row md:items-end md:justify-between'
+                        >
                             <p className='max-w-md font-mono text-sm leading-relaxed text-white/50'>
                                 {t('v2.heroDescription')}
                             </p>
                             <div className='flex gap-3'>
                                 <Link
                                     to={deployLink}
-                                    className='pointer-events-auto inline-flex items-center gap-2 bg-[#6B5CE7] px-6 py-3 font-mono text-xs font-semibold tracking-[0.1em] text-white transition-opacity hover:opacity-80'
+                                    className='group/deploy pointer-events-auto inline-flex items-center gap-2 bg-[#6B5CE7] px-6 py-3 font-mono text-xs font-semibold tracking-[0.1em] text-white transition-opacity hover:opacity-90'
                                 >
-                                    <LightningIcon className='h-3.5 w-3.5' weight='fill' />
+                                    <RocketLaunchIcon className='h-3.5 w-3.5' />
                                     {t('v2.deployButton').toUpperCase()}
+                                    <ArrowRightIcon className='h-3.5 w-3.5 transition-transform duration-200 group-hover/deploy:translate-x-1' />
                                 </Link>
                                 <a
                                     href={GITHUB_REPO_URL}
@@ -270,38 +261,40 @@ const V2: FC = (): ReactNode => {
                                     )}
                                 </a>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        <div className='mt-8 grid grid-cols-2 gap-px border border-white/10 md:grid-cols-5'>
-                            {[
-                                { value: t('landing.startingPriceValue', { price: 25 }), label: t('landing.pricing') },
-                                { value: t('go.statsZero'), label: t('go.statsZeroConfig') },
-                                { value: t('v2.stats2Value'), label: t('v2.stats2Label') },
-                                { value: t('v2.stats3Value'), label: t('v2.stats3Label') },
-                                { value: t('v2.stats4Value'), label: t('v2.stats4Label') }
-                            ].map((stat, i) => (
-                                <div key={i} className='border-white/10 bg-[#0a0a0f]/60 p-5 backdrop-blur-sm [&:not(:last-child)]:border-r'>
-                                    <div className='font-syne text-2xl font-bold text-white md:text-3xl'>
-                                        {stat.value}
-                                    </div>
-                                    <div className='font-mono text-[10px] tracking-[0.15em] text-white/40'>
-                                        {stat.label.toUpperCase()}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.div>
+                    </div>
                 </section>
 
-                <section id='agents' className='v2-section relative scroll-mt-24 border-t border-white/5 px-6 py-24'>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 1.0 }}
+                    className='relative z-10 mx-auto max-w-6xl px-6'
+                >
+                    <div className='-mt-1 grid grid-cols-2 border border-white/10 md:grid-cols-5'>
+                        {[
+                            { value: t('landing.startingPriceValue', { price: 25 }), label: t('landing.pricing') },
+                            { value: t('go.statsZero'), label: t('go.statsZeroConfig') },
+                            { value: t('v2.stats2Value'), label: t('v2.stats2Label') },
+                            { value: t('v2.stats3Value'), label: t('v2.stats3Label') },
+                            { value: t('v2.stats4Value'), label: t('v2.stats4Label') }
+                        ].map((stat, i) => (
+                            <div key={i} className='border-white/10 bg-[#020204] p-5 [&:not(:last-child)]:border-r'>
+                                <div className='font-syne text-2xl font-bold text-white md:text-3xl'>
+                                    {stat.value}
+                                </div>
+                                <div className='font-mono text-[10px] tracking-[0.15em] text-white/40'>
+                                    {stat.label.toUpperCase()}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+
+                <section id='agents' className='v2-section relative scroll-mt-24 px-6 py-24'>
                     <div className='mx-auto max-w-6xl'>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, margin: '-100px' }}
-                            transition={{ duration: 0.6 }}
-                            className='mb-16'
-                        >
+                        <ScrollRevealV2 className='mb-16'>
                             <SectionLabelV2 label='Agent Catalog' />
                             <h2 className='font-syne mb-4 text-4xl font-extrabold uppercase tracking-tight text-white md:text-5xl'>
                                 {t('v2.agentsTitle')}
@@ -309,17 +302,13 @@ const V2: FC = (): ReactNode => {
                             <p className='max-w-lg font-mono text-sm leading-relaxed text-white/40'>
                                 {t('v2.agentsDescription')}
                             </p>
-                        </motion.div>
+                        </ScrollRevealV2>
 
-                        <div className='grid gap-px border border-white/10 md:grid-cols-2'>
+                        <ScrollRevealV2 delay={0.2} className='relative z-[15] grid gap-px border border-white/10 md:grid-cols-2'>
                             {agents.map((agent, i) => (
-                                <motion.div
+                                <div
                                     key={i}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true, margin: '-50px' }}
-                                    transition={{ duration: 0.5, delay: i * 0.1 }}
-                                    className='group relative border-white/10 bg-white/[0.02] p-8 [&:not(:last-child)]:border-r'
+                                    className='group relative border-white/10 bg-[#070709] p-8 [&:not(:last-child)]:border-r'
                                 >
                                     <div className='mb-6 flex items-center justify-between'>
                                         <div className='text-white'>
@@ -345,9 +334,9 @@ const V2: FC = (): ReactNode => {
                                         DEPLOY
                                         <ArrowRightIcon className='h-3 w-3' />
                                     </Link>
-                                </motion.div>
+                                </div>
                             ))}
-                        </div>
+                        </ScrollRevealV2>
                     </div>
                 </section>
 
@@ -357,15 +346,15 @@ const V2: FC = (): ReactNode => {
                     description={t('v2.featuresDescription')}
                     features={[
                         { icon: CubeIcon, title: t('v2.feature1Title'), description: t('v2.feature1Description') },
-                        { icon: ClockIcon, title: t('landing.zeroConfig'), description: t('landing.zeroConfigDescription') },
+                        { icon: ClockIcon, title: t('landing.zeroConfig'), description: t('v2.zeroConfigDescription') },
                         { icon: LockIcon, title: t('landing.ownedData'), description: t('landing.ownedDataDescription') },
                         { icon: GaugeIcon, title: t('landing.fullSpeed'), description: t('landing.fullSpeedDescription') },
-                        { icon: GlobeIcon, title: t('landing.globalLocations'), description: t('landing.globalLocationsDescription') },
+                        { icon: GlobeIcon, title: t('landing.globalLocations'), description: t('v2.globalLocationsDescription') },
                         { icon: TerminalIcon, title: t('landing.fullSshAccess'), description: t('landing.fullSshAccessDescription') },
                         { icon: CreditCardIcon, title: t('landing.payAsYouGo'), description: t('landing.payAsYouGoDescription') },
-                        { icon: LinkIcon, title: t('landing.customSubdomains'), description: t('landing.customSubdomainsDescription') },
+                        { icon: LinkIcon, title: t('landing.customSubdomains'), description: t('v2.onlineAccessDescription') },
                         { icon: ShieldCheckIcon, title: t('landing.secure'), description: t('landing.secureDescription') },
-                        { icon: GitBranchIcon, title: t('landing.autoUpdates'), description: t('landing.autoUpdatesDescription') },
+                        { icon: GitBranchIcon, title: t('landing.autoUpdates'), description: t('v2.versionControlDescription') },
                         { icon: SlidersHorizontalIcon, title: t('v2.agentControlTitle'), description: t('v2.agentControlDescription') },
                         { icon: StackIcon, title: t('v2.multipleAgentsTitle'), description: t('v2.multipleAgentsDescription') }
                     ]}
@@ -378,20 +367,21 @@ const V2: FC = (): ReactNode => {
                 />
 
                 <ComparisonTableV2
+                    showFullComparisonLink={false}
                     badge={t('landing.comparison')}
                     heading={t('landing.comparisonTitle')}
                     description={t('landing.comparisonDescription')}
                     rows={[
-                        { us: t('nav.cloudSubtitle'), others: t('nav.goSubtitle') },
-                        { us: t('landing.comparisonOpenClawUs'), others: t('landing.comparisonOpenClawOthers') },
+                        { us: t('v2.comparisonUsLabel'), others: t('v2.comparisonOthersLabel') },
+                        { us: t('v2.comparisonAgentAccessUs'), others: t('landing.comparisonOpenClawOthers') },
                         { us: t('landing.comparisonPricingUs'), others: t('landing.comparisonPricingOthers') },
                         { us: t('landing.comparisonOwnershipUs'), others: t('landing.comparisonOwnershipOthers') },
                         { us: t('landing.comparisonSubdomainUs'), others: t('landing.comparisonSubdomainOthers') },
                         { us: t('landing.comparisonInfraUs'), others: t('landing.comparisonInfraOthers') },
                         { us: t('landing.comparisonDataUs'), others: t('landing.comparisonDataOthers') },
-                        { us: t('landing.comparisonMultipleUs'), others: t('landing.comparisonMultipleOthers') },
+                        { us: t('v2.comparisonMultipleAgentsUs'), others: t('v2.comparisonMultipleAgentsOthers') },
                         { us: t('landing.comparisonOpenSourceUs'), others: t('landing.comparisonOpenSourceOthers') },
-                        { us: t('landing.comparisonExportUs'), others: t('landing.comparisonExportOthers') },
+                        { us: t('v2.comparisonExportAgentsUs'), others: t('landing.comparisonExportOthers') },
                         { us: t('landing.comparisonProvidersUs'), others: t('landing.comparisonProvidersOthers') },
                         { us: t('landing.comparisonVersionUs'), others: t('landing.comparisonVersionOthers') },
                         { us: t('landing.comparisonTerminalUs'), others: t('landing.comparisonTerminalOthers') }
@@ -405,15 +395,9 @@ const V2: FC = (): ReactNode => {
                     faqs={getFaqs()}
                 />
 
-                <section className='v2-section relative border-t border-white/5 px-6 py-32'>
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: '-100px' }}
-                        transition={{ duration: 0.6 }}
-                        className='mx-auto max-w-6xl'
-                    >
-                        <div className='border border-white/10 bg-white/[0.02] p-12 md:p-16'>
+                <section className='v2-section relative px-6 py-32'>
+                    <ScrollRevealV2 className='mx-auto max-w-6xl'>
+                        <div className='relative z-[15] border border-white/10 bg-[#070709] p-12 md:p-16'>
                             <div className='flex flex-col items-center text-center'>
                                 <SectionLabelV2 label='Get Started' />
                                 <h2 className='font-syne mb-2 text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl'>
@@ -425,10 +409,11 @@ const V2: FC = (): ReactNode => {
                                 <div className='flex flex-col gap-3 sm:flex-row'>
                                     <Link
                                         to={deployLink}
-                                        className='inline-flex items-center gap-2 bg-[#6B5CE7] px-8 py-4 font-mono text-xs font-semibold tracking-[0.15em] text-white transition-opacity hover:opacity-80'
+                                        className='group/deploy inline-flex items-center gap-2 bg-[#6B5CE7] px-8 py-4 font-mono text-xs font-semibold tracking-[0.15em] text-white transition-opacity hover:opacity-90'
                                     >
-                                        <LightningIcon className='h-3.5 w-3.5' weight='fill' />
+                                        <RocketLaunchIcon className='h-3.5 w-3.5' />
                                         {t('v2.deployButton').toUpperCase()}
+                                        <ArrowRightIcon className='h-3.5 w-3.5 transition-transform duration-200 group-hover/deploy:translate-x-1' />
                                     </Link>
                                     <a
                                         href={GITHUB_REPO_URL}
@@ -438,11 +423,17 @@ const V2: FC = (): ReactNode => {
                                     >
                                         <GithubLogoIcon className='h-3.5 w-3.5' weight='fill' />
                                         {t('v2.selfHostLabel').toUpperCase()}
+                                        {gitHubStars && (
+                                            <span className='flex items-center gap-1 bg-white/10 px-2 py-0.5 text-[10px]'>
+                                                {gitHubStars.formatted}
+                                                <span className='text-[10px]'>★</span>
+                                            </span>
+                                        )}
                                     </a>
                                 </div>
                             </div>
                         </div>
-                    </motion.div>
+                    </ScrollRevealV2>
                 </section>
             </main>
 

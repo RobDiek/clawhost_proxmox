@@ -12,7 +12,7 @@ const PATHS = {
     CHANGELOG: 'changelog',
     AFFILIATE: 'affiliate',
     AFFILIATE_PROGRAM: 'affiliate-program',
-    COMPARE: 'full-comparison',
+    COMPARE: 'comparison',
     HERMES: 'hermes',
     HERMES_GO: 'hermes-go',
     V2: 'v2',

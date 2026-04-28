@@ -11,7 +11,7 @@ const RebrandBannerV2: FC = (): ReactNode => {
 
     return (
         <div className='animate-banner-enter relative z-50 overflow-hidden'>
-            <div className='relative border-b border-[#6B5CE7]/20 bg-[#0a0a0f]'>
+            <div className='relative border-b border-[#6B5CE7]/20 bg-[#020204]'>
                 <div className='absolute inset-0 bg-gradient-to-r from-[#6B5CE7]/10 via-transparent to-[#6B5CE7]/10' />
                 <div className='absolute inset-0 overflow-hidden'>
                     <div className='absolute -left-4 top-1/2 h-px w-16 -translate-y-1/2 bg-gradient-to-r from-transparent to-[#6B5CE7]/30' />

@@ -372,6 +372,17 @@ export interface FooterLink {
     external?: boolean
 }
 
+export interface FooterSocialLink {
+    url: string
+    ariaKey: TranslationKey
+    Icon: ElementType
+}
+
+export interface FooterRouteLink {
+    route: string
+    labelKey: TranslationKey
+}
+
 export interface LogoProps {
     to?: string
 }
@@ -403,6 +414,12 @@ export interface SupportButtonProps {
 
 export interface SectionLabelV2Props {
     label: string
+}
+
+export interface ScrollRevealV2Props {
+    children: ReactNode
+    delay?: number
+    className?: string
 }
 
 export interface HeaderProps {

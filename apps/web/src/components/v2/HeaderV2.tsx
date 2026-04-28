@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { HeaderProps } from '@/ts/Interfaces'
 
 import { Fragment, useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { ListIcon, XIcon } from '@phosphor-icons/react'
@@ -16,10 +16,10 @@ import { Skeleton } from '@/components/ui'
 
 const HeaderV2: FC<HeaderProps> = ({
     showNavLinks = false,
-    navLinks = [],
-    activeSection = ''
+    navLinks = []
 }): ReactNode => {
     const { user, loading: authLoading, cachedProfile, signOut } = useAuth()
+    const { pathname } = useLocation()
     const [scrolled, setScrolled] = useState(false)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -57,9 +57,9 @@ const HeaderV2: FC<HeaderProps> = ({
             <header
                 className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
                     mobileMenuOpen
-                        ? 'border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl'
+                        ? 'border-b border-white/5 bg-[#020204]/80 backdrop-blur-xl'
                         : scrolled
-                          ? 'border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl'
+                          ? 'border-b border-white/5 bg-[#020204]/80 backdrop-blur-xl'
                           : 'border-b border-transparent bg-transparent'
                 }`}
             >
@@ -73,22 +73,22 @@ const HeaderV2: FC<HeaderProps> = ({
                             aria-label={t('nav.mainNavigation')}
                         >
                             {navLinks.map((link) => (
-                                <a
+                                <Link
                                     key={link.href}
-                                    href={link.href}
+                                    to={link.href}
                                     aria-current={
-                                        activeSection === link.id
-                                            ? 'true'
+                                        pathname === link.href
+                                            ? 'page'
                                             : undefined
                                     }
                                     className={`font-mono text-xs uppercase tracking-[0.1em] transition ${
-                                        activeSection === link.id
+                                        pathname === link.href
                                             ? 'text-white'
                                             : 'text-white/40 hover:text-white'
                                     }`}
                                 >
                                     {link.label}
-                                </a>
+                                </Link>
                             ))}
                         </nav>
                     )}
@@ -152,22 +152,22 @@ const HeaderV2: FC<HeaderProps> = ({
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.2 }}
-                                className='border-b border-white/5 bg-[#0a0a0f] px-6 pb-6 pt-2 md:hidden'
+                                className='border-b border-white/5 bg-[#020204] px-6 pb-6 pt-2 md:hidden'
                             >
                                 <nav className='flex flex-col gap-1'>
                                     {navLinks.map((link) => (
-                                        <a
+                                        <Link
                                             key={link.href}
-                                            href={link.href}
+                                            to={link.href}
                                             onClick={closeMobileMenu}
                                             className={`px-3 py-2.5 font-mono text-xs uppercase tracking-[0.1em] transition ${
-                                                activeSection === link.id
+                                                pathname === link.href
                                                     ? 'bg-white/5 text-white'
                                                     : 'text-white/40 hover:bg-white/5 hover:text-white'
                                             }`}
                                         >
                                             {link.label}
-                                        </a>
+                                        </Link>
                                     ))}
                                 </nav>
                                 <div className='flex items-center gap-1.5 border-t border-white/5 pt-4 sm:hidden'>

@@ -13,7 +13,7 @@ describe('PATHS', () => {
         expect(PATHS.TERMS).toBe('terms')
         expect(PATHS.PRIVACY).toBe('privacy')
         expect(PATHS.CHANGELOG).toBe('changelog')
-        expect(PATHS.COMPARE).toBe('full-comparison')
+        expect(PATHS.COMPARE).toBe('comparison')
         expect(PATHS.GO).toBe('go')
         expect(PATHS.LICENSE).toBe('license')
     })

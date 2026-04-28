@@ -4,6 +4,7 @@ import type { FaqSectionProps } from '@/ts/Interfaces'
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CaretDownIcon } from '@phosphor-icons/react'
+import ScrollRevealV2 from '@/components/v2/ScrollRevealV2'
 import SectionLabelV2 from '@/components/v2/SectionLabelV2'
 
 const FaqSectionV2: FC<FaqSectionProps> = ({
@@ -17,10 +18,10 @@ const FaqSectionV2: FC<FaqSectionProps> = ({
     return (
         <section
             id='faq'
-            className='v2-section scroll-mt-24 border-t border-white/5 px-6 py-24'
+            className='v2-section scroll-mt-24 px-6 py-24'
         >
             <div className='mx-auto max-w-6xl'>
-                <div className='mb-16'>
+                <ScrollRevealV2 className='mb-16'>
                     <SectionLabelV2 label={badge} />
                     <h2 className='font-syne mb-4 text-4xl font-extrabold uppercase tracking-tight text-white md:text-5xl'>
                         {heading}
@@ -28,13 +29,13 @@ const FaqSectionV2: FC<FaqSectionProps> = ({
                     <p className='max-w-xl font-mono text-sm leading-relaxed text-white/40'>
                         {description}
                     </p>
-                </div>
+                </ScrollRevealV2>
 
-                <div className='divide-y divide-white/10 border border-white/10'>
+                <ScrollRevealV2 delay={0.2} className='relative z-[15] divide-y divide-white/10 border border-white/10'>
                     {faqs.map((faq, i) => (
                         <div
                             key={i}
-                            className='bg-white/[0.02]'
+                            className='bg-[#070709]'
                         >
                             <button
                                 onClick={() =>
@@ -76,7 +77,7 @@ const FaqSectionV2: FC<FaqSectionProps> = ({
                             </AnimatePresence>
                         </div>
                     ))}
-                </div>
+                </ScrollRevealV2>
             </div>
         </section>
     )

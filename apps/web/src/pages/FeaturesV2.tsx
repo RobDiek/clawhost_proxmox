@@ -58,6 +58,13 @@ const FeaturesV2: FC = (): ReactNode => {
         ? `${ROUTES.AGENTS}?deploy=true`
         : `${ROUTES.LOGIN}?deploy=true`
 
+    const navLinks = [
+        { label: t('landing.features'), href: ROUTES.FEATURES, id: 'features' },
+        { label: t('landing.pricing'), href: ROUTES.PRICING, id: 'pricing' },
+        { label: t('landing.comparison'), href: ROUTES.COMPARE, id: 'comparison' },
+        { label: t('nav.agentistGo'), href: ROUTES.GO, id: 'go' }
+    ]
+
     return (
         <div className='relative min-h-screen bg-[#0a0a0f] text-white'>
             <PageTitle
@@ -79,7 +86,7 @@ const FeaturesV2: FC = (): ReactNode => {
             <div className='v2-grid pointer-events-none' />
             <div className='v2-gradient pointer-events-none fixed inset-0' />
 
-            <HeaderV2 />
+            <HeaderV2 showNavLinks={true} navLinks={navLinks} />
 
             <main className='v2-content'>
                 <section className='v2-section relative px-6 pb-24 pt-40'>
@@ -109,21 +116,21 @@ const FeaturesV2: FC = (): ReactNode => {
                     description={t('v2.featuresDescription')}
                     features={[
                         { icon: CubeIcon, title: t('v2.feature1Title'), description: t('v2.feature1Description') },
-                        { icon: ClockIcon, title: t('landing.zeroConfig'), description: t('landing.zeroConfigDescription') },
+                        { icon: ClockIcon, title: t('landing.zeroConfig'), description: t('v2.zeroConfigDescription') },
                         { icon: LockIcon, title: t('landing.ownedData'), description: t('landing.ownedDataDescription') },
                         { icon: GaugeIcon, title: t('landing.fullSpeed'), description: t('landing.fullSpeedDescription') },
-                        { icon: GlobeIcon, title: t('landing.globalLocations'), description: t('landing.globalLocationsDescription') },
+                        { icon: GlobeIcon, title: t('landing.globalLocations'), description: t('v2.globalLocationsDescription') },
                         { icon: TerminalIcon, title: t('landing.fullSshAccess'), description: t('landing.fullSshAccessDescription') },
                         { icon: CreditCardIcon, title: t('landing.payAsYouGo'), description: t('landing.payAsYouGoDescription') },
-                        { icon: LinkIcon, title: t('landing.customSubdomains'), description: t('landing.customSubdomainsDescription') },
+                        { icon: LinkIcon, title: t('landing.customSubdomains'), description: t('v2.onlineAccessDescription') },
                         { icon: ShieldCheckIcon, title: t('landing.secure'), description: t('landing.secureDescription') },
-                        { icon: GitBranchIcon, title: t('landing.autoUpdates'), description: t('landing.autoUpdatesDescription') },
+                        { icon: GitBranchIcon, title: t('landing.autoUpdates'), description: t('v2.versionControlDescription') },
                         { icon: SlidersHorizontalIcon, title: t('v2.agentControlTitle'), description: t('v2.agentControlDescription') },
                         { icon: StackIcon, title: t('v2.multipleAgentsTitle'), description: t('v2.multipleAgentsDescription') }
                     ]}
                 />
 
-                <section className='v2-section relative scroll-mt-24 border-t border-white/5 px-6 py-24'>
+                <section className='v2-section relative scroll-mt-24 px-6 py-24'>
                     <div className='mx-auto max-w-6xl'>
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -182,20 +189,21 @@ const FeaturesV2: FC = (): ReactNode => {
                 </section>
 
                 <ComparisonTableV2
+                    showFullComparisonLink={false}
                     badge={t('landing.comparison')}
                     heading={t('landing.comparisonTitle')}
                     description={t('landing.comparisonDescription')}
                     rows={[
-                        { us: t('nav.cloudSubtitle'), others: t('nav.goSubtitle') },
-                        { us: t('landing.comparisonOpenClawUs'), others: t('landing.comparisonOpenClawOthers') },
+                        { us: t('v2.comparisonUsLabel'), others: t('v2.comparisonOthersLabel') },
+                        { us: t('v2.comparisonAgentAccessUs'), others: t('landing.comparisonOpenClawOthers') },
                         { us: t('landing.comparisonPricingUs'), others: t('landing.comparisonPricingOthers') },
                         { us: t('landing.comparisonOwnershipUs'), others: t('landing.comparisonOwnershipOthers') },
                         { us: t('landing.comparisonSubdomainUs'), others: t('landing.comparisonSubdomainOthers') },
                         { us: t('landing.comparisonInfraUs'), others: t('landing.comparisonInfraOthers') },
                         { us: t('landing.comparisonDataUs'), others: t('landing.comparisonDataOthers') },
-                        { us: t('landing.comparisonMultipleUs'), others: t('landing.comparisonMultipleOthers') },
+                        { us: t('v2.comparisonMultipleAgentsUs'), others: t('v2.comparisonMultipleAgentsOthers') },
                         { us: t('landing.comparisonOpenSourceUs'), others: t('landing.comparisonOpenSourceOthers') },
-                        { us: t('landing.comparisonExportUs'), others: t('landing.comparisonExportOthers') },
+                        { us: t('v2.comparisonExportAgentsUs'), others: t('landing.comparisonExportOthers') },
                         { us: t('landing.comparisonProvidersUs'), others: t('landing.comparisonProvidersOthers') },
                         { us: t('landing.comparisonVersionUs'), others: t('landing.comparisonVersionOthers') },
                         { us: t('landing.comparisonTerminalUs'), others: t('landing.comparisonTerminalOthers') }
@@ -207,17 +215,17 @@ const FeaturesV2: FC = (): ReactNode => {
                     heading={t('landing.frequentlyAskedQuestions')}
                     description={t('landing.faqDescription')}
                     faqs={[
-                        { question: t('landing.faq1Question'), answer: t('landing.faq1Answer') },
-                        { question: t('landing.faq2Question'), answer: t('landing.faq2Answer') },
-                        { question: t('landing.faq3Question'), answer: t('landing.faq3Answer') },
-                        { question: t('landing.faq4Question'), answer: t('landing.faq4Answer') },
-                        { question: t('landing.faq5Question'), answer: t('landing.faq5Answer') },
-                        { question: t('landing.faq6Question'), answer: t('landing.faq6Answer') },
-                        { question: t('landing.faq7Question'), answer: t('landing.faq7Answer') }
+                        { question: t('v2.faq1Question'), answer: t('v2.faq1Answer') },
+                        { question: t('v2.faq2Question'), answer: t('v2.faq2Answer') },
+                        { question: t('v2.faq3Question'), answer: t('v2.faq3Answer') },
+                        { question: t('v2.faq4Question'), answer: t('v2.faq4Answer') },
+                        { question: t('v2.faq5Question'), answer: t('v2.faq5Answer') },
+                        { question: t('v2.faq6Question'), answer: t('v2.faq6Answer') },
+                        { question: t('v2.faq7Question'), answer: t('v2.faq7Answer') }
                     ]}
                 />
 
-                <section className='v2-section relative border-t border-white/5 px-6 py-32'>
+                <section className='v2-section relative px-6 py-32'>
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}

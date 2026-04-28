@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth'
 import { ROUTES } from '@/lib'
 import { CheckIcon, XIcon } from '@phosphor-icons/react'
 import buildV2Plans from '@/components/v2/buildV2Plans'
+import ScrollRevealV2 from '@/components/v2/ScrollRevealV2'
 import SectionLabelV2 from '@/components/v2/SectionLabelV2'
 
 const PricingSectionV2: FC<PricingSectionProps> = ({
@@ -19,10 +20,10 @@ const PricingSectionV2: FC<PricingSectionProps> = ({
     return (
         <section
             id='pricing'
-            className='v2-section scroll-mt-24 border-t border-white/5 px-6 py-24'
+            className='v2-section scroll-mt-24 px-6 py-24'
         >
             <div className='mx-auto max-w-6xl'>
-                <div className='mb-16'>
+                <ScrollRevealV2 className='mb-16'>
                     <SectionLabelV2 label='Pricing' />
                     <h2 className='font-syne mb-4 text-4xl font-extrabold uppercase tracking-tight text-white md:text-5xl'>
                         {t('v2.pricingTitle')}
@@ -30,19 +31,19 @@ const PricingSectionV2: FC<PricingSectionProps> = ({
                     <p className='max-w-xl font-mono text-sm leading-relaxed text-white/40'>
                         {t('landing.pricingDescription')}
                     </p>
-                </div>
+                </ScrollRevealV2>
 
                 {plansLoading || (!allDoneLoading && !plans?.length) ? (
                     <div className='py-12 text-center font-mono text-sm text-white/30'>
                         {t('common.loading')}
                     </div>
                 ) : plans && plans.length > 0 ? (
-                    <div className='grid grid-cols-1 gap-px border border-white/10 sm:grid-cols-2 lg:grid-cols-4'>
+                    <ScrollRevealV2 delay={0.2} className='relative z-[15] grid grid-cols-1 gap-px border border-white/10 sm:grid-cols-2 lg:grid-cols-4'>
                         {buildV2Plans(plans).map((sp) => (
                             <div
                                 key={sp.planId}
-                                className={`flex flex-col justify-between border-white/10 bg-white/[0.02] p-6 [&:not(:last-child)]:border-r ${
-                                    sp.popular ? 'bg-[#6B5CE7]/5' : ''
+                                className={`flex flex-col justify-between border-white/10 bg-[#070709] p-6 [&:not(:last-child)]:border-r ${
+                                    sp.popular ? 'bg-[#0d0b1a]' : ''
                                 }`}
                             >
                                 <div>
@@ -108,37 +109,13 @@ const PricingSectionV2: FC<PricingSectionProps> = ({
                                 </Link>
                             </div>
                         ))}
-                    </div>
+                    </ScrollRevealV2>
                 ) : (
                     <div className='py-12 text-center font-mono text-sm text-white/30'>
                         {t('errors.unableToLoadPricing')}
                     </div>
                 )}
 
-                <div className='mt-8 border border-white/10 bg-white/[0.02] p-4'>
-                    <div className='flex flex-wrap items-center justify-center gap-6 font-mono text-xs text-white/40'>
-                        <div className='flex items-center gap-2'>
-                            <CheckIcon size={12} className='text-[#6B5CE7]' />
-                            <span>{t('landing.unlimitedBandwidth')}</span>
-                        </div>
-                        <div className='flex items-center gap-2'>
-                            <CheckIcon size={12} className='text-[#6B5CE7]' />
-                            <span>{t('landing.rootSshAccess')}</span>
-                        </div>
-                        <div className='flex items-center gap-2'>
-                            <CheckIcon size={12} className='text-[#6B5CE7]' />
-                            <span>{t('landing.onlineAllDay')}</span>
-                        </div>
-                        <div className='flex items-center gap-2'>
-                            <CheckIcon size={12} className='text-[#6B5CE7]' />
-                            <span>{t('landing.fastInternet')}</span>
-                        </div>
-                        <div className='flex items-center gap-2'>
-                            <CheckIcon size={12} className='text-[#6B5CE7]' />
-                            <span>{t('landing.emailSupport')}</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
     )

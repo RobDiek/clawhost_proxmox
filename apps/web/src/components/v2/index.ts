@@ -6,6 +6,7 @@ import FooterV2 from '@/components/v2/FooterV2'
 import HeaderV2 from '@/components/v2/HeaderV2'
 import PricingSectionV2 from '@/components/v2/PricingSectionV2'
 import RebrandBannerV2 from '@/components/v2/RebrandBannerV2'
+import ScrollRevealV2 from '@/components/v2/ScrollRevealV2'
 import SectionLabelV2 from '@/components/v2/SectionLabelV2'
 import buildV2Plans from '@/components/v2/buildV2Plans'
 
@@ -18,6 +19,7 @@ export {
     HeaderV2,
     PricingSectionV2,
     RebrandBannerV2,
+    ScrollRevealV2,
     SectionLabelV2,
     buildV2Plans
 }

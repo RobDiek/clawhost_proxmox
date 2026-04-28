@@ -55,6 +55,7 @@ import {
     HeaderV2,
     PricingSectionV2,
     RebrandBannerV2,
+    ScrollRevealV2,
     SectionLabelV2
 } from '@/components/v2'
 
@@ -131,5 +132,6 @@ export {
     HeaderV2,
     PricingSectionV2,
     RebrandBannerV2,
+    ScrollRevealV2,
     SectionLabelV2
 }
