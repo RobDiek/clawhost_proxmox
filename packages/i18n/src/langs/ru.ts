@@ -90,7 +90,8 @@ const ru: Translations = {
         go: 'Go',
         goSubtitle: 'Нетехническое',
         hermes: 'Hermes',
-        openClaw: 'OpenClaw'
+        openClaw: 'OpenClaw',
+        agentistGo: 'Agentist Go'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -247,7 +248,7 @@ const ru: Translations = {
         affiliateProgram: 'Партнёрская программа',
         documentation: 'Документация',
         productDescription:
-            'Разворачивайте агентов OpenClaw в облаке или локально в один клик — создавайте, подключайте и масштабируйте ваших ИИ-агентов быстрее с ClawHost.',
+            'Разворачивайте агентов OpenClaw и Hermes в облаке или локально в один клик — создавайте, подключайте и масштабируйте ваших ИИ-агентов быстрее с ClawHost.',
         downloadAndroid: 'Скачать в Google Play',
         downloadIos: 'Скачать в App Store',
         ariaGithub: 'GitHub',
@@ -1081,7 +1082,7 @@ const ru: Translations = {
         heroTitle1: 'Развернуть OpenClaw.',
         heroTitle2: 'Один клик. Готово.',
         heroDescription:
-            'Разворачивайте агентов OpenClaw в облаке или локально в один клик — создавайте, подключайте и масштабируйте ваших ИИ-агентов быстрее с ClawHost.',
+            'Разворачивайте агентов OpenClaw и Hermes в облаке или локально в один клик — создавайте, подключайте и масштабируйте ваших ИИ-агентов быстрее с ClawHost.',
         goToClaws: 'Перейти к клоу',
         selfHost: 'Открытый код',
         startingPrice: 'От',
@@ -1308,34 +1309,12 @@ const ru: Translations = {
         description:
             'Отслеживайте обновления, новые функции и улучшения ClawHost.',
         subtitle: 'Все обновления, новые функции и улучшения ClawHost.',
-        upcomingRelease: 'В процессе',
-        upcomingReleaseTitle: 'Мобильное приложение и другое',
-        upcomingReleaseDescription:
-            'Управляйте экземплярами OpenClaw из любого места. Нативное мобильное приложение и постоянные улучшения платформы.',
-        upcomingReleaseFeature1:
-            'Нативное мобильное приложение для мониторинга и управления экземплярами OpenClaw на ходу',
-        upcomingReleaseFeature13:
-            'ClawHost Go для macOS и Windows, локальное развёртывание OpenClaw в один клик',
-        upcomingReleaseFeature14:
-            'Развёртывание в один клик для агентов Hermes, таких как OpenClaw',
-        upcomingReleaseFeature3: 'Поддержка тёмной и светлой тем',
-        upcomingReleaseFeature4:
-            'Улучшения производительности, стабильности и отзывчивости',
-        upcomingReleaseFeature5:
-            'Мультиязычная поддержка: английский, французский, испанский и немецкий',
-        upcomingReleaseFeature6:
-            'Страницы сравнения с подробным разбором конкурентов',
-        upcomingReleaseFeature7: 'Рефакторинг структуры Playground и упрощения',
-        upcomingReleaseFeature8:
-            'Запросы функций, автоматически управляемые и публикуемые агентами OpenClaw',
-        upcomingReleaseFeature9:
-            'Голосовой режим для взаимодействия с агентами OpenClaw на ClawHost (бета)',
-        upcomingReleaseFeature10:
-            'Переустановка OpenClaw на экземпляре для чистого старта, доступна раз в день',
-        upcomingReleaseFeature11:
-            'Лендинг для ClawHost Go, локальный хостинг с ClawHost',
-        upcomingReleaseFeature12:
-            'Настольное приложение для macOS и Windows для локального развёртывания OpenClaw в один клик',
+        release17Date: '29 апреля 2026',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            'Развёртывание в один клик для агентов Hermes на ClawHost, как и OpenClaw.',
+        release17Feature1:
+            'Развёртывание в один клик для агентов Hermes, как OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1935,6 +1914,11 @@ const ru: Translations = {
         title: 'ClawHost теперь Agentist',
         mission: 'Создаём инфраструктуру для автономных ИИ-агентов.'
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'Агенты Hermes теперь поддерживаются для развёртывания на ClawHost.',
+        deploy: 'Развернуть сейчас'
+    },
     compare: {
         title: 'Полное сравнение',
         description:
@@ -2340,13 +2324,13 @@ const ru: Translations = {
         heroTitle1: 'Разверните',
         heroTitle2: 'ИИ-агентов',
         heroTitle3: 'в Облаке в один Клик',
-        heroDescription: 'Разверните агентов OpenClaw и Hermes в облаке одним кликом — с открытым исходным кодом, самостоятельно размещаемые и работающие на выделенной инфраструктуре менее чем за 60 секунд.',
+        heroDescription: 'Разверните агентов OpenClaw и Hermes в облаке одним кликом — создавайте, подключайте и масштабируйте своих ИИ-агентов быстрее с Agentist.',
         badge: 'Представляем agent.ic',
         selfHostLabel: 'Разместить Самостоятельно',
         deployButton: 'Развернуть Сейчас',
         learnMore: 'Узнать Больше',
         agentsTitle: 'Ваши Агенты. Ваше Облако.',
-        agentsDescription: 'Выбирайте из растущего каталога AI-агентов, каждый из которых работает на собственном выделенном VPS.',
+        agentsDescription: 'Выбирайте из растущего каталога AI-агентов, каждый из которых работает на собственном выделенном облачном сервере.',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: 'Самостоятельно размещаемая платформа управления облаком с полным SSH, терминалом, файловым менеджером и редактором конфигурации.',
         agentHermesName: 'Hermes',
@@ -2366,9 +2350,9 @@ const ru: Translations = {
         feature1Title: 'Мультиагентная Платформа',
         feature1Description: 'Разворачивайте и управляйте несколькими типами агентов из одной панели управления.',
         agentControlTitle: 'Полный контроль агентов',
-        agentControlDescription: 'Управляйте, настраивайте и кастомизируйте каждый аспект ваших агентов из единой панели управления.',
+        agentControlDescription: 'Настраивайте и кастомизируйте каждый аспект ваших агентов из одной панели управления.',
         multipleAgentsTitle: 'Несколько агентов',
-        multipleAgentsDescription: 'Разворачивайте и управляйте несколькими экземплярами агентов в разных регионах и конфигурациях.',
+        multipleAgentsDescription: 'Запускайте несколько экземпляров агентов в разных регионах и конфигурациях.',
         feature2Title: 'Выделенная Инфраструктура',
         feature2Description: 'Каждый агент работает на собственном VPS. Никаких общих ресурсов, никаких шумных соседей.',
         feature3Title: 'Глобальная Edge Сеть',
@@ -2379,6 +2363,32 @@ const ru: Translations = {
         feature5Description: 'SSH, терминал, файловый менеджер и редактор конфигурации. Ваш сервер, ваши правила.',
         feature6Title: 'Оплата по Использованию',
         feature6Description: 'Без обязательств. Масштабируйте вверх или вниз. Платите только за то, что используете.',
+        zeroConfigDescription: 'Пропустите часы настройки. OpenClaw и Hermes предустановлены и готовы за считанные минуты.',
+        globalLocationsDescription: 'Разворачивайте агентов в более чем 30 глобальных регионах. Выбирайте ближайшую локацию.',
+        onlineAccessDescription: 'Получайте безопасный доступ к вашим агентам откуда угодно через собственный поддомен.',
+        versionControlDescription: 'Переключайте версии агента одним кликом. Оставайтесь в курсе обновлений или откатывайтесь.',
+        agentsPreinstalled: 'Агенты предустановлены',
+        comparisonAgentAccessUs: 'Полный доступ ко всем агентам',
+        comparisonMultipleAgentsUs: 'Несколько агентов на сервер',
+        comparisonMultipleAgentsOthers: 'Только один агент',
+        comparisonExportAgentsUs: 'Экспортируйте агентов куда угодно',
+        comparisonUsLabel: 'Управляется за вас',
+        comparisonOthersLabel: 'Сделай сам',
+        faq1Question: 'Что такое Agentist?',
+        faq1Answer: 'Agentist — это платформа, которая позволяет развёртывать и управлять ИИ-агентами на собственных выделенных серверах. Мы берём на себя инфраструктуру, безопасность и обслуживание — вы просто используете своих агентов.',
+        faq2Question: 'Что такое OpenClaw?',
+        faq2Answer: 'OpenClaw — это самостоятельно размещаемый безопасный уровень доступа для ваших ИИ-инструментов и сервисов. Он предустановлен на каждом сервере Agentist и даёт вам полный контроль над настройкой.',
+        faq3Question: 'Что такое Hermes?',
+        faq3Answer: 'Hermes — это автономный ИИ-агент с веб-сёрфингом, управлением календарём, мультимодельным рассуждением и автоматизацией браузера. Он предустановлен вместе с OpenClaw на каждом сервере.',
+        faq4Question: 'Нужны ли мне технические знания?',
+        faq4Answer: 'Нет. Agentist создан для всех. Мы берём на себя всю инфраструктуру, настройку и обслуживание. Вы можете управлять своими агентами через интуитивную панель управления, не касаясь серверов.',
+        faq5Question: 'Чем это отличается от других ИИ-платформ?',
+        faq5Answer: 'В отличие от размещённых ИИ-инструментов, Agentist даёт вам настоящий выделенный сервер с установленными агентами. Вы владеете инфраструктурой, контролируете всё и не ограничены общими платформами.',
+        faq6Question: 'Какие локации доступны?',
+        faq6Answer: 'Мы предлагаем более 30 серверных локаций по всему миру, включая США, Европу и Азию. Вы можете развёртывать агентов на нескольких серверах в разных регионах.',
+        faq7Question: 'Сколько это стоит?',
+        faq7Answer: 'Цены начинаются от 40 $/месяц в зависимости от выбранного сервера. Множество вариантов от начального уровня до высокопроизводительных. Без скрытых платежей, отмена в любое время.',
+        footerDescription: 'Разверните агентов OpenClaw и Hermes в облаке одним кликом — создавайте, подключайте и масштабируйте своих ИИ-агентов быстрее с Agentist.',
         ctaTitle: 'Готовы к Развёртыванию?',
         ctaDescription: 'Присоединяйтесь к новому поколению развёртывания агентов. Ваша инфраструктура, ваши агенты, ваши правила.',
         stats1Value: 'OpenClaw & Hermes',

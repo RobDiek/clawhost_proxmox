@@ -3,7 +3,7 @@ import type { PreferencesState } from '@/ts/Interfaces'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { setLanguage as setI18nLanguage, loadLanguage } from '@openclaw/i18n'
-import { AGENT, AFFILIATE_PERIOD, THEMES, LANGUAGES } from '@/lib/constants'
+import { AFFILIATE_PERIOD, THEMES, LANGUAGES } from '@/lib/constants'
 import STORAGE_KEYS from '@/lib/storageKeys'
 
 const usePreferencesStore = create<PreferencesState>()(
@@ -24,8 +24,6 @@ const usePreferencesStore = create<PreferencesState>()(
             setOpenLinksWindowed: (value) => set({ openLinksWindowed: value }),
             product: 'cloud',
             setProduct: (product) => set({ product }),
-            agent: AGENT.OPENCLAW,
-            setAgent: (agent) => set({ agent }),
             affiliatePeriod: AFFILIATE_PERIOD.ALL,
             setAffiliatePeriod: (period) => set({ affiliatePeriod: period }),
             sidebarCollapsed: false,
@@ -54,9 +52,6 @@ const usePreferencesStore = create<PreferencesState>()(
                 }
                 if (version < 8) {
                     state.sidebarCollapsed = state.sidebarCollapsed ?? false
-                }
-                if (version < 9) {
-                    state.agent = state.agent || AGENT.OPENCLAW
                 }
                 return state
             },

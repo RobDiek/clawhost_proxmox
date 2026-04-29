@@ -12,7 +12,6 @@ import type { TranslationKey } from '@openclaw/i18n'
 import type {
     AdminAnalyticsRange,
     AffiliatePeriod,
-    AgentSelection,
     AgentType,
     AuthMethod,
     BillingInterval,
@@ -86,12 +85,6 @@ export interface Plan {
     priceMonthly: number
     priceYearly: number
     architecture: string
-    disabled?: boolean
-}
-
-export interface PlansResponse {
-    plans: Plan[]
-    atCapacity: boolean
 }
 
 export interface Location {
@@ -258,6 +251,8 @@ export interface UIState {
     dismissPhBanner: () => void
     rebrandBannerVisible: boolean
     dismissRebrandBanner: () => void
+    hermesBannerVisible: boolean
+    dismissHermesBanner: () => void
 }
 
 export interface PreferencesState {
@@ -271,8 +266,6 @@ export interface PreferencesState {
     setOpenLinksWindowed: (value: boolean) => void
     product: Product
     setProduct: (product: Product) => void
-    agent: AgentSelection
-    setAgent: (agent: AgentSelection) => void
     affiliatePeriod: AffiliatePeriod
     setAffiliatePeriod: (period: AffiliatePeriod) => void
     sidebarCollapsed: boolean
@@ -372,6 +365,17 @@ export interface FooterLink {
     external?: boolean
 }
 
+export interface FooterSocialLink {
+    url: string
+    ariaKey: TranslationKey
+    Icon: ElementType
+}
+
+export interface FooterRouteLink {
+    route: string
+    labelKey: TranslationKey
+}
+
 export interface LogoProps {
     to?: string
 }
@@ -405,6 +409,18 @@ export interface SectionLabelV2Props {
     label: string
 }
 
+export interface ScrollRevealV2Props {
+    children: ReactNode
+    delay?: number
+    className?: string
+}
+
+export interface DitherHoverHandlers {
+    onMouseMove: (e: import('react').MouseEvent<HTMLElement>) => void
+    onMouseLeave: (e: import('react').MouseEvent<HTMLElement>) => void
+    resetDither: (el: HTMLElement | null) => void
+}
+
 export interface HeaderProps {
     showNavLinks?: boolean
     navLinks?: NavLink[]
@@ -422,6 +438,7 @@ export interface FeaturesGridProps {
     heading: string
     description: string
     features: FeatureItem[]
+    hideBorderTop?: boolean
 }
 
 export interface LandingDemoPreviewProps {
@@ -1396,9 +1413,13 @@ export interface VideoModalProps {
 }
 
 export interface PricingSectionProps {
-    plans: Plan[] | undefined
-    plansLoading: boolean
-    allDoneLoading: boolean
+    plans: Plan[]
+    hideBorderTop?: boolean
+}
+
+export interface BillingToggleV2Props {
+    isYearly: boolean
+    onChange: (isYearly: boolean) => void
 }
 
 export interface SimplePlanFeature {
@@ -1627,7 +1648,6 @@ export interface LocationSelectorProps {
     locations: Location[]
     location: string
     planId: string
-    atCapacity: boolean
     isLoading: boolean
     isLocationAvailableForPlan: (locationId: string, planId: string) => boolean
     onLocationChange: (location: string) => void
@@ -2102,7 +2122,6 @@ export interface ChangelogRelease {
     titleKey: TranslationKey
     descriptionKey: TranslationKey
     features: ChangelogFeature[]
-    upcoming?: boolean
 }
 
 export interface DashboardHeaderProps {

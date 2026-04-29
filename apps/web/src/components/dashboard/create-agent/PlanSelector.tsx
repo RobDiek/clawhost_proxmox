@@ -130,7 +130,6 @@ const PlanSelector: FC<PlanSelectorProps> = ({
                                 location &&
                                 !isLocationAvailableForPlan(location, plan.id)
                             const isDisabled =
-                                plan.disabled ||
                                 !isPlanAvailable(plan.id) ||
                                 !!unavailableForLocation
 

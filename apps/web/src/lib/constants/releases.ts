@@ -4,21 +4,12 @@ import CHANGELOG_FEATURE_TYPE from '@/lib/constants/changelogFeatureType'
 
 const RELEASES: ChangelogRelease[] = [
     {
-        dateKey: 'changelog.upcomingRelease',
-        titleKey: 'changelog.upcomingReleaseTitle',
-        descriptionKey: 'changelog.upcomingReleaseDescription',
-        upcoming: true,
+        dateKey: 'changelog.release17Date',
+        titleKey: 'changelog.release17Title',
+        descriptionKey: 'changelog.release17Description',
         features: [
             {
-                key: 'changelog.upcomingReleaseFeature1',
-                type: CHANGELOG_FEATURE_TYPE.ADDED
-            },
-            {
-                key: 'changelog.upcomingReleaseFeature13',
-                type: CHANGELOG_FEATURE_TYPE.ADDED
-            },
-            {
-                key: 'changelog.upcomingReleaseFeature14',
+                key: 'changelog.release17Feature1',
                 type: CHANGELOG_FEATURE_TYPE.ADDED
             }
         ]

@@ -9,7 +9,6 @@ import { useAuth } from '@/lib/auth'
 import { useNetworkStatus } from '@/hooks'
 import { ROUTES } from '@/lib'
 import {
-    AgentSwitcher,
     Logo,
     NetworkStatus,
     PageTitle,
@@ -107,7 +106,6 @@ const Login: FC = (): ReactNode => {
         <div
             className={`bg-background text-foreground ${isLocal ? 'fixed inset-0 flex flex-col overflow-hidden' : 'relative min-h-screen'}`}
         >
-            <AgentSwitcher />
             {isOffline ? (
                 <NetworkStatus />
             ) : (

@@ -164,52 +164,6 @@ const staticPages: { path: string; meta: PrerenderMeta }[] = [
         }
     },
     {
-        path: PATHS.HERMES,
-        meta: {
-            title: 'Deploy Hermes Agent',
-            description:
-                'Deploy Hermes Agent on your own VPS with one click. Full root access, global locations, and transparent pricing.',
-            url: `${SITE_URL}/${PATHS.HERMES}`,
-            type: 'website',
-            image: `${SITE_URL}/og-image.webp`,
-            jsonLd: {
-                '@context': 'https://schema.org',
-                '@type': 'WebPage',
-                name: 'Deploy Hermes Agent',
-                url: `${SITE_URL}/${PATHS.HERMES}`,
-                description: 'Deploy Hermes Agent on your own VPS with one click.',
-                publisher: {
-                    '@type': 'Organization',
-                    name: 'ClawHost',
-                    url: SITE_URL
-                }
-            }
-        }
-    },
-    {
-        path: PATHS.HERMES_GO,
-        meta: {
-            title: 'ClawHost Go - Hermes Agent',
-            description:
-                'A lightweight desktop client to deploy Hermes Agent locally. Deploy, monitor, and control your agents — right from your machine.',
-            url: `${SITE_URL}/${PATHS.HERMES_GO}`,
-            type: 'website',
-            image: `${SITE_URL}/og-image.webp`,
-            jsonLd: {
-                '@context': 'https://schema.org',
-                '@type': 'WebPage',
-                name: 'ClawHost Go - Hermes Agent',
-                url: `${SITE_URL}/${PATHS.HERMES_GO}`,
-                description: 'Deploy Hermes Agent locally with a lightweight desktop client.',
-                publisher: {
-                    '@type': 'Organization',
-                    name: 'ClawHost',
-                    url: SITE_URL
-                }
-            }
-        }
-    },
-    {
         path: PATHS.TERMS,
         meta: {
             title: 'Terms of Service',

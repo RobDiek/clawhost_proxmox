@@ -2,13 +2,12 @@ import type { FC, ReactNode } from 'react'
 import type { HeaderProps } from '@/ts/Interfaces'
 
 import { Fragment, useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
-import { ListIcon, XIcon } from '@phosphor-icons/react'
-import { LanguageSelector, ThemeToggle, UserDropdown } from '@/components'
-import LogoV2 from '@/components/v2/LogoV2'
-import RebrandBannerV2 from '@/components/v2/RebrandBannerV2'
+import { ListIcon, XIcon, RocketLaunchIcon, ArrowRightIcon } from '@phosphor-icons/react'
+import { LanguageSelector, UserDropdown } from '@/components'
+import { LogoV2, RebrandBannerV2 } from '@/components/v2'
 import { ROUTES } from '@/lib'
 import { useAuth } from '@/lib/auth'
 import { useProfile } from '@/hooks'
@@ -16,10 +15,10 @@ import { Skeleton } from '@/components/ui'
 
 const HeaderV2: FC<HeaderProps> = ({
     showNavLinks = false,
-    navLinks = [],
-    activeSection = ''
+    navLinks = []
 }): ReactNode => {
     const { user, loading: authLoading, cachedProfile, signOut } = useAuth()
+    const { pathname } = useLocation()
     const [scrolled, setScrolled] = useState(false)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -56,16 +55,16 @@ const HeaderV2: FC<HeaderProps> = ({
         <Fragment>
             <header
                 className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
-                    mobileMenuOpen
-                        ? 'border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl'
-                        : scrolled
-                          ? 'border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl'
-                          : 'border-b border-transparent bg-transparent'
+                    mobileMenuOpen || scrolled
+                        ? 'border-b border-white/5 bg-[#020204]/95 backdrop-blur-xl'
+                        : 'border-b border-transparent bg-transparent'
                 }`}
             >
                 <RebrandBannerV2 />
-                <div className='mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4'>
-                    <LogoV2 />
+                <div className='mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-0 py-4'>
+                    <div className='flex-1'>
+                        <LogoV2 />
+                    </div>
 
                     {showNavLinks && navLinks.length > 0 && (
                         <nav
@@ -73,30 +72,29 @@ const HeaderV2: FC<HeaderProps> = ({
                             aria-label={t('nav.mainNavigation')}
                         >
                             {navLinks.map((link) => (
-                                <a
+                                <Link
                                     key={link.href}
-                                    href={link.href}
+                                    to={link.href}
                                     aria-current={
-                                        activeSection === link.id
-                                            ? 'true'
+                                        pathname === link.href
+                                            ? 'page'
                                             : undefined
                                     }
                                     className={`font-mono text-xs uppercase tracking-[0.1em] transition ${
-                                        activeSection === link.id
+                                        pathname === link.href
                                             ? 'text-white'
                                             : 'text-white/40 hover:text-white'
                                     }`}
                                 >
                                     {link.label}
-                                </a>
+                                </Link>
                             ))}
                         </nav>
                     )}
 
-                    <div className='flex items-center gap-3'>
-                        <div className='hidden items-center gap-1.5 sm:flex'>
+                    <div className='flex flex-1 items-center justify-end gap-4'>
+                        <div className='hidden sm:block'>
                             <LanguageSelector />
-                            <ThemeToggle />
                         </div>
                         {authLoading && !cachedProfile ? (
                             <Skeleton className='h-8 w-20 bg-white/10' />
@@ -107,7 +105,7 @@ const HeaderV2: FC<HeaderProps> = ({
                                 onOpen={closeMobileMenu}
                             />
                         ) : (
-                            <div className='flex items-center gap-3'>
+                            <div className='flex items-center gap-4'>
                                 <Link
                                     to={ROUTES.LOGIN}
                                     className='hidden font-mono text-xs text-white/50 transition hover:text-white sm:block'
@@ -116,9 +114,11 @@ const HeaderV2: FC<HeaderProps> = ({
                                 </Link>
                                 <Link
                                     to={ROUTES.LOGIN}
-                                    className='bg-[#6B5CE7] px-4 py-2 font-mono text-xs tracking-[0.1em] text-white transition hover:bg-[#5a4bd6]'
+                                    className='group/deploy inline-flex items-center gap-2 bg-[#6B5CE7] px-5 py-2.5 font-mono text-xs tracking-[0.1em] text-white transition hover:bg-[#5a4bd6]'
                                 >
+                                    <RocketLaunchIcon className='h-3 w-3 transition-transform duration-200 group-hover/deploy:-translate-y-0.5' />
                                     {t('nav.deploy')}
+                                    <ArrowRightIcon className='h-3 w-3 transition-transform duration-200 group-hover/deploy:translate-x-1' />
                                 </Link>
                             </div>
                         )}
@@ -152,27 +152,26 @@ const HeaderV2: FC<HeaderProps> = ({
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.2 }}
-                                className='border-b border-white/5 bg-[#0a0a0f] px-6 pb-6 pt-2 md:hidden'
+                                className='border-b border-white/5 bg-[#020204] px-6 pb-6 pt-2 md:hidden'
                             >
                                 <nav className='flex flex-col gap-1'>
                                     {navLinks.map((link) => (
-                                        <a
+                                        <Link
                                             key={link.href}
-                                            href={link.href}
+                                            to={link.href}
                                             onClick={closeMobileMenu}
                                             className={`px-3 py-2.5 font-mono text-xs uppercase tracking-[0.1em] transition ${
-                                                activeSection === link.id
+                                                pathname === link.href
                                                     ? 'bg-white/5 text-white'
                                                     : 'text-white/40 hover:bg-white/5 hover:text-white'
                                             }`}
                                         >
                                             {link.label}
-                                        </a>
+                                        </Link>
                                     ))}
                                 </nav>
                                 <div className='flex items-center gap-1.5 border-t border-white/5 pt-4 sm:hidden'>
                                     <LanguageSelector />
-                                    <ThemeToggle />
                                 </div>
                             </motion.div>
                         </Fragment>

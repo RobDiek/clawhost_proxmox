@@ -1,7 +1,7 @@
-import AgentSwitcher from '@/components/layout/AgentSwitcher'
 import AnnouncementBanner from '@/components/layout/AnnouncementBanner'
 import BetaBadge from '@/components/layout/BetaBadge'
 import Header from '@/components/layout/Header'
+import HermesBanner from '@/components/layout/HermesBanner'
 import LandingFooter from '@/components/layout/LandingFooter'
 import Logo from '@/components/layout/Logo'
 import PageBackground from '@/components/layout/PageBackground'
@@ -12,10 +12,10 @@ import ProductSwitcher from '@/components/layout/ProductSwitcher'
 import ScrollToTop from '@/components/layout/ScrollToTop'
 
 export {
-    AgentSwitcher,
     AnnouncementBanner,
     BetaBadge,
     Header,
+    HermesBanner,
     LandingFooter,
     Logo,
     PageBackground,

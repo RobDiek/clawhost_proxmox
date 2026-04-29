@@ -5,16 +5,13 @@ import { Fragment, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { Button, Badge } from '@/components/ui'
-import { PlansSkeleton } from '@/components/shared'
 import { useAuth } from '@/lib/auth'
 import { ROUTES } from '@/lib'
 import { CheckIcon, CaretDownIcon, CaretUpIcon } from '@phosphor-icons/react'
 import { SimplePlanCard, buildSimplePlans } from '@/components/landing'
 
 const PricingSection: FC<PricingSectionProps> = ({
-    plans,
-    plansLoading,
-    allDoneLoading
+    plans
 }): ReactNode => {
     const { user } = useAuth()
     const [showAllPlans, setShowAllPlans] = useState(false)
@@ -32,18 +29,17 @@ const PricingSection: FC<PricingSectionProps> = ({
                     >
                         {t('landing.pricing')}
                     </Badge>
+
                     <h2 className='font-clash from-foreground to-muted-foreground mb-4 bg-gradient-to-b bg-clip-text text-4xl font-bold text-transparent md:text-5xl'>
                         {t('landing.simpleTransparentPricing')}
                     </h2>
+                    
                     <p className='text-muted-foreground mx-auto max-w-xl text-lg'>
                         {t('landing.pricingDescription')}
                     </p>
                 </div>
 
-                {plansLoading || (!allDoneLoading && !plans?.length) ? (
-                    <PlansSkeleton />
-                ) : plans && plans.length > 0 ? (
-                    <Fragment>
+                <Fragment>
                         {!showAllPlans ? (
                             <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
                                 {buildSimplePlans(plans).map((sp) => (
@@ -287,11 +283,6 @@ const PricingSection: FC<PricingSectionProps> = ({
                             </Button>
                         </div>
                     </Fragment>
-                ) : (
-                    <div className='text-muted-foreground py-12 text-center'>
-                        {t('errors.unableToLoadPricing')}
-                    </div>
-                )}
             </div>
         </section>
     )

@@ -1,6 +1,5 @@
 import { Hono } from 'hono'
 import {
-    getPlans,
     getLocations,
     getVolumePricing,
     getPlanAvailability
@@ -8,7 +7,6 @@ import {
 
 const app = new Hono()
 
-app.get('/', getPlans)
 app.get('/locations', getLocations)
 app.get('/volume-pricing', getVolumePricing)
 app.get('/availability', getPlanAvailability)

@@ -90,7 +90,8 @@ const pl: Translations = {
         go: 'Go',
         goSubtitle: 'Nietechniczny',
         hermes: 'Hermes',
-        openClaw: 'OpenClaw'
+        openClaw: 'OpenClaw',
+        agentistGo: 'Agentist Go'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -249,7 +250,7 @@ const pl: Translations = {
         affiliateProgram: 'Program partnerski',
         documentation: 'Dokumentacja',
         productDescription:
-            'Wdrażaj agentów OpenClaw w chmurze lub lokalnie jednym kliknięciem — buduj, łącz i skaluj swoich agentów AI szybciej z ClawHost.',
+            'Wdrażaj agentów OpenClaw i Hermes w chmurze lub lokalnie jednym kliknięciem — buduj, łącz i skaluj swoich agentów AI szybciej z ClawHost.',
         downloadAndroid: 'Pobierz z Google Play',
         downloadIos: 'Pobierz z App Store',
         ariaGithub: 'GitHub',
@@ -1090,7 +1091,7 @@ const pl: Translations = {
         heroTitle1: 'Wdróż OpenClaw.',
         heroTitle2: 'Jedno kliknięcie. Gotowe.',
         heroDescription:
-            'Wdrażaj agentów OpenClaw w chmurze lub lokalnie jednym kliknięciem — buduj, łącz i skaluj swoich agentów AI szybciej z ClawHost.',
+            'Wdrażaj agentów OpenClaw i Hermes w chmurze lub lokalnie jednym kliknięciem — buduj, łącz i skaluj swoich agentów AI szybciej z ClawHost.',
         goToClaws: 'Przejdź do Claws',
         selfHost: 'Open Source',
         startingPrice: 'Od',
@@ -1316,35 +1317,6 @@ const pl: Translations = {
         title: 'Lista zmian',
         description: 'Śledź aktualizacje, nowe funkcje i ulepszenia ClawHost.',
         subtitle: 'Wszystkie aktualizacje, nowe funkcje i ulepszenia ClawHost.',
-        upcomingRelease: 'W trakcie',
-        upcomingReleaseTitle: 'Aplikacja mobilna i więcej',
-        upcomingReleaseDescription:
-            'Zarządzaj instancjami OpenClaw z dowolnego miejsca. Natywna aplikacja mobilna oraz ciągłe ulepszenia platformy.',
-        upcomingReleaseFeature1:
-            'Natywna aplikacja mobilna do monitorowania i zarządzania instancjami OpenClaw w podróży',
-        upcomingReleaseFeature13:
-            'ClawHost Go dla macOS i Windows — wdrażaj OpenClaw lokalnie jednym kliknięciem',
-        upcomingReleaseFeature14:
-            'Wdrażanie jednym kliknięciem dla agentów Hermes takich jak OpenClaw',
-        upcomingReleaseFeature3: 'Obsługa jasnego i ciemnego motywu',
-        upcomingReleaseFeature4:
-            'Ulepszenia wydajności, stabilności i responsywności',
-        upcomingReleaseFeature5:
-            'Obsługa wielu języków: angielski, francuski, hiszpański i niemiecki',
-        upcomingReleaseFeature6:
-            'Strony porównawcze z pełnym zestawieniem z konkurencją',
-        upcomingReleaseFeature7:
-            'Refaktoryzacja struktury funkcji playground i uproszczenia',
-        upcomingReleaseFeature8:
-            'Prośby o funkcje automatycznie zarządzane i publikowane przez agentów OpenClaw',
-        upcomingReleaseFeature9:
-            'Tryb głosowy do interakcji z agentami OpenClaw hostowanymi na ClawHost (Beta)',
-        upcomingReleaseFeature10:
-            'Ponowna instalacja OpenClaw na instancji dla świeżego startu, dostępna raz dziennie',
-        upcomingReleaseFeature11:
-            'Strona docelowa ClawHost Go, hosting lokalny z ClawHost',
-        upcomingReleaseFeature12:
-            'Aplikacja desktopowa dla macOS i Windows do lokalnego wdrażania OpenClaw jednym kliknięciem',
         release14Date: '1 kwietnia 2026',
         release14Title: 'Migracja na Hetzner, system afiliacyjny i nowe języki',
         release14Description:
@@ -1357,6 +1329,12 @@ const pl: Translations = {
             'Dodano 10 nowych języków: chiński, hindi, arabski, rosyjski, japoński, turecki, włoski, polski, holenderski i portugalski',
         release14Feature4:
             'Wewnętrzne narzędzia zapewniające stabilne wsparcie funkcji dla bieżących wersji OpenClaw, bez obsługi starszych wersji',
+        release17Date: '29 kwietnia 2026',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            'Wdrażanie jednym kliknięciem dla agentów Hermes na ClawHost, tak jak OpenClaw.',
+        release17Feature1:
+            'Wdrażanie jednym kliknięciem dla agentów Hermes jak OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1942,6 +1920,11 @@ const pl: Translations = {
         title: 'ClawHost to teraz Agentist',
         mission: 'Budujemy warstwę infrastruktury dla autonomicznych agentów AI.'
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'Agenci Hermes są teraz obsługiwani do wdrażania na ClawHost.',
+        deploy: 'Wdróż teraz'
+    },
     compare: {
         title: 'Pełne porównanie',
         description:
@@ -2347,13 +2330,13 @@ const pl: Translations = {
         heroTitle1: 'Wdróż',
         heroTitle2: 'Agentów AI',
         heroTitle3: 'w Chmurze jednym Kliknięciem',
-        heroDescription: 'Wdróż agentów OpenClaw i Hermes w chmurze jednym kliknięciem — open-source, samodzielnie hostowalny i działający na dedykowanej infrastrukturze w mniej niż 60 sekund.',
+        heroDescription: 'Wdróż agentów OpenClaw i Hermes w chmurze jednym kliknięciem — twórz, łącz i skaluj swoich agentów AI szybciej z Agentist.',
         badge: 'Przedstawiamy agent.ic',
         selfHostLabel: 'Zamiast Tego Hostuj Sam',
         deployButton: 'Wdróż Teraz',
         learnMore: 'Dowiedz się Więcej',
         agentsTitle: 'Twoi Agenci. Twoja Chmura.',
-        agentsDescription: 'Wybieraj z rosnącego katalogu agentów AI, każdy działający na własnym dedykowanym VPS.',
+        agentsDescription: 'Wybieraj z rosnącego katalogu agentów AI, każdy działający na własnym dedykowanym serwerze chmurowym.',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: 'Samodzielnie hostowana platforma zarządzania chmurą z pełnym SSH, terminalem, eksploratorem plików i edytorem konfiguracji.',
         agentHermesName: 'Hermes',
@@ -2373,9 +2356,9 @@ const pl: Translations = {
         feature1Title: 'Platforma Wieloagentowa',
         feature1Description: 'Wdrażaj i zarządzaj wieloma typami agentów z jednego panelu.',
         agentControlTitle: 'Pełna kontrola agentów',
-        agentControlDescription: 'Zarządzaj, konfiguruj i dostosowuj każdy aspekt swoich agentów z jednolitego panelu.',
+        agentControlDescription: 'Konfiguruj i dostosowuj każdy aspekt swoich agentów z jednego panelu.',
         multipleAgentsTitle: 'Wielu agentów',
-        multipleAgentsDescription: 'Wdrażaj i zarządzaj wieloma instancjami agentów w różnych regionach i konfiguracjach.',
+        multipleAgentsDescription: 'Uruchamiaj wiele instancji agentów w różnych regionach i konfiguracjach.',
         feature2Title: 'Dedykowana Infrastruktura',
         feature2Description: 'Każdy agent działa na własnym VPS. Brak współdzielonych zasobów, brak hałaśliwych sąsiadów.',
         feature3Title: 'Globalna Sieć Edge',
@@ -2386,6 +2369,32 @@ const pl: Translations = {
         feature5Description: 'SSH, terminal, eksplorator plików i edytor konfiguracji. Twój serwer, Twoje zasady.',
         feature6Title: 'Płać za Użycie',
         feature6Description: 'Bez zobowiązań. Skaluj w górę lub w dół. Płać tylko za to, czego używasz.',
+        zeroConfigDescription: 'Pomiń godziny konfiguracji. OpenClaw i Hermes są preinstalowane i gotowe w kilka minut.',
+        globalLocationsDescription: 'Wdrażaj agentów w ponad 30 globalnych regionach. Wybierz lokalizację najbliższą Tobie.',
+        onlineAccessDescription: 'Uzyskaj bezpieczny dostęp do swoich agentów z dowolnego miejsca za pomocą własnej subdomeny.',
+        versionControlDescription: 'Zmieniaj wersję agenta jednym kliknięciem. Bądź na bieżąco lub wróć do poprzedniej wersji.',
+        agentsPreinstalled: 'Agenci preinstalowani',
+        comparisonAgentAccessUs: 'Pełny dostęp do wszystkich agentów',
+        comparisonMultipleAgentsUs: 'Wielu agentów na serwer',
+        comparisonMultipleAgentsOthers: 'Tylko jeden agent',
+        comparisonExportAgentsUs: 'Eksportuj swoich agentów gdziekolwiek',
+        comparisonUsLabel: 'Zarządzane za Ciebie',
+        comparisonOthersLabel: 'Zrób to sam',
+        faq1Question: 'Czym jest Agentist?',
+        faq1Answer: 'Agentist to platforma, która pozwala wdrażać i zarządzać agentami AI na własnych dedykowanych serwerach. My zajmujemy się infrastrukturą, bezpieczeństwem i utrzymaniem — Ty po prostu używasz swoich agentów.',
+        faq2Question: 'Czym jest OpenClaw?',
+        faq2Answer: 'OpenClaw to samodzielnie hostowana bezpieczna warstwa dostępu do Twoich narzędzi i usług AI. Jest preinstalowany na każdym serwerze Agentist i daje Ci pełną kontrolę nad konfiguracją.',
+        faq3Question: 'Czym jest Hermes?',
+        faq3Answer: 'Hermes to autonomiczny agent AI z przeglądaniem stron internetowych, zarządzaniem kalendarzem, rozumowaniem wielomodelowym i automatyzacją przeglądarki. Jest preinstalowany wraz z OpenClaw na każdym serwerze.',
+        faq4Question: 'Czy potrzebuję wiedzy technicznej?',
+        faq4Answer: 'Nie. Agentist jest zaprojektowany dla każdego. Zajmujemy się całą infrastrukturą, konfiguracją i utrzymaniem. Możesz zarządzać swoimi agentami przez intuicyjny panel bez dotykania jakichkolwiek serwerów.',
+        faq5Question: 'Czym to się różni od innych platform AI?',
+        faq5Answer: 'W przeciwieństwie do hostowanych narzędzi AI, Agentist daje Ci prawdziwy dedykowany serwer z zainstalowanymi agentami. Jesteś właścicielem infrastruktury, kontrolujesz wszystko i nie jesteś ograniczony przez współdzielone platformy.',
+        faq6Question: 'Jakie lokalizacje są dostępne?',
+        faq6Answer: 'Oferujemy ponad 30 lokalizacji serwerów na całym świecie, w tym w USA, Europie i Azji. Możesz wdrażać agentów na wielu serwerach w różnych regionach.',
+        faq7Question: 'Ile to kosztuje?',
+        faq7Answer: 'Ceny zaczynają się od 40 $/miesiąc w zależności od wybranego serwera. Wiele opcji od podstawowych po wysokowydajne. Bez ukrytych opłat, anuluj w dowolnym momencie.',
+        footerDescription: 'Wdróż agentów OpenClaw i Hermes w chmurze jednym kliknięciem — twórz, łącz i skaluj swoich agentów AI szybciej z Agentist.',
         ctaTitle: 'Gotowy do Wdrożenia?',
         ctaDescription: 'Dołącz do nowej generacji wdrażania agentów. Twoja infrastruktura, Twoi agenci, Twoje zasady.',
         stats1Value: 'OpenClaw & Hermes',

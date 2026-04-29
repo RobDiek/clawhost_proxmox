@@ -3,7 +3,6 @@ import customers from '@/lib/polar/customers'
 import checkouts from '@/lib/polar/checkouts'
 import subscriptions from '@/lib/polar/subscriptions'
 import orders from '@/lib/polar/orders'
-import getPlanPrices from '@/lib/polar/prices'
 import { parseWebhook, handleWebhook } from '@/lib/polar/webhooks'
 
 export {
@@ -12,7 +11,6 @@ export {
     checkouts,
     subscriptions,
     orders,
-    getPlanPrices,
     parseWebhook,
     handleWebhook
 }

@@ -32,8 +32,6 @@ const LandingFooter: FC = (): ReactNode => {
     const { pathname } = useLocation()
     const isLanding =
         pathname === ROUTES.HOME ||
-        pathname === ROUTES.HERMES ||
-        pathname === ROUTES.HERMES_GO ||
         pathname === ROUTES.V2 ||
         pathname === ROUTES.PRICING ||
         pathname === ROUTES.FEATURES

@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
-import { userRole } from '@openclaw/shared'
+import { userRole, PLANS } from '@openclaw/shared'
 import { useUIStore, usePreferencesStore, useDashboardStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { ROUTES, AGENT_DETAIL_TABS } from '@/lib'
@@ -14,7 +14,6 @@ import {
     useAgents,
     useAdminAgents,
     useSSHKeys,
-    usePlans,
     useLocations,
     useVolumePricing,
     usePlanAvailability,
@@ -152,8 +151,8 @@ const Dashboard: FC = (): ReactNode => {
         return agents || []
     }, [agents, adminMode, adminAgents])
 
-    const { plans: hetznerPlans } = usePlans()
-    const plans = [...(hetznerPlans || [])]
+    const hetznerPlans = PLANS
+    const plans = [...hetznerPlans]
     const { data: locations } = useLocations()
     const { data: sshKeys } = useSSHKeys()
     const { data: volumePricing } = useVolumePricing()

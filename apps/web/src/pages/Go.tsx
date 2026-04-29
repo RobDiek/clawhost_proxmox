@@ -22,7 +22,7 @@ import {
     GoWaitlistForm
 } from '@/components'
 import { usePreferencesStore, useUIStore } from '@/lib/store'
-import { AGENT, PRODUCT, TOAST_TYPE } from '@/lib/constants'
+import { PRODUCT, TOAST_TYPE } from '@/lib/constants'
 import { useAuth } from '@/lib/auth'
 import { api } from '@/lib'
 import {
@@ -114,11 +114,9 @@ const getGoFaqs = (): Faq[] => [
 
 const Go: FC = (): ReactNode => {
     const setProduct = usePreferencesStore((s) => s.setProduct)
-    const setAgent = usePreferencesStore((s) => s.setAgent)
     useEffect(() => {
         setProduct(PRODUCT.GO)
-        setAgent(AGENT.OPENCLAW)
-    }, [setProduct, setAgent])
+    }, [setProduct])
     const { user, loading: authLoading } = useAuth()
     const showToast = useUIStore((s) => s.showToast)
     const [activeSection, setActiveSection] = useState('')

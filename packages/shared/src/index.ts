@@ -11,6 +11,7 @@ import billingInterval from '#shared/billingInterval'
 import goLicense from '#shared/goLicense'
 import INPUT_VALIDATION_LENGTH from '#shared/inputValidation'
 import userRole from '#shared/userRole'
+import { PLANS, YEARLY_PAID_MONTHS } from '#shared/plans'
 import {
     isFeatureSupported,
     isVersionSupported,
@@ -35,5 +36,7 @@ export {
     userRole,
     isFeatureSupported,
     isVersionSupported,
-    SUPPORTED_VERSIONS
+    SUPPORTED_VERSIONS,
+    PLANS,
+    YEARLY_PAID_MONTHS
 }

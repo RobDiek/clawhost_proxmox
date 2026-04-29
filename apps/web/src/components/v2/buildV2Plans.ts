@@ -6,8 +6,7 @@ const buildV2Plans = (plans: Plan[]): SimplePlanData[] => {
     const planMap = new Map(plans.map((p) => [p.id, p]))
 
     const common: SimplePlanFeature[] = [
-        { label: t('landing.featurePreinstalled'), included: true },
-        { label: t('landing.featureBandwidth'), included: true },
+        { label: t('v2.agentsPreinstalled'), included: true },
         { label: t('landing.featureSsh'), included: true },
         { label: t('landing.featureUptime'), included: true }
     ]

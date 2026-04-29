@@ -9,8 +9,8 @@ import { useAuth } from '@/lib/auth'
 import { useProfile, useRoutePrefetch } from '@/hooks'
 import { Button, Skeleton } from '@/components/ui'
 import {
-    AgentSwitcher,
     BetaBadge,
+    HermesBanner,
     Logo,
     ProductHuntBanner,
     ProductSwitcher
@@ -71,8 +71,6 @@ const Header: FC<HeaderProps> = ({
     const isLandingPage =
         location.pathname === ROUTES.HOME ||
         location.pathname === ROUTES.GO ||
-        location.pathname === ROUTES.HERMES ||
-        location.pathname === ROUTES.HERMES_GO ||
         location.pathname === ROUTES.V2 ||
         location.pathname === ROUTES.PRICING ||
         location.pathname === ROUTES.FEATURES
@@ -88,8 +86,8 @@ const Header: FC<HeaderProps> = ({
                           : 'border-b border-transparent bg-transparent'
                 }`}
             >
-                {isLandingPage && <AgentSwitcher />}
                 <ProductHuntBanner />
+                <HermesBanner />
                 <div className='mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4'>
                     <div className='flex items-center gap-3'>
                         <Logo />

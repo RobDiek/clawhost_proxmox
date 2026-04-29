@@ -1,6 +1,6 @@
-import type { FC, MouseEvent, ReactNode } from 'react'
+import type { FC, ReactNode } from 'react'
+import type { FooterSocialLink, FooterRouteLink } from '@/ts/Interfaces'
 
-import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import LogoV2 from '@/components/v2/LogoV2'
@@ -25,51 +25,35 @@ import {
     YoutubeLogoIcon
 } from '@phosphor-icons/react'
 
-const LANDING_SECTIONS = ['features', 'pricing', 'comparison', 'faq']
+const socialLinks: FooterSocialLink[] = [
+    { url: GITHUB_REPO_URL, ariaKey: 'footer.ariaGithub', Icon: GithubLogoIcon },
+    { url: TWITTER_URL, ariaKey: 'footer.ariaX', Icon: XLogoIcon },
+    { url: FACEBOOK_URL, ariaKey: 'footer.ariaFacebook', Icon: FacebookLogoIcon },
+    { url: INSTAGRAM_URL, ariaKey: 'footer.ariaInstagram', Icon: InstagramLogoIcon },
+    { url: THREADS_URL, ariaKey: 'footer.ariaThreads', Icon: ThreadsLogoIcon },
+    { url: YOUTUBE_URL, ariaKey: 'footer.ariaYoutube', Icon: YoutubeLogoIcon },
+    { url: TIKTOK_URL, ariaKey: 'footer.ariaTiktok', Icon: TiktokLogoIcon }
+]
+
+const productLinks: FooterRouteLink[] = [
+    { route: ROUTES.FEATURES, labelKey: 'landing.features' },
+    { route: ROUTES.PRICING, labelKey: 'landing.pricing' },
+    { route: ROUTES.COMPARE, labelKey: 'landing.comparison' },
+    { route: ROUTES.GO, labelKey: 'nav.agentistGo' }
+]
+
+const legalLinks: FooterRouteLink[] = [
+    { route: ROUTES.CHANGELOG, labelKey: 'footer.changelog' },
+    { route: ROUTES.PRIVACY, labelKey: 'footer.privacyPolicy' },
+    { route: ROUTES.TERMS, labelKey: 'footer.termsOfService' },
+    { route: ROUTES.AFFILIATE_PROGRAM, labelKey: 'footer.affiliateProgram' }
+]
 
 const FooterV2: FC = (): ReactNode => {
     const { pathname } = useLocation()
-    const isLanding =
-        pathname === ROUTES.HOME ||
-        pathname === ROUTES.HERMES ||
-        pathname === ROUTES.HERMES_GO ||
-        pathname === ROUTES.V2 ||
-        pathname === ROUTES.PRICING ||
-        pathname === ROUTES.FEATURES
-    const [activeSection, setActiveSection] = useState('')
-
-    useEffect(() => {
-        if (!isLanding) return
-
-        const handleScroll = (): void => {
-            for (const section of [...LANDING_SECTIONS].reverse()) {
-                const el = document.getElementById(section)
-                if (el && window.scrollY >= el.offsetTop - 100) {
-                    setActiveSection(section)
-                    return
-                }
-            }
-            if (window.scrollY < 200) setActiveSection('')
-        }
-
-        window.addEventListener('scroll', handleScroll)
-        handleScroll()
-        return () => window.removeEventListener('scroll', handleScroll)
-    }, [isLanding])
-
-    const hashClass = (section: string): string =>
-        `transition ${isLanding && activeSection === section ? 'text-white' : 'text-white/40 hover:text-white'}`
 
     const pageClass = (route: string): string =>
         `transition ${pathname === route || pathname.startsWith(route + '/') ? 'text-white' : 'text-white/40 hover:text-white'}`
-
-    const handleHashClick = (e: MouseEvent, section: string): void => {
-        if (isLanding) {
-            e.preventDefault()
-            const el = document.getElementById(section)
-            if (el) el.scrollIntoView({ behavior: 'smooth' })
-        }
-    }
 
     return (
         <footer className='relative v2-section'>
@@ -78,13 +62,14 @@ const FooterV2: FC = (): ReactNode => {
                 loop
                 muted
                 playsInline
-                className='v2-footer-video pointer-events-none absolute top-0 right-0 z-[1] h-full w-full'
+                className='v2-footer-video pointer-events-none absolute bottom-0 left-0 z-[1] h-[70vh] w-full object-cover'
             >
                 <source
                     src='https://framerusercontent.com/assets/FsU7HaCWP7lS7TPY07jh2mCkb1o.mp4'
                     type='video/mp4'
                 />
             </video>
+            <div className='pointer-events-none absolute bottom-0 left-0 z-[2] h-[70vh] w-full bg-[linear-gradient(to_bottom,#020204_0%,rgba(2,2,4,0.7)_20%,rgba(2,2,4,0.3)_50%,transparent_80%)]' />
 
             <div className='font-syne relative z-10 px-6 py-16 h-auto'>
                 <div className='mx-auto max-w-6xl'>
@@ -92,93 +77,24 @@ const FooterV2: FC = (): ReactNode => {
                         <div className='md:col-span-2'>
                             <LogoV2 />
                             <p className='mt-4 font-mono max-w-sm text-sm leading-relaxed text-white/40'>
-                                {t('footer.productDescription')}
+                                {t('v2.footerDescription')}
                             </p>
                             <div className='mt-6 flex items-center gap-3'>
-                                <a
-                                    href={GITHUB_REPO_URL}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    aria-label={t('footer.ariaGithub')}
-                                    className='bg-white/5 p-2 text-white/40 transition hover:bg-white/10 hover:text-white'
-                                >
-                                    <GithubLogoIcon
-                                        className='h-5 w-5'
-                                        weight='fill'
-                                    />
-                                </a>
-                                <a
-                                    href={TWITTER_URL}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    aria-label={t('footer.ariaX')}
-                                    className='bg-white/5 p-2 text-white/40 transition hover:bg-white/10 hover:text-white'
-                                >
-                                    <XLogoIcon
-                                        className='h-5 w-5'
-                                        weight='fill'
-                                    />
-                                </a>
-                                <a
-                                    href={FACEBOOK_URL}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    aria-label={t('footer.ariaFacebook')}
-                                    className='bg-white/5 p-2 text-white/40 transition hover:bg-white/10 hover:text-white'
-                                >
-                                    <FacebookLogoIcon
-                                        className='h-5 w-5'
-                                        weight='fill'
-                                    />
-                                </a>
-                                <a
-                                    href={INSTAGRAM_URL}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    aria-label={t('footer.ariaInstagram')}
-                                    className='bg-white/5 p-2 text-white/40 transition hover:bg-white/10 hover:text-white'
-                                >
-                                    <InstagramLogoIcon
-                                        className='h-5 w-5'
-                                        weight='fill'
-                                    />
-                                </a>
-                                <a
-                                    href={THREADS_URL}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    aria-label={t('footer.ariaThreads')}
-                                    className='bg-white/5 p-2 text-white/40 transition hover:bg-white/10 hover:text-white'
-                                >
-                                    <ThreadsLogoIcon
-                                        className='h-5 w-5'
-                                        weight='fill'
-                                    />
-                                </a>
-                                <a
-                                    href={YOUTUBE_URL}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    aria-label={t('footer.ariaYoutube')}
-                                    className='bg-white/5 p-2 text-white/40 transition hover:bg-white/10 hover:text-white'
-                                >
-                                    <YoutubeLogoIcon
-                                        className='h-5 w-5'
-                                        weight='fill'
-                                    />
-                                </a>
-                                <a
-                                    href={TIKTOK_URL}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    aria-label={t('footer.ariaTiktok')}
-                                    className='bg-white/5 p-2 text-white/40 transition hover:bg-white/10 hover:text-white'
-                                >
-                                    <TiktokLogoIcon
-                                        className='h-5 w-5'
-                                        weight='fill'
-                                    />
-                                </a>
+                                {socialLinks.map((link) => (
+                                    <a
+                                        key={link.ariaKey}
+                                        href={link.url}
+                                        target='_blank'
+                                        rel='noopener noreferrer'
+                                        aria-label={t(link.ariaKey)}
+                                        className='bg-white/5 p-2 text-white/40 transition hover:bg-white/10 hover:text-white'
+                                    >
+                                        <link.Icon
+                                            className='h-5 w-5'
+                                            weight='fill'
+                                        />
+                                    </a>
+                                ))}
                             </div>
                             <p className='mt-4 font-mono text-sm text-white/30'>
                                 &copy; {new Date().getFullYear()}{' '}
@@ -195,44 +111,16 @@ const FooterV2: FC = (): ReactNode => {
                                 {t('footer.product')}
                             </h4>
                             <ul className='space-y-3 text-sm'>
-                                <li className='font-mono'>
-                                    <Link
-                                        to={ROUTES.FEATURES}
-                                        className={pageClass(ROUTES.FEATURES)}
-                                    >
-                                        {t('landing.features')}
-                                    </Link>
-                                </li>
-                                <li className='font-mono'>
-                                    <Link
-                                        to={ROUTES.PRICING}
-                                        className={pageClass(ROUTES.PRICING)}
-                                    >
-                                        {t('landing.pricing')}
-                                    </Link>
-                                </li>
-                                <li className='font-mono'>
-                                    <Link
-                                        to={`${ROUTES.HOME}#comparison`}
-                                        onClick={(e) =>
-                                            handleHashClick(e, 'comparison')
-                                        }
-                                        className={hashClass('comparison')}
-                                    >
-                                        {t('landing.comparison')}
-                                    </Link>
-                                </li>
-                                <li className='font-mono'>
-                                    <Link
-                                        to={`${ROUTES.HOME}#faq`}
-                                        onClick={(e) =>
-                                            handleHashClick(e, 'faq')
-                                        }
-                                        className={hashClass('faq')}
-                                    >
-                                        {t('landing.faqTitle')}
-                                    </Link>
-                                </li>
+                                {productLinks.map((link) => (
+                                    <li key={link.route} className='font-mono'>
+                                        <Link
+                                            to={link.route}
+                                            className={pageClass(link.route)}
+                                        >
+                                            {t(link.labelKey)}
+                                        </Link>
+                                    </li>
+                                ))}
                             </ul>
                         </nav>
 
@@ -241,48 +129,16 @@ const FooterV2: FC = (): ReactNode => {
                                 {t('footer.legalAndMore')}
                             </h4>
                             <ul className='space-y-3 text-sm'>
-                                <li className='font-mono'>
-                                    <Link
-                                        to={ROUTES.COMPARE}
-                                        className={pageClass(ROUTES.COMPARE)}
-                                    >
-                                        {t('footer.compare')}
-                                    </Link>
-                                </li>
-                                <li className='font-mono'>
-                                    <Link
-                                        to={ROUTES.CHANGELOG}
-                                        className={pageClass(ROUTES.CHANGELOG)}
-                                    >
-                                        {t('footer.changelog')}
-                                    </Link>
-                                </li>
-                                <li className='font-mono'>
-                                    <Link
-                                        to={ROUTES.PRIVACY}
-                                        className={pageClass(ROUTES.PRIVACY)}
-                                    >
-                                        {t('footer.privacyPolicy')}
-                                    </Link>
-                                </li>
-                                <li className='font-mono'>
-                                    <Link
-                                        to={ROUTES.TERMS}
-                                        className={pageClass(ROUTES.TERMS)}
-                                    >
-                                        {t('footer.termsOfService')}
-                                    </Link>
-                                </li>
-                                <li className='font-mono'>
-                                    <Link
-                                        to={ROUTES.AFFILIATE_PROGRAM}
-                                        className={pageClass(
-                                            ROUTES.AFFILIATE_PROGRAM
-                                        )}
-                                    >
-                                        {t('footer.affiliateProgram')}
-                                    </Link>
-                                </li>
+                                {legalLinks.map((link) => (
+                                    <li key={link.route} className='font-mono'>
+                                        <Link
+                                            to={link.route}
+                                            className={pageClass(link.route)}
+                                        >
+                                            {t(link.labelKey)}
+                                        </Link>
+                                    </li>
+                                ))}
                                 <li className='font-mono'>
                                     <a
                                         href={`mailto:${SUPPORT_EMAIL}`}

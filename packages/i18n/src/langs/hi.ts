@@ -90,7 +90,8 @@ const hi: Translations = {
         go: 'Go',
         goSubtitle: 'गैर-तकनीकी',
         hermes: 'Hermes',
-        openClaw: 'OpenClaw'
+        openClaw: 'OpenClaw',
+        agentistGo: 'Agentist Go'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -249,7 +250,7 @@ const hi: Translations = {
         affiliateProgram: 'एफिलिएट प्रोग्राम',
         documentation: 'दस्तावेज़ीकरण',
         productDescription:
-            'एक क्लिक में क्लाउड या स्थानीय रूप से OpenClaw एजेंट डिप्लॉय करें — ClawHost के साथ अपने AI एजेंट तेज़ी से बनाएँ, कनेक्ट करें और स्केल करें.',
+            'एक क्लिक में क्लाउड या स्थानीय रूप से OpenClaw और Hermes एजेंट डिप्लॉय करें — ClawHost के साथ अपने AI एजेंट तेज़ी से बनाएँ, कनेक्ट करें और स्केल करें.',
         downloadAndroid: 'Google Play पर प्राप्त करें',
         downloadIos: 'App Store पर डाउनलोड करें',
         ariaGithub: 'GitHub',
@@ -1084,7 +1085,7 @@ const hi: Translations = {
         heroTitle1: 'OpenClaw डिप्लॉय करें.',
         heroTitle2: 'एक क्लिक. हो गया.',
         heroDescription:
-            'एक क्लिक में क्लाउड या स्थानीय रूप से OpenClaw एजेंट डिप्लॉय करें — ClawHost के साथ अपने AI एजेंट तेज़ी से बनाएँ, कनेक्ट करें और स्केल करें.',
+            'एक क्लिक में क्लाउड या स्थानीय रूप से OpenClaw और Hermes एजेंट डिप्लॉय करें — ClawHost के साथ अपने AI एजेंट तेज़ी से बनाएँ, कनेक्ट करें और स्केल करें.',
         goToClaws: 'क्लॉज़ पर जाएँ',
         selfHost: 'ओपन सोर्स',
         startingPrice: 'शुरुआती',
@@ -1309,35 +1310,12 @@ const hi: Translations = {
         title: 'परिवर्तन लॉग',
         description: 'ClawHost के अपडेट, नई सुविधाएँ और सुधारों को ट्रैक करें.',
         subtitle: 'ClawHost के सभी अपडेट, नई सुविधाएँ और सुधार.',
-        upcomingRelease: 'प्रक्रिया में',
-        upcomingReleaseTitle: 'मोबाइल ऐप और अधिक',
-        upcomingReleaseDescription:
-            'कहीं से भी अपने OpenClaw इंस्टेंस प्रबंधित करें. एक नेटिव मोबाइल ऐप, साथ ही चल रहे प्लेटफ़ॉर्म सुधार.',
-        upcomingReleaseFeature1:
-            'चलते-फिरते अपने OpenClaw इंस्टेंस मॉनिटर और प्रबंधित करने के लिए नेटिव मोबाइल ऐप',
-        upcomingReleaseFeature13:
-            'macOS और Windows के लिए ClawHost Go, एक क्लिक में OpenClaw स्थानीय रूप से डिप्लॉय करें',
-        upcomingReleaseFeature14:
-            'OpenClaw जैसे Hermes एजेंटों के लिए एक क्लिक डिप्लॉय',
-        upcomingReleaseFeature3: 'डार्क और लाइट थीम सपोर्ट',
-        upcomingReleaseFeature4:
-            'प्रदर्शन, स्थिरता और प्रतिक्रियाशीलता में सुधार',
-        upcomingReleaseFeature5:
-            'अंग्रेज़ी, फ़्रेंच, स्पेनिश और जर्मन के साथ बहु-भाषा समर्थन',
-        upcomingReleaseFeature6:
-            'प्रतिस्पर्धियों के विरुद्ध पूर्ण विश्लेषण के साथ तुलना पृष्ठ',
-        upcomingReleaseFeature7:
-            'प्लेग्राउंड सुविधा संरचना का पुनर्गठन और सरलीकरण',
-        upcomingReleaseFeature8:
-            'OpenClaw एजेंट द्वारा स्वचालित रूप से प्रबंधित और प्रकाशित फ़ीचर अनुरोध',
-        upcomingReleaseFeature9:
-            'ClawHost पर होस्ट किए गए OpenClaw एजेंट के साथ बातचीत करने के लिए वॉइस मोड (बीटा)',
-        upcomingReleaseFeature10:
-            'नई शुरुआत के लिए अपने इंस्टेंस पर OpenClaw पुनः इंस्टॉल करें, प्रति दिन एक बार उपलब्ध',
-        upcomingReleaseFeature11:
-            'ClawHost Go के लिए लैंडिंग पेज, ClawHost के साथ स्थानीय होस्टिंग',
-        upcomingReleaseFeature12:
-            'एक क्लिक में स्थानीय रूप से OpenClaw डिप्लॉय करने के लिए macOS और Windows के लिए डेस्कटॉप ऐप',
+        release17Date: '29 अप्रैल 2026',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            'ClawHost पर Hermes एजेंटों के लिए एक क्लिक डिप्लॉय, OpenClaw की तरह।',
+        release17Feature1:
+            'Hermes एजेंटों के लिए OpenClaw की तरह एक क्लिक डिप्लॉय',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1928,6 +1906,11 @@ const hi: Translations = {
         title: 'ClawHost अब Agentist है',
         mission: 'स्वायत्त AI एजेंटों के लिए इंफ्रास्ट्रक्चर परत का निर्माण।'
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'Hermes एजेंट अब ClawHost पर डिप्लॉयमेंट के लिए समर्थित हैं।',
+        deploy: 'अभी डिप्लॉय करें'
+    },
     compare: {
         title: 'पूर्ण तुलना',
         description:
@@ -2331,13 +2314,13 @@ const hi: Translations = {
         heroTitle1: 'डिप्लॉय करें',
         heroTitle2: 'AI एजेंट्स',
         heroTitle3: 'क्लाउड पर एक क्लिक में',
-        heroDescription: 'OpenClaw और Hermes एजेंट्स को एक क्लिक में क्लाउड पर डिप्लॉय करें — ओपन-सोर्स, सेल्फ-होस्टेबल, और 60 सेकंड से कम में समर्पित इन्फ्रास्ट्रक्चर पर चल रहा है।',
+        heroDescription: 'OpenClaw और Hermes एजेंट्स को एक क्लिक में क्लाउड में डिप्लॉय करें — Agentist के साथ अपने AI एजेंट्स को तेज़ी से बनाएं, कनेक्ट करें और स्केल करें।',
         badge: 'पेश है agent.ic',
         selfHostLabel: 'इसके बजाय सेल्फ-होस्ट करें',
         deployButton: 'अभी डिप्लॉय करें',
         learnMore: 'और जानें',
         agentsTitle: 'आपके एजेंट। आपका क्लाउड।',
-        agentsDescription: 'AI एजेंट्स के बढ़ते कैटलॉग में से चुनें, हर एक अपने समर्पित VPS पर चलता है।',
+        agentsDescription: 'AI एजेंट्स के बढ़ते कैटलॉग में से चुनें, हर एक अपने समर्पित क्लाउड सर्वर पर चलता है।',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: 'पूर्ण SSH, टर्मिनल, फ़ाइल एक्सप्लोरर और कॉन्फ़िग एडिटर के साथ सेल्फ-होस्टेबल क्लाउड मैनेजमेंट प्लेटफ़ॉर्म।',
         agentHermesName: 'Hermes',
@@ -2357,9 +2340,9 @@ const hi: Translations = {
         feature1Title: 'मल्टी-एजेंट प्लेटफ़ॉर्म',
         feature1Description: 'एक ही डैशबोर्ड से कई प्रकार के एजेंट डिप्लॉय और मैनेज करें।',
         agentControlTitle: 'पूर्ण एजेंट नियंत्रण',
-        agentControlDescription: 'एक एकीकृत डैशबोर्ड से अपने एजेंटों के हर पहलू को प्रबंधित, कॉन्फ़िगर और कस्टमाइज़ करें।',
+        agentControlDescription: 'एक ही डैशबोर्ड से अपने एजेंटों के हर पहलू को कॉन्फ़िगर और कस्टमाइज़ करें।',
         multipleAgentsTitle: 'कई एजेंट्स',
-        multipleAgentsDescription: 'विभिन्न क्षेत्रों और कॉन्फ़िगरेशन में कई एजेंट इंस्टेंस तैनात और प्रबंधित करें।',
+        multipleAgentsDescription: 'विभिन्न क्षेत्रों और कॉन्फ़िग्स में कई एजेंट इंस्टेंस चलाएं।',
         feature2Title: 'समर्पित इन्फ्रास्ट्रक्चर',
         feature2Description: 'हर एजेंट अपने VPS पर चलता है। कोई शेयर्ड रिसोर्स नहीं, कोई शोर-शराबा नहीं।',
         feature3Title: 'ग्लोबल एज नेटवर्क',
@@ -2370,6 +2353,32 @@ const hi: Translations = {
         feature5Description: 'SSH, टर्मिनल, फ़ाइल एक्सप्लोरर और कॉन्फ़िग एडिटर। आपका सर्वर, आपके नियम।',
         feature6Title: 'उपयोग के अनुसार भुगतान',
         feature6Description: 'कोई प्रतिबद्धता नहीं। ऊपर या नीचे स्केल करें। केवल वही भुगतान करें जो आप उपयोग करते हैं।',
+        zeroConfigDescription: 'घंटों की सेटअप छोड़ें। OpenClaw और Hermes पहले से इंस्टॉल और मिनटों में तैयार हैं।',
+        globalLocationsDescription: 'एजेंट्स को 30+ वैश्विक क्षेत्रों में डिप्लॉय करें। अपने निकटतम स्थान चुनें।',
+        onlineAccessDescription: 'कस्टम सबडोमेन के साथ कहीं से भी अपने एजेंट्स तक सुरक्षित पहुंच प्राप्त करें।',
+        versionControlDescription: 'एक क्लिक से एजेंट संस्करण बदलें। अपडेट रहें या वापस जाएं।',
+        agentsPreinstalled: 'एजेंट पूर्व-स्थापित',
+        comparisonAgentAccessUs: 'सभी एजेंटों तक पूर्ण पहुंच',
+        comparisonMultipleAgentsUs: 'प्रति सर्वर एकाधिक एजेंट',
+        comparisonMultipleAgentsOthers: 'केवल एक एजेंट',
+        comparisonExportAgentsUs: 'अपने एजेंट कहीं भी निर्यात करें',
+        comparisonUsLabel: 'आपके लिए प्रबंधित',
+        comparisonOthersLabel: 'खुद करें',
+        faq1Question: 'Agentist क्या है?',
+        faq1Answer: 'Agentist एक प्लेटफ़ॉर्म है जो आपको अपने समर्पित सर्वर पर AI एजेंट तैनात और प्रबंधित करने देता है। हम इन्फ्रास्ट्रक्चर, सुरक्षा और रखरखाव संभालते हैं — आप बस अपने एजेंट का उपयोग करें।',
+        faq2Question: 'OpenClaw क्या है?',
+        faq2Answer: 'OpenClaw आपके AI टूल्स और सेवाओं के लिए एक सेल्फ-होस्टेड सुरक्षित एक्सेस लेयर है। यह हर Agentist सर्वर पर पहले से इंस्टॉल होता है और आपको अपने सेटअप पर पूरा नियंत्रण देता है।',
+        faq3Question: 'Hermes क्या है?',
+        faq3Answer: 'Hermes एक स्वायत्त AI एजेंट है जिसमें वेब ब्राउज़िंग, कैलेंडर प्रबंधन, मल्टी-मॉडल रीज़निंग और ब्राउज़र ऑटोमेशन शामिल है। यह हर सर्वर पर OpenClaw के साथ पहले से इंस्टॉल होता है।',
+        faq4Question: 'क्या मुझे तकनीकी ज्ञान की आवश्यकता है?',
+        faq4Answer: 'नहीं। Agentist सभी के लिए डिज़ाइन किया गया है। हम सारा इन्फ्रास्ट्रक्चर, सेटअप और रखरखाव संभालते हैं। आप बिना किसी सर्वर को छुए एक सहज डैशबोर्ड के माध्यम से अपने एजेंट प्रबंधित कर सकते हैं।',
+        faq5Question: 'यह अन्य AI प्लेटफ़ॉर्म से कैसे अलग है?',
+        faq5Answer: 'होस्टेड AI टूल्स के विपरीत, Agentist आपको आपके एजेंट इंस्टॉल किए हुए एक असली समर्पित सर्वर देता है। आप इन्फ्रास्ट्रक्चर के मालिक हैं, सब कुछ नियंत्रित करते हैं और साझा प्लेटफ़ॉर्म द्वारा सीमित नहीं हैं।',
+        faq6Question: 'कौन से स्थान उपलब्ध हैं?',
+        faq6Answer: 'हम दुनिया भर में 30+ सर्वर स्थान प्रदान करते हैं, जिनमें अमेरिका, यूरोप और एशिया शामिल हैं। आप विभिन्न क्षेत्रों में कई सर्वरों पर एजेंट तैनात कर सकते हैं।',
+        faq7Question: 'इसकी कीमत कितनी है?',
+        faq7Answer: 'आपके चुने हुए सर्वर के आधार पर कीमतें 40 $/माह से शुरू होती हैं। एंट्री-लेवल से हाई-परफ़ॉर्मेंस तक कई विकल्प। कोई छिपी फीस नहीं, कभी भी रद्द करें।',
+        footerDescription: 'एक क्लिक में क्लाउड में OpenClaw और Hermes एजेंट डिप्लॉय करें — Agentist के साथ अपने AI एजेंट तेज़ी से बनाएं, कनेक्ट करें और स्केल करें।',
         ctaTitle: 'डिप्लॉय के लिए तैयार?',
         ctaDescription: 'एजेंट डिप्लॉयमेंट की अगली पीढ़ी में शामिल हों। आपका इन्फ्रास्ट्रक्चर, आपके एजेंट, आपके नियम।',
         stats1Value: 'OpenClaw & Hermes',

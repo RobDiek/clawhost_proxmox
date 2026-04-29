@@ -31,8 +31,6 @@ export type AgentType = (typeof agentType)[keyof typeof agentType]
 export type BillingInterval =
     (typeof billingInterval)[keyof typeof billingInterval]
 
-export type PolarPriceMap = Record<string, number>
-
 export type AgentRow = typeof agents.$inferSelect
 
 export type FeatureEmailKey =

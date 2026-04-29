@@ -16,7 +16,6 @@ const LocationSelector: FC<LocationSelectorProps> = ({
     locations,
     location,
     planId,
-    atCapacity,
     isLoading,
     isLocationAvailableForPlan,
     onLocationChange,
@@ -45,7 +44,7 @@ const LocationSelector: FC<LocationSelectorProps> = ({
                             const unavailableForPlan =
                                 !isLocationAvailableForPlan(loc.id, planId)
                             const isDisabled =
-                                loc.disabled || unavailableForPlan || atCapacity
+                                loc.disabled || unavailableForPlan
                             const locationLabel = loc.country
                                 ? `${loc.city}, ${loc.country}`
                                 : loc.city
@@ -82,7 +81,6 @@ const LocationSelector: FC<LocationSelectorProps> = ({
                                                 const firstAvailable =
                                                     plans.find(
                                                         (p) =>
-                                                            !p.disabled &&
                                                             isPlanAvailable(
                                                                 p.id
                                                             ) &&

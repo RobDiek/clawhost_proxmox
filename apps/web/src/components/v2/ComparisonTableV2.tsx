@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { CheckIcon, XIcon } from '@phosphor-icons/react'
 import { ROUTES } from '@/lib'
+import ScrollRevealV2 from '@/components/v2/ScrollRevealV2'
 import SectionLabelV2 from '@/components/v2/SectionLabelV2'
 import LogoV2 from '@/components/v2/LogoV2'
 
@@ -19,10 +20,10 @@ const ComparisonTableV2: FC<ComparisonTableProps> = ({
     return (
         <section
             id='comparison'
-            className='v2-section scroll-mt-24 border-t border-white/5 px-6 py-24'
+            className='v2-section scroll-mt-24 border-t border-white/[0.025] px-6 py-24'
         >
             <div className='mx-auto max-w-6xl'>
-                <div className='mb-16'>
+                <ScrollRevealV2 className='mb-16'>
                     <SectionLabelV2 label={badge} />
                     <h2 className='font-syne mb-4 text-4xl font-extrabold uppercase tracking-tight text-white md:text-5xl'>
                         {heading}
@@ -30,14 +31,14 @@ const ComparisonTableV2: FC<ComparisonTableProps> = ({
                     <p className='max-w-xl font-mono text-sm leading-relaxed text-white/40'>
                         {description}
                     </p>
-                </div>
+                </ScrollRevealV2>
 
-                <div className='overflow-x-auto border border-white/10'>
-                    <table className='w-full'>
+                <ScrollRevealV2 delay={0.2} className='relative z-[15] overflow-x-auto border border-white/10'>
+                    <table className='w-full bg-[#020204]'>
                         <thead>
-                            <tr className='bg-white/[0.03]'>
+                            <tr className='bg-[#0a0a0c]'>
                                 <th className='px-6 py-4'>
-                                    <div className='flex items-center justify-center gap-2'>
+                                    <div className='flex items-center justify-center gap-2 scale-90 origin-center'>
                                         <LogoV2 />
                                         {logoSuffix && (
                                             <span className='font-syne translate-y-px text-sm font-bold text-white'>
@@ -58,7 +59,7 @@ const ComparisonTableV2: FC<ComparisonTableProps> = ({
                                 <tr
                                     key={index}
                                     className={`border-t border-white/5 ${
-                                        index % 2 !== 0 ? 'bg-white/[0.01]' : ''
+                                        index % 2 !== 0 ? 'bg-[#050507]' : 'bg-[#020204]'
                                     } ${
                                         index === 0
                                             ? 'font-syne font-semibold'
@@ -82,7 +83,7 @@ const ComparisonTableV2: FC<ComparisonTableProps> = ({
                                                 size={16}
                                                 className='flex-shrink-0 text-white/15'
                                             />
-                                            <span className='text-sm text-white/30'>
+                                            <span className='text-sm text-white/50'>
                                                 {row.others}
                                             </span>
                                         </div>
@@ -91,7 +92,7 @@ const ComparisonTableV2: FC<ComparisonTableProps> = ({
                             ))}
                         </tbody>
                     </table>
-                </div>
+                </ScrollRevealV2>
 
                 {showFullComparisonLink && (
                     <div className='mt-6 text-center'>

@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
@@ -70,11 +69,11 @@
 
 @keyframes banner-slide-down {
     from {
-        max-height: 0;
+        transform: translateY(-100%);
         opacity: 0;
     }
     to {
-        max-height: 200px;
+        transform: translateY(0);
         opacity: 1;
     }
 }
@@ -117,7 +116,7 @@
 }
 
 .animate-banner-enter {
-    animation: banner-slide-down 0.3s ease-in-out both;
+    animation: banner-slide-down 0.5s ease-out both;
 }
 
 .cv-auto {
@@ -165,7 +164,7 @@
         --coral-bright: #ef5350;
         --coral-dark: #c62828;
         --cyan-bright: #4dd0e1;
-        --bg-deep: #0a0a0f;
+        --bg-deep: #020204;
     }
 
     .dark {
@@ -509,13 +508,14 @@ html {
 
 .v2-grid {
     background-image:
-        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
     background-size: 40px 40px;
     position: fixed;
     inset: 0;
-    z-index: 10;
+    z-index: 6;
     pointer-events: none;
+    transition: opacity 0.3s ease;
 }
 
 .v2-content {
@@ -523,10 +523,12 @@ html {
     z-index: 5;
 }
 
+.v2-gradient {
+    z-index: 1;
+}
+
 .v2-section {
     position: relative;
-    z-index: 15;
-    background: #0a0a0f;
 }
 
 @keyframes v2-pulse {
@@ -542,7 +544,7 @@ html {
     position: relative;
     overflow: hidden;
     z-index: 5;
-    background: transparent;
+    background: #020204;
 }
 
 .v2-video-wrap .v2-hover-video {
@@ -578,115 +580,9 @@ html {
 
 .v2-footer-video {
     filter: invert(1) brightness(0.3);
-    opacity: 0.2;
-    object-fit: cover;
-    transform: rotate(180deg) scaleX(-1);
+    opacity: 0.25;
+    transform: scaleX(-1);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 85%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 85%, transparent 100%);
 }
 
-.hermes {
-    --primary: 45 50% 54%;
-    --primary-foreground: 80 30% 5%;
-    --ring: 45 50% 54%;
-    --destructive: 0 62.8% 30.6%;
-}
-
-.dark .hermes {
-    --background: 80 30% 5%;
-    --foreground: 50 20% 88%;
-    --card: 80 25% 7%;
-    --card-foreground: 50 20% 88%;
-    --popover: 80 25% 7%;
-    --popover-foreground: 50 20% 88%;
-    --primary-foreground: 80 30% 5%;
-    --secondary: 80 20% 12%;
-    --secondary-foreground: 50 20% 88%;
-    --muted: 80 15% 12%;
-    --muted-foreground: 70 10% 55%;
-    --accent: 80 20% 14%;
-    --accent-foreground: 50 20% 88%;
-    --destructive-foreground: 50 20% 88%;
-    --border: 80 18% 18%;
-    --input: 80 18% 18%;
-}
-
-.hermes .landing-gradient {
-    background:
-        radial-gradient(
-            ellipse 80% 50% at 50% -20%,
-            rgba(200, 168, 78, 0.15),
-            transparent
-        ),
-        radial-gradient(
-            ellipse 60% 40% at 70% 5%,
-            rgba(140, 120, 40, 0.08),
-            transparent
-        );
-}
-
-.dark .hermes .landing-gradient {
-    background:
-        radial-gradient(
-            ellipse 80% 50% at 50% -20%,
-            rgba(200, 168, 78, 0.25),
-            transparent
-        ),
-        radial-gradient(
-            ellipse 60% 40% at 70% 5%,
-            rgba(140, 120, 40, 0.15),
-            transparent
-        );
-}
-
-.hermes .landing-grid {
-    background-image:
-        linear-gradient(rgba(200, 168, 78, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(200, 168, 78, 0.05) 1px, transparent 1px);
-}
-
-.dark .hermes .landing-grid {
-    background-image:
-        linear-gradient(rgba(200, 168, 78, 0.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(200, 168, 78, 0.08) 1px, transparent 1px);
-}
-
-.hermes .glow-border::before {
-    background: conic-gradient(
-        from var(--glow-angle),
-        rgba(200, 168, 78, 0.6),
-        rgba(140, 120, 40, 0.3),
-        transparent 40%,
-        transparent 60%,
-        rgba(140, 120, 40, 0.3),
-        rgba(200, 168, 78, 0.6)
-    );
-}
-
-.hermes .font-clash {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-weight: 900;
-}
-
-.hermes .from-\[\#ef5350\] {
-    --tw-gradient-from: #c8a84e;
-}
-
-.hermes .via-\[\#ff7043\] {
-    --tw-gradient-stops:
-        var(--tw-gradient-from), #d4b85c, var(--tw-gradient-to);
-}
-
-.hermes .to-\[\#ffab91\] {
-    --tw-gradient-to: #e8d494;
-}
-
-.hermes .to-\[\#c62828\] {
-    --tw-gradient-to: #8a7030;
-}
-
-.hermes .text-\[\#ef5350\] {
-    color: #c8a84e;
-}
-
-.hermes .bg-\[\#ef5350\]\/5 {
-    background-color: rgba(200, 168, 78, 0.05);
-}

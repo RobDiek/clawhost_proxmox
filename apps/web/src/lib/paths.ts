@@ -12,12 +12,11 @@ const PATHS = {
     CHANGELOG: 'changelog',
     AFFILIATE: 'affiliate',
     AFFILIATE_PROGRAM: 'affiliate-program',
-    COMPARE: 'full-comparison',
-    HERMES: 'hermes',
-    HERMES_GO: 'hermes-go',
+    COMPARE: 'comparison',
     V2: 'v2',
     PRICING: 'pricing',
-    FEATURES: 'features'
+    FEATURES: 'features',
+    THE_NEW_BEGINNING: 'the-new-beginning'
 } as const
 
 export default PATHS

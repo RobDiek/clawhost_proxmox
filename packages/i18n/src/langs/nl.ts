@@ -90,7 +90,8 @@ const nl: Translations = {
         go: 'Go',
         goSubtitle: 'Niet-technisch',
         hermes: 'Hermes',
-        openClaw: 'OpenClaw'
+        openClaw: 'OpenClaw',
+        agentistGo: 'Agentist Go'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -250,7 +251,7 @@ const nl: Translations = {
         affiliateProgram: 'Partnerprogramma',
         documentation: 'Documentatie',
         productDescription:
-            'Deploy OpenClaw-agents in de cloud of lokaal met één klik — bouw, verbind en schaal je AI-agents sneller met ClawHost.',
+            'Deploy OpenClaw- en Hermes-agents in de cloud of lokaal met één klik — bouw, verbind en schaal je AI-agents sneller met ClawHost.',
         downloadAndroid: 'Downloaden op Google Play',
         downloadIos: 'Downloaden in de App Store',
         ariaGithub: 'GitHub',
@@ -1095,7 +1096,7 @@ const nl: Translations = {
         heroTitle1: 'Implementeer OpenClaw.',
         heroTitle2: 'E\u00e9n klik. Klaar.',
         heroDescription:
-            'Deploy OpenClaw-agents in de cloud of lokaal met \u00e9\u00e9n klik \u2014 bouw, verbind en schaal je AI-agents sneller met ClawHost.',
+            'Deploy OpenClaw- en Hermes-agents in de cloud of lokaal met \u00e9\u00e9n klik \u2014 bouw, verbind en schaal je AI-agents sneller met ClawHost.',
         goToClaws: 'Naar Claws',
         selfHost: 'Open Source',
         startingPrice: 'Vanaf',
@@ -1324,35 +1325,6 @@ const nl: Translations = {
             'Volg updates, nieuwe functies en verbeteringen aan ClawHost.',
         subtitle:
             'Alle updates, nieuwe functies en verbeteringen aan ClawHost.',
-        upcomingRelease: 'In ontwikkeling',
-        upcomingReleaseTitle: 'Mobiele app & meer',
-        upcomingReleaseDescription:
-            'Beheer je OpenClaw-instanties vanaf overal. Een native mobiele app, plus voortdurende platformverbeteringen.',
-        upcomingReleaseFeature1:
-            'Native mobiele app om je OpenClaw-instanties onderweg te monitoren en te beheren',
-        upcomingReleaseFeature13:
-            'ClawHost Go voor macOS en Windows, deploy OpenClaw lokaal met één klik',
-        upcomingReleaseFeature14:
-            'Eén-klik deploy voor Hermes-agents zoals OpenClaw',
-        upcomingReleaseFeature3: 'Ondersteuning voor donker en licht thema',
-        upcomingReleaseFeature4:
-            'Verbeteringen in prestaties, stabiliteit en responsiviteit',
-        upcomingReleaseFeature5:
-            'Meertalige ondersteuning met Engels, Frans, Spaans en Duits',
-        upcomingReleaseFeature6:
-            "Vergelijkingspagina's met volledige uitsplitsingen tegen concurrenten",
-        upcomingReleaseFeature7:
-            'Herstructurering van de playground-functiestructuur en vereenvoudigingen',
-        upcomingReleaseFeature8:
-            'Functieverzoeken automatisch beheerd en gepubliceerd door OpenClaw-agents',
-        upcomingReleaseFeature9:
-            'Spraakmodus om te communiceren met de OpenClaw-agents gehost op ClawHost (Beta)',
-        upcomingReleaseFeature10:
-            'Herinstalleer OpenClaw op je instantie voor een nieuwe start, eenmaal per dag beschikbaar',
-        upcomingReleaseFeature11:
-            'Landingspagina voor ClawHost Go, lokale hosting met ClawHost',
-        upcomingReleaseFeature12:
-            'Desktop-app voor macOS en Windows om OpenClaw lokaal te deployen met \u00e9\u00e9n klik',
         release14Date: '1 april 2026',
         release14Title: 'Hetzner-migratie, affiliate-systeem & nieuwe talen',
         release14Description:
@@ -1365,6 +1337,12 @@ const nl: Translations = {
             '10 nieuwe talen toegevoegd: Chinees, Hindi, Arabisch, Russisch, Japans, Turks, Italiaans, Pools, Nederlands en Portugees',
         release14Feature4:
             'Interne tools voor stabiele functieondersteuning voor huidige OpenClaw-versies, zonder ondersteuning voor oudere versies',
+        release17Date: '29 april 2026',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            'Eén-klik deployment voor Hermes-agenten op ClawHost, net als OpenClaw.',
+        release17Feature1:
+            'Eén-klik deployment voor Hermes-agenten zoals OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1956,6 +1934,11 @@ const nl: Translations = {
         title: 'ClawHost is nu Agentist',
         mission: 'De infrastructuur bouwen voor autonome AI-agenten.'
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'Hermes-agenten worden nu ondersteund voor deployment op ClawHost.',
+        deploy: 'Nu deployen'
+    },
     compare: {
         title: 'Volledige vergelijking',
         description:
@@ -2362,13 +2345,13 @@ const nl: Translations = {
         heroTitle1: 'Deploy',
         heroTitle2: 'AI-Agents',
         heroTitle3: 'op de Cloud met één Klik',
-        heroDescription: 'Deploy OpenClaw- en Hermes-agents op de cloud met één klik — open-source, zelf te hosten en draaiend op dedicated infrastructuur in minder dan 60 seconden.',
+        heroDescription: 'Deploy OpenClaw- en Hermes-agents in de cloud met één klik — bouw, verbind en schaal je AI-agents sneller met Agentist.',
         badge: 'Introductie van agent.ic',
         selfHostLabel: 'Zelf Hosten',
         deployButton: 'Nu Deployen',
         learnMore: 'Meer Informatie',
         agentsTitle: 'Jouw Agents. Jouw Cloud.',
-        agentsDescription: 'Kies uit een groeiende catalogus van AI-agents, elk draaiend op een eigen dedicated VPS.',
+        agentsDescription: 'Kies uit een groeiende catalogus van AI-agents, elk draaiend op een eigen dedicated cloudserver.',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: 'Zelf te hosten cloudmanagementplatform met volledige SSH, terminal, bestandsverkenner en configuratie-editor.',
         agentHermesName: 'Hermes',
@@ -2388,9 +2371,9 @@ const nl: Translations = {
         feature1Title: 'Multi-Agent Platform',
         feature1Description: 'Deploy en beheer meerdere agenttypen vanuit één dashboard.',
         agentControlTitle: 'Volledige agent-controle',
-        agentControlDescription: 'Beheer, configureer en pas elk aspect van uw agents aan vanuit een uniform dashboard.',
+        agentControlDescription: 'Configureer en pas elk aspect van je agents aan vanuit één dashboard.',
         multipleAgentsTitle: 'Meerdere agents',
-        multipleAgentsDescription: 'Implementeer en beheer meerdere agent-instanties in verschillende regio\'s en configuraties.',
+        multipleAgentsDescription: 'Draai meerdere agent-instanties in verschillende regio\'s en configuraties.',
         feature2Title: 'Dedicated Infrastructuur',
         feature2Description: 'Elke agent draait op zijn eigen VPS. Geen gedeelde resources, geen lawaaierige buren.',
         feature3Title: 'Wereldwijd Edge Netwerk',
@@ -2401,6 +2384,32 @@ const nl: Translations = {
         feature5Description: 'SSH, terminal, bestandsverkenner en configuratie-editor. Jouw server, jouw regels.',
         feature6Title: 'Betaal per Gebruik',
         feature6Description: 'Geen verplichtingen. Schaal op of af. Betaal alleen voor wat je gebruikt.',
+        zeroConfigDescription: 'Sla uren configuratie over. OpenClaw en Hermes zijn voorgeïnstalleerd en binnen minuten klaar.',
+        globalLocationsDescription: 'Deploy agents in meer dan 30 wereldwijde regio\'s. Kies de locatie die het dichtst bij je is.',
+        onlineAccessDescription: 'Krijg veilig toegang tot je agents vanaf overal met een eigen subdomein.',
+        versionControlDescription: 'Wissel van agentversie met één klik. Blijf up-to-date of ga terug.',
+        agentsPreinstalled: 'Agents voorgeïnstalleerd',
+        comparisonAgentAccessUs: 'Volledige toegang tot alle agents',
+        comparisonMultipleAgentsUs: 'Meerdere agents per server',
+        comparisonMultipleAgentsOthers: 'Slechts één agent',
+        comparisonExportAgentsUs: 'Exporteer je agents overal naartoe',
+        comparisonUsLabel: 'Voor jou beheerd',
+        comparisonOthersLabel: 'Doe het zelf',
+        faq1Question: 'Wat is Agentist?',
+        faq1Answer: 'Agentist is een platform waarmee je AI-agents kunt deployen en beheren op je eigen dedicated servers. Wij zorgen voor de infrastructuur, beveiliging en onderhoud — jij gebruikt gewoon je agents.',
+        faq2Question: 'Wat is OpenClaw?',
+        faq2Answer: 'OpenClaw is een zelf-gehoste beveiligde toegangslaag voor je AI-tools en -diensten. Het is voorgeïnstalleerd op elke Agentist-server en geeft je volledige controle over je configuratie.',
+        faq3Question: 'Wat is Hermes?',
+        faq3Answer: 'Hermes is een autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering. Het is voorgeïnstalleerd naast OpenClaw op elke server.',
+        faq4Question: 'Heb ik technische kennis nodig?',
+        faq4Answer: 'Nee. Agentist is ontworpen voor iedereen. Wij zorgen voor alle infrastructuur, configuratie en onderhoud. Je kunt je agents beheren via een intuïtief dashboard zonder servers aan te raken.',
+        faq5Question: 'Hoe verschilt dit van andere AI-platforms?',
+        faq5Answer: 'In tegenstelling tot gehoste AI-tools geeft Agentist je een echte dedicated server met je agents geïnstalleerd. Je bezit de infrastructuur, hebt overal controle over en wordt niet beperkt door gedeelde platforms.',
+        faq6Question: 'Welke locaties zijn beschikbaar?',
+        faq6Answer: 'We bieden meer dan 30 serverlocaties wereldwijd, waaronder de VS, Europa en Azië. Je kunt agents deployen op meerdere servers in verschillende regio\'s.',
+        faq7Question: 'Hoeveel kost het?',
+        faq7Answer: 'Prijzen beginnen vanaf 40 $/maand op basis van de server die je selecteert. Meerdere opties van instapniveau tot high-performance. Geen verborgen kosten, op elk moment opzegbaar.',
+        footerDescription: 'Deploy OpenClaw- en Hermes-agents in de cloud met een klik — bouw, verbind en schaal je AI-agents sneller met Agentist.',
         ctaTitle: 'Klaar om te Deployen?',
         ctaDescription: 'Sluit je aan bij de volgende generatie agentdeployment. Jouw infrastructuur, jouw agents, jouw regels.',
         stats1Value: 'OpenClaw & Hermes',

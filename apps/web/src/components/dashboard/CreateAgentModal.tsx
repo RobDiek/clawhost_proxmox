@@ -3,14 +3,13 @@ import type { CreateAgentModalProps, ErrorResponse } from '@/ts/Interfaces'
 
 import { useEffect } from 'react'
 import { t } from '@openclaw/i18n'
-import { agentType, billingInterval } from '@openclaw/shared'
+import { agentType, billingInterval, PLANS } from '@openclaw/shared'
 import { Link } from 'react-router-dom'
 import { ROUTES, isSafeRedirectUrl } from '@/lib'
 import { DownloadSimpleIcon } from '@phosphor-icons/react'
 import { OpenClawIcon, HermesIcon } from '@/components/icons'
 import {
     usePurchaseAgent,
-    usePlans,
     useLocations,
     useVolumePricing,
     usePlanAvailability,
@@ -47,17 +46,13 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
     onClose,
     onNavigateToSSHKeys
 }): ReactNode => {
-    const {
-        plans: providerPlans,
-        isLoading: isLoadingPlans,
-        atCapacity
-    } = usePlans()
+    const providerPlans = PLANS
     const { data: providerLocations, isLoading: isLoadingLocations } =
         useLocations()
     const { data: providerVolumePricing } = useVolumePricing()
     const { data: providerPlanAvailability } = usePlanAvailability()
 
-    const isProviderLoading = isLoadingPlans || isLoadingLocations
+    const isProviderLoading = isLoadingLocations
     const plans = providerPlans || initialPlans
     const locations = providerLocations || initialLocations
     const volumePricing = providerVolumePricing || initialVolumePricing
@@ -72,14 +67,14 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
 
     const getFirstEnabledPlan = (planList: typeof plans): string => {
         const enabled = planList.find(
-            (p) => !p.disabled && isPlanAvailable(p.id)
+            (p) => isPlanAvailable(p.id)
         )
-        return enabled?.id || planList.find((p) => !p.disabled)?.id || ''
+        return enabled?.id || planList[0]?.id || ''
     }
 
     const initialPlanId =
         preselectedPlanId &&
-        plans.find((p) => p.id === preselectedPlanId && !p.disabled)
+        plans.find((p) => p.id === preselectedPlanId)
             ? preselectedPlanId
             : getFirstEnabledPlan(plans)
 
@@ -219,7 +214,7 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
         )
     }
 
-    const selectedPlan = plans.find((p) => p.id === planId && !p.disabled)
+    const selectedPlan = plans.find((p) => p.id === planId)
 
     const totalAmount = selectedPlan
         ? (billingCycle === billingInterval.YEAR
@@ -320,7 +315,6 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                         locations={locations}
                         location={location}
                         planId={planId}
-                        atCapacity={atCapacity}
                         isLoading={isProviderLoading}
                         isLocationAvailableForPlan={isLocationAvailableForPlan}
                         onLocationChange={(v) => setField('location', v)}
