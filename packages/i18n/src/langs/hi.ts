@@ -1310,7 +1310,7 @@ const hi: Translations = {
         title: 'परिवर्तन लॉग',
         description: 'ClawHost के अपडेट, नई सुविधाएँ और सुधारों को ट्रैक करें.',
         subtitle: 'ClawHost के सभी अपडेट, नई सुविधाएँ और सुधार.',
-        release17Date: '28 अप्रैल 2026',
+        release17Date: '29 अप्रैल 2026',
         release17Title: 'Hermes Agent Support',
         release17Description:
             'ClawHost पर Hermes एजेंटों के लिए एक क्लिक डिप्लॉय, OpenClaw की तरह।',

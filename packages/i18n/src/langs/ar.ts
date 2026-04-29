@@ -1274,7 +1274,7 @@ const ar: Translations = {
         title: 'سجل التغييرات',
         description: 'تتبع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
         subtitle: 'جميع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
-        release17Date: '28 أبريل 2026',
+        release17Date: '29 أبريل 2026',
         release17Title: 'Hermes Agent Support',
         release17Description:
             'نشر بنقرة واحدة لوكلاء Hermes على ClawHost، تمامًا مثل OpenClaw.',

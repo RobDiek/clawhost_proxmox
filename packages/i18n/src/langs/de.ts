@@ -1342,7 +1342,7 @@ const de: Translations = {
             'Verfolge Updates, neue Funktionen und Verbesserungen an ClawHost.',
         subtitle:
             'Alle Updates, neue Funktionen und Verbesserungen an ClawHost.',
-        release17Date: '28. April 2026',
+        release17Date: '29. April 2026',
         release17Title: 'Hermes Agent Support',
         release17Description:
             'Ein-Klick-Bereitstellung für Hermes-Agenten auf ClawHost, genau wie OpenClaw.',

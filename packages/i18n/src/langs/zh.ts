@@ -1242,7 +1242,7 @@ const zh: Translations = {
         title: '更新日志',
         description: '跟踪 ClawHost 的更新、新功能和改进。',
         subtitle: 'ClawHost 的所有更新、新功能和改进。',
-        release17Date: '2026年4月28日',
+        release17Date: '2026年4月29日',
         release17Title: 'Hermes Agent Support',
         release17Description:
             '在 ClawHost 上一键部署 Hermes 代理，就像 OpenClaw 一样。',

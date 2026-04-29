@@ -1362,7 +1362,7 @@ const fr: Translations = {
             'Suivez les mises à jour, nouvelles fonctionnalités et améliorations de ClawHost.',
         subtitle:
             'Toutes les mises à jour, nouvelles fonctionnalités et améliorations de ClawHost.',
-        release17Date: '28 avril 2026',
+        release17Date: '29 avril 2026',
         release17Title: 'Hermes Agent Support',
         release17Description:
             'Déploiement en un clic pour les agents Hermes sur ClawHost, comme OpenClaw.',

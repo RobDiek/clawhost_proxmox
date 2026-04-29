@@ -1301,7 +1301,7 @@ const ja: Translations = {
         title: '変更履歴',
         description: 'ClawHostのアップデート、新機能、改善を追跡。',
         subtitle: 'ClawHostのすべてのアップデート、新機能、改善。',
-        release17Date: '2026年4月28日',
+        release17Date: '2026年4月29日',
         release17Title: 'Hermes Agent Support',
         release17Description:
             'ClawHostでHermesエージェントをワンクリックデプロイ、OpenClawと同様に。',

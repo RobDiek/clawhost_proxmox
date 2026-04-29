@@ -1293,7 +1293,7 @@ const en = {
         description:
             'Track updates, new features, and improvements to ClawHost.',
         subtitle: 'All updates, new features, and improvements to ClawHost.',
-        release17Date: 'April 28, 2026',
+        release17Date: 'April 29, 2026',
         release17Title: 'Hermes Agent Support',
         release17Description:
             'One click deploy for Hermes agents on ClawHost, just like OpenClaw.',

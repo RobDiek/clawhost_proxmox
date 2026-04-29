@@ -1337,7 +1337,7 @@ const pt: Translations = {
             '10 novos idiomas adicionados: chinês, hindi, árabe, russo, japonês, turco, italiano, polonês, holandês e português',
         release14Feature4:
             'Ferramentas internas para fornecer suporte estável de funcionalidades para versões atuais do OpenClaw, sem suporte para versões anteriores',
-        release17Date: '28 de abril de 2026',
+        release17Date: '29 de abril de 2026',
         release17Title: 'Hermes Agent Support',
         release17Description:
             'Implantação com um clique para agentes Hermes no ClawHost, assim como OpenClaw.',
