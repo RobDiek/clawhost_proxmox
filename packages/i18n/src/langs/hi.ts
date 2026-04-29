@@ -1793,14 +1793,6 @@ const hi: Translations = {
         deployClaw: 'क्लॉ डिप्लॉय करें',
         deployYourFirstClaw: 'अपना पहला क्लॉ डिप्लॉय करें'
     },
-    productHunt: {
-        liveOn: 'लाइव है',
-        productHunt: 'Product Hunt',
-        celebrate: 'हमें समर्थन दें और पाएँ',
-        discount: '10% की छूट',
-        yourFirstMonth: 'आपके पहले ऑर्डर पर',
-        upvoteNow: 'हमें अपवोट करें'
-    },
     rebrand: {
         tag: 'विकास',
         title: 'ClawHost अब Agentist है',

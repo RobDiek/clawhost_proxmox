@@ -1820,14 +1820,6 @@ const nl: Translations = {
         deployClaw: 'Claw deployen',
         deployYourFirstClaw: 'Deploy je eerste Claw'
     },
-    productHunt: {
-        liveOn: 'Live op',
-        productHunt: 'Product Hunt',
-        celebrate: 'Steun ons & geniet van',
-        discount: '10% korting',
-        yourFirstMonth: 'je eerste bestelling',
-        upvoteNow: 'Stem op ons'
-    },
     rebrand: {
         tag: 'EVOLUTIE',
         title: 'ClawHost is nu Agentist',

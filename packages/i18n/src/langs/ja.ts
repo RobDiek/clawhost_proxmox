@@ -1776,14 +1776,6 @@ const ja: Translations = {
         deployClaw: 'Clawをデプロイ',
         deployYourFirstClaw: '最初のClawをデプロイ'
     },
-    productHunt: {
-        liveOn: '公開中',
-        productHunt: 'Product Hunt',
-        celebrate: '応援して楽しもう',
-        discount: '10%オフ',
-        yourFirstMonth: '初回注文',
-        upvoteNow: '応援する'
-    },
     rebrand: {
         tag: '進化',
         title: 'ClawHostはAgentistになりました',

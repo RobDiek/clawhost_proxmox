@@ -3,25 +3,13 @@ import { useUIStore } from '@/lib/store'
 describe('useUIStore', () => {
     beforeEach(() => {
         useUIStore.setState({
-            isCreateModalOpen: false,
-            toast: null,
-            phBannerVisible: false
+            toast: null
         })
     })
 
     it('has correct initial state', () => {
         const state = useUIStore.getState()
-        expect(state.isCreateModalOpen).toBe(false)
         expect(state.toast).toBeNull()
-        expect(state.phBannerVisible).toBe(false)
-    })
-
-    it('opens and closes create modal', () => {
-        useUIStore.getState().setCreateModalOpen(true)
-        expect(useUIStore.getState().isCreateModalOpen).toBe(true)
-
-        useUIStore.getState().setCreateModalOpen(false)
-        expect(useUIStore.getState().isCreateModalOpen).toBe(false)
     })
 
     it('shows toast with defaults', () => {

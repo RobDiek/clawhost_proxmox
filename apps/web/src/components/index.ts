@@ -7,7 +7,6 @@ import {
     PageBackground,
     PageHeader,
     PageTitle,
-    ProductHuntBanner,
     ScrollToTop
 } from '@/components/layout'
 
@@ -112,7 +111,6 @@ export {
     PageHeader,
     PageTitle,
     PricingSection,
-    ProductHuntBanner,
     LicenseRequired,
     ProtectedRoute,
     ScrollToTop,

@@ -1,6 +1,5 @@
 import { externalUrls } from '@openclaw/shared'
 
-const PRODUCT_HUNT_URL = externalUrls.SOCIAL.PRODUCT_HUNT
 const TWITTER_URL = externalUrls.SOCIAL.X
 const FACEBOOK_URL = externalUrls.SOCIAL.FACEBOOK
 const INSTAGRAM_URL = externalUrls.SOCIAL.INSTAGRAM
@@ -11,7 +10,6 @@ const TUTORIAL_URL = externalUrls.SOCIAL.TUTORIAL
 const SUPPORT_EMAIL = externalUrls.SOCIAL.SUPPORT_EMAIL
 
 export {
-    PRODUCT_HUNT_URL,
     TWITTER_URL,
     FACEBOOK_URL,
     INSTAGRAM_URL,

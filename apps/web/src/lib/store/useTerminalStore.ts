@@ -11,13 +11,7 @@ const useTerminalStore = create<TerminalState>((set) => ({
         })),
 
     showScrollButton: false,
-    setShowScrollButton: (value) => set({ showScrollButton: value }),
-
-    resetTerminalState: () =>
-        set({
-            status: TERMINAL_STATUS.IDLE,
-            showScrollButton: false
-        })
+    setShowScrollButton: (value) => set({ showScrollButton: value })
 }))
 
 export default useTerminalStore

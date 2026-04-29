@@ -13,15 +13,7 @@ const useDashboardStore = create<DashboardState>((set) => ({
     setShowCreate: (value) => set({ showCreate: value }),
 
     preselectedPlanId: null,
-    setPreselectedPlanId: (value) => set({ preselectedPlanId: value }),
-
-    resetDashboardState: () =>
-        set({
-            chatSettingsAgentId: null,
-            chatAgentTab: null,
-            showCreate: false,
-            preselectedPlanId: null
-        })
+    setPreselectedPlanId: (value) => set({ preselectedPlanId: value })
 }))
 
 export default useDashboardStore

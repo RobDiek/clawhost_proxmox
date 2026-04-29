@@ -26,8 +26,7 @@ import {
 import {
     ErrorState,
     NetworkStatus,
-    PageTitle,
-    ProductHuntBanner
+    PageTitle
 } from '@/components'
 import {
     CreateAgentModal,
@@ -201,11 +200,7 @@ const Dashboard: FC = (): ReactNode => {
             transition={{ duration: 0.2 }}
             className={`bg-background text-foreground fixed inset-0 flex flex-col ${showFullBackground && !isLocal ? 'playground-grid' : ''}`}
         >
-            {isOffline ? (
-                <NetworkStatus />
-            ) : (
-                <ProductHuntBanner />
-            )}
+            {isOffline && <NetworkStatus />}
             {isLocal && showFullBackground && (
                 <div className='playground-grid pointer-events-none fixed inset-0 opacity-50' />
             )}

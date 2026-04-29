@@ -1655,14 +1655,6 @@ const zh: Translations = {
         deployClaw: '部署 Claw',
         deployYourFirstClaw: '部署您的第一个 Claw'
     },
-    productHunt: {
-        liveOn: '已上线',
-        productHunt: 'Product Hunt',
-        celebrate: '支持我们并享受',
-        discount: '9折优惠',
-        yourFirstMonth: '您的首单',
-        upvoteNow: '为我们投票'
-    },
     rebrand: {
         tag: '进化',
         title: 'ClawHost 现已更名为 Agentist',

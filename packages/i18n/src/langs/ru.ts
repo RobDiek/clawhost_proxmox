@@ -1799,14 +1799,6 @@ const ru: Translations = {
         deployClaw: 'Развернуть клоу',
         deployYourFirstClaw: 'Разверните ваш первый клоу'
     },
-    productHunt: {
-        liveOn: 'Мы на',
-        productHunt: 'Product Hunt',
-        celebrate: 'Поддержите нас и получите',
-        discount: 'скидку 10%',
-        yourFirstMonth: 'на ваш первый заказ',
-        upvoteNow: 'Проголосуйте за нас'
-    },
     rebrand: {
         tag: 'ЭВОЛЮЦИЯ',
         title: 'ClawHost теперь Agentist',

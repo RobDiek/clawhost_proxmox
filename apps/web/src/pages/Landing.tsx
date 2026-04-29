@@ -33,7 +33,7 @@ import {
     TUTORIAL_URL
 } from '@/lib/links'
 import { GITHUB_REPO_URL } from '@/hooks'
-import { useUIStore, usePreferencesStore } from '@/lib/store'
+import { usePreferencesStore } from '@/lib/store'
 import { PRODUCT } from '@/lib/constants'
 import {
     ShieldCheckIcon,
@@ -83,7 +83,6 @@ const getFaqs = (): Faq[] => [
 
 const Landing: FC = (): ReactNode => {
     const { hash } = useLocation()
-    const { phBannerVisible } = useUIStore()
     const setProduct = usePreferencesStore((s) => s.setProduct)
     useEffect(() => {
         setProduct(PRODUCT.CLOUD)
@@ -201,7 +200,7 @@ const Landing: FC = (): ReactNode => {
 
             <main>
                 <section
-                    className={`relative overflow-hidden px-6 pb-16 ${phBannerVisible ? 'pt-44' : 'pt-32'}`}
+                    className='relative overflow-hidden px-6 pb-16 pt-32'
                 >
                     <div className='landing-grid pointer-events-none' />
 

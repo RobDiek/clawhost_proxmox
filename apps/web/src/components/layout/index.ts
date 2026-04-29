@@ -6,7 +6,6 @@ import Logo from '@/components/layout/Logo'
 import PageBackground from '@/components/layout/PageBackground'
 import PageHeader from '@/components/layout/PageHeader'
 import PageTitle from '@/components/layout/PageTitle'
-import ProductHuntBanner from '@/components/layout/ProductHuntBanner'
 import ProductSwitcher from '@/components/layout/ProductSwitcher'
 import ScrollToTop from '@/components/layout/ScrollToTop'
 
@@ -19,7 +18,6 @@ export {
     PageBackground,
     PageHeader,
     PageTitle,
-    ProductHuntBanner,
     ProductSwitcher,
     ScrollToTop
 }

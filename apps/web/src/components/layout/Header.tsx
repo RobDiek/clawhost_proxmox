@@ -12,7 +12,6 @@ import {
     BetaBadge,
     HermesBanner,
     Logo,
-    ProductHuntBanner,
     ProductSwitcher
 } from '@/components/layout'
 import {
@@ -86,7 +85,6 @@ const Header: FC<HeaderProps> = ({
                           : 'border-b border-transparent bg-transparent'
                 }`}
             >
-                <ProductHuntBanner />
                 <HermesBanner />
                 <div className='mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4'>
                     <div className='flex items-center gap-3'>

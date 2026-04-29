@@ -7,13 +7,7 @@ const useVersionsStore = create<VersionsState>((set) => ({
     setInstallingVersion: (value) => set({ installingVersion: value }),
 
     confirmVersion: null,
-    setConfirmVersion: (value) => set({ confirmVersion: value }),
-
-    resetVersionsState: () =>
-        set({
-            installingVersion: null,
-            confirmVersion: null
-        })
+    setConfirmVersion: (value) => set({ confirmVersion: value })
 }))
 
 export default useVersionsStore

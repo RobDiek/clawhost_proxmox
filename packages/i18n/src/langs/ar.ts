@@ -1730,14 +1730,6 @@ const ar: Translations = {
         deployClaw: 'نشر مخلب',
         deployYourFirstClaw: 'انشر أول مخلب'
     },
-    productHunt: {
-        liveOn: 'متاح على',
-        productHunt: 'Product Hunt',
-        celebrate: 'ادعمنا واستمتع بـ',
-        discount: 'خصم 10%',
-        yourFirstMonth: 'على طلبك الأول',
-        upvoteNow: 'صوّت لنا'
-    },
     rebrand: {
         tag: 'تطوّر',
         title: 'ClawHost أصبح الآن Agentist',

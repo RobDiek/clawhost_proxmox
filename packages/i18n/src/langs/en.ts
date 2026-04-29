@@ -1778,14 +1778,6 @@ const en = {
         deployClaw: 'Deploy Claw',
         deployYourFirstClaw: 'Deploy your first Claw'
     },
-    productHunt: {
-        liveOn: 'Live on',
-        productHunt: 'Product Hunt',
-        celebrate: 'Support us & enjoy',
-        discount: '10% off',
-        yourFirstMonth: 'your first order',
-        upvoteNow: 'Upvote Us'
-    },
     rebrand: {
         tag: 'EVOLUTION',
         title: 'ClawHost is now Agentist',

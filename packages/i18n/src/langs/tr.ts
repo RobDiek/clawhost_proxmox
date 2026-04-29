@@ -1801,14 +1801,6 @@ const tr: Translations = {
         deployClaw: 'Claw Dağıt',
         deployYourFirstClaw: "İlk Claw'ınızı dağıtın"
     },
-    productHunt: {
-        liveOn: 'Yayında',
-        productHunt: 'Product Hunt',
-        celebrate: 'Bizi destekleyin ve',
-        discount: '%10 indirim',
-        yourFirstMonth: 'ilk siparişinizde',
-        upvoteNow: 'Oy Verin'
-    },
     rebrand: {
         tag: 'EVRİM',
         title: 'ClawHost artık Agentist',

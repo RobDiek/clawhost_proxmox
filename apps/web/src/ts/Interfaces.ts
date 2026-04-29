@@ -242,17 +242,12 @@ export interface UseCreateAgentFormReturn {
 }
 
 export interface UIState {
-    isCreateModalOpen: boolean
-    setCreateModalOpen: (open: boolean) => void
     toast: ToastData | null
     showToast: (message: string, type?: ToastType, duration?: number) => void
     hideToast: () => void
-    phBannerVisible: boolean
-    dismissPhBanner: () => void
     rebrandBannerVisible: boolean
     dismissRebrandBanner: () => void
     hermesBannerVisible: boolean
-    dismissHermesBanner: () => void
 }
 
 export interface PreferencesState {
@@ -277,7 +272,6 @@ export interface VersionsState {
     setInstallingVersion: (value: string | null) => void
     confirmVersion: string | null
     setConfirmVersion: (value: string | null) => void
-    resetVersionsState: () => void
 }
 
 export interface UseTerminalConnectionReturn {
@@ -296,7 +290,6 @@ export interface TerminalState {
     ) => void
     showScrollButton: boolean
     setShowScrollButton: (value: boolean) => void
-    resetTerminalState: () => void
 }
 
 export interface DashboardState {
@@ -308,7 +301,6 @@ export interface DashboardState {
     setShowCreate: (value: boolean) => void
     preselectedPlanId: string | null
     setPreselectedPlanId: (value: string | null) => void
-    resetDashboardState: () => void
 }
 
 export interface CachedProfile {

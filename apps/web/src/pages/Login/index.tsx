@@ -11,8 +11,7 @@ import { ROUTES } from '@/lib'
 import {
     Logo,
     NetworkStatus,
-    PageTitle,
-    ProductHuntBanner
+    PageTitle
 } from '@/components'
 import { CircleNotchIcon } from '@phosphor-icons/react'
 import EmailStep from '@/pages/Login/EmailStep'
@@ -106,11 +105,7 @@ const Login: FC = (): ReactNode => {
         <div
             className={`bg-background text-foreground ${isLocal ? 'fixed inset-0 flex flex-col overflow-hidden' : 'relative min-h-screen'}`}
         >
-            {isOffline ? (
-                <NetworkStatus />
-            ) : (
-                <ProductHuntBanner />
-            )}
+            {isOffline && <NetworkStatus />}
             <div className='relative flex min-h-screen items-center justify-center px-4'>
                 <div className='landing-gradient pointer-events-none absolute inset-0' />
                 <div className='landing-grid pointer-events-none absolute inset-0' />

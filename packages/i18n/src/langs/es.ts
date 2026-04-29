@@ -1837,14 +1837,6 @@ const es: Translations = {
         deployClaw: 'Desplegar Claw',
         deployYourFirstClaw: 'Despliega tu primer Claw'
     },
-    productHunt: {
-        liveOn: 'En vivo en',
-        productHunt: 'Product Hunt',
-        celebrate: 'Apóyanos y disfruta',
-        discount: '10% de descuento',
-        yourFirstMonth: 'en tu primer pedido',
-        upvoteNow: 'Vótanos'
-    },
     rebrand: {
         tag: 'EVOLUCIÓN',
         title: 'ClawHost ahora es Agentist',

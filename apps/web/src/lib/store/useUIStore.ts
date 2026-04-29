@@ -18,19 +18,10 @@ const isHermesBannerActive = (): boolean => {
 }
 
 const useUIStore = create<UIState>((set) => ({
-    isCreateModalOpen: false,
-    setCreateModalOpen: (open) => set({ isCreateModalOpen: open }),
-
     toast: null,
     showToast: (message, type = TOAST_TYPE.INFO, duration = 5000) =>
         set({ toast: { message, type, duration } }),
     hideToast: () => set({ toast: null }),
-
-    phBannerVisible: false,
-    dismissPhBanner: () => {
-        localStorage.setItem(STORAGE_KEYS.PH_BANNER_DISMISSED, '1')
-        set({ phBannerVisible: false })
-    },
 
     rebrandBannerVisible: isRebrandBannerActive(),
     dismissRebrandBanner: () => {
