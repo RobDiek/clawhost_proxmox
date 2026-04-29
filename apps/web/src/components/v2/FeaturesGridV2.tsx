@@ -13,7 +13,7 @@ const FeaturesGridV2: FC<FeaturesGridProps> = ({
     return (
         <section
             id='features'
-            className='v2-section scroll-mt-24 border-t border-white/10 px-6 py-24'
+            className='v2-section scroll-mt-24 border-t border-white/[0.15] px-6 py-24'
         >
             <div className='mx-auto max-w-6xl'>
                 <ScrollRevealV2 className='mb-16'>

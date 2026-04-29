@@ -33,10 +33,10 @@ const FeaturesV2: FC = (): ReactNode => {
         : `${ROUTES.LOGIN}?deploy=true`
 
     const navLinks = [
+        { label: 'Go', href: ROUTES.GO, id: 'go' },
         { label: t('landing.features'), href: ROUTES.FEATURES, id: 'features' },
         { label: t('landing.pricing'), href: ROUTES.PRICING, id: 'pricing' },
-        { label: t('landing.comparison'), href: ROUTES.COMPARE, id: 'comparison' },
-        { label: t('nav.agentistGo'), href: ROUTES.GO, id: 'go' }
+        { label: t('landing.comparison'), href: ROUTES.COMPARE, id: 'comparison' }
     ]
 
     return (
@@ -85,7 +85,7 @@ const FeaturesV2: FC = (): ReactNode => {
                     ]}
                 />
 
-                <section className='v2-section relative border-t border-white/10 px-6 py-32'>
+                <section className='v2-section relative border-t border-white/[0.15] px-6 py-32'>
                     <ScrollRevealV2 className='mx-auto max-w-6xl'>
                         <div className='border border-white/10 bg-[#070709] p-12 md:p-16'>
                             <div className='flex flex-col items-center text-center'>

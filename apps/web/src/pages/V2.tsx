@@ -59,10 +59,10 @@ const V2: FC = (): ReactNode => {
         : `${ROUTES.LOGIN}?deploy=true`
 
     const navLinks = [
+        { label: 'Go', href: ROUTES.GO, id: 'go' },
         { label: t('landing.features'), href: ROUTES.FEATURES, id: 'features' },
         { label: t('landing.pricing'), href: ROUTES.PRICING, id: 'pricing' },
-        { label: t('landing.comparison'), href: ROUTES.COMPARE, id: 'comparison' },
-        { label: t('nav.agentistGo'), href: ROUTES.GO, id: 'go' }
+        { label: t('landing.comparison'), href: ROUTES.COMPARE, id: 'comparison' }
     ]
 
     return (
@@ -191,9 +191,9 @@ const V2: FC = (): ReactNode => {
                     className='v2-section relative px-6 pb-16 pt-6'
                 >
                     <div className='mx-auto max-w-6xl'>
-                        <div className='grid grid-cols-2 border border-white/10 md:grid-cols-5'>
+                        <div className='relative z-[15] grid grid-cols-2 border border-white/10 md:grid-cols-5'>
                             {getV2Stats().map((stat, i) => (
-                                <div key={i} className='border-white/10 bg-[#020204] p-5 [&:not(:last-child)]:border-r'>
+                                <div key={i} className='border-white/10 bg-[#0c0c12] p-5 [&:not(:last-child)]:border-r'>
                                     <div className='font-syne text-2xl font-bold text-white md:text-3xl'>
                                         {stat.value}
                                     </div>
@@ -206,7 +206,7 @@ const V2: FC = (): ReactNode => {
                     </div>
                 </motion.div>
 
-                <section id='agents' className='v2-section relative scroll-mt-24 border-t border-white/10 px-6 py-24'>
+                <section id='agents' className='v2-section relative scroll-mt-24 border-t border-white/[0.15] px-6 py-24'>
                     <div className='mx-auto max-w-6xl'>
                         <ScrollRevealV2 className='mb-16'>
                             <SectionLabelV2 label='Agent Catalog' />
@@ -282,7 +282,7 @@ const V2: FC = (): ReactNode => {
                     faqs={getV2Faqs()}
                 />
 
-                <section className='v2-section relative border-t border-white/10 px-6 py-32'>
+                <section className='v2-section relative border-t border-white/[0.15] px-6 py-32'>
                     <ScrollRevealV2 className='mx-auto max-w-6xl'>
                         <div className='relative z-[15] border border-white/10 bg-[#070709] p-12 md:p-16'>
                             <div className='flex flex-col items-center text-center'>

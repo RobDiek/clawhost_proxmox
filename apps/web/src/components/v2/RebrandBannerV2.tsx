@@ -1,7 +1,9 @@
 import type { FC, ReactNode } from 'react'
 
+import { Link } from 'react-router-dom'
 import { XIcon, ArrowRightIcon } from '@phosphor-icons/react'
 import { t } from '@openclaw/i18n'
+import { ROUTES } from '@/lib'
 import { useUIStore } from '@/lib/store'
 
 const RebrandBannerV2: FC = (): ReactNode => {
@@ -18,7 +20,10 @@ const RebrandBannerV2: FC = (): ReactNode => {
                     <div className='absolute -right-4 top-1/2 h-px w-16 -translate-y-1/2 bg-gradient-to-l from-transparent to-[#6B5CE7]/30' />
                 </div>
                 <div className='relative px-4 py-2.5 text-center'>
-                    <div className='inline-flex items-center gap-3'>
+                    <Link
+                        to={ROUTES.THE_NEW_BEGINNING}
+                        className='inline-flex items-center gap-3 transition hover:opacity-80'
+                    >
                         <span className='hidden font-mono text-[10px] tracking-[0.3em] text-[#6B5CE7] sm:inline'>
                             // {t('rebrand.tag')}
                         </span>
@@ -29,7 +34,7 @@ const RebrandBannerV2: FC = (): ReactNode => {
                             <span className='text-white/50'>{t('rebrand.mission')}</span>
                         </span>
                         <ArrowRightIcon size={12} className='hidden text-[#6B5CE7] sm:inline' />
-                    </div>
+                    </Link>
                     <button
                         onClick={dismissRebrandBanner}
                         className='absolute right-4 top-1/2 -translate-y-1/2 text-white/20 transition hover:text-white/50'

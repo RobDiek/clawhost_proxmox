@@ -18,7 +18,8 @@ const ROUTES = {
     COMPARE: `/${PATHS.COMPARE}`,
     V2: `/${PATHS.V2}`,
     PRICING: `/${PATHS.PRICING}`,
-    FEATURES: `/${PATHS.FEATURES}`
+    FEATURES: `/${PATHS.FEATURES}`,
+    THE_NEW_BEGINNING: `/${PATHS.THE_NEW_BEGINNING}`
 } as const
 
 export default ROUTES

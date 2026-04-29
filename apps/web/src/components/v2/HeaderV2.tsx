@@ -6,9 +6,8 @@ import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { ListIcon, XIcon, RocketLaunchIcon, ArrowRightIcon } from '@phosphor-icons/react'
-import { LanguageSelector, ThemeToggle, UserDropdown } from '@/components'
-import LogoV2 from '@/components/v2/LogoV2'
-import RebrandBannerV2 from '@/components/v2/RebrandBannerV2'
+import { LanguageSelector, UserDropdown } from '@/components'
+import { LogoV2, RebrandBannerV2 } from '@/components/v2'
 import { ROUTES } from '@/lib'
 import { useAuth } from '@/lib/auth'
 import { useProfile } from '@/hooks'
@@ -64,8 +63,10 @@ const HeaderV2: FC<HeaderProps> = ({
                 }`}
             >
                 <RebrandBannerV2 />
-                <div className='mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4'>
-                    <LogoV2 />
+                <div className='mx-auto flex max-w-6xl items-center justify-between px-6 py-4'>
+                    <div className='flex-1'>
+                        <LogoV2 />
+                    </div>
 
                     {showNavLinks && navLinks.length > 0 && (
                         <nav
@@ -93,10 +94,9 @@ const HeaderV2: FC<HeaderProps> = ({
                         </nav>
                     )}
 
-                    <div className='flex items-center gap-3'>
-                        <div className='hidden items-center gap-1.5 sm:flex'>
+                    <div className='flex flex-1 items-center justify-end gap-4'>
+                        <div className='hidden sm:block'>
                             <LanguageSelector />
-                            <ThemeToggle />
                         </div>
                         {authLoading && !cachedProfile ? (
                             <Skeleton className='h-8 w-20 bg-white/10' />
@@ -107,7 +107,7 @@ const HeaderV2: FC<HeaderProps> = ({
                                 onOpen={closeMobileMenu}
                             />
                         ) : (
-                            <div className='flex items-center gap-3'>
+                            <div className='flex items-center gap-4'>
                                 <Link
                                     to={ROUTES.LOGIN}
                                     className='hidden font-mono text-xs text-white/50 transition hover:text-white sm:block'
@@ -116,7 +116,7 @@ const HeaderV2: FC<HeaderProps> = ({
                                 </Link>
                                 <Link
                                     to={ROUTES.LOGIN}
-                                    className='group/deploy inline-flex items-center gap-2 bg-[#6B5CE7] px-4 py-2 font-mono text-xs tracking-[0.1em] text-white transition hover:bg-[#5a4bd6]'
+                                    className='group/deploy inline-flex items-center gap-2 bg-[#6B5CE7] px-5 py-2.5 font-mono text-xs tracking-[0.1em] text-white transition hover:bg-[#5a4bd6]'
                                 >
                                     <RocketLaunchIcon className='h-3 w-3 transition-transform duration-200 group-hover/deploy:-translate-y-0.5' />
                                     {t('nav.deploy')}
@@ -174,7 +174,6 @@ const HeaderV2: FC<HeaderProps> = ({
                                 </nav>
                                 <div className='flex items-center gap-1.5 border-t border-white/5 pt-4 sm:hidden'>
                                     <LanguageSelector />
-                                    <ThemeToggle />
                                 </div>
                             </motion.div>
                         </Fragment>

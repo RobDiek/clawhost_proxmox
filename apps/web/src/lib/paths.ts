@@ -15,7 +15,8 @@ const PATHS = {
     COMPARE: 'comparison',
     V2: 'v2',
     PRICING: 'pricing',
-    FEATURES: 'features'
+    FEATURES: 'features',
+    THE_NEW_BEGINNING: 'the-new-beginning'
 } as const
 
 export default PATHS
