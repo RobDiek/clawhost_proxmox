@@ -4,6 +4,10 @@ import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { motion } from 'framer-motion'
+import { getBaseDomain, ROUTES } from '@/lib'
+import { useAuth } from '@/lib/auth'
+import { OpenClawIcon, HermesIcon } from '@/components/icons'
+
 import {
     PageTitle,
     JsonLd,
@@ -16,8 +20,7 @@ import {
     ScrollRevealV2,
     SectionLabelV2
 } from '@/components'
-import { getBaseDomain, ROUTES } from '@/lib'
-import { useAuth } from '@/lib/auth'
+
 import {
     usePlans,
     useGitHubStars,
@@ -25,15 +28,17 @@ import {
     useVideoSync,
     useDitherHover
 } from '@/hooks'
-import { OpenClawIcon, HermesIcon } from '@/components/icons'
+
 import {
     v2Agents,
     getV2Faqs,
     getV2Features,
     getV2ComparisonRows,
     getV2Stats,
-    v2VideoUrls
+    v2VideoUrls,
+    getV2NavLinks
 } from '@/data'
+
 import {
     ArrowRightIcon,
     GithubLogoIcon,
@@ -52,20 +57,16 @@ const V2: FC = (): ReactNode => {
     const baseVideoRef = useRef<HTMLVideoElement>(null)
     const ditherVideoRef = useRef<HTMLVideoElement>(null)
     const heroSectionRef = useRef<HTMLElement>(null)
+    
     useVideoSync(baseVideoRef, ditherVideoRef)
+
     const { onMouseMove, onMouseLeave, resetDither } = useDitherHover()
 
     const deployLink = user
         ? `${ROUTES.AGENTS}?deploy=true`
         : `${ROUTES.LOGIN}?deploy=true`
 
-    const navLinks = [
-        { label: 'Cloud', href: ROUTES.V2, id: 'cloud' },
-        { label: 'Go', href: ROUTES.GO, id: 'go' },
-        { label: t('landing.features'), href: ROUTES.FEATURES, id: 'features' },
-        { label: t('landing.pricing'), href: ROUTES.PRICING, id: 'pricing' },
-        { label: t('landing.comparison'), href: ROUTES.COMPARE, id: 'comparison' }
-    ]
+    const navLinks = getV2NavLinks()
 
     return (
         <div className='relative min-h-screen bg-[#020204] text-white'>
