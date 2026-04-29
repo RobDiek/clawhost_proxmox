@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
 
@@ -78,17 +77,6 @@
     }
 }
 
-@keyframes banner-slide-up {
-    from {
-        max-height: 200px;
-        opacity: 1;
-    }
-    to {
-        max-height: 0;
-        opacity: 0;
-    }
-}
-
 @keyframes toast-slide-in {
     from {
         opacity: 0;
@@ -153,18 +141,7 @@
         --border: 0 0% 89.8%;
         --input: 0 0% 89.8%;
         --ring: 0 0% 3.9%;
-        --chart-1: 12 76% 61%;
-        --chart-2: 173 58% 39%;
-        --chart-3: 197 37% 24%;
-        --chart-4: 43 74% 66%;
-        --chart-5: 27 87% 67%;
         --radius: 0.75rem;
-
-        /* ClawHost colors */
-        --coral-bright: #ef5350;
-        --coral-dark: #c62828;
-        --cyan-bright: #4dd0e1;
-        --bg-deep: #020204;
     }
 
     .dark {
@@ -187,11 +164,6 @@
         --border: 0 0% 14.9%;
         --input: 0 0% 14.9%;
         --ring: 0 0% 83.1%;
-        --chart-1: 220 70% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
     }
 }
 
@@ -351,24 +323,6 @@
         linear-gradient(90deg, rgba(239, 83, 80, 0.05) 1px, transparent 1px);
 }
 
-@keyframes playground-loading-slide {
-    0% {
-        transform: translateX(-200%);
-    }
-    100% {
-        transform: translateX(400%);
-    }
-}
-
-.playground-loading-bar {
-    width: 40%;
-    animation: playground-loading-slide 1.8s ease-in-out infinite;
-}
-
-.playground-loading-track {
-    box-shadow: 0 0 20px rgba(239, 83, 80, 0.15);
-}
-
 .playground-gradient {
     background:
         radial-gradient(
@@ -470,17 +424,39 @@ html {
 /* V2 agent.ic styles */
 
 @keyframes v2-grain-shift {
-    0% { transform: translate(0, 0); }
-    10% { transform: translate(-2%, -3%); }
-    20% { transform: translate(3%, 1%); }
-    30% { transform: translate(-1%, 3%); }
-    40% { transform: translate(2%, -2%); }
-    50% { transform: translate(-3%, 2%); }
-    60% { transform: translate(1%, -1%); }
-    70% { transform: translate(-2%, 3%); }
-    80% { transform: translate(3%, -3%); }
-    90% { transform: translate(-1%, 1%); }
-    100% { transform: translate(0, 0); }
+    0% {
+        transform: translate(0, 0);
+    }
+    10% {
+        transform: translate(-2%, -3%);
+    }
+    20% {
+        transform: translate(3%, 1%);
+    }
+    30% {
+        transform: translate(-1%, 3%);
+    }
+    40% {
+        transform: translate(2%, -2%);
+    }
+    50% {
+        transform: translate(-3%, 2%);
+    }
+    60% {
+        transform: translate(1%, -1%);
+    }
+    70% {
+        transform: translate(-2%, 3%);
+    }
+    80% {
+        transform: translate(3%, -3%);
+    }
+    90% {
+        transform: translate(-1%, 1%);
+    }
+    100% {
+        transform: translate(0, 0);
+    }
 }
 
 .v2-grain {
@@ -498,12 +474,11 @@ html {
 }
 
 .v2-gradient {
-    background:
-        radial-gradient(
-            ellipse 60% 40% at 50% 0%,
-            rgba(107, 92, 231, 0.08),
-            transparent
-        );
+    background: radial-gradient(
+        ellipse 60% 40% at 50% 0%,
+        rgba(107, 92, 231, 0.08),
+        transparent
+    );
 }
 
 .v2-grid {
@@ -531,15 +506,6 @@ html {
     position: relative;
 }
 
-@keyframes v2-pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
-}
-
-.v2-pulse {
-    animation: v2-pulse 2s ease-in-out infinite;
-}
-
 .v2-video-wrap {
     position: relative;
     overflow: hidden;
@@ -551,7 +517,7 @@ html {
     pointer-events: none;
     clip-path: inset(
         var(--sq-clip-top, 100%) var(--sq-clip-right, 100%)
-        var(--sq-clip-bottom, 100%) var(--sq-clip-left, 100%)
+            var(--sq-clip-bottom, 100%) var(--sq-clip-left, 100%)
     );
     transition: none;
 }
@@ -567,10 +533,39 @@ html {
     pointer-events: none;
     opacity: 0;
     background:
-        linear-gradient(to right, rgba(107, 92, 231, 0.5) 0px, rgba(107, 92, 231, 0.5) 2px, transparent 2px) var(--sq-x, -999px) var(--sq-y, -999px) / var(--sq-w, 0px) var(--sq-h, 0px) no-repeat,
-        linear-gradient(to right, rgba(107, 92, 231, 0.5) 0px, rgba(107, 92, 231, 0.5) 2px, transparent 2px) calc(var(--sq-x, -999px) + var(--sq-w, 0px) - 2px) var(--sq-y, -999px) / 2px var(--sq-h, 0px) no-repeat,
-        linear-gradient(to bottom, rgba(107, 92, 231, 0.5) 0px, rgba(107, 92, 231, 0.5) 2px, transparent 2px) var(--sq-x, -999px) var(--sq-y, -999px) / var(--sq-w, 0px) 2px no-repeat,
-        linear-gradient(to bottom, rgba(107, 92, 231, 0.5) 0px, rgba(107, 92, 231, 0.5) 2px, transparent 2px) var(--sq-x, -999px) calc(var(--sq-y, -999px) + var(--sq-h, 0px) - 2px) / var(--sq-w, 0px) 2px no-repeat;
+        linear-gradient(
+                to right,
+                rgba(107, 92, 231, 0.5) 0px,
+                rgba(107, 92, 231, 0.5) 2px,
+                transparent 2px
+            )
+            var(--sq-x, -999px) var(--sq-y, -999px) / var(--sq-w, 0px)
+            var(--sq-h, 0px) no-repeat,
+        linear-gradient(
+                to right,
+                rgba(107, 92, 231, 0.5) 0px,
+                rgba(107, 92, 231, 0.5) 2px,
+                transparent 2px
+            )
+            calc(var(--sq-x, -999px) + var(--sq-w, 0px) - 2px)
+            var(--sq-y, -999px) / 2px var(--sq-h, 0px) no-repeat,
+        linear-gradient(
+                to bottom,
+                rgba(107, 92, 231, 0.5) 0px,
+                rgba(107, 92, 231, 0.5) 2px,
+                transparent 2px
+            )
+            var(--sq-x, -999px) var(--sq-y, -999px) / var(--sq-w, 0px) 2px
+            no-repeat,
+        linear-gradient(
+                to bottom,
+                rgba(107, 92, 231, 0.5) 0px,
+                rgba(107, 92, 231, 0.5) 2px,
+                transparent 2px
+            )
+            var(--sq-x, -999px)
+            calc(var(--sq-y, -999px) + var(--sq-h, 0px) - 2px) /
+            var(--sq-w, 0px) 2px no-repeat;
     z-index: 4;
 }
 
@@ -582,7 +577,18 @@ html {
     filter: invert(1) brightness(0.3);
     opacity: 0.25;
     transform: scaleX(-1);
-    mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 85%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 85%, transparent 100%);
+    mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        black 20%,
+        black 85%,
+        transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        black 20%,
+        black 85%,
+        transparent 100%
+    );
 }
-

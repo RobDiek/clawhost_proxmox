@@ -40,14 +40,6 @@ const ru: Translations = {
         second: 'секунда',
         seconds: 'секунд'
     },
-    setup: {
-        welcomeTitle: 'Добро пожаловать в ClawHost Go',
-        welcomeDescription: 'Настройте свой профиль, чтобы начать.',
-        whatsYourName: 'Как вас зовут?',
-        namePlaceholder: 'Введите ваше имя',
-        nameHint: 'Вы всегда можете указать его позже.',
-        getStarted: 'Начать'
-    },
     language: {
         en: 'English',
         fr: 'Français',
@@ -89,8 +81,6 @@ const ru: Translations = {
         cloudSubtitle: 'Техническое',
         go: 'Go',
         goSubtitle: 'Нетехническое',
-        hermes: 'Hermes',
-        openClaw: 'OpenClaw',
         agentistGo: 'Agentist Go'
     },
     go: {
@@ -98,13 +88,8 @@ const ru: Translations = {
         heroTitle1: 'Разверните OpenClaw.',
         heroTitle2: 'Локально. Мгновенно.',
         badge: 'Скоро',
-        comingSoon: 'Скоро',
         description:
             'Лёгкий настольный клиент для управления вашими экземплярами OpenClaw. Разворачивайте, отслеживайте и управляйте claws — прямо с вашего компьютера.',
-        download: 'Скачать для {{os}}',
-        downloadWindows: 'Windows',
-        downloadMac: 'macOS',
-        selfHostInstead: 'Развернуть на своём сервере',
         features: 'Возможности',
         whyClawHostGo: 'Все возможности в одном месте',
         featuresDescription:
@@ -135,7 +120,6 @@ const ru: Translations = {
         pricingFeature4: 'Без ограничений использования',
         pricingFeature5: 'Приоритетная поддержка',
         pricingFeature6: 'Пользовательский локальный домен',
-        pricingCta: 'Получить ClawHost Go',
         comparison: 'Сравнение',
         comparisonTitle: 'Go vs Cloud',
         comparisonDescription:
@@ -182,10 +166,8 @@ const ru: Translations = {
         ctaTitle: 'Запустите OpenClaw локально',
         ctaDescription:
             'Разовый платёж, пожизненная лицензия. Разверните OpenClaw на своём компьютере — без облака, без подписок, без ограничений. Ваши данные, ваши правила.',
-        ctaButton: 'Получить ClawHost Go',
         joinWaitlist: 'Записаться в лист ожидания',
         joinedWaitlist: 'Вы в листе ожидания',
-        waitlistJoinedToast: 'Вы записались в лист ожидания.',
         waitlistAlreadyJoinedToast: 'Этот email уже в списке.',
         waitlistFailedToast: 'Не удалось записаться в лист ожидания!',
         waitlistEmailPlaceholder: 'Введите ваш email',
@@ -193,8 +175,6 @@ const ru: Translations = {
         updateDownload: 'Скачать',
         updateDismiss: 'Позже',
         clawNotFound: 'Claw не найден!',
-        invalidClawName:
-            'Недопустимое имя claw. Используйте только буквы, цифры и дефисы!',
         clawNameAlreadyExists: 'Claw с таким именем уже существует!',
         invalidSubdomain:
             'Недопустимый поддомен. Используйте 3-20 строчных букв и цифр!',
@@ -285,11 +265,7 @@ const ru: Translations = {
         failedToGenerateKeyPair:
             'Не удалось сгенерировать пару ключей. Пожалуйста, сгенерируйте ключи локально!',
         unableToLoadPricing: 'Не удалось загрузить цены. Попробуйте позже!',
-        noPasswordAvailable: 'Пароль для этого claw недоступен!',
-        clawLimitReached:
-            'Вы достигли лимита в {{max}} claws. Свяжитесь с поддержкой для увеличения лимита!',
-        sshKeyLimitReached:
-            'Вы достигли лимита в {{max}} SSH-ключей. Свяжитесь с поддержкой для увеличения лимита!'
+        noPasswordAvailable: 'Пароль для этого claw недоступен!'
     },
     api: {
         missingRequiredFields: 'Отсутствуют обязательные поля!',
@@ -297,7 +273,8 @@ const ru: Translations = {
         agentRenamed: 'Agent успешно переименован.',
         agentEmojiUpdated: 'Эмодзи агента обновлен.',
         failedToUpdateEmoji: 'Не удалось обновить эмодзи!',
-        invalidAgentName: 'Имя agent должно содержать от 1 до {{max}} символов!',
+        invalidAgentName:
+            'Имя agent должно содержать от 1 до {{max}} символов!',
         userNotFound: 'Пользователь не найден!',
         sshKeyNotFound: 'SSH-ключ не найден!',
         pendingAgentNotFound: 'Ожидающий agent не найден!',
@@ -459,7 +436,8 @@ const ru: Translations = {
         failedToGetMetrics: 'Не удалось получить метрики сервера!',
         overviewFetched: 'Обзор успешно загружен.',
         failedToGetOverview: 'Не удалось загрузить обзор шлюза!',
-        overviewUnsupported: 'Эта версия OpenClaw не поддерживает функцию обзора!',
+        overviewUnsupported:
+            'Эта версия OpenClaw не поддерживает функцию обзора!',
         passwordRotated: 'Пароль root успешно изменён.',
         failedToRotatePassword: 'Не удалось изменить пароль root!',
         gatewayTokenRotated: 'Токен шлюза успешно изменён.',
@@ -494,7 +472,6 @@ const ru: Translations = {
             'Не удалось подключить метод аутентификации!',
         failedToDisconnectAuthMethod:
             'Не удалось отключить метод аутентификации!',
-        textRequired: 'Текст обязателен!',
         featureEmailsDisabled:
             'Информационные письма в настоящее время отключены.',
         featureEmailsSent: 'Информационные письма успешно отправлены.',
@@ -766,13 +743,9 @@ const ru: Translations = {
             'Вам нужна лицензия ClawHost Go для развёртывания и управления экземплярами OpenClaw локально.'
     },
     network: {
-        unstable: 'Нестабильное соединение',
-        unstableDescription:
-            'Ваше интернет-соединение нестабильно. Некоторые функции могут работать некорректно.',
         offline: 'Нет подключения к интернету',
         offlineDescription:
-            'Вы сейчас не в сети. Функции, требующие подключения к интернету, будут недоступны.',
-        dismiss: 'Закрыть'
+            'Вы сейчас не в сети. Функции, требующие подключения к интернету, будут недоступны.'
     },
     dashboard: {
         title: 'Клоу',
@@ -1083,31 +1056,12 @@ const ru: Translations = {
         heroTitle2: 'Один клик. Готово.',
         heroDescription:
             'Разворачивайте агентов OpenClaw и Hermes в облаке или локально в один клик — создавайте, подключайте и масштабируйте ваших ИИ-агентов быстрее с ClawHost.',
-        goToClaws: 'Перейти к клоу',
         selfHost: 'Открытый код',
         startingPrice: 'От',
         locations: 'Локации',
         servers: 'Серверы',
         zeroCount: 'Ноль',
         zeroConfig: 'Без настройки',
-        dashboardPreviewTitle: 'Клоу',
-        dashboardPreviewSubtitle: '5 добавленных клоу',
-        deployNew: 'Развернуть новый',
-        running: 'Работает',
-        latency: 'задержка',
-        howItWorks: 'Как это работает',
-        threeStepsToPrivacy: 'Три шага к OpenClaw',
-        howItWorksDescription:
-            'От нуля до полностью развёрнутого OpenClaw для использования 24/7 с полным доступом.',
-        step1Title: 'Выберите сервер',
-        step1Description:
-            'Выбирайте из 30+ глобальных локаций трёх провайдеров. Мы запускаем выделенный VPS для вас за секунды.',
-        step2Title: 'Автоустановка',
-        step2Description:
-            'OpenClaw предустановлен с прямой ссылкой и данными VPS. Настройка не требуется.',
-        step3Title: 'Он ваш',
-        step3Description:
-            'Полный доступ к OpenClaw и VPS без ограничений на то, что вы можете делать.',
         features: 'Возможности',
         whyClawHost: 'Всё в одном',
         featuresDescription:
@@ -1147,26 +1101,6 @@ const ru: Translations = {
         multipleClaws: 'Несколько клоу',
         multipleClawsDescription:
             'Разворачивайте и управляйте несколькими экземплярами OpenClaw из одной панели. Масштабируйтесь по мере роста.',
-        testimonials: 'Отзывы',
-        whatPeopleSay: 'Что говорят люди',
-        testimonialsDescription:
-            'Не верьте только нам на слово. Посмотрите, как другие разворачивают OpenClaw.',
-        testimonial1Quote:
-            'Наконец-то свой собственный ИИ-сервер. Установка заняла 30 секунд, и он работает уже несколько месяцев без проблем.',
-        testimonial1Author: 'Alex Chen',
-        testimonial1Role: 'Разработчик ПО',
-        testimonial2Quote:
-            'Больше не нужно делить ресурсы с другими. Мой экземпляр OpenClaw справляется со всем, что я ему поручаю.',
-        testimonial2Author: 'Maria Santos',
-        testimonial2Role: 'Цифровой кочевник',
-        testimonial3Quote:
-            'Развёртывание в один клик — это реально. Я совсем не технический специалист, но запустил OpenClaw менее чем за минуту.',
-        testimonial3Author: 'James Wilson',
-        testimonial3Role: 'Фрилансер',
-        testimonial4Quote:
-            'Нравится, что я могу видеть, что именно работает на моём сервере. Полный контроль над моей ИИ-конфигурацией.',
-        testimonial4Author: 'Sophie Kim',
-        testimonial4Role: 'Энтузиаст ИИ',
         pricing: 'Цены',
         simpleTransparentPricing: 'Простые, прозрачные цены',
         pricingDescription:
@@ -1189,8 +1123,6 @@ const ru: Translations = {
         pricePerYear: '${{price}}/yr',
         volumePricePerMonth: '+${{price}}/mo',
         startingPriceValue: '${{price}}/mo',
-        yearlyDiscount: '— 2 месяца бесплатно',
-        billedYearly: 'годовая оплата',
         deploy: 'Развернуть',
         select: 'Выбрать',
         selectPlanLabel: 'Выбрать тариф {{plan}}',
@@ -1199,7 +1131,6 @@ const ru: Translations = {
         unlimitedBandwidth: 'Безлимитный трафик',
         rootSshAccess: 'Полный root SSH-доступ',
         onlineAllDay: 'Онлайн 24/7',
-        highQualityInternet: 'Высококачественный интернет',
         showAllPlans: 'Показать все планы',
         simplePricing: 'Упрощённый',
         planStarter: 'Starter',
@@ -1216,10 +1147,7 @@ const ru: Translations = {
         featureBandwidth: 'Безлимитная пропускная способность',
         featureSsh: 'Root SSH доступ',
         featureUptime: 'Онлайн 24/7',
-        featureSharedCpu: 'Общий CPU',
         featureDedicatedCpu: 'Выделенный CPU',
-        featureCommunitySupport: 'Поддержка сообщества',
-        featureInfraSupport: 'Поддержка инфраструктуры',
         featureEmailSupport: 'Поддержка по email',
         fastInternet: 'Быстрый интернет',
         emailSupport: 'Поддержка по email',
@@ -1273,8 +1201,6 @@ const ru: Translations = {
         comparisonExportOthers: 'Привязка к вендору',
         comparisonProvidersUs: 'Несколько серверных провайдеров',
         comparisonProvidersOthers: 'Только один провайдер',
-        comparisonSocialsUs: 'Присутствие в соцсетях',
-        comparisonSocialsOthers: 'Нет соцсетей',
         comparisonVersionUs: 'Переключение версии в один клик',
         comparisonVersionOthers: 'Только ручные обновления',
         comparisonTerminalUs: 'Встроенный веб-терминал',
@@ -1282,19 +1208,7 @@ const ru: Translations = {
         seeFullComparison: 'Полное сравнение',
         comparisonCtaText:
             'Мы сравниваем себя с SimpleClaw, MyClaw.ai и другими — функция за функцией.',
-        readyToOwnYourPrivacy: 'Готовы развернуть OpenClaw?',
-        ctaDescription:
-            'Получите выделенный сервер с предустановленным OpenClaw. Полный root-доступ, глобальные локации и готовность за минуты. Вы владеете им в любое время. От $25.',
-        deployOpenClawNow: 'Развернуть OpenClaw',
-        selfHostInstead: 'Самостоятельный хостинг',
-        noCreditCardRequired: 'Мгновенная настройка',
-        deployIn60Seconds: 'Безопасно',
-        demoClawStarted: 'Клоу запущен.',
-        demoClawStopped: 'Клоу остановлен.',
-        demoClawRestarting: 'Перезапуск клоу...',
-        demoClawRestarted: 'Клоу перезапущен.',
-        demoClawDeleted: 'Клоу удалён.',
-        demoStatus: '{{running}} работает, {{total}} всего'
+        selfHostInstead: 'Самостоятельный хостинг'
     },
     blog: {
         readingTime: '{{minutes}} мин чтения',
@@ -1866,13 +1780,6 @@ const ru: Translations = {
             'Если у вас есть вопросы об этих Условиях, свяжитесь с нами по адресу'
     },
     mobile: {
-        messages: 'Сообщения',
-        settings: 'Настройки',
-        comingSoon: 'Скоро',
-        messagesPlaceholder:
-            'Сообщения и уведомления будут отображаться здесь.',
-        settingsPlaceholder:
-            'Настройки аккаунта и предпочтения будут отображаться здесь.',
         signIn: 'Аутентификация',
         signInDescription:
             'Авторизуйтесь для управления и развёртывания ваших агентов.',
@@ -1883,23 +1790,15 @@ const ru: Translations = {
         sending: 'Отправка...',
         checkYourEmail: 'Проверьте почту',
         codeSentTo: 'Мы отправили 6-значный код на',
-        enterCode: 'Введите код из письма',
         resendCode: 'Отправить код повторно',
         resendIn: 'Отправить повторно через {{seconds}}с',
         changeEmail: 'Изменить email',
         invalidCode: 'Неверный код !',
-        codeExpired: 'Код истёк. Запросите новый.',
         signingIn: 'Аутентификация...',
         signOut: 'Выйти',
-        signedInAs: 'Вы вошли как',
         loadMore: 'Загрузить ещё',
         deployClaw: 'Развернуть клоу',
         deployYourFirstClaw: 'Разверните ваш первый клоу'
-    },
-    announcement: {
-        title: 'Уведомление о сервисе',
-        message:
-            'Из-за высокого спроса развёртывания {{providers}} временно недоступны. Существующие агенты работают нормально.'
     },
     productHunt: {
         liveOn: 'Мы на',
@@ -1916,8 +1815,8 @@ const ru: Translations = {
     },
     hermesBanner: {
         title: 'Hermes Agent',
-        message: 'Агенты Hermes теперь поддерживаются для развёртывания на ClawHost.',
-        deploy: 'Развернуть сейчас'
+        message:
+            'Агенты Hermes теперь поддерживаются для развёртывания на ClawHost.'
     },
     compare: {
         title: 'Полное сравнение',
@@ -2290,83 +2189,46 @@ const ru: Translations = {
         contactText:
             'Если у вас есть вопросы о партнёрской программе, нужна помощь с реферальным кодом или вы хотите сообщить о нарушении, свяжитесь с нами по адресу'
     },
-    hermes: {
-        title: 'Deploy Hermes Agent - ClawHost',
-        description: 'Deploy Hermes Agent on your own VPS with one click. An autonomous agent that grows with you.',
-        badge: 'Hermes Agent',
-        heroTitle1: 'Deploy Hermes Agent',
-        heroTitle2: 'With One Click.',
-        heroDescription: 'An autonomous agent that lives on your server, remembers what it learns, and gets more capable the longer it runs. Deploy it instantly on ClawHost.',
-        deployButton: 'Deploy Hermes Agent',
-        githubButton: 'Self-Host Instead',
-        whyHermes: 'Why Hermes Agent',
-        featuresDescription: 'Hermes Agent is a powerful autonomous agent with persistent memory, real sandboxing, and multi-platform support.',
-        feature1Title: 'Lives Where You Do',
-        feature1Description: 'Telegram, Discord, Slack, WhatsApp, Signal, Email, CLI \u2013 and a growing list of platforms. Start on one, pick up on another.',
-        feature2Title: 'Grows The Longer It Runs',
-        feature2Description: 'Persistent memory and auto-generated skills \u2013 it learns your projects and never forgets how it solved a problem.',
-        feature3Title: 'Scheduled Automations',
-        feature3Description: 'Natural language cron scheduling for reports, backups, and briefings \u2013 running unattended through the gateway.',
-        feature4Title: 'Delegates & Parallelizes',
-        feature4Description: 'Isolated subagents with their own conversations, terminals, and Python RPC scripts for zero-context-cost pipelines.',
-        feature5Title: 'Real Sandboxing',
-        feature5Description: 'Five backends \u2013 local, Docker, SSH, Singularity, Modal \u2013 with container hardening and namespace isolation.',
-        feature6Title: 'Full Web & Browser Control',
-        feature6Description: 'Web search, browser automation, vision, image generation, text-to-speech, and multi-model reasoning.',
-        ctaTitle: 'Ready to deploy Hermes Agent?',
-        ctaDescription: 'Get your own Hermes Agent running on a dedicated VPS in under 60 seconds. No configuration needed.',
-        ctaDeploy: 'Deploy Now',
-        ctaGitHub: 'View on GitHub'
-    },
     v2: {
         title: 'agent.ic — Разверните OpenClaw и Hermes в Облаке',
-        description: 'Разверните агентов OpenClaw и Hermes в облаке одним кликом — с открытым исходным кодом, самостоятельно размещаемые и созданные для будущего агентных вычислений.',
+        description:
+            'Разверните агентов OpenClaw и Hermes в облаке одним кликом — с открытым исходным кодом, самостоятельно размещаемые и созданные для будущего агентных вычислений.',
         heroTitle1: 'Разверните',
         heroTitle2: 'ИИ-агентов',
         heroTitle3: 'в Облаке в один Клик',
-        heroDescription: 'Разверните агентов OpenClaw и Hermes в облаке одним кликом — создавайте, подключайте и масштабируйте своих ИИ-агентов быстрее с Agentist.',
-        badge: 'Представляем agent.ic',
+        heroDescription:
+            'Разверните агентов OpenClaw и Hermes в облаке одним кликом — создавайте, подключайте и масштабируйте своих ИИ-агентов быстрее с Agentist.',
         selfHostLabel: 'Разместить Самостоятельно',
         deployButton: 'Развернуть Сейчас',
-        learnMore: 'Узнать Больше',
         agentsTitle: 'Ваши Агенты. Ваше Облако.',
-        agentsDescription: 'Выбирайте из растущего каталога AI-агентов, каждый из которых работает на собственном выделенном облачном сервере.',
+        agentsDescription:
+            'Выбирайте из растущего каталога AI-агентов, каждый из которых работает на собственном выделенном облачном сервере.',
         agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription: 'Самостоятельно размещаемая платформа управления облаком с полным SSH, терминалом, файловым менеджером и редактором конфигурации.',
+        agentOpenclawDescription:
+            'Самостоятельно размещаемая платформа управления облаком с полным SSH, терминалом, файловым менеджером и редактором конфигурации.',
         agentHermesName: 'Hermes',
-        agentHermesDescription: 'Автономный AI-агент с веб-браузингом, управлением календарём, мультимодельным рассуждением и автоматизацией браузера.',
-        agentComingSoonName: 'Скоро Больше',
-        agentComingSoonDescription: 'Новые агенты добавляются регулярно. Создайте своего или разверните из нашего растущего каталога.',
-        howItWorksTitle: 'Как Это Работает',
-        howItWorksDescription: 'Три шага. Шестьдесят секунд. Ваш агент запущен.',
-        step1Title: 'Выберите Агента',
-        step1Description: 'Выберите из нашего каталога готовых к работе AI-агентов.',
-        step2Title: 'Выберите Инфраструктуру',
-        step2Description: 'Выберите облачный регион, тариф и конфигурацию.',
-        step3Title: 'Мгновенное Развёртывание',
-        step3Description: 'Один клик. Ваш агент работает на выделенной инфраструктуре.',
+        agentHermesDescription:
+            'Автономный AI-агент с веб-браузингом, управлением календарём, мультимодельным рассуждением и автоматизацией браузера.',
         featuresTitle: 'Создано для Будущего',
-        featuresDescription: 'Всё необходимое для запуска AI-агентов в масштабе.',
+        featuresDescription:
+            'Всё необходимое для запуска AI-агентов в масштабе.',
         feature1Title: 'Мультиагентная Платформа',
-        feature1Description: 'Разворачивайте и управляйте несколькими типами агентов из одной панели управления.',
+        feature1Description:
+            'Разворачивайте и управляйте несколькими типами агентов из одной панели управления.',
         agentControlTitle: 'Полный контроль агентов',
-        agentControlDescription: 'Настраивайте и кастомизируйте каждый аспект ваших агентов из одной панели управления.',
+        agentControlDescription:
+            'Настраивайте и кастомизируйте каждый аспект ваших агентов из одной панели управления.',
         multipleAgentsTitle: 'Несколько агентов',
-        multipleAgentsDescription: 'Запускайте несколько экземпляров агентов в разных регионах и конфигурациях.',
-        feature2Title: 'Выделенная Инфраструктура',
-        feature2Description: 'Каждый агент работает на собственном VPS. Никаких общих ресурсов, никаких шумных соседей.',
-        feature3Title: 'Глобальная Edge Сеть',
-        feature3Description: 'Более 30 локаций по всему миру. Разворачивайте агентов ближе к вашим пользователям.',
-        feature4Title: 'Развёртывание в Один Клик',
-        feature4Description: 'От нуля до работающего агента менее чем за 60 секунд. Настройка не требуется.',
-        feature5Title: 'Полный Root Доступ',
-        feature5Description: 'SSH, терминал, файловый менеджер и редактор конфигурации. Ваш сервер, ваши правила.',
-        feature6Title: 'Оплата по Использованию',
-        feature6Description: 'Без обязательств. Масштабируйте вверх или вниз. Платите только за то, что используете.',
-        zeroConfigDescription: 'Пропустите часы настройки. OpenClaw и Hermes предустановлены и готовы за считанные минуты.',
-        globalLocationsDescription: 'Разворачивайте агентов в более чем 30 глобальных регионах. Выбирайте ближайшую локацию.',
-        onlineAccessDescription: 'Получайте безопасный доступ к вашим агентам откуда угодно через собственный поддомен.',
-        versionControlDescription: 'Переключайте версии агента одним кликом. Оставайтесь в курсе обновлений или откатывайтесь.',
+        multipleAgentsDescription:
+            'Запускайте несколько экземпляров агентов в разных регионах и конфигурациях.',
+        zeroConfigDescription:
+            'Пропустите часы настройки. OpenClaw и Hermes предустановлены и готовы за считанные минуты.',
+        globalLocationsDescription:
+            'Разворачивайте агентов в более чем 30 глобальных регионах. Выбирайте ближайшую локацию.',
+        onlineAccessDescription:
+            'Получайте безопасный доступ к вашим агентам откуда угодно через собственный поддомен.',
+        versionControlDescription:
+            'Переключайте версии агента одним кликом. Оставайтесь в курсе обновлений или откатывайтесь.',
         agentsPreinstalled: 'Агенты предустановлены',
         comparisonAgentAccessUs: 'Полный доступ ко всем агентам',
         comparisonMultipleAgentsUs: 'Несколько агентов на сервер',
@@ -2375,24 +2237,31 @@ const ru: Translations = {
         comparisonUsLabel: 'Управляется за вас',
         comparisonOthersLabel: 'Сделай сам',
         faq1Question: 'Что такое Agentist?',
-        faq1Answer: 'Agentist — это платформа, которая позволяет развёртывать и управлять ИИ-агентами на собственных выделенных серверах. Мы берём на себя инфраструктуру, безопасность и обслуживание — вы просто используете своих агентов.',
+        faq1Answer:
+            'Agentist — это платформа, которая позволяет развёртывать и управлять ИИ-агентами на собственных выделенных серверах. Мы берём на себя инфраструктуру, безопасность и обслуживание — вы просто используете своих агентов.',
         faq2Question: 'Что такое OpenClaw?',
-        faq2Answer: 'OpenClaw — это самостоятельно размещаемый безопасный уровень доступа для ваших ИИ-инструментов и сервисов. Он предустановлен на каждом сервере Agentist и даёт вам полный контроль над настройкой.',
+        faq2Answer:
+            'OpenClaw — это самостоятельно размещаемый безопасный уровень доступа для ваших ИИ-инструментов и сервисов. Он предустановлен на каждом сервере Agentist и даёт вам полный контроль над настройкой.',
         faq3Question: 'Что такое Hermes?',
-        faq3Answer: 'Hermes — это автономный ИИ-агент с веб-сёрфингом, управлением календарём, мультимодельным рассуждением и автоматизацией браузера. Он предустановлен вместе с OpenClaw на каждом сервере.',
+        faq3Answer:
+            'Hermes — это автономный ИИ-агент с веб-сёрфингом, управлением календарём, мультимодельным рассуждением и автоматизацией браузера. Он предустановлен вместе с OpenClaw на каждом сервере.',
         faq4Question: 'Нужны ли мне технические знания?',
-        faq4Answer: 'Нет. Agentist создан для всех. Мы берём на себя всю инфраструктуру, настройку и обслуживание. Вы можете управлять своими агентами через интуитивную панель управления, не касаясь серверов.',
+        faq4Answer:
+            'Нет. Agentist создан для всех. Мы берём на себя всю инфраструктуру, настройку и обслуживание. Вы можете управлять своими агентами через интуитивную панель управления, не касаясь серверов.',
         faq5Question: 'Чем это отличается от других ИИ-платформ?',
-        faq5Answer: 'В отличие от размещённых ИИ-инструментов, Agentist даёт вам настоящий выделенный сервер с установленными агентами. Вы владеете инфраструктурой, контролируете всё и не ограничены общими платформами.',
+        faq5Answer:
+            'В отличие от размещённых ИИ-инструментов, Agentist даёт вам настоящий выделенный сервер с установленными агентами. Вы владеете инфраструктурой, контролируете всё и не ограничены общими платформами.',
         faq6Question: 'Какие локации доступны?',
-        faq6Answer: 'Мы предлагаем более 30 серверных локаций по всему миру, включая США, Европу и Азию. Вы можете развёртывать агентов на нескольких серверах в разных регионах.',
+        faq6Answer:
+            'Мы предлагаем более 30 серверных локаций по всему миру, включая США, Европу и Азию. Вы можете развёртывать агентов на нескольких серверах в разных регионах.',
         faq7Question: 'Сколько это стоит?',
-        faq7Answer: 'Цены начинаются от 40 $/месяц в зависимости от выбранного сервера. Множество вариантов от начального уровня до высокопроизводительных. Без скрытых платежей, отмена в любое время.',
-        footerDescription: 'Разверните агентов OpenClaw и Hermes в облаке одним кликом — создавайте, подключайте и масштабируйте своих ИИ-агентов быстрее с Agentist.',
+        faq7Answer:
+            'Цены начинаются от 40 $/месяц в зависимости от выбранного сервера. Множество вариантов от начального уровня до высокопроизводительных. Без скрытых платежей, отмена в любое время.',
+        footerDescription:
+            'Разверните агентов OpenClaw и Hermes в облаке одним кликом — создавайте, подключайте и масштабируйте своих ИИ-агентов быстрее с Agentist.',
         ctaTitle: 'Готовы к Развёртыванию?',
-        ctaDescription: 'Присоединяйтесь к новому поколению развёртывания агентов. Ваша инфраструктура, ваши агенты, ваши правила.',
-        stats1Value: 'OpenClaw & Hermes',
-        stats1Label: 'Агенты',
+        ctaDescription:
+            'Присоединяйтесь к новому поколению развёртывания агентов. Ваша инфраструктура, ваши агенты, ваши правила.',
         stats2Value: '30+',
         stats2Label: 'Регионов',
         stats3Value: '<60s',
@@ -2406,25 +2275,11 @@ const ru: Translations = {
         planPowerTagline: 'Для крупномасштабных операций',
         planPower: 'Power',
         pricingPageTitle: 'Цены — agent.ic',
-        pricingPageDescription: 'Прозрачные цены на развёртывание ИИ-агентов. Выберите план, соответствующий вашим потребностям, без скрытых платежей.',
-        pricingHeroTitle: 'Простые, Прозрачные Цены',
-        pricingHeroDescription: 'Без скрытых платежей, без сюрпризов. Выберите план под вашу нагрузку и масштабируйтесь по мере роста.',
+        pricingPageDescription:
+            'Прозрачные цены на развёртывание ИИ-агентов. Выберите план, соответствующий вашим потребностям, без скрытых платежей.',
         featuresPageTitle: 'Возможности — agent.ic',
-        featuresPageDescription: 'Откройте все возможности agent.ic — мультиагентное развёртывание, выделенная инфраструктура, глобальные регионы и полный root-доступ.',
-        featuresHeroTitle: 'Всё, Что Вам Нужно',
-        featuresHeroDescription: 'От развёртывания в один клик до полного root-доступа — все инструменты для масштабного запуска ИИ-агентов, встроенные.'
-    },
-    hermesGo: {
-        pageTitle: 'ClawHost Go - Hermes Agent',
-        description: 'Лёгкий десктопный клиент для локального развёртывания Hermes Agent. Разворачивайте, мониторьте и управляйте агентами — прямо с вашего компьютера.',
-        badge: 'Hermes Agent Go',
-        heroTitle1: 'Разверните Hermes.',
-        heroTitle2: 'Локально. Мгновенно.',
-        heroDescription: 'Лёгкий десктопный клиент для управления экземплярами Hermes Agent. Разворачивайте, мониторьте и управляйте агентами — прямо с вашего компьютера.',
-        whyHermesGo: 'Всё в одном',
-        featuresDescription: 'Почему стоит попробовать — функции говорят сами за себя.',
-        ctaTitle: 'Запустите Hermes Agent локально',
-        ctaDescription: 'Разовый платёж, пожизненная лицензия. Разверните Hermes Agent на своём компьютере — без облака, без подписок, без ограничений. Ваши данные, ваши правила.'
+        featuresPageDescription:
+            'Откройте все возможности agent.ic — мультиагентное развёртывание, выделенная инфраструктура, глобальные регионы и полный root-доступ.'
     }
 }
 

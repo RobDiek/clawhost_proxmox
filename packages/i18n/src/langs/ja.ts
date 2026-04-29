@@ -40,14 +40,6 @@ const ja: Translations = {
         second: '秒',
         seconds: '秒'
     },
-    setup: {
-        welcomeTitle: 'ClawHost Goへようこそ',
-        welcomeDescription: 'プロフィールを設定して始めましょう.',
-        whatsYourName: 'お名前は？',
-        namePlaceholder: '名前を入力',
-        nameHint: '後からいつでも設定できます.',
-        getStarted: '始める'
-    },
     language: {
         en: 'English',
         fr: 'Français',
@@ -89,8 +81,6 @@ const ja: Translations = {
         cloudSubtitle: '技術者向け',
         go: 'Go',
         goSubtitle: '非技術者向け',
-        hermes: 'Hermes',
-        openClaw: 'OpenClaw',
         agentistGo: 'Agentist Go'
     },
     go: {
@@ -98,13 +88,8 @@ const ja: Translations = {
         heroTitle1: 'OpenClawをデプロイ.',
         heroTitle2: 'ローカルで. 即座に.',
         badge: '近日公開',
-        comingSoon: '近日公開',
         description:
             'OpenClawインスタンスを管理する軽量デスクトップクライアント。デプロイ、監視、制御をお手元のマシンから.',
-        download: '{{os}}用をダウンロード',
-        downloadWindows: 'Windows',
-        downloadMac: 'macOS',
-        selfHostInstead: '代わりにセルフホスト',
         features: '機能',
         whyClawHostGo: 'オールインワン機能',
         featuresDescription: '試す価値がある理由、機能が証明します.',
@@ -134,7 +119,6 @@ const ja: Translations = {
         pricingFeature4: '使用制限なし',
         pricingFeature5: '優先サポート',
         pricingFeature6: 'カスタムローカルドメイン',
-        pricingCta: 'ClawHost Goを入手',
         comparison: '比較',
         comparisonTitle: 'Go vs Cloud',
         comparisonDescription:
@@ -181,10 +165,8 @@ const ja: Translations = {
         ctaTitle: 'OpenClawをローカルで実行',
         ctaDescription:
             '一回払い、永久ライセンス。お手元のマシンにOpenClawをデプロイ — クラウドなし、サブスクリプションなし、制限なし。あなたのデータ、あなたのルール.',
-        ctaButton: 'ClawHost Goを入手',
         joinWaitlist: 'ウェイトリストに参加',
         joinedWaitlist: 'ウェイトリスト参加済み',
-        waitlistJoinedToast: 'ウェイトリストに参加しました.',
         waitlistAlreadyJoinedToast:
             'このメールアドレスは既にリストに登録されています.',
         waitlistFailedToast: 'ウェイトリストへの参加に失敗しました!',
@@ -193,8 +175,6 @@ const ja: Translations = {
         updateDownload: 'ダウンロード',
         updateDismiss: '後で',
         clawNotFound: 'Clawが見つかりません!',
-        invalidClawName:
-            '無効なClaw名です。英字、数字、ハイフンのみ使用できます!',
         clawNameAlreadyExists: 'この名前のClawは既に存在します!',
         invalidSubdomain:
             '無効なサブドメインです。3〜20文字の小文字英字と数字を使用してください!',
@@ -288,11 +268,7 @@ const ja: Translations = {
             'キーペアの生成に失敗しました。代わりにローカルでキーを生成してください!',
         unableToLoadPricing:
             '料金情報を読み込めません。後でもう一度お試しください!',
-        noPasswordAvailable: 'このClawで利用可能なパスワードがありません!',
-        clawLimitReached:
-            'Clawsの上限{{max}}件に達しました。上限を引き上げるにはサポートにお問い合わせください!',
-        sshKeyLimitReached:
-            'SSHキーの上限{{max}}件に達しました。上限を引き上げるにはサポートにお問い合わせください!'
+        noPasswordAvailable: 'このClawで利用可能なパスワードがありません!'
     },
     api: {
         missingRequiredFields: '必須フィールドが不足しています!',
@@ -463,7 +439,8 @@ const ja: Translations = {
         failedToGetMetrics: 'サーバーメトリクスの取得に失敗しました!',
         overviewFetched: '概要を取得しました.',
         failedToGetOverview: 'ゲートウェイの概要の取得に失敗しました!',
-        overviewUnsupported: 'このOpenClawバージョンは概要機能をサポートしていません!',
+        overviewUnsupported:
+            'このOpenClawバージョンは概要機能をサポートしていません!',
         passwordRotated: 'Rootパスワードのローテーションに成功しました.',
         failedToRotatePassword: 'Rootパスワードのローテーションに失敗しました!',
         gatewayTokenRotated:
@@ -496,7 +473,6 @@ const ja: Translations = {
         authMethodDisconnected: '認証方法を切断しました.',
         failedToConnectAuthMethod: '認証方法の接続に失敗しました!',
         failedToDisconnectAuthMethod: '認証方法の切断に失敗しました!',
-        textRequired: 'テキストは必須です!',
         featureEmailsDisabled: '機能メールは現在無効です.',
         featureEmailsSent: '機能メールを送信しました.',
         featureEmailsFailed: '機能メールの送信に失敗しました!',
@@ -767,13 +743,9 @@ const ja: Translations = {
             'ローカルでOpenClawインスタンスをデプロイ・管理するにはClawHost Goライセンスが必要です。'
     },
     network: {
-        unstable: '不安定な接続',
-        unstableDescription:
-            'インターネット接続が不安定です。一部の機能が正常に動作しない場合があります。',
         offline: 'インターネット接続なし',
         offlineDescription:
-            '現在オフラインです。インターネットアクセスが必要な機能は利用できません。',
-        dismiss: '閉じる'
+            '現在オフラインです。インターネットアクセスが必要な機能は利用できません。'
     },
     dashboard: {
         title: 'Claw',
@@ -1078,31 +1050,12 @@ const ja: Translations = {
         heroTitle2: 'ワンクリック。完了。',
         heroDescription:
             'ワンクリックでクラウドまたはローカルにOpenClawとHermesエージェントをデプロイ — ClawHostでAIエージェントをより速く構築、接続、スケール。',
-        goToClaws: 'Clawに移動',
         selfHost: 'オープンソース',
         startingPrice: '開始価格',
         locations: 'ロケーション',
         servers: 'サーバー',
         zeroCount: 'ゼロ',
         zeroConfig: 'ゼロ設定',
-        dashboardPreviewTitle: 'Claw',
-        dashboardPreviewSubtitle: '5つのClaw追加済み',
-        deployNew: '新規デプロイ',
-        running: '実行中',
-        latency: 'レイテンシ',
-        howItWorks: '仕組み',
-        threeStepsToPrivacy: 'OpenClawまでの3ステップ',
-        howItWorksDescription:
-            'ゼロからフルアクセスで24/7使えるOpenClawのデプロイまで。',
-        step1Title: 'サーバーを選択',
-        step1Description:
-            '3つのプロバイダーにわたる30以上のグローバルロケーションから選択。数秒で専用VPSを立ち上げます。',
-        step2Title: '自動インストール',
-        step2Description:
-            'OpenClawはダイレクトリンクとVPS情報でプリインストール済み。セットアップ不要。',
-        step3Title: 'あなたのもの',
-        step3Description:
-            'OpenClawとVPSへのフルアクセス。達成できることに制限はありません。',
         features: '機能',
         whyClawHost: 'オールインワン機能',
         featuresDescription: '試す価値がある理由。機能は嘘をつきません。',
@@ -1141,26 +1094,6 @@ const ja: Translations = {
         multipleClaws: '複数のClaw',
         multipleClawsDescription:
             '単一のダッシュボードから複数のOpenClawインスタンスをデプロイ・管理。成長に合わせてスケール。',
-        testimonials: 'お客様の声',
-        whatPeopleSay: '皆さんの感想',
-        testimonialsDescription:
-            '私たちの言葉だけでなく、他のユーザーがどうOpenClawをデプロイしているかをご覧ください。',
-        testimonial1Quote:
-            'ついに自分のAIサーバー。セットアップは30秒で、何ヶ月も問題なく動いています。',
-        testimonial1Author: 'Alex Chen',
-        testimonial1Role: 'ソフトウェア開発者',
-        testimonial2Quote:
-            'もう他の人とリソースを共有する必要はありません。私のOpenClawインスタンスはすべてを処理します。',
-        testimonial2Author: 'Maria Santos',
-        testimonial2Role: 'デジタルノマド',
-        testimonial3Quote:
-            'ワンクリックデプロイは本物です。技術的な知識は全くないですが、1分以内にOpenClawが動きました。',
-        testimonial3Author: 'James Wilson',
-        testimonial3Role: 'フリーランサー',
-        testimonial4Quote:
-            'サーバーで何が動いているか正確に確認できるのが好きです。AIセットアップの完全なコントロール。',
-        testimonial4Author: 'Sophie Kim',
-        testimonial4Role: 'AIエンスージアスト',
         pricing: '料金',
         simpleTransparentPricing: 'シンプルで透明な料金',
         pricingDescription:
@@ -1183,8 +1116,6 @@ const ja: Translations = {
         pricePerYear: '${{price}}/yr',
         volumePricePerMonth: '+${{price}}/mo',
         startingPriceValue: '${{price}}/mo',
-        yearlyDiscount: '— 2ヶ月無料',
-        billedYearly: '年間請求',
         deploy: 'デプロイ',
         select: '選択',
         selectPlanLabel: '{{plan}}プランを選択',
@@ -1193,7 +1124,6 @@ const ja: Translations = {
         unlimitedBandwidth: '無制限帯域幅',
         rootSshAccess: 'フルRoot SSHアクセス',
         onlineAllDay: '24/7オンライン',
-        highQualityInternet: '高品質インターネット',
         showAllPlans: 'すべてのプランを表示',
         simplePricing: '簡易表示',
         planStarter: 'Starter',
@@ -1210,10 +1140,7 @@ const ja: Translations = {
         featureBandwidth: '無制限帯域幅',
         featureSsh: 'Root SSHアクセス',
         featureUptime: '24時間365日稼働',
-        featureSharedCpu: '共有CPU',
         featureDedicatedCpu: '専用CPU',
-        featureCommunitySupport: 'コミュニティサポート',
-        featureInfraSupport: 'インフラサポート',
         featureEmailSupport: 'メールサポート',
         fastInternet: '高速インターネット',
         emailSupport: 'メールサポート',
@@ -1267,27 +1194,13 @@ const ja: Translations = {
         comparisonExportOthers: 'ベンダーロックイン',
         comparisonProvidersUs: '複数のサーバープロバイダー',
         comparisonProvidersOthers: '単一プロバイダーのみ',
-        comparisonSocialsUs: 'ソーシャルメディアでの存在',
-        comparisonSocialsOthers: 'ソーシャルメディアなし',
         comparisonVersionUs: 'ワンクリックバージョン切替',
         comparisonVersionOthers: '手動アップデートのみ',
         comparisonTerminalUs: '内蔵Webターミナル',
         comparisonTerminalOthers: 'SSHクライアントが必要',
         seeFullComparison: '完全比較を見る',
         comparisonCtaText: 'SimpleClaw、MyClaw.aiなどと機能ごとに比較.',
-        readyToOwnYourPrivacy: 'OpenClawをデプロイする準備はできましたか？',
-        ctaDescription:
-            'OpenClawプリインストール済みの専用サーバーを取得。フルルートアクセス、グローバルロケーション、数分で準備完了。常にあなたのもの。$25から.',
-        deployOpenClawNow: 'OpenClawをデプロイ',
-        selfHostInstead: 'セルフホストする',
-        noCreditCardRequired: '即時セットアップ',
-        deployIn60Seconds: 'セキュア',
-        demoClawStarted: 'Clawを起動しました.',
-        demoClawStopped: 'Clawを停止しました.',
-        demoClawRestarting: 'Clawを再起動中...',
-        demoClawRestarted: 'Clawを再起動しました.',
-        demoClawDeleted: 'Clawを削除しました.',
-        demoStatus: '{{running}}実行中、合計{{total}}'
+        selfHostInstead: 'セルフホストする'
     },
     blog: {
         readingTime: '{{minutes}}分で読める',
@@ -1845,11 +1758,6 @@ const ja: Translations = {
             'これらの規約に関するご質問がある場合は、以下までお問い合わせください'
     },
     mobile: {
-        messages: 'メッセージ',
-        settings: '設定',
-        comingSoon: '近日公開',
-        messagesPlaceholder: 'メッセージと通知がここに表示されます。',
-        settingsPlaceholder: 'アカウント設定と環境設定がここに表示されます。',
         signIn: '認証',
         signInDescription: '認証してエージェントを管理・デプロイ。',
         enterEmail: 'メールアドレス',
@@ -1859,24 +1767,15 @@ const ja: Translations = {
         sending: '送信中...',
         checkYourEmail: 'メールを確認してください',
         codeSentTo: '6桁のコードを送信しました',
-        enterCode: 'メールに届いたコードを入力',
         resendCode: 'コードを再送信',
         resendIn: '{{seconds}}秒後に再送信',
         changeEmail: 'メールアドレスを変更',
         invalidCode: '無効なコードです！',
-        codeExpired:
-            'コードの有効期限が切れました。新しいコードをリクエストしてください。',
         signingIn: '認証中...',
         signOut: 'サインアウト',
-        signedInAs: 'ログイン中:',
         loadMore: 'もっと読み込む',
         deployClaw: 'Clawをデプロイ',
         deployYourFirstClaw: '最初のClawをデプロイ'
-    },
-    announcement: {
-        title: 'サービスのお知らせ',
-        message:
-            '需要が高いため、エージェントのデプロイは一時的に利用できません。既存のエージェントは正常に稼働しています。'
     },
     productHunt: {
         liveOn: '公開中',
@@ -1893,8 +1792,7 @@ const ja: Translations = {
     },
     hermesBanner: {
         title: 'Hermes Agent',
-        message: 'HermesエージェントがClawHostでのデプロイに対応しました。',
-        deploy: '今すぐデプロイ'
+        message: 'HermesエージェントがClawHostでのデプロイに対応しました。'
     },
     compare: {
         title: '詳細比較',
@@ -2264,83 +2162,46 @@ const ja: Translations = {
         contactText:
             'アフィリエイトプログラムについてのご質問、紹介コードに関するサポート、または違反の報告は、以下までお問い合わせください'
     },
-    hermes: {
-        title: 'Deploy Hermes Agent - ClawHost',
-        description: 'Deploy Hermes Agent on your own VPS with one click. An autonomous agent that grows with you.',
-        badge: 'Hermes Agent',
-        heroTitle1: 'Deploy Hermes Agent',
-        heroTitle2: 'With One Click.',
-        heroDescription: 'An autonomous agent that lives on your server, remembers what it learns, and gets more capable the longer it runs. Deploy it instantly on ClawHost.',
-        deployButton: 'Deploy Hermes Agent',
-        githubButton: 'Self-Host Instead',
-        whyHermes: 'Why Hermes Agent',
-        featuresDescription: 'Hermes Agent is a powerful autonomous agent with persistent memory, real sandboxing, and multi-platform support.',
-        feature1Title: 'Lives Where You Do',
-        feature1Description: 'Telegram, Discord, Slack, WhatsApp, Signal, Email, CLI \u2013 and a growing list of platforms. Start on one, pick up on another.',
-        feature2Title: 'Grows The Longer It Runs',
-        feature2Description: 'Persistent memory and auto-generated skills \u2013 it learns your projects and never forgets how it solved a problem.',
-        feature3Title: 'Scheduled Automations',
-        feature3Description: 'Natural language cron scheduling for reports, backups, and briefings \u2013 running unattended through the gateway.',
-        feature4Title: 'Delegates & Parallelizes',
-        feature4Description: 'Isolated subagents with their own conversations, terminals, and Python RPC scripts for zero-context-cost pipelines.',
-        feature5Title: 'Real Sandboxing',
-        feature5Description: 'Five backends \u2013 local, Docker, SSH, Singularity, Modal \u2013 with container hardening and namespace isolation.',
-        feature6Title: 'Full Web & Browser Control',
-        feature6Description: 'Web search, browser automation, vision, image generation, text-to-speech, and multi-model reasoning.',
-        ctaTitle: 'Ready to deploy Hermes Agent?',
-        ctaDescription: 'Get your own Hermes Agent running on a dedicated VPS in under 60 seconds. No configuration needed.',
-        ctaDeploy: 'Deploy Now',
-        ctaGitHub: 'View on GitHub'
-    },
     v2: {
         title: 'agent.ic — OpenClaw & Hermes をクラウドにデプロイ',
-        description: 'OpenClaw と Hermes エージェントをワンクリックでクラウドにデプロイ — オープンソース、セルフホスト可能、エージェンティックコンピューティングの未来のために構築。',
+        description:
+            'OpenClaw と Hermes エージェントをワンクリックでクラウドにデプロイ — オープンソース、セルフホスト可能、エージェンティックコンピューティングの未来のために構築。',
         heroTitle1: 'デプロイ',
         heroTitle2: 'AIエージェント',
         heroTitle3: 'クラウドにワンクリックで',
-        heroDescription: 'OpenClaw と Hermes エージェントをワンクリックでクラウドにデプロイ — Agentist で AI エージェントをより速く構築、接続、スケール。',
-        badge: 'agent.ic のご紹介',
+        heroDescription:
+            'OpenClaw と Hermes エージェントをワンクリックでクラウドにデプロイ — Agentist で AI エージェントをより速く構築、接続、スケール。',
         selfHostLabel: '代わりにセルフホスト',
         deployButton: '今すぐデプロイ',
-        learnMore: '詳しく見る',
         agentsTitle: 'あなたのエージェント。あなたのクラウド。',
-        agentsDescription: '成長し続けるAIエージェントカタログから選択。各エージェントは専用のクラウドサーバーで動作します。',
+        agentsDescription:
+            '成長し続けるAIエージェントカタログから選択。各エージェントは専用のクラウドサーバーで動作します。',
         agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription: '完全なSSH、ターミナル、ファイルエクスプローラー、設定エディタを備えたセルフホスト可能なクラウド管理プラットフォーム。',
+        agentOpenclawDescription:
+            '完全なSSH、ターミナル、ファイルエクスプローラー、設定エディタを備えたセルフホスト可能なクラウド管理プラットフォーム。',
         agentHermesName: 'Hermes',
-        agentHermesDescription: 'ウェブブラウジング、カレンダー管理、マルチモデル推論、ブラウザ自動化を備えた自律型AIエージェント。',
-        agentComingSoonName: 'さらに追加予定',
-        agentComingSoonDescription: '新しいエージェントが定期的に追加されています。独自に構築するか、成長し続けるカタログからデプロイしてください。',
-        howItWorksTitle: '仕組み',
-        howItWorksDescription: '3ステップ。60秒。エージェントが稼働。',
-        step1Title: 'エージェントを選択',
-        step1Description: '本番環境対応のAIエージェントカタログから選択。',
-        step2Title: 'インフラを選択',
-        step2Description: 'クラウドリージョン、プラン、設定を選択。',
-        step3Title: '即座にデプロイ',
-        step3Description: 'ワンクリック。専用インフラでエージェントが稼働。',
+        agentHermesDescription:
+            'ウェブブラウジング、カレンダー管理、マルチモデル推論、ブラウザ自動化を備えた自律型AIエージェント。',
         featuresTitle: '未来のために構築',
-        featuresDescription: 'AIエージェントを大規模に運用するために必要なすべて。',
+        featuresDescription:
+            'AIエージェントを大規模に運用するために必要なすべて。',
         feature1Title: 'マルチエージェントプラットフォーム',
-        feature1Description: '単一のダッシュボードから複数のエージェントタイプをデプロイ・管理。',
+        feature1Description:
+            '単一のダッシュボードから複数のエージェントタイプをデプロイ・管理。',
         agentControlTitle: '完全なエージェント制御',
-        agentControlDescription: 'ひとつのダッシュボードからエージェントのあらゆる側面を設定、カスタマイズ。',
+        agentControlDescription:
+            'ひとつのダッシュボードからエージェントのあらゆる側面を設定、カスタマイズ。',
         multipleAgentsTitle: '複数エージェント',
-        multipleAgentsDescription: '異なるリージョンと設定で複数のエージェントインスタンスを実行。',
-        feature2Title: '専用インフラ',
-        feature2Description: '各エージェントは独自のVPSで動作。共有リソースなし、ノイジーネイバーなし。',
-        feature3Title: 'グローバルエッジネットワーク',
-        feature3Description: '世界30以上のロケーション。ユーザーに最も近い場所にエージェントをデプロイ。',
-        feature4Title: 'ワンクリックデプロイ',
-        feature4Description: 'ゼロから稼働中のエージェントまで60秒以内。設定不要。',
-        feature5Title: 'フルルートアクセス',
-        feature5Description: 'SSH、ターミナル、ファイルエクスプローラー、設定エディタ。あなたのサーバー、あなたのルール。',
-        feature6Title: '従量課金',
-        feature6Description: 'コミットメントなし。スケールアップもダウンも自由。使った分だけお支払い。',
-        zeroConfigDescription: '何時間ものセットアップをスキップ。OpenClawとHermesがプリインストール済みで数分で準備完了。',
-        globalLocationsDescription: 'エージェントを30以上のグローバルリージョンにデプロイ。最寄りのロケーションを選択。',
-        onlineAccessDescription: 'カスタムサブドメインでどこからでもエージェントに安全にアクセス。',
-        versionControlDescription: 'ワンクリックでエージェントバージョンを切り替え。最新を維持、または必要に応じてロールバック。',
+        multipleAgentsDescription:
+            '異なるリージョンと設定で複数のエージェントインスタンスを実行。',
+        zeroConfigDescription:
+            '何時間ものセットアップをスキップ。OpenClawとHermesがプリインストール済みで数分で準備完了。',
+        globalLocationsDescription:
+            'エージェントを30以上のグローバルリージョンにデプロイ。最寄りのロケーションを選択。',
+        onlineAccessDescription:
+            'カスタムサブドメインでどこからでもエージェントに安全にアクセス。',
+        versionControlDescription:
+            'ワンクリックでエージェントバージョンを切り替え。最新を維持、または必要に応じてロールバック。',
         agentsPreinstalled: 'エージェント プリインストール',
         comparisonAgentAccessUs: 'すべてのエージェントへのフルアクセス',
         comparisonMultipleAgentsUs: 'サーバーあたり複数のエージェント',
@@ -2349,24 +2210,31 @@ const ja: Translations = {
         comparisonUsLabel: 'お任せ管理',
         comparisonOthersLabel: '自分で構築',
         faq1Question: 'Agentistとは？',
-        faq1Answer: 'Agentistは、自分専用のサーバーでAIエージェントをデプロイ・管理できるプラットフォームです。インフラ、セキュリティ、メンテナンスは私たちが担当します — あなたはエージェントを使うだけです。',
+        faq1Answer:
+            'Agentistは、自分専用のサーバーでAIエージェントをデプロイ・管理できるプラットフォームです。インフラ、セキュリティ、メンテナンスは私たちが担当します — あなたはエージェントを使うだけです。',
         faq2Question: 'OpenClawとは？',
-        faq2Answer: 'OpenClawは、AIツールやサービスのためのセルフホスト型セキュアアクセスレイヤーです。すべてのAgentistサーバーにプリインストールされており、セットアップを完全にコントロールできます。',
+        faq2Answer:
+            'OpenClawは、AIツールやサービスのためのセルフホスト型セキュアアクセスレイヤーです。すべてのAgentistサーバーにプリインストールされており、セットアップを完全にコントロールできます。',
         faq3Question: 'Hermesとは？',
-        faq3Answer: 'Hermesは、Webブラウジング、カレンダー管理、マルチモデル推論、ブラウザ自動化を備えた自律型AIエージェントです。すべてのサーバーにOpenClawと共にプリインストールされています。',
+        faq3Answer:
+            'Hermesは、Webブラウジング、カレンダー管理、マルチモデル推論、ブラウザ自動化を備えた自律型AIエージェントです。すべてのサーバーにOpenClawと共にプリインストールされています。',
         faq4Question: '技術的な知識は必要ですか？',
-        faq4Answer: 'いいえ。Agentistはすべての人向けに設計されています。インフラ、セットアップ、メンテナンスのすべてを私たちが担当します。サーバーに触れることなく、直感的なダッシュボードからエージェントを管理できます。',
+        faq4Answer:
+            'いいえ。Agentistはすべての人向けに設計されています。インフラ、セットアップ、メンテナンスのすべてを私たちが担当します。サーバーに触れることなく、直感的なダッシュボードからエージェントを管理できます。',
         faq5Question: '他のAIプラットフォームとの違いは？',
-        faq5Answer: 'ホスティング型AIツールとは異なり、Agentistはエージェントがインストールされた本物の専用サーバーを提供します。インフラを所有し、すべてをコントロールでき、共有プラットフォームに制限されません。',
+        faq5Answer:
+            'ホスティング型AIツールとは異なり、Agentistはエージェントがインストールされた本物の専用サーバーを提供します。インフラを所有し、すべてをコントロールでき、共有プラットフォームに制限されません。',
         faq6Question: 'どのロケーションが利用可能ですか？',
-        faq6Answer: '米国、ヨーロッパ、アジアを含む世界30以上のサーバーロケーションを提供しています。異なるリージョンの複数のサーバーにエージェントをデプロイできます。',
+        faq6Answer:
+            '米国、ヨーロッパ、アジアを含む世界30以上のサーバーロケーションを提供しています。異なるリージョンの複数のサーバーにエージェントをデプロイできます。',
         faq7Question: '料金はいくらですか？',
-        faq7Answer: '選択するサーバーに応じて月額40ドルから。エントリーレベルからハイパフォーマンスまで複数のオプション。隠れた料金なし、いつでもキャンセル可能。',
-        footerDescription: 'ワンクリックでOpenClawとHermesエージェントをクラウドにデプロイ — Agentistで AIエージェントをより速く構築、接続、スケールしましょう。',
+        faq7Answer:
+            '選択するサーバーに応じて月額40ドルから。エントリーレベルからハイパフォーマンスまで複数のオプション。隠れた料金なし、いつでもキャンセル可能。',
+        footerDescription:
+            'ワンクリックでOpenClawとHermesエージェントをクラウドにデプロイ — Agentistで AIエージェントをより速く構築、接続、スケールしましょう。',
         ctaTitle: 'デプロイの準備はできましたか？',
-        ctaDescription: '次世代のエージェントデプロイメントに参加しましょう。あなたのインフラ、あなたのエージェント、あなたのルール。',
-        stats1Value: 'OpenClaw & Hermes',
-        stats1Label: 'エージェント',
+        ctaDescription:
+            '次世代のエージェントデプロイメントに参加しましょう。あなたのインフラ、あなたのエージェント、あなたのルール。',
         stats2Value: '30+',
         stats2Label: 'リージョン',
         stats3Value: '<60s',
@@ -2380,25 +2248,11 @@ const ja: Translations = {
         planPowerTagline: '大規模な運用に',
         planPower: 'Power',
         pricingPageTitle: '料金 — agent.ic',
-        pricingPageDescription: 'AIエージェントデプロイの透明な料金設定。隠れた費用なしで、ニーズに合ったプランをお選びください。',
-        pricingHeroTitle: 'シンプルで透明な料金',
-        pricingHeroDescription: '隠れた料金なし、サプライズなし。ワークロードに合ったプランを選び、成長に合わせてスケール。',
+        pricingPageDescription:
+            'AIエージェントデプロイの透明な料金設定。隠れた費用なしで、ニーズに合ったプランをお選びください。',
         featuresPageTitle: '機能 — agent.ic',
-        featuresPageDescription: 'agent.icのすべての機能を探索 — マルチエージェントデプロイ、専用インフラ、グローバルリージョン、フルルートアクセス。',
-        featuresHeroTitle: '必要なものすべて',
-        featuresHeroDescription: 'ワンクリックデプロイからフルルートアクセスまで — 大規模にAIエージェントを実行するすべてのツールが組み込み。'
-    },
-    hermesGo: {
-        pageTitle: 'ClawHost Go - Hermes Agent',
-        description: 'Hermes Agentをローカルにデプロイするための軽量デスクトップクライアント。エージェントのデプロイ、監視、制御を — マシンから直接。',
-        badge: 'Hermes Agent Go',
-        heroTitle1: 'Hermesをデプロイ。',
-        heroTitle2: 'ローカルで。即座に。',
-        heroDescription: 'Hermes Agentインスタンスを管理するための軽量デスクトップクライアント。エージェントのデプロイ、監視、制御を — マシンから直接。',
-        whyHermesGo: 'オールインワン機能',
-        featuresDescription: '試す価値がある理由 — 機能は嘘をつきません。',
-        ctaTitle: 'Hermes Agentをローカルで実行',
-        ctaDescription: '一回払い、永久ライセンス。Hermes Agentを自分のマシンにデプロイ — クラウド不要、サブスク不要、制限なし。あなたのデータ、あなたのルール。'
+        featuresPageDescription:
+            'agent.icのすべての機能を探索 — マルチエージェントデプロイ、専用インフラ、グローバルリージョン、フルルートアクセス。'
     }
 }
 

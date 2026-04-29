@@ -40,14 +40,6 @@ const de: Translations = {
         second: 'Sekunde',
         seconds: 'Sekunden'
     },
-    setup: {
-        welcomeTitle: 'Willkommen bei ClawHost Go',
-        welcomeDescription: 'Richte dein Profil ein, um loszulegen.',
-        whatsYourName: 'Wie heißt du?',
-        namePlaceholder: 'Gib deinen Namen ein',
-        nameHint: 'Du kannst es jederzeit später festlegen.',
-        getStarted: 'Loslegen'
-    },
     language: {
         en: 'English',
         fr: 'Français',
@@ -89,8 +81,6 @@ const de: Translations = {
         cloudSubtitle: 'Technisch',
         go: 'Go',
         goSubtitle: 'Nicht-technisch',
-        hermes: 'Hermes',
-        openClaw: 'OpenClaw',
         agentistGo: 'Agentist Go'
     },
     go: {
@@ -98,13 +88,8 @@ const de: Translations = {
         heroTitle1: 'OpenClaw bereitstellen.',
         heroTitle2: 'Lokal. Sofort.',
         badge: 'Demnächst verfügbar',
-        comingSoon: 'Demnächst verfügbar',
         description:
             'Ein leichtgewichtiger Desktop-Client zur Verwaltung Ihrer OpenClaw-Instanzen. Bereitstellen, überwachen und steuern Sie Ihre Claws — direkt von Ihrem Rechner.',
-        download: 'Herunterladen für {{os}}',
-        downloadWindows: 'Windows',
-        downloadMac: 'macOS',
-        selfHostInstead: 'Stattdessen selbst hosten',
         features: 'Funktionen',
         whyClawHostGo: 'Alles-in-einem-Funktionen',
         featuresDescription:
@@ -135,7 +120,6 @@ const de: Translations = {
         pricingFeature4: 'Keine Nutzungslimits',
         pricingFeature5: 'Prioritäts-Support',
         pricingFeature6: 'Benutzerdefinierte lokale Domain',
-        pricingCta: 'ClawHost Go holen',
         comparison: 'Vergleich',
         comparisonTitle: 'Go vs Cloud',
         comparisonDescription:
@@ -182,10 +166,8 @@ const de: Translations = {
         ctaTitle: 'OpenClaw lokal ausführen',
         ctaDescription:
             'Einmalige Zahlung, lebenslange Lizenz. Stellen Sie OpenClaw auf Ihrem eigenen Gerät bereit — kein Cloud, keine Abonnements, keine Grenzen. Ihre Daten, Ihre Regeln.',
-        ctaButton: 'ClawHost Go holen',
         joinWaitlist: 'Warteliste beitreten',
         joinedWaitlist: 'Auf der Warteliste',
-        waitlistJoinedToast: 'Sie sind der Warteliste beigetreten.',
         waitlistAlreadyJoinedToast: 'Diese E-Mail ist bereits auf der Liste.',
         waitlistFailedToast: 'Beitritt zur Warteliste fehlgeschlagen!',
         waitlistEmailPlaceholder: 'E-Mail eingeben',
@@ -193,8 +175,6 @@ const de: Translations = {
         updateDownload: 'Herunterladen',
         updateDismiss: 'Später',
         clawNotFound: 'Claw nicht gefunden!',
-        invalidClawName:
-            'Ungültiger Claw-Name. Verwende nur Buchstaben, Zahlen und Bindestriche!',
         clawNameAlreadyExists: 'Ein Claw mit diesem Namen existiert bereits!',
         invalidSubdomain:
             'Ungültige Subdomain. Verwende 3-20 Kleinbuchstaben und Zahlen!',
@@ -290,11 +270,7 @@ const de: Translations = {
             'Schlüsselpaar konnte nicht generiert werden. Bitte generiere die Schlüssel lokal!',
         unableToLoadPricing:
             'Preise konnten nicht geladen werden. Bitte versuche es später erneut!',
-        noPasswordAvailable: 'Kein Passwort für diesen Claw verfügbar!',
-        clawLimitReached:
-            'Du hast das Limit von {{max}} Claws erreicht. Bitte kontaktiere den Support, um dieses Limit zu erhöhen!',
-        sshKeyLimitReached:
-            'Du hast das Limit von {{max}} SSH-Schlüsseln erreicht. Bitte kontaktiere den Support, um dieses Limit zu erhöhen!'
+        noPasswordAvailable: 'Kein Passwort für diesen Claw verfügbar!'
     },
     api: {
         missingRequiredFields: 'Pflichtfelder fehlen!',
@@ -307,7 +283,8 @@ const de: Translations = {
         userNotFound: 'Benutzer nicht gefunden!',
         sshKeyNotFound: 'SSH-Schlüssel nicht gefunden!',
         pendingAgentNotFound: 'Ausstehender Agent nicht gefunden!',
-        agentNotScheduledForDeletion: 'Agent ist nicht zur Löschung vorgemerkt!',
+        agentNotScheduledForDeletion:
+            'Agent ist nicht zur Löschung vorgemerkt!',
         agentDeletionAlreadyPassed: 'Löschdatum ist bereits vergangen!',
         agentLimitReached:
             'Du hast das Limit von {{max}} Agents erreicht. Bitte kontaktiere den Support, um dieses Limit zu erhöhen!',
@@ -351,7 +328,8 @@ const de: Translations = {
         failedToProvisionAgent: 'Agent konnte nicht bereitgestellt werden!',
         failedToInitiatePurchase: 'Kauf konnte nicht eingeleitet werden!',
         failedToCancelDeletion: 'Löschung konnte nicht abgebrochen werden!',
-        failedToHardDeleteAgent: 'Agent konnte nicht endgültig gelöscht werden!',
+        failedToHardDeleteAgent:
+            'Agent konnte nicht endgültig gelöscht werden!',
         failedToCancelScheduledDeletion:
             'Die geplante Löschung konnte nicht abgebrochen werden!',
         failedToCreateSshKey: 'SSH-Schlüssel konnte nicht erstellt werden!',
@@ -476,7 +454,8 @@ const de: Translations = {
         failedToGetMetrics: 'Servermetriken konnten nicht abgerufen werden!',
         overviewFetched: 'Übersicht erfolgreich abgerufen.',
         failedToGetOverview: 'Gateway-Übersicht konnte nicht abgerufen werden!',
-        overviewUnsupported: 'Diese OpenClaw-Version unterstützt die Übersichtsfunktion nicht!',
+        overviewUnsupported:
+            'Diese OpenClaw-Version unterstützt die Übersichtsfunktion nicht!',
         passwordRotated: 'Root-Passwort erfolgreich rotiert.',
         failedToRotatePassword: 'Root-Passwort konnte nicht rotiert werden!',
         gatewayTokenRotated: 'Gateway-Token erfolgreich rotiert.',
@@ -512,7 +491,6 @@ const de: Translations = {
             'Authentifizierungsmethode konnte nicht verbunden werden!',
         failedToDisconnectAuthMethod:
             'Authentifizierungsmethode konnte nicht getrennt werden!',
-        textRequired: 'Text ist erforderlich!',
         featureEmailsDisabled: 'Feature-E-Mails sind derzeit deaktiviert.',
         featureEmailsSent: 'Feature-E-Mails erfolgreich gesendet.',
         featureEmailsFailed: 'Fehler beim Senden der Feature-E-Mails!',
@@ -788,13 +766,9 @@ const de: Translations = {
             'Du benötigst eine ClawHost Go Lizenz, um OpenClaw-Instanzen lokal bereitzustellen und zu verwalten.'
     },
     network: {
-        unstable: 'Instabile Verbindung',
-        unstableDescription:
-            'Deine Internetverbindung ist instabil. Einige Funktionen funktionieren möglicherweise nicht wie erwartet.',
         offline: 'Keine Internetverbindung',
         offlineDescription:
-            'Du bist derzeit offline. Funktionen, die Internetzugang erfordern, sind nicht verfügbar.',
-        dismiss: 'Schließen'
+            'Du bist derzeit offline. Funktionen, die Internetzugang erfordern, sind nicht verfügbar.'
     },
     dashboard: {
         title: 'Claws',
@@ -1115,31 +1089,12 @@ const de: Translations = {
         heroTitle2: 'Ein Klick. Fertig.',
         heroDescription:
             'OpenClaw- und Hermes-Agenten in der Cloud oder lokal mit einem Klick bereitstellen – erstelle, verbinde und skaliere deine KI-Agenten schneller mit ClawHost.',
-        goToClaws: 'Zu Claws',
         selfHost: 'Open Source',
         startingPrice: 'Ab',
         locations: 'Standorte',
         servers: 'Server',
         zeroCount: 'Null',
         zeroConfig: 'Keine Konfiguration',
-        dashboardPreviewTitle: 'Claws',
-        dashboardPreviewSubtitle: '5 hinzugefügte Claws',
-        deployNew: 'Neuen bereitstellen',
-        running: 'Läuft',
-        latency: 'Latenz',
-        howItWorks: 'Ablauf',
-        threeStepsToPrivacy: 'Drei Schritte zu OpenClaw',
-        howItWorksDescription:
-            'Von null zu einem vollständig bereitgestellten OpenClaw für den 24/7-Einsatz mit vollem Zugriff.',
-        step1Title: 'Server auswählen',
-        step1Description:
-            'Wähle aus über 30 globalen Standorten bei drei Anbietern. Wir starten einen dedizierten VPS nur für dich in Sekunden.',
-        step2Title: 'Auto-Installation',
-        step2Description:
-            'OpenClaw ist vorinstalliert mit einem direkten Link und VPS-Details. Keine Einrichtung nötig.',
-        step3Title: 'Er gehört dir',
-        step3Description:
-            'Voller Zugriff auf OpenClaw und den VPS, ohne Einschränkungen bei dem, was du erreichen kannst.',
         features: 'Funktionen',
         whyClawHost: 'Alles-in-einem-Funktionen',
         featuresDescription:
@@ -1179,26 +1134,6 @@ const de: Translations = {
         multipleClaws: 'Mehrere Claws',
         multipleClawsDescription:
             'Stelle mehrere OpenClaw-Instanzen über ein einziges Dashboard bereit und verwalte sie. Skaliere nach Bedarf.',
-        testimonials: 'Stimmen',
-        whatPeopleSay: 'Was andere sagen',
-        testimonialsDescription:
-            'Nimm nicht nur unser Wort dafür. Sieh, wie andere OpenClaw bereitstellen.',
-        testimonial1Quote:
-            'Endlich mein eigener KI-Server. Die Einrichtung dauerte 30 Sekunden und ich betreibe ihn seit Monaten ohne Probleme.',
-        testimonial1Author: 'Alex Chen',
-        testimonial1Role: 'Softwareentwickler',
-        testimonial2Quote:
-            'Keine geteilten Ressourcen mehr mit anderen. Meine OpenClaw-Instanz bewältigt alles, was ich ihr gebe.',
-        testimonial2Author: 'Maria Santos',
-        testimonial2Role: 'Digitale Nomadin',
-        testimonial3Quote:
-            'Die Ein-Klick-Bereitstellung funktioniert wirklich. Ich bin überhaupt nicht technisch, hatte aber mein OpenClaw in unter einer Minute am Laufen.',
-        testimonial3Author: 'James Wilson',
-        testimonial3Role: 'Freelancer',
-        testimonial4Quote:
-            'Ich liebe es, dass ich genau sehen kann, was auf meinem Server läuft. Volle Kontrolle über mein KI-Setup.',
-        testimonial4Author: 'Sophie Kim',
-        testimonial4Role: 'KI-Enthusiastin',
         pricing: 'Preise',
         simpleTransparentPricing: 'Einfache, transparente Preise',
         pricingDescription:
@@ -1221,8 +1156,6 @@ const de: Translations = {
         pricePerYear: '${{price}}/yr',
         volumePricePerMonth: '+${{price}}/mo',
         startingPriceValue: '${{price}}/mo',
-        yearlyDiscount: '— 2 Monate gratis',
-        billedYearly: 'jährlich abgerechnet',
         deploy: 'Bereitstellen',
         select: 'Auswählen',
         selectPlanLabel: '{{plan}}-Plan auswählen',
@@ -1231,7 +1164,6 @@ const de: Translations = {
         unlimitedBandwidth: 'Unbegrenzte Bandbreite',
         rootSshAccess: 'Voller Root-SSH-Zugriff',
         onlineAllDay: '24/7 online',
-        highQualityInternet: 'Hochqualitatives Internet',
         showAllPlans: 'Alle Pläne anzeigen',
         simplePricing: 'Vereinfacht',
         planStarter: 'Starter',
@@ -1248,10 +1180,7 @@ const de: Translations = {
         featureBandwidth: 'Unbegrenzte Bandbreite',
         featureSsh: 'Root-SSH-Zugang',
         featureUptime: '24/7 online',
-        featureSharedCpu: 'Geteilte CPU',
         featureDedicatedCpu: 'Dedizierte CPU',
-        featureCommunitySupport: 'Community-Support',
-        featureInfraSupport: 'Infrastruktur-Support',
         featureEmailSupport: 'E-Mail-Support',
         fastInternet: 'Schnelles Internet',
         emailSupport: 'E-Mail-Support',
@@ -1305,8 +1234,6 @@ const de: Translations = {
         comparisonExportOthers: 'Anbieterabhängigkeit',
         comparisonProvidersUs: 'Mehrere Serveranbieter',
         comparisonProvidersOthers: 'Nur ein einzelner Anbieter',
-        comparisonSocialsUs: 'Präsenz in sozialen Medien',
-        comparisonSocialsOthers: 'Keine sozialen Medien',
         comparisonVersionUs: 'Versionswechsel mit einem Klick',
         comparisonVersionOthers: 'Nur manuelle Updates',
         comparisonTerminalUs: 'Integriertes Web-Terminal',
@@ -1314,19 +1241,7 @@ const de: Translations = {
         seeFullComparison: 'Vollständigen Vergleich anzeigen',
         comparisonCtaText:
             'Wir vergleichen mit SimpleClaw, MyClaw.ai und mehr — Funktion für Funktion.',
-        readyToOwnYourPrivacy: 'Bereit, OpenClaw bereitzustellen?',
-        ctaDescription:
-            'Erhalte einen dedizierten Server mit vorinstalliertem OpenClaw. Voller Root-Zugriff, globale Standorte und in Minuten bereit. Er gehört dir jederzeit. Ab 25 $.',
-        deployOpenClawNow: 'OpenClaw bereitstellen',
-        selfHostInstead: 'Stattdessen selbst hosten',
-        noCreditCardRequired: 'Sofortige Einrichtung',
-        deployIn60Seconds: 'Sicher',
-        demoClawStarted: 'Claw gestartet.',
-        demoClawStopped: 'Claw gestoppt.',
-        demoClawRestarting: 'Claw wird neu gestartet...',
-        demoClawRestarted: 'Claw neu gestartet.',
-        demoClawDeleted: 'Claw gelöscht.',
-        demoStatus: '{{running}} aktiv, {{total}} gesamt'
+        selfHostInstead: 'Stattdessen selbst hosten'
     },
     blog: {
         readingTime: '{{minutes}} Min. Lesezeit',
@@ -1909,13 +1824,6 @@ const de: Translations = {
             'Bei Fragen zu diesen Bedingungen kontaktiere uns bitte unter'
     },
     mobile: {
-        messages: 'Nachrichten',
-        settings: 'Einstellungen',
-        comingSoon: 'Demnächst',
-        messagesPlaceholder:
-            'Nachrichten und Benachrichtigungen werden hier angezeigt.',
-        settingsPlaceholder:
-            'Kontoeinstellungen und Präferenzen werden hier angezeigt.',
         signIn: 'Authentifizierung',
         signInDescription:
             'Authentifiziere dich, um deine Agenten zu verwalten und bereitzustellen.',
@@ -1927,23 +1835,15 @@ const de: Translations = {
         sending: 'Wird gesendet...',
         checkYourEmail: 'Prüfe deine E-Mail',
         codeSentTo: 'Wir haben einen 6-stelligen Code gesendet an',
-        enterCode: 'Gib den Code aus deiner E-Mail ein',
         resendCode: 'Code erneut senden',
         resendIn: 'Erneut senden in {{seconds}}s',
         changeEmail: 'E-Mail ändern',
         invalidCode: 'Ungültiger Code!',
-        codeExpired: 'Code abgelaufen. Bitte fordere einen neuen an!',
         signingIn: 'Authentifizierung läuft...',
         signOut: 'Abmelden',
-        signedInAs: 'Angemeldet als',
         loadMore: 'Mehr laden',
         deployClaw: 'Claw bereitstellen',
         deployYourFirstClaw: 'Stelle deinen ersten Claw bereit'
-    },
-    announcement: {
-        title: 'Servicehinweis',
-        message:
-            'Aufgrund hoher Nachfrage ist die Agent-Bereitstellung vorübergehend nicht verfügbar. Bestehende Agents laufen normal.'
     },
     productHunt: {
         liveOn: 'Live auf',
@@ -1960,8 +1860,8 @@ const de: Translations = {
     },
     hermesBanner: {
         title: 'Hermes Agent',
-        message: 'Hermes-Agenten werden jetzt für die Bereitstellung auf ClawHost unterstützt.',
-        deploy: 'Jetzt bereitstellen'
+        message:
+            'Hermes-Agenten werden jetzt für die Bereitstellung auf ClawHost unterstützt.'
     },
     compare: {
         title: 'Vollständiger Vergleich',
@@ -2336,83 +2236,46 @@ const de: Translations = {
         contactText:
             'Wenn du Fragen zum Partnerprogramm hast, Hilfe mit deinem Empfehlungscode benötigst oder einen Verstoß melden möchtest, kontaktiere uns unter'
     },
-    hermes: {
-        title: 'Hermes Agent bereitstellen - ClawHost',
-        description: 'Stelle Hermes Agent auf deinem eigenen VPS mit einem Klick bereit. Ein autonomer Agent, der mit dir wächst.',
-        badge: 'Hermes Agent',
-        heroTitle1: 'Stelle Hermes Agent',
-        heroTitle2: 'Mit Einem Klick Bereit.',
-        heroDescription: 'Ein autonomer Agent, der auf deinem Server lebt, sich merkt, was er lernt, und mit der Zeit leistungsfähiger wird. Stelle ihn sofort auf ClawHost bereit.',
-        deployButton: 'Hermes Agent Bereitstellen',
-        githubButton: 'Selbst Hosten',
-        whyHermes: 'Warum Hermes Agent',
-        featuresDescription: 'Hermes Agent ist ein leistungsstarker autonomer Agent mit persistentem Speicher, echtem Sandboxing und Multi-Plattform-Unterstützung.',
-        feature1Title: 'Lebt, Wo Du Bist',
-        feature1Description: 'Telegram, Discord, Slack, WhatsApp, Signal, E-Mail, CLI – und eine wachsende Liste von Plattformen. Starte auf einer, mach auf einer anderen weiter.',
-        feature2Title: 'Wächst Mit Der Zeit',
-        feature2Description: 'Persistenter Speicher und automatisch generierte Fähigkeiten – er lernt deine Projekte und vergisst nie, wie er ein Problem gelöst hat.',
-        feature3Title: 'Geplante Automatisierungen',
-        feature3Description: 'Natürlichsprachliche Cron-Planung für Berichte, Backups und Briefings – läuft unbeaufsichtigt über das Gateway.',
-        feature4Title: 'Delegiert Und Parallelisiert',
-        feature4Description: 'Isolierte Subagenten mit eigenen Gesprächen, Terminals und Python-RPC-Skripten für kostenfreie Kontext-Pipelines.',
-        feature5Title: 'Echtes Sandboxing',
-        feature5Description: 'Fünf Backends – lokal, Docker, SSH, Singularity, Modal – mit Container-Härtung und Namespace-Isolation.',
-        feature6Title: 'Volle Web- Und Browser-Kontrolle',
-        feature6Description: 'Websuche, Browser-Automatisierung, Vision, Bildgenerierung, Text-to-Speech und Multi-Modell-Reasoning.',
-        ctaTitle: 'Bereit, Hermes Agent bereitzustellen?',
-        ctaDescription: 'Starte deinen eigenen Hermes Agent auf einem dedizierten VPS in unter 60 Sekunden. Keine Konfiguration nötig.',
-        ctaDeploy: 'Jetzt Bereitstellen',
-        ctaGitHub: 'Auf GitHub ansehen'
-    },
     v2: {
         title: 'agent.ic — OpenClaw & Hermes in der Cloud deployen',
-        description: 'Deploye OpenClaw- und Hermes-Agents in der Cloud mit einem Klick — Open-Source, selbst-hostbar und gebaut für die Zukunft des agentischen Computings.',
+        description:
+            'Deploye OpenClaw- und Hermes-Agents in der Cloud mit einem Klick — Open-Source, selbst-hostbar und gebaut für die Zukunft des agentischen Computings.',
         heroTitle1: 'Deployen Sie',
         heroTitle2: 'KI-Agenten',
         heroTitle3: 'in der Cloud mit einem Klick',
-        heroDescription: 'Deploye OpenClaw- und Hermes-Agents in der Cloud mit einem Klick — erstelle, verbinde und skaliere deine KI-Agents schneller mit Agentist.',
-        badge: 'Wir stellen agent.ic vor',
+        heroDescription:
+            'Deploye OpenClaw- und Hermes-Agents in der Cloud mit einem Klick — erstelle, verbinde und skaliere deine KI-Agents schneller mit Agentist.',
         selfHostLabel: 'Stattdessen Selbst Hosten',
         deployButton: 'Jetzt Deployen',
-        learnMore: 'Mehr Erfahren',
         agentsTitle: 'Wähle Deinen Agent.',
-        agentsDescription: 'Wähle aus einem wachsenden Katalog von KI-Agents, jeder läuft auf seinem eigenen dedizierten Cloud-Server.',
+        agentsDescription:
+            'Wähle aus einem wachsenden Katalog von KI-Agents, jeder läuft auf seinem eigenen dedizierten Cloud-Server.',
         agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription: 'Selbst-hostbare Cloud-Management-Plattform mit vollem SSH-Zugang, Terminal, Datei-Explorer und Config-Editor.',
+        agentOpenclawDescription:
+            'Selbst-hostbare Cloud-Management-Plattform mit vollem SSH-Zugang, Terminal, Datei-Explorer und Config-Editor.',
         agentHermesName: 'Hermes',
-        agentHermesDescription: 'Autonomer KI-Agent mit Web-Browsing, Kalender-Management, Multi-Modell-Reasoning und Browser-Automatisierung.',
-        agentComingSoonName: 'Mehr Kommt',
-        agentComingSoonDescription: 'Neue Agents werden regelmäßig hinzugefügt. Erstelle deinen eigenen oder deploye aus unserem wachsenden Katalog.',
-        howItWorksTitle: 'So Funktioniert Es',
-        howItWorksDescription: 'Drei Schritte. Sechzig Sekunden. Dein Agent ist live.',
-        step1Title: 'Wähle Deinen Agent',
-        step1Description: 'Wähle aus unserem Katalog produktionsreifer KI-Agents.',
-        step2Title: 'Infrastruktur Wählen',
-        step2Description: 'Wähle deine Cloud-Region, Plan und Konfiguration.',
-        step3Title: 'Sofort Deployen',
-        step3Description: 'Ein Klick. Dein Agent läuft auf dedizierter Infrastruktur.',
+        agentHermesDescription:
+            'Autonomer KI-Agent mit Web-Browsing, Kalender-Management, Multi-Modell-Reasoning und Browser-Automatisierung.',
         featuresTitle: 'Für die Zukunft Gebaut',
-        featuresDescription: 'Alles was du brauchst, um KI-Agents im großen Maßstab zu betreiben.',
+        featuresDescription:
+            'Alles was du brauchst, um KI-Agents im großen Maßstab zu betreiben.',
         feature1Title: 'Multi-Agent Plattform',
-        feature1Description: 'Deploye und verwalte mehrere Agent-Typen von einem Dashboard aus.',
+        feature1Description:
+            'Deploye und verwalte mehrere Agent-Typen von einem Dashboard aus.',
         agentControlTitle: 'Volle Agenten-Kontrolle',
-        agentControlDescription: 'Konfiguriere und passe jeden Aspekt deiner Agents über ein Dashboard an.',
+        agentControlDescription:
+            'Konfiguriere und passe jeden Aspekt deiner Agents über ein Dashboard an.',
         multipleAgentsTitle: 'Mehrere Agenten',
-        multipleAgentsDescription: 'Betreibe mehrere Agent-Instanzen in verschiedenen Regionen und Konfigurationen.',
-        feature2Title: 'Dedizierte Infrastruktur',
-        feature2Description: 'Jeder Agent läuft auf seinem eigenen VPS. Keine geteilten Ressourcen.',
-        feature3Title: 'Globales Edge-Netzwerk',
-        feature3Description: '30+ Standorte weltweit. Deploye Agents nah bei deinen Nutzern.',
-        feature4Title: 'Ein-Klick-Deploy',
-        feature4Description: 'Von null zum laufenden Agent in unter 60 Sekunden. Keine Konfiguration nötig.',
-        feature5Title: 'Voller Root-Zugang',
-        feature5Description: 'SSH, Terminal, Datei-Explorer und Config-Editor. Dein Server, deine Regeln.',
-        feature6Title: 'Pay-As-You-Go',
-        feature6Description: 'Keine Verpflichtungen. Hoch- oder runterskalieren. Zahle nur, was du nutzt.',
-        zeroConfigDescription: 'Überspringe stundenlange Einrichtung. OpenClaw und Hermes sind vorinstalliert und innerhalb von Minuten bereit.',
-        globalLocationsDescription: 'Deploye Agents in über 30 globalen Regionen. Wähle den nächstgelegenen Standort.',
-        onlineAccessDescription: 'Greife von überall sicher auf deine Agents über eine eigene Subdomain zu.',
-        versionControlDescription: 'Wechsle Agent-Versionen mit einem Klick. Bleib aktuell oder geh bei Bedarf zurück.',
+        multipleAgentsDescription:
+            'Betreibe mehrere Agent-Instanzen in verschiedenen Regionen und Konfigurationen.',
+        zeroConfigDescription:
+            'Überspringe stundenlange Einrichtung. OpenClaw und Hermes sind vorinstalliert und innerhalb von Minuten bereit.',
+        globalLocationsDescription:
+            'Deploye Agents in über 30 globalen Regionen. Wähle den nächstgelegenen Standort.',
+        onlineAccessDescription:
+            'Greife von überall sicher auf deine Agents über eine eigene Subdomain zu.',
+        versionControlDescription:
+            'Wechsle Agent-Versionen mit einem Klick. Bleib aktuell oder geh bei Bedarf zurück.',
         agentsPreinstalled: 'Agenten vorinstalliert',
         comparisonAgentAccessUs: 'Voller Zugriff auf alle Agenten',
         comparisonMultipleAgentsUs: 'Mehrere Agenten pro Server',
@@ -2421,24 +2284,31 @@ const de: Translations = {
         comparisonUsLabel: 'Für dich verwaltet',
         comparisonOthersLabel: 'Mach es selbst',
         faq1Question: 'Was ist Agentist?',
-        faq1Answer: 'Agentist ist eine Plattform, mit der du KI-Agenten auf deinen eigenen dedizierten Servern bereitstellen und verwalten kannst. Wir kümmern uns um die Infrastruktur, Sicherheit und Wartung — du nutzt einfach deine Agenten.',
+        faq1Answer:
+            'Agentist ist eine Plattform, mit der du KI-Agenten auf deinen eigenen dedizierten Servern bereitstellen und verwalten kannst. Wir kümmern uns um die Infrastruktur, Sicherheit und Wartung — du nutzt einfach deine Agenten.',
         faq2Question: 'Was ist OpenClaw?',
-        faq2Answer: 'OpenClaw ist eine selbst gehostete sichere Zugriffsschicht für deine KI-Tools und -Dienste. Es ist auf jedem Agentist-Server vorinstalliert und gibt dir die volle Kontrolle über deine Einrichtung.',
+        faq2Answer:
+            'OpenClaw ist eine selbst gehostete sichere Zugriffsschicht für deine KI-Tools und -Dienste. Es ist auf jedem Agentist-Server vorinstalliert und gibt dir die volle Kontrolle über deine Einrichtung.',
         faq3Question: 'Was ist Hermes?',
-        faq3Answer: 'Hermes ist ein autonomer KI-Agent mit Webbrowsing, Kalenderverwaltung, Multi-Modell-Reasoning und Browser-Automatisierung. Er ist neben OpenClaw auf jedem Server vorinstalliert.',
+        faq3Answer:
+            'Hermes ist ein autonomer KI-Agent mit Webbrowsing, Kalenderverwaltung, Multi-Modell-Reasoning und Browser-Automatisierung. Er ist neben OpenClaw auf jedem Server vorinstalliert.',
         faq4Question: 'Brauche ich technisches Wissen?',
-        faq4Answer: 'Nein. Agentist ist für jeden konzipiert. Wir kümmern uns um die gesamte Infrastruktur, Einrichtung und Wartung. Du kannst deine Agenten über ein intuitives Dashboard verwalten, ohne einen Server berühren zu müssen.',
+        faq4Answer:
+            'Nein. Agentist ist für jeden konzipiert. Wir kümmern uns um die gesamte Infrastruktur, Einrichtung und Wartung. Du kannst deine Agenten über ein intuitives Dashboard verwalten, ohne einen Server berühren zu müssen.',
         faq5Question: 'Wie unterscheidet sich das von anderen KI-Plattformen?',
-        faq5Answer: 'Im Gegensatz zu gehosteten KI-Tools bietet dir Agentist einen echten dedizierten Server mit installierten Agenten. Du besitzt die Infrastruktur, kontrollierst alles und bist nicht durch gemeinsam genutzte Plattformen eingeschränkt.',
+        faq5Answer:
+            'Im Gegensatz zu gehosteten KI-Tools bietet dir Agentist einen echten dedizierten Server mit installierten Agenten. Du besitzt die Infrastruktur, kontrollierst alles und bist nicht durch gemeinsam genutzte Plattformen eingeschränkt.',
         faq6Question: 'Welche Standorte sind verfügbar?',
-        faq6Answer: 'Wir bieten über 30 Serverstandorte weltweit an, darunter USA, Europa und Asien. Du kannst Agenten auf mehreren Servern in verschiedenen Regionen bereitstellen.',
+        faq6Answer:
+            'Wir bieten über 30 Serverstandorte weltweit an, darunter USA, Europa und Asien. Du kannst Agenten auf mehreren Servern in verschiedenen Regionen bereitstellen.',
         faq7Question: 'Was kostet es?',
-        faq7Answer: 'Die Preise beginnen bei 40 $/Monat je nach gewähltem Server. Mehrere Optionen von Einstiegs- bis Hochleistungsklasse. Keine versteckten Gebühren, jederzeit kündbar.',
-        footerDescription: 'Deploye OpenClaw- und Hermes-Agenten mit einem Klick in der Cloud — erstelle, verbinde und skaliere deine KI-Agenten schneller mit Agentist.',
+        faq7Answer:
+            'Die Preise beginnen bei 40 $/Monat je nach gewähltem Server. Mehrere Optionen von Einstiegs- bis Hochleistungsklasse. Keine versteckten Gebühren, jederzeit kündbar.',
+        footerDescription:
+            'Deploye OpenClaw- und Hermes-Agenten mit einem Klick in der Cloud — erstelle, verbinde und skaliere deine KI-Agenten schneller mit Agentist.',
         ctaTitle: 'Bereit zum Deployen?',
-        ctaDescription: 'Werde Teil der nächsten Generation von Agent-Deployment. Deine Infrastruktur, deine Agents, deine Regeln.',
-        stats1Value: 'OpenClaw & Hermes',
-        stats1Label: 'Agenten',
+        ctaDescription:
+            'Werde Teil der nächsten Generation von Agent-Deployment. Deine Infrastruktur, deine Agents, deine Regeln.',
         stats2Value: '30+',
         stats2Label: 'Regionen',
         stats3Value: '<60s',
@@ -2452,25 +2322,11 @@ const de: Translations = {
         planPowerTagline: 'Für groß angelegte Operationen',
         planPower: 'Power',
         pricingPageTitle: 'Preise — agent.ic',
-        pricingPageDescription: 'Transparente Preise für KI-Agent-Deployment. Wählen Sie einen Plan, der zu Ihren Anforderungen passt, ohne versteckte Gebühren.',
-        pricingHeroTitle: 'Einfache, Transparente Preise',
-        pricingHeroDescription: 'Keine versteckten Gebühren, keine Überraschungen. Wählen Sie einen Plan, der zu Ihrer Arbeitslast passt, und skalieren Sie nach Bedarf.',
+        pricingPageDescription:
+            'Transparente Preise für KI-Agent-Deployment. Wählen Sie einen Plan, der zu Ihren Anforderungen passt, ohne versteckte Gebühren.',
         featuresPageTitle: 'Funktionen — agent.ic',
-        featuresPageDescription: 'Entdecken Sie alle Funktionen von agent.ic — Multi-Agent-Deployment, dedizierte Infrastruktur, globale Regionen und voller Root-Zugang.',
-        featuresHeroTitle: 'Alles Was Sie Brauchen',
-        featuresHeroDescription: 'Von Ein-Klick-Deployments bis zum vollen Root-Zugang — alle Werkzeuge, um KI-Agents im großen Maßstab zu betreiben, eingebaut.'
-    },
-    hermesGo: {
-        pageTitle: 'ClawHost Go - Hermes Agent',
-        description: 'Ein leichtgewichtiger Desktop-Client zum lokalen Deployen von Hermes Agent. Deployen, überwachen und steuern — direkt von deinem Rechner.',
-        badge: 'Hermes Agent Go',
-        heroTitle1: 'Deploy Hermes.',
-        heroTitle2: 'Lokal. Sofort.',
-        heroDescription: 'Ein leichtgewichtiger Desktop-Client zur Verwaltung deiner Hermes Agent-Instanzen. Deployen, überwachen und steuern — direkt von deinem Rechner.',
-        whyHermesGo: 'All-in-One Funktionen',
-        featuresDescription: 'Warum wir einen Versuch wert sind — die Funktionen sprechen für sich.',
-        ctaTitle: 'Hermes Agent lokal ausführen',
-        ctaDescription: 'Einmalzahlung, lebenslange Lizenz. Deploy Hermes Agent auf deinem eigenen Rechner — kein Cloud, keine Abos, keine Limits. Deine Daten, deine Regeln.'
+        featuresPageDescription:
+            'Entdecken Sie alle Funktionen von agent.ic — Multi-Agent-Deployment, dedizierte Infrastruktur, globale Regionen und voller Root-Zugang.'
     }
 }
 

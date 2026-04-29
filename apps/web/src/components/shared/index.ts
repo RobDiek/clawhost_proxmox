@@ -9,7 +9,6 @@ import LanguageSelector from '@/components/shared/LanguageSelector'
 import LiveBadge from '@/components/shared/LiveBadge'
 import NetworkStatus from '@/components/shared/NetworkStatus'
 import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
-import PlansSkeleton from '@/components/shared/PlansSkeleton'
 import ScrollToBottomButton from '@/components/shared/ScrollToBottomButton'
 import SupportButton from '@/components/shared/SupportButton'
 import ThemeToggle from '@/components/shared/ThemeToggle'
@@ -28,7 +27,6 @@ export {
     LiveBadge,
     NetworkStatus,
     PanelPlaceholder,
-    PlansSkeleton,
     ScrollToBottomButton,
     SupportButton,
     ThemeToggle,
