@@ -1,4 +1,3 @@
-import AnnouncementBanner from '@/components/layout/AnnouncementBanner'
 import BetaBadge from '@/components/layout/BetaBadge'
 import Header from '@/components/layout/Header'
 import HermesBanner from '@/components/layout/HermesBanner'
@@ -12,7 +11,6 @@ import ProductSwitcher from '@/components/layout/ProductSwitcher'
 import ScrollToTop from '@/components/layout/ScrollToTop'
 
 export {
-    AnnouncementBanner,
     BetaBadge,
     Header,
     HermesBanner,

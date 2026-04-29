@@ -40,14 +40,6 @@ const hi: Translations = {
         second: 'सेकंड',
         seconds: 'सेकंड'
     },
-    setup: {
-        welcomeTitle: 'ClawHost Go में आपका स्वागत है',
-        welcomeDescription: 'शुरू करने के लिए अपनी प्रोफ़ाइल सेट करें.',
-        whatsYourName: 'आपका नाम क्या है?',
-        namePlaceholder: 'अपना नाम दर्ज करें',
-        nameHint: 'आप इसे बाद में भी सेट कर सकते हैं.',
-        getStarted: 'शुरू करें'
-    },
     language: {
         en: 'English',
         fr: 'Français',
@@ -89,8 +81,6 @@ const hi: Translations = {
         cloudSubtitle: 'तकनीकी',
         go: 'Go',
         goSubtitle: 'गैर-तकनीकी',
-        hermes: 'Hermes',
-        openClaw: 'OpenClaw',
         agentistGo: 'Agentist Go'
     },
     go: {
@@ -98,13 +88,8 @@ const hi: Translations = {
         heroTitle1: 'OpenClaw डिप्लॉय करें.',
         heroTitle2: 'स्थानीय रूप से. तुरंत.',
         badge: 'जल्द आ रहा है',
-        comingSoon: 'जल्द आ रहा है',
         description:
             'अपने OpenClaw इंस्टेंस प्रबंधित करने के लिए एक हल्का डेस्कटॉप क्लाइंट. अपनी मशीन से ही डिप्लॉय, मॉनिटर और नियंत्रित करें.',
-        download: '{{os}} के लिए डाउनलोड करें',
-        downloadWindows: 'Windows',
-        downloadMac: 'macOS',
-        selfHostInstead: 'स्वयं होस्ट करें',
         features: 'विशेषताएँ',
         whyClawHostGo: 'ऑल-इन-वन विशेषताएँ',
         featuresDescription:
@@ -135,7 +120,6 @@ const hi: Translations = {
         pricingFeature4: 'कोई उपयोग सीमा नहीं',
         pricingFeature5: 'प्राथमिकता सहायता',
         pricingFeature6: 'कस्टम लोकल डोमेन',
-        pricingCta: 'ClawHost Go प्राप्त करें',
         comparison: 'तुलना',
         comparisonTitle: 'Go बनाम Cloud',
         comparisonDescription:
@@ -183,10 +167,8 @@ const hi: Translations = {
         ctaTitle: 'OpenClaw स्थानीय रूप से चलाएँ',
         ctaDescription:
             'एक बार का भुगतान, आजीवन लाइसेंस. अपनी मशीन पर OpenClaw डिप्लॉय करें — कोई क्लाउड नहीं, कोई सब्सक्रिप्शन नहीं, कोई सीमा नहीं. आपका डेटा, आपके नियम.',
-        ctaButton: 'ClawHost Go प्राप्त करें',
         joinWaitlist: 'प्रतीक्षा सूची में शामिल हों',
         joinedWaitlist: 'प्रतीक्षा सूची में शामिल हो गए',
-        waitlistJoinedToast: 'आप प्रतीक्षा सूची में शामिल हो गए.',
         waitlistAlreadyJoinedToast: 'यह ईमेल पहले से सूची में है.',
         waitlistFailedToast: 'प्रतीक्षा सूची में शामिल होने में विफल!',
         waitlistEmailPlaceholder: 'अपना ईमेल दर्ज करें',
@@ -194,8 +176,6 @@ const hi: Translations = {
         updateDownload: 'डाउनलोड',
         updateDismiss: 'बाद में',
         clawNotFound: 'क्लॉ नहीं मिला!',
-        invalidClawName:
-            'अमान्य क्लॉ नाम. केवल अक्षर, संख्याएँ और हाइफ़न का उपयोग करें!',
         clawNameAlreadyExists: 'इस नाम का एक क्लॉ पहले से मौजूद है!',
         invalidSubdomain:
             'अमान्य सबडोमेन. 3-20 छोटे अक्षर और संख्याएँ उपयोग करें!',
@@ -286,11 +266,7 @@ const hi: Translations = {
             'कुंजी जोड़ी बनाने में विफल. कृपया स्थानीय रूप से कुंजियाँ बनाएँ!',
         unableToLoadPricing:
             'मूल्य निर्धारण लोड करने में असमर्थ. कृपया बाद में पुनः प्रयास करें!',
-        noPasswordAvailable: 'इस क्लॉ के लिए कोई पासवर्ड उपलब्ध नहीं!',
-        clawLimitReached:
-            'आप {{max}} क्लॉज़ की सीमा तक पहुँच गए हैं. कृपया इस सीमा को बढ़ाने के लिए सहायता से संपर्क करें!',
-        sshKeyLimitReached:
-            'आप {{max}} SSH कुंजियों की सीमा तक पहुँच गए हैं. कृपया इस सीमा को बढ़ाने के लिए सहायता से संपर्क करें!'
+        noPasswordAvailable: 'इस क्लॉ के लिए कोई पासवर्ड उपलब्ध नहीं!'
     },
     api: {
         missingRequiredFields: 'आवश्यक फ़ील्ड गायब हैं!',
@@ -298,7 +274,8 @@ const hi: Translations = {
         agentRenamed: 'एजेंट का नाम सफलतापूर्वक बदला गया.',
         agentEmojiUpdated: 'एजेंट इमोजी अपडेट किया गया।',
         failedToUpdateEmoji: 'इमोजी अपडेट करने में विफल!',
-        invalidAgentName: 'एजेंट का नाम 1 से {{max}} अक्षरों के बीच होना चाहिए!',
+        invalidAgentName:
+            'एजेंट का नाम 1 से {{max}} अक्षरों के बीच होना चाहिए!',
         userNotFound: 'उपयोगकर्ता नहीं मिला!',
         sshKeyNotFound: 'SSH कुंजी नहीं मिली!',
         pendingAgentNotFound: 'लंबित एजेंट नहीं मिला!',
@@ -461,7 +438,8 @@ const hi: Translations = {
         failedToGetMetrics: 'सर्वर मेट्रिक्स प्राप्त करने में विफल!',
         overviewFetched: 'अवलोकन सफलतापूर्वक प्राप्त हुआ.',
         failedToGetOverview: 'गेटवे अवलोकन प्राप्त करने में विफल!',
-        overviewUnsupported: 'यह OpenClaw संस्करण अवलोकन सुविधा का समर्थन नहीं करता!',
+        overviewUnsupported:
+            'यह OpenClaw संस्करण अवलोकन सुविधा का समर्थन नहीं करता!',
         passwordRotated: 'Root पासवर्ड सफलतापूर्वक बदला गया.',
         failedToRotatePassword: 'Root पासवर्ड बदलने में विफल!',
         gatewayTokenRotated: 'गेटवे टोकन सफलतापूर्वक बदला गया.',
@@ -493,7 +471,6 @@ const hi: Translations = {
         failedToConnectAuthMethod: 'प्रमाणीकरण विधि कनेक्ट करने में विफल!',
         failedToDisconnectAuthMethod:
             'प्रमाणीकरण विधि डिस्कनेक्ट करने में विफल!',
-        textRequired: 'टेक्स्ट आवश्यक है!',
         featureEmailsDisabled: 'फ़ीचर ईमेल वर्तमान में अक्षम हैं.',
         featureEmailsSent: 'फ़ीचर ईमेल सफलतापूर्वक भेजे गए.',
         featureEmailsFailed: 'फ़ीचर ईमेल भेजने में विफल!',
@@ -772,13 +749,9 @@ const hi: Translations = {
             'स्थानीय रूप से OpenClaw इंस्टेंस डिप्लॉय और प्रबंधित करने के लिए आपको ClawHost Go लाइसेंस की आवश्यकता है.'
     },
     network: {
-        unstable: 'अस्थिर कनेक्शन',
-        unstableDescription:
-            'आपका इंटरनेट कनेक्शन अस्थिर है. कुछ सुविधाएँ अपेक्षानुसार काम नहीं कर सकतीं.',
         offline: 'कोई इंटरनेट कनेक्शन नहीं',
         offlineDescription:
-            'आप वर्तमान में ऑफ़लाइन हैं. इंटरनेट एक्सेस की आवश्यकता वाली सुविधाएँ अनुपलब्ध होंगी.',
-        dismiss: 'खारिज करें'
+            'आप वर्तमान में ऑफ़लाइन हैं. इंटरनेट एक्सेस की आवश्यकता वाली सुविधाएँ अनुपलब्ध होंगी.'
     },
     dashboard: {
         title: 'क्लॉज़',
@@ -1086,31 +1059,12 @@ const hi: Translations = {
         heroTitle2: 'एक क्लिक. हो गया.',
         heroDescription:
             'एक क्लिक में क्लाउड या स्थानीय रूप से OpenClaw और Hermes एजेंट डिप्लॉय करें — ClawHost के साथ अपने AI एजेंट तेज़ी से बनाएँ, कनेक्ट करें और स्केल करें.',
-        goToClaws: 'क्लॉज़ पर जाएँ',
         selfHost: 'ओपन सोर्स',
         startingPrice: 'शुरुआती',
         locations: 'स्थान',
         servers: 'सर्वर',
         zeroCount: 'शून्य',
         zeroConfig: 'शून्य कॉन्फ़िग',
-        dashboardPreviewTitle: 'क्लॉज़',
-        dashboardPreviewSubtitle: '5 जोड़े गए क्लॉज़',
-        deployNew: 'नया डिप्लॉय करें',
-        running: 'चल रहा है',
-        latency: 'विलंबता',
-        howItWorks: 'यह कैसे काम करता है',
-        threeStepsToPrivacy: 'OpenClaw तक तीन कदम',
-        howItWorksDescription:
-            'शून्य से एक पूरी तरह डिप्लॉय किए गए OpenClaw तक जिसे पूर्ण एक्सेस के साथ 24/7 उपयोग करें.',
-        step1Title: 'सर्वर चुनें',
-        step1Description:
-            'तीन प्रदाताओं में 30+ वैश्विक स्थानों में से चुनें. हम सेकंडों में आपके लिए एक समर्पित VPS शुरू करते हैं.',
-        step2Title: 'स्वतः इंस्टॉलेशन',
-        step2Description:
-            'OpenClaw एक सीधे लिंक और VPS विवरण के साथ पूर्व-इंस्टॉल है. कोई सेटअप आवश्यक नहीं.',
-        step3Title: 'यह आपका है',
-        step3Description:
-            'OpenClaw और VPS तक पूर्ण एक्सेस, जो आप हासिल कर सकते हैं उस पर कोई सीमा नहीं.',
         features: 'विशेषताएँ',
         whyClawHost: 'ऑल-इन-वन विशेषताएँ',
         featuresDescription:
@@ -1150,26 +1104,6 @@ const hi: Translations = {
         multipleClaws: 'एकाधिक क्लॉज़',
         multipleClawsDescription:
             'एक ही डैशबोर्ड से कई OpenClaw इंस्टेंस डिप्लॉय और प्रबंधित करें. जैसे-जैसे आप बढ़ें, स्केल करें.',
-        testimonials: 'प्रशंसापत्र',
-        whatPeopleSay: 'लोग क्या कह रहे हैं',
-        testimonialsDescription:
-            'सिर्फ़ हमारी बात पर भरोसा न करें. देखें कि दूसरे कैसे OpenClaw डिप्लॉय करते हैं.',
-        testimonial1Quote:
-            'आखिरकार, मेरा अपना AI सर्वर. सेटअप में 30 सेकंड लगे और मैं इसे महीनों से बिना किसी समस्या के चला रहा हूँ.',
-        testimonial1Author: 'Alex Chen',
-        testimonial1Role: 'सॉफ़्टवेयर डेवलपर',
-        testimonial2Quote:
-            'अब दूसरों के साथ संसाधन साझा नहीं करना. मेरा OpenClaw इंस्टेंस मेरी हर चीज़ संभालता है.',
-        testimonial2Author: 'Maria Santos',
-        testimonial2Role: 'डिजिटल नोमैड',
-        testimonial3Quote:
-            'एक-क्लिक डिप्लॉय सच में काम करता है. मैं बिल्कुल तकनीकी नहीं हूँ लेकिन एक मिनट से कम में मेरा OpenClaw चल गया.',
-        testimonial3Author: 'James Wilson',
-        testimonial3Role: 'फ्रीलांसर',
-        testimonial4Quote:
-            'मुझे पसंद है कि मैं देख सकता हूँ कि मेरे सर्वर पर क्या चल रहा है. मेरे AI सेटअप पर पूर्ण नियंत्रण.',
-        testimonial4Author: 'Sophie Kim',
-        testimonial4Role: 'AI उत्साही',
         pricing: 'मूल्य निर्धारण',
         simpleTransparentPricing: 'सरल, पारदर्शी मूल्य निर्धारण',
         pricingDescription:
@@ -1192,8 +1126,6 @@ const hi: Translations = {
         pricePerYear: '${{price}}/yr',
         volumePricePerMonth: '+${{price}}/mo',
         startingPriceValue: '${{price}}/mo',
-        yearlyDiscount: '— 2 महीने मुफ़्त',
-        billedYearly: 'वार्षिक बिल',
         deploy: 'डिप्लॉय',
         select: 'चुनें',
         selectPlanLabel: '{{plan}} प्लान चुनें',
@@ -1202,7 +1134,6 @@ const hi: Translations = {
         unlimitedBandwidth: 'असीमित बैंडविड्थ',
         rootSshAccess: 'पूर्ण रूट SSH एक्सेस',
         onlineAllDay: '24/7 ऑनलाइन',
-        highQualityInternet: 'उच्च गुणवत्ता इंटरनेट',
         showAllPlans: 'सभी योजनाएं देखें',
         simplePricing: 'सरलीकृत',
         planStarter: 'Starter',
@@ -1219,10 +1150,7 @@ const hi: Translations = {
         featureBandwidth: 'असीमित बैंडविड्थ',
         featureSsh: 'रूट SSH एक्सेस',
         featureUptime: '24/7 ऑनलाइन',
-        featureSharedCpu: 'साझा CPU',
         featureDedicatedCpu: 'समर्पित CPU',
-        featureCommunitySupport: 'सामुदायिक सहायता',
-        featureInfraSupport: 'इन्फ्रास्ट्रक्चर सहायता',
         featureEmailSupport: 'ईमेल सहायता',
         fastInternet: 'तेज़ इंटरनेट',
         emailSupport: 'ईमेल सहायता',
@@ -1275,8 +1203,6 @@ const hi: Translations = {
         comparisonExportOthers: 'वेंडर लॉक-इन',
         comparisonProvidersUs: 'एकाधिक सर्वर प्रदाता',
         comparisonProvidersOthers: 'केवल एक प्रदाता',
-        comparisonSocialsUs: 'सोशल मीडिया उपस्थिति',
-        comparisonSocialsOthers: 'कोई सोशल मीडिया नहीं',
         comparisonVersionUs: 'एक-क्लिक संस्करण स्विचिंग',
         comparisonVersionOthers: 'केवल मैनुअल अपडेट',
         comparisonTerminalUs: 'बिल्ट-इन वेब टर्मिनल',
@@ -1284,19 +1210,7 @@ const hi: Translations = {
         seeFullComparison: 'पूर्ण तुलना देखें',
         comparisonCtaText:
             'हम SimpleClaw, MyClaw.ai और अन्य से तुलना करते हैं — सुविधा दर सुविधा.',
-        readyToOwnYourPrivacy: 'OpenClaw डिप्लॉय करने के लिए तैयार?',
-        ctaDescription:
-            'OpenClaw पूर्व-इंस्टॉल के साथ एक समर्पित सर्वर प्राप्त करें. पूर्ण रूट एक्सेस, वैश्विक स्थान और मिनटों में तैयार. आप हर समय इसके मालिक हैं. $25 से शुरू.',
-        deployOpenClawNow: 'OpenClaw डिप्लॉय करें',
-        selfHostInstead: 'स्वयं होस्ट करें',
-        noCreditCardRequired: 'तुरंत सेटअप',
-        deployIn60Seconds: 'सुरक्षित',
-        demoClawStarted: 'क्लॉ शुरू हुआ.',
-        demoClawStopped: 'क्लॉ रुका.',
-        demoClawRestarting: 'क्लॉ पुनः शुरू हो रहा है...',
-        demoClawRestarted: 'क्लॉ पुनः शुरू हुआ.',
-        demoClawDeleted: 'क्लॉ हटाया गया.',
-        demoStatus: '{{running}} चल रहे हैं, {{total}} कुल'
+        selfHostInstead: 'स्वयं होस्ट करें'
     },
     blog: {
         readingTime: '{{minutes}} मिनट पढ़ने का समय',
@@ -1859,11 +1773,6 @@ const hi: Translations = {
             'यदि इन शर्तों के बारे में आपके कोई प्रश्न हैं, तो कृपया हमसे संपर्क करें'
     },
     mobile: {
-        messages: 'संदेश',
-        settings: 'सेटिंग्स',
-        comingSoon: 'जल्द आ रहा है',
-        messagesPlaceholder: 'संदेश और सूचनाएँ यहाँ दिखाई देंगी.',
-        settingsPlaceholder: 'खाता सेटिंग्स और प्राथमिकताएँ यहाँ दिखाई देंगी.',
         signIn: 'प्रमाणीकरण',
         signInDescription:
             'अपने एजेंट प्रबंधित और डिप्लॉय करने के लिए प्रमाणित करें.',
@@ -1875,23 +1784,15 @@ const hi: Translations = {
         sending: 'भेजा जा रहा है...',
         checkYourEmail: 'अपना ईमेल जाँचें',
         codeSentTo: 'हमने 6 अंकों का कोड भेजा है',
-        enterCode: 'अपने ईमेल से कोड दर्ज करें',
         resendCode: 'कोड पुनः भेजें',
         resendIn: '{{seconds}}s में पुनः भेजें',
         changeEmail: 'ईमेल बदलें',
         invalidCode: 'अमान्य कोड!',
-        codeExpired: 'कोड समाप्त हो गया. कृपया नया अनुरोध करें.',
         signingIn: 'प्रमाणित हो रहा है...',
         signOut: 'साइन आउट',
-        signedInAs: 'इस रूप में साइन इन',
         loadMore: 'और लोड करें',
         deployClaw: 'क्लॉ डिप्लॉय करें',
         deployYourFirstClaw: 'अपना पहला क्लॉ डिप्लॉय करें'
-    },
-    announcement: {
-        title: 'सेवा सूचना',
-        message:
-            'उच्च मांग के कारण, एजेंट डिप्लॉयमेंट अस्थायी रूप से अनुपलब्ध है. मौजूदा एजेंट सामान्य रूप से चल रहे हैं.'
     },
     productHunt: {
         liveOn: 'लाइव है',
@@ -1908,8 +1809,7 @@ const hi: Translations = {
     },
     hermesBanner: {
         title: 'Hermes Agent',
-        message: 'Hermes एजेंट अब ClawHost पर डिप्लॉयमेंट के लिए समर्थित हैं।',
-        deploy: 'अभी डिप्लॉय करें'
+        message: 'Hermes एजेंट अब ClawHost पर डिप्लॉयमेंट के लिए समर्थित हैं।'
     },
     compare: {
         title: 'पूर्ण तुलना',
@@ -2280,83 +2180,46 @@ const hi: Translations = {
         contactText:
             'यदि आपके पास सहबद्ध कार्यक्रम के बारे में प्रश्न हैं, अपने रेफरल कोड में सहायता चाहिए या उल्लंघन की रिपोर्ट करना चाहते हैं, तो हमसे संपर्क करें'
     },
-    hermes: {
-        title: 'Deploy Hermes Agent - ClawHost',
-        description: 'Deploy Hermes Agent on your own VPS with one click. An autonomous agent that grows with you.',
-        badge: 'Hermes Agent',
-        heroTitle1: 'Deploy Hermes Agent',
-        heroTitle2: 'With One Click.',
-        heroDescription: 'An autonomous agent that lives on your server, remembers what it learns, and gets more capable the longer it runs. Deploy it instantly on ClawHost.',
-        deployButton: 'Deploy Hermes Agent',
-        githubButton: 'Self-Host Instead',
-        whyHermes: 'Why Hermes Agent',
-        featuresDescription: 'Hermes Agent is a powerful autonomous agent with persistent memory, real sandboxing, and multi-platform support.',
-        feature1Title: 'Lives Where You Do',
-        feature1Description: 'Telegram, Discord, Slack, WhatsApp, Signal, Email, CLI \u2013 and a growing list of platforms. Start on one, pick up on another.',
-        feature2Title: 'Grows The Longer It Runs',
-        feature2Description: 'Persistent memory and auto-generated skills \u2013 it learns your projects and never forgets how it solved a problem.',
-        feature3Title: 'Scheduled Automations',
-        feature3Description: 'Natural language cron scheduling for reports, backups, and briefings \u2013 running unattended through the gateway.',
-        feature4Title: 'Delegates & Parallelizes',
-        feature4Description: 'Isolated subagents with their own conversations, terminals, and Python RPC scripts for zero-context-cost pipelines.',
-        feature5Title: 'Real Sandboxing',
-        feature5Description: 'Five backends \u2013 local, Docker, SSH, Singularity, Modal \u2013 with container hardening and namespace isolation.',
-        feature6Title: 'Full Web & Browser Control',
-        feature6Description: 'Web search, browser automation, vision, image generation, text-to-speech, and multi-model reasoning.',
-        ctaTitle: 'Ready to deploy Hermes Agent?',
-        ctaDescription: 'Get your own Hermes Agent running on a dedicated VPS in under 60 seconds. No configuration needed.',
-        ctaDeploy: 'Deploy Now',
-        ctaGitHub: 'View on GitHub'
-    },
     v2: {
         title: 'agent.ic — OpenClaw और Hermes को क्लाउड पर डिप्लॉय करें',
-        description: 'OpenClaw और Hermes एजेंट्स को एक क्लिक में क्लाउड पर डिप्लॉय करें — ओपन-सोर्स, सेल्फ-होस्टेबल, और एजेंटिक कंप्यूटिंग के भविष्य के लिए बनाया गया।',
+        description:
+            'OpenClaw और Hermes एजेंट्स को एक क्लिक में क्लाउड पर डिप्लॉय करें — ओपन-सोर्स, सेल्फ-होस्टेबल, और एजेंटिक कंप्यूटिंग के भविष्य के लिए बनाया गया।',
         heroTitle1: 'डिप्लॉय करें',
         heroTitle2: 'AI एजेंट्स',
         heroTitle3: 'क्लाउड पर एक क्लिक में',
-        heroDescription: 'OpenClaw और Hermes एजेंट्स को एक क्लिक में क्लाउड में डिप्लॉय करें — Agentist के साथ अपने AI एजेंट्स को तेज़ी से बनाएं, कनेक्ट करें और स्केल करें।',
-        badge: 'पेश है agent.ic',
+        heroDescription:
+            'OpenClaw और Hermes एजेंट्स को एक क्लिक में क्लाउड में डिप्लॉय करें — Agentist के साथ अपने AI एजेंट्स को तेज़ी से बनाएं, कनेक्ट करें और स्केल करें।',
         selfHostLabel: 'इसके बजाय सेल्फ-होस्ट करें',
         deployButton: 'अभी डिप्लॉय करें',
-        learnMore: 'और जानें',
         agentsTitle: 'आपके एजेंट। आपका क्लाउड।',
-        agentsDescription: 'AI एजेंट्स के बढ़ते कैटलॉग में से चुनें, हर एक अपने समर्पित क्लाउड सर्वर पर चलता है।',
+        agentsDescription:
+            'AI एजेंट्स के बढ़ते कैटलॉग में से चुनें, हर एक अपने समर्पित क्लाउड सर्वर पर चलता है।',
         agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription: 'पूर्ण SSH, टर्मिनल, फ़ाइल एक्सप्लोरर और कॉन्फ़िग एडिटर के साथ सेल्फ-होस्टेबल क्लाउड मैनेजमेंट प्लेटफ़ॉर्म।',
+        agentOpenclawDescription:
+            'पूर्ण SSH, टर्मिनल, फ़ाइल एक्सप्लोरर और कॉन्फ़िग एडिटर के साथ सेल्फ-होस्टेबल क्लाउड मैनेजमेंट प्लेटफ़ॉर्म।',
         agentHermesName: 'Hermes',
-        agentHermesDescription: 'वेब ब्राउज़िंग, कैलेंडर मैनेजमेंट, मल्टी-मॉडल रीज़निंग और ब्राउज़र ऑटोमेशन के साथ स्वायत्त AI एजेंट।',
-        agentComingSoonName: 'और आ रहे हैं',
-        agentComingSoonDescription: 'नए एजेंट नियमित रूप से जोड़े जा रहे हैं। अपना खुद का बनाएं या हमारे बढ़ते कैटलॉग से डिप्लॉय करें।',
-        howItWorksTitle: 'यह कैसे काम करता है',
-        howItWorksDescription: 'तीन स्टेप। साठ सेकंड। आपका एजेंट लाइव है।',
-        step1Title: 'अपना एजेंट चुनें',
-        step1Description: 'हमारे प्रोडक्शन-रेडी AI एजेंट्स के कैटलॉग से चुनें।',
-        step2Title: 'इन्फ्रास्ट्रक्चर चुनें',
-        step2Description: 'अपना क्लाउड रीजन, प्लान और कॉन्फ़िगरेशन चुनें।',
-        step3Title: 'तुरंत डिप्लॉय करें',
-        step3Description: 'एक क्लिक। आपका एजेंट समर्पित इन्फ्रास्ट्रक्चर पर लाइव है।',
+        agentHermesDescription:
+            'वेब ब्राउज़िंग, कैलेंडर मैनेजमेंट, मल्टी-मॉडल रीज़निंग और ब्राउज़र ऑटोमेशन के साथ स्वायत्त AI एजेंट।',
         featuresTitle: 'भविष्य के लिए बनाया गया',
-        featuresDescription: 'AI एजेंट्स को स्केल पर चलाने के लिए आपको जो कुछ भी चाहिए।',
+        featuresDescription:
+            'AI एजेंट्स को स्केल पर चलाने के लिए आपको जो कुछ भी चाहिए।',
         feature1Title: 'मल्टी-एजेंट प्लेटफ़ॉर्म',
-        feature1Description: 'एक ही डैशबोर्ड से कई प्रकार के एजेंट डिप्लॉय और मैनेज करें।',
+        feature1Description:
+            'एक ही डैशबोर्ड से कई प्रकार के एजेंट डिप्लॉय और मैनेज करें।',
         agentControlTitle: 'पूर्ण एजेंट नियंत्रण',
-        agentControlDescription: 'एक ही डैशबोर्ड से अपने एजेंटों के हर पहलू को कॉन्फ़िगर और कस्टमाइज़ करें।',
+        agentControlDescription:
+            'एक ही डैशबोर्ड से अपने एजेंटों के हर पहलू को कॉन्फ़िगर और कस्टमाइज़ करें।',
         multipleAgentsTitle: 'कई एजेंट्स',
-        multipleAgentsDescription: 'विभिन्न क्षेत्रों और कॉन्फ़िग्स में कई एजेंट इंस्टेंस चलाएं।',
-        feature2Title: 'समर्पित इन्फ्रास्ट्रक्चर',
-        feature2Description: 'हर एजेंट अपने VPS पर चलता है। कोई शेयर्ड रिसोर्स नहीं, कोई शोर-शराबा नहीं।',
-        feature3Title: 'ग्लोबल एज नेटवर्क',
-        feature3Description: 'दुनिया भर में 30+ लोकेशन। अपने यूज़र्स के सबसे करीब एजेंट डिप्लॉय करें।',
-        feature4Title: 'वन-क्लिक डिप्लॉय',
-        feature4Description: 'शून्य से चालू एजेंट तक 60 सेकंड से कम में। कोई कॉन्फ़िगरेशन आवश्यक नहीं।',
-        feature5Title: 'पूर्ण रूट एक्सेस',
-        feature5Description: 'SSH, टर्मिनल, फ़ाइल एक्सप्लोरर और कॉन्फ़िग एडिटर। आपका सर्वर, आपके नियम।',
-        feature6Title: 'उपयोग के अनुसार भुगतान',
-        feature6Description: 'कोई प्रतिबद्धता नहीं। ऊपर या नीचे स्केल करें। केवल वही भुगतान करें जो आप उपयोग करते हैं।',
-        zeroConfigDescription: 'घंटों की सेटअप छोड़ें। OpenClaw और Hermes पहले से इंस्टॉल और मिनटों में तैयार हैं।',
-        globalLocationsDescription: 'एजेंट्स को 30+ वैश्विक क्षेत्रों में डिप्लॉय करें। अपने निकटतम स्थान चुनें।',
-        onlineAccessDescription: 'कस्टम सबडोमेन के साथ कहीं से भी अपने एजेंट्स तक सुरक्षित पहुंच प्राप्त करें।',
-        versionControlDescription: 'एक क्लिक से एजेंट संस्करण बदलें। अपडेट रहें या वापस जाएं।',
+        multipleAgentsDescription:
+            'विभिन्न क्षेत्रों और कॉन्फ़िग्स में कई एजेंट इंस्टेंस चलाएं।',
+        zeroConfigDescription:
+            'घंटों की सेटअप छोड़ें। OpenClaw और Hermes पहले से इंस्टॉल और मिनटों में तैयार हैं।',
+        globalLocationsDescription:
+            'एजेंट्स को 30+ वैश्विक क्षेत्रों में डिप्लॉय करें। अपने निकटतम स्थान चुनें।',
+        onlineAccessDescription:
+            'कस्टम सबडोमेन के साथ कहीं से भी अपने एजेंट्स तक सुरक्षित पहुंच प्राप्त करें।',
+        versionControlDescription:
+            'एक क्लिक से एजेंट संस्करण बदलें। अपडेट रहें या वापस जाएं।',
         agentsPreinstalled: 'एजेंट पूर्व-स्थापित',
         comparisonAgentAccessUs: 'सभी एजेंटों तक पूर्ण पहुंच',
         comparisonMultipleAgentsUs: 'प्रति सर्वर एकाधिक एजेंट',
@@ -2365,24 +2228,31 @@ const hi: Translations = {
         comparisonUsLabel: 'आपके लिए प्रबंधित',
         comparisonOthersLabel: 'खुद करें',
         faq1Question: 'Agentist क्या है?',
-        faq1Answer: 'Agentist एक प्लेटफ़ॉर्म है जो आपको अपने समर्पित सर्वर पर AI एजेंट तैनात और प्रबंधित करने देता है। हम इन्फ्रास्ट्रक्चर, सुरक्षा और रखरखाव संभालते हैं — आप बस अपने एजेंट का उपयोग करें।',
+        faq1Answer:
+            'Agentist एक प्लेटफ़ॉर्म है जो आपको अपने समर्पित सर्वर पर AI एजेंट तैनात और प्रबंधित करने देता है। हम इन्फ्रास्ट्रक्चर, सुरक्षा और रखरखाव संभालते हैं — आप बस अपने एजेंट का उपयोग करें।',
         faq2Question: 'OpenClaw क्या है?',
-        faq2Answer: 'OpenClaw आपके AI टूल्स और सेवाओं के लिए एक सेल्फ-होस्टेड सुरक्षित एक्सेस लेयर है। यह हर Agentist सर्वर पर पहले से इंस्टॉल होता है और आपको अपने सेटअप पर पूरा नियंत्रण देता है।',
+        faq2Answer:
+            'OpenClaw आपके AI टूल्स और सेवाओं के लिए एक सेल्फ-होस्टेड सुरक्षित एक्सेस लेयर है। यह हर Agentist सर्वर पर पहले से इंस्टॉल होता है और आपको अपने सेटअप पर पूरा नियंत्रण देता है।',
         faq3Question: 'Hermes क्या है?',
-        faq3Answer: 'Hermes एक स्वायत्त AI एजेंट है जिसमें वेब ब्राउज़िंग, कैलेंडर प्रबंधन, मल्टी-मॉडल रीज़निंग और ब्राउज़र ऑटोमेशन शामिल है। यह हर सर्वर पर OpenClaw के साथ पहले से इंस्टॉल होता है।',
+        faq3Answer:
+            'Hermes एक स्वायत्त AI एजेंट है जिसमें वेब ब्राउज़िंग, कैलेंडर प्रबंधन, मल्टी-मॉडल रीज़निंग और ब्राउज़र ऑटोमेशन शामिल है। यह हर सर्वर पर OpenClaw के साथ पहले से इंस्टॉल होता है।',
         faq4Question: 'क्या मुझे तकनीकी ज्ञान की आवश्यकता है?',
-        faq4Answer: 'नहीं। Agentist सभी के लिए डिज़ाइन किया गया है। हम सारा इन्फ्रास्ट्रक्चर, सेटअप और रखरखाव संभालते हैं। आप बिना किसी सर्वर को छुए एक सहज डैशबोर्ड के माध्यम से अपने एजेंट प्रबंधित कर सकते हैं।',
+        faq4Answer:
+            'नहीं। Agentist सभी के लिए डिज़ाइन किया गया है। हम सारा इन्फ्रास्ट्रक्चर, सेटअप और रखरखाव संभालते हैं। आप बिना किसी सर्वर को छुए एक सहज डैशबोर्ड के माध्यम से अपने एजेंट प्रबंधित कर सकते हैं।',
         faq5Question: 'यह अन्य AI प्लेटफ़ॉर्म से कैसे अलग है?',
-        faq5Answer: 'होस्टेड AI टूल्स के विपरीत, Agentist आपको आपके एजेंट इंस्टॉल किए हुए एक असली समर्पित सर्वर देता है। आप इन्फ्रास्ट्रक्चर के मालिक हैं, सब कुछ नियंत्रित करते हैं और साझा प्लेटफ़ॉर्म द्वारा सीमित नहीं हैं।',
+        faq5Answer:
+            'होस्टेड AI टूल्स के विपरीत, Agentist आपको आपके एजेंट इंस्टॉल किए हुए एक असली समर्पित सर्वर देता है। आप इन्फ्रास्ट्रक्चर के मालिक हैं, सब कुछ नियंत्रित करते हैं और साझा प्लेटफ़ॉर्म द्वारा सीमित नहीं हैं।',
         faq6Question: 'कौन से स्थान उपलब्ध हैं?',
-        faq6Answer: 'हम दुनिया भर में 30+ सर्वर स्थान प्रदान करते हैं, जिनमें अमेरिका, यूरोप और एशिया शामिल हैं। आप विभिन्न क्षेत्रों में कई सर्वरों पर एजेंट तैनात कर सकते हैं।',
+        faq6Answer:
+            'हम दुनिया भर में 30+ सर्वर स्थान प्रदान करते हैं, जिनमें अमेरिका, यूरोप और एशिया शामिल हैं। आप विभिन्न क्षेत्रों में कई सर्वरों पर एजेंट तैनात कर सकते हैं।',
         faq7Question: 'इसकी कीमत कितनी है?',
-        faq7Answer: 'आपके चुने हुए सर्वर के आधार पर कीमतें 40 $/माह से शुरू होती हैं। एंट्री-लेवल से हाई-परफ़ॉर्मेंस तक कई विकल्प। कोई छिपी फीस नहीं, कभी भी रद्द करें।',
-        footerDescription: 'एक क्लिक में क्लाउड में OpenClaw और Hermes एजेंट डिप्लॉय करें — Agentist के साथ अपने AI एजेंट तेज़ी से बनाएं, कनेक्ट करें और स्केल करें।',
+        faq7Answer:
+            'आपके चुने हुए सर्वर के आधार पर कीमतें 40 $/माह से शुरू होती हैं। एंट्री-लेवल से हाई-परफ़ॉर्मेंस तक कई विकल्प। कोई छिपी फीस नहीं, कभी भी रद्द करें।',
+        footerDescription:
+            'एक क्लिक में क्लाउड में OpenClaw और Hermes एजेंट डिप्लॉय करें — Agentist के साथ अपने AI एजेंट तेज़ी से बनाएं, कनेक्ट करें और स्केल करें।',
         ctaTitle: 'डिप्लॉय के लिए तैयार?',
-        ctaDescription: 'एजेंट डिप्लॉयमेंट की अगली पीढ़ी में शामिल हों। आपका इन्फ्रास्ट्रक्चर, आपके एजेंट, आपके नियम।',
-        stats1Value: 'OpenClaw & Hermes',
-        stats1Label: 'एजेंट्स',
+        ctaDescription:
+            'एजेंट डिप्लॉयमेंट की अगली पीढ़ी में शामिल हों। आपका इन्फ्रास्ट्रक्चर, आपके एजेंट, आपके नियम।',
         stats2Value: '30+',
         stats2Label: 'रीजन',
         stats3Value: '<60s',
@@ -2396,25 +2266,11 @@ const hi: Translations = {
         planPowerTagline: 'बड़े पैमाने के संचालन के लिए',
         planPower: 'Power',
         pricingPageTitle: 'मूल्य निर्धारण — agent.ic',
-        pricingPageDescription: 'AI एजेंट डिप्लॉयमेंट के लिए पारदर्शी मूल्य निर्धारण। बिना किसी छिपी फीस के अपनी जरूरतों के अनुसार योजना चुनें।',
-        pricingHeroTitle: 'सरल, पारदर्शी मूल्य निर्धारण',
-        pricingHeroDescription: 'कोई छिपी फीस नहीं, कोई आश्चर्य नहीं। अपने वर्कलोड के अनुसार योजना चुनें और आवश्यकतानुसार स्केल करें।',
+        pricingPageDescription:
+            'AI एजेंट डिप्लॉयमेंट के लिए पारदर्शी मूल्य निर्धारण। बिना किसी छिपी फीस के अपनी जरूरतों के अनुसार योजना चुनें।',
         featuresPageTitle: 'विशेषताएं — agent.ic',
-        featuresPageDescription: 'agent.ic की सभी विशेषताएं जानें — मल्टी-एजेंट डिप्लॉयमेंट, समर्पित इंफ्रास्ट्रक्चर, वैश्विक क्षेत्र और पूर्ण रूट एक्सेस।',
-        featuresHeroTitle: 'आपको जो कुछ भी चाहिए',
-        featuresHeroDescription: 'एक-क्लिक डिप्लॉय से पूर्ण रूट एक्सेस तक — बड़े पैमाने पर AI एजेंट चलाने के हर उपकरण, अंतर्निहित।'
-    },
-    hermesGo: {
-        pageTitle: 'ClawHost Go - Hermes Agent',
-        description: 'Hermes Agent को स्थानीय रूप से डिप्लॉय करने के लिए एक हल्का डेस्कटॉप क्लाइंट। अपने एजेंट्स को डिप्लॉय, मॉनिटर और कंट्रोल करें — सीधे अपनी मशीन से।',
-        badge: 'Hermes Agent Go',
-        heroTitle1: 'Hermes डिप्लॉय करें।',
-        heroTitle2: 'स्थानीय रूप से। तुरंत।',
-        heroDescription: 'अपने Hermes Agent इंस्टेंस प्रबंधित करने के लिए एक हल्का डेस्कटॉप क्लाइंट। अपने एजेंट्स को डिप्लॉय, मॉनिटर और कंट्रोल करें — सीधे अपनी मशीन से।',
-        whyHermesGo: 'ऑल-इन-वन सुविधाएँ',
-        featuresDescription: 'हम क्यों आज़माने लायक हैं — सुविधाएँ झूठ नहीं बोलतीं।',
-        ctaTitle: 'Hermes Agent स्थानीय रूप से चलाएं',
-        ctaDescription: 'एकमुश्त भुगतान, आजीवन लाइसेंस। Hermes Agent को अपनी मशीन पर डिप्लॉय करें — कोई क्लाउड नहीं, कोई सब्सक्रिप्शन नहीं, कोई सीमा नहीं। आपका डेटा, आपके नियम।'
+        featuresPageDescription:
+            'agent.ic की सभी विशेषताएं जानें — मल्टी-एजेंट डिप्लॉयमेंट, समर्पित इंफ्रास्ट्रक्चर, वैश्विक क्षेत्र और पूर्ण रूट एक्सेस।'
     }
 }
 

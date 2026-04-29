@@ -40,14 +40,6 @@ const nl: Translations = {
         second: 'seconde',
         seconds: 'seconden'
     },
-    setup: {
-        welcomeTitle: 'Welkom bij ClawHost Go',
-        welcomeDescription: 'Stel je profiel in om te beginnen.',
-        whatsYourName: 'Wat is je naam?',
-        namePlaceholder: 'Voer je naam in',
-        nameHint: 'Je kunt het later altijd nog instellen.',
-        getStarted: 'Aan de slag'
-    },
     language: {
         en: 'English',
         fr: 'Français',
@@ -89,8 +81,6 @@ const nl: Translations = {
         cloudSubtitle: 'Technisch',
         go: 'Go',
         goSubtitle: 'Niet-technisch',
-        hermes: 'Hermes',
-        openClaw: 'OpenClaw',
         agentistGo: 'Agentist Go'
     },
     go: {
@@ -98,13 +88,8 @@ const nl: Translations = {
         heroTitle1: 'Implementeer OpenClaw.',
         heroTitle2: 'Lokaal. Direct.',
         badge: 'Binnenkort beschikbaar',
-        comingSoon: 'Binnenkort beschikbaar',
         description:
             'Een lichte desktopclient om je OpenClaw-instanties te beheren. Deploy, monitor en beheer je claws — rechtstreeks vanaf je computer.',
-        download: 'Downloaden voor {{os}}',
-        downloadWindows: 'Windows',
-        downloadMac: 'macOS',
-        selfHostInstead: 'Zelf hosten',
         features: 'Functies',
         whyClawHostGo: 'Alles-in-één functies',
         featuresDescription:
@@ -135,7 +120,6 @@ const nl: Translations = {
         pricingFeature4: 'Geen gebruikslimieten',
         pricingFeature5: 'Prioriteitsondersteuning',
         pricingFeature6: 'Aangepast lokaal domein',
-        pricingCta: 'ClawHost Go ophalen',
         comparison: 'Vergelijking',
         comparisonTitle: 'Go vs Cloud',
         comparisonDescription:
@@ -182,10 +166,8 @@ const nl: Translations = {
         ctaTitle: 'Draai OpenClaw lokaal',
         ctaDescription:
             'Eenmalige betaling, levenslange licentie. Deploy OpenClaw op je eigen computer — geen cloud, geen abonnementen, geen limieten. Jouw gegevens, jouw regels.',
-        ctaButton: 'ClawHost Go ophalen',
         joinWaitlist: 'Wachtlijst',
         joinedWaitlist: 'Op de wachtlijst',
-        waitlistJoinedToast: 'Je staat op de wachtlijst.',
         waitlistAlreadyJoinedToast: 'Dit e-mailadres staat al op de lijst.',
         waitlistFailedToast: 'Aanmelden voor wachtlijst mislukt!',
         waitlistEmailPlaceholder: 'Voer je e-mailadres in',
@@ -193,8 +175,6 @@ const nl: Translations = {
         updateDownload: 'Downloaden',
         updateDismiss: 'Later',
         clawNotFound: 'Claw niet gevonden!',
-        invalidClawName:
-            'Ongeldige clawnaam. Gebruik alleen letters, cijfers en koppeltekens!',
         clawNameAlreadyExists: 'Er bestaat al een claw met deze naam!',
         invalidSubdomain:
             'Ongeldig subdomein. Gebruik 3-20 kleine letters en cijfers!',
@@ -287,11 +267,7 @@ const nl: Translations = {
             'Sleutelpaar genereren mislukt. Genereer de sleutels lokaal!',
         unableToLoadPricing:
             'Prijzen laden mislukt. Probeer het later opnieuw!',
-        noPasswordAvailable: 'Geen wachtwoord beschikbaar voor deze claw!',
-        clawLimitReached:
-            'Je hebt de limiet van {{max}} claws bereikt. Neem contact op met support om deze limiet te verhogen!',
-        sshKeyLimitReached:
-            'Je hebt de limiet van {{max}} SSH-sleutels bereikt. Neem contact op met support om deze limiet te verhogen!'
+        noPasswordAvailable: 'Geen wachtwoord beschikbaar voor deze claw!'
     },
     api: {
         missingRequiredFields: 'Verplichte velden ontbreken!',
@@ -303,7 +279,8 @@ const nl: Translations = {
         userNotFound: 'Gebruiker niet gevonden!',
         sshKeyNotFound: 'SSH-sleutel niet gevonden!',
         pendingAgentNotFound: 'Agent in afwachting niet gevonden!',
-        agentNotScheduledForDeletion: 'Agent is niet gepland voor verwijdering!',
+        agentNotScheduledForDeletion:
+            'Agent is niet gepland voor verwijdering!',
         agentDeletionAlreadyPassed: 'Verwijderingsdatum is al verstreken!',
         agentLimitReached:
             'Je hebt de limiet van {{max}} agents bereikt. Neem contact op met support om deze limiet te verhogen!',
@@ -464,7 +441,8 @@ const nl: Translations = {
         failedToGetMetrics: 'Kan serverstatistieken niet ophalen!',
         overviewFetched: 'Overzicht succesvol opgehaald.',
         failedToGetOverview: 'Kan gateway-overzicht niet ophalen!',
-        overviewUnsupported: 'Deze OpenClaw-versie ondersteunt de overzichtsfunctie niet!',
+        overviewUnsupported:
+            'Deze OpenClaw-versie ondersteunt de overzichtsfunctie niet!',
         passwordRotated: 'Root-wachtwoord succesvol geroteerd.',
         failedToRotatePassword: 'Kan root-wachtwoord niet roteren!',
         gatewayTokenRotated: 'Gateway-token succesvol geroteerd.',
@@ -496,7 +474,6 @@ const nl: Translations = {
         failedToConnectAuthMethod: 'Authenticatiemethode verbinden mislukt!',
         failedToDisconnectAuthMethod:
             'Authenticatiemethode ontkoppelen mislukt!',
-        textRequired: 'Tekst is vereist!',
         featureEmailsDisabled: 'Feature-e-mails zijn momenteel uitgeschakeld.',
         featureEmailsSent: 'Feature-e-mails succesvol verzonden.',
         featureEmailsFailed: 'Feature-e-mails verzenden mislukt!',
@@ -775,13 +752,9 @@ const nl: Translations = {
             'Je hebt een ClawHost Go Licentie nodig om OpenClaw-instanties lokaal te deployen en te beheren.'
     },
     network: {
-        unstable: 'Onstabiele verbinding',
-        unstableDescription:
-            'Je internetverbinding is onstabiel. Sommige functies werken mogelijk niet naar verwachting.',
         offline: 'Geen internetverbinding',
         offlineDescription:
-            'Je bent momenteel offline. Functies die internettoegang vereisen, zijn niet beschikbaar.',
-        dismiss: 'Sluiten'
+            'Je bent momenteel offline. Functies die internettoegang vereisen, zijn niet beschikbaar.'
     },
     dashboard: {
         title: 'Claws',
@@ -1097,31 +1070,12 @@ const nl: Translations = {
         heroTitle2: 'E\u00e9n klik. Klaar.',
         heroDescription:
             'Deploy OpenClaw- en Hermes-agents in de cloud of lokaal met \u00e9\u00e9n klik \u2014 bouw, verbind en schaal je AI-agents sneller met ClawHost.',
-        goToClaws: 'Naar Claws',
         selfHost: 'Open Source',
         startingPrice: 'Vanaf',
         locations: 'Locaties',
         servers: 'Servers',
         zeroCount: 'Nul',
         zeroConfig: 'Geen configuratie',
-        dashboardPreviewTitle: 'Claws',
-        dashboardPreviewSubtitle: '5 toegevoegde claws',
-        deployNew: 'Nieuwe deployen',
-        running: 'Actief',
-        latency: 'latentie',
-        howItWorks: 'Hoe het werkt',
-        threeStepsToPrivacy: 'Drie stappen naar OpenClaw',
-        howItWorksDescription:
-            'Van nul naar een volledig gedeployde OpenClaw om 24/7 te gebruiken met volledige toegang.',
-        step1Title: 'Server selecteren',
-        step1Description:
-            'Kies uit 30+ wereldwijde locaties bij drie providers. We starten een dedicated VPS speciaal voor jou op in seconden.',
-        step2Title: 'Automatische installatie',
-        step2Description:
-            'OpenClaw is voorge\u00efnstalleerd met een directe link en VPS-details. Geen configuratie nodig.',
-        step3Title: 'Het is van jou',
-        step3Description:
-            'Volledige toegang tot OpenClaw en de VPS, zonder limieten op wat je kunt bereiken.',
         features: 'Functies',
         whyClawHost: 'Alles-in-\u00e9\u00e9n functies',
         featuresDescription:
@@ -1161,26 +1115,6 @@ const nl: Translations = {
         multipleClaws: 'Meerdere Claws',
         multipleClawsDescription:
             'Deploy en beheer meerdere OpenClaw-instanties vanuit \u00e9\u00e9n dashboard. Schaal mee naarmate je groeit.',
-        testimonials: 'Getuigenissen',
-        whatPeopleSay: 'Wat mensen zeggen',
-        testimonialsDescription:
-            'Neem niet alleen ons woord ervoor. Bekijk hoe anderen OpenClaw deployen.',
-        testimonial1Quote:
-            'Eindelijk mijn eigen AI-server. Installatie duurde 30 seconden en ik draai het al maanden zonder problemen.',
-        testimonial1Author: 'Alex Chen',
-        testimonial1Role: 'Softwareontwikkelaar',
-        testimonial2Quote:
-            'Geen resources meer delen met anderen. Mijn OpenClaw-instantie verwerkt alles wat ik erop gooi.',
-        testimonial2Author: 'Maria Santos',
-        testimonial2Role: 'Digitale nomade',
-        testimonial3Quote:
-            'De \u00e9\u00e9n-klik deploy is echt geweldig. Ik ben helemaal niet technisch maar had mijn OpenClaw binnen een minuut draaien.',
-        testimonial3Author: 'James Wilson',
-        testimonial3Role: 'Freelancer',
-        testimonial4Quote:
-            'Geweldig dat ik precies kan zien wat er op mijn server draait. Volledige controle over mijn AI-setup.',
-        testimonial4Author: 'Sophie Kim',
-        testimonial4Role: 'AI-enthousiasteling',
         pricing: 'Prijzen',
         simpleTransparentPricing: 'Eenvoudige, transparante prijzen',
         pricingDescription:
@@ -1203,8 +1137,6 @@ const nl: Translations = {
         pricePerYear: '${{price}}/yr',
         volumePricePerMonth: '+${{price}}/mo',
         startingPriceValue: '${{price}}/mo',
-        yearlyDiscount: '\u2014 2 maanden gratis',
-        billedYearly: 'jaarlijks gefactureerd',
         deploy: 'Deployen',
         select: 'Selecteren',
         selectPlanLabel: 'Selecteer {{plan}} plan',
@@ -1213,7 +1145,6 @@ const nl: Translations = {
         unlimitedBandwidth: 'Onbeperkte bandbreedte',
         rootSshAccess: 'Volledige root SSH-toegang',
         onlineAllDay: '24/7 online',
-        highQualityInternet: 'Hoogwaardig internet',
         showAllPlans: 'Alle plannen tonen',
         simplePricing: 'Vereenvoudigd',
         planStarter: 'Starter',
@@ -1230,10 +1161,7 @@ const nl: Translations = {
         featureBandwidth: 'Onbeperkte bandbreedte',
         featureSsh: 'Root SSH-toegang',
         featureUptime: '24/7 online',
-        featureSharedCpu: 'Gedeelde CPU',
         featureDedicatedCpu: 'Dedicated CPU',
-        featureCommunitySupport: 'Community-ondersteuning',
-        featureInfraSupport: 'Infrastructuurondersteuning',
         featureEmailSupport: 'E-mailondersteuning',
         fastInternet: 'Snel internet',
         emailSupport: 'E-mailondersteuning',
@@ -1288,8 +1216,6 @@ const nl: Translations = {
         comparisonExportOthers: 'Vendorlock-in',
         comparisonProvidersUs: 'Meerdere serverproviders',
         comparisonProvidersOthers: 'Slechts \u00e9\u00e9n provider',
-        comparisonSocialsUs: 'Aanwezigheid op sociale media',
-        comparisonSocialsOthers: 'Geen sociale media',
         comparisonVersionUs: 'Versiewisseling met \u00e9\u00e9n klik',
         comparisonVersionOthers: 'Alleen handmatige updates',
         comparisonTerminalUs: 'Ingebouwde webterminal',
@@ -1297,19 +1223,7 @@ const nl: Translations = {
         seeFullComparison: 'Volledige vergelijking bekijken',
         comparisonCtaText:
             'We vergelijken met SimpleClaw, MyClaw.ai en meer \u2014 functie voor functie.',
-        readyToOwnYourPrivacy: 'Klaar om OpenClaw te deployen?',
-        ctaDescription:
-            'Krijg een dedicated server met OpenClaw voorge\u00efnstalleerd. Volledige root-toegang, wereldwijde locaties en klaar in minuten. Het is altijd van jou. Vanaf $25.',
-        deployOpenClawNow: 'Implementeer OpenClaw',
-        selfHostInstead: 'Zelf hosten',
-        noCreditCardRequired: 'Directe installatie',
-        deployIn60Seconds: 'Veilig',
-        demoClawStarted: 'Claw gestart.',
-        demoClawStopped: 'Claw gestopt.',
-        demoClawRestarting: 'Claw herstarten...',
-        demoClawRestarted: 'Claw herstart.',
-        demoClawDeleted: 'Claw verwijderd.',
-        demoStatus: '{{running}} actief, {{total}} totaal'
+        selfHostInstead: 'Zelf hosten'
     },
     blog: {
         readingTime: '{{minutes}} min leestijd',
@@ -1886,12 +1800,6 @@ const nl: Translations = {
             'Als je vragen hebt over deze Voorwaarden, neem dan contact met ons op via'
     },
     mobile: {
-        messages: 'Berichten',
-        settings: 'Instellingen',
-        comingSoon: 'Binnenkort',
-        messagesPlaceholder: 'Berichten en meldingen verschijnen hier.',
-        settingsPlaceholder:
-            'Accountinstellingen en voorkeuren verschijnen hier.',
         signIn: 'Authenticatie',
         signInDescription:
             'Authenticeer om je agents te beheren en te deployen.',
@@ -1903,23 +1811,15 @@ const nl: Translations = {
         sending: 'Verzenden...',
         checkYourEmail: 'Controleer je e-mail',
         codeSentTo: 'We hebben een 6-cijferige code gestuurd naar',
-        enterCode: 'Voer de code uit je e-mail in',
         resendCode: 'Code opnieuw verzenden',
         resendIn: 'Opnieuw verzenden in {{seconds}}s',
         changeEmail: 'E-mail wijzigen',
         invalidCode: 'Ongeldige code!',
-        codeExpired: 'Code verlopen. Vraag een nieuwe aan.',
         signingIn: 'Authenticeren...',
         signOut: 'Uitloggen',
-        signedInAs: 'Ingelogd als',
         loadMore: 'Meer laden',
         deployClaw: 'Claw deployen',
         deployYourFirstClaw: 'Deploy je eerste Claw'
-    },
-    announcement: {
-        title: 'Servicemelding',
-        message:
-            'Door hoge vraag is agentdeployment tijdelijk niet beschikbaar. Bestaande agents draaien normaal.'
     },
     productHunt: {
         liveOn: 'Live op',
@@ -1936,8 +1836,8 @@ const nl: Translations = {
     },
     hermesBanner: {
         title: 'Hermes Agent',
-        message: 'Hermes-agenten worden nu ondersteund voor deployment op ClawHost.',
-        deploy: 'Nu deployen'
+        message:
+            'Hermes-agenten worden nu ondersteund voor deployment op ClawHost.'
     },
     compare: {
         title: 'Volledige vergelijking',
@@ -2311,83 +2211,46 @@ const nl: Translations = {
         contactText:
             'Als je vragen hebt over het partnerprogramma, hulp nodig hebt met je verwijzingscode of een schending wilt melden, neem dan contact met ons op via'
     },
-    hermes: {
-        title: 'Deploy Hermes Agent - ClawHost',
-        description: 'Deploy Hermes Agent on your own VPS with one click. An autonomous agent that grows with you.',
-        badge: 'Hermes Agent',
-        heroTitle1: 'Deploy Hermes Agent',
-        heroTitle2: 'With One Click.',
-        heroDescription: 'An autonomous agent that lives on your server, remembers what it learns, and gets more capable the longer it runs. Deploy it instantly on ClawHost.',
-        deployButton: 'Deploy Hermes Agent',
-        githubButton: 'Self-Host Instead',
-        whyHermes: 'Why Hermes Agent',
-        featuresDescription: 'Hermes Agent is a powerful autonomous agent with persistent memory, real sandboxing, and multi-platform support.',
-        feature1Title: 'Lives Where You Do',
-        feature1Description: 'Telegram, Discord, Slack, WhatsApp, Signal, Email, CLI \u2013 and a growing list of platforms. Start on one, pick up on another.',
-        feature2Title: 'Grows The Longer It Runs',
-        feature2Description: 'Persistent memory and auto-generated skills \u2013 it learns your projects and never forgets how it solved a problem.',
-        feature3Title: 'Scheduled Automations',
-        feature3Description: 'Natural language cron scheduling for reports, backups, and briefings \u2013 running unattended through the gateway.',
-        feature4Title: 'Delegates & Parallelizes',
-        feature4Description: 'Isolated subagents with their own conversations, terminals, and Python RPC scripts for zero-context-cost pipelines.',
-        feature5Title: 'Real Sandboxing',
-        feature5Description: 'Five backends \u2013 local, Docker, SSH, Singularity, Modal \u2013 with container hardening and namespace isolation.',
-        feature6Title: 'Full Web & Browser Control',
-        feature6Description: 'Web search, browser automation, vision, image generation, text-to-speech, and multi-model reasoning.',
-        ctaTitle: 'Ready to deploy Hermes Agent?',
-        ctaDescription: 'Get your own Hermes Agent running on a dedicated VPS in under 60 seconds. No configuration needed.',
-        ctaDeploy: 'Deploy Now',
-        ctaGitHub: 'View on GitHub'
-    },
     v2: {
         title: 'agent.ic — Deploy OpenClaw & Hermes op de Cloud',
-        description: 'Deploy OpenClaw- en Hermes-agents op de cloud met één klik — open-source, zelf te hosten en gebouwd voor de toekomst van agentisch computing.',
+        description:
+            'Deploy OpenClaw- en Hermes-agents op de cloud met één klik — open-source, zelf te hosten en gebouwd voor de toekomst van agentisch computing.',
         heroTitle1: 'Deploy',
         heroTitle2: 'AI-Agents',
         heroTitle3: 'op de Cloud met één Klik',
-        heroDescription: 'Deploy OpenClaw- en Hermes-agents in de cloud met één klik — bouw, verbind en schaal je AI-agents sneller met Agentist.',
-        badge: 'Introductie van agent.ic',
+        heroDescription:
+            'Deploy OpenClaw- en Hermes-agents in de cloud met één klik — bouw, verbind en schaal je AI-agents sneller met Agentist.',
         selfHostLabel: 'Zelf Hosten',
         deployButton: 'Nu Deployen',
-        learnMore: 'Meer Informatie',
         agentsTitle: 'Jouw Agents. Jouw Cloud.',
-        agentsDescription: 'Kies uit een groeiende catalogus van AI-agents, elk draaiend op een eigen dedicated cloudserver.',
+        agentsDescription:
+            'Kies uit een groeiende catalogus van AI-agents, elk draaiend op een eigen dedicated cloudserver.',
         agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription: 'Zelf te hosten cloudmanagementplatform met volledige SSH, terminal, bestandsverkenner en configuratie-editor.',
+        agentOpenclawDescription:
+            'Zelf te hosten cloudmanagementplatform met volledige SSH, terminal, bestandsverkenner en configuratie-editor.',
         agentHermesName: 'Hermes',
-        agentHermesDescription: 'Autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering.',
-        agentComingSoonName: 'Meer Volgt',
-        agentComingSoonDescription: 'Nieuwe agents worden regelmatig toegevoegd. Bouw je eigen of deploy uit onze groeiende catalogus.',
-        howItWorksTitle: 'Hoe Het Werkt',
-        howItWorksDescription: 'Drie stappen. Zestig seconden. Je agent is live.',
-        step1Title: 'Kies Je Agent',
-        step1Description: 'Kies uit onze catalogus van productie-klare AI-agents.',
-        step2Title: 'Selecteer Infrastructuur',
-        step2Description: 'Kies je cloudregio, plan en configuratie.',
-        step3Title: 'Direct Deployen',
-        step3Description: 'Eén klik. Je agent draait op dedicated infrastructuur.',
+        agentHermesDescription:
+            'Autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering.',
         featuresTitle: 'Gebouwd voor de Toekomst',
-        featuresDescription: 'Alles wat je nodig hebt om AI-agents op schaal te draaien.',
+        featuresDescription:
+            'Alles wat je nodig hebt om AI-agents op schaal te draaien.',
         feature1Title: 'Multi-Agent Platform',
-        feature1Description: 'Deploy en beheer meerdere agenttypen vanuit één dashboard.',
+        feature1Description:
+            'Deploy en beheer meerdere agenttypen vanuit één dashboard.',
         agentControlTitle: 'Volledige agent-controle',
-        agentControlDescription: 'Configureer en pas elk aspect van je agents aan vanuit één dashboard.',
+        agentControlDescription:
+            'Configureer en pas elk aspect van je agents aan vanuit één dashboard.',
         multipleAgentsTitle: 'Meerdere agents',
-        multipleAgentsDescription: 'Draai meerdere agent-instanties in verschillende regio\'s en configuraties.',
-        feature2Title: 'Dedicated Infrastructuur',
-        feature2Description: 'Elke agent draait op zijn eigen VPS. Geen gedeelde resources, geen lawaaierige buren.',
-        feature3Title: 'Wereldwijd Edge Netwerk',
-        feature3Description: '30+ locaties wereldwijd. Deploy agents zo dicht mogelijk bij je gebruikers.',
-        feature4Title: 'One-Click Deploy',
-        feature4Description: 'Van nul naar draaiende agent in minder dan 60 seconden. Geen configuratie nodig.',
-        feature5Title: 'Volledige Root Toegang',
-        feature5Description: 'SSH, terminal, bestandsverkenner en configuratie-editor. Jouw server, jouw regels.',
-        feature6Title: 'Betaal per Gebruik',
-        feature6Description: 'Geen verplichtingen. Schaal op of af. Betaal alleen voor wat je gebruikt.',
-        zeroConfigDescription: 'Sla uren configuratie over. OpenClaw en Hermes zijn voorgeïnstalleerd en binnen minuten klaar.',
-        globalLocationsDescription: 'Deploy agents in meer dan 30 wereldwijde regio\'s. Kies de locatie die het dichtst bij je is.',
-        onlineAccessDescription: 'Krijg veilig toegang tot je agents vanaf overal met een eigen subdomein.',
-        versionControlDescription: 'Wissel van agentversie met één klik. Blijf up-to-date of ga terug.',
+        multipleAgentsDescription:
+            "Draai meerdere agent-instanties in verschillende regio's en configuraties.",
+        zeroConfigDescription:
+            'Sla uren configuratie over. OpenClaw en Hermes zijn voorgeïnstalleerd en binnen minuten klaar.',
+        globalLocationsDescription:
+            "Deploy agents in meer dan 30 wereldwijde regio's. Kies de locatie die het dichtst bij je is.",
+        onlineAccessDescription:
+            'Krijg veilig toegang tot je agents vanaf overal met een eigen subdomein.',
+        versionControlDescription:
+            'Wissel van agentversie met één klik. Blijf up-to-date of ga terug.',
         agentsPreinstalled: 'Agents voorgeïnstalleerd',
         comparisonAgentAccessUs: 'Volledige toegang tot alle agents',
         comparisonMultipleAgentsUs: 'Meerdere agents per server',
@@ -2396,26 +2259,33 @@ const nl: Translations = {
         comparisonUsLabel: 'Voor jou beheerd',
         comparisonOthersLabel: 'Doe het zelf',
         faq1Question: 'Wat is Agentist?',
-        faq1Answer: 'Agentist is een platform waarmee je AI-agents kunt deployen en beheren op je eigen dedicated servers. Wij zorgen voor de infrastructuur, beveiliging en onderhoud — jij gebruikt gewoon je agents.',
+        faq1Answer:
+            'Agentist is een platform waarmee je AI-agents kunt deployen en beheren op je eigen dedicated servers. Wij zorgen voor de infrastructuur, beveiliging en onderhoud — jij gebruikt gewoon je agents.',
         faq2Question: 'Wat is OpenClaw?',
-        faq2Answer: 'OpenClaw is een zelf-gehoste beveiligde toegangslaag voor je AI-tools en -diensten. Het is voorgeïnstalleerd op elke Agentist-server en geeft je volledige controle over je configuratie.',
+        faq2Answer:
+            'OpenClaw is een zelf-gehoste beveiligde toegangslaag voor je AI-tools en -diensten. Het is voorgeïnstalleerd op elke Agentist-server en geeft je volledige controle over je configuratie.',
         faq3Question: 'Wat is Hermes?',
-        faq3Answer: 'Hermes is een autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering. Het is voorgeïnstalleerd naast OpenClaw op elke server.',
+        faq3Answer:
+            'Hermes is een autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering. Het is voorgeïnstalleerd naast OpenClaw op elke server.',
         faq4Question: 'Heb ik technische kennis nodig?',
-        faq4Answer: 'Nee. Agentist is ontworpen voor iedereen. Wij zorgen voor alle infrastructuur, configuratie en onderhoud. Je kunt je agents beheren via een intuïtief dashboard zonder servers aan te raken.',
+        faq4Answer:
+            'Nee. Agentist is ontworpen voor iedereen. Wij zorgen voor alle infrastructuur, configuratie en onderhoud. Je kunt je agents beheren via een intuïtief dashboard zonder servers aan te raken.',
         faq5Question: 'Hoe verschilt dit van andere AI-platforms?',
-        faq5Answer: 'In tegenstelling tot gehoste AI-tools geeft Agentist je een echte dedicated server met je agents geïnstalleerd. Je bezit de infrastructuur, hebt overal controle over en wordt niet beperkt door gedeelde platforms.',
+        faq5Answer:
+            'In tegenstelling tot gehoste AI-tools geeft Agentist je een echte dedicated server met je agents geïnstalleerd. Je bezit de infrastructuur, hebt overal controle over en wordt niet beperkt door gedeelde platforms.',
         faq6Question: 'Welke locaties zijn beschikbaar?',
-        faq6Answer: 'We bieden meer dan 30 serverlocaties wereldwijd, waaronder de VS, Europa en Azië. Je kunt agents deployen op meerdere servers in verschillende regio\'s.',
+        faq6Answer:
+            "We bieden meer dan 30 serverlocaties wereldwijd, waaronder de VS, Europa en Azië. Je kunt agents deployen op meerdere servers in verschillende regio's.",
         faq7Question: 'Hoeveel kost het?',
-        faq7Answer: 'Prijzen beginnen vanaf 40 $/maand op basis van de server die je selecteert. Meerdere opties van instapniveau tot high-performance. Geen verborgen kosten, op elk moment opzegbaar.',
-        footerDescription: 'Deploy OpenClaw- en Hermes-agents in de cloud met een klik — bouw, verbind en schaal je AI-agents sneller met Agentist.',
+        faq7Answer:
+            'Prijzen beginnen vanaf 40 $/maand op basis van de server die je selecteert. Meerdere opties van instapniveau tot high-performance. Geen verborgen kosten, op elk moment opzegbaar.',
+        footerDescription:
+            'Deploy OpenClaw- en Hermes-agents in de cloud met een klik — bouw, verbind en schaal je AI-agents sneller met Agentist.',
         ctaTitle: 'Klaar om te Deployen?',
-        ctaDescription: 'Sluit je aan bij de volgende generatie agentdeployment. Jouw infrastructuur, jouw agents, jouw regels.',
-        stats1Value: 'OpenClaw & Hermes',
-        stats1Label: 'Agents',
+        ctaDescription:
+            'Sluit je aan bij de volgende generatie agentdeployment. Jouw infrastructuur, jouw agents, jouw regels.',
         stats2Value: '30+',
-        stats2Label: 'Regio\'s',
+        stats2Label: "Regio's",
         stats3Value: '<60s',
         stats3Label: 'Deploytijd',
         stats4Value: '100%',
@@ -2427,25 +2297,11 @@ const nl: Translations = {
         planPowerTagline: 'Voor grootschalige operaties',
         planPower: 'Power',
         pricingPageTitle: 'Prijzen — agent.ic',
-        pricingPageDescription: 'Transparante prijzen voor AI-agent deployment. Kies een plan dat bij je past zonder verborgen kosten.',
-        pricingHeroTitle: 'Eenvoudige, Transparante Prijzen',
-        pricingHeroDescription: 'Geen verborgen kosten, geen verrassingen. Kies een plan dat bij je werkbelasting past en schaal mee naarmate je groeit.',
+        pricingPageDescription:
+            'Transparante prijzen voor AI-agent deployment. Kies een plan dat bij je past zonder verborgen kosten.',
         featuresPageTitle: 'Functies — agent.ic',
-        featuresPageDescription: 'Ontdek alle functies van agent.ic — multi-agent deployment, dedicated infrastructuur, wereldwijde regio\'s en volledige root-toegang.',
-        featuresHeroTitle: 'Alles Wat Je Nodig Hebt',
-        featuresHeroDescription: 'Van one-click deploys tot volledige root-toegang — alle tools om AI-agents op schaal te draaien, ingebouwd.'
-    },
-    hermesGo: {
-        pageTitle: 'ClawHost Go - Hermes Agent',
-        description: 'Een lichtgewicht desktop client om Hermes Agent lokaal te deployen. Deploy, monitor en beheer je agents — direct vanaf je machine.',
-        badge: 'Hermes Agent Go',
-        heroTitle1: 'Deploy Hermes.',
-        heroTitle2: 'Lokaal. Direct.',
-        heroDescription: 'Een lichtgewicht desktop client om je Hermes Agent-instanties te beheren. Deploy, monitor en beheer je agents — direct vanaf je machine.',
-        whyHermesGo: 'Alles-in-één functies',
-        featuresDescription: 'Waarom we het proberen waard zijn — de functies liegen niet.',
-        ctaTitle: 'Draai Hermes Agent lokaal',
-        ctaDescription: 'Eenmalige betaling, levenslange licentie. Deploy Hermes Agent op je eigen machine — geen cloud, geen abonnementen, geen limieten. Jouw data, jouw regels.'
+        featuresPageDescription:
+            "Ontdek alle functies van agent.ic — multi-agent deployment, dedicated infrastructuur, wereldwijde regio's en volledige root-toegang."
     }
 }
 

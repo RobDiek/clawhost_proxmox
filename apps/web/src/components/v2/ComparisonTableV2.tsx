@@ -5,9 +5,7 @@ import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { CheckIcon, XIcon } from '@phosphor-icons/react'
 import { ROUTES } from '@/lib'
-import ScrollRevealV2 from '@/components/v2/ScrollRevealV2'
-import SectionLabelV2 from '@/components/v2/SectionLabelV2'
-import LogoV2 from '@/components/v2/LogoV2'
+import { ScrollRevealV2, SectionLabelV2, LogoV2 } from '@/components/v2'
 
 const ComparisonTableV2: FC<ComparisonTableProps> = ({
     badge,

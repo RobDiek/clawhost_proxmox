@@ -40,14 +40,6 @@ const tr: Translations = {
         second: 'saniye',
         seconds: 'saniye'
     },
-    setup: {
-        welcomeTitle: "ClawHost Go'ya Hoş Geldiniz",
-        welcomeDescription: 'Başlamak için profilinizi ayarlayın.',
-        whatsYourName: 'Adınız nedir?',
-        namePlaceholder: 'Adınızı girin',
-        nameHint: 'Daha sonra da ayarlayabilirsiniz.',
-        getStarted: 'Başla'
-    },
     language: {
         en: 'English',
         fr: 'Français',
@@ -89,8 +81,6 @@ const tr: Translations = {
         cloudSubtitle: 'Teknik',
         go: 'Go',
         goSubtitle: 'Teknik olmayan',
-        hermes: 'Hermes',
-        openClaw: 'OpenClaw',
         agentistGo: 'Agentist Go'
     },
     go: {
@@ -98,13 +88,8 @@ const tr: Translations = {
         heroTitle1: 'OpenClaw Dağıt.',
         heroTitle2: 'Yerel. Anında.',
         badge: 'Yakında',
-        comingSoon: 'Yakında',
         description:
             "OpenClaw örneklerinizi yönetmek için hafif bir masaüstü istemcisi. Claw'larınızı doğrudan bilgisayarınızdan dağıtın, izleyin ve kontrol edin.",
-        download: '{{os}} için İndir',
-        downloadWindows: 'Windows',
-        downloadMac: 'macOS',
-        selfHostInstead: 'Kendi Sunucunda Barındır',
         features: 'Özellikler',
         whyClawHostGo: 'Hepsi Bir Arada Özellikler',
         featuresDescription:
@@ -135,7 +120,6 @@ const tr: Translations = {
         pricingFeature4: 'Kullanım limiti yok',
         pricingFeature5: 'Öncelikli destek',
         pricingFeature6: 'Özel yerel alan adı',
-        pricingCta: "ClawHost Go'yu Edinin",
         comparison: 'Karşılaştırma',
         comparisonTitle: 'Go ve Cloud',
         comparisonDescription:
@@ -182,10 +166,8 @@ const tr: Translations = {
         ctaTitle: "OpenClaw'u Yerel Çalıştırın",
         ctaDescription:
             "Tek seferlik ödeme, ömür boyu lisans. OpenClaw'u kendi bilgisayarınıza dağıtın — bulut yok, abonelik yok, limit yok. Verileriniz, kurallarınız.",
-        ctaButton: "ClawHost Go'yu Edinin",
         joinWaitlist: 'Bekleme Listesine Katıl',
         joinedWaitlist: 'Bekleme Listesine Katıldı',
-        waitlistJoinedToast: 'Bekleme listesine katıldınız.',
         waitlistAlreadyJoinedToast: 'Bu e-posta zaten listede.',
         waitlistFailedToast: 'Bekleme listesine katılma başarısız!',
         waitlistEmailPlaceholder: 'E-postanızı girin',
@@ -193,8 +175,6 @@ const tr: Translations = {
         updateDownload: 'İndir',
         updateDismiss: 'Sonra',
         clawNotFound: 'Claw bulunamadı!',
-        invalidClawName:
-            'Geçersiz claw adı. Yalnızca harf, rakam ve tire kullanın!',
         clawNameAlreadyExists: 'Bu isimde bir claw zaten var!',
         invalidSubdomain:
             'Geçersiz alt alan adı. 3-20 küçük harf ve rakam kullanın!',
@@ -281,11 +261,7 @@ const tr: Translations = {
             'Anahtar çifti oluşturulamadı. Lütfen anahtarları yerel olarak oluşturun!',
         unableToLoadPricing:
             'Fiyatlandırma yüklenemiyor. Lütfen daha sonra tekrar deneyin!',
-        noPasswordAvailable: 'Bu claw için şifre mevcut değil!',
-        clawLimitReached:
-            '{{max}} claw sınırına ulaştınız. Bu limiti artırmak için lütfen destekle iletişime geçin!',
-        sshKeyLimitReached:
-            '{{max}} SSH anahtarı sınırına ulaştınız. Bu limiti artırmak için lütfen destekle iletişime geçin!'
+        noPasswordAvailable: 'Bu claw için şifre mevcut değil!'
     },
     api: {
         missingRequiredFields: 'Gerekli alanlar eksik!',
@@ -293,7 +269,8 @@ const tr: Translations = {
         agentRenamed: 'Agent başarıyla yeniden adlandırıldı.',
         agentEmojiUpdated: 'Ajan emojisi güncellendi.',
         failedToUpdateEmoji: 'Emoji güncellenemedi!',
-        invalidAgentName: 'Agent adı 1 ile {{max}} karakter arasında olmalıdır!',
+        invalidAgentName:
+            'Agent adı 1 ile {{max}} karakter arasında olmalıdır!',
         userNotFound: 'Kullanıcı bulunamadı!',
         sshKeyNotFound: 'SSH anahtarı bulunamadı!',
         pendingAgentNotFound: 'Bekleyen agent bulunamadı!',
@@ -454,7 +431,8 @@ const tr: Translations = {
         failedToGetMetrics: 'Sunucu metrikleri alınamadı!',
         overviewFetched: 'Genel bakış başarıyla getirildi.',
         failedToGetOverview: 'Ağ geçidi genel bakışı alınamadı!',
-        overviewUnsupported: 'Bu OpenClaw sürümü genel bakış özelliğini desteklemiyor!',
+        overviewUnsupported:
+            'Bu OpenClaw sürümü genel bakış özelliğini desteklemiyor!',
         passwordRotated: 'Root şifresi başarıyla değiştirildi.',
         failedToRotatePassword: 'Root şifresi değiştirilemedi!',
         gatewayTokenRotated: 'Ağ geçidi jetonu başarıyla değiştirildi.',
@@ -487,7 +465,6 @@ const tr: Translations = {
         failedToConnectAuthMethod: 'Kimlik doğrulama yöntemi bağlanamadı!',
         failedToDisconnectAuthMethod:
             'Kimlik doğrulama yöntemi bağlantısı kesilemedi!',
-        textRequired: 'Metin gereklidir!',
         featureEmailsDisabled: 'Özellik e-postaları şu anda devre dışı.',
         featureEmailsSent: 'Özellik e-postaları başarıyla gönderildi.',
         featureEmailsFailed: 'Özellik e-postaları gönderilemedi!',
@@ -766,13 +743,9 @@ const tr: Translations = {
             'OpenClaw örneklerini yerel olarak dağıtmak ve yönetmek için ClawHost Go Lisansına ihtiyacınız var.'
     },
     network: {
-        unstable: 'Kararsız Bağlantı',
-        unstableDescription:
-            'İnternet bağlantınız kararsız. Bazı özellikler beklendiği gibi çalışmayabilir.',
         offline: 'İnternet Bağlantısı Yok',
         offlineDescription:
-            'Şu anda çevrimdışısınız. İnternet erişimi gerektiren özellikler kullanılamayacak.',
-        dismiss: 'Kapat'
+            'Şu anda çevrimdışısınız. İnternet erişimi gerektiren özellikler kullanılamayacak.'
     },
     dashboard: {
         title: "Claw'lar",
@@ -1081,31 +1054,12 @@ const tr: Translations = {
         heroTitle2: 'Tek tık. Tamam.',
         heroDescription:
             'OpenClaw ve Hermes ajanlarını bulutta veya yerel olarak tek tıkla dağıtın — ClawHost ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
-        goToClaws: "Claw'lara Git",
         selfHost: 'Açık Kaynak',
         startingPrice: 'Başlangıç',
         locations: 'Konumlar',
         servers: 'Sunucular',
         zeroCount: 'Sıfır',
         zeroConfig: 'Sıfır Yapılandırma',
-        dashboardPreviewTitle: "Claw'lar",
-        dashboardPreviewSubtitle: '5 eklenmiş claw',
-        deployNew: 'Yeni Dağıt',
-        running: 'Çalışıyor',
-        latency: 'gecikme',
-        howItWorks: 'Nasıl Çalışır',
-        threeStepsToPrivacy: "OpenClaw'a Üç Adım",
-        howItWorksDescription:
-            "Sıfırdan tam erişimle 7/24 kullanabileceğiniz tamamen dağıtılmış bir OpenClaw'a.",
-        step1Title: 'Sunucu Seçin',
-        step1Description:
-            "Üç sağlayıcı genelinde 30'dan fazla küresel konumdan seçim yapın. Saniyeler içinde sizin için özel bir VPS oluşturuyoruz.",
-        step2Title: 'Otomatik Kurulum',
-        step2Description:
-            'OpenClaw doğrudan bağlantı ve VPS detaylarıyla önceden yüklü gelir. Kurulum gerekmez.',
-        step3Title: 'Sizin Oldu',
-        step3Description:
-            "OpenClaw ve VPS'e tam erişim, başarabilecekleriniz konusunda hiçbir sınır yok.",
         features: 'Özellikler',
         whyClawHost: 'Hepsi Bir Arada Özellikler',
         featuresDescription:
@@ -1145,26 +1099,6 @@ const tr: Translations = {
         multipleClaws: 'Birden Fazla Claw',
         multipleClawsDescription:
             'Tek bir panelden birden fazla OpenClaw örneği dağıtın ve yönetin. Büyüdükçe ölçeklendirin.',
-        testimonials: 'Referanslar',
-        whatPeopleSay: 'İnsanlar Ne Diyor',
-        testimonialsDescription:
-            "Sadece bizim sözümüze güvenmeyin. Diğerlerinin OpenClaw'u nasıl dağıttığını görün.",
-        testimonial1Quote:
-            'Sonunda, kendi yapay zeka sunucum. Kurulum 30 saniye sürdü ve aylardır sorunsuz çalıştırıyorum.',
-        testimonial1Author: 'Alex Chen',
-        testimonial1Role: 'Yazılım Geliştirici',
-        testimonial2Quote:
-            'Artık başkalarıyla kaynak paylaşmak yok. OpenClaw örneğim ona attığım her şeyi hallediyor.',
-        testimonial2Author: 'Maria Santos',
-        testimonial2Role: 'Dijital Göçebe',
-        testimonial3Quote:
-            "Tek tıkla dağıtım gerçekten işe yarıyor. Hiç teknik değilim ama OpenClaw'umu bir dakikadan kısa sürede çalıştırdım.",
-        testimonial3Author: 'James Wilson',
-        testimonial3Role: 'Serbest Çalışan',
-        testimonial4Quote:
-            'Sunucumda tam olarak neyin çalıştığını görebilmek harika. Yapay zeka kurulumum üzerinde tam kontrol.',
-        testimonial4Author: 'Sophie Kim',
-        testimonial4Role: 'Yapay Zeka Meraklısı',
         pricing: 'Fiyatlandırma',
         simpleTransparentPricing: 'Basit, Şeffaf Fiyatlandırma',
         pricingDescription:
@@ -1187,8 +1121,6 @@ const tr: Translations = {
         pricePerYear: '${{price}}/yr',
         volumePricePerMonth: '+${{price}}/mo',
         startingPriceValue: '${{price}}/mo',
-        yearlyDiscount: '— 2 ay ücretsiz',
-        billedYearly: 'yıllık faturalandırılır',
         deploy: 'Dağıt',
         select: 'Seç',
         selectPlanLabel: '{{plan}} planını seç',
@@ -1197,7 +1129,6 @@ const tr: Translations = {
         unlimitedBandwidth: 'Sınırsız Bant Genişliği',
         rootSshAccess: 'Tam Root SSH Erişimi',
         onlineAllDay: '7/24 Çevrimiçi',
-        highQualityInternet: 'Yüksek Kaliteli İnternet',
         showAllPlans: 'Tüm planları göster',
         simplePricing: 'Basitleştirilmiş',
         planStarter: 'Starter',
@@ -1214,10 +1145,7 @@ const tr: Translations = {
         featureBandwidth: 'Sınırsız bant genişliği',
         featureSsh: 'Root SSH erişimi',
         featureUptime: '7/24 çevrimiçi',
-        featureSharedCpu: 'Paylaşımlı CPU',
         featureDedicatedCpu: 'Özel CPU',
-        featureCommunitySupport: 'Topluluk desteği',
-        featureInfraSupport: 'Altyapı desteği',
         featureEmailSupport: 'E-posta desteği',
         fastInternet: 'Hızlı internet',
         emailSupport: 'E-posta desteği',
@@ -1271,8 +1199,6 @@ const tr: Translations = {
         comparisonExportOthers: 'Satıcı bağımlılığı',
         comparisonProvidersUs: 'Birden fazla sunucu sağlayıcısı',
         comparisonProvidersOthers: 'Yalnızca tek sağlayıcı',
-        comparisonSocialsUs: 'Sosyal medya varlığı',
-        comparisonSocialsOthers: 'Sosyal medya yok',
         comparisonVersionUs: 'Tek tıkla sürüm değiştirme',
         comparisonVersionOthers: 'Yalnızca manuel güncellemeler',
         comparisonTerminalUs: 'Yerleşik web terminali',
@@ -1280,19 +1206,7 @@ const tr: Translations = {
         seeFullComparison: 'Tam Karşılaştırmayı Görün',
         comparisonCtaText:
             'SimpleClaw, MyClaw.ai ve daha fazlasıyla özellik özellik karşılaştırıyoruz.',
-        readyToOwnYourPrivacy: 'OpenClaw dağıtmaya hazır mısınız?',
-        ctaDescription:
-            "OpenClaw önceden yüklü özel bir sunucu edinin. Tam root erişimi, küresel konumlar ve dakikalar içinde hazır. Her zaman sahibi sizsiniz. $25'tan başlayan fiyatlar.",
-        deployOpenClawNow: 'OpenClaw Dağıt',
-        selfHostInstead: 'Kendi Sunucunda Barındır',
-        noCreditCardRequired: 'Anında Kurulum',
-        deployIn60Seconds: 'Güvenli',
-        demoClawStarted: 'Claw başlatıldı.',
-        demoClawStopped: 'Claw durduruldu.',
-        demoClawRestarting: 'Claw yeniden başlatılıyor...',
-        demoClawRestarted: 'Claw yeniden başlatıldı.',
-        demoClawDeleted: 'Claw silindi.',
-        demoStatus: '{{running}} çalışıyor, {{total}} toplam'
+        selfHostInstead: 'Kendi Sunucunda Barındır'
     },
     blog: {
         readingTime: '{{minutes}} dk okuma',
@@ -1867,11 +1781,6 @@ const tr: Translations = {
             'Bu Şartlar hakkında sorularınız varsa, lütfen şu adresten bize ulaşın:'
     },
     mobile: {
-        messages: 'Mesajlar',
-        settings: 'Ayarlar',
-        comingSoon: 'Yakında',
-        messagesPlaceholder: 'Mesajlar ve bildirimler burada görünecek.',
-        settingsPlaceholder: 'Hesap ayarları ve tercihleri burada görünecek.',
         signIn: 'Kimlik Doğrulama',
         signInDescription:
             'Ajanlarınızı yönetmek ve dağıtmak için kimlik doğrulayın.',
@@ -1883,23 +1792,15 @@ const tr: Translations = {
         sending: 'Gönderiliyor...',
         checkYourEmail: 'E-postanızı kontrol edin',
         codeSentTo: '6 haneli bir kod gönderdik:',
-        enterCode: 'E-postanızdaki kodu girin',
         resendCode: 'Kodu tekrar gönder',
         resendIn: '{{seconds}}s sonra tekrar gönder',
         changeEmail: 'E-postayı değiştir',
         invalidCode: 'Geçersiz kod!',
-        codeExpired: 'Kodun süresi doldu. Lütfen yeni bir tane talep edin.',
         signingIn: 'Kimlik doğrulanıyor...',
         signOut: 'Çıkış Yap',
-        signedInAs: 'Giriş yapılan hesap:',
         loadMore: 'Daha Fazla Yükle',
         deployClaw: 'Claw Dağıt',
         deployYourFirstClaw: "İlk Claw'ınızı dağıtın"
-    },
-    announcement: {
-        title: 'Hizmet Bildirimi',
-        message:
-            'Yoğun talep nedeniyle {{providers}} dağıtımları geçici olarak kullanılamıyor. Mevcut ajanlar normal çalışıyor.'
     },
     productHunt: {
         liveOn: 'Yayında',
@@ -1912,12 +1813,13 @@ const tr: Translations = {
     rebrand: {
         tag: 'EVRİM',
         title: 'ClawHost artık Agentist',
-        mission: 'Otonom yapay zeka ajanları için altyapı katmanını inşa ediyoruz.'
+        mission:
+            'Otonom yapay zeka ajanları için altyapı katmanını inşa ediyoruz.'
     },
     hermesBanner: {
         title: 'Hermes Agent',
-        message: 'Hermes ajanları artık ClawHost üzerinde dağıtım için desteklenmektedir.',
-        deploy: 'Şimdi dağıt'
+        message:
+            'Hermes ajanları artık ClawHost üzerinde dağıtım için desteklenmektedir.'
     },
     compare: {
         title: 'Tam Karşılaştırma',
@@ -2289,83 +2191,46 @@ const tr: Translations = {
         contactText:
             'Ortaklık programı hakkında sorularınız varsa, yönlendirme kodunuzla ilgili yardıma ihtiyacınız varsa veya bir ihlal bildirmek istiyorsanız, bize ulaşın'
     },
-    hermes: {
-        title: 'Deploy Hermes Agent - ClawHost',
-        description: 'Deploy Hermes Agent on your own VPS with one click. An autonomous agent that grows with you.',
-        badge: 'Hermes Agent',
-        heroTitle1: 'Deploy Hermes Agent',
-        heroTitle2: 'With One Click.',
-        heroDescription: 'An autonomous agent that lives on your server, remembers what it learns, and gets more capable the longer it runs. Deploy it instantly on ClawHost.',
-        deployButton: 'Deploy Hermes Agent',
-        githubButton: 'Self-Host Instead',
-        whyHermes: 'Why Hermes Agent',
-        featuresDescription: 'Hermes Agent is a powerful autonomous agent with persistent memory, real sandboxing, and multi-platform support.',
-        feature1Title: 'Lives Where You Do',
-        feature1Description: 'Telegram, Discord, Slack, WhatsApp, Signal, Email, CLI \u2013 and a growing list of platforms. Start on one, pick up on another.',
-        feature2Title: 'Grows The Longer It Runs',
-        feature2Description: 'Persistent memory and auto-generated skills \u2013 it learns your projects and never forgets how it solved a problem.',
-        feature3Title: 'Scheduled Automations',
-        feature3Description: 'Natural language cron scheduling for reports, backups, and briefings \u2013 running unattended through the gateway.',
-        feature4Title: 'Delegates & Parallelizes',
-        feature4Description: 'Isolated subagents with their own conversations, terminals, and Python RPC scripts for zero-context-cost pipelines.',
-        feature5Title: 'Real Sandboxing',
-        feature5Description: 'Five backends \u2013 local, Docker, SSH, Singularity, Modal \u2013 with container hardening and namespace isolation.',
-        feature6Title: 'Full Web & Browser Control',
-        feature6Description: 'Web search, browser automation, vision, image generation, text-to-speech, and multi-model reasoning.',
-        ctaTitle: 'Ready to deploy Hermes Agent?',
-        ctaDescription: 'Get your own Hermes Agent running on a dedicated VPS in under 60 seconds. No configuration needed.',
-        ctaDeploy: 'Deploy Now',
-        ctaGitHub: 'View on GitHub'
-    },
     v2: {
-        title: 'agent.ic — OpenClaw ve Hermes\'i Bulutta Dağıtın',
-        description: 'OpenClaw ve Hermes ajanlarını tek tıklamayla bulutta dağıtın — açık kaynak, kendi kendine barındırılabilir ve ajantik bilişimin geleceği için tasarlandı.',
+        title: "agent.ic — OpenClaw ve Hermes'i Bulutta Dağıtın",
+        description:
+            'OpenClaw ve Hermes ajanlarını tek tıklamayla bulutta dağıtın — açık kaynak, kendi kendine barındırılabilir ve ajantik bilişimin geleceği için tasarlandı.',
         heroTitle1: 'Dağıtın',
         heroTitle2: 'AI Ajanlarını',
         heroTitle3: 'Bulutta tek Tıklamayla',
-        heroDescription: 'OpenClaw ve Hermes ajanlarını tek tıklamayla bulutta dağıtın — Agentist ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
-        badge: 'agent.ic ile tanışın',
+        heroDescription:
+            'OpenClaw ve Hermes ajanlarını tek tıklamayla bulutta dağıtın — Agentist ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
         selfHostLabel: 'Bunun Yerine Kendiniz Barındırın',
         deployButton: 'Şimdi Dağıt',
-        learnMore: 'Daha Fazla Bilgi',
         agentsTitle: 'Ajanlarınız. Bulutunuz.',
-        agentsDescription: 'Büyüyen AI ajan kataloğundan seçin, her biri kendi özel bulut sunucusunda çalışır.',
+        agentsDescription:
+            'Büyüyen AI ajan kataloğundan seçin, her biri kendi özel bulut sunucusunda çalışır.',
         agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription: 'Tam SSH, terminal, dosya gezgini ve yapılandırma düzenleyicisi ile kendi kendine barındırılabilir bulut yönetim platformu.',
+        agentOpenclawDescription:
+            'Tam SSH, terminal, dosya gezgini ve yapılandırma düzenleyicisi ile kendi kendine barındırılabilir bulut yönetim platformu.',
         agentHermesName: 'Hermes',
-        agentHermesDescription: 'Web tarama, takvim yönetimi, çoklu model muhakemesi ve tarayıcı otomasyonu ile otonom AI ajanı.',
-        agentComingSoonName: 'Daha Fazlası Geliyor',
-        agentComingSoonDescription: 'Yeni ajanlar düzenli olarak ekleniyor. Kendinizinkini oluşturun veya büyüyen kataloğumuzdan dağıtın.',
-        howItWorksTitle: 'Nasıl Çalışır',
-        howItWorksDescription: 'Üç adım. Altmış saniye. Ajanınız aktif.',
-        step1Title: 'Ajanınızı Seçin',
-        step1Description: 'Üretime hazır AI ajanları kataloğumuzdan seçin.',
-        step2Title: 'Altyapıyı Seçin',
-        step2Description: 'Bulut bölgenizi, planınızı ve yapılandırmanızı seçin.',
-        step3Title: 'Anında Dağıtın',
-        step3Description: 'Tek tıklama. Ajanınız özel altyapıda aktif.',
+        agentHermesDescription:
+            'Web tarama, takvim yönetimi, çoklu model muhakemesi ve tarayıcı otomasyonu ile otonom AI ajanı.',
         featuresTitle: 'Gelecek İçin İnşa Edildi',
-        featuresDescription: 'AI ajanlarını ölçekte çalıştırmak için ihtiyacınız olan her şey.',
+        featuresDescription:
+            'AI ajanlarını ölçekte çalıştırmak için ihtiyacınız olan her şey.',
         feature1Title: 'Çoklu Ajan Platformu',
-        feature1Description: 'Tek bir panodan birden fazla ajan türünü dağıtın ve yönetin.',
+        feature1Description:
+            'Tek bir panodan birden fazla ajan türünü dağıtın ve yönetin.',
         agentControlTitle: 'Tam ajan kontrolü',
-        agentControlDescription: 'Ajanlarınızın her yönünü tek bir panelden yapılandırın ve özelleştirin.',
+        agentControlDescription:
+            'Ajanlarınızın her yönünü tek bir panelden yapılandırın ve özelleştirin.',
         multipleAgentsTitle: 'Çoklu ajanlar',
-        multipleAgentsDescription: 'Farklı bölgelerde ve yapılandırmalarda birden fazla ajan örneği çalıştırın.',
-        feature2Title: 'Özel Altyapı',
-        feature2Description: 'Her ajan kendi VPS\'inde çalışır. Paylaşılan kaynak yok, gürültülü komşu yok.',
-        feature3Title: 'Küresel Edge Ağı',
-        feature3Description: 'Dünya genelinde 30\'dan fazla konum. Ajanları kullanıcılarınıza en yakın yere dağıtın.',
-        feature4Title: 'Tek Tıkla Dağıtım',
-        feature4Description: 'Sıfırdan çalışan ajana 60 saniyeden kısa sürede. Yapılandırma gerekmez.',
-        feature5Title: 'Tam Root Erişimi',
-        feature5Description: 'SSH, terminal, dosya gezgini ve yapılandırma düzenleyicisi. Sunucunuz, kurallarınız.',
-        feature6Title: 'Kullandığın Kadar Öde',
-        feature6Description: 'Taahhüt yok. Yukarı veya aşağı ölçeklendirin. Sadece kullandığınız kadar ödeyin.',
-        zeroConfigDescription: 'Saatlerce kurulumu atlayın. OpenClaw ve Hermes önceden yüklenmiş ve dakikalar içinde hazır.',
-        globalLocationsDescription: 'Ajanları 30\'dan fazla küresel bölgede dağıtın. Size en yakın konumu seçin.',
-        onlineAccessDescription: 'Ajanlarınıza özel bir alt alan adıyla her yerden güvenle erişin.',
-        versionControlDescription: 'Tek tıklamayla ajan sürümlerini değiştirin. Güncel kalın veya geri dönün.',
+        multipleAgentsDescription:
+            'Farklı bölgelerde ve yapılandırmalarda birden fazla ajan örneği çalıştırın.',
+        zeroConfigDescription:
+            'Saatlerce kurulumu atlayın. OpenClaw ve Hermes önceden yüklenmiş ve dakikalar içinde hazır.',
+        globalLocationsDescription:
+            "Ajanları 30'dan fazla küresel bölgede dağıtın. Size en yakın konumu seçin.",
+        onlineAccessDescription:
+            'Ajanlarınıza özel bir alt alan adıyla her yerden güvenle erişin.',
+        versionControlDescription:
+            'Tek tıklamayla ajan sürümlerini değiştirin. Güncel kalın veya geri dönün.',
         agentsPreinstalled: 'Ajanlar ön yüklü',
         comparisonAgentAccessUs: 'Tüm ajanlara tam erişim',
         comparisonMultipleAgentsUs: 'Sunucu başına birden fazla ajan',
@@ -2374,24 +2239,31 @@ const tr: Translations = {
         comparisonUsLabel: 'Sizin için yönetilir',
         comparisonOthersLabel: 'Kendiniz yapın',
         faq1Question: 'Agentist nedir?',
-        faq1Answer: 'Agentist, kendi özel sunucularınızda yapay zeka ajanlarını dağıtmanızı ve yönetmenizi sağlayan bir platformdur. Altyapı, güvenlik ve bakımı biz üstleniyoruz — siz sadece ajanlarınızı kullanıyorsunuz.',
+        faq1Answer:
+            'Agentist, kendi özel sunucularınızda yapay zeka ajanlarını dağıtmanızı ve yönetmenizi sağlayan bir platformdur. Altyapı, güvenlik ve bakımı biz üstleniyoruz — siz sadece ajanlarınızı kullanıyorsunuz.',
         faq2Question: 'OpenClaw nedir?',
-        faq2Answer: 'OpenClaw, yapay zeka araçlarınız ve hizmetleriniz için kendi sunucunuzda barındırılan güvenli bir erişim katmanıdır. Her Agentist sunucusunda önceden yüklü olarak gelir ve kurulumunuz üzerinde tam kontrol sağlar.',
+        faq2Answer:
+            'OpenClaw, yapay zeka araçlarınız ve hizmetleriniz için kendi sunucunuzda barındırılan güvenli bir erişim katmanıdır. Her Agentist sunucusunda önceden yüklü olarak gelir ve kurulumunuz üzerinde tam kontrol sağlar.',
         faq3Question: 'Hermes nedir?',
-        faq3Answer: 'Hermes, web tarama, takvim yönetimi, çoklu model akıl yürütme ve tarayıcı otomasyonuna sahip otonom bir yapay zeka ajanıdır. Her sunucuda OpenClaw ile birlikte önceden yüklü olarak gelir.',
+        faq3Answer:
+            'Hermes, web tarama, takvim yönetimi, çoklu model akıl yürütme ve tarayıcı otomasyonuna sahip otonom bir yapay zeka ajanıdır. Her sunucuda OpenClaw ile birlikte önceden yüklü olarak gelir.',
         faq4Question: 'Teknik bilgiye ihtiyacım var mı?',
-        faq4Answer: 'Hayır. Agentist herkes için tasarlanmıştır. Tüm altyapı, kurulum ve bakımı biz üstleniyoruz. Ajanlarınızı hiçbir sunucuya dokunmadan sezgisel bir kontrol paneli üzerinden yönetebilirsiniz.',
+        faq4Answer:
+            'Hayır. Agentist herkes için tasarlanmıştır. Tüm altyapı, kurulum ve bakımı biz üstleniyoruz. Ajanlarınızı hiçbir sunucuya dokunmadan sezgisel bir kontrol paneli üzerinden yönetebilirsiniz.',
         faq5Question: 'Bu diğer yapay zeka platformlarından nasıl farklı?',
-        faq5Answer: 'Barındırılan yapay zeka araçlarının aksine, Agentist size ajanlarınızın yüklü olduğu gerçek bir özel sunucu sunar. Altyapıya sahipsiniz, her şeyi kontrol ediyorsunuz ve paylaşılan platformlarla sınırlı değilsiniz.',
+        faq5Answer:
+            'Barındırılan yapay zeka araçlarının aksine, Agentist size ajanlarınızın yüklü olduğu gerçek bir özel sunucu sunar. Altyapıya sahipsiniz, her şeyi kontrol ediyorsunuz ve paylaşılan platformlarla sınırlı değilsiniz.',
         faq6Question: 'Hangi konumlar mevcut?',
-        faq6Answer: 'ABD, Avrupa ve Asya dahil dünya genelinde 30\'dan fazla sunucu konumu sunuyoruz. Farklı bölgelerdeki birden fazla sunucuya ajan dağıtabilirsiniz.',
+        faq6Answer:
+            "ABD, Avrupa ve Asya dahil dünya genelinde 30'dan fazla sunucu konumu sunuyoruz. Farklı bölgelerdeki birden fazla sunucuya ajan dağıtabilirsiniz.",
         faq7Question: 'Ne kadara mal olur?',
-        faq7Answer: 'Fiyatlar seçtiğiniz sunucuya göre aylık 40 $\'dan başlar. Giriş seviyesinden yüksek performansa kadar birden fazla seçenek. Gizli ücret yok, istediğiniz zaman iptal edin.',
-        footerDescription: 'OpenClaw ve Hermes ajanlarını tek tıkla bulutta dağıtın — Agentist ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
+        faq7Answer:
+            "Fiyatlar seçtiğiniz sunucuya göre aylık 40 $'dan başlar. Giriş seviyesinden yüksek performansa kadar birden fazla seçenek. Gizli ücret yok, istediğiniz zaman iptal edin.",
+        footerDescription:
+            'OpenClaw ve Hermes ajanlarını tek tıkla bulutta dağıtın — Agentist ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
         ctaTitle: 'Dağıtmaya Hazır mısınız?',
-        ctaDescription: 'Ajan dağıtımının yeni nesline katılın. Altyapınız, ajanlarınız, kurallarınız.',
-        stats1Value: 'OpenClaw & Hermes',
-        stats1Label: 'Ajanlar',
+        ctaDescription:
+            'Ajan dağıtımının yeni nesline katılın. Altyapınız, ajanlarınız, kurallarınız.',
         stats2Value: '30+',
         stats2Label: 'Bölge',
         stats3Value: '<60s',
@@ -2405,25 +2277,11 @@ const tr: Translations = {
         planPowerTagline: 'Büyük ölçekli operasyonlar için',
         planPower: 'Power',
         pricingPageTitle: 'Fiyatlandırma — agent.ic',
-        pricingPageDescription: 'AI ajan dağıtımı için şeffaf fiyatlandırma. Gizli ücret olmadan ihtiyaçlarınıza uygun bir plan seçin.',
-        pricingHeroTitle: 'Basit, Şeffaf Fiyatlandırma',
-        pricingHeroDescription: 'Gizli ücret yok, sürpriz yok. İş yükünüze uygun bir plan seçin ve büyüdükçe ölçeklendirin.',
+        pricingPageDescription:
+            'AI ajan dağıtımı için şeffaf fiyatlandırma. Gizli ücret olmadan ihtiyaçlarınıza uygun bir plan seçin.',
         featuresPageTitle: 'Özellikler — agent.ic',
-        featuresPageDescription: 'agent.ic\'nin tüm özelliklerini keşfedin — çoklu ajan dağıtımı, özel altyapı, küresel bölgeler ve tam root erişimi.',
-        featuresHeroTitle: 'İhtiyacınız Olan Her Şey',
-        featuresHeroDescription: 'Tek tıkla dağıtımdan tam root erişimine — AI ajanlarını büyük ölçekte çalıştırmak için her araç, yerleşik.'
-    },
-    hermesGo: {
-        pageTitle: 'ClawHost Go - Hermes Agent',
-        description: 'Hermes Agent\'ı yerel olarak dağıtmak için hafif bir masaüstü istemcisi. Ajanlarınızı dağıtın, izleyin ve kontrol edin — doğrudan makinenizden.',
-        badge: 'Hermes Agent Go',
-        heroTitle1: 'Hermes\'ı Dağıtın.',
-        heroTitle2: 'Yerel. Anında.',
-        heroDescription: 'Hermes Agent örneklerinizi yönetmek için hafif bir masaüstü istemcisi. Ajanlarınızı dağıtın, izleyin ve kontrol edin — doğrudan makinenizden.',
-        whyHermesGo: 'Hepsi bir arada özellikler',
-        featuresDescription: 'Neden denemeye değeriz — özellikler yalan söylemez.',
-        ctaTitle: 'Hermes Agent\'ı yerel olarak çalıştırın',
-        ctaDescription: 'Tek seferlik ödeme, ömür boyu lisans. Hermes Agent\'ı kendi makinenize dağıtın — bulut yok, abonelik yok, limit yok. Verileriniz, kurallarınız.'
+        featuresPageDescription:
+            "agent.ic'nin tüm özelliklerini keşfedin — çoklu ajan dağıtımı, özel altyapı, küresel bölgeler ve tam root erişimi."
     }
 }
 

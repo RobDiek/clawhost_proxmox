@@ -1,5 +1,4 @@
 import {
-    AnnouncementBanner,
     BetaBadge,
     Header,
     HermesBanner,
@@ -80,7 +79,6 @@ export {
     AccountSettingsSection,
     AccountBillingSection,
     ConnectedAccountsSection,
-    AnnouncementBanner,
     ActionButton,
     BetaBadge,
     BlogCTA,

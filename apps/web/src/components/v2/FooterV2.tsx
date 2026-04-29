@@ -3,8 +3,10 @@ import type { FooterSocialLink, FooterRouteLink } from '@/ts/Interfaces'
 
 import { Link, useLocation } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
-import LogoV2 from '@/components/v2/LogoV2'
+import { LogoV2 } from '@/components/v2'
+import { TrustMrrBadge } from '@/components/landing'
 import { ROUTES } from '@/lib'
+import { v2VideoUrls } from '@/data'
 import { GITHUB_REPO_URL } from '@/hooks'
 import {
     TWITTER_URL,
@@ -26,10 +28,22 @@ import {
 } from '@phosphor-icons/react'
 
 const socialLinks: FooterSocialLink[] = [
-    { url: GITHUB_REPO_URL, ariaKey: 'footer.ariaGithub', Icon: GithubLogoIcon },
+    {
+        url: GITHUB_REPO_URL,
+        ariaKey: 'footer.ariaGithub',
+        Icon: GithubLogoIcon
+    },
     { url: TWITTER_URL, ariaKey: 'footer.ariaX', Icon: XLogoIcon },
-    { url: FACEBOOK_URL, ariaKey: 'footer.ariaFacebook', Icon: FacebookLogoIcon },
-    { url: INSTAGRAM_URL, ariaKey: 'footer.ariaInstagram', Icon: InstagramLogoIcon },
+    {
+        url: FACEBOOK_URL,
+        ariaKey: 'footer.ariaFacebook',
+        Icon: FacebookLogoIcon
+    },
+    {
+        url: INSTAGRAM_URL,
+        ariaKey: 'footer.ariaInstagram',
+        Icon: InstagramLogoIcon
+    },
     { url: THREADS_URL, ariaKey: 'footer.ariaThreads', Icon: ThreadsLogoIcon },
     { url: YOUTUBE_URL, ariaKey: 'footer.ariaYoutube', Icon: YoutubeLogoIcon },
     { url: TIKTOK_URL, ariaKey: 'footer.ariaTiktok', Icon: TiktokLogoIcon }
@@ -56,7 +70,7 @@ const FooterV2: FC = (): ReactNode => {
         `transition ${pathname === route || pathname.startsWith(route + '/') ? 'text-white' : 'text-white/40 hover:text-white'}`
 
     return (
-        <footer className='relative v2-section'>
+        <footer className='v2-section relative'>
             <video
                 autoPlay
                 loop
@@ -65,20 +79,23 @@ const FooterV2: FC = (): ReactNode => {
                 className='v2-footer-video pointer-events-none absolute bottom-0 left-0 z-[1] h-[70vh] w-full object-cover'
             >
                 <source
-                    src='https://framerusercontent.com/assets/FsU7HaCWP7lS7TPY07jh2mCkb1o.mp4'
+                    src={v2VideoUrls.FOOTER}
                     type='video/mp4'
                 />
             </video>
             <div className='pointer-events-none absolute bottom-0 left-0 z-[2] h-[70vh] w-full bg-[linear-gradient(to_bottom,#020204_0%,rgba(2,2,4,0.7)_20%,rgba(2,2,4,0.3)_50%,transparent_80%)]' />
 
-            <div className='font-syne relative z-10 px-6 py-16 h-auto'>
+            <div className='font-syne relative z-10 h-auto px-6 py-16'>
                 <div className='mx-auto max-w-6xl'>
                     <div className='grid gap-12 md:grid-cols-4'>
                         <div className='md:col-span-2'>
                             <LogoV2 />
-                            <p className='mt-4 font-mono max-w-sm text-sm leading-relaxed text-white/40'>
+                            <p className='mt-4 max-w-sm font-mono text-sm leading-relaxed text-white/40'>
                                 {t('v2.footerDescription')}
                             </p>
+                            <div className='mt-6'>
+                                <TrustMrrBadge />
+                            </div>
                             <div className='mt-6 flex items-center gap-3'>
                                 {socialLinks.map((link) => (
                                     <a

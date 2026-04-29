@@ -40,14 +40,6 @@ const zh: Translations = {
         second: '秒',
         seconds: '秒'
     },
-    setup: {
-        welcomeTitle: '欢迎使用 ClawHost Go',
-        welcomeDescription: '设置您的个人资料以开始使用.',
-        whatsYourName: '您叫什么名字？',
-        namePlaceholder: '输入您的姓名',
-        nameHint: '您随时可以稍后设置.',
-        getStarted: '开始使用'
-    },
     language: {
         en: 'English',
         fr: 'Français',
@@ -89,8 +81,6 @@ const zh: Translations = {
         cloudSubtitle: '技术型',
         go: 'Go',
         goSubtitle: '非技术型',
-        hermes: 'Hermes',
-        openClaw: 'OpenClaw',
         agentistGo: 'Agentist Go'
     },
     go: {
@@ -98,13 +88,8 @@ const zh: Translations = {
         heroTitle1: '部署 OpenClaw.',
         heroTitle2: '本地. 即时.',
         badge: '即将推出',
-        comingSoon: '即将推出',
         description:
             '一款轻量级桌面客户端，用于管理您的 OpenClaw 实例。部署、监控和控制您的 claws — 直接在您的设备上完成.',
-        download: '下载 {{os}} 版',
-        downloadWindows: 'Windows',
-        downloadMac: 'macOS',
-        selfHostInstead: '改为自托管',
         features: '功能',
         whyClawHostGo: '一体化功能',
         featuresDescription: '为什么值得一试，功能不会说谎.',
@@ -133,7 +118,6 @@ const zh: Translations = {
         pricingFeature4: '无使用限制',
         pricingFeature5: '优先支持',
         pricingFeature6: '自定义本地域名',
-        pricingCta: '获取 ClawHost Go',
         comparison: '对比',
         comparisonTitle: 'Go 与 Cloud 对比',
         comparisonDescription:
@@ -180,10 +164,8 @@ const zh: Translations = {
         ctaTitle: '在本地运行 OpenClaw',
         ctaDescription:
             '一次性付款，终身许可证。在您自己的设备上部署 OpenClaw — 无云端，无订阅，无限制。您的数据，您做主.',
-        ctaButton: '获取 ClawHost Go',
         joinWaitlist: '加入等待列表',
         joinedWaitlist: '已加入等待列表',
-        waitlistJoinedToast: '您已加入等待列表.',
         waitlistAlreadyJoinedToast: '此邮箱已在列表中.',
         waitlistFailedToast: '加入等待列表失败!',
         waitlistEmailPlaceholder: '输入您的邮箱',
@@ -191,7 +173,6 @@ const zh: Translations = {
         updateDownload: '下载',
         updateDismiss: '稍后',
         clawNotFound: 'Claw 未找到!',
-        invalidClawName: '无效的 claw 名称。仅可使用字母、数字和连字符!',
         clawNameAlreadyExists: '已存在同名的 claw!',
         invalidSubdomain: '无效的子域名。请使用 3-20 个小写字母和数字!',
         subdomainAlreadyInUse: '此子域名已被使用!',
@@ -272,11 +253,7 @@ const zh: Translations = {
         invalidLocation: '请选择一个地区!',
         failedToGenerateKeyPair: '生成密钥对失败。请改为在本地生成密钥!',
         unableToLoadPricing: '无法加载定价信息。请稍后重试!',
-        noPasswordAvailable: '此 claw 没有可用的密码!',
-        clawLimitReached:
-            '您已达到 {{max}} 个 claws 的限制。请联系支持团队以提高此限制!',
-        sshKeyLimitReached:
-            '您已达到 {{max}} 个 SSH 密钥的限制。请联系支持团队以提高此限制!'
+        noPasswordAvailable: '此 claw 没有可用的密码!'
     },
     api: {
         missingRequiredFields: '缺少必填字段!',
@@ -465,7 +442,6 @@ const zh: Translations = {
         authMethodDisconnected: '认证方式断开成功.',
         failedToConnectAuthMethod: '连接认证方式失败!',
         failedToDisconnectAuthMethod: '断开认证方式失败!',
-        textRequired: '文本是必填项!',
         featureEmailsDisabled: '功能邮件目前已禁用.',
         featureEmailsSent: '功能邮件发送成功.',
         featureEmailsFailed: '发送功能邮件失败!',
@@ -725,11 +701,8 @@ const zh: Translations = {
             '您需要 ClawHost Go 许可证才能在本地部署和管理 OpenClaw 实例。'
     },
     network: {
-        unstable: '连接不稳定',
-        unstableDescription: '您的网络连接不稳定。部分功能可能无法正常使用。',
         offline: '无网络连接',
-        offlineDescription: '您当前处于离线状态。需要网络访问的功能将不可用。',
-        dismiss: '关闭'
+        offlineDescription: '您当前处于离线状态。需要网络访问的功能将不可用。'
     },
     dashboard: {
         title: 'Claws',
@@ -1023,30 +996,12 @@ const zh: Translations = {
         heroTitle2: '一键完成。',
         heroDescription:
             '一键在云端或本地部署 OpenClaw 和 Hermes 代理——使用 ClawHost 更快地构建、连接和扩展您的 AI 代理。',
-        goToClaws: '前往 Claws',
         selfHost: '开源',
         startingPrice: '起步价',
         locations: '位置',
         servers: '服务器',
         zeroCount: '零',
         zeroConfig: '零配置',
-        dashboardPreviewTitle: 'Claws',
-        dashboardPreviewSubtitle: '5 个已添加的 claws',
-        deployNew: '部署新实例',
-        running: '运行中',
-        latency: '延迟',
-        howItWorks: '工作原理',
-        threeStepsToPrivacy: '三步部署 OpenClaw',
-        howItWorksDescription:
-            '从零到完整部署的 OpenClaw，全天候使用，完全访问。',
-        step1Title: '选择服务器',
-        step1Description:
-            '从三个提供商的 30+ 个全球位置中选择。我们在几秒钟内为您启动专用 VPS。',
-        step2Title: '自动安装',
-        step2Description:
-            'OpenClaw 已预装，附带直接链接和 VPS 详细信息。无需设置。',
-        step3Title: '属于您的',
-        step3Description: '完全访问 OpenClaw 和 VPS，您可以做的没有限制。',
         features: '功能',
         whyClawHost: '一站式功能',
         featuresDescription: '为什么值得一试，功能不会说谎。',
@@ -1084,26 +1039,6 @@ const zh: Translations = {
         multipleClaws: '多 Claws',
         multipleClawsDescription:
             '从单个仪表板部署和管理多个 OpenClaw 实例。随着增长而扩展。',
-        testimonials: '用户评价',
-        whatPeopleSay: '用户怎么说',
-        testimonialsDescription:
-            '不只是我们说的。看看其他人如何部署 OpenClaw。',
-        testimonial1Quote:
-            '终于有了自己的 AI 服务器。设置只用了 30 秒，已经稳定运行几个月了。',
-        testimonial1Author: 'Alex Chen',
-        testimonial1Role: '软件开发者',
-        testimonial2Quote:
-            '不再与他人共享资源。我的 OpenClaw 实例可以处理我扔给它的一切。',
-        testimonial2Author: 'Maria Santos',
-        testimonial2Role: '数字游民',
-        testimonial3Quote:
-            '一键部署是真的。我完全不懂技术，但不到一分钟就让 OpenClaw 运行起来了。',
-        testimonial3Author: 'James Wilson',
-        testimonial3Role: '自由职业者',
-        testimonial4Quote:
-            '喜欢能看到服务器上运行的所有内容。完全掌控我的 AI 设置。',
-        testimonial4Author: 'Sophie Kim',
-        testimonial4Role: 'AI 爱好者',
         pricing: '定价',
         simpleTransparentPricing: '简单、透明的定价',
         pricingDescription: '选择适合您的方案。没有隐藏费用。',
@@ -1125,8 +1060,6 @@ const zh: Translations = {
         pricePerYear: '${{price}}/yr',
         volumePricePerMonth: '+${{price}}/mo',
         startingPriceValue: '${{price}}/mo',
-        yearlyDiscount: '——免费 2 个月',
-        billedYearly: '按年计费',
         deploy: '部署',
         select: '选择',
         selectPlanLabel: '选择 {{plan}} 方案',
@@ -1135,7 +1068,6 @@ const zh: Translations = {
         unlimitedBandwidth: '无限带宽',
         rootSshAccess: '完整 Root SSH 访问',
         onlineAllDay: '全天候在线',
-        highQualityInternet: '高质量网络',
         showAllPlans: '查看所有方案',
         simplePricing: '简化版',
         planStarter: 'Starter',
@@ -1152,10 +1084,7 @@ const zh: Translations = {
         featureBandwidth: '无限带宽',
         featureSsh: 'Root SSH 访问',
         featureUptime: '全天候在线',
-        featureSharedCpu: '共享CPU',
         featureDedicatedCpu: '专用CPU',
-        featureCommunitySupport: '社区支持',
-        featureInfraSupport: '基础设施支持',
         featureEmailSupport: '邮件支持',
         fastInternet: '高速网络',
         emailSupport: '邮件支持',
@@ -1208,27 +1137,13 @@ const zh: Translations = {
         comparisonExportOthers: '供应商锁定',
         comparisonProvidersUs: '多个服务器提供商',
         comparisonProvidersOthers: '仅单个提供商',
-        comparisonSocialsUs: '社交媒体存在',
-        comparisonSocialsOthers: '无社交媒体',
         comparisonVersionUs: '一键版本切换',
         comparisonVersionOthers: '仅手动更新',
         comparisonTerminalUs: '内置网页终端',
         comparisonTerminalOthers: '需要 SSH 客户端',
         seeFullComparison: '查看完整对比',
         comparisonCtaText: '我们与 SimpleClaw、MyClaw.ai 等逐项对比。',
-        readyToOwnYourPrivacy: '准备部署 OpenClaw 了吗？',
-        ctaDescription:
-            '获取预装 OpenClaw 的专用服务器。完整 root 访问权限、全球位置，几分钟内就绪。您始终拥有它。起价 $25。',
-        deployOpenClawNow: '部署 OpenClaw',
-        selfHostInstead: '选择自托管',
-        noCreditCardRequired: '即时设置',
-        deployIn60Seconds: '安全',
-        demoClawStarted: 'Claw 已启动。',
-        demoClawStopped: 'Claw 已停止。',
-        demoClawRestarting: '正在重启 Claw...',
-        demoClawRestarted: 'Claw 已重启。',
-        demoClawDeleted: 'Claw 已删除。',
-        demoStatus: '{{running}} 运行中，共 {{total}} 个'
+        selfHostInstead: '选择自托管'
     },
     blog: {
         readingTime: '{{minutes}} 分钟阅读',
@@ -1246,8 +1161,7 @@ const zh: Translations = {
         release17Title: 'Hermes Agent Support',
         release17Description:
             '在 ClawHost 上一键部署 Hermes 代理，就像 OpenClaw 一样。',
-        release17Feature1:
-            '像 OpenClaw 一样一键部署 Hermes 代理',
+        release17Feature1: '像 OpenClaw 一样一键部署 Hermes 代理',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1723,11 +1637,6 @@ const zh: Translations = {
         contactText: '如果您对这些条款有任何疑问，请通过以下方式联系我们'
     },
     mobile: {
-        messages: '消息',
-        settings: '设置',
-        comingSoon: '即将推出',
-        messagesPlaceholder: '消息和通知将显示在这里。',
-        settingsPlaceholder: '账户设置和偏好将显示在这里。',
         signIn: '认证',
         signInDescription: '认证以管理和部署您的代理。',
         enterEmail: '电子邮箱',
@@ -1737,23 +1646,15 @@ const zh: Translations = {
         sending: '正在发送...',
         checkYourEmail: '检查您的邮箱',
         codeSentTo: '我们已向以下地址发送了 6 位验证码',
-        enterCode: '输入邮件中的验证码',
         resendCode: '重新发送验证码',
         resendIn: '{{seconds}}秒后重新发送',
         changeEmail: '更改邮箱',
         invalidCode: '验证码无效！',
-        codeExpired: '验证码已过期。请重新获取。',
         signingIn: '认证中...',
         signOut: '退出登录',
-        signedInAs: '已登录为',
         loadMore: '加载更多',
         deployClaw: '部署 Claw',
         deployYourFirstClaw: '部署您的第一个 Claw'
-    },
-    announcement: {
-        title: '服务通知',
-        message:
-            '由于需求量大，{{providers}} 部署暂时不可用。现有代理运行正常。'
     },
     productHunt: {
         liveOn: '已上线',
@@ -1770,8 +1671,7 @@ const zh: Translations = {
     },
     hermesBanner: {
         title: 'Hermes Agent',
-        message: 'Hermes 代理现已支持在 ClawHost 上部署。',
-        deploy: '立即部署'
+        message: 'Hermes 代理现已支持在 ClawHost 上部署。'
     },
     compare: {
         title: '完整对比',
@@ -2130,61 +2030,26 @@ const zh: Translations = {
         contactText:
             '如果您对联盟计划有疑问、需要推荐码方面的帮助或想举报违规行为，请通过以下方式联系我们'
     },
-    hermes: {
-        title: 'Deploy Hermes Agent - ClawHost',
-        description: 'Deploy Hermes Agent on your own VPS with one click. An autonomous agent that grows with you.',
-        badge: 'Hermes Agent',
-        heroTitle1: 'Deploy Hermes Agent',
-        heroTitle2: 'With One Click.',
-        heroDescription: 'An autonomous agent that lives on your server, remembers what it learns, and gets more capable the longer it runs. Deploy it instantly on ClawHost.',
-        deployButton: 'Deploy Hermes Agent',
-        githubButton: 'Self-Host Instead',
-        whyHermes: 'Why Hermes Agent',
-        featuresDescription: 'Hermes Agent is a powerful autonomous agent with persistent memory, real sandboxing, and multi-platform support.',
-        feature1Title: 'Lives Where You Do',
-        feature1Description: 'Telegram, Discord, Slack, WhatsApp, Signal, Email, CLI \u2013 and a growing list of platforms. Start on one, pick up on another.',
-        feature2Title: 'Grows The Longer It Runs',
-        feature2Description: 'Persistent memory and auto-generated skills \u2013 it learns your projects and never forgets how it solved a problem.',
-        feature3Title: 'Scheduled Automations',
-        feature3Description: 'Natural language cron scheduling for reports, backups, and briefings \u2013 running unattended through the gateway.',
-        feature4Title: 'Delegates & Parallelizes',
-        feature4Description: 'Isolated subagents with their own conversations, terminals, and Python RPC scripts for zero-context-cost pipelines.',
-        feature5Title: 'Real Sandboxing',
-        feature5Description: 'Five backends \u2013 local, Docker, SSH, Singularity, Modal \u2013 with container hardening and namespace isolation.',
-        feature6Title: 'Full Web & Browser Control',
-        feature6Description: 'Web search, browser automation, vision, image generation, text-to-speech, and multi-model reasoning.',
-        ctaTitle: 'Ready to deploy Hermes Agent?',
-        ctaDescription: 'Get your own Hermes Agent running on a dedicated VPS in under 60 seconds. No configuration needed.',
-        ctaDeploy: 'Deploy Now',
-        ctaGitHub: 'View on GitHub'
-    },
     v2: {
         title: 'agent.ic — 在云端部署 OpenClaw 和 Hermes',
-        description: '一键在云端部署 OpenClaw 和 Hermes 代理 — 开源、可自托管，专为代理计算的未来而构建。',
+        description:
+            '一键在云端部署 OpenClaw 和 Hermes 代理 — 开源、可自托管，专为代理计算的未来而构建。',
         heroTitle1: '部署',
         heroTitle2: 'AI 代理',
         heroTitle3: '一键部署到云端',
-        heroDescription: '一键在云端部署 OpenClaw 和 Hermes 代理 — 使用 Agentist 更快地构建、连接和扩展您的 AI 代理。',
-        badge: '隆重推出 agent.ic',
+        heroDescription:
+            '一键在云端部署 OpenClaw 和 Hermes 代理 — 使用 Agentist 更快地构建、连接和扩展您的 AI 代理。',
         selfHostLabel: '改为自托管',
         deployButton: '立即部署',
-        learnMore: '了解更多',
         agentsTitle: '您的代理。您的云。',
-        agentsDescription: '从不断增长的 AI 代理目录中选择，每个代理都运行在自己的专用云服务器上。',
+        agentsDescription:
+            '从不断增长的 AI 代理目录中选择，每个代理都运行在自己的专用云服务器上。',
         agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription: '可自托管的云管理平台，具备完整的 SSH、终端、文件浏览器和配置编辑器。',
+        agentOpenclawDescription:
+            '可自托管的云管理平台，具备完整的 SSH、终端、文件浏览器和配置编辑器。',
         agentHermesName: 'Hermes',
-        agentHermesDescription: '具备网页浏览、日历管理、多模型推理和浏览器自动化的自主 AI 代理。',
-        agentComingSoonName: '更多即将推出',
-        agentComingSoonDescription: '新代理正在定期添加中。构建您自己的或从我们不断增长的目录中部署。',
-        howItWorksTitle: '工作原理',
-        howItWorksDescription: '三个步骤。六十秒。您的代理已上线。',
-        step1Title: '选择您的代理',
-        step1Description: '从我们的生产就绪 AI 代理目录中选择。',
-        step2Title: '选择基础设施',
-        step2Description: '选择您的云区域、计划和配置。',
-        step3Title: '即时部署',
-        step3Description: '一键完成。您的代理已在专用基础设施上运行。',
+        agentHermesDescription:
+            '具备网页浏览、日历管理、多模型推理和浏览器自动化的自主 AI 代理。',
         featuresTitle: '面向未来而构建',
         featuresDescription: '大规模运行 AI 代理所需的一切。',
         feature1Title: '多代理平台',
@@ -2193,20 +2058,13 @@ const zh: Translations = {
         agentControlDescription: '从一个仪表板配置和自定义代理的各个方面。',
         multipleAgentsTitle: '多个代理',
         multipleAgentsDescription: '在不同区域和配置中运行多个代理实例。',
-        feature2Title: '专用基础设施',
-        feature2Description: '每个代理运行在自己的 VPS 上。无共享资源，无嘈杂邻居。',
-        feature3Title: '全球边缘网络',
-        feature3Description: '全球30多个位置。将代理部署到离您用户最近的地方。',
-        feature4Title: '一键部署',
-        feature4Description: '从零到运行中的代理不到60秒。无需配置。',
-        feature5Title: '完全 Root 访问',
-        feature5Description: 'SSH、终端、文件浏览器和配置编辑器。您的服务器，您的规则。',
-        feature6Title: '按用量付费',
-        feature6Description: '无承诺。随时扩展或缩减。只为使用的部分付费。',
-        zeroConfigDescription: '跳过数小时的设置。OpenClaw和Hermes已预装，几分钟内即可就绪。',
-        globalLocationsDescription: '在全球30多个区域部署代理。选择离您最近的位置。',
+        zeroConfigDescription:
+            '跳过数小时的设置。OpenClaw和Hermes已预装，几分钟内即可就绪。',
+        globalLocationsDescription:
+            '在全球30多个区域部署代理。选择离您最近的位置。',
         onlineAccessDescription: '通过自定义子域名从任何地方安全访问您的代理。',
-        versionControlDescription: '一键切换代理版本。保持最新，或在需要时回滚。',
+        versionControlDescription:
+            '一键切换代理版本。保持最新，或在需要时回滚。',
         agentsPreinstalled: '代理预安装',
         comparisonAgentAccessUs: '完全访问所有代理',
         comparisonMultipleAgentsUs: '每台服务器多个代理',
@@ -2215,24 +2073,31 @@ const zh: Translations = {
         comparisonUsLabel: '为您托管',
         comparisonOthersLabel: '自己动手',
         faq1Question: '什么是 Agentist？',
-        faq1Answer: 'Agentist 是一个平台，让您可以在自己的专用服务器上部署和管理 AI 代理。我们负责基础设施、安全和维护 — 您只需使用您的代理。',
+        faq1Answer:
+            'Agentist 是一个平台，让您可以在自己的专用服务器上部署和管理 AI 代理。我们负责基础设施、安全和维护 — 您只需使用您的代理。',
         faq2Question: '什么是 OpenClaw？',
-        faq2Answer: 'OpenClaw 是一个自托管的安全访问层，用于您的 AI 工具和服务。它预装在每台 Agentist 服务器上，让您完全控制您的配置。',
+        faq2Answer:
+            'OpenClaw 是一个自托管的安全访问层，用于您的 AI 工具和服务。它预装在每台 Agentist 服务器上，让您完全控制您的配置。',
         faq3Question: '什么是 Hermes？',
-        faq3Answer: 'Hermes 是一个自主 AI 代理，具有网页浏览、日历管理、多模型推理和浏览器自动化功能。它与 OpenClaw 一起预装在每台服务器上。',
+        faq3Answer:
+            'Hermes 是一个自主 AI 代理，具有网页浏览、日历管理、多模型推理和浏览器自动化功能。它与 OpenClaw 一起预装在每台服务器上。',
         faq4Question: '我需要技术知识吗？',
-        faq4Answer: '不需要。Agentist 为每个人设计。我们处理所有基础设施、设置和维护。您可以通过直观的仪表板管理您的代理，无需接触任何服务器。',
+        faq4Answer:
+            '不需要。Agentist 为每个人设计。我们处理所有基础设施、设置和维护。您可以通过直观的仪表板管理您的代理，无需接触任何服务器。',
         faq5Question: '这与其他 AI 平台有什么不同？',
-        faq5Answer: '与托管 AI 工具不同，Agentist 为您提供一台安装了代理的真正专用服务器。您拥有基础设施，控制一切，不受共享平台的限制。',
+        faq5Answer:
+            '与托管 AI 工具不同，Agentist 为您提供一台安装了代理的真正专用服务器。您拥有基础设施，控制一切，不受共享平台的限制。',
         faq6Question: '有哪些可用位置？',
-        faq6Answer: '我们在全球提供 30 多个服务器位置，包括美国、欧洲和亚洲。您可以在不同区域的多台服务器上部署代理。',
+        faq6Answer:
+            '我们在全球提供 30 多个服务器位置，包括美国、欧洲和亚洲。您可以在不同区域的多台服务器上部署代理。',
         faq7Question: '费用是多少？',
-        faq7Answer: '根据您选择的服务器，价格从每月 40 美元起。从入门级到高性能有多种选择。没有隐藏费用，随时取消。',
-        footerDescription: '一键将 OpenClaw 和 Hermes 代理部署到云端 — 使用 Agentist 更快地构建、连接和扩展您的 AI 代理。',
+        faq7Answer:
+            '根据您选择的服务器，价格从每月 40 美元起。从入门级到高性能有多种选择。没有隐藏费用，随时取消。',
+        footerDescription:
+            '一键将 OpenClaw 和 Hermes 代理部署到云端 — 使用 Agentist 更快地构建、连接和扩展您的 AI 代理。',
         ctaTitle: '准备好部署了吗？',
-        ctaDescription: '加入下一代代理部署。您的基础设施，您的代理，您的规则。',
-        stats1Value: 'OpenClaw & Hermes',
-        stats1Label: '代理',
+        ctaDescription:
+            '加入下一代代理部署。您的基础设施，您的代理，您的规则。',
         stats2Value: '30+',
         stats2Label: '区域',
         stats3Value: '<60s',
@@ -2246,25 +2111,11 @@ const zh: Translations = {
         planPowerTagline: '适用于大规模运营',
         planPower: 'Power',
         pricingPageTitle: '价格 — agent.ic',
-        pricingPageDescription: 'AI代理部署的透明定价。选择适合您需求的方案，无隐藏费用。',
-        pricingHeroTitle: '简单透明的定价',
-        pricingHeroDescription: '无隐藏费用，无意外。选择适合您工作负载的方案，按需扩展。',
+        pricingPageDescription:
+            'AI代理部署的透明定价。选择适合您需求的方案，无隐藏费用。',
         featuresPageTitle: '功能 — agent.ic',
-        featuresPageDescription: '探索agent.ic的所有功能——多代理部署、专用基础设施、全球区域和完整的root访问权限。',
-        featuresHeroTitle: '您所需要的一切',
-        featuresHeroDescription: '从一键部署到完整的root访问——大规模运行AI代理所需的每一个工具，全部内置。'
-    },
-    hermesGo: {
-        pageTitle: 'ClawHost Go - Hermes Agent',
-        description: '轻量级桌面客户端，本地部署 Hermes Agent。部署、监控和控制您的代理 — 直接从您的电脑。',
-        badge: 'Hermes Agent Go',
-        heroTitle1: '部署 Hermes。',
-        heroTitle2: '本地。即时。',
-        heroDescription: '轻量级桌面客户端，管理您的 Hermes Agent 实例。部署、监控和控制您的代理 — 直接从您的电脑。',
-        whyHermesGo: '一体化功能',
-        featuresDescription: '为什么值得一试 — 功能不会说谎。',
-        ctaTitle: '本地运行 Hermes Agent',
-        ctaDescription: '一次付款，终身许可。在您自己的电脑上部署 Hermes Agent — 无需云端、无需订阅、无限制。您的数据，您做主。'
+        featuresPageDescription:
+            '探索agent.ic的所有功能——多代理部署、专用基础设施、全球区域和完整的root访问权限。'
     }
 }
 

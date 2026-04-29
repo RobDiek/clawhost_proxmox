@@ -316,20 +316,6 @@ export interface PolarOrderRaw {
     createdAt: Date | string
 }
 
-export interface PolarProductPrice {
-    priceAmount: number
-    priceCurrency: string
-}
-
-export interface PolarProductRaw {
-    id: string
-    name: string
-    description?: string | null
-    isRecurring: boolean
-    isArchived: boolean
-    prices?: PolarProductPrice[]
-}
-
 export interface PolarCustomer {
     id: string
     email: string
