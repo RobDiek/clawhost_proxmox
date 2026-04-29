@@ -69,11 +69,11 @@
 
 @keyframes banner-slide-down {
     from {
-        max-height: 0;
+        transform: translateY(-100%);
         opacity: 0;
     }
     to {
-        max-height: 200px;
+        transform: translateY(0);
         opacity: 1;
     }
 }
@@ -116,7 +116,7 @@
 }
 
 .animate-banner-enter {
-    animation: banner-slide-down 0.3s ease-in-out both;
+    animation: banner-slide-down 0.5s ease-out both;
 }
 
 .cv-auto {

@@ -424,6 +424,7 @@ export interface ScrollRevealV2Props {
 export interface DitherHoverHandlers {
     onMouseMove: (e: import('react').MouseEvent<HTMLElement>) => void
     onMouseLeave: (e: import('react').MouseEvent<HTMLElement>) => void
+    resetDither: (el: HTMLElement | null) => void
 }
 
 export interface HeaderProps {

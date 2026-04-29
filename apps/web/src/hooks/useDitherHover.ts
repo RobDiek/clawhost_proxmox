@@ -6,19 +6,55 @@ import { useCallback, useRef } from 'react'
 const VIDEO_OFFSET_RATIO = 0.2
 const REVEAL_SIZE = 200
 const SOUND_URL = '/sounds/static-noise.mp3'
-const SOUND_VOLUME = 0.05
+const SOUND_VOLUME = 0.015
+const FADE_DURATION = 300
 
 const useDitherHover = (): DitherHoverHandlers => {
     const audioRef = useRef<HTMLAudioElement | null>(null)
     const preloadedRef = useRef(false)
+    const fadeRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
     const ensureAudio = useCallback(() => {
         if (audioRef.current) return
         const audio = new Audio(SOUND_URL)
         audio.loop = true
-        audio.volume = SOUND_VOLUME
+        audio.volume = 0
         audio.preload = 'auto'
         audioRef.current = audio
+    }, [])
+
+    const fadeIn = useCallback(() => {
+        if (fadeRef.current) clearInterval(fadeRef.current)
+        const audio = audioRef.current
+        if (!audio) return
+        const step = SOUND_VOLUME / (FADE_DURATION / 16)
+        fadeRef.current = setInterval(() => {
+            if (audio.volume + step >= SOUND_VOLUME) {
+                audio.volume = SOUND_VOLUME
+                if (fadeRef.current) clearInterval(fadeRef.current)
+                fadeRef.current = null
+            } else {
+                audio.volume += step
+            }
+        }, 16)
+    }, [])
+
+    const fadeOut = useCallback(() => {
+        if (fadeRef.current) clearInterval(fadeRef.current)
+        const audio = audioRef.current
+        if (!audio) return
+        const step = SOUND_VOLUME / (FADE_DURATION / 16)
+        fadeRef.current = setInterval(() => {
+            if (audio.volume - step <= 0) {
+                audio.volume = 0
+                audio.pause()
+                audio.currentTime = 0
+                if (fadeRef.current) clearInterval(fadeRef.current)
+                fadeRef.current = null
+            } else {
+                audio.volume -= step
+            }
+        }, 16)
     }, [])
 
     const startSound = useCallback(() => {
@@ -29,14 +65,10 @@ const useDitherHover = (): DitherHoverHandlers => {
             audio.load()
             preloadedRef.current = true
         }
+        audio.volume = 0
         audio.play().catch(() => {})
-    }, [ensureAudio])
-
-    const stopSound = useCallback(() => {
-        if (!audioRef.current) return
-        audioRef.current.pause()
-        audioRef.current.currentTime = 0
-    }, [])
+        fadeIn()
+    }, [ensureAudio, fadeIn])
 
     const onMouseMove = useCallback((e: MouseEvent<HTMLElement>) => {
         const el = e.currentTarget
@@ -66,10 +98,23 @@ const useDitherHover = (): DitherHoverHandlers => {
         el.style.setProperty('--sq-y', '-999px')
         el.style.setProperty('--sq-w', '0px')
         el.style.setProperty('--sq-h', '0px')
-        stopSound()
-    }, [stopSound])
+        fadeOut()
+    }, [fadeOut])
 
-    return { onMouseMove, onMouseLeave }
+    const resetDither = useCallback((el: HTMLElement | null) => {
+        if (!el) return
+        el.style.setProperty('--sq-clip-top', '100%')
+        el.style.setProperty('--sq-clip-right', '100%')
+        el.style.setProperty('--sq-clip-bottom', '100%')
+        el.style.setProperty('--sq-clip-left', '100%')
+        el.style.setProperty('--sq-x', '-999px')
+        el.style.setProperty('--sq-y', '-999px')
+        el.style.setProperty('--sq-w', '0px')
+        el.style.setProperty('--sq-h', '0px')
+        fadeOut()
+    }, [fadeOut])
+
+    return { onMouseMove, onMouseLeave, resetDither }
 }
 
 export default useDitherHover

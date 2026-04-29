@@ -51,8 +51,9 @@ const V2: FC = (): ReactNode => {
 
     const baseVideoRef = useRef<HTMLVideoElement>(null)
     const ditherVideoRef = useRef<HTMLVideoElement>(null)
+    const heroSectionRef = useRef<HTMLElement>(null)
     useVideoSync(baseVideoRef, ditherVideoRef)
-    const { onMouseMove, onMouseLeave } = useDitherHover()
+    const { onMouseMove, onMouseLeave, resetDither } = useDitherHover()
 
     const deployLink = user
         ? `${ROUTES.AGENTS}?deploy=true`
@@ -94,6 +95,7 @@ const V2: FC = (): ReactNode => {
 
             <main className='v2-content'>
                 <section
+                    ref={heroSectionRef}
                     className='v2-video-wrap relative flex h-[85vh] cursor-crosshair flex-col justify-start overflow-hidden px-6 pt-[18vh]'
                     onMouseMove={onMouseMove}
                     onMouseLeave={onMouseLeave}
@@ -121,8 +123,12 @@ const V2: FC = (): ReactNode => {
 
                     <div className='pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(10,10,15,0.9)_0%,rgba(10,10,15,0.3)_30%,#020204_70%)]' />
 
-                    <div className='absolute inset-0 z-10 flex flex-col justify-end pb-6'>
-                        <div className='mx-auto w-full max-w-6xl px-4 xl:px-0'>
+                    <div className='pointer-events-none absolute inset-0 z-10 flex flex-col justify-end pb-6'>
+                        <div
+                            className='pointer-events-auto mx-auto w-full max-w-6xl px-4 xl:px-0'
+                            onMouseMove={(e) => e.stopPropagation()}
+                            onMouseEnter={() => resetDither(heroSectionRef.current)}
+                        >
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
