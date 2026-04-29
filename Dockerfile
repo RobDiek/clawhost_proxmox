@@ -10,18 +10,13 @@ COPY apps/web/package.json apps/web/
 COPY packages/shared/package.json packages/shared/
 COPY packages/i18n/package.json packages/i18n/
 
-RUN bun install --linker=hoisted
+RUN bun install
 
 FROM oven/bun:1.3.2 AS runtime
 
 WORKDIR /app
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY package.json ./
-COPY apps/api/package.json apps/api/
-COPY apps/web/package.json apps/web/
-COPY packages/shared/package.json packages/shared/
-COPY packages/i18n/package.json packages/i18n/
+COPY --from=deps /app ./
 
 COPY packages/ packages/
 COPY apps/api/src/ apps/api/src/
