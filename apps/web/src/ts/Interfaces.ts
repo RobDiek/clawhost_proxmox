@@ -809,7 +809,6 @@ export interface BlogPostFrontmatter {
     publishedAt: string
     updatedAt?: string
     tags: string[]
-    coverImage?: string
 }
 
 export interface BlogPostMeta extends BlogPostFrontmatter {

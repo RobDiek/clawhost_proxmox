@@ -193,9 +193,7 @@ for (const page of staticPages) {
 }
 
 for (const post of posts) {
-    const imageUrl = post.coverImage
-        ? `${SITE_URL}${post.coverImage}`
-        : `${SITE_URL}/og-image.webp`
+    const imageUrl = `${SITE_URL}/og/${post.slug}.png`
 
     const postHtml = injectMeta(template, {
         title: post.title,
