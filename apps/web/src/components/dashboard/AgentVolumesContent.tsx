@@ -10,6 +10,7 @@ import {
     InfoIcon
 } from '@phosphor-icons/react'
 import { PanelPlaceholder } from '@/components/shared'
+import { SUPPORT_EMAIL } from '@/lib/links'
 
 const formatSize = (sizeInGb: number): string => {
     if (sizeInGb >= 1000) return `${(sizeInGb / 1000).toFixed(1)} TB`
@@ -51,7 +52,7 @@ const AgentVolumesContent: FC<AgentVolumesContentProps> = ({
                     <p>
                         {t('clawDetail.volumesReadOnly')}{' '}
                         <a
-                            href={`mailto:${t('common.supportEmail')}`}
+                            href={`mailto:${SUPPORT_EMAIL}`}
                             className='text-blue-500 underline decoration-transparent transition-colors hover:decoration-blue-500'
                         >
                             {t('clawDetail.volumesContactSupport')}

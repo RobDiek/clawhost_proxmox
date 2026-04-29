@@ -35,7 +35,6 @@ const tr: Translations = {
         menuView: 'Görünüm',
         menuWindow: 'Pencere',
         menuHelp: 'Yardım',
-        supportEmail: 'support@clawhost.cloud',
         scrollToBottom: 'Alta Kaydır',
         second: 'saniye',
         seconds: 'saniye'

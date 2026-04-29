@@ -33,7 +33,7 @@ const en = {
         menuView: 'View',
         menuWindow: 'Window',
         menuHelp: 'Help',
-        supportEmail: 'support@clawhost.cloud',
+
         scrollToBottom: 'Scroll to Bottom',
         second: 'second',
         seconds: 'seconds'

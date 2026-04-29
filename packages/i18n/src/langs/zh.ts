@@ -35,7 +35,6 @@ const zh: Translations = {
         menuView: '显示',
         menuWindow: '窗口',
         menuHelp: '帮助',
-        supportEmail: 'support@clawhost.cloud',
         scrollToBottom: '滚动到底部',
         second: '秒',
         seconds: '秒'

@@ -35,7 +35,6 @@ const ja: Translations = {
         menuView: '表示',
         menuWindow: 'ウインドウ',
         menuHelp: 'ヘルプ',
-        supportEmail: 'support@clawhost.cloud',
         scrollToBottom: '一番下にスクロール',
         second: '秒',
         seconds: '秒'

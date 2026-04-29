@@ -169,7 +169,7 @@ const Compare: FC = (): ReactNode => {
                         href={`mailto:${SUPPORT_EMAIL}`}
                         className='text-foreground underline'
                     >
-                        {t('common.supportEmail')}
+                        {SUPPORT_EMAIL}
                     </a>{' '}
                     {t('compare.disclaimerOr')}{' '}
                     <a
