@@ -35,7 +35,6 @@ const nl: Translations = {
         menuView: 'Weergave',
         menuWindow: 'Venster',
         menuHelp: 'Help',
-        supportEmail: 'support@clawhost.cloud',
         scrollToBottom: 'Naar beneden scrollen',
         second: 'seconde',
         seconds: 'seconden'

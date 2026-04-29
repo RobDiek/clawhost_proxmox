@@ -35,7 +35,6 @@ const ru: Translations = {
         menuView: 'Вид',
         menuWindow: 'Окно',
         menuHelp: 'Справка',
-        supportEmail: 'support@clawhost.cloud',
         scrollToBottom: 'Прокрутить вниз',
         second: 'секунда',
         seconds: 'секунд'

@@ -17,7 +17,7 @@ const LegalContactSection: FC<LegalContactSectionProps> = ({
                     href={`mailto:${SUPPORT_EMAIL}`}
                     className='text-primary hover:underline'
                 >
-                    {t('common.supportEmail')}
+                    {SUPPORT_EMAIL}
                 </a>
             </p>
         </section>

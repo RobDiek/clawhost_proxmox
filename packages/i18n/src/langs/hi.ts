@@ -35,7 +35,6 @@ const hi: Translations = {
         menuView: 'दृश्य',
         menuWindow: 'विंडो',
         menuHelp: 'सहायता',
-        supportEmail: 'support@clawhost.cloud',
         scrollToBottom: 'नीचे स्क्रॉल करें',
         second: 'सेकंड',
         seconds: 'सेकंड'

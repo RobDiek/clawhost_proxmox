@@ -35,7 +35,6 @@ const ar: Translations = {
         menuView: 'عرض',
         menuWindow: 'نافذة',
         menuHelp: 'مساعدة',
-        supportEmail: 'support@clawhost.cloud',
         scrollToBottom: 'انتقل إلى الأسفل',
         second: 'ثانية',
         seconds: 'ثوانٍ'

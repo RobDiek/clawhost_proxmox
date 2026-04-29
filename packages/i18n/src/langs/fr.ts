@@ -35,7 +35,6 @@ const fr: Translations = {
         menuView: 'Présentation',
         menuWindow: 'Fenêtre',
         menuHelp: 'Aide',
-        supportEmail: 'support@clawhost.cloud',
         scrollToBottom: 'Défiler vers le bas',
         second: 'seconde',
         seconds: 'secondes'
