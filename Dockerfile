@@ -7,7 +7,8 @@ COPY apps/api/package.json apps/api/
 COPY packages/shared/package.json packages/shared/
 COPY packages/i18n/package.json packages/i18n/
 
-RUN bun install --production --no-frozen-lockfile
+ENV BUN_FROZEN_LOCKFILE=0
+RUN bun install --production
 
 FROM oven/bun:1.3.2 AS runtime
 
