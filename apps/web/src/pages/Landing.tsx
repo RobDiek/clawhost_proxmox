@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useScroll, useTransform } from 'framer-motion'
 import { t } from '@openclaw/i18n'
-import { externalUrls } from '@openclaw/shared'
+import { externalUrls, PLANS } from '@openclaw/shared'
 import {
     PageTitle,
     Header,
@@ -32,7 +32,7 @@ import {
     TIKTOK_URL,
     TUTORIAL_URL
 } from '@/lib/links'
-import { usePlans, GITHUB_REPO_URL } from '@/hooks'
+import { GITHUB_REPO_URL } from '@/hooks'
 import { useUIStore, usePreferencesStore } from '@/lib/store'
 import { PRODUCT } from '@/lib/constants'
 import {
@@ -90,21 +90,9 @@ const Landing: FC = (): ReactNode => {
     }, [setProduct])
     const showTutorialBadge = true
     const [videoOpen, setVideoOpen] = useState(false)
-    const {
-        plans: hetznerPlans,
-        isLoading: hetznerLoading,
-        atCapacity: hetznerAtCapacity
-    } = usePlans()
-
-    const announcementVisible =
-        !phBannerVisible &&
-        !hetznerLoading &&
-        (!hetznerPlans?.length || hetznerAtCapacity)
-
-    const allDoneLoading = !hetznerLoading
+    const hetznerPlans = PLANS
 
     const plans = hetznerPlans
-    const plansLoading = hetznerLoading
 
     const [activeSection, setActiveSection] = useState('')
 
@@ -213,7 +201,7 @@ const Landing: FC = (): ReactNode => {
 
             <main>
                 <section
-                    className={`relative overflow-hidden px-6 pb-16 ${phBannerVisible ? 'pt-44' : announcementVisible ? 'pt-44' : 'pt-32'}`}
+                    className={`relative overflow-hidden px-6 pb-16 ${phBannerVisible ? 'pt-44' : 'pt-32'}`}
                 >
                     <div className='landing-grid pointer-events-none' />
 
@@ -342,8 +330,6 @@ const Landing: FC = (): ReactNode => {
 
                 <PricingSection
                     plans={plans}
-                    plansLoading={plansLoading}
-                    allDoneLoading={allDoneLoading}
                 />
 
                 <ComparisonTable

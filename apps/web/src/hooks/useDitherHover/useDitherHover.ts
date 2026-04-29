@@ -2,12 +2,8 @@ import type { MouseEvent } from 'react'
 import type { DitherHoverHandlers } from '@/ts/Interfaces'
 
 import { useCallback, useRef } from 'react'
-
-const VIDEO_OFFSET_RATIO = 0.2
-const REVEAL_SIZE = 200
-const SOUND_URL = '/sounds/static-noise.mp3'
-const SOUND_VOLUME = 0.0075
-const FADE_DURATION = 300
+import { SOUND_URL, SOUND_VOLUME, FADE_DURATION, FADE_STEP_INTERVAL } from '@/hooks/useDitherHover/constants'
+import { applyDitherClip, clearDitherClip } from '@/hooks/useDitherHover/helpers'
 
 const useDitherHover = (): DitherHoverHandlers => {
     const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -27,7 +23,7 @@ const useDitherHover = (): DitherHoverHandlers => {
         if (fadeRef.current) clearInterval(fadeRef.current)
         const audio = audioRef.current
         if (!audio) return
-        const step = SOUND_VOLUME / (FADE_DURATION / 16)
+        const step = SOUND_VOLUME / (FADE_DURATION / FADE_STEP_INTERVAL)
         fadeRef.current = setInterval(() => {
             if (audio.volume + step >= SOUND_VOLUME) {
                 audio.volume = SOUND_VOLUME
@@ -36,14 +32,14 @@ const useDitherHover = (): DitherHoverHandlers => {
             } else {
                 audio.volume += step
             }
-        }, 16)
+        }, FADE_STEP_INTERVAL)
     }, [])
 
     const fadeOut = useCallback(() => {
         if (fadeRef.current) clearInterval(fadeRef.current)
         const audio = audioRef.current
         if (!audio) return
-        const step = SOUND_VOLUME / (FADE_DURATION / 16)
+        const step = SOUND_VOLUME / (FADE_DURATION / FADE_STEP_INTERVAL)
         fadeRef.current = setInterval(() => {
             if (audio.volume - step <= 0) {
                 audio.volume = 0
@@ -54,7 +50,7 @@ const useDitherHover = (): DitherHoverHandlers => {
             } else {
                 audio.volume -= step
             }
-        }, 16)
+        }, FADE_STEP_INTERVAL)
     }, [])
 
     const startSound = useCallback(() => {
@@ -71,46 +67,18 @@ const useDitherHover = (): DitherHoverHandlers => {
     }, [ensureAudio, fadeIn])
 
     const onMouseMove = useCallback((e: MouseEvent<HTMLElement>) => {
-        const el = e.currentTarget
-        const rect = el.getBoundingClientRect()
-        const mx = e.clientX - rect.left
-        const mySect = e.clientY - rect.top
-        const myVid = mySect + rect.height * VIDEO_OFFSET_RATIO
-        const half = REVEAL_SIZE / 2
-        el.style.setProperty('--sq-clip-top', `${Math.max(0, myVid - half)}px`)
-        el.style.setProperty('--sq-clip-right', `${Math.max(0, rect.width - mx - half)}px`)
-        el.style.setProperty('--sq-clip-bottom', `${Math.max(0, rect.height - myVid - half)}px`)
-        el.style.setProperty('--sq-clip-left', `${Math.max(0, mx - half)}px`)
-        el.style.setProperty('--sq-x', `${mx - half}px`)
-        el.style.setProperty('--sq-y', `${mySect - half}px`)
-        el.style.setProperty('--sq-w', `${REVEAL_SIZE}px`)
-        el.style.setProperty('--sq-h', `${REVEAL_SIZE}px`)
+        applyDitherClip(e.currentTarget, e.clientX, e.clientY)
         if (audioRef.current?.paused !== false) startSound()
     }, [startSound])
 
     const onMouseLeave = useCallback((e: MouseEvent<HTMLElement>) => {
-        const el = e.currentTarget
-        el.style.setProperty('--sq-clip-top', '100%')
-        el.style.setProperty('--sq-clip-right', '100%')
-        el.style.setProperty('--sq-clip-bottom', '100%')
-        el.style.setProperty('--sq-clip-left', '100%')
-        el.style.setProperty('--sq-x', '-999px')
-        el.style.setProperty('--sq-y', '-999px')
-        el.style.setProperty('--sq-w', '0px')
-        el.style.setProperty('--sq-h', '0px')
+        clearDitherClip(e.currentTarget)
         fadeOut()
     }, [fadeOut])
 
     const resetDither = useCallback((el: HTMLElement | null) => {
         if (!el) return
-        el.style.setProperty('--sq-clip-top', '100%')
-        el.style.setProperty('--sq-clip-right', '100%')
-        el.style.setProperty('--sq-clip-bottom', '100%')
-        el.style.setProperty('--sq-clip-left', '100%')
-        el.style.setProperty('--sq-x', '-999px')
-        el.style.setProperty('--sq-y', '-999px')
-        el.style.setProperty('--sq-w', '0px')
-        el.style.setProperty('--sq-h', '0px')
+        clearDitherClip(el)
         fadeOut()
     }, [fadeOut])
 

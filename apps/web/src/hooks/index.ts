@@ -68,7 +68,6 @@ import {
 } from '@/hooks/useUser'
 
 import {
-    usePlans,
     useLocations,
     useVolumePricing,
     usePlanAvailability
@@ -78,6 +77,7 @@ import { useGitHubStars, GITHUB_REPO_URL } from '@/hooks/useGitHubStars'
 
 import useAgentCardActions from '@/hooks/useAgentCardActions'
 import useScrollToBottom from '@/hooks/useScrollToBottom'
+import { useCountUp } from '@/hooks/useCountUp'
 import useDebouncedValue from '@/hooks/useDebouncedValue'
 import useNetworkStatus from '@/hooks/useNetworkStatus'
 import useThemeEffect from '@/hooks/useThemeEffect'
@@ -155,13 +155,13 @@ export {
     useBillingHistory,
     PROFILE_QUERY_KEY,
     USER_STATS_QUERY_KEY,
-    usePlans,
     useLocations,
     useVolumePricing,
     usePlanAvailability,
     useGitHubStars,
     GITHUB_REPO_URL,
     useAgentCardActions,
+    useCountUp,
     useDebouncedValue,
     useNetworkStatus,
     useScrollToBottom,

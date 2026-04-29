@@ -21,8 +21,9 @@ import {
     SectionLabelV2
 } from '@/components'
 
+import { PLANS } from '@openclaw/shared'
 import {
-    usePlans,
+    useCountUp,
     useGitHubStars,
     GITHUB_REPO_URL,
     useVideoSync,
@@ -49,11 +50,9 @@ import {
 const V2: FC = (): ReactNode => {
     const { user } = useAuth()
     const { data: gitHubStars } = useGitHubStars()
+    const animatedStars = useCountUp(gitHubStars?.count ?? 0)
 
-    const {
-        plans: hetznerPlans,
-        isLoading: hetznerLoading
-    } = usePlans()
+    const hetznerPlans = PLANS
 
     const baseVideoRef = useRef<HTMLVideoElement>(null)
     const ditherVideoRef = useRef<HTMLVideoElement>(null)
@@ -185,7 +184,7 @@ const V2: FC = (): ReactNode => {
                                         {t('v2.selfHostLabel').toUpperCase()}
                                         {gitHubStars && (
                                             <span className='bg-white/10 flex items-center gap-1 px-2 py-0.5 text-[10px]'>
-                                                {gitHubStars.formatted}
+                                                {animatedStars}
                                                 <span className='text-[10px]'>★</span>
                                             </span>
                                         )}
@@ -276,8 +275,6 @@ const V2: FC = (): ReactNode => {
 
                 <PricingSectionV2
                     plans={hetznerPlans}
-                    plansLoading={hetznerLoading}
-                    allDoneLoading={!hetznerLoading}
                 />
 
                 <ComparisonTableV2
@@ -325,7 +322,7 @@ const V2: FC = (): ReactNode => {
                                         {t('v2.selfHostLabel').toUpperCase()}
                                         {gitHubStars && (
                                             <span className='flex items-center gap-1 bg-white/10 px-2 py-0.5 text-[10px]'>
-                                                {gitHubStars.formatted}
+                                                {animatedStars}
                                                 <span className='text-[10px]'>★</span>
                                             </span>
                                         )}

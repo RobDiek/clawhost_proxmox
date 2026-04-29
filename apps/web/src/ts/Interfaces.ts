@@ -85,12 +85,6 @@ export interface Plan {
     priceMonthly: number
     priceYearly: number
     architecture: string
-    disabled?: boolean
-}
-
-export interface PlansResponse {
-    plans: Plan[]
-    atCapacity: boolean
 }
 
 export interface Location {
@@ -1419,10 +1413,13 @@ export interface VideoModalProps {
 }
 
 export interface PricingSectionProps {
-    plans: Plan[] | undefined
-    plansLoading: boolean
-    allDoneLoading: boolean
+    plans: Plan[]
     hideBorderTop?: boolean
+}
+
+export interface BillingToggleV2Props {
+    isYearly: boolean
+    onChange: (isYearly: boolean) => void
 }
 
 export interface SimplePlanFeature {
@@ -1651,7 +1648,6 @@ export interface LocationSelectorProps {
     locations: Location[]
     location: string
     planId: string
-    atCapacity: boolean
     isLoading: boolean
     isLocationAvailableForPlan: (locationId: string, planId: string) => boolean
     onLocationChange: (location: string) => void

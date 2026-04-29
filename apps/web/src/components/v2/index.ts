@@ -1,3 +1,4 @@
+import BillingToggleV2 from '@/components/v2/BillingToggleV2'
 import LogoV2 from '@/components/v2/LogoV2'
 import ComparisonTableV2 from '@/components/v2/ComparisonTableV2'
 import FaqSectionV2 from '@/components/v2/FaqSectionV2'
@@ -11,6 +12,7 @@ import SectionLabelV2 from '@/components/v2/SectionLabelV2'
 import buildV2Plans from '@/components/v2/buildV2Plans'
 
 export {
+    BillingToggleV2,
     LogoV2,
     ComparisonTableV2,
     FaqSectionV2,

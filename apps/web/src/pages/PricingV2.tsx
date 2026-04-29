@@ -1,7 +1,5 @@
 import type { FC, ReactNode } from 'react'
 
-import { Link } from 'react-router-dom'
-import { t } from '@openclaw/i18n'
 import {
     PageTitle,
     JsonLd,
@@ -12,10 +10,15 @@ import {
     ScrollRevealV2,
     SectionLabelV2
 } from '@/components'
+
+import { Link } from 'react-router-dom'
+import { t } from '@openclaw/i18n'
 import { getBaseDomain, ROUTES } from '@/lib'
 import { useAuth } from '@/lib/auth'
-import { usePlans, useGitHubStars, GITHUB_REPO_URL, useGridFade } from '@/hooks'
+import { PLANS } from '@openclaw/shared'
+import { useGitHubStars, GITHUB_REPO_URL, useGridFade } from '@/hooks'
 import { getV2NavLinks } from '@/data'
+
 import {
     ArrowRightIcon,
     GithubLogoIcon,
@@ -27,10 +30,7 @@ const PricingV2: FC = (): ReactNode => {
     const { data: gitHubStars } = useGitHubStars()
     useGridFade()
 
-    const {
-        plans: hetznerPlans,
-        isLoading: hetznerLoading
-    } = usePlans()
+    const hetznerPlans = PLANS
 
     const deployLink = user
         ? `${ROUTES.AGENTS}?deploy=true`
@@ -65,8 +65,6 @@ const PricingV2: FC = (): ReactNode => {
                 <PricingSectionV2
                     hideBorderTop={true}
                     plans={hetznerPlans}
-                    plansLoading={hetznerLoading}
-                    allDoneLoading={!hetznerLoading}
                 />
 
                 <FaqSectionV2
@@ -92,9 +90,11 @@ const PricingV2: FC = (): ReactNode => {
                                 <h2 className='font-syne mb-2 text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl'>
                                     {t('v2.ctaTitle')}
                                 </h2>
+
                                 <p className='mb-10 max-w-lg font-mono text-sm leading-relaxed text-white/40'>
                                     {t('v2.ctaDescription')}
                                 </p>
+
                                 <div className='flex flex-col gap-3 sm:flex-row'>
                                     <Link
                                         to={deployLink}
@@ -104,6 +104,7 @@ const PricingV2: FC = (): ReactNode => {
                                         {t('v2.deployButton').toUpperCase()}
                                         <ArrowRightIcon className='h-3.5 w-3.5 transition-transform duration-200 group-hover/deploy:translate-x-1' />
                                     </Link>
+
                                     <a
                                         href={GITHUB_REPO_URL}
                                         target='_blank'
@@ -111,7 +112,9 @@ const PricingV2: FC = (): ReactNode => {
                                         className='inline-flex items-center gap-2 border border-white/20 bg-white/5 px-8 py-4 font-mono text-xs tracking-[0.15em] text-white/70 transition-colors hover:bg-white/10'
                                     >
                                         <GithubLogoIcon className='h-3.5 w-3.5' weight='fill' />
+
                                         {t('v2.selfHostLabel').toUpperCase()}
+
                                         {gitHubStars && (
                                             <span className='flex items-center gap-1 bg-white/10 px-2 py-0.5 text-[10px]'>
                                                 {gitHubStars.formatted}

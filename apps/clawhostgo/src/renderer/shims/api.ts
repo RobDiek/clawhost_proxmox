@@ -15,7 +15,6 @@ import type {
     DiagnosticsLogsResponse,
     DiagnosticsStatusResponse,
     Location,
-    PlansResponse,
     PlanAvailability,
     PurchaseAgentResponse,
     ReadAgentFileResponse,
@@ -29,7 +28,7 @@ import type {
     VolumePricing
 } from '@/ts/Interfaces'
 
-import { RequestClient } from '@openclaw/shared'
+import { RequestClient, PLANS } from '@openclaw/shared'
 import { signOut } from 'firebase/auth'
 import { auth, clearTokenCache, getCachedToken } from '@/lib/firebase'
 
@@ -77,8 +76,7 @@ const api = {
             data
         ),
 
-    getPlans: (_provider?: string) =>
-        invoke('getPlans') as Promise<PlansResponse>,
+    getPlans: () => Promise.resolve(PLANS),
     getLocations: (_provider?: string) =>
         invoke('getLocations') as Promise<Location[]>,
     getVolumePricing: (_provider?: string) =>
