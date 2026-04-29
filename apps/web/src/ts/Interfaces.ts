@@ -444,6 +444,7 @@ export interface FeaturesGridProps {
     heading: string
     description: string
     features: FeatureItem[]
+    hideBorderTop?: boolean
 }
 
 export interface LandingDemoPreviewProps {
@@ -1421,6 +1422,7 @@ export interface PricingSectionProps {
     plans: Plan[] | undefined
     plansLoading: boolean
     allDoneLoading: boolean
+    hideBorderTop?: boolean
 }
 
 export interface SimplePlanFeature {

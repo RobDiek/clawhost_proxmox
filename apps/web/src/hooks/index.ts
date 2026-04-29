@@ -98,6 +98,7 @@ import useCustomerPortal from '@/hooks/useCustomerPortal'
 import useTerminalConnection from '@/hooks/useTerminalConnection'
 import useVideoSync from '@/hooks/useVideoSync'
 import useDitherHover from '@/hooks/useDitherHover'
+import useGridFade from '@/hooks/useGridFade'
 
 export {
     useAdminAnalytics,
@@ -181,5 +182,6 @@ export {
     useCustomerPortal,
     useTerminalConnection,
     useVideoSync,
-    useDitherHover
+    useDitherHover,
+    useGridFade
 }

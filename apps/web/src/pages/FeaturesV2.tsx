@@ -14,10 +14,8 @@ import {
 } from '@/components'
 import { getBaseDomain, ROUTES } from '@/lib'
 import { useAuth } from '@/lib/auth'
-import { useGitHubStars, GITHUB_REPO_URL } from '@/hooks'
-import {
-    getV2Features
-} from '@/data'
+import { useGitHubStars, GITHUB_REPO_URL, useGridFade } from '@/hooks'
+import { getV2Features, getV2NavLinks } from '@/data'
 import {
     ArrowRightIcon,
     GithubLogoIcon,
@@ -27,18 +25,13 @@ import {
 const FeaturesV2: FC = (): ReactNode => {
     const { user } = useAuth()
     const { data: gitHubStars } = useGitHubStars()
+    useGridFade()
 
     const deployLink = user
         ? `${ROUTES.AGENTS}?deploy=true`
         : `${ROUTES.LOGIN}?deploy=true`
 
-    const navLinks = [
-        { label: 'Cloud', href: ROUTES.V2, id: 'cloud' },
-        { label: 'Go', href: ROUTES.GO, id: 'go' },
-        { label: t('landing.features'), href: ROUTES.FEATURES, id: 'features' },
-        { label: t('landing.pricing'), href: ROUTES.PRICING, id: 'pricing' },
-        { label: t('landing.comparison'), href: ROUTES.COMPARE, id: 'comparison' }
-    ]
+    const navLinks = getV2NavLinks()
 
     return (
         <div className='relative min-h-screen bg-[#020204] text-white'>
@@ -47,6 +40,7 @@ const FeaturesV2: FC = (): ReactNode => {
                 description={t('v2.featuresPageDescription')}
                 url={`https://${getBaseDomain()}/features`}
             />
+
             <JsonLd
                 data={{
                     '@context': 'https://schema.org',
@@ -59,12 +53,13 @@ const FeaturesV2: FC = (): ReactNode => {
 
             <div className='v2-grain' />
             <div className='v2-grid pointer-events-none' />
-            <div className='v2-gradient pointer-events-none fixed inset-0' />
+            <div className='v2-gradient pointer-events-none absolute inset-x-0 top-0 h-screen' />
 
             <HeaderV2 showNavLinks={true} navLinks={navLinks} />
 
-            <main className='v2-content pt-32'>
+            <main className='v2-content pt-14'>
                 <FeaturesGridV2
+                    hideBorderTop={true}
                     badge={t('landing.features')}
                     heading={t('v2.featuresTitle')}
                     description={t('v2.featuresDescription')}
@@ -86,9 +81,9 @@ const FeaturesV2: FC = (): ReactNode => {
                     ]}
                 />
 
-                <section className='v2-section relative border-t border-white/[0.15] px-6 py-32'>
+                <section className='v2-section relative border-t border-white/[0.025] px-6 py-32'>
                     <ScrollRevealV2 className='mx-auto max-w-6xl'>
-                        <div className='border border-white/10 bg-[#070709] p-12 md:p-16'>
+                        <div className='relative z-[15] border border-white/10 bg-[#070709] p-12 md:p-16'>
                             <div className='flex flex-col items-center text-center'>
                                 <SectionLabelV2 label='Get Started' />
                                 <h2 className='font-syne mb-2 text-3xl font-extrabold uppercase tracking-tight text-white md:text-4xl'>

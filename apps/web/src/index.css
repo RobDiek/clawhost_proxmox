@@ -515,15 +515,20 @@ html {
     inset: 0;
     z-index: 6;
     pointer-events: none;
+    transition: opacity 0.3s ease;
 }
 
 .v2-content {
     position: relative;
+    z-index: 5;
+}
+
+.v2-gradient {
+    z-index: 1;
 }
 
 .v2-section {
     position: relative;
-    background: #020204;
 }
 
 @keyframes v2-pulse {
@@ -574,8 +579,8 @@ html {
 }
 
 .v2-footer-video {
-    filter: invert(1) brightness(0.4);
-    opacity: 0.45;
+    filter: invert(1) brightness(0.3);
+    opacity: 0.25;
     transform: scaleX(-1);
     mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 85%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 85%, transparent 100%);

@@ -55,15 +55,13 @@ const HeaderV2: FC<HeaderProps> = ({
         <Fragment>
             <header
                 className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
-                    mobileMenuOpen
-                        ? 'border-b border-white/5 bg-[#020204]/80 backdrop-blur-xl'
-                        : scrolled
-                          ? 'border-b border-white/5 bg-[#020204]/80 backdrop-blur-xl'
-                          : 'border-b border-transparent bg-transparent'
+                    mobileMenuOpen || scrolled
+                        ? 'border-b border-white/5 bg-[#020204]/95 backdrop-blur-xl'
+                        : 'border-b border-transparent bg-transparent'
                 }`}
             >
                 <RebrandBannerV2 />
-                <div className='mx-auto flex max-w-6xl items-center justify-between px-6 py-4'>
+                <div className='mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-0 py-4'>
                     <div className='flex-1'>
                         <LogoV2 />
                     </div>

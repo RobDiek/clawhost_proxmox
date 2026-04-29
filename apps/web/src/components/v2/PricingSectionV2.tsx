@@ -4,30 +4,31 @@ import type { PricingSectionProps } from '@/ts/Interfaces'
 import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
-import { ROUTES } from '@/lib'
 import { CheckIcon, XIcon, RocketLaunchIcon, ArrowRightIcon } from '@phosphor-icons/react'
-import buildV2Plans from '@/components/v2/buildV2Plans'
-import ScrollRevealV2 from '@/components/v2/ScrollRevealV2'
-import SectionLabelV2 from '@/components/v2/SectionLabelV2'
+import { buildV2Plans, ScrollRevealV2, SectionLabelV2 } from '@/components/v2'
+import { ROUTES } from '@/lib'
 
 const PricingSectionV2: FC<PricingSectionProps> = ({
     plans,
     plansLoading,
-    allDoneLoading
+    allDoneLoading,
+    hideBorderTop = false
 }): ReactNode => {
     const { user } = useAuth()
 
     return (
         <section
             id='pricing'
-            className='v2-section scroll-mt-24 border-t border-white/[0.15] px-6 py-24'
+            className={`v2-section scroll-mt-24 px-6 py-24 ${hideBorderTop ? '' : 'border-t border-white/[0.025]'}`}
         >
             <div className='mx-auto max-w-6xl'>
                 <ScrollRevealV2 className='mb-16'>
                     <SectionLabelV2 label='Pricing' />
+                    
                     <h2 className='font-syne mb-4 text-4xl font-extrabold uppercase tracking-tight text-white md:text-5xl'>
                         {t('v2.pricingTitle')}
                     </h2>
+
                     <p className='max-w-xl font-mono text-sm leading-relaxed text-white/40'>
                         {t('landing.pricingDescription')}
                     </p>

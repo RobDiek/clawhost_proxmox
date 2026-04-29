@@ -6,7 +6,7 @@ import { useCallback, useRef } from 'react'
 const VIDEO_OFFSET_RATIO = 0.2
 const REVEAL_SIZE = 200
 const SOUND_URL = '/sounds/static-noise.mp3'
-const SOUND_VOLUME = 0.015
+const SOUND_VOLUME = 0.0075
 const FADE_DURATION = 300
 
 const useDitherHover = (): DitherHoverHandlers => {

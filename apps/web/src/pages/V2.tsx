@@ -26,7 +26,8 @@ import {
     useGitHubStars,
     GITHUB_REPO_URL,
     useVideoSync,
-    useDitherHover
+    useDitherHover,
+    useGridFade
 } from '@/hooks'
 
 import {
@@ -59,6 +60,7 @@ const V2: FC = (): ReactNode => {
     const heroSectionRef = useRef<HTMLElement>(null)
     
     useVideoSync(baseVideoRef, ditherVideoRef)
+    useGridFade()
 
     const { onMouseMove, onMouseLeave, resetDither } = useDitherHover()
 
@@ -75,6 +77,7 @@ const V2: FC = (): ReactNode => {
                 description={t('v2.description')}
                 url={`https://${getBaseDomain()}/v2`}
             />
+            
             <JsonLd
                 data={{
                     '@context': 'https://schema.org',
@@ -87,7 +90,7 @@ const V2: FC = (): ReactNode => {
 
             <div className='v2-grain' />
             <div className='v2-grid pointer-events-none' />
-            <div className='v2-gradient pointer-events-none fixed inset-0' />
+            <div className='v2-gradient pointer-events-none absolute inset-x-0 top-0 h-screen' />
 
             <HeaderV2
                 showNavLinks={true}
@@ -216,7 +219,7 @@ const V2: FC = (): ReactNode => {
                     </div>
                 </div>
 
-                <section id='agents' className='v2-section relative scroll-mt-24 border-t border-white/[0.15] px-6 py-24'>
+                <section id='agents' className='v2-section relative scroll-mt-24 border-t border-white/[0.025] px-6 py-24'>
                     <div className='mx-auto max-w-6xl'>
                         <ScrollRevealV2 className='mb-16'>
                             <SectionLabelV2 label='Agent Catalog' />
@@ -292,7 +295,7 @@ const V2: FC = (): ReactNode => {
                     faqs={getV2Faqs()}
                 />
 
-                <section className='v2-section relative border-t border-white/[0.15] px-6 py-32'>
+                <section className='v2-section relative border-t border-white/[0.025] px-6 py-32'>
                     <ScrollRevealV2 className='mx-auto max-w-6xl'>
                         <div className='relative z-[15] border border-white/10 bg-[#070709] p-12 md:p-16'>
                             <div className='flex flex-col items-center text-center'>
