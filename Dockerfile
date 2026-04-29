@@ -10,7 +10,7 @@ COPY apps/web/package.json apps/web/
 COPY packages/shared/package.json packages/shared/
 COPY packages/i18n/package.json packages/i18n/
 
-RUN bun install
+RUN bun install --linker=hoisted
 
 FROM oven/bun:1.3.2 AS runtime
 
