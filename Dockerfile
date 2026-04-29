@@ -2,13 +2,15 @@ FROM oven/bun:1.3.2 AS deps
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y python3 make g++ cmake && rm -rf /var/lib/apt/lists/*
+
 COPY package.json bun.lock ./
 COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
 COPY packages/shared/package.json packages/shared/
 COPY packages/i18n/package.json packages/i18n/
 
-RUN bun install || true
+RUN bun install
 
 FROM oven/bun:1.3.2 AS runtime
 
