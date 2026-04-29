@@ -2349,7 +2349,7 @@ const pt: Translations = {
         heroTitle1: 'Implante',
         heroTitle2: 'Agentes IA',
         heroTitle3: 'na Nuvem com um Clique',
-        heroDescription: 'Implante agentes OpenClaw e Hermes na nuvem com um clique — open-source, auto-hospedável e rodando em infraestrutura dedicada em menos de 60 segundos.',
+        heroDescription: 'Implante agentes OpenClaw e Hermes na nuvem com um clique — crie, conecte e escale seus agentes de IA mais rápido com Agentist.',
         badge: 'Apresentando agent.ic',
         selfHostLabel: 'Auto-Hospedar em Vez Disso',
         deployButton: 'Implantar Agora',

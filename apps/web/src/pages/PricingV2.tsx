@@ -35,6 +35,7 @@ const PricingV2: FC = (): ReactNode => {
         : `${ROUTES.LOGIN}?deploy=true`
 
     const navLinks = [
+        { label: 'Cloud', href: ROUTES.V2, id: 'cloud' },
         { label: 'Go', href: ROUTES.GO, id: 'go' },
         { label: t('landing.features'), href: ROUTES.FEATURES, id: 'features' },
         { label: t('landing.pricing'), href: ROUTES.PRICING, id: 'pricing' },

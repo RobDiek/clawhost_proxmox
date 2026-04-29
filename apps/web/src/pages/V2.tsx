@@ -59,6 +59,7 @@ const V2: FC = (): ReactNode => {
         : `${ROUTES.LOGIN}?deploy=true`
 
     const navLinks = [
+        { label: 'Cloud', href: ROUTES.V2, id: 'cloud' },
         { label: 'Go', href: ROUTES.GO, id: 'go' },
         { label: t('landing.features'), href: ROUTES.FEATURES, id: 'features' },
         { label: t('landing.pricing'), href: ROUTES.PRICING, id: 'pricing' },
@@ -120,78 +121,80 @@ const V2: FC = (): ReactNode => {
 
                     <div className='pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(10,10,15,0.9)_0%,rgba(10,10,15,0.3)_30%,#020204_70%)]' />
 
-                    <div className='z-10 mx-auto w-full absolute max-w-6xl inset-0 flex flex-col justify-end px-6 pb-16'>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                            className='mb-6 flex items-center gap-4'
-                        >
-                            <SectionLabelV2 label='Multi Agent Platform' />
-                            <div className='h-px flex-1 bg-white/10' />
-                        </motion.div>
+                    <div className='absolute inset-0 z-10 flex flex-col justify-end pb-6'>
+                        <div className='mx-auto w-full max-w-6xl px-4 xl:px-0'>
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8, delay: 0.2 }}
+                                className='mb-6 flex items-center gap-4'
+                            >
+                                <SectionLabelV2 label='Multi Agent Platform' />
+                                <div className='h-px flex-1 bg-white/10' />
+                            </motion.div>
 
-                        <motion.h1
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.4 }}
-                            className='mb-6 font-syne text-4xl font-bold uppercase leading-[0.95] tracking-tight text-white/90 md:text-6xl lg:text-[4.2rem]'
-                        >
-                            {t('v2.heroTitle1')}{' '}
-                            <span className='font-extrabold italic text-[#6B5CE7]'>
-                                {t('v2.heroTitle2')}
-                            </span>
-                            <br />
-                            {t('v2.heroTitle3')}
-                        </motion.h1>
+                            <motion.h1
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8, delay: 0.4 }}
+                                className='mb-6 font-syne text-4xl font-bold uppercase leading-[0.95] tracking-tight text-white/90 md:text-6xl lg:text-[4.2rem]'
+                            >
+                                {t('v2.heroTitle1')}{' '}
+                                <span className='font-extrabold italic text-[#6B5CE7]'>
+                                    {t('v2.heroTitle2')}
+                                </span>
+                                <br />
+                                {t('v2.heroTitle3')}
+                            </motion.h1>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.7 }}
-                            className='flex flex-col gap-8 md:flex-row md:items-end md:justify-between'
-                        >
-                            <p className='max-w-md font-mono text-sm leading-relaxed text-white/50'>
-                                {t('v2.heroDescription')}
-                            </p>
-                            <div className='flex gap-3'>
-                                <Link
-                                    to={deployLink}
-                                    className='group/deploy pointer-events-auto inline-flex items-center gap-2 bg-[#6B5CE7] px-6 py-3 font-mono text-xs font-semibold tracking-[0.1em] text-white transition-opacity hover:opacity-90'
-                                >
-                                    <RocketLaunchIcon className='h-3.5 w-3.5 transition-transform duration-200 group-hover/deploy:-translate-y-0.5' />
-                                    {t('v2.deployButton').toUpperCase()}
-                                    <ArrowRightIcon className='h-3.5 w-3.5 transition-transform duration-200 group-hover/deploy:translate-x-1' />
-                                </Link>
-                                <a
-                                    href={GITHUB_REPO_URL}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    className='pointer-events-auto inline-flex items-center gap-2 border border-white/20 bg-white/5 px-6 py-3 font-mono text-xs tracking-[0.1em] text-white/70 transition-colors hover:bg-white/10'
-                                >
-                                    <GithubLogoIcon className='h-3.5 w-3.5' weight='fill' />
-                                    {t('v2.selfHostLabel').toUpperCase()}
-                                    {gitHubStars && (
-                                        <span className='bg-white/10 flex items-center gap-1 px-2 py-0.5 text-[10px]'>
-                                            {gitHubStars.formatted}
-                                            <span className='text-[10px]'>★</span>
-                                        </span>
-                                    )}
-                                </a>
-                            </div>
-                        </motion.div>
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8, delay: 0.7 }}
+                                className='flex flex-col gap-8 md:flex-row md:items-end md:justify-between'
+                            >
+                                <p className='max-w-md font-mono text-sm leading-relaxed text-white/50'>
+                                    {t('v2.heroDescription')}
+                                </p>
+                                <div className='flex gap-3'>
+                                    <Link
+                                        to={deployLink}
+                                        className='group/deploy pointer-events-auto inline-flex items-center gap-2 bg-[#6B5CE7] px-6 py-3 font-mono text-xs font-semibold tracking-[0.1em] text-white transition-opacity hover:opacity-90'
+                                    >
+                                        <RocketLaunchIcon className='h-3.5 w-3.5 transition-transform duration-200 group-hover/deploy:-translate-y-0.5' />
+                                        {t('v2.deployButton').toUpperCase()}
+                                        <ArrowRightIcon className='h-3.5 w-3.5 transition-transform duration-200 group-hover/deploy:translate-x-1' />
+                                    </Link>
+                                    <a
+                                        href={GITHUB_REPO_URL}
+                                        target='_blank'
+                                        rel='noopener noreferrer'
+                                        className='pointer-events-auto inline-flex items-center gap-2 border border-white/20 bg-white/5 px-6 py-3 font-mono text-xs tracking-[0.1em] text-white/70 transition-colors hover:bg-white/10'
+                                    >
+                                        <GithubLogoIcon className='h-3.5 w-3.5' weight='fill' />
+                                        {t('v2.selfHostLabel').toUpperCase()}
+                                        {gitHubStars && (
+                                            <span className='bg-white/10 flex items-center gap-1 px-2 py-0.5 text-[10px]'>
+                                                {gitHubStars.formatted}
+                                                <span className='text-[10px]'>★</span>
+                                            </span>
+                                        )}
+                                    </a>
+                                </div>
+                            </motion.div>
 
+                        </div>
                     </div>
                 </section>
 
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 1.0 }}
-                    className='v2-section relative px-6 pb-16 pt-6'
-                >
+                <div className='v2-section relative px-6 pb-28 pt-2'>
                     <div className='mx-auto max-w-6xl'>
-                        <div className='relative z-[15] grid grid-cols-2 border border-white/10 md:grid-cols-5'>
+                        <motion.div
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.9 }}
+                            className='relative z-[15] grid grid-cols-2 border border-white/10 md:grid-cols-5'
+                        >
                             {getV2Stats().map((stat, i) => (
                                 <div key={i} className='border-white/10 bg-[#0c0c12] p-5 [&:not(:last-child)]:border-r'>
                                     <div className='font-syne text-2xl font-bold text-white md:text-3xl'>
@@ -202,9 +205,9 @@ const V2: FC = (): ReactNode => {
                                     </div>
                                 </div>
                             ))}
-                        </div>
+                        </motion.div>
                     </div>
-                </motion.div>
+                </div>
 
                 <section id='agents' className='v2-section relative scroll-mt-24 border-t border-white/[0.15] px-6 py-24'>
                     <div className='mx-auto max-w-6xl'>

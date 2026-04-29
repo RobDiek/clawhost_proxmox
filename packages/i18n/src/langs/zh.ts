@@ -2164,7 +2164,7 @@ const zh: Translations = {
         heroTitle1: '部署',
         heroTitle2: 'AI 代理',
         heroTitle3: '一键部署到云端',
-        heroDescription: '一键在云端部署 OpenClaw 和 Hermes 代理 — 开源、可自托管，在60秒内运行于专用基础设施上。',
+        heroDescription: '一键在云端部署 OpenClaw 和 Hermes 代理 — 使用 Agentist 更快地构建、连接和扩展您的 AI 代理。',
         badge: '隆重推出 agent.ic',
         selfHostLabel: '改为自托管',
         deployButton: '立即部署',

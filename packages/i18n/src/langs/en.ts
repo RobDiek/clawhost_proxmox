@@ -2298,7 +2298,7 @@ const en = {
         heroTitle1: 'Deploy',
         heroTitle2: 'AI Agents',
         heroTitle3: 'on Cloud with One Click',
-        heroDescription: 'Deploy OpenClaw and Hermes agents on the cloud with one click — open-source, self-hostable, and running on dedicated infrastructure in under 60 seconds.',
+        heroDescription: 'Deploy OpenClaw and Hermes agents in the cloud with one click — build, connect, and scale your AI agents faster with Agentist.',
         badge: 'Introducing agent.ic',
         selfHostLabel: 'Self-Host Instead',
         deployButton: 'Deploy Now',

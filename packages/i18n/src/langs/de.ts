@@ -2370,7 +2370,7 @@ const de: Translations = {
         heroTitle1: 'Deployen Sie',
         heroTitle2: 'KI-Agenten',
         heroTitle3: 'in der Cloud mit einem Klick',
-        heroDescription: 'Deploye OpenClaw- und Hermes-Agents in der Cloud mit einem Klick — Open-Source, selbst-hostbar und auf dedizierter Infrastruktur in unter 60 Sekunden.',
+        heroDescription: 'Deploye OpenClaw- und Hermes-Agents in der Cloud mit einem Klick — erstelle, verbinde und skaliere deine KI-Agents schneller mit Agentist.',
         badge: 'Wir stellen agent.ic vor',
         selfHostLabel: 'Stattdessen Selbst Hosten',
         deployButton: 'Jetzt Deployen',

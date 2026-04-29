@@ -2314,7 +2314,7 @@ const hi: Translations = {
         heroTitle1: 'डिप्लॉय करें',
         heroTitle2: 'AI एजेंट्स',
         heroTitle3: 'क्लाउड पर एक क्लिक में',
-        heroDescription: 'OpenClaw और Hermes एजेंट्स को एक क्लिक में क्लाउड पर डिप्लॉय करें — ओपन-सोर्स, सेल्फ-होस्टेबल, और 60 सेकंड से कम में समर्पित इन्फ्रास्ट्रक्चर पर चल रहा है।',
+        heroDescription: 'OpenClaw और Hermes एजेंट्स को एक क्लिक में क्लाउड में डिप्लॉय करें — Agentist के साथ अपने AI एजेंट्स को तेज़ी से बनाएं, कनेक्ट करें और स्केल करें।',
         badge: 'पेश है agent.ic',
         selfHostLabel: 'इसके बजाय सेल्फ-होस्ट करें',
         deployButton: 'अभी डिप्लॉय करें',

@@ -2367,7 +2367,7 @@ const it: Translations = {
         heroTitle1: 'Distribuisci',
         heroTitle2: 'Agenti IA',
         heroTitle3: 'sul Cloud con un Click',
-        heroDescription: 'Distribuisci gli agenti OpenClaw e Hermes sul cloud con un click — open-source, self-hostable e in esecuzione su infrastruttura dedicata in meno di 60 secondi.',
+        heroDescription: 'Distribuisci gli agenti OpenClaw e Hermes nel cloud con un click — crea, connetti e scala i tuoi agenti IA più velocemente con Agentist.',
         badge: 'Presentiamo agent.ic',
         selfHostLabel: 'Self-Host Invece',
         deployButton: 'Distribuisci Ora',

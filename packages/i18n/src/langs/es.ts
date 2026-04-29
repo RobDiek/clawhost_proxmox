@@ -2362,7 +2362,7 @@ const es: Translations = {
         heroTitle1: 'Despliega',
         heroTitle2: 'Agentes IA',
         heroTitle3: 'en la Nube con un Clic',
-        heroDescription: 'Despliega agentes OpenClaw y Hermes en la nube con un clic — open-source, auto-alojable y funcionando en infraestructura dedicada en menos de 60 segundos.',
+        heroDescription: 'Despliega agentes OpenClaw y Hermes en la nube con un clic — crea, conecta y escala tus agentes de IA más rápido con Agentist.',
         badge: 'Presentamos agent.ic',
         selfHostLabel: 'Auto-Alojar en su Lugar',
         deployButton: 'Desplegar Ahora',

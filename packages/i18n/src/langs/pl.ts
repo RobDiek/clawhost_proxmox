@@ -2330,7 +2330,7 @@ const pl: Translations = {
         heroTitle1: 'Wdróż',
         heroTitle2: 'Agentów AI',
         heroTitle3: 'w Chmurze jednym Kliknięciem',
-        heroDescription: 'Wdróż agentów OpenClaw i Hermes w chmurze jednym kliknięciem — open-source, samodzielnie hostowalny i działający na dedykowanej infrastrukturze w mniej niż 60 sekund.',
+        heroDescription: 'Wdróż agentów OpenClaw i Hermes w chmurze jednym kliknięciem — twórz, łącz i skaluj swoich agentów AI szybciej z Agentist.',
         badge: 'Przedstawiamy agent.ic',
         selfHostLabel: 'Zamiast Tego Hostuj Sam',
         deployButton: 'Wdróż Teraz',

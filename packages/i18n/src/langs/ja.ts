@@ -2298,7 +2298,7 @@ const ja: Translations = {
         heroTitle1: 'デプロイ',
         heroTitle2: 'AIエージェント',
         heroTitle3: 'クラウドにワンクリックで',
-        heroDescription: 'OpenClaw と Hermes エージェントをワンクリックでクラウドにデプロイ — オープンソース、セルフホスト可能、60秒以内に専用インフラで稼働。',
+        heroDescription: 'OpenClaw と Hermes エージェントをワンクリックでクラウドにデプロイ — Agentist で AI エージェントをより速く構築、接続、スケール。',
         badge: 'agent.ic のご紹介',
         selfHostLabel: '代わりにセルフホスト',
         deployButton: '今すぐデプロイ',

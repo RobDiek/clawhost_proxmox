@@ -2250,7 +2250,7 @@ const ar: Translations = {
         heroTitle1: 'انشر',
         heroTitle2: 'وكلاء الذكاء الاصطناعي',
         heroTitle3: 'على السحابة بنقرة واحدة',
-        heroDescription: 'انشر وكلاء OpenClaw وHermes على السحابة بنقرة واحدة — مفتوح المصدر، قابل للاستضافة الذاتية، ويعمل على بنية تحتية مخصصة في أقل من 60 ثانية.',
+        heroDescription: 'انشر وكلاء OpenClaw وHermes في السحابة بنقرة واحدة — ابنِ واربط ووسّع وكلاء الذكاء الاصطناعي بشكل أسرع مع Agentist.',
         badge: 'نقدم agent.ic',
         selfHostLabel: 'استضافة ذاتية بدلاً من ذلك',
         deployButton: 'انشر الآن',

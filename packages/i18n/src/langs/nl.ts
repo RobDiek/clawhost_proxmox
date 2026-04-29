@@ -2345,7 +2345,7 @@ const nl: Translations = {
         heroTitle1: 'Deploy',
         heroTitle2: 'AI-Agents',
         heroTitle3: 'op de Cloud met één Klik',
-        heroDescription: 'Deploy OpenClaw- en Hermes-agents op de cloud met één klik — open-source, zelf te hosten en draaiend op dedicated infrastructuur in minder dan 60 seconden.',
+        heroDescription: 'Deploy OpenClaw- en Hermes-agents in de cloud met één klik — bouw, verbind en schaal je AI-agents sneller met Agentist.',
         badge: 'Introductie van agent.ic',
         selfHostLabel: 'Zelf Hosten',
         deployButton: 'Nu Deployen',

@@ -2323,7 +2323,7 @@ const tr: Translations = {
         heroTitle1: 'Dağıtın',
         heroTitle2: 'AI Ajanlarını',
         heroTitle3: 'Bulutta tek Tıklamayla',
-        heroDescription: 'OpenClaw ve Hermes ajanlarını tek tıklamayla bulutta dağıtın — açık kaynak, kendi kendine barındırılabilir ve 60 saniyeden kısa sürede özel altyapıda çalışıyor.',
+        heroDescription: 'OpenClaw ve Hermes ajanlarını tek tıklamayla bulutta dağıtın — Agentist ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
         badge: 'agent.ic ile tanışın',
         selfHostLabel: 'Bunun Yerine Kendiniz Barındırın',
         deployButton: 'Şimdi Dağıt',
