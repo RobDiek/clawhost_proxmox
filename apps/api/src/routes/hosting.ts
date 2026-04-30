@@ -30,6 +30,8 @@ import {
     setupApiKey,
     setupTelegram,
     completeOnboarding,
+    setGoogleAdsMode,
+    requestHaasMccInvite,
     setupAgents,
     analyzeAnswers,
     runResearch,
@@ -56,6 +58,33 @@ import {
     getHistoricalAssets,
     collectMetrics,
     markContentPlanItemPublished,
+    archiveContentPlanItem,
+    getPaidProfile,
+    savePaidProfile,
+    uploadHistoricalReports,
+    runMazhirAuditController,
+    getMazhirAudit,
+    getMazhirDataPreflight,
+    generateMazhirMediaPlan,
+    getMazhirMediaPlan,
+    approveMazhirMediaPlan,
+    getMazhirMediaPlanManualHtml,
+    reviseMazhirMediaPlan,
+    startBrandV2, getBrandV2Draft, getBrandV2Approved, getBrandV2History,
+    patchBrandV2Draft, uploadBrandAsset, normalizeBrandLogo, extractColorsFromImage,
+    submitBrandV2, approveBrandV2, discardBrandV2Draft, startOverBrandV2,
+    editApprovedBrandV2, getBrandV2QualityGates,
+    scanWebsiteForBrandV2,
+    generateBrandLogoCandidates, adoptGeneratedBrandLogo,
+    generateBrandImagery, generateBrandVoiceFor, generateBrandPersonasFor, generateBrandColorPaletteFor,
+    exportBrandV2Html, exportBrandV2AssetManifest,
+    listMazhirGtmTargets,
+    saveMazhirGtmTarget,
+    setupMazhirConversions,
+    autoSetupMazhirGtm,
+    getMazhirPreflight,
+    executeMazhirPlan,
+    getMazhirWpSnippet,
     getAgentStats,
     draftContentPlanItem,
     getMediaSettings,
@@ -143,6 +172,7 @@ import {
     createBackup,
     restoreBackup,
     backupReport,
+    installComplete,
     getLitellmStatusEndpoint,
     setLitellmApiKeyEndpoint,
     getLitellmUsageEndpoint,
@@ -232,6 +262,16 @@ import {
     triggerWeeklyReport,
     getLatestWeeklyReport,
     triggerYotzer,
+    getMarketingIntents,
+    saveMarketingIntents,
+    getIntegrationHub,
+    setIntegrationState,
+    syncIntegrationStates,
+    pipelinePrecheck,
+    getMarketingCatalog,
+    previewHubForIntents,
+    setPipelineActivationEndpoint,
+    previewIntentCleanup,
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -300,7 +340,26 @@ app.post('/instances/:id/assets', saveHistoricalAssets)
 app.get('/instances/:id/assets', getHistoricalAssets)
 app.post('/instances/:id/metrics/collect', collectMetrics)
 app.post('/instances/:id/content-plan/items/:itemId/mark-published', markContentPlanItemPublished)
+app.post('/instances/:id/content-plan/items/:itemId/archive', archiveContentPlanItem)
 app.post('/instances/:id/content-plan/items/:itemId/draft', draftContentPlanItem)
+app.get('/instances/:id/paid-profile', getPaidProfile)
+app.post('/instances/:id/paid-profile', savePaidProfile)
+app.post('/instances/:id/paid-profile/historical-reports', uploadHistoricalReports)
+app.post('/instances/:id/mazhir/audit', runMazhirAuditController)
+app.get('/instances/:id/mazhir/audit', getMazhirAudit)
+app.get('/instances/:id/mazhir/data-preflight', getMazhirDataPreflight)
+app.post('/instances/:id/mazhir/media-plan', generateMazhirMediaPlan)
+app.get('/instances/:id/mazhir/media-plan', getMazhirMediaPlan)
+app.post('/instances/:id/mazhir/media-plan/approve', approveMazhirMediaPlan)
+app.post('/instances/:id/mazhir/media-plan/revise', reviseMazhirMediaPlan)
+app.get('/instances/:id/mazhir/media-plan/manual.html', getMazhirMediaPlanManualHtml)
+app.get('/instances/:id/mazhir/gtm/targets', listMazhirGtmTargets)
+app.post('/instances/:id/mazhir/gtm/target', saveMazhirGtmTarget)
+app.post('/instances/:id/mazhir/conversions/setup', setupMazhirConversions)
+app.post('/instances/:id/mazhir/gtm/auto-setup', autoSetupMazhirGtm)
+app.get('/instances/:id/mazhir/preflight', getMazhirPreflight)
+app.post('/instances/:id/mazhir/execute', executeMazhirPlan)
+app.get('/instances/:id/mazhir/wp-snippet', getMazhirWpSnippet)
 app.get('/instances/:id/stats', getAgentStats)
 app.get('/instances/:id/media/settings', getMediaSettings)
 app.post('/instances/:id/media/settings', updateMediaSettings)
@@ -311,6 +370,22 @@ app.post('/instances/:id/content-plan/media/:renderId/status', updateRenderStatu
 app.post('/instances/:id/content-plan/items/:itemId/media/upload', uploadUserMedia)
 app.post('/instances/:id/agents/add', addAgentToInstance)
 app.post('/instances/:id/agents/remove', removeAgentFromInstance)
+
+// ── Google Ads mode picker (self-managed vs HaaS) ──
+app.post('/instances/:id/google-ads-mode', setGoogleAdsMode)
+app.post('/instances/:id/google-ads-haas/request-invite', requestHaasMccInvite)
+
+// ── Marketing Hub (intents → integrations → pipelines) ──
+app.get('/marketing/catalog', getMarketingCatalog)
+app.get('/instances/:id/marketing-intents', getMarketingIntents)
+app.post('/instances/:id/marketing-intents', saveMarketingIntents)
+app.post('/instances/:id/marketing-intents/preview-cleanup', previewIntentCleanup)
+app.get('/instances/:id/integration-hub', getIntegrationHub)
+app.post('/instances/:id/integration-hub/preview', previewHubForIntents)
+app.post('/instances/:id/integrations/sync', syncIntegrationStates)
+app.post('/instances/:id/integrations/:integrationId/state', setIntegrationState)
+app.get('/instances/:id/pipelines/:pipelineId/precheck', pipelinePrecheck)
+app.post('/instances/:id/pipelines/:pipelineId/activation', setPipelineActivationEndpoint)
 
 // ── Files ──
 app.get('/instances/:id/files', readFile)
@@ -333,6 +408,7 @@ app.get('/instances/:id/backups', listBackups)
 app.post('/instances/:id/backups/create', createBackup)
 app.post('/instances/:id/backups/restore', restoreBackup)
 app.post('/instances/:id/backup-report', backupReport)
+app.post('/instances/:id/install-complete', installComplete)
 
 // ── Google Workspace OAuth ──
 app.get('/integrations/google/auth', googleAuth)
@@ -353,6 +429,34 @@ app.get('/integrations/dataforseo/status', getDataforseoStatus)
 app.post('/integrations/dataforseo/disconnect', removeDataforseoKey)
 
 // ── Firecrawl ──
+// Brand Book v2 — full taxonomy + versioning + quality gates
+app.post('/instances/:id/brand-v2/start', startBrandV2)
+app.get('/instances/:id/brand-v2/draft', getBrandV2Draft)
+app.get('/instances/:id/brand-v2/approved', getBrandV2Approved)
+app.get('/instances/:id/brand-v2/history', getBrandV2History)
+app.patch('/instances/:id/brand-v2/draft', patchBrandV2Draft)
+app.post('/instances/:id/brand-v2/upload-asset', uploadBrandAsset)
+app.post('/instances/:id/brand-v2/normalize-logo', normalizeBrandLogo)
+app.post('/instances/:id/brand-v2/extract-colors', extractColorsFromImage)
+app.post('/instances/:id/brand-v2/submit', submitBrandV2)
+app.post('/instances/:id/brand-v2/approve', approveBrandV2)
+app.post('/instances/:id/brand-v2/discard', discardBrandV2Draft)
+app.post('/instances/:id/brand-v2/start-over', startOverBrandV2)
+app.post('/instances/:id/brand-v2/edit-approved', editApprovedBrandV2)
+app.get('/instances/:id/brand-v2/quality-gates', getBrandV2QualityGates)
+// Sprint 3 — website scan
+app.post('/instances/:id/brand-v2/scan-website', scanWebsiteForBrandV2)
+// Sprint 4 — AI generation
+app.post('/instances/:id/brand-v2/generate-logo', generateBrandLogoCandidates)
+app.post('/instances/:id/brand-v2/adopt-logo', adoptGeneratedBrandLogo)
+app.post('/instances/:id/brand-v2/generate-imagery', generateBrandImagery)
+app.post('/instances/:id/brand-v2/generate-voice', generateBrandVoiceFor)
+app.post('/instances/:id/brand-v2/generate-personas', generateBrandPersonasFor)
+app.post('/instances/:id/brand-v2/generate-palette', generateBrandColorPaletteFor)
+// Sprint 6 — exports
+app.get('/instances/:id/brand-v2/export.html', exportBrandV2Html)
+app.get('/instances/:id/brand-v2/asset-manifest', exportBrandV2AssetManifest)
+
 app.post('/integrations/firecrawl/save', saveFirecrawlKey)
 app.get('/integrations/firecrawl/status', getFirecrawlStatus)
 app.post('/integrations/firecrawl/disconnect', removeFirecrawlKey)
