@@ -41,6 +41,7 @@ app.use(
                   'https://clawflow.flowmatic.co.il',
                   'https://flowmatic.co.il',
                   'https://www.flowmatic.co.il',
+                  'https://admin.flowmatic.co.il',
                   'http://localhost:1111',
                   'http://localhost:3333'
               ]
@@ -49,7 +50,8 @@ app.use(
                   'https://www.clawhost.cloud',
                   'https://clawflow.flowmatic.co.il',
                   'https://flowmatic.co.il',
-                  'https://www.flowmatic.co.il'
+                  'https://www.flowmatic.co.il',
+                  'https://admin.flowmatic.co.il'
               ],
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'Authorization'],
