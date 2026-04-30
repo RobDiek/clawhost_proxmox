@@ -18,9 +18,18 @@
 import crypto from 'crypto'
 import { eq, and, desc, gt } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
-import * as otplib from 'otplib'
-const { authenticator } = otplib
+import { generateSecret as totpGenerateSecret, generateURI as totpGenerateURI, TOTP } from 'otplib'
 import QRCode from 'qrcode'
+
+const totpInstance = new TOTP({ digits: 6, step: 30, window: 1 })
+const authenticator = {
+    generateSecret: () => totpGenerateSecret(),
+    keyuri: (account: string, issuer: string, secret: string) =>
+        totpGenerateURI({ secret, label: account, issuer }),
+    check: (token: string, secret: string): boolean => {
+        try { return !!totpInstance.verify({ token, secret }) } catch { return false }
+    },
+}
 import { db } from '@/db'
 import { adminUsers, adminSessions, adminAudit, otpCodes } from '@/db/schema'
 import { getResend, FROM_EMAIL } from '@/services/resend'
