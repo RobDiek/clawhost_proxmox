@@ -148,6 +148,17 @@ export const installComplete = async (c: Context<HonoEnv>) => {
             await db.update(instances).set({ status: 'running' }).where(eq(instances.id, instanceId))
         }
         console.log(`[install-complete] ${instanceId} → running (install took ${body.durationSec || '?'}s)`)
+
+        // Send Hebrew welcome email with credentials (idempotent — guarded by welcomeEmailSentAt)
+        try {
+            const { sendWelcomeEmailIfNeeded } = await import('@/services/welcomeEmail')
+            sendWelcomeEmailIfNeeded({ instanceId }).catch(err =>
+                console.error('[install-complete] welcome email failed:', err)
+            )
+        } catch (err) {
+            console.error('[install-complete] welcome email import failed:', err)
+        }
+
         return ok(c, { status: 'running' }, 'Install reported complete')
     } catch (err) {
         console.error('installComplete error:', err)

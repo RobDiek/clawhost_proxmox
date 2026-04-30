@@ -263,6 +263,10 @@ export const instances = pgTable(
         onboardingStep: integer('onboarding_step').default(0),
         onboardingCompleted: boolean('onboarding_completed').default(false),
 
+        // Welcome email — idempotency stamp (prevents duplicate sends on
+        // retry of /install-complete callback). NULL → not sent yet.
+        welcomeEmailSentAt: timestamp('welcome_email_sent_at', { withTimezone: true }),
+
         // Research (for MATEH)
         researchData: jsonb('research_data'),
 

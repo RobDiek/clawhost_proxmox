@@ -604,379 +604,50 @@ body {
   </a>
 </div>
 
-<!-- Step Indicator -->
-<div class="step-indicator" id="stepIndicator">
-  <div class="step-dot current" id="dot-1">1</div>
-  <div class="step-line pending" id="line-1"></div>
-  <div class="step-dot future" id="dot-2">2</div>
-  <div class="step-line pending" id="line-2"></div>
-  <div class="step-dot future" id="dot-3">3</div>
-  <div class="step-line pending" id="line-3"></div>
-  <div class="step-dot future" id="dot-4">4</div>
-  <div class="step-line pending" id="line-4"></div>
-  <div class="step-dot future" id="dot-5">5</div>
-</div>
+<!-- Step Indicator (single confirmation step — onboarding moved to dashboard) -->
+<div class="step-indicator" id="stepIndicator" style="display:none"></div>
 
 <!-- Wizard Container -->
 <div class="wizard-container" id="wizardContainer">
 
-  <!-- ═══ Step 1: VPS Provisioning ═══ -->
-  <div class="wizard-card" id="step1" data-step="1">
-    <div class="card-title">מכינים את הסביבה שלכם</div>
-    <div class="card-desc">זה ייקח כ-3 דקות, אל תסגרו את הדף</div>
-
-    <div class="progress-wrap">
-      <div class="progress-bar" id="provisionProgress"></div>
+  <!-- ═══ Single confirmation card — install runs in background, email is sent on completion ═══ -->
+  <div class="wizard-card" id="step1" data-step="1" style="text-align:center">
+    <div style="font-size:56px;line-height:1;margin-bottom:16px">📬</div>
+    <div class="card-title">הזמנתכם התקבלה!</div>
+    <div class="card-desc" style="margin-bottom:20px">
+      אנחנו מקימים את הסביבה שלכם ברקע. <strong>זה לוקח 8–12 דקות</strong> בלי שתעשו דבר.
     </div>
 
-    <ul class="provision-steps">
-      <li class="provision-step" id="ps-1">
-        <div class="provision-icon active" id="pi-1">1</div>
-        <div class="provision-text">
-          <div class="provision-label">יוצרים שרת VPS</div>
-          <div class="provision-sub">מקימים שרת בענן Hetzner</div>
-        </div>
-      </li>
-      <li class="provision-step is-pending" id="ps-2">
-        <div class="provision-icon pending" id="pi-2">2</div>
-        <div class="provision-text">
-          <div class="provision-label">מתקינים OpenClaw</div>
-          <div class="provision-sub">סוכנים + כלי אוטומציה</div>
-        </div>
-      </li>
-      <li class="provision-step is-pending" id="ps-3">
-        <div class="provision-icon pending" id="pi-3">3</div>
-        <div class="provision-text">
-          <div class="provision-label">מגדירים DNS + SSL</div>
-          <div class="provision-sub">תעודת אבטחה ודומיין ייחודי</div>
-        </div>
-      </li>
-      <li class="provision-step is-pending" id="ps-4">
-        <div class="provision-icon pending" id="pi-4">4</div>
-        <div class="provision-text">
-          <div class="provision-label">בודקים שהכל עובד</div>
-          <div class="provision-sub">אימות סופי לפני השימוש</div>
-        </div>
-      </li>
-    </ul>
-
-    <div class="status-text" id="provisionStatus">בודקים סטטוס...</div>
-  </div>
-
-  <!-- ═══ Step 2: API Key Setup ═══ -->
-  <div class="wizard-card hidden" id="step2" data-step="2">
-    <div class="card-title">חברו מודל AI</div>
-    <div class="card-desc">הסוכן צריך מוח — חברו מפתח API מ-Anthropic או OpenAI</div>
-
-    <div class="provider-cards">
-      <!-- Anthropic -->
-      <div class="provider-card selected" id="provider-anthropic" onclick="selectProvider('anthropic')">
-        <div class="provider-header">
-          <div class="provider-radio"></div>
-          <div class="provider-name">Anthropic Claude</div>
-          <div class="provider-badge">מומלץ</div>
-        </div>
-        <div class="provider-details">
-          <ol class="instructions">
-            <li>
-              <span class="num">1</span>
-              <span>היכנסו ל-<a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></span>
-            </li>
-            <li>
-              <span class="num">2</span>
-              <span>צרו חשבון והוסיפו קרדיט ($40 מומלץ)</span>
-            </li>
-            <li>
-              <span class="num">3</span>
-              <span>API Keys &rarr; Create Key &rarr; העתיקו</span>
-            </li>
-          </ol>
-          <div class="input-group">
-            <label class="input-label">מפתח API של Anthropic</label>
-            <input class="input-field" id="apiKeyAnthropic" type="text" dir="ltr" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false"/>
-            <div class="input-error" id="apiKeyAnthropicError">מפתח לא תקין</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- OpenAI -->
-      <div class="provider-card" id="provider-openai" onclick="selectProvider('openai')">
-        <div class="provider-header">
-          <div class="provider-radio"></div>
-          <div class="provider-name">OpenAI GPT</div>
-        </div>
-        <div class="provider-details">
-          <ol class="instructions">
-            <li>
-              <span class="num">1</span>
-              <span>היכנסו ל-<a href="https://platform.openai.com" target="_blank" rel="noopener">platform.openai.com</a></span>
-            </li>
-            <li>
-              <span class="num">2</span>
-              <span>API Keys &rarr; Create new secret key</span>
-            </li>
-            <li>
-              <span class="num">3</span>
-              <span>העתיקו את המפתח</span>
-            </li>
-          </ol>
-          <div class="input-group">
-            <label class="input-label">מפתח API של OpenAI</label>
-            <input class="input-field" id="apiKeyOpenai" type="text" dir="ltr" placeholder="sk-..." autocomplete="off" spellcheck="false"/>
-            <div class="input-error" id="apiKeyOpenaiError">מפתח לא תקין</div>
+    <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:18px 20px;margin:20px 0;text-align:right">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <div style="font-size:1.5rem;line-height:1;flex-shrink:0">✉️</div>
+        <div>
+          <div style="font-weight:700;color:#1E3A5F;margin-bottom:6px">תקבלו מייל ברגע שהכל יהיה מוכן</div>
+          <div style="font-size:0.88rem;color:#374151;line-height:1.65">
+            במייל יופיעו <strong>כל פרטי הגישה</strong> — קישורים, סיסמאות וטוקנים. תוכלו לסגור את החלון הזה בבטחה.
           </div>
         </div>
       </div>
     </div>
 
-    <button class="btn btn-primary" id="btnSaveApiKey" onclick="saveApiKey()">
-      שמרו והמשיכו
-    </button>
-    <button class="skip-link" onclick="goToStep(3)">דלגו לבינתיים</button>
-  </div>
-
-  <!-- ═══ Step 3: Telegram Bot ═══ -->
-  <div class="wizard-card hidden" id="step3" data-step="3">
-    <div class="card-title">חברו בוט Telegram</div>
-    <div class="card-desc">דברו עם הסוכן שלכם מכל מקום</div>
-
-    <ol class="instructions" style="margin-bottom: 20px;">
-      <li>
-        <span class="num">1</span>
-        <span>פתחו שיחה עם <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a> בטלגרם</span>
-      </li>
-      <li>
-        <span class="num">2</span>
-        <span>שלחו <strong>/newbot</strong></span>
-      </li>
-      <li>
-        <span class="num">3</span>
-        <span>תנו שם לבוט (לדוגמה: MyAssistant)</span>
-      </li>
-      <li>
-        <span class="num">4</span>
-        <span>העתיקו את ה-Bot Token שתקבלו</span>
-      </li>
-    </ol>
-
-    <div class="input-group">
-      <label class="input-label">Bot Token</label>
-      <input class="input-field" id="telegramToken" type="text" dir="ltr" placeholder="1234567890:ABCdef..." autocomplete="off" spellcheck="false"/>
-      <div class="input-error" id="telegramTokenError">טוקן לא תקין</div>
+    <div style="background:#F9FAFB;border-radius:10px;padding:14px 18px;text-align:right;font-size:0.85rem;color:#4B5563;line-height:1.7;margin-bottom:20px">
+      <div style="font-weight:700;color:#1F2937;margin-bottom:6px">מה קורה עכשיו ברקע?</div>
+      <ul style="margin:0;padding-right:20px">
+        <li>נוצר שרת VPS חדש בענן Hetzner</li>
+        <li>מותקנים סוכני OpenClaw + כלי אוטומציה</li>
+        <li>מוגדרים DNS ו-SSL לדומיין הייחודי שלכם</li>
+        <li>נשלחים פרטי גישה למייל שלכם</li>
+      </ul>
     </div>
 
-    <button class="btn btn-primary" id="btnSaveTelegram" onclick="saveTelegram()">
-      חברו והמשיכו
-    </button>
-    <button class="skip-link" onclick="goToStep(isMATEH ? 5 : 4)">דלגו לבינתיים</button>
-  </div>
+    <div class="status-text" id="provisionStatus" style="font-size:0.82rem;color:#9CA3AF;margin-bottom:14px">⏳ ההתקנה מתבצעת...</div>
 
-  <!-- ═══ Step 5: MATEH Research Wizard (only for MATEH plan) ═══ -->
-  <div class="wizard-card hidden" id="step5" data-step="5">
-    <div class="card-title">הגדרת סוכני שיווק</div>
-    <div class="card-desc">ענו על 7 שאלות כדי להגדיר את הסוכנים שלכם</div>
-
-    <div id="research-form">
-      <div class="form-group"><label>1. שם העסק</label><input type="text" id="rq-business-name" placeholder="לדוגמה: Flowmatic" class="input-field"/></div>
-      <div class="form-group"><label>2. במה עוסק העסק?</label><textarea id="rq-business-desc" placeholder="תארו בקצרה את המוצר או השירות" rows="2" class="input-field"></textarea></div>
-      <div class="form-group"><label>3. כתובת האתר (אם יש)</label><input type="url" id="rq-website" placeholder="https://example.co.il" dir="ltr" class="input-field"/></div>
-      <div class="form-group"><label>4. מי קהל היעד?</label><textarea id="rq-target" placeholder="תארו את הלקוח האידיאלי — גיל, תחום, כאבים" rows="2" class="input-field"></textarea></div>
-      <div class="form-group"><label>5. מי המתחרים הישירים? (2-3 שמות)</label><textarea id="rq-competitors" placeholder="שמות + URL אם יש" rows="2" class="input-field"></textarea></div>
-
-      <div class="form-group"><label>6. מטרות שיווק <span style="color:var(--text-3);font-weight:400">(בחרו כמה שרלוונטי)</span></label>
-        <div class="multi-select-grid" id="rq-goals-grid">
-          <label class="ms-chip"><input type="checkbox" name="rq-goal" value="לידים"/><span>לידים</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-goal" value="מכירות ישירות"/><span>מכירות ישירות</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-goal" value="בניית קהל"/><span>בניית קהל</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-goal" value="מודעות מותג" checked/><span>מודעות מותג</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-goal" value="שימור לקוחות"/><span>שימור לקוחות</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-goal" value="SEO ותנועה אורגנית"/><span>SEO ותנועה אורגנית</span></label>
-        </div>
-      </div>
-
-      <div class="form-group"><label>7. באילו פלטפורמות אתם פעילים? <span style="color:var(--text-3);font-weight:400">(או רוצים להיות)</span></label>
-        <div class="multi-select-grid" id="rq-platforms-grid">
-          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="Instagram"/><span>Instagram</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="Facebook"/><span>Facebook</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="LinkedIn"/><span>LinkedIn</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="TikTok"/><span>TikTok</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="Twitter/X"/><span>Twitter/X</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="YouTube"/><span>YouTube</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="בלוג"/><span>בלוג</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="ניוזלטר"/><span>ניוזלטר</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="Google Ads"/><span>Google Ads</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="Meta Ads"/><span>Meta Ads</span></label>
-        </div>
-      </div>
-
-      <div class="form-group"><label>8. איזה תוכן אתם מפרסמים היום? <span style="color:var(--text-3);font-weight:400">(בחרו כמה שרלוונטי)</span></label>
-        <div class="multi-select-grid" id="rq-content-grid">
-          <label class="ms-chip"><input type="checkbox" name="rq-content" value="פוסטים ברשתות"/><span>פוסטים ברשתות</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-content" value="סרטונים / ריילס"/><span>סרטונים / ריילס</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-content" value="מאמרי בלוג"/><span>מאמרי בלוג</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-content" value="ניוזלטר / אימייל"/><span>ניוזלטר / אימייל</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-content" value="פודקאסט"/><span>פודקאסט</span></label>
-          <label class="ms-chip"><input type="checkbox" name="rq-content" value="לא מפרסמים עדיין"/><span>לא מפרסמים עדיין</span></label>
-        </div>
-      </div>
-
-      <div class="form-group"><label>9. טון התקשורת</label>
-        <div class="multi-select-grid" id="rq-tone-grid">
-          <label class="ms-chip"><input type="radio" name="rq-tone" value="מקצועי ורשמי"/><span>מקצועי ורשמי</span></label>
-          <label class="ms-chip"><input type="radio" name="rq-tone" value="ידידותי ונגיש" checked/><span>ידידותי ונגיש</span></label>
-          <label class="ms-chip"><input type="radio" name="rq-tone" value="צעיר ודינמי"/><span>צעיר ודינמי</span></label>
-          <label class="ms-chip"><input type="radio" name="rq-tone" value="פרובוקטיבי ונועז"/><span>פרובוקטיבי ונועז</span></label>
-          <label class="ms-chip"><input type="radio" name="rq-tone" value="חינוכי ומעשיר"/><span>חינוכי ומעשיר</span></label>
-        </div>
-      </div>
-
-      <div class="form-group"><label>10. תקציב שיווק חודשי</label>
-        <select id="rq-budget" class="input-field">
-          <option value="אין תקציב">אין תקציב — רק אורגני</option>
-          <option value="עד 1,000 ₪">עד 1,000 ₪</option>
-          <option value="1,000-5,000 ₪" selected>1,000–5,000 ₪</option>
-          <option value="5,000-15,000 ₪">5,000–15,000 ₪</option>
-          <option value="15,000-50,000 ₪">15,000–50,000 ₪</option>
-          <option value="מעל 50,000 ₪">מעל 50,000 ₪</option>
-        </select>
-      </div>
-
-      <div class="form-group"><label>11. מה הכי מתסכל בשיווק?</label><textarea id="rq-challenges" placeholder="אין זמן? לא יודעים מה לכתוב? אין תוצאות?" rows="2" class="input-field"></textarea></div>
-
-      <button class="btn btn-primary" id="btnSubmitResearch" onclick="submitResearch()" style="width:100%;margin-top:16px">הגדירו את הסוכנים שלי &rarr;</button>
-    </div>
-
-    <!-- Clarifying questions from Claude -->
-    <div id="research-clarify" style="display:none">
-      <div style="background:var(--primary-light);border:2px solid #BFDBFE;border-radius:14px;padding:24px">
-        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px">
-          <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;color:#fff">&#129302;</div>
-          <div>
-            <div style="font-weight:700;font-size:1.05rem;color:var(--text);margin-bottom:4px">שאלות לפני שמתחילים</div>
-            <div style="font-size:0.88rem;color:var(--text-2);line-height:1.5" id="clarify-assessment"></div>
-          </div>
-        </div>
-        <div id="clarify-questions-container"></div>
-        <div style="background:#fff;border-radius:8px;padding:10px 14px;margin:16px 0;font-size:0.82rem;color:var(--primary);display:flex;align-items:center;gap:6px">
-          <span style="font-size:1rem">&#128161;</span> אם אין לכם תשובה — השאירו ריק. המערכת תבצע מחקר עצמאי ותמלא את החסר.
-        </div>
-        <button class="btn btn-primary" id="btnClarifySubmit" onclick="submitClarified()" style="width:100%;padding:14px;font-size:1rem">המשיכו להגדרה &rarr;</button>
-      </div>
-    </div>
-
-    <!-- Progress during deployment -->
-    <div id="research-progress" style="display:none">
-      <div style="text-align:center;padding:20px 0">
-        <div style="font-size:2rem;margin-bottom:12px;animation:spin 2s linear infinite;display:inline-block">&#9881;&#65039;</div>
-        <h3 id="research-progress-text">מגדירים את הסוכנים שלכם...</h3>
-        <p style="color:var(--text-3);font-size:0.85rem;margin-top:8px">זה ייקח כ-30 שניות</p>
-      </div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <a class="btn btn-outline" href="/dashboard" style="text-decoration:none">פתחו את לוח הבקרה</a>
+      <button class="btn btn-outline" onclick="window.close()" style="background:none">סגרו את החלון</button>
     </div>
   </div>
 
-  <!-- ═══ Step 6: Daily Brief Schedule (only for MATEH plan) ═══ -->
-  <div class="wizard-card hidden" id="step6" data-step="6">
-    <div class="card-title">סיכום יומי</div>
-    <div class="card-desc">באיזו שעה תרצו לקבל את הסיכום היומי בטלגרם?</div>
-
-    <div class="form-group" style="margin-top:20px">
-      <label>שעה</label>
-      <input type="time" id="daily-brief-time" value="08:00" class="input-field" style="direction:ltr;text-align:center;font-size:1.2rem;padding:12px"/>
-    </div>
-
-    <div class="form-group" style="margin-top:16px">
-      <label>ימים</label>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox" checked/> ראשון</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox" checked/> שני</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox" checked/> שלישי</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox" checked/> רביעי</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox" checked/> חמישי</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox"/> שישי</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox"/> שבת</label>
-      </div>
-    </div>
-
-    <button class="btn btn-primary" onclick="saveDailyBrief()" style="width:100%;margin-top:24px">שמרו והמשיכו &rarr;</button>
-    <button class="skip-link" onclick="goToStep(isMATEH ? 7 : 5)">דלגו</button>
-  </div>
-
-  <!-- ═══ Step 4: Personal Agent Setup (non-MATEH only) ═══ -->
-  <div class="wizard-card hidden" id="step4p" data-step="4">
-    <div class="card-title">הגדירו את הסוכן שלכם</div>
-    <div class="card-desc">ספרו לסוכן מי אתם ומה הוא צריך לעשות — ייקח דקה</div>
-
-    <div id="personal-form">
-      <div class="form-group"><label>1. איך קוראים לכם?</label><input type="text" id="pq-name" placeholder="השם הפרטי שלכם" class="input-field"/></div>
-
-      <div class="form-group"><label>2. במה אתם עוסקים?</label><textarea id="pq-occupation" placeholder="לדוגמה: יועץ עסקי, מעצבת גרפית, בעל חנות אונליין..." rows="2" class="input-field"></textarea></div>
-
-      <div class="form-group"><label>3. איך הסוכן צריך לדבר?</label>
-        <div class="multi-select-grid">
-          <label class="ms-chip"><input type="radio" name="pq-tone" value="ישיר ותכליתי"/><span>ישיר ותכליתי</span></label>
-          <label class="ms-chip"><input type="radio" name="pq-tone" value="ידידותי וחם" checked/><span>ידידותי וחם</span></label>
-          <label class="ms-chip"><input type="radio" name="pq-tone" value="מקצועי ורשמי"/><span>מקצועי ורשמי</span></label>
-          <label class="ms-chip"><input type="radio" name="pq-tone" value="קליל והומוריסטי"/><span>קליל והומוריסטי</span></label>
-        </div>
-      </div>
-
-      <div class="form-group"><label>4. מה הסוכן צריך לעשות בשבילכם? <span style="color:var(--text-3);font-weight:400">(בחרו כמה שרלוונטי)</span></label>
-        <div class="multi-select-grid" id="pq-tasks-grid">
-          <label class="ms-chip"><input type="checkbox" name="pq-task" value="סיכום יומי — יומן, מיילים, תזכורות כל בוקר בטלגרם" checked/><span>סיכום יומי בוקר</span></label>
-          <label class="ms-chip"><input type="checkbox" name="pq-task" value="ניהול יומן — יצירה, עדכון ומחיקת אירועים ב-Google/Outlook"/><span>ניהול יומן</span></label>
-          <label class="ms-chip"><input type="checkbox" name="pq-task" value="קריאת מיילים וכתיבת טיוטות תשובה — שולח לאישור לפני שליחה"/><span>טיוטות מייל</span></label>
-          <label class="ms-chip"><input type="checkbox" name="pq-task" value="חיפוש מידע באינטרנט ומתן תשובות מבוססות מקורות"/><span>חיפוש מידע</span></label>
-          <label class="ms-chip"><input type="checkbox" name="pq-task" value="ניסוח הודעות, מסמכים וטקסטים לפי סגנון שלי"/><span>ניסוח טקסטים</span></label>
-          <label class="ms-chip"><input type="checkbox" name="pq-task" value="תזכורות — מעקב אחרי משימות ודדליינים"/><span>תזכורות ומעקב</span></label>
-          <label class="ms-chip"><input type="checkbox" name="pq-task" value="תמלול הודעות קוליות בטלגרם ומענה בקול"/><span>הודעות קוליות</span></label>
-          <label class="ms-chip"><input type="checkbox" name="pq-task" value="סיכום פגישות — סיכום מה דובר + action items"/><span>סיכום פגישות</span></label>
-        </div>
-      </div>
-
-      <details style="margin:12px 0 4px">
-        <summary style="cursor:pointer;color:var(--primary);font-size:0.85rem;font-weight:500">עוד רעיונות למשימות ←</summary>
-        <div style="padding:10px 0;font-size:0.84rem;color:var(--text-2);line-height:1.8">
-          <div class="multi-select-grid" style="margin-top:8px">
-            <label class="ms-chip"><input type="checkbox" name="pq-task" value="תרגום מיילים ומסמכים מעברית לאנגלית ולהיפך"/><span>תרגום</span></label>
-            <label class="ms-chip"><input type="checkbox" name="pq-task" value="מחקר מתחרים — מעקב אחרי שינויים באתרים ומוצרים"/><span>מחקר מתחרים</span></label>
-            <label class="ms-chip"><input type="checkbox" name="pq-task" value="ניהול רשימת משימות — הוספה, תיעדוף ומעקב"/><span>ניהול משימות</span></label>
-            <label class="ms-chip"><input type="checkbox" name="pq-task" value="הכנת סיכום שבועי — מה הושג, מה בהמשך"/><span>סיכום שבועי</span></label>
-            <label class="ms-chip"><input type="checkbox" name="pq-task" value="בדיקת מחירים ומבצעים באינטרנט"/><span>השוואת מחירים</span></label>
-            <label class="ms-chip"><input type="checkbox" name="pq-task" value="עזרה בכתיבת קורות חיים ומכתבי מוטיבציה"/><span>CV ומכתבים</span></label>
-          </div>
-        </div>
-      </details>
-
-      <div class="form-group"><label>5. יש משהו שהסוכן <strong>לא</strong> צריך לעשות?</label><textarea id="pq-boundaries" placeholder="לדוגמה: לא לשלוח מיילים בלי אישור, לא לגשת לקבצים פיננסיים..." rows="2" class="input-field"></textarea></div>
-
-      <button class="btn btn-primary" id="btnSubmitPersonal" onclick="submitPersonalSetup()" style="width:100%;margin-top:16px">הגדירו את הסוכן &rarr;</button>
-    </div>
-
-    <!-- Progress during deployment -->
-    <div id="personal-progress" style="display:none">
-      <div style="text-align:center;padding:20px 0">
-        <div style="font-size:2rem;margin-bottom:12px;animation:spin 2s linear infinite;display:inline-block">&#9881;&#65039;</div>
-        <h3 id="personal-progress-text">מגדירים את הסוכן שלכם...</h3>
-        <p style="color:var(--text-3);font-size:0.85rem;margin-top:8px">זה ייקח כ-20 שניות</p>
-      </div>
-    </div>
-
-    <button class="skip-link" onclick="goToStep(5)">דלגו לבינתיים</button>
-  </div>
-
-  <!-- ═══ Step 5/7: Done ═══ -->
-  <div class="wizard-card hidden" id="step5done" data-step="5">
-    <div class="card-title" style="margin-top:8px;">הכל מוכן!</div>
-    <div class="card-desc">הסוכנים שלכם פעילים ומחכים לכם</div>
-
-    <div class="done-buttons">
-      <a class="btn btn-primary" href="/dashboard" style="text-decoration:none;color:#fff;">
-        עברו ללוח הבקרה →
-      </a>
-    </div>
-
-    <a class="dashboard-link" href="/dashboard">עברו ללוח הבקרה &rarr;</a>
-  </div>
 
   <!-- ═══ Error State ═══ -->
   <div class="wizard-card hidden" id="stepError">
@@ -991,144 +662,19 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
-// Global — used by onclick handlers in HTML
-var isMATEH = false;
-function goToStep(n) { window._goToStep && window._goToStep(n); }
-
+// Post-payment confirmation page — no onboarding steps, just a soft poll
+// that detects fatal install errors. On success, full credentials arrive
+// by email; the user can close the window or click through to the dashboard.
 (function() {
   'use strict';
-
   var API = 'https://api.clawflow.flowmatic.co.il';
   var params = new URLSearchParams(window.location.search);
   var instanceId = params.get('instance');
-  var currentStep = 1;
-  var selectedProvider = 'anthropic';
-  var instanceData = null;
-  var tokenRevealed = false;
-  var storedToken = '';
   var pollTimer = null;
   var pollCount = 0;
-  var fakeProgress = 0;
-  var MAX_POLLS = 75; // ~10 min at 8s
-  var totalSteps = 5;
-  var isPersonal = false;
-
-  // ── Track payment success ──
+  var MAX_POLLS = 100;            // ~13 min at 8s — install rarely takes longer
   if (window.plausible) plausible('Payment Success', {props: {instance: instanceId}});
-
-  // ── Init ──
-  if (!instanceId) {
-    showError('חסר מזהה instance בכתובת');
-    return;
-  }
-
-  // Detect plan type from URL param
-  var planParam = params.get('plan');
-  if (planParam === 'mateh' || planParam === 'business' || planParam === 'pro' || planParam === 'developer') {
-    enableMATEH();
-  }
-
-  function enableMATEH() {
-    if (isMATEH) return;
-    isMATEH = true;
-    totalSteps = 7;
-    window.isMATEH = true;
-    var indicator = document.getElementById('stepIndicator');
-    if (!document.getElementById('dot-6')) {
-      indicator.innerHTML +=
-        '<div class="step-line pending" id="line-5"></div><div class="step-dot future" id="dot-6">6</div>' +
-        '<div class="step-line pending" id="line-6"></div><div class="step-dot future" id="dot-7">7</div>';
-    }
-  }
-
-  // Also detect from instance API (covers case when URL doesn't have plan param)
-  (async function detectPlan() {
-    try {
-      var res = await fetch(API + '/hosting/instances/' + instanceId + '/status', { headers: getAuthHeaders() });
-      var data = await res.json();
-      if (data.success && data.data) {
-        var comps = data.data.selectedComponents || [];
-        if (comps.indexOf('mt') !== -1) enableMATEH();
-      }
-    } catch(e) {}
-  })();
-
-  startProvisioning();
-
-  // ── Step Navigation ──
-  function updateIndicator(step) {
-    for (var i = 1; i <= totalSteps; i++) {
-      var dot = document.getElementById('dot-' + i);
-      if (!dot) continue;
-      dot.className = 'step-dot';
-      if (i < step) {
-        dot.className += ' completed';
-        dot.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-      } else if (i === step) {
-        dot.className += ' current';
-        dot.textContent = i;
-      } else {
-        dot.className += ' future';
-        dot.textContent = i;
-      }
-      if (i < totalSteps) {
-        var line = document.getElementById('line-' + i);
-        if (line) line.className = 'step-line ' + (i < step ? 'done' : 'pending');
-      }
-    }
-  }
-
-  window.goToStep = function(step) {
-    var oldCardId = getCardId(currentStep);
-    var newCardId = getCardId(step);
-    var oldCard = document.getElementById(oldCardId);
-    var newCard = document.getElementById(newCardId);
-    if (!oldCard || !newCard) return;
-
-    oldCard.style.animation = 'slideOut .3s ease forwards';
-    setTimeout(function() {
-      oldCard.classList.add('hidden');
-      oldCard.style.animation = '';
-      newCard.classList.remove('hidden');
-      newCard.style.animation = 'slideIn .4s ease';
-      currentStep = step;
-      updateIndicator(step);
-
-      var doneStep = isMATEH ? 7 : 5;
-      if (step === doneStep) {
-        populateDoneStep();
-        markComplete();
-      }
-    }, 280);
-  };
-
-  function getCardId(step) {
-    if (isMATEH) {
-      // MATEH: steps 1,2,3 → step1/2/3, step 5 → step5, step 6 → step6, step 7 → step5done
-      if (step === 7) return 'step5done';
-      return 'step' + step;
-    } else {
-      // Personal: steps 1,2,3 → step1/2/3, step 4 → step4p, step 5 → step5done
-      if (step === 4) return 'step4p';
-      if (step === 5) return 'step5done';
-      return 'step' + step;
-    }
-  }
-
-  // ── Step 1: Provisioning ──
-  function startProvisioning() {
-    pollStatus();
-    pollTimer = setInterval(pollStatus, 8000);
-    // Fake progress ticking
-    setInterval(function() {
-      if (currentStep !== 1) return;
-      if (fakeProgress < 90) {
-        fakeProgress += Math.random() * 3 + 0.5;
-        if (fakeProgress > 90) fakeProgress = 90;
-        document.getElementById('provisionProgress').style.width = fakeProgress + '%';
-      }
-    }, 2000);
-  }
+  if (!instanceId) { showError('חסר מזהה instance בכתובת'); return; }
 
   function getAuthHeaders() {
     var h = { 'Content-Type': 'application/json' };
@@ -1137,514 +683,40 @@ function goToStep(n) { window._goToStep && window._goToStep(n); }
     return h;
   }
 
-  function mapStatusToSubstep(status) {
-    if (status === 'creating' || status === 'provisioning') return 1;
-    if (status === 'initializing') return 2;
-    if (status === 'running') return 4;
-    if (status === 'failed') return -1;
-    return 1;
-  }
-
-  function updateProvisionSteps(activeSubstep) {
-    for (var i = 1; i <= 4; i++) {
-      var row = document.getElementById('ps-' + i);
-      var icon = document.getElementById('pi-' + i);
-      if (i < activeSubstep) {
-        row.className = 'provision-step';
-        icon.className = 'provision-icon done';
-        icon.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-      } else if (i === activeSubstep) {
-        row.className = 'provision-step';
-        icon.className = 'provision-icon active';
-        icon.textContent = i;
-      } else {
-        row.className = 'provision-step is-pending';
-        icon.className = 'provision-icon pending';
-        icon.textContent = i;
-      }
-    }
-  }
-
-  // Gradually advance fake substep based on progress
-  var lastKnownSubstep = 1;
-
   async function pollStatus() {
     pollCount++;
     try {
-      var res = await fetch(API + '/hosting/instances/' + instanceId + '/status', {
-        headers: getAuthHeaders()
-      });
+      var res = await fetch(API + '/hosting/instances/' + instanceId + '/status', { headers: getAuthHeaders() });
       if (!res.ok) {
-        document.getElementById('provisionStatus').textContent =
-          'שגיאה בבדיקת סטטוס (ניסיון ' + pollCount + ')';
-        if (pollCount >= MAX_POLLS) {
-          clearInterval(pollTimer);
-          showError('ההתקנה לוקחת יותר מדי זמן. אנא צרו קשר עם התמיכה.');
-        }
+        if (pollCount >= MAX_POLLS) { clearInterval(pollTimer); showError('ההתקנה לוקחת זמן חריג מהרגיל. צרו קשר עם התמיכה.'); }
         return;
       }
       var data = await res.json();
-      instanceData = data.data || data;
-      checkPlanType(instanceData);
-      var status = instanceData.status || 'provisioning';
-
-      var substep = mapStatusToSubstep(status);
-
-      if (substep === -1) {
-        clearInterval(pollTimer);
-        showError('ההתקנה נכשלה. אנא צרו קשר עם התמיכה.');
-        return;
-      }
-
-      // Fake gradual substep progression during 'initializing'
-      if (status === 'initializing') {
-        if (fakeProgress > 25 && lastKnownSubstep < 2) lastKnownSubstep = 2;
-        if (fakeProgress > 50 && lastKnownSubstep < 3) lastKnownSubstep = 3;
-        if (fakeProgress > 75 && lastKnownSubstep < 4) lastKnownSubstep = 4;
-        substep = Math.max(substep, lastKnownSubstep);
-      } else if (substep > lastKnownSubstep) {
-        lastKnownSubstep = substep;
-      }
-
-      updateProvisionSteps(substep);
-
-      var statusTexts = {
-        1: 'יוצרים שרת VPS...',
-        2: 'מתקינים OpenClaw...',
-        3: 'מגדירים DNS + SSL...',
-        4: 'בודקים שהכל עובד...'
-      };
-      document.getElementById('provisionStatus').textContent = statusTexts[substep] || 'מעבדים...';
-
-      // Map substep to fake progress targets
-      var progressTargets = { 1: 25, 2: 50, 3: 75, 4: 90 };
-      if (progressTargets[substep] && fakeProgress < progressTargets[substep]) {
-        fakeProgress = progressTargets[substep];
-        document.getElementById('provisionProgress').style.width = fakeProgress + '%';
-      }
-
+      var inst = data.data || data;
+      var status = inst.status || 'provisioning';
+      var st = document.getElementById('provisionStatus');
       if (status === 'running') {
         clearInterval(pollTimer);
-        fakeProgress = 100;
-        document.getElementById('provisionProgress').style.width = '100%';
-        updateProvisionSteps(5); // all done
-        document.getElementById('provisionStatus').textContent = 'הכל מוכן!';
-
-        // Store token if available
-        if (instanceData.openclawToken || instanceData.gatewayToken) {
-          storedToken = instanceData.openclawToken || instanceData.gatewayToken;
-        }
-
-        setTimeout(function() {
-          goToStep(2);
-        }, 1200);
+        if (st) st.innerHTML = '✅ הסביבה מוכנה! מייל עם פרטי הגישה בדרכו';
+      } else if (status === 'failed') {
+        clearInterval(pollTimer); showError('ההתקנה נכשלה. צרו קשר עם התמיכה.');
       }
-    } catch (e) {
-      document.getElementById('provisionStatus').textContent = 'שגיאת תקשורת, ממשיכים לנסות...';
-    }
-
-    if (pollCount >= MAX_POLLS) {
-      clearInterval(pollTimer);
-      showError('ההתקנה לוקחת יותר מדי זמן. אנא צרו קשר עם התמיכה.');
-    }
+      if (pollCount >= MAX_POLLS) { clearInterval(pollTimer); /* leave page silent — install may finish soon, email is the source of truth */ }
+    } catch (e) { /* network blip — keep polling */ }
   }
 
-  // ── Step 2: API Key ──
-  window.selectProvider = function(provider) {
-    selectedProvider = provider;
-    var anthropicCard = document.getElementById('provider-anthropic');
-    var openaiCard = document.getElementById('provider-openai');
-    if (provider === 'anthropic') {
-      anthropicCard.classList.add('selected');
-      openaiCard.classList.remove('selected');
-    } else {
-      openaiCard.classList.add('selected');
-      anthropicCard.classList.remove('selected');
-    }
-  };
-
-  window.saveApiKey = async function() {
-    var inputId = selectedProvider === 'anthropic' ? 'apiKeyAnthropic' : 'apiKeyOpenai';
-    var errorId = inputId + 'Error';
-    var input = document.getElementById(inputId);
-    var errorEl = document.getElementById(errorId);
-    var key = input.value.trim();
-
-    // Reset error
-    input.classList.remove('has-error');
-    errorEl.style.display = 'none';
-
-    if (!key || key.length < 10) {
-      input.classList.add('has-error');
-      errorEl.style.display = 'block';
-      return;
-    }
-
-    var btn = document.getElementById('btnSaveApiKey');
-    btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div>';
-
-    try {
-      var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/api-key', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ provider: selectedProvider, apiKey: key })
-      });
-      if (!res.ok) throw new Error('Request failed');
-      showToast('מפתח API נשמר בהצלחה', 'success');
-      setTimeout(function() { goToStep(3); }, 600);
-    } catch (e) {
-      showToast('שגיאה בשמירת המפתח, נסו שוב', 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'שמרו והמשיכו';
-    }
-  };
-
-  // ── Step 3: Telegram ──
-  window.saveTelegram = async function() {
-    var input = document.getElementById('telegramToken');
-    var errorEl = document.getElementById('telegramTokenError');
-    var token = input.value.trim();
-
-    input.classList.remove('has-error');
-    errorEl.style.display = 'none';
-
-    // Basic validation: should match pattern like 1234567890:ABCdef...
-    if (!token || !/^\d{8,}:[A-Za-z0-9_-]{30,}$/.test(token)) {
-      input.classList.add('has-error');
-      errorEl.style.display = 'block';
-      return;
-    }
-
-    var btn = document.getElementById('btnSaveTelegram');
-    btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div>';
-
-    try {
-      var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/telegram', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ botToken: token })
-      });
-      if (!res.ok) throw new Error('Request failed');
-      showToast('בוט Telegram חובר בהצלחה', 'success');
-      setTimeout(function() { goToStep(isMATEH ? 5 : 4); }, 600);
-    } catch (e) {
-      showToast('שגיאה בחיבור הבוט, נסו שוב', 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'חברו והמשיכו';
-    }
-  };
-
-  // ── Step 4: Done ──
-  function getAgentUrl() {
-    if (instanceData && instanceData.subdomainAgent) {
-      return 'https://' + instanceData.subdomainAgent;
-    }
-    return 'https://agent.' + instanceId + '.clawflow.flowmatic.co.il';
-  }
-
-  function getFlowsUrl() {
-    if (instanceData && instanceData.subdomainFlows) {
-      return 'https://' + instanceData.subdomainFlows;
-    }
-    return 'https://flows.' + instanceId + '.clawflow.flowmatic.co.il';
-  }
-
-  async function populateDoneStep() {
-    document.getElementById('linkAgent').href = getAgentUrl();
-    document.getElementById('linkFlows').href = getFlowsUrl();
-
-    // Credentials
-    var flowsUrl = getFlowsUrl();
-    document.getElementById('credFlowsUrl').textContent = flowsUrl.replace('https://', '');
-    document.getElementById('credFlowsLink').href = flowsUrl;
-
-    // Automation tool: Activepieces only
-    document.getElementById('credFlowsLabel').textContent = 'Activepieces';
-
-    // Fetch token from full instance data if not already available
-    if (!storedToken) {
-      try {
-        var res = await fetch(API + '/hosting/instances/' + instanceId, { headers: getAuthHeaders() });
-        var data = await res.json();
-        if (data.success && data.data) {
-          storedToken = data.data.openclawToken || data.data.gatewayToken || '';
-        }
-      } catch (e) { /* non-critical */ }
-    }
-
-    if (storedToken) {
-      document.getElementById('credToken').setAttribute('data-token', storedToken);
-    }
-  }
-
-  function markComplete() {
-    try {
-      fetch(API + '/hosting/instances/' + instanceId + '/setup/complete', {
-        method: 'POST',
-        headers: getAuthHeaders()
-      });
-    } catch (e) { /* non-critical */ }
-  }
-
-  window.toggleCreds = function() {
-    document.getElementById('credsCard').classList.toggle('open');
-  };
-
-  window.toggleSecret = function(type) {
-    if (type === 'token') {
-      var el = document.getElementById('credToken');
-      var btn = document.getElementById('btnShowToken');
-      if (tokenRevealed) {
-        el.textContent = '\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF';
-        btn.textContent = 'הצג';
-        tokenRevealed = false;
-      } else {
-        var t = el.getAttribute('data-token') || storedToken || '---';
-        el.textContent = t;
-        btn.textContent = 'הסתר';
-        tokenRevealed = true;
-      }
-    }
-  };
-
-  window.copySecret = function(type) {
-    if (type === 'token') {
-      var t = storedToken || document.getElementById('credToken').getAttribute('data-token') || '';
-      if (t && navigator.clipboard) {
-        navigator.clipboard.writeText(t).then(function() {
-          showToast('הועתק', 'success');
-        });
-      }
-    }
-  };
-
-  // ── Error ──
   function showError(msg) {
-    // Hide all steps
-    for (var i = 1; i <= 7; i++) {
-      var el = document.getElementById('step' + i);
-      if (el) el.classList.add('hidden');
-    }
-    document.getElementById('stepError').classList.remove('hidden');
-    document.getElementById('errorDesc').textContent = msg;
-    document.getElementById('stepIndicator').classList.add('hidden');
+    var card = document.getElementById('step1');
+    var err = document.getElementById('stepError');
+    var desc = document.getElementById('errorDesc');
+    if (card) card.style.display = 'none';
+    if (err) err.classList.remove('hidden');
+    if (desc && msg) desc.textContent = msg;
   }
 
-  // ── Toast ──
-  var toastTimeout = null;
-  function showToast(msg, type) {
-    var el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className = 'toast' + (type ? ' ' + type : '');
-    // Force reflow
-    void el.offsetWidth;
-    el.classList.add('show');
-    clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(function() {
-      el.classList.remove('show');
-    }, 3000);
-  }
-  window.showToast = showToast;
-
-  // ── MATEH: Research Wizard ──
-  // Helper: collect checked values from checkboxes by name
-  function getCheckedValues(name) {
-    return Array.from(document.querySelectorAll('input[name="' + name + '"]:checked')).map(function(el) { return el.value; });
-  }
-
-  // ── Personal Agent Setup ──
-  window.submitPersonalSetup = async function() {
-    var name = (document.getElementById('pq-name').value || '').trim();
-    var occupation = (document.getElementById('pq-occupation').value || '').trim();
-    var tone = (document.querySelector('input[name="pq-tone"]:checked') || {}).value || 'ידידותי וחם';
-    var tasks = getCheckedValues('pq-task');
-    var boundaries = (document.getElementById('pq-boundaries').value || '').trim();
-
-    if (!name) { showToast('הכניסו את השם שלכם', 'error'); return; }
-
-    var btn = document.getElementById('btnSubmitPersonal');
-    btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div>';
-    document.getElementById('personal-form').style.display = 'none';
-    document.getElementById('personal-progress').style.display = 'block';
-
-    var progressTexts = ['יוצרים פרופיל...', 'מגדירים אישיות...', 'מתקינים כישורים...', 'מפעילים מחדש...'];
-    var pi = 0;
-    var progressInterval = setInterval(function() {
-      pi++;
-      if (pi < progressTexts.length) {
-        document.getElementById('personal-progress-text').textContent = progressTexts[pi];
-      }
-    }, 5000);
-
-    try {
-      var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/personal-agent', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          userName: name,
-          occupation: occupation,
-          tone: tone,
-          delegatedTasks: tasks,
-          boundaries: boundaries
-        })
-      });
-      if (!res.ok) throw new Error('Request failed');
-      clearInterval(progressInterval);
-      showToast('הסוכן הוגדר בהצלחה!', 'success');
-      setTimeout(function() { goToStep(5); }, 600);
-    } catch (e) {
-      clearInterval(progressInterval);
-      showToast('שגיאה בהגדרת הסוכן, נסו שוב', 'error');
-      document.getElementById('personal-form').style.display = 'block';
-      document.getElementById('personal-progress').style.display = 'none';
-      btn.disabled = false;
-      btn.textContent = 'הגדירו את הסוכן \u2192';
-    }
-  };
-
-  window.submitResearch = async function() {
-    var answers = {
-      businessName: document.getElementById('rq-business-name').value.trim(),
-      businessDescription: document.getElementById('rq-business-desc').value.trim(),
-      websiteUrl: document.getElementById('rq-website').value.trim(),
-      targetAudience: document.getElementById('rq-target').value.trim(),
-      competitors: document.getElementById('rq-competitors').value.trim(),
-      marketingGoals: getCheckedValues('rq-goal').join(', ') || 'מודעות מותג',
-      platforms: getCheckedValues('rq-platform').join(', '),
-      currentContent: getCheckedValues('rq-content').join(', '),
-      tone: (document.querySelector('input[name="rq-tone"]:checked') || {}).value || 'ידידותי ונגיש',
-      budget: document.getElementById('rq-budget').value,
-      challenges: document.getElementById('rq-challenges').value.trim()
-    };
-
-    if (!answers.businessName) { showToast('נא להזין שם עסק', 'error'); return; }
-    if (!answers.businessDescription) { showToast('נא לתאר את העסק', 'error'); return; }
-
-    // Store answers for later use
-    window._researchAnswers = answers;
-
-    // Step 1: Analyze with Claude for clarifying questions
-    document.getElementById('research-form').style.display = 'none';
-    document.getElementById('research-progress').style.display = 'block';
-    document.getElementById('research-progress-text').textContent = 'מנתחים את המידע שלכם...';
-
-    try {
-      var analyzeRes = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/analyze', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(answers)
-      });
-      var analyzeData = await analyzeRes.json();
-
-      if (analyzeData.success && analyzeData.data && analyzeData.data.questions && analyzeData.data.questions.length > 0) {
-        // Show clarifying questions
-        document.getElementById('research-progress').style.display = 'none';
-        document.getElementById('research-clarify').style.display = 'block';
-        document.getElementById('clarify-assessment').textContent = analyzeData.data.assessment || '';
-
-        var container = document.getElementById('clarify-questions-container');
-        container.innerHTML = '';
-        analyzeData.data.questions.forEach(function(q) {
-          var whyHtml = q.why ? '<div style="font-size:0.78rem;color:var(--text-3);margin-top:2px;font-style:italic">' + q.why + '</div>' : '';
-          var div = document.createElement('div');
-          div.style.marginBottom = '16px';
-          div.innerHTML = '<label style="display:block;font-weight:600;font-size:0.95rem;margin-bottom:6px;color:var(--text)">' + q.question + '</label>' +
-            whyHtml +
-            '<textarea id="clarify-' + q.id + '" placeholder="' + (q.placeholder || '') + '" rows="3" style="width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-size:0.95rem;font-family:inherit;resize:vertical;background:#fff;transition:border-color .2s" onfocus="this.style.borderColor=\'var(--primary)\'" onblur="this.style.borderColor=\'var(--border)\'"></textarea>';
-          container.appendChild(div);
-        });
-        return; // Wait for user to answer clarifying questions
-      }
-
-      // No questions needed — proceed directly to deployment
-      await deployAgents(answers);
-    } catch (e) {
-      // On analyze error — proceed directly to deployment
-      console.log('Analyze failed, proceeding:', e);
-      await deployAgents(answers);
-    }
-  };
-
-  // Submit after clarifying questions answered
-  window.submitClarified = async function() {
-    var answers = window._researchAnswers || {};
-    // Collect clarifying answers and append to original answers
-    var clarifyInputs = document.querySelectorAll('[id^="clarify-q"]');
-    var clarifications = [];
-    clarifyInputs.forEach(function(el) {
-      if (el.value.trim()) {
-        var parent = el.parentElement;
-        var label = parent ? parent.querySelector('label') : null;
-        clarifications.push((label ? label.textContent : '') + ': ' + el.value.trim());
-      }
-    });
-    if (clarifications.length > 0) {
-      answers.clarifications = clarifications.join('\n');
-    }
-
-    document.getElementById('research-clarify').style.display = 'none';
-    await deployAgents(answers);
-  };
-
-  // Actual deployment
-  async function deployAgents(answers) {
-    document.getElementById('research-progress').style.display = 'block';
-    var steps = ['יוצרים USER.md ו-BRAND.md...', 'מגדירים סוכנים...', 'מתקינים Skills...', 'מפעילים מחדש...'];
-    var progressText = document.getElementById('research-progress-text');
-    progressText.textContent = steps[0];
-    var stepIdx = 0;
-    var progressTimer = setInterval(function() {
-      stepIdx++;
-      if (stepIdx < steps.length) progressText.textContent = steps[stepIdx];
-    }, 6000);
-
-    try {
-      var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(answers)
-      });
-      clearInterval(progressTimer);
-      if (!res.ok) throw new Error('Request failed');
-      showToast('הסוכנים הוגדרו בהצלחה!', 'success');
-      setTimeout(function() { goToStep(6); }, 600);
-    } catch (e) {
-      clearInterval(progressTimer);
-      showToast('שגיאה בהגדרת הסוכנים, נסו שוב', 'error');
-      document.getElementById('research-progress').style.display = 'none';
-      document.getElementById('research-form').style.display = 'block';
-    }
-  }
-
-  // ── MATEH: Daily Brief Schedule ──
-  window.saveDailyBrief = async function() {
-    var time = document.getElementById('daily-brief-time').value || '08:00';
-    showToast('שמור: Daily Brief ב-' + time, 'success');
-    // Save to instance researchData
-    try {
-      await fetch(API + '/hosting/instances/' + instanceId + '/setup/complete', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ dailyBriefTime: time })
-      });
-    } catch (e) { /* non-critical */ }
-    setTimeout(function() { goToStep(7); }, 600);
-  };
-
-  // ── Detect MATEH from API response ──
-  // Called in pollStatus when we get instance data
-  function checkPlanType(data) {
-    if (data && data.selectedComponents) {
-      var hasMT = data.selectedComponents.indexOf('mt') !== -1;
-      if (hasMT && !isMATEH) enableMATEH();
-    }
-  }
-
+  // Begin
+  pollStatus();
+  pollTimer = setInterval(pollStatus, 8000);
 })();
 </script>
 
