@@ -429,6 +429,89 @@ export const adminRefundPayment = async (c: Context) => {
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
 
+// ─── Refund + terminate combo (one click on the instance) ───────────────
+
+export const adminRefundAndTerminate = async (c: Context) => {
+    try {
+        const id = c.req.param('id')
+        const body = await c.req.json<{ confirm?: string; reason?: string }>().catch(() => ({} as any))
+        if (body.confirm !== id) return fail(c, 'Confirmation must equal the instance id', 400)
+        const adminId = c.get('adminId' as any) as string
+
+        const [inst] = await db.select().from(instances).where(eq(instances.id, id))
+        if (!inst) return fail(c, 'Instance not found', 404)
+
+        // 1. Refund any paid payments for this instance
+        const allPays = await db.select().from(payments).where(eq(payments.instanceId, id))
+        const refundResults: any[] = []
+        for (const pay of allPays) {
+            if (pay.status !== 'paid' || !pay.allpayOrderId) continue
+            try {
+                const { AllPayService } = await import('@/services/allpay')
+                const svc = new AllPayService()
+                await svc.refund(pay.allpayOrderId, Number(pay.amountIls || 0))
+                await db.update(payments).set({ status: 'refunded' } as any).where(eq(payments.id, pay.id))
+                refundResults.push({ paymentId: pay.id, ok: true, amount: pay.amountIls })
+            } catch (e) {
+                refundResults.push({ paymentId: pay.id, ok: false, error: (e as Error).message })
+            }
+        }
+
+        // 2. Snapshot + delete VPS (same logic as terminate)
+        let snapshotId: number | null = null
+        if (inst.hetznerServerId) {
+            try {
+                snapshotId = await hetznerCreateSnapshot(inst.hetznerServerId, `pre-refund-terminate ${id} ${new Date().toISOString()}`)
+                await db.insert(adminSnapshots).values({
+                    instanceId: id,
+                    hetznerImageId: snapshotId,
+                    reason: 'pre-refund-terminate',
+                    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                    createdBy: adminId,
+                })
+                await new Promise(r => setTimeout(r, 4000))
+            } catch (e) { console.warn('[admin.refund_and_terminate] snapshot failed:', (e as Error).message) }
+            try { await hetznerDeleteServer(inst.hetznerServerId) }
+            catch (e) { console.warn('[admin.refund_and_terminate] delete failed:', (e as Error).message) }
+        }
+
+        // 3. Delete Cloudflare DNS for this instance (best-effort)
+        try {
+            const subdomain = inst.subdomainName
+            if (subdomain && process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ZONE_ID) {
+                const list = await fetch(
+                    `https://api.cloudflare.com/client/v4/zones/${process.env.CLOUDFLARE_ZONE_ID}/dns_records?per_page=200&search=${subdomain}`,
+                    { headers: { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}` } },
+                ).then(r => r.json()) as any
+                for (const rec of (list?.result || [])) {
+                    if (typeof rec.name === 'string' && rec.name.includes(subdomain)) {
+                        await fetch(`https://api.cloudflare.com/client/v4/zones/${process.env.CLOUDFLARE_ZONE_ID}/dns_records/${rec.id}`,
+                            { method: 'DELETE', headers: { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}` } })
+                            .catch(() => {})
+                    }
+                }
+            }
+        } catch (e) { console.warn('[admin.refund_and_terminate] DNS cleanup failed:', (e as Error).message) }
+
+        // 4. Mark instance terminated
+        await db.update(instances).set({ status: 'terminated' } as any).where(eq(instances.id, id))
+
+        await writeAudit({
+            adminId, action: 'admin.instance.refund_and_terminate',
+            targetType: 'instance', targetId: id,
+            details: { snapshotId, reason: body.reason || '', refunds: refundResults },
+            ip: getIp(c),
+        })
+
+        return ok(c, {
+            terminated: true,
+            snapshotId,
+            refunds: refundResults,
+            totalRefundedIls: refundResults.filter(r => r.ok).reduce((s, r) => s + Number(r.amount || 0), 0),
+        }, 'Refunded all paid payments and terminated instance')
+    } catch (err) { return fail(c, (err as Error).message, 500) }
+}
+
 // ─── Master toggle ───────────────────────────────────────────────────────
 
 export const adminToggleMaster = async (c: Context) => {

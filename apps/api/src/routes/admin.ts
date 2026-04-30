@@ -11,6 +11,7 @@ import {
     adminListAudit,
     adminToggleMaster,
     adminUpgradeInstance, adminBulkUpgrade, adminUpgradeProgress, adminVersionStatus,
+    adminRefundAndTerminate,
 } from '@/controllers/admin'
 
 const app = new Hono()
@@ -49,6 +50,7 @@ app.post('/clients/:id/restart', adminRestartInstance)
 app.post('/clients/:id/suspend', adminSuspendInstance)
 app.post('/clients/:id/resume', adminResumeInstance)
 app.post('/clients/:id/terminate', adminTerminateInstance)
+app.post('/clients/:id/refund-and-terminate', adminRefundAndTerminate)
 app.post('/clients/:id/reset-credentials', adminResetCredentials)
 app.post('/clients/:id/send-email', adminSendCustomEmail)
 

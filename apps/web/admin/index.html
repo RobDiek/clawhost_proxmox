@@ -534,7 +534,8 @@ async function openClient(id) {
       '</button>' +
       '<button class="btn btn-sm" onclick="resetCreds(\''+escapeHtml(i.id)+'\')">🔑 Reset credentials</button>' +
       '<button class="btn btn-sm" onclick="sendEmailModal(\''+escapeHtml(i.id)+'\',\''+escapeHtml(u.email||'')+'\')">✉ Send email</button>' +
-      '<button class="btn btn-sm btn-danger" onclick="terminateModal(\''+escapeHtml(i.id)+'\')">🗑 Terminate</button>' +
+      '<button class="btn btn-sm btn-danger" onclick="refundAndTerminateModal(\''+escapeHtml(i.id)+'\',\''+escapeHtml(u.email||'')+'\')">💸 Refund &amp; terminate</button>' +
+      '<button class="btn btn-sm btn-danger" onclick="terminateModal(\''+escapeHtml(i.id)+'\')" style="opacity:0.85">🗑 Terminate only</button>' +
     '</div></div>';
 
   document.getElementById('slideover-body').innerHTML = html;
@@ -742,23 +743,61 @@ async function renderRevenue() {
 function refundPayment(id) {
   showModal(
     '<h3 style="color:#FCA5A5">Refund payment</h3>' +
-    '<p>Refund will be issued via AllPay and the payment will be marked refunded in our DB.</p>' +
-    '<p>Type the payment id to confirm:</p>' +
+    '<p>Refund the AllPay charge and mark this payment as refunded. <strong>This does NOT terminate the VPS</strong> — for that use "Refund &amp; terminate" from the client detail panel.</p>' +
+    '<p style="font-size:0.78rem;color:var(--text-3)">Payment ID: <code class="mono">' + escapeHtml(id) + '</code></p>' +
+    '<label style="font-size:0.78rem;color:var(--text-2);display:block;margin-bottom:4px">Paste payment ID to confirm:</label>' +
     '<input id="rf-confirm" placeholder="' + escapeHtml(id) + '" autofocus>' +
     '<input id="rf-reason" placeholder="Reason (optional)">' +
     '<div class="modal-foot">' +
       '<button class="btn" onclick="closeModal()">Cancel</button>' +
-      '<button class="btn btn-danger" onclick="doRefund(\''+id+'\')">Refund</button>' +
+      '<button class="btn" onclick="autofillRefund(\''+id+'\')" style="background:rgba(251,191,36,0.14);color:#FBBF24">Auto-fill</button>' +
+      '<button class="btn btn-danger" onclick="doRefund(\''+id+'\')">Refund payment only</button>' +
     '</div>'
   );
 }
+function autofillRefund(id) { document.getElementById('rf-confirm').value = id; }
 async function doRefund(id) {
   var confirmText = document.getElementById('rf-confirm').value.trim();
   var reason = document.getElementById('rf-reason').value.trim();
-  if (confirmText !== id) return toast('Confirmation mismatch', 'error');
+  if (confirmText !== id) return toast('Confirmation must match the Payment ID exactly', 'error');
   var r = await api('/admin/payments/' + id + '/refund', { method:'POST', body: { confirm: id, reason: reason } });
   if (r && r.success) { toast('Refunded', 'success'); closeModal(); navigate('revenue'); }
   else toast(r?.message || 'Failed', 'error');
+}
+
+// ─── Refund + terminate (atomic, instance-level) ───────────────────────────
+function refundAndTerminateModal(id, email) {
+  showModal(
+    '<h3 style="color:#FCA5A5">Refund &amp; terminate ' + escapeHtml(id) + '</h3>' +
+    '<p>This will:</p>' +
+    '<ol style="font-size:0.86rem;color:var(--text-2);line-height:1.7;padding-left:18px;margin-bottom:14px">' +
+      '<li>Refund <strong>all paid AllPay charges</strong> for this instance</li>' +
+      '<li>Take a 7-day Hetzner snapshot (rollback insurance)</li>' +
+      '<li>Delete the VPS</li>' +
+      '<li>Delete Cloudflare DNS records</li>' +
+      '<li>Mark instance as <code>terminated</code></li>' +
+    '</ol>' +
+    (email ? '<p style="font-size:0.82rem;color:var(--text-3)">Customer: <strong>' + escapeHtml(email) + '</strong></p>' : '') +
+    '<label style="font-size:0.78rem;color:var(--text-2);display:block;margin-bottom:4px">Paste instance ID to confirm:</label>' +
+    '<input id="rt-confirm" placeholder="' + escapeHtml(id) + '" autofocus>' +
+    '<input id="rt-reason" placeholder="Reason (optional, goes to audit log)">' +
+    '<div class="modal-foot">' +
+      '<button class="btn" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn" onclick="document.getElementById(\'rt-confirm\').value=\''+id+'\'" style="background:rgba(251,191,36,0.14);color:#FBBF24">Auto-fill</button>' +
+      '<button class="btn btn-danger" onclick="doRefundAndTerminate(\''+id+'\')">Refund &amp; terminate</button>' +
+    '</div>'
+  );
+}
+async function doRefundAndTerminate(id) {
+  var confirmText = document.getElementById('rt-confirm').value.trim();
+  var reason = document.getElementById('rt-reason').value.trim();
+  if (confirmText !== id) return toast('Confirmation must equal the Instance ID', 'error');
+  var r = await api('/admin/clients/' + id + '/refund-and-terminate', { method:'POST', body: { confirm: id, reason: reason } });
+  if (r && r.success) {
+    var n = (r.data.refunds || []).filter(function(x){return x.ok}).length;
+    toast('Refunded ' + n + ' payments (₪' + (r.data.totalRefundedIls||0) + ') · VPS terminated', 'success');
+    closeModal(); closeSlideover(); navigate('clients');
+  } else toast(r?.message || 'Failed', 'error');
 }
 
 // ─── Health ────────────────────────────────────────────────────────────────
