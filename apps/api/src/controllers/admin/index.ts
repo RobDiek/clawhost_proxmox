@@ -127,13 +127,15 @@ export const adminDashboard = async (c: Context) => {
         const failed = allInstances.filter(i => i.status === 'failed').length
         const terminated = allInstances.filter(i => i.status === 'terminated').length
 
-        // MRR — sum priceIls of running instances (approx — assumes priceIls in instance row)
-        const mrrRows = await db.execute(sql`
-            SELECT COALESCE(SUM(price_ils::numeric), 0) AS mrr
-            FROM instances
-            WHERE status IN ('running', 'initializing', 'provisioning')
-        `)
-        const mrr = Number((mrrRows as any).rows?.[0]?.mrr || 0)
+        // MRR — derive from plan_key via canonical PLANS map. The price_ils
+        // column is unreliable (sometimes annual, sometimes custom deals),
+        // so we ignore it and use plan_key as the monthly source of truth.
+        const PLAN_MONTHLY: Record<string, number> = {
+            personal: 79, business: 169, pro: 349, developer: 599,
+        }
+        const mrr = allInstances
+            .filter(i => i.status === 'running' || i.status === 'initializing' || i.status === 'provisioning')
+            .reduce((sum, i) => sum + (PLAN_MONTHLY[(i.planKey || '').toLowerCase()] || 0), 0)
 
         // Recent payments (last 24h)
         const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
