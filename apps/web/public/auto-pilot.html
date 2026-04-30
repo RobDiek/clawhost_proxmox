@@ -34,46 +34,200 @@ a { color:#2563EB; text-decoration:none; }
   .cf-login { font-size:11px; padding:3px 10px; }
 }
 
-/* Hero */
-.hero { padding:60px 0 40px; text-align:center; }
-.hero-badge { display:inline-block; background:#EFF6FF; color:#2563EB; font-size:0.82rem; font-weight:600; padding:4px 14px; border-radius:20px; margin-bottom:16px; }
-.hero h1 { font-size:2rem; font-weight:700; line-height:1.3; margin-bottom:16px; }
-@media(min-width:600px) { .hero h1 { font-size:2.4rem; } }
-.hero p { font-size:1.05rem; color:#6B7280; max-width:600px; margin:0 auto; line-height:1.7; }
+/* ═══ Hero — emotional anchor (safety / professionalism / economy) ═══ */
+.hero-section {
+  background: radial-gradient(ellipse 1200px 600px at 50% -30%, rgba(37,99,235,0.08), transparent 60%),
+              linear-gradient(180deg, #FAFBFF 0%, #ffffff 100%);
+  border-bottom: 1px solid #EEF2F7;
+  padding: 64px 0 56px;
+}
+.hero-grid {
+  max-width: 1080px; margin: 0 auto; padding: 0 24px;
+  display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center;
+}
+@media(max-width:900px) { .hero-grid { grid-template-columns: 1fr; gap: 32px; } }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #fff; border: 1px solid #DBEAFE;
+  color: #1E40AF; font-size: 0.78rem; font-weight: 600;
+  padding: 6px 14px; border-radius: 999px; margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.06);
+}
+.hero-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.18); }
+.hero-h1 {
+  font-size: clamp(2rem, 4.4vw, 2.9rem);
+  font-weight: 800; line-height: 1.12; letter-spacing: -1px;
+  color: #0B1322; margin-bottom: 14px;
+}
+.hero-h1 em { font-style: normal; color: #2563EB; }
+.hero-lead {
+  font-size: 1.05rem; color: #4B5563; line-height: 1.75; margin-bottom: 24px;
+  max-width: 540px;
+}
+.trust-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  margin-top: 26px; padding-top: 22px; border-top: 1px solid #E5E7EB;
+}
+.trust-cell { font-size: 0.84rem; color: #4B5563; line-height: 1.5; }
+.trust-cell strong { display: block; color: #0B1322; font-weight: 700; font-size: 0.92rem; margin-bottom: 2px; }
 
-/* Cards */
-.cards { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin:40px 0; }
-@media(max-width:900px) { .cards { grid-template-columns:1fr; } }
-.card { background:#fff; border:2px solid #E5E7EB; border-radius:16px; padding:26px 22px; position:relative; transition:border-color .2s, box-shadow .2s; }
-.card:hover { border-color:#2563EB; box-shadow:0 4px 20px rgba(37,99,235,.08); }
-.card.pop { border-color:#2563EB; box-shadow:0 4px 20px rgba(37,99,235,.08); }
-.card-setup { font-size:0.78rem; color:#6B7280; margin-top:6px; padding:6px 0; border-top:1px solid #F3F4F6; }
-.card-setup strong { color:#374151; }
-.card-icon { font-size:1.6rem; margin-bottom:10px; }
-.card-name { font-size:1.15rem; font-weight:700; margin-bottom:2px; }
-.card-desc { font-size:0.82rem; color:#6B7280; margin-bottom:14px; }
-.price { font-size:1.9rem; font-weight:700; }
-.price span { font-size:0.82rem; font-weight:400; color:#9CA3AF; }
-.price-note { font-size:0.72rem; color:#9CA3AF; margin-top:2px; }
+/* Video placeholder */
+.video-frame {
+  position: relative;
+  aspect-ratio: 16/9;
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px -20px rgba(15,23,42,0.5), 0 12px 30px -10px rgba(37,99,235,0.18);
+  border: 1px solid rgba(37,99,235,0.2);
+  cursor: pointer;
+  transition: transform .25s, box-shadow .25s;
+}
+.video-frame:hover { transform: translateY(-3px); box-shadow: 0 38px 90px -20px rgba(15,23,42,0.55), 0 16px 36px -10px rgba(37,99,235,0.25); }
+.video-frame::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 30% 30%, rgba(37,99,235,0.25), transparent 55%),
+              radial-gradient(circle at 70% 80%, rgba(124,58,237,0.18), transparent 50%);
+}
+.video-play {
+  position: absolute; inset: 0; display: grid; place-items: center; z-index: 2;
+}
+.video-play-btn {
+  width: 78px; height: 78px; border-radius: 50%;
+  background: rgba(255,255,255,0.96); display: grid; place-items: center;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.3);
+  transition: transform .25s;
+}
+.video-frame:hover .video-play-btn { transform: scale(1.06); }
+.video-play-btn::after {
+  content: ''; width: 0; height: 0;
+  border-style: solid; border-width: 14px 0 14px 22px;
+  border-color: transparent transparent transparent #2563EB;
+  margin-right: -4px;
+}
+.video-label {
+  position: absolute; bottom: 18px; left: 18px; right: 18px; z-index: 2;
+  text-align: center;
+  color: #fff; font-size: 0.86rem; font-weight: 500;
+  background: rgba(2,6,23,0.55); backdrop-filter: blur(6px);
+  padding: 8px 18px; border-radius: 999px;
+  display: inline-block; margin: 0 auto;
+}
 
-.feat { list-style:none; margin:18px 0; }
-.feat li { display:flex; align-items:flex-start; gap:8px; font-size:0.83rem; padding:5px 0; line-height:1.5; }
-.feat li::before { content:"✓"; color:#10B981; font-weight:700; flex-shrink:0; }
-.feat li.off::before { content:"—"; color:#D1D5DB; }
+/* ═══ Pricing — premium 3-tier ═══ */
+.pricing-eyebrow { text-align: center; margin: 64px 0 12px; }
+.pricing-eyebrow .label { font-size: 0.74rem; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #2563EB; }
+.pricing-head { text-align: center; margin-bottom: 40px; }
+.pricing-head h2 { font-size: clamp(1.7rem, 3.5vw, 2.2rem); font-weight: 800; letter-spacing: -0.6px; color: #0B1322; margin-bottom: 10px; }
+.pricing-head p { font-size: 1rem; color: #6B7280; max-width: 540px; margin: 0 auto; line-height: 1.7; }
+
+.cards { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin:8px 0 56px; align-items: stretch; }
+@media(max-width:900px) { .cards { grid-template-columns:1fr; gap:18px; } }
+
+.card {
+  background:#fff; border:1.5px solid #E5E7EB; border-radius:18px;
+  padding:32px 26px 26px; position:relative; display: flex; flex-direction: column;
+  transition: transform .25s ease, border-color .2s, box-shadow .25s;
+}
+.card:hover { transform: translateY(-4px); border-color:#BFDBFE; box-shadow:0 18px 40px -12px rgba(37,99,235,.18); }
+
+.card.pop {
+  background: linear-gradient(180deg, #fff 0%, #F8FBFF 100%);
+  border: 1.5px solid #2563EB;
+  box-shadow: 0 24px 60px -16px rgba(37,99,235,0.28), 0 8px 24px -10px rgba(37,99,235,0.14);
+  transform: scale(1.025);
+  z-index: 2;
+}
+.card.pop:hover { transform: scale(1.04) translateY(-2px); }
+@media(max-width:900px) { .card.pop { transform: none; } .card.pop:hover { transform: translateY(-3px); } }
+.card.pop::before {
+  content: 'הכי פופולרי';
+  position: absolute; top: -13px; right: 50%; transform: translateX(50%);
+  background: linear-gradient(90deg, #2563EB 0%, #4F46E5 100%);
+  color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 1.2px;
+  padding: 6px 16px; border-radius: 999px;
+  box-shadow: 0 6px 16px -4px rgba(37,99,235,0.45);
+  text-transform: uppercase;
+}
+
+.card-name { font-size: 1.3rem; font-weight: 800; color: #0B1322; letter-spacing: -0.4px; margin-bottom: 4px; }
+.card-desc { font-size: 0.86rem; color: #6B7280; line-height: 1.55; margin-bottom: 20px; min-height: 36px; }
+
+.price-block { padding: 16px 0 14px; border-top: 1px solid #F3F4F6; border-bottom: 1px solid #F3F4F6; margin-bottom: 20px; }
+.price { font-size: 2.1rem; font-weight: 800; color: #0B1322; letter-spacing: -1px; line-height: 1; }
+.price span.unit { font-size: 0.92rem; font-weight: 500; color: #9CA3AF; margin-right: 4px; letter-spacing: 0; }
+.price.dual { font-size: 1.55rem; line-height: 1.2; }
+.price.dual .plus { font-size: 1rem; color: #94A3B8; margin: 0 6px; }
+.price-note { font-size: 0.78rem; color: #6B7280; margin-top: 8px; line-height: 1.5; }
+
+.feat { list-style:none; margin:0 0 24px; padding: 0; flex: 1; }
+.feat li {
+  display:flex; align-items:flex-start; gap:10px; font-size:0.88rem; line-height:1.55;
+  padding:9px 0; border-bottom: 1px dashed #F3F4F6;
+}
+.feat li:last-child { border-bottom: none; }
+.feat li::before {
+  content:""; flex-shrink:0; width: 18px; height: 18px; border-radius: 50%;
+  background: #ECFDF5; margin-top: 1px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310B981' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>");
+  background-size: 12px 12px; background-position: center; background-repeat: no-repeat;
+}
+.feat li strong { color: #0B1322; font-weight: 600; }
+.feat li.off::before {
+  background: #F9FAFB;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D1D5DB' stroke-width='3' stroke-linecap='round'><line x1='5' y1='12' x2='19' y2='12'/></svg>");
+}
 .feat li.off { color:#9CA3AF; }
 
-/* Tooltip */
-.tip-wrap { position:relative; cursor:help; border-bottom:1px dashed #9CA3AF; }
-.tip-box { display:none; position:absolute; bottom:calc(100% + 6px); right:50%; transform:translateX(50%); background:#1F2937; color:#fff; font-size:0.73rem; padding:8px 12px; border-radius:8px; width:230px; text-align:center; line-height:1.5; z-index:10; pointer-events:none; }
-.tip-box::after { content:''; position:absolute; top:100%; right:50%; transform:translateX(50%); border:5px solid transparent; border-top-color:#1F2937; }
-.tip-wrap:hover .tip-box { display:block; }
-@media(max-width:600px) { .tip-box { width:180px; font-size:0.68rem; } }
+.card-foot { font-size:0.8rem; color:#6B7280; line-height:1.55; padding: 14px 0 18px; border-top:1px solid #F3F4F6; }
+.card-foot strong { color:#0B1322; font-weight: 700; }
 
-.cta { display:block; width:100%; padding:12px; border:none; border-radius:10px; font-size:0.92rem; font-weight:600; cursor:pointer; text-align:center; transition:all .15s; font-family:inherit; }
-.cta-fill { background:#2563EB; color:#fff; }
-.cta-fill:hover { background:#1D4ED8; }
-.cta-line { background:#fff; color:#2563EB; border:2px solid #2563EB; }
-.cta-line:hover { background:#EFF6FF; }
+/* CTA buttons */
+.cta {
+  display:block; width:100%; padding:14px; border:none; border-radius:12px;
+  font-size:0.96rem; font-weight:700; cursor:pointer; text-align:center;
+  transition:all .18s; font-family:inherit; letter-spacing: -0.1px;
+}
+.cta-fill {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  color:#fff;
+  box-shadow: 0 8px 22px -8px rgba(37,99,235,0.55);
+}
+.cta-fill:hover { transform: translateY(-1px); box-shadow: 0 12px 28px -8px rgba(37,99,235,0.65); }
+.cta-line {
+  background:#fff; color:#2563EB; border:1.5px solid #BFDBFE;
+}
+.cta-line:hover { background:#EFF6FF; border-color:#2563EB; }
+.cta-secondary {
+  display:block; width:100%; padding:11px; margin-top: 8px;
+  background: transparent; color: #6B7280;
+  border: 1px dashed #D1D5DB; border-radius: 10px;
+  font-size: 0.83rem; font-weight: 500; text-align:center;
+  cursor:pointer; transition:all .15s; font-family:inherit;
+}
+.cta-secondary:hover { background:#FAFAFA; color:#2563EB; border-color:#BFDBFE; text-decoration:none; }
+.cta-secondary strong { color: #2563EB; font-weight: 700; }
+
+/* ── Tooltip (cleaner, white) ── */
+.tip-wrap {
+  position:relative; cursor:help;
+  border-bottom:1px dotted #9CA3AF; color: #2563EB;
+}
+.tip-box {
+  visibility: hidden; opacity: 0;
+  position:absolute; bottom:calc(100% + 8px); right:50%; transform:translateX(50%);
+  background:#0B1322; color:#fff; font-size:0.78rem; font-weight: 400;
+  padding:10px 14px; border-radius:10px; width:260px; text-align:right; line-height:1.6;
+  z-index:50; pointer-events:none; box-shadow: 0 12px 30px -8px rgba(0,0,0,0.35);
+  transition: opacity .15s, visibility .15s;
+}
+.tip-box::after {
+  content:''; position:absolute; top:100%; right:50%; transform:translateX(50%);
+  border:6px solid transparent; border-top-color:#0B1322;
+}
+.tip-wrap:hover .tip-box { visibility: visible; opacity: 1; }
+@media(max-width:600px) { .tip-box { width:200px; font-size:0.72rem; } }
 
 /* Compare */
 .compare { margin:48px 0; }
@@ -128,78 +282,131 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
   </div>
 </header>
 
+<!-- ═══ Hero ═══ -->
+<section class="hero-section">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-eyebrow">שקט נפשי. מקצוענות. בלי לשרוף תקציב</div>
+      <h1 class="hero-h1">שיווק דיגיטלי <em>שלם</em>.<br/>בעלות של עוזר במשרה חלקית.</h1>
+      <p class="hero-lead">10 סוכני AI עובדים על העסק שלכם 24/7 — תוכן, פרסום, SEO, אימיילים, רשתות חברתיות. אנחנו מבקרים את העבודה, מכוונים אסטרטגיה, ושומרים על התקציב. אתם מקבלים תוצאות, לא חשבוניות מפחידות.</p>
+      <div class="trust-row">
+        <div class="trust-cell">
+          <strong>איכות סוכנות</strong>
+          ביצוע ברמה הגבוהה ביותר, ללא ה-overhead
+        </div>
+        <div class="trust-cell">
+          <strong>שקיפות מלאה</strong>
+          כל ROAS, כל קליק, כל שקל — ב-Dashboard 24/7
+        </div>
+        <div class="trust-cell">
+          <strong>בכ-15% ממחיר השוק</strong>
+          ללא עמלות נסתרות על תקציב פרסום
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="video-frame" id="hero-video" onclick="window._heroVideoStart && window._heroVideoStart(this)">
+        <!-- Replace this comment with <video src="/intro.mp4"> or <iframe ...> when ready -->
+        <div class="video-play"><div class="video-play-btn"></div></div>
+        <div class="video-label" style="left:50%;right:auto;transform:translateX(-50%);min-width:max-content">סרטון היכרות — לחצו לצפייה</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <div class="wrap">
 
-<!-- Hero -->
-<div class="hero">
-  <div class="hero-badge">ניהול שיווק מקצועי</div>
-  <h1>AI עושה 80% מהעבודה.<br/>אנחנו עושים את ה-20% שמשנים הכל.</h1>
-  <p>סוכני AI יוצרים תוכן, מנהלים קמפיינים, מנטרים SEO ומפרסמים — 24/7. מומחה אנושי מוודא שהכל עובד, מתקן, ומכוון את האסטרטגיה.</p>
+<!-- ═══ Pricing head ═══ -->
+<div class="pricing-eyebrow"><span class="label">מחירון פשוט · 3 דרכים להתחיל</span></div>
+<div class="pricing-head">
+  <h2>בחרו את הקצב שמתאים לכם</h2>
+  <p>אותם 10 סוכני AI. אותו לוח בקרה. ההבדל היחיד — כמה אתם רוצים שניטול חלק.</p>
 </div>
 
-<!-- Pricing -->
+<!-- ═══ Pricing cards ═══ -->
 <div class="cards">
-
-  <!-- Self-Service (MATEH, fully self-managed) -->
-  <div class="card">
-    <div class="card-name">Self-Service</div>
-    <div class="card-desc">הכל פתוח, הכל זמין. אתם מנהלים הכל לבד</div>
-    <div class="price">₪139<span>/חודש</span></div>
-    <div class="price-note">MATEH מלא · 10 סוכני AI · ללא הקמה, ללא התחייבות</div>
-    <ul class="feat">
-      <li>MATEH — סוכן השיווק המלא, פעיל מהיום הראשון</li>
-      <li>10 סוכני AI מותקנים ומוכנים להפעלה</li>
-      <li>גישה מלאה ופתוחה ללוח הבקרה — כל הכלים, כל התכונות</li>
-      <li>חיבורים אפשריים: Google Ads · Meta Ads · GA4 · Search Console · GTM · WhatsApp · Telegram · Gmail · Calendar</li>
-      <li>הגדרת אסטרטגיה, קמפיינים ותוכן — אתם מובילים</li>
-      <li>מפתחות API שלכם · שליטה מלאה ב-prompts ובהגדרות</li>
-      <li>VPS עצמאי משלכם, עם SSL ודומיין ייחודי</li>
-      <li>תמיכה טכנית במייל</li>
-    </ul>
-    <div class="card-setup">ללא דמי הקמה · בלי שיחות חובה · ביטול בכל עת</div>
-    <button class="cta cta-line" onclick="window.location.href='/'">התחילו לבד ←</button>
-  </div>
-
-  <!-- Configuration (one-time) -->
-  <div class="card pop">
-    <div class="card-name">תצורה</div>
-    <div class="card-desc">הקמה מלאה. לאחר מכן אתם בשליטה</div>
-    <div class="price">₪1,750<span>/חד-פעמי</span></div>
-    <div class="price-note">5–7 ימי עסקים · לא כולל עלות שרת חודשית</div>
-    <ul class="feat">
-      <li><span class="tip-wrap">שיחת גילוי (60 דקות, זום)<span class="tip-box">מי הקהל, מה אתם מוכרים, איפה אתם רוצים לצמוח, מה התקציב</span></span></li>
-      <li><span class="tip-wrap">בניית Brand Foundation<span class="tip-box">סריקת האתר וחילוץ צבעים, פונטים, לוגו, קול. אישור כל אלמנט. ספר מותג מלא ב-PDF</span></span></li>
-      <li><span class="tip-wrap">SEO — תשתית אורגנית<span class="tip-box">מחקר מילות מפתח (DataForSEO + Search Console), ניתוח 3–5 מתחרים, אסטרטגיית תוכן ל-3 חודשים</span></span></li>
-      <li><span class="tip-wrap">Google Ads — קמפיינים ראשוניים<span class="tip-box">חיבור Ads + GA4 + Search Console + GTM. Mazhir Audit מלא. הקמת Search ראשוני עם מילות מפתח 1st-party</span></span></li>
-      <li><span class="tip-wrap">Meta — קמפיינים ראשוניים (אופציונלי)<span class="tip-box">Facebook Ads + Instagram. ניתוח קריאייטיבים של מתחרים. Lookalike audiences מבוססי הדאטה שלכם</span></span></li>
-      <li><span class="tip-wrap">חיבור ערוצי לקוחות<span class="tip-box">טלגרם בוט · WhatsApp Business · Gmail · Google Calendar</span></span></li>
-      <li><span class="tip-wrap">מסירה והדרכה (90 דקות זום)<span class="tip-box">איך מאשרים תוכן, איך קוראים דוחות, איך מבקשים שינוי אסטרטגיה</span></span></li>
-      <li><span class="tip-wrap">30 ימי תמיכה במייל<span class="tip-box">מענה לשאלות הפעלה ותיקוני באגים אחרי המסירה</span></span></li>
-      <li><span class="tip-wrap">10 סוכני AI מבצעים את האסטרטגיה החודשית — לבד<span class="tip-box">בסוף ההקמה כל סוכן יודע מה לעשות החודש: לכתוב, לקדם, לפרסם, לדווח. אתם רק מאשרים תוכן ומדיה לפני שיוצא לציבור</span></span></li>
-    </ul>
-    <div class="card-setup">בסוף ההקמה: 10 סוכני AI מריצים אסטרטגיה חודשית באופן עצמאי. אתם רק מאשרים תוכן ומדיה. <strong>אין דמי חודש</strong> מצידנו</div>
-    <button class="cta cta-fill" onclick="pick('configuration')">הזמינו תצורה ←</button>
-  </div>
 
   <!-- Auto-pilot (full management) -->
   <div class="card">
     <div class="card-name">אוטופילוט</div>
-    <div class="card-desc">אנחנו מנהלים. אתם מקבלים תוצאות</div>
-    <div class="price">₪1,750 הקמה + ₪1,500<span>/חודש</span></div>
-    <div class="price-note">מינימום 6 חודשים · לא כולל עלות שרת ו-ad spend</div>
+    <div class="card-desc">אנחנו מנהלים. אתם מקבלים תוצאות בכל יום ראשון</div>
+    <div class="price-block">
+      <div class="price">₪1,500<span class="unit">/חודש</span></div>
+      <div class="price-note">+ ₪1,750 הקמה חד-פעמית · מינימום 6 חודשים · ad spend בנפרד</div>
+    </div>
     <ul class="feat">
-      <li><span class="tip-wrap">הכל מ-"תצורה"<span class="tip-box">כל תהליך ההקמה המלא — סשן גילוי, Brand Foundation, SEO, Google Ads, Meta, ערוצי לקוחות, הדרכה</span></span></li>
-      <li><span class="tip-wrap">דוח שבועי (כל יום ראשון, 09:00)<span class="tip-box">מה עבד, מה לא, ROAS לפי ערוץ, ROI כללי. PDF מפורט + סיכום בטלגרם</span></span></li>
-      <li><span class="tip-wrap">פרסום ממומן — ניהול מלא<span class="tip-box">Google Ads, Meta Ads, YouTube. אופטימיזציה שבועית: מורידים מה שלא ממיר, מעצימים מה שכן. שמירה על תקרת תקציב</span></span></li>
-      <li><span class="tip-wrap">תוכן אורגני — כתיבה ופרסום<span class="tip-box">4–8 מאמרי SEO לחודש (Schema + AI Nuggets + Entity Consensus). 3–5 פוסטים בשבוע ב-LinkedIn / Facebook / Instagram</span></span></li>
-      <li><span class="tip-wrap">רשימות תפוצה — ניהול מלא<span class="tip-box">ניוזלטר שבועי או דו-שבועי. Email automations: Welcome, Abandoned cart, Post-purchase. A/B נושאים ושעות שליחה</span></span></li>
-      <li><span class="tip-wrap">קריאייטיב — לפי דרישה<span class="tip-box">עד 16 יצירות מדיה לחודש (תמונות AI + וידאו קצר). כל יצירה עוברת Brand Consistency check</span></span></li>
-      <li><span class="tip-wrap">ניהול לקוחות מתקדם<span class="tip-box">לידים מ-WhatsApp עם מענה ראשוני אוטומטי. Google Business Profile — פוסטים שבועיים + מענה לביקורות תוך 24 שעות</span></span></li>
-      <li><span class="tip-wrap">שיחת אסטרטגיה דו-שבועית (30 דקות, זום)<span class="tip-box">מה הצליח, מה לא, מה ננסה הפעם. עדכון יעדים אם השוק זז. החלטות שדורשות אישור עסקי</span></span></li>
-      <li><span class="tip-wrap">מינימום התחייבות 6 חודשים<span class="tip-box">אוטופילוט צריך זמן להניב תוצאות מלאות. אחרי 6 חודשים: חודש הודעה מראש לביטול</span></span></li>
+      <li><strong>הכל מ-"תצורה"</strong> — תהליך הקמה מלא של 5–7 ימים</li>
+      <li>דוח שבועי כל יום ראשון, 09:00 — PDF + טלגרם</li>
+      <li>פרסום ממומן: <span class="tip-wrap">Google + Meta + YouTube<span class="tip-box">ניהול מלא של קמפיינים, אופטימיזציה שבועית, שמירה על תקרת התקציב שהגדרתם</span></span> — ניהול מלא</li>
+      <li>תוכן אורגני: 4–8 מאמרי SEO + 3–5 פוסטים שבועיים ברשתות</li>
+      <li>רשימות תפוצה — ניוזלטר + automations + A/B שבועי</li>
+      <li>עד 16 יצירות מדיה לחודש (תמונות AI + וידאו קצר)</li>
+      <li>ניהול לידים: WhatsApp + Google Business Profile + תגובה לביקורות</li>
+      <li>שיחת אסטרטגיה דו-שבועית עם איש מקצוע (30 דקות)</li>
     </ul>
-    <div class="card-setup">אתם: אסטרטגיה גבוהה ואישורים תקציביים. אנחנו: כל הביצוע, הניהול והדיווח</div>
+    <div class="card-foot">
+      <strong>אתם:</strong> אסטרטגיה ברמה גבוהה ואישורי תקציב.<br/>
+      <strong>אנחנו:</strong> כל הביצוע, הניהול והדיווח.
+    </div>
     <button class="cta cta-line" onclick="pick('autopilot')">התחילו אוטופילוט ←</button>
+  </div>
+
+  <!-- Configuration (FEATURED) -->
+  <div class="card pop">
+    <div class="card-name">תצורה</div>
+    <div class="card-desc">הקמה מקצועית מקצה לקצה. אתם נוהגים אחר כך</div>
+    <div class="price-block">
+      <div class="price">₪1,750<span class="unit">/חד-פעמי</span></div>
+      <div class="price-note">5–7 ימי עסקים · ללא דמי חודש מצידנו אחרי המסירה</div>
+    </div>
+    <ul class="feat">
+      <li><span class="tip-wrap">שיחת גילוי (60 דקות, זום)<span class="tip-box">מבינים את הקהל, המוצר, היעדים והתקציב — לפני שמתחילים לעבוד</span></span></li>
+      <li><span class="tip-wrap">בניית ספר מותג מלא<span class="tip-box">סריקת האתר וחילוץ צבעים, פונטים, לוגו וקול. אישור או החלפה של כל אלמנט. ספר מותג ב-PDF — מקור אמת לכל הסוכנים</span></span></li>
+      <li><span class="tip-wrap">SEO — תשתית אורגנית מלאה<span class="tip-box">מחקר מילות מפתח, ניתוח 3–5 מתחרים, אסטרטגיית תוכן ל-3 חודשים, לוח עריכה חודשי</span></span></li>
+      <li><span class="tip-wrap">Google Ads — קמפיינים ראשוניים<span class="tip-box">חיבור Google Ads + GA4 + Search Console + GTM. בדיקת מצב מלאה (Mazhir Audit) והקמת קמפיין Search ראשון</span></span></li>
+      <li><span class="tip-wrap">Meta Ads — קמפיינים ראשוניים<span class="tip-box">פייסבוק + אינסטגרם. ניתוח קריאייטיבים של מתחרים. בניית Lookalike audiences מבוססי הנתונים שלכם</span></span></li>
+      <li><span class="tip-wrap">חיבור ערוצי לקוחות<span class="tip-box">בוט טלגרם · WhatsApp Business · Gmail · Google Calendar — הכל מחובר ועובד</span></span></li>
+      <li><span class="tip-wrap">מסירה והדרכה (90 דקות זום)<span class="tip-box">לומדים איך להפעיל את הסוכנים, לאשר תוכן, לקרוא דוחות ולכוון אסטרטגיה בעצמכם</span></span></li>
+      <li>30 ימי תמיכה במייל אחרי המסירה</li>
+      <li><strong>בסוף ההקמה: 10 סוכני AI מריצים אסטרטגיה חודשית בעצמם. אתם רק מאשרים תוכן ומדיה.</strong></li>
+    </ul>
+    <div class="card-foot">
+      <strong>אחרי המסירה:</strong> השליטה כולה אצלכם, בלי דמי חודש מצידנו.
+    </div>
+    <button class="cta cta-fill" onclick="pick('configuration')">הזמינו תצורה ←</button>
+  </div>
+
+  <!-- Self-Service (MATEH, fully self-managed) -->
+  <div class="card">
+    <div class="card-name">Self-Service</div>
+    <div class="card-desc">הכל פתוח, הכל זמין. מנהלים הכל לבד מהיום הראשון</div>
+    <div class="price-block">
+      <div class="price">₪139<span class="unit">/חודש</span></div>
+      <div class="price-note">ללא דמי הקמה · ביטול בכל עת · מתאים למשווקים, חברות הייטק או צוות פנימי</div>
+    </div>
+    <ul class="feat">
+      <li><span class="tip-wrap">MATEH — סוכן שיווק מלא<span class="tip-box">סוכן AI שמכין יום-יום תוכן ומודעות, מנתח ביצועים, ושולח דוחות. עובד לבד, אתם רק מאשרים</span></span> — פעיל מהיום הראשון</li>
+      <li><span class="tip-wrap">10 סוכני AI מותקנים ומוכנים<span class="tip-box">כל סוכן עוסק בתחום אחר: SEO · Google Ads · Meta · רשתות חברתיות · אימיילים · ניתוח מתחרים · ועוד</span></span></li>
+      <li>גישה מלאה ופתוחה ללוח הבקרה — אין תכונות נעולות</li>
+      <li>חיבור אופציונלי ל:
+        <span class="tip-wrap">Google Ads<span class="tip-box">פלטפורמת הפרסום של גוגל — מודעות בחיפוש, ב-YouTube ובאפליקציות</span></span> ·
+        <span class="tip-wrap">Meta Ads<span class="tip-box">פייסבוק ואינסטגרם — מודעות ממומנות וניהול ארגוני</span></span> ·
+        <span class="tip-wrap">GA4<span class="tip-box">Google Analytics 4 — איך אנשים מגיעים לאתר ומה הם עושים שם</span></span> ·
+        <span class="tip-wrap">Search Console<span class="tip-box">כלי גוגל למעקב SEO — מילות חיפוש, מיקומים, קליקים</span></span> ·
+        <span class="tip-wrap">GTM<span class="tip-box">Google Tag Manager — מעקב המרות ואירועים באתר ללא צורך במתכנת</span></span> ·
+        <span class="tip-wrap">WhatsApp<span class="tip-box">WhatsApp Business — מענה אוטומטי ללקוחות, ניהול שיחות מהדאשבורד</span></span> ·
+        Telegram · Gmail · Calendar
+      </li>
+      <li>הגדרת אסטרטגיה, קמפיינים ותוכן — אתם מובילים</li>
+      <li><span class="tip-wrap">מפתחות API שלכם<span class="tip-box">המפתחות לשירותי AI (Anthropic / OpenAI) רשומים עליכם — אתם משלמים ישירות, ללא תוספת אחוזים מצידנו</span></span> · שליטה ב-<span class="tip-wrap">prompts<span class="tip-box">ההוראות שמקבלים הסוכנים. תוכלו לשנות הכל בעצמכם — טון, סגנון, גישה לכל סוכן</span></span> ובהגדרות</li>
+      <li><span class="tip-wrap">VPS עצמאי<span class="tip-box">שרת פרטי משלכם בענן — לא חולקים אותו עם אף אחד. הנתונים שלכם בידיים שלכם</span></span> עם <span class="tip-wrap">SSL<span class="tip-box">תעודת אבטחה שמצפינה את כל המידע. הסמל של המנעול ✓ לצד כתובת האתר</span></span> ודומיין ייחודי</li>
+      <li>תמיכה טכנית במייל</li>
+    </ul>
+    <div class="card-foot">
+      רוצים ללמוד איך להפיק מקסימום מ-MATEH ומהסוכנים? <strong>עשינו לכם קורס קצר ולעניין.</strong>
+    </div>
+    <button class="cta cta-line" onclick="window.location.href='/'">התחילו לבד ←</button>
+    <button class="cta cta-secondary" onclick="window.location.href='https://flowmatic.co.il/'">📚 <strong>צפו בקורס החינמי</strong> ←</button>
   </div>
 </div>
 
