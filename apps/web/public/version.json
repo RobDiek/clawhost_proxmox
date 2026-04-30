@@ -1,0 +1,24 @@
+{
+  "stackVersion": "2026.04.30",
+  "schemaVersion": 7,
+  "releasedAt": "2026-04-30T14:30:00Z",
+  "releaseNotes": [
+    "Brand Foundation v3 — reflect-not-invent + 3-page Reflect UI",
+    "Mobile rewrite — flowmatic.co.il + clawflow.flowmatic.co.il",
+    "Mazhir audit hardening + bid-transition automation",
+    "Marketing pipeline v4 with brand-aware Mazhir prompt"
+  ],
+  "components": {
+    "openclaw":     "0.20.x",
+    "activepieces": "0.42.0",
+    "postgres":     "16-alpine",
+    "redis":        "7.2-alpine",
+    "qdrant":       "v1.10.0",
+    "neo4j":        "5-community",
+    "litellm":      "main-latest",
+    "ollama":       "0.3.12",
+    "nginx":        "system",
+    "caddy":        "2.7"
+  },
+  "migrations": []
+}

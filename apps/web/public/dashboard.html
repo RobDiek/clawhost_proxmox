@@ -1029,6 +1029,9 @@ input{font-family:inherit}
 
       <!-- Column 2: עדכונים והמלצות -->
       <div id="homeNotifications">
+        <!-- Stack version + upgrade card (Sprint A+B) -->
+        <div id="versionCard" style="margin-bottom:14px;display:none"></div>
+
         <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
           <span>עדכונים והמלצות</span>
           <button onclick="clearNotifications()" style="font-size:.78rem;color:#9CA3AF;cursor:pointer;background:none;border:none">נקו הכל</button>
@@ -3968,6 +3971,8 @@ function renderAgentHomeContext() {
 function renderHome() {
   // Check if VPS is still provisioning
   checkProvisioningStatus();
+  // Stack version status (background fetch — render on completion)
+  if (typeof renderVersionCard === 'function') renderVersionCard();
   // Greeting
   var name = localStorage.getItem('cf_user_name') || email.split('@')[0] || '';
   var greetEl = document.getElementById('greetingText');
@@ -22095,6 +22100,149 @@ document.addEventListener('keydown', function(e) {
     if (key === 'פ' || key === 'p' || key === 'P' || key === 'ש' || key === 's' || key === 'S') { e.preventDefault(); apiPublishOutput(taskId); closeTaskPopup(); return; }
   }
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STACK VERSION CARD (Sprint A) + UPGRADE FLOW (Sprint B)
+// ═══════════════════════════════════════════════════════════════════════════
+window._cfUpgradePoll = null;
+
+async function renderVersionCard() {
+  if (!instanceId) return;
+  var card = document.getElementById('versionCard');
+  if (!card) return;
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/version-status');
+    if (!r || !r.success) return;
+    var d = r.data || {};
+    var inst = d.installed || {};
+    var latest = d.latest || {};
+    if (d.upToDate) {
+      card.style.display = 'block';
+      card.innerHTML =
+        '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:0.84rem;color:#065F46">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0"><path d="M9 11l3 3L22 4"/></svg>' +
+          '<div style="flex:1">' +
+            '<div style="font-weight:700">הסטאק עדכני</div>' +
+            '<div style="font-size:0.76rem;color:#047857;margin-top:2px">גרסה ' + (inst.stackVersion || latest.stackVersion || '?') + '</div>' +
+          '</div>' +
+        '</div>';
+      return;
+    }
+    // Drift exists — show upgrade card
+    var drift = d.componentDrift || [];
+    var pending = d.pendingMigrations || [];
+    var notes = (latest.releaseNotes || []).slice(0, 3);
+    card.style.display = 'block';
+    var driftRows = drift.slice(0, 5).map(function(x) {
+      return '<div style="font-size:0.76rem;color:#374151;display:flex;justify-content:space-between;padding:3px 0">' +
+        '<span style="font-family:monospace">' + x.component + '</span>' +
+        '<span style="color:#6B7280">' + x.from + ' → <strong style="color:#1F2937">' + x.to + '</strong></span>' +
+      '</div>';
+    }).join('');
+    card.innerHTML =
+      '<div style="background:linear-gradient(180deg,#EFF6FF,#fff);border:1.5px solid #BFDBFE;border-radius:12px;padding:14px;font-family:inherit">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+          '<span style="font-size:1.2rem">🆕</span>' +
+          '<strong style="font-size:0.95rem;color:#1E3A5F">עדכון זמין</strong>' +
+          (latest.stackVersion ? '<span style="font-size:0.72rem;background:#DBEAFE;color:#1E40AF;padding:2px 8px;border-radius:999px">v' + latest.stackVersion + '</span>' : '') +
+        '</div>' +
+        (notes.length ? '<ul style="font-size:0.78rem;color:#374151;margin:6px 0 8px;padding-right:18px;line-height:1.65">' +
+            notes.map(function(n){return '<li>' + cfEsc(n) + '</li>';}).join('') + '</ul>' : '') +
+        (drift.length ? '<details style="margin-bottom:8px"><summary style="font-size:0.78rem;color:#2563EB;cursor:pointer;outline:none">פרטים טכניים (' + drift.length + ' רכיבים)</summary>' +
+            '<div style="background:#F9FAFB;border-radius:8px;padding:8px 10px;margin-top:6px">' + driftRows + '</div>' +
+            '</details>' : '') +
+        (pending.length ? '<div style="font-size:0.74rem;color:#92400E;margin-bottom:8px">⚠️ ' + pending.length + ' מיגרציות יורצו עם snapshot rollback</div>' : '') +
+        '<div style="display:flex;gap:6px">' +
+          '<button onclick="cfStartUpgrade()" class="btn btn-primary btn-sm" style="flex:1">🔄 התקינו עדכון</button>' +
+          '<button onclick="renderVersionCard()" class="btn btn-outline btn-sm" style="font-size:0.76rem">רענון</button>' +
+        '</div>' +
+      '</div>';
+  } catch (err) {
+    console.warn('renderVersionCard error:', err);
+  }
+}
+
+function cfEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+async function cfStartUpgrade() {
+  if (!confirm('להתחיל עדכון? יילקח snapshot ב-Hetzner (לrollback אוטומטי במקרה כשל). תהליך אורך 5-15 דקות תלוי במיגרציות.')) return;
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/upgrade', { method: 'POST' });
+    if (!r.success) throw new Error(r.message);
+    cfShowUpgradeProgress();
+  } catch (err) {
+    showToast('שגיאה בהתחלת עדכון: ' + err.message, 'error');
+  }
+}
+
+function cfShowUpgradeProgress() {
+  var card = document.getElementById('versionCard');
+  if (!card) return;
+  card.innerHTML =
+    '<div id="cf-upgrade-pane" style="background:#0F172A;color:#fff;border-radius:12px;padding:16px;font-family:inherit">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+        '<div style="width:18px;height:18px;border:2px solid #2563EB;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite"></div>' +
+        '<strong style="font-size:0.95rem">מבצע עדכון...</strong>' +
+      '</div>' +
+      '<div style="background:#1E293B;border-radius:8px;height:8px;overflow:hidden;margin-bottom:8px">' +
+        '<div id="cf-upgrade-bar" style="height:100%;background:linear-gradient(90deg,#2563EB,#10B981);width:0%;transition:width .3s"></div>' +
+      '</div>' +
+      '<div id="cf-upgrade-step" style="font-size:0.78rem;color:#94A3B8">מתחיל...</div>' +
+      '<div id="cf-upgrade-detail" style="font-size:0.72rem;color:#64748B;margin-top:4px"></div>' +
+    '</div>';
+
+  if (window._cfUpgradePoll) clearInterval(window._cfUpgradePoll);
+  window._cfUpgradePoll = setInterval(cfPollUpgrade, 3000);
+  cfPollUpgrade();
+}
+
+async function cfPollUpgrade() {
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/upgrade-progress');
+    if (!r.success || !r.data) return;
+    var p = r.data;
+    var bar = document.getElementById('cf-upgrade-bar');
+    var step = document.getElementById('cf-upgrade-step');
+    var detail = document.getElementById('cf-upgrade-detail');
+    if (bar) bar.style.width = (p.pct || 0) + '%';
+    if (step) step.textContent = cfStepLabel(p.step) + ' (' + (p.pct || 0) + '%)';
+    if (detail) detail.textContent = p.detail || '';
+
+    if (p.status === 'success') {
+      clearInterval(window._cfUpgradePoll);
+      showToast('🎉 עדכון הושלם בהצלחה', 'success');
+      setTimeout(renderVersionCard, 1500);
+    } else if (p.status === 'failed' || p.status === 'rolled_back') {
+      clearInterval(window._cfUpgradePoll);
+      var pane = document.getElementById('cf-upgrade-pane');
+      if (pane) pane.innerHTML =
+        '<div style="background:#7F1D1D;border-radius:12px;padding:14px;color:#fff">' +
+          '<strong style="font-size:0.92rem">❌ ' + (p.status === 'rolled_back' ? 'נכשל — בוצע rollback' : 'עדכון נכשל') + '</strong>' +
+          '<div style="font-size:0.78rem;margin-top:6px;opacity:0.85">' + cfEsc(p.error || '?') + '</div>' +
+          '<button onclick="renderVersionCard()" class="btn btn-outline btn-sm" style="margin-top:10px;color:#fff;border-color:rgba(255,255,255,0.3)">חזור</button>' +
+        '</div>';
+    }
+  } catch (e) { /* keep polling */ }
+}
+
+function cfStepLabel(s) {
+  if (!s) return 'מאתחל';
+  if (s === 'init' || s === 'diff') return 'בודק גרסאות';
+  if (s === 'snapshot') return 'יוצר snapshot';
+  if (s.startsWith('snapshot')) return 'snapshot מוכן';
+  if (s.startsWith('migration:')) return 'מיגרציה: ' + s.replace('migration:', '');
+  if (s === 'bump_version') return 'מעדכן גרסה';
+  if (s === 'compose_pull') return 'מושך images';
+  if (s === 'rollback') return 'מבצע rollback';
+  if (s === 'rolled_back') return 'בוצע rollback';
+  if (s === 'success') return 'הסתיים';
+  if (s === 'up_to_date') return 'עדכני';
+  if (s === 'failed') return 'נכשל';
+  return s;
+}
 </script>
 
 <!-- Styled Modal for prompts/confirms -->

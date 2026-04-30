@@ -161,6 +161,20 @@ export function calcTotal(componentIds: string[], addonIds: string[]): {
         return sum + (addon ? addon.priceIls : 0)
     }, 0)
 
+    // ⚠️ TEMPORARY TEST OVERRIDE — production smoke test for AllPay→provisioner.
+    // If MATEH is selected, price total drops to ₪5 (any plan, any addons).
+    // Revert by removing this block. Tagged: TEST_MATEH_5ILS.
+    if (componentIds.includes('mt')) {
+        return {
+            planKey,
+            ramNeeded,
+            planPrice: 5,
+            addonsPrice: 0,
+            totalPrice: 5,
+            plan,
+        }
+    }
+
     return {
         planKey,
         ramNeeded,

@@ -272,6 +272,8 @@ import {
     previewHubForIntents,
     setPipelineActivationEndpoint,
     previewIntentCleanup,
+    getLatestManifest, getInstanceVersionStatus,
+    triggerInstanceUpgrade, getUpgradeProgressEndpoint,
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -306,6 +308,12 @@ app.post('/instances/:id/upgrade-plan', upgradePlan)
 app.post('/instances/:id/add-storage', addStorage)
 app.delete('/instances/:id', deleteInstance)
 app.delete('/account', deleteAccount)
+
+// ── Stack version + upgrade (Sprint A + B) ──
+app.get('/version/manifest', getLatestManifest)
+app.get('/instances/:id/version-status', getInstanceVersionStatus)
+app.post('/instances/:id/upgrade', triggerInstanceUpgrade)
+app.get('/instances/:id/upgrade-progress', getUpgradeProgressEndpoint)
 
 // ── Setup (onboarding) ──
 app.post('/instances/:id/setup/api-key', setupApiKey)

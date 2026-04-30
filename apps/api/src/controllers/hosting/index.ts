@@ -33,6 +33,10 @@ export {
     generateBrandImagery, generateBrandVoiceFor, generateBrandPersonasFor, generateBrandColorPaletteFor,
     exportBrandV2Html, exportBrandV2AssetManifest,
 } from './brandV2'
+export {
+    getLatestManifest, getInstanceVersionStatus,
+    triggerInstanceUpgrade, getUpgradeProgressEndpoint,
+} from './version'
 export { saveRedditCredentials, getRedditStatus, disconnectReddit, testReddit } from './reddit'
 export { getSchedules, saveSchedules } from './schedules'
 export { saveGithubConfig, getGithubStatus, disconnectGithub, publishToGithub, testGithubIntegration } from './github'
