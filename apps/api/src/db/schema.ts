@@ -268,6 +268,10 @@ export const instances = pgTable(
         // retry of /install-complete callback). NULL → not sent yet.
         welcomeEmailSentAt: timestamp('welcome_email_sent_at', { withTimezone: true }),
 
+        // Admin marker — instances tagged as our own canary/master, used
+        // to test stack upgrades before pushing to other clients.
+        isMaster: boolean('is_master').default(false),
+
         // Research (for MATEH)
         researchData: jsonb('research_data'),
 

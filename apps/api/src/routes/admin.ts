@@ -9,6 +9,8 @@ import {
     adminTerminateInstance, adminResetCredentials, adminSendCustomEmail,
     adminListPayments, adminRefundPayment,
     adminListAudit,
+    adminToggleMaster,
+    adminUpgradeInstance, adminBulkUpgrade, adminUpgradeProgress, adminVersionStatus,
 } from '@/controllers/admin'
 
 const app = new Hono()
@@ -52,6 +54,13 @@ app.post('/clients/:id/send-email', adminSendCustomEmail)
 
 app.get('/payments', adminListPayments)
 app.post('/payments/:id/refund', adminRefundPayment)
+
+// Master toggle + stack-version actions
+app.post('/clients/:id/toggle-master', adminToggleMaster)
+app.get('/clients/:id/version-status', adminVersionStatus)
+app.post('/clients/:id/upgrade', adminUpgradeInstance)
+app.get('/clients/:id/upgrade-progress', adminUpgradeProgress)
+app.post('/upgrades/bulk', adminBulkUpgrade)
 
 app.get('/audit', adminListAudit)
 

@@ -1,12 +1,11 @@
 {
-  "stackVersion": "2026.04.30",
+  "stackVersion": "2026.04.30.1",
   "schemaVersion": 7,
-  "releasedAt": "2026-04-30T14:30:00Z",
+  "releasedAt": "2026-04-30T15:50:00Z",
   "releaseNotes": [
-    "Brand Foundation v3 — reflect-not-invent + 3-page Reflect UI",
-    "Mobile rewrite — flowmatic.co.il + clawflow.flowmatic.co.il",
-    "Mazhir audit hardening + bid-transition automation",
-    "Marketing pipeline v4 with brand-aware Mazhir prompt"
+    "Admin panel — push-upgrade per instance + bulk upgrade with master-first ordering",
+    "Master canary tagging — admin marks own instance to test releases first",
+    "First test migration: example-noop (verifies upgrade plumbing without changing anything)"
   ],
   "components": {
     "openclaw":     "0.20.x",
@@ -20,5 +19,5 @@
     "nginx":        "system",
     "caddy":        "2.7"
   },
-  "migrations": []
+  "migrations": ["example-noop"]
 }

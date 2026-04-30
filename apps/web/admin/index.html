@@ -121,6 +121,8 @@ tbody tr:hover{background:var(--panel-2)}
 .badge-paid{color:#10B981;background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.3)}
 .badge-pending{color:#F59E0B;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3)}
 .badge-refunded{color:#94A3B8;background:rgba(148,163,184,0.12);border-color:rgba(148,163,184,0.3)}
+.badge-master{color:#FBBF24;background:rgba(251,191,36,0.14);border-color:rgba(251,191,36,0.4)}
+.badge-master::before{background:#FBBF24}
 
 /* ── Filters / search row ── */
 .filters{display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
@@ -235,6 +237,10 @@ tbody tr:hover{background:var(--panel-2)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
         Health
       </div>
+      <div class="nav-item" data-route="releases">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+        Releases
+      </div>
       <div class="nav-item" data-route="audit">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Audit log
@@ -332,6 +338,7 @@ var routes = {
   clients:   { title: 'Clients',   render: renderClients },
   revenue:   { title: 'Revenue',   render: renderRevenue },
   health:    { title: 'Health',    render: renderHealth },
+  releases:  { title: 'Releases',  render: renderReleases },
   audit:     { title: 'Audit log', render: renderAudit },
 };
 var currentRoute = 'dashboard';
@@ -439,8 +446,9 @@ function filterClients() {
   document.getElementById('cli-count').textContent = rows.length + ' clients';
   document.getElementById('cli-tbody').innerHTML = rows.map(function(r){
     var i = r.instance, u = r.user || {};
+    var masterTag = i.isMaster ? '<span class="badge badge-master" style="margin-right:6px">★ master</span>' : '';
     return '<tr onclick="openClient(\''+escapeHtml(i.id)+'\')">' +
-      '<td class="cell-strong">'+escapeHtml(u.email||'—')+'</td>' +
+      '<td class="cell-strong">'+masterTag+escapeHtml(u.email||'—')+'</td>' +
       '<td class="mono">'+escapeHtml(i.id)+'</td>' +
       '<td>'+escapeHtml(i.planKey||'—')+'</td>' +
       '<td><span class="badge badge-'+escapeHtml(i.status||'pending')+'">'+escapeHtml(i.status||'?')+'</span></td>' +
@@ -506,6 +514,12 @@ async function openClient(id) {
       }).join('') + '</tbody></table></div>';
   }
 
+  // Identity-block: master toggle + version status
+  html += '<div class="detail-section"><div class="detail-section-title">Stack version</div>' +
+    '<div id="ver-' + escapeHtml(i.id) + '" style="font-size:0.85rem;color:var(--text-2)">Loading…</div></div>';
+  // Async-load version status into that block
+  loadVersionStatus(i.id);
+
   // Actions
   html += '<div class="detail-section"><div class="detail-section-title">Actions</div>' +
     '<div class="actions-row">' +
@@ -514,6 +528,10 @@ async function openClient(id) {
       (i.status === 'running'
         ? '<button class="btn btn-sm btn-warning" onclick="actInstance(\''+escapeHtml(i.id)+'\',\'suspend\')">⏸ Suspend</button>'
         : '<button class="btn btn-sm btn-success" onclick="actInstance(\''+escapeHtml(i.id)+'\',\'resume\')">▶ Resume</button>') +
+      '<button class="btn btn-sm btn-success" onclick="adminPushUpgrade(\''+escapeHtml(i.id)+'\')">⬆ Push upgrade</button>' +
+      '<button class="btn btn-sm" onclick="toggleMaster(\''+escapeHtml(i.id)+'\','+(i.isMaster?'true':'false')+')">' +
+        (i.isMaster ? '☆ Unmark master' : '★ Mark as master') +
+      '</button>' +
       '<button class="btn btn-sm" onclick="resetCreds(\''+escapeHtml(i.id)+'\')">🔑 Reset credentials</button>' +
       '<button class="btn btn-sm" onclick="sendEmailModal(\''+escapeHtml(i.id)+'\',\''+escapeHtml(u.email||'')+'\')">✉ Send email</button>' +
       '<button class="btn btn-sm btn-danger" onclick="terminateModal(\''+escapeHtml(i.id)+'\')">🗑 Terminate</button>' +
@@ -536,6 +554,85 @@ async function actInstance(id, action) {
   var r = await api('/admin/clients/' + id + '/' + action, { method:'POST' });
   if (r && r.success) { toast(action+'ed', 'success'); openClient(id); navigate('clients'); }
   else toast(r?.message || 'Failed', 'error');
+}
+
+async function loadVersionStatus(id) {
+  var holder = document.getElementById('ver-' + id);
+  if (!holder) return;
+  try {
+    var r = await api('/admin/clients/' + id + '/version-status');
+    if (!r || !r.success) { holder.innerHTML = '<span style="color:var(--text-3)">Unavailable</span>'; return; }
+    var d = r.data;
+    var inst = d.installed || {};
+    var latest = d.latest || {};
+    if (d.upToDate) {
+      holder.innerHTML = '<span class="badge badge-running">✓ up to date · v' + escapeHtml(inst.stackVersion||'?') + '</span>';
+    } else {
+      var drift = (d.componentDrift||[]).length;
+      var pending = (d.pendingMigrations||[]).length;
+      holder.innerHTML = '<span class="badge" style="background:rgba(251,191,36,0.14);color:#FBBF24;border-color:rgba(251,191,36,0.4)">🆕 update available</span>' +
+        '<div style="font-size:0.78rem;color:var(--text-3);margin-top:6px">v' + escapeHtml(inst.stackVersion||'(none)') + ' → v' + escapeHtml(latest.stackVersion||'?') +
+        '  · ' + drift + ' components · ' + pending + ' migrations</div>';
+    }
+  } catch(e) { holder.textContent = 'Error: ' + e.message; }
+}
+
+async function toggleMaster(id, isMaster) {
+  var r = await api('/admin/clients/' + id + '/toggle-master', { method:'POST', body: { isMaster: !isMaster } });
+  if (r && r.success) { toast(!isMaster ? 'Marked as master ★' : 'Unmarked', 'success'); openClient(id); navigate('clients'); }
+  else toast(r?.message || 'Failed', 'error');
+}
+
+async function adminPushUpgrade(id) {
+  if (!confirm('Push stack upgrade to ' + id + '? Hetzner snapshot is taken first; auto-rollback on failure.')) return;
+  var r = await api('/admin/clients/' + id + '/upgrade', { method:'POST' });
+  if (!r || !r.success) { toast(r?.message || 'Failed', 'error'); return; }
+  toast('Upgrade started — polling…', 'success');
+  showAdminUpgradeProgress(id);
+}
+
+function showAdminUpgradeProgress(id) {
+  var holder = document.getElementById('ver-' + id);
+  if (!holder) return;
+  holder.innerHTML =
+    '<div style="background:#0F172A;border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:6px">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+        '<div style="width:14px;height:14px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite"></div>' +
+        '<strong style="font-size:0.86rem">Upgrading…</strong>' +
+      '</div>' +
+      '<div style="background:#1E293B;border-radius:6px;height:6px;overflow:hidden;margin-bottom:8px">' +
+        '<div id="adm-up-bar-' + id + '" style="height:100%;background:linear-gradient(90deg,#3B82F6,#10B981);width:0%;transition:width .3s"></div>' +
+      '</div>' +
+      '<div id="adm-up-step-' + id + '" style="font-size:0.78rem;color:var(--text-3)">starting…</div>' +
+    '</div>';
+  if (window['_admUp_'+id]) clearInterval(window['_admUp_'+id]);
+  window['_admUp_'+id] = setInterval(async function(){
+    var r = await api('/admin/clients/' + id + '/upgrade-progress');
+    if (!r || !r.success) return;
+    var p = r.data;
+    var bar = document.getElementById('adm-up-bar-' + id);
+    var step = document.getElementById('adm-up-step-' + id);
+    if (bar) bar.style.width = (p.pct||0) + '%';
+    if (step) step.textContent = (p.step||'…') + ' · ' + (p.detail||'') + ' (' + (p.pct||0) + '%)';
+    if (p.status === 'success') {
+      clearInterval(window['_admUp_'+id]);
+      toast('Upgrade complete ✓', 'success');
+      setTimeout(function(){ loadVersionStatus(id) }, 1000);
+    }
+    if (p.status === 'failed' || p.status === 'rolled_back') {
+      clearInterval(window['_admUp_'+id]);
+      toast('Upgrade ' + p.status + ': ' + (p.error||''), 'error');
+      if (step) step.style.color = '#FCA5A5';
+    }
+  }, 3000);
+}
+
+async function adminBulkUpgrade() {
+  if (!confirm('Push upgrade to ALL outdated running instances? Master goes first; halts batch on first failure (auto-rollback).')) return;
+  var r = await api('/admin/upgrades/bulk', { method:'POST', body: { onlyOutdated: true } });
+  if (r && r.success) {
+    toast('Bulk upgrade started: ' + r.data.count + ' instances queued', 'success');
+  } else toast(r?.message || 'Failed', 'error');
 }
 
 async function resetCreds(id) {
@@ -679,6 +776,60 @@ async function renderHealth() {
   });
   html += '</div>';
   if (!r.data.clients.length) html = '<div class="empty">No running instances</div>';
+  document.getElementById('content').innerHTML = html;
+}
+
+// ─── Releases ──────────────────────────────────────────────────────────────
+async function renderReleases() {
+  var manifestRes = await fetch(API + '/hosting/version/manifest', { headers:{Authorization:'Bearer '+jwt} });
+  var manifest = (await manifestRes.json()).data || {};
+  var clientsRes = await api('/admin/clients?status=running');
+  var running = (clientsRes && clientsRes.success) ? clientsRes.data.clients : [];
+
+  // Fetch version status for each running instance (in parallel, capped)
+  var statuses = await Promise.all(running.map(async function(r){
+    var s = await api('/admin/clients/' + r.instance.id + '/version-status').catch(function(){return null});
+    return { row: r, status: s && s.success ? s.data : null };
+  }));
+  var outdated = statuses.filter(function(s){ return s.status && !s.status.upToDate });
+
+  var html =
+    '<div class="kpi-grid">' +
+      kpiCard('Latest stack', escapeHtml(manifest.stackVersion||'?'), fmtDate(manifest.releasedAt)) +
+      kpiCard('Running instances', running.length, 'on platform') +
+      kpiCard('Outdated', outdated.length, outdated.length ? 'have drift' : 'all current', outdated.length ? 'danger' : '') +
+    '</div>';
+
+  html += '<div class="section-head">' +
+    '<div class="section-title">Release notes — v' + escapeHtml(manifest.stackVersion||'?') + '</div>' +
+    '<div class="section-foot">' +
+      (outdated.length ? '<button class="btn btn-success" onclick="adminBulkUpgrade()">⬆ Push upgrade to all outdated (' + outdated.length + ')</button>' : '') +
+    '</div></div>';
+  if ((manifest.releaseNotes||[]).length) {
+    html += '<div class="table-wrap" style="padding:14px 18px"><ul style="padding-left:20px;font-size:0.86rem;color:var(--text-2);line-height:1.8">' +
+      manifest.releaseNotes.map(function(n){return '<li>'+escapeHtml(n)+'</li>'}).join('') +
+      '</ul></div>';
+  }
+
+  html += '<div class="section-head"><div class="section-title">Per-instance status</div></div>';
+  html += '<div class="table-wrap"><table><thead><tr><th>Email</th><th>Instance</th><th>Installed</th><th>Latest</th><th>Drift</th><th>Pending mig.</th><th></th></tr></thead><tbody>';
+  statuses.forEach(function(s){
+    var i = s.row.instance, u = s.row.user || {};
+    var status = s.status || { installed:null, latest:null, componentDrift:[], pendingMigrations:[] };
+    var inst = status.installed || {};
+    var ok = status.upToDate;
+    var masterTag = i.isMaster ? '<span class="badge badge-master" style="margin-right:6px">★</span>' : '';
+    html += '<tr onclick="openClient(\''+escapeHtml(i.id)+'\')">' +
+      '<td class="cell-strong">'+masterTag+escapeHtml(u.email||'—')+'</td>' +
+      '<td class="mono">'+escapeHtml(i.id)+'</td>' +
+      '<td class="mono">'+escapeHtml(inst.stackVersion||'(none)')+'</td>' +
+      '<td class="mono">'+escapeHtml(manifest.stackVersion||'?')+'</td>' +
+      '<td>'+(ok ? '<span class="badge badge-running">✓ current</span>' : '<span class="badge" style="background:rgba(251,191,36,0.14);color:#FBBF24;border-color:rgba(251,191,36,0.4)">'+(status.componentDrift||[]).length+' components</span>')+'</td>' +
+      '<td>'+(status.pendingMigrations||[]).length+'</td>' +
+      '<td>' + (ok ? '' : '<button class="btn btn-sm btn-success" onclick="event.stopPropagation();adminPushUpgrade(\''+escapeHtml(i.id)+'\')">⬆ Push</button>') + '</td>' +
+    '</tr>';
+  });
+  html += '</tbody></table></div>';
   document.getElementById('content').innerHTML = html;
 }
 

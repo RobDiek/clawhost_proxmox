@@ -429,6 +429,124 @@ export const adminRefundPayment = async (c: Context) => {
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
 
+// ─── Master toggle ───────────────────────────────────────────────────────
+
+export const adminToggleMaster = async (c: Context) => {
+    try {
+        const id = c.req.param('id')
+        const body = await c.req.json<{ isMaster?: boolean }>().catch(() => ({} as any))
+        const adminId = c.get('adminId' as any) as string
+        const desired = !!body.isMaster
+        const [inst] = await db.select().from(instances).where(eq(instances.id, id))
+        if (!inst) return fail(c, 'Instance not found', 404)
+        await db.update(instances).set({ isMaster: desired } as any).where(eq(instances.id, id))
+        await writeAudit({
+            adminId, action: desired ? 'admin.instance.mark_master' : 'admin.instance.unmark_master',
+            targetType: 'instance', targetId: id, ip: getIp(c),
+        })
+        return ok(c, { isMaster: desired })
+    } catch (err) { return fail(c, (err as Error).message, 500) }
+}
+
+// ─── Stack upgrade — single instance ────────────────────────────────────
+
+export const adminUpgradeInstance = async (c: Context) => {
+    try {
+        const id = c.req.param('id')
+        const adminId = c.get('adminId' as any) as string
+        const [inst] = await db.select().from(instances).where(eq(instances.id, id))
+        if (!inst) return fail(c, 'Instance not found', 404)
+
+        const { upgradeInstance } = await import('@/services/instanceVersion')
+        // Run async — admin polls /upgrade-progress for live state
+        upgradeInstance(id).catch(err =>
+            console.error(`[admin.upgrade] background error ${id}:`, err)
+        )
+        await writeAudit({
+            adminId, action: 'admin.instance.upgrade_started',
+            targetType: 'instance', targetId: id, ip: getIp(c),
+        })
+        return ok(c, { instanceId: id, started: true }, 'Upgrade started — poll progress endpoint')
+    } catch (err) { return fail(c, (err as Error).message, 500) }
+}
+
+// Bulk upgrade — sequentially, only outdated ones, master first if exists
+export const adminBulkUpgrade = async (c: Context) => {
+    try {
+        const adminId = c.get('adminId' as any) as string
+        const body = await c.req.json<{ onlyOutdated?: boolean; includeMaster?: boolean }>().catch(() => ({} as any))
+        const onlyOutdated = body.onlyOutdated !== false  // default true
+
+        const all = await db.select().from(instances).where(eq(instances.status, 'running'))
+        const { getVersionStatus, upgradeInstance } = await import('@/services/instanceVersion')
+
+        // Identify candidates
+        const candidates: any[] = []
+        for (const inst of all) {
+            if (onlyOutdated) {
+                const diff = await getVersionStatus(inst.id).catch(() => null)
+                if (diff && !diff.upToDate) candidates.push(inst)
+            } else {
+                candidates.push(inst)
+            }
+        }
+        // Master goes FIRST so we catch breakage on our own instance before clients
+        candidates.sort((a, b) => (b.isMaster ? 1 : 0) - (a.isMaster ? 1 : 0))
+
+        await writeAudit({
+            adminId, action: 'admin.bulk_upgrade.started',
+            details: { count: candidates.length, ids: candidates.map(c => c.id) },
+            ip: getIp(c),
+        })
+
+        // Fire-and-forget sequential upgrade — each takes 5-15 min so we don't block.
+        ;(async () => {
+            for (const inst of candidates) {
+                try {
+                    console.log(`[admin.bulk_upgrade] starting ${inst.id} (master=${inst.isMaster})`)
+                    const r = await upgradeInstance(inst.id)
+                    console.log(`[admin.bulk_upgrade] ${inst.id} → ${r.status}`)
+                    if (r.status === 'failed' || r.status === 'rolled_back') {
+                        console.warn(`[admin.bulk_upgrade] HALT — ${inst.id} failed, not continuing the batch`)
+                        await writeAudit({
+                            adminId, action: 'admin.bulk_upgrade.halted',
+                            targetType: 'instance', targetId: inst.id,
+                            details: { error: r.error },
+                        })
+                        break
+                    }
+                } catch (e) {
+                    console.error(`[admin.bulk_upgrade] ${inst.id} threw:`, e)
+                    break
+                }
+            }
+            await writeAudit({ adminId, action: 'admin.bulk_upgrade.finished' })
+        })().catch(e => console.error('[admin.bulk_upgrade] runner crashed:', e))
+
+        return ok(c, { count: candidates.length, ids: candidates.map(c => c.id) }, 'Bulk upgrade started — master first')
+    } catch (err) { return fail(c, (err as Error).message, 500) }
+}
+
+// Read-through to per-instance upgrade progress (admin can poll any instance)
+export const adminUpgradeProgress = async (c: Context) => {
+    try {
+        const id = c.req.param('id')
+        const { getUpgradeProgress } = await import('@/services/instanceVersion')
+        const p = getUpgradeProgress(id)
+        return ok(c, p || { instanceId: id, step: 'idle', pct: 0, status: 'idle', startedAt: null })
+    } catch (err) { return fail(c, (err as Error).message, 500) }
+}
+
+// Read-through version-status (so admin doesn't need user JWT)
+export const adminVersionStatus = async (c: Context) => {
+    try {
+        const id = c.req.param('id')
+        const { getVersionStatus } = await import('@/services/instanceVersion')
+        const r = await getVersionStatus(id)
+        return ok(c, r)
+    } catch (err) { return fail(c, (err as Error).message, 500) }
+}
+
 // ─── Audit ───────────────────────────────────────────────────────────────
 
 export const adminListAudit = async (c: Context) => {
