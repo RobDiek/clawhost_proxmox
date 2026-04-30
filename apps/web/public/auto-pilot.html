@@ -12,20 +12,25 @@ body { background:#fff; color:#1F2937; line-height:1.6; }
 a { color:#2563EB; text-decoration:none; }
 .wrap { max-width:1080px; margin:0 auto; padding:0 20px; }
 
-/* Header */
-.hdr { background:#fff; border-bottom:1px solid #E5E7EB; padding:14px 0; position:sticky; top:0; z-index:100; }
-.hdr-inner { display:flex; align-items:center; justify-content:space-between; max-width:1080px; margin:0 auto; padding:0 20px; }
-.hdr-logo { height:26px; }
-.hdr-nav { display:flex; gap:20px; font-size:0.88rem; }
-.hdr-nav a { color:#4B5563; }
-.hdr-nav a:hover { color:#2563EB; }
-.hdr-btn { background:#2563EB; color:#fff; padding:6px 16px; border-radius:8px; font-size:0.85rem; font-weight:600; }
-.hdr-btn:hover { background:#1D4ED8; color:#fff; }
+/* ── Unified site header — matches clawflow.flowmatic.co.il index.html exactly ── */
+.cf-hdr { background:#fff; border-bottom:1px solid #E5E7EB; height:52px; position:sticky; top:0; z-index:100; }
+.cf-hdr-inner { max-width:1100px; margin:0 auto; padding:0 24px; display:flex; align-items:center; height:100%; gap:16px; }
+.cf-logo { display:flex; align-items:center; flex-shrink:0; }
+.cf-logo img { height:28px; width:auto; display:block; }
+.cf-nav { display:flex; align-items:center; gap:14px; margin-right:auto; }
+.cf-nav a { font-size:0.82rem; color:#4B5563; transition:color .15s; cursor:pointer; padding:0; }
+.cf-nav a:hover { color:#2563EB; }
+.cf-nav a.active { color:#2563EB; font-weight:600; }
+.cf-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.cf-login { font-size:12px; color:#4B5563; padding:4px 12px; border:1px solid #E5E7EB; border-radius:6px; transition:all .15s; }
+.cf-login:hover { border-color:#2563EB; color:#2563EB; }
 @media(max-width:600px) {
-  .hdr-inner { flex-wrap:wrap; gap:8px; justify-content:center; }
-  .hdr-nav { gap:12px; font-size:0.8rem; order:3; width:100%; justify-content:center; padding-top:6px; border-top:1px solid #F3F4F6; }
-  .hdr-logo { height:22px; }
-  .hdr-btn { font-size:0.78rem; padding:5px 12px; }
+  .cf-hdr { height:auto; padding:8px 0; }
+  .cf-hdr-inner { flex-wrap:wrap; gap:6px; padding:0 12px; }
+  .cf-logo img { height:22px; }
+  .cf-nav { order:3; width:100%; justify-content:center; padding-top:6px; border-top:1px solid #E5E7EB; margin-top:4px; gap:10px; margin-right:0; }
+  .cf-nav a { font-size:0.75rem; }
+  .cf-login { font-size:11px; padding:3px 10px; }
 }
 
 /* Hero */
@@ -107,18 +112,20 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
 </head>
 <body>
 
-<!-- Header -->
-<div class="hdr">
-  <div class="hdr-inner">
-    <a href="/"><img src="/logo-clawflow.png" alt="ClawFlow" class="hdr-logo"/></a>
-    <nav class="hdr-nav">
+<!-- ── Unified site header ── -->
+<header class="cf-hdr">
+  <div class="cf-hdr-inner">
+    <a href="/" class="cf-logo"><img src="/logo-clawflow.png" alt="ClawFlow"></a>
+    <nav class="cf-nav">
       <a href="/">דף הבית</a>
-      <a href="/auto-pilot" style="color:#2563EB;font-weight:600">ניהול שיווק</a>
+      <a href="/auto-pilot" class="active">ניהול שיווק</a>
       <a href="/about">תיעוד</a>
     </nav>
-    <a href="/login" class="hdr-btn">כניסה</a>
+    <div class="cf-actions">
+      <a href="/login" class="cf-login">כניסה</a>
+    </div>
   </div>
-</div>
+</header>
 
 <div class="wrap">
 

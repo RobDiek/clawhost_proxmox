@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>איך ClawFlow עובד — תיעוד מלא | ClawFlow by Flowmatic</title>
 <meta name="description" content="תיעוד מלא של ClawFlow — מודל העסק, הטכנולוגיה, האבטחה, הסוכנים, האינטגרציות והתוכניות. הכל שקוף, הכל פתוח."/>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%232563EB'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-weight='900' font-size='28' fill='white'>CF</text></svg>"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="alternate icon" href="/favicon.ico"/>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -13,12 +14,26 @@ body{font-family:'Heebo',system-ui,sans-serif;background:#FAFAFA;color:#1f2937;l
 a{color:#2563EB;text-decoration:none}
 a:hover{text-decoration:underline}
 
-/* Header */
-.header{background:#fff;border-bottom:1px solid #E5E7EB;padding:14px 0;position:sticky;top:0;z-index:100}
-.header-inner{max-width:900px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
-.header-logo{height:26px}
-.header-back{font-size:0.82rem;color:#9CA3AF}
-.header-back:hover{color:#2563EB;text-decoration:none}
+/* ── Unified site header — matches clawflow.flowmatic.co.il index.html exactly ── */
+.cf-hdr { background:#fff; border-bottom:1px solid #E5E7EB; height:52px; position:sticky; top:0; z-index:100; }
+.cf-hdr-inner { max-width:1100px; margin:0 auto; padding:0 24px; display:flex; align-items:center; height:100%; gap:16px; }
+.cf-logo { display:flex; align-items:center; flex-shrink:0; }
+.cf-logo img { height:28px; width:auto; display:block; }
+.cf-nav { display:flex; align-items:center; gap:14px; margin-right:auto; }
+.cf-nav a { font-size:0.82rem; color:#4B5563; transition:color .15s; cursor:pointer; padding:0; text-decoration:none; }
+.cf-nav a:hover { color:#2563EB; text-decoration:none; }
+.cf-nav a.active { color:#2563EB; font-weight:600; }
+.cf-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.cf-login { font-size:12px; color:#4B5563; padding:4px 12px; border:1px solid #E5E7EB; border-radius:6px; transition:all .15s; text-decoration:none; }
+.cf-login:hover { border-color:#2563EB; color:#2563EB; text-decoration:none; }
+@media(max-width:600px) {
+  .cf-hdr { height:auto; padding:8px 0; }
+  .cf-hdr-inner { flex-wrap:wrap; gap:6px; padding:0 12px; }
+  .cf-logo img { height:22px; }
+  .cf-nav { order:3; width:100%; justify-content:center; padding-top:6px; border-top:1px solid #E5E7EB; margin-top:4px; gap:10px; margin-right:0; }
+  .cf-nav a { font-size:0.75rem; }
+  .cf-login { font-size:11px; padding:3px 10px; }
+}
 
 /* Content */
 .wrap{max-width:760px;margin:0 auto;padding:0 24px}
@@ -72,12 +87,20 @@ article code{background:#F3F4F6;padding:2px 6px;border-radius:4px;font-size:0.88
 </head>
 <body>
 
-<div class="header">
-  <div class="header-inner">
-    <a href="/"><img src="/logo-clawflow.png" alt="ClawFlow" class="header-logo"/></a>
-    <a href="/" class="header-back">← חזרה לדף הראשי</a>
+<!-- ── Unified site header ── -->
+<header class="cf-hdr">
+  <div class="cf-hdr-inner">
+    <a href="/" class="cf-logo"><img src="/logo-clawflow.png" alt="ClawFlow"></a>
+    <nav class="cf-nav">
+      <a href="/">דף הבית</a>
+      <a href="/auto-pilot">ניהול שיווק</a>
+      <a href="/about" class="active">תיעוד</a>
+    </nav>
+    <div class="cf-actions">
+      <a href="/login" class="cf-login">כניסה</a>
+    </div>
   </div>
-</div>
+</header>
 
 <div class="wrap">
 
