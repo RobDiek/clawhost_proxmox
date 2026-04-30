@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>ניהול שיווק — ClawFlow</title>
-<meta name="description" content="ניהול שיווק מקצועי עם סוכני AI. SEO, פרסום ממומן, יצירת תוכן — הכל על אוטומט עם בקרה אנושית. מ-₪299/חודש."/>
+<meta name="description" content="ניהול שיווק מקצועי עם סוכני AI. תצורה חד-פעמית ב-₪1,750, או אוטופילוט מלא — הקמה + ניהול שוטף."/>
 <link rel="icon" href="/favicon.svg"/>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; font-family: Arial, 'Arial Hebrew', Helvetica, sans-serif !important; }
@@ -132,84 +132,65 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
 <!-- Pricing -->
 <div class="cards">
 
-  <!-- Starter -->
+  <!-- Self-Service (infra-only, no help) -->
   <div class="card">
-    <div class="card-icon">🟢</div>
-    <div class="card-name">Starter</div>
-    <div class="card-desc">פיקוח ובקרת איכות על הסוכנים</div>
-    <div class="price">₪299<span>/חודש</span></div>
-    <div class="price-note">+ עלות שרת ClawFlow בנפרד</div>
+    <div class="card-name">Self-Service</div>
+    <div class="card-desc">אתם מקימים, אתם מנהלים. אנחנו רק מארחים</div>
+    <div class="price">החל מ-₪79<span>/חודש</span></div>
+    <div class="price-note">VPS + 9 סוכני AI מותקנים, ללא ליווי</div>
     <ul class="feat">
-      <li><span class="tip-wrap">בדיקה שבועית של תוצרי הסוכנים<span class="tip-box">כל שבוע נבדוק מה הסוכנים כתבו, נאשר תוכן איכותי ונסנן שגיאות</span></span></li>
-      <li><span class="tip-wrap">אישור ועריכת תוכן<span class="tip-box">תוכן שהסוכן כתב עובר ביקורת אנושית לפני פרסום — דיוק, טון, רלוונטיות</span></span></li>
-      <li><span class="tip-wrap">דוח חודשי — SEO + ביצועים<span class="tip-box">מיקומים בגוגל, תנועה, ציון AEO, מה שופר ומה צריך תשומת לב</span></span></li>
-      <li><span class="tip-wrap">תמיכה בטלגרם (24ש בימי עבודה)<span class="tip-box">שאלה? בעיה? שלחו הודעה ונענה עד 24 שעות</span></span></li>
-      <li><span class="tip-wrap">תיקון תקלות<span class="tip-box">סוכן נתקע? אינטגרציה נפלה? אנחנו מתקנים</span></span></li>
-      <li><span class="tip-wrap">חיבור כלי SEO<span class="tip-box">נחבר: Google Search Console, DataForSEO, Firecrawl — מוכן לעבודה</span></span></li>
-      <li class="off">יצירת תוכן חדש</li>
-      <li class="off">ניהול פרסום ממומן</li>
+      <li>VPS פעיל, מאובטח, עם SSL ודומיין משלכם</li>
+      <li>9 סוכני AI מותקנים ומוכנים להפעלה</li>
+      <li>גישה מלאה ללוח הבקרה</li>
+      <li>מפתחות API שלכם — שליטה מלאה</li>
+      <li>תמיכה טכנית במייל בלבד</li>
+      <li class="off">הגדרת אסטרטגיה</li>
+      <li class="off">אינטגרציה עם Google / Meta</li>
+      <li class="off">ניהול קמפיינים ותוכן</li>
     </ul>
-    <div class="card-setup">עלות הקמה: <strong>₪500</strong> (חד-פעמי — פרופיל + כלי SEO + מחקר ראשון)</div>
-    <button class="cta cta-line" onclick="pick('starter')">בחרו Starter ←</button>
+    <div class="card-setup">תוכניות זמינות: Personal ₪79 · Business ₪169 · Pro ₪349 · Developer ₪599 לחודש</div>
+    <button class="cta cta-line" onclick="window.location.href='/'">בחרו תוכנית ←</button>
   </div>
 
-  <!-- Growth -->
+  <!-- Configuration (one-time) -->
   <div class="card pop">
-    <div class="card-icon">🔵</div>
-    <div class="card-name">Growth</div>
-    <div class="card-desc">תוכן + פרסום + אופטימיזציה</div>
-    <div class="price">₪699<span>/חודש</span></div>
-    <div class="price-note">+ עלות שרת + ad spend בנפרד</div>
+    <div class="card-name">תצורה</div>
+    <div class="card-desc">הקמה מלאה. לאחר מכן אתם בשליטה</div>
+    <div class="price">₪1,750<span>/חד-פעמי</span></div>
+    <div class="price-note">5–7 ימי עסקים · לא כולל עלות שרת חודשית</div>
     <ul class="feat">
-      <li><span class="tip-wrap">הכל מ-Starter<span class="tip-box">פיקוח, בקרה, דוחות, תמיכה — הכל כלול</span></span></li>
-      <li><span class="tip-wrap">מחקר SEO חודשי + אסטרטגיה<span class="tip-box">כל חודש: מילות מפתח, ניתוח מתחרים, עדכון תוכנית תוכן</span></span></li>
-      <li><span class="tip-wrap">עד 4 מאמרים/חודש<span class="tip-box">הסוכן כותב, אנחנו עורכים — SEO עם Schema, AI Nuggets, Entity Consensus</span></span></li>
-      <li><span class="tip-wrap">הקמת קמפיינים ממומנים<span class="tip-box">נגדיר קמפיינים ב-Meta/Google Ads — קהלים, תקציבים, מסרים. אתם מאשרים</span></span></li>
-      <li><span class="tip-wrap">עד 8 קריאייטיבים/חודש<span class="tip-box">תמונות ווידאו ב-AI + ביקורת אנושית — לפרסום וברשתות</span></span></li>
-      <li><span class="tip-wrap">אופטימיזציה שבועית של מודעות<span class="tip-box">מכבים חלשות, מחזקים מצליחות, מעדכנים תקציבים</span></span></li>
-      <li><span class="tip-wrap">Prompt Engineering<span class="tip-box">מתאימים את הוראות הסוכנים לטון ומסרים של העסק</span></span></li>
-      <li><span class="tip-wrap">שיחה כל שבועיים (20 דק)<span class="tip-box">Zoom — מה עבד, מה לשנות, מה הלאה</span></span></li>
+      <li><span class="tip-wrap">שיחת גילוי (60 דקות, זום)<span class="tip-box">מי הקהל, מה אתם מוכרים, איפה אתם רוצים לצמוח, מה התקציב</span></span></li>
+      <li><span class="tip-wrap">בניית Brand Foundation<span class="tip-box">סריקת האתר וחילוץ צבעים, פונטים, לוגו, קול. אישור כל אלמנט. ספר מותג מלא ב-PDF</span></span></li>
+      <li><span class="tip-wrap">SEO — תשתית אורגנית<span class="tip-box">מחקר מילות מפתח (DataForSEO + Search Console), ניתוח 3–5 מתחרים, אסטרטגיית תוכן ל-3 חודשים</span></span></li>
+      <li><span class="tip-wrap">Google Ads — קמפיינים ראשוניים<span class="tip-box">חיבור Ads + GA4 + Search Console + GTM. Mazhir Audit מלא. הקמת Search ראשוני עם מילות מפתח 1st-party</span></span></li>
+      <li><span class="tip-wrap">Meta — קמפיינים ראשוניים (אופציונלי)<span class="tip-box">Facebook Ads + Instagram. ניתוח קריאייטיבים של מתחרים. Lookalike audiences מבוססי הדאטה שלכם</span></span></li>
+      <li><span class="tip-wrap">חיבור ערוצי לקוחות<span class="tip-box">טלגרם בוט · WhatsApp Business · Gmail · Google Calendar</span></span></li>
+      <li><span class="tip-wrap">מסירה והדרכה (90 דקות זום)<span class="tip-box">איך מאשרים תוכן, איך קוראים דוחות, איך מבקשים שינוי אסטרטגיה</span></span></li>
+      <li><span class="tip-wrap">30 ימי תמיכה במייל<span class="tip-box">מענה לשאלות הפעלה ותיקוני באגים אחרי המסירה</span></span></li>
     </ul>
-    <div class="card-setup">עלות הקמה: <strong>₪1,200</strong> (חד-פעמי — SEO + Ads setup + קמפיינים ראשונים)</div>
-    <button class="cta cta-fill" onclick="pick('growth')">בחרו Growth ←</button>
+    <div class="card-setup">לאחר המסירה — אתם מנהלים. <strong>אין דמי חודש</strong> מצידנו</div>
+    <button class="cta cta-fill" onclick="pick('configuration')">הזמינו תצורה ←</button>
   </div>
 
-  <!-- Autopilot -->
+  <!-- Auto-pilot (full management) -->
   <div class="card">
-    <div class="card-icon">🟣</div>
-    <div class="card-name">Autopilot</div>
-    <div class="card-desc">שיווק מלא על אוטומט</div>
-    <div class="price">₪1,499<span>/חודש</span></div>
-    <div class="price-note">+ עלות שרת + ad spend בנפרד</div>
+    <div class="card-name">אוטופילוט</div>
+    <div class="card-desc">אנחנו מנהלים. אתם מקבלים תוצאות</div>
+    <div class="price">₪1,750 הקמה + ₪1,500<span>/חודש</span></div>
+    <div class="price-note">מינימום 6 חודשים · לא כולל עלות שרת ו-ad spend</div>
     <ul class="feat">
-      <li><span class="tip-wrap">הכל מ-Growth<span class="tip-box">מחקר, תוכן, פרסום, אופטימיזציה — הכל כלול</span></span></li>
-      <li><span class="tip-wrap">עד 8 מאמרי SEO/חודש<span class="tip-box">כפול — מספיק לבנות סמכות בתחום תוך חודשים</span></span></li>
-      <li><span class="tip-wrap">עד 16 קריאייטיבים/חודש<span class="tip-box">תמונות, וידאו, קרוסלות — לכל ערוץ פרסום</span></span></li>
-      <li><span class="tip-wrap">ניהול רשתות חברתיות<span class="tip-box">LinkedIn + Facebook + Instagram — 3-5 פוסטים/שבוע, מתוזמנים</span></span></li>
-      <li><span class="tip-wrap">מעקב תחרותי + תגובה מהירה<span class="tip-box">מנטרים מתחרים ומגיבים תוך 24 שעות עם תוכן רלוונטי</span></span></li>
-      <li><span class="tip-wrap">עד 2 דפי נחיתה/חודש<span class="tip-box">Landing Pages חדשים או שדרוג — עם SEO ו-Schema</span></span></li>
-      <li><span class="tip-wrap">שיחה שבועית (30 דק)<span class="tip-box">פגישה שבועית קבועה עם מנהל חשבון ייעודי</span></span></li>
-      <li><span class="tip-wrap">דוח ROAS<span class="tip-box">כמה הושקע → כמה הכניס. מספרים, לא תחושות</span></span></li>
+      <li><span class="tip-wrap">הכל מ-"תצורה"<span class="tip-box">כל תהליך ההקמה המלא — סשן גילוי, Brand Foundation, SEO, Google Ads, Meta, ערוצי לקוחות, הדרכה</span></span></li>
+      <li><span class="tip-wrap">דוח שבועי (כל יום ראשון, 09:00)<span class="tip-box">מה עבד, מה לא, ROAS לפי ערוץ, ROI כללי. PDF מפורט + סיכום בטלגרם</span></span></li>
+      <li><span class="tip-wrap">פרסום ממומן — ניהול מלא<span class="tip-box">Google Ads, Meta Ads, YouTube. אופטימיזציה שבועית: מורידים מה שלא ממיר, מעצימים מה שכן. שמירה על תקרת תקציב</span></span></li>
+      <li><span class="tip-wrap">תוכן אורגני — כתיבה ופרסום<span class="tip-box">4–8 מאמרי SEO לחודש (Schema + AI Nuggets + Entity Consensus). 3–5 פוסטים בשבוע ב-LinkedIn / Facebook / Instagram</span></span></li>
+      <li><span class="tip-wrap">רשימות תפוצה — ניהול מלא<span class="tip-box">ניוזלטר שבועי או דו-שבועי. Email automations: Welcome, Abandoned cart, Post-purchase. A/B נושאים ושעות שליחה</span></span></li>
+      <li><span class="tip-wrap">קריאייטיב — לפי דרישה<span class="tip-box">עד 16 יצירות מדיה לחודש (תמונות AI + וידאו קצר). כל יצירה עוברת Brand Consistency check</span></span></li>
+      <li><span class="tip-wrap">ניהול לקוחות מתקדם<span class="tip-box">לידים מ-WhatsApp עם מענה ראשוני אוטומטי. Google Business Profile — פוסטים שבועיים + מענה לביקורות תוך 24 שעות</span></span></li>
+      <li><span class="tip-wrap">שיחת אסטרטגיה דו-שבועית (30 דקות, זום)<span class="tip-box">מה הצליח, מה לא, מה ננסה הפעם. עדכון יעדים אם השוק זז. החלטות שדורשות אישור עסקי</span></span></li>
+      <li><span class="tip-wrap">מינימום התחייבות 6 חודשים<span class="tip-box">אוטופילוט צריך זמן להניב תוצאות מלאות. אחרי 6 חודשים: חודש הודעה מראש לביטול</span></span></li>
     </ul>
-    <div class="card-setup">עלות הקמה: <strong>₪2,000</strong> (חד-פעמי — הכל: SEO + Ads + Social + Brand Guide)</div>
-    <button class="cta cta-line" onclick="pick('autopilot')">בחרו Autopilot ←</button>
-  </div>
-</div>
-
-<!-- Compare -->
-<div class="compare">
-  <h2>למה ClawFlow + ניהול?</h2>
-  <div style="overflow-x:auto">
-    <table>
-      <tr><th></th><th>סוכנות שיווק<br><span style="font-weight:400;color:#9CA3AF">רגילה</span></th><th>פרילנסר<br><span style="font-weight:400;color:#9CA3AF">עצמאי</span></th><th style="color:#2563EB">ClawFlow<br><span style="font-weight:400">AI + אנושי</span></th></tr>
-      <tr><td style="font-weight:600">הקמה</td><td>₪5,000–15,000</td><td>₪2,000–5,000</td><td style="color:#2563EB;font-weight:600">₪500–2,000</td></tr>
-      <tr><td style="font-weight:600">חודשי</td><td>₪5,000–15,000</td><td>₪3,000–8,000</td><td style="color:#2563EB;font-weight:600">₪299–1,499</td></tr>
-      <tr><td style="font-weight:600">סוכני AI</td><td>❌</td><td>❌</td><td style="color:#10B981">✅ 9 סוכנים 24/7</td></tr>
-      <tr><td style="font-weight:600">מהירות</td><td>1–2 שבועות</td><td>3–7 ימים</td><td style="color:#10B981">✅ שעות</td></tr>
-      <tr><td style="font-weight:600">SEO + AEO</td><td>בסיסי</td><td>תלוי</td><td style="color:#10B981">✅ אוטומטי</td></tr>
-      <tr><td style="font-weight:600">פרסום</td><td>✅ (+ 15-20%)</td><td>תלוי</td><td style="color:#10B981">✅ ללא עמלה</td></tr>
-      <tr><td style="font-weight:600">שקיפות</td><td>דוח חודשי</td><td>לפי בקשה</td><td style="color:#10B981">✅ Dashboard 24/7</td></tr>
-    </table>
+    <div class="card-setup">אתם: אסטרטגיה גבוהה ואישורים תקציביים. אנחנו: כל הביצוע, הניהול והדיווח</div>
+    <button class="cta cta-line" onclick="pick('autopilot')">התחילו אוטופילוט ←</button>
   </div>
 </div>
 
@@ -221,29 +202,18 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
     <div><div class="step-num">1</div><div class="step-label">בוחרים חבילה</div></div>
     <div><div class="step-num">2</div><div class="step-label">שיחת הכרות (15 דק)</div></div>
     <div><div class="step-num">3</div><div class="step-label">מגדירים פרופיל + כלים</div></div>
-    <div><div class="step-num">4</div><div class="step-label">הסוכנים עובדים 🚀</div></div>
+    <div><div class="step-num">4</div><div class="step-label">הסוכנים עובדים</div></div>
   </div>
   <div class="form">
     <select id="pkg">
-      <option value="starter">Starter — ₪299/חודש</option>
-      <option value="growth" selected>Growth — ₪699/חודש (מומלץ)</option>
-      <option value="autopilot">Autopilot — ₪1,499/חודש</option>
+      <option value="configuration" selected>תצורה — ₪1,750 חד-פעמי</option>
+      <option value="autopilot">אוטופילוט — ₪1,750 + ₪1,500/חודש</option>
     </select>
     <input type="text" id="name" placeholder="שם מלא" required/>
     <input type="tel" id="phone" placeholder="טלפון" style="direction:ltr;text-align:right"/>
     <button id="submitBtn" onclick="send()">שלחו בקשה ←</button>
-    <div id="ok" style="display:none;text-align:center;padding:14px;color:#059669;font-weight:600">✅ הבקשה נשלחה! נחזור אליכם בהקדם.</div>
+    <div id="ok" style="display:none;text-align:center;padding:14px;color:#059669;font-weight:600">הבקשה נשלחה. נחזור אליכם בהקדם.</div>
   </div>
-</div>
-
-<!-- FAQ -->
-<div class="faq">
-  <h2>שאלות נפוצות</h2>
-  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">מה ההבדל בין ClawFlow לבין ניהול שיווק?</div><div class="faq-a">ClawFlow הוא השרת עם סוכני AI. ניהול שיווק הוא שירות אנושי — מוודא שהסוכנים עובדים נכון, מתקן, מכוון אסטרטגיה. אפשר בלי — אבל עם ניהול, התוצאות טובות יותר.</div></div>
-  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">מה עם תקציב הפרסום (ad spend)?</div><div class="faq-a">תקציב הפרסום ב-Meta/Google נפרד ומשולם ישירות על ידכם. אנחנו לא גובים עמלה — רק דמי ניהול. נמליץ על תקציב מתאים בשיחה.</div></div>
-  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">כמה זמן עד תוצאות?</div><div class="faq-a">פרסום ממומן — 1-2 שבועות. SEO אורגני — 2-4 חודשים. AEO (נראות ב-AI) — 3-6 חודשים. כל חודש דוח עם מספרים אמיתיים.</div></div>
-  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">אפשר להחליף חבילה?</div><div class="faq-a">כן, אפשר לשדרג או לצמצם בכל חודש. ללא התחייבות.</div></div>
-  <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">מה אני צריך לעשות?</div><div class="faq-a">ב-Starter: לאשר תוכן פעם בשבוע. ב-Growth: לאשר + שיחה כל שבועיים. ב-Autopilot: רק לאשר — אנחנו עושים הכל.</div></div>
 </div>
 
 </div><!-- /wrap -->
@@ -251,7 +221,7 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
 <div class="ftr">© 2026 Flowmatic · ClawFlow</div>
 
 <script>
-var PKG_NAMES = { starter:'Starter ₪299', growth:'Growth ₪699', autopilot:'Autopilot ₪1,499' };
+var PKG_NAMES = { configuration:'תצורה ₪1,750 חד-פעמי', autopilot:'אוטופילוט ₪1,750 + ₪1,500/חודש' };
 
 function pick(plan) {
   document.getElementById('pkg').value = plan;

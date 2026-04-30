@@ -50,75 +50,76 @@ const ADDONS = [
 // Canonical pricing lives here + rendered on /auto-pilot landing page.
 // null tier = self-service (no HaaS, user does everything themselves).
 export interface HaasTier {
-    id: 'starter' | 'growth' | 'autopilot'
+    id: 'self_service' | 'configuration' | 'autopilot'
     nameHe: string
     nameEn: string
-    priceIls: number         // monthly
-    setupIls: number         // one-time
-    badge: 'green' | 'blue' | 'purple'
-    featured?: boolean        // 'recommended' label
-    adsMode: 'self' | 'one_channel' | 'all_channels'   // managed-ads capability
+    priceIls: number          // monthly (0 for one-time tiers)
+    setupIls: number          // one-time setup fee
+    minMonths?: number        // minimum commitment in months
+    badge: 'gray' | 'blue' | 'purple'
+    featured?: boolean
+    adsMode: 'self' | 'all_channels'
     features: string[]
 }
 
 const HAAS_TIERS: HaasTier[] = [
     {
-        id: 'starter',
-        nameHe: 'סטארטר',
-        nameEn: 'Starter',
-        priceIls: 299,
-        setupIls: 500,
-        badge: 'green',
+        id: 'self_service',
+        nameHe: 'Self-Service',
+        nameEn: 'Self-Service',
+        priceIls: 79,         // starting at Personal plan; user picks tier in configurator
+        setupIls: 0,
+        badge: 'gray',
         adsMode: 'self',
         features: [
-            'סקירה שבועית של פלטי סוכנים',
-            'אישור ועריכת תוכן לפני פרסום',
-            'דוח SEO + ביצועים חודשי',
-            'תמיכה בטלגרם (24 שעות בימי עסקים)',
-            'תיקוני באגים',
-            'אינטגרציה עם כלי SEO (Google Search, DataForSEO, Firecrawl)',
-            'יצירת תוכן חדש',
-            'ניהול פרסום ממומן (self-hosted)',
+            'VPS פעיל, מאובטח, עם SSL ודומיין משלכם',
+            '9 סוכני AI מותקנים ומוכנים להפעלה',
+            'גישה מלאה ללוח הבקרה',
+            'מפתחות API שלכם — שליטה מלאה',
+            'תמיכה טכנית במייל בלבד',
+            'תוכניות זמינות: Personal ₪79 · Business ₪169 · Pro ₪349 · Developer ₪599',
         ],
     },
     {
-        id: 'growth',
-        nameHe: 'גרוס',
-        nameEn: 'Growth',
-        priceIls: 699,
-        setupIls: 1200,
+        id: 'configuration',
+        nameHe: 'תצורה',
+        nameEn: 'Configuration',
+        priceIls: 0,           // one-time only
+        setupIls: 1750,
         badge: 'blue',
         featured: true,
-        adsMode: 'one_channel',
+        adsMode: 'self',
         features: [
-            'כל מה שיש ב-Starter',
-            'מחקר SEO + אסטרטגיה חודשית',
-            'עד 4 מאמרים לחודש (עם Schema, AI Nuggets, Entity Consensus)',
-            'הקמת קמפיינים ממומנים (Meta / Google Ads — ערוץ אחד מנוהל)',
-            'עד 8 יצירות מדיה לחודש (AI — תמונות/וידאו)',
-            'אופטימיזציית מודעות שבועית',
-            'התאמת Prompt Engineering',
-            'שיחת Zoom של 20 דקות אחת לשבועיים',
+            'שיחת גילוי (60 דקות, זום)',
+            'בניית Brand Foundation מלא — צבעים, פונטים, לוגו, voice',
+            'SEO — מחקר מילות מפתח, ניתוח מתחרים, אסטרטגיית תוכן ל-3 חודשים',
+            'Google Ads — חיבור Ads/GA4/GSC/GTM, Mazhir Audit, קמפיינים ראשוניים',
+            'Meta Ads — חיבור Facebook + Instagram, Lookalike audiences, קמפיין ראשון',
+            'חיבור ערוצי לקוחות — Telegram, WhatsApp, Gmail, Calendar',
+            'מסירה והדרכה (90 דקות זום)',
+            '30 ימי תמיכה במייל אחרי המסירה',
+            'לאחר המסירה — אתם בשליטה, ללא דמי ניהול',
         ],
     },
     {
         id: 'autopilot',
         nameHe: 'אוטופילוט',
-        nameEn: 'Autopilot',
-        priceIls: 1499,
-        setupIls: 2000,
+        nameEn: 'Auto-pilot',
+        priceIls: 1500,
+        setupIls: 1750,
+        minMonths: 6,
         badge: 'purple',
         adsMode: 'all_channels',
         features: [
-            'כל מה שיש ב-Growth',
-            'עד 8 מאמרי SEO לחודש',
-            'עד 16 יצירות מדיה לחודש',
-            'ניהול רשתות חברתיות (LinkedIn, Facebook, Instagram) — 3-5 פוסטים/שבוע',
-            'ניטור תחרותי + תגובה תוך 24 שעות',
-            'עד 2 דפי נחיתה לחודש',
-            'שיחה שבועית של 30 דקות עם מנהל חשבון',
-            'דוח ROAS / ROI מפורט',
-            'ניהול כל ערוצי הפרסום הממומן (Meta + Google + LinkedIn + TikTok כשזמין)',
+            'הכל מ-"תצורה" (תהליך הקמה מלא)',
+            'דוח שבועי כל יום ראשון בשעה 09:00 (PDF + סיכום בטלגרם)',
+            'פרסום ממומן — ניהול מלא (Google + Meta + YouTube), אופטימיזציה שבועית',
+            'תוכן אורגני — 4–8 מאמרי SEO לחודש + 3–5 פוסטים שבועיים',
+            'רשימות תפוצה — ניוזלטר + Email automations + A/B שבועי',
+            'קריאייטיב — עד 16 יצירות מדיה לחודש (תמונות + וידאו)',
+            'ניהול לקוחות — WhatsApp + Google Business Profile (פוסטים ומענה לביקורות)',
+            'שיחת אסטרטגיה דו-שבועית (30 דקות, זום)',
+            'מינימום התחייבות 6 חודשים, חודש הודעה מראש לביטול',
         ],
     },
 ]

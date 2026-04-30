@@ -4863,31 +4863,31 @@ function heCta(c)     { return CTA_NAMES_HE[c]     || c; }
 // Output type → Hebrew label
 // HaaS tier metadata — sync with packages/shared/src/plans.ts HAAS_TIERS
 var HAAS_TIERS = {
-  starter: {
-    nameHe: 'סטארטר', nameEn: 'Starter',
-    priceIls: 299, setupIls: 500,
-    badge: '🟢', color: '#10B981',
+  self_service: {
+    nameHe: 'Self-Service', nameEn: 'Self-Service',
+    priceIls: 0, setupIls: 0,
+    color: '#6B7280',
     adsMode: 'self',
-    tagline: 'ניהול שבועי + תמיכה · 24h SLA'
+    tagline: 'אתם מקימים, אתם מנהלים — אנחנו רק מארחים'
   },
-  growth: {
-    nameHe: 'גרוס', nameEn: 'Growth',
-    priceIls: 699, setupIls: 1200,
-    badge: '🔵', color: '#2563EB', featured: true,
-    adsMode: 'one_channel',
-    tagline: '4 מאמרים + 8 יצירות + ערוץ פרסום מנוהל'
+  configuration: {
+    nameHe: 'תצורה', nameEn: 'Configuration',
+    priceIls: 0, setupIls: 1750,
+    color: '#2563EB', featured: true,
+    adsMode: 'self',
+    tagline: 'הקמה מלאה חד-פעמית · לאחר מכן אתם בשליטה'
   },
   autopilot: {
-    nameHe: 'אוטופילוט', nameEn: 'Autopilot',
-    priceIls: 1499, setupIls: 2000,
-    badge: '🟣', color: '#7C3AED',
+    nameHe: 'אוטופילוט', nameEn: 'Auto-pilot',
+    priceIls: 1500, setupIls: 1750, minMonths: 6,
+    color: '#7C3AED',
     adsMode: 'all_channels',
-    tagline: '8 מאמרים · 16 יצירות · כל ערוצי פרסום · סושיאל מלא'
+    tagline: 'הקמה + ניהול שוטף מלא — מינימום 6 חודשים'
   }
 };
 
 function haasTierHasManagedAds(tierId) {
-  return tierId && tierId !== 'starter';
+  return tierId === 'autopilot';
 }
 function haasTierManagesAllChannels(tierId) {
   return tierId === 'autopilot';
