@@ -1709,10 +1709,6 @@ function calcPlan() {
   extra += storagePrice();
   const plan = PLANS.find(p => p.ram >= ram) || PLANS[3];
   const hasAgent = ITEMS.filter(i => i.cat === 'agents' && !i.soon).some(i => selected.has(i.id));
-  // ⚠️ TEMPORARY TEST OVERRIDE — MATEH selected → ₪5 total. Revert: TEST_MATEH_5ILS
-  if (selected.has('mt')) {
-    return { ram, extra: 0, plan, total: 5, hasAgent };
-  }
   return { ram, extra, plan, total: plan.price + extra, hasAgent };
 }
 
