@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClawFlow Admin · Sign in</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2310B981'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-weight='900' font-size='28' fill='white'%3E%E2%9A%99%3C/text%3E%3C/svg%3E">
+<style>
+:root {
+  --bg:#0A0F1C; --panel:#0F172A; --panel-2:#1E293B; --border:#1E293B;
+  --text:#F1F5F9; --text-2:#94A3B8; --text-3:#64748B;
+  --accent:#10B981; --accent-dark:#059669; --danger:#EF4444; --warning:#F59E0B;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:radial-gradient(ellipse at top, #0F172A, #020617 70%);
+  color:var(--text); display:flex; align-items:center; justify-content:center;
+  min-height:100vh; padding:24px;
+}
+.card{
+  background:var(--panel); border:1px solid var(--border); border-radius:16px;
+  width:100%; max-width:440px; padding:36px 32px;
+  box-shadow:0 30px 80px -20px rgba(0,0,0,0.5);
+}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:30px}
+.brand-mark{width:38px;height:38px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-family:monospace;font-size:18px;color:#fff}
+.brand-name{font-size:1.05rem;font-weight:700;letter-spacing:-0.2px}
+.brand-sub{font-size:0.7rem;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;margin-top:2px}
+h1{font-size:1.4rem;font-weight:700;margin-bottom:6px;letter-spacing:-0.4px}
+.sub{font-size:0.88rem;color:var(--text-2);line-height:1.65;margin-bottom:24px}
+.field{margin-bottom:14px}
+label{display:block;font-size:0.78rem;font-weight:500;color:var(--text-2);margin-bottom:6px;letter-spacing:0.2px}
+input{
+  width:100%; background:#020617; border:1px solid var(--border); border-radius:10px;
+  padding:11px 14px; color:var(--text); font-size:0.95rem;
+  font-family:inherit; transition:border-color 0.15s, background 0.15s;
+}
+input:focus{outline:none;border-color:var(--accent);background:#0F172A}
+input.code{font-family:'SF Mono',Consolas,monospace;letter-spacing:0.6em;text-align:center;font-size:1.4rem;padding:14px}
+.btn{
+  width:100%; background:var(--accent); color:#fff;
+  font-size:0.95rem; font-weight:600; padding:13px;
+  border:none; border-radius:10px; cursor:pointer;
+  transition:all 0.15s; font-family:inherit;
+}
+.btn:hover:not(:disabled){background:var(--accent-dark)}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--text-2);font-weight:400;font-size:0.85rem;padding:8px;margin-top:8px}
+.btn-ghost:hover{color:var(--text);background:transparent}
+.error{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#FCA5A5;font-size:0.84rem;padding:10px 14px;border-radius:10px;margin-bottom:14px;display:none}
+.error.show{display:block}
+.success{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#86EFAC;font-size:0.84rem;padding:10px 14px;border-radius:10px;margin-bottom:14px;display:none}
+.success.show{display:block}
+.hint{font-size:0.78rem;color:var(--text-3);margin-top:10px;line-height:1.6}
+.qr-wrap{text-align:center;margin:18px 0}
+.qr-wrap img{max-width:200px;border-radius:10px;background:#fff;padding:8px}
+.secret-line{font-family:'SF Mono',Consolas,monospace;font-size:0.78rem;background:#020617;border:1px solid var(--border);border-radius:8px;padding:8px 10px;text-align:center;color:var(--accent);margin-top:10px;word-break:break-all;letter-spacing:0.05em}
+.steps{display:flex;gap:6px;margin-bottom:22px}
+.step{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background 0.2s}
+.step.done{background:var(--accent)}
+.step.active{background:var(--accent);opacity:0.6}
+.foot{margin-top:24px;text-align:center;font-size:0.74rem;color:var(--text-3)}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">
+    <div class="brand-mark">⚙</div>
+    <div>
+      <div class="brand-name">ClawFlow</div>
+      <div class="brand-sub">admin panel</div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step active" id="step-1"></div>
+    <div class="step" id="step-2"></div>
+    <div class="step" id="step-3"></div>
+  </div>
+
+  <div class="error" id="err"></div>
+  <div class="success" id="msg"></div>
+
+  <!-- ── Stage 1: Email ── -->
+  <div id="stage-email">
+    <h1>Sign in</h1>
+    <div class="sub">Admin access only. We'll email a 6-digit code.</div>
+    <form onsubmit="event.preventDefault();sendOtp()">
+      <div class="field">
+        <label>Email</label>
+        <input id="email" type="email" placeholder="hello@flowmatic.co.il" autocomplete="email" required>
+      </div>
+      <button class="btn" id="btn-email">Send code</button>
+    </form>
+  </div>
+
+  <!-- ── Stage 2: Email OTP ── -->
+  <div id="stage-otp" class="hidden">
+    <h1>Enter code</h1>
+    <div class="sub">Code sent to <strong id="otp-email-label"></strong>. Valid for 10 minutes.</div>
+    <form onsubmit="event.preventDefault();verifyOtp()">
+      <div class="field">
+        <input id="otp" class="code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" required>
+      </div>
+      <button class="btn" id="btn-otp">Verify</button>
+      <button type="button" class="btn btn-ghost" onclick="resetFlow()">Use a different email</button>
+    </form>
+  </div>
+
+  <!-- ── Stage 3a: TOTP setup (first login) ── -->
+  <div id="stage-totp-setup" class="hidden">
+    <h1>Set up 2FA</h1>
+    <div class="sub">Scan with Google Authenticator / Authy / 1Password. Then enter the 6-digit code it shows.</div>
+    <div class="qr-wrap"><img id="qr-img" alt="2FA QR"></div>
+    <div class="secret-line" id="secret-line" title="Manual setup secret"></div>
+    <form onsubmit="event.preventDefault();confirmTotpSetup()" style="margin-top:18px">
+      <div class="field">
+        <label>Code from your authenticator</label>
+        <input id="totp-setup" class="code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" required>
+      </div>
+      <button class="btn" id="btn-totp-setup">Confirm setup &amp; sign in</button>
+    </form>
+  </div>
+
+  <!-- ── Stage 3b: TOTP verify (subsequent) ── -->
+  <div id="stage-totp" class="hidden">
+    <h1>2FA</h1>
+    <div class="sub">Enter the current 6-digit code from your authenticator app.</div>
+    <form onsubmit="event.preventDefault();verifyTotp()">
+      <div class="field">
+        <input id="totp" class="code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" autofocus required>
+      </div>
+      <button class="btn" id="btn-totp">Sign in</button>
+    </form>
+  </div>
+
+  <div class="foot">© 2026 Flowmatic · admin.flowmatic.co.il</div>
+</div>
+
+<script>
+var API = window.location.origin === 'https://admin.flowmatic.co.il'
+  ? 'https://api.clawflow.flowmatic.co.il'
+  : (window.location.protocol + '//api.clawflow.flowmatic.co.il');
+
+var state = { email: '', intermediateToken: '' };
+
+function setStage(name) {
+  ['email','otp','totp-setup','totp'].forEach(function(s){
+    var el = document.getElementById('stage-' + s);
+    if (el) el.classList.add('hidden');
+  });
+  var el = document.getElementById('stage-' + name);
+  if (el) el.classList.remove('hidden');
+  // Update step pills
+  var steps = ['email','otp','totp-setup','totp'];
+  var stage = name === 'totp-setup' ? 'totp' : name;
+  document.getElementById('step-1').className = 'step done';
+  document.getElementById('step-2').className = stage === 'email' ? 'step' : (stage === 'otp' ? 'step active' : 'step done');
+  document.getElementById('step-3').className = stage === 'totp' ? 'step active' : 'step';
+  if (stage === 'email') document.getElementById('step-1').className = 'step active';
+}
+
+function showError(msg) {
+  var el = document.getElementById('err');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show') }, 6000);
+}
+function showSuccess(msg) {
+  var el = document.getElementById('msg');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show') }, 4000);
+}
+
+async function sendOtp() {
+  var email = document.getElementById('email').value.trim();
+  if (!email) return;
+  state.email = email;
+  var btn = document.getElementById('btn-email');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Sending…';
+  try {
+    var r = await fetch(API + '/admin/auth/email-otp', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    var j = await r.json();
+    if (!j.success) throw new Error(j.message || 'Failed');
+    document.getElementById('otp-email-label').textContent = email;
+    setStage('otp');
+    showSuccess('Code sent. Check your inbox.');
+    setTimeout(function(){ document.getElementById('otp').focus() }, 100);
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send code';
+  }
+}
+
+async function verifyOtp() {
+  var code = document.getElementById('otp').value.trim();
+  if (code.length !== 6) return;
+  var btn = document.getElementById('btn-otp');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Verifying…';
+  try {
+    var r = await fetch(API + '/admin/auth/email-verify', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email: state.email, code })
+    });
+    var j = await r.json();
+    if (!j.success) throw new Error(j.message || 'Wrong code');
+    state.intermediateToken = j.data.intermediateToken;
+    if (j.data.needsTotpSetup) {
+      await loadTotpSetup();
+    } else {
+      setStage('totp');
+      setTimeout(function(){ document.getElementById('totp').focus() }, 100);
+    }
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Verify';
+  }
+}
+
+async function loadTotpSetup() {
+  try {
+    var r = await fetch(API + '/admin/auth/totp-setup', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ intermediateToken: state.intermediateToken })
+    });
+    var j = await r.json();
+    if (!j.success) throw new Error(j.message || 'Setup failed');
+    document.getElementById('qr-img').src = j.data.qrDataUrl;
+    document.getElementById('secret-line').textContent = j.data.secret;
+    setStage('totp-setup');
+    setTimeout(function(){ document.getElementById('totp-setup').focus() }, 100);
+  } catch (e) {
+    showError(e.message);
+  }
+}
+
+async function confirmTotpSetup() {
+  var code = document.getElementById('totp-setup').value.trim();
+  if (code.length !== 6) return;
+  var btn = document.getElementById('btn-totp-setup');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Confirming…';
+  try {
+    var r = await fetch(API + '/admin/auth/totp-setup-confirm', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ intermediateToken: state.intermediateToken, code })
+    });
+    var j = await r.json();
+    if (!j.success) throw new Error(j.message || 'Wrong code');
+    localStorage.setItem('admin_jwt', j.data.jwt);
+    showSuccess('Welcome — 2FA configured.');
+    setTimeout(function(){ window.location.href = '/' }, 600);
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Confirm setup & sign in';
+  }
+}
+
+async function verifyTotp() {
+  var code = document.getElementById('totp').value.trim();
+  if (code.length !== 6) return;
+  var btn = document.getElementById('btn-totp');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Verifying…';
+  try {
+    var r = await fetch(API + '/admin/auth/totp-verify', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ intermediateToken: state.intermediateToken, code })
+    });
+    var j = await r.json();
+    if (!j.success) throw new Error(j.message || 'Wrong code');
+    localStorage.setItem('admin_jwt', j.data.jwt);
+    showSuccess('Signed in.');
+    setTimeout(function(){ window.location.href = '/' }, 400);
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+}
+
+function resetFlow() {
+  state = { email:'', intermediateToken:'' };
+  setStage('email');
+}
+
+// If already logged in, jump to app
+if (localStorage.getItem('admin_jwt')) {
+  fetch(API + '/admin/me', { headers: { Authorization:'Bearer ' + localStorage.getItem('admin_jwt') } })
+    .then(function(r){ return r.json() })
+    .then(function(j){ if (j.success) window.location.href = '/' });
+}
+</script>
+</body>
+</html>

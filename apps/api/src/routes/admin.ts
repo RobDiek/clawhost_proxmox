@@ -1,0 +1,58 @@
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import {
+    requireAdmin2FA,
+    adminSendOtp, adminVerifyOtp, adminTotpSetupQr, adminTotpSetupConfirm, adminTotpVerify,
+    adminLogout, adminMe, adminDashboard,
+    adminListClients, adminClientDetail,
+    adminRestartInstance, adminSuspendInstance, adminResumeInstance,
+    adminTerminateInstance, adminResetCredentials, adminSendCustomEmail,
+    adminListPayments, adminRefundPayment,
+    adminListAudit,
+} from '@/controllers/admin'
+
+const app = new Hono()
+
+app.use('*', cors({
+    origin: ['https://admin.flowmatic.co.il', 'http://localhost:5173', 'http://localhost:3000'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    credentials: true,
+}))
+
+// ── Auth (no token required) ──
+app.post('/auth/email-otp', adminSendOtp)
+app.post('/auth/email-verify', adminVerifyOtp)
+app.post('/auth/totp-setup', adminTotpSetupQr)
+app.post('/auth/totp-setup-confirm', adminTotpSetupConfirm)
+app.post('/auth/totp-verify', adminTotpVerify)
+
+// ── Protected (requires admin JWT) ──
+app.use('/me', requireAdmin2FA)
+app.use('/logout', requireAdmin2FA)
+app.use('/dashboard', requireAdmin2FA)
+app.use('/clients', requireAdmin2FA)
+app.use('/clients/*', requireAdmin2FA)
+app.use('/payments', requireAdmin2FA)
+app.use('/payments/*', requireAdmin2FA)
+app.use('/audit', requireAdmin2FA)
+
+app.get('/me', adminMe)
+app.post('/logout', adminLogout)
+app.get('/dashboard', adminDashboard)
+
+app.get('/clients', adminListClients)
+app.get('/clients/:id', adminClientDetail)
+app.post('/clients/:id/restart', adminRestartInstance)
+app.post('/clients/:id/suspend', adminSuspendInstance)
+app.post('/clients/:id/resume', adminResumeInstance)
+app.post('/clients/:id/terminate', adminTerminateInstance)
+app.post('/clients/:id/reset-credentials', adminResetCredentials)
+app.post('/clients/:id/send-email', adminSendCustomEmail)
+
+app.get('/payments', adminListPayments)
+app.post('/payments/:id/refund', adminRefundPayment)
+
+app.get('/audit', adminListAudit)
+
+export default app

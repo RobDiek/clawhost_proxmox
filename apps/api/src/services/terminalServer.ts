@@ -26,6 +26,25 @@ async function getInstanceInfo(instanceId: string): Promise<{ ip: string; passwo
     } finally { client.release() }
 }
 
+// Admin variant: works on ANY status (suspended/initializing/running/failed)
+// so admin can investigate failures. Auth checked separately via JWT.
+async function getInstanceInfoAdmin(instanceId: string): Promise<{ ip: string; password: string | null } | null> {
+    const client = await pool.connect()
+    try {
+        const res = await client.query('SELECT ip, root_password FROM instances WHERE id = $1', [instanceId])
+        if (!res.rows[0]?.ip) return null
+        return { ip: res.rows[0].ip, password: res.rows[0].root_password }
+    } finally { client.release() }
+}
+
+async function verifyAdminToken(token: string): Promise<{ ok: boolean; adminId?: string }> {
+    try {
+        const { verifyAdminJwt } = await import('@/services/adminAuth')
+        const r = await verifyAdminJwt(token)
+        return { ok: r.ok, adminId: r.adminId }
+    } catch { return { ok: false } }
+}
+
 const PING_INTERVAL = 5000
 
 function handleTerminalConnection(ws: WebSocket, ip: string, password?: string | null) {
@@ -100,8 +119,38 @@ export function setupTerminalServer(server: Server) {
 
     server.on('upgrade', async (request, socket, head) => {
         const url = request.url || ''
-        const match = url.match(/^\/ws\/terminal\/([a-f0-9]+)/)
 
+        // Admin terminal: /ws/admin/terminal/:id?token=<adminJwt>
+        const adminMatch = url.match(/^\/ws\/admin\/terminal\/([a-zA-Z0-9_-]+)(?:\?(.*))?/)
+        if (adminMatch) {
+            const instanceId = adminMatch[1]
+            const qs = new URLSearchParams(adminMatch[2] || '')
+            const token = qs.get('token') || ''
+            try {
+                const auth = await verifyAdminToken(token)
+                if (!auth.ok) { socket.destroy(); return }
+                const info = await getInstanceInfoAdmin(instanceId)
+                if (!info) { socket.destroy(); return }
+                // Audit the SSH session start (best-effort)
+                try {
+                    const { writeAudit } = await import('@/services/adminAuth')
+                    await writeAudit({
+                        adminId: auth.adminId,
+                        action: 'admin.ssh.connect',
+                        targetType: 'instance',
+                        targetId: instanceId,
+                        details: { ip: info.ip },
+                    })
+                } catch {}
+                wss.handleUpgrade(request, socket, head, (ws) => {
+                    handleTerminalConnection(ws, info.ip, info.password)
+                })
+            } catch { socket.destroy() }
+            return
+        }
+
+        // Client terminal (Developer plan): /ws/terminal/:id (existing)
+        const match = url.match(/^\/ws\/terminal\/([a-f0-9]+)/)
         if (!match) return // Let other handlers process
 
         const instanceId = match[1]
@@ -118,5 +167,5 @@ export function setupTerminalServer(server: Server) {
         }
     })
 
-    console.log('🖥  Terminal WebSocket server ready on /ws/terminal/:id')
+    console.log('🖥  Terminal WebSocket server ready on /ws/terminal/:id and /ws/admin/terminal/:id')
 }

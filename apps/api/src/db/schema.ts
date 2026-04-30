@@ -8,7 +8,8 @@ import {
     jsonb,
     index,
     unique,
-    uuid
+    uuid,
+    bigserial
 } from 'drizzle-orm/pg-core'
 import { userRole } from '@openclaw/shared'
 
@@ -1019,4 +1020,46 @@ export const gbpConfig = pgTable('gbp_config', {
     autoRepost: boolean('auto_repost').default(true),
     reviewCheckFrequency: text('review_check_frequency').default('weekly'),  // daily|weekly
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+})
+
+// ── Admin panel (admin.flowmatic.co.il) ──────────────────────────────────
+export const adminUsers = pgTable('admin_users', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    email: text('email').notNull().unique(),
+    totpSecret: text('totp_secret'),
+    totpSetupCompleted: boolean('totp_setup_completed').default(false),
+    lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+})
+
+export const adminSessions = pgTable('admin_sessions', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    adminId: uuid('admin_id').notNull().references(() => adminUsers.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    ip: text('ip'),
+    userAgent: text('user_agent'),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+})
+
+export const adminAudit = pgTable('admin_audit', {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    adminId: uuid('admin_id').references(() => adminUsers.id, { onDelete: 'set null' }),
+    action: text('action').notNull(),
+    targetType: text('target_type'),
+    targetId: text('target_id'),
+    details: jsonb('details'),
+    ip: text('ip'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+})
+
+export const adminSnapshots = pgTable('admin_snapshots', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    instanceId: text('instance_id').notNull(),
+    hetznerImageId: integer('hetzner_image_id'),
+    reason: text('reason'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    createdBy: uuid('created_by').references(() => adminUsers.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 })

@@ -24,6 +24,7 @@ import {
     waitlistRoutes,
     webhooksRoutes
 } from '@/routes'
+import adminRoutes from '@/routes/admin'
 import { browseSkills } from '@/services/clawhub'
 
 const app = new Hono<HonoEnv>()
@@ -83,6 +84,7 @@ app.route('/webhooks', webhooksRoutes)
 
 // All hosting routes — public (our own JWT auth inside controllers where needed)
 app.route('/hosting', hostingRoutes)
+app.route('/admin', adminRoutes)
 app.get('/clawhub/skills', async (c) => {
     try {
         const result = await browseSkills({
