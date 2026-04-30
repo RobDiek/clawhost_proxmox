@@ -26,8 +26,13 @@ const authenticator = {
     generateSecret: () => totpGenerateSecret(),
     keyuri: (account: string, issuer: string, secret: string) =>
         totpGenerateURI({ secret, label: account, issuer }),
-    check: (token: string, secret: string): boolean => {
-        try { return !!totpInstance.verify({ token, secret }) } catch { return false }
+    // otplib v13 verify() returns a Promise — must await + catch async rejection
+    check: async (token: string, secret: string): Promise<boolean> => {
+        if (!token || !secret) return false
+        try {
+            const r = await totpInstance.verify({ token, secret })
+            return !!r
+        } catch { return false }
     },
 }
 import { db } from '@/db'
@@ -181,7 +186,7 @@ export async function confirmTotpSetup(
     const [admin] = await db.select().from(adminUsers).where(eq(adminUsers.id, decoded.adminId))
     if (!admin || !admin.totpSecret) return { ok: false, reason: 'no secret pending' }
 
-    if (!authenticator.check(code, admin.totpSecret)) {
+    if (!(await authenticator.check(code, admin.totpSecret))) {
         await writeAudit({ adminId: admin.id, action: 'admin.login.totp_setup_fail', ip })
         return { ok: false, reason: 'wrong totp code' }
     }
@@ -207,7 +212,7 @@ export async function verifyTotp(
     const [admin] = await db.select().from(adminUsers).where(eq(adminUsers.id, decoded.adminId))
     if (!admin || !admin.totpSecret || !admin.totpSetupCompleted) return { ok: false, reason: 'totp not configured' }
 
-    if (!authenticator.check(code, admin.totpSecret)) {
+    if (!(await authenticator.check(code, admin.totpSecret))) {
         await writeAudit({ adminId: admin.id, action: 'admin.login.totp_fail', ip })
         return { ok: false, reason: 'wrong totp code' }
     }
