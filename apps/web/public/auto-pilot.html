@@ -7,9 +7,22 @@
 <meta name="description" content="ניהול שיווק מקצועי עם סוכני AI. תצורה חד-פעמית ב-₪1,750, או אוטופילוט מלא — הקמה + ניהול שוטף."/>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <link rel="alternate icon" href="/favicon.ico"/>
+<!-- No Google Fonts: brand uses native Arial / Arial Hebrew per CLAUDE.md typography rule -->
+
 <style>
 * { margin:0; padding:0; box-sizing:border-box; font-family: Arial, 'Arial Hebrew', Helvetica, sans-serif !important; }
-body { background:#fff; color:#1F2937; line-height:1.6; }
+html { font-feature-settings: "kern" 1, "liga" 1; }
+body {
+  background:#fff; color:#1F2937; line-height:1.6;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+/* Force identical rendering for all headings + card titles to avoid Latin/Hebrew glyph drift */
+h1, h2, h3, h4, h5, h6, .card-name, .price, .hero-h1, .hero-eyebrow, .pricing-head h2, .pricing-eyebrow .label {
+  font-family: Arial, 'Arial Hebrew', Helvetica, sans-serif !important;
+  font-synthesis: none;          /* never synthesize bold/italic — use real weights only */
+  font-feature-settings: "kern" 1;
+}
 a { color:#2563EB; text-decoration:none; }
 .wrap { max-width:1080px; margin:0 auto; padding:0 20px; }
 
@@ -56,7 +69,7 @@ a { color:#2563EB; text-decoration:none; }
 .hero-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.18); }
 .hero-h1 {
   font-size: clamp(2rem, 4.4vw, 2.9rem);
-  font-weight: 800; line-height: 1.12; letter-spacing: -1px;
+  font-weight: 700; line-height: 1.15; letter-spacing: -0.8px;
   color: #0B1322; margin-bottom: 14px;
 }
 .hero-h1 em { font-style: normal; color: #2563EB; }
@@ -119,7 +132,7 @@ a { color:#2563EB; text-decoration:none; }
 .pricing-eyebrow { text-align: center; margin: 64px 0 12px; }
 .pricing-eyebrow .label { font-size: 0.74rem; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #2563EB; }
 .pricing-head { text-align: center; margin-bottom: 40px; }
-.pricing-head h2 { font-size: clamp(1.7rem, 3.5vw, 2.2rem); font-weight: 800; letter-spacing: -0.6px; color: #0B1322; margin-bottom: 10px; }
+.pricing-head h2 { font-size: clamp(1.7rem, 3.5vw, 2.2rem); font-weight: 700; letter-spacing: -0.5px; color: #0B1322; margin-bottom: 10px; line-height: 1.2; }
 .pricing-head p { font-size: 1rem; color: #6B7280; max-width: 540px; margin: 0 auto; line-height: 1.7; }
 
 .cards { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin:8px 0 56px; align-items: stretch; }
@@ -151,7 +164,7 @@ a { color:#2563EB; text-decoration:none; }
   text-transform: uppercase;
 }
 
-.card-name { font-size: 1.3rem; font-weight: 800; color: #0B1322; letter-spacing: -0.4px; margin-bottom: 4px; }
+.card-name { font-size: 1.4rem; font-weight: 700; color: #0B1322; letter-spacing: -0.5px; margin-bottom: 4px; line-height: 1.2; }
 .card-desc { font-size: 0.86rem; color: #6B7280; line-height: 1.55; margin-bottom: 20px; min-height: 36px; }
 
 .price-block { padding: 16px 0 14px; border-top: 1px solid #F3F4F6; border-bottom: 1px solid #F3F4F6; margin-bottom: 20px; }
@@ -378,7 +391,7 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
 
   <!-- Self-Service (MATEH, fully self-managed) -->
   <div class="card">
-    <div class="card-name">Self-Service</div>
+    <div class="card-name">שירות עצמי</div>
     <div class="card-desc">הכל פתוח, הכל זמין. מנהלים הכל לבד מהיום הראשון</div>
     <div class="price-block">
       <div class="price">₪139<span class="unit">/חודש</span></div>
