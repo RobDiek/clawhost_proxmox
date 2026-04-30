@@ -18,7 +18,8 @@
 import crypto from 'crypto'
 import { eq, and, desc, gt } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
-import { authenticator } from 'otplib'
+import otplib from 'otplib'
+const { authenticator } = otplib
 import QRCode from 'qrcode'
 import { db } from '@/db'
 import { adminUsers, adminSessions, adminAudit, otpCodes } from '@/db/schema'
