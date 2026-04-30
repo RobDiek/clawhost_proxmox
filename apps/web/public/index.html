@@ -153,6 +153,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   border-color: var(--primary);
   color: var(--primary);
 }
+/* Mobile burger — hidden on desktop, shown by mobile media query */
+.nav-burger-mobile { display: none; }
+.sum-toggle { display: none; }  /* shown only on mobile via media query */
 
 /* ═══════════════════════════════════════════════════
    WIZARD STEPS BAR
@@ -988,76 +991,249 @@ html[dir="rtl"] .mascot-bubble::before {
 }
 
 /* ═══════════════════════════════════════════════════
-   RESPONSIVE
+   RESPONSIVE — DEDICATED MOBILE LAYOUT (≤768px)
+   Strategy:
+   1. Free body from height:100vh + overflow:hidden lock — let page scroll
+   2. Stack main vertically: configurator on top, summary becomes STICKY
+      BOTTOM SHEET (collapsible). Pattern: e-commerce checkout footer.
+   3. Header simplified to logo + login (nav collapses into hamburger drawer)
+   4. Wizard steps row: scrolls horizontally if it overflows, never wraps
+   5. Mascot bubble shrinks, no horizontal overflow
 ═══════════════════════════════════════════════════ */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  html, body { overflow-x: hidden; max-width: 100vw; }
+  body {
+    /* Allow page-level scroll, don't lock viewport */
+    height: auto !important;
+    min-height: 100vh;
+    overflow-y: auto !important;
+  }
+  .page {
+    height: auto !important;
+    min-height: 100vh;
+    overflow: visible !important;
+    /* Bottom padding so the sticky summary bar doesn't cover content */
+    padding-bottom: 220px;
+  }
+
+  /* HEADER — single compact row */
+  .header {
+    height: 50px;
+    padding: 0;
+  }
+  .header-inner {
+    padding: 0 14px;
+    gap: 8px;
+  }
+  .logo img { height: 22px !important; }
+  .header-nav {
+    display: none; /* hide nav links on mobile — open via hamburger */
+  }
+  .header-nav.mobile-open {
+    display: flex;
+    position: absolute;
+    top: 50px; right: 0; left: 0;
+    flex-direction: column;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 18px;
+    gap: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+    margin-right: 0;
+    z-index: 99;
+  }
+  .header-nav.mobile-open a { font-size: 0.95rem; padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--text); }
+  .header-nav.mobile-open a:last-child { border-bottom: none; }
+  .nav-burger-mobile {
+    display: inline-flex;
+    width: 36px; height: 36px;
+    align-items: center; justify-content: center;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-2);
+    margin-right: auto;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .nav-burger-mobile:hover { background: var(--bg-2); }
+  .nav-burger-mobile svg { width: 18px; height: 18px; }
+  .header-actions { gap: 6px; }
+  .lang-switcher { display: none; }  /* save space — switcher in drawer */
+  .header-login { font-size: 12px; padding: 5px 12px; }
+
+  /* WIZARD STEPS — keep on one line, allow horizontal scroll if cramped */
+  .wizard-steps-bar { padding: 8px 0; }
+  .wizard-steps-inner {
+    padding: 0 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+  }
+  .wizard-steps-inner::-webkit-scrollbar { display: none; }
+  .wiz-step { padding: 7px 12px; flex-shrink: 0; font-size: 0.78rem; }
+  .wiz-label { display: inline; font-size: 0.78rem; }
+  .wiz-line { max-width: 18px; min-width: 14px; }
+
+  /* MAIN — stack vertically; cfg-list scrolls inside the page */
   .main {
     flex-direction: column;
-  }
-  .cfg-summary {
+    overflow: visible;
     max-width: 100%;
-    min-width: unset;
-    height: auto;
-    max-height: none;
-    position: relative;
-    top: auto;
   }
   .cfg-list {
     flex: 1;
-    min-height: 200px;
+    overflow-y: visible;
+    padding: 14px 14px 20px;
+    min-height: auto;
   }
-  /* Mobile header — show nav as compact row */
-  .header {
-    height: auto;
-    padding: 8px 0;
-  }
-  .header-inner {
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 0 12px;
-  }
-  .header-nav {
-    display: flex;
-    order: 3;
-    width: 100%;
-    justify-content: center;
+
+  /* Category headers tighter */
+  .cat-block { margin-bottom: 18px; }
+  .cat-title { font-size: 0.74rem; padding-bottom: 6px; margin-bottom: 8px; }
+  .cat-sub { font-size: 0.78rem; margin-bottom: 8px; line-height: 1.5; }
+
+  /* Option cards — bigger touch targets */
+  .opt-card {
+    padding: 12px 14px;
     gap: 10px;
-    padding-top: 6px;
-    border-top: 1px solid var(--border);
-    margin-top: 4px;
+    margin-bottom: 8px;
+    border-radius: 12px;
   }
-  .header-nav a {
-    font-size: 0.75rem;
-  }
-  .header-actions {
-    gap: 4px;
-  }
-  .header-login {
-    font-size: 10px;
-    padding: 3px 8px;
-  }
-  .logo img { height: 22px; }
+  .opt-name { font-size: 1rem; }
+  .opt-desc { font-size: 0.86rem; line-height: 1.5; }
+  .checkbox, .radio-btn { width: 20px; height: 20px; margin-top: 2px; }
+  .info-btn { width: 20px; height: 20px; font-size: 11px; }
+  .opt-price-tag { font-size: 11px; }
 
-  /* Wizard steps */
-  .wizard-steps-bar { padding: 6px 8px; }
-  .wiz-step { padding: 6px 8px; }
-  .wiz-label { display: none; }
+  /* SUMMARY — transformed into a sticky bottom sheet */
+  .cfg-summary {
+    max-width: 100%;
+    min-width: 0;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 90;
+    padding: 10px 16px 14px;
+    background: #0F172A;
+    border-top: 1px solid #1F2937;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.25);
+    max-height: 40vh;
+    overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+    /* Default to "collapsed" — show only total + deploy */
+  }
+  /* Drag-handle indicator at top */
+  .cfg-summary::before {
+    content: '';
+    display: block;
+    width: 36px; height: 4px;
+    background: #334155;
+    border-radius: 2px;
+    margin: 0 auto 8px;
+  }
+  /* Compact items: hide plan-card, ram bar, items list when collapsed */
+  .cfg-summary:not(.expanded) .sum-label,
+  .cfg-summary:not(.expanded) .plan-card,
+  .cfg-summary:not(.expanded) .ram-row,
+  .cfg-summary:not(.expanded) .ram-bar,
+  .cfg-summary:not(.expanded) .sum-items,
+  .cfg-summary:not(.expanded) .billing-toggle-row,
+  .cfg-summary:not(.expanded) .billing-savings,
+  .cfg-summary:not(.expanded) .sum-price-row,
+  .cfg-summary:not(.expanded) #trial-badge {
+    display: none;
+  }
+  /* Expanded — show everything stacked */
+  .cfg-summary.expanded { max-height: 78vh; padding-top: 14px; padding-bottom: 18px; }
+  .cfg-summary.expanded .plan-card { padding: 10px 12px; margin-bottom: 8px; }
+  .cfg-summary.expanded .sum-items { max-height: 26vh; }
 
-  /* Summary on mobile — below configurator, full width */
-  .sum-footer { padding: 12px; }
-  .sum-total { font-size: 1.4rem; }
+  /* Footer total stays visible */
+  .sum-footer {
+    padding-top: 4px;
+    border-top: none;
+    margin-top: 0;
+  }
+  .sum-total {
+    font-size: 1.6rem;
+    margin: 0 0 10px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .sum-total span { font-size: 11px; }
+  .deploy-btn { padding: 14px 0; font-size: 0.95rem; }
+  .deploy-hint { font-size: 10px; margin-top: 6px; }
 
-  /* Title bar */
+  /* "Show details" toggle button at top of summary */
+  .sum-toggle {
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: #94A3B8;
+    font-size: 0.78rem;
+    padding: 4px 0 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  .sum-toggle::after {
+    content: '↑ פרטי הזמנה';
+  }
+  .cfg-summary.expanded .sum-toggle::after {
+    content: '↓ הסתר פרטים';
+  }
+
+  /* TITLE BAR */
   .title-bar h2 { font-size: 1.2rem; }
   .title-bar p { display: none; }
 
-  /* Mascot */
-  .mascot-wrap { gap: 6px; padding: 10px 4px 6px; }
-  .mascot-bot { width: 44px; height: 44px; }
-  .mascot-bubble { font-size: 12px; padding: 8px 10px; max-width: 220px; }
+  /* MASCOT */
+  .mascot-wrap { gap: 8px; padding: 10px 6px 6px; min-height: auto; }
+  .mascot-bot { width: 48px; height: 48px; }
+  .mascot-bubble { font-size: 12px; padding: 8px 10px; max-width: calc(100vw - 90px); }
 
-  /* Partners modal */
-  .partners-modal-content { width: 95%; padding: 16px; }
+  /* TRUST STRIP — hide on mobile inside sticky bottom (we already show in scroll) */
+  .trust-strip {
+    padding: 14px 12px;
+    border-top: 1px solid var(--border);
+  }
+  .trust-row-1 {
+    white-space: normal;
+    font-size: 0.74rem;
+    line-height: 1.5;
+  }
+  .trust-row-2 {
+    font-size: 0.72rem;
+    line-height: 1.6;
+  }
+
+  /* MODALS / POPUPS — full-screen sheet style on phone */
+  .overlay, .modal-overlay { padding: 0; }
+  .popup, .modal {
+    border-radius: 16px 16px 0 0;
+    max-width: 100%;
+    max-height: 90vh;
+    margin-top: auto;
+    width: 100%;
+    padding: 24px 18px 20px;
+  }
+  .popup-close, .modal-close { top: 12px; left: 12px; }
+}
+
+/* PHONE-only tightening */
+@media (max-width: 480px) {
+  .wiz-step { padding: 6px 9px; font-size: 0.74rem; }
+  .wiz-label { display: none; }
+  .wiz-num { width: 22px; height: 22px; font-size: 0.72rem; }
+  .header-actions { gap: 4px; }
+  .header-login { font-size: 11px; padding: 4px 10px; }
+  .opt-card { padding: 11px 12px; }
+  .sum-total { font-size: 1.4rem; }
+  /* iOS auto-zoom prevention on focusable inputs */
+  input, select, textarea { font-size: 16px !important; }
 }
 </style>
 </head>
@@ -1071,7 +1247,12 @@ html[dir="rtl"] .mascot-bubble::before {
   <a href="/" class="logo">
     <img src="/logo-clawflow.png" alt="ClawFlow" style="height:28px">
   </a>
-  <nav class="header-nav">
+  <button class="nav-burger-mobile" id="nav-burger-mobile" aria-label="תפריט" onclick="toggleMobileNav(event)">
+    <svg id="nav-burger-mobile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M4 7h16M4 12h16M4 17h16"/>
+    </svg>
+  </button>
+  <nav class="header-nav" id="header-nav">
     <a href="#" id="nav-partners" onclick="openPartnersModal(event)">שותפים</a>
     <a href="/auto-pilot">ניהול שיווק</a>
     <a href="/about" id="nav-docs">תיעוד</a>
@@ -1097,8 +1278,9 @@ html[dir="rtl"] .mascot-bubble::before {
 <div class="main">
   <!-- WIZARD CONTENT (60%) -->
   <div class="cfg-list" id="cfg-list"></div>
-  <!-- SUMMARY (40%) -->
-  <div class="cfg-summary">
+  <!-- SUMMARY (40%) — sticky bottom sheet on mobile -->
+  <div class="cfg-summary" id="cfg-summary">
+    <button class="sum-toggle" id="sum-toggle" onclick="toggleSummaryMobile()" aria-label="הצג/הסתר פרטים"></button>
     <div class="sum-label" id="sum-label">&#1492;&#1492;&#1494;&#1502;&#1504;&#1492; &#1513;&#1500;&#1499;&#1501;</div>
     <div class="plan-card" id="plan-card">
       <div class="plan-name" id="plan-name">&#8212;</div>
@@ -1700,6 +1882,43 @@ function closeDocsModal() {
 document.getElementById('docs-overlay').addEventListener('click', function(e) {
   if (e.target === this) closeDocsModal();
 });
+
+/* ─────────────────────────────────────────
+   MOBILE NAV BURGER + STICKY SUMMARY TOGGLE
+───────────────────────────────────────── */
+function toggleMobileNav(e) {
+  if (e) e.stopPropagation();
+  var nav = document.getElementById('header-nav');
+  var icon = document.getElementById('nav-burger-mobile-icon');
+  if (!nav) return;
+  var isOpen = nav.classList.toggle('mobile-open');
+  if (icon) icon.innerHTML = isOpen
+    ? '<path d="M6 6l12 12M18 6l-12 12"/>'
+    : '<path d="M4 7h16M4 12h16M4 17h16"/>';
+}
+// Close mobile nav when any link inside is clicked
+document.addEventListener('click', function(e) {
+  var nav = document.getElementById('header-nav');
+  var burger = document.getElementById('nav-burger-mobile');
+  if (!nav || !nav.classList.contains('mobile-open')) return;
+  if (nav.contains(e.target) && e.target.tagName === 'A') {
+    nav.classList.remove('mobile-open');
+    var icon = document.getElementById('nav-burger-mobile-icon');
+    if (icon) icon.innerHTML = '<path d="M4 7h16M4 12h16M4 17h16"/>';
+    return;
+  }
+  // Click outside nav + burger → close
+  if (!nav.contains(e.target) && (!burger || !burger.contains(e.target))) {
+    nav.classList.remove('mobile-open');
+    var icon2 = document.getElementById('nav-burger-mobile-icon');
+    if (icon2) icon2.innerHTML = '<path d="M4 7h16M4 12h16M4 17h16"/>';
+  }
+});
+
+function toggleSummaryMobile() {
+  var s = document.getElementById('cfg-summary');
+  if (s) s.classList.toggle('expanded');
+}
 
 /* ─────────────────────────────────────────
    PARTNERS MODAL
