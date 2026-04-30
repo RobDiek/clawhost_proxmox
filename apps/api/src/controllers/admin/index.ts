@@ -410,9 +410,8 @@ export const adminRefundPayment = async (c: Context) => {
 
         // AllPay refund — best-effort (some sandboxes return 200 with 'pending')
         try {
-            const { AllPayService } = await import('@/services/allpay')
-            const svc = new AllPayService()
-            await svc.refund(pay.allpayOrderId, Number(pay.amountIls || 0))
+            const { default: allpay } = await import('@/services/allpay')
+            await allpay.refund(pay.allpayOrderId, Number(pay.amountIls || 0))
         } catch (e) {
             console.warn('[admin.refund] AllPay error:', (e as Error).message)
             // Continue — mark as refunded in DB regardless so we don't double-refund on retry
@@ -447,9 +446,8 @@ export const adminRefundAndTerminate = async (c: Context) => {
         for (const pay of allPays) {
             if (pay.status !== 'paid' || !pay.allpayOrderId) continue
             try {
-                const { AllPayService } = await import('@/services/allpay')
-                const svc = new AllPayService()
-                await svc.refund(pay.allpayOrderId, Number(pay.amountIls || 0))
+                const { default: allpay } = await import('@/services/allpay')
+                await allpay.refund(pay.allpayOrderId, Number(pay.amountIls || 0))
                 await db.update(payments).set({ status: 'refunded' } as any).where(eq(payments.id, pay.id))
                 refundResults.push({ paymentId: pay.id, ok: true, amount: pay.amountIls })
             } catch (e) {
