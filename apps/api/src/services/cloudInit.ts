@@ -30,27 +30,12 @@ export function renderCloudInit(vars: CloudInitVars): string {
     template = template.replace(/\{\{ROOT_PASSWORD\}\}/g, vars.ROOT_PASSWORD)
     template = template.replace(/\{\{MEM0_API_KEY\}\}/g, process.env.MEM0_API_KEY || '')
 
-    // Automation: Activepieces only (n8n/Dify removed for license compliance)
-    template = template.replace(/\{\{#IS_ACTIVEPIECES\}\}/g, '')
-    template = template.replace(/\{\{\/IS_ACTIVEPIECES\}\}/g, '')
-
-    // Conditional: Ollama
-    if (vars.HAS_OLLAMA) {
-        template = template.replace(/\{\{#HAS_OLLAMA\}\}/g, '')
-        template = template.replace(/\{\{\/HAS_OLLAMA\}\}/g, '')
-    } else {
-        template = template.replace(/\{\{#HAS_OLLAMA\}\}[\s\S]*?\{\{\/HAS_OLLAMA\}\}/g, '')
-    }
-
-    // Twenty CRM removed (AGPLv3 license risk)
-
-    // Conditional: Backup
-    if (vars.HAS_BACKUP) {
-        template = template.replace(/\{\{#HAS_BACKUP\}\}/g, '')
-        template = template.replace(/\{\{\/HAS_BACKUP\}\}/g, '')
-    } else {
-        template = template.replace(/\{\{#HAS_BACKUP\}\}[\s\S]*?\{\{\/HAS_BACKUP\}\}/g, '')
-    }
+    // HAS_* flags — substituted as text literals 'true'/'false' for install.sh
+    // to read via /etc/openclaw/instance.env. Mustache-style block syntax is no
+    // longer used (the bootstrap doesn't have inline conditionals — install.sh
+    // does the if-checks at runtime).
+    template = template.replace(/\{\{HAS_OLLAMA\}\}/g, vars.HAS_OLLAMA ? 'true' : 'false')
+    template = template.replace(/\{\{HAS_BACKUP\}\}/g, vars.HAS_BACKUP ? 'true' : 'false')
 
     return template
 }

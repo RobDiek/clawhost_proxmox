@@ -107,7 +107,18 @@ export const checkout = async (c: Context<HonoEnv>) => {
             .where(and(eq(instances.userId, userId), ne(instances.status, 'awaiting_payment')))
         const hadTrial = existingInstances.some(i => i.trialEndsAt !== null)
 
-        const TRIAL_DAYS = hadTrial ? 0 : 7
+        // ─── TRIAL DISABLED ──────────────────────────────────────────────
+        // Earlier we passed trialDays=7 → subscription.start_type=3, start_n=7
+        // BUT this only delayed RECURRING billing. The initial items[].price
+        // was charged at checkout regardless — leading to ₪203 charged
+        // immediately AND ₪203 again on day 7 (effectively double-billed).
+        //
+        // Until we confirm AllPay's actual free-trial mechanism (likely needs
+        // a separate "trial_amount" / "first_payment_amount" subscription
+        // field, currently undocumented in our integration), we charge full
+        // monthly upfront. Israeli consumer law gives the user a 14-day
+        // cancellation window with full refund — that IS our trial.
+        const TRIAL_DAYS = 0
         const trialEndsAt = TRIAL_DAYS > 0 ? new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000) : null
 
         // Extract storage GB from addons

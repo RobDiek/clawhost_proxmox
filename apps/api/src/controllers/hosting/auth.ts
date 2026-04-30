@@ -429,8 +429,15 @@ export const getMyInstances = async (c: Context) => {
                 hasGoogleAds: (() => {
                     const gt = i.googleTokens as any
                     if (!gt) return false
+                    // googleTokens.scopes can be:
+                    //   - aliases: ['ads', 'gtm', ...] (current SCOPE_MAP storage)
+                    //   - URLs:    ['https://www.googleapis.com/auth/adwords', ...] (legacy)
+                    // Match both forms.
                     const scopes = (gt.scopes || gt.scope || '').toString().toLowerCase()
-                    return scopes.includes('adwords')
+                    if (scopes.includes('adwords')) return true
+                    // Alias check — split-friendly so 'sads' or 'adsfoo' don't false-match
+                    const tokens = scopes.split(/[\s,]+/)
+                    return tokens.includes('ads')
                 })(),
                 haasTier: i.haasTier,                // 'starter' | 'growth' | 'autopilot' | null
                 googleAdsMode: i.googleAdsMode || 'self',

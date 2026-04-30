@@ -494,8 +494,15 @@ async function sweepAllInstances(): Promise<void> {
     const live = await db.select({ id: instances.id }).from(instances)
     let totalDrafted = 0
     let totalFailed = 0
+    let totalSkipped = 0
+    const { isPipelineEnabled } = await import('./pipelineActivation')
     for (const row of live) {
         try {
+            // Gate: only run for tenants where content_calendar pipeline is active.
+            // Paid-only tenants (e.g. Google Ads HaaS clients) don't want
+            // content drafts auto-generated.
+            const enabled = await isPipelineEnabled(row.id, 'content_calendar')
+            if (!enabled) { totalSkipped++; continue }
             const res = await draftDuePlanItemsForInstance(row.id)
             totalDrafted += res.drafted.length
             totalFailed += res.failed.length
@@ -503,6 +510,9 @@ async function sweepAllInstances(): Promise<void> {
             console.warn(`[planDraftRunner] ${row.id} sweep error:`, (err as Error).message)
             totalFailed++
         }
+    }
+    if (totalSkipped > 0) {
+        console.log(`[planDraftRunner] skipped ${totalSkipped} tenant(s) — content_calendar pipeline disabled`)
     }
     if (totalDrafted > 0 || totalFailed > 0) {
         console.log(`[planDraftRunner] sweep done: +${totalDrafted} drafted, ${totalFailed} failed`)

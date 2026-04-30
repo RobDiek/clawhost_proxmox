@@ -58,8 +58,16 @@ export async function generateAllWeeklyReports(): Promise<{
             .from(creativePerformance)
             .where(gte(creativePerformance.measurementDate, sinceStr))
 
+        const { isPipelineEnabled } = await import('./pipelineActivation')
         for (const { id: instanceId } of activeInstanceRows) {
             stats.instances++
+            // Gate: weekly creative reports cover content/social outputs.
+            // Skip when content_calendar pipeline is disabled.
+            const enabled = await isPipelineEnabled(instanceId, 'content_calendar')
+            if (!enabled) {
+                stats.skipped++
+                continue
+            }
             try {
                 const r = await generateInstanceReport(instanceId)
                 if (r.generated) stats.generated++

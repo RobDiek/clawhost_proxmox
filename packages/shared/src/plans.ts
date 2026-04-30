@@ -41,9 +41,9 @@ const COMPONENTS: ComponentInfo[] = [
 
 const ADDONS = [
     { id: 'backup', nameHe: 'גיבוי יומי', nameEn: 'Daily Backup', priceIls: 19, ram: 0 },
-    { id: 'storage_20', nameHe: 'אחסון +20GB', nameEn: 'Storage +20GB', priceIls: 9, ram: 0 },
-    { id: 'storage_100', nameHe: 'אחסון +100GB', nameEn: 'Storage +100GB', priceIls: 39, ram: 0 },
-    { id: 'storage_500', nameHe: 'אחסון +500GB', nameEn: 'Storage +500GB', priceIls: 199, ram: 0 },
+    { id: 'storage_20', nameHe: 'אחסון +20GB', nameEn: 'Storage +20GB', priceIls: 15, ram: 0 },
+    { id: 'storage_100', nameHe: 'אחסון +100GB', nameEn: 'Storage +100GB', priceIls: 49, ram: 0 },
+    { id: 'storage_500', nameHe: 'אחסון +500GB', nameEn: 'Storage +500GB', priceIls: 149, ram: 0 },
 ]
 
 // HaaS (Human as a Service) — marketing management subscription tiers.

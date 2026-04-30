@@ -67,6 +67,15 @@ const SCOPE_MAP: Record<string, string> = {
     drive:     'https://www.googleapis.com/auth/drive.file',
     analytics: 'https://www.googleapis.com/auth/analytics.readonly',
     youtube:   'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly',
+    // ── Mazhir scopes ──
+    // tagmanager.edit.containers — create/update tags & triggers in workspaces
+    // tagmanager.publish — publish workspace versions live
+    // tagmanager.edit.containerversions — required for :create_version (which deletes-and-versions a workspace)
+    // We bundle all three under one alias since auto-config requires the full chain.
+    gtm:       'https://www.googleapis.com/auth/tagmanager.edit.containers https://www.googleapis.com/auth/tagmanager.publish https://www.googleapis.com/auth/tagmanager.edit.containerversions https://www.googleapis.com/auth/tagmanager.readonly',
+    // Search Console — needed for organic queries + landing-page rank signal
+    // (gscEnrich + gscPagesEnrich). Read-only by design.
+    gsc:       'https://www.googleapis.com/auth/webmasters.readonly',
 }
 
 // ── GET /integrations/google/auth ──

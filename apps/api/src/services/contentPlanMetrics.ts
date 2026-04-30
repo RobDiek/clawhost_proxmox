@@ -275,11 +275,17 @@ export function startOptimizationCron(): void {
 
 async function optimizeAllInstances(): Promise<void> {
     const { generateOptimizationReportCore } = await import('@/controllers/hosting/agentSetup')
+    const { isPipelineEnabled } = await import('./pipelineActivation')
     const live = await db.select({ id: instances.id, researchData: instances.researchData }).from(instances)
     let generated = 0
     let skipped = 0
+    let skippedDisabled = 0
     for (const row of live) {
         try {
+            // Gate: optimization synthesis is content-driven (consumes
+            // contentPlan results). Skip when content_calendar disabled.
+            const enabled = await isPipelineEnabled(row.id, 'content_calendar')
+            if (!enabled) { skippedDisabled++; continue }
             const rd = (row.researchData as Record<string, unknown> | null) || {}
             const plan = (Array.isArray(rd.contentPlan) ? rd.contentPlan : []) as Array<{ results?: { engagement?: number } }>
             const measured = plan.filter(it => it.results && typeof it.results.engagement === 'number').length
@@ -295,6 +301,9 @@ async function optimizeAllInstances(): Promise<void> {
             console.warn(`[autoOptimization] ${row.id} error:`, (err as Error).message)
         }
     }
+    if (skippedDisabled > 0) {
+        console.log(`[autoOptimization] skipped ${skippedDisabled} tenant(s) — content_calendar pipeline disabled`)
+    }
     console.log(`[autoOptimization] sweep done: ${generated} generated, ${skipped} skipped (insufficient data)`)
 }
 
@@ -303,8 +312,15 @@ async function collectAllInstances(): Promise<void> {
     console.log(`[metricsCollector] sweep: ${live.length} instances`)
     let totalFetched = 0
     let totalFailed = 0
+    let totalSkipped = 0
+    const { isPipelineEnabled } = await import('./pipelineActivation')
     for (const row of live) {
         try {
+            // Gate: metrics collector pulls performance for content_calendar
+            // outputs (IG/FB posts, blog articles via GSC). Skip tenants
+            // where content_calendar is disabled — saves API calls.
+            const enabled = await isPipelineEnabled(row.id, 'content_calendar')
+            if (!enabled) { totalSkipped++; continue }
             const res = await collectContentPlanMetrics(row.id)
             totalFetched += res.fetched
             totalFailed += res.failed
@@ -315,6 +331,9 @@ async function collectAllInstances(): Promise<void> {
             console.warn(`[metricsCollector] ${row.id} error:`, (err as Error).message)
             totalFailed++
         }
+    }
+    if (totalSkipped > 0) {
+        console.log(`[metricsCollector] skipped ${totalSkipped} tenant(s) — content_calendar pipeline disabled`)
     }
     console.log(`[metricsCollector] sweep done: +${totalFetched} fetched, ${totalFailed} failed`)
 }

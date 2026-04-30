@@ -96,6 +96,16 @@ startWeeklyCreativeReport()
 import { startWeeklyOpsBrief } from '@/services/weeklyOpsBrief'
 startWeeklyOpsBrief()
 
+// Bid Transition Runner — daily check, proposes flip from MAXIMIZE_CLICKS
+// to tCPA/MAXIMIZE_CONVERSIONS when 30+ conversions accumulated.
+import { startBidTransitionRunner } from '@/services/bidTransitionRunner'
+startBidTransitionRunner()
+
+// Monthly Re-audit — fires on day-1 of each month for clients with active
+// paid_search pipeline; surfaces methodology shifts via auditDiff.
+import { startMonthlyReauditRunner } from '@/services/monthlyReauditRunner'
+startMonthlyReauditRunner()
+
 // Strategy Lab — weekly learner that ranks winners/losers across 6 dimensions
 // from actual performance data, then feeds recommendations back into the next
 // content plan generation.

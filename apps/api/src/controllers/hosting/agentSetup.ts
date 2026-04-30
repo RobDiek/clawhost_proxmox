@@ -5628,6 +5628,267 @@ export const resetResearch = async (c: Context) => {
 // Content Plan — 4-week rolling horizon, monthly tactical revision
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Paid Marketing (Mazhir) — Profile + MediaPlan
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Stored under researchData.paidProfile / researchData.mediaPlan. Read by
+// Mazhir to drive paid campaigns at senior-PPC-specialist quality.
+//
+// Methodology auto-selected from primaryGoal + monthlyBudgetIls:
+//   leadgen + <₪7K   → STAG-only, no PMax (sub-threshold)
+//   leadgen + ≥₪7K   → STAG + PMax (only if offline qualified-lead upload works)
+//   ecommerce + any  → Hagakure consolidated + PMax with feed
+//   awareness        → Demand Gen primary
+//
+// Hard guardrails (enforced in Mazhir executor regardless of launchPath):
+//   - tCPA bid strategy locked until 30+ conv/30d at campaign level
+//   - tROAS locked until 50+ conv/30d
+//   - PMax-for-leadgen locked until offline qualified-lead upload verified working
+//   - Conversion tag must fire on real test event before any campaign launches
+//   - Budget changes >20% always go through pending_review
+//
+// LaunchPath drives timeline ONLY, not bypass guardrails:
+//   professional_build — Days 0-7 tracking → 7-14 research → 14-21 plan → launch
+//   launch_now         — compressed 24-48h with safe defaults (Max Clicks bid,
+//                        60% budget, single STAG, top-30 keywords); proper
+//                        research happens in parallel via weekly pending_review
+//                        proposals catching up to professional standard
+
+export interface PaidProfile {
+    monthlyBudgetIls: number
+    primaryGoal: 'leadgen' | 'ecommerce' | 'awareness' | 'store_visits' | 'app_installs'
+    geography: {
+        mode: 'city_radius' | 'national' | 'cities' | 'international'
+        cities?: string[]              // e.g. ['Tel Aviv', 'Ramat Gan']
+        radiusKm?: number              // for city_radius mode
+        excludeRegions?: string[]
+    }
+    avgDealValueIls: number
+    avgLtvIls?: number
+    decisionCycle: 'impulse' | 'short' | 'medium' | 'long'  // <1d / 1-7d / 1-4w / 1m+
+    hasExistingAccount: boolean
+    trackingStack: {
+        ga4: boolean
+        gtm: boolean
+        callTracking: 'callrail' | 'whatconverts' | 'none' | 'unknown'
+        phoneCallsRelevant: boolean
+    }
+    launchPath: 'professional_build' | 'launch_now'
+    acknowledgedTradeoffs: boolean       // required when launchPath='launch_now'
+    industryHint?: string                // free-text industry context
+    completedAt: string
+    updatedAt?: string
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MediaPlan (Mazhir's output, mirrors contentPlan pattern)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface AdGroupBrief {
+    name: string
+    themeIntent: string                  // e.g. "self storage Tel Aviv high commercial intent"
+    keywords: { text: string; matchType: 'BROAD' | 'PHRASE' | 'EXACT' }[]
+    negativeKeywords?: string[]          // ad-group-level negatives (rare; usually campaign-level)
+    headlines: string[]                  // 10-15 RSA headlines
+    descriptions: string[]               // 4 RSA descriptions
+    finalUrl: string
+    callouts?: string[]
+    sitelinks?: { text: string; url: string; description1?: string; description2?: string }[]
+}
+
+export interface CampaignBriefDraft {
+    name: string
+    type: 'SEARCH' | 'PERFORMANCE_MAX' | 'DEMAND_GEN' | 'DISPLAY' | 'SHOPPING'
+    intent: 'top_of_funnel' | 'mid_funnel' | 'bottom_funnel' | 'brand_defense'
+    dailyBudgetIls: number
+    bidStrategy: 'MAXIMIZE_CLICKS' | 'MAXIMIZE_CONVERSIONS' | 'TARGET_CPA' | 'TARGET_ROAS'
+    targetCpaIls?: number                // required if bidStrategy === 'TARGET_CPA'
+    targetRoas?: number                  // required if bidStrategy === 'TARGET_ROAS'
+    geo: {
+        mode: 'national' | 'cities' | 'city_radius' | 'international'
+        cities?: string[]
+        radiusKm?: number
+    }
+    language: 'he' | 'en' | 'mixed'
+    adGroups: AdGroupBrief[]             // for SEARCH campaigns
+    assetGroups?: { headlines: string[]; descriptions: string[]; longHeadlines: string[]; finalUrl: string; callouts?: string[] }[]
+    rationale: string                    // why this campaign exists in the mix
+    expectedConversionsPerMonth?: number
+    status: 'draft' | 'pending_review' | 'approved' | 'launched' | 'paused' | 'archived'
+    googleAdsCampaignId?: string         // populated after executor launches
+}
+
+export interface MediaPlan {
+    generatedAt: string
+    status: 'draft' | 'pending_review' | 'approved' | 'live' | 'archived'
+    approvedAt?: string
+    approvedByUserId?: string
+
+    methodology: {
+        framework: 'STAG' | 'STAG+PMax' | 'Hagakure' | 'Hagakure+PMax+DemandGen' | 'compressed_launch_now'
+        rationale: string                // why this framework for this client
+    }
+
+    conversionTrackingPlan: {
+        primaryActions: string[]         // 'purchase' | 'generate_lead' | 'phone_call' | 'qualified_lead' | 'form_submit'
+        enhancedConversions: boolean
+        enhancedConversionsForLeads: boolean
+        offlineConversionUpload: boolean
+        callTrackingProvider?: string
+        blockers: string[]               // what's missing before any campaign can launch
+    }
+
+    campaigns: CampaignBriefDraft[]
+
+    negativeKeywordLibrary: {
+        industry: string[]               // e.g. ['free storage', 'diy storage'] for paid storage biz
+        brandDefense: string[]           // competitor brand names
+        junkPatterns: string[]           // 'jobs', 'salary', 'free', 'meaning'
+    }
+
+    audienceSignals: {
+        customerMatch: { recommended: boolean; reason: string }
+        similarAudiences: { recommended: boolean; reason: string }
+        inMarketSegments: string[]
+        detailedDemographics: string[]
+    }
+
+    bidStrategySequence: {
+        week1: 'MAXIMIZE_CLICKS' | 'MANUAL_CPC' | 'MAXIMIZE_CONVERSIONS'
+        transitionToMaxConv?: { triggerConvCount: number; estimatedAt?: string }
+        transitionToTcpa?: { triggerConvCount: number; suggestedCpaIls: number }
+        transitionToTroas?: { triggerConvCount: number; suggestedRoas: number }
+        rationale: string
+    }
+
+    kpis: {
+        primary: string                  // e.g. 'cost per qualified lead'
+        targets: Record<string, number | string>
+        weeklyChecks: string[]
+    }
+
+    guardrailsAcknowledged: string[]     // explicit list Mazhir enforces
+    estimatedTimeToLaunch: 'immediate' | '24-48h' | '7-14d' | '14-30d'
+}
+
+// Source coverage badge — phase 1 contract.
+// Every Mazhir audit reports which data sources were pulled, when, and why
+// missing ones aren't there. UI renders these as Hebrew badges next to
+// recommendations so the client sees what's solid vs. inferred.
+export interface MazhirSourceStatus {
+    status: 'ok' | 'missing' | 'n/a' | 'failed'
+    pulledAt?: string
+    reason?: string
+    [extra: string]: any                 // free-form payload (totals, counts, etc.)
+}
+export interface MazhirSourceCoverage {
+    ga4?: MazhirSourceStatus
+    ga4Audiences?: MazhirSourceStatus
+    ga4Demographics?: MazhirSourceStatus
+    ga4Funnel?: MazhirSourceStatus
+    ga4Seasonality?: MazhirSourceStatus
+    googleAdsAccount?: MazhirSourceStatus
+    searchTermsReport?: MazhirSourceStatus
+    auctionInsights?: MazhirSourceStatus
+    changeHistory?: MazhirSourceStatus
+    googleAdsRecommendations?: MazhirSourceStatus
+    searchConsole?: MazhirSourceStatus
+    searchConsolePages?: MazhirSourceStatus
+    callTracking?: MazhirSourceStatus
+    dataforseo?: MazhirSourceStatus
+    transparency?: MazhirSourceStatus
+    pagespeed?: MazhirSourceStatus
+    gtmInventory?: MazhirSourceStatus
+    metaAdsLibrary?: MazhirSourceStatus
+    whatsappBusiness?: MazhirSourceStatus
+    competitorPricing?: MazhirSourceStatus
+    uploadedReports?: MazhirSourceStatus
+}
+
+// Multi-source reconciliation — phase 1 contract.
+// When sources disagree (CSV says 0, GA4 says 306, client says ~60% conv),
+// agent MUST surface the conflict here, not silently merge.
+export interface MazhirReconciliation {
+    conflicts: Array<{
+        topic: string                    // e.g. "conversions_last_90d"
+        sources: Array<{ source: string; value: any; note?: string }>
+        chosenSource: string
+        chosenValue: any
+        rationale: string                // Hebrew, plain language
+    }>
+    groundTruthChosen: string            // narrative description of priority order applied
+    requiresClientConfirmation: boolean  // true if conflict > 30%, blocks launch
+}
+
+// Show-your-math contract — every numeric recommendation traces to a formula.
+// Used inline as { value, derivation } pairs throughout audit + media plan.
+export interface DerivedNumber {
+    value: number
+    derivation: string                   // formula + inputs, plain Hebrew
+    confidence?: 'high' | 'medium' | 'low'
+}
+
+export interface MazhirAudit {
+    generatedAt: string
+    summary: string                      // 2-3 sentence executive summary
+    trackingHealth: {
+        score: 'critical' | 'poor' | 'good' | 'excellent'
+        issues: { severity: 'blocker' | 'high' | 'medium' | 'low'; finding: string; recommendation: string }[]
+    }
+    existingAccountAudit?: {
+        accessible: boolean
+        last90Days?: {
+            spendIls: number
+            clicks: number
+            conversions: number
+            ctr: number
+            avgCpcIls: number
+            convRate: number
+        }
+        wasteAnalysis?: {
+            estimatedWastedSpendPct: number
+            topWasteTerms: string[]
+        }
+        topRecommendations: string[]
+    }
+    industrySignals: {
+        keywordSuggestions: { theme: string; keywords: string[]; estimatedSearches: string }[]
+        competitorObservations: string[]
+        seasonality?: string
+    }
+    recommendedActions: {
+        immediate: string[]              // 0-7 days
+        shortTerm: string[]              // 7-30 days
+        ongoing: string[]                // 30+ days
+    }
+    methodology: 'STAG' | 'STAG+PMax' | 'Hagakure' | 'Hagakure+PMax+DemandGen' | 'compressed_launch_now'
+    methodologyRationale: string         // 2-3 sentences: why this methodology vs alternatives, given THIS client's data
+    estimatedMonthlyConversions: { low: number; expected: number; high: number; derivation?: string }
+    blockers: string[]                   // hard blockers preventing any launch
+
+    // ── phase 1: process foundation ─────────────────────────────────
+    sourceCoverage: MazhirSourceCoverage
+    dataReconciliation: MazhirReconciliation
+    assumptions: Array<{
+        text: string                     // Hebrew: "I assumed avg deal value ₪600 because..."
+        confidence: 'high' | 'medium' | 'low'
+        ifWrongImpact: string            // what changes if this assumption is wrong
+    }>
+    derivedAvgDealValueIls?: DerivedNumber  // when client left it 0, agent computes a heuristic
+    qualityWarnings?: string[]           // surfaced from devil's-advocate pass (phase 4)
+    dataGaps?: Array<{                   // structured "what we lost + what we used instead"
+        key: string
+        label: string
+        impact: 'critical' | 'high' | 'medium' | 'low'
+        status: 'missing' | 'failed'
+        reason: string
+        consequenceIfMissing: string
+        fallbackStrategy: string
+        appliedBenchmark?: string
+    }>
+}
+
 interface ContentPlanItem {
     id: string                        // unique (cp_<nanoid>)
     date: string                      // ISO date "2026-04-22"
@@ -5641,7 +5902,8 @@ interface ContentPlanItem {
     ctaType: string                   // "signup_course" / "trial_saas" / "read_more"
     productRef?: string               // which SKU this drives (course_199 / course_1499 / clawflow)
     flexibility: 'fixed' | 'suggested' // smart-binding: agents can swap "suggested"
-    status: 'planned' | 'drafting' | 'awaiting_review' | 'approved' | 'scheduled' | 'published' | 'ready_for_manual' | 'skipped' | 'failed'
+    status: 'planned' | 'drafting' | 'awaiting_review' | 'approved' | 'scheduled' | 'published' | 'ready_for_manual' | 'skipped' | 'failed' | 'archived'
+    archivedAt?: string               // ISO timestamp when user archived the item
     outputId?: string                 // link to agent_outputs when drafted
     pendingPivot?: {                  // agent-proposed swap, awaits user approval
         reason: string
@@ -7033,6 +7295,684 @@ export const markContentPlanItemPublished = async (c: Context) => {
         return ok(c, { item: plan[idx] }, 'Marked as published')
     } catch (err) {
         console.error('markContentPlanItemPublished error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── GET /hosting/instances/:id/paid-profile ──────────────────────────────
+// Returns the paidProfile block from researchData (or null if not yet captured).
+export const getPaidProfile = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const rd: any = instance?.researchData || {}
+        return ok(c, { paidProfile: rd.paidProfile || null })
+    } catch (err) {
+        console.error('getPaidProfile error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/paid-profile ─────────────────────────────
+// Creates or updates the paidProfile in researchData. Validates business rules:
+//  - launch_now requires acknowledgedTradeoffs=true (forces user to opt-in)
+//  - monthlyBudgetIls must be >=100 (prevents typos)
+//  - avgDealValueIls must be >0 (used by Mazhir for tCPA bound calculations)
+//  - geography.cities required when mode='cities', radiusKm when 'city_radius'
+export const savePaidProfile = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const body = await c.req.json<Partial<PaidProfile>>()
+
+        if (typeof body.monthlyBudgetIls !== 'number' || body.monthlyBudgetIls < 100) {
+            return fail(c, 'monthlyBudgetIls required (>=100)', 400)
+        }
+        const goalsAllowed = ['leadgen', 'ecommerce', 'awareness', 'store_visits', 'app_installs']
+        if (!body.primaryGoal || !goalsAllowed.includes(body.primaryGoal)) {
+            return fail(c, 'primaryGoal required (' + goalsAllowed.join('|') + ')', 400)
+        }
+        // avgDealValueIls is optional — Mazhir audit derives a heuristic from
+        // research data when not provided. Reject only invalid types.
+        if (body.avgDealValueIls !== undefined && body.avgDealValueIls !== null
+            && (typeof body.avgDealValueIls !== 'number' || body.avgDealValueIls < 0)) {
+            return fail(c, 'avgDealValueIls must be a non-negative number', 400)
+        }
+        const cycleAllowed = ['impulse', 'short', 'medium', 'long']
+        if (!body.decisionCycle || !cycleAllowed.includes(body.decisionCycle)) {
+            return fail(c, 'decisionCycle required (' + cycleAllowed.join('|') + ')', 400)
+        }
+        if (!body.geography || !body.geography.mode) {
+            return fail(c, 'geography.mode required', 400)
+        }
+        if (body.geography.mode === 'cities' && (!Array.isArray(body.geography.cities) || body.geography.cities.length === 0)) {
+            return fail(c, 'geography.cities required when mode=cities', 400)
+        }
+        if (body.geography.mode === 'city_radius' && (!body.geography.cities?.[0] || !body.geography.radiusKm)) {
+            return fail(c, 'geography.cities[0] + radiusKm required when mode=city_radius', 400)
+        }
+        if (!['professional_build', 'launch_now'].includes(body.launchPath as any)) {
+            return fail(c, 'launchPath required (professional_build|launch_now)', 400)
+        }
+        // launchPath is now auto-derived on the frontend from Google Ads API
+        // connection state. The acknowledgement tradeoff applied to the old
+        // hand-picked 'launch_now' path; the new flow already accounts for
+        // safety (campaigns created in PAUSED), so we accept implicit consent
+        // when the API is connected. Older payloads still get explicit ack.
+        if (body.launchPath === 'launch_now' && body.acknowledgedTradeoffs === false) {
+            return fail(c, 'launch_now requires acknowledgement', 400)
+        }
+        if (!body.trackingStack) return fail(c, 'trackingStack required', 400)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd: any = instance.researchData || {}
+        const existing: PaidProfile | null = rd.paidProfile || null
+        const now = new Date().toISOString()
+
+        // Auto-derive industry hint from research stage outputs when caller
+        // omits it. Mazhir audit reads full researchData independently, so
+        // this hint is supplementary — keep it conservative (only obvious
+        // business-description fields), never fall through to random
+        // markdown headers.
+        const industryFromResearch = (() => {
+            const ans = (rd as any).answers
+            if (ans && typeof ans.businessDesc === 'string' && ans.businessDesc.trim()) {
+                return ans.businessDesc.trim().slice(0, 200)
+            }
+            if (ans && typeof ans.businessName === 'string' && typeof ans.industry === 'string') {
+                return (ans.businessName + ' · ' + ans.industry).trim().slice(0, 200)
+            }
+            return undefined
+        })()
+
+        const conversionTypes = Array.isArray((body as any).conversionTypes)
+            ? ((body as any).conversionTypes as string[]).filter(t => ['form_submit', 'phone_call', 'whatsapp', 'online_purchase', 'store_visit', 'qualified_lead'].includes(t))
+            : undefined
+
+        const keyOffer = typeof (body as any).keyOffer === 'string' && (body as any).keyOffer.trim()
+            ? (body as any).keyOffer.trim().slice(0, 300) : undefined
+        const keyDifferentiators = Array.isArray((body as any).keyDifferentiators)
+            ? ((body as any).keyDifferentiators as unknown[]).filter((s): s is string => typeof s === 'string' && s.trim().length > 0).map(s => s.trim().slice(0, 300)).slice(0, 10)
+            : undefined
+        const historicalCpcIls = typeof (body as any).historicalCpcIls === 'number' && (body as any).historicalCpcIls > 0
+            ? (body as any).historicalCpcIls : undefined
+        const historicalConversionRatePct = typeof (body as any).historicalConversionRatePct === 'number'
+            && (body as any).historicalConversionRatePct > 0
+            && (body as any).historicalConversionRatePct <= 100
+            ? (body as any).historicalConversionRatePct : undefined
+        const historicalNotes = typeof (body as any).historicalNotes === 'string' && (body as any).historicalNotes.trim()
+            ? (body as any).historicalNotes.trim().slice(0, 1000) : undefined
+
+        const next: PaidProfile & { conversionTypes?: string[]; keyOffer?: string; keyDifferentiators?: string[]; historicalCpcIls?: number; historicalConversionRatePct?: number; historicalNotes?: string; historicalReports?: any } = {
+            // Preserve fields uploaded via separate endpoints (historicalReports
+            // come from /paid-profile/historical-reports). Without this spread,
+            // saving the profile after upload silently wipes the files.
+            ...(existing || {}),
+            monthlyBudgetIls: body.monthlyBudgetIls,
+            primaryGoal: body.primaryGoal,
+            geography: body.geography,
+            avgDealValueIls: typeof body.avgDealValueIls === 'number' && body.avgDealValueIls > 0 ? body.avgDealValueIls : 0,
+            avgLtvIls: typeof body.avgLtvIls === 'number' && body.avgLtvIls > 0 ? body.avgLtvIls : undefined,
+            decisionCycle: body.decisionCycle,
+            hasExistingAccount: !!body.hasExistingAccount,
+            trackingStack: {
+                ga4: !!body.trackingStack.ga4,
+                gtm: !!body.trackingStack.gtm,
+                callTracking: (['callrail', 'whatconverts', 'none', 'unknown'].includes(body.trackingStack.callTracking as any)
+                    ? body.trackingStack.callTracking : 'unknown') as PaidProfile['trackingStack']['callTracking'],
+                phoneCallsRelevant: !!body.trackingStack.phoneCallsRelevant,
+            },
+            launchPath: body.launchPath as PaidProfile['launchPath'],
+            acknowledgedTradeoffs: body.acknowledgedTradeoffs !== false,
+            industryHint: body.industryHint?.trim() || industryFromResearch,
+            conversionTypes,
+            keyOffer,
+            keyDifferentiators,
+            historicalCpcIls,
+            historicalConversionRatePct,
+            historicalNotes,
+            // historicalReports preserved from `existing` via spread above.
+            // Don't let body.historicalReports overwrite (the modal doesn't send them).
+            historicalReports: existing?.historicalReports || [],
+            completedAt: existing?.completedAt || now,
+            updatedAt: existing ? now : undefined,
+        }
+
+        await db.update(instances).set({
+            researchData: { ...rd, paidProfile: next } as any,
+        }).where(eq(instances.id, instanceId))
+
+        return ok(c, { paidProfile: next }, existing ? 'Paid profile updated' : 'Paid profile saved')
+    } catch (err) {
+        console.error('savePaidProfile error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/paid-profile/historical-reports ──────────
+// Upload up to 3 PDF/CSV/image historical Google Ads reports — stored on
+// the management server (not pushed to tenant VPS) and indexed inside
+// researchData.paidProfile.historicalReports as base64 chunks. Mazhir audit
+// reads these as additional context when API isn't connected.
+export const uploadHistoricalReports = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const form = await c.req.formData()
+        const allEntries = form.getAll('files')
+        const files: File[] = []
+        for (const e of allEntries) {
+            if (typeof File !== 'undefined' && e instanceof File) files.push(e)
+        }
+        if (files.length === 0) return fail(c, 'files field required (multipart)', 400)
+        if (files.length > 15) return fail(c, 'max 15 files per upload', 400)
+
+        const MAX_BYTES = 5 * 1024 * 1024     // 5 MB per file
+        const allowedTypes = ['application/pdf', 'text/csv', 'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'image/png', 'image/jpeg', 'image/webp']
+
+        const reports: Array<{ name: string; type: string; size: number; uploadedAt: string; base64: string }> = []
+        for (const file of files) {
+            if (file.size > MAX_BYTES) return fail(c, `${file.name}: too large (>${MAX_BYTES})`, 400)
+            if (!allowedTypes.includes(file.type)) return fail(c, `${file.name}: unsupported type ${file.type}`, 400)
+            const buf = Buffer.from(await file.arrayBuffer())
+            reports.push({
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                uploadedAt: new Date().toISOString(),
+                base64: buf.toString('base64'),
+            })
+        }
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const rd: any = instance?.researchData || {}
+        const pp: any = rd.paidProfile || {}
+        // Cap stored reports at 15 — keeps the latest uploads if user adds
+        // more (additive across multiple submits).
+        const next = { ...pp, historicalReports: [...(pp.historicalReports || []), ...reports].slice(-15) }
+        await db.update(instances)
+            .set({ researchData: { ...rd, paidProfile: next } as any })
+            .where(eq(instances.id, instanceId))
+
+        return ok(c, { uploaded: reports.length, total: next.historicalReports.length }, 'Historical reports uploaded')
+    } catch (err) {
+        console.error('uploadHistoricalReports error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/audit — run senior-PPC audit ──────
+export const runMazhirAuditController = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        // Lazy import — keeps cold-start light when paid features unused
+        const { runMazhirAudit } = await import('@/services/mazhirAudit')
+        const { audit, cost } = await runMazhirAudit(instanceId)
+        return ok(c, { audit, cost }, 'Audit complete')
+    } catch (err) {
+        console.error('runMazhirAudit error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+export const getMazhirAudit = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const rd: any = inst?.researchData || {}
+        return ok(c, { audit: rd.mazhirAudit || null, diff: rd.mazhirAuditDiff || null })
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── GET /hosting/instances/:id/mazhir/data-preflight — phase 5 ───────────
+// Plain-Hebrew checklist of what data we have vs missing, with "what we
+// lose without this" per item. Run BEFORE audit so user can connect more.
+export const getMazhirDataPreflight = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { runDataPreflight } = await import('@/services/mazhirDataPreflight')
+        const result = await runDataPreflight(instanceId)
+        return ok(c, result)
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/media-plan — generate plan ────────
+export const generateMazhirMediaPlan = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        // Pre-flight: refuse to generate media plan when audit-flagged hard
+        // blockers haven't been resolved AND user has full Google Ads API
+        // access (i.e. could actually push the plan via executor). Without
+        // full API access (no Customer ID / Developer Token), the media plan
+        // is exported as a manual setup document — blockers become notes
+        // INSIDE the document for the human to handle, not a hard gate.
+        // Override allowed via ?force=1.
+        const force = c.req.query('force') === '1'
+        if (!force) {
+            const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+            const rd: any = inst?.researchData || {}
+            const audit = rd.mazhirAudit
+            const blockers = Array.isArray(audit?.blockers) ? audit.blockers : []
+            const conversions = (rd.mazhirConversions?.created || []).length
+            const gtmPublished = !!(rd.mazhirGtm?.lastSetupResult?.published)
+            const googleAdsConfig: any = (inst as any)?.googleAdsConfig || {}
+            const hasFullAdsAPI = !!googleAdsConfig.customerId && !!googleAdsConfig.developerToken
+            // Gate only when user could hit "push" → has full API and would
+            // execute on broken tracking. Manual-setup-document users skip.
+            if (hasFullAdsAPI && blockers.length >= 2 && !gtmPublished && conversions === 0) {
+                return fail(
+                    c,
+                    'יש ' + blockers.length + ' חסמים פתוחים מהאודיט. הריצו mazhir_gtm_setup + mazhir_conversions קודם — או הוסיפו ?force=1 לעקיפה.',
+                    409,
+                )
+            }
+        }
+
+        const { generateMediaPlan } = await import('@/services/mazhirMediaPlan')
+        const result = await generateMediaPlan(instanceId)
+        return ok(c, result, 'Media plan generated')
+    } catch (err) {
+        console.error('generateMazhirMediaPlan error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+export const getMazhirMediaPlan = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const rd: any = inst?.researchData || {}
+        const plan = rd.mediaPlan || (rd.strategy && typeof rd.strategy === 'object' ? rd.strategy.mediaPlan : null) || null
+        return ok(c, { mediaPlan: plan })
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── GET /hosting/instances/:id/mazhir/media-plan/manual.html ─────────────
+// Degraded-mode manual setup HTML doc. Browser-printable to PDF.
+export const getMazhirMediaPlanManualHtml = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const rd: any = inst?.researchData || {}
+        const plan = rd.mediaPlan
+        if (!plan) return fail(c, 'No media plan available', 404)
+        let html = (plan as any).manualSetupHtml
+        if (!html) {
+            // generate on-the-fly if missing
+            const { exportPlanAsManualHtml } = await import('@/services/mazhirManualExporter')
+            const audit = rd.mazhirAudit
+            const pp = rd.paidProfile
+            if (!audit || !pp) return fail(c, 'Audit + paidProfile required', 400)
+            const [brand] = await db.select().from(brandBooks).where(eq(brandBooks.instanceId, instanceId))
+            const businessName = (brand as any)?.businessName || rd.answers?.businessName || 'Business'
+            html = exportPlanAsManualHtml({ plan, audit, paidProfile: pp, businessName })
+        }
+        c.header('Content-Type', 'text/html; charset=utf-8')
+        c.header('Content-Disposition', `inline; filename="mazhir-plan-${instanceId}.html"`)
+        return c.body(html)
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/media-plan/approve ────────────────
+// Marks the plan as approved. Executor (separate, future) reads only approved plans.
+export const approveMazhirMediaPlan = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const rd: any = inst?.researchData || {}
+        const plan = rd.mediaPlan || (rd.strategy && typeof rd.strategy === 'object' ? rd.strategy.mediaPlan : null)
+        if (!plan) return fail(c, 'No media plan to approve', 404)
+        if (plan.status === 'approved' || plan.status === 'live') return fail(c, 'Plan already approved/live', 400)
+
+        plan.status = 'approved'
+        plan.approvedAt = new Date().toISOString()
+        plan.approvedByUserId = userId
+
+        await db.update(instances).set({
+            researchData: { ...rd, mediaPlan: plan } as any,
+        }).where(eq(instances.id, instanceId))
+
+        return ok(c, { mediaPlan: plan }, 'Media plan approved')
+    } catch (err) {
+        console.error('approveMazhirMediaPlan error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/media-plan/revise ─────────────────
+// Client requests plan revision with a free-text note. Stores note + flips
+// status to 'awaiting_revision', then triggers a NEW plan generation that
+// includes the note in the Opus prompt so the model addresses it.
+export const reviseMazhirMediaPlan = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
+        const body = await c.req.json<{ note: string }>().catch(() => ({ note: '' }))
+        const note = String(body?.note || '').trim().slice(0, 2000)
+        if (!note || note.length < 10) return fail(c, 'Revision note required (min 10 chars)', 400)
+
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const rd: any = inst?.researchData || {}
+        const plan = rd.mediaPlan
+        if (!plan) return fail(c, 'No media plan to revise', 404)
+
+        // Stash revision history on the plan + flip status
+        const history = Array.isArray(plan.revisionHistory) ? plan.revisionHistory : []
+        history.push({
+            note,
+            requestedByUserId: userId,
+            requestedAt: new Date().toISOString(),
+            previousStatus: plan.status || 'pending_review',
+        })
+        plan.revisionHistory = history
+        plan.status = 'awaiting_revision'
+        plan.revisionNote = note
+
+        await db.update(instances).set({
+            researchData: { ...rd, mediaPlan: plan } as any,
+        }).where(eq(instances.id, instanceId))
+
+        // Re-generate plan asynchronously — Opus will see revisionNote in prompt
+        // and address client feedback explicitly. Don't await — let client
+        // poll status. Telegram notifies when ready.
+        ;(async () => {
+            try {
+                const { generateMediaPlan } = await import('@/services/mazhirMediaPlan')
+                await generateMediaPlan(instanceId)
+            } catch (err) {
+                console.error('[reviseMazhirMediaPlan] regen failed:', err)
+            }
+        })().catch(() => { /* fire-and-forget */ })
+
+        return ok(c, { status: 'awaiting_revision', note }, 'Revision queued — new plan generating')
+    } catch (err) {
+        console.error('reviseMazhirMediaPlan error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── GET /hosting/instances/:id/mazhir/gtm/targets ────────────────────────
+export const listMazhirGtmTargets = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!inst?.googleTokens) return fail(c, 'Google not connected — link OAuth first', 400)
+        const { listGtmTargets } = await import('@/services/mazhirGtmSetup')
+        const targets = await listGtmTargets(inst.googleTokens)
+        return ok(c, { targets })
+    } catch (err) {
+        console.error('listMazhirGtmTargets error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/gtm/target — pick container ──────
+export const saveMazhirGtmTarget = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const body = await c.req.json<any>()
+        if (!body.accountId || !body.containerId) return fail(c, 'accountId + containerId required', 400)
+        const { saveGtmTarget } = await import('@/services/mazhirGtmSetup')
+        await saveGtmTarget(instanceId, {
+            accountId: String(body.accountId),
+            containerId: String(body.containerId),
+            publicId: String(body.publicId || ''),
+            name: String(body.name || ''),
+            usageContext: Array.isArray(body.usageContext) ? body.usageContext : ['web'],
+            measurementId: body.measurementId,
+        })
+        return ok(c, {}, 'GTM target saved')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/conversions/setup ─────────────────
+// Auto-creates Google Ads conversion actions per primary action implied by paidProfile.
+export const setupMazhirConversions = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { setupConversionActionsForInstance } = await import('@/services/mazhirConversions')
+        const r = await setupConversionActionsForInstance(instanceId)
+        return ok(c, r, `Created ${r.created.length} conversion actions`)
+    } catch (err) {
+        console.error('setupMazhirConversions error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/gtm/auto-setup ────────────────────
+// Provisions Conversion Linker + GCLID capture + awct/gaawe tags + triggers,
+// then publishes the workspace. Reads conversionActions from researchData.mazhirConversions
+// to wire up correct (conversionId, conversionLabel) per tag.
+export const autoSetupMazhirGtm = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!inst?.googleTokens) return fail(c, 'Google not connected', 400)
+        const rd: any = inst.researchData || {}
+        const target = rd.mazhirGtm?.target
+        if (!target) return fail(c, 'GTM target not picked — call /mazhir/gtm/target first', 400)
+        const conversions = rd.mazhirConversions?.created || []
+        const profile = rd.paidProfile
+
+        // Build GtmConversionConfig list from saved Google Ads conversion actions
+        const { autoSetupGtmContainer, saveGtmSetupResult } = await import('@/services/mazhirGtmSetup')
+        const gtmConfigs = conversions
+            .filter((cv: any) => cv.googleAdsConversionId && cv.googleAdsConversionLabel)
+            .filter((cv: any) => cv.actionKey !== 'qualified_lead' && cv.actionKey !== 'phone_call_offline')
+            .map((cv: any) => ({
+                actionKey: cv.actionKey === 'form_submit' ? 'generate_lead' : cv.actionKey,
+                googleAdsConversionId: cv.googleAdsConversionId,
+                googleAdsConversionLabel: cv.googleAdsConversionLabel,
+                sendValue: true,
+                defaultValueIls: profile?.avgDealValueIls || 100,
+                defaultCurrency: 'ILS',
+            }))
+
+        if (gtmConfigs.length === 0) return fail(c, 'No GTM-eligible conversion actions found — run /mazhir/conversions/setup first', 400)
+
+        const result = await autoSetupGtmContainer(inst.googleTokens, {
+            target,
+            measurementId: target.measurementId,
+            conversions: gtmConfigs,
+            enhancedConversions: true,
+        })
+        await saveGtmSetupResult(instanceId, result)
+        return ok(c, result, result.published ? 'GTM workspace published' : 'GTM workspace partially configured')
+    } catch (err) {
+        console.error('autoSetupMazhirGtm error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── GET /hosting/instances/:id/mazhir/preflight ──────────────────────────
+export const getMazhirPreflight = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { runPreflight } = await import('@/services/mazhirPreflight')
+        const result = await runPreflight(instanceId)
+        return ok(c, result)
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/execute ───────────────────────────
+export const executeMazhirPlan = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const body = await c.req.json<{ dryRun?: boolean }>().catch(() => ({}))
+        const { executeMediaPlan } = await import('@/services/mazhirExecutor')
+        const result = await executeMediaPlan(instanceId, { dryRun: !!body.dryRun })
+        return ok(c, result, result.overallStatus)
+    } catch (err) {
+        console.error('executeMazhirPlan error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── GET /hosting/instances/:id/mazhir/wp-snippet ─────────────────────────
+// Returns WordPress-ready instructions + the dataLayer push snippet for the
+// user to paste into Gravity Forms / WPForms / Contact Form 7.
+export const getMazhirWpSnippet = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const rd: any = inst?.researchData || {}
+        const profile = rd.paidProfile
+        const target = rd.mazhirGtm?.target
+        const measurementId = target?.measurementId || ''
+        const gtmId = target?.publicId || 'GTM-XXXXXXX'
+        const avgValue = profile?.avgDealValueIls || 100
+
+        const formSubmitSnippet = `<!-- Mazhir — DataLayer push on form submit -->
+<script>
+document.addEventListener('submit', function(e) {
+  var f = e.target;
+  if (!f || f.tagName !== 'FORM') return;
+  // Collect form fields into an object (best-effort, hashed server-side)
+  var data = new FormData(f);
+  var email = data.get('email') || data.get('your-email') || data.get('input_2') || '';
+  var phone = data.get('phone') || data.get('your-phone') || data.get('input_3') || '';
+  var gclid = data.get('gclid') || (function() {
+    try { var c = JSON.parse(localStorage.getItem('_gcl_aw_capture')||'null'); return c ? c.v : ''; } catch(_){ return ''; }
+  })();
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'generate_lead',
+    lead_value: ${avgValue},
+    transaction_id: 'lead-' + Date.now() + '-' + Math.random().toString(36).slice(2,8),
+    user: { email: email, phone: phone },
+    gclid: gclid
+  });
+}, true);
+</script>`
+
+        const phoneClickSnippet = `<!-- Mazhir — DataLayer push on phone link click -->
+<script>
+document.addEventListener('click', function(e) {
+  var a = e.target.closest && e.target.closest('a[href^="tel:"]');
+  if (!a) return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'phone_call',
+    lead_value: ${avgValue},
+    phone_clicked: a.getAttribute('href').replace('tel:',''),
+    transaction_id: 'call-' + Date.now() + '-' + Math.random().toString(36).slice(2,8)
+  });
+});
+</script>`
+
+        const gtmHead = `<!-- Mazhir — Google Tag Manager (paste in <head>) -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${gtmId}');</script>`
+
+        const gtmBody = `<!-- Mazhir — Google Tag Manager noscript (paste right after <body>) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${gtmId}"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>`
+
+        const formFieldGuide = {
+            gravityForms: 'Add field type "Hidden", admin label gclid, name gclid. Under Advanced → Default Value: {get:gclid}. Tick "Allow field to be populated dynamically".',
+            wpforms: 'Add "Hidden Field", set Name=gclid, Default Value=blank. The capture script auto-fills it.',
+            contactForm7: 'Add `[hidden gclid id:gclid]` to your form template. Capture script populates it on render.',
+        }
+
+        return ok(c, {
+            measurementId,
+            gtmId,
+            snippets: {
+                gtmHead,
+                gtmBody,
+                formSubmit: formSubmitSnippet,
+                phoneClick: phoneClickSnippet,
+            },
+            formFieldGuide,
+            instructions: {
+                step1: '1. Paste GTM `<head>` snippet into your WordPress theme `<head>` (or Insert Headers and Footers plugin)',
+                step2: '2. Paste GTM noscript snippet right after the opening `<body>` tag',
+                step3: '3. Paste FormSubmit snippet in the same `<head>` location (after GTM head)',
+                step4: '4. If phone calls relevant: paste PhoneClick snippet too',
+                step5: '5. Add hidden "gclid" field to all your forms (see formFieldGuide for your form plugin)',
+                step6: '6. Test: open Chrome DevTools → Application → Local Storage → check for `_gcl_aw_capture` after visiting with `?gclid=test123`',
+                step7: '7. Mazhir takes care of the rest — Conversion Linker, conversion tags, GA4 events all live in GTM and get auto-published',
+            },
+        })
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/content-plan/items/:itemId/archive ───────
+// Soft-archive a plan item: sets status to 'archived' + stamps archivedAt.
+// The calendar hides archived items by default; the user can restore by
+// filtering on 'archived' (future extension). Used after a post is published
+// and the user wants it out of the active board.
+export const archiveContentPlanItem = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const itemId = c.req.param('itemId')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd = (instance.researchData as any) || {}
+        const plan: ContentPlanItem[] = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
+        const idx = plan.findIndex(p => p.id === itemId)
+        if (idx < 0) return fail(c, 'Content plan item not found', 404)
+
+        plan[idx] = {
+            ...plan[idx],
+            status: 'archived',
+            archivedAt: new Date().toISOString(),
+        }
+
+        await db.update(instances).set({
+            researchData: { ...rd, contentPlan: plan } as any,
+        }).where(eq(instances.id, instanceId))
+
+        return ok(c, { item: plan[idx] }, 'Archived')
+    } catch (err) {
+        console.error('archiveContentPlanItem error:', err)
         return fail(c, (err as Error).message, 500)
     }
 }

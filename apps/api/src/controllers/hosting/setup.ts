@@ -125,17 +125,34 @@ export const setupApiKey = async (c: Context) => {
             return fail(c, 'Invalid API key format.', 400)
         }
 
-        // Set API key as environment variable in OpenClaw systemd service
+        // Set API key in THREE places so both the systemd gateway AND CLI
+        // invocations (`su - openclaw -c 'openclaw agent ...'` from research
+        // pipelines) can read it:
+        //   1. systemd service Environment= → reloaded gateway picks it up
+        //   2. /home/openclaw/.profile + .bash_profile → login-shell `su -` exports it
+        //   3. /home/openclaw/.openclaw/.env → backup for any CLI that loads dotenv
+        // Without (2) and (3), agent CLI invocations would hang on missing
+        // credentials and fail with `gateway connect failed` after a 540s
+        // timeout (research stages 1-3 use this path).
         const envVar = provider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY'
         const SVC = '/etc/systemd/system/openclaw-gateway.service'
-
-        // Use base64 to safely pass the key through shell
         const keyB64 = Buffer.from(apiKey).toString('base64')
         await sshExec(instance.ip, `
             KEY=$(echo '${keyB64}' | base64 -d) && \
-            grep -q ${envVar} ${SVC} && \
+            (grep -q ${envVar} ${SVC} && \
                 sed -i "s|Environment=${envVar}=.*|Environment=${envVar}=$KEY|" ${SVC} || \
-                sed -i "/Environment=NODE_ENV=production/a\\Environment=${envVar}=$KEY" ${SVC} && \
+                sed -i "/Environment=NODE_ENV=production/a\\Environment=${envVar}=$KEY" ${SVC}) && \
+            mkdir -p /home/openclaw/.openclaw && \
+            (grep -q "^${envVar}=" /home/openclaw/.openclaw/.env 2>/dev/null && \
+                sed -i "s|^${envVar}=.*|${envVar}=$KEY|" /home/openclaw/.openclaw/.env || \
+                echo "${envVar}=$KEY" >> /home/openclaw/.openclaw/.env) && \
+            (grep -q "^export ${envVar}=" /home/openclaw/.profile 2>/dev/null && \
+                sed -i "s|^export ${envVar}=.*|export ${envVar}=$KEY|" /home/openclaw/.profile || \
+                echo "export ${envVar}=$KEY" >> /home/openclaw/.profile) && \
+            (grep -q "^export ${envVar}=" /home/openclaw/.bash_profile 2>/dev/null && \
+                sed -i "s|^export ${envVar}=.*|export ${envVar}=$KEY|" /home/openclaw/.bash_profile || \
+                echo "export ${envVar}=$KEY" >> /home/openclaw/.bash_profile) && \
+            chown openclaw:openclaw /home/openclaw/.profile /home/openclaw/.bash_profile /home/openclaw/.openclaw/.env && \
             systemctl daemon-reload && \
             systemctl restart openclaw-gateway
         `, instance.rootPassword || undefined)
@@ -174,6 +191,98 @@ export const setupApiKey = async (c: Context) => {
     } catch (err) {
         console.error('setupApiKey error:', err)
         return fail(c, 'Failed to configure API key.', 500)
+    }
+}
+
+// POST /hosting/instances/:id/google-ads-mode
+// Body: { mode: 'self' | 'haas' }
+// Records the customer's choice between self-managed Google Ads (their own
+// Manager Account + Developer Token) and HaaS managed-service tier
+// (Flowmatic MCC link + our PPC team operates on their behalf).
+//
+// Why both paths exist:
+//  - SELF: clean SaaS / "tool" model. Customer owns Developer Token. We never
+//    link their account to our MCC. Maximum independence, no agency
+//    obligations on our side.
+//  - HAAS: paid managed tier. Customer subscribes to a HaaS plan, signs DPA at
+//    checkout, then accepts an MCC invitation. We operate via our own
+//    Developer Token + per-account permissions for the assigned PPC analyst.
+export const setGoogleAdsMode = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        const instance = await getOwnedInstance(instanceId, userId)
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const raw = await c.req.json<{ mode?: string }>()
+        const body = raw as { mode?: string }
+        const mode = body.mode
+        if (mode !== 'self' && mode !== 'haas') {
+            return fail(c, 'mode must be "self" or "haas"', 400)
+        }
+
+        await db.update(instances)
+            .set({ googleAdsMode: mode })
+            .where(eq(instances.id, instanceId))
+
+        return ok(c, { mode }, 'Google Ads mode saved')
+    } catch (err) {
+        console.error('setGoogleAdsMode error:', err)
+        return fail(c, 'Failed to save Google Ads mode.', 500)
+    }
+}
+
+// POST /hosting/instances/:id/google-ads-haas/request-invite
+// Body: { customerId: string (10 digits) }
+// Customer (HaaS-tier) submits their Customer ID; backend records the request
+// + alerts Flowmatic ops via Telegram so the team can send the actual Google
+// Ads MCC invitation manually. v2 will wire this to the Google Ads MCC API
+// (CustomerClientLinkService) for fully-automated invitation sending.
+export const requestHaasMccInvite = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        const instance = await getOwnedInstance(instanceId, userId)
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const raw = await c.req.json<{ customerId?: string }>()
+        const body = raw as { customerId?: string }
+        const customerId = (body.customerId || '').replace(/\D/g, '')
+        if (!/^\d{10}$/.test(customerId)) {
+            return fail(c, 'customerId must be 10 digits', 400)
+        }
+
+        // Persist request to googleAdsConfig (so we can reconcile later).
+        const existing = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
+        await db.update(instances)
+            .set({
+                googleAdsMode: 'haas',
+                googleAdsConfig: {
+                    ...existing,
+                    customerId,
+                    haasInviteRequestedAt: new Date().toISOString(),
+                    haasInviteStatus: 'pending',
+                } as never,
+            })
+            .where(eq(instances.id, instanceId))
+
+        // Alert ops on Telegram. Failure is non-blocking — request is already
+        // persisted, ops can pick up via dashboard/admin view.
+        try {
+            const telegram = (await import('@/services/telegram')).default
+            await telegram.alertAdmin(
+                `🤝 *HaaS MCC invite request*\n` +
+                `Instance: \`${instanceId}\`\n` +
+                `Customer ID: \`${customerId}\`\n` +
+                `Tenant subdomain: ${instance.subdomainAgent || '(unknown)'}\n\n` +
+                `Action: send Google Ads invitation from Flowmatic MCC to this Customer ID.`
+            )
+        } catch { /* non-blocking */ }
+
+        return ok(c, { customerId, status: 'pending' }, 'Invitation request submitted')
+    } catch (err) {
+        console.error('requestHaasMccInvite error:', err)
+        return fail(c, 'Failed to submit invitation request.', 500)
     }
 }
 

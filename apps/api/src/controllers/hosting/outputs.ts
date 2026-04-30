@@ -231,6 +231,26 @@ export const approveOutput = async (c: Context<HonoEnv>) => {
 async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
     const meta = output.metadata as Record<string, unknown> | null
 
+    // Bid Transition Proposal approved → flip the campaign's bidding strategy
+    if (output.outputType === 'bid_transition_proposal') {
+        console.log(`Bid transition approved: ${output.id} → applying`)
+        const { applyBidTransition } = await import('@/services/bidTransitionRunner')
+        const r = await applyBidTransition(output.id)
+        if (r.ok) {
+            await db.update(agentOutputs).set({
+                metadata: { ...(meta || {}), liveApiStatus: 'applied', appliedAt: new Date().toISOString() } as any,
+                updatedAt: new Date(),
+            }).where(eq(agentOutputs.id, output.id))
+        } else {
+            console.error(`Bid transition apply failed: ${r.reason}`)
+            await db.update(agentOutputs).set({
+                metadata: { ...(meta || {}), liveApiStatus: 'failed', failureReason: r.reason } as any,
+                updatedAt: new Date(),
+            }).where(eq(agentOutputs.id, output.id))
+        }
+        return
+    }
+
     // Meta Ads draft approved → execute via live API
     if (output.outputType && output.outputType.startsWith('mads_') && output.outputType.endsWith('_draft')) {
         console.log(`Meta Ads draft approved: ${output.outputType} (id ${output.id})`)

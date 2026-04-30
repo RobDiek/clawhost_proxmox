@@ -39,11 +39,19 @@ export async function runWeeklyOpsBriefs(): Promise<{
             status: instances.status,
         }).from(instances).where(isNotNull(instances.researchData))
 
+        const { isPipelineEnabled } = await import('./pipelineActivation')
         for (const row of rows) {
             if (row.status !== 'running') continue
             const rd = (row.researchData as any) || {}
             if (!rd.chosenScenario) continue
             stats.eligible++
+            // Gate: ops brief is content-driven; skip tenants where
+            // content_calendar pipeline is disabled (e.g. paid-only clients).
+            const enabled = await isPipelineEnabled(row.id, 'content_calendar')
+            if (!enabled) {
+                stats.skipped++
+                continue
+            }
             try {
                 const r = await runOpsBriefForInstance(row.id)
                 if (r.ok) stats.generated++

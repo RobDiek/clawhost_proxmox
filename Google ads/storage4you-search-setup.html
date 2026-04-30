@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Storage4You — Google Ads Search Setup (Manual Mode)</title>
+<style>
+  body { font-family: 'Arial Hebrew', Arial, sans-serif; margin: 24px; color: #1F2937; line-height: 1.7; max-width: 1100px; }
+  h1 { color: #1E40AF; border-bottom: 3px solid #2563EB; padding-bottom: 8px; }
+  h2 { color: #1F2937; margin-top: 32px; padding-top: 14px; border-top: 1px solid #E5E7EB; font-size: 1.25rem; }
+  h3 { color: #0F766E; margin-top: 20px; }
+  h4 { color: #6B7280; margin-top: 14px; font-size: 0.94rem; }
+  .meta { background: #F9FAFB; padding: 14px 16px; border-radius: 8px; }
+  .meta strong { color: #1F2937; }
+  .hint { color: #6B7280; font-size: 0.86rem; }
+  .warn { background: #FFFBEB; padding: 10px 14px; border-right: 4px solid #F59E0B; margin: 10px 0; border-radius: 4px; }
+  .blocker { background: #FEF2F2; padding: 10px 14px; border-right: 4px solid #DC2626; margin: 10px 0; border-radius: 4px; }
+  .ok { background: #ECFDF5; padding: 10px 14px; border-right: 4px solid #10B981; margin: 10px 0; border-radius: 4px; }
+  .info { background: #EFF6FF; padding: 10px 14px; border-right: 4px solid #2563EB; margin: 10px 0; border-radius: 4px; }
+  .negatives { background: #FEF2F2; padding: 10px 14px; border-radius: 6px; font-family: monospace; font-size: 0.84rem; line-height: 1.8; }
+  .ad-group { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
+  .theme { color: #6B7280; font-style: italic; font-size: 0.88rem; margin-bottom: 6px; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  th, td { border: 1px solid #E5E7EB; padding: 8px 12px; text-align: right; font-size: 0.86rem; }
+  th { background: #F3F4F6; font-weight: 600; }
+  ul { padding-right: 22px; }
+  ul.cols { columns: 2; }
+  ul.cols-3 { columns: 3; }
+  ol { padding-right: 22px; }
+  ol li { margin-bottom: 6px; }
+  code { background: #F3F4F6; padding: 2px 7px; border-radius: 4px; font-size: 0.86rem; direction: ltr; display: inline-block; }
+  .chip { display: inline-block; background: #ECFDF5; color: #065F46; padding: 4px 10px; border-radius: 999px; font-size: 0.78rem; margin: 4px 2px; }
+  .step-num { display: inline-block; width: 28px; height: 28px; background: #2563EB; color: #fff; border-radius: 50%; text-align: center; line-height: 28px; font-weight: 700; margin-left: 8px; }
+  .lp-card { background: #fff; border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+  .lp-create { border-right: 4px solid #DC2626; }
+  .lp-exists { border-right: 4px solid #10B981; }
+  .escalation { background: #FFFBEB; border: 1px solid #FCD34D; border-radius: 8px; padding: 14px 16px; margin-top: 18px; }
+  .transition { background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 8px; padding: 14px 16px; margin-top: 18px; }
+  .blockers-list { background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 8px; padding: 14px 16px; margin-top: 18px; }
+  .blockers-list li { margin-bottom: 8px; }
+  .toc { background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 14px 18px; }
+  .toc ol { padding-right: 24px; }
+  .toc a { color: #15803D; text-decoration: none; font-weight: 500; }
+  .toc a:hover { text-decoration: underline; }
+  .formula { background: #FEF7ED; border: 1px solid #FED7AA; padding: 8px 12px; border-radius: 6px; direction: ltr; font-family: monospace; font-size: 0.86rem; display: inline-block; }
+  @media print { body { margin: 0; padding: 16px; } h2 { page-break-before: auto; } .ad-group { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<h1>תוכנית מדיה ידנית — Storage4You · Google Ads Search</h1>
+
+<div class="meta">
+  <p>
+    <strong>עסק:</strong> Storage4You (storage4you.co.il) · ראשון לציון<br>
+    <strong>מתודולוגיה:</strong> STAG (Single Theme Ad Group) — מתאים ללידג'ן SMB עם תקציב ₪3,000/חודש<br>
+    <strong>תקציב חודשי:</strong> ₪3,000 · <strong>תקציב יומי כולל:</strong> ₪97 (Search ₪82 + Display Remarketing ₪15)<br>
+    <strong>זמן השקה:</strong> 7-14 ימים (אחרי השלמת blockers — Enhanced Conversions + Consent Mode v2)<br>
+    <strong>מטרה ראשית:</strong> leadgen — לחיצות WhatsApp + form_submit<br>
+    <strong>גיאוגרפיה ראשית:</strong> ראשון לציון רדיוס 5 ק"מ + הרחבה מומלצת לפי GA4 (תל אביב 191 המרות, פתח תקווה 44, נתניה 16)<br>
+    <strong>מצב חיבור:</strong> Degraded (אין Developer Token של Google Ads — הקמה ידנית דרך Google Ads UI)
+  </p>
+</div>
+
+<div class="info">
+  <strong>📊 בסיס המספרים:</strong> מבוסס על נתוני GA4 אמיתיים — 120 המרות ב-365 ימים (118 לחיצות WhatsApp + 2 form submit), 1,715 sessions, מתוך תקציב היסטורי ₪29,464 ב-1,305 קליקים → CPC ₪22.58, conversion rate ~7% (אורגני). <strong>לתנועה ממומנת קרה</strong> תכננו על 3-4% conv rate (חצי מאורגני, סטנדרט תעשייתי).
+</div>
+
+<div class="toc">
+  <h3 style="margin-top:0">📑 תוכן עניינים</h3>
+  <ol>
+    <li><a href="#blockers">חוסמים חובה לפני השקה</a></li>
+    <li><a href="#whatsapp">הגדרת WhatsApp Click כ-Primary Conversion</a></li>
+    <li><a href="#step-account">פתיחת חשבון Google Ads + הגדרות בסיס</a></li>
+    <li><a href="#step-gtm">התקנת GTM tags (Conversion Linker, awct, gaawe, Enhanced Conv, Consent Mode v2)</a></li>
+    <li><a href="#step-conversion">יצירת Conversion Actions ב-Google Ads</a></li>
+    <li><a href="#step-campaign">יצירת קמפיין Search STAG</a></li>
+    <li><a href="#ad-groups">5 קבוצות מודעות — מילות מפתח, RSA, sitelinks, callouts</a></li>
+    <li><a href="#negatives">רשימת מילים שליליות</a></li>
+    <li><a href="#geo">גיאוגרפיה + bid adjustments</a></li>
+    <li><a href="#schedule">לוח זמנים (IL Sunday workday, Saturday pause)</a></li>
+    <li><a href="#display">קמפיין Display Remarketing</a></li>
+    <li><a href="#launch">רצף ההשקה (PAUSED → ENABLED)</a></li>
+    <li><a href="#transition">מעבר אסטרטגיה אחרי 30 המרות (tCPA)</a></li>
+    <li><a href="#seasonality">העלאת תקציב לעונות שיא (יולי-אוגוסט)</a></li>
+    <li><a href="#lp">המלצות לעמודי נחיתה ייעודיים (5)</a></li>
+    <li><a href="#math">סיכום חישובים</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="blockers">🚫 חוסמים חובה לפני השקת קמפיין</h2>
+<div class="blockers-list">
+  <ol>
+    <li><strong>Enhanced Conversions for Web — לא מופעל.</strong> דרישת חובה ב-2026; משפיע על דיוק Smart Bidding ב-10%-60%. אסור להשיק בלי זה.</li>
+    <li><strong>Consent Mode v2 — לא מותקן.</strong> דרישה רגולטורית באירופה ובישראל. ללא זה Google עלולה לחסום נתוני המרות בלקוחות שלא נתנו הסכמה.</li>
+    <li><strong>פיקסל המרות נייטיב של Google Ads — חסר.</strong> בקמפיין הקודם (₪29,464 הוצאה) לא היה פיקסל פעיל. כל "0 המרות" שדווחו ב-CSV היו תקלת תשתית מעקב — לא תקלת קמפיין. GA4 מדד 120 המרות באותה תקופה.</li>
+    <li><strong>קישור אירוע WhatsApp Click כ-Conversion Action ב-Google Ads.</strong> 98% מהמרות היסטוריות הן לחיצות WhatsApp — אם לא נמדדות, Smart Bidding מתאמן על מדגם חסר.</li>
+  </ol>
+  <p>כל ה-blockers האלה מטופלים בשלבים <strong>4-5</strong> למטה. אסור להעביר את הקמפיין מ-PAUSED ל-ENABLED לפני שכולם פעילים.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="whatsapp">💬 הגדרת WhatsApp Click כ-Primary Conversion</h2>
+<p>זהו הצעד הקריטי ביותר — בלעדיו כל המתמטיקה של ה-CPA לא תעבוד.</p>
+
+<h4>📋 6 צעדים מסודרים:</h4>
+<ol>
+  <li>בדקו ב-GA4 שהאירוע <code>click_on_whatsapp</code> כבר נורה (Reports → Engagement → Events). אם כן — עברו לצעד 2.</li>
+  <li>ב-GTM (סטוראג'4יו): צרו תג חדש מסוג <strong>Google Tag (Tag Configuration → Google Ads Conversion Tracking)</strong>, שם: <code>awct - whatsapp_click</code>, יורה על Custom Event matching <code>click_on_whatsapp</code>.</li>
+  <li>ב-Google Ads (אחרי שלב 5): Tools &amp; Settings → Conversions → New Conversion Action → Website → Set up manually:
+    <ul>
+      <li>Category: <strong>Lead → Submit lead form</strong></li>
+      <li>Name: <code>WhatsApp Click</code></li>
+      <li>Value: <strong>Use the same value for each conversion = ₪750</strong> (avg deal value, אושר על ידי הלקוח)</li>
+      <li>Count: <strong>One per click</strong> (whatsapp click מצדיק ספירה אחת — לא כל ביקור חוזר באותה הסרטון)</li>
+      <li>Click-through conversion window: <strong>30 days</strong> (חוזה אחסון ארוך)</li>
+      <li>Attribution model: <strong>Data-driven</strong> אם זמין, אחרת <strong>Last-click</strong></li>
+      <li><strong>Primary conversion goal — מסומן ✓</strong></li>
+    </ul>
+  </li>
+  <li>קבלו את ה-<code>Conversion ID</code> ו-<code>Conversion Label</code> מ-Google Ads → חזרו ל-GTM → טענו לתג שיצרתם בצעד 2.</li>
+  <li><strong>Enhanced Conversions:</strong> ב-Google Ads תחת אותו Conversion Action → Settings → Enhanced Conversions: ON → Code = <strong>Google Tag</strong>, ה-form fields (email, phone) יישלחו hashed אוטומטית. חובה לפני השקה.</li>
+  <li><strong>Consent Mode v2:</strong> ב-GTM → Variables → Built-in: הפעילו את כל ה-<code>Consent State</code> variables. הוסיפו תג <strong>Consent Initialization — All Pages</strong> שמגדיר default consent = denied, ומעדכן ל-granted אחרי שהמשתמש מאשר ב-CMP (אם יש על האתר). אם אין CMP — Google Ads עדיין יעבוד אבל באיכות נתונים נמוכה.</li>
+</ol>
+
+<div class="warn">
+  <strong>אימות לפני השקה:</strong> Tag Assistant Live → לחצו על כפתור WhatsApp באתר → ודאו שמופיע "Conversion Hit Sent" ב-Google Ads תוך 5 שניות, וב-Google Ads → Conversions → סטטוס ה-Action חייב להיות <strong>Recording conversions</strong> (לא "No recent conversions"). אם הסטטוס אדום — אל תשיקו!
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="step-account"><span class="step-num">1</span> פתיחת חשבון Google Ads + הגדרות בסיס</h2>
+<ol>
+  <li>ב-<code>ads.google.com</code> → Sign in → Create a new Google Ads account.</li>
+  <li>Skip "Smart Mode" — ב-bottom click "Switch to Expert Mode".</li>
+  <li>Choose campaign goal: <strong>Skip campaign creation now</strong> (we'll build manually after setup).</li>
+  <li>Billing setup:
+    <ul>
+      <li>Country: <strong>Israel</strong></li>
+      <li>Currency: <strong>ILS (₪)</strong></li>
+      <li>Time zone: <strong>(GMT+02:00) Jerusalem</strong></li>
+      <li>Add credit card / Israeli debit card for billing.</li>
+      <li>הגדירו billing threshold התחלתי <strong>₪500</strong> (Google Ads תאסוף עד ₪500 לפני חיוב).</li>
+    </ul>
+  </li>
+  <li>Account settings (Tools &amp; Settings → Setup → Account access):
+    <ul>
+      <li>הוסיפו את עצמכם כ-<strong>Admin</strong>.</li>
+      <li>הוסיפו את <code>isratars@gmail.com</code> (FlowMatic management) כ-<strong>Standard</strong> אם רוצים תמיכה — לא חובה.</li>
+    </ul>
+  </li>
+  <li>Linked accounts (Tools &amp; Settings → Setup → Linked accounts):
+    <ul>
+      <li>קשרו את <strong>Google Analytics 4 property</strong> (storage4you web, <code>properties/493627118</code>).</li>
+      <li>קשרו את <strong>Search Console</strong> (<code>sc-domain:storage4you.co.il</code>) — נחוץ ל-organic search insights בעתיד.</li>
+      <li>קשרו את <strong>Google My Business</strong> (אם קיים) לקבלת location extensions אוטומטית.</li>
+    </ul>
+  </li>
+</ol>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="step-gtm"><span class="step-num">2</span> התקנת GTM Tags (Conversion Linker, awct, gaawe, Enhanced Conv, Consent Mode v2)</h2>
+
+<p>הצעדים הבאים נעשים ב-GTM <code>storage4you.co.il</code> container <code>GTM-N6PQVSJW</code>:</p>
+
+<h4>2.1 — Conversion Linker (חובה — קשור לכל פיקסל)</h4>
+<ol>
+  <li>Tags → New → Tag Configuration → <strong>Conversion Linker</strong>.</li>
+  <li>Triggering: <strong>All Pages</strong>.</li>
+  <li>Save → Submit → Publish.</li>
+</ol>
+
+<h4>2.2 — GCLID Capture (לשמירת Click ID לטופס)</h4>
+<ol>
+  <li>Variables → New → Custom JavaScript:
+    <pre><code>function() {
+  var u = new URLSearchParams(location.search);
+  var g = u.get('gclid');
+  if (g) localStorage.setItem('gclid', g);
+  return localStorage.getItem('gclid') || '';
+}</code></pre>
+  </li>
+  <li>Name: <code>cv - GCLID</code>. Save.</li>
+  <li>בטופס באתר — שדה hidden <code>gclid</code> מתמלא מהמשתנה לפני submit.</li>
+</ol>
+
+<h4>2.3 — Google Tag (gtag config) — אם עוד לא קיים</h4>
+<ol>
+  <li>Tags → New → Google Tag → Tag ID: <code>AW-XXXXXXXXX</code> (מ-Google Ads → Account → Account Settings).</li>
+  <li>Triggering: All Pages.</li>
+</ol>
+
+<h4>2.4 — Conversion Tracking — WhatsApp Click</h4>
+<ol>
+  <li>Tags → New → Google Ads Conversion Tracking:
+    <ul>
+      <li>Conversion ID: <code>(מ-Google Ads → Conversions → WhatsApp Click → Tag setup → Use Google Tag Manager → Conversion ID)</code></li>
+      <li>Conversion Label: <code>(מאותו מקום)</code></li>
+      <li>Conversion Value: <code>750</code></li>
+      <li>Currency Code: <code>ILS</code></li>
+      <li>Enhanced Conversions: <strong>Enabled</strong> → Manual configuration → User-Provided Data Variables: <code>email</code> (אם הטופס מספק), <code>phone</code></li>
+    </ul>
+  </li>
+  <li>Triggering: Custom Event = <code>click_on_whatsapp</code></li>
+  <li>Name: <code>awct - WhatsApp Click</code></li>
+</ol>
+
+<h4>2.5 — Conversion Tracking — Form Submit</h4>
+<p>Same as 2.4 but Trigger = Form Submission, Conversion Value = ₪750, Conversion Label of <code>Form Submit</code> action.</p>
+
+<h4>2.6 — GA4 Event Tags (gaawe)</h4>
+<ol>
+  <li>Tags → New → Google Analytics: GA4 Event:
+    <ul>
+      <li>Configuration Tag: בחרו את ה-Google Tag מ-2.3</li>
+      <li>Event Name: <code>click_on_whatsapp</code></li>
+      <li>Event Parameters: <code>page_location, page_title</code></li>
+      <li>User-Provided Data: Enabled → email + phone (לאיחוד עם Enhanced Conversions)</li>
+    </ul>
+  </li>
+  <li>Triggering: Custom Event = <code>click_on_whatsapp</code></li>
+</ol>
+
+<h4>2.7 — Consent Mode v2</h4>
+<ol>
+  <li>Tags → New → Consent Initialization — All Pages:
+    <pre><code>Default state:
+  ad_storage = denied
+  ad_user_data = denied
+  ad_personalization = denied
+  analytics_storage = denied
+  functionality_storage = granted
+  security_storage = granted</code></pre>
+  </li>
+  <li>אם יש CMP (Cookiebot/OneTrust/etc): הוסיפו טריגר update consent כשהמשתמש מאשר.</li>
+  <li>אם אין CMP: השאירו default = denied — Google Ads תקבל פחות נתונים אבל יעבוד.</li>
+</ol>
+
+<h4>2.8 — Publish workspace</h4>
+<p>Submit → Publish → version name "Mazhir initial conversion setup". Tag Assistant Live לאימות.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="step-conversion"><span class="step-num">3</span> יצירת Conversion Actions ב-Google Ads</h2>
+<p>פירטנו ב-WhatsApp section למעלה. צרו 2 actions:</p>
+
+<table>
+  <thead><tr><th>Conversion Action</th><th>Category</th><th>Value</th><th>Count</th><th>Window</th><th>Primary?</th></tr></thead>
+  <tbody>
+    <tr><td>WhatsApp Click</td><td>Lead → Submit lead form</td><td>₪750</td><td>One per click</td><td>30d</td><td><strong>YES</strong></td></tr>
+    <tr><td>Form Submit</td><td>Lead → Submit lead form</td><td>₪750</td><td>One per click</td><td>30d</td><td>Secondary</td></tr>
+  </tbody>
+</table>
+
+<div class="info">
+  <strong>למה ₪750?</strong> avgDealValueIls אושר על ידי הלקוח. חישוב: 5 קוב ממוצע × 6 חודשים שהות × ₪29.9 = ₪897 → conservative ₪750 ל-ROAS calculations.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="step-campaign"><span class="step-num">4</span> יצירת קמפיין Search STAG</h2>
+
+<h4>4.1 — New Campaign</h4>
+<ol>
+  <li>Campaigns → + New campaign → <strong>Create a campaign without a goal's guidance</strong> → <strong>Search</strong>.</li>
+  <li>Results to drive: <strong>Website visits</strong> + URL: <code>https://storage4you.co.il/</code>.</li>
+  <li>Campaign name: <strong>Search | אחסון ראשון לציון | STAG</strong></li>
+</ol>
+
+<h4>4.2 — Bidding Strategy (cold start)</h4>
+<ol>
+  <li>Bidding focus: <strong>Clicks</strong> → set max CPC bid limit.</li>
+  <li>Maximum cost per click: <strong>₪25</strong> (קצת מעל historical CPC ₪22.58 — לתת מרחב לתחרות).</li>
+  <li>Strategy = <strong>Maximize Clicks</strong>.</li>
+</ol>
+
+<div class="warn">
+  <strong>חשוב:</strong> אל תבחרו tCPA או Maximize Conversions בשלב cold start. בלי 30+ המרות היסטוריות Smart Bidding לא יעבוד נכון. אחרי 30 המרות במשך 30 ימים — נעבור ל-tCPA (ראו <a href="#transition">סעיף 13</a>).
+</div>
+
+<h4>4.3 — Networks</h4>
+<ul>
+  <li>Search Network: <strong>YES</strong></li>
+  <li>Search Partners: <strong>NO</strong> (איכות נמוכה יותר, IL ספציפי)</li>
+  <li>Display Network: <strong>NO</strong> (זה קמפיין Search בלבד; Display בנפרד)</li>
+</ul>
+
+<h4>4.4 — Locations + Languages</h4>
+<ul>
+  <li>Locations: <strong>Custom radius — ראשון לציון, רדיוס 5 ק"מ</strong></li>
+  <li>Location options: <strong>Presence: People in or regularly in your targeted locations</strong> (לא "interested in" — מצמצם המרות לא רלוונטיות)</li>
+  <li>Languages: <strong>Hebrew + English</strong> (כיסוי משתמשי רב-לשונים)</li>
+  <li>ראו <a href="#geo">סעיף 9</a> להרחבה גיאוגרפית מומלצת לתל אביב/פתח תקווה</li>
+</ul>
+
+<h4>4.5 — Audiences</h4>
+<ul>
+  <li>Add audience segments — <strong>Observation</strong> mode (לא Targeting):
+    <ul>
+      <li>קהלים מ-GA4: <code>website-visitors-30d</code> (אם נוצר אחרי שלב 1.5)</li>
+      <li>In-market: "Real Estate → Apartments" + "Moving Services"</li>
+    </ul>
+  </li>
+</ul>
+
+<h4>4.6 — Budget</h4>
+<ul>
+  <li>Daily budget: <strong>₪82</strong> (Search) — ₪2,460/חודש</li>
+  <li>Delivery method: <strong>Standard</strong> (לא Accelerated — בקמפיין SMB Standard מקבל יותר רגיש לאופטימיזציה אוטומטית של Google)</li>
+</ul>
+
+<h4>4.7 — Ad Schedule</h4>
+<p>ראו <a href="#schedule">סעיף 10</a> ללוח זמנים מלא.</p>
+
+<h4>4.8 — Final URL Expansion</h4>
+<p>OFF — לא לאפשר ל-Google לחפש URL-s אוטומטית. נשתמש ב-finalUrl נקבע (homepage).</p>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="ad-groups"><span class="step-num">5</span> 5 קבוצות מודעות (Ad Groups)</h2>
+<p>בחרנו STAG — Single Theme Ad Group. כל קבוצה מטפלת ב-intent אחד. ₪82/יום ÷ 5 = ~₪16 לקבוצה ביום, ~50-75 קליקים לקבוצה לחודש.</p>
+
+<!-- AG1 -->
+<div class="ad-group">
+  <h3>AG01 | מחסן להשכרה כללי</h3>
+  <p class="theme">Intent: בוטמ-פאנל, מחפשים מחסן להשכרה כללי באזור.</p>
+  <p><strong>finalUrl:</strong> <code>https://storage4you.co.il/</code> (homepage עד שיווצר LP ייעודי — ראו סעיף 15)</p>
+  <p><strong>maxCpc:</strong> ₪22</p>
+
+  <h4>מילות מפתח</h4>
+  <table>
+    <thead><tr><th>Keyword</th><th>Match</th><th>Vol/mo</th><th>CPC</th></tr></thead>
+    <tbody>
+      <tr><td>מחסן להשכרה</td><td>PHRASE</td><td>1,300</td><td>₪5.18</td></tr>
+      <tr><td>מחסן להשכרה ראשון לציון</td><td>PHRASE</td><td>110</td><td>₪4.20</td></tr>
+      <tr><td>אחסון עצמי</td><td>PHRASE</td><td>720</td><td>₪6.90</td></tr>
+      <tr><td>self storage</td><td>PHRASE</td><td>880</td><td>₪7.40</td></tr>
+      <tr><td>[מחסן להשכרה]</td><td>EXACT</td><td>—</td><td>—</td></tr>
+      <tr><td>[אחסון עצמי]</td><td>EXACT</td><td>—</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h4>15 כותרות (Headlines, ≤30 תווים)</h4>
+  <ul class="cols">
+    <li>מחסן להשכרה ₪29.9 לקוב</li>
+    <li>אחסון עצמי בראשון לציון</li>
+    <li>גישה 24/6 עם צ'יפ</li>
+    <li>מבנה בטון — בטיחות מלאה</li>
+    <li>מחיר השוק הטוב באזור</li>
+    <li>השאירו פרטים בוואטסאפ</li>
+    <li>כל גודל — מיחידה לחלל</li>
+    <li>אבטחה 24/7 ללא דאגות</li>
+    <li>בלי התחייבות לטווח ארוך</li>
+    <li>תפעול פשוט וקל</li>
+    <li>פנו אלינו לבירור פנוי</li>
+    <li>פתרון מקומי — קרוב לבית</li>
+    <li>גישה גמישה ונוחה</li>
+    <li>מחסן מאובטח ב-29.9 לקוב</li>
+    <li>Storage For You — אנחנו כאן</li>
+  </ul>
+
+  <h4>4 תיאורים (Descriptions, ≤90 תווים)</h4>
+  <ol>
+    <li>מחסן להשכרה ב-29.9 ש"ח לקוב — גישה עם צ'יפ 24 שעות 6 ימים. השאירו פרטים בוואטסאפ.</li>
+    <li>אחסון עצמי מאובטח בראשון לציון. מבנה בטון, אבטחה 24/7, בלי התחייבות. ניתן לכל גודל.</li>
+    <li>פתרון אחסון מקומי וגמיש. ₪29.9 לקוב — מחיר תחרותי ביותר באזור. בואו לבדוק.</li>
+    <li>Storage For You — מחסן מאובטח ראשון לציון. גישה 24/6 עם צ'יפ. פנו אלינו עכשיו.</li>
+  </ol>
+
+  <h4>Sitelinks (4)</h4>
+  <ul>
+    <li><strong>מחירון 29.9 לקוב</strong> → <code>/pricing</code> (אם יווצר; כעת homepage)<br><small>₪29.9 לקוב לחודש · מחיר שקוף</small></li>
+    <li><strong>שירות הובלה ואריזה</strong> → <code>/moving</code><br><small>הובלה מהדלת למחסן · שירות מקצועי</small></li>
+    <li><strong>שאלות נפוצות</strong> → <code>/faq</code><br><small>תשובות על אבטחה, גישה, גודל</small></li>
+    <li><strong>צרו קשר</strong> → <code>/contact</code><br><small>WhatsApp ישיר · 24/6</small></li>
+  </ul>
+
+  <h4>Callouts (5)</h4>
+  <div class="chip">גישה 24/6</div>
+  <div class="chip">כניסה עם צ'יפ</div>
+  <div class="chip">מבנה בטון</div>
+  <div class="chip">₪29.9 לקוב</div>
+  <div class="chip">ללא התחייבות</div>
+
+  <h4>Structured Snippets (1)</h4>
+  <p><strong>Header: Services →</strong> אחסון תכולת דירה · אחסון עסקי · אחסון רהיטים · הובלה · אריזה</p>
+</div>
+
+<!-- AG2 -->
+<div class="ad-group">
+  <h3>AG02 | אחסון תכולת דירה ומעבר</h3>
+  <p class="theme">Intent: עוברים דירה, מחפשים פתרון אחסון זמני לרהיטים/תכולה.</p>
+  <p><strong>finalUrl:</strong> <code>https://storage4you.co.il/</code> (recommended LP: <code>/achsun-dira/</code> — סעיף 15)</p>
+  <p><strong>maxCpc:</strong> ₪22</p>
+
+  <h4>מילות מפתח</h4>
+  <table>
+    <thead><tr><th>Keyword</th><th>Match</th><th>Vol/mo</th><th>CPC</th></tr></thead>
+    <tbody>
+      <tr><td>אחסון תכולת דירה</td><td>PHRASE</td><td>880</td><td>₪9.72</td></tr>
+      <tr><td>[אחסון תכולת דירה]</td><td>EXACT</td><td>880</td><td>₪9.72</td></tr>
+      <tr><td>אחסון רהיטים</td><td>PHRASE</td><td>320</td><td>₪7.10</td></tr>
+      <tr><td>אחסון בזמן מעבר דירה</td><td>PHRASE</td><td>110</td><td>—</td></tr>
+      <tr><td>אחסון זמני לדירה</td><td>PHRASE</td><td>—</td><td>—</td></tr>
+      <tr><td>מחסן לתכולת דירה</td><td>PHRASE</td><td>—</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h4>15 כותרות</h4>
+  <ul class="cols">
+    <li>אחסון לתכולת דירה ₪29.9</li>
+    <li>עוברים דירה? אחסון אצלנו</li>
+    <li>שיפוץ? נשמור על הרהיטים</li>
+    <li>מחסן זמני לתכולה</li>
+    <li>גישה 24/6 לציוד שלכם</li>
+    <li>אבטחה מלאה בזמן מעבר</li>
+    <li>מקום לרהיטים — בלי לחץ</li>
+    <li>פתרון לזמן ביניים</li>
+    <li>השאירו פרטים בוואטסאפ</li>
+    <li>גמישות מלאה ללא התחייבות</li>
+    <li>הובלה מהדלת למחסן</li>
+    <li>פתרון אמין ומקצועי</li>
+    <li>בכל גודל — לכל צורך</li>
+    <li>בלי דאגות בזמן המעבר</li>
+    <li>Storage For You ראשון לציון</li>
+  </ul>
+
+  <h4>4 תיאורים</h4>
+  <ol>
+    <li>עוברים דירה? אחסנו את הרהיטים אצלנו ב-29.9 לקוב. גישה 24/6 עם צ'יפ. פנו עכשיו.</li>
+    <li>פתרון אחסון זמני לתכולת דירה. אבטחה 24/7, מבנה בטון, גישה גמישה. ללא התחייבות.</li>
+    <li>שיפוץ או מעבר? Storage For You — מחסן מאובטח לרהיטים שלכם. WhatsApp ישיר.</li>
+    <li>אחסון תכולה גמיש בראשון לציון. ₪29.9 לקוב לחודש — המחיר הטוב באזור.</li>
+  </ol>
+
+  <h4>Sitelinks + Callouts</h4>
+  <p>זהים ל-AG01.</p>
+</div>
+
+<!-- AG3 -->
+<div class="ad-group">
+  <h3>AG03 | אחסון עסקי ומשרדי</h3>
+  <p class="theme">Intent: עסקים B2B המחפשים אחסון מסחרי, מסמכים, מלאי, ציוד משרדי.</p>
+  <p><strong>finalUrl:</strong> <code>https://storage4you.co.il/</code> (recommended LP: <code>/esek/</code> — סעיף 15)</p>
+  <p><strong>maxCpc:</strong> ₪25 (B2B שווה יותר — LTV גבוה)</p>
+
+  <h4>מילות מפתח</h4>
+  <table>
+    <thead><tr><th>Keyword</th><th>Match</th><th>Vol/mo</th><th>CPC</th></tr></thead>
+    <tbody>
+      <tr><td>אחסון עסקי</td><td>PHRASE</td><td>140</td><td>₪11.20</td></tr>
+      <tr><td>מחסן לעסק</td><td>PHRASE</td><td>90</td><td>₪9.50</td></tr>
+      <tr><td>אחסון מלאי</td><td>PHRASE</td><td>110</td><td>₪10.30</td></tr>
+      <tr><td>מחסן למשרד</td><td>PHRASE</td><td>—</td><td>—</td></tr>
+      <tr><td>שטח אחסון לעסקים</td><td>PHRASE</td><td>—</td><td>—</td></tr>
+      <tr><td>[אחסון עסקי]</td><td>EXACT</td><td>140</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h4>15 כותרות</h4>
+  <ul class="cols">
+    <li>אחסון עסקי — ₪29.9 לקוב</li>
+    <li>מחסן לעסק בראשון לציון</li>
+    <li>פתרון לציוד משרדי</li>
+    <li>גישה 24/6 לצוות שלכם</li>
+    <li>חשבונית מס — ללא בעיה</li>
+    <li>גמישות חוזה — בלי התחייבות</li>
+    <li>מחסן למלאי — מאובטח</li>
+    <li>פתרון B2B מקומי</li>
+    <li>אחסון לציוד עסקי</li>
+    <li>צרו קשר ב-WhatsApp</li>
+    <li>פנו לאחראי המסחרי</li>
+    <li>פתרון מהיר ויעיל</li>
+    <li>שטח גמיש לעסק שלכם</li>
+    <li>Storage For You — לעסקים</li>
+    <li>הצעה אישית לעסקים גדולים</li>
+  </ul>
+
+  <h4>4 תיאורים</h4>
+  <ol>
+    <li>אחסון עסקי בראשון לציון — ₪29.9 לקוב. גישה 24/6 לצוות, חשבונית מס, חוזה גמיש.</li>
+    <li>פתרון אחסון לעסקים — מלאי, ציוד משרדי, מסמכים. אבטחה 24/7, ללא התחייבות.</li>
+    <li>Storage For You לעסקים. הצעה מותאמת לעסקים גדולים. WhatsApp ישיר.</li>
+    <li>מחסן עסקי — שטח גמיש לכל גודל. השאירו פרטים — נחזור תוך שעה.</li>
+  </ol>
+</div>
+
+<!-- AG4 -->
+<div class="ad-group">
+  <h3>AG04 | מחיר אחסון ומחירון</h3>
+  <p class="theme">Intent: השוואת מחירים — high-intent. ה-USP ₪29.9 הוא הנשק החזק שלנו כאן.</p>
+  <p><strong>finalUrl:</strong> <code>https://storage4you.co.il/</code> (recommended LP: <code>/pricing/</code> — סעיף 15)</p>
+  <p><strong>maxCpc:</strong> ₪20</p>
+
+  <h4>מילות מפתח</h4>
+  <table>
+    <thead><tr><th>Keyword</th><th>Match</th><th>Vol/mo</th><th>CPC</th></tr></thead>
+    <tbody>
+      <tr><td>מחיר אחסון</td><td>PHRASE</td><td>180</td><td>₪6.50</td></tr>
+      <tr><td>מחירון מחסן</td><td>PHRASE</td><td>90</td><td>₪5.20</td></tr>
+      <tr><td>אחסון זול</td><td>PHRASE</td><td>140</td><td>₪7.00</td></tr>
+      <tr><td>השכרת מחסן מחיר</td><td>PHRASE</td><td>—</td><td>—</td></tr>
+      <tr><td>[מחיר אחסון]</td><td>EXACT</td><td>180</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h4>15 כותרות</h4>
+  <ul class="cols">
+    <li>₪29.9 לקוב — המחיר הזול</li>
+    <li>מחסן הזול ביותר באזור</li>
+    <li>השוו מחירים — נצא זולים</li>
+    <li>שקיפות מלאה ללא הפתעות</li>
+    <li>מחיר תחרותי ב-29.9</li>
+    <li>בלי מע"מ נוסף — שקוף</li>
+    <li>מחיר קבוע — חודשי</li>
+    <li>הצעת מחיר תוך דקה</li>
+    <li>קיבלו הצעה ב-WhatsApp</li>
+    <li>חישוב מחיר מהיר אונליין</li>
+    <li>בלי דמי הקמה — חינם</li>
+    <li>מחיר נמוך לתקופה ארוכה</li>
+    <li>חבילות גמישות — ללא התחייבות</li>
+    <li>השוו לפני שתבחרו</li>
+    <li>Storage For You — הזול שבאזור</li>
+  </ul>
+</div>
+
+<!-- AG5 -->
+<div class="ad-group">
+  <h3>AG05 | גיאוגרפי — ראשון לציון ועוטף</h3>
+  <p class="theme">Intent: long-tail מקומי — חיפוש לפי שכונה/עיר.</p>
+  <p><strong>finalUrl:</strong> <code>https://storage4you.co.il/</code> (recommended LP: <code>/rishon-lezion/</code> — סעיף 15)</p>
+  <p><strong>maxCpc:</strong> ₪18 (long-tail זול יותר)</p>
+
+  <h4>מילות מפתח</h4>
+  <table>
+    <thead><tr><th>Keyword</th><th>Match</th><th>Vol/mo</th><th>CPC</th></tr></thead>
+    <tbody>
+      <tr><td>מחסן ראשון לציון</td><td>PHRASE</td><td>110</td><td>₪4.20</td></tr>
+      <tr><td>אחסון ראשון לציון</td><td>PHRASE</td><td>90</td><td>₪3.80</td></tr>
+      <tr><td>self storage גוש דן</td><td>PHRASE</td><td>—</td><td>—</td></tr>
+      <tr><td>מחסן בת ים</td><td>PHRASE</td><td>—</td><td>—</td></tr>
+      <tr><td>מחסן חולון</td><td>PHRASE</td><td>—</td><td>—</td></tr>
+      <tr><td>אחסון נס ציונה</td><td>PHRASE</td><td>—</td><td>—</td></tr>
+      <tr><td>[מחסן ראשון לציון]</td><td>EXACT</td><td>110</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h4>15 כותרות</h4>
+  <ul class="cols">
+    <li>מחסן בראשון לציון</li>
+    <li>אחסון מקומי — קרוב לבית</li>
+    <li>מחסן עוטף ראשון לציון</li>
+    <li>פתרון לבת ים וחולון</li>
+    <li>נס ציונה — מחסן זמין</li>
+    <li>גוש דן — אחסון מאובטח</li>
+    <li>קרוב — אחסון בכל זמן</li>
+    <li>גישה גמישה ונוחה</li>
+    <li>WhatsApp לבדיקת זמינות</li>
+    <li>שירות מקומי איכותי</li>
+    <li>קבלת מפתח מהירה</li>
+    <li>אחסון בראשון לציון</li>
+    <li>גישה 24/6 ב-₪29.9</li>
+    <li>קרובים אליכם — סמוכים</li>
+    <li>Storage For You — באזור</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="negatives"><span class="step-num">6</span> רשימת מילים שליליות (Negative Keywords)</h2>
+<p>הוסיפו ברמת קמפיין (לא ad group) — Tools &amp; Settings → Negative keyword lists → New → "Storage4You Master Negatives" → קישור לקמפיין.</p>
+
+<div class="negatives">
+<strong>תעשייה לא רלוונטית:</strong><br>
+מחסן נשק · מחסן תרופות · מחסן סמים · מחסן חומרים מסוכנים · מחסן מקרר · מחסן קרוב למזון<br><br>
+
+<strong>חיפוש קנייה (במקום שכירות):</strong><br>
+מחסן לקנייה · קנה מחסן · רכישת מחסן · מחסן זול לקנייה · מחיר רכישה<br><br>
+
+<strong>DIY / משחקי וידאו / לא רלוונטי:</strong><br>
+minecraft · cloud storage · אחסון ענן · ביטוח אחסון · DIY storage · קופסאות אחסון<br><br>
+
+<strong>גיאוגרפיה רחוקה:</strong><br>
+ירושלים · חיפה · באר שבע · אילת · עפולה · עכו · נצרת · רעננה · נתניה (אופציונלי — אם רוצים גם נתניה אז לא להוסיף)<br><br>
+
+<strong>תעסוקה (לא רלוונטי):</strong><br>
+משרת · עבודה · job · משכורת · שכר · employee · מנהל מחסן · משלוח<br><br>
+
+<strong>דירה (לא לאחסון):</strong><br>
+דירה להשכרה · השכרת דירה · דירה לקנייה<br><br>
+
+<strong>ציוד מקצועי לא קשור:</strong><br>
+תמונות מחסן · עיצוב מחסן · מחשב מחסן · תוכנה למחסן · ERP · ניהול מחסן<br><br>
+
+<strong>חינמי / חינם:</strong><br>
+חינם · free · בחינם · ללא תשלום
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="geo"><span class="step-num">7</span> גיאוגרפיה + Bid Adjustments</h2>
+
+<h4>7.1 — Primary radius</h4>
+<ul>
+  <li>Custom radius — ראשון לציון, רדיוס <strong>5 ק"מ</strong></li>
+</ul>
+
+<h4>7.2 — Bid adjustments (מבוסס GA4 demographics)</h4>
+<table>
+  <thead><tr><th>Location</th><th>Adjustment</th><th>Reason</th></tr></thead>
+  <tbody>
+    <tr><td>ראשון לציון מרכז</td><td>+15%</td><td>מיקום פיזי של המחסן — קרובים ביותר, conv rate הגבוה ביותר</td></tr>
+    <tr><td>חולון</td><td>0%</td><td>גובל — נכלל ב-radius, נראה בנתוני GA4 demographics כמיתון</td></tr>
+    <tr><td>בת ים</td><td>0%</td><td>גובל — סטטוס דומה לחולון</td></tr>
+    <tr><td>נס ציונה</td><td>0%</td><td>בתוך radius</td></tr>
+  </tbody>
+</table>
+
+<h4>7.3 — הרחבה מומלצת (מבוסס GA4 demographics — top converting cities מחוץ ל-radius)</h4>
+<div class="info">
+  <p><strong>חודש 2:</strong> בהתבסס על נתוני GA4 — תל אביב הביאה <strong>191 המרות</strong> ב-365 ימים, פתח תקווה <strong>44</strong>, נתניה <strong>16</strong>, ירושלים <strong>15</strong> — כל אלה מחוץ ל-radius הנוכחי. מומלץ לשקול:</p>
+  <ul>
+    <li><strong>תל אביב-יפו</strong> + radius 3 ק"מ (איזורים דרומיים) → bid <strong>-15%</strong> (CPC גבוה יותר)</li>
+    <li><strong>פתח תקווה</strong> מרכז → bid <strong>0%</strong></li>
+    <li><strong>נתניה</strong> + radius 5 ק"מ → bid <strong>-25%</strong></li>
+  </ul>
+  <p>אבל לא בחודש הראשון — קודם לאמת ה-CPA היציב באזור הראשי.</p>
+</div>
+
+<h4>7.4 — Bid adjustments למכשיר</h4>
+<ul>
+  <li>Mobile: <strong>+10%</strong> (GA4 demographics: 73% conv rate על mobile)</li>
+  <li>Desktop: <strong>0%</strong></li>
+  <li>Tablet: <strong>-30%</strong> (volume נמוך, conv rate נמוך)</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="schedule"><span class="step-num">8</span> לוח זמנים (Ad Schedule)</h2>
+<table>
+  <thead><tr><th>יום</th><th>שעות</th><th>Bid Adjustment</th></tr></thead>
+  <tbody>
+    <tr><td><strong>ראשון</strong> (יום עבודה ראשון IL)</td><td>09:00 – 21:00</td><td>+15% (peak hours 09-13)</td></tr>
+    <tr><td>שני - חמישי</td><td>09:00 – 21:00</td><td>+10% (peak hours 09-13, 16-20)</td></tr>
+    <tr><td>שישי</td><td>09:00 – 14:00</td><td>0%</td></tr>
+    <tr><td><strong>שבת</strong></td><td>—</td><td><strong>-90%</strong> (effectively paused — אסור להגיש לקהל דתי-מסורתי בשבת)</td></tr>
+  </tbody>
+</table>
+
+<div class="warn">
+  שעות הלילה (00:00-08:00) ושעות הצהריים מאוחרות (21:00-23:59) — אל תכבו לחלוטין, אבל הגדירו bid adjustment <strong>-50%</strong> כדי לחסוך תקציב.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="display"><span class="step-num">9</span> Display Remarketing Campaign</h2>
+
+<h4>9.1 — Create new Campaign</h4>
+<ul>
+  <li>Goal: <strong>None / Create without guidance</strong></li>
+  <li>Type: <strong>Display</strong></li>
+  <li>Subtype: <strong>Standard display campaign</strong></li>
+  <li>Name: <strong>Display | Remarketing | Storage4You</strong></li>
+</ul>
+
+<h4>9.2 — Audience</h4>
+<ul>
+  <li>Targeting: <strong>Audiences only</strong> (לא Demographics, לא Topics, לא Placements)</li>
+  <li>Audience: <strong>website-visitors-30d</strong> (קישור מ-GA4 — הקהל יווצר אחרי שלב 1.5)</li>
+  <li>Frequency cap: <strong>5 impressions / user / day</strong></li>
+</ul>
+
+<h4>9.3 — Bidding</h4>
+<ul>
+  <li>Strategy: <strong>Maximize Clicks</strong> (cold start)</li>
+  <li>Maximum CPC: <strong>₪3</strong> (Display CPC נמוך יותר — מבוסס benchmark)</li>
+</ul>
+
+<div class="warn">
+  <strong>אל תבחרו Maximize Conversions עכשיו</strong> — Display דורש 30+ המרות לcampaign בעצמו ל-Smart Bidding. עוברים ל-MAX_CONV אחרי שיש 30 לידים מ-Search.
+</div>
+
+<h4>9.4 — Budget + Schedule</h4>
+<ul>
+  <li>Daily budget: <strong>₪15</strong> (₪450/חודש)</li>
+  <li>Schedule: זהה ל-Search (כולל Saturday pause)</li>
+</ul>
+
+<h4>9.5 — Creative — Responsive Display Ad</h4>
+<p>צרו 1 ad group "Returning visitors" עם Responsive Display Ad:</p>
+<ul>
+  <li><strong>5 logos:</strong> העלו את הלוגו הראשי וה-square variant</li>
+  <li><strong>5 images:</strong> תמונות של המחסן (פנים, חוץ, שער כניסה, יחידות) ב-1.91:1 (1200×628) ו-1:1 (1200×1200)</li>
+  <li><strong>5 headlines (≤30 chars):</strong>
+    <ul class="cols">
+      <li>חזרו לאחסון שחיפשתם</li>
+      <li>₪29.9 לקוב — עדיין מחכה</li>
+      <li>מחסן מאובטח ראשון לציון</li>
+      <li>גישה 24/6 — אחסון חכם</li>
+      <li>Storage For You — חזרו</li>
+    </ul>
+  </li>
+  <li><strong>5 long headlines (≤90 chars):</strong>
+    <ul>
+      <li>Storage For You — מחסן מאובטח ₪29.9 לקוב בראשון לציון</li>
+      <li>גישה 24/6 עם צ'יפ, מבנה בטון, ₪29.9 לקוב — Storage For You</li>
+      <li>חזרו אלינו — מחסן מאובטח ב-29.9 לקוב, גישה גמישה 24/6</li>
+      <li>אחסון מקומי בראשון לציון — ₪29.9 לקוב, השאירו פרטים</li>
+      <li>פתרון אחסון מקומי — Storage For You ראשון לציון</li>
+    </ul>
+  </li>
+  <li><strong>5 descriptions (≤90 chars):</strong>
+    <ul>
+      <li>ראיתם את המחסן שלנו? ₪29.9 לקוב לחודש, גישה 24/6, מבנה בטון. עוד לא מאוחר.</li>
+      <li>Storage For You ראשון לציון — מחסן מאובטח ₪29.9/קוב. כניסה בצ'יפ, אבטחה 24/7.</li>
+      <li>השאירו פרטים בוואטסאפ ונחזור אליכם תוך שעה. אחסון מקומי גמיש.</li>
+      <li>פתרון אחסון מקצועי — בלי התחייבות, גישה גמישה, מחיר תחרותי.</li>
+      <li>חזרו ל-Storage For You. הצעה לחודש ראשון בהנחה של 10% למבקרים חוזרים.</li>
+    </ul>
+  </li>
+  <li><strong>Final URL:</strong> <code>https://storage4you.co.il/</code></li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="launch"><span class="step-num">10</span> רצף ההשקה (PAUSED → ENABLED)</h2>
+<ol>
+  <li><strong>אישור Conversion Setup:</strong> Tools &amp; Settings → Conversions → סטטוס "Recording conversions" (לא "No recent conversions"). אם אדום — חזרו לשלב 5.</li>
+  <li><strong>Tag Assistant Live:</strong> בדקו ש-awct + gaawe + Conversion Linker יורים על דף הבית.</li>
+  <li><strong>שמרו את הקמפיין כ-PAUSED.</strong> אל תפעילו עדיין.</li>
+  <li><strong>המתינו 24-48 שעות:</strong> כדי לאפשר ל-Conversion Tracking לאסוף נתוני baseline + לוודא שאין שגיאות בתשתית.</li>
+  <li><strong>בדקו preview ads:</strong> Tools → Ad preview and diagnostics → הזינו 5 keywords ראשיים ב-IL → ודאו שהמודעה מוצגת ושאין שגיאות disapproval.</li>
+  <li><strong>הפעלה:</strong> שני ההקמפיינים → Status → Enabled.</li>
+  <li><strong>3 ימים ראשונים:</strong> בדיקה כל בוקר — לא לשנות הגדרות, רק לוודא שאין pacing issues.</li>
+  <li><strong>שבוע 1:</strong> הוסיפו negatives על בסיס Search Terms Report — בדקו פעם בשבוע.</li>
+</ol>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="transition"><span class="step-num">11</span> מעבר אסטרטגיה אחרי 30 המרות (tCPA)</h2>
+<div class="transition">
+  <p><strong>Trigger:</strong> 30+ המרות מצטברות ב-30 ימים אחרונים <strong>+</strong> Enhanced Conversions פעיל ויורה אירועים תקינים <strong>+</strong> Consent Mode v2 פועל.</p>
+
+  <p><strong>תאריך משוער:</strong> 30-45 יום מהשקה (תלוי בנפח חיפוש בפועל).</p>
+
+  <p><strong>חישוב tCPA:</strong></p>
+  <div class="formula">historicalCpcIls (₪22.58) ÷ historicalConversionRatePct (3.5% paid) × 1.3 headroom = ₪838 / 1.3 = <strong>₪645</strong> initial tCPA target</div>
+
+  <p style="margin-top:8px"><em>(החישוב הזה הוא conservative. real CPA on paid traffic נמוך מ-conservative estimate. אם conv rate בפועל מתגלה כ-5-7% — tCPA ירד אוטומטית ל-₪322-450.)</em></p>
+
+  <p><strong>איך לעשות מעבר:</strong></p>
+  <ol>
+    <li>בקמפיין → Settings → Bidding → Change bid strategy.</li>
+    <li>בחרו <strong>Target CPA</strong>.</li>
+    <li>Initial Target CPA: <strong>₪645</strong>.</li>
+    <li>שמרו. Smart Bidding יתחיל למידה בו-זמנית — שבוע 1 אחרי המעבר ייתכנו תנודות.</li>
+  </ol>
+
+  <p><strong>אזהרות:</strong></p>
+  <ul>
+    <li>אם CPA ב-7 הימים אחרי המעבר עולה מעל ₪900 → חזרו ל-Maximize Clicks ב-2 שבועות, אז שוב tCPA.</li>
+    <li>אחרי 90 ימים נסיון מוצלח עם tCPA — שקלו tROAS עם שווי המרה ₪750 (ROAS target = 1.5×).</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="seasonality"><span class="step-num">12</span> העלאת תקציב לעונות שיא</h2>
+<div class="escalation">
+  <p>מבוסס נתוני GA4 רב-שנתיים (730 יום) — הזיהוי של מחזור עונתי:</p>
+  <ul>
+    <li><strong>יוני-אוגוסט:</strong> multiplier <strong>×1.81-2.37</strong> (עונת מעברי דירה IL — Family relocators)</li>
+    <li><strong>ספטמבר-אוקטובר (תשרי):</strong> multiplier <strong>×1.4-1.6</strong> (פינוי + רכישת ריהוט לחגים)</li>
+    <li><strong>נובמבר-דצמבר:</strong> multiplier <strong>×1.2</strong></li>
+    <li><strong>ינואר:</strong> low multiplier <strong>×0.5-0.8</strong> (שפל יחסי)</li>
+  </ul>
+
+  <p><strong>תוכנית תקציב חודשי:</strong></p>
+  <table>
+    <thead><tr><th>חודש</th><th>תקציב חודשי</th><th>תקציב יומי</th><th>הערה</th></tr></thead>
+    <tbody>
+      <tr><td>חודש 1-2 (cold start)</td><td>₪3,000</td><td>₪97</td><td>baseline</td></tr>
+      <tr><td>יוני (peak ramp)</td><td>₪4,200</td><td>₪140</td><td>+40% — הכינו creative חדש 2 שבועות לפני</td></tr>
+      <tr><td>יולי-אוגוסט (full peak)</td><td>₪4,500</td><td>₪150</td><td>+50% — מקסימום 1.5× כי אין היסטוריית קמפיין</td></tr>
+      <tr><td>ספטמבר (תשרי)</td><td>₪3,750</td><td>₪125</td><td>+25%</td></tr>
+      <tr><td>דצמבר</td><td>₪3,300</td><td>₪110</td><td>+10%</td></tr>
+      <tr><td>ינואר</td><td>₪2,500</td><td>₪83</td><td>-15% (שפל)</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>כללי האצלה:</strong></p>
+  <ul>
+    <li>אל תעלו את התקציב יותר מ-50% בפעם — Smart Bidding זקוק ל-7-14 ימים להתאמה</li>
+    <li>אל תשנו budget ב-end-of-day; שנו ב-bottom-of-night (00:00 IL) כדי לקבל יום מלא</li>
+    <li>בעונות שיא — הוסיפו headlines עם urgency: "מקומות מתמלאים מהר" / "השאירו פרטים עכשיו לקיץ"</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="lp"><span class="step-num">13</span> המלצות לעמודי נחיתה ייעודיים</h2>
+<p>כל ad group כיום מפנה ל-homepage. <strong>זה Quality Score killer.</strong> צרו 5 LP ייעודיים — תהליך 2-3 שבועות עם copywriter + designer:</p>
+
+<div class="lp-card lp-exists">
+  <h4>AG01 | Homepage (יישאר)</h4>
+  <p><strong>URL:</strong> <code>https://storage4you.co.il/</code></p>
+  <p><strong>סטטוס:</strong> ✓ קיים. הוסיפו H1 ברור: "מחסן להשכרה ב-29.9 ש"ח/קוב — ראשון לציון", כפתור WhatsApp בולט מעל הקפל, מחשבון גודל מהיר, "ספירת יחידות פנויות עכשיו" לדחיפות.</p>
+</div>
+
+<div class="lp-card lp-create">
+  <h4>AG02 | Achsun Dira (חדש)</h4>
+  <p><strong>URL מומלץ:</strong> <code>https://storage4you.co.il/achsun-dira/</code></p>
+  <p><strong>תוכן:</strong> H1 "אחסון תכולת דירה ורהיטים — מ-29.9 ₪/קוב". כולל: checklist למעבר דירה, גדלי יחידות לדירת 2/3/4/5 חדרים, ביקורות לקוחות שעברו דירה, כפתור WhatsApp + טופס "להצעת מחיר תוך שעה". <strong>בעונת שיא יולי-אוגוסט זה ה-LP הראשי.</strong></p>
+</div>
+
+<div class="lp-card lp-create">
+  <h4>AG03 | Esek (B2B חדש)</h4>
+  <p><strong>URL מומלץ:</strong> <code>https://storage4you.co.il/esek/</code></p>
+  <p><strong>תוכן:</strong> H1 "פתרון אחסון לעסקים — מ-29.9 ₪/קוב". יתרונות B2B: גישה לצוות, חשבונית מס, גמישות חוזית, לוגואים של לקוחות עסקיים אם יש, טופס יצירת קשר עסקי, WhatsApp ישיר. <strong>מפריד B2B מ-B2C → רלוונטיות גבוהה → QS.</strong></p>
+</div>
+
+<div class="lp-card lp-create">
+  <h4>AG04 | Pricing (חדש)</h4>
+  <p><strong>URL מומלץ:</strong> <code>https://storage4you.co.il/pricing/</code></p>
+  <p><strong>תוכן:</strong> H1 "מחירון מלא — שקיפות מוחלטת". טבלת מחירים: 1 קוב = ₪29.9, 5 קוב = ₪149.5, 10 קוב = ₪299. השוואה למתחרים (אם יש מחקר). מחשבון גודל אינטראקטיבי. <strong>ללא הפתעות → trust → conversion.</strong></p>
+</div>
+
+<div class="lp-card lp-create">
+  <h4>AG05 | Rishon LeZion (גיאוגרפי חדש)</h4>
+  <p><strong>URL מומלץ:</strong> <code>https://storage4you.co.il/rishon-lezion/</code></p>
+  <p><strong>תוכן:</strong> H1 "מחסן להשכרה בראשון לציון — 29.9 ₪/קוב". מפה אינטראקטיבית עם מיקום המחסן + שעות גישה + אזורי שירות (ראשל"צ, חולון, בת ים, נס ציונה). ציון "קרוב לכם" עם מרחקים. <strong>טקסט גיאוגרפי = QS booster לשאילתות מיקום.</strong></p>
+</div>
+
+<div class="info">
+  <strong>השפעה על Quality Score:</strong> צפויה עליה של 2-3 נקודות (מ-5/10 ל-7-8/10) → CPC יירד ב-20-40% → אותו תקציב = יותר קליקים = יותר המרות.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 id="math"><span class="step-num">14</span> סיכום חישובים</h2>
+
+<div class="meta">
+  <table>
+    <thead><tr><th>פרמטר</th><th>ערך</th><th>חישוב/מקור</th></tr></thead>
+    <tbody>
+      <tr><td>תקציב חודשי</td><td>₪3,000</td><td>אושר על ידי הלקוח</td></tr>
+      <tr><td>תקציב יומי כולל</td><td>₪97</td><td>Search ₪82 + Display ₪15</td></tr>
+      <tr><td>CPC היסטורי</td><td>₪22.58</td><td>CSV ₪29,464 ÷ 1,305 קליקים = ground truth</td></tr>
+      <tr><td>Max CPC bid (Search)</td><td>₪22-25</td><td>היסטורי × 1.0-1.1</td></tr>
+      <tr><td>Conversion rate (אורגני)</td><td>7%</td><td>GA4: 120 conv / 1,715 sessions</td></tr>
+      <tr><td>Conversion rate (paid expected)</td><td>3.5%</td><td>50% מאורגני (סטנדרט תעשייתי IL leadgen)</td></tr>
+      <tr><td>קליקים צפויים/חודש (Search)</td><td>~110-130</td><td>₪82/יום × 30 ÷ ₪22 = 112</td></tr>
+      <tr><td>המרות צפויות/חודש</td><td>4-9 בחודש 1, 8-15 בחודש 2</td><td>112 × 3.5-7% = 4-9</td></tr>
+      <tr><td>CPA צפוי</td><td>₪400-700</td><td>במהלך cold start; אחרי tCPA יירד ל-₪450-600</td></tr>
+      <tr><td>Conversion value</td><td>₪750</td><td>אושר ע"י לקוח (5 קוב × 6 חודשים × ₪29.9 ÷ buffer)</td></tr>
+      <tr><td>ROAS (cold start)</td><td>0.9-1.4×</td><td>תוצאה לא ירודה בחודש 1; משתפר ל-1.5-2.5× אחרי tCPA</td></tr>
+      <tr><td>תאריך מעבר ל-tCPA</td><td>יום 30-45</td><td>אחרי 30+ המרות מצטברות + Enhanced Conv פעיל</td></tr>
+      <tr><td>תקציב חודש peak (יולי-אוגוסט)</td><td>₪4,500</td><td>×1.5 baseline (1.81-2.37 GA4 multiplier מקסימום)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr style="margin-top:32px">
+<p style="font-size:0.78rem;color:#9CA3AF;text-align:center;margin-top:18px">
+  Generated by Mazhir Manual Setup Mode (Degraded — no Google Ads API)<br>
+  Storage4You · ראשון לציון · 2026-04-29<br>
+  Based on: GA4 ground truth (120 conv) · CSV history (₪29,464 spend) · DataForSEO IL keywords · WordStream IL benchmark 2024<br>
+  Mazhir methodology: STAG · cold-start MAXIMIZE_CLICKS week 1-4 → tCPA after 30+ conv + Enhanced Conversions verified
+</p>
+
+</body>
+</html>

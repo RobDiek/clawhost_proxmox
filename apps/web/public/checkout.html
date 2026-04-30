@@ -257,32 +257,8 @@ a:hover { text-decoration: underline; }
 
   <input type="hidden" id="cust-phone" value=""/>
 
-  <div id="trial-banner" style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;padding:16px 18px;margin-bottom:14px">
-    <div style="font-size:0.95rem;font-weight:700;color:#065F46;margin-bottom:10px;text-align:center">7 ימי ניסיון בחינם</div>
-    <div style="font-size:0.82rem;color:#047857;line-height:1.7">
-      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px"><span style="flex-shrink:0">1.</span><span>בעמוד הבא תזינו פרטי כרטיס (דרך AllPay מאובטח)</span></div>
-      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px"><span style="flex-shrink:0">2.</span><span>חיוב של <strong>₪5 בלבד</strong> לאימות הכרטיס</span></div>
-      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px"><span style="flex-shrink:0">3.</span><span>החיוב המלא רק <strong>אחרי 7 ימים</strong></span></div>
-      <div style="display:flex;align-items:flex-start;gap:8px"><span style="flex-shrink:0">4.</span><span>ביטול בכל עת — בלי שאלות</span></div>
-    </div>
-  </div>
 
-  <button class="btn btn-primary" id="btn-pay" onclick="handleCheckout()">התחילו ניסיון חינם →</button>
-  <script>
-    // Hide trial banner if user already had a trial
-    (async function() {
-      try {
-        var t = localStorage.getItem('cf_token');
-        if (!t) return;
-        var r = await fetch(API + '/hosting/my-instances', { headers: { 'Authorization': 'Bearer ' + t } });
-        var d = await r.json();
-        if (d.success && d.data && d.data.some(function(i) { return i.trialEndsAt !== null && i.status !== 'awaiting_payment'; })) {
-          document.getElementById('trial-banner').style.display = 'none';
-          document.getElementById('btn-pay').textContent = 'לתשלום';
-        }
-      } catch(e) {}
-    })();
-  </script>
+  <button class="btn btn-primary" id="btn-pay" onclick="handleCheckout()">לתשלום →</button>
   <div class="msg" id="msg-checkout"></div>
 
   <div class="secure-badge">

@@ -14,6 +14,9 @@ export type { ModelDef } from './models'
 export { calcPlan, calcTotal, PLANS, COMPONENTS, ADDONS, INSTALLMENTS } from './plans'
 export { MODEL_REGISTRY, AGENT_DEFAULT_MODELS, STRATEGY_MODELS, getModel, getFallbackModel, getFallbackChain, getModelsByProvider, toOpenClawFormat } from './models'
 
+// Marketing data fabric — intents, integrations, pipelines, relevance.
+export * from './marketing'
+
 export {
     RequestClient,
     billingInterval,

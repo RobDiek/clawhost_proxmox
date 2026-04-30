@@ -128,6 +128,33 @@ export const getInstanceStatus = async (c: Context<HonoEnv>) => {
     }
 }
 
+// POST /hosting/instances/:id/install-complete — called by install.sh on the
+// VPS itself when it finishes bootstrapping. No JWT (the VPS doesn't have a
+// user token), instead authenticated by openclawToken match — only the VPS
+// for this instance knows its own token because it was written to
+// /etc/openclaw/instance.env by cloud-init.
+export const installComplete = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const body = await c.req.json<{ openclawToken?: string; durationSec?: number }>().catch(() => ({}))
+        if (!body.openclawToken) return fail(c, 'openclawToken required', 400)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+        if (instance.openclawToken !== body.openclawToken) return fail(c, 'Token mismatch', 401)
+
+        // Idempotent — calling twice doesn't hurt
+        if (instance.status !== 'running') {
+            await db.update(instances).set({ status: 'running' }).where(eq(instances.id, instanceId))
+        }
+        console.log(`[install-complete] ${instanceId} → running (install took ${body.durationSec || '?'}s)`)
+        return ok(c, { status: 'running' }, 'Install reported complete')
+    } catch (err) {
+        console.error('installComplete error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 export const restartInstance = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)

@@ -1,0 +1,109 @@
+{
+  "_meta": {
+    "name": "storage4you-historical-mismatch",
+    "purpose": "Regression test — CSV says 0 conversions, GA4 reports 306 events, client remembers ~60% conv rate at ₪22 CPC. Agent must reconcile and produce realistic tCPA, NOT theoretical ₪250.",
+    "createdAt": "2026-04-28",
+    "anonymized": true
+  },
+  "instanceId": "fixture_storage4you",
+  "paidProfile": {
+    "monthlyBudgetIls": 3000,
+    "primaryGoal": "leadgen",
+    "avgDealValueIls": 600,
+    "avgLtvIls": 2400,
+    "decisionCycle": "1-7 days",
+    "geography": { "type": "country", "country": "IL" },
+    "hasExistingAccount": true,
+    "trackingStack": {
+      "ga4": true,
+      "gtm": true,
+      "callTracking": "none",
+      "phoneCallsRelevant": true
+    },
+    "launchPath": "fix_first",
+    "industryHint": "self-storage",
+    "historicalCpcIls": 2.2,
+    "historicalConversionRatePct": 60,
+    "historicalNotes": "Previous campaign ran 2024-09 to 2025-03. Most clicks left a quote request. CPC was ~₪2.2, conv rate roughly 60%. Lost tracking pixel — Ads UI shows 0 but GA4 logged everything.",
+    "keyOffer": "₪29.9 per cubic meter, 24/6 access",
+    "keyDifferentiators": [
+      "₪29.9/m³ (competitors ₪60-90)",
+      "24/6 access (most competitors business hours only)",
+      "No long-term contract"
+    ]
+  },
+  "expectedAuditAssertions": {
+    "blockers": {
+      "mustContainOneMatching": [
+        "call tracking",
+        "מעקב שיחות",
+        "callTracking"
+      ],
+      "mustNotContain": [
+        "GA4 לא מותקן",
+        "אין GTM"
+      ]
+    },
+    "methodology": {
+      "mustBeOneOf": ["STAG", "compressed_launch_now"]
+    },
+    "trackingHealth": {
+      "scoreMustBeOneOf": ["good", "poor"],
+      "issues": {
+        "mustNotMentionPattern": "0 conversions in CSV",
+        "mustReconcileGA4VsCsv": true
+      }
+    },
+    "estimatedMonthlyConversions": {
+      "expectedMin": 30,
+      "expectedMax": 150,
+      "rationale": "Budget ₪3000 ÷ realCPA(₪3.7-₪10) = 300-800 clicks × 60% = 180-480 conv theoretical, but constrained by IL search volume — realistic 30-150"
+    },
+    "recommendedTcpa": {
+      "minIls": 4,
+      "maxIls": 50,
+      "rationale": "Real CPA = ₪2.2 / 60% = ₪3.67. With 1.0-2.0× headroom for algo learning + offer pressure: ₪4-₪50 range. ANYTHING above ₪50 = failed reconciliation."
+    },
+    "sourceCoverage": {
+      "ga4MustBeOk": true,
+      "googleAdsAccountMustBeOk": true
+    },
+    "dataReconciliation": {
+      "conflictsMustExist": true,
+      "groundTruthMustReferenceClientMemory": true
+    },
+    "derivationFieldsRequired": [
+      "recommendedTcpa",
+      "estimatedMonthlyConversions.expected",
+      "monthlyBudgetSplit.search"
+    ]
+  },
+  "researchDataSnapshot": {
+    "answers": {
+      "businessName": "Storage4You (fixture)",
+      "businessDescription": "Self-storage facility in central Israel, 24/6 access, monthly subscription model",
+      "targetAudience": "Families relocating, small businesses overflowing, students between apartments",
+      "competitors": "Storage IL example1.co.il, example2.co.il",
+      "websiteUrl": "https://storage4you-fixture.example"
+    }
+  },
+  "ga4MockData": {
+    "available": true,
+    "daysAnalyzed": 365,
+    "totalConversions": 306,
+    "sessionCount": 8400,
+    "estimatedConversionRatePct": 3.6,
+    "events": [
+      { "eventName": "generate_lead", "eventCount": 195 },
+      { "eventName": "form_submit", "eventCount": 109 },
+      { "eventName": "phone_click", "eventCount": 2 }
+    ]
+  },
+  "googleAdsCsvMockData": {
+    "rawCsvSays": "Conversions: 0 (no native pixel installed)",
+    "spendIls90d": 4800,
+    "clicks90d": 2180,
+    "ctr": 0.045,
+    "avgCpcIls": 2.20
+  }
+}

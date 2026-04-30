@@ -70,6 +70,15 @@ const hetzner: CloudProvider = {
         }
 
         if (userData) {
+            // Hetzner caps user_data at 32 KiB. cloud-init in raw user_data mode
+            // only auto-decodes binary gzip (1F 8B magic) — base64-encoded gzip
+            // is NOT auto-decoded. So gzip+base64 trick doesn't work; we must
+            // keep the rendered cloud-init under the limit. The template uses
+            // a bootstrap pattern: tiny inline cloud-init + main install.sh
+            // pulled from clawflow.flowmatic.co.il at first boot.
+            if (userData.length > 32000) {
+                throw new Error(`cloud-init too large for Hetzner (${userData.length} bytes > 32 KiB). Move heavy content to install.sh and curl it from cloud-init runcmd.`)
+            }
             body.user_data = userData
         }
 
