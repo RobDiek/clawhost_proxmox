@@ -18,21 +18,82 @@
 import crypto from 'crypto'
 import { eq, and, desc, gt } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
-import { generateSecret as totpGenerateSecret, generateURI as totpGenerateURI, TOTP } from 'otplib'
 import QRCode from 'qrcode'
 
-const totpInstance = new TOTP({ digits: 6, step: 30, window: 1 })
+// ─── Self-contained RFC 6238 TOTP (no otplib) ────────────────────────────
+// Sync, simple, predictable. Replaces otplib v13 which has plugin wiring
+// issues in our ESM build. Compatible with Google Authenticator / Authy /
+// 1Password (default SHA1, 6 digits, 30s step).
+
+const BASE32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+
+function base32Encode(buf: Buffer): string {
+    let bits = 0, value = 0, output = ''
+    for (let i = 0; i < buf.length; i++) {
+        value = (value << 8) | buf[i]
+        bits += 8
+        while (bits >= 5) {
+            output += BASE32[(value >>> (bits - 5)) & 0x1f]
+            bits -= 5
+        }
+    }
+    if (bits > 0) output += BASE32[(value << (5 - bits)) & 0x1f]
+    return output
+}
+
+function base32Decode(s: string): Buffer {
+    const cleaned = s.toUpperCase().replace(/[^A-Z2-7]/g, '')
+    let bits = 0, value = 0
+    const bytes: number[] = []
+    for (let i = 0; i < cleaned.length; i++) {
+        const idx = BASE32.indexOf(cleaned[i])
+        if (idx < 0) continue
+        value = (value << 5) | idx
+        bits += 5
+        if (bits >= 8) {
+            bytes.push((value >>> (bits - 8)) & 0xff)
+            bits -= 8
+        }
+    }
+    return Buffer.from(bytes)
+}
+
+function totpGenerate(secret: string, timeStep: number, digits = 6): string {
+    const key = base32Decode(secret)
+    const counter = Buffer.alloc(8)
+    counter.writeBigUInt64BE(BigInt(timeStep))
+    const h = crypto.createHmac('sha1', key).update(counter).digest()
+    const offset = h[h.length - 1] & 0x0f
+    const code = ((h[offset] & 0x7f) << 24)
+        | ((h[offset + 1] & 0xff) << 16)
+        | ((h[offset + 2] & 0xff) << 8)
+        | (h[offset + 3] & 0xff)
+    return String(code % 10 ** digits).padStart(digits, '0')
+}
+
 const authenticator = {
-    generateSecret: () => totpGenerateSecret(),
-    keyuri: (account: string, issuer: string, secret: string) =>
-        totpGenerateURI({ secret, label: account, issuer }),
-    // otplib v13 verify() returns a Promise — must await + catch async rejection
-    check: async (token: string, secret: string): Promise<boolean> => {
+    /** 20-byte (160-bit) random secret, base32-encoded — RFC 4226 recommended */
+    generateSecret: (): string => base32Encode(crypto.randomBytes(20)),
+
+    /** otpauth URI consumable by Google Authenticator, etc. */
+    keyuri: (account: string, issuer: string, secret: string): string => {
+        const lbl = encodeURIComponent(`${issuer}:${account}`)
+        const iss = encodeURIComponent(issuer)
+        return `otpauth://totp/${lbl}?secret=${secret}&issuer=${iss}&algorithm=SHA1&digits=6&period=30`
+    },
+
+    /** Verify with ±1 window (60s grace) for clock drift */
+    check: (token: string, secret: string): boolean => {
         if (!token || !secret) return false
-        try {
-            const r = await totpInstance.verify({ token, secret })
-            return !!r
-        } catch { return false }
+        const t = String(token).trim()
+        if (!/^\d{6}$/.test(t)) return false
+        const now = Math.floor(Date.now() / 1000 / 30)
+        for (let w = -1; w <= 1; w++) {
+            try {
+                if (totpGenerate(secret, now + w) === t) return true
+            } catch { /* ignore and continue */ }
+        }
+        return false
     },
 }
 import { db } from '@/db'
@@ -186,7 +247,7 @@ export async function confirmTotpSetup(
     const [admin] = await db.select().from(adminUsers).where(eq(adminUsers.id, decoded.adminId))
     if (!admin || !admin.totpSecret) return { ok: false, reason: 'no secret pending' }
 
-    if (!(await authenticator.check(code, admin.totpSecret))) {
+    if (!authenticator.check(code, admin.totpSecret)) {
         await writeAudit({ adminId: admin.id, action: 'admin.login.totp_setup_fail', ip })
         return { ok: false, reason: 'wrong totp code' }
     }
@@ -212,7 +273,7 @@ export async function verifyTotp(
     const [admin] = await db.select().from(adminUsers).where(eq(adminUsers.id, decoded.adminId))
     if (!admin || !admin.totpSecret || !admin.totpSetupCompleted) return { ok: false, reason: 'totp not configured' }
 
-    if (!(await authenticator.check(code, admin.totpSecret))) {
+    if (!authenticator.check(code, admin.totpSecret)) {
         await writeAudit({ adminId: admin.id, action: 'admin.login.totp_fail', ip })
         return { ok: false, reason: 'wrong totp code' }
     }
