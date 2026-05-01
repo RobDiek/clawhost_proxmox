@@ -86,14 +86,14 @@ const zh: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: '部署 OpenClaw.',
         heroTitle2: '本地. 即时.',
-        badge: '即将推出',
+        badge: '支持 OpenClaw 和 Hermes',
         description:
             '一款轻量级桌面客户端，用于管理您的 OpenClaw 实例。部署、监控和控制您的 claws — 直接在您的设备上完成.',
         features: '功能',
         whyClawHostGo: '一体化功能',
         featuresDescription: '为什么值得一试，功能不会说谎.',
         zeroConfigDescription:
-            '安装即运行。无需服务器配置，无需云端设置。OpenClaw 几秒内即可就绪.',
+            "省去数小时的服务器、OpenClaw 和 Hermes 配置时间。预先安装，几分钟内即可使用。",
         ownedDataDescription:
             '一切在您的设备上运行。无云服务器，无第三方，数据不会离开您的设备.',
         terminalAccessDescription:
@@ -1028,7 +1028,7 @@ const zh: Translations = {
             '专用 VPS 资源意味着无限流、全带宽和闪电般的网速。',
         globalLocations: '全球位置',
         globalLocationsDescription:
-            '在多个全球区域部署 OpenClaw，选择离您最近的位置.',
+            '在多个全球区域部署 OpenClaw 和 Hermes，选择离您最近的位置。',
         fullSshAccess: '直接 SSH 访问',
         fullSshAccessDescription:
             '直接从平台访问您的服务器终端。无需外部 SSH 客户端。',
@@ -1045,10 +1045,10 @@ const zh: Translations = {
             '告别本地网络。通过子域名从任何地方安全访问您的 OpenClaw。',
         autoUpdates: '版本控制',
         autoUpdatesDescription:
-            '一键切换到任何 OpenClaw 版本。始终保持最新或在需要时回滚。',
-        openclawControl: '智能体控制',
+            '一键切换到任何 OpenClaw 或 Hermes 版本。始终保持最新或在需要时回滚。',
+        openclawControl: '服务器监控',
         openclawControlDescription:
-            '直接从 ClawHost 访问 OpenClaw 或 Hermes 面板。完全控制每个智能体。',
+            '通过实时指标、日志和诊断监控您的 OpenClaw 和 Hermes 服务器。',
         clawHostControl: '完整服务器访问',
         clawHostControlDescription:
             '浏览器终端、文件管理器、日志、诊断和版本管理 — 全部在您的仪表板中完成。',
@@ -1173,6 +1173,14 @@ const zh: Translations = {
         title: '更新日志',
         description: '跟踪 ClawHost 的更新、新功能和改进。',
         subtitle: 'ClawHost 的所有更新、新功能和改进。',
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
+        release17Description:
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
+        release17Feature1:
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:

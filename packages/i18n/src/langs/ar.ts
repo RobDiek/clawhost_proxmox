@@ -86,14 +86,14 @@ const ar: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'انشر OpenClaw.',
         heroTitle2: 'محلياً. فوراً.',
-        badge: 'قريباً',
+        badge: 'دعم OpenClaw وHermes',
         description:
             'تطبيق سطح مكتب خفيف لإدارة مثيلات OpenClaw الخاصة بك. انشر وراقب وتحكم في claws الخاصة بك — مباشرة من جهازك.',
         features: 'الميزات',
         whyClawHostGo: 'ميزات شاملة',
         featuresDescription: 'لماذا نستحق التجربة، الميزات لا تكذب.',
         zeroConfigDescription:
-            'ثبّت وشغّل. لا إعداد خوادم، لا تهيئة سحابية. OpenClaw جاهز في ثوانٍ.',
+            "وفّر ساعات من إعداد الخادم وOpenClaw وHermes. مثبتة مسبقًا وجاهزة في دقائق.",
         ownedDataDescription:
             'كل شيء يعمل على جهازك. لا خوادم سحابية، لا أطراف ثالثة، لا بيانات تغادر جهازك.',
         terminalAccessDescription:
@@ -1055,7 +1055,7 @@ const ar: Translations = {
             'موارد VPS مخصصة تعني عدم وجود اختناق ونطاق ترددي كامل وإنترنت فائق السرعة.',
         globalLocations: 'مواقع عالمية',
         globalLocationsDescription:
-            'انشر OpenClaw في عدة مناطق عالمية واختر الموقع الأقرب إليك.',
+            'انشر OpenClaw وHermes في مناطق عالمية متعددة واختر الموقع الأقرب إليك.',
         fullSshAccess: 'وصول SSH مباشر',
         fullSshAccessDescription:
             'الوصول إلى طرفية خادمك مباشرة من المنصة. لا حاجة لعملاء SSH خارجيين.',
@@ -1073,10 +1073,10 @@ const ar: Translations = {
             'انسَ الشبكات المحلية. الوصول إلى OpenClaw بأمان من أي مكان عبر نطاق فرعي.',
         autoUpdates: 'التحكم في الإصدارات',
         autoUpdatesDescription:
-            'بدّل إلى أي إصدار من OpenClaw بنقرة واحدة. ابقَ محدّثاً دائماً أو ارجع عند الحاجة.',
-        openclawControl: 'التحكم بالوكلاء',
+            'بدّل إلى أي إصدار من OpenClaw أو Hermes بنقرة واحدة. ابقَ محدّثاً دائماً أو ارجع عند الحاجة.',
+        openclawControl: 'مراقبة الخوادم',
         openclawControlDescription:
-            'الوصول إلى لوحات OpenClaw أو Hermes مباشرة من ClawHost. تحكم كامل بكل وكيل.',
+            'راقب خوادم OpenClaw وHermes الخاصة بك بمقاييس وسجلات وتشخيصات في الوقت الفعلي.',
         clawHostControl: 'وصول كامل للخادم',
         clawHostControlDescription:
             'طرفية في المتصفح، مستكشف الملفات، السجلات، التشخيصات وإدارة الإصدارات — كل ذلك من لوحة التحكم.',
@@ -1203,6 +1203,14 @@ const ar: Translations = {
         title: 'سجل التغييرات',
         description: 'تتبع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
         subtitle: 'جميع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
+        release17Description:
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
+        release17Feature1:
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:

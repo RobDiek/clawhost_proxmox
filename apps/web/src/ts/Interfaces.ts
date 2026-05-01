@@ -2258,7 +2258,6 @@ export interface ChatSidebarTreeViewProps {
 export interface ChatSidebarSearchProps {
     value: string
     onChange: (value: string) => void
-    agentCount: number
 }
 
 export interface ChatSidebarAgentHeaderProps {

@@ -1048,7 +1048,7 @@ const en = {
         title: 'Deploy OpenClaw. One click. Done.',
         description:
             'Deploy OpenClaw on your own VPS with one click. Self-hostable cloud hosting with full root access, global locations, and transparent pricing.',
-        badge: 'OpenClaw Simplified',
+        badge: 'OpenClaw & Hermes Supported',
         tutorialBadge: 'Watch. Deploy.',
         tutorialVideoThumbnail: 'ClawHost tutorial video thumbnail',
         heroTitle1: 'Deploy OpenClaw.',
@@ -1074,7 +1074,7 @@ const en = {
             'Dedicated VPS resources mean no throttling, full bandwidth, and lightning-fast internet.',
         globalLocations: 'Global Locations',
         globalLocationsDescription:
-            'Deploy OpenClaw across multiple global regions and choose the location closest to you.',
+            'Deploy OpenClaw and Hermes across multiple global regions and choose the location closest to you.',
         fullSshAccess: 'Direct SSH Access',
         fullSshAccessDescription:
             'Access your server terminal directly from the platform. No external SSH clients needed.',
@@ -1092,10 +1092,10 @@ const en = {
             'Forget local networks. Access your OpenClaw securely from anywhere with a subdomain.',
         autoUpdates: 'Version Control',
         autoUpdatesDescription:
-            'Switch to any OpenClaw version with a single click. Always stay up to date or roll back when needed.',
-        openclawControl: 'Agent Control',
+            'Switch to any OpenClaw or Hermes version with a single click. Always stay up to date or roll back when needed.',
+        openclawControl: 'Server Monitoring',
         openclawControlDescription:
-            'Access OpenClaw or Hermes panels directly from ClawHost. Full control over every agent.',
+            'Monitor your OpenClaw and Hermes servers with real-time metrics, logs, and diagnostics.',
         clawHostControl: 'Full Server Access',
         clawHostControlDescription:
             'Browser terminal, file explorer, logs, diagnostics, and version management — all from your dashboard.',
@@ -1225,6 +1225,14 @@ const en = {
         description:
             'Track updates, new features, and improvements to ClawHost.',
         subtitle: 'All updates, new features, and improvements to ClawHost.',
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
+        release17Description:
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
+        release17Feature1:
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:

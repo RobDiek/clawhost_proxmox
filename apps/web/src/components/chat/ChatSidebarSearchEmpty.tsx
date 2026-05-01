@@ -7,7 +7,7 @@ const ChatSidebarSearchEmpty: FC = (): ReactNode => {
     return (
         <div className='flex flex-col items-center justify-center pb-8 pt-16'>
             <GhostIcon className='text-muted-foreground h-6 w-6' />
-            <p className='text-muted-foreground mt-2 max-w-[180px] text-center text-xs'>
+            <p className='text-muted-foreground mt-2 max-w-[125px] text-center text-xs'>
                 {t('dashboard.noAgentsMatchSearch')}
             </p>
         </div>

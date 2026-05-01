@@ -86,14 +86,14 @@ const ja: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'OpenClawをデプロイ.',
         heroTitle2: 'ローカルで. 即座に.',
-        badge: '近日公開',
+        badge: 'OpenClawとHermesに対応',
         description:
             'OpenClawインスタンスを管理する軽量デスクトップクライアント。デプロイ、監視、制御をお手元のマシンから.',
         features: '機能',
         whyClawHostGo: 'オールインワン機能',
         featuresDescription: '試す価値がある理由、機能が証明します.',
         zeroConfigDescription:
-            'インストールして実行するだけ。サーバー設定もクラウド設定も不要。OpenClawが数秒で準備完了.',
+            "サーバー、OpenClaw、Hermesのセットアップに何時間も費やす必要はありません。プリインストール済みで数分で利用可能。",
         ownedDataDescription:
             'すべてがお使いのデバイスで動作。クラウドサーバーなし、第三者なし、データが外部に出ることはありません.',
         terminalAccessDescription:
@@ -1083,7 +1083,7 @@ const ja: Translations = {
             '専用VPSリソースで、スロットリングなし、フル帯域幅、超高速インターネット。',
         globalLocations: 'グローバルロケーション',
         globalLocationsDescription:
-            '複数のグローバルリージョンにOpenClawをデプロイし、最寄りのロケーションを選択.',
+            'OpenClawとHermesを複数のグローバルリージョンに展開し、最も近いロケーションを選択。',
         fullSshAccess: 'ダイレクトSSHアクセス',
         fullSshAccessDescription:
             'プラットフォームから直接サーバーターミナルにアクセス。外部SSHクライアント不要。',
@@ -1101,10 +1101,10 @@ const ja: Translations = {
             'ローカルネットワークは忘れましょう。サブドメインでどこからでもOpenClawにセキュアにアクセス。',
         autoUpdates: 'バージョン管理',
         autoUpdatesDescription:
-            'ワンクリックで任意のOpenClawバージョンに切り替え。常に最新の状態を維持するか、必要に応じてロールバック。',
-        openclawControl: 'エージェント制御',
+            'ワンクリックで任意のOpenClawまたはHermesバージョンに切り替え。常に最新の状態を維持するか、必要に応じてロールバック。',
+        openclawControl: 'サーバー監視',
         openclawControlDescription:
-            'ClawHostからOpenClawまたはHermesパネルに直接アクセス。すべてのエージェントを完全制御。',
+            'OpenClawとHermesサーバーをリアルタイムのメトリクス、ログ、診断で監視。',
         clawHostControl: '完全なサーバーアクセス',
         clawHostControlDescription:
             'ブラウザターミナル、ファイルエクスプローラー、ログ、診断、バージョン管理 — すべてダッシュボードから。',
@@ -1231,6 +1231,14 @@ const ja: Translations = {
         title: '変更履歴',
         description: 'ClawHostのアップデート、新機能、改善を追跡。',
         subtitle: 'ClawHostのすべてのアップデート、新機能、改善。',
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
+        release17Description:
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
+        release17Feature1:
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:

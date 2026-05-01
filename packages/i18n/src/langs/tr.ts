@@ -86,7 +86,7 @@ const tr: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'OpenClaw Dağıt.',
         heroTitle2: 'Yerel. Anında.',
-        badge: 'Yakında',
+        badge: 'OpenClaw ve Hermes Destekli',
         description:
             "OpenClaw örneklerinizi yönetmek için hafif bir masaüstü istemcisi. Claw'larınızı doğrudan bilgisayarınızdan dağıtın, izleyin ve kontrol edin.",
         features: 'Özellikler',
@@ -94,7 +94,7 @@ const tr: Translations = {
         featuresDescription:
             'Neden denemeye değeriz, özellikler burada yalan söylemez.',
         zeroConfigDescription:
-            'Kur ve çalıştır. Sunucu kurulumu yok, bulut yapılandırması yok. OpenClaw saniyeler içinde hazır.',
+            "Sunucu, OpenClaw ve Hermes kurulumu için saatler harcamayın. Önceden yüklenmiş ve dakikalar içinde hazır.",
         ownedDataDescription:
             'Her şey cihazınızda çalışır. Bulut sunucusu yok, üçüncü taraf yok, verileriniz cihazınızdan çıkmaz.',
         terminalAccessDescription:
@@ -1087,7 +1087,7 @@ const tr: Translations = {
             'Özel VPS kaynakları, kısıtlama yok, tam bant genişliği ve yıldırım hızında internet demektir.',
         globalLocations: 'Küresel Konumlar',
         globalLocationsDescription:
-            "OpenClaw'u birden fazla küresel bölgede dağıtın ve size en yakın konumu seçin.",
+            "OpenClaw ve Hermes'i birden fazla küresel bölgede dağıtın ve size en yakın konumu seçin.",
         fullSshAccess: 'Doğrudan SSH Erişimi',
         fullSshAccessDescription:
             'Sunucu terminalinize doğrudan platformdan erişin. Harici SSH istemcisi gerekmez.',
@@ -1105,10 +1105,10 @@ const tr: Translations = {
             "Yerel ağları unutun. OpenClaw'unuza bir alt alan adıyla her yerden güvenli erişin.",
         autoUpdates: 'Sürüm Kontrolü',
         autoUpdatesDescription:
-            'Tek tıkla herhangi bir OpenClaw sürümüne geçin. Her zaman güncel kalın veya gerektiğinde geri dönün.',
-        openclawControl: 'Ajan Kontrolü',
+            'Tek tıkla herhangi bir OpenClaw veya Hermes sürümüne geçin. Her zaman güncel kalın veya gerektiğinde geri dönün.',
+        openclawControl: 'Sunucu İzleme',
         openclawControlDescription:
-            "OpenClaw veya Hermes panellerine doğrudan ClawHost'tan erişin. Her ajan üzerinde tam kontrol.",
+            'OpenClaw ve Hermes sunucularınızı gerçek zamanlı metrikler, loglar ve tanılama ile izleyin.',
         clawHostControl: 'Tam Sunucu Erişimi',
         clawHostControlDescription:
             'Tarayıcı terminali, dosya gezgini, loglar, tanılama ve sürüm yönetimi — hepsi kontrol panelinizden.',
@@ -1238,6 +1238,14 @@ const tr: Translations = {
             'ClawHost güncellemelerini, yeni özelliklerini ve iyileştirmelerini takip edin.',
         subtitle:
             "ClawHost'un tüm güncellemeleri, yeni özellikleri ve iyileştirmeleri.",
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
+        release17Description:
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
+        release17Feature1:
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:

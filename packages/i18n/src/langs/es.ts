@@ -86,7 +86,7 @@ const es: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'Despliega OpenClaw.',
         heroTitle2: 'Localmente. Al instante.',
-        badge: 'Próximamente',
+        badge: 'OpenClaw y Hermes compatibles',
         description:
             'Un cliente de escritorio ligero para gestionar tus instancias de OpenClaw. Despliega, monitorea y controla tus claws — directamente desde tu máquina.',
         features: 'Características',
@@ -94,7 +94,7 @@ const es: Translations = {
         featuresDescription:
             'Por qué vale la pena probarnos, las características no mienten.',
         zeroConfigDescription:
-            'Instala y ejecuta. Sin configuración de servidor ni nube. OpenClaw está listo en segundos.',
+            "Ahorra horas de configuración de servidor, OpenClaw y Hermes. Vienen preinstalados y listos en minutos.",
         ownedDataDescription:
             'Todo se ejecuta en tu dispositivo. Sin servidores en la nube, sin terceros, sin datos saliendo de tu máquina.',
         terminalAccessDescription:
@@ -1110,7 +1110,7 @@ const es: Translations = {
             'Recursos VPS dedicados significan sin limitaciones, ancho de banda completo e internet ultra rápido.',
         globalLocations: 'Ubicaciones globales',
         globalLocationsDescription:
-            'Despliega OpenClaw en múltiples regiones globales y elige la ubicación más cercana a ti.',
+            'Despliega OpenClaw y Hermes en múltiples regiones globales y elige la ubicación más cercana a ti.',
         fullSshAccess: 'Acceso SSH directo',
         fullSshAccessDescription:
             'Accede al terminal de tu servidor directamente desde la plataforma. Sin necesidad de clientes SSH externos.',
@@ -1128,10 +1128,10 @@ const es: Translations = {
             'Olvida las redes locales. Accede a tu OpenClaw de forma segura desde cualquier lugar con un subdominio.',
         autoUpdates: 'Control de versiones',
         autoUpdatesDescription:
-            'Cambia a cualquier versión de OpenClaw con un solo clic. Mantente siempre actualizado o vuelve atrás cuando lo necesites.',
-        openclawControl: 'Control de agentes',
+            'Cambia a cualquier versión de OpenClaw o Hermes con un solo clic. Mantente siempre actualizado o vuelve atrás cuando lo necesites.',
+        openclawControl: 'Monitoreo de servidores',
         openclawControlDescription:
-            'Accede a los paneles de OpenClaw o Hermes directamente desde ClawHost. Control total sobre cada agente.',
+            'Monitorea tus servidores OpenClaw y Hermes con métricas, registros y diagnósticos en tiempo real.',
         clawHostControl: 'Acceso completo al servidor',
         clawHostControlDescription:
             'Terminal en navegador, explorador de archivos, logs, diagnósticos y gestión de versiones — todo desde tu panel.',
@@ -1263,6 +1263,14 @@ const es: Translations = {
             'Sigue las actualizaciones, nuevas funciones y mejoras de ClawHost.',
         subtitle:
             'Todas las actualizaciones, nuevas funciones y mejoras de ClawHost.',
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
+        release17Description:
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
+        release17Feature1:
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:

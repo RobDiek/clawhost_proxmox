@@ -3,8 +3,8 @@ import type { ChatSidebarProps } from '@/ts/Interfaces'
 
 import { useCallback, useMemo, useState } from 'react'
 import { t } from '@openclaw/i18n'
-import { SidebarSimpleIcon } from '@phosphor-icons/react'
-import { AgentMascot, AgentAvatar } from '@/components/shared'
+import { SidebarSimpleIcon, GhostIcon } from '@phosphor-icons/react'
+import { AgentAvatar } from '@/components/shared'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { usePreferencesStore } from '@/lib/store'
 import { AGENT_AVATAR_SIZE } from '@/lib/constants'
@@ -47,9 +47,9 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
 
     if (agents.length === 0) {
         return (
-            <div className='md:border-border flex h-full w-full shrink-0 flex-col items-center justify-center px-6 md:w-[250px] md:border-r'>
+            <div className='md:border-border flex h-full w-full shrink-0 flex-col items-center justify-center px-6 md:w-[210px] md:border-r'>
                 <div className='bg-foreground/5 flex h-10 w-10 items-center justify-center rounded-xl'>
-                    <AgentMascot className='h-5 w-5' />
+                    <GhostIcon weight='fill' className='h-5 w-5' />
                 </div>
                 <p className='text-muted-foreground mt-3 text-center text-xs'>
                     {t('clawDetail.noAgentsDescription')}
@@ -110,7 +110,7 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
     }
 
     return (
-        <div className='bg-background md:border-border relative z-10 flex h-full w-full shrink-0 flex-col overflow-hidden md:w-[250px] md:border-r'>
+        <div className='bg-background md:border-border relative z-10 flex h-full w-full shrink-0 flex-col overflow-hidden md:w-[210px] md:border-r'>
             <div className='flex items-center gap-1.5 px-3 pb-2 pt-3'>
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -125,11 +125,7 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                         {t('clawDetail.collapseSidebar')}
                     </TooltipContent>
                 </Tooltip>
-                <ChatSidebarSearch
-                    value={search}
-                    onChange={setSearch}
-                    agentCount={agents.length}
-                />
+                <ChatSidebarSearch value={search} onChange={setSearch} />
             </div>
             <div className='flex-1 overflow-y-auto px-3 pb-3 pt-2'>
                 {filteredAgents.length === 0 ? (

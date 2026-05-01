@@ -86,7 +86,7 @@ const nl: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'Implementeer OpenClaw.',
         heroTitle2: 'Lokaal. Direct.',
-        badge: 'Binnenkort beschikbaar',
+        badge: 'OpenClaw & Hermes ondersteund',
         description:
             'Een lichte desktopclient om je OpenClaw-instanties te beheren. Deploy, monitor en beheer je claws — rechtstreeks vanaf je computer.',
         features: 'Functies',
@@ -94,7 +94,7 @@ const nl: Translations = {
         featuresDescription:
             'Waarom we het proberen waard zijn, functies liegen hier niet.',
         zeroConfigDescription:
-            'Installeren en starten. Geen serverinstellingen, geen cloudconfiguratie. OpenClaw is binnen seconden klaar.',
+            "Bespaar uren server-, OpenClaw- en Hermes-installatie. Alles is voorgeïnstalleerd en binnen enkele minuten klaar.",
         ownedDataDescription:
             'Alles draait op jouw apparaat. Geen cloudservers, geen derden, geen gegevens die je apparaat verlaten.',
         terminalAccessDescription:
@@ -1103,7 +1103,7 @@ const nl: Translations = {
             'Dedicated VPS-resources betekenen geen throttling, volledige bandbreedte en razendsnel internet.',
         globalLocations: 'Wereldwijde locaties',
         globalLocationsDescription:
-            "Implementeer OpenClaw in meerdere wereldwijde regio's en kies de locatie die het dichtst bij je is.",
+            "Implementeer OpenClaw en Hermes in meerdere wereldwijde regio's en kies de locatie die het dichtst bij je is.",
         fullSshAccess: 'Directe SSH-toegang',
         fullSshAccessDescription:
             'Krijg direct toegang tot je serverterminal vanuit het platform. Geen externe SSH-clients nodig.',
@@ -1121,10 +1121,10 @@ const nl: Translations = {
             'Vergeet lokale netwerken. Krijg veilig toegang tot je OpenClaw vanaf overal met een subdomein.',
         autoUpdates: 'Versiebeheer',
         autoUpdatesDescription:
-            'Schakel met \u00e9\u00e9n klik naar elke OpenClaw-versie. Blijf altijd up-to-date of rol terug wanneer nodig.',
-        openclawControl: 'Agentbeheer',
+            'Schakel met één klik naar elke OpenClaw- of Hermes-versie. Blijf altijd up-to-date of rol terug wanneer nodig.',
+        openclawControl: 'Servermonitoring',
         openclawControlDescription:
-            'Krijg direct toegang tot OpenClaw- of Hermes-panelen vanuit ClawHost. Volledige controle over elke agent.',
+            'Monitor je OpenClaw- en Hermes-servers met realtime metrics, logs en diagnostiek.',
         clawHostControl: 'Volledige servertoegang',
         clawHostControlDescription:
             'Browserterminal, bestandsverkenner, logs, diagnostiek en versiebeheer — alles vanuit je dashboard.',
@@ -1267,6 +1267,14 @@ const nl: Translations = {
             '10 nieuwe talen toegevoegd: Chinees, Hindi, Arabisch, Russisch, Japans, Turks, Italiaans, Pools, Nederlands en Portugees',
         release14Feature4:
             'Interne tools voor stabiele functieondersteuning voor huidige OpenClaw-versies, zonder ondersteuning voor oudere versies',
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
+        release17Description:
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
+        release17Feature1:
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:

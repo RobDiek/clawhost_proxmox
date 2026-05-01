@@ -42,9 +42,8 @@ import {
     TerminalIcon,
     LockIcon,
     GaugeIcon,
-    CreditCardIcon,
     LinkIcon,
-    SlidersHorizontalIcon,
+    PulseIcon,
     GearSixIcon,
     StackIcon,
     GitBranchIcon,
@@ -289,11 +288,6 @@ const Landing: FC = (): ReactNode => {
                             description: t('landing.fullSshAccessDescription')
                         },
                         {
-                            icon: CreditCardIcon,
-                            title: t('landing.payAsYouGo'),
-                            description: t('landing.payAsYouGoDescription')
-                        },
-                        {
                             icon: KeyIcon,
                             title: t('landing.bringYourCredits'),
                             description: t('landing.bringYourCreditsDescription')
@@ -316,7 +310,7 @@ const Landing: FC = (): ReactNode => {
                             description: t('landing.autoUpdatesDescription')
                         },
                         {
-                            icon: SlidersHorizontalIcon,
+                            icon: PulseIcon,
                             title: t('landing.openclawControl'),
                             description: t('landing.openclawControlDescription')
                         },
