@@ -85,7 +85,9 @@ const useOtpFlow = ({
                 await verifyOtp(email.trim(), fullCode)
             } catch (error: unknown) {
                 const message =
-                    error instanceof Error ? error.message : t('auth.invalidCode')
+                    error instanceof Error
+                        ? error.message
+                        : t('auth.invalidCode')
                 showToast(message, TOAST_TYPE.ERROR)
                 setCodeError(true)
                 setCode(Array(CODE_LENGTH).fill(''))
@@ -134,7 +136,8 @@ const useOtpFlow = ({
             setCode(newCode)
             setCodeError(false)
 
-            if (value && index < CODE_LENGTH - 1) inputRefs.current[index + 1]?.focus()
+            if (value && index < CODE_LENGTH - 1)
+                inputRefs.current[index + 1]?.focus()
         },
         [code]
     )

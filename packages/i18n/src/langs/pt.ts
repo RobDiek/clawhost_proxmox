@@ -86,7 +86,7 @@ const pt: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'Implante OpenClaw.',
         heroTitle2: 'Localmente. Instantaneamente.',
-        badge: 'Em Breve',
+        badge: 'OpenClaw e Hermes suportados',
         description:
             'Um cliente desktop leve para gerenciar suas instâncias OpenClaw. Implante, monitore e controle seus claws — direto da sua máquina.',
         features: 'Recursos',
@@ -94,7 +94,7 @@ const pt: Translations = {
         featuresDescription:
             'Por que vale a pena experimentar, os recursos falam por si.',
         zeroConfigDescription:
-            'Instale e execute. Sem configuração de servidor, sem configuração de nuvem. OpenClaw pronto em segundos.',
+            'Economize horas de configuração de servidor, OpenClaw e Hermes. Vêm pré-instalados e prontos em minutos.',
         ownedDataDescription:
             'Tudo roda no seu dispositivo. Sem servidores na nuvem, sem terceiros, sem dados saindo da sua máquina.',
         terminalAccessDescription:
@@ -378,6 +378,7 @@ const pt: Translations = {
         invalidSubdomain:
             'Subdomínio inválido. Use 3-20 letras minúsculas e números!',
         subdomainAlreadyInUse: 'Este subdomínio já está em uso!',
+        subdomainNotSupported: 'Este tipo de agente não usa subdomínio.',
         agentBusy: 'O agent está sendo provisionado ou excluído no momento!',
         reinstallGatewayNotResponding:
             'Reinstalação concluída, mas o gateway ainda não está respondendo. Pode precisar de mais tempo para iniciar.',
@@ -413,6 +414,7 @@ const pt: Translations = {
         adminAccessDenied: 'Acesso de administrador necessário!',
         agentsFetched: 'Agents obtidos com sucesso.',
         agentFetched: 'Agent obtido com sucesso.',
+        agentStarsFetched: 'Estrelas do agente obtidas com sucesso.',
         agentSynced: 'Agent sincronizado com sucesso.',
         agentStarted: 'Agent iniciado com sucesso.',
         agentStopped: 'Agent parado com sucesso.',
@@ -722,11 +724,15 @@ const pt: Translations = {
         billingReasonSubscriptionCycle: 'Renovação',
         billingReasonSubscriptionUpdate: 'Atualização de Assinatura',
         failedToLoadBilling: 'Falha ao carregar histórico de pagamentos!',
-        viewInvoice: 'Ver Fatura',
+        downloadInvoice: 'Baixar fatura',
+        invoiceCanceledNavigation:
+            'Download da fatura interrompido porque você saiu da página.',
         failedToLoadInvoice: 'Falha ao carregar fatura!',
         couponApplied: 'Cupom: {{name}}',
         manageBilling: 'Gerenciar Pagamentos',
-        failedToLoadPortal: 'Falha ao abrir portal de pagamentos!'
+        failedToLoadPortal: 'Falha ao abrir portal de pagamentos!',
+        portalCanceledNavigation:
+            'Portal de pagamentos interrompido porque você saiu da página.'
     },
     license: {
         title: 'Licença',
@@ -827,6 +833,7 @@ const pt: Translations = {
         storage: 'Armazenamento',
         nextBilling: 'Próxima Cobrança',
         lastBilling: 'Última Cobrança',
+        totalSpent: 'Total Gasto',
         version: 'Versão',
         gatewayToken: 'Token do Gateway',
         gatewayTokenDescription:
@@ -880,6 +887,8 @@ const pt: Translations = {
         fileExplorerReadOnly: 'Somente leitura',
         fileExplorerSave: 'Salvar',
         fileExplorerSaved: 'Arquivo salvo.',
+        fileExplorerSaveCanceledNavigation:
+            'Salvamento do arquivo interrompido porque você saiu da página.',
         fileExplorerInvalidJson:
             'JSON inválido. Corrija os erros de sintaxe antes de salvar!',
         fileExplorerNoFiles: 'Nenhum arquivo encontrado',
@@ -895,19 +904,30 @@ const pt: Translations = {
             'Isso reinstalará completamente o {{agentName}} nesta instância. Todas as configurações, agentes e dados serão redefinidos. Esta ação não pode ser desfeita. Continuar?',
         reinstallInstanceSuccess: 'Instância reinstalada com sucesso.',
         reinstallInstanceFailed: 'Falha ao reinstalar instância!',
+        reinstallCanceledNavigation:
+            'Reinstalação interrompida porque você saiu da página.',
         openControlPanel: 'Abrir Painel de Controle',
         exportData: 'Exportar Claw (.zip)',
         exportAgent: 'Exportar',
-        exportAgentButton: 'Exportar OpenClaw',
+        exportAgentButton: 'Exportar dados',
         exportAgentTooltip:
             'Baixar este agente e todos os seus dados como arquivo .zip.',
+        exportAgentInProgress:
+            'A exportação pode levar alguns minutos para agents maiores.',
         exportStarted: 'Preparando exportação, isso pode levar um momento...',
         exportSuccess: 'Claw exportado com sucesso.',
         exportFailed: 'Falha ao exportar dados do claw!',
+        exportCanceledNavigation:
+            'Exportação cancelada porque você saiu da página.',
+        scheduleDeletionCanceledNavigation:
+            'Agendamento de exclusão interrompido porque você saiu da página.',
+        cancelDeletionCanceledNavigation:
+            'Cancelamento de exclusão interrompido porque você saiu da página.',
+        hardDeleteCanceledNavigation:
+            'Exclusão forçada interrompida porque você saiu da página.',
         exportRateLimited:
             'Você pode exportar novamente em {{minutes}} minutos.',
-        exportRateLimitedSeconds:
-            'Você pode exportar novamente em {{seconds}} segundos.',
+        exportRateLimitedOne: 'Você pode exportar novamente em 1 minuto.',
         configuringTooltip:
             'Isso pode levar algum tempo. Depende do OpenClaw, da localização do servidor e do DNS do Cloudflare.',
         paymentSuccess: 'Seu claw está sendo criado e configurado.',
@@ -952,8 +972,10 @@ const pt: Translations = {
         clawNameInvalidChars: 'Apenas letras, números e hífens são permitidos!',
         autoGenerateNameHint: 'Deixe vazio para gerar um nome automaticamente.',
         agentType: 'Tipo de agente',
-        agentTypeOpenClawDescription: '{{count}} instalações',
-        agentTypeHermesDescription: '{{count}} instalações',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} estrelas',
+        agentTypeHermesDescription: '{{count}} estrelas',
         location: 'Localização',
         locationUnavailable: 'Indisponível',
         locationUnavailableForPlan: 'Indisponível',
@@ -1065,6 +1087,9 @@ const pt: Translations = {
         badge: 'OpenClaw Simplificado',
         tutorialBadge: 'Assista. Implante.',
         tutorialVideoThumbnail: 'Miniatura do vídeo tutorial do ClawHost',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: 'Implante OpenClaw.',
         heroTitle2: 'Um clique. Pronto.',
         heroDescription:
@@ -1089,7 +1114,7 @@ const pt: Translations = {
             'Recursos VPS dedicados significam sem limitação, largura de banda total e internet ultrarrápida.',
         globalLocations: 'Localizações Globais',
         globalLocationsDescription:
-            'Implante o OpenClaw em várias regiões globais e escolha a localização mais próxima de você.',
+            'Implante OpenClaw e Hermes em várias regiões globais e escolha a localização mais próxima de você.',
         fullSshAccess: 'Acesso SSH Direto',
         fullSshAccessDescription:
             'Acesse o terminal do seu servidor diretamente pela plataforma. Sem necessidade de clientes SSH externos.',
@@ -1099,21 +1124,24 @@ const pt: Translations = {
         payAsYouGo: 'Preços Simples',
         payAsYouGoDescription:
             'Preços baseados no que você precisa. Sem contas altas forçadas para servidores de baixa qualidade. Cancele a qualquer momento.',
+        bringYourCredits: 'Traga seus próprios créditos',
+        bringYourCreditsDescription:
+            'Use sua própria chave de API Anthropic ou assinatura Claude. Pague à Anthropic diretamente — sem markup.',
         customSubdomains: 'Acesso Online',
         customSubdomainsDescription:
             'Esqueça redes locais. Acesse seu OpenClaw com segurança de qualquer lugar com um subdomínio.',
         autoUpdates: 'Controle de Versão',
         autoUpdatesDescription:
-            'Mude para qualquer versão do OpenClaw com um único clique. Fique sempre atualizado ou volte quando necessário.',
-        openclawControl: 'Controle OpenClaw',
+            'Mude para qualquer versão do OpenClaw ou Hermes com um único clique. Fique sempre atualizado ou volte quando necessário.',
+        openclawControl: 'Monitoramento de servidores',
         openclawControlDescription:
-            'Acesse o painel nativo do OpenClaw diretamente pelo ClawHost. Acesso completo de edição a tudo que o OpenClaw oferece.',
+            'Monitore seus servidores OpenClaw e Hermes com métricas, logs e diagnósticos em tempo real.',
         clawHostControl: 'Acesso completo ao servidor',
         clawHostControlDescription:
             'Terminal no navegador, explorador de arquivos, logs, diagnósticos e gerenciamento de versões — tudo no seu painel.',
-        multipleClaws: 'Múltiplos Claws',
+        multipleClaws: 'Múltiplos agentes',
         multipleClawsDescription:
-            'Implante e gerencie múltiplas instâncias OpenClaw a partir de um único painel. Escale conforme cresce.',
+            'Implante e gerencie múltiplos agentes OpenClaw e Hermes a partir de um único painel. Escale conforme cresce.',
         pricing: 'Preços',
         simpleTransparentPricing: 'Preços Simples e Transparentes',
         pricingDescription:
@@ -1156,7 +1184,7 @@ const pt: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'Escolher plano',
         mostPopular: 'Mais popular',
-        featurePreinstalled: 'OpenClaw pré-instalado',
+        featurePreinstalled: 'Agente pré-instalado',
         featureBandwidth: 'Largura de banda ilimitada',
         featureSsh: 'Acesso SSH root',
         featureUptime: 'Online 24/7',
@@ -1169,26 +1197,29 @@ const pt: Translations = {
         faqDescription: 'Todas as perguntas frequentes, respondidas.',
         faq1Question: 'O que é o ClawHost?',
         faq1Answer:
-            'ClawHost é uma plataforma construída para tornar o OpenClaw acessível a todos. Permite que tanto usuários não técnicos quanto desenvolvedores executem o OpenClaw sem gerenciar infraestrutura. Nós cuidamos dos servidores, disponibilidade, segurança e manutenção — você apenas usa o OpenClaw.',
+            'ClawHost é uma plataforma criada para tornar OpenClaw e Hermes acessíveis a todos. Permite que tanto usuários não técnicos quanto desenvolvedores os executem sem gerenciar infraestrutura. Nós cuidamos dos servidores, uptime, segurança e manutenção — você só usa seus agentes.',
         faq2Question: 'O que é o OpenClaw?',
         faq2Answer:
             'OpenClaw é uma camada de acesso seguro auto-hospedada para suas ferramentas e serviços de IA. Vem pré-configurado para segurança e desempenho, então você pode implantá-lo e conectar instantaneamente.',
+        faqHermesQuestion: 'O que é Hermes?',
+        faqHermesAnswer:
+            'Hermes é um agente de IA autônomo com navegação web, gerenciamento de calendário, raciocínio multimodelo e automação de navegador. Vem pré-instalado ao lado do OpenClaw em cada servidor ClawHost.',
         faq3Question:
             'Como isso é diferente de outras ferramentas de IA ou plataformas hospedadas?',
         faq3Answer:
-            'Diferente de ferramentas de IA hospedadas, o ClawHost oferece um servidor real com OpenClaw instalado. Você é dono da infraestrutura, controla tudo e não está limitado por uma plataforma ou modelo compartilhado.',
+            'Diferente de ferramentas de IA hospedadas, o ClawHost oferece um servidor real com OpenClaw e Hermes instalados. Você possui a infraestrutura, controla tudo e não fica limitado por uma plataforma ou modelo compartilhado.',
         faq4Question: 'Preciso de conhecimento técnico?',
         faq4Answer:
-            'Não. Nós cuidamos de toda a infraestrutura, configuração e manutenção. Você pode configurar e gerenciar o OpenClaw pela sua interface e personalizar o uso — sem tocar em servidores ou infraestrutura.',
+            'Não. Nós cuidamos de toda a infraestrutura, configuração e manutenção. Você pode configurar e gerenciar OpenClaw pela interface, enquanto Hermes funciona via comandos simples de terminal — sem tocar em servidores ou infraestrutura.',
         faq5Question: 'Quais localizações estão disponíveis?',
         faq5Answer:
-            'Oferecemos várias localizações de servidores em todo o mundo, incluindo Estados Unidos, Europa e mais. Você pode implantar o OpenClaw em vários servidores em diferentes regiões, se necessário.',
+            'Oferecemos múltiplas localizações de servidor no mundo todo, incluindo EUA, Europa e Ásia. Você pode implantar OpenClaw ou Hermes em vários servidores em diferentes regiões se necessário.',
         faq6Question: 'Quanto custa?',
         faq6Answer:
             'Os preços dependem do servidor que você selecionar. Com várias opções de servidores, de básico a alto desempenho, você escolhe o que se adapta às suas necessidades e orçamento.',
-        faq7Question: 'Posso acessar meu servidor diretamente?',
+        faq7Question: 'Posso acessar meu agente diretamente por um link?',
         faq7Answer:
-            'Sim. Junto com o acesso ao OpenClaw via URL de subdomínio, você tem acesso completo ao servidor e sua infraestrutura subjacente, dando total liberdade para personalizar e executar o que precisar.',
+            'OpenClaw é acessível por uma URL de subdomínio com interface web completa. Hermes roda via comandos de terminal por SSH — sem link, mas com controle total pelo terminal do seu servidor.',
         comparison: 'Comparação',
         comparisonTitle: 'Como Somos Diferentes',
         comparisonDescription:
@@ -1206,11 +1237,11 @@ const pt: Translations = {
         comparisonInfraOthers: 'Servidores limitados',
         comparisonDataUs: 'Seja dono dos seus dados',
         comparisonDataOthers: 'Não é dono dos seus dados',
-        comparisonMultipleUs: 'Múltiplos OpenClaw, um Claw',
+        comparisonMultipleUs: 'Múltiplos agentes OpenClaw e Hermes',
         comparisonMultipleOthers: 'Apenas um OpenClaw',
         comparisonOpenSourceUs: 'Totalmente código aberto',
         comparisonOpenSourceOthers: 'Código fechado',
-        comparisonExportUs: 'Exporte seu OpenClaw para qualquer lugar',
+        comparisonExportUs: 'Exporte OpenClaw e Hermes para qualquer lugar',
         comparisonExportOthers: 'Dependência de fornecedor',
         comparisonProvidersUs: 'Múltiplos provedores de servidor',
         comparisonProvidersOthers: 'Apenas um provedor',
@@ -1220,15 +1251,15 @@ const pt: Translations = {
         comparisonTerminalOthers: 'Cliente SSH necessário',
         seeFullComparison: 'Ver Comparação Completa',
         comparisonCtaText:
-            'Comparamos com SimpleClaw, MyClaw.ai e mais — recurso por recurso.',
+            'Comparamos com SimpleAgent, MyAgent.ai e mais — recurso por recurso.',
         selfHostInstead: 'Auto-Hospedar'
     },
     blog: {
         readingTime: '{{minutes}} min de leitura',
-        ctaTitle: 'Implante OpenClaw com Um Clique',
+        ctaTitle: 'Implante OpenClaw e Hermes com um clique',
         ctaDescription:
-            'Obtenha um servidor dedicado com OpenClaw pré-instalado. Acesso root completo, localizações globais e pronto em minutos. Você é dono a todo momento. A partir de $25.',
-        ctaDeploy: 'Implantar OpenClaw',
+            'Obtenha um servidor dedicado com OpenClaw e Hermes pré-instalados. Acesso root completo, localizações globais e pronto em minutos. É seu o tempo todo. A partir de $25.',
+        ctaDeploy: 'Implantar agente',
         ctaGitHub: 'Ver no GitHub'
     },
     changelog: {
@@ -1250,12 +1281,14 @@ const pt: Translations = {
             '10 novos idiomas adicionados: chinês, hindi, árabe, russo, japonês, turco, italiano, polonês, holandês e português',
         release14Feature4:
             'Ferramentas internas para fornecer suporte estável de funcionalidades para versões atuais do OpenClaw, sem suporte para versões anteriores',
-        release17Date: '29 de abril de 2026',
-        release17Title: 'Hermes Agent Support',
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
         release17Description:
-            'Implantação com um clique para agentes Hermes no ClawHost, assim como OpenClaw.',
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
         release17Feature1:
-            'Implantação com um clique para agentes Hermes como OpenClaw',
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1452,6 +1485,11 @@ const pt: Translations = {
         overviewUnsupportedTitle: 'Visão geral não suportada',
         overviewUnsupportedDescription:
             'Sua versão do OpenClaw não suporta o recurso de visão geral. Atualize para a versão mais recente.',
+        overviewHermesTitle: 'Hermes é executado no terminal',
+        overviewHermesDescription:
+            'Hermes é um agente TUI — abra a aba Terminal e execute `hermes` para iniciar uma sessão. As abas Arquivos e Versões permitem editar a configuração e atualizar.',
+        overviewHermesOpenTerminal: 'Abrir terminal',
+        viewDocs: 'Ver docs',
         overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1485,6 +1523,8 @@ const pt: Translations = {
         previewEnabling: 'Habilitando...',
         previewEnabled: 'Visualização habilitada.',
         previewEnableFailed: 'Falha ao habilitar visualização!',
+        previewEnableCanceledNavigation:
+            'Habilitação da visualização interrompida porque você saiu da página.',
         previewError: 'Falha ao carregar visualização.',
         previewErrorDescription: 'O agente pode estar offline ou inacessível.',
         previewRetry: 'Tentar novamente',
@@ -1503,6 +1543,13 @@ const pt: Translations = {
         creatingDescription:
             'Isso geralmente leva um ou dois minutos. Você pode fechar esta página com segurança e voltar mais tarde.',
         configuringTitle: 'Instalando OpenClaw',
+        configuringTitleHermes: 'Instalando Hermes',
+        loadingTipHermes1:
+            'Hermes é um agente TUI — abra a aba Terminal após inicializar para conversar com ele.',
+        loadingTipHermes2:
+            'Configure os provedores de modelo (OpenRouter, Anthropic, etc.) em ~/.hermes/.env pela aba Arquivos.',
+        loadingTipHermes3:
+            'Conecte Telegram, Discord ou Slack pelo Terminal com `hermes gateway install`.',
         configuringDescription:
             'Isso geralmente leva um ou dois minutos. Você pode fechar esta página com segurança e voltar mais tarde.',
         awaitingPaymentTitle: 'Aguardando pagamento',
@@ -1608,11 +1655,15 @@ const pt: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'Instalar',
         versionInstalling: 'Instalando...',
         versionInstallSuccess: 'Versão {{version}} instalada com sucesso.',
         versionInstallFailed: 'Falha ao instalar versão!',
+        installVersionCanceledNavigation:
+            'Instalação da versão interrompida porque você saiu da página.',
         versionDownloads: '{{count}} downloads',
         versionChangelog: 'Changelog',
         versionOutdated: 'Desatualizado',
@@ -1650,6 +1701,14 @@ const pt: Translations = {
         settingsSaving: 'Salvando...',
         settingsUpdated: 'Configurações atualizadas.',
         settingsUpdateFailed: 'Falha ao atualizar configurações!',
+        saveCanceledNavigation:
+            'Salvamento interrompido porque você saiu da página.',
+        savePasswordCanceledNavigation:
+            'Salvamento da senha interrompido porque você saiu da página.',
+        saveGatewayTokenCanceledNavigation:
+            'Salvamento do token do gateway interrompido porque você saiu da página.',
+        saveSSHKeyCanceledNavigation:
+            'Salvamento da chave SSH interrompido porque você saiu da página.',
         mockLogStarting: 'Iniciando agente OpenClaw...',
         mockLogLoadingModel: 'Carregando modelo: claude-sonnet-4-5',
         mockLogAgentReady: 'Agente pronto na porta 3000',
@@ -1744,7 +1803,7 @@ const pt: Translations = {
             'Ao acessar e usar o ClawHost ("Serviço"), você aceita e concorda em estar vinculado aos termos e disposições deste acordo. Se você não concorda com estes termos, por favor não use nosso Serviço.',
         serviceTitle: '2. Descrição do Serviço',
         serviceText:
-            'ClawHost fornece implantação do OpenClaw com um clique em servidores dedicados. Permitimos que os usuários implantem, gerenciem e acessem instâncias OpenClaw pré-configuradas com acesso root completo e recursos dedicados.',
+            'ClawHost oferece a implantação em um clique do OpenClaw e Hermes em servidores dedicados. Permitimos aos usuários implantar, gerenciar e acessar instâncias pré-configuradas do OpenClaw e Hermes com acesso root completo e recursos dedicados.',
         authTitle: '3. Autenticação',
         authText:
             'ClawHost usa o Google Firebase Authentication para gerenciar o login. Você pode autenticar com email, Google ou GitHub. Ao usar estes métodos, você concorda com os respectivos termos e políticas de privacidade do Google e GitHub. Estes provedores podem coletar informações básicas como seu endereço de email, nome e dados do dispositivo.',
@@ -1838,7 +1897,7 @@ const pt: Translations = {
             'Os agentes Hermes agora são suportados para implantação no ClawHost.'
     },
     compare: {
-        title: 'Comparação Completa',
+        title: 'Comparação',
         description:
             'Veja como o ClawHost se compara a outras plataformas de hospedagem OpenClaw.',
         badge: 'Comparação',
@@ -1847,9 +1906,9 @@ const pt: Translations = {
         lastUpdated: 'Última atualização: março de 2026',
         competitorClawHost: 'ClawHost',
         competitorLobsterFarm: 'LobsterFarm',
-        competitorSimpleClaw: 'SimpleClaw',
-        competitorMyClawAi: 'MyClaw.ai',
-        competitorQuickClaw: 'QuickClaw',
+        competitorSimpleAgent: 'SimpleAgent',
+        competitorMyAgentAi: 'MyAgent.ai',
+        competitorQuickAgent: 'QuickAgent',
         categoryInfrastructure: 'Infraestrutura',
         categoryPricing: 'Preços e Faturamento',
         categoryDeployment: 'Implantação e Configuração',

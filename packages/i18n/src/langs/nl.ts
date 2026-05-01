@@ -86,7 +86,7 @@ const nl: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'Implementeer OpenClaw.',
         heroTitle2: 'Lokaal. Direct.',
-        badge: 'Binnenkort beschikbaar',
+        badge: 'OpenClaw & Hermes ondersteund',
         description:
             'Een lichte desktopclient om je OpenClaw-instanties te beheren. Deploy, monitor en beheer je claws — rechtstreeks vanaf je computer.',
         features: 'Functies',
@@ -94,7 +94,7 @@ const nl: Translations = {
         featuresDescription:
             'Waarom we het proberen waard zijn, functies liegen hier niet.',
         zeroConfigDescription:
-            'Installeren en starten. Geen serverinstellingen, geen cloudconfiguratie. OpenClaw is binnen seconden klaar.',
+            'Bespaar uren server-, OpenClaw- en Hermes-installatie. Alles is voorgeïnstalleerd en binnen enkele minuten klaar.',
         ownedDataDescription:
             'Alles draait op jouw apparaat. Geen cloudservers, geen derden, geen gegevens die je apparaat verlaten.',
         terminalAccessDescription:
@@ -375,6 +375,7 @@ const nl: Translations = {
         invalidSubdomain:
             'Ongeldig subdomein. Gebruik 3-20 kleine letters en cijfers!',
         subdomainAlreadyInUse: 'Dit subdomein is al in gebruik!',
+        subdomainNotSupported: 'Dit agenttype gebruikt geen subdomein.',
         agentBusy: 'Agent wordt momenteel ingericht of verwijderd!',
         reinstallGatewayNotResponding:
             'Herinstallatie voltooid, maar de gateway reageert nog niet. Het kan meer tijd nodig hebben om op te starten.',
@@ -410,6 +411,7 @@ const nl: Translations = {
         adminAccessDenied: 'Admintoegang vereist!',
         agentsFetched: 'Agents succesvol opgehaald.',
         agentFetched: 'Agent succesvol opgehaald.',
+        agentStarsFetched: 'Agent-sterren succesvol opgehaald.',
         agentSynced: 'Agent succesvol gesynchroniseerd.',
         agentStarted: 'Agent succesvol gestart.',
         agentStopped: 'Agent succesvol gestopt.',
@@ -718,11 +720,15 @@ const nl: Translations = {
         billingReasonSubscriptionCycle: 'Verlenging',
         billingReasonSubscriptionUpdate: 'Abonnementswijziging',
         failedToLoadBilling: 'Factureringsgeschiedenis laden mislukt!',
-        viewInvoice: 'Factuur bekijken',
+        downloadInvoice: 'Factuur downloaden',
+        invoiceCanceledNavigation:
+            'Factuurdownload onderbroken omdat je de pagina hebt verlaten.',
         failedToLoadInvoice: 'Factuur laden mislukt!',
         couponApplied: 'Coupon: {{name}}',
         manageBilling: 'Facturering beheren',
-        failedToLoadPortal: 'Factureringsportaal openen mislukt!'
+        failedToLoadPortal: 'Factureringsportaal openen mislukt!',
+        portalCanceledNavigation:
+            'Factureringsportaal onderbroken omdat je de pagina hebt verlaten.'
     },
     license: {
         title: 'Licentie',
@@ -820,6 +826,7 @@ const nl: Translations = {
         storage: 'Opslag',
         nextBilling: 'Volgende facturering',
         lastBilling: 'Laatste facturering',
+        totalSpent: 'Totaal uitgegeven',
         version: 'Versie',
         gatewayToken: 'Gateway-token',
         gatewayTokenDescription:
@@ -876,6 +883,8 @@ const nl: Translations = {
         fileExplorerReadOnly: 'Alleen-lezen',
         fileExplorerSave: 'Opslaan',
         fileExplorerSaved: 'Bestand opgeslagen.',
+        fileExplorerSaveCanceledNavigation:
+            'Bestand opslaan onderbroken omdat je de pagina hebt verlaten.',
         fileExplorerInvalidJson:
             'Ongeldige JSON. Herstel syntaxfouten voordat je opslaat!',
         fileExplorerNoFiles: 'Geen bestanden gevonden',
@@ -892,19 +901,30 @@ const nl: Translations = {
             'Dit zal {{agentName}} volledig herinstalleren op deze instantie. Alle configuraties, agents en gegevens worden gereset. Deze actie kan niet ongedaan worden gemaakt. Doorgaan?',
         reinstallInstanceSuccess: 'Instantie succesvol geherinstalleerd.',
         reinstallInstanceFailed: 'Instantie herinstalleren mislukt!',
+        reinstallCanceledNavigation:
+            'Herinstallatie onderbroken omdat je de pagina hebt verlaten.',
         openControlPanel: 'Configuratiepaneel openen',
         exportData: 'Claw exporteren (.zip)',
         exportAgent: 'Exporteren',
-        exportAgentButton: 'OpenClaw exporteren',
+        exportAgentButton: 'Gegevens exporteren',
         exportAgentTooltip:
             'Download deze agent en al zijn gegevens als .zip-bestand.',
+        exportAgentInProgress:
+            'Exporteren kan enkele minuten duren voor grotere agents.',
         exportStarted: 'Export wordt voorbereid, dit kan even duren...',
         exportSuccess: 'Claw succesvol ge\u00ebxporteerd.',
         exportFailed: 'Claw-gegevens exporteren mislukt!',
+        exportCanceledNavigation:
+            'Export geannuleerd omdat je de pagina hebt verlaten.',
+        scheduleDeletionCanceledNavigation:
+            'Geplande verwijdering onderbroken omdat je de pagina hebt verlaten.',
+        cancelDeletionCanceledNavigation:
+            'Annulering van verwijdering onderbroken omdat je de pagina hebt verlaten.',
+        hardDeleteCanceledNavigation:
+            'Geforceerde verwijdering onderbroken omdat je de pagina hebt verlaten.',
         exportRateLimited:
             'Je kunt opnieuw exporteren over {{minutes}} minuten.',
-        exportRateLimitedSeconds:
-            'Je kunt opnieuw exporteren over {{seconds}} seconden.',
+        exportRateLimitedOne: 'Je kunt opnieuw exporteren over 1 minuut.',
         configuringTooltip:
             'Dit kan even duren. Het hangt af van OpenClaw, de serverlocatie en Cloudflare DNS.',
         paymentSuccess: 'Je claw wordt aangemaakt en geconfigureerd.',
@@ -950,8 +970,10 @@ const nl: Translations = {
             'Alleen letters, cijfers en streepjes zijn toegestaan!',
         autoGenerateNameHint: 'Laat leeg om automatisch een naam te genereren.',
         agentType: 'Agenttype',
-        agentTypeOpenClawDescription: '{{count}} installaties',
-        agentTypeHermesDescription: '{{count}} installaties',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} sterren',
+        agentTypeHermesDescription: '{{count}} sterren',
         location: 'Locatie',
         locationUnavailable: 'Niet beschikbaar',
         locationUnavailableForPlan: 'Niet beschikbaar',
@@ -1065,6 +1087,9 @@ const nl: Translations = {
         badge: 'OpenClaw vereenvoudigd',
         tutorialBadge: 'Bekijk. Deploy.',
         tutorialVideoThumbnail: 'ClawHost handleiding videominiatuur',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: 'Implementeer OpenClaw.',
         heroTitle2: 'E\u00e9n klik. Klaar.',
         heroDescription:
@@ -1089,7 +1114,7 @@ const nl: Translations = {
             'Dedicated VPS-resources betekenen geen throttling, volledige bandbreedte en razendsnel internet.',
         globalLocations: 'Wereldwijde locaties',
         globalLocationsDescription:
-            "Implementeer OpenClaw in meerdere wereldwijde regio's en kies de locatie die het dichtst bij je is.",
+            "Implementeer OpenClaw en Hermes in meerdere wereldwijde regio's en kies de locatie die het dichtst bij je is.",
         fullSshAccess: 'Directe SSH-toegang',
         fullSshAccessDescription:
             'Krijg direct toegang tot je serverterminal vanuit het platform. Geen externe SSH-clients nodig.',
@@ -1099,21 +1124,24 @@ const nl: Translations = {
         payAsYouGo: 'Eenvoudige prijzen',
         payAsYouGoDescription:
             'Prijzen gebaseerd op wat je nodig hebt. Geen gedwongen hoge rekeningen voor servers van lage kwaliteit. Annuleer wanneer je wilt.',
+        bringYourCredits: 'Neem je eigen credits mee',
+        bringYourCreditsDescription:
+            'Gebruik je eigen Anthropic API-sleutel of Claude-abonnement. Betaal Anthropic direct — geen toeslag.',
         customSubdomains: 'Online toegang',
         customSubdomainsDescription:
             'Vergeet lokale netwerken. Krijg veilig toegang tot je OpenClaw vanaf overal met een subdomein.',
         autoUpdates: 'Versiebeheer',
         autoUpdatesDescription:
-            'Schakel met \u00e9\u00e9n klik naar elke OpenClaw-versie. Blijf altijd up-to-date of rol terug wanneer nodig.',
-        openclawControl: 'OpenClaw Control',
+            'Schakel met één klik naar elke OpenClaw- of Hermes-versie. Blijf altijd up-to-date of rol terug wanneer nodig.',
+        openclawControl: 'Servermonitoring',
         openclawControlDescription:
-            'Krijg direct toegang tot het native OpenClaw-paneel vanuit ClawHost. Volledige bewerkingstoegang tot alles wat OpenClaw biedt.',
+            'Monitor je OpenClaw- en Hermes-servers met realtime metrics, logs en diagnostiek.',
         clawHostControl: 'Volledige servertoegang',
         clawHostControlDescription:
             'Browserterminal, bestandsverkenner, logs, diagnostiek en versiebeheer — alles vanuit je dashboard.',
-        multipleClaws: 'Meerdere Claws',
+        multipleClaws: 'Meerdere agenten',
         multipleClawsDescription:
-            'Deploy en beheer meerdere OpenClaw-instanties vanuit \u00e9\u00e9n dashboard. Schaal mee naarmate je groeit.',
+            'Deploy en beheer meerdere OpenClaw- en Hermes-agenten vanuit \u00e9\u00e9n dashboard. Schaal mee naarmate je groeit.',
         pricing: 'Prijzen',
         simpleTransparentPricing: 'Eenvoudige, transparante prijzen',
         pricingDescription:
@@ -1156,7 +1184,7 @@ const nl: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'Plan kiezen',
         mostPopular: 'Meest populair',
-        featurePreinstalled: 'OpenClaw voorgeïnstalleerd',
+        featurePreinstalled: 'Agent vooraf geïnstalleerd',
         featureBandwidth: 'Onbeperkte bandbreedte',
         featureSsh: 'Root SSH-toegang',
         featureUptime: '24/7 online',
@@ -1169,26 +1197,29 @@ const nl: Translations = {
         faqDescription: 'Elke veelgestelde vraag, beantwoord.',
         faq1Question: 'Wat is ClawHost?',
         faq1Answer:
-            'ClawHost is een platform gebouwd om OpenClaw toegankelijk te maken voor iedereen. Het laat zowel niet-technische gebruikers als ontwikkelaars OpenClaw draaien zonder infrastructuur te beheren. Wij regelen servers, uptime, beveiliging en onderhoud \u2014 jij gebruikt gewoon OpenClaw.',
+            'ClawHost is een platform dat OpenClaw en Hermes voor iedereen toegankelijk maakt. Zowel niet-technische gebruikers als ontwikkelaars kunnen ze draaien zonder infrastructuur te beheren. Wij regelen servers, uptime, beveiliging en onderhoud — jij gebruikt gewoon je agents.',
         faq2Question: 'Wat is OpenClaw?',
         faq2Answer:
             'OpenClaw is een zelfgehoste beveiligde toegangslaag voor je AI-tools en -diensten. Het is voorgeconfigureerd voor beveiliging en prestaties, zodat je het kunt deployen en direct kunt verbinden.',
+        faqHermesQuestion: 'Wat is Hermes?',
+        faqHermesAnswer:
+            'Hermes is een autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering. Hij is op elke ClawHost-server vooraf geïnstalleerd naast OpenClaw.',
         faq3Question:
             'Hoe verschilt dit van andere AI-tools of gehoste platforms?',
         faq3Answer:
-            'In tegenstelling tot gehoste AI-tools geeft ClawHost je een echte server met OpenClaw ge\u00efnstalleerd. Je bezit de infrastructuur, hebt overal controle over en wordt niet beperkt door een gedeeld platform of model.',
+            'In tegenstelling tot gehoste AI-tools krijg je met ClawHost een echte server met OpenClaw en Hermes geïnstalleerd. Je bezit de infrastructuur, beheert alles en wordt niet beperkt door een gedeeld platform of model.',
         faq4Question: 'Heb ik technische kennis nodig?',
         faq4Answer:
-            'Nee. Wij regelen alle infrastructuur, installatie en onderhoud. Je kunt OpenClaw configureren en beheren via de UI en gebruik aanpassen \u2014 zonder servers of infrastructuur aan te raken.',
+            'Nee. Wij regelen alle infrastructuur, installatie en onderhoud. Je kunt OpenClaw via de UI configureren en beheren, terwijl Hermes via eenvoudige terminalcommando’s draait — zonder zelf servers of infrastructuur aan te raken.',
         faq5Question: 'Welke locaties zijn beschikbaar?',
         faq5Answer:
             "We bieden meerdere serverlocaties wereldwijd, waaronder de VS, Europa en meer. Je kunt OpenClaw indien nodig op meerdere servers in verschillende regio's implementeren.",
         faq6Question: 'Hoeveel kost het?',
         faq6Answer:
             'De prijzen zijn afhankelijk van de server die je selecteert. Met meerdere serveropties van instapniveau tot hoge prestaties kies je wat past bij je behoeften en budget.',
-        faq7Question: 'Kan ik mijn server direct benaderen?',
+        faq7Question: 'Kan ik mijn agent direct via een link benaderen?',
         faq7Answer:
-            'Ja. Naast OpenClaw-toegang via subdomein-URL heb je volledige toegang tot de server en de onderliggende infrastructuur, wat je complete vrijheid geeft om alles aan te passen en te draaien wat je nodig hebt.',
+            'OpenClaw is bereikbaar via een subdomein-URL met volledige web-UI. Hermes draait via terminalcommando’s over SSH — geen link, maar volledige controle vanuit het terminal van je server.',
         comparison: 'Vergelijking',
         comparisonTitle: 'Hoe wij anders zijn',
         comparisonDescription:
@@ -1207,11 +1238,11 @@ const nl: Translations = {
         comparisonInfraOthers: 'Beperkte servers',
         comparisonDataUs: 'Bezit je eigen data',
         comparisonDataOthers: 'Bezit je data niet',
-        comparisonMultipleUs: 'Meerdere OpenClaw, \u00e9\u00e9n Claw',
+        comparisonMultipleUs: 'Meerdere OpenClaw- en Hermes-agents',
         comparisonMultipleOthers: 'Alleen \u00e9\u00e9n OpenClaw',
         comparisonOpenSourceUs: 'Volledig open source',
         comparisonOpenSourceOthers: 'Gesloten broncode',
-        comparisonExportUs: 'Exporteer je OpenClaw overal naartoe',
+        comparisonExportUs: 'Exporteer OpenClaw en Hermes overal',
         comparisonExportOthers: 'Vendorlock-in',
         comparisonProvidersUs: 'Meerdere serverproviders',
         comparisonProvidersOthers: 'Slechts \u00e9\u00e9n provider',
@@ -1221,15 +1252,15 @@ const nl: Translations = {
         comparisonTerminalOthers: 'SSH-client vereist',
         seeFullComparison: 'Volledige vergelijking bekijken',
         comparisonCtaText:
-            'We vergelijken met SimpleClaw, MyClaw.ai en meer \u2014 functie voor functie.',
+            'We vergelijken met SimpleAgent, MyAgent.ai en meer \u2014 functie voor functie.',
         selfHostInstead: 'Zelf hosten'
     },
     blog: {
         readingTime: '{{minutes}} min leestijd',
-        ctaTitle: 'Deploy OpenClaw met \u00e9\u00e9n klik',
+        ctaTitle: 'Deploy OpenClaw en Hermes met één klik',
         ctaDescription:
-            'Krijg een dedicated server met OpenClaw voorge\u00efnstalleerd. Volledige root-toegang, wereldwijde locaties en klaar in minuten. Het is altijd van jou. Vanaf $25.',
-        ctaDeploy: 'Implementeer OpenClaw',
+            'Krijg een dedicated server met OpenClaw en Hermes vooraf geïnstalleerd. Volledige root-toegang, wereldwijde locaties en klaar in minuten. Hij is altijd van jou. Vanaf $25.',
+        ctaDeploy: 'Agent deployen',
         ctaGitHub: 'Bekijk op GitHub'
     },
     changelog: {
@@ -1250,12 +1281,14 @@ const nl: Translations = {
             '10 nieuwe talen toegevoegd: Chinees, Hindi, Arabisch, Russisch, Japans, Turks, Italiaans, Pools, Nederlands en Portugees',
         release14Feature4:
             'Interne tools voor stabiele functieondersteuning voor huidige OpenClaw-versies, zonder ondersteuning voor oudere versies',
-        release17Date: '29 april 2026',
-        release17Title: 'Hermes Agent Support',
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
         release17Description:
-            'Eén-klik deployment voor Hermes-agenten op ClawHost, net als OpenClaw.',
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
         release17Feature1:
-            'Eén-klik deployment voor Hermes-agenten zoals OpenClaw',
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1446,6 +1479,11 @@ const nl: Translations = {
         overviewUnsupportedTitle: 'Overzicht niet ondersteund',
         overviewUnsupportedDescription:
             'Uw OpenClaw-versie ondersteunt de overzichtsfunctie niet. Werk bij naar de nieuwste versie.',
+        overviewHermesTitle: 'Hermes draait in de terminal',
+        overviewHermesDescription:
+            'Hermes is een TUI-agent — open het tabblad Terminal en voer `hermes` uit om een sessie te starten. Met de tabbladen Bestanden en Versies kunt u de configuratie bewerken en bijwerken.',
+        overviewHermesOpenTerminal: 'Terminal openen',
+        viewDocs: 'Documentatie',
         overviewUptimeDays: '{{days}}d {{hours}}u {{minutes}}m',
         overviewUptimeHours: '{{hours}}u {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1479,6 +1517,8 @@ const nl: Translations = {
         previewEnabling: 'Inschakelen...',
         previewEnabled: 'Voorbeeld ingeschakeld.',
         previewEnableFailed: 'Voorbeeld inschakelen mislukt!',
+        previewEnableCanceledNavigation:
+            'Voorbeeld inschakelen onderbroken omdat je de pagina hebt verlaten.',
         previewError: 'Voorbeeld kon niet worden geladen.',
         previewErrorDescription:
             'De agent is mogelijk offline of onbereikbaar.',
@@ -1498,6 +1538,13 @@ const nl: Translations = {
         creatingDescription:
             'Dit duurt meestal een minuut of twee. Je kunt deze pagina veilig sluiten en later terugkomen.',
         configuringTitle: 'OpenClaw wordt geïnstalleerd',
+        configuringTitleHermes: 'Hermes wordt geïnstalleerd',
+        loadingTipHermes1:
+            'Hermes is een TUI-agent — open na het opstarten het tabblad Terminal om ermee te chatten.',
+        loadingTipHermes2:
+            'Configureer modelproviders (OpenRouter, Anthropic, enz.) in ~/.hermes/.env via het tabblad Bestanden.',
+        loadingTipHermes3:
+            'Verbind Telegram, Discord of Slack vanuit de Terminal met `hermes gateway install`.',
         configuringDescription:
             'Dit duurt meestal een minuut of twee. Je kunt deze pagina veilig sluiten en later terugkomen.',
         awaitingPaymentTitle: 'Wacht op betaling',
@@ -1603,12 +1650,16 @@ const nl: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'Installeren',
         versionInstalling: 'Installeren...',
         versionInstallSuccess:
             'Versie {{version}} succesvol ge\u00efnstalleerd.',
         versionInstallFailed: 'Versie installeren mislukt!',
+        installVersionCanceledNavigation:
+            'Versie-installatie onderbroken omdat je de pagina hebt verlaten.',
         versionDownloads: '{{count}} downloads',
         versionChangelog: 'Changelog',
         versionOutdated: 'Verouderd',
@@ -1645,6 +1696,14 @@ const nl: Translations = {
         settingsSaving: 'Opslaan...',
         settingsUpdated: 'Instellingen bijgewerkt.',
         settingsUpdateFailed: 'Instellingen bijwerken mislukt!',
+        saveCanceledNavigation:
+            'Opslaan onderbroken omdat je de pagina hebt verlaten.',
+        savePasswordCanceledNavigation:
+            'Wachtwoord opslaan onderbroken omdat je de pagina hebt verlaten.',
+        saveGatewayTokenCanceledNavigation:
+            'Gateway-token opslaan onderbroken omdat je de pagina hebt verlaten.',
+        saveSSHKeyCanceledNavigation:
+            'SSH-sleutel opslaan onderbroken omdat je de pagina hebt verlaten.',
         mockLogStarting: 'OpenClaw-agent starten...',
         mockLogLoadingModel: 'Model laden: claude-sonnet-4-5',
         mockLogAgentReady: 'Agent gereed op poort 3000',
@@ -1737,7 +1796,7 @@ const nl: Translations = {
             'Door ClawHost ("Service") te openen en te gebruiken, accepteer je en ga je akkoord met de voorwaarden en bepalingen van deze overeenkomst. Als je niet akkoord gaat met deze voorwaarden, gebruik onze Service dan niet.',
         serviceTitle: '2. Beschrijving van de Service',
         serviceText:
-            'ClawHost biedt OpenClaw-deployment met \u00e9\u00e9n klik op dedicated servers. Wij stellen gebruikers in staat om vooraf geconfigureerde OpenClaw-instanties te deployen, beheren en openen met volledige root-toegang en dedicated resources.',
+            'ClawHost biedt one-click deployment van OpenClaw en Hermes op dedicated servers. We stellen gebruikers in staat om vooraf geconfigureerde OpenClaw- en Hermes-instanties met volledige root-toegang en dedicated resources te deployen, beheren en benaderen.',
         authTitle: '3. Authenticatie',
         authText:
             'ClawHost gebruikt Google Firebase Authentication om inloggen te beheren. Je kunt authenticeren met e-mail, Google of GitHub. Door deze methoden te gebruiken, ga je akkoord met de respectieve voorwaarden en het privacybeleid van Google en GitHub. Deze providers kunnen basisinformatie verzamelen zoals je e-mailadres, naam en apparaatgegevens.',
@@ -1831,7 +1890,7 @@ const nl: Translations = {
             'Hermes-agenten worden nu ondersteund voor deployment op ClawHost.'
     },
     compare: {
-        title: 'Volledige vergelijking',
+        title: 'Vergelijking',
         description:
             'Bekijk hoe ClawHost zich verhoudt tot andere OpenClaw-hostingplatforms.',
         badge: 'Vergelijking',
@@ -1840,9 +1899,9 @@ const nl: Translations = {
         lastUpdated: 'Laatst bijgewerkt: maart 2026',
         competitorClawHost: 'ClawHost',
         competitorLobsterFarm: 'LobsterFarm',
-        competitorSimpleClaw: 'SimpleClaw',
-        competitorMyClawAi: 'MyClaw.ai',
-        competitorQuickClaw: 'QuickClaw',
+        competitorSimpleAgent: 'SimpleAgent',
+        competitorMyAgentAi: 'MyAgent.ai',
+        competitorQuickAgent: 'QuickAgent',
         categoryInfrastructure: 'Infrastructuur',
         categoryPricing: 'Prijzen & facturering',
         categoryDeployment: 'Deployment & installatie',

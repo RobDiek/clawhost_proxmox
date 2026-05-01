@@ -1,4 +1,5 @@
 const subscriptionStatus = {
+    pending: 'pending',
     active: 'active',
     canceled: 'canceled',
     incomplete: 'incomplete',
@@ -9,4 +10,4 @@ const subscriptionStatus = {
     revoked: 'revoked'
 } as const
 
-export default subscriptionStatus
+export { subscriptionStatus }

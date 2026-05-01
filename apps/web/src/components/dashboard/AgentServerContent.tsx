@@ -15,9 +15,13 @@ import {
 import { Button, Skeleton } from '@/components/ui'
 import { CopyableField } from '@/components/dashboard'
 import { ConfirmationDialog } from '@/components/shared'
-import { api, copyToClipboard } from '@/lib'
-import { useReinstallAgent, useToast } from '@/hooks'
-import { getAgentDisplayName, locationFlags, locationNames } from '@/lib/agent-utils'
+import { api, copyToClipboard, handleAbortToast } from '@/lib'
+import { useReinstallAgent, useToast, useAbortController } from '@/hooks'
+import {
+    getAgentDisplayName,
+    locationFlags,
+    locationNames
+} from '@/lib/agent-utils'
 import { TOAST_TYPE } from '@/lib/constants'
 import { useUIStore } from '@/lib/store'
 
@@ -29,6 +33,7 @@ const AgentServerContent: FC<AgentServerContentProps> = ({
     const toast = useToast()
     const { showToast } = useUIStore()
     const reinstallMutation = useReinstallAgent()
+    const getReinstallSignal = useAbortController()
 
     const [loading, setLoading] = useState(true)
     const [rootPassword, setRootPassword] = useState<string | null>(null)
@@ -76,23 +81,34 @@ const AgentServerContent: FC<AgentServerContentProps> = ({
     )
 
     const handleReinstall = useCallback(() => {
-        reinstallMutation.mutate(agent.id, {
-            onSuccess: () => {
-                setShowReinstallModal(false)
-                showToast(
-                    t('dashboard.reinstallInstanceSuccess'),
-                    TOAST_TYPE.SUCCESS
-                )
-            },
-            onError: (err: Error) => {
-                setShowReinstallModal(false)
-                showToast(
-                    err.message || t('dashboard.reinstallInstanceFailed'),
-                    TOAST_TYPE.ERROR
-                )
+        reinstallMutation.mutate(
+            { id: agent.id, signal: getReinstallSignal() },
+            {
+                onSuccess: () => {
+                    setShowReinstallModal(false)
+                    showToast(
+                        t('dashboard.reinstallInstanceSuccess'),
+                        TOAST_TYPE.SUCCESS
+                    )
+                },
+                onError: (err: Error) => {
+                    setShowReinstallModal(false)
+                    if (
+                        handleAbortToast(
+                            err,
+                            showToast,
+                            'dashboard.reinstallCanceledNavigation'
+                        )
+                    )
+                        return
+                    showToast(
+                        err.message || t('dashboard.reinstallInstanceFailed'),
+                        TOAST_TYPE.ERROR
+                    )
+                }
             }
-        })
-    }, [agent.id, reinstallMutation, showToast])
+        )
+    }, [agent.id, reinstallMutation, showToast, getReinstallSignal])
 
     if (loading) {
         return (
@@ -183,7 +199,9 @@ const AgentServerContent: FC<AgentServerContentProps> = ({
                         </h4>
                     </div>
                     <p className='text-muted-foreground mb-3 text-sm'>
-                        {t('clawDetail.reinstallDescription', { agentName: getAgentDisplayName(agent.agentType) })}
+                        {t('clawDetail.reinstallDescription', {
+                            agentName: getAgentDisplayName(agent.agentType)
+                        })}
                     </p>
                     <Button
                         variant='destructive'
@@ -203,7 +221,9 @@ const AgentServerContent: FC<AgentServerContentProps> = ({
                 open={showReinstallModal}
                 onOpenChange={setShowReinstallModal}
                 title={t('dashboard.reinstallClaw')}
-                description={t('dashboard.reinstallClawConfirmation', { agentName: getAgentDisplayName(agent.agentType) })}
+                description={t('dashboard.reinstallClawConfirmation', {
+                    agentName: getAgentDisplayName(agent.agentType)
+                })}
                 confirmLabel={t('common.confirm')}
                 onConfirm={handleReinstall}
                 isPending={reinstallMutation.isPending}

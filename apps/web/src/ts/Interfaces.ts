@@ -1,6 +1,9 @@
 import type {
+    ComponentType,
     ElementType,
+    FC,
     FormEvent,
+    MouseEvent,
     MutableRefObject,
     ReactNode,
     RefObject
@@ -373,7 +376,13 @@ export interface LogoProps {
 }
 
 export interface IconProps {
-    size?: number
+    size?: number | string
+    className?: string
+}
+
+export interface AgentTypeMascotProps {
+    agentType?: AgentType | null
+    className?: string
 }
 
 export interface NavLink {
@@ -389,6 +398,7 @@ export interface AgentMascotProps {
 export interface AgentAvatarProps {
     emoji?: string | null
     emojiColor?: string | null
+    agentType?: AgentType | null
     size?: AgentAvatarSize
     className?: string
 }
@@ -408,8 +418,8 @@ export interface ScrollRevealV2Props {
 }
 
 export interface DitherHoverHandlers {
-    onMouseMove: (e: import('react').MouseEvent<HTMLElement>) => void
-    onMouseLeave: (e: import('react').MouseEvent<HTMLElement>) => void
+    onMouseMove: (e: MouseEvent<HTMLElement>) => void
+    onMouseLeave: (e: MouseEvent<HTMLElement>) => void
     resetDither: (el: HTMLElement | null) => void
 }
 
@@ -444,9 +454,6 @@ export interface UserDropdownProps {
     onOpen?: () => void
     hideSSHKeys?: boolean
     hideSignOut?: boolean
-    footerLinks?: FooterLink[]
-    openLinksWindowed?: boolean
-    appVersion?: string
 }
 
 export interface EmptyStateProps {
@@ -563,10 +570,6 @@ export interface AgentCardActions {
     onResumeCheckout: () => void
     onCancelPending: () => void
     onUpdatePayment: () => void
-}
-
-export interface ExportRateLimitError extends Error {
-    retryAfter: number
 }
 
 export interface AgentCredentialsDialogProps {
@@ -745,6 +748,13 @@ export interface PurchaseAgentData {
     billingInterval?: 'month' | 'year'
 }
 
+export interface CreateLocalAgentData {
+    name?: string
+    agentType?: string
+    gatewayToken?: string
+    password?: string
+}
+
 export interface DeleteAgentResponse {
     scheduled: boolean
     deletionScheduledAt?: string
@@ -846,6 +856,15 @@ export interface AgentVersionsResponse {
 
 export interface InstallAgentVersionResponse {
     version: string
+}
+
+export interface AgentStarCount {
+    agentType: string
+    stars: number
+}
+
+export interface AgentStarsResponse {
+    stars: AgentStarCount[]
 }
 
 export interface AgentVersionsContentProps {
@@ -964,7 +983,9 @@ export interface AgentOverviewResponse {
 
 export interface AgentOverviewContentProps {
     agentId: string
+    agentType?: AgentType | null
     readOnly?: boolean
+    onSwitchToTerminal?: () => void
 }
 
 export interface OverviewGatewayCardProps {
@@ -1093,6 +1114,30 @@ export interface UpdateAgentFileData {
 export interface UpdateAgentFileParams {
     id: string
     data: UpdateAgentFileData
+    signal?: AbortSignal
+}
+
+export interface RotatePasswordMutationParams {
+    id: string
+    password?: string
+    signal?: AbortSignal
+}
+
+export interface RotateGatewayTokenMutationParams {
+    id: string
+    token?: string
+    signal?: AbortSignal
+}
+
+export interface UpdateAgentSSHKeyMutationParams {
+    id: string
+    sshKeyId: string | null
+    signal?: AbortSignal
+}
+
+export interface InstallAgentVersionMutationParams {
+    version: string
+    signal: AbortSignal
 }
 
 export interface AgentDiagnosticsDialogProps {
@@ -1224,6 +1269,7 @@ export interface AgentDetailPanelProps {
 
 export interface UpdateAvailableBannerProps {
     latestVersion: string
+    agentType?: AgentType | null
     onGoToVersions: () => void
 }
 
@@ -1240,8 +1286,17 @@ export interface AgentBillingSubscriptionProps {
 }
 
 export interface AgentBillingHistoryProps {
-    polarSubscriptionId: string | null
+    agentId: string
     readOnly?: boolean
+}
+
+export interface ManageBillingButtonProps {
+    agent: Agent
+}
+
+export interface TotalSpentTileProps {
+    loading: boolean
+    value: string | null
 }
 
 export interface AgentDetailSettingsTabProps {
@@ -1277,6 +1332,7 @@ export interface ColorSwatchProps {
 export interface EmojiColorPickerProps {
     emoji: string | null
     emojiColor: string | null
+    agentType?: AgentType | null
     onEmojiChange: (emoji: string | null, color: string | null) => void
 }
 
@@ -1301,14 +1357,14 @@ export interface AgentDetailHeaderProps {
     onClose: () => void
     fullScreen?: boolean
     versionDisplay?: string | null
+    versionLoading?: boolean
     readOnly?: boolean
 }
 
 export interface AgentDetailTabBarProps {
     activeTab: AgentDetailTab
     fullScreen?: boolean
-    isTabDisabled: (tabId: AgentDetailTab) => boolean
-    getDisabledTooltip: (tabId: AgentDetailTab) => string
+    hiddenTabs?: AgentDetailTab[]
     setActiveTab: (tab: AgentDetailTab) => void
 }
 
@@ -1547,16 +1603,24 @@ export interface OAuthWindowResult {
 
 export interface RenameAgentMutationParams extends RenameAgentData {
     id: string
+    signal?: AbortSignal
 }
 
 export interface UpdateAgentSubdomainMutationParams extends UpdateAgentSubdomainData {
     id: string
+    signal?: AbortSignal
 }
 
 export interface UpdateAgentEmojiMutationParams {
     id: string
     emoji: string | null
     emojiColor: string | null
+    signal?: AbortSignal
+}
+
+export interface AgentIdMutationParams {
+    id: string
+    signal?: AbortSignal
 }
 
 export interface SelectContextValue {
@@ -1684,6 +1748,8 @@ export interface AdvancedOptionsProps {
     volumePricing?: VolumePricing
     volumeSize: number
     onVolumeSizeChange: (size: number) => void
+    hideInfrastructureOptions?: boolean
+    selectedAgentType?: AgentType
 }
 
 export interface OrderSummaryProps {
@@ -1694,6 +1760,43 @@ export interface OrderSummaryProps {
     billingCycle: BillingInterval
     volumeSize: number
     volumePricing?: VolumePricing
+}
+
+export interface AgentTypeOption {
+    type: AgentType
+    Icon: FC<IconProps>
+    nameKey: TranslationKey
+    descriptionKey: TranslationKey
+    docsUrl: string
+}
+
+export interface AgentNameFieldProps {
+    name: string
+    nameError?: string
+    onChange: (name: string) => void
+}
+
+export interface AgentTypeSelectorProps {
+    selectedAgentType: AgentType
+    onAgentTypeChange: (type: AgentType) => void
+    starsFor: (type: AgentType) => string
+}
+
+export interface TermsAgreementProps {
+    agreedToTerms: boolean
+    onAgreedChange: (agreed: boolean) => void
+}
+
+export interface CreateAgentSubmitActionsProps {
+    isLocal: boolean
+    isCreatingLocal: boolean
+    isPurchasing: boolean
+    selectedPlan?: Plan
+    location: string
+    nameError?: string
+    agreedToTerms: boolean
+    totalAmount: string
+    onCancel: () => void
 }
 
 export interface AffiliatePaymentEntry {
@@ -2122,9 +2225,6 @@ export interface DashboardHeaderProps {
     displayName: string
     dnsSetup: boolean | null
     dnsLoading: boolean
-    openLinksWindowed: boolean
-    appVersion: string | null
-    dropdownFooterLinks: FooterLink[]
     onCreateClick: () => void
     onDnsSetup: () => void
     onSignOut: () => Promise<void>
@@ -2160,7 +2260,6 @@ export interface ChatSidebarTreeViewProps {
 export interface ChatSidebarSearchProps {
     value: string
     onChange: (value: string) => void
-    agentCount: number
 }
 
 export interface ChatSidebarAgentHeaderProps {
@@ -2222,6 +2321,7 @@ export interface UsePaginationStateReturn<T> {
 
 export interface AgentPendingViewProps {
     status: string
+    agentType?: AgentType | null
     checkoutUrl?: string | null
     onCancel?: () => void
     cancelPending?: boolean
@@ -2241,6 +2341,10 @@ export interface BillingStatusConfig {
 
 export interface BillingStatusBadgeProps {
     status: string
+}
+
+export interface BetaBadgeProps {
+    version?: string
 }
 
 export interface CompareTableMobileProps {
@@ -2305,4 +2409,36 @@ export interface OtpCodeStepProps {
     onVerify: () => void
     onResend: () => void
     onChangeEmail: () => void
+}
+
+export interface UseRoutePrefetchReturn {
+    prefetchRoute: (path: string) => void
+}
+
+export interface UseMetricsHistoryReturn {
+    cpuHistory: MetricsHistoryPoint[]
+    memHistory: MetricsHistoryPoint[]
+}
+
+export interface UsageColors {
+    high: string
+    medium: string
+    low: string
+}
+
+export interface EmojiSelectEvent {
+    native: string
+}
+
+export interface EnablePreviewResponse {
+    enabled: boolean
+}
+
+export interface VolumeStatusEntry {
+    icon: ReactNode
+    className: string
+}
+
+export interface MdxComponentModule {
+    default: ComponentType
 }

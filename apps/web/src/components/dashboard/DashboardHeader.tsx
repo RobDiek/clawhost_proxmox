@@ -1,10 +1,9 @@
 import type { FC, ReactNode } from 'react'
-import type { DashboardHeaderProps, ElectronWindow } from '@/ts/Interfaces'
+import type { DashboardHeaderProps } from '@/ts/Interfaces'
 
 import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
 import {
-    BetaBadge,
     LanguageSelector,
     Logo,
     SupportButton,
@@ -21,9 +20,6 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
     displayName,
     dnsSetup,
     dnsLoading,
-    openLinksWindowed,
-    appVersion,
-    dropdownFooterLinks,
     onCreateClick,
     onDnsSetup,
     onSignOut
@@ -31,11 +27,7 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
     return (
         <Fragment>
             <div className='border-border bg-background md:bg-background/80 relative z-10 flex items-center justify-between border-b px-6 py-3 md:backdrop-blur-xl'>
-                <div className='flex items-center gap-3'>
-                    <Logo />
-                    {(window as unknown as ElectronWindow).electronAPI
-                        ?.isDesktop && <BetaBadge />}
-                </div>
+                <Logo />
 
                 <div className='flex items-center gap-1.5 sm:gap-3'>
                     {!isLoading &&
@@ -66,12 +58,6 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
                         displayName={displayName}
                         onSignOut={onSignOut}
                         hideSSHKeys={isLocal}
-                        hideSignOut={isLocal}
-                        footerLinks={dropdownFooterLinks}
-                        openLinksWindowed={
-                            isLocal ? openLinksWindowed : undefined
-                        }
-                        appVersion={appVersion || undefined}
                     />
                 </div>
             </div>

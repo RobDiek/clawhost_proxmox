@@ -31,7 +31,11 @@ const AgentConfigContent: FC<AgentFileExplorerContentProps> = ({
         : liveFiles
     const [searchQuery, setSearchQuery] = useState('')
 
-    const editor = useFileEditor({ agentId, files: files.data?.files, readOnly })
+    const editor = useFileEditor({
+        agentId,
+        files: files.data?.files,
+        readOnly
+    })
 
     const filteredFiles = files.data?.files.filter((file) =>
         searchQuery === ''

@@ -11,8 +11,8 @@ import {
 } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
-import { ListIcon, XIcon } from '@phosphor-icons/react'
-import { EmptyState, AgentMascot } from '@/components'
+import { ListIcon, XIcon, GhostIcon } from '@phosphor-icons/react'
+import { EmptyState } from '@/components'
 import { AgentDetailPanel } from '@/components/dashboard'
 import { ChatSidebar } from '@/components/chat'
 import { ChatEmptyState } from '@/components/chat'
@@ -96,7 +96,12 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                 <div className='flex h-full min-w-0 flex-1 items-center justify-center'>
                     <div className='-mt-20'>
                         <EmptyState
-                            icon={<AgentMascot className='h-10 w-10' />}
+                            icon={
+                                <GhostIcon
+                                    weight='fill'
+                                    className='h-10 w-10'
+                                />
+                            }
                             title={
                                 adminMode
                                     ? t('dashboard.adminNoClaws')

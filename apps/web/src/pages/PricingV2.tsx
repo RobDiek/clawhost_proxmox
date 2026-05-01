@@ -62,23 +62,41 @@ const PricingV2: FC = (): ReactNode => {
             <HeaderV2 showNavLinks={true} navLinks={navLinks} />
 
             <main className='v2-content pt-14'>
-                <PricingSectionV2
-                    hideBorderTop={true}
-                    plans={hetznerPlans}
-                />
+                <PricingSectionV2 hideBorderTop={true} plans={hetznerPlans} />
 
                 <FaqSectionV2
                     badge={t('landing.faqTitle')}
                     heading={t('landing.frequentlyAskedQuestions')}
                     description={t('landing.faqDescription')}
                     faqs={[
-                        { question: t('v2.faq1Question'), answer: t('v2.faq1Answer') },
-                        { question: t('v2.faq2Question'), answer: t('v2.faq2Answer') },
-                        { question: t('v2.faq3Question'), answer: t('v2.faq3Answer') },
-                        { question: t('v2.faq4Question'), answer: t('v2.faq4Answer') },
-                        { question: t('v2.faq5Question'), answer: t('v2.faq5Answer') },
-                        { question: t('v2.faq6Question'), answer: t('v2.faq6Answer') },
-                        { question: t('v2.faq7Question'), answer: t('v2.faq7Answer') }
+                        {
+                            question: t('v2.faq1Question'),
+                            answer: t('v2.faq1Answer')
+                        },
+                        {
+                            question: t('v2.faq2Question'),
+                            answer: t('v2.faq2Answer')
+                        },
+                        {
+                            question: t('v2.faq3Question'),
+                            answer: t('v2.faq3Answer')
+                        },
+                        {
+                            question: t('v2.faq4Question'),
+                            answer: t('v2.faq4Answer')
+                        },
+                        {
+                            question: t('v2.faq5Question'),
+                            answer: t('v2.faq5Answer')
+                        },
+                        {
+                            question: t('v2.faq6Question'),
+                            answer: t('v2.faq6Answer')
+                        },
+                        {
+                            question: t('v2.faq7Question'),
+                            answer: t('v2.faq7Answer')
+                        }
                     ]}
                 />
 
@@ -111,14 +129,19 @@ const PricingV2: FC = (): ReactNode => {
                                         rel='noopener noreferrer'
                                         className='inline-flex items-center gap-2 border border-white/20 bg-white/5 px-8 py-4 font-mono text-xs tracking-[0.15em] text-white/70 transition-colors hover:bg-white/10'
                                     >
-                                        <GithubLogoIcon className='h-3.5 w-3.5' weight='fill' />
+                                        <GithubLogoIcon
+                                            className='h-3.5 w-3.5'
+                                            weight='fill'
+                                        />
 
                                         {t('v2.selfHostLabel').toUpperCase()}
 
                                         {gitHubStars && (
                                             <span className='flex items-center gap-1 bg-white/10 px-2 py-0.5 text-[10px]'>
                                                 {gitHubStars.formatted}
-                                                <span className='text-[10px]'>★</span>
+                                                <span className='text-[10px]'>
+                                                    ★
+                                                </span>
                                             </span>
                                         )}
                                     </a>

@@ -8,6 +8,7 @@ import registerAgentVersionHandlers from '@/main/ipc/agentVersions'
 import registerStubHandlers from '@/main/ipc/stubs'
 import registerAgentTerminalHandlers from '@/main/ipc/agentTerminal'
 import { appUpdater, dnsResolver } from '@/main/services'
+import { networkStatus } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
 
 const registerAllHandlers = (): void => {
@@ -32,21 +33,25 @@ const registerAllHandlers = (): void => {
         const PING_URL = 'https://clients3.google.com/generate_204'
         const LATENCY_THRESHOLD = 3000
 
-        if (!net.isOnline()) return 'offline'
+        if (!net.isOnline()) return networkStatus.OFFLINE
 
         try {
             const start = Date.now()
             const response = await net.fetch(PING_URL, { cache: 'no-store' })
             const latency = Date.now() - start
-            if (!response.ok && response.status !== 204) return 'unstable'
-            return latency > LATENCY_THRESHOLD ? 'unstable' : 'online'
+            if (!response.ok && response.status !== 204)
+                return networkStatus.UNSTABLE
+            return latency > LATENCY_THRESHOLD
+                ? networkStatus.UNSTABLE
+                : networkStatus.ONLINE
         } catch {
-            return 'unstable'
+            return networkStatus.UNSTABLE
         }
     })
     ipcMain.handle('getDnsStatus', () => dnsResolver.isDnsSetup())
     ipcMain.handle('setupDns', () => dnsResolver.setupResolver())
-    ipcMain.handle('check-app-update', () => appUpdater.checkForUpdate())
+    ipcMain.handle('check-app-update', () => appUpdater.getPendingUpdate())
+    ipcMain.handle('quit-and-install', () => appUpdater.quitAndInstall())
     ipcMain.handle(
         'oauth-window',
         (

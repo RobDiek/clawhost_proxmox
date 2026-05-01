@@ -13,6 +13,7 @@ const getOrderInvoice = withErrorHandler(
     'api.failedToGetInvoice'
 )(async (c: AuthenticatedContext) => {
     const userId = c.get('userId')
+    const isAdmin = c.get('isAdmin')
     const orderId = c.req.param('orderId')!
 
     if (!orderId) return fail(c, t('api.orderIdRequired'), 400)
@@ -26,11 +27,14 @@ const getOrderInvoice = withErrorHandler(
         orders.get(orderId)
     ])
 
-    const polarCustomerId = user[0]?.polarCustomerId
-    if (!polarCustomerId) return fail(c, t('api.noBillingAccount'), 404)
+    if (!order) return fail(c, t('api.orderNotFound'), 404)
 
-    if (!order || order.customerId !== polarCustomerId)
-        return fail(c, t('api.orderNotFound'), 404)
+    if (!isAdmin) {
+        const polarCustomerId = user[0]?.polarCustomerId
+        if (!polarCustomerId) return fail(c, t('api.noBillingAccount'), 404)
+        if (order.customerId !== polarCustomerId)
+            return fail(c, t('api.orderNotFound'), 404)
+    }
 
     const invoiceUrl = await orders.getInvoiceUrl(orderId)
 

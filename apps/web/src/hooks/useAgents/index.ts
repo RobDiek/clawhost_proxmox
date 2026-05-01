@@ -3,6 +3,8 @@ import AGENT_VERSION_QUERY_KEY from '@/hooks/useAgents/AGENT_VERSION_QUERY_KEY'
 import AGENT_FILE_QUERY_KEY from '@/hooks/useAgents/AGENT_FILE_QUERY_KEY'
 import AGENT_VERSIONS_QUERY_KEY from '@/hooks/useAgents/AGENT_VERSIONS_QUERY_KEY'
 import useAgents from '@/hooks/useAgents/useAgents'
+import useAgentStars from '@/hooks/useAgents/useAgentStars'
+import AGENT_STARS_QUERY_KEY from '@/hooks/useAgents/AGENT_STARS_QUERY_KEY'
 import useAdminAgents from '@/hooks/useAgents/useAdminAgents'
 import usePurchaseAgent from '@/hooks/useAgents/usePurchaseAgent'
 import useStartAgent from '@/hooks/useAgents/useStartAgent'
@@ -24,18 +26,22 @@ import useCancelPendingAgent from '@/hooks/useAgents/useCancelPendingAgent'
 import useAgentMetrics from '@/hooks/useAgents/useAgentMetrics'
 import useAgentOverview from '@/hooks/useAgents/useAgentOverview'
 import useAgentCredentials from '@/hooks/useAgents/useAgentCredentials'
+import useAgentBilling from '@/hooks/useAgents/useAgentBilling'
 import useRotatePassword from '@/hooks/useAgents/useRotatePassword'
 import useRotateGatewayToken from '@/hooks/useAgents/useRotateGatewayToken'
 import useUpdateAgentSSHKey from '@/hooks/useAgents/useUpdateAgentSSHKey'
 import useRenameAgent from '@/hooks/useAgents/useRenameAgent'
 import useUpdateAgentSubdomain from '@/hooks/useAgents/useUpdateAgentSubdomain'
+import useExportAgent from '@/hooks/useAgents/useExportAgent'
 
 export {
     AGENTS_QUERY_KEY,
     AGENT_VERSION_QUERY_KEY,
     AGENT_FILE_QUERY_KEY,
     AGENT_VERSIONS_QUERY_KEY,
+    AGENT_STARS_QUERY_KEY,
     useAgents,
+    useAgentStars,
     useAdminAgents,
     usePurchaseAgent,
     useStartAgent,
@@ -57,9 +63,11 @@ export {
     useAgentMetrics,
     useAgentOverview,
     useAgentCredentials,
+    useAgentBilling,
     useRotatePassword,
     useRotateGatewayToken,
     useUpdateAgentSSHKey,
     useRenameAgent,
-    useUpdateAgentSubdomain
+    useUpdateAgentSubdomain,
+    useExportAgent
 }

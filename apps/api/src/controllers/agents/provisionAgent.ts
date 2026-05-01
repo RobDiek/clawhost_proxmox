@@ -5,9 +5,9 @@ import type {
 
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
-import { agentStatus, inputValidation } from '@openclaw/shared'
+import { agentStatus, agentType, inputValidation } from '@openclaw/shared'
 import { db } from '@/db'
-import { subscriptionStatus } from '@/lib/constants'
+import { subscriptionStatus } from '@openclaw/shared'
 import { agents, pendingAgents, sshKeys, volumes } from '@/db/schema'
 import { getProvider } from '@/services/provider'
 import cloudflare from '@/services/cloudflare'
@@ -68,7 +68,8 @@ const provisionAgent = async (
             return { success: false, error: t('api.planBelowMinimumMemory') }
 
         const id = crypto.randomUUID()
-        const subdomain = generateSlug(id)
+        const isHermes = pending.agentType === agentType.HERMES
+        const subdomain = isHermes ? null : generateSlug(id)
         const gatewayToken = pending.gatewayToken
             ? decrypt(pending.gatewayToken)
             : generateToken()
@@ -87,7 +88,7 @@ const provisionAgent = async (
 
         const cloudInitScript = generateCloudInit(
             plainRootPassword,
-            subdomain,
+            subdomain || '',
             DOMAIN,
             gatewayToken,
             pending.agentType
@@ -134,9 +135,13 @@ const provisionAgent = async (
         }
 
         await Promise.all([
-            cloudflare
-                .createDNSRecord(subdomain, ip)
-                .catch((dnsError) => console.error('provisionAgent', dnsError)),
+            subdomain
+                ? cloudflare
+                      .createDNSRecord(subdomain, ip)
+                      .catch((dnsError) =>
+                          console.error('provisionAgent', dnsError)
+                      )
+                : Promise.resolve(),
             db
                 .update(agents)
                 .set({

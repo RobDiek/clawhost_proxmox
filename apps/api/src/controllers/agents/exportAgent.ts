@@ -1,6 +1,6 @@
 import type { AuthenticatedContext } from '@/ts/Types'
 
-import sshBuffer from '@/services/sshBuffer'
+import sshStream from '@/services/sshStream'
 import { findUserAgent, getAgentConfig } from '@/controllers/agents/helpers'
 import { checkRateLimit, setRateLimit } from '@/controllers/auth/rateLimit'
 import { t } from '@openclaw/i18n'
@@ -30,7 +30,7 @@ const exportAgent = async (c: AuthenticatedContext) => {
         const agentConfig = getAgentConfig(agent.agentType)
         const configDirName = agentConfig.configDir.split('/').pop()
 
-        const buffer = await sshBuffer(
+        const stream = await sshStream(
             agent.ip,
             agent.rootPassword,
             `tar czf - -C ${agentConfig.homeDir} ${configDirName}`
@@ -41,7 +41,7 @@ const exportAgent = async (c: AuthenticatedContext) => {
         const safeName = agent.name.replace(/[^a-zA-Z0-9._-]/g, '_')
         const filename = `${safeName}-export.tar.gz`
 
-        return new Response(new Uint8Array(buffer), {
+        return new Response(stream, {
             headers: {
                 'Content-Type': 'application/gzip',
                 'Content-Disposition': `attachment; filename="${filename}"`

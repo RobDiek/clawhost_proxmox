@@ -13,7 +13,7 @@ import {
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
-import { agentType, agentStatus } from '@openclaw/shared'
+import { agentStatus, agentType } from '@openclaw/shared'
 import { AGENT_DETAIL_TABS } from '@/lib/constants'
 import {
     AgentLogsContent,
@@ -73,20 +73,40 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
         agent.status === agentStatus.creating ||
         agent.status === agentStatus.awaitingPayment
     const cancelPending = useCancelPendingAgent()
+    const isHermes = agent.agentType === agentType.HERMES
+    const hiddenTabs = useMemo<AgentDetailTab[]>(
+        () =>
+            isHermes
+                ? [AGENT_DETAIL_TABS.PREVIEW, AGENT_DETAIL_TABS.OVERVIEW]
+                : [],
+        [isHermes]
+    )
+    const defaultTab = isHermes
+        ? AGENT_DETAIL_TABS.TERMINAL
+        : AGENT_DETAIL_TABS.OVERVIEW
     const tabStateMap = useAgentDetailTabStore((s) => s.tabStateMap)
     const setTab = useAgentDetailTabStore((s) => s.setTab)
-    const activeTab = tabStateMap[agent.id] || AGENT_DETAIL_TABS.OVERVIEW
+    const storedTab = tabStateMap[agent.id] || defaultTab
+    const activeTab = hiddenTabs.includes(storedTab) ? defaultTab : storedTab
     const setActiveTab = useCallback(
         (tab: AgentDetailTab) => {
+            if (hiddenTabs.includes(tab)) return
             setTab(agent.id, tab)
             if (onTabChange) onTabChange(tab)
         },
-        [agent.id, onTabChange, setTab]
+        [agent.id, hiddenTabs, onTabChange, setTab]
     )
     useEffect(() => {
-        if (initialTab && initialTab !== tabStateMap[agent.id])
+        if (
+            initialTab &&
+            initialTab !== tabStateMap[agent.id] &&
+            !hiddenTabs.includes(initialTab)
+        )
             setTab(agent.id, initialTab)
-    }, [initialTab, agent.id, tabStateMap, setTab])
+    }, [initialTab, agent.id, tabStateMap, setTab, hiddenTabs])
+    useEffect(() => {
+        if (hiddenTabs.includes(storedTab)) setTab(agent.id, defaultTab)
+    }, [storedTab, hiddenTabs, defaultTab, agent.id, setTab])
 
     const {
         settingsEmoji,
@@ -151,12 +171,14 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
                     onClose={onClose}
                     fullScreen={fullScreen}
                     versionDisplay={versionDisplay}
+                    versionLoading={versionQuery.isLoading}
                     readOnly={readOnly}
                 />
 
                 {isPending ? (
                     <AgentPendingView
                         status={agent.status}
+                        agentType={agent.agentType}
                         checkoutUrl={agent.checkoutUrl}
                         onCancel={
                             agent.status === agentStatus.awaitingPayment
@@ -170,28 +192,7 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
                         <AgentDetailTabBar
                             activeTab={activeTab}
                             fullScreen={fullScreen}
-                            isTabDisabled={(tab) => {
-                                if (agent.agentType === agentType.HERMES) {
-                                    if (tab === AGENT_DETAIL_TABS.VERSIONS)
-                                        return true
-                                    if (tab === AGENT_DETAIL_TABS.FILES)
-                                        return true
-                                }
-                                return false
-                            }}
-                            getDisabledTooltip={(tab) => {
-                                if (agent.agentType === agentType.HERMES) {
-                                    if (tab === AGENT_DETAIL_TABS.VERSIONS)
-                                        return t(
-                                            'dashboard.tabNotAvailableForAgent'
-                                        )
-                                    if (tab === AGENT_DETAIL_TABS.FILES)
-                                        return t(
-                                            'dashboard.tabNotAvailableForAgent'
-                                        )
-                                }
-                                return ''
-                            }}
+                            hiddenTabs={hiddenTabs}
                             setActiveTab={setActiveTab}
                         />
 
@@ -201,9 +202,9 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
                                 activeTab !== AGENT_DETAIL_TABS.VERSIONS && (
                                     <UpdateAvailableBanner
                                         latestVersion={latestVersion}
+                                        agentType={agent.agentType}
                                         onGoToVersions={() =>
-                                            setTab(
-                                                agent.id,
+                                            setActiveTab(
                                                 AGENT_DETAIL_TABS.VERSIONS
                                             )
                                         }
@@ -213,7 +214,11 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
                             {activeTab === AGENT_DETAIL_TABS.OVERVIEW && (
                                 <AgentOverviewContent
                                     agentId={agent.id}
+                                    agentType={agent.agentType}
                                     readOnly={readOnly}
+                                    onSwitchToTerminal={() =>
+                                        setActiveTab(AGENT_DETAIL_TABS.TERMINAL)
+                                    }
                                 />
                             )}
 

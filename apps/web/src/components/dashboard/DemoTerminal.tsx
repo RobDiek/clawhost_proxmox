@@ -14,7 +14,8 @@ const DemoTerminal: FC = (): ReactNode => {
         if (!containerRef.current || termRef.current) return
         const styles = getComputedStyle(document.documentElement)
         const bgL = parseFloat(
-            styles.getPropertyValue('--background').trim().split(/\s+/).pop() || '0'
+            styles.getPropertyValue('--background').trim().split(/\s+/).pop() ||
+                '0'
         )
         const mutedL = parseFloat(
             styles.getPropertyValue('--muted').trim().split(/\s+/).pop() || '0'
@@ -25,7 +26,8 @@ const DemoTerminal: FC = (): ReactNode => {
         const term = new Terminal({
             cursorBlink: true,
             fontSize: 13,
-            fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+            fontFamily:
+                'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
             disableStdin: true,
             theme: {
                 background: termBg,

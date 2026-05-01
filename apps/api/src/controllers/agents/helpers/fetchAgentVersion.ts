@@ -6,9 +6,14 @@ const VERSION_CACHE_TTL = 60 * 1000
 
 const cleanVersionOutput = (raw: string): string => {
     const trimmed = raw.trim()
+    if (!trimmed) return 'unknown'
+
+    const semverMatch = trimmed.match(/v?\d+(?:\.\d+)+(?:[-_][\w.]+)?/)
+    if (semverMatch) return semverMatch[0]
+
     const cleaned = trimmed
         .replace(/\s*\([a-f0-9]+\)\s*$/, '')
-        .replace(/^(OpenClaw|Hermes)\s*/i, '')
+        .replace(/^(OpenClaw|Hermes|Agent)\s*/i, '')
         .trim()
     return cleaned || 'unknown'
 }

@@ -1,5 +1,9 @@
 import type { FC, ReactNode } from 'react'
-import type { EmojiColorPickerProps, EmojiMartData } from '@/ts/Interfaces'
+import type {
+    EmojiColorPickerProps,
+    EmojiMartData,
+    EmojiSelectEvent
+} from '@/ts/Interfaces'
 
 import { useState, useCallback, useEffect } from 'react'
 import { t } from '@openclaw/i18n'
@@ -19,6 +23,7 @@ import ColorSwatch from '@/components/dashboard/EmojiColorPicker/ColorSwatch'
 const EmojiColorPicker: FC<EmojiColorPickerProps> = ({
     emoji,
     emojiColor,
+    agentType,
     onEmojiChange
 }): ReactNode => {
     const [emojiOpen, setEmojiOpen] = useState(false)
@@ -37,7 +42,7 @@ const EmojiColorPicker: FC<EmojiColorPickerProps> = ({
 
     const handleEmojiSelect = useCallback(
         (selected: string | null) => {
-            onEmojiChange(selected, selected ? emojiColor : null)
+            onEmojiChange(selected, emojiColor)
             setEmojiOpen(false)
         },
         [onEmojiChange, emojiColor]
@@ -74,6 +79,7 @@ const EmojiColorPicker: FC<EmojiColorPickerProps> = ({
                                 <AgentAvatar
                                     emoji={emoji}
                                     emojiColor={emojiColor}
+                                    agentType={agentType}
                                     size={AGENT_AVATAR_SIZE.LG}
                                 />
                             </button>
@@ -86,7 +92,7 @@ const EmojiColorPicker: FC<EmojiColorPickerProps> = ({
                             {emojiData ? (
                                 <Picker
                                     data={emojiData}
-                                    onEmojiSelect={(e: { native: string }) =>
+                                    onEmojiSelect={(e: EmojiSelectEvent) =>
                                         handleEmojiSelect(e.native)
                                     }
                                     theme={isDark ? 'dark' : 'light'}

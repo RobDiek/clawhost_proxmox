@@ -86,14 +86,14 @@ const zh: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: '部署 OpenClaw.',
         heroTitle2: '本地. 即时.',
-        badge: '即将推出',
+        badge: '支持 OpenClaw 和 Hermes',
         description:
             '一款轻量级桌面客户端，用于管理您的 OpenClaw 实例。部署、监控和控制您的 claws — 直接在您的设备上完成.',
         features: '功能',
         whyClawHostGo: '一体化功能',
         featuresDescription: '为什么值得一试，功能不会说谎.',
         zeroConfigDescription:
-            '安装即运行。无需服务器配置，无需云端设置。OpenClaw 几秒内即可就绪.',
+            '省去数小时的服务器、OpenClaw 和 Hermes 配置时间。预先安装，几分钟内即可使用。',
         ownedDataDescription:
             '一切在您的设备上运行。无云服务器，无第三方，数据不会离开您的设备.',
         terminalAccessDescription:
@@ -350,6 +350,7 @@ const zh: Translations = {
         subdomainUpdated: '子域名更新成功.',
         invalidSubdomain: '无效的子域名。请使用 3-20 个小写字母和数字!',
         subdomainAlreadyInUse: '此子域名已被使用!',
+        subdomainNotSupported: '此代理类型不使用子域名。',
         agentBusy: 'Agent 正在配置或删除中!',
         reinstallGatewayNotResponding:
             '重新安装已完成，但网关尚未响应。可能需要更多时间启动.',
@@ -382,6 +383,7 @@ const zh: Translations = {
         adminAccessDenied: '需要管理员权限!',
         agentsFetched: 'Agents 获取成功.',
         agentFetched: 'Agent 获取成功.',
+        agentStarsFetched: '代理星标获取成功.',
         agentSynced: 'Agent 同步成功.',
         agentStarted: 'Agent 启动成功.',
         agentStopped: 'Agent 停止成功.',
@@ -667,11 +669,13 @@ const zh: Translations = {
         billingReasonSubscriptionCycle: '续费',
         billingReasonSubscriptionUpdate: '订阅更新',
         failedToLoadBilling: '加载账单历史失败！',
-        viewInvoice: '查看发票',
+        downloadInvoice: '下载发票',
+        invoiceCanceledNavigation: '发票下载已中断，因为您已离开页面。',
         failedToLoadInvoice: '加载发票失败！',
         couponApplied: '优惠券：{{name}}',
         manageBilling: '管理账单',
-        failedToLoadPortal: '打开账单门户失败！'
+        failedToLoadPortal: '打开账单门户失败！',
+        portalCanceledNavigation: '账单门户已中断，因为您已离开页面。'
     },
     license: {
         title: '许可证',
@@ -766,6 +770,7 @@ const zh: Translations = {
         storage: '存储',
         nextBilling: '下次计费',
         lastBilling: '上次计费',
+        totalSpent: '总支出',
         version: '版本',
         gatewayToken: '网关令牌',
         gatewayTokenDescription: '使用此令牌对您的网关进行身份验证',
@@ -815,6 +820,8 @@ const zh: Translations = {
         fileExplorerReadOnly: '只读',
         fileExplorerSave: '保存',
         fileExplorerSaved: '文件已保存。',
+        fileExplorerSaveCanceledNavigation:
+            '文件保存已中断，因为您已离开页面。',
         fileExplorerInvalidJson: '无效的 JSON。请在保存前修复语法错误！',
         fileExplorerNoFiles: '未找到文件',
         fileExplorerSearchFiles: '搜索文件...',
@@ -829,16 +836,23 @@ const zh: Translations = {
             '这将在此实例上完全重新安装 {{agentName}}。所有配置、代理和数据将被重置。此操作无法撤销。继续吗？',
         reinstallInstanceSuccess: '实例重新安装成功。',
         reinstallInstanceFailed: '重新安装实例失败！',
+        reinstallCanceledNavigation: '重新安装已中断，因为您已离开页面。',
         openControlPanel: '打开控制面板',
         exportData: '导出 Claw (.zip)',
         exportAgent: '导出',
-        exportAgentButton: '导出 OpenClaw',
+        exportAgentButton: '导出数据',
         exportAgentTooltip: '将此代理及其所有数据下载为 .zip 文件。',
+        exportAgentInProgress: '对于较大的代理，导出可能需要几分钟。',
         exportStarted: '正在准备导出，这可能需要一些时间...',
         exportSuccess: 'Claw 导出成功。',
         exportFailed: '导出 Claw 数据失败！',
+        exportCanceledNavigation: '导出已取消，因为您已离开页面。',
+        scheduleDeletionCanceledNavigation:
+            '删除计划已中断，因为您已离开页面。',
+        cancelDeletionCanceledNavigation: '取消删除已中断，因为您已离开页面。',
+        hardDeleteCanceledNavigation: '强制删除已中断，因为您已离开页面。',
         exportRateLimited: '您可以在 {{minutes}} 分钟后再次导出。',
-        exportRateLimitedSeconds: '您可以在 {{seconds}} 秒后再次导出。',
+        exportRateLimitedOne: '您可以在 1 分钟后再次导出。',
         configuringTooltip:
             '这可能需要一些时间。取决于 OpenClaw、服务器位置和 Cloudflare DNS。',
         paymentSuccess: '您的 Claw 正在创建和配置中。',
@@ -883,8 +897,10 @@ const zh: Translations = {
         clawNameInvalidChars: '只允许使用字母、数字和连字符！',
         autoGenerateNameHint: '留空将自动生成名称。',
         agentType: '代理类型',
-        agentTypeOpenClawDescription: '{{count}} 次安装',
-        agentTypeHermesDescription: '{{count}} 次安装',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} 星标',
+        agentTypeHermesDescription: '{{count}} 星标',
         location: '位置',
         locationUnavailable: '不可用',
         locationUnavailableForPlan: '不可用',
@@ -991,6 +1007,9 @@ const zh: Translations = {
         badge: 'OpenClaw 简化版',
         tutorialBadge: '观看。部署。',
         tutorialVideoThumbnail: 'ClawHost 教程视频缩略图',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: '部署 OpenClaw。',
         heroTitle2: '一键完成。',
         heroDescription:
@@ -1014,7 +1033,7 @@ const zh: Translations = {
             '专用 VPS 资源意味着无限流、全带宽和闪电般的网速。',
         globalLocations: '全球位置',
         globalLocationsDescription:
-            '在多个全球区域部署 OpenClaw，选择离您最近的位置.',
+            '在多个全球区域部署 OpenClaw 和 Hermes，选择离您最近的位置。',
         fullSshAccess: '直接 SSH 访问',
         fullSshAccessDescription:
             '直接从平台访问您的服务器终端。无需外部 SSH 客户端。',
@@ -1023,21 +1042,24 @@ const zh: Translations = {
         payAsYouGo: '简单定价',
         payAsYouGoDescription:
             '基于您的需求定价。无强制高额账单，无低质量服务器。随时取消。',
+        bringYourCredits: '自带额度',
+        bringYourCreditsDescription:
+            '使用您自己的 Anthropic API 密钥或 Claude 订阅。直接向 Anthropic 付费 — 无加价。',
         customSubdomains: '在线访问',
         customSubdomainsDescription:
             '告别本地网络。通过子域名从任何地方安全访问您的 OpenClaw。',
         autoUpdates: '版本控制',
         autoUpdatesDescription:
-            '一键切换到任何 OpenClaw 版本。始终保持最新或在需要时回滚。',
-        openclawControl: 'OpenClaw 控制',
+            '一键切换到任何 OpenClaw 或 Hermes 版本。始终保持最新或在需要时回滚。',
+        openclawControl: '服务器监控',
         openclawControlDescription:
-            '直接从 ClawHost 访问原生 OpenClaw 面板。完全编辑 OpenClaw 提供的所有内容。',
+            '通过实时指标、日志和诊断监控您的 OpenClaw 和 Hermes 服务器。',
         clawHostControl: '完整服务器访问',
         clawHostControlDescription:
             '浏览器终端、文件管理器、日志、诊断和版本管理 — 全部在您的仪表板中完成。',
-        multipleClaws: '多 Claws',
+        multipleClaws: '多个智能体',
         multipleClawsDescription:
-            '从单个仪表板部署和管理多个 OpenClaw 实例。随着增长而扩展。',
+            '从单个仪表板部署和管理多个 OpenClaw 和 Hermes 智能体。随着增长而扩展。',
         pricing: '定价',
         simpleTransparentPricing: '简单、透明的定价',
         pricingDescription: '选择适合您的方案。没有隐藏费用。',
@@ -1079,7 +1101,7 @@ const zh: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: '选择方案',
         mostPopular: '最受欢迎',
-        featurePreinstalled: 'OpenClaw 预安装',
+        featurePreinstalled: '智能体预装',
         featureBandwidth: '无限带宽',
         featureSsh: 'Root SSH 访问',
         featureUptime: '全天候在线',
@@ -1092,25 +1114,28 @@ const zh: Translations = {
         faqDescription: '每一个常见问题，都有解答。',
         faq1Question: '什么是 ClawHost？',
         faq1Answer:
-            'ClawHost 是一个旨在让所有人都能使用 OpenClaw 的平台。它让非技术用户和开发者都能运行 OpenClaw 而无需管理基础设施。我们处理服务器、正常运行时间、安全性和维护——您只需使用 OpenClaw。',
+            'ClawHost 是一个让 OpenClaw 和 Hermes 人人可用的平台。无论是非技术用户还是开发者，都能无需管理基础设施即可运行它们。我们处理服务器、运行时间、安全和维护 — 您只需使用您的智能体。',
         faq2Question: '什么是 OpenClaw？',
         faq2Answer:
             'OpenClaw 是一个自托管的安全访问层，用于您的 AI 工具和服务。它已预配置安全性和性能，因此您可以部署后即刻连接。',
+        faqHermesQuestion: '什么是 Hermes？',
+        faqHermesAnswer:
+            'Hermes 是一款具备网页浏览、日历管理、多模型推理和浏览器自动化能力的自主 AI 智能体。它已与 OpenClaw 一起预装在每台 ClawHost 服务器上。',
         faq3Question: '这与其他 AI 工具或托管平台有什么不同？',
         faq3Answer:
-            '与托管 AI 工具不同，ClawHost 为您提供一台安装了 OpenClaw 的真实服务器。您拥有基础设施，控制一切，不受共享平台或模型的限制。',
+            '与托管式 AI 工具不同，ClawHost 为您提供安装了 OpenClaw 和 Hermes 的真实服务器。您拥有基础设施，掌控一切，不受共享平台或模型的限制。',
         faq4Question: '我需要技术知识吗？',
         faq4Answer:
-            '不需要。我们处理所有基础设施、设置和维护。您可以通过其 UI 配置和管理 OpenClaw 并自定义使用——无需触碰服务器或基础设施。',
+            '不需要。所有基础设施、设置和维护我们都已处理。您可以通过 UI 配置和管理 OpenClaw，而 Hermes 通过简单的终端命令运行 — 无需接触服务器或基础设施。',
         faq5Question: '有哪些可用位置？',
         faq5Answer:
-            '我们在全球提供多个服务器位置，包括美国、欧洲等. 如有需要，您可以在不同地区的多台服务器上部署 OpenClaw.',
+            '我们在全球提供多个服务器位置，包括美国、欧洲和亚洲。如有需要，您可以在不同区域的多台服务器上部署 OpenClaw 或 Hermes。',
         faq6Question: '费用是多少？',
         faq6Answer:
             '价格取决于您选择的服务器. 从入门级到高性能有多种服务器选项，您可以选择适合自己需求和预算的方案.',
-        faq7Question: '我可以直接访问服务器吗？',
+        faq7Question: '可以通过链接直接访问我的智能体吗？',
         faq7Answer:
-            '可以。除了通过子域名 URL 访问 OpenClaw 外，您还拥有对服务器及其底层基础设施的完全访问权限，让您可以自由自定义和运行任何所需内容。',
+            'OpenClaw 可通过子域名 URL 和完整的 Web UI 访问。Hermes 通过 SSH 终端命令运行 — 没有链接，但您可以从服务器终端完全控制它。',
         comparison: '对比',
         comparisonTitle: '我们的不同之处',
         comparisonDescription:
@@ -1128,11 +1153,11 @@ const zh: Translations = {
         comparisonInfraOthers: '有限的服务器',
         comparisonDataUs: '拥有您的数据',
         comparisonDataOthers: '不拥有您的数据',
-        comparisonMultipleUs: '多个 OpenClaw，一个 Claw',
+        comparisonMultipleUs: '多个 OpenClaw 和 Hermes 智能体',
         comparisonMultipleOthers: '仅单个 OpenClaw',
         comparisonOpenSourceUs: '完全开源',
         comparisonOpenSourceOthers: '闭源',
-        comparisonExportUs: '将您的 OpenClaw 导出到任何地方',
+        comparisonExportUs: '随时随地导出 OpenClaw 和 Hermes',
         comparisonExportOthers: '供应商锁定',
         comparisonProvidersUs: '多个服务器提供商',
         comparisonProvidersOthers: '仅单个提供商',
@@ -1141,26 +1166,29 @@ const zh: Translations = {
         comparisonTerminalUs: '内置网页终端',
         comparisonTerminalOthers: '需要 SSH 客户端',
         seeFullComparison: '查看完整对比',
-        comparisonCtaText: '我们与 SimpleClaw、MyClaw.ai 等逐项对比。',
+        comparisonCtaText: '我们与 SimpleAgent、MyAgent.ai 等逐项对比。',
         selfHostInstead: '选择自托管'
     },
     blog: {
         readingTime: '{{minutes}} 分钟阅读',
-        ctaTitle: '一键部署 OpenClaw',
+        ctaTitle: '一键部署 OpenClaw 和 Hermes',
         ctaDescription:
-            '获取预装 OpenClaw 的专用服务器。完整 root 访问权限、全球位置，几分钟内就绪。您始终拥有它。起价 $25。',
-        ctaDeploy: '部署 OpenClaw',
+            '获取预装 OpenClaw 和 Hermes 的专用服务器。完整 root 访问、全球区域、几分钟内就绪。始终归您所有。起价 $25。',
+        ctaDeploy: '部署智能体',
         ctaGitHub: '在 GitHub 上查看'
     },
     changelog: {
         title: '更新日志',
         description: '跟踪 ClawHost 的更新、新功能和改进。',
         subtitle: 'ClawHost 的所有更新、新功能和改进。',
-        release17Date: '2026年4月29日',
-        release17Title: 'Hermes Agent Support',
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
         release17Description:
-            '在 ClawHost 上一键部署 Hermes 代理，就像 OpenClaw 一样。',
-        release17Feature1: '像 OpenClaw 一样一键部署 Hermes 代理',
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
+        release17Feature1:
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1325,6 +1353,11 @@ const zh: Translations = {
         overviewUnsupportedTitle: '概览不受支持',
         overviewUnsupportedDescription:
             '您的OpenClaw版本不支持概览功能。请更新到最新版本。',
+        overviewHermesTitle: 'Hermes 在终端中运行',
+        overviewHermesDescription:
+            'Hermes 是一个 TUI 代理 — 打开终端选项卡并运行 `hermes` 启动会话。文件和版本选项卡可用于编辑配置和升级。',
+        overviewHermesOpenTerminal: '打开终端',
+        viewDocs: '查看文档',
         overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1356,6 +1389,7 @@ const zh: Translations = {
         previewEnabling: '启用中...',
         previewEnabled: '预览已启用。',
         previewEnableFailed: '启用预览失败！',
+        previewEnableCanceledNavigation: '启用预览已中断，因为您已离开页面。',
         previewError: '加载预览失败。',
         previewErrorDescription: '代理可能已离线或无法访问。',
         previewRetry: '重试',
@@ -1372,6 +1406,13 @@ const zh: Translations = {
         creatingDescription:
             '这通常需要一两分钟。 您可以安全地关闭此页面，稍后再回来。',
         configuringTitle: '正在安装 OpenClaw',
+        configuringTitleHermes: '正在安装 Hermes',
+        loadingTipHermes1:
+            'Hermes 是一个 TUI 代理 — 启动后打开终端选项卡与其聊天。',
+        loadingTipHermes2:
+            '在文件选项卡中通过 ~/.hermes/.env 配置模型提供商（OpenRouter、Anthropic 等）。',
+        loadingTipHermes3:
+            '在终端中使用 `hermes gateway install` 连接 Telegram、Discord 或 Slack。',
         configuringDescription:
             '这通常需要一两分钟。 您可以安全地关闭此页面，稍后再回来。',
         awaitingPaymentTitle: '等待支付',
@@ -1463,11 +1504,14 @@ const zh: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: '安装',
         versionInstalling: '正在安装...',
         versionInstallSuccess: '版本 {{version}} 安装成功。',
         versionInstallFailed: '安装版本失败！',
+        installVersionCanceledNavigation: '版本安装已中断，因为您已离开页面。',
         versionDownloads: '{{count}} 次下载',
         versionChangelog: '更新日志',
         versionOutdated: '已过期',
@@ -1501,6 +1545,11 @@ const zh: Translations = {
         settingsSaving: '正在保存...',
         settingsUpdated: '设置已更新。',
         settingsUpdateFailed: '更新设置失败！',
+        saveCanceledNavigation: '保存已中断，因为您已离开页面。',
+        savePasswordCanceledNavigation: '密码保存已中断，因为您已离开页面。',
+        saveGatewayTokenCanceledNavigation:
+            '网关令牌保存已中断，因为您已离开页面。',
+        saveSSHKeyCanceledNavigation: 'SSH 密钥保存已中断，因为您已离开页面。',
         mockLogStarting: '正在启动 OpenClaw 代理...',
         mockLogLoadingModel: '正在加载模型：claude-sonnet-4-5',
         mockLogAgentReady: '代理已在端口 3000 就绪',
@@ -1584,7 +1633,7 @@ const zh: Translations = {
             '访问和使用 ClawHost（"服务"）即表示您接受并同意受本协议条款的约束。如果您不同意这些条款，请不要使用我们的服务。',
         serviceTitle: '2. 服务描述',
         serviceText:
-            'ClawHost 提供在专用服务器上一键部署 OpenClaw 的服务。我们使用户能够部署、管理和访问预配置的 OpenClaw 实例，拥有完整的 root 访问权限和专用资源。',
+            'ClawHost 在专用服务器上提供 OpenClaw 和 Hermes 的一键部署。我们让用户可以部署、管理和访问预配置的 OpenClaw 和 Hermes 实例，享有完整 root 访问权限和专用资源。',
         authTitle: '3. 身份验证',
         authText:
             'ClawHost 使用 Google Firebase Authentication 管理登录。您可以使用电子邮箱、Google 或 GitHub 进行身份验证。使用这些方法即表示您同意 Google 和 GitHub 各自的条款和隐私政策。这些提供商可能会收集您的电子邮箱地址、姓名和设备数据等基本信息。',
@@ -1665,7 +1714,7 @@ const zh: Translations = {
         message: 'Hermes 代理现已支持在 ClawHost 上部署。'
     },
     compare: {
-        title: '完整对比',
+        title: '对比',
         description: '了解 ClawHost 与其他 OpenClaw 托管平台的对比。',
         badge: '对比',
         feature: '平台',
@@ -1673,9 +1722,9 @@ const zh: Translations = {
         lastUpdated: '最后更新：2026年3月',
         competitorClawHost: 'ClawHost',
         competitorLobsterFarm: 'LobsterFarm',
-        competitorSimpleClaw: 'SimpleClaw',
-        competitorMyClawAi: 'MyClaw.ai',
-        competitorQuickClaw: 'QuickClaw',
+        competitorSimpleAgent: 'SimpleAgent',
+        competitorMyAgentAi: 'MyAgent.ai',
+        competitorQuickAgent: 'QuickAgent',
         categoryInfrastructure: '基础设施',
         categoryPricing: '定价和计费',
         categoryDeployment: '部署和设置',

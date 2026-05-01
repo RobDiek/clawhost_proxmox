@@ -1,6 +1,7 @@
 import type { ElectronWindow } from '@/ts/Interfaces'
 
 import { useState, useEffect, useCallback } from 'react'
+import { networkStatus } from '@openclaw/shared'
 
 const CHECK_INTERVAL = 10_000
 const PING_URL = 'https://clients3.google.com/generate_204'
@@ -16,9 +17,9 @@ const useNetworkStatus = (): boolean => {
         if (api?.checkNetwork) {
             try {
                 const result = await api.checkNetwork()
-                setIsOffline(result !== 'online')
+                setIsOffline(result === networkStatus.OFFLINE)
             } catch {
-                setIsOffline(true)
+                setIsOffline(false)
             }
             return
         }

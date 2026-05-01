@@ -9,9 +9,10 @@ import {
     useUpdateAgentSubdomain,
     useUpdateAgentEmoji
 } from '@/hooks/useAgents'
+import useAbortController from '@/hooks/useAbortController'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { api } from '@/lib'
+import { api, handleAbortToast } from '@/lib'
 
 const SUBDOMAIN_CHECK_DELAY = 500
 
@@ -32,6 +33,7 @@ const useAgentSettingsForm = (agent: Agent): UseAgentSettingsFormReturn => {
     const renameMutation = useRenameAgent()
     const subdomainMutation = useUpdateAgentSubdomain()
     const emojiMutation = useUpdateAgentEmoji()
+    const getSaveSignal = useAbortController()
     const { showToast } = useUIStore()
     const checkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -159,19 +161,25 @@ const useAgentSettingsForm = (agent: Agent): UseAgentSettingsFormReturn => {
         }
 
         const mutations: Promise<unknown>[] = []
+        const signal = getSaveSignal()
 
         if (emojiHasChanges)
             mutations.push(
                 emojiMutation.mutateAsync({
                     id: agent.id,
                     emoji: settingsEmoji,
-                    emojiColor: settingsEmojiColor
+                    emojiColor: settingsEmojiColor,
+                    signal
                 })
             )
 
         if (nameHasChanges && trimmedName && trimmedName !== agent.name)
             mutations.push(
-                renameMutation.mutateAsync({ id: agent.id, name: trimmedName })
+                renameMutation.mutateAsync({
+                    id: agent.id,
+                    name: trimmedName,
+                    signal
+                })
             )
 
         if (
@@ -182,7 +190,8 @@ const useAgentSettingsForm = (agent: Agent): UseAgentSettingsFormReturn => {
             mutations.push(
                 subdomainMutation.mutateAsync({
                     id: agent.id,
-                    subdomain: trimmedSubdomain
+                    subdomain: trimmedSubdomain,
+                    signal
                 })
             )
 
@@ -192,12 +201,20 @@ const useAgentSettingsForm = (agent: Agent): UseAgentSettingsFormReturn => {
             .then(() =>
                 showToast(t('clawDetail.settingsUpdated'), TOAST_TYPE.SUCCESS)
             )
-            .catch(() =>
+            .catch((error) => {
+                if (
+                    handleAbortToast(
+                        error,
+                        showToast,
+                        'clawDetail.saveCanceledNavigation'
+                    )
+                )
+                    return
                 showToast(
                     t('clawDetail.settingsUpdateFailed'),
                     TOAST_TYPE.ERROR
                 )
-            )
+            })
     }, [
         settingsEmoji,
         settingsEmojiColor,
@@ -215,6 +232,7 @@ const useAgentSettingsForm = (agent: Agent): UseAgentSettingsFormReturn => {
         renameMutation,
         subdomainMutation,
         subdomainRegex,
+        getSaveSignal,
         showToast
     ])
 

@@ -86,14 +86,14 @@ const ja: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'OpenClawをデプロイ.',
         heroTitle2: 'ローカルで. 即座に.',
-        badge: '近日公開',
+        badge: 'OpenClawとHermesに対応',
         description:
             'OpenClawインスタンスを管理する軽量デスクトップクライアント。デプロイ、監視、制御をお手元のマシンから.',
         features: '機能',
         whyClawHostGo: 'オールインワン機能',
         featuresDescription: '試す価値がある理由、機能が証明します.',
         zeroConfigDescription:
-            'インストールして実行するだけ。サーバー設定もクラウド設定も不要。OpenClawが数秒で準備完了.',
+            'サーバー、OpenClaw、Hermesのセットアップに何時間も費やす必要はありません。プリインストール済みで数分で利用可能。',
         ownedDataDescription:
             'すべてがお使いのデバイスで動作。クラウドサーバーなし、第三者なし、データが外部に出ることはありません.',
         terminalAccessDescription:
@@ -372,6 +372,8 @@ const ja: Translations = {
         invalidSubdomain:
             '無効なサブドメインです。3〜20文字の小文字英字と数字を使用してください!',
         subdomainAlreadyInUse: 'このサブドメインは既に使用されています!',
+        subdomainNotSupported:
+            'このエージェントタイプはサブドメインを使用しません。',
         agentBusy: 'Agentは現在プロビジョニング中または削除中です!',
         reinstallGatewayNotResponding:
             '再インストールは完了しましたが、ゲートウェイがまだ応答していません。起動にもう少し時間がかかる場合があります.',
@@ -408,6 +410,7 @@ const ja: Translations = {
         adminAccessDenied: '管理者アクセスが必要です!',
         agentsFetched: 'Agentsを取得しました.',
         agentFetched: 'Agentを取得しました.',
+        agentStarsFetched: 'エージェントのスター数を取得しました.',
         agentSynced: 'Agentを同期しました.',
         agentStarted: 'Agentを起動しました.',
         agentStopped: 'Agentを停止しました.',
@@ -708,11 +711,15 @@ const ja: Translations = {
         billingReasonSubscriptionCycle: '更新',
         billingReasonSubscriptionUpdate: 'サブスクリプション変更',
         failedToLoadBilling: '請求履歴の読み込みに失敗しました！',
-        viewInvoice: '請求書を見る',
+        downloadInvoice: '請求書をダウンロード',
+        invoiceCanceledNavigation:
+            '請求書のダウンロードが中断されました。ページを離れたためです。',
         failedToLoadInvoice: '請求書の読み込みに失敗しました！',
         couponApplied: 'クーポン: {{name}}',
         manageBilling: '請求を管理',
-        failedToLoadPortal: '請求ポータルを開けませんでした！'
+        failedToLoadPortal: '請求ポータルを開けませんでした！',
+        portalCanceledNavigation:
+            '請求ポータルが中断されました。ページを離れたためです。'
     },
     license: {
         title: 'ライセンス',
@@ -812,6 +819,7 @@ const ja: Translations = {
         storage: 'ストレージ',
         nextBilling: '次回請求',
         lastBilling: '前回請求',
+        totalSpent: '合計支出',
         version: 'バージョン',
         gatewayToken: 'ゲートウェイトークン',
         gatewayTokenDescription:
@@ -864,6 +872,8 @@ const ja: Translations = {
         fileExplorerReadOnly: '読み取り専用',
         fileExplorerSave: '保存',
         fileExplorerSaved: 'ファイルを保存しました。',
+        fileExplorerSaveCanceledNavigation:
+            'ファイルの保存が中断されました。ページを離れたためです。',
         fileExplorerInvalidJson:
             '無効なJSONです。保存する前に構文エラーを修正してください！',
         fileExplorerNoFiles: 'ファイルが見つかりません',
@@ -879,17 +889,29 @@ const ja: Translations = {
             'このインスタンスに{{agentName}}を完全に再インストールします。すべての設定、エージェント、データがリセットされます。この操作は元に戻せません。続行しますか？',
         reinstallInstanceSuccess: 'インスタンスを再インストールしました。',
         reinstallInstanceFailed: 'インスタンスの再インストールに失敗しました！',
+        reinstallCanceledNavigation:
+            '再インストールが中断されました。ページを離れたためです。',
         openControlPanel: 'コントロールパネルを開く',
         exportData: 'Clawをエクスポート (.zip)',
         exportAgent: 'エクスポート',
-        exportAgentButton: 'OpenClawをエクスポート',
+        exportAgentButton: 'データをエクスポート',
         exportAgentTooltip:
             'このエージェントとすべてのデータを.zipファイルとしてダウンロードします。',
+        exportAgentInProgress:
+            '大きなエージェントの場合、エクスポートに数分かかることがあります。',
         exportStarted: 'エクスポートを準備中、しばらくお待ちください...',
         exportSuccess: 'Clawをエクスポートしました。',
         exportFailed: 'Clawデータのエクスポートに失敗しました！',
+        exportCanceledNavigation:
+            'エクスポートをキャンセルしました。ページを離れたためです。',
+        scheduleDeletionCanceledNavigation:
+            '削除予約が中断されました。ページを離れたためです。',
+        cancelDeletionCanceledNavigation:
+            '削除取り消しが中断されました。ページを離れたためです。',
+        hardDeleteCanceledNavigation:
+            '強制削除が中断されました。ページを離れたためです。',
         exportRateLimited: '{{minutes}}分後に再度エクスポートできます。',
-        exportRateLimitedSeconds: '{{seconds}}秒後に再度エクスポートできます。',
+        exportRateLimitedOne: '1分後に再度エクスポートできます。',
         configuringTooltip:
             '時間がかかる場合があります。OpenClaw、サーバーロケーション、Cloudflare DNSに依存します。',
         paymentSuccess: 'Clawを作成・設定中です。',
@@ -934,8 +956,10 @@ const ja: Translations = {
         clawNameInvalidChars: '英字、数字、ダッシュのみ使用できます！',
         autoGenerateNameHint: '空のままにすると自動生成されます。',
         agentType: 'エージェントタイプ',
-        agentTypeOpenClawDescription: '{{count}} インストール',
-        agentTypeHermesDescription: '{{count}} インストール',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} スター',
+        agentTypeHermesDescription: '{{count}} スター',
         location: 'ロケーション',
         locationUnavailable: '利用不可',
         locationUnavailableForPlan: '利用不可',
@@ -1045,6 +1069,9 @@ const ja: Translations = {
         badge: 'OpenClawをシンプルに',
         tutorialBadge: '見て。デプロイ。',
         tutorialVideoThumbnail: 'ClawHostチュートリアル動画サムネイル',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: 'OpenClawをデプロイ。',
         heroTitle2: 'ワンクリック。完了。',
         heroDescription:
@@ -1068,7 +1095,7 @@ const ja: Translations = {
             '専用VPSリソースで、スロットリングなし、フル帯域幅、超高速インターネット。',
         globalLocations: 'グローバルロケーション',
         globalLocationsDescription:
-            '複数のグローバルリージョンにOpenClawをデプロイし、最寄りのロケーションを選択.',
+            'OpenClawとHermesを複数のグローバルリージョンに展開し、最も近いロケーションを選択。',
         fullSshAccess: 'ダイレクトSSHアクセス',
         fullSshAccessDescription:
             'プラットフォームから直接サーバーターミナルにアクセス。外部SSHクライアント不要。',
@@ -1078,21 +1105,24 @@ const ja: Translations = {
         payAsYouGo: 'シンプルな料金',
         payAsYouGoDescription:
             '必要なものに基づいた料金。低品質サーバーに高額な請求を強制されません。いつでもキャンセル可能。',
+        bringYourCredits: '自分のクレジットを使用',
+        bringYourCreditsDescription:
+            'ご自身のAnthropic APIキーまたはClaudeサブスクリプションをご利用ください。Anthropicに直接お支払い — マークアップなし。',
         customSubdomains: 'オンラインアクセス',
         customSubdomainsDescription:
             'ローカルネットワークは忘れましょう。サブドメインでどこからでもOpenClawにセキュアにアクセス。',
         autoUpdates: 'バージョン管理',
         autoUpdatesDescription:
-            'ワンクリックで任意のOpenClawバージョンに切り替え。常に最新の状態を維持するか、必要に応じてロールバック。',
-        openclawControl: 'OpenClawコントロール',
+            'ワンクリックで任意のOpenClawまたはHermesバージョンに切り替え。常に最新の状態を維持するか、必要に応じてロールバック。',
+        openclawControl: 'サーバー監視',
         openclawControlDescription:
-            'ClawHostからネイティブOpenClawパネルに直接アクセス。OpenClawが提供するすべてへのフル編集アクセス。',
+            'OpenClawとHermesサーバーをリアルタイムのメトリクス、ログ、診断で監視。',
         clawHostControl: '完全なサーバーアクセス',
         clawHostControlDescription:
             'ブラウザターミナル、ファイルエクスプローラー、ログ、診断、バージョン管理 — すべてダッシュボードから。',
-        multipleClaws: '複数のClaw',
+        multipleClaws: '複数のエージェント',
         multipleClawsDescription:
-            '単一のダッシュボードから複数のOpenClawインスタンスをデプロイ・管理。成長に合わせてスケール。',
+            '単一のダッシュボードから複数のOpenClawおよびHermesエージェントをデプロイ・管理。成長に合わせてスケール。',
         pricing: '料金',
         simpleTransparentPricing: 'シンプルで透明な料金',
         pricingDescription:
@@ -1135,7 +1165,7 @@ const ja: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'プランを選ぶ',
         mostPopular: '一番人気',
-        featurePreinstalled: 'OpenClaw プリインストール',
+        featurePreinstalled: 'エージェント プリインストール済み',
         featureBandwidth: '無制限帯域幅',
         featureSsh: 'Root SSHアクセス',
         featureUptime: '24時間365日稼働',
@@ -1148,25 +1178,28 @@ const ja: Translations = {
         faqDescription: 'よくある質問のすべてに回答.',
         faq1Question: 'ClawHostとは？',
         faq1Answer:
-            'ClawHostは、OpenClawを誰もが利用できるようにするために構築されたプラットフォームです。技術者でないユーザーも開発者も、インフラを管理せずにOpenClawを実行できます。サーバー、稼働時間、セキュリティ、メンテナンスは私たちが対応 — あなたはOpenClawを使うだけ.',
+            'ClawHostは、OpenClawとHermesを誰でも利用できるようにするために構築されたプラットフォームです。技術者でないユーザーも開発者も、インフラ管理なしでこれらを実行できます。サーバー、稼働時間、セキュリティ、メンテナンスは私たちが担当 — あなたはエージェントを使うだけです。',
         faq2Question: 'OpenClawとは？',
         faq2Answer:
             'OpenClawは、AIツールやサービスのためのセルフホスト型セキュアアクセスレイヤーです。セキュリティとパフォーマンスのために事前設定されているので、デプロイして即座に接続できます.',
+        faqHermesQuestion: 'Hermesとは何ですか？',
+        faqHermesAnswer:
+            'Hermesは、ウェブブラウジング、カレンダー管理、マルチモデル推論、ブラウザ自動化を備えた自律型AIエージェントです。ClawHostの全サーバーにOpenClawと共にプリインストールされています。',
         faq3Question: '他のAIツールやホスティングプラットフォームとの違いは？',
         faq3Answer:
-            'ホスティングされたAIツールとは異なり、ClawHostはOpenClawがインストールされた実際のサーバーを提供します。インフラを所有し、すべてをコントロールし、共有プラットフォームやモデルに制限されません.',
+            'ホスト型AIツールとは異なり、ClawHostではOpenClawとHermesがインストールされた実際のサーバーが手に入ります。インフラを所有し、すべてを制御でき、共有プラットフォームやモデルに制限されません。',
         faq4Question: '技術的な知識は必要ですか？',
         faq4Answer:
-            'いいえ。インフラ、セットアップ、メンテナンスはすべて私たちが対応します。UIを通じてOpenClawの設定と管理、使い方のカスタマイズができます — サーバーやインフラに触れる必要はありません.',
+            'いいえ。インフラ、セットアップ、メンテナンスはすべて私たちが担当します。OpenClawはUIから構成・管理でき、Hermesはシンプルなターミナルコマンドで動作します — サーバーやインフラに触れる必要はありません。',
         faq5Question: 'どのロケーションが利用可能ですか？',
         faq5Answer:
-            '米国、ヨーロッパなど世界中に複数のサーバーロケーションを提供しています. 必要に応じて、異なるリージョンの複数のサーバーにOpenClawをデプロイできます.',
+            '米国、ヨーロッパ、アジアを含む世界中の複数のサーバーロケーションを提供しています。必要に応じてOpenClawまたはHermesを異なるリージョンの複数サーバーにデプロイできます。',
         faq6Question: '料金はいくらですか？',
         faq6Answer:
             '価格は選択するサーバーによって異なります. エントリーレベルからハイパフォーマンスまで複数のサーバーオプションがあり、ニーズと予算に合ったものを選択できます.',
-        faq7Question: 'サーバーに直接アクセスできますか？',
+        faq7Question: 'リンクから直接エージェントにアクセスできますか？',
         faq7Answer:
-            'はい。サブドメインURL経由のOpenClawアクセスに加えて、サーバーとその基盤インフラへのフルアクセスがあり、カスタマイズや必要なものの実行に完全な自由を提供します.',
+            'OpenClawはサブドメインURLとフル機能のWeb UIでアクセス可能です。HermesはSSH経由のターミナルコマンドで動作するため、リンクはありませんが、サーバーのターミナルから完全に制御できます。',
         comparison: '比較',
         comparisonTitle: '私たちの違い',
         comparisonDescription:
@@ -1185,11 +1218,11 @@ const ja: Translations = {
         comparisonInfraOthers: '限定されたサーバー',
         comparisonDataUs: 'データを所有',
         comparisonDataOthers: 'データを所有しない',
-        comparisonMultipleUs: '複数のOpenClaw、1つのClaw',
+        comparisonMultipleUs: '複数のOpenClawとHermesエージェント',
         comparisonMultipleOthers: '単一のOpenClawのみ',
         comparisonOpenSourceUs: '完全オープンソース',
         comparisonOpenSourceOthers: 'クローズドソース',
-        comparisonExportUs: 'OpenClawをどこにでもエクスポート',
+        comparisonExportUs: 'OpenClawとHermesをどこへでもエクスポート',
         comparisonExportOthers: 'ベンダーロックイン',
         comparisonProvidersUs: '複数のサーバープロバイダー',
         comparisonProvidersOthers: '単一プロバイダーのみ',
@@ -1198,27 +1231,29 @@ const ja: Translations = {
         comparisonTerminalUs: '内蔵Webターミナル',
         comparisonTerminalOthers: 'SSHクライアントが必要',
         seeFullComparison: '完全比較を見る',
-        comparisonCtaText: 'SimpleClaw、MyClaw.aiなどと機能ごとに比較.',
+        comparisonCtaText: 'SimpleAgent、MyAgent.aiなどと機能ごとに比較.',
         selfHostInstead: 'セルフホストする'
     },
     blog: {
         readingTime: '{{minutes}}分で読める',
-        ctaTitle: 'ワンクリックでOpenClawをデプロイ',
+        ctaTitle: 'OpenClawとHermesをワンクリックでデプロイ',
         ctaDescription:
-            'OpenClawプリインストール済みの専用サーバーを取得。フルルートアクセス、グローバルロケーション、数分で準備完了。常にあなたのもの。$25から.',
-        ctaDeploy: 'OpenClawをデプロイ',
+            'OpenClawとHermesがプリインストールされた専用サーバーを取得。フルルートアクセス、グローバルロケーション、数分で準備完了。常にあなたのもの。$25から。',
+        ctaDeploy: 'エージェントをデプロイ',
         ctaGitHub: 'GitHubで見る'
     },
     changelog: {
         title: '変更履歴',
         description: 'ClawHostのアップデート、新機能、改善を追跡。',
         subtitle: 'ClawHostのすべてのアップデート、新機能、改善。',
-        release17Date: '2026年4月29日',
-        release17Title: 'Hermes Agent Support',
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
         release17Description:
-            'ClawHostでHermesエージェントをワンクリックデプロイ、OpenClawと同様に。',
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
         release17Feature1:
-            'OpenClawと同様のHermesエージェントのワンクリックデプロイ',
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1412,6 +1447,11 @@ const ja: Translations = {
         overviewUnsupportedTitle: '概要はサポートされていません',
         overviewUnsupportedDescription:
             'お使いのOpenClawバージョンは概要機能をサポートしていません。最新バージョンにアップデートしてください。',
+        overviewHermesTitle: 'Hermesはターミナルで動作します',
+        overviewHermesDescription:
+            'Hermesは TUI エージェントです。ターミナルタブを開いて `hermes` を実行してセッションを開始してください。ファイルおよびバージョンタブで設定の編集とアップグレードができます。',
+        overviewHermesOpenTerminal: 'ターミナルを開く',
+        viewDocs: 'ドキュメント',
         overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1445,6 +1485,8 @@ const ja: Translations = {
         previewEnabling: '有効化中...',
         previewEnabled: 'プレビューが有効になりました。',
         previewEnableFailed: 'プレビューの有効化に失敗しました！',
+        previewEnableCanceledNavigation:
+            'プレビューの有効化が中断されました。ページを離れたためです。',
         previewError: 'プレビューの読み込みに失敗しました。',
         previewErrorDescription:
             'エージェントがオフラインまたは到達不能の可能性があります。',
@@ -1463,6 +1505,13 @@ const ja: Translations = {
         creatingDescription:
             '通常1〜2分かかります。 このページを閉じて、後で戻ってきても問題ありません。',
         configuringTitle: 'OpenClawをインストール中',
+        configuringTitleHermes: 'Hermesをインストール中',
+        loadingTipHermes1:
+            'Hermes は TUI エージェントです — 起動後はターミナルタブを開いてチャットしてください。',
+        loadingTipHermes2:
+            'モデルプロバイダー（OpenRouter、Anthropic など）はファイルタブから ~/.hermes/.env で設定します。',
+        loadingTipHermes3:
+            'ターミナルから `hermes gateway install` で Telegram、Discord、Slack を接続できます。',
         configuringDescription:
             '通常1〜2分かかります。 このページを閉じて、後で戻ってきても問題ありません。',
         awaitingPaymentTitle: '支払い待ち',
@@ -1569,11 +1618,15 @@ const ja: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'インストール',
         versionInstalling: 'インストール中...',
         versionInstallSuccess: 'バージョン{{version}}をインストールしました。',
         versionInstallFailed: 'バージョンのインストールに失敗しました！',
+        installVersionCanceledNavigation:
+            'バージョンのインストールが中断されました。ページを離れたためです。',
         versionDownloads: '{{count}}ダウンロード',
         versionChangelog: '変更履歴',
         versionOutdated: '古いバージョン',
@@ -1611,6 +1664,14 @@ const ja: Translations = {
         settingsSaving: '保存中...',
         settingsUpdated: '設定が更新されました。',
         settingsUpdateFailed: '設定の更新に失敗しました！',
+        saveCanceledNavigation:
+            '保存が中断されました。ページを離れたためです。',
+        savePasswordCanceledNavigation:
+            'パスワードの保存が中断されました。ページを離れたためです。',
+        saveGatewayTokenCanceledNavigation:
+            'ゲートウェイトークンの保存が中断されました。ページを離れたためです。',
+        saveSSHKeyCanceledNavigation:
+            'SSHキーの保存が中断されました。ページを離れたためです。',
         mockLogStarting: 'OpenClawエージェントを起動中...',
         mockLogLoadingModel: 'モデルを読み込み中: claude-sonnet-4-5',
         mockLogAgentReady: 'エージェントがポート3000で準備完了',
@@ -1699,7 +1760,7 @@ const ja: Translations = {
             'ClawHost（「サービス」）にアクセスし利用することで、この契約の条項に拘束されることに承諾し同意します。これらの規約に同意しない場合は、当社のサービスを使用しないでください。',
         serviceTitle: '2. サービスの説明',
         serviceText:
-            'ClawHostは、専用サーバーでのワンクリックOpenClawデプロイメントを提供します。ユーザーがフルルートアクセスと専用リソースを備えた事前設定済みのOpenClawインスタンスをデプロイ、管理、アクセスできるようにします。',
+            'ClawHostは、専用サーバー上でOpenClawとHermesのワンクリックデプロイを提供します。フルルートアクセスと専用リソースを備えた事前構成済みのOpenClawおよびHermesインスタンスを、ユーザーがデプロイ・管理・アクセスできるようにします。',
         authTitle: '3. 認証',
         authText:
             'ClawHostは、サインインの管理にGoogle Firebase Authenticationを使用しています。メール、Google、またはGitHubで認証できます。これらの方法を使用することで、GoogleおよびGitHubのそれぞれの利用規約とプライバシーポリシーに同意したものとみなされます。これらのプロバイダーは、メールアドレス、名前、デバイスデータなどの基本情報を収集する場合があります。',
@@ -1786,7 +1847,7 @@ const ja: Translations = {
         message: 'HermesエージェントがClawHostでのデプロイに対応しました。'
     },
     compare: {
-        title: '詳細比較',
+        title: '比較',
         description:
             'ClawHostと他のOpenClawホスティングプラットフォームの比較をご覧ください。',
         badge: '比較',
@@ -1795,9 +1856,9 @@ const ja: Translations = {
         lastUpdated: '最終更新：2026年3月',
         competitorClawHost: 'ClawHost',
         competitorLobsterFarm: 'LobsterFarm',
-        competitorSimpleClaw: 'SimpleClaw',
-        competitorMyClawAi: 'MyClaw.ai',
-        competitorQuickClaw: 'QuickClaw',
+        competitorSimpleAgent: 'SimpleAgent',
+        competitorMyAgentAi: 'MyAgent.ai',
+        competitorQuickAgent: 'QuickAgent',
         categoryInfrastructure: 'インフラストラクチャ',
         categoryPricing: '料金と請求',
         categoryDeployment: 'デプロイとセットアップ',

@@ -119,8 +119,8 @@ const getAgentVersions = async (c: AuthenticatedContext) => {
         const fetchVersionsData = agentConfig.githubRepo
             ? fetchGitHubVersions(agentConfig.githubRepo)
             : agentConfig.npmPackage
-                ? fetchNpmVersions(agentConfig.npmPackage)
-                : null
+              ? fetchNpmVersions(agentConfig.npmPackage)
+              : null
 
         if (!fetchVersionsData)
             return fail(c, t('api.failedToGetVersions'), 400)
@@ -139,10 +139,7 @@ const getAgentVersions = async (c: AuthenticatedContext) => {
         console.error('getAgentVersions', error)
         if (error instanceof Error && error.message === 'npm_registry_error')
             return fail(c, t('api.failedToGetVersions'), 502)
-        if (
-            error instanceof Error &&
-            error.message === 'github_registry_error'
-        )
+        if (error instanceof Error && error.message === 'github_registry_error')
             return fail(c, t('api.failedToGetVersions'), 502)
         return fail(c, t('api.failedToGetVersions'), 500)
     }

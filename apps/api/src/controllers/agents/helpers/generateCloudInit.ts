@@ -63,55 +63,19 @@ const generateOpenClawSteps = (
       sleep 10
     done`
 
-const generateHermesSteps = (gatewayToken: string): string => `
+const generateHermesSteps = (): string => `
   - useradd -r -m -d /home/hermes -s /bin/bash hermes
   - echo 'hermes ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/hermes
 
   - |
-    su - hermes -c 'curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash'
-
-  - mkdir -p /home/hermes/.hermes
-  - |
-    cat > /home/hermes/.hermes/hermes.json << 'HERMESCONFIG'
-    ${JSON.stringify({ gateway: { auth: { mode: 'token', token: gatewayToken }, remote: { token: gatewayToken } } }, null, 2).replace(/\n/g, '\n    ')}
-    HERMESCONFIG
-  - chown -R hermes:hermes /home/hermes/.hermes
-
-  - |
-    cat > /etc/systemd/system/hermes-gateway.service <<'SYSTEMD'
-    [Unit]
-    Description=Hermes Agent Gateway
-    After=network.target
-
-    [Service]
-    Type=simple
-    User=hermes
-    Group=hermes
-    WorkingDirectory=/home/hermes
-    Environment=HOME=/home/hermes
-    Environment=NODE_ENV=production
-    ExecStart=/home/hermes/.local/bin/hermes gateway start --port ${GATEWAY_PORT}
-    Restart=always
-    RestartSec=10
-    StartLimitIntervalSec=0
-    StandardOutput=append:/var/log/hermes-gateway.log
-    StandardError=append:/var/log/hermes-gateway.log
-
-    [Install]
-    WantedBy=multi-user.target
-    SYSTEMD
-
-  - systemctl daemon-reload
-  - systemctl enable hermes-gateway
-  - systemctl start hermes-gateway
+    su - hermes -c 'curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash -s -- --skip-setup'
 
   - |
     for i in $(seq 1 30); do
-      if curl -sf -o /dev/null http://127.0.0.1:${GATEWAY_PORT}; then
+      if su - hermes -c 'command -v hermes >/dev/null 2>&1 && hermes --version >/dev/null 2>&1'; then
         break
       fi
-      systemctl restart hermes-gateway 2>/dev/null || true
-      sleep 10
+      sleep 5
     done`
 
 const generateBrewStep = (username: string): string => `
@@ -124,106 +88,11 @@ const generateBrewStep = (username: string): string => `
     chmod +x /tmp/install-brew.sh
     nohup /tmp/install-brew.sh > /var/log/brew-install.log 2>&1 &`
 
-const generateCloudInit = (
-    rootPassword: string,
-    subdomain: string,
-    domain: string,
-    gatewayToken: string,
-    selectedAgentType?: string
-): string => {
-    const isHermes = selectedAgentType === agentType.HERMES
-    const fullDomain = `${subdomain}.${domain}`
-
-    let agentSteps: string
-    let agentUser: string
-
-    if (isHermes) {
-        agentSteps = generateHermesSteps(gatewayToken)
-        agentUser = 'hermes'
-    } else {
-        const config: Record<string, unknown> = {
-            gateway: {
-                mode: 'local',
-                auth: {
-                    mode: 'token',
-                    token: gatewayToken
-                },
-                remote: {
-                    token: gatewayToken
-                },
-                controlUi: {
-                    allowInsecureAuth: true,
-                    allowedOrigins: ['*'],
-                    dangerouslyDisableDeviceAuth: true
-                },
-                trustedProxies: ['127.0.0.1', '::1']
-            },
-            commands: {
-                restart: true,
-                bash: true
-            },
-            browser: {
-                enabled: true,
-                executablePath: '/usr/bin/google-chrome-stable',
-                headless: true,
-                noSandbox: true
-            }
-        }
-
-        applyToolsDefaults(config)
-        config.agents = { defaults: { sandbox: { mode: 'off' } } }
-
-        const configJson = JSON.stringify(config, null, 2).replace(
-            /\n/g,
-            '\n    '
-        )
-        agentSteps = generateOpenClawSteps(gatewayToken, configJson)
-        agentUser = 'openclaw'
-    }
-
-    const serviceName = isHermes ? 'hermes-gateway' : 'openclaw-gateway'
-
-    return `#cloud-config
-
-ssh_pwauth: true
-
-chpasswd:
-  list: |
-    root:${rootPassword}
-  expire: false
-
-package_update: true
-
-packages:
-  - curl
-  - nginx
-  - certbot
-  - python3-certbot-nginx
-  - ufw
-  - ca-certificates
-  - gnupg
-  - git
-  - dnsutils
-
-runcmd:
-  - fallocate -l 2G /swapfile
-  - chmod 600 /swapfile
-  - mkswap /swapfile
-  - swapon /swapfile
-  - echo '/swapfile none swap sw 0 0' >> /etc/fstab
-
-  - mkdir -p /etc/apt/keyrings
-  - curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-  - echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
-  - apt-get update -o Dir::Etc::sourcelist="sources.list.d/nodesource.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-  - apt-get install -y nodejs
-${agentSteps}
-
-  - ufw allow 22/tcp
-  - ufw allow 80/tcp
-  - ufw allow 443/tcp
-  - ufw --force enable
-
+const generateWebProxySteps = (
+    serviceName: string,
+    fullDomain: string,
+    domain: string
+): string => `
   - |
     cat > /etc/nginx/sites-available/${serviceName} << 'NGINXEOF'
     map $http_upgrade $connection_upgrade {
@@ -287,10 +156,115 @@ ${agentSteps}
   - certbot --nginx -d ${fullDomain} --non-interactive --agree-tos --email ssl@${domain} --redirect
 
   - echo "0 0,12 * * * root certbot renew --quiet --deploy-hook 'systemctl reload nginx'" > /etc/cron.d/certbot-renew
-  - chmod 644 /etc/cron.d/certbot-renew
-${generateBrewStep(agentUser)}
+  - chmod 644 /etc/cron.d/certbot-renew`
 
-final_message: "${isHermes ? 'Hermes' : 'OpenClaw'} instance ready! Access dashboard at https://${fullDomain}/"
+const generateCloudInit = (
+    rootPassword: string,
+    subdomain: string,
+    domain: string,
+    gatewayToken: string,
+    selectedAgentType?: string
+): string => {
+    const isHermes = selectedAgentType === agentType.HERMES
+    const fullDomain = `${subdomain}.${domain}`
+
+    let agentSteps: string
+    let agentUser: string
+
+    if (isHermes) {
+        agentSteps = generateHermesSteps()
+        agentUser = 'hermes'
+    } else {
+        const config: Record<string, unknown> = {
+            gateway: {
+                mode: 'local',
+                auth: {
+                    mode: 'token',
+                    token: gatewayToken
+                },
+                remote: {
+                    token: gatewayToken
+                },
+                controlUi: {
+                    allowInsecureAuth: true,
+                    allowedOrigins: ['*'],
+                    dangerouslyDisableDeviceAuth: true
+                },
+                trustedProxies: ['127.0.0.1', '::1']
+            },
+            commands: {
+                restart: true,
+                bash: true
+            },
+            browser: {
+                enabled: true,
+                executablePath: '/usr/bin/google-chrome-stable',
+                headless: true,
+                noSandbox: true
+            }
+        }
+
+        applyToolsDefaults(config)
+        config.agents = { defaults: { sandbox: { mode: 'off' } } }
+
+        const configJson = JSON.stringify(config, null, 2).replace(
+            /\n/g,
+            '\n    '
+        )
+        agentSteps = generateOpenClawSteps(gatewayToken, configJson)
+        agentUser = 'openclaw'
+    }
+
+    const serviceName = isHermes ? 'hermes-gateway' : 'openclaw-gateway'
+    const webProxySteps = isHermes
+        ? ''
+        : generateWebProxySteps(serviceName, fullDomain, domain)
+    const brewSteps = isHermes ? '' : generateBrewStep(agentUser)
+
+    return `#cloud-config
+
+ssh_pwauth: true
+
+chpasswd:
+  list: |
+    root:${rootPassword}
+  expire: false
+
+package_update: true
+
+packages:
+  - curl
+  - nginx
+  - certbot
+  - python3-certbot-nginx
+  - ufw
+  - ca-certificates
+  - gnupg
+  - git
+  - dnsutils
+
+runcmd:
+  - fallocate -l 2G /swapfile
+  - chmod 600 /swapfile
+  - mkswap /swapfile
+  - swapon /swapfile
+  - echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+  - mkdir -p /etc/apt/keyrings
+  - curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+  - echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+  - apt-get update -o Dir::Etc::sourcelist="sources.list.d/nodesource.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+  - apt-get install -y nodejs
+${agentSteps}
+
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw --force enable
+${webProxySteps}
+${brewSteps}
+
+final_message: "${isHermes ? 'Hermes instance ready! Connect over SSH or open the Terminal tab in your dashboard.' : `OpenClaw instance ready! Access dashboard at https://${fullDomain}/`}"
 `
 }
 

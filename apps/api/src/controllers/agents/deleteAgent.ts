@@ -4,7 +4,7 @@ import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
 import { agents, pendingAgents } from '@/db/schema'
 import { subscriptions, checkouts } from '@/lib/polar'
-import { subscriptionStatus } from '@/lib/constants'
+import { subscriptionStatus } from '@openclaw/shared'
 import {
     cleanupAgent,
     findUserAgent,

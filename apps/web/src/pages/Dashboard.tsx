@@ -19,15 +19,9 @@ import {
     usePlanAvailability,
     useProfile,
     useNetworkStatus,
-    useAppVersion,
-    useLocalFooterLinks,
     useURLStateRestoration
 } from '@/hooks'
-import {
-    ErrorState,
-    NetworkStatus,
-    PageTitle
-} from '@/components'
+import { ErrorState, NetworkStatus, PageTitle } from '@/components'
 import {
     CreateAgentModal,
     DashboardChatView,
@@ -53,7 +47,7 @@ const Dashboard: FC = (): ReactNode => {
         setPreselectedPlanId
     } = useDashboardStore()
     const { showToast } = useUIStore()
-    const { adminMode: adminModeRaw, openLinksWindowed } = usePreferencesStore()
+    const { adminMode: adminModeRaw } = usePreferencesStore()
 
     const [minLoadingMet, setMinLoadingMet] = useState(false)
 
@@ -79,8 +73,6 @@ const Dashboard: FC = (): ReactNode => {
 
     const [dnsSetup, setDnsSetup] = useState<boolean | null>(null)
     const [dnsLoading, setDnsLoading] = useState(false)
-    const appVersion = useAppVersion(!!isLocal)
-    const dropdownFooterLinks = useLocalFooterLinks(!!isLocal)
 
     useEffect(() => {
         if (!isLocal) return
@@ -220,9 +212,6 @@ const Dashboard: FC = (): ReactNode => {
                 displayName={displayName}
                 dnsSetup={dnsSetup}
                 dnsLoading={dnsLoading}
-                openLinksWindowed={openLinksWindowed}
-                appVersion={appVersion}
-                dropdownFooterLinks={dropdownFooterLinks || []}
                 onCreateClick={handleCreateClick}
                 onDnsSetup={handleDnsSetup}
                 onSignOut={signOut}
@@ -260,7 +249,7 @@ const Dashboard: FC = (): ReactNode => {
                 )}
             </div>
 
-            {showCreate && !isLocal && plans.length > 0 && (
+            {showCreate && (isLocal || plans.length > 0) && (
                 <CreateAgentModal
                     plans={plans}
                     locations={locations || []}

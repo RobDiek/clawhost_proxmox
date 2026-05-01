@@ -1,12 +1,19 @@
 import type { FC, ReactNode } from 'react'
 import type { AgentOverviewContentProps } from '@/ts/Interfaces'
 
+import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
-import { GaugeIcon, ArrowsClockwiseIcon } from '@phosphor-icons/react'
-import { Skeleton } from '@/components/ui'
+import { agentType as agentTypeConst } from '@openclaw/shared'
+import {
+    GaugeIcon,
+    ArrowsClockwiseIcon,
+    BookOpenIcon,
+    TerminalWindowIcon
+} from '@phosphor-icons/react'
+import { Button, Skeleton } from '@/components/ui'
 import { PanelPlaceholder, LiveBadge } from '@/components/shared'
 import { useAgentOverview } from '@/hooks'
-import { demoOverview } from '@/data'
+import { agentTypes, demoOverview } from '@/data'
 import {
     OverviewGatewayCard,
     OverviewInstanceCard,
@@ -21,23 +28,79 @@ const isUnsupportedError = (error: Error | null): boolean => {
 
 const AgentOverviewContent: FC<AgentOverviewContentProps> = ({
     agentId,
-    readOnly
+    agentType,
+    readOnly,
+    onSwitchToTerminal
 }): ReactNode => {
-    const { data: liveData, isPending, isError, error } = useAgentOverview(agentId, !readOnly)
+    const {
+        data: liveData,
+        isPending,
+        isError,
+        error
+    } = useAgentOverview(agentId, !readOnly)
     const data = readOnly ? demoOverview : liveData
+    const isHermes = agentType === agentTypeConst.HERMES
+    const docsUrl = agentTypes.find(
+        (option) => option.type === agentType
+    )?.docsUrl
 
     if (isError && isUnsupportedError(error))
         return (
             <div className='flex h-full items-center justify-center p-5'>
                 <PanelPlaceholder
                     icon={
-                        <ArrowsClockwiseIcon
-                            className='text-muted-foreground h-6 w-6'
-                            weight='duotone'
-                        />
+                        isHermes ? (
+                            <TerminalWindowIcon
+                                className='text-muted-foreground h-6 w-6'
+                                weight='duotone'
+                            />
+                        ) : (
+                            <ArrowsClockwiseIcon
+                                className='text-muted-foreground h-6 w-6'
+                                weight='duotone'
+                            />
+                        )
                     }
-                    title={t('clawDetail.overviewUnsupportedTitle')}
-                    description={t('clawDetail.overviewUnsupportedDescription')}
+                    title={t(
+                        isHermes
+                            ? 'clawDetail.overviewHermesTitle'
+                            : 'clawDetail.overviewUnsupportedTitle'
+                    )}
+                    description={t(
+                        isHermes
+                            ? 'clawDetail.overviewHermesDescription'
+                            : 'clawDetail.overviewUnsupportedDescription'
+                    )}
+                    action={
+                        isHermes ? (
+                            <Fragment>
+                                {onSwitchToTerminal && (
+                                    <Button
+                                        variant='outline'
+                                        size='sm'
+                                        onClick={onSwitchToTerminal}
+                                    >
+                                        <TerminalWindowIcon className='h-3.5 w-3.5' />
+                                        {t(
+                                            'clawDetail.overviewHermesOpenTerminal'
+                                        )}
+                                    </Button>
+                                )}
+                                {docsUrl && (
+                                    <Button variant='outline' size='sm' asChild>
+                                        <a
+                                            href={docsUrl}
+                                            target='_blank'
+                                            rel='noopener noreferrer'
+                                        >
+                                            <BookOpenIcon className='h-3.5 w-3.5' />
+                                            {t('clawDetail.viewDocs')}
+                                        </a>
+                                    </Button>
+                                )}
+                            </Fragment>
+                        ) : undefined
+                    }
                 />
             </div>
         )

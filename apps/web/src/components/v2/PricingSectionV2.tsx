@@ -5,8 +5,18 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
-import { CheckIcon, XIcon, RocketLaunchIcon, ArrowRightIcon } from '@phosphor-icons/react'
-import { BillingToggleV2, buildV2Plans, ScrollRevealV2, SectionLabelV2 } from '@/components/v2'
+import {
+    CheckIcon,
+    XIcon,
+    RocketLaunchIcon,
+    ArrowRightIcon
+} from '@phosphor-icons/react'
+import {
+    BillingToggleV2,
+    buildV2Plans,
+    ScrollRevealV2,
+    SectionLabelV2
+} from '@/components/v2'
 import { ROUTES } from '@/lib'
 
 const PricingSectionV2: FC<PricingSectionProps> = ({
@@ -33,10 +43,16 @@ const PricingSectionV2: FC<PricingSectionProps> = ({
                         {t('landing.pricingDescription')}
                     </p>
 
-                    <BillingToggleV2 isYearly={isYearly} onChange={setIsYearly} />
+                    <BillingToggleV2
+                        isYearly={isYearly}
+                        onChange={setIsYearly}
+                    />
                 </ScrollRevealV2>
 
-                <ScrollRevealV2 delay={0.2} className='relative z-[15] grid grid-cols-1 gap-px border border-white/10 sm:grid-cols-2 lg:grid-cols-4'>
+                <ScrollRevealV2
+                    delay={0.2}
+                    className='relative z-[15] grid grid-cols-1 gap-px border border-white/10 sm:grid-cols-2 lg:grid-cols-4'
+                >
                     {buildV2Plans(plans).map((sp) => (
                         <div
                             key={sp.planId}
@@ -60,7 +76,10 @@ const PricingSectionV2: FC<PricingSectionProps> = ({
                                 </p>
                                 <div className='mb-5 flex items-baseline gap-1'>
                                     <span className='font-syne text-3xl font-extrabold text-white'>
-                                        ${isYearly ? sp.yearlyPerMonth : sp.price}
+                                        $
+                                        {isYearly
+                                            ? sp.yearlyPerMonth
+                                            : sp.price}
                                     </span>
                                     <span className='font-mono text-sm text-white/30'>
                                         /mo

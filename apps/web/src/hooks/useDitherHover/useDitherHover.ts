@@ -2,8 +2,16 @@ import type { MouseEvent } from 'react'
 import type { DitherHoverHandlers } from '@/ts/Interfaces'
 
 import { useCallback, useRef } from 'react'
-import { SOUND_URL, SOUND_VOLUME, FADE_DURATION, FADE_STEP_INTERVAL } from '@/hooks/useDitherHover/constants'
-import { applyDitherClip, clearDitherClip } from '@/hooks/useDitherHover/helpers'
+import {
+    SOUND_URL,
+    SOUND_VOLUME,
+    FADE_DURATION,
+    FADE_STEP_INTERVAL
+} from '@/hooks/useDitherHover/constants'
+import {
+    applyDitherClip,
+    clearDitherClip
+} from '@/hooks/useDitherHover/helpers'
 
 const useDitherHover = (): DitherHoverHandlers => {
     const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -66,21 +74,30 @@ const useDitherHover = (): DitherHoverHandlers => {
         fadeIn()
     }, [ensureAudio, fadeIn])
 
-    const onMouseMove = useCallback((e: MouseEvent<HTMLElement>) => {
-        applyDitherClip(e.currentTarget, e.clientX, e.clientY)
-        if (audioRef.current?.paused !== false) startSound()
-    }, [startSound])
+    const onMouseMove = useCallback(
+        (e: MouseEvent<HTMLElement>) => {
+            applyDitherClip(e.currentTarget, e.clientX, e.clientY)
+            if (audioRef.current?.paused !== false) startSound()
+        },
+        [startSound]
+    )
 
-    const onMouseLeave = useCallback((e: MouseEvent<HTMLElement>) => {
-        clearDitherClip(e.currentTarget)
-        fadeOut()
-    }, [fadeOut])
+    const onMouseLeave = useCallback(
+        (e: MouseEvent<HTMLElement>) => {
+            clearDitherClip(e.currentTarget)
+            fadeOut()
+        },
+        [fadeOut]
+    )
 
-    const resetDither = useCallback((el: HTMLElement | null) => {
-        if (!el) return
-        clearDitherClip(el)
-        fadeOut()
-    }, [fadeOut])
+    const resetDither = useCallback(
+        (el: HTMLElement | null) => {
+            if (!el) return
+            clearDitherClip(el)
+            fadeOut()
+        },
+        [fadeOut]
+    )
 
     return { onMouseMove, onMouseLeave, resetDither }
 }

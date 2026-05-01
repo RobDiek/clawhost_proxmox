@@ -88,47 +88,50 @@ describe('generateCloudInit', () => {
             expect(output).toContain('root:myP@ss123')
         })
 
-        it('includes the full domain', () => {
-            expect(output).toContain('test-hermes.clawhost.cloud')
-        })
-
         it('creates hermes user', () => {
             expect(output).toContain('useradd -r -m -d /home/hermes')
         })
 
-        it('runs hermes install script', () => {
-            expect(output).toContain('NousResearch/hermes-agent/main/scripts/install.sh')
+        it('runs hermes install script with --skip-setup', () => {
+            expect(output).toContain(
+                'NousResearch/hermes-agent/main/scripts/install.sh'
+            )
+            expect(output).toContain('--skip-setup')
         })
 
-        it('sets up hermes-gateway systemd service', () => {
-            expect(output).toContain('hermes-gateway.service')
-            expect(output).toContain('systemctl enable hermes-gateway')
+        it('verifies hermes binary is installed', () => {
+            expect(output).toContain('hermes --version')
         })
 
-        it('writes hermes config with gateway token', () => {
-            expect(output).toContain('hermes.json')
-            expect(output).toContain('tok_hermes456')
+        it('does not write a clawhost-managed hermes config file', () => {
+            expect(output).not.toContain('hermes.json')
         })
 
-        it('includes gateway auth structure in config', () => {
-            expect(output).toContain('"auth"')
-            expect(output).toContain('"token"')
+        it('does not install our own hermes-gateway systemd unit', () => {
+            expect(output).not.toContain('/etc/systemd/system/hermes-gateway')
+            expect(output).not.toContain('systemctl enable hermes-gateway')
         })
 
-        it('configures nginx reverse proxy', () => {
-            expect(output).toContain('proxy_pass http://127.0.0.1:18789')
+        it('does not set up nginx reverse proxy', () => {
+            expect(output).not.toContain('proxy_pass http://127.0.0.1:18789')
+            expect(output).not.toContain('/etc/nginx/sites-available/')
         })
 
-        it('includes required packages', () => {
-            expect(output).toContain('- curl')
-            expect(output).toContain('- nginx')
-            expect(output).toContain('- certbot')
-            expect(output).toContain('- ufw')
-            expect(output).toContain('- git')
+        it('does not run certbot (no web service for Hermes)', () => {
+            expect(output).not.toContain('certbot --nginx')
         })
 
-        it('includes final message', () => {
+        it('does not embed a gateway token (Hermes has no HTTP gateway)', () => {
+            expect(output).not.toContain('tok_hermes456')
+        })
+
+        it('opens ssh through ufw', () => {
+            expect(output).toContain('ufw allow 22/tcp')
+        })
+
+        it('includes final message pointing users to SSH/terminal', () => {
             expect(output).toContain('Hermes instance ready!')
+            expect(output).toContain('SSH')
         })
     })
 })

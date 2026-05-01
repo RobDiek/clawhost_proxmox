@@ -27,7 +27,8 @@ const useAgentCredentials = (agentId: string) => {
     }, [agentId])
 
     const passwordChanged = password !== originalPassword && password.length > 0
-    const tokenChanged = gatewayToken !== originalToken && gatewayToken.length > 0
+    const tokenChanged =
+        gatewayToken !== originalToken && gatewayToken.length > 0
 
     const confirmPasswordSaved = useCallback(() => {
         setOriginalPassword(password)

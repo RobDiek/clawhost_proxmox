@@ -11,10 +11,11 @@ import {
     WarningIcon
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui'
-import { api, getBaseDomain, PREVIEW_STATUS } from '@/lib'
+import { api, getBaseDomain, handleAbortToast, PREVIEW_STATUS } from '@/lib'
 import { generateSlug } from '@/lib/agent-utils'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
+import { useAbortController } from '@/hooks'
 import { PanelPlaceholder } from '@/components/shared'
 
 const AgentPreviewContent: FC<AgentPreviewContentProps> = ({
@@ -26,6 +27,7 @@ const AgentPreviewContent: FC<AgentPreviewContentProps> = ({
     )
     const [enabling, setEnabling] = useState(false)
     const { showToast } = useUIStore()
+    const getEnableSignal = useAbortController()
     const iframeRef = useRef<HTMLIFrameElement | null>(null)
 
     const url = useMemo(() => {
@@ -51,14 +53,21 @@ const AgentPreviewContent: FC<AgentPreviewContentProps> = ({
     const handleEnable = useCallback(async () => {
         setEnabling(true)
         try {
-            await api.enablePreview(agent.id)
+            await api.enablePreview(agent.id, getEnableSignal())
             showToast(t('clawDetail.previewEnabled'), TOAST_TYPE.SUCCESS)
             setStatus(PREVIEW_STATUS.READY)
-        } catch {
-            showToast(t('clawDetail.previewEnableFailed'), TOAST_TYPE.ERROR)
+        } catch (error) {
+            if (
+                !handleAbortToast(
+                    error,
+                    showToast,
+                    'clawDetail.previewEnableCanceledNavigation'
+                )
+            )
+                showToast(t('clawDetail.previewEnableFailed'), TOAST_TYPE.ERROR)
         }
         setEnabling(false)
-    }, [agent.id, showToast])
+    }, [agent.id, showToast, getEnableSignal])
 
     const handleRetry = useCallback(() => {
         setStatus(PREVIEW_STATUS.READY)

@@ -3,15 +3,23 @@ import type { AgentDetailHeaderProps } from '@/ts/Interfaces'
 
 import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
-import { agentStatus } from '@openclaw/shared'
+import { agentStatus, agentType } from '@openclaw/shared'
 import { generateSlug, getStatusConfig } from '@/lib/agent-utils'
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
+import {
+    Skeleton,
+    Tooltip,
+    TooltipTrigger,
+    TooltipContent
+} from '@/components/ui'
 import { useAgentCardActions } from '@/hooks'
 import {
     AgentCardDialogsBundle,
     HeaderActionButton
 } from '@/components/dashboard'
+import { AgentAvatar } from '@/components/shared'
+import { AGENT_AVATAR_SIZE } from '@/lib/constants'
 import { getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
+import { agentTypes } from '@/data'
 
 import {
     XIcon,
@@ -26,9 +34,18 @@ const AgentDetailHeader: FC<AgentDetailHeaderProps> = ({
     onClose,
     fullScreen,
     versionDisplay,
+    versionLoading,
     readOnly
 }): ReactNode => {
     const { actions, isMutating, dialogsProps } = useAgentCardActions({ agent })
+
+    const isHermes = agent.agentType === agentType.HERMES
+    const docsUrl = agentTypes.find(
+        (option) => option.type === agent.agentType
+    )?.docsUrl
+    const docsLabel = docsUrl
+        ? docsUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '')
+        : null
 
     const isPending =
         agent.status === agentStatus.creating ||
@@ -44,6 +61,12 @@ const AgentDetailHeader: FC<AgentDetailHeaderProps> = ({
         <Fragment>
             <div className='border-border flex items-center justify-between border-b p-2.5 px-3.5'>
                 <div className='flex items-center gap-2.5'>
+                    <AgentAvatar
+                        emoji={agent.emoji}
+                        emojiColor={agent.emojiColor}
+                        agentType={agent.agentType}
+                        size={AGENT_AVATAR_SIZE.MD}
+                    />
                     <div className='space-y-px'>
                         <h3 className='text-foreground text-sm font-semibold leading-tight'>
                             {agent.name.length > TRUNCATE_LENGTHS.PANEL_NAME ? (
@@ -69,22 +92,49 @@ const AgentDetailHeader: FC<AgentDetailHeaderProps> = ({
                             agent.status !== agentStatus.configuring &&
                             agent.status !== agentStatus.awaitingPayment && (
                                 <div className='text-muted-foreground flex items-center gap-1.5 text-xs leading-tight'>
-                                    <a
-                                        href={`https://${agent.subdomain || generateSlug(agent.id)}.${getBaseDomain()}${agent.gatewayToken ? `/?token=${agent.gatewayToken}` : ''}`}
-                                        target='_blank'
-                                        rel='noopener noreferrer'
-                                        className='hover:text-foreground/80 flex items-center gap-1 truncate transition-colors'
-                                    >
-                                        <ArrowSquareOutIcon className='h-3 w-3 shrink-0' />
-                                        {agent.subdomain ||
-                                            generateSlug(agent.id)}
-                                        .{getBaseDomain()}
-                                    </a>
-                                    {versionDisplay && (
-                                        <span className='flex items-center gap-1.5'>
-                                            <span className='bg-muted-foreground/40 h-0.5 w-0.5 rounded-full' />
-                                            <span>{versionDisplay}</span>
-                                        </span>
+                                    {!isHermes && (
+                                        <a
+                                            href={`https://${agent.subdomain || generateSlug(agent.id)}.${getBaseDomain()}${agent.gatewayToken ? `/?token=${agent.gatewayToken}` : ''}`}
+                                            target='_blank'
+                                            rel='noopener noreferrer'
+                                            className='hover:text-foreground/80 flex items-center gap-1 truncate transition-colors'
+                                        >
+                                            <ArrowSquareOutIcon className='h-3 w-3 shrink-0' />
+                                            {agent.subdomain ||
+                                                generateSlug(agent.id)}
+                                            .{getBaseDomain()}
+                                        </a>
+                                    )}
+                                    {versionLoading ? (
+                                        <Fragment>
+                                            {!isHermes && (
+                                                <span className='bg-muted-foreground/40 h-0.5 w-0.5 shrink-0 rounded-full' />
+                                            )}
+                                            <Skeleton className='h-3 w-12 rounded-sm' />
+                                        </Fragment>
+                                    ) : (
+                                        versionDisplay && (
+                                            <Fragment>
+                                                {!isHermes && (
+                                                    <span className='bg-muted-foreground/40 h-0.5 w-0.5 shrink-0 rounded-full' />
+                                                )}
+                                                <span>{versionDisplay}</span>
+                                            </Fragment>
+                                        )
+                                    )}
+                                    {docsUrl && docsLabel && (
+                                        <Fragment>
+                                            <span className='bg-muted-foreground/40 h-0.5 w-0.5 shrink-0 rounded-full' />
+                                            <a
+                                                href={docsUrl}
+                                                target='_blank'
+                                                rel='noopener noreferrer'
+                                                className='hover:text-foreground/80 flex items-center gap-1 truncate transition-colors'
+                                            >
+                                                <ArrowSquareOutIcon className='h-3 w-3 shrink-0' />
+                                                {docsLabel}
+                                            </a>
+                                        </Fragment>
                                     )}
                                 </div>
                             )}

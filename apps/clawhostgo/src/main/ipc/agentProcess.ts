@@ -3,14 +3,18 @@ import type { IpcMainInvokeEvent } from 'electron'
 import { ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
-import { agentProvider, agentStatus } from '@openclaw/shared'
+import { agentProvider, agentStatus, agentType } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
-import { configStore, processManager } from '@/main/services'
+import { configStore, processManager, agentSpec } from '@/main/services'
 
 const POST_START_CONFIG_DELAY = 5000
 
-const ensureAgentConfig = (agentDir: string): void => {
-    const configPath = path.join(agentDir, 'openclaw.json')
+const ensureAgentConfig = (
+    agentDir: string,
+    selectedAgentType: string
+): void => {
+    const spec = agentSpec.getAgentSpec(selectedAgentType)
+    const configPath = path.join(agentDir, spec.configFileName)
     if (!fs.existsSync(configPath)) return
     try {
         const raw = fs.readFileSync(configPath, 'utf-8')
@@ -34,11 +38,46 @@ const ensureAgentConfig = (agentDir: string): void => {
     } catch {}
 }
 
-const schedulePostStartConfigFix = (agentDir: string): void => {
+const schedulePostStartConfigFix = (
+    agentDir: string,
+    selectedAgentType: string
+): void => {
     setTimeout(() => {
-        ensureAgentConfig(agentDir)
+        ensureAgentConfig(agentDir, selectedAgentType)
     }, POST_START_CONFIG_DELAY)
 }
+
+const resolveAgentType = (
+    agent: NonNullable<ReturnType<typeof configStore.findAgent>>
+): string => agent.agentType || agentType.OPENCLAW
+
+const buildAgentResponse = (
+    agent: NonNullable<ReturnType<typeof configStore.findAgent>>,
+    status: string
+) => ({
+    id: agent.id,
+    name: agent.name,
+    agentType: resolveAgentType(agent),
+    provider: agentProvider.local,
+    status,
+    ip: '127.0.0.1',
+    planId: agentProvider.local,
+    location: agentProvider.local,
+    rootPassword: null,
+    hasRootPassword: false,
+    sshKeyId: null,
+    providerServerId: null,
+    subdomain: agent.subdomain,
+    gatewayToken: agent.gatewayToken,
+    subscriptionStatus: null,
+    currentPeriodStart: null,
+    currentPeriodEnd: null,
+    volumes: [],
+    ownerEmail: null,
+    deletionScheduledAt: null,
+    createdAt: agent.createdAt,
+    port: agent.port
+})
 
 const registerAgentProcessHandlers = (): void => {
     ipcMain.handle(
@@ -51,17 +90,19 @@ const registerAgentProcessHandlers = (): void => {
                 throw new Error(t('go.noVersionInstalled'))
             }
 
+            const selectedAgentType = resolveAgentType(agent)
             const agentDir = configStore.getAgentDir(agent.name)
-            ensureAgentConfig(agentDir)
+            ensureAgentConfig(agentDir, selectedAgentType)
             try {
                 await processManager.startGateway(
                     agent.id,
                     agentDir,
                     agent.port,
                     agent.version,
-                    agent.gatewayToken
+                    agent.gatewayToken,
+                    selectedAgentType
                 )
-                schedulePostStartConfigFix(agentDir)
+                schedulePostStartConfigFix(agentDir, selectedAgentType)
             } catch (err) {
                 throw new Error(
                     err instanceof Error
@@ -70,29 +111,7 @@ const registerAgentProcessHandlers = (): void => {
                 )
             }
 
-            return {
-                id: agent.id,
-                name: agent.name,
-                provider: agentProvider.local,
-                status: agentStatus.running,
-                ip: '127.0.0.1',
-                planId: agentProvider.local,
-                location: agentProvider.local,
-                rootPassword: null,
-                hasRootPassword: false,
-                sshKeyId: null,
-                providerServerId: null,
-                subdomain: agent.subdomain,
-                gatewayToken: agent.gatewayToken,
-                subscriptionStatus: null,
-                currentPeriodStart: null,
-                currentPeriodEnd: null,
-                volumes: [],
-                ownerEmail: null,
-                deletionScheduledAt: null,
-                createdAt: agent.createdAt,
-                port: agent.port
-            }
+            return buildAgentResponse(agent, agentStatus.running)
         }
     )
 
@@ -104,29 +123,7 @@ const registerAgentProcessHandlers = (): void => {
 
             await processManager.stopGateway(id)
 
-            return {
-                id: agent.id,
-                name: agent.name,
-                provider: agentProvider.local,
-                status: agentStatus.stopped,
-                ip: '127.0.0.1',
-                planId: agentProvider.local,
-                location: agentProvider.local,
-                rootPassword: null,
-                hasRootPassword: false,
-                sshKeyId: null,
-                providerServerId: null,
-                subdomain: agent.subdomain,
-                gatewayToken: agent.gatewayToken,
-                subscriptionStatus: null,
-                currentPeriodStart: null,
-                currentPeriodEnd: null,
-                volumes: [],
-                ownerEmail: null,
-                deletionScheduledAt: null,
-                createdAt: agent.createdAt,
-                port: agent.port
-            }
+            return buildAgentResponse(agent, agentStatus.stopped)
         }
     )
 
@@ -140,40 +137,20 @@ const registerAgentProcessHandlers = (): void => {
                 throw new Error(t('go.noVersionAssigned'))
             }
 
+            const selectedAgentType = resolveAgentType(agent)
             const agentDir = configStore.getAgentDir(agent.name)
-            ensureAgentConfig(agentDir)
+            ensureAgentConfig(agentDir, selectedAgentType)
             await processManager.restartGateway(
                 agent.id,
                 agentDir,
                 agent.port,
                 agent.version,
-                agent.gatewayToken
+                agent.gatewayToken,
+                selectedAgentType
             )
-            schedulePostStartConfigFix(agentDir)
+            schedulePostStartConfigFix(agentDir, selectedAgentType)
 
-            return {
-                id: agent.id,
-                name: agent.name,
-                provider: agentProvider.local,
-                status: agentStatus.running,
-                ip: '127.0.0.1',
-                planId: agentProvider.local,
-                location: agentProvider.local,
-                rootPassword: null,
-                hasRootPassword: false,
-                sshKeyId: null,
-                providerServerId: null,
-                subdomain: agent.subdomain,
-                gatewayToken: agent.gatewayToken,
-                subscriptionStatus: null,
-                currentPeriodStart: null,
-                currentPeriodEnd: null,
-                volumes: [],
-                ownerEmail: null,
-                deletionScheduledAt: null,
-                createdAt: agent.createdAt,
-                port: agent.port
-            }
+            return buildAgentResponse(agent, agentStatus.running)
         }
     )
 
@@ -186,9 +163,11 @@ const registerAgentProcessHandlers = (): void => {
             const running = processManager.isRunning(id)
             const info = processManager.getProcessInfo(id)
 
+            const spec = agentSpec.getAgentSpec(resolveAgentType(agent))
+            const serviceName = `${spec.binaryName}-gateway`
             const service = running
-                ? `openclaw-gateway: active (running)\n  PID: ${info?.pid || 'unknown'}`
-                : 'openclaw-gateway: inactive (stopped)'
+                ? `${serviceName}: active (running)\n  PID: ${info?.pid || 'unknown'}`
+                : `${serviceName}: inactive (stopped)`
 
             const port = running
                 ? `Port ${agent.port}: listening`
@@ -220,16 +199,18 @@ const registerAgentProcessHandlers = (): void => {
                 throw new Error(t('go.noVersionAssigned'))
             }
 
+            const selectedAgentType = resolveAgentType(agent)
             const agentDir = configStore.getAgentDir(agent.name)
-            ensureAgentConfig(agentDir)
+            ensureAgentConfig(agentDir, selectedAgentType)
             await processManager.restartGateway(
                 agent.id,
                 agentDir,
                 agent.port,
                 agent.version,
-                agent.gatewayToken
+                agent.gatewayToken,
+                selectedAgentType
             )
-            schedulePostStartConfigFix(agentDir)
+            schedulePostStartConfigFix(agentDir, selectedAgentType)
 
             return { success: true }
         }
@@ -246,16 +227,18 @@ const registerAgentProcessHandlers = (): void => {
             }
 
             if (agent.version) {
+                const selectedAgentType = resolveAgentType(agent)
                 const agentDir = configStore.getAgentDir(agent.name)
-                ensureAgentConfig(agentDir)
+                ensureAgentConfig(agentDir, selectedAgentType)
                 await processManager.startGateway(
                     agent.id,
                     agentDir,
                     agent.port,
                     agent.version,
-                    agent.gatewayToken
+                    agent.gatewayToken,
+                    selectedAgentType
                 )
-                schedulePostStartConfigFix(agentDir)
+                schedulePostStartConfigFix(agentDir, selectedAgentType)
             }
 
             return { success: true }

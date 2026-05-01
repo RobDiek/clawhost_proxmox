@@ -86,14 +86,14 @@ const ar: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'انشر OpenClaw.',
         heroTitle2: 'محلياً. فوراً.',
-        badge: 'قريباً',
+        badge: 'دعم OpenClaw وHermes',
         description:
             'تطبيق سطح مكتب خفيف لإدارة مثيلات OpenClaw الخاصة بك. انشر وراقب وتحكم في claws الخاصة بك — مباشرة من جهازك.',
         features: 'الميزات',
         whyClawHostGo: 'ميزات شاملة',
         featuresDescription: 'لماذا نستحق التجربة، الميزات لا تكذب.',
         zeroConfigDescription:
-            'ثبّت وشغّل. لا إعداد خوادم، لا تهيئة سحابية. OpenClaw جاهز في ثوانٍ.',
+            'وفّر ساعات من إعداد الخادم وOpenClaw وHermes. مثبتة مسبقًا وجاهزة في دقائق.',
         ownedDataDescription:
             'كل شيء يعمل على جهازك. لا خوادم سحابية، لا أطراف ثالثة، لا بيانات تغادر جهازك.',
         terminalAccessDescription:
@@ -360,6 +360,7 @@ const ar: Translations = {
         invalidSubdomain:
             'نطاق فرعي غير صالح. استخدم 3-20 حرفاً صغيراً وأرقاماً !',
         subdomainAlreadyInUse: 'هذا النطاق الفرعي مستخدم بالفعل !',
+        subdomainNotSupported: 'لا يستخدم نوع الوكيل هذا نطاقًا فرعيًا.',
         agentBusy: 'Agent قيد التجهيز أو الحذف حالياً !',
         reinstallGatewayNotResponding:
             'اكتملت إعادة التثبيت لكن البوابة لا تستجيب بعد. قد تحتاج إلى مزيد من الوقت للبدء.',
@@ -394,6 +395,7 @@ const ar: Translations = {
         adminAccessDenied: 'يتطلب صلاحية المسؤول !',
         agentsFetched: 'تم جلب Agents بنجاح.',
         agentFetched: 'تم جلب Agent بنجاح.',
+        agentStarsFetched: 'تم جلب نجوم الوكيل بنجاح.',
         agentSynced: 'تمت مزامنة Agent بنجاح.',
         agentStarted: 'تم تشغيل Agent بنجاح.',
         agentStopped: 'تم إيقاف Agent بنجاح.',
@@ -687,11 +689,13 @@ const ar: Translations = {
         billingReasonSubscriptionCycle: 'تجديد',
         billingReasonSubscriptionUpdate: 'تحديث الاشتراك',
         failedToLoadBilling: 'فشل في تحميل سجل الفواتير !',
-        viewInvoice: 'عرض الفاتورة',
+        downloadInvoice: 'تنزيل الفاتورة',
+        invoiceCanceledNavigation: 'تم إيقاف تنزيل الفاتورة لأنك غادرت الصفحة.',
         failedToLoadInvoice: 'فشل في تحميل الفاتورة !',
         couponApplied: 'قسيمة: {{name}}',
         manageBilling: 'إدارة الفواتير',
-        failedToLoadPortal: 'فشل في فتح بوابة الفواتير !'
+        failedToLoadPortal: 'فشل في فتح بوابة الفواتير !',
+        portalCanceledNavigation: 'تم إيقاف بوابة الفواتير لأنك غادرت الصفحة.'
     },
     license: {
         title: 'الترخيص',
@@ -788,6 +792,7 @@ const ar: Translations = {
         storage: 'التخزين',
         nextBilling: 'الفاتورة التالية',
         lastBilling: 'الفاتورة الأخيرة',
+        totalSpent: 'إجمالي المنفق',
         version: 'الإصدار',
         gatewayToken: 'رمز البوابة',
         gatewayTokenDescription:
@@ -838,6 +843,8 @@ const ar: Translations = {
         fileExplorerReadOnly: 'للقراءة فقط',
         fileExplorerSave: 'حفظ',
         fileExplorerSaved: 'تم حفظ الملف.',
+        fileExplorerSaveCanceledNavigation:
+            'تم إيقاف حفظ الملف لأنك غادرت الصفحة.',
         fileExplorerInvalidJson:
             'JSON غير صالح. يرجى إصلاح أخطاء البناء قبل الحفظ !',
         fileExplorerNoFiles: 'لم يتم العثور على ملفات',
@@ -853,17 +860,27 @@ const ar: Translations = {
             'سيؤدي هذا إلى إعادة تثبيت {{agentName}} بالكامل على هذه النسخة. سيتم إعادة ضبط جميع التهيئات والوكلاء والبيانات. لا يمكن التراجع عن هذا الإجراء. متابعة؟',
         reinstallInstanceSuccess: 'تم إعادة تثبيت النسخة بنجاح.',
         reinstallInstanceFailed: 'فشل في إعادة تثبيت النسخة !',
+        reinstallCanceledNavigation:
+            'تم إيقاف إعادة التثبيت لأنك غادرت الصفحة.',
         openControlPanel: 'فتح لوحة التحكم',
         exportData: 'تصدير المخلب (.zip)',
         exportAgent: 'تصدير',
-        exportAgentButton: 'تصدير OpenClaw',
+        exportAgentButton: 'تصدير البيانات',
         exportAgentTooltip: 'تحميل هذا الوكيل وجميع بياناته كملف .zip.',
+        exportAgentInProgress:
+            'قد يستغرق التصدير بضع دقائق للوكلاء الأكبر حجماً.',
         exportStarted: 'جارٍ تحضير التصدير، قد يستغرق لحظة...',
         exportSuccess: 'تم تصدير المخلب بنجاح.',
         exportFailed: 'فشل في تصدير بيانات المخلب !',
+        exportCanceledNavigation: 'تم إلغاء التصدير لأنك غادرت الصفحة.',
+        scheduleDeletionCanceledNavigation:
+            'تم إيقاف جدولة الحذف لأنك غادرت الصفحة.',
+        cancelDeletionCanceledNavigation:
+            'تم إيقاف إلغاء الحذف لأنك غادرت الصفحة.',
+        hardDeleteCanceledNavigation:
+            'تم إيقاف الحذف القسري لأنك غادرت الصفحة.',
         exportRateLimited: 'يمكنك التصدير مرة أخرى خلال {{minutes}} دقائق.',
-        exportRateLimitedSeconds:
-            'يمكنك التصدير مرة أخرى خلال {{seconds}} ثوانٍ.',
+        exportRateLimitedOne: 'يمكنك التصدير مرة أخرى خلال دقيقة واحدة.',
         configuringTooltip:
             'قد يستغرق هذا بعض الوقت. يعتمد على OpenClaw وموقع الخادم و Cloudflare DNS.',
         paymentSuccess: 'جارٍ إنشاء وتهيئة مخلبك.',
@@ -908,8 +925,10 @@ const ar: Translations = {
         clawNameInvalidChars: 'يُسمح فقط بالأحرف والأرقام والشرطات !',
         autoGenerateNameHint: 'اتركه فارغاً لتوليد اسم تلقائياً.',
         agentType: 'نوع الوكيل',
-        agentTypeOpenClawDescription: '{{count}} تثبيت',
-        agentTypeHermesDescription: '{{count}} تثبيت',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} نجمة',
+        agentTypeHermesDescription: '{{count}} نجمة',
         location: 'الموقع',
         locationUnavailable: 'غير متاح',
         locationUnavailableForPlan: 'غير متاح',
@@ -1018,6 +1037,9 @@ const ar: Translations = {
         badge: 'OpenClaw مبسّط',
         tutorialBadge: 'شاهد. انشر.',
         tutorialVideoThumbnail: 'صورة مصغرة لفيديو شرح ClawHost',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: 'انشر OpenClaw.',
         heroTitle2: 'بنقرة واحدة. انتهى.',
         heroDescription:
@@ -1041,7 +1063,7 @@ const ar: Translations = {
             'موارد VPS مخصصة تعني عدم وجود اختناق ونطاق ترددي كامل وإنترنت فائق السرعة.',
         globalLocations: 'مواقع عالمية',
         globalLocationsDescription:
-            'انشر OpenClaw في عدة مناطق عالمية واختر الموقع الأقرب إليك.',
+            'انشر OpenClaw وHermes في مناطق عالمية متعددة واختر الموقع الأقرب إليك.',
         fullSshAccess: 'وصول SSH مباشر',
         fullSshAccessDescription:
             'الوصول إلى طرفية خادمك مباشرة من المنصة. لا حاجة لعملاء SSH خارجيين.',
@@ -1051,21 +1073,24 @@ const ar: Translations = {
         payAsYouGo: 'أسعار بسيطة',
         payAsYouGoDescription:
             'أسعار مبنية على ما تحتاجه. لا فواتير مرتفعة إجبارية لخوادم منخفضة الجودة. ألغِ في أي وقت.',
+        bringYourCredits: 'أحضر أرصدتك الخاصة',
+        bringYourCreditsDescription:
+            'استخدم مفتاح Anthropic API الخاص بك أو اشتراك Claude. ادفع لـ Anthropic مباشرةً — بدون رسوم إضافية.',
         customSubdomains: 'وصول عبر الإنترنت',
         customSubdomainsDescription:
             'انسَ الشبكات المحلية. الوصول إلى OpenClaw بأمان من أي مكان عبر نطاق فرعي.',
         autoUpdates: 'التحكم في الإصدارات',
         autoUpdatesDescription:
-            'بدّل إلى أي إصدار من OpenClaw بنقرة واحدة. ابقَ محدّثاً دائماً أو ارجع عند الحاجة.',
-        openclawControl: 'تحكم OpenClaw',
+            'بدّل إلى أي إصدار من OpenClaw أو Hermes بنقرة واحدة. ابقَ محدّثاً دائماً أو ارجع عند الحاجة.',
+        openclawControl: 'مراقبة الخوادم',
         openclawControlDescription:
-            'الوصول إلى لوحة OpenClaw الأصلية مباشرة من ClawHost. وصول كامل للتحرير لكل ما يقدمه OpenClaw.',
+            'راقب خوادم OpenClaw وHermes الخاصة بك بمقاييس وسجلات وتشخيصات في الوقت الفعلي.',
         clawHostControl: 'وصول كامل للخادم',
         clawHostControlDescription:
             'طرفية في المتصفح، مستكشف الملفات، السجلات، التشخيصات وإدارة الإصدارات — كل ذلك من لوحة التحكم.',
-        multipleClaws: 'مخالب متعددة',
+        multipleClaws: 'وكلاء متعددون',
         multipleClawsDescription:
-            'انشر وأدر نسخ OpenClaw متعددة من لوحة تحكم واحدة. وسّع مع نموك.',
+            'انشر وأدر وكلاء OpenClaw وHermes متعددين من لوحة تحكم واحدة. وسّع مع نموك.',
         pricing: 'الأسعار',
         simpleTransparentPricing: 'أسعار بسيطة وشفافة',
         pricingDescription: 'اختر خطة تناسب احتياجاتك. بدون رسوم مخفية.',
@@ -1107,7 +1132,7 @@ const ar: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'اختر الخطة',
         mostPopular: 'الأكثر شعبية',
-        featurePreinstalled: 'OpenClaw مثبت مسبقاً',
+        featurePreinstalled: 'وكيل مثبت مسبقًا',
         featureBandwidth: 'عرض نطاق غير محدود',
         featureSsh: 'وصول SSH الجذر',
         featureUptime: 'متصل 24/7',
@@ -1120,26 +1145,29 @@ const ar: Translations = {
         faqDescription: 'كل سؤال شائع، مُجاب عنه.',
         faq1Question: 'ما هو ClawHost؟',
         faq1Answer:
-            'ClawHost هو منصة مبنية لجعل OpenClaw متاحاً للجميع. يتيح للمستخدمين غير التقنيين والمطورين تشغيل OpenClaw بدون إدارة البنية التحتية. نحن نتولى الخوادم ووقت التشغيل والأمان والصيانة — أنت فقط تستخدم OpenClaw.',
+            'ClawHost هو منصة بُنيت لجعل OpenClaw وHermes في متناول الجميع. تتيح للمستخدمين غير التقنيين والمطورين على حد سواء تشغيلهما دون إدارة البنية التحتية. نحن نتولى الخوادم، ووقت التشغيل، والأمان، والصيانة — أنت فقط تستخدم وكلاءك.',
         faq2Question: 'ما هو OpenClaw؟',
         faq2Answer:
             'OpenClaw هو طبقة وصول آمنة ذاتية الاستضافة لأدوات وخدمات الذكاء الاصطناعي. مُهيأ مسبقاً للأمان والأداء، حتى تتمكن من نشره والاتصال فوراً.',
+        faqHermesQuestion: 'ما هو Hermes؟',
+        faqHermesAnswer:
+            'Hermes هو وكيل ذكاء اصطناعي مستقل مزود بتصفح الويب، وإدارة التقويم، والاستدلال متعدد النماذج، وأتمتة المتصفح. يأتي مثبتًا مسبقًا إلى جانب OpenClaw على كل خادم ClawHost.',
         faq3Question:
             'كيف يختلف هذا عن أدوات الذكاء الاصطناعي الأخرى أو المنصات المستضافة؟',
         faq3Answer:
-            'على عكس أدوات الذكاء الاصطناعي المستضافة، يمنحك ClawHost خادماً حقيقياً مع OpenClaw مثبت. أنت تملك البنية التحتية وتتحكم في كل شيء ولست مقيداً بمنصة أو نموذج مشترك.',
+            'على عكس أدوات الذكاء الاصطناعي المستضافة، يمنحك ClawHost خادمًا حقيقيًا بـ OpenClaw وHermes مثبتَين. أنت تملك البنية التحتية، وتتحكم في كل شيء، ولست مقيدًا بمنصة أو نموذج مشترك.',
         faq4Question: 'هل أحتاج معرفة تقنية؟',
         faq4Answer:
-            'لا. نحن نتولى كل البنية التحتية والإعداد والصيانة. يمكنك تهيئة وإدارة OpenClaw عبر واجهته وتخصيص الاستخدام — بدون لمس الخوادم أو البنية التحتية.',
+            'لا. نحن نتولى كل البنية التحتية، والإعداد، والصيانة. يمكنك تكوين وإدارة OpenClaw من خلال واجهته، بينما يعمل Hermes عبر أوامر طرفية بسيطة — دون لمس الخوادم أو البنية التحتية.',
         faq5Question: 'ما المواقع المتاحة؟',
         faq5Answer:
-            'نقدم عدة مواقع خوادم حول العالم، بما في ذلك الولايات المتحدة وأوروبا والمزيد. يمكنك نشر OpenClaw على عدة خوادم في مناطق مختلفة إذا لزم الأمر.',
+            'نقدم مواقع خوادم متعددة حول العالم، بما في ذلك الولايات المتحدة وأوروبا وآسيا. يمكنك نشر OpenClaw أو Hermes على عدة خوادم في مناطق مختلفة عند الحاجة.',
         faq6Question: 'كم التكلفة؟',
         faq6Answer:
             'تعتمد الأسعار على الخادم الذي تختاره. مع عدة خيارات للخوادم من المستوى الأساسي إلى الأداء العالي، تختار ما يناسب احتياجاتك وميزانيتك.',
-        faq7Question: 'هل يمكنني الوصول إلى خادمي مباشرة؟',
+        faq7Question: 'هل يمكنني الوصول إلى وكيلي مباشرة عبر رابط؟',
         faq7Answer:
-            'نعم. إلى جانب الوصول إلى OpenClaw عبر رابط النطاق الفرعي، لديك وصول كامل إلى الخادم وبنيته التحتية الأساسية، مما يمنحك حرية كاملة للتخصيص وتشغيل أي شيء تحتاجه.',
+            'يمكن الوصول إلى OpenClaw عبر عنوان URL لنطاق فرعي مع واجهة ويب كاملة. أما Hermes فيعمل عبر أوامر طرفية باستخدام SSH — لا رابط، لكن لديك تحكم كامل من خلال طرفية الخادم.',
         comparison: 'المقارنة',
         comparisonTitle: 'كيف نختلف',
         comparisonDescription:
@@ -1157,11 +1185,11 @@ const ar: Translations = {
         comparisonInfraOthers: 'خوادم محدودة',
         comparisonDataUs: 'امتلك بياناتك',
         comparisonDataOthers: 'لا تملك بياناتك',
-        comparisonMultipleUs: 'نسخ OpenClaw متعددة، مخلب واحد',
+        comparisonMultipleUs: 'وكلاء OpenClaw وHermes متعددون',
         comparisonMultipleOthers: 'نسخة OpenClaw واحدة فقط',
         comparisonOpenSourceUs: 'مفتوح المصدر بالكامل',
         comparisonOpenSourceOthers: 'مغلق المصدر',
-        comparisonExportUs: 'صدّر OpenClaw إلى أي مكان',
+        comparisonExportUs: 'صدّر OpenClaw وHermes إلى أي مكان',
         comparisonExportOthers: 'حبس المورّد',
         comparisonProvidersUs: 'مزودي خوادم متعددين',
         comparisonProvidersOthers: 'مزود واحد فقط',
@@ -1171,26 +1199,29 @@ const ar: Translations = {
         comparisonTerminalOthers: 'يتطلب عميل SSH',
         seeFullComparison: 'عرض المقارنة الكاملة',
         comparisonCtaText:
-            'نقارن مع SimpleClaw وMyClaw.ai والمزيد — ميزة بميزة.',
+            'نقارن مع SimpleAgent وMyAgent.ai والمزيد — ميزة بميزة.',
         selfHostInstead: 'استضف بنفسك بدلاً من ذلك'
     },
     blog: {
         readingTime: '{{minutes}} دقائق قراءة',
-        ctaTitle: 'انشر OpenClaw بنقرة واحدة',
+        ctaTitle: 'انشر OpenClaw وHermes بنقرة واحدة',
         ctaDescription:
-            'احصل على خادم مخصص مع OpenClaw مثبت مسبقاً. وصول كامل للجذر ومواقع عالمية وجاهز في دقائق. تملكه في جميع الأوقات. بدءاً من $25.',
-        ctaDeploy: 'انشر OpenClaw',
+            'احصل على خادم مخصص مع OpenClaw وHermes مثبتَين مسبقًا. وصول root كامل، ومواقع عالمية، وجاهز في دقائق. ملكك في كل وقت. ابتداءً من 25 دولارًا.',
+        ctaDeploy: 'انشر وكيلًا',
         ctaGitHub: 'عرض على GitHub'
     },
     changelog: {
         title: 'سجل التغييرات',
         description: 'تتبع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
         subtitle: 'جميع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
-        release17Date: '29 أبريل 2026',
-        release17Title: 'Hermes Agent Support',
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
         release17Description:
-            'نشر بنقرة واحدة لوكلاء Hermes على ClawHost، تمامًا مثل OpenClaw.',
-        release17Feature1: 'نشر بنقرة واحدة لوكلاء Hermes مثل OpenClaw',
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
+        release17Feature1:
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1381,6 +1412,11 @@ const ar: Translations = {
         overviewUnsupportedTitle: 'النظرة العامة غير مدعومة',
         overviewUnsupportedDescription:
             'إصدار OpenClaw الخاص بك لا يدعم ميزة النظرة العامة. يرجى التحديث إلى أحدث إصدار.',
+        overviewHermesTitle: 'يعمل Hermes في الطرفية',
+        overviewHermesDescription:
+            'Hermes هو وكيل TUI — افتح علامة تبويب الطرفية وقم بتشغيل `hermes` لبدء جلسة. تتيح علامتا الملفات والإصدارات تعديل التكوين والترقية.',
+        overviewHermesOpenTerminal: 'فتح الطرفية',
+        viewDocs: 'عرض الوثائق',
         overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1413,6 +1449,8 @@ const ar: Translations = {
         previewEnabling: 'جاري التفعيل...',
         previewEnabled: 'تم تفعيل المعاينة.',
         previewEnableFailed: 'فشل تفعيل المعاينة!',
+        previewEnableCanceledNavigation:
+            'تم إيقاف تفعيل المعاينة لأنك غادرت الصفحة.',
         previewError: 'فشل تحميل المعاينة.',
         previewErrorDescription:
             'قد يكون الوكيل غير متصل أو لا يمكن الوصول إليه.',
@@ -1430,6 +1468,13 @@ const ar: Translations = {
         creatingDescription:
             'يستغرق هذا عادةً دقيقة أو دقيقتين. يمكنك إغلاق هذه الصفحة بأمان والعودة لاحقًا.',
         configuringTitle: 'جارٍ تثبيت OpenClaw',
+        configuringTitleHermes: 'جارٍ تثبيت Hermes',
+        loadingTipHermes1:
+            'Hermes هو وكيل TUI — افتح علامة تبويب الطرفية بعد الإقلاع للتحدث معه.',
+        loadingTipHermes2:
+            'قم بتكوين موفري النماذج (OpenRouter، Anthropic، إلخ) في ~/.hermes/.env من علامة التبويب الملفات.',
+        loadingTipHermes3:
+            'قم بتوصيل Telegram أو Discord أو Slack من الطرفية باستخدام `hermes gateway install`.',
         configuringDescription:
             'يستغرق هذا عادةً دقيقة أو دقيقتين. يمكنك إغلاق هذه الصفحة بأمان والعودة لاحقًا.',
         awaitingPaymentTitle: 'في انتظار الدفع',
@@ -1527,11 +1572,15 @@ const ar: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'تثبيت',
         versionInstalling: 'جارٍ التثبيت...',
         versionInstallSuccess: 'تم تثبيت الإصدار {{version}} بنجاح.',
         versionInstallFailed: 'فشل في تثبيت الإصدار !',
+        installVersionCanceledNavigation:
+            'تم إيقاف تثبيت الإصدار لأنك غادرت الصفحة.',
         versionDownloads: '{{count}} تنزيل',
         versionChangelog: 'سجل التغييرات',
         versionOutdated: 'قديم',
@@ -1567,6 +1616,13 @@ const ar: Translations = {
         settingsSaving: 'جارٍ الحفظ...',
         settingsUpdated: 'تم تحديث الإعدادات.',
         settingsUpdateFailed: 'فشل تحديث الإعدادات!',
+        saveCanceledNavigation: 'تم إيقاف الحفظ لأنك غادرت الصفحة.',
+        savePasswordCanceledNavigation:
+            'تم إيقاف حفظ كلمة المرور لأنك غادرت الصفحة.',
+        saveGatewayTokenCanceledNavigation:
+            'تم إيقاف حفظ رمز البوابة لأنك غادرت الصفحة.',
+        saveSSHKeyCanceledNavigation:
+            'تم إيقاف حفظ مفتاح SSH لأنك غادرت الصفحة.',
         mockLogStarting: 'جارٍ تشغيل وكيل OpenClaw...',
         mockLogLoadingModel: 'جارٍ تحميل النموذج: claude-sonnet-4-5',
         mockLogAgentReady: 'الوكيل جاهز على المنفذ 3000',
@@ -1654,7 +1710,7 @@ const ar: Translations = {
             'بالوصول إلى واستخدام ClawHost ("الخدمة")، فإنك تقبل وتوافق على الالتزام بشروط وأحكام هذه الاتفاقية. إذا لم توافق على هذه الشروط، يرجى عدم استخدام خدمتنا.',
         serviceTitle: '2. وصف الخدمة',
         serviceText:
-            'يوفر ClawHost نشر OpenClaw بنقرة واحدة على خوادم مخصصة. نمكّن المستخدمين من نشر وإدارة والوصول إلى نسخ OpenClaw مهيأة مسبقاً مع وصول كامل للجذر وموارد مخصصة.',
+            'يوفر ClawHost نشرًا بنقرة واحدة لـ OpenClaw وHermes على خوادم مخصصة. نمكّن المستخدمين من نشر مثيلات OpenClaw وHermes المُعدّة مسبقًا وإدارتها والوصول إليها بصلاحيات root كاملة وموارد مخصصة.',
         authTitle: '3. المصادقة',
         authText:
             'يستخدم ClawHost مصادقة Google Firebase لإدارة تسجيل الدخول. يمكنك المصادقة بالبريد الإلكتروني أو Google أو GitHub. باستخدام هذه الطرق، توافق على الشروط وسياسات الخصوصية الخاصة بـ Google وGitHub. قد يجمع هؤلاء المزودون معلومات أساسية مثل عنوان بريدك الإلكتروني واسمك وبيانات الجهاز.',
@@ -1740,7 +1796,7 @@ const ar: Translations = {
         message: 'أصبح وكلاء Hermes مدعومين الآن للنشر على ClawHost.'
     },
     compare: {
-        title: 'المقارنة الكاملة',
+        title: 'مقارنة',
         description: 'شاهد كيف يقارن ClawHost بمنصات استضافة OpenClaw الأخرى.',
         badge: 'مقارنة',
         feature: 'المنصة',
@@ -1748,9 +1804,9 @@ const ar: Translations = {
         lastUpdated: 'آخر تحديث: مارس 2026',
         competitorClawHost: 'ClawHost',
         competitorLobsterFarm: 'LobsterFarm',
-        competitorSimpleClaw: 'SimpleClaw',
-        competitorMyClawAi: 'MyClaw.ai',
-        competitorQuickClaw: 'QuickClaw',
+        competitorSimpleAgent: 'SimpleAgent',
+        competitorMyAgentAi: 'MyAgent.ai',
+        competitorQuickAgent: 'QuickAgent',
         categoryInfrastructure: 'البنية التحتية',
         categoryPricing: 'الأسعار والفوترة',
         categoryDeployment: 'النشر والإعداد',

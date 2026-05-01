@@ -9,7 +9,13 @@ import { verifyToken } from '@/services/firebase'
 import { eq, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { users } from '@/db/schema'
-import { apiPaths, authMethod, externalUrls, userRole } from '@openclaw/shared'
+import {
+    apiPaths,
+    authMethod,
+    externalUrls,
+    httpMethod,
+    userRole
+} from '@openclaw/shared'
 import { environment } from '@/lib/constants'
 import { ok, fail } from '@/lib/response'
 import { addContact } from '@/services/resend'
@@ -39,11 +45,15 @@ app.use(
             ? [
                   externalUrls.CLAWHOST.BASE,
                   externalUrls.CLAWHOST.WWW,
-                  'http://localhost:1111',
-                  'https://localhost:1111'
+                  externalUrls.LOCAL.WEB,
+                  externalUrls.LOCAL.WEB_HTTPS,
+                  externalUrls.LOCAL.API,
+                  externalUrls.LOCAL.API_HTTPS,
+                  externalUrls.LOCAL.DESKTOP,
+                  externalUrls.LOCAL.DESKTOP_HTTPS
               ]
             : [externalUrls.CLAWHOST.BASE, externalUrls.CLAWHOST.WWW],
-        allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        allowMethods: httpMethod.ALL,
         allowHeaders: ['Content-Type', 'Authorization', 'X-Referral-Code'],
         exposeHeaders: [],
         maxAge: 86400

@@ -13,6 +13,7 @@ import type { Client, ClientChannel } from 'ssh2'
 export interface TerminalSocketData {
     ip: string
     password: string
+    autoSuUser?: string | null
     sshConn?: Client
     stream?: ClientChannel
     pingTimer?: Timer
@@ -303,10 +304,11 @@ export interface PolarOrdersPage {
 export interface PolarOrderRaw {
     id: string
     status: string
-    amount: number
     subtotalAmount: number
     discountAmount: number
+    netAmount: number
     taxAmount: number
+    totalAmount: number
     currency?: string
     billingReason: string
     product?: { name: string; id: string } | null
@@ -440,7 +442,7 @@ export interface AgentConfig {
     user: string
     homeDir: string
     configDir: string
-    configFile: string
+    configFile: string | null
     serviceName: string
     logFile: string
     nginxSite: string
@@ -532,6 +534,19 @@ export interface NpmRegistryVersionsResponse {
 
 export interface NpmDownloadsResponse {
     downloads: Record<string, number>
+}
+
+export interface AgentStarCount {
+    agentType: string
+    stars: number
+}
+
+export interface AgentStarsResponse {
+    stars: AgentStarCount[]
+}
+
+export interface StarsCacheData {
+    stars: AgentStarCount[]
 }
 
 export interface GitHubRelease {

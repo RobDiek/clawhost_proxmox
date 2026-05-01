@@ -36,3 +36,7 @@ export interface I18nState {
     languages: Record<Languages, Translations>
     currentLanguage: Languages
 }
+
+export interface TranslationsModule {
+    default: Translations
+}

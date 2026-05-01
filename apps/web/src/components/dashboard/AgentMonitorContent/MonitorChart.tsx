@@ -18,7 +18,11 @@ const tooltipStyle = {
     fontSize: '12px'
 }
 
-const MonitorChart: FC<MonitorChartProps> = ({ data = [], color, label }): ReactNode => (
+const MonitorChart: FC<MonitorChartProps> = ({
+    data = [],
+    color,
+    label
+}): ReactNode => (
     <div className='mt-3'>
         <ResponsiveContainer width='100%' height={100}>
             <AreaChart data={data}>

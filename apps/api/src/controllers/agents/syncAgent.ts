@@ -4,7 +4,7 @@ import { db } from '@/db'
 import { agents } from '@/db/schema'
 import { getProvider } from '@/services/provider'
 import {
-    checkSubdomainReady,
+    checkAgentReady,
     sanitizeAgent,
     withAgent
 } from '@/controllers/agents/helpers'
@@ -25,11 +25,13 @@ const syncAgent = withErrorHandler(
         const serverStatus = await provider.getServer(agent.providerServerId)
 
         if (agent.status === agentStatus.configuring) {
-            if (
-                serverStatus.status === agentStatus.running &&
-                agent.subdomain
-            ) {
-                const ready = await checkSubdomainReady(agent.subdomain)
+            if (serverStatus.status === agentStatus.running) {
+                const ready = await checkAgentReady(
+                    agent.agentType,
+                    agent.subdomain,
+                    serverStatus.ip,
+                    agent.rootPassword
+                )
                 if (ready) {
                     await db
                         .update(agents)

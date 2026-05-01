@@ -86,7 +86,7 @@ const hi: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'OpenClaw डिप्लॉय करें.',
         heroTitle2: 'स्थानीय रूप से. तुरंत.',
-        badge: 'जल्द आ रहा है',
+        badge: 'OpenClaw और Hermes समर्थित',
         description:
             'अपने OpenClaw इंस्टेंस प्रबंधित करने के लिए एक हल्का डेस्कटॉप क्लाइंट. अपनी मशीन से ही डिप्लॉय, मॉनिटर और नियंत्रित करें.',
         features: 'विशेषताएँ',
@@ -94,7 +94,7 @@ const hi: Translations = {
         featuresDescription:
             'हम क्यों आज़माने लायक हैं, विशेषताएँ झूठ नहीं बोलतीं.',
         zeroConfigDescription:
-            'इंस्टॉल करें और चलाएँ. कोई सर्वर सेटअप नहीं, कोई क्लाउड कॉन्फ़िगरेशन नहीं. OpenClaw सेकंडों में तैयार.',
+            'सर्वर, OpenClaw और Hermes सेटअप के घंटों बचाएं. पहले से इंस्टॉल और मिनटों में तैयार.',
         ownedDataDescription:
             'सब कुछ आपके डिवाइस पर चलता है. कोई क्लाउड सर्वर नहीं, कोई तृतीय पक्ष नहीं, कोई डेटा आपकी मशीन से बाहर नहीं जाता.',
         terminalAccessDescription:
@@ -371,6 +371,7 @@ const hi: Translations = {
         invalidSubdomain:
             'अमान्य सबडोमेन. 3-20 छोटे अक्षर और संख्याएँ उपयोग करें!',
         subdomainAlreadyInUse: 'यह सबडोमेन पहले से उपयोग में है!',
+        subdomainNotSupported: 'यह एजेंट प्रकार सबडोमेन का उपयोग नहीं करता।',
         agentBusy: 'एजेंट वर्तमान में प्रावधान या हटाया जा रहा है!',
         reinstallGatewayNotResponding:
             'पुनः इंस्टॉल पूरा हो गया लेकिन गेटवे अभी तक प्रतिक्रिया नहीं दे रहा. इसे शुरू होने में और समय लग सकता है.',
@@ -407,6 +408,7 @@ const hi: Translations = {
         adminAccessDenied: 'एडमिन एक्सेस आवश्यक!',
         agentsFetched: 'एजेंट्स सफलतापूर्वक प्राप्त हुए.',
         agentFetched: 'एजेंट सफलतापूर्वक प्राप्त हुआ.',
+        agentStarsFetched: 'एजेंट स्टार सफलतापूर्वक प्राप्त हुए.',
         agentSynced: 'एजेंट सफलतापूर्वक सिंक हुआ.',
         agentStarted: 'एजेंट सफलतापूर्वक शुरू हुआ.',
         agentStopped: 'एजेंट सफलतापूर्वक रुका.',
@@ -714,11 +716,15 @@ const hi: Translations = {
         billingReasonSubscriptionCycle: 'नवीनीकरण',
         billingReasonSubscriptionUpdate: 'सब्सक्रिप्शन अपडेट',
         failedToLoadBilling: 'बिलिंग इतिहास लोड करने में विफल!',
-        viewInvoice: 'चालान देखें',
+        downloadInvoice: 'चालान डाउनलोड करें',
+        invoiceCanceledNavigation:
+            'चालान डाउनलोड बाधित क्योंकि आप पृष्ठ से चले गए।',
         failedToLoadInvoice: 'चालान लोड करने में विफल!',
         couponApplied: 'कूपन: {{name}}',
         manageBilling: 'बिलिंग प्रबंधित करें',
-        failedToLoadPortal: 'बिलिंग पोर्टल खोलने में विफल!'
+        failedToLoadPortal: 'बिलिंग पोर्टल खोलने में विफल!',
+        portalCanceledNavigation:
+            'बिलिंग पोर्टल बाधित क्योंकि आप पृष्ठ से चले गए।'
     },
     license: {
         title: 'लाइसेंस',
@@ -816,6 +822,7 @@ const hi: Translations = {
         storage: 'स्टोरेज',
         nextBilling: 'अगली बिलिंग',
         lastBilling: 'पिछली बिलिंग',
+        totalSpent: 'कुल खर्च',
         version: 'संस्करण',
         gatewayToken: 'गेटवे टोकन',
         gatewayTokenDescription:
@@ -869,6 +876,8 @@ const hi: Translations = {
         fileExplorerReadOnly: 'केवल पठन',
         fileExplorerSave: 'सहेजें',
         fileExplorerSaved: 'फ़ाइल सहेजी गई.',
+        fileExplorerSaveCanceledNavigation:
+            'फ़ाइल सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
         fileExplorerInvalidJson:
             'अमान्य JSON. कृपया सहेजने से पहले सिंटैक्स त्रुटियाँ ठीक करें!',
         fileExplorerNoFiles: 'कोई फ़ाइलें नहीं मिलीं',
@@ -884,19 +893,29 @@ const hi: Translations = {
             'यह इस इंस्टेंस पर {{agentName}} को पूरी तरह पुनः इंस्टॉल करेगा. सभी कॉन्फ़िगरेशन, एजेंट और डेटा रीसेट हो जाएँगे. यह कार्य पूर्ववत नहीं किया जा सकता. जारी रखें?',
         reinstallInstanceSuccess: 'इंस्टेंस सफलतापूर्वक पुनः इंस्टॉल हुआ.',
         reinstallInstanceFailed: 'इंस्टेंस पुनः इंस्टॉल करने में विफल!',
+        reinstallCanceledNavigation:
+            'पुनः स्थापना बाधित क्योंकि आप पृष्ठ से चले गए।',
         openControlPanel: 'कंट्रोल पैनल खोलें',
         exportData: 'क्लॉ निर्यात करें (.zip)',
         exportAgent: 'निर्यात',
-        exportAgentButton: 'OpenClaw निर्यात करें',
+        exportAgentButton: 'डेटा निर्यात करें',
         exportAgentTooltip:
             'इस एजेंट और इसके सभी डेटा को .zip फ़ाइल के रूप में डाउनलोड करें।',
+        exportAgentInProgress:
+            'बड़े एजेंट्स के लिए निर्यात में कुछ मिनट लग सकते हैं।',
         exportStarted: 'निर्यात तैयार हो रहा है, इसमें कुछ समय लग सकता है...',
         exportSuccess: 'क्लॉ सफलतापूर्वक निर्यात हुआ.',
         exportFailed: 'क्लॉ डेटा निर्यात करने में विफल!',
+        exportCanceledNavigation: 'निर्यात रद्द क्योंकि आप पृष्ठ से चले गए।',
+        scheduleDeletionCanceledNavigation:
+            'विलोपन शेड्यूल बाधित क्योंकि आप पृष्ठ से चले गए।',
+        cancelDeletionCanceledNavigation:
+            'विलोपन निरस्तीकरण बाधित क्योंकि आप पृष्ठ से चले गए।',
+        hardDeleteCanceledNavigation:
+            'बलपूर्वक विलोपन बाधित क्योंकि आप पृष्ठ से चले गए।',
         exportRateLimited:
             'आप {{minutes}} मिनट में फिर से निर्यात कर सकते हैं.',
-        exportRateLimitedSeconds:
-            'आप {{seconds}} सेकंड में फिर से निर्यात कर सकते हैं.',
+        exportRateLimitedOne: 'आप 1 मिनट में फिर से निर्यात कर सकते हैं.',
         configuringTooltip:
             'इसमें कुछ समय लग सकता है. यह OpenClaw, सर्वर स्थान और Cloudflare DNS पर निर्भर करता है.',
         paymentSuccess: 'आपका क्लॉ बनाया और कॉन्फ़िगर किया जा रहा है.',
@@ -942,8 +961,10 @@ const hi: Translations = {
         clawNameInvalidChars: 'केवल अक्षर, संख्याएँ और डैश की अनुमति है!',
         autoGenerateNameHint: 'स्वतः नाम बनाने के लिए खाली छोड़ें.',
         agentType: 'एजेंट प्रकार',
-        agentTypeOpenClawDescription: '{{count}} इंस्टॉल',
-        agentTypeHermesDescription: '{{count}} इंस्टॉल',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} स्टार',
+        agentTypeHermesDescription: '{{count}} स्टार',
         location: 'स्थान',
         locationUnavailable: 'अनुपलब्ध',
         locationUnavailableForPlan: 'अनुपलब्ध',
@@ -1054,6 +1075,9 @@ const hi: Translations = {
         badge: 'OpenClaw सरलीकृत',
         tutorialBadge: 'देखें. डिप्लॉय करें.',
         tutorialVideoThumbnail: 'ClawHost ट्यूटोरियल वीडियो थंबनेल',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: 'OpenClaw डिप्लॉय करें.',
         heroTitle2: 'एक क्लिक. हो गया.',
         heroDescription:
@@ -1078,7 +1102,7 @@ const hi: Translations = {
             'समर्पित VPS संसाधन का मतलब है कोई थ्रॉटलिंग नहीं, पूर्ण बैंडविड्थ और बिजली जैसा तेज़ इंटरनेट.',
         globalLocations: 'वैश्विक स्थान',
         globalLocationsDescription:
-            'कई वैश्विक क्षेत्रों में OpenClaw तैनात करें और अपने सबसे करीबी स्थान चुनें.',
+            'OpenClaw और Hermes को कई वैश्विक क्षेत्रों में डिप्लॉय करें और अपने सबसे निकटतम स्थान का चयन करें.',
         fullSshAccess: 'सीधा SSH एक्सेस',
         fullSshAccessDescription:
             'प्लेटफ़ॉर्म से सीधे अपने सर्वर टर्मिनल तक पहुँचें. किसी बाहरी SSH क्लाइंट की ज़रूरत नहीं.',
@@ -1088,21 +1112,24 @@ const hi: Translations = {
         payAsYouGo: 'सरल मूल्य निर्धारण',
         payAsYouGoDescription:
             'आपकी ज़रूरत पर आधारित मूल्य. कम गुणवत्ता के सर्वरों के लिए कोई ज़बरदस्ती उच्च बिल नहीं. कभी भी रद्द करें.',
+        bringYourCredits: 'अपने क्रेडिट लाएं',
+        bringYourCreditsDescription:
+            'अपनी Anthropic API कुंजी या Claude सदस्यता का उपयोग करें. सीधे Anthropic को भुगतान करें — कोई मार्कअप नहीं.',
         customSubdomains: 'ऑनलाइन एक्सेस',
         customSubdomainsDescription:
             'लोकल नेटवर्क भूल जाएँ. सबडोमेन के साथ कहीं से भी सुरक्षित रूप से अपने OpenClaw तक पहुँचें.',
         autoUpdates: 'संस्करण नियंत्रण',
         autoUpdatesDescription:
-            'एक क्लिक में किसी भी OpenClaw संस्करण पर स्विच करें. हमेशा अप टू डेट रहें या ज़रूरत पड़ने पर वापस जाएँ.',
-        openclawControl: 'OpenClaw नियंत्रण',
+            'एक क्लिक में किसी भी OpenClaw या Hermes संस्करण पर स्विच करें. हमेशा अप टू डेट रहें या ज़रूरत पड़ने पर वापस जाएँ.',
+        openclawControl: 'सर्वर निगरानी',
         openclawControlDescription:
-            'ClawHost से सीधे मूल OpenClaw पैनल तक पहुँचें. OpenClaw जो कुछ भी प्रदान करता है उस पर पूर्ण संपादन एक्सेस.',
+            'अपने OpenClaw और Hermes सर्वरों की वास्तविक समय में मेट्रिक्स, लॉग और डायग्नोस्टिक्स के साथ निगरानी करें.',
         clawHostControl: 'पूर्ण सर्वर एक्सेस',
         clawHostControlDescription:
             'ब्राउज़र टर्मिनल, फ़ाइल एक्सप्लोरर, लॉग, डायग्नोस्टिक्स और वर्शन प्रबंधन — सब कुछ आपके डैशबोर्ड से.',
-        multipleClaws: 'एकाधिक क्लॉज़',
+        multipleClaws: 'एकाधिक एजेंट',
         multipleClawsDescription:
-            'एक ही डैशबोर्ड से कई OpenClaw इंस्टेंस डिप्लॉय और प्रबंधित करें. जैसे-जैसे आप बढ़ें, स्केल करें.',
+            'एक ही डैशबोर्ड से कई OpenClaw और Hermes एजेंट डिप्लॉय और प्रबंधित करें. जैसे-जैसे आप बढ़ें, स्केल करें.',
         pricing: 'मूल्य निर्धारण',
         simpleTransparentPricing: 'सरल, पारदर्शी मूल्य निर्धारण',
         pricingDescription:
@@ -1145,7 +1172,7 @@ const hi: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'योजना चुनें',
         mostPopular: 'सबसे लोकप्रिय',
-        featurePreinstalled: 'OpenClaw पूर्व-स्थापित',
+        featurePreinstalled: 'एजेंट पहले से इंस्टॉल',
         featureBandwidth: 'असीमित बैंडविड्थ',
         featureSsh: 'रूट SSH एक्सेस',
         featureUptime: '24/7 ऑनलाइन',
@@ -1158,25 +1185,28 @@ const hi: Translations = {
         faqDescription: 'हर एक अक्सर पूछे जाने वाला प्रश्न, उत्तर सहित.',
         faq1Question: 'ClawHost क्या है?',
         faq1Answer:
-            'ClawHost एक प्लेटफ़ॉर्म है जो OpenClaw को सभी के लिए सुलभ बनाने के लिए बनाया गया है. यह गैर-तकनीकी उपयोगकर्ताओं और डेवलपर्स दोनों को बुनियादी ढाँचा प्रबंधित किए बिना OpenClaw चलाने देता है. हम सर्वर, अपटाइम, सुरक्षा और रखरखाव संभालते हैं — आप बस OpenClaw का उपयोग करें.',
+            'ClawHost एक प्लेटफ़ॉर्म है जो OpenClaw और Hermes को सभी के लिए सुलभ बनाने के लिए बनाया गया है. यह गैर-तकनीकी उपयोगकर्ताओं और डेवलपर्स दोनों को बुनियादी ढांचे का प्रबंधन किए बिना उन्हें चलाने देता है. हम सर्वर, अपटाइम, सुरक्षा और रखरखाव संभालते हैं — आप बस अपने एजेंट का उपयोग करते हैं.',
         faq2Question: 'OpenClaw क्या है?',
         faq2Answer:
             'OpenClaw आपके AI टूल और सेवाओं के लिए एक सेल्फ-होस्टेड सुरक्षित एक्सेस लेयर है. यह सुरक्षा और प्रदर्शन के लिए पूर्व-कॉन्फ़िगर है, ताकि आप इसे डिप्लॉय करें और तुरंत कनेक्ट हों.',
+        faqHermesQuestion: 'Hermes क्या है?',
+        faqHermesAnswer:
+            'Hermes एक स्वायत्त AI एजेंट है जिसमें वेब ब्राउज़िंग, कैलेंडर प्रबंधन, बहु-मॉडल तर्क और ब्राउज़र स्वचालन शामिल है. यह हर ClawHost सर्वर पर OpenClaw के साथ पहले से इंस्टॉल आता है.',
         faq3Question: 'यह अन्य AI टूल या होस्टेड प्लेटफ़ॉर्म से कैसे अलग है?',
         faq3Answer:
-            'होस्टेड AI टूल के विपरीत, ClawHost आपको OpenClaw इंस्टॉल के साथ एक वास्तविक सर्वर देता है. आप बुनियादी ढाँचे के मालिक हैं, सब कुछ नियंत्रित करते हैं और किसी साझा प्लेटफ़ॉर्म या मॉडल से सीमित नहीं हैं.',
+            'होस्टेड AI टूल के विपरीत, ClawHost आपको OpenClaw और Hermes स्थापित एक वास्तविक सर्वर देता है. आप बुनियादी ढांचे के मालिक हैं, सब कुछ नियंत्रित करते हैं, और साझा प्लेटफ़ॉर्म या मॉडल द्वारा सीमित नहीं हैं.',
         faq4Question: 'क्या मुझे तकनीकी ज्ञान चाहिए?',
         faq4Answer:
-            'नहीं. हम सभी बुनियादी ढाँचा, सेटअप और रखरखाव संभालते हैं. आप OpenClaw को इसके UI के माध्यम से कॉन्फ़िगर और प्रबंधित कर सकते हैं और उपयोग को अनुकूलित कर सकते हैं — बिना सर्वर या बुनियादी ढाँचे को छुए.',
+            'नहीं. हम सभी इन्फ्रास्ट्रक्चर, सेटअप और रखरखाव संभालते हैं. आप OpenClaw को इसके UI से कॉन्फ़िगर और प्रबंधित कर सकते हैं, जबकि Hermes सरल टर्मिनल कमांड से चलता है — बिना सर्वर या इन्फ्रास्ट्रक्चर को छुए.',
         faq5Question: 'कौन से स्थान उपलब्ध हैं?',
         faq5Answer:
-            'हम दुनिया भर में कई सर्वर स्थान प्रदान करते हैं, जिनमें यूएसए, यूरोप और अन्य शामिल हैं. आवश्यकता होने पर आप विभिन्न क्षेत्रों में कई सर्वरों पर OpenClaw तैनात कर सकते हैं.',
+            'हम दुनिया भर में अमेरिका, यूरोप और एशिया सहित कई सर्वर स्थान प्रदान करते हैं. आप ज़रूरत पड़ने पर विभिन्न क्षेत्रों के कई सर्वरों पर OpenClaw या Hermes डिप्लॉय कर सकते हैं.',
         faq6Question: 'इसकी कीमत कितनी है?',
         faq6Answer:
             'कीमतें आपके द्वारा चुने गए सर्वर पर निर्भर करती हैं. बेसिक से लेकर उच्च प्रदर्शन तक कई सर्वर विकल्पों के साथ, आप अपनी आवश्यकताओं और बजट के अनुसार चुनें.',
-        faq7Question: 'क्या मैं अपने सर्वर को सीधे एक्सेस कर सकता हूँ?',
+        faq7Question: 'क्या मैं अपने एजेंट को सीधे लिंक से एक्सेस कर सकता हूँ?',
         faq7Answer:
-            'हाँ. सबडोमेन URL के माध्यम से OpenClaw एक्सेस के साथ, आपके पास सर्वर और इसके अंतर्निहित बुनियादी ढाँचे तक पूर्ण एक्सेस है, जो आपको अनुकूलित करने और जो चाहें चलाने की पूर्ण स्वतंत्रता देता है.',
+            'OpenClaw सबडोमेन URL और पूर्ण वेब UI के माध्यम से एक्सेस किया जा सकता है. Hermes SSH पर टर्मिनल कमांड से चलता है — कोई लिंक नहीं, लेकिन आप अपने सर्वर के टर्मिनल से इसे पूरी तरह नियंत्रित कर सकते हैं.',
         comparison: 'तुलना',
         comparisonTitle: 'हम कैसे अलग हैं',
         comparisonDescription:
@@ -1194,11 +1224,11 @@ const hi: Translations = {
         comparisonInfraOthers: 'सीमित सर्वर',
         comparisonDataUs: 'अपने डेटा के मालिक बनें',
         comparisonDataOthers: 'अपने डेटा के मालिक नहीं',
-        comparisonMultipleUs: 'एकाधिक OpenClaw, एक क्लॉ',
+        comparisonMultipleUs: 'कई OpenClaw और Hermes एजेंट',
         comparisonMultipleOthers: 'केवल एक OpenClaw',
         comparisonOpenSourceUs: 'पूर्ण रूप से ओपन सोर्स',
         comparisonOpenSourceOthers: 'क्लोज़्ड सोर्स',
-        comparisonExportUs: 'अपना OpenClaw कहीं भी निर्यात करें',
+        comparisonExportUs: 'अपने OpenClaw और Hermes को कहीं भी निर्यात करें',
         comparisonExportOthers: 'वेंडर लॉक-इन',
         comparisonProvidersUs: 'एकाधिक सर्वर प्रदाता',
         comparisonProvidersOthers: 'केवल एक प्रदाता',
@@ -1208,27 +1238,29 @@ const hi: Translations = {
         comparisonTerminalOthers: 'SSH क्लाइंट आवश्यक',
         seeFullComparison: 'पूर्ण तुलना देखें',
         comparisonCtaText:
-            'हम SimpleClaw, MyClaw.ai और अन्य से तुलना करते हैं — सुविधा दर सुविधा.',
+            'हम SimpleAgent, MyAgent.ai और अन्य से तुलना करते हैं — सुविधा दर सुविधा.',
         selfHostInstead: 'स्वयं होस्ट करें'
     },
     blog: {
         readingTime: '{{minutes}} मिनट पढ़ने का समय',
-        ctaTitle: 'एक क्लिक में OpenClaw डिप्लॉय करें',
+        ctaTitle: 'एक क्लिक में OpenClaw और Hermes डिप्लॉय करें',
         ctaDescription:
-            'OpenClaw पूर्व-इंस्टॉल के साथ एक समर्पित सर्वर प्राप्त करें. पूर्ण रूट एक्सेस, वैश्विक स्थान और मिनटों में तैयार. आप हर समय इसके मालिक हैं. $25 से शुरू.',
-        ctaDeploy: 'OpenClaw डिप्लॉय करें',
+            'OpenClaw और Hermes पहले से इंस्टॉल एक डेडिकेटेड सर्वर प्राप्त करें. पूर्ण रूट एक्सेस, वैश्विक स्थान, और मिनटों में तैयार. यह हमेशा आपका है. $25 से शुरू.',
+        ctaDeploy: 'एजेंट डिप्लॉय करें',
         ctaGitHub: 'GitHub पर देखें'
     },
     changelog: {
         title: 'परिवर्तन लॉग',
         description: 'ClawHost के अपडेट, नई सुविधाएँ और सुधारों को ट्रैक करें.',
         subtitle: 'ClawHost के सभी अपडेट, नई सुविधाएँ और सुधार.',
-        release17Date: '29 अप्रैल 2026',
-        release17Title: 'Hermes Agent Support',
+        release17Date: 'May 1, 2026',
+        release17Title: 'Hermes Agents One-Click Deployment',
         release17Description:
-            'ClawHost पर Hermes एजेंटों के लिए एक क्लिक डिप्लॉय, OpenClaw की तरह।',
+            'Deploy Hermes agents with a single click, plus a wave of dashboard improvements and bug fixes.',
         release17Feature1:
-            'Hermes एजेंटों के लिए OpenClaw की तरह एक क्लिक डिप्लॉय',
+            'One-click deployment for Hermes agents directly from the dashboard',
+        release17Feature2:
+            'Dashboard improvements for smoother navigation and clearer instance status, plus numerous bug fixes and stability improvements across the platform',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1426,6 +1458,11 @@ const hi: Translations = {
         overviewUnsupportedTitle: 'अवलोकन समर्थित नहीं है',
         overviewUnsupportedDescription:
             'आपका OpenClaw संस्करण अवलोकन सुविधा का समर्थन नहीं करता। कृपया नवीनतम संस्करण में अपडेट करें।',
+        overviewHermesTitle: 'Hermes टर्मिनल में चलता है',
+        overviewHermesDescription:
+            'Hermes एक TUI एजेंट है — टर्मिनल टैब खोलें और सत्र शुरू करने के लिए `hermes` चलाएँ। फ़ाइलें और संस्करण टैब कॉन्फ़िग संपादित करने और अपग्रेड करने देते हैं।',
+        overviewHermesOpenTerminal: 'टर्मिनल खोलें',
+        viewDocs: 'दस्तावेज़',
         overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1458,6 +1495,8 @@ const hi: Translations = {
         previewEnabling: 'सक्षम हो रहा है...',
         previewEnabled: 'पूर्वावलोकन सक्षम।',
         previewEnableFailed: 'पूर्वावलोकन सक्षम करने में विफल!',
+        previewEnableCanceledNavigation:
+            'पूर्वावलोकन सक्षम करना बाधित क्योंकि आप पृष्ठ से चले गए।',
         previewError: 'पूर्वावलोकन लोड करने में विफल।',
         previewErrorDescription: 'एजेंट ऑफ़लाइन या अनुपलब्ध हो सकता है।',
         previewRetry: 'पुनः प्रयास करें',
@@ -1475,6 +1514,13 @@ const hi: Translations = {
         creatingDescription:
             'इसमें आमतौर पर एक या दो मिनट लगते हैं। आप इस पेज को सुरक्षित रूप से बंद कर सकते हैं और बाद में वापस आ सकते हैं।',
         configuringTitle: 'OpenClaw इंस्टॉल किया जा रहा है',
+        configuringTitleHermes: 'Hermes इंस्टॉल किया जा रहा है',
+        loadingTipHermes1:
+            'Hermes एक TUI एजेंट है — बूट होने के बाद इसके साथ चैट करने के लिए टर्मिनल टैब खोलें।',
+        loadingTipHermes2:
+            'फ़ाइलें टैब से ~/.hermes/.env में मॉडल प्रदाता (OpenRouter, Anthropic आदि) कॉन्फ़िगर करें।',
+        loadingTipHermes3:
+            'टर्मिनल से `hermes gateway install` के साथ Telegram, Discord या Slack कनेक्ट करें।',
         configuringDescription:
             'इसमें आमतौर पर एक या दो मिनट लगते हैं। आप इस पेज को सुरक्षित रूप से बंद कर सकते हैं और बाद में वापस आ सकते हैं।',
         awaitingPaymentTitle: 'भुगतान की प्रतीक्षा में',
@@ -1578,11 +1624,15 @@ const hi: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'इंस्टॉल',
         versionInstalling: 'इंस्टॉल हो रहा है...',
         versionInstallSuccess: 'संस्करण {{version}} सफलतापूर्वक इंस्टॉल हुआ.',
         versionInstallFailed: 'संस्करण इंस्टॉल करने में विफल!',
+        installVersionCanceledNavigation:
+            'संस्करण स्थापना बाधित क्योंकि आप पृष्ठ से चले गए।',
         versionDownloads: '{{count}} डाउनलोड',
         versionChangelog: 'परिवर्तन लॉग',
         versionOutdated: 'पुराना',
@@ -1619,6 +1669,13 @@ const hi: Translations = {
         settingsSaving: 'सहेजा जा रहा है...',
         settingsUpdated: 'सेटिंग्स अपडेट की गईं।',
         settingsUpdateFailed: 'सेटिंग्स अपडेट करने में विफल!',
+        saveCanceledNavigation: 'सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        savePasswordCanceledNavigation:
+            'पासवर्ड सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        saveGatewayTokenCanceledNavigation:
+            'गेटवे टोकन सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        saveSSHKeyCanceledNavigation:
+            'SSH कुंजी सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
         mockLogStarting: 'OpenClaw एजेंट शुरू हो रहा है...',
         mockLogLoadingModel: 'मॉडल लोड हो रहा है: claude-sonnet-4-5',
         mockLogAgentReady: 'एजेंट पोर्ट 3000 पर तैयार',
@@ -1711,7 +1768,7 @@ const hi: Translations = {
             'ClawHost ("सेवा") तक पहुँचकर और इसका उपयोग करके, आप इस समझौते की शर्तों और प्रावधानों से बाध्य होने को स्वीकार और सहमत होते हैं. यदि आप इन शर्तों से सहमत नहीं हैं, तो कृपया हमारी सेवा का उपयोग न करें.',
         serviceTitle: '2. सेवा का विवरण',
         serviceText:
-            'ClawHost समर्पित सर्वर पर एक-क्लिक OpenClaw डिप्लॉयमेंट प्रदान करता है. हम उपयोगकर्ताओं को पूर्ण रूट एक्सेस और समर्पित संसाधनों के साथ पूर्व-कॉन्फ़िगर OpenClaw इंस्टेंस डिप्लॉय, प्रबंधित और एक्सेस करने में सक्षम बनाते हैं.',
+            'ClawHost डेडिकेटेड सर्वरों पर OpenClaw और Hermes की एक-क्लिक डिप्लॉयमेंट प्रदान करता है. हम उपयोगकर्ताओं को पूर्ण रूट एक्सेस और डेडिकेटेड संसाधनों के साथ पूर्व-कॉन्फ़िगर OpenClaw और Hermes इंस्टेंस को डिप्लॉय, प्रबंधित और एक्सेस करने में सक्षम बनाते हैं.',
         authTitle: '3. प्रमाणीकरण',
         authText:
             'ClawHost साइन-इन प्रबंधित करने के लिए Google Firebase Authentication का उपयोग करता है. आप ईमेल, Google या GitHub से प्रमाणित कर सकते हैं. इन विधियों का उपयोग करके, आप Google और GitHub की संबंधित शर्तों और गोपनीयता नीतियों से सहमत होते हैं. ये प्रदाता आपके ईमेल पते, नाम और डिवाइस डेटा जैसी बुनियादी जानकारी एकत्र कर सकते हैं.',
@@ -1803,7 +1860,7 @@ const hi: Translations = {
         message: 'Hermes एजेंट अब ClawHost पर डिप्लॉयमेंट के लिए समर्थित हैं।'
     },
     compare: {
-        title: 'पूर्ण तुलना',
+        title: 'तुलना',
         description:
             'देखें कि ClawHost अन्य OpenClaw होस्टिंग प्लेटफ़ॉर्म की तुलना में कैसा है.',
         badge: 'तुलना',
@@ -1812,9 +1869,9 @@ const hi: Translations = {
         lastUpdated: 'अंतिम अपडेट: मार्च 2026',
         competitorClawHost: 'ClawHost',
         competitorLobsterFarm: 'LobsterFarm',
-        competitorSimpleClaw: 'SimpleClaw',
-        competitorMyClawAi: 'MyClaw.ai',
-        competitorQuickClaw: 'QuickClaw',
+        competitorSimpleAgent: 'SimpleAgent',
+        competitorMyAgentAi: 'MyAgent.ai',
+        competitorQuickAgent: 'QuickAgent',
         categoryInfrastructure: 'बुनियादी ढाँचा',
         categoryPricing: 'मूल्य निर्धारण और बिलिंग',
         categoryDeployment: 'डिप्लॉयमेंट और सेटअप',

@@ -4,6 +4,7 @@ import executeSSH from '@/services/ssh'
 import { findUserAgent, getAgentConfig } from '@/controllers/agents/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
+import { gatewayDefaults } from '@/lib/constants'
 
 const SEPARATOR = '---CLAWHOST_SEP---'
 
@@ -18,12 +19,21 @@ const getAgentDiagnostics = async (c: AuthenticatedContext) => {
         if (!agent.ip || !agent.rootPassword)
             return fail(c, t('api.failedToGetDiagnostics'), 400)
 
-        const { serviceName } = getAgentConfig(agent.agentType)
+        const config = getAgentConfig(agent.agentType)
+        const isHermes = config.configFile === null
+
+        const portCheck = isHermes
+            ? `su - ${config.user} -c '${config.versionCommand}' 2>&1 || echo "Hermes binary not on PATH"`
+            : `ss -tlnp | grep ${gatewayDefaults.PORT} 2>&1 || echo "Port ${gatewayDefaults.PORT} not listening"`
+
+        const serviceCheck = isHermes
+            ? `systemctl status ${config.serviceName} 2>&1 || (su - ${config.user} -c 'systemctl --user status ${config.serviceName}' 2>&1 || echo "${config.serviceName} systemd unit not installed")`
+            : `systemctl status ${config.serviceName} 2>&1`
 
         const command = [
-            `systemctl status ${serviceName} 2>&1`,
+            serviceCheck,
             `echo '${SEPARATOR}'`,
-            'ss -tlnp | grep 18789 2>&1 || echo "Port 18789 not listening"',
+            portCheck,
             `echo '${SEPARATOR}'`,
             'free -h 2>&1'
         ].join('; ')

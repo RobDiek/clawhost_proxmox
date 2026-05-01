@@ -1,5 +1,9 @@
 import type { OAuthCredential } from 'firebase/auth'
-import type { OAuthWindowResult, PendingConflict } from '@/ts/Interfaces'
+import type {
+    MdxComponentModule,
+    OAuthWindowResult,
+    PendingConflict
+} from '@/ts/Interfaces'
 import type {
     agentType,
     authMethod,
@@ -94,3 +98,5 @@ export type ElectronOAuthFn = (
     providerUrl: string,
     callbackPrefix: string
 ) => Promise<OAuthWindowResult>
+
+export type MdxModuleLoaders = Record<string, () => Promise<MdxComponentModule>>

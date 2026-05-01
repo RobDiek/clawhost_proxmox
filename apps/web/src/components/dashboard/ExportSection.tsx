@@ -1,27 +1,18 @@
 import type { FC, ReactNode } from 'react'
 import type { ExportSectionProps } from '@/ts/Interfaces'
 
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { t } from '@openclaw/i18n'
 import { CircleNotchIcon, DownloadSimpleIcon } from '@phosphor-icons/react'
-import { api } from '@/lib'
-import { useUIStore } from '@/lib/store'
-import { TOAST_TYPE } from '@/lib/constants'
+import { useExportAgent } from '@/hooks'
 
 const ExportSection: FC<ExportSectionProps> = ({ agentId }): ReactNode => {
-    const { showToast } = useUIStore()
-    const [isExporting, setIsExporting] = useState(false)
+    const { exportAgent, isExporting } = useExportAgent()
 
-    const handleExport = useCallback(async () => {
-        setIsExporting(true)
-        try {
-            await api.exportAgent(agentId, `${agentId}-export.tar.gz`)
-            showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
-        } catch {
-            showToast(t('dashboard.exportFailed'), TOAST_TYPE.ERROR)
-        }
-        setIsExporting(false)
-    }, [agentId, showToast])
+    const handleExport = useCallback(
+        () => exportAgent(agentId, `${agentId}-export.tar.gz`),
+        [agentId, exportAgent]
+    )
 
     return (
         <div className='border-border border-t pt-5'>
@@ -41,7 +32,9 @@ const ExportSection: FC<ExportSectionProps> = ({ agentId }): ReactNode => {
                 {t('dashboard.exportAgentButton')}
             </button>
             <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                {t('dashboard.exportAgentTooltip')}
+                {isExporting
+                    ? t('dashboard.exportAgentInProgress')
+                    : t('dashboard.exportAgentTooltip')}
             </p>
         </div>
     )

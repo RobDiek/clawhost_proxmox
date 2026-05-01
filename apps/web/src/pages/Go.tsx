@@ -33,7 +33,7 @@ import {
     LinkIcon,
     ShieldCheckIcon,
     GitBranchIcon,
-    SlidersHorizontalIcon,
+    PulseIcon,
     GearSixIcon
 } from '@phosphor-icons/react'
 
@@ -74,7 +74,7 @@ const getGoFeatures = (): FeatureItem[] => [
         description: t('landing.autoUpdatesDescription')
     },
     {
-        icon: SlidersHorizontalIcon,
+        icon: PulseIcon,
         title: t('landing.openclawControl'),
         description: t('landing.openclawControlDescription')
     },

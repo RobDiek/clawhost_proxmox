@@ -3,6 +3,7 @@ import AgentAvatar from '@/components/shared/AgentAvatar'
 import ConfirmationDialog from '@/components/shared/ConfirmationDialog'
 import AgentMascot from '@/components/shared/AgentMascot'
 import AgentMascotOutline from '@/components/shared/AgentMascotOutline'
+import AgentTypeMascot from '@/components/shared/AgentTypeMascot'
 import EmptyState from '@/components/shared/EmptyState'
 import ErrorState from '@/components/shared/ErrorState'
 import LanguageSelector from '@/components/shared/LanguageSelector'
@@ -20,6 +21,7 @@ export {
     AgentAvatar,
     AgentMascot,
     AgentMascotOutline,
+    AgentTypeMascot,
     ConfirmationDialog,
     EmptyState,
     ErrorState,

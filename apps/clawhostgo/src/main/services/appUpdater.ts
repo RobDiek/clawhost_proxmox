@@ -1,75 +1,46 @@
 import type { AppUpdateInfo } from '@/ts/Interfaces'
 
-import { net, app } from 'electron'
+import { autoUpdater, BrowserWindow, app } from 'electron'
+import { updateElectronApp, UpdateSourceType } from 'update-electron-app'
 
-const GITHUB_REPO = 'bfzli/agenthost'
-const RELEASES_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases`
-const CHECK_INTERVAL = 60 * 60 * 1000
+let pendingUpdate: AppUpdateInfo | null = null
 
-let cachedUpdate: AppUpdateInfo | null = null
-let lastCheck = 0
+const start = (): void => {
+    if (!app.isPackaged) return
 
-const compareVersions = (current: string, latest: string): boolean => {
-    const c = current.replace(/^v/, '').split('.').map(Number)
-    const l = latest.replace(/^v/, '').split('.').map(Number)
-    for (let i = 0; i < Math.max(c.length, l.length); i++) {
-        const cv = c[i] || 0
-        const lv = l[i] || 0
-        if (lv > cv) return true
-        if (lv < cv) return false
-    }
-    return false
-}
+    updateElectronApp({
+        updateSource: {
+            type: UpdateSourceType.StaticStorage,
+            baseUrl: 'https://cdn.clawhost.cloud/go/${platform}/${arch}'
+        },
+        updateInterval: '1 hour',
+        notifyUser: false
+    })
 
-const checkForUpdate = async (): Promise<AppUpdateInfo> => {
-    const now = Date.now()
-    if (cachedUpdate && now - lastCheck < CHECK_INTERVAL) {
-        return cachedUpdate
-    }
-
-    try {
-        const response = await net.fetch(RELEASES_URL, {
-            headers: { Accept: 'application/vnd.github.v3+json' }
-        })
-
-        if (!response.ok) {
-            return { hasUpdate: false, currentVersion: app.getVersion() }
-        }
-
-        const releases = await response.json()
-        const goRelease = releases.find(
-            (r: { tag_name: string; draft: boolean; prerelease: boolean }) =>
-                r.tag_name.startsWith('go-v') && !r.draft && !r.prerelease
-        )
-
-        if (!goRelease) {
-            cachedUpdate = {
-                hasUpdate: false,
-                currentVersion: app.getVersion()
+    autoUpdater.on(
+        'update-downloaded',
+        (_event, _releaseNotes, releaseName) => {
+            pendingUpdate = {
+                hasUpdate: true,
+                currentVersion: app.getVersion(),
+                latestVersion: releaseName
             }
-            lastCheck = now
-            return cachedUpdate
+            for (const win of BrowserWindow.getAllWindows()) {
+                win.webContents.send('update-downloaded', pendingUpdate)
+            }
         }
-
-        const latestVersion = goRelease.tag_name.replace('go-v', '')
-        const currentVersion = app.getVersion()
-        const hasUpdate = compareVersions(currentVersion, latestVersion)
-
-        const downloadUrl = goRelease.html_url as string
-
-        cachedUpdate = {
-            hasUpdate,
-            currentVersion,
-            latestVersion,
-            downloadUrl
-        }
-        lastCheck = now
-        return cachedUpdate
-    } catch {
-        return { hasUpdate: false, currentVersion: app.getVersion() }
-    }
+    )
 }
 
-const appUpdater = { checkForUpdate }
+const getPendingUpdate = (): AppUpdateInfo => {
+    if (pendingUpdate) return pendingUpdate
+    return { hasUpdate: false, currentVersion: app.getVersion() }
+}
+
+const quitAndInstall = (): void => {
+    autoUpdater.quitAndInstall()
+}
+
+const appUpdater = { start, getPendingUpdate, quitAndInstall }
 
 export default appUpdater

@@ -1,8 +1,4 @@
-import type {
-    Location,
-    PlanAvailability,
-    VolumePricing
-} from '@/ts/Interfaces'
+import type { Location, PlanAvailability, VolumePricing } from '@/ts/Interfaces'
 
 import { apiPaths as API_PATHS } from '@openclaw/shared'
 import { client } from '@/lib/api/client'

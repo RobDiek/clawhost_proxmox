@@ -5,7 +5,9 @@ import { t } from '@openclaw/i18n'
 import { CpuIcon } from '@phosphor-icons/react'
 import MetricCard from '@/components/dashboard/AgentMonitorContent/MetricCard'
 
-const MonitorProcessTable: FC<MonitorProcessTableProps> = ({ processes }): ReactNode => (
+const MonitorProcessTable: FC<MonitorProcessTableProps> = ({
+    processes
+}): ReactNode => (
     <MetricCard
         title={t('clawDetail.metricsProcesses')}
         icon={<CpuIcon className='h-4 w-4 text-emerald-500' />}

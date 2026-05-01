@@ -15,6 +15,7 @@ const API_PATHS = {
     CLAWS: {
         BASE: AGENTS,
         ADMIN: `${AGENTS}/admin`,
+        STARS: `${AGENTS}/stars`,
         PURCHASE: `${AGENTS}/purchase`,
         byId: (id: string) => `${AGENTS}/${id}`,
         PENDING: (id: string) => `${AGENTS}/pending/${id}`,
@@ -49,7 +50,8 @@ const API_PATHS = {
         ROTATE_GATEWAY_TOKEN: (id: string) =>
             `${AGENTS}/${id}/rotate-gateway-token`,
         EMOJI: (id: string) => `${AGENTS}/${id}/emoji`,
-        SSH_KEY: (id: string) => `${AGENTS}/${id}/ssh-key`
+        SSH_KEY: (id: string) => `${AGENTS}/${id}/ssh-key`,
+        BILLING: (id: string) => `${AGENTS}/${id}/billing`
     },
     AFFILIATE: {
         BASE: '/affiliate',

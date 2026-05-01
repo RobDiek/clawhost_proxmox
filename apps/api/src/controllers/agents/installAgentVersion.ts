@@ -16,6 +16,7 @@ import {
 } from '@/controllers/agents/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
+import { gatewayDefaults } from '@/lib/constants'
 
 const VERSION_REGEX = /^[a-zA-Z0-9._-]+$/
 const OUTDATED_CUTOFF = new Date('2026-02-01')
@@ -52,7 +53,7 @@ const buildNpmInstallCommands = async (
         nginxPatch,
         `systemctl restart ${serviceName}`,
         'sleep 15',
-        'curl -sf -o /dev/null --max-time 5 http://127.0.0.1:18789 && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"'
+        `curl -sf -o /dev/null --max-time 5 ${gatewayDefaults.BASE_URL} && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"`
     ].join(' && ')
 }
 
@@ -61,17 +62,14 @@ const buildGitHubInstallCommands = (
     githubRepo: string,
     serviceName: string,
     user: string,
-    nginxSite: string
+    versionCommand: string
 ): string => {
-    const nginxPatch = `(grep -q 'proxy_hide_header Content-Security-Policy' /etc/nginx/sites-available/${nginxSite} || sed -i 's|proxy_send_timeout 86400;|proxy_send_timeout 86400;\\n            proxy_hide_header Content-Security-Policy;\\n            proxy_hide_header X-Frame-Options;\\n            add_header Content-Security-Policy "frame-ancestors https://${DOMAIN} https://*.${DOMAIN} http://localhost:* https://localhost:*" always;|g' /etc/nginx/sites-available/${nginxSite}) && nginx -t && systemctl reload nginx || true`
-
     return [
-        `systemctl stop ${serviceName} || true`,
-        `curl -fsSL https://raw.githubusercontent.com/${githubRepo}/main/scripts/install.sh | HERMES_VERSION=${version} su - ${user} -c bash`,
-        nginxPatch,
-        `systemctl restart ${serviceName}`,
-        'sleep 15',
-        'curl -sf -o /dev/null --max-time 5 http://127.0.0.1:18789 && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"'
+        `systemctl stop ${serviceName} 2>/dev/null || true`,
+        `su - ${user} -c 'curl -fsSL https://raw.githubusercontent.com/${githubRepo}/main/scripts/install.sh | HERMES_VERSION=${version} bash -s -- --skip-setup'`,
+        `systemctl restart ${serviceName} 2>/dev/null || su - ${user} -c 'systemctl --user restart ${serviceName}' 2>/dev/null || true`,
+        'sleep 5',
+        `su - ${user} -c '${versionCommand}' >/dev/null 2>&1 && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"`
     ].join(' && ')
 }
 
@@ -91,8 +89,15 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
 
         if (!agent[0]) return fail(c, t('api.agentNotFound'), 404)
 
-        if (!agent[0].ip || !agent[0].rootPassword)
+        if (!agent[0].ip || !agent[0].rootPassword) {
+            console.error(
+                'installAgentVersion',
+                new Error(
+                    `agent ${id} missing ip or rootPassword (ip=${!!agent[0].ip}, rootPassword=${!!agent[0].rootPassword})`
+                )
+            )
             return fail(c, t('api.failedToInstallVersion'), 400)
+        }
 
         const agentConfig = getAgentConfig(agent[0].agentType)
 
@@ -104,7 +109,7 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
                 agentConfig.githubRepo,
                 agentConfig.serviceName,
                 agentConfig.user,
-                agentConfig.nginxSite
+                agentConfig.versionCommand
             )
         } else if (agentConfig.npmPackage) {
             try {
@@ -125,15 +130,27 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
                 throw error
             }
         } else {
+            console.error(
+                'installAgentVersion',
+                new Error(
+                    `agent ${id} type ${agent[0].agentType} has no githubRepo or npmPackage configured`
+                )
+            )
             return fail(c, t('api.failedToInstallVersion'), 400)
         }
 
-        const output = await executeSSH(
-            agent[0].ip,
-            agent[0].rootPassword,
-            installCommands,
-            120000
-        )
+        let output: string
+        try {
+            output = await executeSSH(
+                agent[0].ip,
+                agent[0].rootPassword,
+                installCommands,
+                120000
+            )
+        } catch (sshError) {
+            console.error('installAgentVersion', sshError)
+            return fail(c, t('api.failedToInstallVersion'), 500)
+        }
 
         invalidateVersionCache(agent[0].ip)
 
@@ -141,6 +158,12 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
 
         if (success) return ok(c, { version }, t('api.installVersionSuccess'))
 
+        console.error(
+            'installAgentVersion',
+            new Error(
+                `agent ${id} version ${version} install did not reach GATEWAY_OK. Output tail:\n${output.slice(-2000)}`
+            )
+        )
         return fail(c, t('api.failedToInstallVersion'), 500)
     } catch (error) {
         console.error('installAgentVersion', error)

@@ -31,12 +31,12 @@ const FaqSectionV2: FC<FaqSectionProps> = ({
                     </p>
                 </ScrollRevealV2>
 
-                <ScrollRevealV2 delay={0.2} className='relative z-[15] divide-y divide-white/10 border border-white/10'>
+                <ScrollRevealV2
+                    delay={0.2}
+                    className='relative z-[15] divide-y divide-white/10 border border-white/10'
+                >
                     {faqs.map((faq, i) => (
-                        <div
-                            key={i}
-                            className='bg-[#070709]'
-                        >
+                        <div key={i} className='bg-[#070709]'>
                             <button
                                 onClick={() =>
                                     setOpenIndex(openIndex === i ? null : i)

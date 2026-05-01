@@ -6,14 +6,15 @@ import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import { execFile } from 'child_process'
-import { agentProvider, agentStatus } from '@openclaw/shared'
+import { agentProvider, agentStatus, agentType } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
 import {
     configStore,
     processManager,
     versionManager,
     certManager,
-    reverseProxy
+    reverseProxy,
+    agentSpec
 } from '@/main/services'
 
 const adjectives = [
@@ -88,49 +89,15 @@ const generateAgentName = (): string => {
     return `${adj}-${noun}`
 }
 
-const DEFAULT_OPENCLAW_CONFIG = (subdomain: string, gatewayToken?: string) => ({
-    gateway: {
-        mode: 'local',
-        ...(gatewayToken
-            ? {
-                  auth: {
-                      mode: 'token',
-                      token: gatewayToken
-                  }
-              }
-            : {}),
-        controlUi: {
-            allowInsecureAuth: true,
-            dangerouslyDisableDeviceAuth: true,
-            allowedOrigins: ['*']
-        },
-        trustedProxies: ['127.0.0.1', '::1']
-    },
-    commands: {
-        restart: true,
-        bash: true
-    },
-    agents: {
-        defaults: {
-            sandbox: { mode: 'off' }
-        },
-        list: [
-            {
-                id: 'main',
-                name: 'main'
-            }
-        ]
-    }
-})
-
 const resolveGatewayToken = (
     agent: NonNullable<ReturnType<typeof configStore.findAgent>>
 ): string => {
     if (agent.gatewayToken) return agent.gatewayToken
     try {
+        const spec = agentSpec.getAgentSpec(agent.agentType)
         const configPath = path.join(
             configStore.getAgentDir(agent.name),
-            'openclaw.json'
+            spec.configFileName
         )
         const raw = fs.readFileSync(configPath, 'utf-8')
         const cfg = JSON.parse(raw)
@@ -151,6 +118,7 @@ const mapAgentToResponse = (
     return {
         id: agent.id,
         name: agent.name,
+        agentType: agent.agentType || agentType.OPENCLAW,
         provider: agentProvider.local,
         status: processManager.isRunning(agent.id)
             ? agentStatus.running
@@ -203,7 +171,14 @@ const registerAgentHandlers = (): void => {
                 throw new Error(t('go.clawNameAlreadyExists'))
             }
 
-            const version = await versionManager.getLatestVersion()
+            const selectedAgentType =
+                data.agentType === agentType.HERMES
+                    ? agentType.HERMES
+                    : agentType.OPENCLAW
+            const spec = agentSpec.getAgentSpec(selectedAgentType)
+
+            const version =
+                await versionManager.getLatestVersion(selectedAgentType)
             if (!version) throw new Error(t('go.failedToFetchLatestVersion'))
 
             const id = crypto.randomUUID()
@@ -218,21 +193,24 @@ const registerAgentHandlers = (): void => {
                 recursive: true
             })
 
-            await versionManager.installVersionTo(version, agentDir)
+            await versionManager.installVersionTo(
+                selectedAgentType,
+                version,
+                agentDir
+            )
 
-            const openclawConfig = DEFAULT_OPENCLAW_CONFIG(
+            const defaultConfig = spec.defaultConfig(
                 subdomain,
                 gatewayToken || undefined
             )
-            fs.writeFileSync(
-                path.join(agentDir, 'openclaw.json'),
-                JSON.stringify(openclawConfig, null, 4)
-            )
+            const configPath = path.join(agentDir, spec.configFileName)
+            fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 4))
             fs.writeFileSync(path.join(agentDir, '.env'), '')
 
             const newAgent = {
                 id,
                 name,
+                agentType: selectedAgentType,
                 port,
                 version,
                 gatewayToken,
@@ -254,10 +232,10 @@ const registerAgentHandlers = (): void => {
                         agentDir,
                         port,
                         version,
-                        gatewayToken
+                        gatewayToken,
+                        selectedAgentType
                     )
                     setTimeout(() => {
-                        const configPath = path.join(agentDir, 'openclaw.json')
                         try {
                             const raw = fs.readFileSync(configPath, 'utf-8')
                             const cfg = JSON.parse(raw)

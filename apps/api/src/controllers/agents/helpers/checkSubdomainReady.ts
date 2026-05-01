@@ -1,6 +1,7 @@
 import type { CacheEntry } from '@/ts/Interfaces'
 
 import DOMAIN from '@/controllers/agents/helpers/constants'
+import { gatewayDefaults } from '@/lib/constants'
 
 const READY_CACHE_TTL = 5_000
 const readyCache = new Map<string, CacheEntry<boolean>>()
@@ -14,7 +15,7 @@ const checkSubdomainReady = (subdomain: string): Promise<boolean> => {
     if (pending) return pending
 
     const promise = fetch(`https://${subdomain}.${DOMAIN}`, {
-        signal: AbortSignal.timeout(3000)
+        signal: AbortSignal.timeout(gatewayDefaults.SUBDOMAIN_CHECK_TIMEOUT_MS)
     })
         .then((response) => {
             const result = response.ok

@@ -4,15 +4,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
-import { usePreferencesStore } from '@/lib/store'
 import { ROUTES } from '@/lib'
-import {
-    useSSHKeys,
-    useUserStats,
-    useProfile,
-    useAppVersion,
-    useLocalFooterLinks
-} from '@/hooks'
+import { useSSHKeys, useUserStats, useProfile } from '@/hooks'
 import {
     EmptyState,
     ErrorState,
@@ -37,15 +30,11 @@ import { PlusCircleIcon, KeyIcon, CaretDownIcon } from '@phosphor-icons/react'
 
 const SSHKeys: FC = (): ReactNode => {
     const [showCreate, setShowCreate] = useState(false)
-    const { isLocal, user, cachedProfile } = useAuth()
-    const { openLinksWindowed } = usePreferencesStore()
+    const { isLocal, user, cachedProfile, signOut } = useAuth()
     const { data: profile } = useProfile({
         enabled: !!user,
         staleTime: 1000 * 60 * 5
     })
-
-    const appVersion = useAppVersion(!!isLocal)
-    const dropdownFooterLinks = useLocalFooterLinks(!!isLocal)
 
     const localDisplayName =
         profile?.name || cachedProfile?.name || t('account.noNameSet')
@@ -76,11 +65,7 @@ const SSHKeys: FC = (): ReactNode => {
                         <ThemeToggle />
                         <UserDropdown
                             displayName={localDisplayName}
-                            onSignOut={async () => {}}
-                            hideSignOut
-                            footerLinks={dropdownFooterLinks}
-                            openLinksWindowed={openLinksWindowed}
-                            appVersion={appVersion || undefined}
+                            onSignOut={signOut}
                         />
                     </div>
                 </div>

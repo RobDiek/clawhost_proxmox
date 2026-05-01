@@ -3,14 +3,12 @@ import type { ChatSidebarAgentHeaderProps } from '@/ts/Interfaces'
 
 import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
-import { agentStatus } from '@openclaw/shared'
-import { ArrowSquareOutIcon } from '@phosphor-icons/react'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
-import { getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
-import { generateSlug } from '@/lib/agent-utils'
+import { TRUNCATE_LENGTHS } from '@/lib'
 import { AGENT_AVATAR_SIZE } from '@/lib/constants'
 import { AgentAvatar } from '@/components/shared'
 import { usePreferencesStore } from '@/lib/store'
+import { agentTypes } from '@/data'
 
 const ChatSidebarAgentHeader: FC<ChatSidebarAgentHeaderProps> = ({
     agent,
@@ -19,6 +17,9 @@ const ChatSidebarAgentHeader: FC<ChatSidebarAgentHeaderProps> = ({
     onOpenAgentSettings
 }): ReactNode => {
     const adminMode = usePreferencesStore((s) => s.adminMode)
+    const agentTypeOption = agentTypes.find(
+        (option) => option.type === agent.agentType
+    )
 
     return (
         <Fragment>
@@ -32,6 +33,7 @@ const ChatSidebarAgentHeader: FC<ChatSidebarAgentHeaderProps> = ({
                     <AgentAvatar
                         emoji={agent.emoji}
                         emojiColor={agent.emojiColor}
+                        agentType={agent.agentType}
                         size={AGENT_AVATAR_SIZE.SM}
                     />
                     {adminMode && (
@@ -49,7 +51,7 @@ const ChatSidebarAgentHeader: FC<ChatSidebarAgentHeaderProps> = ({
                         </Tooltip>
                     )}
                 </div>
-                <div className='min-w-0 flex-1'>
+                <div className='flex min-w-0 flex-1 flex-col'>
                     {agent.name.length > TRUNCATE_LENGTHS.SIDEBAR_AGENT_NAME ? (
                         <Tooltip>
                             <TooltipTrigger asChild>
@@ -68,28 +70,12 @@ const ChatSidebarAgentHeader: FC<ChatSidebarAgentHeaderProps> = ({
                             {agent.name}
                         </p>
                     )}
+                    {agentTypeOption && (
+                        <p className='text-muted-foreground truncate text-[10px]'>
+                            {t(agentTypeOption.nameKey)}
+                        </p>
+                    )}
                 </div>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                if (agent.status !== agentStatus.running) return
-                                const subdomain =
-                                    agent.subdomain || generateSlug(agent.id)
-                                const url = `https://${subdomain}.${getBaseDomain()}${agent.gatewayToken ? `/?token=${agent.gatewayToken}` : ''}`
-                                window.open(url, '_blank')
-                            }}
-                            disabled={agent.status !== agentStatus.running}
-                            className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground shrink-0 rounded-md p-1 transition-colors disabled:cursor-default disabled:opacity-30'
-                        >
-                            <ArrowSquareOutIcon className='h-3.5 w-3.5' />
-                        </button>
-                    </TooltipTrigger>
-                    <TooltipContent side='bottom'>
-                        {t('dashboard.openControlPanel')}
-                    </TooltipContent>
-                </Tooltip>
             </div>
         </Fragment>
     )

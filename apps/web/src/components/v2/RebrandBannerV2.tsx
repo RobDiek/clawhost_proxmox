@@ -27,13 +27,24 @@ const RebrandBannerV2: FC = (): ReactNode => {
                         <span className='hidden font-mono text-[10px] tracking-[0.3em] text-[#6B5CE7] sm:inline'>
                             // {t('rebrand.tag')}
                         </span>
-                        <span className='hidden text-white/10 sm:inline'>|</span>
-                        <span className='text-sm text-white/90'>
-                            <span className='font-syne font-bold'>{t('rebrand.title')}</span>
-                            <span className='text-white/30'>{' \u2002—\u2002 '}</span>
-                            <span className='text-white/50'>{t('rebrand.mission')}</span>
+                        <span className='hidden text-white/10 sm:inline'>
+                            |
                         </span>
-                        <ArrowRightIcon size={12} className='hidden text-[#6B5CE7] transition-transform duration-300 group-hover/banner:translate-x-1 sm:inline' />
+                        <span className='text-sm text-white/90'>
+                            <span className='font-syne font-bold'>
+                                {t('rebrand.title')}
+                            </span>
+                            <span className='text-white/30'>
+                                {' \u2002—\u2002 '}
+                            </span>
+                            <span className='text-white/50'>
+                                {t('rebrand.mission')}
+                            </span>
+                        </span>
+                        <ArrowRightIcon
+                            size={12}
+                            className='hidden text-[#6B5CE7] transition-transform duration-300 group-hover/banner:translate-x-1 sm:inline'
+                        />
                     </span>
                     <button
                         onClick={(e) => {

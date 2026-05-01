@@ -79,7 +79,7 @@ const Changelog: FC = (): ReactNode => {
                                             className='flex items-center gap-3'
                                         >
                                             {feature.type ===
-                                              CHANGELOG_FEATURE_TYPE.DROPPED ? (
+                                            CHANGELOG_FEATURE_TYPE.DROPPED ? (
                                                 <CircleIcon
                                                     className='h-2.5 w-2.5 flex-shrink-0 text-red-600 dark:text-red-400'
                                                     weight='fill'

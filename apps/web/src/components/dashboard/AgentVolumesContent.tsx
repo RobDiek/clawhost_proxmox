@@ -1,5 +1,8 @@
 import type { FC, ReactNode } from 'react'
-import type { AgentVolumesContentProps } from '@/ts/Interfaces'
+import type {
+    AgentVolumesContentProps,
+    VolumeStatusEntry
+} from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
 import {
@@ -17,7 +20,7 @@ const formatSize = (sizeInGb: number): string => {
     return `${sizeInGb} GB`
 }
 
-const statusConfig: Record<string, { icon: ReactNode; className: string }> = {
+const statusConfig: Record<string, VolumeStatusEntry> = {
     available: {
         icon: <CheckCircleIcon className='h-3.5 w-3.5' />,
         className: 'text-green-600 bg-green-500/10 dark:text-green-400'

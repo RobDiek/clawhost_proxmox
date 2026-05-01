@@ -13,6 +13,14 @@ const EXTERNAL_URLS = {
         LINKS,
         subdomain: (name: string) => `https://${name}.${DOMAIN}`
     },
+    LOCAL: {
+        WEB: 'http://localhost:1111',
+        WEB_HTTPS: 'https://localhost:1111',
+        API: 'http://localhost:2222',
+        API_HTTPS: 'https://localhost:2222',
+        DESKTOP: 'http://localhost:3333',
+        DESKTOP_HTTPS: 'https://localhost:3333'
+    },
     GITHUB: {
         API: 'https://api.github.com',
         USER: 'https://api.github.com/user',
@@ -40,6 +48,10 @@ const EXTERNAL_URLS = {
         REGISTRY: (pkg: string) => `https://registry.npmjs.org/${pkg}`,
         DOWNLOADS: (pkg: string) =>
             `https://api.npmjs.org/versions/${pkg}/last-week`
+    },
+    AGENT_DOCS: {
+        OPENCLAW: 'https://openclaw.com/docs',
+        HERMES: 'https://hermes-agent.nousresearch.com/docs/'
     },
     SOCIAL: {
         PRODUCT_HUNT: `${LINKS}/producthunt`,

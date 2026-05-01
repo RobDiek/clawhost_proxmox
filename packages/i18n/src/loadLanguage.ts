@@ -1,8 +1,8 @@
-import type { Languages, Translations } from '#i18n/types'
+import type { Languages, TranslationsModule } from '#i18n/types'
 
 import state from '#i18n/state'
 
-const loaders: Record<Languages, () => Promise<{ default: Translations }>> = {
+const loaders: Record<Languages, () => Promise<TranslationsModule>> = {
     en: () => Promise.resolve({ default: state.languages.en }),
     fr: () => import('#i18n/langs/fr'),
     es: () => import('#i18n/langs/es'),

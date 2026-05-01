@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { agentStatus } from '@openclaw/shared'
 import { db } from '@/db'
 import { agents } from '@/db/schema'
-import { subscriptionStatus } from '@/lib/constants'
+import { subscriptionStatus } from '@openclaw/shared'
 import { cleanupAgent } from '@/controllers/agents/helpers'
 import { getProvider } from '@/services/provider'
 

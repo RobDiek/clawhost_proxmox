@@ -42,12 +42,12 @@ import {
     TerminalIcon,
     LockIcon,
     GaugeIcon,
-    CreditCardIcon,
     LinkIcon,
-    SlidersHorizontalIcon,
+    PulseIcon,
     GearSixIcon,
     StackIcon,
-    GitBranchIcon
+    GitBranchIcon,
+    KeyIcon
 } from '@phosphor-icons/react'
 
 const getFaqs = (): Faq[] => [
@@ -58,6 +58,10 @@ const getFaqs = (): Faq[] => [
     {
         question: t('landing.faq2Question'),
         answer: t('landing.faq2Answer')
+    },
+    {
+        question: t('landing.faqHermesQuestion'),
+        answer: t('landing.faqHermesAnswer')
     },
     {
         question: t('landing.faq3Question'),
@@ -199,9 +203,7 @@ const Landing: FC = (): ReactNode => {
             />
 
             <main>
-                <section
-                    className='relative overflow-hidden px-6 pb-16 pt-32'
-                >
+                <section className='relative overflow-hidden px-6 pb-16 pt-32'>
                     <div className='landing-grid pointer-events-none' />
 
                     <div className='animate-hero-fade-in relative mx-auto max-w-6xl'>
@@ -288,9 +290,11 @@ const Landing: FC = (): ReactNode => {
                             description: t('landing.fullSshAccessDescription')
                         },
                         {
-                            icon: CreditCardIcon,
-                            title: t('landing.payAsYouGo'),
-                            description: t('landing.payAsYouGoDescription')
+                            icon: KeyIcon,
+                            title: t('landing.bringYourCredits'),
+                            description: t(
+                                'landing.bringYourCreditsDescription'
+                            )
                         },
                         {
                             icon: LinkIcon,
@@ -310,7 +314,7 @@ const Landing: FC = (): ReactNode => {
                             description: t('landing.autoUpdatesDescription')
                         },
                         {
-                            icon: SlidersHorizontalIcon,
+                            icon: PulseIcon,
                             title: t('landing.openclawControl'),
                             description: t('landing.openclawControlDescription')
                         },
@@ -327,9 +331,7 @@ const Landing: FC = (): ReactNode => {
                     ]}
                 />
 
-                <PricingSection
-                    plans={plans}
-                />
+                <PricingSection plans={plans} />
 
                 <ComparisonTable
                     badge={t('landing.comparison')}

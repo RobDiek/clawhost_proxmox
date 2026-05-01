@@ -1,3 +1,5 @@
+import type { UseRoutePrefetchReturn } from '@/ts/Interfaces'
+
 import { useCallback } from 'react'
 import { ROUTES } from '@/lib/constants'
 
@@ -16,7 +18,7 @@ const routeImportMap: Record<string, () => Promise<unknown>> = {
     [ROUTES.COMPARE]: () => import('@/pages/Compare')
 }
 
-const useRoutePrefetch = (): { prefetchRoute: (path: string) => void } => {
+const useRoutePrefetch = (): UseRoutePrefetchReturn => {
     const prefetchRoute = useCallback((path: string) => {
         const basePath = path.split('?')[0]
         if (prefetchedRoutes.has(basePath)) return

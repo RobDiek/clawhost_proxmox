@@ -3,6 +3,8 @@ import fs from 'fs'
 import path from 'path'
 import configStore from '@/main/services/configStore'
 import nodeBinary from '@/main/services/nodeBinary'
+import agentSpec from '@/main/services/agentSpec'
+import versionManager from '@/main/services/versionManager'
 import { t } from '@openclaw/i18n'
 
 const childRefs = new Map<string, number>()
@@ -81,7 +83,8 @@ const startGateway = async (
     agentDir: string,
     port: number,
     version: string,
-    token: string
+    token: string,
+    selectedAgentType: string
 ): Promise<void> => {
     if (isRunning(agentId)) {
         await stopGateway(agentId)
@@ -89,12 +92,18 @@ const startGateway = async (
 
     killProcessOnPort(port)
 
-    const agentBin = path.join(agentDir, 'node_modules', '.bin', 'openclaw')
-    const versionDir = configStore.getVersionDir(version)
-    const sharedBin = path.join(versionDir, 'node_modules', '.bin', 'openclaw')
-    const openclawBin = fs.existsSync(agentBin) ? agentBin : sharedBin
+    const spec = agentSpec.getAgentSpec(selectedAgentType)
+    const agentBin = versionManager.getAgentBinaryPath(
+        selectedAgentType,
+        agentDir
+    )
+    const sharedBin = versionManager.getVersionBinaryPath(
+        selectedAgentType,
+        version
+    )
+    const binaryPath = fs.existsSync(agentBin) ? agentBin : sharedBin
 
-    if (!fs.existsSync(openclawBin)) {
+    if (!fs.existsSync(binaryPath)) {
         throw new Error(t('go.versionNotInstalled', { version }))
     }
 
@@ -102,27 +111,28 @@ const startGateway = async (
     const envPath = path.join(agentDir, '.env')
     const logPath = path.join(agentDir, 'gateway.log')
     const agentEnv = parseEnvFile(envPath)
-    const configPath = path.join(agentDir, 'openclaw.json')
+    const configPath = path.join(agentDir, spec.configFileName)
 
     const logFd = fs.openSync(logPath, 'a')
 
-    const child = spawn(
-        nodePath,
-        [openclawBin, 'gateway', '--port', String(port)],
-        {
-            cwd: agentDir,
-            env: {
-                ...process.env,
-                ...agentEnv,
-                OPENCLAW_CONFIG_PATH: configPath,
-                OPENCLAW_STATE_DIR: agentDir,
-                ...(token && { OPENCLAW_GATEWAY_TOKEN: token }),
-                NODE_ENV: 'production'
-            },
-            stdio: ['ignore', logFd, logFd],
-            detached: true
-        }
-    )
+    const upperType = spec.type.toUpperCase()
+    const tokenEnvKey = `${upperType}_GATEWAY_TOKEN`
+    const configEnvKey = `${upperType}_CONFIG_PATH`
+    const stateEnvKey = `${upperType}_STATE_DIR`
+
+    const child = spawn(nodePath, [binaryPath, ...spec.gatewayArgs(port)], {
+        cwd: agentDir,
+        env: {
+            ...process.env,
+            ...agentEnv,
+            [configEnvKey]: configPath,
+            [stateEnvKey]: agentDir,
+            ...(token && { [tokenEnvKey]: token }),
+            NODE_ENV: 'production'
+        },
+        stdio: ['ignore', logFd, logFd],
+        detached: true
+    })
 
     const pid = child.pid
     if (!pid) {
@@ -258,10 +268,18 @@ const restartGateway = async (
     agentDir: string,
     port: number,
     version: string,
-    token: string
+    token: string,
+    selectedAgentType: string
 ): Promise<void> => {
     await stopGateway(agentId)
-    await startGateway(agentId, agentDir, port, version, token)
+    await startGateway(
+        agentId,
+        agentDir,
+        port,
+        version,
+        token,
+        selectedAgentType
+    )
 }
 
 const isRunning = (agentId: string): boolean => {

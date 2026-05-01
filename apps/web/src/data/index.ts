@@ -1,3 +1,4 @@
+import agentTypes from '@/data/agentTypes'
 import demoAgents from '@/data/demoAgents'
 import demoOverview from '@/data/demoOverview'
 import {
@@ -20,6 +21,7 @@ import v2VideoUrls from '@/data/v2VideoUrls'
 import getV2NavLinks from '@/data/v2NavLinks'
 
 export {
+    agentTypes,
     demoAgents,
     demoOverview,
     demoMetrics,

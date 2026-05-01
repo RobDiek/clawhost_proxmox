@@ -11,6 +11,10 @@ const RELEASES: ChangelogRelease[] = [
             {
                 key: 'changelog.release17Feature1',
                 type: CHANGELOG_FEATURE_TYPE.ADDED
+            },
+            {
+                key: 'changelog.release17Feature2',
+                type: CHANGELOG_FEATURE_TYPE.IMPROVED
             }
         ]
     },

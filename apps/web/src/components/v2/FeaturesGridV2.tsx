@@ -27,7 +27,10 @@ const FeaturesGridV2: FC<FeaturesGridProps> = ({
                     </p>
                 </ScrollRevealV2>
 
-                <ScrollRevealV2 delay={0.2} className='relative z-[15] grid border border-white/10 md:grid-cols-2 lg:grid-cols-3'>
+                <ScrollRevealV2
+                    delay={0.2}
+                    className='relative z-[15] grid border border-white/10 md:grid-cols-2 lg:grid-cols-3'
+                >
                     {features.map((feature, i) => (
                         <div
                             key={i}
