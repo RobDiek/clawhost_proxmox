@@ -47,7 +47,8 @@ import {
     SlidersHorizontalIcon,
     GearSixIcon,
     StackIcon,
-    GitBranchIcon
+    GitBranchIcon,
+    KeyIcon
 } from '@phosphor-icons/react'
 
 const getFaqs = (): Faq[] => [
@@ -291,6 +292,11 @@ const Landing: FC = (): ReactNode => {
                             icon: CreditCardIcon,
                             title: t('landing.payAsYouGo'),
                             description: t('landing.payAsYouGoDescription')
+                        },
+                        {
+                            icon: KeyIcon,
+                            title: t('landing.bringYourCredits'),
+                            description: t('landing.bringYourCreditsDescription')
                         },
                         {
                             icon: LinkIcon,

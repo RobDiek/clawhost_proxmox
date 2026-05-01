@@ -18,7 +18,7 @@ import {
     DropdownMenuTrigger
 } from '@/components/ui'
 import {
-    RobotIcon,
+    GhostIcon,
     KeyIcon,
     UserIcon,
     SignOutIcon,
@@ -81,7 +81,7 @@ const UserDropdown: FC<UserDropdownProps> = ({
                     onClick={() => navigate(ROUTES.AGENTS)}
                     className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.AGENTS ? 'bg-foreground/10' : ''}`}
                 >
-                    <RobotIcon className='h-4 w-4' />
+                    <GhostIcon className='h-4 w-4' />
                     {t('nav.claws')}
                 </DropdownMenuItem>
                 {!hideSSHKeys && (

@@ -9,8 +9,11 @@ import {
     useAgentCredentials,
     useRotatePassword,
     useRotateGatewayToken,
-    useToast
+    useToast,
+    useAbortController
 } from '@/hooks'
+import { useUIStore } from '@/lib/store'
+import { handleAbortToast } from '@/lib'
 import { generatePassword, generateToken } from '@/lib/agent-utils'
 import SecuritySection from '@/components/dashboard/AgentSecurityContent/SecuritySection'
 import SecretField from '@/components/dashboard/AgentSecurityContent/SecretField'
@@ -28,18 +31,34 @@ const AgentSecurityContent: FC<AgentSecurityContentProps> = ({
     const rotatePassword = useRotatePassword()
     const rotateGatewayToken = useRotateGatewayToken()
     const toast = useToast()
+    const { showToast } = useUIStore()
+    const getPasswordSignal = useAbortController()
+    const getTokenSignal = useAbortController()
 
     const handleSavePassword = () => {
         if (!credentials.password) return
         rotatePassword.mutate(
-            { id: agent.id, password: credentials.password },
+            {
+                id: agent.id,
+                password: credentials.password,
+                signal: getPasswordSignal()
+            },
             {
                 onSuccess: () => {
                     toast.success(t('api.passwordRotated'))
                     credentials.confirmPasswordSaved()
                 },
-                onError: (err) =>
+                onError: (err) => {
+                    if (
+                        handleAbortToast(
+                            err,
+                            showToast,
+                            'clawDetail.savePasswordCanceledNavigation'
+                        )
+                    )
+                        return
                     toast.error(err.message || t('api.failedToRotatePassword'))
+                }
             }
         )
     }
@@ -47,16 +66,29 @@ const AgentSecurityContent: FC<AgentSecurityContentProps> = ({
     const handleSaveGatewayToken = () => {
         if (!credentials.gatewayToken) return
         rotateGatewayToken.mutate(
-            { id: agent.id, token: credentials.gatewayToken },
+            {
+                id: agent.id,
+                token: credentials.gatewayToken,
+                signal: getTokenSignal()
+            },
             {
                 onSuccess: () => {
                     toast.success(t('api.gatewayTokenRotated'))
                     credentials.confirmTokenSaved()
                 },
-                onError: (err) =>
+                onError: (err) => {
+                    if (
+                        handleAbortToast(
+                            err,
+                            showToast,
+                            'clawDetail.saveGatewayTokenCanceledNavigation'
+                        )
+                    )
+                        return
                     toast.error(
                         err.message || t('api.failedToRotateGatewayToken')
                     )
+                }
             }
         )
     }

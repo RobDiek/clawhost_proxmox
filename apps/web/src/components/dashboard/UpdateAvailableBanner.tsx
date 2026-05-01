@@ -3,18 +3,24 @@ import type { UpdateAvailableBannerProps } from '@/ts/Interfaces'
 
 import { InfoIcon } from '@phosphor-icons/react'
 import { t } from '@openclaw/i18n'
+import { agentType as agentTypeConst } from '@openclaw/shared'
 
 const UpdateAvailableBanner: FC<UpdateAvailableBannerProps> = ({
     latestVersion,
+    agentType,
     onGoToVersions
 }): ReactNode => {
+    const isHermes = agentType === agentTypeConst.HERMES
     return (
         <div className='border-border flex items-center gap-2 border-b px-3.5 py-2.5'>
             <InfoIcon size={14} className='text-muted-foreground shrink-0' />
             <p className='text-muted-foreground flex-1 text-xs'>
-                {t('clawDetail.updateAvailableDescription', {
-                    version: latestVersion
-                })}
+                {t(
+                    isHermes
+                        ? 'clawDetail.updateAvailableDescriptionHermes'
+                        : 'clawDetail.updateAvailableDescription',
+                    { version: latestVersion }
+                )}
             </p>
             <button
                 onClick={onGoToVersions}

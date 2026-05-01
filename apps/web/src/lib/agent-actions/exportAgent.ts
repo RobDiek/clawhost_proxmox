@@ -1,18 +1,27 @@
 import type { ToastType } from '@/ts/Types'
 
 import { t } from '@openclaw/i18n'
-import { api } from '@/lib'
+import { api, handleAbortToast } from '@/lib'
 import { TOAST_TYPE } from '@/lib/constants'
 
 const exportAgent = async (
     agentId: string,
     filename: string,
-    showToast: (message: string, type?: ToastType, duration?: number) => void
+    showToast: (message: string, type?: ToastType, duration?: number) => void,
+    signal?: AbortSignal
 ): Promise<void> => {
     try {
-        await api.exportAgent(agentId, filename)
+        await api.exportAgent(agentId, filename, signal)
         showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
     } catch (error) {
+        if (
+            handleAbortToast(
+                error,
+                showToast,
+                'dashboard.exportCanceledNavigation'
+            )
+        )
+            return
         const retryAfter = (error as Error & { retryAfter?: number })
             ?.retryAfter
         if (!retryAfter || retryAfter <= 0)

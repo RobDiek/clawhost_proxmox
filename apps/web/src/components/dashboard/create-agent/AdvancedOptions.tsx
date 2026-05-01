@@ -3,6 +3,7 @@ import type { AdvancedOptionsProps } from '@/ts/Interfaces'
 
 import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
+import { agentType } from '@openclaw/shared'
 import { useUIStore } from '@/lib/store'
 import { copyToClipboard } from '@/lib'
 import { generatePassword, generateToken } from '@/lib/agent-utils'
@@ -44,8 +45,10 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
     volumePricing,
     volumeSize,
     onVolumeSizeChange,
-    hideInfrastructureOptions
+    hideInfrastructureOptions,
+    selectedAgentType
 }): ReactNode => {
+    const isHermes = selectedAgentType === agentType.HERMES
     const { showToast } = useUIStore()
 
     return (
@@ -147,6 +150,7 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                         </p>
                     </div>
 
+                    {!isHermes && (
                     <div className='space-y-2'>
                         <Label>{t('createClaw.gatewayToken')}</Label>
                         <div className='flex items-center gap-2'>
@@ -232,6 +236,7 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                             {t('createClaw.autoGenerateGatewayTokenHint')}
                         </p>
                     </div>
+                    )}
 
                     {!hideInfrastructureOptions && (
                         <Fragment>

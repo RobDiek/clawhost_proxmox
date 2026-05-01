@@ -11,7 +11,8 @@ import {
     SlidersHorizontalIcon,
     StackIcon,
     GitBranchIcon,
-    TerminalIcon
+    TerminalIcon,
+    KeyIcon
 } from '@phosphor-icons/react'
 
 const getV2Features = () => [
@@ -22,6 +23,7 @@ const getV2Features = () => [
     { icon: GlobeIcon, title: t('landing.globalLocations'), description: t('v2.globalLocationsDescription') },
     { icon: TerminalIcon, title: t('landing.fullSshAccess'), description: t('landing.fullSshAccessDescription') },
     { icon: CreditCardIcon, title: t('landing.payAsYouGo'), description: t('landing.payAsYouGoDescription') },
+    { icon: KeyIcon, title: t('landing.bringYourCredits'), description: t('landing.bringYourCreditsDescription') },
     { icon: LinkIcon, title: t('landing.customSubdomains'), description: t('v2.onlineAccessDescription') },
     { icon: ShieldCheckIcon, title: t('landing.secure'), description: t('landing.secureDescription') },
     { icon: GitBranchIcon, title: t('landing.autoUpdates'), description: t('v2.versionControlDescription') },

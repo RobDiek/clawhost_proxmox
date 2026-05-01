@@ -8,8 +8,8 @@ const useRenameAgent = () => {
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: ({ id, name }: RenameAgentMutationParams) =>
-            api.renameAgent(id, { name }),
+        mutationFn: ({ id, name, signal }: RenameAgentMutationParams) =>
+            api.renameAgent(id, { name }, signal),
         onSuccess: (updatedAgent, { id }) => {
             updateAgentInCaches(queryClient, id, updatedAgent)
         }

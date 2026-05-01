@@ -1,11 +1,12 @@
 import type { FC, ReactNode } from 'react'
 import type { AgentBillingHistoryProps } from '@/ts/Interfaces'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { t } from '@openclaw/i18n'
 import { ReceiptIcon } from '@phosphor-icons/react'
 import { useAgentBilling, useToast } from '@/hooks'
-import { api } from '@/lib'
+import { useUIStore } from '@/lib/store'
+import { api, handleAbortToast } from '@/lib'
 import { BillingOrderCard, BillingSkeleton } from '@/components/billing'
 import { SectionHeader } from '@/components/dashboard'
 import { demoBillingOrders } from '@/data'
@@ -22,6 +23,15 @@ const AgentBillingHistory: FC<AgentBillingHistoryProps> = ({
     const isLoading = readOnly ? false : liveLoading
     const isError = readOnly ? false : liveError
     const toast = useToast()
+    const { showToast } = useUIStore()
+    const invoiceControllersRef = useRef<Set<AbortController>>(new Set())
+    useEffect(() => {
+        const controllers = invoiceControllersRef.current
+        return () => {
+            controllers.forEach((c) => c.abort())
+            controllers.clear()
+        }
+    }, [])
     const [loadingInvoiceIds, setLoadingInvoiceIds] = useState<Set<string>>(
         new Set()
     )
@@ -34,11 +44,25 @@ const AgentBillingHistory: FC<AgentBillingHistoryProps> = ({
     const handleViewInvoice = useCallback(
         async (orderId: string) => {
             setLoadingInvoiceIds((prev) => new Set(prev).add(orderId))
+            const controller = new AbortController()
+            invoiceControllersRef.current.add(controller)
             try {
-                const { url } = await api.getOrderInvoice(orderId)
+                const { url } = await api.getOrderInvoice(
+                    orderId,
+                    controller.signal
+                )
                 window.open(url, '_blank')
-            } catch {
-                toast.error(t('billing.failedToLoadInvoice'))
+            } catch (error) {
+                if (
+                    !handleAbortToast(
+                        error,
+                        showToast,
+                        'billing.invoiceCanceledNavigation'
+                    )
+                )
+                    toast.error(t('billing.failedToLoadInvoice'))
+            } finally {
+                invoiceControllersRef.current.delete(controller)
             }
             setLoadingInvoiceIds((prev) => {
                 const next = new Set(prev)
@@ -46,7 +70,7 @@ const AgentBillingHistory: FC<AgentBillingHistoryProps> = ({
                 return next
             })
         },
-        [toast]
+        [toast, showToast]
     )
 
     return (

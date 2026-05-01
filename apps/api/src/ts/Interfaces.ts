@@ -13,6 +13,7 @@ import type { Client, ClientChannel } from 'ssh2'
 export interface TerminalSocketData {
     ip: string
     password: string
+    autoSuUser?: string | null
     sshConn?: Client
     stream?: ClientChannel
     pingTimer?: Timer
@@ -441,7 +442,7 @@ export interface AgentConfig {
     user: string
     homeDir: string
     configDir: string
-    configFile: string
+    configFile: string | null
     serviceName: string
     logFile: string
     nginxSite: string

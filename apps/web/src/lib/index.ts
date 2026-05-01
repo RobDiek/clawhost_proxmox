@@ -17,6 +17,7 @@ import fireConfetti from '@/lib/fireConfetti'
 import copyToClipboard from '@/lib/copyToClipboard'
 import reportWebVitals from '@/lib/reportWebVitals'
 import isSafeRedirectUrl from '@/lib/isSafeRedirectUrl'
+import handleAbortToast from '@/lib/handleAbortToast'
 import { formatDate, formatCurrency, formatCompactNumber } from '@/lib/formatters'
 
 export {
@@ -39,5 +40,6 @@ export {
     formatDate,
     formatCurrency,
     formatCompactNumber,
-    isSafeRedirectUrl
+    isSafeRedirectUrl,
+    handleAbortToast
 }

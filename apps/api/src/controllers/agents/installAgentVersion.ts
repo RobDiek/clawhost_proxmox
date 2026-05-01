@@ -61,17 +61,14 @@ const buildGitHubInstallCommands = (
     githubRepo: string,
     serviceName: string,
     user: string,
-    nginxSite: string
+    versionCommand: string
 ): string => {
-    const nginxPatch = `(grep -q 'proxy_hide_header Content-Security-Policy' /etc/nginx/sites-available/${nginxSite} || sed -i 's|proxy_send_timeout 86400;|proxy_send_timeout 86400;\\n            proxy_hide_header Content-Security-Policy;\\n            proxy_hide_header X-Frame-Options;\\n            add_header Content-Security-Policy "frame-ancestors https://${DOMAIN} https://*.${DOMAIN} http://localhost:* https://localhost:*" always;|g' /etc/nginx/sites-available/${nginxSite}) && nginx -t && systemctl reload nginx || true`
-
     return [
-        `systemctl stop ${serviceName} || true`,
-        `curl -fsSL https://raw.githubusercontent.com/${githubRepo}/main/scripts/install.sh | HERMES_VERSION=${version} su - ${user} -c bash`,
-        nginxPatch,
-        `systemctl restart ${serviceName}`,
-        'sleep 15',
-        'curl -sf -o /dev/null --max-time 5 http://127.0.0.1:18789 && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"'
+        `systemctl stop ${serviceName} 2>/dev/null || true`,
+        `su - ${user} -c 'curl -fsSL https://raw.githubusercontent.com/${githubRepo}/main/scripts/install.sh | HERMES_VERSION=${version} bash -s -- --skip-setup'`,
+        `systemctl restart ${serviceName} 2>/dev/null || su - ${user} -c 'systemctl --user restart ${serviceName}' 2>/dev/null || true`,
+        'sleep 5',
+        `su - ${user} -c '${versionCommand}' >/dev/null 2>&1 && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"`
     ].join(' && ')
 }
 
@@ -111,7 +108,7 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
                 agentConfig.githubRepo,
                 agentConfig.serviceName,
                 agentConfig.user,
-                agentConfig.nginxSite
+                agentConfig.versionCommand
             )
         } else if (agentConfig.npmPackage) {
             try {

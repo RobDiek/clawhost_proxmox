@@ -7,7 +7,8 @@ import { db } from '@/db'
 import { agents } from '@/db/schema'
 import { getProvider } from '@/services/provider'
 import cloudflare from '@/services/cloudflare'
-import checkSubdomainReady from '@/controllers/agents/helpers/checkSubdomainReady'
+import checkAgentReady from '@/controllers/agents/helpers/checkAgentReady'
+import { decrypt } from '@/lib/encryption'
 
 const transitionCompletedBy: Record<string, string[]> = {
     [agentStatus.stopping]: [agentStatus.stopped],
@@ -68,8 +69,16 @@ const syncAgentServers = async (clawList: AgentRow[]): Promise<AgentRow[]> => {
                     ])
                 }
 
-                if (live.status === agentStatus.running && agent.subdomain) {
-                    const ready = await checkSubdomainReady(agent.subdomain)
+                if (live.status === agentStatus.running) {
+                    const decryptedRootPassword = agent.rootPassword
+                        ? decrypt(agent.rootPassword)
+                        : null
+                    const ready = await checkAgentReady(
+                        agent.agentType,
+                        agent.subdomain,
+                        live.ip,
+                        decryptedRootPassword
+                    )
                     if (ready) {
                         await db
                             .update(agents)

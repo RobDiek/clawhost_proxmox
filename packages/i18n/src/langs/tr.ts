@@ -365,6 +365,7 @@ const tr: Translations = {
         invalidSubdomain:
             'Geçersiz alt alan adı. 3-20 küçük harf ve rakam kullanın!',
         subdomainAlreadyInUse: 'Bu alt alan adı zaten kullanımda!',
+        subdomainNotSupported: 'Bu ajan türü alt alan adı kullanmıyor.',
         agentBusy: 'Agent şu anda hazırlanıyor veya siliniyor!',
         reinstallGatewayNotResponding:
             'Yeniden yükleme tamamlandı ancak ağ geçidi henüz yanıt vermiyor. Başlaması için daha fazla zamana ihtiyacı olabilir.',
@@ -709,11 +710,13 @@ const tr: Translations = {
         billingReasonSubscriptionCycle: 'Yenileme',
         billingReasonSubscriptionUpdate: 'Abonelik Güncelleme',
         failedToLoadBilling: 'Faturalama geçmişi yüklenemedi!',
-        viewInvoice: 'Faturayı Görüntüle',
+        downloadInvoice: 'Faturayı İndir',
+        invoiceCanceledNavigation: 'Fatura indirme yarıda kesildi çünkü sayfadan ayrıldınız.',
         failedToLoadInvoice: 'Fatura yüklenemedi!',
         couponApplied: 'Kupon: {{name}}',
         manageBilling: 'Faturalamayı Yönet',
-        failedToLoadPortal: 'Faturalama portalı açılamadı!'
+        failedToLoadPortal: 'Faturalama portalı açılamadı!',
+        portalCanceledNavigation: 'Faturalama portalı yarıda kesildi çünkü sayfadan ayrıldınız.'
     },
     license: {
         title: 'Lisans',
@@ -865,6 +868,7 @@ const tr: Translations = {
         fileExplorerReadOnly: 'Salt okunur',
         fileExplorerSave: 'Kaydet',
         fileExplorerSaved: 'Dosya kaydedildi.',
+        fileExplorerSaveCanceledNavigation: 'Dosya kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
         fileExplorerInvalidJson:
             'Geçersiz JSON. Lütfen kaydetmeden önce sözdizimi hatalarını düzeltin!',
         fileExplorerNoFiles: 'Dosya bulunamadı',
@@ -880,6 +884,7 @@ const tr: Translations = {
             "Bu, {{agentName}}'u bu örnekte tamamen yeniden yükleyecektir. Tüm yapılandırmalar, ajanlar ve veriler sıfırlanacaktır. Bu işlem geri alınamaz. Devam edilsin mi?",
         reinstallInstanceSuccess: 'Örnek başarıyla yeniden yüklendi.',
         reinstallInstanceFailed: 'Örnek yeniden yüklenemedi!',
+        reinstallCanceledNavigation: 'Yeniden yükleme yarıda kesildi çünkü sayfadan ayrıldınız.',
         openControlPanel: 'Kontrol Panelini Aç',
         exportData: "Claw'u Dışa Aktar (.zip)",
         exportAgent: 'Dışa Aktar',
@@ -891,6 +896,10 @@ const tr: Translations = {
         exportStarted: 'Dışa aktarma hazırlanıyor, bu biraz zaman alabilir...',
         exportSuccess: 'Claw başarıyla dışa aktarıldı.',
         exportFailed: 'Claw verileri dışa aktarılamadı!',
+        exportCanceledNavigation: 'Dışa aktarma iptal edildi çünkü sayfadan ayrıldınız.',
+        scheduleDeletionCanceledNavigation: 'Silme planlaması yarıda kesildi çünkü sayfadan ayrıldınız.',
+        cancelDeletionCanceledNavigation: 'Silme iptali yarıda kesildi çünkü sayfadan ayrıldınız.',
+        hardDeleteCanceledNavigation: 'Zorla silme yarıda kesildi çünkü sayfadan ayrıldınız.',
         exportRateLimited:
             '{{minutes}} dakika sonra tekrar dışa aktarabilirsiniz.',
         exportRateLimitedOne: '1 dakika sonra tekrar dışa aktarabilirsiniz.',
@@ -1088,21 +1097,24 @@ const tr: Translations = {
         payAsYouGo: 'Basit Fiyatlandırma',
         payAsYouGoDescription:
             'İhtiyacınıza göre fiyatlandırma. Düşük kaliteli sunucular için zorunlu yüksek fatura yok. İstediğiniz zaman iptal edin.',
+        bringYourCredits: 'Kendi kredilerini getir',
+        bringYourCreditsDescription:
+            'Kendi Anthropic API anahtarınızı veya Claude aboneliğinizi kullanın. Doğrudan Anthropic\'e ödeme yapın — ek ücret yok.',
         customSubdomains: 'Çevrimiçi Erişim',
         customSubdomainsDescription:
             "Yerel ağları unutun. OpenClaw'unuza bir alt alan adıyla her yerden güvenli erişin.",
         autoUpdates: 'Sürüm Kontrolü',
         autoUpdatesDescription:
             'Tek tıkla herhangi bir OpenClaw sürümüne geçin. Her zaman güncel kalın veya gerektiğinde geri dönün.',
-        openclawControl: 'OpenClaw Kontrolü',
+        openclawControl: 'Ajan Kontrolü',
         openclawControlDescription:
-            "Yerel OpenClaw paneline doğrudan ClawHost'tan erişin. OpenClaw'un sunduğu her şeye tam düzenleme erişimi.",
+            "OpenClaw veya Hermes panellerine doğrudan ClawHost'tan erişin. Her ajan üzerinde tam kontrol.",
         clawHostControl: 'Tam Sunucu Erişimi',
         clawHostControlDescription:
             'Tarayıcı terminali, dosya gezgini, loglar, tanılama ve sürüm yönetimi — hepsi kontrol panelinizden.',
-        multipleClaws: 'Birden Fazla Claw',
+        multipleClaws: 'Birden Fazla Ajan',
         multipleClawsDescription:
-            'Tek bir panelden birden fazla OpenClaw örneği dağıtın ve yönetin. Büyüdükçe ölçeklendirin.',
+            'Tek bir panelden birden fazla OpenClaw ve Hermes ajanını dağıtın ve yönetin. Büyüdükçe ölçeklendirin.',
         pricing: 'Fiyatlandırma',
         simpleTransparentPricing: 'Basit, Şeffaf Fiyatlandırma',
         pricingDescription:
@@ -1226,12 +1238,6 @@ const tr: Translations = {
             'ClawHost güncellemelerini, yeni özelliklerini ve iyileştirmelerini takip edin.',
         subtitle:
             "ClawHost'un tüm güncellemeleri, yeni özellikleri ve iyileştirmeleri.",
-        release17Date: '29 Nisan 2026',
-        release17Title: 'Hermes Agent Support',
-        release17Description:
-            'ClawHost üzerinde Hermes ajanları için tek tıkla dağıtım, tıpkı OpenClaw gibi.',
-        release17Feature1:
-            'Hermes ajanları için OpenClaw gibi tek tıkla dağıtım',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1435,6 +1441,11 @@ const tr: Translations = {
         overviewUnsupportedTitle: 'Genel bakış desteklenmiyor',
         overviewUnsupportedDescription:
             'OpenClaw sürümünüz genel bakış özelliğini desteklemiyor. Lütfen en son sürüme güncelleyin.',
+        overviewHermesTitle: 'Hermes terminalde çalışır',
+        overviewHermesDescription:
+            'Hermes bir TUI ajanıdır — Terminal sekmesini açın ve oturum başlatmak için `hermes` komutunu çalıştırın. Dosyalar ve Sürümler sekmeleri yapılandırmayı düzenlemenize ve yükseltmenize olanak tanır.',
+        overviewHermesOpenTerminal: 'Terminali aç',
+        viewDocs: 'Belgeleri görüntüle',
         overviewUptimeDays: '{{days}}g {{hours}}s {{minutes}}d',
         overviewUptimeHours: '{{hours}}s {{minutes}}d',
         overviewUptimeMinutes: '{{minutes}}d',
@@ -1467,6 +1478,7 @@ const tr: Translations = {
         previewEnabling: 'Etkinleştiriliyor...',
         previewEnabled: 'Önizleme etkinleştirildi.',
         previewEnableFailed: 'Önizleme etkinleştirilemedi!',
+        previewEnableCanceledNavigation: 'Önizleme etkinleştirme yarıda kesildi çünkü sayfadan ayrıldınız.',
         previewError: 'Önizleme yüklenemedi.',
         previewErrorDescription: 'Ajan çevrimdışı veya erişilemez olabilir.',
         previewRetry: 'Tekrar dene',
@@ -1484,6 +1496,13 @@ const tr: Translations = {
         creatingDescription:
             'Bu genellikle bir iki dakika sürer. Bu sayfayı güvenle kapatabilir ve daha sonra geri dönebilirsiniz.',
         configuringTitle: 'OpenClaw kuruluyor',
+        configuringTitleHermes: 'Hermes kuruluyor',
+        loadingTipHermes1:
+            'Hermes bir TUI ajanıdır — açıldıktan sonra onunla sohbet etmek için Terminal sekmesini açın.',
+        loadingTipHermes2:
+            'Model sağlayıcılarını (OpenRouter, Anthropic vb.) Dosyalar sekmesinden ~/.hermes/.env içinde yapılandırın.',
+        loadingTipHermes3:
+            "Telegram, Discord veya Slack'ı Terminalden `hermes gateway install` ile bağlayın.",
         configuringDescription:
             'Bu genellikle bir iki dakika sürer. Bu sayfayı güvenle kapatabilir ve daha sonra geri dönebilirsiniz.',
         awaitingPaymentTitle: 'Ödeme bekleniyor',
@@ -1589,11 +1608,14 @@ const tr: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'Yükle',
         versionInstalling: 'Yükleniyor...',
         versionInstallSuccess: 'Sürüm {{version}} başarıyla yüklendi.',
         versionInstallFailed: 'Sürüm yüklenemedi!',
+        installVersionCanceledNavigation: 'Sürüm yüklemesi yarıda kesildi çünkü sayfadan ayrıldınız.',
         versionDownloads: '{{count}} indirme',
         versionChangelog: 'Değişiklik Günlüğü',
         versionOutdated: 'Eski',
@@ -1632,6 +1654,10 @@ const tr: Translations = {
         settingsSaving: 'Kaydediliyor...',
         settingsUpdated: 'Ayarlar güncellendi.',
         settingsUpdateFailed: 'Ayarlar güncellenemedi!',
+        saveCanceledNavigation: 'Kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
+        savePasswordCanceledNavigation: 'Parola kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
+        saveGatewayTokenCanceledNavigation: 'Ağ geçidi belirteci kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
+        saveSSHKeyCanceledNavigation: 'SSH anahtarı kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
         mockLogStarting: 'OpenClaw ajanı başlatılıyor...',
         mockLogLoadingModel: 'Model yükleniyor: claude-sonnet-4-5',
         mockLogAgentReady: "Ajan port 3000'de hazır",

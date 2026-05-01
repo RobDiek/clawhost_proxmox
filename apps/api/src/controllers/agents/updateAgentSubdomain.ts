@@ -74,6 +74,10 @@ const updateAgentSubdomain = withErrorHandler('updateAgentSubdomain')(async (
     const agent = await findUserAgent(userId, id, c.get('isAdmin'))
     if (!agent) return fail(c, t('api.agentNotFound'), 404)
 
+    const agentSubdomainConfig = getAgentConfig(agent.agentType)
+    if (!agentSubdomainConfig.configFile)
+        return fail(c, t('api.subdomainNotSupported'), 400)
+
     if (agent.status !== agentStatus.running)
         return fail(c, t('api.agentBusy'), 400)
 

@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { OrderSummaryProps } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
-import { billingInterval } from '@openclaw/shared'
+import { billingInterval, YEARLY_PAID_MONTHS } from '@openclaw/shared'
 
 const OrderSummary: FC<OrderSummaryProps> = ({
     selectedPlan,
@@ -56,7 +56,9 @@ const OrderSummary: FC<OrderSummaryProps> = ({
                     <span>
                         +$
                         {(billingCycle === billingInterval.YEAR
-                            ? volumeSize * volumePricing.pricePerGbMonthly * 10
+                            ? volumeSize *
+                              volumePricing.pricePerGbMonthly *
+                              YEARLY_PAID_MONTHS
                             : volumeSize * volumePricing.pricePerGbMonthly
                         ).toFixed(2)}
                         {billingCycle === billingInterval.YEAR

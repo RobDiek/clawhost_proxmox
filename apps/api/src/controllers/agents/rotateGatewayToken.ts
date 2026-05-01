@@ -38,6 +38,8 @@ const rotateGatewayToken = withAgent({
 
         const agentConfig = getAgentConfig(agent.agentType)
         const configPath = agentConfig.configFile
+        if (!configPath)
+            return fail(c, t('api.failedToRotateGatewayToken'), 400)
         const tokenBase64 = Buffer.from(newToken).toString('base64')
 
         const updateCommand = [

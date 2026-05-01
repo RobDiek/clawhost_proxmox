@@ -4,7 +4,11 @@ import type { TerminalSocketData } from '@/ts/Interfaces'
 import { Client } from 'ssh2'
 import { verifyToken } from '@/services/firebase'
 import hostKeyStore from '@/services/hostKeyStore'
-import { findUserAgent, isAdmin } from '@/controllers/agents/helpers'
+import {
+    findUserAgent,
+    getAgentConfig,
+    isAdmin
+} from '@/controllers/agents/helpers'
 import { apiPaths } from '@openclaw/shared'
 
 const TERMINAL_PATTERN = new RegExp(
@@ -34,10 +38,14 @@ const terminalSocket = {
 
             if (!agent || !agent.ip || !agent.rootPassword) return false
 
+            const agentConfig = getAgentConfig(agent.agentType)
+            const autoSuUser = agentConfig.configFile ? null : agentConfig.user
+
             server.upgrade(req, {
                 data: {
                     ip: agent.ip,
-                    password: agent.rootPassword
+                    password: agent.rootPassword,
+                    autoSuUser
                 }
             })
 
@@ -70,6 +78,10 @@ const terminalSocket = {
                         }
 
                         ws.data.stream = stream
+
+                        if (ws.data.autoSuUser) {
+                            stream.write(`exec su - ${ws.data.autoSuUser}\n`)
+                        }
 
                         stream.on('data', (data: Buffer) => {
                             ws.send(data.toString('utf-8'))

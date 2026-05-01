@@ -77,11 +77,13 @@ const updateAgentFile = withErrorHandler(
 
     await safeShellWrite(agent.ip, agent.rootPassword, fullPath, body.content)
 
-    const restartParts = agentConfig.doctorCommand
-        ? `(su - ${agentConfig.user} -c "${agentConfig.doctorCommand}" || true) && systemctl restart ${agentConfig.serviceName}`
-        : `systemctl restart ${agentConfig.serviceName}`
+    if (agentConfig.configFile) {
+        const restartParts = agentConfig.doctorCommand
+            ? `(su - ${agentConfig.user} -c "${agentConfig.doctorCommand}" || true) && systemctl restart ${agentConfig.serviceName}`
+            : `systemctl restart ${agentConfig.serviceName}`
 
-    await executeSSH(agent.ip, agent.rootPassword, restartParts, 20000)
+        await executeSSH(agent.ip, agent.rootPassword, restartParts, 20000)
+    }
 
     return ok(c, null, t('api.fileSaveSuccess'))
 })

@@ -48,25 +48,38 @@ const agents = {
     stopAgent: (id: string) => client.post<Agent>(API_PATHS.CLAWS.STOP(id)),
     restartAgent: (id: string) =>
         client.post<Agent>(API_PATHS.CLAWS.RESTART(id)),
-    deleteAgent: (id: string) =>
-        client.delete<DeleteAgentResponse>(API_PATHS.CLAWS.byId(id)),
-    renameAgent: (id: string, data: RenameAgentData) =>
-        client.patch<Agent>(API_PATHS.CLAWS.byId(id), data),
+    deleteAgent: (id: string, signal?: AbortSignal) =>
+        client.delete<DeleteAgentResponse>(API_PATHS.CLAWS.byId(id), { signal }),
+    renameAgent: (id: string, data: RenameAgentData, signal?: AbortSignal) =>
+        client.patch<Agent>(API_PATHS.CLAWS.byId(id), data, { signal }),
     updateAgentEmoji: (
         id: string,
         emoji: string | null,
-        emojiColor: string | null
-    ) => client.patch<Agent>(API_PATHS.CLAWS.EMOJI(id), { emoji, emojiColor }),
-    updateAgentSubdomain: (id: string, data: UpdateAgentSubdomainData) =>
-        client.patch<Agent>(API_PATHS.CLAWS.SUBDOMAIN(id), data),
+        emojiColor: string | null,
+        signal?: AbortSignal
+    ) =>
+        client.patch<Agent>(
+            API_PATHS.CLAWS.EMOJI(id),
+            { emoji, emojiColor },
+            { signal }
+        ),
+    updateAgentSubdomain: (
+        id: string,
+        data: UpdateAgentSubdomainData,
+        signal?: AbortSignal
+    ) => client.patch<Agent>(API_PATHS.CLAWS.SUBDOMAIN(id), data, { signal }),
     checkSubdomain: (subdomain: string) =>
         client.get<CheckSubdomainResponse>(
             `${API_PATHS.CLAWS.CHECK_SUBDOMAIN}?subdomain=${encodeURIComponent(subdomain)}`
         ),
-    cancelDeletion: (id: string) =>
-        client.post<Agent>(API_PATHS.CLAWS.CANCEL_DELETION(id)),
-    hardDeleteAgent: (id: string) =>
-        client.post<void>(API_PATHS.CLAWS.HARD_DELETE(id)),
+    cancelDeletion: (id: string, signal?: AbortSignal) =>
+        client.post<Agent>(API_PATHS.CLAWS.CANCEL_DELETION(id), undefined, {
+            signal
+        }),
+    hardDeleteAgent: (id: string, signal?: AbortSignal) =>
+        client.post<void>(API_PATHS.CLAWS.HARD_DELETE(id), undefined, {
+            signal
+        }),
     cancelPendingAgent: (id: string) =>
         client.delete<void>(API_PATHS.CLAWS.PENDING(id)),
     getAgentDiagnostics: (id: string) =>
@@ -79,8 +92,8 @@ const agents = {
         ),
     repairAgent: (id: string) =>
         client.post<void>(API_PATHS.CLAWS.DIAGNOSTICS.REPAIR(id)),
-    reinstallAgent: (id: string) =>
-        client.post<void>(API_PATHS.CLAWS.REINSTALL(id)),
+    reinstallAgent: (id: string, signal?: AbortSignal) =>
+        client.post<void>(API_PATHS.CLAWS.REINSTALL(id), undefined, { signal }),
     getAgentCredentials: (id: string) =>
         client.get<AgentCredentialsResponse>(API_PATHS.CLAWS.CREDENTIALS(id)),
     getAgentBilling: (id: string, page: number = 1, limit: number = 100) =>
@@ -91,15 +104,17 @@ const agents = {
         client.post<AgentVersionResponse>(API_PATHS.CLAWS.VERSION(id)),
     getAgentVersions: (id: string) =>
         client.post<AgentVersionsResponse>(API_PATHS.CLAWS.VERSIONS(id)),
-    installAgentVersion: (id: string, version: string) =>
+    installAgentVersion: (id: string, version: string, signal?: AbortSignal) =>
         client.post<InstallAgentVersionResponse>(
             API_PATHS.CLAWS.INSTALL_VERSION(id),
-            { version }
+            { version },
+            { signal }
         ),
-    exportAgent: async (id: string, filename: string) => {
+    exportAgent: async (id: string, filename: string, signal?: AbortSignal) => {
         const token = await getCachedToken()
         const res = await fetch(`${BASE_URL}${API_PATHS.CLAWS.EXPORT(id)}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            signal
         })
         if (!res.ok) {
             if (res.status === 429) {
@@ -125,8 +140,8 @@ const agents = {
         client.post<ReadAgentFileResponse>(API_PATHS.CLAWS.FILES.READ(id), {
             path
         }),
-    updateAgentFile: (id: string, data: UpdateAgentFileData) =>
-        client.put<void>(API_PATHS.CLAWS.FILES.BASE(id), data),
+    updateAgentFile: (id: string, data: UpdateAgentFileData, signal?: AbortSignal) =>
+        client.put<void>(API_PATHS.CLAWS.FILES.BASE(id), data, { signal }),
     getAgentMetrics: (id: string) =>
         client.post<AgentMetricsResponse>(API_PATHS.CLAWS.METRICS(id)),
     getAgentOverview: (id: string) =>
@@ -135,20 +150,26 @@ const agents = {
         client.post<{ enabled: boolean }>(
             `${API_PATHS.CLAWS.ENABLE_PREVIEW(id)}?check=true`
         ),
-    enablePreview: (id: string) =>
-        client.post<{ enabled: boolean }>(API_PATHS.CLAWS.ENABLE_PREVIEW(id)),
-    rotatePassword: (id: string, password?: string) =>
+    enablePreview: (id: string, signal?: AbortSignal) =>
+        client.post<{ enabled: boolean }>(
+            API_PATHS.CLAWS.ENABLE_PREVIEW(id),
+            undefined,
+            { signal }
+        ),
+    rotatePassword: (id: string, password?: string, signal?: AbortSignal) =>
         client.post<void>(
             API_PATHS.CLAWS.ROTATE_PASSWORD(id),
-            password ? { password } : {}
+            password ? { password } : {},
+            { signal }
         ),
-    rotateGatewayToken: (id: string, token?: string) =>
+    rotateGatewayToken: (id: string, token?: string, signal?: AbortSignal) =>
         client.post<void>(
             API_PATHS.CLAWS.ROTATE_GATEWAY_TOKEN(id),
-            token ? { token } : {}
+            token ? { token } : {},
+            { signal }
         ),
-    updateAgentSSHKey: (id: string, sshKeyId: string | null) =>
-        client.patch<void>(API_PATHS.CLAWS.SSH_KEY(id), { sshKeyId })
+    updateAgentSSHKey: (id: string, sshKeyId: string | null, signal?: AbortSignal) =>
+        client.patch<void>(API_PATHS.CLAWS.SSH_KEY(id), { sshKeyId }, { signal })
 }
 
 export default agents

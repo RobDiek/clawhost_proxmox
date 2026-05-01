@@ -1,3 +1,5 @@
+import type { AgentIdMutationParams } from '@/ts/Interfaces'
+
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib'
 import updateAgentInCaches from '@/hooks/useAgents/updateAgentInCaches'
@@ -8,8 +10,9 @@ const useDeleteAgent = () => {
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: (id: string) => api.deleteAgent(id),
-        onSuccess: (response, id) => {
+        mutationFn: ({ id, signal }: AgentIdMutationParams) =>
+            api.deleteAgent(id, signal),
+        onSuccess: (response, { id }) => {
             if (response.agent) {
                 updateAgentInCaches(queryClient, id, response.agent)
             } else {

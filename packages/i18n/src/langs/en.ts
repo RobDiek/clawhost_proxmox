@@ -365,6 +365,7 @@ const en = {
         invalidSubdomain:
             'Invalid subdomain. Use 3-20 lowercase letters and numbers!',
         subdomainAlreadyInUse: 'This subdomain is already in use!',
+        subdomainNotSupported: 'This agent type does not use a subdomain.',
         agentBusy: 'Agent is currently being provisioned or deleted!',
         reinstallGatewayNotResponding:
             'Reinstall completed but gateway is not responding yet. It may need more time to start.',
@@ -701,11 +702,13 @@ const en = {
         billingReasonSubscriptionCycle: 'Renewal',
         billingReasonSubscriptionUpdate: 'Subscription Update',
         failedToLoadBilling: 'Failed to load billing history!',
-        viewInvoice: 'View Invoice',
+        downloadInvoice: 'Download Invoice',
         failedToLoadInvoice: 'Failed to load invoice!',
+        invoiceCanceledNavigation: 'Invoice download interrupted because you navigated away.',
         couponApplied: 'Coupon: {{name}}',
         manageBilling: 'Manage Billing',
-        failedToLoadPortal: 'Failed to open billing portal!'
+        failedToLoadPortal: 'Failed to open billing portal!',
+        portalCanceledNavigation: 'Billing portal interrupted because you navigated away.'
     },
     license: {
         title: 'License',
@@ -857,6 +860,7 @@ const en = {
         fileExplorerReadOnly: 'Read-only',
         fileExplorerSave: 'Save',
         fileExplorerSaved: 'File saved.',
+        fileExplorerSaveCanceledNavigation: 'File save interrupted because you navigated away.',
         fileExplorerInvalidJson:
             'Invalid JSON. Please fix syntax errors before saving!',
         fileExplorerNoFiles: 'No files found',
@@ -872,6 +876,7 @@ const en = {
             'This will completely reinstall {{agentName}} on this instance. All configurations, agents, and data will be reset. This action cannot be undone. Continue?',
         reinstallInstanceSuccess: 'Instance reinstalled successfully.',
         reinstallInstanceFailed: 'Failed to reinstall instance!',
+        reinstallCanceledNavigation: 'Reinstall interrupted because you navigated away.',
         openControlPanel: 'Open Control Panel',
         exportData: 'Export Claw (.zip)',
         exportAgent: 'Export',
@@ -883,6 +888,10 @@ const en = {
         exportStarted: 'Preparing export, this may take a moment...',
         exportSuccess: 'Agent exported successfully.',
         exportFailed: 'Failed to export claw data!',
+        exportCanceledNavigation: 'Export canceled because you navigated away.',
+        scheduleDeletionCanceledNavigation: 'Schedule deletion interrupted because you navigated away.',
+        cancelDeletionCanceledNavigation: 'Cancel deletion interrupted because you navigated away.',
+        hardDeleteCanceledNavigation: 'Force delete interrupted because you navigated away.',
         exportRateLimited: 'You can export again in {{minutes}} minutes.',
         exportRateLimitedOne: 'You can export again in 1 minute.',
         configuringTooltip:
@@ -1056,7 +1065,7 @@ const en = {
         whyClawHost: 'All-in-One Features',
         featuresDescription: "Why we're worth a try, features don't lie here.",
         zeroConfigDescription:
-            "Skip hours of server and OpenClaw setup. It's pre-installed and ready within minutes.",
+            "Skip hours of server, OpenClaw, and Hermes setup. They're pre-installed and ready within minutes.",
         ownedData: '100% Owned Data',
         ownedDataDescription:
             'Your own server, your data. No shared infrastructure, no logs, no third parties. Online 24/7.',
@@ -1075,21 +1084,24 @@ const en = {
         payAsYouGo: 'Simple Pricing',
         payAsYouGoDescription:
             'Pricing based on what you need. No forced high bills for low-quality servers. Cancel anytime.',
+        bringYourCredits: 'Bring Your Own Credits',
+        bringYourCreditsDescription:
+            'Use your own Anthropic API key or Claude subscription. Pay Anthropic directly — no markup.',
         customSubdomains: 'Online Access',
         customSubdomainsDescription:
             'Forget local networks. Access your OpenClaw securely from anywhere with a subdomain.',
         autoUpdates: 'Version Control',
         autoUpdatesDescription:
             'Switch to any OpenClaw version with a single click. Always stay up to date or roll back when needed.',
-        openclawControl: 'OpenClaw Control',
+        openclawControl: 'Agent Control',
         openclawControlDescription:
-            'Access the native OpenClaw panel directly from ClawHost. Full editing access to everything OpenClaw offers.',
+            'Access OpenClaw or Hermes panels directly from ClawHost. Full control over every agent.',
         clawHostControl: 'Full Server Access',
         clawHostControlDescription:
             'Browser terminal, file explorer, logs, diagnostics, and version management — all from your dashboard.',
-        multipleClaws: 'Multiple Claws',
+        multipleClaws: 'Multiple Agents',
         multipleClawsDescription:
-            'Deploy and manage multiple OpenClaw instances from a single dashboard. Scale as you grow.',
+            'Deploy and manage multiple OpenClaw and Hermes agents from one dashboard. Scale as you grow.',
         pricing: 'Pricing',
         simpleTransparentPricing: 'Simple, Transparent Pricing',
         pricingDescription:
@@ -1213,11 +1225,6 @@ const en = {
         description:
             'Track updates, new features, and improvements to ClawHost.',
         subtitle: 'All updates, new features, and improvements to ClawHost.',
-        release17Date: 'April 29, 2026',
-        release17Title: 'Hermes Agent Support',
-        release17Description:
-            'One click deploy for Hermes agents on ClawHost, just like OpenClaw.',
-        release17Feature1: 'One click deploy for Hermes agents like OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1417,6 +1424,11 @@ const en = {
         overviewUnsupportedTitle: 'Overview not supported',
         overviewUnsupportedDescription:
             'Your OpenClaw version does not support the overview feature. Please update to the latest version.',
+        overviewHermesTitle: 'Hermes runs in the terminal',
+        overviewHermesDescription:
+            'Hermes is a TUI agent — open the Terminal tab and run `hermes` to start a session. The Files and Versions tabs let you edit config and upgrade.',
+        overviewHermesOpenTerminal: 'Open Terminal',
+        viewDocs: 'View docs',
         overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1449,6 +1461,7 @@ const en = {
         previewEnabling: 'Enabling...',
         previewEnabled: 'Preview enabled.',
         previewEnableFailed: 'Failed to enable preview!',
+        previewEnableCanceledNavigation: 'Enable preview interrupted because you navigated away.',
         previewError: 'Failed to load preview.',
         previewErrorDescription: 'The agent may be offline or unreachable.',
         previewRetry: 'Retry',
@@ -1466,8 +1479,15 @@ const en = {
         creatingDescription:
             'This usually takes a minute or two. You can safely close this page and come back later.',
         configuringTitle: 'Installing OpenClaw',
+        configuringTitleHermes: 'Installing Hermes',
         configuringDescription:
             'This usually takes a minute or two. You can safely close this page and come back later.',
+        loadingTipHermes1:
+            'Hermes is a TUI agent — open the Terminal tab once it boots to chat with it.',
+        loadingTipHermes2:
+            'Configure model providers (OpenRouter, Anthropic, etc.) in ~/.hermes/.env from the Files tab.',
+        loadingTipHermes3:
+            'Connect Telegram, Discord, or Slack from the Terminal with `hermes gateway install`.',
         awaitingPaymentTitle: 'Awaiting payment',
         awaitingPaymentDescription:
             'Complete the payment to start provisioning your agent. This reservation expires in one hour.',
@@ -1569,11 +1589,14 @@ const en = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'Install',
         versionInstalling: 'Installing...',
         versionInstallSuccess: 'Version {{version}} installed successfully.',
         versionInstallFailed: 'Failed to install version!',
+        installVersionCanceledNavigation: 'Version install interrupted because you navigated away.',
         versionDownloads: '{{count}} downloads',
         versionChangelog: 'Changelog',
         versionOutdated: 'Outdated',
@@ -1611,6 +1634,10 @@ const en = {
         settingsSaving: 'Saving...',
         settingsUpdated: 'Settings updated.',
         settingsUpdateFailed: 'Failed to update settings!',
+        saveCanceledNavigation: 'Save interrupted because you navigated away.',
+        savePasswordCanceledNavigation: 'Password save interrupted because you navigated away.',
+        saveGatewayTokenCanceledNavigation: 'Gateway token save interrupted because you navigated away.',
+        saveSSHKeyCanceledNavigation: 'SSH key save interrupted because you navigated away.',
         mockLogStarting: 'Starting OpenClaw agent...',
         mockLogLoadingModel: 'Loading model: claude-sonnet-4-5',
         mockLogAgentReady: 'Agent ready on port 3000',

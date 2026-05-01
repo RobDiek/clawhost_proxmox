@@ -11,8 +11,9 @@ import {
     SelectItem,
     SelectTrigger
 } from '@/components/ui'
-import { useUpdateAgentSSHKey, useToast } from '@/hooks'
-import { PATHS } from '@/lib'
+import { useUpdateAgentSSHKey, useToast, useAbortController } from '@/hooks'
+import { useUIStore } from '@/lib/store'
+import { PATHS, handleAbortToast } from '@/lib'
 import SecuritySection from '@/components/dashboard/AgentSecurityContent/SecuritySection'
 
 const SecuritySSHKeySection: FC<SecuritySSHKeySectionProps> = ({
@@ -23,6 +24,8 @@ const SecuritySSHKeySection: FC<SecuritySSHKeySectionProps> = ({
 }): ReactNode => {
     const updateSSHKey = useUpdateAgentSSHKey()
     const toast = useToast()
+    const { showToast } = useUIStore()
+    const getSignal = useAbortController()
     const [selectedKeyId, setSelectedKeyId] = useState<string>(sshKeyId || 'none')
 
     const hasChanged = selectedKeyId !== (sshKeyId || 'none')
@@ -34,11 +37,20 @@ const SecuritySSHKeySection: FC<SecuritySSHKeySectionProps> = ({
     const handleSave = () => {
         const newKeyId = selectedKeyId === 'none' ? null : selectedKeyId
         updateSSHKey.mutate(
-            { id: agentId, sshKeyId: newKeyId },
+            { id: agentId, sshKeyId: newKeyId, signal: getSignal() },
             {
                 onSuccess: () => toast.success(t('api.sshKeyUpdated')),
-                onError: (err) =>
+                onError: (err) => {
+                    if (
+                        handleAbortToast(
+                            err,
+                            showToast,
+                            'clawDetail.saveSSHKeyCanceledNavigation'
+                        )
+                    )
+                        return
                     toast.error(err.message || t('api.failedToUpdateSSHKey'))
+                }
             }
         )
     }

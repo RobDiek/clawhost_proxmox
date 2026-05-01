@@ -1,5 +1,6 @@
 import generateCloudInit from '@/controllers/agents/helpers/generateCloudInit'
 import checkSubdomainReady from '@/controllers/agents/helpers/checkSubdomainReady'
+import checkAgentReady from '@/controllers/agents/helpers/checkAgentReady'
 import generateSlug from '@/controllers/agents/helpers/generateSlug'
 import generatePassword from '@/controllers/agents/helpers/generatePassword'
 import generateServerName from '@/controllers/agents/helpers/generateServerName'
@@ -24,6 +25,7 @@ import getPolarProductId from '@/controllers/agents/helpers/getPolarProductId'
 export {
     generateCloudInit,
     checkSubdomainReady,
+    checkAgentReady,
     generateSlug,
     generatePassword,
     generateServerName,

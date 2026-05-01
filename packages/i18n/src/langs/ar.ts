@@ -360,6 +360,7 @@ const ar: Translations = {
         invalidSubdomain:
             'نطاق فرعي غير صالح. استخدم 3-20 حرفاً صغيراً وأرقاماً !',
         subdomainAlreadyInUse: 'هذا النطاق الفرعي مستخدم بالفعل !',
+        subdomainNotSupported: 'لا يستخدم نوع الوكيل هذا نطاقًا فرعيًا.',
         agentBusy: 'Agent قيد التجهيز أو الحذف حالياً !',
         reinstallGatewayNotResponding:
             'اكتملت إعادة التثبيت لكن البوابة لا تستجيب بعد. قد تحتاج إلى مزيد من الوقت للبدء.',
@@ -688,11 +689,13 @@ const ar: Translations = {
         billingReasonSubscriptionCycle: 'تجديد',
         billingReasonSubscriptionUpdate: 'تحديث الاشتراك',
         failedToLoadBilling: 'فشل في تحميل سجل الفواتير !',
-        viewInvoice: 'عرض الفاتورة',
+        downloadInvoice: 'تنزيل الفاتورة',
+        invoiceCanceledNavigation: 'تم إيقاف تنزيل الفاتورة لأنك غادرت الصفحة.',
         failedToLoadInvoice: 'فشل في تحميل الفاتورة !',
         couponApplied: 'قسيمة: {{name}}',
         manageBilling: 'إدارة الفواتير',
-        failedToLoadPortal: 'فشل في فتح بوابة الفواتير !'
+        failedToLoadPortal: 'فشل في فتح بوابة الفواتير !',
+        portalCanceledNavigation: 'تم إيقاف بوابة الفواتير لأنك غادرت الصفحة.'
     },
     license: {
         title: 'الترخيص',
@@ -840,6 +843,7 @@ const ar: Translations = {
         fileExplorerReadOnly: 'للقراءة فقط',
         fileExplorerSave: 'حفظ',
         fileExplorerSaved: 'تم حفظ الملف.',
+        fileExplorerSaveCanceledNavigation: 'تم إيقاف حفظ الملف لأنك غادرت الصفحة.',
         fileExplorerInvalidJson:
             'JSON غير صالح. يرجى إصلاح أخطاء البناء قبل الحفظ !',
         fileExplorerNoFiles: 'لم يتم العثور على ملفات',
@@ -855,6 +859,7 @@ const ar: Translations = {
             'سيؤدي هذا إلى إعادة تثبيت {{agentName}} بالكامل على هذه النسخة. سيتم إعادة ضبط جميع التهيئات والوكلاء والبيانات. لا يمكن التراجع عن هذا الإجراء. متابعة؟',
         reinstallInstanceSuccess: 'تم إعادة تثبيت النسخة بنجاح.',
         reinstallInstanceFailed: 'فشل في إعادة تثبيت النسخة !',
+        reinstallCanceledNavigation: 'تم إيقاف إعادة التثبيت لأنك غادرت الصفحة.',
         openControlPanel: 'فتح لوحة التحكم',
         exportData: 'تصدير المخلب (.zip)',
         exportAgent: 'تصدير',
@@ -865,6 +870,10 @@ const ar: Translations = {
         exportStarted: 'جارٍ تحضير التصدير، قد يستغرق لحظة...',
         exportSuccess: 'تم تصدير المخلب بنجاح.',
         exportFailed: 'فشل في تصدير بيانات المخلب !',
+        exportCanceledNavigation: 'تم إلغاء التصدير لأنك غادرت الصفحة.',
+        scheduleDeletionCanceledNavigation: 'تم إيقاف جدولة الحذف لأنك غادرت الصفحة.',
+        cancelDeletionCanceledNavigation: 'تم إيقاف إلغاء الحذف لأنك غادرت الصفحة.',
+        hardDeleteCanceledNavigation: 'تم إيقاف الحذف القسري لأنك غادرت الصفحة.',
         exportRateLimited: 'يمكنك التصدير مرة أخرى خلال {{minutes}} دقائق.',
         exportRateLimitedOne: 'يمكنك التصدير مرة أخرى خلال دقيقة واحدة.',
         configuringTooltip:
@@ -1056,21 +1065,24 @@ const ar: Translations = {
         payAsYouGo: 'أسعار بسيطة',
         payAsYouGoDescription:
             'أسعار مبنية على ما تحتاجه. لا فواتير مرتفعة إجبارية لخوادم منخفضة الجودة. ألغِ في أي وقت.',
+        bringYourCredits: 'أحضر أرصدتك الخاصة',
+        bringYourCreditsDescription:
+            'استخدم مفتاح Anthropic API الخاص بك أو اشتراك Claude. ادفع لـ Anthropic مباشرةً — بدون رسوم إضافية.',
         customSubdomains: 'وصول عبر الإنترنت',
         customSubdomainsDescription:
             'انسَ الشبكات المحلية. الوصول إلى OpenClaw بأمان من أي مكان عبر نطاق فرعي.',
         autoUpdates: 'التحكم في الإصدارات',
         autoUpdatesDescription:
             'بدّل إلى أي إصدار من OpenClaw بنقرة واحدة. ابقَ محدّثاً دائماً أو ارجع عند الحاجة.',
-        openclawControl: 'تحكم OpenClaw',
+        openclawControl: 'التحكم بالوكلاء',
         openclawControlDescription:
-            'الوصول إلى لوحة OpenClaw الأصلية مباشرة من ClawHost. وصول كامل للتحرير لكل ما يقدمه OpenClaw.',
+            'الوصول إلى لوحات OpenClaw أو Hermes مباشرة من ClawHost. تحكم كامل بكل وكيل.',
         clawHostControl: 'وصول كامل للخادم',
         clawHostControlDescription:
             'طرفية في المتصفح، مستكشف الملفات، السجلات، التشخيصات وإدارة الإصدارات — كل ذلك من لوحة التحكم.',
-        multipleClaws: 'مخالب متعددة',
+        multipleClaws: 'وكلاء متعددون',
         multipleClawsDescription:
-            'انشر وأدر نسخ OpenClaw متعددة من لوحة تحكم واحدة. وسّع مع نموك.',
+            'انشر وأدر وكلاء OpenClaw وHermes متعددين من لوحة تحكم واحدة. وسّع مع نموك.',
         pricing: 'الأسعار',
         simpleTransparentPricing: 'أسعار بسيطة وشفافة',
         pricingDescription: 'اختر خطة تناسب احتياجاتك. بدون رسوم مخفية.',
@@ -1191,11 +1203,6 @@ const ar: Translations = {
         title: 'سجل التغييرات',
         description: 'تتبع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
         subtitle: 'جميع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
-        release17Date: '29 أبريل 2026',
-        release17Title: 'Hermes Agent Support',
-        release17Description:
-            'نشر بنقرة واحدة لوكلاء Hermes على ClawHost، تمامًا مثل OpenClaw.',
-        release17Feature1: 'نشر بنقرة واحدة لوكلاء Hermes مثل OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1386,6 +1393,11 @@ const ar: Translations = {
         overviewUnsupportedTitle: 'النظرة العامة غير مدعومة',
         overviewUnsupportedDescription:
             'إصدار OpenClaw الخاص بك لا يدعم ميزة النظرة العامة. يرجى التحديث إلى أحدث إصدار.',
+        overviewHermesTitle: 'يعمل Hermes في الطرفية',
+        overviewHermesDescription:
+            'Hermes هو وكيل TUI — افتح علامة تبويب الطرفية وقم بتشغيل `hermes` لبدء جلسة. تتيح علامتا الملفات والإصدارات تعديل التكوين والترقية.',
+        overviewHermesOpenTerminal: 'فتح الطرفية',
+        viewDocs: 'عرض الوثائق',
         overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1418,6 +1430,7 @@ const ar: Translations = {
         previewEnabling: 'جاري التفعيل...',
         previewEnabled: 'تم تفعيل المعاينة.',
         previewEnableFailed: 'فشل تفعيل المعاينة!',
+        previewEnableCanceledNavigation: 'تم إيقاف تفعيل المعاينة لأنك غادرت الصفحة.',
         previewError: 'فشل تحميل المعاينة.',
         previewErrorDescription:
             'قد يكون الوكيل غير متصل أو لا يمكن الوصول إليه.',
@@ -1435,6 +1448,13 @@ const ar: Translations = {
         creatingDescription:
             'يستغرق هذا عادةً دقيقة أو دقيقتين. يمكنك إغلاق هذه الصفحة بأمان والعودة لاحقًا.',
         configuringTitle: 'جارٍ تثبيت OpenClaw',
+        configuringTitleHermes: 'جارٍ تثبيت Hermes',
+        loadingTipHermes1:
+            'Hermes هو وكيل TUI — افتح علامة تبويب الطرفية بعد الإقلاع للتحدث معه.',
+        loadingTipHermes2:
+            'قم بتكوين موفري النماذج (OpenRouter، Anthropic، إلخ) في ~/.hermes/.env من علامة التبويب الملفات.',
+        loadingTipHermes3:
+            'قم بتوصيل Telegram أو Discord أو Slack من الطرفية باستخدام `hermes gateway install`.',
         configuringDescription:
             'يستغرق هذا عادةً دقيقة أو دقيقتين. يمكنك إغلاق هذه الصفحة بأمان والعودة لاحقًا.',
         awaitingPaymentTitle: 'في انتظار الدفع',
@@ -1532,11 +1552,14 @@ const ar: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'تثبيت',
         versionInstalling: 'جارٍ التثبيت...',
         versionInstallSuccess: 'تم تثبيت الإصدار {{version}} بنجاح.',
         versionInstallFailed: 'فشل في تثبيت الإصدار !',
+        installVersionCanceledNavigation: 'تم إيقاف تثبيت الإصدار لأنك غادرت الصفحة.',
         versionDownloads: '{{count}} تنزيل',
         versionChangelog: 'سجل التغييرات',
         versionOutdated: 'قديم',
@@ -1572,6 +1595,10 @@ const ar: Translations = {
         settingsSaving: 'جارٍ الحفظ...',
         settingsUpdated: 'تم تحديث الإعدادات.',
         settingsUpdateFailed: 'فشل تحديث الإعدادات!',
+        saveCanceledNavigation: 'تم إيقاف الحفظ لأنك غادرت الصفحة.',
+        savePasswordCanceledNavigation: 'تم إيقاف حفظ كلمة المرور لأنك غادرت الصفحة.',
+        saveGatewayTokenCanceledNavigation: 'تم إيقاف حفظ رمز البوابة لأنك غادرت الصفحة.',
+        saveSSHKeyCanceledNavigation: 'تم إيقاف حفظ مفتاح SSH لأنك غادرت الصفحة.',
         mockLogStarting: 'جارٍ تشغيل وكيل OpenClaw...',
         mockLogLoadingModel: 'جارٍ تحميل النموذج: claude-sonnet-4-5',
         mockLogAgentReady: 'الوكيل جاهز على المنفذ 3000',

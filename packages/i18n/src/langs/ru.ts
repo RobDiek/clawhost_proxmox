@@ -371,6 +371,7 @@ const ru: Translations = {
         invalidSubdomain:
             'Недопустимый поддомен. Используйте 3-20 строчных букв и цифр!',
         subdomainAlreadyInUse: 'Этот поддомен уже используется!',
+        subdomainNotSupported: 'Этот тип агента не использует поддомен.',
         agentBusy: 'Agent в данный момент подготавливается или удаляется!',
         reinstallGatewayNotResponding:
             'Переустановка завершена, но шлюз пока не отвечает. Ему может потребоваться больше времени для запуска.',
@@ -710,11 +711,13 @@ const ru: Translations = {
         billingReasonSubscriptionCycle: 'Продление',
         billingReasonSubscriptionUpdate: 'Обновление подписки',
         failedToLoadBilling: 'Не удалось загрузить историю платежей !',
-        viewInvoice: 'Просмотреть счёт',
+        downloadInvoice: 'Скачать счёт',
+        invoiceCanceledNavigation: 'Загрузка счёта прервана так как вы покинули страницу.',
         failedToLoadInvoice: 'Не удалось загрузить счёт !',
         couponApplied: 'Купон: {{name}}',
         manageBilling: 'Управление платежами',
-        failedToLoadPortal: 'Не удалось открыть платёжный портал !'
+        failedToLoadPortal: 'Не удалось открыть платёжный портал !',
+        portalCanceledNavigation: 'Платёжный портал прерван так как вы покинули страницу.'
     },
     license: {
         title: 'Лицензия',
@@ -866,6 +869,7 @@ const ru: Translations = {
         fileExplorerReadOnly: 'Только чтение',
         fileExplorerSave: 'Сохранить',
         fileExplorerSaved: 'Файл сохранён.',
+        fileExplorerSaveCanceledNavigation: 'Сохранение файла прервано так как вы покинули страницу.',
         fileExplorerInvalidJson:
             'Некорректный JSON. Исправьте синтаксические ошибки перед сохранением !',
         fileExplorerNoFiles: 'Файлы не найдены',
@@ -881,6 +885,7 @@ const ru: Translations = {
             'Это полностью переустановит {{agentName}} на этом экземпляре. Все конфигурации, агенты и данные будут сброшены. Это действие нельзя отменить. Продолжить?',
         reinstallInstanceSuccess: 'Экземпляр успешно переустановлен.',
         reinstallInstanceFailed: 'Не удалось переустановить экземпляр !',
+        reinstallCanceledNavigation: 'Переустановка прервана так как вы покинули страницу.',
         openControlPanel: 'Открыть панель управления',
         exportData: 'Экспорт клоу (.zip)',
         exportAgent: 'Экспорт',
@@ -893,6 +898,10 @@ const ru: Translations = {
             'Подготовка экспорта, это может занять некоторое время...',
         exportSuccess: 'Клоу успешно экспортирован.',
         exportFailed: 'Не удалось экспортировать данные клоу !',
+        exportCanceledNavigation: 'Экспорт отменён так как вы покинули страницу.',
+        scheduleDeletionCanceledNavigation: 'Планирование удаления прервано так как вы покинули страницу.',
+        cancelDeletionCanceledNavigation: 'Отмена удаления прервана так как вы покинули страницу.',
+        hardDeleteCanceledNavigation: 'Принудительное удаление прервано так как вы покинули страницу.',
         exportRateLimited:
             'Вы сможете экспортировать снова через {{minutes}} минут.',
         exportRateLimitedOne: 'Вы сможете экспортировать снова через 1 минуту.',
@@ -1090,21 +1099,24 @@ const ru: Translations = {
         payAsYouGo: 'Простые цены',
         payAsYouGoDescription:
             'Цены основаны на ваших потребностях. Никаких навязанных высоких счетов за низкокачественные серверы. Отмена в любое время.',
+        bringYourCredits: 'Используйте свои кредиты',
+        bringYourCreditsDescription:
+            'Используйте собственный API-ключ Anthropic или подписку Claude. Платите Anthropic напрямую — без наценок.',
         customSubdomains: 'Онлайн-доступ',
         customSubdomainsDescription:
             'Забудьте о локальных сетях. Доступ к OpenClaw безопасно из любой точки мира через поддомен.',
         autoUpdates: 'Управление версиями',
         autoUpdatesDescription:
             'Переключайтесь на любую версию OpenClaw одним кликом. Всегда будьте в курсе или откатывайтесь при необходимости.',
-        openclawControl: 'Управление OpenClaw',
+        openclawControl: 'Управление агентами',
         openclawControlDescription:
-            'Доступ к нативной панели OpenClaw прямо из ClawHost. Полный доступ к редактированию всего, что предлагает OpenClaw.',
+            'Доступ к панелям OpenClaw или Hermes прямо из ClawHost. Полный контроль над каждым агентом.',
         clawHostControl: 'Полный доступ к серверу',
         clawHostControlDescription:
             'Терминал в браузере, файловый менеджер, логи, диагностика и управление версиями — всё из вашей панели.',
-        multipleClaws: 'Несколько клоу',
+        multipleClaws: 'Несколько агентов',
         multipleClawsDescription:
-            'Разворачивайте и управляйте несколькими экземплярами OpenClaw из одной панели. Масштабируйтесь по мере роста.',
+            'Разворачивайте и управляйте несколькими агентами OpenClaw и Hermes из одной панели. Масштабируйтесь по мере роста.',
         pricing: 'Цены',
         simpleTransparentPricing: 'Простые, прозрачные цены',
         pricingDescription:
@@ -1227,12 +1239,6 @@ const ru: Translations = {
         description:
             'Отслеживайте обновления, новые функции и улучшения ClawHost.',
         subtitle: 'Все обновления, новые функции и улучшения ClawHost.',
-        release17Date: '29 апреля 2026',
-        release17Title: 'Hermes Agent Support',
-        release17Description:
-            'Развёртывание в один клик для агентов Hermes на ClawHost, как и OpenClaw.',
-        release17Feature1:
-            'Развёртывание в один клик для агентов Hermes, как OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1432,6 +1438,11 @@ const ru: Translations = {
         overviewUnsupportedTitle: 'Обзор не поддерживается',
         overviewUnsupportedDescription:
             'Ваша версия OpenClaw не поддерживает функцию обзора. Пожалуйста, обновите до последней версии.',
+        overviewHermesTitle: 'Hermes работает в терминале',
+        overviewHermesDescription:
+            'Hermes — это TUI-агент. Откройте вкладку «Терминал» и выполните `hermes`, чтобы начать сеанс. Вкладки «Файлы» и «Версии» позволяют редактировать конфигурацию и обновляться.',
+        overviewHermesOpenTerminal: 'Открыть терминал',
+        viewDocs: 'Документация',
         overviewUptimeDays: '{{days}}д {{hours}}ч {{minutes}}м',
         overviewUptimeHours: '{{hours}}ч {{minutes}}м',
         overviewUptimeMinutes: '{{minutes}}м',
@@ -1464,6 +1475,7 @@ const ru: Translations = {
         previewEnabling: 'Включение...',
         previewEnabled: 'Предпросмотр включен.',
         previewEnableFailed: 'Не удалось включить предпросмотр!',
+        previewEnableCanceledNavigation: 'Включение предпросмотра прервано так как вы покинули страницу.',
         previewError: 'Не удалось загрузить предпросмотр.',
         previewErrorDescription: 'Агент может быть офлайн или недоступен.',
         previewRetry: 'Повторить',
@@ -1481,6 +1493,13 @@ const ru: Translations = {
         creatingDescription:
             'Обычно это занимает одну-две минуты. Вы можете безопасно закрыть эту страницу и вернуться позже.',
         configuringTitle: 'Установка OpenClaw',
+        configuringTitleHermes: 'Установка Hermes',
+        loadingTipHermes1:
+            'Hermes — это TUI-агент. После запуска откройте вкладку «Терминал», чтобы пообщаться с ним.',
+        loadingTipHermes2:
+            'Настройте провайдеров моделей (OpenRouter, Anthropic и др.) в ~/.hermes/.env через вкладку «Файлы».',
+        loadingTipHermes3:
+            'Подключите Telegram, Discord или Slack из «Терминала» командой `hermes gateway install`.',
         configuringDescription:
             'Обычно это занимает одну-две минуты. Вы можете безопасно закрыть эту страницу и вернуться позже.',
         awaitingPaymentTitle: 'Ожидание оплаты',
@@ -1587,11 +1606,14 @@ const ru: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'Установить',
         versionInstalling: 'Установка...',
         versionInstallSuccess: 'Версия {{version}} успешно установлена.',
         versionInstallFailed: 'Не удалось установить версию !',
+        installVersionCanceledNavigation: 'Установка версии прервана так как вы покинули страницу.',
         versionDownloads: '{{count}} загрузок',
         versionChangelog: 'Журнал изменений',
         versionOutdated: 'Устаревшая',
@@ -1628,6 +1650,10 @@ const ru: Translations = {
         settingsSaving: 'Сохранение...',
         settingsUpdated: 'Настройки обновлены.',
         settingsUpdateFailed: 'Не удалось обновить настройки!',
+        saveCanceledNavigation: 'Сохранение прервано так как вы покинули страницу.',
+        savePasswordCanceledNavigation: 'Сохранение пароля прервано так как вы покинули страницу.',
+        saveGatewayTokenCanceledNavigation: 'Сохранение токена шлюза прервано так как вы покинули страницу.',
+        saveSSHKeyCanceledNavigation: 'Сохранение SSH-ключа прервано так как вы покинули страницу.',
         mockLogStarting: 'Запуск агента OpenClaw...',
         mockLogLoadingModel: 'Загрузка модели: claude-sonnet-4-5',
         mockLogAgentReady: 'Агент готов на порту 3000',

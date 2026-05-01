@@ -20,14 +20,16 @@ const users = {
     disconnectAuthMethod: (method: string) =>
         client.delete<void>(API_PATHS.USERS.AUTH_METHOD(method)),
     getUserStats: () => client.get<UserStats>(API_PATHS.USERS.STATS),
-    getOrderInvoice: (orderId: string) =>
+    getOrderInvoice: (orderId: string, signal?: AbortSignal) =>
         client.get<BillingInvoiceResponse>(
-            API_PATHS.USERS.ORDER_INVOICE(orderId)
+            API_PATHS.USERS.ORDER_INVOICE(orderId),
+            { signal }
         ),
-    getCustomerPortal: (agentId?: string) =>
+    getCustomerPortal: (agentId?: string, signal?: AbortSignal) =>
         client.post<CustomerPortalResponse>(
             API_PATHS.USERS.BILLING_PORTAL,
-            agentId ? { agentId } : undefined
+            agentId ? { agentId } : undefined,
+            { signal }
         ),
     purchaseLicense: () =>
         client.post<LicenseCheckoutResponse>(

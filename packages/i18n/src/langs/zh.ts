@@ -350,6 +350,7 @@ const zh: Translations = {
         subdomainUpdated: '子域名更新成功.',
         invalidSubdomain: '无效的子域名。请使用 3-20 个小写字母和数字!',
         subdomainAlreadyInUse: '此子域名已被使用!',
+        subdomainNotSupported: '此代理类型不使用子域名。',
         agentBusy: 'Agent 正在配置或删除中!',
         reinstallGatewayNotResponding:
             '重新安装已完成，但网关尚未响应。可能需要更多时间启动.',
@@ -668,11 +669,13 @@ const zh: Translations = {
         billingReasonSubscriptionCycle: '续费',
         billingReasonSubscriptionUpdate: '订阅更新',
         failedToLoadBilling: '加载账单历史失败！',
-        viewInvoice: '查看发票',
+        downloadInvoice: '下载发票',
+        invoiceCanceledNavigation: '发票下载已中断，因为您已离开页面。',
         failedToLoadInvoice: '加载发票失败！',
         couponApplied: '优惠券：{{name}}',
         manageBilling: '管理账单',
-        failedToLoadPortal: '打开账单门户失败！'
+        failedToLoadPortal: '打开账单门户失败！',
+        portalCanceledNavigation: '账单门户已中断，因为您已离开页面。'
     },
     license: {
         title: '许可证',
@@ -817,6 +820,7 @@ const zh: Translations = {
         fileExplorerReadOnly: '只读',
         fileExplorerSave: '保存',
         fileExplorerSaved: '文件已保存。',
+        fileExplorerSaveCanceledNavigation: '文件保存已中断，因为您已离开页面。',
         fileExplorerInvalidJson: '无效的 JSON。请在保存前修复语法错误！',
         fileExplorerNoFiles: '未找到文件',
         fileExplorerSearchFiles: '搜索文件...',
@@ -831,6 +835,7 @@ const zh: Translations = {
             '这将在此实例上完全重新安装 {{agentName}}。所有配置、代理和数据将被重置。此操作无法撤销。继续吗？',
         reinstallInstanceSuccess: '实例重新安装成功。',
         reinstallInstanceFailed: '重新安装实例失败！',
+        reinstallCanceledNavigation: '重新安装已中断，因为您已离开页面。',
         openControlPanel: '打开控制面板',
         exportData: '导出 Claw (.zip)',
         exportAgent: '导出',
@@ -840,6 +845,10 @@ const zh: Translations = {
         exportStarted: '正在准备导出，这可能需要一些时间...',
         exportSuccess: 'Claw 导出成功。',
         exportFailed: '导出 Claw 数据失败！',
+        exportCanceledNavigation: '导出已取消，因为您已离开页面。',
+        scheduleDeletionCanceledNavigation: '删除计划已中断，因为您已离开页面。',
+        cancelDeletionCanceledNavigation: '取消删除已中断，因为您已离开页面。',
+        hardDeleteCanceledNavigation: '强制删除已中断，因为您已离开页面。',
         exportRateLimited: '您可以在 {{minutes}} 分钟后再次导出。',
         exportRateLimitedOne: '您可以在 1 分钟后再次导出。',
         configuringTooltip:
@@ -1028,21 +1037,24 @@ const zh: Translations = {
         payAsYouGo: '简单定价',
         payAsYouGoDescription:
             '基于您的需求定价。无强制高额账单，无低质量服务器。随时取消。',
+        bringYourCredits: '自带额度',
+        bringYourCreditsDescription:
+            '使用您自己的 Anthropic API 密钥或 Claude 订阅。直接向 Anthropic 付费 — 无加价。',
         customSubdomains: '在线访问',
         customSubdomainsDescription:
             '告别本地网络。通过子域名从任何地方安全访问您的 OpenClaw。',
         autoUpdates: '版本控制',
         autoUpdatesDescription:
             '一键切换到任何 OpenClaw 版本。始终保持最新或在需要时回滚。',
-        openclawControl: 'OpenClaw 控制',
+        openclawControl: '智能体控制',
         openclawControlDescription:
-            '直接从 ClawHost 访问原生 OpenClaw 面板。完全编辑 OpenClaw 提供的所有内容。',
+            '直接从 ClawHost 访问 OpenClaw 或 Hermes 面板。完全控制每个智能体。',
         clawHostControl: '完整服务器访问',
         clawHostControlDescription:
             '浏览器终端、文件管理器、日志、诊断和版本管理 — 全部在您的仪表板中完成。',
-        multipleClaws: '多 Claws',
+        multipleClaws: '多个智能体',
         multipleClawsDescription:
-            '从单个仪表板部署和管理多个 OpenClaw 实例。随着增长而扩展。',
+            '从单个仪表板部署和管理多个 OpenClaw 和 Hermes 智能体。随着增长而扩展。',
         pricing: '定价',
         simpleTransparentPricing: '简单、透明的定价',
         pricingDescription: '选择适合您的方案。没有隐藏费用。',
@@ -1161,11 +1173,6 @@ const zh: Translations = {
         title: '更新日志',
         description: '跟踪 ClawHost 的更新、新功能和改进。',
         subtitle: 'ClawHost 的所有更新、新功能和改进。',
-        release17Date: '2026年4月29日',
-        release17Title: 'Hermes Agent Support',
-        release17Description:
-            '在 ClawHost 上一键部署 Hermes 代理，就像 OpenClaw 一样。',
-        release17Feature1: '像 OpenClaw 一样一键部署 Hermes 代理',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1330,6 +1337,11 @@ const zh: Translations = {
         overviewUnsupportedTitle: '概览不受支持',
         overviewUnsupportedDescription:
             '您的OpenClaw版本不支持概览功能。请更新到最新版本。',
+        overviewHermesTitle: 'Hermes 在终端中运行',
+        overviewHermesDescription:
+            'Hermes 是一个 TUI 代理 — 打开终端选项卡并运行 `hermes` 启动会话。文件和版本选项卡可用于编辑配置和升级。',
+        overviewHermesOpenTerminal: '打开终端',
+        viewDocs: '查看文档',
         overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1361,6 +1373,7 @@ const zh: Translations = {
         previewEnabling: '启用中...',
         previewEnabled: '预览已启用。',
         previewEnableFailed: '启用预览失败！',
+        previewEnableCanceledNavigation: '启用预览已中断，因为您已离开页面。',
         previewError: '加载预览失败。',
         previewErrorDescription: '代理可能已离线或无法访问。',
         previewRetry: '重试',
@@ -1377,6 +1390,13 @@ const zh: Translations = {
         creatingDescription:
             '这通常需要一两分钟。 您可以安全地关闭此页面，稍后再回来。',
         configuringTitle: '正在安装 OpenClaw',
+        configuringTitleHermes: '正在安装 Hermes',
+        loadingTipHermes1:
+            'Hermes 是一个 TUI 代理 — 启动后打开终端选项卡与其聊天。',
+        loadingTipHermes2:
+            '在文件选项卡中通过 ~/.hermes/.env 配置模型提供商（OpenRouter、Anthropic 等）。',
+        loadingTipHermes3:
+            '在终端中使用 `hermes gateway install` 连接 Telegram、Discord 或 Slack。',
         configuringDescription:
             '这通常需要一两分钟。 您可以安全地关闭此页面，稍后再回来。',
         awaitingPaymentTitle: '等待支付',
@@ -1468,11 +1488,14 @@ const zh: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: '安装',
         versionInstalling: '正在安装...',
         versionInstallSuccess: '版本 {{version}} 安装成功。',
         versionInstallFailed: '安装版本失败！',
+        installVersionCanceledNavigation: '版本安装已中断，因为您已离开页面。',
         versionDownloads: '{{count}} 次下载',
         versionChangelog: '更新日志',
         versionOutdated: '已过期',
@@ -1506,6 +1529,10 @@ const zh: Translations = {
         settingsSaving: '正在保存...',
         settingsUpdated: '设置已更新。',
         settingsUpdateFailed: '更新设置失败！',
+        saveCanceledNavigation: '保存已中断，因为您已离开页面。',
+        savePasswordCanceledNavigation: '密码保存已中断，因为您已离开页面。',
+        saveGatewayTokenCanceledNavigation: '网关令牌保存已中断，因为您已离开页面。',
+        saveSSHKeyCanceledNavigation: 'SSH 密钥保存已中断，因为您已离开页面。',
         mockLogStarting: '正在启动 OpenClaw 代理...',
         mockLogLoadingModel: '正在加载模型：claude-sonnet-4-5',
         mockLogAgentReady: '代理已在端口 3000 就绪',

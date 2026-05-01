@@ -8,8 +8,8 @@ const useUpdateAgentSubdomain = () => {
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: ({ id, subdomain }: UpdateAgentSubdomainMutationParams) =>
-            api.updateAgentSubdomain(id, { subdomain }),
+        mutationFn: ({ id, subdomain, signal }: UpdateAgentSubdomainMutationParams) =>
+            api.updateAgentSubdomain(id, { subdomain }, signal),
         onSuccess: (updatedAgent, { id }) => {
             updateAgentInCaches(queryClient, id, updatedAgent)
         }

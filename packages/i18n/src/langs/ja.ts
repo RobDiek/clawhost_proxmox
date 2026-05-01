@@ -372,6 +372,7 @@ const ja: Translations = {
         invalidSubdomain:
             '無効なサブドメインです。3〜20文字の小文字英字と数字を使用してください!',
         subdomainAlreadyInUse: 'このサブドメインは既に使用されています!',
+        subdomainNotSupported: 'このエージェントタイプはサブドメインを使用しません。',
         agentBusy: 'Agentは現在プロビジョニング中または削除中です!',
         reinstallGatewayNotResponding:
             '再インストールは完了しましたが、ゲートウェイがまだ応答していません。起動にもう少し時間がかかる場合があります.',
@@ -709,11 +710,13 @@ const ja: Translations = {
         billingReasonSubscriptionCycle: '更新',
         billingReasonSubscriptionUpdate: 'サブスクリプション変更',
         failedToLoadBilling: '請求履歴の読み込みに失敗しました！',
-        viewInvoice: '請求書を見る',
+        downloadInvoice: '請求書をダウンロード',
+        invoiceCanceledNavigation: '請求書のダウンロードが中断されました。ページを離れたためです。',
         failedToLoadInvoice: '請求書の読み込みに失敗しました！',
         couponApplied: 'クーポン: {{name}}',
         manageBilling: '請求を管理',
-        failedToLoadPortal: '請求ポータルを開けませんでした！'
+        failedToLoadPortal: '請求ポータルを開けませんでした！',
+        portalCanceledNavigation: '請求ポータルが中断されました。ページを離れたためです。'
     },
     license: {
         title: 'ライセンス',
@@ -866,6 +869,7 @@ const ja: Translations = {
         fileExplorerReadOnly: '読み取り専用',
         fileExplorerSave: '保存',
         fileExplorerSaved: 'ファイルを保存しました。',
+        fileExplorerSaveCanceledNavigation: 'ファイルの保存が中断されました。ページを離れたためです。',
         fileExplorerInvalidJson:
             '無効なJSONです。保存する前に構文エラーを修正してください！',
         fileExplorerNoFiles: 'ファイルが見つかりません',
@@ -881,6 +885,7 @@ const ja: Translations = {
             'このインスタンスに{{agentName}}を完全に再インストールします。すべての設定、エージェント、データがリセットされます。この操作は元に戻せません。続行しますか？',
         reinstallInstanceSuccess: 'インスタンスを再インストールしました。',
         reinstallInstanceFailed: 'インスタンスの再インストールに失敗しました！',
+        reinstallCanceledNavigation: '再インストールが中断されました。ページを離れたためです。',
         openControlPanel: 'コントロールパネルを開く',
         exportData: 'Clawをエクスポート (.zip)',
         exportAgent: 'エクスポート',
@@ -892,6 +897,10 @@ const ja: Translations = {
         exportStarted: 'エクスポートを準備中、しばらくお待ちください...',
         exportSuccess: 'Clawをエクスポートしました。',
         exportFailed: 'Clawデータのエクスポートに失敗しました！',
+        exportCanceledNavigation: 'エクスポートをキャンセルしました。ページを離れたためです。',
+        scheduleDeletionCanceledNavigation: '削除予約が中断されました。ページを離れたためです。',
+        cancelDeletionCanceledNavigation: '削除取り消しが中断されました。ページを離れたためです。',
+        hardDeleteCanceledNavigation: '強制削除が中断されました。ページを離れたためです。',
         exportRateLimited: '{{minutes}}分後に再度エクスポートできます。',
         exportRateLimitedOne: '1分後に再度エクスポートできます。',
         configuringTooltip:
@@ -1084,21 +1093,24 @@ const ja: Translations = {
         payAsYouGo: 'シンプルな料金',
         payAsYouGoDescription:
             '必要なものに基づいた料金。低品質サーバーに高額な請求を強制されません。いつでもキャンセル可能。',
+        bringYourCredits: '自分のクレジットを使用',
+        bringYourCreditsDescription:
+            'ご自身のAnthropic APIキーまたはClaudeサブスクリプションをご利用ください。Anthropicに直接お支払い — マークアップなし。',
         customSubdomains: 'オンラインアクセス',
         customSubdomainsDescription:
             'ローカルネットワークは忘れましょう。サブドメインでどこからでもOpenClawにセキュアにアクセス。',
         autoUpdates: 'バージョン管理',
         autoUpdatesDescription:
             'ワンクリックで任意のOpenClawバージョンに切り替え。常に最新の状態を維持するか、必要に応じてロールバック。',
-        openclawControl: 'OpenClawコントロール',
+        openclawControl: 'エージェント制御',
         openclawControlDescription:
-            'ClawHostからネイティブOpenClawパネルに直接アクセス。OpenClawが提供するすべてへのフル編集アクセス。',
+            'ClawHostからOpenClawまたはHermesパネルに直接アクセス。すべてのエージェントを完全制御。',
         clawHostControl: '完全なサーバーアクセス',
         clawHostControlDescription:
             'ブラウザターミナル、ファイルエクスプローラー、ログ、診断、バージョン管理 — すべてダッシュボードから。',
-        multipleClaws: '複数のClaw',
+        multipleClaws: '複数のエージェント',
         multipleClawsDescription:
-            '単一のダッシュボードから複数のOpenClawインスタンスをデプロイ・管理。成長に合わせてスケール。',
+            '単一のダッシュボードから複数のOpenClawおよびHermesエージェントをデプロイ・管理。成長に合わせてスケール。',
         pricing: '料金',
         simpleTransparentPricing: 'シンプルで透明な料金',
         pricingDescription:
@@ -1219,12 +1231,6 @@ const ja: Translations = {
         title: '変更履歴',
         description: 'ClawHostのアップデート、新機能、改善を追跡。',
         subtitle: 'ClawHostのすべてのアップデート、新機能、改善。',
-        release17Date: '2026年4月29日',
-        release17Title: 'Hermes Agent Support',
-        release17Description:
-            'ClawHostでHermesエージェントをワンクリックデプロイ、OpenClawと同様に。',
-        release17Feature1:
-            'OpenClawと同様のHermesエージェントのワンクリックデプロイ',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1418,6 +1424,11 @@ const ja: Translations = {
         overviewUnsupportedTitle: '概要はサポートされていません',
         overviewUnsupportedDescription:
             'お使いのOpenClawバージョンは概要機能をサポートしていません。最新バージョンにアップデートしてください。',
+        overviewHermesTitle: 'Hermesはターミナルで動作します',
+        overviewHermesDescription:
+            'Hermesは TUI エージェントです。ターミナルタブを開いて `hermes` を実行してセッションを開始してください。ファイルおよびバージョンタブで設定の編集とアップグレードができます。',
+        overviewHermesOpenTerminal: 'ターミナルを開く',
+        viewDocs: 'ドキュメント',
         overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1451,6 +1462,7 @@ const ja: Translations = {
         previewEnabling: '有効化中...',
         previewEnabled: 'プレビューが有効になりました。',
         previewEnableFailed: 'プレビューの有効化に失敗しました！',
+        previewEnableCanceledNavigation: 'プレビューの有効化が中断されました。ページを離れたためです。',
         previewError: 'プレビューの読み込みに失敗しました。',
         previewErrorDescription:
             'エージェントがオフラインまたは到達不能の可能性があります。',
@@ -1469,6 +1481,13 @@ const ja: Translations = {
         creatingDescription:
             '通常1〜2分かかります。 このページを閉じて、後で戻ってきても問題ありません。',
         configuringTitle: 'OpenClawをインストール中',
+        configuringTitleHermes: 'Hermesをインストール中',
+        loadingTipHermes1:
+            'Hermes は TUI エージェントです — 起動後はターミナルタブを開いてチャットしてください。',
+        loadingTipHermes2:
+            'モデルプロバイダー（OpenRouter、Anthropic など）はファイルタブから ~/.hermes/.env で設定します。',
+        loadingTipHermes3:
+            'ターミナルから `hermes gateway install` で Telegram、Discord、Slack を接続できます。',
         configuringDescription:
             '通常1〜2分かかります。 このページを閉じて、後で戻ってきても問題ありません。',
         awaitingPaymentTitle: '支払い待ち',
@@ -1575,11 +1594,14 @@ const ja: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'インストール',
         versionInstalling: 'インストール中...',
         versionInstallSuccess: 'バージョン{{version}}をインストールしました。',
         versionInstallFailed: 'バージョンのインストールに失敗しました！',
+        installVersionCanceledNavigation: 'バージョンのインストールが中断されました。ページを離れたためです。',
         versionDownloads: '{{count}}ダウンロード',
         versionChangelog: '変更履歴',
         versionOutdated: '古いバージョン',
@@ -1617,6 +1639,10 @@ const ja: Translations = {
         settingsSaving: '保存中...',
         settingsUpdated: '設定が更新されました。',
         settingsUpdateFailed: '設定の更新に失敗しました！',
+        saveCanceledNavigation: '保存が中断されました。ページを離れたためです。',
+        savePasswordCanceledNavigation: 'パスワードの保存が中断されました。ページを離れたためです。',
+        saveGatewayTokenCanceledNavigation: 'ゲートウェイトークンの保存が中断されました。ページを離れたためです。',
+        saveSSHKeyCanceledNavigation: 'SSHキーの保存が中断されました。ページを離れたためです。',
         mockLogStarting: 'OpenClawエージェントを起動中...',
         mockLogLoadingModel: 'モデルを読み込み中: claude-sonnet-4-5',
         mockLogAgentReady: 'エージェントがポート3000で準備完了',

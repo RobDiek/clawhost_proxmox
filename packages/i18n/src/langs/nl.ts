@@ -375,6 +375,7 @@ const nl: Translations = {
         invalidSubdomain:
             'Ongeldig subdomein. Gebruik 3-20 kleine letters en cijfers!',
         subdomainAlreadyInUse: 'Dit subdomein is al in gebruik!',
+        subdomainNotSupported: 'Dit agenttype gebruikt geen subdomein.',
         agentBusy: 'Agent wordt momenteel ingericht of verwijderd!',
         reinstallGatewayNotResponding:
             'Herinstallatie voltooid, maar de gateway reageert nog niet. Het kan meer tijd nodig hebben om op te starten.',
@@ -719,11 +720,13 @@ const nl: Translations = {
         billingReasonSubscriptionCycle: 'Verlenging',
         billingReasonSubscriptionUpdate: 'Abonnementswijziging',
         failedToLoadBilling: 'Factureringsgeschiedenis laden mislukt!',
-        viewInvoice: 'Factuur bekijken',
+        downloadInvoice: 'Factuur downloaden',
+        invoiceCanceledNavigation: 'Factuurdownload onderbroken omdat je de pagina hebt verlaten.',
         failedToLoadInvoice: 'Factuur laden mislukt!',
         couponApplied: 'Coupon: {{name}}',
         manageBilling: 'Facturering beheren',
-        failedToLoadPortal: 'Factureringsportaal openen mislukt!'
+        failedToLoadPortal: 'Factureringsportaal openen mislukt!',
+        portalCanceledNavigation: 'Factureringsportaal onderbroken omdat je de pagina hebt verlaten.'
     },
     license: {
         title: 'Licentie',
@@ -878,6 +881,7 @@ const nl: Translations = {
         fileExplorerReadOnly: 'Alleen-lezen',
         fileExplorerSave: 'Opslaan',
         fileExplorerSaved: 'Bestand opgeslagen.',
+        fileExplorerSaveCanceledNavigation: 'Bestand opslaan onderbroken omdat je de pagina hebt verlaten.',
         fileExplorerInvalidJson:
             'Ongeldige JSON. Herstel syntaxfouten voordat je opslaat!',
         fileExplorerNoFiles: 'Geen bestanden gevonden',
@@ -894,6 +898,7 @@ const nl: Translations = {
             'Dit zal {{agentName}} volledig herinstalleren op deze instantie. Alle configuraties, agents en gegevens worden gereset. Deze actie kan niet ongedaan worden gemaakt. Doorgaan?',
         reinstallInstanceSuccess: 'Instantie succesvol geherinstalleerd.',
         reinstallInstanceFailed: 'Instantie herinstalleren mislukt!',
+        reinstallCanceledNavigation: 'Herinstallatie onderbroken omdat je de pagina hebt verlaten.',
         openControlPanel: 'Configuratiepaneel openen',
         exportData: 'Claw exporteren (.zip)',
         exportAgent: 'Exporteren',
@@ -905,6 +910,10 @@ const nl: Translations = {
         exportStarted: 'Export wordt voorbereid, dit kan even duren...',
         exportSuccess: 'Claw succesvol ge\u00ebxporteerd.',
         exportFailed: 'Claw-gegevens exporteren mislukt!',
+        exportCanceledNavigation: 'Export geannuleerd omdat je de pagina hebt verlaten.',
+        scheduleDeletionCanceledNavigation: 'Geplande verwijdering onderbroken omdat je de pagina hebt verlaten.',
+        cancelDeletionCanceledNavigation: 'Annulering van verwijdering onderbroken omdat je de pagina hebt verlaten.',
+        hardDeleteCanceledNavigation: 'Geforceerde verwijdering onderbroken omdat je de pagina hebt verlaten.',
         exportRateLimited:
             'Je kunt opnieuw exporteren over {{minutes}} minuten.',
         exportRateLimitedOne: 'Je kunt opnieuw exporteren over 1 minuut.',
@@ -1104,21 +1113,24 @@ const nl: Translations = {
         payAsYouGo: 'Eenvoudige prijzen',
         payAsYouGoDescription:
             'Prijzen gebaseerd op wat je nodig hebt. Geen gedwongen hoge rekeningen voor servers van lage kwaliteit. Annuleer wanneer je wilt.',
+        bringYourCredits: 'Neem je eigen credits mee',
+        bringYourCreditsDescription:
+            'Gebruik je eigen Anthropic API-sleutel of Claude-abonnement. Betaal Anthropic direct — geen toeslag.',
         customSubdomains: 'Online toegang',
         customSubdomainsDescription:
             'Vergeet lokale netwerken. Krijg veilig toegang tot je OpenClaw vanaf overal met een subdomein.',
         autoUpdates: 'Versiebeheer',
         autoUpdatesDescription:
             'Schakel met \u00e9\u00e9n klik naar elke OpenClaw-versie. Blijf altijd up-to-date of rol terug wanneer nodig.',
-        openclawControl: 'OpenClaw Control',
+        openclawControl: 'Agentbeheer',
         openclawControlDescription:
-            'Krijg direct toegang tot het native OpenClaw-paneel vanuit ClawHost. Volledige bewerkingstoegang tot alles wat OpenClaw biedt.',
+            'Krijg direct toegang tot OpenClaw- of Hermes-panelen vanuit ClawHost. Volledige controle over elke agent.',
         clawHostControl: 'Volledige servertoegang',
         clawHostControlDescription:
             'Browserterminal, bestandsverkenner, logs, diagnostiek en versiebeheer — alles vanuit je dashboard.',
-        multipleClaws: 'Meerdere Claws',
+        multipleClaws: 'Meerdere agenten',
         multipleClawsDescription:
-            'Deploy en beheer meerdere OpenClaw-instanties vanuit \u00e9\u00e9n dashboard. Schaal mee naarmate je groeit.',
+            'Deploy en beheer meerdere OpenClaw- en Hermes-agenten vanuit \u00e9\u00e9n dashboard. Schaal mee naarmate je groeit.',
         pricing: 'Prijzen',
         simpleTransparentPricing: 'Eenvoudige, transparante prijzen',
         pricingDescription:
@@ -1255,12 +1267,6 @@ const nl: Translations = {
             '10 nieuwe talen toegevoegd: Chinees, Hindi, Arabisch, Russisch, Japans, Turks, Italiaans, Pools, Nederlands en Portugees',
         release14Feature4:
             'Interne tools voor stabiele functieondersteuning voor huidige OpenClaw-versies, zonder ondersteuning voor oudere versies',
-        release17Date: '29 april 2026',
-        release17Title: 'Hermes Agent Support',
-        release17Description:
-            'Eén-klik deployment voor Hermes-agenten op ClawHost, net als OpenClaw.',
-        release17Feature1:
-            'Eén-klik deployment voor Hermes-agenten zoals OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1451,6 +1457,11 @@ const nl: Translations = {
         overviewUnsupportedTitle: 'Overzicht niet ondersteund',
         overviewUnsupportedDescription:
             'Uw OpenClaw-versie ondersteunt de overzichtsfunctie niet. Werk bij naar de nieuwste versie.',
+        overviewHermesTitle: 'Hermes draait in de terminal',
+        overviewHermesDescription:
+            'Hermes is een TUI-agent — open het tabblad Terminal en voer `hermes` uit om een sessie te starten. Met de tabbladen Bestanden en Versies kunt u de configuratie bewerken en bijwerken.',
+        overviewHermesOpenTerminal: 'Terminal openen',
+        viewDocs: 'Documentatie',
         overviewUptimeDays: '{{days}}d {{hours}}u {{minutes}}m',
         overviewUptimeHours: '{{hours}}u {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1484,6 +1495,7 @@ const nl: Translations = {
         previewEnabling: 'Inschakelen...',
         previewEnabled: 'Voorbeeld ingeschakeld.',
         previewEnableFailed: 'Voorbeeld inschakelen mislukt!',
+        previewEnableCanceledNavigation: 'Voorbeeld inschakelen onderbroken omdat je de pagina hebt verlaten.',
         previewError: 'Voorbeeld kon niet worden geladen.',
         previewErrorDescription:
             'De agent is mogelijk offline of onbereikbaar.',
@@ -1503,6 +1515,13 @@ const nl: Translations = {
         creatingDescription:
             'Dit duurt meestal een minuut of twee. Je kunt deze pagina veilig sluiten en later terugkomen.',
         configuringTitle: 'OpenClaw wordt geïnstalleerd',
+        configuringTitleHermes: 'Hermes wordt geïnstalleerd',
+        loadingTipHermes1:
+            'Hermes is een TUI-agent — open na het opstarten het tabblad Terminal om ermee te chatten.',
+        loadingTipHermes2:
+            'Configureer modelproviders (OpenRouter, Anthropic, enz.) in ~/.hermes/.env via het tabblad Bestanden.',
+        loadingTipHermes3:
+            'Verbind Telegram, Discord of Slack vanuit de Terminal met `hermes gateway install`.',
         configuringDescription:
             'Dit duurt meestal een minuut of twee. Je kunt deze pagina veilig sluiten en later terugkomen.',
         awaitingPaymentTitle: 'Wacht op betaling',
@@ -1608,12 +1627,15 @@ const nl: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'Installeren',
         versionInstalling: 'Installeren...',
         versionInstallSuccess:
             'Versie {{version}} succesvol ge\u00efnstalleerd.',
         versionInstallFailed: 'Versie installeren mislukt!',
+        installVersionCanceledNavigation: 'Versie-installatie onderbroken omdat je de pagina hebt verlaten.',
         versionDownloads: '{{count}} downloads',
         versionChangelog: 'Changelog',
         versionOutdated: 'Verouderd',
@@ -1650,6 +1672,10 @@ const nl: Translations = {
         settingsSaving: 'Opslaan...',
         settingsUpdated: 'Instellingen bijgewerkt.',
         settingsUpdateFailed: 'Instellingen bijwerken mislukt!',
+        saveCanceledNavigation: 'Opslaan onderbroken omdat je de pagina hebt verlaten.',
+        savePasswordCanceledNavigation: 'Wachtwoord opslaan onderbroken omdat je de pagina hebt verlaten.',
+        saveGatewayTokenCanceledNavigation: 'Gateway-token opslaan onderbroken omdat je de pagina hebt verlaten.',
+        saveSSHKeyCanceledNavigation: 'SSH-sleutel opslaan onderbroken omdat je de pagina hebt verlaten.',
         mockLogStarting: 'OpenClaw-agent starten...',
         mockLogLoadingModel: 'Model laden: claude-sonnet-4-5',
         mockLogAgentReady: 'Agent gereed op poort 3000',

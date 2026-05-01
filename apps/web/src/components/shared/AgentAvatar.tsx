@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { AgentAvatarProps } from '@/ts/Interfaces'
 
-import AgentMascot from '@/components/shared/AgentMascot'
+import AgentTypeMascot from '@/components/shared/AgentTypeMascot'
 import { AGENT_AVATAR_SIZE } from '@/lib/constants'
 
 const sizeMap = {
@@ -25,6 +25,7 @@ const sizeMap = {
 const AgentAvatar: FC<AgentAvatarProps> = ({
     emoji,
     emojiColor,
+    agentType,
     size = AGENT_AVATAR_SIZE.MD,
     className = ''
 }): ReactNode => {
@@ -38,7 +39,10 @@ const AgentAvatar: FC<AgentAvatarProps> = ({
             {emoji ? (
                 <span className={s.emoji}>{emoji}</span>
             ) : (
-                <AgentMascot className={s.icon} />
+                <AgentTypeMascot
+                    agentType={agentType}
+                    className={s.icon}
+                />
             )}
         </div>
     )

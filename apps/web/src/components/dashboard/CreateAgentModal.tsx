@@ -1,14 +1,19 @@
 import type { FC, ReactNode } from 'react'
+import type { AgentType } from '@/ts/Types'
 import type { CreateAgentModalProps, ErrorResponse } from '@/ts/Interfaces'
 
 import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
-import { agentType, billingInterval, PLANS } from '@openclaw/shared'
-import { Link } from 'react-router-dom'
+import {
+    agentType as agentTypeConst,
+    billingInterval,
+    PLANS,
+    YEARLY_PAID_MONTHS
+} from '@openclaw/shared'
 import { useAuth } from '@/lib/auth'
-import { api, ROUTES, isSafeRedirectUrl, formatCompactNumber } from '@/lib'
-import { OpenClawIcon, HermesIcon } from '@/components/icons'
+import { api, isSafeRedirectUrl, formatCompactNumber } from '@/lib'
+import { calculateTotalAmount } from '@/lib/create-agent'
 import {
     usePurchaseAgent,
     useLocations,
@@ -19,23 +24,22 @@ import {
     useCreateAgentForm
 } from '@/hooks'
 import {
-    Button,
-    Input,
-    Label,
     Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
-    DialogTitle,
-    Checkbox
+    DialogTitle
 } from '@/components/ui'
-import { CircleNotchIcon } from '@phosphor-icons/react'
 import {
-    LocationSelector,
-    BillingIntervalSelector,
-    PlanSelector,
     AdvancedOptions,
-    OrderSummary
+    AgentNameField,
+    AgentTypeSelector,
+    BillingIntervalSelector,
+    CreateAgentSubmitActions,
+    LocationSelector,
+    OrderSummary,
+    PlanSelector,
+    TermsAgreement
 } from '@/components/dashboard/create-agent'
 
 const CreateAgentModal: FC<CreateAgentModalProps> = ({
@@ -55,7 +59,7 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
     const { data: providerPlanAvailability } = usePlanAvailability()
     const { data: agentStarsData } = useAgentStars()
 
-    const starsFor = (type: string): string => {
+    const starsFor = (type: AgentType): string => {
         const entry = agentStarsData?.stars.find((s) => s.agentType === type)
         return entry ? formatCompactNumber(entry.stars) : '—'
     }
@@ -74,15 +78,12 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
     }
 
     const getFirstEnabledPlan = (planList: typeof plans): string => {
-        const enabled = planList.find(
-            (p) => isPlanAvailable(p.id)
-        )
+        const enabled = planList.find((p) => isPlanAvailable(p.id))
         return enabled?.id || planList[0]?.id || ''
     }
 
     const initialPlanId =
-        preselectedPlanId &&
-        plans.find((p) => p.id === preselectedPlanId)
+        preselectedPlanId && plans.find((p) => p.id === preselectedPlanId)
             ? preselectedPlanId
             : getFirstEnabledPlan(plans)
 
@@ -218,10 +219,12 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                 : selectedPlanData.priceMonthly
         let totalPrice = planPrice
         if (volumeSize > 0 && volumePricing) {
+            const monthlyVolumePrice =
+                volumeSize * volumePricing.pricePerGbMonthly
             const volumePrice =
                 billingCycle === billingInterval.YEAR
-                    ? volumeSize * volumePricing.pricePerGbMonthly * 10
-                    : volumeSize * volumePricing.pricePerGbMonthly
+                    ? monthlyVolumePrice * YEARLY_PAID_MONTHS
+                    : monthlyVolumePrice
             totalPrice += volumePrice
         }
 
@@ -257,19 +260,12 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
     }
 
     const selectedPlan = plans.find((p) => p.id === planId)
-
-    const totalAmount = selectedPlan
-        ? (billingCycle === billingInterval.YEAR
-              ? selectedPlan.priceYearly +
-                (volumeSize > 0 && volumePricing
-                    ? volumeSize * volumePricing.pricePerGbMonthly * 10
-                    : 0)
-              : selectedPlan.priceMonthly +
-                (volumeSize > 0 && volumePricing
-                    ? volumeSize * volumePricing.pricePerGbMonthly
-                    : 0)
-          ).toFixed(2)
-        : '0.00'
+    const totalAmount = calculateTotalAmount(
+        selectedPlan,
+        billingCycle,
+        volumeSize,
+        volumePricing
+    )
 
     return (
         <Dialog open onOpenChange={onClose}>
@@ -288,83 +284,21 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                     }}
                     className='flex-1 space-y-5 overflow-y-auto px-6 pb-6'
                 >
-                    <div className='space-y-2'>
-                        <Label>{t('createClaw.clawName')}</Label>
-                        <Input
-                            type='text'
-                            value={name}
-                            onChange={(e) => setField('name', e.target.value)}
-                            placeholder={t('createClaw.clawNamePlaceholder')}
-                            className={`h-11 ${nameError ? 'border-red-500/50' : ''}`}
-                        />
-                        {nameError && (
-                            <p className='mt-1.5 text-[11px] text-red-600 dark:text-red-400'>
-                                {nameError}
-                            </p>
-                        )}
-                    </div>
+                    <AgentNameField
+                        name={name}
+                        nameError={nameError}
+                        onChange={(v) => setField('name', v)}
+                    />
 
-                    <div className='space-y-2'>
-                        <Label>{t('createClaw.agentType')}</Label>
-                        <div className='grid grid-cols-2 gap-2'>
-                            <button
-                                type='button'
-                                onClick={() =>
-                                    setField('agentType', agentType.OPENCLAW)
-                                }
-                                className={`flex items-start gap-3 rounded-lg border p-3 text-left text-sm transition-colors ${
-                                    selectedAgentType === agentType.OPENCLAW
-                                        ? 'border-primary bg-primary/5'
-                                        : 'border-border hover:border-muted-foreground/30'
-                                }`}
-                            >
-                                <OpenClawIcon size={28} />
-                                <div className='leading-tight'>
-                                    <div className='text-sm font-medium'>
-                                        {t('createClaw.agentTypeOpenClaw')}
-                                    </div>
-                                    <div className='text-muted-foreground text-[10px]'>
-                                        {t(
-                                            'createClaw.agentTypeOpenClawDescription',
-                                            {
-                                                count: starsFor(
-                                                    agentType.OPENCLAW
-                                                )
-                                            }
-                                        )}
-                                    </div>
-                                </div>
-                            </button>
-                            <button
-                                type='button'
-                                onClick={() =>
-                                    setField('agentType', agentType.HERMES)
-                                }
-                                className={`flex items-start gap-3 rounded-lg border p-3 text-left text-sm transition-colors ${
-                                    selectedAgentType === agentType.HERMES
-                                        ? 'border-primary bg-primary/5'
-                                        : 'border-border hover:border-muted-foreground/30'
-                                }`}
-                            >
-                                <HermesIcon size={28} />
-                                <div className='leading-tight'>
-                                    <div className='text-sm font-medium'>
-                                        {t('createClaw.agentTypeHermes')}
-                                    </div>
-                                    <div className='text-muted-foreground text-[10px]'>
-                                        {t(
-                                            'createClaw.agentTypeHermesDescription',
-                                            {
-                                                count: starsFor(
-                                                    agentType.HERMES
-                                                )
-                                            }
-                                        )}
-                                    </div>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
+                    <AgentTypeSelector
+                        selectedAgentType={selectedAgentType}
+                        onAgentTypeChange={(v) => {
+                            setField('agentType', v)
+                            if (v === agentTypeConst.HERMES)
+                                setField('gatewayToken', '')
+                        }}
+                        starsFor={starsFor}
+                    />
 
                     {!isLocal && (
                         <LocationSelector
@@ -405,7 +339,9 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                             isPlanAvailable={isPlanAvailable}
                             onPlanChange={(v) => setField('planId', v)}
                             onLocationChange={(v) => setField('location', v)}
-                            getFirstAvailableLocation={getFirstAvailableLocation}
+                            getFirstAvailableLocation={
+                                getFirstAvailableLocation
+                            }
                         />
                     )}
 
@@ -436,6 +372,7 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                         volumeSize={volumeSize}
                         onVolumeSizeChange={(v) => setField('volumeSize', v)}
                         hideInfrastructureOptions={isLocal}
+                        selectedAgentType={selectedAgentType}
                     />
 
                     {!isLocal && selectedPlan && (
@@ -451,75 +388,23 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                     )}
 
                     {!isLocal && (
-                        <label className='flex cursor-pointer items-start gap-2'>
-                            <Checkbox
-                                checked={agreedToTerms}
-                                onCheckedChange={(checked) =>
-                                    setField('agreedToTerms', !!checked)
-                                }
-                                className='mt-0.5'
-                            />
-                            <span className='text-muted-foreground text-xs'>
-                                {t('createClaw.agreementNotice')}{' '}
-                                <Link
-                                    to={ROUTES.TERMS}
-                                    className='text-muted-foreground hover:text-foreground underline'
-                                    target='_blank'
-                                >
-                                    {t('auth.termsOfService')}
-                                </Link>{' '}
-                                {t('auth.andWord')}{' '}
-                                <Link
-                                    to={ROUTES.PRIVACY}
-                                    className='text-muted-foreground hover:text-foreground underline'
-                                    target='_blank'
-                                >
-                                    {t('auth.privacyPolicy')}
-                                </Link>
-                            </span>
-                        </label>
+                        <TermsAgreement
+                            agreedToTerms={agreedToTerms}
+                            onAgreedChange={(v) => setField('agreedToTerms', v)}
+                        />
                     )}
 
-                    <div className='flex justify-end gap-3'>
-                        <Button type='button' variant='ghost' onClick={onClose}>
-                            {t('common.cancel')}
-                        </Button>
-                        {isLocal ? (
-                            <Button
-                                type='submit'
-                                disabled={isCreatingLocal || !!nameError}
-                            >
-                                {isCreatingLocal && (
-                                    <CircleNotchIcon className='h-4 w-4 animate-spin' />
-                                )}
-                                {isCreatingLocal
-                                    ? t('createClaw.creating')
-                                    : t('createClaw.title')}
-                            </Button>
-                        ) : (
-                            <Button
-                                type='submit'
-                                disabled={
-                                    purchaseMutation.isPending ||
-                                    !selectedPlan ||
-                                    !location ||
-                                    !!nameError ||
-                                    !agreedToTerms
-                                }
-                            >
-                                {purchaseMutation.isPending && (
-                                    <CircleNotchIcon className='h-4 w-4 animate-spin' />
-                                )}
-                                {!selectedPlan
-                                    ? t('createClaw.selectServerToContinue')
-                                    : !location
-                                      ? t('createClaw.selectLocationToContinue')
-                                      : t('createClaw.proceedToPayment', {
-                                            amount: totalAmount
-                                        })}
-                            </Button>
-                        )}
-                    </div>
+                    <CreateAgentSubmitActions
+                        isLocal={!!isLocal}
+                        isCreatingLocal={isCreatingLocal}
+                        isPurchasing={purchaseMutation.isPending}
+                        selectedPlan={selectedPlan}
+                        location={location}
+                        nameError={nameError}
+                        agreedToTerms={agreedToTerms}
+                        totalAmount={totalAmount}
+                        onCancel={onClose}
+                    />
                 </form>
             </DialogContent>
         </Dialog>

@@ -1,8 +1,8 @@
 import type { FC, ReactNode } from 'react'
-import type { AgentVersionsContentProps } from '@/ts/Interfaces'
+import type { AgentVersionsContentProps, InstallAgentVersionMutationParams } from '@/ts/Interfaces'
 
 import { Fragment, useState, useMemo, useRef } from 'react'
-import { useDebouncedValue } from '@/hooks'
+import { useDebouncedValue, useAbortController } from '@/hooks'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
 import { agentType as agentTypeConst, isVersionSupported } from '@openclaw/shared'
@@ -28,7 +28,7 @@ import {
     TooltipProvider,
     TooltipTrigger
 } from '@/components/ui'
-import { api, getLocale } from '@/lib'
+import { api, getLocale, handleAbortToast } from '@/lib'
 import { useUIStore, useVersionsStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { AGENT_VERSIONS_QUERY_KEY, AGENT_VERSION_QUERY_KEY } from '@/hooks'
@@ -45,6 +45,7 @@ const AgentVersionsContent: FC<AgentVersionsContentProps> = ({
     readOnly
 }): ReactNode => {
     const changelogBaseUrl = CHANGELOG_URLS[agentType] || CHANGELOG_URLS[agentTypeConst.OPENCLAW]
+    const showDownloads = agentType !== agentTypeConst.HERMES
     const [search, setSearch] = useState('')
     const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300)
     const {
@@ -55,6 +56,7 @@ const AgentVersionsContent: FC<AgentVersionsContentProps> = ({
     } = useVersionsStore()
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
+    const getInstallSignal = useAbortController()
     const scrollRef = useRef<HTMLDivElement | null>(null)
 
     const {
@@ -74,9 +76,9 @@ const AgentVersionsContent: FC<AgentVersionsContentProps> = ({
     const isLoading = readOnly ? false : liveLoading
 
     const installMutation = useMutation({
-        mutationFn: (version: string) =>
-            api.installAgentVersion(agentId, version),
-        onSuccess: (_data, version) => {
+        mutationFn: ({ version, signal }: InstallAgentVersionMutationParams) =>
+            api.installAgentVersion(agentId, version, signal),
+        onSuccess: (_data, { version }) => {
             showToast(
                 t('clawDetail.versionInstallSuccess', { version }),
                 'success'
@@ -89,7 +91,17 @@ const AgentVersionsContent: FC<AgentVersionsContentProps> = ({
             })
             setInstallingVersion(null)
         },
-        onError: () => {
+        onError: (error) => {
+            if (
+                handleAbortToast(
+                    error,
+                    showToast,
+                    'clawDetail.installVersionCanceledNavigation'
+                )
+            ) {
+                setInstallingVersion(null)
+                return
+            }
             showToast(t('clawDetail.versionInstallFailed'), TOAST_TYPE.ERROR)
             setInstallingVersion(null)
         }
@@ -110,7 +122,10 @@ const AgentVersionsContent: FC<AgentVersionsContentProps> = ({
     const handleConfirmInstall = () => {
         if (!confirmVersion) return
         setInstallingVersion(confirmVersion)
-        installMutation.mutate(confirmVersion)
+        installMutation.mutate({
+            version: confirmVersion,
+            signal: getInstallSignal()
+        })
         setConfirmVersion(null)
     }
 
@@ -240,21 +255,25 @@ const AgentVersionsContent: FC<AgentVersionsContentProps> = ({
                                                             }
                                                         )}
                                                     </span>
-                                                    <span className='text-muted-foreground text-[10px]'>
-                                                        ·
-                                                    </span>
-                                                    <span className='text-muted-foreground text-[10px]'>
-                                                        {t(
-                                                            'clawDetail.versionDownloads',
-                                                            {
-                                                                count: new Intl.NumberFormat(
-                                                                    getLocale()
-                                                                ).format(
-                                                                    entry.downloads
-                                                                )
-                                                            }
-                                                        )}
-                                                    </span>
+                                                    {showDownloads && (
+                                                        <Fragment>
+                                                            <span className='text-muted-foreground text-[10px]'>
+                                                                ·
+                                                            </span>
+                                                            <span className='text-muted-foreground text-[10px]'>
+                                                                {t(
+                                                                    'clawDetail.versionDownloads',
+                                                                    {
+                                                                        count: new Intl.NumberFormat(
+                                                                            getLocale()
+                                                                        ).format(
+                                                                            entry.downloads
+                                                                        )
+                                                                    }
+                                                                )}
+                                                            </span>
+                                                        </Fragment>
+                                                    )}
                                                     <span className='text-muted-foreground text-[10px]'>
                                                         ·
                                                     </span>

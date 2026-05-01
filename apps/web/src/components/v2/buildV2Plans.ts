@@ -1,6 +1,9 @@
 import type { Plan, SimplePlanData, SimplePlanFeature } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
+import { YEARLY_PAID_MONTHS } from '@openclaw/shared'
+
+const MONTHS_PER_YEAR = 12
 
 const buildV2Plans = (plans: Plan[]): SimplePlanData[] => {
     const planMap = new Map(plans.map((p) => [p.id, p]))
@@ -80,7 +83,8 @@ const buildV2Plans = (plans: Plan[]): SimplePlanData[] => {
             desc: t('v2.planPowerTagline'),
             price: ccx43.priceMonthly,
             yearlyPerMonth: Math.round(
-                (ccx43.priceYearly ?? ccx43.priceMonthly * 10) / 12
+                (ccx43.priceYearly ?? ccx43.priceMonthly * YEARLY_PAID_MONTHS) /
+                    MONTHS_PER_YEAR
             ),
             popular: false,
             features: [

@@ -371,6 +371,7 @@ const hi: Translations = {
         invalidSubdomain:
             'अमान्य सबडोमेन. 3-20 छोटे अक्षर और संख्याएँ उपयोग करें!',
         subdomainAlreadyInUse: 'यह सबडोमेन पहले से उपयोग में है!',
+        subdomainNotSupported: 'यह एजेंट प्रकार सबडोमेन का उपयोग नहीं करता।',
         agentBusy: 'एजेंट वर्तमान में प्रावधान या हटाया जा रहा है!',
         reinstallGatewayNotResponding:
             'पुनः इंस्टॉल पूरा हो गया लेकिन गेटवे अभी तक प्रतिक्रिया नहीं दे रहा. इसे शुरू होने में और समय लग सकता है.',
@@ -715,11 +716,13 @@ const hi: Translations = {
         billingReasonSubscriptionCycle: 'नवीनीकरण',
         billingReasonSubscriptionUpdate: 'सब्सक्रिप्शन अपडेट',
         failedToLoadBilling: 'बिलिंग इतिहास लोड करने में विफल!',
-        viewInvoice: 'चालान देखें',
+        downloadInvoice: 'चालान डाउनलोड करें',
+        invoiceCanceledNavigation: 'चालान डाउनलोड बाधित क्योंकि आप पृष्ठ से चले गए।',
         failedToLoadInvoice: 'चालान लोड करने में विफल!',
         couponApplied: 'कूपन: {{name}}',
         manageBilling: 'बिलिंग प्रबंधित करें',
-        failedToLoadPortal: 'बिलिंग पोर्टल खोलने में विफल!'
+        failedToLoadPortal: 'बिलिंग पोर्टल खोलने में विफल!',
+        portalCanceledNavigation: 'बिलिंग पोर्टल बाधित क्योंकि आप पृष्ठ से चले गए।'
     },
     license: {
         title: 'लाइसेंस',
@@ -871,6 +874,7 @@ const hi: Translations = {
         fileExplorerReadOnly: 'केवल पठन',
         fileExplorerSave: 'सहेजें',
         fileExplorerSaved: 'फ़ाइल सहेजी गई.',
+        fileExplorerSaveCanceledNavigation: 'फ़ाइल सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
         fileExplorerInvalidJson:
             'अमान्य JSON. कृपया सहेजने से पहले सिंटैक्स त्रुटियाँ ठीक करें!',
         fileExplorerNoFiles: 'कोई फ़ाइलें नहीं मिलीं',
@@ -886,6 +890,7 @@ const hi: Translations = {
             'यह इस इंस्टेंस पर {{agentName}} को पूरी तरह पुनः इंस्टॉल करेगा. सभी कॉन्फ़िगरेशन, एजेंट और डेटा रीसेट हो जाएँगे. यह कार्य पूर्ववत नहीं किया जा सकता. जारी रखें?',
         reinstallInstanceSuccess: 'इंस्टेंस सफलतापूर्वक पुनः इंस्टॉल हुआ.',
         reinstallInstanceFailed: 'इंस्टेंस पुनः इंस्टॉल करने में विफल!',
+        reinstallCanceledNavigation: 'पुनः स्थापना बाधित क्योंकि आप पृष्ठ से चले गए।',
         openControlPanel: 'कंट्रोल पैनल खोलें',
         exportData: 'क्लॉ निर्यात करें (.zip)',
         exportAgent: 'निर्यात',
@@ -897,6 +902,10 @@ const hi: Translations = {
         exportStarted: 'निर्यात तैयार हो रहा है, इसमें कुछ समय लग सकता है...',
         exportSuccess: 'क्लॉ सफलतापूर्वक निर्यात हुआ.',
         exportFailed: 'क्लॉ डेटा निर्यात करने में विफल!',
+        exportCanceledNavigation: 'निर्यात रद्द क्योंकि आप पृष्ठ से चले गए।',
+        scheduleDeletionCanceledNavigation: 'विलोपन शेड्यूल बाधित क्योंकि आप पृष्ठ से चले गए।',
+        cancelDeletionCanceledNavigation: 'विलोपन निरस्तीकरण बाधित क्योंकि आप पृष्ठ से चले गए।',
+        hardDeleteCanceledNavigation: 'बलपूर्वक विलोपन बाधित क्योंकि आप पृष्ठ से चले गए।',
         exportRateLimited:
             'आप {{minutes}} मिनट में फिर से निर्यात कर सकते हैं.',
         exportRateLimitedOne: 'आप 1 मिनट में फिर से निर्यात कर सकते हैं.',
@@ -1093,21 +1102,24 @@ const hi: Translations = {
         payAsYouGo: 'सरल मूल्य निर्धारण',
         payAsYouGoDescription:
             'आपकी ज़रूरत पर आधारित मूल्य. कम गुणवत्ता के सर्वरों के लिए कोई ज़बरदस्ती उच्च बिल नहीं. कभी भी रद्द करें.',
+        bringYourCredits: 'अपने क्रेडिट लाएं',
+        bringYourCreditsDescription:
+            'अपनी Anthropic API कुंजी या Claude सदस्यता का उपयोग करें. सीधे Anthropic को भुगतान करें — कोई मार्कअप नहीं.',
         customSubdomains: 'ऑनलाइन एक्सेस',
         customSubdomainsDescription:
             'लोकल नेटवर्क भूल जाएँ. सबडोमेन के साथ कहीं से भी सुरक्षित रूप से अपने OpenClaw तक पहुँचें.',
         autoUpdates: 'संस्करण नियंत्रण',
         autoUpdatesDescription:
             'एक क्लिक में किसी भी OpenClaw संस्करण पर स्विच करें. हमेशा अप टू डेट रहें या ज़रूरत पड़ने पर वापस जाएँ.',
-        openclawControl: 'OpenClaw नियंत्रण',
+        openclawControl: 'एजेंट नियंत्रण',
         openclawControlDescription:
-            'ClawHost से सीधे मूल OpenClaw पैनल तक पहुँचें. OpenClaw जो कुछ भी प्रदान करता है उस पर पूर्ण संपादन एक्सेस.',
+            'ClawHost से सीधे OpenClaw या Hermes पैनल तक पहुँचें. हर एजेंट पर पूर्ण नियंत्रण.',
         clawHostControl: 'पूर्ण सर्वर एक्सेस',
         clawHostControlDescription:
             'ब्राउज़र टर्मिनल, फ़ाइल एक्सप्लोरर, लॉग, डायग्नोस्टिक्स और वर्शन प्रबंधन — सब कुछ आपके डैशबोर्ड से.',
-        multipleClaws: 'एकाधिक क्लॉज़',
+        multipleClaws: 'एकाधिक एजेंट',
         multipleClawsDescription:
-            'एक ही डैशबोर्ड से कई OpenClaw इंस्टेंस डिप्लॉय और प्रबंधित करें. जैसे-जैसे आप बढ़ें, स्केल करें.',
+            'एक ही डैशबोर्ड से कई OpenClaw और Hermes एजेंट डिप्लॉय और प्रबंधित करें. जैसे-जैसे आप बढ़ें, स्केल करें.',
         pricing: 'मूल्य निर्धारण',
         simpleTransparentPricing: 'सरल, पारदर्शी मूल्य निर्धारण',
         pricingDescription:
@@ -1228,12 +1240,6 @@ const hi: Translations = {
         title: 'परिवर्तन लॉग',
         description: 'ClawHost के अपडेट, नई सुविधाएँ और सुधारों को ट्रैक करें.',
         subtitle: 'ClawHost के सभी अपडेट, नई सुविधाएँ और सुधार.',
-        release17Date: '29 अप्रैल 2026',
-        release17Title: 'Hermes Agent Support',
-        release17Description:
-            'ClawHost पर Hermes एजेंटों के लिए एक क्लिक डिप्लॉय, OpenClaw की तरह।',
-        release17Feature1:
-            'Hermes एजेंटों के लिए OpenClaw की तरह एक क्लिक डिप्लॉय',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1431,6 +1437,11 @@ const hi: Translations = {
         overviewUnsupportedTitle: 'अवलोकन समर्थित नहीं है',
         overviewUnsupportedDescription:
             'आपका OpenClaw संस्करण अवलोकन सुविधा का समर्थन नहीं करता। कृपया नवीनतम संस्करण में अपडेट करें।',
+        overviewHermesTitle: 'Hermes टर्मिनल में चलता है',
+        overviewHermesDescription:
+            'Hermes एक TUI एजेंट है — टर्मिनल टैब खोलें और सत्र शुरू करने के लिए `hermes` चलाएँ। फ़ाइलें और संस्करण टैब कॉन्फ़िग संपादित करने और अपग्रेड करने देते हैं।',
+        overviewHermesOpenTerminal: 'टर्मिनल खोलें',
+        viewDocs: 'दस्तावेज़',
         overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1463,6 +1474,7 @@ const hi: Translations = {
         previewEnabling: 'सक्षम हो रहा है...',
         previewEnabled: 'पूर्वावलोकन सक्षम।',
         previewEnableFailed: 'पूर्वावलोकन सक्षम करने में विफल!',
+        previewEnableCanceledNavigation: 'पूर्वावलोकन सक्षम करना बाधित क्योंकि आप पृष्ठ से चले गए।',
         previewError: 'पूर्वावलोकन लोड करने में विफल।',
         previewErrorDescription: 'एजेंट ऑफ़लाइन या अनुपलब्ध हो सकता है।',
         previewRetry: 'पुनः प्रयास करें',
@@ -1480,6 +1492,13 @@ const hi: Translations = {
         creatingDescription:
             'इसमें आमतौर पर एक या दो मिनट लगते हैं। आप इस पेज को सुरक्षित रूप से बंद कर सकते हैं और बाद में वापस आ सकते हैं।',
         configuringTitle: 'OpenClaw इंस्टॉल किया जा रहा है',
+        configuringTitleHermes: 'Hermes इंस्टॉल किया जा रहा है',
+        loadingTipHermes1:
+            'Hermes एक TUI एजेंट है — बूट होने के बाद इसके साथ चैट करने के लिए टर्मिनल टैब खोलें।',
+        loadingTipHermes2:
+            'फ़ाइलें टैब से ~/.hermes/.env में मॉडल प्रदाता (OpenRouter, Anthropic आदि) कॉन्फ़िगर करें।',
+        loadingTipHermes3:
+            'टर्मिनल से `hermes gateway install` के साथ Telegram, Discord या Slack कनेक्ट करें।',
         configuringDescription:
             'इसमें आमतौर पर एक या दो मिनट लगते हैं। आप इस पेज को सुरक्षित रूप से बंद कर सकते हैं और बाद में वापस आ सकते हैं।',
         awaitingPaymentTitle: 'भुगतान की प्रतीक्षा में',
@@ -1583,11 +1602,14 @@ const hi: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'इंस्टॉल',
         versionInstalling: 'इंस्टॉल हो रहा है...',
         versionInstallSuccess: 'संस्करण {{version}} सफलतापूर्वक इंस्टॉल हुआ.',
         versionInstallFailed: 'संस्करण इंस्टॉल करने में विफल!',
+        installVersionCanceledNavigation: 'संस्करण स्थापना बाधित क्योंकि आप पृष्ठ से चले गए।',
         versionDownloads: '{{count}} डाउनलोड',
         versionChangelog: 'परिवर्तन लॉग',
         versionOutdated: 'पुराना',
@@ -1624,6 +1646,10 @@ const hi: Translations = {
         settingsSaving: 'सहेजा जा रहा है...',
         settingsUpdated: 'सेटिंग्स अपडेट की गईं।',
         settingsUpdateFailed: 'सेटिंग्स अपडेट करने में विफल!',
+        saveCanceledNavigation: 'सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        savePasswordCanceledNavigation: 'पासवर्ड सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        saveGatewayTokenCanceledNavigation: 'गेटवे टोकन सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        saveSSHKeyCanceledNavigation: 'SSH कुंजी सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
         mockLogStarting: 'OpenClaw एजेंट शुरू हो रहा है...',
         mockLogLoadingModel: 'मॉडल लोड हो रहा है: claude-sonnet-4-5',
         mockLogAgentReady: 'एजेंट पोर्ट 3000 पर तैयार',

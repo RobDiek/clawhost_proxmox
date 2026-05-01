@@ -95,7 +95,7 @@ const reinstallAgent = async (c: AuthenticatedContext) => {
 
         const cloudInitScript = generateCloudInit(
             newPassword,
-            existing.subdomain!,
+            existing.subdomain || '',
             DOMAIN,
             newGatewayToken,
             existing.agentType
@@ -112,9 +112,13 @@ const reinstallAgent = async (c: AuthenticatedContext) => {
         )
 
         await Promise.all([
-            cloudflare
-                .createDNSRecord(existing.subdomain!, ip)
-                .catch((dnsError) => console.error('reinstallAgent', dnsError)),
+            existing.subdomain
+                ? cloudflare
+                      .createDNSRecord(existing.subdomain, ip)
+                      .catch((dnsError) =>
+                          console.error('reinstallAgent', dnsError)
+                      )
+                : Promise.resolve(),
             db
                 .update(agents)
                 .set({

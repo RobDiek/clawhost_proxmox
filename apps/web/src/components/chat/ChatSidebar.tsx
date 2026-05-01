@@ -93,6 +93,7 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                                         <AgentAvatar
                                             emoji={agent.emoji}
                                             emojiColor={agent.emojiColor}
+                                            agentType={agent.agentType}
                                             size={AGENT_AVATAR_SIZE.SM}
                                         />
                                     </button>

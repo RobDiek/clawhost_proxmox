@@ -9,7 +9,8 @@ const icons = {
     success: CheckIcon,
     error: WarningIcon,
     warning: WarningIcon,
-    info: InfoIcon
+    info: InfoIcon,
+    neutral: InfoIcon
 }
 
 const colors = {
@@ -18,14 +19,17 @@ const colors = {
     error: 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400',
     warning:
         'bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400',
-    info: 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400'
+    info: 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400',
+    neutral:
+        'bg-foreground/5 border-border text-muted-foreground'
 }
 
 const iconColors = {
     success: 'text-green-600 dark:text-green-400',
     error: 'text-red-600 dark:text-red-400',
     warning: 'text-yellow-600 dark:text-yellow-400',
-    info: 'text-blue-600 dark:text-blue-400'
+    info: 'text-blue-600 dark:text-blue-400',
+    neutral: 'text-muted-foreground'
 }
 
 const Toast: FC = (): ReactNode => {

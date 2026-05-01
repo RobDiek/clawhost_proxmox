@@ -4,9 +4,15 @@ import type { UseFileEditorParams, UseFileEditorReturn } from '@/ts/Interfaces'
 import { useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
-import { useAgentFile, useUpdateAgentFile, AGENT_FILE_QUERY_KEY } from '@/hooks'
+import {
+    useAgentFile,
+    useUpdateAgentFile,
+    useAbortController,
+    AGENT_FILE_QUERY_KEY
+} from '@/hooks'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
+import { handleAbortToast } from '@/lib'
 import { demoFileContent } from '@/data'
 
 const useFileEditor = ({
@@ -17,6 +23,7 @@ const useFileEditor = ({
     const queryClient = useQueryClient()
     const updateFile = useUpdateAgentFile()
     const showToast = useUIStore((s) => s.showToast)
+    const getSaveSignal = useAbortController()
     const [selectedPath, setSelectedPath] = useState('')
     const [editedContent, setEditedContent] = useState('')
     const [jsonError, setJsonError] = useState(false)
@@ -109,7 +116,11 @@ const useFileEditor = ({
         }
 
         updateFile.mutate(
-            { id: agentId, data: { path: selectedPath, content } },
+            {
+                id: agentId,
+                data: { path: selectedPath, content },
+                signal: getSaveSignal()
+            },
             {
                 onSuccess: () => {
                     setEditedContent('')
@@ -122,6 +133,14 @@ const useFileEditor = ({
                     )
                 },
                 onError: (err) => {
+                    if (
+                        handleAbortToast(
+                            err,
+                            showToast,
+                            'dashboard.fileExplorerSaveCanceledNavigation'
+                        )
+                    )
+                        return
                     showToast(
                         err.message || t('api.failedToUpdateFile'),
                         TOAST_TYPE.ERROR

@@ -21,14 +21,14 @@ const HERMES_CONFIG: AgentConfig = {
     user: 'hermes',
     homeDir: '/home/hermes',
     configDir: '/home/hermes/.hermes',
-    configFile: '/home/hermes/.hermes/hermes.json',
+    configFile: null,
     serviceName: 'hermes-gateway',
     logFile: '/var/log/hermes-gateway.log',
     nginxSite: 'hermes-gateway',
     binary: 'hermes',
     npmPackage: null,
     githubRepo: 'NousResearch/hermes-agent',
-    doctorCommand: null,
+    doctorCommand: 'hermes doctor --fix',
     versionCommand: 'hermes --version'
 }
 

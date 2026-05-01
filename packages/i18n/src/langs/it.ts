@@ -383,6 +383,8 @@ const it: Translations = {
         invalidSubdomain:
             'Sottodominio non valido. Usa 3-20 lettere minuscole e numeri!',
         subdomainAlreadyInUse: 'Questo sottodominio è già in uso!',
+        subdomainNotSupported:
+            'Questo tipo di agente non utilizza un sottodominio.',
         agentBusy:
             'Il agent è attualmente in fase di provisioning o eliminazione!',
         reinstallGatewayNotResponding:
@@ -736,11 +738,13 @@ const it: Translations = {
         billingReasonSubscriptionCycle: 'Rinnovo',
         billingReasonSubscriptionUpdate: 'Aggiornamento Abbonamento',
         failedToLoadBilling: 'Impossibile caricare lo storico fatturazione!',
-        viewInvoice: 'Vedi Fattura',
+        downloadInvoice: 'Scarica fattura',
+        invoiceCanceledNavigation: 'Download fattura interrotto perché hai cambiato pagina.',
         failedToLoadInvoice: 'Impossibile caricare la fattura!',
         couponApplied: 'Coupon: {{name}}',
         manageBilling: 'Gestisci Fatturazione',
-        failedToLoadPortal: 'Impossibile aprire il portale fatturazione!'
+        failedToLoadPortal: 'Impossibile aprire il portale fatturazione!',
+        portalCanceledNavigation: 'Portale di fatturazione interrotto perché hai cambiato pagina.'
     },
     license: {
         title: 'Licenza',
@@ -896,6 +900,7 @@ const it: Translations = {
         fileExplorerReadOnly: 'Sola lettura',
         fileExplorerSave: 'Salva',
         fileExplorerSaved: 'File salvato.',
+        fileExplorerSaveCanceledNavigation: 'Salvataggio del file interrotto perché hai cambiato pagina.',
         fileExplorerInvalidJson:
             'JSON non valido. Correggi gli errori di sintassi prima di salvare!',
         fileExplorerNoFiles: 'Nessun file trovato',
@@ -911,6 +916,7 @@ const it: Translations = {
             'Questo reinstallerà completamente {{agentName}} su questa istanza. Tutte le configurazioni, gli agenti e i dati verranno reimpostati. Questa azione non può essere annullata. Continuare?',
         reinstallInstanceSuccess: 'Istanza reinstallata con successo.',
         reinstallInstanceFailed: "Impossibile reinstallare l'istanza!",
+        reinstallCanceledNavigation: 'Reinstallazione interrotta perché hai cambiato pagina.',
         openControlPanel: 'Apri Pannello di Controllo',
         exportData: 'Esporta Claw (.zip)',
         exportAgent: 'Esporta',
@@ -923,6 +929,10 @@ const it: Translations = {
             'Preparazione esportazione, potrebbe richiedere un momento...',
         exportSuccess: 'Claw esportato con successo.',
         exportFailed: 'Impossibile esportare i dati del claw!',
+        exportCanceledNavigation: 'Esportazione annullata perché hai cambiato pagina.',
+        scheduleDeletionCanceledNavigation: 'Pianificazione di eliminazione interrotta perché hai cambiato pagina.',
+        cancelDeletionCanceledNavigation: 'Annullamento di eliminazione interrotto perché hai cambiato pagina.',
+        hardDeleteCanceledNavigation: 'Eliminazione forzata interrotta perché hai cambiato pagina.',
         exportRateLimited: 'Puoi esportare di nuovo tra {{minutes}} minuti.',
         exportRateLimitedOne: 'Puoi esportare di nuovo tra 1 minuto.',
         configuringTooltip:
@@ -1121,21 +1131,24 @@ const it: Translations = {
         payAsYouGo: 'Prezzi Semplici',
         payAsYouGoDescription:
             'Prezzi basati sulle tue esigenze. Nessuna bolletta alta forzata per server di bassa qualità. Cancella in qualsiasi momento.',
+        bringYourCredits: 'Porta i tuoi crediti',
+        bringYourCreditsDescription:
+            'Usa la tua chiave API Anthropic o abbonamento Claude. Paghi Anthropic direttamente — nessun ricarico.',
         customSubdomains: 'Accesso Online',
         customSubdomainsDescription:
             'Dimentica le reti locali. Accedi al tuo OpenClaw in sicurezza da qualsiasi luogo con un sottodominio.',
         autoUpdates: 'Controllo Versioni',
         autoUpdatesDescription:
             'Passa a qualsiasi versione di OpenClaw con un singolo clic. Resta sempre aggiornato o torna indietro quando serve.',
-        openclawControl: 'Controllo OpenClaw',
+        openclawControl: 'Controllo agenti',
         openclawControlDescription:
-            'Accedi al pannello nativo di OpenClaw direttamente da ClawHost. Accesso completo in modifica a tutto ciò che OpenClaw offre.',
+            'Accedi ai pannelli OpenClaw o Hermes direttamente da ClawHost. Controllo completo su ogni agente.',
         clawHostControl: 'Accesso completo al server',
         clawHostControlDescription:
             'Terminale nel browser, esplora file, log, diagnostica e gestione delle versioni — tutto dalla tua dashboard.',
-        multipleClaws: 'Claw Multipli',
+        multipleClaws: 'Più Agenti',
         multipleClawsDescription:
-            "Distribuisci e gestisci più istanze OpenClaw da un'unica dashboard. Scala man mano che cresci.",
+            "Distribuisci e gestisci più agenti OpenClaw e Hermes da un'unica dashboard. Scala man mano che cresci.",
         pricing: 'Prezzi',
         simpleTransparentPricing: 'Prezzi Semplici e Trasparenti',
         pricingDescription:
@@ -1260,12 +1273,6 @@ const it: Translations = {
             'Segui aggiornamenti, nuove funzionalità e miglioramenti di ClawHost.',
         subtitle:
             'Tutti gli aggiornamenti, le nuove funzionalità e i miglioramenti di ClawHost.',
-        release17Date: '29 aprile 2026',
-        release17Title: 'Hermes Agent Support',
-        release17Description:
-            'Deployment con un clic per gli agenti Hermes su ClawHost, proprio come OpenClaw.',
-        release17Feature1:
-            'Deployment con un clic per gli agenti Hermes come OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1474,6 +1481,11 @@ const it: Translations = {
         overviewUnsupportedTitle: 'Panoramica non supportata',
         overviewUnsupportedDescription:
             "La tua versione di OpenClaw non supporta la funzionalità panoramica. Aggiorna all'ultima versione.",
+        overviewHermesTitle: 'Hermes funziona nel terminale',
+        overviewHermesDescription:
+            'Hermes è un agente TUI — apri la scheda Terminale ed esegui `hermes` per avviare una sessione. Le schede File e Versioni consentono di modificare la configurazione e aggiornare.',
+        overviewHermesOpenTerminal: 'Apri terminale',
+        viewDocs: 'Vedi documenti',
         overviewUptimeDays: '{{days}}g {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1506,6 +1518,7 @@ const it: Translations = {
         previewEnabling: 'Abilitazione...',
         previewEnabled: 'Anteprima abilitata.',
         previewEnableFailed: "Impossibile abilitare l'anteprima!",
+        previewEnableCanceledNavigation: "Attivazione dell'anteprima interrotta perché hai cambiato pagina.",
         previewError: "Impossibile caricare l'anteprima.",
         previewErrorDescription:
             "L'agente potrebbe essere offline o irraggiungibile.",
@@ -1525,6 +1538,13 @@ const it: Translations = {
         creatingDescription:
             'Di solito ci vogliono uno o due minuti. Puoi chiudere questa pagina in sicurezza e tornare più tardi.',
         configuringTitle: 'Installazione di OpenClaw',
+        configuringTitleHermes: 'Installazione di Hermes',
+        loadingTipHermes1:
+            'Hermes è un agente TUI — apri la scheda Terminale dopo il boot per chattare con esso.',
+        loadingTipHermes2:
+            'Configura i provider di modelli (OpenRouter, Anthropic, ecc.) in ~/.hermes/.env dalla scheda File.',
+        loadingTipHermes3:
+            'Collega Telegram, Discord o Slack dal Terminale con `hermes gateway install`.',
         configuringDescription:
             'Di solito ci vogliono uno o due minuti. Puoi chiudere questa pagina in sicurezza e tornare più tardi.',
         awaitingPaymentTitle: 'In attesa di pagamento',
@@ -1632,11 +1652,14 @@ const it: Translations = {
         updateAvailable: 'A newer version of OpenClaw is available',
         updateAvailableDescription:
             'A new version of OpenClaw ({{version}}) is available for your instance.',
+        updateAvailableDescriptionHermes:
+            'A new version of Hermes ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'Installa',
         versionInstalling: 'Installazione...',
         versionInstallSuccess: 'Versione {{version}} installata con successo.',
         versionInstallFailed: 'Impossibile installare la versione!',
+        installVersionCanceledNavigation: 'Installazione versione interrotta perché hai cambiato pagina.',
         versionDownloads: '{{count}} download',
         versionChangelog: 'Changelog',
         versionOutdated: 'Obsoleta',
@@ -1673,6 +1696,10 @@ const it: Translations = {
         settingsSaving: 'Salvataggio...',
         settingsUpdated: 'Impostazioni aggiornate.',
         settingsUpdateFailed: 'Impossibile aggiornare le impostazioni!',
+        saveCanceledNavigation: 'Salvataggio interrotto perché hai cambiato pagina.',
+        savePasswordCanceledNavigation: 'Salvataggio password interrotto perché hai cambiato pagina.',
+        saveGatewayTokenCanceledNavigation: 'Salvataggio token gateway interrotto perché hai cambiato pagina.',
+        saveSSHKeyCanceledNavigation: 'Salvataggio chiave SSH interrotto perché hai cambiato pagina.',
         mockLogStarting: 'Avvio agente OpenClaw...',
         mockLogLoadingModel: 'Caricamento modello: claude-sonnet-4-5',
         mockLogAgentReady: 'Agente pronto sulla porta 3000',

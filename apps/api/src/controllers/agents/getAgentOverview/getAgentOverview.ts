@@ -10,10 +10,13 @@ const getAgentOverview = withAgent({
     requireSSH: 'api.failedToGetOverview'
 })(async (c, agent) => {
     try {
+        const agentConfig = getAgentConfig(agent.agentType)
+        if (!agentConfig.configFile)
+            return fail(c, t('api.overviewUnsupported'), 422)
+
         if (!agent.gatewayToken)
             return fail(c, t('api.failedToGetOverview'), 400)
 
-        const agentConfig = getAgentConfig(agent.agentType)
         const tokenBase64 = Buffer.from(agent.gatewayToken).toString('base64')
 
         const command = [

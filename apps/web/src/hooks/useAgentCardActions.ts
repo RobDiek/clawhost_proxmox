@@ -9,7 +9,7 @@ import { useState, useMemo } from 'react'
 import { t } from '@openclaw/i18n'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { api, isSafeRedirectUrl } from '@/lib'
+import { api, isSafeRedirectUrl, handleAbortToast } from '@/lib'
 import {
     useStartAgent,
     useStopAgent,
@@ -20,7 +20,8 @@ import {
     useReinstallAgent,
     useCancelPendingAgent,
     useCustomerPortal,
-    useExportAgent
+    useExportAgent,
+    useAbortController
 } from '@/hooks'
 
 const useAgentCardActions = ({
@@ -54,6 +55,10 @@ const useAgentCardActions = ({
     const hardDeleteMutation = useHardDeleteAgent()
     const reinstallMutation = useReinstallAgent()
     const cancelPendingMutation = useCancelPendingAgent()
+    const getDeleteSignal = useAbortController()
+    const getCancelDeletionSignal = useAbortController()
+    const getHardDeleteSignal = useAbortController()
+    const getReinstallSignal = useAbortController()
 
     const isMutating =
         startMutation.isPending ||
@@ -180,24 +185,66 @@ const useAgentCardActions = ({
                         showToast(message, TOAST_TYPE.ERROR)
                     }
                 }),
-            onDelete: () => deleteMutation.mutate(agent.id),
+            onDelete: () =>
+                deleteMutation.mutate(
+                    { id: agent.id, signal: getDeleteSignal() },
+                    {
+                        onError: (err) => {
+                            if (
+                                handleAbortToast(
+                                    err,
+                                    showToast,
+                                    'dashboard.scheduleDeletionCanceledNavigation'
+                                )
+                            )
+                                return
+                        }
+                    }
+                ),
             onStop: () => stopMutation.mutate(agent.id),
             onRestart: () => restartMutation.mutate(agent.id),
-            onHardDelete: () => hardDeleteMutation.mutate(agent.id),
+            onHardDelete: () =>
+                hardDeleteMutation.mutate(
+                    { id: agent.id, signal: getHardDeleteSignal() },
+                    {
+                        onError: (err) => {
+                            if (
+                                handleAbortToast(
+                                    err,
+                                    showToast,
+                                    'dashboard.hardDeleteCanceledNavigation'
+                                )
+                            )
+                                return
+                        }
+                    }
+                ),
             onReinstall: () =>
-                reinstallMutation.mutate(agent.id, {
-                    onSuccess: () =>
-                        showToast(
-                            t('dashboard.reinstallInstanceSuccess'),
-                            TOAST_TYPE.SUCCESS
-                        ),
-                    onError: (err: Error) =>
-                        showToast(
-                            err.message ||
-                                t('dashboard.reinstallInstanceFailed'),
-                            TOAST_TYPE.ERROR
-                        )
-                }),
+                reinstallMutation.mutate(
+                    { id: agent.id, signal: getReinstallSignal() },
+                    {
+                        onSuccess: () =>
+                            showToast(
+                                t('dashboard.reinstallInstanceSuccess'),
+                                TOAST_TYPE.SUCCESS
+                            ),
+                        onError: (err: Error) => {
+                            if (
+                                handleAbortToast(
+                                    err,
+                                    showToast,
+                                    'dashboard.reinstallCanceledNavigation'
+                                )
+                            )
+                                return
+                            showToast(
+                                err.message ||
+                                    t('dashboard.reinstallInstanceFailed'),
+                                TOAST_TYPE.ERROR
+                            )
+                        }
+                    }
+                ),
             isStartPending: startMutation.isPending,
             isDeletePending: deleteMutation.isPending,
             isStopPending: stopMutation.isPending,
@@ -206,7 +253,22 @@ const useAgentCardActions = ({
             isReinstallPending: reinstallMutation.isPending,
             showCancelDeletionModal,
             setShowCancelDeletionModal,
-            onCancelDeletion: () => cancelDeletionMutation.mutate(agent.id),
+            onCancelDeletion: () =>
+                cancelDeletionMutation.mutate(
+                    { id: agent.id, signal: getCancelDeletionSignal() },
+                    {
+                        onError: (err) => {
+                            if (
+                                handleAbortToast(
+                                    err,
+                                    showToast,
+                                    'dashboard.cancelDeletionCanceledNavigation'
+                                )
+                            )
+                                return
+                        }
+                    }
+                ),
             isCancelDeletionPending: cancelDeletionMutation.isPending
         }
     }, [
@@ -227,6 +289,11 @@ const useAgentCardActions = ({
         restartMutation,
         hardDeleteMutation,
         reinstallMutation,
+        cancelDeletionMutation,
+        getDeleteSignal,
+        getCancelDeletionSignal,
+        getHardDeleteSignal,
+        getReinstallSignal,
         showToast
     ])
 

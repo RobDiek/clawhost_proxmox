@@ -49,6 +49,10 @@ const EXTERNAL_URLS = {
         DOWNLOADS: (pkg: string) =>
             `https://api.npmjs.org/versions/${pkg}/last-week`
     },
+    AGENT_DOCS: {
+        OPENCLAW: 'https://openclaw.com/docs',
+        HERMES: 'https://hermes-agent.nousresearch.com/docs/'
+    },
     SOCIAL: {
         PRODUCT_HUNT: `${LINKS}/producthunt`,
         X: `${LINKS}/x`,
