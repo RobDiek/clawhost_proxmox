@@ -1157,7 +1157,7 @@ const tr: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'Plan seç',
         mostPopular: 'En popüler',
-        featurePreinstalled: 'OpenClaw ön yüklü',
+        featurePreinstalled: "Ajan önceden yüklü",
         featureBandwidth: 'Sınırsız bant genişliği',
         featureSsh: 'Root SSH erişimi',
         featureUptime: '7/24 çevrimiçi',
@@ -1174,10 +1174,13 @@ const tr: Translations = {
         faq2Question: 'OpenClaw nedir?',
         faq2Answer:
             'OpenClaw, yapay zeka araçlarınız ve hizmetleriniz için kendi kendine barındırılan güvenli bir erişim katmanıdır. Güvenlik ve performans için önceden yapılandırılmıştır, böylece dağıtabilir ve anında bağlanabilirsiniz.',
+        faqHermesQuestion: "Hermes nedir?",
+        faqHermesAnswer:
+            "Hermes; web tarama, takvim yönetimi, çoklu model akıl yürütme ve tarayıcı otomasyonu ile donatılmış otonom bir yapay zeka ajanıdır. Her ClawHost sunucusunda OpenClaw ile birlikte önceden yüklü gelir.",
         faq3Question:
             'Bu, diğer yapay zeka araçlarından veya barındırılan platformlardan nasıl farklı?',
         faq3Answer:
-            'Barındırılan yapay zeka araçlarından farklı olarak, ClawHost size OpenClaw yüklü gerçek bir sunucu verir. Altyapının sahibi sizsiniz, her şeyi kontrol edersiniz ve paylaşımlı bir platform veya model tarafından sınırlanmazsınız.',
+            "Barındırılan yapay zeka araçlarının aksine, ClawHost size OpenClaw ve Hermes yüklü gerçek bir sunucu sunar. Altyapıya sahip olur, her şeyi kontrol eder ve paylaşımlı bir platform veya modelle sınırlanmazsınız.",
         faq4Question: 'Teknik bilgiye ihtiyacım var mı?',
         faq4Answer:
             "Hayır. Tüm altyapı, kurulum ve bakımı biz yönetiyoruz. OpenClaw'u arayüzü üzerinden yapılandırabilir ve yönetebilir ve kullanımı özelleştirebilirsiniz — sunuculara veya altyapıya dokunmadan.",
@@ -1187,7 +1190,7 @@ const tr: Translations = {
         faq6Question: 'Maliyeti ne kadar?',
         faq6Answer:
             'Fiyatlar seçtiğiniz sunucuya bağlıdır. Giriş seviyesinden yüksek performansa kadar birden fazla sunucu seçeneğiyle, ihtiyaçlarınıza ve bütçenize uygun olanı seçersiniz.',
-        faq7Question: 'Sunucuma doğrudan erişebilir miyim?',
+        faq7Question: "Ajanıma doğrudan bir bağlantı üzerinden erişebilir miyim?",
         faq7Answer:
             "Evet. Alt alan adı URL'si üzerinden OpenClaw erişiminin yanı sıra, sunucuya ve temel altyapısına tam erişiminiz vardır, bu da ihtiyacınız olan her şeyi özelleştirme ve çalıştırma özgürlüğü verir.",
         comparison: 'Karşılaştırma',
@@ -1207,11 +1210,11 @@ const tr: Translations = {
         comparisonInfraOthers: 'Sınırlı sunucular',
         comparisonDataUs: 'Verilerinizin sahibisiniz',
         comparisonDataOthers: 'Verilerinizin sahibi değilsiniz',
-        comparisonMultipleUs: 'Birden fazla OpenClaw, tek Claw',
+        comparisonMultipleUs: "Birden fazla OpenClaw ve Hermes ajanı",
         comparisonMultipleOthers: 'Yalnızca tek OpenClaw',
         comparisonOpenSourceUs: 'Tamamen açık kaynak',
         comparisonOpenSourceOthers: 'Kapalı kaynak',
-        comparisonExportUs: "OpenClaw'unuzu her yere dışa aktarın",
+        comparisonExportUs: "OpenClaw ve Hermes'i her yere taşıyın",
         comparisonExportOthers: 'Satıcı bağımlılığı',
         comparisonProvidersUs: 'Birden fazla sunucu sağlayıcısı',
         comparisonProvidersOthers: 'Yalnızca tek sağlayıcı',
@@ -1221,15 +1224,15 @@ const tr: Translations = {
         comparisonTerminalOthers: 'SSH istemcisi gerekli',
         seeFullComparison: 'Tam Karşılaştırmayı Görün',
         comparisonCtaText:
-            'SimpleClaw, MyClaw.ai ve daha fazlasıyla özellik özellik karşılaştırıyoruz.',
+            'SimpleAgent, MyAgent.ai ve daha fazlasıyla özellik özellik karşılaştırıyoruz.',
         selfHostInstead: 'Kendi Sunucunda Barındır'
     },
     blog: {
         readingTime: '{{minutes}} dk okuma',
-        ctaTitle: "OpenClaw'u Tek Tıkla Dağıtın",
+        ctaTitle: "OpenClaw ve Hermes'i tek tıkla dağıtın",
         ctaDescription:
-            "OpenClaw önceden yüklü özel bir sunucu edinin. Tam root erişimi, küresel konumlar ve dakikalar içinde hazır. Her zaman sahibi sizsiniz. $25'tan başlayan fiyatlar.",
-        ctaDeploy: 'OpenClaw Dağıt',
+            "OpenClaw ve Hermes önceden yüklü dedike bir sunucu edinin. Tam root erişimi, küresel konumlar ve dakikalar içinde hazır. Her zaman size aittir. 25 $'dan başlar.",
+        ctaDeploy: "Ajan dağıt",
         ctaGitHub: "GitHub'da Görüntüle"
     },
     changelog: {
@@ -1759,7 +1762,7 @@ const tr: Translations = {
             'ClawHost\'a ("Hizmet") erişerek ve kullanarak, bu sözleşmenin şart ve hükümlerine bağlı olmayı kabul edersiniz. Bu şartları kabul etmiyorsanız, lütfen Hizmetimizi kullanmayın.',
         serviceTitle: '2. Hizmet Açıklaması',
         serviceText:
-            'ClawHost, özel sunucularda tek tıkla OpenClaw dağıtımı sağlar. Kullanıcıların tam root erişimi ve özel kaynaklarla önceden yapılandırılmış OpenClaw örneklerini dağıtmasını, yönetmesini ve erişmesini sağlıyoruz.',
+            "ClawHost, dedike sunucularda tek tıkla OpenClaw ve Hermes dağıtımı sunar. Kullanıcılarımızın tam root erişimine ve dedike kaynaklara sahip önceden yapılandırılmış OpenClaw ve Hermes örneklerini dağıtmasına, yönetmesine ve bunlara erişmesine olanak tanırız.",
         authTitle: '3. Kimlik Doğrulama',
         authText:
             "ClawHost, giriş yönetimi için Google Firebase Authentication kullanır. E-posta, Google veya GitHub ile kimlik doğrulayabilirsiniz. Bu yöntemleri kullanarak, Google ve GitHub'ın ilgili şartlarını ve gizlilik politikalarını kabul edersiniz. Bu sağlayıcılar e-posta adresiniz, adınız ve cihaz verileriniz gibi temel bilgiler toplayabilir.",
@@ -1852,7 +1855,7 @@ const tr: Translations = {
             'Hermes ajanları artık ClawHost üzerinde dağıtım için desteklenmektedir.'
     },
     compare: {
-        title: 'Tam Karşılaştırma',
+        title: 'Karşılaştırma',
         description:
             "ClawHost'un diğer OpenClaw barındırma platformlarıyla nasıl karşılaştırıldığını görün.",
         badge: 'Karşılaştırma',
@@ -1861,9 +1864,9 @@ const tr: Translations = {
         lastUpdated: 'Son güncelleme: Mart 2026',
         competitorClawHost: 'ClawHost',
         competitorLobsterFarm: 'LobsterFarm',
-        competitorSimpleClaw: 'SimpleClaw',
-        competitorMyClawAi: 'MyClaw.ai',
-        competitorQuickClaw: 'QuickClaw',
+        competitorSimpleAgent: 'SimpleAgent',
+        competitorMyAgentAi: 'MyAgent.ai',
+        competitorQuickAgent: 'QuickAgent',
         categoryInfrastructure: 'Altyapı',
         categoryPricing: 'Fiyatlandırma ve Faturalama',
         categoryDeployment: 'Dağıtım ve Kurulum',
@@ -2270,7 +2273,7 @@ const tr: Translations = {
         comparisonOthersLabel: 'Kendiniz yapın',
         faq1Question: 'Agentist nedir?',
         faq1Answer:
-            'Agentist, kendi özel sunucularınızda yapay zeka ajanlarını dağıtmanızı ve yönetmenizi sağlayan bir platformdur. Altyapı, güvenlik ve bakımı biz üstleniyoruz — siz sadece ajanlarınızı kullanıyorsunuz.',
+            "ClawHost, OpenClaw ve Hermes'i herkesin erişimine açmak için kurulmuş bir platformdur. Hem teknik olmayan kullanıcıların hem de geliştiricilerin altyapı yönetmeden onları çalıştırmasını sağlar. Sunucu, uptime, güvenlik ve bakımı biz hallederiz — siz sadece ajanlarınızı kullanırsınız.",
         faq2Question: 'OpenClaw nedir?',
         faq2Answer:
             'OpenClaw, yapay zeka araçlarınız ve hizmetleriniz için kendi sunucunuzda barındırılan güvenli bir erişim katmanıdır. Her Agentist sunucusunda önceden yüklü olarak gelir ve kurulumunuz üzerinde tam kontrol sağlar.',
@@ -2282,7 +2285,7 @@ const tr: Translations = {
             'Hayır. Agentist herkes için tasarlanmıştır. Tüm altyapı, kurulum ve bakımı biz üstleniyoruz. Ajanlarınızı hiçbir sunucuya dokunmadan sezgisel bir kontrol paneli üzerinden yönetebilirsiniz.',
         faq5Question: 'Bu diğer yapay zeka platformlarından nasıl farklı?',
         faq5Answer:
-            'Barındırılan yapay zeka araçlarının aksine, Agentist size ajanlarınızın yüklü olduğu gerçek bir özel sunucu sunar. Altyapıya sahipsiniz, her şeyi kontrol ediyorsunuz ve paylaşılan platformlarla sınırlı değilsiniz.',
+            "Dünya çapında ABD, Avrupa ve Asya dahil birden fazla sunucu konumu sunuyoruz. Gerekirse OpenClaw veya Hermes'i farklı bölgelerdeki birden fazla sunucuda dağıtabilirsiniz.",
         faq6Question: 'Hangi konumlar mevcut?',
         faq6Answer:
             "ABD, Avrupa ve Asya dahil dünya genelinde 30'dan fazla sunucu konumu sunuyoruz. Farklı bölgelerdeki birden fazla sunucuya ajan dağıtabilirsiniz.",

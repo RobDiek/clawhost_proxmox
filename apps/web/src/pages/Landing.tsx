@@ -60,6 +60,10 @@ const getFaqs = (): Faq[] => [
         answer: t('landing.faq2Answer')
     },
     {
+        question: t('landing.faqHermesQuestion'),
+        answer: t('landing.faqHermesAnswer')
+    },
+    {
         question: t('landing.faq3Question'),
         answer: t('landing.faq3Answer')
     },

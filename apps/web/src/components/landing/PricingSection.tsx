@@ -7,7 +7,7 @@ import { t } from '@openclaw/i18n'
 import { Button, Badge } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
 import { ROUTES } from '@/lib'
-import { CheckIcon, CaretDownIcon, CaretUpIcon } from '@phosphor-icons/react'
+import { CaretDownIcon, CaretUpIcon } from '@phosphor-icons/react'
 import { SimplePlanCard, buildSimplePlans } from '@/components/landing'
 
 const PricingSection: FC<PricingSectionProps> = ({
@@ -226,43 +226,6 @@ const PricingSection: FC<PricingSectionProps> = ({
                                         })}
                                     </tbody>
                                 </table>
-                            </div>
-                        )}
-
-                        {showAllPlans && (
-                            <div className='border-border bg-foreground/[0.02] mt-8 rounded-xl border p-4'>
-                                <div className='text-muted-foreground flex flex-wrap items-center justify-center gap-6 text-sm'>
-                                    <div className='flex items-center gap-2'>
-                                        <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                        <span>
-                                            {t('landing.openClawPreinstalled')}
-                                        </span>
-                                    </div>
-                                    <div className='flex items-center gap-2'>
-                                        <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                        <span>
-                                            {t('landing.unlimitedBandwidth')}
-                                        </span>
-                                    </div>
-                                    <div className='flex items-center gap-2'>
-                                        <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                        <span>
-                                            {t('landing.rootSshAccess')}
-                                        </span>
-                                    </div>
-                                    <div className='flex items-center gap-2'>
-                                        <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                        <span>{t('landing.onlineAllDay')}</span>
-                                    </div>
-                                    <div className='flex items-center gap-2'>
-                                        <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                        <span>{t('landing.fastInternet')}</span>
-                                    </div>
-                                    <div className='flex items-center gap-2'>
-                                        <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                        <span>{t('landing.emailSupport')}</span>
-                                    </div>
-                                </div>
                             </div>
                         )}
 

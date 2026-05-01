@@ -1153,7 +1153,7 @@ const ja: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'プランを選ぶ',
         mostPopular: '一番人気',
-        featurePreinstalled: 'OpenClaw プリインストール',
+        featurePreinstalled: "エージェント プリインストール済み",
         featureBandwidth: '無制限帯域幅',
         featureSsh: 'Root SSHアクセス',
         featureUptime: '24時間365日稼働',
@@ -1166,25 +1166,28 @@ const ja: Translations = {
         faqDescription: 'よくある質問のすべてに回答.',
         faq1Question: 'ClawHostとは？',
         faq1Answer:
-            'ClawHostは、OpenClawを誰もが利用できるようにするために構築されたプラットフォームです。技術者でないユーザーも開発者も、インフラを管理せずにOpenClawを実行できます。サーバー、稼働時間、セキュリティ、メンテナンスは私たちが対応 — あなたはOpenClawを使うだけ.',
+            "ClawHostは、OpenClawとHermesを誰でも利用できるようにするために構築されたプラットフォームです。技術者でないユーザーも開発者も、インフラ管理なしでこれらを実行できます。サーバー、稼働時間、セキュリティ、メンテナンスは私たちが担当 — あなたはエージェントを使うだけです。",
         faq2Question: 'OpenClawとは？',
         faq2Answer:
             'OpenClawは、AIツールやサービスのためのセルフホスト型セキュアアクセスレイヤーです。セキュリティとパフォーマンスのために事前設定されているので、デプロイして即座に接続できます.',
+        faqHermesQuestion: "Hermesとは何ですか？",
+        faqHermesAnswer:
+            "Hermesは、ウェブブラウジング、カレンダー管理、マルチモデル推論、ブラウザ自動化を備えた自律型AIエージェントです。ClawHostの全サーバーにOpenClawと共にプリインストールされています。",
         faq3Question: '他のAIツールやホスティングプラットフォームとの違いは？',
         faq3Answer:
-            'ホスティングされたAIツールとは異なり、ClawHostはOpenClawがインストールされた実際のサーバーを提供します。インフラを所有し、すべてをコントロールし、共有プラットフォームやモデルに制限されません.',
+            "ホスト型AIツールとは異なり、ClawHostではOpenClawとHermesがインストールされた実際のサーバーが手に入ります。インフラを所有し、すべてを制御でき、共有プラットフォームやモデルに制限されません。",
         faq4Question: '技術的な知識は必要ですか？',
         faq4Answer:
-            'いいえ。インフラ、セットアップ、メンテナンスはすべて私たちが対応します。UIを通じてOpenClawの設定と管理、使い方のカスタマイズができます — サーバーやインフラに触れる必要はありません.',
+            "いいえ。インフラ、セットアップ、メンテナンスはすべて私たちが担当します。OpenClawはUIから構成・管理でき、Hermesはシンプルなターミナルコマンドで動作します — サーバーやインフラに触れる必要はありません。",
         faq5Question: 'どのロケーションが利用可能ですか？',
         faq5Answer:
-            '米国、ヨーロッパなど世界中に複数のサーバーロケーションを提供しています. 必要に応じて、異なるリージョンの複数のサーバーにOpenClawをデプロイできます.',
+            "米国、ヨーロッパ、アジアを含む世界中の複数のサーバーロケーションを提供しています。必要に応じてOpenClawまたはHermesを異なるリージョンの複数サーバーにデプロイできます。",
         faq6Question: '料金はいくらですか？',
         faq6Answer:
             '価格は選択するサーバーによって異なります. エントリーレベルからハイパフォーマンスまで複数のサーバーオプションがあり、ニーズと予算に合ったものを選択できます.',
-        faq7Question: 'サーバーに直接アクセスできますか？',
+        faq7Question: "リンクから直接エージェントにアクセスできますか？",
         faq7Answer:
-            'はい。サブドメインURL経由のOpenClawアクセスに加えて、サーバーとその基盤インフラへのフルアクセスがあり、カスタマイズや必要なものの実行に完全な自由を提供します.',
+            "OpenClawはサブドメインURLとフル機能のWeb UIでアクセス可能です。HermesはSSH経由のターミナルコマンドで動作するため、リンクはありませんが、サーバーのターミナルから完全に制御できます。",
         comparison: '比較',
         comparisonTitle: '私たちの違い',
         comparisonDescription:
@@ -1203,11 +1206,11 @@ const ja: Translations = {
         comparisonInfraOthers: '限定されたサーバー',
         comparisonDataUs: 'データを所有',
         comparisonDataOthers: 'データを所有しない',
-        comparisonMultipleUs: '複数のOpenClaw、1つのClaw',
+        comparisonMultipleUs: "複数のOpenClawとHermesエージェント",
         comparisonMultipleOthers: '単一のOpenClawのみ',
         comparisonOpenSourceUs: '完全オープンソース',
         comparisonOpenSourceOthers: 'クローズドソース',
-        comparisonExportUs: 'OpenClawをどこにでもエクスポート',
+        comparisonExportUs: "OpenClawとHermesをどこへでもエクスポート",
         comparisonExportOthers: 'ベンダーロックイン',
         comparisonProvidersUs: '複数のサーバープロバイダー',
         comparisonProvidersOthers: '単一プロバイダーのみ',
@@ -1216,15 +1219,15 @@ const ja: Translations = {
         comparisonTerminalUs: '内蔵Webターミナル',
         comparisonTerminalOthers: 'SSHクライアントが必要',
         seeFullComparison: '完全比較を見る',
-        comparisonCtaText: 'SimpleClaw、MyClaw.aiなどと機能ごとに比較.',
+        comparisonCtaText: 'SimpleAgent、MyAgent.aiなどと機能ごとに比較.',
         selfHostInstead: 'セルフホストする'
     },
     blog: {
         readingTime: '{{minutes}}分で読める',
-        ctaTitle: 'ワンクリックでOpenClawをデプロイ',
+        ctaTitle: "OpenClawとHermesをワンクリックでデプロイ",
         ctaDescription:
-            'OpenClawプリインストール済みの専用サーバーを取得。フルルートアクセス、グローバルロケーション、数分で準備完了。常にあなたのもの。$25から.',
-        ctaDeploy: 'OpenClawをデプロイ',
+            "OpenClawとHermesがプリインストールされた専用サーバーを取得。フルルートアクセス、グローバルロケーション、数分で準備完了。常にあなたのもの。$25から。",
+        ctaDeploy: "エージェントをデプロイ",
         ctaGitHub: 'GitHubで見る'
     },
     changelog: {
@@ -1739,7 +1742,7 @@ const ja: Translations = {
             'ClawHost（「サービス」）にアクセスし利用することで、この契約の条項に拘束されることに承諾し同意します。これらの規約に同意しない場合は、当社のサービスを使用しないでください。',
         serviceTitle: '2. サービスの説明',
         serviceText:
-            'ClawHostは、専用サーバーでのワンクリックOpenClawデプロイメントを提供します。ユーザーがフルルートアクセスと専用リソースを備えた事前設定済みのOpenClawインスタンスをデプロイ、管理、アクセスできるようにします。',
+            "ClawHostは、専用サーバー上でOpenClawとHermesのワンクリックデプロイを提供します。フルルートアクセスと専用リソースを備えた事前構成済みのOpenClawおよびHermesインスタンスを、ユーザーがデプロイ・管理・アクセスできるようにします。",
         authTitle: '3. 認証',
         authText:
             'ClawHostは、サインインの管理にGoogle Firebase Authenticationを使用しています。メール、Google、またはGitHubで認証できます。これらの方法を使用することで、GoogleおよびGitHubのそれぞれの利用規約とプライバシーポリシーに同意したものとみなされます。これらのプロバイダーは、メールアドレス、名前、デバイスデータなどの基本情報を収集する場合があります。',
@@ -1826,7 +1829,7 @@ const ja: Translations = {
         message: 'HermesエージェントがClawHostでのデプロイに対応しました。'
     },
     compare: {
-        title: '詳細比較',
+        title: '比較',
         description:
             'ClawHostと他のOpenClawホスティングプラットフォームの比較をご覧ください。',
         badge: '比較',
@@ -1835,9 +1838,9 @@ const ja: Translations = {
         lastUpdated: '最終更新：2026年3月',
         competitorClawHost: 'ClawHost',
         competitorLobsterFarm: 'LobsterFarm',
-        competitorSimpleClaw: 'SimpleClaw',
-        competitorMyClawAi: 'MyClaw.ai',
-        competitorQuickClaw: 'QuickClaw',
+        competitorSimpleAgent: 'SimpleAgent',
+        competitorMyAgentAi: 'MyAgent.ai',
+        competitorQuickAgent: 'QuickAgent',
         categoryInfrastructure: 'インフラストラクチャ',
         categoryPricing: '料金と請求',
         categoryDeployment: 'デプロイとセットアップ',

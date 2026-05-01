@@ -1124,7 +1124,7 @@ const ar: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'اختر الخطة',
         mostPopular: 'الأكثر شعبية',
-        featurePreinstalled: 'OpenClaw مثبت مسبقاً',
+        featurePreinstalled: "وكيل مثبت مسبقًا",
         featureBandwidth: 'عرض نطاق غير محدود',
         featureSsh: 'وصول SSH الجذر',
         featureUptime: 'متصل 24/7',
@@ -1137,26 +1137,29 @@ const ar: Translations = {
         faqDescription: 'كل سؤال شائع، مُجاب عنه.',
         faq1Question: 'ما هو ClawHost؟',
         faq1Answer:
-            'ClawHost هو منصة مبنية لجعل OpenClaw متاحاً للجميع. يتيح للمستخدمين غير التقنيين والمطورين تشغيل OpenClaw بدون إدارة البنية التحتية. نحن نتولى الخوادم ووقت التشغيل والأمان والصيانة — أنت فقط تستخدم OpenClaw.',
+            "ClawHost هو منصة بُنيت لجعل OpenClaw وHermes في متناول الجميع. تتيح للمستخدمين غير التقنيين والمطورين على حد سواء تشغيلهما دون إدارة البنية التحتية. نحن نتولى الخوادم، ووقت التشغيل، والأمان، والصيانة — أنت فقط تستخدم وكلاءك.",
         faq2Question: 'ما هو OpenClaw؟',
         faq2Answer:
             'OpenClaw هو طبقة وصول آمنة ذاتية الاستضافة لأدوات وخدمات الذكاء الاصطناعي. مُهيأ مسبقاً للأمان والأداء، حتى تتمكن من نشره والاتصال فوراً.',
+        faqHermesQuestion: "ما هو Hermes؟",
+        faqHermesAnswer:
+            "Hermes هو وكيل ذكاء اصطناعي مستقل مزود بتصفح الويب، وإدارة التقويم، والاستدلال متعدد النماذج، وأتمتة المتصفح. يأتي مثبتًا مسبقًا إلى جانب OpenClaw على كل خادم ClawHost.",
         faq3Question:
             'كيف يختلف هذا عن أدوات الذكاء الاصطناعي الأخرى أو المنصات المستضافة؟',
         faq3Answer:
-            'على عكس أدوات الذكاء الاصطناعي المستضافة، يمنحك ClawHost خادماً حقيقياً مع OpenClaw مثبت. أنت تملك البنية التحتية وتتحكم في كل شيء ولست مقيداً بمنصة أو نموذج مشترك.',
+            "على عكس أدوات الذكاء الاصطناعي المستضافة، يمنحك ClawHost خادمًا حقيقيًا بـ OpenClaw وHermes مثبتَين. أنت تملك البنية التحتية، وتتحكم في كل شيء، ولست مقيدًا بمنصة أو نموذج مشترك.",
         faq4Question: 'هل أحتاج معرفة تقنية؟',
         faq4Answer:
-            'لا. نحن نتولى كل البنية التحتية والإعداد والصيانة. يمكنك تهيئة وإدارة OpenClaw عبر واجهته وتخصيص الاستخدام — بدون لمس الخوادم أو البنية التحتية.',
+            "لا. نحن نتولى كل البنية التحتية، والإعداد، والصيانة. يمكنك تكوين وإدارة OpenClaw من خلال واجهته، بينما يعمل Hermes عبر أوامر طرفية بسيطة — دون لمس الخوادم أو البنية التحتية.",
         faq5Question: 'ما المواقع المتاحة؟',
         faq5Answer:
-            'نقدم عدة مواقع خوادم حول العالم، بما في ذلك الولايات المتحدة وأوروبا والمزيد. يمكنك نشر OpenClaw على عدة خوادم في مناطق مختلفة إذا لزم الأمر.',
+            "نقدم مواقع خوادم متعددة حول العالم، بما في ذلك الولايات المتحدة وأوروبا وآسيا. يمكنك نشر OpenClaw أو Hermes على عدة خوادم في مناطق مختلفة عند الحاجة.",
         faq6Question: 'كم التكلفة؟',
         faq6Answer:
             'تعتمد الأسعار على الخادم الذي تختاره. مع عدة خيارات للخوادم من المستوى الأساسي إلى الأداء العالي، تختار ما يناسب احتياجاتك وميزانيتك.',
-        faq7Question: 'هل يمكنني الوصول إلى خادمي مباشرة؟',
+        faq7Question: "هل يمكنني الوصول إلى وكيلي مباشرة عبر رابط؟",
         faq7Answer:
-            'نعم. إلى جانب الوصول إلى OpenClaw عبر رابط النطاق الفرعي، لديك وصول كامل إلى الخادم وبنيته التحتية الأساسية، مما يمنحك حرية كاملة للتخصيص وتشغيل أي شيء تحتاجه.',
+            "يمكن الوصول إلى OpenClaw عبر عنوان URL لنطاق فرعي مع واجهة ويب كاملة. أما Hermes فيعمل عبر أوامر طرفية باستخدام SSH — لا رابط، لكن لديك تحكم كامل من خلال طرفية الخادم.",
         comparison: 'المقارنة',
         comparisonTitle: 'كيف نختلف',
         comparisonDescription:
@@ -1174,11 +1177,11 @@ const ar: Translations = {
         comparisonInfraOthers: 'خوادم محدودة',
         comparisonDataUs: 'امتلك بياناتك',
         comparisonDataOthers: 'لا تملك بياناتك',
-        comparisonMultipleUs: 'نسخ OpenClaw متعددة، مخلب واحد',
+        comparisonMultipleUs: "وكلاء OpenClaw وHermes متعددون",
         comparisonMultipleOthers: 'نسخة OpenClaw واحدة فقط',
         comparisonOpenSourceUs: 'مفتوح المصدر بالكامل',
         comparisonOpenSourceOthers: 'مغلق المصدر',
-        comparisonExportUs: 'صدّر OpenClaw إلى أي مكان',
+        comparisonExportUs: "صدّر OpenClaw وHermes إلى أي مكان",
         comparisonExportOthers: 'حبس المورّد',
         comparisonProvidersUs: 'مزودي خوادم متعددين',
         comparisonProvidersOthers: 'مزود واحد فقط',
@@ -1188,15 +1191,15 @@ const ar: Translations = {
         comparisonTerminalOthers: 'يتطلب عميل SSH',
         seeFullComparison: 'عرض المقارنة الكاملة',
         comparisonCtaText:
-            'نقارن مع SimpleClaw وMyClaw.ai والمزيد — ميزة بميزة.',
+            'نقارن مع SimpleAgent وMyAgent.ai والمزيد — ميزة بميزة.',
         selfHostInstead: 'استضف بنفسك بدلاً من ذلك'
     },
     blog: {
         readingTime: '{{minutes}} دقائق قراءة',
-        ctaTitle: 'انشر OpenClaw بنقرة واحدة',
+        ctaTitle: "انشر OpenClaw وHermes بنقرة واحدة",
         ctaDescription:
-            'احصل على خادم مخصص مع OpenClaw مثبت مسبقاً. وصول كامل للجذر ومواقع عالمية وجاهز في دقائق. تملكه في جميع الأوقات. بدءاً من $25.',
-        ctaDeploy: 'انشر OpenClaw',
+            "احصل على خادم مخصص مع OpenClaw وHermes مثبتَين مسبقًا. وصول root كامل، ومواقع عالمية، وجاهز في دقائق. ملكك في كل وقت. ابتداءً من 25 دولارًا.",
+        ctaDeploy: "انشر وكيلًا",
         ctaGitHub: 'عرض على GitHub'
     },
     changelog: {
@@ -1694,7 +1697,7 @@ const ar: Translations = {
             'بالوصول إلى واستخدام ClawHost ("الخدمة")، فإنك تقبل وتوافق على الالتزام بشروط وأحكام هذه الاتفاقية. إذا لم توافق على هذه الشروط، يرجى عدم استخدام خدمتنا.',
         serviceTitle: '2. وصف الخدمة',
         serviceText:
-            'يوفر ClawHost نشر OpenClaw بنقرة واحدة على خوادم مخصصة. نمكّن المستخدمين من نشر وإدارة والوصول إلى نسخ OpenClaw مهيأة مسبقاً مع وصول كامل للجذر وموارد مخصصة.',
+            "يوفر ClawHost نشرًا بنقرة واحدة لـ OpenClaw وHermes على خوادم مخصصة. نمكّن المستخدمين من نشر مثيلات OpenClaw وHermes المُعدّة مسبقًا وإدارتها والوصول إليها بصلاحيات root كاملة وموارد مخصصة.",
         authTitle: '3. المصادقة',
         authText:
             'يستخدم ClawHost مصادقة Google Firebase لإدارة تسجيل الدخول. يمكنك المصادقة بالبريد الإلكتروني أو Google أو GitHub. باستخدام هذه الطرق، توافق على الشروط وسياسات الخصوصية الخاصة بـ Google وGitHub. قد يجمع هؤلاء المزودون معلومات أساسية مثل عنوان بريدك الإلكتروني واسمك وبيانات الجهاز.',
@@ -1780,7 +1783,7 @@ const ar: Translations = {
         message: 'أصبح وكلاء Hermes مدعومين الآن للنشر على ClawHost.'
     },
     compare: {
-        title: 'المقارنة الكاملة',
+        title: 'مقارنة',
         description: 'شاهد كيف يقارن ClawHost بمنصات استضافة OpenClaw الأخرى.',
         badge: 'مقارنة',
         feature: 'المنصة',
@@ -1788,9 +1791,9 @@ const ar: Translations = {
         lastUpdated: 'آخر تحديث: مارس 2026',
         competitorClawHost: 'ClawHost',
         competitorLobsterFarm: 'LobsterFarm',
-        competitorSimpleClaw: 'SimpleClaw',
-        competitorMyClawAi: 'MyClaw.ai',
-        competitorQuickClaw: 'QuickClaw',
+        competitorSimpleAgent: 'SimpleAgent',
+        competitorMyAgentAi: 'MyAgent.ai',
+        competitorQuickAgent: 'QuickAgent',
         categoryInfrastructure: 'البنية التحتية',
         categoryPricing: 'الأسعار والفوترة',
         categoryDeployment: 'النشر والإعداد',

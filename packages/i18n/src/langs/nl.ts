@@ -1173,7 +1173,7 @@ const nl: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'Plan kiezen',
         mostPopular: 'Meest populair',
-        featurePreinstalled: 'OpenClaw voorgeïnstalleerd',
+        featurePreinstalled: "Agent vooraf geïnstalleerd",
         featureBandwidth: 'Onbeperkte bandbreedte',
         featureSsh: 'Root SSH-toegang',
         featureUptime: '24/7 online',
@@ -1186,26 +1186,29 @@ const nl: Translations = {
         faqDescription: 'Elke veelgestelde vraag, beantwoord.',
         faq1Question: 'Wat is ClawHost?',
         faq1Answer:
-            'ClawHost is een platform gebouwd om OpenClaw toegankelijk te maken voor iedereen. Het laat zowel niet-technische gebruikers als ontwikkelaars OpenClaw draaien zonder infrastructuur te beheren. Wij regelen servers, uptime, beveiliging en onderhoud \u2014 jij gebruikt gewoon OpenClaw.',
+            "ClawHost is een platform dat OpenClaw en Hermes voor iedereen toegankelijk maakt. Zowel niet-technische gebruikers als ontwikkelaars kunnen ze draaien zonder infrastructuur te beheren. Wij regelen servers, uptime, beveiliging en onderhoud — jij gebruikt gewoon je agents.",
         faq2Question: 'Wat is OpenClaw?',
         faq2Answer:
             'OpenClaw is een zelfgehoste beveiligde toegangslaag voor je AI-tools en -diensten. Het is voorgeconfigureerd voor beveiliging en prestaties, zodat je het kunt deployen en direct kunt verbinden.',
+        faqHermesQuestion: "Wat is Hermes?",
+        faqHermesAnswer:
+            "Hermes is een autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering. Hij is op elke ClawHost-server vooraf geïnstalleerd naast OpenClaw.",
         faq3Question:
             'Hoe verschilt dit van andere AI-tools of gehoste platforms?',
         faq3Answer:
-            'In tegenstelling tot gehoste AI-tools geeft ClawHost je een echte server met OpenClaw ge\u00efnstalleerd. Je bezit de infrastructuur, hebt overal controle over en wordt niet beperkt door een gedeeld platform of model.',
+            "In tegenstelling tot gehoste AI-tools krijg je met ClawHost een echte server met OpenClaw en Hermes geïnstalleerd. Je bezit de infrastructuur, beheert alles en wordt niet beperkt door een gedeeld platform of model.",
         faq4Question: 'Heb ik technische kennis nodig?',
         faq4Answer:
-            'Nee. Wij regelen alle infrastructuur, installatie en onderhoud. Je kunt OpenClaw configureren en beheren via de UI en gebruik aanpassen \u2014 zonder servers of infrastructuur aan te raken.',
+            "Nee. Wij regelen alle infrastructuur, installatie en onderhoud. Je kunt OpenClaw via de UI configureren en beheren, terwijl Hermes via eenvoudige terminalcommando’s draait — zonder zelf servers of infrastructuur aan te raken.",
         faq5Question: 'Welke locaties zijn beschikbaar?',
         faq5Answer:
             "We bieden meerdere serverlocaties wereldwijd, waaronder de VS, Europa en meer. Je kunt OpenClaw indien nodig op meerdere servers in verschillende regio's implementeren.",
         faq6Question: 'Hoeveel kost het?',
         faq6Answer:
             'De prijzen zijn afhankelijk van de server die je selecteert. Met meerdere serveropties van instapniveau tot hoge prestaties kies je wat past bij je behoeften en budget.',
-        faq7Question: 'Kan ik mijn server direct benaderen?',
+        faq7Question: "Kan ik mijn agent direct via een link benaderen?",
         faq7Answer:
-            'Ja. Naast OpenClaw-toegang via subdomein-URL heb je volledige toegang tot de server en de onderliggende infrastructuur, wat je complete vrijheid geeft om alles aan te passen en te draaien wat je nodig hebt.',
+            "OpenClaw is bereikbaar via een subdomein-URL met volledige web-UI. Hermes draait via terminalcommando’s over SSH — geen link, maar volledige controle vanuit het terminal van je server.",
         comparison: 'Vergelijking',
         comparisonTitle: 'Hoe wij anders zijn',
         comparisonDescription:
@@ -1224,11 +1227,11 @@ const nl: Translations = {
         comparisonInfraOthers: 'Beperkte servers',
         comparisonDataUs: 'Bezit je eigen data',
         comparisonDataOthers: 'Bezit je data niet',
-        comparisonMultipleUs: 'Meerdere OpenClaw, \u00e9\u00e9n Claw',
+        comparisonMultipleUs: "Meerdere OpenClaw- en Hermes-agents",
         comparisonMultipleOthers: 'Alleen \u00e9\u00e9n OpenClaw',
         comparisonOpenSourceUs: 'Volledig open source',
         comparisonOpenSourceOthers: 'Gesloten broncode',
-        comparisonExportUs: 'Exporteer je OpenClaw overal naartoe',
+        comparisonExportUs: "Exporteer OpenClaw en Hermes overal",
         comparisonExportOthers: 'Vendorlock-in',
         comparisonProvidersUs: 'Meerdere serverproviders',
         comparisonProvidersOthers: 'Slechts \u00e9\u00e9n provider',
@@ -1238,15 +1241,15 @@ const nl: Translations = {
         comparisonTerminalOthers: 'SSH-client vereist',
         seeFullComparison: 'Volledige vergelijking bekijken',
         comparisonCtaText:
-            'We vergelijken met SimpleClaw, MyClaw.ai en meer \u2014 functie voor functie.',
+            'We vergelijken met SimpleAgent, MyAgent.ai en meer \u2014 functie voor functie.',
         selfHostInstead: 'Zelf hosten'
     },
     blog: {
         readingTime: '{{minutes}} min leestijd',
-        ctaTitle: 'Deploy OpenClaw met \u00e9\u00e9n klik',
+        ctaTitle: "Deploy OpenClaw en Hermes met één klik",
         ctaDescription:
-            'Krijg een dedicated server met OpenClaw voorge\u00efnstalleerd. Volledige root-toegang, wereldwijde locaties en klaar in minuten. Het is altijd van jou. Vanaf $25.',
-        ctaDeploy: 'Implementeer OpenClaw',
+            "Krijg een dedicated server met OpenClaw en Hermes vooraf geïnstalleerd. Volledige root-toegang, wereldwijde locaties en klaar in minuten. Hij is altijd van jou. Vanaf $25.",
+        ctaDeploy: "Agent deployen",
         ctaGitHub: 'Bekijk op GitHub'
     },
     changelog: {
@@ -1776,7 +1779,7 @@ const nl: Translations = {
             'Door ClawHost ("Service") te openen en te gebruiken, accepteer je en ga je akkoord met de voorwaarden en bepalingen van deze overeenkomst. Als je niet akkoord gaat met deze voorwaarden, gebruik onze Service dan niet.',
         serviceTitle: '2. Beschrijving van de Service',
         serviceText:
-            'ClawHost biedt OpenClaw-deployment met \u00e9\u00e9n klik op dedicated servers. Wij stellen gebruikers in staat om vooraf geconfigureerde OpenClaw-instanties te deployen, beheren en openen met volledige root-toegang en dedicated resources.',
+            "ClawHost biedt one-click deployment van OpenClaw en Hermes op dedicated servers. We stellen gebruikers in staat om vooraf geconfigureerde OpenClaw- en Hermes-instanties met volledige root-toegang en dedicated resources te deployen, beheren en benaderen.",
         authTitle: '3. Authenticatie',
         authText:
             'ClawHost gebruikt Google Firebase Authentication om inloggen te beheren. Je kunt authenticeren met e-mail, Google of GitHub. Door deze methoden te gebruiken, ga je akkoord met de respectieve voorwaarden en het privacybeleid van Google en GitHub. Deze providers kunnen basisinformatie verzamelen zoals je e-mailadres, naam en apparaatgegevens.',
@@ -1870,7 +1873,7 @@ const nl: Translations = {
             'Hermes-agenten worden nu ondersteund voor deployment op ClawHost.'
     },
     compare: {
-        title: 'Volledige vergelijking',
+        title: 'Vergelijking',
         description:
             'Bekijk hoe ClawHost zich verhoudt tot andere OpenClaw-hostingplatforms.',
         badge: 'Vergelijking',
@@ -1879,9 +1882,9 @@ const nl: Translations = {
         lastUpdated: 'Laatst bijgewerkt: maart 2026',
         competitorClawHost: 'ClawHost',
         competitorLobsterFarm: 'LobsterFarm',
-        competitorSimpleClaw: 'SimpleClaw',
-        competitorMyClawAi: 'MyClaw.ai',
-        competitorQuickClaw: 'QuickClaw',
+        competitorSimpleAgent: 'SimpleAgent',
+        competitorMyAgentAi: 'MyAgent.ai',
+        competitorQuickAgent: 'QuickAgent',
         categoryInfrastructure: 'Infrastructuur',
         categoryPricing: 'Prijzen & facturering',
         categoryDeployment: 'Deployment & installatie',

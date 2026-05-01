@@ -1180,7 +1180,7 @@ const es: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'Elegir plan',
         mostPopular: 'Más popular',
-        featurePreinstalled: 'OpenClaw preinstalado',
+        featurePreinstalled: "Agente preinstalado",
         featureBandwidth: 'Ancho de banda ilimitado',
         featureSsh: 'Acceso SSH root',
         featureUptime: 'En línea 24/7',
@@ -1193,26 +1193,29 @@ const es: Translations = {
         faqDescription: 'Todas las preguntas frecuentes, respondidas.',
         faq1Question: '¿Qué es ClawHost?',
         faq1Answer:
-            'ClawHost es una plataforma creada para hacer OpenClaw accesible para todos. Permite tanto a usuarios no técnicos como a desarrolladores ejecutar OpenClaw sin administrar infraestructura. Nosotros manejamos servidores, disponibilidad, seguridad y mantenimiento — tú solo usas OpenClaw.',
+            "ClawHost es una plataforma creada para hacer accesibles OpenClaw y Hermes a todos. Permite que tanto usuarios no técnicos como desarrolladores los ejecuten sin gestionar infraestructura. Nosotros nos encargamos de servidores, uptime, seguridad y mantenimiento — tú solo usas tus agentes.",
         faq2Question: '¿Qué es OpenClaw?',
         faq2Answer:
             'OpenClaw es una capa de acceso seguro auto-hospedada para tus herramientas y servicios de IA. Está preconfigurado para seguridad y rendimiento, así que puedes desplegarlo y conectarte al instante.',
+        faqHermesQuestion: "¿Qué es Hermes?",
+        faqHermesAnswer:
+            "Hermes es un agente de IA autónomo con navegación web, gestión de calendario, razonamiento multimodelo y automatización de navegador. Viene preinstalado junto con OpenClaw en cada servidor de ClawHost.",
         faq3Question:
             '¿En qué se diferencia de otras herramientas de IA o plataformas hospedadas?',
         faq3Answer:
-            'A diferencia de las herramientas de IA hospedadas, ClawHost te da un servidor real con OpenClaw instalado. Tú eres dueño de la infraestructura, controlas todo y no estás limitado por una plataforma compartida o un modelo.',
+            "A diferencia de las herramientas de IA hospedadas, ClawHost te ofrece un servidor real con OpenClaw y Hermes instalados. Eres dueño de la infraestructura, lo controlas todo y no estás limitado por una plataforma o modelo compartido.",
         faq4Question: '¿Necesito conocimientos técnicos?',
         faq4Answer:
-            'No. Nosotros manejamos toda la infraestructura, configuración y mantenimiento. Puedes configurar y administrar OpenClaw a través de su interfaz y personalizar el uso — sin tocar servidores ni infraestructura.',
+            "No. Nosotros gestionamos toda la infraestructura, instalación y mantenimiento. Puedes configurar y gestionar OpenClaw a través de su interfaz, mientras que Hermes se utiliza mediante simples comandos en el terminal — sin tocar servidores ni infraestructura.",
         faq5Question: '¿Qué ubicaciones están disponibles?',
         faq5Answer:
-            'Ofrecemos múltiples ubicaciones de servidores en todo el mundo, incluyendo Estados Unidos, Europa y más. Puedes desplegar OpenClaw en múltiples servidores en diferentes regiones si es necesario.',
+            "Ofrecemos múltiples ubicaciones de servidor en todo el mundo, incluidos EE. UU., Europa y Asia. Puedes desplegar OpenClaw o Hermes en varios servidores en diferentes regiones si es necesario.",
         faq6Question: '¿Cuánto cuesta?',
         faq6Answer:
             'Los precios dependen del servidor que selecciones. Con múltiples opciones de servidores que van desde nivel básico hasta alto rendimiento, eliges lo que se adapte a tus necesidades y presupuesto.',
-        faq7Question: '¿Puedo acceder a mi servidor directamente?',
+        faq7Question: "¿Puedo acceder a mi agente directamente con un enlace?",
         faq7Answer:
-            'Sí. Además del acceso a OpenClaw vía URL de subdominio, tienes acceso completo al servidor y su infraestructura subyacente, dándote libertad total para personalizar y ejecutar lo que necesites.',
+            "OpenClaw es accesible mediante una URL de subdominio con una interfaz web completa. Hermes se ejecuta con comandos de terminal por SSH — sin enlace, pero con control total desde el terminal de tu servidor.",
         comparison: 'Comparación',
         comparisonTitle: '¿En qué nos diferenciamos?',
         comparisonDescription:
@@ -1232,11 +1235,11 @@ const es: Translations = {
         comparisonInfraOthers: 'Servidores limitados',
         comparisonDataUs: 'Tus datos son tuyos',
         comparisonDataOthers: 'Tus datos no son tuyos',
-        comparisonMultipleUs: 'Múltiples OpenClaw, un solo Claw',
+        comparisonMultipleUs: "Múltiples agentes OpenClaw y Hermes",
         comparisonMultipleOthers: 'Solo un OpenClaw',
         comparisonOpenSourceUs: 'Completamente código abierto',
         comparisonOpenSourceOthers: 'Código cerrado',
-        comparisonExportUs: 'Exporta tu OpenClaw a cualquier lugar',
+        comparisonExportUs: "Exporta OpenClaw y Hermes a cualquier lugar",
         comparisonExportOthers: 'Dependencia del proveedor',
         comparisonProvidersUs: 'Múltiples proveedores de servidores',
         comparisonProvidersOthers: 'Un solo proveedor',
@@ -1246,15 +1249,15 @@ const es: Translations = {
         comparisonTerminalOthers: 'Se requiere cliente SSH',
         seeFullComparison: 'Ver comparación completa',
         comparisonCtaText:
-            'Comparamos con SimpleClaw, MyClaw.ai y más — función por función.',
+            'Comparamos con SimpleAgent, MyAgent.ai y más — función por función.',
         selfHostInstead: 'Auto-hospedar en su lugar'
     },
     blog: {
         readingTime: '{{minutes}} min de lectura',
-        ctaTitle: 'Despliega OpenClaw con un clic',
+        ctaTitle: "Despliega OpenClaw y Hermes con un solo clic",
         ctaDescription:
-            'Obtén un servidor dedicado con OpenClaw preinstalado. Acceso root completo, ubicaciones globales y listo en minutos. Es tuyo en todo momento. Desde $25.',
-        ctaDeploy: 'Desplegar OpenClaw',
+            "Obtén un servidor dedicado con OpenClaw y Hermes preinstalados. Acceso root completo, ubicaciones globales y listo en minutos. Es tuyo en todo momento. Desde $25.",
+        ctaDeploy: "Desplegar agente",
         ctaGitHub: 'Ver en GitHub'
     },
     changelog: {
@@ -1793,7 +1796,7 @@ const es: Translations = {
             'Al acceder y usar ClawHost ("Servicio"), aceptas y te comprometes a cumplir con los términos y disposiciones de este acuerdo. Si no estás de acuerdo con estos términos, por favor no uses nuestro Servicio.',
         serviceTitle: '2. Descripción del servicio',
         serviceText:
-            'ClawHost proporciona despliegue de OpenClaw en un clic en servidores dedicados. Permitimos a los usuarios desplegar, administrar y acceder a instancias de OpenClaw preconfiguradas con acceso root completo y recursos dedicados.',
+            "ClawHost ofrece el despliegue con un clic de OpenClaw y Hermes en servidores dedicados. Permitimos a los usuarios desplegar, gestionar y acceder a instancias preconfiguradas de OpenClaw y Hermes con acceso root completo y recursos dedicados.",
         authTitle: '3. Autenticación',
         authText:
             'ClawHost usa Google Firebase Authentication para administrar el inicio de sesión. Puedes autenticarte con correo electrónico, Google o GitHub. Al usar estos métodos, aceptas los respectivos términos y políticas de privacidad de Google y GitHub. Estos proveedores pueden recopilar información básica como tu dirección de correo electrónico, nombre y datos del dispositivo.',
@@ -1887,7 +1890,7 @@ const es: Translations = {
             'Los agentes Hermes ahora son compatibles con el despliegue en ClawHost.'
     },
     compare: {
-        title: 'Comparación completa',
+        title: 'Comparación',
         description:
             'Descubre cómo ClawHost se compara con otras plataformas de alojamiento OpenClaw.',
         badge: 'Comparación',
@@ -1896,9 +1899,9 @@ const es: Translations = {
         lastUpdated: 'Última actualización: marzo 2026',
         competitorClawHost: 'ClawHost',
         competitorLobsterFarm: 'LobsterFarm',
-        competitorSimpleClaw: 'SimpleClaw',
-        competitorMyClawAi: 'MyClaw.ai',
-        competitorQuickClaw: 'QuickClaw',
+        competitorSimpleAgent: 'SimpleAgent',
+        competitorMyAgentAi: 'MyAgent.ai',
+        competitorQuickAgent: 'QuickAgent',
         categoryInfrastructure: 'Infraestructura',
         categoryPricing: 'Precios & Facturación',
         categoryDeployment: 'Despliegue & Configuración',
