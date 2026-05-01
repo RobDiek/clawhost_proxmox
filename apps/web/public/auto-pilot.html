@@ -128,6 +128,38 @@ a { color:#2563EB; text-decoration:none; }
   display: inline-block; margin: 0 auto;
 }
 
+/* ═══ How it works — 3 stages overview ═══ */
+.how-section { padding: 72px 0 56px; background: #fff; border-top: 1px solid #EEF2F7; }
+.how-head { text-align: center; max-width: 720px; margin: 0 auto 44px; padding: 0 24px; }
+.how-eyebrow { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #2563EB; padding: 4px 12px; background: #EFF6FF; border-radius: 999px; margin-bottom: 14px; }
+.how-head h2 { font-size: clamp(1.7rem, 3.4vw, 2.15rem); font-weight: 700; letter-spacing: -0.5px; color: #0B1322; margin-bottom: 12px; line-height: 1.25; }
+.how-head p { font-size: 1rem; color: #6B7280; line-height: 1.7; }
+.how-grid { max-width: 1180px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+@media(max-width: 980px) { .how-grid { grid-template-columns: 1fr; max-width: 540px; } }
+.stage {
+  background: linear-gradient(180deg, #fff 0%, #FAFBFC 100%);
+  border: 1px solid #E5E7EB; border-radius: 16px;
+  padding: 28px 26px;
+  position: relative; overflow: hidden;
+  transition: transform .25s, box-shadow .25s, border-color .2s;
+}
+.stage:hover { transform: translateY(-3px); border-color: #DBEAFE; box-shadow: 0 18px 40px -14px rgba(37, 99, 235, 0.15); }
+.stage-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 12px;
+  background: linear-gradient(135deg, #2563EB, #4F46E5);
+  color: #fff; font-size: 1.05rem; font-weight: 700;
+  box-shadow: 0 8px 18px -4px rgba(37, 99, 235, 0.4);
+  margin-bottom: 16px;
+}
+.stage h3 { font-size: 1.18rem; font-weight: 700; color: #0B1322; letter-spacing: -0.3px; margin-bottom: 6px; line-height: 1.3; }
+.stage .stage-tagline { font-size: 0.86rem; color: #6B7280; line-height: 1.55; margin-bottom: 16px; }
+.stage ul { list-style: none; padding: 0; margin: 0; }
+.stage li { font-size: 0.86rem; color: #374151; line-height: 1.6; padding: 6px 0; position: relative; padding-right: 16px; }
+.stage li::before { content: '·'; position: absolute; right: 0; top: 4px; color: #2563EB; font-weight: 800; font-size: 1.2rem; line-height: 1; }
+.stage li strong { color: #0B1322; font-weight: 600; }
+.stage code { background: #F3F4F6; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem; font-family: 'SF Mono', Consolas, monospace; color: #1F2937; direction: ltr; display: inline-block; }
+
 /* ═══ Pricing — clean, equal-height premium tier system ═══ */
 .pricing-section { padding: 64px 0 80px; background: #FAFBFC; border-top: 1px solid #EEF2F7; }
 .pricing-head { text-align: center; max-width: 720px; margin: 0 auto 48px; padding: 0 24px; }
@@ -250,6 +282,27 @@ a { color:#2563EB; text-decoration:none; }
   .price-block { min-height: 0; padding-bottom: 4px; }
 }
 
+/* ═══ Under the hood — technical credibility ═══ */
+.tech-section { padding: 72px 0; background: #0B1322; color: #fff; }
+.tech-head { text-align: center; max-width: 760px; margin: 0 auto 40px; padding: 0 24px; }
+.tech-eyebrow { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #60A5FA; padding: 4px 12px; background: rgba(96, 165, 250, 0.12); border-radius: 999px; margin-bottom: 14px; }
+.tech-head h2 { font-size: clamp(1.7rem, 3.4vw, 2.15rem); font-weight: 700; letter-spacing: -0.5px; color: #fff; margin-bottom: 12px; line-height: 1.25; }
+.tech-head p { font-size: 1rem; color: #94A3B8; line-height: 1.7; }
+.tech-grid { max-width: 1180px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media(max-width: 980px) { .tech-grid { grid-template-columns: 1fr; max-width: 540px; } }
+.tech-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 20px 22px;
+  transition: background .2s, border-color .2s;
+}
+.tech-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(96, 165, 250, 0.3); }
+.tech-card-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #60A5FA; margin-bottom: 8px; }
+.tech-card-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 8px; line-height: 1.35; }
+.tech-card-desc { font-size: 0.85rem; color: #94A3B8; line-height: 1.6; }
+.tech-card-desc code { background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 4px; font-size: 0.78rem; font-family: 'SF Mono', Consolas, monospace; color: #DBEAFE; direction: ltr; display: inline-block; }
+.tech-card-desc strong { color: #DBEAFE; font-weight: 600; }
+
 /* Compare */
 .compare { margin:48px 0; }
 .compare h2 { text-align:center; font-size:1.4rem; font-weight:700; margin-bottom:20px; }
@@ -337,6 +390,57 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
 
 </div><!-- /.wrap -->
 
+<!-- ═══ How it works — 3 stages ═══ -->
+<section class="how-section">
+  <div class="how-head">
+    <span class="how-eyebrow">איך זה עובד</span>
+    <h2>3 שלבים מ-"לא יודעים מאיפה להתחיל" עד שיווק שעובד יום-יום</h2>
+    <p>הכל מתחיל בהבנה עמוקה של העסק שלכם. ממשיך באסטרטגיה מבוססת דאטה. וממשיך לבצע את עצמו — אוטומטית — שבוע אחר שבוע.</p>
+  </div>
+  <div class="how-grid">
+
+    <article class="stage">
+      <div class="stage-num">1</div>
+      <h3>מבינים את הברנד שלכם</h3>
+      <p class="stage-tagline">לפני שעובדים — חופרים. הסוכנים לא יכולים לדעת מי אתם בלי שילמדו.</p>
+      <ul>
+        <li>סריקת האתר שלכם וחילוץ <strong>DNA הברנד</strong> — צבעים, פונטים, לוגו, סגנון כתיבה, קול</li>
+        <li>ניתוח של עד 12 ציטוטים מהאתר — איך אתם מדברים על עצמכם</li>
+        <li>אישור או החלפה ידנית של כל אלמנט שזיהינו</li>
+        <li>יצירת ספר מותג מלא ב-<code>PDF</code> — מקור האמת לכל 10 הסוכנים</li>
+        <li>הסוכנים יכתבו ויפרסמו רק כשהם יודעים <strong>בדיוק</strong> מי אתם</li>
+      </ul>
+    </article>
+
+    <article class="stage">
+      <div class="stage-num">2</div>
+      <h3>בונים אסטרטגיה מבוססת דאטה</h3>
+      <p class="stage-tagline">לא ניחושים. לא "תחושות בטן". מחקר מקצועי עם הכלים הטובים ביותר בשוק.</p>
+      <ul>
+        <li>מחקר מילות מפתח דרך <strong>DataForSEO</strong> — מאות מיליוני שאילתות</li>
+        <li>ניתוח 5 מתחרים מובילים בשוק שלכם דרך <strong>Firecrawl</strong></li>
+        <li>חיבור ל-<code>GA4</code> ו-<code>Search Console</code> — הבנה מאיפה הלקוחות באמת מגיעים</li>
+        <li><strong>Mazhir Audit</strong> — ביקורת מקיפה של מצב הפרסום הממומן הנוכחי</li>
+        <li>אסטרטגיה כתובה ל-3 חודשים, מותאמת לעסק שלכם — לא תבנית מהמדף</li>
+      </ul>
+    </article>
+
+    <article class="stage">
+      <div class="stage-num">3</div>
+      <h3>הסוכנים מבצעים — אתם בקרה</h3>
+      <p class="stage-tagline">10 סוכני AI עובדים יום-יום. אתם מאשרים תוכן ומדיה לפני שיוצא לציבור.</p>
+      <ul>
+        <li><strong>Mazhir</strong> — מנהל קמפיינים ב-Google Ads ו-Meta יום-יום</li>
+        <li><strong>Content Agent</strong> — כותב מאמרי SEO ב-pipeline 4 שלבים (skeleton → drafts → QA → critique)</li>
+        <li><strong>Creative Agent</strong> — מייצר תמונות ו-וידאו ב-<code>fal.ai</code> + קריינות עברית ב-<code>ElevenLabs</code></li>
+        <li><strong>Social Agent</strong> — 3–5 פוסטים שבועיים ברשתות, מותאמים לפלטפורמה</li>
+        <li><strong>Analytics Agent</strong> — דוח שבועי כל יום ראשון 09:00 עם המלצות פעולה</li>
+      </ul>
+    </article>
+
+  </div>
+</section>
+
 <!-- ═══ Pricing section ═══ -->
 <section class="pricing-section">
   <div class="pricing-head">
@@ -348,69 +452,11 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
   <div class="cards-wrap">
     <div class="cards">
 
-      <!-- ── Card 1: Auto-pilot ── -->
-      <article class="card">
-        <header class="card-head">
-          <h3 class="card-name">אוטופילוט</h3>
-          <p class="card-tagline">אנחנו מנהלים את כל השיווק. אתם רואים תוצאות בכל יום ראשון.</p>
-        </header>
-        <div class="price-block">
-          <div class="price-row">
-            <span class="price-num">₪1,500</span>
-            <span class="price-unit">/חודש</span>
-          </div>
-          <div class="price-secondary"><strong>+ ₪1,750 הקמה</strong> חד-פעמית · מינימום 6 חודשים</div>
-          <div class="price-fine">תקציב פרסום (ad spend) בנפרד</div>
-        </div>
-        <ul class="bullets">
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>הכל מ-"תצורה"</strong> — הקמה מלאה של 5–7 ימים</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">דוח שבועי כל יום ראשון בשעה 09:00</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניהול מלא של פרסום ממומן (Google · Meta · YouTube)<button class="info-btn" type="button">‏<span class="info-tip">קמפיינים, מילות מפתח, קהלים, מודעות, אופטימיזציה שבועית — שמירה קפדנית על תקרת התקציב</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">4–8 מאמרי SEO + 3–5 פוסטים שבועיים ברשתות</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניוזלטר ו-Email automations<button class="info-btn" type="button">‏<span class="info-tip">Welcome series, abandoned cart, post-purchase, A/B נושאים ושעות שליחה</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">עד 16 יצירות מדיה (תמונות + וידאו) לחודש</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניהול לידים: WhatsApp + Google Business Profile</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">שיחת אסטרטגיה דו-שבועית (30 דקות, זום)</div></li>
-        </ul>
-        <div class="cta-stack">
-          <button class="cta cta-line" onclick="pick('autopilot')">התחילו אוטופילוט ←</button>
-        </div>
-      </article>
-
-      <!-- ── Card 2: Configuration (FEATURED) ── -->
-      <article class="card pop">
-        <header class="card-head">
-          <h3 class="card-name">תצורה</h3>
-          <p class="card-tagline">הקמה מקצועית מקצה לקצה. אחר כך 10 סוכני AI מבצעים בעצמם.</p>
-        </header>
-        <div class="price-block">
-          <div class="price-row">
-            <span class="price-num">₪1,750</span>
-            <span class="price-unit">חד-פעמי</span>
-          </div>
-          <div class="price-secondary"><strong>ללא דמי חודש</strong> מצידנו לאחר המסירה</div>
-          <div class="price-fine">5–7 ימי עסקים עד מסירה</div>
-        </div>
-        <ul class="bullets">
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">שיחת גילוי + אסטרטגיה ל-3 חודשים<button class="info-btn" type="button">‏<span class="info-tip">60 דקות זום: מבינים את הקהל, המוצר, היעדים והתקציב לפני שמתחילים</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">בניית ספר מותג מלא<button class="info-btn" type="button">‏<span class="info-tip">סריקת האתר וחילוץ צבעים, פונטים, לוגו וקול. אישור כל אלמנט. ספר מותג ב-PDF</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">תשתית SEO אורגנית<button class="info-btn" type="button">‏<span class="info-tip">מחקר מילות מפתח, ניתוח 3–5 מתחרים, לוח עריכה חודשי מוכן</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">הקמת קמפיינים ב-Google Ads<button class="info-btn" type="button">‏<span class="info-tip">חיבור Ads + GA4 + Search Console + GTM. ביקורת מצב (Mazhir Audit). קמפיין Search ראשון על האוויר</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">הקמת קמפיינים ב-Meta Ads<button class="info-btn" type="button">‏<span class="info-tip">פייסבוק + אינסטגרם. Lookalike audiences מבוססי הדאטה שלכם. קמפיין ראשון על האוויר</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">חיבור Telegram, WhatsApp, Gmail, Calendar</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">מסירה והדרכה (90 דקות, זום) + 30 ימי תמיכה</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>בסוף: 10 סוכני AI מבצעים את האסטרטגיה לבד.</strong> אתם רק מאשרים תוכן ומדיה.</div></li>
-        </ul>
-        <div class="cta-stack">
-          <button class="cta cta-fill" onclick="pick('configuration')">הזמינו תצורה ←</button>
-        </div>
-      </article>
-
-      <!-- ── Card 3: Self-Service ── -->
+      <!-- ── Card 1: Self-Service (FIRST in RTL) ── -->
       <article class="card">
         <header class="card-head">
           <h3 class="card-name">שירות עצמי</h3>
-          <p class="card-tagline">הכל פתוח, הכל זמין. למשווקים, חברות הייטק או צוות פנימי.</p>
+          <p class="card-tagline">המערכת המלאה — אתם בנהיגה. למשווקים, חברות הייטק או צוות פנימי.</p>
         </header>
         <div class="price-block">
           <div class="price-row">
@@ -421,22 +467,133 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
           <div class="price-fine">חיוב חודשי, ללא התחייבות</div>
         </div>
         <ul class="bullets">
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">סוכן שיווק MATEH פעיל מהיום הראשון<button class="info-btn" type="button">‏<span class="info-tip">סוכן AI שמכין יום-יום תוכן ומודעות, מנתח ביצועים ושולח דוחות. עובד לבד — אתם מאשרים</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">10 סוכני AI מותקנים ומוכנים להפעלה<button class="info-btn" type="button">‏<span class="info-tip">כל סוכן עוסק בתחום אחר: SEO · Google Ads · Meta · רשתות חברתיות · אימיילים · ניתוח מתחרים</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">לוח בקרה פתוח לחלוטין — אין תכונות נעולות</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">חיבור לכל הכלים: Google · Meta · GA4 · WhatsApp ועוד<button class="info-btn" type="button">‏<span class="info-tip">Google Ads, Meta Ads, Google Analytics 4, Search Console, GTM, WhatsApp Business, Telegram, Gmail, Google Calendar</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">שליטה מלאה ב-prompts ובהגדרות הסוכנים<button class="info-btn" type="button">‏<span class="info-tip">prompts = ההוראות שמקבלים הסוכנים. תוכלו לשנות טון, סגנון וגישה לכל סוכן בעצמכם</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">המפתחות שלכם, החיוב שלכם<button class="info-btn" type="button">‏<span class="info-tip">מפתחות API לשירותי AI (Anthropic / OpenAI) רשומים עליכם. אתם משלמים ישירות, ללא תוספת אחוזים מצידנו</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">שרת VPS פרטי משלכם עם SSL ודומיין ייחודי<button class="info-btn" type="button">‏<span class="info-tip">VPS = שרת פרטי בענן, לא חולקים אותו עם אחרים. SSL = תעודת אבטחה (המנעול ✓ ליד כתובת האתר)</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">תמיכה טכנית במייל</div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>שרת VPS פרטי משלכם</strong> בענן Hetzner — SSL ודומיין ייחודי<button class="info-btn" type="button">‏<span class="info-tip">VPS = שרת פרטי בענן. לא חולקים אותו עם אף אחד אחר. הנתונים שלכם — בידיים שלכם בלבד</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">10 סוכני AI מקצועיים מותקנים — מבוססים על OpenClaw + Anthropic Claude<button class="info-btn" type="button">‏<span class="info-tip">OpenClaw = מסגרת AI Agents בקוד פתוח (MIT). כל סוכן מבוסס על מודל Claude (Opus / Sonnet / Haiku) ופעיל מהיום הראשון</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">כלי SEO מקצועיים פעילים: <strong>DataForSEO</strong>, <strong>Firecrawl</strong>, Search Console<button class="info-btn" type="button">‏<span class="info-tip">DataForSEO = בסיס נתונים של מאות מיליוני שאילתות חיפוש. Firecrawl = סורק אתרי מתחרים. Google Search Console = נתוני SEO רשמיים מגוגל</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">חיבורי שיווק זמינים: Google Ads, Meta Ads, GA4, GTM, WhatsApp, Telegram, Gmail, Calendar</div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">יצירת מדיה: <strong>fal.ai</strong> (תמונות וידאו) + <strong>ElevenLabs</strong> (קריינות בעברית)</div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">אתם משלמים ישירות לספקי ה-AI — בלי תוספת אחוזים מצידנו<button class="info-btn" type="button">‏<span class="info-tip">החיוב על השימוש ב-AI (Anthropic, OpenAI, fal.ai, ElevenLabs) הולך ישירות מכרטיס האשראי שלכם לספקים — אנחנו לא לוקחים עמלה. תשלמו רק על מה שבאמת השתמשתם</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">גישה לכל הסוכנים, כל ההיסטוריה, כל הדוחות — ללא תכונות חסומות</div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">תמיכה בצ'אט (טלגרם) בימי עסקים</div></li>
         </ul>
         <div class="cta-stack">
           <button class="cta cta-line" onclick="window.location.href='/'">התחילו לבד ←</button>
-          <a class="cta-link" href="https://flowmatic.co.il/" target="_blank" rel="noopener">עשינו לכם <strong>קורס חינמי</strong> קצר ולעניין →</a>
+          <a class="cta-link" href="https://flowmatic.co.il/" target="_blank" rel="noopener">רוצים ללמוד לעומק? <strong>צפו בקורס המקצועי שלנו</strong> →</a>
+        </div>
+      </article>
+
+      <!-- ── Card 2: Configuration (FEATURED, middle) ── -->
+      <article class="card pop">
+        <header class="card-head">
+          <h3 class="card-name">תצורה</h3>
+          <p class="card-tagline">הקמה מקצועית מקצה לקצה. בסוף — 10 סוכני AI מבצעים את האסטרטגיה לבד.</p>
+        </header>
+        <div class="price-block">
+          <div class="price-row">
+            <span class="price-num">₪1,750</span>
+            <span class="price-unit">חד-פעמי</span>
+          </div>
+          <div class="price-secondary"><strong>ללא דמי חודש</strong> מצידנו לאחר המסירה</div>
+          <div class="price-fine">5–7 ימי עסקים עד מסירה מלאה</div>
+        </div>
+        <ul class="bullets">
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>שיחת גילוי</strong> 60 דקות (זום) + מיפוי מצב נוכחי<button class="info-btn" type="button">‏<span class="info-tip">מבינים את הקהל, המוצר, היעדים העסקיים, התקציב הזמין, והערוצים הפעילים היום — לפני שמתחילים</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>Brand Foundation</strong> — סריקת אתר וחילוץ DNA הברנד<button class="info-btn" type="button">‏<span class="info-tip">סריקת האתר וחילוץ צבעים, פונטים, לוגו, ניתוח 12 ציטוטים מהאתר לזיהוי קול הברנד. אישור או החלפה ידנית של כל אלמנט. ספר מותג מלא ב-PDF</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>Mazhir Audit</strong> — ביקורת מקיפה של פרסום ממומן<button class="info-btn" type="button">‏<span class="info-tip">בדיקת מצב מלאה: היכן הקליקים מתבזבזים, האם המרות נמדדות נכון, האם conversion tracking מותקן, ROI אמיתי לפי ערוץ</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">מחקר SEO מקצועי + ניתוח 5 מתחרים<button class="info-btn" type="button">‏<span class="info-tip">מחקר מילות מפתח דרך DataForSEO. ניתוח עומק של 5 מתחרים מובילים בשוק שלכם דרך Firecrawl: על מה הם כותבים, איך הם נראים בגוגל, איפה ההזדמנויות שלכם</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">אסטרטגיית תוכן ל-3 חודשים — Schema + Entity Consensus<button class="info-btn" type="button">‏<span class="info-tip">לוח עריכה מלא ל-3 חודשים. כל מאמר מתוכנן עם Schema markup לסיכויי הופעה ב-AI Overview של גוגל, AI Nuggets לציטוט במנועי AI, ו-Entity Consensus להבנת ההקשר</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">קמפיין Google Search ראשון על האוויר<button class="info-btn" type="button">‏<span class="info-tip">חיבור Google Ads + GA4 + Search Console + GTM. הקמת קמפיין Search עם מילות מפתח 1st-party מהמחקר. הגדרת bid strategy מותאמת</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">קמפיין Meta Lookalike ראשון על האוויר<button class="info-btn" type="button">‏<span class="info-tip">חיבור פייסבוק ואינסטגרם. בניית Lookalike audience מהדאטה הקיימת שלכם. ניתוח קריאייטיבים מנצחים של מתחרים דרך Meta Ads Library</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">חיבור ערוצי לקוחות: Telegram, WhatsApp Business, Gmail, Calendar</div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">הדרכה אישית 90 דקות (זום) + 30 ימי תמיכה<button class="info-btn" type="button">‏<span class="info-tip">לומדים איך לאשר תוכן, לקרוא דוחות שבועיים, לבקש שינוי באסטרטגיה. אחרי המסירה — 30 ימי מענה במייל לתיקוני באגים ושאלות הפעלה</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>בסוף: 10 סוכני AI מבצעים את האסטרטגיה החודשית בעצמם.</strong> אתם רק מאשרים תוכן ומדיה לפני שיוצא לציבור.</div></li>
+        </ul>
+        <div class="cta-stack">
+          <button class="cta cta-fill" onclick="pick('configuration')">הזמינו תצורה ←</button>
+        </div>
+      </article>
+
+      <!-- ── Card 3: Auto-pilot ── -->
+      <article class="card">
+        <header class="card-head">
+          <h3 class="card-name">אוטופילוט</h3>
+          <p class="card-tagline">אנחנו מנהלים את כל השיווק לעומק. אתם רואים תוצאות בכל יום ראשון.</p>
+        </header>
+        <div class="price-block">
+          <div class="price-row">
+            <span class="price-num">₪1,500</span>
+            <span class="price-unit">/חודש</span>
+          </div>
+          <div class="price-secondary"><strong>+ ₪1,750 הקמה</strong> חד-פעמית · מינימום 6 חודשים</div>
+          <div class="price-fine">תקציב פרסום (ad spend) משולם ישירות לגוגל ולמטא</div>
+        </div>
+        <ul class="bullets">
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>הכל מ-"תצורה"</strong> — תהליך הקמה מלא של 5–7 ימים</div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">דוח שבועי כל יום ראשון 09:00 — ROAS, ROI, המלצות פעולה<button class="info-btn" type="button">‏<span class="info-tip">PDF מפורט + סיכום בטלגרם. מקורות לידים לפי ערוץ, מאיפה הקליקים שמומרים, אילו מילות מפתח עובדות, אילו מודעות מובילות, מה צריך לתקן השבוע</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>Google Ads</strong> — ניהול מקצועי מלא<button class="info-btn" type="button">‏<span class="info-tip">bid strategies, מחקר מילות מפתח שבועי, A/B מודעות, אופטימיזציית campaigns ו-ad groups, scaling קמפיינים מצליחים, cooling קמפיינים שלא ממירים</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>Meta Ads</strong> — ניהול מקצועי מלא<button class="info-btn" type="button">‏<span class="info-tip">בניית קהלים, A/B קריאייטיב שבועי, ניתוח Meta Ads Library של מתחרים, scaling קהלים שעובדים, retargeting מתקדם</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">4–8 מאמרי SEO לחודש ב-pipeline 4 שלבים<button class="info-btn" type="button">‏<span class="info-tip">Skeleton (מבנה) → Drafts (3 גרסאות במקביל) → QA (איתור שגיאות) → Self-critique (שיפור עצמי). כל מאמר עם Schema markup, AI Nuggets, ו-Entity Consensus לאופטימיזציית AI Overview</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">3–5 פוסטים שבועיים ב-LinkedIn + Facebook + Instagram</div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניוזלטר + Email automations<button class="info-btn" type="button">‏<span class="info-tip">ניוזלטר שבועי או דו-שבועי. Welcome series, abandoned cart, post-purchase. A/B נושאים ושעות שליחה. ניהול רשימות ופעילות תאימות חוקית</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">עד 16 יצירות מדיה לחודש — fal.ai + ElevenLabs<button class="info-btn" type="button">‏<span class="info-tip">תמונות AI דרך flux-2-pro ו-nano-banana-pro (Gemini 3 Pro Image — הכי טוב לטיפוגרפיה עברית). וידאו קצר. קריינות עברית טבעית דרך ElevenLabs eleven_v3 + George voice. כל יצירה עוברת Brand Consistency check</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניטור מתחרים יומי + תגובה תוך 24 שעות<button class="info-btn" type="button">‏<span class="info-tip">סוכן Competitive Intelligence סורק את 5 המתחרים שלכם דרך Firecrawl ומתריע על שינויים: מאמרים חדשים, קמפיינים חדשים, שינוי מחירים. אנחנו מגיבים בתוכן רלוונטי תוך 24 שעות</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניהול לידים: WhatsApp + Google Business Profile<button class="info-btn" type="button">‏<span class="info-tip">לידים מ-WhatsApp עם מענה ראשוני אוטומטי תוך דקה ושרשור אליכם. Google Business Profile — פוסטים שבועיים, מענה מקצועי לביקורות תוך 24 שעות</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">שיחת אסטרטגיה דו-שבועית (30 דקות, זום) — מה הצליח, מה ננסה הפעם</div></li>
+        </ul>
+        <div class="cta-stack">
+          <button class="cta cta-line" onclick="pick('autopilot')">התחילו אוטופילוט ←</button>
         </div>
       </article>
 
     </div>
+  </div>
+</section>
+
+<!-- ═══ Under the hood — technical credibility ═══ -->
+<section class="tech-section">
+  <div class="tech-head">
+    <span class="tech-eyebrow">תחת המנוע</span>
+    <h2>כלים מקצועיים. לא צעצועים.</h2>
+    <p>הסוכנים שלנו מבצעים עבודה אמיתית של בכירי שיווק — כי הם מחוברים לכלים שבכירי שיווק משתמשים בהם.</p>
+  </div>
+  <div class="tech-grid">
+
+    <div class="tech-card">
+      <div class="tech-card-label">Foundation</div>
+      <div class="tech-card-title">OpenClaw — Open Source AI Agents</div>
+      <div class="tech-card-desc">מסגרת AI Agents בקוד פתוח, רישיון <code>MIT</code>. קוד הסוכנים שקוף וזמין לעיון. שום black-box.</div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-label">AI Engine</div>
+      <div class="tech-card-title">Anthropic Claude — Opus / Sonnet / Haiku</div>
+      <div class="tech-card-desc">המודלים החדישים ביותר של Anthropic דרך <code>LiteLLM</code>. <strong>Opus 4.7</strong> (1M context window) למשימות אסטרטגיות, <strong>Sonnet 4.6</strong> לכתיבה ויצירה, <strong>Haiku 4.5</strong> למשימות מהירות.</div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-label">SEO Stack</div>
+      <div class="tech-card-title">DataForSEO + Search Console + Firecrawl</div>
+      <div class="tech-card-desc"><strong>DataForSEO</strong> — מאות מיליוני שאילתות חיפוש. <strong>Google Search Console</strong> — נתוני SEO רשמיים. <strong>Firecrawl</strong> — סריקת אתרי מתחרים.</div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-label">Paid Marketing</div>
+      <div class="tech-card-title">Google Ads + Meta Ads + GTM + GA4</div>
+      <div class="tech-card-desc">חיבור API רשמי ל-<code>Google Ads</code> ו-<code>Meta Ads</code>. <code>Google Tag Manager</code> למעקב conversions. <code>GA4</code> לאנליטיקה. ניהול מלא, ללא צורך בכלי צד שלישי.</div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-label">Media Generation</div>
+      <div class="tech-card-title">fal.ai + ElevenLabs + Creatomate</div>
+      <div class="tech-card-desc"><strong>fal.ai</strong> — flux-2-pro ו-nano-banana-pro לתמונות. <strong>ElevenLabs</strong> — קריינות עברית טבעית (eleven_v3). <strong>Creatomate</strong> — וידאו אוטומטי.</div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-label">Security & Hosting</div>
+      <div class="tech-card-title">Hetzner Cloud + SSL + Encrypted Keys</div>
+      <div class="tech-card-desc">VPS פרטי בענן <code>Hetzner</code> אירופה — מהיר, מאובטח, GDPR-compliant. <code>SSL</code> אוטומטי מ-Let's Encrypt. מפתחות API מוצפנים at-rest.</div>
+    </div>
+
   </div>
 </section>
 
