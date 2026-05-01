@@ -128,7 +128,29 @@ a { color:#2563EB; text-decoration:none; }
   display: inline-block; margin: 0 auto;
 }
 
-/* ═══ How it works — 3 stages overview ═══ */
+/* ═══ Bullet section labels (used inside Self-Service card to convey 3-stage substance) ═══ */
+.bullets .group-label {
+  list-style: none;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: #94A3B8;
+  padding: 14px 0 6px; margin: 0;
+  border-bottom: 1px dashed #E5E7EB;
+  margin-bottom: 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.bullets .group-label:first-child { padding-top: 2px; }
+.bullets .group-label::before {
+  content: ''; flex-shrink: 0;
+  width: 22px; height: 22px; border-radius: 6px;
+  background: linear-gradient(135deg, #2563EB, #4F46E5);
+  color: #fff; font-size: 0.74rem; font-weight: 700;
+  display: grid; place-items: center;
+}
+.bullets .group-label.g1::before { content: '1'; }
+.bullets .group-label.g2::before { content: '2'; }
+.bullets .group-label.g3::before { content: '3'; }
+
+/* ═══ How it works — 3 stages overview (legacy, no longer used after redesign) ═══ */
 .how-section { padding: 72px 0 56px; background: #fff; border-top: 1px solid #EEF2F7; }
 .how-head { text-align: center; max-width: 720px; margin: 0 auto 44px; padding: 0 24px; }
 .how-eyebrow { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #2563EB; padding: 4px 12px; background: #EFF6FF; border-radius: 999px; margin-bottom: 14px; }
@@ -360,8 +382,7 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
 <section class="hero-section">
   <div class="hero-grid">
     <div>
-      <div class="hero-eyebrow">שקט נפשי. מקצוענות. בלי לשרוף תקציב</div>
-      <h1 class="hero-h1">שיווק דיגיטלי <em>שלם</em>.<br/>בעלות של עוזר במשרה חלקית.</h1>
+      <h1 class="hero-h1">שיווק דיגיטלי וקידום מקצועי<br/>על <em>אוטופילוט</em>.</h1>
       <p class="hero-lead">10 סוכני AI עובדים על העסק שלכם 24/7 — תוכן, פרסום, SEO, אימיילים, רשתות חברתיות. אנחנו מבקרים את העבודה, מכוונים אסטרטגיה, ושומרים על התקציב. אתם מקבלים תוצאות, לא חשבוניות מפחידות.</p>
       <div class="trust-row">
         <div class="trust-cell">
@@ -390,57 +411,6 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
 
 </div><!-- /.wrap -->
 
-<!-- ═══ How it works — 3 stages ═══ -->
-<section class="how-section">
-  <div class="how-head">
-    <span class="how-eyebrow">איך זה עובד</span>
-    <h2>3 שלבים מ-"לא יודעים מאיפה להתחיל" עד שיווק שעובד יום-יום</h2>
-    <p>הכל מתחיל בהבנה עמוקה של העסק שלכם. ממשיך באסטרטגיה מבוססת דאטה. וממשיך לבצע את עצמו — אוטומטית — שבוע אחר שבוע.</p>
-  </div>
-  <div class="how-grid">
-
-    <article class="stage">
-      <div class="stage-num">1</div>
-      <h3>מבינים את הברנד שלכם</h3>
-      <p class="stage-tagline">לפני שעובדים — חופרים. הסוכנים לא יכולים לדעת מי אתם בלי שילמדו.</p>
-      <ul>
-        <li>סריקת האתר שלכם וחילוץ <strong>DNA הברנד</strong> — צבעים, פונטים, לוגו, סגנון כתיבה, קול</li>
-        <li>ניתוח של עד 12 ציטוטים מהאתר — איך אתם מדברים על עצמכם</li>
-        <li>אישור או החלפה ידנית של כל אלמנט שזיהינו</li>
-        <li>יצירת ספר מותג מלא ב-<code>PDF</code> — מקור האמת לכל 10 הסוכנים</li>
-        <li>הסוכנים יכתבו ויפרסמו רק כשהם יודעים <strong>בדיוק</strong> מי אתם</li>
-      </ul>
-    </article>
-
-    <article class="stage">
-      <div class="stage-num">2</div>
-      <h3>בונים אסטרטגיה מבוססת דאטה</h3>
-      <p class="stage-tagline">לא ניחושים. לא "תחושות בטן". מחקר מקצועי עם הכלים הטובים ביותר בשוק.</p>
-      <ul>
-        <li>מחקר מילות מפתח דרך <strong>DataForSEO</strong> — מאות מיליוני שאילתות</li>
-        <li>ניתוח 5 מתחרים מובילים בשוק שלכם דרך <strong>Firecrawl</strong></li>
-        <li>חיבור ל-<code>GA4</code> ו-<code>Search Console</code> — הבנה מאיפה הלקוחות באמת מגיעים</li>
-        <li><strong>Mazhir Audit</strong> — ביקורת מקיפה של מצב הפרסום הממומן הנוכחי</li>
-        <li>אסטרטגיה כתובה ל-3 חודשים, מותאמת לעסק שלכם — לא תבנית מהמדף</li>
-      </ul>
-    </article>
-
-    <article class="stage">
-      <div class="stage-num">3</div>
-      <h3>הסוכנים מבצעים — אתם בקרה</h3>
-      <p class="stage-tagline">10 סוכני AI עובדים יום-יום. אתם מאשרים תוכן ומדיה לפני שיוצא לציבור.</p>
-      <ul>
-        <li><strong>Mazhir</strong> — מנהל קמפיינים ב-Google Ads ו-Meta יום-יום</li>
-        <li><strong>Content Agent</strong> — כותב מאמרי SEO ב-pipeline 4 שלבים (skeleton → drafts → QA → critique)</li>
-        <li><strong>Creative Agent</strong> — מייצר תמונות ו-וידאו ב-<code>fal.ai</code> + קריינות עברית ב-<code>ElevenLabs</code></li>
-        <li><strong>Social Agent</strong> — 3–5 פוסטים שבועיים ברשתות, מותאמים לפלטפורמה</li>
-        <li><strong>Analytics Agent</strong> — דוח שבועי כל יום ראשון 09:00 עם המלצות פעולה</li>
-      </ul>
-    </article>
-
-  </div>
-</section>
-
 <!-- ═══ Pricing section ═══ -->
 <section class="pricing-section">
   <div class="pricing-head">
@@ -452,11 +422,11 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
   <div class="cards-wrap">
     <div class="cards">
 
-      <!-- ── Card 1: Self-Service (FIRST in RTL) ── -->
+      <!-- ── Card 1: Self-Service (FIRST in RTL — system fully open, you drive all 3 stages) ── -->
       <article class="card">
         <header class="card-head">
           <h3 class="card-name">שירות עצמי</h3>
-          <p class="card-tagline">המערכת המלאה — אתם בנהיגה. למשווקים, חברות הייטק או צוות פנימי.</p>
+          <p class="card-tagline">המערכת המלאה — אתם בנהיגה דרך 3 השלבים. למשווקים, חברות הייטק או צוות פנימי.</p>
         </header>
         <div class="price-block">
           <div class="price-row">
@@ -467,14 +437,26 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
           <div class="price-fine">חיוב חודשי, ללא התחייבות</div>
         </div>
         <ul class="bullets">
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>שרת VPS פרטי משלכם</strong> בענן Hetzner — SSL ודומיין ייחודי<button class="info-btn" type="button">‏<span class="info-tip">VPS = שרת פרטי בענן. לא חולקים אותו עם אף אחד אחר. הנתונים שלכם — בידיים שלכם בלבד</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">10 סוכני AI מקצועיים מותקנים — מבוססים על OpenClaw + Anthropic Claude<button class="info-btn" type="button">‏<span class="info-tip">OpenClaw = מסגרת AI Agents בקוד פתוח (MIT). כל סוכן מבוסס על מודל Claude (Opus / Sonnet / Haiku) ופעיל מהיום הראשון</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">כלי SEO מקצועיים פעילים: <strong>DataForSEO</strong>, <strong>Firecrawl</strong>, Search Console<button class="info-btn" type="button">‏<span class="info-tip">DataForSEO = בסיס נתונים של מאות מיליוני שאילתות חיפוש. Firecrawl = סורק אתרי מתחרים. Google Search Console = נתוני SEO רשמיים מגוגל</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">חיבורי שיווק זמינים: Google Ads, Meta Ads, GA4, GTM, WhatsApp, Telegram, Gmail, Calendar</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">יצירת מדיה: <strong>fal.ai</strong> (תמונות וידאו) + <strong>ElevenLabs</strong> (קריינות בעברית)</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">אתם משלמים ישירות לספקי ה-AI — בלי תוספת אחוזים מצידנו<button class="info-btn" type="button">‏<span class="info-tip">החיוב על השימוש ב-AI (Anthropic, OpenAI, fal.ai, ElevenLabs) הולך ישירות מכרטיס האשראי שלכם לספקים — אנחנו לא לוקחים עמלה. תשלמו רק על מה שבאמת השתמשתם</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">גישה לכל הסוכנים, כל ההיסטוריה, כל הדוחות — ללא תכונות חסומות</div></li>
+
+          <li class="group-label g1">מבינים את הברנד</li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>Brand Foundation</strong> — סורק את האתר שלכם, מחלץ צבעים, פונטים, לוגו וקול הברנד<button class="info-btn" type="button">‏<span class="info-tip">סריקה אוטומטית של האתר. ניתוח של עד 12 ציטוטים לזיהוי קול הברנד. אישור או החלפה ידנית של כל אלמנט. ספר מותג מלא ב-PDF — מקור האמת לכל 10 הסוכנים</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">10 סוכני AI מקצועיים מותקנים מהיום הראשון — מבוססים על OpenClaw + Anthropic Claude<button class="info-btn" type="button">‏<span class="info-tip">OpenClaw = מסגרת AI Agents בקוד פתוח (MIT). כל סוכן מבוסס על מודל Claude (Opus 4.7 / Sonnet 4.6 / Haiku 4.5) דרך LiteLLM</span></button></div></li>
+
+          <li class="group-label g2">בונים אסטרטגיה מבוססת דאטה</li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">כלי מחקר מקצועיים זמינים: <strong>DataForSEO</strong>, <strong>Firecrawl</strong>, Search Console<button class="info-btn" type="button">‏<span class="info-tip">DataForSEO = מאות מיליוני שאילתות חיפוש. Firecrawl = סורק אתרי מתחרים אוטומטית. Google Search Console = נתוני SEO רשמיים מגוגל</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>Mazhir Audit</strong> — בדיקת מצב מקיפה לפרסום הממומן שלכם, ב-לחיצה<button class="info-btn" type="button">‏<span class="info-tip">סריקה אוטומטית של מצב Google Ads ו-Meta הקיים: היכן הקליקים מתבזבזים, האם conversions נמדדות נכון, ROI אמיתי לפי ערוץ. דוח כתוב</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">חיבורים מלאים: GA4, GTM, Google Ads, Meta Ads, WhatsApp, Telegram, Gmail, Calendar</div></li>
+
+          <li class="group-label g3">הסוכנים מבצעים — אתם בקרה</li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">Content Agent כותב מאמרי SEO ב-pipeline 4 שלבים<button class="info-btn" type="button">‏<span class="info-tip">Skeleton → 3 Drafts במקביל → QA → Self-critique. כל מאמר עם Schema markup, AI Nuggets, Entity Consensus לאופטימיזציית AI Overview של גוגל</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">Creative Agent מייצר תמונות, וידאו וקריינות עברית<button class="info-btn" type="button">‏<span class="info-tip">fal.ai — flux-2-pro ו-nano-banana-pro לתמונות (הכי טוב לטיפוגרפיה עברית). ElevenLabs eleven_v3 + George voice לקריינות עברית טבעית. כל יצירה עוברת Brand Consistency check</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">אתם מאשרים תוכן ומדיה לפני פרסום — שליטה מלאה</div></li>
+
+          <li class="group-label" style="border-top: 1px solid #E5E7EB; margin-top: 14px; padding-top: 12px;">תנאי שימוש</li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>שרת VPS פרטי</strong> בענן Hetzner — SSL ודומיין ייחודי<button class="info-btn" type="button">‏<span class="info-tip">VPS = שרת פרטי בענן (Hetzner אירופה, GDPR-compliant). לא חולקים אותו עם אחרים. הנתונים שלכם — בידיים שלכם בלבד</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">אתם משלמים ישירות לספקי ה-AI — ללא תוספת אחוזים מצידנו<button class="info-btn" type="button">‏<span class="info-tip">החיוב על השימוש ב-AI (Anthropic, OpenAI, fal.ai, ElevenLabs) הולך ישירות מכרטיס האשראי שלכם לספקים. אנחנו לא לוקחים עמלה. תשלמו רק על מה שבאמת השתמשתם</span></button></div></li>
           <li class="bullet"><span class="check-icon"></span><div class="bullet-text">תמיכה בצ'אט (טלגרם) בימי עסקים</div></li>
+
         </ul>
         <div class="cta-stack">
           <button class="cta cta-line" onclick="window.location.href='/'">התחילו לבד ←</button>
