@@ -94,7 +94,7 @@ const ru: Translations = {
         featuresDescription:
             'Почему стоит попробовать — возможности говорят сами за себя.',
         zeroConfigDescription:
-            "Сэкономьте часы на настройке сервера, OpenClaw и Hermes. Они предустановлены и готовы за минуты.",
+            'Сэкономьте часы на настройке сервера, OpenClaw и Hermes. Они предустановлены и готовы за минуты.',
         ownedDataDescription:
             'Всё работает на вашем устройстве. Никаких облачных серверов, третьих сторон и утечки данных.',
         terminalAccessDescription:
@@ -712,12 +712,14 @@ const ru: Translations = {
         billingReasonSubscriptionUpdate: 'Обновление подписки',
         failedToLoadBilling: 'Не удалось загрузить историю платежей !',
         downloadInvoice: 'Скачать счёт',
-        invoiceCanceledNavigation: 'Загрузка счёта прервана так как вы покинули страницу.',
+        invoiceCanceledNavigation:
+            'Загрузка счёта прервана так как вы покинули страницу.',
         failedToLoadInvoice: 'Не удалось загрузить счёт !',
         couponApplied: 'Купон: {{name}}',
         manageBilling: 'Управление платежами',
         failedToLoadPortal: 'Не удалось открыть платёжный портал !',
-        portalCanceledNavigation: 'Платёжный портал прерван так как вы покинули страницу.'
+        portalCanceledNavigation:
+            'Платёжный портал прерван так как вы покинули страницу.'
     },
     license: {
         title: 'Лицензия',
@@ -869,7 +871,8 @@ const ru: Translations = {
         fileExplorerReadOnly: 'Только чтение',
         fileExplorerSave: 'Сохранить',
         fileExplorerSaved: 'Файл сохранён.',
-        fileExplorerSaveCanceledNavigation: 'Сохранение файла прервано так как вы покинули страницу.',
+        fileExplorerSaveCanceledNavigation:
+            'Сохранение файла прервано так как вы покинули страницу.',
         fileExplorerInvalidJson:
             'Некорректный JSON. Исправьте синтаксические ошибки перед сохранением !',
         fileExplorerNoFiles: 'Файлы не найдены',
@@ -885,7 +888,8 @@ const ru: Translations = {
             'Это полностью переустановит {{agentName}} на этом экземпляре. Все конфигурации, агенты и данные будут сброшены. Это действие нельзя отменить. Продолжить?',
         reinstallInstanceSuccess: 'Экземпляр успешно переустановлен.',
         reinstallInstanceFailed: 'Не удалось переустановить экземпляр !',
-        reinstallCanceledNavigation: 'Переустановка прервана так как вы покинули страницу.',
+        reinstallCanceledNavigation:
+            'Переустановка прервана так как вы покинули страницу.',
         openControlPanel: 'Открыть панель управления',
         exportData: 'Экспорт клоу (.zip)',
         exportAgent: 'Экспорт',
@@ -898,10 +902,14 @@ const ru: Translations = {
             'Подготовка экспорта, это может занять некоторое время...',
         exportSuccess: 'Клоу успешно экспортирован.',
         exportFailed: 'Не удалось экспортировать данные клоу !',
-        exportCanceledNavigation: 'Экспорт отменён так как вы покинули страницу.',
-        scheduleDeletionCanceledNavigation: 'Планирование удаления прервано так как вы покинули страницу.',
-        cancelDeletionCanceledNavigation: 'Отмена удаления прервана так как вы покинули страницу.',
-        hardDeleteCanceledNavigation: 'Принудительное удаление прервано так как вы покинули страницу.',
+        exportCanceledNavigation:
+            'Экспорт отменён так как вы покинули страницу.',
+        scheduleDeletionCanceledNavigation:
+            'Планирование удаления прервано так как вы покинули страницу.',
+        cancelDeletionCanceledNavigation:
+            'Отмена удаления прервана так как вы покинули страницу.',
+        hardDeleteCanceledNavigation:
+            'Принудительное удаление прервано так как вы покинули страницу.',
         exportRateLimited:
             'Вы сможете экспортировать снова через {{minutes}} минут.',
         exportRateLimitedOne: 'Вы сможете экспортировать снова через 1 минуту.',
@@ -1065,6 +1073,9 @@ const ru: Translations = {
         badge: 'OpenClaw — просто',
         tutorialBadge: 'Смотрите. Разворачивайте.',
         tutorialVideoThumbnail: 'Миниатюра обучающего видео ClawHost',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: 'Развернуть OpenClaw.',
         heroTitle2: 'Один клик. Готово.',
         heroDescription:
@@ -1159,7 +1170,7 @@ const ru: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'Выбрать план',
         mostPopular: 'Самый популярный',
-        featurePreinstalled: "Агент предустановлен",
+        featurePreinstalled: 'Агент предустановлен',
         featureBandwidth: 'Безлимитная пропускная способность',
         featureSsh: 'Root SSH доступ',
         featureUptime: 'Онлайн 24/7',
@@ -1172,29 +1183,30 @@ const ru: Translations = {
         faqDescription: 'Каждый часто задаваемый вопрос — с ответом.',
         faq1Question: 'Что такое ClawHost?',
         faq1Answer:
-            "ClawHost — это платформа, которая делает OpenClaw и Hermes доступными для всех. Она позволяет как нетехническим пользователям, так и разработчикам запускать их без управления инфраструктурой. Мы берём на себя серверы, аптайм, безопасность и обслуживание — а вы просто используете своих агентов.",
+            'ClawHost — это платформа, которая делает OpenClaw и Hermes доступными для всех. Она позволяет как нетехническим пользователям, так и разработчикам запускать их без управления инфраструктурой. Мы берём на себя серверы, аптайм, безопасность и обслуживание — а вы просто используете своих агентов.',
         faq2Question: 'Что такое OpenClaw?',
         faq2Answer:
             'OpenClaw — это самостоятельно размещаемый безопасный уровень доступа к вашим ИИ-инструментам и сервисам. Он предварительно настроен для безопасности и производительности, поэтому вы можете развернуть его и подключиться мгновенно.',
-        faqHermesQuestion: "Что такое Hermes?",
+        faqHermesQuestion: 'Что такое Hermes?',
         faqHermesAnswer:
-            "Hermes — это автономный ИИ-агент с веб-просмотром, управлением календарём, мультимодельным рассуждением и автоматизацией браузера. Он предустановлен вместе с OpenClaw на каждом сервере ClawHost.",
+            'Hermes — это автономный ИИ-агент с веб-просмотром, управлением календарём, мультимодельным рассуждением и автоматизацией браузера. Он предустановлен вместе с OpenClaw на каждом сервере ClawHost.',
         faq3Question:
             'Чем это отличается от других ИИ-инструментов или хостинговых платформ?',
         faq3Answer:
-            "В отличие от хостинговых ИИ-инструментов, ClawHost предоставляет вам настоящий сервер с установленными OpenClaw и Hermes. Вы владеете инфраструктурой, контролируете всё и не ограничены общей платформой или моделью.",
+            'В отличие от хостинговых ИИ-инструментов, ClawHost предоставляет вам настоящий сервер с установленными OpenClaw и Hermes. Вы владеете инфраструктурой, контролируете всё и не ограничены общей платформой или моделью.',
         faq4Question: 'Нужны ли технические знания?',
         faq4Answer:
-            "Нет. Мы берём на себя всю инфраструктуру, установку и обслуживание. OpenClaw настраивается и управляется через интерфейс, а Hermes работает через простые команды терминала — без необходимости касаться серверов или инфраструктуры.",
+            'Нет. Мы берём на себя всю инфраструктуру, установку и обслуживание. OpenClaw настраивается и управляется через интерфейс, а Hermes работает через простые команды терминала — без необходимости касаться серверов или инфраструктуры.',
         faq5Question: 'Какие локации доступны?',
         faq5Answer:
-            "Мы предлагаем серверы по всему миру, включая США, Европу и Азию. При необходимости вы можете развернуть OpenClaw или Hermes на нескольких серверах в разных регионах.",
+            'Мы предлагаем серверы по всему миру, включая США, Европу и Азию. При необходимости вы можете развернуть OpenClaw или Hermes на нескольких серверах в разных регионах.',
         faq6Question: 'Сколько это стоит?',
         faq6Answer:
             'Цены зависят от выбранного сервера. С несколькими вариантами серверов от начального уровня до высокопроизводительных вы выбираете то, что соответствует вашим потребностям и бюджету.',
-        faq7Question: "Можно ли получить доступ к моему агенту напрямую по ссылке?",
+        faq7Question:
+            'Можно ли получить доступ к моему агенту напрямую по ссылке?',
         faq7Answer:
-            "OpenClaw доступен по URL поддомена с полным веб-интерфейсом. Hermes работает через команды терминала по SSH — ссылки нет, но полный контроль через терминал вашего сервера.",
+            'OpenClaw доступен по URL поддомена с полным веб-интерфейсом. Hermes работает через команды терминала по SSH — ссылки нет, но полный контроль через терминал вашего сервера.',
         comparison: 'Сравнение',
         comparisonTitle: 'Чем мы отличаемся',
         comparisonDescription:
@@ -1212,11 +1224,11 @@ const ru: Translations = {
         comparisonInfraOthers: 'Ограниченные серверы',
         comparisonDataUs: 'Владейте своими данными',
         comparisonDataOthers: 'Вы не владеете данными',
-        comparisonMultipleUs: "Несколько агентов OpenClaw и Hermes",
+        comparisonMultipleUs: 'Несколько агентов OpenClaw и Hermes',
         comparisonMultipleOthers: 'Только один OpenClaw',
         comparisonOpenSourceUs: 'Полностью открытый код',
         comparisonOpenSourceOthers: 'Закрытый код',
-        comparisonExportUs: "Экспортируйте OpenClaw и Hermes куда угодно",
+        comparisonExportUs: 'Экспортируйте OpenClaw и Hermes куда угодно',
         comparisonExportOthers: 'Привязка к вендору',
         comparisonProvidersUs: 'Несколько серверных провайдеров',
         comparisonProvidersOthers: 'Только один провайдер',
@@ -1231,10 +1243,10 @@ const ru: Translations = {
     },
     blog: {
         readingTime: '{{minutes}} мин чтения',
-        ctaTitle: "Разверните OpenClaw и Hermes одним кликом",
+        ctaTitle: 'Разверните OpenClaw и Hermes одним кликом',
         ctaDescription:
-            "Получите выделенный сервер с предустановленными OpenClaw и Hermes. Полный root-доступ, глобальные локации и готовность за минуты. Он ваш всегда. От 25 $.",
-        ctaDeploy: "Развернуть агента",
+            'Получите выделенный сервер с предустановленными OpenClaw и Hermes. Полный root-доступ, глобальные локации и готовность за минуты. Он ваш всегда. От 25 $.',
+        ctaDeploy: 'Развернуть агента',
         ctaGitHub: 'Смотреть на GitHub'
     },
     changelog: {
@@ -1486,7 +1498,8 @@ const ru: Translations = {
         previewEnabling: 'Включение...',
         previewEnabled: 'Предпросмотр включен.',
         previewEnableFailed: 'Не удалось включить предпросмотр!',
-        previewEnableCanceledNavigation: 'Включение предпросмотра прервано так как вы покинули страницу.',
+        previewEnableCanceledNavigation:
+            'Включение предпросмотра прервано так как вы покинули страницу.',
         previewError: 'Не удалось загрузить предпросмотр.',
         previewErrorDescription: 'Агент может быть офлайн или недоступен.',
         previewRetry: 'Повторить',
@@ -1624,7 +1637,8 @@ const ru: Translations = {
         versionInstalling: 'Установка...',
         versionInstallSuccess: 'Версия {{version}} успешно установлена.',
         versionInstallFailed: 'Не удалось установить версию !',
-        installVersionCanceledNavigation: 'Установка версии прервана так как вы покинули страницу.',
+        installVersionCanceledNavigation:
+            'Установка версии прервана так как вы покинули страницу.',
         versionDownloads: '{{count}} загрузок',
         versionChangelog: 'Журнал изменений',
         versionOutdated: 'Устаревшая',
@@ -1661,10 +1675,14 @@ const ru: Translations = {
         settingsSaving: 'Сохранение...',
         settingsUpdated: 'Настройки обновлены.',
         settingsUpdateFailed: 'Не удалось обновить настройки!',
-        saveCanceledNavigation: 'Сохранение прервано так как вы покинули страницу.',
-        savePasswordCanceledNavigation: 'Сохранение пароля прервано так как вы покинули страницу.',
-        saveGatewayTokenCanceledNavigation: 'Сохранение токена шлюза прервано так как вы покинули страницу.',
-        saveSSHKeyCanceledNavigation: 'Сохранение SSH-ключа прервано так как вы покинули страницу.',
+        saveCanceledNavigation:
+            'Сохранение прервано так как вы покинули страницу.',
+        savePasswordCanceledNavigation:
+            'Сохранение пароля прервано так как вы покинули страницу.',
+        saveGatewayTokenCanceledNavigation:
+            'Сохранение токена шлюза прервано так как вы покинули страницу.',
+        saveSSHKeyCanceledNavigation:
+            'Сохранение SSH-ключа прервано так как вы покинули страницу.',
         mockLogStarting: 'Запуск агента OpenClaw...',
         mockLogLoadingModel: 'Загрузка модели: claude-sonnet-4-5',
         mockLogAgentReady: 'Агент готов на порту 3000',
@@ -1759,7 +1777,7 @@ const ru: Translations = {
             'Получая доступ и используя ClawHost («Сервис»), вы принимаете и соглашаетесь соблюдать условия и положения данного соглашения. Если вы не согласны с этими условиями, пожалуйста, не используйте наш Сервис.',
         serviceTitle: '2. Описание Сервиса',
         serviceText:
-            "ClawHost обеспечивает развёртывание OpenClaw и Hermes в один клик на выделенных серверах. Мы позволяем пользователям разворачивать, управлять и получать доступ к предварительно настроенным экземплярам OpenClaw и Hermes с полным root-доступом и выделенными ресурсами.",
+            'ClawHost обеспечивает развёртывание OpenClaw и Hermes в один клик на выделенных серверах. Мы позволяем пользователям разворачивать, управлять и получать доступ к предварительно настроенным экземплярам OpenClaw и Hermes с полным root-доступом и выделенными ресурсами.',
         authTitle: '3. Аутентификация',
         authText:
             'ClawHost использует Google Firebase Authentication для управления входом. Вы можете аутентифицироваться через email, Google или GitHub. Используя эти методы, вы соглашаетесь с соответствующими условиями и политиками конфиденциальности Google и GitHub. Эти провайдеры могут собирать базовую информацию, такую как адрес электронной почты, имя и данные устройства.',

@@ -3,7 +3,7 @@ import type { FeatureEmailDefinition } from '@/ts/Interfaces'
 import { t } from '@openclaw/i18n'
 import { featureEmailKey } from '@/lib/constants'
 
-import { 
+import {
     TerminalEmail,
     LogsEmail,
     FileExplorerEmail,

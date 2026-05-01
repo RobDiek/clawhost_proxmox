@@ -12,6 +12,7 @@ import billingInterval from '#shared/billingInterval'
 import goLicense from '#shared/goLicense'
 import INPUT_VALIDATION_LENGTH from '#shared/inputValidation'
 import { networkStatus } from '#shared/networkStatus'
+import { subscriptionStatus } from '#shared/subscriptionStatus'
 import userRole from '#shared/userRole'
 import { PLANS, YEARLY_PAID_MONTHS } from '#shared/plans'
 import {
@@ -37,6 +38,7 @@ export {
     goLicense,
     INPUT_VALIDATION_LENGTH as inputValidation,
     networkStatus,
+    subscriptionStatus,
     userRole,
     isFeatureSupported,
     isVersionSupported,

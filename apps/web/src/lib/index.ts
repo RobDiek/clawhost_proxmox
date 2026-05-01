@@ -18,7 +18,11 @@ import copyToClipboard from '@/lib/copyToClipboard'
 import reportWebVitals from '@/lib/reportWebVitals'
 import isSafeRedirectUrl from '@/lib/isSafeRedirectUrl'
 import handleAbortToast from '@/lib/handleAbortToast'
-import { formatDate, formatCurrency, formatCompactNumber } from '@/lib/formatters'
+import {
+    formatDate,
+    formatCurrency,
+    formatCompactNumber
+} from '@/lib/formatters'
 
 export {
     api,

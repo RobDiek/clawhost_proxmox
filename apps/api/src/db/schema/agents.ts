@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, index } from 'drizzle-orm/pg-core'
+import { subscriptionStatus } from '@openclaw/shared'
 import users from '@/db/schema/users'
 import sshKeys from '@/db/schema/sshKeys'
 
@@ -28,7 +29,9 @@ const agents = pgTable(
         polarSubscriptionId: text('polar_subscription_id').unique(),
         polarProductId: text('polar_product_id'),
         polarCustomerId: text('polar_customer_id'),
-        subscriptionStatus: text('subscription_status').default('pending'),
+        subscriptionStatus: text('subscription_status').default(
+            subscriptionStatus.pending
+        ),
         billingInterval: text('billing_interval'),
         deletionScheduledAt: timestamp('deletion_scheduled_at', {
             withTimezone: true

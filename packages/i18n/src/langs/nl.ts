@@ -94,7 +94,7 @@ const nl: Translations = {
         featuresDescription:
             'Waarom we het proberen waard zijn, functies liegen hier niet.',
         zeroConfigDescription:
-            "Bespaar uren server-, OpenClaw- en Hermes-installatie. Alles is voorgeïnstalleerd en binnen enkele minuten klaar.",
+            'Bespaar uren server-, OpenClaw- en Hermes-installatie. Alles is voorgeïnstalleerd en binnen enkele minuten klaar.',
         ownedDataDescription:
             'Alles draait op jouw apparaat. Geen cloudservers, geen derden, geen gegevens die je apparaat verlaten.',
         terminalAccessDescription:
@@ -721,12 +721,14 @@ const nl: Translations = {
         billingReasonSubscriptionUpdate: 'Abonnementswijziging',
         failedToLoadBilling: 'Factureringsgeschiedenis laden mislukt!',
         downloadInvoice: 'Factuur downloaden',
-        invoiceCanceledNavigation: 'Factuurdownload onderbroken omdat je de pagina hebt verlaten.',
+        invoiceCanceledNavigation:
+            'Factuurdownload onderbroken omdat je de pagina hebt verlaten.',
         failedToLoadInvoice: 'Factuur laden mislukt!',
         couponApplied: 'Coupon: {{name}}',
         manageBilling: 'Facturering beheren',
         failedToLoadPortal: 'Factureringsportaal openen mislukt!',
-        portalCanceledNavigation: 'Factureringsportaal onderbroken omdat je de pagina hebt verlaten.'
+        portalCanceledNavigation:
+            'Factureringsportaal onderbroken omdat je de pagina hebt verlaten.'
     },
     license: {
         title: 'Licentie',
@@ -881,7 +883,8 @@ const nl: Translations = {
         fileExplorerReadOnly: 'Alleen-lezen',
         fileExplorerSave: 'Opslaan',
         fileExplorerSaved: 'Bestand opgeslagen.',
-        fileExplorerSaveCanceledNavigation: 'Bestand opslaan onderbroken omdat je de pagina hebt verlaten.',
+        fileExplorerSaveCanceledNavigation:
+            'Bestand opslaan onderbroken omdat je de pagina hebt verlaten.',
         fileExplorerInvalidJson:
             'Ongeldige JSON. Herstel syntaxfouten voordat je opslaat!',
         fileExplorerNoFiles: 'Geen bestanden gevonden',
@@ -898,7 +901,8 @@ const nl: Translations = {
             'Dit zal {{agentName}} volledig herinstalleren op deze instantie. Alle configuraties, agents en gegevens worden gereset. Deze actie kan niet ongedaan worden gemaakt. Doorgaan?',
         reinstallInstanceSuccess: 'Instantie succesvol geherinstalleerd.',
         reinstallInstanceFailed: 'Instantie herinstalleren mislukt!',
-        reinstallCanceledNavigation: 'Herinstallatie onderbroken omdat je de pagina hebt verlaten.',
+        reinstallCanceledNavigation:
+            'Herinstallatie onderbroken omdat je de pagina hebt verlaten.',
         openControlPanel: 'Configuratiepaneel openen',
         exportData: 'Claw exporteren (.zip)',
         exportAgent: 'Exporteren',
@@ -910,10 +914,14 @@ const nl: Translations = {
         exportStarted: 'Export wordt voorbereid, dit kan even duren...',
         exportSuccess: 'Claw succesvol ge\u00ebxporteerd.',
         exportFailed: 'Claw-gegevens exporteren mislukt!',
-        exportCanceledNavigation: 'Export geannuleerd omdat je de pagina hebt verlaten.',
-        scheduleDeletionCanceledNavigation: 'Geplande verwijdering onderbroken omdat je de pagina hebt verlaten.',
-        cancelDeletionCanceledNavigation: 'Annulering van verwijdering onderbroken omdat je de pagina hebt verlaten.',
-        hardDeleteCanceledNavigation: 'Geforceerde verwijdering onderbroken omdat je de pagina hebt verlaten.',
+        exportCanceledNavigation:
+            'Export geannuleerd omdat je de pagina hebt verlaten.',
+        scheduleDeletionCanceledNavigation:
+            'Geplande verwijdering onderbroken omdat je de pagina hebt verlaten.',
+        cancelDeletionCanceledNavigation:
+            'Annulering van verwijdering onderbroken omdat je de pagina hebt verlaten.',
+        hardDeleteCanceledNavigation:
+            'Geforceerde verwijdering onderbroken omdat je de pagina hebt verlaten.',
         exportRateLimited:
             'Je kunt opnieuw exporteren over {{minutes}} minuten.',
         exportRateLimitedOne: 'Je kunt opnieuw exporteren over 1 minuut.',
@@ -1079,6 +1087,9 @@ const nl: Translations = {
         badge: 'OpenClaw vereenvoudigd',
         tutorialBadge: 'Bekijk. Deploy.',
         tutorialVideoThumbnail: 'ClawHost handleiding videominiatuur',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: 'Implementeer OpenClaw.',
         heroTitle2: 'E\u00e9n klik. Klaar.',
         heroDescription:
@@ -1173,7 +1184,7 @@ const nl: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'Plan kiezen',
         mostPopular: 'Meest populair',
-        featurePreinstalled: "Agent vooraf geïnstalleerd",
+        featurePreinstalled: 'Agent vooraf geïnstalleerd',
         featureBandwidth: 'Onbeperkte bandbreedte',
         featureSsh: 'Root SSH-toegang',
         featureUptime: '24/7 online',
@@ -1186,29 +1197,29 @@ const nl: Translations = {
         faqDescription: 'Elke veelgestelde vraag, beantwoord.',
         faq1Question: 'Wat is ClawHost?',
         faq1Answer:
-            "ClawHost is een platform dat OpenClaw en Hermes voor iedereen toegankelijk maakt. Zowel niet-technische gebruikers als ontwikkelaars kunnen ze draaien zonder infrastructuur te beheren. Wij regelen servers, uptime, beveiliging en onderhoud — jij gebruikt gewoon je agents.",
+            'ClawHost is een platform dat OpenClaw en Hermes voor iedereen toegankelijk maakt. Zowel niet-technische gebruikers als ontwikkelaars kunnen ze draaien zonder infrastructuur te beheren. Wij regelen servers, uptime, beveiliging en onderhoud — jij gebruikt gewoon je agents.',
         faq2Question: 'Wat is OpenClaw?',
         faq2Answer:
             'OpenClaw is een zelfgehoste beveiligde toegangslaag voor je AI-tools en -diensten. Het is voorgeconfigureerd voor beveiliging en prestaties, zodat je het kunt deployen en direct kunt verbinden.',
-        faqHermesQuestion: "Wat is Hermes?",
+        faqHermesQuestion: 'Wat is Hermes?',
         faqHermesAnswer:
-            "Hermes is een autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering. Hij is op elke ClawHost-server vooraf geïnstalleerd naast OpenClaw.",
+            'Hermes is een autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering. Hij is op elke ClawHost-server vooraf geïnstalleerd naast OpenClaw.',
         faq3Question:
             'Hoe verschilt dit van andere AI-tools of gehoste platforms?',
         faq3Answer:
-            "In tegenstelling tot gehoste AI-tools krijg je met ClawHost een echte server met OpenClaw en Hermes geïnstalleerd. Je bezit de infrastructuur, beheert alles en wordt niet beperkt door een gedeeld platform of model.",
+            'In tegenstelling tot gehoste AI-tools krijg je met ClawHost een echte server met OpenClaw en Hermes geïnstalleerd. Je bezit de infrastructuur, beheert alles en wordt niet beperkt door een gedeeld platform of model.',
         faq4Question: 'Heb ik technische kennis nodig?',
         faq4Answer:
-            "Nee. Wij regelen alle infrastructuur, installatie en onderhoud. Je kunt OpenClaw via de UI configureren en beheren, terwijl Hermes via eenvoudige terminalcommando’s draait — zonder zelf servers of infrastructuur aan te raken.",
+            'Nee. Wij regelen alle infrastructuur, installatie en onderhoud. Je kunt OpenClaw via de UI configureren en beheren, terwijl Hermes via eenvoudige terminalcommando’s draait — zonder zelf servers of infrastructuur aan te raken.',
         faq5Question: 'Welke locaties zijn beschikbaar?',
         faq5Answer:
             "We bieden meerdere serverlocaties wereldwijd, waaronder de VS, Europa en meer. Je kunt OpenClaw indien nodig op meerdere servers in verschillende regio's implementeren.",
         faq6Question: 'Hoeveel kost het?',
         faq6Answer:
             'De prijzen zijn afhankelijk van de server die je selecteert. Met meerdere serveropties van instapniveau tot hoge prestaties kies je wat past bij je behoeften en budget.',
-        faq7Question: "Kan ik mijn agent direct via een link benaderen?",
+        faq7Question: 'Kan ik mijn agent direct via een link benaderen?',
         faq7Answer:
-            "OpenClaw is bereikbaar via een subdomein-URL met volledige web-UI. Hermes draait via terminalcommando’s over SSH — geen link, maar volledige controle vanuit het terminal van je server.",
+            'OpenClaw is bereikbaar via een subdomein-URL met volledige web-UI. Hermes draait via terminalcommando’s over SSH — geen link, maar volledige controle vanuit het terminal van je server.',
         comparison: 'Vergelijking',
         comparisonTitle: 'Hoe wij anders zijn',
         comparisonDescription:
@@ -1227,11 +1238,11 @@ const nl: Translations = {
         comparisonInfraOthers: 'Beperkte servers',
         comparisonDataUs: 'Bezit je eigen data',
         comparisonDataOthers: 'Bezit je data niet',
-        comparisonMultipleUs: "Meerdere OpenClaw- en Hermes-agents",
+        comparisonMultipleUs: 'Meerdere OpenClaw- en Hermes-agents',
         comparisonMultipleOthers: 'Alleen \u00e9\u00e9n OpenClaw',
         comparisonOpenSourceUs: 'Volledig open source',
         comparisonOpenSourceOthers: 'Gesloten broncode',
-        comparisonExportUs: "Exporteer OpenClaw en Hermes overal",
+        comparisonExportUs: 'Exporteer OpenClaw en Hermes overal',
         comparisonExportOthers: 'Vendorlock-in',
         comparisonProvidersUs: 'Meerdere serverproviders',
         comparisonProvidersOthers: 'Slechts \u00e9\u00e9n provider',
@@ -1246,10 +1257,10 @@ const nl: Translations = {
     },
     blog: {
         readingTime: '{{minutes}} min leestijd',
-        ctaTitle: "Deploy OpenClaw en Hermes met één klik",
+        ctaTitle: 'Deploy OpenClaw en Hermes met één klik',
         ctaDescription:
-            "Krijg een dedicated server met OpenClaw en Hermes vooraf geïnstalleerd. Volledige root-toegang, wereldwijde locaties en klaar in minuten. Hij is altijd van jou. Vanaf $25.",
-        ctaDeploy: "Agent deployen",
+            'Krijg een dedicated server met OpenClaw en Hermes vooraf geïnstalleerd. Volledige root-toegang, wereldwijde locaties en klaar in minuten. Hij is altijd van jou. Vanaf $25.',
+        ctaDeploy: 'Agent deployen',
         ctaGitHub: 'Bekijk op GitHub'
     },
     changelog: {
@@ -1506,7 +1517,8 @@ const nl: Translations = {
         previewEnabling: 'Inschakelen...',
         previewEnabled: 'Voorbeeld ingeschakeld.',
         previewEnableFailed: 'Voorbeeld inschakelen mislukt!',
-        previewEnableCanceledNavigation: 'Voorbeeld inschakelen onderbroken omdat je de pagina hebt verlaten.',
+        previewEnableCanceledNavigation:
+            'Voorbeeld inschakelen onderbroken omdat je de pagina hebt verlaten.',
         previewError: 'Voorbeeld kon niet worden geladen.',
         previewErrorDescription:
             'De agent is mogelijk offline of onbereikbaar.',
@@ -1646,7 +1658,8 @@ const nl: Translations = {
         versionInstallSuccess:
             'Versie {{version}} succesvol ge\u00efnstalleerd.',
         versionInstallFailed: 'Versie installeren mislukt!',
-        installVersionCanceledNavigation: 'Versie-installatie onderbroken omdat je de pagina hebt verlaten.',
+        installVersionCanceledNavigation:
+            'Versie-installatie onderbroken omdat je de pagina hebt verlaten.',
         versionDownloads: '{{count}} downloads',
         versionChangelog: 'Changelog',
         versionOutdated: 'Verouderd',
@@ -1683,10 +1696,14 @@ const nl: Translations = {
         settingsSaving: 'Opslaan...',
         settingsUpdated: 'Instellingen bijgewerkt.',
         settingsUpdateFailed: 'Instellingen bijwerken mislukt!',
-        saveCanceledNavigation: 'Opslaan onderbroken omdat je de pagina hebt verlaten.',
-        savePasswordCanceledNavigation: 'Wachtwoord opslaan onderbroken omdat je de pagina hebt verlaten.',
-        saveGatewayTokenCanceledNavigation: 'Gateway-token opslaan onderbroken omdat je de pagina hebt verlaten.',
-        saveSSHKeyCanceledNavigation: 'SSH-sleutel opslaan onderbroken omdat je de pagina hebt verlaten.',
+        saveCanceledNavigation:
+            'Opslaan onderbroken omdat je de pagina hebt verlaten.',
+        savePasswordCanceledNavigation:
+            'Wachtwoord opslaan onderbroken omdat je de pagina hebt verlaten.',
+        saveGatewayTokenCanceledNavigation:
+            'Gateway-token opslaan onderbroken omdat je de pagina hebt verlaten.',
+        saveSSHKeyCanceledNavigation:
+            'SSH-sleutel opslaan onderbroken omdat je de pagina hebt verlaten.',
         mockLogStarting: 'OpenClaw-agent starten...',
         mockLogLoadingModel: 'Model laden: claude-sonnet-4-5',
         mockLogAgentReady: 'Agent gereed op poort 3000',
@@ -1779,7 +1796,7 @@ const nl: Translations = {
             'Door ClawHost ("Service") te openen en te gebruiken, accepteer je en ga je akkoord met de voorwaarden en bepalingen van deze overeenkomst. Als je niet akkoord gaat met deze voorwaarden, gebruik onze Service dan niet.',
         serviceTitle: '2. Beschrijving van de Service',
         serviceText:
-            "ClawHost biedt one-click deployment van OpenClaw en Hermes op dedicated servers. We stellen gebruikers in staat om vooraf geconfigureerde OpenClaw- en Hermes-instanties met volledige root-toegang en dedicated resources te deployen, beheren en benaderen.",
+            'ClawHost biedt one-click deployment van OpenClaw en Hermes op dedicated servers. We stellen gebruikers in staat om vooraf geconfigureerde OpenClaw- en Hermes-instanties met volledige root-toegang en dedicated resources te deployen, beheren en benaderen.',
         authTitle: '3. Authenticatie',
         authText:
             'ClawHost gebruikt Google Firebase Authentication om inloggen te beheren. Je kunt authenticeren met e-mail, Google of GitHub. Door deze methoden te gebruiken, ga je akkoord met de respectieve voorwaarden en het privacybeleid van Google en GitHub. Deze providers kunnen basisinformatie verzamelen zoals je e-mailadres, naam en apparaatgegevens.',

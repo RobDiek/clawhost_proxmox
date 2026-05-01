@@ -26,13 +26,16 @@ const SecuritySSHKeySection: FC<SecuritySSHKeySectionProps> = ({
     const toast = useToast()
     const { showToast } = useUIStore()
     const getSignal = useAbortController()
-    const [selectedKeyId, setSelectedKeyId] = useState<string>(sshKeyId || 'none')
+    const [selectedKeyId, setSelectedKeyId] = useState<string>(
+        sshKeyId || 'none'
+    )
 
     const hasChanged = selectedKeyId !== (sshKeyId || 'none')
 
-    const selectedKey = selectedKeyId !== 'none'
-        ? sshKeys.find((k) => k.id === selectedKeyId)
-        : null
+    const selectedKey =
+        selectedKeyId !== 'none'
+            ? sshKeys.find((k) => k.id === selectedKeyId)
+            : null
 
     const handleSave = () => {
         const newKeyId = selectedKeyId === 'none' ? null : selectedKeyId

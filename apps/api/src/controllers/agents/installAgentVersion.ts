@@ -16,6 +16,7 @@ import {
 } from '@/controllers/agents/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
+import { gatewayDefaults } from '@/lib/constants'
 
 const VERSION_REGEX = /^[a-zA-Z0-9._-]+$/
 const OUTDATED_CUTOFF = new Date('2026-02-01')
@@ -52,7 +53,7 @@ const buildNpmInstallCommands = async (
         nginxPatch,
         `systemctl restart ${serviceName}`,
         'sleep 15',
-        'curl -sf -o /dev/null --max-time 5 http://127.0.0.1:18789 && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"'
+        `curl -sf -o /dev/null --max-time 5 ${gatewayDefaults.BASE_URL} && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"`
     ].join(' && ')
 }
 

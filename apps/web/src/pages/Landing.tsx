@@ -203,9 +203,7 @@ const Landing: FC = (): ReactNode => {
             />
 
             <main>
-                <section
-                    className='relative overflow-hidden px-6 pb-16 pt-32'
-                >
+                <section className='relative overflow-hidden px-6 pb-16 pt-32'>
                     <div className='landing-grid pointer-events-none' />
 
                     <div className='animate-hero-fade-in relative mx-auto max-w-6xl'>
@@ -294,7 +292,9 @@ const Landing: FC = (): ReactNode => {
                         {
                             icon: KeyIcon,
                             title: t('landing.bringYourCredits'),
-                            description: t('landing.bringYourCreditsDescription')
+                            description: t(
+                                'landing.bringYourCreditsDescription'
+                            )
                         },
                         {
                             icon: LinkIcon,
@@ -331,9 +331,7 @@ const Landing: FC = (): ReactNode => {
                     ]}
                 />
 
-                <PricingSection
-                    plans={plans}
-                />
+                <PricingSection plans={plans} />
 
                 <ComparisonTable
                     badge={t('landing.comparison')}

@@ -8,11 +8,7 @@ import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
 import { useNetworkStatus } from '@/hooks'
 import { ROUTES } from '@/lib'
-import {
-    Logo,
-    NetworkStatus,
-    PageTitle
-} from '@/components'
+import { Logo, NetworkStatus, PageTitle } from '@/components'
 import { CircleNotchIcon } from '@phosphor-icons/react'
 import EmailStep from '@/pages/Login/EmailStep'
 import OtpCodeStep from '@/pages/Login/OtpCodeStep'

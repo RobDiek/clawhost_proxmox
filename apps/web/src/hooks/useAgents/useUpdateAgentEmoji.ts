@@ -8,7 +8,12 @@ const useUpdateAgentEmoji = () => {
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: ({ id, emoji, emojiColor, signal }: UpdateAgentEmojiMutationParams) =>
+        mutationFn: ({
+            id,
+            emoji,
+            emojiColor,
+            signal
+        }: UpdateAgentEmojiMutationParams) =>
             api.updateAgentEmoji(id, emoji, emojiColor, signal),
         onSuccess: (updatedAgent, { id }) => {
             updateAgentInCaches(queryClient, id, updatedAgent)

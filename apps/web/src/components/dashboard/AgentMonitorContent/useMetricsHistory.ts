@@ -1,4 +1,8 @@
-import type { AgentMetricsResponse, MetricsHistoryPoint } from '@/ts/Interfaces'
+import type {
+    AgentMetricsResponse,
+    MetricsHistoryPoint,
+    UseMetricsHistoryReturn
+} from '@/ts/Interfaces'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 
@@ -6,10 +10,7 @@ const HISTORY_SIZE = 60
 
 const useMetricsHistory = (
     data: AgentMetricsResponse | undefined
-): {
-    cpuHistory: MetricsHistoryPoint[]
-    memHistory: MetricsHistoryPoint[]
-} => {
+): UseMetricsHistoryReturn => {
     const cpuHistoryRef = useRef<MetricsHistoryPoint[]>([])
     const memHistoryRef = useRef<MetricsHistoryPoint[]>([])
     const lastCpuRef = useRef<number | null>(null)

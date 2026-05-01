@@ -57,7 +57,7 @@ const V2: FC = (): ReactNode => {
     const baseVideoRef = useRef<HTMLVideoElement>(null)
     const ditherVideoRef = useRef<HTMLVideoElement>(null)
     const heroSectionRef = useRef<HTMLElement>(null)
-    
+
     useVideoSync(baseVideoRef, ditherVideoRef)
     useGridFade()
 
@@ -76,7 +76,7 @@ const V2: FC = (): ReactNode => {
                 description={t('v2.description')}
                 url={`https://${getBaseDomain()}/v2`}
             />
-            
+
             <JsonLd
                 data={{
                     '@context': 'https://schema.org',
@@ -91,10 +91,7 @@ const V2: FC = (): ReactNode => {
             <div className='v2-grid pointer-events-none' />
             <div className='v2-gradient pointer-events-none absolute inset-x-0 top-0 h-screen' />
 
-            <HeaderV2
-                showNavLinks={true}
-                navLinks={navLinks}
-            />
+            <HeaderV2 showNavLinks={true} navLinks={navLinks} />
 
             <main className='v2-content'>
                 <section
@@ -115,7 +112,7 @@ const V2: FC = (): ReactNode => {
                     </video>
                     <video
                         ref={ditherVideoRef}
-                        className='v2-hover-video absolute inset-0 h-full w-full -translate-y-[20%] object-cover brightness-125 contrast-110'
+                        className='v2-hover-video contrast-110 absolute inset-0 h-full w-full -translate-y-[20%] object-cover brightness-125'
                         autoPlay
                         muted
                         loop
@@ -130,7 +127,9 @@ const V2: FC = (): ReactNode => {
                         <div
                             className='pointer-events-auto mx-auto w-full max-w-6xl px-4 xl:px-0'
                             onMouseMove={(e) => e.stopPropagation()}
-                            onMouseEnter={() => resetDither(heroSectionRef.current)}
+                            onMouseEnter={() =>
+                                resetDither(heroSectionRef.current)
+                            }
                         >
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -146,7 +145,7 @@ const V2: FC = (): ReactNode => {
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.8, delay: 0.4 }}
-                                className='mb-6 font-syne text-4xl font-bold uppercase leading-[0.95] tracking-tight text-white/90 md:text-6xl lg:text-[4.2rem]'
+                                className='font-syne mb-6 text-4xl font-bold uppercase leading-[0.95] tracking-tight text-white/90 md:text-6xl lg:text-[4.2rem]'
                             >
                                 {t('v2.heroTitle1')}{' '}
                                 <span className='font-extrabold italic text-[#6B5CE7]'>
@@ -180,18 +179,22 @@ const V2: FC = (): ReactNode => {
                                         rel='noopener noreferrer'
                                         className='pointer-events-auto inline-flex items-center gap-2 border border-white/20 bg-white/5 px-6 py-3 font-mono text-xs tracking-[0.1em] text-white/70 transition-colors hover:bg-white/10'
                                     >
-                                        <GithubLogoIcon className='h-3.5 w-3.5' weight='fill' />
+                                        <GithubLogoIcon
+                                            className='h-3.5 w-3.5'
+                                            weight='fill'
+                                        />
                                         {t('v2.selfHostLabel').toUpperCase()}
                                         {gitHubStars && (
-                                            <span className='bg-white/10 flex items-center gap-1 px-2 py-0.5 text-[10px]'>
+                                            <span className='flex items-center gap-1 bg-white/10 px-2 py-0.5 text-[10px]'>
                                                 {animatedStars}
-                                                <span className='text-[10px]'>★</span>
+                                                <span className='text-[10px]'>
+                                                    ★
+                                                </span>
                                             </span>
                                         )}
                                     </a>
                                 </div>
                             </motion.div>
-
                         </div>
                     </div>
                 </section>
@@ -205,7 +208,10 @@ const V2: FC = (): ReactNode => {
                             className='relative z-[15] grid grid-cols-2 border border-white/10 md:grid-cols-5'
                         >
                             {getV2Stats().map((stat, i) => (
-                                <div key={i} className='border-white/10 bg-[#0c0c12] p-5 [&:not(:last-child)]:border-r'>
+                                <div
+                                    key={i}
+                                    className='border-white/10 bg-[#0c0c12] p-5 [&:not(:last-child)]:border-r'
+                                >
                                     <div className='font-syne text-2xl font-bold text-white md:text-3xl'>
                                         {stat.value}
                                     </div>
@@ -218,7 +224,10 @@ const V2: FC = (): ReactNode => {
                     </div>
                 </div>
 
-                <section id='agents' className='v2-section relative scroll-mt-24 border-t border-white/[0.025] px-6 py-24'>
+                <section
+                    id='agents'
+                    className='v2-section relative scroll-mt-24 border-t border-white/[0.025] px-6 py-24'
+                >
                     <div className='mx-auto max-w-6xl'>
                         <ScrollRevealV2 className='mb-16'>
                             <SectionLabelV2 label='Agent Catalog' />
@@ -230,7 +239,10 @@ const V2: FC = (): ReactNode => {
                             </p>
                         </ScrollRevealV2>
 
-                        <ScrollRevealV2 delay={0.2} className='relative z-[15] grid gap-px border border-white/10 md:grid-cols-2'>
+                        <ScrollRevealV2
+                            delay={0.2}
+                            className='relative z-[15] grid gap-px border border-white/10 md:grid-cols-2'
+                        >
                             {v2Agents.map((agent, i) => (
                                 <div
                                     key={i}
@@ -238,7 +250,11 @@ const V2: FC = (): ReactNode => {
                                 >
                                     <div className='mb-6 flex items-center justify-between'>
                                         <div className='text-white'>
-                                            {agent.iconType === 'openclaw' ? <OpenClawIcon size={32} /> : <HermesIcon size={32} />}
+                                            {agent.iconType === 'openclaw' ? (
+                                                <OpenClawIcon size={32} />
+                                            ) : (
+                                                <HermesIcon size={32} />
+                                            )}
                                         </div>
                                         <span className='font-mono text-[10px] tracking-[0.2em] text-white/30'>
                                             {agent.tag}
@@ -273,9 +289,7 @@ const V2: FC = (): ReactNode => {
                     features={getV2Features()}
                 />
 
-                <PricingSectionV2
-                    plans={hetznerPlans}
-                />
+                <PricingSectionV2 plans={hetznerPlans} />
 
                 <ComparisonTableV2
                     showFullComparisonLink={false}
@@ -318,12 +332,17 @@ const V2: FC = (): ReactNode => {
                                         rel='noopener noreferrer'
                                         className='inline-flex items-center gap-2 border border-white/20 bg-white/5 px-8 py-4 font-mono text-xs tracking-[0.15em] text-white/70 transition-colors hover:bg-white/10'
                                     >
-                                        <GithubLogoIcon className='h-3.5 w-3.5' weight='fill' />
+                                        <GithubLogoIcon
+                                            className='h-3.5 w-3.5'
+                                            weight='fill'
+                                        />
                                         {t('v2.selfHostLabel').toUpperCase()}
                                         {gitHubStars && (
                                             <span className='flex items-center gap-1 bg-white/10 px-2 py-0.5 text-[10px]'>
                                                 {animatedStars}
-                                                <span className='text-[10px]'>★</span>
+                                                <span className='text-[10px]'>
+                                                    ★
+                                                </span>
                                             </span>
                                         )}
                                     </a>

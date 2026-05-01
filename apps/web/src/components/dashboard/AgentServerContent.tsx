@@ -17,7 +17,11 @@ import { CopyableField } from '@/components/dashboard'
 import { ConfirmationDialog } from '@/components/shared'
 import { api, copyToClipboard, handleAbortToast } from '@/lib'
 import { useReinstallAgent, useToast, useAbortController } from '@/hooks'
-import { getAgentDisplayName, locationFlags, locationNames } from '@/lib/agent-utils'
+import {
+    getAgentDisplayName,
+    locationFlags,
+    locationNames
+} from '@/lib/agent-utils'
 import { TOAST_TYPE } from '@/lib/constants'
 import { useUIStore } from '@/lib/store'
 
@@ -195,7 +199,9 @@ const AgentServerContent: FC<AgentServerContentProps> = ({
                         </h4>
                     </div>
                     <p className='text-muted-foreground mb-3 text-sm'>
-                        {t('clawDetail.reinstallDescription', { agentName: getAgentDisplayName(agent.agentType) })}
+                        {t('clawDetail.reinstallDescription', {
+                            agentName: getAgentDisplayName(agent.agentType)
+                        })}
                     </p>
                     <Button
                         variant='destructive'
@@ -215,7 +221,9 @@ const AgentServerContent: FC<AgentServerContentProps> = ({
                 open={showReinstallModal}
                 onOpenChange={setShowReinstallModal}
                 title={t('dashboard.reinstallClaw')}
-                description={t('dashboard.reinstallClawConfirmation', { agentName: getAgentDisplayName(agent.agentType) })}
+                description={t('dashboard.reinstallClawConfirmation', {
+                    agentName: getAgentDisplayName(agent.agentType)
+                })}
                 confirmLabel={t('common.confirm')}
                 onConfirm={handleReinstall}
                 isPending={reinstallMutation.isPending}

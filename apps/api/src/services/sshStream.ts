@@ -1,5 +1,6 @@
 import { Client } from 'ssh2'
 import hostKeyStore from '@/services/hostKeyStore'
+import { sshDefaults } from '@/lib/constants'
 
 const sshStream = (
     ip: string,
@@ -55,10 +56,10 @@ const sshStream = (
 
         conn.connect({
             host: ip,
-            port: 22,
+            port: sshDefaults.PORT,
             username: 'root',
             password,
-            readyTimeout: 10000,
+            readyTimeout: sshDefaults.READY_TIMEOUT_MS,
             algorithms: {
                 serverHostKey: ['ssh-ed25519', 'ssh-rsa', 'ecdsa-sha2-nistp256']
             },

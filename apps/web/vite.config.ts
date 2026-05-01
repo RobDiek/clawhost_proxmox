@@ -69,9 +69,15 @@ export default defineConfig(({ mode }) => {
             rollupOptions: {
                 output: {
                     manualChunks(id) {
-                        if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor')) return 'recharts'
+                        if (
+                            id.includes('recharts') ||
+                            id.includes('d3-') ||
+                            id.includes('victory-vendor')
+                        )
+                            return 'recharts'
                         if (id.includes('framer-motion')) return 'framer-motion'
-                        if (id.includes('@codemirror') || id.includes('@lezer')) return 'codemirror'
+                        if (id.includes('@codemirror') || id.includes('@lezer'))
+                            return 'codemirror'
                         if (id.includes('@phosphor-icons')) return 'phosphor'
                         if (id.includes('firebase')) return 'firebase'
                         if (id.includes('@tanstack')) return 'tanstack'

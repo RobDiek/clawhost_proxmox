@@ -177,9 +177,8 @@ const registerAgentHandlers = (): void => {
                     : agentType.OPENCLAW
             const spec = agentSpec.getAgentSpec(selectedAgentType)
 
-            const version = await versionManager.getLatestVersion(
-                selectedAgentType
-            )
+            const version =
+                await versionManager.getLatestVersion(selectedAgentType)
             if (!version) throw new Error(t('go.failedToFetchLatestVersion'))
 
             const id = crypto.randomUUID()
@@ -205,10 +204,7 @@ const registerAgentHandlers = (): void => {
                 gatewayToken || undefined
             )
             const configPath = path.join(agentDir, spec.configFileName)
-            fs.writeFileSync(
-                configPath,
-                JSON.stringify(defaultConfig, null, 4)
-            )
+            fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 4))
             fs.writeFileSync(path.join(agentDir, '.env'), '')
 
             const newAgent = {

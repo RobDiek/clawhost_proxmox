@@ -1,7 +1,9 @@
 import type {
+    ComponentType,
     ElementType,
     FC,
     FormEvent,
+    MouseEvent,
     MutableRefObject,
     ReactNode,
     RefObject
@@ -416,8 +418,8 @@ export interface ScrollRevealV2Props {
 }
 
 export interface DitherHoverHandlers {
-    onMouseMove: (e: import('react').MouseEvent<HTMLElement>) => void
-    onMouseLeave: (e: import('react').MouseEvent<HTMLElement>) => void
+    onMouseMove: (e: MouseEvent<HTMLElement>) => void
+    onMouseLeave: (e: MouseEvent<HTMLElement>) => void
     resetDither: (el: HTMLElement | null) => void
 }
 
@@ -2407,4 +2409,36 @@ export interface OtpCodeStepProps {
     onVerify: () => void
     onResend: () => void
     onChangeEmail: () => void
+}
+
+export interface UseRoutePrefetchReturn {
+    prefetchRoute: (path: string) => void
+}
+
+export interface UseMetricsHistoryReturn {
+    cpuHistory: MetricsHistoryPoint[]
+    memHistory: MetricsHistoryPoint[]
+}
+
+export interface UsageColors {
+    high: string
+    medium: string
+    low: string
+}
+
+export interface EmojiSelectEvent {
+    native: string
+}
+
+export interface EnablePreviewResponse {
+    enabled: boolean
+}
+
+export interface VolumeStatusEntry {
+    icon: ReactNode
+    className: string
+}
+
+export interface MdxComponentModule {
+    default: ComponentType
 }

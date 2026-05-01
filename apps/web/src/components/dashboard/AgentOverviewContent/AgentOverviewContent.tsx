@@ -32,11 +32,17 @@ const AgentOverviewContent: FC<AgentOverviewContentProps> = ({
     readOnly,
     onSwitchToTerminal
 }): ReactNode => {
-    const { data: liveData, isPending, isError, error } = useAgentOverview(agentId, !readOnly)
+    const {
+        data: liveData,
+        isPending,
+        isError,
+        error
+    } = useAgentOverview(agentId, !readOnly)
     const data = readOnly ? demoOverview : liveData
     const isHermes = agentType === agentTypeConst.HERMES
-    const docsUrl = agentTypes.find((option) => option.type === agentType)
-        ?.docsUrl
+    const docsUrl = agentTypes.find(
+        (option) => option.type === agentType
+    )?.docsUrl
 
     if (isError && isUnsupportedError(error))
         return (

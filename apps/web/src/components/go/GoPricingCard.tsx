@@ -27,7 +27,7 @@ const GoPricingCard: FC<GoPricingCardProps> = ({
                     {features.map((feature) => (
                         <div key={feature} className='flex items-center gap-2'>
                             <CheckIcon className='h-3.5 w-3.5 shrink-0 text-green-600 dark:text-green-400' />
-                            
+
                             <span className='text-foreground/80 text-sm'>
                                 {feature}
                             </span>

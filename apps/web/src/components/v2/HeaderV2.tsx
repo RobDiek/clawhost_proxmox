@@ -5,7 +5,12 @@ import { Fragment, useState, useEffect, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
-import { ListIcon, XIcon, RocketLaunchIcon, ArrowRightIcon } from '@phosphor-icons/react'
+import {
+    ListIcon,
+    XIcon,
+    RocketLaunchIcon,
+    ArrowRightIcon
+} from '@phosphor-icons/react'
 import { LanguageSelector, UserDropdown } from '@/components'
 import { LogoV2, RebrandBannerV2 } from '@/components/v2'
 import { ROUTES } from '@/lib'
@@ -61,7 +66,7 @@ const HeaderV2: FC<HeaderProps> = ({
                 }`}
             >
                 <RebrandBannerV2 />
-                <div className='mx-auto flex max-w-6xl items-center justify-between px-6 lg:px-0 py-4'>
+                <div className='mx-auto flex max-w-6xl items-center justify-between px-6 py-4 lg:px-0'>
                     <div className='flex-1'>
                         <LogoV2 />
                     </div>

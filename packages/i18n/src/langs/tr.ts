@@ -94,7 +94,7 @@ const tr: Translations = {
         featuresDescription:
             'Neden denemeye değeriz, özellikler burada yalan söylemez.',
         zeroConfigDescription:
-            "Sunucu, OpenClaw ve Hermes kurulumu için saatler harcamayın. Önceden yüklenmiş ve dakikalar içinde hazır.",
+            'Sunucu, OpenClaw ve Hermes kurulumu için saatler harcamayın. Önceden yüklenmiş ve dakikalar içinde hazır.',
         ownedDataDescription:
             'Her şey cihazınızda çalışır. Bulut sunucusu yok, üçüncü taraf yok, verileriniz cihazınızdan çıkmaz.',
         terminalAccessDescription:
@@ -711,12 +711,14 @@ const tr: Translations = {
         billingReasonSubscriptionUpdate: 'Abonelik Güncelleme',
         failedToLoadBilling: 'Faturalama geçmişi yüklenemedi!',
         downloadInvoice: 'Faturayı İndir',
-        invoiceCanceledNavigation: 'Fatura indirme yarıda kesildi çünkü sayfadan ayrıldınız.',
+        invoiceCanceledNavigation:
+            'Fatura indirme yarıda kesildi çünkü sayfadan ayrıldınız.',
         failedToLoadInvoice: 'Fatura yüklenemedi!',
         couponApplied: 'Kupon: {{name}}',
         manageBilling: 'Faturalamayı Yönet',
         failedToLoadPortal: 'Faturalama portalı açılamadı!',
-        portalCanceledNavigation: 'Faturalama portalı yarıda kesildi çünkü sayfadan ayrıldınız.'
+        portalCanceledNavigation:
+            'Faturalama portalı yarıda kesildi çünkü sayfadan ayrıldınız.'
     },
     license: {
         title: 'Lisans',
@@ -868,7 +870,8 @@ const tr: Translations = {
         fileExplorerReadOnly: 'Salt okunur',
         fileExplorerSave: 'Kaydet',
         fileExplorerSaved: 'Dosya kaydedildi.',
-        fileExplorerSaveCanceledNavigation: 'Dosya kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
+        fileExplorerSaveCanceledNavigation:
+            'Dosya kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
         fileExplorerInvalidJson:
             'Geçersiz JSON. Lütfen kaydetmeden önce sözdizimi hatalarını düzeltin!',
         fileExplorerNoFiles: 'Dosya bulunamadı',
@@ -884,7 +887,8 @@ const tr: Translations = {
             "Bu, {{agentName}}'u bu örnekte tamamen yeniden yükleyecektir. Tüm yapılandırmalar, ajanlar ve veriler sıfırlanacaktır. Bu işlem geri alınamaz. Devam edilsin mi?",
         reinstallInstanceSuccess: 'Örnek başarıyla yeniden yüklendi.',
         reinstallInstanceFailed: 'Örnek yeniden yüklenemedi!',
-        reinstallCanceledNavigation: 'Yeniden yükleme yarıda kesildi çünkü sayfadan ayrıldınız.',
+        reinstallCanceledNavigation:
+            'Yeniden yükleme yarıda kesildi çünkü sayfadan ayrıldınız.',
         openControlPanel: 'Kontrol Panelini Aç',
         exportData: "Claw'u Dışa Aktar (.zip)",
         exportAgent: 'Dışa Aktar',
@@ -896,10 +900,14 @@ const tr: Translations = {
         exportStarted: 'Dışa aktarma hazırlanıyor, bu biraz zaman alabilir...',
         exportSuccess: 'Claw başarıyla dışa aktarıldı.',
         exportFailed: 'Claw verileri dışa aktarılamadı!',
-        exportCanceledNavigation: 'Dışa aktarma iptal edildi çünkü sayfadan ayrıldınız.',
-        scheduleDeletionCanceledNavigation: 'Silme planlaması yarıda kesildi çünkü sayfadan ayrıldınız.',
-        cancelDeletionCanceledNavigation: 'Silme iptali yarıda kesildi çünkü sayfadan ayrıldınız.',
-        hardDeleteCanceledNavigation: 'Zorla silme yarıda kesildi çünkü sayfadan ayrıldınız.',
+        exportCanceledNavigation:
+            'Dışa aktarma iptal edildi çünkü sayfadan ayrıldınız.',
+        scheduleDeletionCanceledNavigation:
+            'Silme planlaması yarıda kesildi çünkü sayfadan ayrıldınız.',
+        cancelDeletionCanceledNavigation:
+            'Silme iptali yarıda kesildi çünkü sayfadan ayrıldınız.',
+        hardDeleteCanceledNavigation:
+            'Zorla silme yarıda kesildi çünkü sayfadan ayrıldınız.',
         exportRateLimited:
             '{{minutes}} dakika sonra tekrar dışa aktarabilirsiniz.',
         exportRateLimitedOne: '1 dakika sonra tekrar dışa aktarabilirsiniz.',
@@ -1063,6 +1071,9 @@ const tr: Translations = {
         badge: 'OpenClaw Basitleştirilmiş',
         tutorialBadge: 'İzle. Dağıt.',
         tutorialVideoThumbnail: 'ClawHost eğitim videosu küçük resmi',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: 'OpenClaw Dağıt.',
         heroTitle2: 'Tek tık. Tamam.',
         heroDescription:
@@ -1099,7 +1110,7 @@ const tr: Translations = {
             'İhtiyacınıza göre fiyatlandırma. Düşük kaliteli sunucular için zorunlu yüksek fatura yok. İstediğiniz zaman iptal edin.',
         bringYourCredits: 'Kendi kredilerini getir',
         bringYourCreditsDescription:
-            'Kendi Anthropic API anahtarınızı veya Claude aboneliğinizi kullanın. Doğrudan Anthropic\'e ödeme yapın — ek ücret yok.',
+            "Kendi Anthropic API anahtarınızı veya Claude aboneliğinizi kullanın. Doğrudan Anthropic'e ödeme yapın — ek ücret yok.",
         customSubdomains: 'Çevrimiçi Erişim',
         customSubdomainsDescription:
             "Yerel ağları unutun. OpenClaw'unuza bir alt alan adıyla her yerden güvenli erişin.",
@@ -1157,7 +1168,7 @@ const tr: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'Plan seç',
         mostPopular: 'En popüler',
-        featurePreinstalled: "Ajan önceden yüklü",
+        featurePreinstalled: 'Ajan önceden yüklü',
         featureBandwidth: 'Sınırsız bant genişliği',
         featureSsh: 'Root SSH erişimi',
         featureUptime: '7/24 çevrimiçi',
@@ -1174,13 +1185,13 @@ const tr: Translations = {
         faq2Question: 'OpenClaw nedir?',
         faq2Answer:
             'OpenClaw, yapay zeka araçlarınız ve hizmetleriniz için kendi kendine barındırılan güvenli bir erişim katmanıdır. Güvenlik ve performans için önceden yapılandırılmıştır, böylece dağıtabilir ve anında bağlanabilirsiniz.',
-        faqHermesQuestion: "Hermes nedir?",
+        faqHermesQuestion: 'Hermes nedir?',
         faqHermesAnswer:
-            "Hermes; web tarama, takvim yönetimi, çoklu model akıl yürütme ve tarayıcı otomasyonu ile donatılmış otonom bir yapay zeka ajanıdır. Her ClawHost sunucusunda OpenClaw ile birlikte önceden yüklü gelir.",
+            'Hermes; web tarama, takvim yönetimi, çoklu model akıl yürütme ve tarayıcı otomasyonu ile donatılmış otonom bir yapay zeka ajanıdır. Her ClawHost sunucusunda OpenClaw ile birlikte önceden yüklü gelir.',
         faq3Question:
             'Bu, diğer yapay zeka araçlarından veya barındırılan platformlardan nasıl farklı?',
         faq3Answer:
-            "Barındırılan yapay zeka araçlarının aksine, ClawHost size OpenClaw ve Hermes yüklü gerçek bir sunucu sunar. Altyapıya sahip olur, her şeyi kontrol eder ve paylaşımlı bir platform veya modelle sınırlanmazsınız.",
+            'Barındırılan yapay zeka araçlarının aksine, ClawHost size OpenClaw ve Hermes yüklü gerçek bir sunucu sunar. Altyapıya sahip olur, her şeyi kontrol eder ve paylaşımlı bir platform veya modelle sınırlanmazsınız.',
         faq4Question: 'Teknik bilgiye ihtiyacım var mı?',
         faq4Answer:
             "Hayır. Tüm altyapı, kurulum ve bakımı biz yönetiyoruz. OpenClaw'u arayüzü üzerinden yapılandırabilir ve yönetebilir ve kullanımı özelleştirebilirsiniz — sunuculara veya altyapıya dokunmadan.",
@@ -1190,7 +1201,8 @@ const tr: Translations = {
         faq6Question: 'Maliyeti ne kadar?',
         faq6Answer:
             'Fiyatlar seçtiğiniz sunucuya bağlıdır. Giriş seviyesinden yüksek performansa kadar birden fazla sunucu seçeneğiyle, ihtiyaçlarınıza ve bütçenize uygun olanı seçersiniz.',
-        faq7Question: "Ajanıma doğrudan bir bağlantı üzerinden erişebilir miyim?",
+        faq7Question:
+            'Ajanıma doğrudan bir bağlantı üzerinden erişebilir miyim?',
         faq7Answer:
             "Evet. Alt alan adı URL'si üzerinden OpenClaw erişiminin yanı sıra, sunucuya ve temel altyapısına tam erişiminiz vardır, bu da ihtiyacınız olan her şeyi özelleştirme ve çalıştırma özgürlüğü verir.",
         comparison: 'Karşılaştırma',
@@ -1210,7 +1222,7 @@ const tr: Translations = {
         comparisonInfraOthers: 'Sınırlı sunucular',
         comparisonDataUs: 'Verilerinizin sahibisiniz',
         comparisonDataOthers: 'Verilerinizin sahibi değilsiniz',
-        comparisonMultipleUs: "Birden fazla OpenClaw ve Hermes ajanı",
+        comparisonMultipleUs: 'Birden fazla OpenClaw ve Hermes ajanı',
         comparisonMultipleOthers: 'Yalnızca tek OpenClaw',
         comparisonOpenSourceUs: 'Tamamen açık kaynak',
         comparisonOpenSourceOthers: 'Kapalı kaynak',
@@ -1232,7 +1244,7 @@ const tr: Translations = {
         ctaTitle: "OpenClaw ve Hermes'i tek tıkla dağıtın",
         ctaDescription:
             "OpenClaw ve Hermes önceden yüklü dedike bir sunucu edinin. Tam root erişimi, küresel konumlar ve dakikalar içinde hazır. Her zaman size aittir. 25 $'dan başlar.",
-        ctaDeploy: "Ajan dağıt",
+        ctaDeploy: 'Ajan dağıt',
         ctaGitHub: "GitHub'da Görüntüle"
     },
     changelog: {
@@ -1489,7 +1501,8 @@ const tr: Translations = {
         previewEnabling: 'Etkinleştiriliyor...',
         previewEnabled: 'Önizleme etkinleştirildi.',
         previewEnableFailed: 'Önizleme etkinleştirilemedi!',
-        previewEnableCanceledNavigation: 'Önizleme etkinleştirme yarıda kesildi çünkü sayfadan ayrıldınız.',
+        previewEnableCanceledNavigation:
+            'Önizleme etkinleştirme yarıda kesildi çünkü sayfadan ayrıldınız.',
         previewError: 'Önizleme yüklenemedi.',
         previewErrorDescription: 'Ajan çevrimdışı veya erişilemez olabilir.',
         previewRetry: 'Tekrar dene',
@@ -1626,7 +1639,8 @@ const tr: Translations = {
         versionInstalling: 'Yükleniyor...',
         versionInstallSuccess: 'Sürüm {{version}} başarıyla yüklendi.',
         versionInstallFailed: 'Sürüm yüklenemedi!',
-        installVersionCanceledNavigation: 'Sürüm yüklemesi yarıda kesildi çünkü sayfadan ayrıldınız.',
+        installVersionCanceledNavigation:
+            'Sürüm yüklemesi yarıda kesildi çünkü sayfadan ayrıldınız.',
         versionDownloads: '{{count}} indirme',
         versionChangelog: 'Değişiklik Günlüğü',
         versionOutdated: 'Eski',
@@ -1665,10 +1679,14 @@ const tr: Translations = {
         settingsSaving: 'Kaydediliyor...',
         settingsUpdated: 'Ayarlar güncellendi.',
         settingsUpdateFailed: 'Ayarlar güncellenemedi!',
-        saveCanceledNavigation: 'Kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
-        savePasswordCanceledNavigation: 'Parola kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
-        saveGatewayTokenCanceledNavigation: 'Ağ geçidi belirteci kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
-        saveSSHKeyCanceledNavigation: 'SSH anahtarı kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
+        saveCanceledNavigation:
+            'Kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
+        savePasswordCanceledNavigation:
+            'Parola kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
+        saveGatewayTokenCanceledNavigation:
+            'Ağ geçidi belirteci kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
+        saveSSHKeyCanceledNavigation:
+            'SSH anahtarı kaydetme yarıda kesildi çünkü sayfadan ayrıldınız.',
         mockLogStarting: 'OpenClaw ajanı başlatılıyor...',
         mockLogLoadingModel: 'Model yükleniyor: claude-sonnet-4-5',
         mockLogAgentReady: "Ajan port 3000'de hazır",
@@ -1762,7 +1780,7 @@ const tr: Translations = {
             'ClawHost\'a ("Hizmet") erişerek ve kullanarak, bu sözleşmenin şart ve hükümlerine bağlı olmayı kabul edersiniz. Bu şartları kabul etmiyorsanız, lütfen Hizmetimizi kullanmayın.',
         serviceTitle: '2. Hizmet Açıklaması',
         serviceText:
-            "ClawHost, dedike sunucularda tek tıkla OpenClaw ve Hermes dağıtımı sunar. Kullanıcılarımızın tam root erişimine ve dedike kaynaklara sahip önceden yapılandırılmış OpenClaw ve Hermes örneklerini dağıtmasına, yönetmesine ve bunlara erişmesine olanak tanırız.",
+            'ClawHost, dedike sunucularda tek tıkla OpenClaw ve Hermes dağıtımı sunar. Kullanıcılarımızın tam root erişimine ve dedike kaynaklara sahip önceden yapılandırılmış OpenClaw ve Hermes örneklerini dağıtmasına, yönetmesine ve bunlara erişmesine olanak tanırız.',
         authTitle: '3. Kimlik Doğrulama',
         authText:
             "ClawHost, giriş yönetimi için Google Firebase Authentication kullanır. E-posta, Google veya GitHub ile kimlik doğrulayabilirsiniz. Bu yöntemleri kullanarak, Google ve GitHub'ın ilgili şartlarını ve gizlilik politikalarını kabul edersiniz. Bu sağlayıcılar e-posta adresiniz, adınız ve cihaz verileriniz gibi temel bilgiler toplayabilir.",

@@ -35,10 +35,10 @@ const App: FC = (): ReactNode => {
 
     return (
         <TooltipProvider delayDuration={300}>
-                <AuthProvider>
-                    <ScrollToTop />
-                    <Toast />
-                    <Suspense
+            <AuthProvider>
+                <ScrollToTop />
+                <Toast />
+                <Suspense
                     key={language}
                     fallback={
                         <div className='bg-background flex min-h-screen items-center justify-center'>
@@ -64,7 +64,10 @@ const App: FC = (): ReactNode => {
                         <Route path={ROUTES.COMPARE} element={<Compare />} />
                         <Route path={ROUTES.V2} element={<V2 />} />
                         <Route path={ROUTES.PRICING} element={<PricingV2 />} />
-                        <Route path={ROUTES.FEATURES} element={<FeaturesV2 />} />
+                        <Route
+                            path={ROUTES.FEATURES}
+                            element={<FeaturesV2 />}
+                        />
                         <Route
                             path={ROUTES.AGENTS}
                             element={

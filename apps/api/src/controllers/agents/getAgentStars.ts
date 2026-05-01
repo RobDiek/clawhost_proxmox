@@ -28,30 +28,28 @@ const fetchStars = async (repo: string): Promise<number> => {
     return data.stargazers_count ?? 0
 }
 
-const getAgentStars = withErrorHandler('getAgentStars')(
-    async (c: Context) => {
-        if (starsCache && Date.now() < starsCache.expiry) {
-            return ok(
-                c,
-                { stars: starsCache.data.stars },
-                t('api.agentStarsFetched')
-            )
-        }
-
-        const stars: AgentStarCount[] = await Promise.all(
-            Object.entries(GITHUB_REPOS).map(async ([type, repo]) => ({
-                agentType: type,
-                stars: await fetchStars(repo)
-            }))
+const getAgentStars = withErrorHandler('getAgentStars')(async (c: Context) => {
+    if (starsCache && Date.now() < starsCache.expiry) {
+        return ok(
+            c,
+            { stars: starsCache.data.stars },
+            t('api.agentStarsFetched')
         )
-
-        starsCache = {
-            data: { stars },
-            expiry: Date.now() + STARS_CACHE_TTL
-        }
-
-        return ok(c, { stars }, t('api.agentStarsFetched'))
     }
-)
+
+    const stars: AgentStarCount[] = await Promise.all(
+        Object.entries(GITHUB_REPOS).map(async ([type, repo]) => ({
+            agentType: type,
+            stars: await fetchStars(repo)
+        }))
+    )
+
+    starsCache = {
+        data: { stars },
+        expiry: Date.now() + STARS_CACHE_TTL
+    }
+
+    return ok(c, { stars }, t('api.agentStarsFetched'))
+})
 
 export default getAgentStars

@@ -3,7 +3,10 @@ import type { BillingToggleV2Props } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
 
-const BillingToggleV2: FC<BillingToggleV2Props> = ({ isYearly, onChange }): ReactNode => {
+const BillingToggleV2: FC<BillingToggleV2Props> = ({
+    isYearly,
+    onChange
+}): ReactNode => {
     return (
         <div className='mt-6 inline-flex items-center gap-1 border border-white/10 bg-white/[0.03] p-1'>
             <button
@@ -25,11 +28,13 @@ const BillingToggleV2: FC<BillingToggleV2Props> = ({ isYearly, onChange }): Reac
                 }`}
             >
                 {t('createClaw.yearly').toUpperCase()}
-                <span className={`px-1.5 py-0.5 text-[10px] ${
-                    isYearly
-                        ? 'bg-white/20 text-white'
-                        : 'bg-white/5 text-white/40'
-                }`}>
+                <span
+                    className={`px-1.5 py-0.5 text-[10px] ${
+                        isYearly
+                            ? 'bg-white/20 text-white'
+                            : 'bg-white/5 text-white/40'
+                    }`}
+                >
                     {t('createClaw.yearlySaveBadge')}
                 </span>
             </button>

@@ -114,7 +114,9 @@ const AgentCardDialogs: FC<AgentCardDialogsProps> = ({
                 open={showReinstallModal}
                 onOpenChange={setShowReinstallModal}
                 title={t('dashboard.reinstallClaw')}
-                description={t('dashboard.reinstallClawConfirmation', { agentName: getAgentDisplayName(agentType) })}
+                description={t('dashboard.reinstallClawConfirmation', {
+                    agentName: getAgentDisplayName(agentType)
+                })}
                 confirmLabel={t('common.confirm')}
                 onConfirm={() => {
                     onReinstall()

@@ -357,19 +357,19 @@ const LATENCY_THRESHOLD_MS = 3000
 if (latency > LATENCY_THRESHOLD_MS) return networkStatus.UNSTABLE
 
 // INCORRECT - inline magic string
-if (result === 'offline') setIsOffline(true)  // DO NOT USE
+if (result === 'offline') setIsOffline(true) // DO NOT USE
 
 // INCORRECT - inline magic number reused across codebase
-if (latency > 3000) return 'unstable'  // DO NOT USE
+if (latency > 3000) return 'unstable' // DO NOT USE
 ```
 
 **Where constants live:**
 
-| Scope | Location | Pattern |
-| --- | --- | --- |
-| Used in 2+ apps | `packages/shared/src/<name>.ts` | named export, re-exported from `packages/shared/src/index.ts` |
-| Single app, multiple files | `apps/<app>/src/lib/constants/<name>.ts` | default export per CLAUDE.md export rule |
-| Single file | top of that file, `SCREAMING_SNAKE_CASE` for primitives, `camelCase` for objects | not exported |
+| Scope                      | Location                                                                         | Pattern                                                       |
+| -------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Used in 2+ apps            | `packages/shared/src/<name>.ts`                                                  | named export, re-exported from `packages/shared/src/index.ts` |
+| Single app, multiple files | `apps/<app>/src/lib/constants/<name>.ts`                                         | default export per CLAUDE.md export rule                      |
+| Single file                | top of that file, `SCREAMING_SNAKE_CASE` for primitives, `camelCase` for objects | not exported                                                  |
 
 **Shared package export & import convention:**
 
@@ -403,8 +403,8 @@ import { networkStatus } from '@openclaw/shared'
 
 ```typescript
 // INCORRECT
-import NETWORK_STATUS from '#shared/networkStatus'  // DO NOT USE
-import HTTP_METHOD from '#shared/httpMethod'        // DO NOT USE
+import NETWORK_STATUS from '#shared/networkStatus' // DO NOT USE
+import HTTP_METHOD from '#shared/httpMethod' // DO NOT USE
 ```
 
 This is the existing pattern for `plans` (`PLANS`, `YEARLY_PAID_MONTHS`) and `supportedVersions` (`isFeatureSupported`, `isVersionSupported`, `SUPPORTED_VERSIONS`). All new shared constants follow it.

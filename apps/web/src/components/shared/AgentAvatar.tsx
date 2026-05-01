@@ -39,10 +39,7 @@ const AgentAvatar: FC<AgentAvatarProps> = ({
             {emoji ? (
                 <span className={s.emoji}>{emoji}</span>
             ) : (
-                <AgentTypeMascot
-                    agentType={agentType}
-                    className={s.icon}
-                />
+                <AgentTypeMascot agentType={agentType} className={s.icon} />
             )}
         </div>
     )

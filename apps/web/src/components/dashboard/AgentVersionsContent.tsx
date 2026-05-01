@@ -1,11 +1,17 @@
 import type { FC, ReactNode } from 'react'
-import type { AgentVersionsContentProps, InstallAgentVersionMutationParams } from '@/ts/Interfaces'
+import type {
+    AgentVersionsContentProps,
+    InstallAgentVersionMutationParams
+} from '@/ts/Interfaces'
 
 import { Fragment, useState, useMemo, useRef } from 'react'
 import { useDebouncedValue, useAbortController } from '@/hooks'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
-import { agentType as agentTypeConst, isVersionSupported } from '@openclaw/shared'
+import {
+    agentType as agentTypeConst,
+    isVersionSupported
+} from '@openclaw/shared'
 import {
     CircleNotchIcon,
     MagnifyingGlassIcon,
@@ -36,7 +42,8 @@ import { demoVersions } from '@/data'
 
 const CHANGELOG_URLS: Record<string, string> = {
     [agentTypeConst.OPENCLAW]: 'https://www.npmjs.com/package/openclaw/v/',
-    [agentTypeConst.HERMES]: 'https://github.com/NousResearch/hermes-agent/releases/tag/v'
+    [agentTypeConst.HERMES]:
+        'https://github.com/NousResearch/hermes-agent/releases/tag/v'
 }
 
 const AgentVersionsContent: FC<AgentVersionsContentProps> = ({
@@ -44,7 +51,8 @@ const AgentVersionsContent: FC<AgentVersionsContentProps> = ({
     agentType,
     readOnly
 }): ReactNode => {
-    const changelogBaseUrl = CHANGELOG_URLS[agentType] || CHANGELOG_URLS[agentTypeConst.OPENCLAW]
+    const changelogBaseUrl =
+        CHANGELOG_URLS[agentType] || CHANGELOG_URLS[agentTypeConst.OPENCLAW]
     const showDownloads = agentType !== agentTypeConst.HERMES
     const [search, setSearch] = useState('')
     const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300)

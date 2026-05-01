@@ -217,9 +217,7 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
                                     agentType={agent.agentType}
                                     readOnly={readOnly}
                                     onSwitchToTerminal={() =>
-                                        setActiveTab(
-                                            AGENT_DETAIL_TABS.TERMINAL
-                                        )
+                                        setActiveTab(AGENT_DETAIL_TABS.TERMINAL)
                                     }
                                 />
                             )}

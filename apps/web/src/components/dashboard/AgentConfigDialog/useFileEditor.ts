@@ -38,14 +38,15 @@ const useFileEditor = ({
         selectedPath,
         selectedPath.length > 0 && !readOnly
     )
-    const fileContent = readOnly && selectedPath
-        ? {
-            data: { ...demoFileContent, path: selectedPath },
-            isPending: false,
-            isError: false,
-            error: null
-        }
-        : liveFileContent
+    const fileContent =
+        readOnly && selectedPath
+            ? {
+                  data: { ...demoFileContent, path: selectedPath },
+                  isPending: false,
+                  isError: false,
+                  error: null
+              }
+            : liveFileContent
 
     const handleSelectFile = (path: string) => {
         if (path === selectedPath) return
@@ -125,7 +126,11 @@ const useFileEditor = ({
                 onSuccess: () => {
                     setEditedContent('')
                     queryClient.invalidateQueries({
-                        queryKey: [...AGENT_FILE_QUERY_KEY, agentId, selectedPath]
+                        queryKey: [
+                            ...AGENT_FILE_QUERY_KEY,
+                            agentId,
+                            selectedPath
+                        ]
                     })
                     showToast(
                         t('dashboard.fileExplorerSaved'),

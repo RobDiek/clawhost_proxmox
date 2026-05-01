@@ -13,6 +13,7 @@ import type {
     DeleteAgentResponse,
     DiagnosticsLogsResponse,
     DiagnosticsStatusResponse,
+    EnablePreviewResponse,
     InstallAgentVersionResponse,
     PurchaseAgentData,
     PurchaseAgentResponse,
@@ -29,8 +30,7 @@ import getReferralHeaders from '@/lib/api/getReferralHeaders'
 
 const agents = {
     getAgents: () => client.get<Agent[]>(API_PATHS.CLAWS.BASE),
-    getAgentStars: () =>
-        client.get<AgentStarsResponse>(API_PATHS.CLAWS.STARS),
+    getAgentStars: () => client.get<AgentStarsResponse>(API_PATHS.CLAWS.STARS),
     getAdminAgents: () => client.get<Agent[]>(API_PATHS.CLAWS.ADMIN),
     getAgent: (id: string, sync?: boolean) =>
         client.get<Agent>(
@@ -49,7 +49,9 @@ const agents = {
     restartAgent: (id: string) =>
         client.post<Agent>(API_PATHS.CLAWS.RESTART(id)),
     deleteAgent: (id: string, signal?: AbortSignal) =>
-        client.delete<DeleteAgentResponse>(API_PATHS.CLAWS.byId(id), { signal }),
+        client.delete<DeleteAgentResponse>(API_PATHS.CLAWS.byId(id), {
+            signal
+        }),
     renameAgent: (id: string, data: RenameAgentData, signal?: AbortSignal) =>
         client.patch<Agent>(API_PATHS.CLAWS.byId(id), data, { signal }),
     updateAgentEmoji: (
@@ -140,18 +142,21 @@ const agents = {
         client.post<ReadAgentFileResponse>(API_PATHS.CLAWS.FILES.READ(id), {
             path
         }),
-    updateAgentFile: (id: string, data: UpdateAgentFileData, signal?: AbortSignal) =>
-        client.put<void>(API_PATHS.CLAWS.FILES.BASE(id), data, { signal }),
+    updateAgentFile: (
+        id: string,
+        data: UpdateAgentFileData,
+        signal?: AbortSignal
+    ) => client.put<void>(API_PATHS.CLAWS.FILES.BASE(id), data, { signal }),
     getAgentMetrics: (id: string) =>
         client.post<AgentMetricsResponse>(API_PATHS.CLAWS.METRICS(id)),
     getAgentOverview: (id: string) =>
         client.post<AgentOverviewResponse>(API_PATHS.CLAWS.OVERVIEW(id)),
     checkPreview: (id: string) =>
-        client.post<{ enabled: boolean }>(
+        client.post<EnablePreviewResponse>(
             `${API_PATHS.CLAWS.ENABLE_PREVIEW(id)}?check=true`
         ),
     enablePreview: (id: string, signal?: AbortSignal) =>
-        client.post<{ enabled: boolean }>(
+        client.post<EnablePreviewResponse>(
             API_PATHS.CLAWS.ENABLE_PREVIEW(id),
             undefined,
             { signal }
@@ -168,8 +173,16 @@ const agents = {
             token ? { token } : {},
             { signal }
         ),
-    updateAgentSSHKey: (id: string, sshKeyId: string | null, signal?: AbortSignal) =>
-        client.patch<void>(API_PATHS.CLAWS.SSH_KEY(id), { sshKeyId }, { signal })
+    updateAgentSSHKey: (
+        id: string,
+        sshKeyId: string | null,
+        signal?: AbortSignal
+    ) =>
+        client.patch<void>(
+            API_PATHS.CLAWS.SSH_KEY(id),
+            { sshKeyId },
+            { signal }
+        )
 }
 
 export default agents

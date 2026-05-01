@@ -20,8 +20,7 @@ const colors = {
     warning:
         'bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400',
     info: 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400',
-    neutral:
-        'bg-foreground/5 border-border text-muted-foreground'
+    neutral: 'bg-foreground/5 border-border text-muted-foreground'
 }
 
 const iconColors = {

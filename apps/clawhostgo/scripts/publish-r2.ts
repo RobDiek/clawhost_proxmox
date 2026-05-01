@@ -10,7 +10,12 @@ const {
     PUBLIC_BASE_URL = 'https://cdn.clawhost.cloud/go'
 } = process.env
 
-if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET) {
+if (
+    !R2_ACCOUNT_ID ||
+    !R2_ACCESS_KEY_ID ||
+    !R2_SECRET_ACCESS_KEY ||
+    !R2_BUCKET
+) {
     console.error(
         'publish-r2',
         new Error(
@@ -76,7 +81,11 @@ const publishMac = async (arch: 'x64' | 'arm64'): Promise<void> => {
     const prefix = `go/darwin/${arch}`
     const zipUrl = `${PUBLIC_BASE_URL}/darwin/${arch}/${zipName}`
 
-    await upload(`${prefix}/${zipName}`, readFileSync(zipPath), 'application/zip')
+    await upload(
+        `${prefix}/${zipName}`,
+        readFileSync(zipPath),
+        'application/zip'
+    )
 
     const manifest = {
         currentRelease: version,

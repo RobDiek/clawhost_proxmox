@@ -196,7 +196,9 @@ const License: FC = (): ReactNode => {
                                         </label>
                                         <Button
                                             size='lg'
-                                            disabled={isPurchasing || !agreedToTerms}
+                                            disabled={
+                                                isPurchasing || !agreedToTerms
+                                            }
                                             onClick={handlePurchase}
                                             className='h-10 gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-sm text-white hover:opacity-90'
                                         >
@@ -238,7 +240,6 @@ const License: FC = (): ReactNode => {
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 )}
             </motion.main>

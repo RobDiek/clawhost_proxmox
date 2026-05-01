@@ -94,7 +94,7 @@ const it: Translations = {
         featuresDescription:
             'Perch\u00e9 vale la pena provare, le funzionalit\u00e0 parlano da sole.',
         zeroConfigDescription:
-            "Risparmia ore di configurazione di server, OpenClaw e Hermes. Sono preinstallati e pronti in pochi minuti.",
+            'Risparmia ore di configurazione di server, OpenClaw e Hermes. Sono preinstallati e pronti in pochi minuti.',
         ownedDataDescription:
             'Tutto funziona sul tuo dispositivo. Nessun server cloud, nessuna terza parte, nessun dato che lascia il tuo computer.',
         terminalAccessDescription:
@@ -739,12 +739,14 @@ const it: Translations = {
         billingReasonSubscriptionUpdate: 'Aggiornamento Abbonamento',
         failedToLoadBilling: 'Impossibile caricare lo storico fatturazione!',
         downloadInvoice: 'Scarica fattura',
-        invoiceCanceledNavigation: 'Download fattura interrotto perché hai cambiato pagina.',
+        invoiceCanceledNavigation:
+            'Download fattura interrotto perché hai cambiato pagina.',
         failedToLoadInvoice: 'Impossibile caricare la fattura!',
         couponApplied: 'Coupon: {{name}}',
         manageBilling: 'Gestisci Fatturazione',
         failedToLoadPortal: 'Impossibile aprire il portale fatturazione!',
-        portalCanceledNavigation: 'Portale di fatturazione interrotto perché hai cambiato pagina.'
+        portalCanceledNavigation:
+            'Portale di fatturazione interrotto perché hai cambiato pagina.'
     },
     license: {
         title: 'Licenza',
@@ -900,7 +902,8 @@ const it: Translations = {
         fileExplorerReadOnly: 'Sola lettura',
         fileExplorerSave: 'Salva',
         fileExplorerSaved: 'File salvato.',
-        fileExplorerSaveCanceledNavigation: 'Salvataggio del file interrotto perché hai cambiato pagina.',
+        fileExplorerSaveCanceledNavigation:
+            'Salvataggio del file interrotto perché hai cambiato pagina.',
         fileExplorerInvalidJson:
             'JSON non valido. Correggi gli errori di sintassi prima di salvare!',
         fileExplorerNoFiles: 'Nessun file trovato',
@@ -916,7 +919,8 @@ const it: Translations = {
             'Questo reinstallerà completamente {{agentName}} su questa istanza. Tutte le configurazioni, gli agenti e i dati verranno reimpostati. Questa azione non può essere annullata. Continuare?',
         reinstallInstanceSuccess: 'Istanza reinstallata con successo.',
         reinstallInstanceFailed: "Impossibile reinstallare l'istanza!",
-        reinstallCanceledNavigation: 'Reinstallazione interrotta perché hai cambiato pagina.',
+        reinstallCanceledNavigation:
+            'Reinstallazione interrotta perché hai cambiato pagina.',
         openControlPanel: 'Apri Pannello di Controllo',
         exportData: 'Esporta Claw (.zip)',
         exportAgent: 'Esporta',
@@ -929,10 +933,14 @@ const it: Translations = {
             'Preparazione esportazione, potrebbe richiedere un momento...',
         exportSuccess: 'Claw esportato con successo.',
         exportFailed: 'Impossibile esportare i dati del claw!',
-        exportCanceledNavigation: 'Esportazione annullata perché hai cambiato pagina.',
-        scheduleDeletionCanceledNavigation: 'Pianificazione di eliminazione interrotta perché hai cambiato pagina.',
-        cancelDeletionCanceledNavigation: 'Annullamento di eliminazione interrotto perché hai cambiato pagina.',
-        hardDeleteCanceledNavigation: 'Eliminazione forzata interrotta perché hai cambiato pagina.',
+        exportCanceledNavigation:
+            'Esportazione annullata perché hai cambiato pagina.',
+        scheduleDeletionCanceledNavigation:
+            'Pianificazione di eliminazione interrotta perché hai cambiato pagina.',
+        cancelDeletionCanceledNavigation:
+            'Annullamento di eliminazione interrotto perché hai cambiato pagina.',
+        hardDeleteCanceledNavigation:
+            'Eliminazione forzata interrotta perché hai cambiato pagina.',
         exportRateLimited: 'Puoi esportare di nuovo tra {{minutes}} minuti.',
         exportRateLimitedOne: 'Puoi esportare di nuovo tra 1 minuto.',
         configuringTooltip:
@@ -1097,6 +1105,9 @@ const it: Translations = {
         badge: 'OpenClaw Semplificato',
         tutorialBadge: 'Guarda. Distribuisci.',
         tutorialVideoThumbnail: 'Miniatura video tutorial ClawHost',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: 'Distribuisci OpenClaw.',
         heroTitle2: 'Un clic. Fatto.',
         heroDescription:
@@ -1191,7 +1202,7 @@ const it: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'Scegli piano',
         mostPopular: 'Più popolare',
-        featurePreinstalled: "Agente preinstallato",
+        featurePreinstalled: 'Agente preinstallato',
         featureBandwidth: 'Banda illimitata',
         featureSsh: 'Accesso SSH root',
         featureUptime: 'Online 24/7',
@@ -1204,13 +1215,13 @@ const it: Translations = {
         faqDescription: 'Ogni singola domanda frequente, con risposta.',
         faq1Question: "Cos'è ClawHost?",
         faq1Answer:
-            "ClawHost è una piattaforma costruita per rendere OpenClaw e Hermes accessibili a tutti. Permette sia agli utenti non tecnici sia agli sviluppatori di eseguirli senza gestire infrastruttura. Noi ci occupiamo di server, uptime, sicurezza e manutenzione — tu usi semplicemente i tuoi agenti.",
+            'ClawHost è una piattaforma costruita per rendere OpenClaw e Hermes accessibili a tutti. Permette sia agli utenti non tecnici sia agli sviluppatori di eseguirli senza gestire infrastruttura. Noi ci occupiamo di server, uptime, sicurezza e manutenzione — tu usi semplicemente i tuoi agenti.',
         faq2Question: "Cos'è OpenClaw?",
         faq2Answer:
             'OpenClaw è un livello di accesso sicuro self-hosted per i tuoi strumenti e servizi AI. È preconfigurato per sicurezza e prestazioni, quindi puoi distribuirlo e connetterti istantaneamente.',
         faqHermesQuestion: "Cos'è Hermes?",
         faqHermesAnswer:
-            "Hermes è un agente IA autonomo con navigazione web, gestione del calendario, ragionamento multi-modello e automazione del browser. Viene preinstallato insieme a OpenClaw su ogni server ClawHost.",
+            'Hermes è un agente IA autonomo con navigazione web, gestione del calendario, ragionamento multi-modello e automazione del browser. Viene preinstallato insieme a OpenClaw su ogni server ClawHost.',
         faq3Question:
             'In cosa è diverso da altri strumenti AI o piattaforme hosted?',
         faq3Answer:
@@ -1220,11 +1231,12 @@ const it: Translations = {
             "No. Gestiamo tutta l'infrastruttura, la configurazione e la manutenzione. Puoi configurare e gestire OpenClaw tramite la sua interfaccia e personalizzare l'utilizzo — senza toccare server o infrastruttura.",
         faq5Question: 'Quali posizioni sono disponibili?',
         faq5Answer:
-            "Offriamo più posizioni server in tutto il mondo, inclusi Stati Uniti, Europa e Asia. Se necessario puoi distribuire OpenClaw o Hermes su più server in regioni diverse.",
+            'Offriamo più posizioni server in tutto il mondo, inclusi Stati Uniti, Europa e Asia. Se necessario puoi distribuire OpenClaw o Hermes su più server in regioni diverse.',
         faq6Question: 'Quanto costa?',
         faq6Answer:
             'I prezzi dipendono dal server selezionato. Con più opzioni server dal livello base alle alte prestazioni, scegli ciò che si adatta alle tue esigenze e al tuo budget.',
-        faq7Question: "Posso accedere al mio agente direttamente tramite un link?",
+        faq7Question:
+            'Posso accedere al mio agente direttamente tramite un link?',
         faq7Answer:
             "Sì. Oltre all'accesso a OpenClaw tramite URL sottodominio, hai accesso completo al server e alla sua infrastruttura sottostante, dandoti completa libertà di personalizzare e eseguire tutto ciò di cui hai bisogno.",
         comparison: 'Confronto',
@@ -1245,11 +1257,11 @@ const it: Translations = {
         comparisonInfraOthers: 'Server limitati',
         comparisonDataUs: 'Possiedi i tuoi dati',
         comparisonDataOthers: 'Non possiedi i tuoi dati',
-        comparisonMultipleUs: "Più agenti OpenClaw e Hermes",
+        comparisonMultipleUs: 'Più agenti OpenClaw e Hermes',
         comparisonMultipleOthers: 'Solo un singolo OpenClaw',
         comparisonOpenSourceUs: 'Completamente open source',
         comparisonOpenSourceOthers: 'Codice chiuso',
-        comparisonExportUs: "Esporta OpenClaw e Hermes ovunque",
+        comparisonExportUs: 'Esporta OpenClaw e Hermes ovunque',
         comparisonExportOthers: 'Vendor lock-in',
         comparisonProvidersUs: 'Più provider server',
         comparisonProvidersOthers: 'Solo un provider',
@@ -1264,10 +1276,10 @@ const it: Translations = {
     },
     blog: {
         readingTime: '{{minutes}} min di lettura',
-        ctaTitle: "Distribuisci OpenClaw e Hermes con un clic",
+        ctaTitle: 'Distribuisci OpenClaw e Hermes con un clic',
         ctaDescription:
-            "Ottieni un server dedicato con OpenClaw e Hermes preinstallati. Accesso root completo, posizioni globali e pronto in pochi minuti. È tuo in ogni momento. A partire da 25 $.",
-        ctaDeploy: "Distribuisci un agente",
+            'Ottieni un server dedicato con OpenClaw e Hermes preinstallati. Accesso root completo, posizioni globali e pronto in pochi minuti. È tuo in ogni momento. A partire da 25 $.',
+        ctaDeploy: 'Distribuisci un agente',
         ctaGitHub: 'Vedi su GitHub'
     },
     changelog: {
@@ -1529,7 +1541,8 @@ const it: Translations = {
         previewEnabling: 'Abilitazione...',
         previewEnabled: 'Anteprima abilitata.',
         previewEnableFailed: "Impossibile abilitare l'anteprima!",
-        previewEnableCanceledNavigation: "Attivazione dell'anteprima interrotta perché hai cambiato pagina.",
+        previewEnableCanceledNavigation:
+            "Attivazione dell'anteprima interrotta perché hai cambiato pagina.",
         previewError: "Impossibile caricare l'anteprima.",
         previewErrorDescription:
             "L'agente potrebbe essere offline o irraggiungibile.",
@@ -1670,7 +1683,8 @@ const it: Translations = {
         versionInstalling: 'Installazione...',
         versionInstallSuccess: 'Versione {{version}} installata con successo.',
         versionInstallFailed: 'Impossibile installare la versione!',
-        installVersionCanceledNavigation: 'Installazione versione interrotta perché hai cambiato pagina.',
+        installVersionCanceledNavigation:
+            'Installazione versione interrotta perché hai cambiato pagina.',
         versionDownloads: '{{count}} download',
         versionChangelog: 'Changelog',
         versionOutdated: 'Obsoleta',
@@ -1707,10 +1721,14 @@ const it: Translations = {
         settingsSaving: 'Salvataggio...',
         settingsUpdated: 'Impostazioni aggiornate.',
         settingsUpdateFailed: 'Impossibile aggiornare le impostazioni!',
-        saveCanceledNavigation: 'Salvataggio interrotto perché hai cambiato pagina.',
-        savePasswordCanceledNavigation: 'Salvataggio password interrotto perché hai cambiato pagina.',
-        saveGatewayTokenCanceledNavigation: 'Salvataggio token gateway interrotto perché hai cambiato pagina.',
-        saveSSHKeyCanceledNavigation: 'Salvataggio chiave SSH interrotto perché hai cambiato pagina.',
+        saveCanceledNavigation:
+            'Salvataggio interrotto perché hai cambiato pagina.',
+        savePasswordCanceledNavigation:
+            'Salvataggio password interrotto perché hai cambiato pagina.',
+        saveGatewayTokenCanceledNavigation:
+            'Salvataggio token gateway interrotto perché hai cambiato pagina.',
+        saveSSHKeyCanceledNavigation:
+            'Salvataggio chiave SSH interrotto perché hai cambiato pagina.',
         mockLogStarting: 'Avvio agente OpenClaw...',
         mockLogLoadingModel: 'Caricamento modello: claude-sonnet-4-5',
         mockLogAgentReady: 'Agente pronto sulla porta 3000',
@@ -1805,7 +1823,7 @@ const it: Translations = {
             'Accedendo e utilizzando ClawHost ("Servizio"), accetti e ti impegni a rispettare i termini e le disposizioni di questo accordo. Se non accetti questi termini, ti preghiamo di non utilizzare il nostro Servizio.',
         serviceTitle: '2. Descrizione del Servizio',
         serviceText:
-            "ClawHost fornisce il deployment con un clic di OpenClaw e Hermes su server dedicati. Permettiamo agli utenti di distribuire, gestire e accedere a istanze OpenClaw e Hermes preconfigurate con accesso root completo e risorse dedicate.",
+            'ClawHost fornisce il deployment con un clic di OpenClaw e Hermes su server dedicati. Permettiamo agli utenti di distribuire, gestire e accedere a istanze OpenClaw e Hermes preconfigurate con accesso root completo e risorse dedicate.',
         authTitle: '3. Autenticazione',
         authText:
             "ClawHost utilizza Google Firebase Authentication per gestire l'accesso. Puoi autenticarti con email, Google o GitHub. Utilizzando questi metodi, accetti i rispettivi termini e informative sulla privacy di Google e GitHub. Questi provider possono raccogliere informazioni di base come indirizzo email, nome e dati del dispositivo.",

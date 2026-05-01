@@ -21,11 +21,7 @@ import {
     useNetworkStatus,
     useURLStateRestoration
 } from '@/hooks'
-import {
-    ErrorState,
-    NetworkStatus,
-    PageTitle
-} from '@/components'
+import { ErrorState, NetworkStatus, PageTitle } from '@/components'
 import {
     CreateAgentModal,
     DashboardChatView,

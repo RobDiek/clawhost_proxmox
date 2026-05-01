@@ -93,7 +93,7 @@ const ar: Translations = {
         whyClawHostGo: 'ميزات شاملة',
         featuresDescription: 'لماذا نستحق التجربة، الميزات لا تكذب.',
         zeroConfigDescription:
-            "وفّر ساعات من إعداد الخادم وOpenClaw وHermes. مثبتة مسبقًا وجاهزة في دقائق.",
+            'وفّر ساعات من إعداد الخادم وOpenClaw وHermes. مثبتة مسبقًا وجاهزة في دقائق.',
         ownedDataDescription:
             'كل شيء يعمل على جهازك. لا خوادم سحابية، لا أطراف ثالثة، لا بيانات تغادر جهازك.',
         terminalAccessDescription:
@@ -843,7 +843,8 @@ const ar: Translations = {
         fileExplorerReadOnly: 'للقراءة فقط',
         fileExplorerSave: 'حفظ',
         fileExplorerSaved: 'تم حفظ الملف.',
-        fileExplorerSaveCanceledNavigation: 'تم إيقاف حفظ الملف لأنك غادرت الصفحة.',
+        fileExplorerSaveCanceledNavigation:
+            'تم إيقاف حفظ الملف لأنك غادرت الصفحة.',
         fileExplorerInvalidJson:
             'JSON غير صالح. يرجى إصلاح أخطاء البناء قبل الحفظ !',
         fileExplorerNoFiles: 'لم يتم العثور على ملفات',
@@ -859,7 +860,8 @@ const ar: Translations = {
             'سيؤدي هذا إلى إعادة تثبيت {{agentName}} بالكامل على هذه النسخة. سيتم إعادة ضبط جميع التهيئات والوكلاء والبيانات. لا يمكن التراجع عن هذا الإجراء. متابعة؟',
         reinstallInstanceSuccess: 'تم إعادة تثبيت النسخة بنجاح.',
         reinstallInstanceFailed: 'فشل في إعادة تثبيت النسخة !',
-        reinstallCanceledNavigation: 'تم إيقاف إعادة التثبيت لأنك غادرت الصفحة.',
+        reinstallCanceledNavigation:
+            'تم إيقاف إعادة التثبيت لأنك غادرت الصفحة.',
         openControlPanel: 'فتح لوحة التحكم',
         exportData: 'تصدير المخلب (.zip)',
         exportAgent: 'تصدير',
@@ -871,9 +873,12 @@ const ar: Translations = {
         exportSuccess: 'تم تصدير المخلب بنجاح.',
         exportFailed: 'فشل في تصدير بيانات المخلب !',
         exportCanceledNavigation: 'تم إلغاء التصدير لأنك غادرت الصفحة.',
-        scheduleDeletionCanceledNavigation: 'تم إيقاف جدولة الحذف لأنك غادرت الصفحة.',
-        cancelDeletionCanceledNavigation: 'تم إيقاف إلغاء الحذف لأنك غادرت الصفحة.',
-        hardDeleteCanceledNavigation: 'تم إيقاف الحذف القسري لأنك غادرت الصفحة.',
+        scheduleDeletionCanceledNavigation:
+            'تم إيقاف جدولة الحذف لأنك غادرت الصفحة.',
+        cancelDeletionCanceledNavigation:
+            'تم إيقاف إلغاء الحذف لأنك غادرت الصفحة.',
+        hardDeleteCanceledNavigation:
+            'تم إيقاف الحذف القسري لأنك غادرت الصفحة.',
         exportRateLimited: 'يمكنك التصدير مرة أخرى خلال {{minutes}} دقائق.',
         exportRateLimitedOne: 'يمكنك التصدير مرة أخرى خلال دقيقة واحدة.',
         configuringTooltip:
@@ -1032,6 +1037,9 @@ const ar: Translations = {
         badge: 'OpenClaw مبسّط',
         tutorialBadge: 'شاهد. انشر.',
         tutorialVideoThumbnail: 'صورة مصغرة لفيديو شرح ClawHost',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: 'انشر OpenClaw.',
         heroTitle2: 'بنقرة واحدة. انتهى.',
         heroDescription:
@@ -1124,7 +1132,7 @@ const ar: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'اختر الخطة',
         mostPopular: 'الأكثر شعبية',
-        featurePreinstalled: "وكيل مثبت مسبقًا",
+        featurePreinstalled: 'وكيل مثبت مسبقًا',
         featureBandwidth: 'عرض نطاق غير محدود',
         featureSsh: 'وصول SSH الجذر',
         featureUptime: 'متصل 24/7',
@@ -1137,29 +1145,29 @@ const ar: Translations = {
         faqDescription: 'كل سؤال شائع، مُجاب عنه.',
         faq1Question: 'ما هو ClawHost؟',
         faq1Answer:
-            "ClawHost هو منصة بُنيت لجعل OpenClaw وHermes في متناول الجميع. تتيح للمستخدمين غير التقنيين والمطورين على حد سواء تشغيلهما دون إدارة البنية التحتية. نحن نتولى الخوادم، ووقت التشغيل، والأمان، والصيانة — أنت فقط تستخدم وكلاءك.",
+            'ClawHost هو منصة بُنيت لجعل OpenClaw وHermes في متناول الجميع. تتيح للمستخدمين غير التقنيين والمطورين على حد سواء تشغيلهما دون إدارة البنية التحتية. نحن نتولى الخوادم، ووقت التشغيل، والأمان، والصيانة — أنت فقط تستخدم وكلاءك.',
         faq2Question: 'ما هو OpenClaw؟',
         faq2Answer:
             'OpenClaw هو طبقة وصول آمنة ذاتية الاستضافة لأدوات وخدمات الذكاء الاصطناعي. مُهيأ مسبقاً للأمان والأداء، حتى تتمكن من نشره والاتصال فوراً.',
-        faqHermesQuestion: "ما هو Hermes؟",
+        faqHermesQuestion: 'ما هو Hermes؟',
         faqHermesAnswer:
-            "Hermes هو وكيل ذكاء اصطناعي مستقل مزود بتصفح الويب، وإدارة التقويم، والاستدلال متعدد النماذج، وأتمتة المتصفح. يأتي مثبتًا مسبقًا إلى جانب OpenClaw على كل خادم ClawHost.",
+            'Hermes هو وكيل ذكاء اصطناعي مستقل مزود بتصفح الويب، وإدارة التقويم، والاستدلال متعدد النماذج، وأتمتة المتصفح. يأتي مثبتًا مسبقًا إلى جانب OpenClaw على كل خادم ClawHost.',
         faq3Question:
             'كيف يختلف هذا عن أدوات الذكاء الاصطناعي الأخرى أو المنصات المستضافة؟',
         faq3Answer:
-            "على عكس أدوات الذكاء الاصطناعي المستضافة، يمنحك ClawHost خادمًا حقيقيًا بـ OpenClaw وHermes مثبتَين. أنت تملك البنية التحتية، وتتحكم في كل شيء، ولست مقيدًا بمنصة أو نموذج مشترك.",
+            'على عكس أدوات الذكاء الاصطناعي المستضافة، يمنحك ClawHost خادمًا حقيقيًا بـ OpenClaw وHermes مثبتَين. أنت تملك البنية التحتية، وتتحكم في كل شيء، ولست مقيدًا بمنصة أو نموذج مشترك.',
         faq4Question: 'هل أحتاج معرفة تقنية؟',
         faq4Answer:
-            "لا. نحن نتولى كل البنية التحتية، والإعداد، والصيانة. يمكنك تكوين وإدارة OpenClaw من خلال واجهته، بينما يعمل Hermes عبر أوامر طرفية بسيطة — دون لمس الخوادم أو البنية التحتية.",
+            'لا. نحن نتولى كل البنية التحتية، والإعداد، والصيانة. يمكنك تكوين وإدارة OpenClaw من خلال واجهته، بينما يعمل Hermes عبر أوامر طرفية بسيطة — دون لمس الخوادم أو البنية التحتية.',
         faq5Question: 'ما المواقع المتاحة؟',
         faq5Answer:
-            "نقدم مواقع خوادم متعددة حول العالم، بما في ذلك الولايات المتحدة وأوروبا وآسيا. يمكنك نشر OpenClaw أو Hermes على عدة خوادم في مناطق مختلفة عند الحاجة.",
+            'نقدم مواقع خوادم متعددة حول العالم، بما في ذلك الولايات المتحدة وأوروبا وآسيا. يمكنك نشر OpenClaw أو Hermes على عدة خوادم في مناطق مختلفة عند الحاجة.',
         faq6Question: 'كم التكلفة؟',
         faq6Answer:
             'تعتمد الأسعار على الخادم الذي تختاره. مع عدة خيارات للخوادم من المستوى الأساسي إلى الأداء العالي، تختار ما يناسب احتياجاتك وميزانيتك.',
-        faq7Question: "هل يمكنني الوصول إلى وكيلي مباشرة عبر رابط؟",
+        faq7Question: 'هل يمكنني الوصول إلى وكيلي مباشرة عبر رابط؟',
         faq7Answer:
-            "يمكن الوصول إلى OpenClaw عبر عنوان URL لنطاق فرعي مع واجهة ويب كاملة. أما Hermes فيعمل عبر أوامر طرفية باستخدام SSH — لا رابط، لكن لديك تحكم كامل من خلال طرفية الخادم.",
+            'يمكن الوصول إلى OpenClaw عبر عنوان URL لنطاق فرعي مع واجهة ويب كاملة. أما Hermes فيعمل عبر أوامر طرفية باستخدام SSH — لا رابط، لكن لديك تحكم كامل من خلال طرفية الخادم.',
         comparison: 'المقارنة',
         comparisonTitle: 'كيف نختلف',
         comparisonDescription:
@@ -1177,11 +1185,11 @@ const ar: Translations = {
         comparisonInfraOthers: 'خوادم محدودة',
         comparisonDataUs: 'امتلك بياناتك',
         comparisonDataOthers: 'لا تملك بياناتك',
-        comparisonMultipleUs: "وكلاء OpenClaw وHermes متعددون",
+        comparisonMultipleUs: 'وكلاء OpenClaw وHermes متعددون',
         comparisonMultipleOthers: 'نسخة OpenClaw واحدة فقط',
         comparisonOpenSourceUs: 'مفتوح المصدر بالكامل',
         comparisonOpenSourceOthers: 'مغلق المصدر',
-        comparisonExportUs: "صدّر OpenClaw وHermes إلى أي مكان",
+        comparisonExportUs: 'صدّر OpenClaw وHermes إلى أي مكان',
         comparisonExportOthers: 'حبس المورّد',
         comparisonProvidersUs: 'مزودي خوادم متعددين',
         comparisonProvidersOthers: 'مزود واحد فقط',
@@ -1196,10 +1204,10 @@ const ar: Translations = {
     },
     blog: {
         readingTime: '{{minutes}} دقائق قراءة',
-        ctaTitle: "انشر OpenClaw وHermes بنقرة واحدة",
+        ctaTitle: 'انشر OpenClaw وHermes بنقرة واحدة',
         ctaDescription:
-            "احصل على خادم مخصص مع OpenClaw وHermes مثبتَين مسبقًا. وصول root كامل، ومواقع عالمية، وجاهز في دقائق. ملكك في كل وقت. ابتداءً من 25 دولارًا.",
-        ctaDeploy: "انشر وكيلًا",
+            'احصل على خادم مخصص مع OpenClaw وHermes مثبتَين مسبقًا. وصول root كامل، ومواقع عالمية، وجاهز في دقائق. ملكك في كل وقت. ابتداءً من 25 دولارًا.',
+        ctaDeploy: 'انشر وكيلًا',
         ctaGitHub: 'عرض على GitHub'
     },
     changelog: {
@@ -1441,7 +1449,8 @@ const ar: Translations = {
         previewEnabling: 'جاري التفعيل...',
         previewEnabled: 'تم تفعيل المعاينة.',
         previewEnableFailed: 'فشل تفعيل المعاينة!',
-        previewEnableCanceledNavigation: 'تم إيقاف تفعيل المعاينة لأنك غادرت الصفحة.',
+        previewEnableCanceledNavigation:
+            'تم إيقاف تفعيل المعاينة لأنك غادرت الصفحة.',
         previewError: 'فشل تحميل المعاينة.',
         previewErrorDescription:
             'قد يكون الوكيل غير متصل أو لا يمكن الوصول إليه.',
@@ -1570,7 +1579,8 @@ const ar: Translations = {
         versionInstalling: 'جارٍ التثبيت...',
         versionInstallSuccess: 'تم تثبيت الإصدار {{version}} بنجاح.',
         versionInstallFailed: 'فشل في تثبيت الإصدار !',
-        installVersionCanceledNavigation: 'تم إيقاف تثبيت الإصدار لأنك غادرت الصفحة.',
+        installVersionCanceledNavigation:
+            'تم إيقاف تثبيت الإصدار لأنك غادرت الصفحة.',
         versionDownloads: '{{count}} تنزيل',
         versionChangelog: 'سجل التغييرات',
         versionOutdated: 'قديم',
@@ -1607,9 +1617,12 @@ const ar: Translations = {
         settingsUpdated: 'تم تحديث الإعدادات.',
         settingsUpdateFailed: 'فشل تحديث الإعدادات!',
         saveCanceledNavigation: 'تم إيقاف الحفظ لأنك غادرت الصفحة.',
-        savePasswordCanceledNavigation: 'تم إيقاف حفظ كلمة المرور لأنك غادرت الصفحة.',
-        saveGatewayTokenCanceledNavigation: 'تم إيقاف حفظ رمز البوابة لأنك غادرت الصفحة.',
-        saveSSHKeyCanceledNavigation: 'تم إيقاف حفظ مفتاح SSH لأنك غادرت الصفحة.',
+        savePasswordCanceledNavigation:
+            'تم إيقاف حفظ كلمة المرور لأنك غادرت الصفحة.',
+        saveGatewayTokenCanceledNavigation:
+            'تم إيقاف حفظ رمز البوابة لأنك غادرت الصفحة.',
+        saveSSHKeyCanceledNavigation:
+            'تم إيقاف حفظ مفتاح SSH لأنك غادرت الصفحة.',
         mockLogStarting: 'جارٍ تشغيل وكيل OpenClaw...',
         mockLogLoadingModel: 'جارٍ تحميل النموذج: claude-sonnet-4-5',
         mockLogAgentReady: 'الوكيل جاهز على المنفذ 3000',
@@ -1697,7 +1710,7 @@ const ar: Translations = {
             'بالوصول إلى واستخدام ClawHost ("الخدمة")، فإنك تقبل وتوافق على الالتزام بشروط وأحكام هذه الاتفاقية. إذا لم توافق على هذه الشروط، يرجى عدم استخدام خدمتنا.',
         serviceTitle: '2. وصف الخدمة',
         serviceText:
-            "يوفر ClawHost نشرًا بنقرة واحدة لـ OpenClaw وHermes على خوادم مخصصة. نمكّن المستخدمين من نشر مثيلات OpenClaw وHermes المُعدّة مسبقًا وإدارتها والوصول إليها بصلاحيات root كاملة وموارد مخصصة.",
+            'يوفر ClawHost نشرًا بنقرة واحدة لـ OpenClaw وHermes على خوادم مخصصة. نمكّن المستخدمين من نشر مثيلات OpenClaw وHermes المُعدّة مسبقًا وإدارتها والوصول إليها بصلاحيات root كاملة وموارد مخصصة.',
         authTitle: '3. المصادقة',
         authText:
             'يستخدم ClawHost مصادقة Google Firebase لإدارة تسجيل الدخول. يمكنك المصادقة بالبريد الإلكتروني أو Google أو GitHub. باستخدام هذه الطرق، توافق على الشروط وسياسات الخصوصية الخاصة بـ Google وGitHub. قد يجمع هؤلاء المزودون معلومات أساسية مثل عنوان بريدك الإلكتروني واسمك وبيانات الجهاز.',

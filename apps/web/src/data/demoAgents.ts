@@ -1,5 +1,7 @@
 import type { Agent } from '@/ts/Interfaces'
 
+import { subscriptionStatus } from '@openclaw/shared'
+
 const demoAgents: Agent[] = [
     {
         id: 'demo-1',
@@ -18,7 +20,7 @@ const demoAgents: Agent[] = [
         subdomain: 'personal-agent',
         gatewayToken: null,
         hostKeyFingerprint: null,
-        subscriptionStatus: 'active',
+        subscriptionStatus: subscriptionStatus.active,
         polarSubscriptionId: 'demo-sub-1',
         billingInterval: 'month',
         currentPeriodStart: '2026-04-01T00:00:00Z',
@@ -44,7 +46,7 @@ const demoAgents: Agent[] = [
         subdomain: 'hermes-worker',
         gatewayToken: null,
         hostKeyFingerprint: null,
-        subscriptionStatus: 'active',
+        subscriptionStatus: subscriptionStatus.active,
         polarSubscriptionId: 'demo-sub-2',
         billingInterval: 'month',
         currentPeriodStart: '2026-04-01T00:00:00Z',

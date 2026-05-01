@@ -31,12 +31,15 @@ const ComparisonTableV2: FC<ComparisonTableProps> = ({
                     </p>
                 </ScrollRevealV2>
 
-                <ScrollRevealV2 delay={0.2} className='relative z-[15] overflow-x-auto border border-white/10'>
+                <ScrollRevealV2
+                    delay={0.2}
+                    className='relative z-[15] overflow-x-auto border border-white/10'
+                >
                     <table className='w-full bg-[#020204]'>
                         <thead>
                             <tr className='bg-[#0a0a0c]'>
                                 <th className='px-6 py-4'>
-                                    <div className='flex items-center justify-center gap-2 scale-90 origin-center'>
+                                    <div className='flex origin-center scale-90 items-center justify-center gap-2'>
                                         <LogoV2 />
                                         {logoSuffix && (
                                             <span className='font-syne translate-y-px text-sm font-bold text-white'>
@@ -57,7 +60,9 @@ const ComparisonTableV2: FC<ComparisonTableProps> = ({
                                 <tr
                                     key={index}
                                     className={`border-t border-white/5 ${
-                                        index % 2 !== 0 ? 'bg-[#050507]' : 'bg-[#020204]'
+                                        index % 2 !== 0
+                                            ? 'bg-[#050507]'
+                                            : 'bg-[#020204]'
                                     } ${
                                         index === 0
                                             ? 'font-syne font-semibold'

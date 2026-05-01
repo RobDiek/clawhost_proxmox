@@ -17,6 +17,7 @@ import {
     safeShellWrite,
     DOMAIN
 } from '@/controllers/agents/helpers'
+import { gatewayDefaults } from '@/lib/constants'
 
 const SUBDOMAIN_CHANGE_WINDOW = 86_400_000
 
@@ -39,7 +40,7 @@ server {
     server_name ${fullDomain};
 
     location / {
-        proxy_pass http://127.0.0.1:18789;
+        proxy_pass ${gatewayDefaults.BASE_URL};
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;

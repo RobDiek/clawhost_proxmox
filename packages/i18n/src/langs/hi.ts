@@ -94,7 +94,7 @@ const hi: Translations = {
         featuresDescription:
             'हम क्यों आज़माने लायक हैं, विशेषताएँ झूठ नहीं बोलतीं.',
         zeroConfigDescription:
-            "सर्वर, OpenClaw और Hermes सेटअप के घंटों बचाएं. पहले से इंस्टॉल और मिनटों में तैयार.",
+            'सर्वर, OpenClaw और Hermes सेटअप के घंटों बचाएं. पहले से इंस्टॉल और मिनटों में तैयार.',
         ownedDataDescription:
             'सब कुछ आपके डिवाइस पर चलता है. कोई क्लाउड सर्वर नहीं, कोई तृतीय पक्ष नहीं, कोई डेटा आपकी मशीन से बाहर नहीं जाता.',
         terminalAccessDescription:
@@ -717,12 +717,14 @@ const hi: Translations = {
         billingReasonSubscriptionUpdate: 'सब्सक्रिप्शन अपडेट',
         failedToLoadBilling: 'बिलिंग इतिहास लोड करने में विफल!',
         downloadInvoice: 'चालान डाउनलोड करें',
-        invoiceCanceledNavigation: 'चालान डाउनलोड बाधित क्योंकि आप पृष्ठ से चले गए।',
+        invoiceCanceledNavigation:
+            'चालान डाउनलोड बाधित क्योंकि आप पृष्ठ से चले गए।',
         failedToLoadInvoice: 'चालान लोड करने में विफल!',
         couponApplied: 'कूपन: {{name}}',
         manageBilling: 'बिलिंग प्रबंधित करें',
         failedToLoadPortal: 'बिलिंग पोर्टल खोलने में विफल!',
-        portalCanceledNavigation: 'बिलिंग पोर्टल बाधित क्योंकि आप पृष्ठ से चले गए।'
+        portalCanceledNavigation:
+            'बिलिंग पोर्टल बाधित क्योंकि आप पृष्ठ से चले गए।'
     },
     license: {
         title: 'लाइसेंस',
@@ -874,7 +876,8 @@ const hi: Translations = {
         fileExplorerReadOnly: 'केवल पठन',
         fileExplorerSave: 'सहेजें',
         fileExplorerSaved: 'फ़ाइल सहेजी गई.',
-        fileExplorerSaveCanceledNavigation: 'फ़ाइल सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        fileExplorerSaveCanceledNavigation:
+            'फ़ाइल सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
         fileExplorerInvalidJson:
             'अमान्य JSON. कृपया सहेजने से पहले सिंटैक्स त्रुटियाँ ठीक करें!',
         fileExplorerNoFiles: 'कोई फ़ाइलें नहीं मिलीं',
@@ -890,7 +893,8 @@ const hi: Translations = {
             'यह इस इंस्टेंस पर {{agentName}} को पूरी तरह पुनः इंस्टॉल करेगा. सभी कॉन्फ़िगरेशन, एजेंट और डेटा रीसेट हो जाएँगे. यह कार्य पूर्ववत नहीं किया जा सकता. जारी रखें?',
         reinstallInstanceSuccess: 'इंस्टेंस सफलतापूर्वक पुनः इंस्टॉल हुआ.',
         reinstallInstanceFailed: 'इंस्टेंस पुनः इंस्टॉल करने में विफल!',
-        reinstallCanceledNavigation: 'पुनः स्थापना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        reinstallCanceledNavigation:
+            'पुनः स्थापना बाधित क्योंकि आप पृष्ठ से चले गए।',
         openControlPanel: 'कंट्रोल पैनल खोलें',
         exportData: 'क्लॉ निर्यात करें (.zip)',
         exportAgent: 'निर्यात',
@@ -903,9 +907,12 @@ const hi: Translations = {
         exportSuccess: 'क्लॉ सफलतापूर्वक निर्यात हुआ.',
         exportFailed: 'क्लॉ डेटा निर्यात करने में विफल!',
         exportCanceledNavigation: 'निर्यात रद्द क्योंकि आप पृष्ठ से चले गए।',
-        scheduleDeletionCanceledNavigation: 'विलोपन शेड्यूल बाधित क्योंकि आप पृष्ठ से चले गए।',
-        cancelDeletionCanceledNavigation: 'विलोपन निरस्तीकरण बाधित क्योंकि आप पृष्ठ से चले गए।',
-        hardDeleteCanceledNavigation: 'बलपूर्वक विलोपन बाधित क्योंकि आप पृष्ठ से चले गए।',
+        scheduleDeletionCanceledNavigation:
+            'विलोपन शेड्यूल बाधित क्योंकि आप पृष्ठ से चले गए।',
+        cancelDeletionCanceledNavigation:
+            'विलोपन निरस्तीकरण बाधित क्योंकि आप पृष्ठ से चले गए।',
+        hardDeleteCanceledNavigation:
+            'बलपूर्वक विलोपन बाधित क्योंकि आप पृष्ठ से चले गए।',
         exportRateLimited:
             'आप {{minutes}} मिनट में फिर से निर्यात कर सकते हैं.',
         exportRateLimitedOne: 'आप 1 मिनट में फिर से निर्यात कर सकते हैं.',
@@ -1068,6 +1075,9 @@ const hi: Translations = {
         badge: 'OpenClaw सरलीकृत',
         tutorialBadge: 'देखें. डिप्लॉय करें.',
         tutorialVideoThumbnail: 'ClawHost ट्यूटोरियल वीडियो थंबनेल',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: 'OpenClaw डिप्लॉय करें.',
         heroTitle2: 'एक क्लिक. हो गया.',
         heroDescription:
@@ -1162,7 +1172,7 @@ const hi: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'योजना चुनें',
         mostPopular: 'सबसे लोकप्रिय',
-        featurePreinstalled: "एजेंट पहले से इंस्टॉल",
+        featurePreinstalled: 'एजेंट पहले से इंस्टॉल',
         featureBandwidth: 'असीमित बैंडविड्थ',
         featureSsh: 'रूट SSH एक्सेस',
         featureUptime: '24/7 ऑनलाइन',
@@ -1175,28 +1185,28 @@ const hi: Translations = {
         faqDescription: 'हर एक अक्सर पूछे जाने वाला प्रश्न, उत्तर सहित.',
         faq1Question: 'ClawHost क्या है?',
         faq1Answer:
-            "ClawHost एक प्लेटफ़ॉर्म है जो OpenClaw और Hermes को सभी के लिए सुलभ बनाने के लिए बनाया गया है. यह गैर-तकनीकी उपयोगकर्ताओं और डेवलपर्स दोनों को बुनियादी ढांचे का प्रबंधन किए बिना उन्हें चलाने देता है. हम सर्वर, अपटाइम, सुरक्षा और रखरखाव संभालते हैं — आप बस अपने एजेंट का उपयोग करते हैं.",
+            'ClawHost एक प्लेटफ़ॉर्म है जो OpenClaw और Hermes को सभी के लिए सुलभ बनाने के लिए बनाया गया है. यह गैर-तकनीकी उपयोगकर्ताओं और डेवलपर्स दोनों को बुनियादी ढांचे का प्रबंधन किए बिना उन्हें चलाने देता है. हम सर्वर, अपटाइम, सुरक्षा और रखरखाव संभालते हैं — आप बस अपने एजेंट का उपयोग करते हैं.',
         faq2Question: 'OpenClaw क्या है?',
         faq2Answer:
             'OpenClaw आपके AI टूल और सेवाओं के लिए एक सेल्फ-होस्टेड सुरक्षित एक्सेस लेयर है. यह सुरक्षा और प्रदर्शन के लिए पूर्व-कॉन्फ़िगर है, ताकि आप इसे डिप्लॉय करें और तुरंत कनेक्ट हों.',
-        faqHermesQuestion: "Hermes क्या है?",
+        faqHermesQuestion: 'Hermes क्या है?',
         faqHermesAnswer:
-            "Hermes एक स्वायत्त AI एजेंट है जिसमें वेब ब्राउज़िंग, कैलेंडर प्रबंधन, बहु-मॉडल तर्क और ब्राउज़र स्वचालन शामिल है. यह हर ClawHost सर्वर पर OpenClaw के साथ पहले से इंस्टॉल आता है.",
+            'Hermes एक स्वायत्त AI एजेंट है जिसमें वेब ब्राउज़िंग, कैलेंडर प्रबंधन, बहु-मॉडल तर्क और ब्राउज़र स्वचालन शामिल है. यह हर ClawHost सर्वर पर OpenClaw के साथ पहले से इंस्टॉल आता है.',
         faq3Question: 'यह अन्य AI टूल या होस्टेड प्लेटफ़ॉर्म से कैसे अलग है?',
         faq3Answer:
-            "होस्टेड AI टूल के विपरीत, ClawHost आपको OpenClaw और Hermes स्थापित एक वास्तविक सर्वर देता है. आप बुनियादी ढांचे के मालिक हैं, सब कुछ नियंत्रित करते हैं, और साझा प्लेटफ़ॉर्म या मॉडल द्वारा सीमित नहीं हैं.",
+            'होस्टेड AI टूल के विपरीत, ClawHost आपको OpenClaw और Hermes स्थापित एक वास्तविक सर्वर देता है. आप बुनियादी ढांचे के मालिक हैं, सब कुछ नियंत्रित करते हैं, और साझा प्लेटफ़ॉर्म या मॉडल द्वारा सीमित नहीं हैं.',
         faq4Question: 'क्या मुझे तकनीकी ज्ञान चाहिए?',
         faq4Answer:
-            "नहीं. हम सभी इन्फ्रास्ट्रक्चर, सेटअप और रखरखाव संभालते हैं. आप OpenClaw को इसके UI से कॉन्फ़िगर और प्रबंधित कर सकते हैं, जबकि Hermes सरल टर्मिनल कमांड से चलता है — बिना सर्वर या इन्फ्रास्ट्रक्चर को छुए.",
+            'नहीं. हम सभी इन्फ्रास्ट्रक्चर, सेटअप और रखरखाव संभालते हैं. आप OpenClaw को इसके UI से कॉन्फ़िगर और प्रबंधित कर सकते हैं, जबकि Hermes सरल टर्मिनल कमांड से चलता है — बिना सर्वर या इन्फ्रास्ट्रक्चर को छुए.',
         faq5Question: 'कौन से स्थान उपलब्ध हैं?',
         faq5Answer:
-            "हम दुनिया भर में अमेरिका, यूरोप और एशिया सहित कई सर्वर स्थान प्रदान करते हैं. आप ज़रूरत पड़ने पर विभिन्न क्षेत्रों के कई सर्वरों पर OpenClaw या Hermes डिप्लॉय कर सकते हैं.",
+            'हम दुनिया भर में अमेरिका, यूरोप और एशिया सहित कई सर्वर स्थान प्रदान करते हैं. आप ज़रूरत पड़ने पर विभिन्न क्षेत्रों के कई सर्वरों पर OpenClaw या Hermes डिप्लॉय कर सकते हैं.',
         faq6Question: 'इसकी कीमत कितनी है?',
         faq6Answer:
             'कीमतें आपके द्वारा चुने गए सर्वर पर निर्भर करती हैं. बेसिक से लेकर उच्च प्रदर्शन तक कई सर्वर विकल्पों के साथ, आप अपनी आवश्यकताओं और बजट के अनुसार चुनें.',
-        faq7Question: "क्या मैं अपने एजेंट को सीधे लिंक से एक्सेस कर सकता हूँ?",
+        faq7Question: 'क्या मैं अपने एजेंट को सीधे लिंक से एक्सेस कर सकता हूँ?',
         faq7Answer:
-            "OpenClaw सबडोमेन URL और पूर्ण वेब UI के माध्यम से एक्सेस किया जा सकता है. Hermes SSH पर टर्मिनल कमांड से चलता है — कोई लिंक नहीं, लेकिन आप अपने सर्वर के टर्मिनल से इसे पूरी तरह नियंत्रित कर सकते हैं.",
+            'OpenClaw सबडोमेन URL और पूर्ण वेब UI के माध्यम से एक्सेस किया जा सकता है. Hermes SSH पर टर्मिनल कमांड से चलता है — कोई लिंक नहीं, लेकिन आप अपने सर्वर के टर्मिनल से इसे पूरी तरह नियंत्रित कर सकते हैं.',
         comparison: 'तुलना',
         comparisonTitle: 'हम कैसे अलग हैं',
         comparisonDescription:
@@ -1214,11 +1224,11 @@ const hi: Translations = {
         comparisonInfraOthers: 'सीमित सर्वर',
         comparisonDataUs: 'अपने डेटा के मालिक बनें',
         comparisonDataOthers: 'अपने डेटा के मालिक नहीं',
-        comparisonMultipleUs: "कई OpenClaw और Hermes एजेंट",
+        comparisonMultipleUs: 'कई OpenClaw और Hermes एजेंट',
         comparisonMultipleOthers: 'केवल एक OpenClaw',
         comparisonOpenSourceUs: 'पूर्ण रूप से ओपन सोर्स',
         comparisonOpenSourceOthers: 'क्लोज़्ड सोर्स',
-        comparisonExportUs: "अपने OpenClaw और Hermes को कहीं भी निर्यात करें",
+        comparisonExportUs: 'अपने OpenClaw और Hermes को कहीं भी निर्यात करें',
         comparisonExportOthers: 'वेंडर लॉक-इन',
         comparisonProvidersUs: 'एकाधिक सर्वर प्रदाता',
         comparisonProvidersOthers: 'केवल एक प्रदाता',
@@ -1233,10 +1243,10 @@ const hi: Translations = {
     },
     blog: {
         readingTime: '{{minutes}} मिनट पढ़ने का समय',
-        ctaTitle: "एक क्लिक में OpenClaw और Hermes डिप्लॉय करें",
+        ctaTitle: 'एक क्लिक में OpenClaw और Hermes डिप्लॉय करें',
         ctaDescription:
-            "OpenClaw और Hermes पहले से इंस्टॉल एक डेडिकेटेड सर्वर प्राप्त करें. पूर्ण रूट एक्सेस, वैश्विक स्थान, और मिनटों में तैयार. यह हमेशा आपका है. $25 से शुरू.",
-        ctaDeploy: "एजेंट डिप्लॉय करें",
+            'OpenClaw और Hermes पहले से इंस्टॉल एक डेडिकेटेड सर्वर प्राप्त करें. पूर्ण रूट एक्सेस, वैश्विक स्थान, और मिनटों में तैयार. यह हमेशा आपका है. $25 से शुरू.',
+        ctaDeploy: 'एजेंट डिप्लॉय करें',
         ctaGitHub: 'GitHub पर देखें'
     },
     changelog: {
@@ -1485,7 +1495,8 @@ const hi: Translations = {
         previewEnabling: 'सक्षम हो रहा है...',
         previewEnabled: 'पूर्वावलोकन सक्षम।',
         previewEnableFailed: 'पूर्वावलोकन सक्षम करने में विफल!',
-        previewEnableCanceledNavigation: 'पूर्वावलोकन सक्षम करना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        previewEnableCanceledNavigation:
+            'पूर्वावलोकन सक्षम करना बाधित क्योंकि आप पृष्ठ से चले गए।',
         previewError: 'पूर्वावलोकन लोड करने में विफल।',
         previewErrorDescription: 'एजेंट ऑफ़लाइन या अनुपलब्ध हो सकता है।',
         previewRetry: 'पुनः प्रयास करें',
@@ -1620,7 +1631,8 @@ const hi: Translations = {
         versionInstalling: 'इंस्टॉल हो रहा है...',
         versionInstallSuccess: 'संस्करण {{version}} सफलतापूर्वक इंस्टॉल हुआ.',
         versionInstallFailed: 'संस्करण इंस्टॉल करने में विफल!',
-        installVersionCanceledNavigation: 'संस्करण स्थापना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        installVersionCanceledNavigation:
+            'संस्करण स्थापना बाधित क्योंकि आप पृष्ठ से चले गए।',
         versionDownloads: '{{count}} डाउनलोड',
         versionChangelog: 'परिवर्तन लॉग',
         versionOutdated: 'पुराना',
@@ -1658,9 +1670,12 @@ const hi: Translations = {
         settingsUpdated: 'सेटिंग्स अपडेट की गईं।',
         settingsUpdateFailed: 'सेटिंग्स अपडेट करने में विफल!',
         saveCanceledNavigation: 'सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
-        savePasswordCanceledNavigation: 'पासवर्ड सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
-        saveGatewayTokenCanceledNavigation: 'गेटवे टोकन सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
-        saveSSHKeyCanceledNavigation: 'SSH कुंजी सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        savePasswordCanceledNavigation:
+            'पासवर्ड सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        saveGatewayTokenCanceledNavigation:
+            'गेटवे टोकन सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
+        saveSSHKeyCanceledNavigation:
+            'SSH कुंजी सहेजना बाधित क्योंकि आप पृष्ठ से चले गए।',
         mockLogStarting: 'OpenClaw एजेंट शुरू हो रहा है...',
         mockLogLoadingModel: 'मॉडल लोड हो रहा है: claude-sonnet-4-5',
         mockLogAgentReady: 'एजेंट पोर्ट 3000 पर तैयार',
@@ -1753,7 +1768,7 @@ const hi: Translations = {
             'ClawHost ("सेवा") तक पहुँचकर और इसका उपयोग करके, आप इस समझौते की शर्तों और प्रावधानों से बाध्य होने को स्वीकार और सहमत होते हैं. यदि आप इन शर्तों से सहमत नहीं हैं, तो कृपया हमारी सेवा का उपयोग न करें.',
         serviceTitle: '2. सेवा का विवरण',
         serviceText:
-            "ClawHost डेडिकेटेड सर्वरों पर OpenClaw और Hermes की एक-क्लिक डिप्लॉयमेंट प्रदान करता है. हम उपयोगकर्ताओं को पूर्ण रूट एक्सेस और डेडिकेटेड संसाधनों के साथ पूर्व-कॉन्फ़िगर OpenClaw और Hermes इंस्टेंस को डिप्लॉय, प्रबंधित और एक्सेस करने में सक्षम बनाते हैं.",
+            'ClawHost डेडिकेटेड सर्वरों पर OpenClaw और Hermes की एक-क्लिक डिप्लॉयमेंट प्रदान करता है. हम उपयोगकर्ताओं को पूर्ण रूट एक्सेस और डेडिकेटेड संसाधनों के साथ पूर्व-कॉन्फ़िगर OpenClaw और Hermes इंस्टेंस को डिप्लॉय, प्रबंधित और एक्सेस करने में सक्षम बनाते हैं.',
         authTitle: '3. प्रमाणीकरण',
         authText:
             'ClawHost साइन-इन प्रबंधित करने के लिए Google Firebase Authentication का उपयोग करता है. आप ईमेल, Google या GitHub से प्रमाणित कर सकते हैं. इन विधियों का उपयोग करके, आप Google और GitHub की संबंधित शर्तों और गोपनीयता नीतियों से सहमत होते हैं. ये प्रदाता आपके ईमेल पते, नाम और डिवाइस डेटा जैसी बुनियादी जानकारी एकत्र कर सकते हैं.',

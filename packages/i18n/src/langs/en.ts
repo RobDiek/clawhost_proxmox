@@ -238,17 +238,17 @@ const en = {
     },
     errors: {
         somethingWentWrong: 'Something went wrong!',
-        couldNotLoadData: "We couldn\'t load the data. Please try again!",
+        couldNotLoadData: "We couldn't load the data. Please try again!",
         notFound: 'Page not found!',
         pageNotFoundDescription:
-            "The page you\'re looking for doesn\'t exist or has been moved.",
+            "The page you're looking for doesn't exist or has been moved.",
         goToHomepage: 'Go to Homepage',
         failedToLoadAgents: 'Failed to load agents!',
         failedToLoadAgentsDescription:
-            "We couldn\'t load your Agents. Please check your connection and try again!",
+            "We couldn't load your Agents. Please check your connection and try again!",
         failedToLoadSSHKeys: 'Failed to load SSH keys!',
         failedToLoadSSHKeysDescription:
-            "We couldn\'t load your SSH keys. Please check your connection and try again!",
+            "We couldn't load your SSH keys. Please check your connection and try again!",
         failedToUpdateProfile: 'Failed to update profile!',
         failedToAddSSHKey: 'Failed to add SSH key!',
         failedToCreateClaw: 'Failed to create claw!',
@@ -275,9 +275,9 @@ const en = {
         agentNotScheduledForDeletion: 'Agent is not scheduled for deletion!',
         agentDeletionAlreadyPassed: 'Deletion date has already passed!',
         agentLimitReached:
-            "You\'ve reached the limit of {{max}} agents. Please contact support to increase this limit!",
+            "You've reached the limit of {{max}} agents. Please contact support to increase this limit!",
         sshKeyLimitReached:
-            "You\'ve reached the limit of {{max}} SSH keys. Please contact support to increase this limit!",
+            "You've reached the limit of {{max}} SSH keys. Please contact support to increase this limit!",
         volumeSizeInvalid:
             'Volume size must be between {{min}} and {{max}} GB!',
         paymentNotConfigured: 'Payment not configured for this plan!',
@@ -510,7 +510,7 @@ const en = {
         otpExpiry:
             "Code expires in 10 minutes. If this wasn't you, ignore this email.",
         featureFooter:
-            "You\'re receiving this because you have a ClawHost account.",
+            "You're receiving this because you have a ClawHost account.",
         features: {
             terminal: {
                 subject: 'You have a web terminal',
@@ -627,8 +627,7 @@ const en = {
         emailAddress: 'Email Address',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Continue with Email',
-        otpDescription:
-            "We\'ll send you a code to sign in. No password needed.",
+        otpDescription: "We'll send you a code to sign in. No password needed.",
         welcomeBack: 'Welcome back.',
         resendIn: 'Resend in {{seconds}}s',
         resendCode: 'Resend code',
@@ -704,11 +703,13 @@ const en = {
         failedToLoadBilling: 'Failed to load billing history!',
         downloadInvoice: 'Download Invoice',
         failedToLoadInvoice: 'Failed to load invoice!',
-        invoiceCanceledNavigation: 'Invoice download interrupted because you navigated away.',
+        invoiceCanceledNavigation:
+            'Invoice download interrupted because you navigated away.',
         couponApplied: 'Coupon: {{name}}',
         manageBilling: 'Manage Billing',
         failedToLoadPortal: 'Failed to open billing portal!',
-        portalCanceledNavigation: 'Billing portal interrupted because you navigated away.'
+        portalCanceledNavigation:
+            'Billing portal interrupted because you navigated away.'
     },
     license: {
         title: 'License',
@@ -732,7 +733,7 @@ const en = {
         featureUpdates: 'Forever Updates',
         featureSupport: 'Priority Support',
         featureCloud: 'All Cloud Features, Locally',
-        whatsIncluded: "What\'s included",
+        whatsIncluded: "What's included",
         gateTitle: 'License Required',
         gateDescription:
             'You need a ClawHost Go License to deploy and manage OpenClaw instances locally.'
@@ -860,7 +861,8 @@ const en = {
         fileExplorerReadOnly: 'Read-only',
         fileExplorerSave: 'Save',
         fileExplorerSaved: 'File saved.',
-        fileExplorerSaveCanceledNavigation: 'File save interrupted because you navigated away.',
+        fileExplorerSaveCanceledNavigation:
+            'File save interrupted because you navigated away.',
         fileExplorerInvalidJson:
             'Invalid JSON. Please fix syntax errors before saving!',
         fileExplorerNoFiles: 'No files found',
@@ -876,7 +878,8 @@ const en = {
             'This will completely reinstall {{agentName}} on this instance. All configurations, agents, and data will be reset. This action cannot be undone. Continue?',
         reinstallInstanceSuccess: 'Instance reinstalled successfully.',
         reinstallInstanceFailed: 'Failed to reinstall instance!',
-        reinstallCanceledNavigation: 'Reinstall interrupted because you navigated away.',
+        reinstallCanceledNavigation:
+            'Reinstall interrupted because you navigated away.',
         openControlPanel: 'Open Control Panel',
         exportData: 'Export Claw (.zip)',
         exportAgent: 'Export',
@@ -889,9 +892,12 @@ const en = {
         exportSuccess: 'Agent exported successfully.',
         exportFailed: 'Failed to export claw data!',
         exportCanceledNavigation: 'Export canceled because you navigated away.',
-        scheduleDeletionCanceledNavigation: 'Schedule deletion interrupted because you navigated away.',
-        cancelDeletionCanceledNavigation: 'Cancel deletion interrupted because you navigated away.',
-        hardDeleteCanceledNavigation: 'Force delete interrupted because you navigated away.',
+        scheduleDeletionCanceledNavigation:
+            'Schedule deletion interrupted because you navigated away.',
+        cancelDeletionCanceledNavigation:
+            'Cancel deletion interrupted because you navigated away.',
+        hardDeleteCanceledNavigation:
+            'Force delete interrupted because you navigated away.',
         exportRateLimited: 'You can export again in {{minutes}} minutes.',
         exportRateLimitedOne: 'You can export again in 1 minute.',
         configuringTooltip:
@@ -1026,7 +1032,7 @@ const en = {
         publicKeyPathOr: 'or',
         publicKeyPath2: '~/.ssh/id_rsa.pub',
         important: 'Important:',
-        dontHaveSshKey: "Don\'t have an SSH key? Generate one:",
+        dontHaveSshKey: "Don't have an SSH key? Generate one:",
         sshKeygenCommand: 'ssh-keygen -t ed25519 -C "your-email@example.com"',
         keyName: 'Key Name',
         keyNamePlaceholder: 'My Generated Key',
@@ -1051,6 +1057,9 @@ const en = {
         badge: 'OpenClaw & Hermes Supported',
         tutorialBadge: 'Watch. Deploy.',
         tutorialVideoThumbnail: 'ClawHost tutorial video thumbnail',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '10:12 PM',
         heroTitle1: 'Deploy OpenClaw.',
         heroTitle2: 'One click. Done.',
         heroDescription:
@@ -1144,7 +1153,7 @@ const en = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'Choose Plan',
         mostPopular: 'Most Popular',
-        featurePreinstalled: "Agent Pre-Installed",
+        featurePreinstalled: 'Agent Pre-Installed',
         featureBandwidth: 'Unlimited Bandwidth',
         featureSsh: 'Root SSH Access',
         featureUptime: '24/7 Online',
@@ -1158,7 +1167,7 @@ const en = {
             'Every single frequently asked question, answered. If you have more, reach out to us.',
         faq1Question: 'What is ClawHost?',
         faq1Answer:
-            "ClawHost is a platform built to make OpenClaw and Hermes accessible to everyone. It lets both non-technical users and developers run them without managing infrastructure. We handle servers, uptime, security, and maintenance — you just use your agents.",
+            'ClawHost is a platform built to make OpenClaw and Hermes accessible to everyone. It lets both non-technical users and developers run them without managing infrastructure. We handle servers, uptime, security, and maintenance — you just use your agents.',
         faq2Question: 'What is OpenClaw?',
         faq2Answer:
             "OpenClaw is a self-hosted secure access layer for your AI tools and services. It's pre-configured for security and performance, so you can deploy it and connect instantly.",
@@ -1171,16 +1180,16 @@ const en = {
             "Unlike hosted AI tools, ClawHost gives you a real server with OpenClaw and Hermes installed. You own the infrastructure, control everything, and aren't limited by a shared platform or model.",
         faq4Question: 'Do I need technical knowledge?',
         faq4Answer:
-            "No. We handle all infrastructure, setup, and maintenance. You can configure and manage OpenClaw through its UI, while Hermes runs through simple terminal commands — without touching servers or infrastructure yourself.",
+            'No. We handle all infrastructure, setup, and maintenance. You can configure and manage OpenClaw through its UI, while Hermes runs through simple terminal commands — without touching servers or infrastructure yourself.',
         faq5Question: 'What locations are available?',
         faq5Answer:
-            "We offer multiple server locations worldwide, including US, Europe, and Asia. You can deploy OpenClaw or Hermes on multiple servers in different regions if needed.",
+            'We offer multiple server locations worldwide, including US, Europe, and Asia. You can deploy OpenClaw or Hermes on multiple servers in different regions if needed.',
         faq6Question: 'How much does it cost?',
         faq6Answer:
             'Pricing is based on the server you select. With multiple server options ranging from entry-level to high-performance, you choose what fits your needs and budget.',
-        faq7Question: "Can I access my agent directly via a link?",
+        faq7Question: 'Can I access my agent directly via a link?',
         faq7Answer:
-            "OpenClaw is accessible via a subdomain URL with a full web UI. Hermes runs through terminal commands over SSH, so there is no link — you control it directly from your server’s terminal.",
+            'OpenClaw is accessible via a subdomain URL with a full web UI. Hermes runs through terminal commands over SSH, so there is no link — you control it directly from your server’s terminal.',
         comparison: 'Comparison',
         comparisonTitle: "How We're Different",
         comparisonDescription:
@@ -1198,11 +1207,11 @@ const en = {
         comparisonInfraOthers: 'Limited servers',
         comparisonDataUs: 'Own your data',
         comparisonDataOthers: "Don't own your data",
-        comparisonMultipleUs: "Multiple OpenClaw and Hermes agents",
+        comparisonMultipleUs: 'Multiple OpenClaw and Hermes agents',
         comparisonMultipleOthers: 'Single OpenClaw only',
         comparisonOpenSourceUs: 'Fully open source',
         comparisonOpenSourceOthers: 'Closed source',
-        comparisonExportUs: "Export your OpenClaw and Hermes anywhere",
+        comparisonExportUs: 'Export your OpenClaw and Hermes anywhere',
         comparisonExportOthers: 'Vendor lock-in',
         comparisonProvidersUs: 'Multiple server providers',
         comparisonProvidersOthers: 'Single provider only',
@@ -1217,10 +1226,10 @@ const en = {
     },
     blog: {
         readingTime: '{{minutes}} min read',
-        ctaTitle: "Deploy OpenClaw and Hermes with One Click",
+        ctaTitle: 'Deploy OpenClaw and Hermes with One Click',
         ctaDescription:
-            "Get a dedicated server with OpenClaw and Hermes pre-installed. Full root access, global locations, and ready in minutes. You own it at all times. Starting from $25.",
-        ctaDeploy: "Deploy Agent",
+            'Get a dedicated server with OpenClaw and Hermes pre-installed. Full root access, global locations, and ready in minutes. You own it at all times. Starting from $25.',
+        ctaDeploy: 'Deploy Agent',
         ctaGitHub: 'View on GitHub'
     },
     changelog: {
@@ -1472,7 +1481,8 @@ const en = {
         previewEnabling: 'Enabling...',
         previewEnabled: 'Preview enabled.',
         previewEnableFailed: 'Failed to enable preview!',
-        previewEnableCanceledNavigation: 'Enable preview interrupted because you navigated away.',
+        previewEnableCanceledNavigation:
+            'Enable preview interrupted because you navigated away.',
         previewError: 'Failed to load preview.',
         previewErrorDescription: 'The agent may be offline or unreachable.',
         previewRetry: 'Retry',
@@ -1607,7 +1617,8 @@ const en = {
         versionInstalling: 'Installing...',
         versionInstallSuccess: 'Version {{version}} installed successfully.',
         versionInstallFailed: 'Failed to install version!',
-        installVersionCanceledNavigation: 'Version install interrupted because you navigated away.',
+        installVersionCanceledNavigation:
+            'Version install interrupted because you navigated away.',
         versionDownloads: '{{count}} downloads',
         versionChangelog: 'Changelog',
         versionOutdated: 'Outdated',
@@ -1646,9 +1657,12 @@ const en = {
         settingsUpdated: 'Settings updated.',
         settingsUpdateFailed: 'Failed to update settings!',
         saveCanceledNavigation: 'Save interrupted because you navigated away.',
-        savePasswordCanceledNavigation: 'Password save interrupted because you navigated away.',
-        saveGatewayTokenCanceledNavigation: 'Gateway token save interrupted because you navigated away.',
-        saveSSHKeyCanceledNavigation: 'SSH key save interrupted because you navigated away.',
+        savePasswordCanceledNavigation:
+            'Password save interrupted because you navigated away.',
+        saveGatewayTokenCanceledNavigation:
+            'Gateway token save interrupted because you navigated away.',
+        saveSSHKeyCanceledNavigation:
+            'SSH key save interrupted because you navigated away.',
         mockLogStarting: 'Starting OpenClaw agent...',
         mockLogLoadingModel: 'Loading model: claude-sonnet-4-5',
         mockLogAgentReady: 'Agent ready on port 3000',
@@ -1806,8 +1820,7 @@ const en = {
         enterEmail: 'Email Address',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Continue with Email',
-        otpDescription:
-            "We\'ll send you a code to sign in. No password needed.",
+        otpDescription: "We'll send you a code to sign in. No password needed.",
         sending: 'Sending...',
         checkYourEmail: 'Check your email',
         codeSentTo: 'We sent a 6-digit code to',

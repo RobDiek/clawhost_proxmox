@@ -95,7 +95,7 @@ const de: Translations = {
         featuresDescription:
             'Warum es sich lohnt – Funktionen sprechen für sich.',
         zeroConfigDescription:
-            "Spare dir Stunden für Server-, OpenClaw- und Hermes-Setup. Alles ist vorinstalliert und in Minuten bereit.",
+            'Spare dir Stunden für Server-, OpenClaw- und Hermes-Setup. Alles ist vorinstalliert und in Minuten bereit.',
         ownedDataDescription:
             'Alles läuft auf Ihrem Gerät. Keine Cloud-Server, keine Drittanbieter, keine Daten verlassen Ihren Rechner.',
         terminalAccessDescription:
@@ -735,12 +735,14 @@ const de: Translations = {
         billingReasonSubscriptionUpdate: 'Abonnement-Änderung',
         failedToLoadBilling: 'Abrechnungsverlauf konnte nicht geladen werden!',
         downloadInvoice: 'Rechnung herunterladen',
-        invoiceCanceledNavigation: 'Rechnungsdownload unterbrochen weil du die Seite verlassen hast.',
+        invoiceCanceledNavigation:
+            'Rechnungsdownload unterbrochen weil du die Seite verlassen hast.',
         failedToLoadInvoice: 'Rechnung konnte nicht geladen werden!',
         couponApplied: 'Gutschein: {{name}}',
         manageBilling: 'Abrechnung verwalten',
         failedToLoadPortal: 'Abrechnungsportal konnte nicht geöffnet werden!',
-        portalCanceledNavigation: 'Abrechnungsportal unterbrochen weil du die Seite verlassen hast.'
+        portalCanceledNavigation:
+            'Abrechnungsportal unterbrochen weil du die Seite verlassen hast.'
     },
     license: {
         title: 'Lizenz',
@@ -897,7 +899,8 @@ const de: Translations = {
         fileExplorerReadOnly: 'Nur lesen',
         fileExplorerSave: 'Speichern',
         fileExplorerSaved: 'Datei gespeichert.',
-        fileExplorerSaveCanceledNavigation: 'Datei-Speichern unterbrochen weil du die Seite verlassen hast.',
+        fileExplorerSaveCanceledNavigation:
+            'Datei-Speichern unterbrochen weil du die Seite verlassen hast.',
         fileExplorerInvalidJson:
             'Ungültiges JSON. Bitte behebe Syntaxfehler vor dem Speichern!',
         fileExplorerNoFiles: 'Keine Dateien gefunden',
@@ -914,7 +917,8 @@ const de: Translations = {
             'Dies wird {{agentName}} auf dieser Instanz vollständig neu installieren. Alle Konfigurationen, Agenten und Daten werden zurückgesetzt. Diese Aktion kann nicht rückgängig gemacht werden. Fortfahren?',
         reinstallInstanceSuccess: 'Instanz erfolgreich neu installiert.',
         reinstallInstanceFailed: 'Instanz konnte nicht neu installiert werden!',
-        reinstallCanceledNavigation: 'Neuinstallation unterbrochen weil du die Seite verlassen hast.',
+        reinstallCanceledNavigation:
+            'Neuinstallation unterbrochen weil du die Seite verlassen hast.',
         openControlPanel: 'Systemsteuerung öffnen',
         exportData: 'Claw exportieren (.zip)',
         exportAgent: 'Export',
@@ -927,10 +931,14 @@ const de: Translations = {
             'Export wird vorbereitet, das kann einen Moment dauern...',
         exportSuccess: 'Claw erfolgreich exportiert.',
         exportFailed: 'Claw-Daten konnten nicht exportiert werden!',
-        exportCanceledNavigation: 'Export abgebrochen weil du die Seite verlassen hast.',
-        scheduleDeletionCanceledNavigation: 'Löschplanung unterbrochen weil du die Seite verlassen hast.',
-        cancelDeletionCanceledNavigation: 'Löschabbruch unterbrochen weil du die Seite verlassen hast.',
-        hardDeleteCanceledNavigation: 'Erzwungene Löschung unterbrochen weil du die Seite verlassen hast.',
+        exportCanceledNavigation:
+            'Export abgebrochen weil du die Seite verlassen hast.',
+        scheduleDeletionCanceledNavigation:
+            'Löschplanung unterbrochen weil du die Seite verlassen hast.',
+        cancelDeletionCanceledNavigation:
+            'Löschabbruch unterbrochen weil du die Seite verlassen hast.',
+        hardDeleteCanceledNavigation:
+            'Erzwungene Löschung unterbrochen weil du die Seite verlassen hast.',
         exportRateLimited:
             'Du kannst in {{minutes}} Minuten erneut exportieren!',
         exportRateLimitedOne: 'Du kannst in 1 Minute erneut exportieren!',
@@ -1099,6 +1107,9 @@ const de: Translations = {
         badge: 'OpenClaw vereinfacht',
         tutorialBadge: 'Anschauen. Deployen.',
         tutorialVideoThumbnail: 'ClawHost Tutorial-Video Vorschaubild',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verifiziertes Umsatz-Badge',
+        macosPreviewTime: '22:12',
         heroTitle1: 'OpenClaw bereitstellen.',
         heroTitle2: 'Ein Klick. Fertig.',
         heroDescription:
@@ -1193,7 +1204,7 @@ const de: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: 'Plan wählen',
         mostPopular: 'Am beliebtesten',
-        featurePreinstalled: "Agent vorinstalliert",
+        featurePreinstalled: 'Agent vorinstalliert',
         featureBandwidth: 'Unbegrenzte Bandbreite',
         featureSsh: 'Root-SSH-Zugang',
         featureUptime: '24/7 online',
@@ -1206,29 +1217,30 @@ const de: Translations = {
         faqDescription: 'Jede häufig gestellte Frage, beantwortet.',
         faq1Question: 'Was ist ClawHost?',
         faq1Answer:
-            "ClawHost ist eine Plattform, die OpenClaw und Hermes für alle zugänglich macht. Sie ermöglicht sowohl nicht-technischen Nutzern als auch Entwicklern, sie ohne Infrastruktur-Verwaltung zu betreiben. Wir kümmern uns um Server, Uptime, Sicherheit und Wartung — du nutzt einfach deine Agenten.",
+            'ClawHost ist eine Plattform, die OpenClaw und Hermes für alle zugänglich macht. Sie ermöglicht sowohl nicht-technischen Nutzern als auch Entwicklern, sie ohne Infrastruktur-Verwaltung zu betreiben. Wir kümmern uns um Server, Uptime, Sicherheit und Wartung — du nutzt einfach deine Agenten.',
         faq2Question: 'Was ist OpenClaw?',
         faq2Answer:
             'OpenClaw ist eine selbst-gehostete sichere Zugriffsschicht für deine KI-Werkzeuge und -Dienste. Es ist vorkonfiguriert für Sicherheit und Leistung, sodass du es bereitstellen und sofort verbinden kannst.',
-        faqHermesQuestion: "Was ist Hermes?",
+        faqHermesQuestion: 'Was ist Hermes?',
         faqHermesAnswer:
-            "Hermes ist ein autonomer KI-Agent mit Web-Browsing, Kalenderverwaltung, Multi-Modell-Reasoning und Browser-Automatisierung. Er ist auf jedem ClawHost-Server zusammen mit OpenClaw vorinstalliert.",
+            'Hermes ist ein autonomer KI-Agent mit Web-Browsing, Kalenderverwaltung, Multi-Modell-Reasoning und Browser-Automatisierung. Er ist auf jedem ClawHost-Server zusammen mit OpenClaw vorinstalliert.',
         faq3Question:
             'Wie unterscheidet sich das von anderen KI-Werkzeugen oder gehosteten Plattformen?',
         faq3Answer:
-            "Im Gegensatz zu gehosteten KI-Tools bietet dir ClawHost einen echten Server mit OpenClaw und Hermes installiert. Du besitzt die Infrastruktur, kontrollierst alles und bist nicht durch eine geteilte Plattform oder ein Modell eingeschränkt.",
+            'Im Gegensatz zu gehosteten KI-Tools bietet dir ClawHost einen echten Server mit OpenClaw und Hermes installiert. Du besitzt die Infrastruktur, kontrollierst alles und bist nicht durch eine geteilte Plattform oder ein Modell eingeschränkt.',
         faq4Question: 'Brauche ich technisches Wissen?',
         faq4Answer:
-            "Nein. Wir kümmern uns um die gesamte Infrastruktur, Einrichtung und Wartung. Du kannst OpenClaw über die Oberfläche konfigurieren und verwalten, während Hermes über einfache Terminal-Befehle läuft — ohne Server oder Infrastruktur anzufassen.",
+            'Nein. Wir kümmern uns um die gesamte Infrastruktur, Einrichtung und Wartung. Du kannst OpenClaw über die Oberfläche konfigurieren und verwalten, während Hermes über einfache Terminal-Befehle läuft — ohne Server oder Infrastruktur anzufassen.',
         faq5Question: 'Welche Standorte sind verfügbar?',
         faq5Answer:
-            "Wir bieten mehrere Serverstandorte weltweit, einschließlich USA, Europa und Asien. Bei Bedarf kannst du OpenClaw oder Hermes auf mehreren Servern in verschiedenen Regionen bereitstellen.",
+            'Wir bieten mehrere Serverstandorte weltweit, einschließlich USA, Europa und Asien. Bei Bedarf kannst du OpenClaw oder Hermes auf mehreren Servern in verschiedenen Regionen bereitstellen.',
         faq6Question: 'Wie viel kostet es?',
         faq6Answer:
             'Die Preise hängen vom gewählten Server ab. Mit mehreren Serveroptionen von Einsteiger bis Hochleistung wählst du das, was zu deinen Anforderungen und deinem Budget passt.',
-        faq7Question: "Kann ich auf meinen Agenten direkt über einen Link zugreifen?",
+        faq7Question:
+            'Kann ich auf meinen Agenten direkt über einen Link zugreifen?',
         faq7Answer:
-            "OpenClaw ist über eine Subdomain-URL mit voller Web-UI erreichbar. Hermes läuft über Terminal-Befehle via SSH — kein Link, aber volle Kontrolle über das Terminal deines Servers.",
+            'OpenClaw ist über eine Subdomain-URL mit voller Web-UI erreichbar. Hermes läuft über Terminal-Befehle via SSH — kein Link, aber volle Kontrolle über das Terminal deines Servers.',
         comparison: 'Vergleich',
         comparisonTitle: 'Wie wir uns unterscheiden',
         comparisonDescription:
@@ -1246,11 +1258,11 @@ const de: Translations = {
         comparisonInfraOthers: 'Begrenzte Server',
         comparisonDataUs: 'Deine Daten gehören dir',
         comparisonDataOthers: 'Deine Daten gehören dir nicht',
-        comparisonMultipleUs: "Mehrere OpenClaw- und Hermes-Agenten",
+        comparisonMultipleUs: 'Mehrere OpenClaw- und Hermes-Agenten',
         comparisonMultipleOthers: 'Nur ein OpenClaw',
         comparisonOpenSourceUs: 'Vollständig Open Source',
         comparisonOpenSourceOthers: 'Closed Source',
-        comparisonExportUs: "Exportiere OpenClaw und Hermes überall hin",
+        comparisonExportUs: 'Exportiere OpenClaw und Hermes überall hin',
         comparisonExportOthers: 'Anbieterabhängigkeit',
         comparisonProvidersUs: 'Mehrere Serveranbieter',
         comparisonProvidersOthers: 'Nur ein einzelner Anbieter',
@@ -1265,10 +1277,10 @@ const de: Translations = {
     },
     blog: {
         readingTime: '{{minutes}} Min. Lesezeit',
-        ctaTitle: "OpenClaw und Hermes mit einem Klick bereitstellen",
+        ctaTitle: 'OpenClaw und Hermes mit einem Klick bereitstellen',
         ctaDescription:
-            "Erhalte einen dedizierten Server mit vorinstalliertem OpenClaw und Hermes. Voller Root-Zugriff, globale Standorte und in Minuten einsatzbereit. Er gehört dir jederzeit. Ab 25 $.",
-        ctaDeploy: "Agent bereitstellen",
+            'Erhalte einen dedizierten Server mit vorinstalliertem OpenClaw und Hermes. Voller Root-Zugriff, globale Standorte und in Minuten einsatzbereit. Er gehört dir jederzeit. Ab 25 $.',
+        ctaDeploy: 'Agent bereitstellen',
         ctaGitHub: 'Auf GitHub ansehen'
     },
     changelog: {
@@ -1525,7 +1537,8 @@ const de: Translations = {
         previewEnabling: 'Wird aktiviert...',
         previewEnabled: 'Vorschau aktiviert.',
         previewEnableFailed: 'Vorschau konnte nicht aktiviert werden!',
-        previewEnableCanceledNavigation: 'Vorschauaktivierung unterbrochen weil du die Seite verlassen hast.',
+        previewEnableCanceledNavigation:
+            'Vorschauaktivierung unterbrochen weil du die Seite verlassen hast.',
         previewError: 'Vorschau konnte nicht geladen werden.',
         previewErrorDescription:
             'Der Agent ist möglicherweise offline oder nicht erreichbar.',
@@ -1667,7 +1680,8 @@ const de: Translations = {
         versionInstalling: 'Installiert...',
         versionInstallSuccess: 'Version {{version}} erfolgreich installiert.',
         versionInstallFailed: 'Version konnte nicht installiert werden!',
-        installVersionCanceledNavigation: 'Versionsinstallation unterbrochen weil du die Seite verlassen hast.',
+        installVersionCanceledNavigation:
+            'Versionsinstallation unterbrochen weil du die Seite verlassen hast.',
         versionDownloads: '{{count}} Downloads',
         versionChangelog: 'Changelog',
         versionOutdated: 'Veraltet',
@@ -1707,10 +1721,14 @@ const de: Translations = {
         settingsUpdated: 'Einstellungen aktualisiert.',
         settingsUpdateFailed:
             'Einstellungen konnten nicht aktualisiert werden!',
-        saveCanceledNavigation: 'Speichern unterbrochen weil du die Seite verlassen hast.',
-        savePasswordCanceledNavigation: 'Passwortspeicherung unterbrochen weil du die Seite verlassen hast.',
-        saveGatewayTokenCanceledNavigation: 'Gateway-Token-Speicherung unterbrochen weil du die Seite verlassen hast.',
-        saveSSHKeyCanceledNavigation: 'SSH-Schlüssel-Speicherung unterbrochen weil du die Seite verlassen hast.',
+        saveCanceledNavigation:
+            'Speichern unterbrochen weil du die Seite verlassen hast.',
+        savePasswordCanceledNavigation:
+            'Passwortspeicherung unterbrochen weil du die Seite verlassen hast.',
+        saveGatewayTokenCanceledNavigation:
+            'Gateway-Token-Speicherung unterbrochen weil du die Seite verlassen hast.',
+        saveSSHKeyCanceledNavigation:
+            'SSH-Schlüssel-Speicherung unterbrochen weil du die Seite verlassen hast.',
         mockLogStarting: 'Starting OpenClaw agent...',
         mockLogLoadingModel: 'Loading model: claude-sonnet-4-5',
         mockLogAgentReady: 'Agent ready on port 3000',
@@ -1804,7 +1822,7 @@ const de: Translations = {
             'Durch den Zugriff auf und die Nutzung von ClawHost („Dienst") akzeptierst du die Bedingungen und Bestimmungen dieser Vereinbarung und erklärst dich damit einverstanden, daran gebunden zu sein. Wenn du diesen Bedingungen nicht zustimmst, nutze bitte unseren Dienst nicht.',
         serviceTitle: '2. Beschreibung des Dienstes',
         serviceText:
-            "ClawHost bietet die Ein-Klick-Bereitstellung von OpenClaw und Hermes auf dedizierten Servern. Wir ermöglichen Nutzern, vorkonfigurierte OpenClaw- und Hermes-Instanzen mit vollem Root-Zugriff und dedizierten Ressourcen bereitzustellen, zu verwalten und darauf zuzugreifen.",
+            'ClawHost bietet die Ein-Klick-Bereitstellung von OpenClaw und Hermes auf dedizierten Servern. Wir ermöglichen Nutzern, vorkonfigurierte OpenClaw- und Hermes-Instanzen mit vollem Root-Zugriff und dedizierten Ressourcen bereitzustellen, zu verwalten und darauf zuzugreifen.',
         authTitle: '3. Authentifizierung',
         authText:
             'ClawHost verwendet Google Firebase Authentication zur Anmeldungsverwaltung. Du kannst dich mit E-Mail, Google oder GitHub authentifizieren. Durch die Nutzung dieser Methoden stimmst du den jeweiligen Nutzungsbedingungen und Datenschutzerklärungen von Google und GitHub zu. Diese Anbieter können grundlegende Daten wie deine E-Mail-Adresse, deinen Namen und Gerätedaten erheben.',

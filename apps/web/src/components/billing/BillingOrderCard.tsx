@@ -2,7 +2,12 @@ import type { FC, ReactNode } from 'react'
 import type { BillingOrderCardProps } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
-import { Button, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui'
+import {
+    Button,
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger
+} from '@/components/ui'
 import { CircleNotchIcon, DownloadSimpleIcon } from '@phosphor-icons/react'
 import { formatLongDate, formatCurrencyFromCents } from '@/lib/formatters'
 import { billingReasonLabels } from '@/lib/billing'

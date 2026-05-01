@@ -4,7 +4,7 @@ import type {
     GitHubRefResponse
 } from '@/ts/Interfaces'
 
-import { externalUrls } from '@openclaw/shared'
+import { externalUrls, httpMethod } from '@openclaw/shared'
 
 const GITHUB_OWNER = 'bfzli'
 const GITHUB_REPO_NAME = 'clawhost'
@@ -50,7 +50,7 @@ const githubApi = {
         baseSha: string
     ): Promise<boolean> {
         const res = await fetch(github.REFS, {
-            method: 'POST',
+            method: httpMethod.POST,
             headers: GITHUB_HEADERS(token),
             body: JSON.stringify({
                 ref: `refs/heads/${branchName}`,
@@ -71,7 +71,7 @@ const githubApi = {
         const encoded = Buffer.from(content).toString('base64')
 
         const res = await fetch(github.CONTENTS(filePath), {
-            method: 'PUT',
+            method: httpMethod.PUT,
             headers: GITHUB_HEADERS(token),
             body: JSON.stringify({
                 message: `blog: add "${slug}"`,
@@ -90,7 +90,7 @@ const githubApi = {
         slug: string
     ): Promise<string | null> {
         const res = await fetch(github.PULLS, {
-            method: 'POST',
+            method: httpMethod.POST,
             headers: GITHUB_HEADERS(token),
             body: JSON.stringify({
                 title: `blog: ${title}`,
@@ -109,7 +109,7 @@ const githubApi = {
     async mergePullRequest(token: string, prUrl: string): Promise<boolean> {
         const prNumber = prUrl.split('/').pop()!
         const res = await fetch(github.PULL_MERGE(prNumber), {
-            method: 'PUT',
+            method: httpMethod.PUT,
             headers: GITHUB_HEADERS(token),
             body: JSON.stringify({
                 merge_method: 'squash'
@@ -121,7 +121,7 @@ const githubApi = {
 
     async deleteBranch(token: string, branchName: string): Promise<void> {
         await fetch(github.DELETE_REF(branchName), {
-            method: 'DELETE',
+            method: httpMethod.DELETE,
             headers: GITHUB_HEADERS(token)
         })
     }

@@ -13,7 +13,11 @@ const useAgentOverview = (agentId: string, enabled: boolean) => {
         refetchInterval: isVisible ? 30_000 : false,
         gcTime: 60_000,
         retry: (_, error) => {
-            if ('code' in error && (error as Error & { code: number }).code === 422) return false
+            if (
+                'code' in error &&
+                (error as Error & { code: number }).code === 422
+            )
+                return false
             return true
         }
     })

@@ -39,7 +39,9 @@ const AgentBillingSubscription: FC<AgentBillingSubscriptionProps> = ({
         <div className='space-y-3'>
             <SectionHeader
                 title={t('dashboard.subscription')}
-                action={readOnly ? undefined : <ManageBillingButton agent={agent} />}
+                action={
+                    readOnly ? undefined : <ManageBillingButton agent={agent} />
+                }
             />
 
             <div className='grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4'>

@@ -8,6 +8,7 @@ import executeSSH from '@/services/ssh'
 import { getAgentConfig } from '@/controllers/agents/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
+import { gatewayDefaults } from '@/lib/constants'
 
 const repairAgent = async (c: AuthenticatedContext) => {
     try {
@@ -51,7 +52,7 @@ const repairAgent = async (c: AuthenticatedContext) => {
         const openClawHealthCheck = [
             `systemctl restart ${agentConfig.serviceName}`,
             'sleep 10',
-            `curl -sf -o /dev/null --max-time 5 http://127.0.0.1:18789 && echo "${successMarker}" || echo "GATEWAY_FAILED"`
+            `curl -sf -o /dev/null --max-time 5 ${gatewayDefaults.BASE_URL} && echo "${successMarker}" || echo "GATEWAY_FAILED"`
         ]
 
         const hermesHealthCheck = [

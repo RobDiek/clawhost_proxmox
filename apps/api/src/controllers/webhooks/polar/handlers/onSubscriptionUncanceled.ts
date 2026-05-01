@@ -3,7 +3,7 @@ import type { SubscriptionWebhookData } from '@/ts/Interfaces'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { agents } from '@/db/schema'
-import { subscriptionStatus } from '@/lib/constants'
+import { subscriptionStatus } from '@openclaw/shared'
 
 const onSubscriptionUncanceled = async (data: SubscriptionWebhookData) => {
     await db

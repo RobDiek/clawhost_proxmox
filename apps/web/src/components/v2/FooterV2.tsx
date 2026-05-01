@@ -78,10 +78,7 @@ const FooterV2: FC = (): ReactNode => {
                 playsInline
                 className='v2-footer-video pointer-events-none absolute bottom-0 left-0 z-[1] h-[70vh] w-full object-cover'
             >
-                <source
-                    src={v2VideoUrls.FOOTER}
-                    type='video/mp4'
-                />
+                <source src={v2VideoUrls.FOOTER} type='video/mp4' />
             </video>
             <div className='pointer-events-none absolute bottom-0 left-0 z-[2] h-[70vh] w-full bg-[linear-gradient(to_bottom,#020204_0%,rgba(2,2,4,0.7)_20%,rgba(2,2,4,0.3)_50%,transparent_80%)]' />
 

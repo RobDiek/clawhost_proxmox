@@ -10,6 +10,7 @@ import {
     isAdmin
 } from '@/controllers/agents/helpers'
 import { apiPaths } from '@openclaw/shared'
+import { sshDefaults } from '@/lib/constants'
 
 const TERMINAL_PATTERN = new RegExp(
     `^(?:/ws)?${apiPaths.CLAWS.BASE}/([^/]+)/terminal$`
@@ -18,7 +19,10 @@ const TERMINAL_PATTERN = new RegExp(
 const PING_INTERVAL = 5000
 
 const terminalSocket = {
-    async handleUpgrade(req: Request, server: Server<TerminalSocketData>): Promise<boolean> {
+    async handleUpgrade(
+        req: Request,
+        server: Server<TerminalSocketData>
+    ): Promise<boolean> {
         const url = new URL(req.url)
         const match = url.pathname.match(TERMINAL_PATTERN)
 
@@ -101,10 +105,10 @@ const terminalSocket = {
 
             conn.connect({
                 host: ip,
-                port: 22,
+                port: sshDefaults.PORT,
                 username: 'root',
                 password,
-                readyTimeout: 10000,
+                readyTimeout: sshDefaults.READY_TIMEOUT_MS,
                 keepaliveInterval: 15000,
                 keepaliveCountMax: 3,
                 algorithms: {
@@ -126,9 +130,14 @@ const terminalSocket = {
             })
         },
 
-        message(ws: ServerWebSocket<TerminalSocketData>, message: string | Buffer) {
+        message(
+            ws: ServerWebSocket<TerminalSocketData>,
+            message: string | Buffer
+        ) {
             const str =
-                typeof message === 'string' ? message : message.toString('utf-8')
+                typeof message === 'string'
+                    ? message
+                    : message.toString('utf-8')
 
             if (str[0] === '{') {
                 try {

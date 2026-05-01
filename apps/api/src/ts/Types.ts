@@ -2,12 +2,12 @@ import type { Context } from 'hono'
 import type {
     agentType,
     billingInterval,
-    agentFileType
+    agentFileType,
+    subscriptionStatus
 } from '@openclaw/shared'
 import type {
     environment,
     featureEmailKey,
-    subscriptionStatus,
     webhookEventType
 } from '@/lib/constants'
 import type { agents } from '@/db/schema'

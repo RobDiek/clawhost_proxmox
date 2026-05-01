@@ -93,7 +93,7 @@ const zh: Translations = {
         whyClawHostGo: '一体化功能',
         featuresDescription: '为什么值得一试，功能不会说谎.',
         zeroConfigDescription:
-            "省去数小时的服务器、OpenClaw 和 Hermes 配置时间。预先安装，几分钟内即可使用。",
+            '省去数小时的服务器、OpenClaw 和 Hermes 配置时间。预先安装，几分钟内即可使用。',
         ownedDataDescription:
             '一切在您的设备上运行。无云服务器，无第三方，数据不会离开您的设备.',
         terminalAccessDescription:
@@ -820,7 +820,8 @@ const zh: Translations = {
         fileExplorerReadOnly: '只读',
         fileExplorerSave: '保存',
         fileExplorerSaved: '文件已保存。',
-        fileExplorerSaveCanceledNavigation: '文件保存已中断，因为您已离开页面。',
+        fileExplorerSaveCanceledNavigation:
+            '文件保存已中断，因为您已离开页面。',
         fileExplorerInvalidJson: '无效的 JSON。请在保存前修复语法错误！',
         fileExplorerNoFiles: '未找到文件',
         fileExplorerSearchFiles: '搜索文件...',
@@ -846,7 +847,8 @@ const zh: Translations = {
         exportSuccess: 'Claw 导出成功。',
         exportFailed: '导出 Claw 数据失败！',
         exportCanceledNavigation: '导出已取消，因为您已离开页面。',
-        scheduleDeletionCanceledNavigation: '删除计划已中断，因为您已离开页面。',
+        scheduleDeletionCanceledNavigation:
+            '删除计划已中断，因为您已离开页面。',
         cancelDeletionCanceledNavigation: '取消删除已中断，因为您已离开页面。',
         hardDeleteCanceledNavigation: '强制删除已中断，因为您已离开页面。',
         exportRateLimited: '您可以在 {{minutes}} 分钟后再次导出。',
@@ -1005,6 +1007,9 @@ const zh: Translations = {
         badge: 'OpenClaw 简化版',
         tutorialBadge: '观看。部署。',
         tutorialVideoThumbnail: 'ClawHost 教程视频缩略图',
+        clawhostGoLogoAlt: 'ClawHost Go',
+        trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
+        macosPreviewTime: '22:12',
         heroTitle1: '部署 OpenClaw。',
         heroTitle2: '一键完成。',
         heroDescription:
@@ -1096,7 +1101,7 @@ const zh: Translations = {
         planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
         choosePlan: '选择方案',
         mostPopular: '最受欢迎',
-        featurePreinstalled: "智能体预装",
+        featurePreinstalled: '智能体预装',
         featureBandwidth: '无限带宽',
         featureSsh: 'Root SSH 访问',
         featureUptime: '全天候在线',
@@ -1109,28 +1114,28 @@ const zh: Translations = {
         faqDescription: '每一个常见问题，都有解答。',
         faq1Question: '什么是 ClawHost？',
         faq1Answer:
-            "ClawHost 是一个让 OpenClaw 和 Hermes 人人可用的平台。无论是非技术用户还是开发者，都能无需管理基础设施即可运行它们。我们处理服务器、运行时间、安全和维护 — 您只需使用您的智能体。",
+            'ClawHost 是一个让 OpenClaw 和 Hermes 人人可用的平台。无论是非技术用户还是开发者，都能无需管理基础设施即可运行它们。我们处理服务器、运行时间、安全和维护 — 您只需使用您的智能体。',
         faq2Question: '什么是 OpenClaw？',
         faq2Answer:
             'OpenClaw 是一个自托管的安全访问层，用于您的 AI 工具和服务。它已预配置安全性和性能，因此您可以部署后即刻连接。',
-        faqHermesQuestion: "什么是 Hermes？",
+        faqHermesQuestion: '什么是 Hermes？',
         faqHermesAnswer:
-            "Hermes 是一款具备网页浏览、日历管理、多模型推理和浏览器自动化能力的自主 AI 智能体。它已与 OpenClaw 一起预装在每台 ClawHost 服务器上。",
+            'Hermes 是一款具备网页浏览、日历管理、多模型推理和浏览器自动化能力的自主 AI 智能体。它已与 OpenClaw 一起预装在每台 ClawHost 服务器上。',
         faq3Question: '这与其他 AI 工具或托管平台有什么不同？',
         faq3Answer:
-            "与托管式 AI 工具不同，ClawHost 为您提供安装了 OpenClaw 和 Hermes 的真实服务器。您拥有基础设施，掌控一切，不受共享平台或模型的限制。",
+            '与托管式 AI 工具不同，ClawHost 为您提供安装了 OpenClaw 和 Hermes 的真实服务器。您拥有基础设施，掌控一切，不受共享平台或模型的限制。',
         faq4Question: '我需要技术知识吗？',
         faq4Answer:
-            "不需要。所有基础设施、设置和维护我们都已处理。您可以通过 UI 配置和管理 OpenClaw，而 Hermes 通过简单的终端命令运行 — 无需接触服务器或基础设施。",
+            '不需要。所有基础设施、设置和维护我们都已处理。您可以通过 UI 配置和管理 OpenClaw，而 Hermes 通过简单的终端命令运行 — 无需接触服务器或基础设施。',
         faq5Question: '有哪些可用位置？',
         faq5Answer:
-            "我们在全球提供多个服务器位置，包括美国、欧洲和亚洲。如有需要，您可以在不同区域的多台服务器上部署 OpenClaw 或 Hermes。",
+            '我们在全球提供多个服务器位置，包括美国、欧洲和亚洲。如有需要，您可以在不同区域的多台服务器上部署 OpenClaw 或 Hermes。',
         faq6Question: '费用是多少？',
         faq6Answer:
             '价格取决于您选择的服务器. 从入门级到高性能有多种服务器选项，您可以选择适合自己需求和预算的方案.',
-        faq7Question: "可以通过链接直接访问我的智能体吗？",
+        faq7Question: '可以通过链接直接访问我的智能体吗？',
         faq7Answer:
-            "OpenClaw 可通过子域名 URL 和完整的 Web UI 访问。Hermes 通过 SSH 终端命令运行 — 没有链接，但您可以从服务器终端完全控制它。",
+            'OpenClaw 可通过子域名 URL 和完整的 Web UI 访问。Hermes 通过 SSH 终端命令运行 — 没有链接，但您可以从服务器终端完全控制它。',
         comparison: '对比',
         comparisonTitle: '我们的不同之处',
         comparisonDescription:
@@ -1148,11 +1153,11 @@ const zh: Translations = {
         comparisonInfraOthers: '有限的服务器',
         comparisonDataUs: '拥有您的数据',
         comparisonDataOthers: '不拥有您的数据',
-        comparisonMultipleUs: "多个 OpenClaw 和 Hermes 智能体",
+        comparisonMultipleUs: '多个 OpenClaw 和 Hermes 智能体',
         comparisonMultipleOthers: '仅单个 OpenClaw',
         comparisonOpenSourceUs: '完全开源',
         comparisonOpenSourceOthers: '闭源',
-        comparisonExportUs: "随时随地导出 OpenClaw 和 Hermes",
+        comparisonExportUs: '随时随地导出 OpenClaw 和 Hermes',
         comparisonExportOthers: '供应商锁定',
         comparisonProvidersUs: '多个服务器提供商',
         comparisonProvidersOthers: '仅单个提供商',
@@ -1166,10 +1171,10 @@ const zh: Translations = {
     },
     blog: {
         readingTime: '{{minutes}} 分钟阅读',
-        ctaTitle: "一键部署 OpenClaw 和 Hermes",
+        ctaTitle: '一键部署 OpenClaw 和 Hermes',
         ctaDescription:
-            "获取预装 OpenClaw 和 Hermes 的专用服务器。完整 root 访问、全球区域、几分钟内就绪。始终归您所有。起价 $25。",
-        ctaDeploy: "部署智能体",
+            '获取预装 OpenClaw 和 Hermes 的专用服务器。完整 root 访问、全球区域、几分钟内就绪。始终归您所有。起价 $25。',
+        ctaDeploy: '部署智能体',
         ctaGitHub: '在 GitHub 上查看'
     },
     changelog: {
@@ -1542,7 +1547,8 @@ const zh: Translations = {
         settingsUpdateFailed: '更新设置失败！',
         saveCanceledNavigation: '保存已中断，因为您已离开页面。',
         savePasswordCanceledNavigation: '密码保存已中断，因为您已离开页面。',
-        saveGatewayTokenCanceledNavigation: '网关令牌保存已中断，因为您已离开页面。',
+        saveGatewayTokenCanceledNavigation:
+            '网关令牌保存已中断，因为您已离开页面。',
         saveSSHKeyCanceledNavigation: 'SSH 密钥保存已中断，因为您已离开页面。',
         mockLogStarting: '正在启动 OpenClaw 代理...',
         mockLogLoadingModel: '正在加载模型：claude-sonnet-4-5',
@@ -1627,7 +1633,7 @@ const zh: Translations = {
             '访问和使用 ClawHost（"服务"）即表示您接受并同意受本协议条款的约束。如果您不同意这些条款，请不要使用我们的服务。',
         serviceTitle: '2. 服务描述',
         serviceText:
-            "ClawHost 在专用服务器上提供 OpenClaw 和 Hermes 的一键部署。我们让用户可以部署、管理和访问预配置的 OpenClaw 和 Hermes 实例，享有完整 root 访问权限和专用资源。",
+            'ClawHost 在专用服务器上提供 OpenClaw 和 Hermes 的一键部署。我们让用户可以部署、管理和访问预配置的 OpenClaw 和 Hermes 实例，享有完整 root 访问权限和专用资源。',
         authTitle: '3. 身份验证',
         authText:
             'ClawHost 使用 Google Firebase Authentication 管理登录。您可以使用电子邮箱、Google 或 GitHub 进行身份验证。使用这些方法即表示您同意 Google 和 GitHub 各自的条款和隐私政策。这些提供商可能会收集您的电子邮箱地址、姓名和设备数据等基本信息。',

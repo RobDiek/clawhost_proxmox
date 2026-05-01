@@ -1,3 +1,5 @@
+import { serviceState } from '@/lib/constants'
+
 const tryParseJson = (raw: string): unknown | null => {
     try {
         return JSON.parse(raw.trim())
@@ -64,7 +66,7 @@ const parseOverviewOutput = (output: string, separator: string) => {
     const apiStatus = tryParseJson(parts[0] || '')
     const apiSessions = tryParseJson(parts[1] || '')
     const configRaw = tryParseJson(parts[2] || '')
-    const serviceState = (parts[3] || '').trim()
+    const serviceStateValue = (parts[3] || '').trim()
     const portListening = (parts[4] || '').trim().length > 0
     const cliOutput = (parts[5] || '').trim()
 
@@ -72,7 +74,7 @@ const parseOverviewOutput = (output: string, separator: string) => {
     const instance = parseInstance(statusTable)
     const config = parseConfig(configRaw)
     const sessions = Array.isArray(apiSessions) ? apiSessions : null
-    const gatewayActive = serviceState === 'active'
+    const gatewayActive = serviceStateValue === serviceState.ACTIVE
     const apiReachable = apiStatus !== null && typeof apiStatus === 'object'
 
     return {

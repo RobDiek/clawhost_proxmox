@@ -1,5 +1,9 @@
 import type { FC, ReactNode } from 'react'
-import type { EmojiColorPickerProps, EmojiMartData } from '@/ts/Interfaces'
+import type {
+    EmojiColorPickerProps,
+    EmojiMartData,
+    EmojiSelectEvent
+} from '@/ts/Interfaces'
 
 import { useState, useCallback, useEffect } from 'react'
 import { t } from '@openclaw/i18n'
@@ -88,7 +92,7 @@ const EmojiColorPicker: FC<EmojiColorPickerProps> = ({
                             {emojiData ? (
                                 <Picker
                                     data={emojiData}
-                                    onEmojiSelect={(e: { native: string }) =>
+                                    onEmojiSelect={(e: EmojiSelectEvent) =>
                                         handleEmojiSelect(e.native)
                                     }
                                     theme={isDark ? 'dark' : 'light'}

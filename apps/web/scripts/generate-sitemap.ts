@@ -14,7 +14,11 @@ const staticRoutes: SitemapRoute[] = [
     { path: `/${PATHS.GO}`, priority: '0.8', changefreq: 'monthly' },
     { path: `/${PATHS.COMPARE}`, priority: '0.7', changefreq: 'monthly' },
     { path: `/${PATHS.CHANGELOG}`, priority: '0.6', changefreq: 'weekly' },
-    { path: `/${PATHS.AFFILIATE_PROGRAM}`, priority: '0.5', changefreq: 'monthly' },
+    {
+        path: `/${PATHS.AFFILIATE_PROGRAM}`,
+        priority: '0.5',
+        changefreq: 'monthly'
+    },
     { path: `/${PATHS.TERMS}`, priority: '0.3', changefreq: 'yearly' },
     { path: `/${PATHS.PRIVACY}`, priority: '0.3', changefreq: 'yearly' }
 ]

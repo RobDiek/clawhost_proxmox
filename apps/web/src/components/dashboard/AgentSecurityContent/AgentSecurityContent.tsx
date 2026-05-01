@@ -118,7 +118,9 @@ const AgentSecurityContent: FC<AgentSecurityContentProps> = ({
                         onSave={handleSavePassword}
                         placeholder={t('createClaw.rootPasswordPlaceholder')}
                         saveTooltip={t('clawDetail.securitySavePassword')}
-                        hasChanges={readOnly ? false : credentials.passwordChanged}
+                        hasChanges={
+                            readOnly ? false : credentials.passwordChanged
+                        }
                         saving={rotatePassword.isPending}
                         readOnly={readOnly}
                     />

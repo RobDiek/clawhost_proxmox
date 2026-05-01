@@ -9,7 +9,9 @@ const useRepairAgent = () => {
     return useMutation({
         mutationFn: (id: string) => api.repairAgent(id),
         onSuccess: (_data, id) => {
-            updateAgentInCaches(queryClient, id, { status: agentStatus.running })
+            updateAgentInCaches(queryClient, id, {
+                status: agentStatus.running
+            })
         }
     })
 }

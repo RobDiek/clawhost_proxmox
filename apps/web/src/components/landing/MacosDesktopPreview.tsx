@@ -79,7 +79,7 @@ const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({
                                 weight='fill'
                             />
                             <span className='text-[11px] text-white/70'>
-                                10:12 PM
+                                {t('landing.macosPreviewTime')}
                             </span>
                         </div>
                     </div>
@@ -166,7 +166,7 @@ const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({
                         <div className='mx-0.5 h-7 w-px shrink-0 bg-white/20' />
                         <img
                             src='/clawhost-logo.webp'
-                            alt='ClawHost Go'
+                            alt={t('landing.clawhostGoLogoAlt')}
                             loading='lazy'
                             className='h-9 w-9 shrink-0 rounded-xl'
                         />
