@@ -16,6 +16,8 @@ import { EmojiColorPicker } from '@/components/dashboard/EmojiColorPicker'
 import ExportSection from '@/components/dashboard/ExportSection'
 import SectionHeader from '@/components/dashboard/SectionHeader'
 import CopyableField from '@/components/dashboard/CopyableField'
+import ManageBillingButton from '@/components/dashboard/ManageBillingButton'
+import TotalSpentTile from '@/components/dashboard/TotalSpentTile'
 import CreateAgentModal from '@/components/dashboard/CreateAgentModal'
 import DashboardChatView from '@/components/dashboard/DashboardChatView'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
@@ -42,6 +44,8 @@ export {
     SectionHeader,
     HeaderActionButton,
     CopyableField,
+    ManageBillingButton,
+    TotalSpentTile,
     CreateAgentModal,
     DashboardChatView,
     DashboardHeader,

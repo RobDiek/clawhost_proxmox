@@ -18,7 +18,7 @@ const BillingOrderCard: FC<BillingOrderCardProps> = ({
     const reasonLabel = reasonLabelKey ? t(reasonLabelKey) : order.billingReason
 
     return (
-        <div className='border-border bg-foreground/[0.02] flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors'>
+        <div className='bg-foreground/5 flex items-center justify-between rounded-lg px-3 py-2.5'>
             <div className='min-w-0 flex-1'>
                 <p className='text-sm font-medium'>
                     {order.productName || reasonLabel}

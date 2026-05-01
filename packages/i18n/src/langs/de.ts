@@ -424,6 +424,7 @@ const de: Translations = {
         adminAccessDenied: 'Administratorzugang erforderlich!',
         agentsFetched: 'Agents erfolgreich abgerufen.',
         agentFetched: 'Agent erfolgreich abgerufen.',
+        agentStarsFetched: 'Agent-Sterne erfolgreich abgerufen.',
         agentSynced: 'Agent erfolgreich synchronisiert.',
         agentStarted: 'Agent erfolgreich gestartet.',
         agentStopped: 'Agent erfolgreich gestoppt.',
@@ -836,6 +837,7 @@ const de: Translations = {
         storage: 'Speicher',
         nextBilling: 'Nächste Abrechnung',
         lastBilling: 'Letzte Abrechnung',
+        totalSpent: 'Gesamtausgaben',
         version: 'Version',
         gatewayToken: 'Gateway-Token',
         gatewayTokenDescription:
@@ -911,17 +913,18 @@ const de: Translations = {
         openControlPanel: 'Systemsteuerung öffnen',
         exportData: 'Claw exportieren (.zip)',
         exportAgent: 'Export',
-        exportAgentButton: 'OpenClaw exportieren',
+        exportAgentButton: 'Daten exportieren',
         exportAgentTooltip:
             'Diesen Agent und alle seine Daten als .zip-Datei herunterladen.',
+        exportAgentInProgress:
+            'Der Export kann bei größeren Agents einige Minuten dauern.',
         exportStarted:
             'Export wird vorbereitet, das kann einen Moment dauern...',
         exportSuccess: 'Claw erfolgreich exportiert.',
         exportFailed: 'Claw-Daten konnten nicht exportiert werden!',
         exportRateLimited:
             'Du kannst in {{minutes}} Minuten erneut exportieren!',
-        exportRateLimitedSeconds:
-            'Du kannst in {{seconds}} Sekunden erneut exportieren!',
+        exportRateLimitedOne: 'Du kannst in 1 Minute erneut exportieren!',
         configuringTooltip:
             'Dies kann einige Zeit dauern. Es hängt von OpenClaw, dem Serverstandort und Cloudflare DNS ab.',
         paymentSuccess: 'Dein Claw wird erstellt und konfiguriert.',
@@ -970,8 +973,10 @@ const de: Translations = {
         autoGenerateNameHint:
             'Leer lassen, um automatisch einen Namen zu generieren.',
         agentType: 'Agententyp',
-        agentTypeOpenClawDescription: '{{count}} Installationen',
-        agentTypeHermesDescription: '{{count}} Installationen',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} Sterne',
+        agentTypeHermesDescription: '{{count}} Sterne',
         location: 'Standort',
         locationUnavailable: 'Nicht verfügbar',
         locationUnavailableForPlan: 'Nicht verfügbar',

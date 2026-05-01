@@ -412,6 +412,7 @@ const pl: Translations = {
         adminAccessDenied: 'Wymagany dostęp administratora !',
         agentsFetched: 'Agents pobrane pomyślnie.',
         agentFetched: 'Agent pobrany pomyślnie.',
+        agentStarsFetched: 'Gwiazdki agenta pobrane pomyślnie.',
         agentSynced: 'Agent zsynchronizowany pomyślnie.',
         agentStarted: 'Agent uruchomiony pomyślnie.',
         agentStopped: 'Agent zatrzymany pomyślnie.',
@@ -822,6 +823,7 @@ const pl: Translations = {
         storage: 'Pamięć',
         nextBilling: 'Następna płatność',
         lastBilling: 'Ostatnia płatność',
+        totalSpent: 'Łącznie wydane',
         version: 'Wersja',
         gatewayToken: 'Token gateway',
         gatewayTokenDescription:
@@ -894,16 +896,17 @@ const pl: Translations = {
         openControlPanel: 'Otwórz panel sterowania',
         exportData: 'Eksportuj Claw (.zip)',
         exportAgent: 'Eksport',
-        exportAgentButton: 'Eksportuj OpenClaw',
+        exportAgentButton: 'Eksportuj dane',
         exportAgentTooltip:
             'Pobierz tego agenta i wszystkie jego dane jako plik .zip.',
+        exportAgentInProgress:
+            'Eksport może potrwać kilka minut w przypadku większych agentów.',
         exportStarted: 'Przygotowywanie eksportu, może to chwilę potrwać...',
         exportSuccess: 'Claw wyeksportowany pomyślnie.',
         exportFailed: 'Nie udało się wyeksportować danych claw !',
         exportRateLimited:
             'Możesz wyeksportować ponownie za {{minutes}} minut.',
-        exportRateLimitedSeconds:
-            'Możesz wyeksportować ponownie za {{seconds}} sekund.',
+        exportRateLimitedOne: 'Możesz wyeksportować ponownie za 1 minutę.',
         configuringTooltip:
             'To może zająć trochę czasu. Zależy to od OpenClaw, lokalizacji serwera i Cloudflare DNS.',
         paymentSuccess: 'Twój claw jest tworzony i konfigurowany.',
@@ -949,8 +952,10 @@ const pl: Translations = {
         autoGenerateNameHint:
             'Pozostaw puste, aby wygenerować nazwę automatycznie.',
         agentType: 'Typ agenta',
-        agentTypeOpenClawDescription: '{{count}} instalacji',
-        agentTypeHermesDescription: '{{count}} instalacji',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} gwiazdek',
+        agentTypeHermesDescription: '{{count}} gwiazdek',
         location: 'Lokalizacja',
         locationUnavailable: 'Niedostępna',
         locationUnavailableForPlan: 'Niedostępna',

@@ -400,6 +400,7 @@ const tr: Translations = {
         adminAccessDenied: 'Yönetici erişimi gerekli!',
         agentsFetched: "Agent'lar başarıyla getirildi.",
         agentFetched: 'Agent başarıyla getirildi.',
+        agentStarsFetched: 'Agent yıldızları başarıyla getirildi.',
         agentSynced: 'Agent başarıyla senkronize edildi.',
         agentStarted: 'Agent başarıyla başlatıldı.',
         agentStopped: 'Agent başarıyla durduruldu.',
@@ -810,6 +811,7 @@ const tr: Translations = {
         storage: 'Depolama',
         nextBilling: 'Sonraki Faturalama',
         lastBilling: 'Son Faturalama',
+        totalSpent: 'Toplam Harcama',
         version: 'Sürüm',
         gatewayToken: 'Ağ Geçidi Token',
         gatewayTokenDescription:
@@ -881,16 +883,17 @@ const tr: Translations = {
         openControlPanel: 'Kontrol Panelini Aç',
         exportData: "Claw'u Dışa Aktar (.zip)",
         exportAgent: 'Dışa Aktar',
-        exportAgentButton: 'OpenClaw Dışa Aktar',
+        exportAgentButton: 'Verileri Dışa Aktar',
         exportAgentTooltip:
             'Bu ajanı ve tüm verilerini .zip dosyası olarak indirin.',
+        exportAgentInProgress:
+            'Daha büyük ajanlar için dışa aktarma birkaç dakika sürebilir.',
         exportStarted: 'Dışa aktarma hazırlanıyor, bu biraz zaman alabilir...',
         exportSuccess: 'Claw başarıyla dışa aktarıldı.',
         exportFailed: 'Claw verileri dışa aktarılamadı!',
         exportRateLimited:
             '{{minutes}} dakika sonra tekrar dışa aktarabilirsiniz.',
-        exportRateLimitedSeconds:
-            '{{seconds}} saniye sonra tekrar dışa aktarabilirsiniz.',
+        exportRateLimitedOne: '1 dakika sonra tekrar dışa aktarabilirsiniz.',
         configuringTooltip:
             "Bu biraz zaman alabilir. OpenClaw, sunucu konumu ve Cloudflare DNS'e bağlıdır.",
         paymentSuccess: "Claw'ınız oluşturuluyor ve yapılandırılıyor.",
@@ -936,8 +939,10 @@ const tr: Translations = {
         clawNameInvalidChars: 'Yalnızca harf, rakam ve tire kullanılabilir!',
         autoGenerateNameHint: 'Otomatik ad oluşturmak için boş bırakın.',
         agentType: 'Ajan Türü',
-        agentTypeOpenClawDescription: '{{count}} kurulum',
-        agentTypeHermesDescription: '{{count}} kurulum',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} yıldız',
+        agentTypeHermesDescription: '{{count}} yıldız',
         location: 'Konum',
         locationUnavailable: 'Kullanılamaz',
         locationUnavailableForPlan: 'Kullanılamaz',

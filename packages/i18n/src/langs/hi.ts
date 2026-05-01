@@ -407,6 +407,7 @@ const hi: Translations = {
         adminAccessDenied: 'एडमिन एक्सेस आवश्यक!',
         agentsFetched: 'एजेंट्स सफलतापूर्वक प्राप्त हुए.',
         agentFetched: 'एजेंट सफलतापूर्वक प्राप्त हुआ.',
+        agentStarsFetched: 'एजेंट स्टार सफलतापूर्वक प्राप्त हुए.',
         agentSynced: 'एजेंट सफलतापूर्वक सिंक हुआ.',
         agentStarted: 'एजेंट सफलतापूर्वक शुरू हुआ.',
         agentStopped: 'एजेंट सफलतापूर्वक रुका.',
@@ -816,6 +817,7 @@ const hi: Translations = {
         storage: 'स्टोरेज',
         nextBilling: 'अगली बिलिंग',
         lastBilling: 'पिछली बिलिंग',
+        totalSpent: 'कुल खर्च',
         version: 'संस्करण',
         gatewayToken: 'गेटवे टोकन',
         gatewayTokenDescription:
@@ -887,16 +889,17 @@ const hi: Translations = {
         openControlPanel: 'कंट्रोल पैनल खोलें',
         exportData: 'क्लॉ निर्यात करें (.zip)',
         exportAgent: 'निर्यात',
-        exportAgentButton: 'OpenClaw निर्यात करें',
+        exportAgentButton: 'डेटा निर्यात करें',
         exportAgentTooltip:
             'इस एजेंट और इसके सभी डेटा को .zip फ़ाइल के रूप में डाउनलोड करें।',
+        exportAgentInProgress:
+            'बड़े एजेंट्स के लिए निर्यात में कुछ मिनट लग सकते हैं।',
         exportStarted: 'निर्यात तैयार हो रहा है, इसमें कुछ समय लग सकता है...',
         exportSuccess: 'क्लॉ सफलतापूर्वक निर्यात हुआ.',
         exportFailed: 'क्लॉ डेटा निर्यात करने में विफल!',
         exportRateLimited:
             'आप {{minutes}} मिनट में फिर से निर्यात कर सकते हैं.',
-        exportRateLimitedSeconds:
-            'आप {{seconds}} सेकंड में फिर से निर्यात कर सकते हैं.',
+        exportRateLimitedOne: 'आप 1 मिनट में फिर से निर्यात कर सकते हैं.',
         configuringTooltip:
             'इसमें कुछ समय लग सकता है. यह OpenClaw, सर्वर स्थान और Cloudflare DNS पर निर्भर करता है.',
         paymentSuccess: 'आपका क्लॉ बनाया और कॉन्फ़िगर किया जा रहा है.',
@@ -942,8 +945,10 @@ const hi: Translations = {
         clawNameInvalidChars: 'केवल अक्षर, संख्याएँ और डैश की अनुमति है!',
         autoGenerateNameHint: 'स्वतः नाम बनाने के लिए खाली छोड़ें.',
         agentType: 'एजेंट प्रकार',
-        agentTypeOpenClawDescription: '{{count}} इंस्टॉल',
-        agentTypeHermesDescription: '{{count}} इंस्टॉल',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} स्टार',
+        agentTypeHermesDescription: '{{count}} स्टार',
         location: 'स्थान',
         locationUnavailable: 'अनुपलब्ध',
         locationUnavailableForPlan: 'अनुपलब्ध',

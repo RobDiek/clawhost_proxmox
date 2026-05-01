@@ -444,9 +444,6 @@ export interface UserDropdownProps {
     onOpen?: () => void
     hideSSHKeys?: boolean
     hideSignOut?: boolean
-    footerLinks?: FooterLink[]
-    openLinksWindowed?: boolean
-    appVersion?: string
 }
 
 export interface EmptyStateProps {
@@ -563,10 +560,6 @@ export interface AgentCardActions {
     onResumeCheckout: () => void
     onCancelPending: () => void
     onUpdatePayment: () => void
-}
-
-export interface ExportRateLimitError extends Error {
-    retryAfter: number
 }
 
 export interface AgentCredentialsDialogProps {
@@ -745,6 +738,13 @@ export interface PurchaseAgentData {
     billingInterval?: 'month' | 'year'
 }
 
+export interface CreateLocalAgentData {
+    name?: string
+    agentType?: string
+    gatewayToken?: string
+    password?: string
+}
+
 export interface DeleteAgentResponse {
     scheduled: boolean
     deletionScheduledAt?: string
@@ -846,6 +846,15 @@ export interface AgentVersionsResponse {
 
 export interface InstallAgentVersionResponse {
     version: string
+}
+
+export interface AgentStarCount {
+    agentType: string
+    stars: number
+}
+
+export interface AgentStarsResponse {
+    stars: AgentStarCount[]
 }
 
 export interface AgentVersionsContentProps {
@@ -1240,8 +1249,17 @@ export interface AgentBillingSubscriptionProps {
 }
 
 export interface AgentBillingHistoryProps {
-    polarSubscriptionId: string | null
+    agentId: string
     readOnly?: boolean
+}
+
+export interface ManageBillingButtonProps {
+    agent: Agent
+}
+
+export interface TotalSpentTileProps {
+    loading: boolean
+    value: string | null
 }
 
 export interface AgentDetailSettingsTabProps {
@@ -1684,6 +1702,7 @@ export interface AdvancedOptionsProps {
     volumePricing?: VolumePricing
     volumeSize: number
     onVolumeSizeChange: (size: number) => void
+    hideInfrastructureOptions?: boolean
 }
 
 export interface OrderSummaryProps {
@@ -2122,9 +2141,6 @@ export interface DashboardHeaderProps {
     displayName: string
     dnsSetup: boolean | null
     dnsLoading: boolean
-    openLinksWindowed: boolean
-    appVersion: string | null
-    dropdownFooterLinks: FooterLink[]
     onCreateClick: () => void
     onDnsSetup: () => void
     onSignOut: () => Promise<void>
@@ -2241,6 +2257,10 @@ export interface BillingStatusConfig {
 
 export interface BillingStatusBadgeProps {
     status: string
+}
+
+export interface BetaBadgeProps {
+    version?: string
 }
 
 export interface CompareTableMobileProps {

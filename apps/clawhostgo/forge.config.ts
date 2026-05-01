@@ -4,6 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import { MakerZIP } from '@electron-forge/maker-zip'
 import { MakerDeb } from '@electron-forge/maker-deb'
+import { MakerSquirrel } from '@electron-forge/maker-squirrel'
 import { VitePlugin } from '@electron-forge/plugin-vite'
 
 const copyNodePty = (
@@ -36,7 +37,11 @@ const config: ForgeConfig = {
         extraResource: ['./resources/node'],
         afterCopy: [copyNodePty]
     },
-    makers: [new MakerZIP({}, ['darwin', 'win32']), new MakerDeb({})],
+    makers: [
+        new MakerZIP({}, ['darwin']),
+        new MakerSquirrel({ name: 'ClawHostGo' }),
+        new MakerDeb({})
+    ],
     plugins: [
         new VitePlugin({
             build: [

@@ -5,11 +5,13 @@ import agentType from '#shared/agentType'
 import ApiError from '#shared/ApiError'
 import API_PATHS from '#shared/apiPaths'
 import EXTERNAL_URLS from '#shared/externalUrls'
+import { httpMethod } from '#shared/httpMethod'
 import RequestClient from '#shared/RequestClient'
 import authMethod from '#shared/authMethod'
 import billingInterval from '#shared/billingInterval'
 import goLicense from '#shared/goLicense'
 import INPUT_VALIDATION_LENGTH from '#shared/inputValidation'
+import { networkStatus } from '#shared/networkStatus'
 import userRole from '#shared/userRole'
 import { PLANS, YEARLY_PAID_MONTHS } from '#shared/plans'
 import {
@@ -28,11 +30,13 @@ export {
     ApiError,
     API_PATHS as apiPaths,
     EXTERNAL_URLS as externalUrls,
+    httpMethod,
     RequestClient,
     authMethod,
     billingInterval,
     goLicense,
     INPUT_VALIDATION_LENGTH as inputValidation,
+    networkStatus,
     userRole,
     isFeatureSupported,
     isVersionSupported,

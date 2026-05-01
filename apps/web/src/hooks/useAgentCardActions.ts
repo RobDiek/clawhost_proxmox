@@ -1,7 +1,6 @@
 import type {
     AgentCardActions,
     ErrorWithMessage,
-    ExportRateLimitError,
     UseAgentCardActionsParams,
     UseAgentCardActionsReturn
 } from '@/ts/Interfaces'
@@ -20,7 +19,8 @@ import {
     useHardDeleteAgent,
     useReinstallAgent,
     useCancelPendingAgent,
-    useCustomerPortal
+    useCustomerPortal,
+    useExportAgent
 } from '@/hooks'
 
 const useAgentCardActions = ({
@@ -43,7 +43,7 @@ const useAgentCardActions = ({
         string | null
     >(null)
     const [isFetchingCredentials, setIsFetchingCredentials] = useState(false)
-    const [isExporting, setIsExporting] = useState(false)
+    const { exportAgent, isExporting } = useExportAgent()
     const { openPortal, isLoading: isPortalLoading } = useCustomerPortal()
 
     const startMutation = useStartAgent()
@@ -72,37 +72,11 @@ const useAgentCardActions = ({
         if (!agent) return null
         const target = agent
 
-        const handleExport = async () => {
-            setIsExporting(true)
-            try {
-                await api.exportAgent(
-                    target.id,
-                    `${target.name}-${Math.random().toString(36).slice(2, 5)}-export.tar.gz`
-                )
-                showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
-            } catch (error) {
-                const retryAfter = (error as ExportRateLimitError).retryAfter
-                if (retryAfter && retryAfter > 30) {
-                    showToast(
-                        t('dashboard.exportRateLimited', {
-                            minutes: String(Math.ceil(retryAfter / 60))
-                        }),
-                        TOAST_TYPE.WARNING
-                    )
-                } else if (retryAfter && retryAfter > 0) {
-                    showToast(
-                        t('dashboard.exportRateLimitedSeconds', {
-                            seconds: String(retryAfter)
-                        }),
-                        TOAST_TYPE.WARNING
-                    )
-                } else {
-                    showToast(t('dashboard.exportFailed'), TOAST_TYPE.ERROR)
-                }
-            } finally {
-                setIsExporting(false)
-            }
-        }
+        const handleExport = () =>
+            exportAgent(
+                target.id,
+                `${target.name}-${Math.random().toString(36).slice(2, 5)}-export.tar.gz`
+            )
 
         const handleShowCredentials = async () => {
             setIsFetchingCredentials(true)
@@ -161,7 +135,9 @@ const useAgentCardActions = ({
         showToast,
         startMutation,
         cancelDeletionMutation,
-        cancelPendingMutation
+        cancelPendingMutation,
+        exportAgent,
+        openPortal
     ])
 
     const dialogsProps = useMemo(() => {

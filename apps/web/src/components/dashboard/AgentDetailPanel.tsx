@@ -202,8 +202,7 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
                                     <UpdateAvailableBanner
                                         latestVersion={latestVersion}
                                         onGoToVersions={() =>
-                                            setTab(
-                                                agent.id,
+                                            setActiveTab(
                                                 AGENT_DETAIL_TABS.VERSIONS
                                             )
                                         }

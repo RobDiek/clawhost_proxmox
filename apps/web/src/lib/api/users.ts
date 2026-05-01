@@ -1,5 +1,4 @@
 import type {
-    BillingHistoryResponse,
     BillingInvoiceResponse,
     CustomerPortalResponse,
     LicenseCheckoutResponse,
@@ -21,10 +20,6 @@ const users = {
     disconnectAuthMethod: (method: string) =>
         client.delete<void>(API_PATHS.USERS.AUTH_METHOD(method)),
     getUserStats: () => client.get<UserStats>(API_PATHS.USERS.STATS),
-    getBillingHistory: (page: number = 1, limit: number = 10) =>
-        client.get<BillingHistoryResponse>(
-            `${API_PATHS.USERS.BILLING}?page=${page}&limit=${limit}`
-        ),
     getOrderInvoice: (orderId: string) =>
         client.get<BillingInvoiceResponse>(
             API_PATHS.USERS.ORDER_INVOICE(orderId)

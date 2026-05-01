@@ -1,8 +1,13 @@
 import type { IpcMainInvokeEvent } from 'electron'
 
 import { ipcMain } from 'electron'
+import { agentType } from '@openclaw/shared'
 import { configStore, versionManager, processManager } from '@/main/services'
 import { t } from '@openclaw/i18n'
+
+const resolveAgentType = (
+    agent: NonNullable<ReturnType<typeof configStore.findAgent>>
+): string => agent.agentType || agentType.OPENCLAW
 
 const registerAgentVersionHandlers = (): void => {
     ipcMain.handle(
@@ -20,8 +25,11 @@ const registerAgentVersionHandlers = (): void => {
             const agent = configStore.findAgent(id)
             if (!agent) throw new Error(t('go.clawNotFound'))
 
-            const available = await versionManager.getAvailableVersions()
-            const latest = await versionManager.getLatestVersion()
+            const selectedAgentType = resolveAgentType(agent)
+            const available =
+                await versionManager.getAvailableVersions(selectedAgentType)
+            const latest =
+                await versionManager.getLatestVersion(selectedAgentType)
 
             return {
                 versions: available,
@@ -37,8 +45,13 @@ const registerAgentVersionHandlers = (): void => {
             const agent = configStore.findAgent(id)
             if (!agent) throw new Error(t('go.clawNotFound'))
 
+            const selectedAgentType = resolveAgentType(agent)
             const agentDir = configStore.getAgentDir(agent.name)
-            await versionManager.installVersionTo(version, agentDir)
+            await versionManager.installVersionTo(
+                selectedAgentType,
+                version,
+                agentDir
+            )
 
             configStore.updateAgent(id, { version })
 
@@ -48,7 +61,8 @@ const registerAgentVersionHandlers = (): void => {
                     agentDir,
                     agent.port,
                     version,
-                    agent.gatewayToken
+                    agent.gatewayToken,
+                    selectedAgentType
                 )
             }
 

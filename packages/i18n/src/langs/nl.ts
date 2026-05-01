@@ -410,6 +410,7 @@ const nl: Translations = {
         adminAccessDenied: 'Admintoegang vereist!',
         agentsFetched: 'Agents succesvol opgehaald.',
         agentFetched: 'Agent succesvol opgehaald.',
+        agentStarsFetched: 'Agent-sterren succesvol opgehaald.',
         agentSynced: 'Agent succesvol gesynchroniseerd.',
         agentStarted: 'Agent succesvol gestart.',
         agentStopped: 'Agent succesvol gestopt.',
@@ -820,6 +821,7 @@ const nl: Translations = {
         storage: 'Opslag',
         nextBilling: 'Volgende facturering',
         lastBilling: 'Laatste facturering',
+        totalSpent: 'Totaal uitgegeven',
         version: 'Versie',
         gatewayToken: 'Gateway-token',
         gatewayTokenDescription:
@@ -895,16 +897,17 @@ const nl: Translations = {
         openControlPanel: 'Configuratiepaneel openen',
         exportData: 'Claw exporteren (.zip)',
         exportAgent: 'Exporteren',
-        exportAgentButton: 'OpenClaw exporteren',
+        exportAgentButton: 'Gegevens exporteren',
         exportAgentTooltip:
             'Download deze agent en al zijn gegevens als .zip-bestand.',
+        exportAgentInProgress:
+            'Exporteren kan enkele minuten duren voor grotere agents.',
         exportStarted: 'Export wordt voorbereid, dit kan even duren...',
         exportSuccess: 'Claw succesvol ge\u00ebxporteerd.',
         exportFailed: 'Claw-gegevens exporteren mislukt!',
         exportRateLimited:
             'Je kunt opnieuw exporteren over {{minutes}} minuten.',
-        exportRateLimitedSeconds:
-            'Je kunt opnieuw exporteren over {{seconds}} seconden.',
+        exportRateLimitedOne: 'Je kunt opnieuw exporteren over 1 minuut.',
         configuringTooltip:
             'Dit kan even duren. Het hangt af van OpenClaw, de serverlocatie en Cloudflare DNS.',
         paymentSuccess: 'Je claw wordt aangemaakt en geconfigureerd.',
@@ -950,8 +953,10 @@ const nl: Translations = {
             'Alleen letters, cijfers en streepjes zijn toegestaan!',
         autoGenerateNameHint: 'Laat leeg om automatisch een naam te genereren.',
         agentType: 'Agenttype',
-        agentTypeOpenClawDescription: '{{count}} installaties',
-        agentTypeHermesDescription: '{{count}} installaties',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} sterren',
+        agentTypeHermesDescription: '{{count}} sterren',
         location: 'Locatie',
         locationUnavailable: 'Niet beschikbaar',
         locationUnavailableForPlan: 'Niet beschikbaar',

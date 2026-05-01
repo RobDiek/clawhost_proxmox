@@ -5,6 +5,7 @@ import {
     getAgents,
     getAdminAgents,
     getAgent,
+    getAgentStars,
     initiateAgentPurchase,
     syncAgent,
     startAgent,
@@ -26,6 +27,7 @@ import {
     installAgentVersion,
     renameAgent,
     getAgentCredentials,
+    getAgentBilling,
     cancelPendingAgent,
     updateAgentSubdomain,
     checkSubdomainAvailability,
@@ -44,6 +46,7 @@ const app = new Hono<HonoEnv>()
 app.get('/', getAgents)
 app.get('/admin', adminOnly, getAdminAgents)
 app.get('/check-subdomain', checkSubdomainAvailability)
+app.get('/stars', getAgentStars)
 app.get('/:id', getAgent)
 app.post('/purchase', initiateAgentPurchase)
 app.delete('/pending/:id', cancelPendingAgent)
@@ -65,6 +68,7 @@ app.post('/:id/version', getAgentVersion)
 app.post('/:id/versions', getAgentVersions)
 app.post('/:id/install-version', adminOnly, installAgentVersion)
 app.get('/:id/credentials', getAgentCredentials)
+app.get('/:id/billing', getAgentBilling)
 app.post('/:id/metrics', getAgentMetrics)
 app.post('/:id/overview', getAgentOverview)
 app.post('/:id/enable-preview', enablePreview)

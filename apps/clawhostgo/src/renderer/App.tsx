@@ -14,6 +14,7 @@ const Login = lazy(() => import('@/pages/Login'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const Account = lazy(() => import('@/pages/Account'))
 const SSHKeys = lazy(() => import('@/pages/SSHKeys'))
+const License = lazy(() => import('@/pages/License'))
 
 const App: FC = (): ReactNode => {
     useThemeEffect()
@@ -45,6 +46,14 @@ const App: FC = (): ReactNode => {
                                     <LicenseGate>
                                         <SSHKeys />
                                     </LicenseGate>
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path={ROUTES.LICENSE}
+                            element={
+                                <ProtectedRoute>
+                                    <License />
                                 </ProtectedRoute>
                             }
                         />

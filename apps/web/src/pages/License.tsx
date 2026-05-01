@@ -15,6 +15,11 @@ import { Button, Badge, Checkbox } from '@/components/ui'
 import {
     Header,
     LandingFooter,
+    LocalBackground,
+    Logo,
+    LanguageSelector,
+    ThemeToggle,
+    UserDropdown,
     PageBackground,
     PageTitle,
     PageHeader
@@ -27,8 +32,14 @@ import {
 } from '@phosphor-icons/react'
 
 const License: FC = (): ReactNode => {
-    const { loading: authLoading } = useAuth()
-    const { data: profile } = useProfile()
+    const {
+        loading: authLoading,
+        isLocal,
+        user,
+        cachedProfile,
+        signOut
+    } = useAuth()
+    const { data: profile } = useProfile({ enabled: !!user })
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
     const [searchParams, setSearchParams] = useSearchParams()
@@ -36,6 +47,8 @@ const License: FC = (): ReactNode => {
     const [agreedToTerms, setAgreedToTerms] = useState(false)
 
     const hasLicense = profile?.hasLicense ?? false
+    const localDisplayName =
+        profile?.name || cachedProfile?.name || t('account.noNameSet')
 
     useEffect(() => {
         if (searchParams.get('payment') !== 'success') return
@@ -65,14 +78,31 @@ const License: FC = (): ReactNode => {
     ]
 
     return (
-        <div className='bg-background text-foreground relative flex min-h-screen flex-col'>
+        <div
+            className={`bg-background text-foreground ${isLocal ? 'fixed inset-0 flex flex-col overflow-hidden' : 'relative flex min-h-screen flex-col'}`}
+        >
+            {isLocal && <LocalBackground />}
             <PageTitle
                 title={t('license.title')}
                 description={t('license.description')}
                 noIndex
             />
-            <PageBackground />
-            <Header />
+            {!isLocal && <PageBackground />}
+            {isLocal ? (
+                <div className='border-border bg-background relative z-10 flex items-center justify-between border-b px-6 py-3'>
+                    <Logo to={ROUTES.AGENTS} />
+                    <div className='flex items-center gap-1.5 sm:gap-3'>
+                        <LanguageSelector />
+                        <ThemeToggle />
+                        <UserDropdown
+                            displayName={localDisplayName}
+                            onSignOut={signOut}
+                        />
+                    </div>
+                </div>
+            ) : (
+                <Header />
+            )}
 
             <motion.main
                 initial={{ opacity: 0, y: 20 }}
@@ -213,7 +243,7 @@ const License: FC = (): ReactNode => {
                 )}
             </motion.main>
 
-            <LandingFooter />
+            {!isLocal && <LandingFooter />}
         </div>
     )
 }

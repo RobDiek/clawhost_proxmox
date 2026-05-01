@@ -303,10 +303,11 @@ export interface PolarOrdersPage {
 export interface PolarOrderRaw {
     id: string
     status: string
-    amount: number
     subtotalAmount: number
     discountAmount: number
+    netAmount: number
     taxAmount: number
+    totalAmount: number
     currency?: string
     billingReason: string
     product?: { name: string; id: string } | null
@@ -532,6 +533,19 @@ export interface NpmRegistryVersionsResponse {
 
 export interface NpmDownloadsResponse {
     downloads: Record<string, number>
+}
+
+export interface AgentStarCount {
+    agentType: string
+    stars: number
+}
+
+export interface AgentStarsResponse {
+    stars: AgentStarCount[]
+}
+
+export interface StarsCacheData {
+    stars: AgentStarCount[]
 }
 
 export interface GitHubRelease {

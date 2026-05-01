@@ -19,10 +19,7 @@ const AgentBillingContent: FC<AgentBillingContentProps> = ({
                 readOnly={readOnly}
             />
             <div className='h-5' />
-            <AgentBillingHistory
-                polarSubscriptionId={agent.polarSubscriptionId}
-                readOnly={readOnly}
-            />
+            <AgentBillingHistory agentId={agent.id} readOnly={readOnly} />
         </div>
     )
 }

@@ -405,6 +405,7 @@ const ru: Translations = {
         adminAccessDenied: 'Требуется доступ администратора!',
         agentsFetched: 'Agents успешно загружены.',
         agentFetched: 'Agent успешно загружен.',
+        agentStarsFetched: 'Звёзды агента успешно получены.',
         agentSynced: 'Agent успешно синхронизирован.',
         agentStarted: 'Agent успешно запущен.',
         agentStopped: 'Agent успешно остановлен.',
@@ -811,6 +812,7 @@ const ru: Translations = {
         storage: 'Хранилище',
         nextBilling: 'Следующий платёж',
         lastBilling: 'Последний платёж',
+        totalSpent: 'Всего потрачено',
         version: 'Версия',
         gatewayToken: 'Токен шлюза',
         gatewayTokenDescription:
@@ -882,17 +884,18 @@ const ru: Translations = {
         openControlPanel: 'Открыть панель управления',
         exportData: 'Экспорт клоу (.zip)',
         exportAgent: 'Экспорт',
-        exportAgentButton: 'Экспортировать OpenClaw',
+        exportAgentButton: 'Экспортировать данные',
         exportAgentTooltip:
             'Скачать этого агента и все его данные как .zip-файл.',
+        exportAgentInProgress:
+            'Экспорт может занять несколько минут для более крупных агентов.',
         exportStarted:
             'Подготовка экспорта, это может занять некоторое время...',
         exportSuccess: 'Клоу успешно экспортирован.',
         exportFailed: 'Не удалось экспортировать данные клоу !',
         exportRateLimited:
             'Вы сможете экспортировать снова через {{minutes}} минут.',
-        exportRateLimitedSeconds:
-            'Вы сможете экспортировать снова через {{seconds}} секунд.',
+        exportRateLimitedOne: 'Вы сможете экспортировать снова через 1 минуту.',
         configuringTooltip:
             'Это может занять некоторое время. Зависит от OpenClaw, расположения сервера и Cloudflare DNS.',
         paymentSuccess: 'Ваш клоу создаётся и настраивается.',
@@ -937,8 +940,10 @@ const ru: Translations = {
         clawNameInvalidChars: 'Допускаются только буквы, цифры и дефисы !',
         autoGenerateNameHint: 'Оставьте пустым для автогенерации имени.',
         agentType: 'Тип агента',
-        agentTypeOpenClawDescription: '{{count}} установок',
-        agentTypeHermesDescription: '{{count}} установок',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} звёзд',
+        agentTypeHermesDescription: '{{count}} звёзд',
         location: 'Расположение',
         locationUnavailable: 'Недоступно',
         locationUnavailableForPlan: 'Недоступно',

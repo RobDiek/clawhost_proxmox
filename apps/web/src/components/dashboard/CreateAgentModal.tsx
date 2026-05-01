@@ -1,18 +1,20 @@
 import type { FC, ReactNode } from 'react'
 import type { CreateAgentModalProps, ErrorResponse } from '@/ts/Interfaces'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
 import { agentType, billingInterval, PLANS } from '@openclaw/shared'
 import { Link } from 'react-router-dom'
-import { ROUTES, isSafeRedirectUrl } from '@/lib'
-import { DownloadSimpleIcon } from '@phosphor-icons/react'
+import { useAuth } from '@/lib/auth'
+import { api, ROUTES, isSafeRedirectUrl, formatCompactNumber } from '@/lib'
 import { OpenClawIcon, HermesIcon } from '@/components/icons'
 import {
     usePurchaseAgent,
     useLocations,
     useVolumePricing,
     usePlanAvailability,
+    useAgentStars,
     useToast,
     useCreateAgentForm
 } from '@/hooks'
@@ -51,6 +53,12 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
         useLocations()
     const { data: providerVolumePricing } = useVolumePricing()
     const { data: providerPlanAvailability } = usePlanAvailability()
+    const { data: agentStarsData } = useAgentStars()
+
+    const starsFor = (type: string): string => {
+        const entry = agentStarsData?.stars.find((s) => s.agentType === type)
+        return entry ? formatCompactNumber(entry.stars) : '—'
+    }
 
     const isProviderLoading = isLoadingLocations
     const plans = providerPlans || initialPlans
@@ -118,6 +126,9 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
     const nameError = errors.name
 
     const toast = useToast()
+    const { isLocal } = useAuth()
+    const queryClient = useQueryClient()
+    const [isCreatingLocal, setIsCreatingLocal] = useState(false)
 
     useEffect(() => {
         if (!planId && plans.length > 0) {
@@ -154,7 +165,38 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
 
     const purchaseMutation = usePurchaseAgent()
 
+    const handleCreateLocal = async () => {
+        if (name && !/^[a-zA-Z0-9-]+$/.test(name)) {
+            setField('name', name)
+            return
+        }
+        setIsCreatingLocal(true)
+        try {
+            await api.createAgent({
+                name: name || undefined,
+                agentType: selectedAgentType,
+                gatewayToken: gatewayToken || undefined,
+                password: password || undefined
+            })
+            await queryClient.invalidateQueries({ queryKey: ['agents'] })
+            toast.success(t('createClaw.clawCreated'))
+            onClose()
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : t('errors.failedToCreateClaw')
+            toast.error(message)
+        } finally {
+            setIsCreatingLocal(false)
+        }
+    }
+
     const handleCreate = () => {
+        if (isLocal) {
+            handleCreateLocal()
+            return
+        }
         if (name && !/^[a-zA-Z0-9-]+$/.test(name)) {
             setField('name', name)
             return
@@ -276,14 +318,19 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                                         : 'border-border hover:border-muted-foreground/30'
                                 }`}
                             >
-                                <OpenClawIcon size={24} />
-                                <div>
-                                    <div className='font-medium'>OpenClaw</div>
-                                    <div className='text-muted-foreground flex items-center gap-1 text-xs'>
-                                        <DownloadSimpleIcon size={12} />
+                                <OpenClawIcon size={28} />
+                                <div className='leading-tight'>
+                                    <div className='text-sm font-medium'>
+                                        {t('createClaw.agentTypeOpenClaw')}
+                                    </div>
+                                    <div className='text-muted-foreground text-[10px]'>
                                         {t(
                                             'createClaw.agentTypeOpenClawDescription',
-                                            { count: '14.2k' }
+                                            {
+                                                count: starsFor(
+                                                    agentType.OPENCLAW
+                                                )
+                                            }
                                         )}
                                     </div>
                                 </div>
@@ -299,50 +346,68 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                                         : 'border-border hover:border-muted-foreground/30'
                                 }`}
                             >
-                                <HermesIcon size={24} />
-                                <div>
-                                    <div className='font-medium'>Hermes</div>
-                                    <div className='text-muted-foreground flex items-center gap-1 text-xs'>
-                                        <DownloadSimpleIcon size={12} />
-                                        {t('createClaw.agentTypeHermesDescription', { count: '8.7k' })}
+                                <HermesIcon size={28} />
+                                <div className='leading-tight'>
+                                    <div className='text-sm font-medium'>
+                                        {t('createClaw.agentTypeHermes')}
+                                    </div>
+                                    <div className='text-muted-foreground text-[10px]'>
+                                        {t(
+                                            'createClaw.agentTypeHermesDescription',
+                                            {
+                                                count: starsFor(
+                                                    agentType.HERMES
+                                                )
+                                            }
+                                        )}
                                     </div>
                                 </div>
                             </button>
                         </div>
                     </div>
 
-                    <LocationSelector
-                        locations={locations}
-                        location={location}
-                        planId={planId}
-                        isLoading={isProviderLoading}
-                        isLocationAvailableForPlan={isLocationAvailableForPlan}
-                        onLocationChange={(v) => setField('location', v)}
-                        onPlanChange={(v) => setField('planId', v)}
-                        plans={plans}
-                        isPlanAvailable={isPlanAvailable}
-                    />
+                    {!isLocal && (
+                        <LocationSelector
+                            locations={locations}
+                            location={location}
+                            planId={planId}
+                            isLoading={isProviderLoading}
+                            isLocationAvailableForPlan={
+                                isLocationAvailableForPlan
+                            }
+                            onLocationChange={(v) => setField('location', v)}
+                            onPlanChange={(v) => setField('planId', v)}
+                            plans={plans}
+                            isPlanAvailable={isPlanAvailable}
+                        />
+                    )}
 
-                    <BillingIntervalSelector
-                        billingCycle={billingCycle}
-                        onBillingCycleChange={(v) =>
-                            setField('billingCycle', v)
-                        }
-                    />
+                    {!isLocal && (
+                        <BillingIntervalSelector
+                            billingCycle={billingCycle}
+                            onBillingCycleChange={(v) =>
+                                setField('billingCycle', v)
+                            }
+                        />
+                    )}
 
-                    <PlanSelector
-                        plans={plans}
-                        planId={planId}
-                        location={location}
-                        billingCycle={billingCycle}
-                        isLoading={isProviderLoading}
-                        preselectedPlanId={preselectedPlanId}
-                        isLocationAvailableForPlan={isLocationAvailableForPlan}
-                        isPlanAvailable={isPlanAvailable}
-                        onPlanChange={(v) => setField('planId', v)}
-                        onLocationChange={(v) => setField('location', v)}
-                        getFirstAvailableLocation={getFirstAvailableLocation}
-                    />
+                    {!isLocal && (
+                        <PlanSelector
+                            plans={plans}
+                            planId={planId}
+                            location={location}
+                            billingCycle={billingCycle}
+                            isLoading={isProviderLoading}
+                            preselectedPlanId={preselectedPlanId}
+                            isLocationAvailableForPlan={
+                                isLocationAvailableForPlan
+                            }
+                            isPlanAvailable={isPlanAvailable}
+                            onPlanChange={(v) => setField('planId', v)}
+                            onLocationChange={(v) => setField('location', v)}
+                            getFirstAvailableLocation={getFirstAvailableLocation}
+                        />
+                    )}
 
                     <AdvancedOptions
                         showAdvanced={showAdvanced}
@@ -370,9 +435,10 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                         volumePricing={volumePricing}
                         volumeSize={volumeSize}
                         onVolumeSizeChange={(v) => setField('volumeSize', v)}
+                        hideInfrastructureOptions={isLocal}
                     />
 
-                    {selectedPlan && (
+                    {!isLocal && selectedPlan && (
                         <OrderSummary
                             selectedPlan={selectedPlan}
                             name={name}
@@ -384,59 +450,75 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                         />
                     )}
 
-                    <label className='flex cursor-pointer items-start gap-2'>
-                        <Checkbox
-                            checked={agreedToTerms}
-                            onCheckedChange={(checked) =>
-                                setField('agreedToTerms', !!checked)
-                            }
-                            className='mt-0.5'
-                        />
-                        <span className='text-muted-foreground text-xs'>
-                            {t('createClaw.agreementNotice')}{' '}
-                            <Link
-                                to={ROUTES.TERMS}
-                                className='text-muted-foreground hover:text-foreground underline'
-                                target='_blank'
-                            >
-                                {t('auth.termsOfService')}
-                            </Link>{' '}
-                            {t('auth.andWord')}{' '}
-                            <Link
-                                to={ROUTES.PRIVACY}
-                                className='text-muted-foreground hover:text-foreground underline'
-                                target='_blank'
-                            >
-                                {t('auth.privacyPolicy')}
-                            </Link>
-                        </span>
-                    </label>
+                    {!isLocal && (
+                        <label className='flex cursor-pointer items-start gap-2'>
+                            <Checkbox
+                                checked={agreedToTerms}
+                                onCheckedChange={(checked) =>
+                                    setField('agreedToTerms', !!checked)
+                                }
+                                className='mt-0.5'
+                            />
+                            <span className='text-muted-foreground text-xs'>
+                                {t('createClaw.agreementNotice')}{' '}
+                                <Link
+                                    to={ROUTES.TERMS}
+                                    className='text-muted-foreground hover:text-foreground underline'
+                                    target='_blank'
+                                >
+                                    {t('auth.termsOfService')}
+                                </Link>{' '}
+                                {t('auth.andWord')}{' '}
+                                <Link
+                                    to={ROUTES.PRIVACY}
+                                    className='text-muted-foreground hover:text-foreground underline'
+                                    target='_blank'
+                                >
+                                    {t('auth.privacyPolicy')}
+                                </Link>
+                            </span>
+                        </label>
+                    )}
 
                     <div className='flex justify-end gap-3'>
                         <Button type='button' variant='ghost' onClick={onClose}>
                             {t('common.cancel')}
                         </Button>
-                        <Button
-                            type='submit'
-                            disabled={
-                                purchaseMutation.isPending ||
-                                !selectedPlan ||
-                                !location ||
-                                !!nameError ||
-                                !agreedToTerms
-                            }
-                        >
-                            {purchaseMutation.isPending && (
-                                <CircleNotchIcon className='h-4 w-4 animate-spin' />
-                            )}
-                            {!selectedPlan
-                                ? t('createClaw.selectServerToContinue')
-                                : !location
-                                  ? t('createClaw.selectLocationToContinue')
-                                  : t('createClaw.proceedToPayment', {
-                                        amount: totalAmount
-                                    })}
-                        </Button>
+                        {isLocal ? (
+                            <Button
+                                type='submit'
+                                disabled={isCreatingLocal || !!nameError}
+                            >
+                                {isCreatingLocal && (
+                                    <CircleNotchIcon className='h-4 w-4 animate-spin' />
+                                )}
+                                {isCreatingLocal
+                                    ? t('createClaw.creating')
+                                    : t('createClaw.title')}
+                            </Button>
+                        ) : (
+                            <Button
+                                type='submit'
+                                disabled={
+                                    purchaseMutation.isPending ||
+                                    !selectedPlan ||
+                                    !location ||
+                                    !!nameError ||
+                                    !agreedToTerms
+                                }
+                            >
+                                {purchaseMutation.isPending && (
+                                    <CircleNotchIcon className='h-4 w-4 animate-spin' />
+                                )}
+                                {!selectedPlan
+                                    ? t('createClaw.selectServerToContinue')
+                                    : !location
+                                      ? t('createClaw.selectLocationToContinue')
+                                      : t('createClaw.proceedToPayment', {
+                                            amount: totalAmount
+                                        })}
+                            </Button>
+                        )}
                     </div>
                 </form>
             </DialogContent>

@@ -1,5 +1,7 @@
 import type {
     Agent,
+    AgentStarsResponse,
+    BillingHistoryResponse,
     CheckSubdomainResponse,
     AgentCredentialsResponse,
     AgentFilesResponse,
@@ -7,6 +9,7 @@ import type {
     AgentOverviewResponse,
     AgentVersionResponse,
     AgentVersionsResponse,
+    CreateLocalAgentData,
     DeleteAgentResponse,
     DiagnosticsLogsResponse,
     DiagnosticsStatusResponse,
@@ -26,12 +29,17 @@ import getReferralHeaders from '@/lib/api/getReferralHeaders'
 
 const agents = {
     getAgents: () => client.get<Agent[]>(API_PATHS.CLAWS.BASE),
+    getAgentStars: () =>
+        client.get<AgentStarsResponse>(API_PATHS.CLAWS.STARS),
     getAdminAgents: () => client.get<Agent[]>(API_PATHS.CLAWS.ADMIN),
     getAgent: (id: string, sync?: boolean) =>
         client.get<Agent>(
             `${API_PATHS.CLAWS.byId(id)}${sync ? '?sync=true' : ''}`
         ),
     syncAgent: (id: string) => client.post<Agent>(API_PATHS.CLAWS.SYNC(id)),
+    createAgent: (_data: CreateLocalAgentData): Promise<Agent> => {
+        throw new Error('createAgent is only available in the desktop app')
+    },
     purchaseAgent: (data: PurchaseAgentData) =>
         client.post<PurchaseAgentResponse>(API_PATHS.CLAWS.PURCHASE, data, {
             headers: getReferralHeaders()
@@ -75,6 +83,10 @@ const agents = {
         client.post<void>(API_PATHS.CLAWS.REINSTALL(id)),
     getAgentCredentials: (id: string) =>
         client.get<AgentCredentialsResponse>(API_PATHS.CLAWS.CREDENTIALS(id)),
+    getAgentBilling: (id: string, page: number = 1, limit: number = 100) =>
+        client.get<BillingHistoryResponse>(
+            `${API_PATHS.CLAWS.BILLING(id)}?page=${page}&limit=${limit}`
+        ),
     getAgentVersion: (id: string) =>
         client.post<AgentVersionResponse>(API_PATHS.CLAWS.VERSION(id)),
     getAgentVersions: (id: string) =>

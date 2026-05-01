@@ -1,11 +1,15 @@
 import type { FC, ReactNode } from 'react'
 import type { LogoProps } from '@/ts/Interfaces'
 
+import type { ElectronWindow } from '@/ts/Interfaces'
+
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { ROUTES } from '@/lib'
 import { usePreferencesStore } from '@/lib/store'
 import { PRODUCT } from '@/lib/constants'
+import { useAppVersion } from '@/hooks'
+import BetaBadge from '@/components/layout/BetaBadge'
 
 const Logo: FC<LogoProps> = ({ to }): ReactNode => {
     const { pathname, hash, search } = useLocation()
@@ -13,6 +17,9 @@ const Logo: FC<LogoProps> = ({ to }): ReactNode => {
     const destination = to || (product === PRODUCT.GO ? ROUTES.GO : ROUTES.HOME)
     const navigate = useNavigate()
     const isSamePage = pathname === destination
+    const isDesktop = !!(window as unknown as ElectronWindow).electronAPI
+        ?.isDesktop
+    const appVersion = useAppVersion(isDesktop)
 
     const handleClick = (e: React.MouseEvent) => {
         if (isSamePage) {
@@ -107,14 +114,17 @@ const Logo: FC<LogoProps> = ({ to }): ReactNode => {
     )
 
     return (
-        <Link
-            to={destination}
-            onClick={handleClick}
-            className='flex items-center gap-2 transition hover:opacity-80'
-            aria-label={t('common.brandName')}
-        >
-            {svg}
-        </Link>
+        <div className='flex items-center gap-3'>
+            <Link
+                to={destination}
+                onClick={handleClick}
+                className='flex items-center gap-2 transition hover:opacity-80'
+                aria-label={t('common.brandName')}
+            >
+                {svg}
+            </Link>
+            {isDesktop && <BetaBadge version={appVersion || undefined} />}
+        </div>
     )
 }
 

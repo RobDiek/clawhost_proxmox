@@ -400,6 +400,7 @@ const en = {
         adminAccessDenied: 'Admin access required!',
         agentsFetched: 'Agents fetched successfully.',
         agentFetched: 'Agent fetched successfully.',
+        agentStarsFetched: 'Agent stars fetched successfully.',
         agentSynced: 'Agent synced successfully.',
         agentStarted: 'Agent started successfully.',
         agentStopped: 'Agent stopped successfully.',
@@ -802,6 +803,7 @@ const en = {
         storage: 'Storage',
         nextBilling: 'Next Billing',
         lastBilling: 'Last Billing',
+        totalSpent: 'Total Spent',
         version: 'Version',
         gatewayToken: 'Gateway Token',
         gatewayTokenDescription:
@@ -873,15 +875,16 @@ const en = {
         openControlPanel: 'Open Control Panel',
         exportData: 'Export Claw (.zip)',
         exportAgent: 'Export',
-        exportAgentButton: 'Export OpenClaw',
+        exportAgentButton: 'Export Data',
         exportAgentTooltip:
             'Download this agent and all its data as a .zip file.',
+        exportAgentInProgress:
+            'Exporting can take a few minutes for larger agents.',
         exportStarted: 'Preparing export, this may take a moment...',
         exportSuccess: 'Agent exported successfully.',
         exportFailed: 'Failed to export claw data!',
         exportRateLimited: 'You can export again in {{minutes}} minutes.',
-        exportRateLimitedSeconds:
-            'You can export again in {{seconds}} seconds.',
+        exportRateLimitedOne: 'You can export again in 1 minute.',
         configuringTooltip:
             'This might take some time. It depends on OpenClaw, the server location, and Cloudflare DNS.',
         paymentSuccess: 'Your claw is being created and configured.',
@@ -926,8 +929,10 @@ const en = {
         clawNameInvalidChars: 'Only letters, numbers, and dashes are allowed!',
         autoGenerateNameHint: 'Leave empty to auto-generate a name.',
         agentType: 'Agent Type',
-        agentTypeOpenClawDescription: '{{count}} installs',
-        agentTypeHermesDescription: '{{count}} installs',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} stars',
+        agentTypeHermesDescription: '{{count}} stars',
         location: 'Location',
         locationUnavailable: 'Unavailable',
         locationUnavailableForPlan: 'Unavailable',

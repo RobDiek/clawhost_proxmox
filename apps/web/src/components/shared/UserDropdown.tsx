@@ -1,9 +1,5 @@
 import type { FC, ReactNode } from 'react'
-import type {
-    UserDropdownProps,
-    FooterLink,
-    ElectronWindow
-} from '@/ts/Interfaces'
+import type { UserDropdownProps, ElectronWindow } from '@/ts/Interfaces'
 
 import { Fragment } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -36,15 +32,14 @@ const UserDropdown: FC<UserDropdownProps> = ({
     onSignOut,
     onOpen,
     hideSSHKeys,
-    hideSignOut,
-    footerLinks,
-    openLinksWindowed,
-    appVersion
+    hideSignOut
 }): ReactNode => {
     const navigate = useNavigate()
     const location = useLocation()
     const { data: profile } = useProfile()
     const isAdmin = profile?.role === userRole.admin
+    const isDesktop = !!(window as unknown as ElectronWindow).electronAPI
+        ?.isDesktop
     const getInitials = (text: string) => {
         if (!text) return '?'
         const parts = text.split(' ')
@@ -58,23 +53,6 @@ const UserDropdown: FC<UserDropdownProps> = ({
 
     const handleOpenChange = (open: boolean) => {
         if (open && onOpen) onOpen()
-    }
-
-    const openLink = (link: FooterLink) => {
-        if (link.external) {
-            const api = (window as unknown as ElectronWindow).electronAPI
-            if (api) {
-                if (openLinksWindowed && api.openWindowed) {
-                    api.openWindowed(link.href)
-                } else {
-                    api.openExternal(link.href)
-                }
-            } else {
-                window.open(link.href, '_blank')
-            }
-        } else {
-            navigate(link.href)
-        }
     }
 
     return (
@@ -115,12 +93,21 @@ const UserDropdown: FC<UserDropdownProps> = ({
                         {t('nav.sshKeys')}
                     </DropdownMenuItem>
                 )}
+                {!isDesktop && (
+                    <DropdownMenuItem
+                        onClick={() => navigate(ROUTES.AFFILIATE)}
+                        className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.AFFILIATE ? 'bg-foreground/10' : ''}`}
+                    >
+                        <HandshakeIcon className='h-4 w-4' />
+                        {t('nav.affiliate')}
+                    </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
-                    onClick={() => navigate(ROUTES.AFFILIATE)}
-                    className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.AFFILIATE ? 'bg-foreground/10' : ''}`}
+                    onClick={() => navigate(ROUTES.LICENSE)}
+                    className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.LICENSE ? 'bg-foreground/10' : ''}`}
                 >
-                    <HandshakeIcon className='h-4 w-4' />
-                    {t('nav.affiliate')}
+                    <CertificateIcon className='h-4 w-4' />
+                    {t('nav.license')}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                     onClick={() => navigate(ROUTES.ACCOUNT)}
@@ -129,15 +116,8 @@ const UserDropdown: FC<UserDropdownProps> = ({
                     <UserIcon className='h-4 w-4' />
                     {t('nav.account')}
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                    onClick={() => navigate(ROUTES.LICENSE)}
-                    className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.LICENSE ? 'bg-foreground/10' : ''}`}
-                >
-                    <CertificateIcon className='h-4 w-4' />
-                    {t('nav.license')}
-                </DropdownMenuItem>
 
-                {isAdmin && (
+                {isAdmin && !isDesktop && (
                     <DropdownMenuItem
                         onClick={() => navigate(ROUTES.ADMIN)}
                         className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.ADMIN ? 'bg-foreground/10' : ''}`}
@@ -145,33 +125,6 @@ const UserDropdown: FC<UserDropdownProps> = ({
                         <ShieldCheckIcon className='h-4 w-4' />
                         {t('nav.admin')}
                     </DropdownMenuItem>
-                )}
-                {footerLinks && footerLinks.length > 0 && (
-                    <Fragment>
-                        <DropdownMenuSeparator className='bg-border' />
-                        <p className='text-muted-foreground px-2 py-1 text-[10px] font-medium uppercase tracking-wider'>
-                            {t('footer.legalAndMore')}
-                        </p>
-                        {footerLinks.map((link) => (
-                            <DropdownMenuItem
-                                key={link.href}
-                                onClick={() => openLink(link)}
-                                className='text-foreground/80 focus:bg-foreground/10 focus:text-foreground text-xs'
-                            >
-                                {link.label}
-                            </DropdownMenuItem>
-                        ))}
-                        {appVersion && (
-                            <Fragment>
-                                <DropdownMenuSeparator className='bg-border' />
-                                <p className='text-muted-foreground/40 px-2 py-0.5 text-center text-[10px] tracking-wider'>
-                                    {t('common.brandNameGoVersion', {
-                                        version: appVersion
-                                    })}
-                                </p>
-                            </Fragment>
-                        )}
-                    </Fragment>
                 )}
                 {!hideSignOut && (
                     <Fragment>

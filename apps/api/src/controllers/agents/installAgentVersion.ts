@@ -91,8 +91,15 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
 
         if (!agent[0]) return fail(c, t('api.agentNotFound'), 404)
 
-        if (!agent[0].ip || !agent[0].rootPassword)
+        if (!agent[0].ip || !agent[0].rootPassword) {
+            console.error(
+                'installAgentVersion',
+                new Error(
+                    `agent ${id} missing ip or rootPassword (ip=${!!agent[0].ip}, rootPassword=${!!agent[0].rootPassword})`
+                )
+            )
             return fail(c, t('api.failedToInstallVersion'), 400)
+        }
 
         const agentConfig = getAgentConfig(agent[0].agentType)
 
@@ -125,15 +132,27 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
                 throw error
             }
         } else {
+            console.error(
+                'installAgentVersion',
+                new Error(
+                    `agent ${id} type ${agent[0].agentType} has no githubRepo or npmPackage configured`
+                )
+            )
             return fail(c, t('api.failedToInstallVersion'), 400)
         }
 
-        const output = await executeSSH(
-            agent[0].ip,
-            agent[0].rootPassword,
-            installCommands,
-            120000
-        )
+        let output: string
+        try {
+            output = await executeSSH(
+                agent[0].ip,
+                agent[0].rootPassword,
+                installCommands,
+                120000
+            )
+        } catch (sshError) {
+            console.error('installAgentVersion', sshError)
+            return fail(c, t('api.failedToInstallVersion'), 500)
+        }
 
         invalidateVersionCache(agent[0].ip)
 
@@ -141,6 +160,12 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
 
         if (success) return ok(c, { version }, t('api.installVersionSuccess'))
 
+        console.error(
+            'installAgentVersion',
+            new Error(
+                `agent ${id} version ${version} install did not reach GATEWAY_OK. Output tail:\n${output.slice(-2000)}`
+            )
+        )
         return fail(c, t('api.failedToInstallVersion'), 500)
     } catch (error) {
         console.error('installAgentVersion', error)

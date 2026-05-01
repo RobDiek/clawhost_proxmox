@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { AdvancedOptionsProps } from '@/ts/Interfaces'
 
+import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
 import { useUIStore } from '@/lib/store'
 import { copyToClipboard } from '@/lib'
@@ -42,7 +43,8 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
     onNavigateToSSHKeys,
     volumePricing,
     volumeSize,
-    onVolumeSizeChange
+    onVolumeSizeChange,
+    hideInfrastructureOptions
 }): ReactNode => {
     const { showToast } = useUIStore()
 
@@ -231,9 +233,11 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                         </p>
                     </div>
 
-                    <div className='space-y-2'>
-                        <Label>{t('createClaw.sshKeyOptional')}</Label>
-                        {sshKeys.length > 0 ? (
+                    {!hideInfrastructureOptions && (
+                        <Fragment>
+                        <div className='space-y-2'>
+                            <Label>{t('createClaw.sshKeyOptional')}</Label>
+                            {sshKeys.length > 0 ? (
                             <div className='space-y-2'>
                                 <label
                                     className={`flex cursor-pointer items-center rounded-lg p-3 transition ${
@@ -386,6 +390,8 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                             </div>
                         </div>
                     )}
+                </Fragment>
+            )}
                 </div>
             )}
         </div>

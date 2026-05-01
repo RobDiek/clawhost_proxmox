@@ -15,6 +15,7 @@ interface ElectronAPI {
 interface LocalAgentConfig {
     id: string
     name: string
+    agentType: string
     port: number
     version: string
     gatewayToken: string
@@ -43,8 +44,18 @@ interface CertPaths {
 
 interface CreateAgentData {
     name?: string
+    agentType?: string
     gatewayToken?: string
     password?: string
+}
+
+interface AgentSpec {
+    type: string
+    binaryName: string
+    npmPackage: string
+    configFileName: string
+    gatewayArgs: (port: number) => string[]
+    defaultConfig: (subdomain: string, gatewayToken?: string) => unknown
 }
 
 interface RenameAgentData {
@@ -73,7 +84,6 @@ interface AppUpdateInfo {
     hasUpdate: boolean
     currentVersion: string
     latestVersion?: string
-    downloadUrl?: string
 }
 
 export type {
@@ -82,6 +92,7 @@ export type {
     ConfigFile,
     CertPaths,
     CreateAgentData,
+    AgentSpec,
     RenameAgentData,
     ReadAgentFileData,
     UpdateProfileData,

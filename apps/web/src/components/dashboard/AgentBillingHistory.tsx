@@ -4,21 +4,21 @@ import type { AgentBillingHistoryProps } from '@/ts/Interfaces'
 import { useState, useMemo, useCallback } from 'react'
 import { t } from '@openclaw/i18n'
 import { ReceiptIcon } from '@phosphor-icons/react'
-import { useBillingHistory, useToast } from '@/hooks'
+import { useAgentBilling, useToast } from '@/hooks'
 import { api } from '@/lib'
 import { BillingOrderCard, BillingSkeleton } from '@/components/billing'
 import { SectionHeader } from '@/components/dashboard'
 import { demoBillingOrders } from '@/data'
 
 const AgentBillingHistory: FC<AgentBillingHistoryProps> = ({
-    polarSubscriptionId,
+    agentId,
     readOnly
 }): ReactNode => {
     const {
         data,
         isLoading: liveLoading,
         isError: liveError
-    } = useBillingHistory(100, !readOnly)
+    } = useAgentBilling(agentId, !readOnly)
     const isLoading = readOnly ? false : liveLoading
     const isError = readOnly ? false : liveError
     const toast = useToast()
@@ -28,11 +28,8 @@ const AgentBillingHistory: FC<AgentBillingHistoryProps> = ({
 
     const agentOrders = useMemo(() => {
         if (readOnly) return demoBillingOrders
-        if (!data?.pages || !polarSubscriptionId) return []
-        return data.pages
-            .flatMap((page) => page.items)
-            .filter((order) => order.subscriptionId === polarSubscriptionId)
-    }, [data, polarSubscriptionId, readOnly])
+        return data?.items ?? []
+    }, [data, readOnly])
 
     const handleViewInvoice = useCallback(
         async (orderId: string) => {

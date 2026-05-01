@@ -1,5 +1,6 @@
 import getAgents from '@/controllers/agents/getAgents'
 import getAgent from '@/controllers/agents/getAgent'
+import getAgentStars from '@/controllers/agents/getAgentStars'
 import initiateAgentPurchase from '@/controllers/agents/initiateAgentPurchase'
 import syncAgent from '@/controllers/agents/syncAgent'
 import startAgent from '@/controllers/agents/startAgent'
@@ -22,6 +23,7 @@ import getAgentVersions from '@/controllers/agents/getAgentVersions'
 import installAgentVersion from '@/controllers/agents/installAgentVersion'
 import renameAgent from '@/controllers/agents/renameAgent'
 import getAgentCredentials from '@/controllers/agents/getAgentCredentials'
+import getAgentBilling from '@/controllers/agents/getAgentBilling'
 import cancelPendingAgent from '@/controllers/agents/cancelPendingAgent'
 import updateAgentSubdomain from '@/controllers/agents/updateAgentSubdomain'
 import checkSubdomainAvailability from '@/controllers/agents/checkSubdomainAvailability'
@@ -38,6 +40,7 @@ export {
     getAgents,
     getAdminAgents,
     getAgent,
+    getAgentStars,
     initiateAgentPurchase,
     syncAgent,
     startAgent,
@@ -59,6 +62,7 @@ export {
     installAgentVersion,
     renameAgent,
     getAgentCredentials,
+    getAgentBilling,
     cancelPendingAgent,
     updateAgentSubdomain,
     checkSubdomainAvailability,

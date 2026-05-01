@@ -24,10 +24,6 @@ export default defineConfig({
     resolve: {
         alias: {
             '@/lib/api': path.resolve(__dirname, './src/renderer/shims/api'),
-            '@/components/dashboard/CreateClawModal': path.resolve(
-                __dirname,
-                './src/renderer/components/CreateClawModal'
-            ),
             '@/': path.resolve(__dirname, '../web/src') + '/',
             '@electron/': path.resolve(__dirname, './src/renderer') + '/',
             react: path.resolve(__dirname, '../../node_modules/react'),

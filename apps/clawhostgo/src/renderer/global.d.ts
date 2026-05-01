@@ -2,7 +2,6 @@ interface AppUpdateInfo {
     hasUpdate: boolean
     currentVersion: string
     latestVersion?: string
-    downloadUrl?: string
 }
 
 interface ElectronAPI {
@@ -18,6 +17,8 @@ interface ElectronAPI {
     onTerminalData: (callback: (id: string, data: string) => void) => () => void
     onTerminalExit: (callback: (id: string) => void) => () => void
     checkAppUpdate: () => Promise<AppUpdateInfo>
+    quitAndInstall: () => Promise<void>
+    onUpdateDownloaded: (callback: (info: AppUpdateInfo) => void) => () => void
 }
 
 interface Window {

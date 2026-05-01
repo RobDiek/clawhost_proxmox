@@ -429,6 +429,7 @@ const fr: Translations = {
         adminAccessDenied: 'Accès administrateur requis !',
         agentsFetched: 'Agents récupérés avec succès.',
         agentFetched: 'Agent récupéré avec succès.',
+        agentStarsFetched: 'Étoiles de l\'agent récupérées avec succès.',
         agentSynced: 'Agent synchronisé avec succès.',
         agentStarted: 'Agent démarré avec succès.',
         agentStopped: 'Agent arrêté avec succès.',
@@ -852,6 +853,7 @@ const fr: Translations = {
         storage: 'Stockage',
         nextBilling: 'Prochaine facturation',
         lastBilling: 'Dernière facturation',
+        totalSpent: 'Total dépensé',
         version: 'Version',
         gatewayToken: 'Jeton de passerelle',
         gatewayTokenDescription:
@@ -927,17 +929,18 @@ const fr: Translations = {
         openControlPanel: 'Ouvrir le panneau de contrôle',
         exportData: 'Exporter le Claw (.zip)',
         exportAgent: 'Exporter',
-        exportAgentButton: 'Exporter OpenClaw',
+        exportAgentButton: 'Exporter les données',
         exportAgentTooltip:
             'Télécharger cet agent et toutes ses données sous forme de fichier .zip.',
+        exportAgentInProgress:
+            "L'exportation peut prendre quelques minutes pour les agents plus volumineux.",
         exportStarted:
             "Préparation de l\'exportation, cela peut prendre un moment...",
         exportSuccess: 'Claw exporté avec succès.',
         exportFailed: "Échec de l\'exportation des données du claw !",
         exportRateLimited:
             'Vous pourrez exporter à nouveau dans {{minutes}} minutes !',
-        exportRateLimitedSeconds:
-            'Vous pourrez exporter à nouveau dans {{seconds}} secondes !',
+        exportRateLimitedOne: 'Vous pourrez exporter à nouveau dans 1 minute !',
         configuringTooltip:
             "Cela peut prendre un certain temps. Cela dépend d\'OpenClaw, de l\'emplacement du serveur et du DNS Cloudflare.",
         paymentSuccess:
@@ -987,8 +990,10 @@ const fr: Translations = {
         autoGenerateNameHint:
             'Laissez vide pour générer un nom automatiquement.',
         agentType: "Type d'agent",
-        agentTypeOpenClawDescription: '{{count}} installations',
-        agentTypeHermesDescription: '{{count}} installations',
+        agentTypeOpenClaw: 'OpenClaw',
+        agentTypeHermes: 'Hermes',
+        agentTypeOpenClawDescription: '{{count}} étoiles',
+        agentTypeHermesDescription: '{{count}} étoiles',
         location: 'Emplacement',
         locationUnavailable: 'Indisponible',
         locationUnavailableForPlan: 'Indisponible',

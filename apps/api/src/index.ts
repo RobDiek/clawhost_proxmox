@@ -17,6 +17,7 @@ const green = (s: string) => `\x1b[32m${s}\x1b[0m`
 Bun.serve({
     port,
     hostname: '0.0.0.0',
+    idleTimeout: 255,
     async fetch(req, server) {
         const upgraded = await terminalSocket.handleUpgrade(req, server)
         if (upgraded) return undefined as unknown as Response

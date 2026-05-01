@@ -7,7 +7,8 @@ import {
     nodeBinary,
     reverseProxy,
     dnsResolver,
-    certManager
+    certManager,
+    appUpdater
 } from '@/main/services'
 import { registerAllHandlers } from '@/main/ipc'
 
@@ -79,6 +80,7 @@ if (!gotLock) {
         reverseProxy.start()
         dnsResolver.startDns()
         dnsResolver.ensurePortRedirect()
+        appUpdater.start()
     })
 
     app.on('before-quit', () => {

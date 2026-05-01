@@ -29,5 +29,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.on('terminal:exit', listener)
         return () => ipcRenderer.removeListener('terminal:exit', listener)
     },
-    checkAppUpdate: () => ipcRenderer.invoke('check-app-update')
+    checkAppUpdate: () => ipcRenderer.invoke('check-app-update'),
+    quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
+    onUpdateDownloaded: (
+        callback: (info: {
+            hasUpdate: boolean
+            currentVersion: string
+            latestVersion?: string
+        }) => void
+    ) => {
+        const listener = (
+            _event: Electron.IpcRendererEvent,
+            info: {
+                hasUpdate: boolean
+                currentVersion: string
+                latestVersion?: string
+            }
+        ) => callback(info)
+        ipcRenderer.on('update-downloaded', listener)
+        return () => ipcRenderer.removeListener('update-downloaded', listener)
+    }
 })
