@@ -192,6 +192,7 @@ const ja: Translations = {
         versionNotInstalled:
             'OpenClawバージョン{{version}}はインストールされていません!',
         failedToStartProcess: 'プロセスの起動に失敗しました: {{reason}}!',
+        gatewayNotReady: 'エージェントが時間内に準備完了になりませんでした！',
         processExitedImmediately:
             'プロセスが即座に終了しました。ログ:\n{{logs}}',
         processExitedImmediatelyNoLogs: 'プロセスが起動直後に終了しました!',
@@ -200,7 +201,7 @@ const ja: Translations = {
         processExitedWithCodeNoLogs: 'プロセスがコード{{code}}で終了しました!',
         processExitedUnexpectedly: 'プロセスが予期せず終了しました!',
         failedToInstallVersion:
-            'OpenClaw {{version}}のインストールに失敗しました: {{reason}}!',
+            'バージョン {{version}} のインストールに失敗しました: {{reason}}!',
         oauthCancelled: '認証がキャンセルされました!',
         diskFull: 'デバイスに空き容量がありません!',
         permissionDenied: 'アクセスが拒否されました!',
@@ -999,6 +1000,7 @@ const ja: Translations = {
         selectServerToContinue: '続行するにはサーバーを選択してください',
         selectLocationToContinue: '続行するにはロケーションを選択してください',
         clawCreated: 'Clawを作成しました。',
+        clawCreating: 'Clawを作成中です。少々お待ちください...',
         assigning: '割り当て中...',
         rootPasswordSaveThis: 'Rootパスワード（保存してください！）',
         sshCommandUsingKey: 'SSHコマンド（鍵使用）',
@@ -1156,13 +1158,16 @@ const ja: Translations = {
         showAllPlans: 'すべてのプランを表示',
         simplePricing: '簡易表示',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: '個人プロジェクトと実験向け',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: '本番環境のワークロード向け',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: '成長中のビジネス向け',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: '大規模オペレーション向け',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'プランを選ぶ',
         mostPopular: '一番人気',
         featurePreinstalled: 'エージェント プリインストール済み',
@@ -1504,6 +1509,8 @@ const ja: Translations = {
         creatingTitle: 'エージェントをセットアップ中',
         creatingDescription:
             '通常1〜2分かかります。 このページを閉じて、後で戻ってきても問題ありません。',
+        creatingDescriptionLocal:
+            '通常はすぐに完了します。完了するまでアプリを開いたままにしてください。',
         configuringTitle: 'OpenClawをインストール中',
         configuringTitleHermes: 'Hermesをインストール中',
         loadingTipHermes1:
@@ -1514,6 +1521,8 @@ const ja: Translations = {
             'ターミナルから `hermes gateway install` で Telegram、Discord、Slack を接続できます。',
         configuringDescription:
             '通常1〜2分かかります。 このページを閉じて、後で戻ってきても問題ありません。',
+        configuringDescriptionLocal:
+            'エージェントランタイムをローカルにインストールしています。完了するまでアプリを開いたままにしてください。',
         awaitingPaymentTitle: '支払い待ち',
         awaitingPaymentDescription:
             'エージェントのプロビジョニングを開始するには、支払いを完了してください。この予約は1時間で期限切れになります。',
@@ -1658,6 +1667,8 @@ const ja: Translations = {
         settingsDangerZone: '危険ゾーン',
         settingsDangerZoneDescription:
             'インスタンスは現在の請求期間の終了時に削除されます。',
+        settingsDangerZoneDescriptionLocal:
+            'エージェントとそのすべてのファイルが完全に削除されます。',
         settingsScheduledDeletionDescription:
             '{{date}}に削除予定です。キャンセルするとインスタンスは稼働し続け、サブスクリプションもアクティブなままになります。',
         settingsSave: '保存',

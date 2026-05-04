@@ -306,6 +306,12 @@ export interface DashboardState {
     setPreselectedPlanId: (value: string | null) => void
 }
 
+export interface CreatingAgentsState {
+    creatingAgents: Agent[]
+    addCreatingAgent: (agent: Agent) => void
+    removeCreatingAgent: (id: string) => void
+}
+
 export interface CachedProfile {
     id: string
     email: string
@@ -1779,7 +1785,7 @@ export interface AgentNameFieldProps {
 export interface AgentTypeSelectorProps {
     selectedAgentType: AgentType
     onAgentTypeChange: (type: AgentType) => void
-    starsFor: (type: AgentType) => string
+    starsFor: (type: AgentType) => string | null
 }
 
 export interface TermsAgreementProps {
@@ -2325,6 +2331,7 @@ export interface AgentPendingViewProps {
     checkoutUrl?: string | null
     onCancel?: () => void
     cancelPending?: boolean
+    isLocal?: boolean
 }
 
 export interface BillingOrderCardProps {

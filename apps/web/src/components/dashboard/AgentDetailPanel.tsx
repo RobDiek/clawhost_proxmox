@@ -14,6 +14,7 @@ import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
 import { agentStatus, agentType } from '@openclaw/shared'
+import { useAuth } from '@/lib/auth'
 import { AGENT_DETAIL_TABS } from '@/lib/constants'
 import {
     AgentLogsContent,
@@ -73,14 +74,25 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
         agent.status === agentStatus.creating ||
         agent.status === agentStatus.awaitingPayment
     const cancelPending = useCancelPendingAgent()
+    const { isLocal } = useAuth()
     const isHermes = agent.agentType === agentType.HERMES
-    const hiddenTabs = useMemo<AgentDetailTab[]>(
-        () =>
-            isHermes
-                ? [AGENT_DETAIL_TABS.PREVIEW, AGENT_DETAIL_TABS.OVERVIEW]
-                : [],
-        [isHermes]
-    )
+    const hiddenTabs = useMemo<AgentDetailTab[]>(() => {
+        const hidden: AgentDetailTab[] = []
+        if (isHermes) {
+            hidden.push(
+                AGENT_DETAIL_TABS.PREVIEW,
+                AGENT_DETAIL_TABS.OVERVIEW
+            )
+        }
+        if (isLocal)
+            hidden.push(
+                AGENT_DETAIL_TABS.BILLING,
+                AGENT_DETAIL_TABS.VOLUMES,
+                AGENT_DETAIL_TABS.MONITOR,
+                AGENT_DETAIL_TABS.SERVER
+            )
+        return hidden
+    }, [isHermes, isLocal])
     const defaultTab = isHermes
         ? AGENT_DETAIL_TABS.TERMINAL
         : AGENT_DETAIL_TABS.OVERVIEW
@@ -186,6 +198,7 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
                                 : undefined
                         }
                         cancelPending={cancelPending.isPending}
+                        isLocal={!!isLocal}
                     />
                 ) : (
                     <Fragment>

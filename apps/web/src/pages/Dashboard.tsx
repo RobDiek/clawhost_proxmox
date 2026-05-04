@@ -6,7 +6,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { userRole, PLANS } from '@openclaw/shared'
-import { useUIStore, usePreferencesStore, useDashboardStore } from '@/lib/store'
+import {
+    useUIStore,
+    usePreferencesStore,
+    useDashboardStore,
+    useCreatingAgentsStore
+} from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { ROUTES, AGENT_DETAIL_TABS } from '@/lib'
 import { tabs as agentDetailTabs } from '@/lib/agentDetailTabs'
@@ -77,7 +82,12 @@ const Dashboard: FC = (): ReactNode => {
     useEffect(() => {
         if (!isLocal) return
         const api = (window as unknown as ElectronWindow).electronAPI
-        if (api?.getDnsStatus) api.getDnsStatus().then(setDnsSetup)
+        if (!api?.getDnsStatus) return
+        const refresh = () => api.getDnsStatus!().then(setDnsSetup)
+        refresh()
+        const onFocus = () => refresh()
+        window.addEventListener('focus', onFocus)
+        return () => window.removeEventListener('focus', onFocus)
     }, [isLocal])
 
     const handleDnsSetup = useCallback(async () => {
@@ -137,10 +147,17 @@ const Dashboard: FC = (): ReactNode => {
         }
     }, [awaitingAgent, isAgentsLoading])
 
+    const creatingAgents = useCreatingAgentsStore((s) => s.creatingAgents)
+
     const displayedAgents = useMemo((): Agent[] => {
-        if (adminMode) return adminAgents || []
-        return agents || []
-    }, [agents, adminMode, adminAgents])
+        const base = adminMode ? adminAgents || [] : agents || []
+        if (creatingAgents.length === 0) return base
+        const baseNames = new Set(base.map((a) => a.name.toLowerCase()))
+        const stillCreating = creatingAgents.filter(
+            (c) => !baseNames.has(c.name.toLowerCase())
+        )
+        return [...base, ...stillCreating]
+    }, [agents, adminMode, adminAgents, creatingAgents])
 
     const hetznerPlans = PLANS
     const plans = [...hetznerPlans]

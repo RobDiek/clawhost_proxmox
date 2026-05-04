@@ -190,12 +190,13 @@ const ar: Translations = {
         exportFailed: 'فشل التصدير !',
         versionNotInstalled: 'إصدار OpenClaw {{version}} غير مثبّت !',
         failedToStartProcess: 'فشل بدء العملية: {{reason}} !',
+        gatewayNotReady: 'لم يصبح الوكيل جاهزًا في الوقت المحدد!',
         processExitedImmediately: 'خرجت العملية فوراً. السجلات:\n{{logs}}',
         processExitedImmediatelyNoLogs: 'خرجت العملية فوراً بعد البدء !',
         processExitedWithCode: 'خرجت العملية برمز {{code}}. السجلات:\n{{logs}}',
         processExitedWithCodeNoLogs: 'خرجت العملية برمز {{code}} !',
         processExitedUnexpectedly: 'خرجت العملية بشكل غير متوقع !',
-        failedToInstallVersion: 'فشل تثبيت OpenClaw {{version}}: {{reason}} !',
+        failedToInstallVersion: 'فشل تثبيت الإصدار {{version}}: {{reason}} !',
         oauthCancelled: 'تم إلغاء المصادقة !',
         diskFull: 'لا توجد مساحة متبقية على الجهاز !',
         permissionDenied: 'تم رفض الإذن !',
@@ -968,6 +969,7 @@ const ar: Translations = {
         selectServerToContinue: 'اختر خادماً للمتابعة',
         selectLocationToContinue: 'اختر موقعاً للمتابعة',
         clawCreated: 'تم إنشاء المخلب.',
+        clawCreating: 'جارٍ إنشاء المخلب، قد يستغرق ذلك بعض الوقت...',
         assigning: 'جارٍ التعيين...',
         rootPasswordSaveThis: 'كلمة مرور Root (احفظها!)',
         sshCommandUsingKey: 'أمر SSH (باستخدام مفتاحك)',
@@ -1123,13 +1125,16 @@ const ar: Translations = {
         showAllPlans: 'عرض جميع الخطط',
         simplePricing: 'مبسّط',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: 'للمشاريع الشخصية والتجارب',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: 'لأعباء العمل الإنتاجية',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: 'للشركات النامية',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: 'للعمليات واسعة النطاق',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'اختر الخطة',
         mostPopular: 'الأكثر شعبية',
         featurePreinstalled: 'وكيل مثبت مسبقًا',
@@ -1467,6 +1472,8 @@ const ar: Translations = {
         creatingTitle: 'جارٍ إعداد وكيلك',
         creatingDescription:
             'يستغرق هذا عادةً دقيقة أو دقيقتين. يمكنك إغلاق هذه الصفحة بأمان والعودة لاحقًا.',
+        creatingDescriptionLocal:
+            'يستغرق هذا عادةً لحظة. أبقِ التطبيق مفتوحًا حتى الانتهاء.',
         configuringTitle: 'جارٍ تثبيت OpenClaw',
         configuringTitleHermes: 'جارٍ تثبيت Hermes',
         loadingTipHermes1:
@@ -1477,6 +1484,8 @@ const ar: Translations = {
             'قم بتوصيل Telegram أو Discord أو Slack من الطرفية باستخدام `hermes gateway install`.',
         configuringDescription:
             'يستغرق هذا عادةً دقيقة أو دقيقتين. يمكنك إغلاق هذه الصفحة بأمان والعودة لاحقًا.',
+        configuringDescriptionLocal:
+            'يتم تثبيت وقت تشغيل الوكيل محليًا. أبقِ التطبيق مفتوحًا حتى الانتهاء.',
         awaitingPaymentTitle: 'في انتظار الدفع',
         awaitingPaymentDescription:
             'أكمل الدفع لبدء تجهيز وكيلك. ينتهي هذا الحجز خلال ساعة واحدة.',
@@ -1610,6 +1619,8 @@ const ar: Translations = {
         settingsDangerZone: 'منطقة الخطر',
         settingsDangerZoneDescription:
             'سيتم حذف مثيلك في نهاية فترة الفوترة الحالية.',
+        settingsDangerZoneDescriptionLocal:
+            'سيؤدي هذا إلى حذف الوكيل وجميع ملفاته نهائيًا.',
         settingsScheduledDeletionDescription:
             'مجدول للحذف في {{date}}. قم بالإلغاء للإبقاء على مثيلك قيد التشغيل واشتراكك نشطًا.',
         settingsSave: 'حفظ',

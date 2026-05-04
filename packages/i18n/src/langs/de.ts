@@ -193,6 +193,7 @@ const de: Translations = {
             'OpenClaw Version {{version}} ist nicht installiert!',
         failedToStartProcess:
             'Prozess konnte nicht gestartet werden: {{reason}}!',
+        gatewayNotReady: 'Der Agent wurde nicht rechtzeitig bereit!',
         processExitedImmediately:
             'Prozess wurde sofort beendet. Logs:\n{{logs}}',
         processExitedImmediatelyNoLogs:
@@ -202,7 +203,7 @@ const de: Translations = {
         processExitedWithCodeNoLogs: 'Prozess wurde mit Code {{code}} beendet!',
         processExitedUnexpectedly: 'Prozess wurde unerwartet beendet!',
         failedToInstallVersion:
-            'Installation von OpenClaw {{version}} fehlgeschlagen: {{reason}}!',
+            'Installation von Version {{version}} fehlgeschlagen: {{reason}}!',
         oauthCancelled: 'Authentifizierung abgebrochen!',
         diskFull: 'Kein Speicherplatz mehr auf dem Gerät!',
         permissionDenied: 'Zugriff verweigert!',
@@ -1035,6 +1036,7 @@ const de: Translations = {
         selectServerToContinue: 'Wähle einen Server, um fortzufahren',
         selectLocationToContinue: 'Wähle einen Standort, um fortzufahren',
         clawCreated: 'Claw erstellt.',
+        clawCreating: 'Claw wird erstellt, dies kann einen Moment dauern...',
         assigning: 'Wird zugewiesen...',
         rootPasswordSaveThis: 'Root-Passwort (bitte speichern!)',
         sshCommandUsingKey: 'SSH-Befehl (mit deinem Schlüssel)',
@@ -1195,13 +1197,16 @@ const de: Translations = {
         showAllPlans: 'Alle Pläne anzeigen',
         simplePricing: 'Vereinfacht',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: 'Für persönliche Projekte und Experimente',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: 'Für Produktions-Workloads',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: 'Für wachsende Unternehmen',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: 'Für groß angelegte Operationen',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'Plan wählen',
         mostPopular: 'Am beliebtesten',
         featurePreinstalled: 'Agent vorinstalliert',
@@ -1557,6 +1562,8 @@ const de: Translations = {
         creatingTitle: 'Dein Agent wird eingerichtet',
         creatingDescription:
             'Das dauert normalerweise ein bis zwei Minuten. Du kannst diese Seite bedenkenlos schließen und später zurückkommen.',
+        creatingDescriptionLocal:
+            'Das dauert normalerweise nur einen Moment. Lasse die App geöffnet, bis es fertig ist.',
         configuringTitle: 'OpenClaw wird installiert',
         configuringTitleHermes: 'Hermes wird installiert',
         loadingTipHermes1:
@@ -1567,6 +1574,8 @@ const de: Translations = {
             'Verbinden Sie Telegram, Discord oder Slack im Terminal mit `hermes gateway install`.',
         configuringDescription:
             'Das dauert normalerweise ein bis zwei Minuten. Du kannst diese Seite bedenkenlos schließen und später zurückkommen.',
+        configuringDescriptionLocal:
+            'Die Agent-Laufzeit wird lokal installiert. Lasse die App geöffnet, bis es fertig ist.',
         awaitingPaymentTitle: 'Zahlung ausstehend',
         awaitingPaymentDescription:
             'Schließe die Zahlung ab, um die Bereitstellung deines Agenten zu starten. Diese Reservierung läuft in einer Stunde ab.',
@@ -1714,6 +1723,8 @@ const de: Translations = {
         settingsDangerZone: 'Gefahrenzone',
         settingsDangerZoneDescription:
             'Deine Instanz wird am Ende deines aktuellen Abrechnungszeitraums gelöscht.',
+        settingsDangerZoneDescriptionLocal:
+            'Dies löscht den Agenten und alle seine Dateien dauerhaft.',
         settingsScheduledDeletionDescription:
             'Zur Löschung am {{date}} geplant. Abbrechen, um deine Instanz aktiv und dein Abonnement bestehen zu lassen.',
         settingsSave: 'Speichern',

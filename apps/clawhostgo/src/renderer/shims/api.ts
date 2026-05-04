@@ -1,4 +1,5 @@
 import type {
+    AgentStarsResponse,
     BillingHistoryResponse,
     BillingInvoiceResponse,
     Agent,
@@ -62,6 +63,14 @@ const invoke = (channel: string, ...args: unknown[]): Promise<unknown> => {
     return window.electronAPI.invoke(channel, ...args)
 }
 
+const unsupportedLocally = <T>(): Promise<T> => {
+    const error = new Error('Feature not available in local mode') as Error & {
+        code: number
+    }
+    error.code = 422
+    return Promise.reject(error)
+}
+
 const api = {
     sendOtp: (email: string) =>
         publicClient.post<void>('/auth/send-otp', { email }),
@@ -84,6 +93,7 @@ const api = {
     getPlanAvailability: (_provider?: string) =>
         invoke('getPlanAvailability') as Promise<PlanAvailability>,
 
+    getAgentStars: () => client.get<AgentStarsResponse>('/agents/stars'),
     getAgents: () => invoke('getAgents') as Promise<Agent[]>,
     getAdminAgents: () => invoke('getAgents') as Promise<Agent[]>,
     getAgent: (id: string, _sync?: boolean) =>
@@ -140,6 +150,13 @@ const api = {
         invoke('updateAgentFile', id, data) as Promise<void>,
 
     cancelPendingAgent: (_id: string) => Promise.resolve(),
+
+    getAgentOverview: (_id: string) => unsupportedLocally(),
+    getAgentMetrics: (_id: string) => unsupportedLocally(),
+    getAgentBilling: (_id: string, _page?: number, _limit?: number) =>
+        unsupportedLocally(),
+    checkPreview: (_id: string) => unsupportedLocally(),
+    enablePreview: (_id: string, _signal?: AbortSignal) => unsupportedLocally(),
 
     purchaseLicense: () =>
         Promise.reject(

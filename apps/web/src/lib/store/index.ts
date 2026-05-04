@@ -4,6 +4,7 @@ import useVersionsStore from '@/lib/store/useVersionsStore'
 import useTerminalStore from '@/lib/store/useTerminalStore'
 import useDashboardStore from '@/lib/store/useDashboardStore'
 import useAgentDetailTabStore from '@/lib/store/useAgentDetailTabStore'
+import useCreatingAgentsStore from '@/lib/store/useCreatingAgentsStore'
 
 export {
     useUIStore,
@@ -11,5 +12,6 @@ export {
     useVersionsStore,
     useTerminalStore,
     useDashboardStore,
-    useAgentDetailTabStore
+    useAgentDetailTabStore,
+    useCreatingAgentsStore
 }

@@ -52,7 +52,8 @@ const AgentPendingView: FC<AgentPendingViewProps> = ({
     agentType,
     checkoutUrl,
     onCancel,
-    cancelPending
+    cancelPending,
+    isLocal
 }): ReactNode => {
     const isPayment = status === agentStatus.awaitingPayment
     const isConfiguring = status === agentStatus.configuring
@@ -119,8 +120,16 @@ const AgentPendingView: FC<AgentPendingViewProps> = ({
                     {isPayment
                         ? t('clawDetail.awaitingPaymentDescription')
                         : isConfiguring
-                          ? t('clawDetail.configuringDescription')
-                          : t('clawDetail.creatingDescription')}
+                          ? t(
+                                isLocal
+                                    ? 'clawDetail.configuringDescriptionLocal'
+                                    : 'clawDetail.configuringDescription'
+                            )
+                          : t(
+                                isLocal
+                                    ? 'clawDetail.creatingDescriptionLocal'
+                                    : 'clawDetail.creatingDescription'
+                            )}
                 </p>
             </div>
 

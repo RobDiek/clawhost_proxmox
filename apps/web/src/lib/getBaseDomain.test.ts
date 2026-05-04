@@ -1,6 +1,15 @@
 import { getBaseDomain } from '@/lib'
 
 describe('getBaseDomain', () => {
+    afterEach(() => {
+        delete (window as unknown as { electronAPI?: unknown }).electronAPI
+    })
+
+    it('returns clawhost for desktop (electron)', () => {
+        ;(window as unknown as { electronAPI?: unknown }).electronAPI = {}
+        expect(getBaseDomain()).toBe('clawhost')
+    })
+
     it('returns clawhost.cloud for localhost', () => {
         Object.defineProperty(window, 'location', {
             value: { hostname: 'localhost' },

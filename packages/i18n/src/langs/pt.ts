@@ -191,6 +191,7 @@ const pt: Translations = {
         versionNotInstalled:
             'A versão {{version}} do OpenClaw não está instalada!',
         failedToStartProcess: 'Falha ao iniciar o processo: {{reason}}!',
+        gatewayNotReady: 'O agente não ficou pronto a tempo!',
         processExitedImmediately:
             'O processo encerrou imediatamente. Logs:\n{{logs}}',
         processExitedImmediatelyNoLogs:
@@ -201,7 +202,7 @@ const pt: Translations = {
             'O processo encerrou com o código {{code}}!',
         processExitedUnexpectedly: 'O processo encerrou inesperadamente!',
         failedToInstallVersion:
-            'Falha ao instalar OpenClaw {{version}}: {{reason}}!',
+            'Falha ao instalar a versão {{version}}: {{reason}}!',
         oauthCancelled: 'Autenticação cancelada!',
         diskFull: 'Sem espaço no dispositivo!',
         permissionDenied: 'Permissão negada!',
@@ -1016,6 +1017,7 @@ const pt: Translations = {
         selectServerToContinue: 'Selecione um servidor para continuar',
         selectLocationToContinue: 'Selecione uma localização para continuar',
         clawCreated: 'Claw criado.',
+        clawCreating: 'Criando seu claw, isso pode levar um momento...',
         assigning: 'Atribuindo...',
         rootPasswordSaveThis: 'Senha Root (salve isso!)',
         sshCommandUsingKey: 'Comando SSH (usando sua chave)',
@@ -1175,13 +1177,16 @@ const pt: Translations = {
         showAllPlans: 'Ver todos os planos',
         simplePricing: 'Simplificado',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: 'Para projetos pessoais e experimentos',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: 'Para cargas de trabalho de produção',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: 'Para empresas em crescimento',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: 'Para operações em larga escala',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'Escolher plano',
         mostPopular: 'Mais popular',
         featurePreinstalled: 'Agente pré-instalado',
@@ -1542,6 +1547,8 @@ const pt: Translations = {
         creatingTitle: 'Configurando seu agente',
         creatingDescription:
             'Isso geralmente leva um ou dois minutos. Você pode fechar esta página com segurança e voltar mais tarde.',
+        creatingDescriptionLocal:
+            'Geralmente leva um instante. Mantenha o app aberto até terminar.',
         configuringTitle: 'Instalando OpenClaw',
         configuringTitleHermes: 'Instalando Hermes',
         loadingTipHermes1:
@@ -1552,6 +1559,8 @@ const pt: Translations = {
             'Conecte Telegram, Discord ou Slack pelo Terminal com `hermes gateway install`.',
         configuringDescription:
             'Isso geralmente leva um ou dois minutos. Você pode fechar esta página com segurança e voltar mais tarde.',
+        configuringDescriptionLocal:
+            'Instalando o runtime do agente localmente. Mantenha o app aberto até terminar.',
         awaitingPaymentTitle: 'Aguardando pagamento',
         awaitingPaymentDescription:
             'Conclua o pagamento para iniciar o provisionamento do seu agente. Esta reserva expira em uma hora.',
@@ -1695,6 +1704,8 @@ const pt: Translations = {
         settingsDangerZone: 'Zona de perigo',
         settingsDangerZoneDescription:
             'Sua instância será excluída no final do seu período de faturamento atual.',
+        settingsDangerZoneDescriptionLocal:
+            'Isso excluirá permanentemente o agente e todos os seus arquivos.',
         settingsScheduledDeletionDescription:
             'Agendada para exclusão em {{date}}. Cancele para manter sua instância em execução e sua assinatura ativa.',
         settingsSave: 'Salvar',

@@ -19,8 +19,7 @@ const isCaValid = (): boolean => {
             return false
         const caPem = fs.readFileSync(CA_CERT_PATH, 'utf-8')
         const cert = forge.pki.certificateFromPem(caPem)
-        const threshold = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        return cert.validity.notAfter > threshold
+        return cert.validity.notAfter > new Date()
     } catch {
         return false
     }
@@ -60,9 +59,9 @@ const generateServerCert = (subdomains: string[]): void => {
 
     const altNames = subdomains.map((s) => ({
         type: 2,
-        value: `${s}.agenthost`
+        value: `${s}.clawhost`
     }))
-    altNames.push({ type: 2, value: 'agenthost' })
+    altNames.push({ type: 2, value: 'clawhost' })
 
     const serverKeys = forge.pki.rsa.generateKeyPair(2048)
     const serverCert = forge.pki.createCertificate()
@@ -74,7 +73,7 @@ const generateServerCert = (subdomains: string[]): void => {
     serverCert.validity.notAfter = new Date(
         Date.now() + VALIDITY_DAYS * 24 * 60 * 60 * 1000
     )
-    serverCert.setSubject([{ name: 'commonName', value: 'agenthost' }])
+    serverCert.setSubject([{ name: 'commonName', value: 'clawhost' }])
     serverCert.setIssuer(caCert.subject.attributes)
     serverCert.setExtensions([
         { name: 'basicConstraints', cA: false },

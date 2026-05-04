@@ -1,7 +1,7 @@
 import type { IpcMainInvokeEvent } from 'electron'
 import type { CreateAgentData, RenameAgentData } from '@/ts/Interfaces'
 
-import { ipcMain, dialog, BrowserWindow } from 'electron'
+import { ipcMain, dialog, BrowserWindow, net as electronNet } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
@@ -87,6 +87,63 @@ const generateAgentName = (): string => {
     const adj = adjectives[Math.floor(Math.random() * adjectives.length)]
     const noun = nouns[Math.floor(Math.random() * nouns.length)]
     return `${adj}-${noun}`
+}
+
+const GATEWAY_READY_TIMEOUT_MS = 300_000
+const GATEWAY_READY_POLL_INTERVAL_MS = 1_000
+const GATEWAY_READY_REQUIRED_HITS = 3
+
+const probeHttp = (port: number, token: string): Promise<boolean> =>
+    new Promise((resolve) => {
+        let done = false
+        const settle = (ok: boolean): void => {
+            if (done) return
+            done = true
+            resolve(ok)
+        }
+        try {
+            const request = electronNet.request({
+                method: 'GET',
+                url: `http://127.0.0.1:${port}/?token=${encodeURIComponent(token)}`,
+                redirect: 'manual'
+            })
+            request.on('response', (response) => {
+                response.on('data', () => {})
+                response.on('error', () => settle(false))
+                settle(response.statusCode === 200)
+            })
+            request.on('error', () => settle(false))
+            request.on('abort', () => settle(false))
+            setTimeout(() => {
+                try {
+                    request.abort()
+                } catch {}
+                settle(false)
+            }, 2_000)
+            request.end()
+        } catch {
+            settle(false)
+        }
+    })
+
+const waitForGatewayReady = async (
+    port: number,
+    token: string
+): Promise<boolean> => {
+    const deadline = Date.now() + GATEWAY_READY_TIMEOUT_MS
+    let consecutiveHits = 0
+    while (Date.now() < deadline) {
+        if (await probeHttp(port, token)) {
+            consecutiveHits += 1
+            if (consecutiveHits >= GATEWAY_READY_REQUIRED_HITS) return true
+        } else {
+            consecutiveHits = 0
+        }
+        await new Promise((r) =>
+            setTimeout(r, GATEWAY_READY_POLL_INTERVAL_MS)
+        )
+    }
+    return false
 }
 
 const resolveGatewayToken = (
@@ -219,11 +276,14 @@ const registerAgentHandlers = (): void => {
                 createdAt: new Date().toISOString()
             }
 
-            configStore.addAgent(newAgent)
-            try {
-                certManager.regenerateServerCert()
-                reverseProxy.reloadCerts()
-            } catch {}
+            const cleanupOnFailure = async (): Promise<void> => {
+                try {
+                    await processManager.stopGateway(id)
+                } catch {}
+                if (fs.existsSync(agentDir)) {
+                    fs.rmSync(agentDir, { recursive: true, force: true })
+                }
+            }
 
             if (version) {
                 try {
@@ -235,26 +295,39 @@ const registerAgentHandlers = (): void => {
                         gatewayToken,
                         selectedAgentType
                     )
-                    setTimeout(() => {
-                        try {
-                            const raw = fs.readFileSync(configPath, 'utf-8')
-                            const cfg = JSON.parse(raw)
-                            if (!cfg.gateway?.controlUi) return
-                            const origins = cfg.gateway.controlUi.allowedOrigins
-                            if (
-                                JSON.stringify(origins) !==
-                                JSON.stringify(['*'])
-                            ) {
-                                cfg.gateway.controlUi.allowedOrigins = ['*']
-                                fs.writeFileSync(
-                                    configPath,
-                                    JSON.stringify(cfg, null, 4)
-                                )
-                            }
-                        } catch {}
-                    }, 5000)
-                } catch {}
+                } catch (error) {
+                    await cleanupOnFailure()
+                    throw error
+                }
+                const ready = await waitForGatewayReady(port, gatewayToken)
+                if (!ready) {
+                    await cleanupOnFailure()
+                    throw new Error(t('go.gatewayNotReady'))
+                }
+                setTimeout(() => {
+                    try {
+                        const raw = fs.readFileSync(configPath, 'utf-8')
+                        const cfg = JSON.parse(raw)
+                        if (!cfg.gateway?.controlUi) return
+                        const origins = cfg.gateway.controlUi.allowedOrigins
+                        if (
+                            JSON.stringify(origins) !== JSON.stringify(['*'])
+                        ) {
+                            cfg.gateway.controlUi.allowedOrigins = ['*']
+                            fs.writeFileSync(
+                                configPath,
+                                JSON.stringify(cfg, null, 4)
+                            )
+                        }
+                    } catch {}
+                }, 5000)
             }
+
+            configStore.addAgent(newAgent)
+            try {
+                certManager.regenerateServerCert()
+                reverseProxy.reloadCerts()
+            } catch {}
 
             return mapAgentToResponse(newAgent)
         }
@@ -262,20 +335,33 @@ const registerAgentHandlers = (): void => {
 
     ipcMain.handle(
         'deleteAgent',
-        async (_event: IpcMainInvokeEvent, id: string) => {
+        (_event: IpcMainInvokeEvent, id: string) => {
             const agent = configStore.findAgent(id)
             if (!agent) throw new Error(t('go.clawNotFound'))
 
-            if (processManager.isRunning(id)) {
-                await processManager.stopGateway(id)
-            }
-
             const agentDir = configStore.getAgentDir(agent.name)
-            if (fs.existsSync(agentDir)) {
-                fs.rmSync(agentDir, { recursive: true, force: true })
-            }
-
             configStore.removeAgent(id)
+            try {
+                certManager.regenerateServerCert()
+                reverseProxy.reloadCerts()
+            } catch {}
+
+            ;(async () => {
+                try {
+                    if (processManager.isRunning(id)) {
+                        await processManager.stopGateway(id)
+                    }
+                    if (fs.existsSync(agentDir)) {
+                        await fs.promises.rm(agentDir, {
+                            recursive: true,
+                            force: true
+                        })
+                    }
+                } catch (error) {
+                    console.error('deleteAgent', error)
+                }
+            })()
+
             return { success: true }
         }
     )
@@ -364,20 +450,33 @@ const registerAgentHandlers = (): void => {
 
     ipcMain.handle(
         'hardDeleteAgent',
-        async (_event: IpcMainInvokeEvent, id: string) => {
+        (_event: IpcMainInvokeEvent, id: string) => {
             const agent = configStore.findAgent(id)
             if (!agent) throw new Error(t('go.clawNotFound'))
 
-            if (processManager.isRunning(id)) {
-                await processManager.stopGateway(id)
-            }
-
             const agentDir = configStore.getAgentDir(agent.name)
-            if (fs.existsSync(agentDir)) {
-                fs.rmSync(agentDir, { recursive: true, force: true })
-            }
-
             configStore.removeAgent(id)
+            try {
+                certManager.regenerateServerCert()
+                reverseProxy.reloadCerts()
+            } catch {}
+
+            ;(async () => {
+                try {
+                    if (processManager.isRunning(id)) {
+                        await processManager.stopGateway(id)
+                    }
+                    if (fs.existsSync(agentDir)) {
+                        await fs.promises.rm(agentDir, {
+                            recursive: true,
+                            force: true
+                        })
+                    }
+                } catch (error) {
+                    console.error('hardDeleteAgent', error)
+                }
+            })()
+
             return { success: true }
         }
     )

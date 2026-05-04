@@ -2,14 +2,14 @@ import dgram from 'dgram'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
-import { exec } from 'child_process'
+import { exec, execSync } from 'child_process'
 import certManager from '@/main/services/certManager'
 
 const DNS_PORT = 15353
 const PROXY_PORT = 18700
 const HTTPS_PROXY_PORT = 18701
 const RESOLVER_DIR = '/etc/resolver'
-const RESOLVER_PATH = path.join(RESOLVER_DIR, 'agenthost')
+const RESOLVER_PATH = path.join(RESOLVER_DIR, 'clawhost')
 
 let server: dgram.Socket | null = null
 let retryCount = 0
@@ -90,7 +90,7 @@ const isDomainAgenthost = (query: Buffer): boolean => {
         offset += len
     }
     const domain = labels.join('.')
-    return domain.endsWith('.agenthost') || domain === 'agenthost'
+    return domain.endsWith('.clawhost') || domain === 'clawhost'
 }
 
 const startDns = (): void => {
@@ -129,13 +129,13 @@ const stopDns = (): void => {
     server = null
 }
 
-const PF_ANCHOR = 'com.agenthost'
-const PF_ANCHOR_FILE = '/etc/pf.anchors/com.agenthost'
+const PF_ANCHOR = 'com.clawhost'
+const PF_ANCHOR_FILE = '/etc/pf.anchors/com.clawhost'
 const PF_CONF = '/etc/pf.conf'
 const PF_RULE_HTTP = `rdr pass on lo0 inet proto tcp from any to 127.0.0.1 port 80 -> 127.0.0.1 port ${PROXY_PORT}`
 const PF_RULE_HTTPS = `rdr pass on lo0 inet proto tcp from any to 127.0.0.1 port 443 -> 127.0.0.1 port ${HTTPS_PROXY_PORT}`
 
-const isDnsSetup = (): boolean => {
+const isResolverInstalled = (): boolean => {
     try {
         if (!fs.existsSync(RESOLVER_PATH)) return false
         const content = fs.readFileSync(RESOLVER_PATH, 'utf-8')
@@ -148,9 +148,43 @@ const isDnsSetup = (): boolean => {
     }
 }
 
+const isCaTrusted = (): boolean => {
+    try {
+        const caPath = certManager.getCaCertPath()
+        if (!fs.existsSync(caPath)) return false
+        const diskFingerprint = execSync(
+            `openssl x509 -in "${caPath}" -noout -fingerprint -sha256`,
+            { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }
+        )
+            .split('=')[1]
+            ?.trim()
+            .replace(/:/g, '')
+            .toUpperCase()
+        if (!diskFingerprint) return false
+        const keychainFingerprints = execSync(
+            `security find-certificate -a -c "ClawHost Local CA" -Z 2>/dev/null | grep "SHA-256 hash" || true`,
+            { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }
+        )
+            .split('\n')
+            .map((line) =>
+                line
+                    .replace(/^.*SHA-256 hash:\s*/, '')
+                    .trim()
+                    .toUpperCase()
+            )
+            .filter(Boolean)
+        return keychainFingerprints.includes(diskFingerprint)
+    } catch {
+        return false
+    }
+}
+
+const isDnsSetup = (): boolean =>
+    isResolverInstalled() && isCaTrusted()
+
 const ensurePortRedirect = (): void => {
-    if (!isDnsSetup()) return
-    exec('pfctl -a com.agenthost -sr 2>/dev/null', (err, stdout) => {
+    if (!isResolverInstalled()) return
+    exec('pfctl -a com.clawhost -sr 2>/dev/null', (err, stdout) => {
         if (
             !err &&
             stdout.includes('rdr pass') &&
@@ -164,7 +198,7 @@ const ensurePortRedirect = (): void => {
             'pfctl -e 2>/dev/null',
             'exit 0'
         ].join('\n')
-        const tmpScript = path.join(os.tmpdir(), 'agenthost-pf.sh')
+        const tmpScript = path.join(os.tmpdir(), 'clawhost-pf.sh')
         fs.writeFileSync(tmpScript, script, { mode: 0o755 })
         exec(
             `osascript -e 'do shell script "${tmpScript}" with administrator privileges'`,
@@ -183,6 +217,12 @@ const ensurePortRedirect = (): void => {
 const setupResolver = (): Promise<boolean> => {
     return new Promise((resolve) => {
         const caCertPath = certManager.getCaCertPath()
+        const userHome = os.homedir()
+        const userName = os.userInfo().username
+        const userKeychain = path.join(
+            userHome,
+            'Library/Keychains/login.keychain-db'
+        )
         const script = [
             '#!/bin/bash',
             `mkdir -p ${RESOLVER_DIR}`,
@@ -207,11 +247,14 @@ const setupResolver = (): Promise<boolean> => {
             `pfctl -f ${PF_CONF} 2>/dev/null`,
             `printf '${PF_RULE_HTTP}\\n${PF_RULE_HTTPS}\\n' | pfctl -a "${PF_ANCHOR}" -f - 2>/dev/null`,
             `if [ -f "${caCertPath}" ]; then`,
-            `  security add-trusted-cert -p ssl -r trustRoot -k "$HOME/Library/Keychains/login.keychain-db" "${caCertPath}" 2>/dev/null`,
+            `  while sudo -u "${userName}" security find-certificate -c "ClawHost Local CA" "${userKeychain}" >/dev/null 2>&1; do`,
+            `    sudo -u "${userName}" security delete-certificate -c "ClawHost Local CA" "${userKeychain}" 2>/dev/null || break`,
+            `  done`,
+            `  security add-trusted-cert -p ssl -r trustRoot -k "${userKeychain}" "${caCertPath}" 2>/dev/null`,
             'fi',
             'exit 0'
         ].join('\n')
-        const tmpScript = path.join(os.tmpdir(), 'agenthost-dns-setup.sh')
+        const tmpScript = path.join(os.tmpdir(), 'clawhost-dns-setup.sh')
         fs.writeFileSync(tmpScript, script, { mode: 0o755 })
         exec(
             `osascript -e 'do shell script "${tmpScript}" with administrator privileges'`,

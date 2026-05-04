@@ -13,6 +13,7 @@ import {
     useAbortController
 } from '@/hooks'
 import { useUIStore } from '@/lib/store'
+import { useAuth } from '@/lib/auth'
 import { handleAbortToast } from '@/lib'
 import { generatePassword, generateToken } from '@/lib/agent-utils'
 import SecuritySection from '@/components/dashboard/AgentSecurityContent/SecuritySection'
@@ -27,6 +28,7 @@ const AgentSecurityContent: FC<AgentSecurityContentProps> = ({
     sshKeys,
     readOnly
 }): ReactNode => {
+    const { isLocal } = useAuth()
     const credentials = useAgentCredentials(readOnly ? '' : agent.id)
     const rotatePassword = useRotatePassword()
     const rotateGatewayToken = useRotateGatewayToken()
@@ -95,12 +97,14 @@ const AgentSecurityContent: FC<AgentSecurityContentProps> = ({
 
     return (
         <div className='h-full space-y-4 overflow-y-auto p-5'>
-            <SecuritySSHKeySection
-                agentId={agent.id}
-                sshKeyId={agent.sshKeyId}
-                sshKeys={sshKeys}
-                readOnly={readOnly}
-            />
+            {!isLocal && (
+                <SecuritySSHKeySection
+                    agentId={agent.id}
+                    sshKeyId={agent.sshKeyId}
+                    sshKeys={sshKeys}
+                    readOnly={readOnly}
+                />
+            )}
 
             <SecuritySection
                 title={t('clawDetail.securityPassword')}

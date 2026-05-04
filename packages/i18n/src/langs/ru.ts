@@ -190,6 +190,7 @@ const ru: Translations = {
         exportFailed: 'Экспорт не удался!',
         versionNotInstalled: 'Версия OpenClaw {{version}} не установлена!',
         failedToStartProcess: 'Не удалось запустить процесс: {{reason}}!',
+        gatewayNotReady: 'Агент не успел стать готовым!',
         processExitedImmediately: 'Процесс завершился сразу. Логи:\n{{logs}}',
         processExitedImmediatelyNoLogs:
             'Процесс завершился сразу после запуска!',
@@ -198,7 +199,7 @@ const ru: Translations = {
         processExitedWithCodeNoLogs: 'Процесс завершился с кодом {{code}}!',
         processExitedUnexpectedly: 'Процесс завершился неожиданно!',
         failedToInstallVersion:
-            'Не удалось установить OpenClaw {{version}}: {{reason}}!',
+            'Не удалось установить версию {{version}}: {{reason}}!',
         oauthCancelled: 'Аутентификация отменена!',
         diskFull: 'На устройстве нет свободного места!',
         permissionDenied: 'Доступ запрещён!',
@@ -1001,6 +1002,7 @@ const ru: Translations = {
         selectServerToContinue: 'Выберите сервер для продолжения',
         selectLocationToContinue: 'Выберите расположение для продолжения',
         clawCreated: 'Клоу создан.',
+        clawCreating: 'Создаём ваш клоу, это может занять некоторое время...',
         assigning: 'Назначение...',
         rootPasswordSaveThis: 'Пароль root (сохраните!)',
         sshCommandUsingKey: 'SSH-команда (с вашим ключом)',
@@ -1161,13 +1163,16 @@ const ru: Translations = {
         showAllPlans: 'Показать все планы',
         simplePricing: 'Упрощённый',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: 'Для личных проектов и экспериментов',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: 'Для производственных нагрузок',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: 'Для растущих компаний',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: 'Для крупномасштабных операций',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'Выбрать план',
         mostPopular: 'Самый популярный',
         featurePreinstalled: 'Агент предустановлен',
@@ -1516,6 +1521,8 @@ const ru: Translations = {
         creatingTitle: 'Настройка вашего агента',
         creatingDescription:
             'Обычно это занимает одну-две минуты. Вы можете безопасно закрыть эту страницу и вернуться позже.',
+        creatingDescriptionLocal:
+            'Обычно это занимает мгновение. Не закрывайте приложение до завершения.',
         configuringTitle: 'Установка OpenClaw',
         configuringTitleHermes: 'Установка Hermes',
         loadingTipHermes1:
@@ -1526,6 +1533,8 @@ const ru: Translations = {
             'Подключите Telegram, Discord или Slack из «Терминала» командой `hermes gateway install`.',
         configuringDescription:
             'Обычно это занимает одну-две минуты. Вы можете безопасно закрыть эту страницу и вернуться позже.',
+        configuringDescriptionLocal:
+            'Локальная установка среды выполнения агента. Не закрывайте приложение до завершения.',
         awaitingPaymentTitle: 'Ожидание оплаты',
         awaitingPaymentDescription:
             'Завершите оплату, чтобы начать настройку вашего агента. Эта резервация истекает через один час.',
@@ -1669,6 +1678,8 @@ const ru: Translations = {
         settingsDangerZone: 'Опасная зона',
         settingsDangerZoneDescription:
             'Ваш экземпляр будет удалён в конце текущего расчётного периода.',
+        settingsDangerZoneDescriptionLocal:
+            'Это навсегда удалит агента и все его файлы.',
         settingsScheduledDeletionDescription:
             'Запланировано удаление на {{date}}. Отмените, чтобы сохранить экземпляр работающим и подписку активной.',
         settingsSave: 'Сохранить',

@@ -11,7 +11,15 @@ const useAgentMetrics = (agentId: string, enabled: boolean) => {
         queryFn: () => api.getAgentMetrics(agentId),
         enabled,
         refetchInterval: isVisible ? 5_000 : false,
-        gcTime: 10_000
+        gcTime: 10_000,
+        retry: (_, error) => {
+            if (
+                'code' in error &&
+                (error as Error & { code: number }).code === 422
+            )
+                return false
+            return true
+        }
     })
 }
 

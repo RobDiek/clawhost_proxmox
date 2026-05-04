@@ -7,7 +7,7 @@ const PLANS = [
         cpu: 2,
         memory: 4,
         disk: 40,
-        priceMonthly: 10,
+        priceMonthly: 25,
         architecture: 'x86'
     },
     {
@@ -16,7 +16,7 @@ const PLANS = [
         cpu: 4,
         memory: 8,
         disk: 80,
-        priceMonthly: 15,
+        priceMonthly: 35,
         architecture: 'x86'
     },
     {
@@ -25,7 +25,7 @@ const PLANS = [
         cpu: 8,
         memory: 16,
         disk: 160,
-        priceMonthly: 20,
+        priceMonthly: 50,
         architecture: 'x86'
     },
     {
@@ -34,7 +34,7 @@ const PLANS = [
         cpu: 16,
         memory: 32,
         disk: 320,
-        priceMonthly: 30,
+        priceMonthly: 60,
         architecture: 'x86'
     },
     {
@@ -43,7 +43,7 @@ const PLANS = [
         cpu: 2,
         memory: 2,
         disk: 40,
-        priceMonthly: 15,
+        priceMonthly: 30,
         architecture: 'x86'
     },
     {
@@ -52,7 +52,7 @@ const PLANS = [
         cpu: 3,
         memory: 4,
         disk: 80,
-        priceMonthly: 20,
+        priceMonthly: 40,
         architecture: 'x86'
     },
     {
@@ -61,7 +61,7 @@ const PLANS = [
         cpu: 4,
         memory: 8,
         disk: 160,
-        priceMonthly: 30,
+        priceMonthly: 50,
         architecture: 'x86'
     },
     {
@@ -70,7 +70,7 @@ const PLANS = [
         cpu: 8,
         memory: 16,
         disk: 240,
-        priceMonthly: 50,
+        priceMonthly: 75,
         architecture: 'x86'
     },
     {
@@ -79,7 +79,7 @@ const PLANS = [
         cpu: 16,
         memory: 32,
         disk: 360,
-        priceMonthly: 75,
+        priceMonthly: 120,
         architecture: 'x86'
     },
     {
@@ -88,7 +88,7 @@ const PLANS = [
         cpu: 2,
         memory: 4,
         disk: 40,
-        priceMonthly: 10,
+        priceMonthly: 30,
         architecture: 'arm64'
     },
     {
@@ -97,7 +97,7 @@ const PLANS = [
         cpu: 4,
         memory: 8,
         disk: 80,
-        priceMonthly: 15,
+        priceMonthly: 40,
         architecture: 'arm64'
     },
     {
@@ -106,7 +106,7 @@ const PLANS = [
         cpu: 8,
         memory: 16,
         disk: 160,
-        priceMonthly: 25,
+        priceMonthly: 50,
         architecture: 'arm64'
     },
     {
@@ -115,7 +115,7 @@ const PLANS = [
         cpu: 16,
         memory: 32,
         disk: 320,
-        priceMonthly: 50,
+        priceMonthly: 75,
         architecture: 'arm64'
     },
     {
@@ -124,7 +124,7 @@ const PLANS = [
         cpu: 2,
         memory: 8,
         disk: 80,
-        priceMonthly: 25,
+        priceMonthly: 40,
         architecture: 'x86'
     },
     {
@@ -133,7 +133,7 @@ const PLANS = [
         cpu: 4,
         memory: 16,
         disk: 160,
-        priceMonthly: 50,
+        priceMonthly: 60,
         architecture: 'x86'
     },
     {
@@ -142,7 +142,7 @@ const PLANS = [
         cpu: 8,
         memory: 32,
         disk: 240,
-        priceMonthly: 100,
+        priceMonthly: 90,
         architecture: 'x86'
     },
     {
@@ -151,7 +151,7 @@ const PLANS = [
         cpu: 16,
         memory: 64,
         disk: 360,
-        priceMonthly: 150,
+        priceMonthly: 140,
         architecture: 'x86'
     },
     {

@@ -193,6 +193,7 @@ const it: Translations = {
         versionNotInstalled:
             'La versione {{version}} di OpenClaw non \u00e8 installata!',
         failedToStartProcess: 'Impossibile avviare il processo: {{reason}}!',
+        gatewayNotReady: 'L’agente non è diventato pronto in tempo!',
         processExitedImmediately:
             'Il processo \u00e8 terminato immediatamente. Log:\n{{logs}}',
         processExitedImmediatelyNoLogs:
@@ -204,7 +205,7 @@ const it: Translations = {
         processExitedUnexpectedly:
             'Il processo \u00e8 terminato inaspettatamente!',
         failedToInstallVersion:
-            'Impossibile installare OpenClaw {{version}}: {{reason}}!',
+            'Impossibile installare la versione {{version}}: {{reason}}!',
         oauthCancelled: 'Autenticazione annullata!',
         diskFull: 'Nessuno spazio disponibile sul dispositivo!',
         permissionDenied: 'Permesso negato!',
@@ -1034,6 +1035,7 @@ const it: Translations = {
         selectServerToContinue: 'Seleziona un server per continuare',
         selectLocationToContinue: 'Seleziona una posizione per continuare',
         clawCreated: 'Claw creato.',
+        clawCreating: 'Creazione del tuo claw in corso, potrebbe richiedere un momento...',
         assigning: 'Assegnazione...',
         rootPasswordSaveThis: 'Password Root (salvala!)',
         sshCommandUsingKey: 'Comando SSH (usando la tua chiave)',
@@ -1193,13 +1195,16 @@ const it: Translations = {
         showAllPlans: 'Mostra tutti i piani',
         simplePricing: 'Semplificato',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: 'Per progetti personali ed esperimenti',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: 'Per carichi di lavoro di produzione',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: 'Per aziende in crescita',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: 'Per operazioni su larga scala',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'Scegli piano',
         mostPopular: 'Più popolare',
         featurePreinstalled: 'Agente preinstallato',
@@ -1561,6 +1566,8 @@ const it: Translations = {
         creatingTitle: 'Configurazione del tuo agente',
         creatingDescription:
             'Di solito ci vogliono uno o due minuti. Puoi chiudere questa pagina in sicurezza e tornare più tardi.',
+        creatingDescriptionLocal:
+            'Di solito richiede solo un momento. Tieni aperta l’app fino al termine.',
         configuringTitle: 'Installazione di OpenClaw',
         configuringTitleHermes: 'Installazione di Hermes',
         loadingTipHermes1:
@@ -1571,6 +1578,8 @@ const it: Translations = {
             'Collega Telegram, Discord o Slack dal Terminale con `hermes gateway install`.',
         configuringDescription:
             'Di solito ci vogliono uno o due minuti. Puoi chiudere questa pagina in sicurezza e tornare più tardi.',
+        configuringDescriptionLocal:
+            'Installazione del runtime dell’agente in locale. Tieni aperta l’app fino al termine.',
         awaitingPaymentTitle: 'In attesa di pagamento',
         awaitingPaymentDescription:
             "Completa il pagamento per avviare il provisioning del tuo agente. Questa prenotazione scade tra un'ora.",
@@ -1715,6 +1724,8 @@ const it: Translations = {
         settingsDangerZone: 'Zona di pericolo',
         settingsDangerZoneDescription:
             'La tua istanza verrà eliminata alla fine del periodo di fatturazione corrente.',
+        settingsDangerZoneDescriptionLocal:
+            'Questo eliminerà definitivamente l’agente e tutti i suoi file.',
         settingsScheduledDeletionDescription:
             'Eliminazione programmata per il {{date}}. Annulla per mantenere la tua istanza in esecuzione e il tuo abbonamento attivo.',
         settingsSave: 'Salva',

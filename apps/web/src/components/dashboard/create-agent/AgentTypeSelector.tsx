@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { AgentTypeSelectorProps } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
-import { Label } from '@/components/ui'
+import { Label, Skeleton } from '@/components/ui'
 import { agentTypes } from '@/data'
 
 const AgentTypeSelector: FC<AgentTypeSelectorProps> = ({
@@ -16,6 +16,7 @@ const AgentTypeSelector: FC<AgentTypeSelectorProps> = ({
             <div className='grid grid-cols-2 gap-2'>
                 {agentTypes.map(({ type, Icon, nameKey, descriptionKey }) => {
                     const isSelected = selectedAgentType === type
+                    const stars = starsFor(type)
                     return (
                         <button
                             key={type}
@@ -32,11 +33,13 @@ const AgentTypeSelector: FC<AgentTypeSelectorProps> = ({
                                 <div className='text-sm font-medium'>
                                     {t(nameKey)}
                                 </div>
-                                <div className='text-muted-foreground text-[10px]'>
-                                    {t(descriptionKey, {
-                                        count: starsFor(type)
-                                    })}
-                                </div>
+                                {stars !== null ? (
+                                    <div className='text-muted-foreground text-[10px]'>
+                                        {t(descriptionKey, { count: stars })}
+                                    </div>
+                                ) : (
+                                    <Skeleton className='mt-1 h-3 w-16 rounded' />
+                                )}
                             </div>
                         </button>
                     )

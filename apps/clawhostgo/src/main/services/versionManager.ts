@@ -186,18 +186,19 @@ const getLatestVersion = (
     return new Promise((resolve) => {
         const nodePath = nodeBinary.getNodeBinaryPath()
         const spec = agentSpec.getAgentSpec(selectedAgentType)
-        const script = `fetch('https://registry.npmjs.org/${encodeURIComponent(spec.npmPackage)}/latest').then(r=>r.json()).then(d=>console.log(d.version))`
+        const script = `fetch('https://registry.npmjs.org/${encodeURIComponent(spec.npmPackage)}/latest').then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d.version==='string')console.log(d.version)}).catch(()=>{})`
 
         execFile(
             nodePath,
             ['-e', script],
             { encoding: 'utf-8', timeout: 10000 },
             (error, stdout) => {
-                if (error || !stdout.trim()) {
+                const trimmed = (stdout || '').trim()
+                if (error || !trimmed || trimmed === 'undefined') {
                     resolve(null)
                     return
                 }
-                resolve(stdout.trim())
+                resolve(trimmed)
             }
         )
     })

@@ -190,6 +190,7 @@ const tr: Translations = {
         exportFailed: 'Dışa aktarma başarısız!',
         versionNotInstalled: 'OpenClaw sürümü {{version}} yüklü değil!',
         failedToStartProcess: 'İşlem başlatılamadı: {{reason}}!',
+        gatewayNotReady: 'Ajan zamanında hazır olmadı!',
         processExitedImmediately: 'İşlem hemen sonlandı. Günlükler:\n{{logs}}',
         processExitedImmediatelyNoLogs:
             'İşlem başladıktan hemen sonra sonlandı!',
@@ -197,7 +198,7 @@ const tr: Translations = {
             'İşlem {{code}} koduyla sonlandı. Günlükler:\n{{logs}}',
         processExitedWithCodeNoLogs: 'İşlem {{code}} koduyla sonlandı!',
         processExitedUnexpectedly: 'İşlem beklenmedik şekilde sonlandı!',
-        failedToInstallVersion: 'OpenClaw {{version}} yüklenemedi: {{reason}}!',
+        failedToInstallVersion: '{{version}} sürümü kurulamadı: {{reason}}!',
         oauthCancelled: 'Kimlik doğrulama iptal edildi!',
         diskFull: 'Cihazda boş alan kalmadı!',
         permissionDenied: 'İzin reddedildi!',
@@ -999,6 +1000,7 @@ const tr: Translations = {
         selectServerToContinue: 'Devam etmek için bir sunucu seçin',
         selectLocationToContinue: 'Devam etmek için bir konum seçin',
         clawCreated: 'Claw oluşturuldu.',
+        clawCreating: 'Claw oluşturuluyor, bu biraz zaman alabilir...',
         assigning: 'Atanıyor...',
         rootPasswordSaveThis: 'Root Şifresi (bunu kaydedin!)',
         sshCommandUsingKey: 'SSH Komutu (anahtarınızı kullanarak)',
@@ -1159,13 +1161,16 @@ const tr: Translations = {
         showAllPlans: 'Tüm planları göster',
         simplePricing: 'Basitleştirilmiş',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: 'Kişisel projeler ve denemeler için',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: 'Üretim iş yükleri için',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: 'Büyüyen işletmeler için',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: 'Büyük ölçekli operasyonlar için',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'Plan seç',
         mostPopular: 'En popüler',
         featurePreinstalled: 'Ajan önceden yüklü',
@@ -1519,6 +1524,8 @@ const tr: Translations = {
         creatingTitle: 'Ajanınız kuruluyor',
         creatingDescription:
             'Bu genellikle bir iki dakika sürer. Bu sayfayı güvenle kapatabilir ve daha sonra geri dönebilirsiniz.',
+        creatingDescriptionLocal:
+            'Bu genellikle kısa sürer. İşlem bitene kadar uygulamayı açık tutun.',
         configuringTitle: 'OpenClaw kuruluyor',
         configuringTitleHermes: 'Hermes kuruluyor',
         loadingTipHermes1:
@@ -1529,6 +1536,8 @@ const tr: Translations = {
             "Telegram, Discord veya Slack'ı Terminalden `hermes gateway install` ile bağlayın.",
         configuringDescription:
             'Bu genellikle bir iki dakika sürer. Bu sayfayı güvenle kapatabilir ve daha sonra geri dönebilirsiniz.',
+        configuringDescriptionLocal:
+            'Ajan çalışma zamanı yerel olarak kuruluyor. İşlem bitene kadar uygulamayı açık tutun.',
         awaitingPaymentTitle: 'Ödeme bekleniyor',
         awaitingPaymentDescription:
             'Ajanınızın sağlanmasını başlatmak için ödemeyi tamamlayın. Bu rezervasyon bir saat içinde sona erer.',
@@ -1673,6 +1682,8 @@ const tr: Translations = {
         settingsDangerZone: 'Tehlikeli Bölge',
         settingsDangerZoneDescription:
             'Örneğiniz mevcut fatura döneminizin sonunda silinecektir.',
+        settingsDangerZoneDescriptionLocal:
+            'Bu, ajanı ve tüm dosyalarını kalıcı olarak silecektir.',
         settingsScheduledDeletionDescription:
             '{{date}} tarihinde silinmek üzere planlandı. Örneğinizi çalışır ve aboneliğinizi aktif tutmak için iptal edin.',
         settingsSave: 'Kaydet',

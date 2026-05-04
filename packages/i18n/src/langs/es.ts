@@ -192,6 +192,7 @@ const es: Translations = {
         versionNotInstalled:
             '¡La versión {{version}} de OpenClaw no está instalada!',
         failedToStartProcess: '¡Error al iniciar el proceso: {{reason}}!',
+        gatewayNotReady: '¡El agente no estuvo listo a tiempo!',
         processExitedImmediately:
             'El proceso terminó inmediatamente. Logs:\n{{logs}}',
         processExitedImmediatelyNoLogs:
@@ -202,7 +203,7 @@ const es: Translations = {
             '¡El proceso terminó con el código {{code}}!',
         processExitedUnexpectedly: '¡El proceso terminó inesperadamente!',
         failedToInstallVersion:
-            '¡Error al instalar OpenClaw {{version}}: {{reason}}!',
+            '¡Error al instalar la versión {{version}}: {{reason}}!',
         oauthCancelled: '¡Autenticación cancelada!',
         diskFull: '¡No queda espacio en el dispositivo!',
         permissionDenied: '¡Permiso denegado!',
@@ -1022,6 +1023,7 @@ const es: Translations = {
         selectServerToContinue: 'Selecciona un servidor para continuar',
         selectLocationToContinue: 'Selecciona una ubicación para continuar',
         clawCreated: 'Claw creado.',
+        clawCreating: 'Creando tu claw, esto puede tardar un momento...',
         assigning: 'Asignando...',
         rootPasswordSaveThis: 'Contraseña root (¡guarda esto!)',
         sshCommandUsingKey: 'Comando SSH (usando tu clave)',
@@ -1182,13 +1184,16 @@ const es: Translations = {
         showAllPlans: 'Ver todos los planes',
         simplePricing: 'Simplificado',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: 'Para proyectos personales y experimentos',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: 'Para cargas de trabajo de producción',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: 'Para empresas en crecimiento',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: 'Para operaciones a gran escala',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'Elegir plan',
         mostPopular: 'Más popular',
         featurePreinstalled: 'Agente preinstalado',
@@ -1553,6 +1558,8 @@ const es: Translations = {
         creatingTitle: 'Configurando tu agente',
         creatingDescription:
             'Esto suele tardar uno o dos minutos. Puedes cerrar esta página con seguridad y volver más tarde.',
+        creatingDescriptionLocal:
+            'Normalmente tarda solo un momento. Mantén la aplicación abierta hasta que termine.',
         configuringTitle: 'Instalando OpenClaw',
         configuringTitleHermes: 'Instalando Hermes',
         loadingTipHermes1:
@@ -1563,6 +1570,8 @@ const es: Translations = {
             'Conecta Telegram, Discord o Slack desde la Terminal con `hermes gateway install`.',
         configuringDescription:
             'Esto suele tardar uno o dos minutos. Puedes cerrar esta página con seguridad y volver más tarde.',
+        configuringDescriptionLocal:
+            'Instalando el runtime del agente localmente. Mantén la aplicación abierta hasta que termine.',
         awaitingPaymentTitle: 'Esperando pago',
         awaitingPaymentDescription:
             'Completa el pago para comenzar a aprovisionar tu agente. Esta reserva expira en una hora.',
@@ -1705,6 +1714,8 @@ const es: Translations = {
         settingsDangerZone: 'Zona de peligro',
         settingsDangerZoneDescription:
             'Tu instancia será eliminada al final de tu período de facturación actual.',
+        settingsDangerZoneDescriptionLocal:
+            'Esto eliminará permanentemente el agente y todos sus archivos.',
         settingsScheduledDeletionDescription:
             'Programada para eliminación el {{date}}. Cancela para mantener tu instancia en ejecución y tu suscripción activa.',
         settingsSave: 'Guardar',

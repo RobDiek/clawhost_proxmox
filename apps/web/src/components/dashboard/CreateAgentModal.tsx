@@ -1,18 +1,31 @@
 import type { FC, ReactNode } from 'react'
 import type { AgentType } from '@/ts/Types'
-import type { CreateAgentModalProps, ErrorResponse } from '@/ts/Interfaces'
+import type {
+    Agent,
+    CreateAgentModalProps,
+    ErrorResponse
+} from '@/ts/Interfaces'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
 import {
+    agentProvider,
+    agentStatus,
     agentType as agentTypeConst,
     billingInterval,
     PLANS,
     YEARLY_PAID_MONTHS
 } from '@openclaw/shared'
 import { useAuth } from '@/lib/auth'
-import { api, isSafeRedirectUrl, formatCompactNumber } from '@/lib'
+import {
+    api,
+    fireConfetti,
+    generateAgentName,
+    isSafeRedirectUrl,
+    formatCompactNumber
+} from '@/lib'
+import { useCreatingAgentsStore } from '@/lib/store'
 import { calculateTotalAmount } from '@/lib/create-agent'
 import {
     usePurchaseAgent,
@@ -59,9 +72,9 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
     const { data: providerPlanAvailability } = usePlanAvailability()
     const { data: agentStarsData } = useAgentStars()
 
-    const starsFor = (type: AgentType): string => {
+    const starsFor = (type: AgentType): string | null => {
         const entry = agentStarsData?.stars.find((s) => s.agentType === type)
-        return entry ? formatCompactNumber(entry.stars) : '—'
+        return entry ? formatCompactNumber(entry.stars) : null
     }
 
     const isProviderLoading = isLoadingLocations
@@ -129,7 +142,10 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
     const toast = useToast()
     const { isLocal } = useAuth()
     const queryClient = useQueryClient()
-    const [isCreatingLocal, setIsCreatingLocal] = useState(false)
+    const addCreatingAgent = useCreatingAgentsStore((s) => s.addCreatingAgent)
+    const removeCreatingAgent = useCreatingAgentsStore(
+        (s) => s.removeCreatingAgent
+    )
 
     useEffect(() => {
         if (!planId && plans.length > 0) {
@@ -166,31 +182,63 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
 
     const purchaseMutation = usePurchaseAgent()
 
-    const handleCreateLocal = async () => {
+    const handleCreateLocal = () => {
         if (name && !/^[a-zA-Z0-9-]+$/.test(name)) {
             setField('name', name)
             return
         }
-        setIsCreatingLocal(true)
-        try {
-            await api.createAgent({
-                name: name || undefined,
-                agentType: selectedAgentType,
-                gatewayToken: gatewayToken || undefined,
-                password: password || undefined
-            })
-            await queryClient.invalidateQueries({ queryKey: ['agents'] })
-            toast.success(t('createClaw.clawCreated'))
-            onClose()
-        } catch (error) {
-            const message =
-                error instanceof Error
-                    ? error.message
-                    : t('errors.failedToCreateClaw')
-            toast.error(message)
-        } finally {
-            setIsCreatingLocal(false)
+        const optimisticId = `pending-${crypto.randomUUID()}`
+        const finalName = name || generateAgentName()
+        const optimisticAgent: Agent = {
+            id: optimisticId,
+            name: finalName,
+            agentType: selectedAgentType,
+            emoji: null,
+            emojiColor: null,
+            status: agentStatus.creating,
+            ip: null,
+            planId: agentProvider.local,
+            location: agentProvider.local,
+            rootPassword: null,
+            hasRootPassword: false,
+            sshKeyId: null,
+            providerServerId: null,
+            subdomain: null,
+            gatewayToken: null,
+            hostKeyFingerprint: null,
+            subscriptionStatus: null,
+            polarSubscriptionId: null,
+            billingInterval: null,
+            currentPeriodStart: null,
+            currentPeriodEnd: null,
+            volumes: [],
+            ownerEmail: null,
+            deletionScheduledAt: null,
+            lastSubdomainChangedAt: null,
+            createdAt: new Date().toISOString()
         }
+        addCreatingAgent(optimisticAgent)
+        onClose()
+        api.createAgent({
+            name: finalName,
+            agentType: selectedAgentType,
+            gatewayToken: gatewayToken || undefined,
+            password: password || undefined
+        })
+            .then(async () => {
+                await queryClient.invalidateQueries({ queryKey: ['agents'] })
+                removeCreatingAgent(optimisticId)
+                toast.success(t('createClaw.clawCreated'))
+                fireConfetti()
+            })
+            .catch((error: unknown) => {
+                removeCreatingAgent(optimisticId)
+                const message =
+                    error instanceof Error
+                        ? error.message
+                        : t('errors.failedToCreateClaw')
+                toast.error(message)
+            })
     }
 
     const handleCreate = () => {
@@ -396,7 +444,7 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
 
                     <CreateAgentSubmitActions
                         isLocal={!!isLocal}
-                        isCreatingLocal={isCreatingLocal}
+                        isCreatingLocal={false}
                         isPurchasing={purchaseMutation.isPending}
                         selectedPlan={selectedPlan}
                         location={location}

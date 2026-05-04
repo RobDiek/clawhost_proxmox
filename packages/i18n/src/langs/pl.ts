@@ -191,6 +191,7 @@ const pl: Translations = {
         versionNotInstalled:
             'Wersja OpenClaw {{version}} nie jest zainstalowana !',
         failedToStartProcess: 'Nie udało się uruchomić procesu: {{reason}} !',
+        gatewayNotReady: 'Agent nie był gotowy na czas!',
         processExitedImmediately:
             'Proces zakończył się natychmiast. Logi:\n{{logs}}',
         processExitedImmediatelyNoLogs:
@@ -200,7 +201,7 @@ const pl: Translations = {
         processExitedWithCodeNoLogs: 'Proces zakończył się kodem {{code}} !',
         processExitedUnexpectedly: 'Proces zakończył się niespodziewanie !',
         failedToInstallVersion:
-            'Nie udało się zainstalować OpenClaw {{version}}: {{reason}} !',
+            'Nie udało się zainstalować wersji {{version}}: {{reason}} !',
         oauthCancelled: 'Uwierzytelnianie anulowane !',
         diskFull: 'Brak miejsca na urządzeniu !',
         permissionDenied: 'Odmowa dostępu !',
@@ -1011,6 +1012,7 @@ const pl: Translations = {
         selectServerToContinue: 'Wybierz serwer, aby kontynuować',
         selectLocationToContinue: 'Wybierz lokalizację, aby kontynuować',
         clawCreated: 'Claw utworzony.',
+        clawCreating: 'Tworzenie twojego claw, może to chwilę potrwać...',
         assigning: 'Przypisywanie...',
         rootPasswordSaveThis: 'Hasło root (zapisz to!)',
         sshCommandUsingKey: 'Polecenie SSH (z kluczem)',
@@ -1170,13 +1172,16 @@ const pl: Translations = {
         showAllPlans: 'Pokaż wszystkie plany',
         simplePricing: 'Uproszczone',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: 'Do projektów osobistych i eksperymentów',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: 'Do obciążeń produkcyjnych',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: 'Dla rozwijających się firm',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: 'Do operacji na dużą skalę',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'Wybierz plan',
         mostPopular: 'Najpopularniejszy',
         featurePreinstalled: 'Agent preinstalowany',
@@ -1528,6 +1533,8 @@ const pl: Translations = {
         creatingTitle: 'Konfigurowanie agenta',
         creatingDescription:
             'Zwykle zajmuje to minutę lub dwie. Możesz bezpiecznie zamknąć tę stronę i wrócić później.',
+        creatingDescriptionLocal:
+            'Zwykle zajmuje to chwilę. Nie zamykaj aplikacji, dopóki proces się nie zakończy.',
         configuringTitle: 'Instalowanie OpenClaw',
         configuringTitleHermes: 'Instalowanie Hermesa',
         loadingTipHermes1:
@@ -1538,6 +1545,8 @@ const pl: Translations = {
             'Połącz Telegram, Discord lub Slack z poziomu Terminala poleceniem `hermes gateway install`.',
         configuringDescription:
             'Zwykle zajmuje to minutę lub dwie. Możesz bezpiecznie zamknąć tę stronę i wrócić później.',
+        configuringDescriptionLocal:
+            'Instalowanie środowiska agenta lokalnie. Nie zamykaj aplikacji, dopóki proces się nie zakończy.',
         awaitingPaymentTitle: 'Oczekiwanie na płatność',
         awaitingPaymentDescription:
             'Dokończ płatność, aby rozpocząć aprowizację agenta. Ta rezerwacja wygasa za godzinę.',
@@ -1679,6 +1688,8 @@ const pl: Translations = {
         settingsDangerZone: 'Strefa zagrożenia',
         settingsDangerZoneDescription:
             'Twoja instancja zostanie usunięta na końcu bieżącego okresu rozliczeniowego.',
+        settingsDangerZoneDescriptionLocal:
+            'Spowoduje to trwałe usunięcie agenta i wszystkich jego plików.',
         settingsScheduledDeletionDescription:
             'Zaplanowano usunięcie na {{date}}. Anuluj, aby utrzymać instancję w działaniu i subskrypcję aktywną.',
         settingsSave: 'Zapisz',
