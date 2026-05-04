@@ -15,6 +15,24 @@ const DEFAULT_CONFIG: ConfigFile = {
     createdAt: new Date().toISOString()
 }
 
+const cleanupOrphanAgentDirs = (): void => {
+    const agentsDir = path.join(BASE_DIR, 'agents')
+    if (!fs.existsSync(agentsDir)) return
+    const knownNames = new Set(readConfig().agents.map((a) => a.name))
+    for (const entry of fs.readdirSync(agentsDir, { withFileTypes: true })) {
+        if (!entry.isDirectory()) continue
+        if (knownNames.has(entry.name)) continue
+        try {
+            fs.rmSync(path.join(agentsDir, entry.name), {
+                recursive: true,
+                force: true
+            })
+        } catch (error) {
+            console.error('cleanupOrphanAgentDirs', error)
+        }
+    }
+}
+
 const ensureDirectories = (): void => {
     const dirs = [
         BASE_DIR,
@@ -45,6 +63,7 @@ const ensureDirectories = (): void => {
         }
         if (dirty) writeConfig(config)
     }
+    cleanupOrphanAgentDirs()
 }
 
 const readConfig = (): ConfigFile => {

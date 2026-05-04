@@ -191,6 +191,7 @@ const fr: Translations = {
         versionNotInstalled:
             "La version {{version}} d'OpenClaw n'est pas installée !",
         failedToStartProcess: 'Échec du démarrage du processus : {{reason}} !',
+        gatewayNotReady: 'L’agent n’a pas pu se mettre en route à temps !',
         processExitedImmediately:
             "Le processus s'est terminé immédiatement. Logs :\n{{logs}}",
         processExitedImmediatelyNoLogs:
@@ -202,7 +203,7 @@ const fr: Translations = {
         processExitedUnexpectedly:
             "Le processus s'est terminé de manière inattendue !",
         failedToInstallVersion:
-            "Échec de l'installation d'OpenClaw {{version}} : {{reason}} !",
+            "Échec de l'installation de la version {{version}} : {{reason}} !",
         oauthCancelled: 'Authentification annulée !',
         diskFull: "Plus d'espace disponible sur le disque !",
         permissionDenied: 'Permission refusée !',
@@ -1049,6 +1050,7 @@ const fr: Translations = {
         selectServerToContinue: 'Sélectionnez un serveur pour continuer',
         selectLocationToContinue: 'Sélectionnez un emplacement pour continuer',
         clawCreated: 'Claw créé.',
+        clawCreating: 'Création de votre claw en cours, cela peut prendre un moment...',
         assigning: 'Attribution...',
         rootPasswordSaveThis: 'Mot de passe root (conservez-le !)',
         sshCommandUsingKey: 'Commande SSH (avec votre clé)',
@@ -1209,13 +1211,16 @@ const fr: Translations = {
         showAllPlans: 'Voir tous les plans',
         simplePricing: 'Simplifié',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: 'Pour les projets personnels et les expériences',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: 'Pour les charges de production',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: 'Pour les entreprises en croissance',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: 'Pour les opérations à grande échelle',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'Choisir le plan',
         mostPopular: 'Le plus populaire',
         featurePreinstalled: 'Agent préinstallé',
@@ -1580,6 +1585,8 @@ const fr: Translations = {
         creatingTitle: 'Configuration de votre agent',
         creatingDescription:
             'Cela prend généralement une à deux minutes. Vous pouvez fermer cette page en toute sécurité et revenir plus tard.',
+        creatingDescriptionLocal:
+            'Cela prend généralement un instant. Gardez l’application ouverte jusqu’à la fin.',
         configuringTitle: "Installation d'OpenClaw",
         configuringTitleHermes: "Installation d'Hermes",
         loadingTipHermes1:
@@ -1590,6 +1597,8 @@ const fr: Translations = {
             'Connectez Telegram, Discord ou Slack depuis le Terminal avec `hermes gateway install`.',
         configuringDescription:
             'Cela prend généralement une à deux minutes. Vous pouvez fermer cette page en toute sécurité et revenir plus tard.',
+        configuringDescriptionLocal:
+            'Installation du runtime de l’agent en local. Gardez l’application ouverte jusqu’à la fin.',
         awaitingPaymentTitle: 'En attente de paiement',
         awaitingPaymentDescription:
             'Complétez le paiement pour commencer le provisionnement de votre agent. Cette réservation expire dans une heure.',
@@ -1735,6 +1744,8 @@ const fr: Translations = {
         settingsDangerZone: 'Zone de danger',
         settingsDangerZoneDescription:
             'Votre instance sera supprimée à la fin de votre période de facturation actuelle.',
+        settingsDangerZoneDescriptionLocal:
+            'Cela supprimera définitivement l’agent et tous ses fichiers.',
         settingsScheduledDeletionDescription:
             "Suppression prévue le {{date}}. Annulez pour garder votre instance en cours d'exécution et votre abonnement actif.",
         settingsSave: 'Enregistrer',

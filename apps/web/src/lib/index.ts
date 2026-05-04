@@ -14,6 +14,7 @@ import Envs from '@/lib/Envs'
 import getLocale from '@/lib/getLocale'
 import TRUNCATE_LENGTHS from '@/lib/truncateLengths'
 import fireConfetti from '@/lib/fireConfetti'
+import generateAgentName from '@/lib/generateAgentName'
 import copyToClipboard from '@/lib/copyToClipboard'
 import reportWebVitals from '@/lib/reportWebVitals'
 import isSafeRedirectUrl from '@/lib/isSafeRedirectUrl'
@@ -39,6 +40,7 @@ export {
     getLocale,
     TRUNCATE_LENGTHS,
     fireConfetti,
+    generateAgentName,
     copyToClipboard,
     reportWebVitals,
     formatDate,

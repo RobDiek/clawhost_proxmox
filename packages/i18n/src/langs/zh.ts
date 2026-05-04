@@ -186,12 +186,13 @@ const zh: Translations = {
         exportFailed: '导出失败!',
         versionNotInstalled: 'OpenClaw 版本 {{version}} 未安装!',
         failedToStartProcess: '启动进程失败：{{reason}}!',
+        gatewayNotReady: 'Agent 未在规定时间内就绪！',
         processExitedImmediately: '进程立即退出。日志：\n{{logs}}',
         processExitedImmediatelyNoLogs: '进程启动后立即退出!',
         processExitedWithCode: '进程以代码 {{code}} 退出。日志：\n{{logs}}',
         processExitedWithCodeNoLogs: '进程以代码 {{code}} 退出!',
         processExitedUnexpectedly: '进程意外退出!',
-        failedToInstallVersion: '安装 OpenClaw {{version}} 失败：{{reason}}!',
+        failedToInstallVersion: '安装版本 {{version}} 失败：{{reason}}!',
         oauthCancelled: '认证已取消!',
         diskFull: '设备上没有剩余空间!',
         permissionDenied: '权限被拒绝!',
@@ -939,6 +940,7 @@ const zh: Translations = {
         selectServerToContinue: '选择服务器以继续',
         selectLocationToContinue: '选择位置以继续',
         clawCreated: 'Claw 已创建。',
+        clawCreating: '正在创建你的 Claw，这可能需要一些时间...',
         assigning: '正在分配...',
         rootPasswordSaveThis: 'Root 密码（请保存！）',
         sshCommandUsingKey: 'SSH 命令（使用您的密钥）',
@@ -1092,13 +1094,16 @@ const zh: Translations = {
         showAllPlans: '查看所有方案',
         simplePricing: '简化版',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: '适用于个人项目和实验',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: '适用于生产工作负载',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: '适用于成长型企业',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: '适用于大规模运营',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: '选择方案',
         mostPopular: '最受欢迎',
         featurePreinstalled: '智能体预装',
@@ -1405,6 +1410,8 @@ const zh: Translations = {
         creatingTitle: '正在设置您的代理',
         creatingDescription:
             '这通常需要一两分钟。 您可以安全地关闭此页面，稍后再回来。',
+        creatingDescriptionLocal:
+            '通常只需片刻。请在完成前保持应用打开。',
         configuringTitle: '正在安装 OpenClaw',
         configuringTitleHermes: '正在安装 Hermes',
         loadingTipHermes1:
@@ -1415,6 +1422,8 @@ const zh: Translations = {
             '在终端中使用 `hermes gateway install` 连接 Telegram、Discord 或 Slack。',
         configuringDescription:
             '这通常需要一两分钟。 您可以安全地关闭此页面，稍后再回来。',
+        configuringDescriptionLocal:
+            '正在本地安装 Agent 运行时。请在完成前保持应用打开。',
         awaitingPaymentTitle: '等待支付',
         awaitingPaymentDescription:
             '完成支付以开始配置您的代理。此预留将在一小时后过期。',
@@ -1539,6 +1548,8 @@ const zh: Translations = {
         settingsDetails: '详情',
         settingsDangerZone: '危险区域',
         settingsDangerZoneDescription: '您的实例将在当前计费周期结束时被删除。',
+        settingsDangerZoneDescriptionLocal:
+            '这将永久删除该 Agent 及其所有文件。',
         settingsScheduledDeletionDescription:
             '计划于 {{date}} 删除。取消以保持您的实例运行和订阅活跃。',
         settingsSave: '保存',

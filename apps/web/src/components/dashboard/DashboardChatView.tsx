@@ -16,6 +16,7 @@ import { EmptyState } from '@/components'
 import { AgentDetailPanel } from '@/components/dashboard'
 import { ChatSidebar } from '@/components/chat'
 import { ChatEmptyState } from '@/components/chat'
+import { useCreatingAgentsStore } from '@/lib/store'
 
 const DashboardChatView: FC<DashboardChatViewProps> = ({
     displayedAgents,
@@ -44,15 +45,31 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
     }, [settingsAgentId])
 
     useEffect(() => {
+        if (displayedAgents.length === 0) return
         if (
-            !hasAutoSelected.current &&
-            !settingsAgentId &&
-            displayedAgents.length > 0
+            settingsAgentId &&
+            !displayedAgents.some((a) => a.id === settingsAgentId)
         ) {
+            setSettingsAgentId(
+                displayedAgents[displayedAgents.length - 1].id
+            )
+            return
+        }
+        if (!hasAutoSelected.current && !settingsAgentId) {
             hasAutoSelected.current = true
             setSettingsAgentId(displayedAgents[0].id)
         }
     }, [settingsAgentId, displayedAgents])
+
+    const creatingAgents = useCreatingAgentsStore((s) => s.creatingAgents)
+    const lastSelectedCreatingId = useRef<string | null>(null)
+    useEffect(() => {
+        if (creatingAgents.length === 0) return
+        const latest = creatingAgents[creatingAgents.length - 1]
+        if (latest.id === lastSelectedCreatingId.current) return
+        lastSelectedCreatingId.current = latest.id
+        setSettingsAgentId(latest.id)
+    }, [creatingAgents])
 
     const settingsAgent = useMemo(() => {
         if (!settingsAgentId) return null

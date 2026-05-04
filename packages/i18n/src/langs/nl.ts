@@ -192,6 +192,7 @@ const nl: Translations = {
         versionNotInstalled:
             'OpenClaw-versie {{version}} is niet geïnstalleerd!',
         failedToStartProcess: 'Proces starten mislukt: {{reason}}!',
+        gatewayNotReady: 'De agent is niet op tijd klaar geworden!',
         processExitedImmediately:
             'Proces onmiddellijk beëindigd. Logs:\n{{logs}}',
         processExitedImmediatelyNoLogs:
@@ -201,7 +202,7 @@ const nl: Translations = {
         processExitedWithCodeNoLogs: 'Proces beëindigd met code {{code}}!',
         processExitedUnexpectedly: 'Proces onverwacht beëindigd!',
         failedToInstallVersion:
-            'Installatie van OpenClaw {{version}} mislukt: {{reason}}!',
+            'Installatie van versie {{version}} mislukt: {{reason}}!',
         oauthCancelled: 'Authenticatie geannuleerd!',
         diskFull: 'Geen ruimte meer op het apparaat!',
         permissionDenied: 'Toegang geweigerd!',
@@ -1015,6 +1016,7 @@ const nl: Translations = {
         selectServerToContinue: 'Selecteer een server om door te gaan',
         selectLocationToContinue: 'Selecteer een locatie om door te gaan',
         clawCreated: 'Claw aangemaakt.',
+        clawCreating: 'Je claw wordt aangemaakt, dit kan even duren...',
         assigning: 'Toewijzen...',
         rootPasswordSaveThis: 'Root-wachtwoord (bewaar dit!)',
         sshCommandUsingKey: 'SSH-commando (met je sleutel)',
@@ -1175,13 +1177,16 @@ const nl: Translations = {
         showAllPlans: 'Alle plannen tonen',
         simplePricing: 'Vereenvoudigd',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: 'Voor persoonlijke projecten en experimenten',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: 'Voor productieworkloads',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: 'Voor groeiende bedrijven',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: 'Voor grootschalige operaties',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'Plan kiezen',
         mostPopular: 'Meest populair',
         featurePreinstalled: 'Agent vooraf geïnstalleerd',
@@ -1537,6 +1542,8 @@ const nl: Translations = {
         creatingTitle: 'Je agent wordt ingesteld',
         creatingDescription:
             'Dit duurt meestal een minuut of twee. Je kunt deze pagina veilig sluiten en later terugkomen.',
+        creatingDescriptionLocal:
+            'Dit duurt meestal even. Houd de app open tot het klaar is.',
         configuringTitle: 'OpenClaw wordt geïnstalleerd',
         configuringTitleHermes: 'Hermes wordt geïnstalleerd',
         loadingTipHermes1:
@@ -1547,6 +1554,8 @@ const nl: Translations = {
             'Verbind Telegram, Discord of Slack vanuit de Terminal met `hermes gateway install`.',
         configuringDescription:
             'Dit duurt meestal een minuut of twee. Je kunt deze pagina veilig sluiten en later terugkomen.',
+        configuringDescriptionLocal:
+            'De agent-runtime wordt lokaal geïnstalleerd. Houd de app open tot het klaar is.',
         awaitingPaymentTitle: 'Wacht op betaling',
         awaitingPaymentDescription:
             'Voltooi de betaling om het inrichten van je agent te starten. Deze reservering verloopt over een uur.',
@@ -1690,6 +1699,8 @@ const nl: Translations = {
         settingsDangerZone: 'Gevarenzone',
         settingsDangerZoneDescription:
             'Je instantie wordt verwijderd aan het einde van je huidige factureringsperiode.',
+        settingsDangerZoneDescriptionLocal:
+            'Dit verwijdert de agent en al zijn bestanden permanent.',
         settingsScheduledDeletionDescription:
             'Gepland voor verwijdering op {{date}}. Annuleer om je instantie draaiend en je abonnement actief te houden.',
         settingsSave: 'Opslaan',

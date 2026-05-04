@@ -7,9 +7,32 @@ import path from 'path'
 import { configStore } from '@/main/services'
 import { t } from '@openclaw/i18n'
 
+const SKIPPED_DIRS = new Set([
+    'node_modules',
+    'canvas',
+    'logs',
+    'identity'
+])
+const SKIPPED_FILES = new Set([
+    'gateway.log',
+    'gateway.pid',
+    'openclaw.json.last-good',
+    'package-lock.json',
+    'package.json'
+])
+
 const isPathSafe = (agentDir: string, filePath: string): boolean => {
     const resolved = path.resolve(agentDir, filePath)
-    return resolved.startsWith(agentDir)
+    if (!resolved.startsWith(agentDir)) return false
+    const relative = path.relative(agentDir, resolved)
+    const segments = relative.split(path.sep)
+    if (segments.some((seg) => SKIPPED_DIRS.has(seg))) return false
+    if (
+        segments.length > 0 &&
+        SKIPPED_FILES.has(segments[segments.length - 1])
+    )
+        return false
+    return true
 }
 
 const getFileType = (name: string): string => {
@@ -44,6 +67,8 @@ const scanFilesRecursive = (
     const entries = fs.readdirSync(dir, { withFileTypes: true })
     for (const entry of entries) {
         if (entry.name.startsWith('.') && entry.name !== '.env') continue
+        if (entry.isDirectory() && SKIPPED_DIRS.has(entry.name)) continue
+        if (!entry.isDirectory() && SKIPPED_FILES.has(entry.name)) continue
         const fullPath = path.join(dir, entry.name)
         if (entry.isDirectory()) {
             results.push(...scanFilesRecursive(fullPath, baseDir))
@@ -123,14 +148,6 @@ const registerAgentFileHandlers = (): void => {
             return { success: true }
         }
     )
-
-    ipcMain.handle('exportAgent', (_event: IpcMainInvokeEvent, id: string) => {
-        const agent = configStore.findAgent(id)
-        if (!agent) throw new Error(t('go.clawNotFound'))
-
-        const agentDir = configStore.getAgentDir(agent.name)
-        return { path: agentDir }
-    })
 }
 
 export default registerAgentFileHandlers

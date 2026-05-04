@@ -13,8 +13,8 @@ let httpsServer: https.Server | null = null
 const extractSubdomain = (host: string | undefined): string | null => {
     if (!host) return null
     const hostname = host.split(':')[0]
-    if (!hostname.endsWith('.agenthost')) return null
-    return hostname.replace('.agenthost', '')
+    if (!hostname.endsWith('.clawhost')) return null
+    return hostname.replace('.clawhost', '')
 }
 
 const resolveAgent = (

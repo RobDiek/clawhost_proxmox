@@ -188,6 +188,7 @@ const en = {
         exportFailed: 'Export failed!',
         versionNotInstalled: 'OpenClaw version {{version}} is not installed!',
         failedToStartProcess: 'Failed to start process: {{reason}}!',
+        gatewayNotReady: 'The agent failed to become ready in time!',
         processExitedImmediately: 'Process exited immediately. Logs:\n{{logs}}',
         processExitedImmediatelyNoLogs:
             'Process exited immediately after starting!',
@@ -196,7 +197,7 @@ const en = {
         processExitedWithCodeNoLogs: 'Process exited with code {{code}}!',
         processExitedUnexpectedly: 'Process exited unexpectedly!',
         failedToInstallVersion:
-            'Failed to install OpenClaw {{version}}: {{reason}}!',
+            'Failed to install version {{version}}: {{reason}}!',
         oauthCancelled: 'Authentication cancelled!',
         diskFull: 'No space left on device!',
         permissionDenied: 'Permission denied!',
@@ -986,6 +987,7 @@ const en = {
         selectServerToContinue: 'Select a server to continue',
         selectLocationToContinue: 'Select a location to continue',
         clawCreated: 'Claw created.',
+        clawCreating: 'Creating your claw, this may take a moment...',
         assigning: 'Assigning...',
         rootPasswordSaveThis: 'Root Password (save this!)',
         sshCommandUsingKey: 'SSH Command (using your key)',
@@ -1144,13 +1146,16 @@ const en = {
         showAllPlans: 'Show All Plans',
         simplePricing: 'Simplified',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: 'For personal projects and experiments',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: 'For production workloads',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: 'For growing businesses',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: 'For large-scale operations',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'Choose Plan',
         mostPopular: 'Most Popular',
         featurePreinstalled: 'Agent Pre-Installed',
@@ -1499,10 +1504,14 @@ const en = {
         creatingTitle: 'Setting up your agent',
         creatingDescription:
             'This usually takes a minute or two. You can safely close this page and come back later.',
+        creatingDescriptionLocal:
+            'This usually takes a moment. Please keep the app open until it finishes.',
         configuringTitle: 'Installing OpenClaw',
         configuringTitleHermes: 'Installing Hermes',
         configuringDescription:
             'This usually takes a minute or two. You can safely close this page and come back later.',
+        configuringDescriptionLocal:
+            'Installing the agent runtime locally. Keep the app open until it finishes.',
         loadingTipHermes1:
             'Hermes is a TUI agent — open the Terminal tab once it boots to chat with it.',
         loadingTipHermes2:
@@ -1650,6 +1659,8 @@ const en = {
         settingsDangerZone: 'Danger Zone',
         settingsDangerZoneDescription:
             'Your instance will be deleted at the end of your current billing period.',
+        settingsDangerZoneDescriptionLocal:
+            'This will permanently delete the agent and all of its files.',
         settingsScheduledDeletionDescription:
             'Scheduled for deletion on {{date}}. Cancel to keep your instance running and subscription active.',
         settingsSave: 'Save',

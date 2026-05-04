@@ -192,6 +192,7 @@ const hi: Translations = {
         exportFailed: 'निर्यात विफल!',
         versionNotInstalled: 'OpenClaw संस्करण {{version}} इंस्टॉल नहीं है!',
         failedToStartProcess: 'प्रक्रिया शुरू करने में विफल: {{reason}}!',
+        gatewayNotReady: 'एजेंट समय पर तैयार नहीं हो सका!',
         processExitedImmediately: 'प्रक्रिया तुरंत बंद हो गई. लॉग:\n{{logs}}',
         processExitedImmediatelyNoLogs:
             'शुरू होने के तुरंत बाद प्रक्रिया बंद हो गई!',
@@ -200,7 +201,7 @@ const hi: Translations = {
         processExitedWithCodeNoLogs: 'प्रक्रिया कोड {{code}} के साथ बंद हुई!',
         processExitedUnexpectedly: 'प्रक्रिया अप्रत्याशित रूप से बंद हो गई!',
         failedToInstallVersion:
-            'OpenClaw {{version}} इंस्टॉल करने में विफल: {{reason}}!',
+            'संस्करण {{version}} इंस्टॉल करने में विफल: {{reason}}!',
         oauthCancelled: 'प्रमाणीकरण रद्द कर दिया गया!',
         diskFull: 'डिवाइस पर कोई जगह नहीं बची!',
         permissionDenied: 'अनुमति अस्वीकृत!',
@@ -1004,6 +1005,7 @@ const hi: Translations = {
         selectServerToContinue: 'जारी रखने के लिए एक सर्वर चुनें',
         selectLocationToContinue: 'जारी रखने के लिए एक स्थान चुनें',
         clawCreated: 'क्लॉ बनाया गया.',
+        clawCreating: 'आपका क्लॉ बनाया जा रहा है, इसमें कुछ समय लग सकता है...',
         assigning: 'असाइन हो रहा है...',
         rootPasswordSaveThis: 'रूट पासवर्ड (इसे सहेजें!)',
         sshCommandUsingKey: 'SSH कमांड (आपकी कुंजी का उपयोग करके)',
@@ -1163,13 +1165,16 @@ const hi: Translations = {
         showAllPlans: 'सभी योजनाएं देखें',
         simplePricing: 'सरलीकृत',
         planStarter: 'Starter',
-        planStarterDesc: '2 vCPU · 4 GB RAM · 40 GB',
+        planStarterDesc: 'व्यक्तिगत परियोजनाओं और प्रयोगों के लिए',
         planGrowth: 'Growth',
-        planGrowthDesc: '3 vCPU · 4 GB RAM · 80 GB',
+        planGrowthDesc: 'उत्पादन वर्कलोड के लिए',
         planPro: 'Pro',
-        planProDesc: '4 vCPU · 16 GB RAM · 160 GB',
+        planProDesc: 'बढ़ते व्यवसायों के लिए',
         planBusiness: 'Business',
-        planBusinessDesc: '8 vCPU · 32 GB RAM · 240 GB',
+        planBusinessDesc: 'बड़े पैमाने के संचालन के लिए',
+        featureCpu: '{{count}} vCPU',
+        featureRam: '{{count}} GB RAM',
+        featureDisk: '{{count}} GB SSD',
         choosePlan: 'योजना चुनें',
         mostPopular: 'सबसे लोकप्रिय',
         featurePreinstalled: 'एजेंट पहले से इंस्टॉल',
@@ -1513,6 +1518,8 @@ const hi: Translations = {
         creatingTitle: 'आपका एजेंट सेटअप किया जा रहा है',
         creatingDescription:
             'इसमें आमतौर पर एक या दो मिनट लगते हैं। आप इस पेज को सुरक्षित रूप से बंद कर सकते हैं और बाद में वापस आ सकते हैं।',
+        creatingDescriptionLocal:
+            'इसमें आमतौर पर कुछ ही समय लगता है। पूरा होने तक ऐप को खुला रखें।',
         configuringTitle: 'OpenClaw इंस्टॉल किया जा रहा है',
         configuringTitleHermes: 'Hermes इंस्टॉल किया जा रहा है',
         loadingTipHermes1:
@@ -1523,6 +1530,8 @@ const hi: Translations = {
             'टर्मिनल से `hermes gateway install` के साथ Telegram, Discord या Slack कनेक्ट करें।',
         configuringDescription:
             'इसमें आमतौर पर एक या दो मिनट लगते हैं। आप इस पेज को सुरक्षित रूप से बंद कर सकते हैं और बाद में वापस आ सकते हैं।',
+        configuringDescriptionLocal:
+            'एजेंट रनटाइम स्थानीय रूप से इंस्टॉल किया जा रहा है। पूरा होने तक ऐप को खुला रखें।',
         awaitingPaymentTitle: 'भुगतान की प्रतीक्षा में',
         awaitingPaymentDescription:
             'अपने एजेंट का प्रोविजनिंग शुरू करने के लिए भुगतान पूरा करें। यह आरक्षण एक घंटे में समाप्त हो जाएगा।',
@@ -1663,6 +1672,8 @@ const hi: Translations = {
         settingsDangerZone: 'खतरनाक क्षेत्र',
         settingsDangerZoneDescription:
             'आपका इंस्टेंस आपकी वर्तमान बिलिंग अवधि के अंत में हटा दिया जाएगा।',
+        settingsDangerZoneDescriptionLocal:
+            'यह एजेंट और उसकी सभी फ़ाइलों को स्थायी रूप से हटा देगा।',
         settingsScheduledDeletionDescription:
             '{{date}} को हटाने के लिए निर्धारित। अपना इंस्टेंस चालू और सदस्यता सक्रिय रखने के लिए रद्द करें।',
         settingsSave: 'सहेजें',

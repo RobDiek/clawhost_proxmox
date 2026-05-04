@@ -27,18 +27,25 @@ const registerAgentTerminalHandlers = (): void => {
 
             const agentDir = configStore.getAgentDir(agent.name)
             const shell = process.env.SHELL || '/bin/zsh'
+            const home = process.env.HOME || agentDir
+            const env = {
+                ...process.env,
+                HOME: home,
+                TERM: 'xterm-256color',
+                LANG: process.env.LANG || 'en_US.UTF-8',
+                LC_ALL: process.env.LC_ALL || 'en_US.UTF-8'
+            } as Record<string, string>
+            delete (env as Record<string, string | undefined>).ELECTRON_RUN_AS_NODE
+            delete (env as Record<string, string | undefined>).ELECTRON_NO_ATTACH_CONSOLE
 
             let term: IPty
             try {
-                term = pty.spawn(shell, [], {
+                term = pty.spawn(shell, ['-l'], {
                     name: 'xterm-256color',
                     cols: cols || 80,
                     rows: rows || 24,
                     cwd: agentDir,
-                    env: {
-                        ...process.env,
-                        TERM: 'xterm-256color'
-                    } as Record<string, string>
+                    env
                 })
             } catch (error) {
                 console.error('agentTerminal', error)
@@ -53,7 +60,13 @@ const registerAgentTerminalHandlers = (): void => {
                     sender.send('terminal:data', id, data)
                 })
 
-                term.onExit(() => {
+                term.onExit(({ exitCode, signal }) => {
+                    console.error('agentTerminal pty exit', {
+                        id,
+                        exitCode,
+                        signal,
+                        shell
+                    })
                     terminals.delete(id)
                     sender.send('terminal:exit', id)
                 })

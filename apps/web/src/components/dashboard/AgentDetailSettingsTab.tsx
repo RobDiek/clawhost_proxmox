@@ -6,7 +6,8 @@ import { agentType, inputValidation, userRole } from '@openclaw/shared'
 import {
     CircleNotchIcon,
     TrashIcon,
-    ClockCountdownIcon
+    ClockCountdownIcon,
+    ArrowCounterClockwiseIcon
 } from '@phosphor-icons/react'
 import {
     EmojiColorPicker,
@@ -14,6 +15,7 @@ import {
     AgentCardDialogsBundle
 } from '@/components/dashboard'
 import { useProfile, useAgentCardActions } from '@/hooks'
+import { useAuth } from '@/lib/auth'
 import { getLocale } from '@/lib'
 
 const AgentDetailSettingsTab: FC<AgentDetailSettingsTabProps> = ({
@@ -36,6 +38,7 @@ const AgentDetailSettingsTab: FC<AgentDetailSettingsTabProps> = ({
 }): ReactNode => {
     const { actions, dialogsProps } = useAgentCardActions({ agent })
     const { data: profile } = useProfile({ enabled: true })
+    const { isLocal } = useAuth()
     const isAdmin = profile?.role === userRole.admin
     const isHermes = agent.agentType === agentType.HERMES
     const isScheduledForDeletion =
@@ -164,6 +167,31 @@ const AgentDetailSettingsTab: FC<AgentDetailSettingsTabProps> = ({
 
                 {!readOnly && <ExportSection agentId={agent.id} />}
 
+                {!readOnly && isLocal && actions && (
+                    <div className='border-border border-t pt-5'>
+                        <label className='text-muted-foreground mb-2 block text-xs font-medium'>
+                            {t('dashboard.reinstallInstance')}
+                        </label>
+                        <button
+                            onClick={actions.onShowReinstallModal}
+                            disabled={dialogsProps?.isReinstallPending}
+                            className={`flex items-center gap-1.5 rounded-md border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-xs font-medium text-orange-600 transition-colors hover:bg-orange-500/20 dark:text-orange-400 ${dialogsProps?.isReinstallPending ? 'pointer-events-none cursor-default opacity-50' : ''}`}
+                        >
+                            {dialogsProps?.isReinstallPending ? (
+                                <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
+                            ) : (
+                                <ArrowCounterClockwiseIcon className='h-3.5 w-3.5' />
+                            )}
+                            {t('dashboard.reinstallInstance')}
+                        </button>
+                        <p className='text-muted-foreground mt-2 text-[11px]'>
+                            {t('clawDetail.reinstallDescription', {
+                                agentName: isHermes ? 'Hermes' : 'OpenClaw'
+                            })}
+                        </p>
+                    </div>
+                )}
+
                 {actions && !readOnly && (
                     <div className='border-border border-t pt-5'>
                         <label className='text-muted-foreground mb-2 block text-xs font-medium'>
@@ -234,14 +262,17 @@ const AgentDetailSettingsTab: FC<AgentDetailSettingsTabProps> = ({
                                     ) : (
                                         <TrashIcon className='h-3.5 w-3.5' />
                                     )}
-                                    {agent.id.startsWith('pending-') ||
+                                    {isLocal ||
+                                    agent.id.startsWith('pending-') ||
                                     agent.subscriptionStatus === 'canceled'
                                         ? t('common.delete')
                                         : t('dashboard.scheduleDeletion')}
                                 </button>
                                 <p className='text-muted-foreground text-[11px]'>
                                     {t(
-                                        'clawDetail.settingsDangerZoneDescription'
+                                        isLocal
+                                            ? 'clawDetail.settingsDangerZoneDescriptionLocal'
+                                            : 'clawDetail.settingsDangerZoneDescription'
                                     )}
                                 </p>
                             </div>
