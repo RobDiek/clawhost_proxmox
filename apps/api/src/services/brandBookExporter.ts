@@ -1000,7 +1000,7 @@ ${visual.logo ? `
   <h1 class="section-title">הלוגו</h1>
   <p class="section-lead">הלוגו הוא החתימה הוויזואלית שלנו. הוא מופיע על כל מודעה, חשבונית, אריזה, ובכל מקום שאנחנו פוגשים את הקהל. כל וריאנט נועד לקונטקסט אחר — אבל כולם מספרים את אותו הסיפור.</p>
   ${logoVariantsHtml}
-  ${logo.minClearSpaceRatio ? `<p style="margin-top:16px;color:#6B7280;font-size:0.86rem">מרווח חופשי מינימלי: ${logo.minClearSpaceRatio}× גובה האותיות. גודל מינימלי לקריאה: ${logo.minRenderSizePx || 32}px.</p>` : ''}
+  ${logo?.minClearSpaceRatio ? `<p style="margin-top:16px;color:#6B7280;font-size:0.86rem">מרווח חופשי מינימלי: ${logo?.minClearSpaceRatio}× גובה האותיות. גודל מינימלי לקריאה: ${logo?.minRenderSizePx || 32}px.</p>` : ''}
 </div>
 ` : ''}
 

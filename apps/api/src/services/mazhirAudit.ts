@@ -22,6 +22,7 @@
  */
 
 import { eq } from 'drizzle-orm'
+import { buildDataGaps, renderDataGapsForPrompt } from './enrichmentContract'
 import { db } from '@/db'
 import { instances, brandBooks } from '@/db/schema'
 import { resolveDirectModel } from '@/controllers/hosting/agentSetup'
@@ -824,7 +825,6 @@ ${coverageManifestForPrompt}
 
 ${(() => {
                 try {
-                    const { buildDataGaps, renderDataGapsForPrompt } = require('./enrichmentContract')
                     const gaps = buildDataGaps(sourceCoverage, pp.primaryGoal)
                     return renderDataGapsForPrompt(gaps)
                 } catch { return '' }

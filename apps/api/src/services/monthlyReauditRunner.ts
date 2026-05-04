@@ -47,7 +47,7 @@ export async function runMonthlyReaudits(): Promise<{
             if (!rd.mazhirAudit) continue
             stats.eligible++
 
-            const enabled = await isPipelineEnabled(row.id, 'paid_search')
+            const enabled = await isPipelineEnabled(row.id, 'mazhir_audit')
             if (!enabled) {
                 stats.skippedNoPaid++
                 continue
@@ -75,9 +75,9 @@ export async function runMonthlyReaudits(): Promise<{
                 const diff = nextRd.mazhirAuditDiff
                 if (diff && Array.isArray(diff.changes) && diff.changes.length > 0) {
                     try {
-                        const { sendTelegramAlert } = await import('./telegramAlert')
+                        const telegram = (await import('./telegram')).default
                         const summary = `📊 אודיט חודשי חדש מוכן · ${diff.changes.length} שינויים · ${diff.summary || ''}`
-                        await sendTelegramAlert(row.id, summary)
+                        await telegram.alertAdmin(`[${row.id}] ${summary}`)
                     } catch { /* best-effort */ }
                 }
             } catch (err) {

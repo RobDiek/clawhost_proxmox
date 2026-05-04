@@ -152,7 +152,7 @@ function discoverLogoCandidates(html: string, metadata: any, baseUrl: string): L
 
     // Tier 4 — first <header> <img> regardless of attrs
     const headerImgs = headerHtml.match(/<img[^>]*src=["']([^"']+)["'][^>]*>/gi) || []
-    let bestHeaderImg = headerImgs[0]
+    const bestHeaderImg = headerImgs[0]
     if (bestHeaderImg) {
         const src = bestHeaderImg.match(/src=["']([^"']+)["']/i)?.[1]
         if (src) push(src, 'header.img[first]', 75)
@@ -588,7 +588,7 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     const m = META
 
     // Identity from Sonnet + meta
-    const businessName = rd.answers?.businessName || meta.siteName || meta.title?.split(/[|—\-]/)[0]?.trim()
+    const businessName = rd.answers?.businessName || meta.siteName || meta.title?.split(/[|—-]/)[0]?.trim()
     if (businessName) {
         book.identity!.businessName = { he: businessName, en: businessName, ...m('high') } as any
         extractedKeys.push('identity.businessName')

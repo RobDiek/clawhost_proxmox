@@ -214,11 +214,11 @@ export function renderBrandBookForPrompt(book: BrandBookV2 | null): string {
     const approvedVocab = (voiceTier.voice?.vocabulary?.approved || []).join(', ')
     const bannedVocab = (voiceTier.voice?.vocabulary?.banned || []).join(', ')
 
-    const colors = visual.colors || {}
+    const colors: any = visual.colors || {}
     const colorLine = [
         colors.primary ? `primary=${colors.primary.hex}` : '',
-        ...(colors.secondary || []).map(c => `secondary=${c.hex}`),
-        ...(colors.accent || []).map(c => `accent=${c.hex}`),
+        ...(colors.secondary || []).map((c: any) => `secondary=${c.hex}`),
+        ...(colors.accent || []).map((c: any) => `accent=${c.hex}`),
     ].filter(Boolean).join(', ')
 
     const fonts = visual.typography

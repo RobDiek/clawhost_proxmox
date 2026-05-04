@@ -78,7 +78,7 @@ export async function runBidTransitionCheck(): Promise<{
             const rd = (row.researchData as any) || {}
             const plan = rd.mediaPlan
             if (!plan || !Array.isArray(plan.campaigns)) continue
-            const enabled = await isPipelineEnabled(row.id, 'paid_search')
+            const enabled = await isPipelineEnabled(row.id, 'mazhir_executor')
             if (!enabled) continue
             const campaignsWithContracts: CampaignWithContract[] = plan.campaigns.filter((c: any) =>
                 c.googleAdsCampaignId && c.bidContract && !c.transitionedAt

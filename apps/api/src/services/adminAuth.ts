@@ -18,6 +18,7 @@
 import crypto from 'crypto'
 import { eq, and, desc, gt } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
+// @ts-ignore — qrcode ships without types; runtime API is stable.
 import QRCode from 'qrcode'
 
 // ─── Self-contained RFC 6238 TOTP (no otplib) ────────────────────────────

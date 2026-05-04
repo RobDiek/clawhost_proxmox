@@ -52,11 +52,11 @@ export interface EnrichmentMeta {
      * substitute when this source is missing. Tied to specific PPC categories.
      */
     benchmarks?: {
-        leadgen?: { cpcIls?: [number, number]; ctlPct?: [number, number]; cpaIls?: [number, number] }
-        ecommerce?: { cpcIls?: [number, number]; ctrPct?: [number, number]; conversionRatePct?: [number, number]; aovIls?: [number, number] }
-        local?: { cpcIls?: [number, number]; ctlPct?: [number, number] }
-        b2b?: { cpcIls?: [number, number]; ctlPct?: [number, number]; sclIls?: [number, number] }
-        notes?: string             // citation / notes
+        leadgen?: { cpcIls?: [number, number]; ctlPct?: [number, number]; cpaIls?: [number, number]; notes?: string }
+        ecommerce?: { cpcIls?: [number, number]; ctrPct?: [number, number]; ctlPct?: [number, number]; conversionRatePct?: [number, number]; aovIls?: [number, number]; notes?: string }
+        local?: { cpcIls?: [number, number]; ctlPct?: [number, number]; notes?: string }
+        b2b?: { cpcIls?: [number, number]; ctlPct?: [number, number]; sclIls?: [number, number]; notes?: string }
+        notes?: string             // citation / notes (registry-level)
     }
 }
 

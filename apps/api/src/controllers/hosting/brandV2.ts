@@ -27,7 +27,8 @@ export const startBrandV2 = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const body = await c.req.json<{ sourceFlow?: 'uploaded' | 'website_scan' | 'mixed' }>().catch(() => ({}))
+        const body = await c.req.json<{ sourceFlow?: 'uploaded' | 'website_scan' | 'mixed' }>()
+            .catch(() => ({} as { sourceFlow?: 'uploaded' | 'website_scan' | 'mixed' }))
         const sourceFlow = (['uploaded', 'website_scan', 'mixed'].includes(body?.sourceFlow as any)
             ? body.sourceFlow
             : 'uploaded') as any
@@ -168,7 +169,7 @@ export const approveBrandV2 = async (c: Context) => {
         const instanceId = c.req.param('id')
         const userId = resolveUserId(c)
         if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
-        const body = await c.req.json<{ skipGates?: boolean }>().catch(() => ({}))
+        const body = await c.req.json<{ skipGates?: boolean }>().catch(() => ({} as { skipGates?: boolean }))
         const { approveDraft } = await import('@/services/brandBookV2Service')
         const r = await approveDraft({ instanceId, userId: userId || undefined, skipGates: !!body?.skipGates })
         if (!r.ok) return fail(c, r.reason || 'approval failed', 400)
@@ -190,7 +191,8 @@ export const startOverBrandV2 = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const body = await c.req.json<{ sourceFlow?: 'uploaded' | 'website_scan' | 'mixed' }>().catch(() => ({}))
+        const body = await c.req.json<{ sourceFlow?: 'uploaded' | 'website_scan' | 'mixed' }>()
+            .catch(() => ({} as { sourceFlow?: 'uploaded' | 'website_scan' | 'mixed' }))
         const sourceFlow = (['uploaded', 'website_scan', 'mixed'].includes(body?.sourceFlow as any)
             ? body.sourceFlow
             : 'uploaded') as any
@@ -215,7 +217,7 @@ export const scanWebsiteForBrandV2 = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const body = await c.req.json<{ websiteUrl?: string }>().catch(() => ({}))
+        const body = await c.req.json<{ websiteUrl?: string }>().catch(() => ({} as { websiteUrl?: string }))
         // Resolve URL: explicit > paid_profile.businessUrl > research.answers.websiteUrl
         let websiteUrl = (body.websiteUrl || '').trim()
         if (!websiteUrl) {

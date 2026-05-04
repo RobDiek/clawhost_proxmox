@@ -136,7 +136,8 @@ export const getInstanceStatus = async (c: Context<HonoEnv>) => {
 export const installComplete = async (c: Context<HonoEnv>) => {
     try {
         const instanceId = c.req.param('id')
-        const body = await c.req.json<{ openclawToken?: string; durationSec?: number }>().catch(() => ({}))
+        const body = await c.req.json<{ openclawToken?: string; durationSec?: number }>()
+            .catch(() => ({} as { openclawToken?: string; durationSec?: number }))
         if (!body.openclawToken) return fail(c, 'openclawToken required', 400)
 
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))

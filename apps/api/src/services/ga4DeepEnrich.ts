@@ -278,7 +278,7 @@ export async function pullGA4Seasonality(tokens: GoogleTokens | null | undefined
             cur.total += r.conversions; cur.n++
             byMonth.set(r.month, cur)
         }
-        const overallAvg = rows.length > 0 ? rows.reduce((s, r) => s + r.conversions, 0) / rows.length : 0
+        const overallAvg = rows.length > 0 ? rows.reduce((s: number, r: any) => s + r.conversions, 0) / rows.length : 0
         const seasonalIndex = [...byMonth.entries()]
             .sort((a, b) => a[0] - b[0])
             .map(([month, v]) => ({

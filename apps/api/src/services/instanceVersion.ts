@@ -48,6 +48,8 @@ export interface VersionDiff {
     /** Latest version reachable? */
     reachable: boolean
     notes: string[]
+    /** Master-canary instances are by definition at-latest (the master IS the source). UI should suppress upgrade prompts. */
+    isMaster?: boolean
 }
 
 export interface UpgradeProgress {
@@ -65,7 +67,7 @@ export interface UpgradeProgress {
 // ─── Manifest fetching ───────────────────────────────────────────────────
 
 export async function getLatestManifest(): Promise<VersionManifest> {
-    const res = await fetch(LATEST_MANIFEST_URL, { cache: 'no-store' as any })
+    const res = await fetch(LATEST_MANIFEST_URL, { cache: 'no-store' } as any)
     if (!res.ok) throw new Error(`Latest manifest fetch failed: ${res.status}`)
     return await res.json() as VersionManifest
 }
@@ -138,6 +140,14 @@ export async function getVersionStatus(instanceId: string): Promise<VersionDiff>
     } catch (err) {
         notes.push(`Latest manifest unreachable: ${(err as Error).message}`)
     }
+
+    // Master canary check — master is BY DEFINITION at the latest version
+    // (it's the source of truth from which other instances follow). Suppress
+    // upgrade detection entirely. We still surface the latest manifest so the
+    // dashboard can display "you are the master" copy with version label.
+    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+    const isMaster = !!(inst as any)?.isMaster
+
     const installed = await getInstalledManifest(instanceId).catch(err => {
         notes.push(`Installed manifest read failed: ${(err as Error).message}`)
         return null
@@ -152,11 +162,28 @@ export async function getVersionStatus(instanceId: string): Promise<VersionDiff>
             pendingMigrations: [],
             reachable: false,
             notes,
+            isMaster,
+        }
+    }
+
+    if (isMaster) {
+        // Master is canonical — present as up-to-date regardless of what
+        // /var/openclaw/version.json contains (it may not even exist on
+        // older masters that pre-date the version manifest era).
+        return {
+            upToDate: true,
+            installed: installed || latest,  // pretend installed=latest if missing
+            latest,
+            componentDrift: [],
+            pendingMigrations: [],
+            reachable,
+            notes: ['Master canary instance — always at latest by definition.'],
+            isMaster: true,
         }
     }
 
     const diff = diffVersions(installed, latest)
-    return { ...diff, installed, latest, reachable, notes }
+    return { ...diff, installed, latest, reachable, notes, isMaster }
 }
 
 // ─── Sprint B — Upgrade orchestration ────────────────────────────────────
@@ -244,20 +271,41 @@ async function runMigrationOnVps(
 ): Promise<{ ok: boolean; output: string }> {
     // Migrations live at https://clawflow.flowmatic.co.il/migrations/<id>.sh
     // Each script is idempotent and runs verify at the end (exit 0 = ok).
+    //
+    // version.json bootstrap: many older VPSes were provisioned before the
+    // manifest era and don't have /var/openclaw/version.json. Migrations
+    // tried to update the file and crashed with FileNotFoundError, then the
+    // upgrade rolled back the snapshot — looking like a system-wide failure.
+    // We now ensure the file exists before running migrations: fetch the
+    // platform's current latest manifest as a baseline, OR start from an
+    // empty {} skeleton if the platform is unreachable.
     const url = `https://clawflow.flowmatic.co.il/migrations/${encodeURIComponent(migrationId)}.sh`
     const cmd = `set -e
-mkdir -p /var/openclaw/migrations
+mkdir -p /var/openclaw /var/openclaw/migrations /var/openclaw/migration-marks
+# ── Bootstrap version.json if missing (idempotent) ──
+if [ ! -f /var/openclaw/version.json ]; then
+    if curl -fsSL --max-time 15 https://clawflow.flowmatic.co.il/version.json -o /tmp/cf-latest.json; then
+        cp /tmp/cf-latest.json /var/openclaw/version.json
+    else
+        echo '{"stackVersion":"0.0.0","schemaVersion":0,"components":{},"appliedMigrations":[]}' > /var/openclaw/version.json
+    fi
+fi
+# ── Run the migration script ──
 curl -fsSL --max-time 60 ${url} -o /var/openclaw/migrations/${migrationId}.sh
 chmod +x /var/openclaw/migrations/${migrationId}.sh
 bash /var/openclaw/migrations/${migrationId}.sh 2>&1
-# Mark as applied in version.json
+# ── Mark as applied (resilient — recreate file if migration removed it somehow) ──
 python3 - <<PYAPPLY
-import json
-with open('/var/openclaw/version.json') as f: d = json.load(f)
+import json, os
+path = '/var/openclaw/version.json'
+if os.path.exists(path):
+    with open(path) as f: d = json.load(f)
+else:
+    d = {"stackVersion":"0.0.0","schemaVersion":0,"components":{},"appliedMigrations":[]}
 d.setdefault('appliedMigrations', [])
 if '${migrationId}' not in d['appliedMigrations']:
     d['appliedMigrations'].append('${migrationId}')
-with open('/var/openclaw/version.json', 'w') as f: json.dump(d, f, indent=2)
+with open(path, 'w') as f: json.dump(d, f, indent=2)
 PYAPPLY
 echo "MIGRATION_OK"`
 
@@ -276,16 +324,22 @@ async function bumpStackVersionOnVps(
     latestStackVersion: string,
 ): Promise<void> {
     // After all migrations succeed, replace stackVersion + components with the latest manifest.
-    const cmd = `python3 - <<PYBUMP
-import json, urllib.request
+    // Resilient: creates version.json from latest if missing (same bootstrap logic
+    // as runMigrationOnVps — should never reach here without it, but defensive).
+    const cmd = `mkdir -p /var/openclaw && python3 - <<PYBUMP
+import json, urllib.request, os, datetime
 latest = json.load(urllib.request.urlopen('${LATEST_MANIFEST_URL}', timeout=15))
-with open('/var/openclaw/version.json') as f: cur = json.load(f)
+path = '/var/openclaw/version.json'
+if os.path.exists(path):
+    with open(path) as f: cur = json.load(f)
+else:
+    cur = {"appliedMigrations": []}
 cur['stackVersion'] = latest['stackVersion']
 cur['schemaVersion'] = latest['schemaVersion']
 cur['components'] = latest['components']
-import datetime
 cur['lastUpgradedAt'] = datetime.datetime.utcnow().isoformat() + 'Z'
-with open('/var/openclaw/version.json', 'w') as f: json.dump(cur, f, indent=2)
+cur.setdefault('installedAt', cur['lastUpgradedAt'])
+with open(path, 'w') as f: json.dump(cur, f, indent=2)
 PYBUMP`
     await executeSSH(ip, rootPassword, cmd, 30_000)
 }

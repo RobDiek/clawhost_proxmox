@@ -1,9 +1,9 @@
 import type { Context } from 'hono'
 import { readFileSync, readdirSync, statSync } from 'fs'
 import { resolve, join, relative } from 'path'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, notInArray } from 'drizzle-orm'
 import { db } from '@/db'
-import { instances } from '@/db/schema'
+import { instances, agentOutputs, brandBooks } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
@@ -5588,6 +5588,18 @@ export const resetResearch = async (c: Context) => {
             researchData: cleaned as any,
         }).where(eq(instances.id, instanceId))
 
+        // Wipe entire downstream pipeline output: research → strategy → content plan →
+        // drafts in approval queue are all invalidated by a pipeline restart.
+        // Keep only `published` (already sent out, audit trail) and `archived` (user
+        // explicitly preserved). Everything else goes.
+        const wipedOutputs = await db.delete(agentOutputs)
+            .where(and(
+                eq(agentOutputs.instanceId, instanceId),
+                notInArray(agentOutputs.status, ['published', 'archived'])
+            ))
+            .returning({ id: agentOutputs.id })
+        console.log(`[resetResearch] Wiped ${wipedOutputs.length} stale agent_outputs for ${instanceId}`)
+
         // Clear research files + old sessions + Mem0 research memories on VPS
         if (instance.ip) {
             try {
@@ -5677,6 +5689,7 @@ export interface PaidProfile {
     launchPath: 'professional_build' | 'launch_now'
     acknowledgedTradeoffs: boolean       // required when launchPath='launch_now'
     industryHint?: string                // free-text industry context
+    historicalReports?: any[]            // legacy/imported reports preserved through profile updates
     completedAt: string
     updatedAt?: string
 }
@@ -7836,7 +7849,7 @@ export const executeMazhirPlan = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const body = await c.req.json<{ dryRun?: boolean }>().catch(() => ({}))
+        const body = await c.req.json<{ dryRun?: boolean }>().catch(() => ({} as { dryRun?: boolean }))
         const { executeMediaPlan } = await import('@/services/mazhirExecutor')
         const result = await executeMediaPlan(instanceId, { dryRun: !!body.dryRun })
         return ok(c, result, result.overallStatus)
@@ -8285,6 +8298,16 @@ export const resetStrategy = async (c: Context) => {
         }
 
         await db.update(instances).set({ researchData: cleaned as any }).where(eq(instances.id, instanceId))
+
+        // Strategy reset invalidates content plan + all drafts queued by planDraftRunner.
+        // Same audit-trail rules as resetResearch: keep published + archived only.
+        const wipedOutputs = await db.delete(agentOutputs)
+            .where(and(
+                eq(agentOutputs.instanceId, instanceId),
+                notInArray(agentOutputs.status, ['published', 'archived'])
+            ))
+            .returning({ id: agentOutputs.id })
+        console.log(`[resetStrategy] Wiped ${wipedOutputs.length} stale agent_outputs for ${instanceId}`)
 
         // Clear strategy sessions on VPS so Menateach starts fresh
         if (instance.ip) {

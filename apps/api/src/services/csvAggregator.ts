@@ -82,7 +82,7 @@ function splitCsvLine(line: string): string[] {
 
 function parseNumber(s: string): number {
     if (!s) return 0
-    const cleaned = s.replace(/[^\d.\-]/g, '')
+    const cleaned = s.replace(/[^\d.-]/g, '')
     const n = parseFloat(cleaned)
     return isNaN(n) ? 0 : n
 }
