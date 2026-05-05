@@ -538,22 +538,6 @@ const getCompareData = (): CompareData => ({
                     }
                 },
                 {
-                    nameKey: 'compare.featureMobileApp',
-                    values: {
-                        clawhost: {
-                            status: COMPARE_FEATURE_STATUS.PARTIAL,
-                            detailKey: 'compare.comingSoon'
-                        },
-                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
-                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickagent: {
-                            status: COMPARE_FEATURE_STATUS.YES,
-                            detailKey: 'compare.iosMacOs'
-                        }
-                    }
-                },
-                {
                     nameKey: 'compare.featureDesktopApp',
                     values: {
                         clawhost: {

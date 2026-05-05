@@ -35,6 +35,7 @@ if (f.existsSync(plist)) {
 }
 
 const icns = p.join(appDir, 'Contents', 'Resources', 'electron.icns')
-if (f.existsSync(src)) {
+const icnsDir = p.dirname(icns)
+if (f.existsSync(src) && f.existsSync(icnsDir)) {
     f.copyFileSync(src, icns)
 }

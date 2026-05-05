@@ -232,8 +232,6 @@ const nl: Translations = {
         documentation: 'Documentatie',
         productDescription:
             'Deploy OpenClaw- en Hermes-agents in de cloud of lokaal met één klik — bouw, verbind en schaal je AI-agents sneller met ClawHost.',
-        downloadAndroid: 'Downloaden op Google Play',
-        downloadIos: 'Downloaden in de App Store',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -1868,28 +1866,6 @@ const nl: Translations = {
         contactText:
             'Als je vragen hebt over deze Voorwaarden, neem dan contact met ons op via'
     },
-    mobile: {
-        signIn: 'Authenticatie',
-        signInDescription:
-            'Authenticeer om je agents te beheren en te deployen.',
-        enterEmail: 'E-mailadres',
-        emailPlaceholder: 'voorbeeld@clawhost.cloud',
-        continueWithEmail: 'Doorgaan met e-mail',
-        otpDescription:
-            'We sturen je een code om in te loggen. Geen wachtwoord nodig.',
-        sending: 'Verzenden...',
-        checkYourEmail: 'Controleer je e-mail',
-        codeSentTo: 'We hebben een 6-cijferige code gestuurd naar',
-        resendCode: 'Code opnieuw verzenden',
-        resendIn: 'Opnieuw verzenden in {{seconds}}s',
-        changeEmail: 'E-mail wijzigen',
-        invalidCode: 'Ongeldige code!',
-        signingIn: 'Authenticeren...',
-        signOut: 'Uitloggen',
-        loadMore: 'Meer laden',
-        deployClaw: 'Claw deployen',
-        deployYourFirstClaw: 'Deploy je eerste Claw'
-    },
     rebrand: {
         tag: 'EVOLUTIE',
         title: 'ClawHost is nu Agentist',
@@ -1946,7 +1922,6 @@ const nl: Translations = {
         featureRepairTools: 'Reparatietools',
         featureSupportChannels: 'Ondersteuningskanalen',
         featureMultiLanguage: 'Meertalige UI',
-        featureMobileApp: 'Mobiele app',
         featureDesktopApp: 'Desktop-app',
         featureOneClickVersion: 'Versiewisseling met \u00e9\u00e9n klik',
         featureWebTerminal: 'Webterminal-toegang',
@@ -2008,7 +1983,6 @@ const nl: Translations = {
         englishOnly: 'Alleen Engels',
         available: 'Beschikbaar',
         comingSoon: 'Binnenkort',
-        iosMacOs: 'iOS & macOS',
         macOsOnly: 'Alleen macOS',
         viaTelegram: 'Via Telegram',
         builtInTerminal: 'Geen SSH nodig',

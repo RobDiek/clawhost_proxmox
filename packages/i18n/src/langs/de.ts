@@ -234,8 +234,6 @@ const de: Translations = {
         documentation: 'Dokumentation',
         productDescription:
             'OpenClaw- und Hermes-Agenten in der Cloud oder lokal mit einem Klick bereitstellen – erstelle, verbinde und skaliere deine KI-Agenten schneller mit ClawHost.',
-        downloadAndroid: 'Jetzt bei Google Play',
-        downloadIos: 'Laden im App Store',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -1894,28 +1892,6 @@ const de: Translations = {
         contactText:
             'Bei Fragen zu diesen Bedingungen kontaktiere uns bitte unter'
     },
-    mobile: {
-        signIn: 'Authentifizierung',
-        signInDescription:
-            'Authentifiziere dich, um deine Agenten zu verwalten und bereitzustellen.',
-        enterEmail: 'E-Mail-Adresse',
-        emailPlaceholder: 'beispiel@clawhost.cloud',
-        continueWithEmail: 'Weiter mit E-Mail',
-        otpDescription:
-            'Wir senden dir einen Code zum Anmelden. Kein Passwort nötig.',
-        sending: 'Wird gesendet...',
-        checkYourEmail: 'Prüfe deine E-Mail',
-        codeSentTo: 'Wir haben einen 6-stelligen Code gesendet an',
-        resendCode: 'Code erneut senden',
-        resendIn: 'Erneut senden in {{seconds}}s',
-        changeEmail: 'E-Mail ändern',
-        invalidCode: 'Ungültiger Code!',
-        signingIn: 'Authentifizierung läuft...',
-        signOut: 'Abmelden',
-        loadMore: 'Mehr laden',
-        deployClaw: 'Claw bereitstellen',
-        deployYourFirstClaw: 'Stelle deinen ersten Claw bereit'
-    },
     rebrand: {
         tag: 'EVOLUTION',
         title: 'ClawHost heißt jetzt Agentist',
@@ -1972,7 +1948,6 @@ const de: Translations = {
         featureRepairTools: 'Reparatur-Tools',
         featureSupportChannels: 'Support-Kanäle',
         featureMultiLanguage: 'Mehrsprachige Oberfläche',
-        featureMobileApp: 'Mobile App',
         featureDesktopApp: 'Desktop-App',
         featureOneClickVersion: 'Versionswechsel mit einem Klick',
         featureWebTerminal: 'Web-Terminal',
@@ -2034,7 +2009,6 @@ const de: Translations = {
         englishOnly: 'Nur Englisch',
         available: 'Verfügbar',
         comingSoon: 'Demnächst verfügbar',
-        iosMacOs: 'iOS & macOS',
         macOsOnly: 'Nur macOS',
         viaTelegram: 'Über Telegram',
         builtInTerminal: 'Kein SSH nötig',

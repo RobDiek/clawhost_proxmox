@@ -231,8 +231,6 @@ const ja: Translations = {
         documentation: 'ドキュメント',
         productDescription:
             'ワンクリックでクラウドまたはローカルにOpenClawとHermesエージェントをデプロイ — ClawHostでAIエージェントをより速く構築、接続、スケーリング.',
-        downloadAndroid: 'Google Playで入手',
-        downloadIos: 'App Storeからダウンロード',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -1828,26 +1826,6 @@ const ja: Translations = {
         contactText:
             'これらの規約に関するご質問がある場合は、以下までお問い合わせください'
     },
-    mobile: {
-        signIn: '認証',
-        signInDescription: '認証してエージェントを管理・デプロイ。',
-        enterEmail: 'メールアドレス',
-        emailPlaceholder: 'example@clawhost.cloud',
-        continueWithEmail: 'メールで続行',
-        otpDescription: 'サインインコードをお送りします。パスワード不要。',
-        sending: '送信中...',
-        checkYourEmail: 'メールを確認してください',
-        codeSentTo: '6桁のコードを送信しました',
-        resendCode: 'コードを再送信',
-        resendIn: '{{seconds}}秒後に再送信',
-        changeEmail: 'メールアドレスを変更',
-        invalidCode: '無効なコードです！',
-        signingIn: '認証中...',
-        signOut: 'サインアウト',
-        loadMore: 'もっと読み込む',
-        deployClaw: 'Clawをデプロイ',
-        deployYourFirstClaw: '最初のClawをデプロイ'
-    },
     rebrand: {
         tag: '進化',
         title: 'ClawHostはAgentistになりました',
@@ -1903,7 +1881,6 @@ const ja: Translations = {
         featureRepairTools: '修復ツール',
         featureSupportChannels: 'サポートチャネル',
         featureMultiLanguage: '多言語UI',
-        featureMobileApp: 'モバイルアプリ',
         featureDesktopApp: 'デスクトップアプリ',
         featureOneClickVersion: 'ワンクリックバージョン切替',
         featureWebTerminal: 'Webターミナルアクセス',
@@ -1965,7 +1942,6 @@ const ja: Translations = {
         englishOnly: '英語のみ',
         available: '利用可能',
         comingSoon: '近日公開',
-        iosMacOs: 'iOS & macOS',
         macOsOnly: 'macOSのみ',
         viaTelegram: 'Telegram経由',
         builtInTerminal: 'SSH不要',

@@ -1,9 +1,9 @@
 ---
-title: OpenClaw's Companion Apps -- Desktop, Mobile, and Beyond
-slug: openclaw-s-companion-apps-desktop-mobile-and-beyond
+title: OpenClaw's Companion Apps -- Desktop and Beyond
+slug: openclaw-s-companion-apps-desktop-and-beyond
 description:
-    OpenClaw isn't just a CLI. Explore the ecosystem of desktop, mobile,
-    and web apps built to interact with your agent.
+    OpenClaw isn't just a CLI. Explore the ecosystem of desktop and web
+    apps built to interact with your agent.
 author: ClawHost
 publishedAt: '2026-02-26'
 tags:
@@ -14,9 +14,9 @@ tags:
 
 ## Your Agent Should Be Everywhere You Are
 
-The promise of a personal AI agent falls apart if you can only reach it from one device or one application. You set up OpenClaw, configure your agent, install skills, connect channels -- and then you are sitting in a meeting on your phone, needing to ask your agent something, and you cannot because your only access point is a WhatsApp conversation on your laptop.
+The promise of a personal AI agent falls apart if you can only reach it from one device or one application. You set up OpenClaw, configure your agent, install skills, connect channels -- and then you are sitting at a different machine, needing to ask your agent something, and you cannot because your only access point is a WhatsApp conversation on another device.
 
-OpenClaw's companion apps exist to solve this problem. The goal is straightforward: your agent should be accessible from whatever device you are using, in whatever context makes sense, without friction. A desktop app for when you are at your workstation. A mobile app for when you are on the move. A webchat interface for when you are on a shared computer or just want browser-based access. Messaging app integrations for when you are already in WhatsApp or Telegram.
+OpenClaw's companion apps exist to solve this problem. The goal is straightforward: your agent should be accessible from whatever device you are using, in whatever context makes sense, without friction. A desktop app for when you are at your workstation. A webchat interface for when you are on a shared computer or just want browser-based access. Messaging app integrations for when you are already in WhatsApp or Telegram.
 
 No single interface is right for every situation. The companion app ecosystem ensures you always have the right one.
 
@@ -42,33 +42,11 @@ The desktop app also enables deeper system integration. It can register global k
 
 **File handling.** Drag and drop files into the conversation to share them with your agent. The desktop app handles the upload to your OpenClaw instance and makes the file available to whatever skills need it. Your agent can also send files back -- reports, generated images, exported data -- and the desktop app handles downloads natively.
 
-## The Mobile App
-
-Your phone is the device you always have with you. The mobile companion app makes your agent equally ever-present.
-
-### Designed for Mobile Interaction
-
-Interacting with an AI agent on a phone is different from doing so on a desktop. Screens are smaller. Typing is slower. Conversations happen in shorter bursts, often while doing something else. The mobile app is designed for this context.
-
-**Quick actions.** The most common things you ask your agent to do are accessible as one-tap shortcuts. Check server status. Read the latest notifications. Run a routine task. These do not require typing a full message -- just a tap.
-
-**Voice input.** OpenClaw supports voice mode, and the mobile app takes full advantage of it. Hold the microphone button, speak your request, and your agent processes it. This is particularly useful when you are driving, walking, or otherwise unable to type.
-
-**Push notifications.** When your agent needs your attention -- a webhook-triggered event requires a decision, a long-running task completes, an alert fires -- the mobile app delivers a push notification. You can respond directly from the notification without even opening the app.
-
-**Offline queuing.** If you lose connectivity temporarily (in a subway, on a plane, in an area with poor signal), the mobile app queues your messages and sends them when the connection is restored. You never lose a request because of a network blip.
-
-### Managing Your Instance on the Go
-
-Beyond chatting with your agent, the mobile app provides lightweight instance management capabilities. You can check the status of your claws, view resource usage and health metrics, start or stop servers when needed, and review recent activity logs.
-
-This is not meant to replace the full dashboard experience you get on desktop or in the web interface. It is meant to give you enough control that you can respond to situations without needing to find a laptop.
-
 ## The Webchat Interface
 
 Not every situation calls for an installed application. Sometimes you are on a public computer, a coworker's machine, or a device where you cannot install software. The webchat interface provides full access to your agent through any modern web browser.
 
-We cover the webchat interface in depth in a separate post, but it is worth understanding how it fits into the companion app ecosystem. Webchat is the universal fallback -- the interface that works everywhere, on every device, without installation. It sacrifices some of the native integration that desktop and mobile apps offer (system tray presence, push notifications, global shortcuts) in exchange for universal accessibility.
+We cover the webchat interface in depth in a separate post, but it is worth understanding how it fits into the companion app ecosystem. Webchat is the universal fallback -- the interface that works everywhere, on every device, without installation. It sacrifices some of the native integration that the desktop app offers (system tray presence, global shortcuts) in exchange for universal accessibility.
 
 For many users, webchat is actually the primary interface. If you spend your day in a browser anyway, opening another tab is lower friction than switching to a separate application.
 
@@ -84,7 +62,7 @@ The limitation is formatting. Messaging platforms have constrained support for r
 
 One of the core design principles of the companion app ecosystem is consistency. Regardless of which interface you use to talk to your agent, the experience should feel continuous.
 
-**Conversation continuity.** A conversation you start on your phone continues seamlessly when you open the desktop app. Messages sent from any interface appear in the conversation history visible from every other interface. You never need to repeat yourself because you switched devices.
+**Conversation continuity.** A conversation you start in webchat continues seamlessly when you open the desktop app. Messages sent from any interface appear in the conversation history visible from every other interface. You never need to repeat yourself because you switched devices.
 
 **Shared configuration.** Your agent's configuration -- installed skills, channel settings, environment variables -- is managed at the instance level, not the interface level. Changes made through the web dashboard apply everywhere. A skill you install through the desktop app is available when you chat through WhatsApp.
 
@@ -106,23 +84,17 @@ The dashboard is accessible through any browser and provides the full set of man
 
 The dashboard and the companion apps serve different but complementary purposes. You manage your agent through the dashboard. You use your agent through the companion apps.
 
-## Voice Mode Across Interfaces
+## Voice Mode in the Desktop App
 
-OpenClaw's voice mode is a natural fit for companion apps, and each interface approaches voice interaction differently based on the device's capabilities and usage context.
+OpenClaw's voice mode is a natural fit for the desktop app. It supports push-to-talk voice input with a configurable hotkey. Hold the key, speak your request, and release. The audio is processed by OpenClaw's speech recognition and sent to your agent as a text message. The agent's response can optionally be read aloud using OpenClaw's text-to-speech engine, creating a hands-free conversational experience while you work.
 
-The desktop app supports push-to-talk voice input with a configurable hotkey. Hold the key, speak your request, and release. The audio is processed by OpenClaw's speech recognition and sent to your agent as a text message. The agent's response can optionally be read aloud using OpenClaw's text-to-speech engine, creating a hands-free conversational experience while you work.
-
-The mobile app goes further with always-listening mode (when enabled). With your phone on a desk or mounted in your car, you can interact with your agent purely through voice. The mobile app handles noise cancellation and endpoint detection to separate your speech from background sounds.
-
-Voice mode across interfaces opens up scenarios that text-based interaction cannot serve well. Asking your agent a question while your hands are occupied. Getting a status update while driving. Having a back-and-forth brainstorming session without typing. The same agent, the same skills, the same knowledge -- but accessed through speech instead of text.
+Voice mode opens up scenarios that text-based interaction cannot serve well. Asking your agent a question while your hands are occupied. Having a back-and-forth brainstorming session without typing. The same agent, the same skills, the same knowledge -- but accessed through speech instead of text.
 
 ## Choosing the Right Interface
 
 With multiple ways to access your agent, the natural question is: which should you use? The answer depends on your situation.
 
 **Use the desktop app when** you are at your workstation and want a dedicated, always-available agent window with rich content rendering and system integration. Ideal for development workflows, long research sessions, and tasks that produce complex output.
-
-**Use the mobile app when** you are away from your desk and need to communicate with your agent, check on your instance, or respond to notifications. Ideal for quick interactions, voice-driven requests, and staying connected while mobile.
 
 **Use the webchat interface when** you are on a device where you cannot or do not want to install an application, or when you want browser-based access without any setup. Ideal for shared computers, temporary access, and embedding agent access in other web applications.
 
@@ -132,15 +104,15 @@ With multiple ways to access your agent, the natural question is: which should y
 
 ## Notifications Across Interfaces
 
-One of the practical challenges of a multi-interface ecosystem is notification management. If your agent completes a background task, which device should receive the notification? If you are active in the desktop app, the notification should appear there. If you are not at your computer, it should go to your phone. If you are not using any companion app, it should arrive through your configured messaging channel.
+One of the practical challenges of a multi-interface ecosystem is notification management. If your agent completes a background task, which interface should receive the notification? If you are active in the desktop app, the notification should appear there. If you are not at your computer, it should arrive through your configured messaging channel.
 
-OpenClaw's notification routing handles this intelligently. It tracks which interfaces you have actively open and routes notifications to the most appropriate one. If multiple interfaces are active, you can configure priority rules -- for example, prefer the desktop app when available, fall back to the mobile app, and use messaging platforms as a last resort.
+OpenClaw's notification routing handles this intelligently. It tracks which interfaces you have actively open and routes notifications to the most appropriate one. If multiple interfaces are active, you can configure priority rules -- for example, prefer the desktop app when available, and use messaging platforms as a fallback.
 
 This prevents the common annoyance of receiving the same notification on every device simultaneously. Your agent reaches you through the channel that makes sense for your current context, not through all channels at once.
 
 ## Offline Capabilities and Sync
 
-Not every companion app can be connected to your OpenClaw instance at all times. Mobile devices lose connectivity. Laptops close. Network conditions vary. The companion apps handle these situations gracefully.
+Not every companion app can be connected to your OpenClaw instance at all times. Laptops close. Network conditions vary. The companion apps handle these situations gracefully.
 
 **Message queuing.** If you compose a message while offline, the companion app queues it locally and sends it when connectivity is restored. You do not need to remember to retry.
 
@@ -156,15 +128,13 @@ Multiple access points mean multiple potential attack surfaces. The companion ap
 
 **Session management.** Each companion app maintains its own authenticated session. You can view all active sessions from the dashboard and revoke any session individually. If you lose a device, you can immediately revoke its session without affecting your other devices.
 
-**Biometric authentication.** The mobile app supports biometric authentication (fingerprint, face recognition) as an additional layer before accessing your agent. This prevents someone who picks up your unlocked phone from accessing your agent and its capabilities.
-
-**Per-interface permissions.** You can configure different permission levels for different interfaces. Perhaps you want full agent capabilities through the desktop app but limited capabilities through the mobile app when it is on a public network. Per-interface permissions give you that control.
+**Per-interface permissions.** You can configure different permission levels for different interfaces. Perhaps you want full agent capabilities through the desktop app but limited capabilities through webchat when accessed from a public network. Per-interface permissions give you that control.
 
 ## The Vision: Ambient Agent Access
 
 The long-term vision behind the companion app ecosystem goes beyond just offering multiple interfaces. It is about making your agent ambientally available -- present in whatever context you need it, without requiring you to seek it out.
 
-A desktop app that pops up when you highlight text and press a shortcut. A mobile app that suggests actions based on your notifications. A webchat widget embedded in the tools you use for work. A voice interface on your smart speaker. A browser extension that can interact with web pages on your behalf.
+A desktop app that pops up when you highlight text and press a shortcut. A webchat widget embedded in the tools you use for work. A voice interface on your smart speaker. A browser extension that can interact with web pages on your behalf.
 
 Each of these touchpoints represents a different moment where an agent could be helpful, and the companion app ecosystem is the infrastructure that makes it possible to meet users in those moments.
 

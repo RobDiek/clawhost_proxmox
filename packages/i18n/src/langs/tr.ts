@@ -228,8 +228,6 @@ const tr: Translations = {
         documentation: 'Belgeler',
         productDescription:
             'OpenClaw ve Hermes ajanlarını bulutta veya yerel olarak tek tıkla dağıtın — ClawHost ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
-        downloadAndroid: "Google Play'den İndirin",
-        downloadIos: "App Store'dan İndirin",
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -1850,28 +1848,6 @@ const tr: Translations = {
         contactText:
             'Bu Şartlar hakkında sorularınız varsa, lütfen şu adresten bize ulaşın:'
     },
-    mobile: {
-        signIn: 'Kimlik Doğrulama',
-        signInDescription:
-            'Ajanlarınızı yönetmek ve dağıtmak için kimlik doğrulayın.',
-        enterEmail: 'E-posta Adresi',
-        emailPlaceholder: 'example@clawhost.cloud',
-        continueWithEmail: 'E-posta ile Devam Et',
-        otpDescription:
-            'Giriş yapmanız için size bir kod göndereceğiz. Şifre gerekmez.',
-        sending: 'Gönderiliyor...',
-        checkYourEmail: 'E-postanızı kontrol edin',
-        codeSentTo: '6 haneli bir kod gönderdik:',
-        resendCode: 'Kodu tekrar gönder',
-        resendIn: '{{seconds}}s sonra tekrar gönder',
-        changeEmail: 'E-postayı değiştir',
-        invalidCode: 'Geçersiz kod!',
-        signingIn: 'Kimlik doğrulanıyor...',
-        signOut: 'Çıkış Yap',
-        loadMore: 'Daha Fazla Yükle',
-        deployClaw: 'Claw Dağıt',
-        deployYourFirstClaw: "İlk Claw'ınızı dağıtın"
-    },
     rebrand: {
         tag: 'EVRİM',
         title: 'ClawHost artık Agentist',
@@ -1929,7 +1905,6 @@ const tr: Translations = {
         featureRepairTools: 'Onarım araçları',
         featureSupportChannels: 'Destek kanalları',
         featureMultiLanguage: 'Çoklu dil arayüzü',
-        featureMobileApp: 'Mobil uygulama',
         featureDesktopApp: 'Masaüstü uygulaması',
         featureOneClickVersion: 'Tek tıkla sürüm değiştirme',
         featureWebTerminal: 'Web terminal erişimi',
@@ -1991,7 +1966,6 @@ const tr: Translations = {
         englishOnly: 'Yalnızca İngilizce',
         available: 'Mevcut',
         comingSoon: 'Yakında',
-        iosMacOs: 'iOS ve macOS',
         macOsOnly: 'Yalnızca macOS',
         viaTelegram: 'Telegram üzerinden',
         builtInTerminal: 'SSH gerekmez',

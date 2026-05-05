@@ -231,8 +231,6 @@ const hi: Translations = {
         documentation: 'दस्तावेज़ीकरण',
         productDescription:
             'एक क्लिक में क्लाउड या स्थानीय रूप से OpenClaw और Hermes एजेंट डिप्लॉय करें — ClawHost के साथ अपने AI एजेंट तेज़ी से बनाएँ, कनेक्ट करें और स्केल करें.',
-        downloadAndroid: 'Google Play पर प्राप्त करें',
-        downloadIos: 'App Store पर डाउनलोड करें',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -1839,28 +1837,6 @@ const hi: Translations = {
         contactText:
             'यदि इन शर्तों के बारे में आपके कोई प्रश्न हैं, तो कृपया हमसे संपर्क करें'
     },
-    mobile: {
-        signIn: 'प्रमाणीकरण',
-        signInDescription:
-            'अपने एजेंट प्रबंधित और डिप्लॉय करने के लिए प्रमाणित करें.',
-        enterEmail: 'ईमेल पता',
-        emailPlaceholder: 'example@clawhost.cloud',
-        continueWithEmail: 'ईमेल से जारी रखें',
-        otpDescription:
-            'हम आपको साइन इन करने के लिए एक कोड भेजेंगे. कोई पासवर्ड नहीं चाहिए.',
-        sending: 'भेजा जा रहा है...',
-        checkYourEmail: 'अपना ईमेल जाँचें',
-        codeSentTo: 'हमने 6 अंकों का कोड भेजा है',
-        resendCode: 'कोड पुनः भेजें',
-        resendIn: '{{seconds}}s में पुनः भेजें',
-        changeEmail: 'ईमेल बदलें',
-        invalidCode: 'अमान्य कोड!',
-        signingIn: 'प्रमाणित हो रहा है...',
-        signOut: 'साइन आउट',
-        loadMore: 'और लोड करें',
-        deployClaw: 'क्लॉ डिप्लॉय करें',
-        deployYourFirstClaw: 'अपना पहला क्लॉ डिप्लॉय करें'
-    },
     rebrand: {
         tag: 'विकास',
         title: 'ClawHost अब Agentist है',
@@ -1916,7 +1892,6 @@ const hi: Translations = {
         featureRepairTools: 'मरम्मत उपकरण',
         featureSupportChannels: 'सहायता चैनल',
         featureMultiLanguage: 'बहु-भाषा UI',
-        featureMobileApp: 'मोबाइल ऐप',
         featureDesktopApp: 'डेस्कटॉप ऐप',
         featureOneClickVersion: 'एक-क्लिक संस्करण स्विच',
         featureWebTerminal: 'वेब टर्मिनल एक्सेस',
@@ -1978,7 +1953,6 @@ const hi: Translations = {
         englishOnly: 'केवल अंग्रेज़ी',
         available: 'उपलब्ध',
         comingSoon: 'जल्द आ रहा है',
-        iosMacOs: 'iOS और macOS',
         macOsOnly: 'केवल macOS',
         viaTelegram: 'Telegram के माध्यम से',
         builtInTerminal: 'कोई SSH नहीं चाहिए',

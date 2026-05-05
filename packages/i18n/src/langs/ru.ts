@@ -229,8 +229,6 @@ const ru: Translations = {
         documentation: 'Документация',
         productDescription:
             'Разворачивайте агентов OpenClaw и Hermes в облаке или локально в один клик — создавайте, подключайте и масштабируйте ваших ИИ-агентов быстрее с ClawHost.',
-        downloadAndroid: 'Скачать в Google Play',
-        downloadIos: 'Скачать в App Store',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -1849,27 +1847,6 @@ const ru: Translations = {
         contactText:
             'Если у вас есть вопросы об этих Условиях, свяжитесь с нами по адресу'
     },
-    mobile: {
-        signIn: 'Аутентификация',
-        signInDescription:
-            'Авторизуйтесь для управления и развёртывания ваших агентов.',
-        enterEmail: 'Адрес электронной почты',
-        emailPlaceholder: 'example@clawhost.cloud',
-        continueWithEmail: 'Продолжить с Email',
-        otpDescription: 'Мы отправим вам код для входа. Пароль не нужен.',
-        sending: 'Отправка...',
-        checkYourEmail: 'Проверьте почту',
-        codeSentTo: 'Мы отправили 6-значный код на',
-        resendCode: 'Отправить код повторно',
-        resendIn: 'Отправить повторно через {{seconds}}с',
-        changeEmail: 'Изменить email',
-        invalidCode: 'Неверный код !',
-        signingIn: 'Аутентификация...',
-        signOut: 'Выйти',
-        loadMore: 'Загрузить ещё',
-        deployClaw: 'Развернуть клоу',
-        deployYourFirstClaw: 'Разверните ваш первый клоу'
-    },
     rebrand: {
         tag: 'ЭВОЛЮЦИЯ',
         title: 'ClawHost теперь Agentist',
@@ -1926,7 +1903,6 @@ const ru: Translations = {
         featureRepairTools: 'Инструменты восстановления',
         featureSupportChannels: 'Каналы поддержки',
         featureMultiLanguage: 'Мультиязычный интерфейс',
-        featureMobileApp: 'Мобильное приложение',
         featureDesktopApp: 'Настольное приложение',
         featureOneClickVersion: 'Переключение версии в один клик',
         featureWebTerminal: 'Доступ через веб-терминал',
@@ -1988,7 +1964,6 @@ const ru: Translations = {
         englishOnly: 'Только английский',
         available: 'Доступно',
         comingSoon: 'Скоро',
-        iosMacOs: 'iOS и macOS',
         macOsOnly: 'Только macOS',
         viaTelegram: 'Через Telegram',
         builtInTerminal: 'SSH не нужен',

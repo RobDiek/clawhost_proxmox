@@ -11,7 +11,6 @@
         "build": "turbo build",
         "dev:web": "bun --filter web dev",
         "dev:api": "bun --filter api dev",
-        "dev:mobile": "bun --filter mobile dev",
         "dev:desktop": "bun --filter clawhostgo dev",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
