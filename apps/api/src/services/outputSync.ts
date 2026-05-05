@@ -109,9 +109,11 @@ function parseSessionOutputs(jsonlContent: string, agentRole: string): ParsedOut
                 if (text.match(/^(HEARTBEAT|heartbeat|No changes|Nothing)/i)) continue
                 // Skip Claude's English chain-of-thought / tool-use intros that leak from
                 // session JSONL files. These are agent reasoning, not user-facing output.
-                // Pattern: "I'll/I will/Let me/I'm going to/I need to/I should ... <verb>"
-                // Only filter if short — long English content is legitimate output.
-                if (text.length < 400 && text.match(/^(I['']?ll|I will|Let me|I[''']?m going to|I need to|I should|I am going to|I[''']?ve|Looking at|First,? I[''']?ll|Now I[''']?ll|Let[''']?s)\s+(check|examine|look|see|verify|search|find|get|fetch|read|access|run|execute|use|try|start|begin|review|investigate|inspect|test|create|update|write|generate|build|analyze|consider|think)/i)) continue
+                // We match the FIRST LINE only (the title) — full content can be long,
+                // but if it starts with "I'll check..." / "Let me..." / etc., the entire
+                // entry is reasoning regardless of length.
+                const firstLine = (text.split('\n')[0] || '').trim()
+                if (firstLine.match(/^(I['']?ll|I will|Let me|I[''']?m going to|I need to|I should|I am going to|I[''']?ve|Looking at|First,? I[''']?ll|Now I[''']?ll|Let[''']?s|I[''']?m looking|I[''']?ll start|I[''']?ll begin|I[''']?ll first|I[''']?ll now)\s+(check|examine|look|see|verify|search|find|get|fetch|read|access|run|execute|use|try|start|begin|review|investigate|inspect|test|create|update|write|generate|build|analyze|consider|think|gather|review|grab|pull|do|make|set)/i)) continue
 
                 const usage = (entry as any).message?.usage || (entry as any).usage || {}
 
