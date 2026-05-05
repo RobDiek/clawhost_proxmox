@@ -12,6 +12,24 @@ services:
       POSTGRES_USER: openclaw
       POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
     ports: ["127.0.0.1:5432:5432"]
+    # Recurrence guard: postgres:16-alpine on this volume occasionally loses
+    # runtime subdirs (pg_notify, pg_serial, pg_dynshmem, pg_replslot,
+    # pg_snapshots, pg_stat_tmp, pg_commit_ts, pg_tblspc, pg_twophase,
+    # pg_logical/mappings, pg_logical/snapshots, pg_stat) after clean shutdown.
+    # Without them the next startup hard-fails with "FATAL: could not open
+    # directory pg_notify". We recreate them on every container start before
+    # exec'ing the real entrypoint.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        cd /var/lib/postgresql/data && \
+        for d in pg_notify pg_serial pg_dynshmem pg_replslot pg_snapshots pg_stat_tmp pg_commit_ts pg_tblspc pg_twophase pg_logical/mappings pg_logical/snapshots pg_stat; do
+          mkdir -p "$$d"
+          chown -R postgres:postgres "$$d" 2>/dev/null || true
+          chmod 700 "$$d" 2>/dev/null || true
+        done
+        exec docker-entrypoint.sh postgres
 
   uptime-kuma:
     image: louislam/uptime-kuma:1
