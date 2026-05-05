@@ -344,6 +344,18 @@ app.post('/instances/:id/setup/agents/research/summary', researchSummary)
 app.post('/instances/:id/setup/agents/strategy/summary', strategySummary)
 app.post('/instances/:id/setup/agents/research/reset', resetResearch)
 app.post('/instances/:id/setup/agents/strategy/reset', resetStrategy)
+
+// Intent-aware research pipeline (docs/research-pipeline-design.md).
+// Phase 2: plan endpoints functional, stage runners are 501 stubs that
+// Phase 3 fills in. Legacy /setup/agents/research/* endpoints above stay
+// alive until Phase 7 cleanup so the existing UI keeps working.
+import { getResearchPlan, setResearchPlan, expandResearchPlan } from '@/controllers/hosting/research/plan'
+import { runResearchStage, getResearchStageStatus } from '@/controllers/hosting/research/runStage'
+app.get('/instances/:id/research/plan', getResearchPlan)
+app.post('/instances/:id/research/plan', setResearchPlan)
+app.post('/instances/:id/research/plan/expand', expandResearchPlan)
+app.post('/instances/:id/research/stage/:stageId', runResearchStage)
+app.get('/instances/:id/research/stage/:stageId/status', getResearchStageStatus)
 app.post('/instances/:id/setup/agents/content-plan/regenerate', regenerateContentPlan)
 app.get('/instances/:id/setup/agents/content-plan', getContentPlan)
 app.post('/instances/:id/optimization/weekly', generateOptimizationReport)
