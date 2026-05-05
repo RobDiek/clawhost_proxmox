@@ -164,6 +164,15 @@ const ja: Translations = {
         ctaTitle: 'OpenClawをローカルで実行',
         ctaDescription:
             '一回払い、永久ライセンス。お手元のマシンにOpenClawをデプロイ — クラウドなし、サブスクリプションなし、制限なし。あなたのデータ、あなたのルール.',
+        downloadForMac: 'Mac 用ダウンロード',
+        downloadVersion: 'バージョン {{version}}',
+        downloadForWindows: 'Windows 用ダウンロード',
+        deviceNotSupported: 'お使いのデバイスはまだ ClawHost Go に対応していません。',
+        downloadFailed: 'ダウンロードに失敗しました!',
+        downloadStarted: 'ダウンロードを開始しました。',
+        appleSilicon: 'Apple Silicon',
+        intel: 'Intel',
+        chooseMacArch: 'お使いの Mac はどちらですか?',
         joinWaitlist: 'ウェイトリストに参加',
         joinedWaitlist: 'ウェイトリスト参加済み',
         waitlistAlreadyJoinedToast:

@@ -42,7 +42,11 @@ import {
     LegalSection
 } from '@/components/legal'
 
-import { GoPricingCard, GoWaitlistForm } from '@/components/go'
+import {
+    GoDownloadButton,
+    GoPricingCard,
+    GoWaitlistForm
+} from '@/components/go'
 
 import {
     LogoV2,
@@ -89,6 +93,7 @@ export {
     ErrorState,
     FaqSection,
     FeaturesGrid,
+    GoDownloadButton,
     GoPricingCard,
     GoWaitlistForm,
     Header,

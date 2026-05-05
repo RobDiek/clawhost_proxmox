@@ -164,6 +164,15 @@ const ar: Translations = {
         ctaTitle: 'شغّل OpenClaw محلياً',
         ctaDescription:
             'دفعة واحدة، ترخيص مدى الحياة. انشر OpenClaw على جهازك — بدون سحابة، بدون اشتراكات، بدون حدود. بياناتك، قواعدك.',
+        downloadForMac: 'تنزيل لـ Mac',
+        downloadVersion: 'الإصدار {{version}}',
+        downloadForWindows: 'تنزيل لـ Windows',
+        deviceNotSupported: 'جهازك غير مدعوم بعد بواسطة ClawHost Go.',
+        downloadFailed: 'فشل التنزيل!',
+        downloadStarted: 'بدأ التنزيل.',
+        appleSilicon: 'Apple Silicon',
+        intel: 'Intel',
+        chooseMacArch: 'أي Mac تملك؟',
         joinWaitlist: 'انضم لقائمة الانتظار',
         joinedWaitlist: 'تم الانضمام لقائمة الانتظار',
         waitlistAlreadyJoinedToast:

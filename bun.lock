@@ -25,7 +25,7 @@
     },
     "apps/api": {
       "name": "api",
-      "version": "0.0.271",
+      "version": "0.0.273",
       "dependencies": {
         "@openclaw/i18n": "workspace:*",
         "@openclaw/shared": "workspace:*",
@@ -52,7 +52,7 @@
     },
     "apps/clawhostgo": {
       "name": "clawhostgo",
-      "version": "0.0.236",
+      "version": "0.0.1",
       "dependencies": {
         "@openclaw/i18n": "workspace:*",
         "@openclaw/shared": "workspace:*",
@@ -62,6 +62,8 @@
         "@radix-ui/react-label": "^2.1.8",
         "@radix-ui/react-slot": "^1.2.4",
         "@radix-ui/react-tooltip": "^1.2.8",
+        "@remix-run/router": "^1.23.2",
+        "@tanstack/query-core": "^5.60.0",
         "@tanstack/react-query": "^5.60.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -71,6 +73,7 @@
         "node-pty": "^1.1.0",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
+        "react-router": "^6.28.0",
         "react-router-dom": "^6.28.0",
         "tailwind-merge": "^3.4.0",
         "tailwindcss-animate": "^1.0.7",
@@ -101,7 +104,7 @@
     },
     "apps/web": {
       "name": "web",
-      "version": "0.0.267",
+      "version": "0.0.269",
       "dependencies": {
         "@codemirror/language": "^6.12.3",
         "@codemirror/language-data": "^6.5.2",
@@ -109,7 +112,9 @@
         "@codemirror/view": "^6.36.0",
         "@emoji-mart/data": "^1.2.1",
         "@emoji-mart/react": "^1.1.1",
+        "@lezer/common": "^1.5.2",
         "@lezer/highlight": "^1.2.3",
+        "@lezer/lr": "^1.4.2",
         "@mdx-js/rollup": "^3.1.1",
         "@openclaw/i18n": "workspace:*",
         "@openclaw/shared": "workspace:*",

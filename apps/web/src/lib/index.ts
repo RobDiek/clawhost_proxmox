@@ -19,6 +19,8 @@ import copyToClipboard from '@/lib/copyToClipboard'
 import reportWebVitals from '@/lib/reportWebVitals'
 import isSafeRedirectUrl from '@/lib/isSafeRedirectUrl'
 import handleAbortToast from '@/lib/handleAbortToast'
+import fetchGoManifest from '@/lib/fetchGoManifest'
+import downloadGoBinary from '@/lib/downloadGoBinary'
 import {
     formatDate,
     formatCurrency,
@@ -47,5 +49,7 @@ export {
     formatCurrency,
     formatCompactNumber,
     isSafeRedirectUrl,
-    handleAbortToast
+    handleAbortToast,
+    fetchGoManifest,
+    downloadGoBinary
 }

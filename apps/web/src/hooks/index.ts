@@ -102,6 +102,8 @@ import useVideoSync from '@/hooks/useVideoSync'
 import useDitherHover from '@/hooks/useDitherHover'
 import useGridFade from '@/hooks/useGridFade'
 import useAbortController from '@/hooks/useAbortController'
+import useDetectedOS from '@/hooks/useDetectedOS'
+import useMacArch from '@/hooks/useMacArch'
 
 export {
     useAdminAnalytics,
@@ -189,5 +191,7 @@ export {
     useVideoSync,
     useDitherHover,
     useGridFade,
-    useAbortController
+    useAbortController,
+    useDetectedOS,
+    useMacArch
 }

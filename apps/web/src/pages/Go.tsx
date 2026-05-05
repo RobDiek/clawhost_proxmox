@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { FeatureItem, Faq } from '@/ts/Interfaces'
 
-import { useRef, useState, useEffect, useCallback, type FormEvent } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useScroll, useTransform } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { goLicense } from '@openclaw/shared'
@@ -19,12 +19,10 @@ import {
     MacosDesktopPreview,
     GoPricingCard,
     LandingCTA,
-    GoWaitlistForm
+    GoDownloadButton
 } from '@/components'
-import { usePreferencesStore, useUIStore } from '@/lib/store'
-import { PRODUCT, TOAST_TYPE } from '@/lib/constants'
-import { useAuth } from '@/lib/auth'
-import { api } from '@/lib'
+import { usePreferencesStore } from '@/lib/store'
+import { PRODUCT } from '@/lib/constants'
 import {
     ClockIcon,
     LockIcon,
@@ -117,65 +115,9 @@ const Go: FC = (): ReactNode => {
     useEffect(() => {
         setProduct(PRODUCT.GO)
     }, [setProduct])
-    const { user, loading: authLoading } = useAuth()
-    const showToast = useUIStore((s) => s.showToast)
     const [activeSection, setActiveSection] = useState('')
-    const [hasJoined, setHasJoined] = useState(false)
-    const [isJoining, setIsJoining] = useState(false)
-    const [isCheckingStatus, setIsCheckingStatus] = useState(false)
-    const [waitlistEmail, setWaitlistEmail] = useState('')
     const previewRef = useRef<HTMLDivElement>(null)
 
-    useEffect(() => {
-        setHasJoined(false)
-        setWaitlistEmail('')
-        setIsCheckingStatus(false)
-        if (authLoading || !user?.email) return
-        setIsCheckingStatus(true)
-        api.checkWaitlistStatus(user.email)
-            .then((res) => {
-                if (res.joined) setHasJoined(true)
-            })
-            .catch(() => {})
-            .finally(() => setIsCheckingStatus(false))
-    }, [user?.email, authLoading])
-
-    const handleJoinWaitlist = useCallback(
-        async (email: string) => {
-            if (!email || isJoining || hasJoined) return
-            setIsJoining(true)
-            try {
-                const res = await api.joinWaitlist(email)
-                setHasJoined(true)
-                if (res.alreadyJoined) {
-                    showToast(
-                        t('go.waitlistAlreadyJoinedToast'),
-                        TOAST_TYPE.INFO
-                    )
-                }
-            } catch (error) {
-                const message =
-                    error instanceof Error
-                        ? error.message
-                        : t('go.waitlistFailedToast')
-                showToast(message, TOAST_TYPE.ERROR)
-            } finally {
-                setIsJoining(false)
-            }
-        },
-        [isJoining, hasJoined, showToast]
-    )
-
-    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(waitlistEmail.trim())
-
-    const handleEmailSubmit = useCallback(
-        (e: FormEvent) => {
-            e.preventDefault()
-            if (!isValidEmail) return
-            handleJoinWaitlist(waitlistEmail.trim())
-        },
-        [waitlistEmail, isValidEmail, handleJoinWaitlist]
-    )
     const { scrollYProgress: previewProgress } = useScroll({
         target: previewRef,
         offset: ['start end', 'end start']
@@ -212,19 +154,6 @@ const Go: FC = (): ReactNode => {
         { label: t('go.faqTitle'), href: '#faq', id: 'faq' }
     ]
 
-    const waitlistFormProps = {
-        user,
-        authLoading,
-        hasJoined,
-        isJoining,
-        isCheckingStatus,
-        waitlistEmail,
-        isValidEmail,
-        onWaitlistEmailChange: setWaitlistEmail,
-        onJoinWaitlist: handleJoinWaitlist,
-        onEmailSubmit: handleEmailSubmit
-    }
-
     return (
         <div className='font-satoshi bg-background text-foreground min-h-screen'>
             <PageTitle
@@ -256,8 +185,8 @@ const Go: FC = (): ReactNode => {
                                 description={t('go.description')}
                             />
 
-                            <div className='mb-16 flex flex-col gap-4 sm:flex-row'>
-                                <GoWaitlistForm {...waitlistFormProps} />
+                            <div className='mb-16 flex flex-col items-center gap-4 sm:flex-row'>
+                                <GoDownloadButton />
                             </div>
 
                             <StatsRow
@@ -377,10 +306,7 @@ const Go: FC = (): ReactNode => {
                     title={t('go.ctaTitle')}
                     description={t('go.ctaDescription')}
                 >
-                    <GoWaitlistForm
-                        {...waitlistFormProps}
-                        guestClassName='flex gap-2'
-                    />
+                    <GoDownloadButton />
                 </LandingCTA>
             </main>
 

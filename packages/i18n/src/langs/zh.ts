@@ -163,6 +163,15 @@ const zh: Translations = {
         ctaTitle: '在本地运行 OpenClaw',
         ctaDescription:
             '一次性付款，终身许可证。在您自己的设备上部署 OpenClaw — 无云端，无订阅，无限制。您的数据，您做主.',
+        downloadForMac: '下载 Mac 版本',
+        downloadVersion: '版本 {{version}}',
+        downloadForWindows: '下载 Windows 版本',
+        deviceNotSupported: '您的设备暂不支持 ClawHost Go。',
+        downloadFailed: '下载失败!',
+        downloadStarted: '下载已开始。',
+        appleSilicon: 'Apple Silicon',
+        intel: 'Intel',
+        chooseMacArch: '您使用的是哪种 Mac?',
         joinWaitlist: '加入等待列表',
         joinedWaitlist: '已加入等待列表',
         waitlistAlreadyJoinedToast: '此邮箱已在列表中.',
@@ -1408,8 +1417,7 @@ const zh: Translations = {
         creatingTitle: '正在设置您的代理',
         creatingDescription:
             '这通常需要一两分钟。 您可以安全地关闭此页面，稍后再回来。',
-        creatingDescriptionLocal:
-            '通常只需片刻。请在完成前保持应用打开。',
+        creatingDescriptionLocal: '通常只需片刻。请在完成前保持应用打开。',
         configuringTitle: '正在安装 OpenClaw',
         configuringTitleHermes: '正在安装 Hermes',
         loadingTipHermes1:

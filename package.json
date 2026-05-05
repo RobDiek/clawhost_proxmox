@@ -20,6 +20,7 @@
         "test:watch": "turbo test:watch",
         "check": "bun --filter api check && bun --filter web check && bun --filter clawhostgo check",
         "version-patch": "bun scripts/version-patch.ts",
+        "build-go-manifest": "bun scripts/build-go-manifest.ts",
         "prepare": "husky"
     },
     "devDependencies": {

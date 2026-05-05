@@ -32,7 +32,8 @@ import type {
     UserRole,
     Product,
     ChangelogFeatureType,
-    CopiedFieldType
+    CopiedFieldType,
+    GoDownloadVariant
 } from '@/ts/Types'
 
 export interface Volume {
@@ -696,6 +697,26 @@ export interface GoWaitlistFormProps {
     onEmailSubmit: (e: React.FormEvent) => void
     loggedInClassName?: string
     guestClassName?: string
+}
+
+export interface GoDownloadButtonProps {
+    className?: string
+}
+
+export interface GoMacUrls {
+    arm64: string | null
+    x64: string | null
+}
+
+export interface GoManifest {
+    version: string | null
+    mac: GoMacUrls
+    windows: string | null
+    loading: boolean
+}
+
+export interface GoPlatformButtonProps {
+    variant: GoDownloadVariant
 }
 
 export interface SSHKeyUploadFormProps {

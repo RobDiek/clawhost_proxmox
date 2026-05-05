@@ -69,6 +69,13 @@ const findFiles = (dir: string, ext: string): string[] => {
     return out
 }
 
+const STABLE_MAC_KEY: Record<'x64' | 'arm64', string> = {
+    arm64: 'go/clawhost-mac-arm64.zip',
+    x64: 'go/clawhost-mac-intel.zip'
+}
+
+const STABLE_WINDOWS_KEY = 'go/clawhost-windows.exe'
+
 const publishMac = async (arch: 'x64' | 'arm64'): Promise<void> => {
     const zipDir = join(__dirname, `../out/make/zip/darwin/${arch}`)
     const zips = findFiles(zipDir, '.zip')
@@ -80,12 +87,10 @@ const publishMac = async (arch: 'x64' | 'arm64'): Promise<void> => {
     const zipName = basename(zipPath)
     const prefix = `go/darwin/${arch}`
     const zipUrl = `${PUBLIC_BASE_URL}/darwin/${arch}/${zipName}`
+    const zipBuffer = readFileSync(zipPath)
 
-    await upload(
-        `${prefix}/${zipName}`,
-        readFileSync(zipPath),
-        'application/zip'
-    )
+    await upload(`${prefix}/${zipName}`, zipBuffer, 'application/zip')
+    await upload(STABLE_MAC_KEY[arch], zipBuffer, 'application/zip')
 
     const manifest = {
         currentRelease: version,
@@ -124,7 +129,11 @@ const publishWindows = async (): Promise<void> => {
             : entry.endsWith('.exe')
               ? 'application/octet-stream'
               : 'text/plain'
-        await upload(`${prefix}/${entry}`, readFileSync(full), contentType)
+        const buffer = readFileSync(full)
+        await upload(`${prefix}/${entry}`, buffer, contentType)
+        if (/Setup\.exe$/i.test(entry)) {
+            await upload(STABLE_WINDOWS_KEY, buffer, 'application/octet-stream')
+        }
     }
 }
 

@@ -1,11 +1,11 @@
 {
     "name": "web",
-    "version": "0.0.269",
+    "version": "0.0.270",
     "private": true,
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "tsc -b && vite build && bun scripts/generate-og-images.ts && bun scripts/prerender.ts && bun scripts/generate-sitemap.ts",
+        "build": "bun ../../scripts/build-go-manifest.ts && tsc -b && vite build && bun scripts/generate-og-images.ts && bun scripts/prerender.ts && bun scripts/generate-sitemap.ts",
         "generate:og": "bun scripts/generate-og-images.ts",
         "preview": "vite preview",
         "typecheck": "tsc --noEmit",
@@ -22,7 +22,9 @@
         "@codemirror/view": "^6.36.0",
         "@emoji-mart/data": "^1.2.1",
         "@emoji-mart/react": "^1.1.1",
+        "@lezer/common": "^1.5.2",
         "@lezer/highlight": "^1.2.3",
+        "@lezer/lr": "^1.4.2",
         "@mdx-js/rollup": "^3.1.1",
         "@openclaw/i18n": "workspace:*",
         "@openclaw/shared": "workspace:*",
