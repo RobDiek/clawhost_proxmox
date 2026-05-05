@@ -423,9 +423,17 @@ function extractGroundTruthFacts(corpus: string): Array<{ fact: string; quote: s
         { noun: 'משרדים', label: 'מספר משרדים' },
         { noun: 'תחנות', label: 'מספר תחנות' },
     ]
+    // ★ Critical: JavaScript `\b` is ASCII-only. Hebrew chars are NOT word chars
+    // in `\b` semantics, so `\bשלושה\b` matches the boundary between Hebrew
+    // and (preceding/trailing) ASCII — which fails in pure-Hebrew context.
+    // Use explicit Hebrew-aware boundaries: surround with whitespace, punctuation,
+    // start/end of string, or a non-Hebrew-letter character.
+    const HEB_BOUNDARY = '(?:^|[^א-ת])'
+    const HEB_BOUNDARY_END = '(?:$|[^א-ת])'
+
     for (const { noun, label } of NOUN_LABELS) {
-        // Digit followed by the Hebrew noun, with up to 30 chars of context window.
-        const digitRe = new RegExp(`([^.\\n]{0,40}?\\b(\\d{1,4})\\s+${noun}\\b[^.\\n]{0,40})`, 'g')
+        // Digit followed by the Hebrew noun.
+        const digitRe = new RegExp(`([^.\\n]{0,40}?(\\d{1,4})\\s+${noun}${HEB_BOUNDARY_END}[^.\\n]{0,40})`, 'g')
         let m: RegExpExecArray | null
         while ((m = digitRe.exec(corpus)) !== null) {
             const quote = m[1].trim()
@@ -438,7 +446,7 @@ function extractGroundTruthFacts(corpus: string): Array<{ fact: string; quote: s
         }
         // Hebrew word number followed by the noun.
         for (const [hebWord, digit] of Object.entries(HEB_NUM_TO_DIGIT)) {
-            const wordRe = new RegExp(`([^.\\n]{0,40}?\\b${hebWord}\\s+${noun}\\b[^.\\n]{0,40})`, 'g')
+            const wordRe = new RegExp(`([^.\\n]{0,40}?${HEB_BOUNDARY}${hebWord}\\s+${noun}${HEB_BOUNDARY_END}[^.\\n]{0,40})`, 'g')
             let mw: RegExpExecArray | null
             while ((mw = wordRe.exec(corpus)) !== null) {
                 const quote = mw[1].trim()
@@ -767,16 +775,30 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
             if (seen.has(t)) return
             seen.add(t); out.push(t)
         }
+        // HTML headings (h1, h2, h3) — primary source.
         const h1Matches = homepageHtml.match(/<h1[^>]*>([\s\S]{0,400}?)<\/h1>/gi) || []
         for (const m of h1Matches) add(m.replace(/<\/?h1[^>]*>/gi, ''))
         const h2Matches = homepageHtml.match(/<h2[^>]*>([\s\S]{0,400}?)<\/h2>/gi) || []
         for (const m of h2Matches.slice(0, 4)) add(m.replace(/<\/?h2[^>]*>/gi, ''))
+        const h3Matches = homepageHtml.match(/<h3[^>]*>([\s\S]{0,400}?)<\/h3>/gi) || []
+        for (const m of h3Matches.slice(0, 4)) add(m.replace(/<\/?h3[^>]*>/gi, ''))
+        // Title attributes on hero links / promotion banners.
         if (meta.ogDescription) add(meta.ogDescription)
         if (meta.description) add(meta.description)
-        return out.slice(0, 8)
+        if (meta.ogTitle) add(meta.ogTitle)
+        if (meta.title) add(meta.title)
+        // Markdown headings from Firecrawl-rendered markdown — Israeli WP themes
+        // sometimes hide hero text behind JS wrappers that DON'T appear in raw
+        // HTML; Firecrawl's rendered markdown may still capture them.
+        const homepageMd = corpusByPage[0]?.text || ''
+        const mdHeadings = homepageMd.match(/^#{1,3}\s+(.{8,200})$/gm) || []
+        for (const m of mdHeadings.slice(0, 6)) {
+            add(m.replace(/^#+\s+/, ''))
+        }
+        return out.slice(0, 10)
     }
     const heroSlogans = extractHeroSlogans()
-    notes.push(`Hero slogans extracted: ${heroSlogans.length} (${heroSlogans.slice(0, 2).map(s => '"' + s.slice(0, 60) + '"').join(', ')})`)
+    notes.push(`Hero slogans extracted: ${heroSlogans.length} (${heroSlogans.slice(0, 3).map(s => '"' + s.slice(0, 60) + '"').join(', ')})`)
 
     // ── PASS C — Sonnet brand archaeology ──
     notes.push('Pass C: Running brand archaeology (Sonnet 4.6)…')
@@ -851,23 +873,45 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
         delete archaeology.positioning
     }
 
-    // Hero-slogan literal enforcement: if we extracted a clear slogan from
-    // h1/og:description and Sonnet's tagline.literal is missing or appears
-    // unrelated to the hero, override with the actual hero slogan. Sonnet's
-    // archetype filter often suppresses "salesy" slogans (e.g. price-driven
-    // promises) which clients explicitly chose to display on their site.
+    // Hero-slogan literal enforcement — UNCONDITIONAL.
+    //
+    // Pick a hero slogan with claim-like signals (numbers, money, "best",
+    // "all", "free", "24/7", "promise", etc.) — those are the lines clients
+    // deliberately put on their site as the actual marketing promise.
+    // Promote it to tagline.literal regardless of Sonnet's choice; keep
+    // Sonnet's polished version as tagline.refined.
     if (heroSlogans.length > 0) {
-        const h1Hero = heroSlogans[0]
-        const aiTag = archaeology.tagline?.literal || archaeology.tagline?.he || ''
-        const aiOverlapWithHero = aiTag && h1Hero && [...new Set(h1Hero.split(/\s+/))].some(w => w.length > 3 && aiTag.includes(w))
-        if (!aiTag || !aiOverlapWithHero) {
-            notes.push(`Tagline override: hero slogan "${h1Hero.slice(0, 80)}" promoted to tagline.literal (Sonnet returned ${aiTag ? '"' + aiTag.slice(0, 60) + '"' : 'null'}, no overlap with hero).`)
-            archaeology.tagline = {
-                he: h1Hero,
-                literal: h1Hero,
-                refined: archaeology.tagline?.refined,
-            }
+        const claimRegex = /\d|₪|כל|בלי|ללא|24|7|הזול|הטוב|אחריות|התחייבות|מיוחד|מאובטח|חינם|חופשי|מובטח|הראשון|מומלץ/i
+        const heroPick = heroSlogans.find(s => claimRegex.test(s)) || heroSlogans[0]
+        const sonnetTagline = archaeology.tagline?.he || archaeology.tagline?.literal || ''
+        notes.push(`Tagline literal set from hero: "${heroPick.slice(0, 80)}" (Sonnet polished: ${sonnetTagline ? '"' + sonnetTagline.slice(0, 60) + '"' : 'none'})`)
+        archaeology.tagline = {
+            he: heroPick,                                         // primary surface = literal
+            literal: heroPick,                                    // verbatim from site
+            refined: sonnetTagline && sonnetTagline !== heroPick ? sonnetTagline : undefined,  // Sonnet's polished alt
         }
+    }
+
+    // toneSummary fallback: if Sonnet returned nothing or trim emptied it,
+    // synthesize a short summary from archetype so the wizard isn't blank.
+    if (!archaeology.toneSummary?.he || archaeology.toneSummary.he.trim().length === 0) {
+        const archMap: Record<string, string> = {
+            caregiver: 'חם, נוכח, אמין',
+            sage: 'יבש, ענייני, מבוסס',
+            hero: 'נחוש, ברור, ממוקד',
+            explorer: 'סקרן, פתוח, נועז',
+            lover: 'רגשי, אסתטי, מזמין',
+            jester: 'משוחרר, חד, חכם',
+            everyman: 'פשוט, נגיש, ידידותי',
+            ruler: 'סמכותי, יוקרתי, חד',
+            creator: 'יצירתי, מקורי, נועז',
+            magician: 'מסקרן, חזוני, מעורר',
+            innocent: 'אופטימי, פשוט, מפויס',
+            outlaw: 'מתריס, ישיר, חד',
+        }
+        const fallback = archMap[archaeology.archetype || ''] || 'מקצועי, ענייני, ברור'
+        notes.push(`Tone summary fallback (archetype=${archaeology.archetype || 'none'}): "${fallback}"`)
+        archaeology.toneSummary = { he: fallback }
     }
 
     // ── Build BrandBookV2 partial ──
