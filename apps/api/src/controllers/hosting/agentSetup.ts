@@ -4625,6 +4625,7 @@ export const researchStage = async (c: Context) => {
             await sshExec(instance.ip, `
                 # Wipe agent session history
                 rm -rf /home/openclaw/.openclaw/agents/${agentId}/sessions/* 2>/dev/null
+                rm -rf /home/openclaw/.openclaw/agents/${agentId}/output/* 2>/dev/null
                 mkdir -p /home/openclaw/.openclaw/agents/${agentId}/sessions
                 # Wipe workspace content/memory/state that agent reads as context
                 rm -rf /home/openclaw/.openclaw/workspace/content/* 2>/dev/null
@@ -4642,9 +4643,20 @@ export const researchStage = async (c: Context) => {
                         fi
                     done
                 fi
-                chown -R openclaw:openclaw /home/openclaw/.openclaw/agents/${agentId}/sessions /home/openclaw/.openclaw/workspace 2>/dev/null
+                # Restore top-level BRAND.md from the current brand's subdir.
+                # The agent CLI reads /workspace/BRAND.md as the canonical brand
+                # context. If it's empty/missing, sayer falls back to whatever
+                # cached or training-data-implied identity it has — that's
+                # exactly how Flowmatic-shape research showed up for Storage
+                # Station (top-level BRAND.md was empty post-onboarding race).
+                # Idempotent: copy from brands/<current>/BRAND.md whenever the
+                # source exists; no-op otherwise.
+                if [ -f "/home/openclaw/.openclaw/workspace/brands/${currentBrandSlugRun || '__none__'}/BRAND.md" ]; then
+                    cp "/home/openclaw/.openclaw/workspace/brands/${currentBrandSlugRun || '__none__'}/BRAND.md" /home/openclaw/.openclaw/workspace/BRAND.md
+                fi
+                chown -R openclaw:openclaw /home/openclaw/.openclaw/agents/${agentId} /home/openclaw/.openclaw/workspace 2>/dev/null
             `, instance.rootPassword || undefined, 15000)
-            console.log(`Agent ${agentId}: full context wipe (sessions + workspace artifacts + cross-tenant prune, kept brand="${currentBrandSlugRun || '(none)'}")`)
+            console.log(`Agent ${agentId}: full context wipe + BRAND.md restored from brands/${currentBrandSlugRun || '(none)'}/BRAND.md`)
         } catch {}
 
         // For stages 4+5 (analytical, no web search needed): use direct Anthropic API
