@@ -106,6 +106,17 @@ startBidTransitionRunner()
 import { startMonthlyReauditRunner } from '@/services/monthlyReauditRunner'
 startMonthlyReauditRunner()
 
+// One-shot research data migration: legacy researchData.stage1..stage5
+// → new intent + plan + results shape (docs/research-pipeline-design.md §10).
+// Idempotent — already-migrated rows are skipped. Deferred 30s after boot
+// to keep startup fast and avoid blocking health probes.
+import { runResearchDataMigration } from '@/services/research/migrate'
+setTimeout(() => {
+    runResearchDataMigration().catch((err) => {
+        console.error('[researchDataMigration] error:', (err as Error).message)
+    })
+}, 30_000)
+
 // Strategy Lab — weekly learner that ranks winners/losers across 6 dimensions
 // from actual performance data, then feeds recommendations back into the next
 // content plan generation.
