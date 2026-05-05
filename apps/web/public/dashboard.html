@@ -11395,6 +11395,14 @@ async function openBrandFoundation() {
 
 // Развилка экран — 2 главные карточки
 function brandV2RenderForkChoice() {
+  var hasFc = !!(instanceData && instanceData.hasFirecrawl);
+  // Visual hint on website_scan card if Firecrawl not connected — user still
+  // can click; clicking will trigger the inline "connect or fallback" prompt
+  // (no hard block — the click path is graceful).
+  var scanBadge = hasFc
+    ? '<div style="margin-top:10px;font-size:0.74rem;color:#2563EB;font-weight:600">סרוק וחלץ →</div>'
+    : '<div style="margin-top:10px;font-size:0.74rem;color:#92400E;font-weight:600;background:#FEF3C7;display:inline-block;padding:3px 8px;border-radius:6px">⚠ דורש Firecrawl — נחבר אחרי לחיצה</div>';
+
   return '<div style="padding:8px 0">' +
     '<div style="font-size:0.92rem;color:#374151;margin-bottom:18px;line-height:1.6">בנו את ה-Brand Foundation שלכם. הוא יזין את כל הקופי, הקריאייטיב והסוכנים — Google Ads, Meta, תוכן, אימייל. בחרו את הזרם המתאים:</div>' +
 
@@ -11411,7 +11419,7 @@ function brandV2RenderForkChoice() {
         '<div style="font-size:1.6rem;margin-bottom:6px">🔍</div>' +
         '<div style="font-weight:700;font-size:1rem;color:#1E40AF;margin-bottom:4px">אין לי Brand Book — בנו לי</div>' +
         '<div style="font-size:0.82rem;color:#374151;line-height:1.6">סרוק את האתר, חלץ צבעים/לוגו/voice — והשלם חסרים אוטומטית עם AI (fal.ai nano-banana, flux-2-pro, Sonnet)</div>' +
-        '<div style="margin-top:10px;font-size:0.74rem;color:#2563EB;font-weight:600">סרוק וחלץ →</div>' +
+        scanBadge +
       '</div>' +
     '</div>' +
 
@@ -11471,6 +11479,16 @@ async function brandV2StartFlow(sourceFlow) {
 
       try {
         var scan = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/scan-website', { method: 'POST', body: JSON.stringify({}) });
+        // Backend returns 200 with `requiresIntegration` when Firecrawl missing
+        // (graceful — no 500). Show inline prompt: connect or fallback to upload.
+        if (scan.success && scan.data && scan.data.ok === false && scan.data.requiresIntegration === 'firecrawl') {
+          brandV2ShowFirecrawlPrompt(scan.data.message || 'נדרש Firecrawl לסריקת אתר');
+          return;
+        }
+        if (scan.success && scan.data && scan.data.ok === false && scan.data.requiresField === 'websiteUrl') {
+          brandV2ShowMissingUrlPrompt(scan.data.message || 'לא נמצא URL של האתר');
+          return;
+        }
         if (!scan.success) {
           brandV2ShowScanError(scan.message || 'סריקה נכשלה — נסו שוב או החליפו זרם');
           return;
@@ -11561,6 +11579,45 @@ function brandV2ShowScanError(msg) {
   '</div>';
   if (typeof openReportModal === 'function') {
     openReportModal('🎨 Brand Foundation — שגיאה', html, 'brand-v2-scan-error', { html: true });
+  }
+}
+
+// Inline "Firecrawl missing" prompt — replaces hard-fail "סריקה נכשלה" toast.
+// Two clear actions: connect now (opens integrations tab focused on Firecrawl
+// card) or fall back to manual upload flow. Either way, user is unblocked.
+function brandV2ShowFirecrawlPrompt(msg) {
+  var html = '<div style="padding:20px">' +
+    '<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:16px;margin-bottom:16px">' +
+      '<div style="font-weight:700;color:#92400E;margin-bottom:6px;display:flex;align-items:center;gap:8px"><span style="font-size:1.1rem">🔌</span>נדרש חיבור — Firecrawl</div>' +
+      '<div style="font-size:0.86rem;color:#78350F;line-height:1.55">' + (msg || 'לסריקת אתר אנחנו משתמשים ב-Firecrawl API. ניתן לחבר עכשיו ולחזור לכאן, או להגדיר את המותג ידנית בלי סריקה.') + '</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+      '<button onclick="closeReportModal(); switchTab(\'integrations\'); setTimeout(function(){ var el=document.getElementById(\'firecrawl-card\'); if(el) el.scrollIntoView({behavior:\'smooth\',block:\'center\'}); }, 200);" class="btn btn-primary btn-sm">🔌 חברו Firecrawl</button>' +
+      '<button onclick="brandV2StartFlow(\'uploaded\')" class="btn btn-outline btn-sm">📚 המשיכו ידנית (העלו נכסים)</button>' +
+      '<button onclick="closeReportModal()" class="btn btn-outline btn-sm">סגירה</button>' +
+    '</div>' +
+    '<div style="font-size:0.74rem;color:#6B7280;margin-top:14px;line-height:1.55">לאחר חיבור Firecrawl: חזרו ל"מערכת מותג" ולחצו שוב "אין לי Brand Book — בנו לי" — נמשיך מהמקום שעצרנו.</div>' +
+  '</div>';
+  if (typeof openReportModal === 'function') {
+    openReportModal('🎨 Brand Foundation — חיבור נדרש', html, 'brand-v2-firecrawl-prompt', { html: true });
+  }
+}
+
+// Inline "Website URL missing" prompt — same gentle handling.
+function brandV2ShowMissingUrlPrompt(msg) {
+  var html = '<div style="padding:20px">' +
+    '<div style="background:#EFF6FF;border:1px solid #93C5FD;border-radius:8px;padding:16px;margin-bottom:16px">' +
+      '<div style="font-weight:700;color:#1E40AF;margin-bottom:6px">🌐 לא נמצא URL של האתר</div>' +
+      '<div style="font-size:0.86rem;color:#1E3A8A;line-height:1.55">' + (msg || 'לפני סריקה, מלאו את שדה "אתר עסקי" בפרופיל העסקי. לחילופין, אפשר להגדיר את המותג ידנית.') + '</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+      '<button onclick="closeReportModal(); if(typeof openBusinessProfile===\'function\') openBusinessProfile();" class="btn btn-primary btn-sm">📝 פתחו פרופיל עסקי</button>' +
+      '<button onclick="brandV2StartFlow(\'uploaded\')" class="btn btn-outline btn-sm">📚 המשיכו ידנית</button>' +
+      '<button onclick="closeReportModal()" class="btn btn-outline btn-sm">סגירה</button>' +
+    '</div>' +
+  '</div>';
+  if (typeof openReportModal === 'function') {
+    openReportModal('🎨 Brand Foundation — נתון חסר', html, 'brand-v2-missing-url', { html: true });
   }
 }
 

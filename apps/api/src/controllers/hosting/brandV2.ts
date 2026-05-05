@@ -218,17 +218,38 @@ export const scanWebsiteForBrandV2 = async (c: Context) => {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const body = await c.req.json<{ websiteUrl?: string }>().catch(() => ({} as { websiteUrl?: string }))
+
+        const { db } = await import('@/db')
+        const { instances } = await import('@/db/schema')
+        const { eq } = await import('drizzle-orm')
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const rd: any = inst?.researchData || {}
+
         // Resolve URL: explicit > paid_profile.businessUrl > research.answers.websiteUrl
         let websiteUrl = (body.websiteUrl || '').trim()
-        if (!websiteUrl) {
-            const { db } = await import('@/db')
-            const { instances } = await import('@/db/schema')
-            const { eq } = await import('drizzle-orm')
-            const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-            const rd: any = inst?.researchData || {}
-            websiteUrl = rd.answers?.websiteUrl || ''
+        if (!websiteUrl) websiteUrl = rd.answers?.websiteUrl || ''
+
+        // Graceful pre-checks — return structured 200 result with `requiresIntegration`
+        // instead of throwing 500. UI handles by offering inline connect or
+        // fallback to uploaded flow.
+        const firecrawlKey = (inst as any)?.firecrawlKey
+        if (!firecrawlKey) {
+            return ok(c, {
+                ok: false,
+                requiresIntegration: 'firecrawl',
+                fallbackFlow: 'uploaded',
+                connectPath: 'integrations',
+                message: 'נדרש Firecrawl API key לסריקת אתר. אפשר לחבר עכשיו או להמשיך ידני.',
+            }, 'Firecrawl integration required')
         }
-        if (!websiteUrl) return fail(c, 'No website URL — provide explicitly or set research.answers.websiteUrl', 400)
+        if (!websiteUrl) {
+            return ok(c, {
+                ok: false,
+                requiresField: 'websiteUrl',
+                fallbackFlow: 'uploaded',
+                message: 'לא נמצא URL — מלאו ב-פרופיל עסקי או המשיכו ידני.',
+            }, 'Website URL missing')
+        }
 
         // Ensure draft exists
         const { getCurrentDraft, startNewDraft, updateDraftKeys } = await import('@/services/brandBookV2Service')
