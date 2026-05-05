@@ -873,22 +873,45 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
         delete archaeology.positioning
     }
 
-    // Hero-slogan literal enforcement — UNCONDITIONAL.
+    // Hero-slogan literal enforcement — quality-filtered.
     //
-    // Pick a hero slogan with claim-like signals (numbers, money, "best",
-    // "all", "free", "24/7", "promise", etc.) — those are the lines clients
-    // deliberately put on their site as the actual marketing promise.
-    // Promote it to tagline.literal regardless of Sonnet's choice; keep
-    // Sonnet's polished version as tagline.refined.
+    // Pick a hero slogan that LOOKS like a slogan, not a blog post title.
+    // Slogan: short, claim-bearing, no colon/year markers. Blog title: long,
+    // contains ":", year (2024-2027), "המדריך"/"המלא"/"מאמר", "כל מה שצריך
+    // לדעת", or list separators. If no slogan-shaped candidate exists, leave
+    // tagline.literal null — better empty than misleading the user with a
+    // blog headline they'd not call their slogan.
     if (heroSlogans.length > 0) {
-        const claimRegex = /\d|₪|כל|בלי|ללא|24|7|הזול|הטוב|אחריות|התחייבות|מיוחד|מאובטח|חינם|חופשי|מובטח|הראשון|מומלץ/i
-        const heroPick = heroSlogans.find(s => claimRegex.test(s)) || heroSlogans[0]
+        const blogMarkers = /:|המדריך|המלא|כל מה שצריך לדעת|מאמר|טופ\s|רשימת|השוואת|20(2[4-9]|3\d)/
+        const claimSignals = /₪|בלי|ללא|24|7|הזול|הטוב|אחריות|התחייבות|מיוחד|מאובטח|חינם|חופשי|מובטח|הראשון|מומלץ|ביותר/
+        const sloganCandidates = heroSlogans
+            // Reject blog/article-shaped headlines.
+            .filter(s => !blogMarkers.test(s))
+            // Slogan length sweet spot: 10-90 chars; longer = probably article.
+            .filter(s => s.length >= 10 && s.length <= 90)
+            // Score: claim signals + brevity bonus.
+            .map(s => ({
+                text: s,
+                score: (claimSignals.test(s) ? 10 : 0) + Math.max(0, 60 - s.length) / 10,
+            }))
+            .sort((a, b) => b.score - a.score)
+        const heroPick = sloganCandidates.length > 0 ? sloganCandidates[0].text : null
         const sonnetTagline = archaeology.tagline?.he || archaeology.tagline?.literal || ''
-        notes.push(`Tagline literal set from hero: "${heroPick.slice(0, 80)}" (Sonnet polished: ${sonnetTagline ? '"' + sonnetTagline.slice(0, 60) + '"' : 'none'})`)
-        archaeology.tagline = {
-            he: heroPick,                                         // primary surface = literal
-            literal: heroPick,                                    // verbatim from site
-            refined: sonnetTagline && sonnetTagline !== heroPick ? sonnetTagline : undefined,  // Sonnet's polished alt
+        if (heroPick) {
+            notes.push(`Tagline literal: "${heroPick.slice(0, 80)}" (picked from ${sloganCandidates.length} slogan-shaped candidates; rejected ${heroSlogans.length - sloganCandidates.length} blog/article headings)`)
+            archaeology.tagline = {
+                he: heroPick,
+                literal: heroPick,
+                refined: sonnetTagline && sonnetTagline !== heroPick ? sonnetTagline : undefined,
+            }
+        } else if (sonnetTagline) {
+            // Sonnet did write something — surface it as refined-only with
+            // explicit "no literal slogan found" provenance.
+            notes.push(`No slogan-shaped hero found in ${heroSlogans.length} candidates (all blog/article-shaped). Keeping Sonnet's "${sonnetTagline.slice(0, 60)}" as refined only.`)
+            archaeology.tagline = { he: sonnetTagline, refined: sonnetTagline }
+        } else {
+            notes.push(`No tagline: site has no slogan-shaped hero; Sonnet returned nothing usable. Field left empty.`)
+            archaeology.tagline = undefined
         }
     }
 
