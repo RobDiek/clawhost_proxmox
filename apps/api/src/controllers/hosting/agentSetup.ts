@@ -4604,10 +4604,23 @@ export const researchStage = async (c: Context) => {
                 console.log(`Mem0 pre-stage cleanup for ${instanceId}`)
             } catch {}
         }
-        // Clear ALL context sources to force agent to start fresh:
-        // 1. Agent's session history (sessions.json + jsonl)
-        // 2. Workspace artifacts from previous runs (content/, memory/, state/)
-        // 3. Any leftover research files
+        // Clear ALL context sources to force agent to start fresh.
+        //
+        // Why every stage gets a full wipe (not just the first):
+        //   - "I already answered" caching kicks in across stages otherwise
+        //   - sayer happily reads workspace/STRATEGY.md / brands/<other>/ from
+        //     a previous tenant or previous brand and contaminates output
+        //   - state/* / content/* / memory/* accumulate cross-stage artifacts
+        //
+        // Compute current brand slug so we keep its brands/ subdirectory and
+        // delete every sibling. Slug derivation matches setupAgents — same
+        // formula keeps drift impossible.
+        const currentBrandSlugRun = ((rd.answers?.brandName || rd.answers?.businessName || '') as string)
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '')
+
         try {
             await sshExec(instance.ip, `
                 # Wipe agent session history
@@ -4617,9 +4630,21 @@ export const researchStage = async (c: Context) => {
                 rm -rf /home/openclaw/.openclaw/workspace/content/* 2>/dev/null
                 rm -rf /home/openclaw/.openclaw/workspace/memory/* 2>/dev/null
                 rm -rf /home/openclaw/.openclaw/workspace/state/* 2>/dev/null
+                # Cross-tenant defense: prune workspace-level STRATEGY.md
+                # (always belongs to one specific brand) and any sibling
+                # brand subdirectories that don't match the current slug.
+                rm -f /home/openclaw/.openclaw/workspace/STRATEGY.md 2>/dev/null
+                if [ -d /home/openclaw/.openclaw/workspace/brands ]; then
+                    for d in /home/openclaw/.openclaw/workspace/brands/*/; do
+                        slug=$(basename "$d")
+                        if [ "$slug" != "${currentBrandSlugRun || '__none__'}" ]; then
+                            rm -rf "$d" 2>/dev/null
+                        fi
+                    done
+                fi
                 chown -R openclaw:openclaw /home/openclaw/.openclaw/agents/${agentId}/sessions /home/openclaw/.openclaw/workspace 2>/dev/null
             `, instance.rootPassword || undefined, 15000)
-            console.log(`Agent ${agentId}: full context wipe (sessions + workspace artifacts)`)
+            console.log(`Agent ${agentId}: full context wipe (sessions + workspace artifacts + cross-tenant prune, kept brand="${currentBrandSlugRun || '(none)'}")`)
         } catch {}
 
         // For stages 4+5 (analytical, no web search needed): use direct Anthropic API
