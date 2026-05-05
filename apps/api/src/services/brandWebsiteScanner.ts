@@ -379,10 +379,11 @@ interface ArchaeologyResult {
     do?: string[]                               // each ties back to real-site pattern
     dont?: string[]
     vocabulary?: { approved: string[]; banned: string[] }
-    // tagline carries both the LITERAL slogan from site (verbatim quote, never
-    // dropped even if salesy) and an optional refined variant. tagline.he is
-    // a duplicate of literal so existing consumers keep working.
-    tagline?: { he?: string; literal?: string; refined?: string }
+    // tagline.he is the primary surface (what UI shows). Source labels how it
+    // was obtained: 'extracted' = verbatim hero slogan, 'generated' = AI-
+    // crafted on corpus context. literal/refined preserve both variants when
+    // we have them so the user can switch.
+    tagline?: { he?: string; source?: 'extracted' | 'generated'; literal?: string; refined?: string }
     mission?: { he?: string }
     positioning?: { he?: string }
     personas?: Array<any>
@@ -500,8 +501,15 @@ async function runBrandArchaeology(args: ArchaeologyArgs): Promise<ArchaeologyRe
 7. personas מבוססות על research_data + GA4 demographics, לא על דמיון.
 8. ★ מספרים אסור להמציא. אם בקורפוס כתוב "4 סניפים" — כתוב "4". אם לא חולץ מספר — אל תכלול אותו ב-tagline/mission/positioning. אסור להגיד "שלושה סניפים" אם בקורפוס מופיע "4". העדיפו "מספר סניפים" / "פריסה רחבה" אם המספר לא ברור — לא מספר שהומצא.
 9. ★ אסור להמציא שירותים, פיצ'רים, יתרונות שאינם מופיעים בקורפוס. בעיקר ב-positioning.proof — חייב להיות אקט-אובדן ציטטה.
-10. ★★ tagline.literal: אם באתר יש סלוגן/כותרת ראשית/hero text שנראה כמו slogan (h1, large heading, hero banner) — **חייבים לצטט אותו verbatim** ב-tagline.literal, גם אם הוא נשמע "מכירותי" או "salesy". זה הסלוגן הקיים שלהם. אל תמציאו רפיינמנט במקומו.
-11. tagline.refined: רק אם tagline.literal קיים, אפשר להציע גרסה משופרת. אם literal ריק — refined גם null.
+10. ★★ tagline.literal: אם באתר יש סלוגן/כותרת hero/banner — **חייבים לצטט אותו verbatim** ב-tagline.literal, גם אם נשמע "salesy". זה הסלוגן הקיים שלהם.
+11. ★★ tagline.refined / fallback: גם אם אין literal ברור — **חובה ליצור tagline מקצועי** ב-tagline.refined, מבוסס על מה שהקורפוס מספר על העסק:
+    - 4-9 מילים בעברית
+    - אסור להזכיר מספרים שאינם בקורפוס
+    - אסור לפרש את שם המותג כמילה
+    - חייב לתפוס את הליבה שהקורפוס מראה (לא generic מותג)
+    - לא להמציא יתרונות/פיצ'רים שאינם בקורפוס
+    דוגמה לקורפוס של חברת אחסון: "המקום שבו הדברים שלכם מחכים לכם" / "אחסון בלי דאגה, בכל שלב חיים".
+    אם **אין tagline.literal** — refined יוצג כ-tagline ראשי במצב "AI הציע".
 12. ★★ ב-positioning **חובה לצטט מספרים אם חולצו** (כמה סניפים, ותק, וכו') ו**הצעות-מחיר/יתרונות שמופיעים באתר** (כמו "המחיר הזול ביותר", "התחייבות"), במקום generic "אנחנו מחזיקים את הדברים שלך באותה רצינות". זה לא marketing copy — זה fact-grounded statement.
 13. ★★★ אסור לחלוטין שהמילים "בקורפוס", "בטקסט", "באתר", "מצוטט", "מוגדר", "נמצא" יופיעו ב-output הסופי. ה-output הוא marketing copy שיגיע ללקוח — לא דיווח על תהליך החילוץ. במקום "מחירים שמוגדרים בקורפוס כ'אטרקטיביים'" כתוב פשוט "מחירים אטרקטיביים". במקום "לפי הקורפוס יש 3 סניפים" כתוב "3 סניפים: ראשון לציון, תל אביב, פתח תקווה".
 
@@ -577,9 +585,8 @@ ${auditCtx}
     ]
   },
   "tagline": {
-    "he": "<החזירו כאן את ה-LITERAL — הסלוגן הקיים באתר. אם יש hero heading / slogan — צטטו verbatim. אם אין — null>",
-    "literal": "<דופליקציה של ה-tagline.he — הסלוגן המקורי כפי שהוא, ללא שיפור>",
-    "refined": "<אופציונלי: גרסה משופרת אם הסלוגן הקיים מכירותי-מדי. אבל literal הוא תמיד מקור-אמת. אם אין literal — null>"
+    "literal": "<אם יש hero slogan באתר — צטטו verbatim. אם אין סלוגן ברור — null>",
+    "refined": "<חובה: tagline מקצועי 4-9 מילים מבוסס על הקורפוס. נדרש גם אם literal קיים (גרסה משופרת) וגם אם literal ריק (אז זה ה-tagline הראשי)>"
   },
   "mission": { "he": "<אם יש משימה כתובה באתר — צטט/סכם. אחרת null>" },
   "positioning": { "he": "<עבור [קהל], אנחנו [קטגוריה] שעושה [תועלת ספציפית מצוטטת/מודגמת בקורפוס] כי [הוכחה — מספרים מ-ground-truth, יתרונות שצוטטו]. אם אין מספיק עדויות — null>" },
@@ -873,44 +880,41 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
         delete archaeology.positioning
     }
 
-    // Hero-slogan literal enforcement — quality-filtered.
+    // Tagline resolution — three-tier waterfall:
+    //   1. literal   = hero slogan from site (slogan-shaped, quality-filtered)
+    //   2. refined   = Sonnet's professional polished/generated tagline
+    //   3. primary   = literal if present, else refined; with provenance label
     //
-    // Pick a hero slogan that LOOKS like a slogan, not a blog post title.
-    // Slogan: short, claim-bearing, no colon/year markers. Blog title: long,
-    // contains ":", year (2024-2027), "המדריך"/"המלא"/"מאמר", "כל מה שצריך
-    // לדעת", or list separators. If no slogan-shaped candidate exists, leave
-    // tagline.literal null — better empty than misleading the user with a
-    // blog headline they'd not call their slogan.
-    if (heroSlogans.length > 0) {
+    // We always end up with SOMETHING in tagline.he (Sonnet is mandated to
+    // produce a refined version even when no literal exists). The provenance
+    // 'extracted' vs 'generated' is what the wizard surfaces to the user via
+    // the green / blue badge — never silently passing AI as scanned.
+    {
         const blogMarkers = /:|המדריך|המלא|כל מה שצריך לדעת|מאמר|טופ\s|רשימת|השוואת|20(2[4-9]|3\d)/
         const claimSignals = /₪|בלי|ללא|24|7|הזול|הטוב|אחריות|התחייבות|מיוחד|מאובטח|חינם|חופשי|מובטח|הראשון|מומלץ|ביותר/
         const sloganCandidates = heroSlogans
-            // Reject blog/article-shaped headlines.
             .filter(s => !blogMarkers.test(s))
-            // Slogan length sweet spot: 10-90 chars; longer = probably article.
             .filter(s => s.length >= 10 && s.length <= 90)
-            // Score: claim signals + brevity bonus.
-            .map(s => ({
-                text: s,
-                score: (claimSignals.test(s) ? 10 : 0) + Math.max(0, 60 - s.length) / 10,
-            }))
+            .map(s => ({ text: s, score: (claimSignals.test(s) ? 10 : 0) + Math.max(0, 60 - s.length) / 10 }))
             .sort((a, b) => b.score - a.score)
-        const heroPick = sloganCandidates.length > 0 ? sloganCandidates[0].text : null
-        const sonnetTagline = archaeology.tagline?.he || archaeology.tagline?.literal || ''
-        if (heroPick) {
-            notes.push(`Tagline literal: "${heroPick.slice(0, 80)}" (picked from ${sloganCandidates.length} slogan-shaped candidates; rejected ${heroSlogans.length - sloganCandidates.length} blog/article headings)`)
-            archaeology.tagline = {
-                he: heroPick,
-                literal: heroPick,
-                refined: sonnetTagline && sonnetTagline !== heroPick ? sonnetTagline : undefined,
-            }
-        } else if (sonnetTagline) {
-            // Sonnet did write something — surface it as refined-only with
-            // explicit "no literal slogan found" provenance.
-            notes.push(`No slogan-shaped hero found in ${heroSlogans.length} candidates (all blog/article-shaped). Keeping Sonnet's "${sonnetTagline.slice(0, 60)}" as refined only.`)
-            archaeology.tagline = { he: sonnetTagline, refined: sonnetTagline }
+
+        const literal = sloganCandidates.length > 0 ? sloganCandidates[0].text : null
+        // Sonnet's tagline can come back in `.refined` (per new schema), or in
+        // legacy `.he` / `.literal` slots if Sonnet ignored the schema.
+        const sonnetRefined = archaeology.tagline?.refined
+            || (archaeology.tagline?.he && archaeology.tagline.he !== literal ? archaeology.tagline.he : undefined)
+            || (archaeology.tagline?.literal && archaeology.tagline.literal !== literal ? archaeology.tagline.literal : undefined)
+
+        if (literal) {
+            notes.push(`Tagline.literal: "${literal.slice(0, 80)}" (extracted) · refined: ${sonnetRefined ? '"' + sonnetRefined.slice(0, 60) + '"' : 'none'}`)
+            archaeology.tagline = { he: literal, source: 'extracted', literal, refined: sonnetRefined }
+        } else if (sonnetRefined) {
+            notes.push(`No site slogan found; AI-crafted tagline: "${sonnetRefined.slice(0, 80)}" (marked as generated)`)
+            archaeology.tagline = { he: sonnetRefined, source: 'generated', refined: sonnetRefined }
         } else {
-            notes.push(`No tagline: site has no slogan-shaped hero; Sonnet returned nothing usable. Field left empty.`)
+            // Sonnet didn't even produce a refined — likely an LLM error.
+            // Leave tagline empty; wizard will show row as missing.
+            notes.push(`No tagline: site has no slogan-shaped hero AND Sonnet returned no refined version.`)
             archaeology.tagline = undefined
         }
     }
@@ -1000,7 +1004,16 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
         extractedKeys.push('identity.businessName')
     }
     if (archaeology.tagline?.he) {
-        book.identity!.tagline = { he: archaeology.tagline.he, ...m('high') } as any
+        const tSrc = archaeology.tagline.source === 'generated' ? 'generated' : 'extracted'
+        const tConf = tSrc === 'extracted' ? 'high' : 'medium'
+        book.identity!.tagline = {
+            he: archaeology.tagline.he,
+            literal: archaeology.tagline.literal,
+            refined: archaeology.tagline.refined,
+            source: tSrc,
+            confidence: tConf,
+            updatedAt: new Date().toISOString(),
+        } as any
         extractedKeys.push('identity.tagline')
     }
     if (archaeology.mission?.he) {
