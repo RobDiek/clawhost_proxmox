@@ -4828,8 +4828,61 @@ print('\n\n'.join(out))
         const headSlice = (result || '').slice(0, 1500)
         const metaLeak = !!result && META_SIGNALS.test(headSlice) && (result.match(META_SIGNALS) || []).length >= 2
 
-        if (!result || result.length < 500 || metaLeak) {
-            console.error(`Stage ${stage} result too short (${result?.length || 0} chars)${metaLeak ? ' OR meta-leak detected' : ''}. First 300: ${result?.substring(0, 300)}`)
+        // ═══ FALLBACK TIER: direct Anthropic API ═══
+        // OpenClaw agent CLI is non-deterministic — even with strong prompt
+        // rules and pre-flight workspace cleanup, sayer occasionally falls
+        // back to "describe system state" instead of running research. When
+        // the parser-extracted result is too short OR shows meta-leak signs,
+        // retry via direct Anthropic API (same path stages 4+5 already use).
+        // This bypasses workspace/SOUL.md/session-cache entirely — model
+        // sees ONLY our prompt + its training knowledge. Tradeoff: no live
+        // web_search through MCP tools, but Sonnet/Opus have enough SEO +
+        // competitor knowledge to produce a reasonable stage 1 even without
+        // them, given the brand context inside the prompt.
+        if ((!result || result.length < 500 || metaLeak) && (stage === 1 || stage === 2 || stage === 3)) {
+            console.warn(`Stage ${stage} agent CLI gave ${metaLeak ? 'meta-leak' : 'short'} result (${result?.length || 0} chars) — falling back to direct Anthropic API`)
+            try {
+                const apiKey = await getApiKeyForInstance(instanceId)
+                if (apiKey) {
+                    const anthropicModel = model.replace(/^anthropic\//, '')
+                    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': apiKey,
+                            'anthropic-version': '2023-06-01',
+                        },
+                        body: JSON.stringify({
+                            model: anthropicModel,
+                            max_tokens: 16000,
+                            messages: [{ role: 'user', content: prompt }],
+                        }),
+                        signal: AbortSignal.timeout(300000),
+                    })
+                    if (apiRes.ok) {
+                        const data = await apiRes.json() as { content?: Array<{ text: string }> }
+                        const directResult = data.content?.[0]?.text || ''
+                        if (directResult && directResult.length >= 500) {
+                            console.log(`Stage ${stage} direct-API fallback succeeded: ${directResult.length} chars`)
+                            output = directResult
+                            result = directResult
+                        } else {
+                            console.warn(`Stage ${stage} direct-API fallback also produced short result (${directResult.length} chars)`)
+                        }
+                    } else {
+                        console.error(`Stage ${stage} direct-API fallback HTTP ${apiRes.status}`)
+                    }
+                }
+            } catch (fbErr) {
+                console.error(`Stage ${stage} direct-API fallback exception:`, (fbErr as Error).message)
+            }
+        }
+        // Re-evaluate meta-leak + length on (potentially) replaced result.
+        const headSliceFinal = (result || '').slice(0, 1500)
+        const metaLeakFinal = !!result && META_SIGNALS.test(headSliceFinal) && (result.match(META_SIGNALS) || []).length >= 2
+
+        if (!result || result.length < 500 || metaLeakFinal) {
+            console.error(`Stage ${stage} result too short (${result?.length || 0} chars)${metaLeakFinal ? ' OR meta-leak detected' : ''} after all fallbacks. First 300: ${result?.substring(0, 300)}`)
             console.error(`Stage ${stage} raw output length: ${output?.length || 0}. First 300: ${output?.substring(0, 300)}`)
 
             // Detect cross-tenant context contamination — agent referenced
