@@ -12045,6 +12045,17 @@ async function brandV2OpenWizard(draftBundle) {
   var voice = (b.voice && b.voice.voice) || {};
   var personas = (b.audience && b.audience.personas && b.audience.personas.items) || [];
 
+  // Brand split: marketing-correct sequence is Discovery → Strategy → Identity →
+  // Activation. Until research+strategy exist, semantic brand fields (positioning,
+  // voice archetype, personas) are guesswork; we expose only Brand-Light (asset
+  // basics: name, logo, primary color, tagline). After strategy commit, the
+  // wizard auto-promotes to Brand-Deep — same surface, all stages unlocked, with
+  // research context available for informed positioning.
+  var rdState = (instanceData && instanceData.researchData) || {};
+  var hasResearch = !!(rdState.researchStage4 || rdState.researchStage3);
+  var hasStrategy = !!(rdState.chosenScenario || rdState.strategyStage4);
+  var brandPhase = (hasResearch && hasStrategy) ? 'deep' : 'light';
+
   // businessName fallback — never push AI to invent "Business" placeholder.
   var businessName = (ident.businessName && (ident.businessName.he || ident.businessName.en)) || '';
   if (!businessName && instanceData && instanceData.researchData) {
@@ -12153,6 +12164,29 @@ async function brandV2OpenWizard(draftBundle) {
     },
   ];
 
+  // Brand-Light filter — show only the asset-basics subset until research +
+  // strategy unlock semantic depth. Hidden in light: mission, positioning,
+  // typography, imagery refs, voice (entire stage), personas (entire stage).
+  // Kept in light: name, tagline, logo, color palette.
+  if (brandPhase === 'light') {
+    stages = stages
+      .map(function(s) {
+        if (s.key === 'identity') {
+          return Object.assign({}, s, {
+            rows: s.rows.filter(function(r) { return r.label === 'שם העסק' || r.label === 'סלוגן (Tagline)'; }),
+          });
+        }
+        if (s.key === 'visual') {
+          return Object.assign({}, s, {
+            rows: s.rows.filter(function(r) { return r.label === 'לוגו ראשי' || r.label === 'פלטת צבעים'; }),
+          });
+        }
+        // voice + personas hidden in Light — they need research to be meaningful.
+        return null;
+      })
+      .filter(Boolean);
+  }
+
   // Aggregate stats for the header.
   var totalFields = 0, filledFields = 0;
   stages.forEach(function(s) {
@@ -12219,7 +12253,33 @@ async function brandV2OpenWizard(draftBundle) {
   var sourceLabel = (b.sourceFlow === 'website_scan') ? '🔍 סריקת אתר' : (b.sourceFlow === 'uploaded' ? '📚 העלאה ידנית' : '🔀 משולב');
   var progressColor = pct >= 100 ? '#10B981' : (pct >= 50 ? '#2563EB' : '#F59E0B');
 
+  // Phase banner — explains why we're showing limited fields (Light) or that
+  // we're now in deep mode after research. This is the marketing-flow guidance
+  // Sergei asked for: user must understand WHY brand is split.
+  var phaseBanner = brandPhase === 'light'
+    ? '<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:12px 14px;margin-bottom:12px">' +
+        '<div style="display:flex;align-items:flex-start;gap:10px">' +
+          '<span style="font-size:1.1rem;flex-shrink:0">💡</span>' +
+          '<div style="flex:1">' +
+            '<div style="font-weight:600;font-size:0.88rem;color:#92400E;margin-bottom:4px">Brand-Light · גרסה ראשונית</div>' +
+            '<div style="font-size:0.8rem;color:#78350F;line-height:1.55">כרגע אנחנו אוספים רק נכסים שאין להם תלות במחקר: שם, סלוגן, לוגו, צבע ראשי. מיצוב, טון קול, פרסונות — נבנה אותם <strong>אחרי המחקר והאסטרטגיה</strong>, על בסיס המתחרים והקהל שזיהינו, כדי שיהיו מבוססי-נתונים ולא ניחושים.</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    : '<div style="background:#ECFDF5;border:1px solid #6EE7B7;border-radius:8px;padding:12px 14px;margin-bottom:12px">' +
+        '<div style="display:flex;align-items:flex-start;gap:10px">' +
+          '<span style="font-size:1.1rem;flex-shrink:0">🎯</span>' +
+          '<div style="flex:1">' +
+            '<div style="font-weight:600;font-size:0.88rem;color:#065F46;margin-bottom:4px">Brand-Deep · גרסה מלאה</div>' +
+            '<div style="font-size:0.8rem;color:#064E3B;line-height:1.55">עכשיו, אחרי המחקר והאסטרטגיה, השדות הסמנטיים (מיצוב, ארכיטיפ, פרסונות) פתוחים לעריכה — מבוססים על המתחרים והקהל שזיהינו.</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+  var titleSuffix = brandPhase === 'light' ? ' · Light' : ' · Deep';
+
   var html = '<div style="padding:6px 0">' +
+    phaseBanner +
     '<div style="background:linear-gradient(180deg,#F9FAFB,#F3F4F6);border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap">' +
         '<div style="font-size:0.84rem;color:#374151"><span style="font-weight:600">טיוטה v' + (b.version || 1) + '</span> · <span style="color:#6B7280">' + sourceLabel + '</span></div>' +
@@ -12245,7 +12305,7 @@ async function brandV2OpenWizard(draftBundle) {
     '</div>' +
   '</div>';
   if (typeof openReportModal === 'function') {
-    openReportModal('🎨 Brand Foundation — טיוטה v' + (b.version || 1), html, 'brand-v2-wizard', { html: true });
+    openReportModal('🎨 Brand Foundation — טיוטה v' + (b.version || 1) + titleSuffix, html, 'brand-v2-wizard', { html: true });
   }
 }
 
@@ -15465,6 +15525,27 @@ async function commitSelectedScenario() {
     closePipeline();
     await refreshInstanceData();
     showToast('מסלול נבחר — נעבור לניהול שיווק', 'success');
+
+    // Brand-Deep unlock prompt — strategy is now committed, so the brand
+    // wizard's deep semantic stages (positioning, voice, personas) are
+    // worth filling in based on the research+strategy we just produced.
+    // Non-blocking: gentle nudge via toast + a deeper notification card.
+    setTimeout(function() {
+      if (typeof openReportModal === 'function') {
+        var html = '<div style="padding:18px">' +
+          '<div style="background:#ECFDF5;border:1px solid #6EE7B7;border-radius:8px;padding:14px 16px;margin-bottom:14px">' +
+            '<div style="font-weight:700;color:#065F46;margin-bottom:6px;font-size:0.95rem">🎯 Brand-Deep פתוח</div>' +
+            '<div style="font-size:0.86rem;color:#064E3B;line-height:1.6">עכשיו, אחרי שיש לכם מחקר שוק ואסטרטגיה — אפשר לחזור ל"מערכת מותג" ולמלא את השדות הסמנטיים: מיצוב, ארכיטיפ קול, פרסונות. הם יהיו מבוססים על מה שלמדנו על המתחרים והקהל, לא ניחושים.</div>' +
+          '</div>' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+            '<button onclick="closeReportModal(); if(typeof openBrandFoundation===\'function\') openBrandFoundation();" class="btn btn-primary btn-sm">🎨 פתחו Brand-Deep</button>' +
+            '<button onclick="closeReportModal()" class="btn btn-outline btn-sm">אחר כך</button>' +
+          '</div>' +
+        '</div>';
+        openReportModal('🎯 Brand-Deep מוכן להמשך', html, 'brand-deep-unlocked', { html: true });
+      }
+    }, 1100);
+
     // Next step: marketing management tab — user picks intents + activates
     // pipelines per the chosen scenario. This replaces the older
     // openConnectionsWizard flow which only covered integrations.
