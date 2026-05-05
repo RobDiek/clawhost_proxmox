@@ -11,11 +11,44 @@ import { getAllIntegrations as getAllIntegrationsRaw, getPrimaryAgent } from '@/
 async function getAllIntegrationsForInstance(instanceId: string) {
     const raw = await getAllIntegrationsRaw(instanceId)
     const grouped: Record<string, Record<string, { connected: boolean; status: string; config?: Record<string, unknown> }>> = {}
+
+    // Storage divergence guard: some integrations store the actual key/secret
+    // in `instances` columns (firecrawl, dataforseo, anthropic api_key, etc.),
+    // not in `agent_integrations.config`. The connected flag in agent_integrations
+    // can drift to `true` (e.g. user once connected, then a partial reset wiped
+    // the instances column but didn't touch the audit row) — UI then shows
+    // "מחובר" while backend can't actually use the integration.
+    //
+    // Resolve by overriding connected=true to false when the real key is
+    // missing for that integration type. Stale rows are surfaced as
+    // status='stale' so the UI / dashboard can offer a "reconnect" prompt.
+    let inst: any = null
+    try {
+        const rows = await db.select().from(instances).where(eq(instances.id, instanceId))
+        inst = rows[0] || null
+    } catch { /* if lookup fails, fall back to raw status */ }
+
+    function realKeyPresent(integrationType: string): boolean | null {
+        if (!inst) return null  // unknown — preserve original status
+        switch (integrationType) {
+            case 'firecrawl':  return !!inst.firecrawlKey
+            case 'dataforseo': return !!inst.dataforseoKey
+            case 'api_key':    return !!inst.aiProviderKey
+            // For OAuth-shaped integrations (gsc, telegram, reddit, meta, google,
+            // microsoft) the secret lives inside agent_integrations.config itself
+            // — return null so we don't override.
+            default: return null
+        }
+    }
+
     for (const r of raw) {
+        const realPresent = realKeyPresent(r.integrationType)
+        const connected = realPresent === false ? false : r.status === 'connected'
+        const status = realPresent === false ? 'stale' : r.status
         if (!grouped[r.agentType]) grouped[r.agentType] = {}
         grouped[r.agentType][r.integrationType] = {
-            connected: r.status === 'connected',
-            status: r.status,
+            connected,
+            status,
             config: r.config,
         }
     }
@@ -341,6 +374,43 @@ export const getMe = async (c: Context) => {
     } catch (err) {
         console.error('getMe error:', err)
         return fail(c, 'Failed to get user.', 500)
+    }
+}
+
+// ── PUT /hosting/auth/profile — update name ───────────────
+// Body: { name: string }
+// Used by dashboard settings → name field. Persists to users.name
+// so the header shows the right thing on next /auth/me call from any browser.
+export const updateMyProfile = async (c: Context) => {
+    try {
+        const authHeader = c.req.header('Authorization')
+        if (!authHeader?.startsWith('Bearer ')) {
+            return fail(c, 'Unauthorized.', 401)
+        }
+        const token = authHeader.slice(7)
+        const payload = verifyJwt(token, jwtSecret)
+        if (!payload || !payload.sub) {
+            return fail(c, 'Invalid token.', 401)
+        }
+        if (payload.exp && typeof payload.exp === 'number' && payload.exp < Math.floor(Date.now() / 1000)) {
+            return fail(c, 'Token expired.', 401)
+        }
+
+        const body = await c.req.json<{ name?: string }>().catch(() => ({} as any))
+        const name = (body.name || '').toString().trim()
+        if (!name) return fail(c, 'Name is required.', 400)
+        if (name.length > 80) return fail(c, 'Name too long (max 80 chars).', 400)
+
+        const updated = await db.update(users)
+            .set({ name })
+            .where(eq(users.id, payload.sub as string))
+            .returning({ id: users.id, email: users.email, name: users.name })
+
+        if (!updated[0]) return fail(c, 'User not found.', 404)
+        return ok(c, updated[0], 'Profile updated.')
+    } catch (err) {
+        console.error('updateMyProfile error:', err)
+        return fail(c, 'Failed to update profile.', 500)
     }
 }
 
