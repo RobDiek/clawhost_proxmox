@@ -10,6 +10,37 @@ import { PLANS } from '@openclaw/shared'
 import getProvider from '@/services/provider/getProvider'
 import provisioner from '@/services/provisioner'
 import telegram from '@/services/telegram'
+import { Client } from 'ssh2'
+import { readFileSync } from 'fs'
+
+const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
+
+/** Run a command over SSH on a target VPS. Used for the gateway-only restart
+ *  that the "הפעלה מחדש" Danger Zone button triggers. */
+async function sshGatewayRestart(ip: string, password?: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const conn = new Client()
+        const cleanup = () => { try { conn.end() } catch {} }
+        const auth: { host: string; username: string; readyTimeout: number; privateKey?: Buffer; password?: string } = {
+            host: ip,
+            username: 'root',
+            readyTimeout: 15_000,
+        }
+        if (password) auth.password = password
+        else { try { auth.privateKey = readFileSync(SSH_KEY_PATH) } catch (e) { return reject(e as Error) } }
+
+        conn.on('ready', () => {
+            conn.exec('systemctl restart openclaw-gateway', (err, stream) => {
+                if (err) { cleanup(); return reject(err) }
+                stream.on('close', (code: number) => {
+                    cleanup()
+                    if (code === 0) resolve()
+                    else reject(new Error(`gateway restart exit ${code}`))
+                }).on('data', () => {}).stderr.on('data', () => {})
+            })
+        }).on('error', (err) => { cleanup(); reject(err) }).connect(auth)
+    })
+}
 
 /** Extract userId from JWT or HonoEnv middleware */
 function resolveUserId(c: Context<HonoEnv>): string | null {
@@ -177,17 +208,18 @@ export const restartInstance = async (c: Context<HonoEnv>) => {
             .from(instances)
             .where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
 
-        if (!instance?.hetznerServerId) {
-            return fail(c, 'Instance not found or not provisioned.', 404)
-        }
+        if (!instance) return fail(c, 'Instance not found.', 404)
+        if (!instance.ip) return fail(c, 'Instance not provisioned.', 404)
 
-        const provider = getProvider('hetzner')
-        await provider.restartServer(instance.hetznerServerId)
+        // UI promise: "מפעיל מחדש את ה-gateway. אין איבוד נתונים." — gateway-only restart
+        // (~5s) instead of full Hetzner reboot (~30-60s downtime). Matches what the
+        // user expects from the "הפעלה מחדש" button.
+        await sshGatewayRestart(instance.ip, instance.rootPassword || undefined)
 
-        return ok(c, null, 'Instance restarting.')
+        return ok(c, null, 'Gateway restarted.')
     } catch (err) {
         console.error('Restart error:', err)
-        return fail(c, 'Failed to restart instance.', 500)
+        return fail(c, 'Failed to restart gateway.', 500)
     }
 }
 

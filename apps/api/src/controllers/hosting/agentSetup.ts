@@ -8527,7 +8527,9 @@ export const removeAgentFromInstance = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const { agentType } = await c.req.json<{ agentType: 'mt' | 'oc' | 'bare' }>()
+        const body = await c.req.json<{ agentType: 'mt' | 'oc' | 'bare'; force?: boolean }>()
+            .catch(() => ({} as { agentType: 'mt' | 'oc' | 'bare'; force?: boolean }))
+        const { agentType, force } = body
 
         if (!agentType || !['mt', 'oc', 'bare'].includes(agentType)) {
             return fail(c, 'Invalid agent type', 400)
@@ -8541,9 +8543,11 @@ export const removeAgentFromInstance = async (c: Context) => {
             return fail(c, 'הסוכן לא מותקן', 400)
         }
 
-        // Must keep at least one agent
+        // Must keep at least one agent unless force=true. UI passes force=true
+        // when user removes the last agent (different confirmation copy shown
+        // for that case — VPS stays alive, user can re-add a different agent).
         const agentComponents = currentComponents.filter(c => ['mt', 'oc', 'bare'].includes(c))
-        if (agentComponents.length <= 1) {
+        if (agentComponents.length <= 1 && !force) {
             return fail(c, 'לא ניתן להסיר את הסוכן האחרון', 400)
         }
 
@@ -8578,17 +8582,98 @@ export const removeAgentFromInstance = async (c: Context) => {
             await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
         }
 
-        // Update DB
+        // Update DB component list
         const newComponents = currentComponents.filter(c => c !== agentType)
         await db.update(instances).set({
             selectedComponents: newComponents as any,
         }).where(eq(instances.id, instanceId))
 
+        // FULL WIPE: "הסירו סוכן" UI promise = "מוחק את הסוכן וכל הנתונים. לא ניתן לשחזור."
+        // Wipes every per-instance table: agent_outputs, brand books, content
+        // plan media, creative chain, learnings, agentIntegrations (OAuth),
+        // knowledge docs/chunks, WhatsApp data. Resets researchData = {}.
+        // Instance row itself stays (VPS subscription continues, user can
+        // re-add a different agent).
+        let wipeReport: Record<string, number | string> | null = null
+        try {
+            const { fullyWipeInstance } = await import('@/services/instanceWipe')
+            const r = await fullyWipeInstance(instanceId)
+            wipeReport = r as unknown as Record<string, number | string>
+            console.log(`[removeAgent] DB wipe for ${instanceId}:`, JSON.stringify(r))
+        } catch (e) {
+            console.error(`[removeAgent] DB wipe failed for ${instanceId}:`, e)
+            // Don't fail the request — VPS-side cleanup already ran. Surface
+            // partial result so UI can show a warning.
+        }
+
         console.log(`Agent ${agentType} removed from ${instanceId}. Components: ${newComponents.join(',')}`)
-        return ok(c, { agentType, components: newComponents }, 'הסוכן הוסר בהצלחה')
+        return ok(c, { agentType, components: newComponents, wipe: wipeReport }, 'הסוכן הוסר בהצלחה')
     } catch (err) {
         console.error('removeAgentFromInstance error:', err)
         return fail(c, 'שגיאה בהסרת סוכן', 500)
+    }
+}
+
+// ── POST /hosting/instances/:id/agents/reset-config ──
+// "איפוס הגדרות" Danger Zone button.
+// Wipes strategy + brand + content plan + creative + outputs + learnings.
+// Preserves: profile (researchData.answers), research stages, OAuth
+// integrations, knowledge docs, WhatsApp data. Then re-deploys agent
+// templates to the VPS and restarts the gateway.
+export const resetAgentConfig = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const body = await c.req.json<{ agentType?: 'mt' | 'oc' | 'bare' }>()
+            .catch(() => ({} as { agentType?: 'mt' | 'oc' | 'bare' }))
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance?.ip) return fail(c, 'Instance not found', 404)
+
+        // Determine which agent to reset templates for. If not provided, use
+        // first installed agent.
+        const components = (instance.selectedComponents as string[]) || []
+        const agentType = body.agentType
+            || (['mt', 'oc', 'bare'] as const).find(t => components.includes(t))
+            || 'oc'
+
+        // Step 1: DB wipe (downstream only — preserves profile + research)
+        const { resetInstanceSettings } = await import('@/services/instanceWipe')
+        const wipeReport = await resetInstanceSettings(instanceId)
+        console.log(`[resetAgentConfig] DB wipe for ${instanceId}:`, JSON.stringify(wipeReport))
+
+        // Step 2: Re-deploy agent templates to VPS (overwrites SOUL.md, AGENTS.md,
+        // HEARTBEAT.md, sub-agent SOUL.md files). Reads existing USER.md / BRAND.md
+        // from VPS so user's profile context survives the reset.
+        if (agentType === 'mt') {
+            const matehSoul = readFileSync(join(TEMPLATES_DIR, 'workspace', 'SOUL.md'), 'utf-8')
+            await sshWriteFile(instance.ip, '/home/openclaw/.openclaw/workspace/SOUL.md', matehSoul, instance.rootPassword || undefined)
+
+            const matehAgents = readFileSync(join(TEMPLATES_DIR, 'workspace', 'AGENTS.md'), 'utf-8')
+            await sshWriteFile(instance.ip, '/home/openclaw/.openclaw/workspace/AGENTS.md', matehAgents, instance.rootPassword || undefined)
+
+            const matehHeartbeat = readFileSync(join(TEMPLATES_DIR, 'workspace', 'HEARTBEAT.md'), 'utf-8')
+            await sshWriteFile(instance.ip, '/home/openclaw/.openclaw/workspace/HEARTBEAT.md', matehHeartbeat, instance.rootPassword || undefined)
+
+            const subAgents = ['sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor']
+            for (const agent of subAgents) {
+                try {
+                    const content = readFileSync(join(TEMPLATES_DIR, 'agents', agent, 'SOUL.md'), 'utf-8')
+                    await sshWriteFile(instance.ip, `/home/openclaw/.openclaw/agents/${agent}/SOUL.md`, content, instance.rootPassword || undefined)
+                } catch { /* skip sub-agent if template missing */ }
+            }
+
+            await sshExec(instance.ip, 'chown -R openclaw:openclaw /home/openclaw/.openclaw', instance.rootPassword || undefined)
+        }
+
+        // Step 3: Restart gateway so the redeployed agents pick up fresh templates
+        await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
+
+        return ok(c, { wipe: wipeReport, agentType }, 'הגדרות אופסו והשרת הופעל מחדש')
+    } catch (err) {
+        console.error('resetAgentConfig error:', err)
+        return fail(c, 'שגיאה באיפוס הגדרות', 500)
     }
 }
 

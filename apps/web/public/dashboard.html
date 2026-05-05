@@ -4,10 +4,26 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ClawFlow — לוח בקרה</title>
+<!-- ── Staging redirect (master canary only) ──
+     This is the PROD dashboard — the stable version every paying client sees.
+     Master accounts (canary) are redirected to /dashboard-staging where they
+     test new features before admin promotes them to prod via the Publish
+     button in /admin. Cuts off rendering of any prod content on master sessions. -->
+<script>
+(function() {
+  try {
+    var email = (localStorage.getItem('cf_email') || '').toLowerCase();
+    var MASTERS = ['isratars@gmail.com'];
+    if (MASTERS.indexOf(email) !== -1) {
+      window.location.replace('/dashboard-staging' + window.location.search + window.location.hash);
+    }
+  } catch (e) { /* fall through to prod */ }
+})();
+</script>
 <meta name="description" content="לוח הבקרה של ClawFlow — ניהול סוכני AI, סטטוס שרתים, אינטגרציות ותשלומים."/>
 <meta name="robots" content="noindex, nofollow"/>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-<link rel="alternate icon" href="/favicon.ico"/>
+<link rel="icon" href="/favicon.ico?v=cf2"/>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=cf2"/>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -34,7 +50,8 @@ input{font-family:inherit}
 .header-dropdown-item:hover{background:#FEF2F2}
 .header-dropdown-item svg{width:16px;height:16px;flex-shrink:0}
 /* Debug panel */
-.debug-btn{background:none;border:1px solid #E5E7EB;border-radius:8px;padding:6px 8px;cursor:pointer;color:#6B7280;transition:all .15s}
+.debug-btn{background:none;border:1px solid #E5E7EB;border-radius:8px;width:34px;height:34px;padding:0;cursor:pointer;color:#6B7280;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;line-height:0}
+.debug-btn svg{display:block}
 .debug-btn:hover{background:#FEF2F2;border-color:#FECACA;color:#EF4444}
 .debug-panel{position:fixed;top:60px;left:20px;width:400px;background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.12);padding:20px;z-index:200}
 .debug-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
@@ -1648,50 +1665,51 @@ input{font-family:inherit}
     </div><!-- /agent-detail-view -->
   </div>
 
-  <!-- Tab: Marketing Management (ניהול שיווק) — central control center -->
-  <!-- Surfaces 3 sections: Intents picker · Pipelines (with start/stop) · Integrations health.
-       Driven by @openclaw/shared/marketing registries; backend at /hosting/instances/:id/integration-hub
-       and /pipelines/activation. Click handlers wire to setMarketingIntents / setPipelineActivation. -->
+  <!-- Tab: Marketing Management (ניהול שיווק) — simplified to 2 sections.
+       Section 1: pick channels (intents). Section 2: list of integrations they require,
+       each tagged with which channel needs it. Pipelines are an internal concept and
+       no longer surfaced — backend cron auto-activates them based on intents+connected. -->
   <div class="tab-content hidden" id="tab-marketing">
     <h2 class="tab-title">ניהול שיווק</h2>
-    <p class="tab-desc">מרכז השליטה — מטרות שיווקיות, הפעלת pipelines, ומצב חיבורים. הסוכנים פועלים רק לפי מה שמופעל כאן.</p>
+    <p class="tab-desc">בחרו ערוצי שיווק וחברו את הכלים שצריך. הסוכנים יתחילו לפעול אוטומטית.</p>
 
-    <!-- Section 1: Marketing Intents -->
-    <div class="mkt-section" style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;margin-bottom:18px">
+    <!-- Section 1: Channels (intents) — what marketing am I doing? -->
+    <div class="mkt-section" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:20px 22px;margin-bottom:14px">
       <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
-        <div style="flex-shrink:0;width:38px;height:38px;border-radius:10px;background:#EFF6FF;display:grid;place-items:center;color:#2563EB;font-weight:700">1</div>
+        <div style="flex-shrink:0;width:36px;height:36px;border-radius:10px;background:#EFF6FF;display:grid;place-items:center;color:#2563EB;font-weight:700;font-size:0.95rem">1</div>
         <div style="flex:1">
-          <div style="font-weight:700;font-size:1rem;color:#1F2937;margin-bottom:2px">מטרות שיווקיות</div>
-          <div style="font-size:0.82rem;color:#6B7280">בחרו מה אתם מתכננים לעשות. ההגדרה משפיעה על אילו pipelines פעילים, אילו תוספים חיוניים, ומה הסוכנים מייצרים בשבילכם.</div>
+          <div style="font-weight:700;font-size:1.02rem;color:#1F2937;margin-bottom:2px">מה אתם משווקים?</div>
+          <div style="font-size:0.84rem;color:#6B7280">בחרו את הערוצים שתרצו להפעיל. תוכלו להוסיף או להסיר בכל עת.</div>
         </div>
       </div>
       <div id="mkt-intents-mount"></div>
     </div>
 
-    <!-- Section 2: Pipelines (per-pipeline list, fully granular) -->
-    <div class="mkt-section" style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;margin-bottom:18px">
+    <!-- Section 2: Integration matrix — what's connected, what's missing, who needs it -->
+    <div class="mkt-section" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:20px 22px;margin-bottom:14px">
       <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
-        <div style="flex-shrink:0;width:38px;height:38px;border-radius:10px;background:#F0FDF4;display:grid;place-items:center;color:#10B981;font-weight:700">2</div>
+        <div style="flex-shrink:0;width:36px;height:36px;border-radius:10px;background:#F0FDF4;display:grid;place-items:center;color:#10B981;font-weight:700;font-size:0.95rem">2</div>
         <div style="flex:1">
-          <div style="font-weight:700;font-size:1rem;color:#1F2937;margin-bottom:2px">Pipelines פעילים</div>
-          <div style="font-size:0.82rem;color:#6B7280">כל בלוק פעילות (מחקר ממומן, אודיט Google Ads, יצירת תוכן, וכו׳) — הפעלה / השהיה אישית. מצב נעול = חסר תוסף נדרש.</div>
+          <div style="font-weight:700;font-size:1.02rem;color:#1F2937;margin-bottom:2px">מה צריך לחבר?</div>
+          <div style="font-size:0.84rem;color:#6B7280">כלים שצריך עבור הערוצים שבחרתם. הסוכנים יתחילו לפעול ברגע שכל החיבורים הנדרשים מוכנים.</div>
         </div>
-      </div>
-      <div id="mkt-pipelines-mount"></div>
-    </div>
-
-    <!-- Section 3: Integrations health -->
-    <div class="mkt-section" style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;margin-bottom:18px">
-      <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
-        <div style="flex-shrink:0;width:38px;height:38px;border-radius:10px;background:#FFFBEB;display:grid;place-items:center;color:#F59E0B;font-weight:700">3</div>
-        <div style="flex:1">
-          <div style="font-weight:700;font-size:1rem;color:#1F2937;margin-bottom:2px">מצב תוספים</div>
-          <div style="font-size:0.82rem;color:#6B7280">סקירה של חיבורים רלוונטיים למטרות שלכם. לפרטי חיבור — לחצו על "פתחו תוספים".</div>
-        </div>
-        <button class="btn btn-outline btn-sm" onclick="switchTab('integrations')" style="font-size:0.75rem;flex-shrink:0">פתחו תוספים →</button>
       </div>
       <div id="mkt-integrations-mount"></div>
+      <!-- Status footer (live) -->
+      <div id="mkt-status-footer" style="margin-top:14px;padding-top:14px;border-top:1px solid #F3F4F6;font-size:0.86rem;color:#6B7280"></div>
     </div>
+
+    <!-- Power-user advanced (collapsed by default) — pipeline-level overrides -->
+    <details style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:0;margin-bottom:14px">
+      <summary style="cursor:pointer;padding:14px 22px;font-size:0.86rem;color:#6B7280;font-weight:500;list-style:none;display:flex;align-items:center;justify-content:space-between">
+        <span>הגדרות מתקדמות — שליטה ידנית ב-pipelines</span>
+        <span style="font-size:0.7rem;color:#9CA3AF">למשתמשים מתקדמים</span>
+      </summary>
+      <div style="padding:0 22px 18px">
+        <div style="font-size:0.78rem;color:#9CA3AF;margin-bottom:10px;line-height:1.5">בדרך כלל לא צריך לגעת — הסוכנים מפעילים pipelines אוטומטית לפי הערוצים והחיבורים שלכם. השתמשו רק אם רוצים לעצור pipeline ספציפי בלי להוריד את כל הערוץ.</div>
+        <div id="mkt-pipelines-mount"></div>
+      </div>
+    </details>
   </div>
 
   <!-- Tab: Integrations -->
@@ -2590,7 +2608,8 @@ input{font-family:inherit}
           <div><strong>WhatsApp Business</strong><div class="int-status" id="wa-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden">
-        <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">שליחת תבניות מאושרות דרך Green API WABA</div>
+        <div style="font-size:0.78rem;color:#6B7280;margin-bottom:4px">שליחת תבניות מאושרות דרך Green API WABA</div>
+        <div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:10px"><a href="#" onclick="showPublishGuide('whatsapp');return false" style="color:#2563EB">📖 מדריך חיבור מפורט</a></div>
         <div id="wa-config-form">
           <div style="display:flex;gap:6px;margin-bottom:6px">
             <input class="int-input" id="wa-instance-id" type="text" placeholder="Green API Instance ID" dir="ltr" style="flex:1"/>
@@ -2806,16 +2825,34 @@ input{font-family:inherit}
     <pre id="logs-output2" style="background:#111827;color:#D1D5DB;padding:14px;border-radius:8px;font-family:'SF Mono','Fira Code',monospace;font-size:0.75rem;line-height:1.5;max-height:500px;overflow:auto;white-space:pre-wrap;direction:ltr">לחצו על שירות לטעינת לוגים</pre>
   </div>
 
-  <!-- Backups tab -->
+  <!-- Backups tab — Hetzner snapshot-based -->
   <div class="tab-content hidden" id="tab-backups">
     <h2 class="tab-title">גיבויים</h2>
-    <p class="tab-desc">גיבויים אוטומטיים כל לילה. 7 ימים היסטוריה.</p>
-    <div id="backup-list2" style="margin-bottom:12px">
+    <p class="tab-desc">גיבוי מלא של השרת ברמת הדיסק (snapshot) — מצב עקבי של כל הקבצים, מסדי הנתונים והתצורה. שחזור מחזיר את השרת לדיוק לאותה נקודת זמן.</p>
+
+    <!-- Create new backup -->
+    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 18px;margin-bottom:14px">
+      <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:240px">
+          <div style="font-weight:600;font-size:0.92rem;color:#1F2937;margin-bottom:4px">צרו גיבוי חדש</div>
+          <div style="font-size:0.78rem;color:#6B7280;line-height:1.55">לוקח 1-3 דקות. השרת ממשיך לפעול — הגיבוי הוא snapshot של הדיסק.</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="text" id="backup-label-input" placeholder="תיוג (אופציונלי) — למשל 'לפני שינוי גדול'" style="padding:8px 12px;border:1px solid #D1D5DB;border-radius:8px;font-size:0.84rem;font-family:inherit;min-width:240px"/>
+          <button class="btn btn-primary" onclick="createBackupNow()" id="btn-create-backup">גבו עכשיו</button>
+          <button class="btn btn-outline btn-sm" onclick="loadBackups()" title="רענון">&#8635;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backup list -->
+    <div style="font-size:0.82rem;color:#6B7280;font-weight:600;margin-bottom:8px">גיבויים זמינים</div>
+    <div id="backup-list2">
       <div style="color:#9CA3AF;font-size:0.85rem;padding:16px;text-align:center">טוען...</div>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:20px">
-      <button class="btn btn-primary btn-sm" onclick="createBackupNow()">גבו עכשיו</button>
-      <button class="btn btn-outline btn-sm" onclick="loadBackups()">&#8635; רעננו</button>
+
+    <div style="margin-top:14px;padding:12px 14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;font-size:0.78rem;color:#92400E;line-height:1.55">
+      ⚠️ <strong>שחזור מגיבוי</strong> מחזיר את כל השרת למצב באותה נקודת זמן — כולל מחיקה של כל מה שנעשה אחרי הגיבוי. הפעולה לא ניתנת לביטול.
     </div>
   </div>
 
@@ -3897,11 +3934,37 @@ function updateWithLiveData() {
 
 /* ===== Render functions ===== */
 function renderHeader() {
-  var displayName = localStorage.getItem('cf_user_name') || email;
-  document.getElementById('headerEmail').textContent = displayName;
-  var firstLetter = (displayName || '?')[0].toUpperCase();
-  document.getElementById('headerAvatar').textContent = firstLetter;
+  var savedName = (localStorage.getItem('cf_user_name') || '').trim();
+  var displayName = savedName || (email ? email.split('@')[0] : '') || '—';
+  var hEmail = document.getElementById('headerEmail');
+  var hAvatar = document.getElementById('headerAvatar');
+  if (hEmail) hEmail.textContent = displayName;
+  // Avatar letter — first character of the displayed name (works for Hebrew + Latin)
+  var initialSource = savedName || displayName;
+  var firstLetter = '?';
+  for (var i = 0; i < initialSource.length; i++) {
+    var ch = initialSource[i];
+    if (ch && ch.trim()) { firstLetter = ch.toUpperCase(); break; }
+  }
+  if (hAvatar) hAvatar.textContent = firstLetter;
 }
+
+// Fetch profile name from /auth/me on init so we don't depend on localStorage for first-time logins
+async function syncProfileFromServer() {
+  try {
+    var res = await fetch(API + '/hosting/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+    });
+    if (!res.ok) return;
+    var json = await res.json();
+    var u = (json && (json.data || json.user)) || json;
+    if (u && u.name && typeof u.name === 'string' && u.name.trim()) {
+      localStorage.setItem('cf_user_name', u.name.trim());
+      renderHeader();
+    }
+  } catch (_) { /* silent */ }
+}
+if (typeof token !== 'undefined' && token) { syncProfileFromServer(); }
 
 function renderAgentHomeContext() {
   var agents = getAgentComponents();
@@ -4035,86 +4098,109 @@ function renderHome() {
   ];
 
   if (isMATEH) {
-    tasks.push({ id: 'profile', label: 'פרופיל עסקי הוגדר', done: !!hasAgents, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt');setTimeout(openAgentQuestionnaire,300)},100)", actionLabel: 'הגדירו', desc: 'מילוי שאלון 11 שאלות ← פרופיל מותאם אישית' });
+    // ── Phase 2: Identity ──
+    // Profile (the human input) → Brand Foundation (auto from website).
+    // Brand book moved UP — feeds research framing + strategy + creative
+    // downstream. Doing it after scenario was wrong: by then the AI has
+    // already proposed copy/channels in a generic voice and everything had
+    // to be redone once brand voice was set.
+    tasks.push({ id: 'profile', label: 'פרופיל עסקי', done: !!hasAgents, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt');setTimeout(openAgentQuestionnaire,300)},100)", actionLabel: 'הגדירו', desc: 'מילוי שאלון קצר ← פרופיל עסק מותאם אישית (~2 דק׳)' });
 
-    // Research + Strategy chain — each unlocks the next
+    var hasBrandBook = !!(instanceData && instanceData.hasBrandBook);
     if (hasAgents) {
       tasks.push({
-        id: 'research', label: 'מחקר שוק ובניית אסטרטגיה',
+        id: 'brand-foundation',
+        label: hasBrandBook ? 'מערכת מותג (Brand Book)' : 'הגדירו את המותג',
+        done: hasBrandBook,
+        action: "openBrandFoundation()",
+        actionLabel: hasBrandBook ? 'ערכו' : 'התחילו (~3 דק׳)',
+        desc: hasBrandBook
+          ? 'לוגו, צבעים, טיפוגרפיה, voice — יוזנים לכל הקריאייטיב והקופי'
+          : 'סריקה אוטומטית של האתר — לוגו, צבעים, פונטים, קול הברנד. נדרש לפני המחקר והאסטרטגיה כדי שהתוצרים יהיו עקביים.'
+      });
+    }
+
+    // ── Phase 3: Knowledge — research uses brand voice for framing ──
+    if (hasAgents && hasBrandBook) {
+      tasks.push({
+        id: 'research', label: 'מחקר שוק',
         done: !!hasResearch,
         action: "runChainResearch()",
         actionLabel: 'התחילו מחקר',
-        desc: 'מחקר מתחרים, מילות מפתח, קהל יעד, ערוצים ואימות — 5 שלבים'
+        desc: 'מתחרים, מילות מפתח, קהל יעד, ערוצים ואימות — 5 שלבים (~10-15 דק׳)'
       });
     }
-    if (hasResearch) {
-      tasks.push({
-        id: 'strategy', label: 'אסטרטגיה ותוכנית פעולה',
-        done: !!hasStrategy,
-        action: "runChainStrategy()",
-        actionLabel: 'בנו אסטרטגיה',
-        desc: 'על סמך המחקר — תוכנית עבודה מפורטת ל-9 סוכנים'
-      });
-    }
-    if (hasStrategy) {
-      tasks.push({
-        id: 'scenario', label: 'בחרו מסלול ביצוע',
-        done: !!hasChosenScenario,
-        action: "openScenarioPicker()",
-        actionLabel: hasScenarios ? 'בחרו מסלול' : 'התאימו מסלול',
-        desc: 'שמרני · מאוזן · אגרסיבי — בדיקת תקציב מול המציאות + התאמת ערוצים'
-      });
 
-      // Marketing management — pin once strategy + scenario chosen.
-      // "Done" = intents explicitly set + at least one pipeline counted as
-      // active (explicit toggle OR default-derived from intent + connected
-      // requirements). We use the cached marketingHubState.pipelines (loaded
-      // by renderHome's lazy-load) to check default-derived activation, so
-      // the task auto-completes once user picks intents and essentials are
-      // connected — no need for them to manually toggle every pipeline.
+    // ── Phase 4: Direction — Strategy + Scenario merged into one decision ──
+    // The previous "Strategy" task showed analysis; the separate "Scenario"
+    // task asked the user to pick a budget tier. Together they were 2 screens
+    // for 1 decision. Now: one task that runs strategy if needed, then opens
+    // the scenario picker so user sees the AI's recommendation alongside the
+    // 3 budget tiers and picks one in a single flow.
+    if (hasResearch) {
+      var strategyDone = !!hasStrategy && !!hasChosenScenario;
+      var strategyLabel, strategyAction, strategyActionLabel, strategyDesc;
+      if (!hasStrategy) {
+        strategyLabel = 'אסטרטגיה ובחירת מסלול ביצוע';
+        strategyAction = 'runChainStrategy()';
+        strategyActionLabel = 'בנו אסטרטגיה';
+        strategyDesc = 'על סמך המחקר והמותג — תוכנית פעולה + 3 תרחישי תקציב לבחירה (שמרני / מאוזן / אגרסיבי)';
+      } else if (!hasChosenScenario) {
+        strategyLabel = 'בחרו מסלול ביצוע';
+        strategyAction = 'openScenarioPicker()';
+        strategyActionLabel = hasScenarios ? 'בחרו מסלול' : 'התאימו מסלול';
+        strategyDesc = 'שמרני · מאוזן · אגרסיבי — בדיקת תקציב מול המציאות + התאמת ערוצים';
+      } else {
+        strategyLabel = 'אסטרטגיה ומסלול נבחרו';
+        strategyAction = 'openScenarioPicker()';
+        strategyActionLabel = 'ערכו';
+        strategyDesc = 'תוכנית פעולה + מסלול תקציב פעילים. ניתן להחליף בכל עת.';
+      }
+      tasks.push({
+        id: 'strategy_scenario',
+        label: strategyLabel,
+        done: strategyDone,
+        action: strategyAction,
+        actionLabel: strategyActionLabel,
+        desc: strategyDesc
+      });
+    }
+
+    // ── Phase 5: Execution setup ──
+    if (hasStrategy) {
       if (hasChosenScenario) {
         var rdMI = (instanceData && instanceData.researchData && Array.isArray(instanceData.researchData.marketingIntents))
           ? instanceData.researchData.marketingIntents : [];
+        // STRICT done check — intents set AND at least one pipeline that's
+        // ACTIVE (intent matches + ALL required integrations connected).
+        // Previously this was loose (intents.length > 0 was enough), which
+        // meant the task showed green even when nothing was actually running
+        // because no integrations were connected.
         var hasMktConfig = false;
         if (rdMI.length > 0) {
           var hubPipelines = (typeof marketingHubState !== 'undefined' && marketingHubState.pipelines) || [];
           var connectedIds = (typeof getConnectedIntegrationIdsFromState === 'function')
             ? getConnectedIntegrationIdsFromState() : [];
-          var anyActive = hubPipelines.some(function(s) {
-            return s.relevantToCurrentIntents
-              && s.state !== 'locked'
-              && (typeof isPipelineActive === 'function')
-              && isPipelineActive(s.pipeline.id, s.pipeline, rdMI, connectedIds);
-          });
-          // If hub not loaded yet, fall back to: intents set + has researchData
-          // (pipelines default-active for intent + integrations follow).
-          hasMktConfig = anyActive || (rdMI.length > 0 && hubPipelines.length === 0);
+          if (hubPipelines.length > 0) {
+            hasMktConfig = hubPipelines.some(function(s) {
+              return s.relevantToCurrentIntents
+                && s.state !== 'locked'
+                && (typeof isPipelineActive === 'function')
+                && isPipelineActive(s.pipeline.id, s.pipeline, rdMI, connectedIds);
+            });
+          }
+          // If hub not loaded yet, leave hasMktConfig=false — the task will
+          // re-render once renderMarketingTab fires the hub fetch on next
+          // tab open, and the home view will pick it up on the next
+          // renderHome tick. Avoiding the previous false-positive.
         }
 
-        // Brand Foundation must come BEFORE marketing pipelines — the brand
-        // book (logo, colors, voice, vocabulary) feeds every paid/content
-        // creative downstream. Display/PMax/Video assets, RSA copy tone,
-        // landing-page recommendations all need brand consistency. Without
-        // brand book first, Mazhir generates generic copy that has to be
-        // redone when client adds Meta/TikTok/Display channels later.
-        var hasBrandBook = !!(instanceData && instanceData.hasBrandBook);
         tasks.push({
-          id: 'brand-foundation',
-          label: hasBrandBook ? '✓ מערכת מותג (Brand Book)' : '🎨 הגדירו את המותג',
-          done: hasBrandBook,
-          action: "openBrandFoundation()",
-          actionLabel: hasBrandBook ? 'ערכו' : 'התחילו',
-          desc: hasBrandBook
-            ? 'לוגו, צבעים, טיפוגרפיה, voice — יוזנים לכל הקריאייטיב והקופי של Mazhir'
-            : 'נדרש לפני Google Ads / Meta / תוכן — Mazhir יסתמך על voice/tone/vocabulary בקופי הקמפיינים'
-        });
-
-        tasks.push({
-          id: 'marketing_config', label: 'ניהול שיווק — מטרות ו-pipelines',
+          id: 'marketing_config', label: 'ניהול שיווק — ערוצים וחיבורים',
           done: !!hasMktConfig,
           action: "switchTab('marketing')",
           actionLabel: 'הגדירו',
-          desc: 'בחרו מטרות (Google Ads / SEO / תוכן / רשתות), הפעילו pipelines רלוונטיים. הסוכנים יפעלו רק לפי ההגדרה הזו.'
+          desc: 'בחרו ערוצים (Google Ads / SEO / תוכן / רשתות) וחברו את הכלים הנדרשים. הסוכנים יתחילו לפעול אוטומטית.'
         });
 
         // ─── Mazhir / Google Ads — single composite pipeline widget ─────
@@ -4127,20 +4213,9 @@ function renderHome() {
         // `customWidget: true` — the renderer detects that flag and emits
         // the bespoke vertical-stepper HTML instead of the standard task row.
         var needsPaidProfile = rdMI.indexOf('paid_search') !== -1 || rdMI.indexOf('paid_social') !== -1;
-        // Hard gate: paid pipelines run AFTER brand foundation — Mazhir uses
-        // brand voice/tone/colors/vocabulary in every headline, description,
-        // sitelink, callout, and (later) Display/Video creative. Without
-        // brand book first, copy is generic and inconsistent across channels.
-        if (needsPaidProfile && !hasBrandBook) {
-          tasks.push({
-            id: 'brand-required-for-paid',
-            label: '🔒 Google Ads דורש Brand Book תחילה',
-            done: false,
-            action: "openBrandFoundation()",
-            actionLabel: 'הגדירו ברנד-בוק',
-            desc: 'קופי הקמפיינים, headlines/descriptions, ו-creative ב-Display/PMax/Video כולם נשענים על voice, tone, צבעים ולוגו. ללא Brand Book — קופי גנרי שייצור עקביות נמוכה בין ערוצים.'
-          });
-        }
+        // Brand foundation is now a primary task earlier in the chain,
+        // so by the time we reach Mazhir pipeline brand is always done.
+        // The defensive 'brand-required-for-paid' duplicate task was removed.
         if (needsPaidProfile && hasBrandBook) {
           // Compute step status objects up-front so the renderer can emit
           // them all at once (each step needs to know prior step completion
@@ -7451,6 +7526,204 @@ var PUBLISH_GUIDES = {
           '<p style="margin:0;font-size:0.85rem;color:#374151;line-height:1.6"><strong>Dashboard → Integrations → Google Ads → Disconnect</strong>. הסוכן יפסיק מיידית לנהל קמפיינים. הקמפיינים הקיימים ממשיכים לרוץ כרגיל (רק לא יעברו אופטימיזציה אוטומטית). אפשר לחבר חשבון חדש מיד אחרי.</p>'
       },
     ]
+  },
+
+  whatsapp: {
+    title: 'מדריך — חיבור WhatsApp Business לסוכני Flowmatic',
+    subtitle: 'חיבור חד-פעמי · ~30-60 דקות (כולל אישור WABA של Meta) · הסוכן יוכל לשלוח broadcast של הודעות מאושרות, לאסוף לידים, לענות לשיחות נכנסות',
+    sections: [
+      {
+        icon: '🤖',
+        title: 'מה הסוכן יוכל לעשות אחרי החיבור',
+        html:
+          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li>לשלוח <strong>broadcast של הודעות מאושרות</strong> ע״י Meta (templates) לקהל שאישר קבלה (opt-in)</li>' +
+            '<li>לאסוף לידים אוטומטית — כל מי שכותב למספר העסקי שלכם נכנס לרשימת contacts עם opt-in</li>' +
+            '<li>לענות לשיחות נכנסות תוך חלון 24 שעות בטקסט חופשי</li>' +
+            '<li>לשלוח opt-out אוטומטי כשמישהו כותב "STOP" / "הסר" / "ביטול"</li>' +
+            '<li>למדוד פתיחות, קליקים ושיעורי המרה — בלוח הבקרה</li>' +
+          '</ul>'
+      },
+      {
+        icon: '1',
+        title: 'מה חייב להיות לכם לפני שמתחילים',
+        html:
+          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li><strong>מספר טלפון עסקי ייעודי</strong> — שלא משתמשים בו ב-WhatsApp רגיל. אסור להשתמש במספר שכבר רשום ב-WhatsApp Personal/Business app.<br>' +
+              '<span style="color:#6B7280;font-size:0.82rem">אם המספר שלכם כבר רשום באפליקציה — תצטרכו למחוק את החשבון שם לפני האישור.</span></li>' +
+            '<li><strong>חשבון Meta Business</strong> ב-<a href="https://business.facebook.com" target="_blank" dir="ltr">business.facebook.com</a> — ל-WABA approval.</li>' +
+            '<li><strong>אמצעי תשלום</strong> — לתשלום ל-Green API (~$15-30/חודש) ול-WhatsApp Conversations (~₪0.04 לכל הודעה שיווקית בישראל).</li>' +
+            '<li><strong>אימות זהות עסקית</strong> ב-Meta Business — Business Verification (1-3 ימי עסקים).</li>' +
+          '</ul>' +
+          '<div style="margin-top:10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;font-size:0.82rem;color:#92400E;line-height:1.6">' +
+            '⚠ <strong>חשוב:</strong> השלב הזה לוקח את רוב הזמן. אם החשבון העסקי שלכם ב-Meta עדיין לא מאומת — התחילו עכשיו, לפני שתפתחו Green API. אישור עוקב אחרי האישור הזה.' +
+          '</div>'
+      },
+      {
+        icon: '2',
+        title: 'פתיחת חשבון Green API',
+        html:
+          '<p style="margin:0 0 8px;font-size:0.85rem;color:#374151;line-height:1.6"><a href="https://green-api.com" target="_blank" dir="ltr">Green API</a> הוא ספק הביניים שלנו ל-WABA. הם מנהלים את החיבור הטכני, ואנחנו עובדים עם ה-REST API שלהם.</p>' +
+          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li>היכנסו ל-<a href="https://green-api.com" target="_blank" dir="ltr">green-api.com</a> → <strong>Sign up</strong> (אימייל + סיסמה).</li>' +
+            '<li>במסך Console → <strong>Choose tariff</strong> — בחרו <strong>WhatsApp Business API</strong> (לא Personal). מינימום ~$15/חודש לפי הנפח.</li>' +
+            '<li>הוסיפו אמצעי תשלום (כרטיס אשראי בינ״ל).</li>' +
+            '<li>צרו <strong>instance חדש</strong> → תקבלו <code>Instance ID</code> (למשל <code>1101234567</code>) ו-<code>API Token</code> (מחרוזת ארוכה).</li>' +
+            '<li><strong>שמרו אותם זמנית</strong> — תכניסו אותם לדשבורד בשלב 5.</li>' +
+          '</ol>'
+      },
+      {
+        icon: '3',
+        title: 'אישור WABA דרך Green API',
+        html:
+          '<p style="margin:0 0 8px;font-size:0.85rem;color:#374151;line-height:1.6">זהו השלב הקריטי. בלי אישור Meta — לא ניתן לשלוח broadcast.</p>' +
+          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li>ב-Green API Console → instance שלכם → <strong>WhatsApp Business API → Connect</strong>.</li>' +
+            '<li>תיכנסו ל-Meta Business Manager → אישור גישה ל-Green API.</li>' +
+            '<li>הוסיפו את <strong>מספר הטלפון העסקי</strong> ל-WhatsApp Business Account ב-Meta:' +
+              '<ul style="margin:4px 0 0;padding-right:18px;font-size:0.84rem">' +
+                '<li>Business Settings → Accounts → WhatsApp Accounts → Add</li>' +
+                '<li>בחרו את ה-WABA שיצר Green API → Add Phone Number → הקלידו את המספר</li>' +
+                '<li>אימות OTP — דרך SMS או שיחה קולית</li>' +
+              '</ul></li>' +
+            '<li>בחרו <strong>Display Name</strong> (שם העסק שיופיע למקבלים) — Meta בודקת ואופציה לדחות אם לא מתאים. בחרו את שם העסק המלא, לא ביטוי שיווקי.</li>' +
+            '<li><strong>אישור Meta</strong> — לרוב 1-24 שעות. תקבלו אימייל כשהמספר מאושר.</li>' +
+          '</ol>' +
+          '<div style="margin-top:10px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px;font-size:0.78rem;color:#6B7280;line-height:1.5">' +
+            '<strong>למה זה מסובך?</strong> Meta מתייחסת ל-WhatsApp Business API ברצינות — בלי תהליך אישור היה אפשר לשלוח spam לכל מי שיש לו WhatsApp. בגלל זה יש Business Verification, אישור מספר, ואישור per-template.' +
+          '</div>'
+      },
+      {
+        icon: '4',
+        title: 'חיבור לסוכן Flowmatic',
+        html:
+          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li>בדשבורד → <strong>Integrations → WhatsApp Business</strong>.</li>' +
+            '<li>הזינו את <strong>Green API Instance ID</strong> (משלב 2).</li>' +
+            '<li>הזינו את <strong>API Token</strong> (משלב 2).</li>' +
+            '<li>הזינו את <strong>מספר הטלפון העסקי</strong> בפורמט בינ״ל (למשל <code dir="ltr">972501234567</code>) — בלי אפס מקדים, בלי <code>+</code>, בלי מקפים.</li>' +
+            '<li>לחצו <strong>שמרו</strong> — אנחנו בודקים את הפרטים מול Green API. אם תקין → סטטוס מחובר ✓.</li>' +
+          '</ol>' +
+          '<div style="margin-top:10px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;font-size:0.82rem;color:#991B1B;line-height:1.6">' +
+            '⚠ אם אתם מקבלים <strong>Invalid credentials</strong> — בדקו ש-instance ב-Green API במצב <code>authorized</code> (לא <code>notAuthorized</code> או <code>blocked</code>). אם blocked — צרו קשר ל-Green API support.' +
+          '</div>'
+      },
+      {
+        icon: '5',
+        title: 'בניית רשימת אנשי קשר (opt-in)',
+        html:
+          '<p style="margin:0 0 10px;font-size:0.85rem;color:#374151;line-height:1.6"><strong>WhatsApp אוסר לחלוטין שליחה ללא הסכמה (opt-in).</strong> הפרת הכלל = ban מיידי, החזרת כסף ל-Meta = blocked instance ב-Green API.</p>' +
+          '<p style="margin:0 0 8px;font-size:0.85rem;color:#374151"><strong>שלוש דרכים חוקיות לאסוף contacts:</strong></p>' +
+          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li><strong>Webhook auto opt-in</strong> (מומלץ) — כשמישהו כותב למספר העסקי שלכם, הוא נכנס אוטומטית לרשימה כ-opted-in. הסוכן יכול לשלוח לו תוך 24 שעות בטקסט חופשי, ולאחר מכן רק templates.</li>' +
+            '<li><strong>טופס באתר עם checkbox</strong> — "אני מאשר/ת לקבל עדכונים ב-WhatsApp ממספר X". מי שמסמן — אתם יכולים להוסיף אותם ידנית או דרך CSV עם ציון <code>method=website_opt_in</code>.</li>' +
+            '<li><strong>QR code / כפתור</strong> שמפעיל שיחה — הקליק עצמו מספיק (כי ההודעה הראשונה היא מהלקוח).</li>' +
+          '</ol>' +
+          '<div style="margin-top:10px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;font-size:0.82rem;color:#991B1B;line-height:1.6">' +
+            '⛔ <strong>אסור:</strong> ייבוא רשימת לקוחות ישנה ושליחה אליהם בלי opt-in מפורש. גם אם הם רכשו ממכם בעבר. זה הפרה של תנאי השירות של Meta — תיחסמו תוך ימים.' +
+          '</div>' +
+          '<p style="margin:10px 0 0;font-size:0.82rem;color:#6B7280;line-height:1.6">ייבוא CSV בדשבורד <strong>שמור</strong> את אנשי הקשר אבל לא מסמן אותם כ-opt-in. אתם תצטרכו לבקש אישור (template UTILITY ראשון) לפני broadcast שיווקי.</p>'
+      },
+      {
+        icon: '6',
+        title: 'תבניות מאושרות (Templates)',
+        html:
+          '<p style="margin:0 0 10px;font-size:0.85rem;color:#374151;line-height:1.6">מחוץ לחלון 24 שעות, אפשר לשלוח <strong>רק templates שאושרו</strong> ע״י Meta. כל template עובר review של 1-24 שעות.</p>' +
+          '<p style="margin:0 0 8px;font-size:0.85rem;color:#374151"><strong>שתי קטגוריות:</strong></p>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:10px">' +
+            '<tr style="background:#F9FAFB"><th style="padding:6px 10px;text-align:right;border:1px solid #E5E7EB">קטגוריה</th><th style="padding:6px 10px;text-align:right;border:1px solid #E5E7EB">למה משמש</th><th style="padding:6px 10px;text-align:right;border:1px solid #E5E7EB">עלות</th></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>MARKETING</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">קמפיינים, מבצעים, מוצרים חדשים</td><td style="padding:6px 10px;border:1px solid #E5E7EB">~₪0.04/הודעה (IL)</td></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>UTILITY</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">אישורי הזמנה, סטטוס משלוח, תזכורות</td><td style="padding:6px 10px;border:1px solid #E5E7EB">~₪0.015/הודעה (IL)</td></tr>' +
+          '</table>' +
+          '<p style="margin:0 0 8px;font-size:0.85rem;color:#374151"><strong>כללים שיגרמו לדחייה:</strong></p>' +
+          '<ul style="margin:0;padding-right:18px;font-size:0.83rem;color:#6B7280;line-height:1.6">' +
+            '<li>UTILITY עם מילים שיווקיות ("הנחה", "מבצע", "%") — Meta תזהה ותעביר ל-MARKETING</li>' +
+            '<li>קישורים מקוצרים (bit.ly וכו׳) — Meta דורשת קישורים מלאים</li>' +
+            '<li>הודעות עם דחיפות מזויפת ("רק היום!", "אחרון במלאי")</li>' +
+            '<li>הבטחות תוצאות שלא ניתנות לאימות ("הרוויחו ₪10,000 בחודש")</li>' +
+            '<li>שגיאות תוכן או דקדוק — Meta מחזירה ל-revision</li>' +
+          '</ul>' +
+          '<p style="margin:10px 0 0;font-size:0.82rem;color:#6B7280;line-height:1.6">בדשבורד → Templates → <strong>+ תבנית חדשה</strong>. כתבו את הטקסט בעברית (עד 550 תווים), בחרו קטגוריה, לחצו "צרו טיוטה". אחרי בדיקת הסוכן (ניסוח, איסורים) — לחצו <strong>Submit</strong> כדי לשלוח ל-Meta. מצב יתעדכן ל-PENDING → APPROVED או REJECTED עם סיבה.</p>'
+      },
+      {
+        icon: '7',
+        title: 'משלוח broadcast',
+        html:
+          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li>בדשבורד → Templates → בחרו template עם סטטוס <strong>APPROVED</strong>.</li>' +
+            '<li>לחצו <strong>שלחו</strong> → בחרו audience: כל ה-opted-in / קבוצה / אנשי קשר ספציפיים.</li>' +
+            '<li>הסוכן מציג <strong>preview</strong> + מחיר משוער (לפי כמות + קטגוריה).</li>' +
+            '<li>אישרו → המסר נשלח ב-batches של 50/דקה (rate limit של Meta).</li>' +
+            '<li>תוצאות מתעדכנות בזמן אמת ב-<strong>שליחות אחרונות</strong>: נשלח, נמסר, נקרא, ענה.</li>' +
+          '</ol>' +
+          '<p style="margin:10px 0 0;font-size:0.82rem;color:#6B7280;line-height:1.6"><strong>טיפ:</strong> לפני broadcast גדול, שלחו test ל-2-3 מספרים שלכם — לבדוק typography, RTL, קישורים.</p>'
+      },
+      {
+        icon: '8',
+        title: 'מענה לשיחות נכנסות (24-hour window)',
+        html:
+          '<p style="margin:0 0 10px;font-size:0.85rem;color:#374151;line-height:1.6">כשמישהו כותב לכם → נפתח <strong>חלון של 24 שעות</strong> שבו אתם יכולים לענות בטקסט חופשי (בלי template). אחרי 24 שעות — שוב רק templates.</p>' +
+          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li><strong>בתוך החלון:</strong> טקסט חופשי, תמונות, קבצים, audio — חינם (אין עלות לכל הודעה, רק עלות אחת לפתיחת השיחה ~₪0.02)</li>' +
+            '<li><strong>הסוכן יענה אוטומטית</strong> אם הגדרתם reply_text בקונפיג, או אם הוא יכול לזהות שאלות מתוך ה-FAQ של הברנד</li>' +
+            '<li><strong>אחרי 24 שעות:</strong> כדי להתחיל שוב — חייבים לשלוח template (לרוב UTILITY דוגמת "האם תרצו עדכון על ההזמנה שלכם?")</li>' +
+          '</ul>'
+      },
+      {
+        icon: '9',
+        title: 'Compliance + הגנה מ-ban',
+        html:
+          '<p style="margin:0 0 8px;font-size:0.85rem;color:#374151;line-height:1.6"><strong>WhatsApp בודקת איכות (Quality Rating):</strong> Green / Yellow / Red. Yellow = warning, Red = השעיה ל-3 ימים, repeated red = ban קבוע.</p>' +
+          '<p style="margin:0 0 8px;font-size:0.85rem;color:#374151"><strong>מה משפיע על Quality Rating:</strong></p>' +
+          '<ul style="margin:0;padding-right:18px;font-size:0.83rem;color:#6B7280;line-height:1.6">' +
+            '<li>שיעור block / report ע״י משתמשים → ירידה מהירה</li>' +
+            '<li>שיעור opt-out (תגובת "STOP" / "הסר") גבוה → warning</li>' +
+            '<li>שליחה ללא opt-in → ban מהיר</li>' +
+            '<li>אותו תוכן בדיוק שוב ושוב (spam pattern) → דחיית templates</li>' +
+          '</ul>' +
+          '<p style="margin:10px 0 8px;font-size:0.85rem;color:#374151"><strong>איך הסוכן מגן עליכם:</strong></p>' +
+          '<ul style="margin:0;padding-right:18px;font-size:0.83rem;color:#6B7280;line-height:1.6">' +
+            '<li>אוטומטית מסיר contacts שכתבו "STOP"/"הסר"/"ביטול"/"להסיר"</li>' +
+            '<li>מגביל broadcast לאותו contact ל-3 בשבוע מקסימום</li>' +
+            '<li>מבקש אישור שני לתבנית עם כל מילים אדומות (compliance pre-check)</li>' +
+            '<li>מציג alert אם Quality ירד ל-Yellow — ועוצר broadcast עד שתאשרו</li>' +
+          '</ul>'
+      },
+      {
+        icon: '10',
+        title: 'מחירים — שקיפות מלאה',
+        html:
+          '<p style="margin:0 0 8px;font-size:0.85rem;color:#374151;line-height:1.6">העלויות מתפצלות לשלושה מקורות נפרדים — אנחנו לא לוקחים אחוזים מאף אחד.</p>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:0.82rem">' +
+            '<tr style="background:#F9FAFB"><th style="padding:6px 10px;text-align:right;border:1px solid #E5E7EB">מקור</th><th style="padding:6px 10px;text-align:right;border:1px solid #E5E7EB">עלות מוערכת</th><th style="padding:6px 10px;text-align:right;border:1px solid #E5E7EB">משולם ל-</th></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Green API</strong> instance</td><td style="padding:6px 10px;border:1px solid #E5E7EB">$15-30/חודש</td><td style="padding:6px 10px;border:1px solid #E5E7EB">Green API ישירות</td></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Marketing conversation</strong> (broadcast)</td><td style="padding:6px 10px;border:1px solid #E5E7EB">~₪0.04 / הודעה (IL)</td><td style="padding:6px 10px;border:1px solid #E5E7EB">Meta דרך Green API</td></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Utility conversation</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">~₪0.015 / הודעה (IL)</td><td style="padding:6px 10px;border:1px solid #E5E7EB">Meta דרך Green API</td></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Service conversation</strong> (24h window)</td><td style="padding:6px 10px;border:1px solid #E5E7EB">~₪0.02 / פתיחה</td><td style="padding:6px 10px;border:1px solid #E5E7EB">Meta דרך Green API</td></tr>' +
+          '</table>' +
+          '<p style="margin:10px 0 0;font-size:0.82rem;color:#6B7280;line-height:1.6">למשל: 1,000 broadcast שיווקי בחודש = ~₪40 + $15-30 (Green API). תמיד עדכון מחירים: <a href="https://green-api.com/pricing" target="_blank" dir="ltr">green-api.com/pricing</a> + <a href="https://developers.facebook.com/docs/whatsapp/pricing" target="_blank" dir="ltr">Meta WA Pricing</a>.</p>'
+      },
+      {
+        icon: '11',
+        title: 'פתרון תקלות נפוצות',
+        html:
+          '<table style="width:100%;border-collapse:collapse;font-size:0.82rem">' +
+            '<tr style="background:#F9FAFB"><th style="padding:6px 10px;text-align:right;border:1px solid #E5E7EB">תקלה</th><th style="padding:6px 10px;text-align:right;border:1px solid #E5E7EB">פתרון</th></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Template REJECTED</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">קראו את סיבת הדחייה ב-Console של Green API → תקנו את הטקסט (הסר מילים שיווקיות אם UTILITY, הוסר urgency אם MARKETING) → submit שוב.</td></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Instance disconnected</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">Green API console → instance → State → Authorize → סרוק QR מחדש מ-WhatsApp Business app בטלפון.</td></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Invalid credentials</strong> בדשבורד</td><td style="padding:6px 10px;border:1px solid #E5E7EB">בדקו שה-Instance במצב <code>authorized</code> ב-Green API. עדכנו API Token (אם רוטציה).</td></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Quality Rating ירד ל-Red</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">השעיה אוטומטית ל-3 ימים. השתמשו בזמן הזה לבדוק: שיעור opt-out, איכות הקופי, רלוונטיות הקהל. תמתין/ו עד שהדירוג חוזר ל-Green.</td></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>"לא מקבלים הודעות"</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">בדקו: (1) שהמספר רשום ב-WhatsApp, (2) שלא חסמו אתכם, (3) שהקטגוריה תואמת לתוכן (UTILITY נחסמת ע״י Meta אם זה למעשה MARKETING).</td></tr>' +
+          '</table>'
+      },
+      {
+        icon: '12',
+        title: 'ניתוק / החלפת מספר',
+        html:
+          '<p style="margin:0;font-size:0.85rem;color:#374151;line-height:1.6"><strong>Dashboard → Integrations → WhatsApp → ניתוק</strong>. הסוכן יפסיק מיידית לשלוח broadcast ולקבל webhooks. אנשי הקשר ו-templates נשמרים ב-DB שלכם — אם תחברו שוב, הכל יחזור.</p>' +
+          '<p style="margin:8px 0 0;font-size:0.82rem;color:#6B7280;line-height:1.6">להחלפת מספר — צרו <strong>instance חדש</strong> ב-Green API (לא ניתן להעביר מספר), עברו את כל תהליך האישור מחדש (שלבים 2-3), והזינו את הפרטים החדשים בדשבורד.</p>'
+      },
+    ]
   }
 };
 
@@ -10656,7 +10929,7 @@ async function renderMarketingTab() {
   renderMarketingIntegrationsHealthSection();
 }
 
-// Section 1: Intents picker (multi-select pills)
+// Section 1: Channel picker — large clear pills, multi-select.
 function renderMarketingIntentsSection() {
   var mount = document.getElementById('mkt-intents-mount');
   if (!mount) return;
@@ -10666,18 +10939,25 @@ function renderMarketingIntentsSection() {
   for (var i = 0; i < catalog.length; i++) {
     var it = catalog[i];
     var on = current.has(it.id);
-    var bg = on ? '#2563EB' : '#fff';
+    var titleAttr = it.descHe ? ' title="' + escapeHtml(it.descHe).replace(/"/g, '&quot;') + '"' : '';
+    var checkSvg = on
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px"><polyline points="20 6 9 17 4 12"/></svg>'
+      : '';
+    var bg = on ? 'linear-gradient(135deg,#2563EB,#1D4ED8)' : '#fff';
     var color = on ? '#fff' : '#374151';
-    var border = on ? '#2563EB' : '#D1D5DB';
-    html += '<button type="button" onclick="toggleMarketingIntent(\'' + it.id + '\')" ' +
-      'style="display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;border:1px solid ' + border + ';background:' + bg + ';color:' + color + ';font-size:0.82rem;font-weight:600;cursor:pointer;transition:all .15s">' +
-      escapeHtml(it.nameHe) + (on ? ' ✓' : '') +
+    var border = on ? 'transparent' : '#D1D5DB';
+    var shadow = on ? 'box-shadow:0 4px 12px -4px rgba(37,99,235,0.45);' : '';
+    html += '<button type="button" onclick="toggleMarketingIntent(\'' + it.id + '\')"' + titleAttr + ' ' +
+      'style="display:inline-flex;align-items:center;gap:4px;padding:9px 16px;border-radius:999px;border:1.5px solid ' + border + ';background:' + bg + ';color:' + color + ';font-size:0.86rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;' + shadow + '">' +
+      escapeHtml(it.nameHe) + checkSvg +
       '</button>';
   }
   html += '</div>';
-  // Helper text — show derived state if intents not explicit
   if ((marketingHubState.intents || []).length === 0) {
-    html += '<div style="margin-top:10px;padding:10px 12px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;font-size:0.8rem;color:#92400E">בחרו לפחות מטרה אחת. אחרת לא נדע אילו pipelines להפעיל.</div>';
+    html += '<div style="margin-top:12px;padding:11px 14px;background:#F9FAFB;border:1px dashed #D1D5DB;border-radius:8px;font-size:0.82rem;color:#6B7280;line-height:1.5">בחרו ערוץ אחד או יותר כדי להתחיל. ההחלטה לא סופית — תוכלו להוסיף ולהסיר ערוצים בכל עת.</div>';
+  } else {
+    var n = marketingHubState.intents.length;
+    html += '<div style="margin-top:10px;font-size:0.78rem;color:#9CA3AF">' + n + ' ' + (n === 1 ? 'ערוץ נבחר' : 'ערוצים נבחרים') + '</div>';
   }
   mount.innerHTML = html;
 }
@@ -10790,96 +11070,128 @@ async function toggleIntentBundle(intentId, enabled) {
 }
 
 // Section 3: Integrations health — explicit list grouped by tier
-// Shows for each integration: name, tier, status, what it does, connect button.
-// Counts only essential + recommended (drops optional from headline to avoid
-// inflation that confused users — "7/13" with no idea what those 13 are).
+// Flat integration list — no tier grouping, just essential→optional sorted.
+// Each row: name + per-channel badges (which intents need it) + status + Connect.
+// Status footer: "X / Y connected. Agents will start when all required are ready."
 function renderMarketingIntegrationsHealthSection() {
   var mount = document.getElementById('mkt-integrations-mount');
   if (!mount) return;
   var hub = marketingHubState.hub || [];
   var intents = marketingHubState.intents || [];
   var catalog = _hubIntentCatalog || [];
+  var footer = document.getElementById('mkt-status-footer');
 
   if (intents.length === 0) {
-    mount.innerHTML = '<div style="padding:14px;color:#6B7280;font-size:0.85rem">בחרו מטרה כדי לראות תוספים רלוונטיים.</div>';
+    mount.innerHTML = '<div style="padding:24px 14px;color:#9CA3AF;font-size:0.88rem;text-align:center;background:#F9FAFB;border:1px dashed #E5E7EB;border-radius:10px">בחרו ערוץ אחד לפחות למעלה כדי לראות אילו כלים נדרשים</div>';
+    if (footer) footer.innerHTML = '';
     return;
   }
 
-  // Flatten + group by tier (essential / recommended / optional)
-  var byTier = { essential: [], recommended: [], optional: [] };
+  // Flatten across all hub groups, dedupe, keep tier
+  var seen = {};
+  var rows = [];
   hub.forEach(function(group) {
     group.integrations.forEach(function(item) {
       if (item.tier === 'not_relevant') return;
-      byTier[item.tier].push(item);
+      var id = item.integration.id;
+      if (seen[id]) return;
+      seen[id] = true;
+      rows.push(item);
     });
   });
+  // Sort: essential first, then recommended, then optional. Within each: missing before connected.
+  var tierWeight = { essential: 0, recommended: 1, optional: 2 };
+  rows.sort(function(a, b) {
+    var ta = tierWeight[a.tier] || 99;
+    var tb = tierWeight[b.tier] || 99;
+    if (ta !== tb) return ta - tb;
+    return (a.connected ? 1 : 0) - (b.connected ? 1 : 0);
+  });
 
-  // Stat: only essential + recommended (the things that actually matter)
-  var essTotal = byTier.essential.length;
-  var essOk = byTier.essential.filter(function(i) { return i.connected; }).length;
-  var recTotal = byTier.recommended.length;
-  var recOk = byTier.recommended.filter(function(i) { return i.connected; }).length;
-  var totalCritical = essTotal + recTotal;
-  var totalCriticalOk = essOk + recOk;
+  // Render flat list
+  var html = '<div style="display:flex;flex-direction:column;gap:8px">';
+  rows.forEach(function(item) {
+    var info = item.integration;
+    var connected = item.connected;
+    var isBuiltin = info.auth === 'builtin';
+    var connectFn = !isBuiltin && !connected ? getIntegrationConnectAction(info.id) : null;
+    var hasConnect = !!connectFn;
+    var tier = item.tier;
+    var relIntents = item.relevantIntents || [];
 
-  var html = '<div style="display:flex;align-items:center;gap:14px;padding:14px;background:#F9FAFB;border-radius:8px;margin-bottom:14px">' +
-    '<div style="font-weight:700;font-size:1.2rem;color:#1F2937">' + totalCriticalOk + '<span style="color:#9CA3AF">/' + totalCritical + '</span></div>' +
-    '<div style="flex:1">' +
-      '<div style="font-size:0.85rem;font-weight:600;color:#1F2937">תוספים חיוניים ומומלצים מחוברים</div>' +
-      '<div style="font-size:0.75rem;color:#6B7280;margin-top:2px">חיוניים: ' + essOk + '/' + essTotal + ' · מומלצים: ' + recOk + '/' + recTotal + (byTier.optional.length > 0 ? ' · אופציונליים: ' + byTier.optional.filter(function(i) { return i.connected; }).length + '/' + byTier.optional.length : '') + '</div>' +
-    '</div>' +
-  '</div>';
+    // Channel badges — which intents this integration serves
+    var channelBadges = relIntents.map(function(id) {
+      var x = catalog.find(function(c) { return c.id === id; });
+      var label = x ? x.nameHe : id;
+      return '<span style="display:inline-block;font-size:0.68rem;padding:2px 8px;border-radius:6px;background:#EFF6FF;color:#1E40AF;font-weight:500;border:1px solid #DBEAFE">' + escapeHtml(label) + '</span>';
+    }).join(' ');
 
-  // Render each tier
-  var tierOrder = ['essential', 'recommended', 'optional'];
-  var tierMeta = {
-    essential:    { labelHe: 'חיוניים — בלעדיהם הסוכן עובד עיוור',          color: '#DC2626', bg: '#FEF2F2', border: '#FCA5A5' },
-    recommended:  { labelHe: 'מומלצים — משפרים משמעותית את האיכות',          color: '#D97706', bg: '#FFFBEB', border: '#FDE68A' },
-    optional:     { labelHe: 'אופציונליים — שיפורים נוספים',                color: '#6B7280', bg: '#F9FAFB', border: '#E5E7EB' },
-  };
+    // Tier label (small, only when not connected)
+    var tierBadge = '';
+    if (!connected && !isBuiltin) {
+      if (tier === 'essential') tierBadge = '<span style="font-size:0.66rem;font-weight:700;color:#DC2626;background:#FEF2F2;padding:2px 7px;border-radius:5px;border:1px solid #FCA5A5">נדרש</span>';
+      else if (tier === 'recommended') tierBadge = '<span style="font-size:0.66rem;font-weight:600;color:#D97706;background:#FFFBEB;padding:2px 7px;border-radius:5px;border:1px solid #FDE68A">מומלץ</span>';
+      else tierBadge = '<span style="font-size:0.66rem;font-weight:500;color:#6B7280;background:#F9FAFB;padding:2px 7px;border-radius:5px;border:1px solid #E5E7EB">אופציונלי</span>';
+    }
 
-  for (var ti = 0; ti < tierOrder.length; ti++) {
-    var tier = tierOrder[ti];
-    var items = byTier[tier];
-    if (items.length === 0) continue;
-    var meta = tierMeta[tier];
-    html += '<div style="margin-bottom:14px">' +
-      '<div style="font-weight:700;font-size:0.85rem;color:' + meta.color + ';margin-bottom:8px">' + escapeHtml(meta.labelHe) + ' (' + items.length + ')</div>' +
-      '<div style="display:flex;flex-direction:column;gap:8px">';
-    items.forEach(function(item) {
-      var info = item.integration;
-      var connected = item.connected;
-      var rowBg = connected ? '#F0FDF4' : (tier === 'essential' ? '#FEF2F2' : '#fff');
-      var rowBorder = connected ? '#BBF7D0' : (tier === 'essential' ? '#FCA5A5' : '#E5E7EB');
-      var isBuiltin = info.auth === 'builtin';
-      var connectFn = !isBuiltin && !connected ? getIntegrationConnectAction(info.id) : null;
-      var hasConnect = !!connectFn;
-      var relIntents = (item.relevantIntents || []).map(function(id) {
-        var x = catalog.find(function(c) { return c.id === id; });
-        return x ? x.nameHe : id;
-      }).join(' · ');
+    // Status pill
+    var statusPill = connected
+      ? '<span style="font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:999px;background:#D1FAE5;color:#065F46">✓ מחובר</span>'
+      : (isBuiltin
+          ? '<span style="font-size:0.72rem;font-weight:600;padding:3px 9px;border-radius:999px;background:#DBEAFE;color:#1E40AF">✓ זמין</span>'
+          : '');
 
-      html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border:1.5px solid ' + rowBorder + ';border-radius:10px;background:' + rowBg + '">' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:3px">' +
-            '<strong style="font-size:0.88rem;color:#111827">' + escapeHtml(info.nameHe) + '</strong>' +
-            (connected ? '<span style="font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:999px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0">✓ מחובר</span>'
-                       : (isBuiltin ? '<span style="font-size:0.7rem;font-weight:600;padding:2px 8px;border-radius:999px;background:#DBEAFE;color:#1E40AF;border:1px solid #BFDBFE">✓ זמין</span>'
-                                    : '<span style="font-size:0.7rem;font-weight:600;padding:2px 8px;border-radius:999px;background:' + meta.bg + ';color:' + meta.color + ';border:1px solid ' + meta.border + '">' + (tier === 'essential' ? 'חסר' : 'מומלץ לחבר') + '</span>')) +
-          '</div>' +
-          '<div style="font-size:0.78rem;color:#6B7280;line-height:1.5">' + escapeHtml(info.descHe) + '</div>' +
-          (relIntents ? '<div style="font-size:0.7rem;color:#9CA3AF;margin-top:4px">בשבילכם רלוונטי ל-' + relIntents + '</div>' : '') +
+    // Right-side action
+    var action;
+    if (connected || isBuiltin) {
+      action = statusPill;
+    } else if (hasConnect) {
+      action = (tier === 'essential')
+        ? '<button class="btn btn-primary btn-sm" onclick="window.__hubConnectAction(\'' + info.id + '\')" style="font-size:0.78rem;flex-shrink:0;padding:6px 14px">חברו ←</button>'
+        : '<button class="btn btn-outline btn-sm" onclick="window.__hubConnectAction(\'' + info.id + '\')" style="font-size:0.78rem;flex-shrink:0;padding:6px 14px">חברו</button>';
+    } else {
+      action = '<span style="font-size:0.74rem;color:#9CA3AF;align-self:center">בקרוב</span>';
+    }
+
+    var rowBorder = connected ? '#E5E7EB' : (tier === 'essential' ? '#FCA5A5' : '#E5E7EB');
+    var rowBg = connected ? '#FAFEFB' : '#fff';
+
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid ' + rowBorder + ';border-radius:10px;background:' + rowBg + ';transition:background .15s">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:5px">' +
+          '<strong style="font-size:0.92rem;color:#111827">' + escapeHtml(info.nameHe) + '</strong>' +
+          tierBadge +
         '</div>' +
-        (connected || isBuiltin ? '' :
-          (hasConnect
-            ? '<button class="btn btn-outline btn-sm" onclick="window.__hubConnectAction(\'' + info.id + '\')" style="font-size:0.78rem;flex-shrink:0">חברו</button>'
-            : '<span style="font-size:0.7rem;color:#9CA3AF;flex-shrink:0;align-self:center">בקרוב</span>')) +
-      '</div>';
-    });
-    html += '</div></div>';
-  }
+        '<div style="font-size:0.78rem;color:#6B7280;line-height:1.5;margin-bottom:6px">' + escapeHtml(info.descHe) + '</div>' +
+        (channelBadges ? '<div style="display:flex;flex-wrap:wrap;gap:4px">' + channelBadges + '</div>' : '') +
+      '</div>' +
+      '<div style="flex-shrink:0">' + action + '</div>' +
+    '</div>';
+  });
+  html += '</div>';
 
   mount.innerHTML = html;
+
+  // Live status footer — single sentence summary
+  var requiredTotal = rows.filter(function(r) { return r.tier === 'essential' && r.integration.auth !== 'builtin'; }).length;
+  var requiredOk = rows.filter(function(r) { return r.tier === 'essential' && r.connected; }).length;
+  var allRequiredMet = requiredTotal === 0 || requiredOk === requiredTotal;
+  var recTotal = rows.filter(function(r) { return r.tier === 'recommended' && r.integration.auth !== 'builtin'; }).length;
+  var recOk = rows.filter(function(r) { return r.tier === 'recommended' && r.connected; }).length;
+
+  if (footer) {
+    var summaryLine, statusIcon, statusColor;
+    if (allRequiredMet) {
+      statusIcon = '⚡';
+      statusColor = '#10B981';
+      summaryLine = '<strong style="color:#065F46">הסוכנים פעילים.</strong> כל החיבורים הנדרשים מוכנים' + (recTotal > 0 ? ' (מומלצים: ' + recOk + '/' + recTotal + ')' : '') + '.';
+    } else {
+      statusIcon = '⏸';
+      statusColor = '#D97706';
+      summaryLine = '<strong style="color:#92400E">' + (requiredTotal - requiredOk) + ' חיבורים נדרשים חסרים.</strong> הסוכנים יתחילו לפעול ברגע שתחברו אותם.';
+    }
+    footer.innerHTML = '<div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.1rem;color:' + statusColor + '">' + statusIcon + '</span><span>' + summaryLine + '</span></div>';
+  }
 }
 
 // Helper: list connected integration ids from instanceData (legacy alias)
@@ -11252,32 +11564,23 @@ function brandV2ShowScanError(msg) {
   }
 }
 
-// Shared progress overlay for AI generation — replaces wizard content with
-// animated loader so user sees clear feedback during 30-60s generation.
+// Shared progress overlay for AI generation — minimal, no model/ETA/icons exposed.
 function brandV2ShowGenProgress(args) {
-  var titleHe = args.titleHe || 'יוצר תוכן';
-  var subtitleHe = args.subtitleHe || '';
-  var modelLabel = args.modelLabel || 'AI';
-  var etaHe = args.etaHe || '~30-60 שניות';
-  var html = '<div style="text-align:center;padding:40px 20px">' +
-    '<div style="display:inline-block;animation:spin 1.5s linear infinite;margin-bottom:18px">' +
-      '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round">' +
-        '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>' +
-      '</svg>' +
-    '</div>' +
-    '<h3 style="margin:0 0 8px;color:#1F2937">' + titleHe + '</h3>' +
-    '<div style="font-size:0.86rem;color:#6B7280;margin-bottom:14px">' + subtitleHe + '</div>' +
-    '<div style="display:inline-block;background:#F3F4F6;color:#6B7280;padding:6px 14px;border-radius:999px;font-size:0.78rem">' + modelLabel + ' · ' + etaHe + '</div>' +
-    '<div id="bv2-gen-progress-dots" style="margin-top:18px;font-size:0.84rem;color:#9CA3AF">⏳ מעבד</div>' +
-  '</div>';
-  if (typeof openReportModal === 'function') openReportModal('🎨 ' + titleHe, html, 'brand-v2-gen-progress', { html: true });
+  var titleHe = args.titleHe || 'מעבד';
+  var html = '<div style="text-align:center;padding:60px 20px">' +
+    '<div class="bv2-spinner" style="margin:0 auto 22px"></div>' +
+    '<h3 style="margin:0;color:#1F2937;font-weight:600;font-size:1.05rem">' + titleHe + '</h3>' +
+    '<div id="bv2-gen-progress-dots" style="margin-top:14px;font-size:0.84rem;color:#9CA3AF;letter-spacing:2px">···</div>' +
+  '</div>' +
+  '<style>.bv2-spinner{width:36px;height:36px;border:3px solid #E5E7EB;border-top-color:#2563EB;border-radius:50%;animation:spin 0.9s linear infinite}</style>';
+  if (typeof openReportModal === 'function') openReportModal(titleHe, html, 'brand-v2-gen-progress', { html: true });
   // Animated dots
   var dots = 0;
   if (window._bv2GenInterval) clearInterval(window._bv2GenInterval);
   window._bv2GenInterval = setInterval(function() {
     dots = (dots + 1) % 4;
     var el = document.getElementById('bv2-gen-progress-dots');
-    if (el) el.textContent = '⏳ מעבד' + '.'.repeat(dots);
+    if (el) el.textContent = '···'.slice(0, 3) + (dots ? ' '.repeat(0) : '');
   }, 600);
 }
 function brandV2HideGenProgress() {
@@ -11393,7 +11696,7 @@ async function brandV2AdoptLogo(url) {
 }
 
 async function brandV2GenerateVoice(args) {
-  brandV2ShowGenProgress({ titleHe: 'יוצר Voice + Messaging', subtitleHe: 'ארכיטיפ, טון, אוצר מילים, סלוגן, משימה', modelLabel: 'Claude Sonnet 4.6', etaHe: '~30-50 שניות' });
+  brandV2ShowGenProgress({ titleHe: 'יוצר Voice + Messaging' });
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/generate-voice', {
       method: 'POST', body: JSON.stringify(args || {}),
@@ -11418,7 +11721,7 @@ async function brandV2GenerateVoice(args) {
 }
 
 async function brandV2GeneratePalette(args) {
-  brandV2ShowGenProgress({ titleHe: 'יוצר פלטת צבעים', subtitleHe: 'ראשי, משני, accent, ניטרליים, סמנטיים + כללי שימוש', modelLabel: 'Claude Sonnet 4.6', etaHe: '~10-15 שניות' });
+  brandV2ShowGenProgress({ titleHe: 'יוצר פלטת צבעים' });
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/generate-palette', {
       method: 'POST', body: JSON.stringify(args || {}),
@@ -11427,9 +11730,9 @@ async function brandV2GeneratePalette(args) {
     if (!r.success) {
       if (/anthropic|api key/i.test(r.message || '')) {
         brandV2ShowMissingIntegration({
-          titleHe: 'נדרש Anthropic API key',
-          bodyHe: 'יצירת פלטה דרך Sonnet 4.6 מחייבת מפתח Anthropic.',
-          fixSteps: ['Settings → AI Provider → הוסיפו Anthropic API key'],
+          titleHe: 'נדרש מפתח AI',
+          bodyHe: 'יצירת פלטה מחייבת חיבור AI.',
+          fixSteps: ['Settings → AI Provider → הוסיפו מפתח'],
         }); return;
       }
       throw new Error(r.message || 'palette failed');
@@ -11443,7 +11746,7 @@ async function brandV2GeneratePalette(args) {
 }
 
 async function brandV2GeneratePersonas(args) {
-  brandV2ShowGenProgress({ titleHe: 'יוצר פרסונות', subtitleHe: 'דמוגרפיה, כאבים, טריגרים, message hooks', modelLabel: 'Claude Sonnet 4.6', etaHe: '~30-50 שניות' });
+  brandV2ShowGenProgress({ titleHe: 'יוצר פרסונות' });
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/generate-personas', {
       method: 'POST', body: JSON.stringify(args || {}),
@@ -11468,7 +11771,7 @@ async function brandV2GeneratePersonas(args) {
 }
 
 async function brandV2GenerateImagery(args) {
-  brandV2ShowGenProgress({ titleHe: 'יוצר 5 תמונות רפרנס', subtitleHe: 'תמונות מותג ב-1.91:1 לבאנרים ולקריאייטיב', modelLabel: 'fal.ai · flux-2-pro', etaHe: '~60-90 שניות' });
+  brandV2ShowGenProgress({ titleHe: 'יוצר 5 תמונות רפרנס' });
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/generate-imagery', {
       method: 'POST', body: JSON.stringify(args || { count: 5 }),
@@ -16334,22 +16637,24 @@ async function deleteAccount() {
 
 async function resetAgentConfig() {
   if (!currentAgentType) { showToast('שגיאה — פתחו סוכן ספציפי', 'error'); return; }
-  cfConfirm('איפוס הגדרות', 'לאפס את הגדרות הסוכן לברירת מחדל?\nפרופיל עסקי ומחקר יישמרו.').then(async function(ok) {
+  cfConfirm('איפוס הגדרות', 'לאפס את הגדרות הסוכן לברירת מחדל?\nפרופיל עסקי ומחקר יישמרו. אסטרטגיה, מותג, תוכן וטיוטות יימחקו.').then(async function(ok) {
     if (!ok) return;
-    showToast('מאפס...', 'info');
+    showToast('מאפס... זה יכול לקחת כמה שניות', 'info');
     try {
-      // Re-deploy agent templates from server
-      var res = await fetch(API + '/hosting/instances/' + instanceId + '/agents/add', {
+      var res = await fetch(API + '/hosting/instances/' + instanceId + '/agents/reset-config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ agentType: currentAgentType, force: true })
+        body: JSON.stringify({ agentType: currentAgentType })
       });
-      await fetch(API + '/hosting/instances/' + instanceId + '/restart', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-      showToast('הגדרות אופסו והשרת הופעל מחדש', 'success');
-    } catch (e) { showToast('שגיאה', 'error'); }
+      var d = await res.json();
+      if (d.success) {
+        showToast('הגדרות אופסו והשרת הופעל מחדש', 'success');
+        // Refresh dashboard so wiped state is reflected (brand book card reverts, etc.)
+        if (typeof refreshInstanceData === 'function') refreshInstanceData();
+      } else {
+        showToast(d.message || 'שגיאה באיפוס', 'error');
+      }
+    } catch (e) { showToast('שגיאת תקשורת', 'error'); }
   });
 }
 
@@ -16375,7 +16680,18 @@ function deleteCurrentAgent() {
   var name = agentNames[currentAgentType] || currentAgentType;
   var removedType = currentAgentType;
 
-  cfConfirm('הסרת סוכן', 'להסיר את ' + name + '?\nכל הנתונים של הסוכן הזה יימחקו מהשרת.').then(function(ok) {
+  // Detect "last agent" case — surface stronger confirmation copy and pass force flag.
+  var allAgents = (typeof components !== 'undefined' && Array.isArray(components))
+    ? components.filter(function(c) { return c === 'mt' || c === 'oc' || c === 'bare'; })
+    : [];
+  var isLastAgent = allAgents.length <= 1;
+
+  var confirmTitle = isLastAgent ? 'הסרת הסוכן האחרון' : 'הסרת סוכן';
+  var confirmBody = isLastAgent
+    ? 'זהו הסוכן היחיד בשרת.\n\nלהסיר את ' + name + '? כל הנתונים שלו יימחקו לצמיתות. השרת יישאר פעיל ותוכלו להוסיף סוכן אחר אחר כך.'
+    : 'להסיר את ' + name + '?\nכל הנתונים של הסוכן הזה יימחקו מהשרת.';
+
+  cfConfirm(confirmTitle, confirmBody).then(function(ok) {
     if (!ok) return;
 
     // Disable button + show progress
@@ -16386,7 +16702,7 @@ function deleteCurrentAgent() {
     fetch(API + '/hosting/instances/' + instanceId + '/agents/remove', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ agentType: removedType })
+      body: JSON.stringify({ agentType: removedType, force: isLastAgent })
     }).then(function(r) { return r.json(); })
     .then(function(d) {
       if (d.success) {
@@ -16459,8 +16775,26 @@ function copyToClipboard(text) {
 }
 
 function logout() {
-  localStorage.removeItem('cf_token');
-  localStorage.removeItem('cf_email');
+  // Clear ALL ClawFlow-scoped localStorage so the next login starts clean.
+  // Without this, cf_hidden_tasks and per-integration cf_*_saved flags from
+  // previous user persist and corrupt the new account's UI state.
+  try {
+    var keysToRemove = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && (k.indexOf('cf_') === 0 || k.indexOf('clawflow_') === 0)) {
+        keysToRemove.push(k);
+      }
+    }
+    keysToRemove.forEach(function(k) { localStorage.removeItem(k); });
+  } catch (e) { /* fallback to known keys below */ }
+  // Belt-and-suspenders: explicit removes for the well-known ones
+  ['cf_token','cf_email','cf_user_name','cf_instance_id','cf_instance_plan',
+   'cf_instance_components','cf_instance_subdomain','cf_hidden_tasks',
+   'cf_api_key_saved','cf_api_key_provider','cf_openai_saved','cf_telegram_saved',
+   'cf_groq_saved','cf_cerebras_saved','cf_ollama_backend','cf_brave_saved',
+   'cf_wordpress_saved','cf_canva_saved','cf_resend_saved','cf_ref'
+  ].forEach(function(k) { localStorage.removeItem(k); });
   window.location.href = '/login';
 }
 
@@ -21344,61 +21678,155 @@ function removeRamNotification() {
   }
 }
 
-/* ===== Backups ===== */
-async function loadBackups() {
-  var instanceId = localStorage.getItem('cf_instance_id');
-  if (!instanceId) return;
-  var el = document.getElementById('backup-list2') || document.getElementById('backup-list');
+/* ===== Backups (Hetzner snapshot-based) ===== */
+function _fmtBackupDate(iso) {
+  if (!iso) return '';
   try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/backups', { headers: { 'Authorization': 'Bearer ' + token } });
+    var d = new Date(iso);
+    var pad = function(n) { return n < 10 ? '0' + n : '' + n; };
+    return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' +
+      pad(d.getHours()) + ':' + pad(d.getMinutes());
+  } catch (e) { return iso; }
+}
+
+function _backupStatusBadge(status) {
+  if (status === 'available') return '<span style="font-size:0.7rem;background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:999px;font-weight:600">✓ זמין</span>';
+  if (status === 'creating') return '<span style="font-size:0.7rem;background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:999px;font-weight:600">⏳ נוצר</span>';
+  return '<span style="font-size:0.7rem;background:#F3F4F6;color:#6B7280;padding:2px 8px;border-radius:999px">' + escapeHtml(status || '?') + '</span>';
+}
+
+async function loadBackups() {
+  var instId = localStorage.getItem('cf_instance_id') || (typeof instanceId !== 'undefined' ? instanceId : '');
+  if (!instId) return;
+  var el = document.getElementById('backup-list2') || document.getElementById('backup-list');
+  if (!el) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instId + '/backups', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
     var data = await res.json();
-    if (!data.success || !data.data || !data.data.backups.length) {
-      el.innerHTML = '<div style="color:#9CA3AF;font-size:0.85rem;padding:16px;text-align:center;background:#F9FAFB;border-radius:8px;border:1px solid #E5E7EB">אין גיבויים עדיין. הגיבוי הראשון ייווצר אוטומטית ב-03:00.</div>';
+    if (!data.success) {
+      el.innerHTML = '<div style="color:#EF4444;font-size:0.85rem;padding:16px;text-align:center;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px">' + escapeHtml(data.message || 'שגיאה') + '</div>';
       return;
     }
-    el.innerHTML = '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:6px">היסטוריה (7 ימים אחרונים)</div>' +
-      data.data.backups.map(function(b) {
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:4px;font-size:0.82rem">' +
-          '<div>' +
-            '<span style="font-weight:600">' + b.date + '</span>' +
-            '<span style="color:#9CA3AF;margin-right:8px">' + b.sizeMb + ' MB</span>' +
+    var backups = (data.data && data.data.backups) || [];
+    if (!backups.length) {
+      el.innerHTML = '<div style="color:#9CA3AF;font-size:0.85rem;padding:24px;text-align:center;background:#F9FAFB;border-radius:8px;border:1px dashed #E5E7EB">אין גיבויים עדיין. לחצו "גבו עכשיו" כדי ליצור את הגיבוי הראשון.</div>';
+      return;
+    }
+    el.innerHTML = backups.map(function(b) {
+      var canRestore = b.status === 'available';
+      var sizeStr = b.actualSizeGb != null ? b.actualSizeGb + ' GB' : (b.sizeGb + ' GB');
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:1px solid #E5E7EB;border-radius:10px;margin-bottom:8px">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">' +
+            '<span style="font-weight:600;font-size:0.92rem;color:#1F2937">' + escapeHtml(b.label || 'snapshot') + '</span>' +
+            _backupStatusBadge(b.status) +
           '</div>' +
-          '<button class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:4px 10px" onclick="restoreBackup(\'' + b.name + '\')">שחזרו</button>' +
-        '</div>';
-      }).join('');
+          '<div style="font-size:0.76rem;color:#9CA3AF">' + _fmtBackupDate(b.createdAt) + ' · ' + sizeStr + '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;flex-shrink:0">' +
+          (canRestore
+            ? '<button class="btn btn-primary btn-sm" style="font-size:0.78rem;padding:5px 12px" onclick="restoreFromBackup(' + b.imageId + ', \'' + escapeHtml(b.label || '').replace(/\'/g, '&#39;') + '\')">שחזרו</button>'
+            : '') +
+          '<button class="btn btn-outline btn-sm" style="font-size:0.78rem;padding:5px 12px;color:#EF4444;border-color:#FECACA" onclick="deleteBackupNow(' + b.imageId + ', \'' + escapeHtml(b.label || '').replace(/\'/g, '&#39;') + '\')">מחקו</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
   } catch (e) {
     el.innerHTML = '<div style="color:#EF4444;font-size:0.85rem;padding:16px;text-align:center">שגיאה בטעינת גיבויים</div>';
   }
 }
 
 async function createBackupNow() {
-  var instanceId = localStorage.getItem('cf_instance_id');
-  if (!instanceId) return;
-  showToast('יוצר גיבוי...', 'info');
+  var instId = localStorage.getItem('cf_instance_id') || (typeof instanceId !== 'undefined' ? instanceId : '');
+  if (!instId) return;
+  var labelEl = document.getElementById('backup-label-input');
+  var label = (labelEl && labelEl.value || '').trim();
+  var btn = document.getElementById('btn-create-backup');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ יוצר...'; }
   try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/backups/create', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
-    var data = await res.json();
-    if (data.success) {
-      showToast('הגיבוי ייווצר תוך דקה');
-      setTimeout(loadBackups, 60000);
-    } else { showToast(data.message || 'שגיאה', 'error'); }
-  } catch (e) { showToast('שגיאה ביצירת גיבוי', 'error'); }
-}
-
-async function restoreBackup(name) {
-  var _ok = await cfConfirm('שחזור מגיבוי', 'לשחזר מגיבוי ' + name + '?\nהשרת ייעצר לרגע ויחזור.'); if (!_ok) return;
-  var instanceId = localStorage.getItem('cf_instance_id');
-  showToast('משחזר...', 'info');
-  try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/backups/restore', {
+    var res = await fetch(API + '/hosting/instances/' + instId + '/backups/create', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ backupName: name })
+      body: JSON.stringify({ name: label })
     });
     var data = await res.json();
-    if (data.success) { showToast('שוחזר בהצלחה! השרת מופעל מחדש.'); }
-    else { showToast(data.message || 'שגיאה', 'error'); }
-  } catch (e) { showToast('שגיאה בשחזור', 'error'); }
+    if (data.success) {
+      showToast('הגיבוי החל ליצירה — יסתיים תוך 1-3 דקות', 'success');
+      if (labelEl) labelEl.value = '';
+      // Refresh quickly to show "creating" state, then again after ~90s for "available"
+      setTimeout(loadBackups, 1500);
+      setTimeout(loadBackups, 30000);
+      setTimeout(loadBackups, 90000);
+    } else {
+      showToast(data.message || 'שגיאה ביצירת גיבוי', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאה ביצירת גיבוי', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'גבו עכשיו'; }
+  }
+}
+
+async function restoreFromBackup(imageId, label) {
+  var instId = localStorage.getItem('cf_instance_id') || (typeof instanceId !== 'undefined' ? instanceId : '');
+  if (!instId || !imageId) return;
+  var msg =
+    'לשחזר את השרת לגיבוי "' + label + '"?\n\n' +
+    'כל מה שנעשה לאחר הגיבוי יימחק לצמיתות.\n' +
+    'השרת ייעצר ל-1-3 דקות במהלך השחזור.\n\n' +
+    'הקלידו את מזהה ה-instance (' + instId + ') לאישור:';
+  var typed = window.prompt(msg, '');
+  if (typed !== instId) {
+    if (typed !== null) showToast('האישור לא תואם — הפעולה בוטלה', 'error');
+    return;
+  }
+  showToast('משחזר... השרת ייעצר לרגע', 'info');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instId + '/backups/restore', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageId: imageId, confirm: instId })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('השחזור התחיל — השרת יחזור תוך 1-3 דקות', 'success');
+      setTimeout(function() { window.location.reload(); }, 90000);
+    } else {
+      showToast(data.message || 'שגיאה בשחזור', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאה בשחזור', 'error');
+  }
+}
+
+async function deleteBackupNow(imageId, label) {
+  var instId = localStorage.getItem('cf_instance_id') || (typeof instanceId !== 'undefined' ? instanceId : '');
+  if (!instId || !imageId) return;
+  var ok = await cfConfirm('מחיקת גיבוי', 'למחוק את הגיבוי "' + label + '"?\nהפעולה אינה ניתנת לביטול.');
+  if (!ok) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instId + '/backups/' + imageId, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('הגיבוי נמחק', 'success');
+      loadBackups();
+    } else {
+      showToast(data.message || 'שגיאה במחיקה', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאה במחיקה', 'error');
+  }
+}
+
+// Backwards-compat: any old call sites passing tar.gz name fall through to no-op
+async function restoreBackup(legacyName) {
+  console.warn('Legacy restoreBackup(name) called — use restoreFromBackup(imageId)');
+  showToast('שיטת השחזור עודכנה — רעננו את הדף', 'info');
 }
 
 var lastLogService = 'openclaw-gateway';
@@ -22111,21 +22539,64 @@ async function renderVersionCard() {
   if (!instanceId) return;
   var card = document.getElementById('versionCard');
   if (!card) return;
+  // Don't stomp on the upgrade-progress pane while an upgrade is in flight.
+  // renderHome() periodically calls renderVersionCard, which would replace
+  // the dark progress UI with the static version card, making it look like
+  // the process aborted (when really it's still running on the backend).
+  if (window._cfUpgradePoll || document.getElementById('cf-upgrade-pane')) {
+    return;
+  }
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/version-status');
     if (!r || !r.success) return;
     var d = r.data || {};
     var inst = d.installed || {};
     var latest = d.latest || {};
-    if (d.upToDate) {
+    // Master canary — always at latest by definition. Show distinct card.
+    if (d.isMaster) {
+      var masterVer = latest.stackVersion || '?';
+      var masterDismissed = localStorage.getItem('cf_dismissed_master_card');
+      if (masterDismissed === masterVer) {
+        card.style.display = 'none';
+        card.innerHTML = '';
+        return;
+      }
       card.style.display = 'block';
       card.innerHTML =
-        '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:0.84rem;color:#065F46">' +
+        '<div style="background:linear-gradient(180deg,#FEF3C7,#FFFBEB);border:1px solid #FCD34D;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:0.84rem;color:#78350F;position:relative">' +
+          '<span style="font-size:1.3rem;flex-shrink:0">⭐</span>' +
+          '<div style="flex:1">' +
+            '<div style="font-weight:700">אתם המאסטר — תמיד בגרסה האחרונה</div>' +
+            '<div style="font-size:0.76rem;color:#92400E;margin-top:2px">גרסה ' + cfEsc(masterVer) + ' · השרת הזה הוא מקור האמת לעדכונים</div>' +
+          '</div>' +
+          '<button onclick="cfDismissMasterCard(\'' + cfEsc(masterVer) + '\')" aria-label="הסתר" title="הסתר" style="background:none;border:none;padding:6px;margin:-6px;cursor:pointer;color:#92400E;opacity:0.6;line-height:0;border-radius:6px;transition:opacity .15s,background .15s" onmouseover="this.style.opacity=1;this.style.background=\'#FDE68A\'" onmouseout="this.style.opacity=0.6;this.style.background=\'none\'">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+          '</button>' +
+        '</div>';
+      return;
+    }
+    if (d.upToDate) {
+      // Allow user to dismiss the "up to date" card — they don't need a permanent
+      // "everything is fine" reminder. We key by stackVersion so a future update
+      // re-shows the card (with an upgrade button) until they upgrade or dismiss again.
+      var currentVer = inst.stackVersion || latest.stackVersion || '?';
+      var dismissedVer = localStorage.getItem('cf_dismissed_version_card');
+      if (dismissedVer === currentVer) {
+        card.style.display = 'none';
+        card.innerHTML = '';
+        return;
+      }
+      card.style.display = 'block';
+      card.innerHTML =
+        '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:0.84rem;color:#065F46;position:relative">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0"><path d="M9 11l3 3L22 4"/></svg>' +
           '<div style="flex:1">' +
             '<div style="font-weight:700">הסטאק עדכני</div>' +
-            '<div style="font-size:0.76rem;color:#047857;margin-top:2px">גרסה ' + (inst.stackVersion || latest.stackVersion || '?') + '</div>' +
+            '<div style="font-size:0.76rem;color:#047857;margin-top:2px">גרסה ' + cfEsc(currentVer) + '</div>' +
           '</div>' +
+          '<button onclick="cfDismissVersionCard(\'' + cfEsc(currentVer) + '\')" aria-label="הסתר" title="הסתר" style="background:none;border:none;padding:6px;margin:-6px;cursor:pointer;color:#065F46;opacity:0.6;line-height:0;border-radius:6px;transition:opacity .15s,background .15s" onmouseover="this.style.opacity=1;this.style.background=\'#D1FAE5\'" onmouseout="this.style.opacity=0.6;this.style.background=\'none\'">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+          '</button>' +
         '</div>';
       return;
     }
@@ -22142,21 +22613,23 @@ async function renderVersionCard() {
     }).join('');
     card.innerHTML =
       '<div style="background:linear-gradient(180deg,#EFF6FF,#fff);border:1.5px solid #BFDBFE;border-radius:12px;padding:14px;font-family:inherit">' +
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
           '<span style="font-size:1.2rem">🆕</span>' +
           '<strong style="font-size:0.95rem;color:#1E3A5F">עדכון זמין</strong>' +
-          (latest.stackVersion ? '<span style="font-size:0.72rem;background:#DBEAFE;color:#1E40AF;padding:2px 8px;border-radius:999px">v' + latest.stackVersion + '</span>' : '') +
         '</div>' +
-        (notes.length ? '<ul style="font-size:0.78rem;color:#374151;margin:6px 0 8px;padding-right:18px;line-height:1.65">' +
-            notes.map(function(n){return '<li>' + cfEsc(n) + '</li>';}).join('') + '</ul>' : '') +
-        (drift.length ? '<details style="margin-bottom:8px"><summary style="font-size:0.78rem;color:#2563EB;cursor:pointer;outline:none">פרטים טכניים (' + drift.length + ' רכיבים)</summary>' +
-            '<div style="background:#F9FAFB;border-radius:8px;padding:8px 10px;margin-top:6px">' + driftRows + '</div>' +
-            '</details>' : '') +
-        (pending.length ? '<div style="font-size:0.74rem;color:#92400E;margin-bottom:8px">⚠️ ' + pending.length + ' מיגרציות יורצו עם snapshot rollback</div>' : '') +
+        (notes.length ? '<ul style="list-style:none;font-size:0.84rem;color:#374151;margin:0 0 10px;padding:0;line-height:1.7">' +
+            notes.map(function(n){return '<li style="margin-bottom:2px">' + cfEsc(n) + '</li>';}).join('') + '</ul>' : '') +
+        '<div style="font-size:0.76rem;color:#6B7280;margin-bottom:10px;padding:8px 10px;background:#F9FAFB;border-radius:8px;line-height:1.5">⏱ העדכון לוקח 5-15 דקות. <strong>יש גיבוי אוטומטי</strong> לפני העדכון — נשחזר אוטומטית אם משהו משתבש.</div>' +
         '<div style="display:flex;gap:6px">' +
           '<button onclick="cfStartUpgrade()" class="btn btn-primary btn-sm" style="flex:1">🔄 התקינו עדכון</button>' +
           '<button onclick="renderVersionCard()" class="btn btn-outline btn-sm" style="font-size:0.76rem">רענון</button>' +
         '</div>' +
+        // Power-user details — collapsed by default, no jargon in headline
+        (drift.length || pending.length ? '<details style="margin-top:10px"><summary style="font-size:0.72rem;color:#9CA3AF;cursor:pointer;outline:none;list-style:none">פרטים טכניים</summary>' +
+            (latest.stackVersion ? '<div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">גרסה: <code style="font-family:monospace;background:#F3F4F6;padding:1px 4px;border-radius:3px;color:#374151">v' + latest.stackVersion + '</code></div>' : '') +
+            (drift.length ? '<div style="background:#F9FAFB;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:0.72rem">' + driftRows + '</div>' : '') +
+            (pending.length ? '<div style="font-size:0.7rem;color:#9CA3AF;margin-top:6px">' + pending.length + ' מיגרציות פנימיות</div>' : '') +
+            '</details>' : '') +
       '</div>';
   } catch (err) {
     console.warn('renderVersionCard error:', err);
@@ -22168,8 +22641,24 @@ function cfEsc(s) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// Dismiss handlers — keyed by stackVersion so a future release re-shows the card.
+function cfDismissVersionCard(ver) {
+  try { localStorage.setItem('cf_dismissed_version_card', ver); } catch (e) {}
+  var card = document.getElementById('versionCard');
+  if (card) { card.style.display = 'none'; card.innerHTML = ''; }
+}
+function cfDismissMasterCard(ver) {
+  try { localStorage.setItem('cf_dismissed_master_card', ver); } catch (e) {}
+  var card = document.getElementById('versionCard');
+  if (card) { card.style.display = 'none'; card.innerHTML = ''; }
+}
+
 async function cfStartUpgrade() {
-  if (!confirm('להתחיל עדכון? יילקח snapshot ב-Hetzner (לrollback אוטומטי במקרה כשל). תהליך אורך 5-15 דקות תלוי במיגרציות.')) return;
+  var ok = await cfConfirm(
+    'התקנת עדכון',
+    'לפני העדכון יילקח snapshot מלא של השרת ב-Hetzner. אם משהו ישתבש — נשחזר אוטומטית למצב הקודם.\n\nהתהליך אורך 5-15 דקות תלוי במיגרציות. השרת ממשיך לפעול במהלך רוב הזמן.\n\nלהתחיל?'
+  );
+  if (!ok) return;
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/upgrade', { method: 'POST' });
     if (!r.success) throw new Error(r.message);

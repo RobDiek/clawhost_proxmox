@@ -20,6 +20,7 @@ import {
     sendOtpHosting,
     verifyOtpHosting,
     getMe,
+    updateMyProfile,
     getMyInstances,
     setup2fa,
     verifySetup2fa,
@@ -96,6 +97,7 @@ import {
     uploadUserMedia,
     addAgentToInstance,
     removeAgentFromInstance,
+    resetAgentConfig,
     setupPersonalAgent,
     getMemories,
     deleteMemory,
@@ -171,6 +173,7 @@ import {
     listBackups,
     createBackup,
     restoreBackup,
+    deleteBackup,
     backupReport,
     installComplete,
     getLitellmStatusEndpoint,
@@ -282,6 +285,7 @@ const app = new Hono()
 app.post('/auth/send-otp', sendOtpHosting)
 app.post('/auth/verify-otp', verifyOtpHosting)
 app.get('/auth/me', getMe)
+app.put('/auth/profile', updateMyProfile)
 app.get('/my-instances', getMyInstances)
 app.post('/auth/2fa/setup', setup2fa)
 app.post('/auth/2fa/verify-setup', verifySetup2fa)
@@ -378,6 +382,7 @@ app.post('/instances/:id/content-plan/media/:renderId/status', updateRenderStatu
 app.post('/instances/:id/content-plan/items/:itemId/media/upload', uploadUserMedia)
 app.post('/instances/:id/agents/add', addAgentToInstance)
 app.post('/instances/:id/agents/remove', removeAgentFromInstance)
+app.post('/instances/:id/agents/reset-config', resetAgentConfig)
 
 // ── Google Ads mode picker (self-managed vs HaaS) ──
 app.post('/instances/:id/google-ads-mode', setGoogleAdsMode)
@@ -408,13 +413,14 @@ app.post('/instances/:id/integrations/save', saveIntegration)
 app.post('/instances/:id/integrations/test-smtp', testSmtp)
 
 // ── Server ──
-app.get('/instances/:id/stats', serverStats)
+app.get('/instances/:id/server-stats', serverStats)  // renamed from /stats — collided with /stats (getAgentStats)
 app.get('/instances/:id/logs', serverLogs)
 
-// ── Backups ──
+// ── Backups (Hetzner snapshot-based) ──
 app.get('/instances/:id/backups', listBackups)
 app.post('/instances/:id/backups/create', createBackup)
 app.post('/instances/:id/backups/restore', restoreBackup)
+app.delete('/instances/:id/backups/:imageId', deleteBackup)
 app.post('/instances/:id/backup-report', backupReport)
 app.post('/instances/:id/install-complete', installComplete)
 

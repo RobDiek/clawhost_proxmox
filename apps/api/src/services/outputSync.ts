@@ -107,6 +107,11 @@ function parseSessionOutputs(jsonlContent: string, agentRole: string): ParsedOut
                 if (text.match(/^(DuckDuckGo|Reddit|Google|Bing|Brave)\s*(חסום|blocked|error)/i)) continue
                 if (text.match(/^(עובר ל|מנסה|ניסה|חסום|timeout|error)/i) && text.length < 200) continue
                 if (text.match(/^(HEARTBEAT|heartbeat|No changes|Nothing)/i)) continue
+                // Skip Claude's English chain-of-thought / tool-use intros that leak from
+                // session JSONL files. These are agent reasoning, not user-facing output.
+                // Pattern: "I'll/I will/Let me/I'm going to/I need to/I should ... <verb>"
+                // Only filter if short — long English content is legitimate output.
+                if (text.length < 400 && text.match(/^(I['']?ll|I will|Let me|I[''']?m going to|I need to|I should|I am going to|I[''']?ve|Looking at|First,? I[''']?ll|Now I[''']?ll|Let[''']?s)\s+(check|examine|look|see|verify|search|find|get|fetch|read|access|run|execute|use|try|start|begin|review|investigate|inspect|test|create|update|write|generate|build|analyze|consider|think)/i)) continue
 
                 const usage = (entry as any).message?.usage || (entry as any).usage || {}
 
