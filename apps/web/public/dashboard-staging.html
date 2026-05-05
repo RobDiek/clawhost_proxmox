@@ -12283,21 +12283,49 @@ async function brandV2OpenWizard(draftBundle) {
     },
   ];
 
-  // Brand-Light filter — show only the asset-basics subset until research +
-  // strategy unlock semantic depth. Hidden in light: mission, positioning,
-  // typography, imagery refs, voice (entire stage), personas (entire stage).
-  // Kept in light: name, tagline, logo, color palette.
+  // Brand-Light filter — minimal review mode. Goal: client gives URL,
+  // system extracts name/tagline/logo/colors from site, client glances and
+  // moves on. No AI prompts, no manual upload prompts, no half-empty fields
+  // begging to be filled — those distract from the real work (research +
+  // strategy). Brand-Deep, post-strategy, is where semantic depth happens
+  // (mission, positioning, voice, personas, AI imagery for creatives).
+  //
+  // Kept in Light: name, tagline (literal from hero), logo, primary color.
+  // Hidden in Light: mission, positioning, typography, imagery refs, voice
+  // (entire stage), personas (entire stage).
+  // Action whitelist in Light:
+  //   - For website_scan: only "🔍 re-run scan" / "🔌 connect Firecrawl"
+  //     when missing. AI-generate buttons removed — Brand-Light is
+  //     scan-or-nothing. Upload kept ONLY for logo (sometimes site lacks
+  //     a clean logo and user wants to upload right away).
+  //   - For uploaded: minimal upload action for logo, palette stays
+  //     skippable. Other AI buttons removed.
   if (brandPhase === 'light') {
     stages = stages
       .map(function(s) {
         if (s.key === 'identity') {
           return Object.assign({}, s, {
-            rows: s.rows.filter(function(r) { return r.label === 'שם העסק' || r.label === 'סלוגן (Tagline)'; }),
+            rows: s.rows.filter(function(r) { return r.label === 'שם העסק' || r.label === 'סלוגן (Tagline)'; })
+              .map(function(r) {
+                // Identity in Light is read-only review — no AI buttons. If
+                // value is missing, user just sees "ערוך ידנית" hint.
+                return Object.assign({}, r, { actions: [] });
+              }),
           });
         }
         if (s.key === 'visual') {
           return Object.assign({}, s, {
-            rows: s.rows.filter(function(r) { return r.label === 'לוגו ראשי' || r.label === 'פלטת צבעים'; }),
+            rows: s.rows.filter(function(r) { return r.label === 'לוגו ראשי' || r.label === 'פלטת צבעים'; })
+              .map(function(r) {
+                // Strip AI generate from Light visual actions. Keep only:
+                //   - scan re-run (when scan_ready/scan_blocked)
+                //   - logo upload (sometimes scan misses; immediate fallback)
+                var keep = (r.actions || []).filter(function(a) {
+                  if (r.label === 'לוגו ראשי') return a.kind === 'scan' || a.kind === 'scan-locked' || a.kind === 'upload';
+                  return a.kind === 'scan' || a.kind === 'scan-locked';
+                });
+                return Object.assign({}, r, { actions: keep });
+              }),
           });
         }
         // voice + personas hidden in Light — they need research to be meaningful.
@@ -12400,8 +12428,8 @@ async function brandV2OpenWizard(draftBundle) {
         '<div style="display:flex;align-items:flex-start;gap:10px">' +
           '<span style="font-size:1.1rem;flex-shrink:0">💡</span>' +
           '<div style="flex:1">' +
-            '<div style="font-weight:600;font-size:0.88rem;color:#92400E;margin-bottom:4px">Brand-Light · גרסה ראשונית</div>' +
-            '<div style="font-size:0.8rem;color:#78350F;line-height:1.55">כרגע אנחנו אוספים רק נכסים שאין להם תלות במחקר: שם, סלוגן, לוגו, צבע ראשי. מיצוב, טון קול, פרסונות — נבנה אותם <strong>אחרי המחקר והאסטרטגיה</strong>, על בסיס המתחרים והקהל שזיהינו, כדי שיהיו מבוססי-נתונים ולא ניחושים.</div>' +
+            '<div style="font-weight:600;font-size:0.88rem;color:#92400E;margin-bottom:4px">Brand-Light · סקירה מהירה מהאתר</div>' +
+            '<div style="font-size:0.8rem;color:#78350F;line-height:1.55">לקחנו את ה-URL ושלפנו אוטומטית: <strong>שם, סלוגן, לוגו, צבע ראשי</strong>. זה הכל שצריך כרגע — תעיפו מבט שהפרטים נכונים ונתקדם.<br/><br/>הכל השאר — <strong>מיצוב, טון קול, פרסונות, תמונות-רפרנס, ארכיטיפ, מניפסט</strong> — יורחב <strong>אחרי המחקר והאסטרטגיה</strong>. שם נדע מי המתחרים, מה הקהל מצפה, ועל בסיס זה נבנה Brand-Deep מבוסס נתונים ולא ניחושים.</div>' +
           '</div>' +
         '</div>' +
       '</div>'
