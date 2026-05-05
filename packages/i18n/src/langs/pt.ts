@@ -232,8 +232,6 @@ const pt: Translations = {
         documentation: 'Documentação',
         productDescription:
             'Implante agentes OpenClaw e Hermes na nuvem ou localmente com um clique — crie, conecte e escale seus agentes de IA mais rápido com o ClawHost.',
-        downloadAndroid: 'Disponível no Google Play',
-        downloadIos: 'Baixe na App Store',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -1875,28 +1873,6 @@ const pt: Translations = {
         contactText:
             'Se você tiver perguntas sobre estes Termos, entre em contato conosco em'
     },
-    mobile: {
-        signIn: 'Autenticação',
-        signInDescription:
-            'Autentique-se para gerenciar e implantar seus agentes.',
-        enterEmail: 'Endereço de Email',
-        emailPlaceholder: 'exemplo@clawhost.cloud',
-        continueWithEmail: 'Continuar com Email',
-        otpDescription:
-            'Enviaremos um código para você entrar. Sem necessidade de senha.',
-        sending: 'Enviando...',
-        checkYourEmail: 'Verifique seu email',
-        codeSentTo: 'Enviamos um código de 6 dígitos para',
-        resendCode: 'Reenviar código',
-        resendIn: 'Reenviar em {{seconds}}s',
-        changeEmail: 'Alterar email',
-        invalidCode: 'Código inválido!',
-        signingIn: 'Autenticando...',
-        signOut: 'Sair',
-        loadMore: 'Carregar Mais',
-        deployClaw: 'Implantar Claw',
-        deployYourFirstClaw: 'Implante seu primeiro Claw'
-    },
     rebrand: {
         tag: 'EVOLUÇÃO',
         title: 'ClawHost agora é Agentist',
@@ -1953,7 +1929,6 @@ const pt: Translations = {
         featureRepairTools: 'Ferramentas de reparo',
         featureSupportChannels: 'Canais de suporte',
         featureMultiLanguage: 'Interface multilíngue',
-        featureMobileApp: 'App móvel',
         featureDesktopApp: 'App desktop',
         featureOneClickVersion: 'Troca de versão com um clique',
         featureWebTerminal: 'Acesso ao terminal web',
@@ -2015,7 +1990,6 @@ const pt: Translations = {
         englishOnly: 'Apenas inglês',
         available: 'Disponível',
         comingSoon: 'Em breve',
-        iosMacOs: 'iOS e macOS',
         macOsOnly: 'Apenas macOS',
         viaTelegram: 'Via Telegram',
         builtInTerminal: 'Sem necessidade de SSH',

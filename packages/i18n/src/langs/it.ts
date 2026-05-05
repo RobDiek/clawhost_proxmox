@@ -235,8 +235,6 @@ const it: Translations = {
         documentation: 'Documentazione',
         productDescription:
             'Distribuisci agenti OpenClaw e Hermes nel cloud o localmente con un clic \u2014 crea, connetti e scala i tuoi agenti AI pi\u00f9 velocemente con ClawHost.',
-        downloadAndroid: 'Scarica su Google Play',
-        downloadIos: "Scarica sull'App Store",
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -1893,28 +1891,6 @@ const it: Translations = {
         contactTitle: '12. Informazioni di Contatto',
         contactText: 'Se hai domande su questi Termini, contattaci a'
     },
-    mobile: {
-        signIn: 'Autenticazione',
-        signInDescription:
-            'Autenticati per gestire e distribuire i tuoi agenti.',
-        enterEmail: 'Indirizzo Email',
-        emailPlaceholder: 'esempio@clawhost.cloud',
-        continueWithEmail: 'Continua con Email',
-        otpDescription:
-            'Ti invieremo un codice per accedere. Nessuna password necessaria.',
-        sending: 'Invio...',
-        checkYourEmail: 'Controlla la tua email',
-        codeSentTo: 'Abbiamo inviato un codice a 6 cifre a',
-        resendCode: 'Reinvia codice',
-        resendIn: 'Reinvia tra {{seconds}}s',
-        changeEmail: 'Cambia email',
-        invalidCode: 'Codice non valido!',
-        signingIn: 'Autenticazione in corso...',
-        signOut: 'Esci',
-        loadMore: 'Carica Altro',
-        deployClaw: 'Distribuisci Claw',
-        deployYourFirstClaw: 'Distribuisci il tuo primo Claw'
-    },
     rebrand: {
         tag: 'EVOLUZIONE',
         title: 'ClawHost ora è Agentist',
@@ -1971,7 +1947,6 @@ const it: Translations = {
         featureRepairTools: 'Strumenti di riparazione',
         featureSupportChannels: 'Canali di supporto',
         featureMultiLanguage: 'UI multilingua',
-        featureMobileApp: 'App mobile',
         featureDesktopApp: 'App desktop',
         featureOneClickVersion: 'Cambio versione con un clic',
         featureWebTerminal: 'Accesso terminale web',
@@ -2033,7 +2008,6 @@ const it: Translations = {
         englishOnly: 'Solo inglese',
         available: 'Disponibile',
         comingSoon: 'Prossimamente',
-        iosMacOs: 'iOS e macOS',
         macOsOnly: 'Solo macOS',
         viaTelegram: 'Via Telegram',
         builtInTerminal: 'Nessun SSH necessario',

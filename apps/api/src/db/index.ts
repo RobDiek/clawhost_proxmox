@@ -1,10 +1,10 @@
-import { drizzle } from 'drizzle-orm/postgres-js'
-import postgres from 'postgres'
+import { SQL } from 'bun'
+import { drizzle } from 'drizzle-orm/bun-sql'
 import * as schema from '@/db/schema'
 
 const createDb = () => {
-    const sql = postgres(process.env.DATABASE_URL!)
-    return drizzle(sql, { schema })
+    const client = new SQL(process.env.DATABASE_URL!)
+    return drizzle({ client, schema })
 }
 
 let instance: ReturnType<typeof createDb>

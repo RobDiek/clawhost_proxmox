@@ -9,7 +9,6 @@ dist
 apps/web
 !apps/web/package.json
 apps/auth
-apps/mobile
 apps/clawhostgo
 apps/api/.next
 apps/api/node_modules

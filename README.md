@@ -42,7 +42,7 @@ ClawHost is an open-source, self-hostable cloud hosting platform that lets anyon
 - **Multi-Auth** — Sign in with OTP email, Google, or GitHub
 - **Billing Built-In** — Polar.sh integration for subscriptions, invoicing, and billing portal
 - **Export & Backup** — Export claw configurations for backup and migration
-- **Cross-Platform** — Web, mobile (iOS/Android), and desktop (macOS/Linux) apps
+- **Cross-Platform** — Web and desktop (macOS/Linux) apps
 - **Fully Open Source** — MIT licensed, self-host the entire platform yourself
 
 ## Architecture
@@ -54,7 +54,6 @@ clawhost/
 ├── apps/
 │   ├── api/                 # Hono.js backend API
 │   ├── web/                 # React + Vite frontend
-│   ├── mobile/              # React Native + Expo mobile app
 │   └── clawhostgo/          # Electron desktop app
 ├── packages/
 │   ├── shared/              # @openclaw/shared — HTTP client utility
@@ -88,7 +87,6 @@ clawhost/
 | **Icons**               | [Phosphor Icons](https://phosphoricons.com)                                                                     |
 | **Animations**          | [Framer Motion](https://www.framer.com/motion)                                                                  |
 | **Blog**                | MDX with frontmatter                                                                                            |
-| **Mobile**              | [React Native](https://reactnative.dev) + [Expo](https://expo.dev)                                              |
 | **Desktop**             | [Electron](https://www.electronjs.org) with Electron Forge                                                      |
 | **Monorepo**            | [Turborepo](https://turbo.build) + [Bun](https://bun.sh)                                                        |
 
@@ -277,7 +275,6 @@ The web dev server proxies `/api` requests to the API and `/ws` requests to the 
 | `bun dev`          | Start all apps in development mode              |
 | `bun dev:web`      | Start web app only                              |
 | `bun dev:api`      | Start API only                                  |
-| `bun dev:mobile`   | Start mobile app (Expo)                         |
 | `bun dev:desktop`  | Start desktop app (Electron)                    |
 | `bun build`        | Build all apps for production                   |
 | `bun lint`         | Run ESLint across the monorepo                  |

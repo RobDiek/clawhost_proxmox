@@ -11,9 +11,6 @@ dist
 **/.env
 **/.env.*
 **/tsconfig.tsbuildinfo
-.expo
-android
-ios
 out
 .vite
 resources

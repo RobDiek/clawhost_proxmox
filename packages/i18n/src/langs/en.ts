@@ -227,8 +227,6 @@ const en = {
         documentation: 'Documentation',
         productDescription:
             'Deploy OpenClaw and Hermes agents in the cloud or locally with one click — build, connect, and scale your AI agents faster with ClawHost.',
-        downloadAndroid: 'Get it on Google Play',
-        downloadIos: 'Download on the App Store',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -1825,26 +1823,6 @@ const en = {
         contactText:
             'If you have any questions about these Terms, please contact us at'
     },
-    mobile: {
-        signIn: 'Authenticate',
-        signInDescription: 'Authenticate to manage and deploy your agents.',
-        enterEmail: 'Email Address',
-        emailPlaceholder: 'example@clawhost.cloud',
-        continueWithEmail: 'Continue with Email',
-        otpDescription: "We'll send you a code to sign in. No password needed.",
-        sending: 'Sending...',
-        checkYourEmail: 'Check your email',
-        codeSentTo: 'We sent a 6-digit code to',
-        resendCode: 'Resend code',
-        resendIn: 'Resend in {{seconds}}s',
-        changeEmail: 'Change email',
-        invalidCode: 'Invalid code!',
-        signingIn: 'Signing in...',
-        signOut: 'Sign Out',
-        loadMore: 'Load More',
-        deployClaw: 'Deploy Claw',
-        deployYourFirstClaw: 'Deploy your first Claw'
-    },
     rebrand: {
         tag: 'EVOLUTION',
         title: 'ClawHost is now Agentist',
@@ -1900,7 +1878,6 @@ const en = {
         featureRepairTools: 'Repair tools',
         featureSupportChannels: 'Support channels',
         featureMultiLanguage: 'Multi-language UI',
-        featureMobileApp: 'Mobile app',
         featureDesktopApp: 'Desktop app',
         featureOneClickVersion: 'One-click version switch',
         featureWebTerminal: 'Web terminal access',
@@ -1962,7 +1939,6 @@ const en = {
         englishOnly: 'English only',
         available: 'Available',
         comingSoon: 'Coming soon',
-        iosMacOs: 'iOS & macOS',
         macOsOnly: 'macOS only',
         viaTelegram: 'Via Telegram',
         builtInTerminal: 'No SSH needed',
