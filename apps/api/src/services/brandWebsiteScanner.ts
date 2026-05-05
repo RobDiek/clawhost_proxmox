@@ -502,7 +502,12 @@ async function runBrandArchaeology(args: ArchaeologyArgs): Promise<ArchaeologyRe
     const nameHintsBlock = (businessNameHints.he || businessNameHints.en)
         ? `═══ שם המותג שכבר זוהה (השתמשו בזה במקום לחפש שוב) ═══\n` +
           (businessNameHints.he ? `שם בעברית: ${businessNameHints.he}\n` : '') +
-          (businessNameHints.en ? `שם באנגלית: ${businessNameHints.en}\n` : '')
+          (businessNameHints.en ? `שם באנגלית: ${businessNameHints.en}\n` : '') +
+          `★★★ אזהרה קריטית: השם הזה הוא **רק מזהה מותג** — לא מילה במשמעות הטבעית שלה.\n` +
+          `אסור לפרש את השם semantically (כמו "love", "Greek concept", "philosophical term", וכו').\n` +
+          `החברה עוסקת במה שמתואר ב-corpus למטה — לא במה שהשם דומה לו במילון אחר.\n` +
+          `לדוגמה: שם כמו "Apple" לא הופך אותם לחקלאים. שם כמו "סטורג'" לא הופך אותם לפילוסופים יוונים.\n` +
+          `קראו רק את ה-corpus כדי להבין מה החברה עושה.\n`
         : ''
 
     const heroSlogansBlock = heroSlogans.length
@@ -710,6 +715,25 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     // homepage HTML so we can hand them to Sonnet as ground truth (rather
     // than letting it re-derive them from h1, which is SEO category).
     const HEBREW_RANGE = /[֐-׿]/
+
+    // Quote-aware attribute extractor. The naive `attr=["']([^"']+)["']`
+    // pattern truncates at the first apostrophe inside the value — e.g. the
+    // Israeli "סטורג' סטיישן" alt was being captured as "סטורג", which
+    // downstream Sonnet then misinterpreted as the Greek philosophical
+    // concept στοργή. Use a backreference so the closing quote must match
+    // the opener; also decode common HTML entities for apostrophe/geresh.
+    function readAttr(tag: string, name: string): string | null {
+        const re = new RegExp(name + '=(["\'])((?:(?!\\1).)+)\\1', 'i')
+        const m = tag.match(re)
+        if (!m?.[2]) return null
+        return m[2]
+            .replace(/&#0*39;|&apos;/gi, "'")
+            .replace(/&quot;/gi, '"')
+            .replace(/&amp;/gi, '&')
+            .replace(/&#x27;/gi, "'")
+            .trim()
+    }
+
     let logoAlt: string | null = null
     {
         const allLogoMatches = [
@@ -718,9 +742,8 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
         ]
         const candidates: Array<{ alt: string; hasHebrew: boolean; len: number }> = []
         for (const tag of allLogoMatches) {
-            const altMatch = tag.match(/alt=["']([^"']+)["']/i)
-            if (!altMatch?.[1]) continue
-            const alt = altMatch[1].trim()
+            const alt = readAttr(tag, 'alt')
+            if (!alt) continue
             if (alt.length < 3 || alt.length > 200) continue
             candidates.push({ alt, hasHebrew: HEBREW_RANGE.test(alt), len: alt.length })
         }
@@ -771,15 +794,79 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     notes.push(`Archaeology done: archetype=${archaeology.archetype || 'none'}, vocab.approved=${archaeology.vocabulary?.approved?.length || 0}`)
 
     // Server-side enforcement: tone summary must be 3-5 words. Sonnet sometimes
-    // returns a sentence anyway; we trim to first 5 Hebrew words, joined by
-    // " · ", and surface the truncation in notes for transparency.
+    // returns a full paragraph anyway; we split on every whitespace/punct
+    // signal and trim hard. Aggressive — we'd rather have a terse-but-correct
+    // summary than a beautiful sentence Sonnet decided to write instead.
     if (archaeology.toneSummary?.he) {
         const tone = archaeology.toneSummary.he.trim()
-        const words = tone.split(/[\s,;.—–-]+/).filter(Boolean)
-        if (words.length > 6) {
+        const words = tone.split(/[\s,;:.!?—–\-—()"׳״]+/).filter(Boolean)
+        if (words.length > 5) {
             const trimmed = words.slice(0, 5).join(' · ')
-            notes.push(`Tone summary trimmed (Sonnet returned ${words.length} words, requirement is 3-5): "${trimmed}"`)
+            notes.push(`Tone summary trimmed (Sonnet returned ${words.length} words / "${tone.slice(0, 60)}…"): kept "${trimmed}"`)
             archaeology.toneSummary = { he: trimmed }
+        }
+    }
+
+    // Domain-drift sanity check: detect when Sonnet hallucinated a brand
+    // identity unrelated to the actual corpus. Symptom seen on the
+    // storage-station scan: Sonnet read the Greek-resembling brand name
+    // "סטורג'" as the Greek philosophical concept storge (parental love)
+    // and produced mission/positioning about "kids, family bonds, love"
+    // — words completely absent from the storage-warehouses corpus.
+    //
+    // Heuristic: extract the top noun-class words from the corpus (Hebrew
+    // 4-8 char words appearing 2+ times). Then check that mission +
+    // positioning + tagline strings collectively touch at least one of
+    // those words. If they don't, the AI drifted; null those fields out
+    // and surface a warning so the wizard shows them as missing rather
+    // than misleading the user.
+    function topCorpusTerms(text: string, n = 25): string[] {
+        const counts = new Map<string, number>()
+        const tokens = text.match(/[א-ת]{4,12}/g) || []
+        for (const t of tokens) counts.set(t, (counts.get(t) || 0) + 1)
+        return [...counts.entries()]
+            .filter(([, c]) => c >= 2)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, n)
+            .map(([w]) => w)
+    }
+    const topTerms = topCorpusTerms(corpus)
+    function aiOutputMatchesCorpus(): boolean {
+        const aiText = [
+            archaeology.tagline?.he, archaeology.tagline?.literal, archaeology.tagline?.refined,
+            archaeology.mission?.he,
+            archaeology.positioning?.he,
+        ].filter(Boolean).join(' ')
+        if (!aiText.trim() || topTerms.length === 0) return true  // can't judge → trust
+        let hits = 0
+        for (const term of topTerms) {
+            if (aiText.includes(term)) { hits++; if (hits >= 2) return true }
+        }
+        return hits >= 2
+    }
+    if (!aiOutputMatchesCorpus()) {
+        notes.push(`★ DRIFT DETECTED: Sonnet output (tagline/mission/positioning) doesn't reference any top corpus term [${topTerms.slice(0, 8).join(', ')}]. Likely hallucinated unrelated brand identity. Nulling those fields.`)
+        delete archaeology.tagline
+        delete archaeology.mission
+        delete archaeology.positioning
+    }
+
+    // Hero-slogan literal enforcement: if we extracted a clear slogan from
+    // h1/og:description and Sonnet's tagline.literal is missing or appears
+    // unrelated to the hero, override with the actual hero slogan. Sonnet's
+    // archetype filter often suppresses "salesy" slogans (e.g. price-driven
+    // promises) which clients explicitly chose to display on their site.
+    if (heroSlogans.length > 0) {
+        const h1Hero = heroSlogans[0]
+        const aiTag = archaeology.tagline?.literal || archaeology.tagline?.he || ''
+        const aiOverlapWithHero = aiTag && h1Hero && [...new Set(h1Hero.split(/\s+/))].some(w => w.length > 3 && aiTag.includes(w))
+        if (!aiTag || !aiOverlapWithHero) {
+            notes.push(`Tagline override: hero slogan "${h1Hero.slice(0, 80)}" promoted to tagline.literal (Sonnet returned ${aiTag ? '"' + aiTag.slice(0, 60) + '"' : 'null'}, no overlap with hero).`)
+            archaeology.tagline = {
+                he: h1Hero,
+                literal: h1Hero,
+                refined: archaeology.tagline?.refined,
+            }
         }
     }
 
