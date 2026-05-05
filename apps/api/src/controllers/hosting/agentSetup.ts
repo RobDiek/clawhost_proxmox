@@ -3990,14 +3990,29 @@ function buildResearchPrompt(stage: number, opts: {
         : `הערך difficulty (low/medium/high) על סמך כמות תוצאות ואיכות התחרות ב-SERP.`
 
     const RULES = `
-חוקים קריטיים:
+★★★ חוקי-על — כשל אוטומטי אם תפר אותם ★★★
+
+🚫 **אסור לקרוא קבצים מ-/home/openclaw/.openclaw/workspace/** — בפרט:
+   MEMORY.md / HEARTBEAT.md / AGENTS.md / SOUL.md / CHANNELS.md / TOOLS.md
+   /workspace/state/* / /workspace/brands/* / /workspace/content/*
+   הם **לא חלק מהמשימה הזאת**. ההקשר היחיד שלך הוא ה-prompt הזה.
+
+🚫 **אסור לדווח על מצב המערכת** — לא cron jobs, לא Telegram Chat ID,
+   לא integrations מחוברות, לא plugins disabled, לא config warnings.
+   זה לא market research. זו תמיכה טכנית — לא המשימה שלך.
+
+🚫 **אסור להתחיל בתשובה מתאר** "מה אני יודע" / "מה אני רואה" / "Session
+   חדש" / "נתחיל מחדש". התחל ישר עם התוצאה — מתחרים, keywords, וכו'.
+
+✅ **חובה**: התשובה הראשונה שלך מתחילה עם הכותרת "### מתחרים ישירים"
+   (או הפורמט המתאים לשלב הזה) — לא הסבר, לא הקדמה, לא דיווח על מצב.
+
+חוקים תפעוליים:
 - **מקסימום 6 חיפושים בסך הכל** — לאחר מכן עצור וכתוב את הדוח הסופי המלא.
 - אל תדקלם מה אתה מתכנן לחפש — פשוט בצע את החיפוש או כתוב את הדוח.
 - אחרי שאספת מספיק מידע, התשובה הבאה שלך חייבת להיות **הדוח המלא בפורמט שבוקש**, לא עוד חיפוש ולא עוד הערה.
 - כתוב הכל כאן בתשובה — לא בקובץ
 - בעברית בלבד (מונחים מקצועיים באנגלית מותרים)
-- אל תקרא קבצים מהמערכת ואל תסרוק workspace
-- אל תכלול רשימות קבצים, מידע טכני, plugin logs
 - לכל עובדה — ציין מקור (URL, שם אתר, או שם מחקר)
 - זו משימה חדשה לגמרי — לא ראית אותה קודם. אל תאמר "כבר עניתי" — ענה מחדש.`
 
@@ -4755,8 +4770,18 @@ print('\n\n'.join(out))
             }
         }
 
-        if (!result || result.length < 500) {
-            console.error(`Stage ${stage} result too short (${result?.length || 0} chars). First 300: ${result?.substring(0, 300)}`)
+        // Detect "system status report" leak: sayer gets distracted by
+        // workspace state files (MEMORY.md, HEARTBEAT.md, integrations
+        // status) and produces a meta-status report instead of research,
+        // regardless of total length. Symptoms: cron jobs / Chat ID /
+        // integrations connected / plugins disabled / config warnings —
+        // none of which belong in market research output.
+        const META_SIGNALS = /cron job|chat ID|chatId|MEMORY\.md|HEARTBEAT\.md|AGENTS\.md|SOUL\.md|CHANNELS\.md|TOOLS\.md|plugin (disabled|enabled)|config warning|integrations? (מחובר|לא מחובר|connected|not connected)|מצב המערכת|מצב כללי/i
+        const headSlice = (result || '').slice(0, 1500)
+        const metaLeak = !!result && META_SIGNALS.test(headSlice) && (result.match(META_SIGNALS) || []).length >= 2
+
+        if (!result || result.length < 500 || metaLeak) {
+            console.error(`Stage ${stage} result too short (${result?.length || 0} chars)${metaLeak ? ' OR meta-leak detected' : ''}. First 300: ${result?.substring(0, 300)}`)
             console.error(`Stage ${stage} raw output length: ${output?.length || 0}. First 300: ${output?.substring(0, 300)}`)
 
             // Detect cross-tenant context contamination — agent referenced
@@ -4774,6 +4799,9 @@ print('\n\n'.join(out))
             if (isRateLimit) {
                 msg = `rate limit — המודל הגיע לגבול השימוש (30K tokens). נסו: המתינו דקה / שנו מודל / שדרגו תוכנית API`
                 httpCode = 429 as any
+            } else if (metaLeak) {
+                msg = `הסוכן דיווח על מצב המערכת במקום לבצע מחקר. נסו שוב — אם נמשך, לחצו "איפוס הגדרות" באזור המסוכן.`
+                httpCode = 422
             } else if (lookedConfused || isShortAndOnlyMeta) {
                 msg = `הסוכן התבלבל בין פרויקטים. הסיבה הסבירה: קבצים ישנים מ-brand אחר נשארו בסביבת העבודה. פתרון: לחצו "איפוס הגדרות" באזור המסוכן ונסו שוב.`
                 httpCode = 422
