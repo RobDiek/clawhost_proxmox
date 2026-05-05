@@ -13103,6 +13103,8 @@ async function brandV2Submit() {
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/submit', { method: 'POST' });
     if (!r.success) {
+      // Quality-gate failure: keep modal open so the user can fix the
+      // missing fields. Surface what's needed.
       if (r.data && r.data.gates && !r.data.gates.passed) {
         var failed = (r.data.gates.criticalFailed || []).join(', ');
         showToast('חובה למלא: ' + failed, 'warning');
@@ -13110,15 +13112,28 @@ async function brandV2Submit() {
       }
       throw new Error(r.message || 'submit failed');
     }
-    showToast('נשלח לאישור · עברו ל-Approve', 'success');
-    var r2 = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/approve', { method: 'POST' });
-    if (r2 && r2.success) {
-      showToast('🎉 Brand Book אושר! ניתן להמשיך ל-Google Ads', 'success');
-      if (typeof closeReportModal === 'function') closeReportModal();
-      // Refresh setup tasks
-      if (instanceData) instanceData.hasBrandBook = true;
-      if (typeof renderHome === 'function') renderHome();
+
+    // Submit succeeded — IMMEDIATELY close modal and reflect the new state.
+    // Approve is fired in the background; whatever its outcome, the user has
+    // already moved past this step.
+    showToast('🎉 Brand Book נשלח ואושר!', 'success');
+    if (instanceData) instanceData.hasBrandBook = true;
+    if (typeof closeReportModal === 'function') closeReportModal();
+
+    // Auto-approve in background. Any error is logged silently — the brand
+    // book stays in 'pending_approval' state and admin can approve later.
+    apiFetch('/hosting/instances/' + instanceId + '/brand-v2/approve', { method: 'POST' })
+      .catch(function(err) { console.warn('brand auto-approve failed (non-fatal):', err); });
+
+    // Refresh server state + redraw home so the next onboarding step (the
+    // strategy / pipeline card) actually unlocks. We await the refresh so
+    // renderHome sees fresh hasBrandBook/onboarding fields, not the local
+    // optimistic flag.
+    if (typeof refreshInstanceData === 'function') {
+      try { await refreshInstanceData(); } catch (_) {}
     }
+    if (typeof renderHome === 'function') renderHome();
+    if (typeof renderAgentsTab === 'function') renderAgentsTab();
   } catch (err) {
     showToast('שגיאה: ' + (err.message || err), 'error');
   }
