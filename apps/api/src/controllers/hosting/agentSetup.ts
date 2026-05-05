@@ -4775,6 +4775,33 @@ export const researchStage = async (c: Context) => {
             .replace(/^\s*\[\s*\{[\s\S]*?"blockChars"[\s\S]*?\}\s*\]\s*$/gm, '')
             .trim()
 
+        // Strip "agent reasoning chatter" preamble that the direct-Anthropic-API
+        // fallback path tends to produce. The model role-plays tool usage as
+        // text ("I'll research the…", "```brave_search: …```", "Let me execute
+        // the searches efficiently") before getting to the actual report. We
+        // jump to the first markdown header (### / ## / #) which is where the
+        // structured deliverable starts. Idempotent — no-op if the result is
+        // already clean.
+        {
+            const headerIdx = result.search(/(^|\n)#{1,3}\s+\S/)
+            if (headerIdx > 0 && headerIdx < 1500) {
+                // Only strip if the preamble is bounded — protects against
+                // accidentally chopping a real Hebrew narrative that simply
+                // doesn't start with a header.
+                const preamble = result.slice(0, headerIdx)
+                const looksLikeChatter =
+                    /^I['']?ll|Let me|I will|I am going to|I[''']?m going to/i.test(preamble.trim()) ||
+                    /```\s*(brave_search|firecrawl|dataforseo|web_search)[\s\S]*?```/i.test(preamble) ||
+                    /Let['']?s execute|searches efficiently|I[''']?ve gathered/i.test(preamble)
+                if (looksLikeChatter) {
+                    result = result.slice(headerIdx).replace(/^\n+/, '')
+                }
+            }
+            // Also strip orphan simulated tool-call code blocks anywhere in
+            // the body (the model occasionally inserts them between sections).
+            result = result.replace(/```\s*(brave_search|firecrawl|dataforseo|web_search)[\s\S]{0,300}?```\s*\n?/gi, '')
+        }
+
         // Fallback: check if agent saved to file
         if (result.length < minLength && (result.includes('.md') || result.includes('שמורה'))) {
             try {
