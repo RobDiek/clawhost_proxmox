@@ -891,11 +891,28 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     // the green / blue badge — never silently passing AI as scanned.
     {
         const blogMarkers = /:|המדריך|המלא|כל מה שצריך לדעת|מאמר|טופ\s|רשימת|השוואת|20(2[4-9]|3\d)/
+        // Navigation/footer labels — short factual strings that aren't slogans:
+        //   "שעות פעילות החנות" (store hours), "צור קשר" (contact),
+        //   "אודות" (about), "תפריט" (menu), "מחירים" (prices) etc.
+        const navLabels = /^(?:שעות|פעילות|צור\s?קשר|אודות|תפריט|חנות|בלוג|מאמרים|כתבות|קטגוריות?|מחירים|שירותים|home|about|contact|services|blog|menu|hours|prices?|category)\b/i
         const claimSignals = /₪|בלי|ללא|24|7|הזול|הטוב|אחריות|התחייבות|מיוחד|מאובטח|חינם|חופשי|מובטח|הראשון|מומלץ|ביותר/
+        // Hebrew verb signals — slogans typically start with a verb
+        // ("שומרים על", "מציעים לכם", "מבטיחים", "נותנים", "פותרים").
+        const verbSignals = /^(?:שומרים|מציעים|מבטיחים|נותנים|פותרים|עוזרים|דואגים|מספקים|מטפלים|מעניקים|מאחסנים|חוסכים)/
         const sloganCandidates = heroSlogans
             .filter(s => !blogMarkers.test(s))
-            .filter(s => s.length >= 10 && s.length <= 90)
-            .map(s => ({ text: s, score: (claimSignals.test(s) ? 10 : 0) + Math.max(0, 60 - s.length) / 10 }))
+            // Reject navigation/footer single-noun labels.
+            .filter(s => !navLabels.test(s))
+            // Slogan needs to be a sentence/phrase, not 1-3 nav words. Min word count = 4.
+            .filter(s => s.split(/\s+/).filter(Boolean).length >= 4)
+            // Sweet length window.
+            .filter(s => s.length >= 14 && s.length <= 90)
+            .map(s => ({
+                text: s,
+                score: (claimSignals.test(s) ? 10 : 0)
+                    + (verbSignals.test(s) ? 8 : 0)
+                    + Math.max(0, 60 - s.length) / 10,
+            }))
             .sort((a, b) => b.score - a.score)
 
         const literal = sloganCandidates.length > 0 ? sloganCandidates[0].text : null
