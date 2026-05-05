@@ -12034,26 +12034,12 @@ async function brandV2OpenWizard(draftBundle) {
   var voice = (b.voice && b.voice.voice) || {};
   var personas = (b.audience && b.audience.personas && b.audience.personas.items) || [];
 
-  function statusDot(present) {
-    return '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + (present ? '#10B981' : '#FCD34D') + ';margin-right:6px"></span>';
-  }
-  function row(present, label, generateAction) {
-    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F3F4F6">' +
-      statusDot(present) +
-      '<span style="flex:1;font-size:0.86rem;color:#1F2937">' + label + '</span>' +
-      (present ? '<span style="font-size:0.76rem;color:#10B981">✓ מוכן</span>' : (generateAction || '<span style="font-size:0.74rem;color:#92400E">חסר</span>')) +
-    '</div>';
-  }
-
-  // businessName fallback chain — if draft empty, look in instanceData
-  // (paid_profile, research, brand book legacy) so we NEVER ask AI to create
-  // a "Business" placeholder. We have the name — we shouldn't pretend we don't.
+  // businessName fallback — never push AI to invent "Business" placeholder.
   var businessName = (ident.businessName && (ident.businessName.he || ident.businessName.en)) || '';
   if (!businessName && instanceData && instanceData.researchData) {
     var rd = instanceData.researchData;
     businessName = (rd.answers && rd.answers.businessName) ||
-                   (rd.paidProfile && rd.paidProfile.businessName) ||
-                   '';
+                   (rd.paidProfile && rd.paidProfile.businessName) || '';
   }
   if (!businessName && instanceData && instanceData.businessName) businessName = instanceData.businessName;
   var industry = (instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.industry) || '';
@@ -12064,46 +12050,188 @@ async function brandV2OpenWizard(draftBundle) {
     websiteUrl: websiteUrl,
   }).replace(/"/g, '&quot;');
 
-  var html = '<div style="padding:8px 0">' +
-    '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:0.86rem;color:#1E40AF">' +
-      'טיוטה v' + (b.version || 1) + ' · מקור: ' + ((b.sourceFlow === 'website_scan') ? 'סריקת אתר' : (b.sourceFlow === 'uploaded' ? 'העלאה ידנית' : 'משולב')) + '<br>' +
-      '<span style="font-size:0.78rem">🟢 ירוק = מוכן · 🟡 צהוב = חסר. השלימו ידנית או דרך כפתור ⚡ ליצירה אוטומטית.</span>' +
+  // Field model: each stage holds rows with present + actions. Actions show
+  // ONLY for missing fields (collapsing once filled — visual reward).
+  var stages = [
+    {
+      key: 'identity', num: 1, titleHe: 'זהות', titleEn: 'Identity',
+      hint: 'מי אתם, איך אתם מציגים את עצמכם',
+      rows: [
+        {
+          label: 'שם העסק',
+          present: !!(ident.businessName && (ident.businessName.he || ident.businessName.en)),
+          actions: [{ kind: 'ai', label: '⚡ צרו', onclick: 'brandV2GenerateVoice(' + bizArg + ')' }],
+        },
+        {
+          label: 'סלוגן (Tagline)',
+          present: !!(ident.tagline && (ident.tagline.he || ident.tagline.en)),
+          actions: [{ kind: 'ai', label: '⚡ צרו voice + סלוגן', onclick: 'brandV2GenerateVoice(' + bizArg + ')' }],
+        },
+        {
+          label: 'משימה (Mission)',
+          present: !!(ident.mission && (ident.mission.he || ident.mission.en)),
+          actions: [],
+        },
+        {
+          label: 'הצהרת מיצוב (Positioning)',
+          present: !!(ident.positioningStatement && (ident.positioningStatement.he || ident.positioningStatement.en)),
+          actions: [],
+        },
+      ],
+    },
+    {
+      key: 'visual', num: 2, titleHe: 'זהות חזותית', titleEn: 'Visual',
+      hint: 'איך אתם נראים — לוגו, צבעים, גופן, תמונות',
+      rows: [
+        {
+          label: 'לוגו ראשי',
+          present: !!(visual.logo && visual.logo.primary && visual.logo.primary.url),
+          actions: [
+            { kind: 'ai', label: '⚡ צרו (AI)', onclick: 'brandV2GenerateLogo(' + bizArg + ')' },
+            { kind: 'upload', label: '📤 העלו קובץ', onclick: "document.getElementById('bv2-logo-input').click()" },
+          ],
+        },
+        {
+          label: 'פלטת צבעים',
+          present: !!(visual.colors && visual.colors.primary),
+          actions: [{ kind: 'ai', label: '⚡ צרו פלטה', onclick: 'brandV2GeneratePalette(' + bizArg + ')' }],
+        },
+        {
+          label: 'גופן עברי ראשי',
+          present: !!(visual.typography && visual.typography.primaryFontHe),
+          actions: [],
+        },
+        {
+          label: 'תמונות רפרנס',
+          present: !!(visual.imagery && (visual.imagery.referenceUrls || []).length > 0),
+          actions: [{ kind: 'ai', label: '⚡ צרו 5 תמונות', onclick: 'brandV2GenerateImagery(' + bizArg + ')' }],
+        },
+      ],
+    },
+    {
+      key: 'voice', num: 3, titleHe: 'קול ושפה', titleEn: 'Voice',
+      hint: 'איך אתם נשמעים — ארכיטיפ, טון, אוצר מילים',
+      rows: [
+        {
+          label: 'ארכיטיפ + טון קול',
+          present: !!voice.archetype,
+          actions: [{ kind: 'ai', label: '⚡ צרו voice', onclick: 'brandV2GenerateVoice(' + bizArg + ')' }],
+        },
+        {
+          label: 'עקרונות קול (לפחות 3)',
+          present: (voice.principles || []).length >= 3,
+          actions: [],
+        },
+        {
+          label: 'אוצר מילים מאושר (לפחות 5)',
+          present: !!(voice.vocabulary && (voice.vocabulary.approved || []).length >= 5),
+          actions: [],
+        },
+      ],
+    },
+    {
+      key: 'personas', num: 4, titleHe: 'קהל יעד', titleEn: 'Personas',
+      hint: 'מי הקהל שלכם, מה כואב להם, איך מדברים אליהם',
+      rows: [
+        {
+          label: 'פרסונות' + (personas.length ? ' (יש ' + personas.length + ')' : ''),
+          present: personas.length >= 1,
+          actions: [{ kind: 'ai', label: '⚡ צרו פרסונות', onclick: 'brandV2GeneratePersonas(' + bizArg + ')' }],
+        },
+      ],
+    },
+  ];
+
+  // Aggregate stats for the header.
+  var totalFields = 0, filledFields = 0;
+  stages.forEach(function(s) {
+    s.rows.forEach(function(r) { totalFields++; if (r.present) filledFields++; });
+  });
+  var pct = totalFields > 0 ? Math.round(filledFields * 100 / totalFields) : 0;
+
+  // Find the first missing row globally — used to highlight "do this next".
+  var firstMissingKey = null;
+  outer: for (var i = 0; i < stages.length; i++) {
+    for (var j = 0; j < stages[i].rows.length; j++) {
+      if (!stages[i].rows[j].present) { firstMissingKey = stages[i].key + ':' + j; break outer; }
+    }
+  }
+
+  function renderActionBtn(a) {
+    var bg = a.kind === 'ai' ? 'background:#2563EB;color:#fff;border-color:#2563EB' : 'background:#fff;color:#374151;border-color:#D1D5DB';
+    return '<button onclick="' + a.onclick + '" style="' + bg + ';border:1px solid;border-radius:6px;padding:5px 10px;font-size:0.75rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:filter .15s" onmouseover="this.style.filter=\'brightness(0.93)\'" onmouseout="this.style.filter=\'\'">' + a.label + '</button>';
+  }
+
+  function renderRow(stageKey, idx, r) {
+    var rowKey = stageKey + ':' + idx;
+    var isFirstMissing = rowKey === firstMissingKey;
+    var statusIcon = r.present
+      ? '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#D1FAE5;color:#065F46;font-size:0.78rem;font-weight:700">✓</span>'
+      : (isFirstMissing
+        ? '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#DBEAFE;color:#1E40AF;font-size:0.7rem;font-weight:700;border:2px solid #2563EB">→</span>'
+        : '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#F3F4F6;border:1px solid #E5E7EB"></span>');
+    var labelStyle = r.present ? 'color:#6B7280;text-decoration:line-through;text-decoration-color:#D1FAE5;text-decoration-thickness:1.5px' : (isFirstMissing ? 'color:#1E40AF;font-weight:600' : 'color:#1F2937');
+    var rowBg = isFirstMissing ? 'background:#EFF6FF' : '';
+    var rightSide = r.present
+      ? '<span style="font-size:0.74rem;color:#10B981;font-weight:500">מוכן</span>'
+      : (r.actions.length
+        ? r.actions.map(renderActionBtn).join('&nbsp;')
+        : '<span style="font-size:0.74rem;color:#9CA3AF">ערוך ידנית</span>');
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;' + rowBg + '">' +
+      statusIcon +
+      '<span style="flex:1;font-size:0.86rem;' + labelStyle + '">' + r.label + '</span>' +
+      '<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end">' + rightSide + '</div>' +
+    '</div>';
+  }
+
+  function renderStage(s) {
+    var stageFilled = 0;
+    s.rows.forEach(function(r) { if (r.present) stageFilled++; });
+    var stageTotal = s.rows.length;
+    var stageDone = stageFilled === stageTotal;
+    var numBg = stageDone ? '#10B981' : (stageFilled > 0 ? '#2563EB' : '#9CA3AF');
+    var numContent = stageDone ? '✓' : s.num;
+    var rowsHtml = s.rows.map(function(r, idx) { return renderRow(s.key, idx, r); }).join('');
+    return '<div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:10px">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #F3F4F6">' +
+        '<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:' + numBg + ';color:#fff;font-size:0.85rem;font-weight:700">' + numContent + '</span>' +
+        '<div style="flex:1">' +
+          '<div style="font-weight:600;font-size:0.95rem;color:#1F2937">' + s.titleHe + ' <span style="font-size:0.74rem;color:#9CA3AF;font-weight:400">' + s.titleEn + '</span></div>' +
+          '<div style="font-size:0.76rem;color:#6B7280;margin-top:1px">' + s.hint + '</div>' +
+        '</div>' +
+        '<span style="font-size:0.78rem;color:' + (stageDone ? '#10B981' : '#6B7280') + ';font-weight:600;white-space:nowrap">' + stageFilled + '/' + stageTotal + '</span>' +
+      '</div>' +
+      rowsHtml +
+    '</div>';
+  }
+
+  var sourceLabel = (b.sourceFlow === 'website_scan') ? '🔍 סריקת אתר' : (b.sourceFlow === 'uploaded' ? '📚 העלאה ידנית' : '🔀 משולב');
+  var progressColor = pct >= 100 ? '#10B981' : (pct >= 50 ? '#2563EB' : '#F59E0B');
+
+  var html = '<div style="padding:6px 0">' +
+    // Compact header bar — version + source + progress
+    '<div style="background:linear-gradient(180deg,#F9FAFB,#F3F4F6);border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap">' +
+        '<div style="font-size:0.84rem;color:#374151"><span style="font-weight:600">טיוטה v' + (b.version || 1) + '</span> · <span style="color:#6B7280">' + sourceLabel + '</span></div>' +
+        '<div style="font-size:0.84rem;color:' + progressColor + ';font-weight:700">' + filledFields + '/' + totalFields + ' שדות · ' + pct + '%</div>' +
+      '</div>' +
+      '<div style="height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden">' +
+        '<div style="width:' + pct + '%;height:100%;background:' + progressColor + ';transition:width .3s"></div>' +
+      '</div>' +
+      (firstMissingKey
+        ? '<div style="font-size:0.76rem;color:#1E40AF;margin-top:10px"><span style="background:#DBEAFE;padding:2px 8px;border-radius:6px">→ הצעד הבא מסומן בכחול</span></div>'
+        : '<div style="font-size:0.76rem;color:#10B981;margin-top:10px;font-weight:600">🎉 כל השדות מולאו — מוכנים לאישור</div>') +
     '</div>' +
 
-    '<h3 style="margin-top:18px;font-size:1rem;color:#1F2937;text-align:right">שלב 1 — זהות (Identity)</h3>' +
-    row(!!(ident.businessName && (ident.businessName.he || ident.businessName.en)), 'שם העסק',
-      '<button onclick=\'brandV2GenerateVoice(' + bizArg + ')\' class="notif-action" style="font-size:0.74rem">⚡ צרו אוטומטית</button>') +
-    row(!!(ident.tagline && (ident.tagline.he || ident.tagline.en)), 'סלוגן (Tagline)',
-      '<button onclick=\'brandV2GenerateVoice(' + bizArg + ')\' class="notif-action" style="font-size:0.74rem">⚡ צרו voice + סלוגן</button>') +
-    row(!!(ident.mission && (ident.mission.he || ident.mission.en)), 'משימה (Mission)', '') +
-    row(!!(ident.positioningStatement && (ident.positioningStatement.he || ident.positioningStatement.en)), 'הצהרת מיצוב', '') +
+    stages.map(renderStage).join('') +
 
-    '<h3 style="margin-top:18px;font-size:1rem;color:#1F2937;text-align:right">שלב 2 — זהות חזותית (Visual)</h3>' +
-    row(!!(visual.logo && visual.logo.primary && visual.logo.primary.url), 'לוגו ראשי',
-      '<button onclick=\'brandV2GenerateLogo(' + bizArg + ')\' class="notif-action" style="font-size:0.74rem">⚡ צרו לוגו (AI)</button>' +
-      ' <button onclick="document.getElementById(\'bv2-logo-input\').click()" class="notif-action" style="font-size:0.74rem">📤 העלאת קובץ</button>' +
-      '<input type="file" id="bv2-logo-input" accept="image/*" onchange="brandV2HandleLogoUpload(event)" style="display:none">') +
-    row(!!(visual.colors && visual.colors.primary), 'פלטת צבעים',
-      '<button onclick=\'brandV2GeneratePalette(' + bizArg + ')\' class="notif-action" style="font-size:0.74rem">⚡ צרו פלטה</button>') +
-    row(!!(visual.typography && visual.typography.primaryFontHe), 'גופן עברי ראשי', '') +
-    row(!!(visual.imagery && (visual.imagery.referenceUrls || []).length > 0), 'תמונות רפרנס',
-      '<button onclick=\'brandV2GenerateImagery(' + bizArg + ')\' class="notif-action" style="font-size:0.74rem">⚡ צרו 5 תמונות (AI)</button>') +
+    '<input type="file" id="bv2-logo-input" accept="image/*" onchange="brandV2HandleLogoUpload(event)" style="display:none">' +
+    '<div id="bv2-logo-preview" style="margin-top:10px"></div>' +
 
-    '<h3 style="margin-top:18px;font-size:1rem;color:#1F2937;text-align:right">שלב 3 — קול ושפה (Voice)</h3>' +
-    row(!!voice.archetype, 'ארכיטיפ + טון קול',
-      '<button onclick=\'brandV2GenerateVoice(' + bizArg + ')\' class="notif-action" style="font-size:0.74rem">⚡ צרו voice</button>') +
-    row((voice.principles || []).length >= 3, 'עקרונות קול (לפחות 3)', '') +
-    row(!!(voice.vocabulary && (voice.vocabulary.approved || []).length >= 5), 'אוצר מילים מאושר (לפחות 5)', '') +
-
-    '<h3 style="margin-top:18px;font-size:1rem;color:#1F2937;text-align:right">שלב 4 — קהל יעד (Personas)</h3>' +
-    row(personas.length >= 1, 'פרסונות (יש: ' + personas.length + ')',
-      '<button onclick=\'brandV2GeneratePersonas(' + bizArg + ')\' class="notif-action" style="font-size:0.74rem">⚡ צרו פרסונות</button>') +
-
-    '<div id="bv2-logo-preview" style="margin-top:14px"></div>' +
-    '<div style="margin-top:24px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">' +
-      '<button onclick="brandV2Submit()" class="btn btn-primary btn-sm">שלחו לאישור</button>' +
-      '<button onclick="brandV2Discard()" class="btn btn-outline btn-sm" style="color:#DC2626">בטלו טיוטה</button>' +
-      '<button onclick="brandV2ExportPdf()" class="btn btn-outline btn-sm">📄 תצוגה מקדימה PDF</button>' +
+    '<div style="margin-top:18px;padding-top:14px;border-top:1px solid #E5E7EB;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">' +
+      '<button onclick="brandV2Submit()" class="btn btn-primary btn-sm"' + (filledFields === 0 ? ' disabled style="opacity:0.5;cursor:not-allowed"' : '') + '>שלחו לאישור</button>' +
+      '<button onclick="brandV2ExportPdf()" class="btn btn-outline btn-sm">📄 תצוגה מקדימה</button>' +
+      '<button onclick="brandV2Discard()" class="btn btn-outline btn-sm" style="color:#DC2626;border-color:#FECACA">בטלו טיוטה</button>' +
     '</div>' +
   '</div>';
   if (typeof openReportModal === 'function') {
