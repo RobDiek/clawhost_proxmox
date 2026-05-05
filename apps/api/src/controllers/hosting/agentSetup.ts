@@ -111,7 +111,7 @@ async function fetchLandingContent(url: string, userFirecrawlKey?: string): Prom
 }
 
 // ── SSH helper (with timeout) ──
-function sshExec(ip: string, command: string, password?: string, timeoutMs = 120000): Promise<string> {
+export function sshExec(ip: string, command: string, password?: string, timeoutMs = 120000): Promise<string> {
     return new Promise((resolve, reject) => {
         const conn = new Client()
         let output = ''
@@ -831,7 +831,7 @@ const DEFAULT_ROLE_MODELS: Record<string, string> = {
     'mazhir': 'anthropic/claude-sonnet-4-6',            // Paid Ads Manager — judgment + math (bids, exclude lists)
 }
 
-async function getSubAgentModel(instanceId: string, role: string): Promise<string> {
+export async function getSubAgentModel(instanceId: string, role: string): Promise<string> {
     // Try to read from DB (user's custom config from dashboard)
     try {
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
@@ -3941,7 +3941,7 @@ export const getOpsBrief = async (c: Context) => {
 }
 
 // ── Helper: detect available MCP tools on VPS ──
-async function getAvailableTools(ip: string, password?: string): Promise<{
+export async function getAvailableTools(ip: string, password?: string): Promise<{
     hasBrave: boolean; hasDataforseo: boolean; hasFirecrawl: boolean; hasGsc: boolean
 }> {
     try {
@@ -5638,7 +5638,7 @@ interface HistoricalAssets {
 
 // Compact markdown block injected into research/strategy/content-plan prompts.
 // Returns empty string if no assets supplied — prompt flows normally without.
-function formatHistoricalAssets(rd: any): string {
+export function formatHistoricalAssets(rd: any): string {
     const ha: HistoricalAssets = rd?.historicalAssets || {}
     if (!ha || ha.skipped) return ''
     const blocks: string[] = []

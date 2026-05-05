@@ -1,18 +1,17 @@
 /**
- * Stage: strategy_options — Smart (low-comp / lean budget) vs All-In (head
- * terms / aggressive) scenarios with KPIs, monthly trajectories, link-
- * building budgets, content production budgets. Universal stage — every
- * intent ends here before commit.
+ * Stage: strategy_options — channel strategy with FIRST WIN focus, KPIs,
+ * 30-day plan, budget allocation, risks. Universal stage — every intent
+ * ends here before chosenScenario commit.
  *
- * Phase 3 lifts logic from agentSetup buildStrategyScenarios + relevant
- * sections of buildResearchPrompt(stage=4). Existing chosenScenario flow
- * (commitStrategyScenario) stays untouched — that's the user's choice
- * between options, not the option-generation itself.
+ * Lifted from agentSetup.ts:buildResearchPrompt(stage=4). Reads competitor_
+ * landscape + seo_keyword_research + audience_personas + positioning as
+ * inputs. The chosenScenario flow (commitStrategyScenario) stays untouched
+ * — that's the user's choice between Smart vs All-In, not the generation.
  */
 
 import type { Context } from 'hono'
-import { notImplementedYet } from './_stub'
+import { runStageGeneric } from './_runStageGeneric'
 
 export async function run(c: Context): Promise<Response> {
-    return notImplementedYet(c, 'strategy_options')
+    return runStageGeneric(c, 'strategy_options')
 }

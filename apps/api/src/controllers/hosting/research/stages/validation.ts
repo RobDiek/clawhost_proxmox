@@ -1,15 +1,19 @@
 /**
  * Stage: validation — KPI realism check + blindspot detection on the
- * generated strategy. Confidence score for downstream consumers.
+ * generated strategy. Two modes:
+ *   - ai_sim (default): role-play 3 personas critiquing the strategy
+ *   - real_interviews: produce a Mom-Test customer-discovery script
  *
- * Phase 3 lifts logic from agentSetup.buildResearchPrompt(stage=5). When
- * any upstream stage was 'degraded', validation aggregates the warnings
- * and propagates to the strategy view (per design doc §9).
+ * Mode chosen via POST body { validationMode: 'ai_sim' | 'real_interviews' }.
+ *
+ * Lifted from agentSetup.ts:buildResearchPrompt(stage=5). When upstream
+ * stages were 'degraded', Phase 5 will aggregate warnings here and propagate
+ * them onto strategy view via plan.status[validation].degradedReasons.
  */
 
 import type { Context } from 'hono'
-import { notImplementedYet } from './_stub'
+import { runStageGeneric } from './_runStageGeneric'
 
 export async function run(c: Context): Promise<Response> {
-    return notImplementedYet(c, 'validation')
+    return runStageGeneric(c, 'validation')
 }

@@ -1,16 +1,19 @@
 /**
  * Stage: positioning — mission, positioning statement, value props,
- * archetype hint. Reads competitor_landscape (gap detection) + audience
- * personas (whom we're addressing). Universal stage.
+ * archetype, voice/tone, brand promise, anti-positioning. Universal stage.
  *
- * Phase 3 will produce structured output: { mission, positioningStatement,
- * valueProps[], archetypeCandidate } — Brand-Deep wizard reads this to
- * pre-populate semantic brand fields.
+ * NEW prompt (was implicit in old stage 4). Splitting this out lets the user
+ * review/edit positioning *before* generating the channel strategy — old
+ * single-shot strategy locked positioning + channels into one bundle without
+ * a checkpoint. Reads competitor_landscape + audience_personas as inputs.
+ *
+ * Output is the structured input that Brand-Deep will pre-populate from in
+ * the gating step (design doc §12).
  */
 
 import type { Context } from 'hono'
-import { notImplementedYet } from './_stub'
+import { runStageGeneric } from './_runStageGeneric'
 
 export async function run(c: Context): Promise<Response> {
-    return notImplementedYet(c, 'positioning')
+    return runStageGeneric(c, 'positioning')
 }

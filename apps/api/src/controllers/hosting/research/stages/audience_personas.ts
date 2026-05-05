@@ -1,16 +1,15 @@
 /**
- * Stage: audience_personas — 1-3 personas with demographics, pain points,
- * triggers, channel preferences, expected CAC. Universal stage — runs for
- * every intent. Synthesis from researchData.answers + GA4 demographics
- * (when GA4 connected) + Anthropic.
+ * Stage: audience_personas — 1-3 personas with demographics, pains, triggers,
+ * channel preferences, WTP/pricing-validation. Universal stage.
  *
- * Phase 3 lifts the prompt + extraction logic from
- * agentSetup.buildResearchPrompt(stage=3).
+ * Lifted from agentSetup.ts:buildResearchPrompt(stage=3). When GA4 is wired
+ * in (Phase 4), this stage will inject demographic data into the prompt
+ * before sayer runs.
  */
 
 import type { Context } from 'hono'
-import { notImplementedYet } from './_stub'
+import { runStageGeneric } from './_runStageGeneric'
 
 export async function run(c: Context): Promise<Response> {
-    return notImplementedYet(c, 'audience_personas')
+    return runStageGeneric(c, 'audience_personas')
 }

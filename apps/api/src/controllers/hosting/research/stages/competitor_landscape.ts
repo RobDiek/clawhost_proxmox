@@ -1,16 +1,14 @@
 /**
- * Stage: competitor_landscape — discovery of direct competitors, market
- * structure, digital presence, gaps. Universal across intents.
+ * Stage: competitor_landscape — direct competitors, SERP positions, digital
+ * presence, content gaps, timing. Universal across intents.
  *
- * Phase 3 will replace this stub with the real runner. Existing logic
- * lives in agentSetup.ts:buildResearchPrompt(stage=1) + payload-extracted
- * sayer output; Phase 3 lifts it into this file with the per-stage
- * prompt and integration scaffolding.
+ * Lifted from agentSetup.ts:buildResearchPrompt(stage=1). Logic is now in
+ * services/research/{prompts,stageExecutor}; this file is just the route.
  */
 
 import type { Context } from 'hono'
-import { notImplementedYet } from './_stub'
+import { runStageGeneric } from './_runStageGeneric'
 
 export async function run(c: Context): Promise<Response> {
-    return notImplementedYet(c, 'competitor_landscape')
+    return runStageGeneric(c, 'competitor_landscape')
 }
