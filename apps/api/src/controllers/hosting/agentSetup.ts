@@ -4758,12 +4758,32 @@ print('\n\n'.join(out))
         if (!result || result.length < 500) {
             console.error(`Stage ${stage} result too short (${result?.length || 0} chars). First 300: ${result?.substring(0, 300)}`)
             console.error(`Stage ${stage} raw output length: ${output?.length || 0}. First 300: ${output?.substring(0, 300)}`)
-            const msg = isRateLimit
-                ? `rate limit — המודל הגיע לגבול השימוש (30K tokens). נסו: המתינו דקה / שנו מודל / שדרגו תוכנית API`
-                : `שלב ${stage} נכשל — נסו שוב`
+
+            // Detect cross-tenant context contamination — agent referenced
+            // files belonging to a previous brand (common after re-onboarding
+            // on the same VPS without a clean workspace wipe). Surface a
+            // specific, actionable error instead of generic "try again".
+            const lookedConfused = !!result && (
+                /STRATEGY\.md.*שייך ל|לא רלוונטי ל|פרויקט אחר|פרוייקט אחר|brand.*previous|other tenant/i.test(result.slice(0, 1500))
+            )
+            const isShortAndOnlyMeta = !!result && result.length < 800 &&
+                /\bSession\b|workspace|MEMORY\.md|TOOLS\.md/i.test(result.slice(0, 800))
+
+            let msg: string
+            let httpCode: 400 | 422 | 500 = 500
+            if (isRateLimit) {
+                msg = `rate limit — המודל הגיע לגבול השימוש (30K tokens). נסו: המתינו דקה / שנו מודל / שדרגו תוכנית API`
+                httpCode = 429 as any
+            } else if (lookedConfused || isShortAndOnlyMeta) {
+                msg = `הסוכן התבלבל בין פרויקטים. הסיבה הסבירה: קבצים ישנים מ-brand אחר נשארו בסביבת העבודה. פתרון: לחצו "איפוס הגדרות" באזור המסוכן ונסו שוב.`
+                httpCode = 422
+            } else {
+                msg = `שלב ${stage} נכשל — נסו שוב`
+                httpCode = 500
+            }
             console.error(`Stage ${stage} failed: ${msg}`)
             activeResearchRuns.delete(instanceId) // Release lock on early fail
-            return fail(c, msg, 500)
+            return fail(c, msg, httpCode as 400 | 500)
         }
 
         // Save stage result OUTSIDE workspace (prevents token bloat)
@@ -5600,17 +5620,43 @@ export const resetResearch = async (c: Context) => {
             .returning({ id: agentOutputs.id })
         console.log(`[resetResearch] Wiped ${wipedOutputs.length} stale agent_outputs for ${instanceId}`)
 
-        // Clear research files + old sessions + Mem0 research memories on VPS
+        // Compute current brand slug from researchData.answers.brandName so we
+        // can keep its subdirectory and prune everything else. Cross-tenant
+        // brand-subdirectory leftovers (e.g. an old `brands/flowmatic/` while
+        // user is now onboarding storage-station) are the documented cause
+        // of sayer agents getting "confused between projects" and returning
+        // sub-500-char stage outputs.
+        const currentBrandSlug = ((existingData.answers?.brandName || existingData.answers?.businessName || '') as string)
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '')
+
+        // Clear research files + old sessions + stale workspace artifacts +
+        // sibling brand subdirectories on VPS.
         if (instance.ip) {
             try {
                 await sshExec(instance.ip, `
+                    # Research stage artifacts + workspace-level stale strategy file.
                     rm -f /home/openclaw/.openclaw/research-data/RESEARCH_STAGE*.md /home/openclaw/.openclaw/research-data/STRATEGY.md
-                    # Clear old research sessions to prevent "already answered" memory
+                    rm -f /home/openclaw/.openclaw/workspace/STRATEGY.md
+                    # Sibling brand subdirectories — keep only the current one.
+                    if [ -d /home/openclaw/.openclaw/workspace/brands ]; then
+                        for d in /home/openclaw/.openclaw/workspace/brands/*/; do
+                            slug=$(basename "$d")
+                            if [ "$slug" != "${currentBrandSlug || '__none__'}" ]; then
+                                rm -rf "$d"
+                            fi
+                        done
+                    fi
+                    # Sayer / Menateach session caches — agent's "I already know" memory.
                     rm -f /home/openclaw/.openclaw/agents/sayer/sessions/research-*.jsonl 2>/dev/null
                     rm -f /home/openclaw/.openclaw/agents/menateach/sessions/research-*.jsonl 2>/dev/null
                     rm -f /home/openclaw/.openclaw/agents/sayer/sessions/sessions.json 2>/dev/null
                     rm -f /home/openclaw/.openclaw/agents/menateach/sessions/sessions.json 2>/dev/null
+                    chown -R openclaw:openclaw /home/openclaw/.openclaw/ 2>/dev/null || true
                 `, instance.rootPassword || undefined)
+                console.log(`[resetResearch] VPS workspace cleaned for ${instanceId}, kept brand="${currentBrandSlug || '(none)'}"`)
             } catch (_) { /* VPS may be unreachable, ignore */ }
         }
 
