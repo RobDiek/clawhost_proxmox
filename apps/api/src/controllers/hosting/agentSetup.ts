@@ -4705,11 +4705,22 @@ export const researchStage = async (c: Context) => {
             try {
                 const agentResult = JSON.parse(cleanOutput.slice(jsonStart2))
                 result = agentResult?.result?.finalAssistantVisibleText || ''
-                if (!result && agentResult?.result?.payloads) {
+
+                // ALWAYS check payloads, not just when result is empty.
+                // openclaw agents often emit a short "session ack" / meta line
+                // as `finalAssistantVisibleText` while the actual research
+                // sits in payloads as a longer text block. We need the longest
+                // payload over the floor — picking finalAssistantVisibleText
+                // unconditionally truncates real research to a 200-char ack.
+                if (agentResult?.result?.payloads) {
+                    let bestPayload = ''
                     for (const p of agentResult.result.payloads) {
-                        if (p.text && p.text.length > result.length) result = p.text
+                        if (p.text && p.text.length > bestPayload.length) bestPayload = p.text
                     }
+                    // Use the longer of finalAssistantVisibleText vs longest payload.
+                    if (bestPayload.length > result.length) result = bestPayload
                 }
+
                 if (!result) result = cleanOutput
             } catch {
                 result = cleanOutput
