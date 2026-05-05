@@ -13113,18 +13113,32 @@ async function brandV2Submit() {
       throw new Error(r.message || 'submit failed');
     }
 
-    // Submit succeeded — IMMEDIATELY close modal and reflect the new state.
-    // Approve is fired in the background; whatever its outcome, the user has
-    // already moved past this step.
-    showToast('🎉 Brand Book נשלח ואושר!', 'success');
-    if (instanceData) instanceData.hasBrandBook = true;
+    // Submit succeeded — close modal + auto-approve. Brand-Light is a
+    // deliberately partial draft (no mission / positioning / voice — those
+    // come in Brand-Deep after Strategy commit). Server-side quality gates
+    // assume a fully filled book and would 400 the approve here, blocking
+    // the onboarding step from unlocking. We pass skipGates=true when no
+    // research/strategy exists yet (Light phase) — the user has explicitly
+    // submitted what they have, that's their consent.
+    var rdState = (instanceData && instanceData.researchData) || {};
+    var isLight = !((rdState.researchStage4 || rdState.researchStage3) && (rdState.chosenScenario || rdState.strategyStage4));
+    showToast('🎉 Brand Book נשמר!', 'success');
     if (typeof closeReportModal === 'function') closeReportModal();
 
-    // Auto-approve in background. Any error is logged silently — the brand
-    // book stays in 'pending_approval' state and admin can approve later.
-    apiFetch('/hosting/instances/' + instanceId + '/brand-v2/approve', { method: 'POST' })
-      .catch(function(err) { console.warn('brand auto-approve failed (non-fatal):', err); });
+    // Await approve so the legacy hasBrandBook flag on `instances` is set
+    // before refreshInstanceData runs — otherwise renderHome reads the
+    // pre-approve snapshot and the onboarding card stays stuck.
+    try {
+      var ar = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/approve', {
+        method: 'POST',
+        body: JSON.stringify({ skipGates: isLight }),
+      });
+      if (ar && !ar.success) console.warn('brand approve non-success:', ar.message);
+    } catch (e) {
+      console.warn('brand approve failed (non-fatal):', e && e.message ? e.message : e);
+    }
 
+    if (instanceData) instanceData.hasBrandBook = true;
     // Refresh server state + redraw home so the next onboarding step (the
     // strategy / pipeline card) actually unlocks. We await the refresh so
     // renderHome sees fresh hasBrandBook/onboarding fields, not the local
