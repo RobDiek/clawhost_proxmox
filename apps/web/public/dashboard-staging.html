@@ -11504,15 +11504,19 @@ async function brandV2StartFlow(sourceFlow) {
           brandV2ShowScanError(scan.message || 'סריקה נכשלה — נסו שוב או החליפו זרם');
           return;
         }
-        // Cache scan result for the Reflect & Confirm UI (reflect-not-invent flow).
+        // Brand-Light philosophy: skip the 3-page Reflect-and-Confirm wizard.
+        // The main wizard already shows scan provenance badges per field, so a
+        // separate "what we saw / how you sound / what's missing" intermezzo
+        // is redundant for Light — it's exactly the kind of multi-step
+        // ceremony Sergei asked to strip. Reflect UI stays alive for any
+        // future call site that wants the explicit confirmation flow, but
+        // the post-scan path now lands straight in brandV2OpenWizard.
         window._bv2ScanData = scan.data || {};
         showToast('סריקה הושלמה ✓ · חולץ ' + (scan.data.extractedKeys ? scan.data.extractedKeys.length : 0) + ' שדות מ-' + (scan.data.pagesScanned || 0) + ' עמודים', 'success');
-
-        // Reload fresh draft + open Reflect UI (3-page visual/voice/gaps confirmation)
         if (typeof closeReportModal === 'function') closeReportModal();
         setTimeout(async function() {
           var freshDraft = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/draft');
-          brandV2OpenReflectUI(window._bv2ScanData, freshDraft.data);
+          brandV2OpenWizard(freshDraft.data);
         }, 250);
         return;
       } catch (e) {
