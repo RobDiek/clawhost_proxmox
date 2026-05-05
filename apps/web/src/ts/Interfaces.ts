@@ -249,8 +249,6 @@ export interface UIState {
     toast: ToastData | null
     showToast: (message: string, type?: ToastType, duration?: number) => void
     hideToast: () => void
-    rebrandBannerVisible: boolean
-    dismissRebrandBanner: () => void
     hermesBannerVisible: boolean
 }
 
@@ -412,16 +410,6 @@ export interface AgentAvatarProps {
 
 export interface SupportButtonProps {
     showLabel?: boolean
-}
-
-export interface SectionLabelV2Props {
-    label: string
-}
-
-export interface ScrollRevealV2Props {
-    children: ReactNode
-    delay?: number
-    className?: string
 }
 
 export interface DitherHoverHandlers {
@@ -1489,11 +1477,6 @@ export interface VideoModalProps {
 export interface PricingSectionProps {
     plans: Plan[]
     hideBorderTop?: boolean
-}
-
-export interface BillingToggleV2Props {
-    isYearly: boolean
-    onChange: (isYearly: boolean) => void
 }
 
 export interface SimplePlanFeature {

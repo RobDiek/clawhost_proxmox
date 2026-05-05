@@ -69,10 +69,7 @@ const Header: FC<HeaderProps> = ({
 
     const isLandingPage =
         location.pathname === ROUTES.HOME ||
-        location.pathname === ROUTES.GO ||
-        location.pathname === ROUTES.V2 ||
-        location.pathname === ROUTES.PRICING ||
-        location.pathname === ROUTES.FEATURES
+        location.pathname === ROUTES.GO
 
     return (
         <Fragment>

@@ -23,9 +23,6 @@ const Changelog = lazy(() => import('@/pages/Changelog'))
 const BlogPost = lazy(() => import('@/pages/BlogPost'))
 const AffiliateProgram = lazy(() => import('@/pages/AffiliateProgram'))
 const Compare = lazy(() => import('@/pages/Compare'))
-const V2 = lazy(() => import('@/pages/V2'))
-const PricingV2 = lazy(() => import('@/pages/PricingV2'))
-const FeaturesV2 = lazy(() => import('@/pages/FeaturesV2'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 
 const App: FC = (): ReactNode => {
@@ -62,12 +59,6 @@ const App: FC = (): ReactNode => {
                             element={<AffiliateProgram />}
                         />
                         <Route path={ROUTES.COMPARE} element={<Compare />} />
-                        <Route path={ROUTES.V2} element={<V2 />} />
-                        <Route path={ROUTES.PRICING} element={<PricingV2 />} />
-                        <Route
-                            path={ROUTES.FEATURES}
-                            element={<FeaturesV2 />}
-                        />
                         <Route
                             path={ROUTES.AGENTS}
                             element={

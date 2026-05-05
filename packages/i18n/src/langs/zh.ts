@@ -79,8 +79,7 @@ const zh: Translations = {
         cloud: '云端',
         cloudSubtitle: '技术型',
         go: 'Go',
-        goSubtitle: '非技术型',
-        agentistGo: 'Agentist Go'
+        goSubtitle: '非技术型'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -1701,11 +1700,6 @@ const zh: Translations = {
         contactTitle: '12. 联系信息',
         contactText: '如果您对这些条款有任何疑问，请通过以下方式联系我们'
     },
-    rebrand: {
-        tag: '进化',
-        title: 'ClawHost 现已更名为 Agentist',
-        mission: '为自主 AI 代理构建基础设施层。'
-    },
     hermesBanner: {
         title: 'Hermes Agent',
         message: 'Hermes 代理现已支持在 ClawHost 上部署。'
@@ -2064,93 +2058,6 @@ const zh: Translations = {
         contactTitle: '12. 联系',
         contactText:
             '如果您对联盟计划有疑问、需要推荐码方面的帮助或想举报违规行为，请通过以下方式联系我们'
-    },
-    v2: {
-        title: 'agent.ic — 在云端部署 OpenClaw 和 Hermes',
-        description:
-            '一键在云端部署 OpenClaw 和 Hermes 代理 — 开源、可自托管，专为代理计算的未来而构建。',
-        heroTitle1: '部署',
-        heroTitle2: 'AI 代理',
-        heroTitle3: '一键部署到云端',
-        heroDescription:
-            '一键在云端部署 OpenClaw 和 Hermes 代理 — 使用 Agentist 更快地构建、连接和扩展您的 AI 代理。',
-        selfHostLabel: '改为自托管',
-        deployButton: '立即部署',
-        agentsTitle: '您的代理。您的云。',
-        agentsDescription:
-            '从不断增长的 AI 代理目录中选择，每个代理都运行在自己的专用云服务器上。',
-        agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription:
-            '可自托管的云管理平台，具备完整的 SSH、终端、文件浏览器和配置编辑器。',
-        agentHermesName: 'Hermes',
-        agentHermesDescription:
-            '具备网页浏览、日历管理、多模型推理和浏览器自动化的自主 AI 代理。',
-        featuresTitle: '面向未来而构建',
-        featuresDescription: '大规模运行 AI 代理所需的一切。',
-        feature1Title: '多代理平台',
-        feature1Description: '从单一仪表板部署和管理多种代理类型。',
-        agentControlTitle: '完全代理控制',
-        agentControlDescription: '从一个仪表板配置和自定义代理的各个方面。',
-        multipleAgentsTitle: '多个代理',
-        multipleAgentsDescription: '在不同区域和配置中运行多个代理实例。',
-        zeroConfigDescription:
-            '跳过数小时的设置。OpenClaw和Hermes已预装，几分钟内即可就绪。',
-        globalLocationsDescription:
-            '在全球30多个区域部署代理。选择离您最近的位置。',
-        onlineAccessDescription: '通过自定义子域名从任何地方安全访问您的代理。',
-        versionControlDescription:
-            '一键切换代理版本。保持最新，或在需要时回滚。',
-        agentsPreinstalled: '代理预安装',
-        comparisonAgentAccessUs: '完全访问所有代理',
-        comparisonMultipleAgentsUs: '每台服务器多个代理',
-        comparisonMultipleAgentsOthers: '仅单个代理',
-        comparisonExportAgentsUs: '将您的代理导出到任何地方',
-        comparisonUsLabel: '为您托管',
-        comparisonOthersLabel: '自己动手',
-        faq1Question: '什么是 Agentist？',
-        faq1Answer:
-            'Agentist 是一个平台，让您可以在自己的专用服务器上部署和管理 AI 代理。我们负责基础设施、安全和维护 — 您只需使用您的代理。',
-        faq2Question: '什么是 OpenClaw？',
-        faq2Answer:
-            'OpenClaw 是一个自托管的安全访问层，用于您的 AI 工具和服务。它预装在每台 Agentist 服务器上，让您完全控制您的配置。',
-        faq3Question: '什么是 Hermes？',
-        faq3Answer:
-            'Hermes 是一个自主 AI 代理，具有网页浏览、日历管理、多模型推理和浏览器自动化功能。它与 OpenClaw 一起预装在每台服务器上。',
-        faq4Question: '我需要技术知识吗？',
-        faq4Answer:
-            '不需要。Agentist 为每个人设计。我们处理所有基础设施、设置和维护。您可以通过直观的仪表板管理您的代理，无需接触任何服务器。',
-        faq5Question: '这与其他 AI 平台有什么不同？',
-        faq5Answer:
-            '与托管 AI 工具不同，Agentist 为您提供一台安装了代理的真正专用服务器。您拥有基础设施，控制一切，不受共享平台的限制。',
-        faq6Question: '有哪些可用位置？',
-        faq6Answer:
-            '我们在全球提供 30 多个服务器位置，包括美国、欧洲和亚洲。您可以在不同区域的多台服务器上部署代理。',
-        faq7Question: '费用是多少？',
-        faq7Answer:
-            '根据您选择的服务器，价格从每月 40 美元起。从入门级到高性能有多种选择。没有隐藏费用，随时取消。',
-        footerDescription:
-            '一键将 OpenClaw 和 Hermes 代理部署到云端 — 使用 Agentist 更快地构建、连接和扩展您的 AI 代理。',
-        ctaTitle: '准备好部署了吗？',
-        ctaDescription:
-            '加入下一代代理部署。您的基础设施，您的代理，您的规则。',
-        stats2Value: '30+',
-        stats2Label: '区域',
-        stats3Value: '<60s',
-        stats3Label: '部署时间',
-        stats4Value: '100%',
-        stats4Label: '正常运行时间 SLA',
-        pricingTitle: '透明定价',
-        planGrowthTagline: '适用于个人项目和实验',
-        planProTagline: '适用于生产工作负载',
-        planBusinessTagline: '适用于成长中的企业',
-        planPowerTagline: '适用于大规模运营',
-        planPower: 'Power',
-        pricingPageTitle: '价格 — agent.ic',
-        pricingPageDescription:
-            'AI代理部署的透明定价。选择适合您需求的方案，无隐藏费用。',
-        featuresPageTitle: '功能 — agent.ic',
-        featuresPageDescription:
-            '探索agent.ic的所有功能——多代理部署、专用基础设施、全球区域和完整的root访问权限。'
     }
 }
 

@@ -79,8 +79,7 @@ const it: Translations = {
         cloud: 'Cloud',
         cloudSubtitle: 'Tecnico',
         go: 'Go',
-        goSubtitle: 'Non tecnico',
-        agentistGo: 'Agentist Go'
+        goSubtitle: 'Non tecnico'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -1901,11 +1900,6 @@ const it: Translations = {
         contactTitle: '12. Informazioni di Contatto',
         contactText: 'Se hai domande su questi Termini, contattaci a'
     },
-    rebrand: {
-        tag: 'EVOLUZIONE',
-        title: 'ClawHost ora è Agentist',
-        mission: "Costruire l'infrastruttura per gli agenti IA autonomi."
-    },
     hermesBanner: {
         title: 'Hermes Agent',
         message:
@@ -2278,98 +2272,6 @@ const it: Translations = {
         contactTitle: '12. Contatto',
         contactText:
             'Se hai domande sul programma di affiliazione, hai bisogno di aiuto con il tuo codice di riferimento o vuoi segnalare una violazione, contattaci a'
-    },
-    v2: {
-        title: 'agent.ic — Distribuisci OpenClaw & Hermes sul Cloud',
-        description:
-            'Distribuisci gli agenti OpenClaw e Hermes sul cloud con un click — open-source, self-hostable e costruito per il futuro del computing agentico.',
-        heroTitle1: 'Distribuisci',
-        heroTitle2: 'Agenti IA',
-        heroTitle3: 'sul Cloud con un Click',
-        heroDescription:
-            'Distribuisci gli agenti OpenClaw e Hermes nel cloud con un click — crea, connetti e scala i tuoi agenti IA più velocemente con Agentist.',
-        selfHostLabel: 'Self-Host Invece',
-        deployButton: 'Distribuisci Ora',
-        agentsTitle: 'I Tuoi Agenti. Il Tuo Cloud.',
-        agentsDescription:
-            'Scegli da un catalogo in crescita di agenti AI, ognuno in esecuzione sul proprio server cloud dedicato.',
-        agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription:
-            'Piattaforma di gestione cloud self-hostable con SSH completo, terminale, file explorer ed editor di configurazione.',
-        agentHermesName: 'Hermes',
-        agentHermesDescription:
-            'Agente AI autonomo con navigazione web, gestione calendario, ragionamento multi-modello e automazione del browser.',
-        featuresTitle: 'Costruito per il Futuro',
-        featuresDescription:
-            'Tutto ciò di cui hai bisogno per eseguire agenti AI su larga scala.',
-        feature1Title: 'Piattaforma Multi-Agente',
-        feature1Description:
-            "Distribuisci e gestisci più tipi di agenti da un'unica dashboard.",
-        agentControlTitle: 'Controllo completo degli agenti',
-        agentControlDescription:
-            "Configura e personalizza ogni aspetto dei tuoi agenti da un'unica dashboard.",
-        multipleAgentsTitle: 'Agenti multipli',
-        multipleAgentsDescription:
-            'Esegui più istanze di agenti in regioni e configurazioni diverse.',
-        zeroConfigDescription:
-            'Evita ore di configurazione. OpenClaw e Hermes sono preinstallati e pronti in pochi minuti.',
-        globalLocationsDescription:
-            'Distribuisci agenti in oltre 30 regioni globali. Scegli la posizione più vicina a te.',
-        onlineAccessDescription:
-            'Accedi ai tuoi agenti in modo sicuro da qualsiasi luogo con un sottodominio personalizzato.',
-        versionControlDescription:
-            "Cambia versione dell'agente con un solo clic. Resta aggiornato o torna indietro.",
-        agentsPreinstalled: 'Agenti preinstallati',
-        comparisonAgentAccessUs: 'Accesso completo a tutti gli agenti',
-        comparisonMultipleAgentsUs: 'Più agenti per server',
-        comparisonMultipleAgentsOthers: 'Solo un singolo agente',
-        comparisonExportAgentsUs: 'Esporta i tuoi agenti ovunque',
-        comparisonUsLabel: 'Gestito per te',
-        comparisonOthersLabel: 'Fai da te',
-        faq1Question: "Cos'è Agentist?",
-        faq1Answer:
-            "Agentist è una piattaforma che ti permette di distribuire e gestire agenti IA sui tuoi server dedicati. Noi ci occupiamo dell'infrastruttura, della sicurezza e della manutenzione — tu usi semplicemente i tuoi agenti.",
-        faq2Question: "Cos'è OpenClaw?",
-        faq2Answer:
-            'OpenClaw è un livello di accesso sicuro self-hosted per i tuoi strumenti e servizi IA. È preinstallato su ogni server Agentist e ti dà il pieno controllo sulla tua configurazione.',
-        faq3Question: "Cos'è Hermes?",
-        faq3Answer:
-            "A differenza degli strumenti IA hosted, ClawHost ti offre un server reale con OpenClaw e Hermes installati. Possiedi l'infrastruttura, controlli tutto e non sei limitato da una piattaforma o un modello condiviso.",
-        faq4Question: 'Ho bisogno di conoscenze tecniche?',
-        faq4Answer:
-            "No. Agentist è progettato per tutti. Ci occupiamo di tutta l'infrastruttura, configurazione e manutenzione. Puoi gestire i tuoi agenti attraverso una dashboard intuitiva senza toccare alcun server.",
-        faq5Question: 'In cosa è diverso dalle altre piattaforme IA?',
-        faq5Answer:
-            "A differenza degli strumenti IA ospitati, Agentist ti offre un vero server dedicato con i tuoi agenti installati. Possiedi l'infrastruttura, controlli tutto e non sei limitato da piattaforme condivise.",
-        faq6Question: 'Quali località sono disponibili?',
-        faq6Answer:
-            'Offriamo oltre 30 località server in tutto il mondo, inclusi USA, Europa e Asia. Puoi distribuire agenti su più server in regioni diverse.',
-        faq7Question: 'Quanto costa?',
-        faq7Answer:
-            "I prezzi partono da 40 $/mese in base al server selezionato. Molteplici opzioni dall'entry-level all'alta prestazione. Nessun costo nascosto, cancella in qualsiasi momento.",
-        footerDescription:
-            'Distribuisci agenti OpenClaw e Hermes nel cloud con un clic — crea, connetti e scala i tuoi agenti IA più velocemente con Agentist.',
-        ctaTitle: 'Pronto a Distribuire?',
-        ctaDescription:
-            'Unisciti alla prossima generazione del deployment degli agenti. La tua infrastruttura, i tuoi agenti, le tue regole.',
-        stats2Value: '30+',
-        stats2Label: 'Regioni',
-        stats3Value: '<60s',
-        stats3Label: 'Tempo di Deploy',
-        stats4Value: '100%',
-        stats4Label: 'SLA Uptime',
-        pricingTitle: 'Prezzi Trasparenti',
-        planGrowthTagline: 'Per progetti personali ed esperimenti',
-        planProTagline: 'Per carichi di lavoro in produzione',
-        planBusinessTagline: 'Per aziende in crescita',
-        planPowerTagline: 'Per operazioni su larga scala',
-        planPower: 'Power',
-        pricingPageTitle: 'Prezzi — agent.ic',
-        pricingPageDescription:
-            'Prezzi trasparenti per il deployment di agenti IA. Scegli un piano adatto alle tue esigenze senza costi nascosti.',
-        featuresPageTitle: 'Funzionalità — agent.ic',
-        featuresPageDescription:
-            'Esplora tutte le funzionalità di agent.ic — deployment multi-agente, infrastruttura dedicata, regioni globali e accesso root completo.'
     }
 }
 

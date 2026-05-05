@@ -79,8 +79,7 @@ const nl: Translations = {
         cloud: 'Cloud',
         cloudSubtitle: 'Technisch',
         go: 'Go',
-        goSubtitle: 'Niet-technisch',
-        agentistGo: 'Agentist Go'
+        goSubtitle: 'Niet-technisch'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -1875,11 +1874,6 @@ const nl: Translations = {
         contactText:
             'Als je vragen hebt over deze Voorwaarden, neem dan contact met ons op via'
     },
-    rebrand: {
-        tag: 'EVOLUTIE',
-        title: 'ClawHost is nu Agentist',
-        mission: 'De infrastructuur bouwen voor autonome AI-agenten.'
-    },
     hermesBanner: {
         title: 'Hermes Agent',
         message:
@@ -2254,98 +2248,6 @@ const nl: Translations = {
         contactTitle: '12. Contact',
         contactText:
             'Als je vragen hebt over het partnerprogramma, hulp nodig hebt met je verwijzingscode of een schending wilt melden, neem dan contact met ons op via'
-    },
-    v2: {
-        title: 'agent.ic — Deploy OpenClaw & Hermes op de Cloud',
-        description:
-            'Deploy OpenClaw- en Hermes-agents op de cloud met één klik — open-source, zelf te hosten en gebouwd voor de toekomst van agentisch computing.',
-        heroTitle1: 'Deploy',
-        heroTitle2: 'AI-Agents',
-        heroTitle3: 'op de Cloud met één Klik',
-        heroDescription:
-            'Deploy OpenClaw- en Hermes-agents in de cloud met één klik — bouw, verbind en schaal je AI-agents sneller met Agentist.',
-        selfHostLabel: 'Zelf Hosten',
-        deployButton: 'Nu Deployen',
-        agentsTitle: 'Jouw Agents. Jouw Cloud.',
-        agentsDescription:
-            'Kies uit een groeiende catalogus van AI-agents, elk draaiend op een eigen dedicated cloudserver.',
-        agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription:
-            'Zelf te hosten cloudmanagementplatform met volledige SSH, terminal, bestandsverkenner en configuratie-editor.',
-        agentHermesName: 'Hermes',
-        agentHermesDescription:
-            'Autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering.',
-        featuresTitle: 'Gebouwd voor de Toekomst',
-        featuresDescription:
-            'Alles wat je nodig hebt om AI-agents op schaal te draaien.',
-        feature1Title: 'Multi-Agent Platform',
-        feature1Description:
-            'Deploy en beheer meerdere agenttypen vanuit één dashboard.',
-        agentControlTitle: 'Volledige agent-controle',
-        agentControlDescription:
-            'Configureer en pas elk aspect van je agents aan vanuit één dashboard.',
-        multipleAgentsTitle: 'Meerdere agents',
-        multipleAgentsDescription:
-            "Draai meerdere agent-instanties in verschillende regio's en configuraties.",
-        zeroConfigDescription:
-            'Sla uren configuratie over. OpenClaw en Hermes zijn voorgeïnstalleerd en binnen minuten klaar.',
-        globalLocationsDescription:
-            "Deploy agents in meer dan 30 wereldwijde regio's. Kies de locatie die het dichtst bij je is.",
-        onlineAccessDescription:
-            'Krijg veilig toegang tot je agents vanaf overal met een eigen subdomein.',
-        versionControlDescription:
-            'Wissel van agentversie met één klik. Blijf up-to-date of ga terug.',
-        agentsPreinstalled: 'Agents voorgeïnstalleerd',
-        comparisonAgentAccessUs: 'Volledige toegang tot alle agents',
-        comparisonMultipleAgentsUs: 'Meerdere agents per server',
-        comparisonMultipleAgentsOthers: 'Slechts één agent',
-        comparisonExportAgentsUs: 'Exporteer je agents overal naartoe',
-        comparisonUsLabel: 'Voor jou beheerd',
-        comparisonOthersLabel: 'Doe het zelf',
-        faq1Question: 'Wat is Agentist?',
-        faq1Answer:
-            'Agentist is een platform waarmee je AI-agents kunt deployen en beheren op je eigen dedicated servers. Wij zorgen voor de infrastructuur, beveiliging en onderhoud — jij gebruikt gewoon je agents.',
-        faq2Question: 'Wat is OpenClaw?',
-        faq2Answer:
-            'OpenClaw is een zelf-gehoste beveiligde toegangslaag voor je AI-tools en -diensten. Het is voorgeïnstalleerd op elke Agentist-server en geeft je volledige controle over je configuratie.',
-        faq3Question: 'Wat is Hermes?',
-        faq3Answer:
-            'Hermes is een autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering. Het is voorgeïnstalleerd naast OpenClaw op elke server.',
-        faq4Question: 'Heb ik technische kennis nodig?',
-        faq4Answer:
-            'Nee. Agentist is ontworpen voor iedereen. Wij zorgen voor alle infrastructuur, configuratie en onderhoud. Je kunt je agents beheren via een intuïtief dashboard zonder servers aan te raken.',
-        faq5Question: 'Hoe verschilt dit van andere AI-platforms?',
-        faq5Answer:
-            'In tegenstelling tot gehoste AI-tools geeft Agentist je een echte dedicated server met je agents geïnstalleerd. Je bezit de infrastructuur, hebt overal controle over en wordt niet beperkt door gedeelde platforms.',
-        faq6Question: 'Welke locaties zijn beschikbaar?',
-        faq6Answer:
-            "We bieden meer dan 30 serverlocaties wereldwijd, waaronder de VS, Europa en Azië. Je kunt agents deployen op meerdere servers in verschillende regio's.",
-        faq7Question: 'Hoeveel kost het?',
-        faq7Answer:
-            'Prijzen beginnen vanaf 40 $/maand op basis van de server die je selecteert. Meerdere opties van instapniveau tot high-performance. Geen verborgen kosten, op elk moment opzegbaar.',
-        footerDescription:
-            'Deploy OpenClaw- en Hermes-agents in de cloud met een klik — bouw, verbind en schaal je AI-agents sneller met Agentist.',
-        ctaTitle: 'Klaar om te Deployen?',
-        ctaDescription:
-            'Sluit je aan bij de volgende generatie agentdeployment. Jouw infrastructuur, jouw agents, jouw regels.',
-        stats2Value: '30+',
-        stats2Label: "Regio's",
-        stats3Value: '<60s',
-        stats3Label: 'Deploytijd',
-        stats4Value: '100%',
-        stats4Label: 'Uptime SLA',
-        pricingTitle: 'Transparante Prijzen',
-        planGrowthTagline: 'Voor persoonlijke projecten en experimenten',
-        planProTagline: 'Voor productie-workloads',
-        planBusinessTagline: 'Voor groeiende bedrijven',
-        planPowerTagline: 'Voor grootschalige operaties',
-        planPower: 'Power',
-        pricingPageTitle: 'Prijzen — agent.ic',
-        pricingPageDescription:
-            'Transparante prijzen voor AI-agent deployment. Kies een plan dat bij je past zonder verborgen kosten.',
-        featuresPageTitle: 'Functies — agent.ic',
-        featuresPageDescription:
-            "Ontdek alle functies van agent.ic — multi-agent deployment, dedicated infrastructuur, wereldwijde regio's en volledige root-toegang."
     }
 }
 

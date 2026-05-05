@@ -80,8 +80,7 @@ const de: Translations = {
         cloud: 'Cloud',
         cloudSubtitle: 'Technisch',
         go: 'Go',
-        goSubtitle: 'Nicht-technisch',
-        agentistGo: 'Agentist Go'
+        goSubtitle: 'Nicht-technisch'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -1901,11 +1900,6 @@ const de: Translations = {
         contactText:
             'Bei Fragen zu diesen Bedingungen kontaktiere uns bitte unter'
     },
-    rebrand: {
-        tag: 'EVOLUTION',
-        title: 'ClawHost heißt jetzt Agentist',
-        mission: 'Die Infrastruktur für autonome KI-Agenten aufbauen.'
-    },
     hermesBanner: {
         title: 'Hermes Agent',
         message:
@@ -2281,98 +2275,6 @@ const de: Translations = {
         contactTitle: '12. Kontakt',
         contactText:
             'Wenn du Fragen zum Partnerprogramm hast, Hilfe mit deinem Empfehlungscode benötigst oder einen Verstoß melden möchtest, kontaktiere uns unter'
-    },
-    v2: {
-        title: 'agent.ic — OpenClaw & Hermes in der Cloud deployen',
-        description:
-            'Deploye OpenClaw- und Hermes-Agents in der Cloud mit einem Klick — Open-Source, selbst-hostbar und gebaut für die Zukunft des agentischen Computings.',
-        heroTitle1: 'Deployen Sie',
-        heroTitle2: 'KI-Agenten',
-        heroTitle3: 'in der Cloud mit einem Klick',
-        heroDescription:
-            'Deploye OpenClaw- und Hermes-Agents in der Cloud mit einem Klick — erstelle, verbinde und skaliere deine KI-Agents schneller mit Agentist.',
-        selfHostLabel: 'Stattdessen Selbst Hosten',
-        deployButton: 'Jetzt Deployen',
-        agentsTitle: 'Wähle Deinen Agent.',
-        agentsDescription:
-            'Wähle aus einem wachsenden Katalog von KI-Agents, jeder läuft auf seinem eigenen dedizierten Cloud-Server.',
-        agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription:
-            'Selbst-hostbare Cloud-Management-Plattform mit vollem SSH-Zugang, Terminal, Datei-Explorer und Config-Editor.',
-        agentHermesName: 'Hermes',
-        agentHermesDescription:
-            'Autonomer KI-Agent mit Web-Browsing, Kalender-Management, Multi-Modell-Reasoning und Browser-Automatisierung.',
-        featuresTitle: 'Für die Zukunft Gebaut',
-        featuresDescription:
-            'Alles was du brauchst, um KI-Agents im großen Maßstab zu betreiben.',
-        feature1Title: 'Multi-Agent Plattform',
-        feature1Description:
-            'Deploye und verwalte mehrere Agent-Typen von einem Dashboard aus.',
-        agentControlTitle: 'Volle Agenten-Kontrolle',
-        agentControlDescription:
-            'Konfiguriere und passe jeden Aspekt deiner Agents über ein Dashboard an.',
-        multipleAgentsTitle: 'Mehrere Agenten',
-        multipleAgentsDescription:
-            'Betreibe mehrere Agent-Instanzen in verschiedenen Regionen und Konfigurationen.',
-        zeroConfigDescription:
-            'Überspringe stundenlange Einrichtung. OpenClaw und Hermes sind vorinstalliert und innerhalb von Minuten bereit.',
-        globalLocationsDescription:
-            'Deploye Agents in über 30 globalen Regionen. Wähle den nächstgelegenen Standort.',
-        onlineAccessDescription:
-            'Greife von überall sicher auf deine Agents über eine eigene Subdomain zu.',
-        versionControlDescription:
-            'Wechsle Agent-Versionen mit einem Klick. Bleib aktuell oder geh bei Bedarf zurück.',
-        agentsPreinstalled: 'Agenten vorinstalliert',
-        comparisonAgentAccessUs: 'Voller Zugriff auf alle Agenten',
-        comparisonMultipleAgentsUs: 'Mehrere Agenten pro Server',
-        comparisonMultipleAgentsOthers: 'Nur ein Agent',
-        comparisonExportAgentsUs: 'Exportiere deine Agenten überallhin',
-        comparisonUsLabel: 'Für dich verwaltet',
-        comparisonOthersLabel: 'Mach es selbst',
-        faq1Question: 'Was ist Agentist?',
-        faq1Answer:
-            'Agentist ist eine Plattform, mit der du KI-Agenten auf deinen eigenen dedizierten Servern bereitstellen und verwalten kannst. Wir kümmern uns um die Infrastruktur, Sicherheit und Wartung — du nutzt einfach deine Agenten.',
-        faq2Question: 'Was ist OpenClaw?',
-        faq2Answer:
-            'OpenClaw ist eine selbst gehostete sichere Zugriffsschicht für deine KI-Tools und -Dienste. Es ist auf jedem Agentist-Server vorinstalliert und gibt dir die volle Kontrolle über deine Einrichtung.',
-        faq3Question: 'Was ist Hermes?',
-        faq3Answer:
-            'Hermes ist ein autonomer KI-Agent mit Webbrowsing, Kalenderverwaltung, Multi-Modell-Reasoning und Browser-Automatisierung. Er ist neben OpenClaw auf jedem Server vorinstalliert.',
-        faq4Question: 'Brauche ich technisches Wissen?',
-        faq4Answer:
-            'Nein. Agentist ist für jeden konzipiert. Wir kümmern uns um die gesamte Infrastruktur, Einrichtung und Wartung. Du kannst deine Agenten über ein intuitives Dashboard verwalten, ohne einen Server berühren zu müssen.',
-        faq5Question: 'Wie unterscheidet sich das von anderen KI-Plattformen?',
-        faq5Answer:
-            'Im Gegensatz zu gehosteten KI-Tools bietet dir Agentist einen echten dedizierten Server mit installierten Agenten. Du besitzt die Infrastruktur, kontrollierst alles und bist nicht durch gemeinsam genutzte Plattformen eingeschränkt.',
-        faq6Question: 'Welche Standorte sind verfügbar?',
-        faq6Answer:
-            'Wir bieten über 30 Serverstandorte weltweit an, darunter USA, Europa und Asien. Du kannst Agenten auf mehreren Servern in verschiedenen Regionen bereitstellen.',
-        faq7Question: 'Was kostet es?',
-        faq7Answer:
-            'Die Preise beginnen bei 40 $/Monat je nach gewähltem Server. Mehrere Optionen von Einstiegs- bis Hochleistungsklasse. Keine versteckten Gebühren, jederzeit kündbar.',
-        footerDescription:
-            'Deploye OpenClaw- und Hermes-Agenten mit einem Klick in der Cloud — erstelle, verbinde und skaliere deine KI-Agenten schneller mit Agentist.',
-        ctaTitle: 'Bereit zum Deployen?',
-        ctaDescription:
-            'Werde Teil der nächsten Generation von Agent-Deployment. Deine Infrastruktur, deine Agents, deine Regeln.',
-        stats2Value: '30+',
-        stats2Label: 'Regionen',
-        stats3Value: '<60s',
-        stats3Label: 'Deploy-Zeit',
-        stats4Value: '100%',
-        stats4Label: 'Uptime-SLA',
-        pricingTitle: 'Transparente Preise',
-        planGrowthTagline: 'Für persönliche Projekte und Experimente',
-        planProTagline: 'Für Produktions-Workloads',
-        planBusinessTagline: 'Für wachsende Unternehmen',
-        planPowerTagline: 'Für groß angelegte Operationen',
-        planPower: 'Power',
-        pricingPageTitle: 'Preise — agent.ic',
-        pricingPageDescription:
-            'Transparente Preise für KI-Agent-Deployment. Wählen Sie einen Plan, der zu Ihren Anforderungen passt, ohne versteckte Gebühren.',
-        featuresPageTitle: 'Funktionen — agent.ic',
-        featuresPageDescription:
-            'Entdecken Sie alle Funktionen von agent.ic — Multi-Agent-Deployment, dedizierte Infrastruktur, globale Regionen und voller Root-Zugang.'
     }
 }
 

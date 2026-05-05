@@ -48,19 +48,6 @@ import {
     GoWaitlistForm
 } from '@/components/go'
 
-import {
-    LogoV2,
-    ComparisonTableV2,
-    FaqSectionV2,
-    FeaturesGridV2,
-    FooterV2,
-    HeaderV2,
-    PricingSectionV2,
-    RebrandBannerV2,
-    ScrollRevealV2,
-    SectionLabelV2
-} from '@/components/v2'
-
 import { LicenseRequired, ProtectedRoute } from '@/components/auth'
 
 import {
@@ -124,15 +111,5 @@ export {
     ThemeToggle,
     Toast,
     UserDropdown,
-    VideoModal,
-    LogoV2,
-    ComparisonTableV2,
-    FaqSectionV2,
-    FeaturesGridV2,
-    FooterV2,
-    HeaderV2,
-    PricingSectionV2,
-    RebrandBannerV2,
-    ScrollRevealV2,
-    SectionLabelV2
+    VideoModal
 }

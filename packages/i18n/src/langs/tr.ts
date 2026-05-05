@@ -79,8 +79,7 @@ const tr: Translations = {
         cloud: 'Cloud',
         cloudSubtitle: 'Teknik',
         go: 'Go',
-        goSubtitle: 'Teknik olmayan',
-        agentistGo: 'Agentist Go'
+        goSubtitle: 'Teknik olmayan'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -1857,12 +1856,6 @@ const tr: Translations = {
         contactText:
             'Bu Şartlar hakkında sorularınız varsa, lütfen şu adresten bize ulaşın:'
     },
-    rebrand: {
-        tag: 'EVRİM',
-        title: 'ClawHost artık Agentist',
-        mission:
-            'Otonom yapay zeka ajanları için altyapı katmanını inşa ediyoruz.'
-    },
     hermesBanner: {
         title: 'Hermes Agent',
         message:
@@ -2235,98 +2228,6 @@ const tr: Translations = {
         contactTitle: '12. İletişim',
         contactText:
             'Ortaklık programı hakkında sorularınız varsa, yönlendirme kodunuzla ilgili yardıma ihtiyacınız varsa veya bir ihlal bildirmek istiyorsanız, bize ulaşın'
-    },
-    v2: {
-        title: "agent.ic — OpenClaw ve Hermes'i Bulutta Dağıtın",
-        description:
-            'OpenClaw ve Hermes ajanlarını tek tıklamayla bulutta dağıtın — açık kaynak, kendi kendine barındırılabilir ve ajantik bilişimin geleceği için tasarlandı.',
-        heroTitle1: 'Dağıtın',
-        heroTitle2: 'AI Ajanlarını',
-        heroTitle3: 'Bulutta tek Tıklamayla',
-        heroDescription:
-            'OpenClaw ve Hermes ajanlarını tek tıklamayla bulutta dağıtın — Agentist ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
-        selfHostLabel: 'Bunun Yerine Kendiniz Barındırın',
-        deployButton: 'Şimdi Dağıt',
-        agentsTitle: 'Ajanlarınız. Bulutunuz.',
-        agentsDescription:
-            'Büyüyen AI ajan kataloğundan seçin, her biri kendi özel bulut sunucusunda çalışır.',
-        agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription:
-            'Tam SSH, terminal, dosya gezgini ve yapılandırma düzenleyicisi ile kendi kendine barındırılabilir bulut yönetim platformu.',
-        agentHermesName: 'Hermes',
-        agentHermesDescription:
-            'Web tarama, takvim yönetimi, çoklu model muhakemesi ve tarayıcı otomasyonu ile otonom AI ajanı.',
-        featuresTitle: 'Gelecek İçin İnşa Edildi',
-        featuresDescription:
-            'AI ajanlarını ölçekte çalıştırmak için ihtiyacınız olan her şey.',
-        feature1Title: 'Çoklu Ajan Platformu',
-        feature1Description:
-            'Tek bir panodan birden fazla ajan türünü dağıtın ve yönetin.',
-        agentControlTitle: 'Tam ajan kontrolü',
-        agentControlDescription:
-            'Ajanlarınızın her yönünü tek bir panelden yapılandırın ve özelleştirin.',
-        multipleAgentsTitle: 'Çoklu ajanlar',
-        multipleAgentsDescription:
-            'Farklı bölgelerde ve yapılandırmalarda birden fazla ajan örneği çalıştırın.',
-        zeroConfigDescription:
-            'Saatlerce kurulumu atlayın. OpenClaw ve Hermes önceden yüklenmiş ve dakikalar içinde hazır.',
-        globalLocationsDescription:
-            "Ajanları 30'dan fazla küresel bölgede dağıtın. Size en yakın konumu seçin.",
-        onlineAccessDescription:
-            'Ajanlarınıza özel bir alt alan adıyla her yerden güvenle erişin.',
-        versionControlDescription:
-            'Tek tıklamayla ajan sürümlerini değiştirin. Güncel kalın veya geri dönün.',
-        agentsPreinstalled: 'Ajanlar ön yüklü',
-        comparisonAgentAccessUs: 'Tüm ajanlara tam erişim',
-        comparisonMultipleAgentsUs: 'Sunucu başına birden fazla ajan',
-        comparisonMultipleAgentsOthers: 'Yalnızca tek ajan',
-        comparisonExportAgentsUs: 'Ajanlarınızı her yere dışa aktarın',
-        comparisonUsLabel: 'Sizin için yönetilir',
-        comparisonOthersLabel: 'Kendiniz yapın',
-        faq1Question: 'Agentist nedir?',
-        faq1Answer:
-            "ClawHost, OpenClaw ve Hermes'i herkesin erişimine açmak için kurulmuş bir platformdur. Hem teknik olmayan kullanıcıların hem de geliştiricilerin altyapı yönetmeden onları çalıştırmasını sağlar. Sunucu, uptime, güvenlik ve bakımı biz hallederiz — siz sadece ajanlarınızı kullanırsınız.",
-        faq2Question: 'OpenClaw nedir?',
-        faq2Answer:
-            'OpenClaw, yapay zeka araçlarınız ve hizmetleriniz için kendi sunucunuzda barındırılan güvenli bir erişim katmanıdır. Her Agentist sunucusunda önceden yüklü olarak gelir ve kurulumunuz üzerinde tam kontrol sağlar.',
-        faq3Question: 'Hermes nedir?',
-        faq3Answer:
-            'Hermes, web tarama, takvim yönetimi, çoklu model akıl yürütme ve tarayıcı otomasyonuna sahip otonom bir yapay zeka ajanıdır. Her sunucuda OpenClaw ile birlikte önceden yüklü olarak gelir.',
-        faq4Question: 'Teknik bilgiye ihtiyacım var mı?',
-        faq4Answer:
-            'Hayır. Agentist herkes için tasarlanmıştır. Tüm altyapı, kurulum ve bakımı biz üstleniyoruz. Ajanlarınızı hiçbir sunucuya dokunmadan sezgisel bir kontrol paneli üzerinden yönetebilirsiniz.',
-        faq5Question: 'Bu diğer yapay zeka platformlarından nasıl farklı?',
-        faq5Answer:
-            "Dünya çapında ABD, Avrupa ve Asya dahil birden fazla sunucu konumu sunuyoruz. Gerekirse OpenClaw veya Hermes'i farklı bölgelerdeki birden fazla sunucuda dağıtabilirsiniz.",
-        faq6Question: 'Hangi konumlar mevcut?',
-        faq6Answer:
-            "ABD, Avrupa ve Asya dahil dünya genelinde 30'dan fazla sunucu konumu sunuyoruz. Farklı bölgelerdeki birden fazla sunucuya ajan dağıtabilirsiniz.",
-        faq7Question: 'Ne kadara mal olur?',
-        faq7Answer:
-            "Fiyatlar seçtiğiniz sunucuya göre aylık 40 $'dan başlar. Giriş seviyesinden yüksek performansa kadar birden fazla seçenek. Gizli ücret yok, istediğiniz zaman iptal edin.",
-        footerDescription:
-            'OpenClaw ve Hermes ajanlarını tek tıkla bulutta dağıtın — Agentist ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
-        ctaTitle: 'Dağıtmaya Hazır mısınız?',
-        ctaDescription:
-            'Ajan dağıtımının yeni nesline katılın. Altyapınız, ajanlarınız, kurallarınız.',
-        stats2Value: '30+',
-        stats2Label: 'Bölge',
-        stats3Value: '<60s',
-        stats3Label: 'Dağıtım Süresi',
-        stats4Value: '100%',
-        stats4Label: 'Uptime SLA',
-        pricingTitle: 'Şeffaf Fiyatlandırma',
-        planGrowthTagline: 'Kişisel projeler ve deneyler için',
-        planProTagline: 'Üretim iş yükleri için',
-        planBusinessTagline: 'Büyüyen işletmeler için',
-        planPowerTagline: 'Büyük ölçekli operasyonlar için',
-        planPower: 'Power',
-        pricingPageTitle: 'Fiyatlandırma — agent.ic',
-        pricingPageDescription:
-            'AI ajan dağıtımı için şeffaf fiyatlandırma. Gizli ücret olmadan ihtiyaçlarınıza uygun bir plan seçin.',
-        featuresPageTitle: 'Özellikler — agent.ic',
-        featuresPageDescription:
-            "agent.ic'nin tüm özelliklerini keşfedin — çoklu ajan dağıtımı, özel altyapı, küresel bölgeler ve tam root erişimi."
     }
 }
 
