@@ -141,13 +141,31 @@ function discoverLogoCandidates(html: string, metadata: any, baseUrl: string): L
     const schemaMatch = html.match(/"logo"\s*:\s*"([^"]+)"/i)
     if (schemaMatch) push(schemaMatch[1], 'schema.org/logo', 80)
 
-    // Tier 3 — <header> <img class~=logo OR id~=logo OR alt~=logo>
+    // Tier 3 — <header> img attribute hints. Look for class/id/alt containing
+    // either "logo" (English) or "לוגו" (Hebrew) — Israeli sites overwhelmingly
+    // use Hebrew alt text. Also catch src filename hints like "LOGO-NEW.png".
     const headerMatch = html.match(/<header[^>]*>([\s\S]{0,3000})<\/header>/i)
     const headerHtml = headerMatch ? headerMatch[1] : html.slice(0, 8000)
-    const logoImgMatches = headerHtml.match(/<img[^>]*(?:class|id|alt)=["'][^"']*logo[^"']*["'][^>]*>/gi) || []
+    const logoAttrPattern = /<img[^>]*(?:class|id|alt|title)=["'][^"']*(?:logo|לוגו)[^"']*["'][^>]*>/gi
+    const logoSrcPattern = /<img[^>]*src=["'][^"']*(?:logo|לוגו)[^"']*["'][^>]*>/gi
+    const logoImgMatches = [
+        ...(headerHtml.match(logoAttrPattern) || []),
+        ...(headerHtml.match(logoSrcPattern) || []),
+    ]
     for (const m of logoImgMatches) {
         const src = m.match(/src=["']([^"']+)["']/i)?.[1]
         if (src) push(src, 'header.img[logo]', 90)
+    }
+
+    // Tier 3b — same patterns, but anywhere in the document (some WP themes
+    // render the logo outside <header>, e.g. in a custom .site-branding div).
+    const docLogoMatches = [
+        ...(html.slice(0, 20_000).match(logoAttrPattern) || []),
+        ...(html.slice(0, 20_000).match(logoSrcPattern) || []),
+    ]
+    for (const m of docLogoMatches) {
+        const src = m.match(/src=["']([^"']+)["']/i)?.[1]
+        if (src) push(src, 'document.img[logo]', 85)
     }
 
     // Tier 4 — first <header> <img> regardless of attrs
@@ -359,7 +377,10 @@ interface ArchaeologyResult {
     do?: string[]                               // each ties back to real-site pattern
     dont?: string[]
     vocabulary?: { approved: string[]; banned: string[] }
-    tagline?: { he?: string }
+    // tagline carries both the LITERAL slogan from site (verbatim quote, never
+    // dropped even if salesy) and an optional refined variant. tagline.he is
+    // a duplicate of literal so existing consumers keep working.
+    tagline?: { he?: string; literal?: string; refined?: string }
     mission?: { he?: string }
     positioning?: { he?: string }
     personas?: Array<any>
@@ -383,6 +404,8 @@ function extractGroundTruthFacts(corpus: string): Array<{ fact: string; quote: s
     const NOUN_LABELS: Array<{ noun: string; label: string }> = [
         { noun: 'סניפים', label: 'מספר סניפים' },
         { noun: 'סניף', label: 'מספר סניפים' },
+        { noun: 'מוקדים', label: 'מספר מוקדים' },
+        { noun: 'מוקד', label: 'מספר מוקדים' },
         { noun: 'מיקומים', label: 'מספר מיקומים' },
         { noun: 'אתרים', label: 'מספר אתרים' },
         { noun: 'מחסנים', label: 'מספר מחסנים' },
@@ -394,6 +417,9 @@ function extractGroundTruthFacts(corpus: string): Array<{ fact: string; quote: s
         { noun: 'שעות', label: 'זמן (שעות)' },
         { noun: 'גדלים', label: 'מספר גדלים זמינים' },
         { noun: 'יחידות', label: 'מספר יחידות' },
+        { noun: 'חנויות', label: 'מספר חנויות' },
+        { noun: 'משרדים', label: 'מספר משרדים' },
+        { noun: 'תחנות', label: 'מספר תחנות' },
     ]
     for (const { noun, label } of NOUN_LABELS) {
         // Digit followed by the Hebrew noun, with up to 30 chars of context window.
@@ -458,12 +484,15 @@ async function runBrandArchaeology(args: ArchaeologyArgs): Promise<ArchaeologyRe
 1. כל ה-output בעברית. שמות מותגים באנגלית (כמו "Storage4You") נשארים כמו שהם — לא מתרגמים.
 2. ה-vocabulary.approved חייב להיות 5-7 ביטויים שחוזרים בפועל בקורפוס. ציטוט מילולי. לא generic.
 3. ה-vocabulary.banned הם 3-5 קלישאות שניתן לצפות באתר אבל הן באופן בולט נעדרות. לא רשימת קלישאות גנרית.
-4. ה-tone summary הוא 3-5 מילים שמתארות את הסגנון בקורפוס. לא ברירת מחדל "חם וידידותי" — אם הקורפוס יבש ומקצועי, כתוב "יבש, ענייני, ללא קישוטים".
+4. ★ ה-tone summary הוא **3-5 מילים בלבד**, לא משפט. דוגמה תקפה: "יבש, ענייני, ישיר". דוגמה לא תקפה: "מדבר בן-אדם שמבין שמאחורי כל קרטון..." — זה משפט, לא 3-5 מילים. אסור לחרוג.
 5. archetype נבחר לפי ה-EVIDENCE בקורפוס. ה-rationale חייב לצטט 2 משפטים מהקורפוס.
 6. principles, do, dont — כל אחד נסמך על דפוס מהקורפוס. לא תיאוריה.
 7. personas מבוססות על research_data + GA4 demographics, לא על דמיון.
 8. ★ מספרים אסור להמציא. אם בקורפוס כתוב "4 סניפים" — כתוב "4". אם לא חולץ מספר — אל תכלול אותו ב-tagline/mission/positioning. אסור להגיד "שלושה סניפים" אם בקורפוס מופיע "4". העדיפו "מספר סניפים" / "פריסה רחבה" אם המספר לא ברור — לא מספר שהומצא.
 9. ★ אסור להמציא שירותים, פיצ'רים, יתרונות שאינם מופיעים בקורפוס. בעיקר ב-positioning.proof — חייב להיות אקט-אובדן ציטטה.
+10. ★★ tagline.literal: אם באתר יש סלוגן/כותרת ראשית/hero text שנראה כמו slogan (h1, large heading, hero banner) — **חייבים לצטט אותו verbatim** ב-tagline.literal, גם אם הוא נשמע "מכירותי" או "salesy". זה הסלוגן הקיים שלהם. אל תמציאו רפיינמנט במקומו.
+11. tagline.refined: רק אם tagline.literal קיים, אפשר להציע גרסה משופרת. אם literal ריק — refined גם null.
+12. ★★ ב-positioning **חובה לצטט מספרים אם חולצו** (כמה סניפים, ותק, וכו') ו**הצעות-מחיר/יתרונות שמופיעים בקורפוס** (כמו "המחיר הזול ביותר", "התחייבות"), במקום generic "אנחנו מחזיקים את הדברים שלך באותה רצינות". זה לא marketing copy — זה fact-grounded statement.
 
 אם משהו לא נמצא בקורפוס — אל תמציא. השאר null/undefined.`
 
@@ -516,9 +545,13 @@ ${auditCtx}
       "<קלישאה 3>"
     ]
   },
-  "tagline": { "he": "<אם יש סלוגן ברור בקורפוס — צטט. אחרת השאר null>" },
+  "tagline": {
+    "he": "<החזירו כאן את ה-LITERAL — הסלוגן הקיים באתר. אם יש hero heading / slogan — צטטו verbatim. אם אין — null>",
+    "literal": "<דופליקציה של ה-tagline.he — הסלוגן המקורי כפי שהוא, ללא שיפור>",
+    "refined": "<אופציונלי: גרסה משופרת אם הסלוגן הקיים מכירותי-מדי. אבל literal הוא תמיד מקור-אמת. אם אין literal — null>"
+  },
   "mission": { "he": "<אם יש משימה כתובה באתר — צטט/סכם. אחרת null>" },
-  "positioning": { "he": "<עבור [קהל], אנחנו [קטגוריה] שעושה [תועלת] כי [הוכחה] — אם הקורפוס תומך. אחרת null>" },
+  "positioning": { "he": "<עבור [קהל], אנחנו [קטגוריה] שעושה [תועלת ספציפית מצוטטת/מודגמת בקורפוס] כי [הוכחה — מספרים מ-ground-truth, יתרונות שצוטטו]. אם אין מספיק עדויות — null>" },
   "personas": [
     {
       "id": "p1",
@@ -668,6 +701,19 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     })
     notes.push(`Archaeology done: archetype=${archaeology.archetype || 'none'}, vocab.approved=${archaeology.vocabulary?.approved?.length || 0}`)
 
+    // Server-side enforcement: tone summary must be 3-5 words. Sonnet sometimes
+    // returns a sentence anyway; we trim to first 5 Hebrew words, joined by
+    // " · ", and surface the truncation in notes for transparency.
+    if (archaeology.toneSummary?.he) {
+        const tone = archaeology.toneSummary.he.trim()
+        const words = tone.split(/[\s,;.—–-]+/).filter(Boolean)
+        if (words.length > 6) {
+            const trimmed = words.slice(0, 5).join(' · ')
+            notes.push(`Tone summary trimmed (Sonnet returned ${words.length} words, requirement is 3-5): "${trimmed}"`)
+            archaeology.toneSummary = { he: trimmed }
+        }
+    }
+
     // ── Build BrandBookV2 partial ──
     const book: Partial<BrandBookV2> = {
         identity: {},
@@ -679,33 +725,69 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     }
     const m = META
 
-    // Identity from Sonnet + meta — extract Hebrew + English names separately.
-    // Hebrew sites typically have "{Hebrew name} | {English}" or vice versa
-    // in <title> / og:title; we want both variants when present, not a single
-    // string that's just the English half.
-    const titleStr = (meta.ogTitle || meta.title || meta.siteName || '').trim()
+    // Business name resolution — site-aware priority order. Critical: this
+    // must NOT fall back to h1 / category headings. Israeli sites' h1 is
+    // usually the SEO category ("אחסון תכולת דירה") not the brand name.
+    //
+    // Priority:
+    //   1. Logo's alt attribute (the actual brand-name commitment in markup)
+    //   2. og:site_name (meta-defined brand identity)
+    //   3. <title> first segment before separator
+    //   4. og:title first segment
+    //   5. researchData.answers.businessName (user-provided in profile)
+    const titleStr = (meta.title || '').trim()
+    const ogTitleStr = (meta.ogTitle || '').trim()
+    const ogSiteName = (meta.siteName || '').trim()
     const HEBREW_RANGE = /[֐-׿]/
-    function extractHebrewSegment(s: string): string | null {
-        if (!s) return null
-        // Split on common separators and find the segment that contains Hebrew chars.
-        const parts = s.split(/[|—\-·•]/).map(p => p.trim()).filter(Boolean)
-        const heb = parts.find(p => HEBREW_RANGE.test(p))
-        if (!heb) return null
-        // Strip leading/trailing parentheticals.
-        return heb.replace(/^\(([^)]+)\)$/, '$1').trim()
+
+    function splitOnSep(s: string): string[] {
+        return s.split(/[|—\-·•]|–/).map(p => p.trim()).filter(Boolean)
     }
-    function extractEnglishSegment(s: string): string | null {
+    function pickHebrewSegment(s: string): string | null {
         if (!s) return null
-        const parts = s.split(/[|—\-·•]/).map(p => p.trim()).filter(Boolean)
-        const eng = parts.find(p => /^[A-Za-z][A-Za-z0-9 \-&'.]+$/.test(p))
+        const heb = splitOnSep(s).find(p => HEBREW_RANGE.test(p))
+        return heb ? heb.replace(/^\(([^)]+)\)$/, '$1').trim() : null
+    }
+    function pickEnglishSegment(s: string): string | null {
+        if (!s) return null
+        const eng = splitOnSep(s).find(p => /^[A-Za-z][A-Za-z0-9 \-&'.]+$/.test(p))
         return eng || null
     }
-    const businessNameEn = rd.answers?.businessName
-        || extractEnglishSegment(titleStr)
-        || meta.siteName
-        || titleStr.split(/[|—-]/)[0]?.trim()
-        || ''
-    const businessNameHe = extractHebrewSegment(titleStr) || (HEBREW_RANGE.test(rd.answers?.businessName || '') ? rd.answers.businessName : null)
+
+    // Pull the alt of the highest-scoring logo candidate as the most reliable
+    // brand-name source (sites that bother to write a logo alt almost always
+    // put the actual brand name there).
+    let logoAlt: string | null = null
+    {
+        const logoImgPattern = /<img[^>]*(?:class|id|alt|title)=["'][^"']*(?:logo|לוגו)[^"']*["'][^>]*>/i
+        const m1 = homepageHtml.match(logoImgPattern)
+        const altMatch = m1?.[0].match(/alt=["']([^"']+)["']/i)
+        if (altMatch?.[1]) {
+            const alt = altMatch[1].trim()
+            // alt may be "BrandName - לוגו אתר ..." — strip the descriptive tail
+            // ("- לוגו ..." / "- logo ..." patterns).
+            logoAlt = alt
+                .replace(/\s*[-—|·]\s*(?:לוגו|logo)[\s\S]*$/i, '')
+                .trim() || alt
+        }
+    }
+
+    function chooseName(prefer: 'he' | 'en'): string | null {
+        const sources = [logoAlt, ogSiteName, ogTitleStr, titleStr, rd.answers?.businessName].filter(Boolean) as string[]
+        for (const s of sources) {
+            const seg = prefer === 'he' ? pickHebrewSegment(s) : pickEnglishSegment(s)
+            if (seg) return seg
+        }
+        // Fallback: first segment of any non-empty source.
+        for (const s of sources) {
+            const seg = splitOnSep(s)[0]
+            if (seg) return seg
+        }
+        return null
+    }
+    const businessNameHe = chooseName('he')
+    const businessNameEn = chooseName('en')
+    notes.push(`Business name resolved: he="${businessNameHe || '∅'}", en="${businessNameEn || '∅'}" (logoAlt="${logoAlt || '∅'}", ogSiteName="${ogSiteName || '∅'}")`)
     if (businessNameEn || businessNameHe) {
         book.identity!.businessName = {
             he: businessNameHe || businessNameEn,
@@ -743,6 +825,11 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
             ...m('high'),
         } as any
         extractedKeys.push('visual.colors')
+    } else {
+        // Honest signal: scan ran, but the site uses only neutrals or wraps colors
+        // in external CSS we can't see. Prefer telling the user this directly
+        // (via notes) over silently pretending no scan attempt was made.
+        notes.push('Color extraction: no non-neutral CSS colors found in scraped pages — site likely uses only black/white/gray, or styles are in external CSS bundles. User should pick palette manually or via AI.')
     }
     if (fonts.he || fonts.en) {
         book.visual!.typography = {
@@ -751,6 +838,8 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
             ...m('high'),
         } as any
         extractedKeys.push('visual.typography')
+    } else {
+        notes.push('Typography extraction: no font-family declarations parseable from inline CSS — likely Google Fonts loaded via JS or external CSS. User should set typography manually.')
     }
 
     // Voice from Sonnet
