@@ -363,6 +363,8 @@ function extractSiteCitations(corpusByPage: Array<{ path: string; text: string }
 interface ArchaeologyArgs {
     apiKey: string
     websiteUrl: string
+    heroSlogans?: string[]
+    businessNameHints?: { he?: string; en?: string }
     corpus: string                              // concatenated voice corpus
     siteCitations: Array<{ quote: string; pagePath: string }>
     research?: any                              // researchData for personas
@@ -457,7 +459,7 @@ function extractGroundTruthFacts(corpus: string): Array<{ fact: string; quote: s
 }
 
 async function runBrandArchaeology(args: ArchaeologyArgs): Promise<ArchaeologyResult> {
-    const { apiKey, websiteUrl, corpus, siteCitations, research, auditDemographics } = args
+    const { apiKey, websiteUrl, corpus, siteCitations, research, auditDemographics, heroSlogans = [], businessNameHints = {} } = args
 
     const researchSummary = research ? JSON.stringify({
         targetAudience: research.answers?.targetAudience?.slice?.(0, 600),
@@ -492,17 +494,33 @@ async function runBrandArchaeology(args: ArchaeologyArgs): Promise<ArchaeologyRe
 9. ★ אסור להמציא שירותים, פיצ'רים, יתרונות שאינם מופיעים בקורפוס. בעיקר ב-positioning.proof — חייב להיות אקט-אובדן ציטטה.
 10. ★★ tagline.literal: אם באתר יש סלוגן/כותרת ראשית/hero text שנראה כמו slogan (h1, large heading, hero banner) — **חייבים לצטט אותו verbatim** ב-tagline.literal, גם אם הוא נשמע "מכירותי" או "salesy". זה הסלוגן הקיים שלהם. אל תמציאו רפיינמנט במקומו.
 11. tagline.refined: רק אם tagline.literal קיים, אפשר להציע גרסה משופרת. אם literal ריק — refined גם null.
-12. ★★ ב-positioning **חובה לצטט מספרים אם חולצו** (כמה סניפים, ותק, וכו') ו**הצעות-מחיר/יתרונות שמופיעים בקורפוס** (כמו "המחיר הזול ביותר", "התחייבות"), במקום generic "אנחנו מחזיקים את הדברים שלך באותה רצינות". זה לא marketing copy — זה fact-grounded statement.
+12. ★★ ב-positioning **חובה לצטט מספרים אם חולצו** (כמה סניפים, ותק, וכו') ו**הצעות-מחיר/יתרונות שמופיעים באתר** (כמו "המחיר הזול ביותר", "התחייבות"), במקום generic "אנחנו מחזיקים את הדברים שלך באותה רצינות". זה לא marketing copy — זה fact-grounded statement.
+13. ★★★ אסור לחלוטין שהמילים "בקורפוס", "בטקסט", "באתר", "מצוטט", "מוגדר", "נמצא" יופיעו ב-output הסופי. ה-output הוא marketing copy שיגיע ללקוח — לא דיווח על תהליך החילוץ. במקום "מחירים שמוגדרים בקורפוס כ'אטרקטיביים'" כתוב פשוט "מחירים אטרקטיביים". במקום "לפי הקורפוס יש 3 סניפים" כתוב "3 סניפים: ראשון לציון, תל אביב, פתח תקווה".
 
 אם משהו לא נמצא בקורפוס — אל תמציא. השאר null/undefined.`
 
+    const nameHintsBlock = (businessNameHints.he || businessNameHints.en)
+        ? `═══ שם המותג שכבר זוהה (השתמשו בזה במקום לחפש שוב) ═══\n` +
+          (businessNameHints.he ? `שם בעברית: ${businessNameHints.he}\n` : '') +
+          (businessNameHints.en ? `שם באנגלית: ${businessNameHints.en}\n` : '')
+        : ''
+
+    const heroSlogansBlock = heroSlogans.length
+        ? `═══ סלוגנים/כותרות מה-hero של האתר (h1/h2/og:description) ═══\n` +
+          `★★ אם יש כאן משפט שנראה כמו סלוגן/הבטחה/אקלייים — חובה להעתיק אותו verbatim ל-tagline.literal. גם אם הוא נשמע "salesy". זה הסלוגן הקיים של הלקוח, לא להמציא במקומו.\n` +
+          heroSlogans.map((s, i) => `${i + 1}. "${s}"`).join('\n')
+        : '═══ סלוגנים/כותרות hero ═══\n(לא חולצו slogan-מבני — אל תמציאו tagline.literal, השאירו null)'
+
     const user = `URL: ${websiteUrl}
 
+${nameHintsBlock}
 ═══ קורפוס מהאתר (ציטוטים מילוליים מקיומה של תוכן הסייט) ═══
 ${corpus.slice(0, 14000)}
 
 ═══ ציטוטים מובחרים (משפטים שמופיעים בפועל באתר) ═══
 ${siteCitations.map((c, i) => `${i + 1}. [${c.pagePath}] "${c.quote}"`).join('\n')}
+
+${heroSlogansBlock}
 
 ${groundTruthBlock}
 
@@ -688,6 +706,55 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     const siteCitations = extractSiteCitations(corpusByPage)
     notes.push(`Extracted ${siteCitations.length} verifiable site quotes`)
 
+    // ── Pre-archaeology: extract logo-alt brand name + hero slogans from
+    // homepage HTML so we can hand them to Sonnet as ground truth (rather
+    // than letting it re-derive them from h1, which is SEO category).
+    const HEBREW_RANGE = /[֐-׿]/
+    let logoAlt: string | null = null
+    {
+        const allLogoMatches = [
+            ...(homepageHtml.match(/<img[^>]*(?:class|id|alt|title)=["'][^"']*(?:logo|לוגו)[^"']*["'][^>]*>/gi) || []),
+            ...(homepageHtml.match(/<img[^>]*src=["'][^"']*(?:logo|לוגו)[^"']*["'][^>]*>/gi) || []),
+        ]
+        const candidates: Array<{ alt: string; hasHebrew: boolean; len: number }> = []
+        for (const tag of allLogoMatches) {
+            const altMatch = tag.match(/alt=["']([^"']+)["']/i)
+            if (!altMatch?.[1]) continue
+            const alt = altMatch[1].trim()
+            if (alt.length < 3 || alt.length > 200) continue
+            candidates.push({ alt, hasHebrew: HEBREW_RANGE.test(alt), len: alt.length })
+        }
+        candidates.sort((a, b) => {
+            if (a.hasHebrew !== b.hasHebrew) return a.hasHebrew ? -1 : 1
+            return a.len - b.len
+        })
+        if (candidates.length > 0) {
+            const alt = candidates[0].alt
+            logoAlt = alt.replace(/\s*[-—|·•]\s*(?:לוגו|logo)[\s\S]*$/i, '').trim() || alt
+            notes.push(`Logo alt for naming: "${logoAlt}" (from ${candidates.length} candidates)`)
+        }
+    }
+    function extractHeroSlogans(): string[] {
+        const out: string[] = []
+        const seen = new Set<string>()
+        function add(s: string | undefined | null) {
+            if (!s) return
+            const t = s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+            if (t.length < 8 || t.length > 200) return
+            if (seen.has(t)) return
+            seen.add(t); out.push(t)
+        }
+        const h1Matches = homepageHtml.match(/<h1[^>]*>([\s\S]{0,400}?)<\/h1>/gi) || []
+        for (const m of h1Matches) add(m.replace(/<\/?h1[^>]*>/gi, ''))
+        const h2Matches = homepageHtml.match(/<h2[^>]*>([\s\S]{0,400}?)<\/h2>/gi) || []
+        for (const m of h2Matches.slice(0, 4)) add(m.replace(/<\/?h2[^>]*>/gi, ''))
+        if (meta.ogDescription) add(meta.ogDescription)
+        if (meta.description) add(meta.description)
+        return out.slice(0, 8)
+    }
+    const heroSlogans = extractHeroSlogans()
+    notes.push(`Hero slogans extracted: ${heroSlogans.length} (${heroSlogans.slice(0, 2).map(s => '"' + s.slice(0, 60) + '"').join(', ')})`)
+
     // ── PASS C — Sonnet brand archaeology ──
     notes.push('Pass C: Running brand archaeology (Sonnet 4.6)…')
     const corpus = corpusByPage.map(p => `\n\n[${p.path}]\n${p.text}`).join('\n').slice(0, 14000)
@@ -696,6 +763,8 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
         websiteUrl,
         corpus,
         siteCitations,
+        heroSlogans,
+        businessNameHints: { he: logoAlt && HEBREW_RANGE.test(logoAlt) ? logoAlt : undefined },
         research: rd,
         auditDemographics: rd.mazhirAudit?.sourceCoverage?.ga4Demographics,
     })
@@ -738,8 +807,6 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     const titleStr = (meta.title || '').trim()
     const ogTitleStr = (meta.ogTitle || '').trim()
     const ogSiteName = (meta.siteName || '').trim()
-    const HEBREW_RANGE = /[֐-׿]/
-
     function splitOnSep(s: string): string[] {
         return s.split(/[|—\-·•]|–/).map(p => p.trim()).filter(Boolean)
     }
@@ -752,24 +819,6 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
         if (!s) return null
         const eng = splitOnSep(s).find(p => /^[A-Za-z][A-Za-z0-9 \-&'.]+$/.test(p))
         return eng || null
-    }
-
-    // Pull the alt of the highest-scoring logo candidate as the most reliable
-    // brand-name source (sites that bother to write a logo alt almost always
-    // put the actual brand name there).
-    let logoAlt: string | null = null
-    {
-        const logoImgPattern = /<img[^>]*(?:class|id|alt|title)=["'][^"']*(?:logo|לוגו)[^"']*["'][^>]*>/i
-        const m1 = homepageHtml.match(logoImgPattern)
-        const altMatch = m1?.[0].match(/alt=["']([^"']+)["']/i)
-        if (altMatch?.[1]) {
-            const alt = altMatch[1].trim()
-            // alt may be "BrandName - לוגו אתר ..." — strip the descriptive tail
-            // ("- לוגו ..." / "- logo ..." patterns).
-            logoAlt = alt
-                .replace(/\s*[-—|·]\s*(?:לוגו|logo)[\s\S]*$/i, '')
-                .trim() || alt
-        }
     }
 
     function chooseName(prefer: 'he' | 'en'): string | null {
