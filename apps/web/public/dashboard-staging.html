@@ -11985,6 +11985,73 @@ async function brandV2ExportZip() {
   } catch (err) { showToast('שגיאה: ' + err.message, 'error'); }
 }
 
+// Run website scan from inside the wizard. Used by:
+//   - "🔍 סרקו עכשיו" CTA in the scan_ready banner
+//   - per-row "🔍 חלצו מהאתר" button (logo, colors, typography)
+// Re-uses the same scan-progress overlay + reflect path as the initial fork
+// flow. After scan completes, draft is reloaded and wizard re-rendered with
+// extracted Visual fields populated.
+async function brandV2RunScan() {
+  brandV2ShowScanProgress();
+  try {
+    var scan = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/scan-website', { method: 'POST', body: JSON.stringify({}) });
+    if (scan.success && scan.data && scan.data.ok === false && scan.data.requiresIntegration === 'firecrawl') {
+      brandV2ShowFirecrawlPrompt(scan.data.message || 'נדרש Firecrawl לסריקת אתר');
+      return;
+    }
+    if (scan.success && scan.data && scan.data.ok === false && scan.data.requiresField === 'websiteUrl') {
+      brandV2ShowMissingUrlPrompt(scan.data.message || 'לא נמצא URL של האתר');
+      return;
+    }
+    if (!scan.success) {
+      brandV2ShowScanError(scan.message || 'סריקה נכשלה — נסו שוב או החליפו זרם');
+      return;
+    }
+    showToast('סריקה הושלמה ✓ · חולץ ' + (scan.data.extractedKeys ? scan.data.extractedKeys.length : 0) + ' שדות', 'success');
+    // Reload draft and re-render wizard so extracted Visual fields appear.
+    if (typeof closeReportModal === 'function') closeReportModal();
+    setTimeout(async function() {
+      var freshDraft = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/draft');
+      brandV2OpenWizard(freshDraft.data);
+    }, 250);
+  } catch (e) {
+    brandV2ShowScanError('שגיאת רשת: ' + (e && e.message ? e.message : ''));
+  }
+}
+
+// Quick deep-link to the Firecrawl integration card. Used from:
+//   - scan_blocked banner ("🔌 חברו Firecrawl")
+//   - per-row scan-locked button
+function brandV2OpenFirecrawlConnect() {
+  if (typeof closeReportModal === 'function') closeReportModal();
+  if (typeof switchTab === 'function') switchTab('integrations');
+  setTimeout(function() {
+    var el = document.getElementById('firecrawl-card');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 250);
+}
+
+// User dismisses the website-scan flow and continues manually. Restarts the
+// brand draft with sourceFlow='uploaded' so the scan banners disappear and
+// the wizard surfaces only AI/upload paths.
+async function brandV2SwitchToUploaded() {
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/start-over', {
+      method: 'POST',
+      body: JSON.stringify({ sourceFlow: 'uploaded' }),
+    });
+    if (!r.success) throw new Error(r.message || 'switch failed');
+    showToast('עברתם למצב ידני', 'info');
+    if (typeof closeReportModal === 'function') closeReportModal();
+    setTimeout(async function() {
+      var freshDraft = await apiFetch('/hosting/instances/' + instanceId + '/brand-v2/draft');
+      brandV2OpenWizard(freshDraft.data);
+    }, 250);
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || err), 'error');
+  }
+}
+
 async function brandV2StartOver() {
   if (!confirm('פעולה זו תארכב את הברנד-בוק הקיים ותתחיל מחדש. להמשיך?')) return;
   try {
@@ -12056,6 +12123,17 @@ async function brandV2OpenWizard(draftBundle) {
   var hasStrategy = !!(rdState.chosenScenario || rdState.strategyStage4);
   var brandPhase = (hasResearch && hasStrategy) ? 'deep' : 'light';
 
+  // Scan state — for website_scan flow, the autoextract path is the *primary*
+  // way to fill Visual fields. Detect whether scan actually ran (sourceScrapedAt
+  // is set) so the UI can: (a) show explicit "scan never ran" banner instead of
+  // silent emptiness, (b) auto-trigger scan when Firecrawl is present.
+  var sourceFlow = b.sourceFlow || (draftBundle && draftBundle.sourceFlow) || '';
+  var scanRan = !!(b.sourceScrapedAt || (draftBundle && draftBundle.sourceScrapedAt));
+  var hasFirecrawl = !!(instanceData && instanceData.hasFirecrawl);
+  var scanState = sourceFlow === 'website_scan'
+    ? (scanRan ? 'scan_done' : (hasFirecrawl ? 'scan_ready' : 'scan_blocked'))
+    : 'not_scan_flow';
+
   // businessName fallback — never push AI to invent "Business" placeholder.
   var businessName = (ident.businessName && (ident.businessName.he || ident.businessName.en)) || '';
   if (!businessName && instanceData && instanceData.researchData) {
@@ -12108,20 +12186,38 @@ async function brandV2OpenWizard(draftBundle) {
         {
           label: 'לוגו ראשי',
           present: !!(visual.logo && visual.logo.primary && visual.logo.primary.url),
-          actions: [
-            { kind: 'ai', label: '⚡ צרו (AI)', onclick: 'brandV2GenerateLogo(' + bizArg + ')' },
-            { kind: 'upload', label: '📤 העלו קובץ', onclick: "document.getElementById('bv2-logo-input').click()" },
-          ],
+          actions: (function() {
+            var a = [];
+            // Scan-first ordering: when website_scan is the source and Firecrawl is
+            // available but the scan hasn't run yet, the primary action is to run
+            // the scan (extracts logo + favicon from homepage). AI/upload remain
+            // as fallbacks for when the site doesn't expose a clean logo.
+            if (scanState === 'scan_ready') a.push({ kind: 'scan', label: '🔍 חלצו מהאתר', onclick: 'brandV2RunScan()' });
+            if (scanState === 'scan_blocked') a.push({ kind: 'scan-locked', label: '🔌 חברו Firecrawl לסריקה', onclick: 'brandV2OpenFirecrawlConnect()' });
+            a.push({ kind: 'ai', label: '⚡ צרו AI', onclick: 'brandV2GenerateLogo(' + bizArg + ')' });
+            a.push({ kind: 'upload', label: '📤 העלו קובץ', onclick: "document.getElementById('bv2-logo-input').click()" });
+            return a;
+          })(),
         },
         {
           label: 'פלטת צבעים',
           present: !!(visual.colors && visual.colors.primary),
-          actions: [{ kind: 'ai', label: '⚡ צרו פלטה', onclick: 'brandV2GeneratePalette(' + bizArg + ')' }],
+          actions: (function() {
+            var a = [];
+            if (scanState === 'scan_ready') a.push({ kind: 'scan', label: '🔍 חלצו מהאתר', onclick: 'brandV2RunScan()' });
+            if (scanState === 'scan_blocked') a.push({ kind: 'scan-locked', label: '🔌 חברו Firecrawl לסריקה', onclick: 'brandV2OpenFirecrawlConnect()' });
+            a.push({ kind: 'ai', label: '⚡ צרו פלטה', onclick: 'brandV2GeneratePalette(' + bizArg + ')' });
+            return a;
+          })(),
         },
         {
           label: 'גופן עברי ראשי',
           present: !!(visual.typography && visual.typography.primaryFontHe),
-          actions: [],
+          actions: (function() {
+            var a = [];
+            if (scanState === 'scan_ready') a.push({ kind: 'scan', label: '🔍 חלצו מהאתר', onclick: 'brandV2RunScan()' });
+            return a;
+          })(),
         },
         {
           label: 'תמונות רפרנס',
@@ -12203,7 +12299,16 @@ async function brandV2OpenWizard(draftBundle) {
   }
 
   function renderActionBtn(a) {
-    var bg = a.kind === 'ai' ? 'background:#2563EB;color:#fff;border-color:#2563EB' : 'background:#fff;color:#374151;border-color:#D1D5DB';
+    // 4 kinds with explicit visual hierarchy:
+    //   scan         = extract from website (PRIMARY when scan_ready) — green solid
+    //   scan-locked  = scan blocked, prompts to connect Firecrawl — amber outline
+    //   ai           = AI generate (secondary fallback) — blue solid
+    //   upload       = upload file (manual fallback) — neutral outline
+    var bg;
+    if (a.kind === 'scan')          bg = 'background:#10B981;color:#fff;border-color:#10B981';
+    else if (a.kind === 'scan-locked') bg = 'background:#FFFBEB;color:#92400E;border-color:#FCD34D';
+    else if (a.kind === 'ai')       bg = 'background:#2563EB;color:#fff;border-color:#2563EB';
+    else                            bg = 'background:#fff;color:#374151;border-color:#D1D5DB';
     return '<button onclick="' + a.onclick + '" style="' + bg + ';border:1px solid;border-radius:6px;padding:5px 10px;font-size:0.75rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:filter .15s" onmouseover="this.style.filter=\'brightness(0.93)\'" onmouseout="this.style.filter=\'\'">' + a.label + '</button>';
   }
 
@@ -12278,8 +12383,44 @@ async function brandV2OpenWizard(draftBundle) {
 
   var titleSuffix = brandPhase === 'light' ? ' · Light' : ' · Deep';
 
+  // Scan-state banner — only relevant for website_scan flow. Tells user
+  // explicitly "scan ran"/"scan blocked"/"scan ready to run" instead of
+  // letting them stare at silent 0/2 emptiness.
+  var scanBanner = '';
+  if (scanState === 'scan_blocked') {
+    scanBanner = '<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:12px 14px;margin-bottom:12px">' +
+      '<div style="display:flex;align-items:flex-start;gap:10px">' +
+        '<span style="font-size:1.1rem;flex-shrink:0">🔍</span>' +
+        '<div style="flex:1">' +
+          '<div style="font-weight:600;font-size:0.88rem;color:#92400E;margin-bottom:4px">הסריקה לא רצה — Firecrawl לא מחובר</div>' +
+          '<div style="font-size:0.8rem;color:#78350F;line-height:1.55;margin-bottom:8px">בחרת לבנות את הברנד מהאתר, אבל Firecrawl API key חסר. חברו עכשיו וניתן לחלץ אוטומטית לוגו, צבעים, טיפוגרפיה ישירות מ-' + (websiteUrl || 'האתר שלכם') + '. או המשיכו ידנית — שדות יושלמו דרך AI/העלאה.</div>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+            '<button onclick="brandV2OpenFirecrawlConnect()" style="background:#92400E;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:0.75rem;font-weight:600;cursor:pointer">🔌 חברו Firecrawl</button>' +
+            '<button onclick="brandV2SwitchToUploaded()" style="background:#fff;color:#374151;border:1px solid #D1D5DB;border-radius:6px;padding:5px 10px;font-size:0.75rem;cursor:pointer">📚 המשיכו ידנית</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  } else if (scanState === 'scan_ready') {
+    scanBanner = '<div style="background:#ECFDF5;border:1px solid #6EE7B7;border-radius:8px;padding:12px 14px;margin-bottom:12px">' +
+      '<div style="display:flex;align-items:flex-start;gap:10px">' +
+        '<span style="font-size:1.1rem;flex-shrink:0">🔍</span>' +
+        '<div style="flex:1">' +
+          '<div style="font-weight:600;font-size:0.88rem;color:#065F46;margin-bottom:4px">מוכנים לסריקה אוטומטית</div>' +
+          '<div style="font-size:0.8rem;color:#064E3B;line-height:1.55;margin-bottom:8px">Firecrawl מחובר. לחיצה אחת — ונחלץ לוגו, פלטת צבעים וטיפוגרפיה ישירות מ-' + (websiteUrl || 'האתר שלכם') + '. ~60-90 שניות.</div>' +
+          '<button onclick="brandV2RunScan()" style="background:#10B981;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:0.8rem;font-weight:600;cursor:pointer">🔍 סרקו עכשיו</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  } else if (scanState === 'scan_done') {
+    scanBanner = '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:0.82rem;color:#065F46">' +
+      '<span style="font-weight:600">✓ סריקה הושלמה.</span> שדות מהאתר מסומנים בירוק. שדות חסרים — השלימו דרך AI/העלאה.' +
+    '</div>';
+  }
+
   var html = '<div style="padding:6px 0">' +
     phaseBanner +
+    scanBanner +
     '<div style="background:linear-gradient(180deg,#F9FAFB,#F3F4F6);border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap">' +
         '<div style="font-size:0.84rem;color:#374151"><span style="font-weight:600">טיוטה v' + (b.version || 1) + '</span> · <span style="color:#6B7280">' + sourceLabel + '</span></div>' +

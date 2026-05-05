@@ -59,9 +59,26 @@ function newId(): string {
 export function rowToBookV2(row: any): BrandBookV2 {
     if (!row) throw new Error('Empty brand_books row')
     const principlesObj = (row.principles && typeof row.principles === 'object') ? row.principles : {}
+    // Pull authoritative scan/source signals from the DB row regardless of
+    // which path returns the book — the Brand wizard frontend uses these to
+    // decide whether to surface "scan now" vs "scan blocked" vs "scan done"
+    // banners. Previously we only set sourceFlow on the legacy synth path
+    // (and even there hard-coded 'imported_from_v1', losing the real source),
+    // and never returned sourceScrapedAt at all — so the UI couldn't tell.
+    const dbScrapedAt = row.sourceScrapedAt?.toISOString?.() || undefined
+    const dbSourceUrl = row.sourceUrl || undefined
+    const dbSourceFlow = (row.source && ['uploaded', 'website_scan', 'mixed', 'imported_from_v1'].includes(row.source))
+        ? row.source as BrandBookV2['sourceFlow']
+        : 'imported_from_v1'
     if (principlesObj.bookV2) {
-        // Modern path
-        return principlesObj.bookV2 as BrandBookV2
+        // Modern path — augment with DB-row scan metadata so the wizard can
+        // detect "scan ran" vs "scan never ran" even on rows persisted before
+        // the scan-status fields existed in the bookV2 doc.
+        const book = principlesObj.bookV2 as BrandBookV2
+        if (!(book as any).sourceScrapedAt && dbScrapedAt) (book as any).sourceScrapedAt = dbScrapedAt
+        if (!(book as any).sourceUrl && dbSourceUrl) (book as any).sourceUrl = dbSourceUrl
+        if (!book.sourceFlow || book.sourceFlow === 'imported_from_v1') book.sourceFlow = dbSourceFlow
+        return book
     }
     // Legacy v1 → synthesize v2 shell so consumers can read both
     const baseMeta = (source: BrandKeySource = 'extracted', confidence: BrandKeyConfidence = 'medium'): BrandKeyMeta => ({
@@ -75,7 +92,7 @@ export function rowToBookV2(row: any): BrandBookV2 {
         createdAt: row.createdAt?.toISOString?.() || new Date().toISOString(),
         updatedAt: row.updatedAt?.toISOString?.() || new Date().toISOString(),
         approvedAt: row.approvedAt?.toISOString?.() || undefined,
-        sourceFlow: 'imported_from_v1',
+        sourceFlow: dbSourceFlow,
         identity: {
             businessName: row.businessName ? { he: row.businessName, ...baseMeta('extracted', 'medium') } : undefined,
             legalName: row.legalName ? { value: row.legalName, ...baseMeta('extracted', 'medium') } : undefined,
@@ -97,6 +114,8 @@ export function rowToBookV2(row: any): BrandBookV2 {
         compliance: {},
         channelAssets: {},
     }
+    if (dbScrapedAt) (v2 as any).sourceScrapedAt = dbScrapedAt
+    if (dbSourceUrl) (v2 as any).sourceUrl = dbSourceUrl
     return v2
 }
 
