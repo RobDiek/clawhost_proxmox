@@ -895,14 +895,37 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
         //   "שעות פעילות החנות" (store hours), "צור קשר" (contact),
         //   "אודות" (about), "תפריט" (menu), "מחירים" (prices) etc.
         const navLabels = /^(?:שעות|פעילות|צור\s?קשר|אודות|תפריט|חנות|בלוג|מאמרים|כתבות|קטגוריות?|מחירים|שירותים|home|about|contact|services|blog|menu|hours|prices?|category)\b/i
+        // SEO meta title patterns: "{category} - {brand}" — a slogan never
+        // contains the brand's own name + dash separator suffix. The dash
+        // forms (" - " / " — " / " | ") are the giveaway used by Yoast/etc.
+        const seoTitleSeparator = /\s[-—|]\s/
         const claimSignals = /₪|בלי|ללא|24|7|הזול|הטוב|אחריות|התחייבות|מיוחד|מאובטח|חינם|חופשי|מובטח|הראשון|מומלץ|ביותר/
         // Hebrew verb signals — slogans typically start with a verb
         // ("שומרים על", "מציעים לכם", "מבטיחים", "נותנים", "פותרים").
         const verbSignals = /^(?:שומרים|מציעים|מבטיחים|נותנים|פותרים|עוזרים|דואגים|מספקים|מטפלים|מעניקים|מאחסנים|חוסכים)/
+
+        // Brand name tokens to reject — slogan should not contain the brand's
+        // own name (would be redundant with where it lives in markup).
+        // Sourced from what we know at this point: logoAlt + meta titles +
+        // research answers — the formal businessName resolution happens later.
+        const earlyBrandHints = [logoAlt, meta.siteName, meta.ogTitle, rd.answers?.businessName]
+            .filter(Boolean) as string[]
+        const brandTokens = earlyBrandHints
+            .flatMap(s => s.split(/[\s\-—|]+/).filter(t => t.length >= 4))
+            .map(t => t.toLowerCase())
+
         const sloganCandidates = heroSlogans
             .filter(s => !blogMarkers.test(s))
+            // Reject SEO meta-title pattern "X - Brand" / "X | Brand".
+            .filter(s => !seoTitleSeparator.test(s))
             // Reject navigation/footer single-noun labels.
             .filter(s => !navLabels.test(s))
+            // Reject if contains the brand's own name (case-insensitive token match).
+            .filter(s => {
+                if (brandTokens.length === 0) return true
+                const lower = s.toLowerCase()
+                return !brandTokens.some(t => lower.includes(t))
+            })
             // Slogan needs to be a sentence/phrase, not 1-3 nav words. Min word count = 4.
             .filter(s => s.split(/\s+/).filter(Boolean).length >= 4)
             // Sweet length window.
