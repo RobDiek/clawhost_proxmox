@@ -158,13 +158,12 @@ function discoverLogoCandidates(html: string, metadata: any, baseUrl: string): L
         if (src) push(src, 'header.img[first]', 75)
     }
 
-    // Tier 5 — favicon set
-    const iconMatches = html.match(/<link[^>]*rel=["'](?:icon|apple-touch-icon|shortcut icon)["'][^>]*>/gi) || []
-    for (const m of iconMatches) {
-        const href = m.match(/href=["']([^"']+)["']/i)?.[1]
-        if (href) push(href, '<link rel=icon>', 35)
-    }
-    if (metadata?.favicon) push(metadata.favicon, 'metadata.favicon', 30)
+    // Note: favicons (<link rel=icon> / metadata.favicon) and Apple touch icons
+    // are intentionally EXCLUDED from logo candidates. They are 16-32px raster
+    // images at best — never the actual brand logo. Adopting them produces a
+    // pixelated mess in PDFs and crops in social-card composers. If no real
+    // logo can be discovered, we'd rather show "no logo found, please upload"
+    // than mislead the user with their favicon.
 
     // Tier 6 — first 300 lines of body, any reasonable img
     const earlyImgs = html.slice(0, 6000).match(/<img[^>]*src=["']([^"']+)["'][^>]*>/gi) || []
@@ -178,14 +177,29 @@ function discoverLogoCandidates(html: string, metadata: any, baseUrl: string): L
 
 async function fetchAndStoreLogoToVps(instanceId: string, candidate: LogoCandidate): Promise<string | null> {
     try {
+        // Hard reject: .ico files are favicons in disguise, never real logos.
+        if (/\.ico(\?|$)/i.test(candidate.url)) return null
+        // Hard reject: URLs hinting at favicon/touch-icon — even when reached
+        // via a different tier (e.g. og:image accidentally points to favicon).
+        if (/favicon|apple-touch-icon|app-icon-\d+/i.test(candidate.url)) return null
+
         const res = await fetch(candidate.url, { signal: AbortSignal.timeout(15_000) })
         if (!res.ok) return null
         const ct = res.headers.get('content-type') || ''
         if (!/image\//i.test(ct) && !/svg/i.test(ct)) return null
         const buf = Buffer.from(await res.arrayBuffer())
-        if (buf.length < 200 || buf.length > 5_000_000) return null
+        // Min 1.5KB heuristic — favicons are typically 200-1200 bytes, real
+        // brand logos almost always exceed 1.5KB even at modest dimensions.
+        // SVG is exempt (vector logos can be tiny strings).
+        const isSvg = /svg/i.test(ct)
+        if (!isSvg && buf.length < 1500) return null
+        if (buf.length > 5_000_000) return null
 
         const ext = (candidate.url.match(/\.(png|jpg|jpeg|webp|svg|ico)(?:\?|$)/i)?.[1] || 'png').toLowerCase()
+        // Defense in depth: refuse .ico extension explicitly (Tier filter
+        // already drops favicons, but a tier-1 og:image MIGHT point to .ico
+        // on poorly-configured sites).
+        if (ext === 'ico') return null
         const filename = `extracted-logo-${candidate.source.replace(/[^a-z0-9]/gi, '_').slice(0, 30)}.${ext}`
         const ctyp = ext === 'svg' ? 'image/svg+xml' : `image/${ext === 'jpg' ? 'jpeg' : ext}`
 
@@ -351,6 +365,71 @@ interface ArchaeologyResult {
     personas?: Array<any>
 }
 
+// Pull verifiable numeric facts out of the corpus (locations, branches,
+// employees, years in business, etc.) so the LLM can cite them verbatim
+// instead of hallucinating. Returns ≤ 8 facts, each with the literal quote
+// the number came from. Hebrew-aware; matches Hebrew + Arabic numerals.
+function extractGroundTruthFacts(corpus: string): Array<{ fact: string; quote: string }> {
+    const facts: Array<{ fact: string; quote: string }> = []
+    const seenFacts = new Set<string>()
+    // Patterns: "<digit>+ סניפים", "<digit>+ years", "<digit>+ דק", "<word-num>
+    // סניפים" (שני, שלושה, ארבעה, חמישה, שישה, שבעה, שמונה, תשעה, עשרה).
+    // Each row: { regex, factTemplate(matchGroup) }
+    const HEB_NUM_TO_DIGIT: Record<string, string> = {
+        'שני': '2', 'שתי': '2', 'שלושה': '3', 'שלוש': '3', 'ארבעה': '4', 'ארבע': '4',
+        'חמישה': '5', 'חמש': '5', 'שישה': '6', 'שש': '6', 'שבעה': '7', 'שבע': '7',
+        'שמונה': '8', 'תשעה': '9', 'תשע': '9', 'עשרה': '10', 'עשר': '10',
+    }
+    const NOUN_LABELS: Array<{ noun: string; label: string }> = [
+        { noun: 'סניפים', label: 'מספר סניפים' },
+        { noun: 'סניף', label: 'מספר סניפים' },
+        { noun: 'מיקומים', label: 'מספר מיקומים' },
+        { noun: 'אתרים', label: 'מספר אתרים' },
+        { noun: 'מחסנים', label: 'מספר מחסנים' },
+        { noun: 'שנים', label: 'ותק (שנים)' },
+        { noun: 'שנה', label: 'ותק (שנים)' },
+        { noun: 'עובדים', label: 'מספר עובדים' },
+        { noun: 'לקוחות', label: 'מספר לקוחות' },
+        { noun: 'דקות', label: 'זמן (דקות)' },
+        { noun: 'שעות', label: 'זמן (שעות)' },
+        { noun: 'גדלים', label: 'מספר גדלים זמינים' },
+        { noun: 'יחידות', label: 'מספר יחידות' },
+    ]
+    for (const { noun, label } of NOUN_LABELS) {
+        // Digit followed by the Hebrew noun, with up to 30 chars of context window.
+        const digitRe = new RegExp(`([^.\\n]{0,40}?\\b(\\d{1,4})\\s+${noun}\\b[^.\\n]{0,40})`, 'g')
+        let m: RegExpExecArray | null
+        while ((m = digitRe.exec(corpus)) !== null) {
+            const quote = m[1].trim()
+            const num = m[2]
+            const factKey = `${label}:${num}`
+            if (seenFacts.has(factKey)) continue
+            seenFacts.add(factKey)
+            facts.push({ fact: `${label}: ${num}`, quote: quote.slice(0, 200) })
+            if (facts.length >= 8) return facts
+        }
+        // Hebrew word number followed by the noun.
+        for (const [hebWord, digit] of Object.entries(HEB_NUM_TO_DIGIT)) {
+            const wordRe = new RegExp(`([^.\\n]{0,40}?\\b${hebWord}\\s+${noun}\\b[^.\\n]{0,40})`, 'g')
+            let mw: RegExpExecArray | null
+            while ((mw = wordRe.exec(corpus)) !== null) {
+                const quote = mw[1].trim()
+                const factKey = `${label}:${digit}`
+                if (seenFacts.has(factKey)) continue
+                seenFacts.add(factKey)
+                facts.push({ fact: `${label}: ${digit}`, quote: quote.slice(0, 200) })
+                if (facts.length >= 8) return facts
+            }
+        }
+    }
+    // 24/7 access pattern (specific to storage / service businesses).
+    if (/\b24\/?7\b/.test(corpus)) {
+        const m = corpus.match(/[^.\n]{0,30}24\/?7[^.\n]{0,30}/)
+        if (m) facts.push({ fact: 'גישה: 24/7', quote: m[0].trim().slice(0, 200) })
+    }
+    return facts
+}
+
 async function runBrandArchaeology(args: ArchaeologyArgs): Promise<ArchaeologyResult> {
     const { apiKey, websiteUrl, corpus, siteCitations, research, auditDemographics } = args
 
@@ -363,6 +442,15 @@ async function runBrandArchaeology(args: ArchaeologyArgs): Promise<ArchaeologyRe
 
     const auditCtx = auditDemographics ? JSON.stringify(auditDemographics).slice(0, 1500) : ''
 
+    // Ground-truth fact extraction — count concrete numbers in the corpus so
+    // the LLM can't invent "3 branches" when the site says 4. We surface a
+    // small fact-list and require the LLM to cite verbatim or stay silent.
+    const groundTruth = extractGroundTruthFacts(corpus)
+    const groundTruthBlock = groundTruth.length
+        ? '═══ עובדות קשיחות שחולצו מהקורפוס (ציטוטים מילוליים — לא לשנות מספרים) ═══\n' +
+          groundTruth.map(f => `• ${f.fact} (מקור: "${f.quote}")`).join('\n')
+        : '═══ עובדות קשיחות ═══\n(לא חולצו מספרים מהקורפוס — אל תזכיר מספרים ב-positioning/mission אם אינם בקורפוס)'
+
     const system = `אתה brand archaeologist. בידיים שלך COPY של אתר חי של עסק קיים.
 המותג הזה כבר קיים, יש לו זהות חזותית, קול, לקוחות. אתה לא מחבר אותו — אתה מתעד אותו.
 
@@ -374,6 +462,8 @@ async function runBrandArchaeology(args: ArchaeologyArgs): Promise<ArchaeologyRe
 5. archetype נבחר לפי ה-EVIDENCE בקורפוס. ה-rationale חייב לצטט 2 משפטים מהקורפוס.
 6. principles, do, dont — כל אחד נסמך על דפוס מהקורפוס. לא תיאוריה.
 7. personas מבוססות על research_data + GA4 demographics, לא על דמיון.
+8. ★ מספרים אסור להמציא. אם בקורפוס כתוב "4 סניפים" — כתוב "4". אם לא חולץ מספר — אל תכלול אותו ב-tagline/mission/positioning. אסור להגיד "שלושה סניפים" אם בקורפוס מופיע "4". העדיפו "מספר סניפים" / "פריסה רחבה" אם המספר לא ברור — לא מספר שהומצא.
+9. ★ אסור להמציא שירותים, פיצ'רים, יתרונות שאינם מופיעים בקורפוס. בעיקר ב-positioning.proof — חייב להיות אקט-אובדן ציטטה.
 
 אם משהו לא נמצא בקורפוס — אל תמציא. השאר null/undefined.`
 
@@ -384,6 +474,8 @@ ${corpus.slice(0, 14000)}
 
 ═══ ציטוטים מובחרים (משפטים שמופיעים בפועל באתר) ═══
 ${siteCitations.map((c, i) => `${i + 1}. [${c.pagePath}] "${c.quote}"`).join('\n')}
+
+${groundTruthBlock}
 
 ═══ Research data (מחקר שוק שכבר עשינו) ═══
 ${researchSummary}
@@ -587,10 +679,39 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     }
     const m = META
 
-    // Identity from Sonnet + meta
-    const businessName = rd.answers?.businessName || meta.siteName || meta.title?.split(/[|—-]/)[0]?.trim()
-    if (businessName) {
-        book.identity!.businessName = { he: businessName, en: businessName, ...m('high') } as any
+    // Identity from Sonnet + meta — extract Hebrew + English names separately.
+    // Hebrew sites typically have "{Hebrew name} | {English}" or vice versa
+    // in <title> / og:title; we want both variants when present, not a single
+    // string that's just the English half.
+    const titleStr = (meta.ogTitle || meta.title || meta.siteName || '').trim()
+    const HEBREW_RANGE = /[֐-׿]/
+    function extractHebrewSegment(s: string): string | null {
+        if (!s) return null
+        // Split on common separators and find the segment that contains Hebrew chars.
+        const parts = s.split(/[|—\-·•]/).map(p => p.trim()).filter(Boolean)
+        const heb = parts.find(p => HEBREW_RANGE.test(p))
+        if (!heb) return null
+        // Strip leading/trailing parentheticals.
+        return heb.replace(/^\(([^)]+)\)$/, '$1').trim()
+    }
+    function extractEnglishSegment(s: string): string | null {
+        if (!s) return null
+        const parts = s.split(/[|—\-·•]/).map(p => p.trim()).filter(Boolean)
+        const eng = parts.find(p => /^[A-Za-z][A-Za-z0-9 \-&'.]+$/.test(p))
+        return eng || null
+    }
+    const businessNameEn = rd.answers?.businessName
+        || extractEnglishSegment(titleStr)
+        || meta.siteName
+        || titleStr.split(/[|—-]/)[0]?.trim()
+        || ''
+    const businessNameHe = extractHebrewSegment(titleStr) || (HEBREW_RANGE.test(rd.answers?.businessName || '') ? rd.answers.businessName : null)
+    if (businessNameEn || businessNameHe) {
+        book.identity!.businessName = {
+            he: businessNameHe || businessNameEn,
+            en: businessNameEn || businessNameHe,
+            ...m('high'),
+        } as any
         extractedKeys.push('identity.businessName')
     }
     if (archaeology.tagline?.he) {

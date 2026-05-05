@@ -20,6 +20,7 @@
  */
 
 import type { Context } from 'hono'
+import { db } from '@/db'
 import { ok, fail } from '@/lib/response'
 import { resolveUserId, getOwnedInstance } from './authHelper'
 
@@ -266,6 +267,19 @@ export const scanWebsiteForBrandV2 = async (c: Context) => {
         if (result.book.voice) for (const [k, v] of Object.entries(result.book.voice)) updates[`voice.${k}`] = v
         if (result.book.audience) for (const [k, v] of Object.entries(result.book.audience)) updates[`audience.${k}`] = v
         if (Object.keys(updates).length > 0) await updateDraftKeys(instanceId, updates)
+
+        // Stamp DB row with the URL + timestamp so the wizard can detect "scan
+        // ran" vs "never ran" (drives the scan_done banner + suppresses
+        // "scan_ready" CTAs for already-scraped drafts).
+        try {
+            const { brandBooks } = await import('@/db/schema')
+            const { and: andOp, eq: eqOp } = await import('drizzle-orm')
+            await db.update(brandBooks)
+                .set({ sourceUrl: websiteUrl, sourceScrapedAt: new Date() })
+                .where(andOp(eqOp(brandBooks.instanceId, instanceId), eqOp(brandBooks.status, 'draft')))
+        } catch (e) {
+            console.warn('[scanWebsiteForBrandV2] source_url/source_scraped_at write failed:', (e as Error).message)
+        }
 
         return ok(c, result, `Scanned ${result.pagesScanned} pages — extracted ${result.extractedKeys.length} keys`)
     } catch (err) { return fail(c, (err as Error).message, 500) }

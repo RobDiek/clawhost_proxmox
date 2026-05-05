@@ -12150,6 +12150,21 @@ async function brandV2OpenWizard(draftBundle) {
     websiteUrl: websiteUrl,
   }).replace(/"/g, '&quot;');
 
+  // Provenance helper — every brand field carries a `source` tag set when it
+  // was filled (extracted / generated / uploaded). The wizard surfaces this
+  // explicitly so user knows whether a value came from their actual site, was
+  // proposed by AI, or uploaded by hand. Crucial: AI-generated values can no
+  // longer masquerade as "extracted from site" (the bug that surfaced earlier
+  // — invented color palette displayed without disclosure).
+  function provenanceBadge(field) {
+    if (!field) return '';
+    var src = field.source || (field.confidence === 'high' ? 'extracted' : null);
+    if (src === 'extracted') return '<span style="font-size:0.68rem;background:#D1FAE5;color:#065F46;padding:2px 7px;border-radius:6px;font-weight:500;white-space:nowrap">🔍 מהאתר</span>';
+    if (src === 'generated') return '<span style="font-size:0.68rem;background:#DBEAFE;color:#1E40AF;padding:2px 7px;border-radius:6px;font-weight:500;white-space:nowrap">⚡ AI הציע</span>';
+    if (src === 'uploaded')  return '<span style="font-size:0.68rem;background:#F3F4F6;color:#6B7280;padding:2px 7px;border-radius:6px;font-weight:500;white-space:nowrap">📤 ידני</span>';
+    return '';
+  }
+
   // Field model: each stage holds rows with present + actions. Actions show
   // ONLY for missing fields (collapsing once filled — visual reward).
   var stages = [
@@ -12160,21 +12175,25 @@ async function brandV2OpenWizard(draftBundle) {
         {
           label: 'שם העסק',
           present: !!(ident.businessName && (ident.businessName.he || ident.businessName.en)),
+          provenance: provenanceBadge(ident.businessName),
           actions: [{ kind: 'ai', label: '⚡ צרו', onclick: 'brandV2GenerateVoice(' + bizArg + ')' }],
         },
         {
           label: 'סלוגן (Tagline)',
           present: !!(ident.tagline && (ident.tagline.he || ident.tagline.en)),
+          provenance: provenanceBadge(ident.tagline),
           actions: [{ kind: 'ai', label: '⚡ צרו voice + סלוגן', onclick: 'brandV2GenerateVoice(' + bizArg + ')' }],
         },
         {
           label: 'משימה (Mission)',
           present: !!(ident.mission && (ident.mission.he || ident.mission.en)),
+          provenance: provenanceBadge(ident.mission),
           actions: [],
         },
         {
           label: 'הצהרת מיצוב (Positioning)',
           present: !!(ident.positioningStatement && (ident.positioningStatement.he || ident.positioningStatement.en)),
+          provenance: provenanceBadge(ident.positioningStatement),
           actions: [],
         },
       ],
@@ -12186,12 +12205,9 @@ async function brandV2OpenWizard(draftBundle) {
         {
           label: 'לוגו ראשי',
           present: !!(visual.logo && visual.logo.primary && visual.logo.primary.url),
+          provenance: provenanceBadge(visual.logo),
           actions: (function() {
             var a = [];
-            // Scan-first ordering: when website_scan is the source and Firecrawl is
-            // available but the scan hasn't run yet, the primary action is to run
-            // the scan (extracts logo + favicon from homepage). AI/upload remain
-            // as fallbacks for when the site doesn't expose a clean logo.
             if (scanState === 'scan_ready') a.push({ kind: 'scan', label: '🔍 חלצו מהאתר', onclick: 'brandV2RunScan()' });
             if (scanState === 'scan_blocked') a.push({ kind: 'scan-locked', label: '🔌 חברו Firecrawl לסריקה', onclick: 'brandV2OpenFirecrawlConnect()' });
             a.push({ kind: 'ai', label: '⚡ צרו AI', onclick: 'brandV2GenerateLogo(' + bizArg + ')' });
@@ -12202,6 +12218,7 @@ async function brandV2OpenWizard(draftBundle) {
         {
           label: 'פלטת צבעים',
           present: !!(visual.colors && visual.colors.primary),
+          provenance: provenanceBadge(visual.colors),
           actions: (function() {
             var a = [];
             if (scanState === 'scan_ready') a.push({ kind: 'scan', label: '🔍 חלצו מהאתר', onclick: 'brandV2RunScan()' });
@@ -12213,6 +12230,7 @@ async function brandV2OpenWizard(draftBundle) {
         {
           label: 'גופן עברי ראשי',
           present: !!(visual.typography && visual.typography.primaryFontHe),
+          provenance: provenanceBadge(visual.typography),
           actions: (function() {
             var a = [];
             if (scanState === 'scan_ready') a.push({ kind: 'scan', label: '🔍 חלצו מהאתר', onclick: 'brandV2RunScan()' });
@@ -12222,6 +12240,7 @@ async function brandV2OpenWizard(draftBundle) {
         {
           label: 'תמונות רפרנס',
           present: !!(visual.imagery && (visual.imagery.referenceUrls || []).length > 0),
+          provenance: provenanceBadge(visual.imagery),
           actions: [{ kind: 'ai', label: '⚡ צרו 5 תמונות', onclick: 'brandV2GenerateImagery(' + bizArg + ')' }],
         },
       ],
@@ -12233,16 +12252,19 @@ async function brandV2OpenWizard(draftBundle) {
         {
           label: 'ארכיטיפ + טון קול',
           present: !!voice.archetype,
+          provenance: provenanceBadge(voice),
           actions: [{ kind: 'ai', label: '⚡ צרו voice', onclick: 'brandV2GenerateVoice(' + bizArg + ')' }],
         },
         {
           label: 'עקרונות קול (לפחות 3)',
           present: (voice.principles || []).length >= 3,
+          provenance: provenanceBadge(voice),
           actions: [],
         },
         {
           label: 'אוצר מילים מאושר (לפחות 5)',
           present: !!(voice.vocabulary && (voice.vocabulary.approved || []).length >= 5),
+          provenance: provenanceBadge(voice && voice.vocabulary),
           actions: [],
         },
       ],
@@ -12254,6 +12276,7 @@ async function brandV2OpenWizard(draftBundle) {
         {
           label: 'פרסונות' + (personas.length ? ' (יש ' + personas.length + ')' : ''),
           present: personas.length >= 1,
+          provenance: provenanceBadge(b.audience && b.audience.personas),
           actions: [{ kind: 'ai', label: '⚡ צרו פרסונות', onclick: 'brandV2GeneratePersonas(' + bizArg + ')' }],
         },
       ],
@@ -12322,15 +12345,26 @@ async function brandV2OpenWizard(draftBundle) {
         : '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#F3F4F6;border:1px solid #E5E7EB"></span>');
     var labelStyle = r.present ? 'color:#6B7280;text-decoration:line-through;text-decoration-color:#D1FAE5;text-decoration-thickness:1.5px' : (isFirstMissing ? 'color:#1E40AF;font-weight:600' : 'color:#1F2937');
     var rowBg = isFirstMissing ? 'background:#EFF6FF' : '';
-    var rightSide = r.present
-      ? '<span style="font-size:0.74rem;color:#10B981;font-weight:500">מוכן</span>'
-      : (r.actions.length
-        ? r.actions.map(renderActionBtn).join('&nbsp;')
-        : '<span style="font-size:0.74rem;color:#9CA3AF">ערוך ידנית</span>');
+    // When the field is filled, show the provenance badge (where it came
+    // from) instead of just generic "מוכן" — this is critical so the user
+    // knows whether they're looking at a value extracted from their site, an
+    // AI-proposed value (which might not match reality), or a manual upload.
+    var rightSide;
+    if (r.present) {
+        if (r.provenance) {
+            rightSide = r.provenance + '&nbsp;<span style="font-size:0.74rem;color:#10B981;font-weight:500">מוכן</span>';
+        } else {
+            rightSide = '<span style="font-size:0.74rem;color:#10B981;font-weight:500">מוכן</span>';
+        }
+    } else if (r.actions.length) {
+        rightSide = r.actions.map(renderActionBtn).join('&nbsp;');
+    } else {
+        rightSide = '<span style="font-size:0.74rem;color:#9CA3AF">ערוך ידנית</span>';
+    }
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;' + rowBg + '">' +
       statusIcon +
       '<span style="flex:1;font-size:0.86rem;' + labelStyle + '">' + r.label + '</span>' +
-      '<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end">' + rightSide + '</div>' +
+      '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">' + rightSide + '</div>' +
     '</div>';
   }
 
