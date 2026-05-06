@@ -1067,3 +1067,18 @@ export const adminSnapshots = pgTable('admin_snapshots', {
     createdBy: uuid('created_by').references(() => adminUsers.id),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 })
+
+// ── DataForSEO response cache (per-tenant) ────────────────────────────────
+// Avoids re-paying for the same query across re-runs. TTLs vary by endpoint
+// type — see services/research/dataforseo/cache.ts for the policy table.
+// Per-tenant cache key keeps billing semantics clean: no tenant reads data
+// another tenant paid for.
+export const dfsCache = pgTable('dfs_cache', {
+    cacheKey:   text('cache_key').primaryKey(),       // sha256(instanceId + endpoint + paramsHash)
+    instanceId: text('instance_id').notNull(),        // owning tenant
+    endpoint:   text('endpoint').notNull(),           // e.g. "labs/keyword_ideas"
+    response:   jsonb('response').notNull(),          // raw DFS response payload
+    cost:       text('cost'),                         // DFS-reported cost in USD (string for precision)
+    expiresAt:  timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt:  timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
