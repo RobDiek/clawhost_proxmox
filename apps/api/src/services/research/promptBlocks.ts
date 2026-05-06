@@ -79,18 +79,36 @@ export const OPPORTUNITY_SCORING = `
 
 **אסור להשתמש ב-KD × Volume בלבד.** עבור IL/Hebrew זה גס מדי.
 
-**הנוסחה (sum=100):**
+**הנוסחה (משקלים מדויקים — Σ=1.0):**
 \`Opportunity = 0.25·BV + 0.20·WP + 0.15·QD + 0.15·CY + 0.10·AEO + 0.10·CL + 0.05·OE\`
 
-| רכיב | משמעות | איך מחשבים (0-100) |
-|---|---|---|
-| BV | Business Value | revenue potential × pipeline value × LTV × sales narrative weight |
-| WP | Win Probability | page-type fit + SERP weakness + authority gap + 90-180d ריאליות |
-| QD | Qualified Demand | log(volume) × geo-fit × language-fit × intent quality |
-| CY | Click Yield | אחוז קליקים שנשארים אחרי Ads/Local Pack/AI Overview/Shopping/zero-click |
-| AEO | Citation Fit | האם הדף יצטוטט ב-AI engines? synthesis need + factuality + comparison need |
-| CL | Cluster Leverage | האם מהמחזור הזה נולדים spokes/FAQ/local blocks/asset reuse? |
-| OE | Operational Ease | הפוך מ-legal cost / expert review / dev cost / dependencies |
+🚫 **אסור משקלים שווים (1/7=0.1428) או ממוצע פשוט (avg).** משקלים מדויקים: 0.25 / 0.20 / 0.15 / 0.15 / 0.10 / 0.10 / 0.05.
+
+**דוגמת חישוב מלאה (must-follow pattern):**
+נתון: BV=95, WP=80, QD=70, CY=75, AEO=85, CL=90, OE=70
+חישוב מילולי שלב-אחר-שלב:
+- 0.25 × 95 = 23.75
+- 0.20 × 80 = 16.00
+- 0.15 × 70 = 10.50
+- 0.15 × 75 = 11.25
+- 0.10 × 85 = 8.50
+- 0.10 × 90 = 9.00
+- 0.05 × 70 = 3.50
+- **Σ = 82.50** ← total
+
+תפיקו \`opportunity.total\` = 82 (round to int) או 82.5 (keep decimal). לעולם לא 80 (avg) ולא משקלים שווים.
+
+**JSON record חובה לכלול שדה verification:**
+\`\`\`json
+"opportunity": {
+  "business_value": 95, "win_probability": 80, "qualified_demand": 70,
+  "click_yield": 75, "aeo_fit": 85, "cluster_leverage": 90, "operational_ease": 70,
+  "total": 82.5,
+  "decision": "take_now",
+  "_formula_verification": "0.25·95 + 0.20·80 + 0.15·70 + 0.15·75 + 0.10·85 + 0.10·90 + 0.05·70 = 23.75+16.00+10.50+11.25+8.50+9.00+3.50 = 82.50"
+}
+\`\`\`
+**\`_formula_verification\` חובה לכלול את החישוב המילולי** — self-critique בודק אותו.
 
 **Thresholds:**
 - 70+ → לוקחים במחזור הקרוב
@@ -114,8 +132,19 @@ export const AEO_TARGET_SCORING = `
 
 **לא כל keyword טוב ל-SEO הוא טוב ל-AEO.** AEO target = subset נפרד.
 
-**הנוסחה:**
+**הנוסחה (משקלים מדויקים — Σ=1.0):**
 \`AEO Target = 0.30·SN + 0.25·FD + 0.20·FU + 0.15·ES + 0.10·CV\`
+
+🚫 **אסור משקלים שווים (1/5=0.20) או ממוצע פשוט.** משקלים מדויקים: 0.30 / 0.25 / 0.20 / 0.15 / 0.10.
+
+**דוגמת חישוב מלאה:**
+SN=75, FD=80, FU=85, ES=60, CV=70
+- 0.30 × 75 = 22.5
+- 0.25 × 80 = 20.0
+- 0.20 × 85 = 17.0
+- 0.15 × 60 = 9.0
+- 0.10 × 70 = 7.0
+- **Σ = 75.5**
 
 | רכיב | משמעות |
 |---|---|
@@ -126,6 +155,8 @@ export const AEO_TARGET_SCORING = `
 | CV | Citation Value — שווה ציטוט במקום אחר? (data, definition, comparison) |
 
 **70+ → AEO-priority subset** (מקבל content treatment ייחודי: structured, factual, comparison-tables, schema)
+
+**JSON: \`aeo._formula_verification\` חובה** — חישוב מילולי כמו opportunity.
 
 **Query shapes שלרוב מתאימים ל-AEO:**
 "מה ההבדל בין", "איך לבחור", "כמה עולה", "מה זה", "הכי טוב X ל-Y",
@@ -451,6 +482,32 @@ export const REALISM_CHECK = `
 // ────────────────────────────────────────────────────────────────────────────
 // 10. Confidence labeling
 // ────────────────────────────────────────────────────────────────────────────
+
+export const CONFIDENCE_INTEGRITY_RULE = `
+## Confidence Integrity — Hard rules
+
+🚫 **אסור confidence: high אם אין real DFS data backing את ה-claims.**
+
+**Hard rules — חייבים לפסול \`high\` ולסמן \`working_hypothesis\` או \`medium\`:**
+- Keyword: אם \`volume_monthly === null\` AND \`difficulty_0_100 === null\` AND \`current_position === null\` → confidence ≠ high (אין נתונים מ-DFS לאמת)
+- Competitor: אם \`backlinks data unavailable\` AND \`onpage audit unavailable\` → confidence ≠ high
+- Persona: אם אין \`dfs_trustpilot_reviews\` ב-evidence AND אין user interviews → confidence ≠ high (אסור 'validated' ללא ראיונות)
+- Pricing: אם method_used יש רק \`competitor_benchmark\` בלי WTP interviews → confidence ל-pricing = working_hypothesis
+
+**מותר \`high\`:**
+- DFS verbatim data + entity confirmed (real volume, real KD, real backlinks)
+- Upstream stage records cited as source (with explicit reference)
+- Real interview transcripts in answers
+
+**\`medium\` כברירת מחדל:**
+- Pattern inferred מ-DFS partial data
+- Industry priors + 1-2 verifiable points
+- Vertical knowledge מוסבר עם ציטוט
+
+**\`working_hypothesis\` חובה:**
+- כל invented number ללא DFS backing
+- Vertical priors בלבד ללא ראיות specific לעסק
+- Cross-stage reference ל-stage שלא הורץ עדיין`
 
 export const CONFIDENCE_LABELING = `
 ## Confidence Labeling — חובה

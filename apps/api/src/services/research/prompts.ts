@@ -40,6 +40,7 @@ import {
     POSITIONING_STACK_HE,
     FIRST_WIN_CHANNEL_RULES,
     REALISM_CHECK,
+    CONFIDENCE_INTEGRITY_RULE,
     CONFIDENCE_LABELING,
     JSON_OUTPUT_RULES,
     DFS_DATA_RULE,
@@ -263,6 +264,8 @@ ${COMPETITOR_BUCKETING}
 ${COMPETITOR_ALWAYS_ON_SIGNALS}
 
 ${IL_SIGNALS_CHECKLIST}
+
+${CONFIDENCE_INTEGRITY_RULE}
 
 ${CONFIDENCE_LABELING}
 
@@ -490,6 +493,8 @@ ${STRIKING_DISTANCE_RULE}
 
 ${CANNIBALIZATION_RULE}
 
+${CONFIDENCE_INTEGRITY_RULE}
+
 ${CONFIDENCE_LABELING}
 
 ${JSON_OUTPUT_RULES}
@@ -561,13 +566,13 @@ ${DFS_DATA_RULE}
 \`\`\`
 
 **חובה:**
-- מינימום 30 records, מתוכם:
-  - ≥ 10 with opportunity.decision = "take_now" (score ≥ 70)
-  - ≥ 5 AEO-priority (aeo.is_priority = true, score ≥ 70)
-  - ≥ 5 striking-distance (current_position 4-20)
-- כל record חייב volume/CPC/KD מ-DFS verbatim — אם זה לא ב-DFS data, סמנו null + confidence: working_hypothesis
-- Opportunity score חייב להיות חישוב לפי הנוסחה (0.25·BV + 0.20·WP + ...) — לא ניחוש
-- AEO score לפי הנוסחה (0.30·SN + 0.25·FD + ...) — לא ניחוש
+- **מינימום 15 records** (Hebrew/IL niches לעיתים מצומצמים — 30 לא תמיד ריאליסטי). מתוכם:
+  - ≥ 5 with opportunity.decision = "take_now" (score ≥ 70)
+  - ≥ 3 AEO-priority (aeo.is_priority = true, score ≥ 70)
+  - ≥ 3 striking-distance (current_position 4-20, אם יש GSC/ranked_keywords data)
+- כל record חייב volume/CPC/KD מ-DFS verbatim — אם זה לא ב-DFS data, סמנו null + **confidence: working_hypothesis** (חוק קשיח, לא ברירת מחדל).
+- **Opportunity score** חישוב **לפי הנוסחה המדויקת** (0.25·BV + 0.20·WP + 0.15·QD + 0.15·CY + 0.10·AEO + 0.10·CL + 0.05·OE) — אסור משקלים שווים, אסור ממוצע. **\`opportunity._formula_verification\` חובה** עם החישוב המילולי.
+- **AEO score** לפי הנוסחה (0.30·SN + 0.25·FD + 0.20·FU + 0.15·ES + 0.10·CV) — אסור משקלים שווים. **\`aeo._formula_verification\` חובה**.
 - intent.jtbd חייב להיות במבנה "כש[סיטואציה], אני רוצה [פעולה], על מנת ש[תוצאה], מבלי לסכן [downside]"
 
 ### חלק 3: Cluster Map (markdown)
@@ -724,6 +729,8 @@ ${TRUST_HIERARCHY_METHOD}
 ${PRICING_VALIDATION_METHOD}
 
 ${LANGUAGE_DECISION}
+
+${CONFIDENCE_INTEGRITY_RULE}
 
 ${CONFIDENCE_LABELING}
 
@@ -886,6 +893,8 @@ ${POSITIONING_STACK_HE}
 
 ${LANGUAGE_DECISION}
 
+${CONFIDENCE_INTEGRITY_RULE}
+
 ${CONFIDENCE_LABELING}
 
 ${JSON_OUTPUT_RULES}
@@ -1039,6 +1048,8 @@ ${POSITIONING_STACK_HE}
 ${FIRST_WIN_CHANNEL_RULES}
 
 ${REALISM_CHECK}
+
+${CONFIDENCE_INTEGRITY_RULE}
 
 ${CONFIDENCE_LABELING}
 
@@ -1228,6 +1239,8 @@ ${TRUST_HIERARCHY_METHOD}
 
 ${PRICING_VALIDATION_METHOD}
 
+${CONFIDENCE_INTEGRITY_RULE}
+
 ${CONFIDENCE_LABELING}
 
 ${JSON_OUTPUT_RULES}
@@ -1335,6 +1348,8 @@ ${strategyHalf2}
 ${PERSONA_JTBD_FORMAT}
 
 ${TRUST_HIERARCHY_METHOD}
+
+${CONFIDENCE_INTEGRITY_RULE}
 
 ${CONFIDENCE_LABELING}
 

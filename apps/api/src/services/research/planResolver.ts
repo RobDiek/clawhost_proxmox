@@ -110,21 +110,31 @@ export function detectIntentWithReasoning(answers: Record<string, unknown> | und
  * same relative position so cross-intent flows feel consistent.
  */
 export function planForIntent(intent: ResearchIntent): StageId[] {
+    // Order rationale (per SEO playbook §6 + 11):
+    // 1. competitor_landscape FIRST — establishes who's in the SERP, link
+    //    profiles, content gaps. Every downstream stage references this.
+    // 2. Discovery stages — keyword/AEO/paid/social — use competitor signal
+    //    to ground their analysis (cluster gap, AEO citation patterns).
+    // 3. audience_personas — synthesizes from competitor + keyword landscape.
+    // 4. positioning — needs both competitor_landscape + audience_personas.
+    // 5. strategy_options — needs all prior research + positioning.
+    // 6. validation — tests strategy_options + positioning hypotheses.
+    // 7. content_plan / media_plan — execute the chosen scenario.
     switch (intent) {
         case 'seo_organic':
-            return ['seo_keyword_research', 'aeo_visibility', 'competitor_landscape',
+            return ['competitor_landscape', 'seo_keyword_research', 'aeo_visibility',
                 ...UNIVERSAL_STAGES, 'content_plan']
         case 'paid_search':
-            return ['paid_audit', 'competitor_landscape',
+            return ['competitor_landscape', 'paid_audit',
                 ...UNIVERSAL_STAGES, 'media_plan']
         case 'social_organic':
-            return ['social_landscape', 'competitor_landscape',
+            return ['competitor_landscape', 'social_landscape',
                 ...UNIVERSAL_STAGES, 'content_plan']
         case 'email_crm':
-            return ['email_competitor_audit',
+            return ['competitor_landscape', 'email_competitor_audit',
                 ...UNIVERSAL_STAGES, 'content_plan']
         case 'ecommerce':
-            return ['paid_audit', 'seo_keyword_research',
+            return ['competitor_landscape', 'seo_keyword_research', 'paid_audit',
                 ...UNIVERSAL_STAGES, 'media_plan', 'content_plan']
         case 'multichannel':
             return ['competitor_landscape', 'seo_keyword_research', 'aeo_visibility',

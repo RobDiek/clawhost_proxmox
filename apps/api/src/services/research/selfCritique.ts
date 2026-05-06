@@ -156,7 +156,7 @@ ${content.length > 22000 ? `\n_(הפלט קוצץ ל-22K תווים — בדקו
 | 2 | contradiction_pass | warning | האם sections סותרים זה את זה? |
 | 3 | actionability_pass | warning | האם כל recommendation הופך ל-next-task ברור? |
 | 4 | language_script_qa | **hard** | אין title/body language mismatch בעברית? Hebrew prompt → Hebrew output. |
-| 5 | math_sanity | **hard** | Opportunity scores, KPI forecasts, CTR logic — מתחברים? Σ weights = 1.0? |
+| 5 | math_sanity | **hard** | Opportunity score: 0.25·BV + 0.20·WP + 0.15·QD + 0.15·CY + 0.10·AEO + 0.10·CL + 0.05·OE — בדקו ש-\`opportunity._formula_verification\` נוכח ושהחישוב המילולי מתחבר ל-\`total\`. אסור משקלים שווים (1/7=0.1428). אותו הדין ל-AEO (0.30·SN + 0.25·FD + 0.20·FU + 0.15·ES + 0.10·CV). KPI forecasts + CTR logic נבדקים גם. |
 | 6 | intent_integrity | **hard** | אין mixed intents בתוך cluster? Each KW/page = single primary_intent? |
 | 7 | thinness_novelty | warning | לכל proposed page יש distinct reason-to-exist? |
 | 8 | stakeholder_readout_test | warning | SEO lead + content lead + founder יבינו אותו דבר? |
