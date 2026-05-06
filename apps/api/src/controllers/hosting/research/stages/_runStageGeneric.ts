@@ -175,6 +175,18 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         // downstream consumption (no re-parse on every read).
         const parsed = parseHybridResponse(output.content)
         if (parsed.records) output.records = parsed.records
+        // Capture non-records JSON sibling fields (Phase 3.10b: our_link_profile,
+        // link_gap_targets, cross_validation_matrix, etc.). UI per-stage
+        // renderers read these to show structured panels beyond records[].
+        if (parsed.rawJson && typeof parsed.rawJson === 'object') {
+            const root = parsed.rawJson as Record<string, unknown>
+            const extras: Record<string, unknown> = {}
+            for (const k of Object.keys(root)) {
+                if (k === 'records' || k === 'confidence') continue
+                extras[k] = root[k]
+            }
+            if (Object.keys(extras).length > 0) output.extras = extras
+        }
         if (dfsCost > 0) output.dfsCost = dfsCost
         const recRollup = parsed.records
             ? rollupConfidence(parsed.records as Array<{ confidence?: string }>)
@@ -216,6 +228,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             integrationsUsed: output.integrationsUsed,
             status: output.status,
             records: parsed.records ?? null,
+            extras: output.extras,
             dfsCost: dfsCost || undefined,
             confidence: finalConfidence,
             qualityGate: output.qualityGate,

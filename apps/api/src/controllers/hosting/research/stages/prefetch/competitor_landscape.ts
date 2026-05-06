@@ -25,6 +25,8 @@ import {
     competitorsDomain,
     backlinksSummary,
     backlinksAnchors,
+    backlinksReferringDomains,
+    backlinksCompetitors,
     onPageInstant,
     googleMyBusiness,
     LOCATION_IL,
@@ -32,6 +34,8 @@ import {
     type CompetitorsDomainItem,
     type BacklinksSummary,
     type BacklinksAnchorItem,
+    type ReferringDomainItem,
+    type BacklinksCompetitorItem,
     type OnPageItem,
     type GoogleMyBusinessItem,
 } from '@/services/research/dataforseo'
@@ -52,6 +56,21 @@ export interface CompetitorEnrichment {
     enrichmentMissing: string[]
 }
 
+/**
+ * Our own backlinks suite (Phase 3.10b). Mirror of CompetitorEnrichment for
+ * the OWN domain — gives the prompt a baseline to compare against
+ * competitor link profiles + identify link-gap targets to outreach.
+ */
+export interface OwnLinkProfile {
+    summary?: BacklinksSummary
+    anchorPatterns?: BacklinksAnchorItem[]
+    referringDomains?: ReferringDomainItem[]
+    /** Domains linking to competitors but NOT to us — outreach prospect list. */
+    linkGapCandidates?: BacklinksCompetitorItem[]
+    /** Per-call diagnostics for honest "data unavailable" reporting in prompt. */
+    enrichmentMissing: string[]
+}
+
 export interface CompetitorLandscapeDfsData {
     /** Our own domain — null if not configured (stage will note this in prompt) */
     ourDomain: string | null
@@ -61,6 +80,8 @@ export interface CompetitorLandscapeDfsData {
     competitors: CompetitorsDomainItem[]
     /** Top 5 enriched with backlinks/anchors/onPage. */
     topEnriched: CompetitorEnrichment[]
+    /** Phase 3.10b: our own link profile + link-gap analysis. */
+    ourLinks: OwnLinkProfile
     /** Our own GMB profile if found (null if not local business or not registered) */
     ourGmb: GoogleMyBusinessItem | null
     /** Sum DFS USD cost (cache misses only) — for logging */
@@ -137,6 +158,47 @@ export async function prefetchCompetitorLandscape(
         }
     }
 
+    // ─── SECONDARY: our own backlinks suite (Phase 3.10b) ──
+    // Link profile baseline + anchor distribution + lost-link recovery candidates
+    // + link-gap analysis (domains linking to competitors but not us).
+    // All best-effort — failures fall through to enrichmentMissing flags.
+    const ourLinks: OwnLinkProfile = { enrichmentMissing: [] }
+    if (ourDomain) {
+        const [oursSum, oursAnch, oursRef, linkGap] = await Promise.allSettled([
+            backlinksSummary(instanceId, ourDomain),
+            backlinksAnchors(instanceId, ourDomain, { limit: 50 }),
+            backlinksReferringDomains(instanceId, ourDomain, { limit: 100, include_lost: true }),
+            backlinksCompetitors(instanceId, ourDomain, { limit: 30 }),
+        ])
+        if (oursSum.status === 'fulfilled') {
+            trackCall(oursSum.value)
+            ourLinks.summary = oursSum.value.items[0]
+        } else {
+            ourLinks.enrichmentMissing.push('our_backlinks_summary')
+            console.warn(`[prefetch/competitor_landscape] our backlinks summary failed:`, (oursSum.reason as Error).message)
+        }
+        if (oursAnch.status === 'fulfilled') {
+            trackCall(oursAnch.value)
+            ourLinks.anchorPatterns = oursAnch.value.items
+        } else {
+            ourLinks.enrichmentMissing.push('our_backlinks_anchors')
+        }
+        if (oursRef.status === 'fulfilled') {
+            trackCall(oursRef.value)
+            ourLinks.referringDomains = oursRef.value.items
+        } else {
+            ourLinks.enrichmentMissing.push('our_referring_domains')
+        }
+        if (linkGap.status === 'fulfilled') {
+            trackCall(linkGap.value)
+            ourLinks.linkGapCandidates = linkGap.value.items
+        } else {
+            ourLinks.enrichmentMissing.push('link_gap_analysis')
+        }
+    } else {
+        ourLinks.enrichmentMissing.push('no_domain_configured')
+    }
+
     // ─── SECONDARY enrichment: best-effort per competitor ──
     const topNDomains = competitors.slice(0, 5).map(c => c.domain)
     const topEnriched: CompetitorEnrichment[] = []
@@ -201,6 +263,7 @@ export async function prefetchCompetitorLandscape(
         hasCompetitorData: competitors.length > 0,
         competitors,
         topEnriched,
+        ourLinks,
         ourGmb,
         totalCostUsd,
         cacheHits,

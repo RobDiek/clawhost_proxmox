@@ -202,6 +202,42 @@ function renderEnrichmentTable(top: CompetitorEnrichment[]): string {
     }).join('\n\n')
 }
 
+function renderOurLinksBlock(ours: CompetitorLandscapeDfsData['ourLinks']): string {
+    if (!ours) return '*(no link data)*'
+    if (ours.enrichmentMissing.includes('no_domain_configured')) return '*(אין דומיין מוגדר)*'
+
+    const sum = ours.summary
+    const summaryLine = sum
+        ? `**Profile:** backlinks=${sum.backlinks} · referring_domains=${sum.referring_domains} · referring_main=${sum.referring_main_domains} · spam_score=${sum.backlinks_spam_score} · rank=${sum.rank}`
+        : '*(our backlinks summary unavailable — ' + ours.enrichmentMissing.filter(m => m === 'our_backlinks_summary').join('') + ')*'
+
+    const topAnchors = ours.anchorPatterns?.slice(0, 10).map(a => `"${a.anchor}" (${a.referring_domains}rd)`).join(', ') || '*(anchor data unavailable)*'
+
+    const refTotal = ours.referringDomains?.length || 0
+    const refLost = ours.referringDomains?.filter(r => r.is_lost).length || 0
+    const refLine = refTotal > 0
+        ? `**Referring domains (top 100):** active=${refTotal - refLost} · lost=${refLost} · top 5 by rank: ${ours.referringDomains?.filter(r => !r.is_lost).slice(0, 5).map(r => r.domain + '(rank ' + r.rank + ')').join(', ') || '—'}`
+        : '*(referring domains data unavailable)*'
+
+    const lostList = ours.referringDomains?.filter(r => r.is_lost).slice(0, 8).map(r => r.domain + (r.lost_date ? ` (lost: ${r.lost_date.substring(0, 10)})` : '')).join(', ') || ''
+    const lostLine = refLost > 0 ? `**Lost links (top 8 by recency):** ${lostList}` : ''
+
+    const gapTotal = ours.linkGapCandidates?.length || 0
+    const gapLine = gapTotal > 0
+        ? `**Link-gap candidates (domains linking to competitors but NOT to us, top ${Math.min(gapTotal, 10)}):**\n` +
+          ours.linkGapCandidates!.slice(0, 10).map(g => `- ${g.target} (rank ${g.rank}, ${g.referring_domains}rd, intersects ${g.intersections} of our competitors)`).join('\n')
+        : '*(link-gap analysis unavailable — possibly Backlinks API not activated)*'
+
+    return `${summaryLine}
+
+**Top anchor texts (DFS backlinks/anchors):** ${topAnchors}
+
+${refLine}
+${lostLine ? '\n' + lostLine : ''}
+
+${gapLine}`
+}
+
 function renderGmbBlock(gmb: CompetitorLandscapeDfsData['ourGmb']): string {
     if (!gmb) return '*(לא נמצא פרופיל Google Business עבור העסק — אם אתם עסק מקומי, זה red flag לטיפול מיידי)*'
     const rating = gmb.rating ? `${gmb.rating.value}/${gmb.rating.rating_max} (${gmb.rating.votes_count} reviews)` : 'אין rating'
@@ -249,6 +285,9 @@ ${renderCompetitorListTable(dfs.competitors)}
 
 ### Top 5 enriched — backlinks + anchors + on-page
 ${renderEnrichmentTable(dfs.topEnriched)}
+
+### Our own link profile + link-gap analysis (Phase 3.10b)
+${renderOurLinksBlock(dfs.ourLinks)}
 
 ### Our Google My Business profile
 ${renderGmbBlock(dfs.ourGmb)}
@@ -315,24 +354,58 @@ ${DFS_DATA_RULE}
       "generated_at": "ISO timestamp"
     }
   ],
-  "confidence": "high" | "medium" | "working_hypothesis"
+  "our_link_profile": {
+    "_note": "סיכום של DFS backlinks data על הדומיין שלנו (storage-station / השם שלכם), לא של המתחרים. אם enrichmentMissing מציין — confidence: working_hypothesis.",
+    "backlinks_total": 0,
+    "referring_domains_total": 0,
+    "spam_score": 0,
+    "rank": 0,
+    "anchor_distribution_top5": [
+      { "anchor": "טקסט", "share_pct": 0, "referring_domains": 0 }
+    ],
+    "lost_links_top5": [
+      { "domain": "...", "lost_date": "YYYY-MM-DD", "rank": 0, "recovery_priority": "high | medium | low" }
+    ],
+    "vs_competitors_summary": "1-2 משפטים: איפה אנחנו עומדים מבחינת link authority מול ה-top 5 מתחרים — זמין fewer/similar/more referring domains, anchor mix נקי/spammy, וכו׳",
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "link_gap_targets": [
+    {
+      "domain": "domain.com",
+      "current_rank": 0,
+      "intersects_n_competitors": 0,
+      "outreach_angle": "1 משפט: למה הם ירצו לקשר אלינו (relevance, exchange, mention)",
+      "priority": "high | medium | low",
+      "_note": "מ-DFS backlinks/competitors. סדר לפי intersects (קונקרציה גבוהה עם המתחרים שלנו = יחס יותר רלוונטי) × rank של ה-domain."
+    }
+  ],
+  "confidence": "high | medium | working_hypothesis"
 }
 \`\`\`
 
-**חובה:** הפיקו לפחות 5 records, בעדיפות top 5 מ-DFS enriched + 1-2 substitute/adjacent.
+**חובה:** הפיקו לפחות 5 records של מתחרים, בעדיפות top 5 מ-DFS enriched + 1-2 substitute/adjacent.
 **כל record חייב evidence array עם DFS endpoints שספקו את הנתון.**
 **אם backlinks data לא זמין למתחרה (enrichmentMissing מציין) — confidence ירד ל-working_hypothesis עם הסבר.**
+**\`our_link_profile\` ו-\`link_gap_targets\` חובה** — מבוססים על Phase 3.10b backlinks suite. אם הסעיף לא זמין (אין Backlinks API subscription, enrichmentMissing מציין 'no_backlinks_data') — סמנו את שתי המקטעים כ-confidence: working_hypothesis עם הסבר.
+**link_gap_targets:** מינימום 5, אם יש data. סדר לפי priority (high → low) + intersects count.
 
 ### חלק 3: Topical Authority Venn (markdown)
 איפה אנחנו חופפים עם המתחרים בנושא, ואיפה יש "אדמת הפקר" שאף אחד לא משחק עליה. 3-5 חפיפות + 3-5 white spaces.
 
-### חלק 4: Why Now? — IL timing
+### חלק 4: Link Profile vs Competitors (markdown — Phase 3.10b)
+ניתוח השוואתי ב-2-3 פסקאות:
+- איפה אנחנו עומדים מבחינת backlinks total + referring domains total מול avg של top 5 competitors?
+- האם ה-anchor mix שלנו cleaner/spammier מאשר אצלם?
+- כמה lost links ניתן להחזיר (top 3 priorities)?
+- 5 link-gap candidates עם outreach angle לכל אחד.
+
+### חלק 5: Why Now? — IL timing
 3 גורמי timing ספציפיים ל-2026 ו-IL — כל אחד עם מקור (research / news / market data) ועם confidence inline marker.
 
-### חלק 5: Threat Ranking
+### חלק 6: Threat Ranking
 דירגו את המתחרים לפי איום על ה-route-to-win שלנו (לא לפי "מי הכי גדול"). הסבירו דירוג.
 
-### חלק 6: Recommended Actions (top 5)
+### חלק 7: Recommended Actions (top 5)
 פעולות קונקרטיות בעקבות הניתוח. כל פעולה — owner + timeline + confidence inline marker.
 
 ---

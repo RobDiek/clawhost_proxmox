@@ -137,6 +137,8 @@ export interface ExecuteStageOutput {
         revised: boolean
         skipped?: boolean
     }
+    /** Non-records JSON sibling fields (Phase 3.10b — our_link_profile, etc). */
+    extras?: Record<string, unknown>
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -498,6 +500,7 @@ export async function saveStageResult(
         ...(output.dfsCost !== undefined ? { dfsCost: output.dfsCost } : {}),
         ...(output.confidence ? { confidence: output.confidence } : {}),
         ...(output.qualityGate ? { qualityGate: output.qualityGate } : {}),
+        ...(output.extras ? { extras: output.extras } : {}),
     }
 
     results[stageId] = stageResult

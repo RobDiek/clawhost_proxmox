@@ -11133,6 +11133,7 @@ async function runStageV2(sid) {
     pipelineV2State.results[sid] = {
       content: d.data.content,
       records: d.data.records,
+      extras: d.data.extras,
       source: d.data.source,
       confidence: d.data.confidence,
       dfsCost: d.data.dfsCost,
@@ -11173,13 +11174,17 @@ function viewStageResultV2(sid) {
   qualEl.innerHTML = renderQualityGateBanner(result.qualityGate);
 
   // Records — per-type structured renderer (Phase 3.8b).
-  // Falls back to JSON pretty-print for unknown stage types.
+  // Phase 3.10b: also render `extras` (sibling JSON fields like
+  // our_link_profile, link_gap_targets) for stages that emit them.
   var recsEl = document.getElementById('pipelineV2-result-records');
+  var html = '';
   if (result.records && result.records.length) {
-    recsEl.innerHTML = renderRecordsByStage(sid, result.records);
-  } else {
-    recsEl.innerHTML = '';
+    html += renderRecordsByStage(sid, result.records);
   }
+  if (sid === 'competitor_landscape' && result.extras) {
+    html += renderOurLinkProfileBlock(result.extras);
+  }
+  recsEl.innerHTML = html;
 
   // Markdown content
   var contentEl = document.getElementById('pipelineV2-result-content');
@@ -11424,6 +11429,49 @@ function renderCompetitorRecords(records) {
     + '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:6px">' + records.length + ' מתחרים</div>'
     + records.map(renderCompetitorCard).join('')
     + '</div>';
+}
+
+// Phase 3.10b — our own link profile + link-gap targets renderer.
+// Pulled from rawJson (sibling to records) when stage = competitor_landscape.
+function renderOurLinkProfileBlock(rawJson) {
+  if (!rawJson || typeof rawJson !== 'object') return '';
+  var olp = rawJson.our_link_profile;
+  var gaps = rawJson.link_gap_targets || [];
+  if (!olp && (!gaps || gaps.length === 0)) return '';
+
+  var html = '<div style="margin:12px 0 8px">';
+  if (olp) {
+    var conf = olp.confidence;
+    var anchorRows = (olp.anchor_distribution_top5 || []).map(function(a) {
+      return '<tr><td style="padding:3px 6px">' + escapeHtml(a.anchor || '') + '</td><td style="padding:3px 6px;text-align:center;direction:ltr">' + (a.share_pct != null ? a.share_pct + '%' : '—') + '</td><td style="padding:3px 6px;text-align:center;direction:ltr">' + (a.referring_domains || 0) + '</td></tr>';
+    }).join('');
+    var lostRows = (olp.lost_links_top5 || []).map(function(l) {
+      var pcolor = l.recovery_priority === 'high' ? '#991B1B' : l.recovery_priority === 'medium' ? '#F59E0B' : '#9CA3AF';
+      return '<tr><td style="padding:3px 6px;direction:ltr">' + escapeHtml(l.domain || '') + '</td><td style="padding:3px 6px;direction:ltr">' + escapeHtml(l.lost_date || '') + '</td><td style="padding:3px 6px;text-align:center;direction:ltr">' + (l.rank || 0) + '</td><td style="padding:3px 6px;color:' + pcolor + '">' + escapeHtml(l.recovery_priority || '') + '</td></tr>';
+    }).join('');
+    html += '<div style="background:#fff;border:1px solid #BFDBFE;border-radius:8px;padding:10px 12px;margin-bottom:8px">'
+      +    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><strong style="font-size:0.86rem;color:#1E3A8A">🔗 Our Link Profile</strong>' + confidencePill(conf) + '</div>'
+      +    '<div style="font-size:0.72rem;color:#374151;margin-bottom:6px">backlinks: <strong>' + (olp.backlinks_total || 0) + '</strong> · referring_domains: <strong>' + (olp.referring_domains_total || 0) + '</strong> · spam: ' + (olp.spam_score || 0) + ' · rank: ' + (olp.rank || 0) + '</div>'
+      +    (olp.vs_competitors_summary ? '<div style="font-size:0.74rem;color:#4B5563;margin-bottom:6px;line-height:1.5">' + escapeHtml(olp.vs_competitors_summary) + '</div>' : '')
+      +    (anchorRows ? '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:0.72rem;color:#6B7280">Anchor distribution (top 5)</summary><table style="width:100%;font-size:0.7rem;margin-top:4px"><thead><tr><th style="padding:3px 6px;text-align:right">Anchor</th><th>Share</th><th>Domains</th></tr></thead><tbody>' + anchorRows + '</tbody></table></details>' : '')
+      +    (lostRows ? '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:0.72rem;color:#6B7280">Lost links (recovery candidates)</summary><table style="width:100%;font-size:0.7rem;margin-top:4px"><thead><tr><th style="padding:3px 6px;text-align:right">Domain</th><th>Lost</th><th>Rank</th><th>Priority</th></tr></thead><tbody>' + lostRows + '</tbody></table></details>' : '')
+      + '</div>';
+  }
+  if (gaps && gaps.length) {
+    var gapRows = gaps.slice(0, 15).map(function(g) {
+      var pcolor = g.priority === 'high' ? '#10B981' : g.priority === 'medium' ? '#F59E0B' : '#9CA3AF';
+      return '<tr style="border-top:1px solid #F3F4F6">'
+        + '<td style="padding:4px 6px;direction:ltr">' + escapeHtml(g.domain || '') + '</td>'
+        + '<td style="padding:4px 6px;text-align:center;direction:ltr">' + (g.current_rank || 0) + '</td>'
+        + '<td style="padding:4px 6px;text-align:center;direction:ltr">' + (g.intersects_n_competitors || 0) + '</td>'
+        + '<td style="padding:4px 6px;color:' + pcolor + '">' + escapeHtml(g.priority || '') + '</td>'
+        + '<td style="padding:4px 6px;font-size:0.7rem;color:#4B5563">' + escapeHtml(g.outreach_angle || '') + '</td>'
+        + '</tr>';
+    }).join('');
+    html += '<details style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:0;margin-bottom:8px"><summary style="cursor:pointer;padding:10px 12px;font-size:0.84rem;font-weight:500;color:#1E3A8A;display:flex;justify-content:space-between;align-items:center">🎯 Link-Gap Targets <span style="font-size:0.72rem;color:#6B7280">' + gaps.length + ' מועמדים</span></summary><div style="overflow-x:auto"><table style="width:100%;font-size:0.74rem;border-collapse:collapse"><thead style="background:#F9FAFB"><tr><th style="padding:5px 6px;text-align:right">Domain</th><th>Rank</th><th>Intersect</th><th>Priority</th><th style="text-align:right">Outreach angle</th></tr></thead><tbody>' + gapRows + '</tbody></table></div></details>';
+  }
+  html += '</div>';
+  return html;
 }
 
 function renderCompetitorCard(r) {

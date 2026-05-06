@@ -220,6 +220,13 @@ export interface StageResult {
         revised: boolean
         skipped?: boolean
     }
+    /**
+     * Non-records JSON fields from the hybrid response — sibling top-level
+     * keys parsed alongside `records` (e.g. our_link_profile, link_gap_targets,
+     * cross_validation_matrix, confidence_score). Phase 3.10b adds backlinks
+     * suite output here for competitor_landscape.
+     */
+    extras?: Record<string, unknown>
 }
 
 export interface ResearchPlan {
