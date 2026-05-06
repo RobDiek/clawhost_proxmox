@@ -34,6 +34,7 @@ import { buildPromptForStage } from '@/services/research/prompts'
 import { parseHybridResponse, rollupConfidence } from '@/services/research/hybridParser'
 import { DfsError } from '@/services/research/dataforseo'
 import { prefetchCompetitorLandscape } from './prefetch/competitor_landscape'
+import { prefetchSeoKeywordResearch } from './prefetch/seo_keyword_research'
 import type { ResearchDataV2, StageId } from '@/services/research/types'
 
 /**
@@ -46,7 +47,8 @@ type Prefetcher = (instanceId: string, rd: ResearchDataV2) => Promise<unknown>
 
 const STAGE_PREFETCHERS: Partial<Record<StageId, Prefetcher>> = {
     competitor_landscape: prefetchCompetitorLandscape,
-    // seo_keyword_research, audience_personas added in subsequent commits
+    seo_keyword_research: prefetchSeoKeywordResearch,
+    // audience_personas added in 3.5c-3
 }
 
 /**

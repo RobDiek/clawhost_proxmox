@@ -22,9 +22,17 @@ import { getStageContent } from './reader'
 import type { ResearchDataV2, StageId } from './types'
 import {
     INTENT_TAXONOMY,
+    OPPORTUNITY_SCORING,
+    AEO_TARGET_SCORING,
+    LANGUAGE_DECISION,
+    SERP_FEATURE_RULES_HE,
     COMPETITOR_BUCKETING,
     COMPETITOR_ALWAYS_ON_SIGNALS,
     IL_SIGNALS_CHECKLIST,
+    CLUSTER_ARCHITECTURE,
+    PROGRAMMATIC_RULES,
+    STRIKING_DISTANCE_RULE,
+    CANNIBALIZATION_RULE,
     CONFIDENCE_LABELING,
     JSON_OUTPUT_RULES,
     DFS_DATA_RULE,
@@ -327,79 +335,255 @@ ${feedbackLine}`,
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// seo_keyword_research (was stage 2)
+// seo_keyword_research — Phase 3.5c rewrite with full methodology + DFS data
 // ────────────────────────────────────────────────────────────────────────────
+//
+// Architecture: stage controller does the DFS prefetch (keyword_ideas 700,
+// difficulty bulk top 100, SERP advanced top 10, ranked_keywords for our
+// domain). This builder receives `dfsData: SeoKeywordResearchDfsData`
+// and renders all of it as factual sections — no estimation by the agent.
+//
+// Output is hybrid: KeywordRecord[] JSON + Hebrew markdown (cluster map,
+// striking-distance subset, AEO target subset, content gap analysis,
+// recommended priority queue). Per-record opportunity score must be
+// computed from the formula, not invented.
+
+import type { SeoKeywordResearchDfsData } from '@/controllers/hosting/research/stages/prefetch/seo_keyword_research'
+
+function renderKeywordIdeasTable(ideas: SeoKeywordResearchDfsData['ideas'], limit = 100): string {
+    if (ideas.length === 0) return '*(לא הוחזרו keyword ideas)*'
+    const top = [...ideas]
+        .filter(k => typeof k.keyword_info?.search_volume === 'number')
+        .sort((a, b) => (b.keyword_info?.search_volume || 0) - (a.keyword_info?.search_volume || 0))
+        .slice(0, limit)
+    const rows = top.map(k => {
+        const ki = k.keyword_info
+        const props = k.keyword_properties
+        const intent = k.search_intent_info?.main_intent || '—'
+        const kd = props?.keyword_difficulty ?? ki?.keyword_difficulty ?? '—'
+        return `| ${k.keyword} | ${ki?.search_volume ?? '—'} | ${ki?.cpc?.toFixed(2) ?? '—'} | ${ki?.competition ?? '—'} | ${kd} | ${intent} |`
+    }).join('\n')
+    return `| Keyword | Volume | CPC (ILS) | Competition | KD | DFS-intent |\n|---|---|---|---|---|---|\n${rows}`
+}
+
+function renderDifficultyTable(difficulty: SeoKeywordResearchDfsData['difficulty'], limit = 50): string {
+    if (difficulty.length === 0) return '*(bulk_keyword_difficulty unavailable)*'
+    const rows = difficulty.slice(0, limit).map(d =>
+        `| ${d.keyword} | ${d.keyword_difficulty ?? '—'} |`
+    ).join('\n')
+    return `| Keyword | Calibrated KD (0-100) |\n|---|---|\n${rows}`
+}
+
+function renderSerpSnapshots(snapshots: SeoKeywordResearchDfsData['serpSnapshots']): string {
+    if (snapshots.length === 0) return '*(SERP snapshots unavailable)*'
+    return snapshots.map(s => {
+        const f = s.features
+        const featureFlags = [
+            f.has_ai_overview ? 'AIO' : null,
+            f.has_people_also_ask ? 'PAA' : null,
+            f.has_featured_snippet ? 'FS' : null,
+            f.has_video_carousel ? 'Video' : null,
+            f.has_image_pack ? 'Images' : null,
+            f.has_local_pack ? 'LocalPack' : null,
+            f.has_shopping_carousel ? 'Shopping' : null,
+        ].filter(Boolean).join(' / ') || 'none'
+        const top3 = f.organic_top_3.map((o, i) => `  ${i + 1}. **${o.domain}** — ${o.title.substring(0, 80)}\n     ${o.url}`).join('\n')
+        const paa = f.paa_questions.length > 0
+            ? `**PAA questions (${f.paa_questions.length}):** ${f.paa_questions.slice(0, 5).map(q => `"${q}"`).join(', ')}`
+            : ''
+        const aio = f.aio_cited_domains.length > 0
+            ? `**AIO cites:** ${f.aio_cited_domains.slice(0, 5).join(', ')}`
+            : ''
+        return `### ${s.keyword}
+- **SERP features present:** ${featureFlags}
+- **Top 3 organic:**
+${top3 || '  *(no organic results)*'}
+${paa}
+${aio}`
+    }).join('\n\n')
+}
+
+function renderRankedKeywords(ranked: SeoKeywordResearchDfsData['rankedKeywords']): string {
+    if (ranked.length === 0) return '*(לא נמצאו keywords שעבורם הדומיין שלכם מדורג, או שאין domain מוגדר)*'
+    const rows = ranked.slice(0, 50).map(r => {
+        const kw = r.keyword_data?.keyword
+        const pos = r.ranked_serp_element?.serp_item?.rank_absolute
+        const url = r.ranked_serp_element?.serp_item?.url
+        const vol = r.keyword_data?.keyword_info?.search_volume
+        const kd = r.keyword_data?.keyword_info?.keyword_difficulty ?? '—'
+        const bucket = pos === undefined ? '—'
+            : pos <= 8 ? 'fast_optimization (4-8)'
+            : pos <= 15 ? 'content_upgrade (9-15)'
+            : pos <= 20 ? 'rebuild_or_remap (16-20)'
+            : `pos ${pos}`
+        return `| ${kw ?? '—'} | ${pos ?? '—'} | ${bucket} | ${vol ?? '—'} | ${kd} | ${url ?? '—'} |`
+    }).join('\n')
+    return `| Keyword | Position | Striking bucket | Volume | KD | URL |\n|---|---|---|---|---|---|\n${rows}`
+}
 
 export function buildSeoKeywordResearchPrompt(opts: PromptOpts): PromptResult {
-    const { businessName, answers, feedback, tools, historicalAssetsBlock } = opts
+    const { businessName, businessDesc, answers, feedback, historicalAssetsBlock } = opts
     const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
     const haBlock = historicalAssetsBlock || ''
-    const platforms = answers.platforms as string | undefined
+    const prodBlk = productsBlock(answers)
+
+    const dfs = opts.dfsData as SeoKeywordResearchDfsData | undefined
+    if (!dfs) throw new Error('seo_keyword_research: dfsData prefetch is required')
+
+    const dfsAvailability = `**מקור הנתונים:** DataForSEO live data, ${new Date().toISOString().slice(0, 10)} | seeds: ${dfs.seeds.join(', ')} | language: ${dfs.languageCode} | location: IL | ideas=${dfs.ideas.length} difficulty=${dfs.difficulty.length} serp=${dfs.serpSnapshots.length} ranked=${dfs.rankedKeywords.length} | $${dfs.totalCostUsd.toFixed(4)} (${dfs.cacheHits}/${dfs.cacheHits + dfs.cacheMisses} cache hits)${dfs.enrichmentMissing.length ? ' | partial: ' + dfs.enrichmentMissing.join(', ') : ''}`
 
     return {
-        agentId: 'sayer',
-        useDirectApi: false,
-        minLength: 1000,
-        prompt: `# משימה: מחקר מילות מפתח עבור "${businessName}"
+        agentId: 'menateach',
+        useDirectApi: true,
+        minLength: 4000,
+        prompt: `# מחקר מילות מפתח מקיף — "${businessName}"
+
+## תיאור העסק
+${businessDesc}
+${prodBlk ? `\n## המוצרים/שירותים\n${prodBlk}\n` : ''}
 ${haBlock}
-## הוראות
-קרא את research-data/RESEARCH_STAGE1.md (תוצאות שלב 1 — מתחרים).
-${dfsToolHint(tools)}
-${searchToolHint(tools)}
 
-מצא (בסדר הזה):
-1. **15 מילות מפתח** (עברית + אנגלית) — ממוקדות לתחום של ${businessName}
-2. **SERP Position Analysis** — לכל מילה: **מי מדורג בטופ 3**? באיזה URL ספציפי? מה **אורך המאמר** שם? איך ${businessName} יכול לעקוף?
-3. **שאלות נפוצות** (10) — שאנשים שואלים בגוגל
-4. **Long-tail keywords** (10) — ספציפיות עם כוונת רכישה גבוהה
-5. **Real Gap Analysis** — 3 מילות מפתח ש**אף אחד** מהמתחרים לא מכסה
-${platforms ? `\nפלטפורמות: ${platforms}` : ''}
+## נתוני DataForSEO — להשתמש verbatim, אסור להמציא volumes/CPC/KD
 
-## פורמט תשובה (חובה)
-### מילות מפתח ראשיות — עם ניתוח SERP
-לכל מילה — טבלה עם 3 תוצאות טופ 3:
+${dfsAvailability}
 
-**מילה 1: [מילה עברית] / [מילה אנגלית]**
-- **כוונה:** מסחרית/מידעית/ניווטית
-${tools.hasDataforseo ? '- **Volume/Difficulty/CPC:** [מספרים מ-DataForSEO]' : '- **Difficulty משוערת:** low/medium/high'}
-- **טופ 3 ב-SERP:**
-  | # | URL | שם אתר | אורך מאמר | זווית/זוית תוכן |
-  |---|---|---|---|---|
-  | 1 | [URL] | [domain] | X מילה | [מה הזווית] |
-  | 2 | ... | ... | ... | ... |
-  | 3 | ... | ... | ... | ... |
-- **איך לעקוף:** [מה צריך לעשות כדי להיכנס לטופ 10 — אורך, זווית, עומק]
-- **עדיפות:** 🔴/🟡/🟢
+### Top 100 keyword ideas — DFS keyword_ideas (sorted by volume)
+${renderKeywordIdeasTable(dfs.ideas, 100)}
 
-(חזור ל-15 מילות מפתח — לפחות 10 עם ניתוח SERP מלא)
+${dfs.ideas.length > 100 ? `_(${dfs.ideas.length - 100} additional ideas available; not all rendered. Tail covers long-tail BOFU candidates.)_` : ''}
 
-### שאלות נפוצות (People Also Ask / FAQ)
-לכל שאלה: כוונה + ${tools.hasDataforseo ? 'volume' : 'תחרות'} + **מי עונה עליה כיום בעברית** + גודל ה-gap
+### Calibrated keyword difficulty — DFS bulk_keyword_difficulty (top 50)
+${renderDifficultyTable(dfs.difficulty, 50)}
 
-1. **[שאלה]** — כוונה: [מידעית/מסחרית] — [volume/תחרות] — עונים: [שמות ספקים / "אין"] — Gap: [רמה]
-...
+### SERP feature snapshots — DFS serp/google/organic/live/advanced (top 10 priority)
+${renderSerpSnapshots(dfs.serpSnapshots)}
 
-### Long-Tail Keywords (BOFU — Bottom of Funnel)
-| # | מילת מפתח | שפה | כוונה | הכאב שמאחוריה | מתחרה מדורג? |
-|---|---|---|---|---|---|
-| 1 | ... | עברית/אנגלית | מסחרית | [הכאב] | [שם/"אין"] |
+### Striking-distance scan — DFS ranked_keywords (our domain, position ≤ 50)
+${renderRankedKeywords(dfs.rankedKeywords)}
 
-### 3 הזדמנויות מפתח (Quick Wins)
-לכל הזדמנות:
-1. **[מילה]**
-   - למה quick win: [difficulty X, volume Y, תחרות חלשה]
-   - כמה זמן להגיע לטופ 10: [הערכה]
-   - נוסחת מאמר: [כותרת מוצעת + מבנה: X מילה, FAQ, טבלה השוואה]
-2. ...
-3. ...
+---
 
-### Real Content Gaps (נושאים שאף אחד לא מכסה)
-| # | נושא / שאילתה | למה חסר | איך לנצל |
-|---|---|---|---|
-| 1 | ... | ... | ... |
+## פקודות עבודה — methodology
 
-${feedbackLine}
-${RULES}`,
+${INTENT_TAXONOMY}
+
+${OPPORTUNITY_SCORING}
+
+${AEO_TARGET_SCORING}
+
+${LANGUAGE_DECISION}
+
+${SERP_FEATURE_RULES_HE}
+
+${CLUSTER_ARCHITECTURE}
+
+${PROGRAMMATIC_RULES}
+
+${STRIKING_DISTANCE_RULE}
+
+${CANNIBALIZATION_RULE}
+
+${CONFIDENCE_LABELING}
+
+${JSON_OUTPUT_RULES}
+
+${DFS_DATA_RULE}
+
+---
+
+## פלט נדרש
+
+### חלק 1: Executive Summary (markdown — 2-3 פסקאות)
+תקצרו את ממצאי המחקר: כמה keywords עם opportunity ≥ 70? כמה AEO-priority subset? כמה striking-distance fast wins? מה ה-cluster המרכזי? איזה הזדמנות פתוחה הכי גדולה?
+
+### חלק 2: JSON records — keywords (חובה!)
+
+\`\`\`json
+{
+  "records": [
+    {
+      "keyword": "מילת המפתח (Hebrew או English)",
+      "language": "he" | "en",
+      "intent": {
+        "primary": "navigational" | "brand_validation" | "info_broad" | "info_deep" | "commercial_eval" | "transactional" | "support",
+        "locality": "none" | "city" | "region" | "near_me" | "branch",
+        "urgency": "none" | "same_day" | "urgent",
+        "trust_load": "low" | "medium" | "high" | "ymyl",
+        "language_mode": "he" | "en" | "mixed" | "translit",
+        "buyer_maturity": "first_time" | "switcher" | "expert",
+        "jtbd": "JTBD statement במבנה הנדרש (overlay, לא peer-class!)"
+      },
+      "cluster": "שם cluster (pillar candidate או existing pillar)",
+      "page_type": "pillar / info_deep_spoke / comparison_spoke / pricing_explainer / faq / trust_proof / local_page",
+      "serp_features_present": ["ai_overview", "people_also_ask", "featured_snippet", "video_carousel", "image_pack", "local_pack", "shopping_carousel"],
+      "volume_monthly": 0,
+      "cpc_ils": 0.0,
+      "difficulty_0_100": 0,
+      "current_position": null,
+      "striking_bucket": "fast_optimization" | "content_upgrade" | "rebuild_or_remap" | null,
+      "opportunity": {
+        "business_value": 0,
+        "win_probability": 0,
+        "qualified_demand": 0,
+        "click_yield": 0,
+        "aeo_fit": 0,
+        "cluster_leverage": 0,
+        "operational_ease": 0,
+        "total": 0,
+        "decision": "take_now" | "take_if_strategic" | "backlog" | "skip"
+      },
+      "aeo": {
+        "synthesis_need": 0,
+        "fact_density": 0,
+        "follow_up_likelihood": 0,
+        "entity_specificity": 0,
+        "citation_value": 0,
+        "total": 0,
+        "is_priority": true | false
+      },
+      "hard_stops": ["one of: no_distinct_intent_page_type / cant_beat_serp_uniqueness / ymyl_without_expert_review / almost_only_zero_click / programmatic_thin_risk"],
+      "recommended_action": "פעולה ממוקדת: ייצור pillar / spoke / refresh existing URL / programmatic candidate / drop",
+      "owner": "SEO lead / content lead / dev / agency",
+      "confidence": "high" | "medium" | "working_hypothesis",
+      "evidence": ["dfs_keyword_ideas", "dfs_keyword_difficulty", "dfs_serp_advanced", "dfs_ranked_keywords"],
+      "generated_at": "ISO timestamp"
+    }
+  ],
+  "confidence": "high" | "medium" | "working_hypothesis"
+}
+\`\`\`
+
+**חובה:**
+- מינימום 30 records, מתוכם:
+  - ≥ 10 with opportunity.decision = "take_now" (score ≥ 70)
+  - ≥ 5 AEO-priority (aeo.is_priority = true, score ≥ 70)
+  - ≥ 5 striking-distance (current_position 4-20)
+- כל record חייב volume/CPC/KD מ-DFS verbatim — אם זה לא ב-DFS data, סמנו null + confidence: working_hypothesis
+- Opportunity score חייב להיות חישוב לפי הנוסחה (0.25·BV + 0.20·WP + ...) — לא ניחוש
+- AEO score לפי הנוסחה (0.30·SN + 0.25·FD + ...) — לא ניחוש
+- intent.jtbd חייב להיות במבנה "כש[סיטואציה], אני רוצה [פעולה], על מנת ש[תוצאה], מבלי לסכן [downside]"
+
+### חלק 3: Cluster Map (markdown)
+מפת cluster — pillar candidates + spoke architecture per cluster (6-8 spokes, page-type lattice). Internal linking pattern. Cannibalization risks flagged.
+
+### חלק 4: AEO-Priority Subset (markdown)
+רשימת AEO targets (score ≥ 70) — איזה content treatment מקבלים, איזה schema markup חובה, איזה structured-data patterns.
+
+### חלק 5: Striking-Distance Quick Wins (markdown)
+פעולות מיידיות על positions 4-20 קיימות. סדרו לפי impact × ease.
+
+### חלק 6: Programmatic SEO Opportunities (markdown — אם זוהו)
+מועמדים ל-programmatic + 6 protection rules check. אם אף אחד לא עובר את 6 הכללים — אומרים זאת מפורשות.
+
+### חלק 7: Real Content Gaps (markdown)
+keywords שאף מתחרה לא מדורג עליהם בעוד שיש demand — top 5.
+
+---
+
+${QUALITY_GATE_INSTRUCTIONS}
+
+${HARD_BLOCK_RULES}
+${feedbackLine}`,
     }
 }
 
