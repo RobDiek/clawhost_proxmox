@@ -1,0 +1,545 @@
+/**
+ * Prompt blocks — Hebrew text fragments injected into per-stage prompts.
+ *
+ * These encode Sergei's playbook into operational instructions the agent
+ * reads. Per-stage prompt builders (services/research/prompts.ts) compose
+ * these blocks instead of duplicating methodology inline.
+ *
+ * Style rules:
+ *   - Hebrew throughout (matches output language; no mental translation)
+ *   - Plural address (אתם / תוכלו) per project memory
+ *   - Tight: each block earns its tokens — no padding
+ *   - No invocations of Hashem, religious framing, or politics
+ *   - English technical terms in parentheses where standard (SERP, CTR, etc.)
+ *
+ * Why separate from methodology.ts:
+ *   - methodology.ts is structural (types, formulas, schemas)
+ *   - promptBlocks.ts is communicative (what the agent reads)
+ *   - Splitting keeps each file's concern clear and reviewable
+ */
+
+// ────────────────────────────────────────────────────────────────────────────
+// Hard-block rules — go at the bottom of every research prompt
+// ────────────────────────────────────────────────────────────────────────────
+
+export const HARD_BLOCK_RULES = `
+★★★ חוקי-על — כשל אוטומטי אם תפרו אותם ★★★
+
+🚫 **אסור לקרוא קבצים מ-/home/openclaw/.openclaw/workspace/** — בפרט:
+   MEMORY.md / HEARTBEAT.md / AGENTS.md / SOUL.md / CHANNELS.md / TOOLS.md
+   /workspace/state/* / /workspace/brands/* / /workspace/content/*
+   הם **לא חלק מהמשימה הזאת**. ההקשר היחיד שלכם הוא ה-prompt הזה.
+
+🚫 **אסור לדווח על מצב המערכת** — לא cron jobs, לא Telegram Chat ID,
+   לא integrations מחוברות, לא plugins disabled, לא config warnings.
+   זה לא market research. זו תמיכה טכנית — לא המשימה שלכם.
+
+🚫 **אסור להתחיל בתשובה מתאר** "מה אני יודע" / "מה אני רואה" / "Session
+   חדש" / "נתחיל מחדש". התחילו ישר עם התוצאה — מתחרים, keywords, וכו'.
+
+חוקים תפעוליים:
+- **בעברית בלבד** (מונחים מקצועיים באנגלית מותרים)
+- כתבו הכל כאן בתשובה — לא בקובץ
+- לכל עובדה — ציינו מקור (URL, שם אתר, או שם dataset)
+- זו משימה חדשה לגמרי — לא ראיתם אותה קודם. אל תאמרו "כבר עניתי" — ענו מחדש.
+- אל תדקלמו מה אתם מתכננים לחפש — בצעו את החיפוש או כתבו את הדוח.`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 1. Intent taxonomy — how to classify each query
+// ────────────────────────────────────────────────────────────────────────────
+
+export const INTENT_TAXONOMY = `
+## טקסונומיית כוונה (Intent) — חובה לכל keyword/topic
+
+**שכבה 1: כוונה בסיסית (בחרו אחת):**
+- \`navigational\` — חיפוש URL/דף ספציפי (לוגו של brand exact)
+- \`brand_validation\` — בדיקת brand reputation, reviews, "X scam"
+- \`info_broad\` — שאלה כללית, browsing topic
+- \`info_deep\` — בעיה ספציפית, "איך לפתור X", "ההבדל בין X ל-Y"
+- \`commercial_eval\` — השוואה לפני קנייה, "best X", "X reviews", "X vs Y"
+- \`transactional\` — כוונה לקנות/לפעול עכשיו
+- \`support\` — post-purchase, problem with existing product
+
+**שכבה 2: מודיפיקטורים (אורתוגונליים — כל שילוב אפשרי):**
+- \`locality\`: none / city / region / near_me / branch
+- \`urgency\`: none / same_day / urgent
+- \`trust_load\`: low / medium / high / ymyl (Your Money Your Life — health/legal/finance)
+- \`language_mode\`: he / en / mixed / translit
+- \`buyer_maturity\`: first_time / switcher / expert
+
+**JTBD = שכבת הסבר, לא peer-class.** הוא overlay מעל intent — אסור להציג כאלטרנטיבה ל-intent. JTBD statement format:
+"כש[סיטואציה], אני רוצה [פעולה], על מנת ש[תוצאה], מבלי לסכן [חרדה / עלות מעבר / חיסרון]."`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 2. Opportunity Score — weighted formula instructions
+// ────────────────────────────────────────────────────────────────────────────
+
+export const OPPORTUNITY_SCORING = `
+## ניקוד הזדמנות (Opportunity Score) — חובה לכל keyword/topic
+
+**אסור להשתמש ב-KD × Volume בלבד.** עבור IL/Hebrew זה גס מדי.
+
+**הנוסחה (sum=100):**
+\`Opportunity = 0.25·BV + 0.20·WP + 0.15·QD + 0.15·CY + 0.10·AEO + 0.10·CL + 0.05·OE\`
+
+| רכיב | משמעות | איך מחשבים (0-100) |
+|---|---|---|
+| BV | Business Value | revenue potential × pipeline value × LTV × sales narrative weight |
+| WP | Win Probability | page-type fit + SERP weakness + authority gap + 90-180d ריאליות |
+| QD | Qualified Demand | log(volume) × geo-fit × language-fit × intent quality |
+| CY | Click Yield | אחוז קליקים שנשארים אחרי Ads/Local Pack/AI Overview/Shopping/zero-click |
+| AEO | Citation Fit | האם הדף יצטוטט ב-AI engines? synthesis need + factuality + comparison need |
+| CL | Cluster Leverage | האם מהמחזור הזה נולדים spokes/FAQ/local blocks/asset reuse? |
+| OE | Operational Ease | הפוך מ-legal cost / expert review / dev cost / dependencies |
+
+**Thresholds:**
+- 70+ → לוקחים במחזור הקרוב
+- 60-69 → רק אם זה local defense / brand defense / cluster-critical
+- 50-59 → backlog
+- <50 → לא לוקחים
+
+**Hard-stop rules** (מדלגים גם אם ניקוד גבוה):
+1. אין distinct intent-page type
+2. לא ניתן לתת ערך ייחודי מעבר ל-SERP הנוכחי
+3. נושא YMYL ללא expert/legal review זמין
+4. תוצאה כמעט-רק zero-click ללא assisted-conversion value
+5. Programmatic candidate שייסחף ל-thin/scaled content`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 3. AEO Target Score — separate subset selection
+// ────────────────────────────────────────────────────────────────────────────
+
+export const AEO_TARGET_SCORING = `
+## ניקוד AEO Target — בחירת subset לציטוט במנועי AI
+
+**לא כל keyword טוב ל-SEO הוא טוב ל-AEO.** AEO target = subset נפרד.
+
+**הנוסחה:**
+\`AEO Target = 0.30·SN + 0.25·FD + 0.20·FU + 0.15·ES + 0.10·CV\`
+
+| רכיב | משמעות |
+|---|---|
+| SN | Synthesis Need — האם נדרש synthesis ממספר מקורות? (0-100) |
+| FD | Fact Density Potential — האם התשובה צריכה facts/lists/tables? |
+| FU | Follow-up Likelihood — סבירות גבוהה לשאלות המשך? |
+| ES | Entity Specificity — entity ברור (מותג, אדם, מקום, מוצר)? |
+| CV | Citation Value — שווה ציטוט במקום אחר? (data, definition, comparison) |
+
+**70+ → AEO-priority subset** (מקבל content treatment ייחודי: structured, factual, comparison-tables, schema)
+
+**Query shapes שלרוב מתאימים ל-AEO:**
+"מה ההבדל בין", "איך לבחור", "כמה עולה", "מה זה", "הכי טוב X ל-Y",
+"איך עובד", "מה כולל", "כמה זמן", "האם אפשר", "X לעומת Y", "יתרונות וחסרונות"
+
+**Query shapes שנשארים ב-traditional SEO bucket:**
+- pure navigational / exact brand URL
+- login / docs / support navigation
+- category browse ללא synthesis (e.g. "shoes")
+- SKU / exact product / exact branch
+- pure "near me" עם dominance של Local Pack
+
+**פלטפורמות AEO לפי עדיפות (IL):**
+Tier 1 (must-target): Google AI Overviews + AI Mode → ChatGPT Search → Perplexity
+Tier 2: Gemini, Claude
+
+**מה מצוטט הרבה:** מבנה תשובה ברור / facts+lists+comparison tables+definitions / local pages עם address+service+zone+hours+FAQs / מאמרים עם author+org+date / entity+claim structure ברורים.
+
+**מה מצוטט נדיר:** marketing fog ללא facts / thin local pages / JS-hidden content / title/body language mismatch / programmatic sludge / gated content.`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 4. Language decision tree
+// ────────────────────────────────────────────────────────────────────────────
+
+export const LANGUAGE_DECISION = `
+## עברית או אנגלית? — Decision Rule
+
+**עברית ברירת מחדל אם:** local / B2C / trust-heavy / שאלות בחירה-אמון-מחירים-ביקורות-"רוצים-מה" / local service delivery / IL context (חוק, מחיר, זמינות, קלנדר) / Local Pack/Maps/Hebrew reviews/Hebrew support.
+
+**אנגלית ברירת מחדל אם:** B2B/SaaS עם buyer research corpus באנגלית / dev/API/docs-heavy / category language כבר English-dominant in-market / persona = procurement/product/tech / מוצר נמכר מ-IL לעולם.
+
+**Mixed/bilingual אם:** ביקוש מעורב באמת / Hebrew query יש לו stable English sub-terms / buyer research מתחיל באנגלית, conversion happens locally בעברית / brand/category נחפשים bilingual.
+
+**כלל קשיח:** לעולם לא "תוכן אנגלי שתורגם לעברית" כ-IL acquisition pathway. Google מחליף titles אם יש title/script mismatch. אם בספק — Hebrew commercial page + English supporting glossary/docs.
+
+**ל-AI Overviews:** indexability + snippet eligibility נדרשים בעברית — אסור JS-hidden content על Hebrew commercial pages.`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 5. SERP feature priorities
+// ────────────────────────────────────────────────────────────────────────────
+
+export const SERP_FEATURE_RULES_HE = `
+## עדיפויות SERP Features (default — מבוסס playbook IL)
+
+| Feature | Default | Must-capture | Skip |
+|---|---|---|---|
+| AI Overview / AI Mode | **Must-capture** | info-deep / comparison / how-to-choose / trust-heavy / "מה / הכי טוב / מחיר / חוקי / בטוח" | pure nav / exact login |
+| People Also Ask | **Must-harvest** | תמיד (research layer + FAQ architecture) | אף פעם לא לדלג כ-research |
+| Featured Snippet | **Must-capture** | definition / steps / comparison / list / short answer | pure local pack / product browse |
+| Video Carousel | Nice | demo / procedure / education / visual-trust | abstract B2B |
+| Image Pack | Nice | visual services / hospitality / beauty / retail / local proof | pure SaaS / abstract |
+| Local Pack | **Must-capture** | כל geo-modified intent / offline service-area | pure national/international SaaS |
+| Shopping Carousel | Conditional must | ecommerce / catalog / physical products / real pricing feed | lead-gen / local service / consulting |
+
+**הערה טרמינולוגית:** השתמשו ב-"AI Overviews" + "AI Mode" — אל תשתמשו ב-"SGE" כ-operational label. AI Mode עובד עם query fan-out (מחפש sub-topics).`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 6. Competitor analysis rules
+// ────────────────────────────────────────────────────────────────────────────
+
+export const COMPETITOR_BUCKETING = `
+## חלוקת מתחרים — 4 buckets (לא 3!)
+
+| Bucket | הגדרה |
+|---|---|
+| Direct (ישיר) | אותו buyer + אותו job + אותו monetization model |
+| Substitute (תחליף) | פתרון אחר, אותו job — גונב את ה-job, לא את ה-keyword |
+| Adjacent (סמוכה) | קטגוריה שכנה, חפיפה חלקית ב-SERP+audience, expansion lane |
+| Reference / Aspirational | דוגמת biztronz גבוהה (לא בהכרח מתחרה אמיתי) — standards-setting |
+
+**Scorecard (60% score / 40% narrative):**
+
+| Dimension | Weight |
+|---|---|
+| SERP overlap on priority clusters | 25 |
+| Page-type fit | 20 |
+| Authority / trust proof | 15 |
+| Local presence quality | 15 |
+| Content system maturity | 15 |
+| Asset / linkability strength | 10 |
+
+Total threat score = sum / 100.
+**הניקוד מודד "כמה הוא מסוכן ל-route-to-win שלנו"** — לא "כמה הוא מגניב באופן כללי".`
+
+export const COMPETITOR_ALWAYS_ON_SIGNALS = `
+## 5 סיגנלים שחובה לכלול בכל ניתוח מתחרה
+
+1. **Topical Authority Venn** — איפה אנחנו חופפים בנושא, ואיפה לא
+2. **Site Architecture Depth** — scalability ויכולת לתפוס intent depth
+3. **Link Profile Depth** — לא vanity metric, אלא off-site corroboration (referring domains, anchor patterns, link velocity)
+4. **Backlink-worthy Assets Inventory** — מאיפה הם מקבלים authority (calculators, research, datasets, tools), לא רק כמה ssylok
+5. **E-E-A-T Signals** — author bylines, expert quotes, third-party press, reviews, schema, brand entity strength
+
+**לעולם לא must-on — בודקים בהקשר:**
+- content velocity 90d (רועש ללא איכות)
+- brand SERP defense (must רק אם brand significant)
+- AIO presence per priority *non-branded* comparison set (לא per branded query — vanity)
+- funding/team-size proxy (overweight בקלות)`
+
+export const IL_SIGNALS_CHECKLIST = `
+## סיגנלים ספציפיים ל-IL — חובה לבדוק בכל מתחרה
+
+**שפה:**
+- כיסוי Hebrew-only / Hebrew+English / Latin transliteration
+- אין script mismatch ב-primary commercial pages
+- עברית native (לא "אנגלית מתורגמת שמתחזה לעברית")
+
+**Trust מקומי:**
+- כמות ואיכות Hebrew reviews
+- תמונות, תגובות לביקורות, Q&A בפרופיל
+- כתובות, סניפים, שעות, אזורי שירות
+- Hebrew local proof (case studies, testimonials בעברית)
+
+**Off-site corroboration ב-IL:**
+- אזכורים: Geektime, Ynet, Calcalist, Globes, אתרים vertical-specific
+- אגודות תחום + business directories ישראליים
+- Vertical-specific local listings
+- שותפויות / אוניברסיטאות / אגודות
+
+**מציאות צרכן ב-IL:**
+- זמינות שירות בלוח שנה ישראלי, שבת, חגים
+- אזורי שירות עירוניים/אזוריים (לא רק "Israel-wide")
+- נראות ב-Local Pack על Hebrew geo-modifiers
+- מובייל אמיתי (IL = mobile-first market)
+
+**לא להשתמש כ-primary signal:**
+- צילומי מסך מקבוצות WhatsApp — discovery artifact בלבד, לעולם לא בסיס לדליבר.`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 7. Cluster architecture + programmatic + striking + cannibalization
+// ────────────────────────────────────────────────────────────────────────────
+
+export const CLUSTER_ARCHITECTURE = `
+## ארכיטקטורת cluster
+
+**Default = Topic Cluster + Page-Type Lattice (לא pure silo!).**
+
+לכל commercial pillar — ממוצע 6-8 spokes:
+- 1 pillar / service page
+- 2-3 info-deep spokes
+- 1-2 comparison spokes
+- 1 pricing / cost explainer
+- 1 FAQ או decision guide
+- 1 trust / proof page
+- N local pages אם geo-intent חזק
+
+**קישוריות:** hub→spoke + spoke↔spoke + proof→money + local→service + FAQ→comparison.
+**למה לא silo:** AI surfaces + modern SERP מתגמלים sub-topic + follow-up coverage (תואם ל-AI Mode query fan-out).`
+
+export const PROGRAMMATIC_RULES = `
+## Programmatic SEO — מותר רק אם כל 6 הכללים עוברים
+
+1. **Distinct intent or entity rule** — לדף יש entity / geo / use-case / decision נפרד
+2. **Unique usefulness rule** — payload מעבר לתבנית: price logic, availability, local proof, FAQs, differentiators, branch/team data
+3. **Template quality floor** — קורא צריך להבין "איך זה שונה מהדף השכן"
+4. **Thin-page quarantine** — מועמדים חלשים → noindex draft bucket עד QA ידני
+5. **Scalable proof rule** — אם trust layer לא מתגמש, לא מרחיבים page count
+6. **Cannibalization pre-check** — דף ממופה ל-canonical cluster + single target intent
+
+**אסור Programmatic:** דפים עם same intent / auto-gen "per query" ללא ערך / pseudo-local ללא local proof / pages רק לתפוס keywords (= scaled content abuse).`
+
+export const STRIKING_DISTANCE_RULE = `
+## Striking Distance — buckets
+
+עם GSC data: positions 4-12 ראשי, secondary 13-20.
+ללא GSC: estimate-mode 5-15 (מקובל זמנית, לא production long-term).
+
+**Practical rule:**
+- 4-8 → Fast optimization (title/meta/internal links/intent match)
+- 9-15 → Content/structure upgrade (length, depth, format, schema)
+- 16-20 → Rebuild or re-map (page may be wrong type for intent)`
+
+export const CANNIBALIZATION_RULE = `
+## Cannibalization Detection
+
+**Flag רק אם כל אלה true:**
+- אותה שפה + geo
+- אותו primary intent
+- אותו page-type או close variant
+- חפיפת queries ≥ 70% על important keyword set
+- URL substitution ב-SERP history (Google מחליף את ה-lead URL)
+
+**Exceptions (לא flagging):**
+- different location entity
+- different language version
+- different legal/compliance intent
+- different product entity
+
+**עדיפות סיגנלים:** overlapping intent (ראשי) > shared keyword set > URL pattern (triage only) > SERP substitution (אישור) > internal anchor confusion.`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 8. Persona JTBD + min fields + journey + trust + pricing
+// ────────────────────────────────────────────────────────────────────────────
+
+export const PERSONA_JTBD_FORMAT = `
+## פרסונות — JTBD-first, לא דמוגרפיה
+
+**Framework:** Switch interviews + Jobs Map lite (לא Christensen folklore, לא ODI אקדמי).
+
+**JTBD statement format (חובה לכל פרסונה):**
+"כש[סיטואציה], אני רוצה [פעולה / התקדמות], על מנת ש[תוצאה רצויה], מבלי לסכן [חרדה / עלות מעבר / חיסרון]."
+
+**שדות חובה לפרסונה (אסור להחסיר):**
+1. segment_definition — מי בדיוק נכנס לפרסונה
+2. jtbd_statement — בפורמט שלמעלה
+3. primary_triggers — מה מפעיל את החיפוש
+4. top_queries_by_stage — איך זה מתורגם לחיפושים בפועל (לפי שלב buying journey)
+5. decision_criteria — מה חשוב בבחירה
+6. trust_hierarchy — למי / למה הם מאמינים
+7. objections_anxieties — מה מעכב
+8. switching_cost — מה מונע מעבר מ-status quo
+9. preferred_proof — cases, reviews, licenses, tables, price transparency
+10. channels_and_behaviors — איפה research קורה בפועל
+11. language_mode — Hebrew / English / mixed
+
+**שדות אופציונליים — רק אם causally משפיעים על search/decision:**
+גיל, תפקיד, lifestyle. רוב "מריה 34 אוהבת קפה" זה filler.`
+
+export const BUYING_JOURNEY_FORMAT = `
+## Buying Journey columns (חובה במלואן)
+
+| עמודה | משמעות |
+|---|---|
+| Stage | awareness / consideration / selection / conversion / post-purchase |
+| Trigger | מה הפעיל את החיפוש |
+| JTBD | איזה progress רוצים |
+| Questions Asked | information needs אמיתיים |
+| Query Shapes | איך זה מנוסח בחיפוש |
+| Trust Threshold | איזה הוכחה נדרשת בשלב הזה |
+| Primary Channel | SERP / Maps / reviews / AI / referrals / direct |
+| Best Content Format | comparison / landing / FAQ / calculator / proof page |
+| Key CTA | מה נחשב micro-conversion |
+| Drop-off Risk | איפה ה-journey נשבר |
+| Metric | מה מודדים |
+| Owner | מי אחראי |`
+
+export const TRUST_HIERARCHY_METHOD = `
+## Trust Hierarchy — שיטה (לפי עדיפות נאמנות)
+
+1. **Customer / win-loss interviews** — fidelity הכי גבוה
+2. **Sales-call mining**
+3. **Review mining**
+4. **Competitor messaging patterns**
+5. **Vertical priors** — fidelity הכי נמוך
+
+**אם אין interviews:** label = "working hypothesis based on public signal proxies". **לעולם** לא לטעון "validated".
+
+**Weighted trust stack (לבדוק איזה שילוב באמת מחליט):**
+official/licensed authority + peer reviews + expert endorsement + brand familiarity + local proof + price transparency + case evidence + usability/convenience.`
+
+export const PRICING_VALIDATION_METHOD = `
+## Pricing Validation — שיטה
+
+**Default (לרוב הפרויקטים):**
+- competitor pricing benchmark
+- sales-call + objection mining
+- win/loss review
+- WTP interviews (ראיונות willingness-to-pay)
+- segmentation by use case
+
+**רק עם rigor:**
+- Van Westendorp PSM — אם audience homogeneous + sample discipline
+- Conjoint — רק עם budget + data discipline + real trade-offs
+- Packaging / offer tests — לרוב יותר שימושי מ-"price research טהור"
+
+**Early-stage default:** competitor benchmark + interview evidence + offer testing > expensive pseudo-precise conjoint.`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 9. Positioning + first-win + realism
+// ────────────────────────────────────────────────────────────────────────────
+
+export const POSITIONING_STACK_HE = `
+## Positioning Stack — שילוב, לא framework יחיד
+
+- **JTBD** — הסבר ביקוש + progress
+- **Obviously Awesome** — positioning + category fit
+- **The Mom Test** — validation discipline
+- **StoryBrand** — messaging layer בלבד (לא strategic core!)
+- **Crossing the Chasm** — מוסיפים אם enterprise-heavy
+
+**אסור לבנות SEO/AEO strategy סביב framework יחיד.** צריך stack:
+- JTBD מסביר *למה* מחפשים
+- positioning מסביר *איך* מתבדלים
+- validation מסביר *מה לא ממציאים* בשם הלקוח`
+
+export const FIRST_WIN_CHANNEL_RULES = `
+## First-Win Channel — 3 must-pass tests (חובה כולם)
+
+1. **Time-to-first-proof ≤ 45 ימים** — אם ערוץ דורש 4-6 חודשים ל-meaningful signal, הוא רע כ-first-win
+2. **Reachable narrowly-defined buyer ללא תשתית כבדה** — existing demand / borrowable attention / reachable outreach surface
+3. **High learning density** — מהיר לתת תשובות: מי קליק / למה לא converted / objections / messaging
+
+**Tests משניים (אחרי שעברו 3 הראשונים):**
+CAC realism / founder-team fit / repeatability / scalability.
+
+**ל-"5 לקוחות ראשונים":** learning speed > channel elegance.`
+
+export const REALISM_CHECK = `
+## Realism Check — מתודה
+
+**Forecast formula:**
+\`Forecast = Addressable Clicks × Expected CTR Gain × CVR × Lead Quality × Close Rate\`
+
+**Haircuts:**
+- Resource-constraint haircut (כמה bandwidth יש לצוות)
+- Execution-risk haircut (סיכון תפעולי)
+- Market-noise haircut (משתנים חיצוניים)
+
+**3 תרחישים תמיד:**
+- Conservative (תוצאה ריאלית נמוכה)
+- Base (תוכנית עיקרית)
+- Upside (אם execution+market מתיישרים יוצא מן הכלל)
+
+**Realism checklist (חובה לאמת):**
+- baseline קיים?
+- comparable cohort זמין?
+- page-type precedent ידוע?
+- אנחנו לא מבלבלים impressions עם addressable traffic?
+- zero-click attrition מחושב?
+- CVR לא מנופח?
+- מתאים ל-team bandwidth?`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 10. Confidence labeling
+// ────────────────────────────────────────────────────────────────────────────
+
+export const CONFIDENCE_LABELING = `
+## Confidence Labeling — חובה
+
+**Section-level label** בכל ראש section: \`רמת ביטחון: גבוה / בינוני / השערה — דורש אימות\`
+
+**Claim-level inline marker** — חובה על כל high-stakes claim:
+- pricing
+- KPI forecast
+- traffic projection
+- CAC estimate
+- TAM/SAM/SOM
+- CVR estimate
+- time-to-result
+- market size
+
+**Format:** \`[confidence: גבוה]\` / \`[confidence: בינוני]\` / \`[confidence: השערה]\`
+
+**רמות:**
+- **גבוה** — verified data, primary source מצוטט, observed behavior, structured dataset
+- **בינוני** — extrapolation מ-data, pattern inferred from observed signals
+- **השערה** — אין interview/data, public-signal proxy. **לעולם לא לטעון "validated".**`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 11. Quality gate
+// ────────────────────────────────────────────────────────────────────────────
+
+export const QUALITY_GATE_INSTRUCTIONS = `
+## Quality Gate — Self-Critique Pre-Ship
+
+לפני סיום, עברו 10 בדיקות:
+
+1. **Source spot-check** — 3-5 claims אקראיים → האם המקור אומר מה שאני אומר?
+2. **Contradiction pass** — האם sections סותרים זה את זה?
+3. **Actionability pass** — האם כל recommendation → next-task?
+4. **Language/script QA** — אין title/body mismatch בעברית?
+5. **Math sanity** — opportunity scores, forecasts, CTR logic, effort estimates — מתחברים?
+6. **Intent integrity** — אין mixed intents בתוך אותו cluster?
+7. **Thinness/novelty** — לכל proposed page יש distinct reason-to-exist?
+8. **Stakeholder readout test** — SEO lead + content lead + founder יבינו אותו דבר?
+9. **Out-loud read** — האם זה רק מילים יפות, או אמירה קונקרטית?
+10. **"So what?" test** — האם כל major section מסתיים ב-clear decision?
+
+אם בדיקה נכשלת — תקנו לפני submit.`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 12. JSON output schema instructions
+// ────────────────────────────────────────────────────────────────────────────
+
+export const JSON_OUTPUT_RULES = `
+## פורמט פלט: JSON-first + Markdown narrative
+
+**רשומות מובנות (records)** — תמיד JSON:
+- keywords, competitors, personas, opportunity scores, scorecards
+- כל אחת חייבת \`confidence\`, \`evidence\` (array of URLs/sources), \`generated_at\` (ISO 8601)
+
+**Sections נרטיביים** — Markdown בעברית:
+- Why Now? Timing analysis
+- Strategic recommendations
+- IL trust analysis
+- Content gap narrative
+
+**מבנה תשובה — חובה:**
+\`\`\`
+## תקציר מנהלים (markdown)
+[2-3 פסקאות]
+
+## רשומות מובנות
+\`\`\`json
+{ "records": [ ... ] }
+\`\`\`
+
+## ניתוח (markdown)
+[narrative sections]
+\`\`\`
+
+חשוב: JSON code-block חייב להיות parseable. אסור comments בתוך JSON. אסור trailing commas.`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 13. DataForSEO data presentation rule
+// ────────────────────────────────────────────────────────────────────────────
+
+export const DFS_DATA_RULE = `
+## DataForSEO — שימוש בנתונים מהדאטהבייס
+
+נתונים מ-DataForSEO (volumes, CPC, difficulty, SERP positions, backlinks, on-page audit) הוזרקו ל-prompt הזה כ-section נפרד אם זמינים.
+
+**כללים:**
+- אם יש נתון מ-DFS — השתמשו בו verbatim, ציינו מקור: "DataForSEO live data, [date]"
+- אם אין נתון — סמנו כ-\`estimate\` עם confidence: \`בינוני\` או \`השערה\`
+- לעולם אל תמציאו מספרים שאתם לא רואים ב-prompt
+- אם נתון נראה לא הגיוני (e.g. CPC ₪500 על keyword קטן) — ציינו "anomaly — verify before action"`
