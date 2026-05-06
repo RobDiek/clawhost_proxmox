@@ -126,12 +126,18 @@ export async function runSelfCritique(input: RunInput): Promise<QualityGateOutco
 function buildCriticPrompt(args: { content: string; stageId: StageId; originalPrompt: string; businessName?: string }): string {
     const { content, stageId, originalPrompt, businessName } = args
 
-    // Trim original prompt to its essence — first 1500 chars + last 800 chars.
-    // Critic doesn't need every methodology block; it needs the task definition
-    // + the output schema constraints to verify against.
-    const promptHead = originalPrompt.substring(0, 1500)
-    const promptTail = originalPrompt.length > 2300 ? '\n[...]\n' + originalPrompt.substring(originalPrompt.length - 800) : ''
-    const promptTrimmed = promptHead + promptTail
+    // Phase 3.11c — earlier window (1500/800) was too aggressive: critic
+    // missed the DFS data section (which lives in the prompt middle, after
+    // the description but before methodology). When AI cited valid DFS
+    // numbers (onpage_score=98.17, plain_text_words=2761), critic flagged
+    // them as fabricated because they weren't in the truncated head/tail.
+    //
+    // New approach: include up to 30K chars of the original prompt. Anthropic
+    // 200K context window absorbs this easily; critic now sees full DFS data
+    // sections + JSON schema + methodology blocks + output rules.
+    const promptTrimmed = originalPrompt.length <= 30000
+        ? originalPrompt
+        : originalPrompt.substring(0, 25000) + '\n\n[...truncated middle...]\n\n' + originalPrompt.substring(originalPrompt.length - 5000)
 
     return `אתם reviewer בכיר עם 15 שנות ניסיון ב-SEO/strategy QA. בדקו את הפלט שלמטה מול 10 בדיקות איכות. **תוצאה ב-JSON בלבד** — אסור text מחוץ ל-JSON code-block.
 
@@ -152,7 +158,7 @@ ${content.length > 22000 ? `\n_(הפלט קוצץ ל-22K תווים — בדקו
 
 | # | בדיקה | severity | למה זה חשוב |
 |---|---|---|---|
-| 1 | source_spot_check | **hard** | בחרו 3-5 claims אקראיים. האם המקור (DFS evidence / upstream stage / answers) באמת אומר את מה שהפלט טוען? |
+| 1 | source_spot_check | **hard** | בחרו 3-5 claims אקראיים. האם המקור (DFS evidence / upstream stage / answers) באמת אומר את מה שהפלט טוען? **חובה לבדוק מול ה-DFS data sections בprompt המקור (top 50 competitors / top 5 enriched / our_link_profile / GMB), לא רק מול evidence array של הרשומה.** מספרים כמו onpage_score / plain_text_words / organic_count יכולים להופיע ב-on_page audit section גם אם evidence רושם רק dfs_competitors_domain. אם נמצאה fabrication — חובה לעדכן \`record.confidence\` ל-working_hypothesis ב-revised_content (לא להשאיר medium). |
 | 2 | contradiction_pass | warning | האם sections סותרים זה את זה? |
 | 3 | actionability_pass | warning | האם כל recommendation הופך ל-next-task ברור? |
 | 4 | language_script_qa | **hard** | אין title/body language mismatch בעברית? Hebrew prompt → Hebrew output. |

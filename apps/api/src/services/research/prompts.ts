@@ -321,6 +321,21 @@ ${DFS_DATA_RULE}
 
 ### חלק 2: JSON records — competitors (חובה!)
 
+**Threat scorecard formula** (משקלים מדויקים, Σ=1.0, **אסור משקלים שווים**):
+\`Total = 0.25·serp_overlap + 0.20·page_type_fit + 0.15·authority_trust_proof + 0.15·local_presence_quality + 0.15·content_system_maturity + 0.10·asset_linkability\`
+
+**דוגמת חישוב:** serp_overlap=85, page_type_fit=75, authority=60, local=65, content=70, asset=50:
+- 0.25·85 = 21.25
+- 0.20·75 = 15.00
+- 0.15·60 = 9.00
+- 0.15·65 = 9.75
+- 0.15·70 = 10.50
+- 0.10·50 = 5.00
+- **Σ = 70.50** → \`scorecard.total = 70.50\`, \`_formula_verification\` = "0.25·85 + 0.20·75 + 0.15·60 + 0.15·65 + 0.15·70 + 0.10·50 = 21.25+15.00+9.00+9.75+10.50+5.00 = 70.50"
+
+**\`scorecard.total\` ו-\`_formula_verification\` חובה לכל record** — self-critique בודק.
+
+
 \`\`\`json
 {
   "records": [
@@ -334,7 +349,9 @@ ${DFS_DATA_RULE}
         "authority_trust_proof": 0-100,
         "local_presence_quality": 0-100,
         "content_system_maturity": 0-100,
-        "asset_linkability": 0-100
+        "asset_linkability": 0-100,
+        "total": 0,
+        "_formula_verification": "0.25·serp_overlap + 0.20·page_type_fit + 0.15·authority + 0.15·local + 0.15·content + 0.10·asset = SUM (string with literal arithmetic)"
       },
       "topical_authority_venn": "איפה אנחנו חופפים בנושא ואיפה לא — 2-3 משפטים",
       "site_architecture_depth": "ניתוח עומק האתר — hub-and-spoke? silo? flat? פעולה מתבקשת",
