@@ -123,6 +123,12 @@ export interface ExecuteStageOutput {
     /** When non-empty content is missing, caller uses these to build error response. */
     httpCode?: 400 | 422 | 429 | 500
     errorMessage?: string
+    /** Set by runStageGeneric after parsing the hybrid response — records[] from JSON block. */
+    records?: unknown[]
+    /** DFS USD cost across the stage's prefetch calls (logging only — tenant pays directly). */
+    dfsCost?: number
+    /** Section-level confidence rollup. */
+    confidence?: 'high' | 'medium' | 'working_hypothesis'
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -480,6 +486,9 @@ export async function saveStageResult(
         source: output.source,
         runAt: output.status.runAt || new Date().toISOString(),
         integrationsUsed: output.integrationsUsed,
+        ...(output.records ? { records: output.records } : {}),
+        ...(output.dfsCost !== undefined ? { dfsCost: output.dfsCost } : {}),
+        ...(output.confidence ? { confidence: output.confidence } : {}),
     }
 
     results[stageId] = stageResult

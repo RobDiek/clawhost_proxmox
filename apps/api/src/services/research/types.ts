@@ -182,7 +182,7 @@ export interface StageStatus {
 }
 
 export interface StageResult {
-    /** Markdown content shown to the user. */
+    /** Hybrid markdown content (narrative sections + embedded JSON code blocks). */
     content: string
     /** Where the data came from — for audit + UI provenance badge. */
     source: 'dataforseo' | 'firecrawl' | 'brave' | 'gsc' | 'googleAds' | 'meta' | 'ga4'
@@ -190,6 +190,24 @@ export interface StageResult {
     runAt: string
     /** Concrete list of integrations the run actually queried. */
     integrationsUsed: string[]
+    /**
+     * Structured records extracted from the JSON code-block in `content`.
+     * Shape varies by stage (KeywordRecord[], CompetitorRecord[], etc.).
+     * Undefined for stages that don't emit structured records (e.g. legacy
+     * migrations, validation narrative). Stage-typed at consumer site.
+     */
+    records?: unknown[]
+    /**
+     * Total DFS cost in USD reported across this stage's pre-fetch calls.
+     * Logging/audit only — tenant pays DataForSEO directly with their own
+     * key. Sum of cache-miss calls only (cache hits cost 0).
+     */
+    dfsCost?: number
+    /**
+     * Section-level confidence rollup — worst confidence across the stage's
+     * sections. UI shows this on the pipeline-stage card.
+     */
+    confidence?: 'high' | 'medium' | 'working_hypothesis'
 }
 
 export interface ResearchPlan {

@@ -20,6 +20,17 @@
 
 import { getStageContent } from './reader'
 import type { ResearchDataV2, StageId } from './types'
+import {
+    INTENT_TAXONOMY,
+    COMPETITOR_BUCKETING,
+    COMPETITOR_ALWAYS_ON_SIGNALS,
+    IL_SIGNALS_CHECKLIST,
+    CONFIDENCE_LABELING,
+    JSON_OUTPUT_RULES,
+    DFS_DATA_RULE,
+    QUALITY_GATE_INSTRUCTIONS,
+    HARD_BLOCK_RULES,
+} from './promptBlocks'
 
 interface PromptOpts {
     businessName: string
@@ -32,6 +43,12 @@ interface PromptOpts {
     tools: { hasBrave: boolean; hasDataforseo: boolean; hasFirecrawl: boolean }
     /** Historical assets block (Meta/Google Ads/GA/GSC CSVs) — already formatted markdown. */
     historicalAssetsBlock?: string
+    /**
+     * Stage-specific DataForSEO data fetched by the controller's prefetch
+     * step. Per-stage prompt builder casts to the expected shape.
+     * Undefined when stage doesn't need DFS or prefetch failed gracefully.
+     */
+    dfsData?: unknown
 }
 
 export interface PromptResult {
@@ -126,81 +143,186 @@ function dfsToolHint(tools: PromptOpts['tools']): string {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// competitor_landscape (was stage 1)
+// competitor_landscape — Phase 3.5c rewrite with full methodology + DFS data
 // ────────────────────────────────────────────────────────────────────────────
+//
+// Architecture: stage controller (manager) does DFS prefetch BEFORE calling
+// this builder. We receive `dfsData: CompetitorLandscapeDfsData` with real
+// competitor list, backlink profiles, anchor patterns, on-page audits, and
+// our GMB profile if available. The agent never has to estimate — DFS data
+// is rendered verbatim into the prompt as a factual section.
+//
+// Output is hybrid: a JSON code-block of `CompetitorRecord[]` + Hebrew
+// markdown narrative sections (Topical Authority Venn, Why Now, Threat
+// ranking, Recommended actions). Per-record confidence labeling required.
+
+import type { CompetitorLandscapeDfsData, CompetitorEnrichment } from '@/controllers/hosting/research/stages/prefetch/competitor_landscape'
+
+function renderCompetitorListTable(competitors: CompetitorLandscapeDfsData['competitors']): string {
+    if (competitors.length === 0) return '*(לא זוהו מתחרים — ייתכן ש-domain שלכם חדש או לא הוגדר אתר)*'
+    const top = competitors.slice(0, 50)
+    const rows = top.map(c => {
+        const orgCount = c.full_domain_metrics?.organic?.count ?? '—'
+        return `| ${c.domain} | ${c.avg_position.toFixed(1)} | ${c.intersections} | ${orgCount} |`
+    }).join('\n')
+    return `| Domain | Avg position | Shared keywords | Organic count |\n|---|---|---|---|\n${rows}`
+}
+
+function renderEnrichmentTable(top: CompetitorEnrichment[]): string {
+    if (top.length === 0) return '*(אין מתחרים מועשרים)*'
+    return top.map(e => {
+        const bls = e.backlinks
+            ? `backlinks=${e.backlinks.backlinks}, ref_domains=${e.backlinks.referring_domains}, spam=${e.backlinks.backlinks_spam_score}`
+            : '*(backlinks data unavailable — ' + e.enrichmentMissing.filter(m => m === 'backlinks_summary').join('') + ')*'
+        const topAnchors = e.anchorPatterns?.slice(0, 5).map(a => `"${a.anchor}" (${a.referring_domains})`).join(', ') || '*(anchor data unavailable)*'
+        const onPage = e.onPage
+            ? `onpage_score=${e.onPage.onpage_score ?? '—'}, schema=${(e.onPage.schema?.map(s => s.type).join(',')) || 'none'}, plain_text_words=${e.onPage.meta?.content?.plain_text_word_count ?? '—'}, h1=${e.onPage.meta?.h1?.[0]?.substring(0, 60) ?? '—'}`
+            : '*(on-page audit unavailable)*'
+        return `### ${e.domain}
+- **שיתופי keywords:** ${e.sharedKeywords} | **avg position:** ${e.avgPosition.toFixed(1)} | **organic_count:** ${e.organicCount ?? '—'}
+- **Link profile (DFS backlinks/summary):** ${bls}
+- **Top anchor texts (DFS backlinks/anchors):** ${topAnchors}
+- **On-page (DFS on_page/instant_pages):** ${onPage}`
+    }).join('\n\n')
+}
+
+function renderGmbBlock(gmb: CompetitorLandscapeDfsData['ourGmb']): string {
+    if (!gmb) return '*(לא נמצא פרופיל Google Business עבור העסק — אם אתם עסק מקומי, זה red flag לטיפול מיידי)*'
+    const rating = gmb.rating ? `${gmb.rating.value}/${gmb.rating.rating_max} (${gmb.rating.votes_count} reviews)` : 'אין rating'
+    const cats = (gmb.categories || []).join(', ') || '—'
+    return `- **Title:** ${gmb.title}
+- **Address:** ${gmb.address || '—'}
+- **Phone:** ${gmb.phone || '—'}
+- **Categories:** ${cats}
+- **Rating:** ${rating}
+- **Claimed:** ${gmb.is_claimed ? 'Yes' : 'No / unknown'}`
+}
 
 export function buildCompetitorLandscapePrompt(opts: PromptOpts): PromptResult {
-    const { businessName, businessDesc, answers, feedback, tools, historicalAssetsBlock } = opts
+    const { businessName, businessDesc, answers, feedback, historicalAssetsBlock } = opts
     const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
     const haBlock = historicalAssetsBlock || ''
     const prodBlk = productsBlock(answers)
-    const competitors = answers.competitors as string | undefined
+    const userCompetitors = answers.competitors as string | undefined
+
+    const dfs = opts.dfsData as CompetitorLandscapeDfsData | undefined
+    if (!dfs) throw new Error('competitor_landscape: dfsData prefetch is required')
+
+    const dfsAvailability = dfs.hasCompetitorData
+        ? `**מקור הנתונים:** DataForSEO live data, ${new Date().toISOString().slice(0, 10)} | ${dfs.competitors.length} מתחרים | top ${dfs.topEnriched.length} מועשרים | $${dfs.totalCostUsd.toFixed(4)} (${dfs.cacheHits}/${dfs.cacheHits + dfs.cacheMisses} cache hits)`
+        : `**זהירות:** לא נמצא domain להזרים DataForSEO competitorsDomain (websiteUrl ריק או לא תקין). הניתוח יסתמך על שם העסק וההקשר ב-prompt בלבד — סמנו את כל ה-records כ-confidence: working_hypothesis.`
 
     return {
-        agentId: 'sayer',
-        useDirectApi: false,
-        minLength: 2000,
-        prompt: `# משימה: גילוי מתחרים + SERP עבור "${businessName}"
+        agentId: 'menateach',
+        useDirectApi: true,  // we have real DFS data; no need for openclaw CLI MCP search
+        minLength: 3000,
+        prompt: `# ניתוח מתחרים מקיף — "${businessName}"
 
 ## תיאור העסק
 ${businessDesc}
-${competitors ? `\nמתחרים שציין המשתמש: ${competitors}` : ''}
-${prodBlk ? `\n## המוצרים/שירותים של ${businessName} (כל אחד בנפרד — חשוב לניתוח תחרותי!)\n${prodBlk}\n` : ''}
+${userCompetitors ? `\n**מתחרים שציין המשתמש:** ${userCompetitors}` : ''}
+${prodBlk ? `\n## המוצרים/שירותים של ${businessName}\n${prodBlk}\n` : ''}
 ${haBlock}
-## הוראות
-${searchToolHint(tools)}${crawlToolHint(tools)}
 
-חפש ומצא (בסדר הזה):
-1. **5 מתחרים ישירים** — שמציעים פתרון דומה לאותו קהל. לא כלים כלליים (כמו HubSpot) אלא מתחרים שנלחמים על אותו לקוח.
-2. **SERP Deep-Dive** — לכל מתחרה: איזה URL שלו מופיע ב-Top 10 של גוגל? על איזו מילת מפתח? באיזה מיקום? איזה סוג דף (מאמר, landing, hub)?
-3. **Content Gaps** — מה המתחרים **לא** כוסו (נושאים, שאלות, זוויות)?
-4. **נוכחות דיגיטלית של "${businessName}"** — חפש את השם בגוגל, ברשתות חברתיות, ב-G2/Capterra/ProductHunt
-5. **Why Now** — 3 גורמי timing (מה השתנה ב-2026 שיוצר חלון הזדמנות?)
+## נתוני DataForSEO — להשתמש verbatim, אסור להמציא מספרים
 
-## פורמט תשובה (חובה)
-### מתחרים ישירים
-#### 1. [שם המתחרה]
-- **URL:** [קישור]
-- **מה עושים:** [תיאור קצר]
-- **טווח מחירים:** [מספרים ומטבע]
-- **חוזקות:** [2-3 נקודות]
-- **חולשות:** [2-3 נקודות — במיוחד מול ${businessName}]
-- **נוכחות דיגיטלית:** [בלוג? תכיפות? רשתות?]
-- **השוואה per SKU:** ${prodBlk ? 'לכל מוצר של ' + businessName + ' — מה האלטרנטיבה אצל המתחרה? מי זול יותר/יקר יותר/חסר בכלל?' : 'השוואה כללית'}
-- **SERP — הדירוגים שלהם:**
-  | מילת מפתח | מיקום | URL ספציפי | סוג דף | איכות/עומק |
-  |---|---|---|---|---|
-  | ... | #X | ... | מאמר 2000 מילה | חזק/בינוני/חלש |
-  (לפחות 3 מילות מפתח שמתחרה זה מדורג עליהן)
-- **Content Gaps אצל המתחרה:** [מה הוא לא מכסה?]
-- **מקור:** [URL]
-(חזור ל-5 מתחרים)
+${dfsAvailability}
 
-### נוכחות דיגיטלית — ${businessName}
-- **אתר:** [מה מוצאים]
-- **G2/Capterra/ProductHunt:** [יש דף? ביקורות?]
-- **רשתות חברתיות:** [נוכחות? תדירות?]
-- **SEO:** [מופיע על אילו keywords? מיקום?]
-- **ציון כולל:** X/10
+### Top 50 domain-level competitors (DFS competitors_domain)
+${renderCompetitorListTable(dfs.competitors)}
 
-### Content Gaps — הזדמנויות ייחודיות
-| נושא/זווית | למה חסר בשוק | רמת קושי להיכנס |
-|---|---|---|
-| ... | ... | נמוך/בינוני/גבוה |
-(לפחות 5 gaps)
+### Top 5 enriched — backlinks + anchors + on-page
+${renderEnrichmentTable(dfs.topEnriched)}
 
-### Why Now? — ניתוח Timing
-1. **[גורם 1]** — [הסבר + מקור] — איך זה משפיע על ${businessName}
-2. **[גורם 2]** — ...
-3. **[גורם 3]** — ...
-(כל גורם עם תאריך/מחקר/מקור)
+### Our Google My Business profile
+${renderGmbBlock(dfs.ourGmb)}
 
-### טרנדים בתחום
-1. **[טרנד]** — [הסבר + מקור: שם מחקר/URL + תאריך]
-2. ...
-3. ...
-${feedbackLine}
-${RULES}`,
+---
+
+## פקודות עבודה
+
+${INTENT_TAXONOMY}
+
+${COMPETITOR_BUCKETING}
+
+${COMPETITOR_ALWAYS_ON_SIGNALS}
+
+${IL_SIGNALS_CHECKLIST}
+
+${CONFIDENCE_LABELING}
+
+${JSON_OUTPUT_RULES}
+
+${DFS_DATA_RULE}
+
+---
+
+## פלט נדרש
+
+### חלק 1: Executive Summary (markdown — 2-3 פסקאות)
+תקצרו את הממצא המרכזי על המגרש התחרותי: מי האיומים האמיתיים? מה ה-route-to-win שלנו? מה ה-3 פעולות העיקריות?
+
+### חלק 2: JSON records — competitors (חובה!)
+
+\`\`\`json
+{
+  "records": [
+    {
+      "name": "שם המתחרה (Hebrew)",
+      "url": "https://...",
+      "bucket": "direct" | "substitute" | "adjacent" | "reference",
+      "scorecard": {
+        "serp_overlap": 0-100,
+        "page_type_fit": 0-100,
+        "authority_trust_proof": 0-100,
+        "local_presence_quality": 0-100,
+        "content_system_maturity": 0-100,
+        "asset_linkability": 0-100
+      },
+      "topical_authority_venn": "איפה אנחנו חופפים בנושא ואיפה לא — 2-3 משפטים",
+      "site_architecture_depth": "ניתוח עומק האתר — hub-and-spoke? silo? flat? פעולה מתבקשת",
+      "link_profile_depth": "סיכום על בסיס ה-DFS backlinks data — referring_domains, anchor patterns, spam_score",
+      "backlink_worthy_assets_inventory": ["calculator X", "research Y", "tool Z"],
+      "eeat_signals": "Hebrew bylines? expert quotes? schema.author? G2/Trustpilot reviews?",
+      "il_signals": {
+        "language_coverage": "Hebrew-only / Hebrew+English / mixed / translated-from-en",
+        "local_trust": "Hebrew reviews count + quality / GMB completeness / branches",
+        "off_site_corroboration": "Geektime/Ynet/Calcalist mentions / industry associations",
+        "consumer_reality": "service availability calendar / city zones / mobile readiness"
+      },
+      "content_gaps_at_competitor": ["topic A", "intent B", "format C"],
+      "threats_to_us": ["מה המסוכן ביותר לנו עם השחקן הזה — 2-3 איומים קונקרטיים"],
+      "confidence": "high" | "medium" | "working_hypothesis",
+      "evidence": ["dfs_competitors_domain", "dfs_backlinks_summary", "dfs_on_page_audit", "dfs_gmb"],
+      "generated_at": "ISO timestamp"
+    }
+  ],
+  "confidence": "high" | "medium" | "working_hypothesis"
+}
+\`\`\`
+
+**חובה:** הפיקו לפחות 5 records, בעדיפות top 5 מ-DFS enriched + 1-2 substitute/adjacent.
+**כל record חייב evidence array עם DFS endpoints שספקו את הנתון.**
+**אם backlinks data לא זמין למתחרה (enrichmentMissing מציין) — confidence ירד ל-working_hypothesis עם הסבר.**
+
+### חלק 3: Topical Authority Venn (markdown)
+איפה אנחנו חופפים עם המתחרים בנושא, ואיפה יש "אדמת הפקר" שאף אחד לא משחק עליה. 3-5 חפיפות + 3-5 white spaces.
+
+### חלק 4: Why Now? — IL timing
+3 גורמי timing ספציפיים ל-2026 ו-IL — כל אחד עם מקור (research / news / market data) ועם confidence inline marker.
+
+### חלק 5: Threat Ranking
+דירגו את המתחרים לפי איום על ה-route-to-win שלנו (לא לפי "מי הכי גדול"). הסבירו דירוג.
+
+### חלק 6: Recommended Actions (top 5)
+פעולות קונקרטיות בעקבות הניתוח. כל פעולה — owner + timeline + confidence inline marker.
+
+---
+
+${QUALITY_GATE_INSTRUCTIONS}
+
+${HARD_BLOCK_RULES}
+${feedbackLine}`,
     }
 }
 

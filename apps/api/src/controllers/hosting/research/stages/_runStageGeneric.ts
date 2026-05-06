@@ -31,7 +31,23 @@ import {
     releaseResearchLock,
 } from '@/services/research/stageExecutor'
 import { buildPromptForStage } from '@/services/research/prompts'
+import { parseHybridResponse, rollupConfidence } from '@/services/research/hybridParser'
+import { DfsError } from '@/services/research/dataforseo'
+import { prefetchCompetitorLandscape } from './prefetch/competitor_landscape'
 import type { ResearchDataV2, StageId } from '@/services/research/types'
+
+/**
+ * Per-stage DFS prefetch registry. Stages registered here run their
+ * prefetcher BEFORE the prompt builder is invoked; the result is passed
+ * as `dfsData` into PromptOpts. Stages without an entry skip the prefetch
+ * entirely (current behavior unchanged).
+ */
+type Prefetcher = (instanceId: string, rd: ResearchDataV2) => Promise<unknown>
+
+const STAGE_PREFETCHERS: Partial<Record<StageId, Prefetcher>> = {
+    competitor_landscape: prefetchCompetitorLandscape,
+    // seo_keyword_research, audience_personas added in subsequent commits
+}
 
 /**
  * Run a stage that has a registered prompt builder. Returns null on validation
@@ -68,9 +84,33 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         const tools = await getAvailableTools(instance.ip, instance.rootPassword || undefined)
         const historicalAssetsBlock = formatHistoricalAssets(rd)
 
+        // ─── DFS prefetch (manager goes to market) ──
+        // Stages registered in STAGE_PREFETCHERS run their server-side
+        // DataForSEO calls BEFORE the prompt is built — the prompt builder
+        // (chef) gets ingredients ready, never has to estimate. DfsError
+        // bubbles up with user-friendly Hebrew message; we map to 502.
+        let dfsData: unknown = undefined
+        let dfsCost = 0
+        const prefetcher = STAGE_PREFETCHERS[stageId]
+        if (prefetcher) {
+            try {
+                dfsData = await prefetcher(instanceId, rd)
+                if (dfsData && typeof dfsData === 'object' && 'totalCostUsd' in dfsData) {
+                    dfsCost = (dfsData as { totalCostUsd: number }).totalCostUsd
+                }
+            } catch (err) {
+                releaseResearchLock(instanceId)
+                if (err instanceof DfsError) {
+                    return fail(c, err.userMessage, 502)
+                }
+                console.error(`[research/${stageId}] prefetch error:`, err)
+                return fail(c, `שגיאה בשליפת נתוני DataForSEO: ${(err as Error).message}`, 502)
+            }
+        }
+
         const promptResult = buildPromptForStage(stageId, {
             businessName, businessDesc, answers, rd, feedback: body.feedback,
-            tools, historicalAssetsBlock,
+            tools, historicalAssetsBlock, dfsData,
         })
         if (!promptResult) {
             releaseResearchLock(instanceId)
@@ -100,8 +140,24 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             return fail(c, output.errorMessage || 'Stage failed', (output.httpCode || 500) as 400 | 500)
         }
 
+        // ─── Parse hybrid response (JSON code-block + markdown narrative) ──
+        // Per playbook §17 — structured records are JSON-first, narrative is
+        // embedded markdown. Records get persisted alongside content for fast
+        // downstream consumption (no re-parse on every read).
+        const parsed = parseHybridResponse(output.content)
+        if (parsed.records) output.records = parsed.records
+        if (dfsCost > 0) output.dfsCost = dfsCost
+        const recRollup = parsed.records
+            ? rollupConfidence(parsed.records as Array<{ confidence?: string }>)
+            : undefined
+        const finalConfidence = parsed.confidence || recRollup
+        if (finalConfidence) output.confidence = finalConfidence
+        if (parsed.jsonBlockMalformed) {
+            console.warn(`[research/${stageId}] response had JSON block but it was malformed — content saved without records`)
+        }
+
         await saveStageResult(instanceId, stageId, output)
-        console.log(`[research/${stageId}] complete: ${output.content.length} chars, source=${output.source}`)
+        console.log(`[research/${stageId}] complete: ${output.content.length} chars, source=${output.source}, records=${parsed.records?.length ?? 0}, dfsCost=$${dfsCost.toFixed(4)}, confidence=${finalConfidence ?? 'n/a'}`)
 
         releaseResearchLock(instanceId)
         return ok(c, {
@@ -110,6 +166,9 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             source: output.source,
             integrationsUsed: output.integrationsUsed,
             status: output.status,
+            records: parsed.records ?? null,
+            dfsCost: dfsCost || undefined,
+            confidence: finalConfidence,
         }, `Stage ${stageId} complete.`)
     } catch (err) {
         releaseResearchLock(instanceId)
