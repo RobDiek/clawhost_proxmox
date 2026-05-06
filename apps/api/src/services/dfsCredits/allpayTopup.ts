@@ -26,6 +26,8 @@ interface CreateCheckoutInput {
     instanceId: string
     /** Whole-USD amount, validated upstream (min $10). */
     amountUsd: number
+    /** User opted to save card for future auto-topup charges. AllPay will issue a token via webhook. */
+    saveCard?: boolean
 }
 
 interface CreateCheckoutResult {
@@ -90,6 +92,7 @@ export async function createTopupCheckout(args: CreateCheckoutInput): Promise<Cr
             instanceId,
             topupKind: 'dfs_topup',
             amountUsdCents,
+            saveCard: !!args.saveCard,
         },
     })
 
@@ -111,8 +114,12 @@ export async function handleTopupWebhook(args: {
     orderId: string
     instanceId: string
     amountUsdCents: number | undefined
-}): Promise<{ applied: boolean; reason?: string }> {
-    const { event, orderId, instanceId, amountUsdCents } = args
+    /** AllPay-issued token, present when capture succeeded. */
+    allpayToken?: string
+    /** True if user explicitly checked "save card" in the topup modal. */
+    saveCardOptIn?: boolean
+}): Promise<{ applied: boolean; reason?: string; tokenSaved?: boolean }> {
+    const { event, orderId, instanceId, amountUsdCents, allpayToken, saveCardOptIn } = args
 
     if (event !== 'payment_success') {
         console.log(`[topupWebhook] ${event} for ${orderId} instance=${instanceId} — no balance change`)
@@ -122,6 +129,24 @@ export async function handleTopupWebhook(args: {
     if (!amountUsdCents || amountUsdCents <= 0) {
         console.error(`[topupWebhook] missing or invalid amountUsdCents for ${orderId}`)
         return { applied: false, reason: 'missing_amount' }
+    }
+
+    // Persist saved-card token (best-effort — token save failure shouldn't
+    // block credit flow). Only save if user opted in AND we got a token back.
+    let tokenSaved = false
+    if (saveCardOptIn && allpayToken) {
+        try {
+            const { db } = await import('@/db')
+            const { instances } = await import('@/db/schema')
+            const { eq } = await import('drizzle-orm')
+            await db.update(instances)
+                .set({ dfsAllpayPaymentToken: allpayToken })
+                .where(eq(instances.id, instanceId))
+            tokenSaved = true
+            console.log(`[topupWebhook] saved AllPay token for ${instanceId} (auto-topup enabled)`)
+        } catch (err) {
+            console.error(`[topupWebhook] token save failed (non-fatal):`, (err as Error).message)
+        }
     }
 
     try {
@@ -134,16 +159,16 @@ export async function handleTopupWebhook(args: {
         })
         if (result.alreadyApplied) {
             console.log(`[topupWebhook] orderId=${orderId} already applied — idempotent skip`)
-            return { applied: false, reason: 'already_applied' }
+            return { applied: false, reason: 'already_applied', tokenSaved }
         }
         console.log(`[topupWebhook] credited ${amountUsdCents}¢ to ${instanceId}, new balance: ${result.newBalanceUsdCents}¢`)
-        return { applied: true }
+        return { applied: true, tokenSaved }
     } catch (err) {
         if (err instanceof LedgerError) {
             console.error(`[topupWebhook] LedgerError ${err.kind}: ${err.userMessage}`)
-            return { applied: false, reason: err.kind }
+            return { applied: false, reason: err.kind, tokenSaved }
         }
         console.error(`[topupWebhook] unexpected error:`, (err as Error).message)
-        return { applied: false, reason: 'unexpected_error' }
+        return { applied: false, reason: 'unexpected_error', tokenSaved }
     }
 }

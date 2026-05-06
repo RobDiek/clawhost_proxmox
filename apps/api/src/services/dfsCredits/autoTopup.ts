@@ -22,6 +22,8 @@ import { eq, isNotNull, lt, and } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { credit } from './ledger'
+import { getSystemConfig } from './systemConfig'
+import allpay from '@/services/allpay'
 
 const POLL_INTERVAL_MS = 60 * 60 * 1000
 
@@ -75,17 +77,57 @@ async function runAutoTopupSweep(): Promise<void> {
 async function chargeOne(c: {
     id: string; balance: number; threshold: number; amount: number; paymentToken: string
 }): Promise<void> {
-    // AllPay recurring-charge API for stored tokens isn't yet wired into
-    // services/allpay.ts. Phase 3.6c ships the cron skeleton + ledger path;
-    // Phase 3.6c-followup adds the actual `chargeStoredToken` method once
-    // AllPay's recurring API spec is integrated. Until then this logs the
-    // intent so admin can manually grant credit if needed.
-    //
-    // TODO (3.6c-followup): wire allpay.chargeStoredToken(token, amount, orderId)
-    // and call credit() with kind='auto_topup' + the AllPay-returned orderId.
-    console.warn(`[autoTopup] WIRING_PENDING — would charge ${c.id}: balance=${c.balance}¢ threshold=${c.threshold}¢ amount=${c.amount}¢. allpay.chargeStoredToken not yet implemented.`)
-    // No-op for now; ledger.credit call below stays commented until charge is real.
-    void credit
+    const amountUsd = c.amount / 100
+    const fxRateStr = await getSystemConfig('usd_to_ils_rate_with_fee', '3.81')
+    const fxRate = parseFloat(fxRateStr) || 3.81
+    const amountIls = Math.round(amountUsd * fxRate * 100) / 100
+    const orderId = `auto-${c.id}-${Date.now()}`
+
+    let chargeResult: { status: number; amount: number; orderId: string }
+    try {
+        chargeResult = await allpay.chargeStoredToken({
+            allpayToken: c.paymentToken,
+            orderId,
+            amountIls,
+            itemName: `קרדיטים DataForSEO ($${amountUsd}) — auto-topup`,
+            metadata: {
+                instanceId: c.id,
+                topupKind: 'dfs_topup',
+                amountUsdCents: c.amount,
+            },
+        })
+    } catch (err) {
+        // Token revoked / card expired / AllPay down — log and let next hour retry.
+        console.error(`[autoTopup] ${c.id} AllPay chargeStoredToken failed:`, (err as Error).message)
+        return
+    }
+
+    if (chargeResult.status !== 1) {
+        console.warn(`[autoTopup] ${c.id} charge status=${chargeResult.status} (not success). orderId=${orderId}`)
+        return
+    }
+
+    // Charge succeeded — credit balance idempotently. Webhook may also fire
+    // for this transaction; ledger.credit dedups on allpayOrderId so no
+    // double-credit risk.
+    try {
+        const result = await credit({
+            instanceId: c.id,
+            amountUsdCents: c.amount,
+            kind: 'auto_topup',
+            allpayOrderId: chargeResult.orderId,
+            note: `Auto-topup at threshold $${(c.threshold / 100).toFixed(2)}`,
+        })
+        if (result.alreadyApplied) {
+            console.log(`[autoTopup] ${c.id} already credited (webhook beat us) — no-op`)
+        } else {
+            console.log(`[autoTopup] ${c.id} +${c.amount}¢ → balance ${result.newBalanceUsdCents}¢ (orderId=${chargeResult.orderId})`)
+        }
+    } catch (err) {
+        console.error(`[autoTopup] ${c.id} credit failed AFTER successful charge:`, (err as Error).message)
+        // Manual recon: AllPay charge succeeded, our credit failed. Audit
+        // log via grep '[autoTopup]' + chargeResult.orderId picks this up.
+    }
 }
 
 export function startAutoTopupCron(): void {

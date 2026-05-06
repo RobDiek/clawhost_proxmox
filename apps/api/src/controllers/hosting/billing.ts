@@ -316,6 +316,8 @@ export const handleAllpayWebhook = async (c: Context) => {
                 orderId,
                 instanceId,
                 amountUsdCents: metadata.topupAmountUsdCents,
+                allpayToken: metadata.allpayToken,
+                saveCardOptIn: metadata.saveCardOptIn,
             })
             return ok(c, result, result.applied ? 'Topup credited' : 'Topup not applied')
         }

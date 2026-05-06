@@ -133,14 +133,18 @@ export const createTopupCheckoutController = async (c: Context) => {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
 
-        const body = await c.req.json<{ amountUsd?: number }>().catch(() => null)
+        const body = await c.req.json<{ amountUsd?: number; saveCard?: boolean }>().catch(() => null)
         if (!body || typeof body.amountUsd !== 'number') {
             return fail(c, 'amountUsd (number) required', 400)
         }
         if (body.amountUsd < 10) return fail(c, 'מינימום $10', 400)
         if (body.amountUsd > 10000) return fail(c, 'מקסימום $10,000 לעסקה אחת', 400)
 
-        const result = await createTopupCheckout({ instanceId, amountUsd: body.amountUsd })
+        const result = await createTopupCheckout({
+            instanceId,
+            amountUsd: body.amountUsd,
+            saveCard: !!body.saveCard,
+        })
         return ok(c, {
             paymentUrl: result.paymentUrl,
             orderId: result.orderId,

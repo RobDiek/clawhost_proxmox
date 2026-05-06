@@ -27,6 +27,10 @@ interface WebhookResult {
         planKey: string
         /** Top-up only: amount in USD cents to credit. Parsed from add_field_3 if numeric. */
         topupAmountUsdCents?: number
+        /** AllPay-issued token for the saved card. Present when capture/charge succeeds AND user opted in. */
+        allpayToken?: string
+        /** "1" if user opted to save card for future auto-topup charges. From add_field_4. */
+        saveCardOptIn?: boolean
     }
 }
 
@@ -90,7 +94,7 @@ const allpay = {
         successUrl: string
         failUrl: string
         webhookUrl: string
-        metadata: { instanceId: string; topupKind: 'dfs_topup'; amountUsdCents: number }
+        metadata: { instanceId: string; topupKind: 'dfs_topup'; amountUsdCents: number; saveCard?: boolean }
     }): Promise<string> {
         const { login, apiKey } = getCredentials()
 
@@ -118,6 +122,7 @@ const allpay = {
             add_field_1: params.metadata.instanceId,
             add_field_2: params.metadata.topupKind,
             add_field_3: String(params.metadata.amountUsdCents),
+            add_field_4: params.metadata.saveCard ? '1' : '0',
         }
         payload.sign = computeSign(payload, apiKey)
 
@@ -229,10 +234,68 @@ const allpay = {
             ? parseInt(addField3, 10)
             : undefined
 
+        // Token capture (Phase 3.6 followup): user-opted-in topups carry the
+        // saved-card token in `allpay_token` field. We only persist it if the
+        // user explicitly checked "save card for auto-topup" (add_field_4="1")
+        // — meets AllPay's "explicit permission" requirement for recurring.
+        const addField4 = (body.add_field_4 as string) || ''
+        const allpayToken = (body.allpay_token as string) || undefined
+        const saveCardOptIn = addField4 === '1'
+
         return {
             event,
             orderId,
-            metadata: { instanceId, planKey, topupAmountUsdCents },
+            metadata: { instanceId, planKey, topupAmountUsdCents, allpayToken, saveCardOptIn },
+        }
+    },
+
+    /**
+     * Charge a previously-saved AllPay token (recurring/auto-topup flow).
+     * Used by autoTopupCron to top up balance without user interaction once
+     * they've explicitly opted in during a previous checkout.
+     *
+     * Per AllPay docs: same `getpayment` endpoint, just with `allpay_token`
+     * parameter instead of card-entry. Status 1 = success.
+     */
+    async chargeStoredToken(args: {
+        allpayToken: string
+        orderId: string
+        amountIls: number
+        itemName: string
+        metadata: { instanceId: string; topupKind: 'dfs_topup'; amountUsdCents: number }
+    }): Promise<{ status: number; amount: number; orderId: string }> {
+        const { login, apiKey } = getCredentials()
+
+        const payload: Record<string, unknown> = {
+            login,
+            order_id: args.orderId,
+            allpay_token: args.allpayToken,
+            items: [{
+                name: args.itemName,
+                price: String(args.amountIls),
+                qty: '1',
+                vat: '1',
+            }],
+            currency: 'ILS',
+            inst: 1,
+            add_field_1: args.metadata.instanceId,
+            add_field_2: args.metadata.topupKind,
+            add_field_3: String(args.metadata.amountUsdCents),
+        }
+        payload.sign = computeSign(payload, apiKey)
+
+        const res = await fetch(`${ALLPAY_BASE}?show=getpayment&mode=api10`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        })
+        if (!res.ok) throw new Error(`AllPay chargeStoredToken HTTP ${res.status}`)
+        const data = await res.json() as { status?: number; amount?: number; order_id?: string; error?: string }
+        if (data.error) throw new Error(`AllPay chargeStoredToken error: ${data.error}`)
+        return {
+            status: data.status ?? 0,
+            amount: data.amount ?? 0,
+            orderId: data.order_id || args.orderId,
         }
     },
 
