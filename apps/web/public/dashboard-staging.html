@@ -11139,10 +11139,11 @@ function viewStageResultV2(sid) {
   var qualEl = document.getElementById('pipelineV2-result-quality');
   qualEl.innerHTML = renderQualityGateBanner(result.qualityGate);
 
-  // Records (JSON pretty-print for v1; per-type renderers come in 3.8b)
+  // Records — per-type structured renderer (Phase 3.8b).
+  // Falls back to JSON pretty-print for unknown stage types.
   var recsEl = document.getElementById('pipelineV2-result-records');
   if (result.records && result.records.length) {
-    recsEl.innerHTML = '<details style="margin:8px 0;background:#fff;border:1px solid #E5E7EB;border-radius:6px"><summary style="cursor:pointer;padding:8px 12px;font-size:0.82rem;font-weight:500;color:#374151">📊 רשומות מובנות (' + result.records.length + ')</summary><pre style="margin:0;padding:10px 12px;background:#F9FAFB;font-size:0.72rem;overflow-x:auto;direction:ltr;text-align:left;max-height:340px">' + escapeHtml(JSON.stringify(result.records, null, 2)) + '</pre></details>';
+    recsEl.innerHTML = renderRecordsByStage(sid, result.records);
   } else {
     recsEl.innerHTML = '';
   }
@@ -11259,6 +11260,276 @@ function updatePipelineV2Balance() {
 function escapeHtml(s) {
   if (s == null) return '';
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ─── Per-record-type renderers (Phase 3.8b) ────────────────────────────────
+// One function per stage that emits records. Each takes records[] and returns
+// HTML string for the result panel records section. Records that are missing
+// fields render the available fields (graceful degradation — agent output
+// shape can drift slightly).
+
+function renderRecordsByStage(stageId, records) {
+  if (!records || !records.length) return '';
+  switch (stageId) {
+    case 'competitor_landscape':   return renderCompetitorRecords(records);
+    case 'seo_keyword_research':   return renderKeywordRecords(records);
+    case 'audience_personas':      return renderPersonaRecords(records);
+    case 'positioning':            return renderPositioningRecord(records[0]);
+    case 'strategy_options':       return renderScenarioRecords(records);
+    case 'validation':             return renderValidationRecords(records);
+    default:                        return renderJsonFallback(records);
+  }
+}
+
+function renderJsonFallback(records) {
+  return '<details style="margin:8px 0;background:#fff;border:1px solid #E5E7EB;border-radius:6px"><summary style="cursor:pointer;padding:8px 12px;font-size:0.82rem;font-weight:500;color:#374151">📊 רשומות (' + records.length + ')</summary><pre style="margin:0;padding:10px 12px;background:#F9FAFB;font-size:0.72rem;overflow-x:auto;direction:ltr;text-align:left;max-height:340px">' + escapeHtml(JSON.stringify(records, null, 2)) + '</pre></details>';
+}
+
+function confidencePill(c) {
+  if (!c) return '';
+  var color = c === 'high' ? '#10B981' : c === 'medium' ? '#F59E0B' : '#EF4444';
+  var label = c === 'high' ? 'גבוה' : c === 'medium' ? 'בינוני' : 'השערה';
+  return '<span style="font-size:0.68rem;padding:1px 6px;border-radius:4px;background:' + color + '20;color:' + color + ';font-weight:500">●' + label + '</span>';
+}
+
+function bucketPill(b) {
+  var bgs = { direct: '#FEE2E2', substitute: '#FEF3C7', adjacent: '#DBEAFE', reference: '#F3E8FF' };
+  var fgs = { direct: '#991B1B', substitute: '#92400E', adjacent: '#1E40AF', reference: '#6B21A8' };
+  var labels = { direct: 'ישיר', substitute: 'תחליף', adjacent: 'סמוך', reference: 'התייחסות' };
+  return '<span style="font-size:0.68rem;padding:1px 6px;border-radius:4px;background:' + (bgs[b] || '#F3F4F6') + ';color:' + (fgs[b] || '#6B7280') + ';font-weight:500">' + (labels[b] || b) + '</span>';
+}
+
+// ── competitor_landscape ────────────────────────────────────────────────────
+
+function renderCompetitorRecords(records) {
+  return '<div style="margin:8px 0">'
+    + '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:6px">' + records.length + ' מתחרים</div>'
+    + records.map(renderCompetitorCard).join('')
+    + '</div>';
+}
+
+function renderCompetitorCard(r) {
+  var sc = r.scorecard || {};
+  var threats = (r.threats_to_us || []).slice(0, 3);
+  var gaps = (r.content_gaps_at_competitor || []).slice(0, 3);
+  var bls = (r.link_profile_depth || '').substring(0, 200);
+  var il = r.il_signals || {};
+
+  var sb = sc.total != null ? '<span style="font-size:0.78rem;color:#1F2937;font-weight:600;direction:ltr">Threat ' + sc.total + '/100</span>' : '';
+
+  return '<div style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:0.8rem">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">'
+    +   '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+    +     '<strong>' + escapeHtml(r.name || '—') + '</strong>'
+    +     bucketPill(r.bucket)
+    +     confidencePill(r.confidence)
+    +   '</div>'
+    +   sb
+    + '</div>'
+    + (r.url ? '<a href="' + escapeHtml(r.url) + '" target="_blank" style="font-size:0.72rem;color:#2563EB;direction:ltr;display:block;margin-bottom:4px">' + escapeHtml(r.url) + ' ↗</a>' : '')
+    + (sc.serp_overlap != null ? '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:6px;direction:ltr">SERP overlap: ' + sc.serp_overlap + ' · Page-type fit: ' + (sc.page_type_fit || 0) + ' · Authority: ' + (sc.authority_trust_proof || 0) + ' · Local: ' + (sc.local_presence_quality || 0) + '</div>' : '')
+    + (threats.length ? '<div style="margin-bottom:4px"><strong style="font-size:0.72rem;color:#991B1B">איומים עלינו:</strong><ul style="margin:2px 0 0;padding:0 18px 0 0;font-size:0.74rem;color:#4B5563">' + threats.map(function(t) { return '<li>' + escapeHtml(t) + '</li>'; }).join('') + '</ul></div>' : '')
+    + (gaps.length ? '<div style="margin-bottom:4px"><strong style="font-size:0.72rem;color:#065F46">Content gaps אצלם:</strong> <span style="font-size:0.74rem;color:#4B5563">' + gaps.map(escapeHtml).join(' · ') + '</span></div>' : '')
+    + (bls ? '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">Link profile: ' + escapeHtml(bls) + '</div>' : '')
+    + (il.language_coverage ? '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:0.7rem;color:#6B7280">סיגנלי IL</summary><div style="font-size:0.7rem;color:#4B5563;padding:4px 0">' + (il.language_coverage ? '<div>שפה: ' + escapeHtml(il.language_coverage) + '</div>' : '') + (il.local_trust ? '<div>אמון מקומי: ' + escapeHtml(il.local_trust) + '</div>' : '') + (il.off_site_corroboration ? '<div>off-site: ' + escapeHtml(il.off_site_corroboration) + '</div>' : '') + '</div></details>' : '')
+    + '</div>';
+}
+
+// ── seo_keyword_research ────────────────────────────────────────────────────
+
+function renderKeywordRecords(records) {
+  // Sort by opportunity score desc; show top 30 in table; collapsible "more".
+  var sorted = records.slice().sort(function(a, b) {
+    var as = (a.opportunity && a.opportunity.total) || 0;
+    var bs = (b.opportunity && b.opportunity.total) || 0;
+    return bs - as;
+  });
+  var top = sorted.slice(0, 30);
+  var rest = sorted.slice(30);
+
+  var rows = top.map(renderKeywordRow).join('');
+  var restHtml = rest.length ? '<details style="margin-top:8px"><summary style="cursor:pointer;font-size:0.78rem;color:#6B7280;padding:4px 0">+ ' + rest.length + ' נוספים</summary>' + '<div style="overflow-x:auto"><table style="width:100%;font-size:0.72rem;direction:rtl">' + rest.map(renderKeywordRow).join('') + '</table></div>' + '</details>' : '';
+
+  // Stats
+  var takeNow = records.filter(function(r) { return r.opportunity && r.opportunity.decision === 'take_now'; }).length;
+  var aeoPriority = records.filter(function(r) { return r.aeo && r.aeo.is_priority; }).length;
+  var striking = records.filter(function(r) { return r.striking_bucket; }).length;
+
+  return '<div style="margin:8px 0">'
+    + '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap">'
+    +   '<span><strong>' + records.length + '</strong> keywords</span>'
+    +   '<span style="color:#10B981">●' + takeNow + ' take_now</span>'
+    +   '<span style="color:#7C3AED">●' + aeoPriority + ' AEO priority</span>'
+    +   '<span style="color:#F59E0B">●' + striking + ' striking distance</span>'
+    + '</div>'
+    + '<div style="overflow-x:auto;background:#fff;border:1px solid #E5E7EB;border-radius:6px"><table style="width:100%;font-size:0.72rem;border-collapse:collapse;direction:rtl">'
+    +   '<thead style="background:#F9FAFB"><tr>'
+    +     '<th style="padding:6px 8px;text-align:right;font-weight:500;border-bottom:1px solid #E5E7EB">Keyword</th>'
+    +     '<th style="padding:6px 8px;font-weight:500;border-bottom:1px solid #E5E7EB">Vol</th>'
+    +     '<th style="padding:6px 8px;font-weight:500;border-bottom:1px solid #E5E7EB">KD</th>'
+    +     '<th style="padding:6px 8px;font-weight:500;border-bottom:1px solid #E5E7EB">Opp</th>'
+    +     '<th style="padding:6px 8px;font-weight:500;border-bottom:1px solid #E5E7EB">AEO</th>'
+    +     '<th style="padding:6px 8px;text-align:right;font-weight:500;border-bottom:1px solid #E5E7EB">Action</th>'
+    +   '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+    + restHtml
+    + '</div>';
+}
+
+function renderKeywordRow(k) {
+  var opp = k.opportunity || {};
+  var aeo = k.aeo || {};
+  var oppColor = opp.decision === 'take_now' ? '#10B981' : opp.decision === 'take_if_strategic' ? '#F59E0B' : opp.decision === 'backlog' ? '#9CA3AF' : '#EF4444';
+  var sb = k.striking_bucket;
+  var sbBadge = sb ? ' <span style="font-size:0.62rem;color:#F59E0B;background:#FEF3C7;padding:1px 4px;border-radius:3px">SD</span>' : '';
+  var aeoBadge = aeo.is_priority ? '<span style="font-size:0.62rem;color:#7C3AED;background:#F3E8FF;padding:1px 4px;border-radius:3px">' + (aeo.total || 0) + '</span>' : '<span style="color:#9CA3AF">' + (aeo.total || 0) + '</span>';
+  return '<tr style="border-bottom:1px solid #F3F4F6">'
+    + '<td style="padding:5px 8px"><div style="font-weight:500">' + escapeHtml(k.keyword || '—') + sbBadge + '</div>'
+    +   '<div style="font-size:0.66rem;color:#9CA3AF">' + escapeHtml((k.intent && k.intent.primary) || '—') + ' · ' + escapeHtml(k.page_type || '—') + '</div></td>'
+    + '<td style="padding:5px 8px;text-align:center;direction:ltr">' + (k.volume_monthly != null ? k.volume_monthly : '—') + '</td>'
+    + '<td style="padding:5px 8px;text-align:center;direction:ltr">' + (k.difficulty_0_100 != null ? k.difficulty_0_100 : '—') + '</td>'
+    + '<td style="padding:5px 8px;text-align:center;font-weight:500;direction:ltr;color:' + oppColor + '">' + (opp.total || 0) + '</td>'
+    + '<td style="padding:5px 8px;text-align:center">' + aeoBadge + '</td>'
+    + '<td style="padding:5px 8px;font-size:0.7rem;color:#4B5563">' + escapeHtml((k.recommended_action || '').substring(0, 50)) + '</td>'
+    + '</tr>';
+}
+
+// ── audience_personas ───────────────────────────────────────────────────────
+
+function renderPersonaRecords(records) {
+  return '<div style="margin:8px 0">'
+    + '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:6px">' + records.length + ' פרסונות</div>'
+    + records.map(renderPersonaCard).join('')
+    + '</div>';
+}
+
+function renderPersonaCard(p) {
+  var jtbd = p.jtbd_statement || {};
+  var jtbdText = jtbd.situation
+    ? 'כש' + jtbd.situation + ', אני רוצה ' + jtbd.progress + ', על מנת ש' + jtbd.outcome + (jtbd.risk ? ', מבלי לסכן ' + jtbd.risk : '')
+    : '';
+  var triggers = (p.primary_triggers || []).slice(0, 3);
+  var objections = p.objections_anxieties || [];
+  var trust = p.trust_hierarchy || [];
+  var pricing = p.pricing_validation || {};
+  var queries = p.top_queries_by_stage || [];
+
+  return '<div style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:12px 14px;margin-bottom:8px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;flex-wrap:wrap">'
+    +   '<strong style="font-size:0.92rem">' + escapeHtml(p.name || '—') + '</strong>'
+    +   confidencePill(p.confidence)
+    + '</div>'
+    + (p.segment_definition ? '<div style="font-size:0.78rem;color:#4B5563;margin-bottom:6px">' + escapeHtml(p.segment_definition) + '</div>' : '')
+    + (jtbdText ? '<div style="background:#F0F9FF;border-right:3px solid #2563EB;padding:8px 10px;margin-bottom:8px;font-size:0.78rem;color:#1E3A8A;line-height:1.6"><strong>JTBD:</strong> ' + escapeHtml(jtbdText) + '</div>' : '')
+    + (triggers.length ? '<div style="font-size:0.74rem;margin-bottom:4px"><strong>Triggers:</strong> ' + triggers.map(escapeHtml).join(' · ') + '</div>' : '')
+    + (queries.length ? '<details style="margin-bottom:4px"><summary style="cursor:pointer;font-size:0.74rem;color:#6B7280">Queries by buying stage</summary><div style="padding:6px 0">' + queries.map(function(q) { return '<div style="font-size:0.7rem;margin-bottom:3px"><strong>' + escapeHtml(q.stage || '') + ':</strong> ' + (q.queries || []).map(escapeHtml).join(' · ') + '</div>'; }).join('') + '</div></details>' : '')
+    + (trust.length ? '<details style="margin-bottom:4px"><summary style="cursor:pointer;font-size:0.74rem;color:#6B7280">Trust hierarchy</summary><div style="padding:6px 0;font-size:0.72rem">' + trust.map(function(t) { return '<div>' + escapeHtml(t.source || '') + ' — weight: ' + (t.weight || 0) + '</div>'; }).join('') + '</div></details>' : '')
+    + (objections.length ? '<details style="margin-bottom:4px"><summary style="cursor:pointer;font-size:0.74rem;color:#6B7280">Objections + rebuttals (' + objections.length + ')</summary><div style="padding:6px 0;font-size:0.72rem">' + objections.map(function(o) { return '<div style="margin-bottom:4px"><div style="color:#991B1B">⚠ ' + escapeHtml(o.objection || '') + '</div><div style="color:#065F46">→ ' + escapeHtml(o.rebuttal || '') + '</div></div>'; }).join('') + '</div></details>' : '')
+    + (pricing.recommended_price_point_ils ? '<div style="background:#FEF3C7;border-radius:4px;padding:6px 8px;font-size:0.74rem;margin-top:4px"><strong>💰 Pricing:</strong> ' + escapeHtml(pricing.recommended_price_point_ils) + ' (' + escapeHtml(pricing.price_sensitivity || '') + ' sensitivity, WTP: ' + escapeHtml(pricing.wtp_range_ils || '') + ')</div>' : '')
+    + '</div>';
+}
+
+// ── positioning ─────────────────────────────────────────────────────────────
+
+function renderPositioningRecord(p) {
+  if (!p) return '';
+  var vps = p.value_props || [];
+  var diff = p.differentiation_map || [];
+  var voice = p.voice_tone || [];
+  var anti = p.anti_positioning || {};
+  var arch = p.brand_archetype || {};
+
+  return '<div style="margin:8px 0">'
+    + '<div style="background:#EFF6FF;border-right:3px solid #2563EB;padding:10px 12px;margin-bottom:8px"><div style="font-size:0.7rem;color:#3730A3;text-transform:uppercase;letter-spacing:0.04em;font-weight:500">Mission</div><div style="font-size:0.86rem;color:#1E3A8A;margin-top:2px;line-height:1.5">' + escapeHtml(p.mission || '—') + '</div></div>'
+    + '<div style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:8px"><div style="font-size:0.7rem;color:#6B7280;text-transform:uppercase;font-weight:500">Positioning Statement</div><div style="font-size:0.84rem;margin-top:2px;line-height:1.5">' + escapeHtml(p.positioning_statement || '—') + '</div></div>'
+    + (p.brand_promise ? '<div style="background:#F0FDF4;border-right:3px solid #10B981;padding:8px 12px;margin-bottom:8px"><div style="font-size:0.7rem;color:#065F46;text-transform:uppercase;font-weight:500">Brand Promise</div><div style="font-size:0.82rem;color:#065F46;margin-top:2px">' + escapeHtml(p.brand_promise) + '</div></div>' : '')
+    + (vps.length ? '<div style="margin-bottom:8px"><div style="font-size:0.78rem;font-weight:600;color:#1F2937;margin-bottom:4px">Value Propositions (' + vps.length + ')</div>' + vps.map(function(v) { return '<div style="background:#fff;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px;margin-bottom:4px;font-size:0.76rem"><strong>' + escapeHtml(v.name || '') + '</strong>' + (v.for_persona ? ' <span style="color:#7C3AED">→ ' + escapeHtml(v.for_persona) + '</span>' : '') + (v.outcome ? '<div style="color:#4B5563;margin-top:2px">' + escapeHtml(v.outcome) + '</div>' : '') + (v.why_us ? '<div style="color:#6B7280;font-size:0.7rem;margin-top:2px">' + escapeHtml(v.why_us) + '</div>' : '') + '</div>'; }).join('') + '</div>' : '')
+    + (arch.primary ? '<div style="background:#F3E8FF;border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:0.76rem"><strong>Archetype:</strong> ' + escapeHtml(arch.primary) + (arch.secondary ? ' + ' + escapeHtml(arch.secondary) : '') + (arch.rationale ? '<div style="color:#6B21A8;margin-top:2px;font-size:0.72rem">' + escapeHtml(arch.rationale) + '</div>' : '') + '</div>' : '')
+    + (voice.length ? '<details style="margin-bottom:6px"><summary style="cursor:pointer;font-size:0.76rem;font-weight:500;color:#374151">Voice & Tone (' + voice.length + ' מימדים)</summary><table style="width:100%;font-size:0.7rem;margin-top:4px;border-collapse:collapse"><thead style="background:#F9FAFB"><tr><th style="padding:4px;text-align:right">מימד</th><th style="padding:4px;text-align:right">כן</th><th style="padding:4px;text-align:right">לא</th></tr></thead><tbody>' + voice.map(function(v) { return '<tr><td style="padding:4px;border-top:1px solid #F3F4F6">' + escapeHtml(v.dimension || '') + '</td><td style="padding:4px;border-top:1px solid #F3F4F6;color:#065F46">' + escapeHtml(v.do || '') + '</td><td style="padding:4px;border-top:1px solid #F3F4F6;color:#991B1B">' + escapeHtml(v.dont || '') + '</td></tr>'; }).join('') + '</tbody></table></details>' : '')
+    + (diff.length ? '<details style="margin-bottom:6px"><summary style="cursor:pointer;font-size:0.76rem;font-weight:500;color:#374151">Differentiation Map (' + diff.length + ' מתחרים)</summary><div style="padding:4px 0">' + diff.map(function(d) { return '<div style="font-size:0.72rem;border-bottom:1px solid #F3F4F6;padding:6px 0"><strong>' + escapeHtml(d.competitor_name || '') + '</strong><div style="color:#6B7280">הם: ' + escapeHtml(d.they_signal || '') + '</div><div style="color:#1E3A8A">אנחנו: ' + escapeHtml(d.we_signal || '') + '</div></div>'; }).join('') + '</div></details>' : '')
+    + (anti.not_for || anti.not_doing ? '<details><summary style="cursor:pointer;font-size:0.76rem;font-weight:500;color:#991B1B">Anti-positioning (מה אנחנו לא)</summary><div style="padding:6px 0;font-size:0.72rem">' + (anti.not_for ? '<div><strong>לא בשבילם:</strong> ' + (anti.not_for || []).map(escapeHtml).join(' · ') + '</div>' : '') + (anti.not_doing ? '<div><strong>לא נציע:</strong> ' + (anti.not_doing || []).map(escapeHtml).join(' · ') + '</div>' : '') + (anti.not_channels ? '<div><strong>לא בערוצים:</strong> ' + (anti.not_channels || []).map(escapeHtml).join(' · ') + '</div>' : '') + '</div></details>' : '')
+    + '</div>';
+}
+
+// ── strategy_options ────────────────────────────────────────────────────────
+
+function renderScenarioRecords(records) {
+  return '<div style="margin:8px 0">'
+    + records.map(renderScenarioCard).join('')
+    + '</div>';
+}
+
+function renderScenarioCard(s) {
+  var fw = s.first_win_channel || {};
+  var channels = s.channel_priority_list || [];
+  var kpis = (s.kpis_90_day && s.kpis_90_day.metrics) || [];
+  var budgets = s.budget_allocation_ils || [];
+  var risks = s.risks_mitigations || [];
+
+  var bg = s.scenario === 'smart' ? '#F0F9FF' : '#FEF3C7';
+  var border = s.scenario === 'smart' ? '#BFDBFE' : '#FDE68A';
+  var fg = s.scenario === 'smart' ? '#1E3A8A' : '#92400E';
+
+  return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:10px;padding:12px 14px;margin-bottom:10px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px">'
+    +   '<strong style="font-size:0.95rem;color:' + fg + '">' + escapeHtml(s.scenario_label_he || s.scenario || '') + '</strong>'
+    +   confidencePill(s.confidence)
+    + '</div>'
+    + (fw.channel ? '<div style="background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:8px"><div style="font-size:0.7rem;color:#6B7280;text-transform:uppercase;font-weight:500">🎯 First-Win Channel</div><div style="font-size:0.88rem;font-weight:600;color:#1F2937;margin-top:2px">' + escapeHtml(fw.channel) + '</div>' + (fw.primary_persona ? '<div style="font-size:0.74rem;color:#6B7280;margin-top:2px">פרסונה: ' + escapeHtml(fw.primary_persona) + '</div>' : '') + (fw.specific_action ? '<div style="font-size:0.78rem;color:#374151;margin-top:4px">' + escapeHtml(fw.specific_action) + '</div>' : '') + (fw.expected_first_5_customers_days ? '<div style="font-size:0.74rem;color:#10B981;margin-top:4px">צפי: 5 לקוחות ראשונים תוך ' + fw.expected_first_5_customers_days + ' ימים</div>' : '') + '</div>' : '')
+    + (channels.length ? '<details style="margin-bottom:6px"><summary style="cursor:pointer;font-size:0.78rem;font-weight:500;color:#374151">ערוצים נוספים (' + channels.length + ')</summary><div style="padding:6px 0;font-size:0.74rem">' + channels.map(function(c) { return '<div style="border-bottom:1px solid rgba(0,0,0,0.05);padding:6px 0"><strong>#' + (c.rank || '?') + ' ' + escapeHtml(c.channel || '') + '</strong>' + (c.priority_marker ? ' <span style="font-size:0.66rem;color:#6B7280">[' + escapeHtml(c.priority_marker) + ']</span>' : '') + (c.monthly_cost_ils ? ' <span style="color:#6B7280">~₪' + c.monthly_cost_ils + '/חודש</span>' : '') + (c.linked_persona ? '<div style="font-size:0.7rem;color:#6B7280">פרסונה: ' + escapeHtml(c.linked_persona) + '</div>' : '') + '</div>'; }).join('') + '</div></details>' : '')
+    + (kpis.length ? '<details style="margin-bottom:6px"><summary style="cursor:pointer;font-size:0.78rem;font-weight:500;color:#374151">KPIs ל-90 ימים (' + kpis.length + ' מדדים × 3 תרחישים)</summary><div style="overflow-x:auto;margin-top:4px"><table style="width:100%;font-size:0.7rem;border-collapse:collapse"><thead style="background:#F9FAFB"><tr><th style="padding:4px;text-align:right">מדד</th><th style="padding:4px">30d cons</th><th style="padding:4px">30d base</th><th style="padding:4px">90d base</th><th style="padding:4px">90d up</th></tr></thead><tbody>' + kpis.map(function(k) { var s30 = k.scenarios_30d || {}, s90 = k.scenarios_90d || {}; return '<tr style="border-top:1px solid #F3F4F6"><td style="padding:4px">' + escapeHtml(k.name || '') + '<div style="color:#9CA3AF;font-size:0.62rem">' + escapeHtml(k.unit || '') + '</div></td><td style="padding:4px;text-align:center;direction:ltr">' + (s30.conservative != null ? s30.conservative : '—') + '</td><td style="padding:4px;text-align:center;direction:ltr">' + (s30.base != null ? s30.base : '—') + '</td><td style="padding:4px;text-align:center;direction:ltr">' + (s90.base != null ? s90.base : '—') + '</td><td style="padding:4px;text-align:center;direction:ltr;color:#10B981">' + (s90.upside != null ? s90.upside : '—') + '</td></tr>'; }).join('') + '</tbody></table></div></details>' : '')
+    + (budgets.length ? '<details style="margin-bottom:6px"><summary style="cursor:pointer;font-size:0.78rem;font-weight:500;color:#374151">Budget Allocation (3 רמות)</summary><table style="width:100%;font-size:0.7rem;margin-top:4px;border-collapse:collapse"><thead style="background:#F9FAFB"><tr><th style="padding:4px;text-align:right">תקציב</th><th style="padding:4px">#1</th><th style="padding:4px">#2</th><th style="padding:4px">#3</th><th style="padding:4px">רזרבה</th></tr></thead><tbody>' + budgets.map(function(b) { return '<tr style="border-top:1px solid #F3F4F6"><td style="padding:4px;direction:ltr">₪' + (b.monthly_budget_ils || 0) + '</td><td style="padding:4px;text-align:center;direction:ltr">₪' + (b.channel_1_ils || 0) + '</td><td style="padding:4px;text-align:center;direction:ltr">₪' + (b.channel_2_ils || 0) + '</td><td style="padding:4px;text-align:center;direction:ltr">₪' + (b.channel_3_ils || 0) + '</td><td style="padding:4px;text-align:center;direction:ltr">₪' + (b.reserve_ils || 0) + '</td></tr>'; }).join('') + '</tbody></table></details>' : '')
+    + (risks.length ? '<details><summary style="cursor:pointer;font-size:0.76rem;font-weight:500;color:#991B1B">סיכונים ומיטיגציות (' + risks.length + ')</summary><div style="padding:6px 0;font-size:0.72rem">' + risks.map(function(r) { return '<div style="padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.05)"><strong>' + escapeHtml(r.risk || '') + '</strong> <span style="color:#9CA3AF">[' + escapeHtml(r.probability || '') + ' / ' + escapeHtml(r.impact || '') + ']</span><div style="color:#065F46;margin-top:2px">→ ' + escapeHtml(r.mitigation || '') + '</div></div>'; }).join('') + '</div></details>' : '')
+    + '</div>';
+}
+
+// ── validation ──────────────────────────────────────────────────────────────
+
+function renderValidationRecords(records) {
+  // Heuristic — the ai_sim record has 'questions' arrays; real_interviews has 'script_sections'.
+  if (records[0] && records[0].mode === 'real_interviews') {
+    return renderInterviewScript(records[0]);
+  }
+  return renderAiSimulations(records);
+}
+
+function renderAiSimulations(records) {
+  // Records here are PersonaSimRecords + the rollup is at top-level (not in records).
+  // The rollup confidence_score / cross_validation_matrix lives on result, not records.
+  return '<div style="margin:8px 0">'
+    + '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:6px">' + records.length + ' סימולציות פרסונה</div>'
+    + records.map(function(p) {
+        var qs = p.questions || [];
+        var crit = p.critical_answer_count || 0;
+        return '<div style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:6px">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+          +   '<strong style="font-size:0.88rem">' + escapeHtml(p.persona_name || '—') + '</strong>'
+          +   confidencePill(p.confidence)
+          + '</div>'
+          + (p.persona_profile_summary ? '<div style="font-size:0.74rem;color:#4B5563;margin-bottom:6px">' + escapeHtml(p.persona_profile_summary) + '</div>' : '')
+          + '<div style="font-size:0.7rem;color:#6B7280;margin-bottom:6px">' + qs.length + ' שאלות · ' + crit + ' ביקורתיות</div>'
+          + (qs.length ? '<details><summary style="cursor:pointer;font-size:0.74rem;color:#374151">צפו בשאלות + תשובות</summary><div style="padding:6px 0">' + qs.map(function(q) { return '<div style="margin-bottom:6px;font-size:0.72rem"><div style="font-weight:500">' + escapeHtml(q.q || '') + (q.is_critical ? ' <span style="color:#991B1B;font-size:0.62rem">[critical]</span>' : '') + '</div><div style="color:#4B5563;font-style:italic">"' + escapeHtml(q.in_persona_voice_he || '') + '"</div></div>'; }).join('') + '</div></details>' : '')
+          + (p.red_flags && p.red_flags.length ? '<div style="margin-top:4px;font-size:0.7rem"><strong style="color:#991B1B">🔴 Red flags:</strong> ' + p.red_flags.map(escapeHtml).join(' · ') + '</div>' : '')
+          + (p.green_flags && p.green_flags.length ? '<div style="margin-top:2px;font-size:0.7rem"><strong style="color:#065F46">🟢 Green flags:</strong> ' + p.green_flags.map(escapeHtml).join(' · ') + '</div>' : '')
+          + '</div>';
+      }).join('')
+    + '</div>';
+}
+
+function renderInterviewScript(r) {
+  var sections = r.script_sections || [];
+  var hyp = r.linked_hypotheses_to_validate || [];
+  return '<div style="margin:8px 0">'
+    + '<div style="background:#F0F9FF;border:1px solid #BFDBFE;border-radius:6px;padding:8px 12px;margin-bottom:6px;font-size:0.76rem;color:#1E3A8A"><strong>Mom-Test interview script</strong> · ' + (r.interview_duration_minutes || 20) + ' דקות · ' + sections.length + ' חלקים</div>'
+    + sections.map(function(sec) {
+        var qs = sec.questions || [];
+        return '<details style="margin-bottom:4px"><summary style="cursor:pointer;font-size:0.78rem;font-weight:500;color:#374151;padding:6px 8px;background:#F9FAFB;border-radius:4px">' + escapeHtml(sec.section || '') + ' · ' + (sec.duration_minutes || 0) + ' דק׳</summary>'
+          + '<div style="padding:6px 0;font-size:0.72rem">'
+          + (sec.spoken_text_he ? '<div style="background:#FEF3C7;padding:6px 8px;border-radius:4px;margin-bottom:6px">"' + escapeHtml(sec.spoken_text_he) + '"</div>' : '')
+          + qs.map(function(q) { return '<div style="border-right:2px solid #E5E7EB;padding:4px 8px 4px 0;margin-bottom:4px"><div style="font-weight:500">' + escapeHtml(q.question_he || '') + '</div><div style="color:#6B7280;font-size:0.66rem">' + escapeHtml(q.what_we_learn || '') + '</div></div>'; }).join('')
+          + '</div></details>';
+      }).join('')
+    + (hyp.length ? '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.78rem;color:#374151">השערות לאימות (' + hyp.length + ')</summary><div style="padding:6px 0;font-size:0.72rem">' + hyp.map(function(h) { return '<div style="margin-bottom:3px">• ' + escapeHtml(h.hypothesis || '') + ' <span style="color:#9CA3AF">[' + escapeHtml(h.criticality || '') + ']</span></div>'; }).join('') + '</div></details>' : '')
+    + '</div>';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
