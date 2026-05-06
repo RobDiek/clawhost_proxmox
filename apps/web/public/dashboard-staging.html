@@ -11209,16 +11209,22 @@ function closeResultPanelV2() {
 
 function renderQualityGateBanner(qg) {
   if (!qg || qg.skipped) return '';
+  // Phase 3.14 — autoCorrected note appears alongside the main banner
+  // (or alone when gate fully passed). Audit trail of issues caught + fixed
+  // server-side (e.g. math_sanity for competitor_landscape).
+  var autoNote = (qg.autoCorrected && qg.autoCorrected.length)
+    ? '<details style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:6px;padding:6px 10px;margin-bottom:8px;font-size:0.72rem;color:#065F46"><summary style="cursor:pointer">✓ ' + qg.autoCorrected.length + ' בעיות זוהו ותוקנו אוטומטית (audit trail)</summary><ul style="margin:4px 0 0;padding:0 18px 0 0">' + qg.autoCorrected.map(function(a) { return '<li>' + escapeHtml(a) + '</li>'; }).join('') + '</ul></details>'
+    : '';
   if (qg.hardFailures && qg.hardFailures.length) {
-    return '<div style="background:#FEE2E2;border:1px solid #FECACA;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:0.78rem;color:#991B1B"><strong>⚠ ' + qg.hardFailures.length + ' כשלי איכות (hard):</strong><ul style="margin:4px 0 0;padding:0 18px 0 0">' + qg.hardFailures.map(function(f) { return '<li>' + escapeHtml(f) + '</li>'; }).join('') + '</ul>' + (qg.revised ? '<div style="margin-top:4px;color:#374151;font-weight:500">תוקן אוטומטית ע"י self-critique ✓</div>' : '') + '</div>';
+    return autoNote + '<div style="background:#FEE2E2;border:1px solid #FECACA;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:0.78rem;color:#991B1B"><strong>⚠ ' + qg.hardFailures.length + ' כשלי איכות (hard):</strong><ul style="margin:4px 0 0;padding:0 18px 0 0">' + qg.hardFailures.map(function(f) { return '<li>' + escapeHtml(f) + '</li>'; }).join('') + '</ul>' + (qg.revised ? '<div style="margin-top:4px;color:#374151;font-weight:500">תוקן אוטומטית ע"י self-critique ✓</div>' : '') + '</div>';
   }
   if (qg.warnings && qg.warnings.length) {
-    return '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:0.78rem;color:#92400E"><strong>⚠ ' + qg.warnings.length + ' אזהרות איכות:</strong><ul style="margin:4px 0 0;padding:0 18px 0 0">' + qg.warnings.map(function(w) { return '<li>' + escapeHtml(w) + '</li>'; }).join('') + '</ul></div>';
+    return autoNote + '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:0.78rem;color:#92400E"><strong>⚠ ' + qg.warnings.length + ' אזהרות איכות:</strong><ul style="margin:4px 0 0;padding:0 18px 0 0">' + qg.warnings.map(function(w) { return '<li>' + escapeHtml(w) + '</li>'; }).join('') + '</ul></div>';
   }
   if (qg.pass) {
-    return '<div style="background:#D1FAE5;border:1px solid #A7F3D0;border-radius:6px;padding:6px 12px;margin-bottom:8px;font-size:0.74rem;color:#065F46">✓ עברה את כל בדיקות האיכות</div>';
+    return autoNote + '<div style="background:#D1FAE5;border:1px solid #A7F3D0;border-radius:6px;padding:6px 12px;margin-bottom:8px;font-size:0.74rem;color:#065F46">✓ עברה את כל בדיקות האיכות</div>';
   }
-  return '';
+  return autoNote;
 }
 
 // ─── Intent picker / expand-plan modal (Phase 3.8c) ────────────────────────
