@@ -11082,7 +11082,7 @@ function renderStageCardV2(sid, idx) {
     var startedAt = pipelineV2State.loadingStartedAt && pipelineV2State.loadingStartedAt[sid];
     var elapsedSec = startedAt ? Math.round((Date.now() - startedAt) / 1000) : 0;
     var elapsedLabel = elapsedSec < 60 ? elapsedSec + ' שנ׳' : Math.floor(elapsedSec / 60) + ':' + String(elapsedSec % 60).padStart(2, '0');
-    actions = '<div style="font-size:0.78rem;color:#3730A3">רץ ' + elapsedLabel + ' · משוער 4-9 דקות</div>';
+    actions = '<div style="font-size:0.78rem;color:#3730A3">רץ ' + elapsedLabel + ' · משוער 6-12 דקות</div>';
   } else if (status.state === 'completed' || status.state === 'degraded') {
     actions =
       '<button class="btn btn-outline btn-sm" onclick="viewStageResultV2(\'' + sid + '\')" style="font-size:0.74rem;padding:3px 10px">צפו</button>' +

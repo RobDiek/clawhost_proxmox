@@ -245,7 +245,13 @@ export async function executeStage(input: ExecuteStageInput): Promise<ExecuteSta
                     max_tokens: 32000,
                     messages: [{ role: 'user', content: prompt }],
                 }),
-                signal: AbortSignal.timeout(300000),
+                // Phase 3.19 — bumped 5min → 12min. Generation time for Opus 4.7
+                // scales roughly with max_tokens; doubling output budget pushed the
+                // wide stages past the prior 5min cap on master and triggered
+                // generic "stage failed" 500s on the user. 12min covers the 32K
+                // ceiling with headroom; we still have an upper bound so a stuck
+                // call doesn't block the pipeline forever.
+                signal: AbortSignal.timeout(720_000),
             })
             if (apiRes.ok) {
                 const data = await apiRes.json() as { content?: Array<{ text: string }> }
@@ -398,10 +404,10 @@ print('\n\n'.join(out))
                     },
                     body: JSON.stringify({
                         model: anthropicModel,
-                        max_tokens: 16000,
+                        max_tokens: 32000,  // Phase 3.18 — match primary path budget
                         messages: [{ role: 'user', content: prompt }],
                     }),
-                    signal: AbortSignal.timeout(300000),
+                    signal: AbortSignal.timeout(720_000),  // Phase 3.19 — match primary path
                 })
                 if (apiRes.ok) {
                     const data = await apiRes.json() as { content?: Array<{ text: string }> }
