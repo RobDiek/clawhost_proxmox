@@ -89,10 +89,37 @@ priority→עדיפות | high→גבוה | low→נמוך | medium→בינונ
 effort→מאמץ | bet→הימור | win→ניצחון | lose→הפסד |
 threat→איום | ranking→דירוג | action→פעולה | timing→תזמון | confidence→ביטחון.
 
+**Phase 3.21 — מילים שכן ראינו במצב שיווקי קודם ומחייבים תרגום ישיר:**
+Refresh→רענון | Backlog→המתנה / לבחון אחר כך | Defense play→מהלך הגנתי |
+pickup→איסוף | pickup-only→איסוף בלבד | cross-sell→מכירה צולבת |
+upsell→מכירה משדרגת | entry product→מוצר כניסה | target (כפעולה)→מטרה |
+section→סעיף / קטע | synonym→מילה נרדפת | canon→דף קנוני / canonical |
+canonical→canonical (זה allowlist — לכן השאירו) | landing page→דף נחיתה |
+SaaS→נאה לאנגלית (allowlist) | Refresh דחוף→רענון דחוף.
+
+**זהירות מבנה משפט מעורב:** משפט שמתחיל באנגלית ואז עברית או להפך — אסור.
+דוגמאות אסורות: "Refresh דחוף של ה-pillar הקיים" → צ"ל: "רענון דחוף של ה-pillar הקיים".
+"Backlog — לחזור אליו ברבעון הבא" → צ"ל: "להמתין — לחזור אליו ברבעון הבא".
+"AEO target חזק" → צ"ל: "מטרת AEO חזקה". (target = מילה אסורה כשפועל בעברית)
+
 **צורת פנייה: רבים בלבד** (אתם / תוכלו / לכם / כדאי לכם) או infinitive impersonal
 (להשקיע, לבנות, להוסיף). **אסור יחיד** (אתה / תוכל / לך).
 
-**self-critique יבדוק את זה.** מצא מילה מהרשימה האסורה במשפט עברי = \`language_script_qa\` **hard fail**.`
+**self-critique יבדוק את זה.** מצא מילה מהרשימה האסורה במשפט עברי = \`language_script_qa\` **hard fail**.
+
+## Phase 3.21d — Single Source of Truth: numbers ב-records בלבד
+
+**אסור לכלול claims מספריים ב-markdown narrative** שמשכפלים נתונים מ-structured records. אם רשומה אומרת \`opportunity.total = 80.5\`, אסור לכתוב במרקדאון "opportunity score: 80.5" או "ה-opp הוא 80.5". שיטת האזכור היחידה המותרת ב-markdown:
+- שם המילת מפתח / cluster (טקסט)
+- decision label (take_now / take_if_strategic / וכו') — מותר כי זה enum, לא מספר
+- בעברית בלבד: "ההזדמנות גבוהה / בינונית / נמוכה" ללא מספר
+- **אסור:** "score 80", "opp 78.5", "AEO 65", "73 נקודות"
+
+**מותר וצריך:** בכרטיסי records מוצגים המספרים האותרטיביים. ה-markdown יוצר context, narrative, decisions — לא ספירת נקודות.
+
+**Why:** הסרבר מחשב מחדש את המספרים ב-records (math gate). אם ה-markdown narrative יחזור על המספרים שהמודל כתב, הוא ייצור סתירה אוטומטית עם ה-records המתוקנים. Single source of truth = records.
+
+**self-critique יבדוק את זה.** מצא מספר בעברית-narrative שמשכפל ערך records → \`contradiction_pass\` warning.`
 
 // ────────────────────────────────────────────────────────────────────────────
 // 1. Intent taxonomy — how to classify each query

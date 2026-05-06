@@ -193,6 +193,16 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         if (stageId === 'seo_keyword_research' && parsed.records) {
             recomputeKeywordScores(parsed.records)
         }
+        // Phase 3.21b — Hebrew filler scrubber. After research stages produce
+        // records, sweep through the Hebrew-prose text fields and substitute
+        // common English filler that the model keeps reaching for despite
+        // HEBREW_ONLY_BLOCK + critic enforcement. This is a SAFETY NET, not the
+        // primary defense — prompt + critic should still catch most cases.
+        if (parsed.records) {
+            scrubEnglishFillerInRecords(parsed.records)
+        }
+        // Also scrub the markdown body since the model uses the same filler there.
+        output.content = scrubEnglishFillerInText(output.content)
         if (parsed.records) output.records = parsed.records
         // Capture non-records JSON sibling fields (Phase 3.10b: our_link_profile,
         // link_gap_targets, cross_validation_matrix, etc.). UI per-stage
@@ -384,5 +394,103 @@ function recomputeKeywordScores(records: unknown[]): void {
     }
     if (oppDriftCount > 0 || aeoDriftCount > 0) {
         console.warn(`[research/seo_keyword_research] math drift overridden: opportunity=${oppDriftCount}/${records.length}, aeo=${aeoDriftCount}/${records.length}`)
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Phase 3.21b — Hebrew filler scrubber. Substitutes English filler words the
+// model keeps inserting into Hebrew prose, despite HEBREW_ONLY_BLOCK + critic.
+//
+// The substitution table is conservative — only words that we observed in
+// real production output AND have an unambiguous Hebrew translation that
+// keeps the meaning intact. Whitespace + word-boundary aware so we don't
+// mangle URLs, schema names (e.g. "FAQ schema"), or the allowlist (SEO,
+// SERP, AEO, JTBD, schema markup, content hub, etc).
+//
+// This is a SAFETY NET, not the primary defense — prompt + critic should
+// still catch most cases. Anything past those still gets scrubbed before
+// reaching the user.
+
+const FORBID_LIST_REPLACEMENTS: Array<[RegExp, string]> = [
+    // Whole-word case-insensitive replacements with Hebrew equivalents.
+    // Word boundaries handle Hebrew context — \b matches at the start/end of
+    // a word, and Hebrew adjacent characters count as word characters via \w
+    // in the unicode mode.
+    [/\bRefresh\b/g, 'רענון'],
+    [/\bBacklog\b/g, 'המתנה'],
+    [/\bDefense play\b/gi, 'מהלך הגנתי'],
+    [/\bpickup-only\b/gi, 'איסוף בלבד'],
+    [/\bcross-sell\b/gi, 'מכירה צולבת'],
+    [/\bupsell\b/gi, 'מכירה משדרגת'],
+    [/\bentry product\b/gi, 'מוצר כניסה'],
+    [/\bsynonym\b/gi, 'מילה נרדפת'],
+    // "target" only when used as an English filler ("AEO target חזק", "featured_snippet target")
+    // — preserve when part of a code identifier (target_keywords, ad_target, etc).
+    [/(?<![\w_])target(?![\w_-])/g, 'מטרה'],
+    // "section" only as a standalone English filler word inside Hebrew prose.
+    [/(?<![\w_])section(?![\w_-])/g, 'סעיף'],
+]
+
+function scrubEnglishFillerInText(text: string): string {
+    if (!text) return text
+    let out = text
+    for (const [pattern, replacement] of FORBID_LIST_REPLACEMENTS) {
+        out = out.replace(pattern, replacement)
+    }
+    return out
+}
+
+const SCRUBBABLE_RECORD_FIELDS = [
+    'recommended_action',
+    'cluster',
+    'topical_authority_venn',
+    'site_architecture_depth',
+    'link_profile_depth',
+    'eeat_signals',
+    'page_type',
+    'outreach_angle',
+    'segment_definition',
+    'mission',
+    'positioning_statement',
+    'brand_promise',
+    'first_win_channel',
+    'specific_action',
+] as const
+
+function scrubEnglishFillerInRecords(records: unknown[]): void {
+    let touched = 0
+    for (const r of records) {
+        if (!r || typeof r !== 'object') continue
+        const rec = r as Record<string, unknown>
+        for (const field of SCRUBBABLE_RECORD_FIELDS) {
+            const v = rec[field]
+            if (typeof v === 'string') {
+                const scrubbed = scrubEnglishFillerInText(v)
+                if (scrubbed !== v) { rec[field] = scrubbed; touched++ }
+            }
+        }
+        // Nested intent.jtbd
+        if (rec.intent && typeof rec.intent === 'object') {
+            const intent = rec.intent as Record<string, unknown>
+            if (typeof intent.jtbd === 'string') {
+                const scrubbed = scrubEnglishFillerInText(intent.jtbd)
+                if (scrubbed !== intent.jtbd) { intent.jtbd = scrubbed; touched++ }
+            }
+        }
+        // Arrays of strings — threats_to_us, content_gaps_at_competitor, must_include_entities, etc.
+        for (const arrField of ['threats_to_us', 'content_gaps_at_competitor', 'must_include_data_points', 'must_include_entities']) {
+            const arr = rec[arrField]
+            if (Array.isArray(arr)) {
+                for (let i = 0; i < arr.length; i++) {
+                    if (typeof arr[i] === 'string') {
+                        const scrubbed = scrubEnglishFillerInText(arr[i])
+                        if (scrubbed !== arr[i]) { arr[i] = scrubbed; touched++ }
+                    }
+                }
+            }
+        }
+    }
+    if (touched > 0) {
+        console.log(`[research] Hebrew filler scrubber: ${touched} substitutions across ${records.length} records`)
     }
 }

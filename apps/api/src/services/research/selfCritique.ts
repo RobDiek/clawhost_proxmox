@@ -107,7 +107,12 @@ export async function runSelfCritique(input: RunInput): Promise<QualityGateOutco
             },
             body: JSON.stringify({
                 model: anthropicModel,
-                max_tokens: 16000,
+                // Phase 3.21c — bumped 16K → 32K. With max_tokens=32K on the main
+                // call the content under review can be ~65K chars; producing a
+                // revised_content that fixes hard failures requires re-emitting
+                // most of that content, which doesn't fit in 16K. 32K matches
+                // the main path and lets revisions actually land.
+                max_tokens: 32000,
                 stream: true,
                 messages: [{ role: 'user', content: criticPrompt }],
             }),
