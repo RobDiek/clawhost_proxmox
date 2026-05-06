@@ -30,7 +30,19 @@ import {
     type SerpResult,
 } from '@/services/research/dataforseo'
 import { decideLanguage } from '@/services/research/methodology'
+import { enrichWithGSC } from '@/services/gscEnrich'
+import { db } from '@/db'
+import { instances } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 import type { ResearchDataV2 } from '@/services/research/types'
+
+interface GscQuerySnapshot {
+    query: string
+    clicks: number
+    impressions: number
+    ctr: number
+    position: number
+}
 
 export interface SerpSnapshot {
     keyword: string
@@ -51,6 +63,16 @@ export interface SeoKeywordResearchDfsData {
     serpSnapshots: SerpSnapshot[]
     /** Keywords our domain currently ranks for (positions 1-100) — striking-distance source */
     rankedKeywords: RankedKeywordItem[]
+    /** Phase (d) — actual GSC organic queries (last 90 days). True striking-distance source.
+     *  When connected, this overrides rankedKeywords as the primary striking-distance signal
+     *  because it reflects Google's own data (not DFS approximation). */
+    gsc: {
+        connected: boolean
+        siteUrl?: string
+        daysAnalyzed: number
+        queries: GscQuerySnapshot[]
+        reason?: string
+    }
     /** Best-effort failure log for the prompt to report honestly */
     enrichmentMissing: string[]
     totalCostUsd: number
@@ -192,7 +214,43 @@ export async function prefetchSeoKeywordResearch(
         }
     }
 
-    console.log(`[prefetch/seo_keyword_research] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} ideas=${ideas.length} difficulty=${difficulty.length} serp=${serpSnapshots.length} ranked=${ranked.length}`)
+    // ─── Phase (d): GSC organic queries — real striking-distance signal ──
+    // GSC returns Google's own clicks/impressions/CTR/position over the last
+    // 90 days. When connected, it's strictly better than DFS rankedKeywords
+    // for striking distance (4-20 position bucket) and click_yield calibration.
+    let gscBlock: SeoKeywordResearchDfsData['gsc'] = {
+        connected: false,
+        daysAnalyzed: 0,
+        queries: [],
+        reason: 'GSC not connected',
+    }
+    try {
+        const [inst] = await db.select({ gscTokens: instances.gscTokens })
+            .from(instances).where(eq(instances.id, instanceId))
+        const gscTokens = (inst?.gscTokens || null) as Parameters<typeof enrichWithGSC>[0]
+        if (gscTokens) {
+            const r = await enrichWithGSC(gscTokens, { days: 90, rowLimit: 200 })
+            if (r.available) {
+                gscBlock = {
+                    connected: true,
+                    siteUrl: r.siteUrl,
+                    daysAnalyzed: r.daysAnalyzed,
+                    queries: r.queries,
+                }
+            } else {
+                gscBlock.reason = r.reason || 'GSC fetch failed'
+                enrichmentMissing.push('gsc_organic_queries')
+            }
+        } else {
+            enrichmentMissing.push('gsc_not_connected')
+        }
+    } catch (err) {
+        gscBlock.reason = `GSC error: ${(err as Error).message}`
+        enrichmentMissing.push('gsc_error')
+        console.warn(`[prefetch/seo_keyword_research] GSC enrichment failed:`, (err as Error).message)
+    }
+
+    console.log(`[prefetch/seo_keyword_research] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} ideas=${ideas.length} difficulty=${difficulty.length} serp=${serpSnapshots.length} ranked=${ranked.length} gsc=${gscBlock.connected ? gscBlock.queries.length + ' queries' : 'off'}`)
 
     return {
         ourDomain,
@@ -202,6 +260,7 @@ export async function prefetchSeoKeywordResearch(
         difficulty,
         serpSnapshots,
         rankedKeywords: ranked,
+        gsc: gscBlock,
         enrichmentMissing,
         totalCostUsd,
         cacheHits,

@@ -529,6 +529,21 @@ function renderRankedKeywords(ranked: SeoKeywordResearchDfsData['rankedKeywords'
     return `| Keyword | Position | Striking bucket | Volume | KD | URL |\n|---|---|---|---|---|---|\n${rows}`
 }
 
+function renderGscBlock(gsc: SeoKeywordResearchDfsData['gsc']): string {
+    if (!gsc.connected) {
+        return `*(GSC לא מחובר — ${gsc.reason || 'אין Google Search Console מחובר לחשבון'}. striking-distance מתבסס על DFS rankedKeywords בלבד; אם המשתמש יחבר GSC זה ייתן signals חזקים יותר. רשמו במפורש בפלט שהנתון מבוסס DFS estimation ולא Google's own data.)*`
+    }
+    const rows = gsc.queries.slice(0, 100).map(q => {
+        const bucket = q.position <= 3 ? 'top_3'
+            : q.position <= 8 ? 'fast_optimization (4-8)'
+            : q.position <= 15 ? 'content_upgrade (9-15)'
+            : q.position <= 20 ? 'rebuild_or_remap (16-20)'
+            : `pos ${Math.round(q.position)}`
+        return `| ${q.query} | ${q.position.toFixed(1)} | ${bucket} | ${q.clicks} | ${q.impressions} | ${(q.ctr * 100).toFixed(2)}% |`
+    }).join('\n')
+    return `**Site:** \`${gsc.siteUrl}\` | **Days analyzed:** ${gsc.daysAnalyzed} | **Total queries:** ${gsc.queries.length}\n\n| Query | Position (avg) | Striking bucket | Clicks | Impressions | CTR |\n|---|---|---|---|---|---|\n${rows}`
+}
+
 export function buildSeoKeywordResearchPrompt(opts: PromptOpts): PromptResult {
     const { businessName, businessDesc, answers, feedback, historicalAssetsBlock } = opts
     const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
@@ -568,6 +583,11 @@ ${renderSerpSnapshots(dfs.serpSnapshots)}
 
 ### Striking-distance scan — DFS ranked_keywords (our domain, position ≤ 50)
 ${renderRankedKeywords(dfs.rankedKeywords)}
+
+### GSC organic queries — Google's own data (last 90 days)
+${renderGscBlock(dfs.gsc)}
+
+**הערה לגבי striking distance:** אם GSC מחובר, השתמשו ב-GSC queries כמקור עיקרי ל-current_position וב-striking_bucket — Google's own data תמיד מנצח DFS estimation. השתמשו ב-DFS rankedKeywords כ-fallback בלבד.
 
 ---
 
@@ -659,15 +679,69 @@ ${DFS_DATA_RULE}
       "generated_at": "ISO timestamp"
     }
   ],
+  "cluster_architecture": [
+    {
+      "cluster_name": "שם cluster (בעברית עיקרי, אנגלית רק אם הnameingvention ב-IL הוא אנגלי)",
+      "pillar_keyword": "מילת המפתח הראשית של ה-cluster (head term)",
+      "pillar_url_proposal": "/proposed-url-slug",
+      "intent_ladder": "1 משפט בעברית — איך הקלאסטר עובר בין info_broad → info_deep → commercial_eval → transactional",
+      "spokes": [
+        {
+          "keyword": "מילת מפתח (חייבת להיות אחת מ-records[].keyword)",
+          "page_type": "info_deep_spoke / comparison_spoke / pricing_explainer / faq / trust_proof / local_page",
+          "internal_link_to_pillar_anchor": "טקסט עוגן בעברית למקושר מהspoke לpillar"
+        }
+      ],
+      "serp_features_dominant": ["הרשימה של SERP features שחוזרת על עצמה ברוב records של ה-cluster — ai_overview / paa / featured_snippet / local_pack / image_pack / video"],
+      "expected_zero_click_share": "estimated % שחיפושים ייגמרו בלי click (מבוסס על SERP features). אם > 60% — flag risk.",
+      "evidence": ["dfs_keyword_ideas", "dfs_serp_advanced"],
+      "confidence": "high | medium | working_hypothesis"
+    }
+  ],
+  "cannibalization_audit": {
+    "_note": "סריקה מול records — אם 2+ records מתחרים על אותו primary intent + page_type בתוך אותו cluster, זו cannibalization risk.",
+    "risks_identified": [
+      {
+        "competing_keywords": ["kw_a", "kw_b"],
+        "shared_intent_and_page_type": "intent + page_type משותפים שגורמים לתחרות פנימית",
+        "resolution": "merge into single page / split intent / dedicate distinct page types",
+        "owner": "מנהל SEO / מנהל תוכן",
+        "confidence": "high | medium | working_hypothesis"
+      }
+    ],
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "content_briefs": [
+    {
+      "_note": "Content briefs רק לרשומות עם opportunity.decision == 'take_now'. ללמד את צוות התוכן בדיוק מה לבנות.",
+      "for_keyword": "המילה/מפתח (חייבת להיות אחת מ-records)",
+      "page_type": "pillar / spoke / faq / וכו'",
+      "title_proposal_he": "כותרת H1 בעברית (50-60 תווים, כוללת keyword)",
+      "meta_description_he": "תיאור meta בעברית (140-160 תווים, persuasive + keyword early)",
+      "target_word_count": 0,
+      "h2_outline": ["H2 #1 בעברית", "H2 #2 בעברית", "H2 #3 בעברית"],
+      "must_include_entities": ["שמות עצמיים — מותגים / כלים / מקומות / מומחים שצריכים להיכלל"],
+      "must_include_data_points": ["מספרים / סטטיסטיקות / data references — מ-DFS או מ-research"],
+      "schema_markup_required": ["FAQ / HowTo / LocalBusiness / Article / Product"],
+      "internal_links_to_create": ["/page-a", "/page-b"],
+      "competitive_advantage": "1 משפט בעברית — איך הדף הזה ינצח את הdomination הנוכחי ב-SERP",
+      "owner": "מנהל תוכן / sub-contracted writer",
+      "estimated_effort_hours": 0,
+      "evidence": ["dfs_serp_advanced", "dfs_keyword_ideas"]
+    }
+  ],
   "confidence": "high" | "medium" | "working_hypothesis"
 }
 \`\`\`
 
 **חובה:**
-- **מינימום 15 records** (Hebrew/IL niches לעיתים מצומצמים — 30 לא תמיד ריאליסטי). מתוכם:
-  - ≥ 5 with opportunity.decision = "take_now" (score ≥ 70)
+- **מינימום 20 records** (Hebrew/IL niches לעיתים מצומצמים — אם קשה להגיע ל-20 עם DFS data verbatim, השלימו עם working_hypothesis records מבוססי מתחרים + cluster gap analysis). מתוכם:
+  - ≥ 6 with opportunity.decision = "take_now" (score ≥ 70)
   - ≥ 3 AEO-priority (aeo.is_priority = true, score ≥ 70)
   - ≥ 3 striking-distance (current_position 4-20, אם יש GSC/ranked_keywords data)
+- **\`cluster_architecture\` חובה** — מינימום 3 clusters, כל cluster עם pillar + 4-8 spokes (חייבים להיות מוזכרים ב-records[]).
+- **\`cannibalization_audit\` חובה** — סקירה מול כל records. אם 0 risks → ציינו במפורש "לא זוהו risks" + הסבר.
+- **\`content_briefs\` חובה** — brief מלא לכל record עם opportunity.decision = "take_now" (לפחות 6).
 - כל record חייב volume/CPC/KD מ-DFS verbatim — אם זה לא ב-DFS data, סמנו null + **confidence: working_hypothesis** (חוק קשיח, לא ברירת מחדל).
 - **Opportunity score** חישוב **לפי הנוסחה המדויקת** (0.25·BV + 0.20·WP + 0.15·QD + 0.15·CY + 0.10·AEO + 0.10·CL + 0.05·OE) — אסור משקלים שווים, אסור ממוצע. **\`opportunity._formula_verification\` חובה** עם החישוב המילולי.
 - **AEO score** לפי הנוסחה (0.30·SN + 0.25·FD + 0.20·FU + 0.15·ES + 0.10·CV) — אסור משקלים שווים. **\`aeo._formula_verification\` חובה**.
