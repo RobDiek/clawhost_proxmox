@@ -208,6 +208,18 @@ export interface StageResult {
      * sections. UI shows this on the pipeline-stage card.
      */
     confidence?: 'high' | 'medium' | 'working_hypothesis'
+    /**
+     * Self-critique gate outcome (Phase 3.5e). Set when the 2nd-pass critic
+     * ran. Records pass/fail per check + warnings + (optional) revision marker.
+     * UI surfaces a banner with hard_failures or warnings count.
+     */
+    qualityGate?: {
+        pass: boolean
+        hardFailures: string[]
+        warnings: string[]
+        revised: boolean
+        skipped?: boolean
+    }
 }
 
 export interface ResearchPlan {

@@ -129,6 +129,14 @@ export interface ExecuteStageOutput {
     dfsCost?: number
     /** Section-level confidence rollup. */
     confidence?: 'high' | 'medium' | 'working_hypothesis'
+    /** Self-critique gate outcome (Phase 3.5e). */
+    qualityGate?: {
+        pass: boolean
+        hardFailures: string[]
+        warnings: string[]
+        revised: boolean
+        skipped?: boolean
+    }
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -489,6 +497,7 @@ export async function saveStageResult(
         ...(output.records ? { records: output.records } : {}),
         ...(output.dfsCost !== undefined ? { dfsCost: output.dfsCost } : {}),
         ...(output.confidence ? { confidence: output.confidence } : {}),
+        ...(output.qualityGate ? { qualityGate: output.qualityGate } : {}),
     }
 
     results[stageId] = stageResult

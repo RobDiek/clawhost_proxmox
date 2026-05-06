@@ -32,6 +32,7 @@ import {
 } from '@/services/research/stageExecutor'
 import { buildPromptForStage } from '@/services/research/prompts'
 import { parseHybridResponse, rollupConfidence } from '@/services/research/hybridParser'
+import { runSelfCritique } from '@/services/research/selfCritique'
 import { DfsError } from '@/services/research/dataforseo'
 import { prefetchCompetitorLandscape } from './prefetch/competitor_landscape'
 import { prefetchSeoKeywordResearch } from './prefetch/seo_keyword_research'
@@ -143,6 +144,31 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             return fail(c, output.errorMessage || 'Stage failed', (output.httpCode || 500) as 400 | 500)
         }
 
+        // ─── Self-critique gate (Phase 3.5e) ──
+        // 2nd Anthropic call audits content against 10 quality_gate checks.
+        // On hard failures (math/script/intent/source), critic produces a
+        // revised version which we ship in place of the original. Warnings
+        // are flagged but don't block. Critic call failures fall through
+        // (skipped=true) — never blocks the pipeline on infra hiccups.
+        let critique: Awaited<ReturnType<typeof runSelfCritique>> | null = null
+        try {
+            critique = await runSelfCritique({
+                content: output.content,
+                stageId,
+                originalPrompt: promptResult.prompt,
+                model,
+                instanceId,
+                businessName,
+            })
+            if (critique.revisedContent) {
+                console.log(`[research/${stageId}] critic produced revision (${output.content.length} → ${critique.revisedContent.length} chars)`)
+                output.content = critique.revisedContent
+            }
+        } catch (err) {
+            // Should never throw (runSelfCritique catches), but defensive belt:
+            console.warn(`[research/${stageId}] self-critique unexpectedly threw:`, (err as Error).message)
+        }
+
         // ─── Parse hybrid response (JSON code-block + markdown narrative) ──
         // Per playbook §17 — structured records are JSON-first, narrative is
         // embedded markdown. Records get persisted alongside content for fast
@@ -159,8 +185,28 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             console.warn(`[research/${stageId}] response had JSON block but it was malformed — content saved without records`)
         }
 
+        // Persist quality gate metadata into the output for save + response.
+        // If hard failures present + revision wasn't accepted → confidence
+        // downgraded automatically; UI surfaces the banner from
+        // qualityGate.hardFailures.
+        if (critique && !critique.skipped) {
+            output.qualityGate = {
+                pass: critique.pass,
+                hardFailures: critique.hardFailures,
+                warnings: critique.warnings,
+                revised: !!critique.revisedContent,
+            }
+            if (!critique.pass && critique.hardFailures.length > 0 && !critique.revisedContent) {
+                // Couldn't auto-fix → step the confidence down so UI flags it.
+                if (output.confidence === 'high') output.confidence = 'medium'
+                else if (output.confidence === 'medium') output.confidence = 'working_hypothesis'
+            }
+        } else if (critique?.skipped) {
+            output.qualityGate = { pass: true, hardFailures: [], warnings: [], revised: false, skipped: true }
+        }
+
         await saveStageResult(instanceId, stageId, output)
-        console.log(`[research/${stageId}] complete: ${output.content.length} chars, source=${output.source}, records=${parsed.records?.length ?? 0}, dfsCost=$${dfsCost.toFixed(4)}, confidence=${finalConfidence ?? 'n/a'}`)
+        console.log(`[research/${stageId}] complete: ${output.content.length} chars, source=${output.source}, records=${parsed.records?.length ?? 0}, dfsCost=$${dfsCost.toFixed(4)}, confidence=${finalConfidence ?? 'n/a'}, qualityGate=${output.qualityGate ? (output.qualityGate.pass ? 'pass' : `fail(${output.qualityGate.hardFailures.length}h/${output.qualityGate.warnings.length}w)`) : 'n/a'}`)
 
         releaseResearchLock(instanceId)
         return ok(c, {
@@ -172,6 +218,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             records: parsed.records ?? null,
             dfsCost: dfsCost || undefined,
             confidence: finalConfidence,
+            qualityGate: output.qualityGate,
         }, `Stage ${stageId} complete.`)
     } catch (err) {
         releaseResearchLock(instanceId)
