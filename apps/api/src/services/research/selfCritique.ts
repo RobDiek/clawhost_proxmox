@@ -105,7 +105,10 @@ export async function runSelfCritique(input: RunInput): Promise<QualityGateOutco
                 max_tokens: 16000,
                 messages: [{ role: 'user', content: criticPrompt }],
             }),
-            signal: AbortSignal.timeout(180_000),
+            // Phase 3.12 — bumped 180s→300s. Phase 3.11 expanded promptTrimmed
+            // to 30K chars so critic sees full DFS context; Anthropic processing
+            // time grew accordingly and 180s started timing out for stage_1.
+            signal: AbortSignal.timeout(300_000),
         })
         if (!res.ok) {
             console.warn(`[selfCritique/${stageId}] HTTP ${res.status} — skipping`)

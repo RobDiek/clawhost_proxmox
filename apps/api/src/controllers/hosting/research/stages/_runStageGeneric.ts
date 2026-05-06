@@ -174,6 +174,16 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         // embedded markdown. Records get persisted alongside content for fast
         // downstream consumption (no re-parse on every read).
         const parsed = parseHybridResponse(output.content)
+        // Phase 3.12 — server-side scorecard.total recomputation for
+        // competitor_landscape. Model reliably emits scorecard components +
+        // _formula_verification trail with correct arithmetic, but the
+        // standalone `total` field disagrees (independent eyeballing, not
+        // chain-of-thought). We compute the authoritative value from
+        // components and overwrite both `total` and `_formula_verification`
+        // so they're internally consistent. Ditto if model omits the field.
+        if (stageId === 'competitor_landscape' && parsed.records) {
+            recomputeCompetitorScorecards(parsed.records)
+        }
         if (parsed.records) output.records = parsed.records
         // Capture non-records JSON sibling fields (Phase 3.10b: our_link_profile,
         // link_gap_targets, cross_validation_matrix, etc.). UI per-stage
@@ -237,5 +247,46 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         releaseResearchLock(instanceId)
         console.error(`runStageGeneric(${stageId}) error:`, err)
         return fail(c, `שלב המחקר נכשל`, 500)
+    }
+}
+
+/**
+ * Authoritative competitor-threat-scorecard recomputation.
+ * Formula (per CLAUDE.md SEO playbook + prompts.ts §17):
+ *   Total = 0.25·serp_overlap + 0.20·page_type_fit + 0.15·authority_trust_proof
+ *         + 0.15·local_presence_quality + 0.15·content_system_maturity
+ *         + 0.10·asset_linkability
+ * Replaces both `total` and `_formula_verification` so the two are
+ * internally consistent. Logs the discrepancy when the model's number
+ * was off by > 0.5 — useful as an inline math-sanity signal that we
+ * can't rely on the LLM to do this on its own.
+ */
+function recomputeCompetitorScorecards(records: unknown[]): void {
+    for (const r of records) {
+        if (!r || typeof r !== 'object') continue
+        const rec = r as Record<string, unknown>
+        const sc = rec.scorecard
+        if (!sc || typeof sc !== 'object') continue
+        const card = sc as Record<string, unknown>
+        const num = (k: string): number => {
+            const v = card[k]
+            const n = typeof v === 'number' ? v : Number(v)
+            return Number.isFinite(n) ? n : NaN
+        }
+        const so = num('serp_overlap')
+        const ptf = num('page_type_fit')
+        const atp = num('authority_trust_proof')
+        const lpq = num('local_presence_quality')
+        const csm = num('content_system_maturity')
+        const al = num('asset_linkability')
+        if (![so, ptf, atp, lpq, csm, al].every(Number.isFinite)) continue
+        const computed = 0.25 * so + 0.20 * ptf + 0.15 * atp + 0.15 * lpq + 0.15 * csm + 0.10 * al
+        const rounded = Math.round(computed * 100) / 100
+        const reported = num('total')
+        if (Number.isFinite(reported) && Math.abs(rounded - reported) > 0.5) {
+            console.warn(`[research/competitor_landscape] scorecard.total drift: model=${reported} computed=${rounded} (record="${rec.name ?? 'unknown'}") — overriding`)
+        }
+        card.total = rounded
+        card._formula_verification = `0.25·${so} + 0.20·${ptf} + 0.15·${atp} + 0.15·${lpq} + 0.15·${csm} + 0.10·${al} = ${(0.25 * so).toFixed(2)}+${(0.20 * ptf).toFixed(2)}+${(0.15 * atp).toFixed(2)}+${(0.15 * lpq).toFixed(2)}+${(0.15 * csm).toFixed(2)}+${(0.10 * al).toFixed(2)} = ${rounded}`
     }
 }
