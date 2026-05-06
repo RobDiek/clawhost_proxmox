@@ -3342,6 +3342,24 @@ input{font-family:inherit}
   </div>
 </div>
 
+<!-- Intent picker modal (Phase 3.8c) — replaces window.prompt-based UX -->
+<div id="pipelineV2-intent-modal" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(15,23,42,0.6);align-items:center;justify-content:center" onclick="if(event.target===this)closeIntentModal()">
+  <div style="background:#fff;border-radius:12px;max-width:560px;width:92%;padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,0.3);direction:rtl;max-height:88vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h3 id="pipelineV2-intent-modal-title" style="margin:0;font-size:1.1rem;color:#1E3A8A">בחרו כיוון שיווקי</h3>
+      <button onclick="closeIntentModal()" style="background:none;border:0;font-size:1.4rem;cursor:pointer;color:#6B7280">&times;</button>
+    </div>
+    <div id="pipelineV2-intent-modal-desc" style="font-size:0.82rem;color:#6B7280;margin-bottom:14px;line-height:1.55">
+      הכיוון השיווקי קובע אילו שלבים יופיעו ב-pipeline. ניתן לשנות גם אחרי הרצה — שלבים שכבר הושלמו לא ילכו לאיבוד.
+    </div>
+    <div id="pipelineV2-intent-options"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn btn-outline btn-sm" onclick="closeIntentModal()" style="font-size:0.78rem">ביטול</button>
+      <button class="btn btn-primary btn-sm" id="pipelineV2-intent-confirm" onclick="confirmIntentModal()" style="font-size:0.78rem" disabled>שמרו</button>
+    </div>
+  </div>
+</div>
+
 <!-- Report/Strategy Viewer Modal -->
 <div class="report-modal-overlay hidden" id="reportModalOverlay" onclick="closeReportModal()">
   <div class="report-modal" onclick="event.stopPropagation()">
@@ -11172,58 +11190,116 @@ function renderQualityGateBanner(qg) {
   return '';
 }
 
-async function changeIntentV2() {
+// ─── Intent picker / expand-plan modal (Phase 3.8c) ────────────────────────
+// Two modes: 'change' replaces the active intent (archives prior plan if
+// changed); 'expand' adds intents to the current plan without losing
+// completed-stage results.
+var _intentModalState = { mode: 'change', selected: null };
+
+var INTENT_DESCRIPTIONS_V2 = {
+  seo_organic:    { icon: '🔍', short: 'SEO + תוכן אורגני', stages: 'נוף תחרותי · keywords · AEO · personas · positioning · strategy · validation · content_plan' },
+  paid_search:    { icon: '💰', short: 'פרסום ממומן Google/Meta', stages: 'נוף תחרותי · paid audit · personas · positioning · strategy · validation · media_plan' },
+  social_organic: { icon: '📱', short: 'רשתות חברתיות אורגני', stages: 'נוף תחרותי · social landscape · personas · positioning · strategy · validation · content_plan' },
+  email_crm:      { icon: '📧', short: 'Email/CRM nurturing', stages: 'נוף תחרותי · email competitor audit · personas · positioning · strategy · validation' },
+  ecommerce:      { icon: '🛒', short: 'E-commerce — multichannel for stores', stages: 'תלוי במצב — שלבים מותאמים' },
+  multichannel:   { icon: '🌐', short: 'שילוב 3+ ערוצים — pipeline מלא', stages: 'כל 12 השלבים (לעסק עם תקציב לפעילות שיווקית מקיפה)' }
+};
+
+function openIntentModal(mode) {
+  _intentModalState.mode = mode || 'change';
+  _intentModalState.selected = null;
   var current = pipelineV2State.intent || 'multichannel';
   var labels = INTENT_LABELS_V2;
-  var optionsHtml = Object.keys(labels).map(function(k) {
-    var sel = k === current ? 'selected' : '';
-    return '<option value="' + k + '" ' + sel + '>' + labels[k] + '</option>';
+  var descs = INTENT_DESCRIPTIONS_V2;
+
+  document.getElementById('pipelineV2-intent-modal-title').textContent =
+    mode === 'expand' ? 'הוסיפו כיוון שיווקי' : 'שנו כיוון שיווקי';
+  document.getElementById('pipelineV2-intent-modal-desc').textContent =
+    mode === 'expand'
+      ? 'מוסיפים ערוץ נוסף לתוכנית הקיימת. שלבים שהושלמו לא יאבדו. אם מוסיפים 3+ ערוצים — האסטרטגיה תיכנס למצב multichannel.'
+      : 'הכיוון השיווקי קובע אילו שלבים יופיעו ב-pipeline. ניתן לשנות גם אחרי הרצה — שלבים שכבר הושלמו לא ילכו לאיבוד.';
+
+  // Filter: in 'expand' mode, hide current intent + multichannel (which is auto-promoted).
+  var keys = Object.keys(labels).filter(function(k) {
+    if (mode === 'expand') return k !== current && k !== 'multichannel';
+    return true;
+  });
+
+  var optionsHtml = keys.map(function(k) {
+    var d = descs[k] || {};
+    var isCurrent = k === current;
+    return '<label style="display:block;border:1.5px solid ' + (isCurrent ? '#BFDBFE' : '#E5E7EB') + ';border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;background:' + (isCurrent ? '#F0F9FF' : '#fff') + ';transition:border-color .15s" onmouseover="this.style.borderColor=\'#2563EB\'" onmouseout="this.style.borderColor=\'' + (isCurrent ? '#BFDBFE' : '#E5E7EB') + '\'">'
+      + '<div style="display:flex;gap:10px;align-items:flex-start">'
+      +   '<input type="radio" name="pipelineV2-intent-pick" value="' + k + '"' + (isCurrent && mode === 'change' ? ' checked' : '') + ' onchange="onIntentRadioChange(this.value)" style="margin-top:2px;cursor:pointer">'
+      +   '<div style="flex:1">'
+      +     '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+      +       '<span style="font-size:1.05rem">' + (d.icon || '') + '</span>'
+      +       '<strong style="font-size:0.92rem;color:#1F2937">' + escapeHtml(labels[k]) + '</strong>'
+      +       (isCurrent ? '<span style="font-size:0.66rem;background:#DBEAFE;color:#1E40AF;padding:1px 6px;border-radius:3px">פעיל</span>' : '')
+      +     '</div>'
+      +     '<div style="font-size:0.74rem;color:#6B7280;margin-top:4px">' + escapeHtml(d.short || '') + '</div>'
+      +     (d.stages ? '<div style="font-size:0.68rem;color:#9CA3AF;margin-top:2px">שלבים: ' + escapeHtml(d.stages) + '</div>' : '')
+      +   '</div>'
+      + '</div>'
+      + '</label>';
   }).join('');
-  var picked = window.prompt('בחרו כיוון שיווקי:\n\n' + Object.keys(labels).map(function(k) { return '• ' + k + ' — ' + labels[k]; }).join('\n') + '\n\nהקלידו את ה-id (e.g. seo_organic, multichannel):', current);
-  if (!picked || !labels[picked]) return;
-  if (picked === current) return;
+  document.getElementById('pipelineV2-intent-options').innerHTML = optionsHtml;
+  document.getElementById('pipelineV2-intent-confirm').disabled = (mode === 'change' ? false : true);
+  if (mode === 'change') _intentModalState.selected = current;
 
-  var iid = localStorage.getItem('cf_instance_id');
-  try {
-    var res = await fetch(API + '/hosting/instances/' + iid + '/research/plan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
-      body: JSON.stringify({ intent: picked })
-    });
-    var d = await res.json();
-    if (!d.success) { showToast(d.message || 'שגיאה', 'error'); return; }
-    pipelineV2State.plan = d.data.plan;
-    pipelineV2State.intent = d.data.intent;
-    renderPipelineV2();
-    showToast('הכיוון השתנה ל: ' + labels[picked], 'success');
-  } catch (e) {
-    showToast('שגיאה: ' + (e.message || e), 'error');
-  }
+  document.getElementById('pipelineV2-intent-modal').style.display = 'flex';
 }
 
-async function expandPlanV2() {
+function onIntentRadioChange(val) {
+  _intentModalState.selected = val;
+  var btn = document.getElementById('pipelineV2-intent-confirm');
+  if (btn) btn.disabled = !val;
+}
+
+function closeIntentModal() {
+  document.getElementById('pipelineV2-intent-modal').style.display = 'none';
+}
+
+async function confirmIntentModal() {
+  var picked = _intentModalState.selected;
+  if (!picked) return;
+  var mode = _intentModalState.mode;
   var current = pipelineV2State.intent || 'multichannel';
-  var labels = INTENT_LABELS_V2;
-  var picked = window.prompt('הוסיפו כיוון שיווקי לתוכנית הקיימת (השלבים שכבר הושלמו לא יאבדו):\n\n' + Object.keys(labels).filter(function(k) { return k !== current && k !== 'multichannel'; }).map(function(k) { return '• ' + k + ' — ' + labels[k]; }).join('\n') + '\n\nהקלידו את ה-id (e.g. paid_search):');
-  if (!picked || !labels[picked]) return;
+  if (mode === 'change' && picked === current) { closeIntentModal(); return; }
 
   var iid = localStorage.getItem('cf_instance_id');
+  var btn = document.getElementById('pipelineV2-intent-confirm');
+  if (btn) { btn.disabled = true; btn.textContent = 'שומר...'; }
   try {
-    var res = await fetch(API + '/hosting/instances/' + iid + '/research/plan/expand', {
+    var url, body;
+    if (mode === 'expand') {
+      url = API + '/hosting/instances/' + iid + '/research/plan/expand';
+      body = JSON.stringify({ addIntents: [picked] });
+    } else {
+      url = API + '/hosting/instances/' + iid + '/research/plan';
+      body = JSON.stringify({ intent: picked });
+    }
+    var res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
-      body: JSON.stringify({ addIntents: [picked] })
+      body: body
     });
     var d = await res.json();
     if (!d.success) { showToast(d.message || 'שגיאה', 'error'); return; }
     pipelineV2State.plan = d.data.plan;
     pipelineV2State.intent = d.data.intent;
     renderPipelineV2();
-    showToast('נוסף כיוון: ' + labels[picked] + '. שלבים חדשים זמינים להרצה.', 'success');
+    closeIntentModal();
+    showToast(mode === 'expand' ? 'נוסף כיוון: ' + INTENT_LABELS_V2[picked] : 'הכיוון השתנה ל: ' + INTENT_LABELS_V2[picked], 'success');
   } catch (e) {
     showToast('שגיאה: ' + (e.message || e), 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'שמרו'; }
   }
 }
+
+function changeIntentV2() { openIntentModal('change'); }
+function expandPlanV2()  { openIntentModal('expand'); }
 
 async function resetPipelineV2() {
   if (!confirm('זה ימחק את כל המחקר והאסטרטגיה. אתם בטוחים?')) return;
