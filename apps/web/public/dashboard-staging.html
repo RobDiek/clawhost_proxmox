@@ -825,6 +825,49 @@ input{font-family:inherit}
 <!-- Toast -->
 <div class="toast success" id="toast"></div>
 
+<!-- DataForSEO Top-up Modal — Phase 3.6d -->
+<div id="dfs-topup-modal" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(15,23,42,0.6);align-items:center;justify-content:center" onclick="if(event.target===this)closeDfsTopupModal()">
+  <div style="background:#fff;border-radius:12px;max-width:440px;width:92%;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);direction:rtl">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 style="margin:0;font-size:1.1rem;color:#1E3A8A">טעינת DataForSEO Credits</h3>
+      <button onclick="closeDfsTopupModal()" style="background:none;border:0;font-size:1.4rem;cursor:pointer;color:#6B7280">&times;</button>
+    </div>
+    <div style="font-size:0.82rem;color:#6B7280;margin-bottom:14px;line-height:1.5">
+      בחרו סכום ב-USD. יחויב דרך AllPay (אותו שיטת תשלום של VPS). חשבונית מס תופק אוטומטית. ללא מינויים, ללא חידוש אוטומטי — שלמתם, נטענתם, סיימתם.
+    </div>
+    <label style="display:block;font-size:0.78rem;color:#374151;margin-bottom:4px">סכום (USD)</label>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+      <input type="number" id="dfs-topup-amount" min="10" max="10000" step="1" value="50" class="int-input" style="flex:1;direction:ltr;font-size:1rem;font-weight:500" oninput="updateDfsTopupPreview()">
+      <span style="font-size:0.92rem;color:#6B7280">USD</span>
+    </div>
+    <div style="background:#F9FAFB;padding:10px 12px;border-radius:6px;margin-bottom:14px;font-size:0.84rem">
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+        <span style="color:#6B7280">לתשלום ב-AllPay (כולל עמלת סליקה)</span>
+        <span id="dfs-topup-ils" style="font-weight:600;color:#111827">₪0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.74rem;color:#6B7280">
+        <span>שער חליפין (כולל עמלות)</span>
+        <span id="dfs-topup-rate">$1 = ₪0</span>
+      </div>
+    </div>
+    <div style="font-size:0.74rem;color:#6B7280;margin-bottom:12px;line-height:1.5">
+      💡 <strong>תקציב טיפוסי לחודש</strong>: $5-30 לעסק רגיל. מחקר אחד מלא (12 שלבים) ≈ $1-3.
+    </div>
+    <button class="btn btn-primary" onclick="submitDfsTopup()" style="width:100%;font-weight:600">המשך לתשלום ב-AllPay &#8592;</button>
+  </div>
+</div>
+
+<!-- DataForSEO Ledger Drawer -->
+<div id="dfs-ledger-drawer" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(440px,92vw);z-index:5000;background:#fff;box-shadow:-12px 0 40px rgba(0,0,0,0.2);direction:rtl;overflow-y:auto">
+  <div style="position:sticky;top:0;background:#fff;border-bottom:1px solid #E5E7EB;padding:16px;display:flex;justify-content:space-between;align-items:center;z-index:1">
+    <h3 style="margin:0;font-size:1.05rem;color:#1E3A8A">היסטוריית DataForSEO Credits</h3>
+    <button onclick="closeDfsLedger()" style="background:none;border:0;font-size:1.4rem;cursor:pointer;color:#6B7280">&times;</button>
+  </div>
+  <div id="dfs-ledger-list" style="padding:12px 16px">
+    <div style="text-align:center;color:#9CA3AF;padding:32px 0">טוען...</div>
+  </div>
+</div>
+
 <!-- Header -->
 <header class="header">
   <div class="header-right">
@@ -2157,27 +2200,83 @@ input{font-family:inherit}
         </div>
       </div>
 
-      <!-- DataForSEO (API key) -->
-      <div class="int-card" id="dataforseo-card" data-tooltip="DataForSEO — מחקר מילות מפתח, ניתוח מתחרים, בקלינקים, נראות ב-AI. תשלום לפי שימוש ~$5/חודש.">
+      <!-- DataForSEO Credits — Phase 3.6d. Default = managed proxy credits.
+           Advanced "own DFS account" mode collapsed under expander. -->
+      <div class="int-card" id="dataforseo-card" data-tooltip="DataForSEO Credits — מחקר מילות מפתח, ניתוח מתחרים, בקלינקים, נראות AI. תשלום לפי שימוש דרך הפלטפורמה. בלי מינימום שנתי, בלי מינויים.">
         <div class="int-card-header">
           <div class="int-icon" style="background:#EFF6FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" fill="#2563EB" fill-opacity=".1"/><path d="M7 17V10M12 17V7M17 17V13" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/></svg></div>
-          <div><strong>DataForSEO</strong><div class="int-status" id="dataforseo-status">לא מחובר</div></div>
+          <div><strong>DataForSEO Credits</strong><div class="int-status" id="dataforseo-status">טוען...</div></div>
         </div>
         <div class="int-card-body hidden" id="int-dataforseo-body">
-          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">מחקר מילות מפתח, ניתוח מתחרים, בקלינקים, נראות ב-AI — לפי שימוש</div>
-          <div id="dataforseo-not-connected">
-            <input type="text" id="dataforseo-login" placeholder="Login" dir="ltr" class="int-input" style="margin-bottom:4px"/>
-            <input type="password" id="dataforseo-password" placeholder="Password" dir="ltr" class="int-input" style="margin-bottom:6px"/>
-            <button class="btn btn-primary btn-sm" onclick="saveDataforseo()">&#8594; שמרו</button>
-            <a href="https://app.dataforseo.com/register" target="_blank" class="int-help-link">~$5/חודש (500 שאילתות) — חלופה ל-Ahrefs &#8599;</a>
-          </div>
-          <div id="dataforseo-connected" style="display:none">
-            <div style="display:flex;align-items:center;gap:8px">
-              <span style="color:#10B981;font-size:0.85rem">&#10003;</span>
-              <span style="font-size:0.82rem;color:#374151" id="dataforseo-login-display"></span>
-              <button class="btn btn-outline btn-sm" onclick="disconnectDataforseo()" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">הסירו</button>
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:10px">מחקר מילות מפתח, מתחרים, backlinks, נראות AI — חיוב מדויק לפי שימוש בפועל. ללא מינימום חודשי, ללא מינויים. תשלום דרך AllPay (אותם פרטי תשלום של VPS).</div>
+
+          <!-- Balance card (proxy mode default) -->
+          <div id="dfs-balance-card" style="background:linear-gradient(135deg,#EFF6FF 0%,#F0F9FF 100%);border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+              <div>
+                <div style="font-size:0.72rem;color:#6B7280;font-weight:500">יתרה זמינה</div>
+                <div style="display:flex;align-items:baseline;gap:4px;margin-top:2px">
+                  <span id="dfs-balance-usd" style="font-size:1.45rem;font-weight:700;color:#1E3A8A;direction:ltr">$0.00</span>
+                  <span id="dfs-balance-ils" style="font-size:0.78rem;color:#6B7280">≈ ₪0</span>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="openDfsTopupModal()" style="white-space:nowrap">+ טעינה</button>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px dashed #BFDBFE;font-size:0.74rem;color:#4B5563">
+              <div>הוצאה החודש: <span id="dfs-monthly-spend" style="color:#374151;font-weight:500;direction:ltr">$0.00</span> <span id="dfs-monthly-cap-display" style="color:#6B7280"></span></div>
+              <button class="btn btn-outline btn-sm" onclick="openDfsLedger()" style="font-size:0.7rem;padding:2px 8px;border-color:#BFDBFE">היסטוריה</button>
+            </div>
+            <div id="dfs-balance-warning" style="display:none;margin-top:8px;padding:6px 8px;background:#FEF3C7;border-radius:4px;font-size:0.74rem;color:#92400E">
+              <strong>⚠ יתרה נמוכה.</strong> מומלץ לטעון לפני הרצת research stages הבאים.
             </div>
           </div>
+
+          <!-- Auto-topup config (collapsible) -->
+          <details id="dfs-autotopup-details" style="margin-bottom:8px">
+            <summary style="cursor:pointer;font-size:0.78rem;color:#374151;font-weight:500;padding:6px 0">
+              ⚙ טעינה אוטומטית + תקרה חודשית
+              <span id="dfs-autotopup-summary" style="color:#6B7280;font-weight:400;font-size:0.72rem;margin-right:6px"></span>
+            </summary>
+            <div style="padding:8px 0 4px;font-size:0.78rem;color:#374151;display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="min-width:130px">טעינה אוטומטית כש&lt;</span>
+                <input type="number" id="dfs-autotopup-threshold" min="1" step="1" placeholder="5" class="int-input" style="width:80px;direction:ltr">
+                <span>USD, טען</span>
+                <input type="number" id="dfs-autotopup-amount" min="10" step="10" placeholder="50" class="int-input" style="width:80px;direction:ltr">
+                <span>USD</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="min-width:130px">תקרה חודשית</span>
+                <input type="number" id="dfs-monthly-cap-input" min="1" step="1" placeholder="ללא הגבלה" class="int-input" style="width:80px;direction:ltr">
+                <span>USD (אופציונלי)</span>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center">
+                <button class="btn btn-primary btn-sm" onclick="saveDfsCreditsSettings()" style="font-size:0.74rem">שמור הגדרות</button>
+                <span id="dfs-autotopup-needs-card" style="display:none;font-size:0.72rem;color:#92400E">דורש כרטיס שמור — בצעו טעינה ראשונה ואז תוכלו לסמן "שמור כרטיס" בעמוד התשלום.</span>
+              </div>
+            </div>
+          </details>
+
+          <!-- Advanced mode: own DFS account (legacy direct-key path) -->
+          <details id="dfs-advanced-details" style="border-top:1px solid #E5E7EB;padding-top:8px">
+            <summary style="cursor:pointer;font-size:0.74rem;color:#6B7280;padding:4px 0">מצב מתקדם: חיבור חשבון DataForSEO אישי</summary>
+            <div style="padding:8px 0 4px;font-size:0.74rem;color:#6B7280">
+              <div style="margin-bottom:8px;line-height:1.5">למשתמשי power שיש להם חשבון DataForSEO משלהם וברצונם לעקוף את ה-credits. דורש מינימום $100/חודש פיקדון ב-DFS עבור Backlinks API.</div>
+              <div id="dataforseo-not-connected">
+                <input type="text" id="dataforseo-login" placeholder="Login" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+                <input type="password" id="dataforseo-password" placeholder="Password" dir="ltr" class="int-input" style="margin-bottom:6px"/>
+                <button class="btn btn-outline btn-sm" onclick="saveDataforseo()" style="font-size:0.74rem">שמרו</button>
+                <a href="https://app.dataforseo.com/register" target="_blank" class="int-help-link" style="display:block;margin-top:4px">פתחו חשבון אצל DFS &#8599;</a>
+              </div>
+              <div id="dataforseo-connected" style="display:none">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="color:#10B981;font-size:0.85rem">&#10003;</span>
+                  <span style="font-size:0.82rem;color:#374151" id="dataforseo-login-display"></span>
+                  <button class="btn btn-outline btn-sm" onclick="disconnectDataforseo()" style="color:#EF4444;border-color:#FECACA;font-size:0.72rem">הסירו</button>
+                </div>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -9551,6 +9650,16 @@ function renderIntegrations() {
   checkMicrosoftStatus();
   // Restore key-based integration states (brave, replicate, etc.)
   restoreIntegrationStates();
+  // DFS credits balance — lazy refresh per integrations panel render.
+  // Cheap (single GET); fine to call repeatedly.
+  if (typeof loadDfsCreditsBalance === 'function') loadDfsCreditsBalance();
+  // Refresh balance after AllPay redirect-back (?topup=success in URL).
+  if (location.search.indexOf('topup=success') >= 0) {
+    setTimeout(loadDfsCreditsBalance, 2000);
+    showToast('תשלום התקבל — היתרה מתעדכנת', 'success');
+  } else if (location.search.indexOf('topup=failed') >= 0) {
+    showToast('התשלום לא הושלם. נסו שוב או פנו לתמיכה.', 'error');
+  }
 
   // Sync GTM + GA4 card UI with current Google OAuth scopes
   updateGoogleScopeCards();
@@ -18575,6 +18684,201 @@ async function disconnectDataforseo() {
     refreshBundleUI();
   } catch { showToast('שגיאה', 'error'); }
 }
+
+// ── DataForSEO Credits proxy (Phase 3.6d) ──
+// Default mode for all tenants: managed proxy with USD-cents balance.
+// Top-ups via AllPay; auto-topup + monthly cap configurable per-instance.
+var DFS_FX_RATE_FALLBACK = 3.81;
+var DFS_BALANCE_CACHE = null;
+
+async function loadDfsCreditsBalance() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/credits/balance', {
+      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+    });
+    var d = await res.json();
+    if (!d.success) { console.warn('[credits] balance fetch failed:', d.message); return; }
+    DFS_BALANCE_CACHE = d.data;
+    renderDfsBalanceCard(d.data);
+  } catch (e) { console.warn('[credits] balance fetch error:', e); }
+}
+
+function renderDfsBalanceCard(data) {
+  var balanceUsd = (data.balanceUsdCents / 100).toFixed(2);
+  var fx = data.usdToIlsRate || DFS_FX_RATE_FALLBACK;
+  var balanceIls = (data.balanceUsdCents / 100 * fx).toFixed(0);
+  var monthlyUsd = (data.monthlySpendUsdCents / 100).toFixed(2);
+
+  var balUsdEl = document.getElementById('dfs-balance-usd');
+  if (balUsdEl) balUsdEl.textContent = '$' + balanceUsd;
+  var balIlsEl = document.getElementById('dfs-balance-ils');
+  if (balIlsEl) balIlsEl.textContent = '≈ ₪' + balanceIls;
+  var monthlyEl = document.getElementById('dfs-monthly-spend');
+  if (monthlyEl) monthlyEl.textContent = '$' + monthlyUsd;
+
+  var capEl = document.getElementById('dfs-monthly-cap-display');
+  if (capEl) {
+    capEl.textContent = data.monthlyCapUsdCents
+      ? '/ $' + (data.monthlyCapUsdCents / 100).toFixed(2)
+      : '';
+  }
+
+  // Status badge in header
+  var statusEl = document.getElementById('dataforseo-status');
+  if (statusEl) {
+    if (data.balanceUsdCents > 0) {
+      statusEl.innerHTML = '<span class="int-status-dot"></span>$' + balanceUsd;
+      statusEl.className = 'int-status connected';
+    } else {
+      statusEl.innerHTML = '<span style="color:#EF4444">⚠ יתרה אפס</span>';
+      statusEl.className = 'int-status';
+    }
+  }
+
+  // Low-balance warning
+  var warnEl = document.getElementById('dfs-balance-warning');
+  if (warnEl) {
+    warnEl.style.display = (data.balanceUsdCents < 200 && data.balanceUsdCents > 0) ? 'block' : 'none';
+  }
+
+  // Auto-topup config inputs
+  if (data.autoTopup) {
+    var t = document.getElementById('dfs-autotopup-threshold');
+    var a = document.getElementById('dfs-autotopup-amount');
+    if (t) t.value = (data.autoTopup.thresholdUsdCents / 100).toFixed(0);
+    if (a) a.value = (data.autoTopup.amountUsdCents / 100).toFixed(0);
+    var summary = document.getElementById('dfs-autotopup-summary');
+    if (summary) summary.textContent = '— פעיל: כש<$' + (data.autoTopup.thresholdUsdCents / 100).toFixed(0) + ' טען $' + (data.autoTopup.amountUsdCents / 100).toFixed(0);
+    var nc = document.getElementById('dfs-autotopup-needs-card');
+    if (nc) nc.style.display = data.autoTopup.hasPaymentToken ? 'none' : 'inline';
+  } else {
+    var summary2 = document.getElementById('dfs-autotopup-summary');
+    if (summary2) summary2.textContent = '— לא פעיל';
+  }
+  var capInput = document.getElementById('dfs-monthly-cap-input');
+  if (capInput) capInput.value = data.monthlyCapUsdCents ? (data.monthlyCapUsdCents / 100).toFixed(0) : '';
+}
+
+function openDfsTopupModal() {
+  var modal = document.getElementById('dfs-topup-modal');
+  if (modal) { modal.style.display = 'flex'; updateDfsTopupPreview(); }
+}
+function closeDfsTopupModal() {
+  var modal = document.getElementById('dfs-topup-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function updateDfsTopupPreview() {
+  var amount = parseFloat(document.getElementById('dfs-topup-amount').value) || 0;
+  var fx = (DFS_BALANCE_CACHE && DFS_BALANCE_CACHE.usdToIlsRate) || DFS_FX_RATE_FALLBACK;
+  var ils = (amount * fx).toFixed(2);
+  document.getElementById('dfs-topup-ils').textContent = '₪' + ils;
+  document.getElementById('dfs-topup-rate').textContent = '$1 = ₪' + fx.toFixed(4);
+}
+
+async function submitDfsTopup() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var amount = parseFloat(document.getElementById('dfs-topup-amount').value);
+  if (!amount || amount < 10) { showToast('מינימום $10', 'error'); return; }
+  if (amount > 10000) { showToast('מקסימום $10,000', 'error'); return; }
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'יוצר תשלום');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/credits/topup/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
+      body: JSON.stringify({ amountUsd: amount })
+    });
+    var d = await res.json();
+    if (!d.success) { showToast(d.message || 'שגיאה ביצירת תשלום', 'error'); return; }
+    closeDfsTopupModal();
+    // Redirect user to AllPay checkout. Webhook credits balance on payment_success.
+    window.location.href = d.data.paymentUrl;
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  } finally { _unlock(); }
+}
+
+async function saveDfsCreditsSettings() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var t = document.getElementById('dfs-autotopup-threshold').value.trim();
+  var a = document.getElementById('dfs-autotopup-amount').value.trim();
+  var c = document.getElementById('dfs-monthly-cap-input').value.trim();
+
+  // Both auto-topup fields together, or both null. Cap is independent.
+  var body = {};
+  if (t === '' && a === '') {
+    body.autoTopupThresholdUsd = null;
+    body.autoTopupAmountUsd = null;
+  } else if (t !== '' && a !== '') {
+    body.autoTopupThresholdUsd = parseFloat(t);
+    body.autoTopupAmountUsd = parseFloat(a);
+  } else {
+    showToast('מלאו threshold ו-amount יחד, או השאירו ריקים יחד', 'error');
+    return;
+  }
+  body.monthlyCapUsd = c === '' ? null : parseFloat(c);
+
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'שומר');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/credits/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
+      body: JSON.stringify(body)
+    });
+    var d = await res.json();
+    if (!d.success) { showToast(d.message || 'שגיאה', 'error'); return; }
+    showToast('הגדרות נשמרו', 'success');
+    loadDfsCreditsBalance();
+  } catch { showToast('שגיאת תקשורת', 'error'); }
+  finally { _unlock(); }
+}
+
+async function openDfsLedger() {
+  var drawer = document.getElementById('dfs-ledger-drawer');
+  if (drawer) drawer.style.display = 'block';
+  var iid = localStorage.getItem('cf_instance_id');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/credits/ledger?limit=50', {
+      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+    });
+    var d = await res.json();
+    var listEl = document.getElementById('dfs-ledger-list');
+    if (!d.success || !d.data.entries.length) {
+      listEl.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:32px 0">אין רשומות עדיין</div>';
+      return;
+    }
+    var KIND_LABEL = { topup: 'טעינה', debit: 'חיוב', refund: 'החזר', admin_credit: 'זיכוי מנהל', auto_topup: 'טעינה אוטומטית' };
+    var rows = d.data.entries.map(function(e) {
+      var amount = (e.amountUsdCents / 100).toFixed(e.amountUsdCents >= 100 ? 2 : 4);
+      var sign = e.amountUsdCents >= 0 ? '+' : '';
+      var color = e.amountUsdCents >= 0 ? '#10B981' : '#374151';
+      var endpointShort = e.endpoint ? e.endpoint.replace(/^dataforseo_labs\/google\//, '').replace(/\/live$/, '') : '';
+      var dt = new Date(e.createdAt);
+      var dtStr = dt.toLocaleDateString('he-IL') + ' ' + dt.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      return '<div style="border-bottom:1px solid #F3F4F6;padding:8px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+        + '<div style="flex:1;min-width:0">'
+        +   '<div style="font-size:0.84rem;color:#374151;font-weight:500">' + (KIND_LABEL[e.kind] || e.kind) + '</div>'
+        +   (endpointShort ? '<div style="font-size:0.7rem;color:#9CA3AF;direction:ltr;text-overflow:ellipsis;overflow:hidden;white-space:nowrap">' + endpointShort + '</div>' : '')
+        +   '<div style="font-size:0.7rem;color:#6B7280;margin-top:2px">' + dtStr + '</div>'
+        + '</div>'
+        + '<div style="font-size:0.86rem;color:' + color + ';font-weight:600;direction:ltr;white-space:nowrap">' + sign + '$' + Math.abs(amount) + '</div>'
+        + '</div>';
+    }).join('');
+    listEl.innerHTML = rows;
+  } catch (e) {
+    document.getElementById('dfs-ledger-list').innerHTML = '<div style="color:#EF4444;text-align:center;padding:32px 0">שגיאה בטעינת היסטוריה</div>';
+  }
+}
+function closeDfsLedger() {
+  var d = document.getElementById('dfs-ledger-drawer');
+  if (d) d.style.display = 'none';
+}
+
+// Auto-load balance on instance switch + after every dashboard refresh.
+// Lightweight: a single GET, called from existing instance-load hooks below.
+window.loadDfsCreditsBalance = loadDfsCreditsBalance;
 
 // ── Firecrawl ──
 async function saveFirecrawl() {
