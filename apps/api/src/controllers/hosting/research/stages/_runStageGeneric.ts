@@ -184,6 +184,13 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         if (stageId === 'competitor_landscape' && parsed.records) {
             recomputeCompetitorScorecards(parsed.records)
         }
+        // Phase 3.17d — same problem on seo_keyword_research: model emits
+        // opportunity.{components} + _formula_verification trail with correct
+        // arithmetic, but the standalone `opportunity.total` and `aeo.total`
+        // disagree. Server recomputes both from authoritative components.
+        if (stageId === 'seo_keyword_research' && parsed.records) {
+            recomputeKeywordScores(parsed.records)
+        }
         if (parsed.records) output.records = parsed.records
         // Capture non-records JSON sibling fields (Phase 3.10b: our_link_profile,
         // link_gap_targets, cross_validation_matrix, etc.). UI per-stage
@@ -218,10 +225,11 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             const remainingHardFailures: string[] = []
             const autoCorrected: string[] = []
             for (const f of critique.hardFailures) {
-                // Math sanity is auto-corrected for competitor_landscape via
-                // recomputeCompetitorScorecards (server-side recompute). For
-                // other stages no auto-correction → all hardFailures remain.
-                if (stageId === 'competitor_landscape' && /math_sanity|formula_verification|scorecard.*total/i.test(f)) {
+                // Math sanity is auto-corrected for stages where server-side
+                // recompute owns the totals: competitor_landscape (scorecard)
+                // and seo_keyword_research (opportunity + aeo).
+                const stageHasRecompute = stageId === 'competitor_landscape' || stageId === 'seo_keyword_research'
+                if (stageHasRecompute && /math_sanity|formula_verification|scorecard.*total|opportunity.*total|aeo.*total/i.test(f)) {
                     autoCorrected.push(f)
                 } else {
                     remainingHardFailures.push(f)
@@ -305,5 +313,74 @@ function recomputeCompetitorScorecards(records: unknown[]): void {
         }
         card.total = rounded
         card._formula_verification = `0.25·${so} + 0.20·${ptf} + 0.15·${atp} + 0.15·${lpq} + 0.15·${csm} + 0.10·${al} = ${(0.25 * so).toFixed(2)}+${(0.20 * ptf).toFixed(2)}+${(0.15 * atp).toFixed(2)}+${(0.15 * lpq).toFixed(2)}+${(0.15 * csm).toFixed(2)}+${(0.10 * al).toFixed(2)} = ${rounded}`
+    }
+}
+
+/**
+ * Authoritative recomputation for seo_keyword_research records.
+ * Mirrors recomputeCompetitorScorecards but for the two scoring blocks in
+ * each keyword record: opportunity (7 components) and aeo (5 components).
+ *
+ * Opportunity formula (per CLAUDE.md SEO playbook + prompts.ts):
+ *   Total = 0.25·business_value + 0.20·win_probability + 0.15·qualified_demand
+ *         + 0.15·click_yield + 0.10·aeo_fit + 0.10·cluster_leverage
+ *         + 0.05·operational_ease
+ *
+ * AEO formula:
+ *   Total = 0.30·synthesis_need + 0.25·fact_density + 0.20·follow_up_likelihood
+ *         + 0.15·entity_specificity + 0.10·citation_value
+ */
+function recomputeKeywordScores(records: unknown[]): void {
+    let oppDriftCount = 0
+    let aeoDriftCount = 0
+    for (const r of records) {
+        if (!r || typeof r !== 'object') continue
+        const rec = r as Record<string, unknown>
+        const num = (obj: Record<string, unknown>, k: string): number => {
+            const v = obj[k]
+            const n = typeof v === 'number' ? v : Number(v)
+            return Number.isFinite(n) ? n : NaN
+        }
+        // ─ opportunity (7 components) ─
+        const opp = rec.opportunity
+        if (opp && typeof opp === 'object') {
+            const o = opp as Record<string, unknown>
+            const bv = num(o, 'business_value')
+            const wp = num(o, 'win_probability')
+            const qd = num(o, 'qualified_demand')
+            const cy = num(o, 'click_yield')
+            const af = num(o, 'aeo_fit')
+            const cl = num(o, 'cluster_leverage')
+            const oe = num(o, 'operational_ease')
+            if ([bv, wp, qd, cy, af, cl, oe].every(Number.isFinite)) {
+                const computed = 0.25 * bv + 0.20 * wp + 0.15 * qd + 0.15 * cy + 0.10 * af + 0.10 * cl + 0.05 * oe
+                const rounded = Math.round(computed * 100) / 100
+                const reported = num(o, 'total')
+                if (Number.isFinite(reported) && Math.abs(rounded - reported) > 0.5) oppDriftCount++
+                o.total = rounded
+                o._formula_verification = `0.25·${bv} + 0.20·${wp} + 0.15·${qd} + 0.15·${cy} + 0.10·${af} + 0.10·${cl} + 0.05·${oe} = ${(0.25 * bv).toFixed(2)}+${(0.20 * wp).toFixed(2)}+${(0.15 * qd).toFixed(2)}+${(0.15 * cy).toFixed(2)}+${(0.10 * af).toFixed(2)}+${(0.10 * cl).toFixed(2)}+${(0.05 * oe).toFixed(2)} = ${rounded}`
+            }
+        }
+        // ─ aeo (5 components) ─
+        const aeo = rec.aeo
+        if (aeo && typeof aeo === 'object') {
+            const a = aeo as Record<string, unknown>
+            const sn = num(a, 'synthesis_need')
+            const fd = num(a, 'fact_density')
+            const fu = num(a, 'follow_up_likelihood')
+            const es = num(a, 'entity_specificity')
+            const cv = num(a, 'citation_value')
+            if ([sn, fd, fu, es, cv].every(Number.isFinite)) {
+                const computed = 0.30 * sn + 0.25 * fd + 0.20 * fu + 0.15 * es + 0.10 * cv
+                const rounded = Math.round(computed * 100) / 100
+                const reported = num(a, 'total')
+                if (Number.isFinite(reported) && Math.abs(rounded - reported) > 0.5) aeoDriftCount++
+                a.total = rounded
+                a._formula_verification = `0.30·${sn} + 0.25·${fd} + 0.20·${fu} + 0.15·${es} + 0.10·${cv} = ${(0.30 * sn).toFixed(2)}+${(0.25 * fd).toFixed(2)}+${(0.20 * fu).toFixed(2)}+${(0.15 * es).toFixed(2)}+${(0.10 * cv).toFixed(2)} = ${rounded}`
+            }
+        }
+    }
+    if (oppDriftCount > 0 || aeoDriftCount > 0) {
+        console.warn(`[research/seo_keyword_research] math drift overridden: opportunity=${oppDriftCount}/${records.length}, aeo=${aeoDriftCount}/${records.length}`)
     }
 }
