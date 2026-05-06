@@ -219,10 +219,28 @@ function parseCriticResponse(raw: string, originalContent: string, stageId: Stag
         skipped: false,
     }
 
-    // Extract JSON block. Critic prompt asks for JSON-only but we tolerate
-    // surrounding markdown.
-    const blockMatch = raw.match(/```json\s*\n([\s\S]*?)\n```/i)
-    const jsonText = (blockMatch ? blockMatch[1] : raw).trim()
+    // Extract JSON block. Critic prompt asks for JSON-only but tolerate
+    // surrounding markdown. Phase 3.17 — be robust to multiple fence styles
+    // observed in the wild:
+    //   1. ```json\n{...}\n```  (canonical, with newlines around content)
+    //   2. ```json{...}```      (single line, no newlines)
+    //   3. ```{...}```          (no language tag)
+    //   4. raw {...} prose      (no fence at all)
+    //   5. fence opens but no close (response truncated)
+    let jsonText: string
+    const fencedMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/i)
+    if (fencedMatch) {
+        jsonText = fencedMatch[1].trim()
+    } else {
+        // No closing fence found — try stripping a stray opening fence + slice
+        // from first { to last }.
+        const stripped = raw.replace(/^[\s\S]*?```(?:json)?\s*/i, '').trim()
+        const firstBrace = stripped.indexOf('{')
+        const lastBrace = stripped.lastIndexOf('}')
+        jsonText = (firstBrace >= 0 && lastBrace > firstBrace)
+            ? stripped.substring(firstBrace, lastBrace + 1)
+            : raw.trim()
+    }
     let parsed: unknown
     try {
         parsed = JSON.parse(jsonText)
