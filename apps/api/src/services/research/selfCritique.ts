@@ -151,9 +151,9 @@ ${promptTrimmed}
 ## הפלט לבקרה
 
 \`\`\`
-${content.substring(0, 22000)}
+${content.length <= 60000 ? content : content.substring(0, 50000) + '\n\n[...truncated middle...]\n\n' + content.substring(content.length - 10000)}
 \`\`\`
-${content.length > 22000 ? `\n_(הפלט קוצץ ל-22K תווים — בדקו לפי מה שיש)_` : ''}
+${content.length > 60000 ? `\n_(הפלט קוצץ ל-60K תווים — בדקו לפי מה שיש)_` : ''}
 
 ---
 
