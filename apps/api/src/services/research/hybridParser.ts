@@ -42,10 +42,22 @@ export function parseHybridResponse(content: string): HybridParseResult {
         jsonBlockMalformed: false,
     }
 
+    // Phase 3.18 — extract JSON text. Try canonical fenced match first; if
+    // the closing ``` is missing (truncation symptom — model hit max_tokens
+    // mid-output) fall back to "open fence + everything to end of content".
+    let jsonText: string
     const match = content.match(JSON_BLOCK_RE)
-    if (!match) return result
+    if (match) {
+        jsonText = match[1].trim()
+    } else {
+        const openFenceIdx = content.search(/```json\s*\n/i)
+        if (openFenceIdx === -1) return result
+        // No closing fence — slice from after the opening fence to end-of-content
+        // and let the truncated-JSON repair tier handle it.
+        const afterFence = content.substring(openFenceIdx).replace(/^```json\s*\n/i, '')
+        jsonText = afterFence.trim()
+    }
 
-    const jsonText = match[1].trim()
     let parsed: unknown
     try {
         parsed = JSON.parse(jsonText)
@@ -58,10 +70,19 @@ export function parseHybridResponse(content: string): HybridParseResult {
             try {
                 parsed = JSON.parse(repairCommonJsonErrors(sanitizeJsonControlChars(jsonText)))
                 console.warn('[hybridParser] JSON repaired via Tier 3 (LLM hallucination patterns)')
-            } catch (err) {
-                console.warn('[hybridParser] JSON code-block malformed (3 tiers tried):', (err as Error).message)
-                result.jsonBlockMalformed = true
-                return result
+            } catch {
+                // Tier 4 (Phase 3.18) — the JSON was truncated mid-output. Try
+                // to balance braces/brackets and rescue whatever records[] we
+                // had completed before the cutoff. Better partial than nothing.
+                const repaired = repairTruncatedJson(sanitizeJsonControlChars(jsonText))
+                try {
+                    parsed = JSON.parse(repaired)
+                    console.warn('[hybridParser] JSON repaired via Tier 4 (truncated — reconstructed close)')
+                } catch (err) {
+                    console.warn('[hybridParser] JSON code-block malformed (4 tiers tried):', (err as Error).message)
+                    result.jsonBlockMalformed = true
+                    return result
+                }
             }
         }
     }
@@ -139,6 +160,93 @@ function repairCommonJsonErrors(src: string): string {
     out = out.replace(/""(\s*[,}\]\n])/g, '"$1')
     // Trailing comma before closing bracket/brace.
     out = out.replace(/,(\s*[}\]])/g, '$1')
+    return out
+}
+
+/**
+ * Phase 3.18 Tier 4 — repair JSON truncated mid-output (model hit max_tokens
+ * mid-stream). Walk the string tracking strings/escapes and brace/bracket
+ * depth, and at the end:
+ *   1. If we're inside an unterminated string → close it with a quote.
+ *   2. If we're inside a partial property-name or value position → trim the
+ *      tail back to the last complete record.
+ *   3. Close all open `{` and `[` in reverse order.
+ *
+ * This is best-effort. The goal is to rescue whatever records[] entries
+ * were emitted before the cutoff — a partial result beats zero records.
+ */
+function repairTruncatedJson(src: string): string {
+    if (!src.trim().startsWith('{') && !src.trim().startsWith('[')) return src
+    // Walk the string tracking depth + string state.
+    let depth = 0
+    const stack: string[] = []  // tracks { vs [
+    let inStr = false
+    let esc = false
+    let lastCompleteCommaIdx = -1  // index of the last comma at depth=2 (inside records[] one element complete)
+    for (let i = 0; i < src.length; i++) {
+        const ch = src[i]
+        if (inStr) {
+            if (esc) { esc = false; continue }
+            if (ch === '\\') { esc = true; continue }
+            if (ch === '"') inStr = false
+            continue
+        }
+        if (ch === '"') { inStr = true; continue }
+        if (ch === '{' || ch === '[') {
+            stack.push(ch)
+            depth++
+        } else if (ch === '}' || ch === ']') {
+            stack.pop()
+            depth--
+        } else if (ch === ',' && depth === 2 && stack[0] === '{' && stack[1] === '[') {
+            // Comma inside records[] (root object → records array → element).
+            // Record this — if we hit truncation, we trim back to this comma
+            // and treat the prior records as the recoverable subset.
+            lastCompleteCommaIdx = i
+        }
+    }
+
+    // If well-formed (no string state, no open structures) — return as-is.
+    if (!inStr && depth === 0) return src
+
+    let out = src
+    if (inStr) {
+        // Trim the broken string entirely — back to the last comma
+        // inside records[] so we keep prior complete records.
+        if (lastCompleteCommaIdx >= 0) {
+            out = src.substring(0, lastCompleteCommaIdx)
+            // Re-walk to recompute depth/stack.
+            depth = 0
+            stack.length = 0
+            inStr = false
+            esc = false
+            for (let i = 0; i < out.length; i++) {
+                const ch = out[i]
+                if (inStr) {
+                    if (esc) { esc = false; continue }
+                    if (ch === '\\') { esc = true; continue }
+                    if (ch === '"') inStr = false
+                    continue
+                }
+                if (ch === '"') { inStr = true; continue }
+                if (ch === '{' || ch === '[') { stack.push(ch); depth++ }
+                else if (ch === '}' || ch === ']') { stack.pop(); depth-- }
+            }
+        } else {
+            // No safe trim point → close the broken string with a quote.
+            out += '"'
+        }
+    }
+
+    // Trim any trailing whitespace + dangling open syntax (key without value, etc).
+    out = out.replace(/[\s,]*"\s*[a-zA-Z_]+\s*:\s*$/, '')  // dangling key:
+    out = out.replace(/[,\s]+$/, '')                       // trailing comma/whitespace
+
+    // Close open structures in reverse stack order.
+    while (stack.length) {
+        const open = stack.pop()
+        out += open === '{' ? '}' : ']'
+    }
     return out
 }
 

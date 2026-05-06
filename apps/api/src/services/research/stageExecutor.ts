@@ -236,7 +236,13 @@ export async function executeStage(input: ExecuteStageInput): Promise<ExecuteSta
                 },
                 body: JSON.stringify({
                     model: anthropicModel,
-                    max_tokens: 16000,
+                    // Phase 3.18 — bumped 16K → 32K. Phase (c) added cluster_architecture
+                    // + cannibalization_audit + content_briefs to seo_keyword_research
+                    // schema; with 20 records + full briefs the JSON output exceeded
+                    // 16K and was truncated mid-record (records[]=0 in DB because
+                    // hybridParser couldn't find the closing fence). 32K leaves
+                    // headroom for that stage and any other "wide" stage.
+                    max_tokens: 32000,
                     messages: [{ role: 'user', content: prompt }],
                 }),
                 signal: AbortSignal.timeout(300000),

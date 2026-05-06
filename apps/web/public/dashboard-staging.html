@@ -11203,11 +11203,19 @@ function viewStageResultV2(sid) {
   // Markdown content — strip the embedded ```json``` block since records
   // are already shown above as structured cards (avoids double-render).
   // Also strip the "## רשומות מובנות" heading that wraps the JSON block.
+  // Phase 3.18c — also handle TRUNCATED JSON (no closing fence): when the
+  // model hits max_tokens mid-output, ```json...``` regex won't match.
+  // Strip from ```json to end-of-content as a fallback so the user never
+  // sees raw JSON in the markdown panel.
   var contentEl = document.getElementById('pipelineV2-result-content');
   if (result.content) {
     var cleanedContent = result.content
       .replace(/##\s*רשומות מובנות[\s\S]*?```json[\s\S]*?```/g, '')
       .replace(/```json[\s\S]*?```/g, '')
+      // Truncated JSON fallback: opening ```json with no closing fence.
+      .replace(/```json[\s\S]*$/g, '')
+      // Stripped section heading too if it remained.
+      .replace(/##\s*רשומות מובנות[\s\S]*$/g, '')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
     contentEl.innerHTML = renderMarkdown(cleanedContent);
