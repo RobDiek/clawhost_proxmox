@@ -10890,6 +10890,7 @@ function closePipeline() {
 
 var STAGE_CATALOG_V2 = {
   competitor_landscape:   { titleHe: 'נוף תחרותי',                   descHe: 'מתחרים ישירים, מבנה שוק, נוכחות דיגיטלית, gaps' },
+  internal_seo_audit:     { titleHe: 'אודיט SEO פנימי',                descHe: 'on-page audit + schema coverage + duplicates + IA depth + technical debt' },
   seo_keyword_research:   { titleHe: 'מחקר מילות מפתח (SEO)',         descHe: '30+ keywords עם volume/CPC/difficulty + SERP analysis' },
   aeo_visibility:         { titleHe: 'נראות AI (AEO)',                descHe: 'ציטוטים ב-Claude/ChatGPT/Perplexity + schema audit + GSC' },
   link_audit:             { titleHe: 'אודיט פרופיל קישורים',         descHe: 'profile audit + lost links + outreach roadmap. דורש DFS Backlinks API פעיל' },
@@ -11434,6 +11435,7 @@ function renderRecordsByStage(stageId, records) {
   if (!records || !records.length) return '';
   switch (stageId) {
     case 'competitor_landscape':   return renderCompetitorRecords(records);
+    case 'internal_seo_audit':     return renderInternalAuditRecords(records);
     case 'seo_keyword_research':   return renderKeywordRecords(records);
     case 'link_audit':             return renderLinkAuditRecords(records);
     case 'audience_personas':      return renderPersonaRecords(records);
@@ -11696,6 +11698,88 @@ function renderKeywordCard(k) {
     + oppBreakdown
     + aeoBreakdown
     + (ev.length ? '<div style="margin-top:4px;font-size:0.62rem;color:#9CA3AF">evidence: ' + ev.map(escapeHtml).join(', ') + '</div>' : '')
+    + '</div>';
+}
+
+// ── internal_seo_audit ──────────────────────────────────────────────────────
+// Records are URL-level audit entries. UI groups by impact tier (high/medium/
+// low) and surfaces title/meta/H1/word count/schema coverage/issues per URL.
+
+function renderInternalAuditRecords(records) {
+  if (!records || !records.length) return '';
+
+  // Sort by expected_impact + onpage_score
+  var sorted = records.slice().sort(function(a, b) {
+    var ai = a.expected_impact === 'high' ? 0 : a.expected_impact === 'medium' ? 1 : 2;
+    var bi = b.expected_impact === 'high' ? 0 : b.expected_impact === 'medium' ? 1 : 2;
+    if (ai !== bi) return ai - bi;
+    return (a.onpage_score || 100) - (b.onpage_score || 100);
+  });
+
+  // Stats
+  var byPageType = {};
+  var critIssues = 0;
+  var warnIssues = 0;
+  var totalHours = 0;
+  records.forEach(function(r) {
+    var pt = r.page_type || 'other';
+    if (!byPageType[pt]) byPageType[pt] = 0;
+    byPageType[pt]++;
+    critIssues += (r.issues_critical || []).length;
+    warnIssues += (r.issues_warning || []).length;
+    totalHours += Number(r.estimated_effort_hours) || 0;
+  });
+
+  var html = '<div style="margin:8px 0">';
+  html += '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">'
+    + '<span><strong>' + records.length + '</strong> URLs</span>'
+    + '<span style="color:#991B1B">●' + critIssues + ' critical</span>'
+    + '<span style="color:#92400E">●' + warnIssues + ' warnings</span>'
+    + '<span><strong>~' + totalHours + 'h</strong> סה״כ עבודה</span>'
+    + '</div>';
+
+  // Group by page_type
+  Object.keys(byPageType).sort().forEach(function(pt) {
+    var ptRecords = sorted.filter(function(r) { return (r.page_type || 'other') === pt; });
+    html += '<details open style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:8px">'
+      + '<summary style="cursor:pointer;padding:10px 14px;background:#F9FAFB;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center">'
+      +   '<strong style="font-size:0.84rem;color:#1E3A8A">📄 ' + escapeHtml(pt) + '</strong>'
+      +   '<span style="font-size:0.7rem;color:#6B7280">' + ptRecords.length + ' URLs</span>'
+      + '</summary>'
+      + '<div style="padding:6px 14px 10px">'
+      +   ptRecords.map(renderInternalAuditRow).join('')
+      + '</div></details>';
+  });
+
+  return html + '</div>';
+}
+
+function renderInternalAuditRow(r) {
+  var critical = r.issues_critical || [];
+  var warnings = r.issues_warning || [];
+  var schemasMissing = r.schemas_missing || [];
+  var schemasPresent = r.schemas_present || [];
+  var impColor = r.expected_impact === 'high' ? '#10B981' : r.expected_impact === 'medium' ? '#F59E0B' : '#9CA3AF';
+  var scoreColor = (r.onpage_score || 0) >= 80 ? '#10B981' : (r.onpage_score || 0) >= 60 ? '#F59E0B' : '#EF4444';
+
+  return '<div style="border-top:1px solid #F3F4F6;padding:10px 0;font-size:0.8rem">'
+    + '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap">'
+    +   '<div style="flex:1;min-width:0">'
+    +     '<a href="' + escapeHtml(r.url || '#') + '" target="_blank" style="font-size:0.78rem;color:#2563EB;direction:ltr;display:block;word-break:break-all">' + escapeHtml(r.url || '—') + ' ↗</a>'
+    +     (r.title ? '<div style="font-size:0.72rem;color:#374151;margin-top:3px"><strong>title:</strong> ' + escapeHtml(r.title) + ' <span style="color:#9CA3AF">(' + (r.title_length || 0) + ' תווים)</span></div>' : '')
+    +     (r.h1 ? '<div style="font-size:0.7rem;color:#6B7280;margin-top:2px">H1: ' + escapeHtml(r.h1) + '</div>' : '')
+    +   '</div>'
+    +   '<div style="text-align:left;direction:ltr;font-size:0.7rem;color:#374151;flex-shrink:0">'
+    +     (r.onpage_score != null ? '<div>score: <strong style="color:' + scoreColor + '">' + r.onpage_score + '</strong></div>' : '')
+    +     (r.word_count != null ? '<div>words: ' + r.word_count + '</div>' : '')
+    +     (r.path_depth != null ? '<div>depth: ' + r.path_depth + '</div>' : '')
+    +     (r.expected_impact ? '<div style="color:' + impColor + ';font-weight:600">impact: ' + escapeHtml(r.expected_impact) + '</div>' : '')
+    +   '</div>'
+    + '</div>'
+    + (critical.length ? '<div style="margin-top:6px"><span style="font-size:0.66rem;color:#991B1B;background:#FEE2E2;padding:2px 6px;border-radius:3px">⚠ critical: ' + critical.map(escapeHtml).join(', ') + '</span></div>' : '')
+    + (warnings.length ? '<div style="margin-top:4px"><span style="font-size:0.66rem;color:#92400E;background:#FEF3C7;padding:2px 6px;border-radius:3px">⚠ warning: ' + warnings.map(escapeHtml).join(', ') + '</span></div>' : '')
+    + (schemasMissing.length ? '<div style="margin-top:4px;font-size:0.7rem"><strong style="color:#6B7280">חסר schema:</strong> ' + schemasMissing.map(escapeHtml).join(', ') + (schemasPresent.length ? ' <span style="color:#9CA3AF">(נוכח: ' + schemasPresent.map(escapeHtml).join(', ') + ')</span>' : '') + '</div>' : '')
+    + (r.priority_action ? '<div style="font-size:0.74rem;color:#1F2937;margin-top:6px;line-height:1.5"><strong>פעולה:</strong> ' + escapeHtml(r.priority_action) + (r.estimated_effort_hours ? ' <span style="color:#6B7280">— ' + r.estimated_effort_hours + 'h</span>' : '') + (r.owner ? ' · ' + escapeHtml(r.owner) : '') + '</div>' : '')
     + '</div>';
 }
 

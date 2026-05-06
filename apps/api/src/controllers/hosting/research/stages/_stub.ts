@@ -14,6 +14,7 @@ import type { StageId } from '@/services/research/types'
 export function notImplementedYet(c: Context, stageId: StageId): Response {
     const titleMap: Record<StageId, string> = {
         competitor_landscape:   'נוף תחרותי',
+        internal_seo_audit:     'אודיט SEO פנימי',
         seo_keyword_research:   'מחקר מילות מפתח (SEO)',
         aeo_visibility:         'נראות AI (AEO)',
         link_audit:             'אודיט פרופיל קישורים',

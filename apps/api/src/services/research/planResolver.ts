@@ -120,9 +120,14 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
     // 5. strategy_options — needs all prior research + positioning.
     // 6. validation — tests strategy_options + positioning hypotheses.
     // 7. content_plan / media_plan — execute the chosen scenario.
+    // Phase E1.3 — internal_seo_audit lives after competitor_landscape (which
+    // gives it a competitor benchmark to compare technical metrics against)
+    // and before seo_keyword_research (which uses indexed-pages inventory to
+    // ground striking-distance + cannibalization analysis on real URLs).
     switch (intent) {
         case 'seo_organic':
-            return ['competitor_landscape', 'seo_keyword_research', 'aeo_visibility', 'link_audit',
+            return ['competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
+                'aeo_visibility', 'link_audit',
                 ...UNIVERSAL_STAGES, 'content_plan']
         case 'paid_search':
             return ['competitor_landscape', 'paid_audit',
@@ -134,11 +139,12 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
             return ['competitor_landscape', 'email_competitor_audit',
                 ...UNIVERSAL_STAGES, 'content_plan']
         case 'ecommerce':
-            return ['competitor_landscape', 'seo_keyword_research', 'paid_audit',
+            return ['competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
+                'paid_audit',
                 ...UNIVERSAL_STAGES, 'media_plan', 'content_plan']
         case 'multichannel':
-            return ['competitor_landscape', 'seo_keyword_research', 'aeo_visibility', 'link_audit',
-                'paid_audit', 'social_landscape',
+            return ['competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
+                'aeo_visibility', 'link_audit', 'paid_audit', 'social_landscape',
                 ...UNIVERSAL_STAGES, 'content_plan', 'media_plan']
     }
 }

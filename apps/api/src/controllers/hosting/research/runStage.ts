@@ -25,6 +25,7 @@ import type { ResearchDataV2, StageId } from '@/services/research/types'
 type StageRunner = (c: Context) => Promise<Response>
 const STAGE_RUNNERS: Record<StageId, () => Promise<{ run: StageRunner }>> = {
     competitor_landscape:   () => import('./stages/competitor_landscape'),
+    internal_seo_audit:     () => import('./stages/internal_seo_audit'),
     seo_keyword_research:   () => import('./stages/seo_keyword_research'),
     aeo_visibility:         () => import('./stages/aeo_visibility'),
     link_audit:             () => import('./stages/link_audit'),

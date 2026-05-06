@@ -1866,6 +1866,303 @@ function renderCompetitorLinkTable(comps: LinkAuditDfsShape['competitors']): str
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// internal_seo_audit — Phase E1.2. Comprehensive technical + on-page audit
+// of OUR domain. Feeds aeo_visibility (schema gaps), link_audit (priority
+// pages), strategy_options (technical-debt hours), content_plan (refresh-vs-
+// new decisions per existing URL).
+// ────────────────────────────────────────────────────────────────────────────
+
+interface InternalSeoAuditDfsShape {
+    ourDomain: string
+    sitemap: { url: string | null; entryCount: number; fetchedOk: boolean; notes: string[] }
+    robotsTxt: { present: boolean; sitemapReference: string | null; disallowCount: number; rawLength: number; notes: string[] }
+    urls: Array<{
+        url: string
+        pathDepth: number
+        title?: string
+        titleLength?: number
+        metaDescription?: string
+        metaLength?: number
+        canonicalUrl?: string
+        canonicalSelf?: boolean
+        h1List: string[]
+        h1Count: number
+        h2Count: number
+        wordCount?: number
+        onpageScore?: number
+        schemaTypes: string[]
+        pageTiming?: { lcp_ms?: number; tti_ms?: number; dom_complete_ms?: number }
+        dfsIssues: string[]
+        inferredPageType: string
+        clientIssues: string[]
+        fetchOk: boolean
+    }>
+    aggregate: {
+        crawledCount: number
+        avgWordCount: number
+        thinContentCount: number
+        urlsWithoutSchema: number
+        urlsWithoutCanonical: number
+        urlsWithMissingMeta: number
+        urlsWithDuplicateTitle: Array<{ title: string; urls: string[] }>
+        urlsWithDuplicateH1: Array<{ h1: string; urls: string[] }>
+        urlsWithDuplicateMeta: Array<{ meta: string; urls: string[] }>
+        avgOnpageScore: number
+        deepPagesCount: number
+        schemaTypeFrequency: Record<string, number>
+    }
+    totalCostUsd: number
+    cacheHits: number
+    cacheMisses: number
+    enrichmentMissing: string[]
+}
+
+function buildInternalSeoAuditPrompt(opts: PromptOpts): PromptResult {
+    const { businessName, businessDesc, feedback, historicalAssetsBlock } = opts
+    const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
+    const haBlock = historicalAssetsBlock || ''
+    const dfs = opts.dfsData as InternalSeoAuditDfsShape | undefined
+    if (!dfs) throw new Error('internal_seo_audit: dfsData prefetch is required')
+
+    // Render URL audit table — most-impactful first (low onpage_score + thin content + bad path depth)
+    const urlsSorted = [...dfs.urls].sort((a, b) => {
+        const aS = (a.onpageScore ?? 50) - (a.clientIssues.length * 5)
+        const bS = (b.onpageScore ?? 50) - (b.clientIssues.length * 5)
+        return aS - bS
+    })
+    const urlTable = renderInternalAuditUrlTable(urlsSorted.slice(0, 50))
+    const dupesBlock = renderInternalAuditDupes(dfs.aggregate)
+    const schemaCoverageBlock = renderInternalAuditSchemaCoverage(dfs)
+
+    return {
+        agentId: 'menateach',
+        useDirectApi: true,
+        minLength: 3000,
+        prompt: `# אודיט SEO פנימי מקיף — "${businessName}"
+
+## תיאור העסק
+${businessDesc}
+${haBlock}
+
+## נתוני האודיט — verbatim, אסור להמציא מספרים
+
+**מקור:** DataForSEO on-page (${new Date().toISOString().slice(0, 10)}) + sitemap.xml + robots.txt | ${dfs.urls.length} URLs נסרקו | $${dfs.totalCostUsd.toFixed(4)} (${dfs.cacheHits}/${dfs.cacheHits + dfs.cacheMisses} cache hits)${dfs.enrichmentMissing.length ? ' | partial: ' + dfs.enrichmentMissing.join(', ') : ''}
+
+### Site inventory
+- **Domain:** \`${dfs.ourDomain}\`
+- **Sitemap:** ${dfs.sitemap.url ? `\`${dfs.sitemap.url}\` — ${dfs.sitemap.entryCount} entries (sampled ${dfs.urls.length})` : '*(לא נמצא sitemap.xml — flag חשוב)*'}
+- **robots.txt:** ${dfs.robotsTxt.present ? `נוכח (${dfs.robotsTxt.rawLength} chars, ${dfs.robotsTxt.disallowCount} Disallow rules${dfs.robotsTxt.sitemapReference ? `, sitemap ref → ${dfs.robotsTxt.sitemapReference}` : ', אין הפניה ל-sitemap'})` : '*(robots.txt חסר — flag חשוב)*'}
+- **Sampled URLs:** ${dfs.aggregate.crawledCount} | **Avg word count:** ${dfs.aggregate.avgWordCount} | **Avg on-page score:** ${dfs.aggregate.avgOnpageScore}/100
+- **Thin content (<300 מילים):** ${dfs.aggregate.thinContentCount} URLs
+- **Without schema:** ${dfs.aggregate.urlsWithoutSchema} | **Without canonical:** ${dfs.aggregate.urlsWithoutCanonical} | **Missing meta description:** ${dfs.aggregate.urlsWithMissingMeta}
+- **Deep pages (path depth ≥4):** ${dfs.aggregate.deepPagesCount}
+
+### URL audit — top 50 by impact (low score + many issues first)
+${urlTable}
+
+### Duplicate detection
+${dupesBlock}
+
+### Schema coverage by page-type
+${schemaCoverageBlock}
+
+---
+
+## פקודות עבודה
+
+${HARD_BLOCK_RULES}
+
+${HEBREW_ONLY_BLOCK}
+
+${CONFIDENCE_INTEGRITY_RULE}
+
+${CONFIDENCE_LABELING}
+
+${JSON_OUTPUT_RULES}
+
+${DFS_DATA_RULE}
+
+---
+
+## פלט נדרש
+
+### חלק 1: תקציר מנהלים (markdown — בעברית, 2-3 פסקאות)
+3 דברים: (א) בריאות טכנית כללית — לאן הנקודה החזקה ביותר ולאן החלשה ביותר; (ב) הסיכון הכי דחוף — מה יקלקל לנו את ה-SEO אם לא נטפל מיד (אינדקסציה? duplicate? thin? schema?); (ג) ההזדמנות הכי גדולה — מה השיפור עם ROI הגבוה ביותר ביחס למאמץ.
+
+### חלק 2: רשומות JSON — URL audit + תוכנית תיקון (חובה!)
+
+\`\`\`json
+{
+  "site_health_summary": {
+    "overall_score_0_100": 0,
+    "indexable_pages": 0,
+    "sitemap_status": "complete | partial | missing",
+    "robots_status": "good | needs_review | missing",
+    "schema_coverage_pct": 0,
+    "thin_content_pct": 0,
+    "duplicate_titles_count": 0,
+    "duplicate_h1_count": 0,
+    "duplicate_meta_count": 0,
+    "avg_word_count": 0,
+    "avg_onpage_score": 0,
+    "deep_pages_pct": 0,
+    "biggest_strength": "1 משפט בעברית",
+    "biggest_weakness": "1 משפט בעברית",
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "records": [
+    {
+      "url": "https://...",
+      "page_type": "homepage | pillar | spoke | product | service | category | faq | blog_post | local_page | about | contact | pricing | other",
+      "title": "...",
+      "title_length": 0,
+      "meta_description": "...",
+      "meta_length": 0,
+      "h1": "...",
+      "word_count": 0,
+      "onpage_score": 0,
+      "path_depth": 0,
+      "schemas_present": [],
+      "schemas_missing": [],
+      "issues_critical": ["thin_content / no_schema / duplicate_title / missing_canonical / etc — only the SHOWSTOPPERS"],
+      "issues_warning": ["short_meta_description / multiple_h1 / etc — would-be-nice"],
+      "priority_action": "1-2 משפטים בעברית — מה לתקן ראשון בעמוד הזה",
+      "owner": "תפקיד אחראי בעברית: 'מנהל SEO' / 'מנהל תוכן' / 'מפתח'",
+      "estimated_effort_hours": 0,
+      "expected_impact": "high | medium | low",
+      "confidence": "high | medium | working_hypothesis",
+      "evidence": ["dfs_onpage_audit"]
+    }
+  ],
+  "schema_gap_analysis": [
+    {
+      "page_type": "homepage / product / service / faq / וכו'",
+      "expected_schemas": ["Organization", "WebSite"],
+      "present_in_pct": 0,
+      "missing_urls_count": 0,
+      "priority": "high | medium | low",
+      "implementation_note": "1 משפט בעברית — איך להוסיף ב-batch + שעות מאמץ צפויות"
+    }
+  ],
+  "ia_findings": {
+    "_note": "Information Architecture — based on URL path depth (rough proxy until Phase E2 adds full link-graph crawl)",
+    "deep_pages_count": 0,
+    "deep_pages_examples": ["url1", "url2"],
+    "depth_distribution": {
+      "depth_0_homepage": 0,
+      "depth_1": 0,
+      "depth_2": 0,
+      "depth_3": 0,
+      "depth_4_plus": 0
+    },
+    "recommendation": "1-2 משפטים בעברית — האם המבנה שטוח מדי / עמוק מדי / מתאים?"
+  },
+  "duplicate_consolidation_plan": [
+    {
+      "duplicate_type": "title | h1 | meta",
+      "urls_affected": ["url1", "url2"],
+      "recommended_resolution": "1 משפט בעברית — merge / split / canonicalize / rewrite",
+      "owner": "תפקיד בעברית",
+      "priority": "high | medium | low"
+    }
+  ],
+  "tech_debt_summary": {
+    "_note": "agg של שעות עבודה לפי category — לעבור ל-strategy_options כקלט ל-cost modeling",
+    "by_category_hours": {
+      "schema_implementation": 0,
+      "content_thinness_fix": 0,
+      "meta_rewrites": 0,
+      "duplicate_consolidation": 0,
+      "ia_restructure": 0,
+      "technical_fixes": 0
+    },
+    "total_hours_estimate": 0,
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "confidence": "high | medium | working_hypothesis"
+}
+\`\`\`
+
+**חובה:**
+- **records:** רשומה לכל URL שנסרק (${dfs.urls.length} URLs). אסור להחסיר. אסור להמציא URLs שלא ב-data.
+- כל \`issues_critical\` ו-\`issues_warning\` חייבים להיות מתוך הקודים שמופיעים ב-\`clientIssues\` או \`dfsIssues\` של ה-URL — אסור להמציא issues חדשים.
+- \`schemas_missing\` = expected_schemas[page_type] − schemas_present (server קלקליישן בודק את זה).
+- \`priority_action\` חייב להיות פעיל וקונקרטי — לא "לבדוק את הdocs" אלא "להוסיף FAQ schema markup ל-X דפי שאלות נפוצות".
+- \`schema_gap_analysis\` אגרגציה לפי page_type — מינימום entry אחד לכל page_type שמופיע ב-records.
+- \`tech_debt_summary.total_hours_estimate\` חייב להיות סכום אמיתי של שעות מ-records.
+- אם נתון חסר (DFS לא החזיר) — confidence: working_hypothesis עם הסבר ב-evidence.
+
+### חלק 3: 5 פעולות "fix this first" (markdown — בעברית בלבד)
+מבחר 5 הפעולות עם הImpact/Effort הטוב ביותר. כל אחת:
+- מה לתקן (קונקרטי, איזה URLs)
+- למה זה חשוב (impact business)
+- כמה שעות / כמה כסף לסוכנות חיצונית (אם רלוונטי)
+- מי האחראי
+- timeline (תוך X ימים)
+- inline marker של ביטחון
+
+### חלק 4: Roadmap טכני 90 יום (markdown — בעברית בלבד)
+חלוקה לחודש 1 / חודש 2 / חודש 3 — מה הכי דחוף קודם, מה תלוי במה. KPI סוף כל חודש (avg onpage score / thin content count / schema coverage %).
+
+---
+
+${QUALITY_GATE_INSTRUCTIONS}
+${feedbackLine}`,
+    }
+}
+
+// ─── Render helpers for internal_seo_audit DFS data ───────────────────────
+
+function renderInternalAuditUrlTable(urls: InternalSeoAuditDfsShape['urls']): string {
+    if (urls.length === 0) return '*(אין URLs נסרקו)*'
+    const rows = urls.map(u => {
+        const issues = [...u.clientIssues, ...u.dfsIssues].slice(0, 5).join(', ') || '—'
+        return `| ${u.url} | ${u.inferredPageType} | ${u.titleLength ?? '—'} | ${u.metaLength ?? '—'} | ${u.h1Count} | ${u.wordCount ?? '—'} | ${u.onpageScore ?? '—'} | ${u.schemaTypes.length} | ${issues} |`
+    }).join('\n')
+    return `| URL | page_type | title_len | meta_len | h1# | words | onpage_score | schema# | issues |\n|---|---|---|---|---|---|---|---|---|\n${rows}`
+}
+
+function renderInternalAuditDupes(agg: InternalSeoAuditDfsShape['aggregate']): string {
+    const out: string[] = []
+    if (agg.urlsWithDuplicateTitle.length > 0) {
+        out.push('**Duplicate titles:**')
+        for (const d of agg.urlsWithDuplicateTitle.slice(0, 10)) {
+            out.push(`- "${d.title}" → ${d.urls.length} URLs: ${d.urls.slice(0, 3).join(', ')}${d.urls.length > 3 ? ` (+${d.urls.length - 3})` : ''}`)
+        }
+    }
+    if (agg.urlsWithDuplicateH1.length > 0) {
+        out.push('\n**Duplicate H1:**')
+        for (const d of agg.urlsWithDuplicateH1.slice(0, 10)) {
+            out.push(`- "${d.h1}" → ${d.urls.length} URLs`)
+        }
+    }
+    if (agg.urlsWithDuplicateMeta.length > 0) {
+        out.push('\n**Duplicate meta descriptions:**')
+        for (const d of agg.urlsWithDuplicateMeta.slice(0, 10)) {
+            out.push(`- ${d.urls.length} URLs share the same meta`)
+        }
+    }
+    return out.join('\n') || '*(אין duplicates שזוהו ב-50 URLs שנסרקו — flag positive)*'
+}
+
+function renderInternalAuditSchemaCoverage(dfs: InternalSeoAuditDfsShape): string {
+    const byType: Record<string, { count: number; withSchema: number; schemas: Set<string> }> = {}
+    for (const u of dfs.urls) {
+        if (!u.fetchOk) continue
+        if (!byType[u.inferredPageType]) byType[u.inferredPageType] = { count: 0, withSchema: 0, schemas: new Set() }
+        byType[u.inferredPageType].count++
+        if (u.schemaTypes.length > 0) byType[u.inferredPageType].withSchema++
+        for (const s of u.schemaTypes) byType[u.inferredPageType].schemas.add(s)
+    }
+    const rows = Object.entries(byType).map(([pt, v]) => {
+        const pct = v.count > 0 ? Math.round((v.withSchema / v.count) * 100) : 0
+        const schemas = Array.from(v.schemas).join(', ') || '—'
+        return `| ${pt} | ${v.count} | ${v.withSchema} (${pct}%) | ${schemas} |`
+    }).join('\n')
+    return `| page_type | total | with_schema | schemas_found |\n|---|---|---|---|\n${rows}`
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Dispatch helper — used by per-stage controllers to get prompt by id.
 // New prompts (aeo_visibility, social_landscape, email_competitor_audit)
 // belong here when they ship (Phase 4).
@@ -1874,6 +2171,7 @@ function renderCompetitorLinkTable(comps: LinkAuditDfsShape['competitors']): str
 export function buildPromptForStage(stageId: StageId, opts: PromptOpts): PromptResult | null {
     switch (stageId) {
         case 'competitor_landscape':   return buildCompetitorLandscapePrompt(opts)
+        case 'internal_seo_audit':     return buildInternalSeoAuditPrompt(opts)
         case 'seo_keyword_research':   return buildSeoKeywordResearchPrompt(opts)
         case 'link_audit':             return buildLinkAuditPrompt(opts)
         case 'audience_personas':      return buildAudiencePersonasPrompt(opts)

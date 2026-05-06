@@ -28,6 +28,7 @@ export const ALL_INTENTS: readonly ResearchIntent[] = [
 export type StageId =
     // Discovery
     | 'competitor_landscape'
+    | 'internal_seo_audit'
     | 'seo_keyword_research'
     | 'aeo_visibility'
     | 'link_audit'
@@ -45,7 +46,8 @@ export type StageId =
     | 'media_plan'
 
 export const ALL_STAGE_IDS: readonly StageId[] = [
-    'competitor_landscape', 'seo_keyword_research', 'aeo_visibility', 'link_audit',
+    'competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
+    'aeo_visibility', 'link_audit',
     'paid_audit', 'social_landscape', 'email_competitor_audit',
     'audience_personas', 'positioning', 'strategy_options', 'validation',
     'content_plan', 'media_plan',
@@ -81,6 +83,13 @@ export const STAGE_CATALOG: Record<StageId, StageDescriptor> = {
         titleHe: 'נוף תחרותי',
         descriptionHe: 'מתחרים ישירים, מבנה שוק, נוכחות דיגיטלית, gaps',
         preferredIntegrations: ['brave', 'anthropic'],
+        upstream: [],
+    },
+    internal_seo_audit: {
+        id: 'internal_seo_audit', category: 'discovery',
+        titleHe: 'אודיט SEO פנימי (טכני + on-page)',
+        descriptionHe: 'inventory של URLs, on-page metrics, schema coverage, IA depth, technical issues, content gaps. Sitemap + DFS on-page audit',
+        preferredIntegrations: ['dataforseo'],
         upstream: [],
     },
     seo_keyword_research: {
