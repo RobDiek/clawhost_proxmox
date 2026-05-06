@@ -38,11 +38,61 @@ export const HARD_BLOCK_RULES = `
    חדש" / "נתחיל מחדש". התחילו ישר עם התוצאה — מתחרים, keywords, וכו'.
 
 חוקים תפעוליים:
-- **בעברית בלבד** (מונחים מקצועיים באנגלית מותרים)
 - כתבו הכל כאן בתשובה — לא בקובץ
 - לכל עובדה — ציינו מקור (URL, שם אתר, או שם dataset)
 - זו משימה חדשה לגמרי — לא ראיתם אותה קודם. אל תאמרו "כבר עניתי" — ענו מחדש.
 - אל תדקלמו מה אתם מתכננים לחפש — בצעו את החיפוש או כתבו את הדוח.`
+
+// ────────────────────────────────────────────────────────────────────────────
+// Phase 3.16 — Hebrew-only enforcement with explicit allowlist + forbid-list.
+// ────────────────────────────────────────────────────────────────────────────
+// Earlier rule "בעברית בלבד (מונחים מקצועיים באנגלית מותרים)" was too vague —
+// model interpreted "מונחים מקצועיים" generously and produced sentences like
+// "Decision: השקעה ב-FAQ + schema markup ה-bet הוא עם ה-confidence הגבוה
+// וה-effort הנמוך — priority #1 ל-Q1 2026". Native Hebrew speakers find this
+// jarring and unprofessional. This block lists permitted abbreviations and
+// forbids common filler words that creep in.
+
+export const HEBREW_ONLY_BLOCK = `
+## כללי שפה — אכיפה קשיחה
+
+**הפלט כולו בעברית.** משפטים, מילות קישור, מסקנות, header-prefixes,
+summary-lines — בעברית. אסור לערבב מילים אנגליות במשפט עברי.
+
+**אסור (דוגמאות מתוך פלט קודם — לא לחזור עליהן):**
+- ❌ "Decision: השקעה ב-FAQ schema markup"
+  ✅ "החלטה: השקעה ב-FAQ ובסכמת מבנה (schema markup)"
+- ❌ "ה-bet הוא עם ה-confidence הגבוה ביותר וה-effort הנמוך"
+  ✅ "ההימור הוא בעל הביטחון הגבוה ביותר והמאמץ הנמוך ביותר"
+- ❌ "priority #1 ל-Q1 2026"
+  ✅ "עדיפות #1 לרבעון 1 של 2026"
+- ❌ "Threat Ranking" / "Recommended Actions" / "Why Now?"
+  ✅ "דירוג איומים" / "פעולות מומלצות" / "למה עכשיו?"
+
+**רק מונחים מקצועיים מהרשימה הזאת מותרים באנגלית** (allowlist):
+- ראשי תיבות: SEO, SERP, AEO, GEO, GMB, EEAT, JTBD, KPI, ROI, CTR, CPM, CPC, CPL, KD, FAQ, CMS, API, URL, UTM, CDP, B2B, B2C, SaaS
+- מונחי טכניקה: schema markup, structured data, content hub, long-tail, head terms,
+  cluster, pillar, spoke, silo, anchor (text), backlink, referring domain, link-gap,
+  spam score, striking distance, opportunity score, programmatic, canonical
+- ערכי enum (קוד): take_now, take_if_strategic, backlog, high, medium, working_hypothesis,
+  low, info_broad, info_deep, commercial_eval, transactional, support, navigational,
+  brand_validation, direct, substitute, adjacent, reference, ymyl, none, locality, urgency
+- שמות עצמיים: שמות מותגים, שמות כלים, domain names, שמות חברות, שמות סוכנויות
+
+**מילים נפוצות שאסור להשאיר באנגלית** (תרגמו אותן):
+and→ו | but→אבל/אך | or→או | with→עם | without→ללא | for→ל-/בשביל |
+best→הטוב ביותר | worst→הגרוע ביותר | top→המוביל/העליון | bottom→התחתון |
+first→ראשון | second→שני | next→הבא | later→אחר כך |
+approach→גישה | method→שיטה | result→תוצאה | decision→החלטה |
+recommendation→המלצה | summary→סיכום | conclusion→מסקנה |
+priority→עדיפות | high→גבוה | low→נמוך | medium→בינוני |
+effort→מאמץ | bet→הימור | win→ניצחון | lose→הפסד |
+threat→איום | ranking→דירוג | action→פעולה | timing→תזמון | confidence→ביטחון.
+
+**צורת פנייה: רבים בלבד** (אתם / תוכלו / לכם / כדאי לכם) או infinitive impersonal
+(להשקיע, לבנות, להוסיף). **אסור יחיד** (אתה / תוכל / לך).
+
+**self-critique יבדוק את זה.** מצא מילה מהרשימה האסורה במשפט עברי = \`language_script_qa\` **hard fail**.`
 
 // ────────────────────────────────────────────────────────────────────────────
 // 1. Intent taxonomy — how to classify each query

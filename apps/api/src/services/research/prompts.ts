@@ -46,6 +46,7 @@ import {
     DFS_DATA_RULE,
     QUALITY_GATE_INSTRUCTIONS,
     HARD_BLOCK_RULES,
+    HEBREW_ONLY_BLOCK,
 } from './promptBlocks'
 
 interface PromptOpts {
@@ -316,10 +317,10 @@ ${DFS_DATA_RULE}
 
 ## פלט נדרש
 
-### חלק 1: Executive Summary (markdown — 2-3 פסקאות)
-תקצרו את הממצא המרכזי על המגרש התחרותי: מי האיומים האמיתיים? מה ה-route-to-win שלנו? מה ה-3 פעולות העיקריות?
+### חלק 1: תקציר מנהלים (markdown — 2-3 פסקאות, **בעברית בלבד**)
+תקצרו את הממצא המרכזי על המגרש התחרותי: מי האיומים האמיתיים? מה הדרך לניצחון שלנו? מהן 3 הפעולות העיקריות?
 
-### חלק 2: JSON records — competitors (חובה!)
+### חלק 2: רשומות JSON — מתחרים (חובה!)
 
 **Threat scorecard formula** (משקלים מדויקים, Σ=1.0, **אסור משקלים שווים**):
 \`Total = 0.25·serp_overlap + 0.20·page_type_fit + 0.15·authority_trust_proof + 0.15·local_presence_quality + 0.15·content_system_maturity + 0.10·asset_linkability\`
@@ -406,30 +407,37 @@ ${DFS_DATA_RULE}
 **\`our_link_profile\` ו-\`link_gap_targets\` חובה** — מבוססים על Phase 3.10b backlinks suite. אם הסעיף לא זמין (אין Backlinks API subscription, enrichmentMissing מציין 'no_backlinks_data') — סמנו את שתי המקטעים כ-confidence: working_hypothesis עם הסבר.
 **link_gap_targets:** מינימום 5, אם יש data. סדר לפי priority (high → low) + intersects count.
 
-### חלק 3: Topical Authority Venn (markdown)
-איפה אנחנו חופפים עם המתחרים בנושא, ואיפה יש "אדמת הפקר" שאף אחד לא משחק עליה. 3-5 חפיפות + 3-5 white spaces.
+### חלק 3: חפיפת סמכות נושאית (markdown)
+איפה אנחנו חופפים עם המתחרים בנושא, ואיפה יש "אדמת הפקר" שאף אחד לא משחק עליה.
+3-5 חפיפות + 3-5 white spaces. **בעברית בלבד** (anchor / hub / cluster מותרים).
 
-### חלק 4: Link Profile vs Competitors (markdown — Phase 3.10b)
+### חלק 4: השוואת פרופיל קישורים מול מתחרים (markdown — Phase 3.10b)
 ניתוח השוואתי ב-2-3 פסקאות:
-- איפה אנחנו עומדים מבחינת backlinks total + referring domains total מול avg של top 5 competitors?
-- האם ה-anchor mix שלנו cleaner/spammier מאשר אצלם?
-- כמה lost links ניתן להחזיר (top 3 priorities)?
-- 5 link-gap candidates עם outreach angle לכל אחד.
+- איפה אנחנו עומדים מבחינת backlinks total + referring domains total מול ממוצע של 5 המתחרים המובילים?
+- האם ה-anchor mix שלנו נקי או ספאמי יותר מאצלם?
+- כמה lost links ניתן להחזיר (3 בעדיפות גבוהה)?
+- 5 link-gap candidates עם זווית פנייה (outreach angle) לכל אחד.
 
-### חלק 5: Why Now? — IL timing
-3 גורמי timing ספציפיים ל-2026 ו-IL — כל אחד עם מקור (research / news / market data) ועם confidence inline marker.
+### חלק 5: למה עכשיו? — תזמון לישראל
+3 גורמי תזמון ספציפיים ל-2026 ובהקשר הישראלי — כל אחד עם מקור (מחקר / חדשות / נתוני שוק) ועם
+inline marker של ביטחון. **בעברית בלבד** במשפטים.
 
-### חלק 6: Threat Ranking
-דירגו את המתחרים לפי איום על ה-route-to-win שלנו (לא לפי "מי הכי גדול"). הסבירו דירוג.
+### חלק 6: פעולות מומלצות (top 5)
+פעולות קונקרטיות בעקבות הניתוח. **כל פעולה במשפט עברי שלם** עם:
+- owner (תפקיד אחראי בעברית: "מנהל תוכן", "מנהל SEO", "מייסד")
+- timeline ("30 יום", "60 יום", "רבעון 1 2026")
+- inline marker של ביטחון (גבוה / בינוני / השערת עבודה).
 
-### חלק 7: Recommended Actions (top 5)
-פעולות קונקרטיות בעקבות הניתוח. כל פעולה — owner + timeline + confidence inline marker.
+**הערה:** דירוג איומים בין המתחרים מופיע כבר בכרטיסי ה-records (scorecard.total) —
+**אסור לשכפל אותו במרקדאון** (זה היה גורם לאי-עקביות בין הטקסט הסיפורי לערכים האותרטיביים).
 
 ---
 
 ${QUALITY_GATE_INSTRUCTIONS}
 
 ${HARD_BLOCK_RULES}
+
+${HEBREW_ONLY_BLOCK}
 ${feedbackLine}`,
     }
 }
@@ -665,26 +673,30 @@ ${DFS_DATA_RULE}
 - **AEO score** לפי הנוסחה (0.30·SN + 0.25·FD + 0.20·FU + 0.15·ES + 0.10·CV) — אסור משקלים שווים. **\`aeo._formula_verification\` חובה**.
 - intent.jtbd חייב להיות במבנה "כש[סיטואציה], אני רוצה [פעולה], על מנת ש[תוצאה], מבלי לסכן [downside]"
 
-### חלק 3: Cluster Map (markdown)
-מפת cluster — pillar candidates + spoke architecture per cluster (6-8 spokes, page-type lattice). Internal linking pattern. Cannibalization risks flagged.
+### חלק 3: מפת cluster (markdown — בעברית בלבד)
+מפת cluster — מועמדים ל-pillar pages + ארכיטקטורת spokes בכל cluster (6-8 spokes, page-type lattice).
+דפוסי internal linking. סכנות cannibalization מסומנות.
 
-### חלק 4: AEO-Priority Subset (markdown)
-רשימת AEO targets (score ≥ 70) — איזה content treatment מקבלים, איזה schema markup חובה, איזה structured-data patterns.
+### חלק 4: תת-קבוצת עדיפות AEO (markdown — בעברית בלבד)
+רשימת מטרות AEO (score ≥ 70) — איזה טיפול תוכן מקבלות, איזה schema markup חובה,
+איזה דפוסי structured data לבנות.
 
-### חלק 5: Striking-Distance Quick Wins (markdown)
+### חלק 5: ניצחונות מהירים ב-striking distance (markdown — בעברית בלבד)
 פעולות מיידיות על positions 4-20 קיימות. סדרו לפי impact × ease.
 
-### חלק 6: Programmatic SEO Opportunities (markdown — אם זוהו)
-מועמדים ל-programmatic + 6 protection rules check. אם אף אחד לא עובר את 6 הכללים — אומרים זאת מפורשות.
+### חלק 6: הזדמנויות programmatic SEO (markdown — אם זוהו, בעברית בלבד)
+מועמדים ל-programmatic + בדיקה מול 6 כללי הגנה. אם אף אחד לא עובר את 6 הכללים — ציינו זאת במפורש.
 
-### חלק 7: Real Content Gaps (markdown)
-keywords שאף מתחרה לא מדורג עליהם בעוד שיש demand — top 5.
+### חלק 7: פערי תוכן אמיתיים (markdown — בעברית בלבד)
+מילות מפתח שאף מתחרה לא מדורג עליהן ויש להן demand — 5 המובילות.
 
 ---
 
 ${QUALITY_GATE_INSTRUCTIONS}
 
 ${HARD_BLOCK_RULES}
+
+${HEBREW_ONLY_BLOCK}
 ${feedbackLine}`,
     }
 }
@@ -891,19 +903,20 @@ ${DFS_DATA_RULE}
 - top_queries_by_stage חייב לכלול keywords מ-DFS intent_keywords רלוונטיים (לא להמציא)
 - אם אין Trustpilot reviews לאף מתחרה — confidence על trust_hierarchy יורד ל-working_hypothesis עם הסבר
 
-### חלק 3: Top Pain Points + ציטוטים (markdown)
-6+ כאבים מרכזיים. לכל אחד — ציטוט מ-DFS Trustpilot reviews או מ-upstream stages או מ-answers.challenges. אם נשען על vertical priors — סמנו [confidence: השערה].
+### חלק 3: כאבים מרכזיים + ציטוטים (markdown — בעברית בלבד)
+6+ כאבים מרכזיים. לכל אחד — ציטוט מתוך Trustpilot reviews של DFS, או משלבים קודמים, או מ-answers.challenges.
+אם הניתוח נשען על vertical priors בלבד — סמנו [ביטחון: השערת עבודה].
 
-### חלק 4: איפה הקהל נמצא (markdown)
+### חלק 4: איפה הקהל נמצא (markdown — בעברית בלבד)
 | פלטפורמה | קבוצות/ערוצים ספציפיים | גודל משוער | רלוונטיות |
 |---|---|---|---|
-(תיק מ-DFS / upstream / vertical priors. כל שורה — confidence inline.)
+(נתונים מ-DFS / שלבים קודמים / vertical priors. כל שורה עם inline marker של ביטחון.)
 
-### חלק 5: Cross-sell / Upsell path${prodBlk ? '' : ' (אם רלוונטי)'}
-${prodBlk ? 'איך המוצרים מחוברים בין הפרסונות? מי feeder של מי? (e.g. קורס → SaaS, חבילה משותפת)' : '— אם יש מוצר יחיד, דלגו על סקציה זו.'}
+### חלק 5: מסלול cross-sell / upsell${prodBlk ? '' : ' (אם רלוונטי)'}
+${prodBlk ? 'איך המוצרים מחוברים בין הפרסונות? מי משמש כ-feeder למה? (לדוגמה: קורס → SaaS, חבילה משותפת)' : '— אם יש מוצר יחיד, דלגו על סקציה זו.'}
 
-### חלק 6: Why Now? — לפרסונות אלו (markdown)
-3 גורמי timing IL/2026 ספציפיים לפרסונות (לא לעסק) — מקור + confidence inline marker לכל אחד.
+### חלק 6: למה עכשיו? — לפרסונות אלו (markdown — בעברית בלבד)
+3 גורמי תזמון לישראל ב-2026 הספציפיים לפרסונות (לא לעסק) — מקור + inline marker של ביטחון לכל אחד.
 
 ### חלק 7: סיכום הזדמנות השוק (markdown)
 TAM גלובלי / TAM IL / SAM / SOM. כל מספר עם מקור + confidence inline marker. אם המספר extrapolated מ-public data ולא verified — סמנו [confidence: בינוני] לכל הפחות.
@@ -916,6 +929,8 @@ TAM גלובלי / TAM IL / SAM / SOM. כל מספר עם מקור + confidence 
 ${QUALITY_GATE_INSTRUCTIONS}
 
 ${HARD_BLOCK_RULES}
+
+${HEBREW_ONLY_BLOCK}
 ${feedbackLine}`,
     }
 }
@@ -1070,6 +1085,8 @@ StoryBrand-style: מי הגיבור (פרסונה), מה הקונפליקט (כ�
 ${QUALITY_GATE_INSTRUCTIONS}
 
 ${HARD_BLOCK_RULES}
+
+${HEBREW_ONLY_BLOCK}
 ${feedbackLine}`,
     }
 }
@@ -1278,6 +1295,8 @@ ${JSON_OUTPUT_RULES}
 ${QUALITY_GATE_INSTRUCTIONS}
 
 ${HARD_BLOCK_RULES}
+
+${HEBREW_ONLY_BLOCK}
 ${feedbackLine}`,
     }
 }
@@ -1408,6 +1427,8 @@ ${JSON_OUTPUT_RULES}
 ${QUALITY_GATE_INSTRUCTIONS}
 
 ${HARD_BLOCK_RULES}
+
+${HEBREW_ONLY_BLOCK}
 ${feedbackLine}`,
         }
     }
@@ -1532,6 +1553,8 @@ ${JSON_OUTPUT_RULES}
 ${QUALITY_GATE_INSTRUCTIONS}
 
 ${HARD_BLOCK_RULES}
+
+${HEBREW_ONLY_BLOCK}
 ${feedbackLine}`,
     }
 }
