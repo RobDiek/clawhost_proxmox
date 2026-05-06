@@ -19,7 +19,7 @@
 import { dfsPost } from './client'
 import { cacheGet, cacheSet } from './cache'
 import {
-    LOCATION_IL, LANGUAGE_HE,
+    LOCATION_IL, LANGUAGE_HE, LOCATION_NAME_IL, languageName,
     type SearchVolumeItem,
     type KeywordIdeasItem,
     type KeywordDifficultyItem,
@@ -119,11 +119,12 @@ export async function keywordIdeas(
     seedKeywords: string[],
     opts: LocLang & { limit?: number; include_serp_info?: boolean } = {},
 ): Promise<CallResult<KeywordIdeasItem>> {
+    // DFS Labs endpoints want location_name + language_name (reject _code).
     const params = {
-        keywords: seedKeywords.slice(0, 200),  // DFS spec
-        location_code: opts.location_code ?? LOCATION_IL,
-        language_code: opts.language_code ?? LANGUAGE_HE,
-        limit: opts.limit ?? 700,              // premium tier default
+        keywords: seedKeywords.slice(0, 200),
+        location_name: LOCATION_NAME_IL,
+        language_name: languageName(opts.language_code ?? LANGUAGE_HE),
+        limit: opts.limit ?? 700,
         include_serp_info: opts.include_serp_info ?? true,
     }
     return cachedCall<KeywordIdeasItem>(
@@ -145,8 +146,8 @@ export async function relatedKeywords(
 ): Promise<CallResult<KeywordIdeasItem>> {
     const params = {
         keyword: seed,
-        location_code: opts.location_code ?? LOCATION_IL,
-        language_code: opts.language_code ?? LANGUAGE_HE,
+        location_name: LOCATION_NAME_IL,
+        language_name: languageName(opts.language_code ?? LANGUAGE_HE),
         limit: opts.limit ?? 200,
         depth: opts.depth ?? 2,
     }
@@ -170,8 +171,8 @@ export async function keywordDifficulty(
 ): Promise<CallResult<KeywordDifficultyItem>> {
     const params = {
         keywords: keywords.slice(0, 1000),
-        location_code: opts.location_code ?? LOCATION_IL,
-        language_code: opts.language_code ?? LANGUAGE_HE,
+        location_name: LOCATION_NAME_IL,
+        language_name: languageName(opts.language_code ?? LANGUAGE_HE),
     }
     return cachedCall<KeywordDifficultyItem>(
         instanceId,
@@ -299,8 +300,8 @@ export async function rankedKeywords(
 ): Promise<CallResult<RankedKeywordItem>> {
     const params = {
         target,
-        location_code: opts.location_code ?? LOCATION_IL,
-        language_code: opts.language_code ?? LANGUAGE_HE,
+        location_name: LOCATION_NAME_IL,
+        language_name: languageName(opts.language_code ?? LANGUAGE_HE),
         limit: opts.limit ?? 100,
         load_rank_absolute: true,
         ...(opts.filters ? { filters: opts.filters } : {}),
@@ -324,8 +325,8 @@ export async function competitorsDomain(
 ): Promise<CallResult<CompetitorsDomainItem>> {
     const params = {
         target,
-        location_code: opts.location_code ?? LOCATION_IL,
-        language_code: opts.language_code ?? LANGUAGE_HE,
+        location_name: LOCATION_NAME_IL,
+        language_name: languageName(opts.language_code ?? LANGUAGE_HE),
         limit: opts.limit ?? 50,
         intersections: opts.intersections ?? 5,  // min 5 shared keywords
     }
@@ -348,8 +349,8 @@ export async function serpCompetitors(
 ): Promise<CallResult<SerpCompetitorsItem>> {
     const params = {
         keywords: keywords.slice(0, 200),
-        location_code: opts.location_code ?? LOCATION_IL,
-        language_code: opts.language_code ?? LANGUAGE_HE,
+        location_name: LOCATION_NAME_IL,
+        language_name: languageName(opts.language_code ?? LANGUAGE_HE),
         limit: opts.limit ?? 50,
     }
     return cachedCall<SerpCompetitorsItem>(

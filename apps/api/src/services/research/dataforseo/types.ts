@@ -36,10 +36,22 @@ export interface DfsLocation {
     language_code: 'he' | 'en'
 }
 
-/** Israel = 2316 — used as default location across all calls. */
-export const LOCATION_IL = 2316
+/**
+ * Israel location_code per DataForSEO locations table.
+ * Used by endpoints that accept code form: keywords_data, serp, business_data.
+ * DataForSEO Labs endpoints reject location_code — use location_name 'Israel' instead.
+ */
+export const LOCATION_IL = 2376
+export const LOCATION_NAME_IL = 'Israel'
 export const LANGUAGE_HE = 'he' as const
 export const LANGUAGE_EN = 'en' as const
+export const LANGUAGE_NAME_HE = 'Hebrew'
+export const LANGUAGE_NAME_EN = 'English'
+
+/** Map ISO language codes to DFS Labs `language_name` values. */
+export function languageName(code: 'he' | 'en'): string {
+    return code === 'en' ? LANGUAGE_NAME_EN : LANGUAGE_NAME_HE
+}
 
 // ── Search Volume ──────────────────────────────────────────────────────────
 
