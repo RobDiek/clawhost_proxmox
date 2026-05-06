@@ -3274,6 +3274,74 @@ input{font-family:inherit}
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════════════════════════════
+     Research Pipeline V2 (Phase 3.8) — adaptive 12-stage status board
+     ────────────────────────────────────────────────────────────────────────
+     Replaces the legacy pipelineOverlay flow for research. Old modal stays
+     alive for strategy/brand/github wizards which still use the linear
+     5-stage pattern.
+     ════════════════════════════════════════════════════════════════════════ -->
+<div class="report-modal-overlay hidden" id="pipelineV2Overlay" onclick="if(event.target===this)closePipelineV2()">
+  <div class="report-modal" onclick="event.stopPropagation()" style="max-width:1080px;max-height:92vh;display:flex;flex-direction:column">
+    <div class="report-modal-header" style="flex-shrink:0">
+      <h3>🔬 מחקר ואסטרטגיה — Pipeline</h3>
+      <button onclick="closePipelineV2()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#6B7280">&times;</button>
+    </div>
+
+    <!-- Top status bar: intent + progress + cost + balance + actions -->
+    <div id="pipelineV2-status-bar" style="flex-shrink:0;padding:12px 24px;border-bottom:1px solid #E5E7EB;display:flex;gap:18px;align-items:center;flex-wrap:wrap;background:#F9FAFB">
+      <div>
+        <div style="font-size:0.7rem;color:#6B7280;font-weight:500;text-transform:uppercase;letter-spacing:0.04em">כיוון שיווקי</div>
+        <div id="pipelineV2-intent" style="font-size:0.96rem;font-weight:600;color:#1E3A8A;margin-top:2px">—</div>
+      </div>
+      <div style="height:32px;width:1px;background:#E5E7EB"></div>
+      <div>
+        <div style="font-size:0.7rem;color:#6B7280;font-weight:500;text-transform:uppercase;letter-spacing:0.04em">התקדמות</div>
+        <div id="pipelineV2-progress-text" style="font-size:0.96rem;font-weight:600;color:#374151;margin-top:2px">— / —</div>
+      </div>
+      <div style="height:32px;width:1px;background:#E5E7EB"></div>
+      <div>
+        <div style="font-size:0.7rem;color:#6B7280;font-weight:500;text-transform:uppercase;letter-spacing:0.04em">DFS spent</div>
+        <div id="pipelineV2-cost" style="font-size:0.96rem;font-weight:600;color:#374151;margin-top:2px;direction:ltr">$0.00</div>
+      </div>
+      <div style="height:32px;width:1px;background:#E5E7EB"></div>
+      <div>
+        <div style="font-size:0.7rem;color:#6B7280;font-weight:500;text-transform:uppercase;letter-spacing:0.04em">יתרה</div>
+        <div id="pipelineV2-balance" style="font-size:0.96rem;font-weight:600;color:#1E3A8A;margin-top:2px;direction:ltr">—</div>
+      </div>
+      <div style="margin-right:auto;display:flex;gap:6px;align-items:center">
+        <button class="btn btn-outline btn-sm" onclick="changeIntentV2()" style="font-size:0.74rem;padding:4px 10px">↻ שנו כיוון</button>
+        <button class="btn btn-outline btn-sm" onclick="expandPlanV2()" style="font-size:0.74rem;padding:4px 10px">+ ערוץ נוסף</button>
+        <button class="btn btn-outline btn-sm" onclick="resetPipelineV2()" style="font-size:0.74rem;padding:4px 10px;color:#EF4444;border-color:#FECACA">איפוס</button>
+      </div>
+    </div>
+
+    <!-- Pipeline progress bar -->
+    <div style="flex-shrink:0;height:3px;background:#E5E7EB"><div id="pipelineV2-progress-bar" style="height:100%;background:linear-gradient(90deg,#2563EB,#10B981);transition:width .4s;width:0%"></div></div>
+
+    <!-- Body: stage cards (left) + result panel (right slide-out, hidden by default) -->
+    <div style="flex:1;display:flex;min-height:0;overflow:hidden">
+      <!-- Stage list -->
+      <div id="pipelineV2-body" class="report-modal-body" style="flex:1;min-width:0;padding:16px 24px">
+        <div style="text-align:center;padding:60px;color:#9CA3AF">טוען plan...</div>
+      </div>
+      <!-- Result panel — appears when user clicks View on a completed stage -->
+      <div id="pipelineV2-result-panel" style="display:none;width:520px;border-right:1px solid #E5E7EB;background:#FAFAFA;overflow-y:auto;flex-shrink:0">
+        <div style="position:sticky;top:0;background:#fff;border-bottom:1px solid #E5E7EB;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;z-index:1">
+          <div>
+            <h4 id="pipelineV2-result-title" style="margin:0;font-size:1rem;color:#1E3A8A">—</h4>
+            <div id="pipelineV2-result-meta" style="font-size:0.72rem;color:#6B7280;margin-top:2px"></div>
+          </div>
+          <button onclick="closeResultPanelV2()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#6B7280">&times;</button>
+        </div>
+        <div id="pipelineV2-result-quality" style="padding:8px 18px"></div>
+        <div id="pipelineV2-result-records" style="padding:0 18px"></div>
+        <div id="pipelineV2-result-content" class="md-content" style="padding:8px 18px 24px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Report/Strategy Viewer Modal -->
 <div class="report-modal-overlay hidden" id="reportModalOverlay" onclick="closeReportModal()">
   <div class="report-modal" onclick="event.stopPropagation()">
@@ -10731,36 +10799,11 @@ async function saveHistoricalAssets(skipped) {
 }
 
 async function runResearchFromAgent() {
+  // Phase 3.8 — opens the V2 pipeline board instead of the old single-shot
+  // research endpoint. The board lets users run individual stages, see
+  // confidence + qualityGate per stage, and review structured records.
   if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
-  var btn = document.getElementById('btn-run-research');
-  var statusEl = document.getElementById('research-status');
-  btn.disabled = true;
-  btn.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block">&#9881;</span> מריץ מחקר...';
-  statusEl.textContent = 'הסוכן מחפש באינטרנט — ייקח 1-2 דקות';
-
-  try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/research', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({})
-    });
-    var data = await res.json();
-    if (data.success && data.data && data.data.report) {
-      if (!instanceData.researchData) instanceData.researchData = {};
-      instanceData.researchData.report = data.data.report;
-      instanceData.researchData.researchGeneratedAt = new Date().toISOString();
-      renderResearchReport();
-      showToast('מחקר הושלם!', 'success');
-      refreshInstanceData();
-    } else {
-      showToast(data.message || 'שגיאה במחקר', 'error');
-    }
-  } catch (e) {
-    showToast('שגיאת תקשורת', 'error');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '&#128269; הריצו מחקר שוק';
-  }
+  await openPipelineV2();
 }
 
 /* ===== Research + Strategy Chain ===== */
@@ -10774,34 +10817,31 @@ var RESEARCH_STAGES = [
 ];
 
 async function runChainResearch() {
+  // Phase 3.8 — route research entry to the new adaptive pipeline UI.
+  // Old linear-5-stage flow (runPipelineStage / RESEARCH_STAGES) stays in
+  // place for any code path still referencing it, but new entries land
+  // in the V2 board. memory: project_seo_playbook_sergei + 3.8 plan.
   if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  await openPipelineV2();
+}
 
-  // Open pipeline modal
+// Legacy entry point — preserved for non-research callers (strategy, brand
+// wizards still use openResearchPipeline naming). Research callers route
+// to V2 above; this function is no longer reached from research entry.
+async function _legacy_runChainResearch_unused() {
+  if (!instanceId) return;
   researchPipelineStage = 1;
   openResearchPipeline();
-
-  // Start from first incomplete stage
   var startStage = 1;
   if (instanceData && instanceData.researchData) {
     if (instanceData.researchData.stage1) startStage = 2;
     if (instanceData.researchData.stage2) startStage = 3;
     if (instanceData.researchData.stage3) startStage = 4;
-    if (instanceData.researchData.stage4) startStage = 5; // all done
+    if (instanceData.researchData.stage4) startStage = 5;
   }
-
-  if (startStage > 4) {
-    closePipeline();
-    showToast('כל שלבי המחקר הושלמו — בנו אסטרטגיה', 'success');
-    runChainStrategy();
-    return;
-  }
-
-  if (startStage === 1) {
-    showIntegrationSuggestion();
-  } else {
-    researchPipelineStage = startStage;
-    runPipelineStage(startStage);
-  }
+  if (startStage > 4) { closePipeline(); runChainStrategy(); return; }
+  if (startStage === 1) showIntegrationSuggestion();
+  else { researchPipelineStage = startStage; runPipelineStage(startStage); }
 }
 
 function openResearchPipeline() {
@@ -10819,6 +10859,406 @@ function showIntegrationSuggestion() {
 function closePipeline() {
   document.getElementById('pipelineOverlay').classList.add('hidden');
   refreshInstanceData();
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Research Pipeline V2 (Phase 3.8) — adaptive 12-stage status board
+// ────────────────────────────────────────────────────────────────────────
+// Drives the new /research/plan + /research/stage/:stageId endpoints.
+// Reads results from rd.results (StageResult[]) and renders structured
+// records + qualityGate + confidence per stage.
+// ════════════════════════════════════════════════════════════════════════
+
+var STAGE_CATALOG_V2 = {
+  competitor_landscape:   { titleHe: 'נוף תחרותי',                   descHe: 'מתחרים ישירים, מבנה שוק, נוכחות דיגיטלית, gaps' },
+  seo_keyword_research:   { titleHe: 'מחקר מילות מפתח (SEO)',         descHe: '30+ keywords עם volume/CPC/difficulty + SERP analysis' },
+  aeo_visibility:         { titleHe: 'נראות AI (AEO)',                descHe: 'ציטוטים ב-Claude/ChatGPT/Perplexity + schema audit + GSC' },
+  paid_audit:             { titleHe: 'אודיט פרסום ממומן',            descHe: 'Google Ads + Meta — היסטוריה, blockers, methodology' },
+  social_landscape:       { titleHe: 'נוף רשתות חברתיות',            descHe: 'מתחרים ב-IG/FB/LinkedIn, content patterns, tone' },
+  email_competitor_audit: { titleHe: 'אודיט ניוזלטרים מתחרים',       descHe: 'תדירות, טון, נושאים, CTAs של 5+ מתחרים' },
+  audience_personas:      { titleHe: 'פרסונות קהל יעד',              descHe: '1-3 פרסונות עם JTBD, כאבים, queries-by-stage, WTP' },
+  positioning:            { titleHe: 'מיצוב + Brand Foundation',      descHe: 'mission, positioning statement, value props, archetype' },
+  strategy_options:       { titleHe: 'אופציות אסטרטגיה',             descHe: 'Smart vs All-In + KPI forecasts + budget tiers' },
+  validation:             { titleHe: 'אימות אסטרטגיה',               descHe: 'realism check, blindspots, confidence score' },
+  content_plan:           { titleHe: 'תוכנית תוכן',                  descHe: 'יומן עריכה — נושאים, פלטפורמות, תאריכים' },
+  media_plan:             { titleHe: 'תוכנית מדיה (פרסום)',          descHe: 'קמפיינים, ad groups, תקציבים, KPIs, gates' }
+};
+
+var INTENT_LABELS_V2 = {
+  seo_organic:    'SEO + תוכן אורגני',
+  paid_search:    'פרסום ממומן (Google/Meta)',
+  social_organic: 'רשתות חברתיות אורגני',
+  email_crm:      'Email/CRM nurturing',
+  ecommerce:      'E-commerce',
+  multichannel:   'Multichannel — שילוב 3+ ערוצים'
+};
+
+var pipelineV2State = {
+  plan: null,         // { stages, status }
+  intent: null,
+  results: {},        // stageId → result obj
+  loading: new Set(), // stageIds currently in-flight
+};
+
+async function openPipelineV2() {
+  document.getElementById('pipelineV2Overlay').classList.remove('hidden');
+  closeResultPanelV2();
+  await loadPipelineV2();
+  await loadDfsCreditsBalance(); // refresh balance display
+  updatePipelineV2Balance();
+}
+
+function closePipelineV2() {
+  document.getElementById('pipelineV2Overlay').classList.add('hidden');
+  closeResultPanelV2();
+  refreshInstanceData();
+}
+
+async function loadPipelineV2() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('Instance not found', 'error'); return; }
+
+  var body = document.getElementById('pipelineV2-body');
+  body.innerHTML = '<div style="text-align:center;padding:60px;color:#9CA3AF">טוען plan...</div>';
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/research/plan', {
+      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+    });
+    var d = await res.json();
+    if (!d.success) {
+      body.innerHTML = '<div style="text-align:center;padding:40px;color:#EF4444">שגיאה: ' + (d.message || 'failed') + '</div>';
+      return;
+    }
+    pipelineV2State.plan = d.data.plan;
+    pipelineV2State.intent = d.data.intent;
+    pipelineV2State.results = d.data.results || {};
+
+    // First-time: no plan yet → auto-detect intent + initialize plan.
+    if (!d.data.plan || !d.data.plan.stages || d.data.plan.stages.length === 0) {
+      await initializePlanV2();
+      return;
+    }
+    renderPipelineV2();
+  } catch (e) {
+    body.innerHTML = '<div style="text-align:center;padding:40px;color:#EF4444">שגיאת תקשורת: ' + (e.message || e) + '</div>';
+  }
+}
+
+async function initializePlanV2() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var body = document.getElementById('pipelineV2-body');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:#6B7280">מקים plan לפי הכוונה השיווקית שזוהתה...</div>';
+  try {
+    // POST without body → server auto-detects intent from answers.
+    var res = await fetch(API + '/hosting/instances/' + iid + '/research/plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
+      body: '{}'
+    });
+    var d = await res.json();
+    if (!d.success) {
+      body.innerHTML = '<div style="text-align:center;padding:40px;color:#EF4444">שגיאה ביצירת plan: ' + (d.message || '') + '</div>';
+      return;
+    }
+    pipelineV2State.plan = d.data.plan;
+    pipelineV2State.intent = d.data.intent;
+    renderPipelineV2();
+  } catch (e) {
+    body.innerHTML = '<div style="text-align:center;padding:40px;color:#EF4444">שגיאה: ' + (e.message || e) + '</div>';
+  }
+}
+
+function renderPipelineV2() {
+  var p = pipelineV2State;
+  if (!p.plan || !p.plan.stages) return;
+
+  // Top bar — intent label
+  document.getElementById('pipelineV2-intent').textContent = INTENT_LABELS_V2[p.intent] || p.intent || '—';
+
+  // Progress
+  var total = p.plan.stages.length;
+  var done = p.plan.stages.filter(function(sid) {
+    var st = p.plan.status && p.plan.status[sid];
+    return st && (st.state === 'completed' || st.state === 'degraded');
+  }).length;
+  document.getElementById('pipelineV2-progress-text').textContent = done + ' / ' + total + ' שלבים';
+  document.getElementById('pipelineV2-progress-bar').style.width = (total > 0 ? Math.round(done / total * 100) : 0) + '%';
+
+  // Total DFS cost across results
+  var totalCost = 0;
+  for (var sid in p.results) {
+    var r = p.results[sid];
+    if (r && typeof r.dfsCost === 'number') totalCost += r.dfsCost;
+  }
+  document.getElementById('pipelineV2-cost').textContent = '$' + totalCost.toFixed(2);
+
+  // Stage cards
+  var html = p.plan.stages.map(function(sid, idx) {
+    return renderStageCardV2(sid, idx);
+  }).join('');
+  document.getElementById('pipelineV2-body').innerHTML = html;
+}
+
+function renderStageCardV2(sid, idx) {
+  var p = pipelineV2State;
+  var meta = STAGE_CATALOG_V2[sid] || { titleHe: sid, descHe: '' };
+  var status = (p.plan.status && p.plan.status[sid]) || { state: 'pending' };
+  var result = p.results[sid];
+  var isLoading = p.loading.has(sid);
+
+  // State → visual
+  var stateColor, stateLabel, stateBg;
+  if (isLoading) {
+    stateColor = '#3730A3'; stateBg = '#EEF2FF'; stateLabel = '⚙ רץ...';
+  } else if (status.state === 'completed') {
+    stateColor = '#065F46'; stateBg = '#D1FAE5'; stateLabel = '✓ הושלם';
+  } else if (status.state === 'degraded') {
+    stateColor = '#92400E'; stateBg = '#FEF3C7'; stateLabel = '⚠ degraded';
+  } else if (status.state === 'failed') {
+    stateColor = '#991B1B'; stateBg = '#FEE2E2'; stateLabel = '✗ נכשל';
+  } else if (status.state === 'running') {
+    stateColor = '#3730A3'; stateBg = '#EEF2FF'; stateLabel = '⚙ ברקע';
+  } else {
+    stateColor = '#6B7280'; stateBg = '#F3F4F6'; stateLabel = '⏸ ממתין';
+  }
+
+  var confidence = result && result.confidence;
+  var confColor = confidence === 'high' ? '#10B981' : confidence === 'medium' ? '#F59E0B' : confidence === 'working_hypothesis' ? '#EF4444' : '#9CA3AF';
+  var confLabel = confidence === 'high' ? 'גבוה' : confidence === 'medium' ? 'בינוני' : confidence === 'working_hypothesis' ? 'השערה' : '';
+
+  var qualBadge = '';
+  if (result && result.qualityGate) {
+    var qg = result.qualityGate;
+    if (qg.skipped) qualBadge = '<span title="self-critique skipped" style="font-size:0.7rem;color:#9CA3AF;margin-right:6px">QA: skipped</span>';
+    else if (qg.hardFailures && qg.hardFailures.length) qualBadge = '<span title="' + (qg.hardFailures.join(' / ')) + '" style="font-size:0.7rem;color:#991B1B;background:#FEE2E2;padding:1px 6px;border-radius:4px;margin-right:6px">QA: ' + qg.hardFailures.length + ' hard</span>';
+    else if (qg.warnings && qg.warnings.length) qualBadge = '<span title="' + (qg.warnings.join(' / ')) + '" style="font-size:0.7rem;color:#92400E;background:#FEF3C7;padding:1px 6px;border-radius:4px;margin-right:6px">QA: ' + qg.warnings.length + ' warnings</span>';
+    else qualBadge = '<span title="all checks passed" style="font-size:0.7rem;color:#065F46;background:#D1FAE5;padding:1px 6px;border-radius:4px;margin-right:6px">QA ✓</span>';
+  }
+
+  var costBadge = (result && typeof result.dfsCost === 'number' && result.dfsCost > 0)
+    ? '<span style="font-size:0.7rem;color:#6B7280;direction:ltr;margin-right:6px">$' + result.dfsCost.toFixed(3) + '</span>'
+    : '';
+
+  var actions;
+  if (isLoading) {
+    actions = '<div style="font-size:0.78rem;color:#3730A3">רץ — ייקח 1-3 דקות</div>';
+  } else if (status.state === 'completed' || status.state === 'degraded') {
+    actions =
+      '<button class="btn btn-outline btn-sm" onclick="viewStageResultV2(\'' + sid + '\')" style="font-size:0.74rem;padding:3px 10px">צפו</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="runStageV2(\'' + sid + '\')" style="font-size:0.74rem;padding:3px 10px;color:#6B7280">↻</button>';
+  } else {
+    actions = '<button class="btn btn-primary btn-sm" onclick="runStageV2(\'' + sid + '\')" style="font-size:0.78rem;padding:4px 14px">הריצו &#8592;</button>';
+  }
+
+  return '<div style="border:1px solid ' + (status.state === 'completed' ? '#A7F3D0' : status.state === 'failed' ? '#FECACA' : '#E5E7EB') + ';border-radius:10px;padding:12px 14px;margin-bottom:8px;background:#fff">'
+    + '<div style="display:flex;align-items:flex-start;gap:12px">'
+    +   '<div style="font-size:0.9rem;color:#9CA3AF;font-weight:600;width:24px;text-align:center">' + (idx + 1) + '</div>'
+    +   '<div style="flex:1;min-width:0">'
+    +     '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">'
+    +       '<strong style="font-size:0.94rem;color:#1F2937">' + meta.titleHe + '</strong>'
+    +       '<span style="font-size:0.7rem;background:' + stateBg + ';color:' + stateColor + ';padding:2px 8px;border-radius:4px;font-weight:500">' + stateLabel + '</span>'
+    +       (confidence ? '<span style="font-size:0.7rem;color:' + confColor + '" title="confidence">●' + confLabel + '</span>' : '')
+    +       qualBadge
+    +       costBadge
+    +     '</div>'
+    +     '<div style="font-size:0.78rem;color:#6B7280">' + meta.descHe + '</div>'
+    +     (status.failureReason ? '<div style="font-size:0.74rem;color:#991B1B;margin-top:4px">⚠ ' + escapeHtml(status.failureReason) + '</div>' : '')
+    +   '</div>'
+    +   '<div style="display:flex;gap:6px;align-items:center;flex-shrink:0">' + actions + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+async function runStageV2(sid) {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) return;
+  pipelineV2State.loading.add(sid);
+  renderPipelineV2();
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/research/stage/' + sid, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
+      body: '{}'
+    });
+    var d = await res.json();
+    pipelineV2State.loading.delete(sid);
+
+    if (!d.success) {
+      // Update plan.status from server (if returned) and re-render
+      if (!pipelineV2State.plan.status) pipelineV2State.plan.status = {};
+      pipelineV2State.plan.status[sid] = { state: 'failed', failureReason: d.message || 'failed' };
+      renderPipelineV2();
+      showToast(d.message || 'שלב נכשל', 'error');
+      return;
+    }
+
+    // Persist result + status locally so next render reflects
+    if (!pipelineV2State.plan.status) pipelineV2State.plan.status = {};
+    pipelineV2State.plan.status[sid] = d.data.status || { state: 'completed' };
+    pipelineV2State.results[sid] = {
+      content: d.data.content,
+      records: d.data.records,
+      source: d.data.source,
+      confidence: d.data.confidence,
+      dfsCost: d.data.dfsCost,
+      qualityGate: d.data.qualityGate,
+      runAt: (d.data.status && d.data.status.runAt) || new Date().toISOString(),
+      integrationsUsed: d.data.integrationsUsed,
+    };
+    renderPipelineV2();
+    updatePipelineV2Balance();
+    showToast('שלב "' + (STAGE_CATALOG_V2[sid] && STAGE_CATALOG_V2[sid].titleHe || sid) + '" הושלם', 'success');
+    // Auto-open result panel
+    viewStageResultV2(sid);
+  } catch (e) {
+    pipelineV2State.loading.delete(sid);
+    renderPipelineV2();
+    showToast('שגיאה: ' + (e.message || e), 'error');
+  }
+}
+
+function viewStageResultV2(sid) {
+  var result = pipelineV2State.results[sid];
+  if (!result) return;
+  var meta = STAGE_CATALOG_V2[sid] || { titleHe: sid };
+
+  document.getElementById('pipelineV2-result-panel').style.display = 'block';
+  document.getElementById('pipelineV2-result-title').textContent = meta.titleHe;
+
+  // Meta line: source · confidence · dfsCost · runAt
+  var metaParts = [];
+  if (result.source) metaParts.push(result.source);
+  if (result.confidence) metaParts.push('confidence: ' + result.confidence);
+  if (typeof result.dfsCost === 'number' && result.dfsCost > 0) metaParts.push('$' + result.dfsCost.toFixed(3));
+  if (result.runAt) metaParts.push(new Date(result.runAt).toLocaleString('he-IL'));
+  document.getElementById('pipelineV2-result-meta').textContent = metaParts.join(' · ');
+
+  // Quality gate banner
+  var qualEl = document.getElementById('pipelineV2-result-quality');
+  qualEl.innerHTML = renderQualityGateBanner(result.qualityGate);
+
+  // Records (JSON pretty-print for v1; per-type renderers come in 3.8b)
+  var recsEl = document.getElementById('pipelineV2-result-records');
+  if (result.records && result.records.length) {
+    recsEl.innerHTML = '<details style="margin:8px 0;background:#fff;border:1px solid #E5E7EB;border-radius:6px"><summary style="cursor:pointer;padding:8px 12px;font-size:0.82rem;font-weight:500;color:#374151">📊 רשומות מובנות (' + result.records.length + ')</summary><pre style="margin:0;padding:10px 12px;background:#F9FAFB;font-size:0.72rem;overflow-x:auto;direction:ltr;text-align:left;max-height:340px">' + escapeHtml(JSON.stringify(result.records, null, 2)) + '</pre></details>';
+  } else {
+    recsEl.innerHTML = '';
+  }
+
+  // Markdown content
+  var contentEl = document.getElementById('pipelineV2-result-content');
+  contentEl.innerHTML = result.content ? renderMarkdown(result.content) : '<div style="color:#9CA3AF">אין תוכן</div>';
+}
+
+function closeResultPanelV2() {
+  var p = document.getElementById('pipelineV2-result-panel');
+  if (p) p.style.display = 'none';
+}
+
+function renderQualityGateBanner(qg) {
+  if (!qg || qg.skipped) return '';
+  if (qg.hardFailures && qg.hardFailures.length) {
+    return '<div style="background:#FEE2E2;border:1px solid #FECACA;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:0.78rem;color:#991B1B"><strong>⚠ ' + qg.hardFailures.length + ' כשלי איכות (hard):</strong><ul style="margin:4px 0 0;padding:0 18px 0 0">' + qg.hardFailures.map(function(f) { return '<li>' + escapeHtml(f) + '</li>'; }).join('') + '</ul>' + (qg.revised ? '<div style="margin-top:4px;color:#374151;font-weight:500">תוקן אוטומטית ע"י self-critique ✓</div>' : '') + '</div>';
+  }
+  if (qg.warnings && qg.warnings.length) {
+    return '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:0.78rem;color:#92400E"><strong>⚠ ' + qg.warnings.length + ' אזהרות איכות:</strong><ul style="margin:4px 0 0;padding:0 18px 0 0">' + qg.warnings.map(function(w) { return '<li>' + escapeHtml(w) + '</li>'; }).join('') + '</ul></div>';
+  }
+  if (qg.pass) {
+    return '<div style="background:#D1FAE5;border:1px solid #A7F3D0;border-radius:6px;padding:6px 12px;margin-bottom:8px;font-size:0.74rem;color:#065F46">✓ עברה את כל בדיקות האיכות</div>';
+  }
+  return '';
+}
+
+async function changeIntentV2() {
+  var current = pipelineV2State.intent || 'multichannel';
+  var labels = INTENT_LABELS_V2;
+  var optionsHtml = Object.keys(labels).map(function(k) {
+    var sel = k === current ? 'selected' : '';
+    return '<option value="' + k + '" ' + sel + '>' + labels[k] + '</option>';
+  }).join('');
+  var picked = window.prompt('בחרו כיוון שיווקי:\n\n' + Object.keys(labels).map(function(k) { return '• ' + k + ' — ' + labels[k]; }).join('\n') + '\n\nהקלידו את ה-id (e.g. seo_organic, multichannel):', current);
+  if (!picked || !labels[picked]) return;
+  if (picked === current) return;
+
+  var iid = localStorage.getItem('cf_instance_id');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/research/plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
+      body: JSON.stringify({ intent: picked })
+    });
+    var d = await res.json();
+    if (!d.success) { showToast(d.message || 'שגיאה', 'error'); return; }
+    pipelineV2State.plan = d.data.plan;
+    pipelineV2State.intent = d.data.intent;
+    renderPipelineV2();
+    showToast('הכיוון השתנה ל: ' + labels[picked], 'success');
+  } catch (e) {
+    showToast('שגיאה: ' + (e.message || e), 'error');
+  }
+}
+
+async function expandPlanV2() {
+  var current = pipelineV2State.intent || 'multichannel';
+  var labels = INTENT_LABELS_V2;
+  var picked = window.prompt('הוסיפו כיוון שיווקי לתוכנית הקיימת (השלבים שכבר הושלמו לא יאבדו):\n\n' + Object.keys(labels).filter(function(k) { return k !== current && k !== 'multichannel'; }).map(function(k) { return '• ' + k + ' — ' + labels[k]; }).join('\n') + '\n\nהקלידו את ה-id (e.g. paid_search):');
+  if (!picked || !labels[picked]) return;
+
+  var iid = localStorage.getItem('cf_instance_id');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/research/plan/expand', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
+      body: JSON.stringify({ addIntents: [picked] })
+    });
+    var d = await res.json();
+    if (!d.success) { showToast(d.message || 'שגיאה', 'error'); return; }
+    pipelineV2State.plan = d.data.plan;
+    pipelineV2State.intent = d.data.intent;
+    renderPipelineV2();
+    showToast('נוסף כיוון: ' + labels[picked] + '. שלבים חדשים זמינים להרצה.', 'success');
+  } catch (e) {
+    showToast('שגיאה: ' + (e.message || e), 'error');
+  }
+}
+
+async function resetPipelineV2() {
+  if (!confirm('זה ימחק את כל המחקר והאסטרטגיה. אתם בטוחים?')) return;
+  var iid = localStorage.getItem('cf_instance_id');
+  try {
+    // Use the existing reset endpoint — wipes rd entirely. plan + results
+    // get re-initialized on next loadPipelineV2().
+    await fetch(API + '/hosting/instances/' + iid + '/setup/agents/research/reset', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+    });
+    pipelineV2State = { plan: null, intent: null, results: {}, loading: new Set() };
+    closeResultPanelV2();
+    await loadPipelineV2();
+    showToast('האיפוס הושלם', 'success');
+  } catch (e) {
+    showToast('שגיאה: ' + (e.message || e), 'error');
+  }
+}
+
+function updatePipelineV2Balance() {
+  var el = document.getElementById('pipelineV2-balance');
+  if (!el) return;
+  if (DFS_BALANCE_CACHE && typeof DFS_BALANCE_CACHE.balanceUsdCents === 'number') {
+    var bal = (DFS_BALANCE_CACHE.balanceUsdCents / 100).toFixed(2);
+    var color = DFS_BALANCE_CACHE.balanceUsdCents <= 0 ? '#EF4444' : DFS_BALANCE_CACHE.balanceUsdCents < 200 ? '#D97706' : '#1E3A8A';
+    el.style.color = color;
+    el.textContent = '$' + bal;
+  } else {
+    el.textContent = '—';
+  }
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
