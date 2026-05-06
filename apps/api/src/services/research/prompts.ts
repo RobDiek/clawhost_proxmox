@@ -33,6 +33,10 @@ import {
     PROGRAMMATIC_RULES,
     STRIKING_DISTANCE_RULE,
     CANNIBALIZATION_RULE,
+    PERSONA_JTBD_FORMAT,
+    BUYING_JOURNEY_FORMAT,
+    TRUST_HIERARCHY_METHOD,
+    PRICING_VALIDATION_METHOD,
     CONFIDENCE_LABELING,
     JSON_OUTPUT_RULES,
     DFS_DATA_RULE,
@@ -588,79 +592,231 @@ ${feedbackLine}`,
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// audience_personas (was stage 3)
+// audience_personas — Phase 3.5c rewrite with full methodology + DFS data
 // ────────────────────────────────────────────────────────────────────────────
+//
+// JTBD-first persona builder. DFS contributes intent-classified keywords
+// (queries-by-stage signal) + competitor Trustpilot reviews (review mining
+// for trust hierarchy + objections + switching costs) + our GMB profile.
+// Upstream stages (competitor_landscape + seo_keyword_research) provide
+// the SERP/competitor context which the prompt also pulls via getStageContent.
+//
+// Output: PersonaRecord[] per methodology.ts schema — minimum 11 required
+// fields including JTBD statement in mandated format, buying journey,
+// trust hierarchy, pricing validation with method-used disclosure.
+
+import type { AudiencePersonasDfsData } from '@/controllers/hosting/research/stages/prefetch/audience_personas'
+
+function renderIntentKeywordsTable(items: AudiencePersonasDfsData['intentKeywords'], limit = 60): string {
+    if (items.length === 0) return '*(intent keywords unavailable)*'
+    const top = [...items]
+        .filter(k => typeof k.keyword_info?.search_volume === 'number' && (k.keyword_info?.search_volume ?? 0) > 0)
+        .sort((a, b) => (b.keyword_info?.search_volume || 0) - (a.keyword_info?.search_volume || 0))
+        .slice(0, limit)
+    const rows = top.map(k => {
+        const ki = k.keyword_info
+        const intent = k.search_intent_info?.main_intent || '—'
+        const foreign = k.search_intent_info?.foreign_intent?.join(',') || '—'
+        return `| ${k.keyword} | ${ki?.search_volume ?? '—'} | ${intent} | ${foreign} |`
+    }).join('\n')
+    return `| Keyword | Volume | Main intent | Foreign intent |\n|---|---|---|---|\n${rows}`
+}
+
+function renderCompetitorReviews(reviews: AudiencePersonasDfsData['competitorReviews']): string {
+    if (reviews.length === 0) {
+        return '*(אין Trustpilot reviews זמינים. ייתכן שהמתחרים לא רשומים שם — IL businesses לעיתים קרובות לא ב-Trustpilot. סמנו pricing/objection claims כ-working_hypothesis.)*'
+    }
+    return reviews.map(r => {
+        if (r.reviews.length === 0) return `### ${r.domain}\n*(no reviews returned — domain not on Trustpilot)*`
+        const positive = r.reviews.filter(rv => (rv.rating?.value ?? 0) >= 4).length
+        const negative = r.reviews.filter(rv => (rv.rating?.value ?? 0) <= 2).length
+        const samples = r.reviews.slice(0, 8).map((rv, i) => {
+            const rating = rv.rating ? `${rv.rating.value}/${rv.rating.rating_max}` : '—'
+            const text = (rv.text || '').substring(0, 200).replace(/\s+/g, ' ').trim()
+            const title = (rv.title || '').substring(0, 80).trim()
+            return `  ${i + 1}. **${rating}** — _"${title}"_ — ${text || '(no body)'}`
+        }).join('\n')
+        return `### ${r.domain}
+- **Reviews returned:** ${r.reviews.length} | positive (4-5★): ${positive} | negative (1-2★): ${negative}
+- **Sample (top 8 by recency):**
+${samples}`
+    }).join('\n\n')
+}
+
+function renderGmbForPersonas(gmb: AudiencePersonasDfsData['ourGmb']): string {
+    if (!gmb) return '*(לא נמצא GMB — אם אתם עסק מקומי, חוסר GMB משפיע על trust hierarchy של הפרסונה).*'
+    const rating = gmb.rating ? `${gmb.rating.value}/${gmb.rating.rating_max} (${gmb.rating.votes_count} reviews)` : 'no rating'
+    return `- **Title:** ${gmb.title}
+- **Rating:** ${rating}
+- **Categories:** ${(gmb.categories || []).join(', ') || '—'}
+- **Snippet:** ${(gmb.snippet || '').substring(0, 200) || '—'}`
+}
 
 export function buildAudiencePersonasPrompt(opts: PromptOpts): PromptResult {
-    const { businessName, answers, feedback, tools, historicalAssetsBlock } = opts
+    const { businessName, businessDesc, answers, rd, feedback, historicalAssetsBlock } = opts
     const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
     const haBlock = historicalAssetsBlock || ''
     const prodBlk = productsBlock(answers)
     const targetAudience = answers.targetAudience as string | undefined
+    const challenges = answers.challenges as string | undefined
+
+    const dfs = opts.dfsData as AudiencePersonasDfsData | undefined
+    if (!dfs) throw new Error('audience_personas: dfsData prefetch is required')
+
+    const competitorContent = (getStageContent(rd, 'competitor_landscape') || '').substring(0, 3500)
+    const keywordsContent = (getStageContent(rd, 'seo_keyword_research') || '').substring(0, 3500)
+
+    const dfsAvailability = `**מקור הנתונים:** DataForSEO live data, ${new Date().toISOString().slice(0, 10)} | intent_kw=${dfs.intentKeywords.length} competitor_reviews=${dfs.competitorReviews.length}/${dfs.competitorDomainsUsed.length} GMB=${dfs.ourGmb ? 'found' : 'none'} | $${dfs.totalCostUsd.toFixed(4)} (${dfs.cacheHits}/${dfs.cacheHits + dfs.cacheMisses} cache hits)${dfs.enrichmentMissing.length ? ' | partial: ' + dfs.enrichmentMissing.join(', ') : ''}`
 
     return {
-        agentId: 'sayer',
-        useDirectApi: false,
-        minLength: 1500,
-        prompt: `# משימה: מחקר קהל יעד + Pricing Validation עבור "${businessName}"
+        agentId: 'menateach',
+        useDirectApi: true,
+        minLength: 3500,
+        prompt: `# מחקר קהל יעד — JTBD personas + pricing validation עבור "${businessName}"
+
+## תיאור העסק
+${businessDesc}
+${prodBlk ? `\n## המוצרים/שירותים\n${prodBlk}\n\n**חשוב לכל פרסונה:** איזה מוצר/ים מתאימים, באיזה סדר נכנסים ל-funnel, האם יש הבדלי WTP בין מוצרים.\n` : ''}
+${targetAudience ? `\n**קהל יעד שצוין באונבורדינג:** ${targetAudience}` : ''}
+${challenges ? `\n**אתגרים שצוינו:** ${challenges}` : ''}
 ${haBlock}
-## הוראות
-קרא את research-data/RESEARCH_STAGE1.md (מתחרים) ו-research-data/RESEARCH_STAGE2.md (מילות מפתח).
-${searchToolHint(tools)}${crawlToolHint(tools)}
-${prodBlk ? `\n## המוצרים של ${businessName} (עובד עם כל אחד בנפרד!)\n${prodBlk}\n\n**חשוב:** לכל פרסונה — ציין איזה מוצר/ים מתאימים לה, ואם יש הבדלי WTP בין המוצרים.\n` : ''}
 
-חפש בעומק:
-1. **איפה קהל היעד מדבר** — שמות ספציפיים של קבוצות/subreddits/פורומים עם מספר חברים
-2. **6+ כאבים מרכזיים** — ציטוטים אמיתיים עם מקור (URL)
-3. **3 פרסונות מפורטות** — עם קשר למילות המפתח ${prodBlk ? 'ו**לכל פרסונה — איזה מוצר/ים היא קונה, ובאיזה סדר**' : ''}
-4. **Pricing Validation ${prodBlk ? 'per SKU' : ''}** — חפש ראיות אמיתיות לכמה הקהל מוכן לשלם: דיונים על מחיר ב-Reddit/פורומים, מחירים של מתחרים, statistics על average SaaS spend${prodBlk ? '. **לכל מוצר בנפרד:** האם המחיר הנוכחי הגיוני? צריך לעלות/לרדת?' : ''}
-5. **גודל שוק TAM/SAM/SOM** — עם מקורות${prodBlk ? ' (נפרד לכל מוצר אם הקהל שונה)' : ''}
-6. **Why Now** — מה משתנה עכשיו שיוצר הזדמנות לפרסונות אלה?
-${prodBlk ? '7. **Cross-sell / Upsell path** — איך המוצרים מחוברים? מי feeder של מי? (e.g. קורס → SaaS, או חבילה משותפת)' : ''}
-${targetAudience ? `\nקהל יעד שצוין: ${targetAudience}` : ''}
+---
 
-## פורמט תשובה (חובה)
-### איפה הקהל נמצא
+## תמצית שלבים קודמים (להשתמש כ-source-of-truth!)
+
+### מתחרים (משלב competitor_landscape)
+${competitorContent || '*(stage לא הורץ עדיין)*'}
+
+### מילות מפתח (משלב seo_keyword_research)
+${keywordsContent || '*(stage לא הורץ עדיין)*'}
+
+---
+
+## נתוני DataForSEO — לזיהוי intent + review mining
+
+${dfsAvailability}
+
+### Intent-classified keywords — DFS keyword_ideas with intent_info (top 60 by volume)
+${renderIntentKeywordsTable(dfs.intentKeywords)}
+
+### Competitor Trustpilot reviews — review mining לזיהוי trust hierarchy + objections + switching costs
+${renderCompetitorReviews(dfs.competitorReviews)}
+
+### Our Google My Business profile
+${renderGmbForPersonas(dfs.ourGmb)}
+
+---
+
+## פקודות עבודה — methodology
+
+${INTENT_TAXONOMY}
+
+${PERSONA_JTBD_FORMAT}
+
+${BUYING_JOURNEY_FORMAT}
+
+${TRUST_HIERARCHY_METHOD}
+
+${PRICING_VALIDATION_METHOD}
+
+${LANGUAGE_DECISION}
+
+${CONFIDENCE_LABELING}
+
+${JSON_OUTPUT_RULES}
+
+${DFS_DATA_RULE}
+
+---
+
+## פלט נדרש
+
+### חלק 1: Executive Summary (markdown — 2-3 פסקאות)
+תקצרו: כמה פרסונות זוהו? מי הסגמנט #1 לתקיפה ולמה? ה-3 כאבים החזקים ביותר? באיזה אופן trust_hierarchy שונה בין הפרסונות?
+
+### חלק 2: JSON records — personas (חובה!)
+
+\`\`\`json
+{
+  "records": [
+    {
+      "name": "שם פיקטיבי לפרסונה (Hebrew)",
+      "segment_definition": "מי בדיוק נכנס לפרסונה — תפקיד / תחום / company size / IL geo",
+      "jtbd_statement": {
+        "situation": "כש[סיטואציה ספציפית]",
+        "progress": "אני רוצה [פעולה / progress]",
+        "outcome": "על מנת ש[תוצאה רצויה מדידה]",
+        "risk": "מבלי לסכן [חרדה / עלות מעבר / חיסרון]"
+      },
+      "primary_triggers": ["מה מפעיל את החיפוש — 3-5 trigger events קונקרטיים"],
+      "top_queries_by_stage": [
+        { "stage": "awareness", "queries": ["query 1", "query 2"] },
+        { "stage": "consideration", "queries": [...] },
+        { "stage": "selection", "queries": [...] },
+        { "stage": "conversion", "queries": [...] }
+      ],
+      "decision_criteria": ["3-7 קריטריונים סדורים בעדיפות — מה הכי חשוב לבחירה"],
+      "trust_hierarchy": [
+        { "source": "official_licensed_authority / peer_reviews / expert_endorsement / brand_familiarity / local_proof / price_transparency / case_evidence / usability_convenience", "weight": 0-100 }
+      ],
+      "objections_anxieties": [
+        { "objection": "התנגדות / חרדה ספציפית", "rebuttal": "תגובה מבוססת מחקר" }
+      ],
+      "switching_cost": "מה מונע מהפרסונה לעבור מ-status quo — habit / data lock-in / contract / fear / משהו אחר",
+      "preferred_proof": ["cases / reviews / licenses / comparison tables / price transparency — מה ישכנע"],
+      "channels_and_behaviors": "איפה research קורה בפועל — SERP / Maps / IG / FB groups / WhatsApp / referrals / direct",
+      "language_mode": "he" | "en" | "mixed",
+      "pricing_validation": {
+        "competitor_benchmark_range_ils": "₪X-Y (טווח + מקור — מ-Trustpilot reviews / pricing pages / public data)",
+        "wtp_range_ils": "₪X-Y (טווח + ראיה — ציטוט / מחקר / pattern review-mining)",
+        "price_sensitivity": "low" | "medium" | "high",
+        "recommended_price_point_ils": "₪X-Y/חודש או חד-פעמי — לפי מודל מחיר",
+        "method_used": ["competitor_pricing_benchmark", "review_mining", "vertical_priors"]
+      },
+      "confidence": "high" | "medium" | "working_hypothesis",
+      "evidence": ["dfs_keyword_ideas_intent", "dfs_trustpilot_reviews:domain.com", "upstream_competitor_landscape", "answers.targetAudience"],
+      "generated_at": "ISO timestamp"
+    }
+  ],
+  "confidence": "high" | "medium" | "working_hypothesis"
+}
+\`\`\`
+
+**חובה:**
+- 2-3 פרסונות (לא 5+ — אם זוהו יותר, אחדו או חדדו)
+- כל 11 השדות הנדרשים בכל record (segment_definition, jtbd_statement, primary_triggers, top_queries_by_stage, decision_criteria, trust_hierarchy, objections_anxieties, switching_cost, preferred_proof, channels_and_behaviors, language_mode)
+- jtbd_statement חייב להיות במבנה 4 השדות (situation/progress/outcome/risk) — לא משפט אחד
+- pricing_validation.method_used חייב לציין שיטה — אם המקור היחיד הוא review-mining + competitor benchmark (אין WTP interviews), confidence ל-pricing = working_hypothesis
+- top_queries_by_stage חייב לכלול keywords מ-DFS intent_keywords רלוונטיים (לא להמציא)
+- אם אין Trustpilot reviews לאף מתחרה — confidence על trust_hierarchy יורד ל-working_hypothesis עם הסבר
+
+### חלק 3: Top Pain Points + ציטוטים (markdown)
+6+ כאבים מרכזיים. לכל אחד — ציטוט מ-DFS Trustpilot reviews או מ-upstream stages או מ-answers.challenges. אם נשען על vertical priors — סמנו [confidence: השערה].
+
+### חלק 4: איפה הקהל נמצא (markdown)
 | פלטפורמה | קבוצות/ערוצים ספציפיים | גודל משוער | רלוונטיות |
 |---|---|---|---|
-| פייסבוק | [שמות קבוצות] | [מספר חברים] | 🔴/🟡/🟢 |
+(תיק מ-DFS / upstream / vertical priors. כל שורה — confidence inline.)
 
-### כאבים מרכזיים (6+)
-1. **[כאב]** — "[ציטוט מדויק]" (מקור: [URL])
+### חלק 5: Cross-sell / Upsell path${prodBlk ? '' : ' (אם רלוונטי)'}
+${prodBlk ? 'איך המוצרים מחוברים בין הפרסונות? מי feeder של מי? (e.g. קורס → SaaS, חבילה משותפת)' : '— אם יש מוצר יחיד, דלגו על סקציה זו.'}
 
-### פרסונה 1: [שם פיקטיבי]
-- **גיל:** ...
-- **תפקיד:** ...
-- **גודל סגמנט בישראל:** [מספר + מקור]
-- **כאבים הספציפיים:** [3 כאבים]
-- **מוטיבציות:** [מה יגרום להם לשלם]
-- **מילות מפתח שמחפשים:** [3 מילות מפתח מ-STAGE2]
-- **איפה אונליין:** [פלטפורמות ספציפיות]
+### חלק 6: Why Now? — לפרסונות אלו (markdown)
+3 גורמי timing IL/2026 ספציפיים לפרסונות (לא לעסק) — מקור + confidence inline marker לכל אחד.
 
-**💰 Pricing Validation:**
-- **כמה משלמים היום** על פתרונות דומים: [טווח + מקור — דיון Reddit / pricing page של מתחרה]
-- **WTP (Willingness to Pay):** [טווח + ראיה — ציטוט או מחקר]
-- **Price sensitivity:** [גבוה/בינוני/נמוך — ראיה]
-- **המלצה על price point ל-${businessName}:** [₪X-Y/חודש]
+### חלק 7: סיכום הזדמנות השוק (markdown)
+TAM גלובלי / TAM IL / SAM / SOM. כל מספר עם מקור + confidence inline marker. אם המספר extrapolated מ-public data ולא verified — סמנו [confidence: בינוני] לכל הפחות.
 
-**מה ישכנע לקנות:** [משפט ממוקד]
+### חלק 8: סגמנט #1 לתקוף + 3 סיבות (markdown)
+איזה פרסונה תוקפים ראשון ולמה. הקשר ל-First-Win-Channel criteria מ-strategy stage.
 
-(חזור ל-3 פרסונות — עם pricing validation לכל אחת)
+---
 
-### Why Now? — Timing Analysis
-למה הפרסונות האלה **בדיוק עכשיו** מוכנות לפתרון של ${businessName}?
-1. **[גורם timing 1]** — [הסבר + מקור + תאריך]
-2. **[גורם 2]** — ...
-3. **[גורם 3]** — ...
+${QUALITY_GATE_INSTRUCTIONS}
 
-### סיכום: הזדמנות השוק
-- **TAM גלובלי:** [מספר + מקור — שם מחקר/חברה]
-- **TAM ישראל:** [מספר + מקור]
-- **SAM (נגיש):** [מספר + הסבר]
-- **SOM (ריאלי לשנה):** [מספר + הסבר]
-- **סגמנט #1 לתקוף:** [שם פרסונה + 3 סיבות]
-${feedbackLine}
-${RULES}`,
+${HARD_BLOCK_RULES}
+${feedbackLine}`,
     }
 }
 

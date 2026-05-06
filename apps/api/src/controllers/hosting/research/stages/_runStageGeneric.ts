@@ -35,6 +35,7 @@ import { parseHybridResponse, rollupConfidence } from '@/services/research/hybri
 import { DfsError } from '@/services/research/dataforseo'
 import { prefetchCompetitorLandscape } from './prefetch/competitor_landscape'
 import { prefetchSeoKeywordResearch } from './prefetch/seo_keyword_research'
+import { prefetchAudiencePersonas } from './prefetch/audience_personas'
 import type { ResearchDataV2, StageId } from '@/services/research/types'
 
 /**
@@ -48,7 +49,7 @@ type Prefetcher = (instanceId: string, rd: ResearchDataV2) => Promise<unknown>
 const STAGE_PREFETCHERS: Partial<Record<StageId, Prefetcher>> = {
     competitor_landscape: prefetchCompetitorLandscape,
     seo_keyword_research: prefetchSeoKeywordResearch,
-    // audience_personas added in 3.5c-3
+    audience_personas:    prefetchAudiencePersonas,
 }
 
 /**
