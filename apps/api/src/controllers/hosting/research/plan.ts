@@ -16,7 +16,7 @@ import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { resolveUserId, getOwnedInstance } from '../authHelper'
-import { detectIntent, planForIntent, planForIntents } from '@/services/research/planResolver'
+import { detectIntentWithReasoning, planForIntent, planForIntents } from '@/services/research/planResolver'
 import { ALL_INTENTS } from '@/services/research/types'
 import type { ResearchDataV2, ResearchIntent, ResearchPlan, StageId } from '@/services/research/types'
 
@@ -31,12 +31,16 @@ export const getResearchPlan = async (c: Context) => {
         if (!inst) return fail(c, 'Instance not found', 404)
 
         const rd = (inst.researchData as ResearchDataV2 | null) || {}
+        // Compute what auto-detection WOULD pick now — UI can compare to
+        // saved intent and surface "redetect available" if the saved value
+        // is stale (e.g. user updated answers after plan was set).
+        const detection = detectIntentWithReasoning(rd.answers as Record<string, unknown>)
         return ok(c, {
             intent: rd.intent || null,
             plan: rd.plan || null,
             results: rd.results || {},
-            // Surface answers so frontend can show "auto-detected from your profile"
             answers: rd.answers || null,
+            detection,  // { intent, goalsMatched, platformsMatched, reasoning }
         })
     } catch (err) {
         console.error('getResearchPlan error:', err)
@@ -58,10 +62,11 @@ export const setResearchPlan = async (c: Context) => {
         if (!inst) return fail(c, 'Instance not found', 404)
 
         const rd = (inst.researchData as ResearchDataV2 | null) || {}
+        const detection = detectIntentWithReasoning(rd.answers as Record<string, unknown>)
         const intent: ResearchIntent =
             body.intent && (ALL_INTENTS as readonly string[]).includes(body.intent)
                 ? body.intent
-                : detectIntent(rd.answers)
+                : detection.intent
 
         const stages = planForIntent(intent)
         const status: ResearchPlan['status'] = {}
@@ -86,7 +91,7 @@ export const setResearchPlan = async (c: Context) => {
         }
 
         await db.update(instances).set({ researchData: next as never }).where(eq(instances.id, instanceId))
-        return ok(c, { intent, plan: next.plan }, 'Plan saved')
+        return ok(c, { intent, plan: next.plan, detection }, 'Plan saved')
     } catch (err) {
         console.error('setResearchPlan error:', err)
         return fail(c, 'Failed to save plan', 500)

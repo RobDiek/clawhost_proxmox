@@ -3293,6 +3293,7 @@ input{font-family:inherit}
       <div>
         <div style="font-size:0.7rem;color:#6B7280;font-weight:500;text-transform:uppercase;letter-spacing:0.04em">כיוון שיווקי</div>
         <div id="pipelineV2-intent" style="font-size:0.96rem;font-weight:600;color:#1E3A8A;margin-top:2px">—</div>
+        <div id="pipelineV2-intent-reasoning" style="font-size:0.66rem;color:#9CA3AF;margin-top:2px;max-width:240px;line-height:1.3"></div>
       </div>
       <div style="height:32px;width:1px;background:#E5E7EB"></div>
       <div>
@@ -10951,6 +10952,7 @@ async function loadPipelineV2() {
     pipelineV2State.plan = d.data.plan;
     pipelineV2State.intent = d.data.intent;
     pipelineV2State.results = d.data.results || {};
+    pipelineV2State.detection = d.data.detection || null;
 
     // First-time: no plan yet → auto-detect intent + initialize plan.
     if (!d.data.plan || !d.data.plan.stages || d.data.plan.stages.length === 0) {
@@ -10991,8 +10993,21 @@ function renderPipelineV2() {
   var p = pipelineV2State;
   if (!p.plan || !p.plan.stages) return;
 
-  // Top bar — intent label
+  // Top bar — intent label + detection reasoning + stale-intent banner.
   document.getElementById('pipelineV2-intent').textContent = INTENT_LABELS_V2[p.intent] || p.intent || '—';
+  var reasoningEl = document.getElementById('pipelineV2-intent-reasoning');
+  if (reasoningEl) {
+    var det = p.detection;
+    if (det && det.intent && det.intent !== p.intent) {
+      // Saved intent differs from current auto-detection — likely stale (user
+      // updated answers, or detection logic improved). Surface a redetect link.
+      reasoningEl.innerHTML = '<span style="color:#D97706">🤖 auto-detect מציע: ' + (INTENT_LABELS_V2[det.intent] || det.intent) + '</span> <button onclick="applyAutoDetectV2()" style="background:none;border:0;color:#2563EB;text-decoration:underline;cursor:pointer;font-size:0.66rem;padding:0">החלף</button>';
+    } else if (det && det.reasoning) {
+      reasoningEl.textContent = '🤖 ' + det.reasoning;
+    } else {
+      reasoningEl.textContent = '';
+    }
+  }
 
   // Progress
   var total = p.plan.stages.length;
@@ -11300,6 +11315,33 @@ async function confirmIntentModal() {
 
 function changeIntentV2() { openIntentModal('change'); }
 function expandPlanV2()  { openIntentModal('expand'); }
+
+// One-click "trust the auto-detection" — when current saved intent ≠ what
+// detectIntentWithReasoning would pick now (e.g. user updated answers, or
+// detection logic improved server-side), this swaps the saved intent to
+// the freshly-detected one. Completed stages preserved by setResearchPlan.
+async function applyAutoDetectV2() {
+  var det = pipelineV2State.detection;
+  if (!det || !det.intent) return;
+  if (!confirm('להחליף את הכיוון השיווקי ל-' + (INTENT_LABELS_V2[det.intent] || det.intent) + '?\n\nהשלבים שהושלמו כבר ישארו. שלבים חדשים יופיעו בהתאם לכיוון.')) return;
+  var iid = localStorage.getItem('cf_instance_id');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/research/plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
+      body: JSON.stringify({ intent: det.intent })
+    });
+    var d = await res.json();
+    if (!d.success) { showToast(d.message || 'שגיאה', 'error'); return; }
+    pipelineV2State.plan = d.data.plan;
+    pipelineV2State.intent = d.data.intent;
+    if (d.data.detection) pipelineV2State.detection = d.data.detection;
+    renderPipelineV2();
+    showToast('הכיוון עודכן ל: ' + INTENT_LABELS_V2[det.intent], 'success');
+  } catch (e) {
+    showToast('שגיאה: ' + (e.message || e), 'error');
+  }
+}
 
 async function resetPipelineV2() {
   if (!confirm('זה ימחק את כל המחקר והאסטרטגיה. אתם בטוחים?')) return;

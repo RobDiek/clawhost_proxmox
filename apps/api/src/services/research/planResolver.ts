@@ -9,29 +9,99 @@ import type { ResearchIntent, StageId } from './types'
 import { UNIVERSAL_STAGES } from './types'
 
 /**
- * Read marketingGoals + platforms from פרופיל עסקי answers and infer intent.
- * Hebrew + English aware. Falls back to 'multichannel' when nothing matches.
+ * Detection result with reasoning trail. UI surfaces `reasoning` so the
+ * user understands WHY this intent was picked and can override confidently.
+ */
+export interface IntentDetection {
+    intent: ResearchIntent
+    /** What we matched in marketingGoals (primary signal). */
+    goalsMatched: ResearchIntent[]
+    /** What we matched in platforms (secondary signal — usage, not declared goal). */
+    platformsMatched: ResearchIntent[]
+    /** 1-line Hebrew explanation for UI. */
+    reasoning: string
+}
+
+/**
+ * Two-tier detection: marketingGoals is the AUTHORITATIVE source for intent
+ * (declared goals). platforms is a secondary hint about USED channels — it
+ * can EXPAND the plan but never solely DETERMINES intent. This prevents
+ * "Google Ads listed in platforms" from forcing multichannel when the
+ * stated goals are SEO-only.
+ *
+ * Priority for single-signal cases: seo_organic > paid_search > social_organic
+ * > email_crm > ecommerce. SEO wins ties because organic content is the most
+ * common starting point for IL SMBs and the cheapest to validate.
+ *
+ * Multichannel triggers ONLY when goals contain 3+ distinct intents — not
+ * when goals + platforms together hit 3 (the previous bug). User can always
+ * override via UI if they actually want a multichannel pipeline.
  */
 export function detectIntent(answers: Record<string, unknown> | undefined): ResearchIntent {
-    const text = (
-        String((answers as any)?.marketingGoals || '') + ' ' +
-        String((answers as any)?.platforms || '')
-    ).toLowerCase()
+    return detectIntentWithReasoning(answers).intent
+}
 
-    const hasSEO    = /seo|אורגנ|בלוג|תוכן/.test(text)
-    const hasPaid   = /google ads|מודעות ממומנות|פרסום ממומן|מטא ads|פייסבוק ads/.test(text)
-    const hasSocial = /אינסטגרם|פייסבוק(?!\s*ads)|לינקדאין|טיקטוק|רשתות חברתיות/.test(text)
-    const hasEmail  = /\bמייל\b|אימייל|ניוזלטר|\bcrm\b/.test(text)
-    const hasEcom   = /shopify|woocommerce|חנות אונליין|מוצרים/.test(text)
+export function detectIntentWithReasoning(answers: Record<string, unknown> | undefined): IntentDetection {
+    const goalsRaw = String((answers as Record<string, unknown> | undefined)?.marketingGoals || '').toLowerCase()
+    const platformsRaw = String((answers as Record<string, unknown> | undefined)?.platforms || '').toLowerCase()
 
-    const count = [hasSEO, hasPaid, hasSocial, hasEmail, hasEcom].filter(Boolean).length
-    if (count >= 3) return 'multichannel'
-    if (hasSEO && !hasPaid) return 'seo_organic'
-    if (hasPaid && !hasSEO) return 'paid_search'
-    if (hasSocial) return 'social_organic'
-    if (hasEmail) return 'email_crm'
-    if (hasEcom) return 'ecommerce'
-    return 'multichannel'
+    // Match patterns against EACH source separately (not concatenated).
+    const matchPatterns = (text: string) => {
+        const seo    = /\bseo\b|\baeo\b|אורגנ|בלוג|תוכן|content marketing/.test(text)
+        const paid   = /google ads|מודעות ממומנות|פרסום ממומן|מטא ads|מטא ads|פייסבוק ads|paid search|ppc/.test(text)
+        const social = /רשתות חברתיות אורגני|אינסטגרם אורגני|tiktok organic|פייסבוק אורגני|social media organic|רשתות חברתיות(?!\s*ממומן)/.test(text)
+        const email  = /\bמייל\b|אימייל|ניוזלטר|\bcrm\b|email marketing/.test(text)
+        const ecom   = /\becommerce\b|shopify|woocommerce|חנות אונליין/.test(text)
+        const intents: ResearchIntent[] = []
+        if (seo) intents.push('seo_organic')
+        if (paid) intents.push('paid_search')
+        if (social) intents.push('social_organic')
+        if (email) intents.push('email_crm')
+        if (ecom) intents.push('ecommerce')
+        return intents
+    }
+
+    const goalsMatched = matchPatterns(goalsRaw)
+    const platformsMatched = matchPatterns(platformsRaw)
+
+    // Priority order — used to break ties when multiple goals are mentioned.
+    const PRIORITY: ResearchIntent[] = ['seo_organic', 'paid_search', 'social_organic', 'email_crm', 'ecommerce']
+
+    // Multichannel fires ONLY when goals declare 3+ distinct intents.
+    // Platforms-only signals don't trigger multichannel (per Phase 3.9 fix).
+    if (goalsMatched.length >= 3) {
+        return {
+            intent: 'multichannel',
+            goalsMatched, platformsMatched,
+            reasoning: `זוהו ${goalsMatched.length} כיוונים מובחנים בmarketingGoals שלכם — pipeline מלא (multichannel)`,
+        }
+    }
+
+    // 1-2 goals declared → pick by priority. Platforms is informational only.
+    if (goalsMatched.length > 0) {
+        const top = PRIORITY.find(p => goalsMatched.includes(p)) || goalsMatched[0]
+        const reason = goalsMatched.length === 1
+            ? `זוהה כיוון יחיד ב-marketingGoals: ${top}`
+            : `זוהו ${goalsMatched.length} כיוונים — בחרנו ${top} לפי priority order. שאר הכיוונים זמינים דרך "+ ערוץ נוסף".`
+        return { intent: top, goalsMatched, platformsMatched, reasoning: reason }
+    }
+
+    // No explicit goals → fall back to platforms (legacy heuristic).
+    if (platformsMatched.length > 0) {
+        const top = PRIORITY.find(p => platformsMatched.includes(p)) || platformsMatched[0]
+        return {
+            intent: top,
+            goalsMatched, platformsMatched,
+            reasoning: `marketingGoals ריקים — נגזר מ-platforms: ${top}`,
+        }
+    }
+
+    // Truly nothing identifiable → safe default = SEO (cheapest, most common).
+    return {
+        intent: 'seo_organic',
+        goalsMatched, platformsMatched,
+        reasoning: 'לא זוהה כיוון מ-answers — ברירת מחדל: SEO/אורגני (הכי נפוץ ל-SMB ב-IL)',
+    }
 }
 
 /**
