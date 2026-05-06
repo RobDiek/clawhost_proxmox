@@ -143,3 +143,9 @@ startPlanDraftRunner()
 import { runTrialManager } from '@/jobs/trialManager'
 setInterval(runTrialManager, 3600000) // every hour
 setTimeout(runTrialManager, 60000) // first run after 1 min
+
+// Phase 3.6 — DFS credits: daily FX rate refresh + hourly auto-topup sweep
+import { startFxRefreshCron } from '@/services/dfsCredits/fxRefresh'
+import { startAutoTopupCron } from '@/services/dfsCredits/autoTopup'
+startFxRefreshCron()
+startAutoTopupCron()

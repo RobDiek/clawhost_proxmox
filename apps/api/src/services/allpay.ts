@@ -21,7 +21,13 @@ interface CreatePaymentParams {
 interface WebhookResult {
     event: 'payment_success' | 'payment_failed' | 'subscription_cancelled'
     orderId: string
-    metadata: { instanceId: string; planKey: string }
+    metadata: {
+        instanceId: string
+        /** For subscriptions: planKey. For top-ups: 'dfs_topup'. Empty string if neither. */
+        planKey: string
+        /** Top-up only: amount in USD cents to credit. Parsed from add_field_3 if numeric. */
+        topupAmountUsdCents?: number
+    }
 }
 
 // ── AllPay SHA256 Signature ──
@@ -68,6 +74,64 @@ function getCredentials() {
 }
 
 const allpay = {
+    /**
+     * One-time payment (no subscription block) — used for DFS credits top-ups.
+     * Same AllPay account as subscriptions; distinguished by metadata
+     * `add_field_2 = 'dfs_topup'` so the webhook router branches correctly.
+     * `inst: 1` → single immediate charge (no installments). Auto-generates
+     * хашבונית מס via AllPay's standard receipt flow.
+     */
+    async createOneTimePayment(params: {
+        orderId: string
+        items: Array<{ name: string; price: number; qty: number }>
+        customerEmail: string
+        customerName: string
+        customerPhone: string
+        successUrl: string
+        failUrl: string
+        webhookUrl: string
+        metadata: { instanceId: string; topupKind: 'dfs_topup'; amountUsdCents: number }
+    }): Promise<string> {
+        const { login, apiKey } = getCredentials()
+
+        const items = params.items.map(i => ({
+            name: i.name,
+            price: String(i.price),
+            qty: String(i.qty),
+            vat: '1',
+        }))
+
+        const payload: Record<string, unknown> = {
+            login,
+            order_id: params.orderId,
+            items,
+            currency: 'ILS',
+            lang: 'HE',
+            inst: 1,
+            client_name: params.customerName,
+            client_email: params.customerEmail,
+            client_phone: params.customerPhone,
+            client_tehudat: '000000000',
+            webhook_url: params.webhookUrl,
+            success_url: params.successUrl,
+            backlink_url: params.failUrl,
+            add_field_1: params.metadata.instanceId,
+            add_field_2: params.metadata.topupKind,
+            add_field_3: String(params.metadata.amountUsdCents),
+        }
+        payload.sign = computeSign(payload, apiKey)
+
+        const response = await fetch(`${ALLPAY_BASE}?show=getpayment&mode=api10`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        })
+        const data = await response.json() as { payment_url?: string; error?: string }
+        if (data.error) throw new Error(`AllPay error: ${data.error}`)
+        if (!data.payment_url) throw new Error(`AllPay: no payment_url in response: ${JSON.stringify(data)}`)
+        return data.payment_url
+    },
+
     async createSubscription(params: CreatePaymentParams): Promise<string> {
         const { login, apiKey } = getCredentials()
         const installments = INSTALLMENTS[params.planKey] || 3
@@ -140,11 +204,15 @@ const allpay = {
         const orderId = body.order_id as string
         let instanceId = (body.add_field_1 as string) || ''
         const planKey = (body.add_field_2 as string) || ''
+        const addField3 = (body.add_field_3 as string) || ''
 
         // Fallback: extract instanceId from orderId format "oc-{instanceId}-{timestamp}"
-        if (!instanceId && orderId?.startsWith('oc-')) {
-            const parts = orderId.split('-')
-            if (parts.length >= 2) instanceId = parts[1]
+        // or "dfs-{instanceId}-{timestamp}" (top-up)
+        if (!instanceId && orderId) {
+            if (orderId.startsWith('oc-') || orderId.startsWith('dfs-')) {
+                const parts = orderId.split('-')
+                if (parts.length >= 2) instanceId = parts[1]
+            }
         }
 
         let event: WebhookResult['event']
@@ -154,10 +222,17 @@ const allpay = {
             event = 'payment_failed'
         }
 
+        // Top-up: amount is in add_field_3 as USD cents. Parse defensively —
+        // if AllPay strips/mangles it, the routing still works (falls through
+        // to subscription branch which fails clean on missing planKey).
+        const topupAmountUsdCents = planKey === 'dfs_topup' && /^\d+$/.test(addField3)
+            ? parseInt(addField3, 10)
+            : undefined
+
         return {
             event,
             orderId,
-            metadata: { instanceId, planKey },
+            metadata: { instanceId, planKey, topupAmountUsdCents },
         }
     },
 

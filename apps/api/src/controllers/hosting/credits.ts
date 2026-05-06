@@ -27,6 +27,7 @@ import {
     LedgerError,
 } from '@/services/dfsCredits/ledger'
 import { getSystemConfig } from '@/services/dfsCredits/systemConfig'
+import { createTopupCheckout } from '@/services/dfsCredits/allpayTopup'
 
 // ── GET /credits/balance ────────────────────────────────────────────────────
 
@@ -119,6 +120,36 @@ export const updateCreditsSettings = async (c: Context) => {
         }, 'Settings updated')
     } catch (err) {
         console.error('updateCreditsSettings error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ── POST /credits/topup/checkout ──────────────────────────────────────────
+// Returns AllPay payment URL for { amountUsd }. UI redirects user to this URL
+// to complete payment. On success, AllPay calls our webhook → credits balance.
+
+export const createTopupCheckoutController = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const body = await c.req.json<{ amountUsd?: number }>().catch(() => null)
+        if (!body || typeof body.amountUsd !== 'number') {
+            return fail(c, 'amountUsd (number) required', 400)
+        }
+        if (body.amountUsd < 10) return fail(c, 'מינימום $10', 400)
+        if (body.amountUsd > 10000) return fail(c, 'מקסימום $10,000 לעסקה אחת', 400)
+
+        const result = await createTopupCheckout({ instanceId, amountUsd: body.amountUsd })
+        return ok(c, {
+            paymentUrl: result.paymentUrl,
+            orderId: result.orderId,
+            amountUsdCents: result.amountUsdCents,
+            amountIls: result.amountIls,
+            fxRate: result.fxRate,
+        }, 'Checkout created')
+    } catch (err) {
+        console.error('createTopupCheckoutController error:', err)
         return fail(c, (err as Error).message, 500)
     }
 }

@@ -297,11 +297,27 @@ export const handleAllpayWebhook = async (c: Context) => {
         const { event, orderId, metadata } = allpay.parseWebhook(body)
         const instanceId = metadata.instanceId
 
-        console.log(`[AllPay webhook] event=${event} orderId=${orderId} instanceId=${instanceId}`)
+        console.log(`[AllPay webhook] event=${event} orderId=${orderId} instanceId=${instanceId} planKey=${metadata.planKey}`)
 
         if (!instanceId) {
             console.error('[AllPay webhook] Missing instanceId. metadata:', JSON.stringify(metadata))
             return fail(c, 'Missing instanceId in metadata.', 400)
+        }
+
+        // ─── Top-up branch ──
+        // DFS credits top-ups are one-time payments that just credit the
+        // ledger and return; no provisioning / subscription / audience-sync
+        // logic should run for them. Routed here BEFORE the subscription
+        // path below, so this stays the single AllPay webhook endpoint.
+        if (metadata.planKey === 'dfs_topup' || orderId.startsWith('dfs-')) {
+            const { handleTopupWebhook } = await import('@/services/dfsCredits/allpayTopup')
+            const result = await handleTopupWebhook({
+                event: event === 'payment_success' ? 'payment_success' : 'payment_failed',
+                orderId,
+                instanceId,
+                amountUsdCents: metadata.topupAmountUsdCents,
+            })
+            return ok(c, result, result.applied ? 'Topup credited' : 'Topup not applied')
         }
 
         if (event === 'payment_success') {

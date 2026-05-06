@@ -359,10 +359,14 @@ app.get('/instances/:id/research/stage/:stageId/status', getResearchStageStatus)
 
 // DFS credits proxy (Phase 3.6) — Flowmatic-managed master DFS account,
 // per-tenant USD-cents balance. memory: project_dfs_proxy.md.
-import { getCreditsBalance, getCreditsLedger, updateCreditsSettings } from '@/controllers/hosting/credits'
+import {
+    getCreditsBalance, getCreditsLedger, updateCreditsSettings,
+    createTopupCheckoutController,
+} from '@/controllers/hosting/credits'
 app.get('/instances/:id/credits/balance', getCreditsBalance)
 app.get('/instances/:id/credits/ledger', getCreditsLedger)
 app.patch('/instances/:id/credits/settings', updateCreditsSettings)
+app.post('/instances/:id/credits/topup/checkout', createTopupCheckoutController)
 app.post('/instances/:id/setup/agents/content-plan/regenerate', regenerateContentPlan)
 app.get('/instances/:id/setup/agents/content-plan', getContentPlan)
 app.post('/instances/:id/optimization/weekly', generateOptimizationReport)
