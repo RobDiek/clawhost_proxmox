@@ -39,11 +39,105 @@ import type {
     StageStatus,
 } from './types'
 
+// ── Anthropic streaming helpers (Phase 3.20) ────────────────────────────────
+// Anthropic's non-streaming /v1/messages drops connections at ~5min server-side
+// regardless of client timeout. For 32K-token wide-schema generations (Phase
+// 3.18 widened seo_keyword_research to need ~10min), streaming is required.
+//
+// We expose two helpers:
+//   - callAnthropicStreaming(): one-shot call with body, headers, stream=true.
+//     Returns parsed text + ok/status/errorText so the caller can branch on
+//     non-200 responses identically to the prior non-streaming path.
+//   - consumeAnthropicStream(): given a raw 200 streaming Response, walks the
+//     SSE event log and accumulates text_delta events. Used by the CLI
+//     fallback path which constructs its own fetch but reuses parsing.
+
+async function callAnthropicStreaming(
+    apiKey: string,
+    model: string,
+    prompt: string,
+    maxTokens: number,
+): Promise<{ ok: true; text: string } | { ok: false; status: number; errorText: string }> {
+    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+            model,
+            max_tokens: maxTokens,
+            stream: true,
+            messages: [{ role: 'user', content: prompt }],
+        }),
+        // Stream keeps the connection alive via TCP chunks; AbortSignal still
+        // bounds total duration in case the model gets stuck producing.
+        signal: AbortSignal.timeout(720_000),
+    })
+    if (!apiRes.ok) {
+        const errorText = await apiRes.text()
+        return { ok: false, status: apiRes.status, errorText }
+    }
+    const text = await consumeAnthropicStream(apiRes)
+    return { ok: true, text }
+}
+
+async function consumeAnthropicStream(res: Response): Promise<string> {
+    if (!res.body) return ''
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let output = ''
+    let buffer = ''
+    let lastError: string | null = null
+    try {
+        for (;;) {
+            const { done, value } = await reader.read()
+            if (done) break
+            buffer += decoder.decode(value, { stream: true })
+            // SSE events are separated by blank lines (\n\n).
+            let nl: number
+            while ((nl = buffer.indexOf('\n\n')) >= 0) {
+                const event = buffer.substring(0, nl)
+                buffer = buffer.substring(nl + 2)
+                // Each event has lines: "event: type" / "data: json".
+                for (const line of event.split('\n')) {
+                    if (!line.startsWith('data: ')) continue
+                    const dataStr = line.substring(6).trim()
+                    if (!dataStr || dataStr === '[DONE]') continue
+                    try {
+                        const j = JSON.parse(dataStr) as {
+                            type?: string
+                            delta?: { type?: string; text?: string; stop_reason?: string }
+                            error?: { type?: string; message?: string }
+                            message?: { stop_reason?: string }
+                        }
+                        if (j.type === 'content_block_delta' && j.delta?.type === 'text_delta' && j.delta.text) {
+                            output += j.delta.text
+                        } else if (j.type === 'error' && j.error) {
+                            lastError = `${j.error.type}: ${j.error.message}`
+                        }
+                    } catch { /* skip non-JSON SSE lines (e.g. ping comments) */ }
+                }
+            }
+        }
+    } finally {
+        try { reader.releaseLock() } catch { /* noop */ }
+    }
+    if (lastError) {
+        console.warn(`[stageExecutor.consumeAnthropicStream] mid-stream error event: ${lastError}`)
+    }
+    return output
+}
+
 // ── Per-instance research lock (prevents parallel runs) ─────────────────────
 // Same TTL/semantics as the legacy researchStage — only one stage may execute
 // against an instance at a time. Lock key = instanceId, value = startedAt.
 const activeResearchRuns = new Map<string, number>()
-const RESEARCH_LOCK_TTL = 360_000 // 6 min — covers longest expected stage
+// Phase 3.20 — bumped 6min → 15min to cover the 12min Anthropic timeout +
+// streaming setup time. If we ever exceed this, the lock auto-releases and
+// a parallel run can start — that's worse than over-blocking, so err high.
+const RESEARCH_LOCK_TTL = 900_000
 
 export function acquireResearchLock(instanceId: string): { acquired: boolean; secondsLeft?: number } {
     const lockedAt = activeResearchRuns.get(instanceId)
@@ -227,40 +321,13 @@ export async function executeStage(input: ExecuteStageInput): Promise<ExecuteSta
         }
         const anthropicModel = model.replace(/^anthropic\//, '')
         try {
-            const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': apiKey,
-                    'anthropic-version': '2023-06-01',
-                },
-                body: JSON.stringify({
-                    model: anthropicModel,
-                    // Phase 3.18 — bumped 16K → 32K. Phase (c) added cluster_architecture
-                    // + cannibalization_audit + content_briefs to seo_keyword_research
-                    // schema; with 20 records + full briefs the JSON output exceeded
-                    // 16K and was truncated mid-record (records[]=0 in DB because
-                    // hybridParser couldn't find the closing fence). 32K leaves
-                    // headroom for that stage and any other "wide" stage.
-                    max_tokens: 32000,
-                    messages: [{ role: 'user', content: prompt }],
-                }),
-                // Phase 3.19 — bumped 5min → 12min. Generation time for Opus 4.7
-                // scales roughly with max_tokens; doubling output budget pushed the
-                // wide stages past the prior 5min cap on master and triggered
-                // generic "stage failed" 500s on the user. 12min covers the 32K
-                // ceiling with headroom; we still have an upper bound so a stuck
-                // call doesn't block the pipeline forever.
-                signal: AbortSignal.timeout(720_000),
-            })
-            if (apiRes.ok) {
-                const data = await apiRes.json() as { content?: Array<{ text: string }> }
-                output = data.content?.[0]?.text || ''
-                console.log(`[research/${stageId}] direct API: ${output.length} chars via ${anthropicModel}`)
+            const streamRes = await callAnthropicStreaming(apiKey, anthropicModel, prompt, 32000)
+            if (streamRes.ok) {
+                output = streamRes.text
+                console.log(`[research/${stageId}] direct API streaming: ${output.length} chars via ${anthropicModel}`)
             } else {
-                const errText = await apiRes.text()
-                console.error(`[research/${stageId}] Anthropic API ${apiRes.status}: ${errText.substring(0, 300)}`)
-                if (apiRes.status === 429) isRateLimit = true
+                console.error(`[research/${stageId}] Anthropic API ${streamRes.status}: ${streamRes.errorText.substring(0, 300)}`)
+                if (streamRes.status === 429) isRateLimit = true
             }
         } catch (apiErr) {
             console.error(`[research/${stageId}] API exception:`, (apiErr as Error).message)
@@ -405,13 +472,13 @@ print('\n\n'.join(out))
                     body: JSON.stringify({
                         model: anthropicModel,
                         max_tokens: 32000,  // Phase 3.18 — match primary path budget
+                        stream: true,       // Phase 3.20 — match primary path
                         messages: [{ role: 'user', content: prompt }],
                     }),
                     signal: AbortSignal.timeout(720_000),  // Phase 3.19 — match primary path
                 })
                 if (apiRes.ok) {
-                    const data = await apiRes.json() as { content?: Array<{ text: string }> }
-                    const directResult = data.content?.[0]?.text || ''
+                    const directResult = await consumeAnthropicStream(apiRes)
                     if (directResult && directResult.length >= 500) {
                         console.log(`[research/${stageId}] direct-API fallback OK: ${directResult.length} chars`)
                         result = directResult

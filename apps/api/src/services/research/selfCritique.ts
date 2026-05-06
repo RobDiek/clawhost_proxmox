@@ -93,6 +93,11 @@ export async function runSelfCritique(input: RunInput): Promise<QualityGateOutco
 
     let raw = ''
     try {
+        // Phase 3.20 — switched to streaming. Critic call can take 5+ minutes
+        // when reviewing a 32K-token main output against 30K of original prompt
+        // context; non-streaming requests get dropped server-side at ~5min
+        // regardless of client timeout. Streaming keeps the TCP connection
+        // alive via chunked transfer.
         const res = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
@@ -103,19 +108,52 @@ export async function runSelfCritique(input: RunInput): Promise<QualityGateOutco
             body: JSON.stringify({
                 model: anthropicModel,
                 max_tokens: 16000,
+                stream: true,
                 messages: [{ role: 'user', content: criticPrompt }],
             }),
-            // Phase 3.12 — bumped 180s→300s. Phase 3.11 expanded promptTrimmed
-            // to 30K chars so critic sees full DFS context; Anthropic processing
-            // time grew accordingly and 180s started timing out for stage_1.
-            signal: AbortSignal.timeout(300_000),
+            signal: AbortSignal.timeout(720_000),
         })
         if (!res.ok) {
             console.warn(`[selfCritique/${stageId}] HTTP ${res.status} — skipping`)
             return { pass: true, checks: {}, hardFailures: [], warnings: [], skipped: true }
         }
-        const data = await res.json() as { content?: Array<{ text: string }> }
-        raw = data.content?.[0]?.text || ''
+        // Inline SSE stream consumer — kept here (not extracted) to avoid
+        // a circular import with stageExecutor.ts. Same shape as
+        // consumeAnthropicStream over there.
+        if (!res.body) {
+            return { pass: true, checks: {}, hardFailures: [], warnings: [], skipped: true }
+        }
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        let buf = ''
+        try {
+            for (;;) {
+                const { done, value } = await reader.read()
+                if (done) break
+                buf += decoder.decode(value, { stream: true })
+                let nl: number
+                while ((nl = buf.indexOf('\n\n')) >= 0) {
+                    const event = buf.substring(0, nl)
+                    buf = buf.substring(nl + 2)
+                    for (const line of event.split('\n')) {
+                        if (!line.startsWith('data: ')) continue
+                        const data = line.substring(6).trim()
+                        if (!data || data === '[DONE]') continue
+                        try {
+                            const j = JSON.parse(data) as {
+                                type?: string
+                                delta?: { type?: string; text?: string }
+                            }
+                            if (j.type === 'content_block_delta' && j.delta?.type === 'text_delta' && j.delta.text) {
+                                raw += j.delta.text
+                            }
+                        } catch { /* skip non-JSON SSE chatter */ }
+                    }
+                }
+            }
+        } finally {
+            try { reader.releaseLock() } catch { /* noop */ }
+        }
     } catch (err) {
         console.warn(`[selfCritique/${stageId}] network error — skipping:`, (err as Error).message)
         return { pass: true, checks: {}, hardFailures: [], warnings: [], skipped: true }
