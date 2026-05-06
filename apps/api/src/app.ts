@@ -66,7 +66,14 @@ app.use('*', bodyLimit({ maxSize: 1024 * 1024 }))
 // Rate limiting
 app.use('*', rateLimiter(200, 60000)) // 200 req/min global
 app.use('/hosting/checkout', rateLimiter(10, 60000)) // 10 checkouts/min
-app.use('/hosting/auth/*', rateLimiter(15, 60000)) // 15 auth/min
+// Auth rate limit: keep tight on flows that mutate (OTP send/verify, 2FA setup, login)
+// but allow generous reads of /auth/me — it's polled by dashboard on every load and
+// after every integration save (5+ times per minute on a normal session). 15/min was
+// hitting the limit during ordinary use and producing 429s.
+app.use('/hosting/auth/otp/*', rateLimiter(15, 60000))    // 15/min — sensitive
+app.use('/hosting/auth/2fa/*', rateLimiter(15, 60000))    // 15/min — sensitive
+app.use('/hosting/auth/me', rateLimiter(120, 60000))      // 120/min — read-only profile
+app.use('/hosting/auth/*', rateLimiter(60, 60000))        // 60/min default for the rest
 
 app.use('*', async (c, next) => {
     await next()

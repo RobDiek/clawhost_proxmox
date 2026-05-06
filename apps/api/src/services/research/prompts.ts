@@ -1560,6 +1560,238 @@ ${feedbackLine}`,
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// link_audit — deep backlinks audit + lost-link recovery + outreach roadmap.
+// Phase (b) of Sergei's depth upgrade. Requires DFS Backlinks subscription.
+// ────────────────────────────────────────────────────────────────────────────
+
+interface LinkAuditDfsShape {
+    ourDomain: string | null
+    backlinksApiAvailable: boolean
+    ours: {
+        summary?: { backlinks?: number; referring_domains?: number; spam_score?: number; rank?: number }
+        anchors?: Array<{ anchor: string; backlinks?: number; referring_domains?: number; first_seen?: string; lost_date?: string }>
+        referringDomains?: Array<{ domain?: string; rank?: number; backlinks?: number; first_seen?: string; lost_date?: string; is_lost?: boolean }>
+        lostLinks?: Array<{ domain?: string; rank?: number; lost_date?: string; is_lost?: boolean }>
+        linkGap?: Array<{ domain?: string; rank?: number; intersections?: number }>
+        enrichmentMissing: string[]
+    }
+    competitors: Array<{
+        domain: string
+        summary?: { backlinks?: number; referring_domains?: number; spam_score?: number; rank?: number }
+        anchors?: Array<{ anchor: string; backlinks?: number; referring_domains?: number }>
+        referringDomains?: Array<{ domain?: string; rank?: number }>
+        enrichmentMissing: string[]
+    }>
+    totalCostUsd: number
+    cacheHits: number
+    cacheMisses: number
+}
+
+function buildLinkAuditPrompt(opts: PromptOpts): PromptResult {
+    const { businessName, businessDesc, answers, feedback, historicalAssetsBlock } = opts
+    const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
+    const haBlock = historicalAssetsBlock || ''
+    const dfs = opts.dfsData as LinkAuditDfsShape | undefined
+    if (!dfs) throw new Error('link_audit: dfsData prefetch is required')
+
+    // ─ Render our domain summary ─
+    const oursSummary = dfs.ours.summary
+        ? `- backlinks: ${oursSummary_safe(dfs.ours.summary.backlinks)}\n- referring_domains: ${oursSummary_safe(dfs.ours.summary.referring_domains)}\n- spam_score: ${oursSummary_safe(dfs.ours.summary.spam_score)}\n- domain_rank: ${oursSummary_safe(dfs.ours.summary.rank)}`
+        : '*(אין summary — DFS לא החזיר נתונים)*'
+
+    const oursAnchorsTable = dfs.ours.anchors && dfs.ours.anchors.length
+        ? renderAnchorsTable(dfs.ours.anchors.slice(0, 25))
+        : '*(אין anchors data)*'
+
+    const lostLinksTable = dfs.ours.lostLinks && dfs.ours.lostLinks.length
+        ? renderLostLinksTable(dfs.ours.lostLinks.slice(0, 30))
+        : '*(אין lost links — או שלא נמצאו, או שהנתון לא זמין)*'
+
+    const linkGapTable = dfs.ours.linkGap && dfs.ours.linkGap.length
+        ? renderLinkGapTable(dfs.ours.linkGap.slice(0, 30))
+        : '*(אין link-gap data)*'
+
+    // ─ Render competitor comparison table ─
+    const competitorTable = dfs.competitors.length
+        ? renderCompetitorLinkTable(dfs.competitors)
+        : '*(אין נתוני מתחרים)*'
+
+    return {
+        agentId: 'menateach',
+        useDirectApi: true,
+        minLength: 3000,
+        prompt: `# אודיט פרופיל קישורים — "${businessName}"
+
+## תיאור העסק
+${businessDesc}
+${haBlock}
+
+## נתוני DataForSEO Backlinks — verbatim, אסור להמציא
+
+**מקור:** DataForSEO Backlinks live data, ${new Date().toISOString().slice(0, 10)} | $${dfs.totalCostUsd.toFixed(4)} (${dfs.cacheHits}/${dfs.cacheHits + dfs.cacheMisses} cache hits)
+
+### הדומיין שלנו: \`${dfs.ourDomain}\`
+
+**Summary:**
+${oursSummary}
+
+**Top 25 anchors (top by backlinks):**
+${oursAnchorsTable}
+
+**Top 30 lost referring domains (recovery candidates):**
+${lostLinksTable}
+
+**Top 30 link-gap candidates (linking to competitors but not us):**
+${linkGapTable}
+
+### Top ${dfs.competitors.length} competitors — link profile comparison
+${competitorTable}
+
+---
+
+## פקודות עבודה
+
+${HARD_BLOCK_RULES}
+
+${HEBREW_ONLY_BLOCK}
+
+${CONFIDENCE_INTEGRITY_RULE}
+
+${CONFIDENCE_LABELING}
+
+${JSON_OUTPUT_RULES}
+
+${DFS_DATA_RULE}
+
+---
+
+## פלט נדרש
+
+### חלק 1: תקציר מנהלים (markdown — בעברית, 2-3 פסקאות)
+איפה אנחנו עומדים מבחינת link authority? ראשית, מספרים — backlinks, referring_domains, רמת spam, domain rank. שנית, השוואה — איפה אנחנו ביחס לממוצע 5 המתחרים המובילים? שלישית — מה 3 הצעדים הקריטיים לפעולה?
+
+### חלק 2: רשומות JSON — outreach + recovery targets (חובה)
+
+\`\`\`json
+{
+  "our_profile_summary": {
+    "backlinks_total": 0,
+    "referring_domains_total": 0,
+    "spam_score": 0,
+    "domain_rank": 0,
+    "vs_competitors_summary": "1-2 משפטים — איפה אנחנו עומדים מול ממוצע top 5 (fewer/similar/more referring domains, anchor mix נקי/spammy)",
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "anchor_distribution_analysis": {
+    "branded_pct": 0,
+    "exact_match_pct": 0,
+    "naked_url_pct": 0,
+    "generic_pct": 0,
+    "topical_pct": 0,
+    "_note": "סיווג לפי מילים: brand-name → branded; keyword exact-match → exact; URL → naked_url; click here / here → generic; topic terms → topical.",
+    "risk_flags": ["over_optimization | spam_anchor_pattern | thin_diversity | none"],
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "records": [
+    {
+      "type": "lost_link_recovery" | "link_gap_outreach" | "anchor_remediation" | "spam_disavow",
+      "domain": "domain.com",
+      "current_rank": 0,
+      "_metric": "סוג המטריקה הרלוונטית: lost_date / intersections / spam_score / over_optimized_anchor",
+      "_metric_value": "ערך הספציפי",
+      "outreach_angle": "1-2 משפטים בעברית — למה הם ירצו לקשר אלינו, או איך מתחילים שיחה",
+      "priority": "high | medium | low",
+      "estimated_effort_hours": 0,
+      "owner": "תפקיד אחראי בעברית: 'מנהל SEO' / 'מנהל תוכן' / 'מייסד' / 'סוכנות חיצונית'",
+      "timeline": "תוך X ימים/שבועות (במספר ובעברית)",
+      "evidence": ["dfs_referring_domains", "dfs_competitors_intersections", "dfs_anchors"],
+      "confidence": "high | medium | working_hypothesis"
+    }
+  ],
+  "competitor_link_benchmarks": [
+    {
+      "domain": "competitor.com",
+      "backlinks": 0,
+      "referring_domains": 0,
+      "domain_rank": 0,
+      "spam_score": 0,
+      "vs_us": "ahead | similar | behind",
+      "key_anchor_pattern": "1 משפט — איזה anchor pattern הם מנצלים שאנחנו לא",
+      "evidence": ["dfs_competitor_summary", "dfs_competitor_anchors"]
+    }
+  ],
+  "velocity_signal": {
+    "_note": "אם referringDomains מכיל first_seen — חישוב גס של new referring domains ב-30/90 יום. אם לא — סמנו unavailable.",
+    "new_referring_30d": 0,
+    "new_referring_90d": 0,
+    "comparison_to_top_competitor": "stronger | similar | weaker | unavailable",
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "confidence": "high | medium | working_hypothesis"
+}
+\`\`\`
+
+**חובה:**
+- **records** מינימום 12 רשומות, מתוכם:
+  - לפחות 3 \`lost_link_recovery\` (אם יש lost links data)
+  - לפחות 5 \`link_gap_outreach\` (אם יש linkGap data)
+  - לפחות 1 \`anchor_remediation\` אם זוהה over-optimization (exact_match_pct > 30%)
+  - לפחות 1 \`spam_disavow\` אם זוהו דומיינים מפנים עם spam_score > 70
+- כל record עם evidence array שמסביר מאיזה DFS endpoint הגיע הנתון
+- Priority: high קודם, אחר כך medium, לבסוף low
+- אם DFS data חסר לקטגוריה (\`enrichmentMissing\` מציין) — סמנו את הסעיף כ-confidence: working_hypothesis
+
+### חלק 3: תוכנית outreach 30 יום (markdown, בעברית)
+חלוקת 12 הרשומות ל-3 שבועות:
+- שבוע 1 (high priority): top 4 קישורים שאבדו + 4 link-gap מועמדים עם אותו owner
+- שבוע 2-3 (medium): שאר הרשומות
+- שבוע 4: מעקב + מדידה
+
+לכל שבוע — שעות מאמץ צפויות + KPI סוף שבוע (referring_domains gained / outreach emails sent / response rate).
+
+### חלק 4: סיכונים ומיטיגציות (markdown, בעברית)
+3-5 סיכונים קונקרטיים בתוכנית הקישורים: penalty risk מ-anchor patterns, spam injection, lost authority, רגרסיה. לכל סיכון — מיטיגציה ספציפית.
+
+---
+
+${QUALITY_GATE_INSTRUCTIONS}
+${feedbackLine}`,
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Render helpers for link_audit DFS data tables.
+
+function oursSummary_safe(v: unknown): string {
+    if (v === undefined || v === null) return 'unavailable'
+    if (typeof v === 'number') return v.toLocaleString()
+    return String(v)
+}
+
+function renderAnchorsTable(anchors: Array<{ anchor: string; backlinks?: number; referring_domains?: number }>): string {
+    const rows = anchors.map(a => `| ${a.anchor.replace(/\|/g, '\\|')} | ${a.backlinks ?? '—'} | ${a.referring_domains ?? '—'} |`).join('\n')
+    return `| anchor | backlinks | referring_domains |\n|---|---|---|\n${rows}`
+}
+
+function renderLostLinksTable(lost: Array<{ domain?: string; rank?: number; lost_date?: string; is_lost?: boolean }>): string {
+    const rows = lost.map(l => `| ${l.domain ?? '—'} | ${l.rank ?? '—'} | ${l.lost_date ?? '—'} | ${l.is_lost ? 'yes' : 'no'} |`).join('\n')
+    return `| domain | rank | lost_date | is_lost |\n|---|---|---|---|\n${rows}`
+}
+
+function renderLinkGapTable(gap: Array<{ domain?: string; rank?: number; intersections?: number }>): string {
+    const rows = gap.map(g => `| ${g.domain ?? '—'} | ${g.rank ?? '—'} | ${g.intersections ?? '—'} |`).join('\n')
+    return `| domain | rank | intersects competitors |\n|---|---|---|\n${rows}`
+}
+
+function renderCompetitorLinkTable(comps: LinkAuditDfsShape['competitors']): string {
+    const rows = comps.map(c => {
+        const s = c.summary || {}
+        return `| ${c.domain} | ${s.backlinks ?? '—'} | ${s.referring_domains ?? '—'} | ${s.spam_score ?? '—'} | ${s.rank ?? '—'} |`
+    }).join('\n')
+    return `| competitor | backlinks | referring_domains | spam_score | rank |\n|---|---|---|---|---|\n${rows}`
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Dispatch helper — used by per-stage controllers to get prompt by id.
 // New prompts (aeo_visibility, social_landscape, email_competitor_audit)
 // belong here when they ship (Phase 4).
@@ -1569,6 +1801,7 @@ export function buildPromptForStage(stageId: StageId, opts: PromptOpts): PromptR
     switch (stageId) {
         case 'competitor_landscape':   return buildCompetitorLandscapePrompt(opts)
         case 'seo_keyword_research':   return buildSeoKeywordResearchPrompt(opts)
+        case 'link_audit':             return buildLinkAuditPrompt(opts)
         case 'audience_personas':      return buildAudiencePersonasPrompt(opts)
         case 'positioning':            return buildPositioningPrompt(opts)
         case 'strategy_options':       return buildStrategyOptionsPrompt(opts)

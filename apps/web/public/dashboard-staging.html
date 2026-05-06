@@ -10892,6 +10892,7 @@ var STAGE_CATALOG_V2 = {
   competitor_landscape:   { titleHe: 'נוף תחרותי',                   descHe: 'מתחרים ישירים, מבנה שוק, נוכחות דיגיטלית, gaps' },
   seo_keyword_research:   { titleHe: 'מחקר מילות מפתח (SEO)',         descHe: '30+ keywords עם volume/CPC/difficulty + SERP analysis' },
   aeo_visibility:         { titleHe: 'נראות AI (AEO)',                descHe: 'ציטוטים ב-Claude/ChatGPT/Perplexity + schema audit + GSC' },
+  link_audit:             { titleHe: 'אודיט פרופיל קישורים',         descHe: 'profile audit + lost links + outreach roadmap. דורש DFS Backlinks API פעיל' },
   paid_audit:             { titleHe: 'אודיט פרסום ממומן',            descHe: 'Google Ads + Meta — היסטוריה, blockers, methodology' },
   social_landscape:       { titleHe: 'נוף רשתות חברתיות',            descHe: 'מתחרים ב-IG/FB/LinkedIn, content patterns, tone' },
   email_competitor_audit: { titleHe: 'אודיט ניוזלטרים מתחרים',       descHe: 'תדירות, טון, נושאים, CTAs של 5+ מתחרים' },
@@ -11426,6 +11427,7 @@ function renderRecordsByStage(stageId, records) {
   switch (stageId) {
     case 'competitor_landscape':   return renderCompetitorRecords(records);
     case 'seo_keyword_research':   return renderKeywordRecords(records);
+    case 'link_audit':             return renderLinkAuditRecords(records);
     case 'audience_personas':      return renderPersonaRecords(records);
     case 'positioning':            return renderPositioningRecord(records[0]);
     case 'strategy_options':       return renderScenarioRecords(records);
@@ -11686,6 +11688,76 @@ function renderKeywordCard(k) {
     + oppBreakdown
     + aeoBreakdown
     + (ev.length ? '<div style="margin-top:4px;font-size:0.62rem;color:#9CA3AF">evidence: ' + ev.map(escapeHtml).join(', ') + '</div>' : '')
+    + '</div>';
+}
+
+// ── link_audit ──────────────────────────────────────────────────────────────
+// Records are outreach + recovery + remediation tasks. Group by `type` and
+// then by priority. Surface the metric used to justify each record.
+
+function renderLinkAuditRecords(records) {
+  if (!records || !records.length) return '';
+  // Group by type
+  var byType = {};
+  records.forEach(function(r) {
+    var t = r.type || 'other';
+    if (!byType[t]) byType[t] = [];
+    byType[t].push(r);
+  });
+  var TYPE_META = {
+    lost_link_recovery: { label: 'שחזור קישורים שאבדו', icon: '🔄', color: '#92400E', bg: '#FEF3C7' },
+    link_gap_outreach:  { label: 'outreach לפערי קישורים', icon: '🎯', color: '#1E3A8A', bg: '#DBEAFE' },
+    anchor_remediation: { label: 'תיקון anchor distribution', icon: '⚓', color: '#7C2D12', bg: '#FED7AA' },
+    spam_disavow:       { label: 'disavow קישורי ספאם', icon: '🚫', color: '#991B1B', bg: '#FEE2E2' },
+    other:              { label: 'אחר', icon: '•', color: '#374151', bg: '#F3F4F6' }
+  };
+  var html = '<div style="margin:8px 0">';
+  // Top stats: count by type + by priority
+  var counts = { high: 0, medium: 0, low: 0 };
+  records.forEach(function(r) { counts[r.priority || 'low']++; });
+  html += '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap">'
+    + '<span><strong>' + records.length + '</strong> משימות</span>'
+    + '<span style="color:#10B981">●' + counts.high + ' high</span>'
+    + '<span style="color:#F59E0B">●' + counts.medium + ' medium</span>'
+    + '<span style="color:#9CA3AF">●' + counts.low + ' low</span>'
+    + '</div>';
+
+  Object.keys(byType).forEach(function(t) {
+    var meta = TYPE_META[t] || TYPE_META.other;
+    var items = byType[t].sort(function(a, b) {
+      var pri = { high: 0, medium: 1, low: 2 };
+      return (pri[a.priority] || 3) - (pri[b.priority] || 3);
+    });
+    html += '<details open style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:8px">'
+      + '<summary style="cursor:pointer;padding:10px 14px;background:' + meta.bg + ';border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center">'
+      +   '<strong style="font-size:0.84rem;color:' + meta.color + '">' + meta.icon + ' ' + meta.label + '</strong>'
+      +   '<span style="font-size:0.7rem;color:' + meta.color + '">' + items.length + ' משימות</span>'
+      + '</summary>'
+      + '<div style="padding:6px 14px 10px">'
+      +   items.map(renderLinkAuditRow).join('')
+      + '</div></details>';
+  });
+  return html + '</div>';
+}
+
+function renderLinkAuditRow(r) {
+  var priColor = r.priority === 'high' ? '#10B981' : r.priority === 'medium' ? '#F59E0B' : '#9CA3AF';
+  return '<div style="border-top:1px solid #F3F4F6;padding:8px 0;font-size:0.8rem">'
+    + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;flex-wrap:wrap">'
+    +   '<div style="flex:1;min-width:0">'
+    +     '<strong style="direction:ltr">' + escapeHtml(r.domain || '—') + '</strong>'
+    +     (r.current_rank != null ? ' <span style="font-size:0.7rem;color:#6B7280">rank ' + r.current_rank + '</span>' : '')
+    +     ' <span style="font-size:0.66rem;color:' + priColor + ';background:#F3F4F6;padding:1px 5px;border-radius:3px">' + escapeHtml(r.priority || '—') + '</span>'
+    +     (r._metric ? '<div style="font-size:0.7rem;color:#6B7280;margin-top:2px">' + escapeHtml(r._metric) + ': <strong>' + escapeHtml(String(r._metric_value || '—')) + '</strong></div>' : '')
+    +   '</div>'
+    +   '<div style="text-align:left;direction:ltr;font-size:0.7rem;color:#374151;flex-shrink:0">'
+    +     (r.estimated_effort_hours ? '<div>' + r.estimated_effort_hours + 'h</div>' : '')
+    +     (r.timeline ? '<div style="font-size:0.66rem;color:#6B7280">' + escapeHtml(r.timeline) + '</div>' : '')
+    +   '</div>'
+    + '</div>'
+    + (r.outreach_angle ? '<div style="font-size:0.74rem;color:#374151;margin-top:4px;line-height:1.5">' + escapeHtml(r.outreach_angle) + '</div>' : '')
+    + (r.owner ? '<div style="font-size:0.66rem;color:#6B7280;margin-top:2px">owner: ' + escapeHtml(r.owner) + '</div>' : '')
+    + (r.evidence && r.evidence.length ? '<div style="margin-top:2px;font-size:0.62rem;color:#9CA3AF">evidence: ' + r.evidence.map(escapeHtml).join(', ') + '</div>' : '')
     + '</div>';
 }
 

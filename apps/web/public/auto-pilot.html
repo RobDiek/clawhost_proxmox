@@ -4,19 +4,24 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>ניהול שיווק — ClawFlow</title>
-<meta name="description" content="ניהול שיווק מקצועי עם סוכני AI. תצורה חד-פעמית ב-₪1,750, או אוטופילוט מלא — הקמה + ניהול שוטף."/>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-<link rel="alternate icon" href="/favicon.ico"/>
+<meta name="description" content="ניהול שיווק מקצועי עם 10 סוכני AI. שירות עצמי מ-₪169/חודש, או אוטופילוט מלא — הקמה + ניהול שוטף ע״י המומחים שלנו."/>
+<link rel="icon" href="/favicon.ico?v=cf2"/>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=cf2"/>
 <!-- No Google Fonts: brand uses native Arial / Arial Hebrew per CLAUDE.md typography rule -->
 
 <style>
 * { margin:0; padding:0; box-sizing:border-box; font-family: Arial, 'Arial Hebrew', Helvetica, sans-serif !important; }
-html { font-feature-settings: "kern" 1, "liga" 1; }
+html { font-feature-settings: "kern" 1, "liga" 1; overflow-x: hidden; }
 body {
   background:#fff; color:#1F2937; line-height:1.6;
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  padding-top: 64px;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
+img, video, iframe, table, code, pre { max-width: 100%; }
+@media(max-width: 768px) { body { padding-top: 56px; } }
 /* Force identical rendering for all headings + card titles to avoid Latin/Hebrew glyph drift */
 h1, h2, h3, h4, h5, h6, .card-name, .price, .hero-h1, .hero-eyebrow, .pricing-head h2, .pricing-eyebrow .label {
   font-family: Arial, 'Arial Hebrew', Helvetica, sans-serif !important;
@@ -26,39 +31,139 @@ h1, h2, h3, h4, h5, h6, .card-name, .price, .hero-h1, .hero-eyebrow, .pricing-he
 a { color:#2563EB; text-decoration:none; }
 .wrap { max-width:1080px; margin:0 auto; padding:0 20px; }
 
-/* ── Unified site header — matches clawflow.flowmatic.co.il index.html exactly ── */
-.cf-hdr { background:#fff; border-bottom:1px solid #E5E7EB; height:52px; position:sticky; top:0; z-index:100; }
-.cf-hdr-inner { max-width:1100px; margin:0 auto; padding:0 24px; display:flex; align-items:center; height:100%; gap:16px; }
-.cf-logo { display:flex; align-items:center; flex-shrink:0; }
-.cf-logo img { height:28px; width:auto; display:block; }
-.cf-nav { display:flex; align-items:center; gap:14px; margin-right:auto; }
-.cf-nav a { font-size:0.82rem; color:#4B5563; transition:color .15s; cursor:pointer; padding:0; }
-.cf-nav a:hover { color:#2563EB; }
-.cf-nav a.active { color:#2563EB; font-weight:600; }
-.cf-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
-.cf-login { font-size:12px; color:#4B5563; padding:4px 12px; border:1px solid #E5E7EB; border-radius:6px; transition:all .15s; }
-.cf-login:hover { border-color:#2563EB; color:#2563EB; }
-@media(max-width:600px) {
-  .cf-hdr { height:auto; padding:8px 0; }
-  .cf-hdr-inner { flex-wrap:wrap; gap:6px; padding:0 12px; }
-  .cf-logo img { height:22px; }
-  .cf-nav { order:3; width:100%; justify-content:center; padding-top:6px; border-top:1px solid #E5E7EB; margin-top:4px; gap:10px; margin-right:0; }
-  .cf-nav a { font-size:0.75rem; }
-  .cf-login { font-size:11px; padding:3px 10px; }
+/* ── Unified site header — premium glass + gradient accent ── */
+.cf-hdr {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+  height: 64px; position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+}
+.cf-hdr::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #2563EB 0%, #7C3AED 50%, #2563EB 100%);
+  opacity: 0.85;
+}
+.cf-hdr-inner { max-width: 1180px; margin: 0 auto; padding: 0 28px; display: flex; align-items: center; height: 100%; gap: 18px; }
+.cf-logo { display: flex; align-items: center; flex-shrink: 0; transition: transform .15s; }
+.cf-logo:hover { transform: scale(1.02); }
+.cf-logo img { height: 32px; width: auto; display: block; }
+.cf-nav { display: flex; align-items: center; gap: 6px; margin-right: auto; }
+.cf-nav a {
+  font-size: 0.88rem; font-weight: 500; color: #4B5563;
+  transition: all .18s ease; cursor: pointer;
+  padding: 8px 14px; border-radius: 8px; position: relative;
+}
+.cf-nav a:hover { color: #2563EB; background: rgba(239, 246, 255, 0.6); }
+.cf-nav a.active { color: #2563EB; font-weight: 600; background: #EFF6FF; }
+.cf-nav a.active::after {
+  content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+  width: 18px; height: 2px; background: #2563EB; border-radius: 2px;
+}
+.cf-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.cf-login {
+  font-size: 0.85rem; font-weight: 600; color: #4B5563;
+  padding: 8px 18px; border: 1.5px solid #E5E7EB; border-radius: 9px;
+  transition: all .18s ease; background: #fff;
+}
+.cf-login:hover { border-color: #2563EB; color: #2563EB; transform: translateY(-1px); box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.25); }
+.cf-cta {
+  font-size: 0.85rem; font-weight: 700; color: #fff;
+  padding: 8px 18px; border-radius: 9px;
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.45);
+  transition: all .18s ease;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.cf-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.55); }
+.cf-cta::after { content: '←'; font-size: 0.95rem; line-height: 1; }
+@media(max-width: 768px) {
+  .cf-hdr { height: 52px; padding: 0; }
+  .cf-hdr-inner { flex-wrap: nowrap; gap: 8px; padding: 0 14px; height: 100%; align-items: center; justify-content: space-between; }
+  .cf-logo img { height: 24px; }
+  .cf-nav { display: none; }
+  .cf-actions { gap: 6px; }
+  .cf-login { font-size: 0.78rem; padding: 6px 12px; border-width: 1px; }
+  .cf-cta { display: none; }
+  .cf-burger { display: inline-flex !important; }
 }
 
-/* ═══ Hero — emotional anchor (safety / professionalism / economy) ═══ */
+/* ── Mobile burger + slide-down nav drawer ─────────────────────────────
+   Hidden on desktop (cf-nav handles desktop), visible on mobile (<=768).
+   The base `.cf-burger { display: none }` rule below comes AFTER the @media
+   rule above — without !important on the @media variant, this one wins
+   (CSS cascade last-rule-wins at equal specificity), so the burger never
+   shows on mobile. !important on the @media rule fixes it. */
+.cf-burger {
+  display: none; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 9px;
+  background: #fff; border: 1.5px solid #E5E7EB;
+  cursor: pointer; padding: 0; flex-shrink: 0;
+  transition: border-color .15s, background .15s;
+}
+.cf-burger:hover { border-color: #2563EB; background: #EFF6FF; }
+.cf-burger svg { width: 18px; height: 18px; color: #4B5563; }
+.cf-drawer-bg {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4);
+  z-index: 998; opacity: 0; pointer-events: none;
+  transition: opacity .2s ease;
+}
+.cf-drawer-bg.open { opacity: 1; pointer-events: auto; }
+.cf-drawer {
+  position: fixed; top: 52px; left: 0; right: 0; z-index: 999;
+  background: #fff; border-bottom: 1px solid #E5E7EB;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  transform: translateY(-12px); opacity: 0; pointer-events: none;
+  transition: transform .25s ease, opacity .2s ease;
+  padding: 14px 20px 18px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cf-drawer.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+.cf-drawer a {
+  display: flex; align-items: center; padding: 12px 14px;
+  font-size: 0.95rem; font-weight: 500; color: #1F2937;
+  border-radius: 9px; transition: background .15s;
+  border-bottom: 1px solid #F3F4F6;
+}
+.cf-drawer a:last-child { border-bottom: none; }
+.cf-drawer a:hover, .cf-drawer a.active { background: #EFF6FF; color: #2563EB; }
+.cf-drawer a.active { font-weight: 600; }
+.cf-drawer .cf-drawer-cta {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8); color: #fff !important;
+  text-align: center; justify-content: center; margin-top: 10px;
+  border-bottom: none !important; box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.45);
+  padding: 13px 14px;
+}
+.cf-drawer .cf-drawer-cta:hover { background: linear-gradient(135deg, #1D4ED8, #1E40AF); color: #fff !important; }
+
+/* ═══ Hero — full-viewport, emotional anchor ═══ */
 .hero-section {
   background: radial-gradient(ellipse 1200px 600px at 50% -30%, rgba(37,99,235,0.08), transparent 60%),
               linear-gradient(180deg, #FAFBFF 0%, #ffffff 100%);
   border-bottom: 1px solid #EEF2F7;
-  padding: 64px 0 56px;
+  min-height: calc(100vh - 64px);
+  display: flex; align-items: center;
+  padding: 40px 0;
 }
 .hero-grid {
-  max-width: 1080px; margin: 0 auto; padding: 0 24px;
+  max-width: 1180px; width: 100%; margin: 0 auto; padding: 0 24px;
   display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center;
 }
-@media(max-width:900px) { .hero-grid { grid-template-columns: 1fr; gap: 32px; } }
+@media(max-width: 900px) {
+  .hero-section { min-height: auto; padding: 32px 0 40px; }
+  .hero-grid { grid-template-columns: 1fr; gap: 24px; padding: 0 16px; }
+}
+@media(max-width: 600px) {
+  .hero-section { padding: 24px 0 32px; }
+  .hero-h1 { font-size: clamp(1.6rem, 7vw, 2.2rem) !important; line-height: 1.2 !important; }
+  .hero-lead { font-size: 0.95rem !important; line-height: 1.65 !important; }
+  .trust-row { grid-template-columns: 1fr !important; gap: 12px !important; padding-top: 18px !important; margin-top: 22px !important; }
+  .trust-cell { font-size: 0.82rem !important; }
+  .trust-cell strong { font-size: 0.92rem !important; }
+}
+@media(max-height: 720px) and (min-width: 901px) {
+  .hero-section { min-height: auto; padding: 48px 0; }
+}
 .hero-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
   background: #fff; border: 1px solid #DBEAFE;
@@ -71,6 +176,8 @@ a { color:#2563EB; text-decoration:none; }
   font-size: clamp(2rem, 4.4vw, 2.9rem);
   font-weight: 700; line-height: 1.15; letter-spacing: -0.8px;
   color: #0B1322; margin-bottom: 14px;
+  text-wrap: balance;          /* spreads words across lines evenly — no single-word orphan line */
+  -webkit-text-wrap: balance;
 }
 .hero-h1 em { font-style: normal; color: #2563EB; }
 .hero-lead {
@@ -78,23 +185,44 @@ a { color:#2563EB; text-decoration:none; }
   max-width: 540px;
 }
 .trust-row {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
-  margin-top: 26px; padding-top: 22px; border-top: 1px solid #E5E7EB;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px;
+  margin-top: 30px; padding-top: 24px; border-top: 1px solid #E5E7EB;
 }
-.trust-cell { font-size: 0.84rem; color: #4B5563; line-height: 1.5; }
-.trust-cell strong { display: block; color: #0B1322; font-weight: 700; font-size: 0.92rem; margin-bottom: 2px; }
+.trust-cell {
+  font-size: 0.85rem; color: #4B5563; line-height: 1.55;
+  padding-inline-start: 14px; position: relative;
+}
+.trust-cell::before {
+  content: ''; position: absolute; right: 0; top: 4px; bottom: 4px;
+  width: 3px; border-radius: 2px;
+  background: linear-gradient(180deg, #2563EB, #7C3AED);
+}
+.trust-cell strong {
+  display: block; color: #0B1322; font-weight: 700;
+  font-size: 0.96rem; margin-bottom: 4px; letter-spacing: -0.2px;
+}
+@media(max-width:900px) {
+  .trust-row { grid-template-columns: 1fr; gap: 14px; }
+}
 
 /* Video placeholder */
 .video-frame {
   position: relative;
-  aspect-ratio: 16/9;
+  aspect-ratio: 9/16;
+  max-width: 100%;
+  width: auto;
+  height: min(78vh, 640px);
+  margin: 0 auto;
   background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
-  border-radius: 18px;
+  border-radius: 22px;
   overflow: hidden;
   box-shadow: 0 30px 80px -20px rgba(15,23,42,0.5), 0 12px 30px -10px rgba(37,99,235,0.18);
   border: 1px solid rgba(37,99,235,0.2);
   cursor: pointer;
   transition: transform .25s, box-shadow .25s;
+}
+@media(max-width: 900px) {
+  .video-frame { height: auto; max-width: 360px; }
 }
 .video-frame:hover { transform: translateY(-3px); box-shadow: 0 38px 90px -20px rgba(15,23,42,0.55), 0 16px 36px -10px rgba(37,99,235,0.25); }
 .video-frame::before {
@@ -105,27 +233,66 @@ a { color:#2563EB; text-decoration:none; }
 }
 .video-play {
   position: absolute; inset: 0; display: grid; place-items: center; z-index: 2;
+  pointer-events: none;
 }
+/* Use display:none for hidden state — opacity transition was leaving a ghost
+   click target during fade and felt laggy. Now: instant disappear on play. */
+.video-play.cf-hidden { display: none !important; }
 .video-play-btn {
-  width: 78px; height: 78px; border-radius: 50%;
-  background: rgba(255,255,255,0.96); display: grid; place-items: center;
-  box-shadow: 0 18px 50px rgba(0,0,0,0.3);
+  width: 88px; height: 88px;
+  display: grid; place-items: center;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.45));
   transition: transform .25s;
 }
 .video-frame:hover .video-play-btn { transform: scale(1.06); }
+/* Triangle play icon — pure shape, no white circle background */
 .video-play-btn::after {
   content: ''; width: 0; height: 0;
-  border-style: solid; border-width: 14px 0 14px 22px;
-  border-color: transparent transparent transparent #2563EB;
-  margin-right: -4px;
+  border-style: solid; border-width: 26px 0 26px 40px;
+  border-color: transparent transparent transparent #fff;
+  margin-right: -6px;
 }
+
+/* Custom pause button — shown only on hover while playing.
+   IMPORTANT: scoped to (hover: hover) media query so it ONLY applies on devices
+   with a real cursor. On touch devices, :hover gets stuck after a tap and the
+   pause button stays glued to the screen forever. Without this guard the user
+   sees the pause icon overlaid on the playing video on mobile permanently. */
+.video-pause {
+  position: absolute; inset: 0; display: grid; place-items: center; z-index: 2;
+  pointer-events: none; opacity: 0; transition: opacity .2s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .video-frame.cf-playing:hover .video-pause { opacity: 1; }
+}
+.video-pause-btn {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(255,255,255,0.92);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+}
+.video-pause-btn span {
+  display: block; width: 6px; height: 22px; background: #2563EB; border-radius: 2px;
+}
+
 .video-label {
-  position: absolute; bottom: 18px; left: 18px; right: 18px; z-index: 2;
-  text-align: center;
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  z-index: 2; text-align: center; pointer-events: none;
   color: #fff; font-size: 0.86rem; font-weight: 500;
   background: rgba(2,6,23,0.55); backdrop-filter: blur(6px);
   padding: 8px 18px; border-radius: 999px;
-  display: inline-block; margin: 0 auto;
+  white-space: nowrap; transition: opacity .2s ease;
+}
+.video-label.cf-hidden { display: none !important; }
+
+/* Slim progress bar at the very bottom */
+.video-progress {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background: rgba(255,255,255,0.15); z-index: 3; pointer-events: none;
+}
+.video-progress-fill {
+  height: 100%; width: 0; background: #2563EB;
+  transition: width .15s linear;
 }
 
 /* ═══ Bullet section labels (used inside Self-Service card to convey 3-stage substance) ═══ */
@@ -190,8 +357,8 @@ a { color:#2563EB; text-decoration:none; }
 .pricing-head p { font-size: 1rem; color: #6B7280; line-height: 1.7; }
 
 .cards-wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
-.cards { display: grid; grid-template-columns: 1fr 1.05fr 1fr; gap: 18px; align-items: stretch; }
-@media(max-width: 980px) { .cards { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch; }
+@media(max-width: 880px) { .cards { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
 
 /* ── Card base ── */
 .card {
@@ -202,7 +369,7 @@ a { color:#2563EB; text-decoration:none; }
 }
 .card:hover { transform: translateY(-3px); border-color: #DBEAFE; box-shadow: 0 18px 40px -14px rgba(37, 99, 235, 0.18); }
 
-/* ── Featured (תצורה) ── */
+/* ── Featured (אוטופילוט) ── */
 .card.pop {
   background: linear-gradient(180deg, #FFFFFF 0%, #F4F8FF 100%);
   border: 2px solid #2563EB;
@@ -240,15 +407,19 @@ a { color:#2563EB; text-decoration:none; }
 /* ── Inline info button ( ? icon at end of bullet ) ── */
 .info-btn {
   flex-shrink: 0;
-  width: 16px; height: 16px;
+  width: 18px; height: 18px;
   border-radius: 50%; border: 1px solid #D1D5DB;
   background: #fff; color: #6B7280;
-  font-size: 0.66rem; font-weight: 700; line-height: 1;
-  display: inline-grid; place-items: center;
+  font-size: 0.72rem; font-weight: 700; line-height: 16px;
+  display: inline-flex; align-items: center; justify-content: center;
   cursor: help; transition: all .15s; padding: 0;
-  position: relative; margin-top: 2px;
+  position: relative; margin-top: 1px;
+  margin-inline-start: 8px;
+  font-family: Arial, 'Arial Hebrew', Helvetica, sans-serif;
+  text-align: center;
+  vertical-align: middle;
 }
-.info-btn::before { content: '?'; }
+.info-btn::before { content: '?'; display: block; line-height: 1; }
 .info-btn:hover { border-color: #2563EB; color: #2563EB; background: #EFF6FF; }
 
 /* When info-btn is hovered, lift the entire card above all sibling cards (incl. .pop with z-index:2) */
@@ -345,14 +516,54 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
 .form button { width:100%; padding:13px; background:#2563EB; color:#fff; border:none; border-radius:10px; font-size:0.95rem; font-weight:700; cursor:pointer; font-family:inherit; }
 .form button:hover { background:#1D4ED8; }
 
-/* FAQ */
-.faq { margin:48px 0; }
-.faq h2 { text-align:center; font-size:1.25rem; font-weight:700; margin-bottom:20px; }
-.faq-item { border-bottom:1px solid #E5E7EB; }
-.faq-q { padding:14px 0; font-weight:600; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-size:0.9rem; }
-.faq-q::after { content:"+"; font-size:1.1rem; color:#9CA3AF; transition:transform .2s; }
-.faq-q.open::after { transform:rotate(45deg); }
-.faq-a { display:none; padding:0 0 14px; color:#6B7280; font-size:0.85rem; line-height:1.7; }
+/* ═══ FAQ — detailed, replaces old onboarding box ═══ */
+.faq-section { background: #FAFBFF; border-top: 1px solid #EEF2F7; padding: 72px 0 64px; }
+.faq-head { text-align: center; max-width: 760px; margin: 0 auto 40px; padding: 0 24px; }
+.faq-eyebrow { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #2563EB; padding: 4px 12px; background: #EFF6FF; border-radius: 999px; margin-bottom: 14px; }
+.faq-head h2 { font-size: clamp(1.7rem, 3.4vw, 2.15rem); font-weight: 700; letter-spacing: -0.5px; color: #0B1322; margin-bottom: 12px; line-height: 1.25; }
+.faq-head p { font-size: 1rem; color: #6B7280; line-height: 1.7; }
+.faq-list { max-width: 880px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 10px; }
+.faq-item {
+  background: #fff; border: 1px solid #E5E7EB; border-radius: 14px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.faq-item:hover { border-color: #DBEAFE; }
+.faq-item[open] { border-color: #BFDBFE; box-shadow: 0 8px 24px -10px rgba(37,99,235,0.18); }
+.faq-q {
+  list-style: none; cursor: pointer;
+  padding: 18px 22px; font-weight: 600; font-size: 0.98rem; color: #0B1322;
+  display: flex; align-items: center; gap: 14px;
+  line-height: 1.45;
+}
+.faq-q::-webkit-details-marker { display: none; }
+.faq-q::after {
+  content: "+"; flex-shrink: 0; margin-inline-start: auto;
+  width: 24px; height: 24px; border-radius: 50%; background: #EFF6FF; color: #2563EB;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem; font-weight: 600; line-height: 1;
+  transition: transform .2s ease, background .2s ease;
+}
+.faq-item[open] .faq-q::after { transform: rotate(45deg); background: #2563EB; color: #fff; }
+.faq-a {
+  padding: 0 22px 20px; color: #4B5563; font-size: 0.92rem; line-height: 1.75;
+  border-top: 1px solid #F3F4F6; padding-top: 16px; margin: 0 0 0;
+}
+.faq-a p { margin-bottom: 12px; }
+.faq-a p:last-child { margin-bottom: 0; }
+.faq-a strong { color: #0B1322; font-weight: 600; }
+.faq-a ul { margin: 8px 0 12px; padding-inline-start: 18px; }
+.faq-a ul li { margin-bottom: 6px; }
+.faq-a code { background: #F1F5F9; padding: 1px 6px; border-radius: 4px; font-size: 0.86em; color: #1E40AF; }
+.faq-cta { text-align: center; margin-top: 36px; }
+.faq-cta > a { display: inline-block; padding: 12px 28px; background: #2563EB; color: #fff; border-radius: 10px; font-weight: 700; font-size: 0.92rem; transition: all .15s; }
+.faq-cta > a:hover { background: #1D4ED8; transform: translateY(-1px); box-shadow: 0 8px 22px -8px rgba(37,99,235,0.5); }
+.faq-cta-note { font-size: 0.88rem; color: #6B7280; margin-top: 16px; background: transparent; padding: 0; }
+.faq-cta-note a { display: inline; padding: 0; background: transparent; color: #2563EB; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; box-shadow: none; border-radius: 0; }
+.faq-cta-note a:hover { color: #1D4ED8; background: transparent; transform: none; box-shadow: none; }
+@media(max-width: 600px) {
+  .faq-q { padding: 16px 18px; font-size: 0.92rem; }
+  .faq-a { padding: 14px 18px 18px; font-size: 0.88rem; }
+}
 
 /* Legacy footer (small) */
 .ftr { border-top:1px solid #E5E7EB; padding:20px 0; margin-top:48px; text-align:center; font-size:0.78rem; color:#9CA3AF; }
@@ -387,40 +598,64 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
     <nav class="cf-nav">
       <a href="/">דף הבית</a>
       <a href="/auto-pilot" class="active">ניהול שיווק</a>
-      <a href="/about">תיעוד</a>
     </nav>
     <div class="cf-actions">
       <a href="/login" class="cf-login">כניסה</a>
+      <a href="/register" class="cf-cta">התחילו עכשיו</a>
+      <button class="cf-burger" aria-label="תפריט" onclick="cfToggleDrawer(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
     </div>
   </div>
 </header>
+<div class="cf-drawer-bg" id="cfDrawerBg" onclick="cfCloseDrawer()"></div>
+<nav class="cf-drawer" id="cfDrawer">
+  <a href="/">דף הבית</a>
+  <a href="/auto-pilot" class="active">ניהול שיווק</a>
+  <a href="/login">כניסה</a>
+  <a href="/register" class="cf-drawer-cta">התחילו עכשיו ←</a>
+</nav>
+<script>
+function cfToggleDrawer(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('cfDrawer').classList.toggle('open');
+  document.getElementById('cfDrawerBg').classList.toggle('open');
+}
+function cfCloseDrawer() {
+  document.getElementById('cfDrawer').classList.remove('open');
+  document.getElementById('cfDrawerBg').classList.remove('open');
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') cfCloseDrawer(); });
+</script>
 
 <!-- ═══ Hero ═══ -->
 <section class="hero-section">
   <div class="hero-grid">
     <div>
-      <h1 class="hero-h1">שיווק דיגיטלי וקידום מקצועי<br/>על <em>אוטופילוט</em>.</h1>
-      <p class="hero-lead">10 סוכני AI עובדים על העסק שלכם 24/7 — תוכן, פרסום, קידום אורגני, אימיילים, רשתות חברתיות. <strong>אתם או אנחנו</strong> (תלוי במסלול) מבקרים את העבודה, מכוונים את האסטרטגיה ושומרים על התקציב. אתם מקבלים תוצאות, לא חשבוניות מפחידות.</p>
+      <h1 class="hero-h1">שיווק דיגיטלי וקידום מקצועי על&nbsp;<em>אוטופילוט</em>.</h1>
+      <p class="hero-lead">10 סוכני AI עובדים על העסק שלכם 24/7 — תוכן, פרסום, קידום אורגני, אימיילים, רשתות חברתיות. <strong>אתם או אנחנו</strong> (תלוי במסלול) מבקרים את העבודה, מכוונים את האסטרטגיה ושומרים על התקציב. שקיפות מלאה בכל שלב.</p>
       <div class="trust-row">
         <div class="trust-cell">
-          <strong>איכות סוכנות</strong>
-          ביצוע ברמה הגבוהה ביותר — ללא תקורה מיותרת
+          <strong>בעלות מלאה — לא בני ערובה</strong>
+          הפלטפורמה רצה על שרת ענן <em>שלכם</em>. החשבונות, המפתחות והנתונים — שלכם. אתם לא תלויים באף אחד. גם לא בנו.
         </div>
         <div class="trust-cell">
-          <strong>שקיפות מלאה</strong>
-          כל תשואה, כל קליק, כל שקל — בלוח בקרה זמין 24/7
-        </div>
-        <div class="trust-cell">
-          <strong>בכ-15% ממחיר השוק</strong>
-          ללא עמלות נסתרות על תקציב הפרסום
+          <strong>תוכנן בישראל, מותאם כלכלית</strong>
+          בנוי במכוון לשוק הישראלי, רץ על המודלים המתקדמים בעולם, אך עם אופטימיזציה אמיתית של עלויות AI.
         </div>
       </div>
     </div>
     <div>
-      <div class="video-frame" id="hero-video" onclick="window._heroVideoStart && window._heroVideoStart(this)">
-        <!-- Replace this comment with <video src="/intro.mp4"> or <iframe ...> when ready -->
-        <div class="video-play"><div class="video-play-btn"></div></div>
-        <div class="video-label" style="left:50%;right:auto;transform:translateX(-50%);min-width:max-content">סרטון היכרות — לחצו לצפייה</div>
+      <div class="video-frame" id="hero-video" onclick="cfToggleVideo(event)">
+        <video id="cf-hero-video" preload="metadata" playsinline poster="/cf-poster.jpg?v=1" style="width:100%;height:100%;object-fit:cover;display:block;background:#0F172A;pointer-events:none;">
+          <source src="/cf.mp4?v=1" type="video/mp4">
+        </video>
+        <div class="video-play" id="cf-hero-play"><div class="video-play-btn"></div></div>
+        <div class="video-pause" id="cf-hero-pause" aria-hidden="true">
+          <div class="video-pause-btn"><span></span><span></span></div>
+        </div>
+        <div class="video-label" id="cf-hero-label">סרטון היכרות — לחצו לצפייה</div>
+        <div class="video-progress"><div class="video-progress-fill" id="cf-hero-progress"></div></div>
       </div>
     </div>
   </div>
@@ -430,8 +665,8 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
 <section class="pricing-section">
   <div class="pricing-head">
     <span class="pricing-eyebrow">מחירון</span>
-    <h2>בחרו את הקצב שמתאים לכם</h2>
-    <p>אותם 10 סוכני AI. אותו לוח בקרה. ההבדל היחיד — כמה אנחנו ניטול בידיים.</p>
+    <h2>בחרו את הקצב<br/>שמתאים לכם</h2>
+    <p>אותם 10 סוכני AI ואותו לוח בקרה בשני המסלולים. ההבדל — מידת המעורבות שלנו בניהול היומיומי.</p>
   </div>
 
   <div class="cards-wrap">
@@ -445,7 +680,7 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
         </header>
         <div class="price-block">
           <div class="price-row">
-            <span class="price-num">₪139</span>
+            <span class="price-num">₪169</span>
             <span class="price-unit">/חודש</span>
           </div>
           <div class="price-secondary"><strong>ללא דמי הקמה</strong> · ביטול בכל עת</div>
@@ -454,71 +689,37 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
         <ul class="bullets">
 
           <li class="group-label g1">מבינים את הברנד</li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>מערכת בניית ספר מותג</strong> — סורקת את האתר שלכם, מחלצת צבעים, פונטים, לוגו וקול הברנד<button class="info-btn" type="button">‏<span class="info-tip">סריקה אוטומטית של האתר. ניתוח של עד 12 ציטוטים לזיהוי קול הברנד. אישור או החלפה ידנית של כל אלמנט. ספר מותג מלא ב-PDF — מקור האמת לכל 10 הסוכנים</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">10 סוכני AI מקצועיים מותקנים מהיום הראשון — מבוססים על OpenClaw + Claude<button class="info-btn" type="button">‏<span class="info-tip">OpenClaw — פלטפורמת סוכני AI בקוד פתוח (רישיון MIT). כל סוכן מבוסס על מודל AI מתקדם של Anthropic, עם בחירה אוטומטית של דגם לפי מורכבות המשימה</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>מערכת בניית ספר מותג</strong> — סורקת את האתר שלכם, מחלצת צבעים, פונטים, לוגו וקול הברנד<button class="info-btn" type="button"><span class="info-tip">סריקה אוטומטית של האתר. ניתוח של עד 12 ציטוטים לזיהוי קול הברנד. אישור או החלפה ידנית של כל אלמנט. ספר מותג מלא ב-PDF — מקור האמת לכל 10 הסוכנים</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">10 סוכני AI מקצועיים מותקנים מהיום הראשון — מבוססים על OpenClaw + Claude<button class="info-btn" type="button"><span class="info-tip">OpenClaw — פלטפורמת סוכני AI בקוד פתוח (רישיון MIT). כל סוכן מבוסס על מודל AI מתקדם של Anthropic, עם בחירה אוטומטית של דגם לפי מורכבות המשימה</span></button></div></li>
 
           <li class="group-label g2">בונים אסטרטגיה מבוססת דאטה</li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">כלי מחקר מקצועיים זמינים: <strong>DataForSEO</strong>, <strong>Firecrawl</strong>, Search Console<button class="info-btn" type="button">‏<span class="info-tip">DataForSEO — מאות מיליוני שאילתות חיפוש. Firecrawl — סורק אתרי מתחרים אוטומטית. Google Search Console — נתוני קידום אורגני רשמיים מגוגל</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>Mazhir Audit</strong> — בדיקת מצב מקיפה לפרסום הממומן שלכם, ב-לחיצה<button class="info-btn" type="button">‏<span class="info-tip">סריקה אוטומטית של מצב Google Ads ו-Meta הקיים: היכן הקליקים מתבזבזים, האם ההמרות נמדדות נכון, תשואה אמיתית לפי ערוץ. דוח כתוב</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>ביקורת SEO פנימית של האתר</strong> — meta tags, schema, alt texts, מהירות טעינה<button class="info-btn" type="button">‏<span class="info-tip">הסוכן סורק את כל דפי האתר שלכם, מאתר חוסרים בכותרות meta, סכמת מטא-דאטה חסרה, תמונות ללא alt text, בעיות מהירות. דוח עם רשימת תיקונים מסודרת לפי עדיפות</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">כלי מחקר מקצועיים זמינים: <strong>DataForSEO</strong>, <strong>Firecrawl</strong>, Search Console<button class="info-btn" type="button"><span class="info-tip">DataForSEO — מאות מיליוני שאילתות חיפוש. Firecrawl — סורק אתרי מתחרים אוטומטית. Google Search Console — נתוני קידום אורגני רשמיים מגוגל</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>Mazhir Audit</strong> — בדיקת מצב מקיפה לפרסום הממומן שלכם, ב-לחיצה<button class="info-btn" type="button"><span class="info-tip">סריקה אוטומטית של מצב Google Ads ו-Meta הקיים: היכן הקליקים מתבזבזים, האם ההמרות נמדדות נכון, תשואה אמיתית לפי ערוץ. דוח כתוב</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>ביקורת SEO פנימית של האתר</strong> — meta tags, schema, alt texts, מהירות טעינה<button class="info-btn" type="button"><span class="info-tip">הסוכן סורק את כל דפי האתר שלכם, מאתר חוסרים בכותרות meta, סכמת מטא-דאטה חסרה, תמונות ללא alt text, בעיות מהירות. דוח עם רשימת תיקונים מסודרת לפי עדיפות</span></button></div></li>
           <li class="bullet"><span class="check-icon"></span><div class="bullet-text">כל החיבורים: GA4, Google Tag Manager, Google Ads, Meta Ads, WhatsApp, Telegram, Gmail, Google Calendar</div></li>
 
           <li class="group-label g3">הסוכנים מבצעים — אתם בקרה</li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>סוכן Publishing</strong> מתחבר ישירות לאתר ומפרסם מאמרים ופוסטים<button class="info-btn" type="button">‏<span class="info-tip">חיבור ישיר ל-WordPress, Wix, Webflow, Shopify או CMS מותאם. הסוכן מפרסם מאמרים, פוסטים ועדכונים ישירות לאתר — עם כל ה-meta tags והתמונות במקום. ללא העתקה והדבקה ידנית</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>סוכן Analytics</strong> מתקין ומתחזק GA4, GTM ומעקב המרות אוטומטית<button class="info-btn" type="button">‏<span class="info-tip">הסוכן מטפל בקוד המעקב באתר. מתקין GA4 ו-GTM, מגדיר אירועי המרה (form submit, click-to-call, WhatsApp click, purchase), מאתר מעקב שבור ומתקן אותו אוטומטית</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>אופטימיזציה פנימית של האתר חודשית</strong> — meta, schema, internal linking<button class="info-btn" type="button">‏<span class="info-tip">סוכן ה-SEO סורק את האתר שלכם פעם בחודש: מעדכן כותרות meta לפי מילות מפתח חדשות, מוסיף schema markup לדפים חדשים, מקשר בין דפים בצורה אופטימלית, ממליץ על תיקוני מהירות</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">סוכן התוכן כותב מאמרי קידום אורגני בתהליך של 4 שלבים<button class="info-btn" type="button">‏<span class="info-tip">מבנה ראשוני ← 3 טיוטות במקביל ← בדיקת איכות ← ביקורת עצמית. כל מאמר עם סכמת מטא-דאטה, ציטוטים מוכנים ל-AI והתאמה לישויות גוגל — לאופטימיזציה לסיכום ה-AI של גוגל</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">סוכן הקריאייטיב מייצר תמונות, וידאו וקריינות עברית<button class="info-btn" type="button">‏<span class="info-tip">תמונות AI דרך מודלים מתקדמים של fal.ai (הכי טובים לטיפוגרפיה בעברית). קריינות עברית טבעית דרך ElevenLabs. כל יצירה עוברת בדיקת התאמה לקול הברנד</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>סוכן Publishing</strong> מתחבר ישירות לאתר ומפרסם מאמרים ופוסטים<button class="info-btn" type="button"><span class="info-tip">חיבור ישיר ל-WordPress, Wix, Webflow, Shopify או CMS מותאם. הסוכן מפרסם מאמרים, פוסטים ועדכונים ישירות לאתר — עם כל ה-meta tags והתמונות במקום. ללא העתקה והדבקה ידנית</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>סוכן Analytics</strong> מתקין ומתחזק GA4, GTM ומעקב המרות אוטומטית<button class="info-btn" type="button"><span class="info-tip">הסוכן מטפל בקוד המעקב באתר. מתקין GA4 ו-GTM, מגדיר אירועי המרה (form submit, click-to-call, WhatsApp click, purchase), מאתר מעקב שבור ומתקן אותו אוטומטית</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>אופטימיזציה פנימית של האתר חודשית</strong> — meta, schema, internal linking<button class="info-btn" type="button"><span class="info-tip">סוכן ה-SEO סורק את האתר שלכם פעם בחודש: מעדכן כותרות meta לפי מילות מפתח חדשות, מוסיף schema markup לדפים חדשים, מקשר בין דפים בצורה אופטימלית, ממליץ על תיקוני מהירות</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">סוכן התוכן כותב מאמרי קידום אורגני בתהליך של 4 שלבים<button class="info-btn" type="button"><span class="info-tip">מבנה ראשוני ← 3 טיוטות במקביל ← בדיקת איכות ← ביקורת עצמית. כל מאמר עם סכמת מטא-דאטה, ציטוטים מוכנים ל-AI והתאמה לישויות גוגל — לאופטימיזציה לסיכום ה-AI של גוגל</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">סוכן הקריאייטיב מייצר תמונות, וידאו וקריינות עברית<button class="info-btn" type="button"><span class="info-tip">תמונות AI דרך מודלים מתקדמים של fal.ai (הכי טובים לטיפוגרפיה בעברית). קריינות עברית טבעית דרך ElevenLabs. כל יצירה עוברת בדיקת התאמה לקול הברנד</span></button></div></li>
           <li class="bullet"><span class="check-icon"></span><div class="bullet-text">אתם מאשרים תוכן ומדיה לפני פרסום — שליטה מלאה</div></li>
 
           <li class="group-label" style="border-top: 1px solid #E5E7EB; margin-top: 14px; padding-top: 12px;">תנאי שימוש</li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>שרת VPS פרטי</strong> בענן Hetzner — SSL ודומיין ייחודי<button class="info-btn" type="button">‏<span class="info-tip">VPS — שרת פרטי בענן (Hetzner אירופה, עומד בתקן GDPR). לא חולקים אותו עם אחרים. הנתונים שלכם — בידיים שלכם בלבד</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">אתם משלמים ישירות לספקי ה-AI — ללא תוספת אחוזים מצידנו<button class="info-btn" type="button">‏<span class="info-tip">החיוב על השימוש ב-AI (Anthropic, OpenAI, fal.ai, ElevenLabs) הולך ישירות מכרטיס האשראי שלכם לספקים. אנחנו לא לוקחים עמלה. תשלמו רק על מה שבאמת השתמשתם</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>שרת VPS פרטי</strong> בענן Hetzner — SSL ודומיין ייחודי<button class="info-btn" type="button"><span class="info-tip">VPS — שרת פרטי בענן (Hetzner אירופה, עומד בתקן GDPR). לא חולקים אותו עם אחרים. הנתונים שלכם — בידיים שלכם בלבד</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">אתם משלמים ישירות לספקי ה-AI — ללא תוספת אחוזים מצידנו<button class="info-btn" type="button"><span class="info-tip">החיוב על השימוש ב-AI (Anthropic, OpenAI, fal.ai, ElevenLabs) הולך ישירות מכרטיס האשראי שלכם לספקים. אנחנו לא לוקחים עמלה. תשלמו רק על מה שבאמת השתמשתם</span></button></div></li>
           <li class="bullet"><span class="check-icon"></span><div class="bullet-text">תמיכה בצ'אט (טלגרם) בימי עסקים</div></li>
 
         </ul>
         <div class="cta-stack">
-          <button class="cta cta-line" onclick="window.location.href='/'">התחילו לבד ←</button>
+          <button class="cta cta-line" onclick="pick('self_service')">התחילו לבד ←</button>
           <a class="cta-link" href="https://flowmatic.co.il/" target="_blank" rel="noopener">רוצים ללמוד לעומק? <strong>צפו בקורס המקצועי שלנו</strong> →</a>
         </div>
       </article>
 
-      <!-- ── Card 2: Configuration (FEATURED, middle) ── -->
+      <!-- ── Card 2: Auto-pilot (FEATURED) ── -->
       <article class="card pop">
-        <header class="card-head">
-          <h3 class="card-name">תצורה</h3>
-          <p class="card-tagline">הקמה מקצועית מקצה לקצה. בסוף — 10 סוכני AI מבצעים את האסטרטגיה לבד.</p>
-        </header>
-        <div class="price-block">
-          <div class="price-row">
-            <span class="price-num">₪1,750</span>
-            <span class="price-unit">חד-פעמי</span>
-          </div>
-          <div class="price-secondary"><strong>ללא דמי חודש</strong> מצידנו לאחר המסירה</div>
-          <div class="price-fine">5–7 ימי עסקים עד מסירה מלאה</div>
-        </div>
-        <ul class="bullets">
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>שיחת גילוי</strong> 60 דקות (זום) + מיפוי מצב נוכחי<button class="info-btn" type="button">‏<span class="info-tip">מבינים את הקהל, המוצר, היעדים העסקיים, התקציב הזמין, והערוצים הפעילים היום — לפני שמתחילים</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>בניית ספר מותג מלא</strong> — סריקה אוטומטית של האתר וחילוץ DNA הברנד<button class="info-btn" type="button">‏<span class="info-tip">סריקת האתר וחילוץ צבעים, פונטים, לוגו, ניתוח 12 ציטוטים מהאתר לזיהוי קול הברנד. אישור או החלפה ידנית של כל אלמנט. ספר מותג מלא ב-PDF</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>בדיקת מצב פרסום ממומן</strong> (Mazhir Audit) — ביקורת מקיפה<button class="info-btn" type="button">‏<span class="info-tip">בדיקת מצב מלאה: היכן הקליקים מתבזבזים, האם המרות נמדדות נכון, האם מעקב המרות מותקן כראוי, תשואה אמיתית לפי ערוץ</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">מחקר SEO מקצועי + ניתוח 5 מתחרים<button class="info-btn" type="button">‏<span class="info-tip">מחקר מילות מפתח מבוסס DataForSEO. ניתוח עומק של 5 מתחרים מובילים בשוק שלכם דרך Firecrawl: על מה הם כותבים, איך הם מוצגים בגוגל, איפה ההזדמנויות שלכם</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">אסטרטגיית תוכן ל-3 חודשים — מותאמת למנועי חיפוש ולסיכומי AI<button class="info-btn" type="button">‏<span class="info-tip">לוח עריכה מלא ל-3 חודשים. כל מאמר מתוכנן עם סכמת מטא-דאטה לסיכויי הופעה בסיכום ה-AI של גוגל, ציטוטים מוכנים לשימוש במנועי AI, והתאמה לישויות גוגל להבנת ההקשר</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">קמפיין חיפוש בגוגל ראשון על האוויר<button class="info-btn" type="button">‏<span class="info-tip">חיבור Google Ads + GA4 + Search Console + GTM. הקמת קמפיין חיפוש עם מילות מפתח ממקור ראשון מהמחקר. הגדרת אסטרטגיית הצעה מותאמת</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">קמפיין קהלים דומים ב-Meta ראשון על האוויר<button class="info-btn" type="button">‏<span class="info-tip">חיבור פייסבוק ואינסטגרם. בניית קהלים דומים על בסיס הנתונים הקיימים שלכם. ניתוח קריאייטיבים מנצחים של מתחרים דרך ספריית המודעות של Meta</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>חיבור הסוכן ישירות לאתר שלכם</strong> — לפרסום, אופטימיזציה ומעקב<button class="info-btn" type="button">‏<span class="info-tip">חיבור ל-WordPress / Wix / Webflow / Shopify / CMS מותאם. מהיום הראשון הסוכנים מפרסמים תוכן ישירות לאתר, מעדכנים meta tags, ומוסיפים schema markup — בלי שתעשו דבר</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>התקנה מלאה של אנליטיקה</strong> — GA4, GTM, מעקב המרות לכל פעולה<button class="info-btn" type="button">‏<span class="info-tip">סוכן Analytics מתקין את הקוד באתר: GA4, Google Tag Manager, מעקב המרות לכל פעולה (טופס, התקשרות, WhatsApp, רכישה). מאתר מעקב שבור ומתקן אוטומטית</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>ביקורת SEO פנימית מלאה ותיקונים ראשוניים</strong> באתר שלכם<button class="info-btn" type="button">‏<span class="info-tip">סריקה של כל דפי האתר. הוספת schema markup חסר, תיקון meta tags, alt texts לתמונות, אופטימיזציה של internal linking, איתור בעיות מהירות. תיקונים מתבצעים ישירות באתר</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">חיבור ערוצי לקוחות: Telegram, WhatsApp Business, Gmail, Calendar</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">הדרכה אישית 90 דקות (זום) + 30 ימי תמיכה<button class="info-btn" type="button">‏<span class="info-tip">לומדים איך לאשר תוכן, לקרוא דוחות שבועיים, ולבקש שינוי באסטרטגיה. לאחר המסירה — 30 ימי מענה במייל לתיקוני תקלות ושאלות הפעלה</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>בסוף: 10 סוכני AI מבצעים את האסטרטגיה החודשית בעצמם.</strong> אתם רק מאשרים תוכן ומדיה לפני שיוצא לציבור.</div></li>
-        </ul>
-        <div class="cta-stack">
-          <button class="cta cta-fill" onclick="pick('configuration')">הזמינו תצורה ←</button>
-        </div>
-      </article>
-
-      <!-- ── Card 3: Auto-pilot ── -->
-      <article class="card">
         <header class="card-head">
           <h3 class="card-name">אוטופילוט</h3>
           <p class="card-tagline">אנחנו מנהלים את כל השיווק לעומק. אתם רואים תוצאות בכל יום ראשון.</p>
@@ -532,18 +733,18 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
           <div class="price-fine">תקציב פרסום (ad spend) משולם ישירות לגוגל ולמטא</div>
         </div>
         <ul class="bullets">
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>הכל מ-"תצורה"</strong> — תהליך הקמה מלא של 5–7 ימים</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">דוח שבועי כל יום ראשון בשעה 09:00 — תשואה לפרסום, תשואה כללית, המלצות פעולה<button class="info-btn" type="button">‏<span class="info-tip">PDF מפורט + סיכום בטלגרם. מקורות לידים לפי ערוץ, מאיפה הקליקים שמומרים, אילו מילות מפתח עובדות, אילו מודעות מובילות, מה צריך לתקן השבוע</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>ניהול מקצועי מלא של Google Ads</strong><button class="info-btn" type="button">‏<span class="info-tip">אסטרטגיות הצעה, מחקר מילות מפתח שבועי, בדיקות A/B למודעות, אופטימיזציה של קמפיינים וקבוצות מודעות, הרחבה של קמפיינים מצליחים וצינון של קמפיינים שלא ממירים</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>ניהול מקצועי מלא של Meta Ads</strong><button class="info-btn" type="button">‏<span class="info-tip">בניית קהלים, בדיקות A/B שבועיות לקריאייטיב, ניתוח קריאייטיבים של מתחרים בספריית המודעות של Meta, הרחבת קהלים מצליחים, הצגה חוזרת ללקוחות מתעניינים</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">4–8 מאמרי קידום אורגני (SEO) לחודש בתהליך 4 שלבים, <strong>מתפרסמים אוטומטית באתר</strong><button class="info-btn" type="button">‏<span class="info-tip">מבנה ראשוני ← 3 טיוטות במקביל ← בדיקת איכות ← ביקורת עצמית. כל מאמר עם סכמת מטא-דאטה, ציטוטים מוכנים ל-AI והתאמה לישויות גוגל. לאחר אישורכם — סוכן Publishing מעלה את המאמר ישירות לאתר עם meta tags, schema ותמונות במקום</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>הקמה מקצועית מלאה ע״י המומחים שלנו</strong> — שיחת גילוי, ספר מותג, Mazhir Audit, מחקר SEO, ניתוח מתחרים, אסטרטגיית תוכן ל-3 חודשים, הקמת קמפיינים בגוגל ובמטא, חיבור הסוכן לאתר, התקנת אנליטיקה ו-GTM, ביקורת SEO פנימית — 5–7 ימי עסקים<button class="info-btn" type="button"><span class="info-tip">תהליך הקמה מקצה לקצה. בסוף אנחנו ממשיכים לנהל את כל השיווק לעומק — ניהול מלא של Google Ads ו-Meta Ads, פרסום תוכן שבועי, תחזוקת אנליטיקה ודוחות שבועיים</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">דוח שבועי כל יום ראשון בשעה 09:00 — תשואה לפרסום, תשואה כללית, המלצות פעולה<button class="info-btn" type="button"><span class="info-tip">PDF מפורט + סיכום בטלגרם. מקורות לידים לפי ערוץ, מאיפה הקליקים שמומרים, אילו מילות מפתח עובדות, אילו מודעות מובילות, מה צריך לתקן השבוע</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>ניהול מקצועי מלא של Google Ads</strong><button class="info-btn" type="button"><span class="info-tip">אסטרטגיות הצעה, מחקר מילות מפתח שבועי, בדיקות A/B למודעות, אופטימיזציה של קמפיינים וקבוצות מודעות, הרחבה של קמפיינים מצליחים וצינון של קמפיינים שלא ממירים</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>ניהול מקצועי מלא של Meta Ads</strong><button class="info-btn" type="button"><span class="info-tip">בניית קהלים, בדיקות A/B שבועיות לקריאייטיב, ניתוח קריאייטיבים של מתחרים בספריית המודעות של Meta, הרחבת קהלים מצליחים, הצגה חוזרת ללקוחות מתעניינים</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">4–8 מאמרי קידום אורגני (SEO) לחודש בתהליך 4 שלבים, <strong>מתפרסמים אוטומטית באתר</strong><button class="info-btn" type="button"><span class="info-tip">מבנה ראשוני ← 3 טיוטות במקביל ← בדיקת איכות ← ביקורת עצמית. כל מאמר עם סכמת מטא-דאטה, ציטוטים מוכנים ל-AI והתאמה לישויות גוגל. לאחר אישורכם — סוכן Publishing מעלה את המאמר ישירות לאתר עם meta tags, schema ותמונות במקום</span></button></div></li>
           <li class="bullet"><span class="check-icon"></span><div class="bullet-text">3–5 פוסטים שבועיים ב-LinkedIn + Facebook + Instagram — מתפרסמים אוטומטית</div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>אופטימיזציה פנימית של האתר חודשית</strong> — meta, schema, internal linking, מהירות<button class="info-btn" type="button">‏<span class="info-tip">סוכן ה-SEO סורק את האתר שלכם פעם בחודש: מעדכן meta tags לפי מילות מפתח חדשות, מוסיף schema markup לדפים חדשים, מקשר בין דפים בצורה אופטימלית, ממליץ על תיקוני מהירות. תיקונים מתבצעים ישירות באתר אחרי אישורכם</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>תחזוקת אנליטיקה אוטומטית</strong> — מעקב המרות תקין תמיד<button class="info-btn" type="button">‏<span class="info-tip">סוכן Analytics מנטר את GA4, GTM ומעקב ההמרות שלכם 24/7. כשמשהו נשבר (טופס שלא נקלט, אירוע חסר) — מתקן ישירות את הקוד באתר. אתם לא צריכים לדעת על זה</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניוזלטר + תהליכים אוטומטיים באימייל<button class="info-btn" type="button">‏<span class="info-tip">ניוזלטר שבועי או דו-שבועי. סדרת קבלת פנים, תזכורת לעגלה נטושה, מסרים אחרי רכישה. בדיקות A/B לכותרות ולשעות שליחה. ניהול רשימות ועמידה בתקנות חוק הספאם</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">עד 16 יצירות מדיה לחודש — תמונות, וידאו וקריינות עברית<button class="info-btn" type="button">‏<span class="info-tip">תמונות AI דרך מודלים מתקדמים של fal.ai (הכי טובים לטיפוגרפיה בעברית). וידאו קצר. קריינות עברית טבעית דרך ElevenLabs. כל יצירה עוברת בדיקת התאמה לקול הברנד</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניטור מתחרים יומי + תגובה תוך 24 שעות<button class="info-btn" type="button">‏<span class="info-tip">סוכן ניטור מתחרים סורק את 5 המתחרים שלכם דרך Firecrawl ומתריע על שינויים: מאמרים חדשים, קמפיינים חדשים, שינוי מחירים. אנחנו מגיבים בתוכן רלוונטי תוך 24 שעות</span></button></div></li>
-          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניהול לידים: WhatsApp + דף העסק בגוגל<button class="info-btn" type="button">‏<span class="info-tip">לידים מ-WhatsApp עם מענה ראשוני אוטומטי תוך דקה ושרשור אליכם. דף העסק בגוגל — פוסטים שבועיים, מענה מקצועי לביקורות תוך 24 שעות</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>אופטימיזציה פנימית של האתר חודשית</strong> — meta, schema, internal linking, מהירות<button class="info-btn" type="button"><span class="info-tip">סוכן ה-SEO סורק את האתר שלכם פעם בחודש: מעדכן meta tags לפי מילות מפתח חדשות, מוסיף schema markup לדפים חדשים, מקשר בין דפים בצורה אופטימלית, ממליץ על תיקוני מהירות. תיקונים מתבצעים ישירות באתר אחרי אישורכם</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>תחזוקת אנליטיקה אוטומטית</strong> — מעקב המרות תקין תמיד<button class="info-btn" type="button"><span class="info-tip">סוכן Analytics מנטר את GA4, GTM ומעקב ההמרות שלכם 24/7. כשמשהו נשבר (טופס שלא נקלט, אירוע חסר) — מתקן ישירות את הקוד באתר. אתם לא צריכים לדעת על זה</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניוזלטר + תהליכים אוטומטיים באימייל<button class="info-btn" type="button"><span class="info-tip">ניוזלטר שבועי או דו-שבועי. סדרת קבלת פנים, תזכורת לעגלה נטושה, מסרים אחרי רכישה. בדיקות A/B לכותרות ולשעות שליחה. ניהול רשימות ועמידה בתקנות חוק הספאם</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">עד 16 יצירות מדיה לחודש — תמונות, וידאו וקריינות עברית<button class="info-btn" type="button"><span class="info-tip">תמונות AI דרך מודלים מתקדמים של fal.ai (הכי טובים לטיפוגרפיה בעברית). וידאו קצר. קריינות עברית טבעית דרך ElevenLabs. כל יצירה עוברת בדיקת התאמה לקול הברנד</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניטור מתחרים יומי + תגובה תוך 24 שעות<button class="info-btn" type="button"><span class="info-tip">סוכן ניטור מתחרים סורק את 5 המתחרים שלכם דרך Firecrawl ומתריע על שינויים: מאמרים חדשים, קמפיינים חדשים, שינוי מחירים. אנחנו מגיבים בתוכן רלוונטי תוך 24 שעות</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניהול לידים: WhatsApp + דף העסק בגוגל<button class="info-btn" type="button"><span class="info-tip">לידים מ-WhatsApp עם מענה ראשוני אוטומטי תוך דקה ושרשור אליכם. דף העסק בגוגל — פוסטים שבועיים, מענה מקצועי לביקורות תוך 24 שעות</span></button></div></li>
           <li class="bullet"><span class="check-icon"></span><div class="bullet-text">שיחת אסטרטגיה דו-שבועית (30 דקות בזום) — מה הצליח, מה ננסה השבועיים הבאים</div></li>
         </ul>
         <div class="cta-stack">
@@ -559,8 +760,8 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
 <section class="tech-section">
   <div class="tech-head">
     <span class="tech-eyebrow">תחת המנוע</span>
-    <h2>כלים מקצועיים. לא צעצועים.</h2>
-    <p>הסוכנים שלנו מבצעים עבודה אמיתית של בכירי שיווק — כי הם מחוברים לכלים שבכירי שיווק משתמשים בהם.</p>
+    <h2>הטכנולוגיה שמאחורי המערכת</h2>
+    <p>המערכת מחוברת לכלי השיווק והאנליטיקה הסטנדרטיים בתעשייה — אותם כלים שבהם משתמשות סוכנויות מובילות.</p>
   </div>
   <div class="tech-grid">
 
@@ -572,8 +773,8 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
 
     <div class="tech-card">
       <div class="tech-card-label">מנוע AI</div>
-      <div class="tech-card-title">Anthropic — מודלי ה-AI המתקדמים</div>
-      <div class="tech-card-desc">המודלים החדישים ביותר של Anthropic. בחירה אוטומטית של דגם לפי מורכבות המשימה — דגם חזק לאסטרטגיה, דגם בינוני לכתיבה ויצירה, דגם מהיר למשימות שגרתיות.</div>
+      <div class="tech-card-title">כל מודל AI — Anthropic, OpenAI, Google, Ollama מקומי</div>
+      <div class="tech-card-desc">ברירת המחדל — Claude של <code>Anthropic</code>, עם בחירה אוטומטית של דגם לפי מורכבות המשימה. ניתן לחבר גם <code>OpenAI GPT</code>, <code>Google Gemini</code>, <code>Ollama</code> מקומי או נקודת קצה מותאמת — דרך שכבת <code>LiteLLM</code>. <strong>המפתחות שלכם, החיוב שלכם — בלי תוספת אחוזים מצידנו.</strong></div>
     </div>
 
     <div class="tech-card">
@@ -595,6 +796,12 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
     </div>
 
     <div class="tech-card">
+      <div class="tech-card-label">זיכרון</div>
+      <div class="tech-card-title">זיכרון סמנטי מתמשך — הסוכנים זוכרים את העסק שלכם</div>
+      <div class="tech-card-desc">מערכת זיכרון מבוססת קבצים בארבע שכבות: <strong>פרופיל הלקוח</strong> (קהל, מוצרים, יעדים), <strong>זיכרון מותג</strong> (קול, סגנון, איסורים), <strong>הקשר פרויקט</strong> (קמפיינים פעילים, תוצאות) ו-<strong>הפניות חיצוניות</strong>. ארגון סמנטי לפי נושא, לא כרונולוגי — אינדקס דק שנטען לכל שיחה ואחזור עומק רק כשרלוונטי. <strong>טוקנים מינימליים, החלטות מבוססות הקשר אמיתי.</strong></div>
+    </div>
+
+    <div class="tech-card">
       <div class="tech-card-label">אבטחה ואחסון</div>
       <div class="tech-card-title">Hetzner Cloud + SSL + מפתחות מוצפנים</div>
       <div class="tech-card-desc">VPS פרטי בענן <code>Hetzner</code> אירופה — מהיר, מאובטח, עומד בתקן GDPR. <code>SSL</code> אוטומטי מ-Let's Encrypt. מפתחות גישה מוצפנים בעת שמירה.</div>
@@ -609,33 +816,196 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
   </div>
 </section>
 
-<div class="wrap"><!-- continue with rest of the page -->
-
-<!-- Onboard + Form -->
-<div class="onboard" id="form-section">
-  <h2>איך מתחילים?</h2>
-  <p>תהליך פשוט — תוך יום עבודה הכל רץ</p>
-  <div class="steps">
-    <div><div class="step-num">1</div><div class="step-label">בוחרים חבילה</div></div>
-    <div><div class="step-num">2</div><div class="step-label">שיחת הכרות (15 דק)</div></div>
-    <div><div class="step-num">3</div><div class="step-label">מגדירים פרופיל + כלים</div></div>
-    <div><div class="step-num">4</div><div class="step-label">הסוכנים עובדים</div></div>
+<!-- ═══ FAQ — full transparent answers ═══ -->
+<section class="faq-section" id="faq">
+  <div class="faq-head">
+    <span class="faq-eyebrow">שאלות נפוצות</span>
+    <h2>שאלות נפוצות</h2>
+    <p>פירוט על תהליך העבודה, התמחור, ושאלות תפעוליות שעלולות לעלות.</p>
   </div>
-  <div class="form">
-    <select id="pkg">
-      <option value="configuration" selected>תצורה — ₪1,750 חד-פעמי</option>
-      <option value="autopilot">אוטופילוט — ₪1,750 + ₪1,500/חודש</option>
-    </select>
-    <input type="text" id="name" placeholder="שם מלא" required/>
-    <input type="tel" id="phone" placeholder="טלפון" style="direction:ltr;text-align:right"/>
-    <button id="submitBtn" onclick="send()">שלחו בקשה ←</button>
-    <div id="ok" style="display:none;text-align:center;padding:14px;color:#059669;font-weight:600">הבקשה נשלחה. נחזור אליכם בהקדם.</div>
+
+  <div class="faq-list">
+
+    <details class="faq-item">
+      <summary class="faq-q">במה זה שונה ממשרד פרסום או פרילנסר?</summary>
+      <div class="faq-a">
+        <p><strong>סוכנות פרסום</strong> — צוות אנושי. עובדים שמונה שעות ביום, חמישה ימים בשבוע. תקורה גבוהה (משכורות, משרד, ניהול). לרוב מגלגלים את העלות עליכם דרך עמלת ניהול של 15–25% מתקציב הפרסום + retainer חודשי של ₪5,000–₪15,000.</p>
+        <p><strong>פרילנסר</strong> — אדם אחד שעושה את הכל. לפעמים מצוין, לפעמים נעלם באמצע פרויקט. בדרך כלל מצליח לכסות 1–2 ערוצים, לא את כל מערך השיווק.</p>
+        <p><strong>אצלנו</strong> — 10 סוכני AI מקצועיים, כל אחד עם תפקיד ברור (מחקר, תוכן, פרסום, אנליטיקה, יצירה, פרסום לאתר וכו'), עובדים 24/7 ללא חופשות וללא ימי מחלה. <strong>אתם משלמים ישירות לספקי ה-AI, ללא תוספת אחוזים מצידנו.</strong> אנחנו (במסלול אוטופילוט) או אתם (בשירות עצמי) מנהלים אותם, מאשרים תוכן, ושולטים באסטרטגיה.</p>
+        <p><strong>החיסכון:</strong> כ-85% פחות מסוכנות מקבילה ברמת ביצוע דומה.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">למה לא פשוט להשתמש ב-ChatGPT או Claude לבד? מה אני מקבל פה שאני לא יכול לעשות לבד?</summary>
+      <div class="faq-a">
+        <p>אפשר לחלוטין לפתוח ChatGPT ולבקש "תכתוב לי מאמר על X". אבל זה לא שיווק — זה טקסט. ההבדל:</p>
+        <ul>
+          <li><strong>זיכרון מתמשך</strong> — הסוכנים זוכרים את הברנד שלכם, את הקהל שלכם, את הקמפיינים שכבר רצו, את מה שעבד ומה שלא. ChatGPT מתחיל מאפס בכל שיחה.</li>
+          <li><strong>חיבור לכלים מקצועיים</strong> — DataForSEO (מאות מיליוני שאילתות חיפוש אמיתיות), Firecrawl (סריקת מתחרים), Google Search Console, Google Ads API, Meta Ads API, ספריית המודעות של Meta, fal.ai, ElevenLabs. ChatGPT לא יודע מה באמת קורה בגוגל היום.</li>
+          <li><strong>תהליכים אמיתיים</strong> — מאמר עובר 4 שלבים (מבנה ← 3 טיוטות במקביל ← בדיקת איכות ← ביקורת עצמית) עם schema markup, ציטוטים מוכנים ל-AI והתאמה לישויות גוגל. כל יצירה עוברת בדיקת התאמה לקול הברנד.</li>
+          <li><strong>פרסום אוטומטי</strong> — הסוכן מפרסם ישירות ל-WordPress / Wix / Webflow / Shopify, מעדכן meta tags, מוסיף schema. בלי copy-paste.</li>
+          <li><strong>בקרה ושקיפות</strong> — לוח בקרה אחד עם כל הקמפיינים, התשואה לפרסום, הלידים. לא 30 כרטיסיות פתוחות בדפדפן.</li>
+        </ul>
+        <p>אם אתם רק רוצים טקסט — ChatGPT מספיק. אם אתם רוצים <strong>מערך שיווק שעובד לבד</strong> — צריך תשתית.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">שירות עצמי מול אוטופילוט — איך אני יודע מה מתאים לי?</summary>
+      <div class="faq-a">
+        <p><strong>שירות עצמי (₪169/חודש)</strong> — לכם יש את הזמן והידע. אתם משווקים, יש לכם צוות פנימי, או אתם חברת הייטק שאוהבת לשלוט בכל דבר. אתם בנהיגה: מאשרים אסטרטגיה, מנהלים את הסוכנים, מקבלים החלטות. <strong>קורס מקצועי</strong> זמין כדי ללמוד את המערכת לעומק.</p>
+        <p><strong>אוטופילוט (₪1,750 הקמה + ₪1,500/חודש)</strong> — אין לכם זמן לעסוק בשיווק. אתם רוצים תוצאות ביום ראשון בבוקר, לא להיכנס לפרטים הטכניים. <strong>אנחנו</strong> מקימים את כל המערך, מנהלים את הקמפיינים, כותבים תוכן, מתחזקים את האנליטיקה — אתם רק מאשרים תוכן ומקבלים דוחות שבועיים.</p>
+        <p><strong>הבדל מהותי:</strong> בשני המסלולים מדובר באותה תשתית טכנית. ההבדל הוא <em>מי מנהל את הסוכנים — אתם או אנחנו</em>.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">תוך כמה זמן אני רואה תוצאות אמיתיות?</summary>
+      <div class="faq-a">
+        <p>תלוי במדד:</p>
+        <ul>
+          <li><strong>פרסום ממומן (Google + Meta)</strong> — לידים ראשונים בדרך כלל תוך 3–10 ימים מהפעלת הקמפיין. אופטימיזציה מלאה לוקחת 30–60 ימים (זמן שלוקח לאלגוריתמים ללמוד).</li>
+          <li><strong>קידום אורגני (SEO)</strong> — תוצאות אמיתיות בגוגל לוקחות 3–6 חודשים. זה לא קסם, זה אינדקס. מי שמבטיח SEO תוך שבועיים — משקר.</li>
+          <li><strong>תוכן ברשתות חברתיות</strong> — המעורבות מתחילה תוך שבועיים, אבל בניית קהל לוקחת חודשים.</li>
+          <li><strong>אופטימיזציית האתר</strong> — שיפור במהירות וב-Core Web Vitals — תוך ימים. שיפור בדירוג גוגל מהשינויים — חודשים.</li>
+        </ul>
+        <p><strong>אנחנו מתחייבים</strong> רק על איכות הביצוע, מהירות הפעולה, ושקיפות הדיווח. ביצועי השוק תלויים בתחרותיות הנישה, איכות המוצר, ותקציב הפרסום — דברים שלא בשליטתנו.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">מי מאשר תוכן לפני שהוא יוצא לציבור? יש סיכון שהסוכן יפרסם משהו לא מדויק?</summary>
+      <div class="faq-a">
+        <p><strong>אתם מאשרים את כל התוכן לפני פרסום.</strong> כל מאמר, כל פוסט, כל מודעה, כל יצירת מדיה — עוברים אישור שלכם בלוח הבקרה לפני שהם מתפרסמים. ברירת המחדל: <strong>שום דבר לא יוצא לציבור בלי אישור אנושי</strong>.</p>
+        <p>בנוסף, יש שכבות הגנה אוטומטיות לפני האישור שלכם:</p>
+        <ul>
+          <li><strong>בדיקת איכות פנימית</strong> — כל יצירה עוברת בדיקת התאמה לקול הברנד שלכם (מסמך BRAND.md שנבנה בתהליך ההקמה).</li>
+          <li><strong>ציטוטים ועובדות</strong> — סוכן התוכן מצטט מקורות, ולא ממציא נתונים. אם אין מקור — הוא לא טוען טענה.</li>
+          <li><strong>איסורים מפורשים</strong> — אתם יכולים להגדיר נושאים שאסור לגעת בהם, מילים אסורות, או ערוצים בעייתיים.</li>
+        </ul>
+        <p>אפשר לעבור גם למצב "פרסום אוטומטי" אחרי שצברתם ביטחון — אבל זה לא ברירת המחדל.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">איזו עבודה אני בכל זאת צריך לעשות בעצמי?</summary>
+      <div class="faq-a">
+        <p>גם באוטופילוט, יש דברים שרק אתם יכולים לתת:</p>
+        <ul>
+          <li><strong>תקציב פרסום</strong> — ההחלטה על כמה להוציא בגוגל ובמטא היא שלכם. אנחנו ממליצים ומבצעים, אתם מאשרים.</li>
+          <li><strong>אישור תוכן</strong> — 5–15 דקות ביום לסקור מה הסוכנים יצרו ולאשר.</li>
+          <li><strong>החלטות אסטרטגיות</strong> — האם להיכנס לקטגוריה חדשה, לשנות מחיר, לעצור קמפיין. אנחנו ממליצים, אתם מחליטים.</li>
+          <li><strong>מענה ללידים</strong> — הסוכנים מביאים את הליד, מתחילים שיחה ב-WhatsApp, אבל סגירת עסקה היא שלכם (אלא אם תוסיפו סוכן מכירות — בקרוב).</li>
+          <li><strong>שיחה דו-שבועית של 30 דקות</strong> (אוטופילוט בלבד) — מה הצליח, מה ננסה השבועיים הבאים.</li>
+        </ul>
+        <p>בשירות עצמי — אתם גם בוחרים נושאים, מאשרים אסטרטגיה, ומריצים את הסוכנים בעצמכם.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">הסוכנים מתחברים לאתר שלי — מה קורה אם הם שוברים משהו?</summary>
+      <div class="faq-a">
+        <p>שאלה לגיטימית — וזה למה יש לנו שכבות הגנה:</p>
+        <ul>
+          <li><strong>הרשאות מוגבלות</strong> — הסוכן מקבל גישת editor / contributor, לא admin. הוא לא יכול למחוק עמודים, להחליף תמה, או להסיר plugins.</li>
+          <li><strong>גיבוי לפני כל שינוי</strong> — סוכן ה-Publishing יוצר snapshot של הדף לפני שמעדכן אותו. אפשר לחזור אחורה בלחיצה.</li>
+          <li><strong>שינויים בסביבת בדיקה</strong> — שינויים מבניים (schema, meta global) נבדקים על copy של הדף לפני שהם נכנסים לפרודקשן.</li>
+          <li><strong>monitoring 24/7</strong> — אם משהו נשבר (טופס לא נקלט, אירוע GA4 חסר), הסוכן מזהה ומתקן ישירות. אם הוא לא מצליח — אזעקה אלינו (באוטופילוט) או אליכם.</li>
+        </ul>
+        <p>בכל מקרה, <strong>הקוד של האתר שלכם — שלכם.</strong> אתם יכולים לבטל את ההרשאות בכל רגע.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">מה העלות האמיתית בחודש כולל הכל?</summary>
+      <div class="faq-a">
+        <p>נתחיל בעלות שלנו, ואז נוסיף את כל האחרים (כי שקיפות):</p>
+        <ul>
+          <li><strong>שירות עצמי:</strong> ₪169/חודש (תשתית + פלטפורמה).</li>
+          <li><strong>אוטופילוט:</strong> ₪1,750 הקמה חד-פעמית + ₪1,500/חודש (כולל ניהול מלא של הקמפיינים).</li>
+        </ul>
+        <p><strong>בנוסף — תשלומים ישירים לספקים</strong> (אנחנו לא לוקחים עמלה מאלה):</p>
+        <ul>
+          <li><strong>מודלי AI</strong> (Anthropic / OpenAI) — תלוי שימוש. עסק בינוני: ₪150–₪400/חודש.</li>
+          <li><strong>יצירת מדיה</strong> (fal.ai לתמונות, ElevenLabs לקריינות) — ₪80–₪250/חודש לפי כמות יצירה.</li>
+          <li><strong>כלי מחקר</strong> (DataForSEO + Firecrawl) — ₪80–₪200/חודש.</li>
+          <li><strong>תקציב פרסום ממומן</strong> (Google Ads + Meta) — מינימום מומלץ ₪3,000/חודש לעסק קטן, ₪10,000+ לעסק בצמיחה. <strong>זה הולך ישירות לגוגל ולמטא, לא דרכנו.</strong></li>
+        </ul>
+        <p><strong>שורה תחתונה לעסק קטן באוטופילוט:</strong> ₪1,500 (אנחנו) + ₪500–₪1,000 (כלים) + ₪3,000+ (פרסום) = <strong>₪5,000–₪6,000 בחודש</strong>. סוכנות מקבילה: ₪10,000–₪18,000.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">למה אתם דורשים שאני אביא את מפתחות ה-AI שלי? זה לא מסובך?</summary>
+      <div class="faq-a">
+        <p>זו החלטה ערכית, ויש לה סיבות טובות:</p>
+        <ul>
+          <li><strong>שקיפות</strong> — אתם רואים ב-<code>console.anthropic.com</code> או <code>platform.openai.com</code> בדיוק כמה הוצאתם. בלי הפתעות מצדנו.</li>
+          <li><strong>בלי תוספת אחוזים</strong> — אם הייתי קונה את ה-AI ומוכר לכם, הייתי חייב להוסיף 20–40% רווח. ככה אתם משלמים מחיר עלות.</li>
+          <li><strong>שליטה</strong> — אתם יכולים לעצור את החיוב בלחיצה. לא תלויים בנו.</li>
+          <li><strong>בעלות על הדאטה</strong> — לפי תנאי השירות של Anthropic ו-OpenAI ל-API: הדאטה <em>שלכם</em> לא משמשת לאימון מודלים. אם הייתם רצים דרך החשבון שלנו — לא בטוח.</li>
+        </ul>
+        <p><strong>מסובך?</strong> ההרשמה לוקחת 5 דקות, יש לנו מדריך מצולם, ובאוטופילוט אנחנו עוזרים לכם להגדיר את זה בשיחת ההקמה. זו עלות חד-פעמית, חיסכון לכל החיים.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">תקציב הפרסום עצמו — איך מחושב, איפה הוא משולם?</summary>
+      <div class="faq-a">
+        <p><strong>תקציב הפרסום (ad spend) משולם ישירות לגוגל ולמטא — לא דרכנו.</strong> כרטיס האשראי שלכם, החיוב על שמכם.</p>
+        <p>בתהליך ההקמה (אוטופילוט) אנחנו ממליצים על תקציב התחלתי בהתאם ל:</p>
+        <ul>
+          <li><strong>נישה</strong> — תחרותיות מילות המפתח (CPC ממוצע) לפי DataForSEO.</li>
+          <li><strong>יעדים עסקיים</strong> — כמה לידים בחודש, ערך לקוח ממוצע (LTV).</li>
+          <li><strong>היקף פעילות</strong> — מקומי / ארצי / בינלאומי.</li>
+        </ul>
+        <p>בדרך כלל ההמלצה ההתחלתית היא ₪3,000–₪10,000/חודש לעסק קטן. תקציב נמוך מ-₪3,000 — קשה לקבל מהקמפיין סיגנל סטטיסטי משמעותי, וההמלצה היא להמתין.</p>
+        <p>אנחנו מתאימים את התקציב חודשית על בסיס תוצאות. <strong>החלטה סופית — שלכם.</strong></p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">מה קורה לדאטה שלי? למי יש גישה? איפה זה רץ?</summary>
+      <div class="faq-a">
+        <p><strong>איפה:</strong> שרת VPS פרטי בענן <code>Hetzner</code> אירופה (Helsinki). <strong>עומד בתקן GDPR.</strong> לא משותף עם לקוחות אחרים — VPS ייחודי לכם.</p>
+        <p><strong>למי יש גישה:</strong></p>
+        <ul>
+          <li><strong>אתם</strong> — גישה מלאה דרך לוח הבקרה. ב-Developer Plan גם SSH ישירות לשרת.</li>
+          <li><strong>אנחנו</strong> — גישת admin לתחזוקה ועדכוני אבטחה. לא קוראים את התוכן השיווקי שלכם.</li>
+          <li><strong>צד שלישי</strong> — רק לכלים שאתם בעצמכם מחברתם (Google Ads, Meta, וכו'). מפתחות שלכם, חשבונות שלכם.</li>
+        </ul>
+        <p><strong>מה לא קורה:</strong></p>
+        <ul>
+          <li>הדאטה לא משמשת לאימון מודלי AI (תנאי Anthropic / OpenAI ל-API).</li>
+          <li>לא משותפת עם משווקים אחרים, לא מנותחת לצורך מכירה לצד ג'.</li>
+          <li>לא נשארת אצלנו אחרי ביטול — ראו השאלה הבאה.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">אם אני מבטל — מה אני לוקח איתי? יש lock-in?</summary>
+      <div class="faq-a">
+        <p><strong>אין lock-in.</strong> בכל רגע, מה שלכם נשאר שלכם:</p>
+        <ul>
+          <li><strong>החשבונות</strong> — Google Ads, Meta Ads, GA4, Search Console — כולם רשומים <em>על שמכם</em> מההתחלה. אתם הבעלים, אנחנו רק מנהלים.</li>
+          <li><strong>התוכן</strong> — מאמרים, פוסטים, יצירות מדיה — נמצאים באתר שלכם וב-VPS שלכם. אפשר ייצוא מלא ל-ZIP בלחיצה.</li>
+          <li><strong>הדאטה</strong> — ספר מותג, פרופיל לקוח, היסטוריית קמפיינים, נתוני ביצוע — ייצוא ל-JSON.</li>
+          <li><strong>הסוכנים עצמם</strong> — קוד פתוח (<code>OpenClaw</code>, רישיון <code>MIT</code>). תוכלו להמשיך להריץ אותם על שרת אחר.</li>
+        </ul>
+        <p><strong>תהליך ביטול:</strong> שירות עצמי — לחיצה על "בטל" בלוח הבקרה, החיוב נעצר מיידית. אוטופילוט — מינימום 6 חודשים (כי זמן ההקמה והלמידה עצומים), אחרי זה ביטול חופשי בהתראה של 30 ימים.</p>
+        <p><strong>שמירת הנתונים אחרי ביטול:</strong> 90 ימים לייצוא נתונים אחרי ביטול. אחרי 90 ימים — מחיקה מלאה.</p>
+      </div>
+    </details>
+
   </div>
-</div>
 
-</div><!-- /wrap -->
-
-</div><!-- /.wrap (closes wrap opened earlier for form section) -->
+  <div class="faq-cta">
+    <a href="#cards-wrap-anchor" onclick="document.querySelector('.cards-wrap').scrollIntoView({behavior:'smooth',block:'start'});return false;">בחרו חבילה ←</a>
+    <div class="faq-cta-note">לא מצאתם תשובה? <a href="mailto:hello@flowmatic.co.il">hello@flowmatic.co.il</a></div>
+  </div>
+</section>
 
 <!-- ═══ Site footer (matches /index.html trust-strip) ═══ -->
 <footer class="site-footer">
@@ -647,43 +1017,75 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
   </div>
   <div class="site-footer-row2">
     ClawFlow · by Flowmatic <span class="pipe">|</span>
+    <a href="/about">תיעוד</a><span class="pipe">|</span>
     <a href="/terms">תנאי שימוש</a><span class="pipe">|</span>
     <a href="/privacy">מדיניות פרטיות</a><span class="pipe">|</span>
     <a href="/cancellation">מדיניות ביטול</a><span class="pipe">|</span>
     <a href="/disclosure">גילוי נאות</a><span class="pipe">|</span>
-    <a href="mailto:support@flowmatic.co.il">support@flowmatic.co.il</a><span class="pipe">|</span>
+    <a href="mailto:hello@flowmatic.co.il">hello@flowmatic.co.il</a><span class="pipe">|</span>
     <span>© 2026 Flowmatic</span>
   </div>
 </footer>
 
 <script>
-var PKG_NAMES = { configuration:'תצורה ₪1,750 חד-פעמי', autopilot:'אוטופילוט ₪1,750 + ₪1,500/חודש' };
+function cfToggleVideo(e) {
+  if (e) e.preventDefault();
+  var v = document.getElementById('cf-hero-video');
+  if (!v) return;
+  // Hide overlay immediately on click — don't wait for the async 'play' event.
+  // Otherwise on slow devices/networks the play button stays visible for ~1s
+  // until the video actually starts playing, which feels broken.
+  if (v.paused || v.ended) {
+    var play = document.getElementById('cf-hero-play');
+    var label = document.getElementById('cf-hero-label');
+    var frame = document.getElementById('hero-video');
+    if (play) play.classList.add('cf-hidden');
+    if (label) label.classList.add('cf-hidden');
+    if (frame) frame.classList.add('cf-playing');
+    v.play();
+  } else {
+    v.pause();
+  }
+}
+document.addEventListener('DOMContentLoaded', function () {
+  var v = document.getElementById('cf-hero-video');
+  var frame = document.getElementById('hero-video');
+  var play = document.getElementById('cf-hero-play');
+  var label = document.getElementById('cf-hero-label');
+  var prog = document.getElementById('cf-hero-progress');
+  if (!v) return;
+
+  function onPlay() {
+    if (play) play.classList.add('cf-hidden');
+    if (label) label.classList.add('cf-hidden');
+    if (frame) frame.classList.add('cf-playing');
+  }
+  function onPause() {
+    if (play) play.classList.remove('cf-hidden');
+    if (label) label.classList.remove('cf-hidden');
+    if (frame) frame.classList.remove('cf-playing');
+  }
+
+  v.addEventListener('play', onPlay);
+  v.addEventListener('playing', onPlay);
+  v.addEventListener('pause', onPause);
+  v.addEventListener('ended', onPause);
+  v.addEventListener('timeupdate', function () {
+    if (prog && v.duration) {
+      prog.style.width = ((v.currentTime / v.duration) * 100) + '%';
+    }
+  });
+});
 
 function pick(plan) {
-  document.getElementById('pkg').value = plan;
-  document.getElementById('form-section').scrollIntoView({ behavior:'smooth', block:'center' });
-  document.getElementById('phone').focus();
-}
-
-function send() {
-  var name = document.getElementById('name').value.trim();
-  var phone = document.getElementById('phone').value.trim();
-  var pkg = document.getElementById('pkg').value;
-  if (!name || !phone) { alert('נא למלא שם וטלפון'); return; }
-  var btn = document.getElementById('submitBtn');
-  btn.disabled = true; btn.textContent = 'שולח...';
-  fetch('https://api.clawflow.flowmatic.co.il/hosting/contact', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ name:name, phone:phone, type:'ניהול שיווק — '+(PKG_NAMES[pkg]||pkg), message:'בקשת ניהול שיווק: '+(PKG_NAMES[pkg]||pkg) })
-  }).then(function(){ document.getElementById('ok').style.display=''; btn.style.display='none'; })
-  .catch(function(){ btn.disabled=false; btn.textContent='שלחו בקשה ←'; alert('שגיאה, נסו שוב'); });
-}
-
-function toggleFaq(el) {
-  el.classList.toggle('open');
-  var a = el.nextElementSibling;
-  a.style.display = a.style.display === 'block' ? 'none' : 'block';
+  if (plan === 'autopilot') {
+    var msg = 'שלום סרגיי! אני מתעניין במסלול אוטופילוט (ניהול שיווק מלא) של ClawFlow. אשמח לתאם שיחת הכרות.';
+    var url = 'https://wa.me/972546309980?text=' + encodeURIComponent(msg);
+    var w = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!w) window.location.href = url;  // popup blocked → fall back to same-tab
+  } else if (plan === 'self_service') {
+    window.location.href = '/register';
+  }
 }
 </script>
 </body>

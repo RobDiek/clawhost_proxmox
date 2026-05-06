@@ -40,7 +40,10 @@
       #cf-chat-name-input { width:100%;padding:10px 12px;border:1px solid #E5E7EB;border-radius:8px;font-size:0.9rem;font-family:inherit;direction:rtl;margin-bottom:10px }
       #cf-chat-name-btn { width:100%;padding:10px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit }
       .cf-unread { position:absolute;top:-4px;right:-4px;width:18px;height:18px;background:#EF4444;color:#fff;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700 }
-      @media(max-width:420px) { #cf-chat-window { right:0;left:0;bottom:0;width:100%;height:100%;border-radius:0 } #cf-chat-fab { bottom:16px;right:16px;padding:8px 14px } #cf-chat-fab-title { font-size:0.78rem } }
+      /* Mobile: chat window full-screen on open. FAB hidden — entry point moved to
+         the site-header drawer (cf-drawer) since the floating button covered content. */
+      @media(max-width:768px) { #cf-chat-fab { display:none !important } }
+      @media(max-width:420px) { #cf-chat-window { right:0;left:0;bottom:0;width:100%;height:100%;border-radius:0 } }
     `;
     document.head.appendChild(style);
 
@@ -79,7 +82,8 @@
     document.body.appendChild(win);
   }
 
-  // ── Toggle chat window ──
+  // ── Toggle chat window (exposed globally for cf-drawer mobile menu link) ──
+  window.cfChatToggle = function() { toggleChat(); };
   function toggleChat() {
     const win = document.getElementById('cf-chat-window');
     isOpen = !isOpen;

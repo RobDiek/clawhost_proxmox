@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ClawFlow — הסוכן שלכם, מוכן תוך 3 דקות | by Flowmatic</title>
 <meta name="description" content="ClawFlow — פלטפורמת אירוח לסוכני OpenClaw AI. בחרו את הסוכנים שלכם, שלמו — ה-VPS מוכן תוך 3 דקות. ללא הגדרות, ללא מגבלות."/>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-<link rel="alternate icon" href="/favicon.ico"/>
+<link rel="icon" href="/favicon.ico?v=cf2"/>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=cf2"/>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 /* ═══════════════════════════════════════════════════
@@ -65,97 +65,132 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* ═══════════════════════════════════════════════════
-   HEADER (52px)
+   HEADER — unified premium glass (matches /auto-pilot)
 ═══════════════════════════════════════════════════ */
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  height: 52px;
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+  height: 64px;
   flex-shrink: 0;
 }
+.header::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #2563EB 0%, #7C3AED 50%, #2563EB 100%);
+  opacity: 0.85;
+}
+.page { padding-top: 64px; }
 .header-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  height: 100%;
-  gap: 16px;
+  max-width: 1180px; margin: 0 auto; padding: 0 28px;
+  display: flex; align-items: center; height: 100%; gap: 18px;
 }
-.logo {
-  display: block;
-  text-decoration: none;
-  flex-shrink: 0;
-}
-.logo-name {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #111827;
-  display: block;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-.logo-sub {
-  font-size: 0.65rem;
-  color: #9CA3AF;
-  display: block;
-}
-.header-nav {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-right: auto;
-}
+.logo { display: flex; align-items: center; flex-shrink: 0; transition: transform .15s; }
+.logo:hover { transform: scale(1.02); }
+.logo img { height: 32px; width: auto; display: block; }
+.logo-name { font-size: 1.15rem; font-weight: 800; color: #111827; display: none; letter-spacing: -0.02em; line-height: 1.15; }
+.logo-sub { font-size: 0.65rem; color: #9CA3AF; display: none; }
+.header-nav { display: flex; align-items: center; gap: 6px; margin-right: auto; }
 .header-nav a {
-  font-size: 0.82rem;
-  color: var(--text-2);
-  transition: color .15s;
-  cursor: pointer;
+  font-size: 0.88rem; font-weight: 500; color: #4B5563;
+  transition: all .18s ease; cursor: pointer;
+  padding: 8px 14px; border-radius: 8px; position: relative;
+  text-decoration: none;
 }
-.header-nav a:hover { color: var(--primary); }
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.header-nav a:hover { color: var(--primary); background: rgba(239, 246, 255, 0.6); }
+.header-nav a.active { color: var(--primary); font-weight: 600; background: #EFF6FF; }
+.header-nav a.active::after {
+  content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+  width: 18px; height: 2px; background: var(--primary); border-radius: 2px;
 }
+.header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .lang-switcher {
-  display: flex;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  overflow: hidden;
+  display: flex; background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 7px; overflow: hidden;
 }
 .lang-btn {
-  padding: 3px 9px;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text-3);
-  transition: all .15s;
-  border: none;
-  background: none;
-  cursor: pointer;
+  padding: 4px 10px; font-size: 10px; font-weight: 600; color: var(--text-3);
+  transition: all .15s; border: none; background: none; cursor: pointer;
 }
-.lang-btn.active {
-  background: var(--primary);
-  color: white;
-}
+.lang-btn.active { background: var(--primary); color: white; }
 .header-login {
-  font-size: 12px;
-  color: var(--text-2);
-  padding: 4px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  transition: all .15s;
+  font-size: 0.85rem; font-weight: 600; color: #4B5563;
+  padding: 8px 18px; border: 1.5px solid #E5E7EB; border-radius: 9px;
+  transition: all .18s ease; background: #fff;
 }
-.header-login:hover {
-  border-color: var(--primary);
-  color: var(--primary);
+.header-login:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.25); }
+.header-cta {
+  font-size: 0.85rem; font-weight: 700; color: #fff;
+  padding: 8px 18px; border-radius: 9px;
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.45);
+  transition: all .18s ease;
+  display: inline-flex; align-items: center; gap: 6px;
+  text-decoration: none;
 }
+.header-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.55); }
+.header-cta::after { content: '←'; font-size: 0.95rem; line-height: 1; }
 /* Mobile burger — hidden on desktop, shown by mobile media query */
 .nav-burger-mobile { display: none; }
+
+/* ── Mobile burger + drawer (shared with auto-pilot/about) ──
+   Base rule MUST come BEFORE the @media rule below — otherwise the later-defined
+   `.cf-burger { display: none }` overrides the @media `display: inline-flex` due
+   to CSS cascade order (last rule wins when specificity is equal). */
+.cf-burger {
+  display: none; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 9px;
+  background: #fff; border: 1.5px solid #E5E7EB;
+  cursor: pointer; padding: 0; flex-shrink: 0;
+  transition: border-color .15s, background .15s;
+}
+.cf-burger:hover { border-color: var(--primary); background: #EFF6FF; }
+.cf-burger svg { width: 18px; height: 18px; color: #4B5563; }
+
+@media (max-width: 768px) {
+  .header { height: 52px; padding: 0; }
+  .page { padding-top: 56px; }
+  .header-inner { flex-wrap: nowrap; gap: 8px; padding: 0 14px; height: 100%; align-items: center; justify-content: space-between; }
+  .logo img { height: 24px; }
+  .header-nav { display: none; }
+  .header-actions { gap: 6px; }
+  .header-login { font-size: 0.78rem; padding: 6px 12px; }
+  .header-cta { display: none; }
+  .cf-burger { display: inline-flex !important; }
+}
+.cf-drawer-bg {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4);
+  z-index: 998; opacity: 0; pointer-events: none;
+  transition: opacity .2s ease;
+}
+.cf-drawer-bg.open { opacity: 1; pointer-events: auto; }
+.cf-drawer {
+  position: fixed; top: 52px; left: 0; right: 0; z-index: 999;
+  background: #fff; border-bottom: 1px solid #E5E7EB;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  transform: translateY(-12px); opacity: 0; pointer-events: none;
+  transition: transform .25s ease, opacity .2s ease;
+  padding: 14px 20px 18px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cf-drawer.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+.cf-drawer a {
+  display: flex; align-items: center; padding: 12px 14px;
+  font-size: 0.95rem; font-weight: 500; color: #1F2937;
+  border-radius: 9px; transition: background .15s;
+  border-bottom: 1px solid #F3F4F6; text-decoration: none;
+}
+.cf-drawer a:last-child { border-bottom: none; }
+.cf-drawer a:hover, .cf-drawer a.active { background: #EFF6FF; color: var(--primary); }
+.cf-drawer a.active { font-weight: 600; }
+.cf-drawer .cf-drawer-cta {
+  background: linear-gradient(135deg, var(--primary), #1D4ED8); color: #fff !important;
+  text-align: center; justify-content: center; margin-top: 10px;
+  border-bottom: none !important; box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.45);
+  padding: 13px 14px;
+}
 .sum-toggle { display: none; }  /* shown only on mobile via media query */
 
 /* ═══════════════════════════════════════════════════
@@ -1017,59 +1052,19 @@ html[dir="rtl"] .mascot-bubble::before {
     padding-bottom: 220px;
   }
 
-  /* HEADER — single compact row */
-  .header {
-    height: 50px;
-    padding: 0;
-  }
-  .header-inner {
-    padding: 0 14px;
-    gap: 8px;
-  }
-  .logo img { height: 22px !important; }
-  .header-nav {
-    display: none; /* hide nav links on mobile — open via hamburger */
-  }
-  .header-nav.mobile-open {
-    display: flex;
-    position: absolute;
-    top: 50px; right: 0; left: 0;
-    flex-direction: column;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 18px;
-    gap: 14px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.06);
-    margin-right: 0;
-    z-index: 99;
-  }
-  .header-nav.mobile-open a { font-size: 0.95rem; padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--text); }
-  .header-nav.mobile-open a:last-child { border-bottom: none; }
-  .nav-burger-mobile {
-    display: inline-flex;
-    width: 36px; height: 36px;
-    align-items: center; justify-content: center;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text-2);
-    margin-right: auto;
-    cursor: pointer;
-    transition: background .15s;
-  }
-  .nav-burger-mobile:hover { background: var(--bg-2); }
-  .nav-burger-mobile svg { width: 18px; height: 18px; }
-  .header-actions { gap: 6px; }
-  .lang-switcher { display: none; }  /* save space — switcher in drawer */
-  .header-login { font-size: 12px; padding: 5px 12px; }
+  /* HEADER mobile rules now live in the unified premium-glass @media block above (line ~137).
+     The previous override here hid .header-nav and tried to use a hamburger button
+     that no longer exists in markup — so on mobile, nav links disappeared entirely.
+     Keeping only the small lang-switcher tweak. */
+  .lang-switcher { display: none; }  /* save space on mobile */
 
-  /* WIZARD STEPS — keep on one line, allow horizontal scroll if cramped */
+  /* WIZARD STEPS — keep on one line, centered (was flex-start = stuck to one edge) */
   .wizard-steps-bar { padding: 8px 0; }
   .wizard-steps-inner {
     padding: 0 14px;
     overflow-x: auto;
     scrollbar-width: none;
-    justify-content: flex-start;
+    justify-content: center;
     flex-wrap: nowrap;
   }
   .wizard-steps-inner::-webkit-scrollbar { display: none; }
@@ -1241,27 +1236,38 @@ html[dir="rtl"] .mascot-bubble::before {
 
 <div class="page">
 
-<!-- ══════════════════ HEADER (52px) ══════════════════ -->
+<!-- ══════════════════ HEADER — unified premium glass ══════════════════ -->
 <header class="header">
 <div class="header-inner">
   <a href="/" class="logo">
-    <img src="/logo-clawflow.png" alt="ClawFlow" style="height:28px">
+    <img src="/logo-clawflow.png" alt="ClawFlow">
   </a>
-  <button class="nav-burger-mobile" id="nav-burger-mobile" aria-label="תפריט" onclick="toggleMobileNav(event)">
-    <svg id="nav-burger-mobile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <path d="M4 7h16M4 12h16M4 17h16"/>
-    </svg>
-  </button>
   <nav class="header-nav" id="header-nav">
-    <a href="#" id="nav-partners" onclick="openPartnersModal(event)">שותפים</a>
+    <a href="/" class="active">דף הבית</a>
     <a href="/auto-pilot">ניהול שיווק</a>
-    <a href="/about" id="nav-docs">תיעוד</a>
   </nav>
   <div class="header-actions">
     <a href="/login" class="header-login" id="nav-login">&#1499;&#1504;&#1497;&#1505;&#1492;</a>
+    <a href="/register" class="header-cta">התחילו עכשיו</a>
+    <button class="cf-burger" aria-label="תפריט" onclick="cfToggleDrawer(event)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
   </div>
 </div>
 </header>
+<div class="cf-drawer-bg" id="cfDrawerBg" onclick="cfCloseDrawer()"></div>
+<nav class="cf-drawer" id="cfDrawer">
+  <a href="/" class="active">דף הבית</a>
+  <a href="/auto-pilot">ניהול שיווק</a>
+  <a href="#" onclick="event.preventDefault();cfCloseDrawer();if(window.cfChatToggle)window.cfChatToggle();">💬 דברו איתנו</a>
+  <a href="/login">כניסה</a>
+  <a href="/register" class="cf-drawer-cta">התחילו עכשיו ←</a>
+</nav>
+<script>
+function cfToggleDrawer(e) { if (e) e.stopPropagation(); document.getElementById('cfDrawer').classList.toggle('open'); document.getElementById('cfDrawerBg').classList.toggle('open'); }
+function cfCloseDrawer() { document.getElementById('cfDrawer').classList.remove('open'); document.getElementById('cfDrawerBg').classList.remove('open'); }
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') cfCloseDrawer(); });
+</script>
 
 <!-- ══════════════════ WIZARD STEPS ══════════════════ -->
 <div class="wizard-steps-bar">
@@ -1334,6 +1340,7 @@ html[dir="rtl"] .mascot-bubble::before {
   </div>
   <div class="trust-row-2">
     ClawFlow &middot; by Flowmatic &nbsp;|&nbsp;
+    <a href="/about">&#1514;&#1497;&#1506;&#1493;&#1491;</a> &nbsp;|&nbsp;
     <a href="/terms" id="fl-terms">&#1514;&#1504;&#1488;&#1497; &#1513;&#1497;&#1502;&#1493;&#1513;</a> &nbsp;|&nbsp;
     <a href="/privacy" id="fl-privacy">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1508;&#1512;&#1496;&#1497;&#1493;&#1514;</a> &nbsp;|&nbsp;
     <a href="/cancellation" id="fl-cancel">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1489;&#1497;&#1496;&#1493;&#1500;</a> &nbsp;|&nbsp;
@@ -1367,43 +1374,6 @@ html[dir="rtl"] .mascot-bubble::before {
   <div class="modal" id="docs-modal">
     <button class="modal-close" onclick="closeDocsModal()">&#10005;</button>
     <div id="docs-modal-body"></div>
-  </div>
-</div>
-
-<!-- ══════════════════ PARTNERS MODAL ══════════════════ -->
-<div class="modal-overlay" id="partners-overlay">
-  <div class="modal" id="partners-modal" style="max-width:480px">
-    <button class="modal-close" onclick="closePartnersModal()">&#10005;</button>
-    <div style="text-align:center;margin-bottom:20px">
-      <div style="font-size:2rem;margin-bottom:8px">🤝</div>
-      <h3 style="font-size:1.3rem;font-weight:700;color:#111827;margin-bottom:6px">תוכנית שותפים</h3>
-      <p style="font-size:0.9rem;color:#6B7280;line-height:1.6">
-        הלקוחות שלכם צריכים AI — אתם מביאים את הפתרון.<br/>
-        לא צריך ידע טכני. אנחנו עושים הכל.
-      </p>
-    </div>
-    <div style="background:#EFF6FF;border:1px solid #DBEAFE;border-radius:10px;padding:16px;margin-bottom:20px;text-align:center">
-      <div style="font-size:0.82rem;color:#6B7280;margin-bottom:4px">מחירים מיוחדים לשותפים</div>
-      <div style="font-size:1.4rem;font-weight:700;color:#2563EB">35% הנחה</div>
-      <div style="font-size:0.78rem;color:#6B7280">מהיום הראשון — הרווח שלכם</div>
-    </div>
-    <div style="font-size:0.85rem;color:#4B5563;margin-bottom:20px;line-height:1.7">
-      <div style="margin-bottom:6px">✓ הקימו סוכני AI ללקוחות בלחיצה</div>
-      <div style="margin-bottom:6px">✓ לוח בקרה מלא לניהול לקוחות</div>
-      <div style="margin-bottom:6px">✓ דוחות שקופים ללקוח</div>
-      <div style="margin-bottom:6px">✓ תמיכה טכנית מלאה מאיתנו</div>
-    </div>
-    <div id="partners-form">
-      <input type="text" id="partner-contact" placeholder="טלפון או אימייל" dir="rtl" style="width:100%;padding:11px 14px;border:1px solid #E5E7EB;border-radius:8px;font-size:0.9rem;margin-bottom:10px;font-family:inherit"/>
-      <textarea id="partner-message" placeholder="ספרו בקצרה על העסק שלכם (אופציונלי)" rows="2" style="width:100%;padding:11px 14px;border:1px solid #E5E7EB;border-radius:8px;font-size:0.85rem;margin-bottom:12px;font-family:inherit;resize:vertical;direction:rtl"></textarea>
-      <button onclick="submitPartnerForm()" style="width:100%;padding:12px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:0.95rem;font-weight:600;cursor:pointer;font-family:inherit">שלחו פרטים — ניצור קשר</button>
-      <p style="font-size:0.75rem;color:#9CA3AF;text-align:center;margin-top:8px">נחזור אליכם תוך 24 שעות עם הצעה אישית</p>
-    </div>
-    <div id="partners-success" style="display:none;text-align:center;padding:20px 0">
-      <div style="font-size:1.5rem;margin-bottom:8px">✅</div>
-      <div style="font-size:1rem;font-weight:600;color:#111827">תודה!</div>
-      <div style="font-size:0.85rem;color:#6B7280;margin-top:4px">נחזור אליכם בהקדם עם הצעה מותאמת אישית.</div>
-    </div>
   </div>
 </div>
 
@@ -1917,43 +1887,6 @@ function toggleSummaryMobile() {
 }
 
 /* ─────────────────────────────────────────
-   PARTNERS MODAL
-───────────────────────────────────────── */
-function openPartnersModal(e) {
-  if (e) e.preventDefault();
-  document.getElementById('partners-form').style.display = 'block';
-  document.getElementById('partners-success').style.display = 'none';
-  document.getElementById('partners-overlay').classList.add('open');
-}
-
-function closePartnersModal() {
-  document.getElementById('partners-overlay').classList.remove('open');
-}
-
-document.getElementById('partners-overlay').addEventListener('click', function(e) {
-  if (e.target === this) closePartnersModal();
-});
-
-function submitPartnerForm() {
-  var contact = document.getElementById('partner-contact').value.trim();
-  if (!contact) { document.getElementById('partner-contact').style.borderColor='#EF4444'; return; }
-  var message = document.getElementById('partner-message').value.trim();
-
-  fetch('https://api.clawflow.flowmatic.co.il/hosting/support', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      name: 'שותף פוטנציאלי',
-      contact: contact,
-      message: '[תוכנית שותפים] ' + (message || 'מעוניין בתוכנית שותפים')
-    })
-  }).catch(function(){});
-
-  document.getElementById('partners-form').style.display = 'none';
-  document.getElementById('partners-success').style.display = 'block';
-}
-
-/* ─────────────────────────────────────────
    RENDER LIST
 ───────────────────────────────────────── */
 function renderBadge(item) {
@@ -2377,7 +2310,7 @@ renderAll();
 </script>
 
 <!-- Chat Widget -->
-<script src="/chat-widget.js"></script>
+<script src="/chat-widget.js?v=2026-05-04-mobile"></script>
 <!-- Plausible Analytics -->
 <script defer data-domain="flowmatic.co.il" src="https://plausible.io/js/script.js"></script>
 <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)};</script>

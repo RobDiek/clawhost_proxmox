@@ -636,6 +636,20 @@ async function adminBulkUpgrade() {
   } else toast(r?.message || 'Failed', 'error');
 }
 
+async function adminPublishDashboard() {
+  if (!confirm('Publish dashboard staging → prod?\n\nAll paying clients will immediately see the staging changes that you\'ve been testing on master. Type-confirmation required next.')) return;
+  var typed = window.prompt('Type PUBLISH (uppercase) to confirm dashboard release to all clients:', '');
+  if (typed !== 'PUBLISH') {
+    if (typed !== null) toast('Confirmation mismatch — publish cancelled', 'error');
+    return;
+  }
+  var r = await api('/admin/dashboard-publish', { method:'POST', body: { confirm: 'PUBLISH' } });
+  if (r && r.success) {
+    toast('Dashboard published to all clients ✓', 'success');
+    setTimeout(renderReleases, 500);
+  } else toast(r?.message || 'Failed', 'error');
+}
+
 async function resetCreds(id) {
   if (!confirm('Generate new OpenClaw token + automation password for ' + id + '? Old creds will stop working.')) return;
   var r = await api('/admin/clients/' + id + '/reset-credentials', { method:'POST' });
@@ -824,6 +838,7 @@ async function renderReleases() {
   var manifest = (await manifestRes.json()).data || {};
   var clientsRes = await api('/admin/clients?status=running');
   var running = (clientsRes && clientsRes.success) ? clientsRes.data.clients : [];
+  var dashStatus = await api('/admin/dashboard-publish/status').catch(function(){return null});
 
   // Fetch version status for each running instance (in parallel, capped)
   var statuses = await Promise.all(running.map(async function(r){
@@ -838,6 +853,39 @@ async function renderReleases() {
       kpiCard('Running instances', running.length, 'on platform') +
       kpiCard('Outdated', outdated.length, outdated.length ? 'have drift' : 'all current', outdated.length ? 'danger' : '') +
     '</div>';
+
+  // ── Dashboard staging → prod section ──
+  // Devops pushes to dashboard-staging.html (master canary lands there).
+  // Admin clicks Publish to copy staging → prod for all paying clients.
+  if (dashStatus && dashStatus.success && dashStatus.data && dashStatus.data.files) {
+    var dashFile = dashStatus.data.files[0] || {};
+    var diverged = !dashFile.inSync;
+    var stagingNewer = dashFile.stagingNewer;
+    var fmtTime = function(iso){ try { return new Date(iso).toLocaleString('en-GB'); } catch(e){ return iso; } };
+    html += '<div class="section-head"><div class="section-title">Dashboard publish — staging → prod</div></div>';
+    html += '<div class="table-wrap" style="padding:14px 18px">' +
+      '<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">' +
+        '<div style="flex:1;min-width:240px">' +
+          '<div style="font-size:0.78rem;color:var(--text-3);margin-bottom:4px">Staging (master canary sees this)</div>' +
+          '<div class="mono" style="font-size:0.78rem">' + escapeHtml(dashFile.stagingMd5||'').slice(0,12) + ' · ' + Math.round((dashFile.stagingSize||0)/1024) + ' KB</div>' +
+          '<div style="font-size:0.74rem;color:var(--text-3);margin-top:2px">' + fmtTime(dashFile.stagingMtime) + '</div>' +
+        '</div>' +
+        '<div style="flex:1;min-width:240px">' +
+          '<div style="font-size:0.78rem;color:var(--text-3);margin-bottom:4px">Prod (all paying clients see this)</div>' +
+          '<div class="mono" style="font-size:0.78rem">' + escapeHtml(dashFile.prodMd5||'').slice(0,12) + ' · ' + Math.round((dashFile.prodSize||0)/1024) + ' KB</div>' +
+          '<div style="font-size:0.74rem;color:var(--text-3);margin-top:2px">' + fmtTime(dashFile.prodMtime) + '</div>' +
+        '</div>' +
+        '<div style="flex-shrink:0;align-self:center">' +
+          (diverged
+            ? (stagingNewer
+                ? '<button class="btn btn-success" onclick="adminPublishDashboard()">⬆ Publish staging → prod</button>'
+                : '<button class="btn btn-danger" onclick="adminPublishDashboard()" title="prod is newer than staging — unusual">⚠ Publish anyway</button>')
+            : '<span class="badge badge-running">✓ in sync</span>') +
+        '</div>' +
+      '</div>' +
+      (diverged ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:6px;font-size:0.78rem;color:#FBBF24">⚠ Staging differs from prod. Test on master, then click Publish to deliver to all clients.</div>' : '') +
+    '</div>';
+  }
 
   html += '<div class="section-head">' +
     '<div class="section-title">Release notes — v' + escapeHtml(manifest.stackVersion||'?') + '</div>' +

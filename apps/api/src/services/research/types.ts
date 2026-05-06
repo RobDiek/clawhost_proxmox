@@ -30,6 +30,7 @@ export type StageId =
     | 'competitor_landscape'
     | 'seo_keyword_research'
     | 'aeo_visibility'
+    | 'link_audit'
     | 'paid_audit'
     | 'social_landscape'
     | 'email_competitor_audit'
@@ -44,7 +45,7 @@ export type StageId =
     | 'media_plan'
 
 export const ALL_STAGE_IDS: readonly StageId[] = [
-    'competitor_landscape', 'seo_keyword_research', 'aeo_visibility',
+    'competitor_landscape', 'seo_keyword_research', 'aeo_visibility', 'link_audit',
     'paid_audit', 'social_landscape', 'email_competitor_audit',
     'audience_personas', 'positioning', 'strategy_options', 'validation',
     'content_plan', 'media_plan',
@@ -95,6 +96,13 @@ export const STAGE_CATALOG: Record<StageId, StageDescriptor> = {
         descriptionHe: 'ציטוטים ב-Claude/ChatGPT/Perplexity, schema audit, GSC AI-Overview signals',
         preferredIntegrations: ['anthropic', 'firecrawl', 'gsc'],
         upstream: [],
+    },
+    link_audit: {
+        id: 'link_audit', category: 'discovery',
+        titleHe: 'אודיט פרופיל קישורים (Backlinks)',
+        descriptionHe: 'Profile audit + lost links recovery + outreach roadmap + benchmarking מול 5 מתחרים. דורש DFS Backlinks API',
+        preferredIntegrations: ['dataforseo'],
+        upstream: ['competitor_landscape'],
     },
     paid_audit: {
         id: 'paid_audit', category: 'discovery',

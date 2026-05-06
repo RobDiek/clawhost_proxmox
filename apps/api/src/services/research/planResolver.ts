@@ -122,7 +122,7 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
     // 7. content_plan / media_plan — execute the chosen scenario.
     switch (intent) {
         case 'seo_organic':
-            return ['competitor_landscape', 'seo_keyword_research', 'aeo_visibility',
+            return ['competitor_landscape', 'seo_keyword_research', 'aeo_visibility', 'link_audit',
                 ...UNIVERSAL_STAGES, 'content_plan']
         case 'paid_search':
             return ['competitor_landscape', 'paid_audit',
@@ -137,7 +137,7 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
             return ['competitor_landscape', 'seo_keyword_research', 'paid_audit',
                 ...UNIVERSAL_STAGES, 'media_plan', 'content_plan']
         case 'multichannel':
-            return ['competitor_landscape', 'seo_keyword_research', 'aeo_visibility',
+            return ['competitor_landscape', 'seo_keyword_research', 'aeo_visibility', 'link_audit',
                 'paid_audit', 'social_landscape',
                 ...UNIVERSAL_STAGES, 'content_plan', 'media_plan']
     }

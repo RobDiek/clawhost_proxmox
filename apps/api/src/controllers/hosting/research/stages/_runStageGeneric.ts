@@ -37,6 +37,7 @@ import { DfsError } from '@/services/research/dataforseo'
 import { prefetchCompetitorLandscape } from './prefetch/competitor_landscape'
 import { prefetchSeoKeywordResearch } from './prefetch/seo_keyword_research'
 import { prefetchAudiencePersonas } from './prefetch/audience_personas'
+import { prefetchLinkAudit } from './prefetch/link_audit'
 import type { ResearchDataV2, StageId } from '@/services/research/types'
 
 /**
@@ -51,6 +52,7 @@ const STAGE_PREFETCHERS: Partial<Record<StageId, Prefetcher>> = {
     competitor_landscape: prefetchCompetitorLandscape,
     seo_keyword_research: prefetchSeoKeywordResearch,
     audience_personas:    prefetchAudiencePersonas,
+    link_audit:           prefetchLinkAudit,
 }
 
 /**

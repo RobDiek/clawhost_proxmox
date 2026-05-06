@@ -16,6 +16,7 @@ export function notImplementedYet(c: Context, stageId: StageId): Response {
         competitor_landscape:   'נוף תחרותי',
         seo_keyword_research:   'מחקר מילות מפתח (SEO)',
         aeo_visibility:         'נראות AI (AEO)',
+        link_audit:             'אודיט פרופיל קישורים',
         paid_audit:             'אודיט פרסום ממומן',
         social_landscape:       'נוף רשתות חברתיות',
         email_competitor_audit: 'אודיט ניוזלטרים מתחרים',

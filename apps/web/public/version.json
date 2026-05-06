@@ -3,9 +3,9 @@
   "schemaVersion": 7,
   "releasedAt": "2026-04-30T15:50:00Z",
   "releaseNotes": [
-    "Admin panel — push-upgrade per instance + bulk upgrade with master-first ordering",
-    "Master canary tagging — admin marks own instance to test releases first",
-    "First test migration: example-noop (verifies upgrade plumbing without changing anything)"
+    "🛡️ עדכון בטוח יותר — גיבוי אוטומטי לפני כל עדכון, שחזור אוטומטי אם משהו משתבש",
+    "⚡ ביצועים ותיקוני יציבות לליבת המערכת",
+    "🔒 שיפורי אבטחה קלים"
   ],
   "components": {
     "openclaw":     "0.20.x",
@@ -19,5 +19,49 @@
     "nginx":        "system",
     "caddy":        "2.7"
   },
-  "migrations": ["example-noop"]
+  "migrations": ["example-noop"],
+
+  "dashboardVersion": "2026.05.01.4",
+  "dashboardReleasedAt": "2026-05-01T17:00:00Z",
+  "dashboardChangelog": [
+    {
+      "version": "2026.05.01.4",
+      "date": "2026-05-01",
+      "changes": [
+        "מאסטר-canary: באקאונט המאסטר מוצג שלט ייעודי 'אתם המאסטר — תמיד בגרסה האחרונה' במקום הצעת עדכון. המאסטר הוא מקור האמת.",
+        "אישור התקנת עדכון: עבר מ-confirm() נטיב של הדפדפן ל-cfConfirm modal — בעברית, עיצוב עקבי לכל שאר האפליקציה.",
+        "version.ts: תוקן באג בו resolveUserId המקומי החזיר null תמיד (קרא c.get('user') שלא מוגדר) — כעת משתמש ב-authHelper המשותף עם אימות JWT אמיתי.",
+        "Rate limit על /auth/me הוגדל ל-120/דקה (היה 15/דקה משותף לכל /auth/* — חסם שימוש רגיל)."
+      ]
+    },
+    {
+      "version": "2026.05.01.3",
+      "date": "2026-05-01",
+      "changes": [
+        "מערכת גיבויים שוכתבה: מבוססת Hetzner snapshots — אטומית, ברמת הדיסק, כוללת הכל. יצירה בקליק עם תיוג אופציונלי. שחזור בקליק עם אישור מזהה instance. מחיקה בקליק. ללא תלות ב-/opt/openclaw-backup.sh.",
+        "API: רישום DELETE /backups/:imageId. שינוי שם הראוט המתנגש /stats → /server-stats.",
+        "הסרת סוכן: כלל 'סוכן אחרון' רוכך — אפשר להסיר עם force=true. דשבורד מזהה את המקרה ומציג אישור מתאים."
+      ]
+    },
+    {
+      "version": "2026.05.01.2",
+      "date": "2026-05-01",
+      "changes": [
+        "אונבורדינג מסודר מחדש: Brand Foundation עלה (אחרי פרופיל, לפני מחקר) — מזין framing למחקר + אסטרטגיה + קריאייטיב.",
+        "אונבורדינג מאוחד: Strategy + Scenario מוזגו למשימה אחת — AI מציע אסטרטגיה, ואז 3 רמות תקציב לבחירה.",
+        "ניהול שיווק פשוט: 2 סקציות בלבד (ערוצים + מטריצת תוספים). Pipelines הועברו לסקציה מתקדמת מקופלת. footer סטטוס חי.",
+        "Logout: ניקוי כל מפתחות cf_* / clawflow_* מ-localStorage למניעת זליגת state בין חשבונות.",
+        "מודל AI הוסר ממודלי יצירה במותג (אין יותר תג 'Sonnet 4.6 · 10-15 שניות').",
+        "מדריך WhatsApp נוסף (12 סקציות, עברית) — נגיש דרך 📖 בכרטיס התוסף."
+      ]
+    },
+    {
+      "version": "2026.05.01.1",
+      "date": "2026-05-01",
+      "changes": [
+        "UX: בכותרת מוצג שם המשתמש במקום אימייל (סנכרון מ-/auth/me בטעינה).",
+        "UX: אייקון ההגדרות (מפתח שוודי) ממורכז כראוי בריבוע."
+      ]
+    }
+  ]
 }

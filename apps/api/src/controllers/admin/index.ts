@@ -639,3 +639,98 @@ export const adminListAudit = async (c: Context) => {
         return ok(c, { audit: rows })
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
+
+// ─── Dashboard staging → prod publish ────────────────────────────────────
+//
+// Architecture: dashboard.html (prod, what every paying client sees) and
+// dashboard-staging.html (dev, only master canary lands there). Devops
+// pushes dashboard changes to *-staging.html. Once tested on master, admin
+// clicks "Publish" → this endpoint copies staging → prod for everyone.
+//
+// GET  /admin/dashboard/status   → diff (md5 + mtimes) so UI can show "X changes pending"
+// POST /admin/dashboard/publish  → copy staging → prod, audit log
+
+const STAGING_FILES = [
+    // base path is /opt/openclaw-hosting/apps/web/{public,dist}
+    // pairs of [staging, prod]
+    ['dashboard-staging.html', 'dashboard.html'],
+] as const
+
+const WEB_PUBLIC = '/opt/openclaw-hosting/apps/web/public'
+const WEB_DIST = '/opt/openclaw-hosting/apps/web/dist'
+
+async function fileMd5(path: string): Promise<{ exists: boolean; md5: string; mtime: string; size: number }> {
+    const fs = await import('node:fs/promises')
+    const crypto = await import('node:crypto')
+    try {
+        const stat = await fs.stat(path)
+        const buf = await fs.readFile(path)
+        const md5 = crypto.createHash('md5').update(buf).digest('hex')
+        return { exists: true, md5, mtime: stat.mtime.toISOString(), size: stat.size }
+    } catch {
+        return { exists: false, md5: '', mtime: '', size: 0 }
+    }
+}
+
+export const adminDashboardStatus = async (c: Context) => {
+    try {
+        const path = await import('node:path')
+        const status = []
+        for (const [staging, prod] of STAGING_FILES) {
+            const stagingPath = path.join(WEB_DIST, staging)
+            const prodPath = path.join(WEB_DIST, prod)
+            const sMeta = await fileMd5(stagingPath)
+            const pMeta = await fileMd5(prodPath)
+            status.push({
+                staging,
+                prod,
+                stagingMd5: sMeta.md5,
+                prodMd5: pMeta.md5,
+                stagingMtime: sMeta.mtime,
+                prodMtime: pMeta.mtime,
+                stagingSize: sMeta.size,
+                prodSize: pMeta.size,
+                inSync: sMeta.exists && pMeta.exists && sMeta.md5 === pMeta.md5,
+                stagingNewer: sMeta.exists && pMeta.exists
+                    ? new Date(sMeta.mtime).getTime() > new Date(pMeta.mtime).getTime()
+                    : false,
+            })
+        }
+        return ok(c, { files: status })
+    } catch (err) { return fail(c, (err as Error).message, 500) }
+}
+
+export const adminDashboardPublish = async (c: Context) => {
+    try {
+        const adminId = c.get('adminId' as any) as string
+        const fs = await import('node:fs/promises')
+        const path = await import('node:path')
+        const body = await c.req.json<{ confirm?: string }>().catch(() => ({} as any))
+        if (body.confirm !== 'PUBLISH') {
+            return fail(c, 'Confirm must equal "PUBLISH" to proceed.', 400)
+        }
+        const published: Array<{ staging: string; prod: string; size: number }> = []
+        for (const [staging, prod] of STAGING_FILES) {
+            for (const base of [WEB_PUBLIC, WEB_DIST]) {
+                const sPath = path.join(base, staging)
+                const pPath = path.join(base, prod)
+                try {
+                    const buf = await fs.readFile(sPath)
+                    await fs.writeFile(pPath, buf)
+                    if (base === WEB_DIST) published.push({ staging, prod, size: buf.length })
+                } catch (err) {
+                    return fail(c, `Failed copying ${staging} → ${prod} in ${base}: ${(err as Error).message}`, 500)
+                }
+            }
+        }
+        await writeAudit({
+            adminId,
+            action: 'admin.dashboard.publish',
+            targetType: 'system',
+            targetId: 'dashboard',
+            ip: getIp(c),
+            details: { published },
+        })
+        return ok(c, { published, publishedAt: new Date().toISOString() }, 'Dashboard published to prod.')
+    } catch (err) { return fail(c, (err as Error).message, 500) }
+}

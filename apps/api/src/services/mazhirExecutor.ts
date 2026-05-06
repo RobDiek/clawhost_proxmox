@@ -172,7 +172,7 @@ export async function executeMediaPlan(instanceId: string, opts: { dryRun?: bool
     }
 
     // Pre-resolve city geo IDs once for all campaigns
-    let cityIdMap: Record<string, string> = {}
+    const cityIdMap: Record<string, string> = {}
     {
         const allCities = Array.from(new Set(
             (plan.campaigns || []).flatMap((c: any) => c.geo?.cities || [])

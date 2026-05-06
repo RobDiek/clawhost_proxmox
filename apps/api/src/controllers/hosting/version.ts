@@ -9,6 +9,10 @@
  */
 
 import type { Context } from 'hono'
+// Use the shared JWT-parsing resolveUserId — the previous local version
+// read c.get('user') which is NEVER set (no auth middleware in hosting routes),
+// so every call returned null → handler responded "Instance not found" 404.
+import { resolveUserId } from './authHelper'
 
 const ok = (c: Context, data: any, message = 'OK') => c.json({ success: true, data, message })
 const fail = (c: Context, message: string, status = 400) => c.json({ success: false, message }, status as any)
@@ -22,11 +26,6 @@ async function getOwnedInstanceLite(instanceId: string, userId: string | null): 
         .where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
         .limit(1)
     return !!row
-}
-
-function resolveUserId(c: Context): string | null {
-    const u = (c.get('user') as any) || (c as any).user
-    return u?.id || u?.userId || null
 }
 
 export const getLatestManifest = async (c: Context) => {
