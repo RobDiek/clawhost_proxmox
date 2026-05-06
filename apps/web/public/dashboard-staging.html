@@ -10892,7 +10892,7 @@ var STAGE_CATALOG_V2 = {
   competitor_landscape:   { titleHe: 'נוף תחרותי',                   descHe: 'מתחרים ישירים, מבנה שוק, נוכחות דיגיטלית, gaps' },
   internal_seo_audit:     { titleHe: 'אודיט SEO פנימי',                descHe: 'on-page audit + schema coverage + duplicates + IA depth + technical debt' },
   seo_keyword_research:   { titleHe: 'מחקר מילות מפתח (SEO)',         descHe: '30+ keywords עם volume/CPC/difficulty + SERP analysis' },
-  aeo_visibility:         { titleHe: 'נראות AI (AEO)',                descHe: 'ציטוטים ב-Claude/ChatGPT/Perplexity + schema audit + GSC' },
+  aeo_visibility:         { titleHe: 'נראות AI (AEO)',                descHe: 'citation probes ב-Anthropic + schema gap analysis + extractability audit' },
   link_audit:             { titleHe: 'אודיט פרופיל קישורים',         descHe: 'profile audit + lost links + outreach roadmap. דורש DFS Backlinks API פעיל' },
   paid_audit:             { titleHe: 'אודיט פרסום ממומן',            descHe: 'Google Ads + Meta — היסטוריה, blockers, methodology' },
   social_landscape:       { titleHe: 'נוף רשתות חברתיות',            descHe: 'מתחרים ב-IG/FB/LinkedIn, content patterns, tone' },
@@ -11437,6 +11437,7 @@ function renderRecordsByStage(stageId, records) {
     case 'competitor_landscape':   return renderCompetitorRecords(records);
     case 'internal_seo_audit':     return renderInternalAuditRecords(records);
     case 'seo_keyword_research':   return renderKeywordRecords(records);
+    case 'aeo_visibility':         return renderAeoVisibilityRecords(records);
     case 'link_audit':             return renderLinkAuditRecords(records);
     case 'audience_personas':      return renderPersonaRecords(records);
     case 'positioning':            return renderPositioningRecord(records[0]);
@@ -11780,6 +11781,90 @@ function renderInternalAuditRow(r) {
     + (warnings.length ? '<div style="margin-top:4px"><span style="font-size:0.66rem;color:#92400E;background:#FEF3C7;padding:2px 6px;border-radius:3px">⚠ warning: ' + warnings.map(escapeHtml).join(', ') + '</span></div>' : '')
     + (schemasMissing.length ? '<div style="margin-top:4px;font-size:0.7rem"><strong style="color:#6B7280">חסר schema:</strong> ' + schemasMissing.map(escapeHtml).join(', ') + (schemasPresent.length ? ' <span style="color:#9CA3AF">(נוכח: ' + schemasPresent.map(escapeHtml).join(', ') + ')</span>' : '') + '</div>' : '')
     + (r.priority_action ? '<div style="font-size:0.74rem;color:#1F2937;margin-top:6px;line-height:1.5"><strong>פעולה:</strong> ' + escapeHtml(r.priority_action) + (r.estimated_effort_hours ? ' <span style="color:#6B7280">— ' + r.estimated_effort_hours + 'h</span>' : '') + (r.owner ? ' · ' + escapeHtml(r.owner) : '') + '</div>' : '')
+    + '</div>';
+}
+
+// ── aeo_visibility ──────────────────────────────────────────────────────────
+// Records are AEO-improvement actions grouped by type (schema_implementation /
+// content_extractability_upgrade / answer_block_optimization / etc.). UI also
+// surfaces extras: aeo_summary, schema_priority_plan, competitor_aeo_advantage,
+// extractability_audit (rendered via renderRecordExtras when present).
+
+function renderAeoVisibilityRecords(records) {
+  if (!records || !records.length) return '';
+
+  // Group by type
+  var byType = {};
+  records.forEach(function(r) {
+    var t = r.type || 'other';
+    if (!byType[t]) byType[t] = [];
+    byType[t].push(r);
+  });
+  var TYPE_META = {
+    schema_implementation:           { label: 'הטמעת schema markup', icon: '🏷️', color: '#1E3A8A', bg: '#DBEAFE' },
+    content_extractability_upgrade:  { label: 'שדרוג extractability', icon: '📝', color: '#92400E', bg: '#FEF3C7' },
+    citation_outreach:               { label: 'outreach לציטוטים', icon: '📣', color: '#065F46', bg: '#D1FAE5' },
+    structured_data_audit:           { label: 'אודיט structured data', icon: '🔍', color: '#7C2D12', bg: '#FED7AA' },
+    answer_block_optimization:       { label: 'אופטימיזציית answer blocks', icon: '💬', color: '#3730A3', bg: '#E0E7FF' },
+    other:                           { label: 'אחר', icon: '•', color: '#374151', bg: '#F3F4F6' }
+  };
+
+  // Top stats: count by impact
+  var counts = { high: 0, medium: 0, low: 0 };
+  var totalHours = 0;
+  records.forEach(function(r) {
+    counts[r.expected_aeo_impact || 'low']++;
+    totalHours += Number(r.estimated_effort_hours) || 0;
+  });
+
+  var html = '<div style="margin:8px 0">'
+    + '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap">'
+    +   '<span><strong>' + records.length + '</strong> פעולות</span>'
+    +   '<span style="color:#10B981">●' + counts.high + ' high impact</span>'
+    +   '<span style="color:#F59E0B">●' + counts.medium + ' medium</span>'
+    +   '<span style="color:#9CA3AF">●' + counts.low + ' low</span>'
+    +   '<span><strong>~' + totalHours + 'h</strong> סה״כ</span>'
+    + '</div>';
+
+  Object.keys(byType).forEach(function(t) {
+    var meta = TYPE_META[t] || TYPE_META.other;
+    var items = byType[t].sort(function(a, b) {
+      var pri = { high: 0, medium: 1, low: 2 };
+      return (pri[a.expected_aeo_impact] || 3) - (pri[b.expected_aeo_impact] || 3);
+    });
+    html += '<details open style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:8px">'
+      + '<summary style="cursor:pointer;padding:10px 14px;background:' + meta.bg + ';border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center">'
+      +   '<strong style="font-size:0.84rem;color:' + meta.color + '">' + meta.icon + ' ' + meta.label + '</strong>'
+      +   '<span style="font-size:0.7rem;color:' + meta.color + '">' + items.length + ' פעולות</span>'
+      + '</summary>'
+      + '<div style="padding:6px 14px 10px">'
+      +   items.map(renderAeoRow).join('')
+      + '</div></details>';
+  });
+  return html + '</div>';
+}
+
+function renderAeoRow(r) {
+  var impColor = r.expected_aeo_impact === 'high' ? '#10B981' : r.expected_aeo_impact === 'medium' ? '#F59E0B' : '#9CA3AF';
+  return '<div style="border-top:1px solid #F3F4F6;padding:8px 0;font-size:0.8rem">'
+    + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;flex-wrap:wrap">'
+    +   '<div style="flex:1;min-width:0">'
+    +     '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+    +       '<strong style="font-size:0.82rem;direction:ltr">' + escapeHtml(r.target || '—') + '</strong>'
+    +       (r._target_kind ? '<span style="font-size:0.62rem;color:#6B7280;background:#F3F4F6;padding:1px 5px;border-radius:3px">' + escapeHtml(r._target_kind) + '</span>' : '')
+    +       '<span style="font-size:0.66rem;color:' + impColor + ';background:#F3F4F6;padding:1px 5px;border-radius:3px">impact: ' + escapeHtml(r.expected_aeo_impact || '—') + '</span>'
+    +     '</div>'
+    +     (r.current_state ? '<div style="font-size:0.72rem;color:#6B7280;margin-top:4px"><strong>מצב נוכחי:</strong> ' + escapeHtml(r.current_state) + '</div>' : '')
+    +   '</div>'
+    +   '<div style="text-align:left;direction:ltr;font-size:0.7rem;color:#374151;flex-shrink:0">'
+    +     (r.estimated_effort_hours ? '<div>' + r.estimated_effort_hours + 'h</div>' : '')
+    +     (r.timeline ? '<div style="font-size:0.66rem;color:#6B7280">' + escapeHtml(r.timeline) + '</div>' : '')
+    +   '</div>'
+    + '</div>'
+    + (r.recommended_action ? '<div style="font-size:0.74rem;color:#1F2937;margin-top:6px;line-height:1.5"><strong>פעולה:</strong> ' + escapeHtml(r.recommended_action) + '</div>' : '')
+    + (r.rationale ? '<div style="font-size:0.7rem;color:#6B7280;margin-top:3px;line-height:1.5"><em>למה:</em> ' + escapeHtml(r.rationale) + '</div>' : '')
+    + (r.owner ? '<div style="font-size:0.66rem;color:#6B7280;margin-top:2px">owner: ' + escapeHtml(r.owner) + '</div>' : '')
+    + (r.evidence && r.evidence.length ? '<div style="margin-top:2px;font-size:0.62rem;color:#9CA3AF">evidence: ' + r.evidence.map(escapeHtml).join(', ') + '</div>' : '')
     + '</div>';
 }
 

@@ -2163,6 +2163,226 @@ function renderInternalAuditSchemaCoverage(dfs: InternalSeoAuditDfsShape): strin
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// aeo_visibility — Phase E1.1. AI-search visibility audit.
+// Reads internal_seo_audit (schema coverage) + seo_keyword_research (queries
+// to probe) upstream. Anthropic citation probes drive the visibility metric.
+// ────────────────────────────────────────────────────────────────────────────
+
+interface AeoVisibilityDfsShape {
+    ourDomain: string | null
+    hasUpstream: boolean
+    upstreamMissing: string[]
+    topUrls: Array<{ url: string; inferredPageType?: string; schemaTypes?: string[]; h1List?: string[]; wordCount?: number }>
+    priorityKeywords: Array<{ keyword?: string; intent?: { primary?: string }; opportunity?: { decision?: string; total?: number }; aeo?: { is_priority?: boolean; total?: number }; cluster?: string }>
+    citationProbes: Array<{
+        query: string
+        sourceKeyword: string
+        brandCited: boolean
+        brandPosition: number | null
+        competitorsCited: string[]
+        excerpt: string
+        sentiment: 'positive' | 'neutral' | 'negative' | 'not_cited'
+    }>
+    citationStats: {
+        probes_run: number
+        brand_cited_count: number
+        brand_cited_pct: number
+        avg_brand_position: number | null
+        most_cited_competitor: string | null
+        competitor_citation_frequency: Record<string, number>
+    }
+    aeoSchemaGaps: Array<{ schema_type: string; why_critical_for_aeo: string; urls_affected_count: number }>
+    totalCostUsd: number
+    enrichmentMissing: string[]
+}
+
+function buildAeoVisibilityPrompt(opts: PromptOpts): PromptResult {
+    const { businessName, businessDesc, feedback, historicalAssetsBlock } = opts
+    const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
+    const haBlock = historicalAssetsBlock || ''
+    const dfs = opts.dfsData as AeoVisibilityDfsShape | undefined
+    if (!dfs) throw new Error('aeo_visibility: dfsData prefetch is required')
+
+    const probesTable = dfs.citationProbes.length > 0
+        ? renderAeoProbesTable(dfs.citationProbes)
+        : '*(לא הורצו citation probes — חסר upstream או לא הוגדר API key)*'
+    const competitorRanking = renderAeoCompetitorRanking(dfs.citationStats.competitor_citation_frequency, businessName)
+    const schemaGapsTable = renderAeoSchemaGapsTable(dfs.aeoSchemaGaps)
+    const upstreamWarning = dfs.upstreamMissing.length > 0
+        ? `\n**⚠ Upstream חסר:** ${dfs.upstreamMissing.join(', ')}. השלב יפעל ב-degraded mode על בסיס מה שיש.\n`
+        : ''
+
+    return {
+        agentId: 'menateach',
+        useDirectApi: true,
+        minLength: 2500,
+        prompt: `# נראות AI (AEO) — "${businessName}"
+
+## תיאור העסק
+${businessDesc}
+${haBlock}
+${upstreamWarning}
+
+## נתוני האודיט — verbatim, אסור להמציא
+
+**מקור:** Anthropic citation probes (${new Date().toISOString().slice(0, 10)}) + upstream internal_seo_audit + seo_keyword_research | $${dfs.totalCostUsd.toFixed(4)}${dfs.enrichmentMissing.length ? ' | partial: ' + dfs.enrichmentMissing.join(', ') : ''}
+
+### Brand citation summary
+- **Probes run:** ${dfs.citationStats.probes_run}
+- **Brand cited:** ${dfs.citationStats.brand_cited_count}/${dfs.citationStats.probes_run} (${dfs.citationStats.brand_cited_pct}%)
+- **Avg position when cited:** ${dfs.citationStats.avg_brand_position ?? 'לא צוטטנו אף פעם'}
+- **Most-cited competitor:** ${dfs.citationStats.most_cited_competitor || '—'}
+
+### Citation probes — query × response
+${probesTable}
+
+### Competitor citation ranking — מי מקבל ציטוטים ב-AI search
+${competitorRanking}
+
+### AEO Schema gaps (cross-referenced עם internal_seo_audit)
+${schemaGapsTable}
+
+### URLs sample from internal audit
+${dfs.topUrls.length > 0 ? renderAeoTopUrls(dfs.topUrls.slice(0, 15)) : '*(אין נתוני internal_seo_audit — שלב upstream לא רץ)*'}
+
+---
+
+## פקודות עבודה
+
+${HARD_BLOCK_RULES}
+
+${HEBREW_ONLY_BLOCK}
+
+${CONFIDENCE_INTEGRITY_RULE}
+
+${CONFIDENCE_LABELING}
+
+${JSON_OUTPUT_RULES}
+
+---
+
+## פלט נדרש
+
+### חלק 1: תקציר מנהלים (markdown — בעברית, 2-3 פסקאות)
+שלוש שאלות מרכזיות: (א) **המוניטין שלכם ב-AI search** — האם LLMs מציגים אתכם כשאנשים שואלים על הקטגוריה? באיזה דירוג? לעומת מי? (ב) **Extractability gap** — אילו schema critical חסרים ולכמה דפים? (ג) **תוכנית AEO 90 יום** — 3 פעולות בסדר עדיפות עם expected ROI ב-AEO.
+
+### חלק 2: רשומות JSON — AEO targets + actions (חובה!)
+
+\`\`\`json
+{
+  "aeo_summary": {
+    "brand_visibility_score_0_100": 0,
+    "brand_cited_pct": 0,
+    "avg_position_when_cited": 0,
+    "schema_coverage_for_aeo_pct": 0,
+    "extractability_grade": "A | B | C | D | F",
+    "biggest_gap": "1 משפט בעברית",
+    "biggest_quick_win": "1 משפט בעברית",
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "records": [
+    {
+      "type": "schema_implementation | content_extractability_upgrade | citation_outreach | structured_data_audit | answer_block_optimization",
+      "target": "URL או page_type או keyword cluster",
+      "_target_kind": "url | page_type | cluster",
+      "current_state": "1-2 משפטים בעברית — מה המצב היום (no_schema / thin_answer_blocks / weak_entity_signals / וכו')",
+      "recommended_action": "2-3 משפטים בעברית — מה לעשות בדיוק",
+      "expected_aeo_impact": "high | medium | low",
+      "rationale": "1-2 משפטים — למה זה משפר נראות ב-AI search ספציפית",
+      "owner": "תפקיד אחראי בעברית: 'מנהל SEO' / 'מנהל תוכן' / 'מפתח'",
+      "estimated_effort_hours": 0,
+      "timeline": "תוך X ימים/שבועות (במספר ובעברית)",
+      "evidence": ["citation_probe", "schema_gap_analysis", "upstream_internal_audit"],
+      "confidence": "high | medium | working_hypothesis"
+    }
+  ],
+  "schema_priority_plan": [
+    {
+      "schema_type": "FAQPage | HowTo | Article | Organization | Product | LocalBusiness",
+      "urls_to_add_count": 0,
+      "url_examples": ["url1", "url2"],
+      "implementation_approach": "1 משפט בעברית — איך מיישמים (gtm template / cms field / hardcoded)",
+      "expected_aio_lift": "1 משפט בעברית — איך זה ישפר נראות ב-AI Overview / PAA",
+      "owner": "תפקיד בעברית",
+      "estimated_effort_hours": 0,
+      "priority": "high | medium | low"
+    }
+  ],
+  "competitor_aeo_advantage": [
+    {
+      "competitor": "competitor.com",
+      "cited_in_probes": 0,
+      "what_they_do_better": "1-2 משפטים בעברית — schema פעיל אצלם / content type / brand authority / וכו'",
+      "lesson_to_apply": "1 משפט בעברית — איך אנחנו מצמצמים את הפער",
+      "evidence": ["citation_probe"]
+    }
+  ],
+  "extractability_audit": {
+    "_note": "לפי upstream internal_seo_audit + h1 patterns + schema coverage",
+    "pages_with_strong_extractability_count": 0,
+    "pages_with_weak_extractability_count": 0,
+    "weak_extractability_url_examples": ["url1", "url2"],
+    "common_weakness_patterns": ["thin_above_fold | no_definition_blocks | no_data_points | walls_of_text | no_summary_para"],
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "confidence": "high | medium | working_hypothesis"
+}
+\`\`\`
+
+**חובה:**
+- **records** מינימום 8: לפחות 3 \`schema_implementation\` (אם יש gaps), לפחות 2 \`content_extractability_upgrade\`, לפחות 1 \`answer_block_optimization\`. השאר לפי שיקול.
+- כל record עם evidence מרשימת ה-DFS data במקור — אסור להמציא evidence sources.
+- \`schema_priority_plan\` חייב לכסות את כל ה-aeoSchemaGaps שזוהו.
+- \`competitor_aeo_advantage\` רשומה לכל competitor שצוטט באחד מהprobes.
+- אם \`probes_run = 0\` — כל confidence: working_hypothesis עם הסבר ב-rationale.
+
+### חלק 3: 5 פעולות AEO לרבעון הבא (markdown — בעברית בלבד)
+מבחר 5 הפעולות עם ה-impact/effort הטוב ביותר ל-AEO ספציפית. כל פעולה: מה לעשות, למה זה משפר AI search, מי האחראי, timeline, ROI צפוי.
+
+### חלק 4: השוואה — אנחנו vs מי שמצוטט (markdown — בעברית בלבד)
+לכל competitor שצוטט בלפחות 2 probes, פסקה: מה הם עושים שאנחנו לא? schema פעיל? content depth? brand authority? איך אנחנו מצמצמים את הפער?
+
+---
+
+${QUALITY_GATE_INSTRUCTIONS}
+${feedbackLine}`,
+    }
+}
+
+function renderAeoProbesTable(probes: AeoVisibilityDfsShape['citationProbes']): string {
+    const rows = probes.map(p => {
+        const status = p.brandCited ? `✓ position ${p.brandPosition ?? '?'}` : '✗ not cited'
+        const compsList = p.competitorsCited.slice(0, 3).join(', ') || '—'
+        return `| ${p.sourceKeyword} | ${status} | ${p.sentiment} | ${compsList} |`
+    }).join('\n')
+    return `| keyword (probed) | brand citation | sentiment | top competitors cited |\n|---|---|---|---|\n${rows}`
+}
+
+function renderAeoCompetitorRanking(freq: Record<string, number>, ownBrand: string): string {
+    const sorted = Object.entries(freq)
+        .filter(([k]) => k.toLowerCase() !== ownBrand.toLowerCase())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+    if (sorted.length === 0) return '*(לא זוהו competitors בציטוטים)*'
+    const rows = sorted.map(([name, count]) => `| ${name} | ${count} |`).join('\n')
+    return `| competitor | citations across probes |\n|---|---|\n${rows}`
+}
+
+function renderAeoSchemaGapsTable(gaps: AeoVisibilityDfsShape['aeoSchemaGaps']): string {
+    if (gaps.length === 0) return '*(אין schema gaps זוהוו — flag positive)*'
+    const rows = gaps.map(g => `| ${g.schema_type} | ${g.urls_affected_count} | ${g.why_critical_for_aeo} |`).join('\n')
+    return `| schema_type | urls_affected | למה קריטי ל-AEO |\n|---|---|---|\n${rows}`
+}
+
+function renderAeoTopUrls(urls: AeoVisibilityDfsShape['topUrls']): string {
+    const rows = urls.map(u => {
+        const schemas = (u.schemaTypes || []).join(', ') || '—'
+        return `| ${u.url} | ${u.inferredPageType ?? '—'} | ${u.wordCount ?? '—'} | ${schemas} |`
+    }).join('\n')
+    return `| URL | page_type | words | schemas |\n|---|---|---|---|\n${rows}`
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Dispatch helper — used by per-stage controllers to get prompt by id.
 // New prompts (aeo_visibility, social_landscape, email_competitor_audit)
 // belong here when they ship (Phase 4).
@@ -2173,6 +2393,7 @@ export function buildPromptForStage(stageId: StageId, opts: PromptOpts): PromptR
         case 'competitor_landscape':   return buildCompetitorLandscapePrompt(opts)
         case 'internal_seo_audit':     return buildInternalSeoAuditPrompt(opts)
         case 'seo_keyword_research':   return buildSeoKeywordResearchPrompt(opts)
+        case 'aeo_visibility':         return buildAeoVisibilityPrompt(opts)
         case 'link_audit':             return buildLinkAuditPrompt(opts)
         case 'audience_personas':      return buildAudiencePersonasPrompt(opts)
         case 'positioning':            return buildPositioningPrompt(opts)
