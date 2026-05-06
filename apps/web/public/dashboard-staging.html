@@ -11186,9 +11186,20 @@ function viewStageResultV2(sid) {
   }
   recsEl.innerHTML = html;
 
-  // Markdown content
+  // Markdown content — strip the embedded ```json``` block since records
+  // are already shown above as structured cards (avoids double-render).
+  // Also strip the "## רשומות מובנות" heading that wraps the JSON block.
   var contentEl = document.getElementById('pipelineV2-result-content');
-  contentEl.innerHTML = result.content ? renderMarkdown(result.content) : '<div style="color:#9CA3AF">אין תוכן</div>';
+  if (result.content) {
+    var cleanedContent = result.content
+      .replace(/##\s*רשומות מובנות[\s\S]*?```json[\s\S]*?```/g, '')
+      .replace(/```json[\s\S]*?```/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    contentEl.innerHTML = renderMarkdown(cleanedContent);
+  } else {
+    contentEl.innerHTML = '<div style="color:#9CA3AF">אין תוכן</div>';
+  }
 }
 
 function closeResultPanelV2() {

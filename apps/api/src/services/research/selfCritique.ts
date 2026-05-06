@@ -219,12 +219,20 @@ function parseCriticResponse(raw: string, originalContent: string, stageId: Stag
         parsed = JSON.parse(jsonText)
     } catch {
         try {
-            // Same control-char sanitization trick used in hybridParser.
+            // Tier 2: control-char sanitization.
             parsed = JSON.parse(sanitizeJsonControlChars(jsonText))
-        } catch (err) {
-            console.warn(`[selfCritique/${stageId}] critic returned malformed JSON:`, (err as Error).message)
-            result.skipped = true
-            return result
+        } catch {
+            try {
+                // Tier 3: common LLM hallucination repairs (mirrors hybridParser).
+                const repaired = sanitizeJsonControlChars(jsonText)
+                    .replace(/""(\s*[,}\]\n])/g, '"$1')
+                    .replace(/,(\s*[}\]])/g, '$1')
+                parsed = JSON.parse(repaired)
+            } catch (err) {
+                console.warn(`[selfCritique/${stageId}] critic returned malformed JSON (3 tiers):`, (err as Error).message)
+                result.skipped = true
+                return result
+            }
         }
     }
 

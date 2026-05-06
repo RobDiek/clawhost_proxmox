@@ -50,14 +50,19 @@ export function parseHybridResponse(content: string): HybridParseResult {
     try {
         parsed = JSON.parse(jsonText)
     } catch {
-        // Try a sanitization pass — agents sometimes emit raw newlines inside
-        // JSON string values. Replace control chars within string literals.
+        // Tier 2: control-char sanitization (raw newlines inside string values).
         try {
             parsed = JSON.parse(sanitizeJsonControlChars(jsonText))
-        } catch (err) {
-            console.warn('[hybridParser] JSON code-block malformed:', (err as Error).message)
-            result.jsonBlockMalformed = true
-            return result
+        } catch {
+            // Tier 3: common LLM-hallucination repairs (double quotes, trailing commas).
+            try {
+                parsed = JSON.parse(repairCommonJsonErrors(sanitizeJsonControlChars(jsonText)))
+                console.warn('[hybridParser] JSON repaired via Tier 3 (LLM hallucination patterns)')
+            } catch (err) {
+                console.warn('[hybridParser] JSON code-block malformed (3 tiers tried):', (err as Error).message)
+                result.jsonBlockMalformed = true
+                return result
+            }
         }
     }
 
@@ -111,6 +116,29 @@ function sanitizeJsonControlChars(src: string): string {
             if (ch === '"') { inStr = true; esc = false }
         }
     }
+    return out
+}
+
+/**
+ * Repair common LLM JSON hallucination patterns. Covers issues observed
+ * in production:
+ *   - Double-closing-quote on a string value: `"text"",` → `"text",`
+ *     (the model accidentally emits two closing quotes before delimiter)
+ *   - Trailing comma before closing brace/bracket: `,\s*}` or `,\s*]`
+ *   - Unescaped trailing newline-after-colon followed by quoted string
+ *
+ * Runs AFTER sanitizeJsonControlChars. Conservative — only patches
+ * patterns we've seen break parsing. Doesn't try to be a full JSON
+ * recoverer; just nudges common LLM mistakes back to valid JSON.
+ */
+function repairCommonJsonErrors(src: string): string {
+    let out = src
+    // Double-closing quote pattern: "...""<comma|brace|bracket|newline>
+    // The first " correctly closes the value; the model added an extra "
+    // before the delimiter. Replace `""` followed by structural char with `"`.
+    out = out.replace(/""(\s*[,}\]\n])/g, '"$1')
+    // Trailing comma before closing bracket/brace.
+    out = out.replace(/,(\s*[}\]])/g, '$1')
     return out
 }
 
