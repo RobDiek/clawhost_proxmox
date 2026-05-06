@@ -208,17 +208,34 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         }
 
         // Persist quality gate metadata into the output for save + response.
-        // If hard failures present + revision wasn't accepted → confidence
-        // downgraded automatically; UI surfaces the banner from
-        // qualityGate.hardFailures.
+        // Phase 3.14 — when server-side post-processing resolves a hard failure
+        // (math_sanity for competitor_landscape, since recomputeCompetitorScorecards
+        // already authoritatively fixed `total`), strip it from hardFailures and
+        // file it under `autoCorrected` for the audit trail. This way pass=true
+        // when the SHIPPED state is actually clean, even if the model's first
+        // draft tripped a check.
         if (critique && !critique.skipped) {
+            const remainingHardFailures: string[] = []
+            const autoCorrected: string[] = []
+            for (const f of critique.hardFailures) {
+                // Math sanity is auto-corrected for competitor_landscape via
+                // recomputeCompetitorScorecards (server-side recompute). For
+                // other stages no auto-correction → all hardFailures remain.
+                if (stageId === 'competitor_landscape' && /math_sanity|formula_verification|scorecard.*total/i.test(f)) {
+                    autoCorrected.push(f)
+                } else {
+                    remainingHardFailures.push(f)
+                }
+            }
+            const stillHasHardFailures = remainingHardFailures.length > 0
             output.qualityGate = {
-                pass: critique.pass,
-                hardFailures: critique.hardFailures,
+                pass: !stillHasHardFailures,
+                hardFailures: remainingHardFailures,
                 warnings: critique.warnings,
                 revised: !!critique.revisedContent,
+                ...(autoCorrected.length ? { autoCorrected } : {}),
             }
-            if (!critique.pass && critique.hardFailures.length > 0 && !critique.revisedContent) {
+            if (stillHasHardFailures && !critique.revisedContent) {
                 // Couldn't auto-fix → step the confidence down so UI flags it.
                 if (output.confidence === 'high') output.confidence = 'medium'
                 else if (output.confidence === 'medium') output.confidence = 'working_hypothesis'

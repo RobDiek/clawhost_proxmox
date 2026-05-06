@@ -219,6 +219,8 @@ export interface StageResult {
         warnings: string[]
         revised: boolean
         skipped?: boolean
+        /** Phase 3.14 — failures resolved by server-side post-processing. */
+        autoCorrected?: string[]
     }
     /**
      * Non-records JSON fields from the hybrid response — sibling top-level

@@ -136,6 +136,13 @@ export interface ExecuteStageOutput {
         warnings: string[]
         revised: boolean
         skipped?: boolean
+        /**
+         * Phase 3.14 — hard failures the server resolved post-critic
+         * (e.g. math_sanity dropped after recomputeCompetitorScorecards
+         * overwrote `total` with the authoritative weighted sum). Audit
+         * trail only; does NOT block `pass`.
+         */
+        autoCorrected?: string[]
     }
     /** Non-records JSON sibling fields (Phase 3.10b — our_link_profile, etc). */
     extras?: Record<string, unknown>
