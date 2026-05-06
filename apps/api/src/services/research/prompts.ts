@@ -37,6 +37,9 @@ import {
     BUYING_JOURNEY_FORMAT,
     TRUST_HIERARCHY_METHOD,
     PRICING_VALIDATION_METHOD,
+    POSITIONING_STACK_HE,
+    FIRST_WIN_CHANNEL_RULES,
+    REALISM_CHECK,
     CONFIDENCE_LABELING,
     JSON_OUTPUT_RULES,
     DFS_DATA_RULE,
@@ -833,75 +836,141 @@ export function buildPositioningPrompt(opts: PromptOpts): PromptResult {
     const { businessName, businessDesc, answers, rd, feedback, historicalAssetsBlock } = opts
     const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
     const haBlock = historicalAssetsBlock || ''
-    const competitorContent = (getStageContent(rd, 'competitor_landscape') || '').substring(0, 5000)
-    const personasContent = (getStageContent(rd, 'audience_personas') || '').substring(0, 5000)
+    const competitorContent = (getStageContent(rd, 'competitor_landscape') || '').substring(0, 4500)
+    const personasContent = (getStageContent(rd, 'audience_personas') || '').substring(0, 4500)
     const tone = answers.tone as string | undefined
+
+    // Pull structured competitor records when available — gives us
+    // canonical names + buckets to reference in the differentiation map
+    // instead of relying on the agent to re-extract from the markdown.
+    const compResult = rd.results?.competitor_landscape
+    const compRecords = (compResult as { records?: Array<{ name: string; bucket: string; threats_to_us?: string[] }> } | undefined)?.records || []
+    const directCompetitorsList = compRecords
+        .filter(r => r.bucket === 'direct' || r.bucket === 'substitute')
+        .slice(0, 5)
+        .map(r => `- ${r.name}${r.threats_to_us?.[0] ? ` (איום עיקרי: ${r.threats_to_us[0].substring(0, 100)})` : ''}`)
+        .join('\n')
 
     return {
         agentId: 'menateach',
-        useDirectApi: true, // analytical, no live web search needed
-        minLength: 800,
-        prompt: `# משימה: מיצוב + Brand Foundation עבור "${businessName}"
-
-## חשוב
-- זו משימה חדשה. לא ראית אותה קודם.
-- אל תקרא קבצים. השתמש רק בנתונים המסופקים כאן.
+        useDirectApi: true,
+        minLength: 2000,
+        prompt: `# מיצוב + Brand Foundation — "${businessName}"
 
 ## תיאור העסק
 ${businessDesc}
-${tone ? `\n## טון רצוי\n${tone}` : ''}
-
-## תמצית המתחרים (משלב competitor_landscape)
-${competitorContent || 'לא זמין'}
-
-## תמצית הפרסונות (משלב audience_personas)
-${personasContent || 'לא זמין'}
+${tone ? `\n## טון רצוי שצוין באונבורדינג\n${tone}` : ''}
 ${haBlock}
-## הוראות
-אתה brand strategist בכיר. בנה Brand Foundation שעונה על: **למה ${businessName}? למה דווקא הם? ולמה דווקא עכשיו?**
 
-זה לא marketing fluff — כל החלטה צריכה להיגזר מהמתחרים והפרסונות שלמעלה.
+---
 
-## פורמט תשובה (חובה)
+## תמצית שלבים קודמים — חובה לבסס עליהם החלטות
 
-### Mission (משימה)
-משפט אחד — **למה אנחנו קמים בבוקר**. לא "to be the leading X" — מה הבעיה שאנחנו פותרים בעולם?
+### תמצית מתחרים (משלב competitor_landscape)
+${competitorContent || '*(stage לא הורץ)*'}
 
-### Positioning Statement
-פורמט: **עבור [פרסונה] שמתמודדים עם [כאב], ${businessName} הוא [קטגוריה] שעוזר ל[תוצאה], בניגוד ל[מתחרה ראשי] שעושים [חולשה].**
+${directCompetitorsList ? `**מתחרים ישירים מובנים (לטבלת differentiation):**\n${directCompetitorsList}` : ''}
 
-### Value Propositions (3 בדיוק)
-לכל אחת:
-1. **[שם הצעת ערך]**
-   - **למי:** [פרסונה ספציפית]
-   - **התוצאה:** [מה הם מקבלים]
-   - **למה אנחנו:** [למה לא מתחרה X]
-   - **הוכחה:** [אם יש — נתון/ציטוט מהמחקר]
+### תמצית פרסונות (משלב audience_personas)
+${personasContent || '*(stage לא הורץ)*'}
 
-### Brand Archetype
-1 ארכיטיפ ראשי + 1 משני (Hero / Sage / Rebel / Caregiver / Magician / וכו').
-**למה דווקא אלה:** [קישור לפרסונות ולמתחרים]
+---
 
-### Voice & Tone
-| מימד | מה כן | מה לא | דוגמה במשפט |
-|---|---|---|---|
-| פורמליות | ... | ... | "..." |
-| הומור | ... | ... | "..." |
-| אקטיביות | ... | ... | "..." |
+## פקודות עבודה
 
-### Brand Promise
-משפט אחד שהמותג מתחייב אליו ללקוח. נמדד — לא "the best", אלא "אנחנו תמיד [מדיד]".
+אתם brand strategist בכיר. בנו Brand Foundation שעונה על: **למה ${businessName}? למה דווקא הם? ולמה דווקא עכשיו?**
 
-### Differentiation Map
-| מתחרה ראשי | מה הם משדרים | מה אנחנו משדרים | ההבדל לפרסונה |
-|---|---|---|---|
-| [שם] | ... | ... | ... |
-| [שם] | ... | ... | ... |
-| [שם] | ... | ... | ... |
-(לפחות 3 מתחרים מהמחקר)
+זה לא marketing fluff — כל החלטה צריכה להיגזר מהמתחרים והפרסונות שלמעלה. אם הבסיס לא קיים בנתונים, סמנו אותו כ-working_hypothesis במקום להמציא.
 
-### Anti-Positioning
-מה ${businessName} **לא** רוצה להיות? אילו לקוחות לא רלוונטיים? באיזה ערוץ לא להופיע?
+${POSITIONING_STACK_HE}
+
+${LANGUAGE_DECISION}
+
+${CONFIDENCE_LABELING}
+
+${JSON_OUTPUT_RULES}
+
+---
+
+## פלט נדרש
+
+### חלק 1: Executive Summary (markdown — 2-3 פסקאות)
+מהי ה-positioning ב-3 משפטים? מי הפרסונה הראשית? מה הוא ה-anti-positioning הברור (מה אנחנו לא)? מה ה-differentiation החזק ביותר מול המתחרה הכי מסוכן?
+
+### חלק 2: JSON record — positioning (חובה!)
+
+\`\`\`json
+{
+  "records": [
+    {
+      "mission": "משפט אחד: למה אנחנו קמים בבוקר. הבעיה שאנחנו פותרים בעולם — לא 'to be the leading X' מנופח.",
+      "positioning_statement": "עבור [פרסונה ספציפית מ-audience_personas] שמתמודדים עם [כאב מ-personas.objections_anxieties], ${businessName} הוא [קטגוריה] שעוזר ל[outcome מ-jtbd_statement.outcome], בניגוד ל[שם מתחרה ישיר] שעושים [חולשה ספציפית מ-competitor_landscape.threats_to_us].",
+      "value_props": [
+        {
+          "name": "שם הצעת הערך",
+          "for_persona": "שם הפרסונה (חייב להתאים ל-personas.records[].name)",
+          "outcome": "מה הם מקבלים בפועל — מדיד אם אפשר",
+          "why_us": "למה לא מתחרה X — קישור ל-competitor_landscape.records[].threats_to_us",
+          "proof": "ציטוט / נתון / מקרה מהמחקר. אם אין — סמנו 'דורש validation' ו-confidence: working_hypothesis"
+        }
+      ],
+      "brand_archetype": {
+        "primary": "Hero | Sage | Rebel | Caregiver | Magician | Creator | Lover | Jester | Innocent | Explorer | Outlaw | Ruler",
+        "secondary": "ארכיטיפ משני",
+        "rationale": "למה דווקא אלה — קישור לפרסונות ולמתחרים, 2-3 משפטים"
+      },
+      "voice_tone": [
+        { "dimension": "פורמליות", "do": "...", "dont": "...", "example_sentence": "..." },
+        { "dimension": "הומור", "do": "...", "dont": "...", "example_sentence": "..." },
+        { "dimension": "אקטיביות (proactive vs reactive)", "do": "...", "dont": "...", "example_sentence": "..." },
+        { "dimension": "אמפתיה", "do": "...", "dont": "...", "example_sentence": "..." }
+      ],
+      "brand_promise": "משפט אחד מדיד שהמותג מתחייב אליו. לא 'the best' — אלא 'אנחנו תמיד [מדיד]: [תכונה ניתנת למדידה]'.",
+      "differentiation_map": [
+        {
+          "competitor_name": "שם מתחרה ישיר מ-competitor_landscape",
+          "they_signal": "מה הם משדרים (positioning שלהם, מ-competitor_landscape.records[].topical_authority_venn או narrative)",
+          "we_signal": "מה אנחנו משדרים — בקצרה, 1 משפט",
+          "diff_for_persona": "ההבדל מבחינת הפרסונה הראשית — 1 משפט"
+        }
+      ],
+      "anti_positioning": {
+        "not_for": ["סוגי לקוחות שאנחנו לא רוצים — 2-3 קטגוריות"],
+        "not_doing": ["שירותים/מוצרים שלא נציע — 2-3 דברים"],
+        "not_channels": ["ערוצים שלא נופיע בהם — עם הסבר קצר"]
+      },
+      "language_mode": "he | en | mixed",
+      "confidence": "high | medium | working_hypothesis",
+      "evidence": ["upstream_competitor_landscape", "upstream_audience_personas", "answers.tone"],
+      "generated_at": "ISO timestamp"
+    }
+  ],
+  "confidence": "high | medium | working_hypothesis"
+}
+\`\`\`
+
+**חובה:**
+- בדיוק 1 record (זה positioning של עסק אחד, לא של פרסונות).
+- value_props חייב להכיל **בדיוק 3** הצעות ערך, לא יותר ולא פחות.
+- differentiation_map חייב לכלול **לפחות 3 מתחרים ישירים** מ-competitor_landscape.records (bucket=direct או substitute).
+- voice_tone חייב לכלול את 4 המימדים שלמעלה — אסור להוסיף או להסיר.
+- positioning_statement במבנה הקבוע לעיל. אסור לחרוג מ-"עבור X שמתמודדים עם Y, [biznes] הוא [קטגוריה]..."
+- mission במשפט אחד, לא יותר — מנופחות = working_hypothesis.
+- אם פרסונה מסוימת לא קיימת ב-audience_personas.records — אסור להמציא, השתמשו בקיימות.
+- confidence לכל value_prop: 'high' רק אם יש proof מהמחקר. אם הוכחה היא 'common sense' או 'industry pattern' → working_hypothesis.
+
+### חלק 3: Why Now? — Brand Timing (markdown)
+3-5 גורמים ב-2026 ו-IL שמיישרים specifically את ${businessName} למומנט הזה. כל גורם — מקור (research / news / market signal) + confidence inline marker.
+
+### חלק 4: Brand Story Arc (markdown — קצר)
+StoryBrand-style: מי הגיבור (פרסונה), מה הקונפליקט (כאב הראשי), מי המדריך (${businessName}), מה התוכנית (3 צעדים), קריאה לפעולה, מה ייקרה אם יפעלו, מה ייקרה אם לא.
+**חשוב:** רק 1 פסקה. זה layer מסר, לא ה-strategic core. אסור להפוך את ה-positioning כולו ל-StoryBrand.
+
+---
+
+${QUALITY_GATE_INSTRUCTIONS}
+
+${HARD_BLOCK_RULES}
 ${feedbackLine}`,
     }
 }
@@ -928,111 +997,187 @@ export function buildStrategyOptionsPrompt(opts: PromptOpts): PromptResult {
     return {
         agentId: 'menateach',
         useDirectApi: true,
-        minLength: 1500,
-        prompt: `# משימה: ניתוח ערוצים ואסטרטגיה עבור "${businessName}"
+        minLength: 4500,
+        prompt: `# אופציות אסטרטגיה — "${businessName}"
 
-## חשוב
-- זו משימה חדשה. לא ראית אותה קודם.
-- אל תקרא קבצים. השתמש רק בנתונים המסופקים כאן.
-- אל תאמר "כבר עניתי" — ענה מחדש.
+## תקציר נתונים מאסטרים קודמים
 
-## תמצית מחקר — מתחרים
-${s1 || 'לא זמין'}
+### תמצית competitor_landscape
+${s1 || '*(stage לא הורץ)*'}
 
-## תמצית מחקר — מילות מפתח
-${s2 || 'לא זמין'}
+### תמצית seo_keyword_research
+${s2 || '*(stage לא הורץ)*'}
 
-## תמצית מחקר — קהל יעד
-${s3 || 'לא זמין'}
+### תמצית audience_personas
+${s3 || '*(stage לא הורץ)*'}
 
-${positioning ? `## מיצוב + Brand Foundation\n${positioning}\n` : ''}
-${budget ? `## תקציב\n${budget}` : ''}
-${marketingGoals ? `## מטרות שיווק\n${marketingGoals}` : ''}
+### תמצית positioning
+${positioning || '*(stage לא הורץ — אסטרטגיה ללא positioning תהיה weak)*'}
+
+${budget ? `## תקציב חודשי שצוין באונבורדינג\n${budget}` : ''}
+${marketingGoals ? `## מטרות שיווק שצוינו\n${marketingGoals}` : ''}
 ${haBlock}
-## הוראות
-אתה senior מרקטולוג עם 15 שנות ניסיון. נתח את הנתונים ובנה אסטרטגיית ערוצים:
-1. **FIRST WIN CHANNEL** (הכי חשוב) — בחר ערוץ אחד + פעולה אחת + פרסונה אחת שיביאו את 5 הלקוחות הראשונים. פוקוס מוחלט.
-2. **Competitive activity deep-dive לכל ערוץ** — מה המתחרים מפרסמים? מה ה-engagement שלהם? מה ה-hashtags/topics שעובדים?
-3. **Cross-references חובה** — כל ערוץ קשור לפרסונה ספציפית + מילות מפתח ספציפיות מהשלבים הקודמים.
-4. **תוכנית 30 ימים עם תאריכים ספציפיים** — לא "שבוע 1" אלא "יום 1-3"
 
-## פורמט תשובה (חובה)
+---
 
-### 🎯 FIRST WIN CHANNEL — הערוץ #1 ל-5 הלקוחות הראשונים
-**זה הכי חשוב. עונה על: "איפה להתמקד עכשיו?"**
+## פקודות עבודה — methodology
 
-- **ערוץ:** [שם]
-- **למה דווקא זה:** [3 סיבות מתוך הנתונים]
-- **פרסונה:** [שם + מאיפה מהשלב 3]
-- **מילות מפתח:** [2-3 מהשלב 2]
-- **פעולה אחת ספציפית:** [מה בדיוק לעשות היום, לא תיאוריה]
-- **Expected outcome:** [5 לקוחות תוך X ימים]
-- **למה לא ערוץ אחר עכשיו:** [פוקוס > splay]
+אתם senior מרקטולוג עם 15 שנות ניסיון. צרו **שתי אופציות אסטרטגיה מלאות** מבוססות על הנתונים שלמעלה:
+- **Smart** (low-comp / lean budget) — תקיפת long-tail + striking distance + AEO targets. קצר ל-90 ימים מעבר לציון proof.
+- **All-In** (head terms / aggressive) — תקיפת keywords תחרותיים + paid acceleration. דורש budget גבוה + 6-9 חודשים timeline.
 
-### ערוצים נוספים (לפי עדיפות — אחרי שה-First Win עובד)
+לכל option — חובה לעבור את 3 ה-must-pass tests של First-Win Channel + לחשב KPIs עם נוסחת Realism Forecast (3 תרחישים).
 
-#### 2. [שם הערוץ] ⭐⭐⭐ קריטי
-- **למה (על סמך המחקר):** [קשר ישיר לשלבים 1-3 עם ציטוטים]
-- **פרסונה מרכזית:** [שם]
-- **מילות מפתח:** [3 מהשלב 2]
-- **🔍 Competitive Activity Deep-Dive:**
-  | מתחרה | מה הם מפרסמים | תכיפות | Engagement | הזווית שלהם | מה חסר |
-  |---|---|---|---|---|---|
-  | [שם] | [דוגמה + URL] | [3/שבוע] | [לייקים/תגובות] | [זווית] | [הזדמנות] |
-- **Content formula:** [אורך, תדירות, סוג פוסט]
-- **תדירות:** [X פוסטים/שבוע]
-- **עלות משוערת:** ₪[מספר] / חודש
-- **ROI צפוי:** [מספרים מוחשיים: X leads, Y visits, Z conversions תוך 30/60/90 ימים]
-(חזור ל-4 ערוצים נוספים)
+${INTENT_TAXONOMY}
 
-#### ❌ מה לא לעשות עכשיו
-| ערוץ | למה לא | מתי כן (חודש X) |
-|---|---|---|
+${OPPORTUNITY_SCORING}
 
-### פאנל שיווק — פרסונה #1
-| שלב | ערוץ | פעולה ספציפית | Trigger/CTA | מדד |
-|---|---|---|---|---|
-| Awareness | ... | ... | ... | [מספר] |
-| Consideration | ... | ... | ... | [מספר] |
-| Conversion | ... | ... | ... | [מספר] |
-| Retention | ... | ... | ... | [מספר] |
+${COMPETITOR_BUCKETING}
 
-### תוכנית פעולה — 30 ימים (עם ימים ספציפיים)
-#### ימים 1-3 — FIRST WIN SETUP
-1. [פעולה — קונקרטית, ניתנת לביצוע היום]
-2. ...
-#### ימים 4-10
-3. ...
-#### ימים 11-20
-4. ...
-#### ימים 21-30
-5. ...
+${POSITIONING_STACK_HE}
 
-### KPIs ל-90 ימים (שמרניים / ריאליים / אופטימיים)
-| מדד | 30 יום — שמרני | 30 יום — ריאלי | 90 יום — ריאלי | 90 יום — אופטימי |
-|---|---|---|---|---|
-| ביקורים אורגניים | ... | ... | ... | ... |
-| לידים | ... | ... | ... | ... |
-| לקוחות משלמים | ... | ... | ... | ... |
-| MRR | ₪... | ₪... | ₪... | ₪... |
-| CAC | ₪... | ₪... | ₪... | ₪... |
-| LTV:CAC ratio | ... | ... | ... | ... |
+${FIRST_WIN_CHANNEL_RULES}
 
-### Budget Allocation (לפי תקציב זמין)
-| תקציב זמין | ערוץ #1 | ערוץ #2 | ערוץ #3 | רזרבה |
-|---|---|---|---|---|
-| ₪1,000/חודש | ₪... | ₪... | ₪... | ₪... |
-| ₪3,000/חודש | ₪... | ₪... | ₪... | ₪... |
-| ₪5,000/חודש | ₪... | ₪... | ₪... | ₪... |
+${REALISM_CHECK}
 
-### הסיכונים וההקלות (Risks & Mitigations)
-| סיכון | הסתברות | אימפקט | הקלה |
-|---|---|---|---|
-| [סיכון] | נמוך/בינוני/גבוה | נמוך/בינוני/גבוה | [פעולה] |
-(לפחות 3 סיכונים מרכזיים)
+${CONFIDENCE_LABELING}
 
-${feedbackLine}
-${RULES}`,
+${JSON_OUTPUT_RULES}
+
+---
+
+## פלט נדרש
+
+### חלק 1: Executive Summary (markdown — 2-3 פסקאות)
+מסכמים את 2 ה-options ב-3 משפטים כל אחד. מציגים המלצה: איזה option מומלץ ב-default ולמה (תוך הסבר tradeoff).
+
+### חלק 2: JSON records — strategy options (חובה!)
+
+\`\`\`json
+{
+  "records": [
+    {
+      "scenario": "smart",
+      "scenario_label_he": "Smart — תוקפים long-tail + striking distance + AEO",
+      "first_win_channel": {
+        "channel": "שם הערוץ — קריטי לדיוק",
+        "primary_persona": "שם פרסונה (חייב להתאים ל-personas.records[].name)",
+        "primary_keywords": ["3 keywords מ-seo_keyword_research.records[] עם striking_bucket=fast_optimization או opportunity.decision=take_now"],
+        "specific_action": "פעולה אחת קונקרטית להיום — לא תיאוריה",
+        "expected_first_5_customers_days": 30,
+        "must_pass_tests": {
+          "time_to_first_proof_le_45_days": true,
+          "reachable_buyer_without_heavy_infra": true,
+          "high_learning_density": true,
+          "rationale": "1-2 משפטים: למה כל מבחן עובר"
+        },
+        "why_not_other_channel": "פוקוס > splay — 1-2 משפטים על ה-tradeoff"
+      },
+      "channel_priority_list": [
+        {
+          "rank": 2,
+          "channel": "שם הערוץ",
+          "priority_marker": "critical | important | secondary",
+          "linked_persona": "שם פרסונה מ-personas",
+          "linked_keywords": ["1-3 מ-seo_keyword_research"],
+          "linked_competitors": ["מתחרים מ-competitor_landscape שמשחקים בערוץ הזה"],
+          "content_formula": "אורך / תדירות / סוג פוסט",
+          "monthly_cost_ils": 0,
+          "expected_30_60_90_outcomes": {
+            "30d": "X leads / Y visits / Z conversions",
+            "60d": "...",
+            "90d": "..."
+          }
+        }
+      ],
+      "do_not_channels": [
+        { "channel": "שם", "why_not_now": "1 משפט", "when_yes_month": 4 }
+      ],
+      "funnel_for_primary_persona": [
+        { "stage": "awareness", "channel": "...", "action": "...", "trigger_or_cta": "...", "metric": "0" },
+        { "stage": "consideration", "channel": "...", "action": "...", "trigger_or_cta": "...", "metric": "0" },
+        { "stage": "selection", "channel": "...", "action": "...", "trigger_or_cta": "...", "metric": "0" },
+        { "stage": "conversion", "channel": "...", "action": "...", "trigger_or_cta": "...", "metric": "0" },
+        { "stage": "retention", "channel": "...", "action": "...", "trigger_or_cta": "...", "metric": "0" }
+      ],
+      "30_day_plan": [
+        { "day_range": "1-3", "label": "FIRST WIN SETUP", "actions": ["1 פעולה קונקרטית", "פעולה 2"] },
+        { "day_range": "4-10", "label": "...", "actions": [] },
+        { "day_range": "11-20", "label": "...", "actions": [] },
+        { "day_range": "21-30", "label": "...", "actions": [] }
+      ],
+      "kpis_90_day": {
+        "_formula_note": "KPI computed via Realism Forecast: addressable_clicks × ctr_gain × cvr × lead_quality × close_rate × haircuts",
+        "metrics": [
+          {
+            "name": "ביקורים אורגניים | לידים | לקוחות משלמים | MRR | CAC | LTV:CAC",
+            "unit": "visits | leads | customers | ils | ils | ratio",
+            "scenarios_30d": { "conservative": 0, "base": 0, "upside": 0 },
+            "scenarios_90d": { "conservative": 0, "base": 0, "upside": 0 },
+            "haircut_applied": "1.0 = no haircut; <1.0 = applied"
+          }
+        ],
+        "realism_checklist_passed": {
+          "baseline_exists": true,
+          "comparable_cohort_available": true,
+          "page_type_precedent_known": true,
+          "no_impressions_vs_addressable_traffic_confusion": true,
+          "zero_click_attrition_accounted": true,
+          "no_unrealistic_cvr": true,
+          "matches_team_bandwidth": true
+        }
+      },
+      "budget_allocation_ils": [
+        { "monthly_budget_ils": 1000, "channel_1_ils": 0, "channel_2_ils": 0, "channel_3_ils": 0, "reserve_ils": 0 },
+        { "monthly_budget_ils": 3000, "channel_1_ils": 0, "channel_2_ils": 0, "channel_3_ils": 0, "reserve_ils": 0 },
+        { "monthly_budget_ils": 5000, "channel_1_ils": 0, "channel_2_ils": 0, "channel_3_ils": 0, "reserve_ils": 0 }
+      ],
+      "risks_mitigations": [
+        { "risk": "1 שורה", "probability": "low | medium | high", "impact": "low | medium | high", "mitigation": "1 שורה — פעולה קונקרטית" }
+      ],
+      "hard_stops_applied": ["any of: no_distinct_intent_page_type / cant_beat_serp_uniqueness / ymyl_without_expert_review / almost_only_zero_click / programmatic_thin_risk"],
+      "confidence": "high | medium | working_hypothesis",
+      "evidence": ["upstream_competitor_landscape", "upstream_seo_keyword_research", "upstream_audience_personas", "upstream_positioning", "answers.budget"],
+      "generated_at": "ISO timestamp"
+    },
+    {
+      "scenario": "all_in",
+      "scenario_label_he": "All-In — תוקפים head terms + paid acceleration",
+      "// _": "Same shape as smart — fill all fields. Different first_win_channel + heavier budget + longer timeline + paid component."
+    }
+  ],
+  "recommended_default": "smart | all_in",
+  "recommendation_rationale": "1-2 משפטים: למה ה-default מומלץ עבור profile העסק הזה — תקציב, bandwidth, מצב תחרותי",
+  "confidence": "high | medium | working_hypothesis"
+}
+\`\`\`
+
+**חובה:**
+- בדיוק **2 records**: scenario='smart' + scenario='all_in'. אסור ליצור hybrid או לדלג על אחד.
+- כל record חייב לעבור 3 must-pass tests של first_win_channel — אם לא עובר, סמנו hard_stops + confidence: working_hypothesis.
+- KPI metrics חייבים להכיל לפחות 6 מדדים: ביקורים אורגניים, לידים, לקוחות משלמים, MRR, CAC, LTV:CAC.
+- 3 תרחישים בכל KPI: conservative / base / upside — אסור לדלג על conservative ("realistic minimum").
+- channel_priority_list חייב לכלול לפחות 3 ערוצים מעבר ל-first_win_channel (סך 4+ ערוצים).
+- ל-30_day_plan חייבים להיות 4 day_range buckets (1-3, 4-10, 11-20, 21-30) — לא להמציא חלוקה אחרת.
+- linked_keywords / linked_persona / linked_competitors חייבים להפנות לרשומות אמיתיות מ-upstream stages — אסור להמציא keyword או persona שלא מופיעים שם.
+- realism_checklist_passed: כל item שלא עובר → confidence ל-record יורד ל-medium לפחות; 3+ items נופלים → working_hypothesis.
+
+### חלק 3: Tradeoff Analysis (markdown)
+טבלה: Smart vs All-In on 5 dimensions: time-to-first-customer, total budget, risk profile, scalability ceiling, team bandwidth required. כל cell עם confidence inline marker.
+
+### חלק 4: Decision Tree (markdown)
+איזה option לבחור לפי profile:
+- אם budget < ₪3,000 → ...
+- אם buyer research corpus באנגלית → ...
+- אם trust requirements YMYL → ...
+- וכו' (3-5 branches)
+
+---
+
+${QUALITY_GATE_INSTRUCTIONS}
+
+${HARD_BLOCK_RULES}
+${feedbackLine}`,
     }
 }
 
@@ -1056,168 +1201,232 @@ export function buildValidationPrompt(opts: PromptOpts): PromptResult {
         return {
             agentId: 'menateach',
             useDirectApi: true,
-            minLength: 1200,
-            prompt: `# משימה: סקריפט לראיונות אמת — Mom Test Style
-
-## חשוב
-- זו משימה חדשה. לא ראית אותה קודם.
-- אל תקרא קבצים. השתמש רק בנתונים המסופקים כאן.
+            minLength: 2500,
+            prompt: `# סקריפט לראיונות אמת — Mom Test Style
 
 ## תמצית המחקר
-### פרסונות
-${personasContent || 'לא זמין'}
+### פרסונות (מ-audience_personas)
+${personasContent || '*(stage לא הורץ)*'}
 
-### אסטרטגיה
+### אסטרטגיה (מ-strategy_options)
 ${strategyHalf1}
 ${strategyHalf2}
 
-## הוראות
-הכן סקריפט לראיון customer discovery של 20 דקות ל-5 לקוחות פוטנציאליים, לפי עקרונות "The Mom Test":
+---
+
+## פקודות עבודה
+
+הכינו סקריפט לראיון customer discovery של 20 דקות ל-5 לקוחות פוטנציאליים, לפי עקרונות "The Mom Test":
 - שאלות על **עבר** (מה כבר עשו), לא עתיד (מה יעשו)
 - שאלות על **התנהגות**, לא על דעות
-- אל תזכיר את המוצר של ${businessName} מוקדם מדי
+- אל תזכירו את המוצר של ${businessName} מוקדם מדי
+- 50% מהשאלות חייבות להיות risk-of-no answers (חיפוש סיגנלים שליליים)
 
-## פורמט תשובה
-### מי לראיין (קהל יעד)
-- **פרסונה #1:** [שם + איפה למצוא אותם + איך לפנות]
+${PERSONA_JTBD_FORMAT}
 
-### הסקריפט (20 דקות)
-#### פתיחה (2 דקות)
-"[טקסט מדויק בעברית]"
+${TRUST_HIERARCHY_METHOD}
 
-#### חלק 1: הבנת ההקשר (5 דקות)
-1. **שאלה:** "[שאלה ממוקדת עבר]"
-   - למה השאלה: [מה אנחנו מוצאים]
-   - red flag: [מה לא לעשות]
-2. ...
+${PRICING_VALIDATION_METHOD}
 
-#### חלק 2: כאבים ופתרונות נוכחיים (7 דקות)
-3. ...
+${CONFIDENCE_LABELING}
 
-#### חלק 3: אימות ההזדמנות (5 דקות)
-5. ...
+${JSON_OUTPUT_RULES}
 
-#### סגירה (1 דקה)
-"[טקסט]"
+---
 
-### מה לחפש בתשובות
-| סיגנל חיובי | סיגנל שלילי | משמעות |
-|---|---|---|
-| [ציטוט לדוגמה] | [ציטוט לדוגמה] | [מה עושים] |
+## פלט נדרש
 
-### איך לנתח אחרי 5 ראיונות
-1. **אימות כאב:** X מתוך 5 הזכירו [הכאב] ← [אמת / להמשיך לבדוק]
-2. **WTP:** ממוצע X שילמו/משלמים ₪Y על פתרונות דומים
-3. **סגמנט:** איזה פרסונה הגיבה הכי חזק
+### חלק 1: Executive Summary (markdown)
+2-3 פסקאות: למה ה-script הזה מאמת/מפריך את ההשערות הקריטיות של האסטרטגיה. אילו השערות הכי קריטיות לאמת ראשונות?
 
-### Template לתיעוד (Google Sheet מבנה)
-| ראיון # | שם/תפקיד | כאב #1 | כאב #2 | משלם היום על | WTP עבור פתרון | סיגנלים חיוביים | תגובה למוצר |
-|---|---|---|---|---|---|---|---|
+### חלק 2: JSON record — interview script (חובה!)
 
-### Confidence Threshold
-- **60%+ מהראיונות מאמתים את הכאב** → האסטרטגיה מאומתת, המשך
-- **30-60%** → לבדוק שוב את הפרסונה, ייתכן שהגדרת קהל שגויה
-- **<30%** → חזור לשלבים 1-3 עם pivot
+\`\`\`json
+{
+  "records": [
+    {
+      "mode": "real_interviews",
+      "target_personas": [
+        { "persona_name": "שם מ-audience_personas.records[].name", "where_to_find": "פלטפורמה / קבוצה / רשימה", "outreach_method": "1-2 משפטים: איך לפנות", "n_interviews_target": 5 }
+      ],
+      "interview_duration_minutes": 20,
+      "script_sections": [
+        {
+          "section": "פתיחה",
+          "duration_minutes": 2,
+          "spoken_text_he": "טקסט מדויק להגיד בעברית",
+          "purpose": "1 משפט"
+        },
+        {
+          "section": "הקשר (past behavior)",
+          "duration_minutes": 5,
+          "questions": [
+            {
+              "q_number": 1,
+              "question_he": "שאלה ממוקדת עבר בעברית — קונקרטית, ניתנת לאימות",
+              "what_we_learn": "1 משפט: מה האות מהתשובה",
+              "red_flag_response": "מה תשובה שגויה / מטעה",
+              "follow_up": "שאלה המשך אם התשובה רדודה"
+            }
+          ]
+        },
+        { "section": "כאבים ופתרונות נוכחיים", "duration_minutes": 7, "questions": [] },
+        { "section": "אימות הזדמנות", "duration_minutes": 5, "questions": [] },
+        { "section": "סגירה", "duration_minutes": 1, "spoken_text_he": "...", "purpose": "..." }
+      ],
+      "what_to_listen_for": [
+        { "positive_signal": "ציטוט לדוגמה", "negative_signal": "ציטוט לדוגמה", "interpretation": "מה זה אומר", "next_action": "מה לעשות" }
+      ],
+      "documentation_template_columns": ["interview_n", "name_role", "pain_1", "pain_2", "pays_today_for", "wtp_for_solution", "positive_signals", "reaction_to_product"],
+      "confidence_thresholds": {
+        "validated_60_percent_or_more": "להמשיך לאסטרטגיה",
+        "ambiguous_30_to_60": "לבדוק שוב את הפרסונה, ייתכן שהגדרת קהל שגויה",
+        "rejected_below_30": "חזור לשלבים 1-3 עם pivot"
+      },
+      "linked_hypotheses_to_validate": [
+        { "hypothesis": "הכאב X הוא הכאב #1 לפרסונה Y", "source_stage": "audience_personas | strategy_options | positioning", "criticality": "high | medium | low" }
+      ],
+      "confidence": "high | medium | working_hypothesis",
+      "evidence": ["upstream_audience_personas", "upstream_strategy_options", "upstream_positioning"],
+      "generated_at": "ISO timestamp"
+    }
+  ],
+  "confidence": "medium"
+}
+\`\`\`
+
+**חובה:**
+- 1 record per interview script (mode='real_interviews').
+- 5 sections (פתיחה / הקשר / כאבים / אימות / סגירה) ב-script_sections — במשך הזמן הנכון (סך = 20 דק').
+- כל question חייב כל 4 השדות: question_he / what_we_learn / red_flag_response / follow_up.
+- linked_hypotheses_to_validate חייב לכלול לפחות 5 השערות מ-strategy_options + positioning.
+- confidence ל-record כולו: 'medium' מקסימום (interview script הוא ב-essence working hypothesis עד שהראיונות באמת התקיימו).
+
+${QUALITY_GATE_INSTRUCTIONS}
+
+${HARD_BLOCK_RULES}
 ${feedbackLine}`,
         }
     }
 
-    // Default: AI-simulated validation
+    // Default: AI-simulated validation (Mom Test simulated against persona profiles)
     return {
         agentId: 'menateach',
         useDirectApi: true,
-        minLength: 1500,
-        prompt: `# משימה: AI-Simulated Customer Validation עבור "${businessName}"
-
-## חשוב
-- זו משימה חדשה. לא ראית אותה קודם.
-- אל תקרא קבצים. השתמש רק בנתונים המסופקים כאן.
-- אתה משחק תפקיד של **3 פרסונות שונות** ועונה בשם כל אחת.
+        minLength: 4000,
+        prompt: `# AI-Simulated Customer Validation — "${businessName}"
 
 ## תמצית המחקר
-### פרסונות
-${personasContent || 'לא זמין'}
+### פרסונות (מ-audience_personas)
+${personasContent || '*(stage לא הורץ)*'}
 
-### אסטרטגיה
+### אסטרטגיה (מ-strategy_options)
 ${strategyHalf1}
 ${strategyHalf2}
 
-## הוראות
-דמה 3 ראיונות customer discovery. לכל פרסונה (מהשלב 3):
-1. **היכנס לתפקיד** — חשוב כמו הפרסונה, לא כמו AI
-2. ענה על 10 שאלות validation — ביקורתית, אמיתית, לא "כן כן כן"
-3. **50% מהתשובות צריכות להיות קריטיות** — אחרת זה לא validation
+---
 
-אחרי 3 ראיונות — Cross-Validation Matrix: מה **אומת**, מה **נפל**, מה **לא ברור**.
+## פקודות עבודה
 
-## פורמט תשובה
+אתם משחקים תפקיד של **3 פרסונות שונות** מ-audience_personas. עונים בשם כל אחת על 10 validation questions. **50% מהתשובות חייבות להיות ביקורתיות** — אחרת זה לא validation, זה wishful thinking.
 
-### ראיון 1: פרסונה [שם]
+אחרי 3 הראיונות → Cross-Validation Matrix: מה **אומת**, מה **נפל**, מה **לא ברור**. + Top 3 blindspots + 3 immediate actions.
 
-**פרופיל:** [תמצית פרסונה — גיל, תפקיד, כאבים]
+${PERSONA_JTBD_FORMAT}
 
-**Q1: ספר לי על [הכאב הראשי] — איך זה נראה בפועל אצלך?**
-*[תשובה כפרסונה — ציטוט בגוף ראשון, 2-3 משפטים אמיתיים]*
+${TRUST_HIERARCHY_METHOD}
 
-**Q2: מה ניסית לעשות כדי לפתור את זה עד היום?**
-*[תשובה]*
+${CONFIDENCE_LABELING}
 
-**Q3: כמה שילמת על פתרונות קודמים? מה הרגיז אותך בהם?**
-*[תשובה עם מספרים]*
+${JSON_OUTPUT_RULES}
 
-**Q4: ${businessName} מציע [הצעת ערך]. מה התגובה הראשונית שלך? (כולל ביקורת!)**
-*[תשובה ביקורתית]*
+---
 
-**Q5: מה לא ברור? מה מעורר חשד?**
-*[תשובה]*
+## פלט נדרש
 
-**Q6: איך תשווה בין ${businessName} ל-[מתחרה מהשלב 1]?**
-*[תשובה]*
+### חלק 1: Executive Summary (markdown)
+2-3 פסקאות: confidence score כללי, השערה עיקרית שאומתה, השערה עיקרית שנפלה, blindspot הכי גדול שצריך לטפל בו לפני launch.
 
-**Q7: במחיר של ₪X/חודש — התשובה שלך: (בחר: אקנה מיד / אשקול / יקר מדי)?**
-*[תשובה עם הסבר]*
+### חלק 2: JSON records — simulated interviews (חובה!)
 
-**Q8: מה יגרום לך לומר "לא" סופית?**
-*[תשובה]*
+\`\`\`json
+{
+  "records": [
+    {
+      "persona_name": "שם פרסונה (חייב להתאים ל-audience_personas.records[].name)",
+      "persona_profile_summary": "תקציר ב-1-2 משפטים: גיל, תפקיד, כאב ראשי",
+      "questions": [
+        {
+          "q": "ספר לי על [הכאב הראשי] — איך זה נראה בפועל אצלך?",
+          "in_persona_voice_he": "תשובה בגוף ראשון, 2-3 משפטים אמיתיים",
+          "is_critical": true
+        },
+        { "q": "מה ניסית לעשות כדי לפתור את זה עד היום?", "in_persona_voice_he": "...", "is_critical": false },
+        { "q": "כמה שילמת על פתרונות קודמים? מה הרגיז אותך בהם?", "in_persona_voice_he": "...", "is_critical": true },
+        { "q": "${businessName} מציע [הצעת ערך]. מה התגובה הראשונית שלך? (כולל ביקורת!)", "in_persona_voice_he": "...", "is_critical": true },
+        { "q": "מה לא ברור? מה מעורר חשד?", "in_persona_voice_he": "...", "is_critical": true },
+        { "q": "איך תשווה בין ${businessName} ל-[מתחרה מ-competitor_landscape]?", "in_persona_voice_he": "...", "is_critical": true },
+        { "q": "במחיר של ₪X/חודש — אקנה מיד / אשקול / יקר מדי?", "in_persona_voice_he": "...", "is_critical": true },
+        { "q": "מה יגרום לך לומר 'לא' סופית?", "in_persona_voice_he": "...", "is_critical": true },
+        { "q": "איפה חיפשת פתרון כזה — מה היו מילות המפתח?", "in_persona_voice_he": "...", "is_critical": false },
+        { "q": "מי עוד היית מתייעץ לפני הרכישה?", "in_persona_voice_he": "...", "is_critical": false }
+      ],
+      "red_flags": ["מה הפרסונה חשפה שמעורר דאגה — לפחות 1, מקסימום 3"],
+      "green_flags": ["מה חיזק את ההשערה — לפחות 1, מקסימום 3"],
+      "critical_answer_count": 5,
+      "confidence": "high | medium | working_hypothesis"
+    }
+  ],
+  "cross_validation_matrix": [
+    {
+      "hypothesis": "השערה ספציפית מ-strategy_options או positioning",
+      "source_stage": "strategy_options | positioning | audience_personas",
+      "persona_1_status": "validated | rejected | unclear",
+      "persona_2_status": "validated | rejected | unclear",
+      "persona_3_status": "validated | rejected | unclear",
+      "overall_status": "validated | rejected | unclear",
+      "criticality": "high | medium | low"
+    }
+  ],
+  "confidence_score": {
+    "validated_count": 0,
+    "total_hypotheses": 0,
+    "score_0_100": 0,
+    "recommendation": "continue | small_pivot | back_to_research",
+    "what_to_pivot": "אם small_pivot — מה בדיוק לעדכן",
+    "back_to_which_stage": "אם back_to_research — איזה stage לחזור"
+  },
+  "top_3_blindspots": [
+    {
+      "blindspot": "מה התגלה",
+      "discovered_via": "איזו תשובת פרסונה / cross-validation row",
+      "action_required": "פעולה קונקרטית"
+    }
+  ],
+  "immediate_actions": [
+    {
+      "action": "פעולה קונקרטית",
+      "based_on": "ממצא ספציפי",
+      "owner": "founder | content lead | sales | dev",
+      "timeline": "this week | next 2 weeks | before launch"
+    }
+  ],
+  "confidence": "high | medium | working_hypothesis"
+}
+\`\`\`
 
-**Q9: איפה חיפשת פתרון כזה — מה היו מילות המפתח?**
-*[תשובה — אמיתית לפרסונה]*
+**חובה:**
+- בדיוק **3 records** (3 personas) — אסור פחות, אסור יותר. Persona names חייבים להתאים ל-audience_personas.records[].name.
+- כל record: בדיוק 10 questions (סדר קבוע לעיל) + answers בעברית בגוף ראשון של הפרסונה.
+- critical_answer_count חייב להיות **לפחות 5** מתוך 10 (50% rule). אם פחות → record_confidence = working_hypothesis עם הסבר.
+- cross_validation_matrix: לפחות 7 hypotheses, חייבים להגיע מ-strategy_options.records או positioning.records — אסור להמציא.
+- confidence_score.recommendation מבוסס על score: 80+ continue / 60-80 small_pivot / <60 back_to_research.
+- top_3_blindspots חייב להכיל **בדיוק 3** items.
+- immediate_actions: 3-5 items עם owner + timeline ספציפי.
 
-**Q10: מי עוד היית מתייעץ לפני הרכישה?**
-*[תשובה]*
+${QUALITY_GATE_INSTRUCTIONS}
 
-**🔴 Red Flags שעלו:** [מה הפרסונה חשפה שמעורר דאגה]
-**🟢 Green Flags:** [מה חיזק את ההשערה]
-
-(חזור ל-ראיון 2 ו-3 עם 2 הפרסונות האחרות)
-
-### Cross-Validation Matrix
-| השערה (מהאסטרטגיה) | פרסונה 1 | פרסונה 2 | פרסונה 3 | Status |
-|---|---|---|---|---|
-| הכאב X הוא הכאב #1 | ✅/❌/🟡 | ... | ... | ✅ מאומת / ❌ נפל / 🟡 לא ברור |
-| WTP של ₪X/חודש ריאלי | ... | ... | ... | ... |
-| הערוץ Y הוא המתאים | ... | ... | ... | ... |
-| הצעת הערך "Z" משכנעת | ... | ... | ... | ... |
-| הפרסונה Φ היא הסגמנט #1 | ... | ... | ... | ... |
-(לפחות 7 השערות)
-
-### Confidence Score
-- **השערות מאומתות:** X מתוך Y = Z%
-- **Score כללי:** [0-100]
-- **המלצה:**
-  - 80+ → המשך לאסטרטגיה
-  - 60-80 → pivot קטן — עדכן [מה]
-  - <60 → חזור למחקר — [איזה שלב]
-
-### Top 3 Blindspots שהתגלו
-1. **[Blindspot]** — [איך התגלה + מה לעשות]
-2. ...
-3. ...
-
-### המלצות אקשן מידיות
-1. **[פעולה קונקרטית]** — על סמך [ממצא]
-2. ...
-3. ...
+${HARD_BLOCK_RULES}
 ${feedbackLine}`,
     }
 }
