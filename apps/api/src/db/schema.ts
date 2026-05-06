@@ -297,8 +297,24 @@ export const instances = pgTable(
 
         // SEO/AEO integrations
         gscTokens: jsonb('gsc_tokens'),               // { accessToken, refreshToken, expiresAt, email, siteUrl, sites[] }
-        dataforseoKey: text('dataforseo_key'),         // DataForSEO API login:password (encrypted at rest)
+        // DataForSEO: legacy direct-key field. Used only when dfsUseProxy=false (advanced mode).
+        // Default flow uses Flowmatic-managed proxy with per-tenant USD balance.
+        dataforseoKey: text('dataforseo_key'),         // legacy: tenant's own DFS login:password
+        dataforseoKeyLegacy: text('dataforseo_key_legacy'),  // backup of pre-migration key
         firecrawlKey: text('firecrawl_key'),           // Firecrawl API key
+
+        // ── DataForSEO proxy + credits (Phase 3.6) ──
+        // Source-of-truth balance, atomically debited per DFS call.
+        dfsBalanceUsdCents:               integer('dfs_balance_usd_cents').default(0).notNull(),
+        // Default true. False = use legacy dataforseoKey direct (escape hatch for power users).
+        dfsUseProxy:                      boolean('dfs_use_proxy').default(true).notNull(),
+        // Auto-topup: when balance < threshold, charge stored AllPay token for amount.
+        dfsAutoTopupThresholdUsdCents:    integer('dfs_auto_topup_threshold_usd_cents'),
+        dfsAutoTopupAmountUsdCents:       integer('dfs_auto_topup_amount_usd_cents'),
+        // Hard cap: refuse calls when this month's debit sum exceeds.
+        dfsMonthlyCapUsdCents:            integer('dfs_monthly_cap_usd_cents'),
+        // AllPay tokenized payment method for recurring auto-topup charges.
+        dfsAllpayPaymentToken:            text('dfs_allpay_payment_token'),
 
         // GitHub (content publishing)
         githubConfig: jsonb('github_config'),           // { token, repo, branch, contentPath }
@@ -1081,4 +1097,41 @@ export const dfsCache = pgTable('dfs_cache', {
     cost:       text('cost'),                         // DFS-reported cost in USD (string for precision)
     expiresAt:  timestamp('expires_at', { withTimezone: true }).notNull(),
     createdAt:  timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+// ── DataForSEO proxy: per-tenant credit ledger ─────────────────────────────
+// Phase 3.6 — Flowmatic-managed proxy with master DFS account. Tenants buy
+// credits via AllPay; calls debit balance at exact DFS-reported cost. Ledger
+// is the audit trail: every credit (topup/admin/refund) and debit (DFS call).
+//
+// Balance source-of-truth = `instances.dfs_balance_usd_cents` (atomically
+// updated). Ledger is append-only history; reconstructable via SUM(amount).
+export const dfsLedger = pgTable('dfs_ledger', {
+    id:               bigserial('id', { mode: 'number' }).primaryKey(),
+    instanceId:       text('instance_id').notNull(),
+    /** 'topup' | 'debit' | 'refund' | 'admin_credit' | 'auto_topup' */
+    kind:             text('kind').notNull(),
+    /** Positive for credits, negative for debits. USD cents. */
+    amountUsdCents:   integer('amount_usd_cents').notNull(),
+    /** Exact DFS-reported cost in USD (debit only) — preserves sub-cent precision. */
+    costUsdRaw:       text('cost_usd_raw'),
+    /** DFS endpoint path (debit only) */
+    endpoint:         text('endpoint'),
+    /** dfs_cache.cache_key for deduplication-trace (debit only) */
+    cacheKey:         text('cache_key'),
+    /** AllPay order id (topup/auto_topup only) */
+    allpayOrderId:    text('allpay_order_id'),
+    /** Free-text reason for admin_credit/refund/adjustment */
+    note:             text('note'),
+    createdAt:        timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+// ── System config singleton ────────────────────────────────────────────────
+// Single-row-per-key store for runtime-mutable config. v1 keys:
+//   'usd_to_ils_rate_with_fee' — daily-pinned FX rate × 1.029 (AllPay fee buffer)
+// Adding more keys is just inserts; no schema migration needed.
+export const systemConfig = pgTable('system_config', {
+    key:        text('key').primaryKey(),
+    value:      text('value').notNull(),
+    updatedAt:  timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })

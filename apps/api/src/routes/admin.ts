@@ -12,6 +12,7 @@ import {
     adminToggleMaster,
     adminUpgradeInstance, adminBulkUpgrade, adminUpgradeProgress, adminVersionStatus,
     adminRefundAndTerminate,
+    adminDashboardStatus, adminDashboardPublish,
 } from '@/controllers/admin'
 
 const app = new Hono()
@@ -65,5 +66,16 @@ app.get('/clients/:id/upgrade-progress', adminUpgradeProgress)
 app.post('/upgrades/bulk', adminBulkUpgrade)
 
 app.get('/audit', adminListAudit)
+
+// ── DFS credits manual grant (Phase 3.6) ──
+// Used for: bootstrap testing, customer-service refunds, welcome credits.
+import { adminGrantCredits } from '@/controllers/hosting/credits'
+app.post('/credits/grant', adminGrantCredits)
+
+// ── Dashboard staging → prod publish ──
+app.use('/dashboard-publish/*', requireAdmin2FA)
+app.use('/dashboard-publish', requireAdmin2FA)
+app.get('/dashboard-publish/status', adminDashboardStatus)
+app.post('/dashboard-publish', adminDashboardPublish)
 
 export default app
