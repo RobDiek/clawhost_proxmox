@@ -11532,61 +11532,161 @@ function renderCompetitorCard(r) {
 }
 
 // ── seo_keyword_research ────────────────────────────────────────────────────
+// Records are grouped by `cluster` field (model assigns each kw to a cluster).
+// Each cluster renders as an accordion: header shows cluster summary stats,
+// expanded body shows full per-record depth (intent ladder, modifiers, JTBD,
+// SERP features, opportunity components, hard_stops, evidence, owner).
 
 function renderKeywordRecords(records) {
-  // Sort by opportunity score desc; show top 30 in table; collapsible "more".
-  var sorted = records.slice().sort(function(a, b) {
-    var as = (a.opportunity && a.opportunity.total) || 0;
-    var bs = (b.opportunity && b.opportunity.total) || 0;
-    return bs - as;
+  // Group by cluster (records without cluster → "ללא קלאסטר")
+  var clusters = {};
+  records.forEach(function(r) {
+    var c = r.cluster || 'ללא קלאסטר';
+    if (!clusters[c]) clusters[c] = [];
+    clusters[c].push(r);
   });
-  var top = sorted.slice(0, 30);
-  var rest = sorted.slice(30);
+  var clusterNames = Object.keys(clusters).sort(function(a, b) {
+    // Sort clusters by max opportunity score descending
+    var maxA = Math.max.apply(null, clusters[a].map(function(r) { return (r.opportunity && r.opportunity.total) || 0; }));
+    var maxB = Math.max.apply(null, clusters[b].map(function(r) { return (r.opportunity && r.opportunity.total) || 0; }));
+    return maxB - maxA;
+  });
 
-  var rows = top.map(renderKeywordRow).join('');
-  var restHtml = rest.length ? '<details style="margin-top:8px"><summary style="cursor:pointer;font-size:0.78rem;color:#6B7280;padding:4px 0">+ ' + rest.length + ' נוספים</summary>' + '<div style="overflow-x:auto"><table style="width:100%;font-size:0.72rem;direction:rtl">' + rest.map(renderKeywordRow).join('') + '</table></div>' + '</details>' : '';
-
-  // Stats
+  // Top-level stats
   var takeNow = records.filter(function(r) { return r.opportunity && r.opportunity.decision === 'take_now'; }).length;
   var aeoPriority = records.filter(function(r) { return r.aeo && r.aeo.is_priority; }).length;
   var striking = records.filter(function(r) { return r.striking_bucket; }).length;
+  var totalVol = records.reduce(function(s, r) { return s + (Number(r.volume_monthly) || 0); }, 0);
 
-  return '<div style="margin:8px 0">'
-    + '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap">'
+  var html = '<div style="margin:8px 0">'
+    + '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">'
     +   '<span><strong>' + records.length + '</strong> מילות מפתח</span>'
+    +   '<span><strong>' + clusterNames.length + '</strong> קלאסטרים</span>'
+    +   '<span><strong>' + totalVol.toLocaleString() + '</strong> חיפושים/חודש סה״כ</span>'
     +   '<span style="color:#10B981">●' + takeNow + ' take_now</span>'
     +   '<span style="color:#7C3AED">●' + aeoPriority + ' AEO priority</span>'
     +   '<span style="color:#F59E0B">●' + striking + ' striking distance</span>'
-    + '</div>'
-    + '<div style="overflow-x:auto;background:#fff;border:1px solid #E5E7EB;border-radius:6px"><table style="width:100%;font-size:0.72rem;border-collapse:collapse;direction:rtl">'
-    +   '<thead style="background:#F9FAFB"><tr>'
-    +     '<th style="padding:6px 8px;text-align:right;font-weight:500;border-bottom:1px solid #E5E7EB">מילת מפתח</th>'
-    +     '<th style="padding:6px 8px;font-weight:500;border-bottom:1px solid #E5E7EB">חיפושים</th>'
-    +     '<th style="padding:6px 8px;font-weight:500;border-bottom:1px solid #E5E7EB">KD</th>'
-    +     '<th style="padding:6px 8px;font-weight:500;border-bottom:1px solid #E5E7EB">Opp</th>'
-    +     '<th style="padding:6px 8px;font-weight:500;border-bottom:1px solid #E5E7EB">AEO</th>'
-    +     '<th style="padding:6px 8px;text-align:right;font-weight:500;border-bottom:1px solid #E5E7EB">פעולה</th>'
-    +   '</tr></thead><tbody>' + rows + '</tbody></table></div>'
-    + restHtml
     + '</div>';
+
+  clusterNames.forEach(function(cname) {
+    html += renderKeywordCluster(cname, clusters[cname]);
+  });
+
+  return html + '</div>';
 }
 
-function renderKeywordRow(k) {
+function renderKeywordCluster(name, records) {
+  var sorted = records.slice().sort(function(a, b) {
+    return ((b.opportunity && b.opportunity.total) || 0) - ((a.opportunity && a.opportunity.total) || 0);
+  });
+  var clusterVol = sorted.reduce(function(s, r) { return s + (Number(r.volume_monthly) || 0); }, 0);
+  var maxOpp = Math.max.apply(null, sorted.map(function(r) { return (r.opportunity && r.opportunity.total) || 0; }));
+  var takeNow = sorted.filter(function(r) { return r.opportunity && r.opportunity.decision === 'take_now'; }).length;
+  var pageTypes = {};
+  sorted.forEach(function(r) { if (r.page_type) pageTypes[r.page_type] = (pageTypes[r.page_type] || 0) + 1; });
+  var pageTypesText = Object.keys(pageTypes).map(function(pt) { return pt + ' (' + pageTypes[pt] + ')'; }).join(' · ');
+
+  return '<details style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:8px"' + (maxOpp >= 70 ? ' open' : '') + '>'
+    + '<summary style="cursor:pointer;padding:10px 14px;background:#F9FAFB;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">'
+    +   '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+    +     '<strong style="font-size:0.86rem;color:#1E3A8A">📁 ' + escapeHtml(name) + '</strong>'
+    +     '<span style="font-size:0.7rem;color:#6B7280">' + sorted.length + ' kw · ' + clusterVol.toLocaleString() + ' חיפושים</span>'
+    +     (takeNow ? '<span style="font-size:0.7rem;color:#10B981;background:#D1FAE5;padding:1px 6px;border-radius:3px">' + takeNow + ' take_now</span>' : '')
+    +   '</div>'
+    +   '<div style="font-size:0.7rem;color:#6B7280">max opp: <strong style="color:#1F2937">' + maxOpp + '</strong></div>'
+    + '</summary>'
+    + '<div style="padding:8px 14px 12px">'
+    +   (pageTypesText ? '<div style="font-size:0.7rem;color:#6B7280;margin-bottom:6px">page types: ' + escapeHtml(pageTypesText) + '</div>' : '')
+    +   sorted.map(renderKeywordCard).join('')
+    + '</div></details>';
+}
+
+function renderKeywordCard(k) {
   var opp = k.opportunity || {};
   var aeo = k.aeo || {};
+  var intent = k.intent || {};
+  var mods = intent.modifiers || {};
+  var serp = k.serp_features_present || [];
+  var hard = k.hard_stops || [];
+  var ev = k.evidence || [];
+
   var oppColor = opp.decision === 'take_now' ? '#10B981' : opp.decision === 'take_if_strategic' ? '#F59E0B' : opp.decision === 'backlog' ? '#9CA3AF' : '#EF4444';
-  var sb = k.striking_bucket;
-  var sbBadge = sb ? ' <span style="font-size:0.62rem;color:#F59E0B;background:#FEF3C7;padding:1px 4px;border-radius:3px">SD</span>' : '';
-  var aeoBadge = aeo.is_priority ? '<span style="font-size:0.62rem;color:#7C3AED;background:#F3E8FF;padding:1px 4px;border-radius:3px">' + (aeo.total || 0) + '</span>' : '<span style="color:#9CA3AF">' + (aeo.total || 0) + '</span>';
-  return '<tr style="border-bottom:1px solid #F3F4F6">'
-    + '<td style="padding:5px 8px"><div style="font-weight:500">' + escapeHtml(k.keyword || '—') + sbBadge + '</div>'
-    +   '<div style="font-size:0.66rem;color:#9CA3AF">' + escapeHtml((k.intent && k.intent.primary) || '—') + ' · ' + escapeHtml(k.page_type || '—') + '</div></td>'
-    + '<td style="padding:5px 8px;text-align:center;direction:ltr">' + (k.volume_monthly != null ? k.volume_monthly : '—') + '</td>'
-    + '<td style="padding:5px 8px;text-align:center;direction:ltr">' + (k.difficulty_0_100 != null ? k.difficulty_0_100 : '—') + '</td>'
-    + '<td style="padding:5px 8px;text-align:center;font-weight:500;direction:ltr;color:' + oppColor + '">' + (opp.total || 0) + '</td>'
-    + '<td style="padding:5px 8px;text-align:center">' + aeoBadge + '</td>'
-    + '<td style="padding:5px 8px;font-size:0.7rem;color:#4B5563">' + escapeHtml((k.recommended_action || '').substring(0, 50)) + '</td>'
-    + '</tr>';
+  var oppLabel = opp.decision === 'take_now' ? 'take_now' : opp.decision === 'take_if_strategic' ? 'take_if_strategic' : opp.decision === 'backlog' ? 'backlog' : 'skip';
+  var sbBadge = k.striking_bucket ? '<span style="font-size:0.64rem;color:#F59E0B;background:#FEF3C7;padding:1px 5px;border-radius:3px">SD ' + escapeHtml(k.striking_bucket) + '</span>' : '';
+  var aeoBadge = aeo.is_priority ? '<span style="font-size:0.64rem;color:#7C3AED;background:#F3E8FF;padding:1px 5px;border-radius:3px" title="AEO priority — score ' + (aeo.total || 0) + '">AEO ' + (aeo.total || 0) + '</span>' : '';
+
+  // Modifier pills (only show non-default values)
+  var modPills = [];
+  if (mods.locality && mods.locality !== 'none') modPills.push({ k: 'locality', v: mods.locality, c: '#0E7490' });
+  if (mods.urgency && mods.urgency !== 'none') modPills.push({ k: 'urgency', v: mods.urgency, c: '#B91C1C' });
+  if (mods.trust_load && mods.trust_load !== 'low') modPills.push({ k: 'trust', v: mods.trust_load, c: '#7C2D12' });
+  if (mods.buyer_maturity) modPills.push({ k: 'buyer', v: mods.buyer_maturity, c: '#374151' });
+  var modPillsHtml = modPills.map(function(m) { return '<span style="font-size:0.62rem;color:' + m.c + ';background:#F3F4F6;padding:1px 5px;border-radius:3px">' + m.k + ': ' + escapeHtml(m.v) + '</span>'; }).join(' ');
+
+  // SERP feature badges
+  var serpBadges = serp.map(function(f) { return '<span style="font-size:0.62rem;color:#1F2937;background:#FEF3C7;padding:1px 5px;border-radius:3px" title="SERP feature">' + escapeHtml(f) + '</span>'; }).join(' ');
+
+  // Hard stops as red flags
+  var hardStopsHtml = hard.length ? '<div style="margin-top:4px"><span style="font-size:0.66rem;color:#991B1B;background:#FEE2E2;padding:2px 6px;border-radius:3px">⚠ hard stops: ' + hard.map(escapeHtml).join(', ') + '</span></div>' : '';
+
+  // Opportunity 7-component breakdown (collapsible)
+  var oppBreakdown = '';
+  if (opp.business_value != null) {
+    oppBreakdown = '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.7rem;color:#6B7280">פירוק opportunity score</summary>'
+      + '<div style="font-size:0.68rem;color:#374151;margin-top:4px;padding:6px;background:#F9FAFB;border-radius:4px;direction:ltr;text-align:left">'
+      +   'BV ' + (opp.business_value || 0) + ' · WP ' + (opp.win_probability || 0) + ' · QD ' + (opp.qualified_demand || 0)
+      +   ' · CY ' + (opp.click_yield || 0) + ' · AEO ' + (opp.aeo_fit || 0) + ' · CL ' + (opp.cluster_leverage || 0)
+      +   ' · OE ' + (opp.operational_ease || 0)
+      + '</div>'
+      + (opp._formula_verification ? '<div style="font-size:0.62rem;color:#6B7280;margin-top:3px;direction:ltr;text-align:left">' + escapeHtml(opp._formula_verification) + '</div>' : '')
+      + '</details>';
+  }
+
+  // AEO 5-component breakdown
+  var aeoBreakdown = '';
+  if (aeo.synthesis_need != null) {
+    aeoBreakdown = '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:0.7rem;color:#6B7280">פירוק AEO score</summary>'
+      + '<div style="font-size:0.68rem;color:#374151;margin-top:4px;padding:6px;background:#F9FAFB;border-radius:4px;direction:ltr;text-align:left">'
+      +   'SN ' + (aeo.synthesis_need || 0) + ' · FD ' + (aeo.fact_density || 0) + ' · FU ' + (aeo.follow_up_likelihood || 0)
+      +   ' · ES ' + (aeo.entity_specificity || 0) + ' · CV ' + (aeo.citation_value || 0)
+      + '</div>'
+      + (aeo._formula_verification ? '<div style="font-size:0.62rem;color:#6B7280;margin-top:3px;direction:ltr;text-align:left">' + escapeHtml(aeo._formula_verification) + '</div>' : '')
+      + '</details>';
+  }
+
+  // JTBD statement
+  var jtbd = intent.jtbd ? '<div style="font-size:0.7rem;color:#1E3A8A;background:#EFF6FF;border-right:2px solid #2563EB;padding:4px 8px;margin-top:6px;line-height:1.5"><strong>JTBD:</strong> ' + escapeHtml(intent.jtbd) + '</div>' : '';
+
+  return '<div style="border-top:1px solid #F3F4F6;padding:10px 0">'
+    + '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap">'
+    +   '<div style="flex:1;min-width:0">'
+    +     '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+    +       '<strong style="font-size:0.84rem">' + escapeHtml(k.keyword || '—') + '</strong>'
+    +       (k.cluster ? '' : '')
+    +       '<span style="font-size:0.66rem;color:#6B7280">' + escapeHtml(intent.primary || '—') + '</span>'
+    +       (k.page_type ? '<span style="font-size:0.66rem;color:#374151;background:#E5E7EB;padding:1px 5px;border-radius:3px">' + escapeHtml(k.page_type) + '</span>' : '')
+    +       sbBadge
+    +       aeoBadge
+    +     '</div>'
+    +     (modPillsHtml ? '<div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">' + modPillsHtml + '</div>' : '')
+    +     (serpBadges ? '<div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">' + serpBadges + '</div>' : '')
+    +   '</div>'
+    +   '<div style="text-align:left;direction:ltr;font-size:0.7rem;color:#374151;flex-shrink:0">'
+    +     '<div>vol: <strong>' + (k.volume_monthly != null ? Number(k.volume_monthly).toLocaleString() : '—') + '</strong></div>'
+    +     '<div>KD: <strong>' + (k.difficulty_0_100 != null ? k.difficulty_0_100 : '—') + '</strong></div>'
+    +     (k.cpc_ils ? '<div>CPC: ₪<strong>' + k.cpc_ils + '</strong></div>' : '')
+    +     (k.current_position != null ? '<div>pos: <strong>' + k.current_position + '</strong></div>' : '')
+    +     '<div style="margin-top:4px"><span style="color:' + oppColor + ';font-weight:600;font-size:0.8rem">opp ' + (opp.total || 0) + '</span></div>'
+    +     '<div style="font-size:0.62rem;color:' + oppColor + '">' + oppLabel + '</div>'
+    +   '</div>'
+    + '</div>'
+    + jtbd
+    + (k.recommended_action ? '<div style="font-size:0.74rem;color:#374151;margin-top:6px;line-height:1.5"><strong>פעולה:</strong> ' + escapeHtml(k.recommended_action) + (k.owner ? ' <span style="font-size:0.66rem;color:#6B7280">— ' + escapeHtml(k.owner) + '</span>' : '') + '</div>' : '')
+    + hardStopsHtml
+    + oppBreakdown
+    + aeoBreakdown
+    + (ev.length ? '<div style="margin-top:4px;font-size:0.62rem;color:#9CA3AF">evidence: ' + ev.map(escapeHtml).join(', ') + '</div>' : '')
+    + '</div>';
 }
 
 // ── audience_personas ───────────────────────────────────────────────────────
