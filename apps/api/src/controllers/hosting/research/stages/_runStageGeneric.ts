@@ -533,6 +533,15 @@ const FORBID_LIST_REPLACEMENTS: Array<[RegExp, string]> = [
     [/\bmarketing fog\b/gi, 'ערפל שיווקי'],
     [/\bconversion\s+happens\b/gi, 'המרה מתרחשת'],
     [/\bdomain authority\b/gi, 'authority של הדומיין'],  // keep "authority" as allowed jargon
+    // Phase QA round-3 — words critic caught on stage 3 re-run.
+    [/\bfast win\b/gi, 'ניצחון מהיר'],
+    [/\bpain point\b/gi, 'נקודת כאב'],
+    [/\bvideo tour\b/gi, 'סיור וידאו'],
+    [/\bglossary section\b/gi, 'מילון מונחים'],
+    [/\bacquisition pathway\b/gi, 'מסלול לקוח'],
+    [/(?<![\w_])duplicate(?![\w_-])/gi, 'כפיל'],
+    [/(?<![\w_])thin(?![\w_-])/gi, 'דק'],
+    [/(?<![\w_])bridge(?![\w_-])/gi, 'גשר'],
 ]
 
 function scrubEnglishFillerInText(text: string): string {

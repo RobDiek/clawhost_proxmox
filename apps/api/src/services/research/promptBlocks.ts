@@ -119,19 +119,27 @@ fog→ערפל | happens→מתרחש | shopping (בלי schema)→קניות |
 
 **self-critique יבדוק את זה.** מצא מילה מהרשימה האסורה במשפט עברי = \`language_script_qa\` **hard fail**.
 
-## Phase 3.21d — Single Source of Truth: numbers ב-records בלבד
+## Phase 3.21d — Single Source of Truth: scoring numbers ב-records בלבד
 
-**אסור לכלול claims מספריים ב-markdown narrative** שמשכפלים נתונים מ-structured records. אם רשומה אומרת \`opportunity.total = 80.5\`, אסור לכתוב במרקדאון "opportunity score: 80.5" או "ה-opp הוא 80.5". שיטת האזכור היחידה המותרת ב-markdown:
-- שם המילת מפתח / cluster (טקסט)
-- decision label (take_now / take_if_strategic / וכו') — מותר כי זה enum, לא מספר
-- בעברית בלבד: "ההזדמנות גבוהה / בינונית / נמוכה" ללא מספר
-- **אסור:** "score 80", "opp 78.5", "AEO 65", "73 נקודות"
+**אסור לכלול ב-markdown narrative את ה-scoring numbers הבאים** שהשרת מחשב מחדש:
+- \`opportunity.total\` (לדוגמה: "score 80.5", "opp 78.5", "73 נקודות")
+- \`aeo.total\` (לדוגמה: "AEO 65")
+- \`scorecard.total\` (לדוגמה: "Threat 75")
 
-**מותר וצריך:** בכרטיסי records מוצגים המספרים האותרטיביים. ה-markdown יוצר context, narrative, decisions — לא ספירת נקודות.
+**אלו מספרים שהserver עושה recompute** — אם תכפילו אותם ב-narrative, ה-narrative יסטה מהrecords ויפר עקביות.
 
-**Why:** הסרבר מחשב מחדש את המספרים ב-records (math gate). אם ה-markdown narrative יחזור על המספרים שהמודל כתב, הוא ייצור סתירה אוטומטית עם ה-records המתוקנים. Single source of truth = records.
+**מותר ונדרש להציג ב-narrative** מספרים שמקורם **שאינם recompute-able**:
+- ✅ GSC source data: "1,653 impressions", "position 11", "CTR 0.18%"
+- ✅ DFS volume: "880 חיפושים/חודש", "KD 32"
+- ✅ Word counts: "755 מילים", "3,000 מילים target"
+- ✅ Traffic estimates: "ETV 42.3"
+- ✅ Time/cost: "60-80 שעות עבודה", "₪12,750", "תוך 30 יום"
+- ✅ Counts: "5 מתחרים", "23 records", "3 risks identified"
 
-**self-critique יבדוק את זה.** מצא מספר בעברית-narrative שמשכפל ערך records → \`contradiction_pass\` warning.`
+**Rule of thumb**: אם המספר מגיע מ-DFS / GSC / DB / time / cost / count — **חובה להציג** עבור readability.
+אם המספר הוא \`*.total\` של opportunity / scorecard / aeo — **אסור להציג ב-narrative**, רק ב-records.
+
+**self-critique יבדוק את זה.** רק \`opportunity.total\` / \`aeo.total\` / \`scorecard.total\` מספרים ב-narrative = \`contradiction_pass\` warning. מספרי source data כמו GSC impressions = OK.`
 
 // ────────────────────────────────────────────────────────────────────────────
 // 1. Intent taxonomy — how to classify each query
