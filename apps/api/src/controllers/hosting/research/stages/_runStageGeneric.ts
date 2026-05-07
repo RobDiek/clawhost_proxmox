@@ -515,6 +515,24 @@ const FORBID_LIST_REPLACEMENTS: Array<[RegExp, string]> = [
     [/(?<![\w_])target(?![\w_-])/g, 'מטרה'],
     // "section" only as a standalone English filler word inside Hebrew prose.
     [/(?<![\w_])section(?![\w_-])/g, 'סעיף'],
+    // Phase QA round-2 — words critic caught on stage 3 (seo_keyword_research).
+    // These leaked through despite HEBREW_ONLY_BLOCK — the model uses them as
+    // filler verbs/nouns inside Hebrew prose. Conservative regex anchors to
+    // avoid mangling URLs (e.g. example.com/push-notifications) or code
+    // identifiers (e.g. push_method).
+    [/(?<![\w_/-])push(?![\w_-])/gi, 'דחיפה'],
+    [/(?<![\w_])angle(?![\w_-])/gi, 'זווית'],
+    [/(?<![\w_])variants?(?![\w_-])/gi, 'וריאציות'],
+    [/(?<![\w_])flag(?![\w_-])/gi, 'סימון'],
+    [/(?<![\w_])rebuild(?![\w_-])/gi, 'בנייה מחדש'],
+    [/(?<![\w_])hub(?![\w_-])/gi, 'מרכז'],
+    [/(?<![\w_])sub-section(?![\w_-])/gi, 'תת-סעיף'],
+    [/(?<![\w_])fog(?![\w_-])/gi, 'ערפל'],
+    [/(?<![\w_])happens(?![\w_-])/gi, 'מתרחש'],
+    [/(?<![\w_])variants(?![\w_-])/gi, 'וריאציות'],
+    [/\bmarketing fog\b/gi, 'ערפל שיווקי'],
+    [/\bconversion\s+happens\b/gi, 'המרה מתרחשת'],
+    [/\bdomain authority\b/gi, 'authority של הדומיין'],  // keep "authority" as allowed jargon
 ]
 
 function scrubEnglishFillerInText(text: string): string {

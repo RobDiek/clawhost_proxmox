@@ -97,6 +97,18 @@ section→סעיף / קטע | synonym→מילה נרדפת | canon→דף קנ�
 canonical→canonical (זה allowlist — לכן השאירו) | landing page→דף נחיתה |
 SaaS→נאה לאנגלית (allowlist) | Refresh דחוף→רענון דחוף.
 
+**Phase QA round-2 — מילים שתפסנו ב-stage 3 ואסור לחזור עליהן:**
+push→דחיפה / לקדם | angle→זווית | variant/variants→וריאציה / וריאציות |
+flag→סימון / לסמן (אסור "to flag") | rebuild→בנייה מחדש |
+hub→מרכז (לא "hub geographic") | sub-section→תת-סעיף |
+marketing fog→ערפל שיווקי | conversion happens→המרה מתרחשת |
+fog→ערפל | happens→מתרחש | shopping (בלי schema)→קניות |
+**אסור להשתמש ב-enum values כפעלים בעברית:**
+"take_if_strategic" / "skip" / "take_now" — אלו ערכי decision ב-JSON בלבד.
+ב-narrative בעברית כתבו: "כדאי לקחת" / "לדלג" / "לקחת מיד" וכו'.
+**דוגמה אסורה:** "כדאי skip את ה-keyword הזה" → ✅ "כדאי לדלג על ה-keyword הזה".
+**דוגמה אסורה:** "אנחנו עושים flag למילים" → ✅ "אנחנו מסמנים את המילים".
+
 **זהירות מבנה משפט מעורב:** משפט שמתחיל באנגלית ואז עברית או להפך — אסור.
 דוגמאות אסורות: "Refresh דחוף של ה-pillar הקיים" → צ"ל: "רענון דחוף של ה-pillar הקיים".
 "Backlog — לחזור אליו ברבעון הבא" → צ"ל: "להמתין — לחזור אליו ברבעון הבא".
