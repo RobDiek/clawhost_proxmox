@@ -110,10 +110,15 @@ export async function searchVolume(
         location_code: opts.location_code ?? LOCATION_IL,
         language_code: googleAdsLang,
     }
+    // DataForSEO Google Ads endpoints (unlike Labs endpoints) put items
+    // DIRECTLY in `result[]` as a flat array, not wrapped in `result[0].items`.
+    // For 5 keywords sent: response.tasks[0].result.length === 5, each entry
+    // is a SearchVolumeItem. Default extractor returns [] for this shape.
     return cachedCall<SearchVolumeItem>(
         instanceId,
         'keywords_data/google_ads/search_volume/live',
         params,
+        (result) => Array.isArray(result) ? (result as SearchVolumeItem[]) : [],
     )
 }
 
