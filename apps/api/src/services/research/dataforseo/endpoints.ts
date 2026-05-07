@@ -97,10 +97,18 @@ export async function searchVolume(
     keywords: string[],
     opts: LocLang = {},
 ): Promise<CallResult<SearchVolumeItem>> {
+    // DataForSEO inconsistency — Google Ads endpoints (this one) want
+    // Google's internal legacy ISO codes for some languages: Hebrew = `iw`
+    // (NOT `he`). DFS Labs endpoints want `language_name: "Hebrew"` which
+    // is a different format entirely. Sending `he` here returns 40501
+    // "Invalid Field: language_code" silently → empty result. We map our
+    // canonical `he`/`en` codes to whatever Google Ads accepts.
+    const code = opts.language_code ?? LANGUAGE_HE
+    const googleAdsLang = code === 'he' ? 'iw' : code
     const params = {
         keywords: keywords.slice(0, 1000),  // hard cap per DFS spec
         location_code: opts.location_code ?? LOCATION_IL,
-        language_code: opts.language_code ?? LANGUAGE_HE,
+        language_code: googleAdsLang,
     }
     return cachedCall<SearchVolumeItem>(
         instanceId,
