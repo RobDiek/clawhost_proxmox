@@ -214,7 +214,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                     parsed.records,
                     dfsData as SeoKeywordResearchDfsData,
                 )
-                console.log(`[research/seo_keyword_research] DFS enrichment: matched ${stats.matched}/${parsed.records.length} records (vol=${stats.filledVolume}, cpc=${stats.filledCpc}, kd=${stats.filledKd}, missing-in-dfs=${stats.missingInDfs})`)
+                console.log(`[research/seo_keyword_research] DFS enrichment: matched ${stats.matched}/${parsed.records.length} records (vol=${stats.filledVolume}, cpc=${stats.filledCpc}, kd=${stats.filledKd}, pos=${stats.filledPosition}) | sources: ideas=${stats.sourceBreakdown.ideas} ranked=${stats.sourceBreakdown.rankedKeywords} gsc=${stats.sourceBreakdown.gsc} | missing-in-all=${stats.missingInAllSources}`)
             }
         }
         // Phase E3 defense-in-depth — cost_timeline_modeling has its own
@@ -462,41 +462,49 @@ function recomputeKeywordScores(records: unknown[]): void {
 /**
  * Phase QA round-5 — DFS enrichment for seo_keyword_research records.
  *
- * Server-side authoritative volume/CPC/KD injection from the prefetched DFS
- * dataset. Replaces the previous implicit contract (model copies values from
- * a markdown table) with an explicit one (server looks up by normalized
- * keyword and overrides). Massively improves data completeness because:
+ * Server-side authoritative volume/CPC/KD injection from the prefetched
+ * DFS dataset. Replaces the previous implicit contract (model copies
+ * values from a markdown table) with an explicit one (server looks up by
+ * normalized keyword and overrides).
  *
- *   - The prompt only renders top-100 ideas + top-50 difficulty as separate
- *     tables. Model has to cross-reference, and often skips KD entirely.
- *   - Long-tail records the model generates from cluster expansion may not
- *     be in DFS — and per "no fabrication" rule, model leaves them null
- *     instead of guessing (correct but incomplete).
+ * **Multi-source lookup** (round-5 expansion). For many businesses the
+ * DFS keyword_ideas endpoint returns mostly-irrelevant data because the
+ * seeds (auto-derived from product names + business name) yield broad
+ * "related" results that don't match the actual SEO surface area. The
+ * GOLD data lives in:
  *
- * Lookup strategy:
- *   1. Normalize keyword: lowercase + collapsed-whitespace + trim.
- *   2. Match against `dfs.ideas` for volume + CPC.
- *   3. Match against `dfs.difficulty` for calibrated KD (overrides any
- *      keyword_info.keyword_difficulty embedded in ideas — bulk_kd is the
- *      authoritative endpoint).
- *   4. Set the field on the record. ALWAYS overrides — DFS authoritative.
+ *   - `rankedKeywords` — DFS' authoritative data for keywords this
+ *     specific domain ranks on, with volume + KD straight from Google.
+ *   - `gsc.queries` — Google's own impressions / clicks / position for
+ *     real organic queries. No volume, but `current_position` + traffic
+ *     signal beats DFS estimation by miles when GSC is connected.
  *
- * If keyword not in any DFS map → leaves whatever the model emitted (null
- * + working_hypothesis confidence). That's the correct outcome — flagging
- * "model invention" honestly to the UI / downstream consumers.
+ * Lookup priority per field (first hit wins):
+ *   volume:  ideas → rankedKeywords (no GSC fallback — GSC has no volume)
+ *   CPC:     ideas → rankedKeywords
+ *   KD:      bulk_difficulty → ideas embedded → rankedKeywords embedded
+ *   current_position: GSC → rankedKeywords (GSC is more accurate)
+ *
+ * If keyword still not in any source → leaves whatever the model emitted
+ * (null + working_hypothesis). That's the correct outcome — signals
+ * "model invention" honestly to UI / downstream consumers.
  */
 interface DfsEnrichmentStats {
     matched: number
-    missingInDfs: number
+    missingInAllSources: number
     filledVolume: number
     filledCpc: number
     filledKd: number
+    filledPosition: number
+    sourceBreakdown: { ideas: number; rankedKeywords: number; gsc: number }
 }
 function enrichKeywordRecordsFromDfs(
     records: unknown[],
     dfsData: SeoKeywordResearchDfsData,
 ): DfsEnrichmentStats {
     const norm = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ')
+
+    // ─ Build lookup maps from each source ──
     const ideasByKw = new Map<string, SeoKeywordResearchDfsData['ideas'][number]>()
     for (const i of dfsData.ideas) {
         if (i.keyword) ideasByKw.set(norm(i.keyword), i)
@@ -507,7 +515,31 @@ function enrichKeywordRecordsFromDfs(
             calibratedKdByKw.set(norm(d.keyword), d.keyword_difficulty)
         }
     }
-    const stats: DfsEnrichmentStats = { matched: 0, missingInDfs: 0, filledVolume: 0, filledCpc: 0, filledKd: 0 }
+    interface RankedSnapshot { volume: number | null; cpc: number | null; kd: number | null; position: number | null }
+    const rankedByKw = new Map<string, RankedSnapshot>()
+    for (const r of dfsData.rankedKeywords) {
+        const kw = r.keyword_data?.keyword
+        if (!kw) continue
+        const ki = r.keyword_data?.keyword_info
+        const pos = r.ranked_serp_element?.serp_item?.rank_absolute
+        rankedByKw.set(norm(kw), {
+            volume: typeof ki?.search_volume === 'number' ? ki.search_volume : null,
+            cpc: typeof ki?.cpc === 'number' ? ki.cpc : null,
+            kd: typeof ki?.keyword_difficulty === 'number' ? ki.keyword_difficulty : null,
+            position: typeof pos === 'number' ? pos : null,
+        })
+    }
+    interface GscSnapshot { position: number; impressions: number; clicks: number }
+    const gscByKw = new Map<string, GscSnapshot>()
+    for (const q of dfsData.gsc.queries) {
+        if (q.query) gscByKw.set(norm(q.query), { position: q.position, impressions: q.impressions, clicks: q.clicks })
+    }
+
+    const stats: DfsEnrichmentStats = {
+        matched: 0, missingInAllSources: 0,
+        filledVolume: 0, filledCpc: 0, filledKd: 0, filledPosition: 0,
+        sourceBreakdown: { ideas: 0, rankedKeywords: 0, gsc: 0 },
+    }
     for (const r of records) {
         if (!r || typeof r !== 'object') continue
         const rec = r as Record<string, unknown>
@@ -515,32 +547,70 @@ function enrichKeywordRecordsFromDfs(
         if (!kwRaw) continue
         const key = norm(kwRaw)
         const idea = ideasByKw.get(key)
+        const ranked = rankedByKw.get(key)
+        const gsc = gscByKw.get(key)
         const calibratedKd = calibratedKdByKw.get(key)
 
-        if (!idea && calibratedKd === undefined) {
-            stats.missingInDfs++
+        const anySource = idea || ranked || gsc || calibratedKd !== undefined
+        if (!anySource) {
+            stats.missingInAllSources++
             continue
         }
         stats.matched++
+        if (idea) stats.sourceBreakdown.ideas++
+        if (ranked) stats.sourceBreakdown.rankedKeywords++
+        if (gsc) stats.sourceBreakdown.gsc++
 
-        if (idea?.keyword_info) {
-            if (typeof idea.keyword_info.search_volume === 'number') {
-                rec.volume_monthly = idea.keyword_info.search_volume
-                stats.filledVolume++
-            }
-            if (typeof idea.keyword_info.cpc === 'number') {
-                rec.cpc_ils = Math.round(idea.keyword_info.cpc * 100) / 100
-                stats.filledCpc++
-            }
+        // volume — ideas first, then rankedKeywords
+        let vol: number | null = null
+        if (idea?.keyword_info && typeof idea.keyword_info.search_volume === 'number') {
+            vol = idea.keyword_info.search_volume
+        } else if (ranked?.volume !== null && ranked?.volume !== undefined) {
+            vol = ranked.volume
         }
-        // Calibrated KD takes priority over embedded estimates.
-        const kd = typeof calibratedKd === 'number'
-            ? calibratedKd
-            : (idea?.keyword_properties?.keyword_difficulty
-                ?? idea?.keyword_info?.keyword_difficulty)
-        if (typeof kd === 'number') {
+        if (vol !== null) {
+            rec.volume_monthly = vol
+            stats.filledVolume++
+        }
+
+        // CPC — ideas first, then rankedKeywords
+        let cpc: number | null = null
+        if (idea?.keyword_info && typeof idea.keyword_info.cpc === 'number') {
+            cpc = idea.keyword_info.cpc
+        } else if (ranked?.cpc !== null && ranked?.cpc !== undefined) {
+            cpc = ranked.cpc
+        }
+        if (cpc !== null) {
+            rec.cpc_ils = Math.round(cpc * 100) / 100
+            stats.filledCpc++
+        }
+
+        // KD — calibrated bulk KD wins, else ideas embedded, else rankedKeywords embedded
+        let kd: number | null = null
+        if (typeof calibratedKd === 'number') {
+            kd = calibratedKd
+        } else if (typeof idea?.keyword_properties?.keyword_difficulty === 'number') {
+            kd = idea.keyword_properties.keyword_difficulty
+        } else if (typeof idea?.keyword_info?.keyword_difficulty === 'number') {
+            kd = idea.keyword_info.keyword_difficulty
+        } else if (ranked?.kd !== null && ranked?.kd !== undefined) {
+            kd = ranked.kd
+        }
+        if (kd !== null) {
             rec.difficulty_0_100 = kd
             stats.filledKd++
+        }
+
+        // current_position — GSC's actual avg position beats DFS rank_absolute snapshot
+        let pos: number | null = null
+        if (gsc) {
+            pos = Math.round(gsc.position * 10) / 10
+        } else if (ranked?.position !== null && ranked?.position !== undefined) {
+            pos = ranked.position
+        }
+        if (pos !== null) {
+            rec.current_position = pos
+            stats.filledPosition++
         }
     }
     return stats

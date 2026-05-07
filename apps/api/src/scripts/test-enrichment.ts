@@ -21,10 +21,12 @@ import type { SeoKeywordResearchDfsData } from '@/controllers/hosting/research/s
 
 interface EnrichmentStats {
     matched: number
-    missingInDfs: number
+    missingInAllSources: number
     filledVolume: number
     filledCpc: number
     filledKd: number
+    filledPosition: number
+    sourceBreakdown: { ideas: number; rankedKeywords: number; gsc: number }
 }
 
 function enrichKeywordRecordsFromDfs(
@@ -42,7 +44,31 @@ function enrichKeywordRecordsFromDfs(
             calibratedKdByKw.set(norm(d.keyword), d.keyword_difficulty)
         }
     }
-    const stats: EnrichmentStats = { matched: 0, missingInDfs: 0, filledVolume: 0, filledCpc: 0, filledKd: 0 }
+    interface RankedSnapshot { volume: number | null; cpc: number | null; kd: number | null; position: number | null }
+    const rankedByKw = new Map<string, RankedSnapshot>()
+    for (const r of dfsData.rankedKeywords) {
+        const kw = r.keyword_data?.keyword
+        if (!kw) continue
+        const ki = r.keyword_data?.keyword_info
+        const pos = r.ranked_serp_element?.serp_item?.rank_absolute
+        rankedByKw.set(norm(kw), {
+            volume: typeof ki?.search_volume === 'number' ? ki.search_volume : null,
+            cpc: typeof ki?.cpc === 'number' ? ki.cpc : null,
+            kd: typeof ki?.keyword_difficulty === 'number' ? ki.keyword_difficulty : null,
+            position: typeof pos === 'number' ? pos : null,
+        })
+    }
+    interface GscSnapshot { position: number; impressions: number; clicks: number }
+    const gscByKw = new Map<string, GscSnapshot>()
+    for (const q of dfsData.gsc.queries) {
+        if (q.query) gscByKw.set(norm(q.query), { position: q.position, impressions: q.impressions, clicks: q.clicks })
+    }
+
+    const stats: EnrichmentStats = {
+        matched: 0, missingInAllSources: 0,
+        filledVolume: 0, filledCpc: 0, filledKd: 0, filledPosition: 0,
+        sourceBreakdown: { ideas: 0, rankedKeywords: 0, gsc: 0 },
+    }
     for (const r of records) {
         if (!r || typeof r !== 'object') continue
         const rec = r as Record<string, unknown>
@@ -50,32 +76,40 @@ function enrichKeywordRecordsFromDfs(
         if (!kwRaw) continue
         const key = norm(kwRaw)
         const idea = ideasByKw.get(key)
+        const ranked = rankedByKw.get(key)
+        const gsc = gscByKw.get(key)
         const calibratedKd = calibratedKdByKw.get(key)
-
-        if (!idea && calibratedKd === undefined) {
-            stats.missingInDfs++
+        const anySource = idea || ranked || gsc || calibratedKd !== undefined
+        if (!anySource) {
+            stats.missingInAllSources++
             continue
         }
         stats.matched++
+        if (idea) stats.sourceBreakdown.ideas++
+        if (ranked) stats.sourceBreakdown.rankedKeywords++
+        if (gsc) stats.sourceBreakdown.gsc++
 
-        if (idea?.keyword_info) {
-            if (typeof idea.keyword_info.search_volume === 'number') {
-                rec.volume_monthly = idea.keyword_info.search_volume
-                stats.filledVolume++
-            }
-            if (typeof idea.keyword_info.cpc === 'number') {
-                rec.cpc_ils = Math.round(idea.keyword_info.cpc * 100) / 100
-                stats.filledCpc++
-            }
-        }
-        const kd = typeof calibratedKd === 'number'
-            ? calibratedKd
-            : (idea?.keyword_properties?.keyword_difficulty
-                ?? idea?.keyword_info?.keyword_difficulty)
-        if (typeof kd === 'number') {
-            rec.difficulty_0_100 = kd
-            stats.filledKd++
-        }
+        let vol: number | null = null
+        if (idea?.keyword_info && typeof idea.keyword_info.search_volume === 'number') vol = idea.keyword_info.search_volume
+        else if (ranked?.volume !== null && ranked?.volume !== undefined) vol = ranked.volume
+        if (vol !== null) { rec.volume_monthly = vol; stats.filledVolume++ }
+
+        let cpc: number | null = null
+        if (idea?.keyword_info && typeof idea.keyword_info.cpc === 'number') cpc = idea.keyword_info.cpc
+        else if (ranked?.cpc !== null && ranked?.cpc !== undefined) cpc = ranked.cpc
+        if (cpc !== null) { rec.cpc_ils = Math.round(cpc * 100) / 100; stats.filledCpc++ }
+
+        let kd: number | null = null
+        if (typeof calibratedKd === 'number') kd = calibratedKd
+        else if (typeof idea?.keyword_properties?.keyword_difficulty === 'number') kd = idea.keyword_properties.keyword_difficulty
+        else if (typeof idea?.keyword_info?.keyword_difficulty === 'number') kd = idea.keyword_info.keyword_difficulty
+        else if (ranked?.kd !== null && ranked?.kd !== undefined) kd = ranked.kd
+        if (kd !== null) { rec.difficulty_0_100 = kd; stats.filledKd++ }
+
+        let pos: number | null = null
+        if (gsc) pos = Math.round(gsc.position * 10) / 10
+        else if (ranked?.position !== null && ranked?.position !== undefined) pos = ranked.position
+        if (pos !== null) { rec.current_position = pos; stats.filledPosition++ }
     }
     return stats
 }
@@ -146,11 +180,13 @@ async function main(): Promise<void> {
     const recordsCopy = JSON.parse(JSON.stringify(records)) as Array<Record<string, unknown>>
     const stats = enrichKeywordRecordsFromDfs(recordsCopy, dfsData)
     console.log(`Enrichment stats:`)
-    console.log(`  matched in DFS:    ${stats.matched}/${records.length}`)
-    console.log(`  not in DFS:        ${stats.missingInDfs}/${records.length}`)
-    console.log(`  filled volume:     ${stats.filledVolume}`)
-    console.log(`  filled CPC:        ${stats.filledCpc}`)
-    console.log(`  filled KD:         ${stats.filledKd}\n`)
+    console.log(`  matched (any source): ${stats.matched}/${records.length}`)
+    console.log(`  missing in all:       ${stats.missingInAllSources}/${records.length}`)
+    console.log(`  filled volume:        ${stats.filledVolume}`)
+    console.log(`  filled CPC:           ${stats.filledCpc}`)
+    console.log(`  filled KD:            ${stats.filledKd}`)
+    console.log(`  filled position:      ${stats.filledPosition}`)
+    console.log(`  source breakdown:     ideas=${stats.sourceBreakdown.ideas}  ranked=${stats.sourceBreakdown.rankedKeywords}  gsc=${stats.sourceBreakdown.gsc}\n`)
 
     // ─── Snapshot AFTER ──
     const after = {
