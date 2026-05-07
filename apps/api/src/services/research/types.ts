@@ -39,6 +39,7 @@ export type StageId =
     | 'audience_personas'
     // Strategy
     | 'positioning'
+    | 'cost_timeline_modeling'
     | 'strategy_options'
     | 'validation'
     // Execution
@@ -49,13 +50,17 @@ export const ALL_STAGE_IDS: readonly StageId[] = [
     'competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
     'aeo_visibility', 'link_audit',
     'paid_audit', 'social_landscape', 'email_competitor_audit',
-    'audience_personas', 'positioning', 'strategy_options', 'validation',
+    'audience_personas', 'positioning', 'cost_timeline_modeling',
+    'strategy_options', 'validation',
     'content_plan', 'media_plan',
 ] as const
 
 // Universal stages — always part of every plan regardless of intent.
+// Phase E3 — cost_timeline_modeling inserted after positioning (stable target/
+// audience to budget for) and before strategy_options (consumes calibrated $).
 export const UNIVERSAL_STAGES: readonly StageId[] = [
-    'audience_personas', 'positioning', 'strategy_options', 'validation',
+    'audience_personas', 'positioning', 'cost_timeline_modeling',
+    'strategy_options', 'validation',
 ] as const
 
 // ─── Stage descriptors (catalog) ───────────────────────────────────────────
@@ -147,6 +152,13 @@ export const STAGE_CATALOG: Record<StageId, StageDescriptor> = {
         descriptionHe: 'mission, positioning statement, value props, archetype',
         preferredIntegrations: ['anthropic'],
         upstream: ['competitor_landscape', 'audience_personas'],
+    },
+    cost_timeline_modeling: {
+        id: 'cost_timeline_modeling', category: 'strategy',
+        titleHe: 'מודל עלויות וזמנים',
+        descriptionHe: 'IL pricing constants + time-to-rank formulas → calibrated $ + month-by-month KPI projection per scenario. Feeds strategy_options',
+        preferredIntegrations: ['anthropic'],
+        upstream: ['competitor_landscape', 'internal_seo_audit', 'seo_keyword_research', 'aeo_visibility', 'link_audit'],
     },
     strategy_options: {
         id: 'strategy_options', category: 'strategy',

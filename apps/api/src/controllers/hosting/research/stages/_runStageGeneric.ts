@@ -40,6 +40,7 @@ import { prefetchAudiencePersonas } from './prefetch/audience_personas'
 import { prefetchLinkAudit } from './prefetch/link_audit'
 import { prefetchInternalSeoAudit } from './prefetch/internal_seo_audit'
 import { prefetchAeoVisibility } from './prefetch/aeo_visibility'
+import { prefetchCostTimelineModeling } from './prefetch/cost_timeline_modeling'
 import type { ResearchDataV2, StageId } from '@/services/research/types'
 
 /**
@@ -57,6 +58,7 @@ const STAGE_PREFETCHERS: Partial<Record<StageId, Prefetcher>> = {
     link_audit:           prefetchLinkAudit,
     internal_seo_audit:   prefetchInternalSeoAudit,
     aeo_visibility:       prefetchAeoVisibility,
+    cost_timeline_modeling: prefetchCostTimelineModeling,
 }
 
 /**

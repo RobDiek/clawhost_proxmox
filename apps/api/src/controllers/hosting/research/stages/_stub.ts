@@ -23,6 +23,7 @@ export function notImplementedYet(c: Context, stageId: StageId): Response {
         email_competitor_audit: 'אודיט ניוזלטרים מתחרים',
         audience_personas:      'פרסונות קהל יעד',
         positioning:            'מיצוב',
+        cost_timeline_modeling: 'מודל עלויות וזמנים',
         strategy_options:       'אופציות אסטרטגיה',
         validation:             'אימות אסטרטגיה',
         content_plan:           'תוכנית תוכן',

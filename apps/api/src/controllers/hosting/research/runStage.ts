@@ -34,6 +34,7 @@ const STAGE_RUNNERS: Record<StageId, () => Promise<{ run: StageRunner }>> = {
     email_competitor_audit: () => import('./stages/email_competitor_audit'),
     audience_personas:      () => import('./stages/audience_personas'),
     positioning:            () => import('./stages/positioning'),
+    cost_timeline_modeling: () => import('./stages/cost_timeline_modeling'),
     strategy_options:       () => import('./stages/strategy_options'),
     validation:             () => import('./stages/validation'),
     content_plan:           () => import('./stages/content_plan'),

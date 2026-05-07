@@ -20,6 +20,7 @@
 
 import { getStageContent } from './reader'
 import type { ResearchDataV2, StageId } from './types'
+import { classifyVertical, IL_VERTICAL_BENCHMARKS } from './verticalBenchmarks'
 import {
     INTENT_TAXONOMY,
     OPPORTUNITY_SCORING,
@@ -1321,6 +1322,35 @@ export function buildStrategyOptionsPrompt(opts: PromptOpts): PromptResult {
     const budget = answers.budget as string | undefined
     const marketingGoals = answers.marketingGoals as string | undefined
 
+    // Phase E4 — read cost_timeline_modeling output. This is the pre-calibrated
+    // baseline: monthly_budget_ils + duration + monthly_kpi_projection per
+    // scenario. The strategy_options stage MUST reuse these numbers verbatim
+    // and not invent its own — the calibration was done with IL constants +
+    // formulas in the cost_timeline_modeling prefetch.
+    const ctm = rd.results?.cost_timeline_modeling
+    const ctmRecords = (ctm?.records as Array<Record<string, unknown>> | undefined) || []
+    const ctmExtras = (ctm?.extras as Record<string, unknown> | undefined) || {}
+    const smartRecord = ctmRecords.find(r => r.scenario === 'smart')
+    const aggressiveRecord = ctmRecords.find(r => r.scenario === 'aggressive')
+    const ctmAvailable = !!smartRecord && !!aggressiveRecord
+    const calibratedBlock = ctmAvailable ? `
+### תמצית cost_timeline_modeling (Phase E3 — חובה להשתמש במספרים האלו verbatim)
+
+**Smart scenario:**
+- תקציב חודשי: ₪${(smartRecord!.monthly_budget_ils as number)?.toLocaleString() ?? '?'} (content ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.content_production')} | links ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.link_outreach')} | tech ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.technical_seo')} | strategist ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.seo_strategist')} | tooling ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.tooling_subscriptions')})
+- משך: ${getNested(smartRecord, 'duration_months.expected')} חודשים (${getNested(smartRecord, 'duration_months.min')}-${getNested(smartRecord, 'duration_months.max')})
+- תוכנית כוללת: ₪${(smartRecord!.total_program_ils as number)?.toLocaleString() ?? '?'}
+- KPI חודש 3 / 6 / 12: ${ctmKpiSnapshot(smartRecord!.monthly_kpi_projection)}
+
+**Aggressive scenario:**
+- תקציב חודשי: ₪${(aggressiveRecord!.monthly_budget_ils as number)?.toLocaleString() ?? '?'} (content ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.content_production')} | links ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.link_outreach')} | tech ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.technical_seo')} | strategist ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.seo_strategist')} | tooling ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.tooling_subscriptions')})
+- משך: ${getNested(aggressiveRecord, 'duration_months.expected')} חודשים (${getNested(aggressiveRecord, 'duration_months.min')}-${getNested(aggressiveRecord, 'duration_months.max')})
+- תוכנית כוללת: ₪${(aggressiveRecord!.total_program_ils as number)?.toLocaleString() ?? '?'}
+- KPI חודש 3 / 6 / 12: ${ctmKpiSnapshot(aggressiveRecord!.monthly_kpi_projection)}
+
+**Decision guidance מהמודל:** ${(ctmExtras.decision_guidance as Record<string, unknown> | undefined)?.decision_text_he || '*(לא זמין)*'}
+` : '\n### cost_timeline_modeling — לא הורץ\nעליכם לציין במפורש שהאסטרטגיה לא calibrated ל-IL costs ולסמן confidence: working_hypothesis.\n'
+
     return {
         agentId: 'menateach',
         useDirectApi: true,
@@ -1340,7 +1370,7 @@ ${s3 || '*(stage לא הורץ)*'}
 
 ### תמצית positioning
 ${positioning || '*(stage לא הורץ — אסטרטגיה ללא positioning תהיה weak)*'}
-
+${calibratedBlock}
 ${budget ? `## תקציב חודשי שצוין באונבורדינג\n${budget}` : ''}
 ${marketingGoals ? `## מטרות שיווק שצוינו\n${marketingGoals}` : ''}
 ${haBlock}
@@ -1350,8 +1380,10 @@ ${haBlock}
 ## פקודות עבודה — methodology
 
 אתם senior מרקטולוג עם 15 שנות ניסיון. צרו **שתי אופציות אסטרטגיה מלאות** מבוססות על הנתונים שלמעלה:
-- **Smart** (low-comp / lean budget) — תקיפת long-tail + striking distance + AEO targets. קצר ל-90 ימים מעבר לציון proof.
-- **All-In** (head terms / aggressive) — תקיפת keywords תחרותיים + paid acceleration. דורש budget גבוה + 6-9 חודשים timeline.
+- **Smart** (low-comp / lean budget) — תקיפת long-tail + striking distance + AEO targets. ${ctmAvailable ? 'תקציב חודשי + משך + KPI חייבים להיות זהים ל-cost_timeline_modeling.smart record.' : 'ללא calibration זמין — סמנו working_hypothesis.'}
+- **All-In** (head terms / aggressive) — תקיפת keywords תחרותיים + paid acceleration. ${ctmAvailable ? 'תקציב חודשי + משך + KPI חייבים להיות זהים ל-cost_timeline_modeling.aggressive record.' : 'ללא calibration זמין — סמנו working_hypothesis.'}
+
+${ctmAvailable ? '**אסור להמציא מספרים** — cost_timeline_modeling stage כבר חישב אותם ב-IL constants + formulas מדויקים. תפקידכם: אסטרטגיה (channels / KPIs / risks / first-win) — לא תקצוב.' : ''}
 
 לכל option — חובה לעבור את 3 ה-must-pass tests של First-Win Channel + לחשב KPIs עם נוסחת Realism Forecast (3 תרחישים).
 
@@ -1659,6 +1691,8 @@ ${personasContent || '*(stage לא הורץ)*'}
 ${strategyHalf1}
 ${strategyHalf2}
 
+${buildVerticalBenchmarksBlock(answers, rd)}
+
 ---
 
 ## פקודות עבודה
@@ -1666,6 +1700,12 @@ ${strategyHalf2}
 אתם משחקים תפקיד של **3 פרסונות שונות** מ-audience_personas. עונים בשם כל אחת על 10 validation questions. **50% מהתשובות חייבות להיות ביקורתיות** — אחרת זה לא validation, זה wishful thinking.
 
 אחרי 3 הראיונות → Cross-Validation Matrix: מה **אומת**, מה **נפל**, מה **לא ברור**. + Top 3 blindspots + 3 immediate actions.
+
+**Phase E5 — Cross-stage coherence checks (חובה לבצע!):**
+1. **Vertical reality check** — האם forecast של strategy_options מיושר עם realistic_top_3_count_m12 + realistic_monthly_clicks_m12 של הvertical benchmark שלמטה? אם forecast גבוה ב-50%+ מהtop של ה-range → flag עם hard severity. אם נמוך ב-30%+ → flag עם warning.
+2. **Persona-keyword coherence** — האם audience_personas.targetAudience מתיישב עם seo_keyword_research.intent? לדוגמה: persona "construction owners B2B" לא מתאים ל-keywords "אחסון תכולת דירה" (consumer). flag mismatches.
+3. **Persona-positioning coherence** — האם positioning value_props רלוונטי ל-jtbd statements? אם value_prop מדבר על "צוותים" אבל persona היא solo entrepreneur — flag.
+4. **Budget-deliverables coherence** — האם cost_timeline_modeling.monthly_budget_breakdown_ils מתאים ל-strategy_options channels? אם strategy מציין paid_search כ-channel אבל budget אין link_outreach line — flag.
 
 ${PERSONA_JTBD_FORMAT}
 
@@ -2527,6 +2567,345 @@ function renderAeoTopUrls(urls: AeoVisibilityDfsShape['topUrls']): string {
     return `| URL | page_type | words | schemas |\n|---|---|---|---|\n${rows}`
 }
 
+// ─── Phase E5 — vertical benchmarks block for validation prompt ────────────
+
+function buildVerticalBenchmarksBlock(answers: Record<string, unknown>, _rd: ResearchDataV2): string {
+    const vertical = classifyVertical(answers)
+    const bench = IL_VERTICAL_BENCHMARKS[vertical]
+    const risksText = bench.vertical_risks_he.length
+        ? bench.vertical_risks_he.map(r => `  - ${r}`).join('\n')
+        : '  - *(אין סיכונים ספציפיים מתועדים)*'
+    const quickWinsText = bench.quick_win_patterns_he.length
+        ? bench.quick_win_patterns_he.map(q => `  - ${q}`).join('\n')
+        : '  - *(אין quick-wins ספציפיים מתועדים)*'
+    return `### Vertical benchmarks (Phase E5 — IL market reality check)
+
+**Classified vertical:** ${vertical} (${bench.label_he})
+
+${bench.misclassification_warnings.length ? '⚠ **misclassification warnings:**\n' + bench.misclassification_warnings.map(w => '  - ' + w).join('\n') + '\n\nאם vertical שגוי — ציינו ב-validation output ועדכנו את ההמלצות בהתאם.\n' : ''}
+
+**Realistic ranges לעסק ב-vertical הזה:**
+- **Median time-to-rank top_3:** Smart ${bench.median_t2r_top_3_months.smart} חודשים | Aggressive ${bench.median_t2r_top_3_months.aggressive} חודשים
+- **Top_10 count by month 12:** Smart ${bench.realistic_top_10_count_m12.smart.min}-${bench.realistic_top_10_count_m12.smart.max} | Aggressive ${bench.realistic_top_10_count_m12.aggressive.min}-${bench.realistic_top_10_count_m12.aggressive.max}
+- **Top_3 count by month 12:** Smart ${bench.realistic_top_3_count_m12.smart.min}-${bench.realistic_top_3_count_m12.smart.max} | Aggressive ${bench.realistic_top_3_count_m12.aggressive.min}-${bench.realistic_top_3_count_m12.aggressive.max}
+- **Realistic monthly organic clicks at M12:** Smart ${bench.realistic_monthly_clicks_m12.smart.min.toLocaleString()}-${bench.realistic_monthly_clicks_m12.smart.max.toLocaleString()} | Aggressive ${bench.realistic_monthly_clicks_m12.aggressive.min.toLocaleString()}-${bench.realistic_monthly_clicks_m12.aggressive.max.toLocaleString()}
+- **Avg click value:** ₪${bench.avg_click_value_ils.min}-${bench.avg_click_value_ils.max} (לחישוב MRR sanity)
+
+**Vertical-specific risks:**
+${risksText}
+
+**Quick-win patterns שעובדים ב-vertical הזה:**
+${quickWinsText}
+
+**שימוש בולידציה:** השוו את forecast ה-strategy_options מול הטווחים האלה. flag כל סטייה מעל 50% למעלה (אופטימיות יתר → hard fail) או 30% למטה (פסימיות → warning).`
+}
+
+// ─── Phase E4 helpers — read calibrated values from cost_timeline_modeling ──
+
+function getNested(obj: unknown, path: string): string {
+    const parts = path.split('.')
+    let cur: unknown = obj
+    for (const p of parts) {
+        if (cur && typeof cur === 'object' && p in (cur as object)) {
+            cur = (cur as Record<string, unknown>)[p]
+        } else {
+            return '?'
+        }
+    }
+    if (typeof cur === 'number') return cur.toLocaleString()
+    if (typeof cur === 'string') return cur
+    return '?'
+}
+
+function ctmKpiSnapshot(kpis: unknown): string {
+    if (!Array.isArray(kpis)) return '?'
+    const m3 = kpis.find(k => k && typeof k === 'object' && (k as Record<string, unknown>).month === 3) as Record<string, unknown> | undefined
+    const m6 = kpis.find(k => k && typeof k === 'object' && (k as Record<string, unknown>).month === 6) as Record<string, unknown> | undefined
+    const m12 = kpis.find(k => k && typeof k === 'object' && (k as Record<string, unknown>).month === 12) as Record<string, unknown> | undefined
+    const fmt = (k: Record<string, unknown> | undefined) => {
+        if (!k) return '—'
+        return `top_3=${k.expected_top_3_count ?? '?'} top_10=${k.expected_top_10_count ?? '?'} clicks=${typeof k.expected_organic_clicks === 'number' ? k.expected_organic_clicks.toLocaleString() : '?'}`
+    }
+    return `M3 [${fmt(m3)}] · M6 [${fmt(m6)}] · M12 [${fmt(m12)}]`
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// cost_timeline_modeling — Phase E3. Calibrated cost + timeline projections
+// for Smart vs Aggressive scenarios. Heavy math in prefetch; AI interprets
+// the baselines + writes executive narrative + risk analysis.
+// ────────────────────────────────────────────────────────────────────────────
+
+interface CostTimelineModelingShape {
+    upstreamMissing: string[]
+    business_context: {
+        our_domain: string | null
+        our_dr_estimate: number
+        top_competitor_dr: number
+        top_competitor_link_count: number
+        competition_level: 'low' | 'medium' | 'high'
+        target_top_3_count_smart: number
+        target_top_3_count_aggressive: number
+    }
+    scenarios: {
+        smart: ScenarioBaselineShape
+        aggressive: ScenarioBaselineShape
+    }
+    constants_snapshot: {
+        usd_to_ils: number
+        seo_strategist_ils_per_hour: number
+        content_writer_ils_per_hour: number
+        tech_seo_ils_per_hour: number
+        outreach_jr_ils_per_hour: number
+        tooling_typical_ils_per_month: number
+    }
+}
+
+interface ScenarioBaselineShape {
+    name: 'smart' | 'aggressive'
+    label_he: string
+    inputs: Record<string, unknown>
+    monthly_budget_ils: {
+        content_production: number
+        link_outreach: number
+        technical_seo: number
+        seo_strategist: number
+        tooling_subscriptions: number
+        total: number
+    }
+    duration_months: { min: number; expected: number; max: number }
+    total_program_ils: number
+    monthly_kpis: Array<{
+        month: number
+        new_pieces_published: number
+        cumulative_pieces: number
+        new_links: number
+        cumulative_links: number
+        expected_top_10_count: number
+        expected_top_3_count: number
+        expected_organic_clicks: number
+    }>
+    model_trace: {
+        time_to_rank_inputs: Record<string, unknown>
+        content_velocity_per_month: number
+        outreach_emails_total: number
+        outreach_hours_total: number
+        risk_factors: string[]
+    }
+}
+
+function buildCostTimelineModelingPrompt(opts: PromptOpts): PromptResult {
+    const { businessName, businessDesc, feedback, historicalAssetsBlock } = opts
+    const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
+    const haBlock = historicalAssetsBlock || ''
+    const dfs = opts.dfsData as CostTimelineModelingShape | undefined
+    if (!dfs) throw new Error('cost_timeline_modeling: dfsData prefetch is required')
+
+    const upstreamWarning = dfs.upstreamMissing.length > 0
+        ? `\n**⚠ Upstream חסר:** ${dfs.upstreamMissing.join(', ')}. הסיכמת מנהלים תציין שהמודל פועל על נתונים חלקיים.\n`
+        : ''
+
+    const ctx = dfs.business_context
+    const smart = dfs.scenarios.smart
+    const aggressive = dfs.scenarios.aggressive
+
+    return {
+        agentId: 'menateach',
+        useDirectApi: true,
+        minLength: 3500,
+        prompt: `# מודל עלויות וזמנים — "${businessName}"
+
+## תיאור העסק
+${businessDesc}
+${haBlock}
+${upstreamWarning}
+
+## קלטים מ-upstream stages
+
+**הקשר עסקי:**
+- הדומיין שלנו: \`${ctx.our_domain ?? '—'}\`
+- ההערכה שלנו ל-DR שלכם: ${ctx.our_dr_estimate} (מבוסס על link_audit)
+- DR של top competitor: ${ctx.top_competitor_dr}
+- קישורים ב-top competitor: ${ctx.top_competitor_link_count.toLocaleString()}
+- רמת תחרות: ${ctx.competition_level}
+
+## בייסליין מחושב — Smart scenario
+
+${renderScenarioBaseline(smart)}
+
+## בייסליין מחושב — Aggressive scenario
+
+${renderScenarioBaseline(aggressive)}
+
+## קונסטנטים שבהם השתמשנו (IL market 2026 baseline)
+
+- USD→ILS: ${dfs.constants_snapshot.usd_to_ils}
+- SEO strategist: ₪${dfs.constants_snapshot.seo_strategist_ils_per_hour}/hour
+- Content writer (Hebrew, mid-tier): ₪${dfs.constants_snapshot.content_writer_ils_per_hour}/hour
+- Tech SEO / dev: ₪${dfs.constants_snapshot.tech_seo_ils_per_hour}/hour
+- Outreach jr: ₪${dfs.constants_snapshot.outreach_jr_ils_per_hour}/hour
+- Tooling typical (DFS + Firecrawl + PM): ₪${dfs.constants_snapshot.tooling_typical_ils_per_month}/month
+
+---
+
+## פקודות עבודה
+
+${HARD_BLOCK_RULES}
+
+${HEBREW_ONLY_BLOCK}
+
+${CONFIDENCE_INTEGRITY_RULE}
+
+${CONFIDENCE_LABELING}
+
+${JSON_OUTPUT_RULES}
+
+---
+
+## פלט נדרש
+
+### חלק 1: תקציר מנהלים (markdown — בעברית, 2-3 פסקאות)
+שלוש שאלות מרכזיות: (א) **מה ההחלטה האסטרטגית** — איזה תקציב חודשי הופך את התרחיש לבר-ביצוע, איזה הופך אותו לבזבוז? (ב) **מה ה-trade-off** — Smart לעומת Aggressive — מתי כל אחד צודק? (ג) **שלוש סיבות שהמודל יכול לפספס** — risk factors שצריך לעקוב אחריהם.
+
+### חלק 2: רשומות JSON — calibrated scenarios (חובה!)
+
+\`\`\`json
+{
+  "executive_summary": {
+    "decision_threshold_ils_per_month": 0,
+    "smart_recommended_when": "1-2 משפטים בעברית — מתי לבחור Smart (תקציב, זמן, מטרות)",
+    "aggressive_recommended_when": "1-2 משפטים בעברית — מתי לבחור Aggressive",
+    "biggest_risk_smart": "1 משפט בעברית",
+    "biggest_risk_aggressive": "1 משפט בעברית",
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "records": [
+    {
+      "scenario": "smart",
+      "label_he": "Smart — long-tail dominate",
+      "best_for": "1 משפט בעברית — איזה לקוח/עסק צריך לבחור את התרחיש הזה",
+      "monthly_budget_ils": ${smart.monthly_budget_ils.total},
+      "monthly_budget_breakdown_ils": {
+        "content_production": ${smart.monthly_budget_ils.content_production},
+        "link_outreach": ${smart.monthly_budget_ils.link_outreach},
+        "technical_seo": ${smart.monthly_budget_ils.technical_seo},
+        "seo_strategist": ${smart.monthly_budget_ils.seo_strategist},
+        "tooling_subscriptions": ${smart.monthly_budget_ils.tooling_subscriptions}
+      },
+      "duration_months": ${JSON.stringify(smart.duration_months)},
+      "total_program_ils": ${smart.total_program_ils},
+      "deliverables_summary": {
+        "target_top_3_keywords": ${smart.inputs.target_top_3_keyword_count ?? 'מתוך inputs'},
+        "content_pieces_total": ${smart.inputs.content_pieces_total ?? 'מתוך inputs'},
+        "links_total": ${smart.inputs.links_total ?? 'מתוך inputs'},
+        "tech_seo_hours": ${smart.inputs.tech_seo_hours ?? 'מתוך inputs'}
+      },
+      "monthly_kpi_projection": ${JSON.stringify(smart.monthly_kpis)},
+      "risk_factors": ${JSON.stringify(smart.model_trace.risk_factors)},
+      "what_could_go_wrong": ["3 דברים קונקרטיים בעברית — מה יכול לעצור את התרחיש"],
+      "early_warning_signs": ["3 leading indicators בעברית שצריך לעקוב אחריהם בחודשים 1-3"],
+      "confidence": "high | medium | working_hypothesis",
+      "evidence": ["upstream_internal_seo_audit", "upstream_seo_keyword_research", "upstream_link_audit", "il_constants_2026"]
+    },
+    {
+      "scenario": "aggressive",
+      "label_he": "Aggressive — דומיננטיות מלאה ב-SERP",
+      "best_for": "1 משפט בעברית",
+      "monthly_budget_ils": ${aggressive.monthly_budget_ils.total},
+      "monthly_budget_breakdown_ils": {
+        "content_production": ${aggressive.monthly_budget_ils.content_production},
+        "link_outreach": ${aggressive.monthly_budget_ils.link_outreach},
+        "technical_seo": ${aggressive.monthly_budget_ils.technical_seo},
+        "seo_strategist": ${aggressive.monthly_budget_ils.seo_strategist},
+        "tooling_subscriptions": ${aggressive.monthly_budget_ils.tooling_subscriptions}
+      },
+      "duration_months": ${JSON.stringify(aggressive.duration_months)},
+      "total_program_ils": ${aggressive.total_program_ils},
+      "deliverables_summary": {
+        "target_top_3_keywords": ${aggressive.inputs.target_top_3_keyword_count ?? 'מתוך inputs'},
+        "content_pieces_total": ${aggressive.inputs.content_pieces_total ?? 'מתוך inputs'},
+        "links_total": ${aggressive.inputs.links_total ?? 'מתוך inputs'},
+        "tech_seo_hours": ${aggressive.inputs.tech_seo_hours ?? 'מתוך inputs'}
+      },
+      "monthly_kpi_projection": ${JSON.stringify(aggressive.monthly_kpis)},
+      "risk_factors": ${JSON.stringify(aggressive.model_trace.risk_factors)},
+      "what_could_go_wrong": ["3 דברים קונקרטיים בעברית"],
+      "early_warning_signs": ["3 leading indicators בעברית"],
+      "confidence": "high | medium | working_hypothesis",
+      "evidence": ["upstream_internal_seo_audit", "upstream_seo_keyword_research", "upstream_link_audit", "il_constants_2026"]
+    }
+  ],
+  "decision_guidance": {
+    "_note": "מספרים מ-monthly_budget_ils.total של כל תרחיש. אם תקציב חודשי < smart → לא מספיק לאף אחד; אם > aggressive → אגרסיבי משתלם; באמצע = smart.",
+    "if_budget_under_ils_per_month": ${Math.round(smart.monthly_budget_ils.total * 0.6)},
+    "if_budget_over_ils_per_month": ${aggressive.monthly_budget_ils.total},
+    "smart_minimum_ils_per_month": ${smart.monthly_budget_ils.total},
+    "aggressive_minimum_ils_per_month": ${aggressive.monthly_budget_ils.total},
+    "decision_text_he": "1-2 פסקאות בעברית — מנחה את הלקוח: כמה תקציב יש לכם, מה ה-time horizon, מה אסטרטגי מתאים"
+  },
+  "key_assumptions": [
+    "5-7 הנחות שמהן יצא המודל (לדוגמה: 'הנחנו DR התחלתי 15 על בסיס ourDR estimate; אם DR הוא 30+, ה-timeline יקצר ב-2-3 חודשים'; 'הנחנו 1 writer דדיקציה Smart ו-2 writers + senior Aggressive'; 'הנחנו ROI מבחירת מילים נכונה לפי seo_keyword_research')"
+  ],
+  "confidence": "high | medium | working_hypothesis"
+}
+\`\`\`
+
+**חובה:**
+- בדיוק 2 records: \`smart\` ו-\`aggressive\`. אסור פחות אסור יותר.
+- **אסור לשנות מספרים מהמודל** — המודל המתמטי כבר חישב את \`monthly_budget_ils\`, \`duration_months\`, \`total_program_ils\`, \`monthly_kpi_projection\`. תפקידכם רק להוסיף narrative + best_for + what_could_go_wrong + early_warning_signs.
+- \`what_could_go_wrong\` חייב להיות **קונקרטי** (לא "מתחרים יזיזו" אלא "אם avia2000 משחרר 3 long-form pillars ברבעון 1, ה-DR-gap יגדל וה-timeline יימתח ל-${aggressive.duration_months.max} חודשים").
+- \`early_warning_signs\` חייב להיות **measurable** (לדוגמה: "פחות מ-50 organic clicks בחודש 3 = לא הולכים לפי המודל").
+- אם confidence: working_hypothesis לאיזשהו scenario — חובה לציין למה ב-evidence.
+
+### חלק 3: המלצה אישית (markdown — בעברית בלבד)
+לפי ה-business_context (DR שלנו, top competitor DR, רמת תחרות, target keyword count) — **המלצה ספציפית** איזה scenario שווה יותר, מה צריך להחליט קודם, ואיך מתחילים שבוע 1.
+
+### חלק 4: תכנית ביצוע 3 חודשים ראשונים (markdown — בעברית בלבד)
+מה קורה בחודש 1 / 2 / 3 בכל scenario:
+- מה מתפרסם
+- כמה קישורים נרכשים
+- איזה tech-debt נסגר
+- מה ה-KPI של סוף החודש
+
+---
+
+${QUALITY_GATE_INSTRUCTIONS}
+${feedbackLine}`,
+    }
+}
+
+function renderScenarioBaseline(s: ScenarioBaselineShape): string {
+    const inputs = s.inputs as Record<string, unknown>
+    return `**Inputs to model:**
+- Target top 3 keywords: ${inputs.target_top_3_keyword_count}
+- Content pieces total: ${inputs.content_pieces_total}
+- Links total: ${inputs.links_total}
+- Tech SEO hours: ${inputs.tech_seo_hours}
+- Striking distance count: ${inputs.striking_distance_count}
+- Target DR: ${inputs.target_dr} (we're at ${inputs.our_dr_estimate})
+- Competition: ${inputs.competition_level}
+
+**Monthly budget breakdown (₪):**
+- Content production: ₪${s.monthly_budget_ils.content_production.toLocaleString()}
+- Link outreach: ₪${s.monthly_budget_ils.link_outreach.toLocaleString()}
+- Technical SEO: ₪${s.monthly_budget_ils.technical_seo.toLocaleString()}
+- SEO strategist: ₪${s.monthly_budget_ils.seo_strategist.toLocaleString()}
+- Tooling subscriptions: ₪${s.monthly_budget_ils.tooling_subscriptions.toLocaleString()}
+- **Total: ₪${s.monthly_budget_ils.total.toLocaleString()}/month**
+
+**Duration:** ${s.duration_months.min}-${s.duration_months.expected}-${s.duration_months.max} months (min/expected/max)
+
+**Total program: ₪${s.total_program_ils.toLocaleString()}** (${s.duration_months.expected} × ₪${s.monthly_budget_ils.total.toLocaleString()}/mo)
+
+**Monthly KPI projection (top_10 / top_3 / clicks per month):**
+${s.monthly_kpis.map(k => `- M${k.month}: top_10=${k.expected_top_10_count} | top_3=${k.expected_top_3_count} | clicks=${k.expected_organic_clicks.toLocaleString()} | cumulative pieces=${k.cumulative_pieces} | cumulative links=${k.cumulative_links}`).join('\n')}
+
+**Model trace:**
+- Content velocity: ${s.model_trace.content_velocity_per_month}/month
+- Outreach emails total: ${s.model_trace.outreach_emails_total.toLocaleString()}
+- Outreach hours total: ${Math.round(s.model_trace.outreach_hours_total)}
+- Risk factors: ${s.model_trace.risk_factors.join(' · ')}`
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // Dispatch helper — used by per-stage controllers to get prompt by id.
 // New prompts (aeo_visibility, social_landscape, email_competitor_audit)
@@ -2542,6 +2921,7 @@ export function buildPromptForStage(stageId: StageId, opts: PromptOpts): PromptR
         case 'link_audit':             return buildLinkAuditPrompt(opts)
         case 'audience_personas':      return buildAudiencePersonasPrompt(opts)
         case 'positioning':            return buildPositioningPrompt(opts)
+        case 'cost_timeline_modeling': return buildCostTimelineModelingPrompt(opts)
         case 'strategy_options':       return buildStrategyOptionsPrompt(opts)
         case 'validation':             return buildValidationPrompt(opts)
         // Phase 4 stages (live integrations) + intent wrappers handle their
