@@ -56,7 +56,7 @@ export interface CompetitorDeepLinks {
 
 export interface LinkAuditDfsData {
     ourDomain: string | null
-    /** Was Backlinks API accessible? false ⇒ stage will fail with subscription message. */
+    /** Was Backlinks API accessible? false ⇒ stage runs in degraded mode with empty data. */
     backlinksApiAvailable: boolean
     ours: OurDeepLinks
     /** Top N competitors with deep link data. Drawn from competitor_landscape upstream result. */
@@ -64,6 +64,8 @@ export interface LinkAuditDfsData {
     totalCostUsd: number
     cacheHits: number
     cacheMisses: number
+    /** Phase E2 soft-fail — Hebrew message to surface to user when backlinksApiAvailable=false. */
+    subscriptionFailureMessage?: string | null
 }
 
 export async function prefetchLinkAudit(
@@ -116,8 +118,15 @@ export async function prefetchLinkAudit(
         return r
     }
 
-    // ─── Probe backlinks API access via summary call. If 40204 → hard fail.
+    // ─── Probe backlinks API access via summary call.
+    // Phase E2 — soft-fail policy: if subscription is missing/inactive,
+    // return empty data with backlinksApiAvailable=false + a clear
+    // user-facing message instead of throwing 500. The prompt downstream
+    // renders "אודיט קישורים — נתונים לא זמינים" and the AI continues
+    // analysis with whatever upstream data exists (competitor_landscape,
+    // GMB, etc).
     let backlinksApiAvailable = true
+    let subscriptionFailureMessage: string | null = null
     try {
         const r = await backlinksSummary(instanceId, ourDomain)
         trackCall(r)
@@ -179,17 +188,29 @@ export async function prefetchLinkAudit(
             cacheMisses,
         }
     } catch (err) {
-        if (err instanceof DfsError) {
-            // 40204 = backlinks subscription not active. Bubble user-friendly Hebrew.
-            if (err.message.includes('Access denied') || err.message.includes('40204')) {
-                backlinksApiAvailable = false
-                throw new DfsError(
-                    'task_failed',
-                    'אודיט קישורים דורש מנוי DataForSEO Backlinks API פעיל. הפעילו את המנוי ב-https://app.dataforseo.com/backlinks-subscription וחזרו להריץ את השלב.',
-                )
-            }
-            throw err
+        // Soft-fail across all DfsError causes (subscription missing, rate
+        // limit, transient outage, etc). Stage continues with empty link
+        // data so the prompt can render a clear "data unavailable" panel
+        // and rest of the pipeline still flows.
+        const isAccessDenied = err instanceof DfsError &&
+            (err.message.includes('Access denied') || err.message.includes('40204'))
+        backlinksApiAvailable = false
+        subscriptionFailureMessage = isAccessDenied
+            ? 'אודיט קישורים דורש מנוי DataForSEO Backlinks API פעיל. הפעילו את המנוי ב-https://app.dataforseo.com/backlinks-subscription והשלב יתעדכן בריצה הבאה.'
+            : `נתוני אודיט קישורים לא זמינים מ-DataForSEO: ${(err as Error).message}`
+        console.warn(`[prefetch/link_audit] soft-fail: ${subscriptionFailureMessage}`)
+        return {
+            ourDomain,
+            backlinksApiAvailable,
+            ours: { enrichmentMissing: ['backlinks_api_unavailable'] },
+            competitors: competitorDomains.map(domain => ({
+                domain,
+                enrichmentMissing: ['backlinks_api_unavailable'],
+            })),
+            totalCostUsd,
+            cacheHits,
+            cacheMisses,
+            subscriptionFailureMessage,
         }
-        throw new DfsError('task_failed', `שגיאה ב-prefetch אודיט קישורים: ${(err as Error).message}`)
     }
 }

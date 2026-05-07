@@ -34,6 +34,8 @@ import {
     googleMyBusiness,
     googleReviews,
     rankedKeywords,
+    serpAdvanced,
+    parseSerpFeatures,
     LOCATION_IL,
     DfsError,
     type CompetitorsDomainItem,
@@ -45,6 +47,7 @@ import {
     type GoogleMyBusinessItem,
     type GoogleReviewItem,
     type RankedKeywordItem,
+    type SerpResult,
 } from '@/services/research/dataforseo'
 import { decideLanguage } from '@/services/research/methodology'
 import type { ResearchDataV2 } from '@/services/research/types'
@@ -91,6 +94,22 @@ export interface CompetitorPageSnapshot {
 }
 
 /**
+ * Phase E2.5 — per-competitor top keywords for topic-coverage matrix.
+ * The model receives this list and synthesizes which clusters/topics each
+ * competitor dominates. We capture top 30 by traffic-weighted score so the
+ * picture isn't dominated by ultra-low-volume tail.
+ */
+export interface CompetitorRankedKeyword {
+    keyword: string
+    rank: number          // SERP position
+    volume?: number
+    cpc?: number
+    url?: string
+    /** Estimated traffic from DFS (etv) — best signal for "money keywords" */
+    etv?: number
+}
+
+/**
  * Phase E2.4 — competitor reviews summary aggregated from DFS google/reviews.
  * Sentiment via heuristic word-list scan (no LLM call) — keeps cost zero
  * after DFS fetch and gives the AI prompt a per-competitor pulse.
@@ -131,6 +150,8 @@ export interface CompetitorEnrichment {
     deepPages?: CompetitorPageSnapshot[]
     /** Phase E2.4 — Google Business reviews aggregated sentiment (when GMB cid found). */
     reviews?: CompetitorReviewsSummary
+    /** Phase E2.5 — top 30 ranked keywords for topic-coverage matrix synthesis. */
+    topRankedKeywords?: CompetitorRankedKeyword[]
     /** Per-call diagnostics so the prompt can mention "data unavailable" honestly */
     enrichmentMissing: string[]
 }
@@ -173,6 +194,32 @@ export interface CompetitorLandscapeDfsData {
     firecrawlAvailable: boolean
     /** Phase E2.1 — count of pages successfully deep-scraped across all competitors */
     firecrawlPagesScraped: number
+    /** Phase E2.6 — SERP feature ownership matrix per top-N priority keywords. */
+    serpOwnership: SerpOwnershipEntry[]
+}
+
+/**
+ * Phase E2.6 — per-keyword SERP feature ownership snapshot. Tells the AI:
+ *   "for query X, who currently owns AI Overview / featured snippet / PAA?"
+ * Drives strategic decisions like "we can't beat avia2000 organically — but
+ * they don't own the featured snippet, that's our wedge".
+ */
+export interface SerpOwnershipEntry {
+    keyword: string
+    /** Search volume from upstream rankedKeywords */
+    volume?: number
+    /** Top 3 organic results (domain only). */
+    top_organic: Array<{ rank: number; domain: string; url?: string }>
+    /** Who's cited in AI Overview (if present) — domains only */
+    ai_overview_cited?: string[]
+    /** Domain whose page Google selected for the featured snippet */
+    featured_snippet_owner?: string
+    /** PAA questions + answer-source domains */
+    paa_owners?: Array<{ question: string; answer_domain?: string }>
+    /** Other features present (image_pack, local_pack, video_carousel, etc.) */
+    other_features: string[]
+    /** Did our domain appear anywhere on this SERP? */
+    we_present_on_page1?: boolean
 }
 
 /**
@@ -360,18 +407,49 @@ export async function prefetchCompetitorLandscape(
         if (firecrawlKey) {
             firecrawlAvailable = true
             for (const enrich of topEnriched) {
-                const deep = await fetchDeepPagesForCompetitor(
+                const result = await fetchDeepPagesForCompetitor(
                     instanceId, enrich.domain, firecrawlKey, languageCode, trackCall,
                 )
-                if (deep.length > 0) {
-                    enrich.deepPages = deep
-                    firecrawlPagesScraped += deep.filter(p => p.fetchOk).length
+                // Phase E2.5 — capture topic-matrix signal even if deep
+                // Firecrawl scrapes failed (rankedKeywords succeeded earlier).
+                if (result.topRankedKeywords.length > 0) {
+                    enrich.topRankedKeywords = result.topRankedKeywords
+                }
+                if (result.deepPages.length > 0) {
+                    enrich.deepPages = result.deepPages
+                    firecrawlPagesScraped += result.deepPages.filter(p => p.fetchOk).length
                 } else {
                     enrich.enrichmentMissing.push('deep_pages_unavailable')
                 }
             }
         } else {
-            for (const enrich of topEnriched) enrich.enrichmentMissing.push('firecrawl_key_not_configured')
+            // No Firecrawl — still grab rankedKeywords for topic matrix
+            for (const enrich of topEnriched) {
+                enrich.enrichmentMissing.push('firecrawl_key_not_configured')
+                try {
+                    const r = await rankedKeywords(instanceId, enrich.domain, {
+                        location_code: LOCATION_IL,
+                        language_code: languageCode,
+                        limit: 100,
+                        filters: [['ranked_serp_element.serp_item.rank_absolute', '<=', 20]],
+                    })
+                    trackCall(r)
+                    enrich.topRankedKeywords = r.items
+                        .map(i => ({
+                            keyword: i.keyword_data?.keyword || '',
+                            rank: i.ranked_serp_element?.serp_item?.rank_absolute ?? 99,
+                            volume: i.keyword_data?.keyword_info?.search_volume ?? undefined,
+                            cpc: i.keyword_data?.keyword_info?.cpc ?? undefined,
+                            url: i.ranked_serp_element?.serp_item?.url,
+                            etv: (i.ranked_serp_element?.serp_item as Record<string, unknown> | undefined)?.etv as number | undefined,
+                        }))
+                        .filter(k => k.keyword && k.rank <= 20)
+                        .sort((a, b) => (b.etv || 0) - (a.etv || 0))
+                        .slice(0, 30)
+                } catch (err) {
+                    console.warn(`[prefetch/competitor_landscape] rankedKeywords (no-firecrawl path) ${enrich.domain} failed:`, (err as Error).message)
+                }
+            }
             console.warn(`[prefetch/competitor_landscape] firecrawlKey not configured — skipping deep page scrapes`)
         }
     } catch (err) {
@@ -410,7 +488,45 @@ export async function prefetchCompetitorLandscape(
         }
     }
 
-    console.log(`[prefetch/competitor_landscape] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} hit-rate competitors=${competitors.length} enriched=${topEnriched.length} deep_pages=${firecrawlPagesScraped} reviews=${reviewsFetchedCount}`)
+    // ─── Phase E2.6 — SERP feature ownership matrix ──
+    // For top 5-7 priority keywords, get the live SERP and aggregate:
+    //   - who owns AI Overview (cited_links domains)
+    //   - who owns the featured snippet (organic position #1 if FS-flagged)
+    //   - who owns PAA answer slots (domain of each PAA answer)
+    //   - whether OUR domain is anywhere on page 1
+    //
+    // Priority keyword selection: top 7 by intersection × volume from
+    // competitorsDomain. We approximate volume via the etv-weighted average
+    // from competitor topRankedKeywords (already loaded above) — close enough.
+    //
+    // Cost: 7 SERP calls × ~$0.04 = $0.28 added on cache miss; cache hit on
+    // re-run free. Worth it: SERP ownership is the single most actionable
+    // strategic signal an SEO needs.
+    const serpOwnership: SerpOwnershipEntry[] = []
+    try {
+        const priorityKeywordCandidates = pickPriorityKeywordsForSerp(topEnriched)
+        if (priorityKeywordCandidates.length > 0) {
+            for (const kw of priorityKeywordCandidates.slice(0, 7)) {
+                try {
+                    const serp = await serpAdvanced(instanceId, kw.keyword, {
+                        location_code: LOCATION_IL,
+                        language_code: languageCode,
+                        device: 'mobile',
+                        depth: 30,
+                    })
+                    trackCall(serp)
+                    const item = serp.items[0]
+                    if (item) serpOwnership.push(buildSerpOwnership(kw, item, ourDomain))
+                } catch (err) {
+                    console.warn(`[prefetch/competitor_landscape] serpAdvanced "${kw.keyword}" failed:`, (err as Error).message)
+                }
+            }
+        }
+    } catch (err) {
+        console.warn(`[prefetch/competitor_landscape] SERP ownership loop error:`, (err as Error).message)
+    }
+
+    console.log(`[prefetch/competitor_landscape] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} hit-rate competitors=${competitors.length} enriched=${topEnriched.length} deep_pages=${firecrawlPagesScraped} reviews=${reviewsFetchedCount} serp_ownership=${serpOwnership.length}`)
 
     return {
         ourDomain,
@@ -424,6 +540,7 @@ export async function prefetchCompetitorLandscape(
         cacheMisses,
         firecrawlAvailable,
         firecrawlPagesScraped,
+        serpOwnership,
     }
 }
 
@@ -453,14 +570,16 @@ async function fetchDeepPagesForCompetitor(
     firecrawlKey: string,
     languageCode: 'he' | 'en',
     trackCall: TrackCallFn,
-): Promise<CompetitorPageSnapshot[]> {
-    // 1. Identify top 3 URLs by SERP rank — money-pages signal.
+): Promise<{ deepPages: CompetitorPageSnapshot[]; topRankedKeywords: CompetitorRankedKeyword[] }> {
+    // 1. Identify top URLs by SERP rank — money-pages signal.
+    //    Phase E2.5 — bumped limit 50→100 so we capture richer topic-matrix
+    //    signal in addition to the 3 deep-scraped URLs.
     let topRanked: RankedKeywordItem[] = []
     try {
         const r = await rankedKeywords(instanceId, domain, {
             location_code: LOCATION_IL,
             language_code: languageCode,
-            limit: 50,
+            limit: 100,
             filters: [
                 ['ranked_serp_element.serp_item.rank_absolute', '<=', 20],
             ],
@@ -469,8 +588,23 @@ async function fetchDeepPagesForCompetitor(
         topRanked = r.items
     } catch (err) {
         console.warn(`[prefetch/competitor_landscape] rankedKeywords ${domain} failed:`, (err as Error).message)
-        return []
+        return { deepPages: [], topRankedKeywords: [] }
     }
+
+    // Phase E2.5 — synthesize topic-matrix signal: top 30 by etv (estimated
+    // traffic value) which weights high-volume + good-position pages.
+    const topRankedKeywords: CompetitorRankedKeyword[] = topRanked
+        .map(r => ({
+            keyword: r.keyword_data?.keyword || '',
+            rank: r.ranked_serp_element?.serp_item?.rank_absolute ?? 99,
+            volume: r.keyword_data?.keyword_info?.search_volume ?? undefined,
+            cpc: r.keyword_data?.keyword_info?.cpc ?? undefined,
+            url: r.ranked_serp_element?.serp_item?.url,
+            etv: (r.ranked_serp_element?.serp_item as Record<string, unknown> | undefined)?.etv as number | undefined,
+        }))
+        .filter(k => k.keyword && k.rank <= 20)
+        .sort((a, b) => (b.etv || 0) - (a.etv || 0))
+        .slice(0, 30)
 
     // Pick distinct URLs ranked best (lowest rank_absolute), prefer non-homepage
     // diversity — homepage already audited via onPageInstant elsewhere.
@@ -501,7 +635,7 @@ async function fetchDeepPagesForCompetitor(
         if (home && !chosen.find(c => c.url === home.url)) chosen = [home, ...chosen].slice(0, 3)
     }
 
-    if (chosen.length === 0) return []
+    if (chosen.length === 0) return { deepPages: [], topRankedKeywords }
 
     // 2. Firecrawl scrape each in parallel.
     const snapshots = await Promise.all(chosen.map(async (c): Promise<CompetitorPageSnapshot> => {
@@ -529,7 +663,7 @@ async function fetchDeepPagesForCompetitor(
         }
     }))
 
-    return snapshots
+    return { deepPages: snapshots, topRankedKeywords }
 }
 
 function buildEmptySnapshot(
@@ -715,6 +849,128 @@ function inferCompetitorPageType(url: string): string {
         if (/\/locations?\/|\/branches?\/|\/storage\//.test(path)) return 'local_page'
     } catch { /* fallthrough */ }
     return 'other'
+}
+
+// ─── Phase E2.6 — SERP feature ownership helpers ──────────────────────────
+
+/**
+ * Pick top priority keywords for SERP-ownership analysis. Strategy:
+ *   - Aggregate keywords across all top-5 competitors' topRankedKeywords
+ *   - Score = sum(etv) × intersection_count (how many competitors rank for it)
+ *   - Returns top candidates by combined score, deduped by keyword string
+ */
+function pickPriorityKeywordsForSerp(
+    enriched: CompetitorEnrichment[],
+): Array<{ keyword: string; volume?: number }> {
+    const scoreMap = new Map<string, { score: number; volume?: number; intersections: number }>()
+    for (const e of enriched) {
+        for (const kw of e.topRankedKeywords || []) {
+            const k = kw.keyword.toLowerCase().trim()
+            if (!k) continue
+            const prev = scoreMap.get(k) || { score: 0, volume: kw.volume, intersections: 0 }
+            const etv = kw.etv ?? 0
+            const volBoost = (kw.volume ?? 100) / 100  // normalize so volume contributes
+            scoreMap.set(k, {
+                score: prev.score + etv + volBoost,
+                volume: prev.volume ?? kw.volume,
+                intersections: prev.intersections + 1,
+            })
+        }
+    }
+    // Prefer keywords ranked by 2+ competitors (truly contested SERPs).
+    const sorted = Array.from(scoreMap.entries())
+        .sort((a, b) => {
+            // Multi-competitor first, then by score
+            if (a[1].intersections >= 2 && b[1].intersections < 2) return -1
+            if (b[1].intersections >= 2 && a[1].intersections < 2) return 1
+            return b[1].score - a[1].score
+        })
+        .slice(0, 10)
+    return sorted.map(([keyword, v]) => ({ keyword, volume: v.volume }))
+}
+
+function buildSerpOwnership(
+    kw: { keyword: string; volume?: number },
+    serp: SerpResult,
+    ourDomain: string | null,
+): SerpOwnershipEntry {
+    const features = parseSerpFeatures(serp)
+    const items = (serp.items || []) as Array<Record<string, unknown>>
+    const top_organic: SerpOwnershipEntry['top_organic'] = []
+    const paa_owners: SerpOwnershipEntry['paa_owners'] = []
+    const otherFeatures: string[] = []
+    let featuredSnippetOwner: string | undefined
+    let aiOverviewCited: string[] | undefined
+    let wePresent = false
+
+    let organicRank = 0
+    for (const it of items) {
+        const itemType = String(it.type || '')
+        const url = typeof it.url === 'string' ? it.url : undefined
+        const domain = typeof it.domain === 'string'
+            ? it.domain.replace(/^www\./, '')
+            : (url ? safeHost(url) : undefined)
+
+        if (itemType === 'organic') {
+            organicRank++
+            if (top_organic.length < 3 && domain) {
+                top_organic.push({ rank: organicRank, domain, url })
+            }
+            if (ourDomain && domain && domain.toLowerCase().includes(ourDomain.toLowerCase())) {
+                wePresent = true
+            }
+        } else if (itemType === 'featured_snippet' && domain) {
+            featuredSnippetOwner = domain
+        } else if (itemType === 'ai_overview') {
+            const refs = it.references as unknown
+            if (Array.isArray(refs)) {
+                aiOverviewCited = refs
+                    .map(r => {
+                        if (!r || typeof r !== 'object') return null
+                        const rObj = r as Record<string, unknown>
+                        const rUrl = typeof rObj.url === 'string' ? rObj.url : undefined
+                        return rUrl ? safeHost(rUrl) : null
+                    })
+                    .filter((d): d is string => !!d)
+            }
+        } else if (itemType === 'people_also_ask') {
+            const paaItems = it.items as unknown
+            if (Array.isArray(paaItems)) {
+                for (const paa of paaItems.slice(0, 4)) {
+                    if (!paa || typeof paa !== 'object') continue
+                    const paaObj = paa as Record<string, unknown>
+                    const question = typeof paaObj.title === 'string' ? paaObj.title : ''
+                    if (!question) continue
+                    const expanded = paaObj.expanded_element as Array<{ url?: string }> | undefined
+                    const answerUrl = expanded?.[0]?.url
+                    paa_owners.push({
+                        question,
+                        answer_domain: answerUrl ? safeHost(answerUrl) : undefined,
+                    })
+                }
+            }
+        } else if (itemType === 'video' || itemType === 'video_carousel'
+                || itemType === 'images' || itemType === 'image_pack'
+                || itemType === 'shopping_carousel' || itemType === 'local_pack'
+                || itemType === 'twitter') {
+            otherFeatures.push(itemType)
+        }
+    }
+
+    return {
+        keyword: kw.keyword,
+        volume: kw.volume,
+        top_organic,
+        ai_overview_cited: aiOverviewCited,
+        featured_snippet_owner: featuredSnippetOwner ?? (features.has_featured_snippet ? top_organic[0]?.domain : undefined),
+        paa_owners: paa_owners.length > 0 ? paa_owners : undefined,
+        other_features: Array.from(new Set(otherFeatures)),
+        we_present_on_page1: wePresent,
+    }
+}
+
+function safeHost(u: string): string | undefined {
+    try { return new URL(u).hostname.replace(/^www\./, '') } catch { return undefined }
 }
 
 // ─── Phase E2.4 — review aggregation ───────────────────────────────────────

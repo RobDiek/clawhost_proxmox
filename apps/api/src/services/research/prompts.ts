@@ -201,11 +201,44 @@ function renderEnrichmentTable(top: CompetitorEnrichment[]): string {
         const reviewsBlock = e.reviews
             ? '\n- **Google reviews sentiment (Phase E2.4 — sample of ' + e.reviews.sample_size + '):**\n' + renderReviewsBlock(e.reviews)
             : ''
+        const rankedKwBlock = e.topRankedKeywords && e.topRankedKeywords.length > 0
+            ? '\n- **Top ranked keywords (Phase E2.5 — top 20 by traffic — drives topic-matrix synthesis):**\n' + renderTopRankedKeywords(e.topRankedKeywords.slice(0, 20))
+            : ''
         return `### ${e.domain}
 - **שיתופי keywords:** ${e.sharedKeywords} | **avg position:** ${e.avgPosition.toFixed(1)} | **organic_count:** ${e.organicCount ?? '—'}
 - **Link profile (DFS backlinks/summary):** ${bls}
 - **Top anchor texts (DFS backlinks/anchors):** ${topAnchors}
-- **On-page (DFS on_page/instant_pages, homepage only):** ${onPage}${deepBlock}${reviewsBlock}`
+- **On-page (DFS on_page/instant_pages, homepage only):** ${onPage}${deepBlock}${reviewsBlock}${rankedKwBlock}`
+    }).join('\n\n')
+}
+
+function renderTopRankedKeywords(kws: NonNullable<CompetitorEnrichment['topRankedKeywords']>): string {
+    const lines = kws.map(k =>
+        `  - \`${k.keyword}\` — pos ${k.rank} | vol ${k.volume ?? '—'} | etv ${k.etv ? k.etv.toFixed(1) : '—'} | ${k.url ? k.url.substring(0, 80) : '—'}`
+    )
+    return lines.join('\n')
+}
+
+function renderSerpOwnershipBlock(entries: CompetitorLandscapeDfsData['serpOwnership']): string {
+    if (!entries || entries.length === 0) {
+        return '*(אין SERP-ownership matrix — דורש top contested keywords עם נתוני volume; אם אין rankedKeywords ב-DFS data — סמנו working_hypothesis)*'
+    }
+    return entries.map(e => {
+        const top3 = e.top_organic.map(o => `${o.rank}. ${o.domain}`).join(' · ') || '—'
+        const aio = e.ai_overview_cited && e.ai_overview_cited.length > 0
+            ? `🤖 AI Overview cites: ${e.ai_overview_cited.slice(0, 5).join(', ')}`
+            : '🤖 No AI Overview detected'
+        const fs = e.featured_snippet_owner ? `📌 Featured snippet: \`${e.featured_snippet_owner}\`` : '📌 No featured snippet'
+        const paa = e.paa_owners && e.paa_owners.length > 0
+            ? `❓ PAA: ${e.paa_owners.slice(0, 3).map(p => `"${p.question.substring(0, 60)}"${p.answer_domain ? ' → ' + p.answer_domain : ''}`).join(' · ')}`
+            : '❓ No PAA'
+        const otherFeats = e.other_features.length > 0 ? `🎨 Other: ${e.other_features.join(', ')}` : ''
+        const wePresent = e.we_present_on_page1 ? '🟢 We rank on page 1' : '🔴 We do NOT rank on page 1'
+        return `**\`${e.keyword}\`** (vol ${e.volume ?? '—'}) — ${wePresent}
+- top organic: ${top3}
+- ${aio}
+- ${fs}
+- ${paa}${otherFeats ? '\n- ' + otherFeats : ''}`
     }).join('\n\n')
 }
 
@@ -327,8 +360,11 @@ ${dfsAvailability}
 ### Top 50 domain-level competitors (DFS competitors_domain)
 ${renderCompetitorListTable(dfs.competitors)}
 
-### Top 5 enriched — backlinks + anchors + on-page
+### Top 5 enriched — backlinks + anchors + on-page + money-pages + reviews + topRankedKeywords
 ${renderEnrichmentTable(dfs.topEnriched)}
+
+### SERP feature ownership matrix (Phase E2.6 — top contested keywords × who owns AI Overview / Featured Snippet / PAA / other features)
+${renderSerpOwnershipBlock(dfs.serpOwnership)}
 
 ### Our own link profile + link-gap analysis (Phase 3.10b)
 ${renderOurLinksBlock(dfs.ourLinks)}
@@ -421,6 +457,19 @@ ${DFS_DATA_RULE}
         "top_praise_themes": ["3 themes לכל היותר, מתוך top_praises"],
         "what_we_learn": "1-2 משפטים בעברית: מה הלקוחות שלהם אומרים שאנחנו צריכים לקחת בחשבון. אם complaints חוזרים על themes ספציפיים — אלו הזדמנויות שלנו (לעשות טוב יותר את מה שהם נכשלים בו)"
       },
+      "topic_coverage": {
+        "_note": "Phase E2.5 — מבוסס על topRankedKeywords של המתחרה (top 30 by traffic). סווגו את ה-keywords לתוך 3-5 topics/clusters שמשקפים את התחומים שהם dominate-ים. אם topRankedKeywords חסר — confidence: working_hypothesis.",
+        "dominated_topics": [
+          {
+            "topic": "שם topic בעברית (לדוגמה: 'אחסון תכולת דירה לטווח קצר')",
+            "keyword_count": 0,
+            "sample_keywords": ["3-5 דוגמאות"],
+            "estimated_traffic": "low | medium | high (לפי סכום etv)"
+          }
+        ],
+        "their_strongest_topic": "1 משפט: ה-topic שבו הם הכי חזקים ולמה זה איום עלינו",
+        "weak_topic_we_can_attack": "1 משפט: topic שבו הם נוכחים אבל לא dominate-ים — הזדמנות לנו"
+      },
       "eeat_signals": {
         "_note": "Phase E2.1 — מבוסס על deepPages.eeatSignals. אם deepPages חסר — מבוסס על onpage homepage בלבד (degraded).",
         "byline_present_pct": 0,
@@ -444,6 +493,22 @@ ${DFS_DATA_RULE}
       "generated_at": "ISO timestamp"
     }
   ],
+  "serp_ownership_summary": {
+    "_note": "Phase E2.6 — מבוסס על SERP feature ownership matrix שבprompt. סיכום אסטרטגי של מי שולט ב-SERP features ב-top contested keywords + הזדמנויות שלנו.",
+    "ai_overview_owners_top": ["3 דומיינים שמופיעים הכי הרבה ב-AI Overview citations"],
+    "featured_snippet_owners_top": ["3 דומיינים שלוקחים הכי הרבה featured snippets"],
+    "we_present_pct": 0,
+    "we_present_in_keywords_count": 0,
+    "biggest_zero_click_risk_pct": 0,
+    "wedge_opportunities": [
+      {
+        "keyword": "מילת מפתח קונקרטית",
+        "current_owners": "מי שולט (top organic + features)",
+        "our_wedge": "1 משפט בעברית — איזה features פתוחים לנו (FS שלא מוחזק, AI Overview citation gap, וכו)"
+      }
+    ],
+    "confidence": "high | medium | working_hypothesis"
+  },
   "our_link_profile": {
     "_note": "סיכום של DFS backlinks data על הדומיין שלנו (storage-station / השם שלכם), לא של המתחרים. אם enrichmentMissing מציין — confidence: working_hypothesis.",
     "backlinks_total": 0,
@@ -1713,6 +1778,7 @@ ${feedbackLine}`,
 interface LinkAuditDfsShape {
     ourDomain: string | null
     backlinksApiAvailable: boolean
+    subscriptionFailureMessage?: string | null
     ours: {
         summary?: { backlinks?: number; referring_domains?: number; spam_score?: number; rank?: number }
         anchors?: Array<{ anchor: string; backlinks?: number; referring_domains?: number; first_seen?: string; lost_date?: string }>
@@ -1734,11 +1800,18 @@ interface LinkAuditDfsShape {
 }
 
 function buildLinkAuditPrompt(opts: PromptOpts): PromptResult {
-    const { businessName, businessDesc, answers, feedback, historicalAssetsBlock } = opts
+    const { businessName, businessDesc, feedback, historicalAssetsBlock } = opts
     const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
     const haBlock = historicalAssetsBlock || ''
     const dfs = opts.dfsData as LinkAuditDfsShape | undefined
     if (!dfs) throw new Error('link_audit: dfsData prefetch is required')
+
+    // Phase E2 soft-fail — when backlinks API unavailable, prompt explicitly
+    // tells the model to render a partial result + clear "data unavailable"
+    // banner instead of inventing numbers.
+    const degradedBanner = !dfs.backlinksApiAvailable
+        ? `\n**⚠ אזהרה — שלב פועל במצב מוגבל:** ${dfs.subscriptionFailureMessage || 'נתוני DataForSEO Backlinks לא זמינים.'}\nעליכם להפיק פלט עם confidence: working_hypothesis בכל הרשומות, להסביר במפורש בתקציר המנהלים שהאודיט נעשה ללא נתוני backlinks חיים, ולהציע תוכנית outreach generic מבוססת על נוף המתחרים בלבד.\n`
+        : ''
 
     // ─ Render our domain summary ─
     const oursSummary = dfs.ours.summary
@@ -1771,7 +1844,7 @@ function buildLinkAuditPrompt(opts: PromptOpts): PromptResult {
 ## תיאור העסק
 ${businessDesc}
 ${haBlock}
-
+${degradedBanner}
 ## נתוני DataForSEO Backlinks — verbatim, אסור להמציא
 
 **מקור:** DataForSEO Backlinks live data, ${new Date().toISOString().slice(0, 10)} | $${dfs.totalCostUsd.toFixed(4)} (${dfs.cacheHits}/${dfs.cacheHits + dfs.cacheMisses} cache hits)

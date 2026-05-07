@@ -11480,9 +11480,24 @@ function renderOurLinkProfileBlock(rawJson) {
   if (!rawJson || typeof rawJson !== 'object') return '';
   var olp = rawJson.our_link_profile;
   var gaps = rawJson.link_gap_targets || [];
-  if (!olp && (!gaps || gaps.length === 0)) return '';
+  var serpSummary = rawJson.serp_ownership_summary;
+  if (!olp && (!gaps || gaps.length === 0) && !serpSummary) return '';
 
   var html = '<div style="margin:12px 0 8px">';
+
+  // Phase E2.6 — SERP ownership summary block (top-level extras)
+  if (serpSummary && (serpSummary.ai_overview_owners_top || serpSummary.featured_snippet_owners_top || serpSummary.wedge_opportunities)) {
+    html += '<div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;padding:10px 12px;margin-bottom:8px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><strong style="font-size:0.86rem;color:#7C2D12">🏆 SERP feature ownership</strong>' + confidencePill(serpSummary.confidence) + '</div>'
+      + (serpSummary.ai_overview_owners_top && serpSummary.ai_overview_owners_top.length ? '<div style="font-size:0.72rem;color:#374151;margin-bottom:4px"><strong>AI Overview שולטים:</strong> ' + serpSummary.ai_overview_owners_top.map(escapeHtml).join(' · ') + '</div>' : '')
+      + (serpSummary.featured_snippet_owners_top && serpSummary.featured_snippet_owners_top.length ? '<div style="font-size:0.72rem;color:#374151;margin-bottom:4px"><strong>Featured snippet שולטים:</strong> ' + serpSummary.featured_snippet_owners_top.map(escapeHtml).join(' · ') + '</div>' : '')
+      + (serpSummary.we_present_pct != null ? '<div style="font-size:0.72rem;color:#374151;margin-bottom:6px"><strong>אנחנו ב-page 1:</strong> ' + serpSummary.we_present_pct + '% (' + (serpSummary.we_present_in_keywords_count || 0) + ' keywords) · <strong>zero-click risk:</strong> ' + (serpSummary.biggest_zero_click_risk_pct || 0) + '%</div>' : '')
+      + (serpSummary.wedge_opportunities && serpSummary.wedge_opportunities.length
+          ? '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:0.74rem;color:#7C2D12;font-weight:500">🎯 ' + serpSummary.wedge_opportunities.length + ' הזדמנויות wedge</summary><div style="padding:6px 0">' + serpSummary.wedge_opportunities.map(function(w) { return '<div style="font-size:0.7rem;border-bottom:1px solid #FED7AA;padding:6px 0"><strong>' + escapeHtml(w.keyword || '—') + '</strong><div style="color:#6B7280">שולטים: ' + escapeHtml(w.current_owners || '—') + '</div><div style="color:#065F46">ה-wedge שלנו: ' + escapeHtml(w.our_wedge || '—') + '</div></div>'; }).join('') + '</div></details>'
+          : '')
+      + '</div>';
+  }
+
   if (olp) {
     var conf = olp.confidence;
     var anchorRows = (olp.anchor_distribution_top5 || []).map(function(a) {
@@ -11550,6 +11565,21 @@ function renderCompetitorCard(r) {
       + '</div></details>';
   }
 
+  // Topic coverage block (Phase E2.5)
+  var topicBlock = '';
+  var topicCov = r.topic_coverage || null;
+  if (topicCov && topicCov.dominated_topics && topicCov.dominated_topics.length) {
+    topicBlock = '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.72rem;color:#1E3A8A;font-weight:500">🎯 Topic coverage (' + topicCov.dominated_topics.length + ' topics dominated)</summary>'
+      + '<div style="font-size:0.7rem;color:#4B5563;padding:6px 0;line-height:1.6">'
+      + topicCov.dominated_topics.map(function(t) {
+          var traff = t.estimated_traffic === 'high' ? '🔴' : t.estimated_traffic === 'medium' ? '🟡' : '🟢';
+          return '<div style="margin-bottom:4px"><strong>' + escapeHtml(t.topic || '—') + '</strong> ' + traff + ' (' + (t.keyword_count || 0) + ' kw): ' + (t.sample_keywords || []).slice(0, 3).map(escapeHtml).join(', ') + '</div>';
+        }).join('')
+      + (topicCov.their_strongest_topic ? '<div style="margin-top:4px;color:#991B1B"><strong>חוזק שלהם:</strong> ' + escapeHtml(topicCov.their_strongest_topic) + '</div>' : '')
+      + (topicCov.weak_topic_we_can_attack ? '<div style="color:#065F46"><strong>חולשה שניתן לנצל:</strong> ' + escapeHtml(topicCov.weak_topic_we_can_attack) + '</div>' : '')
+      + '</div></details>';
+  }
+
   // Reviews intel block (Phase E2.4)
   var reviewsBlock = '';
   var reviewsIntel = r.reviews_intel || null;
@@ -11602,6 +11632,7 @@ function renderCompetitorCard(r) {
     + (bls ? '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">פרופיל קישורים: ' + escapeHtml(bls) + '</div>' : '')
     + moneyBlock
     + reviewsBlock
+    + topicBlock
     + eeatBlock
     + (il.language_coverage ? '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:0.7rem;color:#6B7280">סיגנלי IL</summary><div style="font-size:0.7rem;color:#4B5563;padding:4px 0">' + (il.language_coverage ? '<div>שפה: ' + escapeHtml(il.language_coverage) + '</div>' : '') + (il.local_trust ? '<div>אמון מקומי: ' + escapeHtml(il.local_trust) + '</div>' : '') + (il.off_site_corroboration ? '<div>אזכורים חיצוניים (off-site): ' + escapeHtml(il.off_site_corroboration) + '</div>' : '') + '</div></details>' : '')
     + '</div>';
