@@ -298,10 +298,23 @@ function parseCriticResponse(raw: string, originalContent: string, stageId: Stag
                     .replace(/""(\s*[,}\]\n])/g, '"$1')
                     .replace(/,(\s*[}\]])/g, '$1')
                 parsed = JSON.parse(repaired)
-            } catch (err) {
-                console.warn(`[selfCritique/${stageId}] critic returned malformed JSON (3 tiers):`, (err as Error).message)
-                result.skipped = true
-                return result
+            } catch {
+                try {
+                    // Tier 4: truncated JSON repair — handles "Unterminated string"
+                    // from critic responses that hit max_tokens mid-output. Walks
+                    // the JSON depth-first, closes any open string with a quote,
+                    // trims back to last comma at safe depth, then closes any
+                    // open brace/bracket. Recovers what the critic did emit.
+                    const sanitized = sanitizeJsonControlChars(jsonText)
+                        .replace(/""(\s*[,}\]\n])/g, '"$1')
+                        .replace(/,(\s*[}\]])/g, '$1')
+                    parsed = JSON.parse(repairTruncatedJsonInline(sanitized))
+                    console.warn(`[selfCritique/${stageId}] critic JSON repaired via Tier 4 (truncated)`)
+                } catch (err) {
+                    console.warn(`[selfCritique/${stageId}] critic returned malformed JSON (4 tiers):`, (err as Error).message)
+                    result.skipped = true
+                    return result
+                }
             }
         }
     }
@@ -375,6 +388,83 @@ function sanitizeJsonControlChars(src: string): string {
             out += ch
             if (ch === '"') { inStr = true; esc = false }
         }
+    }
+    return out
+}
+
+/**
+ * Phase QA round-3 — Tier 4 truncated JSON repair for critic responses.
+ * Mirrors the same logic as hybridParser.repairTruncatedJson but inline here
+ * to avoid a circular import between selfCritique and hybridParser.
+ *
+ * Walks the string tracking string state + brace/bracket depth. At end:
+ *   1. If inside an unterminated string → close it (or trim back to last
+ *      comma at depth 1 = top-level checks/summary array).
+ *   2. Trim trailing dangling key/comma/whitespace.
+ *   3. Close all open `{` / `[` in reverse stack order.
+ *
+ * Best-effort: rescues whatever check entries the critic emitted before the
+ * cutoff. Better partial than zero.
+ */
+function repairTruncatedJsonInline(src: string): string {
+    if (!src.trim().startsWith('{') && !src.trim().startsWith('[')) return src
+    let depth = 0
+    const stack: string[] = []
+    let inStr = false
+    let esc = false
+    let lastSafeCommaIdx = -1   // last comma at depth 1 (inside top-level object's properties)
+    for (let i = 0; i < src.length; i++) {
+        const ch = src[i]
+        if (inStr) {
+            if (esc) { esc = false; continue }
+            if (ch === '\\') { esc = true; continue }
+            if (ch === '"') inStr = false
+            continue
+        }
+        if (ch === '"') { inStr = true; continue }
+        if (ch === '{' || ch === '[') {
+            stack.push(ch)
+            depth++
+        } else if (ch === '}' || ch === ']') {
+            stack.pop()
+            depth--
+        } else if (ch === ',' && depth === 1) {
+            lastSafeCommaIdx = i
+        }
+    }
+    if (!inStr && depth === 0) return src
+
+    let out = src
+    if (inStr) {
+        // Trim back to last safe comma to drop the broken string entirely.
+        if (lastSafeCommaIdx >= 0) {
+            out = src.substring(0, lastSafeCommaIdx)
+            // Re-walk to recompute stack
+            depth = 0
+            stack.length = 0
+            inStr = false
+            esc = false
+            for (let i = 0; i < out.length; i++) {
+                const ch = out[i]
+                if (inStr) {
+                    if (esc) { esc = false; continue }
+                    if (ch === '\\') { esc = true; continue }
+                    if (ch === '"') inStr = false
+                    continue
+                }
+                if (ch === '"') { inStr = true; continue }
+                if (ch === '{' || ch === '[') { stack.push(ch); depth++ }
+                else if (ch === '}' || ch === ']') { stack.pop(); depth-- }
+            }
+        } else {
+            out += '"'
+        }
+    }
+    out = out.replace(/[\s,]*"\s*[a-zA-Z_]+\s*:\s*$/, '')
+    out = out.replace(/[,\s]+$/, '')
+    while (stack.length) {
+        const open = stack.pop()
+        out += open === '{' ? '}' : ']'
     }
     return out
 }
