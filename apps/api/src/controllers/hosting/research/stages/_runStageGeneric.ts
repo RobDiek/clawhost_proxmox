@@ -42,6 +42,7 @@ import { prefetchInternalSeoAudit } from './prefetch/internal_seo_audit'
 import { prefetchAeoVisibility } from './prefetch/aeo_visibility'
 import { prefetchCostTimelineModeling } from './prefetch/cost_timeline_modeling'
 import type { ResearchDataV2, StageId } from '@/services/research/types'
+import type { SeoKeywordResearchDfsData } from './prefetch/seo_keyword_research'
 
 /**
  * Per-stage DFS prefetch registry. Stages registered here run their
@@ -198,6 +199,23 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         // disagree. Server recomputes both from authoritative components.
         if (stageId === 'seo_keyword_research' && parsed.records) {
             recomputeKeywordScores(parsed.records)
+            // Phase QA round-5 — server-side DFS enrichment of volume / CPC /
+            // KD per record. Model previously left these null for ~85-95% of
+            // records because: (a) it had to cross-reference two separate
+            // tables in the prompt (ideas vs. difficulty), and (b) it
+            // generated long-tail records that aren't literally in the DFS
+            // data — so per "no fabrication" instruction it returned null.
+            // The server has the prefetched DFS dataset (700 ideas + 100
+            // calibrated KD) — we look up by normalized keyword and inject
+            // authoritative values. If keyword not in DFS → leaves null
+            // (legitimate working_hypothesis territory).
+            if (dfsData) {
+                const stats = enrichKeywordRecordsFromDfs(
+                    parsed.records,
+                    dfsData as SeoKeywordResearchDfsData,
+                )
+                console.log(`[research/seo_keyword_research] DFS enrichment: matched ${stats.matched}/${parsed.records.length} records (vol=${stats.filledVolume}, cpc=${stats.filledCpc}, kd=${stats.filledKd}, missing-in-dfs=${stats.missingInDfs})`)
+            }
         }
         // Phase E3 defense-in-depth — cost_timeline_modeling has its own
         // calibrated baselines computed in prefetch from IL constants. The
@@ -439,6 +457,93 @@ function recomputeKeywordScores(records: unknown[]): void {
     if (oppDriftCount > 0 || aeoDriftCount > 0) {
         console.warn(`[research/seo_keyword_research] math drift overridden: opportunity=${oppDriftCount}/${records.length}, aeo=${aeoDriftCount}/${records.length}`)
     }
+}
+
+/**
+ * Phase QA round-5 — DFS enrichment for seo_keyword_research records.
+ *
+ * Server-side authoritative volume/CPC/KD injection from the prefetched DFS
+ * dataset. Replaces the previous implicit contract (model copies values from
+ * a markdown table) with an explicit one (server looks up by normalized
+ * keyword and overrides). Massively improves data completeness because:
+ *
+ *   - The prompt only renders top-100 ideas + top-50 difficulty as separate
+ *     tables. Model has to cross-reference, and often skips KD entirely.
+ *   - Long-tail records the model generates from cluster expansion may not
+ *     be in DFS — and per "no fabrication" rule, model leaves them null
+ *     instead of guessing (correct but incomplete).
+ *
+ * Lookup strategy:
+ *   1. Normalize keyword: lowercase + collapsed-whitespace + trim.
+ *   2. Match against `dfs.ideas` for volume + CPC.
+ *   3. Match against `dfs.difficulty` for calibrated KD (overrides any
+ *      keyword_info.keyword_difficulty embedded in ideas — bulk_kd is the
+ *      authoritative endpoint).
+ *   4. Set the field on the record. ALWAYS overrides — DFS authoritative.
+ *
+ * If keyword not in any DFS map → leaves whatever the model emitted (null
+ * + working_hypothesis confidence). That's the correct outcome — flagging
+ * "model invention" honestly to the UI / downstream consumers.
+ */
+interface DfsEnrichmentStats {
+    matched: number
+    missingInDfs: number
+    filledVolume: number
+    filledCpc: number
+    filledKd: number
+}
+function enrichKeywordRecordsFromDfs(
+    records: unknown[],
+    dfsData: SeoKeywordResearchDfsData,
+): DfsEnrichmentStats {
+    const norm = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ')
+    const ideasByKw = new Map<string, SeoKeywordResearchDfsData['ideas'][number]>()
+    for (const i of dfsData.ideas) {
+        if (i.keyword) ideasByKw.set(norm(i.keyword), i)
+    }
+    const calibratedKdByKw = new Map<string, number>()
+    for (const d of dfsData.difficulty) {
+        if (d.keyword && typeof d.keyword_difficulty === 'number') {
+            calibratedKdByKw.set(norm(d.keyword), d.keyword_difficulty)
+        }
+    }
+    const stats: DfsEnrichmentStats = { matched: 0, missingInDfs: 0, filledVolume: 0, filledCpc: 0, filledKd: 0 }
+    for (const r of records) {
+        if (!r || typeof r !== 'object') continue
+        const rec = r as Record<string, unknown>
+        const kwRaw = typeof rec.keyword === 'string' ? rec.keyword : null
+        if (!kwRaw) continue
+        const key = norm(kwRaw)
+        const idea = ideasByKw.get(key)
+        const calibratedKd = calibratedKdByKw.get(key)
+
+        if (!idea && calibratedKd === undefined) {
+            stats.missingInDfs++
+            continue
+        }
+        stats.matched++
+
+        if (idea?.keyword_info) {
+            if (typeof idea.keyword_info.search_volume === 'number') {
+                rec.volume_monthly = idea.keyword_info.search_volume
+                stats.filledVolume++
+            }
+            if (typeof idea.keyword_info.cpc === 'number') {
+                rec.cpc_ils = Math.round(idea.keyword_info.cpc * 100) / 100
+                stats.filledCpc++
+            }
+        }
+        // Calibrated KD takes priority over embedded estimates.
+        const kd = typeof calibratedKd === 'number'
+            ? calibratedKd
+            : (idea?.keyword_properties?.keyword_difficulty
+                ?? idea?.keyword_info?.keyword_difficulty)
+        if (typeof kd === 'number') {
+            rec.difficulty_0_100 = kd
+            stats.filledKd++
+        }
+    }
+    return stats
 }
 
 /**
