@@ -12,6 +12,7 @@
  * cleanup, writes back via jsonb_set. Idempotent — safe to re-run.
  */
 
+import 'dotenv/config'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { eq, sql } from 'drizzle-orm'
