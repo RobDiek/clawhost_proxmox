@@ -697,3 +697,61 @@ export const DFS_DATA_RULE = `
 - אם אין נתון — סמנו כ-\`estimate\` עם confidence: \`בינוני\` או \`השערה\`
 - לעולם אל תמציאו מספרים שאתם לא רואים ב-prompt
 - אם נתון נראה לא הגיוני (e.g. CPC ₪500 על keyword קטן) — ציינו "anomaly — verify before action"`
+
+// ────────────────────────────────────────────────────────────────────────────
+// 14. Evidence-honesty rule (Phase QA round-7)
+// ────────────────────────────────────────────────────────────────────────────
+//
+// Stages where the prefetcher's data might be sparse (small site → short
+// link gap list, niche IL business → empty Trustpilot reviews, etc) — model
+// has a strong tendency to PAD the output with vertical-knowledge
+// recommendations (B144, generic outreach categories, industry priors)
+// while LABELING them as DFS-derived. Caught in stage 5 (link_audit) for
+// storage-station: 7/13 records claimed `dfs_link_gap_candidates` evidence
+// when DFS linkGap had only 2 entries (linkpower.co.il, generatepress.com).
+//
+// This rule forces strict separation: only domains/entities literally
+// visible in the prompt's data tables can be tagged as DFS-derived. Anything
+// else (B144, ynet, generic blogs, vertical knowledge) MUST be tagged as
+// industry_priors / vertical_priors / business_description, and confidence
+// drops to `working_hypothesis`.
+
+export const EVIDENCE_HONESTY_RULE = `
+## חוקי הוכחה — Evidence Honesty (CRITICAL)
+
+🚫 **חל איסור מוחלט להפיק רשומה עם evidence מפוברק.**
+
+**כללי כתיבת evidence:**
+
+1. **אם רשומה מתייחסת ל-domain/entity ספציפי** — חובה לבדוק שהמופע **קיים מילולית בטבלאות הנתונים שמועמסות ב-prompt** (linkGap, lostLinks, anchors, referringDomains, competitors, ideas, gsc.queries, וכו'). אם כן — \`evidence: ["dfs_<source_name>"]\`. אם לא — אסור לטעון \`dfs_*\`.
+
+2. **אם המקור הוא ידע אנכי / שוק ישראלי / training data** — חובה לתייג כ-\`["industry_priors", "vertical_priors", "il_market_knowledge"]\` בלבד. **לעולם לא** \`dfs_*\` כשה-domain לא בנתונים שלפניכם.
+
+3. **כל record שה-evidence שלו רק \`industry_priors\` / \`vertical_priors\` / \`il_market_knowledge\`** → confidence MUST = \`working_hypothesis\`. לעולם לא \`high\` או \`medium\` ללא DFS/upstream verifiable signal.
+
+4. **כל record שמזכיר domain/entity שלא בנתונים** (גם אם evidence עצמו תקני) → confidence = \`working_hypothesis\`.
+
+5. **אם הנתונים מ-DFS דלים** (e.g. linkGap = 2 entries בלבד, lostLinks = 0, ref_domains = 13) — חובה לציין במפורש בתקציר המנהלים: "פרופיל הקישורים דליל — N הזדמנויות נמשכו מתוך X DFS data, השאר מבוסס industry priors". **לא להעמיד פנים שהפלט DFS-driven כשרוב הוא vertical knowledge.**
+
+**דוגמה אסורה:**
+\`\`\`
+{
+  "type": "link_gap_outreach",
+  "target": "B144 / dapei-zahav",
+  "evidence": ["dfs_link_gap_candidates"],   ← B144 לא ב-linkGap
+  "confidence": "high"
+}
+\`\`\`
+
+**דוגמה תקינה — אותו תוכן:**
+\`\`\`
+{
+  "type": "link_gap_outreach",
+  "target": "B144 / dapei-zahav",
+  "evidence": ["industry_priors", "il_market_knowledge"],
+  "confidence": "working_hypothesis",
+  "rationale": "...אינדקסים ישראליים סטנדרטיים — לא נמשכו מ-linkGap data שכלל 2 entries בלבד..."
+}
+\`\`\`
+
+**self-critique בודק את זה:** אם evidence \`dfs_*\` אבל ה-target לא ב-prompt data → hard fail \`source_spot_check\`. אם confidence = \`high\` עם evidence \`industry_priors\` בלבד → hard fail \`confidence_integrity\`.`
