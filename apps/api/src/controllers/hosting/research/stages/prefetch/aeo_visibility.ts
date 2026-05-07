@@ -307,14 +307,40 @@ function countListItemsBefore(text: string, idx: number): number {
 function extractMentionedBrands(text: string, ownBrand: string, ourDomain: string | null): string[] {
     const brands: string[] = []
     const seen = new Set<string>()
-    // Match patterns: "1. <BrandName>" / "* <BrandName>" / "- <BrandName>"
-    const listItemRegex = /(?:^|\n)\s*(?:\d+[.)]|\*|-)\s*\*{0,2}([^*\n:.,;]+?)(?:\*{0,2})\s*(?:[—:.,;-]|$)/g
+    // Phase QA round-6 — Anthropic responses use markdown headings + emojis +
+    // bold, with Hebrew/English mix. Real shapes observed in storage-station
+    // run (5 probes): "## 1. 🥇 **BoxBee / ארגזי אחסון מודולריים**" /
+    // "### 🥇 **Box-it (בוקס-איט)**" / "1. **Naot Storage** — חברה...".
+    //
+    // Previous regex required list marker IMMEDIATELY before the bold name —
+    // but actual markdown has heading marks + emojis + spaces between. Result
+    // was 0 real brands extracted, only Hebrew filler phrases like
+    // "המלצתי הכללית" leaked through from random bold spans elsewhere in the
+    // response.
+    //
+    // New strategy: match **bold-wrapped name** directly when preceded by ANY
+    // line-leading combination of heading marks / list markers / emojis. Then
+    // filter candidates with two heuristics:
+    //   (a) drop known filler phrases (commentary, not brands)
+    //   (b) require Latin letters OR a name-separator (/ or () — real brand
+    //       names in IL responses are either Latin/transliterated or have a
+    //       Hebrew translation in parens.
+    const fillerPhrases = new Set([
+        'המלצתי הכללית', 'המלצה כללית', 'המלצתי', 'הכללית', 'איסוף מהבית',
+        'גישה עצמאית', 'גישה 24/7', 'אבטחה', 'הטוב ביותר', 'הכי מומלץ',
+        'המלצות מובילות', 'השחקנים המובילים', 'המדריך המהיר', 'מומלץ',
+    ])
+    const listItemRegex = /(?:^|\n)\s*(?:#{1,4}\s*)?(?:\d+[.)]|\*|-)?\s*[\p{Emoji_Presentation}\p{Extended_Pictographic}]*\s*\*\*([^*\n]+?)\*\*/gu
     let m: RegExpExecArray | null
     while ((m = listItemRegex.exec(text)) !== null) {
-        const candidate = m[1].trim().replace(/^\*+|\*+$/g, '').trim()
+        const candidate = m[1].trim()
         if (!candidate || candidate.length < 2 || candidate.length > 80) continue
+        if (fillerPhrases.has(candidate)) continue
+        const hasLatin = /[A-Za-z]/.test(candidate)
+        const hasNameSep = /[/(]/.test(candidate)
+        if (!hasLatin && !hasNameSep) continue  // pure-Hebrew prose, not a brand
         const lower = candidate.toLowerCase()
-        if (lower === ownBrand.toLowerCase()) continue  // skip our own brand
+        if (lower === ownBrand.toLowerCase()) continue
         if (ourDomain && lower.includes(ourDomain.toLowerCase().split('.')[0])) continue
         if (seen.has(lower)) continue
         seen.add(lower)

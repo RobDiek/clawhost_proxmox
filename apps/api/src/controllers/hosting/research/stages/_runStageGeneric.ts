@@ -881,6 +881,23 @@ const FORBID_LIST_REPLACEMENTS: Array<[RegExp, string]> = [
     [/(?<![\w_])duplicate(?![\w_-])/gi, 'כפיל'],
     [/(?<![\w_])thin(?![\w_-])/gi, 'דק'],
     [/(?<![\w_])bridge(?![\w_-])/gi, 'גשר'],
+    // Phase QA round-6 — AEO/founder-readability scrubs. Schema names
+    // (Organization, FAQPage, BlogPosting, etc) MUST stay in English (JSON-LD
+    // literals). But common SEO/marketing jargon in the executive narrative
+    // is translatable and should be Hebrew so a non-pro business owner can
+    // actually read the dashboard. Keep the recommendation actionable for
+    // the developer/SEO lead via record fields, but make the summary human.
+    [/\bextractability gap\b/gi, 'פער חילוץ נתונים'],
+    [/\bextractability\b/gi, 'יכולת חילוץ'],
+    [/\bentity disambiguation\b/gi, 'זיהוי ישות'],
+    [/\bcitation magnets?\b/gi, 'מגנטי ציטוט'],
+    [/\banswer-?blocks?\b/gi, 'בלוקי תשובה'],
+    [/\bTL;DR\b/gi, 'תקציר'],
+    [/\btable of contents\b/gi, 'תוכן עניינים'],
+    [/\banchor links?\b/gi, 'קישורי עוגן'],
+    [/\bsummary paragraph\b/gi, 'פסקת סיכום'],
+    [/\bpre-?requisite\b/gi, 'תנאי מקדים'],
+    [/\bquick wins?\b/gi, 'ניצחונות מהירים'],
     // Phase QA round-4 — words critic caught on stage 3 re-run after round-3.
     // Multi-word phrases first (replaced before unigrams to avoid clobbering).
     [/\bfast optimization\b/gi, 'אופטימיזציה מהירה'],
