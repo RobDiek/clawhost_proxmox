@@ -199,6 +199,14 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         if (stageId === 'seo_keyword_research' && parsed.records) {
             recomputeKeywordScores(parsed.records)
         }
+        // Phase E3 defense-in-depth — cost_timeline_modeling has its own
+        // calibrated baselines computed in prefetch from IL constants. The
+        // prompt tells the AI not to alter them, but as a safety net we
+        // overwrite the financial fields back to the prefetch values. The AI
+        // keeps its narrative (best_for, what_could_go_wrong, etc).
+        if (stageId === 'cost_timeline_modeling' && parsed.records && dfsData) {
+            recomputeCostTimelineRecords(parsed.records, dfsData)
+        }
         // Phase 3.21b — Hebrew filler scrubber. After research stages produce
         // records, sweep through the Hebrew-prose text fields and substitute
         // common English filler that the model keeps reaching for despite
@@ -246,8 +254,10 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                 // Math sanity is auto-corrected for stages where server-side
                 // recompute owns the totals: competitor_landscape (scorecard)
                 // and seo_keyword_research (opportunity + aeo).
-                const stageHasRecompute = stageId === 'competitor_landscape' || stageId === 'seo_keyword_research'
-                if (stageHasRecompute && /math_sanity|formula_verification|scorecard.*total|opportunity.*total|aeo.*total/i.test(f)) {
+                const stageHasRecompute = stageId === 'competitor_landscape'
+                    || stageId === 'seo_keyword_research'
+                    || stageId === 'cost_timeline_modeling'
+                if (stageHasRecompute && /math_sanity|formula_verification|scorecard.*total|opportunity.*total|aeo.*total|monthly_budget|total_program|duration_months|monthly_kpi/i.test(f)) {
                     autoCorrected.push(f)
                 } else {
                     remainingHardFailures.push(f)
@@ -403,6 +413,76 @@ function recomputeKeywordScores(records: unknown[]): void {
     }
 }
 
+/**
+ * Phase E3 defense-in-depth — recompute cost_timeline_modeling records'
+ * financial fields back to the prefetch baselines. Even though the prompt
+ * tells the model "don't change numbers", we don't trust LLMs with money.
+ *
+ * Per-record (matched by `scenario`):
+ *   - monthly_budget_ils + breakdown overwritten from baseline.monthly_budget_ils
+ *   - duration_months overwritten
+ *   - total_program_ils overwritten
+ *   - monthly_kpi_projection overwritten (12-month curve)
+ *   - deliverables_summary overwritten from baseline.inputs
+ * Model retains: best_for, what_could_go_wrong, early_warning_signs,
+ * confidence, evidence, label_he, scenario.
+ */
+function recomputeCostTimelineRecords(records: unknown[], dfsData: unknown): void {
+    if (!dfsData || typeof dfsData !== 'object') return
+    const ctm = dfsData as { scenarios?: { smart?: Record<string, unknown>; aggressive?: Record<string, unknown> } }
+    const baselines = ctm.scenarios
+    if (!baselines) return
+
+    let driftCount = 0
+    for (const r of records) {
+        if (!r || typeof r !== 'object') continue
+        const rec = r as Record<string, unknown>
+        const scenario = String(rec.scenario || '')
+        if (scenario !== 'smart' && scenario !== 'aggressive') continue
+        const baseline = baselines[scenario]
+        if (!baseline) continue
+
+        const baseMb = (baseline as Record<string, unknown>).monthly_budget_ils as Record<string, unknown> | undefined
+        const baseDuration = (baseline as Record<string, unknown>).duration_months
+        const baseTotal = (baseline as Record<string, unknown>).total_program_ils
+        const baseKpi = (baseline as Record<string, unknown>).monthly_kpis
+        const baseInputs = (baseline as Record<string, unknown>).inputs as Record<string, unknown> | undefined
+
+        // Detect drift before overwrite — log if model deviated
+        const reportedTotal = typeof rec.monthly_budget_ils === 'number' ? rec.monthly_budget_ils : null
+        const baselineTotal = baseMb && typeof baseMb.total === 'number' ? baseMb.total : null
+        if (reportedTotal !== null && baselineTotal !== null && Math.abs(reportedTotal - baselineTotal) > 50) {
+            driftCount++
+        }
+
+        // Overwrite financial fields with calibrated baselines
+        if (baseMb) {
+            rec.monthly_budget_ils = baseMb.total
+            rec.monthly_budget_breakdown_ils = {
+                content_production: baseMb.content_production,
+                link_outreach: baseMb.link_outreach,
+                technical_seo: baseMb.technical_seo,
+                seo_strategist: baseMb.seo_strategist,
+                tooling_subscriptions: baseMb.tooling_subscriptions,
+            }
+        }
+        if (baseDuration) rec.duration_months = baseDuration
+        if (baseTotal !== undefined) rec.total_program_ils = baseTotal
+        if (baseKpi) rec.monthly_kpi_projection = baseKpi
+        if (baseInputs) {
+            rec.deliverables_summary = {
+                target_top_3_keywords: baseInputs.target_top_3_keyword_count,
+                content_pieces_total: baseInputs.content_pieces_total,
+                links_total: baseInputs.links_total,
+                tech_seo_hours: baseInputs.tech_seo_hours,
+            }
+        }
+    }
+    if (driftCount > 0) {
+        console.warn(`[research/cost_timeline_modeling] financial drift overridden in ${driftCount}/${records.length} records`)
+    }
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // Phase 3.21b — Hebrew filler scrubber. Substitutes English filler words the
 // model keeps inserting into Hebrew prose, despite HEBREW_ONLY_BLOCK + critic.
@@ -447,12 +527,12 @@ function scrubEnglishFillerInText(text: string): string {
 }
 
 const SCRUBBABLE_RECORD_FIELDS = [
+    // ─ legacy + competitor_landscape + seo_keyword_research + personas + positioning ─
     'recommended_action',
     'cluster',
     'topical_authority_venn',
     'site_architecture_depth',
     'link_profile_depth',
-    'eeat_signals',
     'page_type',
     'outreach_angle',
     'segment_definition',
@@ -461,6 +541,16 @@ const SCRUBBABLE_RECORD_FIELDS = [
     'brand_promise',
     'first_win_channel',
     'specific_action',
+    // ─ Phase E1.2 internal_seo_audit ─
+    'priority_action',
+    'current_state',
+    // ─ Phase E1.1 aeo_visibility ─
+    'rationale',
+    // ─ Phase E3 cost_timeline_modeling narrative fields ─
+    'best_for',
+    'label_he',
+    // ─ Phase E2.4 reviews_intel narrative ─
+    'what_we_learn',
 ] as const
 
 function scrubEnglishFillerInRecords(records: unknown[]): void {
@@ -483,8 +573,14 @@ function scrubEnglishFillerInRecords(records: unknown[]): void {
                 if (scrubbed !== intent.jtbd) { intent.jtbd = scrubbed; touched++ }
             }
         }
-        // Arrays of strings — threats_to_us, content_gaps_at_competitor, must_include_entities, etc.
-        for (const arrField of ['threats_to_us', 'content_gaps_at_competitor', 'must_include_data_points', 'must_include_entities']) {
+        // Arrays of strings — threats_to_us, content_gaps_at_competitor,
+        // must_include_entities, plus Phase E3 cost_timeline_modeling narrative
+        // arrays (what_could_go_wrong, early_warning_signs, risk_factors).
+        for (const arrField of [
+            'threats_to_us', 'content_gaps_at_competitor',
+            'must_include_data_points', 'must_include_entities',
+            'what_could_go_wrong', 'early_warning_signs', 'risk_factors',
+        ]) {
             const arr = rec[arrField]
             if (Array.isArray(arr)) {
                 for (let i = 0; i < arr.length; i++) {
