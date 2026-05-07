@@ -51,7 +51,7 @@ interface HebrewCleanupResult {
     outputTokensApprox?: number
 }
 
-const SONNET_MODEL = 'claude-sonnet-4-5'
+const SONNET_MODEL = 'claude-sonnet-4-6'
 
 const ALLOWLIST_BLOCK = `**ALLOWLIST — חייבים להישאר באנגלית כפי שהן:**
 
