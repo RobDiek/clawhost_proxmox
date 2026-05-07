@@ -16,6 +16,7 @@ import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { prefetchSeoKeywordResearch } from '@/controllers/hosting/research/stages/prefetch/seo_keyword_research'
+import { searchVolume, keywordDifficulty, LOCATION_IL } from '@/services/research/dataforseo'
 import type { ResearchDataV2 } from '@/services/research/types'
 import type { SeoKeywordResearchDfsData } from '@/controllers/hosting/research/stages/prefetch/seo_keyword_research'
 
@@ -155,13 +156,13 @@ async function main(): Promise<void> {
 
     // ─── DEBUG: cross-reference each record keyword against DFS ──
     console.log(`\nDEBUG — record keyword × DFS membership:`)
-    const norm = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ')
-    const dfsIdeasNormSet = new Set(dfsData.ideas.map(i => norm(i.keyword || '')))
-    const dfsKdNormSet = new Set(dfsData.difficulty.map(d => norm(d.keyword || '')))
+    const normFn = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ')
+    const dfsIdeasNormSet = new Set(dfsData.ideas.map(i => normFn(i.keyword || '')))
+    const dfsKdNormSet = new Set(dfsData.difficulty.map(d => normFn(d.keyword || '')))
     let inIdeas = 0, inKd = 0
     for (const r of records) {
         const kw = String(r.keyword || '')
-        const k = norm(kw)
+        const k = normFn(kw)
         const idea = dfsIdeasNormSet.has(k)
         const kd = dfsKdNormSet.has(k)
         if (idea) inIdeas++
@@ -176,9 +177,53 @@ async function main(): Promise<void> {
     }
     console.log()
 
-    // ─── Apply enrichment ──
+    // ─── Apply pass-1 enrichment ──
     const recordsCopy = JSON.parse(JSON.stringify(records)) as Array<Record<string, unknown>>
     const stats = enrichKeywordRecordsFromDfs(recordsCopy, dfsData)
+
+    // ─── Pass-2: live DFS lookup for record keywords ──
+    console.log(`Running pass-2 live DFS lookup (searchVolume + keywordDifficulty on the actual record keywords)...`)
+    const norm = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ')
+    const recordKeywords = Array.from(new Set(
+        recordsCopy.map(r => typeof r.keyword === 'string' ? r.keyword.trim() : null)
+            .filter((k): k is string => !!k)
+    ))
+    let liveCost = 0
+    let liveFilledVol = 0, liveFilledKd = 0, liveFilledCpc = 0
+    if (recordKeywords.length > 0) {
+        try {
+            const sv = await searchVolume(instanceId, recordKeywords, { location_code: LOCATION_IL, language_code: dfsData.languageCode })
+            liveCost += sv.cost
+            const svMap = new Map<string, { search_volume: number | null; cpc: number | null }>()
+            for (const item of sv.items) {
+                if (item.keyword) svMap.set(norm(item.keyword), {
+                    search_volume: typeof item.search_volume === 'number' ? item.search_volume : null,
+                    cpc: typeof item.cpc === 'number' ? item.cpc : null,
+                })
+            }
+            const kdRes = await keywordDifficulty(instanceId, recordKeywords, { location_code: LOCATION_IL, language_code: dfsData.languageCode })
+            liveCost += kdRes.cost
+            const kdMap = new Map<string, number>()
+            for (const item of kdRes.items) {
+                if (item.keyword && typeof item.keyword_difficulty === 'number') kdMap.set(norm(item.keyword), item.keyword_difficulty)
+            }
+            for (const r of recordsCopy) {
+                if (typeof r.keyword !== 'string') continue
+                const k = norm(r.keyword)
+                const svItem = svMap.get(k)
+                if (svItem) {
+                    if (r.volume_monthly == null && typeof svItem.search_volume === 'number') { r.volume_monthly = svItem.search_volume; liveFilledVol++ }
+                    if (r.cpc_ils == null && typeof svItem.cpc === 'number') { r.cpc_ils = Math.round(svItem.cpc * 100) / 100; liveFilledCpc++ }
+                }
+                const kdVal = kdMap.get(k)
+                if (r.difficulty_0_100 == null && typeof kdVal === 'number') { r.difficulty_0_100 = kdVal; liveFilledKd++ }
+            }
+            console.log(`  pass-2 cost: $${liveCost.toFixed(4)}, filled: vol=${liveFilledVol}, cpc=${liveFilledCpc}, kd=${liveFilledKd}`)
+        } catch (err) {
+            console.warn(`pass-2 failed:`, (err as Error).message)
+        }
+    }
+
     console.log(`Enrichment stats:`)
     console.log(`  matched (any source): ${stats.matched}/${records.length}`)
     console.log(`  missing in all:       ${stats.missingInAllSources}/${records.length}`)

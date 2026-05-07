@@ -43,6 +43,7 @@ import { prefetchAeoVisibility } from './prefetch/aeo_visibility'
 import { prefetchCostTimelineModeling } from './prefetch/cost_timeline_modeling'
 import type { ResearchDataV2, StageId } from '@/services/research/types'
 import type { SeoKeywordResearchDfsData } from './prefetch/seo_keyword_research'
+import { searchVolume, keywordDifficulty, LOCATION_IL } from '@/services/research/dataforseo'
 
 /**
  * Per-stage DFS prefetch registry. Stages registered here run their
@@ -214,7 +215,29 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                     parsed.records,
                     dfsData as SeoKeywordResearchDfsData,
                 )
-                console.log(`[research/seo_keyword_research] DFS enrichment: matched ${stats.matched}/${parsed.records.length} records (vol=${stats.filledVolume}, cpc=${stats.filledCpc}, kd=${stats.filledKd}, pos=${stats.filledPosition}) | sources: ideas=${stats.sourceBreakdown.ideas} ranked=${stats.sourceBreakdown.rankedKeywords} gsc=${stats.sourceBreakdown.gsc} | missing-in-all=${stats.missingInAllSources}`)
+                console.log(`[research/seo_keyword_research] DFS enrichment pass-1 (prefetched): matched ${stats.matched}/${parsed.records.length} records (vol=${stats.filledVolume}, cpc=${stats.filledCpc}, kd=${stats.filledKd}, pos=${stats.filledPosition}) | sources: ideas=${stats.sourceBreakdown.ideas} ranked=${stats.sourceBreakdown.rankedKeywords} gsc=${stats.sourceBreakdown.gsc} | missing-in-all=${stats.missingInAllSources}`)
+                // ─ Pass-2: live DFS lookup for the actual record keywords ─
+                // Pass-1 sources were collected during prefetch with seeds derived
+                // from product names + business name. For many businesses (like
+                // Storage Station) those seeds yield 700 IRRELEVANT keyword ideas
+                // because DFS' "related" surface drifts. So volume + KD coverage
+                // from pass-1 is sparse. Pass-2 fixes this: take the ~24 keywords
+                // the model emitted and call searchVolume + keywordDifficulty
+                // ON THEM specifically. searchVolume is free; KD bulk costs
+                // ~$0.01/100 keywords. Run async-best-effort — failure logged,
+                // pipeline doesn't fail.
+                const langCode = (dfsData as SeoKeywordResearchDfsData).languageCode || 'he'
+                try {
+                    const live = await enrichRecordsLiveFromDfs(
+                        parsed.records,
+                        instanceId,
+                        langCode,
+                    )
+                    console.log(`[research/seo_keyword_research] DFS enrichment pass-2 (live): vol=${live.filledVolume}, kd=${live.filledKd}, cpc=${live.filledCpc}, cost=$${live.costUsd.toFixed(4)}`)
+                    dfsCost += live.costUsd
+                } catch (err) {
+                    console.warn(`[research/seo_keyword_research] DFS enrichment pass-2 failed:`, (err as Error).message)
+                }
             }
         }
         // Phase E3 defense-in-depth — cost_timeline_modeling has its own
@@ -684,6 +707,117 @@ function recomputeCostTimelineRecords(records: unknown[], dfsData: unknown): voi
     if (driftCount > 0) {
         console.warn(`[research/cost_timeline_modeling] financial drift overridden in ${driftCount}/${records.length} records`)
     }
+}
+
+/**
+ * Phase QA round-5 pass-2 — live DFS lookup for the actual record keywords.
+ *
+ * The prefetch (pass-1) gathers data using seeds DERIVED from product names
+ * and business name. For many businesses (Storage Station was the canary)
+ * those seeds yield "related" ideas that drift far from the SEO surface area
+ * the model actually generates records for — so volume / KD coverage in
+ * pass-1 is poor (4/24 in our test).
+ *
+ * Pass-2 inverts the contract: take the keywords the MODEL emitted, batch
+ * them into a single searchVolume (free) + a single keywordDifficulty bulk
+ * (cheap) call, inject. This guarantees coverage matches what's actually
+ * shipped to the user.
+ *
+ * Strategy:
+ *   - searchVolume up to 1000 keywords/call → volume + CPC + competition
+ *   - keywordDifficulty up to 1000 keywords/call → calibrated KD
+ *   - Both endpoints are cached (params keyed) → re-runs are $0.
+ *   - Fail-safe: errors logged, pass-2 results merged best-effort.
+ */
+interface LiveEnrichmentStats {
+    filledVolume: number
+    filledKd: number
+    filledCpc: number
+    costUsd: number
+}
+async function enrichRecordsLiveFromDfs(
+    records: unknown[],
+    instanceId: string,
+    languageCode: 'he' | 'en',
+): Promise<LiveEnrichmentStats> {
+    const norm = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ')
+    const keywordsRaw = records
+        .map(r => (r && typeof r === 'object' && typeof (r as Record<string, unknown>).keyword === 'string')
+            ? ((r as Record<string, unknown>).keyword as string).trim()
+            : null)
+        .filter((k): k is string => !!k && k.length > 0)
+    const keywordsUnique = Array.from(new Set(keywordsRaw))
+    const out: LiveEnrichmentStats = { filledVolume: 0, filledKd: 0, filledCpc: 0, costUsd: 0 }
+    if (keywordsUnique.length === 0) return out
+
+    // ─ searchVolume (free) — volume + CPC + competition ──
+    const svByKw = new Map<string, { search_volume: number | null; cpc: number | null }>()
+    try {
+        const sv = await searchVolume(instanceId, keywordsUnique, {
+            location_code: LOCATION_IL,
+            language_code: languageCode,
+        })
+        out.costUsd += sv.cost
+        for (const item of sv.items) {
+            if (item.keyword) {
+                svByKw.set(norm(item.keyword), {
+                    search_volume: typeof item.search_volume === 'number' ? item.search_volume : null,
+                    cpc: typeof item.cpc === 'number' ? item.cpc : null,
+                })
+            }
+        }
+    } catch (err) {
+        console.warn(`[research/seo_keyword_research] live searchVolume failed:`, (err as Error).message)
+    }
+
+    // ─ keywordDifficulty bulk — calibrated KD ──
+    const kdByKw = new Map<string, number>()
+    try {
+        const kd = await keywordDifficulty(instanceId, keywordsUnique, {
+            location_code: LOCATION_IL,
+            language_code: languageCode,
+        })
+        out.costUsd += kd.cost
+        for (const item of kd.items) {
+            if (item.keyword && typeof item.keyword_difficulty === 'number') {
+                kdByKw.set(norm(item.keyword), item.keyword_difficulty)
+            }
+        }
+    } catch (err) {
+        console.warn(`[research/seo_keyword_research] live keywordDifficulty failed:`, (err as Error).message)
+    }
+
+    // ─ Merge into records ──
+    for (const r of records) {
+        if (!r || typeof r !== 'object') continue
+        const rec = r as Record<string, unknown>
+        const kwRaw = typeof rec.keyword === 'string' ? rec.keyword : null
+        if (!kwRaw) continue
+        const key = norm(kwRaw)
+
+        const sv = svByKw.get(key)
+        if (sv) {
+            // Only overwrite if currently null/missing — preserve any earlier
+            // pass-1 values that came from rankedKeywords (which is more
+            // domain-authoritative than search_volume Google Ads estimate).
+            if (rec.volume_monthly == null && typeof sv.search_volume === 'number') {
+                rec.volume_monthly = sv.search_volume
+                out.filledVolume++
+            }
+            if (rec.cpc_ils == null && typeof sv.cpc === 'number') {
+                rec.cpc_ils = Math.round(sv.cpc * 100) / 100
+                out.filledCpc++
+            }
+        }
+
+        const kdVal = kdByKw.get(key)
+        if (rec.difficulty_0_100 == null && typeof kdVal === 'number') {
+            rec.difficulty_0_100 = kdVal
+            out.filledKd++
+        }
+    }
+
+    return out
 }
 
 // ────────────────────────────────────────────────────────────────────────────
