@@ -1371,21 +1371,27 @@ export function buildStrategyOptionsPrompt(opts: PromptOpts): PromptResult {
     const aggressiveRecord = ctmRecords.find(r => r.scenario === 'aggressive')
     const ctmAvailable = !!smartRecord && !!aggressiveRecord
     const calibratedBlock = ctmAvailable ? `
-### תמצית cost_timeline_modeling (Phase E3 — חובה להשתמש במספרים האלו verbatim)
+### תמצית cost_timeline_modeling (Phase E3 / round-8 platform-DIY — חובה verbatim)
 
-**Smart scenario:**
-- תקציב חודשי: ₪${(smartRecord!.monthly_budget_ils as number)?.toLocaleString() ?? '?'} (content ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.content_production')} | links ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.link_outreach')} | tech ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.technical_seo')} | strategist ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.seo_strategist')} | tooling ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.tooling_subscriptions')})
+⚠ **Reality framing**: התקציבים למטה הם **Platform-DIY** — מה שהמשתמש משלם בפועל בעידן הסוכנים. סוכנים עושים content + tech + strategy + outreach drafting (₪0 marginal). העלויות הן: subscription ל-OpenClaw + Anthropic API key + רכישת קישורים אמיתית + paid ads (אם כן). \`agency_comparison_ils\` הוא side-block למסגור ערך — לא תקציב המשתמש.
+
+**Smart scenario (Platform-DIY):**
+- תקציב חודשי: ₪${(smartRecord!.monthly_budget_ils as number)?.toLocaleString() ?? '?'} (platform ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.platform_subscription')} | Anthropic ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.anthropic_api')} | backlinks ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.backlink_acquisition')} | paid ads ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.paid_ads')} | external tooling ₪${getNested(smartRecord, 'monthly_budget_breakdown_ils.external_tooling')})
 - משך: ${getNested(smartRecord, 'duration_months.expected')} חודשים (${getNested(smartRecord, 'duration_months.min')}-${getNested(smartRecord, 'duration_months.max')})
 - תוכנית כוללת: ₪${(smartRecord!.total_program_ils as number)?.toLocaleString() ?? '?'}
+- *Agency comparison: ₪${getNested(smartRecord, 'agency_comparison_ils.total_monthly')}/mo (savings ₪${getNested(smartRecord, 'agency_comparison_ils.savings_vs_diy_total')} program-total)*
 - KPI חודש 3 / 6 / 12: ${ctmKpiSnapshot(smartRecord!.monthly_kpi_projection)}
 
-**Aggressive scenario:**
-- תקציב חודשי: ₪${(aggressiveRecord!.monthly_budget_ils as number)?.toLocaleString() ?? '?'} (content ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.content_production')} | links ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.link_outreach')} | tech ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.technical_seo')} | strategist ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.seo_strategist')} | tooling ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.tooling_subscriptions')})
+**Aggressive scenario (Platform-DIY + paid):**
+- תקציב חודשי: ₪${(aggressiveRecord!.monthly_budget_ils as number)?.toLocaleString() ?? '?'} (platform ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.platform_subscription')} | Anthropic ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.anthropic_api')} | backlinks ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.backlink_acquisition')} | paid ads ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.paid_ads')} | external tooling ₪${getNested(aggressiveRecord, 'monthly_budget_breakdown_ils.external_tooling')})
 - משך: ${getNested(aggressiveRecord, 'duration_months.expected')} חודשים (${getNested(aggressiveRecord, 'duration_months.min')}-${getNested(aggressiveRecord, 'duration_months.max')})
 - תוכנית כוללת: ₪${(aggressiveRecord!.total_program_ils as number)?.toLocaleString() ?? '?'}
+- *Agency comparison: ₪${getNested(aggressiveRecord, 'agency_comparison_ils.total_monthly')}/mo (savings ₪${getNested(aggressiveRecord, 'agency_comparison_ils.savings_vs_diy_total')} program-total)*
 - KPI חודש 3 / 6 / 12: ${ctmKpiSnapshot(aggressiveRecord!.monthly_kpi_projection)}
 
 **Decision guidance מהמודל:** ${(ctmExtras.decision_guidance as Record<string, unknown> | undefined)?.decision_text_he || '*(לא זמין)*'}
+
+**LTV:CAC חישוב חייב להיות עם תקציב Platform-DIY** — לא agency_comparison. CAC = monthly_budget_ils.total ÷ paying_customers_per_month. ב-Platform-DIY ה-CAC נמוך באופן משמעותי כי labor=0.
 ` : '\n### cost_timeline_modeling — לא הורץ\nעליכם לציין במפורש שהאסטרטגיה לא calibrated ל-IL costs ולסמן confidence: working_hypothesis.\n'
 
     return {
@@ -2718,6 +2724,8 @@ interface CostTimelineModelingShape {
     }
     constants_snapshot: {
         usd_to_ils: number
+        platform_business_tier_ils_per_month: number
+        platform_pro_tier_ils_per_month: number
         seo_strategist_ils_per_hour: number
         content_writer_ils_per_hour: number
         tech_seo_ils_per_hour: number
@@ -2730,16 +2738,28 @@ interface ScenarioBaselineShape {
     name: 'smart' | 'aggressive'
     label_he: string
     inputs: Record<string, unknown>
+    // Platform-DIY (Phase QA round-8) — what user actually pays
     monthly_budget_ils: {
-        content_production: number
-        link_outreach: number
-        technical_seo: number
-        seo_strategist: number
-        tooling_subscriptions: number
+        platform_subscription: number
+        anthropic_api: number
+        backlink_acquisition: number
+        paid_ads: number
+        external_tooling: number
         total: number
     }
     duration_months: { min: number; expected: number; max: number }
     total_program_ils: number
+    // Agency comparison side-block — narrative-only
+    agency_comparison_ils: {
+        content_production: number
+        link_outreach_labor: number
+        technical_seo: number
+        seo_strategist: number
+        tooling_subscriptions: number
+        total_monthly: number
+        total_program: number
+        savings_vs_diy_total: number
+    }
     monthly_kpis: Array<{
         month: number
         new_pieces_published: number
@@ -2794,6 +2814,13 @@ ${upstreamWarning}
 - קישורים ב-top competitor: ${ctx.top_competitor_link_count.toLocaleString()}
 - רמת תחרות: ${ctx.competition_level}
 
+## ⚠ Reality framing — חשוב מאוד
+
+**${businessName} משתמש בפלטפורמה (OpenClaw + MATEH agents) — לא משלם לסוכנות.** המשמעות:
+- **Content production, technical SEO, strategy, outreach drafting** — כל אלה מתבצעים על-ידי הסוכנים (₪0 marginal labor cost).
+- העלויות **האמיתיות** של המשתמש: (1) מנוי לפלטפורמה, (2) Anthropic API key (token usage), (3) **כסף אמיתי לרכישת קישורים** (תשלום על הצבה — סוכן מנסח את ה-outreach, אבל הקישור עצמו עדיין עולה כסף), (4) Paid ads (אם בוחרים), (5) חיצוני tooling (נדיר — DFS/Firecrawl כבר bundled).
+- **\`agency_comparison_ils\`** מסופק כ-side-block — "אם הייתם הולכים דרך סוכנות לפני 2025, זה היה עולה X" — נרטיב value-prop, לא תקציב המשתמש.
+
 ## בייסליין מחושב — Smart scenario
 
 ${renderScenarioBaseline(smart)}
@@ -2802,14 +2829,21 @@ ${renderScenarioBaseline(smart)}
 
 ${renderScenarioBaseline(aggressive)}
 
-## קונסטנטים שבהם השתמשנו (IL market 2026 baseline)
+## קונסטנטים (IL market 2026)
 
+**Platform-DIY (מצב ברירת מחדל — מה שהמשתמש משלם בפועל):**
+- OpenClaw Business tier: ₪${dfs.constants_snapshot.platform_business_tier_ils_per_month}/חודש (Smart default — 8GB RAM, מספיק ל-MATEH)
+- OpenClaw Pro tier: ₪${dfs.constants_snapshot.platform_pro_tier_ils_per_month}/חודש (Aggressive default — 16GB dedicated)
+- Anthropic API: ₪350/חודש Smart, ₪1,300/חודש Aggressive (cumulative agent token usage at user-supplied key)
+- Backlink acquisition: ₪1,000/חודש Smart, ₪3,000/חודש Aggressive (real placement money — agents draft the outreach)
+- Paid ads floor: ₪0 Smart (organic-first), ₪5,000/חודש Aggressive (Google Ads + retargeting)
+
+**Agency comparison rates (legacy — for narrative side-block only):**
 - USD→ILS: ${dfs.constants_snapshot.usd_to_ils}
 - SEO strategist: ₪${dfs.constants_snapshot.seo_strategist_ils_per_hour}/hour
-- Content writer (Hebrew, mid-tier): ₪${dfs.constants_snapshot.content_writer_ils_per_hour}/hour
+- Content writer Hebrew: ₪${dfs.constants_snapshot.content_writer_ils_per_hour}/hour
 - Tech SEO / dev: ₪${dfs.constants_snapshot.tech_seo_ils_per_hour}/hour
-- Outreach jr: ₪${dfs.constants_snapshot.outreach_jr_ils_per_hour}/hour
-- Tooling typical (DFS + Firecrawl + PM): ₪${dfs.constants_snapshot.tooling_typical_ils_per_month}/month
+- Tooling SaaS: ₪${dfs.constants_snapshot.tooling_typical_ils_per_month}/month
 
 ---
 
@@ -2849,18 +2883,24 @@ ${JSON_OUTPUT_RULES}
   "records": [
     {
       "scenario": "smart",
-      "label_he": "Smart — long-tail dominate",
-      "best_for": "1 משפט בעברית — איזה לקוח/עסק צריך לבחור את התרחיש הזה",
+      "label_he": "Smart — long-tail-first עם פלטפורמה",
+      "best_for": "1 משפט בעברית — איזה לקוח/עסק צריך לבחור את התרחיש הזה (סדר גודל עסקי, time horizon, נכונות לסבלנות אורגנית)",
       "monthly_budget_ils": ${smart.monthly_budget_ils.total},
       "monthly_budget_breakdown_ils": {
-        "content_production": ${smart.monthly_budget_ils.content_production},
-        "link_outreach": ${smart.monthly_budget_ils.link_outreach},
-        "technical_seo": ${smart.monthly_budget_ils.technical_seo},
-        "seo_strategist": ${smart.monthly_budget_ils.seo_strategist},
-        "tooling_subscriptions": ${smart.monthly_budget_ils.tooling_subscriptions}
+        "platform_subscription": ${smart.monthly_budget_ils.platform_subscription},
+        "anthropic_api": ${smart.monthly_budget_ils.anthropic_api},
+        "backlink_acquisition": ${smart.monthly_budget_ils.backlink_acquisition},
+        "paid_ads": ${smart.monthly_budget_ils.paid_ads},
+        "external_tooling": ${smart.monthly_budget_ils.external_tooling}
       },
       "duration_months": ${JSON.stringify(smart.duration_months)},
       "total_program_ils": ${smart.total_program_ils},
+      "agency_comparison_ils": {
+        "_note": "מה זה היה עולה לפני 2025 דרך סוכנות. נרטיב value-prop בלבד.",
+        "total_monthly": ${smart.agency_comparison_ils.total_monthly},
+        "total_program": ${smart.agency_comparison_ils.total_program},
+        "savings_vs_diy_total": ${smart.agency_comparison_ils.savings_vs_diy_total}
+      },
       "deliverables_summary": {
         "target_top_3_keywords": ${smart.inputs.target_top_3_keyword_count ?? 'מתוך inputs'},
         "content_pieces_total": ${smart.inputs.content_pieces_total ?? 'מתוך inputs'},
@@ -2872,22 +2912,28 @@ ${JSON_OUTPUT_RULES}
       "what_could_go_wrong": ["3 דברים קונקרטיים בעברית — מה יכול לעצור את התרחיש"],
       "early_warning_signs": ["3 leading indicators בעברית שצריך לעקוב אחריהם בחודשים 1-3"],
       "confidence": "high | medium | working_hypothesis",
-      "evidence": ["upstream_internal_seo_audit", "upstream_seo_keyword_research", "upstream_link_audit", "il_constants_2026"]
+      "evidence": ["upstream_internal_seo_audit", "upstream_seo_keyword_research", "upstream_link_audit", "il_constants_2026", "platform_diy_baseline"]
     },
     {
       "scenario": "aggressive",
-      "label_he": "Aggressive — דומיננטיות מלאה ב-SERP",
+      "label_he": "Aggressive — פלטפורמה + paid acceleration",
       "best_for": "1 משפט בעברית",
       "monthly_budget_ils": ${aggressive.monthly_budget_ils.total},
       "monthly_budget_breakdown_ils": {
-        "content_production": ${aggressive.monthly_budget_ils.content_production},
-        "link_outreach": ${aggressive.monthly_budget_ils.link_outreach},
-        "technical_seo": ${aggressive.monthly_budget_ils.technical_seo},
-        "seo_strategist": ${aggressive.monthly_budget_ils.seo_strategist},
-        "tooling_subscriptions": ${aggressive.monthly_budget_ils.tooling_subscriptions}
+        "platform_subscription": ${aggressive.monthly_budget_ils.platform_subscription},
+        "anthropic_api": ${aggressive.monthly_budget_ils.anthropic_api},
+        "backlink_acquisition": ${aggressive.monthly_budget_ils.backlink_acquisition},
+        "paid_ads": ${aggressive.monthly_budget_ils.paid_ads},
+        "external_tooling": ${aggressive.monthly_budget_ils.external_tooling}
       },
       "duration_months": ${JSON.stringify(aggressive.duration_months)},
       "total_program_ils": ${aggressive.total_program_ils},
+      "agency_comparison_ils": {
+        "_note": "מה זה היה עולה לפני 2025 דרך סוכנות.",
+        "total_monthly": ${aggressive.agency_comparison_ils.total_monthly},
+        "total_program": ${aggressive.agency_comparison_ils.total_program},
+        "savings_vs_diy_total": ${aggressive.agency_comparison_ils.savings_vs_diy_total}
+      },
       "deliverables_summary": {
         "target_top_3_keywords": ${aggressive.inputs.target_top_3_keyword_count ?? 'מתוך inputs'},
         "content_pieces_total": ${aggressive.inputs.content_pieces_total ?? 'מתוך inputs'},
@@ -2899,16 +2945,16 @@ ${JSON_OUTPUT_RULES}
       "what_could_go_wrong": ["3 דברים קונקרטיים בעברית"],
       "early_warning_signs": ["3 leading indicators בעברית"],
       "confidence": "high | medium | working_hypothesis",
-      "evidence": ["upstream_internal_seo_audit", "upstream_seo_keyword_research", "upstream_link_audit", "il_constants_2026"]
+      "evidence": ["upstream_internal_seo_audit", "upstream_seo_keyword_research", "upstream_link_audit", "il_constants_2026", "platform_diy_baseline"]
     }
   ],
   "decision_guidance": {
-    "_note": "מספרים מ-monthly_budget_ils.total של כל תרחיש. אם תקציב חודשי < smart → לא מספיק לאף אחד; אם > aggressive → אגרסיבי משתלם; באמצע = smart.",
+    "_note": "מספרים מ-monthly_budget_ils.total של כל תרחיש (Platform-DIY). אם תקציב חודשי < smart → התחילו עם Personal/Business plan + minimum links; אם > aggressive → paid acceleration שווה.",
     "if_budget_under_ils_per_month": ${Math.round(smart.monthly_budget_ils.total * 0.6)},
     "if_budget_over_ils_per_month": ${aggressive.monthly_budget_ils.total},
     "smart_minimum_ils_per_month": ${smart.monthly_budget_ils.total},
     "aggressive_minimum_ils_per_month": ${aggressive.monthly_budget_ils.total},
-    "decision_text_he": "1-2 פסקאות בעברית — מנחה את הלקוח: כמה תקציב יש לכם, מה ה-time horizon, מה אסטרטגי מתאים"
+    "decision_text_he": "1-2 פסקאות בעברית — מנחה את הלקוח: עם הפלטפורמה כל מה שצריך לתקציב הוא backlinks + (אופציונלי) paid ads. ה-MRR breakeven מהיר כי labor=0."
   },
   "key_assumptions": [
     "5-7 הנחות שמהן יצא המודל (לדוגמה: 'הנחנו DR התחלתי 15 על בסיס ourDR estimate; אם DR הוא 30+, ה-timeline יקצר ב-2-3 חודשים'; 'הנחנו 1 writer דדיקציה Smart ו-2 writers + senior Aggressive'; 'הנחנו ROI מבחירת מילים נכונה לפי seo_keyword_research')"
@@ -2952,13 +2998,21 @@ function renderScenarioBaseline(s: ScenarioBaselineShape): string {
 - Target DR: ${inputs.target_dr} (we're at ${inputs.our_dr_estimate})
 - Competition: ${inputs.competition_level}
 
-**Monthly budget breakdown (₪):**
-- Content production: ₪${s.monthly_budget_ils.content_production.toLocaleString()}
-- Link outreach: ₪${s.monthly_budget_ils.link_outreach.toLocaleString()}
-- Technical SEO: ₪${s.monthly_budget_ils.technical_seo.toLocaleString()}
-- SEO strategist: ₪${s.monthly_budget_ils.seo_strategist.toLocaleString()}
-- Tooling subscriptions: ₪${s.monthly_budget_ils.tooling_subscriptions.toLocaleString()}
-- **Total: ₪${s.monthly_budget_ils.total.toLocaleString()}/month**
+**Monthly budget breakdown — Platform-DIY (₪, מה שהמשתמש משלם בפועל):**
+- Platform subscription (OpenClaw): ₪${s.monthly_budget_ils.platform_subscription.toLocaleString()}
+- Anthropic API (token usage): ₪${s.monthly_budget_ils.anthropic_api.toLocaleString()}
+- Backlink acquisition (real placement money): ₪${s.monthly_budget_ils.backlink_acquisition.toLocaleString()}
+- Paid ads: ₪${s.monthly_budget_ils.paid_ads.toLocaleString()}
+- External tooling: ₪${s.monthly_budget_ils.external_tooling.toLocaleString()}
+- **Total platform-DIY: ₪${s.monthly_budget_ils.total.toLocaleString()}/month**
+
+**Agency comparison side-block (לפני 2025 — for narrative value-prop):**
+- Content production: ₪${s.agency_comparison_ils.content_production.toLocaleString()}
+- Link outreach labor: ₪${s.agency_comparison_ils.link_outreach_labor.toLocaleString()}
+- Technical SEO: ₪${s.agency_comparison_ils.technical_seo.toLocaleString()}
+- SEO strategist: ₪${s.agency_comparison_ils.seo_strategist.toLocaleString()}
+- Tooling SaaS: ₪${s.agency_comparison_ils.tooling_subscriptions.toLocaleString()}
+- **Agency total: ₪${s.agency_comparison_ils.total_monthly.toLocaleString()}/month** | **Savings via platform: ₪${s.agency_comparison_ils.savings_vs_diy_total.toLocaleString()} over program**
 
 **Duration:** ${s.duration_months.min}-${s.duration_months.expected}-${s.duration_months.max} months (min/expected/max)
 

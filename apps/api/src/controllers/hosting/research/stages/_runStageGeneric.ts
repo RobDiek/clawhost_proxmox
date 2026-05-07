@@ -671,6 +671,7 @@ function recomputeCostTimelineRecords(records: unknown[], dfsData: unknown): voi
         if (!baseline) continue
 
         const baseMb = (baseline as Record<string, unknown>).monthly_budget_ils as Record<string, unknown> | undefined
+        const baseAgency = (baseline as Record<string, unknown>).agency_comparison_ils as Record<string, unknown> | undefined
         const baseDuration = (baseline as Record<string, unknown>).duration_months
         const baseTotal = (baseline as Record<string, unknown>).total_program_ils
         const baseKpi = (baseline as Record<string, unknown>).monthly_kpis
@@ -683,15 +684,28 @@ function recomputeCostTimelineRecords(records: unknown[], dfsData: unknown): voi
             driftCount++
         }
 
-        // Overwrite financial fields with calibrated baselines
+        // Overwrite financial fields — Phase QA round-8 platform-DIY breakdown
         if (baseMb) {
             rec.monthly_budget_ils = baseMb.total
             rec.monthly_budget_breakdown_ils = {
-                content_production: baseMb.content_production,
-                link_outreach: baseMb.link_outreach,
-                technical_seo: baseMb.technical_seo,
-                seo_strategist: baseMb.seo_strategist,
-                tooling_subscriptions: baseMb.tooling_subscriptions,
+                platform_subscription: baseMb.platform_subscription,
+                anthropic_api: baseMb.anthropic_api,
+                backlink_acquisition: baseMb.backlink_acquisition,
+                paid_ads: baseMb.paid_ads,
+                external_tooling: baseMb.external_tooling,
+            }
+        }
+        // Agency comparison side-block (round-8) — narrative-only, server-authoritative
+        if (baseAgency) {
+            rec.agency_comparison_ils = {
+                content_production: baseAgency.content_production,
+                link_outreach_labor: baseAgency.link_outreach_labor,
+                technical_seo: baseAgency.technical_seo,
+                seo_strategist: baseAgency.seo_strategist,
+                tooling_subscriptions: baseAgency.tooling_subscriptions,
+                total_monthly: baseAgency.total_monthly,
+                total_program: baseAgency.total_program,
+                savings_vs_diy_total: baseAgency.savings_vs_diy_total,
             }
         }
         if (baseDuration) rec.duration_months = baseDuration

@@ -24,10 +24,10 @@
 
 import {
     USD_TO_ILS_RATE,
-    HEBREW_CONTENT_RATES_ILS,
-    LINK_COSTS_USD,
     LABOR_RATES_ILS_PER_HOUR,
     TOOLING_RATES_ILS_PER_MONTH,
+    PLATFORM_TIERS_ILS_PER_MONTH,
+    estimatePlatformDiyBudget,
     computeTimeToRank,
     estimateContentBudgetIls,
     estimateLinkBudgetIls,
@@ -57,18 +57,36 @@ export interface ScenarioBaseline {
         competition_level: 'low' | 'medium' | 'high'
     }
 
-    // ─ Computed cost breakdown (₪) ─
+    // ─ Platform-DIY breakdown — what the user ACTUALLY pays (Phase QA round-8) ─
+    // The platform (OpenClaw + MATEH agents) collapses 90% of agency labor
+    // (content production, technical SEO, strategy, outreach drafting) into
+    // ~zero marginal cost. Real recurring spend is platform sub + Anthropic
+    // API + backlink placement money + paid ads (if any) + rare external tools.
     monthly_budget_ils: {
-        content_production: number
-        link_outreach: number
-        technical_seo: number
-        seo_strategist: number
-        tooling_subscriptions: number
+        platform_subscription: number
+        anthropic_api: number
+        backlink_acquisition: number
+        paid_ads: number
+        external_tooling: number
         total: number
     }
     duration_months: { min: number; expected: number; max: number }
     /** total_program_ils = monthly_budget × duration_months.expected */
     total_program_ils: number
+
+    // ─ Agency comparison side-block — for narrative value-prop framing only.
+    // "If you went the agency route pre-2025, this same scope would have
+    // cost ₪X/mo." NOT the user's actual budget — purely for context.
+    agency_comparison_ils: {
+        content_production: number
+        link_outreach_labor: number
+        technical_seo: number
+        seo_strategist: number
+        tooling_subscriptions: number
+        total_monthly: number
+        total_program: number
+        savings_vs_diy_total: number
+    }
 
     // ─ Detailed projections per month ─
     monthly_kpis: Array<{
@@ -112,6 +130,8 @@ export interface CostTimelineModelingDfsData {
     /** Constants used (echoed for transparency) */
     constants_snapshot: {
         usd_to_ils: number
+        platform_business_tier_ils_per_month: number
+        platform_pro_tier_ils_per_month: number
         seo_strategist_ils_per_hour: number
         content_writer_ils_per_hour: number
         tech_seo_ils_per_hour: number
@@ -227,8 +247,10 @@ export async function prefetchCostTimelineModeling(
     const smartLinkBudget = estimateLinkBudgetIls(smartLinks)
 
     const smartTechHours = (techDebtHours ?? 30) + schemaHours
-    const smartContentVelocity = 5  // 1 writer dedicated
-    const smartStrategistHours = 16 // 4 hrs/week
+    // Phase QA round-8 — agents 2-3x faster than human writer for IL
+    // Hebrew content. Smart cadence: ~10 pieces/mo via MATEH content agent.
+    const smartContentVelocity = 10
+    const smartStrategistHours = 16 // (agency comparison only — 4 hrs/week)
     const smartOutreachHours = smartLinkBudget.total_outreach_hours
 
     const smartT2RInputs: TimeToRankInputs = {
@@ -241,18 +263,23 @@ export async function prefetchCostTimelineModeling(
     }
     const smartDuration = computeTimeToRank(smartT2RInputs)
 
-    const smartMonthlyContent = smartContentBudget.total_ils / Math.max(1, smartDuration.expected)
-    const smartMonthlyLinks = smartLinkBudget.total_ils / Math.max(1, smartDuration.expected)
-    const smartMonthlyTech = (smartTechHours * LABOR_RATES_ILS_PER_HOUR.tech_seo_dev) / Math.max(1, Math.min(3, smartDuration.expected))
-    const smartMonthlyStrategist = smartStrategistHours * LABOR_RATES_ILS_PER_HOUR.seo_strategist
-    const smartMonthlyTooling = TOOLING_RATES_ILS_PER_MONTH.dataforseo_seo_pro
+    // Platform-DIY budget — what the user actually pays.
+    const smartPlatformBudget = estimatePlatformDiyBudget('smart')
+    const smartMonthlyTotal = smartPlatformBudget.total
+    const smartTotalProgram = Math.round(smartMonthlyTotal * smartDuration.expected)
+
+    // Agency comparison side-block — pre-2025 cost basis for narrative framing.
+    const smartAgencyContent = smartContentBudget.total_ils / Math.max(1, smartDuration.expected)
+    const smartAgencyLinks = smartLinkBudget.total_ils / Math.max(1, smartDuration.expected)
+    const smartAgencyTech = (smartTechHours * LABOR_RATES_ILS_PER_HOUR.tech_seo_dev) / Math.max(1, Math.min(3, smartDuration.expected))
+    const smartAgencyStrategist = smartStrategistHours * LABOR_RATES_ILS_PER_HOUR.seo_strategist
+    const smartAgencyTooling = TOOLING_RATES_ILS_PER_MONTH.dataforseo_seo_pro
         + TOOLING_RATES_ILS_PER_MONTH.firecrawl_pro
         + TOOLING_RATES_ILS_PER_MONTH.pm_tools
-
-    const smartMonthlyTotal = Math.round(
-        smartMonthlyContent + smartMonthlyLinks + smartMonthlyTech + smartMonthlyStrategist + smartMonthlyTooling,
+    const smartAgencyMonthlyTotal = Math.round(
+        smartAgencyContent + smartAgencyLinks + smartAgencyTech + smartAgencyStrategist + smartAgencyTooling,
     )
-    const smartTotalProgram = Math.round(smartMonthlyTotal * smartDuration.expected)
+    const smartAgencyProgramTotal = Math.round(smartAgencyMonthlyTotal * smartDuration.expected)
 
     const smart: ScenarioBaseline = {
         name: 'smart',
@@ -269,16 +296,19 @@ export async function prefetchCostTimelineModeling(
             our_dr_estimate: ourDrEstimate,
             competition_level: competitionLevel,
         },
-        monthly_budget_ils: {
-            content_production: Math.round(smartMonthlyContent),
-            link_outreach: Math.round(smartMonthlyLinks),
-            technical_seo: Math.round(smartMonthlyTech),
-            seo_strategist: Math.round(smartMonthlyStrategist),
-            tooling_subscriptions: Math.round(smartMonthlyTooling),
-            total: smartMonthlyTotal,
-        },
+        monthly_budget_ils: smartPlatformBudget,
         duration_months: smartDuration,
         total_program_ils: smartTotalProgram,
+        agency_comparison_ils: {
+            content_production: Math.round(smartAgencyContent),
+            link_outreach_labor: Math.round(smartAgencyLinks),
+            technical_seo: Math.round(smartAgencyTech),
+            seo_strategist: Math.round(smartAgencyStrategist),
+            tooling_subscriptions: Math.round(smartAgencyTooling),
+            total_monthly: smartAgencyMonthlyTotal,
+            total_program: smartAgencyProgramTotal,
+            savings_vs_diy_total: smartAgencyProgramTotal - smartTotalProgram,
+        },
         monthly_kpis: projectMonthlyKpis({
             duration_months: smartDuration.expected,
             content_pieces_total: smartT2RInputs.content_pieces_total,
@@ -320,8 +350,10 @@ export async function prefetchCostTimelineModeling(
     const aggressiveLinkBudget = estimateLinkBudgetIls(aggressiveLinks)
 
     const aggressiveTechHours = (techDebtHours ?? 50) + schemaHours + 30 // extra for advanced schema + IA
-    const aggressiveContentVelocity = 10  // 2 writers + senior editor
-    const aggressiveStrategistHours = 32  // 8 hrs/week
+    // Phase QA round-8 — agents handle production + outreach drafting +
+    // tech recommendations. Aggressive cadence: ~25 pieces/mo, daily monitoring.
+    const aggressiveContentVelocity = 25
+    const aggressiveStrategistHours = 32  // (agency comparison only — 8 hrs/week)
     const aggressiveOutreachHours = aggressiveLinkBudget.total_outreach_hours
 
     const aggressiveT2RInputs: TimeToRankInputs = {
@@ -334,17 +366,22 @@ export async function prefetchCostTimelineModeling(
     }
     const aggressiveDuration = computeTimeToRank(aggressiveT2RInputs)
 
-    const aggMonthlyContent = aggressiveContentBudget.total_ils / Math.max(1, aggressiveDuration.expected)
-    const aggMonthlyLinks = aggressiveLinkBudget.total_ils / Math.max(1, aggressiveDuration.expected)
-    const aggMonthlyTech = (aggressiveTechHours * LABOR_RATES_ILS_PER_HOUR.tech_seo_dev) / Math.max(1, Math.min(4, aggressiveDuration.expected))
-    const aggMonthlyStrategist = aggressiveStrategistHours * LABOR_RATES_ILS_PER_HOUR.seo_strategist
-    const aggMonthlyTooling = TOOLING_RATES_ILS_PER_MONTH.dataforseo_with_backlinks
+    // Platform-DIY budget for aggressive — Pro tier + paid ads.
+    const aggressivePlatformBudget = estimatePlatformDiyBudget('aggressive')
+    const aggMonthlyTotal = aggressivePlatformBudget.total
+    const aggTotalProgram = Math.round(aggMonthlyTotal * aggressiveDuration.expected)
+
+    // Agency comparison side-block — pre-2025 cost basis.
+    const aggAgencyContent = aggressiveContentBudget.total_ils / Math.max(1, aggressiveDuration.expected)
+    const aggAgencyLinks = aggressiveLinkBudget.total_ils / Math.max(1, aggressiveDuration.expected)
+    const aggAgencyTech = (aggressiveTechHours * LABOR_RATES_ILS_PER_HOUR.tech_seo_dev) / Math.max(1, Math.min(4, aggressiveDuration.expected))
+    const aggAgencyStrategist = aggressiveStrategistHours * LABOR_RATES_ILS_PER_HOUR.seo_strategist
+    const aggAgencyTooling = TOOLING_RATES_ILS_PER_MONTH.dataforseo_with_backlinks
         + TOOLING_RATES_ILS_PER_MONTH.firecrawl_pro
         + TOOLING_RATES_ILS_PER_MONTH.semrush_or_ahrefs_alt
         + TOOLING_RATES_ILS_PER_MONTH.pm_tools
-
-    const aggMonthlyTotal = Math.round(aggMonthlyContent + aggMonthlyLinks + aggMonthlyTech + aggMonthlyStrategist + aggMonthlyTooling)
-    const aggTotalProgram = Math.round(aggMonthlyTotal * aggressiveDuration.expected)
+    const aggAgencyMonthlyTotal = Math.round(aggAgencyContent + aggAgencyLinks + aggAgencyTech + aggAgencyStrategist + aggAgencyTooling)
+    const aggAgencyProgramTotal = Math.round(aggAgencyMonthlyTotal * aggressiveDuration.expected)
 
     const aggressive: ScenarioBaseline = {
         name: 'aggressive',
@@ -361,16 +398,19 @@ export async function prefetchCostTimelineModeling(
             our_dr_estimate: ourDrEstimate,
             competition_level: competitionLevel,
         },
-        monthly_budget_ils: {
-            content_production: Math.round(aggMonthlyContent),
-            link_outreach: Math.round(aggMonthlyLinks),
-            technical_seo: Math.round(aggMonthlyTech),
-            seo_strategist: Math.round(aggMonthlyStrategist),
-            tooling_subscriptions: Math.round(aggMonthlyTooling),
-            total: aggMonthlyTotal,
-        },
+        monthly_budget_ils: aggressivePlatformBudget,
         duration_months: aggressiveDuration,
         total_program_ils: aggTotalProgram,
+        agency_comparison_ils: {
+            content_production: Math.round(aggAgencyContent),
+            link_outreach_labor: Math.round(aggAgencyLinks),
+            technical_seo: Math.round(aggAgencyTech),
+            seo_strategist: Math.round(aggAgencyStrategist),
+            tooling_subscriptions: Math.round(aggAgencyTooling),
+            total_monthly: aggAgencyMonthlyTotal,
+            total_program: aggAgencyProgramTotal,
+            savings_vs_diy_total: aggAgencyProgramTotal - aggTotalProgram,
+        },
         monthly_kpis: projectMonthlyKpis({
             duration_months: aggressiveDuration.expected,
             content_pieces_total: aggressiveT2RInputs.content_pieces_total,
@@ -394,7 +434,7 @@ export async function prefetchCostTimelineModeling(
         },
     }
 
-    console.log(`[prefetch/cost_timeline_modeling] smart=₪${smart.monthly_budget_ils.total}/mo × ${smart.duration_months.expected}mo = ₪${smart.total_program_ils} | aggressive=₪${aggressive.monthly_budget_ils.total}/mo × ${aggressive.duration_months.expected}mo = ₪${aggressive.total_program_ils} | upstream_missing=${upstreamMissing.length}`)
+    console.log(`[prefetch/cost_timeline_modeling] platform-DIY: smart=₪${smart.monthly_budget_ils.total}/mo × ${smart.duration_months.expected}mo = ₪${smart.total_program_ils} (agency would be ₪${smart.agency_comparison_ils.total_program}, save ₪${smart.agency_comparison_ils.savings_vs_diy_total}) | aggressive=₪${aggressive.monthly_budget_ils.total}/mo × ${aggressive.duration_months.expected}mo = ₪${aggressive.total_program_ils} (agency would be ₪${aggressive.agency_comparison_ils.total_program}, save ₪${aggressive.agency_comparison_ils.savings_vs_diy_total}) | upstream_missing=${upstreamMissing.length}`)
 
     return {
         upstreamMissing,
@@ -410,6 +450,10 @@ export async function prefetchCostTimelineModeling(
         scenarios: { smart, aggressive },
         constants_snapshot: {
             usd_to_ils: USD_TO_ILS_RATE,
+            // Platform-DIY (primary mode — what user actually pays)
+            platform_business_tier_ils_per_month: PLATFORM_TIERS_ILS_PER_MONTH.business,
+            platform_pro_tier_ils_per_month: PLATFORM_TIERS_ILS_PER_MONTH.pro,
+            // Agency comparison rates (legacy / for narrative side-block only)
             seo_strategist_ils_per_hour: LABOR_RATES_ILS_PER_HOUR.seo_strategist,
             content_writer_ils_per_hour: LABOR_RATES_ILS_PER_HOUR.content_writer_he,
             tech_seo_ils_per_hour: LABOR_RATES_ILS_PER_HOUR.tech_seo_dev,

@@ -117,6 +117,105 @@ export const TOOLING_RATES_ILS_PER_MONTH = {
     pm_tools: 150,
 } as const
 
+// ─── Platform-DIY (OpenClaw + agents) — 2026 reality ──────────────────────
+//
+// Phase QA round-8 (strategic-fit fix) — when the user runs research+ops via
+// our platform, "labor" cost (content_production / seo_strategist /
+// technical_seo / link_outreach hours / tooling_subscriptions) collapses
+// to ~zero marginal cost — agents do the work. The user's ACTUAL recurring
+// spend is:
+//
+//   1. Platform subscription (the OpenClaw VPS plan)
+//   2. Anthropic API (user-provided key — token usage by agents)
+//   3. Backlink acquisition (real placement money — agents draft outreach
+//      but the link itself still costs, e.g. paid guest post fees, premium
+//      directory listings, expert mentions)
+//   4. Paid ads (only in Aggressive — Google Ads / Meta budgets)
+//   5. External tooling (rarely needed — DFS/Firecrawl/Anthropic bundled)
+//
+// We expose `agency_comparison_ils` as a SIDE-BLOCK so narrative can frame
+// "this would have cost ₪X/mo at agency rates pre-2025" — not as the
+// user's actual budget.
+
+export const PLATFORM_TIERS_ILS_PER_MONTH = {
+    personal:  79,    // 4GB RAM — single OpenClaw Personal agent
+    business:  169,   // 8GB RAM — MATEH (3GB) + n8n/Activepieces ✓ default for most
+    pro:       349,   // 16GB dedicated — heavy automation, multi-agent
+    developer: 599,   // 32GB dedicated — Ollama local + multi-tenant
+} as const
+
+export type PlatformTier = keyof typeof PLATFORM_TIERS_ILS_PER_MONTH
+
+// Anthropic API usage estimates (₪/month) — agent activity at the
+// platform layer. Calibrated from MATEH-style continuous monitoring +
+// content gen + outreach drafts. Smart/Aggressive scale with cadence.
+//
+// Smart cadence: daily brief + 8-10 content pieces/mo + 30 outreach drafts
+// Aggressive cadence: daily brief × 2 (pre-market + post-market) + 20-30
+// pieces + 80 outreach drafts + research refresh monthly + ad creative gen
+export const ANTHROPIC_API_ESTIMATES_ILS_PER_MONTH = {
+    smart:      350,   // ~$95/mo @ 3.65 ILS/USD — Opus for high-stakes, Sonnet for routine
+    aggressive: 1300,  // ~$355/mo — heavier Opus usage, more pieces, more frequent runs
+} as const
+
+// Backlink real-money costs (without outreach labor — agents draft).
+// Per-month budget for active link acquisition, factored into avg link
+// price × velocity per scenario.
+export const BACKLINK_BUDGET_ILS_PER_MONTH = {
+    smart:      1000,  // ~2-3 mid-DR links/mo at ₪400-500 each (agent drafts, user pays placement)
+    aggressive: 3000,  // 5-8 links/mo incl. some premium tier outreach
+} as const
+
+// Paid ads budgets (₪/month) — IL market floors. Smart = organic-first,
+// no paid. Aggressive = Google Ads + retargeting backbone for first ~12 mo.
+export const PAID_ADS_BUDGET_ILS_PER_MONTH = {
+    smart_default:      0,
+    smart_optional:     1500,  // if user opts to test paid for first 90d
+    aggressive_default: 5000,  // ~₪165/day Google Ads + ~₪500/wk retargeting
+    aggressive_premium: 8000,
+} as const
+
+// External tooling NOT bundled by the platform (rare — DFS/Firecrawl
+// already proxied; Anthropic via user key). Most users hit ₪0; aggressive
+// scenarios may add manual deep-dive tools occasionally.
+export const EXTERNAL_TOOLING_ILS_PER_MONTH = {
+    smart_default:      0,
+    aggressive_default: 500,   // occasional Ahrefs/Screaming Frog seat or paid SaaS audit
+} as const
+
+/**
+ * Compute the platform-DIY monthly budget for a given scenario. Returns
+ * breakdown + total. This is what the user ACTUALLY pays — the labor
+ * costs in `estimateContentBudgetIls` / `estimateLinkBudgetIls` /
+ * LABOR_RATES are ONLY used for `agency_comparison_ils` side-block.
+ */
+export function estimatePlatformDiyBudget(scenario: 'smart' | 'aggressive', opts?: {
+    tier?: PlatformTier
+    paidAdsOverrideIls?: number
+}): {
+    platform_subscription: number
+    anthropic_api: number
+    backlink_acquisition: number
+    paid_ads: number
+    external_tooling: number
+    total: number
+} {
+    const tier: PlatformTier = opts?.tier ?? (scenario === 'aggressive' ? 'pro' : 'business')
+    const platform = PLATFORM_TIERS_ILS_PER_MONTH[tier]
+    const anthropic = ANTHROPIC_API_ESTIMATES_ILS_PER_MONTH[scenario]
+    const backlinks = BACKLINK_BUDGET_ILS_PER_MONTH[scenario]
+    const paid = opts?.paidAdsOverrideIls ?? (scenario === 'aggressive' ? PAID_ADS_BUDGET_ILS_PER_MONTH.aggressive_default : PAID_ADS_BUDGET_ILS_PER_MONTH.smart_default)
+    const tooling = scenario === 'aggressive' ? EXTERNAL_TOOLING_ILS_PER_MONTH.aggressive_default : EXTERNAL_TOOLING_ILS_PER_MONTH.smart_default
+    return {
+        platform_subscription: platform,
+        anthropic_api: anthropic,
+        backlink_acquisition: backlinks,
+        paid_ads: paid,
+        external_tooling: tooling,
+        total: platform + anthropic + backlinks + paid + tooling,
+    }
+}
+
 // ─── Time-to-rank model (months) ─────────────────────────────────────────
 
 /**
