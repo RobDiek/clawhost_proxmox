@@ -351,9 +351,11 @@ app.post('/instances/:id/setup/agents/strategy/reset', resetStrategy)
 // alive until Phase 7 cleanup so the existing UI keeps working.
 import { getResearchPlan, setResearchPlan, expandResearchPlan } from '@/controllers/hosting/research/plan'
 import { runResearchStage, getResearchStageStatus } from '@/controllers/hosting/research/runStage'
+import { researchPreflight } from '@/controllers/hosting/research/preflight'
 app.get('/instances/:id/research/plan', getResearchPlan)
 app.post('/instances/:id/research/plan', setResearchPlan)
 app.post('/instances/:id/research/plan/expand', expandResearchPlan)
+app.get('/instances/:id/research/preflight', researchPreflight)
 app.post('/instances/:id/research/stage/:stageId', runResearchStage)
 app.get('/instances/:id/research/stage/:stageId/status', getResearchStageStatus)
 

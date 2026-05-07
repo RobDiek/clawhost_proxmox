@@ -683,13 +683,35 @@ function renderGscBlock(gsc: SeoKeywordResearchDfsData['gsc']): string {
 }
 
 export function buildSeoKeywordResearchPrompt(opts: PromptOpts): PromptResult {
-    const { businessName, businessDesc, answers, feedback, historicalAssetsBlock } = opts
+    const { businessName, businessDesc, answers, rd, feedback, historicalAssetsBlock } = opts
     const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
     const haBlock = historicalAssetsBlock || ''
     const prodBlk = productsBlock(answers)
 
     const dfs = opts.dfsData as SeoKeywordResearchDfsData | undefined
     if (!dfs) throw new Error('seo_keyword_research: dfsData prefetch is required')
+
+    // Phase QA — pull existing URL inventory from internal_seo_audit upstream
+    // so cluster_architecture knows which proposed pages already exist (to
+    // refresh) vs need to be created. Prevents wasted content budget +
+    // cannibalization risk.
+    const internalAudit = rd.results?.internal_seo_audit
+    const internalAuditRecords = (internalAudit?.records as Array<Record<string, unknown>> | undefined) || []
+    const existingUrls = internalAuditRecords
+        .map(r => ({
+            url: String(r.url || ''),
+            page_type: String(r.page_type || ''),
+            title: String(r.title || ''),
+            word_count: typeof r.word_count === 'number' ? r.word_count : undefined,
+            onpage_score: typeof r.onpage_score === 'number' ? r.onpage_score : undefined,
+        }))
+        .filter(u => u.url)
+    const existingUrlsBlock = existingUrls.length > 0
+        ? `### Existing URL inventory (Phase QA — מ-internal_seo_audit upstream)
+${existingUrls.slice(0, 50).map(u => `- \`${u.url}\` (${u.page_type || 'other'}) | "${u.title.substring(0, 60)}${u.title.length > 60 ? '…' : ''}" | ${u.word_count ?? '—'} words | onpage_score=${u.onpage_score ?? '—'}`).join('\n')}
+
+**חובה ב-cluster_architecture:** לכל \`pillar_url_proposal\` ולכל \`spoke.keyword\` — בדקו אם קיים URL מהinventory למעלה שמכסה את ה-topic. אם כן — סמנו \`url_status: 'exists_refresh'\` (אם דורש שיפור) או \`'exists_no_change'\` (אם בסדר), ומלאו \`existing_url_match\` עם ה-URL מ-inventory. אם לא — \`url_status: 'new'\`. **אסור להציע ליצור URL חדש כשiu קיים coverage** — זה cannibalization risk.`
+        : '### Existing URL inventory\n*(internal_seo_audit לא הורץ — cluster_architecture יסמן את כל ה-pillars/spokes כ-`new`. אם הסיט קיים — הריצו internal_seo_audit קודם.)*'
 
     const dfsAvailability = `**מקור הנתונים:** DataForSEO live data, ${new Date().toISOString().slice(0, 10)} | seeds: ${dfs.seeds.join(', ')} | language: ${dfs.languageCode} | location: IL | ideas=${dfs.ideas.length} difficulty=${dfs.difficulty.length} serp=${dfs.serpSnapshots.length} ranked=${dfs.rankedKeywords.length} | $${dfs.totalCostUsd.toFixed(4)} (${dfs.cacheHits}/${dfs.cacheHits + dfs.cacheMisses} cache hits)${dfs.enrichmentMissing.length ? ' | partial: ' + dfs.enrichmentMissing.join(', ') : ''}`
 
@@ -726,6 +748,8 @@ ${renderRankedKeywords(dfs.rankedKeywords)}
 ${renderGscBlock(dfs.gsc)}
 
 **הערה לגבי striking distance:** אם GSC מחובר, השתמשו ב-GSC queries כמקור עיקרי ל-current_position וב-striking_bucket — Google's own data תמיד מנצח DFS estimation. השתמשו ב-DFS rankedKeywords כ-fallback בלבד.
+
+${existingUrlsBlock}
 
 ---
 
@@ -822,17 +846,21 @@ ${DFS_DATA_RULE}
       "cluster_name": "שם cluster (בעברית עיקרי, אנגלית רק אם הnameingvention ב-IL הוא אנגלי)",
       "pillar_keyword": "מילת המפתח הראשית של ה-cluster (head term)",
       "pillar_url_proposal": "/proposed-url-slug",
+      "pillar_url_status": "new | exists_refresh | exists_no_change",
+      "pillar_existing_url_match": "אם exists_* — ה-URL מהinternal_seo_audit שכבר מכסה את ה-pillar topic. אם new — null.",
       "intent_ladder": "1 משפט בעברית — איך הקלאסטר עובר בין info_broad → info_deep → commercial_eval → transactional",
       "spokes": [
         {
           "keyword": "מילת מפתח (חייבת להיות אחת מ-records[].keyword)",
           "page_type": "info_deep_spoke / comparison_spoke / pricing_explainer / faq / trust_proof / local_page",
-          "internal_link_to_pillar_anchor": "טקסט עוגן בעברית למקושר מהspoke לpillar"
+          "internal_link_to_pillar_anchor": "טקסט עוגן בעברית למקושר מהspoke לpillar",
+          "url_status": "new | exists_refresh | exists_no_change",
+          "existing_url_match": "אם exists_* — URL מ-internal_seo_audit. אם new — null."
         }
       ],
       "serp_features_dominant": ["הרשימה של SERP features שחוזרת על עצמה ברוב records של ה-cluster — ai_overview / paa / featured_snippet / local_pack / image_pack / video"],
       "expected_zero_click_share": "estimated % שחיפושים ייגמרו בלי click (מבוסס על SERP features). אם > 60% — flag risk.",
-      "evidence": ["dfs_keyword_ideas", "dfs_serp_advanced"],
+      "evidence": ["dfs_keyword_ideas", "dfs_serp_advanced", "internal_seo_audit_url_inventory"],
       "confidence": "high | medium | working_hypothesis"
     }
   ],
@@ -2251,6 +2279,22 @@ ${DFS_DATA_RULE}
       "priority": "high | medium | low"
     }
   ],
+  "content_pruning_matrix": [
+    {
+      "_note": "Phase QA — ההחלטה הסטנדרטית של אודיט SEO רציני: לכל URL מ-records[] קבעו פעולה אחת. אסור לדלג על URL.",
+      "url": "URL מהinventory",
+      "decision": "keep | refresh | merge | canonicalize | delete | noindex",
+      "rationale": "1-2 משפטים בעברית: למה החלטה זו. דוגמה: 'דף thin עם 120 מילים, 0 traffic ב-90 יום, אין שום link → delete; 301 ל-/about'.",
+      "merge_target_url": "אם decision=merge — URL היעד אליו לאחד תוכן ולעשות 301",
+      "canonical_target_url": "אם decision=canonicalize — URL הקנוני (לא מבטיח 301, רק link rel=canonical)",
+      "estimated_traffic_at_risk": "high | medium | low | none — מבוסס על onpage_score + word_count",
+      "owner": "תפקיד אחראי בעברית: 'מנהל SEO' / 'מנהל תוכן' / 'מפתח'",
+      "estimated_effort_hours": 0,
+      "priority": "high | medium | low",
+      "confidence": "high | medium | working_hypothesis",
+      "evidence": ["onpage_audit", "client_issues", "duplicate_check"]
+    }
+  ],
   "tech_debt_summary": {
     "_note": "agg של שעות עבודה לפי category — לעבור ל-strategy_options כקלט ל-cost modeling",
     "by_category_hours": {
@@ -2275,6 +2319,7 @@ ${DFS_DATA_RULE}
 - \`priority_action\` חייב להיות פעיל וקונקרטי — לא "לבדוק את הdocs" אלא "להוסיף FAQ schema markup ל-X דפי שאלות נפוצות".
 - \`schema_gap_analysis\` אגרגציה לפי page_type — מינימום entry אחד לכל page_type שמופיע ב-records.
 - \`tech_debt_summary.total_hours_estimate\` חייב להיות סכום אמיתי של שעות מ-records.
+- **\`content_pruning_matrix\` חובה:** רשומה אחת לכל URL מ-\`records[]\`. אסור לדלג. החלטה אחת: keep / refresh / merge / canonicalize / delete / noindex. אם decision=merge חובה למלא \`merge_target_url\` עם URL אחר מאותה inventory. אם decision=canonicalize חובה \`canonical_target_url\`.
 - אם נתון חסר (DFS לא החזיר) — confidence: working_hypothesis עם הסבר ב-evidence.
 
 ### חלק 3: 5 פעולות "fix this first" (markdown — בעברית בלבד)

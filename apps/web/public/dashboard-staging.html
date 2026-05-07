@@ -11112,9 +11112,92 @@ function renderStageCardV2(sid, idx) {
     + '</div>';
 }
 
+// Phase QA pre-flight ─────────────────────────────────────────────────────
+
+async function fetchResearchPreflight(iid) {
+  try {
+    var d = await apiFetch('/hosting/instances/' + iid + '/research/preflight');
+    if (d && d.success && d.data) return d.data;
+    return null;
+  } catch (e) {
+    console.warn('[preflight] fetch failed:', e);
+    return null;
+  }
+}
+
+function showResearchPreflightModal(pf, gating) {
+  var statusIcon = function(status) {
+    return status === 'ok' ? '✅' : status === 'warning' ? '⚠️' : '🛑';
+  };
+  var statusColor = function(status) {
+    return status === 'ok' ? '#065F46' : status === 'warning' ? '#92400E' : '#991B1B';
+  };
+  var statusBg = function(status) {
+    return status === 'ok' ? '#D1FAE5' : status === 'warning' ? '#FEF3C7' : '#FEE2E2';
+  };
+  var html = '<div style="padding:16px 18px;max-width:640px">'
+    + '<h3 style="margin:0 0 6px;font-size:1.05rem;color:#1F2937">בדיקה מקדימה — ' + (pf.ready ? '✅ מוכן להרצה' : '🛑 חסרים תנאים בסיסיים') + '</h3>'
+    + '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:12px">' + escapeHtml(pf.next_action_he || '') + '</div>'
+    + '<div style="font-size:0.74rem;color:#374151;margin-bottom:8px">'
+    +   '<strong>הערכת עלות לריצה מלאה:</strong> ~₪' + (pf.estimated_cost_ils && pf.estimated_cost_ils.total || '?')
+    +   ' (DFS ₪' + (pf.estimated_cost_ils && pf.estimated_cost_ils.dfs || '?') + ' + Anthropic ₪' + (pf.estimated_cost_ils && pf.estimated_cost_ils.anthropic || '?') + ')'
+    + '</div>'
+    + '<div style="font-size:0.74rem;color:#374151;margin-bottom:14px"><strong>זמן צפוי:</strong> ' + (pf.estimated_duration_minutes && pf.estimated_duration_minutes.min || '?') + '-' + (pf.estimated_duration_minutes && pf.estimated_duration_minutes.max || '?') + ' דקות</div>';
+
+  (pf.checks || []).forEach(function(c) {
+    html += '<div style="background:' + statusBg(c.status) + ';border:1px solid ' + statusColor(c.status) + ';border-radius:6px;padding:8px 10px;margin-bottom:6px">'
+      + '<div style="display:flex;gap:8px;align-items:center">'
+      +   '<span>' + statusIcon(c.status) + '</span>'
+      +   '<strong style="font-size:0.78rem;color:' + statusColor(c.status) + '">' + escapeHtml(c.label_he) + '</strong>'
+      + '</div>'
+      + (c.actionable_hint_he ? '<div style="font-size:0.7rem;color:#374151;margin-top:4px;line-height:1.5">' + escapeHtml(c.actionable_hint_he) + '</div>' : '')
+      + '</div>';
+  });
+
+  if (gating) {
+    html += '<div style="margin-top:14px;padding:10px;background:#FEE2E2;border-radius:6px;font-size:0.74rem;color:#991B1B"><strong>הריצה נחסמה</strong> — תקנו את ה-fail items ורענן את הדף לבדיקה מחדש.</div>';
+  } else if (pf.has_warnings) {
+    html += '<div style="margin-top:14px;padding:10px;background:#FEF3C7;border-radius:6px;font-size:0.74rem;color:#92400E">חלק מהשלבים ירוצו במצב מוגבל. ניתן להמשיך — לחץ ↻ ליד כל שלב.</div>';
+  } else {
+    html += '<div style="margin-top:14px;padding:10px;background:#D1FAE5;border-radius:6px;font-size:0.74rem;color:#065F46">הכל מוכן. הריצו pipeline.</div>';
+  }
+  html += '<div style="margin-top:14px;text-align:left"><button onclick="closeReportModal()" class="btn btn-primary">סגור</button></div>';
+  html += '</div>';
+  openReportModal('בדיקה מקדימה', html, 'preflight', { html: true });
+}
+
+async function runResearchPreflight(manual) {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) return;
+  if (manual) showToast('בודק תנאים מקדימים...', 'info');
+  var pf = await fetchResearchPreflight(iid);
+  if (!pf) {
+    if (manual) showToast('בדיקת preflight נכשלה — נסו שוב', 'error');
+    return;
+  }
+  pipelineV2State.preflightChecked = true;
+  pipelineV2State.lastPreflight = pf;
+  showResearchPreflightModal(pf, false);
+}
+
 async function runStageV2(sid) {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) return;
+
+  // Phase QA — pre-flight gate. On the FIRST stage the user runs in a session,
+  // automatically validate prerequisites. If anything is `fail`, stop and show
+  // checklist before burning DFS/Anthropic budget. Cached per-session so we
+  // don't re-run preflight on every stage click.
+  if (!pipelineV2State.preflightChecked) {
+    var pf = await fetchResearchPreflight(iid);
+    pipelineV2State.preflightChecked = true;
+    pipelineV2State.lastPreflight = pf;
+    if (pf && pf.ready === false) {
+      showResearchPreflightModal(pf, /* gating */ true);
+      return;
+    }
+  }
+
   pipelineV2State.loading.add(sid);
   if (!pipelineV2State.loadingStartedAt) pipelineV2State.loadingStartedAt = {};
   pipelineV2State.loadingStartedAt[sid] = Date.now();
@@ -11199,6 +11282,9 @@ function viewStageResultV2(sid) {
   }
   if (sid === 'competitor_landscape' && result.extras) {
     html += renderOurLinkProfileBlock(result.extras);
+  }
+  if (sid === 'internal_seo_audit' && result.extras) {
+    html += renderContentPruningMatrix(result.extras);
   }
   recsEl.innerHTML = html;
 
@@ -11801,6 +11887,65 @@ function renderKeywordCard(k) {
 // ── internal_seo_audit ──────────────────────────────────────────────────────
 // Records are URL-level audit entries. UI groups by impact tier (high/medium/
 // low) and surfaces title/meta/H1/word count/schema coverage/issues per URL.
+
+// Phase QA — content pruning matrix (per-URL keep / refresh / merge / delete /
+// canonicalize / noindex decision). The standard output of any serious SEO
+// audit. Lives in extras alongside the records[].
+function renderContentPruningMatrix(extras) {
+  var matrix = extras && extras.content_pruning_matrix;
+  if (!Array.isArray(matrix) || matrix.length === 0) return '';
+
+  // Group by decision
+  var byDecision = {};
+  matrix.forEach(function(r) {
+    var d = r.decision || 'keep';
+    if (!byDecision[d]) byDecision[d] = [];
+    byDecision[d].push(r);
+  });
+  var DECISION_META = {
+    keep:          { label: 'שמירה',                      icon: '✅', color: '#065F46', bg: '#D1FAE5' },
+    refresh:       { label: 'רענון',                       icon: '♻️', color: '#1E3A8A', bg: '#DBEAFE' },
+    merge:         { label: 'איחוד (301)',                 icon: '🔀', color: '#7C2D12', bg: '#FED7AA' },
+    canonicalize:  { label: 'canonical',                   icon: '🔗', color: '#3730A3', bg: '#E0E7FF' },
+    delete:        { label: 'מחיקה',                       icon: '🗑️', color: '#991B1B', bg: '#FEE2E2' },
+    noindex:       { label: 'noindex',                     icon: '🙈', color: '#92400E', bg: '#FEF3C7' },
+  };
+
+  var html = '<details open style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;margin:12px 0 8px">'
+    + '<summary style="cursor:pointer;padding:10px 14px;background:#F9FAFB;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center">'
+    +   '<strong style="font-size:0.86rem;color:#1E3A8A">🪓 Content pruning matrix (' + matrix.length + ' URLs)</strong>'
+    +   '<span style="font-size:0.7rem;color:#6B7280">החלטות keep / refresh / merge / delete לכל URL</span>'
+    + '</summary><div style="padding:10px 14px">';
+
+  Object.keys(DECISION_META).forEach(function(d) {
+    var items = byDecision[d];
+    if (!items || items.length === 0) return;
+    var meta = DECISION_META[d];
+    html += '<div style="margin-bottom:10px">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="background:' + meta.bg + ';color:' + meta.color + ';padding:3px 8px;border-radius:4px;font-size:0.74rem;font-weight:500">' + meta.icon + ' ' + meta.label + '</span><span style="font-size:0.7rem;color:#6B7280">' + items.length + ' URLs</span></div>'
+      + items.slice(0, 20).map(function(r) {
+        var pri = r.priority === 'high' ? '#10B981' : r.priority === 'medium' ? '#F59E0B' : '#9CA3AF';
+        var target = (d === 'merge' && r.merge_target_url) ? r.merge_target_url
+                   : (d === 'canonicalize' && r.canonical_target_url) ? r.canonical_target_url
+                   : null;
+        return '<div style="border-top:1px solid #F3F4F6;padding:6px 0;font-size:0.74rem">'
+          + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px">'
+          +   '<div style="flex:1;min-width:0;direction:ltr"><a href="' + escapeHtml(r.url || '#') + '" target="_blank" style="color:#2563EB;word-break:break-all">' + escapeHtml(r.url || '—') + ' ↗</a>'
+          +     (target ? '<div style="font-size:0.66rem;color:#6B7280;margin-top:2px">→ <a href="' + escapeHtml(target) + '" target="_blank" style="color:#7C2D12">' + escapeHtml(target) + '</a></div>' : '')
+          +   '</div>'
+          +   '<div style="font-size:0.66rem;color:' + pri + '">' + escapeHtml(r.priority || '—') + (r.estimated_effort_hours ? ' · ' + r.estimated_effort_hours + 'h' : '') + '</div>'
+          + '</div>'
+          + (r.rationale ? '<div style="color:#374151;margin-top:3px;line-height:1.5">' + escapeHtml(r.rationale) + '</div>' : '')
+          + (r.estimated_traffic_at_risk && r.estimated_traffic_at_risk !== 'none' ? '<div style="font-size:0.62rem;color:#991B1B;margin-top:2px">⚠ traffic at risk: ' + escapeHtml(r.estimated_traffic_at_risk) + '</div>' : '')
+          + '</div>';
+      }).join('')
+      + (items.length > 20 ? '<div style="font-size:0.66rem;color:#9CA3AF;margin-top:4px">+ ' + (items.length - 20) + ' נוספים</div>' : '')
+      + '</div>';
+  });
+
+  html += '</div></details>';
+  return html;
+}
 
 function renderInternalAuditRecords(records) {
   if (!records || !records.length) return '';
