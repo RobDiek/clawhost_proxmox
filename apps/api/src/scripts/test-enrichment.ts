@@ -119,6 +119,29 @@ async function main(): Promise<void> {
     const dfsData = await prefetchSeoKeywordResearch(instanceId, rd)
     console.log(`  cost=$${dfsData.totalCostUsd.toFixed(4)}, cache=${dfsData.cacheHits}/${dfsData.cacheHits + dfsData.cacheMisses}, ideas=${dfsData.ideas.length}, difficulty=${dfsData.difficulty.length}\n`)
 
+    // ─── DEBUG: cross-reference each record keyword against DFS ──
+    console.log(`\nDEBUG — record keyword × DFS membership:`)
+    const norm = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ')
+    const dfsIdeasNormSet = new Set(dfsData.ideas.map(i => norm(i.keyword || '')))
+    const dfsKdNormSet = new Set(dfsData.difficulty.map(d => norm(d.keyword || '')))
+    let inIdeas = 0, inKd = 0
+    for (const r of records) {
+        const kw = String(r.keyword || '')
+        const k = norm(kw)
+        const idea = dfsIdeasNormSet.has(k)
+        const kd = dfsKdNormSet.has(k)
+        if (idea) inIdeas++
+        if (kd) inKd++
+        console.log(`  ${idea ? 'IDEA' : '----'} ${kd ? 'KD ' : '---'} | "${kw}"`)
+    }
+    console.log(`  → ${inIdeas}/${records.length} in ideas, ${inKd}/${records.length} in difficulty`)
+    console.log(`\nDEBUG — first 30 DFS ideas (sorted by volume):`)
+    const top30 = [...dfsData.ideas].filter(i => i.keyword_info?.search_volume).sort((a, b) => (b.keyword_info!.search_volume || 0) - (a.keyword_info!.search_volume || 0)).slice(0, 30)
+    for (const i of top30) {
+        console.log(`  v=${i.keyword_info?.search_volume} kd=${i.keyword_info?.keyword_difficulty ?? i.keyword_properties?.keyword_difficulty ?? '-'} | ${i.keyword}`)
+    }
+    console.log()
+
     // ─── Apply enrichment ──
     const recordsCopy = JSON.parse(JSON.stringify(records)) as Array<Record<string, unknown>>
     const stats = enrichKeywordRecordsFromDfs(recordsCopy, dfsData)
