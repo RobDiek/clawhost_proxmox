@@ -311,24 +311,26 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                     autoCorrected.push(f)
                     continue
                 }
-                // Phase QA round-4 — language_script_qa is auto-corrected when
-                // the scrubber removed all flagged English filler from the
-                // final output (or when the flagged words are in the allowlist
-                // and critic over-flagged legitimate jargon). Parses the
-                // single-quoted offending phrases out of the failure message,
-                // checks each against (a) ALLOWLIST (jargon ok) and (b) the
-                // post-scrub haystack. If none survived → autoCorrected. If any
-                // survived → flagged with `survived: X, Y` so we know what
-                // dictionary entries to add next round.
+                // Phase QA round-5 — language_script_qa is ALWAYS demoted out
+                // of hardFailures. Modern IL SEO content is inherently
+                // code-switching (audience, brand, citation, comparison are
+                // all legitimate jargon). The previous "scrubber resolves all
+                // → autoCorrected, else hard" logic chased a long tail and
+                // kept blocking legitimate content. Now: if scrubber resolved
+                // everything → autoCorrected. Else → warning (NOT hard) with
+                // the survived words logged so we can iterate the dictionary.
+                // Critic's own severity in the prompt also dropped to warning;
+                // this code is the defense-in-depth in case the LLM still
+                // listed it under hard_failures despite the prompt change.
                 if (/language_script_qa|hebrew.script|filler/i.test(f)) {
                     const result = checkLanguageScriptResolution(f, output.content, parsed.records || [])
                     if (result.allResolved) {
                         autoCorrected.push(`${f} → resolved server-side (scrubber + allowlist)`)
-                        continue
                     } else {
-                        remainingHardFailures.push(`${f} | survived: ${result.surviving.join(', ')}`)
-                        continue
+                        // Demote to warning instead of failing. Survived words logged.
+                        critique.warnings.push(`${f} | survived: ${result.surviving.join(', ')}`)
                     }
+                    continue
                 }
                 remainingHardFailures.push(f)
             }
