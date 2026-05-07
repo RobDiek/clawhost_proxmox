@@ -165,7 +165,7 @@ export async function runHebrewCleanup(input: HebrewCleanupInput): Promise<Hebre
                 stream: true,
                 messages: [{ role: 'user', content: prompt }],
             }),
-            signal: AbortSignal.timeout(360_000),
+            signal: AbortSignal.timeout(900_000),
         })
         if (!res.ok) {
             console.warn(`[hebrewCleanup/${stageId}] HTTP ${res.status} — skipping`)
