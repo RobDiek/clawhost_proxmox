@@ -328,6 +328,24 @@ export async function executeStage(input: ExecuteStageInput): Promise<ExecuteSta
             } else {
                 console.error(`[research/${stageId}] Anthropic API ${streamRes.status}: ${streamRes.errorText.substring(0, 300)}`)
                 if (streamRes.status === 429) isRateLimit = true
+                // Phase QA — surface specific Anthropic billing/credit errors
+                // as actionable Hebrew message instead of generic "stage failed".
+                if (streamRes.status === 400 && /credit_balance_too_low|credit balance is too low|insufficient credits/i.test(streamRes.errorText)) {
+                    return {
+                        content: '', source: 'anthropic', integrationsUsed: [],
+                        status: { state: 'failed', failureReason: 'anthropic_credits_exhausted' },
+                        httpCode: 400,
+                        errorMessage: 'יתרת ה-Anthropic credits שלכם נגמרה. הכנסו ל-console.anthropic.com → Plans & Billing → Add credits. למחקר מלא דרושים כ-$10-15.',
+                    }
+                }
+                if (streamRes.status === 401) {
+                    return {
+                        content: '', source: 'anthropic', integrationsUsed: [],
+                        status: { state: 'failed', failureReason: 'anthropic_invalid_key' },
+                        httpCode: 400,
+                        errorMessage: 'מפתח Anthropic נדחה ע"י השרת — בדקו תקינות במ-/settings/api-keys',
+                    }
+                }
             }
         } catch (apiErr) {
             console.error(`[research/${stageId}] API exception:`, (apiErr as Error).message)

@@ -43,6 +43,56 @@ interface PreflightResult {
 
 const WEBSITE_REACHABLE_TIMEOUT_MS = 8000
 
+/**
+ * Probe the Anthropic API with a minimal request to verify the key is not
+ * only configured but also has live credits. We send a 1-token request
+ * (haiku, "ping") and inspect the response:
+ *   - 200 OK            → credits are fine
+ *   - 400 + "credit_balance_too_low" message → out of credits (fail)
+ *   - 401              → invalid key (fail)
+ *   - 5xx / network    → unknown (warning, don't block)
+ *
+ * Cost ~ $0.0001 per probe — negligible. Keeps the user from burning
+ * DFS budget on a misconfigured / out-of-credits key.
+ */
+async function probeAnthropicCredits(
+    apiKey: string,
+): Promise<{ status: 'ok' | 'credits_low' | 'invalid_key' | 'unknown'; message?: string }> {
+    try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+                model: 'claude-haiku-4-5-20251001',
+                max_tokens: 1,
+                messages: [{ role: 'user', content: 'ping' }],
+            }),
+            signal: AbortSignal.timeout(8000),
+        })
+        if (res.ok) return { status: 'ok' }
+        if (res.status === 401) return { status: 'invalid_key' }
+        if (res.status === 400) {
+            const text = await res.text()
+            if (/credit_balance_too_low|credit balance is too low|insufficient credits/i.test(text)) {
+                return { status: 'credits_low', message: 'Anthropic credits exhausted' }
+            }
+            return { status: 'unknown', message: `400: ${text.substring(0, 100)}` }
+        }
+        if (res.status === 429) {
+            // Rate limited at probe time — not a credit issue, treat as ok
+            // (real stage runs will retry).
+            return { status: 'ok', message: 'rate_limited_at_probe (key valid)' }
+        }
+        return { status: 'unknown', message: `HTTP ${res.status}` }
+    } catch (err) {
+        return { status: 'unknown', message: (err as Error).message }
+    }
+}
+
 export const researchPreflight = async (c: Context) => {
     const instanceId = c.req.param('id')
     if (!await getOwnedInstance(instanceId, resolveUserId(c))) {
@@ -123,21 +173,50 @@ export const researchPreflight = async (c: Context) => {
         }
     }
 
-    // ─── Check 2: Anthropic API key configured ──
+    // ─── Check 2: Anthropic API key configured + has credits ──
     const apiKey = await getApiKeyForInstance(instanceId)
     if (!apiKey) {
         checks.push({
             name: 'anthropic_key',
             status: 'fail',
-            label_he: 'מפתח Anthropic API',
+            label_he: 'מפתח Anthropic API לא מוגדר',
             actionable_hint_he: 'כל שלב במחקר מבצע 1-2 קריאות Anthropic. הזינו מפתח API ב-/settings/api-keys (הקישור ב-sidebar).',
         })
     } else {
-        checks.push({
-            name: 'anthropic_key',
-            status: 'ok',
-            label_he: 'מפתח Anthropic מוגדר',
-        })
+        // Phase QA — actually probe Anthropic with a tiny call to verify
+        // the key isn't just configured but also has live credits. This catches
+        // the most painful failure mode: pipeline starts, burns DFS budget,
+        // then crashes 2 min in with "credit_balance_too_low".
+        const probeResult = await probeAnthropicCredits(apiKey)
+        if (probeResult.status === 'ok') {
+            checks.push({
+                name: 'anthropic_key',
+                status: 'ok',
+                label_he: 'Anthropic מוגדר ו-credits זמינים ✓',
+            })
+        } else if (probeResult.status === 'credits_low') {
+            checks.push({
+                name: 'anthropic_key',
+                status: 'fail',
+                label_he: '🛑 Anthropic credits מוצו',
+                actionable_hint_he: 'יתרת ה-credits של ה-Anthropic API שלכם נמוכה מדי או שווה לאפס. הריצה תיכשל אחרי כמה דקות. הכנסו ל-console.anthropic.com → Plans & Billing → Add credits. מחקר מלא דורש ~$10-15.',
+            })
+        } else if (probeResult.status === 'invalid_key') {
+            checks.push({
+                name: 'anthropic_key',
+                status: 'fail',
+                label_he: '🛑 מפתח Anthropic לא תקין',
+                actionable_hint_he: 'המפתח שהזנתם נדחה ע"י Anthropic. בדקו שהוא נכון, פעיל, ולא expired ב-console.anthropic.com → API Keys.',
+            })
+        } else {
+            // Probe failed for unknown reason (network / timeout) — don't block
+            checks.push({
+                name: 'anthropic_key',
+                status: 'warning',
+                label_he: 'Anthropic מוגדר — לא ניתן היה לאמת credits',
+                actionable_hint_he: probeResult.message || 'בדיקת credits נכשלה. אם יש credits — להמשיך; אם לא — pipeline יקרוס.',
+            })
+        }
     }
 
     // ─── Check 3: DFS balance > $5 (basic threshold for warm pipeline) ──
