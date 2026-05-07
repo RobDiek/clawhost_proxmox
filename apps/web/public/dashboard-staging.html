@@ -11550,6 +11550,24 @@ function renderCompetitorCard(r) {
       + '</div></details>';
   }
 
+  // Reviews intel block (Phase E2.4)
+  var reviewsBlock = '';
+  var reviewsIntel = r.reviews_intel || null;
+  if (reviewsIntel && reviewsIntel.sample_size > 0) {
+    var ratingColor = reviewsIntel.avg_rating >= 4.5 ? '#10B981' : reviewsIntel.avg_rating >= 3.5 ? '#F59E0B' : '#EF4444';
+    reviewsBlock = '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.72rem;color:#1E3A8A;font-weight:500">⭐ ביקורות לקוחות (' + reviewsIntel.sample_size + ' דגימות)</summary>'
+      + '<div style="font-size:0.7rem;color:#4B5563;padding:6px 0;line-height:1.6">'
+      + '<div><strong style="color:' + ratingColor + '">★ ' + reviewsIntel.avg_rating + '/5</strong> · חיובי ' + reviewsIntel.positive_pct + '% · שלילי ' + reviewsIntel.negative_pct + '% · מעורבות בעלים: ' + escapeHtml(reviewsIntel.owner_engagement || '—') + '</div>'
+      + (reviewsIntel.top_complaint_themes && reviewsIntel.top_complaint_themes.length
+          ? '<div style="margin-top:4px"><strong style="color:#991B1B">תלונות חוזרות:</strong> ' + reviewsIntel.top_complaint_themes.map(escapeHtml).join(' · ') + '</div>'
+          : '')
+      + (reviewsIntel.top_praise_themes && reviewsIntel.top_praise_themes.length
+          ? '<div><strong style="color:#065F46">שבחים חוזרים:</strong> ' + reviewsIntel.top_praise_themes.map(escapeHtml).join(' · ') + '</div>'
+          : '')
+      + (reviewsIntel.what_we_learn ? '<div style="margin-top:4px;border-right:2px solid #1E3A8A;padding-right:6px;line-height:1.5"><em>מה אנחנו לומדים:</em> ' + escapeHtml(reviewsIntel.what_we_learn) + '</div>' : '')
+      + '</div></details>';
+  }
+
   // E-E-A-T block (Phase E2.1 object form, or legacy string)
   var eeatBlock = '';
   if (eeat) {
@@ -11583,6 +11601,7 @@ function renderCompetitorCard(r) {
     + (gaps.length ? '<div style="margin-bottom:4px"><strong style="font-size:0.72rem;color:#065F46">פערי תוכן אצלם:</strong> <span style="font-size:0.74rem;color:#4B5563">' + gaps.map(escapeHtml).join(' · ') + '</span></div>' : '')
     + (bls ? '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">פרופיל קישורים: ' + escapeHtml(bls) + '</div>' : '')
     + moneyBlock
+    + reviewsBlock
     + eeatBlock
     + (il.language_coverage ? '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:0.7rem;color:#6B7280">סיגנלי IL</summary><div style="font-size:0.7rem;color:#4B5563;padding:4px 0">' + (il.language_coverage ? '<div>שפה: ' + escapeHtml(il.language_coverage) + '</div>' : '') + (il.local_trust ? '<div>אמון מקומי: ' + escapeHtml(il.local_trust) + '</div>' : '') + (il.off_site_corroboration ? '<div>אזכורים חיצוניים (off-site): ' + escapeHtml(il.off_site_corroboration) + '</div>' : '') + '</div></details>' : '')
     + '</div>';

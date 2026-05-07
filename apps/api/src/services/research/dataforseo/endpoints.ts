@@ -34,6 +34,7 @@ import {
     type OnPageItem,
     type GoogleMyBusinessItem,
     type TrustpilotReviewItem,
+    type GoogleReviewItem,
 } from './types'
 
 interface CallResult<T> {
@@ -528,6 +529,33 @@ export async function trustpilotReviews(
     return cachedCall<TrustpilotReviewItem>(
         instanceId,
         'business_data/trustpilot/reviews/live',
+        params,
+    )
+}
+
+/**
+ * Google Business reviews — Phase E2.4. Per-place customer reviews via the
+ * place's CID (returned by googleMyBusiness).
+ *
+ * Endpoint: business_data/google/reviews/live
+ *
+ * For IL businesses, this is the most reliable review source — Trustpilot
+ * coverage is sparse for the Israeli market while almost every brick-and-
+ * mortar business has Google reviews.
+ */
+export async function googleReviews(
+    instanceId: string,
+    cidOrPlaceId: string,
+    opts: { limit?: number; sortBy?: 'newest' | 'highest_rating' | 'lowest_rating' | 'most_relevant' } = {},
+): Promise<CallResult<GoogleReviewItem>> {
+    const params = {
+        keyword: cidOrPlaceId,  // DFS accepts CID as keyword for this endpoint
+        depth: opts.limit ?? 100,
+        sort_by: opts.sortBy ?? 'newest',
+    }
+    return cachedCall<GoogleReviewItem>(
+        instanceId,
+        'business_data/google/reviews/live',
         params,
     )
 }

@@ -198,12 +198,26 @@ function renderEnrichmentTable(top: CompetitorEnrichment[]): string {
         const deepBlock = e.deepPages && e.deepPages.length > 0
             ? '\n- **Money-pages deep scan (Phase E2.1 — Firecrawl on top-3 ranked URLs):**\n' + renderDeepPagesBlock(e.deepPages)
             : ''
+        const reviewsBlock = e.reviews
+            ? '\n- **Google reviews sentiment (Phase E2.4 — sample of ' + e.reviews.sample_size + '):**\n' + renderReviewsBlock(e.reviews)
+            : ''
         return `### ${e.domain}
 - **שיתופי keywords:** ${e.sharedKeywords} | **avg position:** ${e.avgPosition.toFixed(1)} | **organic_count:** ${e.organicCount ?? '—'}
 - **Link profile (DFS backlinks/summary):** ${bls}
 - **Top anchor texts (DFS backlinks/anchors):** ${topAnchors}
-- **On-page (DFS on_page/instant_pages, homepage only):** ${onPage}${deepBlock}`
+- **On-page (DFS on_page/instant_pages, homepage only):** ${onPage}${deepBlock}${reviewsBlock}`
     }).join('\n\n')
+}
+
+function renderReviewsBlock(rev: NonNullable<CompetitorEnrichment['reviews']>): string {
+    const lines: string[] = []
+    lines.push(`  - avg_rating=${rev.avg_rating}/5 · positive=${rev.positive_pct}% · negative=${rev.negative_pct}% · owner_response_rate=${rev.owner_response_rate_pct}%`)
+    lines.push(`  - breakdown: ★1=${rev.rating_breakdown['1']} ★2=${rev.rating_breakdown['2']} ★3=${rev.rating_breakdown['3']} ★4=${rev.rating_breakdown['4']} ★5=${rev.rating_breakdown['5']}`)
+    if (rev.top_complaints.length > 0) lines.push(`  - top_complaints: ${rev.top_complaints.join(' · ')}`)
+    if (rev.top_praises.length > 0) lines.push(`  - top_praises: ${rev.top_praises.join(' · ')}`)
+    if (rev.sample_negative_quote) lines.push(`  - 🔴 quote (negative): "${rev.sample_negative_quote.substring(0, 200)}${rev.sample_negative_quote.length > 200 ? '…' : ''}"`)
+    if (rev.sample_positive_quote) lines.push(`  - 🟢 quote (positive): "${rev.sample_positive_quote.substring(0, 200)}${rev.sample_positive_quote.length > 200 ? '…' : ''}"`)
+    return lines.join('\n')
 }
 
 function renderDeepPagesBlock(pages: NonNullable<CompetitorEnrichment['deepPages']>): string {
@@ -395,6 +409,17 @@ ${DFS_DATA_RULE}
         "content_depth_vs_us": "thinner | similar | deeper",
         "structural_pattern": "1 משפט: הם משתמשים ב-clusters? hub-and-spoke? long-form pillars?",
         "what_they_do_better_inside": ["1-3 דברים קונקרטיים שזיהיתם בעמודים שלהם שאנחנו לא עושים"]
+      },
+      "reviews_intel": {
+        "_note": "Phase E2.4 — מבוסס על reviews (Google reviews aggregated sentiment). אם reviews חסר ב-DFS data — סמנו data_unavailable + confidence: working_hypothesis.",
+        "sample_size": 0,
+        "avg_rating": 0,
+        "positive_pct": 0,
+        "negative_pct": 0,
+        "owner_engagement": "high | medium | low",
+        "top_complaint_themes": ["3 themes לכל היותר, מתוך top_complaints"],
+        "top_praise_themes": ["3 themes לכל היותר, מתוך top_praises"],
+        "what_we_learn": "1-2 משפטים בעברית: מה הלקוחות שלהם אומרים שאנחנו צריכים לקחת בחשבון. אם complaints חוזרים על themes ספציפיים — אלו הזדמנויות שלנו (לעשות טוב יותר את מה שהם נכשלים בו)"
       },
       "eeat_signals": {
         "_note": "Phase E2.1 — מבוסס על deepPages.eeatSignals. אם deepPages חסר — מבוסס על onpage homepage בלבד (degraded).",

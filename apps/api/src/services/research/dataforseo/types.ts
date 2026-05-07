@@ -372,3 +372,27 @@ export interface TrustpilotReviewItem {
     user_profile?: { name?: string; reviews_count?: number }
     [key: string]: unknown
 }
+
+// ── Google Business Reviews ────────────────────────────────────────────────
+// Phase E2.4. Per-place review data from DFS business_data/google/reviews/live.
+// Used for sentiment aggregation of competitors' actual customer reviews.
+
+export interface GoogleReviewItem {
+    /** Reviewer's name (often anonymous on Google) */
+    profile_name?: string
+    /** Local Guide level when applicable */
+    profile_level?: number
+    /** 1-5 stars given by this reviewer */
+    rating?: { value?: number; rating_max?: number }
+    /** Hebrew or English review text — main signal source */
+    review_text?: string
+    /** Original language reported by Google */
+    original_language?: string
+    /** Translated text when DFS auto-translates */
+    translated_text?: string
+    /** When the review was posted (ISO) */
+    timestamp?: string
+    /** Owner's response to the review (if present) */
+    response?: { text?: string; timestamp?: string }
+    [key: string]: unknown
+}

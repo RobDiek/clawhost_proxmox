@@ -32,6 +32,7 @@ import {
     backlinksCompetitors,
     onPageInstant,
     googleMyBusiness,
+    googleReviews,
     rankedKeywords,
     LOCATION_IL,
     DfsError,
@@ -42,6 +43,7 @@ import {
     type BacklinksCompetitorItem,
     type OnPageItem,
     type GoogleMyBusinessItem,
+    type GoogleReviewItem,
     type RankedKeywordItem,
 } from '@/services/research/dataforseo'
 import { decideLanguage } from '@/services/research/methodology'
@@ -88,6 +90,33 @@ export interface CompetitorPageSnapshot {
     fetchError?: string
 }
 
+/**
+ * Phase E2.4 — competitor reviews summary aggregated from DFS google/reviews.
+ * Sentiment via heuristic word-list scan (no LLM call) — keeps cost zero
+ * after DFS fetch and gives the AI prompt a per-competitor pulse.
+ */
+export interface CompetitorReviewsSummary {
+    /** Total reviews fetched (DFS depth) */
+    sample_size: number
+    /** Star rating breakdown — 1..5 */
+    rating_breakdown: { '1': number; '2': number; '3': number; '4': number; '5': number }
+    /** Avg rating across the sample */
+    avg_rating: number
+    /** % of 4-5 star reviews */
+    positive_pct: number
+    /** % of 1-2 star reviews */
+    negative_pct: number
+    /** % of reviews owner has responded to (signals brand engagement) */
+    owner_response_rate_pct: number
+    /** Top recurring complaint themes (heuristic Hebrew/English keyword scan) */
+    top_complaints: string[]
+    /** Top recurring praise themes */
+    top_praises: string[]
+    /** 1-2 representative quotes for negative + positive */
+    sample_negative_quote?: string
+    sample_positive_quote?: string
+}
+
 export interface CompetitorEnrichment {
     domain: string
     /** SERP overlap signal from competitors_domain */
@@ -100,6 +129,8 @@ export interface CompetitorEnrichment {
     onPage?: OnPageItem
     /** Phase E2.1 — top 3 ranked URLs deep-scraped via Firecrawl. */
     deepPages?: CompetitorPageSnapshot[]
+    /** Phase E2.4 — Google Business reviews aggregated sentiment (when GMB cid found). */
+    reviews?: CompetitorReviewsSummary
     /** Per-call diagnostics so the prompt can mention "data unavailable" honestly */
     enrichmentMissing: string[]
 }
@@ -347,7 +378,39 @@ export async function prefetchCompetitorLandscape(
         console.warn(`[prefetch/competitor_landscape] deep page fetch loop error:`, (err as Error).message)
     }
 
-    console.log(`[prefetch/competitor_landscape] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} hit-rate competitors=${competitors.length} enriched=${topEnriched.length} deep_pages=${firecrawlPagesScraped}`)
+    // ─── Phase E2.4 — Google Business reviews per top-5 competitor ──
+    // For each competitor, look up GMB → if cid available → fetch up to 50
+    // reviews → aggregate sentiment heuristically. Best-effort throughout:
+    // many domains aren't in GMB (online-only, B2B, etc.) — skip silently.
+    let reviewsFetchedCount = 0
+    for (const enrich of topEnriched) {
+        try {
+            // Try to find GMB entry for this domain
+            const gmbRes = await googleMyBusiness(instanceId, enrich.domain, {
+                location_code: LOCATION_IL,
+                language_code: languageCode,
+            })
+            trackCall(gmbRes)
+            const cid = gmbRes.items[0]?.cid
+            if (!cid) {
+                enrich.enrichmentMissing.push('gmb_not_found')
+                continue
+            }
+            const revRes = await googleReviews(instanceId, cid, { limit: 50, sortBy: 'newest' })
+            trackCall(revRes)
+            if (revRes.items.length > 0) {
+                enrich.reviews = aggregateReviews(revRes.items)
+                reviewsFetchedCount += revRes.items.length
+            } else {
+                enrich.enrichmentMissing.push('no_reviews_returned')
+            }
+        } catch (err) {
+            enrich.enrichmentMissing.push('reviews_fetch_failed')
+            console.warn(`[prefetch/competitor_landscape] reviews ${enrich.domain} failed:`, (err as Error).message)
+        }
+    }
+
+    console.log(`[prefetch/competitor_landscape] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} hit-rate competitors=${competitors.length} enriched=${topEnriched.length} deep_pages=${firecrawlPagesScraped} reviews=${reviewsFetchedCount}`)
 
     return {
         ourDomain,
@@ -652,6 +715,105 @@ function inferCompetitorPageType(url: string): string {
         if (/\/locations?\/|\/branches?\/|\/storage\//.test(path)) return 'local_page'
     } catch { /* fallthrough */ }
     return 'other'
+}
+
+// ─── Phase E2.4 — review aggregation ───────────────────────────────────────
+// Heuristic sentiment + theme extraction. Bilingual (he+en) keyword lists
+// for the SMB IL market — works across most B2C verticals (storage,
+// hospitality, services). Purposefully simple: no LLM call, runs in <50ms
+// on a 50-review sample. The prompt downstream does the nuanced reading.
+
+const REVIEW_COMPLAINT_KEYWORDS: Record<string, RegExp> = {
+    'מחיר/יוקר': /\b(?:יקר|מחיר גבוה|לא משתלם|expensive|overpriced|costly)\b/i,
+    'איכות שירות': /\b(?:שירות גרוע|לא אדיב|גס|חצוף|rude|poor service|unprofessional)\b/i,
+    'זמני המתנה': /\b(?:איחור|המתנה|לא הגיע|late|wait|delayed|never showed)\b/i,
+    'תקשורת': /\b(?:לא ענו|לא חזרו|נעלמו|unresponsive|didn'?t reply|no response)\b/i,
+    'איכות מוצר': /\b(?:איכות גרועה|פגום|שבור|broken|defective|low quality)\b/i,
+    'תיאום ציפיות': /\b(?:לא כמו שהובטח|הטעיה|מטעה|misleading|not as advertised|deceiving)\b/i,
+    'נקיון/מצב': /\b(?:מלוכלך|לא נקי|מוזנח|dirty|filthy|neglected)\b/i,
+}
+
+const REVIEW_PRAISE_KEYWORDS: Record<string, RegExp> = {
+    'שירות מצוין': /\b(?:שירות מעולה|אדיבים|מקצועי|excellent service|professional|courteous|kind)\b/i,
+    'מחיר הוגן': /\b(?:מחיר הוגן|מחיר טוב|משתלם|fair price|good value|affordable)\b/i,
+    'מהירות': /\b(?:מהיר|זריז|fast|quick|prompt)\b/i,
+    'אמינות': /\b(?:אמין|מאמין|reliable|trustworthy|honest)\b/i,
+    'תקשורת': /\b(?:זמינים|חוזרים|תקשורת מצוינת|responsive|great communication)\b/i,
+    'איכות': /\b(?:איכות גבוהה|מצוין|excellent|high quality|outstanding)\b/i,
+    'נקיון': /\b(?:נקי|מסודר|clean|tidy|well-maintained)\b/i,
+}
+
+function aggregateReviews(reviews: GoogleReviewItem[]): CompetitorReviewsSummary {
+    const breakdown = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 }
+    let ratingSum = 0
+    let ratingCount = 0
+    let ownerResponses = 0
+    const complaintCounts: Record<string, number> = {}
+    const praiseCounts: Record<string, number> = {}
+    let sampleNegative: string | undefined
+    let samplePositive: string | undefined
+
+    for (const r of reviews) {
+        const stars = r.rating?.value
+        if (typeof stars === 'number' && stars >= 1 && stars <= 5) {
+            const k = String(Math.round(stars)) as '1' | '2' | '3' | '4' | '5'
+            breakdown[k]++
+            ratingSum += stars
+            ratingCount++
+        }
+        if (r.response?.text && r.response.text.length > 0) ownerResponses++
+
+        const text = (r.review_text || r.translated_text || '').trim()
+        if (!text) continue
+
+        // Sentiment classification → use star rating; fallback to neutral.
+        const isNeg = stars != null && stars <= 2
+        const isPos = stars != null && stars >= 4
+
+        if (isNeg) {
+            for (const [theme, re] of Object.entries(REVIEW_COMPLAINT_KEYWORDS)) {
+                if (re.test(text)) complaintCounts[theme] = (complaintCounts[theme] || 0) + 1
+            }
+            if (!sampleNegative && text.length >= 30 && text.length <= 280) {
+                sampleNegative = text
+            }
+        } else if (isPos) {
+            for (const [theme, re] of Object.entries(REVIEW_PRAISE_KEYWORDS)) {
+                if (re.test(text)) praiseCounts[theme] = (praiseCounts[theme] || 0) + 1
+            }
+            if (!samplePositive && text.length >= 30 && text.length <= 280) {
+                samplePositive = text
+            }
+        }
+    }
+
+    const totalRated = ratingCount || 1
+    const positivePct = Math.round(((breakdown['4'] + breakdown['5']) / totalRated) * 100)
+    const negativePct = Math.round(((breakdown['1'] + breakdown['2']) / totalRated) * 100)
+    const avgRating = ratingCount > 0 ? Math.round((ratingSum / ratingCount) * 10) / 10 : 0
+    const ownerResponseRate = reviews.length > 0 ? Math.round((ownerResponses / reviews.length) * 100) : 0
+
+    const topComplaints = Object.entries(complaintCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([theme, count]) => `${theme} (${count})`)
+    const topPraises = Object.entries(praiseCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([theme, count]) => `${theme} (${count})`)
+
+    return {
+        sample_size: reviews.length,
+        rating_breakdown: breakdown,
+        avg_rating: avgRating,
+        positive_pct: positivePct,
+        negative_pct: negativePct,
+        owner_response_rate_pct: ownerResponseRate,
+        top_complaints: topComplaints,
+        top_praises: topPraises,
+        sample_negative_quote: sampleNegative,
+        sample_positive_quote: samplePositive,
+    }
 }
 
 // ── Heuristics for language decision input ──
