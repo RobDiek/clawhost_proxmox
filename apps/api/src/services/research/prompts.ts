@@ -195,12 +195,38 @@ function renderEnrichmentTable(top: CompetitorEnrichment[]): string {
         const onPage = e.onPage
             ? `onpage_score=${e.onPage.onpage_score ?? '—'}, schema=${(e.onPage.schema?.map(s => s.type).join(',')) || 'none'}, plain_text_words=${e.onPage.meta?.content?.plain_text_word_count ?? '—'}, h1=${e.onPage.meta?.h1?.[0]?.substring(0, 60) ?? '—'}`
             : '*(on-page audit unavailable)*'
+        const deepBlock = e.deepPages && e.deepPages.length > 0
+            ? '\n- **Money-pages deep scan (Phase E2.1 — Firecrawl on top-3 ranked URLs):**\n' + renderDeepPagesBlock(e.deepPages)
+            : ''
         return `### ${e.domain}
 - **שיתופי keywords:** ${e.sharedKeywords} | **avg position:** ${e.avgPosition.toFixed(1)} | **organic_count:** ${e.organicCount ?? '—'}
 - **Link profile (DFS backlinks/summary):** ${bls}
 - **Top anchor texts (DFS backlinks/anchors):** ${topAnchors}
-- **On-page (DFS on_page/instant_pages):** ${onPage}`
+- **On-page (DFS on_page/instant_pages, homepage only):** ${onPage}${deepBlock}`
     }).join('\n\n')
+}
+
+function renderDeepPagesBlock(pages: NonNullable<CompetitorEnrichment['deepPages']>): string {
+    return pages.map(p => {
+        if (!p.fetchOk) {
+            return `  - 🚫 \`${p.url}\` (rank ${p.rank} for "${p.rankedFor}") — fetch failed: ${p.fetchError}`
+        }
+        const eeat = p.eeatSignals
+        const eeatList = [
+            eeat.hasByline ? `byline${eeat.authorName ? '(' + eeat.authorName + ')' : ''}` : null,
+            eeat.hasPublishDate ? 'publish_date' : null,
+            eeat.hasUpdatedDate ? 'updated_date' : null,
+            eeat.hasExternalCitations ? 'authority_citations' : null,
+            eeat.hasReviews ? 'reviews_section' : null,
+        ].filter(Boolean).join(' · ') || 'none detected'
+        const schemas = p.schemaTypes.length > 0 ? p.schemaTypes.join(', ') : 'none'
+        const h2s = p.h2List.slice(0, 5).map(h => `"${h.substring(0, 60)}"`).join(', ') || 'none'
+        const firstPara = p.firstParagraph ? `"${p.firstParagraph.substring(0, 180)}${p.firstParagraph.length > 180 ? '…' : ''}"` : 'no paragraph extracted'
+        return `  - 📄 \`${p.url}\` (page_type: ${p.inferredPageType}, rank ${p.rank} for "${p.rankedFor}", vol ${p.searchVolume ?? '—'})
+    - **words:** ${p.wordCount ?? '—'} | **schemas:** ${schemas} | **EEAT:** ${eeatList}
+    - **H1:** ${p.h1 ?? '—'} | **H2 (top 5):** ${h2s}
+    - **first paragraph:** ${firstPara}`
+    }).join('\n')
 }
 
 function renderOurLinksBlock(ours: CompetitorLandscapeDfsData['ourLinks']): string {
@@ -261,8 +287,11 @@ export function buildCompetitorLandscapePrompt(opts: PromptOpts): PromptResult {
     const dfs = opts.dfsData as CompetitorLandscapeDfsData | undefined
     if (!dfs) throw new Error('competitor_landscape: dfsData prefetch is required')
 
+    const firecrawlNote = dfs.firecrawlAvailable
+        ? `Firecrawl: ${dfs.firecrawlPagesScraped} money-pages נסרקו על פני top ${dfs.topEnriched.length} מתחרים`
+        : 'Firecrawl: **לא זמין** — deepPages חסר; הסתמכו רק על onpage homepage + backlinks'
     const dfsAvailability = dfs.hasCompetitorData
-        ? `**מקור הנתונים:** DataForSEO live data, ${new Date().toISOString().slice(0, 10)} | ${dfs.competitors.length} מתחרים | top ${dfs.topEnriched.length} מועשרים | $${dfs.totalCostUsd.toFixed(4)} (${dfs.cacheHits}/${dfs.cacheHits + dfs.cacheMisses} cache hits)`
+        ? `**מקור הנתונים:** DataForSEO live data, ${new Date().toISOString().slice(0, 10)} | ${dfs.competitors.length} מתחרים | top ${dfs.topEnriched.length} מועשרים | ${firecrawlNote} | $${dfs.totalCostUsd.toFixed(4)} (${dfs.cacheHits}/${dfs.cacheHits + dfs.cacheMisses} cache hits)`
         : `**זהירות:** לא נמצא domain להזרים DataForSEO competitorsDomain (websiteUrl ריק או לא תקין). הניתוח יסתמך על שם העסק וההקשר ב-prompt בלבד — סמנו את כל ה-records כ-confidence: working_hypothesis.`
 
     return {
@@ -358,7 +387,25 @@ ${DFS_DATA_RULE}
       "site_architecture_depth": "ניתוח עומק האתר — hub-and-spoke? silo? flat? פעולה מתבקשת",
       "link_profile_depth": "סיכום על בסיס ה-DFS backlinks data — referring_domains, anchor patterns, spam_score",
       "backlink_worthy_assets_inventory": ["calculator X", "research Y", "tool Z"],
-      "eeat_signals": "Hebrew bylines? expert quotes? schema.author? G2/Trustpilot reviews?",
+      "money_pages_analysis": {
+        "_note": "Phase E2.1 — מבוסס על deepPages (Firecrawl scrape של top-3 URLs ranked של המתחרה). אם deepPages חסר ב-DFS data — סמנו 'data_unavailable' ו-confidence: working_hypothesis.",
+        "page_types_observed": ["pillar", "spoke", "local_page", "וכו'"],
+        "avg_word_count_inner_pages": 0,
+        "schema_coverage_summary": "1 משפט: איזה schemas קיימים אצלם (FAQPage / Article / Product / LocalBusiness) ובאיזה page-types",
+        "content_depth_vs_us": "thinner | similar | deeper",
+        "structural_pattern": "1 משפט: הם משתמשים ב-clusters? hub-and-spoke? long-form pillars?",
+        "what_they_do_better_inside": ["1-3 דברים קונקרטיים שזיהיתם בעמודים שלהם שאנחנו לא עושים"]
+      },
+      "eeat_signals": {
+        "_note": "Phase E2.1 — מבוסס על deepPages.eeatSignals. אם deepPages חסר — מבוסס על onpage homepage בלבד (degraded).",
+        "byline_present_pct": 0,
+        "publish_dates_present": true,
+        "updated_dates_present": true,
+        "external_authority_citations": true,
+        "reviews_section_present": true,
+        "schema_author_present": true,
+        "summary": "1 משפט בעברית: רמת ה-EEAT הכוללת שלהם מול שלנו"
+      },
       "il_signals": {
         "language_coverage": "Hebrew-only / Hebrew+English / mixed / translated-from-en",
         "local_trust": "Hebrew reviews count + quality / GMB completeness / branches",

@@ -11523,8 +11523,50 @@ function renderCompetitorCard(r) {
   var gaps = (r.content_gaps_at_competitor || []).slice(0, 3);
   var bls = (r.link_profile_depth || '').substring(0, 200);
   var il = r.il_signals || {};
+  // Phase E2.1 — eeat_signals is now an OBJECT (was string in pre-E2.1 outputs).
+  // Tolerate both shapes during transition.
+  var eeat = (typeof r.eeat_signals === 'object' && r.eeat_signals !== null) ? r.eeat_signals : null;
+  var eeatString = (typeof r.eeat_signals === 'string') ? r.eeat_signals : null;
+  var money = r.money_pages_analysis || null;
 
   var sb = sc.total != null ? '<span style="font-size:0.78rem;color:#1F2937;font-weight:600;direction:ltr">איום ' + sc.total + '/100</span>' : '';
+
+  // Money pages analysis (Phase E2.1)
+  var moneyBlock = '';
+  if (money && (money.page_types_observed || money.what_they_do_better_inside)) {
+    var depthLabel = money.content_depth_vs_us === 'deeper' ? '🔴 עמוקים מאיתנו'
+      : money.content_depth_vs_us === 'thinner' ? '🟢 רדודים מאיתנו'
+      : money.content_depth_vs_us === 'similar' ? '🟡 דומה' : '';
+    moneyBlock = '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.72rem;color:#1E3A8A;font-weight:500">📄 מבט פנימה: money-pages</summary>'
+      + '<div style="font-size:0.7rem;color:#4B5563;padding:6px 0;line-height:1.6">'
+      + (money.page_types_observed && money.page_types_observed.length ? '<div><strong>page-types:</strong> ' + money.page_types_observed.map(escapeHtml).join(' · ') + '</div>' : '')
+      + (money.avg_word_count_inner_pages ? '<div><strong>אורך ממוצע:</strong> ' + money.avg_word_count_inner_pages + ' מילים</div>' : '')
+      + (depthLabel ? '<div><strong>עומק תוכן מולנו:</strong> ' + depthLabel + '</div>' : '')
+      + (money.schema_coverage_summary ? '<div><strong>schema:</strong> ' + escapeHtml(money.schema_coverage_summary) + '</div>' : '')
+      + (money.structural_pattern ? '<div><strong>מבנה:</strong> ' + escapeHtml(money.structural_pattern) + '</div>' : '')
+      + (money.what_they_do_better_inside && money.what_they_do_better_inside.length
+          ? '<div style="margin-top:4px"><strong style="color:#7C2D12">מה הם עושים טוב יותר:</strong><ul style="margin:2px 0 0;padding:0 18px 0 0">' + money.what_they_do_better_inside.map(function(x) { return '<li>' + escapeHtml(x) + '</li>'; }).join('') + '</ul></div>'
+          : '')
+      + '</div></details>';
+  }
+
+  // E-E-A-T block (Phase E2.1 object form, or legacy string)
+  var eeatBlock = '';
+  if (eeat) {
+    var eeatBadges = [];
+    if (eeat.byline_present_pct != null) eeatBadges.push('byline ' + eeat.byline_present_pct + '%');
+    if (eeat.publish_dates_present) eeatBadges.push('publish_date');
+    if (eeat.updated_dates_present) eeatBadges.push('updated_date');
+    if (eeat.external_authority_citations) eeatBadges.push('authority citations');
+    if (eeat.reviews_section_present) eeatBadges.push('reviews');
+    if (eeat.schema_author_present) eeatBadges.push('schema.author');
+    eeatBlock = '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:0.7rem;color:#6B7280">EEAT signals</summary><div style="font-size:0.7rem;color:#4B5563;padding:4px 0">'
+      + (eeatBadges.length ? '<div>' + eeatBadges.map(function(b) { return '<span style="background:#F3F4F6;padding:1px 5px;border-radius:3px;margin-left:4px">' + escapeHtml(b) + '</span>'; }).join('') + '</div>' : '')
+      + (eeat.summary ? '<div style="margin-top:4px;line-height:1.5">' + escapeHtml(eeat.summary) + '</div>' : '')
+      + '</div></details>';
+  } else if (eeatString) {
+    eeatBlock = '<div style="font-size:0.7rem;color:#6B7280;margin-top:4px">EEAT: ' + escapeHtml(eeatString.substring(0, 200)) + '</div>';
+  }
 
   return '<div style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:0.8rem">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">'
@@ -11540,6 +11582,8 @@ function renderCompetitorCard(r) {
     + (threats.length ? '<div style="margin-bottom:4px"><strong style="font-size:0.72rem;color:#991B1B">איומים עלינו:</strong><ul style="margin:2px 0 0;padding:0 18px 0 0;font-size:0.74rem;color:#4B5563">' + threats.map(function(t) { return '<li>' + escapeHtml(t) + '</li>'; }).join('') + '</ul></div>' : '')
     + (gaps.length ? '<div style="margin-bottom:4px"><strong style="font-size:0.72rem;color:#065F46">פערי תוכן אצלם:</strong> <span style="font-size:0.74rem;color:#4B5563">' + gaps.map(escapeHtml).join(' · ') + '</span></div>' : '')
     + (bls ? '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">פרופיל קישורים: ' + escapeHtml(bls) + '</div>' : '')
+    + moneyBlock
+    + eeatBlock
     + (il.language_coverage ? '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:0.7rem;color:#6B7280">סיגנלי IL</summary><div style="font-size:0.7rem;color:#4B5563;padding:4px 0">' + (il.language_coverage ? '<div>שפה: ' + escapeHtml(il.language_coverage) + '</div>' : '') + (il.local_trust ? '<div>אמון מקומי: ' + escapeHtml(il.local_trust) + '</div>' : '') + (il.off_site_corroboration ? '<div>אזכורים חיצוניים (off-site): ' + escapeHtml(il.off_site_corroboration) + '</div>' : '') + '</div></details>' : '')
     + '</div>';
 }

@@ -21,6 +21,9 @@
  *     is different from "no data at all".
  */
 
+import { eq } from 'drizzle-orm'
+import { db } from '@/db'
+import { instances } from '@/db/schema'
 import {
     competitorsDomain,
     backlinksSummary,
@@ -29,6 +32,7 @@ import {
     backlinksCompetitors,
     onPageInstant,
     googleMyBusiness,
+    rankedKeywords,
     LOCATION_IL,
     DfsError,
     type CompetitorsDomainItem,
@@ -38,9 +42,51 @@ import {
     type BacklinksCompetitorItem,
     type OnPageItem,
     type GoogleMyBusinessItem,
+    type RankedKeywordItem,
 } from '@/services/research/dataforseo'
 import { decideLanguage } from '@/services/research/methodology'
 import type { ResearchDataV2 } from '@/services/research/types'
+
+/**
+ * Phase E2.1 — per-URL deep snapshot for top-3 ranked URLs of each top-5
+ * competitor. Lets the prompt see how their actual money-pages are built
+ * (content depth, schema, EEAT signals, structure) instead of inferring
+ * from homepage alone.
+ */
+export interface CompetitorPageSnapshot {
+    url: string
+    /** Position from rankedKeywords (lower = better SERP rank). */
+    rank?: number
+    /** What keyword they rank for at this URL */
+    rankedFor?: string
+    /** Search volume of the keyword they rank for */
+    searchVolume?: number
+    /** Word count of full text (Firecrawl markdown stripped of YAML/headings). */
+    wordCount?: number
+    /** Schema @type values found in <script type="application/ld+json"> blocks. */
+    schemaTypes: string[]
+    /** Heuristic E-E-A-T signals detected on the page. */
+    eeatSignals: {
+        hasByline: boolean              // "by <author>", or schema.author present
+        hasPublishDate: boolean
+        hasUpdatedDate: boolean
+        hasExternalCitations: boolean   // links to .gov, .edu, news domains
+        hasReviews: boolean             // reviews/testimonials section
+        authorName?: string
+    }
+    /** Page structure */
+    title?: string
+    metaDescription?: string
+    h1?: string
+    h2List: string[]                    // up to 10
+    /** First paragraph of main content (200 chars). */
+    firstParagraph?: string
+    /** Page type heuristic from URL pattern */
+    inferredPageType: string
+    /** What went wrong if anything */
+    fetchOk: boolean
+    fetchError?: string
+}
 
 export interface CompetitorEnrichment {
     domain: string
@@ -52,6 +98,8 @@ export interface CompetitorEnrichment {
     backlinks?: BacklinksSummary
     anchorPatterns?: BacklinksAnchorItem[]
     onPage?: OnPageItem
+    /** Phase E2.1 — top 3 ranked URLs deep-scraped via Firecrawl. */
+    deepPages?: CompetitorPageSnapshot[]
     /** Per-call diagnostics so the prompt can mention "data unavailable" honestly */
     enrichmentMissing: string[]
 }
@@ -89,6 +137,11 @@ export interface CompetitorLandscapeDfsData {
     /** Counts for log line: cached vs fetched fresh */
     cacheHits: number
     cacheMisses: number
+    /** Phase E2.1 — was Firecrawl available for deep page scrapes?
+     *  When false, deepPages will be empty and prompt notes it. */
+    firecrawlAvailable: boolean
+    /** Phase E2.1 — count of pages successfully deep-scraped across all competitors */
+    firecrawlPagesScraped: number
 }
 
 /**
@@ -256,7 +309,45 @@ export async function prefetchCompetitorLandscape(
         }
     }
 
-    console.log(`[prefetch/competitor_landscape] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} hit-rate competitors=${competitors.length} enriched=${topEnriched.length}`)
+    // ─── Phase E2.1 — deep page snapshots per top-5 competitor ──
+    // Strategy: pull each competitor's top-3 ranked URLs via DFS rankedKeywords
+    // (their actual money-pages) and Firecrawl-scrape each. The prompt now
+    // sees real content depth + schema across page-types + EEAT signals,
+    // not just the homepage. Single-page competitor audits chronically miss
+    // EEAT and content depth — those live on inner pages.
+    //
+    // Best-effort throughout:
+    //   - No firecrawlKey → skip entirely; firecrawlAvailable=false
+    //   - rankedKeywords fails for a competitor → enrichmentMissing.push, continue
+    //   - Per-URL Firecrawl fail → snapshot.fetchOk=false, continue
+    let firecrawlAvailable = false
+    let firecrawlPagesScraped = 0
+    try {
+        const [inst] = await db.select({ firecrawlKey: instances.firecrawlKey })
+            .from(instances).where(eq(instances.id, instanceId))
+        const firecrawlKey = inst?.firecrawlKey
+        if (firecrawlKey) {
+            firecrawlAvailable = true
+            for (const enrich of topEnriched) {
+                const deep = await fetchDeepPagesForCompetitor(
+                    instanceId, enrich.domain, firecrawlKey, languageCode, trackCall,
+                )
+                if (deep.length > 0) {
+                    enrich.deepPages = deep
+                    firecrawlPagesScraped += deep.filter(p => p.fetchOk).length
+                } else {
+                    enrich.enrichmentMissing.push('deep_pages_unavailable')
+                }
+            }
+        } else {
+            for (const enrich of topEnriched) enrich.enrichmentMissing.push('firecrawl_key_not_configured')
+            console.warn(`[prefetch/competitor_landscape] firecrawlKey not configured — skipping deep page scrapes`)
+        }
+    } catch (err) {
+        console.warn(`[prefetch/competitor_landscape] deep page fetch loop error:`, (err as Error).message)
+    }
+
+    console.log(`[prefetch/competitor_landscape] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} hit-rate competitors=${competitors.length} enriched=${topEnriched.length} deep_pages=${firecrawlPagesScraped}`)
 
     return {
         ourDomain,
@@ -268,7 +359,299 @@ export async function prefetchCompetitorLandscape(
         totalCostUsd,
         cacheHits,
         cacheMisses,
+        firecrawlAvailable,
+        firecrawlPagesScraped,
     }
+}
+
+// ─── Phase E2.1 helpers ─────────────────────────────────────────────────────
+
+const FIRECRAWL_API = 'https://api.firecrawl.dev/v1/scrape'
+
+interface FirecrawlScrapeResponse {
+    success?: boolean
+    data?: {
+        markdown?: string
+        html?: string
+        metadata?: {
+            title?: string
+            description?: string
+            language?: string
+        }
+    }
+    error?: string
+}
+
+type TrackCallFn = <T>(r: { cost: number; cached: boolean; items: T[] }) => { cost: number; cached: boolean; items: T[] }
+
+async function fetchDeepPagesForCompetitor(
+    instanceId: string,
+    domain: string,
+    firecrawlKey: string,
+    languageCode: 'he' | 'en',
+    trackCall: TrackCallFn,
+): Promise<CompetitorPageSnapshot[]> {
+    // 1. Identify top 3 URLs by SERP rank — money-pages signal.
+    let topRanked: RankedKeywordItem[] = []
+    try {
+        const r = await rankedKeywords(instanceId, domain, {
+            location_code: LOCATION_IL,
+            language_code: languageCode,
+            limit: 50,
+            filters: [
+                ['ranked_serp_element.serp_item.rank_absolute', '<=', 20],
+            ],
+        })
+        trackCall(r)
+        topRanked = r.items
+    } catch (err) {
+        console.warn(`[prefetch/competitor_landscape] rankedKeywords ${domain} failed:`, (err as Error).message)
+        return []
+    }
+
+    // Pick distinct URLs ranked best (lowest rank_absolute), prefer non-homepage
+    // diversity — homepage already audited via onPageInstant elsewhere.
+    const seenUrls = new Set<string>()
+    const urlPriority: Array<{ url: string; rank: number; keyword: string; volume: number }> = []
+    for (const r of topRanked) {
+        const url = r.ranked_serp_element?.serp_item?.url
+        const rank = r.ranked_serp_element?.serp_item?.rank_absolute
+        const keyword = r.keyword_data?.keyword
+        const volume = r.keyword_data?.keyword_info?.search_volume
+        if (!url || rank == null || !keyword) continue
+        if (seenUrls.has(url)) continue
+        seenUrls.add(url)
+        urlPriority.push({ url, rank, keyword, volume: volume ?? 0 })
+    }
+    urlPriority.sort((a, b) => a.rank - b.rank)
+    // Skip the bare homepage in favor of inner pages — onPageInstant already
+    // covered it. Re-add homepage only if we have <3 inner candidates.
+    const isBareHome = (u: string) => {
+        try {
+            const url = new URL(u)
+            return !url.pathname || url.pathname === '/' || url.pathname === ''
+        } catch { return false }
+    }
+    let chosen = urlPriority.filter(u => !isBareHome(u.url)).slice(0, 3)
+    if (chosen.length < 3) {
+        const home = urlPriority.find(u => isBareHome(u.url))
+        if (home && !chosen.find(c => c.url === home.url)) chosen = [home, ...chosen].slice(0, 3)
+    }
+
+    if (chosen.length === 0) return []
+
+    // 2. Firecrawl scrape each in parallel.
+    const snapshots = await Promise.all(chosen.map(async (c): Promise<CompetitorPageSnapshot> => {
+        try {
+            const res = await fetch(FIRECRAWL_API, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${firecrawlKey}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: c.url,
+                    formats: ['markdown', 'html'],
+                    onlyMainContent: true,
+                }),
+                signal: AbortSignal.timeout(60_000),
+            })
+            if (!res.ok) {
+                return buildEmptySnapshot(c.url, c.rank, c.keyword, c.volume, `firecrawl_http_${res.status}`)
+            }
+            const body = await res.json() as FirecrawlScrapeResponse
+            if (!body.success || !body.data) {
+                return buildEmptySnapshot(c.url, c.rank, c.keyword, c.volume, body.error || 'firecrawl_no_data')
+            }
+            return analyzeScrapedPage(c.url, c.rank, c.keyword, c.volume, body.data)
+        } catch (err) {
+            return buildEmptySnapshot(c.url, c.rank, c.keyword, c.volume, (err as Error).message)
+        }
+    }))
+
+    return snapshots
+}
+
+function buildEmptySnapshot(
+    url: string, rank: number, rankedFor: string, searchVolume: number, error: string,
+): CompetitorPageSnapshot {
+    return {
+        url, rank, rankedFor, searchVolume,
+        schemaTypes: [],
+        eeatSignals: { hasByline: false, hasPublishDate: false, hasUpdatedDate: false, hasExternalCitations: false, hasReviews: false },
+        h2List: [],
+        inferredPageType: inferCompetitorPageType(url),
+        fetchOk: false,
+        fetchError: error,
+    }
+}
+
+function analyzeScrapedPage(
+    url: string,
+    rank: number,
+    rankedFor: string,
+    searchVolume: number,
+    data: NonNullable<FirecrawlScrapeResponse['data']>,
+): CompetitorPageSnapshot {
+    const html = data.html || ''
+    const markdown = data.markdown || ''
+
+    // Schema types from <script type="application/ld+json">
+    const schemaTypes: string[] = []
+    const ldJsonRegex = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
+    let m: RegExpExecArray | null
+    while ((m = ldJsonRegex.exec(html)) !== null) {
+        try {
+            const parsed = JSON.parse(m[1].trim())
+            collectSchemaTypes(parsed, schemaTypes)
+        } catch { /* invalid LD-JSON; skip */ }
+    }
+
+    // H1, H2 from markdown (Firecrawl emits ATX headings)
+    const lines = markdown.split('\n')
+    let h1: string | undefined
+    const h2List: string[] = []
+    for (const line of lines) {
+        const trimmed = line.trim()
+        if (!h1 && /^#\s+(.+)/.test(trimmed)) {
+            h1 = trimmed.replace(/^#\s+/, '').trim()
+        } else if (/^##\s+(.+)/.test(trimmed)) {
+            h2List.push(trimmed.replace(/^##\s+/, '').trim())
+            if (h2List.length >= 10) break
+        }
+    }
+
+    // Word count from full markdown stripped of formatting
+    const cleanText = markdown
+        .replace(/```[\s\S]*?```/g, '')        // code fences
+        .replace(/!?\[[^\]]*\]\([^)]+\)/g, '') // links + images
+        .replace(/^[#>*\-+|]+\s*/gm, '')        // markdown structure chars
+        .replace(/[*_`~]/g, '')
+    const wordCount = cleanText.split(/\s+/).filter(w => w.length > 0).length
+
+    // First paragraph (skip heading/blank lines)
+    let firstParagraph: string | undefined
+    for (const line of lines) {
+        const t = line.trim()
+        if (!t) continue
+        if (t.startsWith('#')) continue
+        if (t.startsWith('>')) continue
+        if (t.startsWith('|')) continue
+        firstParagraph = t.substring(0, 250)
+        break
+    }
+
+    // E-E-A-T signals — heuristic detection from markdown + html
+    const eeatSignals = detectEeatSignals(markdown, html)
+
+    // Schema author override
+    if (!eeatSignals.authorName) {
+        const authorFromSchema = extractAuthorFromSchemas(html)
+        if (authorFromSchema) {
+            eeatSignals.authorName = authorFromSchema
+            eeatSignals.hasByline = true
+        }
+    }
+
+    return {
+        url,
+        rank,
+        rankedFor,
+        searchVolume,
+        wordCount,
+        schemaTypes: Array.from(new Set(schemaTypes)),
+        eeatSignals,
+        title: data.metadata?.title?.trim(),
+        metaDescription: data.metadata?.description?.trim(),
+        h1,
+        h2List,
+        firstParagraph,
+        inferredPageType: inferCompetitorPageType(url),
+        fetchOk: true,
+    }
+}
+
+function collectSchemaTypes(node: unknown, out: string[]): void {
+    if (!node) return
+    if (Array.isArray(node)) {
+        for (const item of node) collectSchemaTypes(item, out)
+        return
+    }
+    if (typeof node !== 'object') return
+    const obj = node as Record<string, unknown>
+    const type = obj['@type']
+    if (typeof type === 'string') out.push(type)
+    else if (Array.isArray(type)) {
+        for (const t of type) if (typeof t === 'string') out.push(t)
+    }
+    // Recurse into @graph and other nested structures
+    const graph = obj['@graph']
+    if (Array.isArray(graph)) {
+        for (const item of graph) collectSchemaTypes(item, out)
+    }
+}
+
+function extractAuthorFromSchemas(html: string): string | undefined {
+    const ldJsonRegex = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
+    let m: RegExpExecArray | null
+    while ((m = ldJsonRegex.exec(html)) !== null) {
+        try {
+            const parsed = JSON.parse(m[1].trim()) as Record<string, unknown>
+            const author = parsed.author
+            if (typeof author === 'string') return author
+            if (author && typeof author === 'object') {
+                const name = (author as Record<string, unknown>).name
+                if (typeof name === 'string') return name
+            }
+        } catch { /* skip */ }
+    }
+    return undefined
+}
+
+function detectEeatSignals(markdown: string, html: string): CompetitorPageSnapshot['eeatSignals'] {
+    const m = markdown.toLowerCase()
+    const h = html.toLowerCase()
+    // Byline patterns: "by John Doe", "כתב/ה: ...", "מאת ..."
+    const bylineMatch = markdown.match(/(?:^|\n)\s*(?:by|written by|כתב|כתבה|מאת|נכתב על ידי)\s+([\p{L}\p{M} .']{2,60})/iu)
+    const hasByline = !!bylineMatch
+    const authorName = bylineMatch ? bylineMatch[1].trim() : undefined
+
+    // Date patterns
+    const datePattern = /\b(?:20[0-9]{2})[-./](?:0?[1-9]|1[0-2])[-./](?:0?[1-9]|[12][0-9]|3[01])\b|\b(?:0?[1-9]|[12][0-9]|3[01])[-./](?:0?[1-9]|1[0-2])[-./](?:20[0-9]{2})\b/
+    const hasPublishDate = datePattern.test(markdown) || /datepublished|published[-_]?on/i.test(html)
+    const hasUpdatedDate = /updated|מעודכן|עודכן|datemodified/i.test(m + ' ' + h)
+
+    // External authority citations
+    const externalAuthorityRegex = /https?:\/\/[^\s)"'<>]+\.(?:gov|edu|gov\.il|ac\.il)|https?:\/\/(?:www\.)?(?:nytimes|wsj|forbes|bbc|reuters|calcalist|globes|themarker|ynet|geektime|haaretz)\.[a-z.]+/gi
+    const hasExternalCitations = externalAuthorityRegex.test(html)
+
+    // Reviews / testimonials
+    const hasReviews = /\bביקור(?:ות|ת)\b|\bהמלצ(?:ות|ה)\b|\btestimonial|\breview/i.test(m)
+        || /aggregaterating|review/i.test(h)
+
+    return {
+        hasByline,
+        hasPublishDate,
+        hasUpdatedDate,
+        hasExternalCitations,
+        hasReviews,
+        authorName,
+    }
+}
+
+function inferCompetitorPageType(url: string): string {
+    try {
+        const u = new URL(url)
+        const path = u.pathname.toLowerCase().replace(/\/$/, '')
+        if (!path || path === '') return 'homepage'
+        if (/\/blog\/|\/articles\/|\/posts\/|\/news\//.test(path)) return 'blog_post'
+        if (/\/about|\/אודות/.test(path)) return 'about'
+        if (/\/contact|\/צור-קשר/.test(path)) return 'contact'
+        if (/\/pricing|\/מחיר/.test(path)) return 'pricing'
+        if (/\/faq|\/שאלות/.test(path)) return 'faq'
+        if (/\/products?\/|\/מוצר\//.test(path)) return 'product'
+        if (/\/services?\/|\/שירות\//.test(path)) return 'service'
+        if (/\/category|\/קטגוריה/.test(path)) return 'category'
+        if (/\/locations?\/|\/branches?\/|\/storage\//.test(path)) return 'local_page'
+    } catch { /* fallthrough */ }
+    return 'other'
 }
 
 // ── Heuristics for language decision input ──
