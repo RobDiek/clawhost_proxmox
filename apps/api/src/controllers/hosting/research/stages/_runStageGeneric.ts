@@ -217,6 +217,15 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         }
         // Also scrub the markdown body since the model uses the same filler there.
         output.content = scrubEnglishFillerInText(output.content)
+
+        // Phase QA round-4 — residual English-in-Hebrew monitor. Walks the
+        // scrubbed final output looking for English tokens (≥3 chars) that are
+        // NOT in our allowlist. Pure logging — output goes to server logs so we
+        // can iterate the dictionary without waiting for the critic to flag it.
+        const residualUnknown = findUnknownEnglishInHebrew(output.content, parsed.records)
+        if (residualUnknown.length > 0) {
+            console.warn(`[research/${stageId}] residual non-allowlisted English tokens after scrub (${residualUnknown.length}): ${residualUnknown.slice(0, 20).join(', ')}${residualUnknown.length > 20 ? '…' : ''}`)
+        }
         if (parsed.records) output.records = parsed.records
         // Capture non-records JSON sibling fields (Phase 3.10b: our_link_profile,
         // link_gap_targets, cross_validation_matrix, etc.). UI per-stage
@@ -259,9 +268,28 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                     || stageId === 'cost_timeline_modeling'
                 if (stageHasRecompute && /math_sanity|formula_verification|scorecard.*total|opportunity.*total|aeo.*total|monthly_budget|total_program|duration_months|monthly_kpi/i.test(f)) {
                     autoCorrected.push(f)
-                } else {
-                    remainingHardFailures.push(f)
+                    continue
                 }
+                // Phase QA round-4 — language_script_qa is auto-corrected when
+                // the scrubber removed all flagged English filler from the
+                // final output (or when the flagged words are in the allowlist
+                // and critic over-flagged legitimate jargon). Parses the
+                // single-quoted offending phrases out of the failure message,
+                // checks each against (a) ALLOWLIST (jargon ok) and (b) the
+                // post-scrub haystack. If none survived → autoCorrected. If any
+                // survived → flagged with `survived: X, Y` so we know what
+                // dictionary entries to add next round.
+                if (/language_script_qa|hebrew.script|filler/i.test(f)) {
+                    const result = checkLanguageScriptResolution(f, output.content, parsed.records || [])
+                    if (result.allResolved) {
+                        autoCorrected.push(`${f} → resolved server-side (scrubber + allowlist)`)
+                        continue
+                    } else {
+                        remainingHardFailures.push(`${f} | survived: ${result.surviving.join(', ')}`)
+                        continue
+                    }
+                }
+                remainingHardFailures.push(f)
             }
             const stillHasHardFailures = remainingHardFailures.length > 0
             output.qualityGate = {
@@ -542,6 +570,19 @@ const FORBID_LIST_REPLACEMENTS: Array<[RegExp, string]> = [
     [/(?<![\w_])duplicate(?![\w_-])/gi, 'כפיל'],
     [/(?<![\w_])thin(?![\w_-])/gi, 'דק'],
     [/(?<![\w_])bridge(?![\w_-])/gi, 'גשר'],
+    // Phase QA round-4 — words critic caught on stage 3 re-run after round-3.
+    // Multi-word phrases first (replaced before unigrams to avoid clobbering).
+    [/\bfast optimization\b/gi, 'אופטימיזציה מהירה'],
+    [/\bflag risk\b/gi, 'סימון סיכון'],
+    [/\bentry point\b/gi, 'נקודת כניסה'],
+    [/\bunit size matrix\b/gi, 'מטריצת גדלי יחידות'],
+    [/\bsize matrix interactive\b/gi, 'מחשבון גדלים אינטראקטיבי'],
+    [/\bsize matrix\b/gi, 'מטריצת גדלים'],
+    // Unigrams — careful with `distance`: keep the SEO term "striking distance"
+    // intact via a negative-lookbehind on "striking ".
+    [/(?<!striking )(?<![\w_])distance(?![\w_-])/gi, 'מרחק'],
+    [/(?<![\w_])minimum(?![\w_-])/gi, 'מינימום'],
+    [/(?<![\w_])address(?![\w_-])/gi, 'כתובת'],
 ]
 
 function scrubEnglishFillerInText(text: string): string {
@@ -622,4 +663,155 @@ function scrubEnglishFillerInRecords(records: unknown[]): void {
     if (touched > 0) {
         console.log(`[research] Hebrew filler scrubber: ${touched} substitutions across ${records.length} records`)
     }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Phase QA round-4 — regex-based residual English-in-Hebrew detector +
+// language_script_qa resolution check.
+//
+// Two structures:
+//
+//   ALLOWLIST  — single English tokens (lowercase) that are LEGITIMATE jargon
+//                in modern SEO/marketing/tech writing and must NOT be flagged.
+//                We accept them in Hebrew prose because translating them
+//                ("CTR" → "אחוז הקלקות") is awkward and harms readability for
+//                the target audience (Israeli marketers / SEO pros).
+//
+//   ALLOWPHRASES — multi-word English phrases (lowercase) that are intact
+//                  technical terms ("striking distance", "money page", etc).
+//                  We mask these in the haystack BEFORE unigram scanning so a
+//                  word like "distance" inside "striking distance" is not
+//                  flagged in isolation.
+//
+// findUnknownEnglishInHebrew → returns english tokens in the haystack that
+// pass NEITHER allowlist NOR allowphrase masking. Used for monitoring
+// (console.warn) so we can iterate the dictionary based on what the model
+// actually generates, instead of waiting for the critic to reject a run.
+//
+// checkLanguageScriptResolution → given a critic failure message + the
+// post-scrub final content, parses the single-quoted offending phrases and
+// for each: (1) extract the English subspan, (2) check allowlist hit
+// (allowed jargon → considered resolved), (3) check haystack presence
+// (scrubber removed it → considered resolved). Returns { allResolved,
+// surviving } so qualityGate can decide hard-failure vs autoCorrected.
+
+const HEBREW_PROSE_ALLOWLIST = new Set<string>([
+    // SEO acronyms — universally allowed in IL SEO writing
+    'seo', 'sem', 'serp', 'serps', 'aeo', 'geo', 'gsc', 'gmb', 'gbp', 'ymyl',
+    'eat', 'eeat', 'ctr', 'cpc', 'cpm', 'cpa', 'roi', 'kpi', 'kpis', 'roas',
+    'aov', 'ltv', 'cac', 'mrr', 'arr', 'jtbd', 'icp', 'ux', 'ui', 'cro',
+    // Search/ranking jargon
+    'rank', 'ranking', 'rankings', 'keyword', 'keywords', 'longtail', 'shorttail',
+    'snippet', 'snippets', 'lcp', 'cls', 'fid', 'inp',
+    'authority', 'anchor', 'anchors', 'pillar', 'cluster', 'clusters',
+    'evergreen', 'listicle', 'silo', 'siloing', 'crawl', 'crawler', 'crawling',
+    'index', 'indexed', 'indexable', 'redirect', 'redirects',
+    // Schema / HTML / web standards
+    'schema', 'jsonld', 'microdata', 'opengraph', 'rdfa',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'alt', 'meta', 'noindex', 'nofollow',
+    'dofollow', 'canonical', 'hreflang', 'sitemap', 'robots', 'rel',
+    'breadcrumb', 'breadcrumbs', 'faq', 'faqpage', 'localbusiness',
+    'organization', 'product', 'review', 'aggregaterating',
+    // E-commerce / marketing funnel
+    'cta', 'ctas', 'mof', 'tof', 'bof', 'awareness', 'consideration', 'decision',
+    'leakage', 'leakages', 'funnel', 'funnels', 'cohort', 'cohorts',
+    'churn', 'retention', 'activation', 'acquisition', 'conversion', 'conversions',
+    'upsell', 'cross-sell', 'crossell', 'bundle', 'bundles',
+    // Tech / protocols
+    'http', 'https', 'html', 'css', 'json', 'xml', 'csv',
+    'pdf', 'cdn', 'dns', 'ssl', 'tls', 'tcp', 'url', 'urls', 'utm', 'utms',
+    'cms', 'crm', 'erp', 'saas', 'paas', 'iaas', 'b2b', 'b2c', 'smb', 'd2c',
+    'api', 'apis', 'rest', 'webhook', 'webhooks', 'oauth',
+    // Brands / tools / platforms
+    'google', 'bing', 'yandex', 'chatgpt', 'claude', 'perplexity', 'gemini',
+    'copilot', 'anthropic', 'openai', 'meta', 'facebook', 'instagram',
+    'youtube', 'tiktok', 'linkedin', 'twitter', 'whatsapp', 'telegram',
+    'wordpress', 'shopify', 'woocommerce', 'wix', 'squarespace', 'webflow',
+    'ahrefs', 'semrush', 'moz', 'frog', 'screaming',
+    'dataforseo', 'searchconsole', 'analytics',
+    // Common loanwords used freely in IL marketing
+    'webinar', 'webinars', 'podcast', 'podcasts', 'newsletter', 'newsletters',
+    'whitepaper', 'whitepapers', 'ebook', 'ebooks', 'infographic', 'infographics',
+    'landing', 'page', 'pages', 'homepage', 'about', 'contact', 'pricing',
+    // Storage / units (false positives in cost data)
+    'gb', 'mb', 'kb', 'tb',
+])
+
+const HEBREW_PROSE_ALLOWPHRASES = [
+    'striking distance', 'domain authority', 'page authority',
+    'money page', 'money pages', 'topical authority',
+    'featured snippet', 'rich snippet', 'rich snippets',
+    'rich results', 'rich result',
+    'knowledge panel', 'knowledge graph', 'people also ask', 'related searches',
+    'core web vitals', 'web vitals', 'crawl budget', 'render budget',
+    'search intent', 'user intent', 'transactional intent', 'commercial intent',
+    'informational intent', 'navigational intent',
+    'long tail', 'short tail', 'fat head', 'mid tail',
+    'zero click', 'click through rate',
+    'striking distance keyword', 'striking distance keywords',
+    'evergreen content', 'pillar page', 'pillar content',
+    'topic cluster', 'content hub', 'content silo',
+    'link building', 'link velocity', 'link earning', 'link bait',
+    'inbound link', 'inbound links', 'outbound link', 'outbound links',
+    'internal link', 'internal links', 'external link', 'external links',
+    'best practice', 'best practices', 'use case', 'use cases',
+]
+
+function findUnknownEnglishInHebrew(content: string, records: unknown): string[] {
+    let haystack = String(content || '').toLowerCase()
+    if (records && typeof records === 'object') {
+        haystack += ' ' + JSON.stringify(records).toLowerCase()
+    }
+    // Mask allowphrases first so unigram scanning skips them.
+    for (const phrase of HEBREW_PROSE_ALLOWPHRASES) {
+        haystack = haystack.split(phrase).join(' ___allowed___ ')
+    }
+    const matches = haystack.match(/\b[a-z][a-z'-]{2,}\b/g) || []
+    const unknown = new Set<string>()
+    for (const m of matches) {
+        if (m === '___allowed___') continue
+        if (HEBREW_PROSE_ALLOWLIST.has(m)) continue
+        unknown.add(m)
+    }
+    return [...unknown].sort()
+}
+
+function escapeRegex(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+interface LanguageScriptCheck {
+    allResolved: boolean
+    surviving: string[]
+}
+
+function checkLanguageScriptResolution(
+    failure: string,
+    finalContent: string,
+    finalRecords: unknown[],
+): LanguageScriptCheck {
+    // Critic's failure message format includes single-quoted offenders, e.g.
+    //   "language_script_qa: מילים אסורות: 'fast win', 'AOV גבוה', 'address מדויק'"
+    const flaggedRaw = failure.match(/'([^']{1,80})'/g) || []
+    if (flaggedRaw.length === 0) {
+        // No quoted phrases — can't verify. Conservative: keep as hard failure.
+        return { allResolved: false, surviving: [] }
+    }
+    const haystack = (finalContent + ' ' + JSON.stringify(finalRecords)).toLowerCase()
+    const surviving: string[] = []
+    for (const raw of flaggedRaw) {
+        const phrase = raw.slice(1, -1).trim()
+        // Extract first English run from the phrase (critic includes Hebrew context).
+        const englishMatch = phrase.match(/[A-Za-z][A-Za-z\s'-]{1,}[A-Za-z]/) || phrase.match(/[A-Za-z]+/)
+        const english = englishMatch ? englishMatch[0].trim().toLowerCase() : null
+        if (!english) continue  // pure-Hebrew flag — drop
+        // Allowlist hit → considered resolved (over-flag by critic).
+        if (HEBREW_PROSE_ALLOWLIST.has(english)) continue
+        if (HEBREW_PROSE_ALLOWPHRASES.includes(english)) continue
+        // Haystack hit → still present in final output, scrubber didn't remove it.
+        if (new RegExp(`\\b${escapeRegex(english)}\\b`, 'i').test(haystack)) {
+            surviving.push(english)
+        }
+    }
+    return { allResolved: surviving.length === 0, surviving }
 }
