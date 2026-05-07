@@ -33,6 +33,7 @@ import {
 import { buildPromptForStage } from '@/services/research/prompts'
 import { parseHybridResponse, rollupConfidence } from '@/services/research/hybridParser'
 import { runSelfCritique } from '@/services/research/selfCritique'
+import { runHebrewCleanup } from '@/services/research/hebrewCleanup'
 import { DfsError } from '@/services/research/dataforseo'
 import { prefetchCompetitorLandscape } from './prefetch/competitor_landscape'
 import { prefetchSeoKeywordResearch } from './prefetch/seo_keyword_research'
@@ -266,6 +267,31 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         const residualUnknown = findUnknownEnglishInHebrew(output.content, parsed.records)
         if (residualUnknown.length > 0) {
             console.warn(`[research/${stageId}] residual non-allowlisted English tokens after scrub (${residualUnknown.length}): ${residualUnknown.slice(0, 20).join(', ')}${residualUnknown.length > 20 ? '…' : ''}`)
+        }
+
+        // Phase QA round-9 — Hebrew final-pass cleanup via Sonnet 4.6.
+        // Scrubber + critic chase a long tail of jargon and never converge.
+        // This pass takes a different approach: a single Sonnet call that
+        // REWRITES content + records into pure Hebrew, preserving JSON
+        // structure, schema names, brand names, and SEO acronym allowlist.
+        // Cost: ~$0.03-0.10 per stage. Adds ~20-40s runtime. Worth it —
+        // stops the round-after-round dictionary expansion.
+        try {
+            const cleanup = await runHebrewCleanup({
+                content: output.content,
+                records: parsed.records ?? undefined,
+                instanceId,
+                stageId,
+            })
+            if (cleanup.applied) {
+                output.content = cleanup.cleanedContent
+                if (cleanup.cleanedRecords) {
+                    parsed.records = cleanup.cleanedRecords
+                    output.records = cleanup.cleanedRecords
+                }
+            }
+        } catch (err) {
+            console.warn(`[research/${stageId}] hebrewCleanup unexpectedly threw:`, (err as Error).message)
         }
         if (parsed.records) output.records = parsed.records
         // Capture non-records JSON sibling fields (Phase 3.10b: our_link_profile,
