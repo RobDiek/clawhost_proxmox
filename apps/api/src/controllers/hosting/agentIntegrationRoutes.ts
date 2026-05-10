@@ -55,7 +55,10 @@ export const listAgentIntegrations = async (c: Context) => {
             return fail(c, 'Instance not found', 404)
         }
 
-        const integrations = await getAgentIntegrations(instanceId, agentType)
+        // Phase 2.3.E — honor ?agentId= for per-agent isolation
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        const integrations = await getAgentIntegrations(instanceId, agentType, __activeAgent?.id)
 
         // Build a summary object like the legacy format
         const summary: Record<string, { connected: boolean; status: string; [key: string]: unknown }> = {}
@@ -115,7 +118,10 @@ export const getAgentIntegrationEndpoint = async (c: Context) => {
         const userId = resolveUserId(c)
         if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
 
-        const integration = await getAgentIntegration(instanceId, agentType, intType)
+        // Phase 2.3.E — honor ?agentId= for per-agent isolation
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        const integration = await getAgentIntegration(instanceId, agentType, intType, __activeAgent?.id)
         if (!integration) {
             return ok(c, { connected: false, agentType, integrationType: intType }, 'Not connected')
         }
@@ -139,7 +145,11 @@ export const getAgentIntegrationEndpoint = async (c: Context) => {
 
 /**
  * POST /instances/:id/agents/:agentType/integrations/:type
- * Connect/update an integration for a specific agent
+ * Connect/update an integration for a specific agent.
+ *
+ * Phase 2.3.E — when ?agentId= is provided in query, use it as the
+ * mateh_agents.id for the upsert (multi-MATEH isolation). Otherwise
+ * the helper resolves to the primary agent for back-compat.
  */
 export const setAgentIntegrationEndpoint = async (c: Context) => {
     try {
@@ -155,7 +165,17 @@ export const setAgentIntegrationEndpoint = async (c: Context) => {
 
         const body = await c.req.json()
 
-        await setAgentIntegration(instanceId, agentType, intType, body.config || body, body.status || 'connected')
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+
+        await setAgentIntegration(
+            instanceId,
+            agentType,
+            intType,
+            body.config || body,
+            body.status || 'connected',
+            __activeAgent?.id,
+        )
 
         return ok(c, { agentType, integrationType: intType, status: 'connected' }, 'Integration saved')
     } catch (err) {
@@ -166,7 +186,8 @@ export const setAgentIntegrationEndpoint = async (c: Context) => {
 
 /**
  * DELETE /instances/:id/agents/:agentType/integrations/:type
- * Disconnect an integration for a specific agent
+ * Disconnect an integration for a specific agent.
+ * Phase 2.3.E — agentId-aware (see set endpoint above).
  */
 export const deleteAgentIntegrationEndpoint = async (c: Context) => {
     try {
@@ -180,7 +201,10 @@ export const deleteAgentIntegrationEndpoint = async (c: Context) => {
         const userId = resolveUserId(c)
         if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
 
-        await removeAgentIntegration(instanceId, agentType, intType)
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+
+        await removeAgentIntegration(instanceId, agentType, intType, __activeAgent?.id)
 
         return ok(c, { agentType, integrationType: intType }, 'Integration disconnected')
     } catch (err) {
