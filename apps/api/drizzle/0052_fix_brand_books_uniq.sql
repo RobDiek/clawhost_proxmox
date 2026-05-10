@@ -12,8 +12,12 @@
 -- Both predate Phase 2.3 multi-MATEH and need to be widened to include
 -- agent_id so each mateh_agent has its own version + approval lineage.
 
+-- brand_books_instance_version_uniq was created as a UNIQUE INDEX (not a
+-- table-level CONSTRAINT) by some earlier Drizzle migration, so DROP
+-- CONSTRAINT IF EXISTS is a no-op. Use DROP INDEX instead.
 ALTER TABLE brand_books
     DROP CONSTRAINT IF EXISTS brand_books_instance_version_uniq;
+DROP INDEX IF EXISTS brand_books_instance_version_uniq;
 
 DROP INDEX IF EXISTS brand_books_one_approved_per_instance;
 
