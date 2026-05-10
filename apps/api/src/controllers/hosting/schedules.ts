@@ -9,10 +9,11 @@ import type { Context } from 'hono'
 import { readFileSync } from 'fs'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { instances } from '@/db/schema'
+import { instances, matehAgents } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
+import { resolveActiveAgent, updateAgentField } from '@/services/agentContext'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const DAYS_HE = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש']
@@ -44,6 +45,9 @@ function sshExec(ip: string, command: string, password?: string, timeoutMs = 300
 }
 
 // GET /instances/:id/schedules
+// Phase 2.3.A — schedules now live on mateh_agents.schedules. If ?agentId=
+// is given, return that agent's schedules. Otherwise, primary agent's. Falls
+// back to instances.schedules only for legacy instances with no agent row.
 export const getSchedules = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
@@ -51,7 +55,9 @@ export const getSchedules = async (c: Context) => {
         const instance = await getOwnedInstance(instanceId, userId)
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        return ok(c, instance.schedules || {}, 'Schedules')
+        const agent = await resolveActiveAgent(c, instanceId)
+        const schedules = agent ? (agent.schedules || {}) : (instance.schedules || {})
+        return ok(c, schedules, 'Schedules')
     } catch (err) {
         console.error('getSchedules error:', err)
         return fail(c, 'Failed to get schedules', 500)
@@ -59,6 +65,10 @@ export const getSchedules = async (c: Context) => {
 }
 
 // POST /instances/:id/schedules
+// Phase 2.3.A — write to mateh_agents.schedules for the active agent. If
+// the agent is primary, ALSO mirror to instances.schedules so legacy reads
+// stay consistent. Heartbeat MD is per-agent, written into that agent's
+// dedicated workspace dir on disk.
 export const saveSchedules = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
@@ -81,24 +91,45 @@ export const saveSchedules = async (c: Context) => {
             return fail(c, 'bundleId and schedules required', 400)
         }
 
-        // Merge with existing schedules
-        const current = (instance.schedules as Record<string, unknown>) || {}
+        const agent = await resolveActiveAgent(c, instanceId)
+
+        // Read current schedules from agent row (or instance for legacy)
+        const currentRaw = agent
+            ? ((agent.schedules as Record<string, unknown>) || {})
+            : ((instance.schedules as Record<string, unknown>) || {})
+        const current: Record<string, unknown> = { ...currentRaw }
         current[body.bundleId] = body.schedules
 
-        await db.update(instances)
-            .set({ schedules: current as any })
-            .where(eq(instances.id, instanceId))
+        if (agent) {
+            // Write to agent row, mirror to instance only when primary
+            await updateAgentField(
+                agent,
+                { schedules: current as any },
+                agent.isPrimary
+                    ? { instanceId, instanceFields: { schedules: current } }
+                    : undefined,
+            )
+        } else {
+            // Legacy fallback (no agent row) — keep old behavior
+            await db.update(instances)
+                .set({ schedules: current as any })
+                .where(eq(instances.id, instanceId))
+        }
 
-        // Update HEARTBEAT.md on VPS
+        // Update HEARTBEAT.md on VPS — primary agent writes to legacy path,
+        // secondary agents write to their per-agent working directory.
         if (instance.ip) {
             try {
                 const heartbeat = generateHeartbeatMd(current)
                 const b64 = Buffer.from(heartbeat).toString('base64')
+                const heartbeatPath = (agent && !agent.isPrimary)
+                    ? `/home/openclaw/agents/${agent.id}/workspace/HEARTBEAT.md`
+                    : `/home/openclaw/.openclaw/workspace/HEARTBEAT.md`
                 await sshExec(instance.ip,
-                    `echo '${b64}' | base64 -d > /home/openclaw/.openclaw/workspace/HEARTBEAT.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/HEARTBEAT.md`,
+                    `mkdir -p $(dirname ${heartbeatPath}) && echo '${b64}' | base64 -d > ${heartbeatPath} && chown openclaw:openclaw ${heartbeatPath}`,
                     instance.rootPassword || undefined
                 )
-                console.log(`HEARTBEAT.md updated for instance ${instanceId}`)
+                console.log(`HEARTBEAT.md updated at ${heartbeatPath} for instance ${instanceId}`)
             } catch (deployErr) {
                 console.error('Failed to update HEARTBEAT.md:', deployErr)
             }

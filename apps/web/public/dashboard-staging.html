@@ -3622,6 +3622,45 @@ var API = 'https://api.clawflow.flowmatic.co.il';
  *   - catches network errors and returns a fake { success: false } so
  *     callers can branch without try/catch around every request
  */
+/**
+ * Phase 2.3.A — agentId injection.
+ * If an agent switcher has selected a secondary mateh_agent, append
+ * `?agentId=mta_xxx` to instance-scoped API paths so the backend can
+ * pivot reads/writes to the right mateh_agents row.
+ *
+ * Applied to any path matching `/hosting/instances/<id>/...`. Skipped
+ * for paths that already include agentId or for non-instance paths.
+ */
+function withActiveAgent(path) {
+  if (typeof path !== 'string') return path;
+  if (path.indexOf('/hosting/instances/') === -1) return path;
+  if (path.indexOf('agentId=') !== -1) return path;
+  var aid = localStorage.getItem('cf_active_mateh_agent_id') || '';
+  if (!aid) return path;
+  var sep = path.indexOf('?') === -1 ? '?' : '&';
+  return path + sep + 'agentId=' + encodeURIComponent(aid);
+}
+
+/**
+ * Monkey-patch fetch so that ALL calls to our API host get agentId
+ * injected automatically — covers the ~200 raw `fetch(API + ...)`
+ * call sites without rewriting each one. No-op for non-API URLs.
+ */
+(function patchFetchForAgentId() {
+  if (window.__cf_fetch_patched) return;
+  window.__cf_fetch_patched = true;
+  var _origFetch = window.fetch.bind(window);
+  window.fetch = function(input, opts) {
+    try {
+      if (typeof input === 'string' && input.indexOf(API) === 0) {
+        var path = input.slice(API.length);
+        input = API + withActiveAgent(path);
+      }
+    } catch (_) { /* fall through unchanged */ }
+    return _origFetch(input, opts);
+  };
+})();
+
 async function apiFetch(path, init) {
   init = init || {};
   var headers = init.headers || {};
@@ -3629,7 +3668,7 @@ async function apiFetch(path, init) {
   if (tok && !headers['Authorization']) headers['Authorization'] = 'Bearer ' + tok;
   if (init.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
   try {
-    var res = await fetch(API + path, { ...init, headers: headers });
+    var res = await fetch(API + withActiveAgent(path), { ...init, headers: headers });
     var json = null;
     try { json = await res.json(); } catch (_) { json = null; }
     if (!json) return { success: res.ok, data: null, message: res.statusText };
@@ -3768,20 +3807,75 @@ function renderAgentSwitcherDropdown() {
   dd.innerHTML = html;
 }
 
-// Phase 2.4: switch to a secondary MATEH agent (multi-MATEH on same VPS).
-// Stores the agent ID in localStorage. Phase 2.3 will wire chat/research
-// to use this when set; for now it's mostly a UI marker.
-function switchToSecondaryAgent(agentId) {
+// Phase 2.4 + 2.3.A: switch to a secondary MATEH agent (multi-MATEH on same
+// VPS). Stores the agent ID in localStorage so subsequent fetch() calls get
+// `?agentId=` injected, then reloads instanceData from the overlay-aware
+// `/instances/:id` endpoint and re-renders the dashboard. After this, every
+// per-agent surface (research, schedules, sub-agent models, integrations,
+// chat URL) sees the right agent's data.
+async function switchToSecondaryAgent(agentId) {
   localStorage.setItem('cf_active_mateh_agent_id', agentId);
   renderAgentSwitcherBtn();
   renderAgentSwitcherDropdown();
   toggleAgentSwitcher();
-  // Re-render current tab + home context to show the right agent's data
-  if (typeof renderAgentHomeContext === 'function') renderAgentHomeContext();
-  if (typeof renderAgentsTab === 'function' && document.getElementById('tab-agents') && !document.getElementById('tab-agents').classList.contains('hidden')) {
-    renderAgentsTab();
-  }
+  // Reload instance data with the new agent overlay applied. Monkey-patched
+  // fetch will auto-append `?agentId=` since cf_active_mateh_agent_id is set.
+  try {
+    if (instanceId) {
+      var r = await apiFetch('/hosting/instances/' + instanceId);
+      if (r && r.success && r.data) {
+        instanceData = r.data;
+        if (instanceData.selectedComponents && instanceData.selectedComponents.length) {
+          components = instanceData.selectedComponents;
+        }
+        // Sync the URL + token globals so chat / "open agent" buttons
+        // point to THIS agent's gateway (different subdomain + token).
+        if (instanceData.subdomainAgent) {
+          agentUrl = 'https://' + instanceData.subdomainAgent;
+        }
+        if (instanceData.openclawToken) {
+          openclawToken = instanceData.openclawToken;
+          localStorage.setItem('cf_openclaw_token', openclawToken);
+        }
+      }
+    }
+  } catch (e) { console.error('switchToSecondaryAgent reload failed:', e); }
+  // Re-render everything that depends on instanceData
+  try { renderHome && renderHome(); } catch (_) {}
+  try { renderAgentsTab && renderAgentsTab(); } catch (_) {}
+  try { renderIntegrations && renderIntegrations(); } catch (_) {}
+  try { renderAgentHomeContext && renderAgentHomeContext(); } catch (_) {}
   showToast('עברתם לסוכן ' + agentId, 'success');
+}
+
+// Switch BACK to the primary VPS view (clear secondary agent ID).
+async function switchToPrimaryAgent() {
+  localStorage.removeItem('cf_active_mateh_agent_id');
+  renderAgentSwitcherBtn();
+  renderAgentSwitcherDropdown();
+  toggleAgentSwitcher();
+  try {
+    if (instanceId) {
+      var r = await apiFetch('/hosting/instances/' + instanceId);
+      if (r && r.success && r.data) {
+        instanceData = r.data;
+        if (instanceData.selectedComponents && instanceData.selectedComponents.length) {
+          components = instanceData.selectedComponents;
+        }
+        if (instanceData.subdomainAgent) {
+          agentUrl = 'https://' + instanceData.subdomainAgent;
+        }
+        if (instanceData.openclawToken) {
+          openclawToken = instanceData.openclawToken;
+          localStorage.setItem('cf_openclaw_token', openclawToken);
+        }
+      }
+    }
+  } catch (e) { console.error('switchToPrimaryAgent reload failed:', e); }
+  try { renderHome && renderHome(); } catch (_) {}
+  try { renderAgentsTab && renderAgentsTab(); } catch (_) {}
+  try { renderIntegrations && renderIntegrations(); } catch (_) {}
+  try { renderAgentHomeContext && renderAgentHomeContext(); } catch (_) {}
 }
 
 function toggleAgentSwitcher() {
@@ -4068,6 +4162,26 @@ function dashMascotOnTaskDone() {
       // Init agent switcher + mascot
       initAgentSwitcher();
       initDashMascot();
+      // Phase 2.3.A — if an active secondary agent was previously selected,
+      // re-fetch instance data via the overlay-aware /instances/:id endpoint
+      // so the dashboard shows that agent's per-agent fields (research,
+      // tokens, schedules, subdomain) instead of the primary's.
+      var savedAgentId = localStorage.getItem('cf_active_mateh_agent_id') || '';
+      if (savedAgentId && instanceId) {
+        try {
+          var rOverlay = await apiFetch('/hosting/instances/' + instanceId);
+          if (rOverlay && rOverlay.success && rOverlay.data) {
+            instanceData = rOverlay.data;
+            if (instanceData.subdomainAgent) {
+              agentUrl = 'https://' + instanceData.subdomainAgent;
+            }
+            if (instanceData.openclawToken) {
+              openclawToken = instanceData.openclawToken;
+              localStorage.setItem('cf_openclaw_token', openclawToken);
+            }
+          }
+        } catch (_) { /* fall through, keep primary data */ }
+      }
       // Re-render all views with real data
       renderHome();
       if (typeof renderAgentsTab === 'function') renderAgentsTab();

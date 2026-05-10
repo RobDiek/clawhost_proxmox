@@ -107,10 +107,59 @@ export const getInstance = async (c: Context<HonoEnv>) => {
             return fail(c, 'Instance not found.', 404)
         }
 
-        return ok(c, {
-            ...instance,
-            rootPassword: undefined
-        }, 'Instance retrieved.')
+        // Phase 2.3.A — if ?agentId=mta_xxx is provided, overlay per-agent
+        // fields from that agent's mateh_agents row. Lets the dashboard
+        // load secondary-agent data (research, sub-agent models, schedules,
+        // tokens) using the same /instances/:id endpoint with just an
+        // agentId hint. VPS-level fields (ip, status, hetznerServerId,
+        // subdomain root) stay from the instance row.
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const activeAgent = await resolveActiveAgent(c, instanceId)
+
+        // Default response = instance fields. If an agent row exists,
+        // overlay the per-agent fields so the dashboard sees the right
+        // data for whichever agent is active.
+        const response: Record<string, unknown> = { ...instance, rootPassword: undefined }
+        if (activeAgent) {
+            // Phase 2.3.A overlay — per-agent state lives on mateh_agents.
+            // For a SECONDARY agent, all per-agent fields come from the agent
+            // row. For the PRIMARY agent, we keep using mateh_agents data too
+            // (it was backfilled identical to instance.*) so reads are
+            // consistent regardless of which agent is active.
+            response.activeAgentId = activeAgent.id
+            response.activeAgentIsPrimary = activeAgent.isPrimary
+            response.activeAgentName = activeAgent.name
+            response.activeAgentBrandSlug = activeAgent.brandSlug
+            response.activeAgentTenantId = activeAgent.tenantId
+            response.activeAgentSubdomainAgent = activeAgent.subdomainAgent
+            response.activeAgentGatewayPort = activeAgent.gatewayPort
+            // Per-agent state overrides
+            response.researchData = activeAgent.researchData
+            response.subAgentModels = activeAgent.subAgentModels
+            response.schedules = activeAgent.schedules
+            response.aiProviderKey = activeAgent.aiProviderKey
+            response.aiProviderType = activeAgent.aiProviderType
+            response.openaiApiKey = activeAgent.openaiApiKey
+            response.falApiKey = activeAgent.falApiKey
+            response.elevenlabsApiKey = activeAgent.elevenlabsApiKey
+            response.dataforseoKey = activeAgent.dataforseoKey
+            response.firecrawlKey = activeAgent.firecrawlKey
+            response.googleTokens = activeAgent.googleTokens
+            response.metaTokens = activeAgent.metaTokens
+            response.microsoftTokens = activeAgent.microsoftTokens
+            response.gscTokens = activeAgent.gscTokens
+            response.githubConfig = activeAgent.githubConfig
+            response.telegramChatId = activeAgent.telegramChatId
+            response.telegramBotToken = activeAgent.telegramBotToken
+            response.onboardingStep = activeAgent.onboardingStep
+            response.onboardingCompleted = activeAgent.onboardingCompleted
+            // Subdomains too — secondary agents have their own
+            response.subdomainAgent = activeAgent.subdomainAgent || instance.subdomainAgent
+            response.openclawToken = activeAgent.openclawToken || instance.openclawToken
+            response.automationPassword = activeAgent.automationPassword || instance.automationPassword
+        }
+
+        return ok(c, response, 'Instance retrieved.')
     } catch (err) {
         console.error('Get instance error:', err)
         return fail(c, 'Failed to get instance.', 500)
