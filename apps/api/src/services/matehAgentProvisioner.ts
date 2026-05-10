@@ -243,6 +243,13 @@ export async function provisionSecondaryAgent(input: ProvisionInput): Promise<Pr
             renderNginxVhost(subdomain, port),
             password,
         )
+        // Run nginx -t separately so we get a clear error if config is bad
+        // (e.g. invalid server_name from a poorly-sanitized subdomain).
+        try {
+            await sshExec(ip, `nginx -t 2>&1`, password)
+        } catch (err) {
+            throw new Error(`nginx -t failed (subdomain "${subdomain}" likely invalid): ${(err as Error).message}`)
+        }
         await sshExec(ip, `
             ln -sf /etc/nginx/sites-available/openclaw-${short} /etc/nginx/sites-enabled/openclaw-${short}
             nginx -t && systemctl reload nginx
@@ -264,23 +271,31 @@ export async function provisionSecondaryAgent(input: ProvisionInput): Promise<Pr
             console.warn(`[provisionSecondaryAgent/${agentId}] certbot async failed:`, (err as Error).message)
         })
 
-        // ── 9. Health check: gateway responding on local port? ──
-        // Try for ~30s before giving up. If passes → status=running, else status=failed.
-        let healthy = false
+        // ── 9. Two-layer health check ──
+        // 1) gateway alive on local loopback port (process up)
+        // 2) nginx routing via Host header → upstream (vhost wiring works)
+        // Both must pass within ~30s for status=running.
+        let gatewayHealthy = false
+        let routingHealthy = false
         for (let i = 0; i < 6; i++) {
             try {
-                const out = await sshExec(ip, `curl -sf -o /dev/null -w '%{http_code}' http://127.0.0.1:${port} || true`, password)
-                if (out && /^[23]\d\d/.test(out.trim())) { healthy = true; break }
+                const out1 = await sshExec(ip, `curl -sf -o /dev/null -w '%{http_code}' http://127.0.0.1:${port} || true`, password)
+                if (out1 && /^[23]\d\d/.test(out1.trim())) gatewayHealthy = true
+                // Test nginx vhost routing via Host header on local 80
+                const out2 = await sshExec(ip, `curl -s -o /dev/null -w '%{http_code}' -H 'Host: ${subdomain}' http://127.0.0.1/ || true`, password)
+                if (out2 && /^[234]\d\d/.test(out2.trim())) routingHealthy = true
+                if (gatewayHealthy && routingHealthy) break
             } catch { /* retry */ }
             await new Promise(r => setTimeout(r, 5000))
         }
+        const healthy = gatewayHealthy && routingHealthy
 
         await db.update(matehAgents)
             .set({ status: healthy ? 'running' : 'failed', updatedAt: new Date() })
             .where(eq(matehAgents.id, agentId))
 
         if (!healthy) {
-            console.warn(`[provisionSecondaryAgent/${agentId}] gateway health check timed out — manual debug needed`)
+            console.warn(`[provisionSecondaryAgent/${agentId}] health check failed — gateway=${gatewayHealthy} routing=${routingHealthy}`)
         }
 
         return { agentId, subdomain, port, openclawToken, automationPassword }

@@ -132,9 +132,27 @@ export const createMyAgent = async (c: Context) => {
         if (t.managedByUserId !== r.userId) return fail(c, 'Tenant not yours', 403)
     }
 
-    // Generate brand slug — slug-case the name if not provided
-    let brandSlug = brandSlugRaw || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-    if (!brandSlug) brandSlug = 'agent'
+    // Sanitize brand slug — applied to BOTH user-provided and auto-derived
+    // input. Whatever the user typed (URL, Hebrew, slashes, dots) is forced
+    // to lowercase a-z0-9 + dashes, capped at 32 chars. Empty result falls
+    // back to 'agent'. This is what becomes part of the subdomain + nginx
+    // server_name + filesystem path → must be strict.
+    function slugify(input: string): string {
+        let s = input.toLowerCase().trim()
+        // Strip URL scheme if user pasted a URL
+        s = s.replace(/^https?:\/\//, '')
+        // Replace non-alphanum runs with single dash
+        s = s.replace(/[^a-z0-9]+/g, '-')
+        // Trim leading/trailing dashes
+        s = s.replace(/^-+|-+$/g, '')
+        // Cap length (DNS labels max 63, leave headroom)
+        s = s.substring(0, 32).replace(/-+$/g, '')
+        return s
+    }
+    const brandSlug = slugify(brandSlugRaw || name) || 'agent'
+    if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(brandSlug)) {
+        return fail(c, `Invalid brand slug "${brandSlug}" — must be a-z0-9 with dashes only.`)
+    }
 
     // Run provisioner — fire and forget would be nice, but we want to
     // return the agent id and initial state. Provisioner runs ~30-60s; we

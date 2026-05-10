@@ -3687,18 +3687,34 @@ function initAgentSwitcher() {
 }
 
 function renderAgentSwitcherBtn() {
-  var comp = COMPONENTS[activeAgent] || COMPONENTS.oc;
   var iconEl = document.getElementById('asSwitcherIcon');
   var nameEl = document.getElementById('asSwitcherName');
-  if (iconEl) {
-    iconEl.className = 'as-icon ' + (comp.iconClass || 'oc');
-    iconEl.innerHTML = SVG_ICONS[comp.svgKey] || SVG_ICONS.robot;
+  // Phase 2.4 — if a secondary mateh_agent is selected (agency mode), show its
+  // name + brand instead of the primary VPS component.
+  var activeSecondaryId = localStorage.getItem('cf_active_mateh_agent_id') || '';
+  var activeSecondary = activeSecondaryId
+    ? (window._myMatehAgents || []).find(function(a){ return a.id === activeSecondaryId; })
+    : null;
+  if (activeSecondary) {
+    if (iconEl) {
+      iconEl.className = 'as-icon mt';
+      iconEl.innerHTML = SVG_ICONS.robot || '';
+    }
+    if (nameEl) nameEl.textContent = activeSecondary.name + ' · ' + activeSecondary.brandSlug;
+  } else {
+    var comp = COMPONENTS[activeAgent] || COMPONENTS.oc;
+    if (iconEl) {
+      iconEl.className = 'as-icon ' + (comp.iconClass || 'oc');
+      iconEl.innerHTML = SVG_ICONS[comp.svgKey] || SVG_ICONS.robot;
+    }
+    if (nameEl) nameEl.textContent = comp.name;
   }
-  if (nameEl) nameEl.textContent = comp.name;
-  // Hide switcher if only one agent
+  // Show switcher if: > 1 primary component OR agency mode with any secondary agents
   var agents = getAgentComponents();
   var switcher = document.getElementById('agentSwitcher');
-  if (switcher) switcher.style.display = agents.length <= 1 ? 'none' : '';
+  var secondaryCount = ((window._myMatehAgents || []).filter(function(a){ return !a.isPrimary; })).length;
+  var totalChoices = agents.length + (isAgencyMode() ? secondaryCount : 0);
+  if (switcher) switcher.style.display = totalChoices <= 1 ? 'none' : '';
 }
 
 function renderAgentSwitcherDropdown() {
@@ -3706,19 +3722,66 @@ function renderAgentSwitcherDropdown() {
   var dd = document.getElementById('agentSwitcherDropdown');
   if (!dd) return;
   var html = '';
-  agents.forEach(function(c) {
-    var comp = COMPONENTS[c] || { name: c, iconClass: 'oc', svgKey: 'robot', desc: '' };
-    var isActive = c === activeAgent;
-    html += '<button class="agent-switcher-option' + (isActive ? ' active' : '') + '" onclick="switchAgent(\'' + c + '\')">' +
-      '<div class="as-icon ' + comp.iconClass + '">' + (SVG_ICONS[comp.svgKey] || SVG_ICONS.robot) + '</div>' +
-      '<div class="as-opt-info">' +
-        '<div class="as-opt-name">' + comp.name + '</div>' +
-        '<div class="as-opt-desc">' + (comp.desc || '') + '</div>' +
-      '</div>' +
-      '<span class="as-opt-check">&#10003;</span>' +
-    '</button>';
-  });
+
+  // Section 1: primary agent components on this VPS (legacy view)
+  if (agents.length > 0) {
+    if (isAgencyMode()) {
+      html += '<div style="font-size:0.72rem;color:#9CA3AF;padding:8px 12px 4px;text-transform:uppercase">סוכן ראשי (VPS)</div>';
+    }
+    agents.forEach(function(c) {
+      var comp = COMPONENTS[c] || { name: c, iconClass: 'oc', svgKey: 'robot', desc: '' };
+      var isActive = c === activeAgent && !localStorage.getItem('cf_active_mateh_agent_id');
+      html += '<button class="agent-switcher-option' + (isActive ? ' active' : '') + '" onclick="switchAgent(\'' + c + '\')">' +
+        '<div class="as-icon ' + comp.iconClass + '">' + (SVG_ICONS[comp.svgKey] || SVG_ICONS.robot) + '</div>' +
+        '<div class="as-opt-info">' +
+          '<div class="as-opt-name">' + comp.name + '</div>' +
+          '<div class="as-opt-desc">' + (comp.desc || '') + '</div>' +
+        '</div>' +
+        '<span class="as-opt-check">&#10003;</span>' +
+      '</button>';
+    });
+  }
+
+  // Section 2 (agency mode): secondary MATEH agents (different brands/tenants on same VPS)
+  if (isAgencyMode()) {
+    var secondary = (window._myMatehAgents || []).filter(function(a){ return !a.isPrimary; });
+    var activeSecondaryId = localStorage.getItem('cf_active_mateh_agent_id') || '';
+    if (secondary.length > 0) {
+      html += '<div style="font-size:0.72rem;color:#9CA3AF;padding:8px 12px 4px;text-transform:uppercase;border-top:1px solid #E5E7EB;margin-top:4px">סוכנים משניים</div>';
+      secondary.forEach(function(a){
+        var isActive = a.id === activeSecondaryId;
+        var statusBadge = a.status === 'running' ? '' :
+          ('<span style="background:#FEF3C7;color:#92400E;padding:1px 6px;border-radius:8px;font-size:.7rem;margin-left:6px">'+escapeHtmlDash(a.status)+'</span>');
+        html += '<button class="agent-switcher-option' + (isActive ? ' active' : '') + '" onclick="switchToSecondaryAgent(\''+escapeHtmlDash(a.id)+'\')">' +
+          '<div class="as-icon mt">' + (SVG_ICONS.robot || '') + '</div>' +
+          '<div class="as-opt-info">' +
+            '<div class="as-opt-name">' + escapeHtmlDash(a.name) + statusBadge + '</div>' +
+            '<div class="as-opt-desc">' + (a.tenantName ? escapeHtmlDash(a.tenantName) + ' · ' : '') + escapeHtmlDash(a.brandSlug) + '</div>' +
+          '</div>' +
+          '<span class="as-opt-check">&#10003;</span>' +
+        '</button>';
+      });
+    } else {
+      html += '<div style="font-size:0.72rem;color:#9CA3AF;padding:8px 12px;border-top:1px solid #E5E7EB;margin-top:4px">אין סוכנים משניים. ראו ✚ בטאב "סוכנים".</div>';
+    }
+  }
   dd.innerHTML = html;
+}
+
+// Phase 2.4: switch to a secondary MATEH agent (multi-MATEH on same VPS).
+// Stores the agent ID in localStorage. Phase 2.3 will wire chat/research
+// to use this when set; for now it's mostly a UI marker.
+function switchToSecondaryAgent(agentId) {
+  localStorage.setItem('cf_active_mateh_agent_id', agentId);
+  renderAgentSwitcherBtn();
+  renderAgentSwitcherDropdown();
+  toggleAgentSwitcher();
+  // Re-render current tab + home context to show the right agent's data
+  if (typeof renderAgentHomeContext === 'function') renderAgentHomeContext();
+  if (typeof renderAgentsTab === 'function' && document.getElementById('tab-agents') && !document.getElementById('tab-agents').classList.contains('hidden')) {
+    renderAgentsTab();
+  }
+  showToast('עברתם לסוכן ' + agentId, 'success');
 }
 
 function toggleAgentSwitcher() {
@@ -3748,6 +3811,9 @@ function closeAgentSwitcherOnOutside(e) {
 }
 
 function switchAgent(agentType) {
+  // Phase 2.4: switching to a primary component clears any secondary
+  // mateh_agent selection so the dropdown + header show correctly.
+  localStorage.removeItem('cf_active_mateh_agent_id');
   if (agentType === activeAgent) {
     toggleAgentSwitcher();
     return;
@@ -9776,7 +9842,7 @@ async function openCreateMatehAgentDialog() {
       tenants.map(function(t){ return '<option value="'+t.id+'">'+escapeHtmlDash(t.name)+'</option>'; }).join('') +
     '</select></label>' +
     '<label>שם הסוכן <input id="cma-name" placeholder="לדוגמה: Storage Station SEO" style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px"/></label>' +
-    '<label>Brand slug (אופציונלי - אוטומטי מהשם) <input id="cma-slug" placeholder="storage-station-seo" style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px"/></label>' +
+    '<label>Brand slug (אופציונלי, אוטומטי מהשם) <input id="cma-slug" placeholder="storage-station-seo (a-z, 0-9, dashes)" pattern="[a-z0-9][a-z0-9-]*[a-z0-9]" style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px"/><div style="font-size:0.72rem;color:#9CA3AF;margin-top:2px">משמש כ-subdomain ושם תיקייה. רק a-z, 0-9, מקפים. אסור URLs, רווחים, נקודות, סלאשים.</div></label>' +
     '<label>סוג <select id="cma-type" style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px"><option value="mateh">MATEH (9 sub-agents שיווק)</option><option value="oc">OpenClaw Personal</option><option value="bare">Bare (ללא agents)</option></select></label>' +
     '</div>' +
     '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:10px;margin-top:14px;font-size:0.78rem;color:#78350F">⏳ הקצאה לוקחת ~30-60 שניות. בזמן ההקצאה הסוכן יופיע ברשימה כ-"מתקין".</div>' +
