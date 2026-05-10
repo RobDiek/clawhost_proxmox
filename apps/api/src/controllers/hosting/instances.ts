@@ -157,6 +157,51 @@ export const getInstance = async (c: Context<HonoEnv>) => {
             response.subdomainAgent = activeAgent.subdomainAgent || instance.subdomainAgent
             response.openclawToken = activeAgent.openclawToken || instance.openclawToken
             response.automationPassword = activeAgent.automationPassword || instance.automationPassword
+
+            // Phase 2.3.E — boolean integration flags MUST be computed per-agent.
+            // The dashboard uses these to render "מחובר/לא מחובר" badges; without
+            // per-agent overlay the secondary agent shows primary's connection
+            // states (the bug the user hit on a fresh secondary onboarding).
+            response.hasAnthropicKey = !!activeAgent.aiProviderKey
+            response.hasOpenaiKey = !!activeAgent.openaiApiKey
+            response.hasGsc = !!activeAgent.gscTokens
+            response.hasDataforseo = !!activeAgent.dataforseoKey
+            response.hasFirecrawl = !!activeAgent.firecrawlKey
+            response.hasFalKey = !!activeAgent.falApiKey
+            response.hasElevenlabsKey = !!activeAgent.elevenlabsApiKey
+            response.hasGoogleAds = (() => {
+                const gt = activeAgent.googleTokens as { scopes?: string[] | string; scope?: string } | null
+                if (!gt) return false
+                const scopes = (gt.scopes || gt.scope || '').toString().toLowerCase()
+                if (scopes.includes('adwords')) return true
+                const tokens = scopes.split(/[\s,]+/)
+                return tokens.includes('ads')
+            })()
+            response.hasMetaAds = (() => {
+                const mt = activeAgent.metaTokens as {
+                    adAccountId?: string;
+                    adAccounts?: unknown[];
+                    grantedScopes?: string;
+                } | null
+                if (!mt) return false
+                return !!(mt.adAccountId || (mt.adAccounts && mt.adAccounts.length)) ||
+                    (mt.grantedScopes || '').toString().toLowerCase().includes('ads_management')
+            })()
+            // Profile / research / strategy / brand book — derived from per-agent
+            // research_data and from a per-agent brand_books query
+            const rd = (activeAgent.researchData as Record<string, unknown> | null) || {}
+            response.hasProfile = !!rd.answers
+            response.hasResearch = !!(rd.report || rd.stage1)
+            response.hasStrategy = !!rd.strategy
+            const { brandBooks } = await import('@/db/schema')
+            const [approvedBb] = await db.select({ id: brandBooks.id }).from(brandBooks)
+                .where(and(
+                    eq(brandBooks.instanceId, instanceId),
+                    eq(brandBooks.agentId, activeAgent.id),
+                    eq(brandBooks.status, 'approved'),
+                ))
+                .limit(1)
+            response.hasBrandBook = !!approvedBb
         }
 
         return ok(c, response, 'Instance retrieved.')

@@ -301,7 +301,11 @@ export const gscStatus = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const tokens = instance.gscTokens as any
+        // Phase 2.3.E — read tokens from active mateh_agent (not the
+        // instance row, which only has primary's tokens).
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        const tokens = (__activeAgent?.gscTokens || instance.gscTokens) as any
         if (!tokens?.accessToken) {
             return ok(c, { connected: false }, 'Not connected.')
         }

@@ -21,13 +21,35 @@ export type AgentType = 'oc' | 'mt' | 'bare'
 export type IntegrationType = 'telegram' | 'google' | 'meta' | 'microsoft' | 'whatsapp' | 'gbp' | 'api_key' | 'brave' | 'smtp' | 'wordpress' | 'gsc' | 'dataforseo' | 'firecrawl' | 'reddit'
 
 /**
- * Get a specific integration for an agent
+ * Get a specific integration for an agent.
+ * Phase 2.3.D — when agentId is provided, look up by agent_id (primary key
+ * for the new unique constraint). Older callers passing only agentType get
+ * resolved to the primary mateh_agent for back-compat.
  */
 export async function getAgentIntegration(
     instanceId: string,
     agentType: AgentType,
-    integrationType: IntegrationType
+    integrationType: IntegrationType,
+    agentId?: string,
 ): Promise<{ config: Record<string, unknown>; status: string } | null> {
+    let resolvedAgentId = agentId || null
+    if (!resolvedAgentId) {
+        const { resolvePrimaryAgent } = await import('@/services/agentContext')
+        const primary = await resolvePrimaryAgent(instanceId)
+        resolvedAgentId = primary?.id || null
+    }
+    if (resolvedAgentId) {
+        const [row] = await db.select()
+            .from(agentIntegrations)
+            .where(and(
+                eq(agentIntegrations.instanceId, instanceId),
+                eq(agentIntegrations.agentId, resolvedAgentId),
+                eq(agentIntegrations.integrationType, integrationType)
+            ))
+        if (!row) return null
+        return { config: row.config as Record<string, unknown>, status: row.status }
+    }
+    // Legacy fallback (no mateh_agent row exists yet)
     const [row] = await db.select()
         .from(agentIntegrations)
         .where(and(
@@ -40,18 +62,24 @@ export async function getAgentIntegration(
 }
 
 /**
- * Get all integrations for an agent
+ * Get all integrations for an agent.
+ * Phase 2.3.D — agentId-aware (see getAgentIntegration).
  */
 export async function getAgentIntegrations(
     instanceId: string,
-    agentType: AgentType
+    agentType: AgentType,
+    agentId?: string,
 ): Promise<Array<{ integrationType: string; config: Record<string, unknown>; status: string }>> {
-    const rows = await db.select()
-        .from(agentIntegrations)
-        .where(and(
-            eq(agentIntegrations.instanceId, instanceId),
-            eq(agentIntegrations.agentType, agentType)
-        ))
+    let resolvedAgentId = agentId || null
+    if (!resolvedAgentId) {
+        const { resolvePrimaryAgent } = await import('@/services/agentContext')
+        const primary = await resolvePrimaryAgent(instanceId)
+        resolvedAgentId = primary?.id || null
+    }
+    const where = resolvedAgentId
+        ? and(eq(agentIntegrations.instanceId, instanceId), eq(agentIntegrations.agentId, resolvedAgentId))
+        : and(eq(agentIntegrations.instanceId, instanceId), eq(agentIntegrations.agentType, agentType))
+    const rows = await db.select().from(agentIntegrations).where(where)
     return rows.map(r => ({
         integrationType: r.integrationType,
         config: r.config as Record<string, unknown>,
@@ -60,16 +88,18 @@ export async function getAgentIntegrations(
 }
 
 /**
- * Get all integrations for an instance (all agents)
+ * Get all integrations for an instance (all agents). Used by /my-instances
+ * to render integration status across multiple agents in one shot.
  */
 export async function getAllIntegrations(
     instanceId: string
-): Promise<Array<{ agentType: string; integrationType: string; config: Record<string, unknown>; status: string }>> {
+): Promise<Array<{ agentType: string; agentId: string | null; integrationType: string; config: Record<string, unknown>; status: string }>> {
     const rows = await db.select()
         .from(agentIntegrations)
         .where(eq(agentIntegrations.instanceId, instanceId))
     return rows.map(r => ({
         agentType: r.agentType,
+        agentId: r.agentId,
         integrationType: r.integrationType,
         config: r.config as Record<string, unknown>,
         status: r.status,

@@ -263,17 +263,22 @@ export const metaStatus = async (c: Context) => {
         const instanceId = c.req.query('instanceId') || c.req.param('id')
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
 
-        if (!instance?.metaTokens) {
+        // Phase 2.3.E — read metaTokens from active mateh_agent (per-agent
+        // isolation; primary's tokens stay invisible to secondary).
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        const metaTokens = (__activeAgent?.metaTokens || instance?.metaTokens) as any
+
+        if (!metaTokens) {
             return ok(c, { connected: false })
         }
 
-        const meta = instance.metaTokens as any
         return ok(c, {
-            connected: meta.status === 'connected',
-            pageName: meta.pageName,
-            hasInstagram: !!meta.instagramAccountId,
-            hasAdAccount: !!meta.adAccountId,
-            adAccountId: meta.adAccountId,
+            connected: metaTokens.status === 'connected',
+            pageName: metaTokens.pageName,
+            hasInstagram: !!metaTokens.instagramAccountId,
+            hasAdAccount: !!metaTokens.adAccountId,
+            adAccountId: metaTokens.adAccountId,
         })
     } catch (err) {
         return fail(c, 'Failed to check status', 500)

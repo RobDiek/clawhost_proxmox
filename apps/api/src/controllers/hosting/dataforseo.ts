@@ -115,11 +115,15 @@ export const getDataforseoStatus = async (c: Context) => {
         const instance = await getOwnedInstance(instanceId, userId)
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        if (!instance.dataforseoKey) {
+        // Phase 2.3.E — per-agent dataforseo key
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        const key = __activeAgent?.dataforseoKey || instance.dataforseoKey
+        if (!key) {
             return ok(c, { connected: false }, 'Not connected.')
         }
 
-        const login = instance.dataforseoKey.split(':')[0] || ''
+        const login = key.split(':')[0] || ''
         return ok(c, { connected: true, login }, 'Connected.')
     } catch (err) {
         console.error('getDataforseoStatus error:', err)

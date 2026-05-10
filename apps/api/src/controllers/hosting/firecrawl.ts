@@ -119,13 +119,17 @@ export const getFirecrawlStatus = async (c: Context) => {
         const instance = await getOwnedInstance(instanceId, userId)
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        if (!instance.firecrawlKey) {
+        // Phase 2.3.E — per-agent firecrawl key
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        const key = __activeAgent?.firecrawlKey || instance.firecrawlKey
+        if (!key) {
             return ok(c, { connected: false }, 'Not connected.')
         }
 
         return ok(c, {
             connected: true,
-            masked: instance.firecrawlKey.slice(0, 6) + '****',
+            masked: key.slice(0, 6) + '****',
         }, 'Connected.')
     } catch (err) {
         console.error('getFirecrawlStatus error:', err)

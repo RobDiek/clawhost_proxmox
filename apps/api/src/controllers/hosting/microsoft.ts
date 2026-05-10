@@ -311,7 +311,10 @@ export const microsoftStatus = async (c: Context) => {
             ? agentParam
             : getPrimaryAgent((instance.selectedComponents as string[]) || [])
 
-        const agentInt = await getAgentIntegration(instanceId, agentType, 'microsoft')
+        // Phase 2.3.E — honor ?agentId= for per-agent isolation
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        const agentInt = await getAgentIntegration(instanceId, agentType, 'microsoft', __activeAgent?.id)
         if (!agentInt || !agentInt.config?.accessToken) {
             return ok(c, { connected: false, agent: agentType }, 'Not connected.')
         }

@@ -345,7 +345,12 @@ export const googleStatus = async (c: Context) => {
             ? agentParam
             : getPrimaryAgent((instance.selectedComponents as string[]) || [])
 
-        const agentInt = await getAgentIntegration(instanceId, agentType, 'google')
+        // Phase 2.3.E — honor ?agentId= so secondary agents see their own
+        // integration status (not the primary's).
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+
+        const agentInt = await getAgentIntegration(instanceId, agentType, 'google', __activeAgent?.id)
         if (!agentInt || !agentInt.config?.accessToken) {
             return ok(c, { connected: false, agent: agentType }, 'Not connected.')
         }

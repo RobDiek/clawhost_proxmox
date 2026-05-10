@@ -133,7 +133,10 @@ export const getGithubStatus = async (c: Context) => {
         const instance = await getOwnedInstance(instanceId, userId)
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const config = instance.githubConfig as any
+        // Phase 2.3.E — read githubConfig from active mateh_agent
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        const config = ((__activeAgent?.githubConfig || instance.githubConfig) as any) || null
         if (!config?.token) return ok(c, { connected: false }, 'Not connected.')
 
         return ok(c, {

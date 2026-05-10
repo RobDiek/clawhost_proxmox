@@ -3623,17 +3623,21 @@ var API = 'https://api.clawflow.flowmatic.co.il';
  *     callers can branch without try/catch around every request
  */
 /**
- * Phase 2.3.A — agentId injection.
+ * Phase 2.3.A + 2.3.E — agentId injection.
  * If an agent switcher has selected a secondary mateh_agent, append
- * `?agentId=mta_xxx` to instance-scoped API paths so the backend can
+ * `?agentId=mta_xxx` to per-agent API paths so the backend can
  * pivot reads/writes to the right mateh_agents row.
  *
- * Applied to any path matching `/hosting/instances/<id>/...`. Skipped
- * for paths that already include agentId or for non-instance paths.
+ * Applied to:
+ *   - `/hosting/instances/<id>/...` (per-instance routes)
+ *   - `/hosting/integrations/*?instanceId=...` (status callbacks)
+ * Skipped for paths that already include agentId or for non-hosting paths.
  */
 function withActiveAgent(path) {
   if (typeof path !== 'string') return path;
-  if (path.indexOf('/hosting/instances/') === -1) return path;
+  var isInstancePath = path.indexOf('/hosting/instances/') !== -1;
+  var isIntegrationsPath = path.indexOf('/hosting/integrations/') !== -1;
+  if (!isInstancePath && !isIntegrationsPath) return path;
   if (path.indexOf('agentId=') !== -1) return path;
   var aid = localStorage.getItem('cf_active_mateh_agent_id') || '';
   if (!aid) return path;
@@ -23613,25 +23617,47 @@ var BUNDLE_REGISTRY = {
 };
 
 var _bundleScheduleData = {};
-// ─── Per-instance integration localStorage helpers ───────────────────────
-// Bug 2026-04-27: integration flags like `cf_brave_saved` were global to the
-// browser/domain. When user switched between tenants, statuses leaked across
-// (connected Brave on tenant A → tenant B's UI showed "Brave connected" even
-// though B's DB had nothing). All integration flags are now scoped by
-// instanceId via `__<id>` suffix.
+// ─── Per-instance + per-agent integration localStorage helpers ──────────
+// Bug 2026-04-27: integration flags like `cf_brave_saved` were global —
+// switching tenants leaked statuses across. Scoped by instanceId via
+// `__<id>` suffix.
+// Bug 2026-05-10: when agency mode introduced multiple mateh_agents on
+// the same VPS, switching between agents also leaked. Now scoped by
+// `__<instanceId>__<agentId>` (agentId = active mateh_agent's id, or
+// 'primary' when no secondary is active).
 function intStorKey(key) {
   var iid = (typeof instanceId !== 'undefined' && instanceId) || localStorage.getItem('cf_instance_id') || '';
-  return iid ? key + '__' + iid : key;
+  var aid = localStorage.getItem('cf_active_mateh_agent_id') || 'primary';
+  if (!iid) return key;
+  return key + '__' + iid + '__' + aid;
 }
 function intStorSet(key, value) { localStorage.setItem(intStorKey(key), value); }
 function intStorGet(key) { return localStorage.getItem(intStorKey(key)); }
 function intStorRemove(key) { localStorage.removeItem(intStorKey(key)); }
-// One-time migration on every dashboard load: purge leaked global flags so
-// they don't masquerade as scoped state. Safe to run repeatedly.
+// Migration on every dashboard load: purge old global + old per-instance-only
+// flag formats. Per-agent scoping (key__instance__agent) is the only
+// supported format now.
 (function migrateLeakedIntFlags() {
-  var leak = ['cf_api_key_saved','cf_openai_saved','cf_telegram_saved','cf_groq_saved','cf_cerebras_saved','cf_wordpress_saved','cf_resend_saved','cf_brave_saved','cf_dataforseo_saved','cf_firecrawl_saved','cf_gsc_saved','cf_canva_saved'];
-  for (var i = 0; i < leak.length; i++) {
-    if (localStorage.getItem(leak[i]) != null) localStorage.removeItem(leak[i]);
+  var stems = ['cf_api_key_saved','cf_openai_saved','cf_telegram_saved','cf_groq_saved','cf_cerebras_saved','cf_wordpress_saved','cf_resend_saved','cf_brave_saved','cf_dataforseo_saved','cf_firecrawl_saved','cf_gsc_saved','cf_canva_saved'];
+  // 1. global flags (no suffix)
+  for (var i = 0; i < stems.length; i++) {
+    if (localStorage.getItem(stems[i]) != null) localStorage.removeItem(stems[i]);
+  }
+  // 2. old per-instance-only format (key__<id>) — keep only if it has the
+  // double-underscore-agent suffix; otherwise it's stale and would leak.
+  var iid = localStorage.getItem('cf_instance_id') || '';
+  if (iid) {
+    for (var j = 0; j < stems.length; j++) {
+      var legacyKey = stems[j] + '__' + iid;
+      if (localStorage.getItem(legacyKey) != null) {
+        // Migrate legacy → assume it was for primary
+        var newKey = stems[j] + '__' + iid + '__primary';
+        if (localStorage.getItem(newKey) == null) {
+          localStorage.setItem(newKey, localStorage.getItem(legacyKey));
+        }
+        localStorage.removeItem(legacyKey);
+      }
+    }
   }
 })();
 

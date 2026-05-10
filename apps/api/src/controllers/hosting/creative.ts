@@ -145,8 +145,10 @@ export const getCreativeStatus = async (c: Context) => {
         const instance = await getOwnedInstance(instanceId, userId)
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const falKey = (instance as any).falApiKey || ''
-        const elKey = (instance as any).elevenlabsApiKey || ''
+        // Phase 2.3.E — per-agent fal/elevenlabs keys
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        const falKey = (__activeAgent?.falApiKey || (instance as any).falApiKey || '') as string
+        const elKey = (__activeAgent?.elevenlabsApiKey || (instance as any).elevenlabsApiKey || '') as string
 
         return ok(c, {
             falConnected: !!falKey,
