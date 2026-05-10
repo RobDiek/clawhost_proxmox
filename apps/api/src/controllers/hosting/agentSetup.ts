@@ -183,6 +183,10 @@ interface OnboardingAnswers {
     clarifications?: string
     products?: ProductSku[]
     productsFunnel?: string
+    // Phase 2.3.F — structured business context driving research/strategy
+    businessModel?: string         // 'ecommerce' | 'service' | 'saas' | 'local' | 'content' | 'other'
+    geography?: string             // 'ישראל, ערים מרכזיות' | 'גלובלי' | free-text
+    conversionMechanism?: string   // 'רכישה ישירה באתר, WhatsApp' | 'טופס ליד, שיחת טלפון'
 }
 
 // Format products list as a readable Hebrew block for prompts.
@@ -222,14 +226,17 @@ async function generateWithClaude(answers: OnboardingAnswers, apiKeyOverride?: s
 - שם העסק: ${answers.businessName}
 - מה עושים: ${answers.businessDescription}
 - אתר: ${answers.websiteUrl || 'לא צוין'}
+- סוג עסק: ${answers.businessModel || 'לא צוין'}
+- גיאוגרפיה / שוק יעד: ${answers.geography || 'ישראל'}
+- מנגנון המרה ראשי: ${answers.conversionMechanism || 'לא צוין'}
 - קהל יעד: ${answers.targetAudience}
-- מתחרים: ${answers.competitors}
+- מתחרים: ${answers.competitors || '(לא צוינו — המערכת תזהה במחקר)'}
 - מטרות שיווק: ${answers.marketingGoals}
 - פלטפורמות פעילות: ${answers.platforms || 'לא צוין'}
 - תוכן נוכחי: ${answers.currentContent}
 - טון תקשורת: ${answers.tone || 'ידידותי ונגיש'}
 - תקציב חודשי: ${answers.budget || 'לא צוין'}
-- אתגרים: ${answers.challenges}${answers.clarifications ? `
+- אתגרים: ${answers.challenges || '(לא צוינו)'}${answers.clarifications ? `
 
 מידע נוסף (תשובות לשאלות הבהרה):
 ${answers.clarifications}` : ''}

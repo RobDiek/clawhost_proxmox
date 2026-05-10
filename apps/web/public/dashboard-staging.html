@@ -1307,9 +1307,40 @@ input{font-family:inherit}
             <div class="form-group"><label>1. שם העסק</label><input type="text" id="q-business-name" placeholder="לדוגמה: Flowmatic"/></div>
             <div class="form-group"><label>2. במה עוסק העסק?</label><textarea id="q-business-desc" placeholder="תארו בקצרה את המוצר או השירות" rows="2"></textarea></div>
             <div class="form-group"><label>3. כתובת האתר (אם יש)</label><input type="url" id="q-website" placeholder="https://example.co.il" dir="ltr"/></div>
-            <div class="form-group"><label>4. מי קהל היעד?</label><textarea id="q-target" placeholder="תארו את הלקוח האידיאלי — גיל, תחום, כאבים" rows="2"></textarea></div>
-            <div class="form-group"><label>5. מי המתחרים? (2-3 שמות)</label><textarea id="q-competitors" placeholder="שמות + URL אם יש" rows="2"></textarea></div>
-            <div class="form-group"><label>6. מטרות שיווק <span style="color:#9CA3AF;font-weight:400">(בחרו כמה)</span></label>
+            <div class="form-group"><label>4. סוג העסק</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+                <label class="chip-label"><input type="radio" name="q-bizmodel" value="ecommerce"/><span class="chip">eCommerce</span></label>
+                <label class="chip-label"><input type="radio" name="q-bizmodel" value="service" checked/><span class="chip">שירות</span></label>
+                <label class="chip-label"><input type="radio" name="q-bizmodel" value="saas"/><span class="chip">SaaS / מוצר דיגיטלי</span></label>
+                <label class="chip-label"><input type="radio" name="q-bizmodel" value="local"/><span class="chip">עסק מקומי</span></label>
+                <label class="chip-label"><input type="radio" name="q-bizmodel" value="content"/><span class="chip">תוכן וקהל</span></label>
+                <label class="chip-label"><input type="radio" name="q-bizmodel" value="other"/><span class="chip">אחר</span></label>
+              </div>
+              <div style="font-size:0.72rem;color:#9CA3AF;margin-top:4px">eCommerce — לא נבקש לפרט מוצרים. נסנכרן מהאתר וה-GSC כשתחברו.</div>
+            </div>
+            <div class="form-group"><label>5. שוק יעד / גיאוגרפיה</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+                <label class="chip-label"><input type="checkbox" name="q-geo" value="ישראל" checked/><span class="chip">ישראל</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-geo" value="ערים מרכזיות בישראל"/><span class="chip">ערים מרכזיות</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-geo" value="דוברי עברית בחו״ל"/><span class="chip">עברית בחו״ל</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-geo" value="ארה״ב / אירופה"/><span class="chip">ארה״ב / אירופה</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-geo" value="גלובלי"/><span class="chip">גלובלי</span></label>
+              </div>
+              <input type="text" id="q-geo-other" placeholder="ערים ספציפיות / מדינות אחרות (אופציונלי)" style="margin-top:6px;width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.85rem"/>
+            </div>
+            <div class="form-group"><label>6. מנגנון המרה ראשי <span style="color:#9CA3AF;font-weight:400">(איך הלקוח מבצע פעולה?)</span></label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+                <label class="chip-label"><input type="checkbox" name="q-conv" value="רכישה ישירה באתר"/><span class="chip">רכישה באתר</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-conv" value="טופס ליד" checked/><span class="chip">טופס ליד</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-conv" value="שיחת טלפון"/><span class="chip">שיחת טלפון</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-conv" value="WhatsApp"/><span class="chip">WhatsApp</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-conv" value="ביקור פיזי בחנות"/><span class="chip">ביקור בחנות</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-conv" value="פגישת ייעוץ"/><span class="chip">פגישת ייעוץ</span></label>
+              </div>
+            </div>
+            <div class="form-group"><label>7. מי קהל היעד?</label><textarea id="q-target" placeholder="תארו את הלקוח האידיאלי — גיל, תחום, כאבים" rows="2"></textarea></div>
+            <div class="form-group"><label>8. מי המתחרים? <span style="color:#9CA3AF;font-weight:400">(אופציונלי — אם יודע, אחרת המערכת תמצא)</span></label><textarea id="q-competitors" placeholder="2-3 שמות + URL אם יש (אפשר להשאיר ריק)" rows="2"></textarea></div>
+            <div class="form-group"><label>9. מטרות שיווק <span style="color:#9CA3AF;font-weight:400">(בחרו כמה)</span></label>
               <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
                 <label class="chip-label"><input type="checkbox" name="q-goal" value="לידים"/><span class="chip">לידים</span></label>
                 <label class="chip-label"><input type="checkbox" name="q-goal" value="מכירות ישירות"/><span class="chip">מכירות</span></label>
@@ -1318,7 +1349,7 @@ input{font-family:inherit}
                 <label class="chip-label"><input type="checkbox" name="q-goal" value="שימור לקוחות"/><span class="chip">שימור</span></label>
                 <label class="chip-label"><input type="checkbox" name="q-goal" value="SEO ותנועה אורגנית"/><span class="chip">SEO</span></label>
               </div></div>
-            <div class="form-group"><label>7. פלטפורמות <span style="color:#9CA3AF;font-weight:400">(או רוצים להיות)</span></label>
+            <div class="form-group"><label>10. פלטפורמות <span style="color:#9CA3AF;font-weight:400">(או רוצים להיות)</span></label>
               <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
                 <label class="chip-label"><input type="checkbox" name="q-platform" value="Instagram"/><span class="chip">Instagram</span></label>
                 <label class="chip-label"><input type="checkbox" name="q-platform" value="Facebook"/><span class="chip">Facebook</span></label>
@@ -1331,7 +1362,7 @@ input{font-family:inherit}
                 <label class="chip-label"><input type="checkbox" name="q-platform" value="Google Ads"/><span class="chip">Google Ads</span></label>
                 <label class="chip-label"><input type="checkbox" name="q-platform" value="Meta Ads"/><span class="chip">Meta Ads</span></label>
               </div></div>
-            <div class="form-group"><label>8. תוכן נוכחי <span style="color:#9CA3AF;font-weight:400">(בחרו כמה)</span></label>
+            <div class="form-group"><label>11. תוכן נוכחי <span style="color:#9CA3AF;font-weight:400">(בחרו כמה)</span></label>
               <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
                 <label class="chip-label"><input type="checkbox" name="q-content" value="פוסטים ברשתות"/><span class="chip">פוסטים</span></label>
                 <label class="chip-label"><input type="checkbox" name="q-content" value="סרטונים / ריילס"/><span class="chip">סרטונים</span></label>
@@ -1340,7 +1371,7 @@ input{font-family:inherit}
                 <label class="chip-label"><input type="checkbox" name="q-content" value="פודקאסט"/><span class="chip">פודקאסט</span></label>
                 <label class="chip-label"><input type="checkbox" name="q-content" value="לא מפרסמים עדיין"/><span class="chip">לא מפרסמים</span></label>
               </div></div>
-            <div class="form-group"><label>9. טון התקשורת</label>
+            <div class="form-group"><label>12. טון התקשורת</label>
               <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
                 <label class="chip-label"><input type="radio" name="q-tone" value="מקצועי ורשמי"/><span class="chip">מקצועי</span></label>
                 <label class="chip-label"><input type="radio" name="q-tone" value="ידידותי ונגיש" checked/><span class="chip">ידידותי</span></label>
@@ -1348,9 +1379,9 @@ input{font-family:inherit}
                 <label class="chip-label"><input type="radio" name="q-tone" value="פרובוקטיבי ונועז"/><span class="chip">פרובוקטיבי</span></label>
                 <label class="chip-label"><input type="radio" name="q-tone" value="חינוכי ומעשיר"/><span class="chip">חינוכי</span></label>
               </div></div>
-            <div class="form-group"><label>10. תקציב שיווק חודשי</label>
+            <div class="form-group"><label>13. תקציב שיווק חודשי</label>
               <select id="q-budget"><option value="אין תקציב">אין תקציב — רק אורגני</option><option value="עד 1,000 ₪">עד 1,000 ₪</option><option value="1,000-5,000 ₪" selected>1,000–5,000 ₪</option><option value="5,000-15,000 ₪">5,000–15,000 ₪</option><option value="15,000-50,000 ₪">15,000–50,000 ₪</option><option value="מעל 50,000 ₪">מעל 50,000 ₪</option></select></div>
-            <div class="form-group"><label>11. מה הכי מתסכל בשיווק?</label><textarea id="q-challenges" placeholder="אין זמן? לא יודעים מה לכתוב? אין תוצאות?" rows="2"></textarea></div>
+            <div class="form-group"><label>14. מה הכי מתסכל בשיווק? <span style="color:#9CA3AF;font-weight:400">(אופציונלי)</span></label><textarea id="q-challenges" placeholder="אין זמן? לא יודעים מה לכתוב? אין תוצאות?" rows="2"></textarea></div>
             <button class="btn btn-primary" onclick="submitAgentSetup()" id="btn-setup-submit">עדכנו את הסוכנים &rarr;</button>
           </div>
           <div class="hidden" id="setup-step2"><div style="text-align:center;margin:20px 0"><div class="gear-spinner" style="display:inline-block;font-size:2rem;animation:spin 2s linear infinite">&#9881;&#65039;</div></div><h3 style="text-align:center;margin:8px 0">מגדירים את הסוכנים...</h3><p style="text-align:center;color:#6B7280;font-size:0.85rem">זה ייקח כ-30 שניות</p></div>
@@ -19980,10 +20011,18 @@ function renderSavedAnswers() {
   prefillChecked('q-goal', answers.marketingGoals);
   prefillChecked('q-platform', answers.platforms);
   prefillChecked('q-content', answers.currentContent);
+  // Phase 2.3.F — new fields
+  prefillChecked('q-geo', answers.geography);
+  prefillChecked('q-conv', answers.conversionMechanism);
 
   // Pre-fill tone radio
   document.querySelectorAll('input[name="q-tone"]').forEach(function(r) {
     r.checked = r.value === (answers.tone || 'ידידותי ונגיש');
+  });
+
+  // Pre-fill businessModel radio
+  document.querySelectorAll('input[name="q-bizmodel"]').forEach(function(r) {
+    r.checked = r.value === (answers.businessModel || 'service');
   });
 }
 
@@ -20619,10 +20658,17 @@ async function submitAgentSetup() {
   function getChecked(name) {
     return Array.from(document.querySelectorAll('input[name="' + name + '"]:checked')).map(function(el) { return el.value; });
   }
+  var geoOther = (document.getElementById('q-geo-other') || {}).value || '';
+  var geoArr = getChecked('q-geo');
+  if (geoOther.trim()) geoArr.push(geoOther.trim());
   var answers = {
     businessName: document.getElementById('q-business-name').value.trim(),
     businessDescription: document.getElementById('q-business-desc').value.trim(),
     websiteUrl: (document.getElementById('q-website') || {}).value || '',
+    // Phase 2.3.F — new structured fields used by research/strategy stages
+    businessModel: (document.querySelector('input[name="q-bizmodel"]:checked') || {}).value || 'service',
+    geography: geoArr.join(', ') || 'ישראל',
+    conversionMechanism: getChecked('q-conv').join(', '),
     targetAudience: document.getElementById('q-target').value.trim(),
     competitors: document.getElementById('q-competitors').value.trim(),
     marketingGoals: getChecked('q-goal').join(', ') || 'מודעות מותג',
@@ -20643,7 +20689,19 @@ async function submitAgentSetup() {
   window._dashboardAnswers = answers;
   var iid = localStorage.getItem('cf_instance_id');
 
-  // Step 1: Analyze for clarifying questions
+  // Phase 2.3.F — for eCommerce skip the products clarify step entirely.
+  // Catalog + categories will be auto-extracted from the URL during research
+  // and from GSC/sales integrations once connected. Asking the user to
+  // manually list hundreds of SKUs is pointless and friction-heavy.
+  if (answers.businessModel === 'ecommerce') {
+    answers.products = [];
+    answers.productsFunnel = '(eCommerce — קטלוג מסונכרן אוטומטית מהאתר וה-GSC)';
+    btn.textContent = 'מגדירים...';
+    await deployAgentsDashboard(answers);
+    return;
+  }
+
+  // Step 1: Analyze for clarifying questions (non-eCommerce)
   try {
     var analyzeRes = await fetch(API + '/hosting/instances/' + iid + '/setup/agents/analyze', {
       method: 'POST',
