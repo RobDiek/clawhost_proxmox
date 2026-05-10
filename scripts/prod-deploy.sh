@@ -69,6 +69,18 @@ for f in "$WEB_PUBLIC"/*.html; do
     echo "  synced: $name"
 done
 
+# Caddy serves admin.flowmatic.co.il from apps/web/dist/admin/. Source lives
+# in apps/web/admin/ (separate path, not under public/). Sync them too.
+echo "=== SYNC admin/*.html → dist/admin/ ==="
+ADMIN_SRC=apps/web/admin
+ADMIN_DST=apps/web/dist/admin
+mkdir -p "$ADMIN_DST"
+for f in "$ADMIN_SRC"/*.html; do
+    name=$(basename "$f")
+    cp -f "$f" "$ADMIN_DST/$name"
+    echo "  synced admin: $name"
+done
+
 echo "=== RESTART clawflow-api ==="
 systemctl restart clawflow-api
 sleep 8
