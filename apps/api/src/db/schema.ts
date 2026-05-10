@@ -416,6 +416,74 @@ export const instances = pgTable(
     ]
 )
 
+// ─── Mateh Agents — Phase 2.1 multi-MATEH-per-VPS layer ───────────────────
+// Each row is one running agent (MATEH / OpenClaw / bare) on a VPS.
+// `vps_instance_id` FKs to `instances` (the VPS host); a single VPS can host
+// multiple agent rows. `tenant_id` FKs to `tenants` — different agents on
+// the same VPS can belong to different tenants (agency case).
+//
+// During Phase 2.1-2.3 migration, both data layers coexist:
+//   - instances.* fields still hold per-agent data for the PRIMARY agent
+//     (is_primary=TRUE row in mateh_agents references the same data).
+//   - Secondary agents have data ONLY in mateh_agents.
+//   - New code paths read from mateh_agents; legacy paths still read from
+//     instances. After Phase 2.3 the duplicate fields on instances are
+//     deprecated.
+export const matehAgents = pgTable(
+    'mateh_agents',
+    {
+        id: text('id').primaryKey(),
+        vpsInstanceId: text('vps_instance_id')
+            .notNull()
+            .references(() => instances.id, { onDelete: 'cascade' }),
+        tenantId: text('tenant_id').references(() => tenants.id, { onDelete: 'set null' }),
+        agentType: text('agent_type').notNull().default('mateh'),
+        name: text('name').notNull(),
+        brandSlug: text('brand_slug').notNull(),
+        subdomainAgent: text('subdomain_agent'),
+        subdomainFlows: text('subdomain_flows'),
+        gatewayPort: integer('gateway_port'),
+        openclawToken: text('openclaw_token'),
+        automationPassword: text('automation_password'),
+        aiProviderKey: text('ai_provider_key'),
+        aiProviderType: text('ai_provider_type'),
+        openaiApiKey: text('openai_api_key'),
+        falApiKey: text('fal_api_key'),
+        elevenlabsApiKey: text('elevenlabs_api_key'),
+        dataforseoKey: text('dataforseo_key'),
+        firecrawlKey: text('firecrawl_key'),
+        subAgentModels: jsonb('sub_agent_models'),
+        googleTokens: jsonb('google_tokens'),
+        metaTokens: jsonb('meta_tokens'),
+        microsoftTokens: jsonb('microsoft_tokens'),
+        gscTokens: jsonb('gsc_tokens'),
+        githubConfig: jsonb('github_config'),
+        telegramChatId: text('telegram_chat_id'),
+        telegramBotToken: text('telegram_bot_token'),
+        telegramWebhookSecret: text('telegram_webhook_secret'),
+        researchData: jsonb('research_data'),
+        onboardingStep: integer('onboarding_step').notNull().default(0),
+        onboardingCompleted: boolean('onboarding_completed').notNull().default(false),
+        schedules: jsonb('schedules'),
+        status: text('status').notNull().default('provisioning'),
+        lastHealthReport: jsonb('last_health_report'),
+        lastHealthAt: timestamp('last_health_at', { withTimezone: true }),
+        autoHeal: boolean('auto_heal').notNull().default(true),
+        isPrimary: boolean('is_primary').notNull().default(false),
+        createdAt: timestamp('created_at', { withTimezone: true })
+            .defaultNow()
+            .notNull(),
+        updatedAt: timestamp('updated_at', { withTimezone: true })
+            .defaultNow()
+            .notNull(),
+    },
+    (table) => [
+        index('mateh_agents_vps_idx').on(table.vpsInstanceId),
+        index('mateh_agents_tenant_idx').on(table.tenantId),
+        index('mateh_agents_status_idx').on(table.status),
+    ],
+)
+
 export const payments = pgTable(
     'payments',
     {
