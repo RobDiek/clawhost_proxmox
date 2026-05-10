@@ -9792,7 +9792,7 @@ function renderAgentsTab() {
       var statusColor = a.status === 'running' ? '#10B981' : (a.status === 'provisioning' ? '#F59E0B' : '#EF4444');
       var statusLabel = a.status === 'running' ? '✓ פעיל' : (a.status === 'provisioning' ? '⏳ מתקין' : '⚠ ' + a.status);
       var openUrl = a.subdomainAgent ? ('https://' + a.subdomainAgent) : '';
-      html += '<div class="int-card">' +
+      html += '<div class="int-card" style="cursor:pointer" onclick="openSecondaryAgentSettings(\''+escapeHtmlDash(a.id)+'\')">' +
         '<div class="int-card-header">' +
           '<div class="int-icon" style="background:#F0FDF4">' + (SVG_ICONS.robot || '') + '</div>' +
           '<div>' +
@@ -9803,8 +9803,9 @@ function renderAgentsTab() {
           '</div>' +
         '</div>' +
         '<div style="display:flex;gap:6px;margin-top:8px">' +
-          (openUrl ? '<a href="'+openUrl+'" target="_blank" class="btn btn-outline btn-sm">פתיחה ↗</a>' : '') +
-          '<button class="btn btn-outline btn-sm" onclick="deleteMyAgentConfirm(\''+escapeHtmlDash(a.id)+'\',\''+escapeHtmlDash(a.name)+'\')" style="color:#EF4444">מחק</button>' +
+          '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openSecondaryAgentSettings(\''+escapeHtmlDash(a.id)+'\')">⚙ הגדרות</button>' +
+          (openUrl ? '<a href="'+openUrl+'" target="_blank" onclick="event.stopPropagation()" class="btn btn-outline btn-sm">פתיחה ↗</a>' : '') +
+          '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();deleteMyAgentConfirm(\''+escapeHtmlDash(a.id)+'\',\''+escapeHtmlDash(a.name)+'\')" style="color:#EF4444">מחק</button>' +
         '</div>' +
       '</div>';
     });
@@ -9909,6 +9910,108 @@ async function deleteMyAgentConfirm(agentId, name) {
     showToast('סוכן נמחק', 'success');
     window._myMatehAgentsLoaded = false;
     renderAgentsTab();
+  } catch (e) { alert('שגיאת תקשורת: ' + e.message); }
+}
+
+// Phase 2.4 — settings modal for a secondary mateh_agent. Allows the
+// agency user to view/edit name, tenant assignment, AI key, telegram
+// bot config, and switch focus to this agent (sets cf_active_mateh_agent_id).
+async function openSecondaryAgentSettings(agentId) {
+  if (!isAgencyMode()) return;
+  var token = localStorage.getItem('cf_token') || '';
+  // Need both the agent details and tenants list (for tenant picker)
+  if (!window._myTenantsLoaded) await loadTenantFilterOnce();
+  var tenants = window._myTenants || [];
+  var res = await fetch(API + '/hosting/me/agents/' + encodeURIComponent(agentId), {
+    headers: { 'Authorization': 'Bearer ' + token }
+  });
+  var j = await res.json();
+  if (!j || !j.success) { alert('שגיאה: ' + (j && j.message || 'unknown')); return; }
+  var a = j.data && j.data.agent;
+  if (!a) { alert('Agent not found'); return; }
+  var openUrl = a.subdomainAgent ? ('https://' + a.subdomainAgent) : '';
+  var statusColor = a.status === 'running' ? '#10B981' : (a.status === 'provisioning' ? '#F59E0B' : '#EF4444');
+
+  var html = '<div class="modal-overlay show" onclick="if(event.target===this)closeSecondaryAgentSettings()" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999">' +
+    '<div class="modal-card" style="background:#fff;padding:24px;border-radius:16px;max-width:680px;width:92%;max-height:90vh;overflow:auto;direction:rtl">' +
+    '<h3 style="margin:0 0 4px">' + escapeHtmlDash(a.name) + '</h3>' +
+    '<div style="color:#9CA3AF;font-size:0.78rem;margin-bottom:14px">' + escapeHtmlDash(a.id) + ' · ' + a.agentType + ' · port ' + (a.gatewayPort||'?') + ' · brand <code>' + escapeHtmlDash(a.brandSlug) + '</code></div>' +
+
+    // Status + URL block
+    '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px;margin-bottom:14px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' +
+        '<div><strong style="color:'+statusColor+'">'+a.status+'</strong></div>' +
+        (openUrl ? '<a href="'+openUrl+'" target="_blank" class="btn btn-outline btn-sm">פתיחה ↗</a>' : '') +
+      '</div>' +
+      (openUrl ? '<div style="font-size:0.78rem;color:#6B7280;margin-top:6px;direction:ltr">'+escapeHtmlDash(openUrl)+'</div>' : '') +
+    '</div>' +
+
+    // Editable fields
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+    '<label>שם <input id="sa-name" value="'+escapeHtmlDash(a.name)+'" style="width:100%;padding:6px 8px;border:1px solid #E5E7EB;border-radius:6px"/></label>' +
+    '<label>לקוח <select id="sa-tenant" style="width:100%;padding:6px 8px;border:1px solid #E5E7EB;border-radius:6px">' +
+      '<option value="">— ללא לקוח —</option>' +
+      tenants.map(function(t){ return '<option value="'+t.id+'"'+(a.tenantId===t.id?' selected':'')+'>'+escapeHtmlDash(t.name)+'</option>'; }).join('') +
+    '</select></label>' +
+    '<label style="grid-column:1/3">מפתח Anthropic ' + (a.aiProviderKey ? '<span style="color:#10B981">(מוגדר)</span>' : '<span style="color:#9CA3AF">(ריק - משתמש ב-tenant default)</span>') +
+      '<input id="sa-akey" type="password" placeholder="sk-ant-... · ריק = מחיקה · השאירו ככה = ללא שינוי" style="width:100%;padding:6px 8px;border:1px solid #E5E7EB;border-radius:6px"/></label>' +
+    '<label>Telegram bot token ' + (a.telegramBotToken ? '<span style="color:#10B981">(מוגדר)</span>' : '<span style="color:#9CA3AF">(ריק)</span>') +
+      '<input id="sa-tg-token" type="password" placeholder="123:ABC..." style="width:100%;padding:6px 8px;border:1px solid #E5E7EB;border-radius:6px"/></label>' +
+    '<label>Telegram chat id <input id="sa-tg-chat" value="'+escapeHtmlDash(a.telegramChatId||'')+'" style="width:100%;padding:6px 8px;border:1px solid #E5E7EB;border-radius:6px"/></label>' +
+    '<label style="grid-column:1/3"><input type="checkbox" id="sa-autoheal"'+(a.autoHeal?' checked':'')+'/> Auto-heal (restart on failure)</label>' +
+    '</div>' +
+
+    '<div style="margin-top:14px;padding:10px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;font-size:0.78rem;color:#78350F">' +
+      '⚠ <strong>הגבלות שלב הזה (Phase 2.2):</strong> צ\'אט עם סוכן + מחקר + אינטגרציות (Google/Meta/GSC) עדיין מופנים לסוכן הראשי של ה-VPS. שלב 2.3 יחבר את כל ה-routes לסוכן ספציפי. בינתיים — הסוכן הזה רץ עצמאית על ה-VPS, ניתן להיכנס דרך "פתיחה ↗" ל-OpenClaw UI שלו ישירות.' +
+    '</div>' +
+
+    '<div style="display:flex;gap:8px;justify-content:space-between;margin-top:16px;flex-wrap:wrap">' +
+      '<button class="btn btn-outline" style="color:#EF4444" onclick="deleteMyAgentConfirm(\''+escapeHtmlDash(a.id)+'\',\''+escapeHtmlDash(a.name)+'\');closeSecondaryAgentSettings()">מחק סוכן</button>' +
+      '<div>' +
+        '<button class="btn btn-outline" onclick="closeSecondaryAgentSettings()">סגור</button>' +
+        '<button class="btn btn-primary" onclick="submitUpdateMyAgent(\''+escapeHtmlDash(a.id)+'\')">שמור</button>' +
+      '</div>' +
+    '</div></div></div>';
+  var wrap = document.createElement('div');
+  wrap.id = 'sa-modal-wrap';
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+}
+function closeSecondaryAgentSettings() {
+  var w = document.getElementById('sa-modal-wrap');
+  if (w) w.remove();
+}
+async function submitUpdateMyAgent(agentId) {
+  var token = localStorage.getItem('cf_token') || '';
+  var akey = document.getElementById('sa-akey').value;
+  var tgToken = document.getElementById('sa-tg-token').value;
+  var body = {
+    name: document.getElementById('sa-name').value.trim(),
+    tenantId: document.getElementById('sa-tenant').value || null,
+    telegramChatId: document.getElementById('sa-tg-chat').value.trim() || null,
+    autoHeal: document.getElementById('sa-autoheal').checked,
+  };
+  // For sensitive keys: '' = clear (send null), undefined = keep, value = set
+  if (akey === '') body.aiProviderKey = null;
+  else if (akey) body.aiProviderKey = akey;
+  if (tgToken === '') body.telegramBotToken = null;
+  else if (tgToken) body.telegramBotToken = tgToken;
+
+  if (!body.name) { alert('שם חובה'); return; }
+  try {
+    var res = await fetch(API + '/hosting/me/agents/' + encodeURIComponent(agentId), {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    var j = await res.json();
+    if (!j || !j.success) { alert('שגיאה: ' + (j && j.message || 'unknown')); return; }
+    showToast('הגדרות נשמרו ✓', 'success');
+    closeSecondaryAgentSettings();
+    window._myMatehAgentsLoaded = false;
+    renderAgentsTab();
+    renderAgentSwitcherDropdown();
+    renderAgentSwitcherBtn();
   } catch (e) { alert('שגיאת תקשורת: ' + e.message); }
 }
 

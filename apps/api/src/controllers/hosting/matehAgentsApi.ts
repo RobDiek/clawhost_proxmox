@@ -172,6 +172,65 @@ export const createMyAgent = async (c: Context) => {
     }
 }
 
+// ─── Update agent (rename, switch tenant, set keys, telegram) ─────────────
+//
+// Settings panel for a secondary mateh_agent. Caller is the agency user
+// who owns the underlying VPS. Allows editing:
+//   - name (display name in dashboard)
+//   - tenantId (move between tenants — must be one of user's tenants)
+//   - aiProviderKey (per-agent override; null = use tenant default)
+//   - telegramBotToken / telegramChatId
+//   - autoHeal toggle
+//
+// Sensitive values: when input is empty string we clear (set null);
+// when input is omitted (undefined) we keep current; non-empty replaces.
+
+export const updateMyAgent = async (c: Context) => {
+    const r = await requireAgency(c)
+    if ('error' in r) return r.error
+    const id = c.req.param('agentId')
+    const raw = await c.req.json().catch(() => ({})) as Record<string, unknown>
+
+    // Verify ownership
+    const [row] = await db
+        .select({ agent: matehAgents, instanceUserId: instances.userId })
+        .from(matehAgents)
+        .innerJoin(instances, eq(instances.id, matehAgents.vpsInstanceId))
+        .where(eq(matehAgents.id, id))
+    if (!row) return fail(c, 'Agent not found', 404)
+    if (row.instanceUserId !== r.userId) return fail(c, 'Agent not yours', 403)
+
+    const updates: Partial<typeof matehAgents.$inferInsert> = { updatedAt: new Date() }
+
+    if (typeof raw.name === 'string' && raw.name.trim()) {
+        updates.name = raw.name.trim()
+    }
+    if (raw.tenantId !== undefined) {
+        if (raw.tenantId === null || raw.tenantId === '') {
+            updates.tenantId = null
+        } else if (typeof raw.tenantId === 'string') {
+            // Validate tenant ownership
+            const [t] = await db.select().from(tenants).where(eq(tenants.id, raw.tenantId))
+            if (!t) return fail(c, 'Tenant not found', 404)
+            if (t.managedByUserId !== r.userId) return fail(c, 'Tenant not yours', 403)
+            updates.tenantId = raw.tenantId
+        }
+    }
+    // Sensitive keys: '' clears, undefined keeps, value replaces.
+    for (const k of ['aiProviderKey', 'telegramBotToken', 'telegramChatId'] as const) {
+        if (raw[k] !== undefined) {
+            const v = raw[k]
+            if (v === null || v === '') updates[k] = null
+            else if (typeof v === 'string') updates[k] = v
+        }
+    }
+    if (typeof raw.autoHeal === 'boolean') updates.autoHeal = raw.autoHeal
+
+    await db.update(matehAgents).set(updates).where(eq(matehAgents.id, id))
+    const [updated] = await db.select().from(matehAgents).where(eq(matehAgents.id, id))
+    return ok(c, updated, 'Agent updated.')
+}
+
 // ─── Delete agent ────────────────────────────────────────────────────────
 
 export const deleteMyAgent = async (c: Context) => {
