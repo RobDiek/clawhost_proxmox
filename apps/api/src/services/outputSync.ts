@@ -244,6 +244,15 @@ async function syncInstance(instance: {
 }): Promise<number> {
     let ingested = 0
 
+    // Phase 2.3.C — outputSync currently only scans the PRIMARY agent's
+    // session dirs (/home/openclaw/.openclaw/agents). Tag synced outputs
+    // with the primary agent's id so they land in the primary's queue,
+    // never in a secondary's. Secondary-agent session sync would need to
+    // walk /home/openclaw/agents/<id>/.openclaw/agents which is a
+    // separate phase.
+    const { resolvePrimaryAgent: __rp } = await import('@/services/agentContext')
+    const __primaryAgent = await __rp(instance.id)
+
     try {
         // Get list of recent session files (last 24h)
         const sessionList = await sshExec(instance.ip, `
@@ -298,6 +307,7 @@ async function syncInstance(instance: {
                 await db.insert(agentOutputs).values({
                     id: generateId(),
                     instanceId: instance.id,
+                    agentId: __primaryAgent?.id || null,
                     agentRole: output.agentRole,
                     outputType: classification.outputType,
                     title: classification.title,
@@ -349,6 +359,7 @@ async function syncInstance(instance: {
                     await db.insert(agentOutputs).values({
                         id: generateId(),
                         instanceId: instance.id,
+                        agentId: __primaryAgent?.id || null,
                         agentRole: 'mateh',
                         outputType: classification.outputType,
                         title: classification.title,

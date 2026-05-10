@@ -371,14 +371,17 @@ ${researchForStrategy}
             } catch { /* give up */ }
         }
 
-        // Save results as outputs (approval queue)
+        // Save results as outputs (approval queue) — Phase 2.3.C: tag with active agent
         const outputId1 = generateId()
         const outputId2 = generateId()
+        const __seoAgentForOutputs = await resolveActiveAgent(c, instanceId)
+        const __seoAgentId = __seoAgentForOutputs?.id || null
 
         // Research output
         await db.insert(agentOutputs).values({
             id: outputId1,
             instanceId,
+            agentId: __seoAgentId,
             agentRole: 'sayer',
             outputType: 'weekly_report',
             title: 'מחקר SEO ראשון — ' + businessName,
@@ -391,6 +394,7 @@ ${researchForStrategy}
         await db.insert(agentOutputs).values({
             id: outputId2,
             instanceId,
+            agentId: __seoAgentId,
             agentRole: 'menateach',
             outputType: 'weekly_report',
             title: 'אסטרטגיית SEO — ' + businessName,

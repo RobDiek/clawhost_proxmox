@@ -3101,6 +3101,7 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
             await db.insert(aoSchema).values({
                 id: outputId,
                 instanceId,
+                agentId: __agent?.id || null,
                 agentRole: 'menateach',
                 outputType: 'weekly_ops_brief',
                 title: `${statusEmoji} דוח ביצועים שבועי #${currentWeek}`,

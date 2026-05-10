@@ -556,6 +556,11 @@ export const agentOutputs = pgTable(
         instanceId: text('instance_id')
             .notNull()
             .references(() => instances.id, { onDelete: 'cascade' }),
+        // Phase 2.3.C — which mateh_agent this output belongs to. Nullable
+        // because legacy callers pre-2.3.C didn't have a per-agent context;
+        // backfill assigns those to the VPS's primary agent. New code MUST
+        // set this on insert so secondary-agent queues stay isolated.
+        agentId: text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
 
         // What
         agentRole: text('agent_role').notNull(),    // 'sayer', 'et', 'yotzer', 'mateh', etc.
@@ -592,7 +597,8 @@ export const agentOutputs = pgTable(
     (table) => [
         index('agent_outputs_instance_idx').on(table.instanceId),
         index('agent_outputs_status_idx').on(table.instanceId, table.status),
-        index('agent_outputs_scheduled_idx').on(table.instanceId, table.scheduledFor)
+        index('agent_outputs_scheduled_idx').on(table.instanceId, table.scheduledFor),
+        index('agent_outputs_agent_idx').on(table.agentId),
     ]
 )
 

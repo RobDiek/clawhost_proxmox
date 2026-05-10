@@ -101,6 +101,15 @@ export const getOutputs = async (c: Context<HonoEnv>) => {
             }
         }
 
+        // Phase 2.3.C — per-agent isolation. Filter outputs by the active
+        // mateh_agent so secondaries on the same VPS don't see the primary's
+        // queue (and vice versa). Backfill mapped legacy outputs to the
+        // primary agent, so this filter behaves correctly for both.
+        const __agent = await resolveActiveAgent(c, instanceId)
+        if (__agent) {
+            conditions.push(eq(agentOutputs.agentId, __agent.id))
+        }
+
         const results = await db.select()
             .from(agentOutputs)
             .where(and(...conditions))
@@ -154,9 +163,13 @@ export const ingestOutput = async (c: Context<HonoEnv>) => {
         }
 
         const id = generateId()
+        // Phase 2.3.C — tag output with active mateh_agent so it lands
+        // only in that agent's queue.
+        const __ingestAgent = await resolveActiveAgent(c, instanceId)
         await db.insert(agentOutputs).values({
             id,
             instanceId,
+            agentId: __ingestAgent?.id || null,
             agentRole: body.agentRole,
             outputType: body.outputType,
             title: body.title,
@@ -426,9 +439,11 @@ async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
 
             if (articleText.length > 100) {
                 const articleId = randomBytes(6).toString('hex')
+                // Phase 2.3.C — keep this article tied to the source output's agent.
                 await db.insert(agentOutputs).values({
                     id: articleId,
                     instanceId: output.instanceId,
+                    agentId: (output as { agentId?: string | null }).agentId || null,
                     agentRole: 'et',
                     outputType: 'content_post',
                     title: firstTitle,
@@ -515,6 +530,8 @@ export const editOutput = async (c: Context<HonoEnv>) => {
             await db.insert(agentOutputs).values({
                 id: revisionId,
                 instanceId: existing.instanceId,
+                // Phase 2.3.C — revision lives in the same agent's queue
+                agentId: (existing as { agentId?: string | null }).agentId || null,
                 agentRole: existing.agentRole,
                 outputType: existing.outputType,
                 title: '(תיקון) ' + existing.title,

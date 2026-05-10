@@ -137,9 +137,12 @@ export async function runBidTransitionCheck(): Promise<{
                         `אם תאשרו, האסטרטגיה תופעל אוטומטית. בלי אישור הקמפיין יישאר ב-${c.bidContract.week1to4}.`,
                     ].filter(Boolean).join('\n')
                     try {
+                        const { resolvePrimaryAgent: __rp } = await import('@/services/agentContext')
+                        const __bidAgent = await __rp(row.id)
                         await db.insert(agentOutputs).values({
                             id: proposalId,
                             instanceId: row.id,
+                            agentId: __bidAgent?.id || null,
                             agentRole: 'mazhir',
                             outputType: 'bid_transition_proposal',
                             platform: 'google_ads',

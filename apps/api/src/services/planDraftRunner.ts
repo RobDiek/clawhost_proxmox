@@ -312,7 +312,11 @@ export async function draftDuePlanItemsForInstance(
     const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!instance) return { drafted, skipped, failed }
 
-    const rd = (instance.researchData as Record<string, unknown>) || {}
+    // Phase 2.3.C — cron-style operation; default to primary mateh_agent
+    const { resolvePrimaryAgent: __rp, readResearchData: __rrd } =
+        await import('@/services/agentContext')
+    const __planAgent = await __rp(instanceId)
+    const rd = (await __rrd(__planAgent, instanceId)) as Record<string, unknown>
     const plan = (Array.isArray(rd.contentPlan) ? rd.contentPlan : []) as PlanItem[]
     if (plan.length === 0) return { drafted, skipped, failed }
 
@@ -393,9 +397,10 @@ export async function draftDuePlanItemsForInstance(
     for (const item of toProcess) {
         // Transition to drafting (immediate save to prevent race if cron fires again)
         item.status = 'drafting'
-        await db.update(instances).set({
-            researchData: { ...rd, contentPlan: plan } as unknown as Record<string, unknown>,
-        }).where(eq(instances.id, instanceId))
+        {
+            const { writeResearchData: __wrd } = await import('@/services/agentContext')
+            await __wrd(__planAgent, instanceId, { ...rd, contentPlan: plan } as Record<string, unknown>)
+        }
 
         const generated = await generateDraftContent(apiKey, instanceId, item, ctx)
         if (!generated) {
@@ -409,6 +414,7 @@ export async function draftDuePlanItemsForInstance(
         await db.insert(agentOutputs).values({
             id: outputId,
             instanceId,
+            agentId: __planAgent?.id || null,
             agentRole: item.agentRole || 'yotzer',
             outputType: item.type === 'article' ? 'blog_article' : 'content_post',
             title: generated.title,

@@ -106,11 +106,14 @@ export async function generateInstanceReport(instanceId: string): Promise<{
     // Call Claude Sonnet to compose the Hebrew report
     const content: string = await composeReport(anthropicKey, data)
 
-    // Insert into agent_outputs
+    // Insert into agent_outputs (cron-style — defaults to primary agent)
     const outputId = genId()
+    const { resolvePrimaryAgent: __rp } = await import('@/services/agentContext')
+    const __wcrAgent = await __rp(instanceId)
     await db.insert(agentOutputs).values({
         id: outputId,
         instanceId,
+        agentId: __wcrAgent?.id || null,
         agentRole: 'menateach',
         outputType: 'weekly_creative_report',
         title: `דוח קריאייטיב שבועי — ${new Date().toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' })}`,
