@@ -266,7 +266,11 @@ export const researchPreflight = async (c: Context) => {
     }
 
     // ─── Check 4: Firecrawl key (optional, for E2.1 deep money-pages) ──
-    if (!inst.firecrawlKey) {
+    // Phase 2.3.H/fix — read from active agent row, NOT instance (which is
+    // primary's data). Otherwise secondary agent inherits primary's
+    // "connected" state and integration gate falsely passes.
+    const fcKey = activeAgent ? activeAgent.firecrawlKey : inst.firecrawlKey
+    if (!fcKey) {
         checks.push({
             name: 'firecrawl_key',
             status: 'warning',
@@ -282,7 +286,7 @@ export const researchPreflight = async (c: Context) => {
     }
 
     // ─── Check 5: GSC connection (optional, for striking-distance accuracy) ──
-    const gscTokens = inst.gscTokens as { refreshToken?: string; siteUrl?: string } | null
+    const gscTokens = (activeAgent ? activeAgent.gscTokens : inst.gscTokens) as { refreshToken?: string; siteUrl?: string } | null
     if (!gscTokens?.refreshToken || !gscTokens.siteUrl) {
         checks.push({
             name: 'gsc_connection',

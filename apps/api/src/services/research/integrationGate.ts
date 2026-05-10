@@ -276,57 +276,69 @@ export function checkRequirementStatus(
     id: IntegrationId,
     src: CheckSource,
 ): 'connected' | 'missing' {
-    // Active-agent fields take precedence over instance row (Phase 2.3.E)
+    // Phase 2.3.H/fix — strict per-agent isolation. When an active agent
+    // row exists (almost always — backfilled in Phase 2.1), read ONLY from
+    // that agent's fields. Do NOT fall back to instance row, because the
+    // instance row holds the PRIMARY agent's tokens — falling back would
+    // make a freshly-created secondary appear "connected" to GSC/DFS/etc.
+    // that were actually connected on the primary.
+    //
+    // Instance-row fallback ONLY applies for legacy instances with no
+    // mateh_agent row at all (very rare after Phase 2.1 backfill).
     const agent = src.agent
     const inst = src.instance
-    const get = <K extends keyof MatehAgentRow & keyof CheckSource['instance']>(k: K): unknown => {
-        return (agent && agent[k] != null && agent[k] !== '') ? agent[k] : (inst as Record<string, unknown>)[k as string]
+    const useAgent = !!agent
+    const read = <K extends string>(k: K): unknown => {
+        if (useAgent) {
+            return (agent as Record<string, unknown>)[k]
+        }
+        return (inst as Record<string, unknown>)[k]
     }
 
     switch (id) {
         case 'ai_key': {
-            const anthropic = get('aiProviderKey') as string | null
-            const openai = get('openaiApiKey') as string | null
+            const anthropic = read('aiProviderKey') as string | null
+            const openai = read('openaiApiKey') as string | null
             return (anthropic || openai) ? 'connected' : 'missing'
         }
         case 'website_url': {
-            const rd = (agent?.researchData ?? inst.researchData) as { answers?: { websiteUrl?: string } } | null
+            const rd = (useAgent ? agent!.researchData : inst.researchData) as { answers?: { websiteUrl?: string } } | null
             const url = (rd?.answers?.websiteUrl || '').trim()
             return url ? 'connected' : 'missing'
         }
         case 'business_profile': {
-            const rd = (agent?.researchData ?? inst.researchData) as { answers?: { businessName?: string; businessDescription?: string } } | null
+            const rd = (useAgent ? agent!.researchData : inst.researchData) as { answers?: { businessName?: string; businessDescription?: string } } | null
             const ans = rd?.answers
             const ok = !!ans?.businessName && (ans?.businessDescription || '').length >= 30
             return ok ? 'connected' : 'missing'
         }
         case 'gsc': {
-            const tokens = get('gscTokens') as { refreshToken?: string; accessToken?: string; siteUrl?: string } | null
+            const tokens = read('gscTokens') as { refreshToken?: string; accessToken?: string; siteUrl?: string } | null
             return (tokens?.refreshToken || tokens?.accessToken) ? 'connected' : 'missing'
         }
         case 'dataforseo':
-            return (get('dataforseoKey') as string | null) ? 'connected' : 'missing'
+            return (read('dataforseoKey') as string | null) ? 'connected' : 'missing'
         case 'firecrawl':
-            return (get('firecrawlKey') as string | null) ? 'connected' : 'missing'
+            return (read('firecrawlKey') as string | null) ? 'connected' : 'missing'
         case 'google_workspace': {
-            const tokens = get('googleTokens') as { accessToken?: string; refreshToken?: string } | null
+            const tokens = read('googleTokens') as { accessToken?: string; refreshToken?: string } | null
             return (tokens?.accessToken || tokens?.refreshToken) ? 'connected' : 'missing'
         }
         case 'google_ads': {
-            const tokens = get('googleTokens') as { scopes?: string[] | string; scope?: string } | null
+            const tokens = read('googleTokens') as { scopes?: string[] | string; scope?: string } | null
             if (!tokens) return 'missing'
             const scopes = (tokens.scopes || tokens.scope || '').toString().toLowerCase()
             return (scopes.includes('adwords') || scopes.split(/[\s,]+/).includes('ads')) ? 'connected' : 'missing'
         }
         case 'meta_ads': {
-            const tokens = get('metaTokens') as { adAccountId?: string; adAccounts?: unknown[]; userAccessToken?: string; status?: string } | null
+            const tokens = read('metaTokens') as { adAccountId?: string; adAccounts?: unknown[]; userAccessToken?: string; status?: string } | null
             if (!tokens) return 'missing'
             const hasAdAccount = !!(tokens.adAccountId || (tokens.adAccounts && tokens.adAccounts.length))
             const isConnected = tokens.status === 'connected' && !!tokens.userAccessToken
             return (hasAdAccount && isConnected) ? 'connected' : 'missing'
         }
         case 'github': {
-            const cfg = get('githubConfig') as { token?: string; repo?: string } | null
+            const cfg = read('githubConfig') as { token?: string; repo?: string } | null
             return (cfg?.token && cfg?.repo) ? 'connected' : 'missing'
         }
         case 'gbp':
