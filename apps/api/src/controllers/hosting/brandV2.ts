@@ -38,7 +38,10 @@ export const startBrandV2 = async (c: Context) => {
         const { startNewDraft } = await import('@/services/brandBookV2Service')
         const r = await startNewDraft({ instanceId, sourceFlow, agentId: __agent?.id })
         return ok(c, r)
-    } catch (err) { return fail(c, (err as Error).message, 500) }
+    } catch (err) {
+        console.error('[startBrandV2] error:', (err as Error).message, (err as Error).stack)
+        return fail(c, (err as Error).message, 500)
+    }
 }
 
 export const getBrandV2Draft = async (c: Context) => {
