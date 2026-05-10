@@ -611,7 +611,6 @@ async function toggleAgencyMode(userId, currentlyEnabled) {
   } else {
     toast('Failed: ' + (r && r.message || 'unknown'), 'error');
   }
-  else toast(r?.message || 'Failed', 'error');
 }
 
 async function adminPushUpgrade(id) {
