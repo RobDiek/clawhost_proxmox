@@ -193,11 +193,14 @@ export const metaCallback = async (c: Context) => {
             } as never,
         })
 
-        // Write to per-agent integrations (Meta is always for MATEH)
+        // Write to per-agent integrations (Meta is always for MATEH).
+        // Phase 2.3.E: pass agentId so multi-MATEH each get their own row.
+        const { resolveActiveAgent: __resMetaAgent } = await import('@/services/agentContext')
+        const __metaAgent = await __resMetaAgent(c, instanceId)
         await setAgentIntegration(instanceId, 'mt', 'meta', {
             pageName: pages[0]?.name, instagramAccountId, adAccountId: adAccounts[0]?.id,
             connectedAt: new Date().toISOString(), status: 'connected',
-        }).catch(err => console.error('Failed to set agent meta integration:', err))
+        }, 'connected', __metaAgent?.id).catch(err => console.error('Failed to set agent meta integration:', err))
 
         console.log(`Meta connected for ${instanceId}: ${pages.length} pages, ${adAccounts.length} ad accounts, IG: ${instagramAccountId || 'none'}`)
 
@@ -238,8 +241,10 @@ export const metaDisconnect = async (c: Context) => {
 
         await writeAgentTokens(c, instanceId, { metaTokens: null })
 
-        // Remove from per-agent integrations
-        await removeAgentIntegration(instanceId, 'mt', 'meta').catch(() => {})
+        // Remove from per-agent integrations — Phase 2.3.E: pass agentId
+        const { resolveActiveAgent: __resMetaDiscAgent } = await import('@/services/agentContext')
+        const __metaDiscAgent = await __resMetaDiscAgent(c, instanceId)
+        await removeAgentIntegration(instanceId, 'mt', 'meta', __metaDiscAgent?.id).catch(() => {})
 
         // Remove Instagram MCP server from VPS
         if (instance?.ip) {

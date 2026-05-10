@@ -176,10 +176,12 @@ async function processGscCallback(c: Context, code: string, instanceId: string, 
     // Phase 2.3.B — write to active mateh_agent (with primary mirror to instance)
     await writeAgentTokens(c, instanceId, { gscTokens: gscTokens as never })
 
-    // Write to per-agent integrations
+    // Write to per-agent integrations — Phase 2.3.E: pass agentId
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     const agentType = getPrimaryAgent((inst?.selectedComponents as string[]) || [])
-    await setAgentIntegration(instanceId, agentType, 'gsc', gscTokens as any)
+    const { resolveActiveAgent: __resGscAgent } = await import('@/services/agentContext')
+    const __gscAgent = await __resGscAgent(c, instanceId)
+    await setAgentIntegration(instanceId, agentType, 'gsc', gscTokens as any, 'connected', __gscAgent?.id)
         .catch(err => console.error('Failed to set agent GSC integration:', err))
 
     console.log(`GSC connected for instance ${instanceId}: ${email} (sites: ${sites.length})`)
@@ -257,13 +259,11 @@ export const gscDisconnect = async (c: Context) => {
         // Phase 2.3.B — clear on the active mateh_agent
         await writeAgentTokens(c, instanceId, { gscTokens: null })
 
-        // Remove from per-agent integrations
-        const components = (instance.selectedComponents as string[]) || []
-        for (const at of ['oc', 'mt', 'bare'] as const) {
-            if (components.includes(at)) {
-                await removeAgentIntegration(instanceId, at, 'gsc').catch(() => {})
-            }
-        }
+        // Remove from per-agent integrations — Phase 2.3.E: only this agent
+        const { resolveActiveAgent: __resGscDiscAgent } = await import('@/services/agentContext')
+        const __gscDiscAgent = await __resGscDiscAgent(c, instanceId)
+        const __gscAgentType = getPrimaryAgent((instance.selectedComponents as string[]) || [])
+        await removeAgentIntegration(instanceId, __gscAgentType, 'gsc', __gscDiscAgent?.id).catch(() => {})
 
         // Remove MCP server from VPS
         if (instance.ip) {

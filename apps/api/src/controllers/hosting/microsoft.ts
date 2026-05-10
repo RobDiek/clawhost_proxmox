@@ -203,8 +203,10 @@ export const microsoftCallback = async (c: Context) => {
             connectedAt: new Date().toISOString(),
         }
 
-        // Write to per-agent integrations (single source of truth)
-        await setAgentIntegration(instanceId, agentType, 'microsoft', microsoftTokens as any)
+        // Write to per-agent integrations — Phase 2.3.E: pass agentId
+        const { resolveActiveAgent: __resMsAgent } = await import('@/services/agentContext')
+        const __msAgent = await __resMsAgent(c, instanceId)
+        await setAgentIntegration(instanceId, agentType, 'microsoft', microsoftTokens as any, 'connected', __msAgent?.id)
 
         // Phase 2.3.B — write to active mateh_agent (with primary mirror)
         await writeAgentTokens(c, instanceId, { microsoftTokens: microsoftTokens as never })
@@ -252,8 +254,10 @@ export const microsoftDisconnect = async (c: Context) => {
             ? agentParam
             : getPrimaryAgent((instance.selectedComponents as string[]) || [])
 
-        // Remove from per-agent integrations
-        await removeAgentIntegration(instanceId, agentType, 'microsoft')
+        // Remove from per-agent integrations — Phase 2.3.E: pass agentId
+        const { resolveActiveAgent: __resMsDiscAgent } = await import('@/services/agentContext')
+        const __msDiscAgent = await __resMsDiscAgent(c, instanceId)
+        await removeAgentIntegration(instanceId, agentType, 'microsoft', __msDiscAgent?.id)
 
         // Phase 2.3.B — clear on active mateh_agent
         await writeAgentTokens(c, instanceId, { microsoftTokens: null })

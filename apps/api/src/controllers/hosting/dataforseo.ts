@@ -17,6 +17,7 @@ import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
 import { setAgentIntegration, removeAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
+import { resolveActiveAgent, writeAgentTokens } from '@/services/agentContext'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -77,16 +78,17 @@ export const saveDataforseoKey = async (c: Context) => {
             }
         }
 
-        // Store credentials (login:password format)
+        // Store credentials (login:password format) — Phase 2.3.E: per-agent
         const credentialString = `${login}:${apiPassword}`
-        await db.update(instances)
-            .set({ dataforseoKey: credentialString })
-            .where(eq(instances.id, instanceId))
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        await writeAgentTokens(c, instanceId, { dataforseoKey: credentialString })
 
         // Write to per-agent integrations
         const agentType = getPrimaryAgent((instance.selectedComponents as string[]) || [])
-        await setAgentIntegration(instanceId, agentType, 'dataforseo', { login, connected: true, connectedAt: new Date().toISOString() })
-            .catch(err => console.error('Failed to set agent dataforseo integration:', err))
+        await setAgentIntegration(instanceId, agentType, 'dataforseo',
+            { login, connected: true, connectedAt: new Date().toISOString() },
+            'connected', __activeAgent?.id,
+        ).catch(err => console.error('Failed to set agent dataforseo integration:', err))
 
         // Deploy MCP to VPS
         if (instance.ip) {
@@ -141,17 +143,13 @@ export const removeDataforseoKey = async (c: Context) => {
         const instance = await getOwnedInstance(instanceId, userId)
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        await db.update(instances)
-            .set({ dataforseoKey: null })
-            .where(eq(instances.id, instanceId))
+        // Phase 2.3.E — clear per-agent
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        await writeAgentTokens(c, instanceId, { dataforseoKey: null })
 
-        // Remove from per-agent integrations
-        const components = (instance.selectedComponents as string[]) || []
-        for (const at of ['oc', 'mt', 'bare'] as const) {
-            if (components.includes(at)) {
-                await removeAgentIntegration(instanceId, at, 'dataforseo').catch(() => {})
-            }
-        }
+        // Remove from per-agent integrations (only this agent)
+        const agentType = getPrimaryAgent((instance.selectedComponents as string[]) || [])
+        await removeAgentIntegration(instanceId, agentType, 'dataforseo', __activeAgent?.id).catch(() => {})
 
         // Remove MCP server from VPS
         if (instance.ip) {

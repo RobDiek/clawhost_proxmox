@@ -220,8 +220,10 @@ export const googleCallback = async (c: Context) => {
             connectedAt: new Date().toISOString(),
         }
 
-        // Write to per-agent integrations (single source of truth)
-        await setAgentIntegration(instanceId, agentType, 'google', googleTokens as any)
+        // Write to per-agent integrations — Phase 2.3.E: pass agentId so
+        // multi-MATEH on same VPS each have their own google integration row.
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        await setAgentIntegration(instanceId, agentType, 'google', googleTokens as any, 'connected', __activeAgent?.id)
 
         // Phase 2.3.B — write tokens to the active mateh_agent (per-agent
         // isolation). For primary agent, this also mirrors to instances.* so
@@ -284,8 +286,9 @@ export const googleDisconnect = async (c: Context) => {
             } catch { /* best effort */ }
         }
 
-        // Remove from per-agent integrations
-        await removeAgentIntegration(instanceId, agentType, 'google')
+        // Remove from per-agent integrations — Phase 2.3.E: pass agentId
+        const __activeAgentForDisc = await resolveActiveAgent(c, instanceId)
+        await removeAgentIntegration(instanceId, agentType, 'google', __activeAgentForDisc?.id)
 
         // Phase 2.3.B — clear tokens on the active mateh_agent. For primary,
         // also nulls instance.googleTokens (legacy).

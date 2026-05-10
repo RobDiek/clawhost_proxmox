@@ -79,8 +79,10 @@ export const saveRedditCredentials = async (c: Context) => {
             return fail(c, `אימות Reddit נכשל: ${(authErr as Error).message.substring(0, 150)}`, 401)
         }
 
-        // Store as agent integration (per primary agent for this instance)
+        // Store as agent integration — Phase 2.3.E: per-agent
         const agentType = getPrimaryAgent((instance.selectedComponents as string[]) || [])
+        const { resolveActiveAgent: __resRedditAgent } = await import('@/services/agentContext')
+        const __redditAgent = await __resRedditAgent(c, instanceId)
         await setAgentIntegration(instanceId, agentType, 'reddit', {
             connected: true,
             connectedAt: new Date().toISOString(),
@@ -89,7 +91,7 @@ export const saveRedditCredentials = async (c: Context) => {
             // Secrets stored but masked on reads
             clientSecret,
             password,
-        })
+        }, 'connected', __redditAgent?.id)
 
         return ok(c, { username, masked: username }, 'Reddit מחובר.')
     } catch (err) {
@@ -108,7 +110,9 @@ export const getRedditStatus = async (c: Context) => {
         if (!instance) return fail(c, 'Instance not found', 404)
 
         const agentType = getPrimaryAgent((instance.selectedComponents as string[]) || [])
-        const int = await getAgentIntegration(instanceId, agentType, 'reddit')
+        const { resolveActiveAgent: __resRedditStatus } = await import('@/services/agentContext')
+        const __redditStatusAgent = await __resRedditStatus(c, instanceId)
+        const int = await getAgentIntegration(instanceId, agentType, 'reddit', __redditStatusAgent?.id)
         const cfg = (int?.config as any) || {}
         if (!int || !cfg.connected) return ok(c, { connected: false })
         return ok(c, {
@@ -132,7 +136,9 @@ export const disconnectReddit = async (c: Context) => {
         if (!instance) return fail(c, 'Instance not found', 404)
 
         const agentType = getPrimaryAgent((instance.selectedComponents as string[]) || [])
-        await removeAgentIntegration(instanceId, agentType, 'reddit')
+        const { resolveActiveAgent: __resRedditDisc } = await import('@/services/agentContext')
+        const __redditDiscAgent = await __resRedditDisc(c, instanceId)
+        await removeAgentIntegration(instanceId, agentType, 'reddit', __redditDiscAgent?.id)
         return ok(c, { disconnected: true }, 'Reddit disconnected.')
     } catch (err) {
         console.error('disconnectReddit error:', err)
@@ -151,7 +157,9 @@ export const testReddit = async (c: Context) => {
         if (!instance) return fail(c, 'Instance not found', 404)
 
         const agentType = getPrimaryAgent((instance.selectedComponents as string[]) || [])
-        const int = await getAgentIntegration(instanceId, agentType, 'reddit')
+        const { resolveActiveAgent: __resRedditTest } = await import('@/services/agentContext')
+        const __redditTestAgent = await __resRedditTest(c, instanceId)
+        const int = await getAgentIntegration(instanceId, agentType, 'reddit', __redditTestAgent?.id)
         const cfg = (int?.config as any) || {}
         if (!int || !cfg.connected) return fail(c, 'Reddit not connected', 400)
         const auth = await redditAuth(cfg.clientId, cfg.clientSecret, cfg.username, cfg.password)
