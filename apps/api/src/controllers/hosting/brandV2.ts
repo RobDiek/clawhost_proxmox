@@ -23,6 +23,7 @@ import type { Context } from 'hono'
 import { db } from '@/db'
 import { ok, fail } from '@/lib/response'
 import { resolveUserId, getOwnedInstance } from './authHelper'
+import { resolveActiveAgent } from '@/services/agentContext'
 
 export const startBrandV2 = async (c: Context) => {
     try {
@@ -33,8 +34,9 @@ export const startBrandV2 = async (c: Context) => {
         const sourceFlow = (['uploaded', 'website_scan', 'mixed'].includes(body?.sourceFlow as any)
             ? body.sourceFlow
             : 'uploaded') as any
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { startNewDraft } = await import('@/services/brandBookV2Service')
-        const r = await startNewDraft({ instanceId, sourceFlow })
+        const r = await startNewDraft({ instanceId, sourceFlow, agentId: __agent?.id })
         return ok(c, r)
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -43,8 +45,9 @@ export const getBrandV2Draft = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { getCurrentDraft } = await import('@/services/brandBookV2Service')
-        const r = await getCurrentDraft(instanceId)
+        const r = await getCurrentDraft(instanceId, __agent?.id)
         return ok(c, r)
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -53,8 +56,9 @@ export const getBrandV2Approved = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { getApprovedBook } = await import('@/services/brandBookV2Service')
-        const book = await getApprovedBook(instanceId)
+        const book = await getApprovedBook(instanceId, __agent?.id)
         return ok(c, { book })
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -63,8 +67,9 @@ export const getBrandV2History = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { getHistory } = await import('@/services/brandBookV2Service')
-        const history = await getHistory(instanceId)
+        const history = await getHistory(instanceId, __agent?.id)
         return ok(c, { history })
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -75,8 +80,9 @@ export const patchBrandV2Draft = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const body = await c.req.json<{ updates: Record<string, any> }>()
         if (!body?.updates) return fail(c, 'updates required', 400)
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { updateDraftKeys } = await import('@/services/brandBookV2Service')
-        const r = await updateDraftKeys(instanceId, body.updates)
+        const r = await updateDraftKeys(instanceId, body.updates, __agent?.id)
         return ok(c, r)
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -127,9 +133,10 @@ export const normalizeBrandLogo = async (c: Context) => {
             falApiKey,
         })
         // Persist the normalized logos into the draft
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { updateDraftKeys, getCurrentDraft, startNewDraft } = await import('@/services/brandBookV2Service')
-        if (!await getCurrentDraft(instanceId)) {
-            await startNewDraft({ instanceId, sourceFlow: 'uploaded' })
+        if (!await getCurrentDraft(instanceId, __agent?.id)) {
+            await startNewDraft({ instanceId, sourceFlow: 'uploaded', agentId: __agent?.id })
         }
         await updateDraftKeys(instanceId, {
             'visual.logo': {
@@ -138,7 +145,7 @@ export const normalizeBrandLogo = async (c: Context) => {
                 source: 'uploaded',
                 updatedAt: new Date().toISOString(),
             },
-        })
+        }, __agent?.id)
         return ok(c, { variants }, 'Logo normalized')
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -159,8 +166,9 @@ export const submitBrandV2 = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { submitForApproval } = await import('@/services/brandBookV2Service')
-        const r = await submitForApproval(instanceId)
+        const r = await submitForApproval(instanceId, __agent?.id)
         return ok(c, r)
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -171,8 +179,14 @@ export const approveBrandV2 = async (c: Context) => {
         const userId = resolveUserId(c)
         if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
         const body = await c.req.json<{ skipGates?: boolean }>().catch(() => ({} as { skipGates?: boolean }))
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { approveDraft } = await import('@/services/brandBookV2Service')
-        const r = await approveDraft({ instanceId, userId: userId || undefined, skipGates: !!body?.skipGates })
+        const r = await approveDraft({
+            instanceId,
+            userId: userId || undefined,
+            skipGates: !!body?.skipGates,
+            agentId: __agent?.id,
+        })
         if (!r.ok) return fail(c, r.reason || 'approval failed', 400)
         return ok(c, r, 'Brand book approved')
     } catch (err) { return fail(c, (err as Error).message, 500) }
@@ -182,8 +196,9 @@ export const discardBrandV2Draft = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { discardDraft } = await import('@/services/brandBookV2Service')
-        const r = await discardDraft(instanceId)
+        const r = await discardDraft(instanceId, __agent?.id)
         return ok(c, r, 'Draft discarded')
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -197,8 +212,9 @@ export const startOverBrandV2 = async (c: Context) => {
         const sourceFlow = (['uploaded', 'website_scan', 'mixed'].includes(body?.sourceFlow as any)
             ? body.sourceFlow
             : 'uploaded') as any
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { startOverFresh } = await import('@/services/brandBookV2Service')
-        const r = await startOverFresh({ instanceId, sourceFlow })
+        const r = await startOverFresh({ instanceId, sourceFlow, agentId: __agent?.id })
         return ok(c, r, 'Fresh start')
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -207,8 +223,9 @@ export const editApprovedBrandV2 = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { editApproved } = await import('@/services/brandBookV2Service')
-        const r = await editApproved(instanceId)
+        const r = await editApproved(instanceId, __agent?.id)
         return ok(c, r, 'Editing approved as new draft')
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
