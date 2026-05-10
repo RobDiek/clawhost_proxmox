@@ -9,7 +9,7 @@ import {
     adminTerminateInstance, adminResetCredentials, adminSendCustomEmail,
     adminListPayments, adminRefundPayment,
     adminListAudit,
-    adminToggleMaster,
+    adminToggleMaster, adminToggleAgencyMode,
     adminUpgradeInstance, adminBulkUpgrade, adminUpgradeProgress, adminVersionStatus,
     adminRefundAndTerminate,
     adminDashboardStatus, adminDashboardPublish,
@@ -66,6 +66,8 @@ app.post('/payments/:id/refund', adminRefundPayment)
 
 // Master toggle + stack-version actions
 app.post('/clients/:id/toggle-master', adminToggleMaster)
+// Agency mode toggle — flag is on USER (not instance); :id here is user id.
+app.post('/clients/:id/toggle-agency-mode', adminToggleAgencyMode)
 app.get('/clients/:id/version-status', adminVersionStatus)
 app.post('/clients/:id/upgrade', adminUpgradeInstance)
 app.get('/clients/:id/upgrade-progress', adminUpgradeProgress)

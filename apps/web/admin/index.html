@@ -477,6 +477,8 @@ async function openClient(id) {
   var html = '<div class="detail-grid">';
   html += detailRow('Email', u.email || '—');
   html += detailRow('Name', u.name || '—');
+  html += detailRow('User ID', '<code style="font-size:0.78rem">'+escapeHtml(u.id||'—')+'</code>');
+  html += detailRow('Agency mode', u.agencyModeEnabled ? '<span class="badge badge-master">◉ ON</span>' : '<span style="color:var(--text-3)">off</span>');
   html += detailRow('Plan', i.planKey || '—');
   html += detailRow('Status', '<span class="badge badge-'+escapeHtml(i.status)+'">'+escapeHtml(i.status)+'</span>');
   html += detailRow('Components', (i.selectedComponents||[]).join(' · ') || '—');
@@ -537,6 +539,9 @@ async function openClient(id) {
       '<button class="btn btn-sm" onclick="toggleMaster(\''+escapeHtml(i.id)+'\','+(i.isMaster?'true':'false')+')">' +
         (i.isMaster ? '☆ Unmark master' : '★ Mark as master') +
       '</button>' +
+      '<button class="btn btn-sm '+(u.agencyModeEnabled?'btn-warning':'')+'" onclick="toggleAgencyMode(\''+escapeHtml(u.id||'')+'\','+(u.agencyModeEnabled?'true':'false')+')" '+(u.id?'':'disabled')+'>' +
+        (u.agencyModeEnabled ? '◉ Disable agency mode' : '◯ Enable agency mode') +
+      '</button>' +
       '<button class="btn btn-sm" onclick="resetCreds(\''+escapeHtml(i.id)+'\')">🔑 Reset credentials</button>' +
       '<button class="btn btn-sm" onclick="sendEmailModal(\''+escapeHtml(i.id)+'\',\''+escapeHtml(u.email||'')+'\')">✉ Send email</button>' +
       '<button class="btn btn-sm btn-danger" onclick="refundAndTerminateModal(\''+escapeHtml(i.id)+'\',\''+escapeHtml(u.email||'')+'\')">💸 Refund &amp; terminate</button>' +
@@ -586,6 +591,26 @@ async function loadVersionStatus(id) {
 async function toggleMaster(id, isMaster) {
   var r = await api('/admin/clients/' + id + '/toggle-master', { method:'POST', body: { isMaster: !isMaster } });
   if (r && r.success) { toast(!isMaster ? 'Marked as master ★' : 'Unmarked', 'success'); openClient(id); navigate('clients'); }
+}
+
+// Phase 1.5 — toggle agency_mode on a USER (not instance). When ON, the
+// user gets self-service tenant management + MIFKADA in their dashboard.
+// userId param is users.id (not instance.id). instanceForReopen is the
+// instance whose slideover we're currently looking at (so we can refresh).
+async function toggleAgencyMode(userId, currentlyEnabled) {
+  if (!userId) { toast('No user id', 'error'); return; }
+  var verb = currentlyEnabled ? 'disable' : 'enable';
+  if (!confirm('Are you sure you want to ' + verb + ' agency mode for this user?')) return;
+  var r = await api('/admin/clients/' + userId + '/toggle-agency-mode', { method: 'POST', body: { enabled: !currentlyEnabled } });
+  if (r && r.success) {
+    toast('Agency mode ' + (currentlyEnabled ? 'disabled' : 'enabled ◉'), 'success');
+    // Reopen the same client slideover to show updated state
+    var slideoverTitle = document.getElementById('slideover-title').textContent || '';
+    var instId = slideoverTitle.replace(/^Client · /, '').trim();
+    if (instId) openClient(instId);
+  } else {
+    toast('Failed: ' + (r && r.message || 'unknown'), 'error');
+  }
   else toast(r?.message || 'Failed', 'error');
 }
 

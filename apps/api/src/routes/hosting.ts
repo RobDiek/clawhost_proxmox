@@ -287,6 +287,19 @@ app.post('/auth/verify-otp', verifyOtpHosting)
 app.get('/auth/me', getMe)
 app.put('/auth/profile', updateMyProfile)
 app.get('/my-instances', getMyInstances)
+
+// ── Phase 1.5: User-facing tenant management (gated by user.agencyModeEnabled) ──
+import {
+    listMyTenants, getMyTenant, createMyTenant, updateMyTenant, deleteMyTenant,
+    assignInstanceToMyTenant, listMyInstancesWithTenant,
+} from '@/controllers/hosting/tenants'
+app.get('/me/tenants', listMyTenants)
+app.get('/me/tenants/instances', listMyInstancesWithTenant)
+app.get('/me/tenants/:id', getMyTenant)
+app.post('/me/tenants', createMyTenant)
+app.patch('/me/tenants/:id', updateMyTenant)
+app.delete('/me/tenants/:id', deleteMyTenant)
+app.post('/me/tenants/:id/assign', assignInstanceToMyTenant)
 app.post('/auth/2fa/setup', setup2fa)
 app.post('/auth/2fa/verify-setup', verifySetup2fa)
 app.post('/auth/2fa/verify', verify2fa)

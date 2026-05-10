@@ -360,6 +360,7 @@ export const getMe = async (c: Context) => {
                 email: users.email,
                 name: users.name,
                 role: users.role,
+                agencyModeEnabled: users.agencyModeEnabled,
                 createdAt: users.createdAt
             })
             .from(users)

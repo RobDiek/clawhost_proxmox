@@ -531,6 +531,34 @@ export const adminToggleMaster = async (c: Context) => {
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
 
+// ─── Toggle agency mode (Phase 1.5) ──────────────────────────────────────
+// Admin-only flag on a user. When TRUE, the user gets self-service tenant
+// management in their own dashboard (create/edit/delete tenants, assign
+// instances, MIFKADA per-tenant orchestrator). When FALSE (default), the
+// agency UI is hidden and the user is in legacy single-tenant flow.
+//
+// Path is /admin/clients/:userId/toggle-agency-mode (uses USER id, not
+// instance id).
+export const adminToggleAgencyMode = async (c: Context) => {
+    try {
+        const userId = c.req.param('id')
+        const body = await c.req.json<{ enabled?: boolean }>().catch(() => ({} as any))
+        const adminId = c.get('adminId' as any) as string
+        const desired = !!body.enabled
+
+        const [u] = await db.select().from(users).where(eq(users.id, userId))
+        if (!u) return fail(c, 'User not found', 404)
+
+        await db.update(users).set({ agencyModeEnabled: desired } as any).where(eq(users.id, userId))
+        await writeAudit({
+            adminId,
+            action: desired ? 'admin.user.enable_agency_mode' : 'admin.user.disable_agency_mode',
+            targetType: 'user', targetId: userId, ip: getIp(c),
+        })
+        return ok(c, { userId, agencyModeEnabled: desired })
+    } catch (err) { return fail(c, (err as Error).message, 500) }
+}
+
 // ─── Stack upgrade — single instance ────────────────────────────────────
 
 export const adminUpgradeInstance = async (c: Context) => {

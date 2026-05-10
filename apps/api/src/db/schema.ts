@@ -23,6 +23,11 @@ export const users = pgTable('users', {
     role: text('role').notNull().default(userRole.user),
     totpSecret: text('totp_secret'),          // TOTP 2FA secret (base32 encoded)
     totpEnabled: boolean('totp_enabled').default(false),
+    // Phase 1.5 — admin-only toggle. When TRUE, user gets full self-service
+    // tenant management (create/edit/delete/assign tenants from their own
+    // dashboard) + MIFKADA orchestrator visibility. When FALSE (default),
+    // legacy single-tenant flow; tenants UI hidden.
+    agencyModeEnabled: boolean('agency_mode_enabled').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true })
         .defaultNow()
         .notNull()
