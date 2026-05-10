@@ -3723,6 +3723,21 @@ function initAgentSwitcher() {
   renderAgentSwitcherBtn();
   renderAgentSwitcherDropdown();
   applyAgentContext();
+  // Phase 2.3.A — eagerly load secondary mateh_agents on dashboard init for
+  // agency users so the header switcher dropdown appears without having to
+  // visit the agents tab first. Cached on window._myMatehAgents.
+  if (isAgencyMode() && !window._myMatehAgentsLoaded) {
+    window._myMatehAgentsLoaded = true;
+    fetch(API + '/hosting/me/agents', {
+      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+    }).then(function(r){ return r.json(); }).then(function(j){
+      if (j && j.success) {
+        window._myMatehAgents = j.data || [];
+        renderAgentSwitcherBtn();
+        renderAgentSwitcherDropdown();
+      }
+    }).catch(function(){ /* silent */ });
+  }
 }
 
 function renderAgentSwitcherBtn() {
@@ -3846,6 +3861,23 @@ async function switchToSecondaryAgent(agentId) {
   try { renderIntegrations && renderIntegrations(); } catch (_) {}
   try { renderAgentHomeContext && renderAgentHomeContext(); } catch (_) {}
   showToast('עברתם לסוכן ' + agentId, 'success');
+}
+
+// Phase 2.3.A — clicking a secondary agent card from the agents tab.
+// Combines: switch active agent context + navigate to the FULL MATEH
+// detail UI (same as the primary). After this the user sees the
+// overview/sub-agents/schedule/control tabs filled with THIS agent's
+// research_data, schedules, sub-agent models, integrations.
+async function enterSecondaryAgent(agentId) {
+  await switchToSecondaryAgent(agentId);
+  // Open the MATEH detail page. The detail view reads from instanceData,
+  // which switchToSecondaryAgent just refreshed via the overlay endpoint.
+  try {
+    if (typeof switchTab === 'function') switchTab('agents');
+    if (typeof openAgentDetail === 'function') {
+      setTimeout(function(){ openAgentDetail('mt'); }, 50);
+    }
+  } catch (e) { console.error('enterSecondaryAgent navigate failed:', e); }
 }
 
 // Switch BACK to the primary VPS view (clear secondary agent ID).
@@ -9906,7 +9938,10 @@ function renderAgentsTab() {
       var statusColor = a.status === 'running' ? '#10B981' : (a.status === 'provisioning' ? '#F59E0B' : '#EF4444');
       var statusLabel = a.status === 'running' ? '✓ פעיל' : (a.status === 'provisioning' ? '⏳ מתקין' : '⚠ ' + a.status);
       var openUrl = a.subdomainAgent ? ('https://' + a.subdomainAgent) : '';
-      html += '<div class="int-card" style="cursor:pointer" onclick="openSecondaryAgentSettings(\''+escapeHtmlDash(a.id)+'\')">' +
+      // Phase 2.3.A — clicking the CARD switches to this agent and opens the
+      // FULL MATEH detail UI (same tabs/profile/research as the primary).
+      // The ⚙ button still opens the slim settings modal explicitly.
+      html += '<div class="int-card" style="cursor:pointer" onclick="enterSecondaryAgent(\''+escapeHtmlDash(a.id)+'\')">' +
         '<div class="int-card-header">' +
           '<div class="int-icon" style="background:#F0FDF4">' + (SVG_ICONS.robot || '') + '</div>' +
           '<div>' +
