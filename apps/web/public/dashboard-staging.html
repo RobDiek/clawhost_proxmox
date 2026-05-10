@@ -12085,6 +12085,46 @@ function renderStageCardV2(sid, idx) {
 
 // Phase QA pre-flight ─────────────────────────────────────────────────────
 
+// Phase 2.3.I — auto-enrich profile from website. Crawls user's site,
+// extracts businessDescription / targetAudience / USPs / categories with
+// Sonnet, fills blanks/shorts (preserves user's own typed text).
+async function autoEnrichProfileFromPreflight() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) return;
+  var btns = document.querySelectorAll('button');
+  btns.forEach(function(b) {
+    if ((b.textContent || '').indexOf('השלימו מהאתר') !== -1) {
+      b.disabled = true;
+      b.textContent = '⏳ קורא את האתר...';
+    }
+  });
+  showToast('הסוכן קורא את האתר שלכם — לוקח 30-60 שניות', 'info');
+  try {
+    var r = await apiFetch('/hosting/instances/' + iid + '/profile/enrich', { method: 'POST' });
+    if (!r || !r.success) {
+      showToast(r && r.message ? r.message : 'השלמה אוטומטית נכשלה', 'error');
+      return;
+    }
+    var filled = (r.data && r.data.filledFields) || [];
+    if (filled.length === 0) {
+      showToast('הפרופיל כבר מלא — אין מה להוסיף.', 'info');
+    } else {
+      showToast('✨ הושלמו ' + filled.length + ' שדות אוטומטית: ' + filled.join(', '), 'success');
+    }
+    closeReportModal();
+    // Reset preflight cache so next "התחילו מחקר" re-runs the gate with new data
+    if (typeof pipelineV2State !== 'undefined') {
+      pipelineV2State.preflightChecked = false;
+    }
+    // Re-fetch instance to refresh dashboards
+    if (typeof refreshInstanceData === 'function') {
+      setTimeout(refreshInstanceData, 200);
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת: ' + (e.message || ''), 'error');
+  }
+}
+
 // Phase 2.3.H — deep-link from preflight modal to specific integration card.
 // Special-cased anchors:
 //   - 'agents#questionnaire' opens the business profile editor
@@ -12192,9 +12232,17 @@ function showResearchPreflightModal(pf, gating) {
         +   '</div>'
         +   (r.status === 'missing'
             ? (function() {
-                // Profile/website fields → "ערכו" (edit), integrations → "חברו" (connect)
-                var label = (r.id === 'business_profile' || r.id === 'website_url') ? 'ערכו' : 'חברו';
-                return '<button onclick="closeReportModal();setTimeout(function(){deepLinkToIntegration(\'' + escapeHtml(r.deepLink) + '\')},150)" class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:3px 10px">' + label + '</button>';
+                // Profile fields → also show "השלימו מהאתר" auto-enrich button
+                if (r.id === 'business_profile') {
+                    return '<div style="display:flex;gap:6px">'
+                        + '<button onclick="autoEnrichProfileFromPreflight()" class="btn btn-primary btn-sm" style="font-size:0.72rem;padding:3px 10px" title="הסוכן יקרא את האתר שלכם ויחלץ את התיאור + קהל יעד אוטומטית">✨ השלימו מהאתר</button>'
+                        + '<button onclick="closeReportModal();setTimeout(function(){deepLinkToIntegration(\'' + escapeHtml(r.deepLink) + '\')},150)" class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:3px 10px">ערכו ידנית</button>'
+                        + '</div>';
+                }
+                if (r.id === 'website_url') {
+                    return '<button onclick="closeReportModal();setTimeout(function(){deepLinkToIntegration(\'' + escapeHtml(r.deepLink) + '\')},150)" class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:3px 10px">ערכו</button>';
+                }
+                return '<button onclick="closeReportModal();setTimeout(function(){deepLinkToIntegration(\'' + escapeHtml(r.deepLink) + '\')},150)" class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:3px 10px">חברו</button>';
               })()
             : '')
         + '</div>'

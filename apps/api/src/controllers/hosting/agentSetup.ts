@@ -671,6 +671,67 @@ async function activateAgentCrons(
     }
 }
 
+// ── POST /hosting/instances/:id/profile/enrich ──
+// Phase 2.3.I — explicitly trigger profile enrichment from URL.
+// Called by preflight modal when user clicks "השלימו אוטומטית מהאתר".
+// Crawls the website, extracts businessDescription / targetAudience /
+// USPs / categories with Sonnet, merges into the active agent's
+// research_data.answers (user-provided fields are preserved — only
+// blanks/shorts get filled).
+export const enrichProfile = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) {
+            return fail(c, 'Instance not found', 404)
+        }
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance?.ip) return fail(c, 'Instance not ready', 400)
+
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId)
+        const existingAnswers = ((rd as { answers?: Record<string, unknown> })?.answers || {})
+        const websiteUrl = String((existingAnswers as { websiteUrl?: string }).websiteUrl || '').trim()
+        if (!websiteUrl) {
+            return fail(c, 'נדרשת כתובת אתר בפרופיל לפני השלמה אוטומטית.', 400)
+        }
+
+        const apiKey = await getApiKeyForInstance(instanceId)
+        if (!apiKey) {
+            return fail(c, 'נדרש מפתח Anthropic מוגדר.', 400)
+        }
+
+        const { enrichProfileFromUrl, enrichmentToAnswersPatch } = await import('@/services/research/profileEnricher')
+        const enriched = await enrichProfileFromUrl({
+            websiteUrl,
+            existing: existingAnswers,
+            instance: { ip: instance.ip, rootPassword: instance.rootPassword },
+            apiKey,
+        })
+        if (!enriched) {
+            return fail(c, 'לא הצלחנו לשלוף מידע מהאתר. בדקו שהוא נגיש.', 502)
+        }
+
+        const patch = enrichmentToAnswersPatch(enriched)
+        const filled = Object.keys(patch).filter(k => !k.startsWith('_'))
+        if (filled.length === 0) {
+            return ok(c, { enriched, filledFields: [] }, 'הפרופיל כבר מלא — אין מה להוסיף.')
+        }
+
+        const nextAnswers = { ...existingAnswers, ...patch }
+        const nextRd = { ...(rd as Record<string, unknown>), answers: nextAnswers }
+        await writeResearchData(__agent, instanceId, nextRd)
+
+        return ok(c, {
+            enriched,
+            filledFields: filled,
+            answers: nextAnswers,
+        }, `הושלמו אוטומטית ${filled.length} שדות מהאתר.`)
+    } catch (err) {
+        console.error('enrichProfile error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ── POST /hosting/instances/:id/setup/agents/analyze ──
 // Step 1: Claude analyzes questionnaire and suggests clarifying questions
 export const analyzeAnswers = async (c: Context) => {
@@ -8594,6 +8655,31 @@ export const setupAgents = async (c: Context) => {
 
         // Get user's API key from DB
         const apiKey = await getApiKeyForInstance(instanceId)
+
+        // Phase 2.3.I — auto-enrich profile from website URL when fields
+        // are blank or too thin. User-provided text always wins; we only
+        // fill what they didn't write enough about. Without this, a 10-char
+        // description like "חומרי אריזה" yields a generic strategy because
+        // the LLM has nothing to reason about. Best-effort: if enrichment
+        // fails (network / LLM error / no URL) we proceed with raw answers.
+        if (answers.websiteUrl) {
+            try {
+                const { enrichProfileFromUrl, enrichmentToAnswersPatch } = await import('@/services/research/profileEnricher')
+                const enriched = await enrichProfileFromUrl({
+                    websiteUrl: answers.websiteUrl,
+                    existing: answers as unknown as Record<string, unknown>,
+                    instance: { ip: instance.ip, rootPassword: instance.rootPassword },
+                    apiKey,
+                })
+                if (enriched) {
+                    const patch = enrichmentToAnswersPatch(enriched)
+                    Object.assign(answers, patch)
+                    console.log(`[setupAgents] auto-enriched ${Object.keys(patch).length} fields from URL — pages crawled: ${enriched._meta.pagesCrawled.length}, confidence: ${enriched._meta.confidence}`)
+                }
+            } catch (enrichErr) {
+                console.warn('[setupAgents] profile enrichment failed (non-fatal):', (enrichErr as Error).message)
+            }
+        }
 
         // Generate personalized files
         console.log(`Generating USER.md + BRAND.md for ${answers.businessName}...`)

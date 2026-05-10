@@ -35,6 +35,7 @@ import {
     requestHaasMccInvite,
     setupAgents,
     analyzeAnswers,
+    enrichProfile,
     runResearch,
     buildStrategy,
     buildStrategyScenarios,
@@ -349,6 +350,7 @@ app.post('/instances/:id/setup/complete', completeOnboarding)
 app.post('/instances/:id/setup/personal-agent', setupPersonalAgent)
 app.post('/instances/:id/setup/agents', setupAgents)
 app.post('/instances/:id/setup/agents/analyze', analyzeAnswers)
+app.post('/instances/:id/profile/enrich', enrichProfile)
 app.post('/instances/:id/setup/agents/research', runResearch)
 app.post('/instances/:id/setup/agents/strategy', buildStrategy)
 app.post('/instances/:id/setup/agents/strategy/scenarios', buildStrategyScenarios)
