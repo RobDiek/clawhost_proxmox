@@ -11860,6 +11860,40 @@ var pipelineV2State = {
 };
 
 async function openPipelineV2() {
+  // Phase 2.3.H — preflight gate at the FIRST entry point. Before opening
+  // the research zone, check what integrations the user's profile requires.
+  // If MANDATORY are missing → show the checklist modal as a blocker; user
+  // must connect (or deliberately ignore via "Proceed anyway" if no
+  // mandatory left). If only RECOMMENDED missing → show the modal once
+  // (so user knows what they're skipping), then open the pipeline.
+  // Cached per-session via pipelineV2State.preflightChecked.
+  var iid = localStorage.getItem('cf_instance_id');
+  if (iid && !pipelineV2State.preflightChecked) {
+    var pf = await fetchResearchPreflight(iid);
+    pipelineV2State.preflightChecked = true;
+    pipelineV2State.lastPreflight = pf;
+    if (pf) {
+      var hasMissingMandatory = pf.integrationGate
+        && Array.isArray(pf.integrationGate.missingMandatoryIds)
+        && pf.integrationGate.missingMandatoryIds.length > 0;
+      var hasFails = (pf.checks || []).some(function(c) { return c.status === 'fail'; });
+      var hasMissingRecommended = pf.integrationGate
+        && Array.isArray(pf.integrationGate.missingRecommendedIds)
+        && pf.integrationGate.missingRecommendedIds.length > 0;
+      // Block if: any fail OR any mandatory missing
+      if (hasFails || hasMissingMandatory) {
+        showResearchPreflightModal(pf, /* gating */ true);
+        return;
+      }
+      // Inform but don't block: show modal once if recommended missing
+      if (hasMissingRecommended) {
+        showResearchPreflightModal(pf, /* gating */ false);
+        // Don't return — let user close modal then pipeline opens behind it.
+        // Actually, do return so they explicitly choose to proceed:
+        return;
+      }
+    }
+  }
   document.getElementById('pipelineV2Overlay').classList.remove('hidden');
   closeResultPanelV2();
   await loadPipelineV2();
@@ -12150,16 +12184,44 @@ function showResearchPreflightModal(pf, gating) {
     html += '</div>';
   }
 
-  if (gating) {
-    html += '<div style="margin-top:14px;padding:10px;background:#FEE2E2;border-radius:6px;font-size:0.74rem;color:#991B1B"><strong>הריצה נחסמה</strong> — תקנו את ה-fail items ורענן את הדף לבדיקה מחדש.</div>';
-  } else if (pf.has_warnings) {
-    html += '<div style="margin-top:14px;padding:10px;background:#FEF3C7;border-radius:6px;font-size:0.74rem;color:#92400E">חלק מהשלבים ירוצו במצב מוגבל. ניתן להמשיך — לחץ ↻ ליד כל שלב.</div>';
+  // Phase 2.3.H — distinguish hard-block (mandatory missing) from
+  // soft-block (only recommended missing). Hard-block disables proceed;
+  // soft-block lets user proceed knowing some stages will be in fallback mode.
+  var hasMandatoryMissing = ig && Array.isArray(ig.missingMandatoryIds) && ig.missingMandatoryIds.length > 0;
+  var hasFails = (pf.checks || []).some(function(c) { return c.status === 'fail'; });
+  var hardBlocked = hasMandatoryMissing || hasFails;
+  var softBlocked = gating && !hardBlocked;
+
+  if (hardBlocked) {
+    html += '<div style="margin-top:14px;padding:10px;background:#FEE2E2;border-radius:6px;font-size:0.74rem;color:#991B1B"><strong>הריצה נחסמה</strong> — חברו את האינטגרציות החיוניות (mandatory) ותקנו fail items. אחרי החיבור לחצו "התחילו מחקר" שוב.</div>';
+  } else if (softBlocked || pf.has_warnings) {
+    html += '<div style="margin-top:14px;padding:10px;background:#FEF3C7;border-radius:6px;font-size:0.74rem;color:#92400E">⚠️ חלק מהאינטגרציות המומלצות לא מחוברות. שלבי המחקר ירוצו אבל חלקם במצב fallback (LLM guess במקום נתונים אמיתיים שלכם). מומלץ לחבר לפני המשך.</div>';
   } else {
-    html += '<div style="margin-top:14px;padding:10px;background:#D1FAE5;border-radius:6px;font-size:0.74rem;color:#065F46">הכל מוכן. הריצו pipeline.</div>';
+    html += '<div style="margin-top:14px;padding:10px;background:#D1FAE5;border-radius:6px;font-size:0.74rem;color:#065F46">✅ הכל מוכן. ניתן להריץ pipeline במלוא האיכות.</div>';
   }
-  html += '<div style="margin-top:14px;text-align:left"><button onclick="closeReportModal()" class="btn btn-primary">סגור</button></div>';
+
+  // Action buttons — proceed available only when not hard-blocked
+  html += '<div style="margin-top:14px;text-align:left;display:flex;gap:8px;justify-content:flex-end">';
+  if (!hardBlocked) {
+    html += '<button onclick="closeReportModal();setTimeout(proceedToPipelineV2,150)" class="btn btn-primary">'
+      + (softBlocked || pf.has_warnings ? 'המשיכו בכל זאת ←' : 'התחילו מחקר ←')
+      + '</button>';
+  }
+  html += '<button onclick="closeReportModal()" class="btn btn-outline">' + (hardBlocked ? 'סגור' : 'בטלו') + '</button>';
+  html += '</div>';
   html += '</div>';
   openReportModal('בדיקה מקדימה', html, 'preflight', { html: true });
+}
+
+// Helper invoked by "Proceed anyway" to enter the pipeline after the
+// user has acknowledged what's missing. Bypasses the entry-time gate
+// (already checked) so the modal isn't shown again.
+async function proceedToPipelineV2() {
+  document.getElementById('pipelineV2Overlay').classList.remove('hidden');
+  closeResultPanelV2();
+  await loadPipelineV2();
+  await loadDfsCreditsBalance();
+  updatePipelineV2Balance();
 }
 
 async function runResearchPreflight(manual) {
