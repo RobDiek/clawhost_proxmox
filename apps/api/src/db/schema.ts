@@ -534,7 +534,11 @@ export const agentIntegrations = pgTable(
         instanceId: text('instance_id')
             .notNull()
             .references(() => instances.id, { onDelete: 'cascade' }),
-        agentType: text('agent_type').notNull(),          // 'oc' | 'mt' | 'bare'
+        // Phase 2.3.D — mateh_agent.id this integration belongs to. Replaces
+        // the agentType-based unique constraint (which collapsed multiple
+        // secondary mateh_agents both stored as 'mt' into one row).
+        agentId: text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
+        agentType: text('agent_type').notNull(),          // 'oc' | 'mt' | 'bare' (legacy; kept for filter compatibility)
         integrationType: text('integration_type').notNull(), // 'telegram' | 'google' | 'meta' | 'microsoft' | 'whatsapp' | 'gbp' | 'api_key'
         config: jsonb('config').notNull().default({}),    // integration-specific config (tokens, keys, etc.)
         status: text('status').notNull().default('connected'), // 'connected' | 'disconnected' | 'pending'
@@ -544,7 +548,8 @@ export const agentIntegrations = pgTable(
     (table) => [
         index('agent_int_instance_idx').on(table.instanceId),
         index('agent_int_agent_idx').on(table.instanceId, table.agentType),
-        unique('agent_int_unique').on(table.instanceId, table.agentType, table.integrationType),
+        index('agent_integrations_agent_idx').on(table.agentId),
+        unique('agent_int_unique').on(table.instanceId, table.agentId, table.integrationType),
     ]
 )
 
@@ -610,6 +615,8 @@ export const brandBooks = pgTable(
     {
         id: text('id').primaryKey(),
         instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+        // Phase 2.3.D — per-agent isolation
+        agentId: text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
         version: integer('version').notNull().default(1),
         status: text('status').notNull().default('draft'),
         // draft | pending_approval | approved | archived | locked
@@ -666,7 +673,8 @@ export const brandBooks = pgTable(
     (table) => [
         index('brand_books_instance_idx').on(table.instanceId),
         index('brand_books_status_idx').on(table.instanceId, table.status),
-        unique('brand_books_instance_version_uniq').on(table.instanceId, table.version),
+        index('brand_books_agent_idx').on(table.agentId),
+        unique('brand_books_instance_agent_version_uniq').on(table.instanceId, table.agentId, table.version),
     ]
 )
 
@@ -676,6 +684,8 @@ export const creativeRenders = pgTable(
     {
         id: text('id').primaryKey(),
         instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+        // Phase 2.3.D — per-agent isolation
+        agentId: text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
         outputId: text('output_id').references(() => agentOutputs.id, { onDelete: 'set null' }),
 
         // Lifecycle
@@ -744,6 +754,7 @@ export const creativeRenders = pgTable(
         index('creative_renders_instance_idx').on(table.instanceId),
         index('creative_renders_status_idx').on(table.instanceId, table.renderStatus),
         index('creative_renders_output_idx').on(table.outputId),
+        index('creative_renders_agent_idx').on(table.agentId),
     ]
 )
 
@@ -757,6 +768,8 @@ export const contentPlanMedia = pgTable(
     {
         id: text('id').primaryKey(),                         // cpm_<hex>
         instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+        // Phase 2.3.D — per-agent isolation
+        agentId: text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
         contentPlanItemId: text('content_plan_item_id').notNull(), // "cp_..." key in researchData.contentPlan
         outputId: text('output_id').references(() => agentOutputs.id, { onDelete: 'set null' }),
 
@@ -813,6 +826,7 @@ export const contentPlanMedia = pgTable(
         index('cpm_item_idx').on(table.contentPlanItemId),
         index('cpm_status_idx').on(table.instanceId, table.status),
         index('cpm_scenario_idx').on(table.instanceId, table.scenario),
+        index('content_plan_media_agent_idx').on(table.agentId),
     ]
 )
 
@@ -822,6 +836,8 @@ export const creativeReferences = pgTable(
     {
         id: text('id').primaryKey(),
         instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+        // Phase 2.3.D — per-agent isolation
+        agentId: text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
 
         source: text('source').notNull(),       // 'meta_ad_library' | 'user_upload' | 'our_winner' | ...
         sourceId: text('source_id'),
@@ -861,6 +877,7 @@ export const creativeReferences = pgTable(
     (table) => [
         index('creative_refs_instance_idx').on(table.instanceId),
         index('creative_refs_signal_idx').on(table.instanceId, table.signalScore),
+        index('creative_references_agent_idx').on(table.agentId),
     ]
 )
 
@@ -949,6 +966,8 @@ export const creativeHypotheses = pgTable(
     {
         id: text('id').primaryKey(),
         instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+        // Phase 2.3.D — per-agent isolation
+        agentId: text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
 
         statement: text('statement').notNull(),
         reasoning: text('reasoning'),
@@ -985,6 +1004,7 @@ export const creativeHypotheses = pgTable(
     },
     (table) => [
         index('creative_hypotheses_instance_idx').on(table.instanceId, table.status),
+        index('creative_hypotheses_agent_idx').on(table.agentId),
     ]
 )
 
@@ -993,6 +1013,8 @@ export const creativeFatigueAlerts = pgTable(
     {
         id: text('id').primaryKey(),
         instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+        // Phase 2.3.D — per-agent isolation
+        agentId: text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
         renderId: text('render_id').notNull().references(() => creativeRenders.id, { onDelete: 'cascade' }),
 
         triggerReason: text('trigger_reason').notNull(),
@@ -1009,6 +1031,7 @@ export const creativeFatigueAlerts = pgTable(
     },
     (table) => [
         index('creative_fatigue_alerts_instance_idx').on(table.instanceId, table.status),
+        index('creative_fatigue_alerts_agent_idx').on(table.agentId),
     ]
 )
 
@@ -1098,6 +1121,8 @@ export const knowledgeDocuments = pgTable(
         instanceId: text('instance_id')
             .notNull()
             .references(() => instances.id, { onDelete: 'cascade' }),
+        // Phase 2.3.D — per-agent isolation
+        agentId: text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
         filename: text('filename').notNull(),
         contentType: text('content_type').notNull(), // 'text/plain', 'text/markdown', 'application/pdf', 'text/csv'
         rawContent: text('raw_content'),             // original text (truncated to 50k chars)
@@ -1107,6 +1132,7 @@ export const knowledgeDocuments = pgTable(
     },
     (table) => [
         index('knowledge_docs_instance_idx').on(table.instanceId),
+        index('knowledge_documents_agent_idx').on(table.agentId),
     ]
 )
 
@@ -1120,6 +1146,8 @@ export const knowledgeChunks = pgTable(
         instanceId: text('instance_id')
             .notNull()
             .references(() => instances.id, { onDelete: 'cascade' }),
+        // Phase 2.3.D — per-agent isolation
+        agentId: text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
         chunkIndex: integer('chunk_index').notNull(),
         content: text('content').notNull(),
         // embedding vector stored as jsonb (float array) — pgvector extension query done via raw SQL
@@ -1129,6 +1157,7 @@ export const knowledgeChunks = pgTable(
     (table) => [
         index('knowledge_chunks_instance_idx').on(table.instanceId),
         index('knowledge_chunks_doc_idx').on(table.documentId),
+        index('knowledge_chunks_agent_idx').on(table.agentId),
     ]
 )
 
@@ -1139,6 +1168,8 @@ export const knowledgeChunks = pgTable(
 export const strategyLearnings = pgTable('strategy_learnings', {
     id: text('id').primaryKey(),
     instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+    // Phase 2.3.D — per-agent isolation
+    agentId: text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
     dimension: text('dimension').notNull(),          // channel | format | pillar | persona | hook_pattern | paid_organic
     winnerValue: text('winner_value').notNull(),
     loserValue: text('loser_value'),
@@ -1156,6 +1187,7 @@ export const strategyLearnings = pgTable('strategy_learnings', {
 }, (table) => [
     index('sl_instance_dim_idx').on(table.instanceId, table.dimension, table.createdAt),
     index('sl_instance_recent_idx').on(table.instanceId, table.measuredUntil),
+    index('strategy_learnings_agent_idx').on(table.agentId),
 ])
 
 // ── Google Business Profile ──
