@@ -7,6 +7,8 @@ import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
 import { setAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
+import { resolveActiveAgent } from '@/services/agentContext'
+import { matehAgents } from '@/db/schema'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -125,49 +127,49 @@ export const setupApiKey = async (c: Context) => {
             return fail(c, 'Invalid API key format.', 400)
         }
 
+        // Phase 2.3.E — resolve active mateh_agent for per-agent SSH paths
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        const isSecondary = !!(__activeAgent && !__activeAgent.isPrimary)
+        const __ocHome = isSecondary
+            ? `/home/openclaw/agents/${__activeAgent!.id}/.openclaw`
+            : '/home/openclaw/.openclaw'
+        const __short = isSecondary ? __activeAgent!.id.slice(4) : ''
+        const __systemdUnit = isSecondary
+            ? `openclaw-gateway-${__short}`
+            : 'openclaw-gateway'
+
         // Set API key in THREE places so both the systemd gateway AND CLI
-        // invocations (`su - openclaw -c 'openclaw agent ...'` from research
-        // pipelines) can read it:
-        //   1. systemd service Environment= → reloaded gateway picks it up
-        //   2. /home/openclaw/.profile + .bash_profile → login-shell `su -` exports it
-        //   3. /home/openclaw/.openclaw/.env → backup for any CLI that loads dotenv
-        // Without (2) and (3), agent CLI invocations would hang on missing
-        // credentials and fail with `gateway connect failed` after a 540s
-        // timeout (research stages 1-3 use this path).
+        // invocations can read it. For secondary agents, all three paths
+        // are scoped to the agent's directory + own systemd unit.
         const envVar = provider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY'
-        const SVC = '/etc/systemd/system/openclaw-gateway.service'
+        const SVC = `/etc/systemd/system/${__systemdUnit}.service`
         const keyB64 = Buffer.from(apiKey).toString('base64')
         await sshExec(instance.ip, `
             KEY=$(echo '${keyB64}' | base64 -d) && \
             (grep -q ${envVar} ${SVC} && \
                 sed -i "s|Environment=${envVar}=.*|Environment=${envVar}=$KEY|" ${SVC} || \
                 sed -i "/Environment=NODE_ENV=production/a\\Environment=${envVar}=$KEY" ${SVC}) && \
-            mkdir -p /home/openclaw/.openclaw && \
-            (grep -q "^${envVar}=" /home/openclaw/.openclaw/.env 2>/dev/null && \
-                sed -i "s|^${envVar}=.*|${envVar}=$KEY|" /home/openclaw/.openclaw/.env || \
-                echo "${envVar}=$KEY" >> /home/openclaw/.openclaw/.env) && \
-            (grep -q "^export ${envVar}=" /home/openclaw/.profile 2>/dev/null && \
-                sed -i "s|^export ${envVar}=.*|export ${envVar}=$KEY|" /home/openclaw/.profile || \
-                echo "export ${envVar}=$KEY" >> /home/openclaw/.profile) && \
-            (grep -q "^export ${envVar}=" /home/openclaw/.bash_profile 2>/dev/null && \
-                sed -i "s|^export ${envVar}=.*|export ${envVar}=$KEY|" /home/openclaw/.bash_profile || \
-                echo "export ${envVar}=$KEY" >> /home/openclaw/.bash_profile) && \
-            chown openclaw:openclaw /home/openclaw/.profile /home/openclaw/.bash_profile /home/openclaw/.openclaw/.env && \
+            mkdir -p ${__ocHome} && \
+            (grep -q "^${envVar}=" ${__ocHome}/.env 2>/dev/null && \
+                sed -i "s|^${envVar}=.*|${envVar}=$KEY|" ${__ocHome}/.env || \
+                echo "${envVar}=$KEY" >> ${__ocHome}/.env) && \
+            chown openclaw:openclaw ${__ocHome}/.env && \
             systemctl daemon-reload && \
-            systemctl restart openclaw-gateway
+            systemctl restart ${__systemdUnit}
         `, instance.rootPassword || undefined)
 
-        // Save key in DB — support both Anthropic AND OpenAI simultaneously
+        // Save key in DB — for active mateh_agent. Phase 2.3.E: writes to
+        // mateh_agents row first; primary mirrors to instances.* for legacy.
         const updateData: Record<string, unknown> = {}
         if (provider === 'anthropic') {
             updateData.aiProviderKey = apiKey
             updateData.aiProviderType = 'anthropic'
         } else if (provider === 'openai') {
             updateData.openaiApiKey = apiKey
-            // When OpenAI key is added, set it as default model (cheaper, no harsh rate limits)
-            // Anthropic remains available for cron jobs and research
+            // When OpenAI key is added, set default model on the right
+            // openclaw.json (per-agent).
             await sshExec(instance.ip, `
-                cd /home/openclaw/.openclaw &&
+                cd ${__ocHome} &&
                 node -e "
                   const fs = require('fs');
                   const cfg = JSON.parse(fs.readFileSync('openclaw.json','utf-8'));
@@ -177,15 +179,22 @@ export const setupApiKey = async (c: Context) => {
                   fs.writeFileSync('openclaw.json', JSON.stringify(cfg, null, 2));
                 " &&
                 chown openclaw:openclaw openclaw.json &&
-                systemctl restart openclaw-gateway
+                systemctl restart ${__systemdUnit}
             `, instance.rootPassword || undefined)
         }
-        const step = instance.onboardingStep || 0
+        const step = (__activeAgent?.onboardingStep ?? instance.onboardingStep) || 0
         if (step < 2) updateData.onboardingStep = 2
 
-        await db.update(instances)
-            .set(updateData)
-            .where(eq(instances.id, instanceId))
+        if (__activeAgent) {
+            await db.update(matehAgents)
+                .set({ ...updateData, updatedAt: new Date() })
+                .where(eq(matehAgents.id, __activeAgent.id))
+            if (__activeAgent.isPrimary) {
+                await db.update(instances).set(updateData).where(eq(instances.id, instanceId))
+            }
+        } else {
+            await db.update(instances).set(updateData).where(eq(instances.id, instanceId))
+        }
 
         return ok(c, { provider }, 'API key configured.')
     } catch (err) {
@@ -302,19 +311,36 @@ export const setupTelegram = async (c: Context) => {
             return fail(c, 'Instance not found or not ready.', 404)
         }
 
-        // Ensure CLI device is paired before running channel commands
-        await ensureDevicePaired(instance.ip, instance.rootPassword || undefined)
+        // Phase 2.3.E — resolve active mateh_agent so all writes go to the
+        // right per-agent paths (DB row, openclaw home dir, systemd unit).
+        const __activeAgent = await resolveActiveAgent(c, instanceId)
+        const isSecondary = !!(__activeAgent && !__activeAgent.isPrimary)
+        const __ocHome = isSecondary
+            ? `/home/openclaw/agents/${__activeAgent!.id}/.openclaw`
+            : '/home/openclaw/.openclaw'
+        const __short = isSecondary ? __activeAgent!.id.slice(4) : ''
+        const __systemdUnit = isSecondary
+            ? `openclaw-gateway-${__short}`
+            : 'openclaw-gateway'
 
-        // Configure Telegram on VPS via OpenClaw CLI
+        // Ensure CLI device is paired before running channel commands
+        // (primary only — secondaries run their own gateway with own pairing)
+        if (!isSecondary) {
+            await ensureDevicePaired(instance.ip, instance.rootPassword || undefined)
+        }
+
+        // Configure Telegram on VPS via OpenClaw CLI — point at the right
+        // OPENCLAW_HOME so secondary agent's openclaw.json gets the channel,
+        // not the primary's.
         const sanitizedToken = botToken.replace(/[^a-zA-Z0-9:_-]/g, '')
         const result = await sshExec(instance.ip, `
-            su - openclaw -c 'openclaw channels add --channel telegram --token "${sanitizedToken}" --name "telegram-main" 2>&1'
+            su - openclaw -c 'OPENCLAW_HOME=${__ocHome} openclaw channels add --channel telegram --token "${sanitizedToken}" --name "telegram-main" 2>&1'
         `, instance.rootPassword || undefined)
         console.log('Telegram add result:', result)
 
         // Set DM policy to open (no pairing required for users) + allowFrom all
         await sshExec(instance.ip, `
-            cd /home/openclaw/.openclaw &&
+            cd ${__ocHome} &&
             node -e "
               const fs = require('fs');
               const cfg = JSON.parse(fs.readFileSync('openclaw.json','utf-8'));
@@ -327,8 +353,8 @@ export const setupTelegram = async (c: Context) => {
             chown openclaw:openclaw openclaw.json
         `, instance.rootPassword || undefined)
 
-        // Restart gateway to pick up channel config
-        await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
+        // Restart gateway to pick up channel config (per-agent unit)
+        await sshExec(instance.ip, `systemctl restart ${__systemdUnit}`, instance.rootPassword || undefined)
 
         // Auto-detect chat_id: temporarily remove webhook, poll for /start message
         let chatId: string | null = null
@@ -356,26 +382,45 @@ export const setupTelegram = async (c: Context) => {
         }
 
         // Restart gateway will re-register webhook via OpenClaw
-        await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
+        await sshExec(instance.ip, `systemctl restart ${__systemdUnit}`, instance.rootPassword || undefined)
         await new Promise(r => setTimeout(r, 3000))
 
-        // Save telegram token + chat_id in our DB
-        // For MATEH users, onboarding continues with research wizard
+        // Save telegram token + chat_id in our DB. Phase 2.3.E — for the
+        // active mateh_agent (primary writes also mirror to instances.* for
+        // legacy compat; secondary writes only to mateh_agents row).
+        // For MATEH users, onboarding continues with research wizard.
         const components = (instance.selectedComponents as string[]) || []
         const hasMATEH = components.includes('mt')
-        // Generate a per-instance webhook secret so Telegram → our approval
-        // webhook can be authenticated without exposing other tenants.
         const { randomBytes } = await import('crypto')
         const webhookSecret = randomBytes(24).toString('hex')
-        await db.update(instances)
-            .set({
+        if (__activeAgent) {
+            await db.update(matehAgents).set({
                 telegramBotToken: botToken,
                 telegramChatId: chatId,
                 telegramWebhookSecret: webhookSecret,
                 onboardingStep: 3,
-                onboardingCompleted: !hasMATEH
-            })
-            .where(eq(instances.id, instanceId))
+                onboardingCompleted: !hasMATEH,
+                updatedAt: new Date(),
+            }).where(eq(matehAgents.id, __activeAgent.id))
+            if (__activeAgent.isPrimary) {
+                await db.update(instances).set({
+                    telegramBotToken: botToken,
+                    telegramChatId: chatId,
+                    telegramWebhookSecret: webhookSecret,
+                    onboardingStep: 3,
+                    onboardingCompleted: !hasMATEH,
+                }).where(eq(instances.id, instanceId))
+            }
+        } else {
+            // Legacy fallback (no mateh_agent row yet)
+            await db.update(instances).set({
+                telegramBotToken: botToken,
+                telegramChatId: chatId,
+                telegramWebhookSecret: webhookSecret,
+                onboardingStep: 3,
+                onboardingCompleted: !hasMATEH,
+            }).where(eq(instances.id, instanceId))
+        }
 
         // Register our approval-queue webhook with Telegram. The OpenClaw
         // conversational gateway uses long-polling (deleteWebhook above), so
@@ -390,12 +435,17 @@ export const setupTelegram = async (c: Context) => {
             console.warn('[setupTelegram] setWebhook registration failed (non-fatal):', (err as Error).message)
         }
 
-        // Write to per-agent integrations table
-        // agentType comes from request body or defaults to primary agent
+        // Write to per-agent integrations table — Phase 2.3.E: pass
+        // active mateh_agent's id so the upsert hits the right unique key.
         const agentType = (await c.req.json().catch(() => ({}))).agentType || getPrimaryAgent(components)
-        await setAgentIntegration(instanceId, agentType as any, 'telegram', {
-            botToken, chatId,
-        }).catch(err => console.error('Failed to set agent integration:', err))
+        await setAgentIntegration(
+            instanceId,
+            agentType as any,
+            'telegram',
+            { botToken, chatId },
+            'connected',
+            __activeAgent?.id,
+        ).catch(err => console.error('Failed to set agent integration:', err))
 
         return ok(c, { chatId: chatId ? 'detected' : 'pending' }, 'Telegram connected.' + (chatId ? '' : ' שלחו /start לבוט כדי להפעיל פרסום.'))
     } catch (err) {
