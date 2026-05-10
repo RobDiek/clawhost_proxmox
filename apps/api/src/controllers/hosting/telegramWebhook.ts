@@ -153,8 +153,14 @@ export const telegramWebhook = async (c: Context) => {
             const md = (r?.metadata as any) || {}
             const cpItemId = md.contentPlanItemId as string | undefined
             if (cpItemId && r) {
-                const [inst2] = await db.select().from(instances).where(eq(instances.id, instanceId))
-                const rd: any = inst2?.researchData || {}
+                // Telegram webhook has no per-agent context — operate on the
+                // primary mateh_agent of the VPS (Telegram approvals are
+                // routed to whichever agent's bot answered, but plan items
+                // currently live on the primary's contentPlan).
+                const { resolvePrimaryAgent: _rpa, readResearchData: _rrd, writeResearchData: _wrd } =
+                    await import('@/services/agentContext')
+                const __agent = await _rpa(instanceId)
+                const rd = await _rrd(__agent, instanceId) as any
                 const plan = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
                 const idx = plan.findIndex((p: any) => p.id === cpItemId)
                 if (idx >= 0) {
@@ -168,9 +174,7 @@ export const telegramWebhook = async (c: Context) => {
                     const newStatus = statusMap[r.status] || plan[idx].status
                     if (plan[idx].status !== newStatus) {
                         plan[idx] = { ...plan[idx], status: newStatus }
-                        await db.update(instances).set({
-                            researchData: { ...rd, contentPlan: plan } as any,
-                        }).where(eq(instances.id, instanceId))
+                        await _wrd(__agent, instanceId, { ...rd, contentPlan: plan })
                     }
                 }
             }

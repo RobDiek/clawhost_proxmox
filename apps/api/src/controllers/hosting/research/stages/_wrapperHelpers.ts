@@ -21,12 +21,18 @@ export async function markWrapperStageCompleted(args: {
     stageId: StageId
     summaryMd: string
     integrationsUsed: string[]
+    agentId?: string
 }): Promise<void> {
-    const { instanceId, stageId, summaryMd, integrationsUsed } = args
+    const { instanceId, stageId, summaryMd, integrationsUsed, agentId } = args
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error(`markWrapperStageCompleted: instance ${instanceId} not found`)
 
-    const rd = (inst.researchData as ResearchDataV2 | null) || {}
+    const { resolveAgentById, resolvePrimaryAgent, readResearchData, writeResearchData } =
+        await import('@/services/agentContext')
+    const agent = agentId
+        ? await resolveAgentById(instanceId, agentId)
+        : await resolvePrimaryAgent(instanceId)
+    const rd = (await readResearchData(agent, instanceId)) as unknown as ResearchDataV2
     const results = ((rd.results as Record<string, StageResult>) || {})
     const plan = (rd.plan as { stages?: StageId[]; status?: Record<StageId, StageStatus> } | undefined) || {}
     const status: Record<StageId, StageStatus> = { ...(plan.status || {}) } as Record<StageId, StageStatus>
@@ -40,11 +46,9 @@ export async function markWrapperStageCompleted(args: {
     }
     status[stageId] = { state: 'completed', runAt }
 
-    await db.update(instances).set({
-        researchData: {
-            ...rd,
-            results,
-            plan: { ...plan, status },
-        } as never,
-    }).where(eq(instances.id, instanceId))
+    await writeResearchData(agent, instanceId, {
+        ...rd,
+        results,
+        plan: { ...plan, status },
+    } as unknown as Record<string, unknown>)
 }

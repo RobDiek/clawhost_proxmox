@@ -7,6 +7,14 @@ import { instances, tenants, agentOutputs, brandBooks } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
+import {
+    resolveActiveAgent,
+    resolvePrimaryAgent,
+    readResearchData,
+    writeResearchData,
+    shimResearchWrite,
+    shimResearchWriteWithExtra,
+} from '@/services/agentContext'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const TEMPLATES_BASE = resolve(process.cwd(), '../../templates')
@@ -374,8 +382,14 @@ function generateFallback(answers: OnboardingAnswers): { userMd: string; brandMd
 }
 
 // ── Deploy all files to VPS ──
-async function deployAgentSystem(ip: string, userMd: string, brandMd: string, brandName: string, gatewayToken: string, subdomain: string, password?: string, agentType: 'mt' | 'oc' | 'bare' = 'mt'): Promise<void> {
-    const baseDir = '/home/openclaw/.openclaw'
+async function deployAgentSystem(ip: string, userMd: string, brandMd: string, brandName: string, gatewayToken: string, subdomain: string, password?: string, agentType: 'mt' | 'oc' | 'bare' = 'mt', secondaryAgentId?: string): Promise<void> {
+    // Phase 2.3.B — when called for a secondary mateh_agent, deploy into
+    // /home/openclaw/agents/<agentId>/ instead of the primary's /home/openclaw/.openclaw.
+    // Secondary agents have their own workspace + systemd unit; using the
+    // primary's path would corrupt the host agent.
+    const baseDir = secondaryAgentId
+        ? `/home/openclaw/agents/${secondaryAgentId}`
+        : '/home/openclaw/.openclaw'
     const templatesDir = agentType === 'oc' ? PERSONAL_TEMPLATES_DIR : TEMPLATES_DIR
 
     // Create directory structure
@@ -1057,7 +1071,9 @@ export const runResearch = async (c: Context) => {
             return fail(c, 'Instance not found or not ready.', 404)
         }
 
-        const answers = (instance.researchData as any)?.answers || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const __existingRd = await readResearchData(__agent, instanceId) as any
+        const answers = __existingRd?.answers || {}
         const businessName = answers.businessName || 'העסק'
         const businessDesc = answers.businessDescription || ''
         const competitors = answers.competitors || ''
@@ -1205,15 +1221,12 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
         }
 
         // Save full report to DB
-        const existingData = (instance.researchData as any) || {}
-        await db.update(instances).set({
-            researchData: {
-                ...existingData,
-                report,
-                researchModel,
-                researchGeneratedAt: new Date().toISOString(),
-            } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, {
+            ...__existingRd,
+            report,
+            researchModel,
+            researchGeneratedAt: new Date().toISOString(),
+        })
 
         // Save as RESEARCH_REPORT.md on VPS (for strategy agent to read)
         const b64Report = Buffer.from(report).toString('base64')
@@ -1861,7 +1874,8 @@ export const buildStrategy = async (c: Context) => {
         }
 
         const { stage: requestedStage, model: requestedModel, confirmLowConfidence } = await c.req.json<{ stage?: number; model?: string; confirmLowConfidence?: boolean }>().catch(() => ({ stage: undefined, model: undefined, confirmLowConfidence: false }))
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         if (!rd.stage1 && !rd.report) {
             return fail(c, 'יש להריץ מחקר שוק קודם', 400)
         }
@@ -2111,9 +2125,7 @@ ${extracted.validation}`
             console.log(`Strategy saved: full=${fullStrategy.length} chars, compact=${compact.length} chars`)
         }
 
-        await db.update(instances).set({
-            researchData: updateData as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, updateData)
 
         // Strategy complete (stage 4) — do NOT auto-activate cron jobs.
         // Crons are activated only after the user explicitly commits a scenario
@@ -2197,14 +2209,15 @@ export async function logApiUsage(params: {
         if (cacheRead > 0)     entry.cacheReadTokens = cacheRead
         if (savingsUsd > 0)    entry.cacheSavingsUsd = savingsUsd
 
-        const [inst] = await db.select().from(instances).where(eq(instances.id, params.instanceId))
-        const rd: any = inst?.researchData || {}
+        // Phase 2.3.B — usage log lives on the primary agent's research_data
+        // (per-VPS aggregation; secondary-agent direct-API calls are still
+        // visible at the VPS level here).
+        const __agent = await resolvePrimaryAgent(params.instanceId)
+        const rd = await readResearchData(__agent, params.instanceId) as any
         const log = Array.isArray(rd.apiUsageLog) ? rd.apiUsageLog : []
         log.unshift(entry)
         const trimmed = log.slice(0, 500)
-        await db.update(instances).set({
-            researchData: { ...rd, apiUsageLog: trimmed } as any,
-        }).where(eq(instances.id, params.instanceId))
+        await writeResearchData(__agent, params.instanceId, { ...rd, apiUsageLog: trimmed })
         const cacheNote = cacheRead > 0 ? ` (cache hit ${cacheRead} tok, saved $${savingsUsd})` : cacheCreation > 0 ? ` (cache write ${cacheCreation} tok)` : ''
         console.log(`API usage: ${params.purpose} ${params.model} ${params.inputTokens}+${params.outputTokens} = $${cost.toFixed(4)}${cacheNote}`)
     } catch (err) {
@@ -2412,7 +2425,8 @@ export const buildStrategyScenarios = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance?.ip) return fail(c, 'Instance not ready', 404)
 
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
 
         // Precondition: all 4 strategy stages must exist
         const missing = [1, 2, 3, 4].filter(s => !rd[`strategyStage${s}`])
@@ -2755,14 +2769,12 @@ KPIs **חייבים לשקף בפועל** את ההשקעה והמאמץ. אם �
         }
 
         // Persist with warnings if any
-        await db.update(instances).set({
-            researchData: {
-                ...rd,
-                scenarios: scenariosData,
-                scenariosGeneratedAt: new Date().toISOString(),
-                scenariosCoherenceWarnings: coherenceWarnings.length > 0 ? coherenceWarnings : undefined,
-            } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, {
+            ...rd,
+            scenarios: scenariosData,
+            scenariosGeneratedAt: new Date().toISOString(),
+            scenariosCoherenceWarnings: coherenceWarnings.length > 0 ? coherenceWarnings : undefined,
+        })
 
         console.log(`Strategy scenarios saved for ${businessName}${coherenceWarnings.length > 0 ? ' (with warnings)' : ''}`)
         return ok(c, { ...scenariosData, coherenceWarnings: coherenceWarnings.length > 0 ? coherenceWarnings : undefined }, 'Scenarios ready.')
@@ -2795,7 +2807,8 @@ export const commitStrategyScenario = async (c: Context) => {
             return fail(c, 'Invalid scenario key', 400)
         }
 
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         if (!rd.scenarios?.scenarios) {
             return fail(c, 'יש לייצר תחילה את המסלולים', 400)
         }
@@ -2822,13 +2835,10 @@ export const commitStrategyScenario = async (c: Context) => {
             chosenAt: new Date().toISOString(),
         }
 
-        await db.update(instances).set({
-            researchData: {
-                ...rd,
-                chosenScenario,
-            } as any,
-            onboardingCompleted: true,
-        }).where(eq(instances.id, instanceId))
+        await shimResearchWriteWithExtra(c, instanceId,
+            { ...rd, chosenScenario },
+            { onboardingCompleted: true },
+        )
 
         // Re-apply cron schedule based on scenario's agentRoster (if present)
         const components = (instance.selectedComponents as string[]) || []
@@ -2855,21 +2865,24 @@ export const commitStrategyScenario = async (c: Context) => {
 
         // Generate initial 4-week Content Plan from strategy — foundation for
         // calendar view + agent smart-binding. Runs in background so commit
-        // doesn't block on Anthropic call (30-60s).
+        // doesn't block on Anthropic call (30-60s). Phase 2.3.B — pinned to
+        // the same agent the scenario was committed against.
+        const __backgroundAgentId = __agent?.id
         ;(async () => {
             try {
                 const plan = await generateContentPlan(instanceId, { weeksAhead: 4, startDate: new Date() })
                 const [inst2] = await db.select().from(instances).where(eq(instances.id, instanceId))
                 if (!inst2) return
-                const rd2 = (inst2.researchData as any) || {}
-                await db.update(instances).set({
-                    researchData: {
-                        ...rd2,
-                        contentPlan: plan,
-                        contentPlanGeneratedAt: new Date().toISOString(),
-                        contentPlanHorizonWeeks: 4,
-                    } as any,
-                }).where(eq(instances.id, instanceId))
+                const __agentForBg = __backgroundAgentId
+                    ? await (await import('@/services/agentContext')).resolveAgentById(instanceId, __backgroundAgentId)
+                    : await resolvePrimaryAgent(instanceId)
+                const rd2 = await readResearchData(__agentForBg, instanceId) as any
+                await writeResearchData(__agentForBg, instanceId, {
+                    ...rd2,
+                    contentPlan: plan,
+                    contentPlanGeneratedAt: new Date().toISOString(),
+                    contentPlanHorizonWeeks: 4,
+                })
                 console.log(`Initial content plan seeded for ${instanceId}: ${plan.length} items`)
             } catch (e) {
                 console.error('Initial content plan generation failed (non-critical):', (e as Error).message)
@@ -2903,7 +2916,7 @@ export const generateOpsBrief = async (c: Context) => {
 // Pure function: run weekly ops-brief generation for one instance.
 // Used by both the manual endpoint and the weekly cron. Persists to
 // researchData AND creates an approval-queue entry.
-export async function runOpsBriefForInstance(instanceId: string): Promise<
+export async function runOpsBriefForInstance(instanceId: string, agentId?: string): Promise<
     | { ok: true; brief: any; historyCount: number; outputId: string | null }
     | { ok: false; reason: string; status?: number }
 > {
@@ -2911,7 +2924,10 @@ export async function runOpsBriefForInstance(instanceId: string): Promise<
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return { ok: false, reason: 'Instance not found', status: 404 }
 
-        const rd = (instance.researchData as any) || {}
+        const __agent = agentId
+            ? await (await import('@/services/agentContext')).resolveAgentById(instanceId, agentId)
+            : await resolvePrimaryAgent(instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const chosen = rd.chosenScenario
         if (!chosen) return { ok: false, reason: 'יש לבחור תחילה מסלול ביצוע', status: 400 }
 
@@ -3067,13 +3083,11 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
         const existing = Array.isArray(rd.opsBriefs) ? rd.opsBriefs : []
         const history = [brief, ...existing].slice(0, 12)
 
-        await db.update(instances).set({
-            researchData: {
-                ...rd,
-                opsBriefs: history,
-                latestOpsBrief: brief,
-            } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, {
+            ...rd,
+            opsBriefs: history,
+            latestOpsBrief: brief,
+        })
 
         // Also land the brief in the approval queue so it appears in משימות פעילות
         // alongside other operational outputs. Non-fatal if insert fails.
@@ -3541,7 +3555,8 @@ export const seedFacts = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance?.ip) return fail(c, 'Instance not ready', 404)
 
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const chosen = rd.chosenScenario
         const answers = rd.answers || {}
         const businessName = answers.businessName || 'העסק'
@@ -3676,13 +3691,11 @@ const ctx = { config: { uri: 'bolt://localhost:7687', user: 'neo4j', password: p
         }
         const [, okCount, failCount] = match
 
-        await db.update(instances).set({
-            researchData: {
-                ...rd,
-                factsSeededAt: new Date().toISOString(),
-                factsSeedSummary: { added: parseInt(okCount), failed: parseInt(failCount), totalExtracted: facts.length },
-            } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, {
+            ...rd,
+            factsSeededAt: new Date().toISOString(),
+            factsSeedSummary: { added: parseInt(okCount), failed: parseInt(failCount), totalExtracted: facts.length },
+        })
 
         // Update SOUL.md so agents know to use fact_query instead of reading MD files
         await updateSoulWithFactsTools(instance.ip, instance.rootPassword || undefined)
@@ -3712,7 +3725,8 @@ export const benchmarkFacts = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance?.ip) return fail(c, 'Instance not ready', 404)
 
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         if (!rd.factsSeededAt) return fail(c, 'יש להטעין תחילה את גרף הידע', 400)
 
         const apiKey = await getApiKeyForInstance(instanceId)
@@ -3832,9 +3846,7 @@ const ctx = { config: { uri: 'bolt://localhost:7687', user: 'neo4j', password: p
         }
 
         // Persist latest benchmark
-        await db.update(instances).set({
-            researchData: { ...rd, factsBenchmark: { ...result, ranAt: new Date().toISOString() } } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, { ...rd, factsBenchmark: { ...result, ranAt: new Date().toISOString() } })
 
         console.log(`Benchmark: baseline ${baseline.inputTokens}in → graph ${graph.inputTokens}in (savings ${inputSavingPct}%)`)
         return ok(c, result, 'Benchmark complete.')
@@ -4544,7 +4556,8 @@ export const researchStage = async (c: Context) => {
 
         if (!instance?.ip) { activeResearchRuns.delete(instanceId); return fail(c, 'Instance not found.', 404) }
 
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const answers = { ...(rd.answers || {}), validationMode }
         const businessName = answers.businessName || 'העסק'
         const businessDesc = answers.businessDescription || ''
@@ -4960,9 +4973,7 @@ print('\n\n'.join(out))
 
         // Save to DB
         const stageKey = `stage${stage}`
-        await db.update(instances).set({
-            researchData: { ...rd, [stageKey]: result, [`${stageKey}GeneratedAt`]: new Date().toISOString() } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, { ...rd, [stageKey]: result, [`${stageKey}GeneratedAt`]: new Date().toISOString() })
 
         console.log(`Research stage ${stage} complete: ${result.length} chars`)
         activeResearchRuns.delete(instanceId) // Release lock on success
@@ -4990,7 +5001,8 @@ export const researchSummary = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const { force } = (await c.req.json().catch(() => ({}))) as { force?: boolean }
 
         if (!force && typeof rd.summary === 'string' && rd.summary.length > 100) {
@@ -5102,7 +5114,7 @@ ${s5}
         }
 
         const updated = { ...rd, summary, summaryGeneratedAt: new Date().toISOString() }
-        await db.update(instances).set({ researchData: updated as any }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, updated)
 
         return ok(c, { summary, cached: false }, 'Summary generated')
     } catch (err) {
@@ -5121,7 +5133,8 @@ export const strategySummary = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const { force } = (await c.req.json().catch(() => ({}))) as { force?: boolean }
 
         if (!force && typeof rd.strategySummary === 'string' && rd.strategySummary.length > 100) {
@@ -5215,7 +5228,7 @@ ${s4}
         }
 
         const updated = { ...rd, strategySummary: summary, strategySummaryGeneratedAt: new Date().toISOString() }
-        await db.update(instances).set({ researchData: updated as any }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, updated)
 
         return ok(c, { summary, cached: false }, 'Strategy summary generated')
     } catch (err) {
@@ -5305,7 +5318,8 @@ export const updateMediaSettings = async (c: Context) => {
         if (!instance) return fail(c, 'Instance not found', 404)
 
         const body = await c.req.json<Partial<MediaSettings>>()
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const existing: MediaSettings = rd.mediaSettings || {}
         // Validate numeric fields
         const numChecks: Array<[keyof MediaSettings, number, number]> = [
@@ -5325,9 +5339,7 @@ export const updateMediaSettings = async (c: Context) => {
         }
 
         const merged: MediaSettings = { ...existing, ...body, updatedAt: new Date().toISOString() }
-        await db.update(instances).set({
-            researchData: { ...rd, mediaSettings: merged } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, { ...rd, mediaSettings: merged })
 
         return ok(c, { settings: resolveMediaSettings({ mediaSettings: merged }) }, 'Settings saved')
     } catch (err) {
@@ -5702,7 +5714,8 @@ export const saveHistoricalAssets = async (c: Context) => {
         if (!instance) return fail(c, 'Instance not found', 404)
 
         const body = await c.req.json<Partial<HistoricalAssets>>()
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const existing: HistoricalAssets = rd.historicalAssets || {}
 
         // Merge: only overwrite fields that were explicitly provided in body
@@ -5730,9 +5743,7 @@ export const saveHistoricalAssets = async (c: Context) => {
         if (merged.gsc) merged.gsc.text = clamp(merged.gsc.text, MAX_TEXT)
         merged.freeText = clamp(merged.freeText, MAX_TEXT)
 
-        await db.update(instances).set({
-            researchData: { ...rd, historicalAssets: merged } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, { ...rd, historicalAssets: merged })
 
         return ok(c, { assets: merged }, 'Historical assets saved')
     } catch (err) {
@@ -5763,15 +5774,14 @@ export const resetResearch = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const existingData = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const existingData = await readResearchData(__agent, instanceId) as any
         // Keep answers (business profile) but clear all stage results, strategy, report
         const cleaned: Record<string, any> = {}
         if (existingData.answers) cleaned.answers = existingData.answers
         if (existingData.generatedAt) cleaned.generatedAt = existingData.generatedAt
 
-        await db.update(instances).set({
-            researchData: cleaned as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, cleaned)
 
         // Wipe entire downstream pipeline output: research → strategy → content plan →
         // drafts in approval queue are all invalidated by a pipeline restart.
@@ -7500,7 +7510,8 @@ export const markContentPlanItemPublished = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const plan: ContentPlanItem[] = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
         const idx = plan.findIndex(p => p.id === itemId)
         if (idx < 0) return fail(c, 'Content plan item not found', 404)
@@ -7512,9 +7523,7 @@ export const markContentPlanItemPublished = async (c: Context) => {
             channelPostId: body.channelPostId,
         }
 
-        await db.update(instances).set({
-            researchData: { ...rd, contentPlan: plan } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, { ...rd, contentPlan: plan })
 
         return ok(c, { item: plan[idx] }, 'Marked as published')
     } catch (err) {
@@ -7594,7 +7603,8 @@ export const savePaidProfile = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const rd: any = instance.researchData || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const existing: PaidProfile | null = rd.paidProfile || null
         const now = new Date().toISOString()
 
@@ -7667,9 +7677,7 @@ export const savePaidProfile = async (c: Context) => {
             updatedAt: existing ? now : undefined,
         }
 
-        await db.update(instances).set({
-            researchData: { ...rd, paidProfile: next } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, { ...rd, paidProfile: next })
 
         return ok(c, { paidProfile: next }, existing ? 'Paid profile updated' : 'Paid profile saved')
     } catch (err) {
@@ -7716,15 +7724,13 @@ export const uploadHistoricalReports = async (c: Context) => {
             })
         }
 
-        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const rd: any = instance?.researchData || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const pp: any = rd.paidProfile || {}
         // Cap stored reports at 15 — keeps the latest uploads if user adds
         // more (additive across multiple submits).
         const next = { ...pp, historicalReports: [...(pp.historicalReports || []), ...reports].slice(-15) }
-        await db.update(instances)
-            .set({ researchData: { ...rd, paidProfile: next } as any })
-            .where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, { ...rd, paidProfile: next })
 
         return ok(c, { uploaded: reports.length, total: next.historicalReports.length }, 'Historical reports uploaded')
     } catch (err) {
@@ -7868,8 +7874,8 @@ export const approveMazhirMediaPlan = async (c: Context) => {
         const instanceId = c.req.param('id')
         const userId = resolveUserId(c)
         if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
-        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const rd: any = inst?.researchData || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const plan = rd.mediaPlan || (rd.strategy && typeof rd.strategy === 'object' ? rd.strategy.mediaPlan : null)
         if (!plan) return fail(c, 'No media plan to approve', 404)
         if (plan.status === 'approved' || plan.status === 'live') return fail(c, 'Plan already approved/live', 400)
@@ -7878,9 +7884,7 @@ export const approveMazhirMediaPlan = async (c: Context) => {
         plan.approvedAt = new Date().toISOString()
         plan.approvedByUserId = userId
 
-        await db.update(instances).set({
-            researchData: { ...rd, mediaPlan: plan } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, { ...rd, mediaPlan: plan })
 
         return ok(c, { mediaPlan: plan }, 'Media plan approved')
     } catch (err) {
@@ -7902,8 +7906,8 @@ export const reviseMazhirMediaPlan = async (c: Context) => {
         const note = String(body?.note || '').trim().slice(0, 2000)
         if (!note || note.length < 10) return fail(c, 'Revision note required (min 10 chars)', 400)
 
-        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const rd: any = inst?.researchData || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const plan = rd.mediaPlan
         if (!plan) return fail(c, 'No media plan to revise', 404)
 
@@ -7919,9 +7923,7 @@ export const reviseMazhirMediaPlan = async (c: Context) => {
         plan.status = 'awaiting_revision'
         plan.revisionNote = note
 
-        await db.update(instances).set({
-            researchData: { ...rd, mediaPlan: plan } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, { ...rd, mediaPlan: plan })
 
         // Re-generate plan asynchronously — Opus will see revisionNote in prompt
         // and address client feedback explicitly. Don't await — let client
@@ -8179,7 +8181,8 @@ export const archiveContentPlanItem = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         const plan: ContentPlanItem[] = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
         const idx = plan.findIndex(p => p.id === itemId)
         if (idx < 0) return fail(c, 'Content plan item not found', 404)
@@ -8190,9 +8193,7 @@ export const archiveContentPlanItem = async (c: Context) => {
             archivedAt: new Date().toISOString(),
         }
 
-        await db.update(instances).set({
-            researchData: { ...rd, contentPlan: plan } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, { ...rd, contentPlan: plan })
 
         return ok(c, { item: plan[idx] }, 'Archived')
     } catch (err) {
@@ -8216,13 +8217,19 @@ export const archiveContentPlanItem = async (c: Context) => {
 //   - planDraftRunner (drafting context)
 //   - daily brief / weekly report agents (when they mention performance)
 //   - stats API endpoint (agents queried by user)
-export async function generateOptimizationReportCore(instanceId: string): Promise<{
+export async function generateOptimizationReportCore(instanceId: string, agentId?: string): Promise<{
     generated: boolean; reason?: string; report?: Record<string, unknown>
 }> {
     const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!instance) return { generated: false, reason: 'Instance not found' }
 
-    const rd = (instance.researchData as any) || {}
+    // Phase 2.3.B — operate on the requested agent (or primary by default).
+    // Cron callers pass no agentId → primary is used. Per-agent crons can
+    // pin to a specific secondary by passing its id.
+    const __agent = agentId
+        ? await (await import('@/services/agentContext')).resolveAgentById(instanceId, agentId)
+        : await resolvePrimaryAgent(instanceId)
+    const rd = await readResearchData(__agent, instanceId) as any
     const plan: ContentPlanItem[] = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
     const measured = plan.filter(it => it.results && typeof it.results.engagement === 'number')
     if (measured.length < 5) {
@@ -8306,9 +8313,7 @@ ${JSON.stringify(plan.slice(0, 40).map(it => ({
     const prior: any[] = Array.isArray(rd.optimizationReports) ? rd.optimizationReports : []
     const updated = [stamped, ...prior].slice(0, 12)
 
-    await db.update(instances).set({
-        researchData: { ...rd, optimizationReports: updated } as any,
-    }).where(eq(instances.id, instanceId))
+    await writeResearchData(__agent, instanceId, { ...rd, optimizationReports: updated })
 
     return { generated: true, report: stamped }
 }
@@ -8352,7 +8357,8 @@ export const regenerateContentPlan = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as any
         if (!rd.chosenScenario) return fail(c, 'בחרו קודם מסלול ביצוע', 400)
 
         const body = await c.req.json().catch(() => ({})) as {
@@ -8390,14 +8396,12 @@ export const regenerateContentPlan = async (c: Context) => {
             finalPlan.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
         }
 
-        await db.update(instances).set({
-            researchData: {
-                ...rd,
-                contentPlan: finalPlan,
-                contentPlanGeneratedAt: new Date().toISOString(),
-                contentPlanHorizonWeeks: body.weeksAhead || 4,
-            } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, {
+            ...rd,
+            contentPlan: finalPlan,
+            contentPlanGeneratedAt: new Date().toISOString(),
+            contentPlanHorizonWeeks: body.weeksAhead || 4,
+        })
 
         console.log(`Content plan regenerated for ${instanceId}: ${finalPlan.length} items (${plan.length} new + ${finalPlan.length - plan.length} preserved)`)
 
@@ -8405,7 +8409,10 @@ export const regenerateContentPlan = async (c: Context) => {
         // they're ready in approval queue the moment media buyer opens them.
         // No image render here (expensive + wasteful until approved) — just
         // the structured brief (prompt + model + overlay) stored in researchData.
-        prefetchCreativeBriefsForPaidItems(instanceId, plan).catch(err =>
+        // Phase 2.3.B — pass active agent so prefetch writes to the same
+        // mateh_agents row as the content plan was generated for.
+        const __activeAgentForPrefetch = await resolveActiveAgent(c, instanceId)
+        prefetchCreativeBriefsForPaidItems(instanceId, plan, __activeAgentForPrefetch?.id || null).catch(err =>
             console.error('[regenerateContentPlan] paid brief prefetch failed (non-fatal):', err),
         )
 
@@ -8420,7 +8427,7 @@ export const regenerateContentPlan = async (c: Context) => {
 // so the media buyer sees a ready-to-review brief (prompt + model + overlay +
 // exclude audiences hint) the moment they open the approval queue. Stored
 // under researchData.creativeBriefs keyed by content plan item id.
-async function prefetchCreativeBriefsForPaidItems(instanceId: string, plan: ContentPlanItem[]): Promise<void> {
+async function prefetchCreativeBriefsForPaidItems(instanceId: string, plan: ContentPlanItem[], agentId: string | null = null): Promise<void> {
     const paidItems = plan.filter(it => it.channel === 'meta_ads' || it.channel === 'google_ads')
     if (paidItems.length === 0) return
 
@@ -8448,14 +8455,24 @@ async function prefetchCreativeBriefsForPaidItems(instanceId: string, plan: Cont
 
     if (Object.keys(briefs).length === 0) return
 
-    // Merge into researchData.creativeBriefs
-    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-    if (!inst) return
-    const rd = (inst.researchData as any) || {}
+    // Merge into researchData.creativeBriefs — use the agent that the
+    // content plan was generated for (passed in by the caller).
+    let __agent: import('@/services/agentContext').MatehAgentRow | null = null
+    if (agentId) {
+        const { matehAgents } = await import('@/db/schema')
+        const [a] = await db.select().from(matehAgents).where(eq(matehAgents.id, agentId))
+        __agent = a || null
+    }
+    if (!__agent) {
+        // Fallback to primary
+        const { matehAgents } = await import('@/db/schema')
+        const [a] = await db.select().from(matehAgents)
+            .where(and(eq(matehAgents.vpsInstanceId, instanceId), eq(matehAgents.isPrimary, true)))
+        __agent = a || null
+    }
+    const rd = await readResearchData(__agent, instanceId)
     const existing = (rd.creativeBriefs as Record<string, unknown>) || {}
-    await db.update(instances).set({
-        researchData: { ...rd, creativeBriefs: { ...existing, ...briefs } } as any,
-    }).where(eq(instances.id, instanceId))
+    await writeResearchData(__agent, instanceId, { ...rd, creativeBriefs: { ...existing, ...briefs } })
     console.log(`[prefetchCreativeBriefs] ${instanceId}: stored ${Object.keys(briefs).length} briefs`)
 }
 
@@ -8492,7 +8509,8 @@ export const resetStrategy = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const rd = (instance.researchData as any) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId)
         const cleaned = { ...rd }
         const wiped: string[] = []
         const strategyKeys = [
@@ -8508,7 +8526,7 @@ export const resetStrategy = async (c: Context) => {
             if (k in cleaned) { delete cleaned[k]; wiped.push(k) }
         }
 
-        await db.update(instances).set({ researchData: cleaned as any }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, cleaned)
 
         // Strategy reset invalidates content plan + all drafts queued by planDraftRunner.
         // Same audit-trail rules as resetResearch: keep published + archived only.
@@ -8560,34 +8578,69 @@ export const setupAgents = async (c: Context) => {
         console.log(`Generating USER.md + BRAND.md for ${answers.businessName}...`)
         const { userMd, brandMd } = await generateWithClaude(answers, apiKey)
 
-        // Deploy to VPS
-        const brandSlug = (answers.brandName || answers.businessName).toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')
-        const gatewayToken = instance.openclawToken || ''
-        const subdomain = instance.subdomainName || instanceId
+        // Deploy to VPS — Phase 2.3.B: when active agent is a secondary
+        // mateh_agent, deploy into its own working directory + use its own
+        // openclaw token + subdomain instead of the primary VPS-level pair.
+        const __setupAgentRow = await resolveActiveAgent(c, instanceId)
+        const isSecondaryDeploy = !!(__setupAgentRow && !__setupAgentRow.isPrimary)
+        const brandSlug = isSecondaryDeploy
+            ? __setupAgentRow!.brandSlug
+            : (answers.brandName || answers.businessName).toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')
+        const gatewayToken = isSecondaryDeploy
+            ? (__setupAgentRow!.openclawToken || '')
+            : (instance.openclawToken || '')
+        const subdomain = isSecondaryDeploy
+            ? (__setupAgentRow!.subdomainAgent || instanceId)
+            : (instance.subdomainName || instanceId)
 
-        // Determine agent type from selected components
-        const components = (instance.selectedComponents as string[]) || []
-        const agentType: 'mt' | 'oc' | 'bare' = components.includes('mt') ? 'mt' : components.includes('bare') ? 'bare' : 'oc'
+        // Determine agent type. For secondary agents, agentType comes from
+        // the agent's row (provisioner already chose 'mateh' | 'oc' | 'bare').
+        // For primary agents, derive from the VPS's selectedComponents.
+        let agentType: 'mt' | 'oc' | 'bare'
+        if (isSecondaryDeploy) {
+            agentType = __setupAgentRow!.agentType === 'mateh' ? 'mt'
+                : __setupAgentRow!.agentType === 'oc' ? 'oc' : 'bare'
+        } else {
+            const components = (instance.selectedComponents as string[]) || []
+            agentType = components.includes('mt') ? 'mt' : components.includes('bare') ? 'bare' : 'oc'
+        }
 
-        console.log(`Deploying ${agentType} agent system to ${instance.ip}...`)
-        await deployAgentSystem(instance.ip, userMd, brandMd, brandSlug, gatewayToken, subdomain, instance.rootPassword || undefined, agentType)
+        console.log(`Deploying ${agentType} agent system to ${instance.ip} (agent=${__setupAgentRow?.id || 'primary'})`)
+        await deployAgentSystem(
+            instance.ip,
+            userMd,
+            brandMd,
+            brandSlug,
+            gatewayToken,
+            subdomain,
+            instance.rootPassword || undefined,
+            agentType,
+            isSecondaryDeploy ? __setupAgentRow!.id : undefined,
+        )
 
-        // Register sub-agents (MATEH) via unified function
-        try {
-            await ensureAgentsRegistered(instance)
-        } catch (regErr) {
-            console.error('Agent registration during deploy (non-critical):', regErr)
+        // Register sub-agents (MATEH) via unified function — primary path only.
+        // Secondary agents have their own workspace + their own systemd unit;
+        // ensureAgentsRegistered targets primary paths and should not be reused.
+        if (!isSecondaryDeploy) {
+            try {
+                await ensureAgentsRegistered(instance)
+            } catch (regErr) {
+                console.error('Agent registration during deploy (non-critical):', regErr)
+            }
         }
 
         // Update DB — merge with existing researchData so re-submitting the
         // questionnaire (e.g. to add a product) does NOT wipe previously generated
         // research stages / strategy / scenarios. Existing data is preserved;
-        // answers and generatedAt are refreshed.
-        const existingRd = (instance.researchData as any) || {}
-        await db.update(instances).set({
-            onboardingStep: 3,
-            researchData: { ...existingRd, answers, generatedAt: new Date().toISOString() } as any,
-        }).where(eq(instances.id, instanceId))
+        // answers and generatedAt are refreshed. Phase 2.3.B — written to the
+        // active mateh_agent (per-agent isolation), with primary mirror to
+        // instances.research_data for legacy callers.
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const existingRd = await readResearchData(__agent, instanceId)
+        await shimResearchWriteWithExtra(c, instanceId,
+            { ...existingRd, answers, generatedAt: new Date().toISOString() },
+            { onboardingStep: 3 },
+        )
 
         return ok(c, {
             userMd: userMd.substring(0, 200) + '...',
@@ -8929,18 +8982,17 @@ export const setupPersonalAgent = async (c: Context) => {
         console.log(`Deploying Personal agent for ${body.userName} to ${instance.ip}...`)
         await deployAgentSystem(instance.ip, userContent, soulContent, body.userName.toLowerCase().replace(/[^a-z0-9]/g, '-'), gatewayToken, subdomain, instance.rootPassword || undefined, 'oc')
 
-        await db.update(instances).set({
+        await shimResearchWriteWithExtra(c, instanceId, {
+            userName: body.userName,
+            occupation: body.occupation,
+            tone: body.tone,
+            delegatedTasks: body.delegatedTasks,
+            boundaries: body.boundaries,
+            generatedAt: new Date().toISOString(),
+        }, {
             onboardingStep: 4,
             onboardingCompleted: true,
-            researchData: {
-                userName: body.userName,
-                occupation: body.occupation,
-                tone: body.tone,
-                delegatedTasks: body.delegatedTasks,
-                boundaries: body.boundaries,
-                generatedAt: new Date().toISOString(),
-            } as any,
-        }).where(eq(instances.id, instanceId))
+        })
 
         // Activate cron jobs now that onboarding is complete
         try {

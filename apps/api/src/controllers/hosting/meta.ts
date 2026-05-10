@@ -17,6 +17,7 @@ import { instances } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import { setAgentIntegration, removeAgentIntegration } from '@/services/agentIntegrations'
+import { writeAgentTokens } from '@/services/agentContext'
 import { Client } from 'ssh2'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
@@ -68,16 +69,14 @@ export const metaSaveCredentials = async (c: Context) => {
             return fail(c, 'App ID ו-App Secret נדרשים', 400)
         }
 
-        // Save credentials to DB (in metaTokens field)
-        await db.update(instances)
-            .set({
-                metaTokens: {
-                    appId,
-                    appSecret,
-                    status: 'pending_oauth',
-                } as any,
-            })
-            .where(eq(instances.id, instanceId))
+        // Phase 2.3.B — save credentials to active mateh_agent
+        await writeAgentTokens(c, instanceId, {
+            metaTokens: {
+                appId,
+                appSecret,
+                status: 'pending_oauth',
+            } as never,
+        })
 
         // Build OAuth URL
         const state = Buffer.from(JSON.stringify({ instanceId })).toString('base64')
@@ -175,26 +174,24 @@ export const metaCallback = async (c: Context) => {
         const adAccountsData = await adAccountsRes.json() as { data?: Array<{ id: string; name: string; account_status: number }> }
         const adAccounts = (adAccountsData.data || []).filter(a => a.account_status === 1) // 1 = ACTIVE
 
-        // Save everything
-        await db.update(instances)
-            .set({
-                metaTokens: {
-                    appId: metaConfig.appId,
-                    appSecret: metaConfig.appSecret,
-                    userAccessToken: longLivedToken,
-                    tokenExpiresAt: Date.now() + (longTokenData.expires_in || 5184000) * 1000,
-                    pages: pages.map(p => ({ id: p.id, name: p.name, accessToken: p.access_token })),
-                    pageName: pages[0]?.name || null,
-                    pageId: pages[0]?.id || null,
-                    pageAccessToken: pages[0]?.access_token || null,
-                    instagramAccountId,
-                    adAccounts: adAccounts.map(a => ({ id: a.id, name: a.name })),
-                    adAccountId: adAccounts[0]?.id || null,
-                    connectedAt: new Date().toISOString(),
-                    status: 'connected',
-                } as any,
-            })
-            .where(eq(instances.id, instanceId))
+        // Phase 2.3.B — save everything to active mateh_agent
+        await writeAgentTokens(c, instanceId, {
+            metaTokens: {
+                appId: metaConfig.appId,
+                appSecret: metaConfig.appSecret,
+                userAccessToken: longLivedToken,
+                tokenExpiresAt: Date.now() + (longTokenData.expires_in || 5184000) * 1000,
+                pages: pages.map(p => ({ id: p.id, name: p.name, accessToken: p.access_token })),
+                pageName: pages[0]?.name || null,
+                pageId: pages[0]?.id || null,
+                pageAccessToken: pages[0]?.access_token || null,
+                instagramAccountId,
+                adAccounts: adAccounts.map(a => ({ id: a.id, name: a.name })),
+                adAccountId: adAccounts[0]?.id || null,
+                connectedAt: new Date().toISOString(),
+                status: 'connected',
+            } as never,
+        })
 
         // Write to per-agent integrations (Meta is always for MATEH)
         await setAgentIntegration(instanceId, 'mt', 'meta', {
@@ -239,9 +236,7 @@ export const metaDisconnect = async (c: Context) => {
         // Get instance for VPS cleanup
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
 
-        await db.update(instances)
-            .set({ metaTokens: null as any })
-            .where(eq(instances.id, instanceId))
+        await writeAgentTokens(c, instanceId, { metaTokens: null })
 
         // Remove from per-agent integrations
         await removeAgentIntegration(instanceId, 'mt', 'meta').catch(() => {})

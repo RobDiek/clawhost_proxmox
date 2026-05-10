@@ -45,6 +45,7 @@ import { prefetchCostTimelineModeling } from './prefetch/cost_timeline_modeling'
 import type { ResearchDataV2, StageId } from '@/services/research/types'
 import type { SeoKeywordResearchDfsData } from './prefetch/seo_keyword_research'
 import { searchVolume, keywordDifficulty, LOCATION_IL } from '@/services/research/dataforseo'
+import { resolveActiveAgent, readResearchData } from '@/services/agentContext'
 
 /**
  * Per-stage DFS prefetch registry. Stages registered here run their
@@ -87,7 +88,8 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             return fail(c, 'Instance not found.', 404)
         }
 
-        const rd = (instance.researchData as ResearchDataV2 | null) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = (await readResearchData(__agent, instanceId)) as unknown as ResearchDataV2
         const answers = { ...((rd.answers as Record<string, unknown>) || {}) }
         // validationMode is consumed by the validation prompt builder, so
         // surface it through `answers` (no schema bloat for one-off flags).
@@ -377,7 +379,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             output.qualityGate = { pass: true, hardFailures: [], warnings: [], revised: false, skipped: true }
         }
 
-        await saveStageResult(instanceId, stageId, output)
+        await saveStageResult(instanceId, stageId, output, __agent?.id)
         console.log(`[research/${stageId}] complete: ${output.content.length} chars, source=${output.source}, records=${parsed.records?.length ?? 0}, dfsCost=$${dfsCost.toFixed(4)}, confidence=${finalConfidence ?? 'n/a'}, qualityGate=${output.qualityGate ? (output.qualityGate.pass ? 'pass' : `fail(${output.qualityGate.hardFailures.length}h/${output.qualityGate.warnings.length}w)`) : 'n/a'}`)
 
         releaseResearchLock(instanceId)

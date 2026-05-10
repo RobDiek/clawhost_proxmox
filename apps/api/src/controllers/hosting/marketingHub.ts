@@ -32,6 +32,7 @@ import {
 } from '@openclaw/shared'
 import { setPipelineActivation } from '@/services/pipelineActivation'
 import { archiveOrphanedItems, previewOrphanedItems } from '@/services/orphanedItemsCleaner'
+import { resolveActiveAgent, readResearchData, writeResearchData } from '@/services/agentContext'
 
 // ─── helper: load + persist researchData with safe merge ─────────────────
 async function loadInstance(instanceId: string) {
@@ -40,16 +41,14 @@ async function loadInstance(instanceId: string) {
 }
 
 async function patchResearchData(
+    c: Context,
     instanceId: string,
     patch: (rd: MarketingResearchData) => MarketingResearchData
 ): Promise<MarketingResearchData> {
-    const inst = await loadInstance(instanceId)
-    if (!inst) throw new Error('Instance not found')
-    const rd = (inst.researchData || {}) as MarketingResearchData
+    const agent = await resolveActiveAgent(c, instanceId)
+    const rd = (await readResearchData(agent, instanceId)) as unknown as MarketingResearchData
     const next = patch({ ...rd })
-    await db.update(instances)
-        .set({ researchData: next as never })
-        .where(eq(instances.id, instanceId))
+    await writeResearchData(agent, instanceId, next as unknown as Record<string, unknown>)
     return next
 }
 
@@ -105,7 +104,7 @@ export const saveMarketingIntents = async (c: Context) => {
         const body = await c.req.json<{ intents?: unknown }>()
         if (!Array.isArray(body.intents)) return fail(c, 'intents[] required', 400)
         const cleaned = (body.intents as unknown[]).filter((s): s is MarketingIntent => typeof s === 'string' && isValidIntent(s))
-        const next = await patchResearchData(instanceId, rd => ({
+        const next = await patchResearchData(c, instanceId, rd => ({
             ...rd,
             marketingIntents: cleaned,
         }))
@@ -224,7 +223,7 @@ export const setIntegrationState = async (c: Context) => {
         const connected: boolean = body.connected
 
         const now = new Date().toISOString()
-        const next = await patchResearchData(instanceId, rd => {
+        const next = await patchResearchData(c, instanceId, rd => {
             const state = { ...(rd.integrationsState || {}) }
             const prev = state[integrationId]
             const record: IntegrationConnectionRecord = {
@@ -263,7 +262,7 @@ export const syncIntegrationStates = async (c: Context) => {
         const validIds = claimedIds.filter(id => !!getIntegration(id))
 
         const now = new Date().toISOString()
-        const next = await patchResearchData(instanceId, rd => {
+        const next = await patchResearchData(c, instanceId, rd => {
             const state = { ...(rd.integrationsState || {}) }
             const claimedSet = new Set(validIds)
             for (const id of validIds) {

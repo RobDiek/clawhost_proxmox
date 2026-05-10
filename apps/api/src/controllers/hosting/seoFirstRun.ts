@@ -21,6 +21,7 @@ import { instances, agentOutputs } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
+import { resolveActiveAgent, readResearchData, writeResearchData } from '@/services/agentContext'
 import crypto from 'crypto'
 
 function generateId(): string { return crypto.randomBytes(6).toString('hex') }
@@ -415,7 +416,8 @@ ${researchForStrategy}
         }
 
         // Save SEO first-run metadata
-        const currentResearch = (instance.researchData as Record<string, unknown>) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const currentResearch = await readResearchData(__agent, instanceId) as any
         currentResearch.seoFirstRun = {
             completedAt: new Date().toISOString(),
             goal: body.goal,
@@ -423,9 +425,7 @@ ${researchForStrategy}
             researchOutputId: outputId1,
             strategyOutputId: outputId2,
         }
-        await db.update(instances)
-            .set({ researchData: currentResearch as any })
-            .where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, currentResearch)
 
         return ok(c, {
             researchId: outputId1,

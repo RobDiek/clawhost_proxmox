@@ -9,6 +9,7 @@ import { Client } from 'ssh2'
 import crypto from 'crypto'
 import { resolveUserId } from './authHelper'
 import { setAgentIntegration, removeAgentIntegration, getAgentIntegration, getAllIntegrations, getPrimaryAgent, type AgentType } from '@/services/agentIntegrations'
+import { writeAgentTokens } from '@/services/agentContext'
 
 /** Parse JWT from ?token= query param (for OAuth redirects that can't send Authorization header) */
 function resolveUserIdFromQuery(c: Context): string | null {
@@ -205,10 +206,8 @@ export const microsoftCallback = async (c: Context) => {
         // Write to per-agent integrations (single source of truth)
         await setAgentIntegration(instanceId, agentType, 'microsoft', microsoftTokens as any)
 
-        // Legacy dual-write (keep until all reads migrated)
-        await db.update(instances)
-            .set({ microsoftTokens: microsoftTokens as any })
-            .where(eq(instances.id, instanceId))
+        // Phase 2.3.B — write to active mateh_agent (with primary mirror)
+        await writeAgentTokens(c, instanceId, { microsoftTokens: microsoftTokens as never })
 
         console.log(`Microsoft 365 connected for instance ${instanceId}, agent ${agentType}: ${email} (scopes: ${scopes})`)
 
@@ -256,7 +255,8 @@ export const microsoftDisconnect = async (c: Context) => {
         // Remove from per-agent integrations
         await removeAgentIntegration(instanceId, agentType, 'microsoft')
 
-        // Legacy cleanup: only null out if no other agent has Microsoft connected
+        // Phase 2.3.B — clear on active mateh_agent
+        await writeAgentTokens(c, instanceId, { microsoftTokens: null })
         const remaining = await getAllIntegrations(instanceId)
         const anyMicrosoftLeft = remaining.some(r => r.integrationType === 'microsoft' && r.status === 'connected')
         if (!anyMicrosoftLeft) {

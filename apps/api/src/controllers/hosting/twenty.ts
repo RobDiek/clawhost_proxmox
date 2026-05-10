@@ -125,17 +125,19 @@ print('MCP configured:', '$CFG')
         }
     }
 
-    // Save Twenty credentials to instance (merge into researchData)
-    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-    const existing = (typeof inst?.researchData === 'object' && inst.researchData) ? inst.researchData as Record<string, unknown> : {}
-    await db.update(instances).set({
-        researchData: {
-            ...existing,
-            twentyEmail: email,
-            twentyPassword: twentyPassword,
-            ...(twentyApiKey ? { twentyApiKey } : {}),
-        } as any,
-    }).where(eq(instances.id, instanceId))
+    // Save Twenty credentials to instance (merge into researchData) — Twenty
+    // is a VPS-level integration (one CRM per VPS, all mateh_agents share);
+    // store on the primary agent's research_data.
+    const { resolvePrimaryAgent: _rp, readResearchData: _rrd, writeResearchData: _wrd } =
+        await import('@/services/agentContext')
+    const __agent = await _rp(instanceId)
+    const existing = await _rrd(__agent, instanceId) as Record<string, unknown>
+    await _wrd(__agent, instanceId, {
+        ...existing,
+        twentyEmail: email,
+        twentyPassword: twentyPassword,
+        ...(twentyApiKey ? { twentyApiKey } : {}),
+    })
 }
 
 /** MATEH sub-agents as CRM users — each agent gets its own identity in Twenty */

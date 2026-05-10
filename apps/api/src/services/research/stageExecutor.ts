@@ -587,10 +587,19 @@ export async function saveStageResult(
     instanceId: string,
     stageId: StageId,
     output: ExecuteStageOutput,
+    agentId?: string,
 ): Promise<void> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error(`saveStageResult: instance ${instanceId} not found`)
-    const rd = (inst.researchData as Record<string, unknown> | null) || {}
+    // Phase 2.3.B — write to the explicitly-passed agent if provided,
+    // else default to primary. Stage-runner endpoints should pass the
+    // resolved agent so secondary-agent research is isolated.
+    const { resolveAgentById, resolvePrimaryAgent, readResearchData, writeResearchData } =
+        await import('@/services/agentContext')
+    const agent = agentId
+        ? await resolveAgentById(instanceId, agentId)
+        : await resolvePrimaryAgent(instanceId)
+    const rd = await readResearchData(agent, instanceId) as Record<string, unknown>
     const results = ((rd.results as Record<string, unknown>) || {}) as Record<StageId, StageResult>
     const plan = (rd.plan as { stages?: StageId[]; status?: Record<StageId, StageStatus> } | undefined) || {}
     const status: Record<StageId, StageStatus> = { ...(plan.status || {}) } as Record<StageId, StageStatus>
@@ -610,11 +619,9 @@ export async function saveStageResult(
     results[stageId] = stageResult
     status[stageId] = output.status
 
-    await db.update(instances).set({
-        researchData: {
-            ...rd,
-            results,
-            plan: { ...plan, status },
-        } as never,
-    }).where(eq(instances.id, instanceId))
+    await writeResearchData(agent, instanceId, {
+        ...rd,
+        results,
+        plan: { ...plan, status },
+    })
 }

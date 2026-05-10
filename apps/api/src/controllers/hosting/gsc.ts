@@ -17,6 +17,7 @@ import { Client } from 'ssh2'
 import crypto from 'crypto'
 import { resolveUserId } from './authHelper'
 import { setAgentIntegration, removeAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
+import { writeAgentTokens } from '@/services/agentContext'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
@@ -172,9 +173,8 @@ async function processGscCallback(c: Context, code: string, instanceId: string, 
         connectedAt: new Date().toISOString(),
     }
 
-    await db.update(instances)
-        .set({ gscTokens: gscTokens as any })
-        .where(eq(instances.id, instanceId))
+    // Phase 2.3.B — write to active mateh_agent (with primary mirror to instance)
+    await writeAgentTokens(c, instanceId, { gscTokens: gscTokens as never })
 
     // Write to per-agent integrations
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
@@ -254,10 +254,8 @@ export const gscDisconnect = async (c: Context) => {
             } catch { /* best effort */ }
         }
 
-        // Clear from DB
-        await db.update(instances)
-            .set({ gscTokens: null })
-            .where(eq(instances.id, instanceId))
+        // Phase 2.3.B — clear on the active mateh_agent
+        await writeAgentTokens(c, instanceId, { gscTokens: null })
 
         // Remove from per-agent integrations
         const components = (instance.selectedComponents as string[]) || []
@@ -345,9 +343,7 @@ export const gscSetSite = async (c: Context) => {
         }
 
         tokens.siteUrl = body.siteUrl
-        await db.update(instances)
-            .set({ gscTokens: tokens })
-            .where(eq(instances.id, instanceId))
+        await writeAgentTokens(c, instanceId, { gscTokens: tokens })
 
         // Update MCP env on VPS
         if (instance.ip) {

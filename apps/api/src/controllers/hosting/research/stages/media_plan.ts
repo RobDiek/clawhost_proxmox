@@ -19,6 +19,7 @@ import {
     releaseResearchLock,
 } from '@/services/research/stageExecutor'
 import { markWrapperStageCompleted } from './_wrapperHelpers'
+import { resolveActiveAgent, readResearchData } from '@/services/agentContext'
 
 export async function run(c: Context): Promise<Response> {
     const instanceId = c.req.param('id')
@@ -33,7 +34,9 @@ export async function run(c: Context): Promise<Response> {
         // Required upstream: paid_audit must have run (mazhirAudit) and the
         // user must have a paidProfile. Surface a clear error if not.
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const rd = (inst?.researchData as Record<string, unknown> | null) || {}
+        if (!inst) { releaseResearchLock(instanceId); return fail(c, 'Instance not found', 404) }
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as Record<string, unknown>
         if (!rd.mazhirAudit) {
             releaseResearchLock(instanceId)
             return fail(c, 'הריצו קודם אודיט פרסום ממומן (paid_audit)', 422)
@@ -60,6 +63,7 @@ export async function run(c: Context): Promise<Response> {
             stageId: 'media_plan',
             summaryMd,
             integrationsUsed: ['anthropic', 'googleAds', 'meta'],
+            agentId: __agent?.id,
         })
 
         releaseResearchLock(instanceId)

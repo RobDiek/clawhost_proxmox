@@ -18,6 +18,7 @@ import {
     releaseResearchLock,
 } from '@/services/research/stageExecutor'
 import { markWrapperStageCompleted } from './_wrapperHelpers'
+import { resolveActiveAgent, readResearchData, writeResearchData } from '@/services/agentContext'
 
 export async function run(c: Context): Promise<Response> {
     const instanceId = c.req.param('id')
@@ -30,7 +31,9 @@ export async function run(c: Context): Promise<Response> {
 
     try {
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const rd = (inst?.researchData as Record<string, unknown> | null) || {}
+        if (!inst) { releaseResearchLock(instanceId); return fail(c, 'Instance not found', 404) }
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId) as Record<string, unknown>
 
         // Gate: content plan requires a chosen scenario (commit step) — same
         // gate as the existing regenerateContentPlan handler.
@@ -55,14 +58,12 @@ export async function run(c: Context): Promise<Response> {
         )
         const finalPlan = [...plan, ...inProgress] as unknown[]
 
-        await db.update(instances).set({
-            researchData: {
-                ...rd,
-                contentPlan: finalPlan,
-                contentPlanGeneratedAt: new Date().toISOString(),
-                contentPlanHorizonWeeks: weeksAhead,
-            } as never,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, {
+            ...rd,
+            contentPlan: finalPlan,
+            contentPlanGeneratedAt: new Date().toISOString(),
+            contentPlanHorizonWeeks: weeksAhead,
+        })
 
         const summaryMd = `# תוכנית תוכן — הושלמה
 
@@ -76,6 +77,7 @@ export async function run(c: Context): Promise<Response> {
             stageId: 'content_plan',
             summaryMd,
             integrationsUsed: ['anthropic'],
+            agentId: __agent?.id,
         })
 
         releaseResearchLock(instanceId)

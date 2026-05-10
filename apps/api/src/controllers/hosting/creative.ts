@@ -23,6 +23,7 @@ import { db } from '@/db'
 import { instances, creativeRenders } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { resolveUserId, getOwnedInstance } from './authHelper'
+import { resolveActiveAgent, readResearchData, writeResearchData } from '@/services/agentContext'
 import { SCENARIOS, getScenario, type ScenarioSpec, type ScenarioModel } from '@/services/scenarioRegistry'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
@@ -401,10 +402,9 @@ export const saveCreativeRouting = async (c: Context) => {
             clean[scenarioId] = model
         }
 
-        const rd = (instance.researchData as Record<string, unknown> | null) || {}
-        await db.update(instances).set({
-            researchData: { ...rd, creativeRouting: clean } as any,
-        }).where(eq(instances.id, instanceId))
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = await readResearchData(__agent, instanceId)
+        await writeResearchData(__agent, instanceId, { ...rd, creativeRouting: clean })
 
         return ok(c, { routing: clean }, 'Routing saved.')
     } catch (err) {

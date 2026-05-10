@@ -19,6 +19,7 @@ import { resolveUserId, getOwnedInstance } from '../authHelper'
 import { detectIntentWithReasoning, planForIntent, planForIntents } from '@/services/research/planResolver'
 import { ALL_INTENTS } from '@/services/research/types'
 import type { ResearchDataV2, ResearchIntent, ResearchPlan, StageId } from '@/services/research/types'
+import { resolveActiveAgent, readResearchData, writeResearchData } from '@/services/agentContext'
 
 // ── GET /research/plan ────────────────────────────────────────────────────
 // Returns current plan + per-stage status. Frontend pipeline widget polls
@@ -30,7 +31,8 @@ export const getResearchPlan = async (c: Context) => {
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!inst) return fail(c, 'Instance not found', 404)
 
-        const rd = (inst.researchData as ResearchDataV2 | null) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = (await readResearchData(__agent, instanceId)) as unknown as ResearchDataV2
         // Compute what auto-detection WOULD pick now — UI can compare to
         // saved intent and surface "redetect available" if the saved value
         // is stale (e.g. user updated answers after plan was set).
@@ -61,7 +63,8 @@ export const setResearchPlan = async (c: Context) => {
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!inst) return fail(c, 'Instance not found', 404)
 
-        const rd = (inst.researchData as ResearchDataV2 | null) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = (await readResearchData(__agent, instanceId)) as unknown as ResearchDataV2
         const detection = detectIntentWithReasoning(rd.answers as Record<string, unknown>)
         const intent: ResearchIntent =
             body.intent && (ALL_INTENTS as readonly string[]).includes(body.intent)
@@ -90,7 +93,7 @@ export const setResearchPlan = async (c: Context) => {
             archivedPlans: archivedPlans.length > 0 ? archivedPlans : undefined,
         }
 
-        await db.update(instances).set({ researchData: next as never }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, next as unknown as Record<string, unknown>)
         return ok(c, { intent, plan: next.plan, detection }, 'Plan saved')
     } catch (err) {
         console.error('setResearchPlan error:', err)
@@ -114,7 +117,8 @@ export const expandResearchPlan = async (c: Context) => {
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!inst) return fail(c, 'Instance not found', 404)
 
-        const rd = (inst.researchData as ResearchDataV2 | null) || {}
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rd = (await readResearchData(__agent, instanceId)) as unknown as ResearchDataV2
         const current = rd.intent ? [rd.intent] : []
         const allIntents = [...new Set([...current, ...validAdditions])] as ResearchIntent[]
         const stages = planForIntents(allIntents)
@@ -145,7 +149,7 @@ export const expandResearchPlan = async (c: Context) => {
             intent: finalIntent,
             plan: { stages, status },
         }
-        await db.update(instances).set({ researchData: next as never }).where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, next as unknown as Record<string, unknown>)
         return ok(c, { intent: finalIntent, plan: next.plan }, 'Plan expanded')
     } catch (err) {
         console.error('expandResearchPlan error:', err)

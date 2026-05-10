@@ -8,6 +8,7 @@ import { Client } from 'ssh2'
 import crypto from 'crypto'
 import { resolveUserId } from './authHelper'
 import { setAgentIntegration, removeAgentIntegration, getAgentIntegration, getAllIntegrations, getPrimaryAgent, type AgentType } from '@/services/agentIntegrations'
+import { writeAgentTokens, resolveActiveAgent } from '@/services/agentContext'
 
 /** Parse JWT from ?token= query param (for OAuth redirects) */
 function resolveUserIdFromQuery(c: Context): string | null {
@@ -222,10 +223,10 @@ export const googleCallback = async (c: Context) => {
         // Write to per-agent integrations (single source of truth)
         await setAgentIntegration(instanceId, agentType, 'google', googleTokens as any)
 
-        // Legacy dual-write (keep until all reads migrated)
-        await db.update(instances)
-            .set({ googleTokens: googleTokens as any })
-            .where(eq(instances.id, instanceId))
+        // Phase 2.3.B — write tokens to the active mateh_agent (per-agent
+        // isolation). For primary agent, this also mirrors to instances.* so
+        // legacy callers (mazhirAudit, ga4Enrich, etc.) still see the same data.
+        await writeAgentTokens(c, instanceId, { googleTokens: googleTokens as never })
 
         console.log(`Google connected for instance ${instanceId}, agent ${agentType}: ${email} (scopes: ${scopes})`)
 
@@ -286,7 +287,10 @@ export const googleDisconnect = async (c: Context) => {
         // Remove from per-agent integrations
         await removeAgentIntegration(instanceId, agentType, 'google')
 
-        // Legacy cleanup: only null out if no other agent has Google connected
+        // Phase 2.3.B — clear tokens on the active mateh_agent. For primary,
+        // also nulls instance.googleTokens (legacy).
+        await writeAgentTokens(c, instanceId, { googleTokens: null })
+        // Legacy compat: also clean up the global instance row when nothing left.
         const remaining = await getAllIntegrations(instanceId)
         const anyGoogleLeft = remaining.some(r => r.integrationType === 'google' && r.status === 'connected')
         if (!anyGoogleLeft) {

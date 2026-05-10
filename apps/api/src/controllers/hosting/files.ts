@@ -3,12 +3,47 @@ import { readFileSync } from 'fs'
 import { eq, and } from 'drizzle-orm'
 import crypto from 'crypto'
 import { db } from '@/db'
-import { instances } from '@/db/schema'
+import { instances, matehAgents } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
+import { resolveActiveAgent, type MatehAgentRow } from '@/services/agentContext'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const VPS_HOME = '/home/openclaw/.openclaw'
+
+/**
+ * Phase 2.3.B — agent-aware paths on the VPS.
+ *
+ * Primary agent uses the legacy paths (the default openclaw-gateway service +
+ * /home/openclaw/.openclaw/* that has been baked into provisioning since v1).
+ * Secondary agents live in /home/openclaw/agents/<agentId>/ with their own
+ * systemd unit `openclaw-gateway-<id8>.service` (created by the secondary
+ * provisioner). saveIntegration etc. need to write into the right openclaw.json
+ * + restart the right systemd unit.
+ */
+function agentVpsPaths(agent: MatehAgentRow | null): {
+    home: string;
+    configFile: string;
+    systemdUnit: string;
+} {
+    if (!agent || agent.isPrimary) {
+        return {
+            home: '/home/openclaw/.openclaw',
+            configFile: '/home/openclaw/.openclaw/openclaw.json',
+            systemdUnit: 'openclaw-gateway',
+        }
+    }
+    const agentDir = `/home/openclaw/agents/${agent.id}`
+    // `short` is agentId.slice(4) — the 8-char tail after "mta_" prefix.
+    // Must match matehAgentProvisioner.ts which uses the same convention
+    // for systemd unit + nginx vhost names.
+    const short = agent.id.slice(4)
+    return {
+        home: `${agentDir}/.openclaw`,
+        configFile: `${agentDir}/.openclaw/openclaw.json`,
+        systemdUnit: `openclaw-gateway-${short}`,
+    }
+}
 
 let sshKeyCache: Buffer | null = null
 function getSSHKey(): Buffer {
@@ -394,9 +429,16 @@ export const saveIntegration = async (c: Context) => {
         const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
+        // Phase 2.3.B — agent-aware paths. For the primary agent these resolve
+        // to the legacy openclaw-gateway / .openclaw layout (unchanged); for
+        // secondary agents they resolve to the per-agent dir + per-agent
+        // systemd unit so the right gateway sees the new env var / config.
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const __paths = agentVpsPaths(__agent)
+
         // Validate key: reject shell metacharacters for API keys
         const safeKey = shellEscape(key)
-        const SVC = '/etc/systemd/system/openclaw-gateway.service'
+        const SVC = `/etc/systemd/system/${__paths.systemdUnit}.service`
 
         // Helper: safely set env var in systemd service file using base64
         const setEnvVar = (envName: string) =>
@@ -410,21 +452,26 @@ export const saveIntegration = async (c: Context) => {
             return `mkdir -p ${dir} && echo '${b64}' | base64 -d > ${dir}/${file}`
         }
 
+        // Per-agent home for skills-config / providers (so secondary agents
+        // don't pollute the primary's config). Falls back to VPS_HOME for
+        // primary so existing files remain in place.
+        const VPS_HOME_FOR_AGENT = __paths.home
+
         const commands: Record<string, string> = {
             anthropic: setEnvVar('ANTHROPIC_API_KEY'),
             openai: setEnvVar('OPENAI_API_KEY'),
             gemini: setEnvVar('GOOGLE_API_KEY'),
             groq: setEnvVar('GROQ_API_KEY'),
             cerebras: setEnvVar('CEREBRAS_API_KEY'),
-            telegram: `su - openclaw -c 'openclaw channels add --channel telegram --token "'\\''${safeKey}'\\'' --name "telegram-main" 2>/dev/null'`,
+            telegram: `su - openclaw -c 'OPENCLAW_HOME=${VPS_HOME_FOR_AGENT} openclaw channels add --channel telegram --token "'\\''${safeKey}'\\'' --name "telegram-main" 2>/dev/null'`,
             brave: `echo 'MCP deploy handles brave-search'`,
-            brightdata: writeConfig(`${VPS_HOME}/skills-config`, 'bright-data.json', { apiKey: key }),
+            brightdata: writeConfig(`${VPS_HOME_FOR_AGENT}/skills-config`, 'bright-data.json', { apiKey: key }),
             replicate: `echo 'MCP deploy handles replicate'`,
-            ollama: `systemctl start ollama 2>/dev/null; ollama pull '${safeKey}' 2>/dev/null & cd /home/openclaw && openclaw provider add ollama --model '${safeKey}' 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '${Buffer.from(JSON.stringify({ provider: 'ollama', model: key })).toString('base64')}' | base64 -d > ${VPS_HOME}/providers/ollama.json)`,
-            resend: writeConfig(`${VPS_HOME}/skills-config`, 'resend.json', { apiKey: key }),
+            ollama: `systemctl start ollama 2>/dev/null; ollama pull '${safeKey}' 2>/dev/null & cd /home/openclaw && openclaw provider add ollama --model '${safeKey}' 2>/dev/null || (mkdir -p ${VPS_HOME_FOR_AGENT}/providers && echo '${Buffer.from(JSON.stringify({ provider: 'ollama', model: key })).toString('base64')}' | base64 -d > ${VPS_HOME_FOR_AGENT}/providers/ollama.json)`,
+            resend: writeConfig(`${VPS_HOME_FOR_AGENT}/skills-config`, 'resend.json', { apiKey: key }),
             smtp: `echo 'MCP deploy handles email'`,
             wordpress: `echo 'MCP deploy handles wordpress'`,
-            'newsletter-recipients': (() => { try { const p = JSON.parse(key); return writeConfig(`${VPS_HOME}/skills-config`, 'newsletter-recipients.json', p.constructor === Object ? p : { data: key }); } catch { return writeConfig(`${VPS_HOME}/skills-config`, 'newsletter-recipients.json', { data: key }); } })(),
+            'newsletter-recipients': (() => { try { const p = JSON.parse(key); return writeConfig(`${VPS_HOME_FOR_AGENT}/skills-config`, 'newsletter-recipients.json', p.constructor === Object ? p : { data: key }); } catch { return writeConfig(`${VPS_HOME_FOR_AGENT}/skills-config`, 'newsletter-recipients.json', { data: key }); } })(),
             'sub-agent-models': `echo 'handled below'`,
             'model-prefs': `echo 'handled below'`,
             'tool-profile': `echo 'handled below'`,
@@ -433,8 +480,10 @@ export const saveIntegration = async (c: Context) => {
         const cmd = commands[type]
         if (!cmd) return fail(c, 'Unknown integration type.', 400)
 
-        // For Telegram, ensure device is paired first (required for CLI channels add)
-        if (type === 'telegram') {
+        // For Telegram, ensure device is paired first (required for CLI channels add).
+        // Phase 2.3.B — pairing only meaningful for primary agent (CLI channels).
+        // Secondaries don't have their own pairing flow yet — skip the pre-pair test.
+        if (type === 'telegram' && (!__agent || __agent.isPrimary)) {
             const pairTest = await sshExecInstance(instance, `su - openclaw -c 'openclaw cron list 2>&1' 2>&1`)
             if (pairTest.includes('pairing required') || pairTest.includes('abnormal closure')) {
                 console.log(`Device not paired on ${instance.ip}, pairing...`)
@@ -451,12 +500,12 @@ export const saveIntegration = async (c: Context) => {
                     fi
                     '
                 `)
-                await sshExecInstance(instance, 'systemctl restart openclaw-gateway')
+                await sshExecInstance(instance, `systemctl restart ${__paths.systemdUnit}`)
                 await new Promise(r => setTimeout(r, 4000))
             }
         }
 
-        await sshExecInstance(instance, `${cmd} && chown -R openclaw:openclaw /home/openclaw/.openclaw && systemctl restart openclaw-gateway`)
+        await sshExecInstance(instance, `${cmd} && chown -R openclaw:openclaw ${__paths.home} 2>/dev/null; systemctl restart ${__paths.systemdUnit}`)
 
         // Configure OpenClaw primary model when AI provider key is saved
         if (type === 'groq' || type === 'anthropic' || type === 'openai' || type === 'cerebras') {
@@ -506,11 +555,11 @@ export const saveIntegration = async (c: Context) => {
                     // Gateway overwrites openclaw.json from internal state on hot-reload
                     const cfgB64 = Buffer.from(JSON.stringify(cfg)).toString('base64')
                     await sshExecInstance(instance, `
-                        systemctl stop openclaw-gateway &&
+                        systemctl stop ${__paths.systemdUnit} &&
                         python3 -c "
 import json, base64, sys
 cfg = json.loads(base64.b64decode(sys.argv[1]))
-p = '/home/openclaw/.openclaw/openclaw.json'
+p = '${__paths.configFile}'
 with open(p) as f: d = json.load(f)
 defaults = d.setdefault('agents', {}).setdefault('defaults', {})
 model = defaults.setdefault('model', {})
@@ -522,10 +571,10 @@ for k, v in cfg['models'].items():
 with open(p, 'w') as f: json.dump(d, f, indent=2)
 print('OK: primary=' + model['primary'])
 " '${cfgB64}' &&
-                        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
-                        systemctl start openclaw-gateway
+                        chown openclaw:openclaw ${__paths.configFile} &&
+                        systemctl start ${__paths.systemdUnit}
                     `)
-                    console.log(`OpenClaw config updated: ${type} provider set as primary`)
+                    console.log(`OpenClaw config updated: ${type} provider set as primary (agent=${__agent?.id || 'primary'})`)
                 } catch (err) {
                     console.error(`Failed to update OpenClaw config for ${type}:`, err)
                 }
@@ -575,19 +624,19 @@ print('OK: primary=' + model['primary'])
                     const mcpB64 = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
                     // CRITICAL: stop → edit → start (gateway overwrites on hot-reload)
                     await sshExecInstance(instance, `
-                        systemctl stop openclaw-gateway &&
+                        systemctl stop ${__paths.systemdUnit} &&
                         python3 -c "
 import json, base64, sys
 cfg = json.loads(base64.b64decode(sys.argv[1]))
-p = '/home/openclaw/.openclaw/openclaw.json'
+p = '${__paths.configFile}'
 with open(p) as f: d = json.load(f)
 d.setdefault('mcp', {}).setdefault('servers', {})
 d['mcp']['servers']['${serverId}'] = cfg
 with open(p, 'w') as f: json.dump(d, f, indent=2)
 print('${serverId} configured')
 " '${mcpB64}' &&
-                        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
-                        systemctl start openclaw-gateway
+                        chown openclaw:openclaw ${__paths.configFile} &&
+                        systemctl start ${__paths.systemdUnit}
                     `)
                 }
             } catch (mcpErr) {
@@ -596,6 +645,23 @@ print('${serverId} configured')
         }
 
         // Update onboarding progress + save API key in DB
+        // Phase 2.3.B — write per-agent fields to mateh_agents row first;
+        // for primary, mirror to instances.* (legacy compat).
+        const writeAgentDbField = async (agentFields: Record<string, unknown>, instanceFields?: Record<string, unknown>) => {
+            if (__agent) {
+                await db.update(matehAgents).set({ ...agentFields, updatedAt: new Date() } as never).where(eq(matehAgents.id, __agent.id))
+                if (__agent.isPrimary && instanceFields) {
+                    await db.update(instances).set(instanceFields as never).where(eq(instances.id, instanceId))
+                } else if (__agent.isPrimary && !instanceFields) {
+                    // Default mirror = same fields
+                    await db.update(instances).set(agentFields as never).where(eq(instances.id, instanceId))
+                }
+            } else {
+                // Legacy fallback — no agent row, use instance directly
+                await db.update(instances).set((instanceFields ?? agentFields) as never).where(eq(instances.id, instanceId))
+            }
+        }
+
         if (['anthropic', 'openai', 'gemini'].includes(type)) {
             const updateData: Record<string, unknown> = {}
             if (type === 'anthropic') {
@@ -604,54 +670,54 @@ print('${serverId} configured')
             } else if (type === 'openai') {
                 updateData.openaiApiKey = key
             }
-            const step = instance.onboardingStep ?? 0
+            const step = (__agent?.onboardingStep ?? instance.onboardingStep) ?? 0
             if (step < 2) updateData.onboardingStep = 2
-            await db.update(instances).set(updateData).where(eq(instances.id, instanceId))
+            await writeAgentDbField(updateData)
         }
 
         // Auto-assign sub-agent models on first API key connection
         // Only when no models are configured yet (clean slate)
         if (['anthropic', 'openai', 'groq', 'cerebras'].includes(type)) {
-            const currentModels = (instance.subAgentModels as Record<string, string>) || {}
+            const currentModels = ((__agent?.subAgentModels ?? instance.subAgentModels) as Record<string, string> | null) || {}
             if (!currentModels || Object.keys(currentModels).length === 0) {
                 const defaults = getDefaultModelsForProvider(type)
-                await db.update(instances).set({
-                    subAgentModels: defaults as any,
-                }).where(eq(instances.id, instanceId))
-                console.log(`Auto-assigned ${type} models for instance ${instanceId}`)
+                await writeAgentDbField({ subAgentModels: defaults })
+                console.log(`Auto-assigned ${type} models for instance ${instanceId} (agent=${__agent?.id || 'primary'})`)
 
-                // Register sub-agents on VPS via unified function
-                try {
-                    const { ensureAgentsRegistered } = await import('@/controllers/hosting/agentSetup')
-                    // Re-read instance with updated subAgentModels
-                    const [freshInst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-                    if (freshInst) await ensureAgentsRegistered(freshInst)
-                } catch (regErr) {
-                    console.error('Agent registration after API key (non-critical):', regErr)
+                // Register sub-agents on VPS via unified function — only for primary
+                // (secondary agents have their own systemd + workspace, and
+                // ensureAgentsRegistered currently targets the primary's paths only).
+                if (!__agent || __agent.isPrimary) {
+                    try {
+                        const { ensureAgentsRegistered } = await import('@/controllers/hosting/agentSetup')
+                        const [freshInst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+                        if (freshInst) await ensureAgentsRegistered(freshInst)
+                    } catch (regErr) {
+                        console.error('Agent registration after API key (non-critical):', regErr)
+                    }
                 }
             }
         }
         if (type === 'telegram') {
-            await db.update(instances).set({
+            await writeAgentDbField({
                 onboardingStep: 3,
                 onboardingCompleted: true,
-                telegramBotToken: key
-            }).where(eq(instances.id, instanceId))
+                telegramBotToken: key,
+            })
         }
 
         // Save sub-agent model configuration — single source of truth
         if (type === 'sub-agent-models') {
             try {
                 const models = JSON.parse(key) as Record<string, string>
-                // Save to DB
-                await db.update(instances).set({
-                    subAgentModels: models as any,
-                }).where(eq(instances.id, instanceId))
+                await writeAgentDbField({ subAgentModels: models })
 
-                // Re-register agents on VPS with new models via unified function
-                const { ensureAgentsRegistered } = await import('@/controllers/hosting/agentSetup')
-                const [freshInst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-                if (freshInst) await ensureAgentsRegistered(freshInst)
+                // Re-register agents on VPS with new models — primary only
+                if (!__agent || __agent.isPrimary) {
+                    const { ensureAgentsRegistered } = await import('@/controllers/hosting/agentSetup')
+                    const [freshInst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+                    if (freshInst) await ensureAgentsRegistered(freshInst)
+                }
             } catch (e) {
                 console.error('sub-agent-models update error:', e)
             }

@@ -16,6 +16,7 @@ import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
+import { writeAgentTokens } from '@/services/agentContext'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -101,9 +102,8 @@ export const saveGithubConfig = async (c: Context) => {
             connectedAt: new Date().toISOString(),
         }
 
-        await db.update(instances)
-            .set({ githubConfig: githubConfig as any })
-            .where(eq(instances.id, body.instanceId))
+        // Phase 2.3.B — write to active mateh_agent
+        await writeAgentTokens(c, body.instanceId, { githubConfig: githubConfig as never })
 
         // Deploy GitHub MCP server to VPS + update SOUL with safety rules
         if (instance.ip) {
@@ -158,9 +158,7 @@ export const disconnectGithub = async (c: Context) => {
         const instance = await getOwnedInstance(body.instanceId, userId)
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        await db.update(instances)
-            .set({ githubConfig: null })
-            .where(eq(instances.id, body.instanceId))
+        await writeAgentTokens(c, body.instanceId, { githubConfig: null })
 
         // Remove MCP from VPS
         if (instance.ip) {

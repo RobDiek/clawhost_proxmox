@@ -12,6 +12,7 @@ import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { resolveUserId, getOwnedInstance } from './authHelper'
 import { crawlMultiple } from '@/services/crawl4ai'
+import { resolveActiveAgent, readResearchData, writeResearchData } from '@/services/agentContext'
 
 // POST /hosting/instances/:id/research/deep-crawl
 // Body: { urls?: string[] } — optional override; defaults to extracting from research report
@@ -32,9 +33,11 @@ export const deepCrawlCompetitors = async (c: Context) => {
         const ssrfBlocked = /^https?:\/\/(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|0\.0\.0\.0|\[::1\])/i
         urls = urls.filter(u => /^https?:\/\//i.test(u) && !ssrfBlocked.test(u))
 
+        const __agent = await resolveActiveAgent(c, instanceId)
+
         // If no URLs provided, extract from research report
         if (urls.length === 0) {
-            const researchData = instance.researchData as any
+            const researchData = await readResearchData(__agent, instanceId) as any
             const report = researchData?.report || ''
 
             // Extract URLs from markdown — look for http(s):// patterns
@@ -68,20 +71,18 @@ export const deepCrawlCompetitors = async (c: Context) => {
         )
 
         // Store crawled data in researchData
-        const existingData = (instance.researchData as any) || {}
-        await db.update(instances).set({
-            researchData: {
-                ...existingData,
-                competitorCrawls: results.map(r => ({
-                    url: r.url,
-                    title: r.title,
-                    contentPreview: r.markdown.slice(0, 3000), // First 3000 chars
-                    linksCount: r.links.length,
-                    crawledAt: new Date().toISOString(),
-                })),
-                deepCrawlAt: new Date().toISOString(),
-            } as any,
-        }).where(eq(instances.id, instanceId))
+        const existingData = await readResearchData(__agent, instanceId) as any
+        await writeResearchData(__agent, instanceId, {
+            ...existingData,
+            competitorCrawls: results.map(r => ({
+                url: r.url,
+                title: r.title,
+                contentPreview: r.markdown.slice(0, 3000), // First 3000 chars
+                linksCount: r.links.length,
+                crawledAt: new Date().toISOString(),
+            })),
+            deepCrawlAt: new Date().toISOString(),
+        })
 
         // Also save full crawl data on VPS for strategy agent
         const crawlSummary = results.map(r =>

@@ -8,6 +8,7 @@ import { randomBytes } from 'crypto'
 import { createCampaign, type CampaignPlan, type GoogleTokens } from '@/services/googleAds'
 import { Client } from 'ssh2'
 import { readFileSync } from 'fs'
+import { resolveActiveAgent, readResearchData, writeResearchData } from '@/services/agentContext'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -1211,7 +1212,8 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
             const cpItemId = (existingMeta as any)?.contentPlanItemId as string | undefined
             if (cpItemId && channelPostId) {
                 try {
-                    const rd = (instance.researchData as any) || {}
+                    const __pubAgent = await resolveActiveAgent(c, instanceId)
+                    const rd = await readResearchData(__pubAgent, instanceId) as any
                     const plan = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
                     const idx = plan.findIndex((p: any) => p.id === cpItemId)
                     if (idx >= 0) {
@@ -1222,9 +1224,7 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                             channelPostId,
                             ...(channelPostUrl ? { channelPostUrl } : {}),
                         }
-                        await db.update(instances).set({
-                            researchData: { ...rd, contentPlan: plan } as any,
-                        }).where(eq(instances.id, instanceId))
+                        await writeResearchData(__pubAgent, instanceId, { ...rd, contentPlan: plan })
                         console.log(`Content plan item ${cpItemId} marked published with channelPostId=${channelPostId}`)
                     }
                 } catch (syncErr) {
