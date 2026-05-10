@@ -3743,18 +3743,28 @@ function initAgentSwitcher() {
 function renderAgentSwitcherBtn() {
   var iconEl = document.getElementById('asSwitcherIcon');
   var nameEl = document.getElementById('asSwitcherName');
-  // Phase 2.4 — if a secondary mateh_agent is selected (agency mode), show its
-  // name + brand instead of the primary VPS component.
-  var activeSecondaryId = localStorage.getItem('cf_active_mateh_agent_id') || '';
-  var activeSecondary = activeSecondaryId
-    ? (window._myMatehAgents || []).find(function(a){ return a.id === activeSecondaryId; })
+  // Phase 2.3.A — agency mode: button shows the active mateh_agent
+  // (primary or secondary, both first-class). If none selected yet,
+  // default to the primary agent for this VPS so the header always
+  // shows a tenant-context label, never the legacy "MATEH" component.
+  var activeAgentId = localStorage.getItem('cf_active_mateh_agent_id') || '';
+  var allAgents = window._myMatehAgents || [];
+  var activeAgentRow = activeAgentId
+    ? allAgents.find(function(a){ return a.id === activeAgentId; })
     : null;
-  if (activeSecondary) {
+  if (!activeAgentRow && isAgencyMode() && allAgents.length > 0 && instanceId) {
+    // Default to primary on this VPS
+    activeAgentRow = allAgents.find(function(a){ return a.isPrimary && a.vpsInstanceId === instanceId; }) || null;
+    if (activeAgentRow) {
+      localStorage.setItem('cf_active_mateh_agent_id', activeAgentRow.id);
+    }
+  }
+  if (activeAgentRow) {
     if (iconEl) {
       iconEl.className = 'as-icon mt';
       iconEl.innerHTML = SVG_ICONS.robot || '';
     }
-    if (nameEl) nameEl.textContent = activeSecondary.name + ' · ' + activeSecondary.brandSlug;
+    if (nameEl) nameEl.textContent = activeAgentRow.name + ' · ' + activeAgentRow.brandSlug;
   } else {
     var comp = COMPONENTS[activeAgent] || COMPONENTS.oc;
     if (iconEl) {
@@ -3763,11 +3773,11 @@ function renderAgentSwitcherBtn() {
     }
     if (nameEl) nameEl.textContent = comp.name;
   }
-  // Show switcher if: > 1 primary component OR agency mode with any secondary agents
+  // Show switcher when: agency mode with > 1 mateh_agent total, OR non-agency
+  // user with > 1 primary component.
   var agents = getAgentComponents();
   var switcher = document.getElementById('agentSwitcher');
-  var secondaryCount = ((window._myMatehAgents || []).filter(function(a){ return !a.isPrimary; })).length;
-  var totalChoices = agents.length + (isAgencyMode() ? secondaryCount : 0);
+  var totalChoices = isAgencyMode() ? allAgents.length : agents.length;
   if (switcher) switcher.style.display = totalChoices <= 1 ? 'none' : '';
 }
 
@@ -3777,11 +3787,63 @@ function renderAgentSwitcherDropdown() {
   if (!dd) return;
   var html = '';
 
-  // Section 1: primary agent components on this VPS (legacy view)
-  if (agents.length > 0) {
-    if (isAgencyMode()) {
-      html += '<div style="font-size:0.72rem;color:#9CA3AF;padding:8px 12px 4px;text-transform:uppercase">סוכן ראשי (VPS)</div>';
+  // Phase 2.3.A — agency mode: group ALL mateh_agents (primary + secondary)
+  // by TENANT. The primary/secondary distinction is an implementation detail
+  // (one VPS-bound agent gets isPrimary=true for cost-sharing reasons); the
+  // user organizes by client/tenant. Agents with no tenant land in a
+  // "ללא לקוח" bucket. Non-agency users see the legacy components view.
+  if (isAgencyMode()) {
+    var all = (window._myMatehAgents || []).slice();
+    var activeAgentId = localStorage.getItem('cf_active_mateh_agent_id') || '';
+
+    // Group by tenantId. Order tenants alphabetically by name (untenanted last).
+    var groups = {};
+    all.forEach(function(a){
+      var key = a.tenantId || '__none__';
+      if (!groups[key]) groups[key] = { tenantId: a.tenantId, tenantName: a.tenantName || '', agents: [] };
+      groups[key].agents.push(a);
+    });
+    var tenantKeys = Object.keys(groups).sort(function(x, y){
+      if (x === '__none__') return 1;
+      if (y === '__none__') return -1;
+      return (groups[x].tenantName || '').localeCompare(groups[y].tenantName || '');
+    });
+
+    if (tenantKeys.length === 0) {
+      html += '<div style="font-size:0.72rem;color:#9CA3AF;padding:12px">אין סוכנים. ראו ✚ בטאב "סוכנים".</div>';
+    } else {
+      tenantKeys.forEach(function(k, idx){
+        var grp = groups[k];
+        var headingLabel = grp.tenantId ? (grp.tenantName || grp.tenantId) : 'ללא לקוח';
+        var borderTop = idx > 0 ? 'border-top:1px solid #E5E7EB;margin-top:4px;' : '';
+        html += '<div style="font-size:0.72rem;color:#6B7280;padding:8px 12px 4px;text-transform:uppercase;'+borderTop+'">' +
+          'לקוח · ' + escapeHtmlDash(headingLabel) +
+        '</div>';
+        // Sort agents within tenant: primary first, then by name
+        grp.agents.sort(function(a, b){
+          if (a.isPrimary !== b.isPrimary) return a.isPrimary ? -1 : 1;
+          return (a.name || '').localeCompare(b.name || '');
+        });
+        grp.agents.forEach(function(a){
+          var isActive = a.id === activeAgentId;
+          var statusBadge = a.status === 'running' ? '' :
+            ('<span style="background:#FEF3C7;color:#92400E;padding:1px 6px;border-radius:8px;font-size:.7rem;margin-left:6px">'+escapeHtmlDash(a.status)+'</span>');
+          var primaryHint = a.isPrimary
+            ? '<span style="background:#EEF2FF;color:#4338CA;padding:1px 6px;border-radius:8px;font-size:.65rem;margin-left:6px" title="הסוכן המארח של ה-VPS">VPS</span>'
+            : '';
+          html += '<button class="agent-switcher-option' + (isActive ? ' active' : '') + '" onclick="switchToMatehAgent(\''+escapeHtmlDash(a.id)+'\')">' +
+            '<div class="as-icon mt">' + (SVG_ICONS.robot || '') + '</div>' +
+            '<div class="as-opt-info">' +
+              '<div class="as-opt-name">' + escapeHtmlDash(a.name) + primaryHint + statusBadge + '</div>' +
+              '<div class="as-opt-desc">' + escapeHtmlDash(a.brandSlug) + '</div>' +
+            '</div>' +
+            '<span class="as-opt-check">&#10003;</span>' +
+          '</button>';
+        });
+      });
     }
+  } else {
+    // Non-agency: legacy components view (oc/mt/bare from selectedComponents).
     agents.forEach(function(c) {
       var comp = COMPONENTS[c] || { name: c, iconClass: 'oc', svgKey: 'robot', desc: '' };
       var isActive = c === activeAgent && !localStorage.getItem('cf_active_mateh_agent_id');
@@ -3795,31 +3857,19 @@ function renderAgentSwitcherDropdown() {
       '</button>';
     });
   }
-
-  // Section 2 (agency mode): secondary MATEH agents (different brands/tenants on same VPS)
-  if (isAgencyMode()) {
-    var secondary = (window._myMatehAgents || []).filter(function(a){ return !a.isPrimary; });
-    var activeSecondaryId = localStorage.getItem('cf_active_mateh_agent_id') || '';
-    if (secondary.length > 0) {
-      html += '<div style="font-size:0.72rem;color:#9CA3AF;padding:8px 12px 4px;text-transform:uppercase;border-top:1px solid #E5E7EB;margin-top:4px">סוכנים משניים</div>';
-      secondary.forEach(function(a){
-        var isActive = a.id === activeSecondaryId;
-        var statusBadge = a.status === 'running' ? '' :
-          ('<span style="background:#FEF3C7;color:#92400E;padding:1px 6px;border-radius:8px;font-size:.7rem;margin-left:6px">'+escapeHtmlDash(a.status)+'</span>');
-        html += '<button class="agent-switcher-option' + (isActive ? ' active' : '') + '" onclick="switchToSecondaryAgent(\''+escapeHtmlDash(a.id)+'\')">' +
-          '<div class="as-icon mt">' + (SVG_ICONS.robot || '') + '</div>' +
-          '<div class="as-opt-info">' +
-            '<div class="as-opt-name">' + escapeHtmlDash(a.name) + statusBadge + '</div>' +
-            '<div class="as-opt-desc">' + (a.tenantName ? escapeHtmlDash(a.tenantName) + ' · ' : '') + escapeHtmlDash(a.brandSlug) + '</div>' +
-          '</div>' +
-          '<span class="as-opt-check">&#10003;</span>' +
-        '</button>';
-      });
-    } else {
-      html += '<div style="font-size:0.72rem;color:#9CA3AF;padding:8px 12px;border-top:1px solid #E5E7EB;margin-top:4px">אין סוכנים משניים. ראו ✚ בטאב "סוכנים".</div>';
-    }
-  }
   dd.innerHTML = html;
+}
+
+// Phase 2.3.A — unified switch for agency mode. Sets cf_active_mateh_agent_id
+// to the picked agent (primary OR secondary — both are equal first-class
+// agents in agency mode) and reloads instanceData via the overlay endpoint.
+async function switchToMatehAgent(agentId) {
+  // If clicking the currently-active agent, just close the dropdown.
+  if (agentId === localStorage.getItem('cf_active_mateh_agent_id')) {
+    toggleAgentSwitcher();
+    return;
+  }
+  await switchToSecondaryAgent(agentId);  // re-uses the existing reload path
 }
 
 // Phase 2.4 + 2.3.A: switch to a secondary MATEH agent (multi-MATEH on same
