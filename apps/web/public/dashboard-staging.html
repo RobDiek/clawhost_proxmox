@@ -23958,7 +23958,9 @@ async function loadStats() {
   var instanceId = localStorage.getItem('cf_instance_id');
   if (!instanceId) return;
   try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/stats');
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/server-stats', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
     var data = await res.json();
     if (data.success) {
       var s = data.data;
