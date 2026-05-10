@@ -66,8 +66,8 @@ const REGISTRY: Record<IntegrationId, Omit<Requirement, 'severity'>> = {
     business_profile: {
         id: 'business_profile',
         label_he: 'פרופיל עסקי מלא',
-        valueProp_he: 'businessName + תיאור 50+ תווים + סוג עסק + מטרות שיווק. בלי זה האסטרטגיה תהיה גנרית.',
-        deepLink: 'agents#profile',
+        valueProp_he: 'נדרש: שם העסק, תיאור 30+ תווים, סוג העסק, מטרות שיווק, קהל יעד. כל אלה מזינים את הפרומפטים — תיאור קצר = אסטרטגיה גנרית.',
+        deepLink: 'agents#questionnaire',
     },
     gsc: {
         id: 'gsc',
@@ -307,9 +307,26 @@ export function checkRequirementStatus(
             return url ? 'connected' : 'missing'
         }
         case 'business_profile': {
-            const rd = (useAgent ? agent!.researchData : inst.researchData) as { answers?: { businessName?: string; businessDescription?: string } } | null
+            const rd = (useAgent ? agent!.researchData : inst.researchData) as {
+                answers?: {
+                    businessName?: string
+                    businessDescription?: string
+                    businessModel?: string
+                    marketingGoals?: string
+                    targetAudience?: string
+                }
+            } | null
             const ans = rd?.answers
-            const ok = !!ans?.businessName && (ans?.businessDescription || '').length >= 30
+            // Profile is "complete" when ALL the fields that the prompts
+            // actually consume are populated. A 10-char description (e.g.
+            // "חומרי אריזה") yields a generic strategy — explicitly require
+            // 30+ chars so the LLM has enough to reason about positioning.
+            const ok = !!(
+                ans?.businessName?.trim()
+                && (ans?.businessDescription || '').trim().length >= 30
+                && ans?.businessModel?.trim()
+                && ans?.marketingGoals?.trim()
+            )
             return ok ? 'connected' : 'missing'
         }
         case 'gsc': {

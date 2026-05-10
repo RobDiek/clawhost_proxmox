@@ -12086,11 +12086,29 @@ function renderStageCardV2(sid, idx) {
 // Phase QA pre-flight ─────────────────────────────────────────────────────
 
 // Phase 2.3.H — deep-link from preflight modal to specific integration card.
-// `link` is one of: 'integrations#anthropic', 'integrations#gsc', etc.
+// Special-cased anchors:
+//   - 'agents#questionnaire' opens the business profile editor
+//   - 'agents#profile' opens the agent detail page
+//   - 'integrations#<id>' switches to integrations tab + scrolls to card
 function deepLinkToIntegration(link) {
   var parts = (link || '').split('#');
   var tab = parts[0] || 'integrations';
   var anchor = parts[1] || '';
+
+  // Special: profile questionnaire — open agent detail then questionnaire
+  if (tab === 'agents' && (anchor === 'questionnaire' || anchor === 'profile')) {
+    if (typeof switchTab === 'function') switchTab('agents');
+    setTimeout(function() {
+      if (typeof openAgentDetail === 'function') openAgentDetail('mt');
+      if (anchor === 'questionnaire') {
+        setTimeout(function() {
+          if (typeof openAgentQuestionnaire === 'function') openAgentQuestionnaire();
+        }, 300);
+      }
+    }, 100);
+    return;
+  }
+
   if (typeof switchTab === 'function') switchTab(tab);
   if (anchor) {
     setTimeout(function() {
@@ -12173,7 +12191,11 @@ function showResearchPreflightModal(pf, gating) {
               : '<span style="font-size:0.65rem;color:#065F46;font-weight:600">מחובר</span>')
         +   '</div>'
         +   (r.status === 'missing'
-            ? '<button onclick="closeReportModal();setTimeout(function(){deepLinkToIntegration(\'' + escapeHtml(r.deepLink) + '\')},150)" class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:3px 10px">חברו</button>'
+            ? (function() {
+                // Profile/website fields → "ערכו" (edit), integrations → "חברו" (connect)
+                var label = (r.id === 'business_profile' || r.id === 'website_url') ? 'ערכו' : 'חברו';
+                return '<button onclick="closeReportModal();setTimeout(function(){deepLinkToIntegration(\'' + escapeHtml(r.deepLink) + '\')},150)" class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:3px 10px">' + label + '</button>';
+              })()
             : '')
         + '</div>'
         + (r.status === 'missing'
