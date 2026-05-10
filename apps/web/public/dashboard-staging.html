@@ -4226,24 +4226,6 @@ function dashMascotOnTaskDone() {
       localStorage.setItem('cf_instance_components', JSON.stringify(components));
       localStorage.setItem('cf_instance_subdomain', subdomain);
       localStorage.setItem('cf_openclaw_token', openclawToken);
-      // Sync onboarding state from DB — set OR clear based on server truth
-      if (inst.hasAnthropicKey) intStorSet('cf_api_key_saved', 'anthropic');
-      else if (inst.aiProviderType) intStorSet('cf_api_key_saved', inst.aiProviderType);
-      else intStorRemove('cf_api_key_saved');
-      if (inst.hasOpenaiKey) intStorSet('cf_openai_saved', '1');
-      else intStorRemove('cf_openai_saved');
-      if (inst.telegramBotToken) intStorSet('cf_telegram_saved', '1');
-      else intStorRemove('cf_telegram_saved');
-      // Clear stale integration flags if server has no keys
-      if (!inst.hasAnthropicKey && !inst.hasOpenaiKey && !inst.aiProviderType) {
-        intStorRemove('cf_groq_saved');
-        intStorRemove('cf_cerebras_saved');
-        localStorage.removeItem('cf_api_key_provider');
-        localStorage.removeItem('cf_ollama_backend');
-      }
-      if (!inst.telegramBotToken) intStorRemove('cf_telegram_saved');
-      // Note: WordPress, Resend, Brave are stored locally only (no DB field)
-      // so we don't clear them here — they persist until user disconnects
       dataLoaded = true;
       // Init agent switcher + mascot
       initAgentSwitcher();
@@ -4252,6 +4234,11 @@ function dashMascotOnTaskDone() {
       // re-fetch instance data via the overlay-aware /instances/:id endpoint
       // so the dashboard shows that agent's per-agent fields (research,
       // tokens, schedules, subdomain) instead of the primary's.
+      // Phase 2.3.E (fix) — overlay fetch runs BEFORE intStor sync, so the
+      // localStorage flags reflect the active agent's state, not primary's.
+      // Without this, /my-instances always returns primary's hasAnthropicKey
+      // etc. and we'd write primary's "connected" into secondary's per-agent
+      // localStorage scope — causing the leak Sergei reported.
       var savedAgentId = localStorage.getItem('cf_active_mateh_agent_id') || '';
       if (savedAgentId && instanceId) {
         try {
@@ -4268,6 +4255,26 @@ function dashMascotOnTaskDone() {
           }
         } catch (_) { /* fall through, keep primary data */ }
       }
+      // Sync onboarding state from DB — set OR clear based on server truth.
+      // Uses instanceData which is now overlay-aware (per-agent flags).
+      var __syncSrc = instanceData || inst;
+      if (__syncSrc.hasAnthropicKey) intStorSet('cf_api_key_saved', 'anthropic');
+      else if (__syncSrc.aiProviderType) intStorSet('cf_api_key_saved', __syncSrc.aiProviderType);
+      else intStorRemove('cf_api_key_saved');
+      if (__syncSrc.hasOpenaiKey) intStorSet('cf_openai_saved', '1');
+      else intStorRemove('cf_openai_saved');
+      if (__syncSrc.telegramBotToken) intStorSet('cf_telegram_saved', '1');
+      else intStorRemove('cf_telegram_saved');
+      // Clear stale integration flags if server has no keys
+      if (!__syncSrc.hasAnthropicKey && !__syncSrc.hasOpenaiKey && !__syncSrc.aiProviderType) {
+        intStorRemove('cf_groq_saved');
+        intStorRemove('cf_cerebras_saved');
+        localStorage.removeItem('cf_api_key_provider');
+        localStorage.removeItem('cf_ollama_backend');
+      }
+      if (!__syncSrc.telegramBotToken) intStorRemove('cf_telegram_saved');
+      // Note: WordPress, Resend, Brave are stored locally only (no DB field)
+      // so we don't clear them here — they persist until user disconnects
       // Re-render all views with real data
       renderHome();
       if (typeof renderAgentsTab === 'function') renderAgentsTab();
@@ -4304,15 +4311,29 @@ async function refreshInstanceData() {
       instanceData = inst;
       dataLoaded = true;
       components = inst.selectedComponents || [];
+      // Phase 2.3.E (fix) — when an active secondary agent is selected,
+      // overlay /instances/:id (which honors agentId) BEFORE syncing
+      // localStorage. Otherwise we'd write primary's flags into secondary's
+      // per-agent localStorage scope, leaking "connected" status.
+      var __activeAgent = localStorage.getItem('cf_active_mateh_agent_id') || '';
+      if (__activeAgent) {
+        try {
+          var rOverlay = await apiFetch('/hosting/instances/' + inst.id);
+          if (rOverlay && rOverlay.success && rOverlay.data) {
+            instanceData = rOverlay.data;
+          }
+        } catch (_) { /* ignore — keep my-instances data */ }
+      }
+      var __src = instanceData;
       // Sync localStorage — set OR clear based on server truth
-      if (inst.hasAnthropicKey) intStorSet('cf_api_key_saved', 'anthropic');
-      else if (inst.aiProviderType) intStorSet('cf_api_key_saved', inst.aiProviderType);
+      if (__src.hasAnthropicKey) intStorSet('cf_api_key_saved', 'anthropic');
+      else if (__src.aiProviderType) intStorSet('cf_api_key_saved', __src.aiProviderType);
       else intStorRemove('cf_api_key_saved');
-      if (inst.hasOpenaiKey) intStorSet('cf_openai_saved', '1');
+      if (__src.hasOpenaiKey) intStorSet('cf_openai_saved', '1');
       else intStorRemove('cf_openai_saved');
-      if (inst.telegramBotToken) intStorSet('cf_telegram_saved', '1');
+      if (__src.telegramBotToken) intStorSet('cf_telegram_saved', '1');
       else intStorRemove('cf_telegram_saved');
-      if (!inst.hasAnthropicKey && !inst.hasOpenaiKey && !inst.aiProviderType) {
+      if (!__src.hasAnthropicKey && !__src.hasOpenaiKey && !__src.aiProviderType) {
         intStorRemove('cf_groq_saved');
         intStorRemove('cf_cerebras_saved');
         localStorage.removeItem('cf_api_key_provider');
@@ -10383,6 +10404,36 @@ function filterIntegrationsByAgent() {
 }
 
 function renderIntegrations() {
+  // Phase 2.3.E (fix) — reset ALL integration card statuses to "disconnected"
+  // before re-applying the connected state. The legacy code only had
+  // `if (connected) markConnected()` branches with no else — so when a user
+  // switched from a primary agent (everything connected) to a fresh secondary
+  // (nothing connected), the cards stayed marked connected because nobody
+  // explicitly removed the class. Now: wipe all `.connected` first, then let
+  // each integration's individual logic re-add it where appropriate.
+  (function resetAllIntegrationCards() {
+    var statusEls = document.querySelectorAll('.int-status');
+    for (var i = 0; i < statusEls.length; i++) {
+      var el = statusEls[i];
+      // Don't touch DataForSEO Credits balance which uses int-status as
+      // a layout shell — that loader writes its own text+color shortly.
+      if (el.id === 'dfs-credits-status') continue;
+      el.classList.remove('connected');
+      el.classList.remove('warning');
+      // Default text — will be overwritten if integration is connected
+      if (!el.dataset.disconnectedText) {
+        // Cache one-time so we can restore even after multiple toggles
+        el.dataset.disconnectedText = 'לא מחובר';
+      }
+      el.textContent = el.dataset.disconnectedText;
+    }
+    var cardEls = document.querySelectorAll('.int-card.connected, .int-card.connected-card');
+    for (var j = 0; j < cardEls.length; j++) {
+      cardEls[j].classList.remove('connected');
+      cardEls[j].classList.remove('connected-card');
+    }
+  })();
+
   // Filter integration sections by active agent type
   filterIntegrationsByAgent();
   // Init Ollama backend UI (Groq / GPU / CPU selector)
@@ -10418,8 +10469,17 @@ function renderIntegrations() {
     try { await syncMarketingIntegrationsToBackend(); } catch (e) {}
   })();
 
-  // Per-agent integration status (from agent_integrations table)
-  var agentInts = (instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations[activeAgent]) || {};
+  // Per-agent integration status (from agent_integrations table).
+  // Phase 2.3.E (fix) — when an active secondary mateh_agent is selected,
+  // suppress the legacy agentIntegrations bundle (which is keyed by
+  // agentType=oc/mt/bare and contains the PRIMARY's integrations on the
+  // first /my-instances load). The boolean flags from getInstance overlay
+  // (instanceData.hasAnthropicKey etc.) are now per-agent and are the
+  // authoritative source for the disconnected secondary case.
+  var __activeMatehId = localStorage.getItem('cf_active_mateh_agent_id') || '';
+  var agentInts = __activeMatehId
+    ? {}  // secondary agent — never inherit primary's integration bundle
+    : ((instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations[activeAgent]) || {});
 
   // Render per-agent zone header with agent tabs
   (function renderPerAgentZone() {
@@ -21005,11 +21065,21 @@ async function restoreSeoIntegrationStates() {
       }
     }
   } catch {}
+  // Phase 2.3.E (fix) — when on a secondary mateh_agent, never inherit
+  // the primary's agent_integrations bundle. Only show connected if THIS
+  // agent has its own row (which we read directly from instanceData
+  // overlay flags hasDataforseo / hasFirecrawl).
+  var __activeMatehId = localStorage.getItem('cf_active_mateh_agent_id') || '';
+  var agentInts = __activeMatehId
+    ? {}
+    : ((instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations[activeAgent]) || {});
   // DataForSEO — read from agent_integrations (no separate endpoint needed)
   try {
-    var agentInts = (instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations[activeAgent]) || {};
     if (agentInts.dataforseo && agentInts.dataforseo.connected) {
       showDataforseoConnected((agentInts.dataforseo.config || {}).login || '');
+    } else if (instanceData && instanceData.hasDataforseo) {
+      // Per-agent overlay says yes (set in Phase 2.3.E getInstance)
+      showDataforseoConnected('');
     }
   } catch {}
   // Firecrawl — read from agent_integrations
