@@ -5360,8 +5360,16 @@ export const getContentPlanItemMedia = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const includeArchived = c.req.query('includeArchived') === '1'
         const { contentPlanMedia } = await import('@/db/schema')
-        const all = await db.select().from(contentPlanMedia)
-            .where(and(eq(contentPlanMedia.instanceId, instanceId), eq(contentPlanMedia.contentPlanItemId, itemId)))
+        // Phase 2.3.D — filter by active mateh_agent
+        const __mediaAgent = await resolveActiveAgent(c, instanceId)
+        const mediaWhere = __mediaAgent
+            ? and(
+                eq(contentPlanMedia.instanceId, instanceId),
+                eq(contentPlanMedia.agentId, __mediaAgent.id),
+                eq(contentPlanMedia.contentPlanItemId, itemId),
+            )
+            : and(eq(contentPlanMedia.instanceId, instanceId), eq(contentPlanMedia.contentPlanItemId, itemId))
+        const all = await db.select().from(contentPlanMedia).where(mediaWhere)
         // Newest first; filter archived unless caller asked for them
         const rows = (includeArchived ? all : all.filter(r => r.status !== 'archived'))
             .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
@@ -5469,6 +5477,10 @@ export const uploadUserMedia = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance?.ip || !instance.subdomainAgent) return fail(c, 'Instance not ready', 400)
 
+        // Phase 2.3.D — tag the upload with the active mateh_agent so it
+        // shows in that agent's media library only.
+        const __uploadAgent = await resolveActiveAgent(c, instanceId)
+
         const { randomBytes } = await import('crypto')
         const { sshUploadBuffer } = await import('@/services/sshUpload')
         const { contentPlanMedia } = await import('@/db/schema')
@@ -5492,6 +5504,7 @@ export const uploadUserMedia = async (c: Context) => {
         await db.insert(contentPlanMedia).values({
             id: renderId,
             instanceId,
+            agentId: __uploadAgent?.id || null,
             contentPlanItemId: itemId,
             renderType: file.type.startsWith('video') ? 'video' : 'image',
             channel,

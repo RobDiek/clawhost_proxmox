@@ -77,18 +77,32 @@ export async function getAllIntegrations(
 }
 
 /**
- * Set (upsert) an integration for an agent
+ * Set (upsert) an integration for an agent.
+ *
+ * Phase 2.3.D — the unique constraint moved from (instance_id, agent_type,
+ * integration_type) to (instance_id, agent_id, integration_type). Pass
+ * agentId (mateh_agents.id) to keep multi-MATEH installs isolated. Older
+ * callers that don't pass agentId resolve to the primary mateh_agent of
+ * the VPS for back-compat.
  */
 export async function setAgentIntegration(
     instanceId: string,
     agentType: AgentType,
     integrationType: IntegrationType,
     config: Record<string, unknown>,
-    status: string = 'connected'
+    status: string = 'connected',
+    agentId?: string,
 ): Promise<void> {
+    let resolvedAgentId = agentId || null
+    if (!resolvedAgentId) {
+        const { resolvePrimaryAgent } = await import('@/services/agentContext')
+        const primary = await resolvePrimaryAgent(instanceId)
+        resolvedAgentId = primary?.id || null
+    }
     await db.insert(agentIntegrations)
         .values({
             instanceId,
+            agentId: resolvedAgentId,
             agentType,
             integrationType,
             config: config as any,
@@ -96,8 +110,9 @@ export async function setAgentIntegration(
             updatedAt: new Date(),
         })
         .onConflictDoUpdate({
-            target: [agentIntegrations.instanceId, agentIntegrations.agentType, agentIntegrations.integrationType],
+            target: [agentIntegrations.instanceId, agentIntegrations.agentId, agentIntegrations.integrationType],
             set: {
+                agentType,
                 config: config as any,
                 status,
                 updatedAt: new Date(),
@@ -106,19 +121,37 @@ export async function setAgentIntegration(
 }
 
 /**
- * Remove an integration for an agent
+ * Remove an integration for an agent. Phase 2.3.D — accepts optional
+ * agentId for explicit per-agent removal (multi-MATEH).
  */
 export async function removeAgentIntegration(
     instanceId: string,
     agentType: AgentType,
-    integrationType: IntegrationType
+    integrationType: IntegrationType,
+    agentId?: string,
 ): Promise<void> {
-    await db.delete(agentIntegrations)
-        .where(and(
-            eq(agentIntegrations.instanceId, instanceId),
-            eq(agentIntegrations.agentType, agentType),
-            eq(agentIntegrations.integrationType, integrationType)
-        ))
+    let resolvedAgentId = agentId || null
+    if (!resolvedAgentId) {
+        const { resolvePrimaryAgent } = await import('@/services/agentContext')
+        const primary = await resolvePrimaryAgent(instanceId)
+        resolvedAgentId = primary?.id || null
+    }
+    if (resolvedAgentId) {
+        await db.delete(agentIntegrations)
+            .where(and(
+                eq(agentIntegrations.instanceId, instanceId),
+                eq(agentIntegrations.agentId, resolvedAgentId),
+                eq(agentIntegrations.integrationType, integrationType)
+            ))
+    } else {
+        // Legacy fallback when no agent row exists yet
+        await db.delete(agentIntegrations)
+            .where(and(
+                eq(agentIntegrations.instanceId, instanceId),
+                eq(agentIntegrations.agentType, agentType),
+                eq(agentIntegrations.integrationType, integrationType)
+            ))
+    }
 }
 
 /**

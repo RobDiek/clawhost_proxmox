@@ -112,12 +112,20 @@ export interface GenerateImagesResult {
 
 export async function generateImagesForContentPlanItem(
     instanceId: string,
-    opts: GenerateImagesOpts,
+    opts: GenerateImagesOpts & { agentId?: string },
 ): Promise<GenerateImagesResult> {
     const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!instance) throw new Error('Instance not found')
     if (!instance.ip) throw new Error('Instance has no IP — cannot upload media')
     if (!instance.subdomainAgent) throw new Error('Instance has no agent subdomain — cannot serve media')
+
+    // Phase 2.3.D — resolve target agent for this generation. Caller can
+    // pin to a specific agent (e.g. cron continues for the agent that owns
+    // the content plan item) or default to the VPS's primary.
+    const { resolveAgentById, resolvePrimaryAgent } = await import('@/services/agentContext')
+    const __mediaAgent = opts.agentId
+        ? await resolveAgentById(instanceId, opts.agentId)
+        : await resolvePrimaryAgent(instanceId)
 
     const { key, source } = await resolveMediaKey(instanceId, 'fal')
     if (!key) throw new Error('fal.ai key not configured for this instance and no env fallback')
@@ -177,6 +185,7 @@ export async function generateImagesForContentPlanItem(
                     await db.insert(contentPlanMedia).values({
                         id: renderId,
                         instanceId,
+                        agentId: __mediaAgent?.id || null,
                         contentPlanItemId: opts.contentPlanItemId,
                         renderType: 'image',
                         channel,

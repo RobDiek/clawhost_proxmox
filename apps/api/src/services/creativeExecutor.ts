@@ -112,6 +112,11 @@ export async function executeCreativeRender(params: {
         throw new Error(`outputType must be creative_final_draft, got ${output.outputType}`)
     }
 
+    // Phase 2.3.D — render inherits agent_id from the source output (so the
+    // render lands in the correct agent's queue, even when this runs from
+    // a cron / approval webhook without HTTP context).
+    const __renderAgentId = (output as { agentId?: string | null }).agentId || null
+
     const draft = parseFinalDraft(output.content || output.editedContent || '')
     if (!draft) throw new Error('Could not parse creative_final_draft JSON from output content')
 
@@ -122,6 +127,7 @@ export async function executeCreativeRender(params: {
         await db.insert(creativeRenders).values({
             id: failedId,
             instanceId,
+            agentId: __renderAgentId,
             outputId,
             renderStatus: 'failed',
             tier: draft.tier,
@@ -146,6 +152,7 @@ export async function executeCreativeRender(params: {
     await db.insert(creativeRenders).values({
         id: renderId,
         instanceId,
+        agentId: __renderAgentId,
         outputId,
         renderStatus: 'queued',
         tier: draft.tier,
@@ -781,10 +788,13 @@ async function maybeAutoRegen(
             regenCount: currentRegenCount + 1,
         }).where(eq(creativeRenders.id, parentRenderId))
 
-        // Spawn new render row — same draft, critique injected via prompts
+        // Spawn new render row — same draft, critique injected via prompts.
+        // Phase 2.3.D — inherit agent_id from parent so regenerations stay
+        // in the same agent's queue.
         await db.insert(creativeRenders).values({
             id: newRenderId,
             instanceId: instance.id,
+            agentId: (parent as { agentId?: string | null }).agentId || null,
             outputId: parent.outputId,
             renderStatus: 'queued',
             tier: parent.tier,

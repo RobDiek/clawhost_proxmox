@@ -208,9 +208,15 @@ export const listCreativeRenders = async (c: Context) => {
         const userId = resolveUserId(c)
         if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
 
+        // Phase 2.3.D — filter by active mateh_agent
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const renderWhere = __agent
+            ? and(eq(creativeRenders.instanceId, instanceId), eq(creativeRenders.agentId, __agent.id))
+            : eq(creativeRenders.instanceId, instanceId)
+
         const limit = Math.min(parseInt(c.req.query('limit') || '50', 10), 200)
         const rows = await db.select().from(creativeRenders)
-            .where(eq(creativeRenders.instanceId, instanceId))
+            .where(renderWhere)
             .orderBy(desc(creativeRenders.createdAt))
             .limit(limit)
 

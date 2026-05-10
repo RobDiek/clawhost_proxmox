@@ -23,6 +23,7 @@ import { readFileSync } from 'fs'
 
 import { db } from '@/db'
 import { instances, brandBooks } from '@/db/schema'
+import { resolveActiveAgent } from '@/services/agentContext'
 import { ok, fail } from '@/lib/response'
 import { resolveUserId, getOwnedInstance } from './authHelper'
 import { extractBrandFromUrl } from '@/services/brandExtract'
@@ -219,10 +220,16 @@ export const draftBrandBook = async (c: Context) => {
             console.error('Hebrew validation failed (non-fatal):', valErr)
         }
 
-        // Determine next version number
+        // Phase 2.3.D — version sequence is now per-agent (each mateh_agent
+        // manages its own brand book lineage). Active agent comes from
+        // ?agentId= or defaults to primary.
+        const __brandAgent = await resolveActiveAgent(c, instanceId)
+        const versionWhere = __brandAgent
+            ? and(eq(brandBooks.instanceId, instanceId), eq(brandBooks.agentId, __brandAgent.id))
+            : eq(brandBooks.instanceId, instanceId)
         const existing = await db.select({ version: brandBooks.version })
             .from(brandBooks)
-            .where(eq(brandBooks.instanceId, instanceId))
+            .where(versionWhere)
             .orderBy(desc(brandBooks.version))
             .limit(1)
         const nextVersion = existing.length > 0 ? existing[0].version + 1 : 1
@@ -233,6 +240,7 @@ export const draftBrandBook = async (c: Context) => {
         await db.insert(brandBooks).values({
             id: brandBookId,
             instanceId,
+            agentId: __brandAgent?.id || null,
             version: nextVersion,
             status: 'pending_approval',
             source: inferSource(body),
@@ -336,13 +344,23 @@ export const approveBrandBook = async (c: Context) => {
             if (e.principles) patch.principles = e.principles
         }
 
-        // Archive previously approved version (partial-unique index requires this)
-        await db.update(brandBooks)
-            .set({ status: 'archived', updatedAt: new Date() })
-            .where(and(
+        // Archive previously approved version (partial-unique index requires this).
+        // Phase 2.3.D — only archive THIS agent's previously approved book,
+        // not any other agent's on the same VPS.
+        const __approveAgent = await resolveActiveAgent(c, instanceId)
+        const archiveWhere = __approveAgent
+            ? and(
+                eq(brandBooks.instanceId, instanceId),
+                eq(brandBooks.agentId, __approveAgent.id),
+                eq(brandBooks.status, 'approved'),
+            )
+            : and(
                 eq(brandBooks.instanceId, instanceId),
                 eq(brandBooks.status, 'approved'),
-            ))
+            )
+        await db.update(brandBooks)
+            .set({ status: 'archived', updatedAt: new Date() })
+            .where(archiveWhere)
 
         // Apply patch
         await db.update(brandBooks).set(patch as any).where(eq(brandBooks.id, body.brandBookId))
@@ -431,16 +449,23 @@ export const getBrandBook = async (c: Context) => {
         const userId = resolveUserId(c)
         if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
 
+        // Phase 2.3.D — filter by active mateh_agent so secondaries don't
+        // see the primary's brand book in their dashboard.
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const baseWhere = __agent
+            ? (extra: any) => and(eq(brandBooks.instanceId, instanceId), eq(brandBooks.agentId, __agent.id), extra)
+            : (extra: any) => and(eq(brandBooks.instanceId, instanceId), extra)
+
         // Try approved first
         const [approved] = await db.select().from(brandBooks)
-            .where(and(eq(brandBooks.instanceId, instanceId), eq(brandBooks.status, 'approved')))
+            .where(baseWhere(eq(brandBooks.status, 'approved')))
             .limit(1)
 
         if (approved) return ok(c, { brandBook: approved, isApproved: true })
 
         // Fall back to latest pending_approval (most recent draft)
         const [draft] = await db.select().from(brandBooks)
-            .where(and(eq(brandBooks.instanceId, instanceId), eq(brandBooks.status, 'pending_approval')))
+            .where(baseWhere(eq(brandBooks.status, 'pending_approval')))
             .orderBy(desc(brandBooks.version))
             .limit(1)
 
@@ -463,6 +488,11 @@ export const getBrandBookVersions = async (c: Context) => {
         const userId = resolveUserId(c)
         if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
 
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const versionsWhere = __agent
+            ? and(eq(brandBooks.instanceId, instanceId), eq(brandBooks.agentId, __agent.id))
+            : eq(brandBooks.instanceId, instanceId)
+
         const rows = await db.select({
             id: brandBooks.id,
             version: brandBooks.version,
@@ -472,7 +502,7 @@ export const getBrandBookVersions = async (c: Context) => {
             createdAt: brandBooks.createdAt,
             approvedAt: brandBooks.approvedAt,
         }).from(brandBooks)
-            .where(eq(brandBooks.instanceId, instanceId))
+            .where(versionsWhere)
             .orderBy(desc(brandBooks.version))
 
         return ok(c, { versions: rows })
