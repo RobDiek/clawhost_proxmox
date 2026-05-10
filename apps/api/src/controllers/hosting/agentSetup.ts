@@ -146,7 +146,7 @@ export function sshExec(ip: string, command: string, password?: string, timeoutM
     })
 }
 
-function sshWriteFile(ip: string, remotePath: string, content: string, password?: string): Promise<void> {
+export function sshWriteFile(ip: string, remotePath: string, content: string, password?: string): Promise<void> {
     return sshExec(ip, `mkdir -p "$(dirname '${remotePath}')" && cat > '${remotePath}' << 'CLAWEOF'\n${content}\nCLAWEOF`, password).then(() => {})
 }
 

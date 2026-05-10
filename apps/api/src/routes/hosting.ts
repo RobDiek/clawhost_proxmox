@@ -300,6 +300,15 @@ app.post('/me/tenants', createMyTenant)
 app.patch('/me/tenants/:id', updateMyTenant)
 app.delete('/me/tenants/:id', deleteMyTenant)
 app.post('/me/tenants/:id/assign', assignInstanceToMyTenant)
+
+// ── Phase 2.4: User-facing multi-MATEH agent management ──
+import {
+    listMyAgents, getMyAgent, createMyAgent, deleteMyAgent,
+} from '@/controllers/hosting/matehAgentsApi'
+app.get('/me/agents', listMyAgents)
+app.get('/me/agents/:agentId', getMyAgent)
+app.post('/me/agents', createMyAgent)
+app.delete('/me/agents/:agentId', deleteMyAgent)
 app.post('/auth/2fa/setup', setup2fa)
 app.post('/auth/2fa/verify-setup', verifySetup2fa)
 app.post('/auth/2fa/verify', verify2fa)

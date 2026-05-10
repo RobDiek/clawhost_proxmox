@@ -9703,8 +9703,51 @@ function renderAgentsTab() {
     '</div>';
   });
 
-  // Add agent "+" card
-  html += '<div class="int-card" style="cursor:pointer;border:2px dashed #D1D5DB;display:flex;align-items:center;justify-content:center;min-height:80px" onclick="showAddAgentDialog()">' +
+  // Phase 2.4 — agency mode: list secondary mateh_agents from server
+  // (these are MATEH agents on the SAME VPS but additional brand contexts).
+  // Lazy-load + cache. Renders pending state for any in-flight provisions.
+  if (isAgencyMode()) {
+    if (!window._myMatehAgentsLoaded) {
+      window._myMatehAgentsLoaded = true;
+      fetch(API + '/hosting/me/agents', {
+        headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+      }).then(function(r){ return r.json(); }).then(function(j){
+        if (j && j.success) {
+          window._myMatehAgents = j.data || [];
+          renderAgentsTab();
+        }
+      }).catch(function(){ /* silent */ });
+    }
+    var matehAgents = (window._myMatehAgents || []).filter(function(a){ return !a.isPrimary; });
+    matehAgents.forEach(function(a){
+      var tenantBadge = a.tenantName
+        ? '<span style="background:#3B82F6;color:#fff;padding:1px 8px;border-radius:10px;font-size:.7rem;margin-right:6px">'+escapeHtmlDash(a.tenantName)+'</span>'
+        : '';
+      var statusColor = a.status === 'running' ? '#10B981' : (a.status === 'provisioning' ? '#F59E0B' : '#EF4444');
+      var statusLabel = a.status === 'running' ? '✓ פעיל' : (a.status === 'provisioning' ? '⏳ מתקין' : '⚠ ' + a.status);
+      var openUrl = a.subdomainAgent ? ('https://' + a.subdomainAgent) : '';
+      html += '<div class="int-card">' +
+        '<div class="int-card-header">' +
+          '<div class="int-icon" style="background:#F0FDF4">' + (SVG_ICONS.robot || '') + '</div>' +
+          '<div>' +
+            tenantBadge +
+            '<strong>' + escapeHtmlDash(a.name) + '</strong>' +
+            '<div style="font-size:.78rem;color:'+statusColor+';margin-top:2px">' + statusLabel + '</div>' +
+            '<div style="font-size:.7rem;color:#9CA3AF;margin-top:2px">' + escapeHtmlDash(a.brandSlug) + ' · port ' + (a.gatewayPort||'?') + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;margin-top:8px">' +
+          (openUrl ? '<a href="'+openUrl+'" target="_blank" class="btn btn-outline btn-sm">פתיחה ↗</a>' : '') +
+          '<button class="btn btn-outline btn-sm" onclick="deleteMyAgentConfirm(\''+escapeHtmlDash(a.id)+'\',\''+escapeHtmlDash(a.name)+'\')" style="color:#EF4444">מחק</button>' +
+        '</div>' +
+      '</div>';
+    });
+  }
+
+  // Add agent "+" card. For agency users, opens the multi-tenant create
+  // dialog. For non-agency users, opens the legacy showAddAgentDialog.
+  var addClick = isAgencyMode() ? "openCreateMatehAgentDialog()" : "showAddAgentDialog()";
+  html += '<div class="int-card" style="cursor:pointer;border:2px dashed #D1D5DB;display:flex;align-items:center;justify-content:center;min-height:80px" onclick="' + addClick + '">' +
     '<div style="text-align:center;color:#9CA3AF">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:28px;height:28px;margin-bottom:4px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
       '<div style="font-size:0.78rem">הוסיפו סוכן</div>' +
@@ -9713,6 +9756,94 @@ function renderAgentsTab() {
 
   document.getElementById('agentsList').innerHTML = html;
   if (window.initHebrewPickers) initHebrewPickers(document.getElementById('agentsList'));
+}
+
+// Phase 2.4 — agency-mode: open the new MATEH-create dialog (with tenant picker).
+async function openCreateMatehAgentDialog() {
+  // Load my tenants for the picker
+  if (!window._myTenantsLoaded) await loadTenantFilterOnce();
+  var tenants = window._myTenants || [];
+  if (tenants.length === 0) {
+    alert('לא נמצאו לקוחות (tenants). צרו לפחות לקוח אחד דרך הטאב "לקוחות (סוכנות)" לפני יצירת סוכן.');
+    return;
+  }
+  var html = '<div class="modal-overlay show" onclick="if(event.target===this)closeCreateMatehAgentDialog()" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999">' +
+    '<div class="modal-card" style="background:#fff;padding:24px;border-radius:16px;max-width:520px;width:92%;max-height:90vh;overflow:auto;direction:rtl">' +
+    '<h3 style="margin:0 0 16px">סוכן MATEH חדש</h3>' +
+    '<div style="font-size:0.85rem;color:#6B7280;margin-bottom:14px">סוכן חדש יותקן על אותו VPS מתחת ללקוח שתבחרו. לכל סוכן ניתנים מפתח Anthropic, telegram bot ותיקיית brand נפרדים.</div>' +
+    '<div style="display:flex;flex-direction:column;gap:12px">' +
+    '<label>לקוח (tenant) <select id="cma-tenant" style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px">' +
+      tenants.map(function(t){ return '<option value="'+t.id+'">'+escapeHtmlDash(t.name)+'</option>'; }).join('') +
+    '</select></label>' +
+    '<label>שם הסוכן <input id="cma-name" placeholder="לדוגמה: Storage Station SEO" style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px"/></label>' +
+    '<label>Brand slug (אופציונלי - אוטומטי מהשם) <input id="cma-slug" placeholder="storage-station-seo" style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px"/></label>' +
+    '<label>סוג <select id="cma-type" style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px"><option value="mateh">MATEH (9 sub-agents שיווק)</option><option value="oc">OpenClaw Personal</option><option value="bare">Bare (ללא agents)</option></select></label>' +
+    '</div>' +
+    '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:10px;margin-top:14px;font-size:0.78rem;color:#78350F">⏳ הקצאה לוקחת ~30-60 שניות. בזמן ההקצאה הסוכן יופיע ברשימה כ-"מתקין".</div>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">' +
+    '<button class="btn btn-outline" onclick="closeCreateMatehAgentDialog()">ביטול</button>' +
+    '<button class="btn btn-primary" onclick="submitCreateMatehAgent()">צור</button>' +
+    '</div></div></div>';
+  var wrap = document.createElement('div');
+  wrap.id = 'cma-modal-wrap';
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+}
+function closeCreateMatehAgentDialog() {
+  var w = document.getElementById('cma-modal-wrap');
+  if (w) w.remove();
+}
+async function submitCreateMatehAgent() {
+  var body = {
+    vpsInstanceId: localStorage.getItem('cf_instance_id'),
+    tenantId: document.getElementById('cma-tenant').value,
+    name: document.getElementById('cma-name').value.trim(),
+    brandSlug: document.getElementById('cma-slug').value.trim() || undefined,
+    agentType: document.getElementById('cma-type').value,
+  };
+  if (!body.name) { alert('שם הסוכן חובה'); return; }
+  if (!body.vpsInstanceId) { alert('Instance ID לא נמצא'); return; }
+  closeCreateMatehAgentDialog();
+
+  // Show pending card immediately
+  window._pendingAgents = window._pendingAgents || [];
+  window._pendingAgents.push({ type: body.agentType, startedAt: Date.now(), name: body.name });
+  renderAgentsTab();
+
+  try {
+    var res = await fetch(API + '/hosting/me/agents', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || ''), 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    var j = await res.json();
+    if (!j || !j.success) {
+      alert('שגיאה: ' + (j && j.message || 'unknown'));
+    } else {
+      showToast('הסוכן הותקן ✓', 'success');
+    }
+  } catch (e) {
+    alert('שגיאת תקשורת: ' + e.message);
+  }
+  // Clear pending + reload list either way
+  window._pendingAgents = (window._pendingAgents || []).filter(function(p){ return p.name !== body.name; });
+  window._myMatehAgentsLoaded = false;
+  renderAgentsTab();
+}
+
+async function deleteMyAgentConfirm(agentId, name) {
+  if (!confirm('למחוק את הסוכן "' + name + '"? פעולה זו תעצור ותסיר את container/folders שלו ולא ניתנת לביטול.')) return;
+  try {
+    var res = await fetch(API + '/hosting/me/agents/' + encodeURIComponent(agentId), {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+    });
+    var j = await res.json();
+    if (!j || !j.success) { alert('שגיאה: ' + (j && j.message || 'unknown')); return; }
+    showToast('סוכן נמחק', 'success');
+    window._myMatehAgentsLoaded = false;
+    renderAgentsTab();
+  } catch (e) { alert('שגיאת תקשורת: ' + e.message); }
 }
 
 function addAgentRequest(agentType) {
