@@ -9633,6 +9633,12 @@ function getHebrewMonth(month) {
   return months[month] || '';
 }
 
+// Phase: pending-agents UX. When user clicks "+ Add agent" → backend starts
+// provisioning (~30-60s). We render a placeholder card with a spinner +
+// "מתקין..." badge immediately so the user sees feedback in the list,
+// not just inside the popup.
+window._pendingAgents = window._pendingAgents || [];
+
 function renderAgentsTab() {
   var html = '';
 
@@ -9655,6 +9661,30 @@ function renderAgentsTab() {
         '</div>' +
       '</div>' +
       '<div style="font-size:0.78rem;color:#6B7280;margin:4px 0">' + (comp.desc || '') + '</div>' +
+    '</div>';
+  });
+
+  // Pending agents — being installed right now. Shown only while
+  // _pendingAgents has entries. Spinner + "מתקין..." status until backend
+  // returns success (or error). Filter out any pending types that already
+  // appear in the active list (in case of a sync race).
+  var pending = (window._pendingAgents || []).filter(function(p){ return agentComps.indexOf(p.type) === -1; });
+  pending.forEach(function(p) {
+    var comp = COMPONENTS[p.type] || { name: p.type, svgKey: 'robot', desc: '' };
+    var iconSvg = SVG_ICONS[comp.svgKey] || SVG_ICONS.robot;
+    var elapsedSec = Math.max(0, Math.floor((Date.now() - p.startedAt) / 1000));
+    html += '<div class="int-card" style="cursor:wait;border:1px dashed #93C5FD;background:#EFF6FF">' +
+      '<div class="int-card-header">' +
+        '<div class="int-icon" style="background:#DBEAFE;position:relative">' + iconSvg +
+          '<div style="position:absolute;top:-4px;right:-4px;width:14px;height:14px;border:2px solid #2563EB;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite"></div>' +
+        '</div>' +
+        '<div>' +
+          '<strong>' + comp.name + '</strong>' +
+          '<span style="font-size:.72rem;background:#FEF3C7;color:#92400E;padding:1px 8px;border-radius:10px;margin-right:6px">⏳ מתקין</span>' +
+          '<div style="font-size:0.78rem;color:#2563EB;margin-top:2px">פרובישנינג... ' + elapsedSec + 's</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:0.78rem;color:#6B7280;margin:4px 0">מתקין ומגדיר את הסוכן על השרת. עד דקה.</div>' +
     '</div>';
   });
 
@@ -9701,6 +9731,25 @@ function addAgentRequest(agentType) {
   document.getElementById('taskPopupFooter').innerHTML = '';
   document.getElementById('taskPopupOverlay').classList.remove('hidden');
 
+  // Phase: pending UX. Add a placeholder to the agents list immediately so the
+  // user sees a card with "מתקין" status. Auto-refreshes the elapsed counter
+  // every 2s. Removed when the request resolves (success or error).
+  window._pendingAgents = window._pendingAgents || [];
+  if (!window._pendingAgents.find(function(p){ return p.type === agentType; })) {
+    window._pendingAgents.push({ type: agentType, startedAt: Date.now() });
+  }
+  if (typeof renderAgentsTab === 'function') renderAgentsTab();
+  if (window._pendingAgentsTimer) clearInterval(window._pendingAgentsTimer);
+  window._pendingAgentsTimer = setInterval(function(){
+    if ((window._pendingAgents || []).length === 0) { clearInterval(window._pendingAgentsTimer); window._pendingAgentsTimer = null; return; }
+    if (typeof renderAgentsTab === 'function') renderAgentsTab();
+  }, 2000);
+
+  function clearPending() {
+    window._pendingAgents = (window._pendingAgents || []).filter(function(p){ return p.type !== agentType; });
+    if (typeof renderAgentsTab === 'function') renderAgentsTab();
+  }
+
   fetch(API + '/hosting/instances/' + instanceId + '/agents/add', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -9709,7 +9758,8 @@ function addAgentRequest(agentType) {
   .then(function(d) {
     if (d.success) {
       if (d.data && d.data.needsUpgrade) {
-        // Need plan upgrade
+        // Need plan upgrade — clear pending UI, the agent didn't actually install
+        clearPending();
         document.getElementById('taskPopupTitle').textContent = 'נדרש שדרוג תוכנית';
         document.getElementById('taskPopupBody').innerHTML =
           '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:16px;margin-bottom:16px">' +
@@ -9725,7 +9775,14 @@ function addAgentRequest(agentType) {
           '<button class="aq-btn edit" onclick="closeTaskPopup()">ביטול</button>' +
           '<button class="aq-btn approve" onclick="closeTaskPopup();switchTab(\'settings\')">→ שדרגו תוכנית</button>';
       } else {
-        // Success
+        // Success — agent installed; update components first, then clear pending
+        // (clearPending re-renders, so by then the agent appears as active in
+        // the list and the pending placeholder is gone in one paint).
+        if (d.data && d.data.components) {
+          components = d.data.components;
+          localStorage.setItem('cf_instance_components', JSON.stringify(components));
+        }
+        clearPending();
         document.getElementById('taskPopupTitle').textContent = 'הסוכן נוסף!';
         document.getElementById('taskPopupBody').innerHTML =
           '<div style="text-align:center;padding:20px 0">' +
@@ -9735,14 +9792,9 @@ function addAgentRequest(agentType) {
           '</div>';
         document.getElementById('taskPopupFooter').innerHTML =
           '<button class="aq-btn approve" onclick="closeTaskPopup()">סגירה</button>';
-        // Update local components
-        if (d.data && d.data.components) {
-          components = d.data.components;
-          localStorage.setItem('cf_instance_components', JSON.stringify(components));
-        }
-        renderAgentsTab();
       }
     } else {
+      clearPending();
       document.getElementById('taskPopupTitle').textContent = 'שגיאה';
       document.getElementById('taskPopupBody').innerHTML =
         '<div style="text-align:center;padding:20px 0">' +
@@ -9752,7 +9804,10 @@ function addAgentRequest(agentType) {
       document.getElementById('taskPopupFooter').innerHTML =
         '<button class="aq-btn edit" onclick="closeTaskPopup()">סגירה</button>';
     }
-  }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
+  }).catch(function() {
+    clearPending();
+    showToast('שגיאת תקשורת', 'error');
+  });
 }
 
 function showAddAgentDialog() {
