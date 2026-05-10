@@ -961,6 +961,12 @@ input{font-family:inherit}
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
       <span class="sidebar-label">תוספים</span>
     </div>
+    <!-- Phase 1.5 — Tenants tab: visible only when user.agency_mode_enabled=true -->
+    <div class="sidebar-item" data-tab="tenants" onclick="switchTab('tenants')" data-agency-only style="display:none"
+         data-tip="לקוחות (סוכנות) — ניהול תיקיות לקוחות (tenants). כל לקוח מקבל קבוצה משלו של סוכני MATEH, מפתח Anthropic ייעודי, ומופע MIFKADA לקרוס-ברנד אנליזה.">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21V12h6v9"/></svg></span>
+      <span class="sidebar-label">לקוחות (סוכנות)</span>
+    </div>
     <!-- Settings moved to header profile dropdown -->
     <!-- Twenty CRM removed — AGPLv3 license risk for managed hosting -->
     <div class="sidebar-separator"></div>
@@ -1771,6 +1777,17 @@ input{font-family:inherit}
   </div>
 
   <!-- Tab: Integrations -->
+  <!-- Tab: Tenants (לקוחות) — agency mode only. Full self-service tenant
+       management: list/create/edit/delete tenants + assign instances. -->
+  <div class="tab-content hidden" id="tab-tenants">
+    <h2 class="tab-title">לקוחות (סוכנות)</h2>
+    <p class="tab-desc">ניהול תיקיות לקוחות. כל לקוח מקבל קבוצה משלו של סוכני MATEH, מפתח Anthropic ייעודי, ומופע MIFKADA לקרוס-ברנד אנליזה.</p>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+      <button class="btn btn-primary" onclick="openCreateTenantModal()">+ לקוח חדש</button>
+    </div>
+    <div id="tenants-list-wrap"><div class="empty">טוען...</div></div>
+  </div>
+
   <div class="tab-content hidden" id="tab-integrations">
     <h2 class="tab-title">תוספים</h2>
     <p class="tab-desc">חברו כלים ושירותים לסוכנים שלכם.</p>
@@ -4163,9 +4180,74 @@ async function syncProfileFromServer() {
       localStorage.setItem('cf_user_name', u.name.trim());
       renderHeader();
     }
+    // Phase 1.5 — agency_mode flag controls visibility of Tenants tab + filter
+    if (u && typeof u.agencyModeEnabled === 'boolean') {
+      localStorage.setItem('cf_agency_mode', u.agencyModeEnabled ? '1' : '0');
+      applyAgencyModeUi();
+    }
   } catch (_) { /* silent */ }
 }
+
+function isAgencyMode() {
+  return localStorage.getItem('cf_agency_mode') === '1';
+}
+
+// Show/hide agency-only UI elements based on cf_agency_mode flag.
+// Called on page load (from cached value) and after syncProfileFromServer.
+function applyAgencyModeUi() {
+  var on = isAgencyMode();
+  // Tenants sidebar item — created lazily once the sidebar is rendered.
+  // We tag it with id="nav-tenants" so this function can flip display.
+  document.querySelectorAll('[data-agency-only]').forEach(function(el){
+    el.style.display = on ? '' : 'none';
+  });
+  // Tenant filter dropdown in topbar (rendered separately)
+  var filter = document.getElementById('tenant-filter-wrap');
+  if (filter) filter.style.display = on ? '' : 'none';
+  // If we just turned ON and the filter list isn't loaded yet, fetch it
+  if (on) loadTenantFilterOnce();
+}
+
+// Load my tenants list once for the dashboard filter dropdown. Cached
+// in window._myTenants. Idempotent — safe to call repeatedly.
+async function loadTenantFilterOnce() {
+  if (window._myTenantsLoaded) return;
+  window._myTenantsLoaded = true;
+  try {
+    var res = await fetch(API + '/hosting/me/tenants', {
+      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+    });
+    var j = await res.json();
+    if (j && j.success) {
+      window._myTenants = j.data || [];
+      renderTenantFilterOptions();
+    }
+  } catch (_) { /* silent */ }
+}
+
+function renderTenantFilterOptions() {
+  var sel = document.getElementById('tenant-filter');
+  if (!sel) return;
+  var current = localStorage.getItem('cf_active_tenant') || '';
+  sel.innerHTML = '<option value="">All tenants</option>' +
+    (window._myTenants || []).map(function(t){
+      return '<option value="' + t.id + '"' + (current === t.id ? ' selected' : '') + '>' + (t.name || t.id) + ' (' + (t.instanceCount || 0) + ')</option>';
+    }).join('');
+}
+
+function onTenantFilterChange() {
+  var sel = document.getElementById('tenant-filter');
+  if (!sel) return;
+  var v = sel.value;
+  if (v) localStorage.setItem('cf_active_tenant', v);
+  else localStorage.removeItem('cf_active_tenant');
+  // Reload home / instances list to apply filter
+  if (typeof renderAgentHomeContext === 'function') renderAgentHomeContext();
+  if (typeof loadInstancesList === 'function') loadInstancesList();
+}
 if (typeof token !== 'undefined' && token) { syncProfileFromServer(); }
+// Apply cached agency_mode setting immediately on page load to avoid UI flicker
+if (typeof window !== 'undefined') applyAgencyModeUi();
 
 function renderAgentHomeContext() {
   var agents = getAgentComponents();
@@ -10050,6 +10132,212 @@ function switchTab(tabId) {
   if (tabId === 'settings') renderSettingsPage();
   if (tabId === 'files') fmNavigate(fmCurrentDir || '');
   if (tabId === 'server') { loadStats(); loadBackups(); if (termFit && term) { setTimeout(function(){ termFit.fit(); }, 100); } }
+  if (tabId === 'tenants') renderTenantsTab();
+}
+
+// ─── Tenants tab (Phase 1.5 — agency mode only) ────────────────────────────
+
+async function renderTenantsTab() {
+  if (!isAgencyMode()) {
+    document.getElementById('tenants-list-wrap').innerHTML = '<div class="empty">מצב סוכנות לא פעיל בחשבון שלכם. צרו קשר עם תמיכה.</div>';
+    return;
+  }
+  document.getElementById('tenants-list-wrap').innerHTML = '<div class="empty">טוען...</div>';
+  try {
+    var res = await fetch(API + '/hosting/me/tenants', {
+      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+    });
+    var j = await res.json();
+    if (!j || !j.success) { document.getElementById('tenants-list-wrap').innerHTML = '<div class="empty">שגיאה בטעינה</div>'; return; }
+    var rows = j.data || [];
+    window._myTenants = rows;
+    renderTenantFilterOptions();
+    if (rows.length === 0) {
+      document.getElementById('tenants-list-wrap').innerHTML = '<div class="empty">אין לקוחות עדיין. צרו ראשון בכפתור "לקוח חדש" למעלה.</div>';
+      return;
+    }
+    var html = '<div style="display:grid;gap:10px">';
+    rows.forEach(function(t){
+      var keyBadge = t.hasDefaultAnthropicKey
+        ? '<span style="font-size:0.78rem;color:#10B981">🔑 מפתח אנתרופיק מוגדר</span>'
+        : '<span style="font-size:0.78rem;color:#9CA3AF">בלי מפתח ייעודי</span>';
+      var mifkadaBadge = t.mifkadaEnabled
+        ? '<span style="background:#3B82F6;color:#fff;padding:2px 8px;border-radius:6px;font-size:0.72rem;margin-right:6px">⌬ MIFKADA</span>'
+        : '';
+      var kindBadge = '<span style="background:'+(t.kind==='managed'?'#F59E0B':'#10B981')+';color:#fff;padding:2px 8px;border-radius:6px;font-size:0.72rem;margin-right:6px">'+t.kind+'</span>';
+      html += '<div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px">' +
+        '<div>' +
+          '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' + mifkadaBadge + kindBadge + '<strong>' + escapeHtmlDash(t.name) + '</strong></div>' +
+          (t.description?'<div style="color:#6B7280;font-size:0.85rem;margin-bottom:4px">'+escapeHtmlDash(t.description)+'</div>':'') +
+          '<div style="font-size:0.82rem;color:#9CA3AF">' + (t.instanceCount||0) + ' סוכני MATEH · ' + keyBadge + '</div>' +
+        '</div>' +
+        '<button class="btn btn-outline btn-sm" onclick="openMyTenantDetail(\''+escapeHtmlDash(t.id)+'\')">ניהול</button>' +
+        '</div>';
+    });
+    html += '</div>';
+    document.getElementById('tenants-list-wrap').innerHTML = html;
+  } catch (e) {
+    document.getElementById('tenants-list-wrap').innerHTML = '<div class="empty">שגיאה בטעינה</div>';
+  }
+}
+
+function escapeHtmlDash(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function openCreateTenantModal() {
+  if (!isAgencyMode()) return;
+  var html = '<div class="modal-overlay show" onclick="if(event.target===this)closeTenantModal()" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999">' +
+    '<div class="modal-card" style="background:#fff;padding:24px;border-radius:16px;max-width:500px;width:90%;max-height:90vh;overflow:auto;direction:rtl">' +
+    '<h3 style="margin:0 0 16px">לקוח חדש</h3>' +
+    '<div style="display:flex;flex-direction:column;gap:12px">' +
+    '<label>שם הלקוח <input id="cf-tn-name" placeholder="לדוגמה: Storage Station" style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px"/></label>' +
+    '<label>תיאור (אופציונלי) <input id="cf-tn-desc" placeholder="..." style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px"/></label>' +
+    '<label>סוג <select id="cf-tn-kind" style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px"><option value="managed">לקוח מנוהל</option><option value="own">העסק שלי</option></select></label>' +
+    '<label>מפתח Anthropic ייעודי (אופציונלי) <input id="cf-tn-akey" type="password" placeholder="sk-ant-... או השאירו ריק" style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px"/></label>' +
+    '<label><input type="checkbox" id="cf-tn-mifkada"/> הפעלת MIFKADA (קרוס-ברנד אנליזה)</label>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">' +
+    '<button class="btn btn-outline" onclick="closeTenantModal()">ביטול</button>' +
+    '<button class="btn btn-primary" onclick="submitCreateMyTenant()">צור</button>' +
+    '</div></div></div>';
+  var wrap = document.createElement('div');
+  wrap.id = 'cf-tenant-modal-wrap';
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+}
+function closeTenantModal() {
+  var w = document.getElementById('cf-tenant-modal-wrap');
+  if (w) w.remove();
+}
+async function submitCreateMyTenant() {
+  var body = {
+    name: document.getElementById('cf-tn-name').value.trim(),
+    description: document.getElementById('cf-tn-desc').value.trim() || undefined,
+    kind: document.getElementById('cf-tn-kind').value,
+    defaultAnthropicKey: document.getElementById('cf-tn-akey').value.trim() || undefined,
+    mifkadaEnabled: document.getElementById('cf-tn-mifkada').checked,
+  };
+  if (!body.name) { alert('שם הלקוח חובה'); return; }
+  var res = await fetch(API + '/hosting/me/tenants', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || ''), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  var j = await res.json();
+  if (!j || !j.success) { alert('שגיאה: ' + (j && j.message || 'unknown')); return; }
+  closeTenantModal();
+  window._myTenantsLoaded = false; // force re-fetch for filter
+  renderTenantsTab();
+}
+
+async function openMyTenantDetail(tenantId) {
+  if (!isAgencyMode()) return;
+  var res = await fetch(API + '/hosting/me/tenants/' + encodeURIComponent(tenantId), {
+    headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+  });
+  var j = await res.json();
+  if (!j || !j.success) { alert('שגיאה'); return; }
+  var t = j.data.tenant;
+  var insts = j.data.instances || [];
+  var html = '<div class="modal-overlay show" onclick="if(event.target===this)closeTenantModal()" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999">' +
+    '<div class="modal-card" style="background:#fff;padding:24px;border-radius:16px;max-width:680px;width:92%;max-height:90vh;overflow:auto;direction:rtl">' +
+    '<h3 style="margin:0 0 4px">'+escapeHtmlDash(t.name)+'</h3>' +
+    '<div style="color:#9CA3AF;font-size:0.78rem;margin-bottom:14px">'+escapeHtmlDash(t.id)+' · '+t.kind+'</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">' +
+    '<label>שם <input id="cfE-name" value="'+escapeHtmlDash(t.name)+'" style="width:100%;padding:6px 8px;border:1px solid #E5E7EB;border-radius:6px"/></label>' +
+    '<label>סוג <select id="cfE-kind" style="width:100%;padding:6px 8px;border:1px solid #E5E7EB;border-radius:6px"><option value="managed"'+(t.kind==='managed'?' selected':'')+'>מנוהל</option><option value="own"'+(t.kind==='own'?' selected':'')+'>שלי</option></select></label>' +
+    '<label style="grid-column:1/3">תיאור <input id="cfE-desc" value="'+escapeHtmlDash(t.description||'')+'" style="width:100%;padding:6px 8px;border:1px solid #E5E7EB;border-radius:6px"/></label>' +
+    '<label style="grid-column:1/3">מפתח Anthropic '+(t.defaultAnthropicKey?'<span style="color:#10B981">(מוגדר)</span>':'<span style="color:#9CA3AF">(ריק)</span>')+' <input id="cfE-akey" type="password" placeholder="sk-ant-... · ריק=מחיקה · השאירו ככה=ללא שינוי" style="width:100%;padding:6px 8px;border:1px solid #E5E7EB;border-radius:6px"/></label>' +
+    '<label><input type="checkbox" id="cfE-mifkada"'+(t.mifkadaEnabled?' checked':'')+'/> הפעלת MIFKADA</label>' +
+    '<label><input type="checkbox" id="cfE-active"'+(t.isActive?' checked':'')+'/> פעיל</label>' +
+    '</div>' +
+    '<h4 style="margin:16px 0 8px">סוכני MATEH מוקצים ('+insts.length+')</h4>';
+  if (insts.length === 0) {
+    html += '<div class="empty" style="padding:10px">אין סוכני MATEH מוקצים. השתמשו בכפתור "הקצה סוכן" למטה.</div>';
+  } else {
+    html += '<div style="font-size:0.85rem"><table style="width:100%"><thead><tr style="background:#F9FAFB"><th>ID</th><th>סטטוס</th><th>תוכנית</th><th>IP</th></tr></thead><tbody>';
+    insts.forEach(function(i){
+      html += '<tr><td>'+escapeHtmlDash(i.id)+'</td><td>'+escapeHtmlDash(i.status)+'</td><td>'+escapeHtmlDash(i.planKey||'')+'</td><td>'+escapeHtmlDash(i.ip||'')+'</td></tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap">' +
+    '<button class="btn btn-outline btn-sm" onclick="openAssignMyInstanceModal(\''+escapeHtmlDash(t.id)+'\')">+ הקצה סוכן</button>' +
+    '<button class="btn btn-outline" onclick="closeTenantModal()">סגור</button>' +
+    '<button class="btn btn-primary" onclick="submitUpdateMyTenant(\''+escapeHtmlDash(t.id)+'\')">שמור שינויים</button>' +
+    '</div></div></div>';
+  var wrap = document.createElement('div');
+  wrap.id = 'cf-tenant-modal-wrap';
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+}
+async function submitUpdateMyTenant(tenantId) {
+  var akeyEl = document.getElementById('cfE-akey');
+  var akey = akeyEl.value;
+  var body = {
+    name: document.getElementById('cfE-name').value.trim(),
+    description: document.getElementById('cfE-desc').value.trim() || null,
+    kind: document.getElementById('cfE-kind').value,
+    mifkadaEnabled: document.getElementById('cfE-mifkada').checked,
+    isActive: document.getElementById('cfE-active').checked,
+  };
+  // Only send defaultAnthropicKey when user typed something. Empty input = clear.
+  if (akey === '') body.defaultAnthropicKey = null;
+  else if (akey) body.defaultAnthropicKey = akey;
+  var res = await fetch(API + '/hosting/me/tenants/' + encodeURIComponent(tenantId), {
+    method: 'PATCH',
+    headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || ''), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  var j = await res.json();
+  if (!j || !j.success) { alert('שגיאה: ' + (j && j.message || 'unknown')); return; }
+  closeTenantModal();
+  renderTenantsTab();
+}
+
+async function openAssignMyInstanceModal(tenantId) {
+  var res = await fetch(API + '/hosting/me/tenants/instances', {
+    headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+  });
+  var j = await res.json();
+  if (!j || !j.success) { alert('שגיאה'); return; }
+  var rows = j.data || [];
+  closeTenantModal();
+  var html = '<div class="modal-overlay show" onclick="if(event.target===this)closeAssignModal()" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999">' +
+    '<div class="modal-card" style="background:#fff;padding:24px;border-radius:16px;max-width:600px;width:92%;max-height:90vh;overflow:auto;direction:rtl">' +
+    '<h3 style="margin:0 0 14px">הקצאת סוכן MATEH ללקוח</h3>';
+  if (rows.length === 0) {
+    html += '<div class="empty">אין סוכני MATEH בחשבון</div>';
+  } else {
+    html += '<div style="font-size:0.88rem"><table style="width:100%"><thead><tr style="background:#F9FAFB"><th>ID</th><th>תוכנית</th><th>לקוח נוכחי</th><th></th></tr></thead><tbody>';
+    rows.forEach(function(i){
+      var sameTenant = i.tenantId === tenantId;
+      html += '<tr><td>'+escapeHtmlDash(i.id)+'</td><td>'+escapeHtmlDash(i.planKey||'')+'</td><td>'+(i.tenantName?escapeHtmlDash(i.tenantName):'<span style="color:#9CA3AF">none</span>')+'</td>' +
+        '<td>'+(sameTenant?'<span style="color:#9CA3AF">כבר כאן</span>':'<button class="btn btn-primary btn-sm" onclick="submitMyAssign(\''+escapeHtmlDash(tenantId)+'\',\''+escapeHtmlDash(i.id)+'\')">→ העבר</button>')+'</td></tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '<div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn btn-outline" onclick="closeAssignModal()">סגור</button></div></div></div>';
+  var wrap = document.createElement('div');
+  wrap.id = 'cf-assign-modal-wrap';
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+}
+function closeAssignModal() {
+  var w = document.getElementById('cf-assign-modal-wrap');
+  if (w) w.remove();
+}
+async function submitMyAssign(tenantId, instanceId) {
+  var res = await fetch(API + '/hosting/me/tenants/' + encodeURIComponent(tenantId) + '/assign', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || ''), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ instanceId: instanceId })
+  });
+  var j = await res.json();
+  if (!j || !j.success) { alert('שגיאה: ' + (j && j.message || 'unknown')); return; }
+  closeAssignModal();
+  openMyTenantDetail(tenantId);
 }
 
 var DEV_TABS = ['files', 'console', 'logs', 'server', 'backups', 'api'];
