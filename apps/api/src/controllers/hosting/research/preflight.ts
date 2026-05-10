@@ -23,7 +23,9 @@ import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { resolveUserId, getOwnedInstance } from '../authHelper'
 import { getApiKeyForInstance } from '../agentSetup'
-import type { ResearchDataV2 } from '@/services/research/types'
+import type { ResearchDataV2, StageId } from '@/services/research/types'
+import { resolveActiveAgent } from '@/services/agentContext'
+import { buildPreflight } from '@/services/research/integrationGate'
 
 interface PreflightCheck {
     name: string
@@ -39,6 +41,20 @@ interface PreflightResult {
     estimated_cost_ils: { dfs: number; anthropic: number; total: number }
     estimated_duration_minutes: { min: number; max: number }
     next_action_he: string
+    // Phase 2.3.H — integration gate (profile + stage driven)
+    integrationGate: {
+        canProceed: boolean
+        requirements: Array<{
+            id: string
+            severity: 'mandatory' | 'recommended' | 'optional'
+            status: 'connected' | 'missing'
+            label_he: string
+            valueProp_he: string
+            deepLink: string
+        }>
+        missingMandatoryIds: string[]
+        missingRecommendedIds: string[]
+    }
 }
 
 const WEBSITE_REACHABLE_TIMEOUT_MS = 8000
@@ -102,7 +118,12 @@ export const researchPreflight = async (c: Context) => {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) return fail(c, 'Instance not found', 404)
 
-    const rd = (inst.researchData as ResearchDataV2 | null) || {}
+    // Phase 2.3.H — per-agent context. Active agent's research_data + token
+    // fields take precedence; falls back to instance row for legacy un-backfilled.
+    const activeAgent = await resolveActiveAgent(c, instanceId)
+    const stageQ = c.req.query('stage') as StageId | undefined
+
+    const rd = ((activeAgent?.researchData ?? inst.researchData) as ResearchDataV2 | null) || {}
     const answers = (rd.answers || {}) as Record<string, unknown>
     const checks: PreflightCheck[] = []
 
@@ -334,9 +355,16 @@ export const researchPreflight = async (c: Context) => {
         ? `הכל מוכן להרצה, אך יש ${warnings.length} אזהרות שעשויות להגביל את איכות התוצאות. ניתן להמשיך — חלק מהשלבים ירוצו במצב מוגבל.`
         : 'הכל מוכן להרצה ב-pipeline מלא. הקליקו "Run all" או הריצו שלב אחרי שלב.'
 
+    // Phase 2.3.H — integration gate (profile + stage driven)
+    const gate = buildPreflight(
+        { instance: inst, agent: activeAgent },
+        answers as Record<string, string | undefined>,
+        stageQ,
+    )
+
     const result: PreflightResult = {
-        ready,
-        has_warnings: hasWarnings,
+        ready: ready && gate.canProceed,
+        has_warnings: hasWarnings || gate.missingRecommended.length > 0,
         checks,
         estimated_cost_ils: {
             dfs: Math.round(dfsCostIlsAvg),
@@ -348,6 +376,19 @@ export const researchPreflight = async (c: Context) => {
             max: 95,
         },
         next_action_he,
+        integrationGate: {
+            canProceed: gate.canProceed,
+            requirements: gate.requirements.map(r => ({
+                id: r.id,
+                severity: r.severity,
+                status: r.status,
+                label_he: r.label_he,
+                valueProp_he: r.valueProp_he,
+                deepLink: r.deepLink,
+            })),
+            missingMandatoryIds: gate.missingMandatory.map(r => r.id),
+            missingRecommendedIds: gate.missingRecommended.map(r => r.id),
+        },
     }
 
     return ok(c, result, 'Preflight check complete')

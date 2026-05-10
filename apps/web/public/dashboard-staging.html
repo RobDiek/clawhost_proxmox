@@ -12051,6 +12051,29 @@ function renderStageCardV2(sid, idx) {
 
 // Phase QA pre-flight ─────────────────────────────────────────────────────
 
+// Phase 2.3.H — deep-link from preflight modal to specific integration card.
+// `link` is one of: 'integrations#anthropic', 'integrations#gsc', etc.
+function deepLinkToIntegration(link) {
+  var parts = (link || '').split('#');
+  var tab = parts[0] || 'integrations';
+  var anchor = parts[1] || '';
+  if (typeof switchTab === 'function') switchTab(tab);
+  if (anchor) {
+    setTimeout(function() {
+      var el = document.getElementById(anchor + '-card')
+        || document.getElementById(anchor)
+        || document.querySelector('[data-integration="' + anchor + '"]');
+      if (el && el.scrollIntoView) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Brief flash to highlight
+        var prev = el.style.boxShadow;
+        el.style.boxShadow = '0 0 0 3px #2563EB';
+        setTimeout(function() { el.style.boxShadow = prev; }, 1800);
+      }
+    }, 250);
+  }
+}
+
 async function fetchResearchPreflight(iid) {
   try {
     var d = await apiFetch('/hosting/instances/' + iid + '/research/preflight');
@@ -12090,6 +12113,42 @@ function showResearchPreflightModal(pf, gating) {
       + (c.actionable_hint_he ? '<div style="font-size:0.7rem;color:#374151;margin-top:4px;line-height:1.5">' + escapeHtml(c.actionable_hint_he) + '</div>' : '')
       + '</div>';
   });
+
+  // Phase 2.3.H — integration gate (profile + stage driven). Lists every
+  // integration that THIS user's profile makes relevant, with severity badges
+  // and deep-link buttons to connect what's missing.
+  var ig = pf.integrationGate;
+  if (ig && Array.isArray(ig.requirements) && ig.requirements.length > 0) {
+    html += '<div style="margin-top:18px;border-top:1px solid #E5E7EB;padding-top:14px">';
+    html += '<div style="font-weight:600;font-size:0.88rem;color:#1F2937;margin-bottom:8px">🔌 אינטגרציות נדרשות לפרופיל שלכם</div>';
+    html += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:10px">בלי החיבורים החיוניים — שלבי המחקר ירוצו ב-fallback (השערות LLM) במקום על נתונים אמיתיים שלכם.</div>';
+    ig.requirements.forEach(function(r) {
+      var sevColor = r.severity === 'mandatory' ? '#991B1B' : '#92400E';
+      var sevBg = r.severity === 'mandatory' ? '#FEE2E2' : '#FEF3C7';
+      var statusIco = r.status === 'connected' ? '✅' : (r.severity === 'mandatory' ? '🛑' : '⚠️');
+      var sevLabel = r.severity === 'mandatory' ? 'חובה' : r.severity === 'recommended' ? 'מומלץ' : 'אופציונלי';
+      var rowBg = r.status === 'connected' ? '#F0FDF4' : sevBg;
+      var rowBorder = r.status === 'connected' ? '#A7F3D0' : sevColor;
+      html += '<div style="background:' + rowBg + ';border:1px solid ' + rowBorder + ';border-radius:6px;padding:8px 10px;margin-bottom:6px">'
+        + '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between">'
+        +   '<div style="display:flex;gap:8px;align-items:center;flex:1">'
+        +     '<span>' + statusIco + '</span>'
+        +     '<strong style="font-size:0.78rem">' + escapeHtml(r.label_he) + '</strong>'
+        +     (r.status === 'missing'
+              ? '<span style="font-size:0.65rem;background:' + sevColor + ';color:#fff;padding:2px 6px;border-radius:8px;margin-right:6px">' + sevLabel + '</span>'
+              : '<span style="font-size:0.65rem;color:#065F46;font-weight:600">מחובר</span>')
+        +   '</div>'
+        +   (r.status === 'missing'
+            ? '<button onclick="closeReportModal();setTimeout(function(){deepLinkToIntegration(\'' + escapeHtml(r.deepLink) + '\')},150)" class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:3px 10px">חברו</button>'
+            : '')
+        + '</div>'
+        + (r.status === 'missing'
+            ? '<div style="font-size:0.7rem;color:#374151;margin-top:6px;line-height:1.5">' + escapeHtml(r.valueProp_he) + '</div>'
+            : '')
+        + '</div>';
+    });
+    html += '</div>';
+  }
 
   if (gating) {
     html += '<div style="margin-top:14px;padding:10px;background:#FEE2E2;border-radius:6px;font-size:0.74rem;color:#991B1B"><strong>הריצה נחסמה</strong> — תקנו את ה-fail items ורענן את הדף לבדיקה מחדש.</div>';

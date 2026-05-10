@@ -95,6 +95,28 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         // surface it through `answers` (no schema bloat for one-off flags).
         if (body.validationMode) answers.validationMode = body.validationMode
 
+        // Phase 2.3.H — integration gate (defense-in-depth). Rejects
+        // direct API calls when mandatory integrations are missing for this
+        // stage. Frontend SHOULD have already gated; this is the safety net
+        // that prevents burning DFS budget / Anthropic credits on a guaranteed
+        // failure / wrong-output scenario.
+        try {
+            const { buildPreflight } = await import('@/services/research/integrationGate')
+            const gate = buildPreflight(
+                { instance, agent: __agent },
+                answers as Record<string, string | undefined>,
+                stageId,
+            )
+            if (!gate.canProceed) {
+                releaseResearchLock(instanceId)
+                const msg = `שלב זה דורש חיבור של: ${gate.missingMandatory.map(r => r.label_he).join(' · ')}. עברו ל-"אינטגרציות" וחברו לפני הרצה.`
+                return fail(c, msg, 422)
+            }
+        } catch (gateErr) {
+            // Don't block on a malfunction in the gate itself — log + continue.
+            console.warn(`[research/${stageId}] integration gate threw, falling through:`, (gateErr as Error).message)
+        }
+
         const businessName = (answers.businessName as string) || 'העסק'
         const businessDesc = (answers.businessDescription as string) || ''
 
