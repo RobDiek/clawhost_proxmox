@@ -224,6 +224,50 @@ export const volumes = pgTable(
 // OpenClaw Hosting by Flowmatic — custom tables
 // ═══════════════════════════════════════════════════
 
+// ─── Tenants — Phase 1 multi-tenant layer (between User and Instance) ─────
+// Supports agencies managing multiple clients on a single VPS (Sergei's
+// master case: Flowmatic + ClientA's 3 MATEH all under one user but
+// different tenants). Also is the scope unit for the MIFKADA orchestrator
+// (Phase 2).
+export const tenants = pgTable(
+    'tenants',
+    {
+        id: text('id').primaryKey(),
+        // The User who OWNS / MANAGES this tenant. For sergei master:
+        //   - "Flowmatic" tenant: managedByUserId = sergei
+        //   - "ClientA" tenant: managedByUserId = sergei (managed-for)
+        managedByUserId: text('managed_by_user_id')
+            .notNull()
+            .references(() => users.id, { onDelete: 'cascade' }),
+        name: text('name').notNull(),
+        description: text('description'),
+        // 'own' = managing user's own brand portfolio
+        // 'managed' = a client of the managing user (agency case)
+        kind: text('kind').notNull().default('own'),
+        // Tenant-level default Anthropic key. Resolution chain at runtime:
+        //   instance.aiProviderKey → tenant.defaultAnthropicKey → null
+        // Per-instance override always wins.
+        defaultAnthropicKey: text('default_anthropic_key'),
+        defaultOpenaiKey: text('default_openai_key'),
+        // Phase 2 — MIFKADA orchestrator scope flags.
+        mifkadaEnabled: boolean('mifkada_enabled').notNull().default(false),
+        // 'tenant' = MIFKADA only sees this tenant's instances
+        // 'vps' = MIFKADA can see all tenants on same VPS (admin-gated)
+        mifkadaScope: text('mifkada_scope').notNull().default('tenant'),
+        isActive: boolean('is_active').notNull().default(true),
+        createdAt: timestamp('created_at', { withTimezone: true })
+            .defaultNow()
+            .notNull(),
+        updatedAt: timestamp('updated_at', { withTimezone: true })
+            .defaultNow()
+            .notNull(),
+    },
+    (table) => [
+        index('tenants_managed_by_idx').on(table.managedByUserId),
+        index('tenants_active_idx').on(table.isActive),
+    ],
+)
+
 export const instances = pgTable(
     'instances',
     {
@@ -231,6 +275,10 @@ export const instances = pgTable(
         userId: text('user_id')
             .notNull()
             .references(() => users.id, { onDelete: 'cascade' }),
+        // Phase 1 — tenant assignment. Nullable for legacy instances during
+        // backfill window; resolved code should treat null as "default
+        // tenant" via the resolveTenantId helper.
+        tenantId: text('tenant_id').references(() => tenants.id, { onDelete: 'set null' }),
 
         // Config (from configurator)
         selectedComponents: jsonb('selected_components').$type<string[]>(),

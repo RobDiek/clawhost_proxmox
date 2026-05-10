@@ -3,7 +3,7 @@ import { readFileSync, readdirSync, statSync } from 'fs'
 import { resolve, join, relative } from 'path'
 import { eq, and, notInArray } from 'drizzle-orm'
 import { db } from '@/db'
-import { instances, agentOutputs, brandBooks } from '@/db/schema'
+import { instances, tenants, agentOutputs, brandBooks } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
@@ -15,8 +15,17 @@ const PERSONAL_TEMPLATES_DIR = resolve(TEMPLATES_BASE, 'personal-system')
 
 // Get API key for an instance: DB first, then env fallback
 export async function getApiKeyForInstance(instanceId: string): Promise<string> {
+    // Phase 1 resolution chain (most specific → most general):
+    //   1. instance.aiProviderKey       (per-instance override — explicit)
+    //   2. tenant.defaultAnthropicKey   (per-tenant default — agency / portfolio)
+    //   3. process.env.ANTHROPIC_API_KEY (master fallback — for system tasks)
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (inst?.aiProviderKey) return inst.aiProviderKey
+    if (inst?.tenantId) {
+        const [t] = await db.select({ key: tenants.defaultAnthropicKey })
+            .from(tenants).where(eq(tenants.id, inst.tenantId))
+        if (t?.key) return t.key
+    }
     return process.env.ANTHROPIC_API_KEY || ''
 }
 

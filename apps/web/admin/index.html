@@ -229,6 +229,10 @@ tbody tr:hover{background:var(--panel-2)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
         Clients
       </div>
+      <div class="nav-item" data-route="tenants">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21V12h6v9"/></svg>
+        Tenants
+      </div>
       <div class="nav-item" data-route="revenue">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         Revenue
@@ -336,6 +340,7 @@ api('/admin/me').then(function(r){
 var routes = {
   dashboard: { title: 'Dashboard', render: renderDashboard },
   clients:   { title: 'Clients',   render: renderClients },
+  tenants:   { title: 'Tenants',   render: renderTenants },
   revenue:   { title: 'Revenue',   render: renderRevenue },
   health:    { title: 'Health',    render: renderHealth },
   releases:  { title: 'Releases',  render: renderReleases },
@@ -918,6 +923,181 @@ async function renderReleases() {
   });
   html += '</tbody></table></div>';
   document.getElementById('content').innerHTML = html;
+}
+
+// ─── Tenants (Phase 1) ────────────────────────────────────────────────────
+// Multi-tenant org layer: a User can have multiple Tenants (e.g. Sergei
+// has "Flowmatic" + "ClientA" tenants on his master VPS). Each Tenant
+// owns 0..N Instances. Tenant has optional default Anthropic key (instance
+// override always wins; tenant default is fallback).
+async function renderTenants() {
+  var r = await api('/admin/tenants');
+  if (!r || !r.success) { document.getElementById('content').innerHTML = '<div class="empty">Failed to load tenants.</div>'; return; }
+  var rows = r.data || [];
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+    '<div style="color:var(--text-3);font-size:0.85rem">Tenants are org-level groupings between User and Instance. Each tenant has its own MIFKADA scope + optional default Anthropic key (instance override always wins).</div>' +
+    '<button class="btn btn-primary" onclick="openCreateTenantModal()">+ New Tenant</button>' +
+    '</div>';
+  if (rows.length === 0) {
+    html += '<div class="empty">No tenants yet. Click <strong>New Tenant</strong> to create the first one.</div>';
+  } else {
+    html += '<div class="table-wrap"><table><thead><tr><th>Name</th><th>Manager</th><th>Kind</th><th>Instances</th><th>Anthropic key</th><th>OpenAI key</th><th>MIFKADA</th><th>Active</th><th></th></tr></thead><tbody>';
+    rows.forEach(function(t){
+      html += '<tr>' +
+        '<td><strong>'+escapeHtml(t.name)+'</strong>'+(t.description?'<br/><span style="font-size:0.78rem;color:var(--text-3)">'+escapeHtml(t.description)+'</span>':'')+'</td>' +
+        '<td><span style="font-size:0.82rem">'+escapeHtml(t.managedByEmail||t.managedByUserId)+'</span></td>' +
+        '<td><span class="badge '+(t.kind==='managed'?'badge-warn':'badge-ok')+'">'+t.kind+'</span></td>' +
+        '<td>'+(t.instanceCount||0)+'</td>' +
+        '<td>'+(t.hasDefaultAnthropicKey?'✓':'<span style="color:var(--text-3)">—</span>')+'</td>' +
+        '<td>'+(t.hasDefaultOpenaiKey?'✓':'<span style="color:var(--text-3)">—</span>')+'</td>' +
+        '<td>'+(t.mifkadaEnabled?'<span class="badge badge-ok">'+escapeHtml(t.mifkadaScope)+'</span>':'<span style="color:var(--text-3)">off</span>')+'</td>' +
+        '<td>'+(t.isActive?'✓':'✗')+'</td>' +
+        '<td><button class="btn btn-sm" onclick="openTenantDetail(\''+escapeHtml(t.id)+'\')">Manage</button></td>' +
+        '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  document.getElementById('content').innerHTML = html;
+}
+
+function openCreateTenantModal() {
+  var html = '<div class="modal-bg show" onclick="if(event.target===this)closeTenantModal()"><div class="modal" style="max-width:520px">' +
+    '<h3 style="margin:0 0 16px">Create Tenant</h3>' +
+    '<div style="display:flex;flex-direction:column;gap:10px">' +
+    '<label>Managing User ID<input id="tn-user" placeholder="e.g. UUID or text id" style="width:100%"></label>' +
+    '<label>Name<input id="tn-name" placeholder="e.g. Flowmatic / ClientA" style="width:100%"></label>' +
+    '<label>Description<input id="tn-desc" placeholder="optional" style="width:100%"></label>' +
+    '<label>Kind<select id="tn-kind"><option value="own">own (managing user\'s own portfolio)</option><option value="managed">managed (agency client)</option></select></label>' +
+    '<label>Default Anthropic key (optional)<input id="tn-akey" placeholder="sk-ant-… or leave empty" style="width:100%"></label>' +
+    '<label><input type="checkbox" id="tn-mifkada"/> Enable MIFKADA</label>' +
+    '<label>MIFKADA scope<select id="tn-mscope"><option value="tenant">tenant (only this tenant\'s instances)</option><option value="vps">vps (all tenants on same VPS — admin-gated)</option></select></label>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">' +
+    '<button class="btn" onclick="closeTenantModal()">Cancel</button>' +
+    '<button class="btn btn-primary" onclick="submitCreateTenant()">Create</button>' +
+    '</div></div></div>';
+  var wrap = document.createElement('div');
+  wrap.id = 'tenant-modal-wrap';
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+}
+function closeTenantModal() {
+  var w = document.getElementById('tenant-modal-wrap');
+  if (w) w.remove();
+}
+async function submitCreateTenant() {
+  var body = {
+    managedByUserId: document.getElementById('tn-user').value.trim(),
+    name: document.getElementById('tn-name').value.trim(),
+    description: document.getElementById('tn-desc').value.trim() || undefined,
+    kind: document.getElementById('tn-kind').value,
+    defaultAnthropicKey: document.getElementById('tn-akey').value.trim() || undefined,
+    mifkadaEnabled: document.getElementById('tn-mifkada').checked,
+    mifkadaScope: document.getElementById('tn-mscope').value,
+  };
+  if (!body.managedByUserId || !body.name) { alert('Managing user + name are required'); return; }
+  var r = await api('/admin/tenants', { method: 'POST', body: JSON.stringify(body) });
+  if (!r || !r.success) { alert('Failed: ' + (r && r.message || 'unknown')); return; }
+  closeTenantModal();
+  renderTenants();
+}
+
+async function openTenantDetail(tenantId) {
+  var r = await api('/admin/tenants/' + encodeURIComponent(tenantId));
+  if (!r || !r.success) { alert('Failed to load tenant'); return; }
+  var t = r.data.tenant;
+  var insts = r.data.instances || [];
+  var html = '<div class="modal-bg show" onclick="if(event.target===this)closeTenantModal()"><div class="modal" style="max-width:720px">' +
+    '<h3 style="margin:0 0 4px">'+escapeHtml(t.name)+' <span style="font-size:0.78rem;color:var(--text-3)">'+escapeHtml(t.id)+'</span></h3>' +
+    '<div style="color:var(--text-3);font-size:0.82rem;margin-bottom:14px">Manager: '+escapeHtml(t.managedByUserId)+' | Kind: '+t.kind+'</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+    '<label>Name<input id="tnE-name" value="'+escapeHtml(t.name)+'"/></label>' +
+    '<label>Kind<select id="tnE-kind"><option value="own"'+(t.kind==='own'?' selected':'')+'>own</option><option value="managed"'+(t.kind==='managed'?' selected':'')+'>managed</option></select></label>' +
+    '<label style="grid-column:1/3">Description<input id="tnE-desc" value="'+escapeHtml(t.description||'')+'"/></label>' +
+    '<label style="grid-column:1/3">Default Anthropic key '+(t.defaultAnthropicKey?'<span style="color:var(--success)">(set)</span>':'<span style="color:var(--text-3)">(empty)</span>')+'<input id="tnE-akey" placeholder="sk-ant-… or leave to keep / empty to clear" type="password"/></label>' +
+    '<label><input type="checkbox" id="tnE-mifkada"'+(t.mifkadaEnabled?' checked':'')+'/> MIFKADA enabled</label>' +
+    '<label>MIFKADA scope<select id="tnE-mscope"><option value="tenant"'+(t.mifkadaScope==='tenant'?' selected':'')+'>tenant</option><option value="vps"'+(t.mifkadaScope==='vps'?' selected':'')+'>vps (admin-gated)</option></select></label>' +
+    '<label><input type="checkbox" id="tnE-active"'+(t.isActive?' checked':'')+'/> Active</label>' +
+    '</div>' +
+    '<h4 style="margin:18px 0 8px">Assigned instances ('+insts.length+')</h4>';
+  if (insts.length === 0) {
+    html += '<div class="empty" style="padding:12px">No instances assigned. Use the assign button below.</div>';
+  } else {
+    html += '<div class="table-wrap"><table><thead><tr><th>ID</th><th>Status</th><th>Plan</th><th>IP</th><th>Own AI key</th><th>Master</th></tr></thead><tbody>';
+    insts.forEach(function(i){
+      html += '<tr><td>'+escapeHtml(i.id)+'</td><td>'+escapeHtml(i.status)+'</td><td>'+escapeHtml(i.planKey||'')+'</td><td>'+escapeHtml(i.ip||'')+'</td><td>'+(i.hasOwnAiKey?'✓':'—')+'</td><td>'+(i.isMaster?'★':'')+'</td></tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">' +
+    '<button class="btn btn-sm" onclick="openAssignInstanceModal(\''+escapeHtml(t.id)+'\',\''+escapeHtml(t.managedByUserId)+'\')">+ Assign instance</button>' +
+    '<button class="btn" onclick="closeTenantModal()">Close</button>' +
+    '<button class="btn btn-primary" onclick="submitUpdateTenant(\''+escapeHtml(t.id)+'\')">Save changes</button>' +
+    '</div></div></div>';
+  var wrap = document.createElement('div');
+  wrap.id = 'tenant-modal-wrap';
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+}
+async function submitUpdateTenant(tenantId) {
+  var akeyEl = document.getElementById('tnE-akey');
+  var akey = akeyEl.value;
+  var body = {
+    name: document.getElementById('tnE-name').value.trim(),
+    description: document.getElementById('tnE-desc').value.trim() || null,
+    kind: document.getElementById('tnE-kind').value,
+    mifkadaEnabled: document.getElementById('tnE-mifkada').checked,
+    mifkadaScope: document.getElementById('tnE-mscope').value,
+    isActive: document.getElementById('tnE-active').checked,
+  };
+  if (akey === '') {
+    // Empty input means: clear the key. Send null explicitly.
+    body.defaultAnthropicKey = null;
+  } else {
+    // Non-empty: set new key. Distinguish "keep current" by NOT including key — but
+    // we don't have that signal in a single input. Convention: empty → clear,
+    // any value (incl. whitespace) → set. To "keep", just close without saving.
+    body.defaultAnthropicKey = akey;
+  }
+  var r = await api('/admin/tenants/' + encodeURIComponent(tenantId), { method: 'PATCH', body: JSON.stringify(body) });
+  if (!r || !r.success) { alert('Failed: ' + (r && r.message || 'unknown')); return; }
+  closeTenantModal();
+  renderTenants();
+}
+
+async function openAssignInstanceModal(tenantId, userId) {
+  var r = await api('/admin/tenants/unassigned?userId=' + encodeURIComponent(userId));
+  if (!r || !r.success) { alert('Failed to load instances'); return; }
+  var rows = r.data || [];
+  var html = '<div class="modal-bg show" onclick="if(event.target===this)closeAssignModal()"><div class="modal" style="max-width:600px">' +
+    '<h3 style="margin:0 0 12px">Assign instance to tenant</h3>' +
+    '<div style="color:var(--text-3);font-size:0.82rem;margin-bottom:10px">Showing all instances under user <code>'+escapeHtml(userId)+'</code>. Pick one to move into this tenant.</div>';
+  if (rows.length === 0) {
+    html += '<div class="empty">No instances under this user.</div>';
+  } else {
+    html += '<div class="table-wrap"><table><thead><tr><th>Instance</th><th>Status</th><th>Plan</th><th>Current Tenant</th><th></th></tr></thead><tbody>';
+    rows.forEach(function(i){
+      html += '<tr><td>'+escapeHtml(i.id)+'</td><td>'+escapeHtml(i.status)+'</td><td>'+escapeHtml(i.planKey||'')+'</td><td>'+(i.currentTenantName?escapeHtml(i.currentTenantName):'<span style="color:var(--text-3)">none</span>')+'</td>' +
+        '<td>'+(i.tenantId===tenantId?'<span style="color:var(--text-3)">already here</span>':'<button class="btn btn-sm btn-primary" onclick="submitAssign(\''+escapeHtml(tenantId)+'\',\''+escapeHtml(i.id)+'\')">→ Move</button>')+'</td></tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '<div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeAssignModal()">Close</button></div></div></div>';
+  var wrap = document.createElement('div');
+  wrap.id = 'assign-modal-wrap';
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+}
+function closeAssignModal() {
+  var w = document.getElementById('assign-modal-wrap');
+  if (w) w.remove();
+}
+async function submitAssign(tenantId, instanceId) {
+  var r = await api('/admin/tenants/' + encodeURIComponent(tenantId) + '/assign', { method: 'POST', body: JSON.stringify({ instanceId: instanceId }) });
+  if (!r || !r.success) { alert('Failed: ' + (r && r.message || 'unknown')); return; }
+  closeAssignModal();
+  closeTenantModal();
+  openTenantDetail(tenantId);
 }
 
 // ─── Audit ─────────────────────────────────────────────────────────────────

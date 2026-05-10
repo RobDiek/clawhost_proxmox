@@ -14,6 +14,10 @@ import {
     adminRefundAndTerminate,
     adminDashboardStatus, adminDashboardPublish,
 } from '@/controllers/admin'
+import {
+    adminListTenants, adminGetTenant, adminCreateTenant, adminUpdateTenant,
+    adminDeleteTenant, adminAssignInstanceToTenant, adminListUnassignedInstances,
+} from '@/controllers/admin/tenants'
 
 const app = new Hono()
 
@@ -40,6 +44,8 @@ app.use('/clients/*', requireAdmin2FA)
 app.use('/payments', requireAdmin2FA)
 app.use('/payments/*', requireAdmin2FA)
 app.use('/audit', requireAdmin2FA)
+app.use('/tenants', requireAdmin2FA)
+app.use('/tenants/*', requireAdmin2FA)
 
 app.get('/me', adminMe)
 app.post('/logout', adminLogout)
@@ -66,6 +72,15 @@ app.get('/clients/:id/upgrade-progress', adminUpgradeProgress)
 app.post('/upgrades/bulk', adminBulkUpgrade)
 
 app.get('/audit', adminListAudit)
+
+// ── Phase 1: Tenants (multi-tenant org layer) ──
+app.get('/tenants', adminListTenants)
+app.get('/tenants/unassigned', adminListUnassignedInstances)  // ?userId=xxx
+app.get('/tenants/:id', adminGetTenant)
+app.post('/tenants', adminCreateTenant)
+app.patch('/tenants/:id', adminUpdateTenant)
+app.delete('/tenants/:id', adminDeleteTenant)
+app.post('/tenants/:id/assign', adminAssignInstanceToTenant)
 
 // ── DFS credits manual grant (Phase 3.6) ──
 // Used for: bootstrap testing, customer-service refunds, welcome credits.
