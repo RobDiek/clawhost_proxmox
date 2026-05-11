@@ -241,7 +241,10 @@ export const researchPreflight = async (c: Context) => {
         }
     }
 
-    // ─── Check 3: DFS balance > $5 (basic threshold for warm pipeline) ──
+    // ─── Check 3: DFS balance ──
+    // Empirically a full cold-cache run is $1.5-$5 (not $8 as the original
+    // copy claimed — that figure was a safety margin from when warm-cache
+    // wasn't reliable). Warn only when actually under the realistic floor.
     const balanceCents = inst.dfsBalanceUsdCents ?? 0
     const balanceUsd = balanceCents / 100
     if (balanceUsd < 1) {
@@ -249,14 +252,14 @@ export const researchPreflight = async (c: Context) => {
             name: 'dfs_balance',
             status: 'fail',
             label_he: 'יתרת DataForSEO',
-            actionable_hint_he: `יתרה נוכחית: $${balanceUsd.toFixed(2)}. לרוץ pipeline cold-cache דרושים ~$5-8. טענו ב-/settings/dfs.`,
+            actionable_hint_he: `יתרה נוכחית: $${balanceUsd.toFixed(2)}. לרוץ pipeline cold-cache דרושים ~$1.5-5. טענו ב-/settings/dfs.`,
         })
-    } else if (balanceUsd < 8) {
+    } else if (balanceUsd < 3) {
         checks.push({
             name: 'dfs_balance',
             status: 'warning',
             label_he: `יתרת DFS: $${balanceUsd.toFixed(2)}`,
-            actionable_hint_he: 'יתרה נמוכה. cold-cache run עלול להיתקע באמצע אם cache miss בכל השלבים. מומלץ $8+ למחקר ראשון.',
+            actionable_hint_he: 'יתרה נמוכה. cold-cache run יכול להגיע ל-$5. מומלץ לטעון לפני הרצה ראשונה.',
         })
     } else {
         checks.push({
@@ -328,17 +331,19 @@ export const researchPreflight = async (c: Context) => {
         })
     }
 
-    // ─── Check 7: Backlinks API (optional, for deep link_audit) ──
-    // We check by attempting a lightweight DFS call only at run-time. For
-    // pre-flight, we surface an informational note so user knows which
-    // stages will run in degraded mode.
-    checks.push({
-        name: 'backlinks_subscription',
-        status: 'warning',
-        label_he: 'DataForSEO Backlinks subscription',
-        actionable_hint_he: 'אם המנוי לא פעיל — link_audit ירוץ במצב מוגבל (soft-fail). הפעלה: app.dataforseo.com/backlinks-subscription. ' +
-            'בלי זה תקבלו רק link_gap_targets generic ולא יוצרים outreach plan ספציפי.',
-    })
+    // ─── Check 7: Backlinks API (only relevant for legacy direct-mode DFS) ──
+    // For proxy-mode (default) the Backlinks subscription rides on Flowmatic's
+    // master DFS account — always active. Only show the warning to users
+    // who chose to bring their own DFS account (dfsUseProxy=false), since
+    // they alone are responsible for maintaining the $100/mo subscription.
+    if (inst.dfsUseProxy === false) {
+        checks.push({
+            name: 'backlinks_subscription',
+            status: 'warning',
+            label_he: 'DataForSEO Backlinks subscription',
+            actionable_hint_he: 'במצב מתקדם (חשבון DFS אישי) — ודאו שמנוי Backlinks פעיל ב-app.dataforseo.com/backlinks-subscription, אחרת link_audit ירוץ במצב מוגבל.',
+        })
+    }
 
     // ─── Compute totals ──
     const fails = checks.filter(c => c.status === 'fail')
