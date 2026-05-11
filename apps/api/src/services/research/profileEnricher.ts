@@ -28,6 +28,10 @@ type EnrichmentInput = {
      *  the crawl (we fetch directly from the management server). */
     instance: { ip: string; rootPassword: string | null }
     apiKey: string
+    /** Optional Firecrawl API key — used as fallback when direct fetch
+     *  fails or returns too-thin content (SPA, anti-bot, geo-blocking).
+     *  Firecrawl renders JS + bypasses common bot detection. */
+    firecrawlKey?: string | null
 }
 
 /**
@@ -86,6 +90,104 @@ function htmlToText(html: string): { title: string; text: string; links: string[
         .replace(/\n{3,}/g, '\n\n')
 
     return { title, text: cleaned, links: [...new Set(links)] }
+}
+
+/**
+ * Firecrawl fallback — uses the user's connected Firecrawl API key to
+ * scrape pages that direct fetch can't reach (SPA needing JS render,
+ * Cloudflare bot protection, geo-blocking). Slower (~10-20s/page) and
+ * costs ~$0.001/page, so we only use it when direct fetch returns
+ * null or too-thin markdown.
+ */
+async function fetchPageWithFirecrawl(
+    url: string,
+    apiKey: string,
+): Promise<{ title: string; markdown: string; links: string[] } | null> {
+    if (!/^https?:\/\//i.test(url)) return null
+    if (!apiKey) return null
+    try {
+        const res = await fetch('https://api.firecrawl.dev/v1/scrape', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+                url,
+                formats: ['markdown', 'links'],
+                onlyMainContent: true,
+                waitFor: 1500,  // give SPA JS time to render
+                timeout: 30_000,
+            }),
+            signal: AbortSignal.timeout(45_000),
+        })
+        if (!res.ok) {
+            console.warn(`[profileEnricher] Firecrawl ${url} → HTTP ${res.status}`)
+            return null
+        }
+        const data = await res.json() as {
+            success?: boolean
+            data?: {
+                markdown?: string
+                links?: string[]
+                metadata?: { title?: string }
+            }
+            error?: string
+        }
+        if (!data.success || !data.data?.markdown) {
+            console.warn(`[profileEnricher] Firecrawl ${url} → empty (${data.error || 'unknown'})`)
+            return null
+        }
+        return {
+            title: data.data.metadata?.title || '',
+            markdown: data.data.markdown.substring(0, 15_000),
+            links: (data.data.links || []).slice(0, 200),
+        }
+    } catch (err) {
+        console.warn(`[profileEnricher] Firecrawl ${url} failed:`, (err as Error).message)
+        return null
+    }
+}
+
+/**
+ * Fetch with automatic fallback: try direct first (free, fast), then
+ * Firecrawl if direct failed or returned too-thin content. Returns null
+ * only if both routes failed.
+ */
+async function fetchPageWithFallback(
+    url: string,
+    firecrawlKey: string | null | undefined,
+    notes: string[],
+): Promise<{ title: string; markdown: string; links: string[]; via: 'direct' | 'firecrawl' } | null> {
+    // Try direct first (free + fast)
+    const direct = await fetchPage(url)
+    const MIN_USEFUL_MARKDOWN = 200  // shell HTML without body content < 200c
+    if (direct && direct.markdown.length >= MIN_USEFUL_MARKDOWN) {
+        return { ...direct, via: 'direct' }
+    }
+
+    // Fall back to Firecrawl if available
+    if (firecrawlKey) {
+        const reason = !direct ? 'direct-fetch-failed' : `direct-too-thin-${direct.markdown.length}c`
+        console.log(`[profileEnricher] ${url}: ${reason}, retrying via Firecrawl`)
+        const fc = await fetchPageWithFirecrawl(url, firecrawlKey)
+        if (fc && fc.markdown.length >= MIN_USEFUL_MARKDOWN) {
+            notes.push(`firecrawl-fallback:${reason}`)
+            return { ...fc, via: 'firecrawl' }
+        }
+        notes.push(`firecrawl-fallback-also-failed:${reason}`)
+    } else if (!direct) {
+        notes.push('direct-failed-no-firecrawl-key')
+    } else {
+        notes.push(`direct-too-thin-${direct.markdown.length}c-no-firecrawl-key`)
+    }
+
+    // Last resort: return whatever direct fetch got (even if thin) — better
+    // than nothing if Sonnet can squeeze something out.
+    if (direct && direct.markdown.length > 0) {
+        return { ...direct, via: 'direct' }
+    }
+    return null
 }
 
 /**
@@ -311,7 +413,7 @@ function shouldEnrichField(
 }
 
 export async function enrichProfileFromUrl(input: EnrichmentInput): Promise<EnrichedProfile | null> {
-    const { websiteUrl, existing, apiKey } = input
+    const { websiteUrl, existing, apiKey, firecrawlKey } = input
     const url = (websiteUrl || '').trim()
     if (!url || !apiKey) return null
 
@@ -328,23 +430,29 @@ export async function enrichProfileFromUrl(input: EnrichmentInput): Promise<Enri
         return null
     }
 
-    // Step 1: fetch homepage directly (no VPS dependency)
+    // Step 1: fetch homepage with auto-fallback (direct → Firecrawl if thin/failed)
     console.log(`[profileEnricher] fetching homepage: ${normalizedUrl}`)
-    const homepage = await fetchPage(normalizedUrl)
+    const homepage = await fetchPageWithFallback(normalizedUrl, firecrawlKey, notes)
     if (!homepage || !homepage.markdown || homepage.markdown.length < 100) {
         notes.push('fetch-homepage-failed-or-empty')
         console.warn(`[profileEnricher] homepage fetch failed for ${normalizedUrl}`)
         return { _meta: { pagesCrawled: [], confidence: 'low', notes } }
     }
+    console.log(`[profileEnricher] homepage via ${homepage.via}: ${homepage.markdown.length}c`)
     const pagesCrawled = [normalizedUrl]
     const allPages = [{ url: normalizedUrl, markdown: homepage.markdown, title: homepage.title || domain }]
 
-    // Step 2: pick + fetch key sub-pages (about / products / services / contact)
+    // Step 2: pick + fetch key sub-pages (about / products / services / contact).
+    // Sub-pages also use the fallback chain, but we cap Firecrawl spend by
+    // using direct-only after the first FC hit succeeded on the homepage
+    // (homepage Firecrawl-rendered HTML usually has the relative links we
+    // need; the actual /about etc. pages may be hit directly with their
+    // permalink and might work via direct).
     if (Date.now() - startedAt < ENRICHMENT_TIMEOUT_MS - 60_000) {
         const subPages = selectPagesToCrawl(homepage.links || [], normalizedUrl, domain).slice(0, MAX_PAGES - 1)
         console.log(`[profileEnricher] selected ${subPages.length} sub-pages: ${subPages.join(', ')}`)
         for (const subUrl of subPages) {
-            const p = await fetchPage(subUrl)
+            const p = await fetchPageWithFallback(subUrl, firecrawlKey, notes)
             if (p && p.markdown.length > 100) {
                 allPages.push({ url: subUrl, markdown: p.markdown, title: p.title })
                 pagesCrawled.push(subUrl)

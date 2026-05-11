@@ -700,12 +700,14 @@ export const enrichProfile = async (c: Context) => {
             return fail(c, 'נדרש מפתח Anthropic מוגדר.', 400)
         }
 
+        const __firecrawlKey = (__agent?.firecrawlKey || instance.firecrawlKey) as string | null
         const { enrichProfileFromUrl, enrichmentToAnswersPatch } = await import('@/services/research/profileEnricher')
         const enriched = await enrichProfileFromUrl({
             websiteUrl,
             existing: existingAnswers,
             instance: { ip: instance.ip, rootPassword: instance.rootPassword },
             apiKey,
+            firecrawlKey: __firecrawlKey,
         })
         if (!enriched) {
             return fail(c, 'לא הצלחנו לשלוף מידע מהאתר. בדקו שהוא נגיש.', 502)
@@ -8666,18 +8668,21 @@ export const setupAgents = async (c: Context) => {
 
         // Phase 2.3.I — auto-enrich profile from website URL when fields
         // are blank or too thin. User-provided text always wins; we only
-        // fill what they didn't write enough about. Without this, a 10-char
-        // description like "חומרי אריזה" yields a generic strategy because
-        // the LLM has nothing to reason about. Best-effort: if enrichment
-        // fails (network / LLM error / no URL) we proceed with raw answers.
+        // fill what they didn't write enough about. Best-effort: if
+        // enrichment fails (network / LLM error / no URL) we proceed
+        // with raw answers. Uses Firecrawl as fallback when direct fetch
+        // can't read a JS-heavy / anti-bot site.
         if (answers.websiteUrl) {
             try {
+                const __enrichAgent = await resolveActiveAgent(c, instanceId)
+                const __firecrawlKey = (__enrichAgent?.firecrawlKey || instance.firecrawlKey) as string | null
                 const { enrichProfileFromUrl, enrichmentToAnswersPatch } = await import('@/services/research/profileEnricher')
                 const enriched = await enrichProfileFromUrl({
                     websiteUrl: answers.websiteUrl,
                     existing: answers as unknown as Record<string, unknown>,
                     instance: { ip: instance.ip, rootPassword: instance.rootPassword },
                     apiKey,
+                    firecrawlKey: __firecrawlKey,
                 })
                 if (enriched) {
                     const patch = enrichmentToAnswersPatch(enriched)
