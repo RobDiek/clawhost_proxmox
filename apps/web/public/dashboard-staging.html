@@ -21289,10 +21289,25 @@ async function disconnectIntegration(type) {
 
 // On page load — restore saved integration states
 function restoreIntegrationStates() {
+  // Phase 2.3.K(fix4) — primary source of truth is the per-agent
+  // agent_integrations bundle from the backend overlay. Falls back to
+  // legacy localStorage flag (for single-agent / pre-overlay deploys).
   var types = ['brave', 'replicate', 'gemini', 'resend'];
+  var __activeMatehId = localStorage.getItem('cf_active_mateh_agent_id') || '';
+  var agentInts = __activeMatehId
+    ? ((instanceData && instanceData.activeAgentIntegrations) || {})
+    : ((instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations[activeAgent]) || {});
   types.forEach(function(type) {
-    if (localStorage.getItem('cf_' + type + '_saved')) {
+    var fromBackend = agentInts[type] && agentInts[type].connected;
+    var fromLocal = intStorGet('cf_' + type + '_saved');
+    if (fromBackend || fromLocal) {
       showIntegrationSavedState(type);
+      // Also mirror into the in-memory SEO bundle state so the "2/3 / 3/3"
+      // badge updates correctly on page reload (the bundle counter reads
+      // `_seoIntState`, not the DOM).
+      if (typeof setSeoIntConnected === 'function' && ['brave', 'gsc', 'dataforseo', 'firecrawl'].indexOf(type) >= 0) {
+        setSeoIntConnected(type, true);
+      }
     }
   });
   // Restore SEO integration states
