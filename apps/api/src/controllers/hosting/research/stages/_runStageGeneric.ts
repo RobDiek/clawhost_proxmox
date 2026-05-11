@@ -471,6 +471,11 @@ function recomputeCompetitorScorecards(records: unknown[]): void {
         const card = sc as Record<string, unknown>
         const num = (k: string): number => {
             const v = card[k]
+            // Phase 4.0(fix2) — explicit null/undefined check. Number(null)===0
+            // which passes Number.isFinite, masking the "degraded scorecard"
+            // case (model emitted null for unavailable components but recompute
+            // saw them as 0 and computed a misleadingly small total).
+            if (v === null || v === undefined) return NaN
             const n = typeof v === 'number' ? v : Number(v)
             return Number.isFinite(n) ? n : NaN
         }
