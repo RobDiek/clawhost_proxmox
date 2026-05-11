@@ -151,6 +151,19 @@ export interface CompetitorEnrichment {
     deepPages?: CompetitorPageSnapshot[]
     /** Phase E2.4 — Google Business reviews aggregated sentiment (when GMB cid found). */
     reviews?: CompetitorReviewsSummary
+    /**
+     * Phase 4.0(fix4) — rating + vote count fuzzy-matched from
+     * `ourGmb.people_also_search`. Free supplementary signal — present
+     * whenever DFS GMB lookup for OUR business included the competitor
+     * in its "people also search" panel. Pure rating/count (no text);
+     * `reviews` above adds sentiment when googleReviews(cid) succeeds.
+     */
+    palsRating?: {
+        title?: string
+        rating?: number
+        votes_count?: number
+        cid?: string
+    }
     /** Phase E2.5 — top 30 ranked keywords for topic-coverage matrix synthesis. */
     topRankedKeywords?: CompetitorRankedKeyword[]
     /** Per-call diagnostics so the prompt can mention "data unavailable" honestly */
@@ -490,6 +503,45 @@ export async function prefetchCompetitorLandscape(
         console.warn(`[prefetch/competitor_landscape] deep page fetch loop error:`, (err as Error).message)
     }
 
+    // ─── Phase 4.0(fix4) — extract competitor ratings from ourGmb.people_also_search ──
+    // DFS' googleMyBusiness response for OUR business includes a
+    // `people_also_search` array of related local-pack entries (4 here for
+    // Packing Station: GET PACKING 4.8/1030, Moving Station 5/6, etc).
+    // Free supplementary data — no extra call. Used as a baseline rating
+    // signal for any top-enriched competitor whose name fuzzy-matches an
+    // entry. Per-competitor `googleReviews(cid)` (next block) is still
+    // attempted for sentiment, but this block guarantees that rating +
+    // sample_size land on the record even if the reviews call fails.
+    type PalsEntry = { title?: string; cid?: string; rating?: { value?: number; votes_count?: number } }
+    const palsRaw = (ourGmb as { people_also_search?: unknown } | null)?.people_also_search
+    const pals: PalsEntry[] = Array.isArray(palsRaw) ? (palsRaw as PalsEntry[]) : []
+    if (pals.length > 0) {
+        console.log(`[prefetch/competitor_landscape] ourGmb.people_also_search → ${pals.length} entries: ${pals.map(p => `${p.title}(${p.rating?.votes_count}r)`).join(', ')}`)
+    }
+    // Normalise competitor domain stems for fuzzy matching ("getpacking" vs
+    // "Get Packing", "hakol-lamovil" vs "הכל למוביל").
+    const normaliseHe = (s: string) => (s || '').toLowerCase()
+        .replace(/[\s\-_.]/g, '')
+        .replace(/[֐-׿]+/g, ($0) => $0)  // keep Hebrew chars
+    for (const enrich of topEnriched) {
+        const wantStem = normaliseHe(enrich.domain.split('.')[0])
+        const match = pals.find(p => {
+            const t = normaliseHe(p.title || '')
+            return t.includes(wantStem) || wantStem.includes(t.slice(0, 6))
+        })
+        if (match && match.rating && (match.rating.votes_count || 0) > 0) {
+            // Pre-populate from the freebie. googleReviews(cid) below MAY
+            // upgrade this with theme/sentiment text. If that fails we
+            // still have the rating + count.
+            enrich.palsRating = {
+                title: match.title,
+                rating: match.rating.value,
+                votes_count: match.rating.votes_count,
+                cid: typeof match.cid === 'string' ? match.cid : undefined,
+            }
+        }
+    }
+
     // ─── Phase E2.4 — Google Business reviews per top-5 competitor ──
     // For each competitor, look up GMB → if cid available → fetch up to 50
     // reviews → aggregate sentiment heuristically.
@@ -525,8 +577,14 @@ export async function prefetchCompetitorLandscape(
         if (!candidates.includes(baseDomain)) candidates.push(baseDomain)
 
         let cid: string | null = null
+        let matchedTitle: string | null = null
         let usedKeyword: string | null = null
         const triedKeywords: string[] = []
+        // Phase 4.0(fix4) — seed candidate list with people_also_search title
+        // (already known to be a real GMB-registered business in our market).
+        if (enrich.palsRating?.title && !candidates.includes(enrich.palsRating.title)) {
+            candidates.unshift(enrich.palsRating.title)
+        }
         for (const kw of candidates) {
             triedKeywords.push(kw)
             try {
@@ -535,9 +593,10 @@ export async function prefetchCompetitorLandscape(
                     language_code: languageCode,
                 })
                 trackCall(gmbRes)
-                const found = gmbRes.items[0]?.cid
-                if (found) {
-                    cid = found
+                const found = gmbRes.items[0]
+                if (found?.cid) {
+                    cid = found.cid
+                    matchedTitle = found.title || null
                     usedKeyword = kw
                     break
                 }
@@ -546,23 +605,52 @@ export async function prefetchCompetitorLandscape(
             }
         }
 
+        // If direct lookup didn't find a cid but people_also_search did,
+        // adopt that one — saves a competitor whose name doesn't match
+        // our SLD heuristic ("הכל למוביל" vs "hakol-lamovil").
+        if (!cid && enrich.palsRating?.cid) {
+            cid = enrich.palsRating.cid
+            matchedTitle = enrich.palsRating.title || null
+            usedKeyword = `pals:${enrich.palsRating.title}`
+        }
+
         if (!cid) {
             enrich.enrichmentMissing.push(`gmb_not_found(tried:${triedKeywords.join('|')})`)
             continue
         }
-        console.log(`[prefetch/competitor_landscape] GMB matched ${baseDomain} via "${usedKeyword}" (cid=${cid})`)
-        try {
-            const revRes = await googleReviews(instanceId, cid, { limit: 50, sortBy: 'newest' })
-            trackCall(revRes)
-            if (revRes.items.length > 0) {
-                enrich.reviews = aggregateReviews(revRes.items)
-                reviewsFetchedCount += revRes.items.length
-            } else {
-                enrich.enrichmentMissing.push('no_reviews_returned')
+        console.log(`[prefetch/competitor_landscape] GMB matched ${baseDomain} via "${usedKeyword}" (cid=${cid}, title="${matchedTitle}")`)
+        // Phase 4.0(fix4) — DFS's google_reviews endpoint historically 404'd
+        // when fed a CID directly (despite the docs claim that CID works as
+        // `keyword`). Empirically business name + location code is the path
+        // that actually returns reviews. Try title first (real signal),
+        // fall back to cid only as a last resort.
+        const reviewsAttempts: Array<{ key: string; label: string }> = []
+        if (matchedTitle) reviewsAttempts.push({ key: matchedTitle, label: 'title' })
+        reviewsAttempts.push({ key: cid, label: 'cid' })
+
+        let reviewsLoaded = false
+        for (const attempt of reviewsAttempts) {
+            try {
+                const revRes = await googleReviews(instanceId, attempt.key, {
+                    limit: 50,
+                    sortBy: 'newest',
+                    location_code: LOCATION_IL,
+                    language_code: languageCode,
+                })
+                trackCall(revRes)
+                if (revRes.items.length > 0) {
+                    enrich.reviews = aggregateReviews(revRes.items)
+                    reviewsFetchedCount += revRes.items.length
+                    reviewsLoaded = true
+                    console.log(`[prefetch/competitor_landscape] reviews matched ${baseDomain} via ${attempt.label}="${attempt.key.slice(0, 40)}" (${revRes.items.length} reviews)`)
+                    break
+                }
+            } catch (err) {
+                console.warn(`[prefetch/competitor_landscape] reviews via ${attempt.label}="${attempt.key.slice(0, 40)}" failed:`, (err as Error).message)
             }
-        } catch (err) {
-            enrich.enrichmentMissing.push('reviews_fetch_failed')
-            console.warn(`[prefetch/competitor_landscape] reviews ${baseDomain} (cid=${cid}) failed:`, (err as Error).message)
+        }
+        if (!reviewsLoaded) {
+            enrich.enrichmentMissing.push('reviews_fetch_failed_all_strategies')
         }
     }
 

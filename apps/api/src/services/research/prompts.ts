@@ -203,6 +203,14 @@ function renderEnrichmentTable(top: CompetitorEnrichment[]): string {
         const reviewsBlock = e.reviews
             ? '\n- **Google reviews sentiment (Phase E2.4 — sample of ' + e.reviews.sample_size + '):**\n' + renderReviewsBlock(e.reviews)
             : ''
+        // Phase 4.0(fix4) — render pals rating (rating + votes_count) as a
+        // separate signal so the prompt sees a real headline number even
+        // when sentiment text fetch failed. Both blocks coexist when DFS
+        // returns sentiment — pals gives the count, reviews gives the
+        // breakdown + themes.
+        const palsBlock = e.palsRating
+            ? `\n- **Google rating (from ourGmb.people_also_search — DFS authoritative):** ⭐ ${e.palsRating.rating}/5 · ${e.palsRating.votes_count} reviews · listed as "${e.palsRating.title}"`
+            : ''
         const rankedKwBlock = e.topRankedKeywords && e.topRankedKeywords.length > 0
             ? '\n- **Top ranked keywords (Phase E2.5 — top 20 by traffic — drives topic-matrix synthesis):**\n' + renderTopRankedKeywords(e.topRankedKeywords.slice(0, 20))
             : ''
@@ -210,7 +218,7 @@ function renderEnrichmentTable(top: CompetitorEnrichment[]): string {
 - **שיתופי keywords:** ${e.sharedKeywords} | **avg position:** ${e.avgPosition.toFixed(1)} | **organic_count:** ${e.organicCount ?? '—'}
 - **Link profile (DFS backlinks/summary):** ${bls}
 - **Top anchor texts (DFS backlinks/anchors):** ${topAnchors}
-- **On-page (DFS on_page/instant_pages, homepage only):** ${onPage}${deepBlock}${reviewsBlock}${rankedKwBlock}`
+- **On-page (DFS on_page/instant_pages, homepage only):** ${onPage}${palsBlock}${deepBlock}${reviewsBlock}${rankedKwBlock}`
     }).join('\n\n')
 }
 
@@ -484,7 +492,7 @@ ${DFS_DATA_RULE}
         "what_they_do_better_inside": ["1-3 דברים קונקרטיים שזיהיתם בעמודים שלהם שאנחנו לא עושים"]
       },
       "reviews_intel": {
-        "_note": "Phase E2.4 — מבוסס על reviews (Google reviews aggregated sentiment). אם reviews חסר ב-DFS data — סמנו data_unavailable + confidence: working_hypothesis.",
+        "_note": "Phase E2.4/4.0 — שני מקורות אפשריים: (1) Phase E2.4 reviews aggregation עם sentiment + themes (מלא); (2) Phase 4.0 palsRating מ-ourGmb.people_also_search — רק rating + votes_count, אין text. **אם palsRating נוכח** ב-prompt עבור המתחרה — חובה למלא sample_size + avg_rating מהמספרים שלו, ולסמן top_complaint_themes / top_praise_themes כריקים []. **אסור** לסמן 'data_unavailable' כשיש palsRating — זה סותר את הנתון האמיתי שהמערכת מסרה.",
         "sample_size": 0,
         "avg_rating": 0,
         "positive_pct": 0,
@@ -492,7 +500,7 @@ ${DFS_DATA_RULE}
         "owner_engagement": "high | medium | low",
         "top_complaint_themes": ["3 themes לכל היותר, מתוך top_complaints"],
         "top_praise_themes": ["3 themes לכל היותר, מתוך top_praises"],
-        "what_we_learn": "1-2 משפטים בעברית: מה הלקוחות שלהם אומרים שאנחנו צריכים לקחת בחשבון. אם complaints חוזרים על themes ספציפיים — אלו הזדמנויות שלנו (לעשות טוב יותר את מה שהם נכשלים בו)"
+        "what_we_learn": "1-2 משפטים בעברית: מה הלקוחות שלהם אומרים שאנחנו צריכים לקחת בחשבון. אם complaints חוזרים על themes ספציפיים — אלו הזדמנויות שלנו (לעשות טוב יותר את מה שהם נכשלים בו). אם רק palsRating זמין (אין themes) — ציינו 'מה הלקוחות שלהם אומרים — דורש fetch ידני, אך הדירוג הגבוה/נמוך נמדד מ-N reviews מאומתות'."
       },
       "topic_coverage": {
         "_note": "Phase E2.5 — מבוסס על topRankedKeywords של המתחרה (top 30 by traffic). סווגו את ה-keywords לתוך 3-5 topics/clusters שמשקפים את התחומים שהם dominate-ים. אם topRankedKeywords חסר — confidence: working_hypothesis.",

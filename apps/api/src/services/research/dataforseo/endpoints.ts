@@ -547,10 +547,17 @@ export async function trustpilotReviews(
 }
 
 /**
- * Google Business reviews — Phase E2.4. Per-place customer reviews via the
- * place's CID (returned by googleMyBusiness).
+ * Google Business reviews — Phase E2.4. Per-place customer reviews.
  *
  * Endpoint: business_data/google/reviews/live
+ *
+ * Phase 4.0(fix4): DFS's docs claim `keyword` accepts business name,
+ * CID, or place_id — but in practice CIDs return 404 ("No Search
+ * Results") roughly half the time even when the CID is valid (verified
+ * against Google Maps). Empirically the business NAME with location_code
+ * is the most reliable strategy. Caller is expected to try
+ * matchedTitle first (from googleMyBusiness response.title) and only
+ * fall back to CID/place_id when title isn't available.
  *
  * For IL businesses, this is the most reliable review source — Trustpilot
  * coverage is sparse for the Israeli market while almost every brick-and-
@@ -558,14 +565,16 @@ export async function trustpilotReviews(
  */
 export async function googleReviews(
     instanceId: string,
-    cidOrPlaceId: string,
-    opts: { limit?: number; sortBy?: 'newest' | 'highest_rating' | 'lowest_rating' | 'most_relevant' } = {},
+    keywordOrCidOrPlaceId: string,
+    opts: { limit?: number; sortBy?: 'newest' | 'highest_rating' | 'lowest_rating' | 'most_relevant'; location_code?: number; language_code?: string } = {},
 ): Promise<CallResult<GoogleReviewItem>> {
-    const params = {
-        keyword: cidOrPlaceId,  // DFS accepts CID as keyword for this endpoint
+    const params: Record<string, unknown> = {
+        keyword: keywordOrCidOrPlaceId,
         depth: opts.limit ?? 100,
         sort_by: opts.sortBy ?? 'newest',
     }
+    if (opts.location_code) params.location_code = opts.location_code
+    if (opts.language_code) params.language_code = opts.language_code
     return cachedCall<GoogleReviewItem>(
         instanceId,
         'business_data/google/reviews/live',
