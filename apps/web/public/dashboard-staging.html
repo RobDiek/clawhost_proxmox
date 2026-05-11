@@ -12049,12 +12049,16 @@ function renderStageCardV2(sid, idx) {
     stateColor = '#6B7280'; stateBg = '#F3F4F6'; stateLabel = '⏸ ממתין';
   }
 
-  var confidence = result && result.confidence;
+  // Phase 4.0(fix5) — while a stage is loading, hide stale per-result
+  // badges (confidence / QA / cost) from the previous run. Without this
+  // the user sees "running + $0.005 + QA: 1 hard + בינוני" simultaneously
+  // and can't tell whether anything is actually happening.
+  var confidence = !isLoading && result && result.confidence;
   var confColor = confidence === 'high' ? '#10B981' : confidence === 'medium' ? '#F59E0B' : confidence === 'working_hypothesis' ? '#EF4444' : '#9CA3AF';
   var confLabel = confidence === 'high' ? 'גבוה' : confidence === 'medium' ? 'בינוני' : confidence === 'working_hypothesis' ? 'השערה' : '';
 
   var qualBadge = '';
-  if (result && result.qualityGate) {
+  if (!isLoading && result && result.qualityGate) {
     var qg = result.qualityGate;
     if (qg.skipped) qualBadge = '<span title="self-critique skipped" style="font-size:0.7rem;color:#9CA3AF;margin-right:6px">QA: skipped</span>';
     else if (qg.hardFailures && qg.hardFailures.length) qualBadge = '<span title="' + (qg.hardFailures.join(' / ')) + '" style="font-size:0.7rem;color:#991B1B;background:#FEE2E2;padding:1px 6px;border-radius:4px;margin-right:6px">QA: ' + qg.hardFailures.length + ' hard</span>';
@@ -12062,7 +12066,8 @@ function renderStageCardV2(sid, idx) {
     else qualBadge = '<span title="all checks passed" style="font-size:0.7rem;color:#065F46;background:#D1FAE5;padding:1px 6px;border-radius:4px;margin-right:6px">QA ✓</span>';
   }
 
-  var costBadge = (result && typeof result.dfsCost === 'number' && result.dfsCost > 0)
+  // Phase 4.0(fix5) — also hide cost while loading (was showing previous run's $)
+  var costBadge = (!isLoading && result && typeof result.dfsCost === 'number' && result.dfsCost > 0)
     ? '<span style="font-size:0.7rem;color:#6B7280;direction:ltr;margin-right:6px">$' + result.dfsCost.toFixed(3) + '</span>'
     : '';
 
