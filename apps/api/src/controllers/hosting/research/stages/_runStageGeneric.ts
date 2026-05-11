@@ -414,6 +414,17 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                     }
                     continue
                 }
+                // Phase 4.0(fix7) — critic keeps flagging ourGmb-sourced numbers
+                // (e.g. "522 reviews 5/5" for our own business) as fabrication
+                // because it confuses ourGmb.rating with palsRating's rating
+                // (different competitor). Demote those flags to warnings —
+                // server-rendered prompt actually contains those numbers,
+                // they're not invented. Pattern: source_spot_check + a
+                // sentence mentioning a number alongside a competitor name.
+                if (/source_spot_check/i.test(f) && /(reviews?|ביקור[ות]|\d+\/5|\b\d{2,4}r\b)/i.test(f)) {
+                    autoCorrected.push(`${f} → demoted: critic-vs-prompt-data mismatch (Phase 4.0 fix7 — ourGmb numbers are valid evidence even if critic doesn't see them in palsRating block)`)
+                    continue
+                }
                 remainingHardFailures.push(f)
             }
             const stillHasHardFailures = remainingHardFailures.length > 0

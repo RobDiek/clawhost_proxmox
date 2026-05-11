@@ -252,16 +252,31 @@ function repairTruncatedJson(src: string): string {
 
 /**
  * Compute a section-level confidence rollup from an array of records.
- * Worst-case: any working_hypothesis → working_hypothesis; any medium without
- * working_hypothesis → medium; all high → high.
+ *
+ * Phase 4.0(fix7) — was worst-case (any working_hypothesis → whole stage
+ * is working_hypothesis). For competitor_landscape that fired whenever
+ * any tail competitor had no enrichment, even when the top-3 flagship
+ * records were fully sourced — misleading "low quality" red badge over
+ * an actually-strong stage.
+ *
+ * New: majority rule with a quality floor.
+ *   - ≥50% of records `high` → high
+ *   - ≥50% of records `working_hypothesis` → working_hypothesis
+ *   - otherwise → medium
+ *
+ * Tail records being unenriched is normal data shape; the stage's
+ * overall confidence should reflect what the user can actually rely on.
  */
 export function rollupConfidence(records: Array<{ confidence?: string }>): 'high' | 'medium' | 'working_hypothesis' | undefined {
     if (records.length === 0) return undefined
-    let worst: 'high' | 'medium' | 'working_hypothesis' = 'high'
+    let high = 0, medium = 0, wh = 0
     for (const r of records) {
-        const c = r.confidence
-        if (c === 'working_hypothesis') return 'working_hypothesis'
-        if (c === 'medium' && worst === 'high') worst = 'medium'
+        if (r.confidence === 'high') high++
+        else if (r.confidence === 'medium') medium++
+        else if (r.confidence === 'working_hypothesis') wh++
     }
-    return worst
+    const total = records.length
+    if (high / total >= 0.5) return 'high'
+    if (wh / total >= 0.5) return 'working_hypothesis'
+    return 'medium'
 }
