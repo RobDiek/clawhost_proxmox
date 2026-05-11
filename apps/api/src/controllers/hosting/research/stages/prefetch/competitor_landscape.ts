@@ -518,16 +518,36 @@ export async function prefetchCompetitorLandscape(
     if (pals.length > 0) {
         console.log(`[prefetch/competitor_landscape] ourGmb.people_also_search → ${pals.length} entries: ${pals.map(p => `${p.title}(${p.rating?.votes_count}r)`).join(', ')}`)
     }
-    // Normalise competitor domain stems for fuzzy matching ("getpacking" vs
-    // "Get Packing", "hakol-lamovil" vs "הכל למוביל").
-    const normaliseHe = (s: string) => (s || '').toLowerCase()
-        .replace(/[\s\-_.]/g, '')
-        .replace(/[֐-׿]+/g, ($0) => $0)  // keep Hebrew chars
+    // Normalise for fuzzy matching: strip whitespace + punctuation, lower-case
+    // Latin parts, keep Hebrew. Pals titles are LONG: "קרטונים וחומרי אריזה
+    // למעבר דירה - Shop GetMoving" — the substring with Latin brand is what
+    // matches against domain SLD like "getmoving".
+    const normalise = (s: string) => (s || '').toLowerCase().replace(/[\s\-_.,|·–—:'"()/]+/g, '')
+    // English brand tokens common in IL store names. If domain SLD contains
+    // any of these as a sub-stem ("getpacking" → ["get","packing"]) it's
+    // unlikely to be a single contiguous English word in a Hebrew title,
+    // so we also split the SLD by camelCase + common boundaries for
+    // partial-word matching.
+    const splitStem = (sld: string): string[] => {
+        // camelCase split: "getMoving" → ["get","moving"]; "bestbox" stays whole.
+        const parts = sld.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase().split(/[\s_]+/).filter(Boolean)
+        return parts.length > 1 ? parts : [sld.toLowerCase()]
+    }
     for (const enrich of topEnriched) {
-        const wantStem = normaliseHe(enrich.domain.split('.')[0])
+        const sld = enrich.domain.split('.')[0]
+        const wantWhole = normalise(sld)
+        const wantParts = splitStem(sld).map(normalise)
         const match = pals.find(p => {
-            const t = normaliseHe(p.title || '')
-            return t.includes(wantStem) || wantStem.includes(t.slice(0, 6))
+            const t = normalise(p.title || '')
+            if (!t) return false
+            // Strong match: whole SLD appears as substring.
+            if (t.includes(wantWhole)) return true
+            // Multi-word SLD: require ALL parts present (e.g. "get" AND
+            // "moving" in "shopgetmoving"). Avoids false positives where
+            // only generic word matches ("packing" in everything).
+            if (wantParts.length > 1 && wantParts.every(p => p.length >= 3 && t.includes(p))) return true
+            // Last resort — palsTitle is short enough to be the brand alone.
+            return wantWhole.includes(t.slice(0, 5)) && t.length <= 25
         })
         if (match && match.rating && (match.rating.votes_count || 0) > 0) {
             // Pre-populate from the freebie. googleReviews(cid) below MAY
@@ -540,6 +560,10 @@ export async function prefetchCompetitorLandscape(
                 cid: typeof match.cid === 'string' ? match.cid : undefined,
             }
         }
+    }
+    const palsMatchedCount = topEnriched.filter(e => e.palsRating).length
+    if (pals.length > 0) {
+        console.log(`[prefetch/competitor_landscape] palsRating matched ${palsMatchedCount}/${topEnriched.length} competitors`)
     }
 
     // ─── Phase E2.4 — Google Business reviews per top-5 competitor ──

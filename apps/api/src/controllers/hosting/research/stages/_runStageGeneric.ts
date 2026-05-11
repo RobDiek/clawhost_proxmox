@@ -474,6 +474,25 @@ function recomputeCompetitorScorecards(records: unknown[]): void {
         const sc = rec.scorecard
         if (!sc || typeof sc !== 'object') continue
         const card = sc as Record<string, unknown>
+
+        // Phase 4.0(fix6) — server-side enforcement of degraded-scorecard rule.
+        // The prompt instructs the LLM to null the four enrichment-derived
+        // components for working_hypothesis records, but the LLM frequently
+        // ignores it and emits guesses (Best Box: authority=45 etc). When
+        // confidence=working_hypothesis the LLM itself admits enrichment
+        // is missing, so the components measured FROM enrichment must be
+        // null — there's nothing to base them on. Components measured from
+        // the always-available competitors_domain table (serp_overlap,
+        // page_type_fit) stay numeric.
+        const confValue = typeof rec.confidence === 'string' ? rec.confidence.toLowerCase() : ''
+        if (confValue === 'working_hypothesis') {
+            for (const k of ['authority_trust_proof', 'local_presence_quality', 'content_system_maturity', 'asset_linkability']) {
+                if (card[k] != null && typeof card[k] === 'number') {
+                    card[k] = null
+                }
+            }
+        }
+
         const num = (k: string): number => {
             const v = card[k]
             // Phase 4.0(fix2) — explicit null/undefined check. Number(null)===0
