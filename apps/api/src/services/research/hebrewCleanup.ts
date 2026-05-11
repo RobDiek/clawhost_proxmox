@@ -138,8 +138,32 @@ ${recordsJson ? `## רשומות לשכתוב (records JSON)\n\n\`\`\`json\n${re
 
 החזר JSON אחד עם cleaned_content ו-cleaned_records_json. ${recordsJson ? '' : '(records לא סופקו → cleaned_records_json: null)'}`
 
+/**
+ * Phase 4.0(fix9) — Hebrew cleanup is wrapped in a JSON envelope:
+ *   { "cleaned_content": "<full markdown>", "cleaned_records_json": "<...>" }
+ *
+ * When `content` is >50K chars (internal_seo_audit with 50 URLs hits 66K),
+ * the model must emit OVER 50K chars of cleaned content inside a JSON
+ * string + the records JSON + envelope overhead. That pushes the model
+ * past Sonnet's 32K-token output cap (~96K chars), so the stream gets
+ * truncated mid-JSON ("Unterminated string at position 68597"), the
+ * parser fails, and we fall through to the fail-safe.
+ *
+ * That fail-safe IS working — content survives — but we lose the
+ * cleanup pass entirely. Better: skip the cleanup proactively when
+ * we know the input would overflow. Scrubber + critic still cover
+ * the most-common filler patterns.
+ */
+const SKIP_THRESHOLD_CHARS = 50_000
+
 export async function runHebrewCleanup(input: HebrewCleanupInput): Promise<HebrewCleanupResult> {
     const { content, records, instanceId, stageId } = input
+
+    // Skip oversized stages entirely — see comment above.
+    if (content.length > SKIP_THRESHOLD_CHARS) {
+        console.log(`[hebrewCleanup/${stageId}] content ${content.length} > ${SKIP_THRESHOLD_CHARS} threshold — skipping (would overflow Sonnet output cap)`)
+        return { cleanedContent: content, cleanedRecords: records, applied: false, skipped: true }
+    }
 
     let apiKey: string
     try {
