@@ -7,6 +7,7 @@ import { instances, matehAgents } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveActiveAgent, type MatehAgentRow } from '@/services/agentContext'
+import { setAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const VPS_HOME = '/home/openclaw/.openclaw'
@@ -641,6 +642,28 @@ print('${serverId} configured')
                 }
             } catch (mcpErr) {
                 console.error(`MCP deploy for ${type} failed:`, mcpErr)
+            }
+        }
+
+        // Phase 2.3.K — record the DB row so preflight + integrations tab
+        // see the integration as connected. Previously only the VPS MCP got
+        // deployed and the DB had no `brave`/`wordpress`/etc row → status
+        // queries returned "missing".
+        const dbPersistTypes = ['brave', 'wordpress', 'smtp', 'replicate', 'brightdata']
+        if (dbPersistTypes.includes(type)) {
+            try {
+                const agentType = getPrimaryAgent((instance.selectedComponents as string[]) || [])
+                let config: Record<string, unknown> = { connectedAt: new Date().toISOString() }
+                if (type === 'wordpress' || type === 'smtp') {
+                    try { config = { ...config, ...JSON.parse(key) } } catch { /* keep base */ }
+                } else {
+                    // For raw-API-key integrations, store a masked hint (never the
+                    // full key — the key already lives in VPS env / MCP config).
+                    config.maskedKey = key.slice(0, 6) + '****'
+                }
+                await setAgentIntegration(instanceId, agentType, type as never, config, 'connected', __agent?.id)
+            } catch (intErr) {
+                console.error(`agent_integrations row write for ${type} failed:`, intErr)
             }
         }
 
