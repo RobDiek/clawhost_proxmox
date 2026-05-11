@@ -314,6 +314,31 @@ ${lostLine ? '\n' + lostLine : ''}
 ${gapLine}`
 }
 
+function renderSeasonalityBlock(s: CompetitorLandscapeDfsData['seasonality']): string {
+    if (!s || s.length === 0) {
+        return '*(אין נתוני seasonality — DFS searchVolume נכשל או head terms לא נמצאו. סמנו "Why now" כ-working_hypothesis)*'
+    }
+    const MONTH_HE = ['', 'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר']
+    return s.map(entry => {
+        const peakStr = entry.peak_months.length > 0
+            ? entry.peak_months.map(m => MONTH_HE[m] || String(m)).join(', ')
+            : 'אין חודש שעולה ≥25% מעל הממוצע'
+        const monthlyStr = entry.monthly
+            .slice(-12)
+            .map(m => `${String(m.month).padStart(2, '0')}/${String(m.year).slice(-2)}: ${m.volume}`)
+            .join(' · ')
+        return `**\`${entry.keyword}\`** — avg ${entry.avg_monthly_volume}/mo · peaks: **${peakStr}**
+  - last 12 months: ${monthlyStr}`
+    }).join('\n\n')
+}
+
+function renderRankingMismatchesBlock(m: CompetitorLandscapeDfsData['rankingMismatches']): string {
+    if (!m || m.length === 0) return '*(אין סתירות — DFS rankedKeywords ו-serpAdvanced תואמים)*'
+    return m.map(x =>
+        `- **\`${x.keyword}\`** — DFS rank #${x.dfs_rank ?? '?'} | live SERP: לא בעמוד 1\n  ${x.interpretation_he}`
+    ).join('\n\n')
+}
+
 function renderGmbBlock(gmb: CompetitorLandscapeDfsData['ourGmb']): string {
     if (!gmb) return '*(לא נמצא פרופיל Google Business עבור העסק — אם אתם עסק מקומי, זה red flag לטיפול מיידי)*'
     const rating = gmb.rating ? `${gmb.rating.value}/${gmb.rating.rating_max} (${gmb.rating.votes_count} reviews)` : 'אין rating'
@@ -374,6 +399,12 @@ ${renderOurLinksBlock(dfs.ourLinks)}
 ### Our Google My Business profile
 ${renderGmbBlock(dfs.ourGmb)}
 
+### Seasonality — monthly volume per head term (Phase 4.0)
+${renderSeasonalityBlock(dfs.seasonality)}
+
+### Ranking inconsistencies — DFS rankedKeywords vs live serpAdvanced (Phase 4.0)
+${renderRankingMismatchesBlock(dfs.rankingMismatches)}
+
 ---
 
 ## פקודות עבודה
@@ -418,6 +449,8 @@ ${DFS_DATA_RULE}
 - **Σ = 70.50** → \`scorecard.total = 70.50\`, \`_formula_verification\` = "0.25·85 + 0.20·75 + 0.15·60 + 0.15·65 + 0.15·70 + 0.10·50 = 21.25+15.00+9.00+9.75+10.50+5.00 = 70.50"
 
 **\`scorecard.total\` ו-\`_formula_verification\` חובה לכל record** — self-critique בודק.
+
+**Phase 4.0 — Degraded-scorecard rule:** עבור מתחרה שאין לו נתוני enrichment אמיתיים (backlinks_summary, on_page_audit, ו-topRankedKeywords כולם תחת \`enrichmentMissing\` או \`data_unavailable\`), **אסור** לתת ציונים גבוהים נומריים על authority_trust_proof, content_system_maturity, ו-asset_linkability — אלה נמדדים מהנתונים שאין לכם. במקום זה: סמנו את שלושת הציונים האלה כ-\`null\` (לא 60 או 50 בניחוש), \`scorecard.total\` נשאר null, \`_formula_verification\` = "data_unavailable — cannot score without enrichment", ו-\`confidence\` חייב להיות \`working_hypothesis\`. זה משאיר את ה-bucket assignment וה-narrative במקום, אבל לא יוצר אשליה של מספרים מדויקים.
 
 
 \`\`\`json

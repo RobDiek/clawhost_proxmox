@@ -240,6 +240,14 @@ export interface ExecuteStageOutput {
     }
     /** Non-records JSON sibling fields (Phase 3.10b — our_link_profile, etc). */
     extras?: Record<string, unknown>
+    /**
+     * Phase 4.0 — raw prefetch payload (DFS + Firecrawl + GMB) kept alongside
+     * the LLM output. Downstream stages (positioning, content_plan, etc) can
+     * cite calibrated signals directly instead of only seeing the synthesised
+     * markdown from this stage. Optional — set by the stage runner when a
+     * prefetcher fed data; safe for prefetcher-less stages to omit.
+     */
+    dfsData?: unknown
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -614,6 +622,11 @@ export async function saveStageResult(
         ...(output.confidence ? { confidence: output.confidence } : {}),
         ...(output.qualityGate ? { qualityGate: output.qualityGate } : {}),
         ...(output.extras ? { extras: output.extras } : {}),
+        // Phase 4.0 — persist the raw prefetch payload so downstream stages
+        // can cite calibrated signals directly. Stored under `dfsData` to
+        // mirror the in-memory field name. Kept optional for backwards
+        // compat — stages without a prefetcher don't set this.
+        ...(output.dfsData !== undefined ? { dfsData: output.dfsData } : {}),
     }
 
     results[stageId] = stageResult

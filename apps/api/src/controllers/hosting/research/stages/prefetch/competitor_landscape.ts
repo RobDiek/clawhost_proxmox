@@ -34,6 +34,7 @@ import {
     googleMyBusiness,
     googleReviews,
     rankedKeywords,
+    searchVolume,
     serpAdvanced,
     parseSerpFeatures,
     LOCATION_IL,
@@ -196,6 +197,39 @@ export interface CompetitorLandscapeDfsData {
     firecrawlPagesScraped: number
     /** Phase E2.6 — SERP feature ownership matrix per top-N priority keywords. */
     serpOwnership: SerpOwnershipEntry[]
+    /**
+     * Phase 4.0 — monthly volume for top head terms (Google Ads search_volume).
+     * Drives the "Why now / timing" narrative with REAL seasonality data
+     * instead of working-hypothesis claims. Empty array if endpoint failed.
+     */
+    seasonality: SeasonalityEntry[]
+    /**
+     * Phase 4.0 — keywords where DFS rankedKeywords says we rank but the live
+     * SERP from serpAdvanced did NOT find our domain in top-30. Flags stale
+     * index, location/device mismatch, or post-update drops.
+     */
+    rankingMismatches: RankingMismatch[]
+}
+
+/** Phase 4.0 — monthly seasonality for one head term. */
+export interface SeasonalityEntry {
+    keyword: string
+    avg_monthly_volume?: number
+    /** Last 12 months in chronological order — {year, month, volume}. */
+    monthly: Array<{ year: number; month: number; volume: number }>
+    /** Months that exceeded avg by ≥25% — the "peak" window. */
+    peak_months: number[]
+}
+
+/** Phase 4.0 — single SERP-vs-rankedKeywords inconsistency for our domain. */
+export interface RankingMismatch {
+    keyword: string
+    /** What DFS rankedKeywords reported (lower = better; usually 1..20). */
+    dfs_rank?: number
+    /** Did serpAdvanced (live, mobile, IL) place us on page 1? */
+    live_top30: boolean
+    /** Heuristic interpretation, plain Hebrew, for the prompt to surface honestly. */
+    interpretation_he: string
 }
 
 /**
@@ -458,20 +492,27 @@ export async function prefetchCompetitorLandscape(
 
     // ─── Phase E2.4 — Google Business reviews per top-5 competitor ──
     // For each competitor, look up GMB → if cid available → fetch up to 50
-    // reviews → aggregate sentiment heuristically. Best-effort throughout:
-    // many domains aren't in GMB (online-only, B2B, etc.) — skip silently.
+    // reviews → aggregate sentiment heuristically.
+    //
+    // Phase 4.0 fix: previously passed the bare DOMAIN ("getpacking.co.il")
+    // to googleMyBusiness as the search keyword — but GMB matches business
+    // NAMES, not domains. So every lookup returned 0 results and we never
+    // got any competitor reviews. Now we derive the business name first
+    // from the scraped homepage metadata (deepPages or onPage) and search
+    // by that. Falls back to the bare domain only if no name could be
+    // recovered (preserves the previous behaviour for completeness).
     let reviewsFetchedCount = 0
     for (const enrich of topEnriched) {
         try {
-            // Try to find GMB entry for this domain
-            const gmbRes = await googleMyBusiness(instanceId, enrich.domain, {
+            const searchKeyword = deriveBusinessNameFromEnrichment(enrich) || enrich.domain
+            const gmbRes = await googleMyBusiness(instanceId, searchKeyword, {
                 location_code: LOCATION_IL,
                 language_code: languageCode,
             })
             trackCall(gmbRes)
             const cid = gmbRes.items[0]?.cid
             if (!cid) {
-                enrich.enrichmentMissing.push('gmb_not_found')
+                enrich.enrichmentMissing.push(`gmb_not_found(searched:${searchKeyword})`)
                 continue
             }
             const revRes = await googleReviews(instanceId, cid, { limit: 50, sortBy: 'newest' })
@@ -526,7 +567,90 @@ export async function prefetchCompetitorLandscape(
         console.warn(`[prefetch/competitor_landscape] SERP ownership loop error:`, (err as Error).message)
     }
 
-    console.log(`[prefetch/competitor_landscape] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} hit-rate competitors=${competitors.length} enriched=${topEnriched.length} deep_pages=${firecrawlPagesScraped} reviews=${reviewsFetchedCount} serp_ownership=${serpOwnership.length}`)
+    // ─── Phase 4.0 — Seasonality for top head terms ──
+    // For the "Why now / timing" narrative we used to ask the LLM to guess
+    // peak months (got: "probably June-August" labeled medium confidence).
+    // DFS searchVolume includes 12 months of monthly_searches at no extra
+    // cost — just need to call it for the right head terms. Pick the top 5
+    // by score from the SERP-priority candidate list (already ranked by
+    // intersection × volume), so we model the busiest, most-contested keys.
+    const seasonality: SeasonalityEntry[] = []
+    try {
+        const headTerms = pickPriorityKeywordsForSerp(topEnriched).slice(0, 5).map(k => k.keyword)
+        if (headTerms.length > 0) {
+            const svRes = await searchVolume(instanceId, headTerms, {
+                location_code: LOCATION_IL,
+                language_code: languageCode,
+            })
+            trackCall(svRes)
+            for (const item of svRes.items) {
+                const monthly = (item.monthly_searches || []).map(m => ({
+                    year: m.year, month: m.month, volume: m.search_volume,
+                }))
+                if (monthly.length === 0) continue
+                const avg = monthly.reduce((s, m) => s + m.volume, 0) / monthly.length
+                const peak_months = monthly
+                    .filter(m => m.volume >= avg * 1.25)
+                    .map(m => m.month)
+                seasonality.push({
+                    keyword: item.keyword,
+                    avg_monthly_volume: Math.round(avg),
+                    monthly,
+                    peak_months: Array.from(new Set(peak_months)).sort((a, b) => a - b),
+                })
+            }
+        }
+    } catch (err) {
+        console.warn(`[prefetch/competitor_landscape] seasonality fetch failed:`, (err as Error).message)
+    }
+
+    // ─── Phase 4.0 — Cross-validation: rankedKeywords vs serpAdvanced ──
+    // For each keyword where serpAdvanced ran AND our domain is supposed
+    // to rank per DFS rankedKeywords, check whether the live SERP actually
+    // includes us on page 1. Mismatch ⇒ flag to prompt (stale index? sandbox
+    // pull? recent drop?). The model will surface this honestly instead of
+    // pretending DFS rank is gospel.
+    const rankingMismatches: RankingMismatch[] = []
+    if (ourDomain) {
+        // Build a quick lookup of (keyword → our DFS rank) using the top-N
+        // ranked keywords that the prefetch loaded for our own domain. We
+        // already grabbed those when running serpOwnership inputs, but only
+        // for competitors. Run a single ranked_keywords pass on OUR domain
+        // to know where DFS thinks we rank for head terms.
+        try {
+            const oursRk = await rankedKeywords(instanceId, ourDomain, {
+                location_code: LOCATION_IL,
+                language_code: languageCode,
+                limit: 100,
+                filters: [['ranked_serp_element.serp_item.rank_absolute', '<=', 20]],
+            })
+            trackCall(oursRk)
+            const ourDfsRanks = new Map<string, number>()
+            for (const r of oursRk.items) {
+                const kw = r.keyword_data?.keyword?.toLowerCase().trim()
+                const rank = r.ranked_serp_element?.serp_item?.rank_absolute
+                if (kw && typeof rank === 'number') ourDfsRanks.set(kw, rank)
+            }
+            for (const entry of serpOwnership) {
+                const kw = entry.keyword.toLowerCase().trim()
+                const dfsRank = ourDfsRanks.get(kw)
+                // Only flag if DFS says we rank well (≤20) but the live SERP
+                // didn't see us. Without a DFS rank there's no "mismatch".
+                if (dfsRank != null && dfsRank <= 20 && !entry.we_present_on_page1) {
+                    rankingMismatches.push({
+                        keyword: entry.keyword,
+                        dfs_rank: dfsRank,
+                        live_top30: false,
+                        interpretation_he: `DFS rankedKeywords אומר שאנחנו #${dfsRank}, אבל serpAdvanced (mobile, IL, ${new Date().toISOString().slice(0, 10)}) לא מצא את הדומיין בעמוד 1 (top 30). סיבות אפשריות: index stale ב-DFS · ירידה לאחרונה · personalization/locale shift · mobile vs desktop · canonicalization. **אל תציגו את ה-DFS rank כאמת חד-משמעית — דווחו על הסתירה.**`,
+                    })
+                }
+            }
+        } catch (err) {
+            console.warn(`[prefetch/competitor_landscape] cross-validation rankedKeywords failed:`, (err as Error).message)
+        }
+    }
+
+    console.log(`[prefetch/competitor_landscape] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} hit-rate competitors=${competitors.length} enriched=${topEnriched.length} deep_pages=${firecrawlPagesScraped} reviews=${reviewsFetchedCount} serp_ownership=${serpOwnership.length} seasonality=${seasonality.length} ranking_mismatches=${rankingMismatches.length}`)
 
     return {
         ourDomain,
@@ -541,6 +665,8 @@ export async function prefetchCompetitorLandscape(
         firecrawlAvailable,
         firecrawlPagesScraped,
         serpOwnership,
+        seasonality,
+        rankingMismatches,
     }
 }
 
@@ -1097,4 +1223,41 @@ function inferLocality(answers: Record<string, unknown>): 'il_local' | 'il_natio
     if (/global|international|worldwide|abroad|export/i.test(txt)) return 'global_from_il'
     if (/local|רחוב|עיר|אזור|סניף|מקומי|near me/i.test(txt)) return 'il_local'
     return 'il_national'
+}
+
+/**
+ * Phase 4.0 — recover a competitor's brand/business name from the data we
+ * already pulled (no extra DFS call). Sources in priority order:
+ *
+ *   1. onPage.meta.title (homepage <title> — usually "Brand | Tagline")
+ *   2. deepPages[0].title (Firecrawl scraped inner page title)
+ *   3. og:site_name in onPage meta (if available)
+ *
+ * Cleanup: strip the trailing " | site description" or " - tagline" so we
+ * only feed the brand portion to GMB search. Returns null if no usable
+ * name found — caller falls back to the bare domain.
+ */
+function deriveBusinessNameFromEnrichment(enrich: CompetitorEnrichment): string | null {
+    const candidates: string[] = []
+    // onPage title
+    const onPageTitleArr = enrich.onPage?.meta?.title
+    if (typeof onPageTitleArr === 'string' && onPageTitleArr.trim()) {
+        candidates.push(onPageTitleArr.trim())
+    } else if (Array.isArray(onPageTitleArr) && onPageTitleArr.length > 0 && typeof onPageTitleArr[0] === 'string') {
+        candidates.push((onPageTitleArr[0] as string).trim())
+    }
+    // deepPages titles
+    for (const p of enrich.deepPages || []) {
+        if (p.title && p.title.trim()) candidates.push(p.title.trim())
+    }
+    for (const raw of candidates) {
+        // Strip everything after a typical title separator. "Get Packing | קרטונים" → "Get Packing".
+        const head = raw.split(/\s*[|·–—\-:]\s+/)[0].trim()
+        // Filter out generic head terms that aren't brand names. Heuristic:
+        // accept if 2-50 chars and not equal to the bare domain.
+        if (head && head.length >= 2 && head.length <= 50 && head.toLowerCase() !== enrich.domain.toLowerCase()) {
+            return head
+        }
+    }
+    return null
 }

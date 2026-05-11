@@ -258,6 +258,14 @@ export interface StageResult {
      * suite output here for competitor_landscape.
      */
     extras?: Record<string, unknown>
+    /**
+     * Phase 4.0 — raw prefetch payload (DFS + Firecrawl + GMB + seasonality).
+     * Stored alongside the LLM output so downstream stages can cite
+     * calibrated signals directly instead of re-deriving them from the
+     * synthesised markdown. Stage-typed at consumer site (e.g.
+     * `CompetitorLandscapeDfsData`, `SeoKeywordResearchDfsData`).
+     */
+    dfsData?: unknown
 }
 
 export interface ResearchPlan {

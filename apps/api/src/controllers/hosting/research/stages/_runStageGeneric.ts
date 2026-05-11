@@ -339,7 +339,25 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             }
             if (Object.keys(extras).length > 0) output.extras = extras
         }
+
+        // Phase 4.0 — sync the markdown's embedded JSON code-block with the
+        // canonical recomputed records + extras. Without this the prose report
+        // shows the LLM's original totals (e.g. scorecard.total=79.50) while
+        // records[] holds the corrected ones (79.25). UI shows two different
+        // numbers depending on which renderer reads what.
+        if (parsed.records && (stageId === 'competitor_landscape' || stageId === 'seo_keyword_research')) {
+            output.content = syncContentJsonBlock(
+                output.content,
+                parsed.records,
+                output.extras,
+                output.confidence as string | undefined,
+            )
+        }
         if (dfsCost > 0) output.dfsCost = dfsCost
+        // Phase 4.0 — persist raw prefetch data alongside LLM output so
+        // downstream stages can read calibrated signals directly instead
+        // of having to re-derive them from the synthesised markdown.
+        if (dfsData) output.dfsData = dfsData
         const recRollup = parsed.records
             ? rollupConfidence(parsed.records as Array<{ confidence?: string }>)
             : undefined
@@ -462,7 +480,15 @@ function recomputeCompetitorScorecards(records: unknown[]): void {
         const lpq = num('local_presence_quality')
         const csm = num('content_system_maturity')
         const al = num('asset_linkability')
-        if (![so, ptf, atp, lpq, csm, al].every(Number.isFinite)) continue
+        if (![so, ptf, atp, lpq, csm, al].every(Number.isFinite)) {
+            // Phase 4.0 — degraded-scorecard rule. If any component is null
+            // (model honoured "data_unavailable, do not guess") then total +
+            // _formula_verification stay null too. Skip recompute, leave
+            // marker in place for UI to render "data unavailable" badge.
+            card.total = null
+            card._formula_verification = 'data_unavailable — cannot score without enrichment'
+            continue
+        }
         const computed = 0.25 * so + 0.20 * ptf + 0.15 * atp + 0.15 * lpq + 0.15 * csm + 0.10 * al
         const rounded = Math.round(computed * 100) / 100
         const reported = num('total')
@@ -471,6 +497,49 @@ function recomputeCompetitorScorecards(records: unknown[]): void {
         }
         card.total = rounded
         card._formula_verification = `0.25·${so} + 0.20·${ptf} + 0.15·${atp} + 0.15·${lpq} + 0.15·${csm} + 0.10·${al} = ${(0.25 * so).toFixed(2)}+${(0.20 * ptf).toFixed(2)}+${(0.15 * atp).toFixed(2)}+${(0.15 * lpq).toFixed(2)}+${(0.15 * csm).toFixed(2)}+${(0.10 * al).toFixed(2)} = ${rounded}`
+    }
+}
+
+/**
+ * Phase 4.0 — replace the JSON code-block embedded in the markdown report
+ * with the post-processed records + extras. Without this, the prose report
+ * shows the LLM's first-draft numbers (e.g. scorecard.total=79.50) while
+ * records[] holds the canonical recomputed ones (79.25). Users see two
+ * different scores depending on which renderer reads what.
+ *
+ * Implementation: find the first \`\`\`json ... \`\`\` fence after the
+ * `## רשומות מובנות` heading and replace its body with a freshly
+ * stringified object made from { records, ...extras, confidence }.
+ *
+ * Defensive: if anything looks off (no fence found, JSON parse of original
+ * fails, etc.) — return content unchanged. We never want a sync bug to
+ * blank out the report.
+ */
+function syncContentJsonBlock(
+    content: string,
+    records: unknown[],
+    extras: Record<string, unknown> | undefined,
+    confidence: string | undefined,
+): string {
+    try {
+        // Find the JSON fence. Match both ```json and ``` (model is inconsistent).
+        const fenceRegex = /```(?:json)?\s*(\{[\s\S]*?\})\s*```/m
+        const match = content.match(fenceRegex)
+        if (!match || !match[0] || !match[1]) return content
+
+        // Compose the canonical JSON: records FIRST (UI parsers find them
+        // by position), then sibling extras, then top-level confidence.
+        const obj: Record<string, unknown> = { records }
+        if (extras) {
+            for (const k of Object.keys(extras)) obj[k] = extras[k]
+        }
+        if (confidence) obj.confidence = confidence
+
+        const replacement = '```json\n' + JSON.stringify(obj, null, 2) + '\n```'
+        return content.replace(fenceRegex, replacement)
+    } catch (err) {
+        console.warn(`[syncContentJsonBlock] failed — keeping original content:`, (err as Error).message)
+        return content
     }
 }
 
