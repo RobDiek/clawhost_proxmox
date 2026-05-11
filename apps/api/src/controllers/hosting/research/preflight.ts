@@ -26,6 +26,7 @@ import { getApiKeyForInstance } from '../agentSetup'
 import type { ResearchDataV2, StageId } from '@/services/research/types'
 import { resolveActiveAgent } from '@/services/agentContext'
 import { buildPreflight } from '@/services/research/integrationGate'
+import { getAgentIntegrations, getPrimaryAgent } from '@/services/agentIntegrations'
 
 interface PreflightCheck {
     name: string
@@ -359,9 +360,21 @@ export const researchPreflight = async (c: Context) => {
         ? `הכל מוכן להרצה, אך יש ${warnings.length} אזהרות שעשויות להגביל את איכות התוצאות. ניתן להמשיך — חלק מהשלבים ירוצו במצב מוגבל.`
         : 'הכל מוכן להרצה ב-pipeline מלא. הקליקו "Run all" או הריצו שלב אחרי שלב.'
 
+    // Phase 2.3.K — load agent_integrations rows for brave/wordpress/etc.
+    // (integrations stored as rows rather than typed columns).
+    const __agentType = getPrimaryAgent((inst.selectedComponents as string[]) || [])
+    const intRows = await getAgentIntegrations(instanceId, __agentType, activeAgent?.id)
+    const integrationsMap: Record<string, { connected: boolean; config?: Record<string, unknown> }> = {}
+    for (const r of intRows) {
+        integrationsMap[r.integrationType] = {
+            connected: r.status === 'connected',
+            config: r.config,
+        }
+    }
+
     // Phase 2.3.H — integration gate (profile + stage driven)
     const gate = buildPreflight(
-        { instance: inst, agent: activeAgent },
+        { instance: inst, agent: activeAgent, integrations: integrationsMap },
         answers as Record<string, string | undefined>,
         stageQ,
     )

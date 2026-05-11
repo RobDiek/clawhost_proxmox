@@ -102,8 +102,17 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         // failure / wrong-output scenario.
         try {
             const { buildPreflight } = await import('@/services/research/integrationGate')
+            const { getAgentIntegrations, getPrimaryAgent } = await import('@/services/agentIntegrations')
+            // Phase 2.3.K — load agent_integrations bundle for brave/wordpress
+            // (stored as rows rather than typed columns on instances/mateh_agents).
+            const __at = getPrimaryAgent((instance.selectedComponents as string[]) || [])
+            const __rows = await getAgentIntegrations(instanceId, __at, __agent?.id)
+            const __ints: Record<string, { connected: boolean; config?: Record<string, unknown> }> = {}
+            for (const r of __rows) {
+                __ints[r.integrationType] = { connected: r.status === 'connected', config: r.config }
+            }
             const gate = buildPreflight(
-                { instance, agent: __agent },
+                { instance, agent: __agent, integrations: __ints },
                 answers as Record<string, string | undefined>,
                 stageId,
             )

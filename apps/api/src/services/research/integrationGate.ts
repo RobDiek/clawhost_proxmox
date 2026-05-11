@@ -29,6 +29,8 @@ export type IntegrationId =
     | 'gsc'              // Google Search Console
     | 'dataforseo'       // DataForSEO API key
     | 'firecrawl'        // Firecrawl API key
+    | 'brave'            // Brave Search API — live SERP for competitor/topic discovery
+    | 'wordpress'        // WordPress publishing target (URL + app password)
     | 'google_workspace' // Google OAuth (Workspace / GA4 / GTM)
     | 'google_ads'       // Google Ads scope on the Google OAuth
     | 'meta_ads'         // Meta (Facebook/Instagram) tokens
@@ -87,6 +89,18 @@ const REGISTRY: Record<IntegrationId, Omit<Requirement, 'severity'>> = {
         valueProp_he: 'דרוש ל-internal_seo_audit ול-deep crawl של money pages של מתחרים. בלעדיו audit ירוץ במצב מוגבל (Crawl4AI fallback).',
         deepLink: 'integrations#firecrawl',
     },
+    brave: {
+        id: 'brave',
+        label_he: 'Brave Search API',
+        valueProp_he: 'live SERP results — משלים את DFS עם נתונים בזמן אמת. נדרש ל-competitor discovery, social_landscape ולאימות תוצאות מנועי חיפוש בעברית/אנגלית בזמן ריצת המחקר.',
+        deepLink: 'integrations#brave',
+    },
+    wordpress: {
+        id: 'wordpress',
+        label_he: 'WordPress (פרסום בלוג)',
+        valueProp_he: 'יעד פרסום אוטומטי למאמרים מ-content_plan. בלעדיו תוכן הבלוג יישאר בקבצים בלבד — בלי פרסום ל-CMS שלכם.',
+        deepLink: 'integrations#wordpress',
+    },
     google_workspace: {
         id: 'google_workspace',
         label_he: 'Google Workspace (GA4 / GTM)',
@@ -128,11 +142,11 @@ const STAGE_REQUIREMENTS: Partial<Record<StageId, {
 }>> = {
     competitor_landscape: {
         mandatory: ['ai_key', 'website_url'],
-        recommended: ['dataforseo', 'firecrawl'],
+        recommended: ['dataforseo', 'firecrawl', 'brave'],
     },
     seo_keyword_research: {
         mandatory: ['ai_key', 'dataforseo'],
-        recommended: ['gsc'],
+        recommended: ['gsc', 'brave'],
     },
     audience_personas: {
         mandatory: ['ai_key', 'business_profile'],
@@ -148,7 +162,7 @@ const STAGE_REQUIREMENTS: Partial<Record<StageId, {
     },
     aeo_visibility: {
         mandatory: ['ai_key', 'dataforseo', 'business_profile'],
-        recommended: [],
+        recommended: ['brave'],
     },
     cost_timeline_modeling: {
         mandatory: ['ai_key', 'dataforseo', 'business_profile'],
@@ -168,7 +182,7 @@ const STAGE_REQUIREMENTS: Partial<Record<StageId, {
     },
     content_plan: {
         mandatory: ['ai_key'],
-        recommended: ['gsc'],
+        recommended: ['gsc', 'wordpress'],
     },
     media_plan: {
         mandatory: ['ai_key'],
@@ -195,18 +209,21 @@ export function deriveProfileRequirements(answers: Answers): {
     recommended: IntegrationId[]
 } {
     const mandatory = new Set<IntegrationId>(['ai_key', 'website_url', 'business_profile'])
-    const recommended = new Set<IntegrationId>(['dataforseo', 'gsc'])
+    // Brave is always recommended — live SERP supplements every research stage.
+    const recommended = new Set<IntegrationId>(['dataforseo', 'gsc', 'brave'])
 
     const goals = (answers.marketingGoals || '').toLowerCase()
     const platforms = (answers.platforms || '').toLowerCase()
     const conv = (answers.conversionMechanism || '').toLowerCase()
     const model = answers.businessModel || ''
 
-    // SEO goal → GSC + DataForSEO mandatory
+    // SEO goal → GSC + DataForSEO mandatory; WordPress strongly recommended
+    // (organic SEO = blog content; without WP it just sits in files).
     if (goals.includes('seo') || goals.includes('אורגני')) {
         mandatory.add('gsc')
         mandatory.add('dataforseo')
         recommended.add('firecrawl')
+        recommended.add('wordpress')
     }
 
     // Sales goal → at least one ad platform recommended (mandatory if "מכירות ישירות")
@@ -244,7 +261,8 @@ export function deriveProfileRequirements(answers: Answers): {
             // mostly default
             break
         case 'content':
-            recommended.add('github')             // for blog publishing
+            recommended.add('github')             // for blog publishing (Cloudflare Pages / Vercel / Netlify)
+            recommended.add('wordpress')          // for blog publishing (WordPress CMS)
             break
     }
 
@@ -274,6 +292,13 @@ type CheckSource = {
         | 'dfsBalanceUsdCents' | 'dfsUseProxy'
     >
     agent: MatehAgentRow | null
+    /**
+     * Agent-scoped integrations bundle from agent_integrations table.
+     * Keyed by integrationType (e.g. 'brave', 'wordpress', 'reddit'). Used for
+     * integrations stored as agent_integrations rows rather than typed columns
+     * on instances/mateh_agents.
+     */
+    integrations?: Record<string, { connected: boolean; config?: Record<string, unknown> }>
 }
 
 export function checkRequirementStatus(
@@ -352,6 +377,18 @@ export function checkRequirementStatus(
         }
         case 'firecrawl':
             return (read('firecrawlKey') as string | null) ? 'connected' : 'missing'
+        case 'brave': {
+            // Brave is stored in agent_integrations table (integration_type='brave')
+            const row = src.integrations?.brave
+            return row?.connected ? 'connected' : 'missing'
+        }
+        case 'wordpress': {
+            // WordPress: agent_integrations row with config = {url, username, password}
+            const row = src.integrations?.wordpress
+            const cfg = row?.config as { url?: string; username?: string; password?: string; appPassword?: string } | undefined
+            const hasCreds = !!(cfg?.url && cfg?.username && (cfg?.password || cfg?.appPassword))
+            return row?.connected && hasCreds ? 'connected' : 'missing'
+        }
         case 'google_workspace': {
             const tokens = read('googleTokens') as { accessToken?: string; refreshToken?: string } | null
             return (tokens?.accessToken || tokens?.refreshToken) ? 'connected' : 'missing'
