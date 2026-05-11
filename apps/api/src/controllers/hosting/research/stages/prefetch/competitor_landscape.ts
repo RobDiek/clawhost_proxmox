@@ -494,27 +494,64 @@ export async function prefetchCompetitorLandscape(
     // For each competitor, look up GMB → if cid available → fetch up to 50
     // reviews → aggregate sentiment heuristically.
     //
-    // Phase 4.0 fix: previously passed the bare DOMAIN ("getpacking.co.il")
-    // to googleMyBusiness as the search keyword — but GMB matches business
-    // NAMES, not domains. So every lookup returned 0 results and we never
-    // got any competitor reviews. Now we derive the business name first
-    // from the scraped homepage metadata (deepPages or onPage) and search
-    // by that. Falls back to the bare domain only if no name could be
-    // recovered (preserves the previous behaviour for completeness).
+    // Phase 4.0(fix2): GMB matches business NAMES, not domains. Strategy:
+    // try multiple search strings until one returns a cid.
+    //   1. Derived business name from onPage title / deepPages title.
+    //   2. Domain SLD (e.g. "getpacking" from "getpacking.co.il") — many
+    //      Israeli stores' GMB names match their domain stem.
+    //   3. Bare domain — last resort, often 0 results, but free to try.
+    // Stops at the first hit. Empty results push specific markers to
+    // enrichmentMissing so the prompt can attribute "data_unavailable"
+    // honestly. Skip domains that aren't real businesses (facebook.com,
+    // wikipedia.org) — checked against COMMON_PLATFORM_DOMAINS.
     let reviewsFetchedCount = 0
+    const COMMON_PLATFORM_DOMAINS = new Set([
+        'facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'youtube.com',
+        'tiktok.com', 'wikipedia.org', 'pinterest.com', 'linkedin.com',
+        'reddit.com', 'amazon.com', 'aliexpress.com', 'ebay.com',
+    ])
     for (const enrich of topEnriched) {
-        try {
-            const searchKeyword = deriveBusinessNameFromEnrichment(enrich) || enrich.domain
-            const gmbRes = await googleMyBusiness(instanceId, searchKeyword, {
-                location_code: LOCATION_IL,
-                language_code: languageCode,
-            })
-            trackCall(gmbRes)
-            const cid = gmbRes.items[0]?.cid
-            if (!cid) {
-                enrich.enrichmentMissing.push(`gmb_not_found(searched:${searchKeyword})`)
-                continue
+        const baseDomain = enrich.domain.toLowerCase().replace(/^www\./, '')
+        if (COMMON_PLATFORM_DOMAINS.has(baseDomain) || COMMON_PLATFORM_DOMAINS.has(baseDomain.split('.').slice(-2).join('.'))) {
+            enrich.enrichmentMissing.push('gmb_skip_platform_domain')
+            continue
+        }
+        const candidates: string[] = []
+        const derivedName = deriveBusinessNameFromEnrichment(enrich)
+        if (derivedName) candidates.push(derivedName)
+        // SLD: getpacking.co.il → "getpacking"
+        const sld = baseDomain.split('.')[0]
+        if (sld && sld.length >= 3 && !candidates.includes(sld)) candidates.push(sld)
+        if (!candidates.includes(baseDomain)) candidates.push(baseDomain)
+
+        let cid: string | null = null
+        let usedKeyword: string | null = null
+        const triedKeywords: string[] = []
+        for (const kw of candidates) {
+            triedKeywords.push(kw)
+            try {
+                const gmbRes = await googleMyBusiness(instanceId, kw, {
+                    location_code: LOCATION_IL,
+                    language_code: languageCode,
+                })
+                trackCall(gmbRes)
+                const found = gmbRes.items[0]?.cid
+                if (found) {
+                    cid = found
+                    usedKeyword = kw
+                    break
+                }
+            } catch (err) {
+                console.warn(`[prefetch/competitor_landscape] GMB lookup "${kw}" failed:`, (err as Error).message)
             }
+        }
+
+        if (!cid) {
+            enrich.enrichmentMissing.push(`gmb_not_found(tried:${triedKeywords.join('|')})`)
+            continue
+        }
+        console.log(`[prefetch/competitor_landscape] GMB matched ${baseDomain} via "${usedKeyword}" (cid=${cid})`)
+        try {
             const revRes = await googleReviews(instanceId, cid, { limit: 50, sortBy: 'newest' })
             trackCall(revRes)
             if (revRes.items.length > 0) {
@@ -525,7 +562,7 @@ export async function prefetchCompetitorLandscape(
             }
         } catch (err) {
             enrich.enrichmentMissing.push('reviews_fetch_failed')
-            console.warn(`[prefetch/competitor_landscape] reviews ${enrich.domain} failed:`, (err as Error).message)
+            console.warn(`[prefetch/competitor_landscape] reviews ${baseDomain} (cid=${cid}) failed:`, (err as Error).message)
         }
     }
 

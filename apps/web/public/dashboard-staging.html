@@ -12059,7 +12059,7 @@ function renderStageCardV2(sid, idx) {
     var startedAt = pipelineV2State.loadingStartedAt && pipelineV2State.loadingStartedAt[sid];
     var elapsedSec = startedAt ? Math.round((Date.now() - startedAt) / 1000) : 0;
     var elapsedLabel = elapsedSec < 60 ? elapsedSec + ' שנ׳' : Math.floor(elapsedSec / 60) + ':' + String(elapsedSec % 60).padStart(2, '0');
-    actions = '<div style="font-size:0.78rem;color:#3730A3">רץ ' + elapsedLabel + ' · משוער 6-12 דקות</div>';
+    actions = '<div style="font-size:0.78rem;color:#3730A3">רץ ' + elapsedLabel + ' · משוער 8-15 דקות (DFS prefetch + Opus generation + critic + cleanup)</div>';
   } else if (status.state === 'completed' || status.state === 'degraded') {
     actions =
       '<button class="btn btn-outline btn-sm" onclick="viewStageResultV2(\'' + sid + '\')" style="font-size:0.74rem;padding:3px 10px">צפו</button>' +
@@ -12333,11 +12333,62 @@ async function runStageV2(sid) {
   pipelineV2State.loading.add(sid);
   if (!pipelineV2State.loadingStartedAt) pipelineV2State.loadingStartedAt = {};
   pipelineV2State.loadingStartedAt[sid] = Date.now();
+  // Capture the runAt of the last completion BEFORE we kick off, so the
+  // poll knows what counts as "fresh result for this run". Without this
+  // baseline the poll would immediately think it's done if a previous
+  // run had already saved data.
+  var preRunAt = (pipelineV2State.results[sid] && pipelineV2State.results[sid].runAt) || null;
   // Tick every 1s while this stage is loading so the elapsed timer updates.
   var tickHandle = setInterval(function() {
     if (!pipelineV2State.loading.has(sid)) { clearInterval(tickHandle); return; }
     renderPipelineV2();
   }, 1000);
+
+  // Phase 4.0 — server-side poll runs in parallel with the synchronous
+  // POST. If the POST connection drops (browser/proxy timeout on long
+  // hebrewCleanup passes — the run takes up to 17 min vs 2-min Caddy
+  // defaults), the poll keeps watching /research/plan and adopts the
+  // saved result the moment the server is done. Without this, users
+  // had to manually reload the page to see completion.
+  var pollHandle = setInterval(async function() {
+    if (!pipelineV2State.loading.has(sid)) { clearInterval(pollHandle); return; }
+    try {
+      var planRes = await fetch(API + '/hosting/instances/' + iid + '/research/plan', {
+        headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+      });
+      var planData = await planRes.json();
+      if (!planData.success) return;
+      var serverStatus = planData.data && planData.data.results && planData.data.results[sid];
+      var serverState = planData.data && planData.data.plan && planData.data.plan.status && planData.data.plan.status[sid];
+      var serverRunAt = serverStatus && serverStatus.runAt;
+      // Adopt the result if the server has a fresh one (different runAt
+      // than what we had when we started). Works for both completion and
+      // failure paths.
+      if (serverRunAt && serverRunAt !== preRunAt) {
+        pipelineV2State.loading.delete(sid);
+        clearInterval(pollHandle);
+        clearInterval(tickHandle);
+        if (!pipelineV2State.plan.status) pipelineV2State.plan.status = {};
+        pipelineV2State.plan.status[sid] = serverState || { state: 'completed', runAt: serverRunAt };
+        pipelineV2State.results[sid] = {
+          content: serverStatus.content,
+          records: serverStatus.records,
+          extras: serverStatus.extras,
+          source: serverStatus.source,
+          confidence: serverStatus.confidence,
+          dfsCost: serverStatus.dfsCost,
+          qualityGate: serverStatus.qualityGate,
+          runAt: serverRunAt,
+          integrationsUsed: serverStatus.integrationsUsed,
+        };
+        renderPipelineV2();
+        updatePipelineV2Balance();
+        showToast('שלב "' + (STAGE_CATALOG_V2[sid] && STAGE_CATALOG_V2[sid].titleHe || sid) + '" הושלם', 'success');
+        viewStageResultV2(sid);
+      }
+    } catch (e) { /* network blip — keep polling */ }
+  }, 15000);
+
   renderPipelineV2();
 
   try {
@@ -12347,7 +12398,10 @@ async function runStageV2(sid) {
       body: '{}'
     });
     var d = await res.json();
+    // Poll may have already adopted the result while POST was in flight.
+    if (!pipelineV2State.loading.has(sid)) { clearInterval(pollHandle); return; }
     pipelineV2State.loading.delete(sid);
+    clearInterval(pollHandle);
 
     if (!d.success) {
       // Update plan.status from server (if returned) and re-render
@@ -12378,9 +12432,20 @@ async function runStageV2(sid) {
     // Auto-open result panel
     viewStageResultV2(sid);
   } catch (e) {
-    pipelineV2State.loading.delete(sid);
-    renderPipelineV2();
-    showToast('שגיאה: ' + (e.message || e), 'error');
+    // Don't drop the loading flag yet — poll may still pick up the result
+    // since the server keeps running even if our POST connection died.
+    // Wait up to 25 minutes for the poll to finish before giving up.
+    var giveUpAt = Date.now() + 25 * 60 * 1000;
+    var checkGiveUp = setInterval(function() {
+      if (!pipelineV2State.loading.has(sid)) { clearInterval(checkGiveUp); return; }
+      if (Date.now() > giveUpAt) {
+        pipelineV2State.loading.delete(sid);
+        clearInterval(pollHandle);
+        clearInterval(checkGiveUp);
+        renderPipelineV2();
+        showToast('שגיאה: ' + (e.message || e), 'error');
+      }
+    }, 5000);
   }
 }
 

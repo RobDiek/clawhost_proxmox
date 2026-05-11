@@ -51,7 +51,13 @@ interface HebrewCleanupResult {
     outputTokensApprox?: number
 }
 
-const SONNET_MODEL = 'claude-sonnet-4-6'
+// Phase 4.0 (perf) — hebrewCleanup is mechanical translation/scrubbing, not
+// creative writing. Sonnet 4.6 took ~8 min on a 16K-tok input — way out of
+// proportion to the work. Haiku 4.5 finishes in ~1-2 min with same quality
+// on this task class (preserve JSON structure, swap English filler for
+// Hebrew equivalents). Keep SONNET_MODEL for the type while pointing at
+// Haiku — the constant name is grandfathered.
+const SONNET_MODEL = 'claude-haiku-4-5-20251001'
 
 const ALLOWLIST_BLOCK = `**ALLOWLIST — חייבים להישאר באנגלית כפי שהן:**
 
