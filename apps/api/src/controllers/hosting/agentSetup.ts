@@ -711,10 +711,18 @@ export const enrichProfile = async (c: Context) => {
             return fail(c, 'לא הצלחנו לשלוף מידע מהאתר. בדקו שהוא נגיש.', 502)
         }
 
+        // Distinguish "couldn't crawl" from "everything already filled".
+        // pagesCrawled.length === 0 means the fetch itself failed (site
+        // unreachable, blocking our user-agent, etc.) — that's an error
+        // the user should see, not a "you're done" message.
+        if ((enriched._meta.pagesCrawled || []).length === 0) {
+            return fail(c, 'לא הצלחנו לקרוא את האתר ' + websiteUrl + '. ייתכן שהוא חוסם בוטים, לא נגיש מהשרת שלנו, או שהדומיין שגוי. ערכו את הפרופיל ידנית.', 502)
+        }
+
         const patch = enrichmentToAnswersPatch(enriched)
         const filled = Object.keys(patch).filter(k => !k.startsWith('_'))
         if (filled.length === 0) {
-            return ok(c, { enriched, filledFields: [] }, 'הפרופיל כבר מלא — אין מה להוסיף.')
+            return ok(c, { enriched, filledFields: [] }, 'הפרופיל כבר מלא — לא היה צורך להוסיף שדות (כל מה שכבר מילאתם נשמר).')
         }
 
         const nextAnswers = { ...existingAnswers, ...patch }

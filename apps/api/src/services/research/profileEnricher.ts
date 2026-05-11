@@ -12,17 +12,137 @@
  *     detected so user doesn't have to think about it
  *   - POST /profile/enrich (standalone) — explicit user trigger from the
  *     preflight modal "fill from website" button
+ *
+ * Phase 2.3.I/fix — crawl uses DIRECT HTTP fetch from the management
+ * server, not Crawl4AI on the VPS. Crawl4AI isn't installed on every
+ * VPS, and even when it is, it's an overkill for a one-shot 3-page
+ * extraction. Direct fetch + strip-tags + Sonnet (which handles messy
+ * HTML well) is faster, cheaper, and works without VPS deps.
  */
-
-import { crawlMultiple } from '@/services/crawl4ai'
 
 type EnrichmentInput = {
     websiteUrl: string
     /** Existing answers — user text wins where present + non-empty. */
     existing: Record<string, unknown>
-    /** Crawl runs on the agent's VPS — needs IP + root password. */
+    /** Instance ref kept for backward compatibility — no longer used for
+     *  the crawl (we fetch directly from the management server). */
     instance: { ip: string; rootPassword: string | null }
     apiKey: string
+}
+
+/**
+ * Lightweight HTML → plain-text extraction. Strips scripts/styles,
+ * preserves headings/paragraphs as line breaks, normalizes whitespace.
+ * Trades some fidelity for zero deps — good enough for LLM consumption.
+ */
+function htmlToText(html: string): { title: string; text: string; links: string[] } {
+    // Title from <title> or first <h1>
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i) || html.match(/<h1[^>]*>([^<]+)<\/h1>/i)
+    const title = (titleMatch ? titleMatch[1] : '').replace(/\s+/g, ' ').trim()
+
+    // Collect internal links before stripping HTML
+    const links: string[] = []
+    const linkRe = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>/gi
+    let m: RegExpExecArray | null
+    while ((m = linkRe.exec(html)) !== null) {
+        if (m[1] && !m[1].startsWith('#') && !m[1].startsWith('mailto:') && !m[1].startsWith('tel:')) {
+            links.push(m[1])
+        }
+        if (links.length > 200) break
+    }
+
+    // Strip scripts, styles, comments, noscript
+    let cleaned = html
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
+        .replace(/<!--[\s\S]*?-->/g, '')
+
+    // Convert block tags to newlines so structure is preserved
+    cleaned = cleaned
+        .replace(/<\/(p|div|h[1-6]|li|article|section|header|footer|nav|aside|main|tr)>/gi, '\n')
+        .replace(/<(br|hr)\s*\/?>/gi, '\n')
+        .replace(/<li[^>]*>/gi, '• ')
+
+    // Strip all remaining tags
+    cleaned = cleaned.replace(/<[^>]+>/g, ' ')
+
+    // Decode common HTML entities (basic set — Sonnet handles the rest)
+    cleaned = cleaned
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&apos;/g, "'")
+
+    // Normalize whitespace: collapse runs of spaces, allow up to 2 newlines
+    cleaned = cleaned
+        .split('\n')
+        .map(l => l.replace(/\s+/g, ' ').trim())
+        .filter(l => l.length > 0)
+        .join('\n')
+        .replace(/\n{3,}/g, '\n\n')
+
+    return { title, text: cleaned, links: [...new Set(links)] }
+}
+
+/**
+ * Fetch a URL with timeout + size cap. Returns null on any failure.
+ * SSRF-protected (no internal IPs).
+ */
+async function fetchPage(url: string): Promise<{ title: string; markdown: string; links: string[] } | null> {
+    if (!/^https?:\/\//i.test(url)) return null
+    const ssrfBlocked = /^https?:\/\/(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|169\.254\.|0\.0\.0\.0|\[::1\])/i
+    if (ssrfBlocked.test(url)) return null
+
+    try {
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (compatible; FlowmaticBot/1.0; +https://flowmatic.co.il)',
+                'Accept': 'text/html,application/xhtml+xml',
+                'Accept-Language': 'he-IL,he;q=0.9,en;q=0.8',
+            },
+            redirect: 'follow',
+            signal: AbortSignal.timeout(15_000),
+        })
+        if (!res.ok) {
+            console.warn(`[profileEnricher] fetch ${url} → HTTP ${res.status}`)
+            return null
+        }
+        const ctype = res.headers.get('content-type') || ''
+        if (!ctype.includes('html')) {
+            console.warn(`[profileEnricher] skip non-HTML ${url} (${ctype})`)
+            return null
+        }
+        // Cap body at 500KB to avoid OOM on huge pages
+        const reader = res.body?.getReader()
+        if (!reader) return null
+        const chunks: Uint8Array[] = []
+        let totalSize = 0
+        const MAX_BYTES = 500_000
+        while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            if (value) {
+                chunks.push(value)
+                totalSize += value.length
+                if (totalSize >= MAX_BYTES) {
+                    reader.cancel().catch(() => { /* ignore */ })
+                    break
+                }
+            }
+        }
+        const buf = Buffer.concat(chunks.map(c => Buffer.from(c)))
+        const html = buf.toString('utf-8')
+        const { title, text, links } = htmlToText(html)
+        return { title, markdown: text.substring(0, 15_000), links }
+    } catch (err) {
+        console.warn(`[profileEnricher] fetch ${url} failed:`, (err as Error).message)
+        return null
+    }
 }
 
 export type EnrichedProfile = {
@@ -48,7 +168,7 @@ const MAX_PAGES = 5
  * extractor. Heuristic: homepage + about/contact/products/services pages
  * if discoverable from the homepage's internal links.
  */
-function selectPagesToCrawl(homepageLinks: string[], domain: string): string[] {
+function selectPagesToCrawl(homepageLinks: string[], homepageUrl: string, domain: string): string[] {
     const targetSlugs = [
         'about', 'אודות', 'about-us',
         'services', 'service', 'שירותים',
@@ -60,12 +180,14 @@ function selectPagesToCrawl(homepageLinks: string[], domain: string): string[] {
     const matches = new Set<string>()
     for (const link of homepageLinks) {
         try {
-            const u = new URL(link)
+            // Resolve relative links against homepage URL
+            const u = new URL(link, homepageUrl)
             // Same domain only
             if (!u.hostname.includes(domain) && !domain.includes(u.hostname)) continue
-            const path = u.pathname.toLowerCase()
+            const path = decodeURIComponent(u.pathname).toLowerCase()
             if (targetSlugs.some(s => path.includes(`/${s}`))) {
-                matches.add(u.toString().replace(/\/$/, ''))
+                const clean = u.toString().replace(/#.*$/, '').replace(/\/$/, '')
+                matches.add(clean)
             }
         } catch { /* invalid URL */ }
         if (matches.size >= MAX_PAGES - 1) break
@@ -189,42 +311,47 @@ function shouldEnrichField(
 }
 
 export async function enrichProfileFromUrl(input: EnrichmentInput): Promise<EnrichedProfile | null> {
-    const { websiteUrl, existing, instance, apiKey } = input
+    const { websiteUrl, existing, apiKey } = input
     const url = (websiteUrl || '').trim()
-    if (!url || !instance.ip || !apiKey) return null
+    if (!url || !apiKey) return null
 
     const startedAt = Date.now()
     const notes: string[] = []
 
     let domain = ''
+    let normalizedUrl = url
     try {
         const u = new URL(url.startsWith('http') ? url : `https://${url}`)
         domain = u.hostname.replace(/^www\./, '')
+        normalizedUrl = u.toString()
     } catch {
         return null
     }
 
-    // Step 1: crawl homepage
-    const { crawlUrl } = await import('@/services/crawl4ai')
-    const homepage = await crawlUrl(instance.ip, url, instance.rootPassword || undefined)
-    if (!homepage || !homepage.markdown) {
-        notes.push('crawl-homepage-failed')
+    // Step 1: fetch homepage directly (no VPS dependency)
+    console.log(`[profileEnricher] fetching homepage: ${normalizedUrl}`)
+    const homepage = await fetchPage(normalizedUrl)
+    if (!homepage || !homepage.markdown || homepage.markdown.length < 100) {
+        notes.push('fetch-homepage-failed-or-empty')
+        console.warn(`[profileEnricher] homepage fetch failed for ${normalizedUrl}`)
         return { _meta: { pagesCrawled: [], confidence: 'low', notes } }
     }
-    const pagesCrawled = [url]
-    const allPages = [{ url, markdown: homepage.markdown, title: homepage.title || domain }]
+    const pagesCrawled = [normalizedUrl]
+    const allPages = [{ url: normalizedUrl, markdown: homepage.markdown, title: homepage.title || domain }]
 
-    // Step 2: pick + crawl key sub-pages (about / products / services / contact)
+    // Step 2: pick + fetch key sub-pages (about / products / services / contact)
     if (Date.now() - startedAt < ENRICHMENT_TIMEOUT_MS - 60_000) {
-        const subPages = selectPagesToCrawl(homepage.links || [], domain).slice(0, MAX_PAGES - 1)
-        if (subPages.length > 0) {
-            const sub = await crawlMultiple(instance.ip, subPages, instance.rootPassword || undefined, 2)
-            for (const p of sub) {
-                allPages.push({ url: p.url, markdown: p.markdown, title: p.title })
-                pagesCrawled.push(p.url)
+        const subPages = selectPagesToCrawl(homepage.links || [], normalizedUrl, domain).slice(0, MAX_PAGES - 1)
+        console.log(`[profileEnricher] selected ${subPages.length} sub-pages: ${subPages.join(', ')}`)
+        for (const subUrl of subPages) {
+            const p = await fetchPage(subUrl)
+            if (p && p.markdown.length > 100) {
+                allPages.push({ url: subUrl, markdown: p.markdown, title: p.title })
+                pagesCrawled.push(subUrl)
             }
         }
     }
+    console.log(`[profileEnricher] total pages collected: ${allPages.length}`)
 
     // Step 3: extract with Sonnet
     const extracted = await extractWithSonnet(apiKey, allPages)
