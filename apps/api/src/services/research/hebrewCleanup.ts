@@ -51,13 +51,13 @@ interface HebrewCleanupResult {
     outputTokensApprox?: number
 }
 
-// Phase 4.0 (perf) — hebrewCleanup is mechanical translation/scrubbing, not
-// creative writing. Sonnet 4.6 took ~8 min on a 16K-tok input — way out of
-// proportion to the work. Haiku 4.5 finishes in ~1-2 min with same quality
-// on this task class (preserve JSON structure, swap English filler for
-// Hebrew equivalents). Keep SONNET_MODEL for the type while pointing at
-// Haiku — the constant name is grandfathered.
-const SONNET_MODEL = 'claude-haiku-4-5-20251001'
+// Phase 4.0(fix8) — REVERT to Sonnet. Tried Haiku (fix in 98d81c5d) to cut
+// the 8-min cleanup time. Haiku has an 8K output-token cap, so on a
+// ~16K-input run (typical competitor_landscape) it truncated the body
+// silently: v6 saw content 34865→1516 chars — 95% content loss.
+// Sonnet handles 13-16K output tokens reliably; 8min cost stands, but
+// truncating the user's report is a strictly worse outcome.
+const SONNET_MODEL = 'claude-sonnet-4-6'
 
 const ALLOWLIST_BLOCK = `**ALLOWLIST — חייבים להישאר באנגלית כפי שהן:**
 
@@ -237,6 +237,17 @@ export async function runHebrewCleanup(input: HebrewCleanupInput): Promise<Hebre
         } catch (err) {
             console.warn(`[hebrewCleanup/${stageId}] records JSON parse failed — keeping originals:`, (err as Error).message)
         }
+    }
+
+    // Phase 4.0(fix8) — safety guard. If the model output is dramatically
+    // shorter than the input (>50% loss), it almost certainly truncated
+    // (hit max_tokens cap mid-stream — saw this with Haiku output limit).
+    // Reject the cleanup and ship the original content instead. We lose
+    // the filler-scrubbing pass but keep the report intact.
+    const lossRatio = content.length > 0 ? (content.length - cleanedContent.length) / content.length : 0
+    if (lossRatio > 0.5) {
+        console.warn(`[hebrewCleanup/${stageId}] suspected truncation — content ${content.length}→${cleanedContent.length} (${Math.round(lossRatio * 100)}% loss). REJECTING cleanup, keeping original.`)
+        return { cleanedContent: content, cleanedRecords: records, applied: false, skipped: true, inputTokensApprox, outputTokensApprox }
     }
 
     console.log(`[hebrewCleanup/${stageId}] applied — input ${inputTokensApprox} tok, output ${outputTokensApprox} tok, content ${content.length}→${cleanedContent.length} chars, records ${records?.length ?? 0}→${cleanedRecords?.length ?? 0}`)
