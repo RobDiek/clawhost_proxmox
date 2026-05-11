@@ -132,24 +132,57 @@ async function consumeAnthropicStream(res: Response): Promise<string> {
 
 // ── Per-instance research lock (prevents parallel runs) ─────────────────────
 // Same TTL/semantics as the legacy researchStage — only one stage may execute
-// against an instance at a time. Lock key = instanceId, value = startedAt.
-const activeResearchRuns = new Map<string, number>()
+// against an instance at a time. Lock key = instanceId, value = ActiveRun.
+// Phase 4.0(fix3) — expanded from `startedAt` number → ActiveRun object so
+// the plan endpoint can surface which stage is running, agent it's on, and
+// when it started. UI uses this to restore the "running" badge after a
+// page reload (without it, the user reloads → sees the previous run's
+// "completed" state → has no idea a fresh run is mid-flight server-side).
+export interface ActiveRun {
+    stageId: string
+    agentId?: string
+    startedAt: number
+}
+const activeResearchRuns = new Map<string, ActiveRun>()
 // Phase 3.20 — bumped 6min → 15min to cover the 12min Anthropic timeout +
 // streaming setup time. If we ever exceed this, the lock auto-releases and
 // a parallel run can start — that's worse than over-blocking, so err high.
-const RESEARCH_LOCK_TTL = 900_000
+// Phase 4.0 — bumped again to 25min to cover the longest observed run
+// (17min for hebrewCleanup-heavy stages); should drop back to 15min once
+// Haiku-cleanup change lands and stabilises.
+const RESEARCH_LOCK_TTL = 25 * 60 * 1000
 
-export function acquireResearchLock(instanceId: string): { acquired: boolean; secondsLeft?: number } {
-    const lockedAt = activeResearchRuns.get(instanceId)
-    if (lockedAt && Date.now() - lockedAt < RESEARCH_LOCK_TTL) {
-        return { acquired: false, secondsLeft: Math.ceil((RESEARCH_LOCK_TTL - (Date.now() - lockedAt)) / 1000) }
+export function acquireResearchLock(
+    instanceId: string,
+    stageId?: string,
+    agentId?: string,
+): { acquired: boolean; secondsLeft?: number } {
+    const existing = activeResearchRuns.get(instanceId)
+    if (existing && Date.now() - existing.startedAt < RESEARCH_LOCK_TTL) {
+        return { acquired: false, secondsLeft: Math.ceil((RESEARCH_LOCK_TTL - (Date.now() - existing.startedAt)) / 1000) }
     }
-    activeResearchRuns.set(instanceId, Date.now())
+    activeResearchRuns.set(instanceId, {
+        stageId: stageId || 'unknown',
+        agentId,
+        startedAt: Date.now(),
+    })
     return { acquired: true }
 }
 
 export function releaseResearchLock(instanceId: string): void {
     activeResearchRuns.delete(instanceId)
+}
+
+/** Phase 4.0(fix3) — what's currently running on this instance, if anything. */
+export function getActiveResearchRun(instanceId: string): ActiveRun | null {
+    const run = activeResearchRuns.get(instanceId)
+    if (!run) return null
+    // Stale lock — TTL elapsed but release missed. Treat as not running.
+    if (Date.now() - run.startedAt >= RESEARCH_LOCK_TTL) {
+        activeResearchRuns.delete(instanceId)
+        return null
+    }
+    return run
 }
 
 // ── Detect "system status report" leaks ──

@@ -11937,6 +11937,21 @@ async function loadPipelineV2() {
       await initializePlanV2();
       return;
     }
+    // Phase 4.0(fix3) — restore "running" state after page reload. If
+    // the server reports an in-flight stage (activeRun), put it back into
+    // the loading set, mark its plan.status as 'running', and kick off
+    // the same poll the run-stage path uses to detect completion.
+    if (d.data.activeRun && d.data.activeRun.stageId) {
+      var runningSid = d.data.activeRun.stageId;
+      pipelineV2State.loading.add(runningSid);
+      if (!pipelineV2State.loadingStartedAt) pipelineV2State.loadingStartedAt = {};
+      pipelineV2State.loadingStartedAt[runningSid] = d.data.activeRun.startedAt || Date.now();
+      // Also flag plan.status so the render shows "running" instead of the
+      // previous run's "completed" badge.
+      if (!pipelineV2State.plan.status) pipelineV2State.plan.status = {};
+      pipelineV2State.plan.status[runningSid] = { state: 'running' };
+      attachAutoRefreshPoll(iid, runningSid, (pipelineV2State.results[runningSid] && pipelineV2State.results[runningSid].runAt) || null);
+    }
     renderPipelineV2();
   } catch (e) {
     body.innerHTML = '<div style="text-align:center;padding:40px;color:#EF4444">שגיאת תקשורת: ' + (e.message || e) + '</div>';
@@ -12312,6 +12327,69 @@ async function runResearchPreflight(manual) {
   showResearchPreflightModal(pf, false);
 }
 
+/**
+ * Phase 4.0(fix3) — attach a server-side poll that adopts a stage's result
+ * as soon as the server has saved it. Used by:
+ *   1. runStageV2 — POST kicks off the run, poll watches in parallel so
+ *      we still adopt the result if the POST connection dies mid-run.
+ *   2. openPipelineV2 — on page mount, if /research/plan reports activeRun
+ *      the UI restores "running" state and the poll waits for completion.
+ *
+ * preRunAt is the runAt of the previous run for this stage (or null if
+ * the stage never ran). The poll only fires the completion handler when
+ * the server's runAt is different — that's how we distinguish "still
+ * running" from "fresh result available".
+ *
+ * Optional tickHandle is the 1-second renderPipelineV2 timer that runs
+ * the elapsed counter. The poll clears it on completion so the timer
+ * doesn't keep ticking after the stage is done.
+ */
+function attachAutoRefreshPoll(iid, sid, preRunAt, tickHandle) {
+  var pollHandle = setInterval(async function() {
+    if (!pipelineV2State.loading.has(sid)) { clearInterval(pollHandle); return; }
+    try {
+      var planRes = await fetch(API + '/hosting/instances/' + iid + '/research/plan', {
+        headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
+      });
+      var planData = await planRes.json();
+      if (!planData.success) return;
+      var serverStatus = planData.data && planData.data.results && planData.data.results[sid];
+      var serverState = planData.data && planData.data.plan && planData.data.plan.status && planData.data.plan.status[sid];
+      var serverRunAt = serverStatus && serverStatus.runAt;
+      // If the server still reports activeRun for the same stage → keep
+      // waiting. Helpful when the result lands a few seconds after the
+      // lock releases.
+      var stillRunning = planData.data && planData.data.activeRun && planData.data.activeRun.stageId === sid;
+      if (stillRunning) return;
+      // Adopt the result if the server has a fresh one (different runAt
+      // than what we had when the run started).
+      if (serverRunAt && serverRunAt !== preRunAt) {
+        pipelineV2State.loading.delete(sid);
+        clearInterval(pollHandle);
+        if (tickHandle) clearInterval(tickHandle);
+        if (!pipelineV2State.plan.status) pipelineV2State.plan.status = {};
+        pipelineV2State.plan.status[sid] = serverState || { state: 'completed', runAt: serverRunAt };
+        pipelineV2State.results[sid] = {
+          content: serverStatus.content,
+          records: serverStatus.records,
+          extras: serverStatus.extras,
+          source: serverStatus.source,
+          confidence: serverStatus.confidence,
+          dfsCost: serverStatus.dfsCost,
+          qualityGate: serverStatus.qualityGate,
+          runAt: serverRunAt,
+          integrationsUsed: serverStatus.integrationsUsed,
+        };
+        renderPipelineV2();
+        if (typeof updatePipelineV2Balance === 'function') updatePipelineV2Balance();
+        showToast('שלב "' + (STAGE_CATALOG_V2[sid] && STAGE_CATALOG_V2[sid].titleHe || sid) + '" הושלם', 'success');
+        if (typeof viewStageResultV2 === 'function') viewStageResultV2(sid);
+      }
+    } catch (e) { /* network blip — keep polling */ }
+  }, 15000);
+  return pollHandle;
+}
+
 async function runStageV2(sid) {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) return;
@@ -12350,44 +12428,7 @@ async function runStageV2(sid) {
   // defaults), the poll keeps watching /research/plan and adopts the
   // saved result the moment the server is done. Without this, users
   // had to manually reload the page to see completion.
-  var pollHandle = setInterval(async function() {
-    if (!pipelineV2State.loading.has(sid)) { clearInterval(pollHandle); return; }
-    try {
-      var planRes = await fetch(API + '/hosting/instances/' + iid + '/research/plan', {
-        headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') }
-      });
-      var planData = await planRes.json();
-      if (!planData.success) return;
-      var serverStatus = planData.data && planData.data.results && planData.data.results[sid];
-      var serverState = planData.data && planData.data.plan && planData.data.plan.status && planData.data.plan.status[sid];
-      var serverRunAt = serverStatus && serverStatus.runAt;
-      // Adopt the result if the server has a fresh one (different runAt
-      // than what we had when we started). Works for both completion and
-      // failure paths.
-      if (serverRunAt && serverRunAt !== preRunAt) {
-        pipelineV2State.loading.delete(sid);
-        clearInterval(pollHandle);
-        clearInterval(tickHandle);
-        if (!pipelineV2State.plan.status) pipelineV2State.plan.status = {};
-        pipelineV2State.plan.status[sid] = serverState || { state: 'completed', runAt: serverRunAt };
-        pipelineV2State.results[sid] = {
-          content: serverStatus.content,
-          records: serverStatus.records,
-          extras: serverStatus.extras,
-          source: serverStatus.source,
-          confidence: serverStatus.confidence,
-          dfsCost: serverStatus.dfsCost,
-          qualityGate: serverStatus.qualityGate,
-          runAt: serverRunAt,
-          integrationsUsed: serverStatus.integrationsUsed,
-        };
-        renderPipelineV2();
-        updatePipelineV2Balance();
-        showToast('שלב "' + (STAGE_CATALOG_V2[sid] && STAGE_CATALOG_V2[sid].titleHe || sid) + '" הושלם', 'success');
-        viewStageResultV2(sid);
-      }
-    } catch (e) { /* network blip — keep polling */ }
-  }, 15000);
+  var pollHandle = attachAutoRefreshPoll(iid, sid, preRunAt, tickHandle);
 
   renderPipelineV2();
 

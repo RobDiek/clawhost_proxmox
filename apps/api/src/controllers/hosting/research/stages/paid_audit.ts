@@ -15,12 +15,14 @@ import {
     releaseResearchLock,
 } from '@/services/research/stageExecutor'
 import { markWrapperStageCompleted } from './_wrapperHelpers'
+import { resolveActiveAgent } from '@/services/agentContext'
 
 export async function run(c: Context): Promise<Response> {
     const instanceId = c.req.param('id')
     if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
 
-    const lock = acquireResearchLock(instanceId)
+    const __agentForLock = await resolveActiveAgent(c, instanceId)
+    const lock = acquireResearchLock(instanceId, 'paid_audit', __agentForLock?.id)
     if (!lock.acquired) {
         return fail(c, `שלב מחקר כבר רץ כרגע. נסו שוב בעוד ${lock.secondsLeft} שניות.`, 429)
     }

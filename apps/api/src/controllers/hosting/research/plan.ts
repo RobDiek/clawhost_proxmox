@@ -20,6 +20,7 @@ import { detectIntentWithReasoning, planForIntent, planForIntents } from '@/serv
 import { ALL_INTENTS } from '@/services/research/types'
 import type { ResearchDataV2, ResearchIntent, ResearchPlan, StageId } from '@/services/research/types'
 import { resolveActiveAgent, readResearchData, writeResearchData } from '@/services/agentContext'
+import { getActiveResearchRun } from '@/services/research/stageExecutor'
 
 // ── GET /research/plan ────────────────────────────────────────────────────
 // Returns current plan + per-stage status. Frontend pipeline widget polls
@@ -37,12 +38,24 @@ export const getResearchPlan = async (c: Context) => {
         // saved intent and surface "redetect available" if the saved value
         // is stale (e.g. user updated answers after plan was set).
         const detection = detectIntentWithReasoning(rd.answers as Record<string, unknown>)
+        // Phase 4.0(fix3) — surface in-flight stage so the UI can restore
+        // the "running" badge after a page reload (the lock lives in-memory
+        // on the API process; if the lock is held, a stage is still running
+        // and the user shouldn't see the previous run's "completed" state).
+        const activeRun = getActiveResearchRun(instanceId)
+        // Hide the run if it belongs to a different agent on the same VPS —
+        // the requester is on a different agent and shouldn't see another's
+        // run. Active agent is whichever resolveActiveAgent picked above.
+        const activeRunForThisAgent = activeRun && (!activeRun.agentId || !__agent || activeRun.agentId === __agent.id)
+            ? { stageId: activeRun.stageId, startedAt: activeRun.startedAt }
+            : null
         return ok(c, {
             intent: rd.intent || null,
             plan: rd.plan || null,
             results: rd.results || {},
             answers: rd.answers || null,
             detection,  // { intent, goalsMatched, platformsMatched, reasoning }
+            activeRun: activeRunForThisAgent,
         })
     } catch (err) {
         console.error('getResearchPlan error:', err)

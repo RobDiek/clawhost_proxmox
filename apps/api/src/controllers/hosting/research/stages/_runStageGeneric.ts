@@ -71,7 +71,11 @@ const STAGE_PREFETCHERS: Partial<Record<StageId, Prefetcher>> = {
  */
 export async function runStageGeneric(c: Context, stageId: StageId): Promise<Response> {
     const instanceId = c.req.param('id')
-    const lock = acquireResearchLock(instanceId)
+    // Phase 4.0(fix3) — capture which stage + agent is acquiring the lock so
+    // the plan endpoint can expose "currently running" state to the UI for
+    // post-reload recovery.
+    const __agentForLock = await resolveActiveAgent(c, instanceId)
+    const lock = acquireResearchLock(instanceId, stageId, __agentForLock?.id)
     if (!lock.acquired) {
         return fail(c, `שלב מחקר כבר רץ כרגע. נסו שוב בעוד ${lock.secondsLeft} שניות, או המתינו לסיום.`, 429)
     }
@@ -88,7 +92,8 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             return fail(c, 'Instance not found.', 404)
         }
 
-        const __agent = await resolveActiveAgent(c, instanceId)
+        // Reuse the agent already resolved for the lock — no need to hit DB again.
+        const __agent = __agentForLock
         const rd = (await readResearchData(__agent, instanceId)) as unknown as ResearchDataV2
         const answers = { ...((rd.answers as Record<string, unknown>) || {}) }
         // validationMode is consumed by the validation prompt builder, so
