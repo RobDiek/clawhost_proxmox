@@ -10501,16 +10501,13 @@ function renderIntegrations() {
     try { await syncMarketingIntegrationsToBackend(); } catch (e) {}
   })();
 
-  // Per-agent integration status (from agent_integrations table).
-  // Phase 2.3.E (fix) — when an active secondary mateh_agent is selected,
-  // suppress the legacy agentIntegrations bundle (which is keyed by
-  // agentType=oc/mt/bare and contains the PRIMARY's integrations on the
-  // first /my-instances load). The boolean flags from getInstance overlay
-  // (instanceData.hasAnthropicKey etc.) are now per-agent and are the
-  // authoritative source for the disconnected secondary case.
+  // Per-agent integration status. Phase 2.3.K: for a secondary mateh agent
+  // use `activeAgentIntegrations` (the per-agent bundle from getInstance
+  // overlay). For primary/single-agent, the legacy `agentIntegrations` map
+  // keyed by agentType is still authoritative.
   var __activeMatehId = localStorage.getItem('cf_active_mateh_agent_id') || '';
   var agentInts = __activeMatehId
-    ? {}  // secondary agent — never inherit primary's integration bundle
+    ? ((instanceData && instanceData.activeAgentIntegrations) || {})
     : ((instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations[activeAgent]) || {});
 
   // Render per-agent zone header with agent tabs
@@ -21319,13 +21316,14 @@ async function restoreSeoIntegrationStates() {
       }
     }
   } catch {}
-  // Phase 2.3.E (fix) — when on a secondary mateh_agent, never inherit
-  // the primary's agent_integrations bundle. Only show connected if THIS
-  // agent has its own row (which we read directly from instanceData
-  // overlay flags hasDataforseo / hasFirecrawl).
+  // Phase 2.3.K — for secondary mateh agents, use the per-agent bundle
+  // (activeAgentIntegrations) populated by the backend overlay, NOT the
+  // shared agentIntegrations map (which holds primary's data on the first
+  // /my-instances load and would leak).
+  // For primary / single-agent setups, fall back to the legacy bundle.
   var __activeMatehId = localStorage.getItem('cf_active_mateh_agent_id') || '';
   var agentInts = __activeMatehId
-    ? {}
+    ? ((instanceData && instanceData.activeAgentIntegrations) || {})
     : ((instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations[activeAgent]) || {});
   // DataForSEO — read from agent_integrations (no separate endpoint needed)
   try {

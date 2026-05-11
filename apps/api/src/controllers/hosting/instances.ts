@@ -187,6 +187,29 @@ export const getInstance = async (c: Context<HonoEnv>) => {
                 return !!(mt.adAccountId || (mt.adAccounts && mt.adAccounts.length)) ||
                     (mt.grantedScopes || '').toString().toLowerCase().includes('ads_management')
             })()
+            // Phase 2.3.K — row-based integrations (agent_integrations table)
+            // need their own per-agent overlay flags, because the frontend
+            // explicitly drops the legacy `agentIntegrations` bundle when on
+            // a secondary agent (to avoid leaking primary's bundle).
+            // Without these flags secondary cards stay disconnected even
+            // after the user saves a key.
+            const { getAgentIntegrations, getPrimaryAgent } = await import('@/services/agentIntegrations')
+            const __atForBundle = getPrimaryAgent((instance.selectedComponents as string[]) || [])
+            const __activeAgentInts = await getAgentIntegrations(instanceId, __atForBundle, activeAgent.id)
+                .catch(() => [] as Array<{ integrationType: string; status: string; config: Record<string, unknown> }>)
+            const __hasInt = (type: string) => __activeAgentInts.some(r => r.integrationType === type && r.status === 'connected')
+            response.hasBrave = __hasInt('brave')
+            response.hasWordpress = __hasInt('wordpress')
+            response.hasReddit = __hasInt('reddit')
+            response.hasSmtp = __hasInt('smtp')
+            response.hasWhatsapp = __hasInt('whatsapp')
+            // Also expose the per-agent bundle as a clean map so the frontend
+            // can stop having to special-case `agentInts = {}` for secondaries.
+            response.activeAgentIntegrations = __activeAgentInts.reduce((acc, r) => {
+                acc[r.integrationType] = { connected: r.status === 'connected', config: r.config }
+                return acc
+            }, {} as Record<string, { connected: boolean; config: Record<string, unknown> }>)
+
             // Profile / research / strategy / brand book — derived from per-agent
             // research_data and from a per-agent brand_books query
             const rd = (activeAgent.researchData as Record<string, unknown> | null) || {}
