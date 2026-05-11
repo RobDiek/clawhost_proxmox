@@ -8,7 +8,7 @@ import { Client } from 'ssh2'
 import crypto from 'crypto'
 import { resolveUserId } from './authHelper'
 import { setAgentIntegration, removeAgentIntegration, getAgentIntegration, getAllIntegrations, getPrimaryAgent, type AgentType } from '@/services/agentIntegrations'
-import { writeAgentTokens, resolveActiveAgent } from '@/services/agentContext'
+import { writeAgentTokens, writeAgentTokensFor, resolveActiveAgent } from '@/services/agentContext'
 
 /** Parse JWT from ?token= query param (for OAuth redirects) */
 function resolveUserIdFromQuery(c: Context): string | null {
@@ -112,8 +112,14 @@ export const googleAuth = async (c: Context) => {
             ? agentParam
             : getPrimaryAgent((inst.selectedComponents as string[]) || [])
 
-        // State = instanceId + scopes + agent + HMAC signature (prevents tampering)
-        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId, agent: agentType })
+        // Phase 2.3.J — capture the active mateh_agent id so the OAuth callback
+        // writes to the SAME agent the user was on. Google's redirect strips
+        // `?agentId=`, so we must round-trip it through `state`.
+        const __activeAgentForStart = await resolveActiveAgent(c, instanceId)
+        const agentIdFromContext = __activeAgentForStart?.id || ''
+
+        // State = instanceId + scopes + agent + agentId + HMAC signature (prevents tampering)
+        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId, agent: agentType, agentId: agentIdFromContext })
         const stateHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(statePayload).digest('base64url')
         const state = Buffer.from(JSON.stringify({ p: statePayload, s: stateHmac })).toString('base64url')
 
@@ -172,6 +178,9 @@ export const googleCallback = async (c: Context) => {
         const { instanceId, scopes } = stateData
         // Extract agent type from state (defaults to primary agent for backward compat)
         const agentType: AgentType = stateData.agent || 'oc'
+        // Phase 2.3.J — agentId from state pins the write to the SPECIFIC
+        // mateh_agent the user was on when starting OAuth.
+        const agentIdFromState: string = stateData.agentId || ''
 
         // Exchange code for tokens
         const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -220,15 +229,19 @@ export const googleCallback = async (c: Context) => {
             connectedAt: new Date().toISOString(),
         }
 
-        // Write to per-agent integrations — Phase 2.3.E: pass agentId so
-        // multi-MATEH on same VPS each have their own google integration row.
-        const __activeAgent = await resolveActiveAgent(c, instanceId)
-        await setAgentIntegration(instanceId, agentType, 'google', googleTokens as any, 'connected', __activeAgent?.id)
-
-        // Phase 2.3.B — write tokens to the active mateh_agent (per-agent
-        // isolation). For primary agent, this also mirrors to instances.* so
-        // legacy callers (mazhirAudit, ga4Enrich, etc.) still see the same data.
-        await writeAgentTokens(c, instanceId, { googleTokens: googleTokens as never })
+        // Phase 2.3.J — write to the SPECIFIC agent pinned via OAuth state.
+        // The callback request from Google has no `?agentId=` so falling back
+        // to `resolveActiveAgent(c, ...)` would default to primary and leak
+        // tokens between agents on multi-MATEH-per-VPS setups.
+        if (agentIdFromState) {
+            await setAgentIntegration(instanceId, agentType, 'google', googleTokens as any, 'connected', agentIdFromState)
+            await writeAgentTokensFor(agentIdFromState, instanceId, { googleTokens: googleTokens as never })
+        } else {
+            // Legacy / no agent in state — fall back to old behaviour.
+            const __activeAgent = await resolveActiveAgent(c, instanceId)
+            await setAgentIntegration(instanceId, agentType, 'google', googleTokens as any, 'connected', __activeAgent?.id)
+            await writeAgentTokens(c, instanceId, { googleTokens: googleTokens as never })
+        }
 
         console.log(`Google connected for instance ${instanceId}, agent ${agentType}: ${email} (scopes: ${scopes})`)
 

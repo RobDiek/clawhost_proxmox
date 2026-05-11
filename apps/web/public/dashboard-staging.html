@@ -697,7 +697,7 @@ input{font-family:inherit}
 
 /* ===== Integrations Catalog ===== */
 .integrations-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-bottom:20px;align-items:start }
-.int-card { background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px;transition:border-color .15s;position:relative }
+.int-card { background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px;transition:border-color .15s;position:relative;min-width:0;overflow:hidden;overflow-wrap:anywhere;word-break:break-word }
 .int-card:hover { border-color:#D1D5DB }
 /* Tooltip info icon */
 .tooltip-icon { position:absolute; top:8px; left:8px; width:18px; height:18px; border-radius:50%; background:#F3F4F6; color:#9CA3AF; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; cursor:help; z-index:10; transition:all .15s; font-style:normal }
@@ -705,12 +705,13 @@ input{font-family:inherit}
 .tooltip-icon:hover::after { content:attr(data-tip); position:absolute; top:calc(100% + 8px); left:0; background:#1F2937; color:#fff; font-size:0.8rem; font-weight:400; padding:12px 16px; border-radius:10px; width:280px; white-space:normal; line-height:1.6; z-index:200; box-shadow:0 8px 24px rgba(0,0,0,.2); pointer-events:none; animation:fadeIn .15s ease; direction:rtl }
 .tooltip-icon:hover::before { content:''; position:absolute; top:calc(100% + 2px); left:6px; border:6px solid transparent; border-bottom-color:#1F2937; z-index:200 }
 .int-card.connected { border-right:3px solid #10B981 }
-.int-card-header { display:flex;align-items:center;gap:10px }
+.int-card-header { display:flex;align-items:center;gap:10px;min-width:0 }
+.int-card-header > div:last-child { min-width:0;flex:1 1 auto;overflow-wrap:anywhere }
 .int-icon { width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0 }
 .int-card .int-status { font-size:0.75rem;color:#9CA3AF;margin-top:2px }
 .int-card .int-status.connected { color:#10B981 }
 .int-card .int-status.soon { color:#F59E0B }
-.int-card-body { margin-top:10px;padding-top:10px;border-top:1px solid #F3F4F6 }
+.int-card-body { margin-top:10px;padding-top:10px;border-top:1px solid #F3F4F6;min-width:0;overflow-wrap:anywhere;word-break:break-word }
 .int-input { width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;font-family:monospace;margin-bottom:8px }
 .int-help-link { display:block;font-size:0.75rem;color:#2563EB;margin-top:6px }
 .int-help-steps { font-size:0.78rem;color:#6B7280;margin-top:8px;line-height:1.6 }
@@ -2276,20 +2277,20 @@ input{font-family:inherit}
           <div style="font-size:0.78rem;color:#6B7280;margin-bottom:10px">מחקר מילות מפתח, מתחרים, backlinks, נראות AI — חיוב מדויק לפי שימוש בפועל. ללא מינימום חודשי, ללא מינויים. תשלום דרך AllPay (אותם פרטי תשלום של VPS).</div>
 
           <!-- Balance card (proxy mode default) -->
-          <div id="dfs-balance-card" style="background:linear-gradient(135deg,#EFF6FF 0%,#F0F9FF 100%);border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-bottom:8px">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-              <div>
+          <div id="dfs-balance-card" style="background:linear-gradient(135deg,#EFF6FF 0%,#F0F9FF 100%);border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-bottom:8px;min-width:0;overflow:hidden">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">
+              <div style="min-width:0;flex:1 1 auto">
                 <div style="font-size:0.72rem;color:#6B7280;font-weight:500">יתרה זמינה</div>
-                <div style="display:flex;align-items:baseline;gap:4px;margin-top:2px">
+                <div style="display:flex;align-items:baseline;gap:4px;margin-top:2px;flex-wrap:wrap">
                   <span id="dfs-balance-usd" style="font-size:1.45rem;font-weight:700;color:#1E3A8A;direction:ltr">$0.00</span>
                   <span id="dfs-balance-ils" style="font-size:0.78rem;color:#6B7280">≈ ₪0</span>
                 </div>
               </div>
-              <button class="btn btn-primary btn-sm" onclick="openDfsTopupModal()" style="white-space:nowrap">+ טעינה</button>
+              <button class="btn btn-primary btn-sm" onclick="openDfsTopupModal()" style="white-space:nowrap;flex-shrink:0">+ טעינה</button>
             </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px dashed #BFDBFE;font-size:0.74rem;color:#4B5563">
-              <div>הוצאה החודש: <span id="dfs-monthly-spend" style="color:#374151;font-weight:500;direction:ltr">$0.00</span> <span id="dfs-monthly-cap-display" style="color:#6B7280"></span></div>
-              <button class="btn btn-outline btn-sm" onclick="openDfsLedger()" style="font-size:0.7rem;padding:2px 8px;border-color:#BFDBFE">היסטוריה</button>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px dashed #BFDBFE;font-size:0.74rem;color:#4B5563;gap:6px;flex-wrap:wrap">
+              <div style="min-width:0;flex:1 1 auto;overflow-wrap:anywhere">הוצאה החודש: <span id="dfs-monthly-spend" style="color:#374151;font-weight:500;direction:ltr">$0.00</span> <span id="dfs-monthly-cap-display" style="color:#6B7280"></span></div>
+              <button class="btn btn-outline btn-sm" onclick="openDfsLedger()" style="font-size:0.7rem;padding:2px 8px;border-color:#BFDBFE;flex-shrink:0;white-space:nowrap">היסטוריה</button>
             </div>
             <div id="dfs-balance-warning" style="display:none;margin-top:8px;padding:6px 8px;background:#FEF3C7;border-radius:4px;font-size:0.74rem;color:#92400E">
               <strong>⚠ יתרה נמוכה.</strong> מומלץ לטעון לפני הרצת research stages הבאים.
@@ -7857,7 +7858,7 @@ function connectYouTube() {
     var agent = activeAgent || 'oc';
     var currentScopes = instanceData.googleTokens.scopes || ['calendar'];
     if (currentScopes.indexOf('youtube') === -1) currentScopes.push('youtube');
-    window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',') + '&token=' + token + '&agent=' + agent;
+    window.location.href = withActiveAgent(API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',') + '&token=' + token + '&agent=' + agent);
   } else {
     showToast('חברו קודם Google Workspace בכלי עבודה, ואז הוסיפו YouTube', 'info');
     switchTab('integrations');
@@ -7882,7 +7883,7 @@ function connectGoogleAds() {
     var agent = activeAgent || 'oc';
     var currentScopes = instanceData.googleTokens.scopes || ['calendar'];
     if (currentScopes.indexOf('ads') === -1) currentScopes.push('ads');
-    window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',') + '&token=' + token + '&agent=' + agent;
+    window.location.href = withActiveAgent(API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',') + '&token=' + token + '&agent=' + agent);
   } else {
     showToast('חברו קודם Google Workspace בכלי עבודה, ואז הוסיפו Google Ads', 'info');
     switchTab('integrations');
@@ -10545,8 +10546,11 @@ function renderIntegrations() {
     }
   })();
 
-  // Update Anthropic status — check per-agent first, then legacy
-  var hasAnthropic = agentInts.api_key ? agentInts.api_key.connected : ((instanceData && instanceData.hasAnthropicKey) || intStorGet('cf_api_key_saved'));
+  // Update Anthropic status — backend overlay only (no localStorage fallback,
+  // which caused desync between home tab task cards and integrations tab).
+  // Phase 2.3.J: single source of truth = per-agent instanceData overlay.
+  var hasAnthropic = !!(instanceData && instanceData.hasAnthropicKey
+    && (!instanceData.aiProviderType || instanceData.aiProviderType === 'anthropic'));
   if (hasAnthropic) {
     var antEl = document.getElementById('anthropic-status');
     if (antEl) { antEl.textContent = '\u2713 מחובר'; antEl.className = 'int-status connected'; }
@@ -10555,8 +10559,8 @@ function renderIntegrations() {
     showApiKeySavedState('anthropic', null, 'sk-ant-');
   }
 
-  // Update OpenAI status
-  var hasOpenai = (instanceData && instanceData.hasOpenaiKey) || intStorGet('cf_openai_saved');
+  // Update OpenAI status — backend only (Phase 2.3.J: no localStorage fallback)
+  var hasOpenai = !!(instanceData && instanceData.hasOpenaiKey);
   if (hasOpenai) {
     var oaiEl = document.getElementById('openai-status');
     if (oaiEl) { oaiEl.textContent = '\u2713 מחובר'; oaiEl.className = 'int-status connected'; }
@@ -10576,8 +10580,9 @@ function renderIntegrations() {
     if (ollamaStatusEl) { ollamaStatusEl.textContent = 'Groq מחובר'; ollamaStatusEl.style.color = '#10B981'; }
   }
 
-  // Update Telegram status — per-agent
-  var hasTelegram = agentInts.telegram ? agentInts.telegram.connected : ((instanceData && instanceData.telegramBotToken) || intStorGet('cf_telegram_saved'));
+  // Update Telegram status — backend overlay only (Phase 2.3.J: no localStorage
+  // fallback, which caused desync with home tab task cards).
+  var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
   if (hasTelegram) {
     var tgStatus = document.getElementById('telegram-status');
     if (tgStatus) { tgStatus.textContent = '\u2713 מחובר'; tgStatus.className = 'int-status connected'; }
@@ -10592,10 +10597,10 @@ function renderIntegrations() {
     if (tgCard) tgCard.classList.remove('connected');
   }
 
-  // Update publishing channels status
+  // Update publishing channels status — backend overlay only (Phase 2.3.J)
   var pubTgStatus = document.getElementById('pub-telegram-status');
   if (pubTgStatus) {
-    if ((instanceData && instanceData.telegramBotToken) || intStorGet('cf_telegram_saved')) {
+    if (instanceData && instanceData.telegramBotToken) {
       pubTgStatus.textContent = '\u2713 מחובר ופעיל';
       pubTgStatus.className = 'int-status connected';
       var pubTgCard = document.getElementById('pub-telegram-card');
@@ -19456,7 +19461,7 @@ function connectGoogle() {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
   var agent = activeAgent || 'oc';
-  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token + '&agent=' + agent;
+  window.location.href = withActiveAgent(API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token + '&agent=' + agent);
 }
 
 async function disconnectGoogle() {
@@ -19497,7 +19502,7 @@ function reconnectGoogleWithScopes() {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
   var agent = activeAgent || 'oc';
-  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token + '&agent=' + agent;
+  window.location.href = withActiveAgent(API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token + '&agent=' + agent);
 }
 
 // Map a Google scope to our SCOPE_MAP alias (calendar/gmail/contacts/ads/
@@ -19543,7 +19548,7 @@ function connectGoogleScopeAdditive(scope) {
   var current = _currentGoogleScopeAliases();
   if (current.indexOf(scope) === -1) current.push(scope);
   var agent = activeAgent || 'oc';
-  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + current.join(',') + '&token=' + token + '&agent=' + agent;
+  window.location.href = withActiveAgent(API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + current.join(',') + '&token=' + token + '&agent=' + agent);
 }
 
 // Disconnect a single Google scope while preserving others. If user removes
@@ -19562,7 +19567,7 @@ async function disconnectGoogleScope(scope) {
   var agent = activeAgent || 'oc';
   // Re-auth with reduced scope set — Google forces a re-consent which UPDATES
   // the stored token to only the requested scopes (revokes the rest).
-  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + remaining.join(',') + '&token=' + token + '&agent=' + agent;
+  window.location.href = withActiveAgent(API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + remaining.join(',') + '&token=' + token + '&agent=' + agent);
 }
 
 // Sync GTM + GA4 card UI from instanceData.googleTokens.scopes
@@ -19712,7 +19717,7 @@ function connectMicrosoft() {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
   var agent = activeAgent || 'oc';
-  window.location.href = API + '/hosting/integrations/microsoft/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token + '&agent=' + agent;
+  window.location.href = withActiveAgent(API + '/hosting/integrations/microsoft/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token + '&agent=' + agent);
 }
 
 async function disconnectMicrosoft() {
@@ -21374,7 +21379,9 @@ function connectGsc() {
   var token = localStorage.getItem('cf_token');
   var url = API + '/hosting/integrations/gsc/auth?instanceId=' + iid + '&token=' + token;
   if (siteUrl) url += '&siteUrl=' + encodeURIComponent(siteUrl);
-  window.location.href = url;
+  // Phase 2.3.J — pin OAuth to active mateh_agent so the callback writes
+  // tokens to the SAME agent the user is currently viewing.
+  window.location.href = withActiveAgent(url);
 }
 
 function showGscConnected(data) {
@@ -23259,7 +23266,7 @@ function connectGoogleAds() {
   var tk = localStorage.getItem('cf_token');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
   // Step 1: Google OAuth with 'ads' scope
-  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=ads&token=' + encodeURIComponent(tk || '');
+  window.location.href = withActiveAgent(API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=ads&token=' + encodeURIComponent(tk || ''));
 }
 
 // ── Google Ads mode picker (self-managed DIY vs HaaS managed) ──

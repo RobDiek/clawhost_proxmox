@@ -279,6 +279,40 @@ export async function writeAgentTokens(
     }
 }
 
+/**
+ * Phase 2.3.J — write tokens to a SPECIFIC mateh_agent by id, bypassing
+ * the Context-based resolver. Required for OAuth callback handlers where
+ * the request comes from Google/Meta/etc with no `?agentId=` (it must be
+ * round-tripped through the OAuth `state` payload instead).
+ *
+ * Without this, callbacks always wrote to the primary agent regardless of
+ * which secondary the user was on when they started the OAuth flow.
+ */
+export async function writeAgentTokensFor(
+    agentId: string,
+    instanceId: string,
+    fields: Partial<typeof matehAgents.$inferInsert>,
+): Promise<void> {
+    const [agent] = await db
+        .select()
+        .from(matehAgents)
+        .where(and(eq(matehAgents.id, agentId), eq(matehAgents.vpsInstanceId, instanceId)))
+    if (!agent) {
+        // Caller passed a stale agentId — fall back to legacy instance write
+        // so we don't silently drop the tokens.
+        const { instances } = await import('@/db/schema')
+        await db.update(instances).set(fields as never).where(eq(instances.id, instanceId))
+        return
+    }
+    await db.update(matehAgents)
+        .set({ ...fields, updatedAt: new Date() } as never)
+        .where(eq(matehAgents.id, agent.id))
+    if (agent.isPrimary) {
+        const { instances } = await import('@/db/schema')
+        await db.update(instances).set(fields as never).where(eq(instances.id, instanceId))
+    }
+}
+
 export async function shimResearchWriteWithExtra(
     c: Context,
     instanceId: string,

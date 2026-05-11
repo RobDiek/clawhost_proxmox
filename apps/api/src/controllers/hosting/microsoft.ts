@@ -9,7 +9,7 @@ import { Client } from 'ssh2'
 import crypto from 'crypto'
 import { resolveUserId } from './authHelper'
 import { setAgentIntegration, removeAgentIntegration, getAgentIntegration, getAllIntegrations, getPrimaryAgent, type AgentType } from '@/services/agentIntegrations'
-import { writeAgentTokens } from '@/services/agentContext'
+import { writeAgentTokens, writeAgentTokensFor, resolveActiveAgent } from '@/services/agentContext'
 
 /** Parse JWT from ?token= query param (for OAuth redirects that can't send Authorization header) */
 function resolveUserIdFromQuery(c: Context): string | null {
@@ -100,8 +100,12 @@ export const microsoftAuth = async (c: Context) => {
             ? agentParam
             : getPrimaryAgent((inst.selectedComponents as string[]) || [])
 
-        // State = instanceId + scopes + agent + HMAC signature (prevents tampering)
-        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId, agent: agentType })
+        // Phase 2.3.J — pin to active mateh_agent via OAuth state
+        const __msStartAgent = await resolveActiveAgent(c, instanceId)
+        const agentIdFromContext = __msStartAgent?.id || ''
+
+        // State = instanceId + scopes + agent + agentId + HMAC signature (prevents tampering)
+        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId, agent: agentType, agentId: agentIdFromContext })
         const stateHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(statePayload).digest('base64url')
         const state = Buffer.from(JSON.stringify({ p: statePayload, s: stateHmac })).toString('base64url')
 
@@ -151,6 +155,8 @@ export const microsoftCallback = async (c: Context) => {
         const { instanceId, scopes } = stateData
         // Extract agent type from state (defaults to primary agent for backward compat)
         const agentType: AgentType = stateData.agent || 'oc'
+        // Phase 2.3.J — agentId pinned in state at start
+        const agentIdFromState: string = stateData.agentId || ''
 
         // Exchange code for tokens
         const tokenRes = await fetch(`https://login.microsoftonline.com/${MS_TENANT}/oauth2/v2.0/token`, {
@@ -203,13 +209,17 @@ export const microsoftCallback = async (c: Context) => {
             connectedAt: new Date().toISOString(),
         }
 
-        // Write to per-agent integrations — Phase 2.3.E: pass agentId
-        const { resolveActiveAgent: __resMsAgent } = await import('@/services/agentContext')
-        const __msAgent = await __resMsAgent(c, instanceId)
-        await setAgentIntegration(instanceId, agentType, 'microsoft', microsoftTokens as any, 'connected', __msAgent?.id)
-
-        // Phase 2.3.B — write to active mateh_agent (with primary mirror)
-        await writeAgentTokens(c, instanceId, { microsoftTokens: microsoftTokens as never })
+        // Phase 2.3.J — write to the SPECIFIC agent pinned via OAuth state.
+        // Microsoft's redirect strips `?agentId=` so falling back to
+        // resolveActiveAgent would leak tokens to primary by default.
+        if (agentIdFromState) {
+            await setAgentIntegration(instanceId, agentType, 'microsoft', microsoftTokens as any, 'connected', agentIdFromState)
+            await writeAgentTokensFor(agentIdFromState, instanceId, { microsoftTokens: microsoftTokens as never })
+        } else {
+            const __msAgent = await resolveActiveAgent(c, instanceId)
+            await setAgentIntegration(instanceId, agentType, 'microsoft', microsoftTokens as any, 'connected', __msAgent?.id)
+            await writeAgentTokens(c, instanceId, { microsoftTokens: microsoftTokens as never })
+        }
 
         console.log(`Microsoft 365 connected for instance ${instanceId}, agent ${agentType}: ${email} (scopes: ${scopes})`)
 

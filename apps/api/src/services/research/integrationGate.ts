@@ -77,8 +77,8 @@ const REGISTRY: Record<IntegrationId, Omit<Requirement, 'severity'>> = {
     },
     dataforseo: {
         id: 'dataforseo',
-        label_he: 'DataForSEO',
-        valueProp_he: 'מקור הנתונים העיקרי ל-keyword volume, KD, SERP, AI Visibility, backlinks. בלעדיו רוב המחקר מבוסס על השערות.',
+        label_he: 'DataForSEO Credits',
+        valueProp_he: 'מקור הנתונים העיקרי ל-keyword volume, KD, SERP, AI Visibility, backlinks. בלעדיו רוב המחקר מבוסס על השערות. שני מצבים נתמכים: (1) credits מנוהלים דרך הפלטפורמה — pay-as-you-go ב-AllPay, או (2) חשבון DFS אישי (מצב מתקדם).',
         deepLink: 'integrations#dataforseo',
     },
     firecrawl: {
@@ -268,7 +268,11 @@ export function deriveProfileRequirements(answers: Answers): {
 // Connection check — uses overlay-aware instance + active agent row
 // ─────────────────────────────────────────────────────────────────────
 type CheckSource = {
-    instance: Pick<InstanceRow, 'aiProviderKey' | 'openaiApiKey' | 'firecrawlKey' | 'dataforseoKey' | 'gscTokens' | 'googleTokens' | 'metaTokens' | 'githubConfig' | 'researchData'>
+    instance: Pick<InstanceRow,
+        | 'aiProviderKey' | 'openaiApiKey' | 'firecrawlKey' | 'dataforseoKey'
+        | 'gscTokens' | 'googleTokens' | 'metaTokens' | 'githubConfig' | 'researchData'
+        | 'dfsBalanceUsdCents' | 'dfsUseProxy'
+    >
     agent: MatehAgentRow | null
 }
 
@@ -333,8 +337,19 @@ export function checkRequirementStatus(
             const tokens = read('gscTokens') as { refreshToken?: string; accessToken?: string; siteUrl?: string } | null
             return (tokens?.refreshToken || tokens?.accessToken) ? 'connected' : 'missing'
         }
-        case 'dataforseo':
-            return (read('dataforseoKey') as string | null) ? 'connected' : 'missing'
+        case 'dataforseo': {
+            // Phase 2.3.J — recognize BOTH modes:
+            //   1. Managed proxy (default): inst.dfsUseProxy && balance > 0
+            //      → user pays-as-you-go through Flowmatic credits (shared
+            //        across agents on the same instance/tenant).
+            //   2. Legacy direct key: per-agent dataforseoKey set
+            //      → escape hatch for power users with their own DFS account.
+            const proxyOn = inst.dfsUseProxy !== false
+            const balanceCents = inst.dfsBalanceUsdCents ?? 0
+            if (proxyOn && balanceCents > 0) return 'connected'
+            const directKey = read('dataforseoKey') as string | null
+            return directKey ? 'connected' : 'missing'
+        }
         case 'firecrawl':
             return (read('firecrawlKey') as string | null) ? 'connected' : 'missing'
         case 'google_workspace': {

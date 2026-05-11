@@ -17,7 +17,7 @@ import { Client } from 'ssh2'
 import crypto from 'crypto'
 import { resolveUserId } from './authHelper'
 import { setAgentIntegration, removeAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
-import { writeAgentTokens } from '@/services/agentContext'
+import { writeAgentTokens, writeAgentTokensFor, resolveActiveAgent } from '@/services/agentContext'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
@@ -89,8 +89,15 @@ export const gscAuth = async (c: Context) => {
         const [inst] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
         if (!inst) return fail(c, 'Instance not found', 404)
 
-        // State = instanceId + siteUrl + HMAC signature
-        const statePayload = JSON.stringify({ instanceId, siteUrl, uid: userId, type: 'gsc' })
+        // Phase 2.3.J — capture the active mateh_agent ID so the OAuth
+        // callback writes tokens to the SAME agent the user was on.
+        // Without this, callback resolves activeAgent via `?agentId=` which
+        // Google strips on redirect → tokens land on primary by default.
+        const activeAgent = await resolveActiveAgent(c, instanceId)
+        const agentId = activeAgent?.id || ''
+
+        // State = instanceId + siteUrl + agentId + HMAC signature
+        const statePayload = JSON.stringify({ instanceId, siteUrl, uid: userId, type: 'gsc', agentId })
         const stateHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(statePayload).digest('base64url')
         const state = Buffer.from(JSON.stringify({ p: statePayload, s: stateHmac })).toString('base64url')
 
@@ -113,7 +120,7 @@ export const gscAuth = async (c: Context) => {
 
 // ── Core GSC token exchange + save logic ──
 // Used by both gscCallback (direct) and gscCallbackHandler (routed from google.ts)
-async function processGscCallback(c: Context, code: string, instanceId: string, siteUrl: string): Promise<Response> {
+async function processGscCallback(c: Context, code: string, instanceId: string, siteUrl: string, agentIdFromState: string): Promise<Response> {
     // Exchange code for tokens
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
@@ -173,15 +180,22 @@ async function processGscCallback(c: Context, code: string, instanceId: string, 
         connectedAt: new Date().toISOString(),
     }
 
-    // Phase 2.3.B — write to active mateh_agent (with primary mirror to instance)
-    await writeAgentTokens(c, instanceId, { gscTokens: gscTokens as never })
+    // Phase 2.3.J — write to the agent encoded in OAuth state (NOT
+    // resolveActiveAgent on this request: Google's redirect strips ?agentId=,
+    // so resolveActiveAgent would default to primary and leak tokens
+    // across agents on multi-MATEH-per-VPS setups).
+    if (agentIdFromState) {
+        await writeAgentTokensFor(agentIdFromState, instanceId, { gscTokens: gscTokens as never })
+    } else {
+        // Legacy / no agent in state — fall back to old behaviour (primary).
+        await writeAgentTokens(c, instanceId, { gscTokens: gscTokens as never })
+    }
 
-    // Write to per-agent integrations — Phase 2.3.E: pass agentId
+    // Write to per-agent integrations — pass the SAME agentId we wrote to,
+    // so the integrations bundle stays consistent with the token storage.
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     const agentType = getPrimaryAgent((inst?.selectedComponents as string[]) || [])
-    const { resolveActiveAgent: __resGscAgent } = await import('@/services/agentContext')
-    const __gscAgent = await __resGscAgent(c, instanceId)
-    await setAgentIntegration(instanceId, agentType, 'gsc', gscTokens as any, 'connected', __gscAgent?.id)
+    await setAgentIntegration(instanceId, agentType, 'gsc', gscTokens as any, 'connected', agentIdFromState || undefined)
         .catch(err => console.error('Failed to set agent GSC integration:', err))
 
     console.log(`GSC connected for instance ${instanceId}: ${email} (sites: ${sites.length})`)
@@ -207,8 +221,8 @@ async function processGscCallback(c: Context, code: string, instanceId: string, 
 // ── Called from google.ts callback when state.type === 'gsc' ──
 export const gscCallbackHandler = async (c: Context, code: string, stateOuter: { p: string; s: string }) => {
     try {
-        const { instanceId, siteUrl } = JSON.parse(stateOuter.p)
-        return processGscCallback(c, code, instanceId, siteUrl || '')
+        const { instanceId, siteUrl, agentId } = JSON.parse(stateOuter.p)
+        return processGscCallback(c, code, instanceId, siteUrl || '', agentId || '')
     } catch (err) {
         console.error('gscCallbackHandler error:', err)
         return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=server_error`)
@@ -229,8 +243,8 @@ export const gscCallback = async (c: Context) => {
         const expectedHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(stateOuter.p).digest('base64url')
         if (stateOuter.s !== expectedHmac) return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=invalid_state`)
 
-        const { instanceId, siteUrl } = JSON.parse(stateOuter.p)
-        return processGscCallback(c, code, instanceId, siteUrl || '')
+        const { instanceId, siteUrl, agentId } = JSON.parse(stateOuter.p)
+        return processGscCallback(c, code, instanceId, siteUrl || '', agentId || '')
     } catch (err) {
         console.error('gscCallback error:', err)
         return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=server_error`)
@@ -301,11 +315,11 @@ export const gscStatus = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        // Phase 2.3.E — read tokens from active mateh_agent (not the
-        // instance row, which only has primary's tokens).
-        const { resolveActiveAgent } = await import('@/services/agentContext')
+        // Phase 2.3.J — strict per-agent read. When an active agent row
+        // exists, read ONLY from that row; do NOT fall back to instance.*
+        // (which holds primary's tokens and would leak across agents).
         const __activeAgent = await resolveActiveAgent(c, instanceId)
-        const tokens = (__activeAgent?.gscTokens || instance.gscTokens) as any
+        const tokens = (__activeAgent ? __activeAgent.gscTokens : instance.gscTokens) as any
         if (!tokens?.accessToken) {
             return ok(c, { connected: false }, 'Not connected.')
         }
@@ -338,7 +352,9 @@ export const gscSetSite = async (c: Context) => {
         const body = await c.req.json<{ siteUrl: string }>()
         if (!body.siteUrl) return fail(c, 'siteUrl required', 400)
 
-        const tokens = instance.gscTokens as any
+        // Phase 2.3.J — read tokens from the active agent, not instance row.
+        const __setSiteAgent = await resolveActiveAgent(c, instanceId)
+        const tokens = (__setSiteAgent ? __setSiteAgent.gscTokens : instance.gscTokens) as any
         if (!tokens?.accessToken) return fail(c, 'GSC not connected', 400)
 
         // Validate site is in the authorized list
