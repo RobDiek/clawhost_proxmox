@@ -148,6 +148,8 @@ import {
     testSmtp,
     serverStats,
     serverLogs,
+    diskBreakdown,
+    diskCleanup,
     googleAuth,
     googleCallback,
     googleDisconnect,
@@ -465,6 +467,9 @@ app.post('/instances/:id/integrations/test-smtp', testSmtp)
 // ── Server ──
 app.get('/instances/:id/server-stats', serverStats)  // renamed from /stats — collided with /stats (getAgentStats)
 app.get('/instances/:id/logs', serverLogs)
+// Phase 4.0(disk) — disk health endpoints
+app.get('/instances/:id/disk/breakdown', diskBreakdown)
+app.post('/instances/:id/disk/cleanup', diskCleanup)
 
 // ── Backups (Hetzner snapshot-based) ──
 app.get('/instances/:id/backups', listBackups)

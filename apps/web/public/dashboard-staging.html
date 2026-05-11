@@ -4639,6 +4639,9 @@ function renderHome() {
   checkProvisioningStatus();
   // Stack version status (background fetch — render on completion)
   if (typeof renderVersionCard === 'function') renderVersionCard();
+  // Phase 4.0(disk) — background-fetch disk usage so renderNotifications
+  // can show a disk-low alert without blocking the home tab render.
+  if (typeof loadServerStatsForHome === 'function') loadServerStatsForHome();
   // Greeting
   var name = localStorage.getItem('cf_user_name') || email.split('@')[0] || '';
   var greetEl = document.getElementById('greetingText');
@@ -5234,6 +5237,31 @@ function getNotifications() {
     }
   }
 
+  // Phase 4.0(disk) — disk health alert. Reads window.__diskStats (refreshed
+  // by loadServerStatsForHome below). Surfaces a warning/error notif when
+  // disk usage crosses thresholds. Two CTAs: cleanup (one-click) + add
+  // storage (existing AllPay flow).
+  if (window.__diskStats && typeof window.__diskStats.usagePct === 'number') {
+    var pct = window.__diskStats.usagePct;
+    var usedGb = (window.__diskStats.diskUsedMb / 1024).toFixed(1);
+    var totalGb = (window.__diskStats.diskTotalMb / 1024).toFixed(1);
+    if (pct >= 90 && dismissed.indexOf('disk-critical') === -1) {
+      notifs.push({
+        id: 'disk-critical', type: 'error', icon: '🚨',
+        title: 'שטח דיסק כמעט אזל — ' + pct + '%',
+        desc: 'בשימוש ' + usedGb + 'GB מתוך ' + totalGb + 'GB. בשטח נמוך מ-10% ה-VPS עלול להתחיל לקרוס. נקו או הגדילו עכשיו.',
+        action: "openDiskHealthModal()", actionLabel: 'פתחו אבחון'
+      });
+    } else if (pct >= 80 && dismissed.indexOf('disk-warning') === -1) {
+      notifs.push({
+        id: 'disk-warning', type: 'warning', icon: '💾',
+        title: 'שטח דיסק נמוך — ' + pct + '% בשימוש',
+        desc: 'בשימוש ' + usedGb + 'GB מתוך ' + totalGb + 'GB. מומלץ לנקות docker cache + journal logs, או להוסיף נפח אחסון.',
+        action: "openDiskHealthModal()", actionLabel: 'פתחו אבחון'
+      });
+    }
+  }
+
   // System notifications from localStorage
   var sysNotifs = JSON.parse(localStorage.getItem('cf_notifications') || '[]');
   sysNotifs.forEach(function(n) {
@@ -5241,6 +5269,127 @@ function getNotifications() {
   });
 
   return notifs;
+}
+
+// Phase 4.0(disk) — fetch /server-stats on home tab mount; store on
+// window.__diskStats so renderNotifications can decide whether to show
+// a disk-low notification.
+async function loadServerStatsForHome() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var token = localStorage.getItem('cf_token');
+  if (!iid || !token) return;
+  // Cache for 5 minutes — server-stats does an SSH call to the VPS which
+  // takes 1-2 seconds; don't burn that on every home-tab visit.
+  var cached = window.__diskStatsCachedAt && (Date.now() - window.__diskStatsCachedAt < 5 * 60 * 1000);
+  if (cached && window.__diskStats) { renderNotifications(); return; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/server-stats', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var d = await res.json();
+    if (d.success && d.data && d.data.diskTotal > 0) {
+      window.__diskStats = {
+        diskUsedMb: d.data.diskUsed,
+        diskTotalMb: d.data.diskTotal,
+        usagePct: Math.round((d.data.diskUsed / d.data.diskTotal) * 100),
+      };
+      window.__diskStatsCachedAt = Date.now();
+      renderNotifications();
+    }
+  } catch (e) { /* silent — disk alert is non-critical */ }
+}
+
+// Phase 4.0(disk) — diagnostic modal. Shows usage bar + top consumers,
+// plus two CTAs: "נקו עכשיו" (one-click cleanup endpoint) and
+// "הוסיפו אחסון" (opens existing add-storage modal).
+async function openDiskHealthModal() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var token = localStorage.getItem('cf_token');
+  if (!iid || !token) return;
+  var modal = document.getElementById('disk-health-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'disk-health-modal';
+    modal.className = 'cf-modal-backdrop';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
+    modal.innerHTML = '<div style="background:#fff;border-radius:12px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:24px" id="disk-health-body">טוען...</div>';
+    document.body.appendChild(modal);
+  }
+  modal.style.display = 'flex';
+  var body = document.getElementById('disk-health-body');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:#6B7280">בודק שטח דיסק...</div>';
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/disk/breakdown', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var d = await res.json();
+    if (!d.success) { body.innerHTML = '<div style="color:#EF4444">שגיאה: ' + (d.message || 'failed') + '</div>'; return; }
+    renderDiskHealthBody(d.data);
+  } catch (e) { body.innerHTML = '<div style="color:#EF4444">שגיאת תקשורת</div>'; }
+}
+
+function closeDiskHealthModal() {
+  var m = document.getElementById('disk-health-modal');
+  if (m) m.style.display = 'none';
+}
+
+function renderDiskHealthBody(data) {
+  var body = document.getElementById('disk-health-body');
+  if (!body) return;
+  var pct = data.usagePct || 0;
+  var color = pct >= 90 ? '#EF4444' : pct >= 80 ? '#F59E0B' : '#10B981';
+  var usedGb = (data.diskUsedMb / 1024).toFixed(1);
+  var totalGb = (data.diskTotalMb / 1024).toFixed(1);
+  var freeGb = ((data.diskTotalMb - data.diskUsedMb) / 1024).toFixed(1);
+  var topDirsHtml = (data.topDirs || []).slice(0, 6).map(function(d) {
+    var sizeGb = (d.sizeMb / 1024).toFixed(2);
+    var nameHe = ({ docker: 'Docker (containers + images + cache)', logs: 'לוגי מערכת', openclaw: 'OpenClaw + agent data', opt: '/opt', tmp: 'קבצים זמניים', root: '/root' }[d.name]) || d.name;
+    return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #F3F4F6"><span style="font-size:0.84rem;color:#374151">' + nameHe + '</span><span style="font-size:0.84rem;color:#6B7280;direction:ltr">' + sizeGb + ' GB</span></div>';
+  }).join('');
+  body.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">' +
+      '<h3 style="margin:0;font-size:1.1rem;color:#1E3A8A">אבחון שטח דיסק</h3>' +
+      '<button onclick="closeDiskHealthModal()" style="background:none;border:none;font-size:1.2rem;color:#9CA3AF;cursor:pointer">✕</button>' +
+    '</div>' +
+    '<div style="background:#F9FAFB;border-radius:10px;padding:14px;margin-bottom:14px">' +
+      '<div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#374151;margin-bottom:6px"><span>בשימוש</span><span style="direction:ltr">' + usedGb + ' / ' + totalGb + ' GB</span></div>' +
+      '<div style="background:#E5E7EB;height:8px;border-radius:4px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:' + color + '"></div></div>' +
+      '<div style="text-align:center;margin-top:6px;font-size:0.78rem;color:#6B7280">' + pct + '% מנוצל · ' + freeGb + ' GB פנויים</div>' +
+    '</div>' +
+    '<div style="margin-bottom:14px">' +
+      '<div style="font-size:0.84rem;color:#374151;font-weight:600;margin-bottom:6px">איפה השטח מנוצל?</div>' +
+      (topDirsHtml || '<div style="font-size:0.82rem;color:#9CA3AF">אין נתונים זמינים</div>') +
+    '</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+      '<button class="btn btn-primary" onclick="runDiskCleanup()" id="disk-cleanup-btn">🧹 נקו עכשיו (docker cache + journal logs)</button>' +
+      '<button class="btn btn-outline" onclick="closeDiskHealthModal();showUpgradeDialog()">➕ הוסיפו נפח אחסון</button>' +
+    '</div>' +
+    '<div style="font-size:0.74rem;color:#6B7280;margin-top:10px;line-height:1.5">הניקוי בטוח — לא נוגע בקבצי המשתמש או ב-volumes של containers פעילים. בדרך כלל משחרר 5-15 GB.</div>';
+}
+
+async function runDiskCleanup() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var token = localStorage.getItem('cf_token');
+  if (!iid || !token) return;
+  var btn = document.getElementById('disk-cleanup-btn');
+  if (btn) { btn.textContent = 'מנקה...'; btn.disabled = true; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/disk/cleanup', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var d = await res.json();
+    if (!d.success) { showToast(d.message || 'שגיאה בניקוי', 'error'); if (btn) { btn.textContent = 'נסו שוב'; btn.disabled = false; } return; }
+    var freedGb = (d.data.freedMb / 1024).toFixed(2);
+    showToast('שוחררו ' + freedGb + ' GB', 'success');
+    // Refresh stats + re-render
+    window.__diskStatsCachedAt = 0;
+    await loadServerStatsForHome();
+    closeDiskHealthModal();
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+    if (btn) { btn.textContent = 'נסו שוב'; btn.disabled = false; }
+  }
 }
 
 function renderNotifications() {

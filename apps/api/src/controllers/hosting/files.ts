@@ -286,6 +286,99 @@ export const renameFile = async (c: Context) => {
     }
 }
 
+// GET /hosting/instances/:id/disk/breakdown
+// Phase 4.0(disk) — diagnostic: where is the disk space going?
+// Returns top consumers in the customer VPS (docker, journal, /home,
+// /var, etc) so the dashboard "what ate it?" drawer can show real
+// numbers instead of forcing the user to SSH.
+export const diskBreakdown = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = getUserId(c)
+        const instance = await getInstance(instanceId, userId)
+        if (!instance?.ip) return fail(c, 'Instance not found.', 404)
+
+        const output = await sshExecInstance(instance, `
+            df -m / | awk 'NR==2{printf "DISK_USED:%s\\nDISK_TOTAL:%s\\n", $3, $2}'
+            echo "DIRS:"
+            du -sm /var/lib/docker 2>/dev/null | awk '{print "docker:"$1}'
+            du -sm /var/log 2>/dev/null | awk '{print "logs:"$1}'
+            du -sm /home/openclaw 2>/dev/null | awk '{print "openclaw:"$1}'
+            du -sm /opt 2>/dev/null | awk '{print "opt:"$1}'
+            du -sm /tmp 2>/dev/null | awk '{print "tmp:"$1}'
+            du -sm /root 2>/dev/null | awk '{print "root:"$1}'
+            echo "DOCKER_DETAIL:"
+            docker system df --format '{{.Type}}:{{.Size}}:{{.Reclaimable}}' 2>/dev/null || echo "n/a"
+        `)
+
+        const result: {
+            diskUsedMb: number; diskTotalMb: number; usagePct: number;
+            topDirs: Array<{ name: string; sizeMb: number }>;
+            dockerDetail: Array<{ type: string; size: string; reclaimable: string }>;
+        } = { diskUsedMb: 0, diskTotalMb: 0, usagePct: 0, topDirs: [], dockerDetail: [] }
+        const lines = output.split('\n')
+        let section: 'top' | 'dirs' | 'docker' = 'top'
+        for (const raw of lines) {
+            const line = raw.trim()
+            if (line === 'DIRS:') { section = 'dirs'; continue }
+            if (line === 'DOCKER_DETAIL:') { section = 'docker'; continue }
+            if (section === 'top') {
+                if (line.startsWith('DISK_USED:')) result.diskUsedMb = parseInt(line.substring('DISK_USED:'.length)) || 0
+                if (line.startsWith('DISK_TOTAL:')) result.diskTotalMb = parseInt(line.substring('DISK_TOTAL:'.length)) || 0
+            } else if (section === 'dirs') {
+                const m = line.match(/^([a-z_]+):(\d+)/)
+                if (m) result.topDirs.push({ name: m[1], sizeMb: parseInt(m[2]) || 0 })
+            } else if (section === 'docker') {
+                const parts = line.split(':')
+                if (parts.length >= 3) result.dockerDetail.push({ type: parts[0], size: parts[1], reclaimable: parts.slice(2).join(':') })
+            }
+        }
+        result.usagePct = result.diskTotalMb > 0 ? Math.round((result.diskUsedMb / result.diskTotalMb) * 100) : 0
+        result.topDirs.sort((a, b) => b.sizeMb - a.sizeMb)
+
+        return ok(c, result, 'Disk breakdown retrieved.')
+    } catch (err) {
+        console.error('diskBreakdown error:', err)
+        return fail(c, 'Failed to read disk breakdown.', 500)
+    }
+}
+
+// POST /hosting/instances/:id/disk/cleanup
+// Phase 4.0(disk) — one-click cleanup: vacuum journals, prune docker
+// build cache + unused images. Conservative — never touches user files
+// or running containers' data volumes. Returns how much was freed.
+export const diskCleanup = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = getUserId(c)
+        const instance = await getInstance(instanceId, userId)
+        if (!instance?.ip) return fail(c, 'Instance not found.', 404)
+
+        const output = await sshExecInstance(instance, `
+            BEFORE=$(df -m / | awk 'NR==2{print $4}')
+            echo "BEFORE_FREE_MB:$BEFORE"
+            # Journal vacuum — drop archived journals older than 1 day
+            journalctl --vacuum-time=1d 2>&1 | tail -1
+            # Docker prune — build cache (-af = no confirm + all)
+            docker builder prune -af 2>&1 | tail -1
+            # Docker unused images
+            docker image prune -af 2>&1 | tail -1
+            # APT cache
+            apt-get clean 2>&1 || true
+            AFTER=$(df -m / | awk 'NR==2{print $4}')
+            echo "AFTER_FREE_MB:$AFTER"
+        `)
+
+        const before = parseInt((output.match(/BEFORE_FREE_MB:(\d+)/) || [])[1] || '0', 10)
+        const after = parseInt((output.match(/AFTER_FREE_MB:(\d+)/) || [])[1] || '0', 10)
+        const freedMb = Math.max(0, after - before)
+        return ok(c, { beforeFreeMb: before, afterFreeMb: after, freedMb }, 'Cleanup complete.')
+    } catch (err) {
+        console.error('diskCleanup error:', err)
+        return fail(c, 'Failed to clean disk.', 500)
+    }
+}
+
 // GET /hosting/instances/:id/stats
 export const serverStats = async (c: Context) => {
     try {
