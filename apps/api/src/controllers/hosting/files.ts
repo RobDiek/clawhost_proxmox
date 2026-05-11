@@ -649,7 +649,9 @@ print('${serverId} configured')
         // see the integration as connected. Previously only the VPS MCP got
         // deployed and the DB had no `brave`/`wordpress`/etc row → status
         // queries returned "missing".
-        const dbPersistTypes = ['brave', 'wordpress', 'smtp', 'replicate', 'brightdata']
+        // fix5: add resend + gemini so they survive page reload (same bug
+        // class as Brave — UI fell back to empty localStorage after refresh).
+        const dbPersistTypes = ['brave', 'wordpress', 'smtp', 'replicate', 'brightdata', 'resend', 'gemini']
         if (dbPersistTypes.includes(type)) {
             try {
                 const agentType = getPrimaryAgent((instance.selectedComponents as string[]) || [])

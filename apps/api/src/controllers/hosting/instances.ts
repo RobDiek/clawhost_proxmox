@@ -203,6 +203,14 @@ export const getInstance = async (c: Context<HonoEnv>) => {
             response.hasReddit = __hasInt('reddit')
             response.hasSmtp = __hasInt('smtp')
             response.hasWhatsapp = __hasInt('whatsapp')
+            // Phase 2.3.K(fix5) — surface every row-based integration as a
+            // boolean so frontend cards never have to fall back to
+            // localStorage (the source of the "disappears after reload" bug).
+            response.hasResend = __hasInt('resend')
+            response.hasReplicate = __hasInt('replicate')
+            response.hasBrightdata = __hasInt('brightdata')
+            response.hasGemini = __hasInt('gemini')
+            response.hasCanva = __hasInt('canva')
             // Also expose the per-agent bundle as a clean map so the frontend
             // can stop having to special-case `agentInts = {}` for secondaries.
             response.activeAgentIntegrations = __activeAgentInts.reduce((acc, r) => {

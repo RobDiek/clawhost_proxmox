@@ -26,7 +26,10 @@ import {
 const VALID_AGENT_TYPES = ['oc', 'mt', 'bare']
 const VALID_INTEGRATION_TYPES = [
     'telegram', 'google', 'meta', 'microsoft',
-    'whatsapp', 'gbp', 'api_key', 'brave', 'smtp', 'wordpress'
+    'whatsapp', 'gbp', 'api_key', 'brave', 'smtp', 'wordpress',
+    // Phase 2.3.K(fix5) — newly persisted to agent_integrations
+    'resend', 'replicate', 'brightdata', 'gemini', 'canva',
+    'gsc', 'dataforseo', 'firecrawl', 'reddit',
 ]
 
 function validateAgentType(agentType: string): agentType is AgentType {

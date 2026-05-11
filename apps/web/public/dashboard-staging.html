@@ -10608,18 +10608,20 @@ function renderIntegrations() {
     }
   }
 
-  // WordPress status
+  // WordPress status — Phase 2.3.K(fix5): prefer backend overlay flag
+  // (set per-agent from agent_integrations); fallback to localStorage for
+  // pre-overlay deploys.
   var pubBlogStatus = document.getElementById('pub-blog-status');
-  if (pubBlogStatus && intStorGet('cf_wordpress_saved')) {
+  if (pubBlogStatus && ((instanceData && instanceData.hasWordpress) || (agentInts.wordpress && agentInts.wordpress.connected) || intStorGet('cf_wordpress_saved'))) {
     pubBlogStatus.textContent = '\u2713 מחובר';
     pubBlogStatus.className = 'int-status connected';
     var pubBlogCard = document.getElementById('pub-blog-card');
     if (pubBlogCard) pubBlogCard.classList.add('connected');
   }
 
-  // Newsletter status (from Resend)
+  // Newsletter status (from Resend) — same backend-overlay-first pattern
   var pubNlStatus = document.getElementById('pub-newsletter-status');
-  if (pubNlStatus && intStorGet('cf_resend_saved')) {
+  if (pubNlStatus && ((instanceData && instanceData.hasResend) || (agentInts.resend && agentInts.resend.connected) || intStorGet('cf_resend_saved'))) {
     pubNlStatus.textContent = '\u2713 מחובר';
     pubNlStatus.className = 'int-status connected';
   }
