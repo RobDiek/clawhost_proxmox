@@ -6302,6 +6302,183 @@ interface GenContext {
     historicalAssetsBlock?: string
     menateachModel: string
     yotzerModel: string
+    // ── Brand-agnostic taxonomies (Phase 4.0 fix14) ────────────────────────
+    primaryPersona: string | null
+    ctaEnum: string[]
+    productRefEnum: string[]
+    productNameByRef: Record<string, string>
+    primaryProductRef: string | null
+    paidEnabled: boolean
+    paidBudgetIls: number
+    scenarioFirstWin: Record<string, unknown> | null
+    scenarioChannelPriority: Array<Record<string, unknown>>
+    scenarioDoNotChannels: Array<Record<string, unknown>>
+    scenarioBudgetAllocation: Record<string, number>
+}
+
+// ── Brand-agnostic content plan taxonomy derivation ────────────────────────
+// Pillars + personas + CTAs + productRef enums + scenario v2 subobjects are
+// derived from research_data (positioning, audience_personas, chosenScenario,
+// answers.products, answers.conversionMechanism). NO hardcoded ClawFlow
+// defaults — those poison non-ClawFlow tenants (e.g. Storage Station getting
+// "סיפורי כוויה מפרילנסרים" pillar + course_1499 quota).
+interface ContentPlanTaxonomy {
+    pillars: string[]
+    personas: string[]
+    primaryPersona: string | null
+    ctaEnum: string[]
+    productRefEnum: string[]
+    productNameByRef: Record<string, string>
+    primaryProductRef: string | null
+    paidEnabled: boolean
+    paidBudgetIls: number
+    scenarioFirstWin: Record<string, unknown> | null
+    scenarioChannelPriority: Array<Record<string, unknown>>
+    scenarioDoNotChannels: Array<Record<string, unknown>>
+    scenarioBudgetAllocation: Record<string, number>
+}
+
+function deriveContentPlanTaxonomy(
+    rd: Record<string, unknown>,
+    scenario: Record<string, unknown>,
+    answers: Record<string, unknown>,
+): ContentPlanTaxonomy {
+    const results = (rd.results as Record<string, { records?: Array<Record<string, unknown>> }>) || {}
+
+    // ── PILLARS ─────────────────────────────────────────────────────────────
+    // 1. positioning.value_props[].name (primary — content angles per persona)
+    // 2. chosenScenario.channel_priority_list[].channel (fallback — strategic channels)
+    // 3. legacy strategyStage2 regex (last resort for v1 data)
+    const pillars: string[] = []
+    const posRecord = results.positioning?.records?.[0] as Record<string, unknown> | undefined
+    const valueProps = (posRecord?.value_props as Array<{ name?: string }> | undefined) || []
+    for (const vp of valueProps) {
+        if (vp.name && vp.name.length > 5 && !pillars.includes(vp.name)) {
+            pillars.push(vp.name)
+        }
+    }
+    if (pillars.length < 3) {
+        const channelList = (scenario.channel_priority_list as Array<{ channel?: string }>) || []
+        for (const ch of channelList) {
+            if (ch.channel && pillars.length < 6) {
+                const short = String(ch.channel).split('—')[0].trim().slice(0, 80)
+                if (short && !pillars.includes(short)) pillars.push(short)
+            }
+        }
+    }
+    if (pillars.length === 0) {
+        const stage2 = String(rd.strategyStage2 || '')
+        const re = /###\s*Pillar\s*#?\d+:\s*["״]([^\n"״]+?)["״]/g
+        let m: RegExpExecArray | null
+        while ((m = re.exec(stage2)) !== null) {
+            const t = m[1].trim()
+            if (t.length > 5 && !pillars.includes(t)) pillars.push(t)
+        }
+    }
+
+    // ── PERSONAS ────────────────────────────────────────────────────────────
+    // 1. audience_personas.records[].name
+    // 2. legacy strategyStage3 regex
+    // Primary persona (from chosenScenario.first_win_channel) goes to index 0.
+    const personas: string[] = []
+    const personaRecords = (results.audience_personas?.records as Array<{ name?: string }>) || []
+    for (const p of personaRecords) {
+        const name = String(p.name || '').trim()
+        if (name && !personas.includes(name)) personas.push(name)
+    }
+    if (personas.length === 0) {
+        const stage3 = String(rd.strategyStage3 || '')
+        const re = /##\s*פרסונה\s*#?\d*:?\s*([^\n—]+?)(?:\s*—|\s*\n|$)/g
+        let m: RegExpExecArray | null
+        while ((m = re.exec(stage3)) !== null) {
+            const n = m[1].trim().split(/\s/)[0]
+            if (n.length > 1 && !personas.includes(n)) personas.push(n)
+        }
+    }
+    const firstWin = scenario.first_win_channel as { primary_persona?: string } | undefined
+    const primaryPersona = String(firstWin?.primary_persona || '').trim() || null
+    if (primaryPersona && personas.includes(primaryPersona)) {
+        personas.splice(personas.indexOf(primaryPersona), 1)
+        personas.unshift(primaryPersona)
+    }
+
+    // ── PRODUCTS + productRef enum ──────────────────────────────────────────
+    // Stable labels: primary = isPrimary product; addon_<N> = others.
+    // productNameByRef maps label → human-readable name for the prompt.
+    const products = (answers.products as Array<{
+        name?: string; isPrimary?: boolean; priceModel?: string; priceIls?: number
+    }>) || []
+    const productRefEnum: string[] = []
+    const productNameByRef: Record<string, string> = {}
+    let primaryProductRef: string | null = null
+    let addonIdx = 0
+    const sortedProducts = [...products].sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0))
+    for (const p of sortedProducts) {
+        if (!p.name) continue
+        let ref: string
+        if (p.isPrimary && !primaryProductRef) {
+            ref = 'primary'
+            primaryProductRef = ref
+        } else {
+            addonIdx++
+            ref = `addon_${addonIdx}`
+        }
+        productRefEnum.push(ref)
+        productNameByRef[ref] = `${p.name}${p.priceIls ? ` (₪${p.priceIls}${p.priceModel === 'subscription_monthly' ? '/חודש' : p.priceModel === 'one_time' ? ' חד-פעמי' : ''})` : ''}`
+    }
+    if (productRefEnum.length === 0) {
+        productRefEnum.push('primary')
+        productNameByRef.primary = answers.businessName ? `${answers.businessName} (מוצר ראשי)` : 'מוצר ראשי'
+        primaryProductRef = 'primary'
+    }
+    productRefEnum.push('mixed', 'none')
+    productNameByRef.mixed = 'משולב / לא ספציפי'
+    productNameByRef.none = 'ללא מוצר ספציפי'
+
+    // ── CTAs ────────────────────────────────────────────────────────────────
+    // Per-product CTAs (verb derived from priceModel) + universal contact CTAs
+    // from conversionMechanism + always-available read_more/contact/none.
+    const conversionMechanism = String(answers.conversionMechanism || '').toLowerCase()
+    const ctaEnum: string[] = []
+    for (const p of sortedProducts) {
+        if (!p.name) continue
+        const ref = p.isPrimary ? 'primary' : `addon_${sortedProducts.indexOf(p)}`
+        const matchingRef = productRefEnum.find(r => r === ref) || productRefEnum.find(r => productNameByRef[r] === productNameByRef[ref])
+        if (!matchingRef) continue
+        const verb = p.priceModel?.startsWith('subscription')
+            ? 'subscribe'
+            : /קורס|course|מנוי|membership/i.test(p.name)
+                ? 'signup'
+                : 'buy'
+        ctaEnum.push(`${verb}_${matchingRef}`)
+    }
+    if (/whatsapp|וואטסאפ|וטסאפ|ווצאפ/.test(conversionMechanism)) ctaEnum.push('whatsapp')
+    if (/טלפון|phone|call|שיחה/.test(conversionMechanism)) ctaEnum.push('phone_call')
+    if (/טופס|form|lead|ליד/.test(conversionMechanism)) ctaEnum.push('lead_form')
+    if (/quote|הצעת מחיר|הצעה/.test(conversionMechanism)) ctaEnum.push('request_quote')
+    ctaEnum.push('read_more', 'contact', 'none')
+
+    // ── PAID activation from budget_allocation_ils ─────────────────────────
+    const budget = (scenario.budget_allocation_ils as Record<string, number> | undefined) || {}
+    const paidSearch = Number(budget.paid_search || 0)
+    const paidSocial = Number(budget.paid_social || 0)
+    const totalPaid = paidSearch + paidSocial
+
+    return {
+        pillars: pillars.slice(0, 6),
+        personas,
+        primaryPersona,
+        ctaEnum: Array.from(new Set(ctaEnum)),
+        productRefEnum: Array.from(new Set(productRefEnum)),
+        productNameByRef,
+        primaryProductRef,
+        paidEnabled: totalPaid > 0,
+        paidBudgetIls: totalPaid,
+        scenarioFirstWin: (scenario.first_win_channel as Record<string, unknown>) || null,
+        scenarioChannelPriority: (scenario.channel_priority_list as Array<Record<string, unknown>>) || [],
+        scenarioDoNotChannels: (scenario.do_not_channels as Array<Record<string, unknown>>) || [],
+        scenarioBudgetAllocation: budget,
+    }
 }
 
 // Build a compact Hebrew brand block for content-plan prompts.
@@ -6324,6 +6501,36 @@ function formatBrandBookForPlan(bb: Record<string, unknown> | null | undefined):
     if (Array.isArray(principles) && principles.length) lines.push(`**עקרונות:** ${principles.slice(0, 3).join(' | ')}`)
     if (!lines.length) return ''
     return `## ספר מותג (חובה לכבד)\n${lines.join('\n')}\n`
+}
+
+// Phase 4.0(fix14) — short Hebrew descriptor for each CTA in the prompt enum,
+// so the model picks the right one. Pattern: <verb>_<productRef> | universal.
+function ctaTypeHebrewLabel(cta: string, ctx: GenContext): string {
+    const universalLabels: Record<string, string> = {
+        whatsapp: ' — פנייה בוואטסאפ',
+        phone_call: ' — שיחת טלפון',
+        lead_form: ' — מילוי טופס ליד',
+        request_quote: ' — בקשת הצעת מחיר',
+        read_more: ' — קריאת המשך / מאמר',
+        contact: ' — יצירת קשר',
+        none: ' — ללא קריאה לפעולה ישירה',
+    }
+    if (universalLabels[cta]) return universalLabels[cta]
+    // Per-product CTAs: <verb>_<ref>
+    const parts = cta.split('_')
+    if (parts.length >= 2) {
+        const verb = parts[0]
+        const ref = parts.slice(1).join('_')
+        const productName = ctx.productNameByRef[ref] || ref
+        const verbHe: Record<string, string> = {
+            subscribe: 'הרשמה למנוי',
+            signup: 'הרשמה',
+            buy: 'רכישה',
+            request: 'בקשת',
+        }
+        return ` — ${verbHe[verb] || verb}: ${productName}`
+    }
+    return ''
 }
 
 function nanoid(n = 10): string {
@@ -6382,25 +6589,33 @@ function getAnthropicText(data: any): string {
     return (blocks[blocks.length - 1]?.text || data?.content?.[0]?.text || '')
 }
 
-// ── ctaType normalization (v4 fix #3) ────────────────────────────────────
-// Maps model-invented values to nearest valid enum entry. Any unrecognized
-// value collapses to 'none'.
-const VALID_CTA_TYPES = [
-    'signup_course_199', 'signup_course_1499', 'trial_saas',
-    'read_more', 'contact', 'none',
-] as const
-function normalizeCtaType(raw: string | undefined | null): string {
-    if (!raw) return 'none'
+// ── ctaType normalization (v4 fix #3, fix14 brand-agnostic) ──────────────
+// Maps model-invented values to nearest valid enum entry. ctaEnum is now
+// derived per-brand from answers.products + conversionMechanism, so the
+// fuzzy remap is generic (matches by verb/contact-method patterns).
+const UNIVERSAL_CTAS = ['read_more', 'contact', 'none'] as const
+function normalizeCtaType(raw: string | undefined | null, ctaEnum: string[] = UNIVERSAL_CTAS as unknown as string[]): string {
+    if (!raw) return ctaEnum.includes('none') ? 'none' : ctaEnum[0]
     const s = String(raw).toLowerCase().trim()
-    if ((VALID_CTA_TYPES as readonly string[]).includes(s)) return s
-    // Fuzzy remap common model inventions
-    if (/199|course_entry|course.*199/i.test(s)) return 'signup_course_199'
-    if (/1499|course_pro|course.*1499|full.*course/i.test(s)) return 'signup_course_1499'
-    if (/trial|saas|free_trial|start_trial|clawflow/i.test(s)) return 'trial_saas'
-    if (/read|article|blog|learn_more|more_info|case/i.test(s)) return 'read_more'
-    if (/contact|call|phone|consult|book/i.test(s)) return 'contact'
-    if (/signup|subscribe|register/i.test(s)) return 'signup_course_199' // default course entry
-    return 'none'
+    if (ctaEnum.includes(s)) return s
+    // Substring match: "subscribe_primary_thing" → "subscribe_primary" if in enum
+    const partial = ctaEnum.find(c => s.includes(c) || c.includes(s))
+    if (partial) return partial
+    // Generic verb/channel patterns
+    if (/whatsapp|וואטסאפ|וטסאפ/.test(s) && ctaEnum.includes('whatsapp')) return 'whatsapp'
+    if (/phone|call|טלפון|שיחה/.test(s) && ctaEnum.includes('phone_call')) return 'phone_call'
+    if (/lead|form|טופס/.test(s) && ctaEnum.includes('lead_form')) return 'lead_form'
+    if (/quote|הצעת מחיר/.test(s) && ctaEnum.includes('request_quote')) return 'request_quote'
+    if (/read|article|blog|learn_more|more_info|case/i.test(s) && ctaEnum.includes('read_more')) return 'read_more'
+    if (/contact|consult|book/i.test(s) && ctaEnum.includes('contact')) return 'contact'
+    // Verb-prefix heuristic: subscribe/signup/buy + try to match any product CTA
+    const verbMatch = s.match(/^(subscribe|signup|buy|request)_?/)
+    if (verbMatch) {
+        const sameVerb = ctaEnum.find(c => c.startsWith(verbMatch[1] + '_'))
+        if (sameVerb) return sameVerb
+    }
+    // Last resort
+    return ctaEnum.includes('none') ? 'none' : (ctaEnum.includes('read_more') ? 'read_more' : ctaEnum[0])
 }
 
 // ── Israeli week boundaries (Sun-Sat aligned) ───────────────────────────
@@ -6503,11 +6718,15 @@ If any week has <5 items OR >7 items, the plan is REJECTED. Do not cluster all i
 ## Products
 ${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
 
+## productRef enum — USE EXACTLY these labels (translation map below)
+${ctx.productRefEnum.map(ref => `- \`${ref}\` = ${ctx.productNameByRef[ref] || ref}`).join('\n')}
+
 ## Pillars — use ONLY these verbatim (no inventing!)
 ${ctx.pillarWhitelist.map((p, i) => `${i + 1}. "${p}"`).join('\n')}
 
-## Personas — each MUST get ≥15% of items
-${ctx.personaTitles.length >= 2 ? ctx.personaTitles.map((p, i) => `${i + 1}. ${p}`).join('\n') : 'דורון, אסף, מיכל'}
+## Personas — each MUST get ≥15% of items${ctx.primaryPersona ? `
+**Primary persona (highest weight ~30-40% of items):** ${ctx.primaryPersona} — comes from chosenScenario.first_win_channel.primary_persona` : ''}
+${ctx.personaTitles.map((p, i) => `${i + 1}. ${p}${p === ctx.primaryPersona ? ' ⭐ PRIMARY' : ''}`).join('\n')}
 
 ${ctx.performanceContext ? `\n## Previous period performance (adapt structure accordingly!)\n${ctx.performanceContext}\n` : ''}
 ${ctx.historicalAssetsBlock || ''}
@@ -6519,37 +6738,61 @@ ${ctx.learningsBlock || ''}
 - Each week gets 6-7 items (no empty weeks!)
 - **Sunday coverage: ≥${Math.max(2, Math.floor(ctx.weeksAhead * 0.6))} Sunday items across the ${ctx.weeksAhead} weeks** (Sunday is a top IL engagement day for blog/email/LinkedIn)
 - Each pillar appears ≥3 times, none dominates (max ${Math.ceil((ctx.weeksAhead * 6.5) / ctx.pillarWhitelist.length) + 1} items)
-- Each persona ≥15%
+- Each persona ≥15%${ctx.primaryPersona ? `; **${ctx.primaryPersona}** (primary) ≥30%` : ''}
 - Instagram: reels ≥60% of all IG items
-- productRef "course_1499" ≥15%
+${ctx.primaryProductRef ? `- productRef "${ctx.primaryProductRef}" ≥30% (it's the primary product, anchor of the funnel)` : ''}
 - **Balanced pillar load** — no single pillar > 25% of plan
 
-## 🧭 Scenario channel weighting (מסלול "${ctx.scenario?.name || '—'}") — RESPECT the chosen strategy
-The user committed to this scenario; the plan MUST mirror its channel priorities:
+## 🧭 Strategy scenario — מסלול "${ctx.scenario?.scenario || ctx.scenario?.name || '—'}"
+The user committed to this scenario; the plan MUST advance its strategic priorities and NOT contradict it.
 
-**Primary channels (from scenario.primaryChannels):**
-${(ctx.scenario?.primaryChannels || []).length ? (ctx.scenario.primaryChannels as string[]).map((ch: string) => `- ${ch}`).join('\n') : '- (no primary channels specified — use judgement)'}
+${ctx.scenarioFirstWin ? `### 🎯 First-win priority — heavy weighting for weeks 1-2
+- **Strategic channel:** ${(ctx.scenarioFirstWin.channel as string) || ''}
+- **Primary persona:** ${(ctx.scenarioFirstWin.primary_persona as string) || ''}
+- **Specific action:** ${((ctx.scenarioFirstWin.specific_action as string) || '').slice(0, 400)}
+- **Target keywords:** ${((ctx.scenarioFirstWin.primary_keywords as string[]) || []).join(', ')}
 
-Enforcement:
-- Each primary channel from the list above MUST receive ≥${Math.max(2, Math.floor(ctx.weeksAhead * 1.25))} items over the ${ctx.weeksAhead} weeks
-- Channels NOT in the primary list may appear but must NOT dominate (max 20% of plan combined)
-- Map Hebrew channel names to the enum: "קבוצות Facebook"→facebook, "LinkedIn אורגני"→linkedin, "YouTube + Newsletter"→youtube+email, "SEO אורגני"→blog, "Instagram"→instagram, "TikTok"→tiktok
+**≥${Math.max(3, Math.floor(ctx.weeksAhead * 1.5))} items in weeks 1-2 MUST feed this strategic channel.**
+` : ''}
 
-## 💰 Paid traffic activation — "${ctx.scenario?.paidTrafficActivation || 'none'}"
-${ctx.scenario?.paidTrafficActivation === 'immediate' ? `**Budget: ₪${ctx.scenario?.costs?.paidTrafficIls || 2000}/month. Paid ads MUST appear from week 1.**
+${ctx.scenarioChannelPriority.length > 0 ? `### 📊 Strategic channels (priority order — from chosenScenario.channel_priority_list)
+${ctx.scenarioChannelPriority.slice(0, 6).map((c, i) => {
+    const ch = String(c.channel || '')
+    const persona = String(c.linked_persona || '—')
+    const marker = String(c.priority_marker || 'normal')
+    const keywords = ((c.linked_keywords as string[]) || []).slice(0, 3).join(', ')
+    const formula = String(c.content_formula || '').slice(0, 180)
+    return `${i + 1}. **${ch}** — persona: ${persona} · priority: ${marker}
+   Keywords: ${keywords}
+   Angle: ${formula}${formula.length >= 180 ? '…' : ''}`
+}).join('\n')}
 
-Hard requirement:
-- **≥${Math.max(3, Math.floor(ctx.weeksAhead * 1.5))} items** with channel in {meta_ads, google_ads}
-- Distribute: ≥1 campaign_launch in week 1 (channel=meta_ads OR google_ads, type=campaign_launch)
-- ≥1 campaign_optimize per week starting week 2 (type=campaign_optimize, reviewing prior launch)
-- Include retargeting lane: at least 1 meta_ads campaign_launch that amplifiesFrom an organic anchor (wave pattern)
-- Paid ads get agentRole="mazhir" (if available) or fall back to "ayat" with explicit paid-ads brief` : ctx.scenario?.paidTrafficActivation === 'gatekeeper' ? `**Gatekeeper mode: paid ads UNLOCKED only after 2 organic customers land.**
+These are STRATEGIC channels (e.g. "SEO pillar", "GMB optimization", "Geo spoke pages", "AEO content", "Backlink outreach"). Map them to item channels in the enum:
+- "SEO content upgrade" / "SEO pillar" / "Geo spoke pages" / "AEO content" → channel="blog" with type="article"; persona + keywords + content_formula go into the brief
+- "GMB optimization" → channel="instagram" OR "facebook" with type="post" — photo-rich content that doubles as a GMB asset
+- "Backlink outreach" → channel="blog" with type="article" (guest-post draft material)
+- "Newsletter" / "Email" → channel="email" with type="email"
+- "Reels" / "Stories" → channel="instagram" with type="reel"/"story"
+` : ''}
 
-Hard requirement:
-- Weeks 1-2: **0 paid ads items** — organic only. Focus: community engagement, SEO seeding, founder-led LinkedIn.
-- Week 3+: IF research signals suggest organic traction → ≥2 campaign_launch items (meta_ads + google_ads)
-- Always include 1 "report" item in week 3 (type=report, agentRole=menateach) that evaluates: "are we ready to unlock paid?"
-- Use flexibility="suggested" for all paid items — agent will confirm via ops-brief before actually launching` : `**No paid traffic in this scenario.** Plan must be fully organic. Do NOT add meta_ads or google_ads items.`}
+${ctx.scenarioDoNotChannels.length > 0 ? `### ❌ FORBIDDEN channels (chosenScenario.do_not_channels — auto-reject)
+${ctx.scenarioDoNotChannels.map((c) => `- **${String(c.channel || '')}** — ${String(c.why_not_now || '')} (re-evaluate month ${c.when_yes_month || '?'})`).join('\n')}
+
+Hard enforcement — translate each forbidden strategic channel to concrete enum exclusions:
+- "TikTok / Instagram Reels organic" → **0 items** with channel="instagram" AND type="reel"; **0 items** with channel="tiktok"
+- "Email nurture campaign" → **0 items** with channel="email"
+- "Google Ads head terms" / any "Paid ads" → **0 items** with channel="google_ads" or "meta_ads"
+- "Programmatic geo pages (50+)" → ≤2 geo-specific blog articles in the whole plan
+` : ''}
+
+### 💰 Paid traffic activation
+${ctx.paidEnabled ? `**Budget: ₪${ctx.paidBudgetIls}/month from chosenScenario.budget_allocation_ils. Paid ads MAY appear if budget permits.**
+
+Soft requirement (don't force if scenario blocks paid channels — check do_not_channels above first):
+- ≥${Math.max(2, Math.floor(ctx.weeksAhead * 0.75))} items in {meta_ads, google_ads} if NOT in forbidden list
+- ≥1 campaign_launch in week 1 (channel=meta_ads OR google_ads, type=campaign_launch)
+- ≥1 campaign_optimize per week starting week 2
+- Paid ads get agentRole="mazhir" (if defined) or "ayat" otherwise` : `**No paid budget in this scenario (budget_allocation_ils.paid_search + paid_social = 0).** Plan must be fully organic. Do NOT add channel=meta_ads or google_ads items.`}
 
 ## Cross-channel amplification (wave pattern)
 Plan SHOULD include at least 3 amplification waves. A wave = same topic/pillar amplified across 2-3 channels within 72h:
@@ -6589,7 +6832,7 @@ Each slot:
   "type": "post|reel|story|carousel|article|email|video|campaign_launch|campaign_optimize|report",
   "pillar": "<exact from whitelist>",
   "persona": "<one from personas list>",
-  "productRef": "course_199|course_1499|clawflow|mixed|none",
+  "productRef": "${ctx.productRefEnum.join('|')}",
   "flexibility": "fixed|suggested",
   "agentRole": "ayat|yotzer|shaliach|mateh|menateach|sayer|migdalor|mazhir",
   "isReactive": true|false,
@@ -6692,10 +6935,9 @@ ${(slot.channel === 'meta_ads' || slot.channel === 'google_ads') ? `## ⚠️ ז
 - אל תכתוב "AI" → תכתוב "בינה מלאכותית".
 - אל תכתוב "ROI" → תכתוב "החזר השקעה".
 - אל תכתוב "CTA" → תכתוב "קריאה לפעולה".
-- אל תכתוב "course_1499" → תכתוב "הקורס ב-₪1,499".
-- אל תכתוב "ClawFlow" → תכתוב "הפלטפורמה" (או שם המוצר בעברית אם קיים).
 - אל תכתוב "brief" → תכתוב "מפרט" / "הנחיה".
-- מספרים ומונחי מותג רשמיים מותר להשאיר כפי שהם (₪, שמות מוצרים ישראליים).
+- מספרים ומונחי מותג רשמיים מותר להשאיר כפי שהם (₪, שמות מוצרים בעברית).
+- שמות המוצרים של ${ctx.businessName} — השתמשו בעברית כפי שהם מופיעים בפרופיל למעלה.
 
 ## מבנה הבריף — חובה להחזיר markdown מפורמט היטב!
 
@@ -6734,23 +6976,18 @@ ${(slot.channel === 'meta_ads' || slot.channel === 'google_ads') ? `## ⚠️ ז
 אורך 200-300 מילים. 2 האשטגים רלוונטיים בסוף.
 \`\`\`
 
-## חוק קריטי ל-ctaType — enum מחמיר!
-ctaType חייב להיות **בדיוק אחד** מהערכים הבאים — אסור להמציא:
-- "signup_course_199" — הרשמה לקורס ₪199 (entry)
-- "signup_course_1499" — הרשמה לקורס המורחב ₪1,499
-- "trial_saas" — ניסיון חינם לפלטפורמה
-- "read_more" — קרא עוד / פרטים נוספים
-- "contact" — צור קשר / פגישת היכרות
-- "none" — אין CTA ישיר (למשל פוסט אוטוריטה טהור)
+## חוק קריטי ל-ctaType — enum דינמי לפי הברנד!
+ctaType חייב להיות **בדיוק אחד** מהערכים שמופיעים ברשימה למטה — אסור להמציא ערכים אחרים:
+${ctx.ctaEnum.map(c => `- "${c}"${ctaTypeHebrewLabel(c, ctx)}`).join('\n')}
 
-אסור להחזיר ערכים כמו "course_entry_199", "read_full_case_then_course", "subscribe" — רק אחד מהשישה שלמעלה!
+אסור להחזיר ערכים שלא ברשימה — הוולידטור ידחה אותם אוטומטית.
 
 ## תפוקה — JSON בלבד, בלי markdown fences סביב ה-JSON עצמו!
 
 {
   "hook": "3-5 מילים בעברית שעוצרות גלילה",
   "brief": "<markdown מלא של הבריף — שימוש ב-### לכותרות, רשימות עם -, bold עם **מילה** — הכל בעברית>",
-  "ctaType": "signup_course_199|signup_course_1499|trial_saas|read_more|contact|none"
+  "ctaType": "${ctx.ctaEnum.join('|')}"
 }
 
 החזר JSON בלבד. הבריף עצמו חייב להיות markdown מפורמט, בתוך ה-string של שדה brief.`
@@ -6806,7 +7043,7 @@ async function draftItemsParallel(slots: ContentSlot[], ctx: GenContext): Promis
 // Detects violations (via qaContentPlan) and asks Opus to return patches.
 // Applies patches in-place. No-op if plan is already clean.
 async function qaRepair(items: ContentPlanItem[], ctx: GenContext): Promise<ContentPlanItem[]> {
-    const qa = qaContentPlan(items, ctx.pillarWhitelist, ctx.startDate, ctx.weeksAhead, ctx.personaTitles)
+    const qa = qaContentPlan(items, ctx.pillarWhitelist, ctx.startDate, ctx.weeksAhead, ctx.personaTitles, ctx.ctaEnum)
     const dupes = detectDuplicateHooks(items)
     if (qa.ok && dupes.length === 0) { console.log('qaRepair: no violations, skipping'); return items }
 
@@ -6835,10 +7072,13 @@ ${dupeBlock}
 ${ctx.pillarWhitelist.map(p => `- "${p}"`).join('\n')}
 
 ## Allowed personas
-${ctx.personaTitles.join(', ') || 'דורון, אסף, מיכל'}
+${ctx.personaTitles.join(', ')}
+
+## Allowed productRef
+${ctx.productRefEnum.join(' | ')}
 
 ## Allowed ctaType (enum — ANY other value is invalid)
-signup_course_199 | signup_course_1499 | trial_saas | read_more | contact | none
+${ctx.ctaEnum.join(' | ')}
 
 ## Your task
 Return a JSON array of patches. Each patch modifies ONE or more fields of ONE item:
@@ -6850,7 +7090,7 @@ Return a JSON array of patches. Each patch modifies ONE or more fields of ONE it
       "persona"?: "<new persona>",
       "channel"?: "<new channel>",
       "type"?: "<new type, e.g. reel instead of post for IG>",
-      "productRef"?: "course_199|course_1499|clawflow|mixed|none",
+      "productRef"?: "${ctx.productRefEnum.join('|')}",
       "ctaType"?: "<valid enum value>",
       "hook"?: "<fresh 3-5 word Hebrew hook — only for duplicate-hook fixes>"
     }
@@ -6902,7 +7142,7 @@ Apply **minimum** patches. JSON array only, no prose.`
                 }
             })
             if ('ctaType' in p.change && typeof p.change.ctaType === 'string') {
-                fixed[p.i].ctaType = normalizeCtaType(p.change.ctaType)
+                fixed[p.i].ctaType = normalizeCtaType(p.change.ctaType, ctx.ctaEnum)
                 applied++
             }
         })
@@ -7032,34 +7272,26 @@ export async function generateContentPlan(
     const roster = scenario.agentRoster || {}
     const activeRoles = Object.keys(roster).filter(r => roster[r]?.cadence && roster[r].cadence !== 'off')
 
-    // Extract named pillars from strategy stage 2 for whitelist enforcement.
-    // Match pattern: ### Pillar N: "full title with em-dashes ok"
-    // Use non-greedy match between Hebrew/ASCII double-quotes, no early termination on —
-    const stage2 = String(rd.strategyStage2 || '')
-    const pillarTitles: string[] = []
-    const pillarRegex = /###\s*Pillar\s*#?\d+:\s*["״]([^\n"״]+?)["״]/g
-    let pm: RegExpExecArray | null
-    while ((pm = pillarRegex.exec(stage2)) !== null) {
-        const t = pm[1].trim()
-        if (t.length > 5 && !pillarTitles.includes(t)) pillarTitles.push(t)
+    // Phase 4.0(fix14) — derive pillars/personas/CTAs/productRefs from research data
+    // (positioning.value_props, audience_personas.records, chosenScenario v2 fields,
+    // answers.products + conversionMechanism). No more ClawFlow hardcoded fallbacks
+    // that poison non-ClawFlow tenants.
+    const taxonomy = deriveContentPlanTaxonomy(rd, scenario, answers)
+    const pillarWhitelist = taxonomy.pillars
+    const personaTitles = taxonomy.personas
+    if (pillarWhitelist.length < 3) {
+        throw new Error(
+            `Content plan needs ≥3 pillars derived from positioning.value_props or chosenScenario.channel_priority_list; got ${pillarWhitelist.length}. ` +
+            `Run "positioning" + "strategy_options" research stages first.`
+        )
     }
-    const pillarWhitelist = pillarTitles.length >= 3 ? pillarTitles : [
-        'סיפורי כוויה מפרילנסרים',
-        'שיווק בעצמי — 15 דקות ביום',
-        'השוואות כנות — פרילנסר/סוכנות/DIY/פלטפורמה',
-        'תוצאות אמיתיות — Case Studies ישראליים',
-        'שליטה בלי לפחד — AI בשליטתך',
-    ]
-
-    // Extract persona names from strategy stage 3 for balance enforcement.
-    const stage3 = String(rd.strategyStage3 || '')
-    const personaTitles: string[] = []
-    const personaRegex = /##\s*פרסונה\s*#?\d*:?\s*([^\n—]+?)(?:\s*—|\s*\n|$)/g
-    let pr: RegExpExecArray | null
-    while ((pr = personaRegex.exec(stage3)) !== null) {
-        const n = pr[1].trim().split(/\s/)[0] // first word = persona name
-        if (n.length > 1 && !personaTitles.includes(n)) personaTitles.push(n)
+    if (personaTitles.length < 2) {
+        throw new Error(
+            `Content plan needs ≥2 personas from audience_personas stage; got ${personaTitles.length}. ` +
+            `Run "audience_personas" research stage first.`
+        )
     }
+    console.log(`[contentPlan/taxonomy] pillars=${pillarWhitelist.length} personas=${personaTitles.length} (primary=${taxonomy.primaryPersona || 'n/a'}) cta=${taxonomy.ctaEnum.length} products=${taxonomy.productRefEnum.length} paidBudget=₪${taxonomy.paidBudgetIls}`)
 
     // Resolve models per user's sub-agent config.
     const [menateachModel, yotzerModel] = await Promise.all([
@@ -7109,6 +7341,18 @@ export async function generateContentPlan(
         historicalAssetsBlock: formatHistoricalAssets(rd),
         menateachModel,
         yotzerModel,
+        // Phase 4.0(fix14) derived taxonomies
+        primaryPersona: taxonomy.primaryPersona,
+        ctaEnum: taxonomy.ctaEnum,
+        productRefEnum: taxonomy.productRefEnum,
+        productNameByRef: taxonomy.productNameByRef,
+        primaryProductRef: taxonomy.primaryProductRef,
+        paidEnabled: taxonomy.paidEnabled,
+        paidBudgetIls: taxonomy.paidBudgetIls,
+        scenarioFirstWin: taxonomy.scenarioFirstWin,
+        scenarioChannelPriority: taxonomy.scenarioChannelPriority,
+        scenarioDoNotChannels: taxonomy.scenarioDoNotChannels,
+        scenarioBudgetAllocation: taxonomy.scenarioBudgetAllocation,
     }
 
     // ─── Pass 1: Skeleton (Opus thinking) ───
@@ -7150,7 +7394,7 @@ export async function generateContentPlan(
             amplifiesFrom: amplifies,
             hook: d?.hook || `${slot.pillar.substring(0, 25)}`,
             brief: d?.brief || `צור ${slot.type} ל-${slot.channel} סביב "${slot.pillar}" עבור ${slot.persona}.`,
-            ctaType: normalizeCtaType(d?.ctaType),
+            ctaType: normalizeCtaType(d?.ctaType, ctx.ctaEnum),
             status: 'planned' as const,
         }
     })
@@ -7198,7 +7442,7 @@ export async function generateContentPlan(
 
     // ─── Final cleanup pass (v4 post-filters) ───
     // 1. Hard-normalize any ctaType the model still got wrong
-    plan.forEach(it => { it.ctaType = normalizeCtaType(it.ctaType) })
+    plan.forEach(it => { it.ctaType = normalizeCtaType(it.ctaType, ctx.ctaEnum) })
 
     // 2. Last-resort duplicate hook suffix — if 2+ items still share a hook prefix,
     //    append a distinct persona/week suffix so calendar UI isn't confusing.
@@ -7215,7 +7459,7 @@ export async function generateContentPlan(
     }
 
     // Final QA log (soft warnings only — all 4 passes should have fixed issues)
-    const qaFinal = qaContentPlan(plan, pillarWhitelist, startDate, weeksAhead, personaTitles)
+    const qaFinal = qaContentPlan(plan, pillarWhitelist, startDate, weeksAhead, personaTitles, ctx.ctaEnum)
     if (!qaFinal.ok) {
         console.warn(`Content Plan v4 final QA warnings for ${instanceId}: ${qaFinal.issues.join(' | ')}`)
     } else {
@@ -7232,7 +7476,8 @@ function qaContentPlan(
     pillarWhitelist: string[],
     startDate: Date,
     weeksAhead: number,
-    personaTitles: string[] = []
+    personaTitles: string[] = [],
+    ctaEnum: string[] = UNIVERSAL_CTAS as unknown as string[],
 ): { ok: boolean; issues: string[] } {
     const issues: string[] = []
     const expectedMinItems = weeksAhead * 5
@@ -7305,11 +7550,11 @@ function qaContentPlan(
     const lateFriCount = plan.filter(it => new Date(it.date).getDay() === 5 && it.time > '13:00').length
     if (lateFriCount > 0) issues.push(`${lateFriCount} items on Friday after 13:00 (forbidden)`)
 
-    // ctaType enum compliance
-    const badCtas = plan.filter(it => !(VALID_CTA_TYPES as readonly string[]).includes(it.ctaType))
+    // ctaType enum compliance — uses brand-derived enum (fix14)
+    const badCtas = plan.filter(it => !ctaEnum.includes(it.ctaType))
     if (badCtas.length > 0) {
         const samples = badCtas.slice(0, 3).map(it => `"${it.ctaType}"`).join(', ')
-        issues.push(`${badCtas.length} items have invalid ctaType (e.g. ${samples})`)
+        issues.push(`${badCtas.length} items have invalid ctaType (e.g. ${samples}) — allowed: ${ctaEnum.join('|')}`)
     }
 
     // Pillar domination check — no single pillar should exceed ~25% of items
