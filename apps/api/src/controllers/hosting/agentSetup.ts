@@ -6503,6 +6503,67 @@ function formatBrandBookForPlan(bb: Record<string, unknown> | null | undefined):
     return `## ספר מותג (חובה לכבד)\n${lines.join('\n')}\n`
 }
 
+// Phase 4.0(fix14b) — deterministic post-filter for chosenScenario.do_not_channels.
+// The Skeleton prompt asks the model to skip forbidden channels, but model
+// compliance is ~70% in practice (Storage Station rerun: 3/5 IG items came back
+// as reel despite "Instagram Reels organic" being explicitly forbidden).
+// This filter runs RIGHT AFTER Skeleton pass so Draft/QA/Critique passes don't
+// waste tokens on items that will be stripped anyway.
+//
+// Mapping rules (strategic forbidden channel → enum-level item match):
+//   "Instagram Reels organic" | "TikTok ... organic" → channel='instagram' AND type='reel', or channel='tiktok'
+//   "Email nurture" | "Email" | "Newsletter ... (no list)" → channel='email'
+//   "Google Ads ... head terms" | "Paid ads" | "Paid search" → channel='google_ads' OR channel='meta_ads'
+//   "Paid social" → channel='meta_ads' OR (channel='facebook' AND type='campaign_*')
+//   "Programmatic geo pages (50+...)" → cap at ≤2 geo-specific blog items
+function filterForbiddenSlots<T extends { channel: string; type: string; pillar?: string }>(
+    slots: T[],
+    doNotChannels: Array<Record<string, unknown>>,
+): { kept: T[]; rejected: Array<{ slot: T; reason: string }> } {
+    if (!doNotChannels || doNotChannels.length === 0) return { kept: slots, rejected: [] }
+    const rejected: Array<{ slot: T; reason: string }> = []
+    const forbidPatterns = doNotChannels.map(c => ({
+        text: String(c.channel || ''),
+        textLower: String(c.channel || '').toLowerCase(),
+    }))
+    const isForbidden = (slot: T): string | null => {
+        for (const p of forbidPatterns) {
+            const t = p.textLower
+            // Reels organic
+            if ((t.includes('reels organic') || (t.includes('reels') && t.includes('organic')))
+                && slot.channel === 'instagram' && slot.type === 'reel') {
+                return `forbidden: "${p.text}" → channel=instagram+type=reel`
+            }
+            // TikTok organic
+            if ((t.includes('tiktok') && t.includes('organic')) || t === 'tiktok'
+                || (t.includes('tiktok') && slot.channel === 'tiktok')) {
+                if (slot.channel === 'tiktok') return `forbidden: "${p.text}" → channel=tiktok`
+            }
+            // Email nurture / Newsletter
+            if ((t.includes('email') || t.includes('newsletter')) && slot.channel === 'email') {
+                return `forbidden: "${p.text}" → channel=email`
+            }
+            // Paid ads (Google/Meta)
+            if (t.includes('paid ads') || t.includes('paid search') || (t.includes('google ads') && (t.includes('head') || t.includes('all')))) {
+                if (slot.channel === 'google_ads' || slot.channel === 'meta_ads') {
+                    return `forbidden: "${p.text}" → channel=${slot.channel}`
+                }
+            }
+            if (t.includes('paid social') && slot.channel === 'meta_ads') {
+                return `forbidden: "${p.text}" → channel=meta_ads`
+            }
+        }
+        return null
+    }
+    const kept: T[] = []
+    for (const s of slots) {
+        const reason = isForbidden(s)
+        if (reason) rejected.push({ slot: s, reason })
+        else kept.push(s)
+    }
+    return { kept, rejected }
+}
+
 // Phase 4.0(fix14) — short Hebrew descriptor for each CTA in the prompt enum,
 // so the model picks the right one. Pattern: <verb>_<productRef> | universal.
 function ctaTypeHebrewLabel(cta: string, ctx: GenContext): string {
@@ -7357,8 +7418,20 @@ export async function generateContentPlan(
 
     // ─── Pass 1: Skeleton (Opus thinking) ───
     const t1 = Date.now()
-    const slots = await generateSkeleton(ctx)
-    console.log(`Content Plan v4 — Pass 1 (Skeleton): ${slots.length} slots in ${((Date.now() - t1) / 1000).toFixed(1)}s`)
+    const rawSlots = await generateSkeleton(ctx)
+    console.log(`Content Plan v4 — Pass 1 (Skeleton): ${rawSlots.length} slots in ${((Date.now() - t1) / 1000).toFixed(1)}s`)
+
+    // Phase 4.0(fix14b) — deterministic post-filter for scenario.do_not_channels.
+    // Model compliance with soft prompt rules is ~70%; this hard filter strips
+    // forbidden items (e.g. instagram+reel when scenario forbids "Instagram Reels
+    // organic") before Draft pass wastes tokens on them.
+    const filterResult = filterForbiddenSlots(rawSlots, ctx.scenarioDoNotChannels)
+    const slots = filterResult.kept
+    if (filterResult.rejected.length > 0) {
+        console.warn(`[contentPlan/do_not_channels] rejected ${filterResult.rejected.length} items from Skeleton:`)
+        filterResult.rejected.slice(0, 10).forEach(r => console.warn(`  - ${r.slot.channel}/${r.slot.type} on ${(r.slot as unknown as { date?: string }).date || '?'} — ${r.reason}`))
+        if (filterResult.rejected.length > 10) console.warn(`  ... ${filterResult.rejected.length - 10} more`)
+    }
 
     // ─── Pass 2: Per-item drafting (Sonnet parallel) ───
     const t2 = Date.now()
