@@ -36,11 +36,38 @@ export async function run(c: Context): Promise<Response> {
         const __agent = await resolveActiveAgent(c, instanceId)
         const rd = await readResearchData(__agent, instanceId) as Record<string, unknown>
 
-        // Gate: content plan requires a chosen scenario (commit step) — same
-        // gate as the existing regenerateContentPlan handler.
+        // Gate: content plan needs a chosen scenario. Two sources, in order:
+        //   1. rd.chosenScenario — legacy commit endpoint, still honored
+        //   2. NEW strategy_options stage output (results.strategy_options.
+        //      records[]) — auto-default to the highest-confidence record
+        //      so the user doesn't have to make a separate commit click
+        //      after running strategy_options. They can always override
+        //      via the commit endpoint later.
         if (!rd.chosenScenario) {
-            releaseResearchLock(instanceId)
-            return fail(c, 'בחרו קודם מסלול ביצוע (Smart / All-In) בשלב strategy_options', 422)
+            const results = (rd.results as Record<string, { records?: Array<Record<string, unknown>> }> | undefined) || {}
+            const strategyRecords = results.strategy_options?.records
+            if (Array.isArray(strategyRecords) && strategyRecords.length > 0) {
+                // Pick highest confidence; tie-break by stage order (smart usually first).
+                const scored = strategyRecords.map((r, idx) => ({
+                    r,
+                    rank: r.confidence === 'high' ? 0 : r.confidence === 'medium' ? 1 : 2,
+                    idx,
+                }))
+                scored.sort((a, b) => a.rank - b.rank || a.idx - b.idx)
+                const auto = scored[0].r
+                rd.chosenScenario = {
+                    ...auto,
+                    _autoSelected: true,
+                    _autoSelectedAt: new Date().toISOString(),
+                    _autoSelectedReason: `strategy_options.records[${scored[0].idx}] (confidence=${auto.confidence || 'unknown'})`,
+                }
+                // Persist so future runs see it.
+                await writeResearchData(__agent, instanceId, rd)
+                console.log(`[research/content_plan] auto-selected scenario: ${(auto as { scenario?: string }).scenario || 'unknown'} (${auto.confidence})`)
+            } else {
+                releaseResearchLock(instanceId)
+                return fail(c, 'תחילה הריצו את שלב אסטרטגיה (strategy_options) — content_plan נשען על המסלול שנבחר שם.', 422)
+            }
         }
 
         const body = await c.req.json<{ weeksAhead?: number; startDate?: string }>().catch(() => ({} as { weeksAhead?: number; startDate?: string }))
