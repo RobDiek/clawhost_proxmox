@@ -1,144 +1,99 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ClawFlow — הסוכן שלכם, מוכן תוך 3 דקות | by Flowmatic</title>
-<meta name="description" content="ClawFlow — פלטפורמת אירוח לסוכני OpenClaw AI. בחרו את הסוכנים שלכם, שלמו — ה-VPS מוכן תוך 3 דקות. ללא הגדרות, ללא מגבלות."/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ניהול שיווק — ClawFlow</title>
+<meta name="description" content="ניהול שיווק מקצועי עם 10 סוכני AI. שירות עצמי מ-₪169/חודש, או אוטופילוט מלא — הקמה + ניהול שוטף ע״י המומחים שלנו."/>
 <link rel="icon" href="/favicon.ico?v=cf2"/>
 <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=cf2"/>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<!-- No Google Fonts: brand uses native Arial / Arial Hebrew per CLAUDE.md typography rule -->
+
 <style>
-/* ═══════════════════════════════════════════════════
-   RESET & BASE
-═══════════════════════════════════════════════════ */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Heebo', system-ui, sans-serif;
-}
-:root {
-  --primary: #2563EB;
-  --primary-dark: #1D4ED8;
-  --primary-light: #EFF6FF;
-  --bg: #FAFAFA;
-  --bg-2: #F5F5F5;
-  --surface: #FFFFFF;
-  --border: #E5E7EB;
-  --border-light: #D1D5DB;
-  --text: #111827;
-  --text-2: #4B5563;
-  --text-3: #9CA3AF;
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  --radius: 10px;
-  --radius-lg: 14px;
-  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
-  --shadow-lg: 0 10px 30px rgba(0,0,0,.1);
-}
-html { scroll-behavior: smooth; }
+* { margin:0; padding:0; box-sizing:border-box; font-family: Arial, 'Arial Hebrew', Helvetica, sans-serif !important; }
+html { font-feature-settings: "kern" 1, "liga" 1; overflow-x: hidden; }
 body {
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.5;
-  font-size: 15px;
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  -webkit-font-smoothing: antialiased;
+  background:#fff; color:#1F2937; line-height:1.6;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  padding-top: 64px;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
-a { text-decoration: none; color: inherit; }
-button { cursor: pointer; border: none; background: none; font-family: inherit; }
-
-/* ═══════════════════════════════════════════════════
-   PAGE SHELL — no scroll
-═══════════════════════════════════════════════════ */
-.page {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+img, video, iframe, table, code, pre { max-width: 100%; }
+@media(max-width: 768px) { body { padding-top: 56px; } }
+/* Force identical rendering for all headings + card titles to avoid Latin/Hebrew glyph drift */
+h1, h2, h3, h4, h5, h6, .card-name, .price, .hero-h1, .hero-eyebrow, .pricing-head h2, .pricing-eyebrow .label {
+  font-family: Arial, 'Arial Hebrew', Helvetica, sans-serif !important;
+  font-synthesis: none;          /* never synthesize bold/italic — use real weights only */
+  font-feature-settings: "kern" 1;
 }
+a { color:#2563EB; text-decoration:none; }
+.wrap { max-width:1080px; margin:0 auto; padding:0 20px; }
 
-/* ═══════════════════════════════════════════════════
-   HEADER — unified premium glass (matches /auto-pilot)
-═══════════════════════════════════════════════════ */
-.header {
-  position: fixed; top: 0; left: 0; right: 0;
-  z-index: 1000;
+/* ── Unified site header — premium glass + gradient accent ── */
+.cf-hdr {
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: saturate(180%) blur(14px);
   -webkit-backdrop-filter: saturate(180%) blur(14px);
   border-bottom: 1px solid rgba(229, 231, 235, 0.7);
-  height: 64px;
-  flex-shrink: 0;
+  height: 64px; position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
 }
-.header::before {
+.cf-hdr::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
   background: linear-gradient(90deg, #2563EB 0%, #7C3AED 50%, #2563EB 100%);
   opacity: 0.85;
 }
-.page { padding-top: 64px; }
-.header-inner {
-  max-width: 1180px; margin: 0 auto; padding: 0 28px;
-  display: flex; align-items: center; height: 100%; gap: 18px;
-}
-.logo { display: flex; align-items: center; flex-shrink: 0; transition: transform .15s; }
-.logo:hover { transform: scale(1.02); }
-.logo img { height: 32px; width: auto; display: block; }
-.logo-name { font-size: 1.15rem; font-weight: 800; color: #111827; display: none; letter-spacing: -0.02em; line-height: 1.15; }
-.logo-sub { font-size: 0.65rem; color: #9CA3AF; display: none; }
-.header-nav { display: flex; align-items: center; gap: 6px; margin-right: auto; }
-.header-nav a {
+.cf-hdr-inner { max-width: 1180px; margin: 0 auto; padding: 0 28px; display: flex; align-items: center; height: 100%; gap: 18px; }
+.cf-logo { display: flex; align-items: center; flex-shrink: 0; transition: transform .15s; }
+.cf-logo:hover { transform: scale(1.02); }
+.cf-logo img { height: 32px; width: auto; display: block; }
+.cf-nav { display: flex; align-items: center; gap: 6px; margin-right: auto; }
+.cf-nav a {
   font-size: 0.88rem; font-weight: 500; color: #4B5563;
   transition: all .18s ease; cursor: pointer;
   padding: 8px 14px; border-radius: 8px; position: relative;
-  text-decoration: none;
 }
-.header-nav a:hover { color: var(--primary); background: rgba(239, 246, 255, 0.6); }
-.header-nav a.active { color: var(--primary); font-weight: 600; background: #EFF6FF; }
-.header-nav a.active::after {
+.cf-nav a:hover { color: #2563EB; background: rgba(239, 246, 255, 0.6); }
+.cf-nav a.active { color: #2563EB; font-weight: 600; background: #EFF6FF; }
+.cf-nav a.active::after {
   content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
-  width: 18px; height: 2px; background: var(--primary); border-radius: 2px;
+  width: 18px; height: 2px; background: #2563EB; border-radius: 2px;
 }
-.header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.lang-switcher {
-  display: flex; background: var(--bg-2); border: 1px solid var(--border);
-  border-radius: 7px; overflow: hidden;
-}
-.lang-btn {
-  padding: 4px 10px; font-size: 10px; font-weight: 600; color: var(--text-3);
-  transition: all .15s; border: none; background: none; cursor: pointer;
-}
-.lang-btn.active { background: var(--primary); color: white; }
-.header-login {
+.cf-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.cf-login {
   font-size: 0.85rem; font-weight: 600; color: #4B5563;
   padding: 8px 18px; border: 1.5px solid #E5E7EB; border-radius: 9px;
   transition: all .18s ease; background: #fff;
 }
-.header-login:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.25); }
-.header-cta {
+.cf-login:hover { border-color: #2563EB; color: #2563EB; transform: translateY(-1px); box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.25); }
+.cf-cta {
   font-size: 0.85rem; font-weight: 700; color: #fff;
   padding: 8px 18px; border-radius: 9px;
   background: linear-gradient(135deg, #2563EB, #1D4ED8);
   box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.45);
   transition: all .18s ease;
   display: inline-flex; align-items: center; gap: 6px;
-  text-decoration: none;
 }
-.header-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.55); }
-.header-cta::after { content: '←'; font-size: 0.95rem; line-height: 1; }
-/* Mobile burger — hidden on desktop, shown by mobile media query */
-.nav-burger-mobile { display: none; }
+.cf-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.55); }
+.cf-cta::after { content: '←'; font-size: 0.95rem; line-height: 1; }
+@media(max-width: 768px) {
+  .cf-hdr { height: 52px; padding: 0; }
+  .cf-hdr-inner { flex-wrap: nowrap; gap: 8px; padding: 0 14px; height: 100%; align-items: center; justify-content: space-between; }
+  .cf-logo img { height: 24px; }
+  .cf-nav { display: none; }
+  .cf-actions { gap: 6px; }
+  .cf-login { font-size: 0.78rem; padding: 6px 12px; border-width: 1px; }
+  .cf-cta { display: none; }
+  .cf-burger { display: inline-flex !important; }
+}
 
-/* ── Mobile burger + drawer (shared with auto-pilot/about) ──
-   Base rule MUST come BEFORE the @media rule below — otherwise the later-defined
-   `.cf-burger { display: none }` overrides the @media `display: inline-flex` due
-   to CSS cascade order (last rule wins when specificity is equal). */
+/* ── Mobile burger + slide-down nav drawer ─────────────────────────────
+   Hidden on desktop (cf-nav handles desktop), visible on mobile (<=768).
+   The base `.cf-burger { display: none }` rule below comes AFTER the @media
+   rule above — without !important on the @media variant, this one wins
+   (CSS cascade last-rule-wins at equal specificity), so the burger never
+   shows on mobile. !important on the @media rule fixes it. */
 .cf-burger {
   display: none; align-items: center; justify-content: center;
   width: 38px; height: 38px; border-radius: 9px;
@@ -146,20 +101,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   cursor: pointer; padding: 0; flex-shrink: 0;
   transition: border-color .15s, background .15s;
 }
-.cf-burger:hover { border-color: var(--primary); background: #EFF6FF; }
+.cf-burger:hover { border-color: #2563EB; background: #EFF6FF; }
 .cf-burger svg { width: 18px; height: 18px; color: #4B5563; }
-
-@media (max-width: 768px) {
-  .header { height: 52px; padding: 0; }
-  .page { padding-top: 56px; }
-  .header-inner { flex-wrap: nowrap; gap: 8px; padding: 0 14px; height: 100%; align-items: center; justify-content: space-between; }
-  .logo img { height: 24px; }
-  .header-nav { display: none; }
-  .header-actions { gap: 6px; }
-  .header-login { font-size: 0.78rem; padding: 6px 12px; }
-  .header-cta { display: none; }
-  .cf-burger { display: inline-flex !important; }
-}
 .cf-drawer-bg {
   position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4);
   z-index: 998; opacity: 0; pointer-events: none;
@@ -180,2139 +123,968 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   display: flex; align-items: center; padding: 12px 14px;
   font-size: 0.95rem; font-weight: 500; color: #1F2937;
   border-radius: 9px; transition: background .15s;
-  border-bottom: 1px solid #F3F4F6; text-decoration: none;
+  border-bottom: 1px solid #F3F4F6;
 }
 .cf-drawer a:last-child { border-bottom: none; }
-.cf-drawer a:hover, .cf-drawer a.active { background: #EFF6FF; color: var(--primary); }
+.cf-drawer a:hover, .cf-drawer a.active { background: #EFF6FF; color: #2563EB; }
 .cf-drawer a.active { font-weight: 600; }
 .cf-drawer .cf-drawer-cta {
-  background: linear-gradient(135deg, var(--primary), #1D4ED8); color: #fff !important;
+  background: linear-gradient(135deg, #2563EB, #1D4ED8); color: #fff !important;
   text-align: center; justify-content: center; margin-top: 10px;
   border-bottom: none !important; box-shadow: 0 4px 12px -4px rgba(37, 99, 235, 0.45);
   padding: 13px 14px;
 }
-.sum-toggle { display: none; }  /* shown only on mobile via media query */
+.cf-drawer .cf-drawer-cta:hover { background: linear-gradient(135deg, #1D4ED8, #1E40AF); color: #fff !important; }
 
-/* ═══════════════════════════════════════════════════
-   WIZARD STEPS BAR
-═══════════════════════════════════════════════════ */
-.wizard-steps-bar {
-  flex-shrink: 0;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 0;
+/* ═══ Hero — full-viewport, emotional anchor ═══ */
+.hero-section {
+  background: radial-gradient(ellipse 1200px 600px at 50% -30%, rgba(37,99,235,0.08), transparent 60%),
+              linear-gradient(180deg, #FAFBFF 0%, #ffffff 100%);
+  border-bottom: 1px solid #EEF2F7;
+  min-height: calc(100vh - 64px);
+  display: flex; align-items: center;
+  padding: 40px 0;
 }
-.wizard-steps-inner {
-  max-width: 600px;
+.hero-grid {
+  max-width: 1180px; width: 100%; margin: 0 auto; padding: 0 24px;
+  display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center;
+}
+@media(max-width: 900px) {
+  .hero-section { min-height: auto; padding: 32px 0 40px; }
+  .hero-grid { grid-template-columns: 1fr; gap: 24px; padding: 0 16px; }
+}
+@media(max-width: 600px) {
+  .hero-section { padding: 24px 0 32px; }
+  .hero-h1 { font-size: clamp(1.6rem, 7vw, 2.2rem) !important; line-height: 1.2 !important; }
+  .hero-lead { font-size: 0.95rem !important; line-height: 1.65 !important; }
+  .trust-row { grid-template-columns: 1fr !important; gap: 12px !important; padding-top: 18px !important; margin-top: 22px !important; }
+  .trust-cell { font-size: 0.82rem !important; }
+  .trust-cell strong { font-size: 0.92rem !important; }
+}
+@media(max-height: 720px) and (min-width: 901px) {
+  .hero-section { min-height: auto; padding: 48px 0; }
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #fff; border: 1px solid #DBEAFE;
+  color: #1E40AF; font-size: 0.78rem; font-weight: 600;
+  padding: 6px 14px; border-radius: 999px; margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.06);
+}
+.hero-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.18); }
+.hero-h1 {
+  font-size: clamp(2rem, 4.4vw, 2.9rem);
+  font-weight: 700; line-height: 1.15; letter-spacing: -0.8px;
+  color: #0B1322; margin-bottom: 14px;
+  text-wrap: balance;          /* spreads words across lines evenly — no single-word orphan line */
+  -webkit-text-wrap: balance;
+}
+.hero-h1 em { font-style: normal; color: #2563EB; }
+.hero-lead {
+  font-size: 1.05rem; color: #4B5563; line-height: 1.75; margin-bottom: 24px;
+  max-width: 540px;
+}
+.trust-row {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px;
+  margin-top: 30px; padding-top: 24px; border-top: 1px solid #E5E7EB;
+}
+.trust-cell {
+  font-size: 0.85rem; color: #4B5563; line-height: 1.55;
+  padding-inline-start: 14px; position: relative;
+}
+.trust-cell::before {
+  content: ''; position: absolute; right: 0; top: 4px; bottom: 4px;
+  width: 3px; border-radius: 2px;
+  background: linear-gradient(180deg, #2563EB, #7C3AED);
+}
+.trust-cell strong {
+  display: block; color: #0B1322; font-weight: 700;
+  font-size: 0.96rem; margin-bottom: 4px; letter-spacing: -0.2px;
+}
+@media(max-width:900px) {
+  .trust-row { grid-template-columns: 1fr; gap: 14px; }
+}
+
+/* Video placeholder */
+.video-frame {
+  position: relative;
+  aspect-ratio: 9/16;
+  max-width: 100%;
+  width: auto;
+  height: min(78vh, 640px);
   margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 0 20px;
-}
-.wiz-step {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 24px;
-  font-size: 0.88rem;
-  color: var(--text-3);
-  transition: all .2s;
-  cursor: pointer;
-  border: 2px solid transparent;
-  background: none;
-  font-family: inherit;
-}
-.wiz-step:hover { color: var(--text-2); }
-.wiz-step.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-}
-.wiz-step.done {
-  background: var(--primary-light);
-  color: var(--primary);
-  border-color: #BFDBFE;
-}
-.wiz-num {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.78rem;
-  font-weight: 700;
-  background: #E5E7EB;
-  color: var(--text-3);
-  flex-shrink: 0;
-}
-.wiz-step.active .wiz-num { background: rgba(255,255,255,.3); color: #fff; }
-.wiz-step.done .wiz-num { background: var(--primary); color: #fff; }
-.wiz-line {
-  flex: 1;
-  height: 2px;
-  background: var(--border);
-  margin: 0 4px;
-  max-width: 40px;
-}
-.wiz-label { white-space: nowrap; }
-
-@media (max-width: 600px) {
-  .wiz-label { display: none; }
-  .wiz-step { padding: 8px 10px; }
-}
-
-/* Legacy title bar (hidden, kept for JS compat) */
-.title-bar {
-  display: none;
-  flex-shrink: 0;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  padding: 10px 0;
-}
-.title-bar-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-}
-.title-bar h2 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -.01em;
-  white-space: nowrap;
-}
-.title-bar p {
-  font-size: 1rem;
-  color: var(--text-2);
-  line-height: 1.4;
-}
-.title-bar p b { color: var(--primary); }
-
-/* ═══════════════════════════════════════════════════
-   MAIN AREA
-═══════════════════════════════════════════════════ */
-.main {
-  flex: 1;
-  display: flex;
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  border-radius: 22px;
   overflow: hidden;
-  max-width: 1100px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* ── LIST PANEL (60%) ── */
-.cfg-list {
-  flex: 3;
-  overflow-y: auto;
-  padding: 14px 18px 14px 12px;
-  background: var(--bg);
-  scrollbar-width: thin;
-  scrollbar-color: #ccc transparent;
-}
-.cfg-list::-webkit-scrollbar { width: 4px; }
-.cfg-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-
-.cat-block { margin-bottom: 14px; }
-.cat-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.cat-badge-pill {
-  font-size: 9px;
-  font-weight: 600;
-  padding: 1px 7px;
-  border-radius: 10px;
-  background: rgba(37,99,235,0.1);
-  color: var(--primary);
-  text-transform: none;
-  letter-spacing: 0;
-}
-.cat-sub {
-  font-size: 0.76rem;
-  color: var(--text-3);
-  margin-bottom: 5px;
-}
-
-/* ── OPTION CARD ── */
-.opt-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  padding: 8px 11px;
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 4px;
+  box-shadow: 0 30px 80px -20px rgba(15,23,42,0.5), 0 12px 30px -10px rgba(37,99,235,0.18);
+  border: 1px solid rgba(37,99,235,0.2);
   cursor: pointer;
-  transition: border-color .12s, box-shadow .12s, background .12s;
-  box-shadow: var(--shadow);
-  user-select: none;
+  transition: transform .25s, box-shadow .25s;
 }
-.opt-card:hover:not(.disabled) {
-  box-shadow: var(--shadow-md);
+@media(max-width: 900px) {
+  .video-frame { height: auto; max-width: 360px; }
 }
-.opt-card.selected {
-  border-color: var(--primary);
-  background: var(--primary-light);
-  box-shadow: 0 0 0 3px rgba(37,99,235,.08), var(--shadow);
-}
-.opt-card.disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-.info-btn {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-  margin-top: 1px;
-  border-radius: 50%;
-  border: 1.5px solid var(--border-light);
-  background: none;
-  font-size: 8px;
-  font-weight: 800;
-  color: var(--text-3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all .12s;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-.info-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: rgba(37,99,235,0.08);
-}
-
-.checkbox {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  margin-top: 1px;
-  border: 2px solid var(--border-light);
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--surface);
-  transition: all .12s;
-}
-.opt-card.selected .checkbox {
-  background: var(--primary);
-  border-color: var(--primary);
-}
-.radio-btn {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  margin-top: 1px;
-  border: 2px solid var(--border-light);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--surface);
-  transition: all .12s;
-}
-.opt-card.selected .radio-btn {
-  border-color: var(--primary);
-  background: var(--primary);
-}
-.radio-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: white;
-  opacity: 0;
-  transition: opacity .12s;
-}
-.opt-card.selected .radio-dot { opacity: 1; }
-
-.opt-body { flex: 1; min-width: 0; }
-.opt-title-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-wrap: wrap;
-  margin-bottom: 1px;
-}
-.opt-name { font-size: 0.95rem; font-weight: 600; color: var(--text); }
-.opt-desc { font-size: 0.85rem; color: var(--text-2); line-height: 1.45; }
-
-.badge {
-  font-size: 7px;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 20px;
-  flex-shrink: 0;
-}
-.badge-soon { background: rgba(245,158,11,0.12); color: var(--warning); }
-.badge-adv { background: rgba(156,39,176,0.12); color: #9C27B0; }
-.opt-price-tag {
-  font-size: 9px;
-  color: var(--text-3);
-  flex-shrink: 0;
-}
-
-/* Storage dropdown row */
-.storage-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-}
-.storage-label { font-size: 10px; color: var(--text-2); }
-.storage-select {
-  font-size: 10px;
-  padding: 2px 6px;
-  border: 1.5px solid var(--border);
-  border-radius: 5px;
-  background: var(--surface);
-  color: var(--text);
-  cursor: pointer;
-  transition: border-color .12s;
-}
-.storage-select:focus { outline: none; border-color: var(--primary); }
-
-/* ── SUMMARY PANEL (40%) ── */
-.cfg-summary {
-  flex: 2;
-  min-width: 280px;
-  max-width: 340px;
-  background: #0F172A;
-  display: flex;
-  flex-direction: column;
-  padding: 14px 16px;
-  overflow: hidden;
-  border-right: none;
-}
-.sum-label {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #64748B;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  margin-bottom: 8px;
-}
-.plan-card {
-  background: #1E3A5F;
-  border: 1px solid #2563EB;
-  border-radius: var(--radius);
-  padding: 9px 11px;
-  margin-bottom: 8px;
-  transition: all .3s;
-}
-.plan-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #FFFFFF;
-  margin-bottom: 2px;
-}
-.plan-specs {
-  font-size: 0.82rem;
-  color: #93C5FD;
-  direction: ltr;
-  text-align: center;
-}
-.ram-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.82rem;
-  color: #64748B;
-  margin-bottom: 3px;
-}
-.ram-val { color: #D1D5DB; font-weight: 500; }
-.ram-bar {
-  height: 3px;
-  background: #1F2937;
-  border-radius: 2px;
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-.ram-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width .4s ease, background .4s ease;
-}
-
-/* Selected items list */
-.sum-items {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-  scrollbar-width: none;
-}
-.sum-items::-webkit-scrollbar { display: none; }
-.sum-empty {
-  font-size: 0.9rem;
-  color: #475569;
-  text-align: center;
-  padding: 14px 0;
-  line-height: 1.5;
-}
-.sum-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 0;
-  border-bottom: 1px solid #1F2937;
-  font-size: 0.95rem;
-  color: #D1D5DB;
-}
-.sum-item:last-child { border: none; }
-.sum-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--success);
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.sum-item-name { flex: 1; font-weight: 500; }
-.sum-item-price { color: #64748B; font-size: 0.85rem; }
-
-/* Billing toggle */
-.billing-toggle-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  padding: 6px 0;
-}
-.billing-label {
-  font-size: 11px;
-  color: #64748B;
-  cursor: pointer;
-  transition: color .15s;
-}
-.billing-label.active { color: #FFFFFF; font-weight: 600; }
-.billing-switch {
-  position: relative;
-  width: 36px;
-  height: 18px;
-  background: #1F2937;
-  border-radius: 9px;
-  cursor: pointer;
-  border: 1px solid #334155;
-  transition: background .2s;
-}
-.billing-switch.annual { background: var(--primary); border-color: var(--primary); }
-.billing-switch-knob {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 12px;
-  height: 12px;
-  background: white;
-  border-radius: 50%;
-  transition: transform .2s;
-  box-shadow: 0 1px 2px rgba(0,0,0,.15);
-}
-.billing-switch.annual .billing-switch-knob { transform: translateX(-18px); }
-.billing-savings {
-  font-size: 10px;
-  color: var(--success);
-  text-align: center;
-  margin-bottom: 4px;
-  min-height: 14px;
-}
-
-/* Price footer */
-.sum-footer {
-  padding-top: 10px;
-  border-top: 1px solid #1F2937;
-  margin-top: 6px;
-  flex-shrink: 0;
-}
-.sum-price-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.9rem;
-  color: #64748B;
-  margin-bottom: 2px;
-}
-.sum-price-val { color: #9CA3AF; }
-.sum-total {
-  font-size: 2.2rem;
-  font-weight: 800;
-  color: #FFFFFF;
-  margin: 4px 0 10px;
-  line-height: 1;
-  transition: all .3s;
-}
-.sum-total span { font-size: 12px; color: #475569; font-weight: 400; }
-
-.deploy-btn {
-  width: 100%;
-  padding: 14px 0;
-  border-radius: var(--radius);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: .01em;
-  transition: all .2s;
-  border: none;
-  cursor: pointer;
-}
-.deploy-btn.active {
-  background: var(--primary);
-  color: white;
-  box-shadow: 0 4px 16px rgba(37,99,235,.5);
-}
-.deploy-btn.active:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(37,99,235,.6);
-}
-.deploy-btn.inactive {
-  background: #1F2937;
-  color: #475569;
-  cursor: not-allowed;
-}
-.deploy-hint {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  font-size: 9px;
-  color: #475569;
-  margin-top: 5px;
-}
-.deploy-hint-dot {
-  width: 4px;
-  height: 4px;
-  background: var(--success);
-  border-radius: 50%;
-}
-
-/* ═══════════════════════════════════════════════════
-   TRUST STRIP (2 rows)
-═══════════════════════════════════════════════════ */
-.trust-strip {
-  flex-shrink: 0;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 0 5px;
-}
-.trust-row-1 {
-  font-size: 0.82rem;
-  color: var(--text-3);
-  text-align: center;
-  white-space: nowrap;
-  margin-bottom: 3px;
-}
-.trust-row-2 {
-  font-size: 0.78rem;
-  color: var(--text-3);
-  text-align: center;
-  line-height: 1.4;
-}
-.trust-row-2 a {
-  color: var(--text-2);
-  text-decoration: none;
-  transition: color .15s;
-}
-.trust-row-2 a:hover { color: var(--primary); }
-
-/* ═══════════════════════════════════════════════════
-   POPUP
-═══════════════════════════════════════════════════ */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.4);
-  z-index: 999;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  backdrop-filter: blur(4px);
-}
-.overlay.open { display: flex; }
-.popup {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  max-width: 480px;
-  width: 100%;
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 24px;
-  position: relative;
-  direction: rtl;
-  box-shadow: var(--shadow-lg);
-  animation: popIn .2s ease;
-}
-@keyframes popIn {
-  from { opacity:0; transform:scale(.95) translateY(8px); }
-  to { opacity:1; transform:scale(1) translateY(0); }
-}
-.popup-close {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  background: none;
-  cursor: pointer;
-  font-size: 14px;
-  color: var(--text-3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all .13s;
-}
-.popup-close:hover { background: var(--bg-2); color: var(--text); }
-.popup-tag {
-  display: inline-block;
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 9px;
-  border-radius: 20px;
-  margin-bottom: 9px;
-}
-.popup-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 7px; }
-.popup-desc { font-size: 0.9rem; color: var(--text-2); line-height: 1.65; margin-bottom: 14px; }
-.popup-section-title {
-  font-size: 9px;
-  font-weight: 800;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: .07em;
-  margin-bottom: 7px;
-}
-.popup-feature {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  padding: 5px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.9rem;
-  color: var(--text);
-}
-.popup-feature:last-child { border: none; }
-.popup-feature::before {
-  content: '\2713';
-  color: var(--success);
-  font-size: 11px;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-.popup-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-}
-.popup-tech { font-size: 10px; color: var(--text-3); }
-.popup-price { font-size: 20px; font-weight: 700; color: var(--primary); }
-.popup-price-incl { font-size: 13px; font-weight: 700; color: var(--success); }
-
-/* ═══════════════════════════════════════════════════
-   MODAL (Support / Docs)
-═══════════════════════════════════════════════════ */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.4);
-  z-index: 1000;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  backdrop-filter: blur(4px);
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  max-width: 500px;
-  width: 100%;
-  max-height: 85vh;
-  overflow-y: auto;
-  padding: 24px;
-  position: relative;
-  direction: rtl;
-  box-shadow: var(--shadow-lg);
-  animation: popIn .2s ease;
-}
-.modal-close {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  background: none;
-  cursor: pointer;
-  font-size: 14px;
-  color: var(--text-3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all .13s;
-}
-.modal-close:hover { background: var(--bg-2); color: var(--text); }
-.modal h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
-.modal h4 { font-size: 14px; font-weight: 700; color: var(--primary); margin: 14px 0 6px; }
-.modal p { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 8px; }
-.modal-form label {
-  display: block;
-  font-size: 12px;
-  color: var(--text-2);
-  margin-bottom: 4px;
-  margin-top: 10px;
-}
-.modal-form input, .modal-form textarea {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg-2);
-  color: var(--text);
-  font-size: 13px;
-  transition: border-color .15s;
-}
-.modal-form input:focus, .modal-form textarea:focus {
-  outline: none;
-  border-color: var(--primary);
-}
-.modal-form textarea { min-height: 80px; resize: vertical; }
-.modal-form button[type="submit"] {
-  margin-top: 14px;
-  width: 100%;
-  padding: 10px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background .15s;
-}
-.modal-form button[type="submit"]:hover { background: var(--primary-dark); }
-.modal-success {
-  text-align: center;
-  padding: 20px 0;
-  color: var(--success);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-/* ═══════════════════════════════════════════════════
-   AI MASCOT
-═══════════════════════════════════════════════════ */
-.mascot-wrap {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  padding: 16px 8px 8px;
-  min-height: 90px;
-}
-.mascot-bot {
-  flex-shrink: 0;
-  width: 64px;
-  height: 64px;
-  animation: mascotFloat 3s ease-in-out infinite;
-}
-.mascot-bot.excited {
-  animation: mascotBounce .45s ease;
-}
-.mascot-eye { animation: mascotBlink 4s infinite; }
-.mascot-mouth { opacity: 0; transition: opacity .2s; }
-.mascot-bot.speaking .mascot-mouth { opacity: 1; animation: mascotTalk .4s steps(2) infinite; }
-
-.mascot-bubble {
-  position: relative;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--text-2);
-  box-shadow: 0 2px 8px rgba(0,0,0,.06);
-  max-width: 340px;
-  min-height: 38px;
-}
-.mascot-bubble::before {
+.video-frame:hover { transform: translateY(-3px); box-shadow: 0 38px 90px -20px rgba(15,23,42,0.55), 0 16px 36px -10px rgba(37,99,235,0.25); }
+.video-frame::before {
   content: '';
-  position: absolute;
-  right: auto; left: -7px;
-  top: 18px;
-  width: 12px; height: 12px;
-  background: #fff;
-  border-left: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  transform: rotate(45deg);
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 30% 30%, rgba(37,99,235,0.25), transparent 55%),
+              radial-gradient(circle at 70% 80%, rgba(124,58,237,0.18), transparent 50%);
 }
-html[dir="rtl"] .mascot-bubble::before {
-  left: auto; right: -7px;
-  border-left: none; border-bottom: none;
-  border-right: 1px solid var(--border);
-  border-top: 1px solid var(--border);
+.video-play {
+  position: absolute; inset: 0; display: grid; place-items: center; z-index: 2;
+  pointer-events: none;
 }
-.mascot-info-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px; height: 15px;
-  border-radius: 50%;
-  border: 1.5px solid var(--border-light, #d1d5db);
-  font-size: 8px;
-  font-weight: 800;
-  font-style: normal;
-  color: var(--text-3);
+/* Use display:none for hidden state — opacity transition was leaving a ghost
+   click target during fade and felt laggy. Now: instant disappear on play. */
+.video-play.cf-hidden { display: none !important; }
+.video-play-btn {
+  width: 88px; height: 88px;
+  display: grid; place-items: center;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.45));
+  transition: transform .25s;
+}
+.video-frame:hover .video-play-btn { transform: scale(1.06); }
+/* Triangle play icon — pure shape, no white circle background */
+.video-play-btn::after {
+  content: ''; width: 0; height: 0;
+  border-style: solid; border-width: 26px 0 26px 40px;
+  border-color: transparent transparent transparent #fff;
+  margin-right: -6px;
+}
+
+/* Custom pause button — shown only on hover while playing.
+   IMPORTANT: scoped to (hover: hover) media query so it ONLY applies on devices
+   with a real cursor. On touch devices, :hover gets stuck after a tap and the
+   pause button stays glued to the screen forever. Without this guard the user
+   sees the pause icon overlaid on the playing video on mobile permanently. */
+.video-pause {
+  position: absolute; inset: 0; display: grid; place-items: center; z-index: 2;
+  pointer-events: none; opacity: 0; transition: opacity .2s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .video-frame.cf-playing:hover .video-pause { opacity: 1; }
+}
+.video-pause-btn {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(255,255,255,0.92);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+}
+.video-pause-btn span {
+  display: block; width: 6px; height: 22px; background: #2563EB; border-radius: 2px;
+}
+
+.video-label {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  z-index: 2; text-align: center; pointer-events: none;
+  color: #fff; font-size: 0.86rem; font-weight: 500;
+  background: rgba(2,6,23,0.55); backdrop-filter: blur(6px);
+  padding: 8px 18px; border-radius: 999px;
+  white-space: nowrap; transition: opacity .2s ease;
+}
+.video-label.cf-hidden { display: none !important; }
+
+/* Slim progress bar at the very bottom */
+.video-progress {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background: rgba(255,255,255,0.15); z-index: 3; pointer-events: none;
+}
+.video-progress-fill {
+  height: 100%; width: 0; background: #2563EB;
+  transition: width .15s linear;
+}
+
+/* ═══ Bullet section labels (used inside Self-Service card to convey 3-stage substance) ═══ */
+.bullets .group-label {
+  list-style: none;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: #94A3B8;
+  padding: 14px 0 6px; margin: 0;
+  border-bottom: 1px dashed #E5E7EB;
+  margin-bottom: 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.bullets .group-label:first-child { padding-top: 2px; }
+.bullets .group-label::before {
+  content: ''; flex-shrink: 0;
+  width: 22px; height: 22px; border-radius: 6px;
+  background: linear-gradient(135deg, #2563EB, #4F46E5);
+  color: #fff; font-size: 0.74rem; font-weight: 700;
+  display: grid; place-items: center;
+}
+.bullets .group-label.g1::before { content: '1'; }
+.bullets .group-label.g2::before { content: '2'; }
+.bullets .group-label.g3::before { content: '3'; }
+
+/* ═══ How it works — 3 stages overview (legacy, no longer used after redesign) ═══ */
+.how-section { padding: 72px 0 56px; background: #fff; border-top: 1px solid #EEF2F7; }
+.how-head { text-align: center; max-width: 720px; margin: 0 auto 44px; padding: 0 24px; }
+.how-eyebrow { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #2563EB; padding: 4px 12px; background: #EFF6FF; border-radius: 999px; margin-bottom: 14px; }
+.how-head h2 { font-size: clamp(1.7rem, 3.4vw, 2.15rem); font-weight: 700; letter-spacing: -0.5px; color: #0B1322; margin-bottom: 12px; line-height: 1.25; }
+.how-head p { font-size: 1rem; color: #6B7280; line-height: 1.7; }
+.how-grid { max-width: 1180px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+@media(max-width: 980px) { .how-grid { grid-template-columns: 1fr; max-width: 540px; } }
+.stage {
+  background: linear-gradient(180deg, #fff 0%, #FAFBFC 100%);
+  border: 1px solid #E5E7EB; border-radius: 16px;
+  padding: 28px 26px;
+  position: relative; overflow: hidden;
+  transition: transform .25s, box-shadow .25s, border-color .2s;
+}
+.stage:hover { transform: translateY(-3px); border-color: #DBEAFE; box-shadow: 0 18px 40px -14px rgba(37, 99, 235, 0.15); }
+.stage-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 12px;
+  background: linear-gradient(135deg, #2563EB, #4F46E5);
+  color: #fff; font-size: 1.05rem; font-weight: 700;
+  box-shadow: 0 8px 18px -4px rgba(37, 99, 235, 0.4);
+  margin-bottom: 16px;
+}
+.stage h3 { font-size: 1.18rem; font-weight: 700; color: #0B1322; letter-spacing: -0.3px; margin-bottom: 6px; line-height: 1.3; }
+.stage .stage-tagline { font-size: 0.86rem; color: #6B7280; line-height: 1.55; margin-bottom: 16px; }
+.stage ul { list-style: none; padding: 0; margin: 0; }
+.stage li { font-size: 0.86rem; color: #374151; line-height: 1.6; padding: 6px 0; position: relative; padding-right: 16px; }
+.stage li::before { content: '·'; position: absolute; right: 0; top: 4px; color: #2563EB; font-weight: 800; font-size: 1.2rem; line-height: 1; }
+.stage li strong { color: #0B1322; font-weight: 600; }
+.stage code { background: #F3F4F6; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem; font-family: 'SF Mono', Consolas, monospace; color: #1F2937; direction: ltr; display: inline-block; }
+
+/* ═══ Pricing — clean, equal-height premium tier system ═══ */
+.pricing-section { padding: 64px 0 80px; background: #FAFBFC; border-top: 1px solid #EEF2F7; }
+.pricing-head { text-align: center; max-width: 720px; margin: 0 auto 48px; padding: 0 24px; }
+.pricing-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #2563EB; margin-bottom: 14px; display: inline-block; padding: 4px 12px; background: #EFF6FF; border-radius: 999px; }
+.pricing-head h2 { font-size: clamp(1.8rem, 3.6vw, 2.3rem); font-weight: 700; letter-spacing: -0.5px; color: #0B1322; margin-bottom: 12px; line-height: 1.2; }
+.pricing-head p { font-size: 1rem; color: #6B7280; line-height: 1.7; }
+
+.cards-wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch; }
+@media(max-width: 880px) { .cards { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+/* ── Card base ── */
+.card {
+  background: #fff; border: 1px solid #E5E7EB; border-radius: 16px;
+  display: flex; flex-direction: column;
+  padding: 28px 26px 24px; position: relative;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .2s;
+}
+.card:hover { transform: translateY(-3px); border-color: #DBEAFE; box-shadow: 0 18px 40px -14px rgba(37, 99, 235, 0.18); }
+
+/* ── Featured (אוטופילוט) ── */
+.card.pop {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F4F8FF 100%);
+  border: 2px solid #2563EB;
+  box-shadow: 0 28px 60px -18px rgba(37, 99, 235, 0.28), 0 10px 24px -10px rgba(37, 99, 235, 0.12);
+  z-index: 2;
+}
+.card.pop:hover { transform: translateY(-5px); box-shadow: 0 36px 70px -18px rgba(37, 99, 235, 0.32), 0 14px 30px -10px rgba(37, 99, 235, 0.16); }
+
+/* ── Header (title + tagline) ── */
+.card-head { text-align: right; padding-bottom: 18px; border-bottom: 1px solid #F3F4F6; margin-bottom: 18px; min-height: 86px; }
+.card-name { font-size: 1.35rem; font-weight: 700; color: #0B1322; letter-spacing: -0.5px; margin-bottom: 6px; line-height: 1.25; }
+.card-tagline { font-size: 0.85rem; color: #6B7280; line-height: 1.55; }
+
+/* ── Price block ── */
+.price-block { text-align: right; margin-bottom: 22px; min-height: 96px; display: flex; flex-direction: column; justify-content: center; }
+.price-row { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.price-num { font-size: 2.4rem; font-weight: 700; color: #0B1322; letter-spacing: -1.2px; line-height: 1; }
+.price-unit { font-size: 0.92rem; font-weight: 500; color: #9CA3AF; }
+.price-secondary { font-size: 0.86rem; color: #6B7280; margin-top: 8px; line-height: 1.55; }
+.price-secondary strong { color: #0B1322; font-weight: 600; }
+.price-fine { font-size: 0.76rem; color: #9CA3AF; margin-top: 6px; line-height: 1.55; }
+
+/* ── Bullet list — equal rhythm, plain language ── */
+.bullets { list-style: none; padding: 0; margin: 0 0 24px; flex: 1; }
+.bullet { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; font-size: 0.88rem; line-height: 1.55; color: #374151; border-bottom: 1px solid #F4F6F9; }
+.bullet:last-child { border-bottom: none; }
+.bullet-text { flex: 1; min-width: 0; }
+.bullet-text strong { color: #0B1322; font-weight: 600; }
+.check-icon { flex-shrink: 0; width: 18px; height: 18px; margin-top: 1px; border-radius: 50%; background: #ECFDF5; display: grid; place-items: center; }
+.check-icon::after {
+  content: ''; width: 10px; height: 10px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310B981' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>") center/contain no-repeat;
+}
+
+/* ── Inline info button ( ? icon at end of bullet ) ── */
+.info-btn {
+  flex-shrink: 0;
+  width: 18px; height: 18px;
+  border-radius: 50%; border: 1px solid #D1D5DB;
+  background: #fff; color: #6B7280;
+  font-size: 0.72rem; font-weight: 700; line-height: 16px;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: help; transition: all .15s; padding: 0;
+  position: relative; margin-top: 1px;
+  margin-inline-start: 8px;
+  font-family: Arial, 'Arial Hebrew', Helvetica, sans-serif;
+  text-align: center;
   vertical-align: middle;
-  margin: 0 2px;
 }
-.mascot-cursor {
-  display: inline-block;
-  width: 2px; height: 14px;
-  background: var(--primary);
-  margin-right: 2px;
-  vertical-align: text-bottom;
-  animation: mascotCursorBlink .6s steps(1) infinite;
+.info-btn::before { content: '?'; display: block; line-height: 1; }
+.info-btn:hover { border-color: #2563EB; color: #2563EB; background: #EFF6FF; }
+
+/* When info-btn is hovered, lift the entire card above all sibling cards (incl. .pop with z-index:2) */
+.card:has(.info-btn:hover) { z-index: 999; }
+.info-btn:hover { z-index: 999; }
+
+.info-btn .info-tip {
+  visibility: hidden; opacity: 0;
+  position: absolute; bottom: calc(100% + 8px); right: 50%; transform: translateX(50%);
+  background: #0B1322; color: #fff; font-size: 0.78rem; font-weight: 400;
+  padding: 10px 14px; border-radius: 10px; width: 260px;
+  text-align: right; line-height: 1.65; pointer-events: none;
+  box-shadow: 0 18px 40px -8px rgba(0, 0, 0, 0.45); z-index: 9999;
+  transition: opacity .15s ease, visibility .15s ease;
+  white-space: normal;
 }
-
-@keyframes mascotFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+.info-btn .info-tip::after {
+  content: ''; position: absolute; top: 100%; right: 50%; transform: translateX(50%);
+  border: 6px solid transparent; border-top-color: #0B1322;
 }
-@keyframes mascotBounce {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.12) translateY(-6px); }
-  60% { transform: scale(0.95); }
-  100% { transform: scale(1); }
+.info-btn:hover .info-tip { visibility: visible; opacity: 1; }
+@media(max-width: 600px) { .info-btn .info-tip { width: 200px; font-size: 0.72rem; } }
+
+/* ── CTA stack (always at bottom of card) ── */
+.cta-stack { margin-top: auto; }
+.cta {
+  display: block; width: 100%; padding: 13px; border: none; border-radius: 12px;
+  font-size: 0.94rem; font-weight: 700; cursor: pointer; text-align: center;
+  transition: all .18s; font-family: inherit; letter-spacing: -0.1px;
 }
-@keyframes mascotBlink {
-  0%, 42%, 44%, 100% { transform: scaleY(1); }
-  43% { transform: scaleY(0.1); }
+.cta-fill {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8); color: #fff;
+  box-shadow: 0 8px 22px -8px rgba(37, 99, 235, 0.5);
 }
-@keyframes mascotTalk {
-  0% { transform: scaleY(1); }
-  50% { transform: scaleY(0.5); }
+.cta-fill:hover { transform: translateY(-1px); box-shadow: 0 12px 28px -8px rgba(37, 99, 235, 0.6); }
+.cta-line { background: #fff; color: #2563EB; border: 1.5px solid #BFDBFE; }
+.cta-line:hover { background: #EFF6FF; border-color: #2563EB; }
+.cta-link {
+  display: block; padding: 11px; margin-top: 10px;
+  background: transparent; color: #4B5563;
+  border: 1px solid #E5E7EB; border-radius: 10px;
+  font-size: 0.84rem; font-weight: 500; text-align: center;
+  cursor: pointer; transition: all .15s; font-family: inherit;
 }
-@keyframes mascotCursorBlink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
-}
-
-/* ═══════════════════════════════════════════════════
-   RESPONSIVE — DEDICATED MOBILE LAYOUT (≤768px)
-   Strategy:
-   1. Free body from height:100vh + overflow:hidden lock — let page scroll
-   2. Stack main vertically: configurator on top, summary becomes STICKY
-      BOTTOM SHEET (collapsible). Pattern: e-commerce checkout footer.
-   3. Header simplified to logo + login (nav collapses into hamburger drawer)
-   4. Wizard steps row: scrolls horizontally if it overflows, never wraps
-   5. Mascot bubble shrinks, no horizontal overflow
-═══════════════════════════════════════════════════ */
-@media (max-width: 768px) {
-  html, body { overflow-x: hidden; max-width: 100vw; }
-  body {
-    /* Allow page-level scroll, don't lock viewport */
-    height: auto !important;
-    min-height: 100vh;
-    overflow-y: auto !important;
-  }
-  .page {
-    height: auto !important;
-    min-height: 100vh;
-    overflow: visible !important;
-    /* Bottom padding so the sticky summary bar doesn't cover content */
-    padding-bottom: 220px;
-  }
-
-  /* HEADER mobile rules now live in the unified premium-glass @media block above (line ~137).
-     The previous override here hid .header-nav and tried to use a hamburger button
-     that no longer exists in markup — so on mobile, nav links disappeared entirely.
-     Keeping only the small lang-switcher tweak. */
-  .lang-switcher { display: none; }  /* save space on mobile */
-
-  /* WIZARD STEPS — keep on one line, centered (was flex-start = stuck to one edge) */
-  .wizard-steps-bar { padding: 8px 0; }
-  .wizard-steps-inner {
-    padding: 0 14px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    justify-content: center;
-    flex-wrap: nowrap;
-  }
-  .wizard-steps-inner::-webkit-scrollbar { display: none; }
-  .wiz-step { padding: 7px 12px; flex-shrink: 0; font-size: 0.78rem; }
-  .wiz-label { display: inline; font-size: 0.78rem; }
-  .wiz-line { max-width: 18px; min-width: 14px; }
-
-  /* MAIN — stack vertically; cfg-list scrolls inside the page */
-  .main {
-    flex-direction: column;
-    overflow: visible;
-    max-width: 100%;
-  }
-  .cfg-list {
-    flex: 1;
-    overflow-y: visible;
-    padding: 14px 14px 20px;
-    min-height: auto;
-  }
-
-  /* Category headers tighter */
-  .cat-block { margin-bottom: 18px; }
-  .cat-title { font-size: 0.74rem; padding-bottom: 6px; margin-bottom: 8px; }
-  .cat-sub { font-size: 0.78rem; margin-bottom: 8px; line-height: 1.5; }
-
-  /* Option cards — bigger touch targets */
-  .opt-card {
-    padding: 12px 14px;
-    gap: 10px;
-    margin-bottom: 8px;
-    border-radius: 12px;
-  }
-  .opt-name { font-size: 1rem; }
-  .opt-desc { font-size: 0.86rem; line-height: 1.5; }
-  .checkbox, .radio-btn { width: 20px; height: 20px; margin-top: 2px; }
-  .info-btn { width: 20px; height: 20px; font-size: 11px; }
-  .opt-price-tag { font-size: 11px; }
-
-  /* SUMMARY — transformed into a sticky bottom sheet */
-  .cfg-summary {
-    max-width: 100%;
-    min-width: 0;
-    position: fixed;
-    left: 0; right: 0; bottom: 0;
-    z-index: 90;
-    padding: 10px 16px 14px;
-    background: #0F172A;
-    border-top: 1px solid #1F2937;
-    box-shadow: 0 -10px 30px rgba(0,0,0,0.25);
-    max-height: 40vh;
-    overflow-y: auto;
-    border-radius: 16px 16px 0 0;
-    /* Default to "collapsed" — show only total + deploy */
-  }
-  /* Drag-handle indicator at top */
-  .cfg-summary::before {
-    content: '';
-    display: block;
-    width: 36px; height: 4px;
-    background: #334155;
-    border-radius: 2px;
-    margin: 0 auto 8px;
-  }
-  /* Compact items: hide plan-card, ram bar, items list when collapsed */
-  .cfg-summary:not(.expanded) .sum-label,
-  .cfg-summary:not(.expanded) .plan-card,
-  .cfg-summary:not(.expanded) .ram-row,
-  .cfg-summary:not(.expanded) .ram-bar,
-  .cfg-summary:not(.expanded) .sum-items,
-  .cfg-summary:not(.expanded) .billing-toggle-row,
-  .cfg-summary:not(.expanded) .billing-savings,
-  .cfg-summary:not(.expanded) .sum-price-row {
-    display: none;
-  }
-  /* Expanded — show everything stacked */
-  .cfg-summary.expanded { max-height: 78vh; padding-top: 14px; padding-bottom: 18px; }
-  .cfg-summary.expanded .plan-card { padding: 10px 12px; margin-bottom: 8px; }
-  .cfg-summary.expanded .sum-items { max-height: 26vh; }
-
-  /* Footer total stays visible */
-  .sum-footer {
-    padding-top: 4px;
-    border-top: none;
-    margin-top: 0;
-  }
-  .sum-total {
-    font-size: 1.6rem;
-    margin: 0 0 10px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .sum-total span { font-size: 11px; }
-  .deploy-btn { padding: 14px 0; font-size: 0.95rem; }
-  .deploy-hint { font-size: 10px; margin-top: 6px; }
-
-  /* "Show details" toggle button at top of summary */
-  .sum-toggle {
-    display: block;
-    width: 100%;
-    text-align: center;
-    color: #94A3B8;
-    font-size: 0.78rem;
-    padding: 4px 0 8px;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  .sum-toggle::after {
-    content: '↑ פרטי הזמנה';
-  }
-  .cfg-summary.expanded .sum-toggle::after {
-    content: '↓ הסתר פרטים';
-  }
-
-  /* TITLE BAR */
-  .title-bar h2 { font-size: 1.2rem; }
-  .title-bar p { display: none; }
-
-  /* MASCOT */
-  .mascot-wrap { gap: 8px; padding: 10px 6px 6px; min-height: auto; }
-  .mascot-bot { width: 48px; height: 48px; }
-  .mascot-bubble { font-size: 12px; padding: 8px 10px; max-width: calc(100vw - 90px); }
-
-  /* TRUST STRIP — hide on mobile inside sticky bottom (we already show in scroll) */
-  .trust-strip {
-    padding: 14px 12px;
-    border-top: 1px solid var(--border);
-  }
-  .trust-row-1 {
-    white-space: normal;
-    font-size: 0.74rem;
-    line-height: 1.5;
-  }
-  .trust-row-2 {
-    font-size: 0.72rem;
-    line-height: 1.6;
-  }
-
-  /* MODALS / POPUPS — full-screen sheet style on phone */
-  .overlay, .modal-overlay { padding: 0; }
-  .popup, .modal {
-    border-radius: 16px 16px 0 0;
-    max-width: 100%;
-    max-height: 90vh;
-    margin-top: auto;
-    width: 100%;
-    padding: 24px 18px 20px;
-  }
-  .popup-close, .modal-close { top: 12px; left: 12px; }
+.cta-link:hover { background: #F9FAFB; color: #2563EB; border-color: #BFDBFE; text-decoration: none; }
+.cta-link strong { color: #2563EB; font-weight: 700; }
+@media(max-width: 980px) {
+  .card { padding: 26px 22px 22px; }
+  .card-head { min-height: 0; }
+  .price-block { min-height: 0; padding-bottom: 4px; }
 }
 
-/* PHONE-only tightening */
-@media (max-width: 480px) {
-  .wiz-step { padding: 6px 9px; font-size: 0.74rem; }
-  .wiz-label { display: none; }
-  .wiz-num { width: 22px; height: 22px; font-size: 0.72rem; }
-  .header-actions { gap: 4px; }
-  .header-login { font-size: 11px; padding: 4px 10px; }
-  .opt-card { padding: 11px 12px; }
-  .sum-total { font-size: 1.4rem; }
-  /* iOS auto-zoom prevention on focusable inputs */
-  input, select, textarea { font-size: 16px !important; }
+/* ═══ Under the hood — technical credibility ═══ */
+.tech-section { padding: 72px 0; background: #0B1322; color: #fff; }
+.tech-head { text-align: center; max-width: 760px; margin: 0 auto 40px; padding: 0 24px; }
+.tech-eyebrow { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #60A5FA; padding: 4px 12px; background: rgba(96, 165, 250, 0.12); border-radius: 999px; margin-bottom: 14px; }
+.tech-head h2 { font-size: clamp(1.7rem, 3.4vw, 2.15rem); font-weight: 700; letter-spacing: -0.5px; color: #fff; margin-bottom: 12px; line-height: 1.25; }
+.tech-head p { font-size: 1rem; color: #94A3B8; line-height: 1.7; }
+.tech-grid { max-width: 1180px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media(max-width: 980px) { .tech-grid { grid-template-columns: 1fr; max-width: 540px; } }
+.tech-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 20px 22px;
+  transition: background .2s, border-color .2s;
+}
+.tech-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(96, 165, 250, 0.3); }
+.tech-card-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #60A5FA; margin-bottom: 8px; }
+.tech-card-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 8px; line-height: 1.35; }
+.tech-card-desc { font-size: 0.85rem; color: #94A3B8; line-height: 1.6; }
+.tech-card-desc code { background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 4px; font-size: 0.78rem; font-family: 'SF Mono', Consolas, monospace; color: #DBEAFE; direction: ltr; display: inline-block; }
+.tech-card-desc strong { color: #DBEAFE; font-weight: 600; }
+
+/* Compare */
+.compare { margin:48px 0; }
+.compare h2 { text-align:center; font-size:1.4rem; font-weight:700; margin-bottom:20px; }
+table { width:100%; border-collapse:collapse; font-size:0.83rem; }
+th { background:#F9FAFB; padding:10px 12px; text-align:right; font-weight:600; border-bottom:2px solid #E5E7EB; }
+td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
+@media(max-width:600px) { table { font-size:0.72rem; } th,td { padding:6px 8px; } }
+
+/* Onboard */
+.onboard { background:#F9FAFB; border-radius:16px; padding:32px 24px; margin:48px 0; text-align:center; }
+.onboard h2 { font-size:1.25rem; font-weight:700; margin-bottom:6px; }
+.onboard>p { color:#6B7280; margin-bottom:24px; font-size:0.92rem; }
+.steps { display:flex; justify-content:center; gap:28px; flex-wrap:wrap; margin-bottom:24px; }
+.step-num { width:34px; height:34px; border-radius:50%; background:#2563EB; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; margin:0 auto 6px; font-size:0.9rem; }
+.step-label { font-size:0.8rem; font-weight:500; }
+
+/* Form */
+.form { max-width:440px; margin:0 auto; text-align:right; }
+.form select,.form input { width:100%; padding:12px 14px; border:1.5px solid #E5E7EB; border-radius:10px; font-size:0.9rem; margin-bottom:10px; font-family:inherit; }
+.form select:focus,.form input:focus { border-color:#2563EB; outline:none; }
+.form button { width:100%; padding:13px; background:#2563EB; color:#fff; border:none; border-radius:10px; font-size:0.95rem; font-weight:700; cursor:pointer; font-family:inherit; }
+.form button:hover { background:#1D4ED8; }
+
+/* ═══ FAQ — detailed, replaces old onboarding box ═══ */
+.faq-section { background: #FAFBFF; border-top: 1px solid #EEF2F7; padding: 72px 0 64px; }
+.faq-head { text-align: center; max-width: 760px; margin: 0 auto 40px; padding: 0 24px; }
+.faq-eyebrow { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #2563EB; padding: 4px 12px; background: #EFF6FF; border-radius: 999px; margin-bottom: 14px; }
+.faq-head h2 { font-size: clamp(1.7rem, 3.4vw, 2.15rem); font-weight: 700; letter-spacing: -0.5px; color: #0B1322; margin-bottom: 12px; line-height: 1.25; }
+.faq-head p { font-size: 1rem; color: #6B7280; line-height: 1.7; }
+.faq-list { max-width: 880px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 10px; }
+.faq-item {
+  background: #fff; border: 1px solid #E5E7EB; border-radius: 14px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.faq-item:hover { border-color: #DBEAFE; }
+.faq-item[open] { border-color: #BFDBFE; box-shadow: 0 8px 24px -10px rgba(37,99,235,0.18); }
+.faq-q {
+  list-style: none; cursor: pointer;
+  padding: 18px 22px; font-weight: 600; font-size: 0.98rem; color: #0B1322;
+  display: flex; align-items: center; gap: 14px;
+  line-height: 1.45;
+}
+.faq-q::-webkit-details-marker { display: none; }
+.faq-q::after {
+  content: "+"; flex-shrink: 0; margin-inline-start: auto;
+  width: 24px; height: 24px; border-radius: 50%; background: #EFF6FF; color: #2563EB;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem; font-weight: 600; line-height: 1;
+  transition: transform .2s ease, background .2s ease;
+}
+.faq-item[open] .faq-q::after { transform: rotate(45deg); background: #2563EB; color: #fff; }
+.faq-a {
+  padding: 0 22px 20px; color: #4B5563; font-size: 0.92rem; line-height: 1.75;
+  border-top: 1px solid #F3F4F6; padding-top: 16px; margin: 0 0 0;
+}
+.faq-a p { margin-bottom: 12px; }
+.faq-a p:last-child { margin-bottom: 0; }
+.faq-a strong { color: #0B1322; font-weight: 600; }
+.faq-a ul { margin: 8px 0 12px; padding-inline-start: 18px; }
+.faq-a ul li { margin-bottom: 6px; }
+.faq-a code { background: #F1F5F9; padding: 1px 6px; border-radius: 4px; font-size: 0.86em; color: #1E40AF; }
+.faq-cta { text-align: center; margin-top: 36px; }
+.faq-cta > a { display: inline-block; padding: 12px 28px; background: #2563EB; color: #fff; border-radius: 10px; font-weight: 700; font-size: 0.92rem; transition: all .15s; }
+.faq-cta > a:hover { background: #1D4ED8; transform: translateY(-1px); box-shadow: 0 8px 22px -8px rgba(37,99,235,0.5); }
+.faq-cta-note { font-size: 0.88rem; color: #6B7280; margin-top: 16px; background: transparent; padding: 0; }
+.faq-cta-note a { display: inline; padding: 0; background: transparent; color: #2563EB; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; box-shadow: none; border-radius: 0; }
+.faq-cta-note a:hover { color: #1D4ED8; background: transparent; transform: none; box-shadow: none; }
+@media(max-width: 600px) {
+  .faq-q { padding: 16px 18px; font-size: 0.92rem; }
+  .faq-a { padding: 14px 18px 18px; font-size: 0.88rem; }
+}
+
+/* Legacy footer (small) */
+.ftr { border-top:1px solid #E5E7EB; padding:20px 0; margin-top:48px; text-align:center; font-size:0.78rem; color:#9CA3AF; }
+
+/* ═══ Site footer — matches /index.html trust-strip ═══ */
+.site-footer {
+  background: #fff; border-top: 1px solid #E5E7EB;
+  padding: 18px 16px 22px; text-align: center;
+}
+.site-footer-row1 {
+  font-size: 0.82rem; color: #9CA3AF; margin-bottom: 6px; line-height: 1.6;
+}
+.site-footer-row1 .dot { color: #D1D5DB; margin: 0 6px; }
+.site-footer-row2 {
+  font-size: 0.78rem; color: #9CA3AF; line-height: 1.7;
+}
+.site-footer-row2 a { color: #4B5563; text-decoration: none; transition: color .15s; }
+.site-footer-row2 a:hover { color: #2563EB; }
+.site-footer-row2 .pipe { color: #D1D5DB; margin: 0 8px; }
+@media(max-width:600px) {
+  .site-footer-row1, .site-footer-row2 { font-size: 0.74rem; }
+  .site-footer-row1 .dot, .site-footer-row2 .pipe { margin: 0 4px; }
 }
 </style>
 </head>
 <body>
 
-<div class="page">
-
-<!-- ══════════════════ HEADER — unified premium glass ══════════════════ -->
-<header class="header">
-<div class="header-inner">
-  <a href="/" class="logo">
-    <img src="/logo-clawflow.png" alt="ClawFlow">
-  </a>
-  <nav class="header-nav" id="header-nav">
-    <a href="/" class="active">דף הבית</a>
-    <a href="/auto-pilot">ניהול שיווק</a>
-  </nav>
-  <div class="header-actions">
-    <a href="/login" class="header-login" id="nav-login">&#1499;&#1504;&#1497;&#1505;&#1492;</a>
-    <a href="/register" class="header-cta">התחילו עכשיו</a>
-    <button class="cf-burger" aria-label="תפריט" onclick="cfToggleDrawer(event)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-    </button>
+<!-- ── Unified site header ── -->
+<header class="cf-hdr">
+  <div class="cf-hdr-inner">
+    <a href="/" class="cf-logo"><img src="/logo-clawflow.png" alt="ClawFlow"></a>
+    <nav class="cf-nav">
+      <a href="/" class="active">דף הבית</a>
+    </nav>
+    <div class="cf-actions">
+      <a href="/login" class="cf-login">כניסה</a>
+      <a href="/register" class="cf-cta">התחילו עכשיו</a>
+      <button class="cf-burger" aria-label="תפריט" onclick="cfToggleDrawer(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
   </div>
-</div>
 </header>
 <div class="cf-drawer-bg" id="cfDrawerBg" onclick="cfCloseDrawer()"></div>
 <nav class="cf-drawer" id="cfDrawer">
   <a href="/" class="active">דף הבית</a>
-  <a href="/auto-pilot">ניהול שיווק</a>
-  <a href="#" onclick="event.preventDefault();cfCloseDrawer();if(window.cfChatToggle)window.cfChatToggle();">💬 דברו איתנו</a>
   <a href="/login">כניסה</a>
   <a href="/register" class="cf-drawer-cta">התחילו עכשיו ←</a>
 </nav>
 <script>
-function cfToggleDrawer(e) { if (e) e.stopPropagation(); document.getElementById('cfDrawer').classList.toggle('open'); document.getElementById('cfDrawerBg').classList.toggle('open'); }
-function cfCloseDrawer() { document.getElementById('cfDrawer').classList.remove('open'); document.getElementById('cfDrawerBg').classList.remove('open'); }
+function cfToggleDrawer(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('cfDrawer').classList.toggle('open');
+  document.getElementById('cfDrawerBg').classList.toggle('open');
+}
+function cfCloseDrawer() {
+  document.getElementById('cfDrawer').classList.remove('open');
+  document.getElementById('cfDrawerBg').classList.remove('open');
+}
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') cfCloseDrawer(); });
 </script>
 
-<!-- ══════════════════ WIZARD STEPS ══════════════════ -->
-<div class="wizard-steps-bar">
-  <div class="wizard-steps-inner">
-    <button class="wiz-step active" data-step="1" onclick="goWizStep(1)"><span class="wiz-num">1</span><span class="wiz-label">סוכנים</span></button>
-    <div class="wiz-line"></div>
-    <button class="wiz-step" data-step="2" onclick="goWizStep(2)"><span class="wiz-num">2</span><span class="wiz-label">אוטומציה</span></button>
-    <div class="wiz-line"></div>
-    <button class="wiz-step" data-step="3" onclick="goWizStep(3)"><span class="wiz-num">3</span><span class="wiz-label">תוספות</span></button>
-  </div>
-</div>
-
-<!-- ══════════════════ MAIN AREA ══════════════════ -->
-<div class="main">
-  <!-- WIZARD CONTENT (60%) -->
-  <div class="cfg-list" id="cfg-list"></div>
-  <!-- SUMMARY (40%) — sticky bottom sheet on mobile -->
-  <div class="cfg-summary" id="cfg-summary">
-    <button class="sum-toggle" id="sum-toggle" onclick="toggleSummaryMobile()" aria-label="הצג/הסתר פרטים"></button>
-    <div class="sum-label" id="sum-label">&#1492;&#1492;&#1494;&#1502;&#1504;&#1492; &#1513;&#1500;&#1499;&#1501;</div>
-    <div class="plan-card" id="plan-card">
-      <div class="plan-name" id="plan-name">&#8212;</div>
-      <div class="plan-specs" id="plan-specs">&#1489;&#1495;&#1512;&#1493; &#1512;&#1499;&#1497;&#1489; &#1500;&#1492;&#1514;&#1495;&#1500;&#1492;</div>
-    </div>
-    <div class="ram-row">
-      <span id="ram-label">RAM &#1504;&#1491;&#1512;&#1513;</span>
-      <span class="ram-val" id="ram-val">&#8212;</span>
-    </div>
-    <div class="ram-bar"><div class="ram-fill" id="ram-fill" style="width:0%;background:var(--primary)"></div></div>
-    <div class="sum-items" id="sum-items">
-      <div class="sum-empty" id="sum-empty">
-        &#1489;&#1495;&#1512;&#1493; &#1505;&#1493;&#1499;&#1504;&#1497;&#1501; &#1493;&#1512;&#1499;&#1497;&#1489;&#1497;&#1501;<br/>&#1499;&#1491;&#1497; &#1500;&#1512;&#1488;&#1493;&#1514; &#1488;&#1514; &#1492;&#1492;&#1494;&#1502;&#1504;&#1492; &#1513;&#1500;&#1499;&#1501;
-      </div>
-    </div>
-    <div class="sum-footer">
-      <div class="billing-toggle-row">
-        <span class="billing-label active" id="billing-monthly-lbl" onclick="setBilling('monthly')">&#1495;&#1493;&#1491;&#1513;&#1497;</span>
-        <div class="billing-switch" id="billing-switch" onclick="toggleBilling()">
-          <div class="billing-switch-knob"></div>
+<!-- ═══ Hero ═══ -->
+<section class="hero-section">
+  <div class="hero-grid">
+    <div>
+      <h1 class="hero-h1">שיווק דיגיטלי וקידום מקצועי על&nbsp;<em>אוטופילוט</em>.</h1>
+      <p class="hero-lead">10 סוכני AI עובדים על העסק שלכם 24/7 — תוכן, פרסום, קידום אורגני, אימיילים, רשתות חברתיות. <strong>אתם או אנחנו</strong> (תלוי במסלול) מבקרים את העבודה, מכוונים את האסטרטגיה ושומרים על התקציב. שקיפות מלאה בכל שלב.</p>
+      <div class="trust-row">
+        <div class="trust-cell">
+          <strong>בעלות מלאה — לא בני ערובה</strong>
+          הפלטפורמה רצה על שרת ענן <em>שלכם</em>. החשבונות, המפתחות והנתונים — שלכם. אתם לא תלויים באף אחד. גם לא בנו.
         </div>
-        <span class="billing-label" id="billing-annual-lbl" onclick="setBilling('annual')">&#1513;&#1504;&#1514;&#1497;<span style="color:#10B981;font-size:9px;font-weight:700;margin-right:4px">18%-</span></span>
+        <div class="trust-cell">
+          <strong>תוכנן בישראל, מותאם כלכלית</strong>
+          בנוי במכוון לשוק הישראלי, רץ על המודלים המתקדמים בעולם, אך עם אופטימיזציה אמיתית של עלויות AI.
+        </div>
       </div>
-      <div class="billing-savings" id="billing-savings"></div>
-      <div class="sum-price-row">
-        <span id="sum-plan-lbl">&#1514;&#1493;&#1499;&#1504;&#1497;&#1514;</span>
-        <span class="sum-price-val" id="sum-plan-price">&#8212;</span>
-      </div>
-      <div class="sum-price-row" id="sum-addons-row" style="display:none">
-        <span id="sum-addons-lbl">&#1514;&#1493;&#1505;&#1508;&#1493;&#1514;</span>
-        <span class="sum-price-val" id="sum-addons-price">&#8212;</span>
-      </div>
-      <div class="sum-total" id="sum-total">&#8212;<span id="sum-mo"> /&#1495;&#1493;&#1491;&#1513;</span></div>
-      <button class="deploy-btn inactive" id="deploy-btn" disabled>
-        <span id="deploy-text">&#1489;&#1495;&#1512;&#1493; &#1505;&#1493;&#1499;&#1503; &#1500;&#1492;&#1502;&#1513;&#1497;&#1498;</span>
-      </button>
-      <div class="deploy-hint" id="deploy-hint">
-        <span id="deploy-hint-text">&#1489;&#1495;&#1512;&#1493; &#1500;&#1508;&#1495;&#1493;&#1514; &#1505;&#1493;&#1499;&#1503; &#1488;&#1495;&#1491;</span>
+    </div>
+    <div>
+      <div class="video-frame" id="hero-video" onclick="cfToggleVideo(event)">
+        <video id="cf-hero-video" preload="metadata" playsinline poster="/cf-poster.jpg?v=1" style="width:100%;height:100%;object-fit:cover;display:block;background:#0F172A;pointer-events:none;">
+          <source src="/cf.mp4?v=1" type="video/mp4">
+        </video>
+        <div class="video-play" id="cf-hero-play"><div class="video-play-btn"></div></div>
+        <div class="video-pause" id="cf-hero-pause" aria-hidden="true">
+          <div class="video-pause-btn"><span></span><span></span></div>
+        </div>
+        <div class="video-label" id="cf-hero-label">סרטון היכרות — לחצו לצפייה</div>
+        <div class="video-progress"><div class="video-progress-fill" id="cf-hero-progress"></div></div>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ══════════════════ TRUST STRIP (2 rows) ══════════════════ -->
-<div class="trust-strip">
-  <div class="trust-row-1">
-    <span id="tr1">Hetzner Cloud Europe</span> &middot;
-    <span id="tr2">AllPay &middot; PCI DSS Level 1</span> &middot;
-    <span id="tr3">SSL + &#1495;&#1513;&#1489;&#1493;&#1504;&#1497;&#1514; &#1502;&#1505; &#1488;&#1493;&#1496;&#1493;&#1502;&#1496;&#1497;&#1514;</span> &middot;
-    <span id="tr4">99.5% uptime SLA</span>
+<!-- ═══ Pricing section ═══ -->
+<section class="pricing-section">
+  <div class="pricing-head">
+    <span class="pricing-eyebrow">מחירון</span>
+    <h2>בחרו את הקצב<br/>שמתאים לכם</h2>
+    <p>אותם 10 סוכני AI ואותו לוח בקרה בשני המסלולים. ההבדל — מידת המעורבות שלנו בניהול היומיומי.</p>
   </div>
-  <div class="trust-row-2">
-    ClawFlow &middot; by Flowmatic &nbsp;|&nbsp;
-    <a href="/about">&#1514;&#1497;&#1506;&#1493;&#1491;</a> &nbsp;|&nbsp;
-    <a href="/terms" id="fl-terms">&#1514;&#1504;&#1488;&#1497; &#1513;&#1497;&#1502;&#1493;&#1513;</a> &nbsp;|&nbsp;
-    <a href="/privacy" id="fl-privacy">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1508;&#1512;&#1496;&#1497;&#1493;&#1514;</a> &nbsp;|&nbsp;
-    <a href="/cancellation" id="fl-cancel">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1489;&#1497;&#1496;&#1493;&#1500;</a> &nbsp;|&nbsp;
-    <a href="/disclosure" id="fl-disclosure">&#1490;&#1497;&#1500;&#1493;&#1497; &#1504;&#1488;&#1493;&#1514;</a> &nbsp;|&nbsp;
-    <a href="mailto:support@flowmatic.co.il">support@flowmatic.co.il</a>
-    &nbsp;|&nbsp;
-    <span>&copy; 2026 Flowmatic</span>
-  </div>
-</div>
 
-</div><!-- /.page -->
+  <div class="cards-wrap">
+    <div class="cards">
 
-<!-- ══════════════════ POPUP (item details) ══════════════════ -->
-<div class="overlay" id="overlay">
-  <div class="popup" id="popup">
-    <button class="popup-close" onclick="closePopup()">&#10005;</button>
-    <div id="popup-body"></div>
-  </div>
-</div>
-
-<!-- ══════════════════ SUPPORT MODAL ══════════════════ -->
-<div class="modal-overlay" id="support-overlay">
-  <div class="modal" id="support-modal">
-    <button class="modal-close" onclick="closeSupportModal()">&#10005;</button>
-    <div id="support-modal-body"></div>
-  </div>
-</div>
-
-<!-- ══════════════════ DOCS MODAL ══════════════════ -->
-<div class="modal-overlay" id="docs-overlay">
-  <div class="modal" id="docs-modal">
-    <button class="modal-close" onclick="closeDocsModal()">&#10005;</button>
-    <div id="docs-modal-body"></div>
-  </div>
-</div>
-
-<!-- ══════════════════ JAVASCRIPT ══════════════════ -->
-<script>
-/* ─────────────────────────────────────────
-   DATA
-───────────────────────────────────────── */
-const STORAGE_OPTIONS = [
-  { gb: 20,  price: 15  },
-  { gb: 100, price: 49  },
-  { gb: 500, price: 149 },
-];
-
-const PLANS = [
-  { key: 'personal',  he: 'אישי',  en: 'Personal',  ram: 4,  cpu: 2, cpuType: 'shared',    nvme: 40,  price: 79  },
-  { key: 'business',  he: 'עסקי',  en: 'Business',  ram: 8,  cpu: 4, cpuType: 'shared',    nvme: 80,  price: 169 },
-  { key: 'pro',       he: 'פרו',   en: 'Pro',        ram: 16, cpu: 4, cpuType: 'dedicated', nvme: 160, price: 349 },
-  { key: 'developer', he: 'מפתח',  en: 'Developer',  ram: 32, cpu: 8, cpuType: 'dedicated', nvme: 240, price: 599 },
-];
-
-const COMPONENT_RAM = {
-  base: 0.5, oc: 1, mt: 4, bare: 1,
-  n8: 0.5, ap: 0.5, ol: 8, tw: 2,
-};
-
-const CATEGORIES = [
-  {
-    id: 'agents',
-    he: '\u05E1\u05D5\u05DB\u05E0\u05D9 AI', en: 'AI Agents',
-    subHe: '\u05D1\u05D7\u05E8\u05D5 \u05D0\u05EA \u05D4\u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05E9\u05D9\u05E2\u05D1\u05D3\u05D5 \u05D1\u05E9\u05D1\u05D9\u05DC\u05DB\u05DD 24/7',
-    subEn: 'Choose agents that work for you 24/7',
-    badge: null,
-  },
-  {
-    id: 'auto',
-    he: '\u05DE\u05E0\u05D5\u05E2 \u05D0\u05D5\u05D8\u05D5\u05DE\u05E6\u05D9\u05D4', en: 'Automation Engine',
-    subHe: '\u05DE\u05D7\u05D1\u05E8 \u05D0\u05EA \u05D4\u05E1\u05D5\u05DB\u05DF \u05DC\u05DB\u05DC\u05D9\u05DD \u05D5\u05DC\u05DE\u05E2\u05E8\u05DB\u05D5\u05EA \u05E9\u05DC\u05DB\u05DD',
-    subEn: 'Connects your agent to tools and systems',
-    badge: { he: '\u05D1\u05D7\u05E8\u05D5 \u05D0\u05D7\u05D3', en: 'Pick one' },
-  },
-  {
-    id: 'ai',
-    he: '\u05E1\u05E4\u05E7 \u05DE\u05D5\u05D3\u05DC AI', en: 'AI Model Provider',
-    subHe: '\u05DE\u05D0\u05D9\u05E4\u05D4 \u05D4\u05E1\u05D5\u05DB\u05DF \u05DE\u05E7\u05D1\u05DC \u05D0\u05EA "\u05D4\u05DE\u05D5\u05D7"?',
-    subEn: 'Where does the agent get its brain?',
-    badge: null,
-  },
-  {
-    id: 'extras',
-    he: '\u05EA\u05D5\u05E1\u05E4\u05D5\u05EA', en: 'Add-ons',
-    subHe: null, subEn: null,
-    badge: null,
-  },
-];
-
-const ITEMS = [
-  {
-    id: 'oc', cat: 'agents', ram: 1,
-    he: 'OpenClaw Personal', en: 'OpenClaw Personal',
-    descHe: '\u05D4\u05E2\u05D5\u05D6\u05E8 \u05D4\u05D0\u05D9\u05E9\u05D9 \u05E9\u05DC\u05DB\u05DD \u2014 \u05DE\u05E0\u05D4\u05DC \u05D9\u05D5\u05DE\u05DF, \u05DE\u05D6\u05DB\u05D9\u05E8 \u05E4\u05D2\u05D9\u05E9\u05D5\u05EA, \u05E7\u05D5\u05E8\u05D0 \u05D5\u05E2\u05D5\u05E0\u05D4 \u05DC\u05DE\u05D9\u05D9\u05DC\u05D9\u05DD, \u05DE\u05D7\u05E4\u05E9 \u05DE\u05D9\u05D3\u05E2, \u05DE\u05E0\u05E1\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05D5\u05DE\u05E1\u05DE\u05DB\u05D9\u05DD. \u05DE\u05D7\u05D5\u05D1\u05E8 \u05DC-Google Workspace \u05D5\u05DC\u05D8\u05DC\u05D2\u05E8\u05DD. \u05E2\u05D5\u05D1\u05D3 24/7.',
-    descEn: 'Your personal assistant \u2014 manages calendar, reminds meetings, reads & replies to emails, searches the web, drafts messages & documents. Connected to Google Workspace & Telegram. Works 24/7.',
-    detail: {
-      tagHe: '\u05E1\u05D5\u05DB\u05DF \u05D0\u05D9\u05E9\u05D9', tagEn: 'Personal Agent', tagBg: '#1b3a2a', tagColor: '#4caf50',
-      descHe: 'עוזר אישי חכם שמחובר ליומן, למייל ולטלגרם. מסכם את סדר היום כל בוקר, מזכיר פגישות, מנסח מיילים, מחפש מידע — ועונה להודעות קוליות. כמו עוזר אישי שעובד 24 שעות, בעברית.',
-      descEn: 'Smart personal assistant connected to calendar, email and Telegram. Morning summary, meeting reminders, email drafts, web search — and voice message transcription. Works 24/7, in Hebrew.',
-      featHe: ['סיכום בוקר יומי בטלגרם — יומן, מיילים, תזכורות', 'ניהול יומן Google — יצירה, עדכון, מחיקת אירועים', 'קריאה וניסוח מיילים ב-Gmail', 'חיפוש מידע באינטרנט בזמן אמת', 'תמלול הודעות קוליות (Whisper)', 'זיכרון ארוך טווח — מכיר אתכם ואת ההעדפות שלכם', 'Dashboard עם היסטוריית שיחות', 'ניתן לשדרג ל-MATEH בכל עת — בלי לאבד נתונים'],
-      featEn: ['Daily morning summary via Telegram', 'Google Calendar management', 'Gmail reading & drafting', 'Real-time web search', 'Voice message transcription (Whisper)', 'Long-term memory', 'Dashboard with chat history', 'Upgradeable to MATEH anytime'],
-      tech: 'RAM: 1GB \u00B7 OpenClaw Gateway + Telegram', price: null,
-    },
-  },
-  {
-    id: 'mt', cat: 'agents', ram: 4,
-    he: 'MATEH \u2014 \u05E1\u05D5\u05DB\u05DF \u05E9\u05D9\u05D5\u05D5\u05E7', en: 'MATEH \u2014 Marketing Agent',
-    descHe: '9 סוכנים אוטונומיים: מחקר שוק, אסטרטגיה, כתיבת תוכן, פרסום ישיר ב-WordPress/Telegram/Google Ads/Meta, ודוח יומי בטלגרם.',
-    descEn: '9 autonomous agents: market research, strategy, content creation, direct publishing to WordPress/Telegram/Google Ads/Meta, daily Telegram briefing.',
-    detail: {
-      tagHe: '9 סוכני שיווק', tagEn: '9 Marketing Agents', tagBg: '#2a1a3a', tagColor: '#ce93d8',
-      descHe: 'מערכת שיווק אוטונומית עם 9 סוכנים: סייר (מחקר מתחרים), מאתר (SEO), מאזין (רשתות חברתיות), מנתח (ניתוח הזדמנויות), עט (כתיבת תוכן), יוצר (ויזואלים), שליח (הפצה ופרסום), ומגדלור (נראות ב-AI). מחקר שוק אוטומטי, אסטרטגיה מותאמת, ופרסום ישיר לכל הערוצים — עם אישור שלכם.',
-      descEn: 'Autonomous marketing system with 9 agents: web scout, SERP researcher, social listener, analyst, writer, creative, distributor, and AEO monitor. Auto market research, tailored strategy, and direct publishing to all channels — with your approval.',
-      featHe: ['Daily Brief כל בוקר — סיכום שוק, משימות, חדשות רלוונטיות', 'מחקר שוק אוטומטי — מתחרים, מילות מפתח, קהל יעד', 'אסטרטגיית שיווק מותאמת — תוכנית עבודה ל-3 חודשים', 'כתיבת תוכן ופרסום ישיר — WordPress, Telegram, Newsletter', 'קמפיינים ב-Google Ads ו-Meta Ads — יצירה, ניהול ואופטימיזציה', 'Dashboard עם Approval Queue — אשרו תוכן לפני פרסום', 'לוח תוכן שבועי — כל המשימות מסודרות בלוח שנה', 'ביקורת AEO חודשית — נראות ב-ChatGPT, Claude, Perplexity'],
-      featEn: ['Daily Brief every morning — market summary, tasks, relevant news', 'Auto market research — competitors, keywords, target audience', 'Tailored marketing strategy — 3-month action plan', 'Content creation + direct publishing — WordPress, Telegram, Newsletter', 'Google Ads & Meta Ads campaigns — creation, management, optimization', 'Dashboard with Approval Queue — approve content before publishing', 'Weekly content calendar — all tasks organized visually', 'Monthly AEO audit — visibility in ChatGPT, Claude, Perplexity'],
-      tech: 'RAM: 3GB · Activepieces · Telegram', price: null,
-    },
-  },
-  {
-    id: 'bare', cat: 'agents', ram: 1,
-    he: 'OpenClaw נקי (Bare)', en: 'OpenClaw Bare',
-    descHe: 'שרת OpenClaw נקי ללא סוכנים מותקנים מראש. למפתחים ולמי שרוצים לבנות בעצמם. גישה מלאה לכל הקבצים וההגדרות.',
-    descEn: 'Clean OpenClaw server with no pre-configured agents. For developers who want to build from scratch. Full file and config access.',
-    detail: {
-      tagHe: 'למפתחים', tagEn: 'For Developers', tagBg: '#1a1a2e', tagColor: '#8B8BEB',
-      descHe: 'שרת VPS עם OpenClaw מותקן ומוכן — בלי שום סוכן, בלי שום הגדרה. אתם מקבלים גישה מלאה ל-Gateway, ל-Workspace, לקבצי ההגדרה ול-CLI. בנו את מה שאתם רוצים.',
-      descEn: 'VPS with OpenClaw installed and ready — no agents, no configuration. Full access to Gateway, Workspace, config files and CLI. Build whatever you want.',
-      featHe: ['OpenClaw Gateway מותקן ומוכן', 'גישה מלאה לכל הקבצים דרך Dashboard', 'התקינו Skills דרך ClawHub', 'חברו כל מודל AI — Claude, GPT, Gemini, Ollama', 'SSH access מלא (בתוכנית מפתח)', 'בנו סוכנים מותאמים אישית'],
-      featEn: ['OpenClaw Gateway installed and ready', 'Full file access via Dashboard', 'Install Skills from ClawHub', 'Connect any AI model', 'Full SSH access (Developer plan)', 'Build custom agents'],
-      tech: 'RAM: 1GB · OpenClaw Gateway', price: null,
-    },
-  },
-  /* n8n removed — Sustainable Use License
-  {
-    id: 'n8', cat: 'auto', ram: 0.5, radio: true,
-    he: 'n8n', en: 'n8n',
-    descHe: '400+ \u05D0\u05D9\u05E0\u05D8\u05D2\u05E8\u05E6\u05D9\u05D5\u05EA. \u05D1\u05D5\u05E0\u05D4 \u05D5\u05D9\u05D6\u05D5\u05D0\u05DC\u05D9 \u05DC\u05EA\u05D4\u05DC\u05D9\u05DB\u05D9 \u05E2\u05D1\u05D5\u05D3\u05D4. \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E1\u05D5\u05DB\u05DF MATEH \u05D5\u05DC\u05DE\u05E9\u05EA\u05DE\u05E9\u05D9\u05DD \u05D8\u05DB\u05E0\u05D9\u05D9\u05DD.',
-    descEn: '400+ integrations. Visual workflow builder. Recommended for MATEH and technical users.',
-    detail: {
-      tagHe: '\u05DE\u05E0\u05D5\u05E2 \u05D0\u05D5\u05D8\u05D5\u05DE\u05E6\u05D9\u05D4', tagEn: 'Automation Engine', tagBg: '#102030', tagColor: '#64b5f6',
-      descHe: '\u05DB\u05DC\u05D9 \u05D4\u05D0\u05D5\u05D8\u05D5\u05DE\u05E6\u05D9\u05D4 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9 \u05E2\u05DD 400+ \u05D0\u05D9\u05E0\u05D8\u05D2\u05E8\u05E6\u05D9\u05D5\u05EA. \u05DE\u05D7\u05D1\u05E8 \u05DCCRM, Google Sheets, Slack \u05D5\u05E2\u05D5\u05D3.',
-      descEn: 'Professional automation tool with 400+ integrations. Connects to CRM, Google Sheets, Slack and more.',
-      featHe: ['400+ \u05DE\u05D7\u05D1\u05E8\u05D9\u05DD \u05DE\u05D5\u05D1\u05E0\u05D9\u05DD', '\u05D1\u05D5\u05E0\u05D4 \u05D5\u05D9\u05D6\u05D5\u05D0\u05DC\u05D9 \u05DC\u05EA\u05D4\u05DC\u05D9\u05DB\u05D9 \u05E2\u05D1\u05D5\u05D3\u05D4', 'Webhooks \u05D5\u05E7\u05E8\u05D9\u05D0\u05D5\u05EA API \u05DE\u05DC\u05D0\u05D5\u05EA', '\u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E1\u05D5\u05DB\u05DF MATEH', '\u05E7\u05D5\u05D3 \u05E4\u05EA\u05D5\u05D7 fair-code'],
-      featEn: ['400+ built-in connectors', 'Visual workflow builder', 'Full webhooks & API calls', 'Recommended for MATEH agent', 'Fair-code open source'],
-      tech: 'RAM: 0.5GB', price: null,
-    },
-  },
-  */
-  {
-    id: 'ap', cat: 'auto', ram: 0.5, radio: true, default: true,
-    he: 'Activepieces', en: 'Activepieces',
-    descHe: '\u05DE\u05DE\u05E9\u05E7 \u05E4\u05E9\u05D5\u05D8 \u05D5\u05D9\u05D3\u05D9\u05D3\u05D5\u05EA\u05D9. 200+ \u05D0\u05D9\u05E0\u05D8\u05D2\u05E8\u05E6\u05D9\u05D5\u05EA. \u05E7\u05D5\u05D3 \u05E4\u05EA\u05D5\u05D7 MIT. \u05DC\u05DB\u05DC \u05E8\u05DE\u05D4 \u05D8\u05DB\u05E0\u05D9\u05EA.',
-    descEn: 'Simple, friendly interface. 200+ integrations. MIT open source. Any skill level.',
-    detail: {
-      tagHe: '\u05DE\u05E0\u05D5\u05E2 \u05D0\u05D5\u05D8\u05D5\u05DE\u05E6\u05D9\u05D4', tagEn: 'Automation Engine', tagBg: '#102030', tagColor: '#64b5f6',
-      descHe: '\u05DE\u05DE\u05E9\u05E7 \u05E0\u05E7\u05D9 \u05D5\u05E4\u05E9\u05D5\u05D8 \u05DC\u05D0\u05D5\u05D8\u05D5\u05DE\u05E6\u05D9\u05D4. \u05DE\u05D5\u05E9\u05DC\u05DD \u05DC\u05DE\u05E9\u05EA\u05DE\u05E9\u05D9\u05DD \u05DC\u05DC\u05D0 \u05E8\u05E7\u05E2 \u05D8\u05DB\u05E0\u05D9. \u05E7\u05D5\u05D3 \u05E4\u05EA\u05D5\u05D7 MIT \u05DC\u05DC\u05D0 \u05DE\u05D2\u05D1\u05DC\u05D5\u05EA.',
-      descEn: 'Clean and simple automation interface. Perfect for non-technical users. MIT open source.',
-      featHe: ['\u05DE\u05DE\u05E9\u05E7 \u05D5\u05D9\u05D6\u05D5\u05D0\u05DC\u05D9 \u05D9\u05D3\u05D9\u05D3\u05D5\u05EA\u05D9 \u05D1\u05DE\u05D9\u05D5\u05D7\u05D3', '200+ \u05D0\u05D9\u05E0\u05D8\u05D2\u05E8\u05E6\u05D9\u05D5\u05EA', '\u05E7\u05D5\u05D3 \u05E4\u05EA\u05D5\u05D7 MIT \u2014 \u05DC\u05DC\u05D0 \u05DE\u05D2\u05D1\u05DC\u05D5\u05EA', '\u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05EA\u05D7\u05D9\u05DC\u05EA \u05D4\u05D3\u05E8\u05DA'],
-      featEn: ['Extremely user-friendly visual interface', '200+ integrations', 'MIT open source \u2014 no restrictions', 'Recommended for beginners'],
-      tech: 'RAM: 0.5GB', price: null,
-    },
-  },
-  {
-    id: 'ok', cat: 'ai', ram: 0, default: true,
-    he: 'ספקי AI (חינם להתחלה)', en: 'AI Providers (free to start)',
-    descHe: 'Groq, Cerebras, Anthropic, OpenAI — חברו ספק אחד או יותר מלוח הבקרה. Groq חינם להתחלה.',
-    descEn: 'Groq, Cerebras, Anthropic, OpenAI — connect one or more providers from the dashboard. Groq is free to start.',
-    detail: {
-      tagHe: 'ספק AI', tagEn: 'AI Provider', tagBg: '#1a2a1a', tagColor: '#4caf50',
-      descHe: 'חברו ספק AI אחד או יותר מלוח הבקרה. Groq ו-Cerebras מציעים שכבה חינמית נדיבה עם מודלים Open Source מהירים. Anthropic ו-OpenAI לתוכן פרימיום. הכל מתנהל בלוח הבקרה — ללא הגדרות מראש.',
-      descEn: 'Connect one or more AI providers from the dashboard. Groq and Cerebras offer generous free tiers with fast Open Source models. Anthropic and OpenAI for premium content. All managed from the dashboard.',
-      featHe: ['Groq — חינם עד 30K tokens/דקה, מהיר (~300 tok/s)', 'Cerebras — חינם 1M tokens/יום, הכי מהיר (~3000 tok/s)', 'Anthropic Claude — הכי טוב בעברית ותוכן', 'OpenAI GPT-4o — חלופה מהירה', 'ניתן לחבר מספר ספקים במקביל', 'כל ספק = מפתח API חינמי מהאתר שלו'],
-      featEn: ['Groq — free up to 30K tokens/min, fast (~300 tok/s)', 'Cerebras — free 1M tokens/day, fastest (~3000 tok/s)', 'Anthropic Claude — best for Hebrew and content', 'OpenAI GPT-4o — fast alternative', 'Connect multiple providers simultaneously', 'Each provider = free API key from their site'],
-      tech: 'ללא עלות נוספת — תשלום ישיר לספק', price: 'incl',
-    },
-  },
-  {
-    id: 'bk', cat: 'extras', ram: 0, extra: 19,
-    he: '\u05D2\u05D9\u05D1\u05D5\u05D9 \u05D9\u05D5\u05DE\u05D9', en: 'Daily Backup',
-    descHe: '\u05D2\u05D9\u05D1\u05D5\u05D9 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05D9\u05D5\u05DE\u05D9. 7 \u05D9\u05DE\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4. \u05E9\u05D7\u05D6\u05D5\u05E8 \u05D1\u05DC\u05D7\u05D9\u05E6\u05D4 \u05D0\u05D7\u05EA \u05DE\u05DC\u05D5\u05D7 \u05D4\u05D1\u05E7\u05E8\u05D4.',
-    descEn: 'Daily automatic backup. 7-day history. One-click restore from Dashboard.',
-    detail: {
-      tagHe: '\u05D0\u05D1\u05D8\u05D7\u05D4', tagEn: 'Security', tagBg: '#2a2010', tagColor: '#ff9800',
-      descHe: '\u05D2\u05D9\u05D1\u05D5\u05D9 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05D9\u05D5\u05DE\u05D9 \u05E9\u05DC \u05DB\u05DC \u05D4\u05E1\u05D1\u05D9\u05D1\u05D4: \u05D4\u05D2\u05D3\u05E8\u05D5\u05EA, \u05E0\u05EA\u05D5\u05E0\u05D9 \u05E1\u05D5\u05DB\u05DF, \u05EA\u05D4\u05DC\u05D9\u05DB\u05D9 \u05E2\u05D1\u05D5\u05D3\u05D4. 7 \u05D9\u05DE\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4.',
-      descEn: 'Daily automatic backup of your entire environment: settings, agent data, workflows. 7-day history.',
-      featHe: ['\u05D2\u05D9\u05D1\u05D5\u05D9 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05DB\u05DC \u05D9\u05D5\u05DD \u05D1\u05D7\u05E6\u05D5\u05EA', '7 \u05D9\u05DE\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DC\u05E9\u05D7\u05D6\u05D5\u05E8', '\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D1\u05DC\u05D7\u05D9\u05E6\u05D4 \u05D0\u05D7\u05EA \u05DE\u05DC\u05D5\u05D7 \u05D4\u05D1\u05E7\u05E8\u05D4', '\u05D0\u05D7\u05E1\u05D5\u05DF \u05D2\u05D9\u05D1\u05D5\u05D9 \u05DC\u05D0 \u05E0\u05DB\u05DC\u05DC \u05D1\u05DE\u05DB\u05E1\u05EA \u05D4-VPS'],
-      featEn: ['Automatic backup every night', '7-day restore history', 'One-click restore from Dashboard', 'Backup storage outside VPS quota'],
-      tech: '+\u20AA19/\u05D7\u05D5\u05D3\u05E9', price: 19,
-    },
-  },
-  /* Twenty CRM removed — AGPLv3 license risk */
-  {
-    id: 'xs', cat: 'extras', ram: 0, storage: true,
-    he: '\u05D0\u05D7\u05E1\u05D5\u05DF \u05E0\u05D5\u05E1\u05E3', en: 'Additional Storage',
-    descHe: 'NVMe SSD \u05E0\u05D5\u05E1\u05E3. \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E1\u05D5\u05DB\u05DF MATEH \u05E2\u05DD \u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05E8\u05D1\u05D9\u05DD.',
-    descEn: 'Additional NVMe SSD. Recommended for MATEH agent with large datasets.',
-    detail: {
-      tagHe: '\u05D0\u05D7\u05E1\u05D5\u05DF', tagEn: 'Storage', tagBg: '#1a2a1a', tagColor: '#4caf50',
-      descHe: '\u05D4\u05D5\u05E1\u05D9\u05E4\u05D5 \u05E0\u05E4\u05D7 \u05D0\u05D7\u05E1\u05D5\u05DF NVMe \u05DC\u05E1\u05D1\u05D9\u05D1\u05D4 \u05E9\u05DC\u05DB\u05DD. \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E1\u05D5\u05DB\u05DF MATEH \u05E2\u05DD \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05D0\u05E8\u05D5\u05DB\u05D4 \u05D5\u05DE\u05E1\u05D3\u05D9 \u05E0\u05EA\u05D5\u05E0\u05D9\u05DD.',
-      descEn: 'Add NVMe storage to your environment. Recommended for MATEH with long history and large databases.',
-      featHe: ['NVMe SSD \u2014 \u05DE\u05D4\u05D9\u05E8 \u05DB\u05DE\u05D5 \u05E9\u05D0\u05E8 \u05D4-VPS', '\u05DE\u05D5\u05DE\u05DC\u05E5: +100GB \u05DC\u05E1\u05D5\u05DB\u05DF MATEH', '\u05DE\u05EA\u05D5\u05D5\u05E1\u05E3 \u05DC\u05E0\u05E4\u05D7 \u05D4\u05E7\u05D9\u05D9\u05DD', '\u05E9\u05D9\u05E0\u05D5\u05D9 \u05D2\u05D5\u05D3\u05DC \u05D6\u05DE\u05D9\u05DF \u05D1\u05DB\u05DC \u05E2\u05EA \u05DE\u05DC\u05D5\u05D7 \u05D4\u05D1\u05E7\u05E8\u05D4'],
-      featEn: ['NVMe SSD \u2014 same speed as the rest', 'Recommended: +100GB for MATEH', 'Added to existing plan volume', 'Resize available anytime'],
-      tech: '\u05D4\u05DE\u05D7\u05D9\u05E8 \u05DC\u05E4\u05D9 \u05D4\u05D2\u05D5\u05D3\u05DC \u05E9\u05E0\u05D1\u05D7\u05E8',
-    },
-  },
-];
-
-/* ─────────────────────────────────────────
-   STATE
-───────────────────────────────────────── */
-let lang = 'he';
-let storageGb = 20;
-let billingPeriod = 'monthly';
-
-// Save referral code from URL if present
-var _refCode = new URLSearchParams(window.location.search).get('ref');
-if (_refCode) localStorage.setItem('cf_ref', _refCode);
-const selected = new Set(['ap', 'ok']);
-
-/* ─────────────────────────────────────────
-   TRANSLATIONS
-───────────────────────────────────────── */
-const T = {
-  he: {
-    'cfg-h2': '\u05D1\u05E0\u05D5 \u05D0\u05EA \u05D4\u05E1\u05D1\u05D9\u05D1\u05D4 \u05E9\u05DC\u05DB\u05DD',
-    'cfg-sub': '\u05D1\u05D7\u05E8\u05D5 \u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u2014 \u05D4\u05DE\u05E9\u05D0\u05D1\u05D9\u05DD \u05D5\u05D4\u05DE\u05D7\u05D9\u05E8 \u05DE\u05EA\u05E2\u05D3\u05DB\u05E0\u05D9\u05DD \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA. \u05DC\u05D7\u05E6\u05D5 <b>i</b> \u05DC\u05E4\u05E8\u05D8\u05D9\u05DD \u05E0\u05D5\u05E1\u05E4\u05D9\u05DD.',
-    'sum-label': '\u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05E9\u05DC\u05DB\u05DD',
-    'ram-label': 'RAM \u05E0\u05D3\u05E8\u05E9',
-    'nav-docs': '\u05EA\u05D9\u05E2\u05D5\u05D3', 'nav-support': '\u05EA\u05DE\u05D9\u05DB\u05D4', 'nav-login': '\u05DB\u05E0\u05D9\u05E1\u05D4',
-    'tr1': 'Hetzner Cloud Europe', 'tr2': 'AllPay \u00B7 PCI DSS Level 1',
-    'tr3': 'SSL + \u05D7\u05E9\u05D1\u05D5\u05E0\u05D9\u05EA \u05DE\u05E1 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA', 'tr4': '99.5% SLA',
-    'sum-plan-lbl': '\u05EA\u05D5\u05DB\u05E0\u05D9\u05EA', 'sum-addons-lbl': '\u05EA\u05D5\u05E1\u05E4\u05D5\u05EA',
-    'sum-empty': '\u05D1\u05D7\u05E8\u05D5 \u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05D5\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD<br/>\u05DB\u05D3\u05D9 \u05DC\u05E8\u05D0\u05D5\u05EA \u05D0\u05EA \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05E9\u05DC\u05DB\u05DD',
-    'sum-mo': ' /\u05D7\u05D5\u05D3\u05E9',
-    'sum-yr': ' /\u05E9\u05E0\u05D4',
-    'deploy-active': '\u2190 \u05D4\u05EA\u05D7\u05D9\u05DC\u05D5 \u05E0\u05D9\u05E1\u05D9\u05D5\u05DF \u05D7\u05D9\u05E0\u05DD',
-    'deploy-inactive': '\u05D1\u05D7\u05E8\u05D5 \u05E1\u05D5\u05DB\u05DF \u05DC\u05D4\u05DE\u05E9\u05D9\u05DA',
-    'deploy-hint-active': '7 \u05D9\u05DE\u05D9\u05DD \u05D7\u05D9\u05E0\u05DD \u00B7 \u05D1\u05D9\u05D8\u05D5\u05DC \u05D1\u05DB\u05DC \u05E2\u05EA',
-    'deploy-hint-inactive': '\u05D1\u05D7\u05E8\u05D5 \u05DC\u05E4\u05D7\u05D5\u05EA \u05E1\u05D5\u05DB\u05DF \u05D0\u05D7\u05D3',
-    'plan-specs-init': '\u05D1\u05D7\u05E8\u05D5 \u05E8\u05DB\u05D9\u05D1 \u05DC\u05D4\u05EA\u05D7\u05DC\u05D4',
-    'dedicated': 'Dedicated',
-    'popup-feat-title': '\u05DE\u05D4 \u05DB\u05DC\u05D5\u05DC',
-    'popup-req-title': '\u05D3\u05E8\u05D9\u05E9\u05D5\u05EA',
-    'popup-price-incl': '\u05DB\u05DC\u05D5\u05DC',
-    'size-label': '\u05D2\u05D5\u05D3\u05DC:',
-    'mo': '\u05D7\u05D5\u05D3\u05E9',
-    'billing-monthly': '\u05D7\u05D5\u05D3\u05E9\u05D9',
-    'billing-annual': '\u05E9\u05E0\u05EA\u05D9',
-    'billing-save': '\u05D7\u05D5\u05E1\u05DB\u05D9\u05DD \u20AA{amount} \u05D1\u05E9\u05E0\u05D4',
-    'support-title': '\u05E6\u05E8\u05D5 \u05E7\u05E9\u05E8',
-    'support-name': '\u05E9\u05DD',
-    'support-contact': '\u05D0\u05D9\u05DE\u05D9\u05D9\u05DC \u05D0\u05D5 \u05D8\u05DC\u05E4\u05D5\u05DF',
-    'support-message': '\u05D4\u05D5\u05D3\u05E2\u05D4',
-    'support-send': '\u05E9\u05DC\u05D7\u05D5',
-    'support-success': '\u05D4\u05D4\u05D5\u05D3\u05E2\u05D4 \u05E0\u05E9\u05DC\u05D7\u05D4 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4! \u05E0\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05DB\u05DD \u05D1\u05D4\u05E7\u05D3\u05DD.',
-    'docs-title': '\u05EA\u05D9\u05E2\u05D5\u05D3 ClawFlow',
-    'docs-what-title': '\u05DE\u05D4 \u05D6\u05D4 ClawFlow?',
-    'docs-what': '\u05E4\u05DC\u05D8\u05E4\u05D5\u05E8\u05DE\u05EA \u05D0\u05D9\u05E8\u05D5\u05D7 \u05DC\u05E1\u05D5\u05DB\u05E0\u05D9 AI \u05DE\u05D1\u05D5\u05E1\u05E1\u05D9 OpenClaw. \u05D1\u05D7\u05E8\u05D5 \u05E1\u05D5\u05DB\u05E0\u05D9\u05DD, \u05E9\u05DC\u05DE\u05D5 \u2014 \u05D4-VPS \u05E9\u05DC\u05DB\u05DD \u05DE\u05D5\u05DB\u05DF \u05EA\u05D5\u05DA 3 \u05D3\u05E7\u05D5\u05EA. \u05DC\u05DC\u05D0 \u05D4\u05D2\u05D3\u05E8\u05D5\u05EA \u05D8\u05DB\u05E0\u05D9\u05D5\u05EA, \u05DC\u05DC\u05D0 \u05E4\u05E7\u05D5\u05D3\u05D5\u05EA \u05D1\u05D8\u05E8\u05DE\u05D9\u05E0\u05DC.',
-    'docs-how-title': '\u05D0\u05D9\u05DA \u05D6\u05D4 \u05E2\u05D5\u05D1\u05D3?',
-    'docs-how': '1. \u05D1\u05D7\u05E8\u05D5 \u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05D5\u05EA\u05D5\u05E1\u05E4\u05D5\u05EA \u05D1\u05E7\u05D5\u05E0\u05E4\u05D9\u05D2\u05D5\u05E8\u05D8\u05D5\u05E8\n2. \u05D4\u05D9\u05E8\u05E9\u05DE\u05D5 \u05D5\u05E9\u05DC\u05DE\u05D5 \u05D1\u05D0\u05D5\u05E4\u05DF \u05DE\u05D0\u05D5\u05D1\u05D8\u05D7 \u05D3\u05E8\u05DA AllPay\n3. \u05D4\u05DE\u05EA\u05D9\u05E0\u05D5 3 \u05D3\u05E7\u05D5\u05EA \u2014 \u05D4\u05E1\u05D1\u05D9\u05D1\u05D4 \u05E0\u05D1\u05E0\u05D9\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA\n4. \u05D4\u05EA\u05D7\u05D9\u05DC\u05D5 \u05DC\u05E2\u05D1\u05D5\u05D3 \u05E2\u05DD \u05D4\u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD',
-    'docs-security-title': '\u05D0\u05D1\u05D8\u05D7\u05D4 \u05D5\u05E4\u05E8\u05D8\u05D9\u05D5\u05EA',
-    'docs-security': '\u05DB\u05DC VPS \u05DE\u05D0\u05D5\u05E8\u05D7 \u05E2\u05DC \u05E9\u05E8\u05EA\u05D9 Hetzner Cloud \u05D1\u05D0\u05D9\u05E8\u05D5\u05E4\u05D4 (GDPR). \u05D4\u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05DE\u05D5\u05E6\u05E4\u05E0\u05D9\u05DD, \u05D4\u05EA\u05E7\u05E9\u05D5\u05E8\u05EA \u05D1-SSL, \u05D5\u05D4\u05EA\u05E9\u05DC\u05D5\u05DE\u05D9\u05DD \u05DE\u05E2\u05D5\u05D1\u05D3\u05D9\u05DD \u05D3\u05E8\u05DA AllPay (PCI DSS Level 1).',
-    'docs-pricing-title': '\u05EA\u05DE\u05D7\u05D5\u05E8 \u05E9\u05E7\u05D5\u05E3',
-    'docs-pricing': '\u05DC\u05DC\u05D0 \u05E2\u05DE\u05DC\u05D5\u05EA \u05E0\u05E1\u05EA\u05E8\u05D5\u05EA. \u05D4\u05DE\u05D7\u05D9\u05E8 \u05E9\u05DE\u05D5\u05E4\u05D9\u05E2 \u05D1\u05E7\u05D5\u05E0\u05E4\u05D9\u05D2\u05D5\u05E8\u05D8\u05D5\u05E8 \u05D4\u05D5\u05D0 \u05D4\u05DE\u05D7\u05D9\u05E8 \u05D4\u05E1\u05D5\u05E4\u05D9. \u05D7\u05E9\u05D1\u05D5\u05E0\u05D9\u05EA \u05DE\u05E1 \u05E0\u05E9\u05DC\u05D7\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA. \u05D1\u05D9\u05D8\u05D5\u05DC \u05D1\u05DB\u05DC \u05E2\u05EA.',
-    'docs-sla-title': 'SLA \u05D5\u05D6\u05DE\u05D9\u05E0\u05D5\u05EA \u05E4\u05E2\u05D9\u05DC\u05D4',
-    'docs-sla': '\u05D0\u05E0\u05D7\u05E0\u05D5 \u05DE\u05EA\u05D7\u05D9\u05D9\u05D1\u05D9\u05DD \u05DC-99.5% \u05D6\u05DE\u05D9\u05E0\u05D5\u05EA \u05E4\u05E2\u05D9\u05DC\u05D4. \u05E0\u05D9\u05D8\u05D5\u05E8 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05E9\u05DC \u05DB\u05DC \u05D4\u05E9\u05E8\u05EA\u05D9\u05DD \u05D5\u05D4\u05EA\u05E8\u05D0\u05D4 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA \u05D1\u05DE\u05E7\u05E8\u05D4 \u05E9\u05DC \u05EA\u05E7\u05DC\u05D4.',
-  },
-  en: {
-    'cfg-h2': 'Build Your Environment',
-    'cfg-sub': 'Select components \u2014 resources and price update automatically. Click <b>i</b> for details.',
-    'sum-label': 'Your Order',
-    'ram-label': 'RAM Required',
-    'nav-docs': 'Docs', 'nav-support': 'Support', 'nav-login': 'Login',
-    'tr1': 'Hetzner Cloud Europe', 'tr2': 'AllPay \u00B7 PCI DSS Level 1',
-    'tr3': 'SSL + Automatic Tax Invoice', 'tr4': '99.5% uptime SLA',
-    'sum-plan-lbl': 'Plan', 'sum-addons-lbl': 'Add-ons',
-    'sum-empty': 'Select agents and components<br/>to see your order',
-    'sum-mo': ' /mo',
-    'sum-yr': ' /yr',
-    'deploy-active': 'Start Free Trial \u2192',
-    'deploy-inactive': 'Select an agent to continue',
-    'deploy-hint-active': '7 days free \u00B7 cancel anytime',
-    'deploy-hint-inactive': 'Select at least one agent',
-    'plan-specs-init': 'Select a component to start',
-    'dedicated': 'Dedicated',
-    'popup-feat-title': "What's included",
-    'popup-req-title': 'Requirements',
-    'popup-price-incl': 'Included',
-    'size-label': 'Size:',
-    'mo': 'mo',
-    'billing-monthly': 'Monthly',
-    'billing-annual': 'Annual',
-    'billing-save': 'Save \u20AA{amount}/year',
-    'support-title': 'Contact Us',
-    'support-name': 'Name',
-    'support-contact': 'Email or Phone',
-    'support-message': 'Message',
-    'support-send': 'Send',
-    'support-success': 'Message sent successfully! We\'ll get back to you soon.',
-    'docs-title': 'ClawFlow Documentation',
-    'docs-what-title': 'What is ClawFlow?',
-    'docs-what': 'A hosting platform for OpenClaw-based AI agents. Choose agents, pay \u2014 your VPS is ready in 3 minutes. No technical setup, no terminal commands.',
-    'docs-how-title': 'How does it work?',
-    'docs-how': '1. Choose agents and add-ons in the configurator\n2. Register and pay securely via AllPay\n3. Wait 3 minutes \u2014 environment builds automatically\n4. Start working with your agents',
-    'docs-security-title': 'Security & Privacy',
-    'docs-security': 'Every VPS is hosted on Hetzner Cloud in Europe (GDPR compliant). Data is encrypted, connections are SSL-secured, and payments are processed via AllPay (PCI DSS Level 1).',
-    'docs-pricing-title': 'Transparent Pricing',
-    'docs-pricing': 'No hidden fees. The price shown in the configurator is the final price. Tax invoice sent automatically. Cancel anytime.',
-    'docs-sla-title': 'SLA & Uptime',
-    'docs-sla': 'We commit to 99.5% uptime. Automatic monitoring of all services with auto-recovery in case of issues.',
-  },
-};
-
-const t = k => T[lang][k] || k;
-
-/* ─────────────────────────────────────────
-   LOGIC
-───────────────────────────────────────── */
-function storagePrice() {
-  if (!selected.has('xs')) return 0;
-  return (STORAGE_OPTIONS.find(o => o.gb === storageGb) || STORAGE_OPTIONS[0]).price;
-}
-
-function calcPlan() {
-  let ram = COMPONENT_RAM.base;
-  let extra = 0;
-  ITEMS.forEach(item => {
-    if (!selected.has(item.id) || item.soon) return;
-    ram += (COMPONENT_RAM[item.id] || 0);
-    if (!item.storage) extra += (item.extra || 0);
-  });
-  extra += storagePrice();
-  const plan = PLANS.find(p => p.ram >= ram) || PLANS[3];
-  const hasAgent = ITEMS.filter(i => i.cat === 'agents' && !i.soon).some(i => selected.has(i.id));
-  return { ram, extra, plan, total: plan.price + extra, hasAgent };
-}
-
-function toggleItem(id, e) {
-  if (e) e.stopPropagation();
-  const item = ITEMS.find(i => i.id === id);
-  if (!item || item.soon) return;
-  if (item.radio) {
-    ITEMS.filter(i => i.cat === item.cat && i.radio).forEach(i => selected.delete(i.id));
-    selected.add(id);
-  } else {
-    selected.has(id) ? selected.delete(id) : selected.add(id);
-  }
-  renderAll();
-}
-
-/* ─────────────────────────────────────────
-   BILLING TOGGLE
-───────────────────────────────────────── */
-function setBilling(period) {
-  billingPeriod = period;
-  updateBillingUI();
-  renderSummary();
-}
-
-function toggleBilling() {
-  billingPeriod = billingPeriod === 'monthly' ? 'annual' : 'monthly';
-  updateBillingUI();
-  renderSummary();
-}
-
-function updateBillingUI() {
-  const sw = document.getElementById('billing-switch');
-  const mLbl = document.getElementById('billing-monthly-lbl');
-  const aLbl = document.getElementById('billing-annual-lbl');
-  mLbl.textContent = t('billing-monthly');
-  aLbl.innerHTML = t('billing-annual') + '<span style="color:#10B981;font-size:9px;font-weight:700;margin-right:4px">18%-</span>';
-  if (billingPeriod === 'annual') {
-    sw.classList.add('annual');
-    mLbl.classList.remove('active');
-    aLbl.classList.add('active');
-  } else {
-    sw.classList.remove('annual');
-    mLbl.classList.add('active');
-    aLbl.classList.remove('active');
-  }
-}
-
-/* ─────────────────────────────────────────
-   POPUP
-───────────────────────────────────────── */
-function openPopup(id, e) {
-  e.stopPropagation();
-  const item = ITEMS.find(i => i.id === id);
-  if (!item || !item.detail) return;
-  const d = item.detail;
-  const L = lang;
-  const name = L === 'en' ? item.en : item.he;
-  const tag = L === 'en' ? (d.tagEn || d.tagHe) : d.tagHe;
-  const desc = L === 'en' ? d.descEn : d.descHe;
-  const feats = (L === 'en' ? d.featEn : d.featHe).map(f =>
-    `<div class="popup-feature">${f}</div>`
-  ).join('');
-
-  let priceHtml = '';
-  if (d.price === 'incl') {
-    priceHtml = `<div class="popup-price-incl">${t('popup-price-incl')}</div>`;
-  } else if (typeof d.price === 'number' && d.price > 0) {
-    priceHtml = `<div class="popup-price">+\u20AA${d.price}<span style="font-size:12px;color:var(--text-3)">/${t('mo')}</span></div>`;
-  }
-
-  document.getElementById('popup-body').innerHTML = `
-    <span class="popup-tag" style="background:${d.tagBg};color:${d.tagColor}">${tag}</span>
-    <div class="popup-title">${name}</div>
-    <div class="popup-desc">${desc}</div>
-    <div class="popup-section-title">${t('popup-feat-title')}</div>
-    ${feats}
-    <div class="popup-footer">
-      <div>
-        <div class="popup-section-title" style="margin-bottom:3px">${t('popup-req-title')}</div>
-        <div class="popup-tech">${d.tech}</div>
-      </div>
-      ${priceHtml ? `<div>${priceHtml}</div>` : ''}
-    </div>
-  `;
-  document.getElementById('overlay').classList.add('open');
-}
-
-function closePopup() {
-  document.getElementById('overlay').classList.remove('open');
-}
-
-document.getElementById('overlay').addEventListener('click', function(e) {
-  if (e.target === this) closePopup();
-});
-
-/* ─────────────────────────────────────────
-   SUPPORT MODAL
-───────────────────────────────────────── */
-function openSupportModal(e) {
-  if (e) e.preventDefault();
-  const body = document.getElementById('support-modal-body');
-  body.innerHTML = `
-    <h3>${t('support-title')}</h3>
-    <div class="modal-form" id="support-form-container">
-      <form id="support-form" onsubmit="submitSupport(event)">
-        <label>${t('support-name')}</label>
-        <input type="text" id="support-name-input" required/>
-        <label>${t('support-contact')}</label>
-        <input type="text" id="support-contact-input" required/>
-        <label>${t('support-message')}</label>
-        <textarea id="support-message-input" required></textarea>
-        <button type="submit">${t('support-send')}</button>
-      </form>
-    </div>
-  `;
-  document.getElementById('support-overlay').classList.add('open');
-}
-
-function closeSupportModal() {
-  document.getElementById('support-overlay').classList.remove('open');
-}
-
-document.getElementById('support-overlay').addEventListener('click', function(e) {
-  if (e.target === this) closeSupportModal();
-});
-
-function submitSupport(e) {
-  e.preventDefault();
-  const name = document.getElementById('support-name-input').value;
-  const contact = document.getElementById('support-contact-input').value;
-  const message = document.getElementById('support-message-input').value;
-
-  fetch('https://api.clawflow.flowmatic.co.il/hosting/support', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, contact, message }),
-  }).catch(() => {});
-
-  document.getElementById('support-form-container').innerHTML =
-    `<div class="modal-success">${t('support-success')}</div>`;
-}
-
-/* ─────────────────────────────────────────
-   DOCS MODAL
-───────────────────────────────────────── */
-function openDocsModal(e) {
-  if (e) e.preventDefault();
-  const body = document.getElementById('docs-modal-body');
-  const howSteps = t('docs-how').split('\n').map(s => `<p>${s}</p>`).join('');
-  body.innerHTML = `
-    <h3>${t('docs-title')}</h3>
-    <h4>${t('docs-what-title')}</h4>
-    <p>${t('docs-what')}</p>
-    <h4>${t('docs-how-title')}</h4>
-    ${howSteps}
-    <h4>${t('docs-security-title')}</h4>
-    <p>${t('docs-security')}</p>
-    <h4>${t('docs-pricing-title')}</h4>
-    <p>${t('docs-pricing')}</p>
-    <h4>${t('docs-sla-title')}</h4>
-    <p>${t('docs-sla')}</p>
-  `;
-  document.getElementById('docs-overlay').classList.add('open');
-}
-
-function closeDocsModal() {
-  document.getElementById('docs-overlay').classList.remove('open');
-}
-
-document.getElementById('docs-overlay').addEventListener('click', function(e) {
-  if (e.target === this) closeDocsModal();
-});
-
-/* ─────────────────────────────────────────
-   MOBILE NAV BURGER + STICKY SUMMARY TOGGLE
-───────────────────────────────────────── */
-function toggleMobileNav(e) {
-  if (e) e.stopPropagation();
-  var nav = document.getElementById('header-nav');
-  var icon = document.getElementById('nav-burger-mobile-icon');
-  if (!nav) return;
-  var isOpen = nav.classList.toggle('mobile-open');
-  if (icon) icon.innerHTML = isOpen
-    ? '<path d="M6 6l12 12M18 6l-12 12"/>'
-    : '<path d="M4 7h16M4 12h16M4 17h16"/>';
-}
-// Close mobile nav when any link inside is clicked
-document.addEventListener('click', function(e) {
-  var nav = document.getElementById('header-nav');
-  var burger = document.getElementById('nav-burger-mobile');
-  if (!nav || !nav.classList.contains('mobile-open')) return;
-  if (nav.contains(e.target) && e.target.tagName === 'A') {
-    nav.classList.remove('mobile-open');
-    var icon = document.getElementById('nav-burger-mobile-icon');
-    if (icon) icon.innerHTML = '<path d="M4 7h16M4 12h16M4 17h16"/>';
-    return;
-  }
-  // Click outside nav + burger → close
-  if (!nav.contains(e.target) && (!burger || !burger.contains(e.target))) {
-    nav.classList.remove('mobile-open');
-    var icon2 = document.getElementById('nav-burger-mobile-icon');
-    if (icon2) icon2.innerHTML = '<path d="M4 7h16M4 12h16M4 17h16"/>';
-  }
-});
-
-function toggleSummaryMobile() {
-  var s = document.getElementById('cfg-summary');
-  if (s) s.classList.toggle('expanded');
-}
-
-/* ─────────────────────────────────────────
-   RENDER LIST
-───────────────────────────────────────── */
-function renderBadge(item) {
-  if (item.soon) return `<span class="badge badge-soon">${lang === 'he' ? '\u05D1\u05E7\u05E8\u05D5\u05D1' : 'Soon'}</span>`;
-  if (item.badge === 'adv') return `<span class="badge badge-adv">${lang === 'he' ? '\u05DE\u05EA\u05E7\u05D3\u05DD' : 'Advanced'}</span>`;
-  return '';
-}
-
-// Wizard step → category mapping
-const STEP_TO_CAT = { 1: 'agents', 2: 'auto', 3: 'extras' };
-let currentWizStep = 1;
-
-function goWizStep(step) {
-  currentWizStep = step;
-  // Update step buttons
-  document.querySelectorAll('.wiz-step').forEach(function(btn) {
-    var s = parseInt(btn.dataset.step);
-    btn.classList.remove('active', 'done');
-    if (s === step) btn.classList.add('active');
-    else if (s < step) btn.classList.add('done');
-  });
-  renderAll();
-}
-
-function renderList() {
-  // Filter to show only current wizard step's category
-  const activeCat = STEP_TO_CAT[currentWizStep];
-  return CATEGORIES.filter(cat => cat.id === activeCat).map(cat => {
-    const items = ITEMS.filter(i => i.cat === cat.id);
-    const catName = lang === 'he' ? cat.he : cat.en;
-    const sub = lang === 'he' ? cat.subHe : cat.subEn;
-    const badgeHtml = cat.badge
-      ? `<span class="cat-badge-pill">${lang === 'he' ? cat.badge.he : cat.badge.en}</span>`
-      : '';
-
-    const itemsHtml = items.map(item => {
-      const isSel = selected.has(item.id);
-      const name = lang === 'he' ? item.he : item.en;
-      const desc = lang === 'he' ? item.descHe : item.descEn;
-      const isRadio = item.radio;
-
-      const extraTag = (!item.storage && item.extra > 0 && !item.soon)
-        ? `<span class="opt-price-tag">+\u20AA${item.extra}/${t('mo')}</span>`
-        : (item.storage && isSel)
-          ? `<span class="opt-price-tag">+\u20AA${storagePrice()}/${t('mo')}</span>`
-          : '';
-
-      const storageRow = (item.storage && isSel) ? `
-        <div class="storage-row">
-          <span class="storage-label">${t('size-label')}</span>
-          <select class="storage-select" id="ss_${item.id}"
-            onchange="storageGb=+this.value;renderAll()" onclick="event.stopPropagation()">
-            ${STORAGE_OPTIONS.map(o =>
-              `<option value="${o.gb}" ${o.gb === storageGb ? 'selected' : ''}>
-                ${o.gb}GB \u2014 \u20AA${o.price}/${t('mo')}
-               </option>`
-            ).join('')}
-          </select>
-        </div>` : '';
-
-      const control = isRadio
-        ? `<div class="radio-btn"><div class="radio-dot"></div></div>`
-        : `<div class="checkbox">${isSel
-            ? `<svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-                <path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.6"
-                  stroke-linecap="round" stroke-linejoin="round"/>
-               </svg>`
-            : ''}</div>`;
-
-      return `
-        <div class="opt-card${isSel ? ' selected' : ''}${item.soon ? ' disabled' : ''}"
-             onclick="toggleItem('${item.id}',event)">
-          <button class="info-btn" onclick="openPopup('${item.id}',event)">i</button>
-          ${control}
-          <div class="opt-body">
-            <div class="opt-title-row">
-              <span class="opt-name">${name}</span>
-              ${renderBadge(item)}
-              ${extraTag}
-            </div>
-            <div class="opt-desc">${desc}</div>
-            ${storageRow}
+      <!-- ── Card 1: Self-Service (FIRST in RTL — system fully open, you drive all 3 stages) ── -->
+      <article class="card">
+        <header class="card-head">
+          <h3 class="card-name">שירות עצמי</h3>
+          <p class="card-tagline">המערכת המלאה — אתם בנהיגה דרך 3 השלבים. למשווקים, חברות הייטק או צוות פנימי.</p>
+        </header>
+        <div class="price-block">
+          <div class="price-row">
+            <span class="price-num">₪169</span>
+            <span class="price-unit">/חודש</span>
           </div>
-        </div>`;
-    }).join('');
-
-    return `
-      <div class="cat-block">
-        <div class="cat-title">
-          ${catName}${badgeHtml}
+          <div class="price-secondary"><strong>ללא דמי הקמה</strong> · ביטול בכל עת</div>
+          <div class="price-fine">חיוב חודשי, ללא התחייבות</div>
         </div>
-        ${sub ? `<div class="cat-sub">${sub}</div>` : ''}
-        ${itemsHtml}
-      </div>`;
-  }).join('');
+        <ul class="bullets">
+
+          <li class="group-label g1">מבינים את הברנד</li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>מערכת בניית ספר מותג</strong> — סורקת את האתר שלכם, מחלצת צבעים, פונטים, לוגו וקול הברנד<button class="info-btn" type="button"><span class="info-tip">סריקה אוטומטית של האתר. ניתוח של עד 12 ציטוטים לזיהוי קול הברנד. אישור או החלפה ידנית של כל אלמנט. ספר מותג מלא ב-PDF — מקור האמת לכל 10 הסוכנים</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">10 סוכני AI מקצועיים מותקנים מהיום הראשון — מבוססים על OpenClaw + Claude<button class="info-btn" type="button"><span class="info-tip">OpenClaw — פלטפורמת סוכני AI בקוד פתוח (רישיון MIT). כל סוכן מבוסס על מודל AI מתקדם של Anthropic, עם בחירה אוטומטית של דגם לפי מורכבות המשימה</span></button></div></li>
+
+          <li class="group-label g2">בונים אסטרטגיה מבוססת דאטה</li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">כלי מחקר מקצועיים זמינים: <strong>DataForSEO</strong>, <strong>Firecrawl</strong>, Search Console<button class="info-btn" type="button"><span class="info-tip">DataForSEO — מאות מיליוני שאילתות חיפוש. Firecrawl — סורק אתרי מתחרים אוטומטית. Google Search Console — נתוני קידום אורגני רשמיים מגוגל</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>Mazhir Audit</strong> — בדיקת מצב מקיפה לפרסום הממומן שלכם, ב-לחיצה<button class="info-btn" type="button"><span class="info-tip">סריקה אוטומטית של מצב Google Ads ו-Meta הקיים: היכן הקליקים מתבזבזים, האם ההמרות נמדדות נכון, תשואה אמיתית לפי ערוץ. דוח כתוב</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>ביקורת SEO פנימית של האתר</strong> — meta tags, schema, alt texts, מהירות טעינה<button class="info-btn" type="button"><span class="info-tip">הסוכן סורק את כל דפי האתר שלכם, מאתר חוסרים בכותרות meta, סכמת מטא-דאטה חסרה, תמונות ללא alt text, בעיות מהירות. דוח עם רשימת תיקונים מסודרת לפי עדיפות</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">כל החיבורים: GA4, Google Tag Manager, Google Ads, Meta Ads, WhatsApp, Telegram, Gmail, Google Calendar</div></li>
+
+          <li class="group-label g3">הסוכנים מבצעים — אתם בקרה</li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>סוכן Publishing</strong> מתחבר ישירות לאתר ומפרסם מאמרים ופוסטים<button class="info-btn" type="button"><span class="info-tip">חיבור ישיר ל-WordPress, Wix, Webflow, Shopify או CMS מותאם. הסוכן מפרסם מאמרים, פוסטים ועדכונים ישירות לאתר — עם כל ה-meta tags והתמונות במקום. ללא העתקה והדבקה ידנית</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>סוכן Analytics</strong> מתקין ומתחזק GA4, GTM ומעקב המרות אוטומטית<button class="info-btn" type="button"><span class="info-tip">הסוכן מטפל בקוד המעקב באתר. מתקין GA4 ו-GTM, מגדיר אירועי המרה (form submit, click-to-call, WhatsApp click, purchase), מאתר מעקב שבור ומתקן אותו אוטומטית</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>אופטימיזציה פנימית של האתר חודשית</strong> — meta, schema, internal linking<button class="info-btn" type="button"><span class="info-tip">סוכן ה-SEO סורק את האתר שלכם פעם בחודש: מעדכן כותרות meta לפי מילות מפתח חדשות, מוסיף schema markup לדפים חדשים, מקשר בין דפים בצורה אופטימלית, ממליץ על תיקוני מהירות</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">סוכן התוכן כותב מאמרי קידום אורגני בתהליך של 4 שלבים<button class="info-btn" type="button"><span class="info-tip">מבנה ראשוני ← 3 טיוטות במקביל ← בדיקת איכות ← ביקורת עצמית. כל מאמר עם סכמת מטא-דאטה, ציטוטים מוכנים ל-AI והתאמה לישויות גוגל — לאופטימיזציה לסיכום ה-AI של גוגל</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">סוכן הקריאייטיב מייצר תמונות, וידאו וקריינות עברית<button class="info-btn" type="button"><span class="info-tip">תמונות AI דרך מודלים מתקדמים של fal.ai (הכי טובים לטיפוגרפיה בעברית). קריינות עברית טבעית דרך ElevenLabs. כל יצירה עוברת בדיקת התאמה לקול הברנד</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">אתם מאשרים תוכן ומדיה לפני פרסום — שליטה מלאה</div></li>
+
+          <li class="group-label" style="border-top: 1px solid #E5E7EB; margin-top: 14px; padding-top: 12px;">תנאי שימוש</li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>שרת VPS פרטי</strong> בענן Hetzner — SSL ודומיין ייחודי<button class="info-btn" type="button"><span class="info-tip">VPS — שרת פרטי בענן (Hetzner אירופה, עומד בתקן GDPR). לא חולקים אותו עם אחרים. הנתונים שלכם — בידיים שלכם בלבד</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">אתם משלמים ישירות לספקי ה-AI — ללא תוספת אחוזים מצידנו<button class="info-btn" type="button"><span class="info-tip">החיוב על השימוש ב-AI (Anthropic, OpenAI, fal.ai, ElevenLabs) הולך ישירות מכרטיס האשראי שלכם לספקים. אנחנו לא לוקחים עמלה. תשלמו רק על מה שבאמת השתמשתם</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">תמיכה בצ'אט (טלגרם) בימי עסקים</div></li>
+
+        </ul>
+        <div class="cta-stack">
+          <button class="cta cta-line" onclick="pick('self_service')">התחילו לבד ←</button>
+          <a class="cta-link" href="https://flowmatic.co.il/" target="_blank" rel="noopener">רוצים ללמוד לעומק? <strong>צפו בקורס המקצועי שלנו</strong> →</a>
+        </div>
+      </article>
+
+      <!-- ── Card 2: Auto-pilot (FEATURED) ── -->
+      <article class="card pop">
+        <header class="card-head">
+          <h3 class="card-name">אוטופילוט</h3>
+          <p class="card-tagline">אנחנו מנהלים את כל השיווק לעומק. אתם רואים תוצאות בכל יום ראשון.</p>
+        </header>
+        <div class="price-block">
+          <div class="price-row">
+            <span class="price-num">₪1,500</span>
+            <span class="price-unit">/חודש</span>
+          </div>
+          <div class="price-secondary"><strong>+ ₪1,750 הקמה</strong> חד-פעמית · מינימום 6 חודשים</div>
+          <div class="price-fine">תקציב פרסום (ad spend) משולם ישירות לגוגל ולמטא</div>
+        </div>
+        <ul class="bullets">
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>הקמה מקצועית מלאה ע״י המומחים שלנו</strong> — שיחת גילוי, ספר מותג, Mazhir Audit, מחקר SEO, ניתוח מתחרים, אסטרטגיית תוכן ל-3 חודשים, הקמת קמפיינים בגוגל ובמטא, חיבור הסוכן לאתר, התקנת אנליטיקה ו-GTM, ביקורת SEO פנימית — 5–7 ימי עסקים<button class="info-btn" type="button"><span class="info-tip">תהליך הקמה מקצה לקצה. בסוף אנחנו ממשיכים לנהל את כל השיווק לעומק — ניהול מלא של Google Ads ו-Meta Ads, פרסום תוכן שבועי, תחזוקת אנליטיקה ודוחות שבועיים</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">דוח שבועי כל יום ראשון בשעה 09:00 — תשואה לפרסום, תשואה כללית, המלצות פעולה<button class="info-btn" type="button"><span class="info-tip">PDF מפורט + סיכום בטלגרם. מקורות לידים לפי ערוץ, מאיפה הקליקים שמומרים, אילו מילות מפתח עובדות, אילו מודעות מובילות, מה צריך לתקן השבוע</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>ניהול מקצועי מלא של Google Ads</strong><button class="info-btn" type="button"><span class="info-tip">אסטרטגיות הצעה, מחקר מילות מפתח שבועי, בדיקות A/B למודעות, אופטימיזציה של קמפיינים וקבוצות מודעות, הרחבה של קמפיינים מצליחים וצינון של קמפיינים שלא ממירים</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>ניהול מקצועי מלא של Meta Ads</strong><button class="info-btn" type="button"><span class="info-tip">בניית קהלים, בדיקות A/B שבועיות לקריאייטיב, ניתוח קריאייטיבים של מתחרים בספריית המודעות של Meta, הרחבת קהלים מצליחים, הצגה חוזרת ללקוחות מתעניינים</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">4–8 מאמרי קידום אורגני (SEO) לחודש בתהליך 4 שלבים, <strong>מתפרסמים אוטומטית באתר</strong><button class="info-btn" type="button"><span class="info-tip">מבנה ראשוני ← 3 טיוטות במקביל ← בדיקת איכות ← ביקורת עצמית. כל מאמר עם סכמת מטא-דאטה, ציטוטים מוכנים ל-AI והתאמה לישויות גוגל. לאחר אישורכם — סוכן Publishing מעלה את המאמר ישירות לאתר עם meta tags, schema ותמונות במקום</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">3–5 פוסטים שבועיים ב-LinkedIn + Facebook + Instagram — מתפרסמים אוטומטית</div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>אופטימיזציה פנימית של האתר חודשית</strong> — meta, schema, internal linking, מהירות<button class="info-btn" type="button"><span class="info-tip">סוכן ה-SEO סורק את האתר שלכם פעם בחודש: מעדכן meta tags לפי מילות מפתח חדשות, מוסיף schema markup לדפים חדשים, מקשר בין דפים בצורה אופטימלית, ממליץ על תיקוני מהירות. תיקונים מתבצעים ישירות באתר אחרי אישורכם</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text"><strong>תחזוקת אנליטיקה אוטומטית</strong> — מעקב המרות תקין תמיד<button class="info-btn" type="button"><span class="info-tip">סוכן Analytics מנטר את GA4, GTM ומעקב ההמרות שלכם 24/7. כשמשהו נשבר (טופס שלא נקלט, אירוע חסר) — מתקן ישירות את הקוד באתר. אתם לא צריכים לדעת על זה</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניוזלטר + תהליכים אוטומטיים באימייל<button class="info-btn" type="button"><span class="info-tip">ניוזלטר שבועי או דו-שבועי. סדרת קבלת פנים, תזכורת לעגלה נטושה, מסרים אחרי רכישה. בדיקות A/B לכותרות ולשעות שליחה. ניהול רשימות ועמידה בתקנות חוק הספאם</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">עד 16 יצירות מדיה לחודש — תמונות, וידאו וקריינות עברית<button class="info-btn" type="button"><span class="info-tip">תמונות AI דרך מודלים מתקדמים של fal.ai (הכי טובים לטיפוגרפיה בעברית). וידאו קצר. קריינות עברית טבעית דרך ElevenLabs. כל יצירה עוברת בדיקת התאמה לקול הברנד</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניטור מתחרים יומי + תגובה תוך 24 שעות<button class="info-btn" type="button"><span class="info-tip">סוכן ניטור מתחרים סורק את 5 המתחרים שלכם דרך Firecrawl ומתריע על שינויים: מאמרים חדשים, קמפיינים חדשים, שינוי מחירים. אנחנו מגיבים בתוכן רלוונטי תוך 24 שעות</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">ניהול לידים: WhatsApp + דף העסק בגוגל<button class="info-btn" type="button"><span class="info-tip">לידים מ-WhatsApp עם מענה ראשוני אוטומטי תוך דקה ושרשור אליכם. דף העסק בגוגל — פוסטים שבועיים, מענה מקצועי לביקורות תוך 24 שעות</span></button></div></li>
+          <li class="bullet"><span class="check-icon"></span><div class="bullet-text">שיחת אסטרטגיה דו-שבועית (30 דקות בזום) — מה הצליח, מה ננסה השבועיים הבאים</div></li>
+        </ul>
+        <div class="cta-stack">
+          <button class="cta cta-line" onclick="pick('autopilot')">התחילו אוטופילוט ←</button>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Under the hood — technical credibility ═══ -->
+<section class="tech-section">
+  <div class="tech-head">
+    <span class="tech-eyebrow">תחת המנוע</span>
+    <h2>הטכנולוגיה שמאחורי המערכת</h2>
+    <p>המערכת מחוברת לכלי השיווק והאנליטיקה הסטנדרטיים בתעשייה — אותם כלים שבהם משתמשות סוכנויות מובילות.</p>
+  </div>
+  <div class="tech-grid">
+
+    <div class="tech-card">
+      <div class="tech-card-label">תשתית</div>
+      <div class="tech-card-title">OpenClaw — סוכני AI בקוד פתוח</div>
+      <div class="tech-card-desc">פלטפורמת סוכני AI בקוד פתוח, רישיון <code>MIT</code>. קוד הסוכנים שקוף וזמין לעיון. ללא הסתרות.</div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-label">מנוע AI</div>
+      <div class="tech-card-title">כל מודל AI — Anthropic, OpenAI, Google, Ollama מקומי</div>
+      <div class="tech-card-desc">ברירת המחדל — Claude של <code>Anthropic</code>, עם בחירה אוטומטית של דגם לפי מורכבות המשימה. ניתן לחבר גם <code>OpenAI GPT</code>, <code>Google Gemini</code>, <code>Ollama</code> מקומי או נקודת קצה מותאמת — דרך שכבת <code>LiteLLM</code>. <strong>המפתחות שלכם, החיוב שלכם — בלי תוספת אחוזים מצידנו.</strong></div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-label">כלי קידום אורגני</div>
+      <div class="tech-card-title">DataForSEO + Search Console + Firecrawl</div>
+      <div class="tech-card-desc"><strong>DataForSEO</strong> — מאות מיליוני שאילתות חיפוש. <strong>Google Search Console</strong> — נתוני קידום אורגני רשמיים. <strong>Firecrawl</strong> — סריקת אתרי מתחרים.</div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-label">פרסום ממומן</div>
+      <div class="tech-card-title">Google Ads + Meta Ads + Google Tag Manager + GA4</div>
+      <div class="tech-card-desc">חיבור רשמי ל-<code>Google Ads</code> ו-<code>Meta Ads</code>. <code>Google Tag Manager</code> למעקב המרות. <code>GA4</code> לאנליטיקה. ניהול מלא, ללא צורך בכלי צד שלישי.</div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-label">יצירת מדיה</div>
+      <div class="tech-card-title">fal.ai + ElevenLabs + Creatomate</div>
+      <div class="tech-card-desc"><strong>fal.ai</strong> — מודלים מתקדמים ליצירת תמונות. <strong>ElevenLabs</strong> — קריינות עברית טבעית. <strong>Creatomate</strong> — וידאו אוטומטי מתבניות.</div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-label">זיכרון</div>
+      <div class="tech-card-title">זיכרון סמנטי מתמשך — הסוכנים זוכרים את העסק שלכם</div>
+      <div class="tech-card-desc">מערכת זיכרון מבוססת קבצים בארבע שכבות: <strong>פרופיל הלקוח</strong> (קהל, מוצרים, יעדים), <strong>זיכרון מותג</strong> (קול, סגנון, איסורים), <strong>הקשר פרויקט</strong> (קמפיינים פעילים, תוצאות) ו-<strong>הפניות חיצוניות</strong>. ארגון סמנטי לפי נושא, לא כרונולוגי — אינדקס דק שנטען לכל שיחה ואחזור עומק רק כשרלוונטי. <strong>טוקנים מינימליים, החלטות מבוססות הקשר אמיתי.</strong></div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-label">אבטחה ואחסון</div>
+      <div class="tech-card-title">Hetzner Cloud + SSL + מפתחות מוצפנים</div>
+      <div class="tech-card-desc">VPS פרטי בענן <code>Hetzner</code> אירופה — מהיר, מאובטח, עומד בתקן GDPR. <code>SSL</code> אוטומטי מ-Let's Encrypt. מפתחות גישה מוצפנים בעת שמירה.</div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-label">אינטגרציה לאתר</div>
+      <div class="tech-card-title">חיבור ישיר לאתר ולדפי הנחיתה שלכם</div>
+      <div class="tech-card-desc">תמיכה ישירה ב-<code>WordPress</code>, <code>Wix</code>, <code>Webflow</code>, <code>Shopify</code> ובכל CMS עם API. הסוכנים <strong>מפרסמים תוכן, מעדכנים meta tags, מוסיפים schema markup, ומתקנים בעיות SEO פנימיות</strong> — ישירות באתר, ללא העתקה והדבקה ידנית.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══ FAQ — full transparent answers ═══ -->
+<section class="faq-section" id="faq">
+  <div class="faq-head">
+    <span class="faq-eyebrow">שאלות נפוצות</span>
+    <h2>שאלות נפוצות</h2>
+    <p>פירוט על תהליך העבודה, התמחור, ושאלות תפעוליות שעלולות לעלות.</p>
+  </div>
+
+  <div class="faq-list">
+
+    <details class="faq-item">
+      <summary class="faq-q">במה זה שונה ממשרד פרסום או פרילנסר?</summary>
+      <div class="faq-a">
+        <p><strong>סוכנות פרסום</strong> — צוות אנושי. עובדים שמונה שעות ביום, חמישה ימים בשבוע. תקורה גבוהה (משכורות, משרד, ניהול). לרוב מגלגלים את העלות עליכם דרך עמלת ניהול של 15–25% מתקציב הפרסום + retainer חודשי של ₪5,000–₪15,000.</p>
+        <p><strong>פרילנסר</strong> — אדם אחד שעושה את הכל. לפעמים מצוין, לפעמים נעלם באמצע פרויקט. בדרך כלל מצליח לכסות 1–2 ערוצים, לא את כל מערך השיווק.</p>
+        <p><strong>אצלנו</strong> — 10 סוכני AI מקצועיים, כל אחד עם תפקיד ברור (מחקר, תוכן, פרסום, אנליטיקה, יצירה, פרסום לאתר וכו'), עובדים 24/7 ללא חופשות וללא ימי מחלה. <strong>אתם משלמים ישירות לספקי ה-AI, ללא תוספת אחוזים מצידנו.</strong> אנחנו (במסלול אוטופילוט) או אתם (בשירות עצמי) מנהלים אותם, מאשרים תוכן, ושולטים באסטרטגיה.</p>
+        <p><strong>החיסכון:</strong> כ-85% פחות מסוכנות מקבילה ברמת ביצוע דומה.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">למה לא פשוט להשתמש ב-ChatGPT או Claude לבד? מה אני מקבל פה שאני לא יכול לעשות לבד?</summary>
+      <div class="faq-a">
+        <p>אפשר לחלוטין לפתוח ChatGPT ולבקש "תכתוב לי מאמר על X". אבל זה לא שיווק — זה טקסט. ההבדל:</p>
+        <ul>
+          <li><strong>זיכרון מתמשך</strong> — הסוכנים זוכרים את הברנד שלכם, את הקהל שלכם, את הקמפיינים שכבר רצו, את מה שעבד ומה שלא. ChatGPT מתחיל מאפס בכל שיחה.</li>
+          <li><strong>חיבור לכלים מקצועיים</strong> — DataForSEO (מאות מיליוני שאילתות חיפוש אמיתיות), Firecrawl (סריקת מתחרים), Google Search Console, Google Ads API, Meta Ads API, ספריית המודעות של Meta, fal.ai, ElevenLabs. ChatGPT לא יודע מה באמת קורה בגוגל היום.</li>
+          <li><strong>תהליכים אמיתיים</strong> — מאמר עובר 4 שלבים (מבנה ← 3 טיוטות במקביל ← בדיקת איכות ← ביקורת עצמית) עם schema markup, ציטוטים מוכנים ל-AI והתאמה לישויות גוגל. כל יצירה עוברת בדיקת התאמה לקול הברנד.</li>
+          <li><strong>פרסום אוטומטי</strong> — הסוכן מפרסם ישירות ל-WordPress / Wix / Webflow / Shopify, מעדכן meta tags, מוסיף schema. בלי copy-paste.</li>
+          <li><strong>בקרה ושקיפות</strong> — לוח בקרה אחד עם כל הקמפיינים, התשואה לפרסום, הלידים. לא 30 כרטיסיות פתוחות בדפדפן.</li>
+        </ul>
+        <p>אם אתם רק רוצים טקסט — ChatGPT מספיק. אם אתם רוצים <strong>מערך שיווק שעובד לבד</strong> — צריך תשתית.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">שירות עצמי מול אוטופילוט — איך אני יודע מה מתאים לי?</summary>
+      <div class="faq-a">
+        <p><strong>שירות עצמי (₪169/חודש)</strong> — לכם יש את הזמן והידע. אתם משווקים, יש לכם צוות פנימי, או אתם חברת הייטק שאוהבת לשלוט בכל דבר. אתם בנהיגה: מאשרים אסטרטגיה, מנהלים את הסוכנים, מקבלים החלטות. <strong>קורס מקצועי</strong> זמין כדי ללמוד את המערכת לעומק.</p>
+        <p><strong>אוטופילוט (₪1,750 הקמה + ₪1,500/חודש)</strong> — אין לכם זמן לעסוק בשיווק. אתם רוצים תוצאות ביום ראשון בבוקר, לא להיכנס לפרטים הטכניים. <strong>אנחנו</strong> מקימים את כל המערך, מנהלים את הקמפיינים, כותבים תוכן, מתחזקים את האנליטיקה — אתם רק מאשרים תוכן ומקבלים דוחות שבועיים.</p>
+        <p><strong>הבדל מהותי:</strong> בשני המסלולים מדובר באותה תשתית טכנית. ההבדל הוא <em>מי מנהל את הסוכנים — אתם או אנחנו</em>.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">תוך כמה זמן אני רואה תוצאות אמיתיות?</summary>
+      <div class="faq-a">
+        <p>תלוי במדד:</p>
+        <ul>
+          <li><strong>פרסום ממומן (Google + Meta)</strong> — לידים ראשונים בדרך כלל תוך 3–10 ימים מהפעלת הקמפיין. אופטימיזציה מלאה לוקחת 30–60 ימים (זמן שלוקח לאלגוריתמים ללמוד).</li>
+          <li><strong>קידום אורגני (SEO)</strong> — תוצאות אמיתיות בגוגל לוקחות 3–6 חודשים. זה לא קסם, זה אינדקס. מי שמבטיח SEO תוך שבועיים — משקר.</li>
+          <li><strong>תוכן ברשתות חברתיות</strong> — המעורבות מתחילה תוך שבועיים, אבל בניית קהל לוקחת חודשים.</li>
+          <li><strong>אופטימיזציית האתר</strong> — שיפור במהירות וב-Core Web Vitals — תוך ימים. שיפור בדירוג גוגל מהשינויים — חודשים.</li>
+        </ul>
+        <p><strong>אנחנו מתחייבים</strong> רק על איכות הביצוע, מהירות הפעולה, ושקיפות הדיווח. ביצועי השוק תלויים בתחרותיות הנישה, איכות המוצר, ותקציב הפרסום — דברים שלא בשליטתנו.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">מי מאשר תוכן לפני שהוא יוצא לציבור? יש סיכון שהסוכן יפרסם משהו לא מדויק?</summary>
+      <div class="faq-a">
+        <p><strong>אתם מאשרים את כל התוכן לפני פרסום.</strong> כל מאמר, כל פוסט, כל מודעה, כל יצירת מדיה — עוברים אישור שלכם בלוח הבקרה לפני שהם מתפרסמים. ברירת המחדל: <strong>שום דבר לא יוצא לציבור בלי אישור אנושי</strong>.</p>
+        <p>בנוסף, יש שכבות הגנה אוטומטיות לפני האישור שלכם:</p>
+        <ul>
+          <li><strong>בדיקת איכות פנימית</strong> — כל יצירה עוברת בדיקת התאמה לקול הברנד שלכם (מסמך BRAND.md שנבנה בתהליך ההקמה).</li>
+          <li><strong>ציטוטים ועובדות</strong> — סוכן התוכן מצטט מקורות, ולא ממציא נתונים. אם אין מקור — הוא לא טוען טענה.</li>
+          <li><strong>איסורים מפורשים</strong> — אתם יכולים להגדיר נושאים שאסור לגעת בהם, מילים אסורות, או ערוצים בעייתיים.</li>
+        </ul>
+        <p>אפשר לעבור גם למצב "פרסום אוטומטי" אחרי שצברתם ביטחון — אבל זה לא ברירת המחדל.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">איזו עבודה אני בכל זאת צריך לעשות בעצמי?</summary>
+      <div class="faq-a">
+        <p>גם באוטופילוט, יש דברים שרק אתם יכולים לתת:</p>
+        <ul>
+          <li><strong>תקציב פרסום</strong> — ההחלטה על כמה להוציא בגוגל ובמטא היא שלכם. אנחנו ממליצים ומבצעים, אתם מאשרים.</li>
+          <li><strong>אישור תוכן</strong> — 5–15 דקות ביום לסקור מה הסוכנים יצרו ולאשר.</li>
+          <li><strong>החלטות אסטרטגיות</strong> — האם להיכנס לקטגוריה חדשה, לשנות מחיר, לעצור קמפיין. אנחנו ממליצים, אתם מחליטים.</li>
+          <li><strong>מענה ללידים</strong> — הסוכנים מביאים את הליד, מתחילים שיחה ב-WhatsApp, אבל סגירת עסקה היא שלכם (אלא אם תוסיפו סוכן מכירות — בקרוב).</li>
+          <li><strong>שיחה דו-שבועית של 30 דקות</strong> (אוטופילוט בלבד) — מה הצליח, מה ננסה השבועיים הבאים.</li>
+        </ul>
+        <p>בשירות עצמי — אתם גם בוחרים נושאים, מאשרים אסטרטגיה, ומריצים את הסוכנים בעצמכם.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">הסוכנים מתחברים לאתר שלי — מה קורה אם הם שוברים משהו?</summary>
+      <div class="faq-a">
+        <p>שאלה לגיטימית — וזה למה יש לנו שכבות הגנה:</p>
+        <ul>
+          <li><strong>הרשאות מוגבלות</strong> — הסוכן מקבל גישת editor / contributor, לא admin. הוא לא יכול למחוק עמודים, להחליף תמה, או להסיר plugins.</li>
+          <li><strong>גיבוי לפני כל שינוי</strong> — סוכן ה-Publishing יוצר snapshot של הדף לפני שמעדכן אותו. אפשר לחזור אחורה בלחיצה.</li>
+          <li><strong>שינויים בסביבת בדיקה</strong> — שינויים מבניים (schema, meta global) נבדקים על copy של הדף לפני שהם נכנסים לפרודקשן.</li>
+          <li><strong>monitoring 24/7</strong> — אם משהו נשבר (טופס לא נקלט, אירוע GA4 חסר), הסוכן מזהה ומתקן ישירות. אם הוא לא מצליח — אזעקה אלינו (באוטופילוט) או אליכם.</li>
+        </ul>
+        <p>בכל מקרה, <strong>הקוד של האתר שלכם — שלכם.</strong> אתם יכולים לבטל את ההרשאות בכל רגע.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">מה העלות האמיתית בחודש כולל הכל?</summary>
+      <div class="faq-a">
+        <p>נתחיל בעלות שלנו, ואז נוסיף את כל האחרים (כי שקיפות):</p>
+        <ul>
+          <li><strong>שירות עצמי:</strong> ₪169/חודש (תשתית + פלטפורמה).</li>
+          <li><strong>אוטופילוט:</strong> ₪1,750 הקמה חד-פעמית + ₪1,500/חודש (כולל ניהול מלא של הקמפיינים).</li>
+        </ul>
+        <p><strong>בנוסף — תשלומים ישירים לספקים</strong> (אנחנו לא לוקחים עמלה מאלה):</p>
+        <ul>
+          <li><strong>מודלי AI</strong> (Anthropic / OpenAI) — תלוי שימוש. עסק בינוני: ₪150–₪400/חודש.</li>
+          <li><strong>יצירת מדיה</strong> (fal.ai לתמונות, ElevenLabs לקריינות) — ₪80–₪250/חודש לפי כמות יצירה.</li>
+          <li><strong>כלי מחקר</strong> (DataForSEO + Firecrawl) — ₪80–₪200/חודש.</li>
+          <li><strong>תקציב פרסום ממומן</strong> (Google Ads + Meta) — מינימום מומלץ ₪3,000/חודש לעסק קטן, ₪10,000+ לעסק בצמיחה. <strong>זה הולך ישירות לגוגל ולמטא, לא דרכנו.</strong></li>
+        </ul>
+        <p><strong>שורה תחתונה לעסק קטן באוטופילוט:</strong> ₪1,500 (אנחנו) + ₪500–₪1,000 (כלים) + ₪3,000+ (פרסום) = <strong>₪5,000–₪6,000 בחודש</strong>. סוכנות מקבילה: ₪10,000–₪18,000.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">למה אתם דורשים שאני אביא את מפתחות ה-AI שלי? זה לא מסובך?</summary>
+      <div class="faq-a">
+        <p>זו החלטה ערכית, ויש לה סיבות טובות:</p>
+        <ul>
+          <li><strong>שקיפות</strong> — אתם רואים ב-<code>console.anthropic.com</code> או <code>platform.openai.com</code> בדיוק כמה הוצאתם. בלי הפתעות מצדנו.</li>
+          <li><strong>בלי תוספת אחוזים</strong> — אם הייתי קונה את ה-AI ומוכר לכם, הייתי חייב להוסיף 20–40% רווח. ככה אתם משלמים מחיר עלות.</li>
+          <li><strong>שליטה</strong> — אתם יכולים לעצור את החיוב בלחיצה. לא תלויים בנו.</li>
+          <li><strong>בעלות על הדאטה</strong> — לפי תנאי השירות של Anthropic ו-OpenAI ל-API: הדאטה <em>שלכם</em> לא משמשת לאימון מודלים. אם הייתם רצים דרך החשבון שלנו — לא בטוח.</li>
+        </ul>
+        <p><strong>מסובך?</strong> ההרשמה לוקחת 5 דקות, יש לנו מדריך מצולם, ובאוטופילוט אנחנו עוזרים לכם להגדיר את זה בשיחת ההקמה. זו עלות חד-פעמית, חיסכון לכל החיים.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">תקציב הפרסום עצמו — איך מחושב, איפה הוא משולם?</summary>
+      <div class="faq-a">
+        <p><strong>תקציב הפרסום (ad spend) משולם ישירות לגוגל ולמטא — לא דרכנו.</strong> כרטיס האשראי שלכם, החיוב על שמכם.</p>
+        <p>בתהליך ההקמה (אוטופילוט) אנחנו ממליצים על תקציב התחלתי בהתאם ל:</p>
+        <ul>
+          <li><strong>נישה</strong> — תחרותיות מילות המפתח (CPC ממוצע) לפי DataForSEO.</li>
+          <li><strong>יעדים עסקיים</strong> — כמה לידים בחודש, ערך לקוח ממוצע (LTV).</li>
+          <li><strong>היקף פעילות</strong> — מקומי / ארצי / בינלאומי.</li>
+        </ul>
+        <p>בדרך כלל ההמלצה ההתחלתית היא ₪3,000–₪10,000/חודש לעסק קטן. תקציב נמוך מ-₪3,000 — קשה לקבל מהקמפיין סיגנל סטטיסטי משמעותי, וההמלצה היא להמתין.</p>
+        <p>אנחנו מתאימים את התקציב חודשית על בסיס תוצאות. <strong>החלטה סופית — שלכם.</strong></p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">מה קורה לדאטה שלי? למי יש גישה? איפה זה רץ?</summary>
+      <div class="faq-a">
+        <p><strong>איפה:</strong> שרת VPS פרטי בענן <code>Hetzner</code> אירופה (Helsinki). <strong>עומד בתקן GDPR.</strong> לא משותף עם לקוחות אחרים — VPS ייחודי לכם.</p>
+        <p><strong>למי יש גישה:</strong></p>
+        <ul>
+          <li><strong>אתם</strong> — גישה מלאה דרך לוח הבקרה. ב-Developer Plan גם SSH ישירות לשרת.</li>
+          <li><strong>אנחנו</strong> — גישת admin לתחזוקה ועדכוני אבטחה. לא קוראים את התוכן השיווקי שלכם.</li>
+          <li><strong>צד שלישי</strong> — רק לכלים שאתם בעצמכם מחברתם (Google Ads, Meta, וכו'). מפתחות שלכם, חשבונות שלכם.</li>
+        </ul>
+        <p><strong>מה לא קורה:</strong></p>
+        <ul>
+          <li>הדאטה לא משמשת לאימון מודלי AI (תנאי Anthropic / OpenAI ל-API).</li>
+          <li>לא משותפת עם משווקים אחרים, לא מנותחת לצורך מכירה לצד ג'.</li>
+          <li>לא נשארת אצלנו אחרי ביטול — ראו השאלה הבאה.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">אם אני מבטל — מה אני לוקח איתי? יש lock-in?</summary>
+      <div class="faq-a">
+        <p><strong>אין lock-in.</strong> בכל רגע, מה שלכם נשאר שלכם:</p>
+        <ul>
+          <li><strong>החשבונות</strong> — Google Ads, Meta Ads, GA4, Search Console — כולם רשומים <em>על שמכם</em> מההתחלה. אתם הבעלים, אנחנו רק מנהלים.</li>
+          <li><strong>התוכן</strong> — מאמרים, פוסטים, יצירות מדיה — נמצאים באתר שלכם וב-VPS שלכם. אפשר ייצוא מלא ל-ZIP בלחיצה.</li>
+          <li><strong>הדאטה</strong> — ספר מותג, פרופיל לקוח, היסטוריית קמפיינים, נתוני ביצוע — ייצוא ל-JSON.</li>
+          <li><strong>הסוכנים עצמם</strong> — קוד פתוח (<code>OpenClaw</code>, רישיון <code>MIT</code>). תוכלו להמשיך להריץ אותם על שרת אחר.</li>
+        </ul>
+        <p><strong>תהליך ביטול:</strong> שירות עצמי — לחיצה על "בטל" בלוח הבקרה, החיוב נעצר מיידית. אוטופילוט — מינימום 6 חודשים (כי זמן ההקמה והלמידה עצומים), אחרי זה ביטול חופשי בהתראה של 30 ימים.</p>
+        <p><strong>שמירת הנתונים אחרי ביטול:</strong> 90 ימים לייצוא נתונים אחרי ביטול. אחרי 90 ימים — מחיקה מלאה.</p>
+      </div>
+    </details>
+
+  </div>
+
+  <div class="faq-cta">
+    <a href="#cards-wrap-anchor" onclick="document.querySelector('.cards-wrap').scrollIntoView({behavior:'smooth',block:'start'});return false;">בחרו חבילה ←</a>
+    <div class="faq-cta-note">לא מצאתם תשובה? <a href="mailto:hello@flowmatic.co.il">hello@flowmatic.co.il</a></div>
+  </div>
+</section>
+
+<!-- ═══ Site footer (matches /index.html trust-strip) ═══ -->
+<footer class="site-footer">
+  <div class="site-footer-row1">
+    <span>Hetzner Cloud Europe</span><span class="dot">·</span>
+    <span>AllPay · PCI DSS Level 1</span><span class="dot">·</span>
+    <span>SSL + חשבונית מס אוטומטית</span><span class="dot">·</span>
+    <span>99.5% uptime SLA</span>
+  </div>
+  <div class="site-footer-row2">
+    ClawFlow · by Flowmatic <span class="pipe">|</span>
+    <a href="/about">תיעוד</a><span class="pipe">|</span>
+    <a href="/terms">תנאי שימוש</a><span class="pipe">|</span>
+    <a href="/privacy">מדיניות פרטיות</a><span class="pipe">|</span>
+    <a href="/cancellation">מדיניות ביטול</a><span class="pipe">|</span>
+    <a href="/disclosure">גילוי נאות</a><span class="pipe">|</span>
+    <a href="mailto:hello@flowmatic.co.il">hello@flowmatic.co.il</a><span class="pipe">|</span>
+    <span>© 2026 Flowmatic</span>
+  </div>
+</footer>
+
+<script>
+function cfToggleVideo(e) {
+  if (e) e.preventDefault();
+  var v = document.getElementById('cf-hero-video');
+  if (!v) return;
+  // Hide overlay immediately on click — don't wait for the async 'play' event.
+  // Otherwise on slow devices/networks the play button stays visible for ~1s
+  // until the video actually starts playing, which feels broken.
+  if (v.paused || v.ended) {
+    var play = document.getElementById('cf-hero-play');
+    var label = document.getElementById('cf-hero-label');
+    var frame = document.getElementById('hero-video');
+    if (play) play.classList.add('cf-hidden');
+    if (label) label.classList.add('cf-hidden');
+    if (frame) frame.classList.add('cf-playing');
+    v.play();
+  } else {
+    v.pause();
+  }
 }
+document.addEventListener('DOMContentLoaded', function () {
+  var v = document.getElementById('cf-hero-video');
+  var frame = document.getElementById('hero-video');
+  var play = document.getElementById('cf-hero-play');
+  var label = document.getElementById('cf-hero-label');
+  var prog = document.getElementById('cf-hero-progress');
+  if (!v) return;
 
-/* ─────────────────────────────────────────
-   RENDER SUMMARY
-───────────────────────────────────────── */
-function renderSummary() {
-  const s = calcPlan();
-  const planName = lang === 'he' ? s.plan.he : s.plan.en;
-  const pct = Math.min(100, (s.ram / s.plan.ram) * 100);
-  const barColor = pct > 85 ? 'var(--danger)' : pct > 65 ? 'var(--warning)' : 'var(--primary)';
-
-  // Plan card
-  document.getElementById('plan-name').textContent = `${t('sum-plan-lbl')} ${planName}`;
-  const cpuLabel = s.plan.cpu + ' vCPU' + (s.plan.cpuType === 'dedicated' ? ' ⚡' : '');
-  const specParts = [cpuLabel, s.plan.ram + 'GB RAM', s.plan.nvme + 'GB NVMe'];
-  if (s.plan.cpuType === 'dedicated') specParts.push('Dedicated');
-  document.getElementById('plan-specs').textContent = specParts.join(' · ');
-
-  // RAM bar
-  document.getElementById('ram-label').textContent = t('ram-label');
-  document.getElementById('ram-val').textContent = `${s.ram.toFixed(1)} / ${s.plan.ram} GB`;
-  document.getElementById('ram-fill').style.width = `${pct}%`;
-  document.getElementById('ram-fill').style.background = barColor;
-
-  // Items list
-  const allSel = ITEMS.filter(i => selected.has(i.id) && !i.soon);
-  const sumItems = document.getElementById('sum-items');
-  const sumEmpty = document.getElementById('sum-empty');
-
-  if (allSel.length === 0) {
-    sumEmpty.style.display = 'block';
-    sumEmpty.innerHTML = t('sum-empty');
-    const existing = sumItems.querySelectorAll('.sum-item');
-    existing.forEach(el => el.remove());
-  } else {
-    sumEmpty.style.display = 'none';
-    sumItems.querySelectorAll('.sum-item').forEach(el => el.remove());
-    allSel.forEach(item => {
-      const name = lang === 'he' ? item.he : item.en;
-      const priceStr = item.storage
-        ? `+\u20AA${storagePrice()}`
-        : (item.extra > 0 ? `+\u20AA${item.extra}` : '');
-      const div = document.createElement('div');
-      div.className = 'sum-item';
-      div.innerHTML = `<div class="sum-dot"></div>
-        <span class="sum-item-name">${name}</span>
-        ${priceStr ? `<span class="sum-item-price">${priceStr}</span>` : ''}`;
-      sumItems.appendChild(div);
-    });
+  function onPlay() {
+    if (play) play.classList.add('cf-hidden');
+    if (label) label.classList.add('cf-hidden');
+    if (frame) frame.classList.add('cf-playing');
+  }
+  function onPause() {
+    if (play) play.classList.remove('cf-hidden');
+    if (label) label.classList.remove('cf-hidden');
+    if (frame) frame.classList.remove('cf-playing');
   }
 
-  // Billing period calculations
-  const isAnnual = billingPeriod === 'annual';
-  const monthlyTotal = s.total;
-  const annualTotal = Math.round(monthlyTotal * 12 * 0.82);
-  const savingsAmount = (monthlyTotal * 12) - annualTotal;
-
-  // Savings display
-  const savingsEl = document.getElementById('billing-savings');
-  if (isAnnual && s.hasAgent) {
-    savingsEl.textContent = t('billing-save').replace('{amount}', savingsAmount);
-  } else {
-    savingsEl.textContent = '';
-  }
-
-  // Price rows
-  document.getElementById('sum-plan-lbl').textContent = t('sum-plan-lbl');
-  if (isAnnual) {
-    const annualPlan = Math.round(s.plan.price * 12 * 0.82);
-    document.getElementById('sum-plan-price').textContent = `\u20AA${annualPlan}`;
-  } else {
-    document.getElementById('sum-plan-price').textContent = `\u20AA${s.plan.price}`;
-  }
-
-  const addonsRow = document.getElementById('sum-addons-row');
-  if (s.extra > 0) {
-    addonsRow.style.display = 'flex';
-    document.getElementById('sum-addons-lbl').textContent = t('sum-addons-lbl');
-    if (isAnnual) {
-      const annualExtras = Math.round(s.extra * 12 * 0.82);
-      document.getElementById('sum-addons-price').textContent = `\u20AA${annualExtras}`;
-    } else {
-      document.getElementById('sum-addons-price').textContent = `\u20AA${s.extra}`;
+  v.addEventListener('play', onPlay);
+  v.addEventListener('playing', onPlay);
+  v.addEventListener('pause', onPause);
+  v.addEventListener('ended', onPause);
+  v.addEventListener('timeupdate', function () {
+    if (prog && v.duration) {
+      prog.style.width = ((v.currentTime / v.duration) * 100) + '%';
     }
-  } else {
-    addonsRow.style.display = 'none';
-  }
-
-  const totalEl = document.getElementById('sum-total');
-  const periodSuffix = isAnnual ? t('sum-yr') : t('sum-mo');
-  if (s.hasAgent) {
-    const displayTotal = isAnnual ? annualTotal : monthlyTotal;
-    totalEl.innerHTML = `\u20AA${displayTotal}<span>${periodSuffix}</span>`;
-  } else {
-    totalEl.innerHTML = `\u2014<span>${periodSuffix}</span>`;
-  }
-
-  // Deploy / Next btn — based on wizard step
-  const btn = document.getElementById('deploy-btn');
-  const hintEl = document.getElementById('deploy-hint');
-
-  if (currentWizStep < 3) {
-    // Steps 1-2: show "Next" button, but require selection
-    var stepCat = STEP_TO_CAT[currentWizStep];
-    var hasStepSelection = ITEMS.some(function(i) { return i.cat === stepCat && selected.has(i.id) && !i.soon; });
-    if (hasStepSelection) {
-      btn.className = 'deploy-btn active';
-      btn.disabled = false;
-      document.getElementById('deploy-text').textContent = lang === 'he' ? '\u2190 הבא' : 'Next \u2192';
-      hintEl.innerHTML = '<span style="color:#6B7280;font-size:0.78rem">' + (lang === 'he' ? 'שלב' : 'Step') + ' ' + currentWizStep + ' ' + (lang === 'he' ? 'מתוך' : 'of') + ' 3</span>';
-    } else {
-      btn.className = 'deploy-btn inactive';
-      btn.disabled = true;
-      var hintMsgs = { 1: { he: 'בחרו לפחות סוכן אחד', en: 'Select at least one agent' }, 2: { he: 'בחרו מנוע אוטומציה', en: 'Select an automation engine' } };
-      document.getElementById('deploy-text').textContent = lang === 'he' ? '\u2190 הבא' : 'Next \u2192';
-      hintEl.innerHTML = '<span style="color:var(--warning);font-size:0.78rem">' + hintMsgs[currentWizStep][lang] + '</span>';
-    }
-  } else {
-    // Step 3: show deploy button (original behavior)
-    if (s.hasAgent) {
-      btn.className = 'deploy-btn active';
-      btn.disabled = false;
-      document.getElementById('deploy-text').textContent = t('deploy-active');
-      hintEl.innerHTML = `<div class="deploy-hint-dot"></div>${t('deploy-hint-active')}`;
-    } else {
-      btn.className = 'deploy-btn inactive';
-      btn.disabled = true;
-      document.getElementById('deploy-text').textContent = t('deploy-inactive');
-      hintEl.innerHTML = t('deploy-hint-inactive');
-    }
-  }
-}
-
-/* ─────────────────────────────────────────
-   RENDER TRANSLATIONS
-───────────────────────────────────────── */
-function applyTranslations() {
-  const textIds = [
-    'cfg-h2', 'sum-label', 'ram-label',
-    'nav-docs', 'nav-support', 'nav-login',
-    'tr1', 'tr2', 'tr3', 'tr4',
-  ];
-  textIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el && T[lang][id]) el.textContent = T[lang][id];
   });
-
-  // innerHTML for cfg-sub (has <b>)
-  const cfgSub = document.getElementById('cfg-sub');
-  if (cfgSub) cfgSub.innerHTML = t('cfg-sub');
-
-  // RTL / LTR
-  document.documentElement.setAttribute('dir', lang === 'he' ? 'rtl' : 'ltr');
-  document.documentElement.setAttribute('lang', lang);
-
-  // Update billing labels
-  updateBillingUI();
-}
-
-/* ─────────────────────────────────────────
-   RENDER ALL
-───────────────────────────────────────── */
-function renderAll() {
-  document.getElementById('cfg-list').innerHTML = renderList() + renderMascot();
-  renderSummary();
-  mascotSpeak();
-}
-
-/* ─────────────────────────────────────────
-   LANGUAGE SWITCHER
-───────────────────────────────────────── */
-function setLang(l) {
-  lang = l;
-  document.getElementById('btn-he').classList.toggle('active', l === 'he');
-  document.getElementById('btn-en').classList.toggle('active', l === 'en');
-  applyTranslations();
-  renderAll();
-}
-
-/* ─────────────────────────────────────────
-   DEPLOY BUTTON
-───────────────────────────────────────── */
-document.getElementById('deploy-btn').addEventListener('click', function() {
-  // Steps 1-2: advance to next step only if selection made
-  if (currentWizStep < 3) {
-    var stepCat = STEP_TO_CAT[currentWizStep];
-    var hasSelection = ITEMS.some(function(i) { return i.cat === stepCat && selected.has(i.id) && !i.soon; });
-    if (!hasSelection) return;
-    goWizStep(currentWizStep + 1);
-    return;
-  }
-  // Step 3: deploy
-  const s = calcPlan();
-  if (!s.hasAgent) return;
-  const componentIds = ITEMS.filter(i => selected.has(i.id) && !i.soon).map(i => i.id).join(',');
-  const storageVal = selected.has('xs') ? storageGb : 0;
-  if (window.plausible) plausible('Deploy Click', {props: {plan: s.plan.key, components: componentIds}});
-  window.location.href = `/register?plan=${s.plan.key}&components=${componentIds}&storage=${storageVal}&billing=${billingPeriod}`;
 });
 
-/* ─────────────────────────────────────────
-   AI MASCOT
-───────────────────────────────────────── */
-var mascotBotSVG = '<svg class="mascot-bot" id="mascot-bot" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
-  + '<rect x="12" y="20" width="40" height="34" rx="10" fill="#1E3A5F"/>'
-  + '<rect x="16" y="24" width="32" height="26" rx="7" fill="#2563EB" opacity=".15"/>'
-  + '<circle cx="32" cy="12" r="4" fill="#2563EB"/>'
-  + '<line x1="32" y1="16" x2="32" y2="20" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>'
-  + '<g class="mascot-eye" style="transform-origin:25px 35px"><circle cx="25" cy="35" r="4" fill="white"/><circle cx="25" cy="35" r="2" fill="#0F172A"/></g>'
-  + '<g class="mascot-eye" style="transform-origin:39px 35px"><circle cx="39" cy="35" r="4" fill="white"/><circle cx="39" cy="35" r="2" fill="#0F172A"/></g>'
-  + '<rect class="mascot-mouth" x="27" y="44" width="10" height="3" rx="1.5" fill="#64B5F6" style="transform-origin:32px 45.5px"/>'
-  + '<rect x="10" y="32" width="4" height="10" rx="2" fill="#1E3A5F"/>'
-  + '<rect x="50" y="32" width="4" height="10" rx="2" fill="#1E3A5F"/>'
-  + '</svg>';
-
-var MASCOT_MSGS = {
-  1: {
-    idle:  { he: 'בחרו לפחות סוכן אחד כדי להמשיך. לתיאור מפורט לחצו על <span class="mascot-info-icon">i</span> ליד כל סוכן.', en: 'Pick at least one agent. For details click <span class="mascot-info-icon">i</span> next to each agent.' },
-    oc:    { he: 'בחירה מצוינת! העוזר האישי שלכם ידע לנהל יומן, לחפש מידע ולכתוב טיוטות.', en: 'Great choice! Your personal assistant will manage calendar, search the web and draft messages.' },
-    mt:    { he: 'וואו, 9 סוכני שיווק! מחקר שוק, כתיבת תוכן, ניתוח מתחרים — הכל אוטומטי.', en: 'Wow, 9 marketing agents! Market research, content writing, competitor analysis — all automated.' },
-    bare:  { he: 'שרת נקי — בנו מה שאתם רוצים, בלי מגבלות.', en: 'Clean server — build whatever you want, no limits.' },
-    both:  { he: 'שילוב מנצח! עוזר אישי + צוות שיווק שלם.', en: 'Winning combo! Personal assistant + full marketing team.' },
-  },
-  2: {
-    idle: { he: 'בגדול אין הבדל — זה רק המנוע מאחורי הקלעים. לסוכן שלכם זה לא משנה. שניהם מצוינים, בחרו מה שנוח.', en: 'Basically no difference — it\'s just the engine behind the scenes. Your agent doesn\'t care. Both are great, pick what feels right.' },
-    /* n8n removed */
-    ap:   { he: 'Activepieces — רישיון MIT, מותר לשימוש מסחרי ללא מגבלות. מושלם לרוב המשתמשים!', en: 'Activepieces — MIT license, fully open for commercial use. Perfect for most users!' },
-  },
-  3: {
-    idle: { he: 'ברירת המחדל מתאימה ל-95% מהמקרים. אם אתם לא בטוחים — השאירו כמו שזה.', en: 'The default fits 95% of cases. If unsure — leave it as is.' },
-    ol:   { he: 'Ollama משתלם רק אם אתם מתכננים פעילות ענפה עם כמות גדולה של פעולות. לעסק קטן — כנראה לא יחסוך מספיק.', en: 'Ollama pays off only with heavy usage and large volumes. For small business — probably won\'t save enough to justify it.' },
-    ok:   { he: 'בחירה נכונה לרוב המשתמשים. שליטה מלאה על העלויות — משלמים רק על מה שמשתמשים.', en: 'Right choice for most users. Full cost control — pay only for what you use.' },
-  },
-  4: {
-    idle: { he: 'ממליץ בחום על גיבוי יומי! שקט נפשי ב-₪19 לחודש. העסק שלכם שווה את זה.', en: 'Highly recommend daily backup! Peace of mind for ₪19/mo. Your business is worth it.' },
-    bk:   { he: '👍 בחירה חכמה. 7 ימי היסטוריה + שחזור בלחיצה. שקט נפשי מובטח!', en: '👍 Smart choice. 7-day history + one-click restore. Peace of mind guaranteed!' },
-    xs:   { he: 'אחסון נוסף — מושלם אם יש הרבה מסמכים, תמונות או דאטה. ואל תשכחו את הגיבוי!', en: 'Extra storage — perfect for lots of docs, images or data. Don\'t forget backup!' },
-    both: { he: 'גיבוי + אחסון — העסק שלכם מוגן ומוכן לגדול! 🚀', en: 'Backup + storage — your business is protected and ready to grow! 🚀' },
+function pick(plan) {
+  if (plan === 'autopilot') {
+    var msg = 'שלום סרגיי! אני מתעניין במסלול אוטופילוט (ניהול שיווק מלא) של ClawFlow. אשמח לתאם שיחת הכרות.';
+    var url = 'https://wa.me/972546309980?text=' + encodeURIComponent(msg);
+    var w = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!w) window.location.href = url;  // popup blocked → fall back to same-tab
+  } else if (plan === 'self_service') {
+    window.location.href = '/register';
   }
-};
-
-var mascotTypeTimer = null;
-var mascotLastMsg = '';
-
-function renderMascot() {
-  return '<div class="mascot-wrap">'
-    + mascotBotSVG
-    + '<div class="mascot-bubble" id="mascot-bubble"><span id="mascot-text"></span></div>'
-    + '</div>';
 }
-
-function getMascotMessage() {
-  var step = currentWizStep;
-  var msgs = MASCOT_MSGS[step];
-  if (!msgs) return '';
-
-  if (step === 1) {
-    var hasOC = selected.has('oc');
-    var hasMT = selected.has('mt');
-    var hasBare = selected.has('bare');
-    if (hasOC && hasMT) return msgs.both[lang];
-    if (hasOC) return msgs.oc[lang];
-    if (hasMT) return msgs.mt[lang];
-    if (hasBare) return msgs.bare[lang];
-    return msgs.idle[lang];
-  }
-  if (step === 2) {
-    if (selected.has('n8')) return msgs.n8[lang];
-    if (selected.has('ap')) return msgs.ap[lang];
-    return msgs.idle[lang];
-  }
-  if (step === 3) {
-    var hasBK = selected.has('bk');
-    var hasXS = selected.has('xs');
-    if (hasBK && hasXS) return msgs.both[lang];
-    if (hasBK) return msgs.bk[lang];
-    if (hasXS) return msgs.xs[lang];
-    return msgs.idle[lang];
-  }
-  return '';
-}
-
-function mascotSpeak() {
-  var msg = getMascotMessage();
-  var textEl = document.getElementById('mascot-text');
-  var botEl = document.getElementById('mascot-bot');
-  if (!textEl || !botEl) return;
-
-  // Bounce on selection change
-  if (msg !== mascotLastMsg && mascotLastMsg !== '') {
-    botEl.classList.remove('excited');
-    void botEl.offsetWidth; // reflow
-    botEl.classList.add('excited');
-    setTimeout(function() { botEl.classList.remove('excited'); }, 500);
-  }
-
-  if (msg === mascotLastMsg) return;
-  mascotLastMsg = msg;
-
-  // Clear previous typing
-  if (mascotTypeTimer) { clearInterval(mascotTypeTimer); mascotTypeTimer = null; }
-  textEl.innerHTML = '';
-  botEl.classList.add('speaking');
-
-  // Typewriter — strip HTML for animation, show full HTML at end
-  var plainMsg = msg.replace(/<[^>]+>/g, '\u24D8');
-  var i = 0;
-  mascotTypeTimer = setInterval(function() {
-    if (i < plainMsg.length) {
-      textEl.textContent = plainMsg.substring(0, i + 1);
-      i++;
-    } else {
-      clearInterval(mascotTypeTimer);
-      mascotTypeTimer = null;
-      botEl.classList.remove('speaking');
-      if (msg !== plainMsg) textEl.innerHTML = msg;
-    }
-  }, 25);
-}
-
-/* ─────────────────────────────────────────
-   INIT
-───────────────────────────────────────── */
-applyTranslations();
-renderAll();
 </script>
-
-<!-- Chat Widget -->
-<script src="/chat-widget.js?v=2026-05-04-mobile"></script>
-<!-- Plausible Analytics -->
-<script defer data-domain="flowmatic.co.il" src="https://plausible.io/js/script.js"></script>
-<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)};</script>
 </body>
 </html>

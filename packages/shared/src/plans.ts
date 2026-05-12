@@ -47,7 +47,7 @@ const ADDONS = [
 ]
 
 // HaaS (Human as a Service) — marketing management subscription tiers.
-// Canonical pricing lives here + rendered on /auto-pilot landing page.
+// Canonical pricing lives here + rendered on the ClawFlow home landing page.
 // null tier = self-service (no HaaS, user does everything themselves).
 export interface HaasTier {
     id: 'self_service' | 'configuration' | 'autopilot'
