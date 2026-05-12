@@ -12923,8 +12923,67 @@ function renderRecordsByStage(stageId, records) {
     case 'positioning':            return renderPositioningRecord(records[0]);
     case 'strategy_options':       return renderScenarioRecords(records);
     case 'validation':             return renderValidationRecords(records);
+    case 'content_plan':           return renderContentPlanRecords(records);
     default:                        return renderJsonFallback(records);
   }
+}
+
+// Phase 4.0(fix13) — content_plan records are individual editorial calendar
+// items. Render as a compact table with status badges. Calendar widget in
+// the agents tab still shows the full schedule view; this is the pipeline
+// stage summary.
+function renderContentPlanRecords(records) {
+  if (!records || !records.length) return '';
+  // Group by status for an at-a-glance summary
+  var statusCounts = {};
+  records.forEach(function(r) {
+    var s = r.status || 'planned';
+    statusCounts[s] = (statusCounts[s] || 0) + 1;
+  });
+  var statusLabels = {
+    planned: 'מתוכנן', drafting: 'בכתיבה', awaiting_review: 'ממתין לסקירה',
+    approved: 'מאושר', scheduled: 'מתוזמן', published: 'פורסם',
+    ready_for_manual: 'מוכן ידני', archived: 'בארכיון'
+  };
+  var statusColors = {
+    planned: '#9CA3AF', drafting: '#3B82F6', awaiting_review: '#F59E0B',
+    approved: '#10B981', scheduled: '#8B5CF6', published: '#059669',
+    ready_for_manual: '#F97316', archived: '#6B7280'
+  };
+  var summaryHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">'
+    + Object.keys(statusCounts).map(function(s) {
+        var color = statusColors[s] || '#9CA3AF';
+        return '<span style="font-size:0.74rem;padding:3px 10px;border-radius:12px;background:' + color + '20;color:' + color + ';font-weight:500">'
+          + (statusLabels[s] || s) + ': ' + statusCounts[s] + '</span>';
+      }).join('')
+    + '</div>';
+  var itemsHtml = '<div style="margin-top:6px;max-height:400px;overflow-y:auto;border:1px solid #E5E7EB;border-radius:8px;background:#fff">'
+    + records.slice(0, 50).map(function(r, idx) {
+        var status = r.status || 'planned';
+        var color = statusColors[status] || '#9CA3AF';
+        var dateStr = r.scheduledFor || r.publishAt || r.date || '';
+        if (dateStr && dateStr.length > 10) dateStr = dateStr.slice(0, 10);
+        var typeIcon = ({
+          blog_post: '📝', social_post: '📱', email: '📧',
+          gmb_post: '📍', video: '🎬', landing_page: '📄'
+        })[r.type] || '📌';
+        return '<div style="padding:8px 12px;border-bottom:1px solid #F3F4F6;display:flex;align-items:center;gap:10px;font-size:0.82rem">'
+          + '<span style="font-size:1rem">' + typeIcon + '</span>'
+          + '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151">'
+            + escapeHtml(r.title || r.topic || r.keyword || 'ללא כותרת')
+          + '</span>'
+          + (dateStr ? '<span style="font-size:0.74rem;color:#9CA3AF;direction:ltr;white-space:nowrap">' + dateStr + '</span>' : '')
+          + '<span style="font-size:0.7rem;padding:2px 8px;border-radius:4px;background:' + color + '20;color:' + color + ';white-space:nowrap">'
+            + (statusLabels[status] || status) + '</span>'
+          + '</div>';
+      }).join('')
+    + (records.length > 50 ? '<div style="padding:8px 12px;color:#9CA3AF;font-size:0.78rem;text-align:center">+' + (records.length - 50) + ' פריטים נוספים (ראו לוח התוכן בלשונית הסוכן)</div>' : '')
+    + '</div>';
+  return '<div style="margin:8px 0">'
+    + '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:6px">' + records.length + ' פריטי תוכן</div>'
+    + summaryHtml
+    + itemsHtml
+    + '</div>';
 }
 
 function renderJsonFallback(records) {

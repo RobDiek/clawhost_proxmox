@@ -100,12 +100,31 @@ export async function run(c: Context): Promise<Response> {
 - מספר פריטים חדשים: ${plan.length}
 - פריטים שבעבודה (נשמרו): ${inProgress.length}`
 
+        // Phase 4.0(fix13) — surface plan items as records so UI per-stage
+        // panel can render them inline. Legacy rd.contentPlan stays as
+        // the source-of-truth for the calendar widget.
+        const chosenScenarioForExtras = rd.chosenScenario as Record<string, unknown> | undefined
         await markWrapperStageCompleted({
             instanceId,
             stageId: 'content_plan',
             summaryMd,
             integrationsUsed: ['anthropic'],
             agentId: __agent?.id,
+            records: finalPlan,
+            extras: {
+                horizon_weeks: weeksAhead,
+                new_items_count: plan.length,
+                preserved_in_progress_count: inProgress.length,
+                chosen_scenario_summary: chosenScenarioForExtras
+                    ? {
+                        scenario: chosenScenarioForExtras.scenario,
+                        confidence: chosenScenarioForExtras.confidence,
+                        auto_selected: !!chosenScenarioForExtras._autoSelected,
+                        auto_selected_reason: chosenScenarioForExtras._autoSelectedReason,
+                    }
+                    : undefined,
+            },
+            confidence: chosenScenarioForExtras?.confidence as 'high' | 'medium' | 'working_hypothesis' | undefined,
         })
 
         releaseResearchLock(instanceId)

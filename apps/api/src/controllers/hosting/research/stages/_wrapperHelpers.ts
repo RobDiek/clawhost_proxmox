@@ -22,8 +22,24 @@ export async function markWrapperStageCompleted(args: {
     summaryMd: string
     integrationsUsed: string[]
     agentId?: string
+    /**
+     * Phase 4.0(fix13) — wrapper stages (content_plan, media_plan,
+     * paid_audit) historically kept their data in legacy top-level
+     * research_data keys (rd.contentPlan, rd.mediaPlan, rd.mazhirAudit)
+     * and wrote ONLY a summary blurb to results[stageId]. That hid the
+     * data from the unified pipeline UI which reads
+     * results[stageId].records[] to render per-stage panels.
+     *
+     * Wrapper callers now pass `records` + optional `extras` so the
+     * results marker mirrors the same shape as research stages. The
+     * legacy top-level key stays (for backward compat with calendar/
+     * media-plan widgets that already read from there).
+     */
+    records?: unknown[]
+    extras?: Record<string, unknown>
+    confidence?: 'high' | 'medium' | 'working_hypothesis'
 }): Promise<void> {
-    const { instanceId, stageId, summaryMd, integrationsUsed, agentId } = args
+    const { instanceId, stageId, summaryMd, integrationsUsed, agentId, records, extras, confidence } = args
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error(`markWrapperStageCompleted: instance ${instanceId} not found`)
 
@@ -43,6 +59,9 @@ export async function markWrapperStageCompleted(args: {
         source: 'mixed',
         runAt,
         integrationsUsed,
+        ...(records ? { records } : {}),
+        ...(extras ? { extras } : {}),
+        ...(confidence ? { confidence } : {}),
     }
     status[stageId] = { state: 'completed', runAt }
 
