@@ -254,6 +254,11 @@ export type EnrichedProfile = {
     productCategories?: string[]
     competitors?: string[]
     conversionMechanism?: string
+    /** Phase 4.0(fix10) — mandatory for integration gate's business_profile
+     *  check. Without these, downstream stages (validation, content_plan)
+     *  return 422. */
+    businessModel?: 'ecommerce' | 'saas' | 'service' | 'local' | 'content' | 'b2b' | 'marketplace' | 'other'
+    geography?: string
     /** Raw debug fields so caller can inspect / log. */
     _meta: {
         pagesCrawled: string[]
@@ -305,6 +310,8 @@ const EXTRACTION_PROMPT = `אתה אנליסט שיווק שמקבל markdown ש
 
 {
   "businessDescription": "1-3 משפטים בעברית. מה העסק עושה, למי, ומה הערך שלו. דוגמה טובה: 'חבילות אריזה מוכנות למעבר דירה — קרטונים, סרטי דבק, גלילי בועות, נייר עטיפה. משלוח מהיר ברחבי הארץ. מתאים למשפחות, סטודנטים ועסקים.'",
+  "businessModel": "ENUM אחד מבין: 'ecommerce' (חנות אונליין שמוכרת מוצרים) / 'saas' (תוכנה במנוי) / 'service' (שירות פיזי או דיגיטלי — אחסון, ניקיון, הובלות, ייעוץ, ביטוח, רפואה) / 'local' (עסק מקומי תלוי-מיקום — מסעדה, מספרה, סטודיו יוגה) / 'content' (אתר תוכן / בלוג / מדיה) / 'b2b' (מוכרים לעסקים בלבד) / 'marketplace' (פלטפורמה שמחברת ספקים ולקוחות) / 'other'. חובה למלא — חיוני להמשך המחקר.",
+  "geography": "אזור גיאוגרפי שהעסק משרת. דוגמאות: 'ישראל — מרכז (תל אביב, רמת גן, גבעתיים, פתח תקווה)' / 'ישראל — ארצי' / 'ישראל + ארה״ב' / 'גלובלי, אנגלית'. חובה למלא.",
   "targetAudience": "1-2 משפטים בעברית. מי הלקוח האידיאלי — דמוגרפיה + מה הם רוצים + מה הכאב. דוגמה: 'משפחות וסטודנטים בגילאי 25-50 שעוברים דירה ורוצים פתרון אריזה מהיר ונוח. עסקים קטנים שמשנים משרד.'",
   "valuePropositions": ["3-5 USP'ים קצרים שהאתר עצמו מדגיש (משלוח מהיר, מחיר טוב, איכות גבוהה, מבחר רחב, וכו')"],
   "productCategories": ["קטגוריות עיקריות שהאתר מציג (למשל: 'קרטונים', 'סרטי דבק', 'אריזת מתנות'). אם זה אתר שירות — סוגי שירותים."],
@@ -318,6 +325,7 @@ const EXTRACTION_PROMPT = `אתה אנליסט שיווק שמקבל markdown ש
 - עברית בלבד בכל הטקסטים. אם האתר באנגלית, תרגם.
 - אל תמציא — אם לא רואים, השאר ריק.
 - businessDescription חייב להיות קונקרטי, לא משווקי-מנופח. עדיף "מוכרים חבילות אריזה למעברי דירה" מאשר "המקום שלכם לכל צרכי האריזה!".
+- businessModel + geography הם חובה — אם לא ברור מהאתר, החזר את ההערכה הסבירה ביותר על סמך התוכן (לא להשאיר ריק).
 
 ## העמודים שנסרקו:`
 
@@ -328,6 +336,8 @@ type SonnetResponse = {
     productCategories?: string[]
     competitors?: string[]
     conversionMechanism?: string
+    businessModel?: 'ecommerce' | 'saas' | 'service' | 'local' | 'content' | 'b2b' | 'marketplace' | 'other'
+    geography?: string
     confidence?: 'high' | 'medium' | 'low'
     notes?: string[]
 }
@@ -404,6 +414,11 @@ function shouldEnrichField(
             return typeof v !== 'string' || v.trim().length < 3
         case 'conversionMechanism':
             return typeof v !== 'string' || v.trim().length < 5
+        case 'businessModel':
+        case 'geography':
+            // Phase 4.0(fix10) — mandatory for integration gate's
+            // business_profile check. Fill if blank.
+            return typeof v !== 'string' || v.trim().length < 3
         case 'valuePropositions':
         case 'productCategories':
             return !Array.isArray(v) || v.length === 0
@@ -494,6 +509,13 @@ export async function enrichProfileFromUrl(input: EnrichmentInput): Promise<Enri
     if (extracted.conversionMechanism && shouldEnrichField('conversionMechanism', existing)) {
         merged.conversionMechanism = extracted.conversionMechanism.trim()
     }
+    // Phase 4.0(fix10) — businessModel + geography (mandatory for downstream gate)
+    if (extracted.businessModel && shouldEnrichField('businessModel', existing)) {
+        merged.businessModel = extracted.businessModel
+    }
+    if (extracted.geography && shouldEnrichField('geography', existing)) {
+        merged.geography = extracted.geography.trim()
+    }
     return merged
 }
 
@@ -508,6 +530,9 @@ export function enrichmentToAnswersPatch(e: EnrichedProfile): Record<string, unk
     if (e.targetAudience) patch.targetAudience = e.targetAudience
     if (e.competitors && e.competitors.length > 0) patch.competitors = e.competitors.join(', ')
     if (e.conversionMechanism) patch.conversionMechanism = e.conversionMechanism
+    // Phase 4.0(fix10) — mandatory for integration gate
+    if (e.businessModel) patch.businessModel = e.businessModel
+    if (e.geography) patch.geography = e.geography
     // valuePropositions + productCategories are stored as arrays for now
     if (e.valuePropositions && e.valuePropositions.length > 0) patch.valuePropositions = e.valuePropositions
     if (e.productCategories && e.productCategories.length > 0) patch.productCategories = e.productCategories
