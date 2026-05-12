@@ -287,6 +287,15 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         if (stageId === 'cost_timeline_modeling' && parsed.records && dfsData) {
             recomputeCostTimelineRecords(parsed.records, dfsData)
         }
+        // Phase 4.0 (validation refinement) — recompute confidence_score
+        // fields from the actual cross_validation_matrix data. Model
+        // estimates validated_count + score_0_100 by eyeballing — server
+        // is authoritative because it just counts overall_status='validated'
+        // rows. Also asserts validation_rate_pct = validated/total, which
+        // is what the UI banner shows.
+        if (stageId === 'validation' && parsed.rawJson && typeof parsed.rawJson === 'object') {
+            recomputeValidationScoreFromMatrix(parsed.rawJson as Record<string, unknown>)
+        }
         // Phase 3.21b — Hebrew filler scrubber. After research stages produce
         // records, sweep through the Hebrew-prose text fields and substitute
         // common English filler that the model keeps reaching for despite
@@ -580,6 +589,63 @@ function syncContentJsonBlock(
     } catch (err) {
         console.warn(`[syncContentJsonBlock] failed — keeping original content:`, (err as Error).message)
         return content
+    }
+}
+
+/**
+ * Phase 4.0 (validation refinement) — recompute validation.confidence_score
+ * from the actual cross_validation_matrix data instead of trusting the
+ * model's eyeballed numbers. Server owns the math.
+ *
+ *   validated_count = count of rows where overall_status === 'validated'
+ *   total_hypotheses = matrix.length
+ *   validation_rate_pct = round(validated / total * 100)
+ *   score_0_100 = validation_rate_pct (1:1 for now)
+ *   recommendation: 80+ → continue, 60-80 → small_pivot, <60 → back_to_research
+ *
+ * Mutates rawJson.confidence_score in place. Idempotent.
+ */
+function recomputeValidationScoreFromMatrix(root: Record<string, unknown>): void {
+    const matrix = root.cross_validation_matrix
+    if (!Array.isArray(matrix)) return
+
+    let validated = 0
+    let rejected = 0
+    let unclear = 0
+    for (const row of matrix) {
+        if (!row || typeof row !== 'object') continue
+        const status = (row as Record<string, unknown>).overall_status
+        if (status === 'validated') validated++
+        else if (status === 'rejected') rejected++
+        else if (status === 'unclear') unclear++
+    }
+    const total = matrix.length
+    if (total === 0) return
+
+    const ratePct = Math.round((validated / total) * 100)
+    let recommendation: 'continue' | 'small_pivot' | 'back_to_research'
+    if (ratePct >= 80) recommendation = 'continue'
+    else if (ratePct >= 60) recommendation = 'small_pivot'
+    else recommendation = 'back_to_research'
+
+    const existing = (root.confidence_score && typeof root.confidence_score === 'object')
+        ? (root.confidence_score as Record<string, unknown>)
+        : {}
+
+    const reported = typeof existing.score_0_100 === 'number' ? existing.score_0_100 : null
+    if (reported != null && Math.abs(reported - ratePct) > 5) {
+        console.warn(`[research/validation] confidence_score.score drift: model=${reported} computed=${ratePct} — overriding`)
+    }
+
+    root.confidence_score = {
+        ...existing,
+        validated_count: validated,
+        rejected_count: rejected,
+        unclear_count: unclear,
+        total_hypotheses: total,
+        validation_rate_pct: ratePct,
+        score_0_100: ratePct,
+        recommendation,
     }
 }
 

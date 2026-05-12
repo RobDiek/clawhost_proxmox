@@ -1858,9 +1858,21 @@ ${JSON_OUTPUT_RULES}
   "confidence_score": {
     "validated_count": 0,
     "total_hypotheses": 0,
+    "validation_rate_pct": 0,
     "score_0_100": 0,
     "recommendation": "continue | small_pivot | back_to_research",
-    "what_to_pivot": "אם small_pivot — מה בדיוק לעדכן",
+    "what_to_pivot": "אם small_pivot — תקציר חופשי של 2-3 משפטים בעברית. ROLE: human-readable summary שיופיע ב-UI banner.",
+    "strategy_changes": [
+      {
+        "field": "JSON-pointer מדויק לשדה ב-upstream stage (לדוגמה: 'strategy_options.records[0].budget_allocation_ils.paid_ads' / 'positioning.value_props[1].for_persona' / 'audience_personas.records[2].pricing_validation.wtp_range_ils')",
+        "from": "ערך נוכחי או תיאור 1-משפטי של מה שיש כיום",
+        "to": "ערך מוצע מבוסס על הראיונות (האקטואלי, לא דמיוני)",
+        "rationale_he": "1-2 משפטים בעברית: למה השינוי הזה — איזו תשובה / cross-val row תומכת",
+        "evidence_records": ["1.persona_name.q4", "2.persona_name.q7", "cross_val[3]"],
+        "impact": "high | medium | low",
+        "owner": "founder | content lead | sales | dev"
+      }
+    ],
     "back_to_which_stage": "אם back_to_research — איזה stage לחזור"
   },
   "top_3_blindspots": [
@@ -1888,6 +1900,15 @@ ${JSON_OUTPUT_RULES}
 - critical_answer_count חייב להיות **לפחות 5** מתוך 10 (50% rule). אם פחות → record_confidence = working_hypothesis עם הסבר.
 - cross_validation_matrix: לפחות 7 hypotheses, חייבים להגיע מ-strategy_options.records או positioning.records — אסור להמציא.
 - confidence_score.recommendation מבוסס על score: 80+ continue / 60-80 small_pivot / <60 back_to_research.
+- **strategy_changes חובה** — לפחות 2 items עבור recommendation=continue, **לפחות 4 items** עבור small_pivot, **לפחות 6 items** עבור back_to_research. כל change חייב לכלול את כל 7 השדות (field/from/to/rationale_he/evidence_records/impact/owner).
+- **field** ב-strategy_changes חייב להיות JSON-pointer מדויק לשדה upstream שניתן לעדכון אוטומטי. דוגמאות תקפות:
+  • strategy_options.records[0].budget_allocation_ils.paid_search (לעדכן תקציב)
+  • positioning.value_props[1].for_persona (לעדכן persona mapping)
+  • audience_personas.records[2].pricing_validation.wtp_range_ils (לעדכן WTP estimate)
+  • seo_keyword_research.records[3].decision (לשנות take_now → backlog)
+  • strategy_options.records[0].30_day_plan[1].actions (להוסיף/להסיר action)
+  אסור fields ערוכים אבסטרקטיים כמו "landing_page.headline" — חייב לעמוד בJSON path אמיתי במחקר.
+- **evidence_records** חובה — לפחות 1-2 הפניות לתשובות ספציפיות. פורמט: "{N}.{persona_short}.q{n}" (לדוגמה "2.itai.q4") או "cross_val[{idx}]".
 - top_3_blindspots חייב להכיל **בדיוק 3** items.
 - immediate_actions: 3-5 items עם owner + timeline ספציפי.
 
