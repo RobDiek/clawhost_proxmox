@@ -298,7 +298,18 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
     const apiKey = (inst as any).aiProviderKey || process.env.ANTHROPIC_API_KEY
     if (!apiKey) throw new Error('Anthropic API key missing (instance.aiProviderKey or env)')
 
-    const rd: any = inst.researchData || {}
+    // Phase 4.0(fix16) — multi-tenant fix: read research_data through agent
+    // context (mateh_agents.research_data is canonical for tenants; the
+    // instances.research_data mirror only updates for the primary agent).
+    // Previously this service used inst.researchData directly and wrote
+    // via raw db.update(instances) — that worked for single-tenant but
+    // silently dropped data for secondary agents AND got overwritten by
+    // the wrapper's markWrapperStageCompleted (which uses agent-routed
+    // writes that overwrote mazhirAudit with stale rd).
+    const { resolvePrimaryAgent, readResearchData, writeResearchData } =
+        await import('./agentContext')
+    const agent = await resolvePrimaryAgent(instanceId)
+    const rd: any = await readResearchData(agent, instanceId) || {}
     const pp: PaidProfile | undefined = rd.paidProfile
     if (!pp) throw new Error('paidProfile required — fill it in onboarding first')
 
@@ -566,12 +577,11 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
                 autoDerivations.push({ field: 'trackingStack.gtm', value: true, from: 'GTM inventory pulled → flag corrected' })
             }
         }
-        // Persist mutations to DB so plan generator + future audits see them
+        // Persist mutations to DB so plan generator + future audits see them.
+        // Phase 4.0(fix16) — route through agent context (multi-tenant safe).
         if (autoDerivations.length > 0) {
             try {
-                await db.update(instances).set({
-                    researchData: { ...rd, paidProfile: ppMutated } as any,
-                }).where(eq(instances.id, instanceId))
+                await writeResearchData(agent, instanceId, { ...rd, paidProfile: ppMutated })
                 console.log(`[mazhirAudit] auto-derived paidProfile fields:`, autoDerivations.map(d => d.field))
             } catch (err) {
                 console.warn('[mazhirAudit] persist auto-derivations failed:', (err as Error).message)
@@ -1020,15 +1030,16 @@ Return ONLY the JSON object. No markdown fences, no commentary.`
         }
     }
 
-    // Persist (audit + diff together so UI can render movement vs prior run)
-    await db.update(instances).set({
-        researchData: {
-            ...rd,
-            mazhirAudit: audit,
-            mazhirAuditDiff: auditDiff,
-            mazhirAuditPrev: prevAudit,    // keep one prior for diff next time
-        } as any,
-    }).where(eq(instances.id, instanceId))
+    // Persist (audit + diff together so UI can render movement vs prior run).
+    // Phase 4.0(fix16) — route through agent context so mateh_agents.research_data
+    // (canonical for multi-tenant) gets updated; primary agent mirrors to
+    // instances.research_data automatically.
+    await writeResearchData(agent, instanceId, {
+        ...rd,
+        mazhirAudit: audit,
+        mazhirAuditDiff: auditDiff,
+        mazhirAuditPrev: prevAudit,    // keep one prior for diff next time
+    })
 
     const elapsedSec = ((Date.now() - t0) / 1000).toFixed(1)
     console.log(`[mazhirAudit] ${instanceId}: audit ready in ${elapsedSec}s (model=${model}, methodology=${audit.methodology}, blockers=${audit.blockers.length})`)
