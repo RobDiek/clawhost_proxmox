@@ -6314,6 +6314,18 @@ interface GenContext {
     scenarioChannelPriority: Array<Record<string, unknown>>
     scenarioDoNotChannels: Array<Record<string, unknown>>
     scenarioBudgetAllocation: Record<string, number>
+    // ── Full research context (Phase 4.0 fix15) ────────────────────────────
+    allowedChannels: string[]                          // from answers.platforms; [] = no constraint
+    keywordTargets: KeywordTarget[]                    // top-N keywords from seo_keyword_research
+    keywordBlock: string
+    internalSeoBlock: string
+    competitorBlock: string
+    aeoBlock: string
+    validationBlock: string
+    geography: string
+    tone: string
+    targetAudience: string
+    businessDescription: string
 }
 
 // ── Brand-agnostic content plan taxonomy derivation ────────────────────────
@@ -6503,6 +6515,156 @@ function formatBrandBookForPlan(bb: Record<string, unknown> | null | undefined):
     return `## ספר מותג (חובה לכבד)\n${lines.join('\n')}\n`
 }
 
+// Phase 4.0(fix15) — derive allowed channels whitelist from answers.platforms
+// (the user's onboarding choice). Without this, generateContentPlan picks
+// channels by model judgement — Storage Station user picked "בלוג, Google Ads"
+// but got facebook(15)+linkedin(4)+blog(12)+0_google_ads. Hard whitelist
+// enforces the onboarding intent.
+//
+// Token mapping (case-insensitive, both Hebrew and English):
+//   "בלוג" | "blog" | "וורדפרס" | "wordpress" → blog
+//   "Google Ads" | "גוגל אדס" | "Google" → google_ads
+//   "Meta Ads" | "מטא אדס" | "Facebook Ads" → meta_ads
+//   "Facebook" | "פייסבוק" → facebook
+//   "Instagram" | "אינסטגרם" → instagram
+//   "LinkedIn" | "לינקדאין" → linkedin
+//   "TikTok" | "טיקטוק" → tiktok
+//   "YouTube" | "יוטיוב" → youtube
+//   "Twitter" | "X" | "טוויטר" → linkedin (closest text-post analog in enum)
+//   "ניוזלטר" | "Newsletter" | "Email" → email
+//   "Reddit" | "רדיט" → reddit
+function deriveAllowedChannels(answers: Record<string, unknown>): string[] {
+    const platformsRaw = String(answers.platforms || '').toLowerCase()
+    if (!platformsRaw.trim()) return []
+    const allowed = new Set<string>()
+    if (/בלוג|blog|wordpress|וורדפרס/.test(platformsRaw)) allowed.add('blog')
+    if (/google ads|גוגל אדס|google\b/.test(platformsRaw)) allowed.add('google_ads')
+    if (/meta ads|מטא אדס|facebook ads/.test(platformsRaw)) allowed.add('meta_ads')
+    // "Facebook Ads" should only enable meta_ads (paid). Plain "facebook" → organic.
+    if (/(^|[\s,]+)(facebook|פייסבוק)(?![\s]*ads)/.test(platformsRaw)) allowed.add('facebook')
+    if (/instagram|אינסטגרם/.test(platformsRaw)) allowed.add('instagram')
+    if (/linkedin|לינקדאין/.test(platformsRaw)) allowed.add('linkedin')
+    if (/tiktok|טיקטוק/.test(platformsRaw)) allowed.add('tiktok')
+    if (/youtube|יוטיוב/.test(platformsRaw)) allowed.add('youtube')
+    if (/twitter|טוויטר|\bx\b/.test(platformsRaw)) allowed.add('linkedin') // closest text-post analog
+    if (/ניוזלטר|newsletter|email|מייל|דוא"?ל/.test(platformsRaw)) allowed.add('email')
+    if (/reddit|רדיט/.test(platformsRaw)) allowed.add('reddit')
+    return Array.from(allowed)
+}
+
+// Phase 4.0(fix15) — format research context blocks for Skeleton prompt.
+// We pass a compact summary of 6 research stages so the planner steers content
+// toward measured keyword opportunities, known competitor gaps, AEO targets,
+// and existing site URLs (vs. inventing duplicates).
+
+interface KeywordTarget {
+    keyword: string
+    intent: string
+    page_type: string
+    opportunity: number
+    aeo: number
+    cluster?: string
+    current_position?: number
+}
+
+function formatKeywordTargets(rd: Record<string, unknown>, limit = 15): { block: string; targets: KeywordTarget[] } {
+    const results = (rd.results as Record<string, { records?: Array<Record<string, unknown>> }>) || {}
+    const records = results.seo_keyword_research?.records || []
+    if (records.length === 0) return { block: '', targets: [] }
+    const targets: KeywordTarget[] = records
+        .map(r => ({
+            keyword: String(r.keyword || ''),
+            intent: String((r.intent as Record<string, unknown> | undefined)?.primary || 'unknown'),
+            page_type: String(r.page_type || 'unknown'),
+            opportunity: Number((r.opportunity as Record<string, unknown> | undefined)?.total || 0),
+            aeo: Number((r.aeo as Record<string, unknown> | undefined)?.total || 0),
+            cluster: r.cluster ? String(r.cluster) : undefined,
+            current_position: r.current_position ? Number(r.current_position) : undefined,
+        }))
+        .filter(k => k.keyword)
+        .sort((a, b) => b.opportunity - a.opportunity)
+        .slice(0, limit)
+    if (targets.length === 0) return { block: '', targets: [] }
+    const block = `## 🎯 Top keyword opportunities (from seo_keyword_research, sorted by opportunity_score)
+${targets.map((t, i) => `${i + 1}. **${t.keyword}** — intent: ${t.intent} · page_type: ${t.page_type} · opp: ${t.opportunity.toFixed(0)} · AEO: ${t.aeo.toFixed(0)}${t.current_position ? ` · current pos: ${t.current_position}` : ''}${t.cluster ? `\n   cluster: ${t.cluster}` : ''}`).join('\n')}
+
+**Use these for blog/article items** — pick the most relevant target per blog slot. Each blog should target ONE primary keyword + 2-3 secondary. Do NOT invent off-topic keywords.`
+    return { block, targets }
+}
+
+function formatInternalSeoSummary(rd: Record<string, unknown>): string {
+    const results = (rd.results as Record<string, { records?: Array<Record<string, unknown>> }>) || {}
+    const records = results.internal_seo_audit?.records || []
+    if (records.length === 0) return ''
+    const byPageType: Record<string, Array<{ url: string; action: string; impact: string }>> = {}
+    for (const r of records) {
+        const pt = String(r.page_type || 'other')
+        const action = String(r.priority_action || '').slice(0, 120)
+        const impact = String(r.expected_impact || 'low')
+        if (!action) continue
+        ;(byPageType[pt] = byPageType[pt] || []).push({ url: String(r.url || ''), action, impact })
+    }
+    const highImpact = Object.entries(byPageType)
+        .flatMap(([pt, items]) => items.filter(it => it.impact === 'high').slice(0, 2).map(it => ({ pt, ...it })))
+        .slice(0, 6)
+    if (highImpact.length === 0) return ''
+    return `## 🗺️ Existing site URLs (high-impact actions from internal_seo_audit)
+${highImpact.map(h => `- [${h.pt}] ${h.url.replace(/^https?:\/\/[^/]+/, '')} → ${h.action}`).join('\n')}
+
+**Don't duplicate existing pillar/spoke URLs. If a blog targets a topic already covered, frame as upgrade/refresh.**`
+}
+
+function formatCompetitorSummary(rd: Record<string, unknown>): string {
+    const results = (rd.results as Record<string, { records?: Array<Record<string, unknown>> }>) || {}
+    const records = results.competitor_landscape?.records || []
+    if (records.length === 0) return ''
+    const direct = records.filter(r => r.bucket === 'direct').slice(0, 3)
+    if (direct.length === 0) return ''
+    return `## ⚔️ Direct competitors (top 3 from competitor_landscape)
+${direct.map(c => {
+        const summary = c.eeat_signals && (c.eeat_signals as Record<string, unknown>).summary
+            ? String((c.eeat_signals as Record<string, unknown>).summary).slice(0, 150)
+            : ''
+        return `- **${String(c.name || '')}** (${String(c.url || '')}): ${summary}`
+    }).join('\n')}
+
+**Differentiation rule: don't repeat the same angles competitors use. Look for gaps in their content — service bundles, price transparency, geo coverage, AEO schema.**`
+}
+
+function formatAeoVisibilitySummary(rd: Record<string, unknown>): string {
+    const results = (rd.results as Record<string, { records?: Array<Record<string, unknown>> }>) || {}
+    const records = results.aeo_visibility?.records || []
+    if (records.length === 0) return ''
+    const highImpact = records.filter(r => r.expected_aeo_impact === 'high').slice(0, 5)
+    if (highImpact.length === 0) return ''
+    return `## 🧠 AEO/AI-Overview opportunities (from aeo_visibility)
+${highImpact.map(a => `- **${String(a.type || '')}** on ${String(a.target || '')} → ${String(a.recommended_action || '').slice(0, 150)}`).join('\n')}
+
+**Blog items SHOULD include FAQ schema + direct 50-word answers in opening paragraphs (AEO best practice).**`
+}
+
+function formatValidationChanges(rd: Record<string, unknown>): string {
+    const results = (rd.results as Record<string, { records?: Array<Record<string, unknown>> }>) || {}
+    const records = results.validation?.records || []
+    if (records.length === 0) return ''
+    const changes: Array<{ field: string; from: string; to: string; rationale: string }> = []
+    for (const r of records) {
+        const cs = (r.confidence_score as Record<string, unknown> | undefined)
+        const list = (cs?.strategy_changes as Array<Record<string, unknown>> | undefined) || []
+        for (const c of list) {
+            changes.push({
+                field: String(c.field || ''),
+                from: String(c.from || '').slice(0, 80),
+                to: String(c.to || '').slice(0, 80),
+                rationale: String(c.rationale_he || '').slice(0, 150),
+            })
+        }
+    }
+    if (changes.length === 0) return ''
+    return `## 🔧 Validation strategy changes (apply these refinements)
+${changes.slice(0, 5).map(c => `- **${c.field}**: ${c.from} → ${c.to}\n   ${c.rationale}`).join('\n')}`
+}
+
 // Phase 4.0(fix14b) — deterministic post-filter for chosenScenario.do_not_channels.
 // The Skeleton prompt asks the model to skip forbidden channels, but model
 // compliance is ~70% in practice (Storage Station rerun: 3/5 IG items came back
@@ -6516,6 +6678,25 @@ function formatBrandBookForPlan(bb: Record<string, unknown> | null | undefined):
 //   "Google Ads ... head terms" | "Paid ads" | "Paid search" → channel='google_ads' OR channel='meta_ads'
 //   "Paid social" → channel='meta_ads' OR (channel='facebook' AND type='campaign_*')
 //   "Programmatic geo pages (50+...)" → cap at ≤2 geo-specific blog items
+// Phase 4.0(fix15) — hard whitelist post-filter for allowed channels.
+// Companion to filterForbiddenSlots; applies STRICT whitelist if user
+// provided answers.platforms during onboarding. Empty allowedChannels =
+// no constraint (legacy behavior).
+function filterByAllowedChannels<T extends { channel: string; type: string }>(
+    slots: T[],
+    allowed: string[],
+): { kept: T[]; rejected: Array<{ slot: T; reason: string }> } {
+    if (!allowed || allowed.length === 0) return { kept: slots, rejected: [] }
+    const allowSet = new Set(allowed)
+    const rejected: Array<{ slot: T; reason: string }> = []
+    const kept: T[] = []
+    for (const s of slots) {
+        if (allowSet.has(s.channel)) kept.push(s)
+        else rejected.push({ slot: s, reason: `channel "${s.channel}" not in allowed [${allowed.join(',')}]` })
+    }
+    return { kept, rejected }
+}
+
 function filterForbiddenSlots<T extends { channel: string; type: string; pillar?: string }>(
     slots: T[],
     doNotChannels: Array<Record<string, unknown>>,
@@ -6781,6 +6962,27 @@ ${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
 
 ## productRef enum — USE EXACTLY these labels (translation map below)
 ${ctx.productRefEnum.map(ref => `- \`${ref}\` = ${ctx.productNameByRef[ref] || ref}`).join('\n')}
+${ctx.allowedChannels.length > 0 ? `
+## 🚦 ALLOWED CHANNELS — STRICT WHITELIST (from user's answers.platforms onboarding)
+The user explicitly chose these channels during onboarding. **Do NOT use any other channel** — items with off-list channels will be hard-rejected by post-filter.
+
+**Allowed channel enum values:** ${ctx.allowedChannels.map(c => `\`${c}\``).join(' | ')}
+
+Mapping reference (in case you're tempted by other channels):
+- Want IG content? → use \`${ctx.allowedChannels.includes('instagram') ? 'instagram' : 'blog (article with images) — instagram is NOT allowed'}\`
+- Want Facebook? → use \`${ctx.allowedChannels.includes('facebook') ? 'facebook' : 'blog or linkedin — facebook is NOT allowed'}\`
+- Want email/newsletter? → use \`${ctx.allowedChannels.includes('email') ? 'email' : 'blog post or skip — email is NOT allowed'}\`
+` : ''}
+${ctx.businessDescription ? `\n## העסק (תיאור מלא מהאונבורדינג)\n${ctx.businessDescription}\n` : ''}
+${ctx.tone ? `\n## טון מותג\n${ctx.tone}\n` : ''}
+${ctx.geography ? `\n## גיאוגרפיה\n${ctx.geography}\n` : ''}
+${ctx.targetAudience ? `\n## קהל יעד (מתוך האונבורדינג)\n${ctx.targetAudience}\n` : ''}
+
+${ctx.keywordBlock || ''}
+${ctx.internalSeoBlock || ''}
+${ctx.competitorBlock || ''}
+${ctx.aeoBlock || ''}
+${ctx.validationBlock || ''}
 
 ## Pillars — use ONLY these verbatim (no inventing!)
 ${ctx.pillarWhitelist.map((p, i) => `${i + 1}. "${p}"`).join('\n')}
@@ -6889,7 +7091,7 @@ Each slot:
 {
   "date": "YYYY-MM-DD",
   "time": "HH:mm",
-  "channel": "facebook|instagram|blog|email|youtube|linkedin|tiktok|google_ads|meta_ads|reddit",
+  "channel": "${ctx.allowedChannels.length > 0 ? ctx.allowedChannels.join('|') : 'facebook|instagram|blog|email|youtube|linkedin|tiktok|google_ads|meta_ads|reddit'}",
   "type": "post|reel|story|carousel|article|email|video|campaign_launch|campaign_optimize|report",
   "pillar": "<exact from whitelist>",
   "persona": "<one from personas list>",
@@ -6961,9 +7163,22 @@ async function draftSingleItem(slot: ContentSlot, ctx: GenContext): Promise<Draf
         campaign_optimize: 'אופטימיזציית קמפיין', report: 'דוח',
     }
 
+    // Phase 4.0(fix15) — assign primary keyword for blog/article items by
+    // round-robin from ctx.keywordTargets (top-15 by opportunity score).
+    // Non-blog items get no keyword assignment.
+    let keywordHint = ''
+    if ((slot.channel === 'blog' || slot.type === 'article') && ctx.keywordTargets.length > 0) {
+        const seed = (slot.date + slot.pillar).split('').reduce((a, c) => a + c.charCodeAt(0), 0)
+        const kw = ctx.keywordTargets[seed % ctx.keywordTargets.length]
+        keywordHint = `\n- **מילת מפתח ראשית** (חובה לכלול בכותרת + בפסקה הראשונה): "${kw.keyword}" (intent=${kw.intent}, page_type=${kw.page_type}${kw.cluster ? `, cluster=${kw.cluster}` : ''})\n- מילים משניות מתוך הקבוצה: ${ctx.keywordTargets.filter(k => k.cluster === kw.cluster && k.keyword !== kw.keyword).slice(0, 4).map(k => `"${k.keyword}"`).join(', ') || '(אין באותו cluster — בחר 3-5 קשורות בעצמך)'}`
+    }
     const prompt = `אתה כותב מפרט תוכן (בריף) לקופירייטר — בעברית בלבד.
 
 ## העסק: ${ctx.businessName}
+${ctx.businessDescription ? `\n${ctx.businessDescription.slice(0, 800)}\n` : ''}
+${ctx.geography ? `**גיאוגרפיה:** ${ctx.geography}\n` : ''}
+${ctx.tone ? `**טון מותג:** ${ctx.tone}\n` : ''}
+${ctx.targetAudience ? `**קהל יעד:** ${ctx.targetAudience.slice(0, 400)}\n` : ''}
 
 ## קול מותג / אסטרטגיה (תמצות)
 ${ctx.brandVoice.substring(0, 2500)}
@@ -6979,7 +7194,7 @@ ${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
 - פורמט: ${typeHe[slot.type] || slot.type}
 - עמוד תוכן (pillar): "${slot.pillar}"
 - פרסונת יעד: ${slot.persona}
-- מוצר במוקד: ${slot.productRef || 'משולב'}
+- מוצר במוקד: ${slot.productRef || 'משולב'}${keywordHint}
 
 ${(slot.channel === 'meta_ads' || slot.channel === 'google_ads') ? `## ⚠️ זה פריט של פרסום ממומן — חובת exclusion lists
 בכל קמפיין ממומן חובה להגדיר:
@@ -7354,6 +7569,23 @@ export async function generateContentPlan(
     }
     console.log(`[contentPlan/taxonomy] pillars=${pillarWhitelist.length} personas=${personaTitles.length} (primary=${taxonomy.primaryPersona || 'n/a'}) cta=${taxonomy.ctaEnum.length} products=${taxonomy.productRefEnum.length} paidBudget=₪${taxonomy.paidBudgetIls}`)
 
+    // Phase 4.0(fix15) — pull allowed channels from answers.platforms + research
+    // context blocks (keywords, internal SEO, competitors, AEO, validation).
+    // Without these the Skeleton plans content in a vacuum (no awareness of
+    // user's chosen channels, keyword opportunities, competitor gaps, or
+    // existing site URLs).
+    const allowedChannels = deriveAllowedChannels(answers)
+    const { block: keywordBlock, targets: keywordTargets } = formatKeywordTargets(rd as Record<string, unknown>, 15)
+    const internalSeoBlock = formatInternalSeoSummary(rd as Record<string, unknown>)
+    const competitorBlock = formatCompetitorSummary(rd as Record<string, unknown>)
+    const aeoBlock = formatAeoVisibilitySummary(rd as Record<string, unknown>)
+    const validationBlock = formatValidationChanges(rd as Record<string, unknown>)
+    const geography = String(answers.geography || '')
+    const tone = String(answers.tone || '')
+    const targetAudience = String(answers.targetAudience || '')
+    const businessDescription = String(answers.businessDescription || '').slice(0, 1500)
+    console.log(`[contentPlan/context] allowedChannels=[${allowedChannels.join(',') || 'unrestricted'}] keywords=${keywordTargets.length} seoUrls=${internalSeoBlock ? 'y' : 'n'} competitors=${competitorBlock ? 'y' : 'n'} aeo=${aeoBlock ? 'y' : 'n'} validation=${validationBlock ? 'y' : 'n'}`)
+
     // Resolve models per user's sub-agent config.
     const [menateachModel, yotzerModel] = await Promise.all([
         resolveDirectModel(instanceId, 'menateach'),
@@ -7414,6 +7646,18 @@ export async function generateContentPlan(
         scenarioChannelPriority: taxonomy.scenarioChannelPriority,
         scenarioDoNotChannels: taxonomy.scenarioDoNotChannels,
         scenarioBudgetAllocation: taxonomy.scenarioBudgetAllocation,
+        // Phase 4.0(fix15) — full research context
+        allowedChannels,
+        keywordTargets,
+        keywordBlock,
+        internalSeoBlock,
+        competitorBlock,
+        aeoBlock,
+        validationBlock,
+        geography,
+        tone,
+        targetAudience,
+        businessDescription,
     }
 
     // ─── Pass 1: Skeleton (Opus thinking) ───
@@ -7421,11 +7665,20 @@ export async function generateContentPlan(
     const rawSlots = await generateSkeleton(ctx)
     console.log(`Content Plan v4 — Pass 1 (Skeleton): ${rawSlots.length} slots in ${((Date.now() - t1) / 1000).toFixed(1)}s`)
 
+    // Phase 4.0(fix15) — first hard filter: allowed channels whitelist from
+    // answers.platforms (user's onboarding choice). Then fix14b's do_not_channels
+    // filter. Both run before Draft pass to save tokens.
+    const allowedResult = filterByAllowedChannels(rawSlots, ctx.allowedChannels)
+    if (allowedResult.rejected.length > 0) {
+        console.warn(`[contentPlan/allowed_channels] rejected ${allowedResult.rejected.length} items not in answers.platforms whitelist:`)
+        allowedResult.rejected.slice(0, 10).forEach(r => console.warn(`  - ${r.slot.channel}/${r.slot.type} on ${(r.slot as unknown as { date?: string }).date || '?'} — ${r.reason}`))
+        if (allowedResult.rejected.length > 10) console.warn(`  ... ${allowedResult.rejected.length - 10} more`)
+    }
     // Phase 4.0(fix14b) — deterministic post-filter for scenario.do_not_channels.
     // Model compliance with soft prompt rules is ~70%; this hard filter strips
     // forbidden items (e.g. instagram+reel when scenario forbids "Instagram Reels
     // organic") before Draft pass wastes tokens on them.
-    const filterResult = filterForbiddenSlots(rawSlots, ctx.scenarioDoNotChannels)
+    const filterResult = filterForbiddenSlots(allowedResult.kept, ctx.scenarioDoNotChannels)
     const slots = filterResult.kept
     if (filterResult.rejected.length > 0) {
         console.warn(`[contentPlan/do_not_channels] rejected ${filterResult.rejected.length} items from Skeleton:`)
