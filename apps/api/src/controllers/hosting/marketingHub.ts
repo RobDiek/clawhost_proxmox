@@ -85,6 +85,21 @@ export const getMarketingIntents = async (c: Context) => {
         const agents: string[] = Array.isArray(inst.selectedComponents) ? (inst.selectedComponents as string[]) : []
         const stored = Array.isArray(rd.marketingIntents) ? rd.marketingIntents.filter(isValidIntent) : null
         const derived = currentIntents(rd, agents)
+        // Phase 4.1 — self-healing auto-persist. If user has Q9/Q10 answers
+        // but rd.marketingIntents wasn't yet stored (legacy tenants saved
+        // before bidirectional sync existed), persist derived to DB so
+        // downstream gates (renderMazhirCard etc.) can read rd.marketingIntents
+        // directly without depending on hub-state in-memory.
+        if (!stored && derived.length > 0) {
+            try {
+                await patchResearchData(c, instanceId, prev => ({
+                    ...prev,
+                    marketingIntents: derived,
+                }))
+            } catch (e) {
+                console.warn('[getMarketingIntents] auto-persist failed (non-fatal):', (e as Error).message)
+            }
+        }
         return ok(c, {
             intents: derived,
             isExplicit: !!stored,                        // user has explicitly set vs auto-derived
