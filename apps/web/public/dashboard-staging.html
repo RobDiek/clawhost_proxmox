@@ -21798,17 +21798,21 @@ async function submitAgentSetup() {
   }
 
   // Fallback: even if analyze failed or returned nothing, we still need the products step.
-  // Show minimal clarify UI with just the products section — user must define ≥1 SKU.
+  // Phase 4.1 — products are SKIPPABLE; downstream falls back to businessName /
+  // productCategories from enrichment.
   var formEl = document.getElementById('agent-setup-form');
   formEl.classList.add('hidden');
   var fallbackHtml = '<div id="dashboard-clarify" style="background:#F8FAFC;border:2px solid #DBEAFE;border-radius:14px;padding:24px;margin-bottom:20px">' +
     '<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px">' +
     '<div style="width:40px;height:40px;border-radius:50%;background:#2563EB;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;color:#fff">&#129302;</div>' +
     '<div><div style="font-weight:700;font-size:1.05rem;color:#111827;margin-bottom:4px">לפני שמתחילים — רגע של דיוק</div>' +
-    '<div style="font-size:0.88rem;color:#4B5563;line-height:1.5">כדי לבנות funnel נכון לכל מוצר — פרטו את המוצרים/שירותים שלכם.</div></div></div>' +
+    '<div style="font-size:0.88rem;color:#4B5563;line-height:1.5">כדי לבנות funnel נכון לכל מוצר — פרטו את המוצרים/שירותים שלכם. <strong>אפשר לדלג</strong> ולהוסיף בכל עת.</div></div></div>' +
     '<div style="margin-bottom:22px">' +
-      '<div style="font-weight:700;font-size:0.98rem;color:#1F2937;margin-bottom:4px">🛒 המוצרים והשירותים שלך</div>' +
+      '<div style="font-weight:700;font-size:0.98rem;color:#1F2937;margin-bottom:4px">🛒 המוצרים והשירותים שלך <span style="font-weight:400;color:#9CA3AF;font-size:0.85rem">(אופציונלי — מומלץ)</span></div>' +
       '<div style="font-size:0.8rem;color:#6B7280;margin-bottom:10px">כל SKU בנפרד — שם, מחיר, מודל. סמנו את "המוצר דרכו הלקוח נכנס".</div>' +
+      '<div style="background:#FEF9C3;border:1px solid #FDE68A;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:0.78rem;color:#92400E;line-height:1.5">' +
+        '💡 <strong>אפשר לדלג</strong> ולהמשיך בלי מוצרים — תוכלו להוסיף בכל עת. בלי מוצרים, ה-CTAs ב-content plan פשוטים יותר (קרא עוד / צרו קשר) וה-funnel נבנה לפי שם העסק כ-"מוצר ראשי".' +
+      '</div>' +
       '<div id="products-list"></div>' +
       '<button type="button" onclick="addProductRow()" style="background:#fff;border:1px dashed #BFDBFE;color:#2563EB;padding:8px 14px;border-radius:8px;font-size:0.85rem;cursor:pointer;margin-top:6px">+ הוסף מוצר</button>' +
       '<div style="margin-top:14px">' +
