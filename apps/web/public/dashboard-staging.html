@@ -9033,8 +9033,22 @@ function renderMazhirCard() {
   // strategy (competitors → negative keyword library). Without them the plans
   // are generic — exactly the junk-leadgen scenario the guardrails defend against.
   var hasProfile = !!(instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.businessName);
-  var hasResearch = !!(instanceData && instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1));
-  var hasStrategy = !!(instanceData && instanceData.researchData && instanceData.researchData.strategy);
+  // Phase 4.1 — accept BOTH legacy v1 fields (report/stage1/strategy) AND v2
+  // pipeline completion markers (rd.results.<stage>, rd.chosenScenario,
+  // plan.status.<stage>.state==='completed'). Without this, users who run
+  // the new v2 research wizard stay in "locked Mazhir" state even after
+  // 11/11 stages complete.
+  var _rd0 = (instanceData && instanceData.researchData) || {};
+  var _v2Results = _rd0.results || {};
+  var _v2PlanStatus = (_rd0.plan && _rd0.plan.status) || {};
+  // Research considered done if any discovery stage completed OR legacy field present
+  var hasResearch = !!(_rd0.report || _rd0.stage1
+    || _v2Results.competitor_landscape || _v2Results.seo_keyword_research || _v2Results.audience_personas
+    || (_v2PlanStatus.competitor_landscape && _v2PlanStatus.competitor_landscape.state === 'completed'));
+  // Strategy considered done if chosenScenario committed OR strategy_options stage done OR legacy field present
+  var hasStrategy = !!(_rd0.strategy || _rd0.chosenScenario
+    || _v2Results.strategy_options
+    || (_v2PlanStatus.strategy_options && _v2PlanStatus.strategy_options.state === 'completed'));
   var section = document.getElementById('home-mazhir-section');
   if (section) section.style.display = hasProfile ? '' : 'none';
   if (!hasProfile) return;
