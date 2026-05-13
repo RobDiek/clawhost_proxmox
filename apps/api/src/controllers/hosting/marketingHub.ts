@@ -53,16 +53,21 @@ async function patchResearchData(
 }
 
 // ─── helper: compute current intents (stored OR auto-derived) ────────────
+// Phase 4.1 — auto-derive ALSO consumes rd.answers.platforms + marketingGoals
+// (פרופיל עסקי Q9/Q10) so the intents reflect what the user explicitly picked
+// in onboarding, even before they touch ניהול שיווק.
 function currentIntents(rd: MarketingResearchData, agents: string[]): MarketingIntent[] {
     if (Array.isArray(rd.marketingIntents) && rd.marketingIntents.length > 0) {
         return rd.marketingIntents.filter(isValidIntent)
     }
     const paidProfile = rd.paidProfile as { goal?: string; primaryGoal?: string; launchPath?: string } | undefined
     const normalizedPaid = paidProfile ? { goal: paidProfile.goal || paidProfile.primaryGoal, launchPath: paidProfile.launchPath } : null
+    const answers = (rd as unknown as { answers?: { platforms?: string; marketingGoals?: string } }).answers || null
     return deriveIntents({
         agents,
         paidProfile: normalizedPaid,
         existingNamespaces: pipelineNamespacesWithData(rd),
+        answers,
     })
 }
 
@@ -104,10 +109,28 @@ export const saveMarketingIntents = async (c: Context) => {
         const body = await c.req.json<{ intents?: unknown }>()
         if (!Array.isArray(body.intents)) return fail(c, 'intents[] required', 400)
         const cleaned = (body.intents as unknown[]).filter((s): s is MarketingIntent => typeof s === 'string' && isValidIntent(s))
-        const next = await patchResearchData(c, instanceId, rd => ({
-            ...rd,
-            marketingIntents: cleaned,
-        }))
+        // Phase 4.1 — reverse sync: mirror intents back to answers.platforms +
+        // answers.marketingGoals text so the פרופיל עסקי Q9/Q10 chips reflect
+        // current channel selection when user revisits the wizard. Single
+        // source of truth: rd.marketingIntents (this write); answers.* is
+        // derived display text.
+        const { platformsTextFromIntents, goalsTextFromIntents } = await import('@openclaw/shared')
+        const platformsText = platformsTextFromIntents(cleaned)
+        const goalsText = goalsTextFromIntents(cleaned)
+        const next = await patchResearchData(c, instanceId, rd => {
+            const ans = ((rd as unknown as { answers?: Record<string, unknown> }).answers as Record<string, unknown>) || {}
+            return ({
+                ...rd,
+                marketingIntents: cleaned,
+                // Update display text only when intents derive non-empty values
+                // (preserves user's free-text additions when they emptied all chips).
+                answers: {
+                    ...ans,
+                    ...(platformsText ? { platforms: platformsText } : {}),
+                    ...(goalsText ? { marketingGoals: goalsText } : {}),
+                },
+            } as MarketingResearchData)
+        })
         // Auto-archive items orphaned by the intent change. E.g. user removes
         // 'content' → all pending blog posts get archived. Frontend should
         // ideally call previewOrphanedItems first to confirm with the user,

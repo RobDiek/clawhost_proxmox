@@ -39,6 +39,14 @@ export {
 export type { AutoDeriveInput } from './autoDerive'
 export { deriveIntents, intentsDiff } from './autoDerive'
 
+export type { AnswersForBridge } from './answersBridge'
+export {
+    intentsFromAnswers,
+    platformsTextFromIntents,
+    goalsTextFromIntents,
+    tracksFromIntents,
+} from './answersBridge'
+
 export type {
     IntegrationConnectionRecord,
     PipelineRun,

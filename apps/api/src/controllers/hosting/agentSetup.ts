@@ -9328,8 +9328,24 @@ export const setupAgents = async (c: Context) => {
         // instances.research_data for legacy callers.
         const __agent = await resolveActiveAgent(c, instanceId)
         const existingRd = await readResearchData(__agent, instanceId)
+
+        // Phase 4.1 — derive marketingIntents from פרופיל עסקי Q9/Q10 text so
+        // the marketing hub (ניהול שיווק tab) stays in sync. PRESERVE explicit
+        // user toggles: if rd.marketingIntents already exists (user explicitly
+        // set), MERGE derived into it (only ADD, never remove). On first save
+        // (no prior intents), this seeds the array.
+        const { intentsFromAnswers } = await import('@openclaw/shared')
+        const derivedIntents = intentsFromAnswers({
+            platforms: answers.platforms,
+            marketingGoals: answers.marketingGoals,
+        })
+        const priorIntents = Array.isArray((existingRd as Record<string, unknown>).marketingIntents)
+            ? ((existingRd as Record<string, unknown>).marketingIntents as string[])
+            : []
+        const mergedIntents = Array.from(new Set([...priorIntents, ...derivedIntents]))
+
         await shimResearchWriteWithExtra(c, instanceId,
-            { ...existingRd, answers, generatedAt: new Date().toISOString() },
+            { ...existingRd, answers, marketingIntents: mergedIntents, generatedAt: new Date().toISOString() },
             { onboardingStep: 3 },
         )
 
@@ -9337,6 +9353,7 @@ export const setupAgents = async (c: Context) => {
             userMd: userMd.substring(0, 200) + '...',
             brandMd: brandMd.substring(0, 200) + '...',
             skillsInstalled: true,
+            marketingIntents: mergedIntents,
         }, 'Agent system deployed.')
     } catch (err) {
         console.error('setupAgents error:', err)

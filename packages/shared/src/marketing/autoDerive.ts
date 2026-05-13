@@ -10,6 +10,7 @@
 // list; we only seed it the FIRST time.
 
 import type { MarketingIntent } from './intents'
+import { intentsFromAnswers, type AnswersForBridge } from './answersBridge'
 
 export interface AutoDeriveInput {
     agents?: string[]                             // ['mt', 'oc', ...] — instance.selectedComponents
@@ -20,10 +21,18 @@ export interface AutoDeriveInput {
     } | null
     chosenScenario?: string | null                // 'conservative' | 'balanced' | 'aggressive' | etc
     existingNamespaces?: string[]                 // pipelineState keys already filled — preserves prior runs
+    answers?: AnswersForBridge | null             // Phase 4.1 — onboarding Q9 + Q10 text (פרופיל עסקי)
 }
 
 export function deriveIntents(input: AutoDeriveInput): MarketingIntent[] {
     const intents = new Set<MarketingIntent>()
+
+    // Phase 4.1 — Q9 marketingGoals + Q10 platforms text from פרופיל עסקי
+    // are the user's STATED intent. Strongest signal — process first so other
+    // signals can only ADD, never remove what the user explicitly picked.
+    if (input.answers) {
+        for (const i of intentsFromAnswers(input.answers)) intents.add(i)
+    }
 
     // ── 1. Agents → broad intent groups ──
     const agents = input.agents || []
