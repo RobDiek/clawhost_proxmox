@@ -21671,10 +21671,17 @@ async function submitAgentSetup() {
         '<div style="font-size:0.88rem;color:#4B5563;line-height:1.5">' + (analyzeData.data.assessment || '') + '</div></div></div>';
 
       // ── Products section ──
+      // Phase 4.1 — skippable. Quality of downstream stages (content_plan,
+      // paid_audit, media_plan) degrades gracefully when empty: productRef
+      // collapses to "primary" = businessName, CTA enum simplifies to
+      // contact/read_more/none. User CAN add products later.
       clarifyHtml += '<div style="margin-bottom:22px">' +
-        '<div style="font-weight:700;font-size:0.98rem;color:#1F2937;margin-bottom:4px">🛒 המוצרים והשירותים שלך</div>' +
-        '<div style="font-size:0.8rem;color:#6B7280;margin-bottom:10px">כל SKU בנפרד — שם, מחיר, מודל. סמנו את "המוצר דרכו הלקוח נכנס" כדי שה-funnel ייבנה נכון.' +
+        '<div style="font-weight:700;font-size:0.98rem;color:#1F2937;margin-bottom:4px">🛒 המוצרים והשירותים שלך <span style="font-weight:400;color:#9CA3AF;font-size:0.85rem">(אופציונלי — מומלץ)</span></div>' +
+        '<div style="font-size:0.8rem;color:#6B7280;margin-bottom:10px;line-height:1.5">כל SKU בנפרד — שם, מחיר, מודל. סמנו את "המוצר דרכו הלקוח נכנס" כדי שה-funnel ייבנה נכון.' +
         (detected.length > 0 ? ' זיהינו ' + detected.length + ' מוצר' + (detected.length > 1 ? 'ים' : '') + ' באתר שלך — אשר או ערוך.' : '') +
+        '</div>' +
+        '<div style="background:#FEF9C3;border:1px solid #FDE68A;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:0.78rem;color:#92400E;line-height:1.5">' +
+          '💡 <strong>אפשר לדלג</strong> ולהמשיך בלי מוצרים — תוכלו להוסיף בכל עת. בלי מוצרים, ה-CTAs ב-content plan פשוטים יותר (קרא עוד / צרו קשר) וה-funnel נבנה לפי שם העסק כ-"מוצר ראשי".' +
         '</div>' +
         '<div id="products-list"></div>' +
         '<button type="button" onclick="addProductRow()" style="background:#fff;border:1px dashed #BFDBFE;color:#2563EB;padding:8px 14px;border-radius:8px;font-size:0.85rem;cursor:pointer;margin-top:6px">+ הוסף מוצר</button>' +
@@ -21840,11 +21847,15 @@ async function submitClarifiedDashboard() {
   });
   answers.clarifications = clarifications.length > 0 ? clarifications.join('\n') : '';
 
-  // Collect products (critical for multi-SKU funnel planning)
+  // Collect products (Phase 4.1 — now SKIPPABLE; downstream stages handle
+  // empty array via deriveContentPlanTaxonomy fallback to businessName).
   var products = collectProducts();
   if (products.length === 0) {
-    showToast('הוסיפו לפחות מוצר/שירות אחד', 'error');
-    return;
+    // No hard validation — flag in answers so prompts know it's intentional skip
+    answers.productsSkipped = true;
+    showToast('המשך בלי מוצרים — תוכלו להוסיף בכל עת', 'info');
+  } else {
+    answers.productsSkipped = false;
   }
   answers.products = products;
 

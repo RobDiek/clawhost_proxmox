@@ -183,10 +183,13 @@ interface OnboardingAnswers {
     clarifications?: string
     products?: ProductSku[]
     productsFunnel?: string
+    productsSkipped?: boolean      // Phase 4.1 — user explicitly skipped products step
+    productCategories?: string[]   // from website enrichment (Firecrawl + Sonnet 4.6)
     // Phase 2.3.F — structured business context driving research/strategy
     businessModel?: string         // 'ecommerce' | 'service' | 'saas' | 'local' | 'content' | 'other'
     geography?: string             // 'ישראל, ערים מרכזיות' | 'גלובלי' | free-text
     conversionMechanism?: string   // 'רכישה ישירה באתר, WhatsApp' | 'טופס ליד, שיחת טלפון'
+    valuePropositions?: string[]   // bullet list of value props from enrichment
 }
 
 // Format products list as a readable Hebrew block for prompts.
@@ -6439,9 +6442,31 @@ function deriveContentPlanTaxonomy(
         productNameByRef[ref] = `${p.name}${p.priceIls ? ` (₪${p.priceIls}${p.priceModel === 'subscription_monthly' ? '/חודש' : p.priceModel === 'one_time' ? ' חד-פעמי' : ''})` : ''}`
     }
     if (productRefEnum.length === 0) {
-        productRefEnum.push('primary')
-        productNameByRef.primary = answers.businessName ? `${answers.businessName} (מוצר ראשי)` : 'מוצר ראשי'
-        primaryProductRef = 'primary'
+        // Phase 4.1 — products skippable. Cascading fallback:
+        //   1. answers.productCategories from website enrichment (if present)
+        //   2. businessName as single "primary" reference
+        // This keeps downstream content quality usable when user skipped the
+        // explicit products step.
+        const enrichedCategories = (answers.productCategories as string[] | undefined) || []
+        if (enrichedCategories.length > 0) {
+            // Treat top 3 enriched categories as virtual products
+            for (let i = 0; i < Math.min(3, enrichedCategories.length); i++) {
+                const cat = String(enrichedCategories[i]).trim()
+                if (!cat) continue
+                const ref = i === 0 ? 'primary' : `addon_${i}`
+                productRefEnum.push(ref)
+                productNameByRef[ref] = `${cat} (קטגוריה — מהאתר)`
+                if (i === 0) primaryProductRef = 'primary'
+            }
+        }
+        if (productRefEnum.length === 0) {
+            // Last resort — single primary = businessName
+            productRefEnum.push('primary')
+            productNameByRef.primary = answers.businessName
+                ? `${answers.businessName} (מוצר ראשי — לא הוגדר במפורש)`
+                : 'מוצר ראשי'
+            primaryProductRef = 'primary'
+        }
     }
     productRefEnum.push('mixed', 'none')
     productNameByRef.mixed = 'משולב / לא ספציפי'
