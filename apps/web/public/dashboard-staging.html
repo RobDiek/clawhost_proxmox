@@ -2714,19 +2714,33 @@ input{font-family:inherit}
         </div>
       </div>
 
-      <!-- Meta Ads (Facebook + Instagram) -->
+      <!-- Meta Business Manager (Facebook Pages + Instagram + Ads + Pixel + CAPI) -->
       <div class="int-card" id="pub-metaads-card">
         <div class="int-card-header">
           <div class="int-icon" style="background:#EFF6FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6 2 11c0 2.8 1.2 5.3 3.2 7L4 22l4.2-2.2c1.2.4 2.4.6 3.8.6 5.52 0 10-4 10-9s-4.48-9.4-10-9.4z" stroke="#0081FB" stroke-width="1.5"/></svg></div>
-          <div><strong>Meta Ads</strong><div class="int-status" id="pub-metaads-status">לא מחובר</div></div>
+          <div><strong>Meta Business Manager</strong><div class="int-status" id="pub-metaads-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden">
-          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">קמפיינים ב-Facebook, Instagram ו-Messenger — אוטומטי</div>
+          <div style="font-size:0.78rem;color:#1E40AF;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.55">
+            <strong>חיבור אחד = שליטה מלאה.</strong> Meta Business Manager OAuth מעניק גישה ל:
+            <ul style="margin:4px 0 0;padding-inline-start:18px;font-size:0.78rem;color:#374151">
+              <li>דפי Facebook (פרסום, תגובות, אנליטיקס)</li>
+              <li>חשבונות Instagram Business (פוסטים, Stories, Reels, DMs)</li>
+              <li>חשבונות פרסום — קמפיינים, ad sets, מודעות</li>
+              <li>Pixel + Conversion API (CAPI) — מדידת המרות מצד שרת</li>
+              <li>Lead Forms, Catalogs, Custom Audiences, Lookalikes</li>
+            </ul>
+            <div style="margin-top:6px;color:#6B7280">חיבור נפרד ל-Facebook Pages / Instagram אינו נדרש — הכל זמין דרך OAuth זה.</div>
+          </div>
           <div id="metaads-not-connected">
             <input type="text" id="metaads-app-id" placeholder="Meta App ID" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
             <input type="password" id="metaads-app-secret" placeholder="Meta App Secret" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
-            <button class="btn btn-primary btn-sm" onclick="startMetaOAuth()">→ חברו Meta Ads</button>
+            <button class="btn btn-primary btn-sm" onclick="startMetaOAuth()">→ חברו Meta Business</button>
             <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('meta');return false" style="color:#2563EB">📖 מדריך חיבור מפורט</a></div>
+            <div style="background:#FEF9C3;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:0.78rem;color:#92400E;line-height:1.5">
+              💡 <strong>אין גישה כרגע?</strong> ניתן לדלג ולהעלות במקום זאת <strong>דוחות היסטוריים</strong> מ-Meta Ads Manager (PDF/CSV). אנחנו נפענח אוטומטית את הנתונים (CTR, CPC, CVR, top-performing creatives, audiences) ונגזור מהם מסקנות איכותיות עד שתשיגו גישה מלאה.
+              <div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="openHistoricalReportsUpload('meta')" style="font-size:0.74rem;color:#92400E;border-color:#FDE68A">📄 העלאת דוחות היסטוריים →</button></div>
+            </div>
           </div>
           <div id="metaads-connected" style="display:none">
             <div style="font-size:0.85rem;color:#10B981;margin-bottom:6px">&#10003; מחובר: <span id="metaads-pages"></span></div>
@@ -20134,6 +20148,57 @@ async function disconnectGoogleScope(scope) {
   // Re-auth with reduced scope set — Google forces a re-consent which UPDATES
   // the stored token to only the requested scopes (revokes the rest).
   window.location.href = withActiveAgent(API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + remaining.join(',') + '&token=' + token + '&agent=' + agent);
+}
+
+// ─── Phase 4.1 Step 2 issue 2 — historical reports upload fallback ──────
+// Alternative to live OAuth: user uploads PDF/CSV reports from Meta Ads
+// Manager / Google Ads. Anthropic Vision parses them; downstream paid
+// audit uses parsed metrics until real OAuth becomes available.
+function openHistoricalReportsUpload(provider) {
+  var modal = _ensurePickerModal();
+  modal.querySelector('[data-picker-title]').textContent =
+    provider === 'meta' ? 'העלאת דוחות היסטוריים — Meta Ads' :
+    provider === 'google_ads' ? 'העלאת דוחות היסטוריים — Google Ads' :
+    'העלאת דוחות היסטוריים';
+  modal.querySelector('[data-picker-subtitle]').textContent =
+    'PDF / CSV / screenshots מקבצי ייצוא Meta Ads Manager (Campaigns, Ads, Audiences). Anthropic Vision יפענח אוטומטית — CTR, CPC, CVR, top creatives, audiences — עד שתשיגו OAuth מלא.';
+  modal.querySelector('[data-picker-list]').innerHTML =
+    '<div style="padding:8px">' +
+      '<input type="file" id="hist-reports-files" accept=".pdf,.csv,.png,.jpg,.jpeg" multiple style="display:block;width:100%;padding:14px;border:2px dashed #BFDBFE;border-radius:10px;background:#fff;cursor:pointer;font-size:0.88rem">' +
+      '<div style="font-size:0.78rem;color:#6B7280;margin-top:8px;line-height:1.5">תוכלו להעלות עד 15 קבצים (PDF/CSV/PNG/JPG). פרסר Vision מנתח אוטומטית. שמירה: עד 12 חודשים, מוצפן.</div>' +
+      '<div id="hist-reports-list" style="margin-top:12px"></div>' +
+    '</div>';
+  modal.querySelector('[data-picker-confirm]').textContent = 'העלאה ופענוח';
+  modal.querySelector('[data-picker-confirm]').onclick = async function() {
+    var fileInput = document.getElementById('hist-reports-files');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+      showToast('בחרו קבצים להעלאה', 'error'); return;
+    }
+    var iid = localStorage.getItem('cf_instance_id') || instanceId;
+    if (!iid) { showToast('Instance לא נמצא', 'error'); return; }
+    var btn = modal.querySelector('[data-picker-confirm]');
+    btn.disabled = true; btn.textContent = '⏳ מעלה ומפענח...';
+    var fd = new FormData();
+    for (var i = 0; i < fileInput.files.length; i++) fd.append('files', fileInput.files[i]);
+    fd.append('provider', provider || 'unknown');
+    try {
+      var r = await fetch(API + '/hosting/instances/' + iid + '/paid-profile/historical-reports', {
+        method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd
+      });
+      var j = await r.json();
+      if (j.success) {
+        showToast('הועלו ' + (j.data && j.data.count || fileInput.files.length) + ' דוחות · פענוח Vision רץ ברקע', 'success');
+        modal.style.display = 'none';
+      } else {
+        showToast('שגיאה: ' + (j.message || 'unknown'), 'error');
+        btn.disabled = false; btn.textContent = 'העלאה ופענוח';
+      }
+    } catch (err) {
+      showToast('שגיאת תקשורת: ' + err.message, 'error');
+      btn.disabled = false; btn.textContent = 'העלאה ופענוח';
+    }
+  };
+  modal.style.display = 'flex';
 }
 
 // ─── Phase 4.1 Step 2 issue 3 — GA4 property + GTM container pickers ─────
