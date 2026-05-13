@@ -32,6 +32,7 @@ export type StageId =
     | 'seo_keyword_research'
     | 'aeo_visibility'
     | 'link_audit'
+    | 'paid_data_inventory'
     | 'paid_audit'
     | 'social_landscape'
     | 'email_competitor_audit'
@@ -49,7 +50,8 @@ export type StageId =
 export const ALL_STAGE_IDS: readonly StageId[] = [
     'competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
     'aeo_visibility', 'link_audit',
-    'paid_audit', 'social_landscape', 'email_competitor_audit',
+    'paid_data_inventory', 'paid_audit',
+    'social_landscape', 'email_competitor_audit',
     'audience_personas', 'positioning', 'cost_timeline_modeling',
     'strategy_options', 'validation',
     'content_plan', 'media_plan',
@@ -118,12 +120,22 @@ export const STAGE_CATALOG: Record<StageId, StageDescriptor> = {
         preferredIntegrations: ['dataforseo'],
         upstream: ['competitor_landscape'],
     },
+    paid_data_inventory: {
+        id: 'paid_data_inventory', category: 'discovery',
+        titleHe: 'מלאי נתונים — פרסום ממומן',
+        descriptionHe: 'מיפוי החיבורים: Google Ads / Meta / GA4 / GTM / מעקב שיחות / CRM / דוחות היסטוריים. ' +
+            'קובע tier (T0-T4) — איזה bid strategies מותרים, אילו פעולות setup חסרות. ' +
+            'מתנהג כ-prerequisite ל-paid_audit ול-media_plan.',
+        preferredIntegrations: ['googleAds', 'meta', 'ga4', 'gsc'],
+        upstream: [],
+    },
     paid_audit: {
         id: 'paid_audit', category: 'discovery',
         titleHe: 'אודיט פרסום ממומן',
-        descriptionHe: 'Google Ads + Meta — היסטוריה, blockers, איכות מעקב, methodology',
+        descriptionHe: 'Google Ads + Meta — היסטוריה, blockers, איכות מעקב, methodology. ' +
+            'במצב cold (T0/T1): מחזיר setup roadmap של 7 ימים. במצב warm (T2+): takeover audit.',
         preferredIntegrations: ['googleAds', 'meta', 'ga4'],
-        upstream: [],
+        upstream: ['paid_data_inventory'],
     },
     social_landscape: {
         id: 'social_landscape', category: 'discovery',

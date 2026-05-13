@@ -29,6 +29,7 @@ const STAGE_RUNNERS: Record<StageId, () => Promise<{ run: StageRunner }>> = {
     seo_keyword_research:   () => import('./stages/seo_keyword_research'),
     aeo_visibility:         () => import('./stages/aeo_visibility'),
     link_audit:             () => import('./stages/link_audit'),
+    paid_data_inventory:    () => import('./stages/paid_data_inventory'),
     paid_audit:             () => import('./stages/paid_audit'),
     social_landscape:       () => import('./stages/social_landscape'),
     email_competitor_audit: () => import('./stages/email_competitor_audit'),
