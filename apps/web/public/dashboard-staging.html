@@ -8807,6 +8807,216 @@ function renderContentCalendar() {
 // Open a content plan item in the task popup — bridges plan item → existing
 // task popup UI so user can approve/edit/copy-for-manual-publish from one place.
 // ─── Mazhir — Paid Marketing card on home ────────────────────────────────
+// ─── Phase 4.1 Step 1.E — paid_data_inventory section ──────────────────────
+// Surfaces the tier (T0-T4) + adapter status + capabilities + action roadmap
+// at the top of the Mazhir home card. Compact UX per D1: critical adapters
+// always shown, recommended/advanced collapsible.
+
+var PDI_TIER_META = {
+  T0: { letter: 'T0', label: 'cold start', desc: 'אין חשבון פרסום או היסטוריה', bg: '#F3F4F6', fg: '#6B7280', border: '#E5E7EB' },
+  T1: { letter: 'T1', label: 'data-thin',  desc: 'פחות מ-10 המרות ב-30 ימים',   bg: '#FEF3C7', fg: '#92400E', border: '#FDE68A' },
+  T2: { letter: 'T2', label: 'warming',    desc: '10-29 המרות, Max Conv זמין',  bg: '#DBEAFE', fg: '#1E40AF', border: '#BFDBFE' },
+  T3: { letter: 'T3', label: 'zombie',     desc: 'היסטוריה ישנה, restart',      bg: '#FECACA', fg: '#991B1B', border: '#FCA5A5' },
+  T4: { letter: 'T4', label: 'בוגר',       desc: '≥30 המרות + תשתית תקינה',     bg: '#D1FAE5', fg: '#065F46', border: '#A7F3D0' }
+};
+
+var PDI_SEVERITY_META = {
+  critical:    { fg: '#991B1B', bg: '#FEE2E2', border: '#FCA5A5', label: 'קריטי' },
+  recommended: { fg: '#92400E', bg: '#FEF3C7', border: '#FDE68A', label: 'מומלץ' },
+  advanced:    { fg: '#1E40AF', bg: '#DBEAFE', border: '#BFDBFE', label: 'מתקדם' }
+};
+
+function _renderPdiAdapterCard(a) {
+  var sev = PDI_SEVERITY_META[a.severity] || PDI_SEVERITY_META.advanced;
+  var statusIcon = a.connected ? '✓' : '○';
+  var statusColor = a.connected ? '#10B981' : '#9CA3AF';
+  var bg = a.connected ? '#F0FDF4' : '#FFFFFF';
+  var border = a.connected ? '#BBF7D0' : '#E5E7EB';
+  return '' +
+    '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:' + bg + ';border:1px solid ' + border + ';border-radius:8px">' +
+      '<span style="color:' + statusColor + ';font-size:1.1rem;font-weight:700;width:18px;text-align:center">' + statusIcon + '</span>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:0.82rem;font-weight:600;color:#1F2937;line-height:1.3">' + escapeHtml(a.label) + '</div>' +
+      '</div>' +
+      '<span style="font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:999px;background:' + sev.bg + ';color:' + sev.fg + ';border:1px solid ' + sev.border + '">' + sev.label + '</span>' +
+    '</div>';
+}
+
+function _renderPdiActionCard(action, idx) {
+  var sev = PDI_SEVERITY_META[action.severity] || PDI_SEVERITY_META.advanced;
+  var ownerLabels = { user: 'אתם', user_action_required: 'אתם (פעולה ידנית)', platform_auto: 'הפלטפורמה' };
+  var ownerLabel = ownerLabels[action.owner] || action.owner;
+  var costLine = action.costRecurringIls
+    ? '<span style="color:#6B7280">· ₪' + action.costRecurringIls + '/חודש (לספק חיצוני)</span>'
+    : '';
+  var unlocksLine = action.unlocksCapabilities && action.unlocksCapabilities.length > 0
+    ? '<div style="font-size:0.72rem;color:#6B7280;margin-top:4px">פותח: ' + action.unlocksCapabilities.map(escapeHtml).join(' · ') + '</div>'
+    : '';
+  var verifLine = action.verification
+    ? '<div style="font-size:0.7rem;color:#9CA3AF;margin-top:2px;font-style:italic">בדיקה: ' + escapeHtml(action.verification.criteria) + '</div>'
+    : '';
+  var ctaButton = action.owner === 'platform_auto'
+    ? '<button class="btn btn-outline btn-sm" disabled style="font-size:0.72rem;opacity:0.6">אוטומטי בעת הצורך</button>'
+    : '<button class="btn btn-primary btn-sm" onclick="switchTab(\'integrations\')" style="font-size:0.72rem">חברו ←</button>';
+  return '' +
+    '<div style="display:flex;gap:12px;padding:12px;background:#fff;border:1px solid ' + sev.border + ';border-radius:10px;margin-bottom:8px">' +
+      '<div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:' + sev.bg + ';color:' + sev.fg + ';display:grid;place-items:center;font-weight:700;font-size:0.78rem;border:1px solid ' + sev.border + '">' + (idx + 1) + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+          '<div style="font-weight:600;font-size:0.86rem;color:#1F2937">' + escapeHtml(action.titleHe) + '</div>' +
+          '<span style="font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:999px;background:' + sev.bg + ';color:' + sev.fg + ';border:1px solid ' + sev.border + '">' + sev.label + '</span>' +
+        '</div>' +
+        '<div style="font-size:0.78rem;color:#4B5563;line-height:1.5;margin-top:4px">' + escapeHtml(action.rationaleHe) + '</div>' +
+        '<div style="font-size:0.72rem;color:#6B7280;margin-top:4px">~' + (action.estimatedMinutes || 0) + ' דק׳ · אחריות: ' + ownerLabel + ' ' + costLine + '</div>' +
+        unlocksLine + verifLine +
+      '</div>' +
+      '<div style="flex-shrink:0;align-self:center">' + ctaButton + '</div>' +
+    '</div>';
+}
+
+// Returns HTML string for the paid_data_inventory section. Always shown above
+// the existing Mazhir workflow once research+strategy are complete. If pdi
+// hasn't been generated yet, shows a "Run inventory" CTA.
+function _buildPaidDataInventoryHtml(rd) {
+  var pdi = rd && rd.paidDataInventory;
+  if (!pdi) {
+    return '' +
+      '<div id="pdi-section" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px;margin-bottom:14px">' +
+        '<div style="display:flex;align-items:center;gap:12px">' +
+          '<div style="width:36px;height:36px;border-radius:8px;background:#E0E7FF;display:grid;place-items:center">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="1.8" style="width:20px;height:20px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>' +
+          '</div>' +
+          '<div style="flex:1">' +
+            '<div style="font-weight:700;font-size:0.92rem;color:#1F2937">מלאי נתונים — פרסום ממומן</div>' +
+            '<div style="font-size:0.8rem;color:#6B7280;line-height:1.5">הריצו כדי לראות איזה tier נמצא העסק, מה מחובר, ומה חסר כדי להפעיל Smart Bidding.</div>' +
+          '</div>' +
+          '<button class="btn btn-primary btn-sm" onclick="runPaidDataInventoryRefresh()" id="pdi-refresh-btn" style="font-size:0.78rem">▶ הריצו מלאי</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  var meta = PDI_TIER_META[pdi.tier] || PDI_TIER_META.T0;
+  var connectedCount = (pdi.adapters || []).filter(function(a) { return a.connected; }).length;
+  var totalCount = (pdi.adapters || []).length;
+  var critConn = (pdi.adapters || []).filter(function(a) { return a.severity === 'critical' && a.connected; }).length;
+  var critTotal = (pdi.adapters || []).filter(function(a) { return a.severity === 'critical'; }).length;
+  var availableCount = (pdi.capabilities && pdi.capabilities.available || []).length;
+  var blockedCount = (pdi.capabilities && pdi.capabilities.blocked || []).length;
+  var criticalActions = (pdi.actions || []).filter(function(a) { return a.severity === 'critical'; });
+  var recommendedActions = (pdi.actions || []).filter(function(a) { return a.severity === 'recommended'; });
+  var advancedActions = (pdi.actions || []).filter(function(a) { return a.severity === 'advanced'; });
+
+  var criticalAdapters = (pdi.adapters || []).filter(function(a) { return a.severity === 'critical'; });
+  var recommendedAdapters = (pdi.adapters || []).filter(function(a) { return a.severity === 'recommended'; });
+  var advancedAdapters = (pdi.adapters || []).filter(function(a) { return a.severity === 'advanced'; });
+
+  // Tier banner
+  var bannerHtml =
+    '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:' + meta.bg + ';border:1px solid ' + meta.border + ';border-radius:10px;margin-bottom:10px">' +
+      '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;height:56px;border-radius:12px;background:#fff;border:2px solid ' + meta.border + '">' +
+        '<div style="font-size:1.3rem;font-weight:800;color:' + meta.fg + ';line-height:1">' + meta.letter + '</div>' +
+        '<div style="font-size:0.62rem;color:' + meta.fg + ';margin-top:2px">' + escapeHtml(meta.label) + '</div>' +
+      '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
+          '<div style="font-weight:700;font-size:0.95rem;color:' + meta.fg + '">מלאי נתונים — Tier ' + meta.letter + '</div>' +
+          '<span style="font-size:0.7rem;color:#6B7280">· ' + connectedCount + '/' + totalCount + ' מחוברים · ' + critConn + '/' + critTotal + ' קריטיים</span>' +
+        '</div>' +
+        '<div style="font-size:0.82rem;color:#4B5563;line-height:1.5">' + escapeHtml(pdi.tierRationaleHe || '') + '</div>' +
+      '</div>' +
+      '<button class="btn btn-outline btn-sm" onclick="runPaidDataInventoryRefresh()" id="pdi-refresh-btn" style="font-size:0.72rem;flex-shrink:0">↻ רענן</button>' +
+    '</div>';
+
+  // Critical adapters always visible (compact grid)
+  var criticalAdaptersHtml = criticalAdapters.length > 0
+    ? '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px;margin-bottom:10px">' +
+        criticalAdapters.map(_renderPdiAdapterCard).join('') +
+      '</div>'
+    : '';
+
+  // Recommended + Advanced collapsible (D1: compact UX, expand on demand)
+  var collapsibleAdaptersHtml = '';
+  if (recommendedAdapters.length > 0 || advancedAdapters.length > 0) {
+    collapsibleAdaptersHtml =
+      '<details style="margin-bottom:10px"><summary style="cursor:pointer;padding:6px 0;font-size:0.82rem;color:#4B5563;font-weight:600">' +
+        'חיבורים נוספים (' + (recommendedAdapters.length + advancedAdapters.length) + ' אופציות)' +
+      '</summary>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px;margin-top:8px">' +
+        recommendedAdapters.map(_renderPdiAdapterCard).join('') +
+        advancedAdapters.map(_renderPdiAdapterCard).join('') +
+      '</div>' +
+      '</details>';
+  }
+
+  // Action roadmap — critical always shown, others collapsible
+  var criticalActionsHtml = criticalActions.length > 0
+    ? '<div style="margin-bottom:10px"><div style="font-size:0.85rem;font-weight:700;color:#1F2937;margin-bottom:8px">פעולות קריטיות (' + criticalActions.length + ')</div>' +
+      criticalActions.map(_renderPdiActionCard).join('') +
+      '</div>'
+    : '';
+
+  var otherActionsHtml = '';
+  if (recommendedActions.length > 0 || advancedActions.length > 0) {
+    otherActionsHtml =
+      '<details><summary style="cursor:pointer;padding:6px 0;font-size:0.82rem;color:#4B5563;font-weight:600">' +
+        'פעולות נוספות (' + recommendedActions.length + ' מומלצות' + (advancedActions.length > 0 ? ' · ' + advancedActions.length + ' מתקדמות' : '') + ')' +
+      '</summary>' +
+      '<div style="margin-top:8px">' +
+        recommendedActions.map(_renderPdiActionCard).join('') +
+        advancedActions.map(_renderPdiActionCard).join('') +
+      '</div>' +
+      '</details>';
+  }
+
+  // Capabilities — collapsible compact view
+  var availableCaps = (pdi.capabilities && pdi.capabilities.available || []);
+  var blockedCaps = (pdi.capabilities && pdi.capabilities.blocked || []);
+  var capabilitiesHtml =
+    '<details style="margin-bottom:10px"><summary style="cursor:pointer;padding:6px 0;font-size:0.82rem;color:#4B5563;font-weight:600">' +
+      'יכולות זמינות (' + availableCount + ' זמינות · ' + blockedCount + ' חסומות)' +
+    '</summary>' +
+    '<div style="margin-top:8px;padding:10px;background:#F9FAFB;border-radius:8px;font-size:0.78rem;line-height:1.6">' +
+      '<div style="margin-bottom:8px"><strong style="color:#065F46">✓ זמינות:</strong> ' +
+        (availableCaps.length > 0 ? availableCaps.map(function(c) { return '<span style="display:inline-block;padding:2px 8px;background:#D1FAE5;color:#065F46;border-radius:6px;margin:2px;font-size:0.72rem">' + escapeHtml(c) + '</span>'; }).join('') : '<em style="color:#6B7280">אין יכולות זמינות עדיין</em>') +
+      '</div>' +
+      (blockedCaps.length > 0 ? '<div><strong style="color:#991B1B">✗ חסומות:</strong><div style="margin-top:6px">' +
+        blockedCaps.slice(0, 5).map(function(c) { return '<div style="padding:6px 8px;background:#fff;border:1px solid #FEE2E2;border-radius:6px;margin-bottom:4px"><div style="font-weight:600;color:#7F1D1D">' + escapeHtml(c.capability) + '</div><div style="color:#6B7280;font-size:0.74rem">' + escapeHtml(c.reasonHe) + '</div></div>'; }).join('') +
+        (blockedCaps.length > 5 ? '<div style="color:#9CA3AF;font-size:0.72rem;padding:4px">... +' + (blockedCaps.length - 5) + ' נוספות</div>' : '') +
+      '</div></div>' : '') +
+    '</div>' +
+    '</details>';
+
+  return '' +
+    '<div id="pdi-section" style="margin-bottom:14px">' +
+      bannerHtml +
+      '<div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px">' +
+        '<div style="font-size:0.85rem;font-weight:700;color:#1F2937;margin-bottom:8px">חיבורים קריטיים</div>' +
+        criticalAdaptersHtml +
+        collapsibleAdaptersHtml +
+        capabilitiesHtml +
+        criticalActionsHtml +
+        otherActionsHtml +
+      '</div>' +
+    '</div>';
+}
+
+// Trigger paid_data_inventory stage refresh — fast (~1s, no Anthropic).
+// Used when user wants to re-check tier after connecting an integration.
+async function runPaidDataInventoryRefresh() {
+  var btn = document.getElementById('pdi-refresh-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ מריץ...'; }
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/research/stage/paid_data_inventory', { method: 'POST', body: JSON.stringify({}) });
+    if (!r.success) throw new Error(r.message || 'Inventory failed');
+    if (instanceData && instanceData.researchData) instanceData.researchData.paidDataInventory = r.data && r.data.inventory;
+    showToast('מלאי נתונים עודכן · Tier: ' + (r.data && r.data.inventory && r.data.inventory.tier), 'success');
+    renderMazhirCard();
+  } catch (err) {
+    showToast('שגיאה: ' + (err && err.message || 'unknown'), 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '↻ רענן'; }
+  }
+}
+
 // Surfaces the paidProfile state. If empty, renders a "configure" CTA;
 // once collected, shows a summary + edit + (later) audit/mediaPlan buttons.
 // The paidProfile drives Mazhir's behavior (methodology choice, bid sequencing,
@@ -8870,9 +9080,14 @@ function renderMazhirCard() {
   }
 
   var pp = (instanceData && instanceData.researchData && instanceData.researchData.paidProfile) || null;
+  // Phase 4.1 Step 1.E — paid_data_inventory section is always shown above
+  // the paidProfile workflow, since the user benefits from seeing tier +
+  // missing adapters BEFORE filling the profile.
+  var _pdiHtmlForCard = _buildPaidDataInventoryHtml(instanceData && instanceData.researchData);
 
   if (!pp) {
     el.innerHTML =
+      _pdiHtmlForCard +
       '<div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px">' +
         '<div style="display:flex;align-items:flex-start;gap:14px">' +
           '<div style="flex-shrink:0;width:42px;height:42px;border-radius:10px;background:#FEF3C7;display:grid;place-items:center">' +
@@ -9032,6 +9247,7 @@ function renderMazhirCard() {
   }
 
   el.innerHTML =
+    _pdiHtmlForCard +
     '<div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px">' +
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">' +
         '<div style="font-weight:700;font-size:0.95rem;color:#1F2937">פרופיל קידום</div>' +
