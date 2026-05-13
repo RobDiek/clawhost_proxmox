@@ -378,6 +378,17 @@ export const googleStatus = async (c: Context) => {
             email: tokens.email || '',
             scopes: tokens.scopes || [],
             connectedAt: tokens.connectedAt || '',
+            // Phase 4.1 — surface picker selections so UI can display
+            // which property/container is currently selected for this tenant.
+            config: {
+                ga4PropertyId: tokens.ga4PropertyId || null,
+                ga4PropertyName: tokens.ga4PropertyName || null,
+                gtmAccountId: tokens.gtmAccountId || null,
+                gtmAccountName: tokens.gtmAccountName || null,
+                gtmContainerId: tokens.gtmContainerId || null,
+                gtmContainerName: tokens.gtmContainerName || null,
+                gtmContainerPublicId: tokens.gtmContainerPublicId || null,
+            },
         }, 'Connected.')
     } catch (err) {
         console.error('googleStatus error:', err)

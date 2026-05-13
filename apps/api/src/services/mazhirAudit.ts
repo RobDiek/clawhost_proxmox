@@ -446,7 +446,15 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
         (async () => {
             try {
                 const { enrichWithGA4 } = await import('./ga4Enrich')
-                return await enrichWithGA4(googleTokensForAudit, { siteUrl: websiteUrl, days: 365 })
+                // Phase 4.1 — prefer explicit propertyId from user's picker
+                // selection (agent_integrations.config.ga4PropertyId). Falls
+                // back to best-effort website-URL matching only if not set.
+                const explicitPropId = (googleTokensForAudit as { ga4PropertyId?: string } | null)?.ga4PropertyId
+                return await enrichWithGA4(googleTokensForAudit, {
+                    siteUrl: websiteUrl,
+                    days: 365,
+                    propertyId: explicitPropId,
+                })
             } catch (e) { return { available: false, reason: 'enrichment failed', daysAnalyzed: 0, totalConversions: 0, events: [] } }
         })(),
         (async () => {

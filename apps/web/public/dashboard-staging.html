@@ -2674,10 +2674,14 @@ input{font-family:inherit}
             <a href="https://tagmanager.google.com" target="_blank" class="int-help-link">פתחו GTM &#8599;</a>
           </div>
           <div id="gtm-connected" style="display:none">
-            <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px;margin-bottom:6px">
+            <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px;margin-bottom:8px">
               <div style="display:flex;align-items:center;gap:8px"><span style="color:#10B981;font-size:1rem">✓</span><span style="font-weight:600;font-size:0.88rem;color:#065F46">Google Tag Manager מחובר</span></div>
+              <div id="gtm-selection-display" style="margin-top:8px;font-size:0.82rem;color:#374151;line-height:1.5"></div>
             </div>
-            <button class="btn btn-outline btn-sm" onclick="disconnectGoogleScope('gtm')" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו GTM</button>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-primary btn-sm" onclick="openGTMContainerPicker()" style="font-size:0.78rem">🎯 בחרו container</button>
+              <button class="btn btn-outline btn-sm" onclick="disconnectGoogleScope('gtm')" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו GTM</button>
+            </div>
           </div>
         </div>
       </div>
@@ -2698,10 +2702,14 @@ input{font-family:inherit}
             <a href="https://analytics.google.com" target="_blank" class="int-help-link">פתחו GA4 &#8599;</a>
           </div>
           <div id="ga4-connected" style="display:none">
-            <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px;margin-bottom:6px">
+            <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px;margin-bottom:8px">
               <div style="display:flex;align-items:center;gap:8px"><span style="color:#10B981;font-size:1rem">✓</span><span style="font-weight:600;font-size:0.88rem;color:#065F46">Google Analytics 4 מחובר</span></div>
+              <div id="ga4-selection-display" style="margin-top:8px;font-size:0.82rem;color:#374151;line-height:1.5"></div>
             </div>
-            <button class="btn btn-outline btn-sm" onclick="disconnectGoogleScope('analytics')" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו GA4</button>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-primary btn-sm" onclick="openGA4PropertyPicker()" style="font-size:0.78rem">🎯 בחרו property</button>
+              <button class="btn btn-outline btn-sm" onclick="disconnectGoogleScope('analytics')" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו GA4</button>
+            </div>
           </div>
         </div>
       </div>
@@ -20128,6 +20136,185 @@ async function disconnectGoogleScope(scope) {
   window.location.href = withActiveAgent(API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + remaining.join(',') + '&token=' + token + '&agent=' + agent);
 }
 
+// ─── Phase 4.1 Step 2 issue 3 — GA4 property + GTM container pickers ─────
+// After OAuth user has access to ALL their properties/containers. Without
+// explicit picker we'd silently use the wrong one. These open modals that
+// fetch the catalog from Google + post user's selection to backend.
+
+async function openGA4PropertyPicker() {
+  var iid = localStorage.getItem('cf_instance_id') || instanceId;
+  if (!iid) { showToast('Instance לא נמצא', 'error'); return; }
+  // Show loading modal first
+  var modal = _ensurePickerModal();
+  modal.querySelector('[data-picker-title]').textContent = 'בחרו GA4 Property';
+  modal.querySelector('[data-picker-subtitle]').textContent = 'OAuth מעניק גישה לכל ה-properties בחשבון Google שלך. בחרו את ה-property שמתאים ל-tenant הנוכחי בלבד — Smart Bidding ו-Mazhir audit ישתמשו בו ספציפית.';
+  modal.querySelector('[data-picker-list]').innerHTML = '<div style="padding:24px;text-align:center;color:#9CA3AF">טוען properties...</div>';
+  modal.style.display = 'flex';
+  try {
+    var r = await apiFetch('/hosting/instances/' + iid + '/integrations/google/ga4/properties');
+    if (!r.success) throw new Error(r.message || 'Failed');
+    var props = (r.data && r.data.properties) || [];
+    var sel = (r.data && r.data.currentSelection) || {};
+    if (props.length === 0) {
+      modal.querySelector('[data-picker-list]').innerHTML = '<div style="padding:24px;text-align:center;color:#991B1B">לא נמצאו properties ב-GA4. ודאו שיש לכם גישה ל-Analytics אצל Google.</div>';
+      return;
+    }
+    var html = '<div style="font-size:0.78rem;color:#9CA3AF;margin-bottom:8px">' + props.length + ' properties נמצאו</div>';
+    for (var i = 0; i < props.length; i++) {
+      var p = props[i];
+      var checked = (sel.ga4PropertyId === p.propertyId) ? ' checked' : '';
+      html += '<label style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:6px;cursor:pointer">' +
+        '<input type="radio" name="pdiPropPick" value="' + escapeAttr(p.propertyId) + '" data-name="' + escapeAttr(p.displayName) + '" style="margin-top:2px"' + checked + '>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-weight:600;color:#1F2937">' + escapeHtml(p.displayName) + '</div>' +
+          '<div style="font-size:0.75rem;color:#6B7280">ID: ' + escapeHtml(p.propertyId) + (p.accountName ? ' · חשבון: ' + escapeHtml(p.accountName) : '') + '</div>' +
+        '</div>' +
+      '</label>';
+    }
+    modal.querySelector('[data-picker-list]').innerHTML = html;
+    modal.querySelector('[data-picker-confirm]').onclick = async function() {
+      var radio = modal.querySelector('input[name="pdiPropPick"]:checked');
+      if (!radio) { showToast('בחרו property', 'error'); return; }
+      var sav = await apiFetch('/hosting/instances/' + iid + '/integrations/google/ga4/select', {
+        method: 'POST',
+        body: JSON.stringify({ propertyId: radio.value, propertyName: radio.getAttribute('data-name') })
+      });
+      if (sav.success) {
+        showToast('GA4 property נשמר ✓', 'success');
+        modal.style.display = 'none';
+        _refreshGoogleSelectionDisplays();
+      } else {
+        showToast('שגיאה: ' + (sav.message || ''), 'error');
+      }
+    };
+  } catch (err) {
+    modal.querySelector('[data-picker-list]').innerHTML = '<div style="padding:24px;text-align:center;color:#991B1B">שגיאה: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+async function openGTMContainerPicker() {
+  var iid = localStorage.getItem('cf_instance_id') || instanceId;
+  if (!iid) { showToast('Instance לא נמצא', 'error'); return; }
+  var modal = _ensurePickerModal();
+  modal.querySelector('[data-picker-title]').textContent = 'בחרו GTM Container';
+  modal.querySelector('[data-picker-subtitle]').textContent = 'OAuth מעניק גישה לכל ה-containers בחשבון Google. בחרו את ה-container שבו Mazhir ייצור tags (Conversion Linker, GCLID, awct, gaawe) באופן אוטומטי.';
+  modal.querySelector('[data-picker-list]').innerHTML = '<div style="padding:24px;text-align:center;color:#9CA3AF">טוען containers...</div>';
+  modal.style.display = 'flex';
+  try {
+    var r = await apiFetch('/hosting/instances/' + iid + '/integrations/google/gtm/containers');
+    if (!r.success) throw new Error(r.message || 'Failed');
+    var accounts = (r.data && r.data.accounts) || [];
+    var sel = (r.data && r.data.currentSelection) || {};
+    if (accounts.length === 0) {
+      modal.querySelector('[data-picker-list]').innerHTML = '<div style="padding:24px;text-align:center;color:#991B1B">לא נמצאו GTM accounts. ודאו שיש לכם גישה ל-Tag Manager אצל Google.</div>';
+      return;
+    }
+    var html = '';
+    var totalContainers = 0;
+    for (var ai = 0; ai < accounts.length; ai++) {
+      var acc = accounts[ai];
+      html += '<div style="margin-bottom:14px"><div style="font-weight:700;color:#374151;font-size:0.86rem;margin-bottom:6px">' + escapeHtml(acc.name) + ' (ID: ' + escapeHtml(acc.accountId) + ')</div>';
+      var conts = acc.containers || [];
+      totalContainers += conts.length;
+      for (var ci = 0; ci < conts.length; ci++) {
+        var ct = conts[ci];
+        var checked = (sel.gtmContainerId === ct.containerId) ? ' checked' : '';
+        html += '<label style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:6px;cursor:pointer;margin-inline-start:14px">' +
+          '<input type="radio" name="pdiContainerPick" value="' + escapeAttr(acc.accountId + ':' + ct.containerId) +
+            '" data-acc-id="' + escapeAttr(acc.accountId) + '" data-acc-name="' + escapeAttr(acc.name) +
+            '" data-cont-id="' + escapeAttr(ct.containerId) + '" data-cont-name="' + escapeAttr(ct.name) +
+            '" data-cont-public="' + escapeAttr(ct.publicId || '') + '" style="margin-top:2px"' + checked + '>' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="font-weight:600;color:#1F2937">' + escapeHtml(ct.name) +
+              (ct.publicId ? ' <span style="font-family:monospace;font-size:0.78rem;color:#2563EB">[' + escapeHtml(ct.publicId) + ']</span>' : '') +
+            '</div>' +
+            '<div style="font-size:0.75rem;color:#6B7280">ID: ' + escapeHtml(ct.containerId) +
+              (ct.usageContext && ct.usageContext.length ? ' · ' + ct.usageContext.join(', ') : '') +
+            '</div>' +
+          '</div>' +
+        '</label>';
+      }
+      html += '</div>';
+    }
+    modal.querySelector('[data-picker-list]').innerHTML = '<div style="font-size:0.78rem;color:#9CA3AF;margin-bottom:8px">' + totalContainers + ' containers ב-' + accounts.length + ' חשבונות</div>' + html;
+    modal.querySelector('[data-picker-confirm]').onclick = async function() {
+      var radio = modal.querySelector('input[name="pdiContainerPick"]:checked');
+      if (!radio) { showToast('בחרו container', 'error'); return; }
+      var sav = await apiFetch('/hosting/instances/' + iid + '/integrations/google/gtm/select', {
+        method: 'POST',
+        body: JSON.stringify({
+          accountId: radio.getAttribute('data-acc-id'),
+          accountName: radio.getAttribute('data-acc-name'),
+          containerId: radio.getAttribute('data-cont-id'),
+          containerName: radio.getAttribute('data-cont-name'),
+          containerPublicId: radio.getAttribute('data-cont-public') || undefined
+        })
+      });
+      if (sav.success) {
+        showToast('GTM container נשמר ✓', 'success');
+        modal.style.display = 'none';
+        _refreshGoogleSelectionDisplays();
+      } else {
+        showToast('שגיאה: ' + (sav.message || ''), 'error');
+      }
+    };
+  } catch (err) {
+    modal.querySelector('[data-picker-list]').innerHTML = '<div style="padding:24px;text-align:center;color:#991B1B">שגיאה: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+// Build reusable picker modal once and reuse for both GA4 + GTM. Mounted to body.
+function _ensurePickerModal() {
+  var modal = document.getElementById('pdi-picker-modal');
+  if (modal) return modal;
+  modal = document.createElement('div');
+  modal.id = 'pdi-picker-modal';
+  modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:85vh;display:flex;flex-direction:column;direction:rtl">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #E5E7EB">' +
+        '<div>' +
+          '<div data-picker-title style="font-weight:700;font-size:1.05rem;color:#1F2937"></div>' +
+          '<div data-picker-subtitle style="font-size:0.82rem;color:#6B7280;line-height:1.5;margin-top:4px"></div>' +
+        '</div>' +
+        '<button onclick="document.getElementById(\'pdi-picker-modal\').style.display=\'none\'" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6B7280;padding:0 4px">×</button>' +
+      '</div>' +
+      '<div data-picker-list style="flex:1;overflow-y:auto;padding:18px 22px;background:#F9FAFB"></div>' +
+      '<div style="padding:14px 22px;border-top:1px solid #E5E7EB;display:flex;gap:8px;justify-content:flex-end">' +
+        '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'pdi-picker-modal\').style.display=\'none\'">ביטול</button>' +
+        '<button class="btn btn-primary btn-sm" data-picker-confirm>שמרו בחירה</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+  return modal;
+}
+
+// Refresh the "selected property/container" display inside the connected
+// state of each card. Called after picker save.
+async function _refreshGoogleSelectionDisplays() {
+  var iid = localStorage.getItem('cf_instance_id') || instanceId;
+  if (!iid) return;
+  try {
+    var statusR = await apiFetch('/hosting/integrations/google/status?instanceId=' + iid);
+    if (!statusR.success || !statusR.data || !statusR.data.connected) return;
+    var cfg = statusR.data.config || {};
+    var ga4El = document.getElementById('ga4-selection-display');
+    if (ga4El) {
+      ga4El.innerHTML = cfg.ga4PropertyId
+        ? '<strong>Property נבחר:</strong> ' + escapeHtml(cfg.ga4PropertyName || cfg.ga4PropertyId) + ' <span style="color:#9CA3AF;font-family:monospace">[' + escapeHtml(cfg.ga4PropertyId) + ']</span>'
+        : '<span style="color:#92400E">⚠ לא נבחר property. Mazhir ישתמש ב-best-effort matching לפי URL — מומלץ לבחור מפורש.</span>';
+    }
+    var gtmEl = document.getElementById('gtm-selection-display');
+    if (gtmEl) {
+      gtmEl.innerHTML = cfg.gtmContainerId
+        ? '<strong>Container נבחר:</strong> ' + escapeHtml(cfg.gtmContainerName || cfg.gtmContainerId) +
+          (cfg.gtmContainerPublicId ? ' <span style="color:#2563EB;font-family:monospace">[' + escapeHtml(cfg.gtmContainerPublicId) + ']</span>' : '') +
+          (cfg.gtmAccountName ? '<div style="color:#9CA3AF;font-size:0.75rem;margin-top:2px">חשבון: ' + escapeHtml(cfg.gtmAccountName) + '</div>' : '')
+        : '<span style="color:#92400E">⚠ לא נבחר container. Mazhir GTM auto-setup ייכשל עד שתבחרו.</span>';
+    }
+  } catch (e) {}
+}
+
 // Sync GTM + GA4 card UI from instanceData.googleTokens.scopes
 function updateGoogleScopeCards() {
   var aliases = _currentGoogleScopeAliases();
@@ -20171,6 +20358,12 @@ function updateGoogleScopeCards() {
       ga4Card.classList.remove('connected-card');
       ga4Connected.style.display = 'none';
       ga4NotConnected.style.display = '';
+    }
+  }
+  // Phase 4.1 — refresh property/container selection displays
+  if (hasGa4 || hasGtm) {
+    if (typeof _refreshGoogleSelectionDisplays === 'function') {
+      _refreshGoogleSelectionDisplays();
     }
   }
 }

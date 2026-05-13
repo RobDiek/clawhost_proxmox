@@ -485,6 +485,18 @@ app.get('/integrations/google/callback', googleCallback)
 app.post('/integrations/google/disconnect', googleDisconnect)
 app.get('/integrations/google/status', googleStatus)
 
+// ── Google Asset Picker (Phase 4.1) — GA4 properties + GTM containers ──
+import {
+    listGA4Properties as gapListGA4,
+    selectGA4Property as gapSelectGA4,
+    listGTMContainers as gapListGTM,
+    selectGTMContainer as gapSelectGTM,
+} from '@/controllers/hosting/googleAssetPicker'
+app.get('/instances/:id/integrations/google/ga4/properties', gapListGA4)
+app.post('/instances/:id/integrations/google/ga4/select', gapSelectGA4)
+app.get('/instances/:id/integrations/google/gtm/containers', gapListGTM)
+app.post('/instances/:id/integrations/google/gtm/select', gapSelectGTM)
+
 // ── Google Search Console OAuth ──
 app.get('/integrations/gsc/auth', gscAuth)
 app.get('/integrations/gsc/callback', gscCallback)
