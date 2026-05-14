@@ -4840,17 +4840,32 @@ function renderHome() {
           desc: 'בחרו ערוצים (Google Ads / SEO / תוכן / רשתות) וחברו את הכלים הנדרשים. הסוכנים יתחילו לפעול אוטומטית.'
         });
 
-        // ─── Phase 4.2 — Paid Research Pipeline (3 stages) ─────────────
-        // Runs BEFORE the Mazhir audit pipeline. Stages:
-        //   1. paid_competitor_landscape (Meta Ad Library + Google Transparency + LP CRO)
-        //   2. paid_keyword_research (DataForSEO paid landscape + intent ladder)
-        //   3. paid_budget_scenarios (3 IL-vertical-anchored tiers with 12mo KPI)
-        // Output feeds the existing mazhir_audit + media_plan stages with
-        // richer context (so audit doesn't run blind on only user-uploaded data).
+        // ─── Phase 4.2 — Unified Paid Track Pipeline (2 phases, 8 steps) ──
+        // ONE widget showing the full paid journey from "I want paid ads"
+        // to "campaigns ready to launch":
+        //
+        //   Phase 1 — Research (3 stages):
+        //     1. paid_competitor_landscape (Meta + Google Transparency + LP audits)
+        //     2. paid_keyword_research (DataForSEO landscape + intent ladder)
+        //     3. paid_budget_scenarios (3 IL-vertical tiers + 12mo KPI)
+        //
+        //   Phase 2 — Setup + Execution (5 stages):
+        //     4. paid_profile (user picks budget/goal/geo from research)
+        //     5. mazhir_audit (Opus + adversary on all data above)
+        //     6. mazhir_gtm_setup (conditional on FullAdsAPI)
+        //     7. mazhir_conversions (conditional on FullAdsAPI)
+        //     8. mazhir_media_plan
+        //
+        // Each step carries a `whyMatters` Hebrew explanation that surfaces
+        // the dependency chain — what this step contributes, which prior
+        // steps fed it, what downstream steps use it. The first step of
+        // each phase carries a `phaseLabel` for visual section divider.
         var needsPaidProfile = rdMI.indexOf('paid_search') !== -1 || rdMI.indexOf('paid_social') !== -1;
         if (needsPaidProfile && hasBrandBook) {
-          var __rd = (instanceData && instanceData.researchData) || {};
-          var __res = __rd.results || {};
+          var rd = (instanceData && instanceData.researchData) || {};
+          var __res = rd.results || {};
+
+          // ── Phase 1: Research state ──
           var pclResult = __res.paid_competitor_landscape;
           var pkrResult = __res.paid_keyword_research;
           var pbsResult = __res.paid_budget_scenarios;
@@ -4881,8 +4896,7 @@ function renderHome() {
             pkrResult.records.forEach(function(r) {
               if (r.keywords && Array.isArray(r.keywords)) totalKw += r.keywords.length;
             });
-            var medCpc = pkrResult.extras && pkrResult.extras.il_cpc_benchmark_position;
-            pkrSummary = totalKw + ' מילים · ' + pkrResult.records.length + ' ad groups' + (medCpc ? ' · ' + medCpc : '');
+            pkrSummary = totalKw + ' מילים · ' + pkrResult.records.length + ' ad groups';
           }
           var pbsSummary = '';
           if (hasPaidBud && pbsResult.records) {
@@ -4890,86 +4904,7 @@ function renderHome() {
             pbsSummary = pbsResult.records.length + ' תרחישים' + (recommended ? ' · המלצה: ' + recommended : '');
           }
 
-          var paidResearchSteps = [
-            {
-              id: 'paid_competitor_landscape',
-              n: 1,
-              label: 'מחקר מתחרים — פרסום ממומן' + (pclSummary ? ' · ' + pclSummary : ''),
-              desc: hasPaidComp
-                ? 'מתחרים נחקרו מ-Meta Ad Library + Google Ads Transparency + Firecrawl LP audits'
-                : 'Meta Ad Library + Google Ads Transparency Center + Firecrawl audit על דפי נחיתה של מתחרים — 5 buckets, 10 creative angles, IL signals',
-              status: pclRunning ? 'running' : (hasPaidComp ? 'done' : 'active'),
-              elapsed: pclElapsed,
-              primaryAction: pclRunning
-                ? { label: '⏳ ' + pclElapsed, disabled: true }
-                : (hasPaidComp
-                    ? { label: 'הריצו מחדש', onclick: 'runPaidCompetitorLandscapeFromTasks()' }
-                    : { label: '▶ הריצו (~60-90 שנ\')', onclick: 'runPaidCompetitorLandscapeFromTasks()' }),
-              secondaryActions: hasPaidComp ? [{ label: 'צפו בניתוח →', onclick: 'viewPaidCompetitorLandscape()' }] : []
-            },
-            {
-              id: 'paid_keyword_research',
-              n: 2,
-              label: 'מחקר מילות מפתח — ממומן' + (pkrSummary ? ' · ' + pkrSummary : ''),
-              desc: hasPaidKw
-                ? 'מילים נחקרו עם CPC ריאלי + סיווג intent + clusters לקבוצות מודעות'
-                : 'DataForSEO landscape: CPC, competition_index, intent ladder (TOFU/MOFU/BOFU/BRAND), semantic clusters, IL CPC benchmarks',
-              status: pkrRunning ? 'running' : (hasPaidKw ? 'done' : (hasPaidComp ? 'active' : 'locked')),
-              lockedReason: hasPaidComp ? '' : 'דורש סיום מחקר מתחרים',
-              elapsed: pkrElapsed,
-              primaryAction: pkrRunning
-                ? { label: '⏳ ' + pkrElapsed, disabled: true }
-                : (hasPaidKw
-                    ? { label: 'הריצו מחדש', onclick: 'runPaidKeywordResearchFromTasks()' }
-                    : { label: '▶ הריצו (~30-60 שנ\')', onclick: 'runPaidKeywordResearchFromTasks()', disabled: !hasPaidComp }),
-              secondaryActions: hasPaidKw ? [{ label: 'צפו במילים →', onclick: 'viewPaidKeywordResearch()' }] : []
-            },
-            {
-              id: 'paid_budget_scenarios',
-              n: 3,
-              label: 'תרחישי תקציב — שמרני / מאוזן / אגרסיבי' + (pbsSummary ? ' · ' + pbsSummary : ''),
-              desc: hasPaidBud
-                ? '3 תרחישים עם פירוט חודשי של 12 חודשים, allocation, bidding ladder, prerequisites + risks'
-                : '17 IL vertical benchmarks → 3 דרגות עם KPI projection חודשי + allocation + bidding ladder',
-              status: pbsRunning ? 'running' : (hasPaidBud ? 'done' : (hasPaidKw ? 'active' : 'locked')),
-              lockedReason: hasPaidKw ? '' : 'דורש סיום מחקר מילות מפתח',
-              elapsed: pbsElapsed,
-              primaryAction: pbsRunning
-                ? { label: '⏳ ' + pbsElapsed, disabled: true }
-                : (hasPaidBud
-                    ? { label: 'הריצו מחדש', onclick: 'runPaidBudgetScenariosFromTasks()' }
-                    : { label: '▶ הריצו (~45-75 שנ\')', onclick: 'runPaidBudgetScenariosFromTasks()', disabled: !hasPaidKw }),
-              secondaryActions: hasPaidBud ? [{ label: 'צפו בתרחישים →', onclick: 'viewPaidBudgetScenarios()' }] : []
-            }
-          ];
-
-          var paidResearchDone = paidResearchSteps.every(function(s) { return s.status === 'done'; });
-
-          tasks.push({
-            id: 'paid_research_pipeline',
-            customWidget: true,
-            label: 'מחקר פרסום ממומן — 3 שלבים',
-            done: paidResearchDone,
-            steps: paidResearchSteps
-          });
-        }
-        // ─── Mazhir / Google Ads — single composite pipeline widget ─────
-        // Replaces the previously-separate paid_profile / mazhir_audit /
-        // mazhir_gtm_setup / mazhir_conversions / mazhir_media_plan cards
-        // with ONE step-by-step pipeline so the user sees the linear flow,
-        // dependencies, and progress in a single place.
-        //
-        // Stored as a special task with id 'mazhir_pipeline' + a flag
-        // `customWidget: true` — the renderer detects that flag and emits
-        // the bespoke vertical-stepper HTML instead of the standard task row.
-        // Brand foundation is now a primary task earlier in the chain,
-        // so by the time we reach Mazhir pipeline brand is always done.
-        // The defensive 'brand-required-for-paid' duplicate task was removed.
-        if (needsPaidProfile && hasBrandBook) {
-          // Compute step status objects up-front so the renderer can emit
-          // them all at once (each step needs to know prior step completion
-          // for "locked" gating).
-          var rd = (instanceData && instanceData.researchData) || {};
+          // ── Phase 2: Mazhir state ──
           var hasPaidProfile = !!(rd.paidProfile && rd.paidProfile.monthlyBudgetIls);
           var hasAudit = !!rd.mazhirAudit;
           var auditMethodology = hasAudit && rd.mazhirAudit.methodology;
@@ -4997,41 +4932,106 @@ function renderHome() {
             });
           }
 
-          var pipelineSteps = [
-            {
-              id: 'paid_profile',
-              n: 1,
-              label: 'פרופיל קידום ממומן',
-              desc: 'תקציב, מטרה, גיאוגרפיה, USP, נתונים היסטוריים — בסיס לכל שאר הצעדים',
-              status: hasPaidProfile ? 'done' : 'active',
-              primaryAction: { label: hasPaidProfile ? 'ערכו' : 'מלאו פרופיל', onclick: 'openPaidProfileModal()' },
-              secondaryActions: hasPaidProfile ? [{ label: 'בדיקת נתונים', onclick: 'viewMazhirDataPreflight()' }] : []
-            },
-            {
-              id: 'mazhir_audit',
-              n: 2,
-              label: 'אודיט Google Ads (Mazhir)' + (hasAudit && auditMethodology ? ' · ' + auditMethodology : ''),
-              desc: hasAudit
-                ? 'Opus + Sonnet אדוורסרי קראו 19 מקורות נתונים והפיקו אודיט מקיף'
-                : 'Opus + Sonnet יקראו 19 מקורות נתונים: GA4, Search Terms, Auction Insights, Change History, GTM, Search Console, DataForSEO ועוד',
-              status: auditRunning ? 'running' : (hasAudit ? 'done' : (hasPaidProfile ? 'active' : 'locked')),
-              lockedReason: hasPaidProfile ? '' : 'דורש פרופיל קידום ממומן',
-              elapsed: auditElapsed,
-              primaryAction: auditRunning
-                ? { label: '⏳ ' + auditElapsed, disabled: true }
-                : (hasAudit
-                    ? { label: 'הריצו מחדש', onclick: 'runMazhirAuditFromTasks()' }
-                    : { label: '▶ הריצו אודיט (~1-2 דק׳)', onclick: 'runMazhirAuditFromTasks()', disabled: !hasPaidProfile }),
-              secondaryActions: hasAudit ? [{ label: 'צפו באודיט →', onclick: 'viewMazhirAudit()' }] : []
-            }
-          ];
+          // ── Build unified steps[] across both phases ──
+          var pipelineSteps = [];
 
+          // Step 1: Competitor research (phase 1 start)
+          pipelineSteps.push({
+            id: 'paid_competitor_landscape',
+            n: 1,
+            phaseLabel: 'פאזה 1 — מחקר (3 שלבים)',
+            label: 'מחקר מתחרים — פרסום ממומן' + (pclSummary ? ' · ' + pclSummary : ''),
+            desc: 'Meta Ad Library + Google Ads Transparency Center + Firecrawl audit על דפי נחיתה של מתחרים — 5 buckets, 10 creative angles, IL signals',
+            whyMatters: 'נחשפים לקמפיינים הפעילים של המתחרים: אילו אנגלים יצירתיים, אילו דפי נחיתה, באיזה פלטפורמות. **בלי זה כל ההמלצות יהיו generic.** עומק זה מזין את שלבים 2-3 (מילות מפתח + תקציב) ובסופו של דבר את האודיט והתוכנית.',
+            status: pclRunning ? 'running' : (hasPaidComp ? 'done' : 'active'),
+            elapsed: pclElapsed,
+            primaryAction: pclRunning
+              ? { label: '⏳ ' + pclElapsed, disabled: true }
+              : (hasPaidComp
+                  ? { label: 'הריצו מחדש', onclick: 'runPaidCompetitorLandscapeFromTasks()' }
+                  : { label: '▶ הריצו (~60-90 שנ\')', onclick: 'runPaidCompetitorLandscapeFromTasks()' }),
+            secondaryActions: hasPaidComp ? [{ label: 'צפו בניתוח →', onclick: 'viewPaidCompetitorLandscape()' }] : []
+          });
+
+          // Step 2: Keyword research
+          pipelineSteps.push({
+            id: 'paid_keyword_research',
+            n: 2,
+            label: 'מחקר מילות מפתח — ממומן' + (pkrSummary ? ' · ' + pkrSummary : ''),
+            desc: 'DataForSEO landscape: CPC, competition_index, intent ladder (TOFU/MOFU/BOFU/BRAND), semantic clusters, IL CPC benchmarks',
+            whyMatters: 'משלב 1 כבר יודעים מי המתחרים — עכשיו מקבלים את ה-CPC הריאלי + intent של כל מילת מפתח רלוונטית. **תוצאה: אד-grupים מוכנים לבנייה.** מזין את שלב 3 (תרחישי תקציב — צריך CPC לחישוב) ושלב 8 (תוכנית מדיה — לפי clusters).',
+            status: pkrRunning ? 'running' : (hasPaidKw ? 'done' : (hasPaidComp ? 'active' : 'locked')),
+            lockedReason: hasPaidComp ? '' : 'דורש סיום שלב 1 (מחקר מתחרים)',
+            elapsed: pkrElapsed,
+            primaryAction: pkrRunning
+              ? { label: '⏳ ' + pkrElapsed, disabled: true }
+              : (hasPaidKw
+                  ? { label: 'הריצו מחדש', onclick: 'runPaidKeywordResearchFromTasks()' }
+                  : { label: '▶ הריצו (~30-60 שנ\')', onclick: 'runPaidKeywordResearchFromTasks()', disabled: !hasPaidComp }),
+            secondaryActions: hasPaidKw ? [{ label: 'צפו במילים →', onclick: 'viewPaidKeywordResearch()' }] : []
+          });
+
+          // Step 3: Budget scenarios
+          pipelineSteps.push({
+            id: 'paid_budget_scenarios',
+            n: 3,
+            label: 'תרחישי תקציב — שמרני / מאוזן / אגרסיבי' + (pbsSummary ? ' · ' + pbsSummary : ''),
+            desc: '17 IL vertical benchmarks → 3 דרגות עם KPI projection חודשי + allocation + bidding ladder',
+            whyMatters: 'Opus לוקח את ה-CPC הריאלי משלב 2 + 17 IL vertical benchmarks ובונה 3 תרחישי תקציב עם projection חודשי של 12 חודש. **תוצאה: המלצה מספרית לפני בחירה.** בשלב 4 תוכלו לבחור scenario מומלץ או להזין משלכם.',
+            status: pbsRunning ? 'running' : (hasPaidBud ? 'done' : (hasPaidKw ? 'active' : 'locked')),
+            lockedReason: hasPaidKw ? '' : 'דורש סיום שלב 2 (מילות מפתח)',
+            elapsed: pbsElapsed,
+            primaryAction: pbsRunning
+              ? { label: '⏳ ' + pbsElapsed, disabled: true }
+              : (hasPaidBud
+                  ? { label: 'הריצו מחדש', onclick: 'runPaidBudgetScenariosFromTasks()' }
+                  : { label: '▶ הריצו (~45-75 שנ\')', onclick: 'runPaidBudgetScenariosFromTasks()', disabled: !hasPaidKw }),
+            secondaryActions: hasPaidBud ? [{ label: 'צפו בתרחישים →', onclick: 'viewPaidBudgetScenarios()' }] : []
+          });
+
+          // Step 4: Paid profile (phase 2 start)
+          pipelineSteps.push({
+            id: 'paid_profile',
+            n: 4,
+            phaseLabel: 'פאזה 2 — הקמת קמפיין' + (hasFullAdsAPI ? ' (5 שלבים)' : ' (3 שלבים)'),
+            label: 'פרופיל קידום ממומן',
+            desc: 'תקציב, מטרה, גיאוגרפיה, USP, נתונים היסטוריים — בסיס לאודיט ולתוכנית',
+            whyMatters: 'אתם מתרגמים את ההמלצות מהמחקר (שלבים 1-3) לבחירה עסקית קונקרטית. אם רצתם תרחישי תקציב — תוכלו לבחור scenario מומלץ. **בלי זה האודיט והתוכנית לא יודעים תקציב ומטרה.**',
+            status: hasPaidProfile ? 'done' : (hasPaidBud ? 'active' : 'locked'),
+            lockedReason: hasPaidBud ? '' : 'מומלץ לסיים את שלבי 1-3 (המחקר) — אבל ניתן למלא ידנית גם בלי',
+            primaryAction: { label: hasPaidProfile ? 'ערכו' : 'מלאו פרופיל', onclick: 'openPaidProfileModal()' },
+            secondaryActions: hasPaidProfile ? [{ label: 'בדיקת נתונים', onclick: 'viewMazhirDataPreflight()' }] : []
+          });
+
+          // Step 5: Mazhir audit
+          pipelineSteps.push({
+            id: 'mazhir_audit',
+            n: 5,
+            label: 'אודיט Google Ads (Mazhir)' + (hasAudit && auditMethodology ? ' · ' + auditMethodology : ''),
+            desc: hasAudit
+              ? 'Opus + Sonnet אדוורסרי קראו 19 מקורות נתונים והפיקו אודיט מקיף'
+              : 'Opus + Sonnet יקראו 19 מקורות נתונים: GA4, Search Terms, Auction Insights, Change History, GTM, Search Console, DataForSEO ועוד',
+            whyMatters: 'Opus קורא את כל הנתונים — המחקר משלבים 1-3, הפרופיל משלב 4, וההיסטוריה (אם יש OAuth) — ומחזיר audit מקיף עם methodology + blockers + recommendations. **בלי זה הקמפיינים יוצאים בלי validation.** Sonnet אדוורסרי מציג "5 דרכים שזה ייכשל" כדי לתפוס assumptions.',
+            status: auditRunning ? 'running' : (hasAudit ? 'done' : (hasPaidProfile ? 'active' : 'locked')),
+            lockedReason: hasPaidProfile ? '' : 'דורש שלב 4 (פרופיל)',
+            elapsed: auditElapsed,
+            primaryAction: auditRunning
+              ? { label: '⏳ ' + auditElapsed, disabled: true }
+              : (hasAudit
+                  ? { label: 'הריצו מחדש', onclick: 'runMazhirAuditFromTasks()' }
+                  : { label: '▶ הריצו אודיט (~1-2 דק׳)', onclick: 'runMazhirAuditFromTasks()', disabled: !hasPaidProfile }),
+            secondaryActions: hasAudit ? [{ label: 'צפו באודיט →', onclick: 'viewMazhirAudit()' }] : []
+          });
+
+          // Steps 6 + 7: GTM + Conversions (only when FullAdsAPI is connected)
+          var nextStepNum = 6;
           if (hasFullAdsAPI) {
             pipelineSteps.push({
               id: 'mazhir_gtm_setup',
-              n: 3,
+              n: nextStepNum++,
               label: 'GTM auto-setup',
               desc: 'Conversion Linker, GCLID Capture, awct (Google Ads pixel), gaawe (GA4), Enhanced Conversions, Consent Mode v2 — מותקן ומפורסם דרך GTM API',
+              whyMatters: 'בלי GTM מותקן נכון, Smart Bidding ב-Google Ads מקבל סיגנל המרה רעוע (iOS attribution loss, missing GCLIDs). **תוצאה: tCPA / tROAS יבזבזו תקציב על noise.** Mazhir דוחף אוטומטית את כל הtags הקריטיים — pixel, conversion linker, consent mode — ללא touch ידני.',
               status: hasGtmPublished ? 'done' : (hasAudit ? 'active' : 'locked'),
               lockedReason: hasAudit ? '' : 'דורש סיום אודיט',
               primaryAction: { label: hasGtmPublished ? 'הריצו מחדש' : '▶ הפעילו GTM auto-setup', onclick: 'autoSetupMazhirGtmFromTasks()', disabled: !hasAudit },
@@ -5039,17 +5039,18 @@ function renderHome() {
             });
             pipelineSteps.push({
               id: 'mazhir_conversions',
-              n: 4,
+              n: nextStepNum++,
               label: convCreated > 0 ? 'ConversionActions ב-Google Ads (' + convCreated + ')' : 'ConversionActions ב-Google Ads',
               desc: 'יוצר רשומות ConversionAction ב-Google Ads עבור כל סוג המרה (form_submit, phone_call וכו׳) — מקושרות אוטומטית לתגי GTM',
+              whyMatters: 'Google Ads לא יודע מה לאופטמ בלי ConversionAction רישומים. GTM משלב 6 דוחף נתונים פנימה, ConversionAction אומר ל-Google "זה מה שאני סופר כהמרה". **בלי זה Smart Bidding לא יכול לעבוד — כל המרה מתעלמת ממנו.**',
               status: convCreated > 0 ? 'done' : (hasGtmPublished ? 'active' : 'locked'),
-              lockedReason: hasGtmPublished ? '' : 'דורש פרסום GTM',
+              lockedReason: hasGtmPublished ? '' : 'דורש שלב 6 (GTM)',
               primaryAction: { label: convCreated > 0 ? 'הריצו מחדש' : '▶ צרו ConversionActions', onclick: 'setupMazhirConversionsFromTasks()', disabled: !hasGtmPublished },
               secondaryActions: []
             });
           }
 
-          var planStepNum = hasFullAdsAPI ? 5 : 3;
+          // Step 8 (or 6 if no FullAdsAPI): Media plan
           var planLabel = hasPlan
             ? ('תוכנית מדיה · ' + campaignCount + ' קמפיין' + (campaignCount > 1 ? 'ים' : '')
                + (planAdGroups > 0 ? ' · ' + planAdGroups + ' קבוצות' : '')
@@ -5057,15 +5058,16 @@ function renderHome() {
             : 'תוכנית מדיה לקמפיינים';
           pipelineSteps.push({
             id: 'mazhir_media_plan',
-            n: planStepNum,
+            n: nextStepNum,
             label: planLabel,
             desc: planRunning
               ? 'Opus בונה — אנא המתינו'
               : (hasFullAdsAPI
                   ? 'קמפיינים, קבוצות מודעות, RSA, מילות מפתח עם volumes/CPC ריאליים, negatives, sitelinks — מוכן לדחיפה דרך ה-API'
                   : 'מסמך setup ידני מלא — קמפיינים, ad groups, RSA, מילות מפתח, negatives. ניתן להזין ידנית ב-Google Ads UI'),
+            whyMatters: 'Opus מקבל את כל הנתונים שנצברו: 4 buckets מתחרים, 80 keywords עם CPC + intent, 3 תרחישי תקציב, פרופיל, audit, GTM/Conversions setup. **בונה תוכנית מדיה ממוקדת**: קמפיינים, ad groups, RSA copy, mileh keywords עם match types, negatives, sitelinks, extensions. ' + (hasFullAdsAPI ? 'מוכן ל-API push דרך Mazhir Executor.' : 'מסמך setup ידני שניתן להזין ב-Google Ads UI.'),
             status: planRunning ? 'running' : (hasPlan ? 'done' : (hasAudit ? 'active' : 'locked')),
-            lockedReason: hasAudit ? '' : 'דורש סיום אודיט',
+            lockedReason: hasAudit ? '' : 'דורש שלב 5 (אודיט)',
             elapsed: planElapsed,
             primaryAction: planRunning
               ? { label: '⏳ ' + planElapsed, disabled: true }
@@ -5075,17 +5077,17 @@ function renderHome() {
             secondaryActions: hasPlan ? [{ label: 'צפו בתוכנית →', onclick: 'viewMazhirMediaPlan()' }] : []
           });
 
-          // Pipeline considered "done" only when every step is done.
           var pipelineDone = pipelineSteps.every(function(s) { return s.status === 'done'; });
 
           tasks.push({
-            id: 'mazhir_pipeline',
+            id: 'paid_track_pipeline',
             customWidget: true,
-            label: 'Google Ads — צינור הקמת קמפיין',
+            label: 'מסלול פרסום ממומן — מחקר → הקמת קמפיין',
             done: pipelineDone,
-            steps: pipelineSteps
+            steps: pipelineSteps,
           });
         }
+        // (Legacy mazhir_pipeline removed — replaced by unified paid_track_pipeline above)
       }
 
       // Brand Foundation moved up — now sits between strategy and marketing_config.
@@ -5148,13 +5150,13 @@ function renderHome() {
         '</div>' +
         '<div style="height:4px;background:#E5E7EB;border-radius:2px;overflow:hidden;margin-bottom:14px"><div style="height:100%;background:' + headerColor + ';width:' + pipPct + '%;border-radius:2px;transition:width .3s"></div></div>';
 
-      // ─── paid_research_pipeline ONLY: Step 0 — Data sources status ─────
+      // ─── paid_track_pipeline ONLY: Step 0 — Data sources status ───────
       // Compact summary showing which paid data sources (OAuth + historical
       // CSV) are wired. Surfaces fix-it buttons inline so user doesn't have
       // to discover them by exploring the "תוספים" tab separately.
       // Not gating — research can still run with public-only data; this
       // panel just makes the data-quality lever VISIBLE upfront.
-      if (t.id === 'paid_research_pipeline') {
+      if (t.id === 'paid_track_pipeline') {
         var ds_rd = (instanceData && instanceData.researchData) || {};
         var ds_metaOk = !!(instanceData && (instanceData.hasMetaAds || instanceData.metaTokens
           || (instanceData.activeAgentIntegrations && instanceData.activeAgentIntegrations.meta && instanceData.activeAgentIntegrations.meta.connected)));
@@ -5233,6 +5235,25 @@ function renderHome() {
           return '<button onclick="' + a.onclick + '" class="notif-action" style="font-size:0.74rem;margin-right:6px">' + escapeHtml(a.label) + '</button>';
         }).join('');
 
+        // ─── Phase divider (renders BEFORE the step card if step has phaseLabel) ──
+        if (s.phaseLabel) {
+          tasksHtml += '<div style="display:flex;align-items:center;gap:8px;margin:14px 0 10px 0">' +
+            '<div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,#CBD5E1 30%,#CBD5E1 70%,transparent)"></div>' +
+            '<div style="background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF;font-size:0.76rem;font-weight:600;padding:4px 12px;border-radius:14px;white-space:nowrap">' + escapeHtml(s.phaseLabel) + '</div>' +
+            '<div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,#CBD5E1 30%,#CBD5E1 70%,transparent)"></div>' +
+          '</div>';
+        }
+
+        // ─── whyMatters info box (renders INSIDE step card) ────────────────
+        // Supports simple **bold** markdown for emphasis.
+        var whyMattersHtml = '';
+        if (s.whyMatters) {
+          var wm = escapeHtml(s.whyMatters).replace(/\*\*([^*]+)\*\*/g, '<strong style="color:#1F2937">$1</strong>');
+          whyMattersHtml = '<div style="background:#F0F9FF;border-right:3px solid #3B82F6;padding:8px 11px;margin-top:8px;margin-bottom:8px;font-size:0.76rem;color:#1E3A8A;line-height:1.65;border-radius:4px;direction:rtl">' +
+            '<span style="font-weight:600;color:#1E40AF">💡 למה זה חשוב: </span>' + wm +
+          '</div>';
+        }
+
         tasksHtml += '<div style="position:relative;display:flex;gap:12px;padding:10px 12px;background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;margin-bottom:10px">' +
           connectorLine +
           '<div style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:' + numBg + ';color:' + numColor + ';border:2px solid ' + numBorder + ';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;z-index:1">' +
@@ -5243,9 +5264,10 @@ function renderHome() {
               '<span style="font-weight:600;font-size:0.86rem;color:#1F2937">' + escapeHtml(s.label) + '</span>' +
               statusBadge +
             '</div>' +
-            '<div style="font-size:0.76rem;color:#6B7280;line-height:1.5;margin-bottom:8px">' + escapeHtml(s.desc || '') +
+            '<div style="font-size:0.76rem;color:#6B7280;line-height:1.5;margin-bottom:4px">' + escapeHtml(s.desc || '') +
               (s.status === 'locked' && s.lockedReason ? ' <span style="color:#DC2626">· ' + escapeHtml(s.lockedReason) + '</span>' : '') +
             '</div>' +
+            whyMattersHtml +
             '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">' +
               primary + secondary +
             '</div>' +
