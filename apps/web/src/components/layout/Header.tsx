@@ -67,9 +67,12 @@ const Header: FC<HeaderProps> = ({
         cachedProfile?.email ||
         ''
 
+    const normalizedPath =
+        location.pathname.length > 1 && location.pathname.endsWith('/')
+            ? location.pathname.slice(0, -1)
+            : location.pathname
     const isLandingPage =
-        location.pathname === ROUTES.HOME ||
-        location.pathname === ROUTES.GO
+        normalizedPath === ROUTES.HOME || normalizedPath === ROUTES.GO
 
     return (
         <Fragment>
