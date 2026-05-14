@@ -484,9 +484,21 @@ export const getMyInstances = async (c: Context) => {
                 onboardingCompleted: i.onboardingCompleted,
                 onboardingStep: i.onboardingStep,
                 researchData: i.researchData,
+                // research_data schema is v2: per-stage records under .results.<stage_id>
+                // (competitor_landscape, audience_personas, strategy_options, etc.)
+                // Legacy v1 keys (rd.report / rd.stage1 / rd.strategy) kept as fallback.
                 hasProfile: !!(i.researchData as any)?.answers,
-                hasResearch: !!((i.researchData as any)?.report || (i.researchData as any)?.stage1),
-                hasStrategy: !!(i.researchData as any)?.strategy,
+                hasResearch: (() => {
+                    const rd = (i.researchData as any) || {}
+                    if (rd.report || rd.stage1) return true
+                    const r = rd.results || {}
+                    return !!(r.competitor_landscape || r.audience_personas || r.seo_keyword_research
+                        || r.positioning || r.content_plan || r.aeo_visibility || r.validation)
+                })(),
+                hasStrategy: (() => {
+                    const rd = (i.researchData as any) || {}
+                    return !!(rd.strategy || rd.results?.strategy_options)
+                })(),
                 hasBrandBook: hasBrandBookSet.has(i.id),
                 aiProviderType: i.aiProviderType,
                 hasAnthropicKey: !!i.aiProviderKey,
