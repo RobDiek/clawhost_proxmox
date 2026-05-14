@@ -794,8 +794,7 @@ const de: Translations = {
         newClaw: 'Neuer Claw',
         searchAgents: 'Agenten suchen...',
         searchAgentsCount: '{{count}} Agenten suchen...',
-        noAgentsMatchSearch:
-            'Keine Agenten gefunden, die Ihrer Suche entsprechen.',
+        noAgentsMatchSearch: 'Keine Agenten gefunden.',
         clawActions: 'Claw-Aktionen',
         noAgentsYet: 'Keine Agenten',
         noAgentsDescription:

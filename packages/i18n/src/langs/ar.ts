@@ -746,7 +746,7 @@ const ar: Translations = {
         newClaw: 'مخلب جديد',
         searchAgents: 'البحث عن الوكلاء...',
         searchAgentsCount: 'البحث في {{count}} وكلاء...',
-        noAgentsMatchSearch: 'لم يتم العثور على وكلاء يطابقون بحثك.',
+        noAgentsMatchSearch: 'لم يتم العثور على وكلاء.',
         clawActions: 'إجراءات المخلب',
         noAgentsYet: 'لا يوجد وكلاء',
         noAgentsDescription:

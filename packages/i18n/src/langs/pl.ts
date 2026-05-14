@@ -781,8 +781,7 @@ const pl: Translations = {
         newClaw: 'Nowy Claw',
         searchAgents: 'Szukaj agentów...',
         searchAgentsCount: 'Szukaj {{count}} agentów...',
-        noAgentsMatchSearch:
-            'Nie znaleziono agentów pasujących do wyszukiwania.',
+        noAgentsMatchSearch: 'Nie znaleziono agentów.',
         clawActions: 'Akcje claw',
         noAgentsYet: 'Brak Agentów',
         noAgentsDescription:

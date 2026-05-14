@@ -761,7 +761,7 @@ const en = {
         newClaw: 'New Claw',
         searchAgents: 'Search agents...',
         searchAgentsCount: 'Search {{count}} agents...',
-        noAgentsMatchSearch: 'No agents found matching your search.',
+        noAgentsMatchSearch: 'No agents found.',
         clawActions: 'Claw actions',
         noAgentsYet: 'No Agents',
         noAgentsDescription:

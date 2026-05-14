@@ -725,7 +725,7 @@ const zh: Translations = {
         newClaw: '新建 Claw',
         searchAgents: '搜索代理...',
         searchAgentsCount: '搜索 {{count}} 个代理...',
-        noAgentsMatchSearch: '未找到匹配搜索的代理.',
+        noAgentsMatchSearch: '未找到代理.',
         clawActions: 'Claw 操作',
         noAgentsYet: '暂无代理',
         noAgentsDescription:

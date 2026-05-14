@@ -779,8 +779,7 @@ const nl: Translations = {
         newClaw: 'Nieuwe Claw',
         searchAgents: 'Agenten zoeken...',
         searchAgentsCount: '{{count}} agenten zoeken...',
-        noAgentsMatchSearch:
-            'Geen agenten gevonden die overeenkomen met je zoekopdracht.',
+        noAgentsMatchSearch: 'Geen agenten gevonden.',
         clawActions: 'Claw-acties',
         noAgentsYet: 'Geen Agenten',
         noAgentsDescription:

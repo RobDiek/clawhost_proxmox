@@ -770,7 +770,7 @@ const tr: Translations = {
         newClaw: 'Yeni Claw',
         searchAgents: 'Ajan ara...',
         searchAgentsCount: '{{count}} ajan ara...',
-        noAgentsMatchSearch: 'Aramanızla eşleşen ajan bulunamadı.',
+        noAgentsMatchSearch: 'Ajan bulunamadı.',
         clawActions: 'Claw işlemleri',
         noAgentsYet: 'Ajan Yok',
         noAgentsDescription:

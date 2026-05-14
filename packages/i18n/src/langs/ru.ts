@@ -770,8 +770,7 @@ const ru: Translations = {
         newClaw: 'Новый клоу',
         searchAgents: 'Поиск агентов...',
         searchAgentsCount: 'Поиск {{count}} агентов...',
-        noAgentsMatchSearch:
-            'Агенты, соответствующие вашему поиску, не найдены.',
+        noAgentsMatchSearch: 'Агенты не найдены.',
         clawActions: 'Действия с клоу',
         noAgentsYet: 'Нет агентов',
         noAgentsDescription:

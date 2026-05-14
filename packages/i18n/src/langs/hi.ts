@@ -776,7 +776,7 @@ const hi: Translations = {
         newClaw: 'नया क्लॉ',
         searchAgents: 'एजेंट खोजें...',
         searchAgentsCount: '{{count}} एजेंट खोजें...',
-        noAgentsMatchSearch: 'आपकी खोज से मेल खाने वाला कोई एजेंट नहीं मिला.',
+        noAgentsMatchSearch: 'कोई एजेंट नहीं मिला.',
         clawActions: 'क्लॉ कार्य',
         noAgentsYet: 'कोई एजेंट नहीं',
         noAgentsDescription:

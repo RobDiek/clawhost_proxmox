@@ -771,7 +771,7 @@ const ja: Translations = {
         newClaw: '新しいClaw',
         searchAgents: 'エージェントを検索...',
         searchAgentsCount: '{{count}} エージェントを検索...',
-        noAgentsMatchSearch: '検索に一致するエージェントが見つかりません.',
+        noAgentsMatchSearch: 'エージェントが見つかりません.',
         clawActions: 'Clawアクション',
         noAgentsYet: 'エージェントなし',
         noAgentsDescription:
