@@ -118,6 +118,16 @@ export interface PaidDataInventory {
         estimatedSetupCostOneTimeIls: number
         estimatedSetupCostMonthlyIls: number
     }
+    // Phase 4.1 hardening — per-platform breakdown so downstream consumers
+    // (Hypothesis Engine, paid_audit) never cross-sum conversions across
+    // platforms with different attribution windows.
+    perPlatform?: Array<{
+        platform: string
+        tier: PaidTier
+        spend90dIls: number
+        conv30d: number
+    }>
+    dominantPlatform?: string | null
 }
 
 // ─── Tier classification logic ─────────────────────────────────────────────
@@ -134,10 +144,24 @@ interface TierInputs {
     conv30d: number
     daysSinceLastSpend: number | null
     trackingHealthy: boolean          // GA4 + ≥1 conversion firing + EC if Google Ads
+    /** Phase 4.1 — true if we have ingested rows even without OAuth (manual-mode warm). */
+    hasIngestedHistory?: boolean
 }
 function classifyTier(i: TierInputs): { tier: PaidTier; rationaleHe: string; rationale: string } {
     const hasAnyPaidAccount = i.googleAdsConnected || i.metaConnected
-    if (!hasAnyPaidAccount || i.spend90dIls === 0) {
+    // Phase 4.1 — "manual mode warm start". If the user uploaded historical
+    // reports (so we have real spend/conversions in ingested_data_points)
+    // but never connected OAuth, we still know enough to tier them. Their
+    // active-account signal is the ingestion data itself.
+    const hasManualWarmSignal = !hasAnyPaidAccount && i.hasIngestedHistory === true && i.spend90dIls > 0
+    if (!hasAnyPaidAccount && !hasManualWarmSignal) {
+        return {
+            tier: 'T0',
+            rationale: 'No paid ad account connected and no ingested historical data. True cold start.',
+            rationaleHe: 'אין חשבון פרסום מחובר ואין נתונים היסטוריים שהועלו. cold start מוחלט.',
+        }
+    }
+    if (i.spend90dIls === 0 && !hasManualWarmSignal) {
         return {
             tier: 'T0',
             rationale: 'No paid ad account connected or zero spend in last 90 days. True cold start.',
@@ -517,29 +541,95 @@ export async function runPaidDataInventory(instanceId: string): Promise<PaidData
         metadata: { count: reportsCount },
     })
 
-    // ─── Tier inputs — pull from Google Ads API if connected; otherwise stub.
-    // V1: rely on connection presence + paidProfile.hasExistingAccount flag.
-    // V2: call services/googleAds.ts getCampaignMetrics() for real conv/spend.
-    let spend90dIls = 0
-    let conv90d = 0
-    let conv30d = 0
-    const daysSinceLastSpend: number | null = null
-    if (googleAdsConnected && adsCfg.customerId) {
-        // Future: real Google Ads API call here. For Step 1, accept paidProfile.historicalNotes hints.
+    // ─── Tier inputs — read from Layer-1 ingestion if available, else stub.
+    // Phase 4.1 hardening: tier classification is now PER-PLATFORM.
+    // Meta 7d-click+1d-view conversions and Google 30d-data-driven conversions
+    // are not the same kind of conversion — adding them double-counts. So we
+    // tier each platform separately and the final account tier = max tier
+    // achievable on ANY connected platform (matches Smart Bidding reality:
+    // each platform's algorithm trains on its own data).
+    let aggregate90dSpend = 0
+    let aggregateConv90d = 0
+    let aggregateConv30d = 0
+    let daysSinceLastSpend: number | null = null
+    let hasIngestedHistory = false
+    let dominantPlatform: string | null = null
+    let perPlatformTiers: Array<{ platform: string; tier: PaidTier; spend90: number; conv30: number }> = []
+    try {
+        const { aggregateForTier } = await import('./dataIngestion/aggregate')
+        const agg = await aggregateForTier(instanceId)
+        aggregate90dSpend = agg.spend90dIls
+        aggregateConv90d = agg.conv90d
+        aggregateConv30d = agg.conv30d
+        daysSinceLastSpend = agg.daysSinceLastSpend
+        hasIngestedHistory = agg.rowsCount > 0
+        dominantPlatform = agg.dominantPlatform
+
+        // Per-platform tier: each platform tier-classified on ITS OWN conv/spend.
+        // To get per-platform 30d conv we need a second call — but aggregateForTier
+        // already returned 90d per-platform. For 30d we approximate by scaling:
+        // since rows include daily-grain and the aggregator already prorates
+        // across periods, conv90d/3 is a reasonable proxy for conv30d-per-platform
+        // when we don't have a separate per-platform 30d aggregate. We could
+        // add aggregateForTierPerPlatform30d() later if precision matters.
+        perPlatformTiers = agg.byPlatform.map(p => {
+            const platformConv30d = Math.round(p.conversions / 3)
+            const tierForPlatform = classifyTier({
+                googleAdsConnected: p.platform === 'google_ads',
+                metaConnected: p.platform === 'meta',
+                spend90dIls: p.spendIls,
+                conv90d: p.conversions,
+                conv30d: platformConv30d,
+                daysSinceLastSpend,
+                trackingHealthy: googleAdsConnected && ga4Connected && gtmConnected,
+                hasIngestedHistory: true,
+            }).tier
+            return { platform: p.platform, tier: tierForPlatform, spend90: p.spendIls, conv30: platformConv30d }
+        })
+    } catch (err) {
+        // Aggregation failure shouldn't break inventory. Fall back to historical-notes parse.
+        console.warn('[paidDataInventory] ingestion aggregate failed:', (err as Error).message)
+    }
+    // Legacy fallback: paidProfile.historicalNotes free-text hints (kept so we
+    // don't regress instances pre-dating Layer-1 ingestion).
+    if (aggregate90dSpend === 0 && aggregateConv90d === 0) {
         const histNotes = String(pp?.historicalNotes || '')
-        // Crude parse — Sergei will fill this via wizard with structured fields in Phase B.
         const spendMatch = histNotes.match(/spend[^\d]*([\d,]+)/i)
         const convMatch = histNotes.match(/conv(?:ersions)?[^\d]*([\d,]+)/i)
-        if (spendMatch) spend90dIls = parseInt(spendMatch[1].replace(/,/g, ''), 10) || 0
-        if (convMatch) conv90d = parseInt(convMatch[1].replace(/,/g, ''), 10) || 0
-        conv30d = Math.round(conv90d / 3)    // rough proxy
+        if (spendMatch) aggregate90dSpend = parseInt(spendMatch[1].replace(/,/g, ''), 10) || 0
+        if (convMatch) aggregateConv90d = parseInt(convMatch[1].replace(/,/g, ''), 10) || 0
+        aggregateConv30d = Math.round(aggregateConv90d / 3)
     }
     const trackingHealthy = googleAdsConnected && ga4Connected && gtmConnected
 
-    const tierInfo = classifyTier({
-        googleAdsConnected, metaConnected, spend90dIls, conv90d, conv30d,
-        daysSinceLastSpend, trackingHealthy,
-    })
+    // Final tier = max tier achievable on any platform with real data.
+    // If no platform-level data, fall back to the legacy aggregated path
+    // (so instances pre-dating Phase 4.1 still classify sensibly).
+    let tierInfo: ReturnType<typeof classifyTier>
+    if (perPlatformTiers.length > 0) {
+        const tierRank = { T0: 0, T1: 1, T2: 2, T3: 3, T4: 4 } as const
+        const best = perPlatformTiers.reduce((max, p) =>
+            tierRank[p.tier] > tierRank[max.tier] ? p : max,
+            perPlatformTiers[0])
+        // Re-run classifyTier on the best platform's numbers so the rationale
+        // text reflects that platform specifically.
+        tierInfo = classifyTier({
+            googleAdsConnected: best.platform === 'google_ads',
+            metaConnected: best.platform === 'meta',
+            spend90dIls: best.spend90,
+            conv90d: best.spend90 > 0 ? Math.max(best.conv30 * 3, aggregateConv90d) : 0,
+            conv30d: best.conv30,
+            daysSinceLastSpend,
+            trackingHealthy,
+            hasIngestedHistory: true,
+        })
+    } else {
+        tierInfo = classifyTier({
+            googleAdsConnected, metaConnected,
+            spend90dIls: aggregate90dSpend, conv90d: aggregateConv90d, conv30d: aggregateConv30d,
+            daysSinceLastSpend, trackingHealthy, hasIngestedHistory,
+        })
+    }
 
     // ─── Capabilities matrix ────────────────────────────────────────────────
     const enhancedConversionsActive = false  // V1: not yet detectable without Google Ads API call
@@ -706,5 +796,14 @@ export async function runPaidDataInventory(instanceId: string): Promise<PaidData
             estimatedSetupCostOneTimeIls: setupOneTime,
             estimatedSetupCostMonthlyIls: setupMonthly,
         },
+        perPlatform: perPlatformTiers.length > 0
+            ? perPlatformTiers.map(p => ({
+                platform: p.platform,
+                tier: p.tier,
+                spend90dIls: Number(p.spend90.toFixed(2)),
+                conv30d: p.conv30,
+            }))
+            : undefined,
+        dominantPlatform: dominantPlatform || undefined,
     }
 }

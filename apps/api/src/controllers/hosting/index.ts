@@ -75,5 +75,10 @@ export {
     pipelinePrecheck, getMarketingCatalog, previewHubForIntents,
     setPipelineActivationEndpoint, previewIntentCleanup,
 } from './marketingHub'
+export {
+    runPaidHypothesesEngineController, listPaidHypotheses, getPaidHypothesisById,
+    approvePaidHypothesisController, declinePaidHypothesisController,
+    startTestingPaidController, resolvePaidHypothesisController,
+} from './paidHypotheses'
 // Twenty CRM removed — AGPLv3 license risk
 // export { installTwenty } from './twenty'

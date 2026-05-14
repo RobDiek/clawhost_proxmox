@@ -9,7 +9,9 @@ import {
     index,
     unique,
     uuid,
-    bigserial
+    bigserial,
+    bigint,
+    date
 } from 'drizzle-orm/pg-core'
 import { userRole } from '@openclaw/shared'
 
@@ -1294,3 +1296,226 @@ export const systemConfig = pgTable('system_config', {
     value:      text('value').notNull(),
     updatedAt:  timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })
+
+// ── Universal data ingestion (Phase 4.1 — paid track) ─────────────────────
+// Every row of historical/live performance data normalized into one canonical
+// shape, regardless of upstream source (Meta CSV, Google Ads CSV, GA4 export,
+// GSC export, Looker PDF, OAuth pull, screenshot OCR). Layer-1 of the 4-layer
+// paid architecture: Ingestion → Understanding → Hypotheses → Verification.
+//
+// Why one table for all sources: hypothesis engine queries cross-source
+// (e.g. "campaign X had 5% CTR in Meta but 0.8% in Google Ads — why?") and
+// dedup/quality scoring is uniform. Adapter-specific raw payload preserved
+// in `raw` JSONB for re-mapping if a mapper bug is found later.
+//
+// Granularity rule: one row = one (entity_id, day) or (entity_id, period_range)
+// depending on what the source provides. Mappers explode period-aggregated
+// source rows into per-day rows when the source has daily breakdown; keep
+// them aggregated when only totals are available.
+export const ingestedDataPoints = pgTable(
+    'ingested_data_points',
+    {
+        id:            bigserial('id', { mode: 'number' }).primaryKey(),
+        instanceId:    text('instance_id')
+            .notNull()
+            .references(() => instances.id, { onDelete: 'cascade' }),
+        agentId:       text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
+
+        // ── Source provenance ─────────────────────────────────────────────
+        /** What the classifier identified the upstream as. See dataIngestion/classifier.ts. */
+        sourceType:    text('source_type').notNull(),
+        // 'meta_ads_csv' | 'google_ads_csv' | 'ga4_export_csv' | 'gsc_export_csv'
+        // | 'looker_studio_pdf' | 'screenshot_dashboard' | 'meta_ads_oauth'
+        // | 'google_ads_oauth' | 'ga4_oauth' | 'gsc_oauth' | 'manual_entry' | 'generic_csv'
+
+        /** How we got the data: 'upload' (user file), 'oauth' (live pull), 'manual'. */
+        sourceMode:    text('source_mode').notNull().default('upload'),
+
+        /** Upload file id / OAuth job id / manual entry id — for grouping a single ingestion event. */
+        ingestionBatchId: text('ingestion_batch_id'),
+
+        /** Provenance metadata: { filename, fileHash, classifierConfidence, classifierEvidence, mapperVersion }. */
+        sourceMeta:    jsonb('source_meta').notNull().default({}),
+
+        // ── What entity this row describes ────────────────────────────────
+        /** 'campaign' | 'adset' | 'ad' | 'keyword' | 'page' | 'query' | 'account' | 'event' */
+        dataType:      text('data_type').notNull(),
+
+        /** Native entity id from source if available, else mapper-fabricated id from name. */
+        entityId:      text('entity_id').notNull(),
+        entityName:    text('entity_name'),
+        /** Platform: 'meta' | 'google_ads' | 'microsoft_ads' | 'ga4' | 'gsc' | 'tiktok' | 'linkedin' | 'unknown' */
+        platform:      text('platform').notNull(),
+
+        // ── Time window ───────────────────────────────────────────────────
+        /** Inclusive UTC datetime the metrics aggregate. period_start === period_end for daily rows. */
+        periodStart:   timestamp('period_start', { withTimezone: true }).notNull(),
+        periodEnd:     timestamp('period_end', { withTimezone: true }).notNull(),
+        /** 'day' | 'week' | 'month' | 'lifetime' | 'custom' */
+        periodGrain:   text('period_grain').notNull().default('day'),
+        /** IANA TZ of the source account. 'Asia/Jerusalem' for IL. */
+        accountTz:     text('account_tz'),
+        /** Calendar day in account_tz. Populated only when the row aggregates a single day. */
+        periodDateLocal: date('period_date_local'),
+
+        // ── Attribution provenance (Phase 4.1 hardening) ──────────────────
+        // Without these, cross-platform conversion sums double-count. Every
+        // mapper MUST set these from source defaults if not explicit.
+        /** '7d_click_1d_view' (Meta default) | '7d_click' | '28d_click_1d_view' | '30d_click' (Google default) | 'data_driven' | 'last_click' | 'unknown' */
+        attributionWindow: text('attribution_window'),
+        /** 'last_click' | 'first_click' | 'linear' | 'time_decay' | 'position_based' | 'data_driven' | 'unknown' */
+        attributionModel:  text('attribution_model'),
+        /** Event name as source reports it: 'messaging_conversation_started' | 'purchase' | 'lead' | 'all' | ... */
+        conversionEventName: text('conversion_event_name'),
+
+        // ── Normalized metrics (ILS for monetary, integer for counts) ─────
+        impressions:   bigint('impressions', { mode: 'number' }),
+        clicks:        bigint('clicks', { mode: 'number' }),
+        /** Spend in ILS, post-FX-conversion. Source currency preserved in raw. */
+        spendIls:      decimal('spend_ils', { precision: 14, scale: 4 }),
+        /** Currency of the original spend before FX (USD/EUR/ILS/...). */
+        sourceCurrency: text('source_currency'),
+        /** FX rate applied at ingestion time (1.0 if already ILS). Audit trail. */
+        fxRate:        decimal('fx_rate', { precision: 12, scale: 6 }),
+
+        conversions:   decimal('conversions', { precision: 14, scale: 4 }),
+        conversionValueIls: decimal('conversion_value_ils', { precision: 14, scale: 4 }),
+
+        // Engagement / video
+        videoViews:    bigint('video_views', { mode: 'number' }),
+        engagements:   bigint('engagements', { mode: 'number' }),
+        reach:         bigint('reach', { mode: 'number' }),
+        frequency:     decimal('frequency', { precision: 8, scale: 4 }),
+
+        // Search / SEO (GSC-style)
+        position:      decimal('position', { precision: 8, scale: 4 }),
+
+        // ── Dimensions (kept as JSONB so any adapter can add its own) ─────
+        // E.g. { device:'mobile', placement:'instagram_reels', country:'IL',
+        //       audience_label:'Lookalike 1%', match_type:'BROAD', ad_format:'video' }
+        dimensions:    jsonb('dimensions').notNull().default({}),
+
+        // ── Raw payload for re-mapping if mapper has a bug ────────────────
+        raw:           jsonb('raw'),
+
+        // ── Quality / lifecycle ───────────────────────────────────────────
+        /** 0..1 composite: completeness + freshness + cross-check confidence. */
+        qualityScore:  decimal('quality_score', { precision: 4, scale: 3 }).notNull().default('0.500'),
+        /** Soft flags from validator: 'missing_conversions' | 'low_volume' | 'future_date' | 'currency_inferred' | 'partial_period' | etc. */
+        flags:         text('flags').array().default([]),
+
+        /** SHA-256 of (instance_id|source_type|entity_id|period_start|period_end). Dedup key — same metrics from re-uploaded file silently overwrite. */
+        fingerprint:   text('fingerprint').notNull(),
+
+        ingestedAt:    timestamp('ingested_at', { withTimezone: true }).defaultNow().notNull(),
+        // Soft delete: when user removes an upload, mark rows here instead of
+        // hard-delete so analyses run before deletion remain auditable.
+        supersededAt:  timestamp('superseded_at', { withTimezone: true }),
+    },
+    (table) => [
+        index('idp_instance_idx').on(table.instanceId),
+        index('idp_agent_idx').on(table.agentId),
+        index('idp_instance_platform_period_idx').on(table.instanceId, table.platform, table.periodStart),
+        index('idp_instance_datatype_period_idx').on(table.instanceId, table.dataType, table.periodStart),
+        index('idp_entity_period_idx').on(table.entityId, table.periodStart),
+        index('idp_batch_idx').on(table.ingestionBatchId),
+        index('idp_period_date_local_idx').on(table.instanceId, table.platform, table.periodDateLocal),
+        index('idp_event_name_idx').on(table.instanceId, table.conversionEventName),
+        unique('idp_fingerprint_uniq').on(table.fingerprint),
+    ],
+)
+
+// ── Hypothesis Engine (Phase 4.1 Layer-3) ─────────────────────────────────
+// Testable, dated, action-attached claims about a paid-track account. Full
+// lifecycle proposed → approved → testing → validated/rejected/inconclusive.
+// See drizzle/0055_hypotheses.sql for the design rationale.
+export const hypotheses = pgTable(
+    'hypotheses',
+    {
+        id:                       bigserial('id', { mode: 'number' }).primaryKey(),
+        instanceId:               text('instance_id')
+            .notNull()
+            .references(() => instances.id, { onDelete: 'cascade' }),
+        agentId:                  text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
+
+        // Identity
+        hypothesisCode:           text('hypothesis_code').notNull(),
+        title:                    text('title').notNull(),
+        titleHe:                  text('title_he').notNull(),
+
+        // Scope
+        scopePlatform:            text('scope_platform'),
+        scopeDataType:            text('scope_data_type'),
+        scopeEntityId:            text('scope_entity_id'),
+        scopeEntityName:          text('scope_entity_name'),
+        scopeEventName:           text('scope_event_name'),
+        scopeWindowStart:         date('scope_window_start').notNull(),
+        scopeWindowEnd:           date('scope_window_end').notNull(),
+
+        // The hypothesis itself
+        observation:              text('observation').notNull(),
+        observationHe:            text('observation_he').notNull(),
+        hypothesis:               text('hypothesis').notNull(),
+        hypothesisHe:             text('hypothesis_he').notNull(),
+        reasoning:                text('reasoning').notNull(),
+        reasoningHe:              text('reasoning_he').notNull(),
+
+        // Severity / actionability
+        severity:                 text('severity').notNull(),
+        confidence:               decimal('confidence', { precision: 4, scale: 3 }).notNull(),
+        expectedImpactIls:        decimal('expected_impact_ils', { precision: 14, scale: 2 }),
+        expectedImpactKind:       text('expected_impact_kind'),
+        expectedImpactWindowDays: integer('expected_impact_window_days').default(30),
+
+        // Evidence
+        evidenceSnapshot:         jsonb('evidence_snapshot').notNull().default({}),
+        evidenceQualityScore:     decimal('evidence_quality_score', { precision: 4, scale: 3 }),
+
+        // Proposed action
+        proposedAction:           text('proposed_action').notNull(),
+        proposedActionHe:         text('proposed_action_he').notNull(),
+        manualInstructions:       jsonb('manual_instructions'),
+        apiActionRecipe:          jsonb('api_action_recipe'),
+
+        // Lifecycle
+        status:                   text('status').notNull().default('proposed'),
+        proposedAt:               timestamp('proposed_at', { withTimezone: true }).defaultNow().notNull(),
+        approvedAt:               timestamp('approved_at', { withTimezone: true }),
+        approvedBy:               text('approved_by'),
+        declinedAt:               timestamp('declined_at', { withTimezone: true }),
+        declinedReason:           text('declined_reason'),
+        testingStartedAt:         timestamp('testing_started_at', { withTimezone: true }),
+        testEvaluationDueAt:      timestamp('test_evaluation_due_at', { withTimezone: true }),
+        resolvedAt:               timestamp('resolved_at', { withTimezone: true }),
+
+        // Test parameters
+        testMethod:               text('test_method'),
+        testWindowDays:           integer('test_window_days'),
+        testSuccessCriteria:      jsonb('test_success_criteria'),
+
+        // Outcome
+        outcomeEvidenceSnapshot:  jsonb('outcome_evidence_snapshot'),
+        outcomeImpactIls:         decimal('outcome_impact_ils', { precision: 14, scale: 2 }),
+        outcomeSummary:           text('outcome_summary'),
+        outcomeSummaryHe:         text('outcome_summary_he'),
+        outcomeResolution:        text('outcome_resolution'),
+
+        // Provenance
+        source:                   text('source').notNull(),
+        generatedByModel:         text('generated_by_model'),
+
+        // Supersession
+        supersededBy:             bigint('superseded_by', { mode: 'number' }),
+
+        createdAt:                timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+        updatedAt:                timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        index('hypotheses_instance_status_idx').on(table.instanceId, table.status),
+        index('hypotheses_agent_status_idx').on(table.agentId, table.status),
+        index('hypotheses_code_idx').on(table.instanceId, table.hypothesisCode),
+        index('hypotheses_scope_idx').on(table.instanceId, table.scopePlatform, table.scopeEntityId),
+        index('hypotheses_eval_due_idx').on(table.testEvaluationDueAt),
+        index('hypotheses_proposed_at_idx').on(table.instanceId, table.proposedAt),
+    ],
+)

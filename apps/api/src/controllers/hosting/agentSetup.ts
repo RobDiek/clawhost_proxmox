@@ -8399,6 +8399,7 @@ export const uploadHistoricalReports = async (c: Context) => {
             'image/png', 'image/jpeg', 'image/webp']
 
         const reports: Array<{ name: string; type: string; size: number; uploadedAt: string; base64: string }> = []
+        const buffers: Array<{ name: string; type: string; buf: Buffer }> = []
         for (const file of files) {
             if (file.size > MAX_BYTES) return fail(c, `${file.name}: too large (>${MAX_BYTES})`, 400)
             if (!allowedTypes.includes(file.type)) return fail(c, `${file.name}: unsupported type ${file.type}`, 400)
@@ -8410,6 +8411,7 @@ export const uploadHistoricalReports = async (c: Context) => {
                 uploadedAt: new Date().toISOString(),
                 base64: buf.toString('base64'),
             })
+            buffers.push({ name: file.name, type: file.type, buf })
         }
 
         const __agent = await resolveActiveAgent(c, instanceId)
@@ -8420,7 +8422,33 @@ export const uploadHistoricalReports = async (c: Context) => {
         const next = { ...pp, historicalReports: [...(pp.historicalReports || []), ...reports].slice(-15) }
         await writeResearchData(__agent, instanceId, { ...rd, paidProfile: next })
 
-        return ok(c, { uploaded: reports.length, total: next.historicalReports.length }, 'Historical reports uploaded')
+        // ── Phase 4.1 Layer-1: Universal Data Ingestion ─────────────────────
+        // Run each uploaded file through classify → map → normalize → upsert
+        // into ingested_data_points. Per-file ingestion never blocks the user-
+        // facing upload response — errors are surfaced as warnings, not 5xx.
+        const { ingestFile } = await import('@/services/dataIngestion')
+        const ingestion: Array<{ filename: string; result?: any; error?: string }> = []
+        for (const f of buffers) {
+            try {
+                const result = await ingestFile({
+                    instanceId,
+                    agentId: __agent?.id ?? null,
+                    filename: f.name,
+                    mimeType: f.type,
+                    buffer: f.buf,
+                })
+                ingestion.push({ filename: f.name, result })
+            } catch (err) {
+                console.warn(`[uploadHistoricalReports] ingestion failed for ${f.name}:`, (err as Error).message)
+                ingestion.push({ filename: f.name, error: (err as Error).message })
+            }
+        }
+
+        return ok(c, {
+            uploaded: reports.length,
+            total: next.historicalReports.length,
+            ingestion,
+        }, 'Historical reports uploaded')
     } catch (err) {
         console.error('uploadHistoricalReports error:', err)
         return fail(c, (err as Error).message, 500)

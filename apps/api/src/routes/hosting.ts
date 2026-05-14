@@ -278,6 +278,13 @@ import {
     previewHubForIntents,
     setPipelineActivationEndpoint,
     previewIntentCleanup,
+    runPaidHypothesesEngineController,
+    listPaidHypotheses,
+    getPaidHypothesisById,
+    approvePaidHypothesisController,
+    declinePaidHypothesisController,
+    startTestingPaidController,
+    resolvePaidHypothesisController,
     getLatestManifest, getInstanceVersionStatus,
     triggerInstanceUpgrade, getUpgradeProgressEndpoint,
 } from '@/controllers/hosting'
@@ -444,6 +451,15 @@ app.post('/instances/:id/google-ads-haas/request-invite', requestHaasMccInvite)
 app.get('/marketing/catalog', getMarketingCatalog)
 app.get('/instances/:id/marketing-intents', getMarketingIntents)
 app.post('/instances/:id/marketing-intents', saveMarketingIntents)
+
+// ── Phase 4.1 Layer-3: Paid-track Hypothesis Engine ──
+app.post('/instances/:id/paid-hypotheses/run', runPaidHypothesesEngineController)
+app.get('/instances/:id/paid-hypotheses', listPaidHypotheses)
+app.get('/instances/:id/paid-hypotheses/:hid', getPaidHypothesisById)
+app.post('/instances/:id/paid-hypotheses/:hid/approve', approvePaidHypothesisController)
+app.post('/instances/:id/paid-hypotheses/:hid/decline', declinePaidHypothesisController)
+app.post('/instances/:id/paid-hypotheses/:hid/start-testing', startTestingPaidController)
+app.post('/instances/:id/paid-hypotheses/:hid/resolve', resolvePaidHypothesisController)
 app.post('/instances/:id/marketing-intents/preview-cleanup', previewIntentCleanup)
 app.get('/instances/:id/integration-hub', getIntegrationHub)
 app.post('/instances/:id/integration-hub/preview', previewHubForIntents)
