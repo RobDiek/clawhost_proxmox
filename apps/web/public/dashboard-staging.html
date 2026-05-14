@@ -4840,6 +4840,119 @@ function renderHome() {
           desc: 'בחרו ערוצים (Google Ads / SEO / תוכן / רשתות) וחברו את הכלים הנדרשים. הסוכנים יתחילו לפעול אוטומטית.'
         });
 
+        // ─── Phase 4.2 — Paid Research Pipeline (3 stages) ─────────────
+        // Runs BEFORE the Mazhir audit pipeline. Stages:
+        //   1. paid_competitor_landscape (Meta Ad Library + Google Transparency + LP CRO)
+        //   2. paid_keyword_research (DataForSEO paid landscape + intent ladder)
+        //   3. paid_budget_scenarios (3 IL-vertical-anchored tiers with 12mo KPI)
+        // Output feeds the existing mazhir_audit + media_plan stages with
+        // richer context (so audit doesn't run blind on only user-uploaded data).
+        var needsPaidProfile = rdMI.indexOf('paid_search') !== -1 || rdMI.indexOf('paid_social') !== -1;
+        if (needsPaidProfile && hasBrandBook) {
+          var __rd = (instanceData && instanceData.researchData) || {};
+          var __res = __rd.results || {};
+          var pclResult = __res.paid_competitor_landscape;
+          var pkrResult = __res.paid_keyword_research;
+          var pbsResult = __res.paid_budget_scenarios;
+          var hasPaidComp = !!pclResult;
+          var hasPaidKw = !!pkrResult;
+          var hasPaidBud = !!pbsResult;
+          var pclRunning = !!window._paidCompLandscapeRunning;
+          var pkrRunning = !!window._paidKwResearchRunning;
+          var pbsRunning = !!window._paidBudgetScenariosRunning;
+          var pclElapsed = pclRunning ? _fmtElapsed(Date.now() - window._paidCompLandscapeStartedAt) : '';
+          var pkrElapsed = pkrRunning ? _fmtElapsed(Date.now() - window._paidKwResearchStartedAt) : '';
+          var pbsElapsed = pbsRunning ? _fmtElapsed(Date.now() - window._paidBudgetScenariosStartedAt) : '';
+
+          // Build summary labels from prior results
+          var pclSummary = '';
+          if (hasPaidComp && pclResult.records) {
+            var nComp = pclResult.records.length;
+            var buckets = {};
+            (pclResult.records || []).forEach(function(r) {
+              if (r.bucket) buckets[r.bucket] = (buckets[r.bucket] || 0) + 1;
+            });
+            var bucketStr = Object.keys(buckets).map(function(b) { return buckets[b] + ' ' + b; }).join(' · ');
+            pclSummary = nComp + ' מתחרים · ' + bucketStr;
+          }
+          var pkrSummary = '';
+          if (hasPaidKw && pkrResult.records) {
+            var totalKw = 0;
+            pkrResult.records.forEach(function(r) {
+              if (r.keywords && Array.isArray(r.keywords)) totalKw += r.keywords.length;
+            });
+            var medCpc = pkrResult.extras && pkrResult.extras.il_cpc_benchmark_position;
+            pkrSummary = totalKw + ' מילים · ' + pkrResult.records.length + ' ad groups' + (medCpc ? ' · ' + medCpc : '');
+          }
+          var pbsSummary = '';
+          if (hasPaidBud && pbsResult.records) {
+            var recommended = pbsResult.extras && pbsResult.extras.recommended_scenario_key;
+            pbsSummary = pbsResult.records.length + ' תרחישים' + (recommended ? ' · המלצה: ' + recommended : '');
+          }
+
+          var paidResearchSteps = [
+            {
+              id: 'paid_competitor_landscape',
+              n: 1,
+              label: 'מחקר מתחרים — פרסום ממומן' + (pclSummary ? ' · ' + pclSummary : ''),
+              desc: hasPaidComp
+                ? 'מתחרים נחקרו מ-Meta Ad Library + Google Ads Transparency + Firecrawl LP audits'
+                : 'Meta Ad Library + Google Ads Transparency Center + Firecrawl audit על דפי נחיתה של מתחרים — 5 buckets, 10 creative angles, IL signals',
+              status: pclRunning ? 'running' : (hasPaidComp ? 'done' : 'active'),
+              elapsed: pclElapsed,
+              primaryAction: pclRunning
+                ? { label: '⏳ ' + pclElapsed, disabled: true }
+                : (hasPaidComp
+                    ? { label: 'הריצו מחדש', onclick: 'runPaidCompetitorLandscapeFromTasks()' }
+                    : { label: '▶ הריצו (~60-90 שנ\')', onclick: 'runPaidCompetitorLandscapeFromTasks()' }),
+              secondaryActions: hasPaidComp ? [{ label: 'צפו בניתוח →', onclick: 'viewPaidCompetitorLandscape()' }] : []
+            },
+            {
+              id: 'paid_keyword_research',
+              n: 2,
+              label: 'מחקר מילות מפתח — ממומן' + (pkrSummary ? ' · ' + pkrSummary : ''),
+              desc: hasPaidKw
+                ? 'מילים נחקרו עם CPC ריאלי + סיווג intent + clusters לקבוצות מודעות'
+                : 'DataForSEO landscape: CPC, competition_index, intent ladder (TOFU/MOFU/BOFU/BRAND), semantic clusters, IL CPC benchmarks',
+              status: pkrRunning ? 'running' : (hasPaidKw ? 'done' : (hasPaidComp ? 'active' : 'locked')),
+              lockedReason: hasPaidComp ? '' : 'דורש סיום מחקר מתחרים',
+              elapsed: pkrElapsed,
+              primaryAction: pkrRunning
+                ? { label: '⏳ ' + pkrElapsed, disabled: true }
+                : (hasPaidKw
+                    ? { label: 'הריצו מחדש', onclick: 'runPaidKeywordResearchFromTasks()' }
+                    : { label: '▶ הריצו (~30-60 שנ\')', onclick: 'runPaidKeywordResearchFromTasks()', disabled: !hasPaidComp }),
+              secondaryActions: hasPaidKw ? [{ label: 'צפו במילים →', onclick: 'viewPaidKeywordResearch()' }] : []
+            },
+            {
+              id: 'paid_budget_scenarios',
+              n: 3,
+              label: 'תרחישי תקציב — שמרני / מאוזן / אגרסיבי' + (pbsSummary ? ' · ' + pbsSummary : ''),
+              desc: hasPaidBud
+                ? '3 תרחישים עם פירוט חודשי של 12 חודשים, allocation, bidding ladder, prerequisites + risks'
+                : '17 IL vertical benchmarks → 3 דרגות עם KPI projection חודשי + allocation + bidding ladder',
+              status: pbsRunning ? 'running' : (hasPaidBud ? 'done' : (hasPaidKw ? 'active' : 'locked')),
+              lockedReason: hasPaidKw ? '' : 'דורש סיום מחקר מילות מפתח',
+              elapsed: pbsElapsed,
+              primaryAction: pbsRunning
+                ? { label: '⏳ ' + pbsElapsed, disabled: true }
+                : (hasPaidBud
+                    ? { label: 'הריצו מחדש', onclick: 'runPaidBudgetScenariosFromTasks()' }
+                    : { label: '▶ הריצו (~45-75 שנ\')', onclick: 'runPaidBudgetScenariosFromTasks()', disabled: !hasPaidKw }),
+              secondaryActions: hasPaidBud ? [{ label: 'צפו בתרחישים →', onclick: 'viewPaidBudgetScenarios()' }] : []
+            }
+          ];
+
+          var paidResearchDone = paidResearchSteps.every(function(s) { return s.status === 'done'; });
+
+          tasks.push({
+            id: 'paid_research_pipeline',
+            customWidget: true,
+            label: 'מחקר פרסום ממומן — 3 שלבים',
+            done: paidResearchDone,
+            steps: paidResearchSteps
+          });
+        }
         // ─── Mazhir / Google Ads — single composite pipeline widget ─────
         // Replaces the previously-separate paid_profile / mazhir_audit /
         // mazhir_gtm_setup / mazhir_conversions / mazhir_media_plan cards
@@ -4849,7 +4962,6 @@ function renderHome() {
         // Stored as a special task with id 'mazhir_pipeline' + a flag
         // `customWidget: true` — the renderer detects that flag and emits
         // the bespoke vertical-stepper HTML instead of the standard task row.
-        var needsPaidProfile = rdMI.indexOf('paid_search') !== -1 || rdMI.indexOf('paid_social') !== -1;
         // Brand foundation is now a primary task earlier in the chain,
         // so by the time we reach Mazhir pipeline brand is always done.
         // The defensive 'brand-required-for-paid' duplicate task was removed.
@@ -5015,9 +5127,11 @@ function renderHome() {
 
   var pendingCount = 0;
   visibleTasks.forEach(function(t) {
-    // ─── Custom widget: Mazhir / Google Ads composite pipeline ───────
-    // Single multi-step vertical stepper replacing 5 separate task cards.
-    if (t.customWidget && t.id === 'mazhir_pipeline' && Array.isArray(t.steps)) {
+    // ─── Custom widget: vertical-stepper pipeline ────────────────────
+    // Generic renderer for any task flagged `customWidget: true` with a
+    // `steps[]` array. Used by mazhir_pipeline (Google Ads setup) AND
+    // paid_research_pipeline (Phase 4.2 — 3 paid-research stages).
+    if (t.customWidget && Array.isArray(t.steps)) {
       var doneSteps = t.steps.filter(function(s) { return s.status === 'done'; }).length;
       var totalSteps = t.steps.length;
       var pipPct = Math.round((doneSteps / totalSteps) * 100);
@@ -9676,6 +9790,307 @@ function _fmtElapsed(ms) {
   var s = Math.floor(ms / 1000);
   var m = Math.floor(s / 60);
   return m > 0 ? (m + ':' + String(s % 60).padStart(2, '0')) : (s + 'ש׳');
+}
+
+// ─── Phase 4.2 — paid research pipeline runners ─────────────────────────
+// Each runner posts to the research/stage endpoint, sets a running flag so
+// the dashboard widget shows ⏳ + elapsed, and on completion refreshes the
+// instanceData so result rendering picks up the new state.
+
+async function _runPaidStage(stageId, flagName, startedAtName, label, durationLabel) {
+  if (window[flagName]) {
+    showToast(label + ' כבר רץ — חכו לסיום', 'warning');
+    return;
+  }
+  window[flagName] = true;
+  window[startedAtName] = Date.now();
+  if (typeof _startMazhirTicker === 'function') _startMazhirTicker();
+  if (typeof renderHome === 'function') renderHome();
+  showToast('מריץ ' + label + '... ' + durationLabel, 'info');
+  try {
+    var iid = localStorage.getItem('cf_instance_id') || instanceId;
+    var r = await apiFetch('/hosting/instances/' + iid + '/research/stage/' + stageId, { method: 'POST', body: JSON.stringify({}) });
+    if (!r.success) throw new Error(r.message || 'Stage failed');
+    // Refresh instanceData.researchData by re-fetching minimal payload
+    if (typeof refreshInstanceData === 'function') {
+      await refreshInstanceData();
+    } else {
+      // Fallback: trigger a getInstance refetch via /my-instances list
+      try {
+        var listRes = await apiFetch('/hosting/my-instances');
+        if (listRes.success && Array.isArray(listRes.data)) {
+          var match = listRes.data.find(function(i) { return i.id === iid; });
+          if (match) {
+            instanceData = Object.assign({}, instanceData, match);
+          }
+        }
+      } catch (_) { /* silent */ }
+    }
+    showToast(label + ' הושלם ✓', 'success');
+  } catch (err) {
+    showToast(label + ' נכשל: ' + (err && err.message || err), 'error');
+  } finally {
+    window[flagName] = false;
+    if (typeof renderHome === 'function') renderHome();
+  }
+}
+
+async function runPaidCompetitorLandscapeFromTasks() {
+  return _runPaidStage(
+    'paid_competitor_landscape',
+    '_paidCompLandscapeRunning', '_paidCompLandscapeStartedAt',
+    'מחקר מתחרים — ממומן', '(~60-90 שניות — Meta Ad Library + Google Transparency + Firecrawl)',
+  );
+}
+
+async function runPaidKeywordResearchFromTasks() {
+  return _runPaidStage(
+    'paid_keyword_research',
+    '_paidKwResearchRunning', '_paidKwResearchStartedAt',
+    'מחקר מילות מפתח — ממומן', '(~30-60 שניות — DataForSEO)',
+  );
+}
+
+async function runPaidBudgetScenariosFromTasks() {
+  return _runPaidStage(
+    'paid_budget_scenarios',
+    '_paidBudgetScenariosRunning', '_paidBudgetScenariosStartedAt',
+    'תרחישי תקציב', '(~45-75 שניות)',
+  );
+}
+
+// ─── Phase 4.2 — view-results modals ────────────────────────────────────
+
+function _escapeHtml(s) {
+  var d = document.createElement('div');
+  d.textContent = s == null ? '' : String(s);
+  return d.innerHTML;
+}
+
+function _renderJsonBlock(obj) {
+  return '<pre style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:10px;font-size:0.78rem;direction:ltr;text-align:left;white-space:pre-wrap;max-height:300px;overflow:auto">' + _escapeHtml(JSON.stringify(obj, null, 2)) + '</pre>';
+}
+
+function viewPaidCompetitorLandscape() {
+  var res = instanceData && instanceData.researchData && instanceData.researchData.results
+    && instanceData.researchData.results.paid_competitor_landscape;
+  if (!res) { showToast('אין נתונים — הריצו את השלב קודם', 'error'); return; }
+
+  var html = '';
+
+  // Summary header
+  var extras = res.extras || {};
+  html += '<div style="background:linear-gradient(135deg,#EFF6FF,#F0FDF4);border:1px solid #DBEAFE;border-radius:10px;padding:14px 16px;margin-bottom:18px">' +
+    '<div style="font-weight:700;font-size:0.95rem;color:#1F2937;margin-bottom:6px">סיכום — נוף תחרותי ממומן</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:0.82rem;color:#6B7280">' +
+      '<div><strong style="color:#1F2937">מתחרים נחקרו:</strong> ' + ((res.records || []).length) + '</div>' +
+      '<div><strong style="color:#1F2937">Confidence:</strong> ' + _escapeHtml(res.confidence || '?') + '</div>' +
+    '</div>' +
+  '</div>';
+
+  // Per-competitor records
+  (res.records || []).forEach(function(rec) {
+    var bucketColor = rec.bucket === 'direct' ? '#FEF2F2'
+                    : rec.bucket === 'substitute' ? '#FEF3C7'
+                    : rec.bucket === 'adjacent' ? '#EFF6FF'
+                    : '#F9FAFB';
+    var bucketBorder = rec.bucket === 'direct' ? '#FCA5A5'
+                     : rec.bucket === 'substitute' ? '#FCD34D'
+                     : rec.bucket === 'adjacent' ? '#93C5FD'
+                     : '#E5E7EB';
+
+    html += '<div style="background:' + bucketColor + ';border:1px solid ' + bucketBorder + ';border-radius:10px;padding:12px 14px;margin-bottom:12px">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+        '<strong style="font-size:0.92rem;color:#1F2937">' + _escapeHtml(rec.domain || '?') + '</strong>' +
+        '<span style="background:#fff;border:1px solid ' + bucketBorder + ';border-radius:10px;padding:2px 8px;font-size:0.72rem;color:#1F2937">' + _escapeHtml(rec.bucket || 'unknown') + '</span>' +
+      '</div>' +
+      '<div style="font-size:0.8rem;color:#6B7280;margin-bottom:6px">' +
+        'Meta: ' + (rec.active_ads_meta || 0) + ' · Google: ' + (rec.active_ads_google || 0) +
+        ' · platforms: ' + ((rec.platforms_active || []).join('/') || '?') +
+        ' · median run: ' + (rec.median_ad_run_days || 0) + 'd' +
+        ' · threat: ' + _escapeHtml(rec.strategic_threat_level || 'unknown') +
+      '</div>' +
+      (rec.strategic_threat_rationale_he ? '<div style="font-size:0.82rem;color:#1F2937;line-height:1.6;margin-bottom:8px;direction:rtl">' + _escapeHtml(rec.strategic_threat_rationale_he) + '</div>' : '') +
+      (rec.creative_angles_observed && rec.creative_angles_observed.length > 0
+        ? '<div style="font-size:0.78rem;color:#374151;direction:rtl"><strong>Creative angles:</strong> ' +
+            rec.creative_angles_observed.map(function(a) {
+              return _escapeHtml(a.angle) + ' (' + ((a.examples_he || []).slice(0, 1).map(_escapeHtml).join(' / ')) + ')';
+            }).join(' · ') +
+          '</div>'
+        : '') +
+      ((rec.landing_page_weaknesses && rec.landing_page_weaknesses.length > 0)
+        ? '<div style="font-size:0.76rem;color:#6B7280;margin-top:6px;direction:rtl"><strong>LP weaknesses:</strong> ' +
+            rec.landing_page_weaknesses.map(_escapeHtml).join(' · ') +
+          '</div>'
+        : '') +
+    '</div>';
+  });
+
+  // Extras
+  if (extras.white_space_angles && extras.white_space_angles.length > 0) {
+    html += '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:12px 14px;margin-bottom:12px">' +
+      '<strong style="color:#065F46">White-space angles (לתפוס):</strong> ' +
+      extras.white_space_angles.map(_escapeHtml).join(' · ') +
+    '</div>';
+  }
+  if (extras.saturated_angles && extras.saturated_angles.length > 0) {
+    html += '<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:12px 14px;margin-bottom:12px">' +
+      '<strong style="color:#991B1B">Saturated angles (כולם משתמשים — להימנע):</strong> ' +
+      extras.saturated_angles.map(_escapeHtml).join(' · ') +
+    '</div>';
+  }
+  if (extras.key_recommendations && extras.key_recommendations.length > 0) {
+    html += '<div style="margin-bottom:12px"><strong style="font-size:0.92rem;color:#1F2937">המלצות מרכזיות:</strong>' +
+      '<ul style="margin:6px 18px 0;padding:0;font-size:0.86rem;color:#374151;line-height:1.6;direction:rtl">' +
+        extras.key_recommendations.map(function(r) { return '<li>' + _escapeHtml(r) + '</li>'; }).join('') +
+      '</ul></div>';
+  }
+  if (extras.questions_for_user && extras.questions_for_user.length > 0) {
+    html += '<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 14px"><strong style="color:#92400E">שאלות לפני המשך:</strong>' +
+      '<ul style="margin:6px 18px 0;padding:0;font-size:0.82rem;color:#92400E;line-height:1.6;direction:rtl">' +
+        extras.questions_for_user.map(function(q) { return '<li>' + _escapeHtml(q) + '</li>'; }).join('') +
+      '</ul></div>';
+  }
+
+  openReportModal('מחקר מתחרים — פרסום ממומן', html, 'paid-competitor-landscape', { html: true });
+}
+
+function viewPaidKeywordResearch() {
+  var res = instanceData && instanceData.researchData && instanceData.researchData.results
+    && instanceData.researchData.results.paid_keyword_research;
+  if (!res) { showToast('אין נתונים — הריצו את השלב קודם', 'error'); return; }
+
+  var html = '';
+  var extras = res.extras || {};
+  var intentDist = extras.intent_distribution_pct || {};
+
+  html += '<div style="background:linear-gradient(135deg,#EFF6FF,#F0FDF4);border:1px solid #DBEAFE;border-radius:10px;padding:14px 16px;margin-bottom:18px">' +
+    '<div style="font-weight:700;font-size:0.95rem;color:#1F2937;margin-bottom:6px">סיכום — מילות מפתח ממומן</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:0.82rem;color:#6B7280">' +
+      '<div><strong style="color:#1F2937">Ad groups:</strong> ' + ((res.records || []).length) + '</div>' +
+      '<div><strong style="color:#1F2937">Intent mix:</strong> TOFU=' + ((intentDist.TOFU || 0) * 100).toFixed(0) + '%, MOFU=' + ((intentDist.MOFU || 0) * 100).toFixed(0) + '%, BOFU=' + ((intentDist.BOFU || 0) * 100).toFixed(0) + '%' + '</div>' +
+      '<div><strong style="color:#1F2937">Confidence:</strong> ' + _escapeHtml(res.confidence || '?') + '</div>' +
+    '</div>' +
+    (extras.il_cpc_benchmark_position ? '<div style="margin-top:8px;font-size:0.78rem;color:#6B7280">CPC position: ' + _escapeHtml(extras.il_cpc_benchmark_position) + '</div>' : '') +
+  '</div>';
+
+  (res.records || []).forEach(function(ag) {
+    var tierColor = ag.intent_tier === 'BOFU' ? '#FEF2F2'
+                  : ag.intent_tier === 'MOFU' ? '#FEF3C7'
+                  : ag.intent_tier === 'TOFU' ? '#EFF6FF'
+                  : '#F9FAFB';
+    var tierBorder = ag.intent_tier === 'BOFU' ? '#FCA5A5'
+                   : ag.intent_tier === 'MOFU' ? '#FCD34D'
+                   : ag.intent_tier === 'TOFU' ? '#93C5FD'
+                   : '#E5E7EB';
+
+    var bid = ag.ad_group_bid_range_ils || {};
+    html += '<div style="background:' + tierColor + ';border:1px solid ' + tierBorder + ';border-radius:10px;padding:12px 14px;margin-bottom:12px">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+        '<strong style="font-size:0.92rem;color:#1F2937">' + _escapeHtml(ag.ad_group_label_he || ag.ad_group_id) + '</strong>' +
+        '<span style="background:#fff;border:1px solid ' + tierBorder + ';border-radius:10px;padding:2px 8px;font-size:0.72rem">' + _escapeHtml(ag.intent_tier) + '</span>' +
+        '<span style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:2px 8px;font-size:0.72rem">' + _escapeHtml(ag.bid_strategy_recommended || '?') + '</span>' +
+      '</div>' +
+      '<div style="font-size:0.8rem;color:#6B7280;margin-bottom:6px">' +
+        'Bid range: ₪' + (bid.low || '?') + '-₪' + (bid.high || '?') +
+        ' · ' + ((ag.keywords || []).length) + ' keywords' +
+      '</div>' +
+      (ag.bid_strategy_rationale_he ? '<div style="font-size:0.8rem;color:#1F2937;margin-bottom:8px;line-height:1.6;direction:rtl">' + _escapeHtml(ag.bid_strategy_rationale_he) + '</div>' : '') +
+      ((ag.keywords && ag.keywords.length > 0)
+        ? '<div style="font-size:0.78rem;color:#374151;direction:rtl;margin-bottom:6px"><strong>Keywords:</strong>' +
+            '<table style="width:100%;border-collapse:collapse;margin-top:4px;font-size:0.72rem">' +
+            '<thead><tr style="background:#fff"><th style="text-align:right;padding:4px 6px;border-bottom:1px solid ' + tierBorder + '">מילה</th><th style="padding:4px 6px">vol</th><th>CPC</th><th>match</th><th>maxCpc</th></tr></thead>' +
+            '<tbody>' +
+            ag.keywords.slice(0, 10).map(function(k) {
+              return '<tr><td style="text-align:right;padding:3px 6px">' + _escapeHtml(k.keyword) + '</td>' +
+                '<td style="padding:3px 6px;text-align:center">' + (k.monthly_volume || 0) + '</td>' +
+                '<td style="padding:3px 6px;text-align:center">₪' + (k.cpc_estimate_ils || '?') + '</td>' +
+                '<td style="padding:3px 6px;text-align:center">' + _escapeHtml(k.match_type || '?') + '</td>' +
+                '<td style="padding:3px 6px;text-align:center">₪' + (k.recommended_max_cpc_ils || '?') + '</td></tr>';
+            }).join('') +
+            '</tbody></table>' +
+          '</div>'
+        : '') +
+      ((ag.negative_keywords && ag.negative_keywords.length > 0)
+        ? '<div style="font-size:0.75rem;color:#6B7280;direction:rtl"><strong>Negatives:</strong> ' + ag.negative_keywords.map(_escapeHtml).join(' · ') + '</div>'
+        : '') +
+    '</div>';
+  });
+
+  if (extras.account_level_negatives && extras.account_level_negatives.length > 0) {
+    html += '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:12px 14px;margin-bottom:12px"><strong style="color:#92400E">Account-level negatives:</strong> ' +
+      extras.account_level_negatives.map(_escapeHtml).join(' · ') + '</div>';
+  }
+  if (extras.brand_bidding_defense_required) {
+    html += '<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:12px 14px;margin-bottom:12px;color:#991B1B"><strong>⚠ Brand-bidding defense מומלץ:</strong> מתחרים מציעים על שם המותג; הקימו קמפיין הגנתי על brand keywords.</div>';
+  }
+
+  openReportModal('מחקר מילות מפתח — פרסום ממומן', html, 'paid-keyword-research', { html: true });
+}
+
+function viewPaidBudgetScenarios() {
+  var res = instanceData && instanceData.researchData && instanceData.researchData.results
+    && instanceData.researchData.results.paid_budget_scenarios;
+  if (!res) { showToast('אין נתונים — הריצו את השלב קודם', 'error'); return; }
+
+  var html = '';
+  var extras = res.extras || {};
+  var recommended = extras.recommended_scenario_key;
+
+  html += '<div style="background:linear-gradient(135deg,#EFF6FF,#F0FDF4);border:1px solid #DBEAFE;border-radius:10px;padding:14px 16px;margin-bottom:18px">' +
+    '<div style="font-weight:700;font-size:0.95rem;color:#1F2937;margin-bottom:6px">סיכום — תרחישי תקציב</div>' +
+    (recommended ? '<div style="font-size:0.86rem;color:#1F2937">המלצה: <strong style="color:#10B981">' + _escapeHtml(recommended) + '</strong></div>' : '') +
+    (extras.recommendation_rationale_he ? '<div style="font-size:0.82rem;color:#6B7280;margin-top:6px;direction:rtl;line-height:1.6">' + _escapeHtml(extras.recommendation_rationale_he) + '</div>' : '') +
+  '</div>';
+
+  (res.records || []).forEach(function(s) {
+    var color = s.tier_key === 'conservative' ? '#EFF6FF'
+              : s.tier_key === 'balanced' ? '#F0FDF4'
+              : '#FEF3C7';
+    var border = s.tier_key === 'conservative' ? '#93C5FD'
+               : s.tier_key === 'balanced' ? '#86EFAC'
+               : '#FCD34D';
+    var isRec = s.recommended_for_this_business || s.tier_key === recommended;
+    var k = s.adjusted_year1_kpis || {};
+    var alloc = s.adjusted_allocation_ils || {};
+
+    html += '<div style="background:' + color + ';border:' + (isRec ? '2px' : '1px') + ' solid ' + border + ';border-radius:10px;padding:14px 16px;margin-bottom:12px">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+        '<strong style="font-size:1rem;color:#1F2937">' + _escapeHtml(s.tier_label_he || s.tier_key) + '</strong>' +
+        '<span style="background:#fff;border:1px solid ' + border + ';border-radius:10px;padding:2px 8px;font-size:0.78rem">₪' + (s.monthly_budget_ils || 0).toLocaleString() + '/חודש</span>' +
+        (isRec ? '<span style="background:#10B981;color:#fff;border-radius:10px;padding:2px 10px;font-size:0.72rem;font-weight:600">מומלץ</span>' : '') +
+      '</div>' +
+      (s.recommended_rationale_he ? '<div style="font-size:0.84rem;color:#1F2937;margin-bottom:10px;direction:rtl;line-height:1.7">' + _escapeHtml(s.recommended_rationale_he) + '</div>' : '') +
+      '<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:0.78rem;color:#374151;margin-bottom:10px">' +
+        '<div><strong>Y1 conversions:</strong> ' + (k.expected_conversions || 0).toLocaleString() + '</div>' +
+        (k.expected_cpa_ils_range ? '<div><strong>CPA range:</strong> ₪' + k.expected_cpa_ils_range.low + '-₪' + k.expected_cpa_ils_range.high + '</div>' : '') +
+        (k.expected_roas_range ? '<div><strong>ROAS:</strong> ' + k.expected_roas_range.median + '× (' + k.expected_roas_range.low + '-' + k.expected_roas_range.high + ')</div>' : '') +
+      '</div>' +
+      '<div style="background:#fff;border-radius:6px;padding:8px 10px;font-size:0.76rem;color:#1F2937;margin-bottom:8px;direction:rtl">' +
+        '<strong>Allocation:</strong> ' +
+        'Search Brand ₪' + (alloc.search_brand || 0) + ' · Non-Brand ₪' + (alloc.search_nonbrand || 0) +
+        ' · Pmax ₪' + (alloc.pmax || 0) +
+        ' · Meta Prospect ₪' + (alloc.meta_prospecting || 0) + ' · Meta Retarget ₪' + (alloc.meta_retargeting || 0) +
+      '</div>' +
+      ((s.month1_launch_checklist_he && s.month1_launch_checklist_he.length > 0)
+        ? '<div style="font-size:0.78rem;color:#1F2937;margin-bottom:8px"><strong>Month-1 checklist:</strong><ul style="margin:4px 18px;padding:0;line-height:1.6;direction:rtl">' +
+            s.month1_launch_checklist_he.map(function(x) { return '<li>' + _escapeHtml(x) + '</li>'; }).join('') +
+          '</ul></div>'
+        : '') +
+      ((s.il_risks_he && s.il_risks_he.length > 0)
+        ? '<div style="font-size:0.74rem;color:#92400E;direction:rtl"><strong>⚠ Risks:</strong> ' + s.il_risks_he.map(_escapeHtml).join(' · ') + '</div>'
+        : '') +
+    '</div>';
+  });
+
+  if (extras.il_market_specific_warnings_he && extras.il_market_specific_warnings_he.length > 0) {
+    html += '<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:12px 14px"><strong style="color:#991B1B">⚠ IL market warnings:</strong>' +
+      '<ul style="margin:6px 18px 0;padding:0;font-size:0.84rem;color:#991B1B;line-height:1.6;direction:rtl">' +
+        extras.il_market_specific_warnings_he.map(function(w) { return '<li>' + _escapeHtml(w) + '</li>'; }).join('') +
+      '</ul></div>';
+  }
+
+  openReportModal('תרחישי תקציב — פרסום ממומן', html, 'paid-budget-scenarios', { html: true });
 }
 
 async function autoSetupMazhirGtmFromTasks() {
