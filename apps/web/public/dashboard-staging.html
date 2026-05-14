@@ -2601,6 +2601,12 @@ input{font-family:inherit}
                   </div>
                 </div>
               </div>
+
+              <!-- Historical reports fallback — same pattern as Meta card -->
+              <div style="background:#FEF9C3;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:0.78rem;color:#92400E;line-height:1.5">
+                💡 <strong>אין Developer Token עדיין?</strong> ניתן לדלג ולהעלות במקום זאת <strong>דוחות היסטוריים</strong> מ-Google Ads (CSV מייצוא Campaigns / Ad Groups / Keywords / Search Terms). אנחנו נפענח אוטומטית את הנתונים (Cost, Conv., CTR, top campaigns, attribution) ונגזור מהם המלצות אופטימיזציה — עד שתשיגו גישה מלאה ל-API.
+                <div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="openHistoricalReportsUpload('google_ads')" style="font-size:0.74rem;color:#92400E;border-color:#FDE68A">📄 העלאת דוחות היסטוריים →</button></div>
+              </div>
             </div>
 
             <div id="google-ads-connected" style="display:none">
@@ -20165,7 +20171,11 @@ function openHistoricalReportsUpload(provider) {
     provider === 'google_ads' ? 'העלאת דוחות היסטוריים — Google Ads' :
     'העלאת דוחות היסטוריים';
   modal.querySelector('[data-picker-subtitle]').textContent =
-    'PDF / CSV / screenshots מקבצי ייצוא Meta Ads Manager (Campaigns, Ads, Audiences). Anthropic Vision יפענח אוטומטית — CTR, CPC, CVR, top creatives, audiences — עד שתשיגו OAuth מלא.';
+    provider === 'meta'
+      ? 'PDF / CSV / screenshots מקבצי ייצוא Meta Ads Manager (Campaigns, Ads, Audiences). פרסר אוטומטי מזהה כותרות בעברית ובאנגלית, מנרמל למטבע, ומחלץ CTR, CPC, CVR, top creatives, audiences — עד שתשיגו OAuth מלא.'
+      : provider === 'google_ads'
+        ? 'CSV מייצוא Google Ads (Campaigns / Ad Groups / Keywords / Search Terms). פרסר אוטומטי מזהה Conversion action ו-Attribution model, מנרמל למטבע, ומחלץ Cost, Conv., CPA, top campaigns — עד שתשיגו Developer Token.'
+        : 'PDF / CSV / screenshots מייצוא הפלטפורמה. הפרסר יזהה אוטומטית את הסוג ויפענח את הנתונים.';
   modal.querySelector('[data-picker-list]').innerHTML =
     '<div style="padding:8px">' +
       '<input type="file" id="hist-reports-files" accept=".pdf,.csv,.png,.jpg,.jpeg" multiple style="display:block;width:100%;padding:14px;border:2px dashed #BFDBFE;border-radius:10px;background:#fff;cursor:pointer;font-size:0.88rem">' +
