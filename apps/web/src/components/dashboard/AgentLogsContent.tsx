@@ -3,6 +3,7 @@ import type { AgentLogsContentProps, ParsedLogLine } from '@/ts/Interfaces'
 
 import { useEffect, useMemo, useRef } from 'react'
 import { t } from '@openclaw/i18n'
+import { agentType as agentTypeConst } from '@openclaw/shared'
 import { getLocale } from '@/lib'
 import { Skeleton } from '@/components/ui'
 import { ScrollIcon } from '@phosphor-icons/react'
@@ -11,10 +12,18 @@ import { PanelPlaceholder, ScrollToBottomButton } from '@/components/shared'
 
 const AgentLogsContent: FC<AgentLogsContentProps> = ({
     agentId,
+    agentType,
     enabled,
     embedded,
     mockLogs
 }): ReactNode => {
+    const isHermes = agentType === agentTypeConst.HERMES
+    const emptyTitle = isHermes
+        ? t('dashboard.diagnosticsNoLogsHermesTitle')
+        : t('dashboard.diagnosticsNoLogs')
+    const emptyDescription = isHermes
+        ? t('dashboard.diagnosticsNoLogsHermesDescription')
+        : ''
     const query = useAgentLogs(agentId, enabled && !mockLogs)
     const logs = mockLogs
         ? { data: { logs: mockLogs }, isPending: false, isError: false }
@@ -98,9 +107,22 @@ const AgentLogsContent: FC<AgentLogsContentProps> = ({
                     />
                 )}
                 {logs.data && !embedded && (
-                    <pre className='border-border bg-muted text-muted-foreground overflow-auto whitespace-pre-wrap break-words rounded-md border p-3 text-xs leading-snug'>
-                        {logs.data.logs || t('dashboard.diagnosticsNoLogs')}
-                    </pre>
+                    logs.data.logs ? (
+                        <pre className='border-border bg-muted text-muted-foreground overflow-auto whitespace-pre-wrap break-words rounded-md border p-3 text-xs leading-snug'>
+                            {logs.data.logs}
+                        </pre>
+                    ) : (
+                        <PanelPlaceholder
+                            icon={
+                                <ScrollIcon
+                                    className='text-muted-foreground h-6 w-6'
+                                    weight='duotone'
+                                />
+                            }
+                            title={emptyTitle}
+                            description={emptyDescription}
+                        />
+                    )
                 )}
                 {logs.data && embedded && (
                     <div
@@ -114,8 +136,8 @@ const AgentLogsContent: FC<AgentLogsContentProps> = ({
                                         weight='duotone'
                                     />
                                 }
-                                title={t('dashboard.diagnosticsNoLogs')}
-                                description=''
+                                title={emptyTitle}
+                                description={emptyDescription}
                             />
                         )}
                         {parsedLines.map((line, i) => (

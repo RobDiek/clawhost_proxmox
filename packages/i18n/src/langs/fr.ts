@@ -904,6 +904,9 @@ const fr: Translations = {
         diagnosticsLoading: "Connexion à l'instance...",
         diagnosticsNoLogs:
             'Aucun journal disponible. Démarrez votre instance pour générer des journaux.',
+        diagnosticsNoLogsHermesTitle: "La passerelle Hermes n'est pas en cours d'exécution",
+        diagnosticsNoLogsHermesDescription:
+            "Dans l'onglet Terminal, exécutez `hermes gateway setup` pour configurer les plateformes, puis `sudo systemctl enable --now hermes-gateway` pour démarrer le pont.",
         diagnosticsIssueDetected:
             'Un problème a été détecté sur votre instance !',
         diagnosticsHealthy: 'Votre instance fonctionne normalement.',

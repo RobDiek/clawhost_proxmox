@@ -863,6 +863,9 @@ const tr: Translations = {
         diagnosticsLoading: 'Örneğe bağlanılıyor...',
         diagnosticsNoLogs:
             'Günlük mevcut değil. Günlük oluşturmak için örneğinizi başlatın.',
+        diagnosticsNoLogsHermesTitle: 'Hermes ağ geçidi çalışmıyor',
+        diagnosticsNoLogsHermesDescription:
+            'Terminal sekmesinde platformları yapılandırmak için `hermes gateway setup` çalıştırın, ardından köprüyü başlatmak için `sudo systemctl enable --now hermes-gateway` çalıştırın.',
         diagnosticsIssueDetected: 'Örneğinizde bir sorun tespit edildi.',
         diagnosticsHealthy: 'Örneğiniz normal çalışıyor.',
         diagnosticsPort: 'Port 18789',

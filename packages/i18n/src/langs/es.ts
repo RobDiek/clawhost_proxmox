@@ -884,6 +884,9 @@ const es: Translations = {
         diagnosticsLoading: 'Conectando a la instancia...',
         diagnosticsNoLogs:
             'No hay registros disponibles. Inicia tu instancia para generar registros.',
+        diagnosticsNoLogsHermesTitle: 'El gateway de Hermes no está en ejecución',
+        diagnosticsNoLogsHermesDescription:
+            'En la pestaña Terminal, ejecuta `hermes gateway setup` para configurar las plataformas, luego `sudo systemctl enable --now hermes-gateway` para iniciar el puente.',
         diagnosticsIssueDetected: 'Se detectó un problema con tu instancia!',
         diagnosticsHealthy: 'Tu instancia está funcionando normalmente.',
         diagnosticsPort: 'Puerto 18789',

@@ -866,6 +866,9 @@ const ja: Translations = {
         diagnosticsLoading: 'インスタンスに接続中...',
         diagnosticsNoLogs:
             'ログがありません。インスタンスを起動してログを生成してください。',
+        diagnosticsNoLogsHermesTitle: 'Hermes ゲートウェイは実行されていません',
+        diagnosticsNoLogsHermesDescription:
+            'Terminal タブで `hermes gateway setup` を実行してプラットフォームを設定し、次に `sudo systemctl enable --now hermes-gateway` を実行してブリッジを起動します。',
         diagnosticsIssueDetected: 'インスタンスに問題が検出されました。',
         diagnosticsHealthy: 'インスタンスは正常に動作しています。',
         diagnosticsPort: 'ポート 18789',

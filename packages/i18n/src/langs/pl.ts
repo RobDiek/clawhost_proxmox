@@ -874,6 +874,9 @@ const pl: Translations = {
         diagnosticsLoading: 'Łączenie z instancją...',
         diagnosticsNoLogs:
             'Brak dostępnych logów. Uruchom instancję, aby wygenerować logi.',
+        diagnosticsNoLogsHermesTitle: 'Brama Hermes nie jest uruchomiona',
+        diagnosticsNoLogsHermesDescription:
+            'W zakładce Terminal uruchom `hermes gateway setup`, aby skonfigurować platformy, a następnie `sudo systemctl enable --now hermes-gateway`, aby uruchomić most.',
         diagnosticsIssueDetected: 'Wykryto problem z Twoją instancją.',
         diagnosticsHealthy: 'Twoja instancja działa normalnie.',
         diagnosticsPort: 'Port 18789',

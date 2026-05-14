@@ -26,8 +26,7 @@ const buildLogsCommand = (
                 `if [ -z "$out" ]; then raw=$(${cmd}); cleaned=$(printf '%s' "$raw" | grep -v -- '-- No entries --' | grep -v '^$'); if [ -n "$cleaned" ]; then out="$raw"; fi; fi`
         )
         .join('; ')
-    const fallback = `[ -z "$out" ] && out="No logs yet. Start the messaging bridge with 'hermes gateway' in the Terminal tab."`
-    return `out=""; ${tries}; ${fallback}; printf '%s\\n' "$out"`
+    return `out=""; ${tries}; printf '%s' "$out"`
 }
 
 const getAgentLogs = async (c: AuthenticatedContext) => {

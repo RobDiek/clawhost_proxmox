@@ -854,6 +854,9 @@ const en = {
         diagnosticsLoading: 'Connecting to instance...',
         diagnosticsNoLogs:
             'No logs available. Start your instance to generate logs.',
+        diagnosticsNoLogsHermesTitle: 'Hermes gateway is not running',
+        diagnosticsNoLogsHermesDescription:
+            'In the Terminal tab, run `hermes gateway setup` to configure platforms, then `sudo systemctl enable --now hermes-gateway` to start the bridge.',
         diagnosticsIssueDetected: 'An issue was detected with your instance.',
         diagnosticsHealthy: 'Your instance is running normally.',
         diagnosticsPort: 'Port 18789',
