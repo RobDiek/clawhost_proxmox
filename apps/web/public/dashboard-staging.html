@@ -9077,11 +9077,15 @@ function renderMazhirCard() {
     ? _rd0.marketingIntents
     : ((typeof marketingHubState !== 'undefined' && marketingHubState.intents) || []);
   var hasPaidIntent = _intents.indexOf('paid_search') >= 0 || _intents.indexOf('paid_social') >= 0;
+  // Phase 4.1 fix — control visibility of the actual mazhirHomeCard div
+  // (which has hard-coded display:none in HTML). Earlier code toggled a
+  // non-existent home-mazhir-section element, which was a no-op leaving
+  // the card permanently hidden.
+  // Show Mazhir ONLY when user has paid intent (paid_search or paid_social
+  // in marketingIntents). Without paid intent → hidden entirely.
+  if (el) el.style.display = (hasProfile && hasPaidIntent) ? '' : 'none';
+  // Legacy compat — still toggle home-mazhir-section if it ever gets added
   var section = document.getElementById('home-mazhir-section');
-  // Phase 4.1 — show Mazhir section ONLY when user has paid intent (paid_search
-  // or paid_social in marketingIntents). Without paid intent → hidden entirely
-  // (organic-only flow). Bidirectional sync with פרופיל עסקי Q10 means user can
-  // activate via either surface.
   if (section) section.style.display = (hasProfile && hasPaidIntent) ? '' : 'none';
   if (!hasProfile || !hasPaidIntent) return;
 
