@@ -325,7 +325,10 @@ const useTerminalConnection = (
     }, [enabled, connect])
 
     useEffect(() => {
-        return () => cleanupRef.current()
+        return () => {
+            cleanupRef.current()
+            startedRef.current = false
+        }
     }, [])
 
     const handleTerminalScrollToBottom = useCallback(() => {
