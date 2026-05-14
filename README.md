@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://cdn.clawhost.cloud/assets/clawhost-logo-light.png" alt="ClawHost" height="42" />
+  <img src="https://cdn.clawhost.cloud/assets/generals/clawhost-logo-light.png" alt="ClawHost" height="42" />
 </p>
 
 <p align="center">
@@ -15,8 +15,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" />
-  <img src="https://img.shields.io/badge/bun-%3E%3D1.0-green" alt="Bun 1.0+" />
-  <img src="https://img.shields.io/badge/bun-%3E%3D1.0-orange" alt="Bun 1.0+" />
+  <img src="https://img.shields.io/badge/bun-%3E%3D1.3-orange" alt="Bun 1.3+" />
   <img src="https://img.shields.io/badge/TypeScript-strict-blue" alt="TypeScript" />
 </p>
 
@@ -24,25 +23,27 @@
 
 ## What is ClawHost?
 
-ClawHost is an open-source, self-hostable cloud hosting platform that lets anyone deploy [OpenClaw](https://openclaw.dev) on a dedicated VPS in under a minute. It handles server provisioning, DNS, SSL, firewall configuration, and OpenClaw installation automatically — so you can focus on using AI, not managing infrastructure.
+ClawHost is an open-source, self-hostable cloud hosting platform that lets anyone deploy an AI agent runtime — [OpenClaw](https://openclaw.dev) or [Hermes](https://github.com/NousResearch/hermes-agent) — on a dedicated VPS in under a minute. It handles server provisioning, DNS, SSL, firewall configuration, and agent installation automatically.
 
 ### Key Highlights
 
-- **One-Click Deploy** — Pick a plan, pay, and OpenClaw is live within minutes
+- **One-Click Deploy** — Pick a plan, pay, and your agent runtime is live within minutes
+- **Multi-Agent** — Deploy either OpenClaw or Hermes; each ships with its own gateway service
 - **Hetzner Cloud** — Reliable, high-performance VPS provisioning powered by Hetzner
 - **Dedicated VPS** — Real servers with full root access, not shared containers
 - **Browser Terminal** — Full SSH terminal access directly from the dashboard via WebSocket
 - **Diagnostics & Logs** — Monitor server health, view logs, and repair instances
 - **File Management** — Edit configuration files remotely
-- **Version Management** — View installed OpenClaw version, browse available versions, and upgrade
+- **Version Management** — View installed agent version, browse available versions, and upgrade
 - **Automatic SSL** — HTTPS via Let's Encrypt, configured automatically
 - **DNS Management** — Automatic subdomain creation via Cloudflare
 - **SSH Key Management** — Store and assign keys for passwordless access
 - **Persistent Storage** — Attach additional volumes to any instance
 - **Multi-Auth** — Sign in with OTP email, Google, or GitHub
 - **Billing Built-In** — Polar.sh integration for subscriptions, invoicing, and billing portal
-- **Export & Backup** — Export claw configurations for backup and migration
-- **Cross-Platform** — Web and desktop (macOS/Linux) apps
+- **Affiliate & Referrals** — Built-in referral codes and payouts
+- **Export & Backup** — Export agent configurations for backup and migration
+- **Cross-Platform** — Web and desktop (Electron) apps
 - **Fully Open Source** — MIT licensed, self-host the entire platform yourself
 
 ## Architecture
@@ -52,24 +53,31 @@ ClawHost is a TypeScript monorepo built with [Turborepo](https://turbo.build) an
 ```
 clawhost/
 ├── apps/
-│   ├── api/                 # Hono.js backend API
+│   ├── api/                 # Hono.js backend API (runs on Bun)
 │   ├── web/                 # React + Vite frontend
-│   └── clawhostgo/          # Electron desktop app
+│   └── clawhostgo/          # Electron desktop app (ClawHostGo)
 ├── packages/
-│   ├── shared/              # @openclaw/shared — HTTP client utility
-│   └── i18n/                # @openclaw/i18n — Internationalization
+│   ├── shared/              # @openclaw/shared — HTTP client, API paths, status/role/provider
+│   │                        # constants, input validation, plan catalog, error types
+│   └── i18n/                # @openclaw/i18n — Internationalization (EN, FR, ES, DE)
 ├── scripts/
-│   ├── cloud-init.yaml      # Server initialization template
-│   └── configure-polar-portal.ts  # Polar portal configuration
+│   ├── build-go-manifest.ts # Generates the desktop-app release manifest
+│   └── version-patch.ts     # Auto-bumps app versions on commit
 ├── turbo.json               # Turborepo build orchestration
 └── bun.lock                 # Bun lockfile
 ```
+
+> Cloud-init is **not** a static YAML file — it is generated per-server at provision
+> time by `apps/api/src/controllers/agents/helpers/generateCloudInit.ts` so the
+> bootstrap script can be tailored to the selected agent runtime (OpenClaw or Hermes),
+> subdomain, gateway token, and tool defaults.
 
 ### Tech Stack
 
 | Layer                   | Technology                                                                                                      |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **API Framework**       | [Hono](https://hono.dev) on [Bun](https://bun.sh)                                                               |
+| **Runtime**             | [Bun](https://bun.sh) 1.3+ (all apps, scripts, and tests run on Bun)                                            |
+| **API Framework**       | [Hono](https://hono.dev) on Bun (HTTP + native WebSocket on a single port)                                      |
 | **Database**            | PostgreSQL ([Neon](https://neon.tech)) with [Drizzle ORM](https://orm.drizzle.team)                             |
 | **Authentication**      | [Firebase](https://firebase.google.com) (OTP email, Google, GitHub)                                             |
 | **Server Provisioning** | [Hetzner Cloud](https://docs.hetzner.cloud)                                                                     |
@@ -92,15 +100,19 @@ clawhost/
 
 ### Database Schema
 
-| Table          | Purpose                                                               |
-| -------------- | --------------------------------------------------------------------- |
-| `users`        | Firebase-authenticated users with Polar customer IDs and auth methods |
-| `claws`        | Cloud server instances (status, IP, subdomain, etc)                   |
-| `pendingClaws` | Temporary storage for in-progress checkout sessions                   |
-| `sshKeys`      | SSH public keys with Hetzner key IDs                                  |
-| `volumes`      | Persistent storage volumes attached to claws                          |
-| `otpCodes`     | OTP authentication codes with expiration and attempt tracking         |
-| `rateLimits`   | Rate limiting for authentication endpoints                            |
+| Table              | Purpose                                                                        |
+| ------------------ | ------------------------------------------------------------------------------ |
+| `users`            | Firebase-authenticated users with Polar customer IDs and auth methods          |
+| `agents`           | Cloud server instances (status, IP, subdomain, gateway token, agent type, etc) |
+| `pendingAgents`    | Temporary storage for in-progress checkout sessions before provisioning        |
+| `sshKeys`          | SSH public keys with Hetzner key IDs                                           |
+| `volumes`          | Persistent storage volumes attached to agents                                  |
+| `otpCodes`         | OTP authentication codes with expiration and attempt tracking                  |
+| `rateLimits`       | Rate limiting for authentication and other sensitive endpoints                 |
+| `waitlist`         | Sign-ups awaiting access                                                       |
+| `emails`           | Outbound email log (deliverability + auditing)                                 |
+| `referrals`        | Affiliate referral codes and user-attribution links                            |
+| `referralPayments` | Commission payouts owed to referrers                                           |
 
 ## Self-Hosting
 
@@ -154,16 +166,39 @@ POLAR_ACCESS_TOKEN=your-polar-access-token
 POLAR_ORGANIZATION_ID=your-polar-org-id
 POLAR_WEBHOOK_SECRET=your-polar-webhook-secret
 
+# Polar product IDs — one per Hetzner plan + interval you sell.
+# Naming scheme: POLAR_PRODUCT_<PLAN>_<MONTHLY|YEARLY>
+# Plans: CX23, CX33, CX43, CX53, CPX11, CPX21, CPX31, CPX41, CPX51,
+#        CAX11, CAX21, CAX31, CAX41, CCX13, CCX23, CCX33, CCX43, CCX53, CCX63
+POLAR_PRODUCT_CX23_MONTHLY=...
+POLAR_PRODUCT_CX23_YEARLY=...
+# ... repeat for every plan you offer
+POLAR_PRODUCT_LICENSE=...    # one-time desktop (ClawHostGo) license product
+
 # Resend (email)
 RESEND_API_KEY=your-resend-api-key
 FROM_EMAIL=OpenClaw <noreply@yourdomain.com>
+RESEND_AUDIENCE_ID=...       # optional: auto-subscribe new users to a Resend audience
+
+# Cron (required to call any /cron/* endpoint)
+CRON_SECRET=...              # any high-entropy string; sent as `Authorization: Bearer <secret>`
+
+# Optional — only needed for the AI blog generator cron job
+OPENAI_API_KEY=...
+GITHUB_TOKEN=...             # used by the blog generator to read repo metadata
+
+# Encryption (AES-256-GCM for secrets at rest: gateway tokens, SSH keys, root passwords)
+# Generate with: bun -e "console.log(crypto.getRandomValues(new Uint8Array(32)).reduce((s,b)=>s+b.toString(16).padStart(2,'0'),''))"
+ENCRYPTION_KEY=...           # 32-byte hex string (64 chars)
 
 # Server
 PORT=2222
-WS_PORT=2223
 CLIENT=localhost:1111
 
 ```
+
+> The API uses a **single Bun port** for both HTTP and WebSocket (via `Bun.serve`'s
+> built-in WebSocket upgrade handler). There is no separate WS server.
 
 **Web** — create `apps/web/.env`:
 
@@ -171,17 +206,23 @@ CLIENT=localhost:1111
 # API
 VITE_API_URL=/api
 VITE_API_PORT=2222
-VITE_WS_PORT=2223
+VITE_WS_PORT=2222   # same as VITE_API_PORT; the API serves HTTP + WS on one port
 VITE_PORT=1111
 
 # Firebase Client SDK
+# authDomain is derived from VITE_FIREBASE_PROJECT_ID at runtime — no AUTH_DOMAIN needed.
 VITE_FIREBASE_API_KEY=AIza...
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=your-project-id
 VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 VITE_FIREBASE_APP_ID=1:123456789:web:abc123
+
+# OAuth (used by the in-app Google/GitHub account linking flows)
+VITE_GOOGLE_OAUTH_CLIENT_ID=
+VITE_GITHUB_OAUTH_CLIENT_ID=
 ```
+
+> See `apps/api/.env.example` and `apps/web/.env.example` for ready-to-copy templates with every variable the code actually reads.
 
 ### 3. Set Up External Services
 
@@ -258,30 +299,39 @@ bun dev
 
 This starts both apps:
 
-| App       | URL                   |
-| --------- | --------------------- |
-| Web       | http://localhost:1111 |
-| API       | http://localhost:2222 |
-| WebSocket | ws://localhost:2223   |
+| App | URL                                                  |
+| --- | ---------------------------------------------------- |
+| Web | http://localhost:1111                                |
+| API | http://localhost:2222 (HTTP + WebSocket on one port) |
 
-The web dev server proxies `/api` requests to the API and `/ws` requests to the WebSocket server automatically.
+The web dev server proxies `/api` requests to the API and `/ws` requests to the same port for WebSocket upgrades (terminal sessions).
+
+To run the desktop app alongside:
+
+```bash
+bun dev:desktop
+```
 
 ## Scripts
 
 ### Root Commands
 
-| Command            | Description                                     |
-| ------------------ | ----------------------------------------------- |
-| `bun dev`          | Start all apps in development mode              |
-| `bun dev:web`      | Start web app only                              |
-| `bun dev:api`      | Start API only                                  |
-| `bun dev:desktop`  | Start desktop app (Electron)                    |
-| `bun build`        | Build all apps for production                   |
-| `bun lint`         | Run ESLint across the monorepo                  |
-| `bun lint:fix`     | Auto-fix ESLint issues                          |
-| `bun format`       | Format all files with Prettier                  |
-| `bun format:check` | Check formatting without writing                |
-| `bun check`        | Run TypeScript type-check + ESLint for all apps |
+| Command                 | Description                                     |
+| ----------------------- | ----------------------------------------------- |
+| `bun dev`               | Start all apps in development mode              |
+| `bun dev:web`           | Start web app only                              |
+| `bun dev:api`           | Start API only                                  |
+| `bun dev:desktop`       | Start the ClawHostGo desktop app (Electron)     |
+| `bun test`              | Run Vitest across the monorepo                  |
+| `bun test:watch`        | Run Vitest in watch mode                        |
+| `bun build-go-manifest` | Build the desktop release manifest              |
+| `bun version-patch`     | Patch-bump app versions (used by Husky)         |
+| `bun build`             | Build all apps for production                   |
+| `bun lint`              | Run ESLint across the monorepo                  |
+| `bun lint:fix`          | Auto-fix ESLint issues                          |
+| `bun format`            | Format all files with Prettier                  |
+| `bun format:check`      | Check formatting without writing                |
+| `bun check`             | Run TypeScript type-check + ESLint for all apps |
 
 ### Database Commands
 
@@ -301,62 +351,94 @@ bun --filter api email:dev    # Preview email templates at localhost:3333
 
 ### Public Endpoints
 
-| Method | Endpoint                    | Description                       |
-| ------ | --------------------------- | --------------------------------- |
-| `POST` | `/api/auth/send-otp`        | Send OTP code via email           |
-| `POST` | `/api/auth/verify-otp`      | Verify OTP and get Firebase token |
-| `GET`  | `/api/plans`                | List available server plans       |
-| `GET`  | `/api/plans/locations`      | List available regions            |
-| `GET`  | `/api/plans/volume-pricing` | Get volume pricing                |
-| `GET`  | `/api/plans/availability`   | Check plan availability           |
+| Method | Endpoint                                | Description                                |
+| ------ | --------------------------------------- | ------------------------------------------ |
+| `GET`  | `/api/`                                 | Health check                               |
+| `POST` | `/api/auth/send-otp`                    | Send OTP code via email                    |
+| `POST` | `/api/auth/verify-otp`                  | Verify OTP and get a Firebase custom token |
+| `POST` | `/api/auth/resolve-credential-conflict` | Resolve provider/email conflicts at login  |
+| `GET`  | `/api/plans/locations`                  | List available regions                     |
+| `GET`  | `/api/plans/volume-pricing`             | Get volume pricing                         |
+| `GET`  | `/api/plans/availability`               | Check plan availability per location       |
+| `POST` | `/api/waitlist`                         | Join the waitlist                          |
+| `GET`  | `/api/waitlist/status`                  | Check waitlist status by email             |
+| `POST` | `/api/webhooks/polar`                   | Polar payment/subscription webhook         |
 
 ### Protected Endpoints (Bearer token required)
 
-**Claws (Server Instances)**
+**Agents (Server Instances)**
 
-| Method   | Endpoint                          | Description                    |
-| -------- | --------------------------------- | ------------------------------ |
-| `GET`    | `/api/agents`                     | List user's claws              |
-| `GET`    | `/api/agents/:id`                 | Get a specific claw            |
-| `POST`   | `/api/agents`                     | Create a claw (direct)         |
-| `POST`   | `/api/agents/purchase`            | Initiate paid claw purchase    |
-| `DELETE` | `/api/agents/pending/:id`         | Cancel a pending claw          |
-| `POST`   | `/api/agents/:id/sync`            | Sync claw with cloud provider  |
-| `POST`   | `/api/agents/:id/start`           | Start a claw                   |
-| `POST`   | `/api/agents/:id/stop`            | Stop a claw                    |
-| `POST`   | `/api/agents/:id/restart`         | Restart a claw                 |
-| `PATCH`  | `/api/agents/:id`                 | Rename a claw                  |
-| `POST`   | `/api/agents/:id/cancel-deletion` | Cancel scheduled deletion      |
-| `DELETE` | `/api/agents/:id`                 | Delete a claw                  |
-| `GET`    | `/api/agents/:id/export`          | Export claw configuration      |
-| `POST`   | `/api/agents/:id/credentials`     | Get claw credentials           |
-| `POST`   | `/api/agents/:id/version`         | Get installed OpenClaw version |
-| `POST`   | `/api/agents/:id/versions`        | List available versions        |
+| Method   | Endpoint                               | Description                                        |
+| -------- | -------------------------------------- | -------------------------------------------------- |
+| `GET`    | `/api/agents`                          | List the user's agents                             |
+| `GET`    | `/api/agents/:id`                      | Get a specific agent                               |
+| `GET`    | `/api/agents/check-subdomain`          | Check whether a subdomain is available             |
+| `GET`    | `/api/agents/stars`                    | Get aggregate stars (OpenClaw repo metric)         |
+| `POST`   | `/api/agents/purchase`                 | Initiate a paid agent purchase via Polar           |
+| `DELETE` | `/api/agents/pending/:id`              | Cancel a pending purchase                          |
+| `POST`   | `/api/agents/:id/sync`                 | Sync agent state with the cloud provider           |
+| `POST`   | `/api/agents/:id/start`                | Start an agent                                     |
+| `POST`   | `/api/agents/:id/stop`                 | Stop an agent                                      |
+| `POST`   | `/api/agents/:id/restart`              | Restart an agent                                   |
+| `POST`   | `/api/agents/:id/reinstall`            | Reinstall the agent runtime (rate-limited)         |
+| `POST`   | `/api/agents/:id/cancel-deletion`      | Cancel scheduled deletion                          |
+| `PATCH`  | `/api/agents/:id`                      | Rename an agent                                    |
+| `PATCH`  | `/api/agents/:id/emoji`                | Update the agent emoji                             |
+| `PATCH`  | `/api/agents/:id/ssh-key`              | Change the assigned SSH key                        |
+| `PATCH`  | `/api/agents/:id/subdomain`            | Change the agent subdomain                         |
+| `DELETE` | `/api/agents/:id`                      | Soft-delete an agent (schedules deletion)          |
+| `GET`    | `/api/agents/:id/export`               | Export agent configuration                         |
+| `GET`    | `/api/agents/:id/credentials`          | Get agent credentials (root password, SSH info)    |
+| `GET`    | `/api/agents/:id/billing`              | Per-agent billing summary                          |
+| `POST`   | `/api/agents/:id/version`              | Get the currently installed agent version          |
+| `POST`   | `/api/agents/:id/versions`             | List available agent versions                      |
+| `POST`   | `/api/agents/:id/metrics`              | Live CPU/RAM/disk metrics                          |
+| `POST`   | `/api/agents/:id/overview`             | Aggregated overview (status + parsed gateway info) |
+| `POST`   | `/api/agents/:id/enable-preview`       | Enable the public preview surface for the agent    |
+| `POST`   | `/api/agents/:id/rotate-password`      | Rotate the root password                           |
+| `POST`   | `/api/agents/:id/rotate-gateway-token` | Rotate the Hermes/OpenClaw gateway token           |
 
-**Claw Diagnostics**
+**Agent Diagnostics**
 
-| Method | Endpoint                             | Description            |
-| ------ | ------------------------------------ | ---------------------- |
-| `POST` | `/api/agents/:id/diagnostics/status` | Get server diagnostics |
-| `POST` | `/api/agents/:id/diagnostics/logs`   | Get server logs        |
+| Method | Endpoint                             | Description                    |
+| ------ | ------------------------------------ | ------------------------------ |
+| `POST` | `/api/agents/:id/diagnostics/status` | Get gateway/service status     |
+| `POST` | `/api/agents/:id/diagnostics/logs`   | Stream the gateway/service log |
 
-**Claw Files**
+**Agent Files**
 
-| Method | Endpoint                     | Description            |
-| ------ | ---------------------------- | ---------------------- |
-| `POST` | `/api/agents/:id/files`      | List files on instance |
-| `POST` | `/api/agents/:id/files/read` | Read a file            |
-| `PUT`  | `/api/agents/:id/files`      | Update a file          |
+| Method | Endpoint                     | Description                |
+| ------ | ---------------------------- | -------------------------- |
+| `POST` | `/api/agents/:id/files`      | List files on the instance |
+| `POST` | `/api/agents/:id/files/read` | Read a file                |
+| `PUT`  | `/api/agents/:id/files`      | Update a file              |
 
-**Admin Endpoints**
+**Admin Agent Endpoints**
 
-| Method | Endpoint                             | Description                           |
-| ------ | ------------------------------------ | ------------------------------------- |
-| `GET`  | `/api/agents/admin`                  | List all claws (admin only)           |
-| `POST` | `/api/agents/:id/hard-delete`        | Permanently delete (admin only)       |
-| `POST` | `/api/agents/:id/diagnostics/repair` | Repair instance (admin only)          |
-| `POST` | `/api/agents/:id/reinstall`          | Reinstall OS (admin only)             |
-| `POST` | `/api/agents/:id/install-version`    | Install specific version (admin only) |
+| Method | Endpoint                             | Description                                |
+| ------ | ------------------------------------ | ------------------------------------------ |
+| `GET`  | `/api/agents/admin`                  | List all agents                            |
+| `POST` | `/api/agents/:id/hard-delete`        | Permanently delete an agent + cloud server |
+| `POST` | `/api/agents/:id/diagnostics/repair` | Attempt repair (restarts gateway/services) |
+| `POST` | `/api/agents/:id/install-version`    | Install a specific runtime version         |
+
+**Admin Dashboard** (all under `/api/admin`, admin only)
+
+| Method | Endpoint                    | Description                  |
+| ------ | --------------------------- | ---------------------------- |
+| `GET`  | `/api/admin/stats`          | Platform stats               |
+| `GET`  | `/api/admin/analytics`      | Time-series analytics        |
+| `GET`  | `/api/admin/billing`        | Cross-user billing overview  |
+| `GET`  | `/api/admin/users`          | List all users               |
+| `GET`  | `/api/admin/users/:id`      | User detail                  |
+| `PUT`  | `/api/admin/users/:id`      | Update a user (role, flags)  |
+| `GET`  | `/api/admin/agents`         | List all agents (admin view) |
+| `GET`  | `/api/admin/pending-agents` | List pending purchases       |
+| `GET`  | `/api/admin/ssh-keys`       | All SSH keys                 |
+| `GET`  | `/api/admin/volumes`        | All volumes                  |
+| `GET`  | `/api/admin/referrals`      | Affiliate referral log       |
+| `GET`  | `/api/admin/waitlist`       | Waitlist entries             |
+| `GET`  | `/api/admin/emails`         | Outbound email log           |
 
 **SSH Keys**
 
@@ -368,28 +450,40 @@ bun --filter api email:dev    # Preview email templates at localhost:3333
 
 **Users**
 
-| Method   | Endpoint                                 | Description                         |
-| -------- | ---------------------------------------- | ----------------------------------- |
-| `GET`    | `/api/users/me`                          | Get current user profile            |
-| `PUT`    | `/api/users/me`                          | Update profile                      |
-| `GET`    | `/api/users/me/stats`                    | Get user stats                      |
-| `GET`    | `/api/users/me/billing`                  | Get billing history                 |
-| `GET`    | `/api/users/me/billing/:orderId/invoice` | Get invoice for an order            |
-| `POST`   | `/api/users/me/billing/portal`           | Open Polar billing portal           |
-| `POST`   | `/api/users/me/auth/:method`             | Connect auth method (Google/GitHub) |
-| `DELETE` | `/api/users/me/auth/:method`             | Disconnect auth method              |
+| Method   | Endpoint                                 | Description                            |
+| -------- | ---------------------------------------- | -------------------------------------- |
+| `GET`    | `/api/users/me`                          | Get the current user profile           |
+| `PUT`    | `/api/users/me`                          | Update profile                         |
+| `GET`    | `/api/users/me/stats`                    | Get user stats                         |
+| `GET`    | `/api/users/me/billing`                  | Get billing history                    |
+| `GET`    | `/api/users/me/billing/:orderId/invoice` | Get invoice for an order               |
+| `POST`   | `/api/users/me/billing/portal`           | Open the Polar billing portal          |
+| `POST`   | `/api/users/me/license/checkout`         | Purchase a ClawHostGo desktop license  |
+| `POST`   | `/api/users/me/auth/:method`             | Connect an auth method (Google/GitHub) |
+| `DELETE` | `/api/users/me/auth/:method`             | Disconnect an auth method              |
+
+**Affiliate**
+
+| Method | Endpoint                  | Description                        |
+| ------ | ------------------------- | ---------------------------------- |
+| `GET`  | `/api/affiliate`          | Get the user's affiliate dashboard |
+| `POST` | `/api/affiliate/generate` | Generate a new referral code       |
+| `PUT`  | `/api/affiliate/code`     | Update the user's referral code    |
+
+**Cron** — called by an external scheduler; not protected by Firebase auth. Each request must include `Authorization: Bearer ${CRON_SECRET}` matching the API env var.
+
+| Method | Endpoint                              | Description                      |
+| ------ | ------------------------------------- | -------------------------------- |
+| `GET`  | `/api/cron/generate-blog-post`        | Generate the daily AI blog post  |
+| `GET`  | `/api/cron/send-feature-emails`       | Send feature announcement emails |
+| `GET`  | `/api/cron/cleanup-expired-otps`      | Delete expired OTP codes         |
+| `GET`  | `/api/cron/cleanup-stale-rate-limits` | Prune stale rate-limit rows      |
 
 **WebSocket**
 
-| Protocol    | Endpoint                         | Description               |
-| ----------- | -------------------------------- | ------------------------- |
-| `WebSocket` | `/ws/agents/:id/terminal?token=` | Live SSH terminal session |
-
-### Webhooks
-
-| Method | Endpoint              | Description           |
-| ------ | --------------------- | --------------------- |
-| `POST` | `/api/webhooks/polar` | Polar payment webhook |
+| Protocol    | Endpoint                         | Description                                        |
+| ----------- | -------------------------------- | -------------------------------------------------- |
+| `WebSocket` | `/ws/agents/:id/terminal?token=` | Live SSH terminal session, proxied through the API |
 
 ## Deployment
 
@@ -416,24 +510,48 @@ bun start    # HTTP + WebSocket on PORT (default 2222)
 
 ## How It Works
 
-When a user deploys a new claw, the platform:
+When a user deploys a new agent, the platform:
 
 1. **Creates a checkout** — Initiates a Polar.sh subscription for the selected plan
-2. **Provisions a server** — Spins up a VPS on Hetzner Cloud
-3. **Runs cloud-init** — Automatically installs Node.js, OpenClaw, Nginx, SSL, and firewall
-4. **Configures DNS** — Creates a Cloudflare subdomain pointing to the server IP
+2. **Generates cloud-init** — `generateCloudInit.ts` produces a per-server bootstrap script tailored to the selected agent runtime (OpenClaw or Hermes), subdomain, gateway token, and tool defaults
+3. **Provisions a VPS** — Spins up a server on Hetzner Cloud with that cloud-init payload
+4. **Configures DNS** — Creates a Cloudflare A record pointing to the server IP
 5. **Delivers access** — User gets a subdomain URL, root password, and SSH access
 
-The `scripts/cloud-init.yaml` template configures every new instance with:
+### What the bootstrap installs
 
-- Node.js 22 runtime
-- OpenClaw (installed globally via npm)
-- Nginx reverse proxy with WebSocket support
-- Let's Encrypt SSL certificates
-- UFW firewall (ports 22, 80, 443)
-- systemd service for automatic OpenClaw startup
+**Shared (every agent):**
 
-Once provisioned, users can manage their claws through the dashboard — configuring files remotely via SSH. A browser-based terminal provides direct shell access via WebSocket.
+- Node.js + system dependencies
+- A dedicated unprivileged service user (`openclaw` or `hermes`)
+- A `systemd` unit so the gateway restarts on failure and at boot
+- A health-check loop that retries until the gateway responds locally
+
+**OpenClaw runtime:**
+
+- `openclaw` installed globally via `npm`
+- Google Chrome (for headless browser tooling)
+- OpenClaw gateway on `127.0.0.1:18789`, fronted by an Nginx reverse proxy on `:443`
+- Nginx with WebSocket upgrade support and per-tenant CSP headers
+- Let's Encrypt SSL via Certbot, with a renewal cron entry
+- Homebrew install kicked off in the background for the service user
+
+**Hermes runtime:**
+
+- Hermes Agent installed for the `hermes` user via the upstream installer
+  (`raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh`)
+- `hermes-gateway.service` runs `hermes gateway start` under `systemd`
+- Hermes manages its own networking and TLS, so no Nginx/Certbot is provisioned
+
+The gateway token is generated at purchase time, stored encrypted in the
+`agents` table (AES-256-GCM), and baked into the cloud-init script so the
+dashboard can authenticate against the gateway over HTTPS without ever exposing
+the token to the browser. Tokens can be rotated via
+`POST /api/agents/:id/rotate-gateway-token`.
+
+Once provisioned, users can manage their agent through the dashboard — viewing
+metrics, browsing logs, editing config files over SSH, and dropping into a
+browser-based terminal that proxies an SSH session over the API's WebSocket.
 
 ## Customization
 
@@ -447,7 +565,11 @@ The default pricing markup on cloud provider base prices is configurable in the 
 
 ### Cloud-Init
 
-Modify `scripts/cloud-init.yaml` to customize what gets installed on new instances — add packages, change Node.js version, or configure additional services.
+Cloud-init is generated in code, not from a static YAML file. Edit
+`apps/api/src/controllers/agents/helpers/generateCloudInit.ts` to change what
+gets installed on new instances — add packages, change the agent install
+command, tweak the Nginx config, or alter the gateway systemd unit. Both the
+OpenClaw and Hermes bootstrap paths live there.
 
 ### Internationalization
 
