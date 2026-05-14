@@ -33,6 +33,9 @@ export type StageId =
     | 'aeo_visibility'
     | 'link_audit'
     | 'paid_data_inventory'
+    | 'paid_competitor_landscape'   // Phase 4.2.1 — paid-specific competitor research
+    | 'paid_keyword_research'       // Phase 4.2.2 — paid keyword landscape
+    | 'paid_budget_scenarios'       // Phase 4.2.3 — IL-specific paid budget tiers
     | 'paid_audit'
     | 'social_landscape'
     | 'email_competitor_audit'
@@ -50,7 +53,9 @@ export type StageId =
 export const ALL_STAGE_IDS: readonly StageId[] = [
     'competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
     'aeo_visibility', 'link_audit',
-    'paid_data_inventory', 'paid_audit',
+    'paid_data_inventory',
+    'paid_competitor_landscape', 'paid_keyword_research', 'paid_budget_scenarios',
+    'paid_audit',
     'social_landscape', 'email_competitor_audit',
     'audience_personas', 'positioning', 'cost_timeline_modeling',
     'strategy_options', 'validation',
@@ -136,6 +141,27 @@ export const STAGE_CATALOG: Record<StageId, StageDescriptor> = {
             'במצב cold (T0/T1): מחזיר setup roadmap של 7 ימים. במצב warm (T2+): takeover audit.',
         preferredIntegrations: ['googleAds', 'meta', 'ga4'],
         upstream: ['paid_data_inventory'],
+    },
+    paid_competitor_landscape: {
+        id: 'paid_competitor_landscape', category: 'discovery',
+        titleHe: 'נוף תחרותי — פרסום ממומן',
+        descriptionHe: 'מי המתחרים שלכם מפרסמים בתשלום עכשיו, באילו פלטפורמות, באילו אנגלים יצירתיים, כמה זמן רצות המודעות, ומה ה-CRO של דפי הנחיתה שלהם. Meta Ad Library + Google Ads Transparency Center + Firecrawl LP audits — 5 buckets (Direct/Substitute/Adjacent/Reference).',
+        preferredIntegrations: ['meta', 'firecrawl', 'anthropic'],
+        upstream: ['competitor_landscape'],
+    },
+    paid_keyword_research: {
+        id: 'paid_keyword_research', category: 'discovery',
+        titleHe: 'מחקר מילות מפתח — פרסום ממומן',
+        descriptionHe: 'Paid search keyword landscape — אילו מילות מפתח קונים מתחרים, CPC estimates, intent ladder (TOFU/MOFU/BOFU), SERP ad-density. DataForSEO keywords_for_site + ads_search.',
+        preferredIntegrations: ['dataforseo', 'anthropic'],
+        upstream: ['paid_competitor_landscape'],
+    },
+    paid_budget_scenarios: {
+        id: 'paid_budget_scenarios', category: 'strategy',
+        titleHe: 'תרחישי תקציב — פרסום ממומן',
+        descriptionHe: '3 דרגות תקציב IL-specific (שמרני / מאוזן / אגרסיבי) עם KPI projection: impressions, clicks, conv, CPA range, ROAS target. מבוסס על paid_keyword_research CPC estimates + IL benchmarks per vertical.',
+        preferredIntegrations: ['anthropic'],
+        upstream: ['paid_competitor_landscape', 'paid_keyword_research', 'audience_personas'],
     },
     social_landscape: {
         id: 'social_landscape', category: 'discovery',

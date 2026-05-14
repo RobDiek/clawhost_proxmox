@@ -3091,6 +3091,207 @@ ${s.monthly_kpis.map(k => `- M${k.month}: top_10=${k.expected_top_10_count} | to
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// Phase 4.2.1 — paid_competitor_landscape
+//
+// Goal of this stage: a senior PPC analyst doing competitor research BEFORE
+// touching the user's ad account. The Opus output must:
+//   - Bucket each scanned competitor (direct / substitute / adjacent / reference)
+//   - Identify creative ANGLES that dominate (price_anchor, social_proof,
+//     urgency, identity, problem_agitation, etc.) — citing real ad copy
+//   - Spot which competitors run LONG (≥60d) vs experimentation (<14d) ads
+//     and what that signals about budget + product-market fit
+//   - Synthesize platform mix (FB / IG / GSearch / GDisplay) and what it
+//     implies for our channel selection
+//   - Audit competitor LPs for CRO patterns the user MUST match (or beat)
+//   - Find WHITE-SPACE angles — angles NOT in market we can claim
+//   - IL-specific signals: WhatsApp CTAs, Hebrew vs bilingual, IL-paid-market patterns
+// ────────────────────────────────────────────────────────────────────────────
+
+import type { PaidCompetitorLandscapePrefetch } from '@/controllers/hosting/research/stages/prefetch/paid_competitor_landscape'
+import { renderMetaContextForPrompt } from '@/services/paidResearch/metaAdLibrary'
+import { renderLandingPageAuditsForPrompt } from '@/services/paidResearch/landingPageAudit'
+import { renderTransparencyContext } from '@/services/googleAdsTransparency'
+
+const CREATIVE_ANGLE_TAXONOMY = `**Creative angle taxonomy** — classify each ad you see into ONE of these (or 'other' with explanation):
+- price_anchor       — leads with price / discount / urgency on cost
+- social_proof       — "1000 clients", testimonial, rating, brand logos
+- problem_agitation  — vivid pain ("הלקוחות שלך עוזבים? הם פשוט לא מוצאים אותך")
+- identity           — "for X people who Y" (segment-defined)
+- authority          — credentials, certifications, "expert team"
+- urgency_scarcity   — countdown, "X spots left", deadline
+- transformation     — before/after, outcome-focused ("מ-Z ל-A תוך 60 יום")
+- educational        — "guide / playbook / template" lead magnet
+- comparison         — "vs other tools" / "instead of X do Y"
+- entertainment      — humor, surprise, narrative — pure attention-grab
+
+CRITICAL: cite the actual ad text snippet for every angle you tag. NO inventing.`
+
+const PAID_BUCKETING_RULE = `**Bucket each scanned competitor**:
+- **direct**     — same offering, same geography (IL), same persona. Main threat. Top priority for white-space angle search.
+- **substitute** — different product, same JTBD. (e.g. self-storage vs moving services for "I need temporary space")
+- **adjacent**   — related offering, overlapping audience but different primary value. (Expansion risk OR strategic partnership candidate.)
+- **reference** — methodology inspiration only — different geography or business model, included because their angle/creative pattern is exemplary
+
+If a competitor is unclear, ASK the user via a flag in 'questions_for_user' — don't guess wildly.`
+
+const IL_PAID_SIGNALS = `**IL paid-market signals to evaluate**:
+- WhatsApp CTAs (wa.me links, "וואטסאפ" mentions) — IL leads convert 2-4× higher via messaging than form fills
+- Hebrew-only vs bilingual ads — Hebrew-only = local SMB; bilingual = global brand presence
+- Phone number on LP — אזרח ישראלי prefers phone for high-trust transactions (legal, real estate, b2b)
+- IL-specific platforms: ynet/calcalist for B2B, mako for B2C, channels that don't exist outside IL
+- ATT / Privacy: post-iOS-14 (ATT) Meta attribution is degraded — competitors over-relying on Meta optimization vs Google may signal weak measurement`
+
+export function buildPaidCompetitorLandscapePrompt(opts: PromptOpts): PromptResult {
+    const { businessName, businessDesc, answers, feedback, historicalAssetsBlock } = opts
+    const haBlock = historicalAssetsBlock || ''
+    const prodBlk = productsBlock(answers)
+    const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
+
+    const prefetch = opts.dfsData as PaidCompetitorLandscapePrefetch | undefined
+    if (!prefetch) throw new Error('paid_competitor_landscape: prefetch is required')
+
+    const metaBlock = renderMetaContextForPrompt(prefetch.metaAds)
+    const googleBlock = prefetch.googleAds
+        ? renderTransparencyContext(prefetch.googleAds)
+        : '═══ GOOGLE ADS TRANSPARENCY CENTER ═══\n(audit unavailable)'
+    const lpBlock = renderLandingPageAuditsForPrompt(prefetch.landingPages)
+    const domainSourcesBlock = Object.entries(prefetch.domainSources)
+        .map(([d, src]) => `- ${d} (source: ${src})`)
+        .join('\n')
+    const warningsBlock = prefetch.warnings.length > 0
+        ? `\n**Prefetch warnings to acknowledge** (set confidence accordingly):\n${prefetch.warnings.map(w => `- ${w}`).join('\n')}\n`
+        : ''
+
+    return {
+        agentId: 'menateach',
+        useDirectApi: true,        // analytical stage — no need for openclaw CLI MCP
+        minLength: 3500,
+        prompt: `# ניתוח מתחרים — פרסום ממומן ב-IL — "${businessName}"
+
+## תיאור העסק
+${businessDesc}
+${prodBlk ? `\n## המוצרים/שירותים\n${prodBlk}\n` : ''}
+${haBlock}
+${feedbackLine}
+
+---
+
+## נתוני prefetch — להשתמש verbatim, אסור להמציא
+
+**Competitors scanned (${prefetch.competitorDomains.length}):**
+${domainSourcesBlock}
+${warningsBlock}
+
+${metaBlock}
+
+${googleBlock}
+
+${lpBlock}
+
+---
+
+## פקודות עבודה
+
+${PAID_BUCKETING_RULE}
+
+${CREATIVE_ANGLE_TAXONOMY}
+
+${IL_PAID_SIGNALS}
+
+${CONFIDENCE_INTEGRITY_RULE}
+
+${EVIDENCE_HONESTY_RULE}
+
+${HEBREW_ONLY_BLOCK}
+
+---
+
+## פלט נדרש — בדיוק במבנה הזה (markdown narrative + JSON code-block)
+
+**Part 1 — Narrative analysis (Hebrew, ~2000-3000 words):**
+
+### 1. סיכום נוף השוק הממומן
+מה רואים? כמה מתחרים פעילים, איזה פלטפורמות דומיננטיות, איזה ערוצים חסרים. paragraph של 150-200 מילה.
+
+### 2. ניתוח לפי competitor (לכל מתחרה שנסרק):
+- **שם המתחרה + bucket** (direct / substitute / adjacent / reference)
+- מה הם רצים: Meta ads count (active), Google ads count, platforms mix, אורך ריצה חציוני
+- אנגלים יצירתיים שזיהיתי (cite ad text snippets) — לפחות 2 לכל מתחרה אם יש creatives
+- מה ה-LP שלהם חזק בו ובמה חלש (form length, hero, social proof, IL signals)
+- מה זה אומר אסטרטגית עלינו: מה לקבל / מה להימנע / איפה לתקוף
+
+### 3. דפוסים cross-competitor
+- אנגלים שחוזרים אצל 3+ מתחרים → "saturated angles" — חייבים לדפדף בשונה
+- אנגלים שאף אחד לא משתמש → "white-space angles" — ההזדמנות שלנו
+- פלטפורמות לא ניצולות (אף מתחרה לא ב-IG אבל יש קהל שם → opportunity)
+- IL-specific patterns: WhatsApp ratio, Hebrew/bilingual, phone CTAs
+
+### 4. המלצות שאסטרטגיית הפרסום שלנו חייבת לכלול
+3-5 conclusions actionable specific to this market analysis. כל המלצה — בלי ניסוח כללי, צמודה לנתון מסוים שראינו.
+
+### 5. שאלות לפני המשך
+דברים שלא ברורים מ-prefetch ושצריך לאסוף לפני strategy_options. רשימה 0-5 שאלות לא יותר.
+
+---
+
+**Part 2 — Structured JSON (single code-block, valid JSON):**
+
+\`\`\`json
+{
+  "records": [
+    {
+      "domain": "competitor.co.il",
+      "bucket": "direct",
+      "page_names": ["..."],
+      "active_ads_meta": <int>,
+      "active_ads_google": <int>,
+      "platforms_active": ["meta_facebook", "meta_instagram", "google_search", "google_display"],
+      "median_ad_run_days": <int>,
+      "longest_running_ad_days": <int>,
+      "creative_angles_observed": [
+        {
+          "angle": "price_anchor",
+          "platform": "meta",
+          "examples_he": ["citation 1", "citation 2"],
+          "is_long_runner": true
+        }
+      ],
+      "landing_page_strengths": ["whatsapp_cta_present", "schema_markup_complete"],
+      "landing_page_weaknesses": ["form_too_long_7_fields", "no_hero_video"],
+      "strategic_threat_level": "high|medium|low",
+      "strategic_threat_rationale_he": "..."
+    }
+  ],
+  "extras": {
+    "saturated_angles": ["price_anchor", "..."],
+    "white_space_angles": ["transformation", "..."],
+    "platform_concentration": { "meta": <pct>, "google_search": <pct>, "google_display": <pct> },
+    "il_signals_observed": {
+      "whatsapp_cta_ratio": <0..1>,
+      "hebrew_only_ratio": <0..1>,
+      "phone_number_ratio": <0..1>
+    },
+    "key_recommendations": [
+      "..."
+    ],
+    "questions_for_user": [
+      "..."
+    ]
+  },
+  "confidence": "high|medium|working_hypothesis"
+}
+\`\`\`
+
+**Quality bar:**
+- confidence: 'high' ONLY if ≥3 direct competitors had Meta or Google ads found.
+- confidence: 'medium' if 1-2 direct competitors with data.
+- confidence: 'working_hypothesis' if 0 paid competitors found (most analysis based on LP audits + organic competitor context).
+- Each angle in white_space_angles MUST cite WHY it's white-space (which competitors lack it).
+- platform_concentration percentages must sum to ~1.0.`,
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Dispatch helper — used by per-stage controllers to get prompt by id.
 // New prompts (aeo_visibility, social_landscape, email_competitor_audit)
 // belong here when they ship (Phase 4).
@@ -3098,16 +3299,18 @@ ${s.monthly_kpis.map(k => `- M${k.month}: top_10=${k.expected_top_10_count} | to
 
 export function buildPromptForStage(stageId: StageId, opts: PromptOpts): PromptResult | null {
     switch (stageId) {
-        case 'competitor_landscape':   return buildCompetitorLandscapePrompt(opts)
-        case 'internal_seo_audit':     return buildInternalSeoAuditPrompt(opts)
-        case 'seo_keyword_research':   return buildSeoKeywordResearchPrompt(opts)
-        case 'aeo_visibility':         return buildAeoVisibilityPrompt(opts)
-        case 'link_audit':             return buildLinkAuditPrompt(opts)
-        case 'audience_personas':      return buildAudiencePersonasPrompt(opts)
-        case 'positioning':            return buildPositioningPrompt(opts)
-        case 'cost_timeline_modeling': return buildCostTimelineModelingPrompt(opts)
-        case 'strategy_options':       return buildStrategyOptionsPrompt(opts)
-        case 'validation':             return buildValidationPrompt(opts)
+        case 'competitor_landscape':       return buildCompetitorLandscapePrompt(opts)
+        case 'internal_seo_audit':         return buildInternalSeoAuditPrompt(opts)
+        case 'seo_keyword_research':       return buildSeoKeywordResearchPrompt(opts)
+        case 'aeo_visibility':             return buildAeoVisibilityPrompt(opts)
+        case 'link_audit':                 return buildLinkAuditPrompt(opts)
+        case 'audience_personas':          return buildAudiencePersonasPrompt(opts)
+        case 'positioning':                return buildPositioningPrompt(opts)
+        case 'cost_timeline_modeling':     return buildCostTimelineModelingPrompt(opts)
+        case 'strategy_options':           return buildStrategyOptionsPrompt(opts)
+        case 'validation':                 return buildValidationPrompt(opts)
+        // Phase 4.2.1 — paid research pipeline (new stages)
+        case 'paid_competitor_landscape':  return buildPaidCompetitorLandscapePrompt(opts)
         // Phase 4 stages (live integrations) + intent wrappers handle their
         // own prompt construction inside their per-stage controller.
         default: return null

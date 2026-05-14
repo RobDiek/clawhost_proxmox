@@ -130,8 +130,18 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
                 'aeo_visibility', 'link_audit',
                 ...UNIVERSAL_STAGES, 'content_plan']
         case 'paid_search':
-            return ['competitor_landscape', 'paid_audit',
-                ...UNIVERSAL_STAGES, 'media_plan']
+            // Phase 4.2 — paid research pipeline (3 new stages between organic
+            // competitor_landscape and the existing paid_audit):
+            //   - paid_competitor_landscape: who's bidding now, their creatives + LPs
+            //   - paid_keyword_research: paid keyword landscape + CPC estimates
+            //   - paid_budget_scenarios: 3 IL-specific budget tiers with KPIs
+            // These give paid the same research depth organic already has.
+            return ['competitor_landscape', 'paid_data_inventory',
+                'paid_competitor_landscape', 'paid_keyword_research',
+                'audience_personas', 'positioning',
+                'paid_budget_scenarios', 'cost_timeline_modeling',
+                'paid_audit', 'strategy_options', 'validation',
+                'media_plan']
         case 'social_organic':
             return ['competitor_landscape', 'social_landscape',
                 ...UNIVERSAL_STAGES, 'content_plan']
@@ -139,13 +149,23 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
             return ['competitor_landscape', 'email_competitor_audit',
                 ...UNIVERSAL_STAGES, 'content_plan']
         case 'ecommerce':
+            // Phase 4.2 — ecommerce gets the full paid research pipeline too
+            // (paid traffic is the primary growth lever for IL ecommerce SMBs).
             return ['competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
-                'paid_audit',
-                ...UNIVERSAL_STAGES, 'media_plan', 'content_plan']
+                'paid_data_inventory', 'paid_competitor_landscape', 'paid_keyword_research',
+                'audience_personas', 'positioning',
+                'paid_budget_scenarios', 'cost_timeline_modeling',
+                'paid_audit', 'strategy_options', 'validation',
+                'media_plan', 'content_plan']
         case 'multichannel':
             return ['competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
-                'aeo_visibility', 'link_audit', 'paid_audit', 'social_landscape',
-                ...UNIVERSAL_STAGES, 'content_plan', 'media_plan']
+                'aeo_visibility', 'link_audit',
+                'paid_data_inventory', 'paid_competitor_landscape', 'paid_keyword_research',
+                'paid_audit', 'social_landscape',
+                'audience_personas', 'positioning',
+                'paid_budget_scenarios', 'cost_timeline_modeling',
+                'strategy_options', 'validation',
+                'content_plan', 'media_plan']
     }
 }
 

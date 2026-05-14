@@ -42,6 +42,7 @@ import { prefetchLinkAudit } from './prefetch/link_audit'
 import { prefetchInternalSeoAudit } from './prefetch/internal_seo_audit'
 import { prefetchAeoVisibility } from './prefetch/aeo_visibility'
 import { prefetchCostTimelineModeling } from './prefetch/cost_timeline_modeling'
+import { prefetchPaidCompetitorLandscape } from './prefetch/paid_competitor_landscape'
 import type { ResearchDataV2, StageId } from '@/services/research/types'
 import type { SeoKeywordResearchDfsData } from './prefetch/seo_keyword_research'
 import { searchVolume, keywordDifficulty, LOCATION_IL } from '@/services/research/dataforseo'
@@ -63,6 +64,7 @@ const STAGE_PREFETCHERS: Partial<Record<StageId, Prefetcher>> = {
     internal_seo_audit:   prefetchInternalSeoAudit,
     aeo_visibility:       prefetchAeoVisibility,
     cost_timeline_modeling: prefetchCostTimelineModeling,
+    paid_competitor_landscape: prefetchPaidCompetitorLandscape,
 }
 
 /**
