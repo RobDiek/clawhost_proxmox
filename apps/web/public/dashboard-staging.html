@@ -4754,12 +4754,16 @@ function renderHome() {
     }
 
     // ── Phase 3: Knowledge — research uses brand voice for framing ──
-    if (hasAgents && hasBrandBook) {
+    // Gating rule: brand book gates NEW research runs (so research uses the
+    // approved voice), but does NOT hide ALREADY-COMPLETED research from the
+    // checklist. Hiding history when prerequisites change broke users who
+    // re-uploaded their brand book or had it auto-archive between runs.
+    if (hasAgents && (hasBrandBook || hasResearch)) {
       tasks.push({
         id: 'research', label: 'מחקר שוק',
         done: !!hasResearch,
         action: "runChainResearch()",
-        actionLabel: 'התחילו מחקר',
+        actionLabel: hasResearch ? 'הריצו שוב' : 'התחילו מחקר',
         desc: 'מתחרים, מילות מפתח, קהל יעד, ערוצים ואימות — 5 שלבים (~10-15 דק׳)'
       });
     }
