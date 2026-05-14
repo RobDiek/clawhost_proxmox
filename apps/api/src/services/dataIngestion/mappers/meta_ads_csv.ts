@@ -202,9 +202,6 @@ export const metaAdsCsvMapper: Mapper = {
                     : dataType === 'adset' ? META_ADSET_HEADERS
                         : META_CAMPAIGN_HEADERS,
             ) || ''
-            if (!entityName) continue
-
-            const campaignName = pickColumn(row, META_CAMPAIGN_HEADERS) || entityName
 
             const impressions = parseLocaleNumber(pickColumn(row, META_IMPRESSIONS_HEADERS))
             const reach = parseLocaleNumber(pickColumn(row, META_REACH_HEADERS))
@@ -212,6 +209,30 @@ export const metaAdsCsvMapper: Mapper = {
             const allClicks = parseLocaleNumber(pickColumn(row, META_CLICKS_ALL_HEADERS))
             const clicks = linkClicks ?? allClicks   // prefer link clicks for paid performance analysis
             const spend = parseLocaleNumber(pickColumn(row, META_SPEND_HEADERS))
+
+            const hasAnyMetric = (impressions !== undefined && impressions > 0)
+                || (clicks !== undefined && clicks > 0)
+                || (spend !== undefined && spend > 0)
+                || (reach !== undefined && reach > 0)
+
+            // Two skip patterns:
+            //   A) Empty entity + empty metrics — junk row, skip.
+            //   B) Empty entity + REAL metrics — this is a Meta "totals row":
+            //      breakdowns enabled but data not split by demographic (Meta
+            //      sometimes does this for privacy thresholds). The numbers
+            //      live on this row only. Promote to account-level entity.
+            //   C) Entity present + empty metrics — Meta breakdown ghost row
+            //      (no real data, just demographic metadata). Skip.
+            if (!entityName) {
+                if (!hasAnyMetric) continue
+                // Pattern B: synthesize an account/period-total row downstream.
+                // Set entityName to a deterministic stable label.
+            } else if (!hasAnyMetric) {
+                // Pattern C: skip noisy breakdown rows with no actual data.
+                continue
+            }
+
+            const campaignName = pickColumn(row, META_CAMPAIGN_HEADERS) || entityName
             const results = parseLocaleNumber(pickColumn(row, META_RESULTS_HEADERS))
             const resultType = pickColumn(row, META_RESULT_TYPE_HEADERS)
             const frequency = parseLocaleNumber(pickColumn(row, META_FREQUENCY_HEADERS))
@@ -253,12 +274,26 @@ export const metaAdsCsvMapper: Mapper = {
             if (region) dimensions.region = region
             if (audience) dimensions.audience = audience
 
+            // Pattern B: totals row with no entity columns. Promote to account-
+            // level with a stable synthetic id+name. This is what Meta gives
+            // us when breakdowns are enabled but metrics aren't split by them
+            // (privacy thresholds, small audiences, etc.).
+            const isAccountTotal = !entityName
+            const effectiveEntityName = isAccountTotal
+                ? `Account total ${dateStart}` + (dateStart !== dateEnd ? `..${dateEnd}` : '')
+                : entityName
+            const effectiveDataType = isAccountTotal ? 'account' as const : dataType
+
             // Entity id: prefer real ad/adset/campaign id columns if present;
             // fallback to the name (mappers must produce deterministic ids so
-            // dedup works on re-uploaded files).
-            const entityId =
-                pickColumn(row, ['Ad ID', 'Ad Set ID', 'Campaign ID', 'מזהה מודעה', 'מזהה סדרת מודעות', 'מזהה הקמפיין'])
-                || entityName
+            // dedup works on re-uploaded files). For totals rows, derive from
+            // account id + period so re-uploads of the same period upsert
+            // cleanly.
+            const accountIdForTotal = pickColumn(row, ['Account ID', 'מזהה חשבון'])
+            const entityId = isAccountTotal
+                ? `account_${accountIdForTotal || 'unknown'}_${dateStart}_${dateEnd}`
+                : (pickColumn(row, ['Ad ID', 'Ad Set ID', 'Campaign ID', 'מזהה מודעה', 'מזהה סדרת מודעות', 'מזהה הקמפיין'])
+                    || entityName)
 
             const periodGrain = dateStart === dateEnd ? 'day' : 'custom'
 
@@ -271,13 +306,18 @@ export const metaAdsCsvMapper: Mapper = {
             // stay null so aggregator falls back to prorate-by-overlap.
             const periodDateLocal = periodGrain === 'day' ? dateStart : undefined
 
+            if (isAccountTotal) {
+                dimensions.is_account_total = true
+                dimensions.synthetic = 'meta_totals_row_promotion'
+            }
+
             out.push({
                 sourceType: 'meta_ads_csv',
                 sourceMode: 'upload',
-                dataType,
+                dataType: effectiveDataType,
                 platform: 'meta',
                 entityId,
-                entityName,
+                entityName: effectiveEntityName,
                 periodStart: dateStart,
                 periodEnd: dateEnd,
                 periodGrain,
