@@ -386,6 +386,7 @@ export interface ProvisionAgentParams {
 export interface ProvisionAgentResponse {
     success: boolean
     agentId?: string
+    userId?: string
     referralCode?: string | null
     error?: string
 }

@@ -15,12 +15,19 @@ const buildLogsCommand = (
     if (!isHermes) return `tail -100 ${logFile} 2>&1`
 
     const sources = [
+        `journalctl -u ${serviceName} -n 100 --no-pager 2>/dev/null`,
         `su - ${user} -c 'journalctl --user-unit=${serviceName} -n 100 --no-pager' 2>/dev/null`,
         `tail -n 100 ${homeDir}/.hermes/logs/gateway.log 2>/dev/null`,
         `tail -n 100 -q ${homeDir}/.hermes/logs/*.log 2>/dev/null`
     ]
-    const fallback = `echo "No logs yet. Start the messaging bridge with 'hermes gateway' in the Terminal tab."`
-    return `(${sources.join(' || ')}) || ${fallback}`
+    const tries = sources
+        .map(
+            (cmd) =>
+                `if [ -z "$out" ]; then raw=$(${cmd}); cleaned=$(printf '%s' "$raw" | grep -v -- '-- No entries --' | grep -v '^$'); if [ -n "$cleaned" ]; then out="$raw"; fi; fi`
+        )
+        .join('; ')
+    const fallback = `[ -z "$out" ] && out="No logs yet. Start the messaging bridge with 'hermes gateway' in the Terminal tab."`
+    return `out=""; ${tries}; ${fallback}; printf '%s\\n' "$out"`
 }
 
 const getAgentLogs = async (c: AuthenticatedContext) => {

@@ -884,7 +884,7 @@ export interface AgentStarsResponse {
 
 export interface AgentVersionsContentProps {
     agentId: string
-    agentType: string
+    agentType: AgentType
     readOnly?: boolean
 }
 
