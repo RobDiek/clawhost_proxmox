@@ -79,8 +79,7 @@ const pl: Translations = {
         cloud: 'Cloud',
         cloudSubtitle: 'Techniczny',
         go: 'Go',
-        goSubtitle: 'Nietechniczny',
-        agentistGo: 'Agentist Go'
+        goSubtitle: 'Nietechniczny'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -165,6 +164,15 @@ const pl: Translations = {
         ctaTitle: 'Uruchom OpenClaw lokalnie',
         ctaDescription:
             'Jednorazowa płatność, dożywotnia licencja. Wdróż OpenClaw na swoim komputerze — bez chmury, bez subskrypcji, bez limitów. Twoje dane, Twoje zasady.',
+        downloadForMac: 'Pobierz dla Mac',
+        downloadVersion: 'Wersja {{version}}',
+        downloadForWindows: 'Pobierz dla Windows',
+        deviceNotSupported: 'Twoje urządzenie nie jest jeszcze obsługiwane przez ClawHost Go.',
+        downloadFailed: 'Pobieranie nie powiodło się!',
+        downloadStarted: 'Pobieranie rozpoczęte.',
+        appleSilicon: 'Apple Silicon',
+        intel: 'Intel',
+        chooseMacArch: 'Jakiego Maca masz?',
         joinWaitlist: 'Dołącz do listy oczekujących',
         joinedWaitlist: 'Na liście oczekujących',
         waitlistAlreadyJoinedToast: 'Ten email jest już na liście.',
@@ -773,8 +781,7 @@ const pl: Translations = {
         newClaw: 'Nowy Claw',
         searchAgents: 'Szukaj agentów...',
         searchAgentsCount: 'Szukaj {{count}} agentów...',
-        noAgentsMatchSearch:
-            'Nie znaleziono agentów pasujących do wyszukiwania.',
+        noAgentsMatchSearch: 'Nie znaleziono agentów.',
         clawActions: 'Akcje claw',
         noAgentsYet: 'Brak Agentów',
         noAgentsDescription:
@@ -1854,12 +1861,6 @@ const pl: Translations = {
         contactText:
             'Jeśli masz pytania dotyczące niniejszych Warunków, skontaktuj się z nami pod adresem'
     },
-    rebrand: {
-        tag: 'EWOLUCJA',
-        title: 'ClawHost to teraz Agentist',
-        mission:
-            'Budujemy warstwę infrastruktury dla autonomicznych agentów AI.'
-    },
     hermesBanner: {
         title: 'Hermes Agent',
         message: 'Agenci Hermes są teraz obsługiwani do wdrażania na ClawHost.'
@@ -2232,98 +2233,6 @@ const pl: Translations = {
         contactTitle: '12. Kontakt',
         contactText:
             'Jeśli masz pytania dotyczące programu partnerskiego, potrzebujesz pomocy z kodem polecającym lub chcesz zgłosić naruszenie, skontaktuj się z nami pod adresem'
-    },
-    v2: {
-        title: 'agent.ic — Wdróż OpenClaw i Hermes w Chmurze',
-        description:
-            'Wdróż agentów OpenClaw i Hermes w chmurze jednym kliknięciem — open-source, samodzielnie hostowalny i zbudowany z myślą o przyszłości obliczeń agentowych.',
-        heroTitle1: 'Wdróż',
-        heroTitle2: 'Agentów AI',
-        heroTitle3: 'w Chmurze jednym Kliknięciem',
-        heroDescription:
-            'Wdróż agentów OpenClaw i Hermes w chmurze jednym kliknięciem — twórz, łącz i skaluj swoich agentów AI szybciej z Agentist.',
-        selfHostLabel: 'Zamiast Tego Hostuj Sam',
-        deployButton: 'Wdróż Teraz',
-        agentsTitle: 'Twoi Agenci. Twoja Chmura.',
-        agentsDescription:
-            'Wybieraj z rosnącego katalogu agentów AI, każdy działający na własnym dedykowanym serwerze chmurowym.',
-        agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription:
-            'Samodzielnie hostowana platforma zarządzania chmurą z pełnym SSH, terminalem, eksploratorem plików i edytorem konfiguracji.',
-        agentHermesName: 'Hermes',
-        agentHermesDescription:
-            'Autonomiczny agent AI z przeglądaniem stron, zarządzaniem kalendarzem, wnioskowaniem wielomodelowym i automatyzacją przeglądarki.',
-        featuresTitle: 'Zbudowany na Przyszłość',
-        featuresDescription:
-            'Wszystko, czego potrzebujesz do uruchamiania agentów AI na dużą skalę.',
-        feature1Title: 'Platforma Wieloagentowa',
-        feature1Description:
-            'Wdrażaj i zarządzaj wieloma typami agentów z jednego panelu.',
-        agentControlTitle: 'Pełna kontrola agentów',
-        agentControlDescription:
-            'Konfiguruj i dostosowuj każdy aspekt swoich agentów z jednego panelu.',
-        multipleAgentsTitle: 'Wielu agentów',
-        multipleAgentsDescription:
-            'Uruchamiaj wiele instancji agentów w różnych regionach i konfiguracjach.',
-        zeroConfigDescription:
-            'Pomiń godziny konfiguracji. OpenClaw i Hermes są preinstalowane i gotowe w kilka minut.',
-        globalLocationsDescription:
-            'Wdrażaj agentów w ponad 30 globalnych regionach. Wybierz lokalizację najbliższą Tobie.',
-        onlineAccessDescription:
-            'Uzyskaj bezpieczny dostęp do swoich agentów z dowolnego miejsca za pomocą własnej subdomeny.',
-        versionControlDescription:
-            'Zmieniaj wersję agenta jednym kliknięciem. Bądź na bieżąco lub wróć do poprzedniej wersji.',
-        agentsPreinstalled: 'Agenci preinstalowani',
-        comparisonAgentAccessUs: 'Pełny dostęp do wszystkich agentów',
-        comparisonMultipleAgentsUs: 'Wielu agentów na serwer',
-        comparisonMultipleAgentsOthers: 'Tylko jeden agent',
-        comparisonExportAgentsUs: 'Eksportuj swoich agentów gdziekolwiek',
-        comparisonUsLabel: 'Zarządzane za Ciebie',
-        comparisonOthersLabel: 'Zrób to sam',
-        faq1Question: 'Czym jest Agentist?',
-        faq1Answer:
-            'Agentist to platforma, która pozwala wdrażać i zarządzać agentami AI na własnych dedykowanych serwerach. My zajmujemy się infrastrukturą, bezpieczeństwem i utrzymaniem — Ty po prostu używasz swoich agentów.',
-        faq2Question: 'Czym jest OpenClaw?',
-        faq2Answer:
-            'OpenClaw to samodzielnie hostowana bezpieczna warstwa dostępu do Twoich narzędzi i usług AI. Jest preinstalowany na każdym serwerze Agentist i daje Ci pełną kontrolę nad konfiguracją.',
-        faq3Question: 'Czym jest Hermes?',
-        faq3Answer:
-            'Hermes to autonomiczny agent AI z przeglądaniem stron internetowych, zarządzaniem kalendarzem, rozumowaniem wielomodelowym i automatyzacją przeglądarki. Jest preinstalowany wraz z OpenClaw na każdym serwerze.',
-        faq4Question: 'Czy potrzebuję wiedzy technicznej?',
-        faq4Answer:
-            'Nie. Agentist jest zaprojektowany dla każdego. Zajmujemy się całą infrastrukturą, konfiguracją i utrzymaniem. Możesz zarządzać swoimi agentami przez intuicyjny panel bez dotykania jakichkolwiek serwerów.',
-        faq5Question: 'Czym to się różni od innych platform AI?',
-        faq5Answer:
-            'W przeciwieństwie do hostowanych narzędzi AI, Agentist daje Ci prawdziwy dedykowany serwer z zainstalowanymi agentami. Jesteś właścicielem infrastruktury, kontrolujesz wszystko i nie jesteś ograniczony przez współdzielone platformy.',
-        faq6Question: 'Jakie lokalizacje są dostępne?',
-        faq6Answer:
-            'Oferujemy ponad 30 lokalizacji serwerów na całym świecie, w tym w USA, Europie i Azji. Możesz wdrażać agentów na wielu serwerach w różnych regionach.',
-        faq7Question: 'Ile to kosztuje?',
-        faq7Answer:
-            'Ceny zaczynają się od 40 $/miesiąc w zależności od wybranego serwera. Wiele opcji od podstawowych po wysokowydajne. Bez ukrytych opłat, anuluj w dowolnym momencie.',
-        footerDescription:
-            'Wdróż agentów OpenClaw i Hermes w chmurze jednym kliknięciem — twórz, łącz i skaluj swoich agentów AI szybciej z Agentist.',
-        ctaTitle: 'Gotowy do Wdrożenia?',
-        ctaDescription:
-            'Dołącz do nowej generacji wdrażania agentów. Twoja infrastruktura, Twoi agenci, Twoje zasady.',
-        stats2Value: '30+',
-        stats2Label: 'Regionów',
-        stats3Value: '<60s',
-        stats3Label: 'Czas Wdrożenia',
-        stats4Value: '100%',
-        stats4Label: 'SLA Uptime',
-        pricingTitle: 'Przejrzyste Ceny',
-        planGrowthTagline: 'Do projektów osobistych i eksperymentów',
-        planProTagline: 'Do obciążeń produkcyjnych',
-        planBusinessTagline: 'Dla rozwijających się firm',
-        planPowerTagline: 'Do operacji na dużą skalę',
-        planPower: 'Power',
-        pricingPageTitle: 'Cennik — agent.ic',
-        pricingPageDescription:
-            'Przejrzyste ceny za wdrażanie agentów AI. Wybierz plan dopasowany do Twoich potrzeb bez ukrytych opłat.',
-        featuresPageTitle: 'Funkcje — agent.ic',
-        featuresPageDescription:
-            'Poznaj wszystkie funkcje agent.ic — wieloagentowe wdrażanie, dedykowana infrastruktura, globalne regiony i pełny dostęp root.'
     }
 }
 

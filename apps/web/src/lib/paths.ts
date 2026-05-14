@@ -12,10 +12,7 @@ const PATHS = {
     CHANGELOG: 'changelog',
     AFFILIATE: 'affiliate',
     AFFILIATE_PROGRAM: 'affiliate-program',
-    COMPARE: 'comparison',
-    V2: 'v2',
-    PRICING: 'pricing',
-    FEATURES: 'features'
+    COMPARE: 'comparison'
 } as const
 
 export default PATHS

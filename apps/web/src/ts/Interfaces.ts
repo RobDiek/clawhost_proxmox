@@ -32,7 +32,8 @@ import type {
     UserRole,
     Product,
     ChangelogFeatureType,
-    CopiedFieldType
+    CopiedFieldType,
+    GoDownloadVariant
 } from '@/ts/Types'
 
 export interface Volume {
@@ -248,8 +249,6 @@ export interface UIState {
     toast: ToastData | null
     showToast: (message: string, type?: ToastType, duration?: number) => void
     hideToast: () => void
-    rebrandBannerVisible: boolean
-    dismissRebrandBanner: () => void
     hermesBannerVisible: boolean
 }
 
@@ -411,16 +410,6 @@ export interface AgentAvatarProps {
 
 export interface SupportButtonProps {
     showLabel?: boolean
-}
-
-export interface SectionLabelV2Props {
-    label: string
-}
-
-export interface ScrollRevealV2Props {
-    children: ReactNode
-    delay?: number
-    className?: string
 }
 
 export interface DitherHoverHandlers {
@@ -696,6 +685,26 @@ export interface GoWaitlistFormProps {
     onEmailSubmit: (e: React.FormEvent) => void
     loggedInClassName?: string
     guestClassName?: string
+}
+
+export interface GoDownloadButtonProps {
+    className?: string
+}
+
+export interface GoMacUrls {
+    arm64: string | null
+    x64: string | null
+}
+
+export interface GoManifest {
+    version: string | null
+    mac: GoMacUrls
+    windows: string | null
+    loading: boolean
+}
+
+export interface GoPlatformButtonProps {
+    variant: GoDownloadVariant
 }
 
 export interface SSHKeyUploadFormProps {
@@ -1468,11 +1477,6 @@ export interface VideoModalProps {
 export interface PricingSectionProps {
     plans: Plan[]
     hideBorderTop?: boolean
-}
-
-export interface BillingToggleV2Props {
-    isYearly: boolean
-    onChange: (isYearly: boolean) => void
 }
 
 export interface SimplePlanFeature {

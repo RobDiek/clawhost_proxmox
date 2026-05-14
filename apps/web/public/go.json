@@ -1,5 +1,8 @@
 {
-    "version": "1.0.0",
-    "mac": "https://clawhost.cloud/go/clawhost-mac-1.0.0.dmg",
-    "windows": "https://clawhost.cloud/go/clawhost-windows-1.0.0.exe"
+    "version": "0.0.1",
+    "mac": {
+        "arm64": "https://cdn.clawhost.cloud/go/clawhost-mac-arm64.zip",
+        "x64": "https://cdn.clawhost.cloud/go/clawhost-mac-intel.zip"
+    },
+    "windows": "https://cdn.clawhost.cloud/go/clawhost-windows.exe"
 }

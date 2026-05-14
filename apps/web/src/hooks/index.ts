@@ -100,8 +100,9 @@ import useCustomerPortal from '@/hooks/useCustomerPortal'
 import useTerminalConnection from '@/hooks/useTerminalConnection'
 import useVideoSync from '@/hooks/useVideoSync'
 import useDitherHover from '@/hooks/useDitherHover'
-import useGridFade from '@/hooks/useGridFade'
 import useAbortController from '@/hooks/useAbortController'
+import useDetectedOS from '@/hooks/useDetectedOS'
+import useMacArch from '@/hooks/useMacArch'
 
 export {
     useAdminAnalytics,
@@ -188,6 +189,7 @@ export {
     useTerminalConnection,
     useVideoSync,
     useDitherHover,
-    useGridFade,
-    useAbortController
+    useAbortController,
+    useDetectedOS,
+    useMacArch
 }

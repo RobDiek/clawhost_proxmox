@@ -78,8 +78,7 @@ const en = {
         cloud: 'Cloud',
         cloudSubtitle: 'Technical',
         go: 'Go',
-        goSubtitle: 'Non-technical',
-        agentistGo: 'Agentist Go'
+        goSubtitle: 'Non-technical'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -163,6 +162,15 @@ const en = {
         ctaTitle: 'Run OpenClaw Locally',
         ctaDescription:
             'One-time payment, lifetime license. Deploy OpenClaw on your own machine — no cloud, no subscriptions, no limits. Your data, your rules.',
+        downloadForMac: 'Download for Mac',
+        downloadVersion: 'Version {{version}}',
+        downloadForWindows: 'Download for Windows',
+        deviceNotSupported: 'Your device is not supported by ClawHost Go yet.',
+        downloadFailed: 'Download failed!',
+        downloadStarted: 'Download started.',
+        appleSilicon: 'Apple Silicon',
+        intel: 'Intel',
+        chooseMacArch: 'Which Mac do you have?',
         joinWaitlist: 'Join Waitlist',
         joinedWaitlist: 'Joined Waitlist',
         waitlistAlreadyJoinedToast: 'This email is already on the list.',
@@ -753,7 +761,7 @@ const en = {
         newClaw: 'New Claw',
         searchAgents: 'Search agents...',
         searchAgentsCount: 'Search {{count}} agents...',
-        noAgentsMatchSearch: 'No agents found matching your search.',
+        noAgentsMatchSearch: 'No agents found.',
         clawActions: 'Claw actions',
         noAgentsYet: 'No Agents',
         noAgentsDescription:
@@ -1823,11 +1831,6 @@ const en = {
         contactText:
             'If you have any questions about these Terms, please contact us at'
     },
-    rebrand: {
-        tag: 'EVOLUTION',
-        title: 'ClawHost is now Agentist',
-        mission: 'Building the infrastructure layer for autonomous AI agents.'
-    },
     hermesBanner: {
         title: 'Hermes Agent',
         message: 'Hermes agents are now supported for deployment on ClawHost.'
@@ -2197,98 +2200,6 @@ const en = {
         contactTitle: '12. Contact',
         contactText:
             'If you have questions about the affiliate program, need help with your referral code, or want to report a violation, reach out to us at'
-    },
-    v2: {
-        title: 'agent.ic — Deploy OpenClaw & Hermes on the Cloud',
-        description:
-            'Deploy OpenClaw and Hermes agents on the cloud with one click — open-source, self-hostable, and built for the future of agentic computing.',
-        heroTitle1: 'Deploy',
-        heroTitle2: 'AI Agents',
-        heroTitle3: 'on Cloud with One Click',
-        heroDescription:
-            'Deploy OpenClaw and Hermes agents in the cloud with one click — build, connect, and scale your AI agents faster with Agentist.',
-        selfHostLabel: 'Self-Host Instead',
-        deployButton: 'Deploy Now',
-        agentsTitle: 'Choose Your Agent.',
-        agentsDescription:
-            'Choose from a growing catalog of AI agents, each running on its own dedicated cloud server.',
-        agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription:
-            'Self-hostable cloud management platform with full SSH, terminal, file explorer, and config editor.',
-        agentHermesName: 'Hermes',
-        agentHermesDescription:
-            'Autonomous AI agent with web browsing, calendar management, multi-model reasoning, and browser automation.',
-        featuresTitle: 'Built for the Future',
-        featuresDescription:
-            'Everything you need to deploy, manage, and scale AI agents on dedicated infrastructure.',
-        feature1Title: 'Multi-Agent Platform',
-        feature1Description:
-            'Deploy and manage multiple agent types from a single dashboard.',
-        agentControlTitle: 'Full Agent Control',
-        agentControlDescription:
-            'Configure and customize every aspect of your agents from one dashboard.',
-        multipleAgentsTitle: 'Multiple Agents',
-        multipleAgentsDescription:
-            'Run multiple agent instances across different regions and configs.',
-        zeroConfigDescription:
-            'Skip hours of setup. OpenClaw and Hermes are pre-installed and ready within minutes.',
-        globalLocationsDescription:
-            'Deploy agents across 30+ global regions. Choose the location closest to you.',
-        onlineAccessDescription:
-            'Access your agents securely from anywhere with a custom subdomain.',
-        versionControlDescription:
-            'Switch agent versions with a single click. Stay up to date or roll back.',
-        agentsPreinstalled: 'Agents Pre-Installed',
-        comparisonAgentAccessUs: 'Full access to all agents',
-        comparisonMultipleAgentsUs: 'Multiple agents per server',
-        comparisonMultipleAgentsOthers: 'Single agent only',
-        comparisonExportAgentsUs: 'Export your agents anywhere',
-        comparisonUsLabel: 'Managed for you',
-        comparisonOthersLabel: 'Do it yourself',
-        faq1Question: 'What is Agentist?',
-        faq1Answer:
-            'Agentist is a platform that lets you deploy and manage AI agents on your own dedicated servers. We handle the infrastructure, security, and maintenance — you just use your agents.',
-        faq2Question: 'What is OpenClaw?',
-        faq2Answer:
-            'OpenClaw is a self-hosted secure access layer for your AI tools and services. It comes pre-installed on every Agentist server and gives you full control over your setup.',
-        faq3Question: 'What is Hermes?',
-        faq3Answer:
-            'Hermes is an autonomous AI agent with web browsing, calendar management, multi-model reasoning, and browser automation. It comes pre-installed alongside OpenClaw on every server.',
-        faq4Question: 'Do I need technical knowledge?',
-        faq4Answer:
-            'No. Agentist is designed for everyone. We handle all infrastructure, setup, and maintenance. You can manage your agents through an intuitive dashboard without touching any servers.',
-        faq5Question: 'How is this different from other AI platforms?',
-        faq5Answer:
-            'Unlike hosted AI tools, Agentist gives you a real dedicated server with your agents installed. You own the infrastructure, control everything, and are not limited by shared platforms.',
-        faq6Question: 'What locations are available?',
-        faq6Answer:
-            'We offer 30+ server locations worldwide, including US, Europe, and Asia. You can deploy agents on multiple servers in different regions.',
-        faq7Question: 'How much does it cost?',
-        faq7Answer:
-            'Pricing starts at $40/month based on the server you select. Multiple options from entry-level to high-performance. No hidden fees, cancel anytime.',
-        footerDescription:
-            'Deploy OpenClaw and Hermes agents in the cloud with one click — build, connect, and scale your AI agents faster with Agentist.',
-        ctaTitle: 'Ready to Deploy?',
-        ctaDescription:
-            'Join the next generation of agent deployment. Your infrastructure, your agents, your rules.',
-        stats2Value: '30+',
-        stats2Label: 'Regions',
-        stats3Value: '<60s',
-        stats3Label: 'Deploy Time',
-        stats4Value: '100%',
-        stats4Label: 'Uptime SLA',
-        pricingTitle: 'Transparent Pricing',
-        planGrowthTagline: 'For personal projects and experiments',
-        planProTagline: 'For production workloads',
-        planBusinessTagline: 'For growing businesses',
-        planPowerTagline: 'For large-scale operations',
-        planPower: 'Power',
-        pricingPageTitle: 'Pricing — agent.ic',
-        pricingPageDescription:
-            'Transparent pricing for AI agent deployment. Choose a plan that fits your needs with no hidden fees.',
-        featuresPageTitle: 'Features — agent.ic',
-        featuresPageDescription:
-            'Explore all features of agent.ic — multi-agent deployment, dedicated infrastructure, global regions, and full root access.'
     }
 }
 

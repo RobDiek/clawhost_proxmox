@@ -1,6 +1,7 @@
 # Ignores
 
 node_modules
+.claude
 dist
 .next
 .turbo

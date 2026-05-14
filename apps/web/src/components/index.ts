@@ -42,20 +42,11 @@ import {
     LegalSection
 } from '@/components/legal'
 
-import { GoPricingCard, GoWaitlistForm } from '@/components/go'
-
 import {
-    LogoV2,
-    ComparisonTableV2,
-    FaqSectionV2,
-    FeaturesGridV2,
-    FooterV2,
-    HeaderV2,
-    PricingSectionV2,
-    RebrandBannerV2,
-    ScrollRevealV2,
-    SectionLabelV2
-} from '@/components/v2'
+    GoDownloadButton,
+    GoPricingCard,
+    GoWaitlistForm
+} from '@/components/go'
 
 import { LicenseRequired, ProtectedRoute } from '@/components/auth'
 
@@ -89,6 +80,7 @@ export {
     ErrorState,
     FaqSection,
     FeaturesGrid,
+    GoDownloadButton,
     GoPricingCard,
     GoWaitlistForm,
     Header,
@@ -119,15 +111,5 @@ export {
     ThemeToggle,
     Toast,
     UserDropdown,
-    VideoModal,
-    LogoV2,
-    ComparisonTableV2,
-    FaqSectionV2,
-    FeaturesGridV2,
-    FooterV2,
-    HeaderV2,
-    PricingSectionV2,
-    RebrandBannerV2,
-    ScrollRevealV2,
-    SectionLabelV2
+    VideoModal
 }

@@ -79,8 +79,7 @@ const ja: Translations = {
         cloud: 'Cloud',
         cloudSubtitle: '技術者向け',
         go: 'Go',
-        goSubtitle: '非技術者向け',
-        agentistGo: 'Agentist Go'
+        goSubtitle: '非技術者向け'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -164,6 +163,15 @@ const ja: Translations = {
         ctaTitle: 'OpenClawをローカルで実行',
         ctaDescription:
             '一回払い、永久ライセンス。お手元のマシンにOpenClawをデプロイ — クラウドなし、サブスクリプションなし、制限なし。あなたのデータ、あなたのルール.',
+        downloadForMac: 'Mac 用ダウンロード',
+        downloadVersion: 'バージョン {{version}}',
+        downloadForWindows: 'Windows 用ダウンロード',
+        deviceNotSupported: 'お使いのデバイスはまだ ClawHost Go に対応していません。',
+        downloadFailed: 'ダウンロードに失敗しました!',
+        downloadStarted: 'ダウンロードを開始しました。',
+        appleSilicon: 'Apple Silicon',
+        intel: 'Intel',
+        chooseMacArch: 'お使いの Mac はどちらですか?',
         joinWaitlist: 'ウェイトリストに参加',
         joinedWaitlist: 'ウェイトリスト参加済み',
         waitlistAlreadyJoinedToast:
@@ -763,7 +771,7 @@ const ja: Translations = {
         newClaw: '新しいClaw',
         searchAgents: 'エージェントを検索...',
         searchAgentsCount: '{{count}} エージェントを検索...',
-        noAgentsMatchSearch: '検索に一致するエージェントが見つかりません.',
+        noAgentsMatchSearch: 'エージェントが見つかりません.',
         clawActions: 'Clawアクション',
         noAgentsYet: 'エージェントなし',
         noAgentsDescription:
@@ -1826,11 +1834,6 @@ const ja: Translations = {
         contactText:
             'これらの規約に関するご質問がある場合は、以下までお問い合わせください'
     },
-    rebrand: {
-        tag: '進化',
-        title: 'ClawHostはAgentistになりました',
-        mission: '自律型AIエージェントのためのインフラ基盤を構築。'
-    },
     hermesBanner: {
         title: 'Hermes Agent',
         message: 'HermesエージェントがClawHostでのデプロイに対応しました。'
@@ -2200,98 +2203,6 @@ const ja: Translations = {
         contactTitle: '12. お問い合わせ',
         contactText:
             'アフィリエイトプログラムについてのご質問、紹介コードに関するサポート、または違反の報告は、以下までお問い合わせください'
-    },
-    v2: {
-        title: 'agent.ic — OpenClaw & Hermes をクラウドにデプロイ',
-        description:
-            'OpenClaw と Hermes エージェントをワンクリックでクラウドにデプロイ — オープンソース、セルフホスト可能、エージェンティックコンピューティングの未来のために構築。',
-        heroTitle1: 'デプロイ',
-        heroTitle2: 'AIエージェント',
-        heroTitle3: 'クラウドにワンクリックで',
-        heroDescription:
-            'OpenClaw と Hermes エージェントをワンクリックでクラウドにデプロイ — Agentist で AI エージェントをより速く構築、接続、スケール。',
-        selfHostLabel: '代わりにセルフホスト',
-        deployButton: '今すぐデプロイ',
-        agentsTitle: 'あなたのエージェント。あなたのクラウド。',
-        agentsDescription:
-            '成長し続けるAIエージェントカタログから選択。各エージェントは専用のクラウドサーバーで動作します。',
-        agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription:
-            '完全なSSH、ターミナル、ファイルエクスプローラー、設定エディタを備えたセルフホスト可能なクラウド管理プラットフォーム。',
-        agentHermesName: 'Hermes',
-        agentHermesDescription:
-            'ウェブブラウジング、カレンダー管理、マルチモデル推論、ブラウザ自動化を備えた自律型AIエージェント。',
-        featuresTitle: '未来のために構築',
-        featuresDescription:
-            'AIエージェントを大規模に運用するために必要なすべて。',
-        feature1Title: 'マルチエージェントプラットフォーム',
-        feature1Description:
-            '単一のダッシュボードから複数のエージェントタイプをデプロイ・管理。',
-        agentControlTitle: '完全なエージェント制御',
-        agentControlDescription:
-            'ひとつのダッシュボードからエージェントのあらゆる側面を設定、カスタマイズ。',
-        multipleAgentsTitle: '複数エージェント',
-        multipleAgentsDescription:
-            '異なるリージョンと設定で複数のエージェントインスタンスを実行。',
-        zeroConfigDescription:
-            '何時間ものセットアップをスキップ。OpenClawとHermesがプリインストール済みで数分で準備完了。',
-        globalLocationsDescription:
-            'エージェントを30以上のグローバルリージョンにデプロイ。最寄りのロケーションを選択。',
-        onlineAccessDescription:
-            'カスタムサブドメインでどこからでもエージェントに安全にアクセス。',
-        versionControlDescription:
-            'ワンクリックでエージェントバージョンを切り替え。最新を維持、または必要に応じてロールバック。',
-        agentsPreinstalled: 'エージェント プリインストール',
-        comparisonAgentAccessUs: 'すべてのエージェントへのフルアクセス',
-        comparisonMultipleAgentsUs: 'サーバーあたり複数のエージェント',
-        comparisonMultipleAgentsOthers: '単一のエージェントのみ',
-        comparisonExportAgentsUs: 'エージェントをどこにでもエクスポート',
-        comparisonUsLabel: 'お任せ管理',
-        comparisonOthersLabel: '自分で構築',
-        faq1Question: 'Agentistとは？',
-        faq1Answer:
-            'Agentistは、自分専用のサーバーでAIエージェントをデプロイ・管理できるプラットフォームです。インフラ、セキュリティ、メンテナンスは私たちが担当します — あなたはエージェントを使うだけです。',
-        faq2Question: 'OpenClawとは？',
-        faq2Answer:
-            'OpenClawは、AIツールやサービスのためのセルフホスト型セキュアアクセスレイヤーです。すべてのAgentistサーバーにプリインストールされており、セットアップを完全にコントロールできます。',
-        faq3Question: 'Hermesとは？',
-        faq3Answer:
-            'Hermesは、Webブラウジング、カレンダー管理、マルチモデル推論、ブラウザ自動化を備えた自律型AIエージェントです。すべてのサーバーにOpenClawと共にプリインストールされています。',
-        faq4Question: '技術的な知識は必要ですか？',
-        faq4Answer:
-            'いいえ。Agentistはすべての人向けに設計されています。インフラ、セットアップ、メンテナンスのすべてを私たちが担当します。サーバーに触れることなく、直感的なダッシュボードからエージェントを管理できます。',
-        faq5Question: '他のAIプラットフォームとの違いは？',
-        faq5Answer:
-            'ホスティング型AIツールとは異なり、Agentistはエージェントがインストールされた本物の専用サーバーを提供します。インフラを所有し、すべてをコントロールでき、共有プラットフォームに制限されません。',
-        faq6Question: 'どのロケーションが利用可能ですか？',
-        faq6Answer:
-            '米国、ヨーロッパ、アジアを含む世界30以上のサーバーロケーションを提供しています。異なるリージョンの複数のサーバーにエージェントをデプロイできます。',
-        faq7Question: '料金はいくらですか？',
-        faq7Answer:
-            '選択するサーバーに応じて月額40ドルから。エントリーレベルからハイパフォーマンスまで複数のオプション。隠れた料金なし、いつでもキャンセル可能。',
-        footerDescription:
-            'ワンクリックでOpenClawとHermesエージェントをクラウドにデプロイ — Agentistで AIエージェントをより速く構築、接続、スケールしましょう。',
-        ctaTitle: 'デプロイの準備はできましたか？',
-        ctaDescription:
-            '次世代のエージェントデプロイメントに参加しましょう。あなたのインフラ、あなたのエージェント、あなたのルール。',
-        stats2Value: '30+',
-        stats2Label: 'リージョン',
-        stats3Value: '<60s',
-        stats3Label: 'デプロイ時間',
-        stats4Value: '100%',
-        stats4Label: 'アップタイム SLA',
-        pricingTitle: '透明な料金設定',
-        planGrowthTagline: '個人プロジェクトや実験に',
-        planProTagline: '本番ワークロードに',
-        planBusinessTagline: '成長するビジネスに',
-        planPowerTagline: '大規模な運用に',
-        planPower: 'Power',
-        pricingPageTitle: '料金 — agent.ic',
-        pricingPageDescription:
-            'AIエージェントデプロイの透明な料金設定。隠れた費用なしで、ニーズに合ったプランをお選びください。',
-        featuresPageTitle: '機能 — agent.ic',
-        featuresPageDescription:
-            'agent.icのすべての機能を探索 — マルチエージェントデプロイ、専用インフラ、グローバルリージョン、フルルートアクセス。'
     }
 }
 

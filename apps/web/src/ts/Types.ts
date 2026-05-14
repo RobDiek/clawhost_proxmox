@@ -27,7 +27,9 @@ import type {
     TERMINAL_STATUS,
     THEMES,
     TOAST_TYPE,
-    LANGUAGES
+    LANGUAGES,
+    GO_PLATFORM,
+    MAC_ARCH
 } from '@/lib/constants'
 
 export type AgentType = (typeof agentType)[keyof typeof agentType]
@@ -100,3 +102,13 @@ export type ElectronOAuthFn = (
 ) => Promise<OAuthWindowResult>
 
 export type MdxModuleLoaders = Record<string, () => Promise<MdxComponentModule>>
+
+export type GoPlatform = (typeof GO_PLATFORM)[keyof typeof GO_PLATFORM]
+
+export type MacArch = (typeof MAC_ARCH)[keyof typeof MAC_ARCH]
+
+export type DetectedMacArch = MacArch | 'unknown'
+
+export type DetectedOS = GoPlatform | 'unknown'
+
+export type GoDownloadVariant = 'primary' | 'secondary'

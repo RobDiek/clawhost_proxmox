@@ -89,7 +89,7 @@ const OtpCodeStep: FC<OtpCodeStepProps> = ({
             <button
                 onClick={onResend}
                 disabled={cooldown > 0 || !!loadingMethod}
-                className='text-muted-foreground hover:text-foreground/80 mt-4 flex w-full items-center justify-center gap-2 text-sm transition-colors disabled:opacity-50'
+                className='text-muted-foreground hover:text-foreground/80 mt-4 flex w-full items-center justify-center gap-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:text-muted-foreground'
             >
                 {loadingMethod === LOGIN_LOADING_METHOD.RESEND ? (
                     <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />

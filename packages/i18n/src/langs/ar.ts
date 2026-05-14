@@ -79,8 +79,7 @@ const ar: Translations = {
         cloud: 'Cloud',
         cloudSubtitle: 'تقني',
         go: 'Go',
-        goSubtitle: 'غير تقني',
-        agentistGo: 'Agentist Go'
+        goSubtitle: 'غير تقني'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -164,6 +163,15 @@ const ar: Translations = {
         ctaTitle: 'شغّل OpenClaw محلياً',
         ctaDescription:
             'دفعة واحدة، ترخيص مدى الحياة. انشر OpenClaw على جهازك — بدون سحابة، بدون اشتراكات، بدون حدود. بياناتك، قواعدك.',
+        downloadForMac: 'تنزيل لـ Mac',
+        downloadVersion: 'الإصدار {{version}}',
+        downloadForWindows: 'تنزيل لـ Windows',
+        deviceNotSupported: 'جهازك غير مدعوم بعد بواسطة ClawHost Go.',
+        downloadFailed: 'فشل التنزيل!',
+        downloadStarted: 'بدأ التنزيل.',
+        appleSilicon: 'Apple Silicon',
+        intel: 'Intel',
+        chooseMacArch: 'أي Mac تملك؟',
         joinWaitlist: 'انضم لقائمة الانتظار',
         joinedWaitlist: 'تم الانضمام لقائمة الانتظار',
         waitlistAlreadyJoinedToast:
@@ -738,7 +746,7 @@ const ar: Translations = {
         newClaw: 'مخلب جديد',
         searchAgents: 'البحث عن الوكلاء...',
         searchAgentsCount: 'البحث في {{count}} وكلاء...',
-        noAgentsMatchSearch: 'لم يتم العثور على وكلاء يطابقون بحثك.',
+        noAgentsMatchSearch: 'لم يتم العثور على وكلاء.',
         clawActions: 'إجراءات المخلب',
         noAgentsYet: 'لا يوجد وكلاء',
         noAgentsDescription:
@@ -1775,11 +1783,6 @@ const ar: Translations = {
         contactTitle: '12. معلومات الاتصال',
         contactText: 'إذا كانت لديك أسئلة حول هذه الشروط، يرجى التواصل معنا على'
     },
-    rebrand: {
-        tag: 'تطوّر',
-        title: 'ClawHost أصبح الآن Agentist',
-        mission: 'بناء طبقة البنية التحتية لوكلاء الذكاء الاصطناعي المستقلين.'
-    },
     hermesBanner: {
         title: 'Hermes Agent',
         message: 'أصبح وكلاء Hermes مدعومين الآن للنشر على ClawHost.'
@@ -2147,98 +2150,6 @@ const ar: Translations = {
         contactTitle: '12. التواصل',
         contactText:
             'إذا كانت لديك أسئلة حول برنامج الشراكة أو تحتاج إلى مساعدة بشأن رمز الإحالة الخاص بك أو ترغب في الإبلاغ عن مخالفة، تواصل معنا على'
-    },
-    v2: {
-        title: 'agent.ic — انشر OpenClaw و Hermes على السحابة',
-        description:
-            'انشر وكلاء OpenClaw وHermes على السحابة بنقرة واحدة — مفتوح المصدر، قابل للاستضافة الذاتية، ومصمم لمستقبل الحوسبة الوكيلية.',
-        heroTitle1: 'انشر',
-        heroTitle2: 'وكلاء الذكاء الاصطناعي',
-        heroTitle3: 'على السحابة بنقرة واحدة',
-        heroDescription:
-            'انشر وكلاء OpenClaw وHermes في السحابة بنقرة واحدة — ابنِ واربط ووسّع وكلاء الذكاء الاصطناعي بشكل أسرع مع Agentist.',
-        selfHostLabel: 'استضافة ذاتية بدلاً من ذلك',
-        deployButton: 'انشر الآن',
-        agentsTitle: 'وكلاؤك. سحابتك.',
-        agentsDescription:
-            'اختر من كتالوج متنامٍ من وكلاء الذكاء الاصطناعي، كل منهم يعمل على خادم سحابي مخصص خاص به.',
-        agentOpenclawName: 'OpenClaw',
-        agentOpenclawDescription:
-            'منصة إدارة سحابية قابلة للاستضافة الذاتية مع SSH كامل وطرفية ومستكشف ملفات ومحرر إعدادات.',
-        agentHermesName: 'Hermes',
-        agentHermesDescription:
-            'وكيل ذكاء اصطناعي مستقل مع تصفح الويب وإدارة التقويم واستدلال متعدد النماذج وأتمتة المتصفح.',
-        featuresTitle: 'مبني للمستقبل',
-        featuresDescription:
-            'كل ما تحتاجه لتشغيل وكلاء الذكاء الاصطناعي على نطاق واسع.',
-        feature1Title: 'منصة متعددة الوكلاء',
-        feature1Description:
-            'انشر وأدر أنواعاً متعددة من الوكلاء من لوحة تحكم واحدة.',
-        agentControlTitle: 'تحكم كامل بالوكلاء',
-        agentControlDescription:
-            'قم بتكوين وتخصيص كل جانب من وكلائك من لوحة تحكم واحدة.',
-        multipleAgentsTitle: 'وكلاء متعددون',
-        multipleAgentsDescription:
-            'شغّل عدة نسخ من الوكلاء عبر مناطق وإعدادات مختلفة.',
-        zeroConfigDescription:
-            'تخطَّ ساعات الإعداد. OpenClaw وHermes مثبتان مسبقاً وجاهزان في دقائق.',
-        globalLocationsDescription:
-            'انشر الوكلاء في أكثر من 30 منطقة عالمية. اختر الموقع الأقرب إليك.',
-        onlineAccessDescription:
-            'ادخل إلى وكلائك بأمان من أي مكان باستخدام نطاق فرعي مخصص.',
-        versionControlDescription:
-            'بدّل إصدارات الوكيل بنقرة واحدة. ابقَ محدّثاً أو ارجع عند الحاجة.',
-        agentsPreinstalled: 'الوكلاء مثبتون مسبقاً',
-        comparisonAgentAccessUs: 'وصول كامل إلى جميع الوكلاء',
-        comparisonMultipleAgentsUs: 'وكلاء متعددون لكل خادم',
-        comparisonMultipleAgentsOthers: 'وكيل واحد فقط',
-        comparisonExportAgentsUs: 'صدّر وكلاءك إلى أي مكان',
-        comparisonUsLabel: 'مُدار من أجلك',
-        comparisonOthersLabel: 'افعلها بنفسك',
-        faq1Question: 'ما هو Agentist؟',
-        faq1Answer:
-            'Agentist هو منصة تتيح لك نشر وإدارة وكلاء الذكاء الاصطناعي على خوادمك المخصصة. نحن نتولى البنية التحتية والأمان والصيانة — أنت فقط تستخدم وكلاءك.',
-        faq2Question: 'ما هو OpenClaw؟',
-        faq2Answer:
-            'OpenClaw هو طبقة وصول آمنة مستضافة ذاتياً لأدوات وخدمات الذكاء الاصطناعي الخاصة بك. يأتي مثبتاً مسبقاً على كل خادم Agentist ويمنحك تحكماً كاملاً في إعداداتك.',
-        faq3Question: 'ما هو Hermes؟',
-        faq3Answer:
-            'Hermes هو وكيل ذكاء اصطناعي مستقل مع تصفح الويب وإدارة التقويم والتفكير متعدد النماذج وأتمتة المتصفح. يأتي مثبتاً مسبقاً إلى جانب OpenClaw على كل خادم.',
-        faq4Question: 'هل أحتاج إلى معرفة تقنية؟',
-        faq4Answer:
-            'لا. Agentist مصمم للجميع. نحن نتولى جميع البنية التحتية والإعداد والصيانة. يمكنك إدارة وكلائك من خلال لوحة تحكم بديهية دون لمس أي خادم.',
-        faq5Question: 'كيف يختلف هذا عن منصات الذكاء الاصطناعي الأخرى؟',
-        faq5Answer:
-            'على عكس أدوات الذكاء الاصطناعي المستضافة، يمنحك Agentist خادماً مخصصاً حقيقياً مع تثبيت وكلائك. أنت تملك البنية التحتية وتتحكم في كل شيء ولا تقيدك المنصات المشتركة.',
-        faq6Question: 'ما المواقع المتاحة؟',
-        faq6Answer:
-            'نقدم أكثر من 30 موقع خادم حول العالم، بما في ذلك الولايات المتحدة وأوروبا وآسيا. يمكنك نشر الوكلاء على خوادم متعددة في مناطق مختلفة.',
-        faq7Question: 'كم يكلف؟',
-        faq7Answer:
-            'تبدأ الأسعار من 40 $/شهرياً بناءً على الخادم الذي تختاره. خيارات متعددة من المستوى الأساسي إلى الأداء العالي. بدون رسوم مخفية، ألغِ في أي وقت.',
-        footerDescription:
-            'انشر وكلاء OpenClaw و Hermes في السحابة بنقرة واحدة — أنشئ وكلاء الذكاء الاصطناعي الخاصة بك واربطها ووسّع نطاقها بشكل أسرع مع Agentist.',
-        ctaTitle: 'مستعد للنشر؟',
-        ctaDescription:
-            'انضم إلى الجيل القادم من نشر الوكلاء. بنيتك التحتية، وكلاؤك، قواعدك.',
-        stats2Value: '30+',
-        stats2Label: 'منطقة',
-        stats3Value: '<60s',
-        stats3Label: 'وقت النشر',
-        stats4Value: '100%',
-        stats4Label: 'SLA وقت التشغيل',
-        pricingTitle: 'أسعار شفافة',
-        planGrowthTagline: 'للمشاريع الشخصية والتجارب',
-        planProTagline: 'لأحمال العمل الإنتاجية',
-        planBusinessTagline: 'للشركات النامية',
-        planPowerTagline: 'للعمليات واسعة النطاق',
-        planPower: 'Power',
-        pricingPageTitle: 'الأسعار — agent.ic',
-        pricingPageDescription:
-            'أسعار شفافة لنشر وكلاء الذكاء الاصطناعي. اختر خطة تناسب احتياجاتك بدون رسوم خفية.',
-        featuresPageTitle: 'الميزات — agent.ic',
-        featuresPageDescription:
-            'استكشف جميع ميزات agent.ic — نشر متعدد الوكلاء، بنية تحتية مخصصة، مناطق عالمية ووصول root كامل.'
     }
 }
 

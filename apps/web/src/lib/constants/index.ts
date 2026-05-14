@@ -18,6 +18,8 @@ import SSH_KEY_MODAL_MODE from '@/lib/constants/sshKeyModalMode'
 import TERMINAL_STATUS from '@/lib/constants/terminalStatus'
 import THEMES from '@/lib/constants/themes'
 import TOAST_TYPE from '@/lib/constants/toastType'
+import GO_PLATFORM from '@/lib/constants/goPlatform'
+import MAC_ARCH from '@/lib/constants/macArch'
 
 export {
     AFFILIATE_PERIOD,
@@ -39,5 +41,7 @@ export {
     TERMINAL_STATUS,
     THEMES,
     STORAGE_KEYS,
-    TOAST_TYPE
+    TOAST_TYPE,
+    GO_PLATFORM,
+    MAC_ARCH
 }
