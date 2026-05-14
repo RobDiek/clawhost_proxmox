@@ -53,7 +53,7 @@ interface OpusFinding {
     success_threshold_pct?: number
 }
 
-function buildAuditPrompt(ctx: GeneratorContext): string {
+function buildAuditPrompt(ctx: GeneratorContext, learningsBlock: string): string {
     const inv = ctx.inventory
     const platforms = ctx.platformAggregates.map(p => ({
         platform: p.platform,
@@ -100,6 +100,8 @@ ${JSON.stringify(events, null, 2)}
 
 Paid profile (user-declared):
 ${JSON.stringify(ctx.paidProfile, null, 2).slice(0, 3000)}
+
+${learningsBlock || ''}
 
 Now find 3-5 findings. Each finding must:
   1. Cite specific numbers from above (not generic advice)
@@ -160,7 +162,21 @@ export async function generateOpusAudit(ctx: GeneratorContext): Promise<Hypothes
     }
 
     const model = await resolveDirectModel(ctx.instanceId, 'mazhir').catch(() => 'claude-opus-4-7')
-    const prompt = buildAuditPrompt(ctx)
+
+    // Phase 4.3 — fetch learnings from past hypothesis outcomes (validated/
+    // rejected/inconclusive aggregated by code/platform/severity) and inject
+    // them so Opus reasons in light of the engine's actual track record.
+    // Silently no-op when there are no resolved hypotheses yet.
+    const { fetchLearningsForInjection } = await import('../../paidLearner/inject')
+    const learnings = await fetchLearningsForInjection(ctx.instanceId).catch(err => {
+        console.warn('[opusAudit] paidLearner inject failed:', (err as Error).message)
+        return { hasLearnings: false, insightCount: 0, promptBlock: '' }
+    })
+    if (learnings.hasLearnings) {
+        console.log(`[opusAudit] injecting ${learnings.insightCount} paid learnings into prompt`)
+    }
+
+    const prompt = buildAuditPrompt(ctx, learnings.promptBlock)
 
     let text = ''
     try {

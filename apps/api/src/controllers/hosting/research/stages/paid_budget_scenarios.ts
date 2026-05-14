@@ -1,19 +1,14 @@
 /**
- * Stage: paid_budget_scenarios (Phase 4.2.3 — stub, full implementation pending).
+ * Stage: paid_budget_scenarios — IL-specific 3-tier budget projections.
  *
- * Will generate 3 IL-specific paid-budget tiers (שמרני / מאוזן / אגרסיבי)
- * with per-month KPI projection: impressions, clicks, conversions,
- * CPA range, ROAS target. Uses paid_keyword_research CPC estimates +
- * IL vertical benchmarks (storage/fitness/real-estate/legal/etc.).
+ * Phase 4.2.3 — Conservative / Balanced / Aggressive scenarios with 12-month
+ * KPI projection, allocation breakdown, bidding progression, prerequisites
+ * + risks per tier. Output drives strategy_options + chosenScenario.
  */
 
 import type { Context } from 'hono'
-import { fail } from '@/lib/response'
+import { runStageGeneric } from './_runStageGeneric'
 
 export async function run(c: Context): Promise<Response> {
-    return fail(
-        c,
-        'paid_budget_scenarios not yet implemented (Phase 4.2.3 — depends on paid_keyword_research).',
-        501,
-    )
+    return runStageGeneric(c, 'paid_budget_scenarios')
 }

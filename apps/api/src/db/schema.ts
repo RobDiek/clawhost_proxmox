@@ -1519,3 +1519,64 @@ export const hypotheses = pgTable(
         index('hypotheses_proposed_at_idx').on(table.instanceId, table.proposedAt),
     ],
 )
+
+// ── Paid Performance Loop (Phase 4.3 — paidLearner) ──────────────────────
+// Aggregated learnings from resolved hypotheses. Drives prompt injection
+// into the next opusAudit run so the engine "remembers" what worked.
+// See drizzle/0056_paid_learnings.sql for design rationale.
+export const paidLearnings = pgTable(
+    'paid_learnings',
+    {
+        id:                       bigserial('id', { mode: 'number' }).primaryKey(),
+        instanceId:               text('instance_id')
+            .notNull()
+            .references(() => instances.id, { onDelete: 'cascade' }),
+        agentId:                  text('agent_id').references(() => matehAgents.id, { onDelete: 'set null' }),
+
+        // Window
+        windowStart:              date('window_start').notNull(),
+        windowEnd:                date('window_end').notNull(),
+        windowGrain:              text('window_grain').notNull().default('28d'),
+
+        // Grouping
+        grouping:                 text('grouping').notNull(),
+        groupKey:                 text('group_key').notNull(),
+        groupLabelHe:             text('group_label_he').notNull(),
+
+        // Outcome distribution
+        proposedCount:            integer('proposed_count').notNull().default(0),
+        approvedCount:            integer('approved_count').notNull().default(0),
+        testingCount:             integer('testing_count').notNull().default(0),
+        validatedCount:           integer('validated_count').notNull().default(0),
+        rejectedCount:            integer('rejected_count').notNull().default(0),
+        inconclusiveCount:        integer('inconclusive_count').notNull().default(0),
+        declinedCount:            integer('declined_count').notNull().default(0),
+        expiredCount:             integer('expired_count').notNull().default(0),
+
+        // Rates
+        validationRate:           decimal('validation_rate', { precision: 4, scale: 3 }),
+        declineRate:              decimal('decline_rate', { precision: 4, scale: 3 }),
+        inconclusiveRate:         decimal('inconclusive_rate', { precision: 4, scale: 3 }),
+
+        // Impact + sample
+        sumOutcomeImpactIls:      decimal('sum_outcome_impact_ils', { precision: 14, scale: 2 }),
+        medianTestWindowDays:     integer('median_test_window_days'),
+        sampleSize:               integer('sample_size').notNull(),
+        confidence:               text('confidence').notNull().default('low'),
+
+        // Insight
+        insightHe:                text('insight_he').notNull().default(''),
+        injectIntoPrompts:        boolean('inject_into_prompts').notNull().default(false),
+
+        // Provenance
+        computedAt:               timestamp('computed_at', { withTimezone: true }).defaultNow().notNull(),
+        aggregatorVersion:        text('aggregator_version').notNull().default('v1'),
+
+        createdAt:                timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        index('paid_learnings_instance_window_idx').on(table.instanceId, table.windowEnd),
+        index('paid_learnings_grouping_idx').on(table.instanceId, table.grouping, table.windowEnd),
+        index('paid_learnings_inject_idx').on(table.instanceId, table.injectIntoPrompts, table.windowEnd),
+    ],
+)

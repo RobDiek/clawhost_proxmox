@@ -3111,6 +3111,11 @@ import type { PaidCompetitorLandscapePrefetch } from '@/controllers/hosting/rese
 import { renderMetaContextForPrompt } from '@/services/paidResearch/metaAdLibrary'
 import { renderLandingPageAuditsForPrompt } from '@/services/paidResearch/landingPageAudit'
 import { renderTransparencyContext } from '@/services/googleAdsTransparency'
+import type { PaidKeywordLandscape } from '@/services/paidResearch/keywordPaidLandscape'
+import { renderPaidKeywordLandscapeForPrompt } from '@/services/paidResearch/keywordPaidLandscape'
+import type { BudgetScenariosBundle } from '@/services/paidResearch/budgetScenarioGenerator'
+import { renderScenariosForPrompt } from '@/services/paidResearch/budgetScenarioGenerator'
+import { renderBenchmarksForPrompt } from '@/services/paidResearch/ilVerticalBenchmarks'
 
 const CREATIVE_ANGLE_TAXONOMY = `**Creative angle taxonomy** — classify each ad you see into ONE of these (or 'other' with explanation):
 - price_anchor       — leads with price / discount / urgency on cost
@@ -3292,6 +3297,348 @@ ${HEBREW_ONLY_BLOCK}
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// Phase 4.2.2 — paid_keyword_research
+//
+// Goal: an Opus-grade analyst converting the IL paid-keyword landscape
+// (CPC, volume, intent, competition_index, cluster structure) into an
+// ad-group + bid-strategy + match-type plan. Output must:
+//   - Recommend ad-group structure based on semantic clusters (not flat)
+//   - Pick match types per cluster (exact for BOFU brand, phrase for MOFU,
+//     broad for TOFU only with negative-keyword shield)
+//   - Suggest bid range per cluster (anchored to IL CPC benchmarks, NOT
+//     industry-average myth-numbers)
+//   - Flag dangerous keywords (high CPC + low volume + unclear intent =
+//     budget traps)
+//   - Identify negative-keyword candidates from low-intent expansion noise
+//   - IL signals: brand-bidding risk (Storage Station vs storage-for-you
+//     auction), Hebrew-prefix waste (ב/ל/מ/ש/ה), local-pack opportunities
+// ────────────────────────────────────────────────────────────────────────────
+
+const KEYWORD_TIER_DISCIPLINE = `**Intent-tier discipline** — every recommendation must respect the tier:
+- **BOFU** (transactional/branded): exact-match, manual CPC bidding OR tCPA after 30 conv. Spend premium — these convert. אסור broad-match here (wastes budget on irrelevant variants).
+- **MOFU** (commercial/research): phrase-match, Max Conversions. Capture into remarketing pool for paid-social retargeting.
+- **TOFU** (informational): broad-match ONLY with aggressive negative-keyword shield, Max Clicks budget. Risk: TOFU rarely converts on first click — feeds top-of-funnel.
+- **BRAND**: separate campaign, exact + phrase, Max Clicks → tCPA. Brand-bidding shield is mandatory (block competitor bidding our brand name).
+- **UNKNOWN**: hold out. Don't add to active campaigns until intent classified.
+
+NEVER mix tiers in the same ad group. NEVER recommend tCPA below 30 conv/30d (Smart Bidding floor).`
+
+const SERP_AD_DENSITY_RULE = `**Auction competition signal** — competition_index from DFS:
+- ≥80: heavy auction. CPC likely above account median. Recommend exact-match + manual bidding to control overspend.
+- 50-79: medium auction. Standard Smart Bidding once tier ≥T2.
+- <50: light auction. Budget-friendly but check volume — often low-comp = low-intent.`
+
+const IL_KEYWORD_SIGNALS = `**IL-specific keyword risks**:
+- **Hebrew prefixes**: a query "מחיר אחסון" should ALSO match "המחיר של אחסון" / "במחיר אחסון" — Google handles this but check that ad copy mentions price variant explicitly to maintain Quality Score.
+- **Localized variants**: "אחסון תל אביב" / "אחסון נתניה" / "אחסון רמת גן" — each is a separate ad group with geo-targeting + city-name in ad headline.
+- **Brand-bidding risk**: if competitors bid on our brand name, defensive brand campaign is mandatory (CPC there will be cheap — Google rewards relevance score; competitors pay more for same clicks).
+- **Voice search**: longer queries (5+ words, question marks) trend mobile and are often discovery — TOFU/MOFU bias.
+- **Avoid Israel-specific dirt**: Hebrew transliterations of English brands ("גוגל אדס") tend to be navigational, not commercial. Don't bid unless our service IS Google Ads management.`
+
+export function buildPaidKeywordResearchPrompt(opts: PromptOpts): PromptResult {
+    const { businessName, businessDesc, answers, feedback, historicalAssetsBlock } = opts
+    const haBlock = historicalAssetsBlock || ''
+    const prodBlk = productsBlock(answers)
+    const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
+
+    const landscape = opts.dfsData as PaidKeywordLandscape | undefined
+    if (!landscape) throw new Error('paid_keyword_research: dfsData prefetch (PaidKeywordLandscape) is required')
+
+    const landscapeBlock = renderPaidKeywordLandscapeForPrompt(landscape)
+
+    return {
+        agentId: 'menateach',
+        useDirectApi: true,
+        minLength: 3000,
+        prompt: `# מחקר מילות מפתח — פרסום ממומן ב-IL — "${businessName}"
+
+## תיאור העסק
+${businessDesc}
+${prodBlk ? `\n## המוצרים/שירותים\n${prodBlk}\n` : ''}
+${haBlock}
+${feedbackLine}
+
+---
+
+## נתוני prefetch — להשתמש verbatim, אסור להמציא
+
+${landscapeBlock}
+
+**Diagnostics** (כדי שתבין confidence):
+- Calls: ${landscape.diagnostics.callsAttempted} (failed: ${landscape.diagnostics.callsFailed})
+- DFS cost: $${landscape.diagnostics.totalCostUsd.toFixed(3)}
+- Cache: ${landscape.diagnostics.cacheHits} hits / ${landscape.diagnostics.cacheMisses} misses
+- Latency: ${landscape.diagnostics.latencyMs}ms
+- Seed kw count: ${landscape.diagnostics.keywordsSeed}; after expansion: ${landscape.diagnostics.keywordsAfterExpansion}; after volume filter: ${landscape.diagnostics.keywordsAfterVolumeFilter}
+
+---
+
+## פקודות עבודה
+
+${KEYWORD_TIER_DISCIPLINE}
+
+${SERP_AD_DENSITY_RULE}
+
+${IL_KEYWORD_SIGNALS}
+
+${CONFIDENCE_INTEGRITY_RULE}
+
+${EVIDENCE_HONESTY_RULE}
+
+${HEBREW_ONLY_BLOCK}
+
+---
+
+## פלט נדרש — markdown narrative + structured JSON
+
+**Part 1 — Narrative (Hebrew, 2000-3000 words):**
+
+### 1. סיכום נוף מילות המפתח
+- כמה kw רלוונטיים זוהו, חלוקה לפי intent (TOFU/MOFU/BOFU/BRAND)
+- IL CPC benchmarks: median, p25, p75 — איפה אנחנו על הספקטרום
+- האם הקטגוריה תחרותית (competition_index distribution) או יחסית פתוחה
+- 150-200 מילה
+
+### 2. ad group recommendations (לפי clusters שזוהו)
+לכל cluster שראיתם — מומלץ ad group נפרד:
+- שם cluster + הצדקה תמטית
+- מילות מפתח מומלצות (top 5-10) + match type לכל אחת
+- bid range מומלץ (₪ low - ₪ high, מקודד ב-IL benchmarks)
+- intent tier (BOFU/MOFU/TOFU/BRAND)
+- bid strategy (Manual CPC / Max Clicks / Max Conv / tCPA — תלוי בtier ובspecific signals)
+- אזהרת negative keywords (אילו מילים לבלוק כדי לא לקבל traffic זבל)
+
+### 3. סיכון auction
+מילות מפתח עם competition_index ≥80 — האם הן באמת מצדיקות תקרת CPC? בודקים: volume, intent, אם המתחרים שלנו רצים עליהן.
+
+### 4. brand-bidding strategy
+האם יש סימני שמתחרים מציעים על השם שלנו? אם כן — campaign הגנתי חובה. אם לא — defensive optional but recommended (cheap, high QS).
+
+### 5. negative keyword universe
+לפחות 10 candidates ל-negative keywords ברמת account (יבולים על broad/phrase ad groups). דוגמה: "חינם", "טיפים", "DIY", "wikipedia"...
+
+### 6. budget allocation suggestion (preview)
+חלוקה ראשונית למה לפזר תקציב בין clusters — לא מספרים מוחלטים (זה ל-paid_budget_scenarios), אלא יחסים: "cluster A מקבל 40% (BOFU + brand), cluster B 35% (MOFU), cluster C 25% (TOFU)"
+
+### 7. open questions
+שאלות שלא נענו מ-prefetch ומצריכות user input או יותר data לפני media_plan.
+
+---
+
+**Part 2 — Structured JSON (single code-block, valid JSON):**
+
+\`\`\`json
+{
+  "records": [
+    {
+      "ad_group_id": "ag_1",
+      "ad_group_label_he": "אחסון נתניה — BOFU",
+      "cluster_id_from_prefetch": "c0",
+      "intent_tier": "BOFU",
+      "keywords": [
+        {
+          "keyword": "...",
+          "match_type": "exact|phrase|broad",
+          "monthly_volume": <int>,
+          "cpc_estimate_ils": <float>,
+          "competition_index": <int>,
+          "recommended_max_cpc_ils": <float>,
+          "why_chosen_he": "<1-line explanation>"
+        }
+      ],
+      "ad_group_bid_range_ils": { "low": <float>, "high": <float> },
+      "bid_strategy_recommended": "manual_cpc|max_clicks|max_conversions|target_cpa",
+      "bid_strategy_rationale_he": "<1-2 line explanation>",
+      "negative_keywords": ["..."],
+      "il_specific_notes_he": "<localization / brand-bidding / Hebrew-prefix notes if relevant>"
+    }
+  ],
+  "extras": {
+    "intent_distribution_pct": { "TOFU": <float>, "MOFU": <float>, "BOFU": <float>, "BRAND": <float>, "UNKNOWN": <float> },
+    "auction_heavy_keywords": ["..."],
+    "brand_bidding_defense_required": true|false,
+    "account_level_negatives": ["..."],
+    "budget_allocation_preview_pct": { "ag_1": <float>, "ag_2": <float>, ... },
+    "il_cpc_benchmark_position": "above_p75|p25_to_p75|below_p25",
+    "open_questions": ["..."]
+  },
+  "confidence": "high|medium|working_hypothesis"
+}
+\`\`\`
+
+**Quality bar:**
+- confidence: 'high' if ≥30 keywords with cpc + volume AND ≥3 distinct clusters AND DFS calls didn't fail.
+- confidence: 'medium' if 15-29 keywords OR 1-2 clusters.
+- confidence: 'working_hypothesis' if <15 keywords or call failures > 50%.
+- Every keyword in records MUST exist in prefetch landscape (no inventing).
+- ad_group_bid_range_ils MUST anchor to IL median ±50% (no $1.50 CPC fantasies in IL).`,
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Phase 4.2.3 — paid_budget_scenarios
+//
+// Goal: an Opus senior PPC strategist takes deterministic 3-tier scenario
+// projections (math from IL vertical benchmarks + competitor CPC reality)
+// and critiques them. The Opus output must:
+//   - Critically assess whether the baseline projections are realistic given
+//     paid_competitor_landscape signals (heavy auction = inflate CPC; weak
+//     competitors = deflate)
+//   - Adjust ROAS targets for ACTUAL ad-platform mix the user can run
+//     (not over-promising)
+//   - Surface the "which scenario" decision tree clearly so user picks
+//     informed, not at random
+//   - Flag IL-market risks that math doesn't capture
+//   - Keep all numbers within ±25% of baseline unless explicit signal
+//     justifies further deviation
+// ────────────────────────────────────────────────────────────────────────────
+
+const SCENARIO_DISCIPLINE = `**Critique discipline** — Opus must:
+1. Treat baseline projections as ANCHOR, not gospel. Adjust ±25% max unless
+   you cite a SPECIFIC competitor/keyword/auction signal that justifies more.
+2. NEVER inflate ROAS projections beyond ${5}× LTV unless paid_competitor_landscape
+   shows ALL competitors hitting that ROAS too (collective benchmark proof).
+3. NEVER recommend "aggressive" if vertical is 'unknown' OR keyword pool <20 kw
+   (data too thin — risk of recommending burn).
+4. Each scenario's prerequisites must be honored — if user lacks any
+   prerequisite at higher tier, recommend they EARN that tier from below.
+5. Surface IL-specific risk: brand-bidding from competitors, Hebrew Quality
+   Score, mobile-form-friction, WhatsApp-conv-tracking-gap.`
+
+export function buildPaidBudgetScenariosPrompt(opts: PromptOpts): PromptResult {
+    const { businessName, businessDesc, answers, feedback, historicalAssetsBlock } = opts
+    const haBlock = historicalAssetsBlock || ''
+    const prodBlk = productsBlock(answers)
+    const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
+
+    const bundle = opts.dfsData as BudgetScenariosBundle | undefined
+    if (!bundle) throw new Error('paid_budget_scenarios: prefetch (BudgetScenariosBundle) is required')
+
+    const benchmarksBlock = renderBenchmarksForPrompt(bundle.vertical)
+    const scenariosBlock = renderScenariosForPrompt(bundle)
+
+    return {
+        agentId: 'menateach',
+        useDirectApi: true,
+        minLength: 3500,
+        prompt: `# תרחישי תקציב — פרסום ממומן ב-IL — "${businessName}"
+
+## תיאור העסק
+${businessDesc}
+${prodBlk ? `\n## המוצרים/שירותים\n${prodBlk}\n` : ''}
+${haBlock}
+${feedbackLine}
+
+---
+
+## IL Vertical Benchmarks (anchor for all numbers)
+
+${benchmarksBlock}
+
+---
+
+## Baseline Scenario Projections (deterministic math from upstream research)
+
+${scenariosBlock}
+
+---
+
+## פקודות עבודה
+
+${SCENARIO_DISCIPLINE}
+
+${CONFIDENCE_INTEGRITY_RULE}
+
+${EVIDENCE_HONESTY_RULE}
+
+${HEBREW_ONLY_BLOCK}
+
+---
+
+## פלט נדרש
+
+**Part 1 — Narrative critique (Hebrew, 2500-3500 words):**
+
+### 1. הערכת realism של ה-baseline
+לכל תרחיש (שמרני / מאוזן / אגרסיבי) — האם המספרים מציאותיים בהינתן נתוני paid_competitor_landscape ו-paid_keyword_research?
+- האם CPC הצפוי תואם את ה-IL median?
+- האם CVR ריאלי לקטגוריה הזו ולסוג ה-conversion (lead form / phone / purchase)?
+- האם ROAS target ריאלי בהינתן LTV של ה-vertical?
+- אם הסטה דורשת — citation לאיזה signal ספציפי מ-prefetch.
+
+### 2. סקירה לפי scenario — מתי כל אחד הגיוני
+לכל תרחיש: 3-5 קריטריונים מעשיים לבחירה (לא רק מה שהtemplate אומר — based על השוק הספציפי הזה).
+
+### 3. בחירה מומלצת (recommended_scenario)
+אחד מ-3 — עם הצדקה ברורה למה הוא הכי מתאים להעסק הספציפי הזה עכשיו. לא "מאוזן תמיד" — לפעמים "שמרני" כי tracking עדיין רעוע, ולפעמים "אגרסיבי" כי המתחרים כבר שורפים תקציב והשוק זז מהר.
+
+### 4. סיכוני IL ספציפיים
+מה שלא נכלל ב-baseline math:
+- brand-bidding מתחרים (אם זוהו ב-paid_competitor_landscape)
+- Hebrew Quality Score issues
+- WhatsApp-conv-tracking-gap (אם vertical השתמש typical_conversion=whatsapp_message)
+- iOS attribution loss בקטגוריה (high ATT vertical?)
+- regulatory עניינים (medical/financial — Meta policy)
+
+### 5. setup הקדם-תנאי לפני הפעלה
+לכל תרחיש: רשימת prerequisites שהמשתמש חייב להשלים לפני להפעיל. אם prerequisites חסר — אל תרצי אגרסיבי בכוונה.
+
+### 6. month-1 launch plan
+3-5 פעולות ספציפיות לחודש הראשון — לא generic "set up campaigns" אלא "צרו campaign #1 עם keywords X,Y,Z, daily budget ₪X, geo Tel Aviv". מסוגנן כצ'ק-ליסט מעשי.
+
+---
+
+**Part 2 — Structured JSON (single code-block):**
+
+\`\`\`json
+{
+  "records": [
+    {
+      "tier_key": "conservative|balanced|aggressive",
+      "tier_label_he": "...",
+      "monthly_budget_ils": <int>,
+      "recommended_for_this_business": true|false,
+      "recommended_rationale_he": "<5-10 line justification>",
+      "adjusted_allocation_ils": {
+        "search_brand": <int>, "search_nonbrand": <int>,
+        "pmax": <int>, "display": <int>,
+        "meta_prospecting": <int>, "meta_retargeting": <int>,
+        "total": <int>
+      },
+      "adjusted_year1_kpis": {
+        "expected_conversions": <int>,
+        "expected_cpa_ils_range": { "low": <int>, "median": <int>, "high": <int> },
+        "expected_roas_range": { "low": <float>, "median": <float>, "high": <float> },
+        "confidence": "high|medium|working_hypothesis"
+      },
+      "month1_launch_checklist_he": ["...", "..."],
+      "il_risks_he": ["..."]
+    }
+  ],
+  "extras": {
+    "recommended_scenario_key": "conservative|balanced|aggressive",
+    "recommendation_rationale_he": "<2-3 line summary>",
+    "deferred_to_tier_upgrade_when": [
+      { "tier": "balanced", "conditions_he": ["..."] },
+      { "tier": "aggressive", "conditions_he": ["..."] }
+    ],
+    "il_market_specific_warnings_he": ["..."]
+  },
+  "confidence": "high|medium|working_hypothesis"
+}
+\`\`\`
+
+**Quality bar:**
+- confidence: 'high' if vertical classified high-confidence AND keyword landscape available AND no math anomalies (each kpi within ±20% of baseline).
+- confidence: 'medium' if vertical=medium OR keyword landscape sparse OR some kpis ±25%-40%.
+- confidence: 'working_hypothesis' if vertical=unknown OR no keyword data.
+- adjusted_allocation totals MUST equal monthly_budget_ils (no fractional cents).
+- recommended_for_this_business: only ONE scenario can be true.
+- If recommending "aggressive" tier, prerequisites MUST be checked — if missing, downgrade to balanced/conservative.`,
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Dispatch helper — used by per-stage controllers to get prompt by id.
 // New prompts (aeo_visibility, social_landscape, email_competitor_audit)
 // belong here when they ship (Phase 4).
@@ -3311,6 +3658,8 @@ export function buildPromptForStage(stageId: StageId, opts: PromptOpts): PromptR
         case 'validation':                 return buildValidationPrompt(opts)
         // Phase 4.2.1 — paid research pipeline (new stages)
         case 'paid_competitor_landscape':  return buildPaidCompetitorLandscapePrompt(opts)
+        case 'paid_keyword_research':      return buildPaidKeywordResearchPrompt(opts)
+        case 'paid_budget_scenarios':      return buildPaidBudgetScenariosPrompt(opts)
         // Phase 4 stages (live integrations) + intent wrappers handle their
         // own prompt construction inside their per-stage controller.
         default: return null

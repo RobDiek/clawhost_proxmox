@@ -285,6 +285,9 @@ import {
     declinePaidHypothesisController,
     startTestingPaidController,
     resolvePaidHypothesisController,
+    runPaidLearnerAggregation,
+    listPaidLearnings,
+    previewPaidLearningsInjection,
     getLatestManifest, getInstanceVersionStatus,
     triggerInstanceUpgrade, getUpgradeProgressEndpoint,
 } from '@/controllers/hosting'
@@ -460,6 +463,11 @@ app.post('/instances/:id/paid-hypotheses/:hid/approve', approvePaidHypothesisCon
 app.post('/instances/:id/paid-hypotheses/:hid/decline', declinePaidHypothesisController)
 app.post('/instances/:id/paid-hypotheses/:hid/start-testing', startTestingPaidController)
 app.post('/instances/:id/paid-hypotheses/:hid/resolve', resolvePaidHypothesisController)
+
+// ── Phase 4.3: Paid Performance Loop (learner aggregation + injection preview) ──
+app.post('/instances/:id/paid-learnings/aggregate', runPaidLearnerAggregation)
+app.get('/instances/:id/paid-learnings', listPaidLearnings)
+app.get('/instances/:id/paid-learnings/injectable', previewPaidLearningsInjection)
 app.post('/instances/:id/marketing-intents/preview-cleanup', previewIntentCleanup)
 app.get('/instances/:id/integration-hub', getIntegrationHub)
 app.post('/instances/:id/integration-hub/preview', previewHubForIntents)

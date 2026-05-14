@@ -1,23 +1,14 @@
 /**
- * Stage: paid_keyword_research (Phase 4.2.2 — stub, full implementation pending).
+ * Stage: paid_keyword_research — paid keyword landscape research.
  *
- * Will pull paid-search keyword landscape via DataForSEO endpoints
- * (keywords_for_site on competitors, ads_search for SERP density,
- * keyword_difficulty for cost calibration) + Google Ads Keyword Planner
- * once the user has OAuth + Developer Token.
- *
- * Until implemented, returns a clear 501 so the pipeline doesn't appear
- * "stuck" with no error. Quality gate downstream treats this stage as
- * optional (stages can be skipped if upstream confidence is high).
+ * Phase 4.2.2 — DataForSEO-backed analysis of competitor + seed keywords,
+ * with CPC estimates, intent classification (TOFU/MOFU/BOFU), clustering,
+ * and IL benchmark stats. Output drives paid_budget_scenarios + media_plan.
  */
 
 import type { Context } from 'hono'
-import { fail } from '@/lib/response'
+import { runStageGeneric } from './_runStageGeneric'
 
 export async function run(c: Context): Promise<Response> {
-    return fail(
-        c,
-        'paid_keyword_research not yet implemented (Phase 4.2.2 — coming after paid_competitor_landscape ships).',
-        501,
-    )
+    return runStageGeneric(c, 'paid_keyword_research')
 }

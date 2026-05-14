@@ -80,5 +80,8 @@ export {
     approvePaidHypothesisController, declinePaidHypothesisController,
     startTestingPaidController, resolvePaidHypothesisController,
 } from './paidHypotheses'
+export {
+    runPaidLearnerAggregation, listPaidLearnings, previewPaidLearningsInjection,
+} from './paidLearner'
 // Twenty CRM removed — AGPLv3 license risk
 // export { installTwenty } from './twenty'
