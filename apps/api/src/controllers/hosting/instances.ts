@@ -219,11 +219,27 @@ export const getInstance = async (c: Context<HonoEnv>) => {
             }, {} as Record<string, { connected: boolean; config: Record<string, unknown> }>)
 
             // Profile / research / strategy / brand book — derived from per-agent
-            // research_data and from a per-agent brand_books query
+            // research_data and from a per-agent brand_books query.
+            //
+            // research_data schema evolution:
+            //   v1 (legacy):  rd.report / rd.stage1..stage5 / rd.strategy
+            //   v2 (current): rd.results.<stage_id> where stage_id ∈
+            //     { competitor_landscape, audience_personas, seo_keyword_research,
+            //       positioning, strategy_options, content_plan, validation, ... }
+            //
+            // hasResearch = any meaningful research-pipeline stage completed.
+            // hasStrategy = strategy_options stage completed (the v2 equivalent
+            // of v1 rd.strategy).
             const rd = (activeAgent.researchData as Record<string, unknown> | null) || {}
+            const results = (rd.results as Record<string, unknown> | undefined) || undefined
+            const v2ResearchStageIds = [
+                'competitor_landscape', 'audience_personas', 'seo_keyword_research',
+                'positioning', 'content_plan', 'aeo_visibility', 'validation',
+            ]
+            const hasV2Research = !!results && v2ResearchStageIds.some(s => !!results[s])
             response.hasProfile = !!rd.answers
-            response.hasResearch = !!(rd.report || rd.stage1)
-            response.hasStrategy = !!rd.strategy
+            response.hasResearch = !!(rd.report || rd.stage1 || hasV2Research)
+            response.hasStrategy = !!(rd.strategy || (results && results.strategy_options))
             const { brandBooks } = await import('@/db/schema')
             const [approvedBb] = await db.select({ id: brandBooks.id }).from(brandBooks)
                 .where(and(

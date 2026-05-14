@@ -360,6 +360,32 @@ a { color:#2563EB; text-decoration:none; }
 .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch; }
 @media(max-width: 880px) { .cards { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
 
+/* ── Billing period toggle (monthly / annual) ── */
+.billing-toggle {
+  display: inline-flex; align-self: flex-start;
+  background: #F3F4F6; border-radius: 10px; padding: 4px;
+  margin-bottom: 14px; gap: 2px;
+  border: 1px solid #E5E7EB;
+}
+.billing-opt {
+  background: transparent; border: none; cursor: pointer;
+  padding: 6px 12px; border-radius: 7px;
+  font-size: 0.8rem; font-weight: 600; color: #6B7280;
+  font-family: inherit; transition: all .18s ease;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.billing-opt:hover:not(.active) { color: #2563EB; }
+.billing-opt.active {
+  background: #fff; color: #0B1322;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 0 0 1px rgba(37,99,235,.15);
+}
+.discount-pill {
+  background: #ECFDF5; color: #047857;
+  padding: 2px 7px; border-radius: 999px;
+  font-size: 0.68rem; font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
 /* ── Card base ── */
 .card {
   background: #fff; border: 1px solid #E5E7EB; border-radius: 16px;
@@ -598,7 +624,7 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
     <nav class="cf-nav"></nav>
     <div class="cf-actions">
       <a href="/login" class="cf-login">כניסה</a>
-      <a href="/register" class="cf-cta">התחילו עכשיו</a>
+      <a href="/register?plan=business&amp;components=mt&amp;billing=monthly" class="cf-cta">התחילו עכשיו</a>
       <button class="cf-burger" aria-label="תפריט" onclick="cfToggleDrawer(event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       </button>
@@ -608,7 +634,7 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
 <div class="cf-drawer-bg" id="cfDrawerBg" onclick="cfCloseDrawer()"></div>
 <nav class="cf-drawer" id="cfDrawer">
   <a href="/login">כניסה</a>
-  <a href="/register" class="cf-drawer-cta">התחילו עכשיו ←</a>
+  <a href="/register?plan=business&amp;components=mt&amp;billing=monthly" class="cf-drawer-cta">התחילו עכשיו ←</a>
 </nav>
 <script>
 function cfToggleDrawer(e) {
@@ -674,12 +700,16 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') cfClo
           <p class="card-tagline">המערכת המלאה — אתם בנהיגה דרך 3 השלבים. למשווקים, חברות הייטק או צוות פנימי.</p>
         </header>
         <div class="price-block">
+          <div class="billing-toggle" role="tablist" aria-label="תקופת חיוב">
+            <button class="billing-opt active" type="button" data-period="monthly" onclick="setBilling('monthly')">חודשי</button>
+            <button class="billing-opt" type="button" data-period="annual" onclick="setBilling('annual')">שנתי <span class="discount-pill">-18%</span></button>
+          </div>
           <div class="price-row">
-            <span class="price-num">₪169</span>
+            <span class="price-num" id="price-num">₪169</span>
             <span class="price-unit">/חודש</span>
           </div>
           <div class="price-secondary"><strong>ללא דמי הקמה</strong> · ביטול בכל עת</div>
-          <div class="price-fine">חיוב חודשי, ללא התחייבות</div>
+          <div class="price-fine" id="price-fine">חיוב חודשי, ללא התחייבות</div>
         </div>
         <ul class="bullets">
 
@@ -1072,6 +1102,24 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
+var currentBilling = 'monthly';
+
+function setBilling(period) {
+  currentBilling = period;
+  document.querySelectorAll('.billing-opt').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.period === period);
+  });
+  var priceNum = document.getElementById('price-num');
+  var priceFine = document.getElementById('price-fine');
+  if (period === 'annual') {
+    if (priceNum) priceNum.textContent = '₪139';
+    if (priceFine) priceFine.textContent = 'חיוב שנתי · ₪1,663/שנה · חוסכים ₪365';
+  } else {
+    if (priceNum) priceNum.textContent = '₪169';
+    if (priceFine) priceFine.textContent = 'חיוב חודשי, ללא התחייבות';
+  }
+}
+
 function pick(plan) {
   if (plan === 'autopilot') {
     var msg = 'שלום סרגיי! אני מתעניין במסלול אוטופילוט (ניהול שיווק מלא) של ClawFlow. אשמח לתאם שיחת הכרות.';
@@ -1079,7 +1127,13 @@ function pick(plan) {
     var w = window.open(url, '_blank', 'noopener,noreferrer');
     if (!w) window.location.href = url;  // popup blocked → fall back to same-tab
   } else if (plan === 'self_service') {
-    window.location.href = '/register';
+    // MATEH agent on business plan — pass URL params so register/checkout don't 400
+    var params = new URLSearchParams({
+      plan: 'business',
+      components: 'mt',
+      billing: currentBilling
+    });
+    window.location.href = '/register?' + params.toString();
   }
 }
 </script>
