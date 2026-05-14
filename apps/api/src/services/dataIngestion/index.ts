@@ -109,11 +109,26 @@ async function persistRows(opts: {
         }
     })
 
+    // Pre-dedup safety net: if two rows in this batch have the SAME
+    // fingerprint, postgres will fail the whole insert with
+    // "ON CONFLICT DO UPDATE command cannot affect row a second time".
+    // This happens when mapper dimensions don't fully disambiguate (e.g.
+    // an export breakdown column we haven't mapped yet). Collapse same-
+    // fingerprint rows in-batch with last-write-wins + log so it's visible.
+    const fpMap = new Map<string, typeof records[0]>()
+    for (const r of records) {
+        if (fpMap.has(r.fingerprint)) {
+            console.warn(`[dataIngestion] intra-batch fingerprint collision (last-wins): ${r.entityName} period=${r.periodStart}..${r.periodEnd}`)
+        }
+        fpMap.set(r.fingerprint, r)
+    }
+    const dedupedRecords = Array.from(fpMap.values())
+
     // Batch-insert with ON CONFLICT(fingerprint) DO UPDATE — fresher data wins.
     // Drizzle's onConflictDoUpdate uses the unique constraint name; we built
     // `idp_fingerprint_uniq` in the migration.
     await db.insert(ingestedDataPoints)
-        .values(records as any)
+        .values(dedupedRecords as any)
         .onConflictDoUpdate({
             target: ingestedDataPoints.fingerprint,
             set: {
@@ -144,7 +159,7 @@ async function persistRows(opts: {
             },
         })
 
-    return records.length
+    return dedupedRecords.length
 }
 
 // ─── Public entrypoint: ingest one uploaded file ─────────────────────────

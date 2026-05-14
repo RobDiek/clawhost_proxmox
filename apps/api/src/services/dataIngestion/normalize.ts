@@ -125,11 +125,28 @@ async function normalize(row: MappedRow, baseFlags: string[]): Promise<Normalize
     qualityScore -= flags.length * 0.07
     qualityScore = Math.max(0.1, Math.min(1.0, qualityScore))
 
-    // Fingerprint: deterministic dedup. Same (entity, period, event, attribution)
-    // for the same instance + source = same row, silently upsert.
+    // Fingerprint: deterministic dedup. Same (entity, period, event, attribution,
+    // breakdown_dimensions) for the same instance + source = same row, silently
+    // upsert.
+    //
     // CRITICAL: includes conversion_event_name + attribution_window so a campaign
     // exported with both 7d_click_1d_view AND 28d_click_1d_view views (Meta lets
     // you do this) keeps both rows instead of collapsing them.
+    //
+    // ALSO CRITICAL: includes dimensions hash. Meta exports with breakdowns
+    // (Age × Gender × Placement × Device) produce one row per breakdown bucket
+    // PER day on the same ad. Without dimensions in fingerprint these all
+    // collapse to one fingerprint → ON CONFLICT collisions inside one batch.
+    const dimsKeys = Object.keys(row.dimensions || {})
+        // Exclude purely descriptive fields (entity name, objective) from the
+        // breakdown identity — they're constant per entity. Keep only fields
+        // that actually slice the data: device, placement, age, gender,
+        // country, audience_label, etc.
+        .filter(k => !['campaign_name', 'adgroup_name', 'objective', 'result_type'].includes(k))
+        .sort()
+    const dimsHash = dimsKeys.length === 0
+        ? ''
+        : dimsKeys.map(k => `${k}=${String(row.dimensions[k] ?? '')}`).join(';')
     const fp = createHash('sha256')
         .update([
             row.sourceType,
@@ -140,6 +157,7 @@ async function normalize(row: MappedRow, baseFlags: string[]): Promise<Normalize
             periodEnd.toISOString(),
             row.conversionEventName || 'no_event',
             row.attributionWindow || 'no_window',
+            dimsHash,
         ].join('|'))
         .digest('hex')
 

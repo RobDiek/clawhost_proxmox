@@ -77,6 +77,15 @@ const META_PLACEMENT_HEADERS = ['Placement', 'מיקום']
 const META_DEVICE_HEADERS = ['Device platform', 'Device', 'פלטפורמת מכשיר']
 const META_OBJECTIVE_HEADERS = ['Objective', 'Campaign objective', 'מטרת הקמפיין']
 const META_ATTRIBUTION_SETTING_HEADERS = ['Attribution setting', 'הגדרת ייחוס']
+// Breakdown dimensions — when present they DIFFERENTIATE rows on the same
+// (entity, day). Critical for fingerprint to avoid ON CONFLICT collisions
+// when user exports with breakdowns enabled (Age × Gender × Placement × ...).
+const META_AGE_HEADERS = ['Age', 'גיל']
+const META_GENDER_HEADERS = ['Gender', 'מגדר']
+const META_COUNTRY_HEADERS = ['Country', 'מדינה']
+const META_REGION_HEADERS = ['Region', 'אזור']
+const META_AUDIENCE_HEADERS = ['Audience', 'Custom Audience', 'קהל']
+const META_DAY_HEADERS = ['Day', 'יום']      // alternative date col when no Reporting start/end
 
 // Map Meta's result_indicator string to the canonical conversion_event_name.
 // Meta's strings: 'messaging_conversation_started_7d', 'actions:lead',
@@ -209,16 +218,25 @@ export const metaAdsCsvMapper: Mapper = {
             const videoViews = parseLocaleNumber(pickColumn(row, META_VIDEO_VIEWS_HEADERS))
             const purchaseValue = parseLocaleNumber(pickColumn(row, META_PURCHASE_VALUE_HEADERS))
 
-            const dateStart = parseDate(pickColumn(row, META_DATE_START_HEADERS))
+            // Date sources, in priority order: "Day" (daily-breakdown export)
+            // → "Reporting starts" → classifier-detected range → today.
+            const dateStart = parseDate(pickColumn(row, META_DAY_HEADERS))
+                || parseDate(pickColumn(row, META_DATE_START_HEADERS))
                 || ctx.classifier.dateRange?.start
                 || new Date().toISOString().slice(0, 10)
-            const dateEnd = parseDate(pickColumn(row, META_DATE_END_HEADERS))
+            const dateEnd = parseDate(pickColumn(row, META_DAY_HEADERS))
+                || parseDate(pickColumn(row, META_DATE_END_HEADERS))
                 || ctx.classifier.dateRange?.end
                 || dateStart
 
             const placement = pickColumn(row, META_PLACEMENT_HEADERS)
             const device = pickColumn(row, META_DEVICE_HEADERS)
             const objective = pickColumn(row, META_OBJECTIVE_HEADERS)
+            const age = pickColumn(row, META_AGE_HEADERS)
+            const gender = pickColumn(row, META_GENDER_HEADERS)
+            const country = pickColumn(row, META_COUNTRY_HEADERS)
+            const region = pickColumn(row, META_REGION_HEADERS)
+            const audience = pickColumn(row, META_AUDIENCE_HEADERS)
 
             const dimensions: Record<string, string | number | boolean | null> = {
                 campaign_name: campaignName,
@@ -227,6 +245,13 @@ export const metaAdsCsvMapper: Mapper = {
             if (device) dimensions.device = device
             if (objective) dimensions.objective = objective
             if (resultType) dimensions.result_type = resultType
+            // Breakdown dimensions — these slice the data and MUST be part of
+            // fingerprint to avoid collisions when user enables breakdowns.
+            if (age) dimensions.age = age
+            if (gender) dimensions.gender = gender
+            if (country) dimensions.country = country
+            if (region) dimensions.region = region
+            if (audience) dimensions.audience = audience
 
             // Entity id: prefer real ad/adset/campaign id columns if present;
             // fallback to the name (mappers must produce deterministic ids so
