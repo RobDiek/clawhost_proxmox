@@ -837,6 +837,9 @@ const ar: Translations = {
             'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'جارٍ الاتصال بالنسخة...',
         diagnosticsNoLogs: 'لا توجد سجلات متاحة. شغّل نسختك لتوليد السجلات.',
+        diagnosticsNoLogsHermesTitle: 'بوابة Hermes لا تعمل',
+        diagnosticsNoLogsHermesDescription:
+            'في علامة التبويب Terminal، شغّل `hermes gateway setup` لتكوين المنصات، ثم `sudo systemctl enable --now hermes-gateway` لبدء الجسر.',
         diagnosticsIssueDetected: 'تم اكتشاف مشكلة في نسختك.',
         diagnosticsHealthy: 'نسختك تعمل بشكل طبيعي.',
         diagnosticsPort: 'Port 18789',

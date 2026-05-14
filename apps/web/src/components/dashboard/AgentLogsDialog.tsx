@@ -13,6 +13,7 @@ import AgentLogsContent from '@/components/dashboard/AgentLogsContent'
 
 const AgentLogsDialog: FC<AgentLogsDialogProps> = ({
     agentId,
+    agentType,
     open,
     onOpenChange
 }): ReactNode => {
@@ -27,7 +28,11 @@ const AgentLogsDialog: FC<AgentLogsDialogProps> = ({
                 </DialogHeader>
 
                 <div className='mt-4 h-[600px]'>
-                    <AgentLogsContent agentId={agentId} enabled={open} />
+                    <AgentLogsContent
+                        agentId={agentId}
+                        agentType={agentType}
+                        enabled={open}
+                    />
                 </div>
             </DialogContent>
         </Dialog>

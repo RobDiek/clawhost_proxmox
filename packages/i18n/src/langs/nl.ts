@@ -873,6 +873,9 @@ const nl: Translations = {
         diagnosticsLoading: 'Verbinden met instantie...',
         diagnosticsNoLogs:
             'Geen logs beschikbaar. Start je instantie om logs te genereren.',
+        diagnosticsNoLogsHermesTitle: 'Hermes gateway draait niet',
+        diagnosticsNoLogsHermesDescription:
+            'Voer in het Terminal-tabblad `hermes gateway setup` uit om platforms te configureren, en daarna `sudo systemctl enable --now hermes-gateway` om de bridge te starten.',
         diagnosticsIssueDetected:
             'Er is een probleem gedetecteerd met je instantie.',
         diagnosticsHealthy: 'Je instantie draait normaal.',

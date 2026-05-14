@@ -20,7 +20,7 @@ import {
     InfoIcon,
     XIcon
 } from '@phosphor-icons/react'
-import { AgentMascot, PanelPlaceholder } from '@/components/shared'
+import { AgentMascot, AgentTypeMascot, PanelPlaceholder } from '@/components/shared'
 import {
     Button,
     Dialog,
@@ -210,7 +210,10 @@ const AgentVersionsContent: FC<AgentVersionsContentProps> = ({
                                         >
                                             <div className='min-w-0 flex-1'>
                                                 <div className='flex items-center gap-2'>
-                                                    <AgentMascot className='h-3 w-3 shrink-0' />
+                                                    <AgentTypeMascot
+                                                        agentType={agentType}
+                                                        className='h-3 w-3 shrink-0'
+                                                    />
                                                     <span className='text-foreground text-xs font-medium'>
                                                         {entry.version}
                                                     </span>

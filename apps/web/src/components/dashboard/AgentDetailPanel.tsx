@@ -8,7 +8,8 @@ import {
     lazy,
     useCallback,
     useMemo,
-    useEffect
+    useEffect,
+    useState
 } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
@@ -119,6 +120,13 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
     useEffect(() => {
         if (hiddenTabs.includes(storedTab)) setTab(agent.id, defaultTab)
     }, [storedTab, hiddenTabs, defaultTab, agent.id, setTab])
+
+    const [terminalMounted, setTerminalMounted] = useState(false)
+    useEffect(() => {
+        if (activeTab === AGENT_DETAIL_TABS.TERMINAL && !readOnly)
+            setTerminalMounted(true)
+    }, [activeTab, readOnly])
+    const terminalActive = activeTab === AGENT_DETAIL_TABS.TERMINAL
 
     const {
         settingsEmoji,
@@ -245,6 +253,7 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
                             {activeTab === AGENT_DETAIL_TABS.LOGS && (
                                 <AgentLogsContent
                                     agentId={agent.id}
+                                    agentType={agent.agentType}
                                     enabled
                                     embedded
                                     mockLogs={
@@ -280,20 +289,23 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
                                 />
                             )}
 
-                            {activeTab === AGENT_DETAIL_TABS.TERMINAL &&
-                                (readOnly ? (
-                                    <DemoTerminal />
-                                ) : (
+                            {terminalActive && readOnly && <DemoTerminal />}
+                            {!readOnly && terminalMounted && (
+                                <div
+                                    className={
+                                        terminalActive
+                                            ? 'flex min-h-0 flex-1 flex-col'
+                                            : 'hidden'
+                                    }
+                                >
                                     <Suspense fallback={<TabFallback />}>
                                         <AgentTerminalContent
                                             agentId={agent.id}
-                                            enabled={
-                                                activeTab ===
-                                                AGENT_DETAIL_TABS.TERMINAL
-                                            }
+                                            enabled={terminalActive}
                                         />
                                     </Suspense>
-                                ))}
+                                </div>
+                            )}
 
                             {activeTab === AGENT_DETAIL_TABS.VERSIONS && (
                                 <Suspense fallback={<TabFallback />}>

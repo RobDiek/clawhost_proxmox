@@ -869,6 +869,9 @@ const hi: Translations = {
         diagnosticsLoading: 'इंस्टेंस से कनेक्ट हो रहा है...',
         diagnosticsNoLogs:
             'कोई लॉग उपलब्ध नहीं. लॉग जनरेट करने के लिए अपना इंस्टेंस शुरू करें.',
+        diagnosticsNoLogsHermesTitle: 'Hermes गेटवे नहीं चल रहा है',
+        diagnosticsNoLogsHermesDescription:
+            'Terminal टैब में, प्लेटफ़ॉर्म कॉन्फ़िगर करने के लिए `hermes gateway setup` चलाएं, फिर ब्रिज शुरू करने के लिए `sudo systemctl enable --now hermes-gateway` चलाएं.',
         diagnosticsIssueDetected: 'आपके इंस्टेंस में एक समस्या पाई गई.',
         diagnosticsHealthy: 'आपका इंस्टेंस सामान्य रूप से चल रहा है.',
         diagnosticsPort: 'पोर्ट 18789',

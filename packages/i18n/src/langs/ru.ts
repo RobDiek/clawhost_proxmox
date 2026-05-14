@@ -864,6 +864,9 @@ const ru: Translations = {
         diagnosticsLoading: 'Подключение к экземпляру...',
         diagnosticsNoLogs:
             'Логи недоступны. Запустите экземпляр для генерации логов.',
+        diagnosticsNoLogsHermesTitle: 'Шлюз Hermes не запущен',
+        diagnosticsNoLogsHermesDescription:
+            'На вкладке Terminal выполните `hermes gateway setup`, чтобы настроить платформы, затем `sudo systemctl enable --now hermes-gateway`, чтобы запустить мост.',
         diagnosticsIssueDetected: 'Обнаружена проблема с вашим экземпляром.',
         diagnosticsHealthy: 'Ваш экземпляр работает нормально.',
         diagnosticsPort: 'Порт 18789',

@@ -814,6 +814,9 @@ const zh: Translations = {
             'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: '正在连接到实例...',
         diagnosticsNoLogs: '暂无日志。启动您的实例以生成日志。',
+        diagnosticsNoLogsHermesTitle: 'Hermes 网关未运行',
+        diagnosticsNoLogsHermesDescription:
+            '在 Terminal 标签页中运行 `hermes gateway setup` 配置平台,然后运行 `sudo systemctl enable --now hermes-gateway` 启动桥接。',
         diagnosticsIssueDetected: '检测到您的实例存在问题。',
         diagnosticsHealthy: '您的实例运行正常。',
         diagnosticsPort: '端口 18789',

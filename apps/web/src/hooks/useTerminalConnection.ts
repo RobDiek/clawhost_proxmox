@@ -307,17 +307,29 @@ const useTerminalConnection = (
 
     connectRef.current = connect
 
-    useEffect(() => {
-        if (enabled) {
-            connect()
-        } else {
-            cleanup()
-            setStatus(TERMINAL_STATUS.IDLE)
-            setShowScrollButton(false)
-        }
+    const startedRef = useRef(false)
+    const cleanupRef = useRef(cleanup)
+    cleanupRef.current = cleanup
 
-        return cleanup
-    }, [enabled, connect, cleanup])
+    useEffect(() => {
+        if (!enabled) return
+        if (!startedRef.current) {
+            startedRef.current = true
+            connect()
+            return
+        }
+        requestAnimationFrame(() => {
+            fitAddonRef.current?.fit()
+            terminalRef.current?.focus()
+        })
+    }, [enabled, connect])
+
+    useEffect(() => {
+        return () => {
+            cleanupRef.current()
+            startedRef.current = false
+        }
+    }, [])
 
     const handleTerminalScrollToBottom = useCallback(() => {
         terminalRef.current?.scrollToBottom()

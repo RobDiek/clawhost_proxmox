@@ -76,7 +76,34 @@ const generateHermesSteps = (): string => `
         break
       fi
       sleep 5
-    done`
+    done
+
+  - |
+    cat > /etc/systemd/system/hermes-gateway.service <<'SYSTEMD'
+    [Unit]
+    Description=Hermes Gateway
+    After=network.target
+
+    [Service]
+    Type=simple
+    User=hermes
+    Group=hermes
+    WorkingDirectory=/home/hermes
+    Environment=HOME=/home/hermes
+    Environment=PATH=/home/hermes/.local/bin:/usr/local/bin:/usr/bin:/bin
+    ExecStart=/home/hermes/.local/bin/hermes gateway start
+    Restart=on-failure
+    RestartSec=10
+    StandardOutput=append:/var/log/hermes-gateway.log
+    StandardError=append:/var/log/hermes-gateway.log
+
+    [Install]
+    WantedBy=multi-user.target
+    SYSTEMD
+
+  - touch /var/log/hermes-gateway.log
+  - chown hermes:hermes /var/log/hermes-gateway.log
+  - systemctl daemon-reload`
 
 const generateBrewStep = (username: string): string => `
   - |

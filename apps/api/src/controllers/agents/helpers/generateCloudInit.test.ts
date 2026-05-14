@@ -107,9 +107,13 @@ describe('generateCloudInit', () => {
             expect(output).not.toContain('hermes.json')
         })
 
-        it('does not install our own hermes-gateway systemd unit', () => {
-            expect(output).not.toContain('/etc/systemd/system/hermes-gateway')
+        it('installs a hermes-gateway systemd unit but does not enable it', () => {
+            expect(output).toContain(
+                '/etc/systemd/system/hermes-gateway.service'
+            )
+            expect(output).toContain('ExecStart=/home/hermes/.local/bin/hermes gateway start')
             expect(output).not.toContain('systemctl enable hermes-gateway')
+            expect(output).not.toContain('systemctl start hermes-gateway')
         })
 
         it('does not set up nginx reverse proxy', () => {

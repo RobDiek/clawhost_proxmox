@@ -892,6 +892,9 @@ const it: Translations = {
         diagnosticsLoading: "Connessione all'istanza...",
         diagnosticsNoLogs:
             'Nessun log disponibile. Avvia la tua istanza per generare log.',
+        diagnosticsNoLogsHermesTitle: 'Il gateway Hermes non è in esecuzione',
+        diagnosticsNoLogsHermesDescription:
+            'Nella scheda Terminal, esegui `hermes gateway setup` per configurare le piattaforme, poi `sudo systemctl enable --now hermes-gateway` per avviare il bridge.',
         diagnosticsIssueDetected:
             'È stato rilevato un problema con la tua istanza.',
         diagnosticsHealthy: 'La tua istanza funziona normalmente.',

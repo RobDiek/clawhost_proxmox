@@ -42,9 +42,9 @@ const onSubscriptionActive = async (
                 })
                 return
             }
-            if (result.referralCode && data.metadata?.userId) {
+            if (result.referralCode && result.userId) {
                 trackReferral(
-                    data.metadata.userId,
+                    result.userId,
                     result.referralCode,
                     'purchase'
                 )

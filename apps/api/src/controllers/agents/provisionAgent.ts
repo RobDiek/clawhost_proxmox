@@ -183,6 +183,7 @@ const provisionAgent = async (
         return {
             success: true,
             agentId: id,
+            userId: pending.userId,
             referralCode: pending.referralCode
         }
     } catch (error) {

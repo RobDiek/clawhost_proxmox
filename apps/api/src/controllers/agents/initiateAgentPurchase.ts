@@ -173,13 +173,7 @@ const initiateAgentPurchase = withErrorHandler(
         customerId: polarCustomerId,
         metadata: {
             pendingAgentId: pendingId,
-            userId,
-            planId,
-            location,
-            name,
-            billingInterval: billingCycle,
-            environment: getEnvironment(c),
-            ...(referralCode ? { referralCode } : {})
+            environment: getEnvironment(c)
         }
     })
 

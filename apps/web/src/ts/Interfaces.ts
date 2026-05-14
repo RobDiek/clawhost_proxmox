@@ -620,7 +620,7 @@ export interface UseAgentCardActionsReturn {
 export interface AgentCardDialogsBundleProps {
     agentId: string
     agentName: string
-    agentType: string
+    agentType: AgentType
     agentIp: string
     showStartModal: boolean
     setShowStartModal: (open: boolean) => void
@@ -884,7 +884,7 @@ export interface AgentStarsResponse {
 
 export interface AgentVersionsContentProps {
     agentId: string
-    agentType: string
+    agentType: AgentType
     readOnly?: boolean
 }
 
@@ -1163,12 +1163,14 @@ export interface AgentDiagnosticsDialogProps {
 
 export interface AgentLogsDialogProps {
     agentId: string
+    agentType?: AgentType
     open: boolean
     onOpenChange: (open: boolean) => void
 }
 
 export interface AgentLogsContentProps {
     agentId: string
+    agentType?: AgentType
     enabled: boolean
     embedded?: boolean
     mockLogs?: string

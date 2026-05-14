@@ -89,6 +89,7 @@ const AgentCardDialogsBundle: FC<AgentCardDialogsBundleProps> = ({
             />
             <AgentLogsDialog
                 agentId={agentId}
+                agentType={agentType}
                 open={showLogs}
                 onOpenChange={setShowLogs}
             />
