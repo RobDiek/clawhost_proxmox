@@ -4120,49 +4120,45 @@ function renderHome() {
       });
     }
 
-    // ── Phase 3: Knowledge — research uses brand voice for framing ──
+    // ── Phase 3+4 unified: מחקר ואסטרטגיה ───────────────────────────────────
+    // Single onboarding task that progressively walks the user through:
+    //   1. Run market research (mazhir's 5-stage research pipeline)
+    //   2. Build strategy (based on research + brand)
+    //   3. Pick budget scenario (conservative / balanced / aggressive)
+    // Matches the unified "מחקר ואסטרטגיה" section in the agent detail panel.
     if (hasAgents && hasBrandBook) {
-      tasks.push({
-        id: 'research', label: 'מחקר שוק',
-        done: !!hasResearch,
-        action: "runChainResearch()",
-        actionLabel: 'התחילו מחקר',
-        desc: 'מתחרים, מילות מפתח, קהל יעד, ערוצים ואימות — 5 שלבים (~10-15 דק׳)'
-      });
-    }
+      var rsLabel, rsAction, rsActionLabel, rsDesc;
+      var rsDone = !!hasResearch && !!hasStrategy && !!hasChosenScenario;
 
-    // ── Phase 4: Direction — Strategy + Scenario merged into one decision ──
-    // The previous "Strategy" task showed analysis; the separate "Scenario"
-    // task asked the user to pick a budget tier. Together they were 2 screens
-    // for 1 decision. Now: one task that runs strategy if needed, then opens
-    // the scenario picker so user sees the AI's recommendation alongside the
-    // 3 budget tiers and picks one in a single flow.
-    if (hasResearch) {
-      var strategyDone = !!hasStrategy && !!hasChosenScenario;
-      var strategyLabel, strategyAction, strategyActionLabel, strategyDesc;
-      if (!hasStrategy) {
-        strategyLabel = 'אסטרטגיה ובחירת מסלול ביצוע';
-        strategyAction = 'runChainStrategy()';
-        strategyActionLabel = 'בנו אסטרטגיה';
-        strategyDesc = 'על סמך המחקר והמותג — תוכנית פעולה + 3 תרחישי תקציב לבחירה (שמרני / מאוזן / אגרסיבי)';
+      if (!hasResearch) {
+        rsLabel = 'מחקר ואסטרטגיה';
+        rsAction = 'runChainResearch()';
+        rsActionLabel = 'התחילו';
+        rsDesc = 'מתחרים, מילות מפתח, קהל יעד, ערוצים → אסטרטגיה → 3 תרחישי תקציב לבחירה. בלוק אחד, ~15-20 דק׳.';
+      } else if (!hasStrategy) {
+        rsLabel = 'מחקר ואסטרטגיה — אסטרטגיה ממתינה';
+        rsAction = 'runChainStrategy()';
+        rsActionLabel = 'המשיכו לאסטרטגיה';
+        rsDesc = 'מחקר הושלם ✓ · עכשיו בונים אסטרטגיה + 3 תרחישי תקציב.';
       } else if (!hasChosenScenario) {
-        strategyLabel = 'בחרו מסלול ביצוע';
-        strategyAction = 'openScenarioPicker()';
-        strategyActionLabel = hasScenarios ? 'בחרו מסלול' : 'התאימו מסלול';
-        strategyDesc = 'שמרני · מאוזן · אגרסיבי — בדיקת תקציב מול המציאות + התאמת ערוצים';
+        rsLabel = 'מחקר ואסטרטגיה — בחרו מסלול';
+        rsAction = 'openScenarioPicker()';
+        rsActionLabel = hasScenarios ? 'בחרו מסלול' : 'התאימו מסלול';
+        rsDesc = 'מחקר + אסטרטגיה מוכנים ✓ · בחרו תרחיש תקציב (שמרני / מאוזן / אגרסיבי).';
       } else {
-        strategyLabel = 'אסטרטגיה ומסלול נבחרו';
-        strategyAction = 'openScenarioPicker()';
-        strategyActionLabel = 'ערכו';
-        strategyDesc = 'תוכנית פעולה + מסלול תקציב פעילים. ניתן להחליף בכל עת.';
+        rsLabel = 'מחקר ואסטרטגיה';
+        rsAction = 'openScenarioPicker()';
+        rsActionLabel = 'ערכו';
+        rsDesc = 'מחקר, אסטרטגיה ומסלול תקציב פעילים. ניתן להחליף בכל עת.';
       }
+
       tasks.push({
-        id: 'strategy_scenario',
-        label: strategyLabel,
-        done: strategyDone,
-        action: strategyAction,
-        actionLabel: strategyActionLabel,
-        desc: strategyDesc
+        id: 'research_and_strategy',
+        label: rsLabel,
+        done: rsDone,
+        action: rsAction,
+        actionLabel: rsActionLabel,
+        desc: rsDesc,
       });
     }
 
@@ -4457,7 +4453,14 @@ function renderHome() {
       var viewLink = '';
       var rebuildLink = '';
       var rebuildIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px;vertical-align:-2px"><path d="M21 12a9 9 0 1 1-3.17-6.86"/><polyline points="21 4 21 10 15 10"/></svg>';
+      if (t.id === 'research_and_strategy') {
+        // Unified task: show both view buttons + one rebuild that wipes both
+        viewLink = '<button class="notif-action" onclick="viewReport()">דוח מחקר →</button>' +
+          '<button class="notif-action" onclick="viewStrategy()" style="margin-right:4px">אסטרטגיה →</button>';
+        rebuildLink = '<button class="task-rebuild" onclick="rebuildEverything()" title="לאפס מחקר + אסטרטגיה ולהתחיל מחדש">' + rebuildIcon + 'לבנות מחדש</button>';
+      }
       if (t.id === 'research') {
+        // Legacy id — kept for backward compat if old state persists
         viewLink = '<button class="notif-action" onclick="viewReport()">צפו בדוח →</button>';
         rebuildLink = '<button class="task-rebuild" onclick="rebuildEverything()" title="לאפס מחקר + אסטרטגיה ולהתחיל מחדש">' + rebuildIcon + 'לבנות מחדש</button>';
       }
