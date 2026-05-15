@@ -285,6 +285,7 @@ import {
     declinePaidHypothesisController,
     startTestingPaidController,
     resolvePaidHypothesisController,
+    executePaidHypothesisController,
     runPaidLearnerAggregation,
     listPaidLearnings,
     previewPaidLearningsInjection,
@@ -464,6 +465,7 @@ app.post('/instances/:id/paid-hypotheses/:hid/approve', approvePaidHypothesisCon
 app.post('/instances/:id/paid-hypotheses/:hid/decline', declinePaidHypothesisController)
 app.post('/instances/:id/paid-hypotheses/:hid/start-testing', startTestingPaidController)
 app.post('/instances/:id/paid-hypotheses/:hid/resolve', resolvePaidHypothesisController)
+app.post('/instances/:id/paid-hypotheses/:hid/execute', executePaidHypothesisController)
 
 // ── Phase 4.3: Paid Performance Loop (learner aggregation + injection preview) ──
 app.post('/instances/:id/paid-learnings/aggregate', runPaidLearnerAggregation)

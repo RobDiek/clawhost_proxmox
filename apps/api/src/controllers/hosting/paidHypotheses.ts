@@ -121,6 +121,29 @@ export const startTestingPaidController = async (c: Context) => {
     }
 }
 
+export const executePaidHypothesisController = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const hid = Number(c.req.param('hid'))
+        if (!Number.isFinite(hid)) return fail(c, 'Invalid hypothesis id', 400)
+        const userId = resolveUserId(c)
+        if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
+
+        const body = await c.req.json().catch(() => ({}))
+        // Default to dry-run. Only run live when caller explicitly sets dryRun=false.
+        const dryRun = body?.dryRun !== false
+
+        const { executeHypothesisAction } = await import('@/services/hypothesisExecutor')
+        const result = await executeHypothesisAction(hid, { dryRun, executedBy: userId || null })
+
+        if (!result.ok) return fail(c, result.error || 'Execution failed', 400)
+        return ok(c, result, dryRun ? 'Dry-run successful — confirm to execute live' : 'Hypothesis executed via API')
+    } catch (err) {
+        console.error('executePaidHypothesisController error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 export const resolvePaidHypothesisController = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')

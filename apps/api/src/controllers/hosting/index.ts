@@ -79,6 +79,7 @@ export {
     runPaidHypothesesEngineController, listPaidHypotheses, getPaidHypothesisById,
     approvePaidHypothesisController, declinePaidHypothesisController,
     startTestingPaidController, resolvePaidHypothesisController,
+    executePaidHypothesisController,
 } from './paidHypotheses'
 export {
     runPaidLearnerAggregation, listPaidLearnings, previewPaidLearningsInjection,

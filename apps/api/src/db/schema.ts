@@ -1500,6 +1500,12 @@ export const hypotheses = pgTable(
         outcomeSummaryHe:         text('outcome_summary_he'),
         outcomeResolution:        text('outcome_resolution'),
 
+        // Phase 4.6 — Executor tracking (NULL until apiActionRecipe is executed)
+        executionStatus:          text('execution_status'),       // 'queued' | 'dry_run_ok' | 'dry_run_failed' | 'executed' | 'execution_failed' | 'reverted'
+        executionLog:             jsonb('execution_log'),         // { dryRunResult, liveResult, error, mode, attempts }
+        executedAt:               timestamp('executed_at', { withTimezone: true }),
+        executedBy:               text('executed_by'),            // user id who triggered the execution
+
         // Provenance
         source:                   text('source').notNull(),
         generatedByModel:         text('generated_by_model'),
