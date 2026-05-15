@@ -30,6 +30,14 @@ export type HypothesisCode =
     | 'tracking_gap_attribution_unknown'                // >30% rows missing attribution metadata
     | 'tracking_gap_no_conversion_event_name'           // rows have conversions but no event name
     | 'tracking_gap_currency_fx_stale'                  // FX rates stale, ROAS unreliable
+    // CAPI / Conversions API (Meta)
+    | 'tracking_gap_capi_not_configured'                // Meta active but no CAPI token → EMQ blind
+    | 'tracking_gap_capi_low_quality'                   // CAPI present but events incomplete (low EMQ)
+    // modeled vs observed conversions
+    | 'tracking_data_quality_modeled_share'             // too high a share of conversions are inferred/modeled, not observed
+    // Consent Mode v2 (EEA GDPR)
+    | 'tracking_gap_consent_mode_v2_audit'              // EU exposure declared, CMv2 verification required
+    | 'tracking_gap_consent_mode_v2_no_gtm'             // EU exposure but no GTM — CMv2 cannot be deployed
     // frequency saturation (Meta-specific)
     | 'frequency_saturation_meta'                       // freq > 4 + ROAS decline → audience fatigue
     // budget pacing

@@ -5275,6 +5275,30 @@ function renderHome() {
         '</div>';
       });
 
+      // ─── paid_track_pipeline ONLY: Hypothesis Cards Section ─────────────
+      // Phase 4.3.4 — Surface paid-track optimization hypotheses (CAPI gaps,
+      // Consent Mode v2 audits, modeled-conversion ratio, bidding mismatches,
+      // etc.) emitted by the Hypothesis Engine. Cards are loaded async into
+      // the mount point; user can approve/decline/view each one.
+      // Visible only after the pipeline has any active step (i.e. paid track
+      // has begun) — otherwise hypotheses won't have data to ground on.
+      if (t.id === 'paid_track_pipeline') {
+        var hypAnyActive = t.steps.some(function(s) { return s.status === 'done' || s.status === 'running' || s.status === 'active'; });
+        if (hypAnyActive) {
+          tasksHtml += '<div style="margin-top:16px;padding-top:14px;border-top:1px dashed #CBD5E1">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">' +
+              '<div style="display:flex;align-items:center;gap:8px">' +
+                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M9 21h6M12 17v4M5 8a7 7 0 1 1 14 0c0 3-2 4.5-3 6H8c-1-1.5-3-3-3-6z"/></svg>' +
+                '<span style="font-weight:700;font-size:0.88rem;color:#1F2937">תובנות אופטימיזציה</span>' +
+                '<span style="font-size:0.7rem;color:#9CA3AF">— הזדמנויות לשיפור שזוהו מהמערכת</span>' +
+              '</div>' +
+              '<button class="notif-action" onclick="runPaidHypothesesEngine()" style="font-size:0.74rem" id="paid-hyp-run-btn">▶ הריצו ניתוח</button>' +
+            '</div>' +
+            '<div id="paid-hypotheses-mount"><div style="font-size:0.78rem;color:#9CA3AF;text-align:center;padding:14px">טוען…</div></div>' +
+          '</div>';
+        }
+      }
+
       tasksHtml += '</div>';
       if (!t.done) pendingCount++;
       return; // skip default rendering
@@ -5384,6 +5408,11 @@ function renderHome() {
   // Approval Queue + Content Calendar + Mazhir Paid Marketing
   renderApprovalQueue();
   renderContentCalendar();
+
+  // Phase 4.3.4 — Paid-track hypothesis cards (lazy-load if mount exists)
+  if (document.getElementById('paid-hypotheses-mount')) {
+    loadPaidHypotheses();
+  }
   // Lazy-load hub data so setup task 'marketing_config' can compute its
   // 'done' state from default-derived pipeline activation. After load,
   // re-render the setup tasks block — its 'done' status may have flipped.
@@ -9730,6 +9759,239 @@ async function runMazhirAudit() {
     if (btn) { btn.disabled = false; btn.textContent = '▶ הרץ אודיט (Opus, ~1-2 דק׳)'; }
   }
 }
+
+/* ═══════════ Phase 4.3.4 — Paid-track Hypothesis Cards ═══════════════════
+ * Surfaces hypothesis-engine output (tracking gaps, CAPI/EMQ, Consent Mode,
+ * modeled-conversions, bidding mismatches, frequency saturation, outliers)
+ * directly on the dashboard home, inside the paid_track_pipeline widget.
+ *
+ * UX:
+ *   - List shows open (proposed/approved/testing) hypotheses, severity-sorted
+ *   - Cap at 5 cards; "View all" link if more
+ *   - Inline actions: approve / decline / view details (modal)
+ *   - "Run engine" button regenerates proposals (rule generators run cheap;
+ *      Opus audit is skipped to keep this responsive)
+ */
+
+var _paidHypothesesCache = null;
+
+async function loadPaidHypotheses() {
+  var mount = document.getElementById('paid-hypotheses-mount');
+  if (!mount || !instanceId || !token) return;
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/paid-hypotheses?status=proposed&limit=50');
+    if (!r.success) throw new Error(r.message || 'fetch failed');
+    var allRows = (r.data && r.data.hypotheses) || [];
+    // Also pull approved+testing (open but not proposed) so user sees full picture
+    var r2 = await apiFetch('/hosting/instances/' + instanceId + '/paid-hypotheses?status=approved&limit=20');
+    if (r2.success && r2.data && Array.isArray(r2.data.hypotheses)) allRows = allRows.concat(r2.data.hypotheses);
+    var r3 = await apiFetch('/hosting/instances/' + instanceId + '/paid-hypotheses?status=testing&limit=20');
+    if (r3.success && r3.data && Array.isArray(r3.data.hypotheses)) allRows = allRows.concat(r3.data.hypotheses);
+    _paidHypothesesCache = allRows;
+    renderPaidHypothesesCards(allRows);
+  } catch (err) {
+    mount.innerHTML = '<div style="font-size:0.78rem;color:#DC2626;text-align:center;padding:14px">שגיאה בטעינת תובנות: ' + escapeHtml(err.message || '') + '</div>';
+  }
+}
+
+function renderPaidHypothesesCards(rows) {
+  var mount = document.getElementById('paid-hypotheses-mount');
+  if (!mount) return;
+
+  if (!rows || rows.length === 0) {
+    mount.innerHTML = '<div style="background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:8px;padding:14px;text-align:center;font-size:0.8rem;color:#64748B;line-height:1.6">' +
+      'אין תובנות פתוחות כרגע. הריצו ניתוח כדי לזהות פערי מעקב, אי-התאמות הצעת מחיר, רוויית תדירות והזדמנויות אופטימיזציה נוספות.' +
+    '</div>';
+    return;
+  }
+
+  // Sort by severity (critical > high > medium > low) then by createdAt desc
+  var sevRank = { critical: 0, high: 1, medium: 2, low: 3 };
+  rows.sort(function(a, b) {
+    var sa = sevRank[a.severity] != null ? sevRank[a.severity] : 9;
+    var sb = sevRank[b.severity] != null ? sevRank[b.severity] : 9;
+    if (sa !== sb) return sa - sb;
+    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+  });
+
+  var topRows = rows.slice(0, 5);
+  var remainCount = rows.length - topRows.length;
+
+  var html = topRows.map(renderPaidHypothesisCard).join('');
+  if (remainCount > 0) {
+    html += '<div style="text-align:center;margin-top:6px"><button class="notif-action" onclick="viewAllPaidHypotheses()" style="font-size:0.76rem">צפו בכל ה-' + rows.length + ' התובנות →</button></div>';
+  }
+  mount.innerHTML = html;
+}
+
+function renderPaidHypothesisCard(h) {
+  var sevConfig = {
+    critical: { bg: '#FEF2F2', border: '#FECACA', textColor: '#991B1B', label: 'קריטי' },
+    high:     { bg: '#FFFBEB', border: '#FDE68A', textColor: '#92400E', label: 'גבוה' },
+    medium:   { bg: '#EFF6FF', border: '#BFDBFE', textColor: '#1E40AF', label: 'בינוני' },
+    low:      { bg: '#F0FDF4', border: '#BBF7D0', textColor: '#15803D', label: 'נמוך' }
+  };
+  var sev = sevConfig[h.severity] || sevConfig.medium;
+
+  var statusBadge = '';
+  if (h.status === 'approved') statusBadge = '<span style="font-size:0.66rem;background:#DBEAFE;color:#1E40AF;padding:2px 7px;border-radius:999px;font-weight:600">מאושר</span>';
+  else if (h.status === 'testing') statusBadge = '<span style="font-size:0.66rem;background:#FEF3C7;color:#92400E;padding:2px 7px;border-radius:999px;font-weight:600">בבדיקה</span>';
+
+  var actions = '';
+  if (h.status === 'proposed') {
+    actions = '<button class="btn btn-primary btn-sm" onclick="approvePaidHypothesis(' + h.id + ')" style="font-size:0.74rem;padding:4px 10px">✓ אשרו</button>' +
+      '<button class="notif-action" onclick="declinePaidHypothesis(' + h.id + ')" style="font-size:0.72rem;margin-right:4px">✗ דחו</button>' +
+      '<button class="notif-action" onclick="viewPaidHypothesis(' + h.id + ')" style="font-size:0.72rem;margin-right:4px">צפו →</button>';
+  } else if (h.status === 'approved') {
+    actions = '<button class="notif-action" onclick="startTestingPaidHypothesis(' + h.id + ')" style="font-size:0.72rem">▶ התחילו בדיקה</button>' +
+      '<button class="notif-action" onclick="viewPaidHypothesis(' + h.id + ')" style="font-size:0.72rem;margin-right:4px">צפו →</button>';
+  } else if (h.status === 'testing') {
+    actions = '<button class="notif-action" onclick="resolvePaidHypothesisPrompt(' + h.id + ')" style="font-size:0.72rem">סגרו תוצאה</button>' +
+      '<button class="notif-action" onclick="viewPaidHypothesis(' + h.id + ')" style="font-size:0.72rem;margin-right:4px">צפו →</button>';
+  }
+
+  var title = h.titleHe || h.title || h.hypothesisCode || 'תובנה ללא כותרת';
+  var observation = h.observationHe || h.observation || '';
+  var platform = h.scopePlatform ? '<span style="font-size:0.68rem;background:#F3F4F6;color:#6B7280;padding:2px 7px;border-radius:999px">' + escapeHtml(h.scopePlatform) + '</span>' : '';
+
+  return '<div style="background:' + sev.bg + ';border:1px solid ' + sev.border + ';border-radius:8px;padding:10px 12px;margin-bottom:8px;direction:rtl">' +
+    '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px">' +
+      '<span style="font-size:0.66rem;background:' + sev.textColor + ';color:#fff;padding:2px 8px;border-radius:999px;font-weight:700">' + sev.label + '</span>' +
+      platform + statusBadge +
+      '<span style="font-weight:700;font-size:0.86rem;color:#1F2937;flex:1;min-width:0">' + escapeHtml(title) + '</span>' +
+    '</div>' +
+    (observation ? '<div style="font-size:0.76rem;color:#475569;line-height:1.55;margin-bottom:6px">' + escapeHtml(observation) + '</div>' : '') +
+    '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">' + actions + '</div>' +
+  '</div>';
+}
+
+async function runPaidHypothesesEngine() {
+  var btn = document.getElementById('paid-hyp-run-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ רץ...'; }
+  showToast('מריץ ניתוח תובנות... (~10-30 שניות)', 'info');
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/paid-hypotheses/run', {
+      method: 'POST',
+      body: JSON.stringify({ skipOpusAudit: true })
+    });
+    if (!r.success) throw new Error(r.message || 'engine failed');
+    var d = r.data || {};
+    showToast('הניתוח הושלם · ' + (d.proposalsPersisted || 0) + ' תובנות חדשות · ' + (d.duplicatesSkipped || 0) + ' כפילויות דולגו', 'success');
+    await loadPaidHypotheses();
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || ''), 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '▶ הריצו ניתוח'; }
+  }
+}
+
+async function approvePaidHypothesis(hid) {
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/paid-hypotheses/' + hid + '/approve', { method: 'POST' });
+    if (!r.success) throw new Error(r.message || 'approve failed');
+    showToast('התובנה אושרה — בצעו את הפעולה ולחצו "התחילו בדיקה" כדי לפתוח חלון מעקב', 'success');
+    await loadPaidHypotheses();
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || ''), 'error');
+  }
+}
+
+async function declinePaidHypothesis(hid) {
+  var reason = prompt('סיבת הדחייה (אופציונלי):');
+  if (reason === null) return; // user cancelled
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/paid-hypotheses/' + hid + '/decline', {
+      method: 'POST',
+      body: JSON.stringify({ reason: reason || undefined })
+    });
+    if (!r.success) throw new Error(r.message || 'decline failed');
+    showToast('התובנה נדחתה', 'info');
+    await loadPaidHypotheses();
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || ''), 'error');
+  }
+}
+
+async function startTestingPaidHypothesis(hid) {
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/paid-hypotheses/' + hid + '/start-testing', { method: 'POST' });
+    if (!r.success) throw new Error(r.message || 'start-testing failed');
+    showToast('חלון הבדיקה נפתח — נמדוד את ההשפעה במשך התקופה שהוגדרה', 'success');
+    await loadPaidHypotheses();
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || ''), 'error');
+  }
+}
+
+async function resolvePaidHypothesisPrompt(hid) {
+  var resolution = prompt('סטטוס: אמתו (validated) / נדחה (rejected) / לא הוכרע (inconclusive)?\nהזינו: validated / rejected / inconclusive');
+  if (!resolution) return;
+  resolution = resolution.trim().toLowerCase();
+  if (['validated', 'rejected', 'inconclusive'].indexOf(resolution) === -1) {
+    showToast('סטטוס לא חוקי', 'error');
+    return;
+  }
+  var summary = prompt('סיכום קצר של תוצאות הבדיקה:') || '';
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/paid-hypotheses/' + hid + '/resolve', {
+      method: 'POST',
+      body: JSON.stringify({ resolution: resolution, summaryHe: summary })
+    });
+    if (!r.success) throw new Error(r.message || 'resolve failed');
+    showToast('התובנה נסגרה כ-' + resolution, 'success');
+    await loadPaidHypotheses();
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || ''), 'error');
+  }
+}
+
+async function viewPaidHypothesis(hid) {
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/paid-hypotheses/' + hid);
+    if (!r.success) throw new Error(r.message || 'fetch failed');
+    var h = r.data;
+    if (!h) throw new Error('not found');
+
+    var sevTxt = { critical: 'קריטי', high: 'גבוה', medium: 'בינוני', low: 'נמוך' }[h.severity] || h.severity;
+    var lines = [];
+    lines.push('<div style="margin-bottom:10px"><strong>סטטוס:</strong> ' + escapeHtml(h.status || '') + ' · <strong>חומרה:</strong> ' + escapeHtml(sevTxt) + ' · <strong>קוד:</strong> <code style="font-size:0.78rem">' + escapeHtml(h.hypothesisCode || '') + '</code></div>');
+    if (h.observationHe) lines.push('<h4 style="margin:14px 0 6px;font-size:0.95rem">תצפית</h4><div style="line-height:1.65;color:#374151">' + escapeHtml(h.observationHe) + '</div>');
+    if (h.hypothesisHe) lines.push('<h4 style="margin:14px 0 6px;font-size:0.95rem">השערה</h4><div style="line-height:1.65;color:#374151">' + escapeHtml(h.hypothesisHe) + '</div>');
+    if (h.reasoningHe) lines.push('<h4 style="margin:14px 0 6px;font-size:0.95rem">הנמקה</h4><div style="line-height:1.65;color:#374151">' + escapeHtml(h.reasoningHe) + '</div>');
+    if (h.proposedActionHe) lines.push('<h4 style="margin:14px 0 6px;font-size:0.95rem">פעולה מוצעת</h4><div style="line-height:1.65;color:#374151">' + escapeHtml(h.proposedActionHe) + '</div>');
+    if (h.manualInstructions) {
+      var mi = typeof h.manualInstructions === 'string' ? h.manualInstructions : JSON.stringify(h.manualInstructions, null, 2);
+      lines.push('<h4 style="margin:14px 0 6px;font-size:0.95rem">הוראות ידניות</h4><pre style="background:#F8FAFC;padding:10px;border-radius:6px;font-size:0.78rem;white-space:pre-wrap;line-height:1.6;direction:rtl">' + escapeHtml(mi) + '</pre>');
+    }
+    if (h.testSuccessCriteria) {
+      var tc = typeof h.testSuccessCriteria === 'string' ? h.testSuccessCriteria : JSON.stringify(h.testSuccessCriteria, null, 2);
+      lines.push('<h4 style="margin:14px 0 6px;font-size:0.95rem">קריטריוני הצלחה לבדיקה</h4><pre style="background:#F8FAFC;padding:10px;border-radius:6px;font-size:0.78rem;white-space:pre-wrap;line-height:1.6">' + escapeHtml(tc) + '</pre>');
+    }
+    if (h.evidenceSnapshot) {
+      var ev = typeof h.evidenceSnapshot === 'string' ? h.evidenceSnapshot : JSON.stringify(h.evidenceSnapshot, null, 2);
+      lines.push('<h4 style="margin:14px 0 6px;font-size:0.95rem">נתונים תומכים</h4><pre style="background:#F8FAFC;padding:10px;border-radius:6px;font-size:0.78rem;white-space:pre-wrap;line-height:1.6;direction:ltr;text-align:left">' + escapeHtml(ev) + '</pre>');
+    }
+    if (typeof openReportModal === 'function') {
+      openReportModal(h.titleHe || h.title || 'תובנה', lines.join(''), 'paid-hypothesis', { html: true });
+    } else {
+      alert(h.titleHe || h.title);
+    }
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || ''), 'error');
+  }
+}
+
+function viewAllPaidHypotheses() {
+  if (!_paidHypothesesCache || _paidHypothesesCache.length === 0) {
+    showToast('אין תובנות לתצוגה', 'info');
+    return;
+  }
+  var html = _paidHypothesesCache.map(renderPaidHypothesisCard).join('');
+  if (typeof openReportModal === 'function') {
+    openReportModal('כל התובנות (' + _paidHypothesesCache.length + ')', html, 'paid-hypotheses-list', { html: true });
+  }
+}
+
 
 // Module-scope state for long-running Mazhir tasks. The setup-tasks render
 // reads these to show "⏳ running (Xs)" + disable click while in flight.

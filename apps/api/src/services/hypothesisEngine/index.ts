@@ -26,6 +26,9 @@ import { generateOutlierPerformance } from './generators/outlierPerformance'
 import { generateConversionEventMix } from './generators/conversionEventMix'
 import { generateTrackingGap } from './generators/trackingGap'
 import { generateFrequencySaturation } from './generators/frequencySaturation'
+import { generateCapiEmqAudit } from './generators/capiEmqAudit'
+import { generateModeledConversionRatio } from './generators/modeledConversionRatio'
+import { generateConsentModeV2 } from './generators/consentModeV2'
 import { generateOpusAudit } from './generators/opusAudit'
 
 export interface RunOptions {
@@ -113,6 +116,9 @@ export async function runHypothesisEngine(instanceId: string, opts?: RunOptions)
         { name: 'conversionEventMix', fn: generateConversionEventMix },
         { name: 'trackingGap', fn: generateTrackingGap },
         { name: 'frequencySaturation', fn: generateFrequencySaturation },
+        { name: 'capiEmqAudit', fn: generateCapiEmqAudit },
+        { name: 'modeledConversionRatio', fn: generateModeledConversionRatio },
+        { name: 'consentModeV2', fn: generateConsentModeV2 },
     ]
     if (!opts?.skipOpusAudit) {
         generators.push({ name: 'opusAudit', fn: generateOpusAudit })
