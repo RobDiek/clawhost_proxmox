@@ -3599,6 +3599,62 @@ print('Google Ads config updated')
     }
 }
 
+// ── POST /hosting/instances/:id/integrations/googleads/disconnect ──
+// Tears down the Google Ads plugin config on the VPS (clears customer ID,
+// developer token, login customer ID from openclaw.json) AND removes the
+// stored googleAdsConfig + googleAdsMode from the platform DB so the
+// dashboard's "connected" badge actually reflects reality after reload.
+// OAuth tokens are NOT touched (they're shared with other Google scopes —
+// GA4, GSC, GTM, etc.); user can revoke at accounts.google.com if desired.
+export const disconnectGoogleAdsConfig = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        // 1. Wipe plugin config on VPS (best-effort; ignore if VPS down)
+        if (instance.ip) {
+            try {
+                const script = `
+import json
+p = '/home/openclaw/.openclaw/openclaw.json'
+try:
+    with open(p) as f: cfg = json.load(f)
+except: cfg = {}
+plugins = cfg.setdefault('plugins', {}).setdefault('entries', {})
+if 'openclaw-googleads' in plugins:
+    plugins['openclaw-googleads']['config'] = {}
+with open(p, 'w') as f: json.dump(cfg, f, indent=2)
+print('Google Ads config cleared')
+`
+                const b64 = Buffer.from(script).toString('base64')
+                await sshExec(instance.ip,
+                    `echo '${b64}' | base64 -d > /tmp/_gads_off.py && chown openclaw:openclaw /tmp/_gads_off.py && su - openclaw -c 'python3 /tmp/_gads_off.py' && rm -f /tmp/_gads_off.py && systemctl restart openclaw-gateway`,
+                    instance.rootPassword || undefined, 30000
+                )
+            } catch (sshErr) {
+                console.warn(`disconnectGoogleAdsConfig: VPS clear failed for ${instanceId}:`, (sshErr as Error).message)
+                // Continue — at least clear the DB so dashboard shows the right state
+            }
+        }
+
+        // 2. Clear platform DB record so dashboard /status returns disconnected
+        await db.update(instances)
+            .set({
+                googleAdsConfig: null as never,
+                googleAdsMode: null as never,
+            })
+            .where(eq(instances.id, instanceId))
+
+        console.log(`Google Ads config disconnected for ${instanceId}`)
+        return ok(c, { connected: false }, 'Google Ads disconnected')
+    } catch (err) {
+        console.error('disconnectGoogleAdsConfig error:', err)
+        return fail(c, 'Disconnect failed', 500)
+    }
+}
+
 // ── GET /hosting/instances/:id/integrations/googleads/status ──
 export const getGoogleAdsConfigStatus = async (c: Context) => {
     try {

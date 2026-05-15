@@ -47,6 +47,7 @@ import {
     benchmarkFacts,
     saveGoogleAdsConfig,
     getGoogleAdsConfigStatus,
+    disconnectGoogleAdsConfig,
     researchStage,
     researchSummary,
     strategySummary,
@@ -378,6 +379,7 @@ app.post('/instances/:id/facts/benchmark', benchmarkFacts)
 // ── Google Ads configuration ──
 app.post('/instances/:id/integrations/googleads/save', saveGoogleAdsConfig)
 app.get('/instances/:id/integrations/googleads/status', getGoogleAdsConfigStatus)
+app.post('/instances/:id/integrations/googleads/disconnect', disconnectGoogleAdsConfig)
 app.post('/instances/:id/setup/agents/research/stage', researchStage)
 app.post('/instances/:id/setup/agents/research/summary', researchSummary)
 app.post('/instances/:id/setup/agents/strategy/summary', strategySummary)

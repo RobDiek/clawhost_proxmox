@@ -23311,7 +23311,13 @@ function showIntegrationSavedState(type, fullKey) {
 }
 
 async function disconnectIntegration(type) {
-  var ok = confirm('להסיר את ' + type + '?');
+  var ok = await showConfirm({
+    icon: '🔌',
+    title: 'להסיר את ' + type + '?',
+    desc: 'המפתח יימחק. תוכלו לחבר מחדש בכל עת.',
+    okText: 'הסירו',
+    okClass: 'btn-danger-outline',
+  });
   if (!ok) return;
   localStorage.removeItem('cf_' + type + '_saved');
   if (typeof setSeoIntConnected === 'function') setSeoIntConnected(type, false);
@@ -23485,7 +23491,14 @@ async function changeGscSite() {
 }
 
 async function disconnectGsc() {
-  if (!confirm('לנתק Google Search Console?')) return;
+  var ok = await showConfirm({
+    icon: '🔌',
+    title: 'נתקו את Google Search Console?',
+    desc: 'ההרשאה תוסר. תוכלו לחבר מחדש בכל עת.',
+    okText: 'נתקו',
+    okClass: 'btn-danger-outline',
+  });
+  if (!ok) return;
   setSeoIntConnected('gsc', false);
   var iid = localStorage.getItem('cf_instance_id');
   try {
@@ -23536,7 +23549,14 @@ function showDataforseoConnected(login) {
 }
 
 async function disconnectDataforseo() {
-  if (!confirm('להסיר DataForSEO?')) return;
+  var ok = await showConfirm({
+    icon: '🔌',
+    title: 'הסירו את DataForSEO?',
+    desc: 'המפתח יימחק מהשרת. תוכלו לחבר מחדש בכל עת.',
+    okText: 'הסירו',
+    okClass: 'btn-danger-outline',
+  });
+  if (!ok) return;
   setSeoIntConnected('dataforseo', false);
   var iid = localStorage.getItem('cf_instance_id');
   try {
@@ -23791,7 +23811,14 @@ function showFirecrawlConnected(masked) {
 }
 
 async function disconnectFirecrawl() {
-  if (!confirm('להסיר Firecrawl?')) return;
+  var ok = await showConfirm({
+    icon: '🔌',
+    title: 'הסירו את Firecrawl?',
+    desc: 'המפתח יימחק מהשרת. תוכלו לחבר מחדש בכל עת.',
+    okText: 'הסירו',
+    okClass: 'btn-danger-outline',
+  });
+  if (!ok) return;
   setSeoIntConnected('firecrawl', false);
   var iid = localStorage.getItem('cf_instance_id');
   try {
@@ -23894,7 +23921,14 @@ async function saveCreativeKeys() {
 
 async function disconnectCreative(provider) {
   var label = provider === 'fal' ? 'fal.ai' : 'ElevenLabs';
-  if (!confirm('להסיר ' + label + '?')) return;
+  var ok = await showConfirm({
+    icon: '🔌',
+    title: 'הסירו את ' + label + '?',
+    desc: 'המפתח יימחק מהשרת. תוכלו לחבר מחדש בכל עת.',
+    okText: 'הסירו',
+    okClass: 'btn-danger-outline',
+  });
+  if (!ok) return;
   try {
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/integrations/creative/disconnect', {
       method: 'POST',
@@ -25298,7 +25332,14 @@ async function testRedditIntegration() {
 }
 
 async function disconnectRedditIntegration() {
-  if (!confirm('להסיר את Reddit?')) return;
+  var ok = await showConfirm({
+    icon: '🔌',
+    title: 'הסירו את Reddit?',
+    desc: 'ההרשאה תוסר. תוכלו לחבר מחדש בכל עת.',
+    okText: 'הסירו',
+    okClass: 'btn-danger-outline',
+  });
+  if (!ok) return;
   var iid = localStorage.getItem('cf_instance_id');
   var tk = localStorage.getItem('cf_token');
   try {
@@ -25439,14 +25480,38 @@ async function saveGoogleAdsCredentials() {
 }
 
 async function disconnectGoogleAdsConfig() {
-  if (!confirm('לנתק Google Ads?')) return;
-  // For now just clear UI state — backend keeps googleTokens but we clear plugin config
-  // A full disconnect endpoint can be added later
-  document.getElementById('google-ads-not-connected').style.display = '';
-  document.getElementById('google-ads-connected').style.display = 'none';
-  var statusEl = document.getElementById('google-ads-status');
-  if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
-  showToast('לניתוק מלא פנו לתמיכה — הקרדים ב-VPS נשארים עד ניתוק OAuth של Google', 'info');
+  var confirmed = await showConfirm({
+    icon: '🔌',
+    title: 'נתקו את Google Ads?',
+    desc: 'ה-Customer ID, Developer Token ו-Login Customer ID יימחקו מה-VPS שלכם וממסד הנתונים. OAuth של Google יישאר פעיל לשירותים אחרים (GA4, GSC). תוכלו לחבר מחדש בכל עת.',
+    okText: 'נתקו',
+    okClass: 'btn-danger-outline',
+  });
+  if (!confirmed) return;
+
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+
+  try {
+    var r = await apiFetch('/hosting/instances/' + iid + '/integrations/googleads/disconnect', {
+      method: 'POST',
+      body: '{}',
+    });
+    if (!r.success) throw new Error(r.message || 'disconnect failed');
+    showToast('Google Ads נותק', 'success');
+    // Optimistic UI flip (instant feedback)
+    document.getElementById('google-ads-not-connected').style.display = '';
+    document.getElementById('google-ads-connected').style.display = 'none';
+    var statusEl = document.getElementById('google-ads-status');
+    if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
+    // Authoritative refresh from server so the in-memory instanceData
+    // matches reality after a page reload.
+    if (typeof refreshInstanceData === 'function') {
+      try { await refreshInstanceData(); } catch (_) { /* swallow */ }
+    }
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || ''), 'error');
+  }
 }
 
 function showGoogleAdsConnected(data) {
@@ -25921,7 +25986,14 @@ async function testGithubIntegration() {
 }
 
 async function disconnectGithubIntegration() {
-  if (!confirm('לנתק GitHub?')) return;
+  var ok = await showConfirm({
+    icon: '🔌',
+    title: 'נתקו את GitHub?',
+    desc: 'ה-Token יימחק מהשרת. תוכלו לחבר מחדש בכל עת.',
+    okText: 'נתקו',
+    okClass: 'btn-danger-outline',
+  });
+  if (!ok) return;
   var iid = localStorage.getItem('cf_instance_id');
   var tk = localStorage.getItem('cf_token');
   try {
