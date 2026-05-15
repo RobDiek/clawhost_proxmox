@@ -4687,15 +4687,24 @@ function renderHome() {
     if (grid) grid.style.gridTemplateColumns = '1fr';
     return;
   }
-  // Ensure boolean flags are set (derive from researchData if missing)
+  // Ensure boolean flags are set (derive from researchData if missing).
+  // Phase 4.2 introduced new pipeline keys (researchStageN, strategyStageN);
+  // legacy keys (report, stage1, strategy) still appear in older instances.
+  // Recognize BOTH so the home checklist matches reality.
   if (!instanceData.hasProfile && instanceData.researchData && instanceData.researchData.answers) {
     instanceData.hasProfile = true;
   }
-  if (!instanceData.hasResearch && instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1)) {
-    instanceData.hasResearch = true;
+  if (!instanceData.hasResearch && instanceData.researchData) {
+    var _rd = instanceData.researchData;
+    if (_rd.report || _rd.stage1 || _rd.researchStage1 || _rd.researchStage2 || _rd.researchStage3 || _rd.researchStage4 || _rd.researchStage5) {
+      instanceData.hasResearch = true;
+    }
   }
-  if (!instanceData.hasStrategy && instanceData.researchData && instanceData.researchData.strategy) {
-    instanceData.hasStrategy = true;
+  if (!instanceData.hasStrategy && instanceData.researchData) {
+    var _rds = instanceData.researchData;
+    if (_rds.strategy || _rds.strategyStage4 || _rds.chosenScenario) {
+      instanceData.hasStrategy = true;
+    }
   }
 
   // Grid layout: if no tasks, notifications take full width
@@ -4714,8 +4723,8 @@ function renderHome() {
   var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
   var isMATEH = components.indexOf('mt') !== -1;
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
-  var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1))));
-  var hasStrategy = !!(instanceData && (instanceData.hasStrategy || (instanceData.researchData && instanceData.researchData.strategy)));
+  var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1 || instanceData.researchData.researchStage1 || instanceData.researchData.researchStage4))));
+  var hasStrategy = !!(instanceData && (instanceData.hasStrategy || (instanceData.researchData && (instanceData.researchData.strategy || instanceData.researchData.strategyStage4))));
   var hasScenarios = !!(instanceData && instanceData.researchData && instanceData.researchData.scenarios);
   var hasChosenScenario = !!(instanceData && instanceData.researchData && instanceData.researchData.chosenScenario);
   var onboardingDone = !!(instanceData && instanceData.onboardingCompleted);
@@ -20265,18 +20274,62 @@ async function commitSelectedScenario() {
 function viewReport() {
   if (!instanceData || !instanceData.researchData) return;
   var rd = instanceData.researchData;
-  // Prefer legacy combined report; fall back to concatenated stages 1-5.
-  var report = rd.report ||
-    ['stage1','stage2','stage3','stage4','stage5']
-      .map(function(k){ return rd[k] ? ('## ' + k.toUpperCase() + '\n\n' + rd[k]) : ''; })
-      .filter(Boolean).join('\n\n---\n\n');
+  // Concatenate whatever research artifacts we have. Order of precedence:
+  //   1. rd.report (legacy single-blob)
+  //   2. rd.researchStage1..5 (Phase 4.2 paid research pipeline — current default)
+  //   3. rd.stage1..5 (older transitional naming)
+  // Anything falsy is skipped; an object is JSON-stringified so partial
+  // structured outputs still render rather than throwing.
+  var parts = [];
+  if (rd.report) parts.push(rd.report);
+  function stageBlob(label, val) {
+    if (!val) return '';
+    var body = (typeof val === 'string') ? val : ('```json\n' + JSON.stringify(val, null, 2) + '\n```');
+    return '## ' + label + '\n\n' + body;
+  }
+  // New keys (Phase 4.2 pipeline) — preferred
+  ['researchStage1','researchStage2','researchStage3','researchStage4','researchStage5'].forEach(function(k, i) {
+    var blob = stageBlob('שלב ' + (i + 1), rd[k]);
+    if (blob) parts.push(blob);
+  });
+  // Legacy keys — only if no new-key data present (avoid duplication)
+  var hasNewKeys = !!(rd.researchStage1 || rd.researchStage2 || rd.researchStage3 || rd.researchStage4 || rd.researchStage5);
+  if (!hasNewKeys) {
+    ['stage1','stage2','stage3','stage4','stage5'].forEach(function(k, i) {
+      var blob = stageBlob('שלב ' + (i + 1), rd[k]);
+      if (blob) parts.push(blob);
+    });
+  }
+  var report = parts.filter(Boolean).join('\n\n---\n\n');
   if (!report) { showToast('אין דוח — הריצו מחקר קודם', 'error'); return; }
   openReportModal('דוח מחקר שוק', report, 'research');
 }
 
 function viewStrategy() {
   if (!instanceData || !instanceData.researchData) return;
-  var strategy = instanceData.researchData.strategy || '';
+  var rd = instanceData.researchData;
+  // Strategy sources, in priority order:
+  //   1. rd.strategy (legacy single-blob)
+  //   2. rd.strategyStage4 (Phase 4.2 — synthesized strategy stage)
+  //   3. rd.strategyStage1..3 (older intermediate stages, concatenated)
+  var strategy = rd.strategy || '';
+  if (!strategy) {
+    var stratParts = [];
+    function stageBlob(label, val) {
+      if (!val) return '';
+      var body = (typeof val === 'string') ? val : ('```json\n' + JSON.stringify(val, null, 2) + '\n```');
+      return '## ' + label + '\n\n' + body;
+    }
+    if (rd.strategyStage4) stratParts.push(stageBlob('אסטרטגיה — סינתזה', rd.strategyStage4));
+    ['strategyStage1','strategyStage2','strategyStage3'].forEach(function(k, i) {
+      var blob = stageBlob('שלב הכנה ' + (i + 1), rd[k]);
+      if (blob) stratParts.push(blob);
+    });
+    if (rd.chosenScenario) {
+      stratParts.push(stageBlob('תרחיש שנבחר', rd.chosenScenario));
+    }
+    strategy = stratParts.filter(Boolean).join('\n\n---\n\n');
+  }
   if (!strategy) { showToast('אין אסטרטגיה — בנו אותה קודם', 'error'); return; }
   openReportModal('אסטרטגיה ותוכנית פעולה', strategy, 'strategy');
 }
