@@ -5338,9 +5338,13 @@ function renderHome() {
       var rebuildLink = '';
       var rebuildIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px;vertical-align:-2px"><path d="M21 12a9 9 0 1 1-3.17-6.86"/><polyline points="21 4 21 10 15 10"/></svg>';
       if (t.id === 'research_and_strategy') {
-        // Unified task: show both view buttons + one rebuild that wipes both
-        viewLink = '<button class="notif-action" onclick="viewReport()">דוח מחקר →</button>' +
-          '<button class="notif-action" onclick="viewStrategy()" style="margin-right:4px">אסטרטגיה →</button>';
+        // Unified task: primary action = open the full PipelineV2 widget
+        // (all stages, each piece of evidence accessible). Quick-view links
+        // to research / strategy stay for one-tap access without entering
+        // the full pipeline.
+        viewLink = '<button class="btn btn-primary btn-sm" onclick="openPipelineV2()" style="font-size:0.78rem;padding:5px 12px">תצוגה מלאה →</button>' +
+          '<button class="notif-action" onclick="viewReport()" style="margin-right:6px">דוח מחקר</button>' +
+          '<button class="notif-action" onclick="viewStrategy()" style="margin-right:4px">אסטרטגיה</button>';
         rebuildLink = '<button class="task-rebuild" onclick="rebuildEverything()" title="לאפס מחקר + אסטרטגיה ולהתחיל מחדש">' + rebuildIcon + 'לבנות מחדש</button>';
       }
       if (t.id === 'research') {
@@ -22334,7 +22338,7 @@ function renderAgentProfile() {
     '<button class="btn btn-outline" onclick="openAgentQuestionnaire()" style="margin-top:12px;font-size:0.82rem">&#9998; ערכו פרופיל</button>';
 }
 
-function openAgentQuestionnaire() {
+async function openAgentQuestionnaire() {
   var overlay = document.getElementById('agentSetupOverlay');
   if (!overlay) return;
   var form = document.getElementById('agent-setup-form');
@@ -22345,8 +22349,18 @@ function openAgentQuestionnaire() {
   if (btn) { btn.disabled = false; btn.textContent = 'עדכנו את הסוכנים \u2192'; }
   var clarify = document.getElementById('dashboard-clarify');
   if (clarify) clarify.remove();
-  renderSavedAnswers();
   overlay.classList.remove('hidden');
+  // Fetch latest answers from server BEFORE rendering. Without this the
+  // form reflects whatever was cached in instanceData.researchData.answers
+  // at page load — which can be stale if the user updated the profile in
+  // a different tab, or hit Save and reopened the form before the 8s
+  // auto-refresh loop landed. Cheap roundtrip; opens are rare.
+  try {
+    if (typeof refreshInstanceData === 'function') {
+      await refreshInstanceData();
+    }
+  } catch (e) { /* fall through to whatever's in memory */ }
+  renderSavedAnswers();
 }
 
 function closeAgentQuestionnaire() {
@@ -23087,7 +23101,10 @@ async function deployAgentsDashboard(answers) {
       if (btnOk) { btnOk.disabled = false; btnOk.textContent = 'עדכנו את הסוכנים \u2192'; }
       closeAgentQuestionnaire();
       showToast('הסוכנים הוגדרו בהצלחה!', 'success');
-      refreshInstanceData();
+      // Await refresh so the next form-open sees the saved answers, not the
+      // pre-save cache. Without the await, a fast user clicking 'ערכו' right
+      // after Save sees their previous values.
+      try { await refreshInstanceData(); } catch (_) { /* swallow */ }
     } else {
       showToast(data.message || 'שגיאה בהגדרת הסוכנים', 'error');
       document.getElementById('setup-step2').classList.add('hidden');
