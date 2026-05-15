@@ -5275,16 +5275,32 @@ function renderHome() {
         '</div>';
       });
 
-      // ─── paid_track_pipeline ONLY: Hypothesis Cards Section ─────────────
-      // Phase 4.3.4 — Surface paid-track optimization hypotheses (CAPI gaps,
-      // Consent Mode v2 audits, modeled-conversion ratio, bidding mismatches,
-      // etc.) emitted by the Hypothesis Engine. Cards are loaded async into
-      // the mount point; user can approve/decline/view each one.
-      // Visible only after the pipeline has any active step (i.e. paid track
-      // has begun) — otherwise hypotheses won't have data to ground on.
+      // ─── paid_track_pipeline ONLY: Cross-Platform Truth (MER) Widget ─────
+      // Phase 4.4 — Single-glance MER / aMER + per-platform trust + truth
+      // gap. Shows on home so the user sees "are my numbers honest" in 3s.
+      // Visible whenever the pipeline has progress (same gate as hypotheses).
       if (t.id === 'paid_track_pipeline') {
         var hypAnyActive = t.steps.some(function(s) { return s.status === 'done' || s.status === 'running' || s.status === 'active'; });
         if (hypAnyActive) {
+          tasksHtml += '<div style="margin-top:16px;padding-top:14px;border-top:1px dashed #CBD5E1">' +
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 4 4 6-6"/></svg>' +
+              '<span style="font-weight:700;font-size:0.88rem;color:#1F2937">ניתוח רב-פלטפורמתי</span>' +
+              '<span style="font-size:0.7rem;color:#9CA3AF">— MER, רמת אמון נתונים ופערי ייחוס</span>' +
+            '</div>' +
+            '<div id="paid-mer-mount"><div style="font-size:0.78rem;color:#9CA3AF;text-align:center;padding:14px">טוען…</div></div>' +
+          '</div>';
+        }
+      }
+
+      // ─── paid_track_pipeline ONLY: Hypothesis Cards Section ─────────────
+      // Phase 4.3.4 — Surface paid-track optimization hypotheses (CAPI gaps,
+      // Consent Mode v2 audits, modeled-conversion ratio, bidding mismatches,
+      // cross-platform truth gaps, geo experiment proposals) emitted by the
+      // Hypothesis Engine. Cards loaded async into the mount point.
+      if (t.id === 'paid_track_pipeline') {
+        var hypAnyActive2 = t.steps.some(function(s) { return s.status === 'done' || s.status === 'running' || s.status === 'active'; });
+        if (hypAnyActive2) {
           tasksHtml += '<div style="margin-top:16px;padding-top:14px;border-top:1px dashed #CBD5E1">' +
             '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">' +
               '<div style="display:flex;align-items:center;gap:8px">' +
@@ -5412,6 +5428,10 @@ function renderHome() {
   // Phase 4.3.4 — Paid-track hypothesis cards (lazy-load if mount exists)
   if (document.getElementById('paid-hypotheses-mount')) {
     loadPaidHypotheses();
+  }
+  // Phase 4.4 — Cross-platform truth (MER + trust) widget (lazy-load)
+  if (document.getElementById('paid-mer-mount')) {
+    loadCrossPlatformTruth();
   }
   // Lazy-load hub data so setup task 'marketing_config' can compute its
   // 'done' state from default-derived pipeline activation. After load,
@@ -9991,6 +10011,156 @@ function viewAllPaidHypotheses() {
     openReportModal('כל התובנות (' + _paidHypothesesCache.length + ')', html, 'paid-hypotheses-list', { html: true });
   }
 }
+
+/* ═══════════ Phase 4.4 — Cross-Platform Truth (MER) Widget ════════════════
+ * Renders MER + aMER + per-platform trust + double-count gap in a compact
+ * widget inside the paid_track_pipeline. One round-trip to the API; the
+ * dashboard re-fetches on every renderHome().
+ *
+ * Trust-tier color map matches the data-trust hierarchy (server > browser >
+ * modeled > inferred).
+ */
+
+async function loadCrossPlatformTruth() {
+  var mount = document.getElementById('paid-mer-mount');
+  if (!mount || !instanceId || !token) return;
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/cross-platform-truth?windowDays=30');
+    if (!r.success) throw new Error(r.message || 'truth fetch failed');
+    renderCrossPlatformTruth(r.data);
+  } catch (err) {
+    mount.innerHTML = '<div style="font-size:0.78rem;color:#DC2626;text-align:center;padding:14px">שגיאה בטעינת ניתוח: ' + escapeHtml(err.message || '') + '</div>';
+  }
+}
+
+function renderCrossPlatformTruth(d) {
+  var mount = document.getElementById('paid-mer-mount');
+  if (!mount || !d) return;
+
+  var m = d.mer || {};
+  var trust = d.trust || {};
+  var q = m.quality || {};
+
+  // Empty / pre-spend state
+  if (q.spendTotalIsZero) {
+    mount.innerHTML = '<div style="background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:8px;padding:14px;text-align:center;font-size:0.8rem;color:#64748B;line-height:1.6">' +
+      'עוד אין נתוני הוצאה ב-30 הימים האחרונים. הניתוח יתחיל להופיע ברגע שיוזרמו נתונים מהפלטפורמות.' +
+    '</div>';
+    return;
+  }
+
+  var fmtIls = function(n) {
+    if (n == null) return '—';
+    var v = Math.round(n);
+    return '₪' + v.toLocaleString();
+  };
+  var fmtRatio = function(n) {
+    if (n == null) return '—';
+    return n.toFixed(2) + '×';
+  };
+  var fmtPct = function(n) {
+    if (n == null) return '—';
+    return (n >= 0 ? '+' : '') + n.toFixed(0) + '%';
+  };
+
+  // Top row: MER + aMER + gap
+  var merClaimed = fmtRatio(m.mer);
+  var merObserved = m.merObserved != null ? fmtRatio(m.merObserved) : null;
+  var aMerClaimed = fmtRatio(m.aMer);
+  var aMerObserved = m.aMerObserved != null ? fmtRatio(m.aMerObserved) : null;
+
+  var gapBadge = '';
+  if (m.doubleCountGapPct != null) {
+    var gap = m.doubleCountGapPct;
+    var gapColor = gap > 100 ? '#991B1B' : gap > 50 ? '#B45309' : gap > 20 ? '#1E40AF' : '#15803D';
+    var gapBg = gap > 100 ? '#FEF2F2' : gap > 50 ? '#FFFBEB' : gap > 20 ? '#EFF6FF' : '#F0FDF4';
+    gapBadge = '<div style="background:' + gapBg + ';border:1px solid ' + gapColor + '33;border-radius:6px;padding:8px 10px;text-align:center">' +
+      '<div style="font-size:0.66rem;color:#6B7280;margin-bottom:2px">פער ייחוס (מדווח מול נצפה)</div>' +
+      '<div style="font-size:1rem;font-weight:700;color:' + gapColor + '">' + fmtPct(gap) + '</div>' +
+    '</div>';
+  } else if (!q.hasObservedChannel) {
+    gapBadge = '<div style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px;text-align:center">' +
+      '<div style="font-size:0.66rem;color:#6B7280;margin-bottom:2px">פער ייחוס</div>' +
+      '<div style="font-size:0.78rem;color:#6B7280;font-weight:600">— GA4 לא מחובר —</div>' +
+    '</div>';
+  }
+
+  var trustColor = trust.compositeScore >= 0.8 ? '#10B981' : trust.compositeScore >= 0.5 ? '#F59E0B' : '#DC2626';
+  var trustBg = trust.compositeScore >= 0.8 ? '#F0FDF4' : trust.compositeScore >= 0.5 ? '#FFFBEB' : '#FEF2F2';
+
+  var html = '<div style="background:linear-gradient(180deg,#F8FAFC,#FFFFFF);border:1px solid #E2E8F0;border-radius:10px;padding:12px;direction:rtl">';
+
+  // Summary tiles
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">';
+  html += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:8px 10px">' +
+    '<div style="font-size:0.66rem;color:#6B7280;margin-bottom:2px">הוצאה (30 ימים)</div>' +
+    '<div style="font-size:1rem;font-weight:700;color:#1F2937">' + fmtIls(m.spendTotalIls) + '</div>' +
+  '</div>';
+  html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px">' +
+    '<div style="font-size:0.66rem;color:#6B7280;margin-bottom:2px">MER (יעילות שיווק)</div>' +
+    '<div style="font-size:1rem;font-weight:700;color:#1F2937">' + merClaimed +
+      (merObserved ? ' <span style="font-size:0.7rem;color:#9CA3AF;font-weight:500">(נצפה: ' + merObserved + ')</span>' : '') +
+    '</div>' +
+  '</div>';
+  html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px">' +
+    '<div style="font-size:0.66rem;color:#6B7280;margin-bottom:2px">aMER (רכישה איכותית)</div>' +
+    '<div style="font-size:1rem;font-weight:700;color:#1F2937">' + aMerClaimed +
+      (aMerObserved ? ' <span style="font-size:0.7rem;color:#9CA3AF;font-weight:500">(נצפה: ' + aMerObserved + ')</span>' : '') +
+    '</div>' +
+  '</div>';
+  html += gapBadge || '<div style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px"><div style="font-size:0.66rem;color:#6B7280;margin-bottom:2px">פער ייחוס</div><div style="font-size:0.78rem;color:#9CA3AF">—</div></div>';
+  html += '</div>';
+
+  // Composite trust
+  html += '<div style="background:' + trustBg + ';border:1px solid ' + trustColor + '33;border-radius:6px;padding:8px 10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px">' +
+    '<div style="display:flex;align-items:center;gap:8px">' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + trustColor + '" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' +
+      '<span style="font-size:0.78rem;font-weight:600;color:#1F2937">ציון אמון מצרפי:</span>' +
+      '<span style="font-size:0.92rem;font-weight:700;color:' + trustColor + '">' + (trust.compositeScore != null ? trust.compositeScore.toFixed(2) : '—') + ' / 1.0</span>' +
+    '</div>' +
+    (trust.weakestPlatform ? '<div style="font-size:0.72rem;color:#6B7280">הכי חלשה: <strong>' + escapeHtml(trust.weakestPlatform) + '</strong></div>' : '') +
+  '</div>';
+
+  // Per-platform breakdown
+  if (m.platformBreakdown && m.platformBreakdown.length) {
+    var trustByPlatform = {};
+    (trust.perPlatform || []).forEach(function(p) { trustByPlatform[p.platform] = p; });
+
+    var tierStyleMap = {
+      'observed_server':  { bg: '#F0FDF4', color: '#15803D', label: 'נצפה (שרת)' },
+      'observed_browser': { bg: '#EFF6FF', color: '#1E40AF', label: 'נצפה (דפדפן)' },
+      'modeled_platform': { bg: '#FFFBEB', color: '#92400E', label: 'מודלי' },
+      'inferred':         { bg: '#FEF2F2', color: '#991B1B', label: 'משוערך' },
+    };
+
+    html += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:6px">פירוט פלטפורמות:</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:6px">';
+    m.platformBreakdown.forEach(function(p) {
+      var tInfo = trustByPlatform[p.platform];
+      var tStyle = tInfo && tierStyleMap[tInfo.tier] ? tierStyleMap[tInfo.tier] : tierStyleMap.observed_browser;
+      var tipTitle = tInfo && tInfo.rationaleHe ? ' title="' + escapeHtml(tInfo.rationaleHe) + (tInfo.upgradeHintHe ? ' — ' + escapeHtml(tInfo.upgradeHintHe) : '') + '"' : '';
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#FFFFFF;border:1px solid #E5E7EB;border-radius:6px;font-size:0.78rem">' +
+        '<span style="flex:1;font-weight:600;color:#1F2937">' + escapeHtml(p.platform) + '</span>' +
+        '<span style="font-size:0.72rem;color:#6B7280">' + fmtIls(p.spendIls) + ' · ROAS ' + fmtRatio(p.roasClaimed) + '</span>' +
+        '<span' + tipTitle + ' style="font-size:0.66rem;font-weight:700;background:' + tStyle.bg + ';color:' + tStyle.color + ';padding:2px 8px;border-radius:999px;cursor:help">' + tStyle.label + '</span>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Footnote
+  html += '<div style="font-size:0.68rem;color:#9CA3AF;margin-top:8px;line-height:1.55">';
+  if (q.hasObservedChannel) {
+    html += '"מדווח" = מה שהפלטפורמות אומרות. "נצפה" = ' + escapeHtml(q.observedChannel || 'GA4') + ' (האמת). פער חיובי = הפלטפורמות מצהירות יתר.';
+  } else {
+    html += '⚠️ ' + escapeHtml(q.observedChannel || 'GA4') + ' לא מחובר — מציגים רק מספרים מהפלטפורמות. חברו GA4 להשוואה לאמת.';
+  }
+  html += '</div>';
+
+  html += '</div>';
+  mount.innerHTML = html;
+}
+
 
 
 // Module-scope state for long-running Mazhir tasks. The setup-tasks render

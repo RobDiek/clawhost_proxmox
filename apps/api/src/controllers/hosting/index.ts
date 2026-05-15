@@ -83,5 +83,6 @@ export {
 export {
     runPaidLearnerAggregation, listPaidLearnings, previewPaidLearningsInjection,
 } from './paidLearner'
+export { getCrossPlatformTruthController } from './crossPlatformTruth'
 // Twenty CRM removed — AGPLv3 license risk
 // export { installTwenty } from './twenty'

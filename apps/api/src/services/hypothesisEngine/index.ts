@@ -29,6 +29,8 @@ import { generateFrequencySaturation } from './generators/frequencySaturation'
 import { generateCapiEmqAudit } from './generators/capiEmqAudit'
 import { generateModeledConversionRatio } from './generators/modeledConversionRatio'
 import { generateConsentModeV2 } from './generators/consentModeV2'
+import { generateCrossPlatformGap } from './generators/crossPlatformGap'
+import { generateGeoExperimentTrigger } from './generators/geoExperimentTrigger'
 import { generateOpusAudit } from './generators/opusAudit'
 
 export interface RunOptions {
@@ -80,6 +82,63 @@ async function buildContext(instanceId: string, agentId?: string | null): Promis
     const marketingGoals = Array.isArray(rd.answers?.marketingGoals) ? rd.answers.marketingGoals as string[] : []
     const paidProfile = rd.paidProfile || {}
 
+    // ── Phase 4.4: cross-platform truth (MER + aMER + per-platform trust) ──
+    // Computed once and passed to all generators via context. We swallow
+    // failures (truth = null) — generators that need it will skip, others
+    // (like biddingTierMismatch) don't touch it.
+    let truth: any = null
+    try {
+        const { getCrossPlatformTruth } = await import('../crossPlatformTruth')
+        const full = await getCrossPlatformTruth(instanceId, { windowDays: 30 })
+        // Strip down to the lite shape exposed via GeneratorContext to avoid
+        // a cross-service type import loop.
+        truth = {
+            mer: {
+                windowDays: full.mer.windowDays,
+                spendTotalIls: full.mer.spendTotalIls,
+                revenueClaimedIls: full.mer.revenueClaimedIls,
+                revenueObservedIls: full.mer.revenueObservedIls,
+                revenueAcquisitionClaimedIls: full.mer.revenueAcquisitionClaimedIls,
+                revenueAcquisitionObservedIls: full.mer.revenueAcquisitionObservedIls,
+                mer: full.mer.mer,
+                merObserved: full.mer.merObserved,
+                aMer: full.mer.aMer,
+                aMerObserved: full.mer.aMerObserved,
+                doubleCountGapPct: full.mer.doubleCountGapPct,
+                aMerGapPct: full.mer.aMerGapPct,
+                platformBreakdown: full.mer.platformBreakdown.map((p: any) => ({
+                    platform: p.platform,
+                    spendIls: p.spendIls,
+                    revenueClaimedIls: p.revenueClaimedIls,
+                    revenueAcquisitionIls: p.revenueAcquisitionIls,
+                    roasClaimed: p.roasClaimed,
+                    share: p.share,
+                })),
+                quality: {
+                    hasObservedChannel: full.mer.quality.hasObservedChannel,
+                    observedChannel: full.mer.quality.observedChannel,
+                    paidPlatformsActive: full.mer.quality.paidPlatformsActive,
+                    spendTotalIsZero: full.mer.quality.spendTotalIsZero,
+                },
+            },
+            trust: {
+                perPlatform: full.trust.perPlatform.map((t: any) => ({
+                    platform: t.platform,
+                    tier: t.tier,
+                    tierRank: t.tierRank,
+                    tierLabelHe: t.tierLabelHe,
+                    rationaleHe: t.rationaleHe,
+                    upgradeHintHe: t.upgradeHintHe,
+                })),
+                compositeScore: full.trust.compositeScore,
+                weakestPlatform: full.trust.weakestPlatform,
+            },
+        }
+    } catch (err) {
+        console.warn('[hypothesisEngine] cross-platform truth computation failed:', err)
+        truth = null
+    }
+
     return {
         instanceId,
         agentId: agent?.id || null,
@@ -98,6 +157,7 @@ async function buildContext(instanceId: string, agentId?: string | null): Promis
         eventBreakdown,
         marketingGoals,
         paidProfile,
+        truth,
         now: new Date(),
     }
 }
@@ -119,6 +179,8 @@ export async function runHypothesisEngine(instanceId: string, opts?: RunOptions)
         { name: 'capiEmqAudit', fn: generateCapiEmqAudit },
         { name: 'modeledConversionRatio', fn: generateModeledConversionRatio },
         { name: 'consentModeV2', fn: generateConsentModeV2 },
+        { name: 'crossPlatformGap', fn: generateCrossPlatformGap },
+        { name: 'geoExperimentTrigger', fn: generateGeoExperimentTrigger },
     ]
     if (!opts?.skipOpusAudit) {
         generators.push({ name: 'opusAudit', fn: generateOpusAudit })

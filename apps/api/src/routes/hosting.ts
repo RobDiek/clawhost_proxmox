@@ -288,6 +288,7 @@ import {
     runPaidLearnerAggregation,
     listPaidLearnings,
     previewPaidLearningsInjection,
+    getCrossPlatformTruthController,
     getLatestManifest, getInstanceVersionStatus,
     triggerInstanceUpgrade, getUpgradeProgressEndpoint,
 } from '@/controllers/hosting'
@@ -468,6 +469,9 @@ app.post('/instances/:id/paid-hypotheses/:hid/resolve', resolvePaidHypothesisCon
 app.post('/instances/:id/paid-learnings/aggregate', runPaidLearnerAggregation)
 app.get('/instances/:id/paid-learnings', listPaidLearnings)
 app.get('/instances/:id/paid-learnings/injectable', previewPaidLearningsInjection)
+
+// ── Phase 4.4: Cross-Platform Truth (MER + aMER + per-platform trust) ──
+app.get('/instances/:id/cross-platform-truth', getCrossPlatformTruthController)
 app.post('/instances/:id/marketing-intents/preview-cleanup', previewIntentCleanup)
 app.get('/instances/:id/integration-hub', getIntegrationHub)
 app.post('/instances/:id/integration-hub/preview', previewHubForIntents)

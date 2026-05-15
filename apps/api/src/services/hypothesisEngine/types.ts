@@ -45,6 +45,9 @@ export type HypothesisCode =
     | 'budget_pacing_starved'                           // hit budget cap most days
     // cross-platform imbalance
     | 'cross_platform_cpa_imbalance'                    // Meta CPA 3x Google CPA → reallocation candidate (with caveats)
+    // cross-platform truth (Phase 4.4)
+    | 'cross_platform_truth_double_count_gap'           // platforms over-claim revenue vs observed (GA4/server)
+    | 'cross_platform_truth_geo_experiment'             // attribution trust low → run a geo holdout to measure incrementality
     // LLM-driven (catch-all for opus audit findings that don't fit rule codes)
     | 'opus_audit_finding'
 
@@ -221,6 +224,62 @@ export interface GeneratorContext {
     /** Source of truth: paidProfile from research_data. */
     paidProfile: Record<string, unknown>
 
+    /**
+     * Phase 4.4 — cross-platform truth layer (MER + aMER + per-platform trust).
+     * Computed once per engine run and shared by all generators that need it.
+     * `null` only when computation failed (rare); generators must defensively
+     * skip rather than throw when this is null.
+     */
+    truth?: CrossPlatformTruthLite | null
+
     /** Now — pinned so generators in one run share a clock. */
     now: Date
+}
+
+/**
+ * Minimal cross-platform truth surface for generators. Mirrors the full
+ * `CrossPlatformTruth` from `services/crossPlatformTruth` but kept here
+ * to avoid a cross-package import cycle (hypothesisEngine ⇄ crossPlatformTruth).
+ */
+export interface CrossPlatformTruthLite {
+    mer: {
+        windowDays: number
+        spendTotalIls: number
+        revenueClaimedIls: number
+        revenueObservedIls: number | null
+        revenueAcquisitionClaimedIls: number
+        revenueAcquisitionObservedIls: number | null
+        mer: number | null
+        merObserved: number | null
+        aMer: number | null
+        aMerObserved: number | null
+        doubleCountGapPct: number | null
+        aMerGapPct: number | null
+        platformBreakdown: Array<{
+            platform: string
+            spendIls: number
+            revenueClaimedIls: number
+            revenueAcquisitionIls: number
+            roasClaimed: number
+            share: number
+        }>
+        quality: {
+            hasObservedChannel: boolean
+            observedChannel: string | null
+            paidPlatformsActive: number
+            spendTotalIsZero: boolean
+        }
+    }
+    trust: {
+        perPlatform: Array<{
+            platform: string
+            tier: 'observed_server' | 'observed_browser' | 'modeled_platform' | 'inferred'
+            tierRank: number
+            tierLabelHe: string
+            rationaleHe: string
+            upgradeHintHe?: string
+        }>
+        compositeScore: number
+        weakestPlatform: string | null
+    }
 }
