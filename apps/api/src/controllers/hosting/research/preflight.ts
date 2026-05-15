@@ -72,6 +72,47 @@ const WEBSITE_REACHABLE_TIMEOUT_MS = 8000
  * Cost ~ $0.0001 per probe — negligible. Keeps the user from burning
  * DFS budget on a misconfigured / out-of-credits key.
  */
+/**
+ * Probe Meta Ad Library API end-to-end. Calls ads_archive with limit=1.
+ * Possible outcomes:
+ *   - ok                 → app is Live + has read access (data returned, possibly empty array)
+ *   - permission_denied  → app in Development mode OR no role assigned
+ *                          (Facebook error code 10, subcode 2332004)
+ *   - unknown            → network/timeout/etc; don't block on it
+ *
+ * Cost: free (Ad Library is public; rate-limited to ~200 calls/hour/app).
+ */
+async function probeMetaAdLibrary(
+    appId: string,
+    appSecret: string,
+): Promise<{ status: 'ok' | 'permission_denied' | 'unknown'; hint?: string }> {
+    try {
+        const accessToken = `${appId}|${appSecret}`
+        const url = 'https://graph.facebook.com/v18.0/ads_archive'
+            + `?access_token=${encodeURIComponent(accessToken)}`
+            + `&ad_reached_countries=${encodeURIComponent('["IL"]')}`
+            + '&search_terms=test'
+            + '&fields=id'
+            + '&limit=1'
+        const ctrl = new AbortController()
+        const t = setTimeout(() => ctrl.abort(), 6000)
+        const res = await fetch(url, { signal: ctrl.signal })
+        clearTimeout(t)
+        const body = await res.json().catch(() => null) as { error?: { code?: number; error_subcode?: number; message?: string; error_user_msg?: string } } | null
+        if (res.ok && body && !body.error) return { status: 'ok' }
+        const err = body?.error
+        if (err && (err.code === 10 || err.error_subcode === 2332004 || /not have permission|App role required/i.test(err.message || ''))) {
+            return {
+                status: 'permission_denied',
+                hint: 'ה-Facebook App במצב Development. נדרש: (1) Settings → Basic → Privacy Policy URL → לעבור ל-Live Mode (toggle בראש העמוד), או (2) App Roles → Add People → להוסיף את עצמכם כ-Developer. בלי זה Meta Ad Library יחזיר שגיאת הרשאה.',
+            }
+        }
+        return { status: 'unknown', hint: err?.error_user_msg || err?.message || `HTTP ${res.status}` }
+    } catch (e) {
+        return { status: 'unknown', hint: (e as Error).message || 'network error' }
+    }
+}
+
 async function probeAnthropicCredits(
     apiKey: string,
 ): Promise<{ status: 'ok' | 'credits_low' | 'invalid_key' | 'unknown'; message?: string }> {
@@ -292,10 +333,11 @@ export const researchPreflight = async (c: Context) => {
     // ─── Check: Meta App credentials (for paid_competitor_landscape stage) ──
     // Different from Meta user OAuth — Meta Ad Library is PUBLIC and uses
     // platform-level app credentials (META_APP_ID + META_APP_SECRET env
-    // vars). Without them, paid_competitor_landscape can't pull active
-    // creatives / run-duration / platforms from competitors' ads. Stage
-    // still runs (Google Transparency + Firecrawl fill the gap) but the
-    // output quality drops to "working_hypothesis".
+    // vars). LIVE PROBE — credentials being set is not enough; Facebook
+    // also requires the app to be in Live mode AND/OR for the caller to
+    // be an assigned developer/tester/admin. A "configured but blocked"
+    // app silently fails at run-time, so we ping ads_archive with limit=1
+    // to verify end-to-end. Cost: 1 API call, ~0ms latency, no spend.
     if (!process.env.META_APP_ID || !process.env.META_APP_SECRET) {
         checks.push({
             name: 'meta_app_credentials',
@@ -304,11 +346,28 @@ export const researchPreflight = async (c: Context) => {
             actionable_hint_he: 'META_APP_ID/SECRET חסרים בשרת. בלעדם paid_competitor_landscape לא יראה רקלמות פעילות של המתחרים ב-Meta (Facebook/Instagram). פנו לתמיכה כדי שנגדיר. הסטדיה תרוץ בכל זאת — אבל בעיקר על Google Transparency + Firecrawl, וה-confidence ירד.',
         })
     } else {
-        checks.push({
-            name: 'meta_app_credentials',
-            status: 'ok',
-            label_he: 'Meta Ad Library מוגדר ✓',
-        })
+        const probe = await probeMetaAdLibrary(process.env.META_APP_ID, process.env.META_APP_SECRET)
+        if (probe.status === 'ok') {
+            checks.push({
+                name: 'meta_app_credentials',
+                status: 'ok',
+                label_he: 'Meta Ad Library מוגדר ✓',
+            })
+        } else if (probe.status === 'permission_denied') {
+            checks.push({
+                name: 'meta_app_credentials',
+                status: 'warning',
+                label_he: '⚠️ Meta App מוגדר אבל ה-Ad Library חסום',
+                actionable_hint_he: probe.hint || 'ה-Facebook App במצב Development ללא הרשאות לפעולה הזו. פנו לתמיכה כדי להעביר ל-Live Mode + להוסיף Privacy Policy URL ב-Settings.',
+            })
+        } else {
+            checks.push({
+                name: 'meta_app_credentials',
+                status: 'warning',
+                label_he: 'Meta App לא ניתן לאמת',
+                actionable_hint_he: probe.hint || 'בדיקה כשלה (תקלת רשת/timeout). אם יש credentials — להמשיך; אם לא — paid_competitor_landscape יחזיר warning.',
+            })
+        }
     }
 
     // ─── Check 5: GSC connection (optional, for striking-distance accuracy) ──
