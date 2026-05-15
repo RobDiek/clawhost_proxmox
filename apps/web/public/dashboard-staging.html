@@ -10276,7 +10276,13 @@ var _conversionsSetupStartedAt = 0;
 var _mazhirTickInterval = null;
 
 function _isMazhirAnyRunning() {
-  return _mazhirAuditRunning || _mazhirPlanRunning || _gtmSetupRunning || _conversionsSetupRunning;
+  // Mazhir tasks
+  if (_mazhirAuditRunning || _mazhirPlanRunning || _gtmSetupRunning || _conversionsSetupRunning) return true;
+  // Phase 4.2 paid research stages — these use window.* flags set by
+  // _runPaidStage. Without this check the ticker started by _runPaidStage
+  // dies on its first tick and the elapsed counter freezes at 0.
+  if (window._paidCompLandscapeRunning || window._paidKwResearchRunning || window._paidBudgetScenariosRunning) return true;
+  return false;
 }
 
 function _startMazhirTicker() {
