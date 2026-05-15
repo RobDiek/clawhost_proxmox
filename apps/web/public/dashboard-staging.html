@@ -2588,16 +2588,35 @@ input{font-family:inherit}
                 </div>
               </div>
 
-              <!-- Step 3: Enter credentials -->
-              <div id="gads-step-3" style="background:#FFF7ED;border:1px solid #FDE68A;border-radius:8px;padding:10px">
+              <!-- Step 3: Enter credentials — labeled + helper text per field -->
+              <div id="gads-step-3" style="background:#FFF7ED;border:1px solid #FDE68A;border-radius:8px;padding:12px">
                 <div style="display:flex;align-items:start;gap:8px">
                   <div style="background:#10B981;color:#FFF;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0">3</div>
-                  <div style="flex:1">
-                    <div style="font-weight:600;font-size:0.85rem;margin-bottom:6px">הזנת פרטי חיבור (אחרי אישור)</div>
-                    <input type="text" id="gads-customer-id" placeholder="Customer ID (10 ספרות, ללא מקפים)" dir="ltr" class="int-input" style="margin-bottom:4px" maxlength="12"/>
-                    <input type="password" id="gads-developer-token" placeholder="Developer Token (מ-API Center)" dir="ltr" class="int-input" style="margin-bottom:4px"/>
-                    <input type="text" id="gads-login-customer-id" placeholder="Login Customer ID (אופציונלי — אם דרך MCC)" dir="ltr" class="int-input" style="margin-bottom:6px" maxlength="12"/>
-                    <button class="btn btn-primary btn-sm" onclick="saveGoogleAdsCredentials()">→ שמרו ובדקו</button>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-weight:600;font-size:0.88rem;margin-bottom:10px">הזנת פרטי חיבור (אחרי אישור Developer Token)</div>
+
+                    <!-- Customer ID -->
+                    <div style="margin-bottom:12px">
+                      <label for="gads-customer-id" style="display:block;font-size:0.78rem;font-weight:600;color:#1F2937;margin-bottom:3px">Customer ID <span style="color:#DC2626">*</span></label>
+                      <div style="font-size:0.72rem;color:#6B7280;line-height:1.45;margin-bottom:5px">מזהה חשבון Google Ads שתרצו לנהל. מופיע בפינה ימנית-עליונה ב-Google Ads (פורמט XXX-XXX-XXXX). הקלידו <strong>10 ספרות בלבד</strong>, בלי מקפים.</div>
+                      <input type="text" id="gads-customer-id" placeholder="1234567890" dir="ltr" class="int-input" style="margin-bottom:0" maxlength="12"/>
+                    </div>
+
+                    <!-- Developer Token -->
+                    <div style="margin-bottom:12px">
+                      <label for="gads-developer-token" style="display:block;font-size:0.78rem;font-weight:600;color:#1F2937;margin-bottom:3px">Developer Token <span style="color:#DC2626">*</span></label>
+                      <div style="font-size:0.72rem;color:#6B7280;line-height:1.45;margin-bottom:5px">אסימון ה-API שקיבלתם מ-Google אחרי אישור הבקשה בשלב 2. מצאו אותו ב-Google Ads UI: Tools &amp; Settings → Setup → <strong>API Center</strong>. סוד — לא לשתף.</div>
+                      <input type="password" id="gads-developer-token" placeholder="abc123XYZ_..." dir="ltr" class="int-input" style="margin-bottom:0"/>
+                    </div>
+
+                    <!-- Login Customer ID -->
+                    <div style="margin-bottom:14px">
+                      <label for="gads-login-customer-id" style="display:block;font-size:0.78rem;font-weight:600;color:#1F2937;margin-bottom:3px">Login Customer ID <span style="font-weight:400;color:#9CA3AF">(אופציונלי)</span></label>
+                      <div style="font-size:0.72rem;color:#6B7280;line-height:1.45;margin-bottom:5px">רק אם הגישה לחשבון נעשית דרך <strong>Manager Account (MCC)</strong>. במקרה זה הזינו את ה-Customer ID של ה-MCC עצמו (10 ספרות, ללא מקפים). אם זה חשבון רגיל ללא MCC — השאירו ריק.</div>
+                      <input type="text" id="gads-login-customer-id" placeholder="0987654321" dir="ltr" class="int-input" style="margin-bottom:0" maxlength="12"/>
+                    </div>
+
+                    <button class="btn btn-primary btn-sm" onclick="saveGoogleAdsCredentials()" style="width:100%">→ שמרו ובדקו חיבור</button>
                   </div>
                 </div>
               </div>
@@ -2642,8 +2661,10 @@ input{font-family:inherit}
                 </ol>
               </div>
               <div style="margin-bottom:10px">
-                <input type="text" id="gads-haas-customer-id" placeholder="Customer ID שלכם (10 ספרות, ללא מקפים)" dir="ltr" class="int-input" style="margin-bottom:8px" maxlength="12"/>
-                <button class="btn btn-primary btn-sm" onclick="requestHaasInvitation()">→ שלחו לי הזמנה ל-MCC</button>
+                <label for="gads-haas-customer-id" style="display:block;font-size:0.78rem;font-weight:600;color:#1F2937;margin-bottom:3px">Customer ID של חשבון Google Ads שלכם <span style="color:#DC2626">*</span></label>
+                <div style="font-size:0.72rem;color:#6B7280;line-height:1.45;margin-bottom:5px">מופיע בפינה ימנית-עליונה ב-Google Ads (פורמט XXX-XXX-XXXX). הקלידו <strong>10 ספרות בלבד</strong>, בלי מקפים. נשלח את ההזמנה לחשבון הזה.</div>
+                <input type="text" id="gads-haas-customer-id" placeholder="1234567890" dir="ltr" class="int-input" style="margin-bottom:8px" maxlength="12"/>
+                <button class="btn btn-primary btn-sm" onclick="requestHaasInvitation()" style="width:100%">→ שלחו לי הזמנה ל-MCC</button>
               </div>
               <div style="font-size:0.72rem;color:#6B7280;line-height:1.5;padding:8px;background:#F9FAFB;border-radius:6px">
                 💡 <strong>אין לכם מנוי HaaS עדיין?</strong> <a href="https://clawflow.flowmatic.co.il/" target="_blank" style="color:#2563EB">צפו במסלולים והרשמו ←</a> · המנוי כולל DPA + ניהול שוטף + דוחות שבועיים.
