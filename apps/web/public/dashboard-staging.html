@@ -4901,6 +4901,34 @@ function renderHome() {
           var hasPaidComp = !!pclResult;
           var hasPaidKw = !!pkrResult;
           var hasPaidBud = !!pbsResult;
+          // Rehydrate "running" flags from backend plan.status on page load.
+          // Without this: if user reloads while a paid stage is in flight, the
+          // window.* flags are gone (window resets on reload), the UI shows
+          // "▶ הריצו" as if idle, and no elapsed timer ticks.
+          // With this: on the first render after reload we re-arm the window
+          // flags from researchData.plan.status[sid].state === 'running' and
+          // restart the ticker.
+          var __planStatus = (rd && rd.plan && rd.plan.status) || {};
+          [
+            { sid: 'paid_competitor_landscape', flag: '_paidCompLandscapeRunning', start: '_paidCompLandscapeStartedAt' },
+            { sid: 'paid_keyword_research',     flag: '_paidKwResearchRunning',    start: '_paidKwResearchStartedAt' },
+            { sid: 'paid_budget_scenarios',     flag: '_paidBudgetScenariosRunning', start: '_paidBudgetScenariosStartedAt' },
+          ].forEach(function(x) {
+            var st = __planStatus[x.sid];
+            var backendRunning = !!(st && st.state === 'running');
+            if (backendRunning && !window[x.flag]) {
+              // Re-arm on reload: backend says running but we have no flag yet.
+              window[x.flag] = true;
+              window[x.start] = st.runAt ? new Date(st.runAt).getTime() : Date.now();
+              if (typeof _startMazhirTicker === 'function') _startMazhirTicker();
+            } else if (!backendRunning && window[x.flag]) {
+              // Backend says not running (completed/failed/etc.) but our flag
+              // is still set — happens when a previous session refreshed after
+              // backend finished. Clear the flag so UI shows the done state
+              // instead of an indefinitely-running spinner.
+              window[x.flag] = false;
+            }
+          });
           var pclRunning = !!window._paidCompLandscapeRunning;
           var pkrRunning = !!window._paidKwResearchRunning;
           var pbsRunning = !!window._paidBudgetScenariosRunning;
@@ -4968,10 +4996,10 @@ function renderHome() {
           pipelineSteps.push({
             id: 'paid_competitor_landscape',
             n: 1,
-            phaseLabel: 'פאזה 1 — מחקר (3 שלבים)',
+            phaseLabel: 'שלב א׳ — מחקר (3 חלקים)',
             label: 'מחקר מתחרים — פרסום ממומן' + (pclSummary ? ' · ' + pclSummary : ''),
-            desc: 'Meta Ad Library + Google Ads Transparency Center + Firecrawl audit על דפי נחיתה של מתחרים — 5 buckets, 10 creative angles, IL signals',
-            whyMatters: 'נחשפים לקמפיינים הפעילים של המתחרים: אילו אנגלים יצירתיים, אילו דפי נחיתה, באיזה פלטפורמות. **בלי זה כל ההמלצות יהיו generic.** עומק זה מזין את שלבים 2-3 (מילות מפתח + תקציב) ובסופו של דבר את האודיט והתוכנית.',
+            desc: 'סריקת Meta Ad Library + Google Ads Transparency Center + ביקורת Firecrawl על דפי נחיתה של מתחרים — 5 קטגוריות, 10 אנגלים יצירתיים, מאפיינים ישראליים',
+            whyMatters: 'נחשפים לקמפיינים הפעילים של המתחרים: אילו אנגלים יצירתיים, אילו דפי נחיתה, באילו פלטפורמות. **בלי זה כל ההמלצות יהיו כלליות.** העומק הזה מזין את חלקים 2-3 (מילות מפתח + תקציב) ובסופו של דבר את האודיט והתוכנית.',
             status: pclRunning ? 'running' : (hasPaidComp ? 'done' : 'active'),
             elapsed: pclElapsed,
             primaryAction: pclRunning
@@ -4987,8 +5015,8 @@ function renderHome() {
             id: 'paid_keyword_research',
             n: 2,
             label: 'מחקר מילות מפתח — ממומן' + (pkrSummary ? ' · ' + pkrSummary : ''),
-            desc: 'DataForSEO landscape: CPC, competition_index, intent ladder (TOFU/MOFU/BOFU/BRAND), semantic clusters, IL CPC benchmarks',
-            whyMatters: 'משלב 1 כבר יודעים מי המתחרים — עכשיו מקבלים את ה-CPC הריאלי + intent של כל מילת מפתח רלוונטית. **תוצאה: אד-grupים מוכנים לבנייה.** מזין את שלב 3 (תרחישי תקציב — צריך CPC לחישוב) ושלב 8 (תוכנית מדיה — לפי clusters).',
+            desc: 'סקירת DataForSEO: CPC, מדד תחרות, סולם כוונה (TOFU/MOFU/BOFU/Brand), אשכולות סמנטיים, מדדי CPC ישראליים',
+            whyMatters: 'מחלק 1 כבר יודעים מי המתחרים — עכשיו מקבלים את ה-CPC הריאלי + כוונה של כל מילת מפתח רלוונטית. **התוצאה: קבוצות מודעות מוכנות לבנייה.** מזין את חלק 3 (תרחישי תקציב — צריך CPC לחישוב) וחלק 8 (תוכנית מדיה — לפי אשכולות).',
             status: pkrRunning ? 'running' : (hasPaidKw ? 'done' : (hasPaidComp ? 'active' : 'locked')),
             lockedReason: hasPaidComp ? '' : 'דורש סיום שלב 1 (מחקר מתחרים)',
             elapsed: pkrElapsed,
@@ -5005,8 +5033,8 @@ function renderHome() {
             id: 'paid_budget_scenarios',
             n: 3,
             label: 'תרחישי תקציב — שמרני / מאוזן / אגרסיבי' + (pbsSummary ? ' · ' + pbsSummary : ''),
-            desc: '17 IL vertical benchmarks → 3 דרגות עם KPI projection חודשי + allocation + bidding ladder',
-            whyMatters: 'Opus לוקח את ה-CPC הריאלי משלב 2 + 17 IL vertical benchmarks ובונה 3 תרחישי תקציב עם projection חודשי של 12 חודש. **תוצאה: המלצה מספרית לפני בחירה.** בשלב 4 תוכלו לבחור scenario מומלץ או להזין משלכם.',
+            desc: '17 מדדי ייחוס לורטיקלים ישראליים → 3 דרגות עם תחזית KPI חודשית + הקצאת תקציב + סולם הצעות מחיר',
+            whyMatters: 'Opus לוקח את ה-CPC הריאלי מחלק 2 + 17 מדדי ייחוס לורטיקלים ישראליים ובונה 3 תרחישי תקציב עם תחזית חודשית ל-12 חודשים. **התוצאה: המלצה מספרית לפני בחירה.** בחלק 4 תוכלו לבחור תרחיש מומלץ או להזין משלכם.',
             status: pbsRunning ? 'running' : (hasPaidBud ? 'done' : (hasPaidKw ? 'active' : 'locked')),
             lockedReason: hasPaidKw ? '' : 'דורש סיום שלב 2 (מילות מפתח)',
             elapsed: pbsElapsed,
@@ -5022,10 +5050,10 @@ function renderHome() {
           pipelineSteps.push({
             id: 'paid_profile',
             n: 4,
-            phaseLabel: 'פאזה 2 — הקמת קמפיין' + (hasFullAdsAPI ? ' (5 שלבים)' : ' (3 שלבים)'),
+            phaseLabel: 'שלב ב׳ — הקמת קמפיין' + (hasFullAdsAPI ? ' (5 חלקים)' : ' (3 חלקים)'),
             label: 'פרופיל קידום ממומן',
             desc: 'תקציב, מטרה, גיאוגרפיה, USP, נתונים היסטוריים — בסיס לאודיט ולתוכנית',
-            whyMatters: 'אתם מתרגמים את ההמלצות מהמחקר (שלבים 1-3) לבחירה עסקית קונקרטית. אם רצתם תרחישי תקציב — תוכלו לבחור scenario מומלץ. **בלי זה האודיט והתוכנית לא יודעים תקציב ומטרה.**',
+            whyMatters: 'אתם מתרגמים את ההמלצות מהמחקר (חלקים 1-3) לבחירה עסקית קונקרטית. אם הרצתם תרחישי תקציב — תוכלו לבחור תרחיש מומלץ. **בלי זה האודיט והתוכנית לא יודעים תקציב ומטרה.**',
             status: hasPaidProfile ? 'done' : (hasPaidBud ? 'active' : 'locked'),
             lockedReason: hasPaidBud ? '' : 'מומלץ לסיים את שלבי 1-3 (המחקר) — אבל ניתן למלא ידנית גם בלי',
             primaryAction: { label: hasPaidProfile ? 'ערכו' : 'מלאו פרופיל', onclick: 'openPaidProfileModal()' },
@@ -5039,8 +5067,8 @@ function renderHome() {
             label: 'אודיט Google Ads (Mazhir)' + (hasAudit && auditMethodology ? ' · ' + auditMethodology : ''),
             desc: hasAudit
               ? 'Opus + Sonnet אדוורסרי קראו 19 מקורות נתונים והפיקו אודיט מקיף'
-              : 'Opus + Sonnet יקראו 19 מקורות נתונים: GA4, Search Terms, Auction Insights, Change History, GTM, Search Console, DataForSEO ועוד',
-            whyMatters: 'Opus קורא את כל הנתונים — המחקר משלבים 1-3, הפרופיל משלב 4, וההיסטוריה (אם יש OAuth) — ומחזיר audit מקיף עם methodology + blockers + recommendations. **בלי זה הקמפיינים יוצאים בלי validation.** Sonnet אדוורסרי מציג "5 דרכים שזה ייכשל" כדי לתפוס assumptions.',
+              : 'Opus + Sonnet יקראו 19 מקורות נתונים: GA4, מונחי חיפוש, Auction Insights, היסטוריית שינויים, GTM, Search Console, DataForSEO ועוד',
+            whyMatters: 'Opus קורא את כל הנתונים — המחקר מחלקים 1-3, הפרופיל מחלק 4, וההיסטוריה (אם יש OAuth) — ומחזיר אודיט מקיף עם מתודולוגיה + חסמים + המלצות. **בלי זה הקמפיינים יוצאים בלי אימות.** Sonnet אדוורסרי מציג "5 דרכים שזה ייכשל" כדי לתפוס הנחות יסוד.',
             status: auditRunning ? 'running' : (hasAudit ? 'done' : (hasPaidProfile ? 'active' : 'locked')),
             lockedReason: hasPaidProfile ? '' : 'דורש שלב 4 (פרופיל)',
             elapsed: auditElapsed,
@@ -5058,9 +5086,9 @@ function renderHome() {
             pipelineSteps.push({
               id: 'mazhir_gtm_setup',
               n: nextStepNum++,
-              label: 'GTM auto-setup',
-              desc: 'Conversion Linker, GCLID Capture, awct (Google Ads pixel), gaawe (GA4), Enhanced Conversions, Consent Mode v2 — מותקן ומפורסם דרך GTM API',
-              whyMatters: 'בלי GTM מותקן נכון, Smart Bidding ב-Google Ads מקבל סיגנל המרה רעוע (iOS attribution loss, missing GCLIDs). **תוצאה: tCPA / tROAS יבזבזו תקציב על noise.** Mazhir דוחף אוטומטית את כל הtags הקריטיים — pixel, conversion linker, consent mode — ללא touch ידני.',
+              label: 'הקמת GTM אוטומטית',
+              desc: 'תגיות Conversion Linker, GCLID Capture, awct (פיקסל Google Ads), gaawe (GA4), Enhanced Conversions, Consent Mode v2 — מותקנות ומפורסמות דרך GTM API',
+              whyMatters: 'בלי GTM מותקן נכון, Smart Bidding ב-Google Ads מקבל אות המרה רעוע (אובדן ייחוס ב-iOS, GCLIDים חסרים). **התוצאה: tCPA / tROAS יבזבזו תקציב על רעש.** Mazhir דוחף אוטומטית את כל התגיות הקריטיות — פיקסל, conversion linker, מצב הסכמה — ללא נגיעה ידנית.',
               status: hasGtmPublished ? 'done' : (hasAudit ? 'active' : 'locked'),
               lockedReason: hasAudit ? '' : 'דורש סיום אודיט',
               primaryAction: { label: hasGtmPublished ? 'הריצו מחדש' : '▶ הפעילו GTM auto-setup', onclick: 'autoSetupMazhirGtmFromTasks()', disabled: !hasAudit },
@@ -5069,12 +5097,12 @@ function renderHome() {
             pipelineSteps.push({
               id: 'mazhir_conversions',
               n: nextStepNum++,
-              label: convCreated > 0 ? 'ConversionActions ב-Google Ads (' + convCreated + ')' : 'ConversionActions ב-Google Ads',
-              desc: 'יוצר רשומות ConversionAction ב-Google Ads עבור כל סוג המרה (form_submit, phone_call וכו׳) — מקושרות אוטומטית לתגי GTM',
-              whyMatters: 'Google Ads לא יודע מה לאופטמ בלי ConversionAction רישומים. GTM משלב 6 דוחף נתונים פנימה, ConversionAction אומר ל-Google "זה מה שאני סופר כהמרה". **בלי זה Smart Bidding לא יכול לעבוד — כל המרה מתעלמת ממנו.**',
+              label: convCreated > 0 ? 'פעולות המרה ב-Google Ads (' + convCreated + ')' : 'פעולות המרה ב-Google Ads',
+              desc: 'יצירת רשומות ConversionAction ב-Google Ads עבור כל סוג המרה (form_submit, phone_call וכו׳) — מקושרות אוטומטית לתגיות GTM',
+              whyMatters: 'Google Ads לא יודע מה לאופטם בלי רישומי ConversionAction. GTM מחלק 6 דוחף נתונים פנימה, ConversionAction אומר ל-Google "זה מה שאני סופר כהמרה". **בלי זה Smart Bidding לא יכול לעבוד — כל המרה מתעלמת ממנו.**',
               status: convCreated > 0 ? 'done' : (hasGtmPublished ? 'active' : 'locked'),
               lockedReason: hasGtmPublished ? '' : 'דורש שלב 6 (GTM)',
-              primaryAction: { label: convCreated > 0 ? 'הריצו מחדש' : '▶ צרו ConversionActions', onclick: 'setupMazhirConversionsFromTasks()', disabled: !hasGtmPublished },
+              primaryAction: { label: convCreated > 0 ? 'הריצו מחדש' : '▶ צרו פעולות המרה', onclick: 'setupMazhirConversionsFromTasks()', disabled: !hasGtmPublished },
               secondaryActions: []
             });
           }
@@ -5092,9 +5120,9 @@ function renderHome() {
             desc: planRunning
               ? 'Opus בונה — אנא המתינו'
               : (hasFullAdsAPI
-                  ? 'קמפיינים, קבוצות מודעות, RSA, מילות מפתח עם volumes/CPC ריאליים, negatives, sitelinks — מוכן לדחיפה דרך ה-API'
-                  : 'מסמך setup ידני מלא — קמפיינים, ad groups, RSA, מילות מפתח, negatives. ניתן להזין ידנית ב-Google Ads UI'),
-            whyMatters: 'Opus מקבל את כל הנתונים שנצברו: 4 buckets מתחרים, 80 keywords עם CPC + intent, 3 תרחישי תקציב, פרופיל, audit, GTM/Conversions setup. **בונה תוכנית מדיה ממוקדת**: קמפיינים, ad groups, RSA copy, mileh keywords עם match types, negatives, sitelinks, extensions. ' + (hasFullAdsAPI ? 'מוכן ל-API push דרך Mazhir Executor.' : 'מסמך setup ידני שניתן להזין ב-Google Ads UI.'),
+                  ? 'קמפיינים, קבוצות מודעות, מודעות RSA, מילות מפתח עם נפח/CPC ריאליים, מילים שליליות, Sitelinks — מוכן להתקנה אוטומטית דרך ה-API'
+                  : 'מסמך הקמה ידנית מלא — קמפיינים, קבוצות מודעות, מודעות RSA, מילות מפתח, מילים שליליות. ניתן להזין ידנית בממשק Google Ads'),
+            whyMatters: 'Opus מקבל את כל הנתונים שנצברו: 4 קטגוריות מתחרים, 80 מילות מפתח עם CPC + כוונה, 3 תרחישי תקציב, פרופיל, אודיט, הקמת GTM ופעולות המרה. **בונה תוכנית מדיה ממוקדת**: קמפיינים, קבוצות מודעות, טקסטים ל-RSA, מילות מפתח עם סוגי התאמה, מילים שליליות, Sitelinks והרחבות. ' + (hasFullAdsAPI ? 'מוכן להתקנה אוטומטית דרך מנוע הביצוע של Mazhir.' : 'מסמך הקמה ידנית שניתן להזין בממשק Google Ads.'),
             status: planRunning ? 'running' : (hasPlan ? 'done' : (hasAudit ? 'active' : 'locked')),
             lockedReason: hasAudit ? '' : 'דורש שלב 5 (אודיט)',
             elapsed: planElapsed,
