@@ -391,12 +391,16 @@ app.post('/instances/:id/setup/agents/strategy/reset', resetStrategy)
 import { getResearchPlan, setResearchPlan, expandResearchPlan } from '@/controllers/hosting/research/plan'
 import { runResearchStage, getResearchStageStatus } from '@/controllers/hosting/research/runStage'
 import { researchPreflight } from '@/controllers/hosting/research/preflight'
+import { getStageImpact, wipeStageDownstream } from '@/controllers/hosting/research/stageImpact'
 app.get('/instances/:id/research/plan', getResearchPlan)
 app.post('/instances/:id/research/plan', setResearchPlan)
 app.post('/instances/:id/research/plan/expand', expandResearchPlan)
 app.get('/instances/:id/research/preflight', researchPreflight)
 app.post('/instances/:id/research/stage/:stageId', runResearchStage)
 app.get('/instances/:id/research/stage/:stageId/status', getResearchStageStatus)
+// Phase 4.7 — dependency-aware re-run
+app.get('/instances/:id/research/stage/:stageId/impact', getStageImpact)
+app.post('/instances/:id/research/stage/:stageId/wipe-downstream', wipeStageDownstream)
 
 // DFS credits proxy (Phase 3.6) — Flowmatic-managed master DFS account,
 // per-tenant USD-cents balance. memory: project_dfs_proxy.md.

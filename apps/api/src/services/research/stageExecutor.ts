@@ -664,10 +664,107 @@ export async function saveStageResult(
 
     results[stageId] = stageResult
     status[stageId] = output.status
+    // Clear our own stale marker — we just produced a fresh result.
+    if (status[stageId] && (status[stageId] as any).stale) {
+        delete (status[stageId] as any).stale
+    }
+
+    // ── Phase 4.7: cascade-stale to downstream ────────────────────────────
+    // Mark every transitively-downstream stage that's currently completed
+    // or degraded as STALE. We don't touch pending/running/failed — those
+    // either haven't produced data yet or already need attention.
+    // Wrapper artifacts (mazhirAudit, mediaPlan, etc.) get their own
+    // freshness records under `_artifactFreshness` so the UI can flag them.
+    const { computeStageImpact } = await import('./dependencyGraph')
+    const impact = computeStageImpact(stageId)
+    const now = new Date().toISOString()
+    for (const downId of impact.downstreamStages) {
+        const cur = status[downId] as StageStatus | undefined
+        if (!cur) continue
+        if (cur.state === 'completed' || cur.state === 'degraded') {
+            status[downId] = { ...cur, stale: { since: now, sourceStage: stageId } }
+        }
+    }
+    // Wrapper-artifact freshness — keep the data, flag it stale.
+    const artifactFreshness = (rd._artifactFreshness as Record<string, { stale?: { since: string; sourceStage: string } }> | undefined) || {}
+    for (const wrapper of impact.wrapperArtifacts) {
+        // Only mark stale if the wrapper actually has data (avoid noise).
+        if (rd[wrapper as keyof typeof rd] !== undefined && rd[wrapper as keyof typeof rd] !== null) {
+            artifactFreshness[wrapper] = { stale: { since: now, sourceStage: stageId } }
+        }
+    }
 
     await writeResearchData(agent, instanceId, {
         ...rd,
         results,
         plan: { ...plan, status },
+        _artifactFreshness: artifactFreshness,
     })
+}
+
+/**
+ * Phase 4.7 — explicit wipe-downstream operation. When the user confirms a
+ * re-run with cascade in the UI, the frontend calls this BEFORE issuing the
+ * stage re-run POST. Clears results[downstreamStage] for every transitive
+ * descendant AND clears their plan.status (reverts to 'pending'). Also wipes
+ * wrapper artifacts that depend on the stage.
+ *
+ * Distinct from the auto-stale flagging in saveStageResult:
+ *   - markDownstreamStale (implicit, in saveStageResult): "data is suspect, flag it"
+ *   - wipeDownstreamResults (explicit, here):              "data is gone, must re-run"
+ *
+ * The user always gets to choose.
+ */
+export async function wipeDownstreamResults(
+    instanceId: string,
+    stageId: StageId,
+    agentId?: string,
+): Promise<{ wipedStages: StageId[]; wipedWrappers: string[] }> {
+    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+    if (!inst) throw new Error(`wipeDownstreamResults: instance ${instanceId} not found`)
+    const { resolveAgentById, resolvePrimaryAgent, readResearchData, writeResearchData } =
+        await import('@/services/agentContext')
+    const agent = agentId
+        ? await resolveAgentById(instanceId, agentId)
+        : await resolvePrimaryAgent(instanceId)
+    const rd = await readResearchData(agent, instanceId) as Record<string, unknown>
+
+    const { computeStageImpact } = await import('./dependencyGraph')
+    const impact = computeStageImpact(stageId)
+
+    const results = ((rd.results as Record<string, unknown>) || {}) as Record<StageId, unknown>
+    const plan = (rd.plan as { stages?: StageId[]; status?: Record<StageId, StageStatus> } | undefined) || {}
+    const status: Record<StageId, StageStatus> = { ...(plan.status || {}) } as Record<StageId, StageStatus>
+
+    const wipedStages: StageId[] = []
+    for (const downId of impact.downstreamStages) {
+        if (results[downId] !== undefined) {
+            delete results[downId]
+            wipedStages.push(downId)
+        }
+        if (status[downId]) {
+            status[downId] = { state: 'pending' }
+        }
+    }
+
+    const wipedWrappers: string[] = []
+    const cleared: Record<string, unknown> = { ...rd }
+    for (const wrapper of impact.wrapperArtifacts) {
+        if (cleared[wrapper] !== undefined && cleared[wrapper] !== null) {
+            delete cleared[wrapper]
+            wipedWrappers.push(wrapper)
+        }
+    }
+    // Clean the freshness record too
+    const artifactFreshness = (cleared._artifactFreshness as Record<string, unknown>) || {}
+    for (const wrapper of wipedWrappers) delete artifactFreshness[wrapper]
+
+    await writeResearchData(agent, instanceId, {
+        ...cleared,
+        results,
+        plan: { ...plan, status },
+        _artifactFreshness: artifactFreshness,
+    })
+
+    return { wipedStages, wipedWrappers }
 }

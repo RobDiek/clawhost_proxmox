@@ -246,6 +246,17 @@ export interface StageStatus {
      * connect. UI uses these to render the bright warning + deep-link CTAs.
      */
     degradedReasons?: string[]
+    /**
+     * Phase 4.7 — set when an upstream stage re-ran AFTER this stage. The
+     * `state` field stays whatever it was (typically 'completed') so reads
+     * still work, but the UI shows a "stale — re-run recommended" badge and
+     * the dependency-aware re-runner can cascade-clear if the user confirms.
+     * Cleared whenever this stage itself re-runs.
+     */
+    stale?: {
+        since: string         // ISO timestamp of when the staleness was recorded
+        sourceStage: StageId  // which upstream stage's re-run invalidated us
+    }
 }
 
 export interface StageResult {

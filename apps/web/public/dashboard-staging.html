@@ -13511,25 +13511,39 @@ function renderStageCardV2(sid, idx) {
     var elapsedLabel = elapsedSec < 60 ? elapsedSec + ' שנ׳' : Math.floor(elapsedSec / 60) + ':' + String(elapsedSec % 60).padStart(2, '0');
     actions = '<div style="font-size:0.78rem;color:#3730A3">רץ ' + elapsedLabel + ' · משוער 8-15 דקות (DFS prefetch + Opus generation + critic + cleanup)</div>';
   } else if (status.state === 'completed' || status.state === 'degraded') {
+    // Phase 4.7 — rerun goes through impact-aware wrapper that prompts the
+    // user when downstream stages/wrapper-artifacts would be invalidated.
     actions =
       '<button class="btn btn-outline btn-sm" onclick="viewStageResultV2(\'' + sid + '\')" style="font-size:0.74rem;padding:3px 10px">צפו</button>' +
-      '<button class="btn btn-outline btn-sm" onclick="runStageV2(\'' + sid + '\')" style="font-size:0.74rem;padding:3px 10px;color:#6B7280">↻</button>';
+      '<button class="btn btn-outline btn-sm" onclick="rerunStageV2WithImpactCheck(\'' + sid + '\')" style="font-size:0.74rem;padding:3px 10px;color:#6B7280" title="הרצה מחדש — תוצג בקשת אישור אם השלב משפיע על שלבים תלויים">↻</button>';
   } else {
     actions = '<button class="btn btn-primary btn-sm" onclick="runStageV2(\'' + sid + '\')" style="font-size:0.78rem;padding:4px 14px">הריצו &#8592;</button>';
   }
 
-  return '<div style="border:1px solid ' + (status.state === 'completed' ? '#A7F3D0' : status.state === 'failed' ? '#FECACA' : '#E5E7EB') + ';border-radius:10px;padding:12px 14px;margin-bottom:8px;background:#fff">'
+  // Phase 4.7 — stale badge: this stage's data is from before an upstream
+  // re-ran. UI invites a re-run; the existing rerun button is impact-aware.
+  var staleBadge = '';
+  var staleSourceNote = '';
+  if (status.stale && status.stale.sourceStage) {
+    var srcTitle = (typeof STAGE_CATALOG_V2 !== 'undefined' && STAGE_CATALOG_V2[status.stale.sourceStage] && STAGE_CATALOG_V2[status.stale.sourceStage].titleHe) || status.stale.sourceStage;
+    staleBadge = '<span style="font-size:0.7rem;background:#FFFBEB;color:#92400E;padding:2px 8px;border-radius:4px;font-weight:600;border:1px solid #FDE68A" title="' + escapeHtml('שלב מקור: ' + srcTitle) + '">⚠ מיושן</span>';
+    staleSourceNote = '<div style="font-size:0.72rem;color:#92400E;margin-top:4px">נתונים פוטנציאלית מיושנים — "' + escapeHtml(srcTitle) + '" רץ מחדש אחרי השלב הזה. מומלץ להריץ שוב.</div>';
+  }
+
+  return '<div style="border:1px solid ' + (status.stale ? '#FDE68A' : status.state === 'completed' ? '#A7F3D0' : status.state === 'failed' ? '#FECACA' : '#E5E7EB') + ';border-radius:10px;padding:12px 14px;margin-bottom:8px;background:' + (status.stale ? '#FFFEFB' : '#fff') + '">'
     + '<div style="display:flex;align-items:flex-start;gap:12px">'
     +   '<div style="font-size:0.9rem;color:#9CA3AF;font-weight:600;width:24px;text-align:center">' + (idx + 1) + '</div>'
     +   '<div style="flex:1;min-width:0">'
     +     '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">'
     +       '<strong style="font-size:0.94rem;color:#1F2937">' + meta.titleHe + '</strong>'
     +       '<span style="font-size:0.7rem;background:' + stateBg + ';color:' + stateColor + ';padding:2px 8px;border-radius:4px;font-weight:500">' + stateLabel + '</span>'
+    +       staleBadge
     +       (confidence ? '<span style="font-size:0.7rem;color:' + confColor + '" title="confidence">●' + confLabel + '</span>' : '')
     +       qualBadge
     +       costBadge
     +     '</div>'
     +     '<div style="font-size:0.78rem;color:#6B7280">' + meta.descHe + '</div>'
+    +     staleSourceNote
     +     (status.failureReason ? '<div style="font-size:0.74rem;color:#991B1B;margin-top:4px">⚠ ' + escapeHtml(status.failureReason) + '</div>' : '')
     +   '</div>'
     +   '<div style="display:flex;gap:6px;align-items:center;flex-shrink:0">' + actions + '</div>'
@@ -13823,6 +13837,99 @@ function attachAutoRefreshPoll(iid, sid, preRunAt, tickHandle) {
     } catch (e) { /* network blip — keep polling */ }
   }, 15000);
   return pollHandle;
+}
+
+/**
+ * Phase 4.7 — Dependency-aware re-run wrapper. Call this from UI buttons
+ * INSTEAD of runStageV2 directly. It:
+ *   1. Fetches /research/stage/:sid/impact to see what would go stale
+ *   2. If anything is affected, shows a confirm dialog listing the
+ *      downstream stages + wrapper artifacts about to be invalidated
+ *   3. On confirm, wipes downstream server-side (so they revert to pending)
+ *   4. Kicks off the actual stage run via runStageV2(sid)
+ * If nothing is affected, runs immediately without prompt.
+ */
+async function rerunStageV2WithImpactCheck(sid) {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { runStageV2(sid); return; }
+
+  // First-run optimization: no result yet means no downstream impact possible.
+  var current = pipelineV2State.results && pipelineV2State.results[sid];
+  if (!current) { runStageV2(sid); return; }
+
+  // Fetch impact list from server
+  var impact;
+  try {
+    var r = await apiFetch('/hosting/instances/' + iid + '/research/stage/' + sid + '/impact');
+    if (!r.success) throw new Error(r.message || 'impact fetch failed');
+    impact = r.data;
+  } catch (e) {
+    // If impact endpoint is unavailable (older backend) fall back to direct run.
+    runStageV2(sid);
+    return;
+  }
+
+  if (!impact.hasAnyImpact) {
+    // Re-running this stage doesn't affect anything that currently has data.
+    runStageV2(sid);
+    return;
+  }
+
+  var STAGE_TITLES = (typeof STAGE_CATALOG_V2 !== 'undefined') ? STAGE_CATALOG_V2 : {};
+  var WRAPPER_HE = {
+    mazhirAudit: 'אודיט Mazhir',
+    mediaPlan: 'תוכנית מדיה',
+    contentPlan: 'תוכנית תוכן',
+    chosenScenario: 'תרחיש שנבחר',
+    marketingIntents: 'מטרות שיווק',
+    brandSemanticFields: 'שדות סמנטיים של המותג',
+  };
+
+  var stagesList = (impact.currentlyAffectedStages || []).map(function(s) {
+    var t = (STAGE_TITLES[s] && STAGE_TITLES[s].titleHe) || s;
+    return '• ' + t;
+  }).join('\n');
+  var wrappersList = (impact.currentlyAffectedWrappers || []).map(function(w) {
+    return '• ' + (WRAPPER_HE[w] || w);
+  }).join('\n');
+
+  var msg = '⚠️ הרצה מחדש של "' + ((STAGE_TITLES[sid] && STAGE_TITLES[sid].titleHe) || sid) + '" תשפיע על הבאים:\n\n';
+  if (stagesList) msg += '— שלבים תלויים שיתבטלו:\n' + stagesList + '\n\n';
+  if (wrappersList) msg += '— תוצרים נלווים שיימחקו:\n' + wrappersList + '\n\n';
+  msg += 'לאחר ההרצה תצטרכו להריץ מחדש את כל השלבים הללו כדי להחזיר את העקביות.\n\n';
+  msg += 'להמשיך?';
+
+  if (!confirm(msg)) return;
+
+  // Wipe downstream server-side BEFORE re-running so the next plan-poll
+  // reflects the cleared state and the UI doesn't show stale data flickering.
+  try {
+    var w = await apiFetch('/hosting/instances/' + iid + '/research/stage/' + sid + '/wipe-downstream', {
+      method: 'POST',
+      body: '{}',
+    });
+    if (!w.success) {
+      showToast('שגיאת ניקוי תלויות: ' + (w.message || ''), 'error');
+      return;
+    }
+    // Clear local plan state for the wiped stages so UI updates immediately
+    var wipedStages = (w.data && w.data.wipedStages) || [];
+    var wipedWrappers = (w.data && w.data.wipedWrappers) || [];
+    wipedStages.forEach(function(s) {
+      if (pipelineV2State.results) delete pipelineV2State.results[s];
+      if (pipelineV2State.plan && pipelineV2State.plan.status) {
+        pipelineV2State.plan.status[s] = { state: 'pending' };
+      }
+    });
+    renderPipelineV2();
+    showToast('נוקו ' + wipedStages.length + ' שלבים + ' + wipedWrappers.length + ' תוצרים. מתחיל הרצה...', 'info');
+  } catch (e) {
+    showToast('שגיאה: ' + (e.message || ''), 'error');
+    return;
+  }
+
+  // Now run the actual stage
+  runStageV2(sid);
 }
 
 async function runStageV2(sid) {
