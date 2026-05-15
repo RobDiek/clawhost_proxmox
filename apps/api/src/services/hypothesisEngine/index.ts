@@ -31,6 +31,10 @@ import { generateModeledConversionRatio } from './generators/modeledConversionRa
 import { generateConsentModeV2 } from './generators/consentModeV2'
 import { generateCrossPlatformGap } from './generators/crossPlatformGap'
 import { generateGeoExperimentTrigger } from './generators/geoExperimentTrigger'
+import { generateCreativeVolumeAudit } from './generators/creativeVolumeAudit'
+import { generateSkagAntiPattern } from './generators/skagAntiPattern'
+import { generateCtwaAttributionGap } from './generators/ctwaAttributionGap'
+import { generateValueBasedBidding } from './generators/valueBasedBidding'
 import { generateOpusAudit } from './generators/opusAudit'
 
 export interface RunOptions {
@@ -181,6 +185,10 @@ export async function runHypothesisEngine(instanceId: string, opts?: RunOptions)
         { name: 'consentModeV2', fn: generateConsentModeV2 },
         { name: 'crossPlatformGap', fn: generateCrossPlatformGap },
         { name: 'geoExperimentTrigger', fn: generateGeoExperimentTrigger },
+        { name: 'creativeVolumeAudit', fn: generateCreativeVolumeAudit },
+        { name: 'skagAntiPattern', fn: generateSkagAntiPattern },
+        { name: 'ctwaAttributionGap', fn: generateCtwaAttributionGap },
+        { name: 'valueBasedBidding', fn: generateValueBasedBidding },
     ]
     if (!opts?.skipOpusAudit) {
         generators.push({ name: 'opusAudit', fn: generateOpusAudit })

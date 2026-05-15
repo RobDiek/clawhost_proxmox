@@ -48,6 +48,10 @@ export type HypothesisCode =
     // cross-platform truth (Phase 4.4)
     | 'cross_platform_truth_double_count_gap'           // platforms over-claim revenue vs observed (GA4/server)
     | 'cross_platform_truth_geo_experiment'             // attribution trust low → run a geo holdout to measure incrementality
+    // structural / creative quality (Phase 4.5)
+    | 'creative_volume_under_minimum'                   // <4 creatives per adset → fatigue + delivery suppression
+    | 'structure_skag_anti_pattern'                     // ≥50% ad groups are single-keyword → Smart Bidding starves
+    | 'ctwa_attribution_gap'                            // Meta messaging starts >> GA4 leads → CTWA funnel dark
     // LLM-driven (catch-all for opus audit findings that don't fit rule codes)
     | 'opus_audit_finding'
 
