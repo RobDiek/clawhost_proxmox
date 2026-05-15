@@ -276,6 +276,11 @@ async function fetchCompetitorAds(query: string, accessToken: string): Promise<M
 export async function auditMetaAdLibrary(competitorsOrDomains: string[]): Promise<MetaAdLibraryResult> {
     const appId = process.env.META_APP_ID || ''
     const appSecret = process.env.META_APP_SECRET || ''
+    // In 2024-2025 Meta deprecated App Access Token for ads_archive — now
+    // requires a User Access Token from someone assigned a role in the app
+    // (Admin/Developer/Tester). Prefer the user token when set; fall back
+    // to app token only for backward compat (will hit "App role required").
+    const userToken = process.env.META_USER_ACCESS_TOKEN || ''
     const diagnostics = {
         appIdConfigured: !!appId,
         appSecretConfigured: !!appSecret,
@@ -305,7 +310,7 @@ export async function auditMetaAdLibrary(competitorsOrDomains: string[]): Promis
         }
     }
 
-    const accessToken = `${appId}|${appSecret}`
+    const accessToken = userToken || `${appId}|${appSecret}`
     const targets = competitorsOrDomains.slice(0, META_MAX_COMPETITORS)
     const cleanedTargets = targets.map(t => t
         .replace(/^https?:\/\//i, '')

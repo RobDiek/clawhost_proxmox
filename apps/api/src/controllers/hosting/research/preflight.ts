@@ -87,7 +87,10 @@ async function probeMetaAdLibrary(
     appSecret: string,
 ): Promise<{ status: 'ok' | 'permission_denied' | 'unknown'; hint?: string }> {
     try {
-        const accessToken = `${appId}|${appSecret}`
+        // Meta deprecated App Access Token for ads_archive in 2024-2025;
+        // prefer META_USER_ACCESS_TOKEN when set.
+        const userToken = process.env.META_USER_ACCESS_TOKEN || ''
+        const accessToken = userToken || `${appId}|${appSecret}`
         const url = 'https://graph.facebook.com/v18.0/ads_archive'
             + `?access_token=${encodeURIComponent(accessToken)}`
             + `&ad_reached_countries=${encodeURIComponent('["IL"]')}`

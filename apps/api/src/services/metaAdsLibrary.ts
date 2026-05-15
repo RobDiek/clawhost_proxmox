@@ -32,10 +32,13 @@ export async function pullMetaAdsLibrary(competitorPagesOrDomains: string[]): Pr
 
     const appId = process.env.META_APP_ID || ''
     const appSecret = process.env.META_APP_SECRET || ''
+    const userToken = process.env.META_USER_ACCESS_TOKEN || ''
     if (!appId || !appSecret) {
         return { available: false, reason: 'Meta API app credentials not configured (META_APP_ID, META_APP_SECRET)', competitorsScanned: 0, creatives: [] }
     }
-    const accessToken = `${appId}|${appSecret}`
+    // 2024-2025: Meta requires User Access Token for ads_archive (App tokens
+    // hit "App role required"). Prefer user token when set.
+    const accessToken = userToken || `${appId}|${appSecret}`
 
     const targets = competitorPagesOrDomains.slice(0, 6)
     const creatives: MetaAdsResult['creatives'] = []
