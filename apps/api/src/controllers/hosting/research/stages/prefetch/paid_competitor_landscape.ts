@@ -60,6 +60,7 @@ export interface PaidCompetitorLandscapePrefetch {
 interface CompetitorRecord {
     name?: string
     domain?: string
+    url?: string         // <-- competitor_landscape stage emits records with `url`, not `domain`
     bucket?: string
 }
 
@@ -67,13 +68,35 @@ function isStringArray(x: unknown): x is string[] {
     return Array.isArray(x) && x.every(v => typeof v === 'string')
 }
 
+/**
+ * Strip protocol/path/www and lowercase; return cleaned string OR empty when
+ * the input isn't a syntactically-valid domain. Defense against upstream
+ * stages emitting `name` with Hebrew/spaces/parentheses (e.g.
+ * "אביה אחסנה (avia2000)") — we used to pass that straight to
+ * `https://{name}` and Firecrawl would fail on 100% of LP audits.
+ *
+ * Rules:
+ *   - Must contain a dot followed by 2-24 ASCII letters (the TLD)
+ *   - Only ASCII letters, digits, hyphens, dots (no Unicode / spaces / parens)
+ *   - 4-253 chars (RFC 1035 cap; minimum is a.io)
+ *
+ * When invalid we return '' so resolveDomains() can skip the entry rather
+ * than poison the URL list.
+ */
+const VALID_DOMAIN_RE = /^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,24}$/
 function cleanDomain(raw: string): string {
-    return raw
+    const cleaned = raw
         .trim()
         .replace(/^https?:\/\//i, '')
         .replace(/\/.*$/, '')
         .replace(/^www\./i, '')
         .toLowerCase()
+    // Pull out something that looks like a domain even if user typed
+    // "אביה אחסנה (avia2000.co.il)" — extract the parenthesized domain.
+    const extracted = cleaned.match(/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,24}/)?.[0] || cleaned
+    if (extracted.length < 4 || extracted.length > 253) return ''
+    if (!VALID_DOMAIN_RE.test(extracted)) return ''
+    return extracted
 }
 
 function resolveDomains(rd: ResearchDataV2): {
@@ -106,17 +129,24 @@ function resolveDomains(rd: ResearchDataV2): {
         }
     }
 
-    // 2. From organic competitor_landscape (already discovered, validated)
+    // 2. From organic competitor_landscape (already discovered, validated).
+    // Field priority: `url` (cleanest, includes TLD) > `domain` > `name`.
+    // The `name` fallback is dangerous — Opus sometimes emits Hebrew-in-parens
+    // values like "אביה אחסנה (avia2000)" which used to slip through as URLs.
+    // cleanDomain() now regex-extracts a valid domain or returns '' to skip.
     const organicResult = rd.results?.competitor_landscape
     const organicRecords = ((organicResult?.records as unknown[]) || []) as CompetitorRecord[]
     for (const rec of organicRecords) {
-        const raw = rec.domain || rec.name
-        if (typeof raw !== 'string') continue
-        const d = cleanDomain(raw)
-        if (!d || seen.has(d)) continue
-        seen.add(d)
-        ordered.push(d)
-        sources[d] = 'organic'
+        const candidates = [rec.url, rec.domain, rec.name].filter((x): x is string => typeof x === 'string')
+        let resolved = ''
+        for (const raw of candidates) {
+            const d = cleanDomain(raw)
+            if (d) { resolved = d; break }
+        }
+        if (!resolved || seen.has(resolved)) continue
+        seen.add(resolved)
+        ordered.push(resolved)
+        sources[resolved] = 'organic'
     }
 
     // 3. Soft cap: 8 competitors max (API rate limits + Opus token budget)

@@ -289,6 +289,28 @@ export const researchPreflight = async (c: Context) => {
         })
     }
 
+    // ─── Check: Meta App credentials (for paid_competitor_landscape stage) ──
+    // Different from Meta user OAuth — Meta Ad Library is PUBLIC and uses
+    // platform-level app credentials (META_APP_ID + META_APP_SECRET env
+    // vars). Without them, paid_competitor_landscape can't pull active
+    // creatives / run-duration / platforms from competitors' ads. Stage
+    // still runs (Google Transparency + Firecrawl fill the gap) but the
+    // output quality drops to "working_hypothesis".
+    if (!process.env.META_APP_ID || !process.env.META_APP_SECRET) {
+        checks.push({
+            name: 'meta_app_credentials',
+            status: 'warning',
+            label_he: 'Meta Ad Library — credentials פלטפורמה לא מוגדרים',
+            actionable_hint_he: 'META_APP_ID/SECRET חסרים בשרת. בלעדם paid_competitor_landscape לא יראה רקלמות פעילות של המתחרים ב-Meta (Facebook/Instagram). פנו לתמיכה כדי שנגדיר. הסטדיה תרוץ בכל זאת — אבל בעיקר על Google Transparency + Firecrawl, וה-confidence ירד.',
+        })
+    } else {
+        checks.push({
+            name: 'meta_app_credentials',
+            status: 'ok',
+            label_he: 'Meta Ad Library מוגדר ✓',
+        })
+    }
+
     // ─── Check 5: GSC connection (optional, for striking-distance accuracy) ──
     const gscTokens = (activeAgent ? activeAgent.gscTokens : inst.gscTokens) as { refreshToken?: string; siteUrl?: string } | null
     if (!gscTokens?.refreshToken || !gscTokens.siteUrl) {
