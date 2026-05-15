@@ -10455,7 +10455,16 @@ async function _runPaidStage(stageId, flagName, startedAtName, label, durationLa
   try {
     var iid = localStorage.getItem('cf_instance_id') || instanceId;
     var r = await apiFetch('/hosting/instances/' + iid + '/research/stage/' + stageId, { method: 'POST', body: JSON.stringify({}) });
-    if (!r.success) throw new Error(r.message || 'Stage failed');
+    if (!r.success) {
+      // 429 → research lock held by another in-flight stage (or stale lock).
+      // Surface the secondsLeft from the message so the user knows what to do.
+      var msg = r.message || 'Stage failed';
+      if (/שלב מחקר כבר רץ/.test(msg)) {
+        showToast(msg, 'warning', 8000);
+        return;  // not a real failure — don't throw
+      }
+      throw new Error(msg);
+    }
     // Refresh instanceData.researchData by re-fetching minimal payload
     if (typeof refreshInstanceData === 'function') {
       await refreshInstanceData();
@@ -27811,13 +27820,13 @@ function cfConfirm(title, desc) {
 }
 
 /* ===== Toast ===== */
-function showToast(msg, type) {
+function showToast(msg, type, durationMs) {
   var el = document.getElementById('toast');
   el.textContent = msg;
   el.className = 'toast ' + (type || 'success');
   el.classList.add('show');
   clearTimeout(el._t);
-  el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
+  el._t = setTimeout(function() { el.classList.remove('show'); }, durationMs || 3000);
 }
 
 /**

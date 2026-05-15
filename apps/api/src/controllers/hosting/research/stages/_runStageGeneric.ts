@@ -30,6 +30,34 @@ import {
     acquireResearchLock,
     releaseResearchLock,
 } from '@/services/research/stageExecutor'
+
+/**
+ * Phase 4.7(fix) — release-lock-and-mark-failed helper. Called from every
+ * error/early-return path so the frontend rehydration doesn't see a
+ * permanent "running" status after a crash. Pairs with the "running"
+ * status write at the top of runStageGeneric.
+ */
+async function _abortStage(instanceId: string, stageId: string, agentId?: string, reason?: string): Promise<void> {
+    releaseResearchLock(instanceId)
+    try {
+        const agentContext = await import('@/services/agentContext')
+        const agent = agentId
+            ? await agentContext.resolveAgentById(instanceId, agentId)
+            : await agentContext.resolvePrimaryAgent(instanceId)
+        const rd = (await agentContext.readResearchData(agent, instanceId)) as Record<string, unknown>
+        const plan = (rd.plan as { status?: Record<string, unknown> } | undefined) || {}
+        const status = { ...(plan.status || {}) } as Record<string, unknown>
+        // Only overwrite if it's currently 'running' (don't clobber a
+        // legitimate 'completed' status from a concurrent finish).
+        const cur = status[stageId] as { state?: string } | undefined
+        if (cur && cur.state === 'running') {
+            status[stageId] = { state: 'failed', runAt: (cur as any).runAt, failureReason: reason || 'aborted' }
+            await agentContext.writeResearchData(agent, instanceId, { ...rd, plan: { ...plan, status } })
+        }
+    } catch (err) {
+        console.warn(`[research/${stageId}] _abortStage status-clear failed:`, (err as Error).message)
+    }
+}
 import { buildPromptForStage } from '@/services/research/prompts'
 import { parseHybridResponse, rollupConfidence } from '@/services/research/hybridParser'
 import { runSelfCritique } from '@/services/research/selfCritique'
@@ -86,6 +114,24 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         return fail(c, `שלב מחקר כבר רץ כרגע. נסו שוב בעוד ${lock.secondsLeft} שניות, או המתינו לסיום.`, 429)
     }
 
+    // ── Phase 4.7(fix) — write plan.status[sid] = 'running' BEFORE the long
+    // Anthropic call. Without this the home dashboard's rehydration on page
+    // reload doesn't know the stage is in flight (because plan.status stays
+    // 'pending' / previous 'completed' until saveStageResult writes at the end),
+    // so the user sees a "Run again" button + clicks it → 429. With this write,
+    // the rehydration sees running and re-arms the ticker on reload.
+    try {
+        const { writeResearchData, readResearchData } = await import('@/services/agentContext')
+        const _rd = (await readResearchData(__agentForLock, instanceId)) as Record<string, unknown>
+        const _plan = (_rd.plan as { status?: Record<string, unknown> } | undefined) || {}
+        const _status = { ...(_plan.status || {}) }
+        _status[stageId] = { state: 'running', runAt: new Date().toISOString() }
+        await writeResearchData(__agentForLock, instanceId, { ..._rd, plan: { ..._plan, status: _status } })
+    } catch (preWriteErr) {
+        // Non-fatal — don't block the run if the optimistic status write fails.
+        console.warn(`[research/${stageId}] failed to write 'running' status:`, (preWriteErr as Error).message)
+    }
+
     try {
         // Optional body — feedback for re-runs, validationMode for the
         // validation stage (ai_sim vs real_interviews). Fail-safe to {}.
@@ -94,7 +140,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
 
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance?.ip) {
-            releaseResearchLock(instanceId)
+            await _abortStage(instanceId, stageId, __agentForLock?.id, 'instance not ready')
             return fail(c, 'Instance not found.', 404)
         }
 
@@ -128,7 +174,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                 stageId,
             )
             if (!gate.canProceed) {
-                releaseResearchLock(instanceId)
+                await _abortStage(instanceId, stageId, __agent?.id, 'integration gate failed')
                 const msg = `שלב זה דורש חיבור של: ${gate.missingMandatory.map(r => r.label_he).join(' · ')}. עברו ל-"אינטגרציות" וחברו לפני הרצה.`
                 return fail(c, msg, 422)
             }
@@ -158,7 +204,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                     dfsCost = (dfsData as { totalCostUsd: number }).totalCostUsd
                 }
             } catch (err) {
-                releaseResearchLock(instanceId)
+                await _abortStage(instanceId, stageId, __agent?.id, `prefetch error: ${(err as Error).message}`)
                 if (err instanceof DfsError) {
                     return fail(c, err.userMessage, 502)
                 }
@@ -172,7 +218,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             tools, historicalAssetsBlock, dfsData,
         })
         if (!promptResult) {
-            releaseResearchLock(instanceId)
+            await _abortStage(instanceId, stageId, __agent?.id, 'prompt builder missing')
             return fail(c, `Stage ${stageId} has no prompt builder`, 500)
         }
 
@@ -195,7 +241,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         })
 
         if (!output.content) {
-            releaseResearchLock(instanceId)
+            await _abortStage(instanceId, stageId, __agent?.id, output.errorMessage || 'no content from executor')
             return fail(c, output.errorMessage || 'Stage failed', (output.httpCode || 500) as 400 | 500)
         }
 
@@ -476,7 +522,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             qualityGate: output.qualityGate,
         }, `Stage ${stageId} complete.`)
     } catch (err) {
-        releaseResearchLock(instanceId)
+        await _abortStage(instanceId, stageId, __agentForLock?.id, (err as Error).message || 'unknown error')
         console.error(`runStageGeneric(${stageId}) error:`, err)
         return fail(c, `שלב המחקר נכשל`, 500)
     }
