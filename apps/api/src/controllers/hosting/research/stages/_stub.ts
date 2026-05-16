@@ -19,6 +19,7 @@ export function notImplementedYet(c: Context, stageId: StageId): Response {
         aeo_visibility:             'נראות AI (AEO)',
         link_audit:                 'אודיט פרופיל קישורים',
         paid_data_inventory:        'מלאי נתונים — פרסום ממומן',
+        client_account_baseline:    'מה אנחנו רואים בחשבון שלכם',
         paid_competitor_landscape:  'נוף תחרותי — פרסום ממומן',
         paid_keyword_research:      'מחקר מילות מפתח — פרסום ממומן',
         paid_budget_scenarios:      'תרחישי תקציב — פרסום ממומן',

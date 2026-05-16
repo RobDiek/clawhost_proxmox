@@ -33,6 +33,7 @@ export type StageId =
     | 'aeo_visibility'
     | 'link_audit'
     | 'paid_data_inventory'
+    | 'client_account_baseline'     // Phase 4.2.1 — Google Ads + GA4 historical reality anchor (preflight for all paid stages)
     | 'paid_competitor_landscape'   // Phase 4.2.1 — paid-specific competitor research
     | 'paid_keyword_research'       // Phase 4.2.2 — paid keyword landscape
     | 'paid_budget_scenarios'       // Phase 4.2.3 — IL-specific paid budget tiers
@@ -54,6 +55,7 @@ export const ALL_STAGE_IDS: readonly StageId[] = [
     'competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
     'aeo_visibility', 'link_audit',
     'paid_data_inventory',
+    'client_account_baseline',
     'paid_competitor_landscape', 'paid_keyword_research', 'paid_budget_scenarios',
     'paid_audit',
     'social_landscape', 'email_competitor_audit',
@@ -134,6 +136,19 @@ export const STAGE_CATALOG: Record<StageId, StageDescriptor> = {
         preferredIntegrations: ['googleAds', 'meta', 'ga4', 'gsc'],
         upstream: [],
     },
+    // Phase 4.2.1 — runs ONCE per research session, cached 24h. Pulls all
+    // client-specific reality data (SQR, Auction Insights, Change History,
+    // account-level CPC/CR, GA4 events/funnel/seasonality) scoped to the
+    // campaigns the user has assigned to this instance. Every downstream paid
+    // stage reads from `rd.results.client_account_baseline` instead of
+    // refetching — single source of truth, cost-disciplined, consistent.
+    client_account_baseline: {
+        id: 'client_account_baseline', category: 'discovery',
+        titleHe: 'מה אנחנו רואים בחשבון שלכם',
+        descriptionHe: 'מושך את כל הנתונים ההיסטוריים שלכם פעם אחת: Google Ads (SQR, Auction Insights, היסטוריית שינויים, account-level CPC) + GA4 (events, funnel, seasonality). מסונן לפי הקמפיינים שבחרתם. כל שלבי הפרסום הבאים נשענים על הקאש הזה במקום למשוך מחדש.',
+        preferredIntegrations: ['googleAds', 'ga4'],
+        upstream: [],
+    },
     paid_audit: {
         id: 'paid_audit', category: 'discovery',
         titleHe: 'אודיט פרסום ממומן',
@@ -147,21 +162,27 @@ export const STAGE_CATALOG: Record<StageId, StageDescriptor> = {
         titleHe: 'נוף תחרותי — פרסום ממומן',
         descriptionHe: 'מי המתחרים שלכם מפרסמים בתשלום עכשיו, באילו פלטפורמות, באילו אנגלים יצירתיים, כמה זמן רצות המודעות, ומה ה-CRO של דפי הנחיתה שלהם. Meta Ad Library + Google Ads Transparency Center + Firecrawl LP audits — 5 buckets (Direct/Substitute/Adjacent/Reference).',
         preferredIntegrations: ['meta', 'firecrawl', 'anthropic'],
-        upstream: ['competitor_landscape'],
+        // Phase 4.2.1 — depends on baseline for Auction Insights ground-truth
+        // (which competitors actually win on YOUR auctions, scoped to YOUR campaigns).
+        upstream: ['competitor_landscape', 'client_account_baseline'],
     },
     paid_keyword_research: {
         id: 'paid_keyword_research', category: 'discovery',
         titleHe: 'מחקר מילות מפתח — פרסום ממומן',
         descriptionHe: 'Paid search keyword landscape — אילו מילות מפתח קונים מתחרים, CPC estimates, intent ladder (TOFU/MOFU/BOFU), SERP ad-density. DataForSEO keywords_for_site + ads_search.',
         preferredIntegrations: ['dataforseo', 'anthropic'],
-        upstream: ['paid_competitor_landscape'],
+        // Phase 4.2.1 — depends on baseline for SQR top-converting terms (Tier-1
+        // seeds), n-gram waste patterns (preemptive negatives), and account CPC.
+        upstream: ['paid_competitor_landscape', 'client_account_baseline'],
     },
     paid_budget_scenarios: {
         id: 'paid_budget_scenarios', category: 'strategy',
         titleHe: 'תרחישי תקציב — פרסום ממומן',
         descriptionHe: '3 דרגות תקציב IL-specific (שמרני / מאוזן / אגרסיבי) עם KPI projection: impressions, clicks, conv, CPA range, ROAS target. מבוסס על paid_keyword_research CPC estimates + IL benchmarks per vertical.',
         preferredIntegrations: ['anthropic'],
-        upstream: ['paid_competitor_landscape', 'paid_keyword_research', 'audience_personas'],
+        // Phase 4.2.1 — baseline supplies real account CPC/CR/CPA — anchor
+        // scenarios on actual history when available, fall back to industry.
+        upstream: ['paid_competitor_landscape', 'paid_keyword_research', 'audience_personas', 'client_account_baseline'],
     },
     social_landscape: {
         id: 'social_landscape', category: 'discovery',

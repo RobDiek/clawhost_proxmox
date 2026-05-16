@@ -3682,6 +3682,107 @@ ${HEBREW_ONLY_BLOCK}
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// Phase 4.2.1 — client_account_baseline
+//
+// Lightweight stage: most of the value is in the prefetch (raw SQR + Auction
+// Insights + Change History + GA4 funnel/seasonality). Opus's job is just to
+// produce a tight Hebrew executive summary "מה אנחנו רואים בחשבון שלכם" that
+// the dashboard renders as a stage card. Downstream paid stages consume the
+// RAW prefetch (not Opus's summary).
+// ────────────────────────────────────────────────────────────────────────────
+
+import type { ClientAccountBaseline } from '@/controllers/hosting/research/stages/prefetch/client_account_baseline'
+
+export function buildClientAccountBaselinePrompt(opts: PromptOpts): PromptResult {
+    const { businessName } = opts
+    const baseline = opts.dfsData as ClientAccountBaseline | undefined
+    if (!baseline) throw new Error('client_account_baseline: prefetch is required')
+
+    const gads = baseline.googleAds
+    const ga4 = baseline.ga4
+
+    // Render a compact context block for Opus. The prefetch already trimmed
+    // the data so we're not blowing the context window.
+    let context = '═══ HISTORICAL ACCOUNT BASELINE — Storage Station ═══\n\n'
+
+    if (gads.available) {
+        context += '— Google Ads (90d SQR + 90d Auction Insights + 180d Change History) —\n'
+        if (gads.sqr.available) {
+            context += `SQR: ${gads.sqr.totalTerms} מילים, ₪${gads.sqr.totalSpendIls.toLocaleString()} הוצאה, ~${gads.sqr.estimatedWastedSpendPct}% פסולת מזוהה\n`
+            const topWaste = gads.sqr.wasteByPattern.slice(0, 5).map(w => `  • "${w.pattern}" → ${w.clicks} clicks, ₪${w.spendIls}, ${w.conversions} conv`).join('\n')
+            const topConv = gads.sqr.topConvertingTerms.slice(0, 8).map(t => `  • "${t.searchTerm}" → ${t.conversions} conv @ CPA ₪${t.cpa}`).join('\n')
+            context += `\nTop waste patterns:\n${topWaste || '  (none)'}\n\nTop converting terms:\n${topConv || '  (none)'}\n\n`
+        } else {
+            context += `SQR: לא זמין — ${gads.sqr.reason || 'unknown'}\n\n`
+        }
+        if (gads.auctionInsights.available) {
+            const top = gads.auctionInsights.competitors.slice(0, 6).map(c => `  • ${c.domain} → IS=${c.impressionShare}% overlap=${c.overlapRate}% outranks=${c.outranking}%`).join('\n')
+            context += `Auction Insights: account IS=${gads.auctionInsights.impressionShare ?? '?'}%, top-of-page=${gads.auctionInsights.topOfPageRate ?? '?'}%\nReal competitors:\n${top || '  (none)'}\n\n`
+        } else {
+            context += `Auction Insights: לא זמין — ${gads.auctionInsights.reason || 'unknown'}\n\n`
+        }
+        if (gads.changeHistory.available && gads.changeHistory.totalChanges > 0) {
+            const recent = gads.changeHistory.bigChanges.slice(0, 5).map(ch => `  • ${ch.changeDateTime.slice(0, 10)} · ${ch.resourceType} · by ${ch.changedBy}`).join('\n')
+            context += `Change History: ${gads.changeHistory.totalChanges} שינויים, ${gads.changeHistory.bigChanges.length} significant\nRecent:\n${recent}\n\n`
+        }
+    } else {
+        context += `Google Ads: לא זמין — ${gads.reason || 'unknown'}\n\n`
+    }
+
+    if (ga4.available) {
+        context += '— GA4 (365d events + 90d funnel + 730d seasonality) —\n'
+        if (ga4.events.available) {
+            context += `Events: ${ga4.events.totalConversions} המרות ב-${ga4.events.daysAnalyzed} ימים. CR≈${ga4.events.estimatedConversionRatePct ?? '?'}%\n`
+            const topEvents = ga4.events.events.slice(0, 5).map(e => `  • ${e.eventName} × ${e.eventCount}`).join('\n')
+            context += `Top events:\n${topEvents}\n\n`
+        }
+        if (ga4.funnel.available) {
+            const topLP = ga4.funnel.byLandingPage.slice(0, 4).map(lp => `  • ${(lp as { path?: string }).path || '?'} → ${(lp as { sessions?: number }).sessions || 0} sessions`).join('\n')
+            context += `Top landing pages:\n${topLP}\n\n`
+        }
+    } else {
+        context += `GA4: לא זמין — ${ga4.reason || 'unknown'}\n\n`
+    }
+
+    if (baseline.warnings.length > 0) {
+        context += `Warnings:\n${baseline.warnings.map(w => `  ⚠ ${w}`).join('\n')}\n`
+    }
+
+    const prompt = `אתם אנליסט PPC בכיר שבוחן את חשבון הפרסום של ${businessName} בפעם הראשונה.
+המשימה: סיכום קצר וישיר של "מה אנחנו רואים" — לא המלצות, רק תצפיות.
+
+${context}
+
+החזירו **JSON בלבד**, שדה אחד "records" עם 4-7 תצפיות מובנות:
+{
+  "records": [
+    {
+      "category": "spend|waste|competition|conversions|tracking|seasonality|change_history",
+      "headline_he": "כותרת קצרה (≤80 תווים) בעברית",
+      "detail_he": "1-2 משפטים מציאותיים על מה הנתון אומר על מצב החשבון",
+      "ground_truth_source": "google_ads_sqr | google_ads_auction_insights | google_ads_change_history | ga4_events | ga4_funnel | ga4_seasonality",
+      "actionable_for_downstream": "איזה שלב עתידי צריך להשתמש בנתון הזה (paid_keyword_research / paid_competitor_landscape / paid_budget_scenarios / mazhir_audit)"
+    }
+  ],
+  "confidence": "high | medium | working_hypothesis",
+  "data_quality_notes_he": "1-2 שורות על שלמות הנתונים — מה חסר, מה משוער"
+}
+
+כללים:
+- אם הנתונים ריקים (Google Ads לא מחובר / לא נבחרו קמפיינים) — החזירו רשומה אחת בלבד עם category="tracking" וכותרת "אין נתונים היסטוריים — המחקר ירוץ ללא ground-truth מהחשבון"
+- אסור להמציא מספרים — אם לא בקונטקסט, לא קיים
+- 2-nd person plural בלבד (תוכלו / שלכם), לא יחיד
+- אסור להציע פעולות אופטימיזציה — זאת לא המטרה של השלב הזה`
+
+    return {
+        agentId: 'menateach',
+        useDirectApi: true,
+        minLength: 400,
+        prompt,
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Dispatch helper — used by per-stage controllers to get prompt by id.
 // New prompts (aeo_visibility, social_landscape, email_competitor_audit)
 // belong here when they ship (Phase 4).
@@ -3700,6 +3801,7 @@ export function buildPromptForStage(stageId: StageId, opts: PromptOpts): PromptR
         case 'strategy_options':           return buildStrategyOptionsPrompt(opts)
         case 'validation':                 return buildValidationPrompt(opts)
         // Phase 4.2.1 — paid research pipeline (new stages)
+        case 'client_account_baseline':    return buildClientAccountBaselinePrompt(opts)
         case 'paid_competitor_landscape':  return buildPaidCompetitorLandscapePrompt(opts)
         case 'paid_keyword_research':      return buildPaidKeywordResearchPrompt(opts)
         case 'paid_budget_scenarios':      return buildPaidBudgetScenariosPrompt(opts)

@@ -30,6 +30,7 @@ const STAGE_RUNNERS: Record<StageId, () => Promise<{ run: StageRunner }>> = {
     aeo_visibility:             () => import('./stages/aeo_visibility'),
     link_audit:                 () => import('./stages/link_audit'),
     paid_data_inventory:        () => import('./stages/paid_data_inventory'),
+    client_account_baseline:    () => import('./stages/client_account_baseline'),
     paid_competitor_landscape:  () => import('./stages/paid_competitor_landscape'),
     paid_keyword_research:      () => import('./stages/paid_keyword_research'),
     paid_budget_scenarios:      () => import('./stages/paid_budget_scenarios'),
