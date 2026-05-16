@@ -2636,6 +2636,22 @@ input{font-family:inherit}
                 </div>
                 <div style="font-size:0.75rem;color:#047857" id="gads-connected-details">Customer ID: <span id="gads-masked-cid" dir="ltr"></span></div>
               </div>
+
+              <!-- Phase 4.2.1 — campaign-scope picker. When the connected account hosts multiple
+                   businesses (agency/freelance work), the user must pick which campaigns belong
+                   to THIS instance. Otherwise SQR + Auction Insights + Change History bleed
+                   unrelated client data into our research. -->
+              <div id="gads-scope-card" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:10px;margin-bottom:6px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                  <span style="font-size:1rem">🎯</span>
+                  <span style="font-weight:600;font-size:0.85rem;color:#92400E">היקף קמפיינים</span>
+                </div>
+                <div id="gads-scope-summary" style="font-size:0.75rem;color:#92400E;line-height:1.5;margin-bottom:6px">
+                  בחרו אילו קמפיינים מ-Google Ads שייכים לעסק הזה. חשוב כשהחשבון מכיל גם קמפיינים של עסקים אחרים — אחרת המחקר ייקלע בנתונים מעורבים.
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openGoogleAdsScopePicker()" style="font-size:0.78rem">🎯 בחרו קמפיינים →</button>
+              </div>
+
               <div style="display:flex;gap:6px">
                 <button class="btn btn-outline btn-sm" onclick="disconnectGoogleAdsConfig()" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו</button>
               </div>
@@ -25649,6 +25665,20 @@ function showGoogleAdsConnected(data) {
   if (card) card.classList.add('connected-card');
   var cidEl = document.getElementById('gads-masked-cid');
   if (cidEl && data && data.customerId) cidEl.textContent = data.customerId;
+
+  // Phase 4.2.1 — surface existing scope selection if instanceData already
+  // has it (avoids stale "not configured" copy on page refresh).
+  var scope = data && data.scope;
+  if (!scope && typeof instanceData !== 'undefined' && instanceData && instanceData.googleAdsConfig) {
+    scope = instanceData.googleAdsConfig.scope;
+  }
+  if (scope && scope.mode) {
+    updateGoogleAdsScopeSummary({
+      mode: scope.mode,
+      count: Array.isArray(scope.campaignIds) ? scope.campaignIds.length : 0,
+      total: null,
+    });
+  }
 }
 
 // Update OAuth step UI after Google Ads scope granted
@@ -25658,6 +25688,233 @@ function updateGoogleAdsOAuthState() {
   var oauthOk = document.getElementById('gads-oauth-ok');
   if (oauthBtn) oauthBtn.style.display = 'none';
   if (oauthOk) oauthOk.style.display = '';
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   Google Ads — Campaign-scope picker (Phase 4.2.1)
+
+   When the connected Google Ads account hosts multiple businesses, this lets
+   the user pick which campaigns belong to THIS instance. The picked IDs are
+   saved to instances.google_ads_config.scope and every SQR / Auction Insights /
+   Change History pull is filtered by AND campaign.id IN (...).
+
+   UX: reuses pipelineOverlay modal (same pattern as openGithubWizard).
+   ═════════════════════════════════════════════════════════════════════════ */
+
+var _gadsScopeState = { mode: 'campaigns', selected: {}, campaigns: [], currency: 'ILS' };
+
+async function openGoogleAdsScopePicker() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+
+  document.getElementById('pipelineOverlay').classList.remove('hidden');
+  document.getElementById('pipelineTitle').textContent = 'בחרו קמפיינים — Google Ads';
+  document.getElementById('pipelineSteps').innerHTML = '';
+  document.getElementById('pipelineProgress').style.width = '50%';
+  document.getElementById('pipelineNextBtn').style.display = 'none';
+  document.getElementById('pipelineBody').innerHTML =
+    '<div style="padding:40px;text-align:center;color:#6B7280">' +
+    '<div style="font-size:1.5rem;margin-bottom:10px">⏳</div>' +
+    '<div>טוענים את רשימת הקמפיינים מ-Google Ads...</div>' +
+    '<div style="font-size:0.75rem;margin-top:6px;color:#9CA3AF">~5-8 שניות</div>' +
+    '</div>';
+
+  try {
+    var r = await apiFetch('/hosting/instances/' + iid + '/integrations/googleads/campaigns', { method: 'GET' });
+    if (!r.success) throw new Error(r.message || 'fetch failed');
+    var data = r.data || {};
+
+    if (!data.available) {
+      document.getElementById('pipelineBody').innerHTML =
+        '<div style="padding:24px"><div style="background:#FEE2E2;border:1px solid #FECACA;border-radius:8px;padding:14px;color:#991B1B">' +
+        '<div style="font-weight:600;margin-bottom:6px">לא הצלחנו לקבל רשימת קמפיינים</div>' +
+        '<div style="font-size:0.85rem">' + escapeHtml(data.reason || 'unknown') + '</div></div>' +
+        '<div style="text-align:left;margin-top:14px"><button class="btn btn-outline btn-sm" onclick="closePipeline()">סגרו</button></div></div>';
+      return;
+    }
+
+    _gadsScopeState.campaigns = data.campaigns || [];
+    _gadsScopeState.currency = data.accountCurrency || 'ILS';
+    _gadsScopeState.selected = {};
+
+    // Pre-select: previously chosen campaigns if any, else brand-matched campaigns
+    var prevScope = data.previousScope;
+    var hasPrevSelection = prevScope && prevScope.mode === 'campaigns' && Array.isArray(prevScope.campaignIds) && prevScope.campaignIds.length > 0;
+    _gadsScopeState.mode = hasPrevSelection ? 'campaigns' : 'campaigns';
+
+    for (var i = 0; i < _gadsScopeState.campaigns.length; i++) {
+      var camp = _gadsScopeState.campaigns[i];
+      if (hasPrevSelection) {
+        _gadsScopeState.selected[camp.id] = camp.previouslySelected === true;
+      } else {
+        // Default: pre-check brand-matched campaigns (best guess)
+        _gadsScopeState.selected[camp.id] = camp.brandMatch === true;
+      }
+    }
+
+    renderGadsScopePicker();
+  } catch (err) {
+    document.getElementById('pipelineBody').innerHTML =
+      '<div style="padding:24px"><div style="background:#FEE2E2;border:1px solid #FECACA;border-radius:8px;padding:14px;color:#991B1B">' +
+      '<div style="font-weight:600;margin-bottom:6px">שגיאת תקשורת</div>' +
+      '<div style="font-size:0.85rem">' + escapeHtml(err.message || '') + '</div></div>' +
+      '<div style="text-align:left;margin-top:14px"><button class="btn btn-outline btn-sm" onclick="closePipeline()">סגרו</button></div></div>';
+  }
+}
+
+function renderGadsScopePicker() {
+  var cur = _gadsScopeState.currency || 'ILS';
+  var selectedCount = 0;
+  var totalSpend = 0;
+  var totalConv = 0;
+  for (var i = 0; i < _gadsScopeState.campaigns.length; i++) {
+    var c = _gadsScopeState.campaigns[i];
+    if (_gadsScopeState.selected[c.id]) {
+      selectedCount++;
+      totalSpend += Number(c.last30dSpendIls || 0);
+      totalConv += Number(c.last30dConversions || 0);
+    }
+  }
+
+  var html = '<div style="padding:4px">' +
+    '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px 14px;margin-bottom:14px">' +
+    '<div style="font-weight:700;font-size:0.92rem;color:#1E40AF;margin-bottom:4px">🎯 איזה קמפיינים שייכים לעסק הזה?</div>' +
+    '<div style="font-size:0.78rem;color:#1E40AF;line-height:1.55">סמנו רק את הקמפיינים של <strong>העסק שאתם מנהלים כאן</strong>. כל קמפיין שלא נבחר יהיה מוסתר מהמחקר — לא נמשוך SQR, Auction Insights או היסטוריית שינויים שלו.</div>' +
+    '<div style="font-size:0.72rem;color:#1E40AF;margin-top:6px;opacity:0.85">💡 קמפיינים שזוהו אוטומטית לפי שם המותג מסומנים מראש. תוכלו לערוך לפי הצורך.</div>' +
+    '</div>';
+
+  // Mode toggle
+  html += '<div style="display:flex;gap:6px;margin-bottom:12px;background:#F3F4F6;padding:4px;border-radius:8px;font-size:0.82rem">' +
+    '<label style="flex:1;text-align:center;padding:8px;border-radius:6px;cursor:pointer;background:' + (_gadsScopeState.mode === 'campaigns' ? '#FFFFFF;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,0.1)' : 'transparent') + '">' +
+    '<input type="radio" name="gads-scope-mode" value="campaigns" ' + (_gadsScopeState.mode === 'campaigns' ? 'checked' : '') + ' onchange="_gadsScopeState.mode=this.value;renderGadsScopePicker()" style="margin-left:4px"/>' +
+    'קמפיינים נבחרים</label>' +
+    '<label style="flex:1;text-align:center;padding:8px;border-radius:6px;cursor:pointer;background:' + (_gadsScopeState.mode === 'account' ? '#FFFFFF;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,0.1)' : 'transparent') + '">' +
+    '<input type="radio" name="gads-scope-mode" value="account" ' + (_gadsScopeState.mode === 'account' ? 'checked' : '') + ' onchange="_gadsScopeState.mode=this.value;renderGadsScopePicker()" style="margin-left:4px"/>' +
+    'כל החשבון</label>' +
+    '</div>';
+
+  if (_gadsScopeState.mode === 'account') {
+    html += '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:12px;font-size:0.82rem;color:#92400E;line-height:1.55;margin-bottom:14px">' +
+      '⚠️ <strong>תפעלו במצב "כל החשבון" רק אם החשבון מכיל אך ורק קמפיינים של העסק הזה.</strong> אחרת המחקר ימשוך נתונים של עסקים אחרים מהחשבון שלכם — מילות מפתח לא רלוונטיות, conversions זרים, change history של אחרים.' +
+      '</div>';
+  } else {
+    // Bulk actions
+    html += '<div style="display:flex;gap:8px;margin-bottom:10px;font-size:0.78rem">' +
+      '<button class="btn btn-outline btn-sm" onclick="_gadsBulkSelect(true)" style="font-size:0.75rem">בחרו הכל</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="_gadsBulkSelect(false)" style="font-size:0.75rem">נקו הכל</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="_gadsBulkSelectBrand()" style="font-size:0.75rem">רק תואמי-מותג</button>' +
+      '</div>';
+
+    // Campaign list
+    html += '<div style="max-height:380px;overflow-y:auto;border:1px solid #E5E7EB;border-radius:8px">';
+    if (_gadsScopeState.campaigns.length === 0) {
+      html += '<div style="padding:24px;text-align:center;color:#6B7280;font-size:0.85rem">לא נמצאו קמפיינים פעילים ב-30 הימים האחרונים בחשבון.</div>';
+    } else {
+      for (var j = 0; j < _gadsScopeState.campaigns.length; j++) {
+        var camp = _gadsScopeState.campaigns[j];
+        var isSelected = _gadsScopeState.selected[camp.id] === true;
+        var statusColor = camp.status === 'ENABLED' ? '#10B981' : '#9CA3AF';
+        var statusLabel = camp.status === 'ENABLED' ? 'פעיל' : camp.status === 'PAUSED' ? 'מושהה' : camp.status;
+        var brandBadge = camp.brandMatch ? '<span style="background:#DBEAFE;color:#1E40AF;font-size:0.65rem;padding:1px 6px;border-radius:9px;margin-right:6px">תואם-מותג</span>' : '';
+        var spend = Number(camp.last30dSpendIls || 0).toLocaleString('he-IL', { maximumFractionDigits: 0 });
+        var conv = Number(camp.last30dConversions || 0).toFixed(1);
+
+        html += '<label style="display:flex;align-items:center;padding:10px 12px;border-bottom:1px solid #F3F4F6;cursor:pointer;gap:10px;' + (isSelected ? 'background:#F0FDF4' : '') + '" onclick="event.stopPropagation()">' +
+          '<input type="checkbox" ' + (isSelected ? 'checked' : '') + ' onchange="_gadsToggle(\'' + camp.id + '\', this.checked)" style="width:16px;height:16px"/>' +
+          '<div style="flex:1;min-width:0">' +
+          '<div style="font-weight:600;font-size:0.86rem;color:#1F2937;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(camp.name) + brandBadge + '</div>' +
+          '<div style="font-size:0.72rem;color:#6B7280;margin-top:2px">' +
+          '<span style="color:' + statusColor + ';font-weight:600">' + statusLabel + '</span>' +
+          ' · ' + escapeHtml(camp.advertisingChannelType || '?') +
+          ' · 30 ימים: ' + cur + ' ' + spend + ' · ' + conv + ' המרות' +
+          '</div></div></label>';
+      }
+    }
+    html += '</div>';
+  }
+
+  // Summary footer
+  html += '<div style="margin-top:14px;padding:10px 12px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;font-size:0.8rem;color:#374151">' +
+    '<strong>סיכום:</strong> ' +
+    (_gadsScopeState.mode === 'account' ?
+      'כל הקמפיינים בחשבון ייכללו במחקר (' + _gadsScopeState.campaigns.length + ' קמפיינים פעילים)' :
+      selectedCount + ' מתוך ' + _gadsScopeState.campaigns.length + ' נבחרו · 30 ימים אחרונים: ' + cur + ' ' + totalSpend.toLocaleString('he-IL', { maximumFractionDigits: 0 }) + ' · ' + totalConv.toFixed(1) + ' המרות') +
+    '</div>';
+
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid #E5E7EB">' +
+    '<button class="btn btn-outline btn-sm" onclick="closePipeline()">ביטול</button>' +
+    '<button class="btn btn-primary" onclick="saveGoogleAdsScope()">💾 שמרו היקף</button>' +
+    '</div></div>';
+
+  document.getElementById('pipelineBody').innerHTML = html;
+}
+
+function _gadsToggle(id, checked) {
+  _gadsScopeState.selected[id] = checked;
+  renderGadsScopePicker();
+}
+
+function _gadsBulkSelect(value) {
+  for (var i = 0; i < _gadsScopeState.campaigns.length; i++) {
+    _gadsScopeState.selected[_gadsScopeState.campaigns[i].id] = value;
+  }
+  renderGadsScopePicker();
+}
+
+function _gadsBulkSelectBrand() {
+  for (var i = 0; i < _gadsScopeState.campaigns.length; i++) {
+    var camp = _gadsScopeState.campaigns[i];
+    _gadsScopeState.selected[camp.id] = camp.brandMatch === true;
+  }
+  renderGadsScopePicker();
+}
+
+async function saveGoogleAdsScope() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+
+  var mode = _gadsScopeState.mode === 'account' ? 'account' : 'campaigns';
+  var ids = [];
+  if (mode === 'campaigns') {
+    for (var i = 0; i < _gadsScopeState.campaigns.length; i++) {
+      var c = _gadsScopeState.campaigns[i];
+      if (_gadsScopeState.selected[c.id]) ids.push(c.id);
+    }
+    if (ids.length === 0) {
+      showToast('חובה לבחור לפחות קמפיין אחד (או לעבור ל"כל החשבון")', 'error');
+      return;
+    }
+  }
+
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'שומר');
+  try {
+    var r = await apiFetch('/hosting/instances/' + iid + '/integrations/googleads/scope', {
+      method: 'POST',
+      body: JSON.stringify({ mode: mode, campaignIds: ids })
+    });
+    if (!r.success) throw new Error(r.message || 'save failed');
+    showToast('היקף הקמפיינים נשמר. הפעלת מחקר הבאה תשתמש בנתונים המעודכנים.', 'success');
+    closePipeline();
+    updateGoogleAdsScopeSummary({ mode: mode, count: ids.length, total: _gadsScopeState.campaigns.length });
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || ''), 'error');
+  } finally {
+    _unlock();
+  }
+}
+
+function updateGoogleAdsScopeSummary(info) {
+  var el = document.getElementById('gads-scope-summary');
+  if (!el) return;
+  if (!info) {
+    el.textContent = 'בחרו אילו קמפיינים מ-Google Ads שייכים לעסק הזה. חשוב כשהחשבון מכיל גם קמפיינים של עסקים אחרים — אחרת המחקר ייקלע בנתונים מעורבים.';
+    return;
+  }
+  if (info.mode === 'account') {
+    el.innerHTML = '<strong>היקף נוכחי:</strong> כל החשבון (' + (info.total || '?') + ' קמפיינים). מתאים רק כשהחשבון לא משותף עם עסקים אחרים.';
+  } else {
+    el.innerHTML = '<strong>היקף נוכחי:</strong> <span style="color:#065F46;font-weight:600">' + info.count + '</span> מתוך ' + (info.total || '?') + ' קמפיינים נבחרו. המחקר יעבד רק את הקמפיינים האלה.';
+  }
 }
 
 /* ===== GitHub Integration — 3-step wizard (modal popup) ===== */

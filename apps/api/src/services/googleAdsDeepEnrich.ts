@@ -77,6 +77,117 @@ async function gaqlQuery(
     return out
 }
 
+// ─── Campaign-scope filtering (Phase 4.2.1) ──────────────────────────────
+// Many users connect a Google Ads account that hosts campaigns belonging to
+// multiple businesses (the user's own agency / freelance work, etc.). We must
+// only consume data for the campaigns that belong to THIS instance — otherwise
+// SQR, Auction Insights, and Change History bleed unrelated client data into
+// our research. CampaignScope is the allowlist surface exposed by
+// `instances.google_ads_config.scope` and applied to every GAQL query.
+
+export interface CampaignScope {
+    mode: 'account' | 'campaigns'
+    campaignIds?: string[]            // resource IDs (numeric strings) — applied if mode='campaigns'
+}
+
+// Builds `AND campaign.id IN (...)` fragment when scope narrows to campaigns.
+// Returns empty string for account-wide mode.
+function scopeClause(scope: CampaignScope | undefined): string {
+    if (!scope || scope.mode === 'account') return ''
+    const ids = (scope.campaignIds || []).filter(id => /^\d+$/.test(id))
+    if (ids.length === 0) {
+        // Defensive: empty allowlist + 'campaigns' mode = zero data
+        // (this matches user intent: "I haven't picked yet" should not leak)
+        return ' AND campaign.id = 0'
+    }
+    return ` AND campaign.id IN (${ids.join(',')})`
+}
+
+// ─── Campaign Picker — list all campaigns in the account ─────────────────
+export interface CampaignSummary {
+    id: string                     // numeric ID (string, since GAQL returns int64)
+    name: string
+    status: 'ENABLED' | 'PAUSED' | 'REMOVED' | 'UNKNOWN'
+    advertisingChannelType: string // SEARCH | DISPLAY | VIDEO | SHOPPING | PERFORMANCE_MAX | ...
+    last30dSpendIls: number
+    last30dClicks: number
+    last30dConversions: number
+    last30dImpressions: number
+    startDate?: string
+    endDate?: string
+}
+
+export interface CampaignListResult {
+    available: boolean
+    reason?: string
+    customerId?: string
+    accountCurrency?: string
+    campaigns: CampaignSummary[]
+}
+
+export async function listCampaigns(
+    customerId: string | undefined,
+    tokens: GoogleTokens | null | undefined,
+    loginCustomerId?: string,
+): Promise<CampaignListResult> {
+    if (!customerId || !tokens?.refreshToken) {
+        return { available: false, reason: 'Account not connected', campaigns: [] }
+    }
+    const at = await refreshAccessToken(tokens.refreshToken)
+    if (!at) return { available: false, reason: 'Token refresh failed', campaigns: [] }
+
+    try {
+        // Pull all non-removed campaigns + last 30d performance to help user
+        // identify which ones are theirs (highest spend = most likely active).
+        const query = `
+            SELECT
+              campaign.id,
+              campaign.name,
+              campaign.status,
+              campaign.advertising_channel_type,
+              campaign.start_date,
+              campaign.end_date,
+              metrics.cost_micros,
+              metrics.clicks,
+              metrics.conversions,
+              metrics.impressions
+            FROM campaign
+            WHERE campaign.status != 'REMOVED'
+              AND segments.date DURING LAST_30_DAYS
+            ORDER BY metrics.cost_micros DESC
+            LIMIT 500
+        `
+        const rows = await gaqlQuery(customerId, at, query, loginCustomerId)
+        const campaigns: CampaignSummary[] = rows.map(r => {
+            const c = r?.campaign || {}
+            const m = r?.metrics || {}
+            return {
+                id: String(c.id || ''),
+                name: c.name || '?',
+                status: (c.status as CampaignSummary['status']) || 'UNKNOWN',
+                advertisingChannelType: c.advertisingChannelType || '?',
+                last30dSpendIls: Math.round((Number(m.costMicros || 0) / 1_000_000) * 100) / 100,
+                last30dClicks: Number(m.clicks || 0),
+                last30dConversions: Math.round(Number(m.conversions || 0) * 10) / 10,
+                last30dImpressions: Number(m.impressions || 0),
+                startDate: c.startDate,
+                endDate: c.endDate,
+            }
+        }).filter(c => !!c.id)
+
+        // Account currency (informational — helps UI label spend correctly)
+        let accountCurrency: string | undefined
+        try {
+            const accRows = await gaqlQuery(customerId, at, 'SELECT customer.currency_code FROM customer', loginCustomerId)
+            accountCurrency = accRows[0]?.customer?.currencyCode
+        } catch { /* non-fatal */ }
+
+        return { available: true, customerId, accountCurrency, campaigns }
+    } catch (err) {
+        return { available: false, reason: `Campaign list failed: ${(err as Error).message}`, campaigns: [] }
+    }
+}
+
 // ─── Search Terms Report ──────────────────────────────────────────────────
 export interface SearchTermsResult {
     available: boolean
@@ -93,6 +204,8 @@ export async function pullSearchTermsReport(
     customerId: string | undefined,
     tokens: GoogleTokens | null | undefined,
     days = 90,
+    scope?: CampaignScope,
+    loginCustomerId?: string,
 ): Promise<SearchTermsResult> {
     if (!customerId || !tokens?.refreshToken) {
         return { available: false, reason: 'Account not connected', daysAnalyzed: 0, totalTerms: 0, totalSpendIls: 0, wasteByPattern: [], topConvertingTerms: [], estimatedWastedSpendPct: 0 }
@@ -110,11 +223,11 @@ export async function pullSearchTermsReport(
               metrics.impressions
             FROM search_term_view
             WHERE segments.date DURING LAST_${days}_DAYS
-              AND metrics.impressions > 0
+              AND metrics.impressions > 0${scopeClause(scope)}
             ORDER BY metrics.cost_micros DESC
             LIMIT 1000
         `
-        const rows = await gaqlQuery(customerId, at, query)
+        const rows = await gaqlQuery(customerId, at, query, loginCustomerId)
 
         let totalSpend = 0, totalConv = 0, totalClicks = 0
         const terms: Array<{ term: string; clicks: number; cost: number; conv: number }> = []
@@ -200,6 +313,8 @@ export async function pullAuctionInsights(
     customerId: string | undefined,
     tokens: GoogleTokens | null | undefined,
     days = 90,
+    scope?: CampaignScope,
+    loginCustomerId?: string,
 ): Promise<AuctionInsightsResult> {
     if (!customerId || !tokens?.refreshToken) {
         return { available: false, reason: 'Account not connected', competitors: [] }
@@ -208,6 +323,8 @@ export async function pullAuctionInsights(
     if (!at) return { available: false, reason: 'Token refresh failed', competitors: [] }
 
     try {
+        // Auction Insights is naturally per-campaign — scope filter on campaign.id
+        // (the resource is `campaign_auction_insight` which lives under each campaign).
         const competitorsQ = `
             SELECT
               campaign_auction_insight_domain.display_name,
@@ -215,10 +332,10 @@ export async function pullAuctionInsights(
               metrics.search_overlap_rate,
               metrics.search_outranking_share
             FROM campaign_auction_insight
-            WHERE segments.date DURING LAST_${days}_DAYS
+            WHERE segments.date DURING LAST_${days}_DAYS${scopeClause(scope)}
             LIMIT 100
         `
-        const rows = await gaqlQuery(customerId, at, competitorsQ).catch(() => [])
+        const rows = await gaqlQuery(customerId, at, competitorsQ, loginCustomerId).catch(() => [])
         const competitors = rows.map((r: any) => ({
             domain: r?.campaignAuctionInsightDomain?.displayName || '?',
             impressionShare: Math.round((Number(r?.metrics?.searchImpressionShare || 0)) * 1000) / 10,
@@ -226,8 +343,18 @@ export async function pullAuctionInsights(
             outranking: Math.round((Number(r?.metrics?.searchOutrankingShare || 0)) * 1000) / 10,
         })).slice(0, 12)
 
-        // Account-level impression share metrics
-        const accountQ = `
+        // Account-level metrics — when scope='campaigns', aggregate from the
+        // selected campaigns instead of `customer` (which is account-wide and
+        // would leak unrelated campaigns).
+        const useCampaignAgg = scope && scope.mode === 'campaigns'
+        const accountQ = useCampaignAgg ? `
+            SELECT
+              metrics.search_impression_share,
+              metrics.search_top_impression_share,
+              metrics.search_absolute_top_impression_share
+            FROM campaign
+            WHERE segments.date DURING LAST_${days}_DAYS${scopeClause(scope)}
+        ` : `
             SELECT
               metrics.search_impression_share,
               metrics.search_top_impression_share,
@@ -235,8 +362,25 @@ export async function pullAuctionInsights(
             FROM customer
             WHERE segments.date DURING LAST_${days}_DAYS
         `
-        const accRows = await gaqlQuery(customerId, at, accountQ).catch(() => [])
-        const acc = accRows[0]?.metrics
+        const accRows = await gaqlQuery(customerId, at, accountQ, loginCustomerId).catch(() => [])
+        // For campaign-aggregated view, average across campaigns (weight by
+        // impressions would be more accurate but Auction Insights metrics
+        // returned per-campaign already represent that campaign's share of
+        // its own auctions).
+        let acc: { searchImpressionShare?: number; searchTopImpressionShare?: number; searchAbsoluteTopImpressionShare?: number } | undefined
+        if (useCampaignAgg && accRows.length > 0) {
+            const n = accRows.length
+            const sumIS = accRows.reduce((s: number, r: any) => s + Number(r?.metrics?.searchImpressionShare || 0), 0)
+            const sumTop = accRows.reduce((s: number, r: any) => s + Number(r?.metrics?.searchTopImpressionShare || 0), 0)
+            const sumAbs = accRows.reduce((s: number, r: any) => s + Number(r?.metrics?.searchAbsoluteTopImpressionShare || 0), 0)
+            acc = {
+                searchImpressionShare: sumIS / n,
+                searchTopImpressionShare: sumTop / n,
+                searchAbsoluteTopImpressionShare: sumAbs / n,
+            }
+        } else {
+            acc = accRows[0]?.metrics
+        }
         const impressionShare = acc ? Math.round(Number(acc.searchImpressionShare || 0) * 1000) / 10 : undefined
         const topOfPageRate = acc ? Math.round(Number(acc.searchTopImpressionShare || 0) * 1000) / 10 : undefined
         const absoluteTopOfPageRate = acc ? Math.round(Number(acc.searchAbsoluteTopImpressionShare || 0) * 1000) / 10 : undefined
@@ -260,6 +404,8 @@ export async function pullChangeHistory(
     customerId: string | undefined,
     tokens: GoogleTokens | null | undefined,
     days = 180,
+    scope?: CampaignScope,
+    loginCustomerId?: string,
 ): Promise<ChangeHistoryResult> {
     if (!customerId || !tokens?.refreshToken) {
         return { available: false, reason: 'Account not connected', daysAnalyzed: 0, totalChanges: 0, bigChanges: [] }
@@ -268,6 +414,8 @@ export async function pullChangeHistory(
     if (!at) return { available: false, reason: 'Token refresh failed', daysAnalyzed: 0, totalChanges: 0, bigChanges: [] }
 
     try {
+        // change_event has `campaign` resource_name — narrow by campaign.id
+        // when scope provided. `change_event.campaign` is the manager linkage.
         const since = new Date(Date.now() - days * 24 * 3600 * 1000).toISOString().slice(0, 10)
         const query = `
             SELECT
@@ -280,13 +428,14 @@ export async function pullChangeHistory(
               change_event.new_resource,
               change_event.resource_change_operation,
               change_event.resource_type,
-              change_event.change_resource_name
+              change_event.change_resource_name,
+              change_event.campaign
             FROM change_event
-            WHERE change_event.change_date_time >= '${since}'
+            WHERE change_event.change_date_time >= '${since}'${scopeClause(scope)}
             ORDER BY change_event.change_date_time DESC
             LIMIT 500
         `
-        const rows = await gaqlQuery(customerId, at, query)
+        const rows = await gaqlQuery(customerId, at, query, loginCustomerId)
         const big = rows
             .filter((r: any) => {
                 const rt = r?.changeEvent?.resourceType || ''

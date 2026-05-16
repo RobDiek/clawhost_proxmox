@@ -48,6 +48,8 @@ import {
     saveGoogleAdsConfig,
     getGoogleAdsConfigStatus,
     disconnectGoogleAdsConfig,
+    listGoogleAdsCampaignsForScope,
+    saveGoogleAdsCampaignScope,
     researchStage,
     researchSummary,
     strategySummary,
@@ -380,6 +382,9 @@ app.post('/instances/:id/facts/benchmark', benchmarkFacts)
 app.post('/instances/:id/integrations/googleads/save', saveGoogleAdsConfig)
 app.get('/instances/:id/integrations/googleads/status', getGoogleAdsConfigStatus)
 app.post('/instances/:id/integrations/googleads/disconnect', disconnectGoogleAdsConfig)
+// Phase 4.2.1 — campaign-scope picker (filter when account hosts multiple businesses)
+app.get('/instances/:id/integrations/googleads/campaigns', listGoogleAdsCampaignsForScope)
+app.post('/instances/:id/integrations/googleads/scope', saveGoogleAdsCampaignScope)
 app.post('/instances/:id/setup/agents/research/stage', researchStage)
 app.post('/instances/:id/setup/agents/research/summary', researchSummary)
 app.post('/instances/:id/setup/agents/strategy/summary', strategySummary)

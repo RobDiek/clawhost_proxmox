@@ -3591,8 +3591,26 @@ print('Google Ads config updated')
         // Update SOUL with playbook (idempotent)
         await updateSoulWithGoogleAdsTools(instance.ip, instance.rootPassword || undefined)
 
-        console.log(`Google Ads config saved for ${instanceId}: customerId=${customerId}`)
-        return ok(c, { customerId, connected: true }, 'Google Ads מוגדר.')
+        // Phase 4.2.1 — DUAL-WRITE: persist to DB so server-side services
+        // (pullSearchTermsReport, pullAuctionInsights, client_account_baseline)
+        // can read the config. VPS-only previously left server unaware.
+        // Existing scope is preserved if already set (re-saving creds shouldn't
+        // wipe campaign allowlist).
+        const prevCfg = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
+        const dbConfig = {
+            customerId,
+            loginCustomerId: loginCustomerId || customerId,
+            developerToken,
+            linkedAt: new Date().toISOString(),
+            // Preserve previous scope selection if it exists (campaign picker)
+            scope: (prevCfg as { scope?: unknown }).scope,
+        }
+        await db.update(instances)
+            .set({ googleAdsConfig: dbConfig, googleAdsMode: 'self' })
+            .where(eq(instances.id, instanceId))
+
+        console.log(`Google Ads config saved for ${instanceId}: customerId=${customerId} (VPS+DB)`)
+        return ok(c, { customerId, connected: true, scopeConfigured: !!dbConfig.scope }, 'Google Ads מוגדר.')
     } catch (err) {
         console.error('saveGoogleAdsConfig error:', err)
         return fail(c, 'Save failed', 500)
@@ -3679,6 +3697,113 @@ export const getGoogleAdsConfigStatus = async (c: Context) => {
     } catch (err) {
         console.error('getGoogleAdsConfigStatus error:', err)
         return ok(c, { connected: false })
+    }
+}
+
+// ── GET /hosting/instances/:id/integrations/googleads/campaigns ──
+// Phase 4.2.1 — lists all campaigns in the connected Google Ads account so the
+// user can pick which ones belong to THIS instance. Required when one account
+// hosts multiple businesses (agency owners, freelancers). Without this, paid
+// research bleeds in data from unrelated clients.
+export const listGoogleAdsCampaignsForScope = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const cfg = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
+        const customerId = cfg.customerId as string | undefined
+        const loginCustomerId = (cfg.loginCustomerId as string | undefined) || customerId
+        const gt = (instance.googleTokens as { refreshToken?: string; refresh_token?: string } | null)
+        const refreshToken = gt?.refreshToken || gt?.refresh_token
+
+        if (!customerId || !refreshToken) {
+            return ok(c, { available: false, reason: 'Google Ads לא מחובר עדיין' })
+        }
+
+        const { listCampaigns } = await import('@/services/googleAdsDeepEnrich')
+        const result = await listCampaigns(customerId, { refreshToken }, loginCustomerId)
+
+        // Suggest defaults: if instance has brandName, mark campaigns whose name
+        // contains it. Caller can also re-use previously-selected scope.
+        const prevScope = cfg.scope as { campaignIds?: string[] } | undefined
+        const brandName = ((instance.researchData as { answers?: { businessName?: string } } | null)?.answers?.businessName || '').trim()
+        const brandTokens = brandName ? brandName.toLowerCase().split(/\s+/).filter(t => t.length >= 3) : []
+
+        const augmented = result.campaigns.map(camp => {
+            const lname = camp.name.toLowerCase()
+            const brandMatch = brandTokens.length > 0 && brandTokens.some(t => lname.includes(t))
+            const previouslySelected = !!prevScope?.campaignIds?.includes(camp.id)
+            return { ...camp, brandMatch, previouslySelected }
+        })
+
+        return ok(c, {
+            available: result.available,
+            reason: result.reason,
+            customerId: result.customerId,
+            accountCurrency: result.accountCurrency,
+            campaigns: augmented,
+            previousScope: prevScope,
+        })
+    } catch (err) {
+        console.error('listGoogleAdsCampaigns error:', err)
+        return fail(c, 'List campaigns failed', 500)
+    }
+}
+
+// ── POST /hosting/instances/:id/integrations/googleads/scope ──
+// Body: { mode: 'account' | 'campaigns', campaignIds?: string[] }
+// 'account' = use whole account (only safe when single-business account)
+// 'campaigns' + campaignIds[] = only pull data for these specific campaigns
+export const saveGoogleAdsCampaignScope = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const cfg = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
+        if (!cfg.customerId) return fail(c, 'יש לחבר Google Ads קודם', 400)
+
+        const body = await c.req.json<{ mode: 'account' | 'campaigns'; campaignIds?: string[] }>()
+        const mode = body.mode === 'campaigns' ? 'campaigns' : 'account'
+        const campaignIds = (body.campaignIds || [])
+            .map(id => String(id).replace(/\D/g, ''))
+            .filter(id => id.length >= 6)
+
+        if (mode === 'campaigns' && campaignIds.length === 0) {
+            return fail(c, 'יש לבחור לפחות קמפיין אחד', 400)
+        }
+
+        const userId = resolveUserId(c)
+        const scope = {
+            mode,
+            campaignIds: mode === 'campaigns' ? campaignIds : undefined,
+            selectedAt: new Date().toISOString(),
+            selectedBy: userId,
+        }
+
+        const newCfg = { ...cfg, scope }
+        await db.update(instances).set({ googleAdsConfig: newCfg }).where(eq(instances.id, instanceId))
+
+        // Phase 4.2.1 — invalidate any cached client_account_baseline so the
+        // next paid stage run pulls fresh data with the new scope.
+        const rd = (instance.researchData as Record<string, unknown> | null) || {}
+        const rdResults = (rd.results as Record<string, unknown> | null) || {}
+        if (rdResults.client_account_baseline) {
+            const newResults = { ...rdResults }
+            delete newResults.client_account_baseline
+            await db.update(instances)
+                .set({ researchData: { ...rd, results: newResults } })
+                .where(eq(instances.id, instanceId))
+        }
+
+        console.log(`Google Ads scope saved for ${instanceId}: mode=${mode} ids=${campaignIds.length}`)
+        return ok(c, { scope }, 'היקף הקמפיינים נשמר.')
+    } catch (err) {
+        console.error('saveGoogleAdsCampaignScope error:', err)
+        return fail(c, 'Save scope failed', 500)
     }
 }
 
