@@ -10492,9 +10492,34 @@ async function _runPaidStage(stageId, flagName, startedAtName, label, durationLa
   }
   window[flagName] = true;
   window[startedAtName] = Date.now();
+  // Mirror the optimistic "running" state into instanceData.plan.status so the
+  // renderHome rehydration loop (which reads plan.status to decide whether to
+  // set/clear the window flag) doesn't IMMEDIATELY clear our flag based on
+  // stale closed-state cached from before the click. Backend writes
+  // plan.status=running at /research/stage start, but our local instanceData
+  // is only refreshed after the run completes.
+  if (instanceData && instanceData.researchData) {
+    if (!instanceData.researchData.plan) instanceData.researchData.plan = {};
+    if (!instanceData.researchData.plan.status) instanceData.researchData.plan.status = {};
+    instanceData.researchData.plan.status[stageId] = { state: 'running', runAt: new Date(window[startedAtName]).toISOString() };
+  }
   if (typeof _startMazhirTicker === 'function') _startMazhirTicker();
   if (typeof renderHome === 'function') renderHome();
   showToast('מריץ ' + label + '... ' + durationLabel, 'info');
+
+  // Poll for backend updates every 10s while we await the stage call.
+  // The /research/stage POST is a long await (60-90s typical for
+  // paid_competitor_landscape with prefetch + Anthropic + critic). During
+  // this time we want the card to auto-refresh from the server in case
+  // someone else completed a different stage, or the ticker needs the
+  // latest plan.status. On stage completion the finally block does a
+  // refreshInstanceData() which supersedes this poll.
+  var _bgRefreshHandle = setInterval(function() {
+    if (!window[flagName]) { clearInterval(_bgRefreshHandle); return; }
+    if (typeof refreshInstanceData === 'function') {
+      refreshInstanceData().catch(function() { /* swallow */ });
+    }
+  }, 10000);
   try {
     var iid = localStorage.getItem('cf_instance_id') || instanceId;
     var r = await apiFetch('/hosting/instances/' + iid + '/research/stage/' + stageId, { method: 'POST', body: JSON.stringify({}) });
@@ -10528,6 +10553,9 @@ async function _runPaidStage(stageId, flagName, startedAtName, label, durationLa
     showToast(label + ' נכשל: ' + (err && err.message || err), 'error');
   } finally {
     window[flagName] = false;
+    if (typeof _bgRefreshHandle !== 'undefined') {
+      try { clearInterval(_bgRefreshHandle); } catch (_) { /* swallow */ }
+    }
     if (typeof renderHome === 'function') renderHome();
   }
 }
