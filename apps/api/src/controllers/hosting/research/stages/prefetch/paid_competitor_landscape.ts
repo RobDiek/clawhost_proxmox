@@ -194,10 +194,23 @@ export async function prefetchPaidCompetitorLandscape(
         .where(eq(instances.id, instanceId))
     const firecrawlKey = instance?.firecrawlKey || process.env.FIRECRAWL_API_KEY || null
 
+    // Determine target country for Meta Ad Library policy gate.
+    // paidProfile.geography or answers.geography may carry country codes.
+    // Default to 'IL' for ClawFlow's primary market; Meta API short-circuits
+    // for any non-EU/UK country (commercial ads not covered by API).
+    const targetCountry = (() => {
+        const pp = rd.paidProfile as Record<string, unknown> | undefined
+        const geo = (pp?.geography as Record<string, unknown> | undefined) || {}
+        const cc = (geo.countryCode as string) || (geo.country as string) || 'IL'
+        return cc.slice(0, 2).toUpperCase()
+    })()
+
     // 3. Run all three audits in parallel
     const [metaResult, googleResult, lpAudits] = await Promise.all([
-        // Meta Ad Library — per-competitor calls happen inside auditMetaAdLibrary
-        auditMetaAdLibrary(domains).catch((err): MetaAdLibraryResult => ({
+        // Meta Ad Library — per-competitor calls happen inside auditMetaAdLibrary.
+        // Policy guard inside short-circuits for non-EU/UK countries so we don't
+        // waste rate limit on a call Meta will reject.
+        auditMetaAdLibrary(domains, { targetCountry }).catch((err): MetaAdLibraryResult => ({
             available: false,
             reason: `Meta audit threw: ${(err as Error).message}`,
             competitorsRequested: domains,

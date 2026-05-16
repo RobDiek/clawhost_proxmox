@@ -273,19 +273,64 @@ async function fetchCompetitorAds(query: string, accessToken: string): Promise<M
     }
 }
 
-export async function auditMetaAdLibrary(competitorsOrDomains: string[]): Promise<MetaAdLibraryResult> {
+/**
+ * Phase 4.2(fix) — Meta Ad Library API coverage in 2024-2025.
+ *
+ * Per Meta's official Ad Library API docs (facebook.com/ads/library/api/),
+ * the API now only covers:
+ *   1. Political / election / social-issue ads — globally, last 7 years
+ *   2. ALL ads — but ONLY ad_reached_countries in {UK, EU member states},
+ *      last year.
+ *
+ * Commercial ads delivered to Israel (or any non-EU/non-UK country) are
+ * NOT accessible programmatically. The Ad Library website still shows
+ * them, but the API returns "Application does not have permission for
+ * this action" regardless of token type. No Identity Confirmation /
+ * Business Verification / App Review unlocks this — it's a hard policy
+ * block, not a permission tier.
+ *
+ * So for IL clients we short-circuit before burning the API call.
+ */
+const META_AD_LIBRARY_SUPPORTED_COUNTRIES = new Set([
+    // EU member states
+    'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR',
+    'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK',
+    'SI', 'ES', 'SE',
+    // United Kingdom
+    'GB', 'UK',
+])
+
+export function isAdLibrarySupportedCountry(cc: string): boolean {
+    return META_AD_LIBRARY_SUPPORTED_COUNTRIES.has((cc || '').toUpperCase())
+}
+
+export async function auditMetaAdLibrary(
+    competitorsOrDomains: string[],
+    opts?: { targetCountry?: string },
+): Promise<MetaAdLibraryResult> {
+    const targetCountry = (opts?.targetCountry || 'IL').toUpperCase()
     const appId = process.env.META_APP_ID || ''
     const appSecret = process.env.META_APP_SECRET || ''
-    // In 2024-2025 Meta deprecated App Access Token for ads_archive — now
-    // requires a User Access Token from someone assigned a role in the app
-    // (Admin/Developer/Tester). Prefer the user token when set; fall back
-    // to app token only for backward compat (will hit "App role required").
     const userToken = process.env.META_USER_ACCESS_TOKEN || ''
     const diagnostics = {
         appIdConfigured: !!appId,
         appSecretConfigured: !!appSecret,
         callsAttempted: 0,
         callsFailed: 0,
+    }
+
+    // ── Policy short-circuit: Meta blocks API access for non-EU/UK commercial ads ──
+    // Don't even attempt the API call — saves rate limit + gives an honest
+    // reason to the prompt builder so Opus doesn't pretend to have Meta data.
+    if (!isAdLibrarySupportedCountry(targetCountry)) {
+        return {
+            available: false,
+            reason: `Meta Ad Library API does not cover commercial ads in ${targetCountry} (Meta policy 2024+). Coverage limited to UK + EU member states and political ads globally. Use Google Ads Transparency Center + Firecrawl LP audits instead.`,
+            competitorsRequested: competitorsOrDomains,
+            competitorsScanned: 0,
+            competitors: [],
+            diagnostics,
+        }
     }
 
     if (!appId || !appSecret) {

@@ -333,20 +333,38 @@ export const researchPreflight = async (c: Context) => {
         })
     }
 
-    // ─── Check: Meta App credentials (for paid_competitor_landscape stage) ──
-    // Different from Meta user OAuth — Meta Ad Library is PUBLIC and uses
-    // platform-level app credentials (META_APP_ID + META_APP_SECRET env
-    // vars). LIVE PROBE — credentials being set is not enough; Facebook
-    // also requires the app to be in Live mode AND/OR for the caller to
-    // be an assigned developer/tester/admin. A "configured but blocked"
-    // app silently fails at run-time, so we ping ads_archive with limit=1
-    // to verify end-to-end. Cost: 1 API call, ~0ms latency, no spend.
-    if (!process.env.META_APP_ID || !process.env.META_APP_SECRET) {
+    // ─── Check: Meta Ad Library API — POLICY (not bug) ──
+    // Per Meta's official Ad Library API docs (2024+): commercial ads are
+    // accessible ONLY for ad_reached_countries in {UK, EU member states}.
+    // For Israeli (and any other non-EU/UK) commercial ads, the API returns
+    // "Application does not have permission" regardless of token type or
+    // app verification status. No fix on our side — it's hard policy.
+    //
+    // Surface as INFO (status='ok' with explanatory label) when target is
+    // non-EU/UK so the user knows the system uses Firecrawl + Google
+    // Transparency Center instead, and doesn't waste time setting up
+    // Meta App credentials they don't need.
+    const { isAdLibrarySupportedCountry } = await import('@/services/paidResearch/metaAdLibrary')
+    const targetCC = (() => {
+        const pp = rd?.paidProfile as Record<string, unknown> | undefined
+        const geo = (pp?.geography as Record<string, unknown> | undefined) || {}
+        const cc = (geo.countryCode as string) || (geo.country as string) || 'IL'
+        return cc.slice(0, 2).toUpperCase()
+    })()
+
+    if (!isAdLibrarySupportedCountry(targetCC)) {
+        checks.push({
+            name: 'meta_app_credentials',
+            status: 'ok',
+            label_he: `Meta Ad Library API לא זמין ל-${targetCC} (מדיניות מטא 2024+)`,
+            actionable_hint_he: 'מטא הגבילה את ה-API לפרסומות מסחריות ב-EU + UK בלבד. paid_competitor_landscape ישתמש ב-Google Ads Transparency Center + Firecrawl LP audits — אין מה לעשות.',
+        })
+    } else if (!process.env.META_APP_ID || !process.env.META_APP_SECRET) {
         checks.push({
             name: 'meta_app_credentials',
             status: 'warning',
             label_he: 'Meta Ad Library — credentials פלטפורמה לא מוגדרים',
-            actionable_hint_he: 'META_APP_ID/SECRET חסרים בשרת. בלעדם paid_competitor_landscape לא יראה רקלמות פעילות של המתחרים ב-Meta (Facebook/Instagram). פנו לתמיכה כדי שנגדיר. הסטדיה תרוץ בכל זאת — אבל בעיקר על Google Transparency + Firecrawl, וה-confidence ירד.',
+            actionable_hint_he: 'META_APP_ID/SECRET חסרים בשרת. בלעדם paid_competitor_landscape לא יראה רקלמות פעילות של המתחרים ב-Meta (Facebook/Instagram). פנו לתמיכה כדי שנגדיר.',
         })
     } else {
         const probe = await probeMetaAdLibrary(process.env.META_APP_ID, process.env.META_APP_SECRET)
@@ -361,7 +379,7 @@ export const researchPreflight = async (c: Context) => {
                 name: 'meta_app_credentials',
                 status: 'warning',
                 label_he: '⚠️ Meta App מוגדר אבל ה-Ad Library חסום',
-                actionable_hint_he: probe.hint || 'ה-Facebook App במצב Development ללא הרשאות לפעולה הזו. פנו לתמיכה כדי להעביר ל-Live Mode + להוסיף Privacy Policy URL ב-Settings.',
+                actionable_hint_he: probe.hint || 'ה-Facebook App דרוש User Access Token + Identity Confirmation מ-facebook.com/ads/library/api/.',
             })
         } else {
             checks.push({
