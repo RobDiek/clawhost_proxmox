@@ -102,6 +102,16 @@ export interface BudgetScenariosBundle {
         keywords_used_for_cpc: number
         benchmark_source: 'il_vertical' | 'global_fallback'
         custom_inputs_used: boolean
+        /** Phase 4.2.1-I — anchor provenance. */
+        cpc_source?: 'account_real' | 'dfs_median' | 'industry'
+        cvr_source?: 'account_real' | 'industry'
+        account_anchor?: {
+            avgCpcIls: number
+            conversionRatePct: number
+            cpaIls?: number
+            totalCost90d?: number
+            conversions90d?: number
+        } | null
     }
 }
 
@@ -316,15 +326,40 @@ export interface GenerateScenariosOpts {
     keywordLandscape: PaidKeywordLandscape | null
     /** Optional budget hint from answers.paidBudget — if user has a number in mind. */
     userBudgetHintIls?: number | null
+    /**
+     * Phase 4.2.1-I — REAL account performance anchors from client_account_baseline.
+     * When present, overrides industry benchmarks for CPC/CR/CPA. This is the
+     * difference between "industry estimate says CPA ₪150" and "your actual
+     * account does CPA ₪68 — scenarios anchored to that".
+     */
+    accountAnchor?: {
+        avgCpcIls?: number      // your real avg CPC across the selected campaigns
+        conversionRatePct?: number   // your real account CR%
+        cpaIls?: number         // your real CPA
+        totalCost90d?: number   // recent spend — informs aggressive tier ceiling
+        conversions90d?: number // total conversions — informs base scenario realism
+    }
 }
 
 export function generateBudgetScenarios(opts: GenerateScenariosOpts): BudgetScenariosBundle {
     const benchmark = IL_VERTICAL_BENCHMARKS[opts.vertical]
 
-    // Derive blended CPC from keyword landscape if available, else fall back to vertical median
-    const blendedCpc = opts.keywordLandscape?.ilBenchmarks.medianCpcIls
-        || benchmark.search_cpc.median
-    const blendedCvr = benchmark.cvr.median
+    // Phase 4.2.1-I — anchor on REAL account performance when available, fall
+    // back to keyword landscape CPC, fall back to vertical median.
+    const realCpc = opts.accountAnchor?.avgCpcIls
+    const realCvr = opts.accountAnchor?.conversionRatePct
+    // Convert CR% (e.g. 20.36) into decimal (0.2036) to match benchmark.cvr shape
+    const realCvrDecimal = typeof realCvr === 'number' && realCvr > 0 ? realCvr / 100 : null
+
+    const blendedCpc = realCpc ?? opts.keywordLandscape?.ilBenchmarks.medianCpcIls ?? benchmark.search_cpc.median
+    const blendedCvr = realCvrDecimal ?? benchmark.cvr.median
+
+    // Track anchor sources for downstream observability
+    const cpcSource: 'account_real' | 'dfs_median' | 'industry' =
+        realCpc != null ? 'account_real'
+        : opts.keywordLandscape?.ilBenchmarks.medianCpcIls ? 'dfs_median'
+        : 'industry'
+    const cvrSource: 'account_real' | 'industry' = realCvrDecimal != null ? 'account_real' : 'industry'
 
     // Tier budgets — anchored to vertical min_viable + spectrum
     // conservative = min_viable
@@ -435,6 +470,17 @@ export function generateBudgetScenarios(opts: GenerateScenariosOpts): BudgetScen
             keywords_used_for_cpc: opts.keywordLandscape?.keywords.length || 0,
             benchmark_source: opts.vertical === 'unknown' ? 'global_fallback' : 'il_vertical',
             custom_inputs_used: !!opts.userBudgetHintIls,
+            cpc_source: cpcSource,
+            cvr_source: cvrSource,
+            account_anchor: opts.accountAnchor && (opts.accountAnchor.avgCpcIls != null || opts.accountAnchor.conversionRatePct != null)
+                ? {
+                    avgCpcIls: opts.accountAnchor.avgCpcIls ?? 0,
+                    conversionRatePct: opts.accountAnchor.conversionRatePct ?? 0,
+                    cpaIls: opts.accountAnchor.cpaIls,
+                    totalCost90d: opts.accountAnchor.totalCost90d,
+                    conversions90d: opts.accountAnchor.conversions90d,
+                }
+                : null,
         },
     }
 }
@@ -446,6 +492,23 @@ export function renderScenariosForPrompt(bundle: BudgetScenariosBundle): string 
     lines.push(`Vertical: ${bundle.vertical_label_he} (${bundle.vertical})`)
     lines.push(`Blended CPC: ₪${bundle.blended_cpc_ils.toFixed(2)} | Blended CVR: ${(bundle.blended_cvr * 100).toFixed(2)}%`)
     lines.push(`Keyword pool: ${bundle.diagnostics.keywords_used_for_cpc} kw | benchmark source: ${bundle.diagnostics.benchmark_source}`)
+    // Phase 4.2.1-I — surface real account anchor when present
+    const anchor = bundle.diagnostics.account_anchor
+    if (anchor) {
+        lines.push('')
+        lines.push('🎯 **ACCOUNT ANCHOR (REAL DATA, NOT INDUSTRY ESTIMATES):**')
+        lines.push(`  - Avg CPC: ₪${anchor.avgCpcIls.toFixed(2)}`)
+        lines.push(`  - CR: ${anchor.conversionRatePct.toFixed(2)}%`)
+        if (anchor.cpaIls != null) lines.push(`  - CPA: ₪${anchor.cpaIls.toFixed(2)}`)
+        if (anchor.totalCost90d != null && anchor.conversions90d != null) {
+            lines.push(`  - 90d history: ₪${anchor.totalCost90d.toLocaleString()} spend → ${anchor.conversions90d} conv`)
+        }
+        lines.push(`  Sources: CPC=${bundle.diagnostics.cpc_source}, CVR=${bundle.diagnostics.cvr_source}`)
+        lines.push('')
+        lines.push('⚠️ RULE: scenarios MUST use these as base estimates. Industry benchmarks are only a sanity-cap.')
+        lines.push('  - If proposing CPA below 70% of real CPA, justify by specific optimization (waste cuts / bid strategy switch / tracking improvement)')
+        lines.push('  - If proposing CR above real CR by >30%, flag as aspirational (working_hypothesis confidence)')
+    }
     lines.push('')
 
     for (const s of bundle.scenarios) {

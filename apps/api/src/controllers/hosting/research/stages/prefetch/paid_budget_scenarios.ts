@@ -45,6 +45,35 @@ export async function prefetchPaidBudgetScenarios(
         ? ((paidKwResult.dfsData as PaidKeywordLandscape) || null)
         : null
 
+    // Phase 4.2.1-I — REAL account anchors from baseline (preflight stage).
+    // Replaces industry-only benchmarks. When baseline.accountMetrics is
+    // available, scenarios anchor on the user's actual CPC / CR / CPA.
+    interface BaselineShape {
+        dfsData?: {
+            googleAds?: {
+                accountMetrics?: {
+                    available?: boolean
+                    avgCpcIls?: number
+                    conversionRatePct?: number
+                    cpaIls?: number
+                    cost?: number
+                    conversions?: number
+                }
+            }
+        }
+    }
+    const baseline = rd.results?.client_account_baseline as BaselineShape | undefined
+    const am = baseline?.dfsData?.googleAds?.accountMetrics
+    const accountAnchor = am?.available
+        ? {
+            avgCpcIls: am.avgCpcIls,
+            conversionRatePct: am.conversionRatePct,
+            cpaIls: am.cpaIls,
+            totalCost90d: am.cost,
+            conversions90d: am.conversions,
+        }
+        : undefined
+
     // User budget hint — answers.paidBudget OR paidProfile.monthlyBudgetIls if provided
     const budgetHintRaw = answers.paidBudget
         ?? (rd.paidProfile as Record<string, unknown> | undefined)?.monthlyBudgetIls
@@ -56,5 +85,6 @@ export async function prefetchPaidBudgetScenarios(
         vertical: verticalResult.vertical,
         keywordLandscape,
         userBudgetHintIls: budgetHint,
+        accountAnchor,
     })
 }
