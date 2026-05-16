@@ -4930,9 +4930,11 @@ function renderHome() {
           var __res = rd.results || {};
 
           // ── Phase 1: Research state ──
+          var cabResult = __res.client_account_baseline;  // Phase 4.2.1 — preflight: ground-truth from connected ad account + GA4
           var pclResult = __res.paid_competitor_landscape;
           var pkrResult = __res.paid_keyword_research;
           var pbsResult = __res.paid_budget_scenarios;
+          var hasBaseline = !!cabResult;
           var hasPaidComp = !!pclResult;
           var hasPaidKw = !!pkrResult;
           var hasPaidBud = !!pbsResult;
@@ -4964,12 +4966,26 @@ function renderHome() {
               window[x.flag] = false;
             }
           });
+          var cabRunning = !!window._clientBaselineRunning;
           var pclRunning = !!window._paidCompLandscapeRunning;
           var pkrRunning = !!window._paidKwResearchRunning;
           var pbsRunning = !!window._paidBudgetScenariosRunning;
+          var cabElapsed = cabRunning ? _fmtElapsed(Date.now() - window._clientBaselineStartedAt) : '';
           var pclElapsed = pclRunning ? _fmtElapsed(Date.now() - window._paidCompLandscapeStartedAt) : '';
           var pkrElapsed = pkrRunning ? _fmtElapsed(Date.now() - window._paidKwResearchStartedAt) : '';
           var pbsElapsed = pbsRunning ? _fmtElapsed(Date.now() - window._paidBudgetScenariosStartedAt) : '';
+
+          // Baseline summary
+          var cabSummary = '';
+          if (hasBaseline && cabResult.dfsData) {
+            var _bgads = cabResult.dfsData.googleAds || {};
+            var _bga4 = cabResult.dfsData.ga4 || {};
+            var bits = [];
+            if (_bgads.sqr && _bgads.sqr.available) bits.push((_bgads.sqr.totalTerms || 0) + ' SQR');
+            if (_bgads.accountMetrics && _bgads.accountMetrics.available) bits.push('₪' + (_bgads.accountMetrics.cost || 0).toLocaleString() + ' spend');
+            if (_bga4.available) bits.push('GA4 ✓');
+            cabSummary = bits.join(' · ');
+          }
 
           // Build summary labels from prior results
           var pclSummary = '';
@@ -5027,33 +5043,53 @@ function renderHome() {
           // ── Build unified steps[] across both phases ──
           var pipelineSteps = [];
 
-          // Step 1: Competitor research (phase 1 start)
+          // Step 1 (Phase 4.2.1 — NEW): client_account_baseline preflight.
+          // Pulls Google Ads SQR + account metrics + Change History + GA4 once;
+          // every downstream paid stage reads from it as ground truth.
+          pipelineSteps.push({
+            id: 'client_account_baseline',
+            n: 1,
+            phaseLabel: 'שלב א׳ — מחקר (4 חלקים)',
+            label: 'חיבור נתוני חשבון' + (cabSummary ? ' · ' + cabSummary : ''),
+            desc: 'מושך פעם אחת את כל הנתונים ההיסטוריים שלכם: Google Ads (SQR, account metrics, Change History) + GA4 (events, funnel, seasonality), מסונן לפי הקמפיינים שבחרתם. שלבים 2-4 נשענים על הקאש הזה במקום למשוך שוב.',
+            whyMatters: 'בלי הנתונים האמיתיים מהחשבון שלכם, שלב 2 (מילות מפתח) ימציא seeds מ-DataForSEO ויחמיץ את מילות הצמיחה האמיתיות שאתם כבר קונים. שלב 4 (תקציב) ישתמש ב-benchmarks תעשייתיים במקום ב-CPC/CR/CPA האמיתי שלכם. **זה ה-ground-truth של כל הצינור.**',
+            status: cabRunning ? 'running' : (hasBaseline ? 'done' : 'active'),
+            elapsed: cabElapsed,
+            primaryAction: cabRunning
+              ? { label: '⏳ ' + cabElapsed, disabled: true }
+              : (hasBaseline
+                  ? { label: 'הריצו מחדש', onclick: 'runClientAccountBaselineFromTasks()' }
+                  : { label: '▶ הריצו (~30-60 שנ׳)', onclick: 'runClientAccountBaselineFromTasks()' }),
+            secondaryActions: hasBaseline ? [{ label: 'צפו בנתונים →', onclick: 'viewClientAccountBaseline()' }] : []
+          });
+
+          // Step 2: Competitor research
           pipelineSteps.push({
             id: 'paid_competitor_landscape',
-            n: 1,
-            phaseLabel: 'שלב א׳ — מחקר (3 חלקים)',
+            n: 2,
             label: 'מחקר מתחרים — פרסום ממומן' + (pclSummary ? ' · ' + pclSummary : ''),
             desc: 'סריקת Meta Ad Library + Google Ads Transparency Center + ביקורת Firecrawl על דפי נחיתה של מתחרים — 5 קטגוריות, 10 אנגלים יצירתיים, מאפיינים ישראליים',
-            whyMatters: 'נחשפים לקמפיינים הפעילים של המתחרים: אילו אנגלים יצירתיים, אילו דפי נחיתה, באילו פלטפורמות. **בלי זה כל ההמלצות יהיו כלליות.** העומק הזה מזין את חלקים 2-3 (מילות מפתח + תקציב) ובסופו של דבר את האודיט והתוכנית.',
-            status: pclRunning ? 'running' : (hasPaidComp ? 'done' : 'active'),
+            whyMatters: 'נחשפים לקמפיינים הפעילים של המתחרים: אילו אנגלים יצירתיים, אילו דפי נחיתה, באילו פלטפורמות. **בלי זה כל ההמלצות יהיו כלליות.** העומק הזה מזין את חלקים 3-4 (מילות מפתח + תקציב) ובסופו של דבר את האודיט והתוכנית.',
+            status: pclRunning ? 'running' : (hasPaidComp ? 'done' : (hasBaseline ? 'active' : 'locked')),
+            lockedReason: hasBaseline ? '' : 'דורש סיום שלב 1 (חיבור נתוני חשבון)',
             elapsed: pclElapsed,
             primaryAction: pclRunning
               ? { label: '⏳ ' + pclElapsed, disabled: true }
               : (hasPaidComp
                   ? { label: 'הריצו מחדש', onclick: 'runPaidCompetitorLandscapeFromTasks()' }
-                  : { label: '▶ הריצו (~3-5 דק׳)', onclick: 'runPaidCompetitorLandscapeFromTasks()' }),
+                  : { label: '▶ הריצו (~3-5 דק׳)', onclick: 'runPaidCompetitorLandscapeFromTasks()', disabled: !hasBaseline }),
             secondaryActions: hasPaidComp ? [{ label: 'צפו בניתוח →', onclick: 'viewPaidCompetitorLandscape()' }] : []
           });
 
-          // Step 2: Keyword research
+          // Step 3: Keyword research
           pipelineSteps.push({
             id: 'paid_keyword_research',
-            n: 2,
+            n: 3,
             label: 'מחקר מילות מפתח — ממומן' + (pkrSummary ? ' · ' + pkrSummary : ''),
-            desc: 'סקירת DataForSEO: CPC, מדד תחרות, סולם כוונה (TOFU/MOFU/BOFU/Brand), אשכולות סמנטיים, מדדי CPC ישראליים',
-            whyMatters: 'מחלק 1 כבר יודעים מי המתחרים — עכשיו מקבלים את ה-CPC הריאלי + כוונה של כל מילת מפתח רלוונטית. **התוצאה: קבוצות מודעות מוכנות לבנייה.** מזין את חלק 3 (תרחישי תקציב — צריך CPC לחישוב) וחלק 8 (תוכנית מדיה — לפי אשכולות).',
+            desc: 'סקירת DataForSEO + SQR top-converters שלכם: CPC, מדד תחרות, סולם כוונה (TOFU/MOFU/BOFU/Brand), אשכולות סמנטיים, מדדי CPC ישראליים',
+            whyMatters: 'משלב 2 יודעים מי המתחרים — עכשיו מקבלים את ה-CPC הריאלי + כוונה של כל מילה רלוונטית + **Tier-1 seeds מה-SQR שלכם** (מילים שכבר מביאות המרות בחשבון). **התוצאה: קבוצות מודעות מוכנות לבנייה.** מזין את חלק 4 (תקציב) ואת תוכנית המדיה.',
             status: pkrRunning ? 'running' : (hasPaidKw ? 'done' : (hasPaidComp ? 'active' : 'locked')),
-            lockedReason: hasPaidComp ? '' : 'דורש סיום שלב 1 (מחקר מתחרים)',
+            lockedReason: hasPaidComp ? '' : 'דורש סיום שלב 2 (מחקר מתחרים)',
             elapsed: pkrElapsed,
             primaryAction: pkrRunning
               ? { label: '⏳ ' + pkrElapsed, disabled: true }
@@ -5063,15 +5099,15 @@ function renderHome() {
             secondaryActions: hasPaidKw ? [{ label: 'צפו במילים →', onclick: 'viewPaidKeywordResearch()' }] : []
           });
 
-          // Step 3: Budget scenarios
+          // Step 4: Budget scenarios
           pipelineSteps.push({
             id: 'paid_budget_scenarios',
-            n: 3,
+            n: 4,
             label: 'תרחישי תקציב — שמרני / מאוזן / אגרסיבי' + (pbsSummary ? ' · ' + pbsSummary : ''),
-            desc: '17 מדדי ייחוס לורטיקלים ישראליים → 3 דרגות עם תחזית KPI חודשית + הקצאת תקציב + סולם הצעות מחיר',
-            whyMatters: 'Opus לוקח את ה-CPC הריאלי מחלק 2 + 17 מדדי ייחוס לורטיקלים ישראליים ובונה 3 תרחישי תקציב עם תחזית חודשית ל-12 חודשים. **התוצאה: המלצה מספרית לפני בחירה.** בחלק 4 תוכלו לבחור תרחיש מומלץ או להזין משלכם.',
+            desc: '17 מדדי ייחוס לורטיקלים ישראליים + ה-CPC/CR/CPA האמיתי שלכם → 3 דרגות עם תחזית KPI חודשית + הקצאת תקציב + סולם הצעות מחיר',
+            whyMatters: 'Opus לוקח את ה-CPC הריאלי משלב 3 + ה-account metrics האמיתיים שלכם (משלב 1) + 17 מדדי ייחוס ישראליים, ובונה 3 תרחישי תקציב עם תחזית חודשית ל-12 חודשים. **התוצאה: המלצה מספרית מבוססת על ההיסטוריה שלכם, לא על industry benchmarks.** בחלק 5 תוכלו לבחור תרחיש מומלץ או להזין משלכם.',
             status: pbsRunning ? 'running' : (hasPaidBud ? 'done' : (hasPaidKw ? 'active' : 'locked')),
-            lockedReason: hasPaidKw ? '' : 'דורש סיום שלב 2 (מילות מפתח)',
+            lockedReason: hasPaidKw ? '' : 'דורש סיום שלב 3 (מילות מפתח)',
             elapsed: pbsElapsed,
             primaryAction: pbsRunning
               ? { label: '⏳ ' + pbsElapsed, disabled: true }
@@ -5081,31 +5117,31 @@ function renderHome() {
             secondaryActions: hasPaidBud ? [{ label: 'צפו בתרחישים →', onclick: 'viewPaidBudgetScenarios()' }] : []
           });
 
-          // Step 4: Paid profile (phase 2 start)
+          // Step 5: Paid profile (phase 2 start)
           pipelineSteps.push({
             id: 'paid_profile',
-            n: 4,
+            n: 5,
             phaseLabel: 'שלב ב׳ — הקמת קמפיין' + (hasFullAdsAPI ? ' (5 חלקים)' : ' (3 חלקים)'),
             label: 'פרופיל קידום ממומן',
             desc: 'תקציב, מטרה, גיאוגרפיה, USP, נתונים היסטוריים — בסיס לאודיט ולתוכנית',
-            whyMatters: 'אתם מתרגמים את ההמלצות מהמחקר (חלקים 1-3) לבחירה עסקית קונקרטית. אם הרצתם תרחישי תקציב — תוכלו לבחור תרחיש מומלץ. **בלי זה האודיט והתוכנית לא יודעים תקציב ומטרה.**',
+            whyMatters: 'אתם מתרגמים את ההמלצות מהמחקר (חלקים 1-4) לבחירה עסקית קונקרטית. אם הרצתם תרחישי תקציב — תוכלו לבחור תרחיש מומלץ. **בלי זה האודיט והתוכנית לא יודעים תקציב ומטרה.**',
             status: hasPaidProfile ? 'done' : (hasPaidBud ? 'active' : 'locked'),
-            lockedReason: hasPaidBud ? '' : 'מומלץ לסיים את שלבי 1-3 (המחקר) — אבל ניתן למלא ידנית גם בלי',
+            lockedReason: hasPaidBud ? '' : 'מומלץ לסיים את שלבי 1-4 (המחקר) — אבל ניתן למלא ידנית גם בלי',
             primaryAction: { label: hasPaidProfile ? 'ערכו' : 'מלאו פרופיל', onclick: 'openPaidProfileModal()' },
             secondaryActions: hasPaidProfile ? [{ label: 'בדיקת נתונים', onclick: 'viewMazhirDataPreflight()' }] : []
           });
 
-          // Step 5: Mazhir audit
+          // Step 6: Mazhir audit
           pipelineSteps.push({
             id: 'mazhir_audit',
-            n: 5,
+            n: 6,
             label: 'אודיט Google Ads (Mazhir)' + (hasAudit && auditMethodology ? ' · ' + auditMethodology : ''),
             desc: hasAudit
               ? 'Opus + Sonnet אדוורסרי קראו 19 מקורות נתונים והפיקו אודיט מקיף'
               : 'Opus + Sonnet יקראו 19 מקורות נתונים: GA4, מונחי חיפוש, Auction Insights, היסטוריית שינויים, GTM, Search Console, DataForSEO ועוד',
-            whyMatters: 'Opus קורא את כל הנתונים — המחקר מחלקים 1-3, הפרופיל מחלק 4, וההיסטוריה (אם יש OAuth) — ומחזיר אודיט מקיף עם מתודולוגיה + חסמים + המלצות. **בלי זה הקמפיינים יוצאים בלי אימות.** Sonnet אדוורסרי מציג "5 דרכים שזה ייכשל" כדי לתפוס הנחות יסוד.',
+            whyMatters: 'Opus קורא את כל הנתונים — המחקר מחלקים 1-4, הפרופיל מחלק 5, וההיסטוריה (אם יש OAuth) — ומחזיר אודיט מקיף עם מתודולוגיה + חסמים + המלצות. **בלי זה הקמפיינים יוצאים בלי אימות.** Sonnet אדוורסרי מציג "5 דרכים שזה ייכשל" כדי לתפוס הנחות יסוד.',
             status: auditRunning ? 'running' : (hasAudit ? 'done' : (hasPaidProfile ? 'active' : 'locked')),
-            lockedReason: hasPaidProfile ? '' : 'דורש שלב 4 (פרופיל)',
+            lockedReason: hasPaidProfile ? '' : 'דורש שלב 5 (פרופיל)',
             elapsed: auditElapsed,
             primaryAction: auditRunning
               ? { label: '⏳ ' + auditElapsed, disabled: true }
@@ -5115,8 +5151,8 @@ function renderHome() {
             secondaryActions: hasAudit ? [{ label: 'צפו באודיט →', onclick: 'viewMazhirAudit()' }] : []
           });
 
-          // Steps 6 + 7: GTM + Conversions (only when FullAdsAPI is connected)
-          var nextStepNum = 6;
+          // Steps 7 + 8: GTM + Conversions (only when FullAdsAPI is connected)
+          var nextStepNum = 7;
           if (hasFullAdsAPI) {
             pipelineSteps.push({
               id: 'mazhir_gtm_setup',
@@ -5134,9 +5170,9 @@ function renderHome() {
               n: nextStepNum++,
               label: convCreated > 0 ? 'פעולות המרה ב-Google Ads (' + convCreated + ')' : 'פעולות המרה ב-Google Ads',
               desc: 'יצירת רשומות ConversionAction ב-Google Ads עבור כל סוג המרה (form_submit, phone_call וכו׳) — מקושרות אוטומטית לתגיות GTM',
-              whyMatters: 'Google Ads לא יודע מה לאופטם בלי רישומי ConversionAction. GTM מחלק 6 דוחף נתונים פנימה, ConversionAction אומר ל-Google "זה מה שאני סופר כהמרה". **בלי זה Smart Bidding לא יכול לעבוד — כל המרה מתעלמת ממנו.**',
+              whyMatters: 'Google Ads לא יודע מה לאופטם בלי רישומי ConversionAction. GTM מחלק 7 דוחף נתונים פנימה, ConversionAction אומר ל-Google "זה מה שאני סופר כהמרה". **בלי זה Smart Bidding לא יכול לעבוד — כל המרה מתעלמת ממנו.**',
               status: convCreated > 0 ? 'done' : (hasGtmPublished ? 'active' : 'locked'),
-              lockedReason: hasGtmPublished ? '' : 'דורש שלב 6 (GTM)',
+              lockedReason: hasGtmPublished ? '' : 'דורש שלב 7 (GTM)',
               primaryAction: { label: convCreated > 0 ? 'הריצו מחדש' : '▶ צרו פעולות המרה', onclick: 'setupMazhirConversionsFromTasks()', disabled: !hasGtmPublished },
               secondaryActions: []
             });
@@ -10586,6 +10622,111 @@ async function _runPaidStage(stageId, flagName, startedAtName, label, durationLa
     _resetHomeThrottle('versionCard');
     if (typeof renderHome === 'function') renderHome();
   }
+}
+
+// Phase 4.2.1 — preflight: pulls Google Ads SQR + account metrics + Change History + GA4
+// data once. Every paid stage downstream reads from this baseline instead of refetching.
+async function runClientAccountBaselineFromTasks() {
+  return _runPaidStage(
+    'client_account_baseline',
+    '_clientBaselineRunning', '_clientBaselineStartedAt',
+    'חיבור נתוני חשבון', '(~30-60 שניות — Google Ads SQR + account metrics + GA4)',
+  );
+}
+
+function viewClientAccountBaseline() {
+  var rd = (instanceData && instanceData.researchData) || {};
+  var res = (rd.results || {}).client_account_baseline;
+  if (!res) { showToast('אין נתוני baseline עדיין', 'error'); return; }
+
+  // Baseline result has nested googleAds / ga4 / extras. Pull from extras.records
+  // (Opus output) PLUS the raw prefetch via res.dfsData.* (where the actual numbers live).
+  var dfs = res.dfsData || {};
+  var gads = dfs.googleAds || {};
+  var ga4 = dfs.ga4 || {};
+  var html = '';
+
+  html += '<div style="background:linear-gradient(135deg,#F0FDF4,#EFF6FF);border:1px solid #DBEAFE;border-radius:10px;padding:14px 16px;margin-bottom:18px">' +
+    '<div style="font-weight:700;font-size:0.95rem;color:#1F2937;margin-bottom:6px">סיכום — חיבור נתוני חשבון</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:0.82rem;color:#6B7280">' +
+      '<div><strong style="color:#1F2937">Google Ads:</strong> ' + (gads.available ? '✓ מחובר' : '✗ לא זמין') + '</div>' +
+      '<div><strong style="color:#1F2937">GA4:</strong> ' + (ga4.available ? '✓ מחובר' : '✗ לא זמין') + '</div>' +
+      '<div><strong style="color:#1F2937">Confidence:</strong> ' + _escapeHtml(res.confidence || '?') + '</div>' +
+    '</div>' +
+  '</div>';
+
+  // Account metrics block
+  var am = gads.accountMetrics;
+  if (am && am.available) {
+    html += '<div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:10px;padding:12px 14px;margin-bottom:12px">' +
+      '<div style="font-weight:600;font-size:0.88rem;color:#065F46;margin-bottom:8px">📊 Account performance (' + am.daysAnalyzed + ' ימים, scope filtered)</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;font-size:0.82rem;direction:ltr;text-align:left">' +
+        '<div>Spend: <strong>₪' + am.cost.toLocaleString() + '</strong></div>' +
+        '<div>Conversions: <strong>' + am.conversions + '</strong></div>' +
+        '<div>Clicks: <strong>' + am.clicks.toLocaleString() + '</strong></div>' +
+        '<div>Impressions: <strong>' + am.impressions.toLocaleString() + '</strong></div>' +
+        '<div>Avg CPC: <strong>₪' + (am.avgCpcIls || '?') + '</strong></div>' +
+        '<div>CTR: <strong>' + (am.ctrPct || '?') + '%</strong></div>' +
+        '<div>CR: <strong>' + (am.conversionRatePct || '?') + '%</strong></div>' +
+        '<div>CPA: <strong>₪' + (am.cpaIls || '?') + '</strong></div>' +
+      '</div></div>';
+  }
+
+  // SQR top converters
+  var sqr = gads.sqr;
+  if (sqr && sqr.available) {
+    html += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px 14px;margin-bottom:12px">' +
+      '<div style="font-weight:600;font-size:0.88rem;color:#1E40AF;margin-bottom:8px">🔍 Top Converting Search Terms (90d, SQR)</div>' +
+      '<div style="font-size:0.78rem;color:#1E40AF;margin-bottom:6px">' + sqr.totalTerms + ' מילים · ₪' + sqr.totalSpendIls.toLocaleString() + ' הוצאה · ~' + sqr.estimatedWastedSpendPct + '% פסולת</div>' +
+      '<div style="font-size:0.82rem;line-height:1.7">' +
+        (sqr.topConvertingTerms || []).slice(0, 8).map(function(t) {
+          return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #DBEAFE">' +
+            '<span dir="rtl">"' + _escapeHtml(t.searchTerm) + '"</span>' +
+            '<span style="color:#6B7280" dir="ltr">' + t.conversions + ' conv · CPA ₪' + t.cpa + '</span>' +
+          '</div>';
+        }).join('') +
+      '</div></div>';
+
+    if (sqr.wasteByPattern && sqr.wasteByPattern.length) {
+      html += '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:12px 14px;margin-bottom:12px">' +
+        '<div style="font-weight:600;font-size:0.88rem;color:#991B1B;margin-bottom:8px">🚫 Top Waste Patterns (n-gram, high-click zero-conv)</div>' +
+        '<div style="font-size:0.82rem;line-height:1.7">' +
+          sqr.wasteByPattern.slice(0, 6).map(function(w) {
+            return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #FECACA">' +
+              '<span dir="rtl">"' + _escapeHtml(w.pattern) + '"</span>' +
+              '<span style="color:#6B7280" dir="ltr">' + w.clicks + ' clicks · ₪' + w.spendIls + '</span>' +
+            '</div>';
+          }).join('') +
+        '</div></div>';
+    }
+  } else if (gads.available) {
+    html += '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:0.85rem;color:#6B7280">SQR: ' + _escapeHtml((sqr && sqr.reason) || 'לא זמין') + '</div>';
+  }
+
+  // Warnings
+  if (res.warnings && res.warnings.length) {
+    html += '<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 14px;margin-bottom:12px">' +
+      '<strong style="color:#92400E;font-size:0.85rem">⚠ אזהרות איכות נתונים:</strong>' +
+      '<ul style="margin:6px 18px 0;padding:0;font-size:0.78rem;color:#92400E;line-height:1.6;direction:rtl">' +
+        res.warnings.map(function(w) { return '<li>' + _escapeHtml(w) + '</li>'; }).join('') +
+      '</ul></div>';
+  }
+
+  // Opus structured observations
+  if (res.records && res.records.length) {
+    html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px;margin-bottom:12px">' +
+      '<div style="font-weight:600;font-size:0.88rem;color:#1F2937;margin-bottom:8px">💡 תצפיות (Opus)</div>' +
+      res.records.map(function(r) {
+        return '<div style="border-right:3px solid #2563EB;padding:6px 10px;margin-bottom:6px;background:#F9FAFB;border-radius:4px">' +
+          '<div style="font-weight:600;font-size:0.85rem;color:#1F2937">' + _escapeHtml(r.headline_he || '') + '</div>' +
+          '<div style="font-size:0.78rem;color:#4B5563;line-height:1.5;margin-top:3px">' + _escapeHtml(r.detail_he || '') + '</div>' +
+          (r.ground_truth_source ? '<div style="font-size:0.7rem;color:#9CA3AF;margin-top:3px">מקור: ' + _escapeHtml(r.ground_truth_source) + '</div>' : '') +
+        '</div>';
+      }).join('') +
+    '</div>';
+  }
+
+  openReportModal('חיבור נתוני חשבון — תוצאה', html, 'client-account-baseline', { html: true });
 }
 
 async function runPaidCompetitorLandscapeFromTasks() {
