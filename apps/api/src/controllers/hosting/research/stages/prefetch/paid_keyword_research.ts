@@ -65,30 +65,56 @@ export async function prefetchPaidKeywordResearch(
     // carries `topic_coverage.dominated_topics[].sample_keywords` with the
     // real Hebrew keywords competitors target. Use them as seeds.
     interface TopicCoverage {
-        dominated_topics?: Array<{ sample_keywords?: string[] }>
+        dominated_topics?: Array<{ topic?: string; sample_keywords?: string[] }>
     }
     interface CompLandscapeRec {
         topic_coverage?: TopicCoverage
+        name?: string
+        domain?: string
     }
     const organicLandscape = rd.results?.competitor_landscape
     if (organicLandscape?.records && seedKeywords.length < 8) {
         const records = organicLandscape.records as CompLandscapeRec[]
+        // Collect competitor brand tokens to filter from seed keywords.
+        // Competitor "name" + first segment of "domain" tend to appear as
+        // standalone brand tokens or co-occur with the brand in sample keywords.
+        const brandTokens = new Set<string>()
+        for (const rec of records) {
+            if (typeof rec?.name === 'string') {
+                rec.name.toLowerCase().split(/[\s\-_().]+/).forEach(t => {
+                    if (t.length >= 3 && t.length < 12) brandTokens.add(t)
+                })
+            }
+            if (typeof rec?.domain === 'string') {
+                const root = rec.domain.toLowerCase().replace(/\.(co\.il|com|net|org|io).*/, '').replace(/^www\./, '')
+                root.split(/[.-]/).forEach(t => {
+                    if (t.length >= 3 && t.length < 12) brandTokens.add(t)
+                })
+            }
+        }
         for (const rec of records) {
             const topics = rec?.topic_coverage?.dominated_topics
             if (!Array.isArray(topics)) continue
             for (const t of topics) {
+                // Skip topics explicitly marked as (navigational) — those are
+                // competitor brand-search topics, not category terms.
+                const topicTitle = (t?.topic || '').toLowerCase()
+                if (/navigational|brand/i.test(topicTitle)) continue
                 if (!Array.isArray(t?.sample_keywords)) continue
                 for (const kw of t.sample_keywords) {
-                    if (typeof kw === 'string' && kw.trim().length >= 3) {
-                        // Skip pure-brand keywords like "אביה" (single-word brand
-                        // mentions) — those are the competitor's brand, not the
-                        // category terms we want. Heuristic: 2+ word phrases or
-                        // Hebrew/English commercial keywords.
-                        const cleaned = kw.trim().toLowerCase()
-                        // Skip if matches a competitor's brand (single-token short word)
-                        const isBrandLike = cleaned.split(/\s+/).length === 1 && cleaned.length < 8
-                        if (!isBrandLike) seedKeywords.push(kw.trim())
-                    }
+                    if (typeof kw !== 'string' || kw.trim().length < 3) continue
+                    const cleaned = kw.trim().toLowerCase()
+                    // Skip single-token short word (likely competitor brand)
+                    const isBrandLikeSolo = cleaned.split(/\s+/).length === 1 && cleaned.length < 8
+                    if (isBrandLikeSolo) continue
+                    // Skip if any token of the keyword matches a competitor brand
+                    const tokens = cleaned.split(/\s+/)
+                    const containsBrand = tokens.some(tk => brandTokens.has(tk))
+                    if (containsBrand) continue
+                    // Reject pure-Latin keywords (DFS expansion of "storage" /
+                    // English brand goes off-vertical for IL audience).
+                    if (/^[a-z0-9\s-]+$/.test(cleaned)) continue
+                    seedKeywords.push(kw.trim())
                     if (seedKeywords.length >= 12) break
                 }
                 if (seedKeywords.length >= 12) break

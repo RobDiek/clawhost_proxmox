@@ -100,19 +100,67 @@ export interface PaidKeywordLandscape {
 }
 
 // ─── IL transactional/commercial intent signals (Hebrew + English) ────────
-const BOFU_HE = /מחיר|לקנות|להזמין|הזמנה|הצעת מחיר|לפנות|מספר טלפון|וואטסאפ|דחוף|עכשיו|זמין/u
-const BOFU_EN = /\b(buy|price|order|book|quote|contact|phone|whatsapp|near me|today)\b/i
-const MOFU_HE = /השוואה|לעומת|הכי טוב|מה ההבדל|איזה|מומלץ|דירוג/u
-const MOFU_EN = /\b(vs|comparison|review|best|top \d|recommended|alternative)\b/i
-const TOFU_HE = /איך|מה זה|למה|מדריך|הסבר|טיפים/u
-const TOFU_EN = /\b(how to|what is|guide|tips|why|tutorial|learn|introduction)\b/i
+// Phase 4.2(fix) — expanded Hebrew BOFU lexicon. Previous version missed
+// core IL transactional signals like "להשכרה" (for rent), "למכירה" (for sale),
+// "כמה עולה" (how much), "מבצע" (deal) — resulting in 98% UNKNOWN intent
+// classification on a real IL storage rental dataset. Now covers:
+//   - rental/sale verb forms (the #1 IL paid-search signal)
+//   - price/cost queries
+//   - location proximity ("near me" Hebrew variants)
+//   - urgency / availability
+//   - direct-contact terms (phone, WhatsApp, message)
+//   - deal / discount / coupon
+// MOFU adds product-comparison + experiential queries.
+// TOFU adds Hebrew educational variants.
+
+const BOFU_HE = new RegExp([
+    // Rental / sale verbs (most common IL paid signal)
+    'להשכרה', 'להשכיר', 'השכרת', 'שכירות', 'משכירים',
+    'למכירה', 'למכור', 'מכירת', 'קנייה', 'קניית', 'לקנות',
+    // Price / cost (clear transactional)
+    'מחיר', 'מחירים', 'עלות', 'כמה עולה', 'כמה זה עולה', 'כמה זה',
+    // Order / booking
+    'להזמין', 'הזמנה', 'הזמנת', 'הצעת מחיר', 'הצעה',
+    // Direct contact
+    'לפנות', 'יצירת קשר', 'מספר טלפון', 'וואטסאפ', 'ווצאפ', 'הודעה',
+    // Local proximity
+    'באזור', 'בעיר', 'קרוב', 'בקרבת', 'בסביבה', 'ליד', 'אצלנו', 'אצלי',
+    // Urgency / availability
+    'דחוף', 'עכשיו', 'מיידי', 'היום', 'זמין', 'פנוי',
+    // Deals
+    'מבצע', 'מבצעים', 'הנחה', 'הנחות', 'הכי זול', 'זול',
+].join('|'), 'u')
+
+const BOFU_EN = /\b(buy|buying|purchase|rent|rental|renting|for rent|for sale|price|prices|cost|costs|how much|order|book|booking|quote|contact|phone|whatsapp|near me|today|now|deal|cheap|cheapest|discount)\b/i
+
+const MOFU_HE = new RegExp([
+    'השוואה', 'השוואת', 'לעומת', 'מול',
+    'הכי טוב', 'הטוב ביותר', 'מהטובים', 'מומלץ', 'מומלצים',
+    'מה ההבדל', 'איזה', 'איזה עדיף', 'יתרונות', 'חסרונות',
+    'דירוג', 'מדורג', 'חוות דעת', 'ביקורות', 'ביקורת',
+    'איפה', 'איפה עדיף', 'איפה הכי',  // "where is best" — comparison intent
+].join('|'), 'u')
+
+const MOFU_EN = /\b(vs|comparison|review|reviews|best|top \d|recommended|alternative|alternatives|pros and cons|where to|which|better)\b/i
+
+const TOFU_HE = new RegExp([
+    'איך', 'איך עושים', 'איך מבצעים', 'איך לבחור',
+    'מה זה', 'מה זאת', 'מהו', 'מהי',
+    'למה', 'מדוע',
+    'מדריך', 'מדריכים', 'הסבר', 'הסברים', 'טיפים', 'טיפ',
+    'יסודות', 'מבוא',
+].join('|'), 'u')
+
+const TOFU_EN = /\b(how to|how do|what is|what are|guide|guides|tips|why|tutorial|learn|learning|introduction|basics|fundamentals)\b/i
 
 function classifyIntent(kw: string, dfsIntent?: string, isBrand?: boolean): { tier: IntentTier; rationale: string } {
     const k = kw.toLowerCase()
     if (isBrand) return { tier: 'BRAND', rationale: 'contains brand name' }
-    // Strongest signal: explicit BOFU lexicon
+    // Strongest signal: explicit BOFU lexicon (transactional)
     if (BOFU_HE.test(kw) || BOFU_EN.test(k)) return { tier: 'BOFU', rationale: 'transactional/commercial lexicon present' }
+    // MOFU: comparison/research
     if (MOFU_HE.test(kw) || MOFU_EN.test(k)) return { tier: 'MOFU', rationale: 'comparison/research lexicon present' }
+    // TOFU: educational
     if (TOFU_HE.test(kw) || TOFU_EN.test(k)) return { tier: 'TOFU', rationale: 'educational/informational lexicon present' }
     // Secondary: DFS-classified intent
     if (dfsIntent === 'transactional') return { tier: 'BOFU', rationale: 'DFS-classified transactional' }

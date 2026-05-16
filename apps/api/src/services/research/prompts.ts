@@ -3430,14 +3430,25 @@ ${HEBREW_ONLY_BLOCK}
 - האם הקטגוריה תחרותית (competition_index distribution) או יחסית פתוחה
 - 150-200 מילה
 
-### 2. ad group recommendations (לפי clusters שזוהו)
-לכל cluster שראיתם — מומלץ ad group נפרד:
+### 2. ad group recommendations
+**מספר מינימלי של ad groups: 5; אידיאלי 6-8.** עברו את כל הקלסטרים בנתוני prefetch + הוסיפו ad groups שמכוונים על:
+- **BOFU** (transactional rental/purchase intent — "להשכרה", "למכירה", "מחיר")
+- **MOFU** (comparison/research — "השוואה", "מומלץ", "איזה")
+- **TOFU** (educational — "איך", "מדריך") אם relevant, אבל לא חובה
+- **BRAND defense** (השם המסחרי שלכם — חובה אם יש brand-bidding signal)
+- **Competitor displacement** (אם זוהה — "חלופה ל-[מתחרה]", "כמו [מתחרה] אבל...")
+- **Long-tail geography** (אזורי שירות ספציפיים — "מחסן ב[עיר]", "אחסון [שכונה]")
+- **Long-tail product** (סוגי תכולה ספציפיים — "אחסון רהיטים", "אחסון פסנתר", "אחסון תיקי בית ספר")
+
+לכל ad group:
 - שם cluster + הצדקה תמטית
 - מילות מפתח מומלצות (top 5-10) + match type לכל אחת
 - bid range מומלץ (₪ low - ₪ high, מקודד ב-IL benchmarks)
 - intent tier (BOFU/MOFU/TOFU/BRAND)
 - bid strategy (Manual CPC / Max Clicks / Max Conv / tCPA — תלוי בtier ובspecific signals)
 - אזהרת negative keywords (אילו מילים לבלוק כדי לא לקבל traffic זבל)
+
+**אם prefetch החזיר < 30 keywords רלוונטיים** — עדיין תפתחו ≥5 ad groups, חלקם long-tail מבוססים על vertical knowledge (במפורש מסמנים cluster_id_from_prefetch:"none_extrapolated" ו-monthly_volume:null במקרה הזה).
 
 ### 3. סיכון auction
 מילות מפתח עם competition_index ≥80 — האם הן באמת מצדיקות תקרת CPC? בודקים: volume, intent, אם המתחרים שלנו רצים עליהן.
@@ -3498,11 +3509,12 @@ ${HEBREW_ONLY_BLOCK}
 \`\`\`
 
 **Quality bar:**
-- confidence: 'high' if ≥30 keywords with cpc + volume AND ≥3 distinct clusters AND DFS calls didn't fail.
-- confidence: 'medium' if 15-29 keywords OR 1-2 clusters.
-- confidence: 'working_hypothesis' if <15 keywords or call failures > 50%.
-- Every keyword in records MUST exist in prefetch landscape (no inventing).
-- ad_group_bid_range_ils MUST anchor to IL median ±50% (no $1.50 CPC fantasies in IL).`,
+- confidence: 'high' if ≥30 keywords with cpc + volume AND ≥5 ad groups AND DFS calls didn't fail AND ≥3 BOFU keywords identified at the record level.
+- confidence: 'medium' if 15-29 keywords OR 3-4 ad groups OR most BOFU classification came from Opus synthesis (not prefetch lexical signals).
+- confidence: 'working_hypothesis' if <15 keywords or call failures > 50% or fewer than 3 ad groups.
+- The prefetch intentDistribution UNKNOWN count is NOT a confidence penalty by itself — the prefetch lexical classifier covers only basic Hebrew/English signals. If you (Opus) correctly assign intent_tier to ad groups based on context (rental keywords like "להשכרה", commercial like "מחיר") then confidence stays at medium+ regardless of prefetch UNKNOWN percentage.
+- Every keyword in records MUST exist in prefetch landscape (no inventing keywords with volume/CPC — but you CAN add long-tail variants with monthly_volume:null + cluster_id_from_prefetch:"none_extrapolated" + clear why_chosen_he rationale).
+- ad_group_bid_range_ils MUST anchor to IL median ±50% (no $1.50 CPC fantasies in IL — median is ₪1-5 for storage vertical).`,
     }
 }
 
