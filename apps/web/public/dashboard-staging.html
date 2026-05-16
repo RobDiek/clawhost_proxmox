@@ -5025,7 +5025,7 @@ function renderHome() {
               ? { label: '⏳ ' + pclElapsed, disabled: true }
               : (hasPaidComp
                   ? { label: 'הריצו מחדש', onclick: 'runPaidCompetitorLandscapeFromTasks()' }
-                  : { label: '▶ הריצו (~60-90 שנ\')', onclick: 'runPaidCompetitorLandscapeFromTasks()' }),
+                  : { label: '▶ הריצו (~3-5 דק׳)', onclick: 'runPaidCompetitorLandscapeFromTasks()' }),
             secondaryActions: hasPaidComp ? [{ label: 'צפו בניתוח →', onclick: 'viewPaidCompetitorLandscape()' }] : []
           });
 
@@ -5043,7 +5043,7 @@ function renderHome() {
               ? { label: '⏳ ' + pkrElapsed, disabled: true }
               : (hasPaidKw
                   ? { label: 'הריצו מחדש', onclick: 'runPaidKeywordResearchFromTasks()' }
-                  : { label: '▶ הריצו (~30-60 שנ\')', onclick: 'runPaidKeywordResearchFromTasks()', disabled: !hasPaidComp }),
+                  : { label: '▶ הריצו (~2-3 דק׳)', onclick: 'runPaidKeywordResearchFromTasks()', disabled: !hasPaidComp }),
             secondaryActions: hasPaidKw ? [{ label: 'צפו במילים →', onclick: 'viewPaidKeywordResearch()' }] : []
           });
 
@@ -5061,7 +5061,7 @@ function renderHome() {
               ? { label: '⏳ ' + pbsElapsed, disabled: true }
               : (hasPaidBud
                   ? { label: 'הריצו מחדש', onclick: 'runPaidBudgetScenariosFromTasks()' }
-                  : { label: '▶ הריצו (~45-75 שנ\')', onclick: 'runPaidBudgetScenariosFromTasks()', disabled: !hasPaidKw }),
+                  : { label: '▶ הריצו (~2-3 דק׳)', onclick: 'runPaidBudgetScenariosFromTasks()', disabled: !hasPaidKw }),
             secondaryActions: hasPaidBud ? [{ label: 'צפו בתרחישים →', onclick: 'viewPaidBudgetScenarios()' }] : []
           });
 
@@ -5095,7 +5095,7 @@ function renderHome() {
               ? { label: '⏳ ' + auditElapsed, disabled: true }
               : (hasAudit
                   ? { label: 'הריצו מחדש', onclick: 'runMazhirAuditFromTasks()' }
-                  : { label: '▶ הריצו אודיט (~1-2 דק׳)', onclick: 'runMazhirAuditFromTasks()', disabled: !hasPaidProfile }),
+                  : { label: '▶ הריצו אודיט (~2-4 דק׳)', onclick: 'runMazhirAuditFromTasks()', disabled: !hasPaidProfile }),
             secondaryActions: hasAudit ? [{ label: 'צפו באודיט →', onclick: 'viewMazhirAudit()' }] : []
           });
 
@@ -5149,7 +5149,7 @@ function renderHome() {
               ? { label: '⏳ ' + planElapsed, disabled: true }
               : (hasPlan
                   ? { label: 'בנו מחדש', onclick: 'generateMazhirMediaPlanFromTasks()' }
-                  : { label: '▶ בנו תוכנית (~2-3 דק׳)', onclick: 'generateMazhirMediaPlanFromTasks()', disabled: !hasAudit }),
+                  : { label: '▶ בנו תוכנית (~4-6 דק׳)', onclick: 'generateMazhirMediaPlanFromTasks()', disabled: !hasAudit }),
             secondaryActions: hasPlan ? [{ label: 'צפו בתוכנית →', onclick: 'viewMazhirMediaPlan()' }] : []
           });
 
@@ -9543,7 +9543,7 @@ function renderMazhirCard() {
       '<div style="margin-top:14px;padding:14px 16px;background:#EFF6FF;border-radius:10px;border:1px solid #DBEAFE">' +
         '<div style="font-weight:600;color:#1E40AF;margin-bottom:6px;font-size:0.92rem">שלב 1: אודיט מקצועי</div>' +
         '<div style="font-size:0.83rem;color:#374151;line-height:1.6;margin-bottom:10px">Mazhir יבדוק את תשתית המעקב, ינתח את החשבון הקיים (אם יש), יציע מתודולוגיה לפי 2025-2026 best practices, ויסמן blockers שמונעים השקה.</div>' +
-        '<button class="btn btn-primary btn-sm" onclick="runMazhirAudit()" id="mazhir-audit-btn">▶ הרץ אודיט (Opus, ~1-2 דק׳)</button>' +
+        '<button class="btn btn-primary btn-sm" onclick="runMazhirAudit()" id="mazhir-audit-btn">▶ הריצו אודיט (Opus, ~2-4 דק׳)</button>' +
       '</div>';
   } else if (!gtmTarget) {
     workflowHtml =
@@ -9591,7 +9591,7 @@ function renderMazhirCard() {
         '</div>' +
         '<div style="font-size:0.83rem;color:#374151;line-height:1.6;margin-bottom:8px">' + escapeHtml(audit.summary || '') + '</div>' +
         blockerHtml +
-        '<div style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="generateMazhirMediaPlan()" id="mazhir-plan-btn">▶ צרו תוכנית מדיה (Opus, ~2-3 דק׳)</button></div>' +
+        '<div style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="generateMazhirMediaPlan()" id="mazhir-plan-btn">▶ צרו תוכנית מדיה (Opus, ~4-6 דק׳)</button></div>' +
       '</div>';
   } else {
     var statusLabel = mediaPlan.status === 'approved' ? '✓ אושרה' : (mediaPlan.status === 'pending_review' ? '⏳ ממתינה לאישור' : escapeHtml(mediaPlan.status));
@@ -9853,7 +9853,7 @@ async function showWpSnippet() {
 // ─── Mazhir audit / media plan / approve handlers ────────────────────────
 async function runMazhirAudit() {
   var btn = document.getElementById('mazhir-audit-btn');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ מריץ אודיט (~1-2 דק׳)...'; }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ מריץ אודיט (~2-4 דק׳)...'; }
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/audit', { method: 'POST' });
     if (!r.success) throw new Error(r.message || 'Audit failed');
@@ -9862,7 +9862,7 @@ async function runMazhirAudit() {
     renderMazhirCard();
   } catch (err) {
     showToast('שגיאה: ' + err.message, 'error');
-    if (btn) { btn.disabled = false; btn.textContent = '▶ הרץ אודיט (Opus, ~1-2 דק׳)'; }
+    if (btn) { btn.disabled = false; btn.textContent = '▶ הריצו אודיט (Opus, ~2-4 דק׳)'; }
   }
 }
 
@@ -10405,7 +10405,7 @@ async function runMazhirAuditFromTasks() {
   _mazhirAuditStartedAt = Date.now();
   _startMazhirTicker();
   if (typeof renderHome === 'function') renderHome();
-  showToast('מריץ אודיט Mazhir... (~1-2 דק׳)', 'info');
+  showToast('מריץ אודיט Mazhir... (~2-4 דק׳)', 'info');
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/audit', { method: 'POST' });
     if (!r.success) throw new Error(r.message || 'Audit failed');
@@ -10429,7 +10429,7 @@ async function generateMazhirMediaPlanFromTasks() {
   _mazhirPlanStartedAt = Date.now();
   _startMazhirTicker();
   if (typeof renderHome === 'function') renderHome();
-  showToast('בונה תוכנית מדיה... (~2-3 דק׳)', 'info');
+  showToast('בונה תוכנית מדיה... (~4-6 דק׳)', 'info');
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/media-plan', { method: 'POST' });
     if (!r.success) throw new Error(r.message || 'Media plan generation failed');
@@ -10576,7 +10576,7 @@ async function runPaidCompetitorLandscapeFromTasks() {
   return _runPaidStage(
     'paid_competitor_landscape',
     '_paidCompLandscapeRunning', '_paidCompLandscapeStartedAt',
-    'מחקר מתחרים — ממומן', '(~60-90 שניות — Meta Ad Library + Google Transparency + Firecrawl)',
+    'מחקר מתחרים — ממומן', '(~3-5 דקות — Auction Insights + Firecrawl LP audits + Opus)',
   );
 }
 
@@ -10584,7 +10584,7 @@ async function runPaidKeywordResearchFromTasks() {
   return _runPaidStage(
     'paid_keyword_research',
     '_paidKwResearchRunning', '_paidKwResearchStartedAt',
-    'מחקר מילות מפתח — ממומן', '(~30-60 שניות — DataForSEO)',
+    'מחקר מילות מפתח — ממומן', '(~2-3 דקות — DataForSEO + Opus)',
   );
 }
 
@@ -10592,7 +10592,7 @@ async function runPaidBudgetScenariosFromTasks() {
   return _runPaidStage(
     'paid_budget_scenarios',
     '_paidBudgetScenariosRunning', '_paidBudgetScenariosStartedAt',
-    'תרחישי תקציב', '(~45-75 שניות)',
+    'תרחישי תקציב', '(~2-3 דקות — Opus + IL benchmarks)',
   );
 }
 

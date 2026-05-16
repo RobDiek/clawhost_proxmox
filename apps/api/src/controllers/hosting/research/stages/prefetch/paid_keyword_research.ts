@@ -54,6 +54,60 @@ export async function prefetchPaidKeywordResearch(
         }
     }
 
+    // Phase 4.2(fix) — pull seeds from prior research stages. Without this
+    // step a service business (no products) with English business name (e.g.
+    // "Storage Station") falls back to the English brand name as the only
+    // seed → DataForSEO expansion picks up tourist/luggage queries
+    // ("luggage storage", "self storage") instead of the IL-native terms
+    // the actual customers use ("מחסן להשכרה", "אחסון תכולת דירה").
+    //
+    // The data is already there from competitor_landscape: each record
+    // carries `topic_coverage.dominated_topics[].sample_keywords` with the
+    // real Hebrew keywords competitors target. Use them as seeds.
+    interface TopicCoverage {
+        dominated_topics?: Array<{ sample_keywords?: string[] }>
+    }
+    interface CompLandscapeRec {
+        topic_coverage?: TopicCoverage
+    }
+    const organicLandscape = rd.results?.competitor_landscape
+    if (organicLandscape?.records && seedKeywords.length < 8) {
+        const records = organicLandscape.records as CompLandscapeRec[]
+        for (const rec of records) {
+            const topics = rec?.topic_coverage?.dominated_topics
+            if (!Array.isArray(topics)) continue
+            for (const t of topics) {
+                if (!Array.isArray(t?.sample_keywords)) continue
+                for (const kw of t.sample_keywords) {
+                    if (typeof kw === 'string' && kw.trim().length >= 3) {
+                        // Skip pure-brand keywords like "אביה" (single-word brand
+                        // mentions) — those are the competitor's brand, not the
+                        // category terms we want. Heuristic: 2+ word phrases or
+                        // Hebrew/English commercial keywords.
+                        const cleaned = kw.trim().toLowerCase()
+                        // Skip if matches a competitor's brand (single-token short word)
+                        const isBrandLike = cleaned.split(/\s+/).length === 1 && cleaned.length < 8
+                        if (!isBrandLike) seedKeywords.push(kw.trim())
+                    }
+                    if (seedKeywords.length >= 12) break
+                }
+                if (seedKeywords.length >= 12) break
+            }
+            if (seedKeywords.length >= 12) break
+        }
+    }
+
+    // Also: pull seeds from prior seo_keyword_research stage if it ran
+    // (those are validated paid-relevant keywords). Limit to top 5.
+    const seoKwResult = rd.results?.seo_keyword_research as { records?: Array<{ keyword?: string }> } | undefined
+    if (seoKwResult?.records && seedKeywords.length < 12) {
+        for (const r of seoKwResult.records.slice(0, 5)) {
+            if (typeof r?.keyword === 'string' && r.keyword.trim().length >= 3) {
+                seedKeywords.push(r.keyword.trim())
+            }
+        }
+    }
+
     // Fallback: businessName as seed
     const businessName = typeof answers.businessName === 'string' ? answers.businessName.trim() : ''
     if (seedKeywords.length === 0 && businessName.length >= 3) {
