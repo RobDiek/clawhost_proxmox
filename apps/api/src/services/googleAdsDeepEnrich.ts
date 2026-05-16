@@ -328,6 +328,13 @@ export async function pullSearchTermsReport(
     if (!at) return { available: false, reason: 'Token refresh failed', daysAnalyzed: 0, totalTerms: 0, totalSpendIls: 0, wasteByPattern: [], topConvertingTerms: [], estimatedWastedSpendPct: 0 }
 
     try {
+        // v22 DURING operator supports only fixed enums (LAST_7_DAYS, LAST_30_DAYS,
+        // THIS_MONTH, LAST_MONTH, etc.) — not arbitrary day counts. Use explicit
+        // BETWEEN date range to support 90/180-day windows.
+        const endDate = new Date()
+        const startDate = new Date(endDate.getTime() - days * 24 * 3600 * 1000)
+        const dateRange = `BETWEEN '${startDate.toISOString().slice(0, 10)}' AND '${endDate.toISOString().slice(0, 10)}'`
+
         const query = `
             SELECT
               search_term_view.search_term,
@@ -336,7 +343,7 @@ export async function pullSearchTermsReport(
               metrics.conversions,
               metrics.impressions
             FROM search_term_view
-            WHERE segments.date DURING LAST_${days}_DAYS
+            WHERE segments.date ${dateRange}
               AND metrics.impressions > 0${scopeClause(scope)}
             ORDER BY metrics.cost_micros DESC
             LIMIT 1000
@@ -428,91 +435,106 @@ export interface AuctionInsightsResult {
 }
 
 export async function pullAuctionInsights(
+    _customerId: string | undefined,
+    _tokens: GoogleTokens | null | undefined,
+    _days = 90,
+    _scope?: CampaignScope,
+    _loginCustomerId?: string,
+    _developerToken?: string,
+): Promise<AuctionInsightsResult> {
+    // v22 — Google removed Auction Insights metrics + competitor display_name
+    // from the Ads API entirely. The resource `campaign_auction_insight` still
+    // exists in the FROM clause but the only useful fields (search_impression_share,
+    // search_overlap_rate, search_outranking_share, display_name) all return
+    // UNRECOGNIZED_FIELD across v20/v21/v22 as of 2026. There is no programmatic
+    // replacement — Auction Insights is now UI-only at ads.google.com.
+    //
+    // Keeping the function shape for compatibility so downstream consumers don't
+    // crash. Surfaces a clear reason so the UI can prompt the user to manually
+    // export the Auction Insights report if they need that data.
+    return {
+        available: false,
+        reason: 'Auction Insights API was removed by Google (v20+). Available only via UI export at ads.google.com → Campaigns → Auction Insights.',
+        competitors: [],
+    }
+}
+
+// ─── Account-level metrics (replaces the dropped Auction Insights bits) ──
+// Pull whole-account or whole-campaign-scope performance for the same time
+// window. This gives us the "how saturated is your account" / "how high is
+// your CPC vs benchmark" signals we used to derive from Auction Insights
+// account-level metrics. Returns null when unavailable.
+export interface AccountMetricsResult {
+    available: boolean
+    reason?: string
+    daysAnalyzed: number
+    cost: number
+    clicks: number
+    impressions: number
+    conversions: number
+    avgCpcIls?: number
+    ctrPct?: number
+    conversionRatePct?: number
+    cpaIls?: number
+}
+
+export async function pullAccountMetrics(
     customerId: string | undefined,
     tokens: GoogleTokens | null | undefined,
     days = 90,
     scope?: CampaignScope,
     loginCustomerId?: string,
     developerToken?: string,
-): Promise<AuctionInsightsResult> {
-    if (!customerId || !tokens?.refreshToken) {
-        return { available: false, reason: 'Account not connected', competitors: [] }
-    }
-    if (!developerToken) {
-        return { available: false, reason: 'Developer Token חסר', competitors: [] }
-    }
+): Promise<AccountMetricsResult> {
+    const empty = { available: false, daysAnalyzed: 0, cost: 0, clicks: 0, impressions: 0, conversions: 0 }
+    if (!customerId || !tokens?.refreshToken) return { ...empty, reason: 'Account not connected' }
+    if (!developerToken) return { ...empty, reason: 'Developer Token חסר' }
     const at = await refreshAccessToken(tokens.refreshToken)
-    if (!at) return { available: false, reason: 'Token refresh failed', competitors: [] }
+    if (!at) return { ...empty, reason: 'Token refresh failed' }
 
     try {
+        const endDate = new Date()
+        const startDate = new Date(endDate.getTime() - days * 24 * 3600 * 1000)
+        const dateRange = `BETWEEN '${startDate.toISOString().slice(0, 10)}' AND '${endDate.toISOString().slice(0, 10)}'`
+
         const queryTarget = scope?.operatingCustomerId || customerId
         const loginHeader = loginCustomerId || customerId
 
-        // Auction Insights is naturally per-campaign — scope filter on campaign.id
-        // (the resource is `campaign_auction_insight` which lives under each campaign).
-        const competitorsQ = `
+        // Aggregating from campaign-level when scoped — `customer` would be
+        // account-wide and leak unrelated business data.
+        const query = `
             SELECT
-              campaign_auction_insight_domain.display_name,
-              metrics.search_impression_share,
-              metrics.search_overlap_rate,
-              metrics.search_outranking_share
-            FROM campaign_auction_insight
-            WHERE segments.date DURING LAST_${days}_DAYS${scopeClause(scope)}
-            LIMIT 100
-        `
-        const rows = await gaqlQuery(queryTarget, at, competitorsQ, developerToken, loginHeader).catch(() => [])
-        const competitors = rows.map((r: any) => ({
-            domain: r?.campaignAuctionInsightDomain?.displayName || '?',
-            impressionShare: Math.round((Number(r?.metrics?.searchImpressionShare || 0)) * 1000) / 10,
-            overlapRate: Math.round((Number(r?.metrics?.searchOverlapRate || 0)) * 1000) / 10,
-            outranking: Math.round((Number(r?.metrics?.searchOutrankingShare || 0)) * 1000) / 10,
-        })).slice(0, 12)
-
-        // Account-level metrics — when scope='campaigns', aggregate from the
-        // selected campaigns instead of `customer` (which is account-wide and
-        // would leak unrelated campaigns).
-        const useCampaignAgg = scope && scope.mode === 'campaigns'
-        const accountQ = useCampaignAgg ? `
-            SELECT
-              metrics.search_impression_share,
-              metrics.search_top_impression_share,
-              metrics.search_absolute_top_impression_share
+              metrics.cost_micros,
+              metrics.clicks,
+              metrics.impressions,
+              metrics.conversions
             FROM campaign
-            WHERE segments.date DURING LAST_${days}_DAYS${scopeClause(scope)}
-        ` : `
-            SELECT
-              metrics.search_impression_share,
-              metrics.search_top_impression_share,
-              metrics.search_absolute_top_impression_share
-            FROM customer
-            WHERE segments.date DURING LAST_${days}_DAYS
+            WHERE segments.date ${dateRange}${scopeClause(scope)}
         `
-        const accRows = await gaqlQuery(queryTarget, at, accountQ, developerToken, loginHeader).catch(() => [])
-        // For campaign-aggregated view, average across campaigns (weight by
-        // impressions would be more accurate but Auction Insights metrics
-        // returned per-campaign already represent that campaign's share of
-        // its own auctions).
-        let acc: { searchImpressionShare?: number; searchTopImpressionShare?: number; searchAbsoluteTopImpressionShare?: number } | undefined
-        if (useCampaignAgg && accRows.length > 0) {
-            const n = accRows.length
-            const sumIS = accRows.reduce((s: number, r: any) => s + Number(r?.metrics?.searchImpressionShare || 0), 0)
-            const sumTop = accRows.reduce((s: number, r: any) => s + Number(r?.metrics?.searchTopImpressionShare || 0), 0)
-            const sumAbs = accRows.reduce((s: number, r: any) => s + Number(r?.metrics?.searchAbsoluteTopImpressionShare || 0), 0)
-            acc = {
-                searchImpressionShare: sumIS / n,
-                searchTopImpressionShare: sumTop / n,
-                searchAbsoluteTopImpressionShare: sumAbs / n,
-            }
-        } else {
-            acc = accRows[0]?.metrics
-        }
-        const impressionShare = acc ? Math.round(Number(acc.searchImpressionShare || 0) * 1000) / 10 : undefined
-        const topOfPageRate = acc ? Math.round(Number(acc.searchTopImpressionShare || 0) * 1000) / 10 : undefined
-        const absoluteTopOfPageRate = acc ? Math.round(Number(acc.searchAbsoluteTopImpressionShare || 0) * 1000) / 10 : undefined
+        const rows = await gaqlQuery(queryTarget, at, query, developerToken, loginHeader)
 
-        return { available: true, competitors, impressionShare, topOfPageRate, absoluteTopOfPageRate }
+        let cost = 0, clicks = 0, impressions = 0, conversions = 0
+        for (const r of rows) {
+            cost += Number(r?.metrics?.costMicros || 0) / 1_000_000
+            clicks += Number(r?.metrics?.clicks || 0)
+            impressions += Number(r?.metrics?.impressions || 0)
+            conversions += Number(r?.metrics?.conversions || 0)
+        }
+
+        return {
+            available: true,
+            daysAnalyzed: days,
+            cost: Math.round(cost * 100) / 100,
+            clicks,
+            impressions,
+            conversions: Math.round(conversions * 10) / 10,
+            avgCpcIls: clicks > 0 ? Math.round((cost / clicks) * 100) / 100 : undefined,
+            ctrPct: impressions > 0 ? Math.round((clicks / impressions) * 10000) / 100 : undefined,
+            conversionRatePct: clicks > 0 ? Math.round((conversions / clicks) * 10000) / 100 : undefined,
+            cpaIls: conversions > 0 ? Math.round((cost / conversions) * 100) / 100 : undefined,
+        }
     } catch (err) {
-        return { available: false, reason: `Auction Insights fetch failed: ${(err as Error).message}`, competitors: [] }
+        return { ...empty, reason: `Account metrics fetch failed: ${(err as Error).message}`, daysAnalyzed: days }
     }
 }
 
@@ -543,24 +565,23 @@ export async function pullChangeHistory(
     if (!at) return { available: false, reason: 'Token refresh failed', daysAnalyzed: 0, totalChanges: 0, bigChanges: [] }
 
     try {
-        // change_event has `campaign` resource_name — narrow by campaign.id
-        // when scope provided. `change_event.campaign` is the manager linkage.
-        const since = new Date(Date.now() - days * 24 * 3600 * 1000).toISOString().slice(0, 10)
+        // v22 — change_event has a hard 30-day max window. `user_type` field was
+        // removed. Use closed BETWEEN range. Keep `client_type` (still valid).
+        const cappedDays = Math.min(days, 30)
+        const end = new Date()
+        const start = new Date(end.getTime() - cappedDays * 24 * 3600 * 1000)
+        const fmt = (d: Date) => `${d.toISOString().slice(0, 10)} ${d.toISOString().slice(11, 19)}`
         const query = `
             SELECT
               change_event.change_date_time,
               change_event.user_email,
-              change_event.user_type,
               change_event.client_type,
               change_event.changed_fields,
-              change_event.old_resource,
-              change_event.new_resource,
               change_event.resource_change_operation,
-              change_event.resource_type,
               change_event.change_resource_name,
-              change_event.campaign
+              change_event.change_resource_type
             FROM change_event
-            WHERE change_event.change_date_time >= '${since}'${scopeClause(scope)}
+            WHERE change_event.change_date_time BETWEEN '${fmt(start)}' AND '${fmt(end)}'${scopeClause(scope)}
             ORDER BY change_event.change_date_time DESC
             LIMIT 500
         `
@@ -569,23 +590,23 @@ export async function pullChangeHistory(
         const rows = await gaqlQuery(queryTarget, at, query, developerToken, loginHeader)
         const big = rows
             .filter((r: any) => {
-                const rt = r?.changeEvent?.resourceType || ''
+                const rt = r?.changeEvent?.changeResourceType || ''
                 return ['CAMPAIGN_BUDGET', 'CAMPAIGN', 'AD_GROUP', 'CONVERSION_ACTION', 'BIDDING_STRATEGY', 'CAMPAIGN_CRITERION'].includes(rt)
             })
             .slice(0, 30)
             .map((r: any) => ({
                 changeDateTime: r?.changeEvent?.changeDateTime || '?',
                 changedBy: r?.changeEvent?.userEmail || 'unknown',
-                resourceType: r?.changeEvent?.resourceType || '?',
+                resourceType: r?.changeEvent?.changeResourceType || '?',
                 changeResourceName: r?.changeEvent?.changeResourceName || '?',
-                userType: r?.changeEvent?.userType || '?',
-                oldValue: JSON.stringify(r?.changeEvent?.oldResource || {}).slice(0, 200),
-                newValue: JSON.stringify(r?.changeEvent?.newResource || {}).slice(0, 200),
+                userType: r?.changeEvent?.clientType || '?',           // v22 — client_type replaced user_type
+                oldValue: JSON.stringify(r?.changeEvent?.changedFields || {}).slice(0, 200),
+                newValue: '',                                            // old_resource / new_resource not available in v22 query
             }))
 
         return {
             available: true,
-            daysAnalyzed: days,
+            daysAnalyzed: cappedDays,
             totalChanges: rows.length,
             bigChanges: big,
         }

@@ -3706,7 +3706,17 @@ export function buildClientAccountBaselinePrompt(opts: PromptOpts): PromptResult
     let context = '═══ HISTORICAL ACCOUNT BASELINE — Storage Station ═══\n\n'
 
     if (gads.available) {
-        context += '— Google Ads (90d SQR + 90d Auction Insights + 180d Change History) —\n'
+        context += '— Google Ads (90d SQR + 90d account metrics + 30d Change History) —\n'
+
+        const am = gads.accountMetrics
+        if (am.available) {
+            context += `Account performance (last ${am.daysAnalyzed}d, scoped to selected campaigns):\n`
+            context += `  • Spend: ₪${am.cost.toLocaleString()}\n`
+            context += `  • Clicks: ${am.clicks.toLocaleString()}, Impressions: ${am.impressions.toLocaleString()}\n`
+            context += `  • Conversions: ${am.conversions} (CR=${am.conversionRatePct ?? '?'}%)\n`
+            context += `  • Avg CPC: ₪${am.avgCpcIls ?? '?'} | CTR: ${am.ctrPct ?? '?'}% | CPA: ₪${am.cpaIls ?? '?'}\n\n`
+        }
+
         if (gads.sqr.available) {
             context += `SQR: ${gads.sqr.totalTerms} מילים, ₪${gads.sqr.totalSpendIls.toLocaleString()} הוצאה, ~${gads.sqr.estimatedWastedSpendPct}% פסולת מזוהה\n`
             const topWaste = gads.sqr.wasteByPattern.slice(0, 5).map(w => `  • "${w.pattern}" → ${w.clicks} clicks, ₪${w.spendIls}, ${w.conversions} conv`).join('\n')
@@ -3715,15 +3725,11 @@ export function buildClientAccountBaselinePrompt(opts: PromptOpts): PromptResult
         } else {
             context += `SQR: לא זמין — ${gads.sqr.reason || 'unknown'}\n\n`
         }
-        if (gads.auctionInsights.available) {
-            const top = gads.auctionInsights.competitors.slice(0, 6).map(c => `  • ${c.domain} → IS=${c.impressionShare}% overlap=${c.overlapRate}% outranks=${c.outranking}%`).join('\n')
-            context += `Auction Insights: account IS=${gads.auctionInsights.impressionShare ?? '?'}%, top-of-page=${gads.auctionInsights.topOfPageRate ?? '?'}%\nReal competitors:\n${top || '  (none)'}\n\n`
-        } else {
-            context += `Auction Insights: לא זמין — ${gads.auctionInsights.reason || 'unknown'}\n\n`
-        }
+
+        // Auction Insights — Google removed from API. Skip silently in prompt.
         if (gads.changeHistory.available && gads.changeHistory.totalChanges > 0) {
             const recent = gads.changeHistory.bigChanges.slice(0, 5).map(ch => `  • ${ch.changeDateTime.slice(0, 10)} · ${ch.resourceType} · by ${ch.changedBy}`).join('\n')
-            context += `Change History: ${gads.changeHistory.totalChanges} שינויים, ${gads.changeHistory.bigChanges.length} significant\nRecent:\n${recent}\n\n`
+            context += `Change History (${gads.changeHistory.daysAnalyzed}d): ${gads.changeHistory.totalChanges} שינויים, ${gads.changeHistory.bigChanges.length} significant\nRecent:\n${recent}\n\n`
         }
     } else {
         context += `Google Ads: לא זמין — ${gads.reason || 'unknown'}\n\n`

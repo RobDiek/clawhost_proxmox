@@ -35,9 +35,11 @@ import {
     pullSearchTermsReport,
     pullAuctionInsights,
     pullChangeHistory,
+    pullAccountMetrics,
     type SearchTermsResult,
     type AuctionInsightsResult,
     type ChangeHistoryResult,
+    type AccountMetricsResult,
     type CampaignScope,
 } from '@/services/googleAdsDeepEnrich'
 
@@ -91,16 +93,24 @@ export interface ClientAccountBaseline {
         sqr: SearchTermsResult
 
         /**
-         * Auction Insights (90d) — real competitors with impression share +
-         * overlap rate + outranking share on YOUR auctions. Feeds
-         * paid_competitor_landscape (overrides client's "competitor list" guess).
+         * Auction Insights (90d) — historically gave real competitor overlap.
+         * NOTE: Google removed the relevant fields from Ads API in v20+
+         * (UI-only now). This always returns `available:false` in v22.
+         * Kept for forward-compat in case Google restores it.
          */
         auctionInsights: AuctionInsightsResult
 
         /**
-         * Change History (180d) — significant structural changes (budget, bidding,
-         * conversion actions). Feeds mazhir_audit so we don't recommend things
-         * the user has already tried and reverted.
+         * Account-level performance metrics (90d, campaign-aggregated when scoped).
+         * Replaces the bits we used to get from Auction Insights account-level.
+         * Provides avgCpc, ctr, conversionRate, cpa anchors for Stage 3.
+         */
+        accountMetrics: AccountMetricsResult
+
+        /**
+         * Change History (30d max — v22 hard cap) — significant structural
+         * changes (budget, bidding, conversion actions). Feeds mazhir_audit
+         * so we don't recommend things already tried and reverted.
          */
         changeHistory: ChangeHistoryResult
     }
@@ -200,7 +210,7 @@ export async function prefetchClientAccountBaseline(
 
     const wantGoogleAds = !!(customerId && developerToken && refreshToken && !(scope.mode === 'campaigns' && (scope.campaignIds || []).length === 0))
 
-    const [sqrResult, auctionResult, changeHistoryResult] = await Promise.all([
+    const [sqrResult, auctionResult, changeHistoryResult, accountMetricsResult] = await Promise.all([
         wantGoogleAds ? (() => { gadsAttempted++; return pullSearchTermsReport(customerId, googleTokens, 90, scope, loginCustomerId, developerToken) })()
             .catch((err): SearchTermsResult => {
                 gadsFailed++
@@ -208,19 +218,24 @@ export async function prefetchClientAccountBaseline(
             })
             : Promise.resolve<SearchTermsResult>({ available: false, reason: 'Google Ads not connected or no scope', daysAnalyzed: 0, totalTerms: 0, totalSpendIls: 0, wasteByPattern: [], topConvertingTerms: [], estimatedWastedSpendPct: 0 }),
 
-        wantGoogleAds ? (() => { gadsAttempted++; return pullAuctionInsights(customerId, googleTokens, 90, scope, loginCustomerId, developerToken) })()
-            .catch((err): AuctionInsightsResult => {
-                gadsFailed++
-                return { available: false, reason: `Auction Insights threw: ${(err as Error).message}`, competitors: [] }
-            })
-            : Promise.resolve<AuctionInsightsResult>({ available: false, reason: 'Google Ads not connected or no scope', competitors: [] }),
+        // Auction Insights — always returns unavailable in v22+ (Google removed
+        // the fields from the Ads API). Kept in shape for forward-compat.
+        pullAuctionInsights(customerId, googleTokens, 90, scope, loginCustomerId, developerToken)
+            .catch((err): AuctionInsightsResult => ({ available: false, reason: `AI threw: ${(err as Error).message}`, competitors: [] })),
 
-        wantGoogleAds ? (() => { gadsAttempted++; return pullChangeHistory(customerId, googleTokens, 180, scope, loginCustomerId, developerToken) })()
+        wantGoogleAds ? (() => { gadsAttempted++; return pullChangeHistory(customerId, googleTokens, 30, scope, loginCustomerId, developerToken) })()
             .catch((err): ChangeHistoryResult => {
                 gadsFailed++
-                return { available: false, reason: `Change history threw: ${(err as Error).message}`, daysAnalyzed: 180, totalChanges: 0, bigChanges: [] }
+                return { available: false, reason: `Change history threw: ${(err as Error).message}`, daysAnalyzed: 30, totalChanges: 0, bigChanges: [] }
             })
             : Promise.resolve<ChangeHistoryResult>({ available: false, reason: 'Google Ads not connected or no scope', daysAnalyzed: 0, totalChanges: 0, bigChanges: [] }),
+
+        wantGoogleAds ? (() => { gadsAttempted++; return pullAccountMetrics(customerId, googleTokens, 90, scope, loginCustomerId, developerToken) })()
+            .catch((err): AccountMetricsResult => {
+                gadsFailed++
+                return { available: false, reason: `Account metrics threw: ${(err as Error).message}`, daysAnalyzed: 90, cost: 0, clicks: 0, impressions: 0, conversions: 0 }
+            })
+            : Promise.resolve<AccountMetricsResult>({ available: false, reason: 'Google Ads not connected or no scope', daysAnalyzed: 0, cost: 0, clicks: 0, impressions: 0, conversions: 0 }),
     ])
 
     // 4. GA4 pulls — site-wide (GA4 isn't ad-account-bound, no scope filter needed).
@@ -257,14 +272,15 @@ export async function prefetchClientAccountBaseline(
             : Promise.resolve<GA4SeasonalityResult>({ available: false, reason: 'GA4 not connected', daysAnalyzed: 0, monthly: [], seasonalIndex: [] }),
     ])
 
-    // 5. Roll up Google Ads "available" — true if any pull succeeded
-    const googleAdsAvailable = sqrResult.available || auctionResult.available || changeHistoryResult.available
+    // 5. Roll up Google Ads "available" — true if any of the still-working pulls succeeded
+    //    (Auction Insights is excluded from rollup since v22+ always returns false.)
+    const googleAdsAvailable = sqrResult.available || changeHistoryResult.available || accountMetricsResult.available
     let googleAdsReason: string | undefined
     if (!googleAdsAvailable) {
         if (!customerId) googleAdsReason = 'Customer ID לא הוגדר'
         else if (!refreshToken) googleAdsReason = 'OAuth refresh token חסר'
         else if (scope.mode === 'campaigns' && (scope.campaignIds || []).length === 0) googleAdsReason = 'לא נבחרו קמפיינים — השתמשו בבורר ההיקף'
-        else googleAdsReason = sqrResult.reason || auctionResult.reason || changeHistoryResult.reason
+        else googleAdsReason = sqrResult.reason || accountMetricsResult.reason || changeHistoryResult.reason
     }
 
     // Additional warnings based on data quality
@@ -286,6 +302,7 @@ export async function prefetchClientAccountBaseline(
             customerId,
             sqr: sqrResult,
             auctionInsights: auctionResult,
+            accountMetrics: accountMetricsResult,
             changeHistory: changeHistoryResult,
         },
         ga4: {
