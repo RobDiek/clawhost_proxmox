@@ -33,7 +33,8 @@ import { createCampaign } from '@/services/googleAds'
 import { runPreflight } from '@/services/mazhirPreflight'
 import type { CampaignBriefDraft, MediaPlan } from '@/controllers/hosting/agentSetup'
 
-const GADS_API = 'https://googleads.googleapis.com/v18'
+// v18 was deprecated and returns 404 as of early 2026. v22 is latest stable.
+const GADS_API = 'https://googleads.googleapis.com/v22'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 
 interface GoogleTokens {

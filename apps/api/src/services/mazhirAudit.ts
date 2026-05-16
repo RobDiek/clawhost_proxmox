@@ -412,6 +412,12 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
     })()
 
     const customerIdForDeep = pp.hasExistingAccount ? googleAdsConfig.customerId : undefined
+    const developerTokenForDeep = pp.hasExistingAccount ? (googleAdsConfig as { developerToken?: string }).developerToken : undefined
+    const loginCustomerIdForDeep = (googleAdsConfig as { loginCustomerId?: string }).loginCustomerId
+    const rawScopeForDeep = (googleAdsConfig as { scope?: { mode?: string; campaignIds?: string[] } }).scope
+    const scopeForDeep = rawScopeForDeep?.mode === 'account'
+        ? { mode: 'account' as const }
+        : { mode: 'campaigns' as const, campaignIds: (rawScopeForDeep?.campaignIds || []).filter(id => /^\d+$/.test(id)) }
     const historicalReports = ((pp as any).historicalReports || []) as Array<{ name: string; type: string; size: number; uploadedAt: string; base64: string }>
 
     const callTrackingCfg = (inst as any).callTrackingConfig || null
@@ -460,19 +466,19 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
         (async () => {
             try {
                 const { pullSearchTermsReport } = await import('./googleAdsDeepEnrich')
-                return await pullSearchTermsReport(customerIdForDeep, googleTokensForAudit, 90)
+                return await pullSearchTermsReport(customerIdForDeep, googleTokensForAudit, 90, scopeForDeep, loginCustomerIdForDeep, developerTokenForDeep)
             } catch (e) { return { available: false, reason: (e as Error).message, daysAnalyzed: 0, totalTerms: 0, totalSpendIls: 0, wasteByPattern: [], topConvertingTerms: [], estimatedWastedSpendPct: 0 } }
         })(),
         (async () => {
             try {
                 const { pullAuctionInsights } = await import('./googleAdsDeepEnrich')
-                return await pullAuctionInsights(customerIdForDeep, googleTokensForAudit, 90)
+                return await pullAuctionInsights(customerIdForDeep, googleTokensForAudit, 90, scopeForDeep, loginCustomerIdForDeep, developerTokenForDeep)
             } catch (e) { return { available: false, reason: (e as Error).message, competitors: [] } }
         })(),
         (async () => {
             try {
                 const { pullChangeHistory } = await import('./googleAdsDeepEnrich')
-                return await pullChangeHistory(customerIdForDeep, googleTokensForAudit, 180)
+                return await pullChangeHistory(customerIdForDeep, googleTokensForAudit, 180, scopeForDeep, loginCustomerIdForDeep, developerTokenForDeep)
             } catch (e) { return { available: false, reason: (e as Error).message, daysAnalyzed: 0, totalChanges: 0, bigChanges: [] } }
         })(),
         (async () => {

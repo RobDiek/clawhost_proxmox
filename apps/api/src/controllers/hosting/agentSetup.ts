@@ -3715,15 +3715,19 @@ export const listGoogleAdsCampaignsForScope = async (c: Context) => {
         const cfg = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
         const customerId = cfg.customerId as string | undefined
         const loginCustomerId = (cfg.loginCustomerId as string | undefined) || customerId
+        const developerToken = cfg.developerToken as string | undefined
         const gt = (instance.googleTokens as { refreshToken?: string; refresh_token?: string } | null)
         const refreshToken = gt?.refreshToken || gt?.refresh_token
 
         if (!customerId || !refreshToken) {
             return ok(c, { available: false, reason: 'Google Ads לא מחובר עדיין' })
         }
+        if (!developerToken) {
+            return ok(c, { available: false, reason: 'Developer Token חסר ב-DB. נסו לחבר Google Ads מחדש דרך הטופס.' })
+        }
 
         const { listCampaigns } = await import('@/services/googleAdsDeepEnrich')
-        const result = await listCampaigns(customerId, { refreshToken }, loginCustomerId)
+        const result = await listCampaigns(customerId, { refreshToken }, developerToken, loginCustomerId)
 
         // Suggest defaults: if instance has brandName, mark campaigns whose name
         // contains it. Caller can also re-use previously-selected scope.

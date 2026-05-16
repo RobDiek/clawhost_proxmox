@@ -26,7 +26,10 @@ interface GoogleTokens {
     email?: string
 }
 
-const GOOGLE_ADS_API = 'https://googleads.googleapis.com/v18'
+// Google Ads API version. v18 was deprecated and returns 404 as of early 2026;
+// v22 is the latest stable (released Feb 2026, supported through ~Dec 2026).
+// Bump when Google deprecates v22 — they typically maintain 3 versions concurrently.
+const GOOGLE_ADS_API = 'https://googleads.googleapis.com/v22'
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
 
 async function refreshAccessToken(refresh: string): Promise<string | null> {
@@ -48,14 +51,23 @@ async function gaqlQuery(
     customerId: string,
     accessToken: string,
     query: string,
+    developerToken: string,
     loginCustomerId?: string,
 ): Promise<any[]> {
+    if (!developerToken) {
+        throw new Error('Ads API: developer-token missing — pass per-tenant token from googleAdsConfig')
+    }
     const headers: Record<string, string> = {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
-        'developer-token': process.env.GOOGLE_ADS_DEVELOPER_TOKEN || '',
+        'developer-token': developerToken,
     }
-    if (loginCustomerId) headers['login-customer-id'] = loginCustomerId
+    // Only set login-customer-id when it differs from the operating customer.
+    // For direct accounts (no MCC), sending it equal to customerId is unnecessary
+    // and historically caused subtle auth failures in some API versions.
+    if (loginCustomerId && loginCustomerId !== customerId) {
+        headers['login-customer-id'] = loginCustomerId
+    }
 
     const url = `${GOOGLE_ADS_API}/customers/${customerId}/googleAds:searchStream`
     const res = await fetch(url, {
@@ -64,6 +76,16 @@ async function gaqlQuery(
         body: JSON.stringify({ query }),
         signal: AbortSignal.timeout(60_000),
     })
+
+    // Detect HTML response (API version 404 / proxy error) BEFORE attempting JSON parse
+    // — the JSON parser error would otherwise leak a confusing "Unexpected token '<'"
+    // message to the UI instead of a meaningful diagnostic.
+    const contentType = res.headers.get('content-type') || ''
+    if (!contentType.includes('application/json')) {
+        const txt = await res.text()
+        throw new Error(`Ads API ${res.status}: non-JSON response (likely API version deprecated): ${txt.slice(0, 200).replace(/\s+/g, ' ')}`)
+    }
+
     const data = await res.json() as any
     if (!res.ok) {
         throw new Error(`Ads API ${res.status}: ${JSON.stringify(data).slice(0, 300)}`)
@@ -128,10 +150,14 @@ export interface CampaignListResult {
 export async function listCampaigns(
     customerId: string | undefined,
     tokens: GoogleTokens | null | undefined,
+    developerToken: string | undefined,
     loginCustomerId?: string,
 ): Promise<CampaignListResult> {
     if (!customerId || !tokens?.refreshToken) {
         return { available: false, reason: 'Account not connected', campaigns: [] }
+    }
+    if (!developerToken) {
+        return { available: false, reason: 'Developer Token חסר', campaigns: [] }
     }
     const at = await refreshAccessToken(tokens.refreshToken)
     if (!at) return { available: false, reason: 'Token refresh failed', campaigns: [] }
@@ -157,7 +183,7 @@ export async function listCampaigns(
             ORDER BY metrics.cost_micros DESC
             LIMIT 500
         `
-        const rows = await gaqlQuery(customerId, at, query, loginCustomerId)
+        const rows = await gaqlQuery(customerId, at, query, developerToken, loginCustomerId)
         const campaigns: CampaignSummary[] = rows.map(r => {
             const c = r?.campaign || {}
             const m = r?.metrics || {}
@@ -178,7 +204,7 @@ export async function listCampaigns(
         // Account currency (informational — helps UI label spend correctly)
         let accountCurrency: string | undefined
         try {
-            const accRows = await gaqlQuery(customerId, at, 'SELECT customer.currency_code FROM customer', loginCustomerId)
+            const accRows = await gaqlQuery(customerId, at, 'SELECT customer.currency_code FROM customer', developerToken, loginCustomerId)
             accountCurrency = accRows[0]?.customer?.currencyCode
         } catch { /* non-fatal */ }
 
@@ -206,9 +232,13 @@ export async function pullSearchTermsReport(
     days = 90,
     scope?: CampaignScope,
     loginCustomerId?: string,
+    developerToken?: string,
 ): Promise<SearchTermsResult> {
     if (!customerId || !tokens?.refreshToken) {
         return { available: false, reason: 'Account not connected', daysAnalyzed: 0, totalTerms: 0, totalSpendIls: 0, wasteByPattern: [], topConvertingTerms: [], estimatedWastedSpendPct: 0 }
+    }
+    if (!developerToken) {
+        return { available: false, reason: 'Developer Token חסר', daysAnalyzed: 0, totalTerms: 0, totalSpendIls: 0, wasteByPattern: [], topConvertingTerms: [], estimatedWastedSpendPct: 0 }
     }
     const at = await refreshAccessToken(tokens.refreshToken)
     if (!at) return { available: false, reason: 'Token refresh failed', daysAnalyzed: 0, totalTerms: 0, totalSpendIls: 0, wasteByPattern: [], topConvertingTerms: [], estimatedWastedSpendPct: 0 }
@@ -227,7 +257,7 @@ export async function pullSearchTermsReport(
             ORDER BY metrics.cost_micros DESC
             LIMIT 1000
         `
-        const rows = await gaqlQuery(customerId, at, query, loginCustomerId)
+        const rows = await gaqlQuery(customerId, at, query, developerToken, loginCustomerId)
 
         let totalSpend = 0, totalConv = 0, totalClicks = 0
         const terms: Array<{ term: string; clicks: number; cost: number; conv: number }> = []
@@ -315,9 +345,13 @@ export async function pullAuctionInsights(
     days = 90,
     scope?: CampaignScope,
     loginCustomerId?: string,
+    developerToken?: string,
 ): Promise<AuctionInsightsResult> {
     if (!customerId || !tokens?.refreshToken) {
         return { available: false, reason: 'Account not connected', competitors: [] }
+    }
+    if (!developerToken) {
+        return { available: false, reason: 'Developer Token חסר', competitors: [] }
     }
     const at = await refreshAccessToken(tokens.refreshToken)
     if (!at) return { available: false, reason: 'Token refresh failed', competitors: [] }
@@ -335,7 +369,7 @@ export async function pullAuctionInsights(
             WHERE segments.date DURING LAST_${days}_DAYS${scopeClause(scope)}
             LIMIT 100
         `
-        const rows = await gaqlQuery(customerId, at, competitorsQ, loginCustomerId).catch(() => [])
+        const rows = await gaqlQuery(customerId, at, competitorsQ, developerToken, loginCustomerId).catch(() => [])
         const competitors = rows.map((r: any) => ({
             domain: r?.campaignAuctionInsightDomain?.displayName || '?',
             impressionShare: Math.round((Number(r?.metrics?.searchImpressionShare || 0)) * 1000) / 10,
@@ -362,7 +396,7 @@ export async function pullAuctionInsights(
             FROM customer
             WHERE segments.date DURING LAST_${days}_DAYS
         `
-        const accRows = await gaqlQuery(customerId, at, accountQ, loginCustomerId).catch(() => [])
+        const accRows = await gaqlQuery(customerId, at, accountQ, developerToken, loginCustomerId).catch(() => [])
         // For campaign-aggregated view, average across campaigns (weight by
         // impressions would be more accurate but Auction Insights metrics
         // returned per-campaign already represent that campaign's share of
@@ -406,9 +440,13 @@ export async function pullChangeHistory(
     days = 180,
     scope?: CampaignScope,
     loginCustomerId?: string,
+    developerToken?: string,
 ): Promise<ChangeHistoryResult> {
     if (!customerId || !tokens?.refreshToken) {
         return { available: false, reason: 'Account not connected', daysAnalyzed: 0, totalChanges: 0, bigChanges: [] }
+    }
+    if (!developerToken) {
+        return { available: false, reason: 'Developer Token חסר', daysAnalyzed: 0, totalChanges: 0, bigChanges: [] }
     }
     const at = await refreshAccessToken(tokens.refreshToken)
     if (!at) return { available: false, reason: 'Token refresh failed', daysAnalyzed: 0, totalChanges: 0, bigChanges: [] }
@@ -435,7 +473,7 @@ export async function pullChangeHistory(
             ORDER BY change_event.change_date_time DESC
             LIMIT 500
         `
-        const rows = await gaqlQuery(customerId, at, query, loginCustomerId)
+        const rows = await gaqlQuery(customerId, at, query, developerToken, loginCustomerId)
         const big = rows
             .filter((r: any) => {
                 const rt = r?.changeEvent?.resourceType || ''

@@ -8,7 +8,8 @@
  * stored in instances.googleTokens.
  */
 
-const GOOGLE_ADS_API = 'https://googleads.googleapis.com/v18'
+// v18 was deprecated and returns 404 as of early 2026. v22 is latest stable.
+const GOOGLE_ADS_API = 'https://googleads.googleapis.com/v22'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 
 // Developer token — set in .env (from MCC → Tools → API Center)

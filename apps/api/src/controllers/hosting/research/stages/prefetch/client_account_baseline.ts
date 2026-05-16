@@ -160,6 +160,7 @@ export async function prefetchClientAccountBaseline(
     const gadsCfg = (instance?.googleAdsConfig as Record<string, unknown> | null) || {}
     const customerId = gadsCfg.customerId as string | undefined
     const loginCustomerId = (gadsCfg.loginCustomerId as string | undefined) || customerId
+    const developerToken = gadsCfg.developerToken as string | undefined
     const gt = (instance?.googleTokens as Record<string, unknown> | null) || {}
     const refreshToken = (gt.refreshToken as string | undefined) || (gt.refresh_token as string | undefined)
     const googleTokens = refreshToken ? { refreshToken } : null
@@ -188,30 +189,32 @@ export async function prefetchClientAccountBaseline(
 
     if (!customerId) {
         warnings.push('Google Ads לא מחובר — אין Customer ID. כל שלבי הפרסום ירוצו במצב מוגבל (DFS+industry בלבד, ללא ground-truth מהחשבון שלכם).')
+    } else if (!developerToken) {
+        warnings.push('Google Ads Developer Token חסר ב-DB. נסו לחבר Google Ads מחדש דרך הטופס.')
     } else if (!refreshToken) {
         warnings.push('Google Ads OAuth חסר refresh token — חברו מחדש דרך Google Auth כדי לאפשר משיכת היסטוריה.')
     } else if (scope.mode === 'campaigns' && (scope.campaignIds || []).length === 0) {
         warnings.push('בחירת קמפיינים ריקה — לא נמשוך נתוני Google Ads כדי לא לדלוף נתונים של עסקים אחרים מהחשבון. השתמשו ב-"בחרו קמפיינים" כדי לסמן את שלכם.')
     }
 
-    const wantGoogleAds = !!(customerId && refreshToken && !(scope.mode === 'campaigns' && (scope.campaignIds || []).length === 0))
+    const wantGoogleAds = !!(customerId && developerToken && refreshToken && !(scope.mode === 'campaigns' && (scope.campaignIds || []).length === 0))
 
     const [sqrResult, auctionResult, changeHistoryResult] = await Promise.all([
-        wantGoogleAds ? (() => { gadsAttempted++; return pullSearchTermsReport(customerId, googleTokens, 90, scope, loginCustomerId) })()
+        wantGoogleAds ? (() => { gadsAttempted++; return pullSearchTermsReport(customerId, googleTokens, 90, scope, loginCustomerId, developerToken) })()
             .catch((err): SearchTermsResult => {
                 gadsFailed++
                 return { available: false, reason: `SQR threw: ${(err as Error).message}`, daysAnalyzed: 90, totalTerms: 0, totalSpendIls: 0, wasteByPattern: [], topConvertingTerms: [], estimatedWastedSpendPct: 0 }
             })
             : Promise.resolve<SearchTermsResult>({ available: false, reason: 'Google Ads not connected or no scope', daysAnalyzed: 0, totalTerms: 0, totalSpendIls: 0, wasteByPattern: [], topConvertingTerms: [], estimatedWastedSpendPct: 0 }),
 
-        wantGoogleAds ? (() => { gadsAttempted++; return pullAuctionInsights(customerId, googleTokens, 90, scope, loginCustomerId) })()
+        wantGoogleAds ? (() => { gadsAttempted++; return pullAuctionInsights(customerId, googleTokens, 90, scope, loginCustomerId, developerToken) })()
             .catch((err): AuctionInsightsResult => {
                 gadsFailed++
                 return { available: false, reason: `Auction Insights threw: ${(err as Error).message}`, competitors: [] }
             })
             : Promise.resolve<AuctionInsightsResult>({ available: false, reason: 'Google Ads not connected or no scope', competitors: [] }),
 
-        wantGoogleAds ? (() => { gadsAttempted++; return pullChangeHistory(customerId, googleTokens, 180, scope, loginCustomerId) })()
+        wantGoogleAds ? (() => { gadsAttempted++; return pullChangeHistory(customerId, googleTokens, 180, scope, loginCustomerId, developerToken) })()
             .catch((err): ChangeHistoryResult => {
                 gadsFailed++
                 return { available: false, reason: `Change history threw: ${(err as Error).message}`, daysAnalyzed: 180, totalChanges: 0, bigChanges: [] }

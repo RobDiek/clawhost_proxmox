@@ -216,7 +216,13 @@ export async function prefetchPaidCompetitorLandscape(
         googleTokens: instances.googleTokens,
     }).from(instances).where(eq(instances.id, instanceId))
     const firecrawlKey = instance?.firecrawlKey || process.env.FIRECRAWL_API_KEY || null
-    const gadsCustomerId = (instance?.googleAdsConfig as { customerId?: string } | null)?.customerId
+    const gadsCfg = (instance?.googleAdsConfig as { customerId?: string; loginCustomerId?: string; developerToken?: string; scope?: { mode?: string; campaignIds?: string[] } } | null) || {}
+    const gadsCustomerId = gadsCfg.customerId
+    const gadsLoginCustomerId = gadsCfg.loginCustomerId
+    const gadsDeveloperToken = gadsCfg.developerToken
+    const gadsScope = gadsCfg.scope?.mode === 'account'
+        ? { mode: 'account' as const }
+        : { mode: 'campaigns' as const, campaignIds: (gadsCfg.scope?.campaignIds || []).filter(id => /^\d+$/.test(id)) }
     const googleTokens = instance?.googleTokens as { refreshToken?: string } | null
 
     // Determine target country for Meta Ad Library policy gate.
@@ -278,7 +284,7 @@ export async function prefetchPaidCompetitorLandscape(
         // overlap_rate + outranking_share. Best signal for "who's competing
         // for the same searches you're targeting". Returns available:false
         // if Google Ads OAuth + Customer ID + Developer Token aren't set up.
-        pullAuctionInsights(gadsCustomerId, googleTokens, 90)
+        pullAuctionInsights(gadsCustomerId, googleTokens, 90, gadsScope, gadsLoginCustomerId, gadsDeveloperToken)
             .catch((err): AuctionInsightsResult => ({
                 available: false,
                 reason: `Auction Insights threw: ${(err as Error).message}`,
