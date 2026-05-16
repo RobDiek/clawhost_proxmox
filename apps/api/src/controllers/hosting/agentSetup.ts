@@ -3726,15 +3726,19 @@ export const listGoogleAdsCampaignsForScope = async (c: Context) => {
             return ok(c, { available: false, reason: 'Developer Token חסר ב-DB. נסו לחבר Google Ads מחדש דרך הטופס.' })
         }
 
-        const { listCampaigns } = await import('@/services/googleAdsDeepEnrich')
-        const result = await listCampaigns(customerId, { refreshToken }, developerToken, loginCustomerId)
+        // Phase 4.2.1 — two-step picker:
+        //   step 1 (no ?subAccountId): list sub-accounts if MCC, else campaigns
+        //   step 2 (?subAccountId=XXX): list campaigns under that sub-account
+        const subAccountId = (c.req.query('subAccountId') || '').replace(/\D/g, '') || undefined
 
-        // Suggest defaults: if instance has brandName, mark campaigns whose name
-        // contains it. Caller can also re-use previously-selected scope.
-        const prevScope = cfg.scope as { campaignIds?: string[] } | undefined
+        const { listCampaigns } = await import('@/services/googleAdsDeepEnrich')
+        const result = await listCampaigns(customerId, { refreshToken }, developerToken, loginCustomerId, subAccountId)
+
+        const prevScope = cfg.scope as { campaignIds?: string[]; operatingCustomerId?: string } | undefined
         const brandName = ((instance.researchData as { answers?: { businessName?: string } } | null)?.answers?.businessName || '').trim()
         const brandTokens = brandName ? brandName.toLowerCase().split(/\s+/).filter(t => t.length >= 3) : []
 
+        // Augment campaigns with brand-match + previously-selected hints
         const augmented = result.campaigns.map(camp => {
             const lname = camp.name.toLowerCase()
             const brandMatch = brandTokens.length > 0 && brandTokens.some(t => lname.includes(t))
@@ -3742,12 +3746,23 @@ export const listGoogleAdsCampaignsForScope = async (c: Context) => {
             return { ...camp, brandMatch, previouslySelected }
         })
 
+        // Augment sub-accounts with brand-match (so we can suggest the right one)
+        const augmentedSubs = (result.subAccounts || []).map(sa => {
+            const lname = (sa.descriptiveName || '').toLowerCase()
+            const brandMatch = brandTokens.length > 0 && brandTokens.some(t => lname.includes(t))
+            const previouslySelected = !!prevScope?.operatingCustomerId && prevScope.operatingCustomerId === sa.id
+            return { ...sa, brandMatch, previouslySelected }
+        })
+
         return ok(c, {
             available: result.available,
             reason: result.reason,
+            kind: result.kind,
             customerId: result.customerId,
+            operatingCustomerId: result.operatingCustomerId,
             accountCurrency: result.accountCurrency,
             campaigns: augmented,
+            subAccounts: augmentedSubs,
             previousScope: prevScope,
         })
     } catch (err) {
@@ -3770,11 +3785,12 @@ export const saveGoogleAdsCampaignScope = async (c: Context) => {
         const cfg = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
         if (!cfg.customerId) return fail(c, 'יש לחבר Google Ads קודם', 400)
 
-        const body = await c.req.json<{ mode: 'account' | 'campaigns'; campaignIds?: string[] }>()
+        const body = await c.req.json<{ mode: 'account' | 'campaigns'; campaignIds?: string[]; operatingCustomerId?: string }>()
         const mode = body.mode === 'campaigns' ? 'campaigns' : 'account'
         const campaignIds = (body.campaignIds || [])
             .map(id => String(id).replace(/\D/g, ''))
             .filter(id => id.length >= 6)
+        const operatingCustomerId = (body.operatingCustomerId || '').replace(/\D/g, '') || undefined
 
         if (mode === 'campaigns' && campaignIds.length === 0) {
             return fail(c, 'יש לבחור לפחות קמפיין אחד', 400)
@@ -3783,6 +3799,10 @@ export const saveGoogleAdsCampaignScope = async (c: Context) => {
         const userId = resolveUserId(c)
         const scope = {
             mode,
+            // operatingCustomerId = the SUB-account ID under MCC that owns this
+            // instance's campaigns. When set, every pull queries this customer
+            // ID instead of the MCC ID (which can't return metrics).
+            operatingCustomerId,
             campaignIds: mode === 'campaigns' ? campaignIds : undefined,
             selectedAt: new Date().toISOString(),
             selectedBy: userId,

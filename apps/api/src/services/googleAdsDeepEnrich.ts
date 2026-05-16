@@ -109,6 +109,8 @@ async function gaqlQuery(
 
 export interface CampaignScope {
     mode: 'account' | 'campaigns'
+    /** Sub-account ID under an MCC. When set, queries hit this account; loginCustomerId stays as MCC. */
+    operatingCustomerId?: string
     campaignIds?: string[]            // resource IDs (numeric strings) — applied if mode='campaigns'
 }
 
@@ -125,7 +127,21 @@ function scopeClause(scope: CampaignScope | undefined): string {
     return ` AND campaign.id IN (${ids.join(',')})`
 }
 
-// ─── Campaign Picker — list all campaigns in the account ─────────────────
+// ─── Campaign Picker — MCC-aware, two-step (sub-account → campaigns) ─────
+//
+// Many Google Ads connections are MCCs (manager accounts) that contain
+// sub-accounts for multiple businesses. You CANNOT request metrics from an MCC
+// (REQUESTED_METRICS_FOR_MANAGER error). The picker handles this two-step:
+//
+//   1. listCampaigns(mccId) → returns { kind:'sub_accounts', subAccounts:[...] }
+//   2. listCampaigns(mccId, subAccountId) → returns { kind:'campaigns', campaigns:[...] }
+//
+// Both use the MCC as the login-customer-id header; the URL path is either the
+// MCC (for customer_client query) or the sub-account (for campaign query).
+//
+// For single-tenant accounts (no MCC), step 1 already returns campaigns
+// directly — the picker UI just skips the sub-account step.
+
 export interface CampaignSummary {
     id: string                     // numeric ID (string, since GAQL returns int64)
     name: string
@@ -139,19 +155,32 @@ export interface CampaignSummary {
     endDate?: string
 }
 
+export interface SubAccountSummary {
+    id: string                     // customer ID of the sub-account
+    descriptiveName: string        // human-readable
+    currencyCode?: string
+    timeZone?: string
+    status: 'ENABLED' | 'CANCELED' | 'SUSPENDED' | 'CLOSED' | 'UNKNOWN'
+}
+
 export interface CampaignListResult {
     available: boolean
     reason?: string
+    /** 'campaigns' = direct list. 'sub_accounts' = MCC — must pick sub-account first. */
+    kind?: 'campaigns' | 'sub_accounts'
     customerId?: string
+    operatingCustomerId?: string   // which sub-account these campaigns belong to (if kind='campaigns' under MCC)
     accountCurrency?: string
     campaigns: CampaignSummary[]
+    subAccounts?: SubAccountSummary[]
 }
 
 export async function listCampaigns(
-    customerId: string | undefined,
+    customerId: string | undefined,         // could be MCC (top-level) — used as login-customer-id
     tokens: GoogleTokens | null | undefined,
     developerToken: string | undefined,
     loginCustomerId?: string,
+    operatingCustomerId?: string,           // if set + customerId is MCC → query this sub-account
 ): Promise<CampaignListResult> {
     if (!customerId || !tokens?.refreshToken) {
         return { available: false, reason: 'Account not connected', campaigns: [] }
@@ -162,10 +191,16 @@ export async function listCampaigns(
     const at = await refreshAccessToken(tokens.refreshToken)
     if (!at) return { available: false, reason: 'Token refresh failed', campaigns: [] }
 
+    // login-customer-id header is the MCC. customerId path is the operating
+    // account. When operatingCustomerId is supplied, that's the sub-account to
+    // query; otherwise we're querying customerId directly (which may itself be
+    // the operating account OR may be an MCC — we'll detect the MCC case).
+    const loginHeader = loginCustomerId || customerId
+    const queryTarget = operatingCustomerId || customerId
+
     try {
-        // Pull all non-removed campaigns + last 30d performance to help user
-        // identify which ones are theirs (highest spend = most likely active).
-        const query = `
+        // Pull all non-removed campaigns + last 30d performance
+        const campaignQuery = `
             SELECT
               campaign.id,
               campaign.name,
@@ -183,7 +218,49 @@ export async function listCampaigns(
             ORDER BY metrics.cost_micros DESC
             LIMIT 500
         `
-        const rows = await gaqlQuery(customerId, at, query, developerToken, loginCustomerId)
+
+        let rows: any[]
+        try {
+            rows = await gaqlQuery(queryTarget, at, campaignQuery, developerToken, loginHeader)
+        } catch (err) {
+            const msg = (err as Error).message
+            // Detect MCC — pivot to listing sub-accounts. The Google Ads error
+            // is `REQUESTED_METRICS_FOR_MANAGER` — return sub-accounts so the
+            // UI can prompt user to pick which business is theirs.
+            if (msg.includes('REQUESTED_METRICS_FOR_MANAGER') || msg.includes('manager account')) {
+                const subRows = await gaqlQuery(queryTarget, at, `
+                    SELECT
+                      customer_client.id,
+                      customer_client.descriptive_name,
+                      customer_client.currency_code,
+                      customer_client.time_zone,
+                      customer_client.status,
+                      customer_client.manager,
+                      customer_client.level
+                    FROM customer_client
+                    WHERE customer_client.status != 'CLOSED'
+                      AND customer_client.level <= 1
+                `, developerToken, loginHeader).catch(() => [])
+
+                const subAccounts: SubAccountSummary[] = subRows
+                    .map((r: any) => r?.customerClient || {})
+                    .filter((c: any) => c && !c.manager && c.id && String(c.id) !== queryTarget)
+                    .map((c: any) => ({
+                        id: String(c.id),
+                        descriptiveName: c.descriptiveName || `Account ${c.id}`,
+                        currencyCode: c.currencyCode,
+                        timeZone: c.timeZone,
+                        status: (c.status as SubAccountSummary['status']) || 'UNKNOWN',
+                    }))
+
+                if (subAccounts.length === 0) {
+                    return { available: false, reason: 'MCC account but no accessible sub-accounts found', kind: 'sub_accounts', subAccounts: [], campaigns: [] }
+                }
+                return { available: true, kind: 'sub_accounts', customerId: queryTarget, subAccounts, campaigns: [] }
+            }
+            throw err
+        }
+
         const campaigns: CampaignSummary[] = rows.map(r => {
             const c = r?.campaign || {}
             const m = r?.metrics || {}
@@ -201,14 +278,21 @@ export async function listCampaigns(
             }
         }).filter(c => !!c.id)
 
-        // Account currency (informational — helps UI label spend correctly)
+        // Account currency
         let accountCurrency: string | undefined
         try {
-            const accRows = await gaqlQuery(customerId, at, 'SELECT customer.currency_code FROM customer', developerToken, loginCustomerId)
+            const accRows = await gaqlQuery(queryTarget, at, 'SELECT customer.currency_code FROM customer', developerToken, loginHeader)
             accountCurrency = accRows[0]?.customer?.currencyCode
         } catch { /* non-fatal */ }
 
-        return { available: true, customerId, accountCurrency, campaigns }
+        return {
+            available: true,
+            kind: 'campaigns',
+            customerId: queryTarget,
+            operatingCustomerId: operatingCustomerId || queryTarget,
+            accountCurrency,
+            campaigns,
+        }
     } catch (err) {
         return { available: false, reason: `Campaign list failed: ${(err as Error).message}`, campaigns: [] }
     }
@@ -257,7 +341,11 @@ export async function pullSearchTermsReport(
             ORDER BY metrics.cost_micros DESC
             LIMIT 1000
         `
-        const rows = await gaqlQuery(customerId, at, query, developerToken, loginCustomerId)
+        // When operating under MCC, queryTarget is the sub-account ID; customerId
+        // is the MCC and goes only in the login-customer-id header.
+        const queryTarget = scope?.operatingCustomerId || customerId
+        const loginHeader = loginCustomerId || customerId
+        const rows = await gaqlQuery(queryTarget, at, query, developerToken, loginHeader)
 
         let totalSpend = 0, totalConv = 0, totalClicks = 0
         const terms: Array<{ term: string; clicks: number; cost: number; conv: number }> = []
@@ -357,6 +445,9 @@ export async function pullAuctionInsights(
     if (!at) return { available: false, reason: 'Token refresh failed', competitors: [] }
 
     try {
+        const queryTarget = scope?.operatingCustomerId || customerId
+        const loginHeader = loginCustomerId || customerId
+
         // Auction Insights is naturally per-campaign — scope filter on campaign.id
         // (the resource is `campaign_auction_insight` which lives under each campaign).
         const competitorsQ = `
@@ -369,7 +460,7 @@ export async function pullAuctionInsights(
             WHERE segments.date DURING LAST_${days}_DAYS${scopeClause(scope)}
             LIMIT 100
         `
-        const rows = await gaqlQuery(customerId, at, competitorsQ, developerToken, loginCustomerId).catch(() => [])
+        const rows = await gaqlQuery(queryTarget, at, competitorsQ, developerToken, loginHeader).catch(() => [])
         const competitors = rows.map((r: any) => ({
             domain: r?.campaignAuctionInsightDomain?.displayName || '?',
             impressionShare: Math.round((Number(r?.metrics?.searchImpressionShare || 0)) * 1000) / 10,
@@ -396,7 +487,7 @@ export async function pullAuctionInsights(
             FROM customer
             WHERE segments.date DURING LAST_${days}_DAYS
         `
-        const accRows = await gaqlQuery(customerId, at, accountQ, developerToken, loginCustomerId).catch(() => [])
+        const accRows = await gaqlQuery(queryTarget, at, accountQ, developerToken, loginHeader).catch(() => [])
         // For campaign-aggregated view, average across campaigns (weight by
         // impressions would be more accurate but Auction Insights metrics
         // returned per-campaign already represent that campaign's share of
@@ -473,7 +564,9 @@ export async function pullChangeHistory(
             ORDER BY change_event.change_date_time DESC
             LIMIT 500
         `
-        const rows = await gaqlQuery(customerId, at, query, developerToken, loginCustomerId)
+        const queryTarget = scope?.operatingCustomerId || customerId
+        const loginHeader = loginCustomerId || customerId
+        const rows = await gaqlQuery(queryTarget, at, query, developerToken, loginHeader)
         const big = rows
             .filter((r: any) => {
                 const rt = r?.changeEvent?.resourceType || ''

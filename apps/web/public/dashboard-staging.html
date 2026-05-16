@@ -25701,30 +25701,58 @@ function updateGoogleAdsOAuthState() {
    UX: reuses pipelineOverlay modal (same pattern as openGithubWizard).
    ═════════════════════════════════════════════════════════════════════════ */
 
-var _gadsScopeState = { mode: 'campaigns', selected: {}, campaigns: [], currency: 'ILS' };
+var _gadsScopeState = {
+  mode: 'campaigns',
+  selected: {},
+  campaigns: [],
+  currency: 'ILS',
+  // Phase 4.2.1 — two-step picker state
+  step: 'loading',                   // 'loading' | 'sub_accounts' | 'campaigns' | 'error'
+  subAccounts: [],
+  selectedSubAccountId: null,        // string ID of the sub-account picked in step 1
+  selectedSubAccountName: null,
+};
 
 async function openGoogleAdsScopePicker() {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+
+  _gadsScopeState = {
+    mode: 'campaigns', selected: {}, campaigns: [], currency: 'ILS',
+    step: 'loading', subAccounts: [], selectedSubAccountId: null, selectedSubAccountName: null,
+  };
 
   document.getElementById('pipelineOverlay').classList.remove('hidden');
   document.getElementById('pipelineTitle').textContent = 'בחרו קמפיינים — Google Ads';
   document.getElementById('pipelineSteps').innerHTML = '';
   document.getElementById('pipelineProgress').style.width = '50%';
   document.getElementById('pipelineNextBtn').style.display = 'none';
+  renderGadsLoadingState();
+
+  await _gadsLoadCampaignsOrSubAccounts(null);
+}
+
+function renderGadsLoadingState() {
   document.getElementById('pipelineBody').innerHTML =
     '<div style="padding:40px;text-align:center;color:#6B7280">' +
     '<div style="font-size:1.5rem;margin-bottom:10px">⏳</div>' +
-    '<div>טוענים את רשימת הקמפיינים מ-Google Ads...</div>' +
+    '<div>טוענים נתונים מ-Google Ads...</div>' +
     '<div style="font-size:0.75rem;margin-top:6px;color:#9CA3AF">~5-8 שניות</div>' +
     '</div>';
+}
 
+async function _gadsLoadCampaignsOrSubAccounts(subAccountId) {
+  var iid = localStorage.getItem('cf_instance_id');
+  renderGadsLoadingState();
   try {
-    var r = await apiFetch('/hosting/instances/' + iid + '/integrations/googleads/campaigns', { method: 'GET' });
+    var url = '/hosting/instances/' + iid + '/integrations/googleads/campaigns';
+    if (subAccountId) url += '?subAccountId=' + encodeURIComponent(subAccountId);
+    var r = await apiFetch(url, { method: 'GET' });
     if (!r.success) throw new Error(r.message || 'fetch failed');
     var data = r.data || {};
 
     if (!data.available) {
+      _gadsScopeState.step = 'error';
       document.getElementById('pipelineBody').innerHTML =
         '<div style="padding:24px"><div style="background:#FEE2E2;border:1px solid #FECACA;border-radius:8px;padding:14px;color:#991B1B">' +
         '<div style="font-weight:600;margin-bottom:6px">לא הצלחנו לקבל רשימת קמפיינים</div>' +
@@ -25733,33 +25761,100 @@ async function openGoogleAdsScopePicker() {
       return;
     }
 
-    _gadsScopeState.campaigns = data.campaigns || [];
     _gadsScopeState.currency = data.accountCurrency || 'ILS';
+
+    if (data.kind === 'sub_accounts') {
+      // MCC detected — render sub-account picker (step 1)
+      _gadsScopeState.step = 'sub_accounts';
+      _gadsScopeState.subAccounts = data.subAccounts || [];
+      renderGadsSubAccountPicker();
+      return;
+    }
+
+    // kind === 'campaigns' — render campaign picker (step 2 or direct)
+    _gadsScopeState.step = 'campaigns';
+    _gadsScopeState.campaigns = data.campaigns || [];
+    if (data.operatingCustomerId) {
+      _gadsScopeState.selectedSubAccountId = data.operatingCustomerId;
+    }
     _gadsScopeState.selected = {};
 
-    // Pre-select: previously chosen campaigns if any, else brand-matched campaigns
     var prevScope = data.previousScope;
     var hasPrevSelection = prevScope && prevScope.mode === 'campaigns' && Array.isArray(prevScope.campaignIds) && prevScope.campaignIds.length > 0;
-    _gadsScopeState.mode = hasPrevSelection ? 'campaigns' : 'campaigns';
+    _gadsScopeState.mode = 'campaigns';
 
     for (var i = 0; i < _gadsScopeState.campaigns.length; i++) {
       var camp = _gadsScopeState.campaigns[i];
       if (hasPrevSelection) {
         _gadsScopeState.selected[camp.id] = camp.previouslySelected === true;
       } else {
-        // Default: pre-check brand-matched campaigns (best guess)
         _gadsScopeState.selected[camp.id] = camp.brandMatch === true;
       }
     }
 
     renderGadsScopePicker();
   } catch (err) {
+    _gadsScopeState.step = 'error';
     document.getElementById('pipelineBody').innerHTML =
       '<div style="padding:24px"><div style="background:#FEE2E2;border:1px solid #FECACA;border-radius:8px;padding:14px;color:#991B1B">' +
       '<div style="font-weight:600;margin-bottom:6px">שגיאת תקשורת</div>' +
       '<div style="font-size:0.85rem">' + escapeHtml(err.message || '') + '</div></div>' +
       '<div style="text-align:left;margin-top:14px"><button class="btn btn-outline btn-sm" onclick="closePipeline()">סגרו</button></div></div>';
   }
+}
+
+function renderGadsSubAccountPicker() {
+  var subs = _gadsScopeState.subAccounts || [];
+  var html = '<div style="padding:4px">' +
+    '<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 14px;margin-bottom:14px">' +
+    '<div style="font-weight:700;font-size:0.92rem;color:#92400E;margin-bottom:4px">🏢 חשבון Manager (MCC) זוהה</div>' +
+    '<div style="font-size:0.8rem;color:#92400E;line-height:1.55">החשבון שחיברתם הוא Manager עם מספר חשבונות-משנה (סוב-אקאונט) — אחד לכל עסק. בחרו את החשבון של <strong>העסק הזה</strong>. בשלב הבא נטען רק את הקמפיינים שלו.</div>' +
+    '<div style="font-size:0.72rem;color:#92400E;margin-top:6px;opacity:0.85">💡 חשבון התואם לשם המותג מסומן אוטומטית.</div>' +
+    '</div>';
+
+  if (subs.length === 0) {
+    html += '<div style="padding:24px;text-align:center;color:#6B7280;font-size:0.85rem">לא נמצאו חשבונות-משנה זמינים תחת ה-MCC.</div>';
+  } else {
+    html += '<div style="max-height:380px;overflow-y:auto;border:1px solid #E5E7EB;border-radius:8px">';
+    for (var i = 0; i < subs.length; i++) {
+      var sa = subs[i];
+      var statusColor = sa.status === 'ENABLED' ? '#10B981' : '#9CA3AF';
+      var statusLabel = sa.status === 'ENABLED' ? 'פעיל' : sa.status === 'SUSPENDED' ? 'מושעה' : sa.status === 'CANCELED' ? 'בוטל' : sa.status;
+      var brandBadge = sa.brandMatch ? '<span style="background:#DBEAFE;color:#1E40AF;font-size:0.65rem;padding:1px 6px;border-radius:9px;margin-right:6px">תואם-מותג</span>' : '';
+      var prevBadge = sa.previouslySelected ? '<span style="background:#D1FAE5;color:#065F46;font-size:0.65rem;padding:1px 6px;border-radius:9px;margin-right:6px">נבחר קודם</span>' : '';
+      var formattedId = sa.id.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+
+      html += '<button type="button" onclick="_gadsPickSubAccount(\'' + sa.id + '\',\'' + escapeJsAttr(sa.descriptiveName) + '\')" ' +
+        'style="display:flex;align-items:center;width:100%;text-align:right;padding:12px 14px;border:none;border-bottom:1px solid #F3F4F6;background:white;cursor:pointer;gap:10px" ' +
+        'onmouseover="this.style.background=\'#F9FAFB\'" onmouseout="this.style.background=\'white\'">' +
+        '<div style="flex:1;min-width:0">' +
+        '<div style="font-weight:600;font-size:0.92rem;color:#1F2937;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(sa.descriptiveName) + brandBadge + prevBadge + '</div>' +
+        '<div style="font-size:0.74rem;color:#6B7280;margin-top:3px" dir="ltr">' +
+        '<span style="color:' + statusColor + ';font-weight:600">' + statusLabel + '</span>' +
+        ' · ' + formattedId +
+        (sa.currencyCode ? ' · ' + escapeHtml(sa.currencyCode) : '') +
+        '</div></div>' +
+        '<div style="color:#9CA3AF;font-size:1.2rem">←</div>' +
+        '</button>';
+    }
+    html += '</div>';
+  }
+
+  html += '<div style="display:flex;justify-content:flex-start;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid #E5E7EB">' +
+    '<button class="btn btn-outline btn-sm" onclick="closePipeline()">ביטול</button>' +
+    '</div></div>';
+
+  document.getElementById('pipelineBody').innerHTML = html;
+}
+
+function escapeJsAttr(s) {
+  return String(s || '').replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+async function _gadsPickSubAccount(subId, subName) {
+  _gadsScopeState.selectedSubAccountId = subId;
+  _gadsScopeState.selectedSubAccountName = subName;
+  await _gadsLoadCampaignsOrSubAccounts(subId);
 }
 
 function renderGadsScopePicker() {
@@ -25776,8 +25871,18 @@ function renderGadsScopePicker() {
     }
   }
 
-  var html = '<div style="padding:4px">' +
-    '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px 14px;margin-bottom:14px">' +
+  var html = '<div style="padding:4px">';
+
+  // Sub-account context strip (when picked from MCC)
+  if (_gadsScopeState.selectedSubAccountName) {
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 12px;background:#F3F4F6;border-radius:8px;font-size:0.82rem;color:#374151">' +
+      '<span>🏢</span>' +
+      '<span><strong>חשבון:</strong> ' + escapeHtml(_gadsScopeState.selectedSubAccountName) + '</span>' +
+      '<button onclick="_gadsBackToSubAccountPicker()" style="margin-right:auto;background:none;border:none;color:#2563EB;font-size:0.74rem;cursor:pointer;text-decoration:underline">← שינוי חשבון</button>' +
+      '</div>';
+  }
+
+  html += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px 14px;margin-bottom:14px">' +
     '<div style="font-weight:700;font-size:0.92rem;color:#1E40AF;margin-bottom:4px">🎯 איזה קמפיינים שייכים לעסק הזה?</div>' +
     '<div style="font-size:0.78rem;color:#1E40AF;line-height:1.55">סמנו רק את הקמפיינים של <strong>העסק שאתם מנהלים כאן</strong>. כל קמפיין שלא נבחר יהיה מוסתר מהמחקר — לא נמשוך SQR, Auction Insights או היסטוריית שינויים שלו.</div>' +
     '<div style="font-size:0.72rem;color:#1E40AF;margin-top:6px;opacity:0.85">💡 קמפיינים שזוהו אוטומטית לפי שם המותג מסומנים מראש. תוכלו לערוך לפי הצורך.</div>' +
@@ -25869,6 +25974,15 @@ function _gadsBulkSelectBrand() {
   renderGadsScopePicker();
 }
 
+async function _gadsBackToSubAccountPicker() {
+  // Re-fetch the sub-account list (no subAccountId param → server returns MCC list again)
+  _gadsScopeState.selectedSubAccountId = null;
+  _gadsScopeState.selectedSubAccountName = null;
+  _gadsScopeState.campaigns = [];
+  _gadsScopeState.selected = {};
+  await _gadsLoadCampaignsOrSubAccounts(null);
+}
+
 async function saveGoogleAdsScope() {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
@@ -25890,12 +26004,16 @@ async function saveGoogleAdsScope() {
   try {
     var r = await apiFetch('/hosting/instances/' + iid + '/integrations/googleads/scope', {
       method: 'POST',
-      body: JSON.stringify({ mode: mode, campaignIds: ids })
+      body: JSON.stringify({
+        mode: mode,
+        campaignIds: ids,
+        operatingCustomerId: _gadsScopeState.selectedSubAccountId || undefined,
+      })
     });
     if (!r.success) throw new Error(r.message || 'save failed');
     showToast('היקף הקמפיינים נשמר. הפעלת מחקר הבאה תשתמש בנתונים המעודכנים.', 'success');
     closePipeline();
-    updateGoogleAdsScopeSummary({ mode: mode, count: ids.length, total: _gadsScopeState.campaigns.length });
+    updateGoogleAdsScopeSummary({ mode: mode, count: ids.length, total: _gadsScopeState.campaigns.length, subAccountName: _gadsScopeState.selectedSubAccountName });
   } catch (err) {
     showToast('שגיאה: ' + (err.message || ''), 'error');
   } finally {
@@ -25910,10 +26028,11 @@ function updateGoogleAdsScopeSummary(info) {
     el.textContent = 'בחרו אילו קמפיינים מ-Google Ads שייכים לעסק הזה. חשוב כשהחשבון מכיל גם קמפיינים של עסקים אחרים — אחרת המחקר ייקלע בנתונים מעורבים.';
     return;
   }
+  var subPart = info.subAccountName ? ' (חשבון: <strong>' + escapeHtml(info.subAccountName) + '</strong>)' : '';
   if (info.mode === 'account') {
-    el.innerHTML = '<strong>היקף נוכחי:</strong> כל החשבון (' + (info.total || '?') + ' קמפיינים). מתאים רק כשהחשבון לא משותף עם עסקים אחרים.';
+    el.innerHTML = '<strong>היקף נוכחי:</strong> כל החשבון' + subPart + ' (' + (info.total || '?') + ' קמפיינים). מתאים רק כשהחשבון לא משותף עם עסקים אחרים.';
   } else {
-    el.innerHTML = '<strong>היקף נוכחי:</strong> <span style="color:#065F46;font-weight:600">' + info.count + '</span> מתוך ' + (info.total || '?') + ' קמפיינים נבחרו. המחקר יעבד רק את הקמפיינים האלה.';
+    el.innerHTML = '<strong>היקף נוכחי:</strong> <span style="color:#065F46;font-weight:600">' + info.count + '</span> מתוך ' + (info.total || '?') + ' קמפיינים נבחרו' + subPart + '. המחקר יעבד רק את הקמפיינים האלה.';
   }
 }
 

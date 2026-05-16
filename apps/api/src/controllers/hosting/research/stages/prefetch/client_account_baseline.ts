@@ -165,13 +165,14 @@ export async function prefetchClientAccountBaseline(
     const refreshToken = (gt.refreshToken as string | undefined) || (gt.refresh_token as string | undefined)
     const googleTokens = refreshToken ? { refreshToken } : null
 
-    const rawScope = gadsCfg.scope as { mode?: string; campaignIds?: string[]; selectedAt?: string } | undefined
+    const rawScope = gadsCfg.scope as { mode?: string; campaignIds?: string[]; operatingCustomerId?: string; selectedAt?: string } | undefined
     // Default scope: if user has not yet picked, we behave 'campaigns' with empty allowlist.
     // This is intentional — we'd rather return zero data than leak unrelated business data
     // from accounts that host multiple clients (the very case Phase 4.2.1 was built for).
+    const operatingCustomerId = (rawScope?.operatingCustomerId || '').replace(/\D/g, '') || undefined
     const scope: CampaignScope = rawScope?.mode === 'account'
-        ? { mode: 'account' }
-        : { mode: 'campaigns', campaignIds: (rawScope?.campaignIds || []).filter(id => /^\d+$/.test(id)) }
+        ? { mode: 'account', operatingCustomerId }
+        : { mode: 'campaigns', operatingCustomerId, campaignIds: (rawScope?.campaignIds || []).filter(id => /^\d+$/.test(id)) }
 
     const scopeSummary = rawScope ? {
         mode: rawScope.mode === 'account' ? 'account' as const : 'campaigns' as const,

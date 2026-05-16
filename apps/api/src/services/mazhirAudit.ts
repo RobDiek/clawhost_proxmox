@@ -414,10 +414,11 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
     const customerIdForDeep = pp.hasExistingAccount ? googleAdsConfig.customerId : undefined
     const developerTokenForDeep = pp.hasExistingAccount ? (googleAdsConfig as { developerToken?: string }).developerToken : undefined
     const loginCustomerIdForDeep = (googleAdsConfig as { loginCustomerId?: string }).loginCustomerId
-    const rawScopeForDeep = (googleAdsConfig as { scope?: { mode?: string; campaignIds?: string[] } }).scope
+    const rawScopeForDeep = (googleAdsConfig as { scope?: { mode?: string; campaignIds?: string[]; operatingCustomerId?: string } }).scope
+    const operatingCustomerIdForDeep = (rawScopeForDeep?.operatingCustomerId || '').replace(/\D/g, '') || undefined
     const scopeForDeep = rawScopeForDeep?.mode === 'account'
-        ? { mode: 'account' as const }
-        : { mode: 'campaigns' as const, campaignIds: (rawScopeForDeep?.campaignIds || []).filter(id => /^\d+$/.test(id)) }
+        ? { mode: 'account' as const, operatingCustomerId: operatingCustomerIdForDeep }
+        : { mode: 'campaigns' as const, operatingCustomerId: operatingCustomerIdForDeep, campaignIds: (rawScopeForDeep?.campaignIds || []).filter(id => /^\d+$/.test(id)) }
     const historicalReports = ((pp as any).historicalReports || []) as Array<{ name: string; type: string; size: number; uploadedAt: string; base64: string }>
 
     const callTrackingCfg = (inst as any).callTrackingConfig || null

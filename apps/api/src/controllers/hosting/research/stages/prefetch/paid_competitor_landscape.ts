@@ -216,13 +216,14 @@ export async function prefetchPaidCompetitorLandscape(
         googleTokens: instances.googleTokens,
     }).from(instances).where(eq(instances.id, instanceId))
     const firecrawlKey = instance?.firecrawlKey || process.env.FIRECRAWL_API_KEY || null
-    const gadsCfg = (instance?.googleAdsConfig as { customerId?: string; loginCustomerId?: string; developerToken?: string; scope?: { mode?: string; campaignIds?: string[] } } | null) || {}
+    const gadsCfg = (instance?.googleAdsConfig as { customerId?: string; loginCustomerId?: string; developerToken?: string; scope?: { mode?: string; campaignIds?: string[]; operatingCustomerId?: string } } | null) || {}
     const gadsCustomerId = gadsCfg.customerId
     const gadsLoginCustomerId = gadsCfg.loginCustomerId
     const gadsDeveloperToken = gadsCfg.developerToken
+    const gadsOperatingCustomerId = (gadsCfg.scope?.operatingCustomerId || '').replace(/\D/g, '') || undefined
     const gadsScope = gadsCfg.scope?.mode === 'account'
-        ? { mode: 'account' as const }
-        : { mode: 'campaigns' as const, campaignIds: (gadsCfg.scope?.campaignIds || []).filter(id => /^\d+$/.test(id)) }
+        ? { mode: 'account' as const, operatingCustomerId: gadsOperatingCustomerId }
+        : { mode: 'campaigns' as const, operatingCustomerId: gadsOperatingCustomerId, campaignIds: (gadsCfg.scope?.campaignIds || []).filter(id => /^\d+$/.test(id)) }
     const googleTokens = instance?.googleTokens as { refreshToken?: string } | null
 
     // Determine target country for Meta Ad Library policy gate.
