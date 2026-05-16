@@ -4683,11 +4683,30 @@ function renderAgentHomeContext() {
 
 }
 
+// Phase 4.2(fix) — throttle wrapper for renderHome's heavy async loaders.
+// renderHome is called every 1s by _startMazhirTicker (so the elapsed timer
+// on running stages updates). Without throttling, every tick fires 5+ HTTP
+// fetches (version/outputs/hypotheses/cross-platform-truth/my-instances),
+// flooding the API → 429 rate limit within ~30s.
+// _runHomeThrottled(key, intervalMs, fn): skips fn() if it ran <intervalMs
+// ago, otherwise stamps + runs. Call _resetHomeThrottle(key) to force a
+// fresh call on the next tick (used after stage completion).
+var __homeThrottle = {};
+function _runHomeThrottled(key, intervalMs, fn) {
+    var now = Date.now();
+    if (__homeThrottle[key] && now - __homeThrottle[key] < intervalMs) return;
+    __homeThrottle[key] = now;
+    try { fn(); } catch (e) { /* swallow */ }
+}
+function _resetHomeThrottle(key) { delete __homeThrottle[key]; }
+
 function renderHome() {
   // Check if VPS is still provisioning
   checkProvisioningStatus();
-  // Stack version status (background fetch — render on completion)
-  if (typeof renderVersionCard === 'function') renderVersionCard();
+  // Stack version status — throttled (was firing every 1s via ticker)
+  if (typeof renderVersionCard === 'function') {
+    _runHomeThrottled('versionCard', 30000, renderVersionCard);
+  }
   // Phase 4.0(disk) — background-fetch disk usage so renderNotifications
   // can show a disk-low alert without blocking the home tab render.
   if (typeof loadServerStatsForHome === 'function') loadServerStatsForHome();
@@ -5488,17 +5507,17 @@ function renderHome() {
   // Notifications
   renderNotifications();
 
-  // Approval Queue + Content Calendar + Mazhir Paid Marketing
-  renderApprovalQueue();
+  // Approval Queue — throttled (hits /outputs every tick otherwise)
+  _runHomeThrottled('approvalQueue', 30000, renderApprovalQueue);
   renderContentCalendar();
 
-  // Phase 4.3.4 — Paid-track hypothesis cards (lazy-load if mount exists)
+  // Phase 4.3.4 — Paid-track hypothesis cards (throttled lazy-load)
   if (document.getElementById('paid-hypotheses-mount')) {
-    loadPaidHypotheses();
+    _runHomeThrottled('paidHypotheses', 30000, loadPaidHypotheses);
   }
-  // Phase 4.4 — Cross-platform truth (MER + trust) widget (lazy-load)
+  // Phase 4.4 — Cross-platform truth (MER + trust) widget (throttled lazy-load)
   if (document.getElementById('paid-mer-mount')) {
-    loadCrossPlatformTruth();
+    _runHomeThrottled('crossPlatformTruth', 30000, loadCrossPlatformTruth);
   }
   // Lazy-load hub data so setup task 'marketing_config' can compute its
   // 'done' state from default-derived pipeline activation. After load,
@@ -10506,20 +10525,10 @@ async function _runPaidStage(stageId, flagName, startedAtName, label, durationLa
   if (typeof _startMazhirTicker === 'function') _startMazhirTicker();
   if (typeof renderHome === 'function') renderHome();
   showToast('מריץ ' + label + '... ' + durationLabel, 'info');
-
-  // Poll for backend updates every 10s while we await the stage call.
-  // The /research/stage POST is a long await (60-90s typical for
-  // paid_competitor_landscape with prefetch + Anthropic + critic). During
-  // this time we want the card to auto-refresh from the server in case
-  // someone else completed a different stage, or the ticker needs the
-  // latest plan.status. On stage completion the finally block does a
-  // refreshInstanceData() which supersedes this poll.
-  var _bgRefreshHandle = setInterval(function() {
-    if (!window[flagName]) { clearInterval(_bgRefreshHandle); return; }
-    if (typeof refreshInstanceData === 'function') {
-      refreshInstanceData().catch(function() { /* swallow */ });
-    }
-  }, 10000);
+  // No separate background poll here — ticker-driven renderHome already
+  // re-renders the card from local state every second (showing the timer),
+  // and the throttled refreshInstanceData inside renderHome would only
+  // duplicate work. The finally block runs an explicit refresh on completion.
   try {
     var iid = localStorage.getItem('cf_instance_id') || instanceId;
     var r = await apiFetch('/hosting/instances/' + iid + '/research/stage/' + stageId, { method: 'POST', body: JSON.stringify({}) });
@@ -10553,9 +10562,12 @@ async function _runPaidStage(stageId, flagName, startedAtName, label, durationLa
     showToast(label + ' נכשל: ' + (err && err.message || err), 'error');
   } finally {
     window[flagName] = false;
-    if (typeof _bgRefreshHandle !== 'undefined') {
-      try { clearInterval(_bgRefreshHandle); } catch (_) { /* swallow */ }
-    }
+    // Bust throttle caches so the next renderHome refreshes everything once
+    // with the fresh server state (new records, updated hypotheses, etc.).
+    _resetHomeThrottle('paidHypotheses');
+    _resetHomeThrottle('crossPlatformTruth');
+    _resetHomeThrottle('approvalQueue');
+    _resetHomeThrottle('versionCard');
     if (typeof renderHome === 'function') renderHome();
   }
 }
