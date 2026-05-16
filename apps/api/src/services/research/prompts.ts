@@ -3159,6 +3159,35 @@ export function buildPaidCompetitorLandscapePrompt(opts: PromptOpts): PromptResu
     const googleBlock = prefetch.googleAds
         ? renderTransparencyContext(prefetch.googleAds)
         : '═══ GOOGLE ADS TRANSPARENCY CENTER ═══\n(audit unavailable)'
+    // Phase 4.2(fix) — Auction Insights from official Google Ads API.
+    // Stable + precise: exact list of advertisers bidding on the user's
+    // keywords with impression_share + overlap_rate + outranking_share.
+    // Trumps Transparency Center scraping when both available.
+    let auctionBlock = ''
+    if (prefetch.auctionInsights && prefetch.auctionInsights.available) {
+        const ai = prefetch.auctionInsights
+        const compLines = ai.competitors.length > 0
+            ? ai.competitors.map(c => `  - ${c.domain}: impression_share=${c.impressionShare}% · overlap_rate=${c.overlapRate}% · outranking=${c.outranking}%`).join('\n')
+            : '  (no competitors visible — likely brand-only campaign or low impression volume)'
+        const ownStats = (ai.impressionShare !== undefined)
+            ? `\n\n**YOUR account-level metrics (last 90d):**\n  - impression_share: ${ai.impressionShare}%\n  - top_of_page_rate: ${ai.topOfPageRate}%\n  - absolute_top_rate: ${ai.absoluteTopOfPageRate}%`
+            : ''
+        auctionBlock = `═══ GOOGLE ADS AUCTION INSIGHTS (officia API, last 90d) ═══
+
+These are the competitors **actually bidding against YOU** on YOUR keywords (Google Ads API data, not scraping). Numbers are real.
+
+**Competitors detected (${ai.competitors.length}):**
+${compLines}${ownStats}
+
+USE THIS DATA when crafting analysis:
+  - Auction Insights = ground truth of who you compete with on Google Search RIGHT NOW
+  - Cross-reference with Meta/Transparency/competitor_landscape — any domain here NOT in the broader list is a critical paid-only competitor
+  - High overlap_rate (>50%) + low outranking_share = they outbid you → strategic threat
+  - Low impression_share (<30%) on YOUR side = budget capacity to scale OR they're outpacing you
+`
+    } else {
+        auctionBlock = `═══ GOOGLE ADS AUCTION INSIGHTS ═══\n(${prefetch.auctionInsights?.reason || 'unavailable — connect Google Ads MCC for precise competitor data'})`
+    }
     const lpBlock = renderLandingPageAuditsForPrompt(prefetch.landingPages)
     const domainSourcesBlock = Object.entries(prefetch.domainSources)
         .map(([d, src]) => `- ${d} (source: ${src})`)
@@ -3190,6 +3219,8 @@ ${warningsBlock}
 ${metaBlock}
 
 ${googleBlock}
+
+${auctionBlock}
 
 ${lpBlock}
 

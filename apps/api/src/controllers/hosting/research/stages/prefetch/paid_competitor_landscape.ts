@@ -25,10 +25,19 @@ import { db } from '@/db'
 import { instances } from '@/db/schema'
 import type { ResearchDataV2 } from '@/services/research/types'
 import { auditMetaAdLibrary, type MetaAdLibraryResult } from '@/services/paidResearch/metaAdLibrary'
-import { enrichWithGoogleAdsTransparency } from '@/services/googleAdsTransparency'
-// GoogleAdsTransparencyResult type is not exported; we inline-shape locally.
+// Phase 4.2(fix) — Google removed the internal RPC endpoint
+// /anji/_/rpc/AdvertiserService/SearchAdvertisers in 2025 (returns 404).
+// Switched to Firecrawl-based scraping of the public Transparency Center
+// page. Same result shape; the prompt builder doesn't need changes.
+import { enrichWithGoogleAdsTransparencyV2 as enrichWithGoogleAdsTransparency } from '@/services/paidResearch/googleTransparencyFirecrawl'
 type GoogleAdsTransparencyResult = Awaited<ReturnType<typeof enrichWithGoogleAdsTransparency>>
 import { auditLandingPage, type LandingPageAudit } from '@/services/paidResearch/landingPageAudit'
+// Phase 4.2(fix) — Google Ads API Auction Insights via MCC OAuth.
+// Returns the EXACT list of competitors bidding on YOUR keywords (last 90d)
+// with impression_share + overlap_rate + outranking_share. This is the
+// official-API equivalent of Transparency Center scraping — stable, precise,
+// no scraping. Requires user to have an active Google Ads campaign.
+import { pullAuctionInsights, type AuctionInsightsResult } from '@/services/googleAdsDeepEnrich'
 
 export interface PaidCompetitorLandscapePrefetch {
     /** Competitor domains we actually scanned. */
@@ -39,6 +48,13 @@ export interface PaidCompetitorLandscapePrefetch {
     metaAds: MetaAdLibraryResult
     /** Google Ads Transparency Center results — RSA copy + active campaigns. */
     googleAds: GoogleAdsTransparencyResult | null
+    /**
+     * Google Ads API Auction Insights — competitors bidding on YOUR keywords
+     * with impression_share + overlap_rate. Only available when the user has
+     * an active Google Ads campaign (Storage Station does). Returns null
+     * when MCC isn't connected.
+     */
+    auctionInsights: AuctionInsightsResult | null
     /** Per-competitor landing-page CRO audit. */
     landingPages: LandingPageAudit[]
     /** Provenance + cost roll-up. */
@@ -47,6 +63,7 @@ export interface PaidCompetitorLandscapePrefetch {
         domainsAttempted: number
         metaCallsMade: number
         googleCallsMade: number
+        auctionInsightsCompetitors: number
         firecrawlCallsMade: number
         firecrawlCallsFailed: number
         totalLatencyMs: number
@@ -177,10 +194,12 @@ export async function prefetchPaidCompetitorLandscape(
                 diagnostics: { appIdConfigured: false, appSecretConfigured: false, callsAttempted: 0, callsFailed: 0 },
             },
             googleAds: null,
+            auctionInsights: null,
             landingPages: [],
             diagnostics: {
                 domainsResolved: 0, domainsAttempted: 0,
                 metaCallsMade: 0, googleCallsMade: 0,
+                auctionInsightsCompetitors: 0,
                 firecrawlCallsMade: 0, firecrawlCallsFailed: 0,
                 totalLatencyMs: Date.now() - startedAt,
             },
@@ -188,11 +207,17 @@ export async function prefetchPaidCompetitorLandscape(
         }
     }
 
-    // 2. Get Firecrawl key from instance (per-tenant) — same pattern as profileEnricher
-    const [instance] = await db.select({ firecrawlKey: instances.firecrawlKey })
-        .from(instances)
-        .where(eq(instances.id, instanceId))
+    // 2. Get integration credentials from instance (per-tenant).
+    //    - firecrawlKey: LP audit + Transparency Center fallback
+    //    - googleAdsConfig.customerId + googleTokens: Auction Insights
+    const [instance] = await db.select({
+        firecrawlKey: instances.firecrawlKey,
+        googleAdsConfig: instances.googleAdsConfig,
+        googleTokens: instances.googleTokens,
+    }).from(instances).where(eq(instances.id, instanceId))
     const firecrawlKey = instance?.firecrawlKey || process.env.FIRECRAWL_API_KEY || null
+    const gadsCustomerId = (instance?.googleAdsConfig as { customerId?: string } | null)?.customerId
+    const googleTokens = instance?.googleTokens as { refreshToken?: string } | null
 
     // Determine target country for Meta Ad Library policy gate.
     // paidProfile.geography or answers.geography may carry country codes.
@@ -205,8 +230,8 @@ export async function prefetchPaidCompetitorLandscape(
         return cc.slice(0, 2).toUpperCase()
     })()
 
-    // 3. Run all three audits in parallel
-    const [metaResult, googleResult, lpAudits] = await Promise.all([
+    // 3. Run all four audits in parallel
+    const [metaResult, googleResult, lpAudits, auctionResult] = await Promise.all([
         // Meta Ad Library — per-competitor calls happen inside auditMetaAdLibrary.
         // Policy guard inside short-circuits for non-EU/UK countries so we don't
         // waste rate limit on a call Meta will reject.
@@ -219,8 +244,8 @@ export async function prefetchPaidCompetitorLandscape(
             diagnostics: { appIdConfigured: false, appSecretConfigured: false, callsAttempted: 0, callsFailed: domains.length },
         })),
 
-        // Google Ads Transparency Center
-        enrichWithGoogleAdsTransparency(domains, { region: 'IL', perCompetitorLimit: 10 }).catch((err): GoogleAdsTransparencyResult => ({
+        // Google Ads Transparency Center — Firecrawl-based (post-2025 RPC removal)
+        enrichWithGoogleAdsTransparency(domains, { region: 'IL', perCompetitorLimit: 10, firecrawlKey }).catch((err): GoogleAdsTransparencyResult => ({
             available: false,
             reason: `Google Transparency audit threw: ${(err as Error).message}`,
             competitorsRequested: domains,
@@ -247,6 +272,18 @@ export async function prefetchPaidCompetitorLandscape(
             schemaTypes: [],
             croWarnings: [],
         })))),
+
+        // Google Ads API Auction Insights — official API, returns ACTUAL
+        // competitors bidding on YOUR keywords last 90d with impression_share +
+        // overlap_rate + outranking_share. Best signal for "who's competing
+        // for the same searches you're targeting". Returns available:false
+        // if Google Ads OAuth + Customer ID + Developer Token aren't set up.
+        pullAuctionInsights(gadsCustomerId, googleTokens, 90)
+            .catch((err): AuctionInsightsResult => ({
+                available: false,
+                reason: `Auction Insights threw: ${(err as Error).message}`,
+                competitors: [],
+            })),
     ])
 
     // 4. Synthesize warnings for the stage
@@ -259,11 +296,31 @@ export async function prefetchPaidCompetitorLandscape(
     if (!googleResult?.available) {
         warnings.push(`Google Transparency: ${googleResult?.reason || 'unavailable'}`)
     } else if (googleResult.competitorsFound.length < 2) {
-        warnings.push('Google Ads Transparency Center returned ads for less than 2 competitors — they may not be running Google Ads in IL')
+        warnings.push('Google Ads Transparency Center returned ads for less than 2 competitors — they may not be running Google Ads in IL, or scraper needs reverse-engineering work')
+    }
+    if (!auctionResult.available) {
+        warnings.push(`Auction Insights: ${auctionResult.reason || 'unavailable'}. Connect Google Ads MCC (Customer ID + Developer Token) for precise "who competes against YOU on YOUR keywords" data.`)
+    } else if (auctionResult.competitors.length === 0) {
+        warnings.push('Auction Insights returned no competitor data — your campaigns may have insufficient impressions or be brand-only (no auction overlap with other advertisers).')
     }
     const lpOk = lpAudits.filter(a => a.fetchOk).length
     if (lpOk < 2) {
         warnings.push(`Only ${lpOk} of ${domains.length} landing pages successfully audited — CRO analysis will be thin`)
+    }
+
+    // Shabbat caution for IL: many Israeli SMBs pause Google Ads campaigns
+    // Friday evening through Saturday evening (Shabbat). A snapshot taken
+    // during that window may legitimately show fewer/zero active ads even
+    // when competitors are normally active. Surface this so Opus tempers
+    // conclusions like "competitor X doesn't run Google Ads".
+    if (targetCountry === 'IL') {
+        const day = new Date().getUTCDay()        // 6 = Saturday UTC
+        const hour = new Date().getUTCHours()
+        // Friday after 14:00 UTC (~17:00 IL = pre-Shabbat) through Saturday
+        const inShabbatWindow = day === 6 || (day === 5 && hour >= 14)
+        if (inShabbatWindow) {
+            warnings.push('SHABBAT CAUTION: This snapshot was taken during Shabbat (Friday evening–Saturday evening IL time). Many Israeli SMBs pause Google Ads / Meta campaigns for Shabbat. Empty/sparse competitor ad data may reflect SCHEDULING, not absence. Re-test on a weekday for definitive paid landscape.')
+        }
     }
 
     return {
@@ -271,12 +328,14 @@ export async function prefetchPaidCompetitorLandscape(
         domainSources: sources,
         metaAds: metaResult,
         googleAds: googleResult,
+        auctionInsights: auctionResult,
         landingPages: lpAudits,
         diagnostics: {
             domainsResolved: domains.length,
             domainsAttempted: domains.length,
             metaCallsMade: metaResult.diagnostics.callsAttempted,
             googleCallsMade: googleResult?.competitorsFound.length || 0,
+            auctionInsightsCompetitors: auctionResult.competitors.length,
             firecrawlCallsMade: lpAudits.filter(a => a.fetchSource === 'firecrawl').length,
             firecrawlCallsFailed: lpAudits.filter(a => !a.fetchOk).length,
             totalLatencyMs: Date.now() - startedAt,

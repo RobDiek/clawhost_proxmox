@@ -139,10 +139,12 @@ async function main() {
         diagnostics: {
             domainsResolved: 3, domainsAttempted: 3,
             metaCallsMade: 3, googleCallsMade: 1,
+            auctionInsightsCompetitors: 0,
             firecrawlCallsMade: 0, firecrawlCallsFailed: 0,
             totalLatencyMs: 3500,
         },
         warnings: [],
+        auctionInsights: null,
     }
 
     const prompt = buildPromptForStage('paid_competitor_landscape', {
