@@ -28,10 +28,53 @@ export async function prefetchPaidKeywordResearch(
     instanceId: string,
     rd: ResearchDataV2,
 ): Promise<PaidKeywordLandscape> {
-    // 1. Resolve seed keywords from user answers
     const answers = (rd.answers as Record<string, unknown>) || {}
     const seedKeywords: string[] = []
+    const accountLevelNegatives: string[] = []
 
+    // ─── PRIORITY 1 (Phase 4.2.1-H): SQR top-converters from baseline ─────
+    // If client_account_baseline ran and pulled SQR top-converting terms, use
+    // them as Tier-1 seeds. These are PROVEN to convert in this exact account,
+    // beating any DFS guess. Likewise the SQR waste patterns become preemptive
+    // negatives. Without this injection the keyword research expansion goes off
+    // on tangents (e.g. apartment rentals when seed is generic 'להשכרה').
+    interface SqrConvertingTerm { searchTerm?: string; conversions?: number; cpa?: number; clicks?: number }
+    interface SqrWastePattern { pattern?: string; clicks?: number; conversions?: number; spendIls?: number }
+    interface BaselineResult {
+        dfsData?: {
+            googleAds?: {
+                available?: boolean
+                sqr?: {
+                    available?: boolean
+                    topConvertingTerms?: SqrConvertingTerm[]
+                    wasteByPattern?: SqrWastePattern[]
+                }
+            }
+        }
+    }
+    const baseline = rd.results?.client_account_baseline as BaselineResult | undefined
+    const sqr = baseline?.dfsData?.googleAds?.sqr
+    if (sqr?.available && Array.isArray(sqr.topConvertingTerms)) {
+        // Take top 8 by conversions — these are Tier-1 seeds. They go FIRST in
+        // the seed list so DataForSEO expansion ranks them most influential.
+        const tier1 = sqr.topConvertingTerms
+            .filter(t => t.searchTerm && (t.conversions ?? 0) > 0)
+            .slice(0, 8)
+        for (const t of tier1) {
+            if (t.searchTerm) seedKeywords.push(t.searchTerm.trim())
+        }
+        console.log(`[paid_keyword_research/prefetch] SQR Tier-1: ${tier1.length} seeds from baseline (${tier1.map(t => t.searchTerm).join(' | ')})`)
+    }
+    if (sqr?.available && Array.isArray(sqr.wasteByPattern)) {
+        // Top 12 waste patterns by spend → preemptive negative keywords
+        for (const w of sqr.wasteByPattern.slice(0, 12)) {
+            if (w.pattern && (w.conversions ?? 0) === 0 && (w.clicks ?? 0) >= 5) {
+                accountLevelNegatives.push(w.pattern.trim())
+            }
+        }
+    }
+
+    // ─── PRIORITY 2: user answers (target keywords + product names) ───────
     const targetRaw = answers.targetKeywords
     if (typeof targetRaw === 'string') {
         for (const s of targetRaw.split(/[,\n;]/)) {
@@ -159,11 +202,26 @@ export async function prefetchPaidKeywordResearch(
         }
     }
 
+    // Phase 4.2.1-H — propagate SQR top-converters (Tier-1 seeds with real
+    // CPA/conversions data) and account-level negatives (waste patterns)
+    // to the landscape builder + downstream prompt.
+    const sqrTopConvertersForFetch = (sqr?.topConvertingTerms || [])
+        .filter(t => t.searchTerm && (t.conversions ?? 0) > 0)
+        .slice(0, 10)
+        .map(t => ({
+            searchTerm: t.searchTerm as string,
+            conversions: t.conversions ?? 0,
+            cpa: t.cpa ?? 0,
+            clicks: t.clicks ?? 0,
+        }))
+
     return fetchPaidKeywordLandscape({
         instanceId,
         seedKeywords: Array.from(new Set(seedKeywords)).slice(0, 10),
         competitorDomains: Array.from(new Set(competitorDomains)).slice(0, 5),
         brandName: businessName,
         maxKeywords: 80,
+        accountLevelNegatives,
+        sqrTopConverters: sqrTopConvertersForFetch.length > 0 ? sqrTopConvertersForFetch : undefined,
     })
 }

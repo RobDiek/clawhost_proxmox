@@ -74,8 +74,12 @@ export interface PaidKeywordLandscape {
         keywordsSeed: number
         keywordsAfterExpansion: number
         keywordsAfterVolumeFilter: number
+        /** Phase 4.2.1-G — keywords dropped because they contained blocklist tokens. */
+        keywordsDroppedByBlocklist?: number
         latencyMs: number
     }
+    /** Phase 4.2.1-H — SQR top-converters propagated through for prompt builder. */
+    sqrTopConverters?: Array<{ searchTerm: string; conversions: number; cpa: number; clicks: number }>
     /** Per-keyword paid-track data. Sorted by estimated value (volume × CVR proxy). */
     keywords: PaidKeyword[]
     /** Clusters (semantic groups) extracted from keyword data. Opus uses these for ad-group bucketing. */
@@ -275,6 +279,18 @@ export interface FetchOpts {
     brandName: string
     /** Max keywords to keep in final landscape (cost control). */
     maxKeywords?: number
+    /**
+     * Phase 4.2.1-G — keywords to REJECT in DataForSEO expansion. Combines
+     * SQR-derived n-gram waste patterns (from client_account_baseline) +
+     * a default IL out-of-vertical stoplist. Anything containing these tokens
+     * is dropped during keyword filtering, never reaching the prompt.
+     */
+    accountLevelNegatives?: string[]
+    /**
+     * Phase 4.2.1-H — SQR top-converting terms surfaced separately so the
+     * prompt builder can mark them as Tier-1 (forced ad groups).
+     */
+    sqrTopConverters?: Array<{ searchTerm: string; conversions: number; cpa: number; clicks: number }>
 }
 
 export async function fetchPaidKeywordLandscape(opts: FetchOpts): Promise<PaidKeywordLandscape> {
@@ -378,10 +394,40 @@ export async function fetchPaidKeywordLandscape(opts: FetchOpts): Promise<PaidKe
         }
     }
 
-    // 4. Filter to keywords with REAL volume (≥10/month) and shape PaidKeyword records
+    // Phase 4.2.1-G — out-of-vertical blocklist. Tokens that should NEVER appear
+    // in IL paid keywords for our verticals: apartment rentals, ויקיפדיה,
+    // generic info searches, and SQR-derived waste patterns from baseline.
+    // Default list catches the most common DFS-expansion contamination.
+    const DEFAULT_BLOCKLIST_TOKENS = [
+        'דירה', 'דירות', 'יד 2', 'יד2',           // apartment rental contamination
+        'חדר', 'חדרים', 'בית', 'וילה',             // residential lookups
+        'רכב', 'מכונית',                            // car-related leak
+        'ויקיפדיה', 'wikipedia',                    // info-seekers
+        'cloud', 'אחסון ענן', 'אחסון נתונים',      // wrong-vertical "storage"
+        'google drive', 'dropbox', 'hosting',
+        'אחסון אתרים', 'אחסון מזון', 'אחסון יין',
+        'מעונות',                                   // dorms (different product)
+        'משרות', 'משרה', 'עבודה', 'דרושים',         // job-seekers
+    ]
+    const blocklistTokens = new Set<string>(DEFAULT_BLOCKLIST_TOKENS.map(t => t.toLowerCase()))
+    for (const pat of (opts.accountLevelNegatives || [])) {
+        if (typeof pat === 'string' && pat.trim().length >= 2) {
+            blocklistTokens.add(pat.trim().toLowerCase())
+        }
+    }
+
+    // 4. Filter to keywords with REAL volume (≥10/month), drop blocklisted, shape PaidKeyword records
     const brandLower = opts.brandName.toLowerCase()
+    let droppedByBlocklist = 0
     const paidKeywords: PaidKeyword[] = volumeItems
         .filter(v => (v.search_volume || 0) >= 10)
+        .filter(v => {
+            const kwLower = v.keyword.toLowerCase()
+            for (const tok of blocklistTokens) {
+                if (kwLower.includes(tok)) { droppedByBlocklist++; return false }
+            }
+            return true
+        })
         .map(v => {
             const isBrand = brandLower.length >= 3 && v.keyword.toLowerCase().includes(brandLower)
             const intent = classifyIntent(v.keyword, undefined, isBrand)
@@ -418,6 +464,7 @@ export async function fetchPaidKeywordLandscape(opts: FetchOpts): Promise<PaidKe
         .map(k => { const { __score, ...rest } = k; void __score; return rest })
 
     diagnostics.keywordsAfterVolumeFilter = paidKeywords.length
+    diagnostics.keywordsDroppedByBlocklist = droppedByBlocklist
 
     // 5. Cluster + benchmarks + intent distribution
     const clusters = clusterKeywords(paidKeywords)
@@ -430,7 +477,12 @@ export async function fetchPaidKeywordLandscape(opts: FetchOpts): Promise<PaidKe
     return {
         available: paidKeywords.length > 0,
         reason: paidKeywords.length === 0 ? 'No keywords with sufficient IL volume (≥10/mo)' : undefined,
-        diagnostics, keywords: paidKeywords, clusters, ilBenchmarks, intentDistribution,
+        diagnostics,
+        keywords: paidKeywords,
+        clusters,
+        ilBenchmarks,
+        intentDistribution,
+        sqrTopConverters: opts.sqrTopConverters,
     }
 }
 
@@ -450,6 +502,29 @@ export function renderPaidKeywordLandscapeForPrompt(r: PaidKeywordLandscape): st
         `   • ${c.label}: ${c.keywords.length} kw, vol=${c.totalMonthlyVolume}, avgCpc=₪${c.avgCpc?.toFixed(2) || '?'}, intent=${c.dominantIntent}`,
     ).join('\n')
 
+    // Phase 4.2.1-H — surface SQR top-converters as Tier-1 keywords with REAL
+    // performance (this beats any DFS estimate). Opus must include these in
+    // an Exact-match ad group and use their CPA as the account benchmark.
+    let sqrBlock = ''
+    if (r.sqrTopConverters && r.sqrTopConverters.length > 0) {
+        const lines = r.sqrTopConverters.map((t, i) =>
+            `   ${i + 1}. "${t.searchTerm}" — ${t.conversions} conv @ CPA ₪${t.cpa} (${t.clicks} clicks)`,
+        ).join('\n')
+        sqrBlock = `\n**🎯 TIER-1 SEEDS — SQR PROVEN CONVERTERS (REAL ACCOUNT DATA)** ⚠️ CRITICAL\n${lines}\n
+These are ACTUAL search queries that have converted in this account over the last 90 days.
+They are NOT DFS estimates — they are ground truth. RULES:
+- Every term above MUST appear as an exact-match keyword in your output
+- Group them into a dedicated Tier-1 ad group ("BOFU — proven converters")
+- Use their median CPA as the account-realistic benchmark (NOT industry CPA)
+- Account-level CR for these terms drives Stage 3 budget scenarios — your output's CR claims for similar terms cannot exceed this baseline by more than 30%
+`
+    }
+
+    let blocklistNote = ''
+    if (r.diagnostics.keywordsDroppedByBlocklist && r.diagnostics.keywordsDroppedByBlocklist > 0) {
+        blocklistNote = `\n📛 ${r.diagnostics.keywordsDroppedByBlocklist} candidate keywords were dropped pre-prompt by the out-of-vertical blocklist (apartment rentals, generic info, cloud-storage bleed, SQR-derived waste). They will NOT appear below.\n`
+    }
+
     return [
         '═══ PAID KEYWORD LANDSCAPE (IL — Israel) ═══',
         '',
@@ -458,7 +533,8 @@ export function renderPaidKeywordLandscapeForPrompt(r: PaidKeywordLandscape): st
         `IL CPC benchmarks: median=₪${r.ilBenchmarks.medianCpcIls?.toFixed(2) || '?'}, p25=₪${r.ilBenchmarks.p25CpcIls?.toFixed(2) || '?'}, p75=₪${r.ilBenchmarks.p75CpcIls?.toFixed(2) || '?'}`,
         r.ilBenchmarks.highestVolumeKeyword ? `Highest volume: "${r.ilBenchmarks.highestVolumeKeyword}"` : '',
         r.ilBenchmarks.cheapestKeywordWithVolume ? `Cheapest with real volume: "${r.ilBenchmarks.cheapestKeywordWithVolume}"` : '',
-        '',
+        blocklistNote,
+        sqrBlock,
         `**TOP 30 KEYWORDS** (sorted by intent-weighted value):`,
         tableRows,
         '',
