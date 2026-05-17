@@ -11236,10 +11236,22 @@ function openPaidProfileModal() {
   // Merge precedence: user-saved values > auto-derived > empty defaults.
   // (User must always be able to override.)
   var pp = Object.assign({}, derived || {}, savedPp);
-  // Ensure _sources only present when something was actually derived AND user
-  // hasn't already filled the form manually (savedPp empty for that field).
-  var hasUserInput = Object.keys(savedPp).filter(function(k) { return savedPp[k] != null && savedPp[k] !== ''; }).length > 0;
-  var isFirstOpen = !hasUserInput && !!derived;
+  // Phase 4.2.1-J fix — show auto-derive banner whenever derivation is
+  // available, regardless of prior saves. The user benefits from knowing
+  // which fields came from baseline vs. their own input on EVERY visit,
+  // not just the first.
+  var isFirstOpen = !!derived;
+  // Tag which fields are user-edited so the banner can call them out
+  // differently (e.g. "budget — לעודכן ידנית" instead of "מ-Stage 4").
+  var userEditedFields = {};
+  if (derived) {
+    Object.keys(savedPp).forEach(function(k) {
+      var v = savedPp[k];
+      if (v != null && v !== '' && k !== '_autoDerived' && k !== '_sources' && k !== '_whiteSpaceAngles') {
+        userEditedFields[k] = true;
+      }
+    });
+  }
   // Pull baseline accountMetrics into modal scope so the banner + historical-
   // data section can cite real numbers without re-deriving.
   var _baseline = (rd.results || {}).client_account_baseline;
@@ -11302,18 +11314,52 @@ function openPaidProfileModal() {
 
       // Phase 4.2.1-J — pre-fill banner: surface what was auto-derived + from where
       ((isFirstOpen && derived && Array.isArray(derived._sources) && derived._sources.length > 0)
-        ? '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:0.82rem;color:#1E40AF;line-height:1.6">' +
-            '<div style="font-weight:700;margin-bottom:6px">✨ מילוי אוטומטי מהנתונים שלכם</div>' +
-            '<div style="margin-bottom:6px">השדות הבאים נגזרו אוטומטית — תוכלו לערוך כל אחד אם תרצו:</div>' +
-            '<ul style="margin:0;padding-right:18px;font-size:0.78rem;line-height:1.7">' +
-              (derived.monthlyBudgetIls ? '<li>תקציב חודשי — <strong>₪' + derived.monthlyBudgetIls.toLocaleString() + '</strong> (תרחיש "מאוזן" מהשלב הקודם)</li>' : '') +
-              (derived.primaryGoal === 'leadgen' ? '<li>מטרה — <strong>יצירת לידים</strong> (מבוסס על ' + (am.conversions || 0) + ' המרות ב-90 יום)</li>' : '') +
-              (derived.geography && derived.geography.cities ? '<li>גיאוגרפיה — <strong>' + derived.geography.cities.join(' · ') + '</strong> (ערים שמהן באו ההמרות שלכם ב-SQR)</li>' : '') +
-              (derived.conversionTypes ? '<li>סוגי המרה — <strong>' + derived.conversionTypes.map(function(t){return ({form_submit:'טופס',phone_call:'טלפון',whatsapp:'WhatsApp'})[t]||t;}).join(' · ') + '</strong></li>' : '') +
-              (derived.decisionCycle === 'short' ? '<li>מחזור החלטה — <strong>קצר (1-7 ימים)</strong> (דיפולט לשירותי אחסון IL)</li>' : '') +
-            '</ul>' +
-            '<div style="margin-top:8px;font-size:0.76rem;color:#3B82F6">⚠️ נדרש קלט שלכם: ערך עסקה / LTV (סעיף 3), הצעה ויתרונות (סעיף 8) — זה ידע עסקי שלכם, לא ניתן לנחש</div>' +
-          '</div>'
+        ? (function() {
+            // Helper: render one line, marking field as "edited by user" if so
+            function row(fieldKey, autoLabel, userOverrideLabel) {
+              var edited = userEditedFields[fieldKey];
+              if (edited && userOverrideLabel) {
+                return '<li style="color:#0E7490"><strong>✎ ' + escapeHtml(userOverrideLabel) + '</strong> <span style="color:#9CA3AF;font-weight:400">(ערכתם ידנית)</span></li>';
+              }
+              return '<li>' + autoLabel + '</li>';
+            }
+            return '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:0.82rem;color:#1E40AF;line-height:1.6">' +
+              '<div style="font-weight:700;margin-bottom:6px">✨ מילוי אוטומטי מהנתונים שלכם</div>' +
+              '<div style="margin-bottom:6px">הפרופיל מבוסס על נתוני ה-baseline + תרחיש "מאוזן". ערוכים ידנית מסומנים ב-✎:</div>' +
+              '<ul style="margin:0;padding-right:18px;font-size:0.78rem;line-height:1.7">' +
+                (derived.monthlyBudgetIls ? row('monthlyBudgetIls',
+                    'תקציב חודשי — <strong>₪' + derived.monthlyBudgetIls.toLocaleString() + '</strong> (תרחיש "מאוזן")',
+                    'תקציב חודשי — ₪' + (pp.monthlyBudgetIls || 0).toLocaleString()
+                  ) : '') +
+                (derived.primaryGoal === 'leadgen' ? row('primaryGoal',
+                    'מטרה — <strong>יצירת לידים</strong> (מ-' + (am.conversions || 0) + ' המרות ב-90 יום)',
+                    'מטרה — ' + (pp.primaryGoal || '?')
+                  ) : '') +
+                ((pp.avgDealValueIls || pp.avgLtvIls) ?
+                    '<li style="color:#0E7490"><strong>✎ ערך עסקה ₪' + (pp.avgDealValueIls || '?') + ' / LTV ₪' + (pp.avgLtvIls || '?') + '</strong> <span style="color:#9CA3AF;font-weight:400">(ערכתם ידנית)</span></li>'
+                  : '') +
+                (derived.decisionCycle === 'short' ? row('decisionCycle',
+                    'מחזור החלטה — <strong>קצר (1-7 ימים)</strong> (דיפולט שירות IL)',
+                    'מחזור החלטה — ' + (pp.decisionCycle || '?')
+                  ) : '') +
+                (derived.geography && derived.geography.cities ? row('geography',
+                    'גיאוגרפיה — <strong>' + derived.geography.cities.join(' · ') + '</strong> (ערי SQR-converters)',
+                    'גיאוגרפיה — ' + ((pp.geography && pp.geography.cities) ? pp.geography.cities.join(' · ') : (pp.geography && pp.geography.mode) || '?')
+                  ) : '') +
+                (derived.conversionTypes ? row('conversionTypes',
+                    'סוגי המרה — <strong>' + derived.conversionTypes.map(function(t){return ({form_submit:'טופס',phone_call:'טלפון',whatsapp:'WhatsApp'})[t]||t;}).join(' · ') + '</strong>',
+                    'סוגי המרה — ' + ((pp.conversionTypes || []).map(function(t){return ({form_submit:'טופס',phone_call:'טלפון',whatsapp:'WhatsApp'})[t]||t;}).join(' · ') || '?')
+                  ) : '') +
+              '</ul>' +
+              ((!pp.avgDealValueIls || !pp.avgLtvIls || !pp.keyOffer)
+                ? '<div style="margin-top:8px;font-size:0.76rem;color:#B45309;background:#FEF3C7;padding:6px 10px;border-radius:6px">⚠️ עדיין חסר קלט עסקי שלכם:' +
+                    (!pp.avgDealValueIls ? ' ערך עסקה (#3)' : '') +
+                    (!pp.avgLtvIls ? ' · LTV (#3)' : '') +
+                    (!pp.keyOffer ? ' · הצעה ויתרונות (#8)' : '') +
+                  '</div>'
+                : '<div style="margin-top:8px;font-size:0.76rem;color:#059669">✓ הכל מולא — אפשר לשמור.</div>') +
+            '</div>';
+          })()
         : '') +
 
       // 1. Budget
