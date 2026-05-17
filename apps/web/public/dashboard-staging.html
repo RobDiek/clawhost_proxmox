@@ -5178,7 +5178,13 @@ function renderHome() {
             });
           }
 
-          // Step 8 (or 6 if no FullAdsAPI): Media plan
+          // Step 9 (or 7 if no FullAdsAPI): Media plan
+          // Phase 4.2.1-K — match backend gating in generateMazhirMediaPlan:
+          // when hasFullAdsAPI + audit has >=2 blockers + GTM not published + 0 conversions,
+          // backend returns 409. Surface that in the UI by locking the step.
+          var auditBlockerCount = (rd.mazhirAudit && Array.isArray(rd.mazhirAudit.blockers))
+            ? rd.mazhirAudit.blockers.length : 0;
+          var planGatedByTracking = hasFullAdsAPI && auditBlockerCount >= 2 && !hasGtmPublished && convCreated === 0;
           var planLabel = hasPlan
             ? ('תוכנית מדיה · ' + campaignCount + ' קמפיין' + (campaignCount > 1 ? 'ים' : '')
                + (planAdGroups > 0 ? ' · ' + planAdGroups + ' קבוצות' : '')
@@ -5194,14 +5200,22 @@ function renderHome() {
                   ? 'קמפיינים, קבוצות מודעות, מודעות RSA, מילות מפתח עם נפח/CPC ריאליים, מילים שליליות, Sitelinks — מוכן להתקנה אוטומטית דרך ה-API'
                   : 'מסמך הקמה ידנית מלא — קמפיינים, קבוצות מודעות, מודעות RSA, מילות מפתח, מילים שליליות. ניתן להזין ידנית בממשק Google Ads'),
             whyMatters: 'Opus מקבל את כל הנתונים שנצברו: 4 קטגוריות מתחרים, 80 מילות מפתח עם CPC + כוונה, 3 תרחישי תקציב, פרופיל, אודיט, הקמת GTM ופעולות המרה. **בונה תוכנית מדיה ממוקדת**: קמפיינים, קבוצות מודעות, טקסטים ל-RSA, מילות מפתח עם סוגי התאמה, מילים שליליות, Sitelinks והרחבות. ' + (hasFullAdsAPI ? 'מוכן להתקנה אוטומטית דרך מנוע הביצוע של Mazhir.' : 'מסמך הקמה ידנית שניתן להזין בממשק Google Ads.'),
-            status: planRunning ? 'running' : (hasPlan ? 'done' : (hasAudit ? 'active' : 'locked')),
-            lockedReason: hasAudit ? '' : 'דורש שלב 5 (אודיט)',
+            status: planRunning
+              ? 'running'
+              : (hasPlan
+                  ? 'done'
+                  : (planGatedByTracking
+                      ? 'locked'
+                      : (hasAudit ? 'active' : 'locked'))),
+            lockedReason: planGatedByTracking
+              ? 'יש ' + auditBlockerCount + ' חסמים מהאודיט. הריצו GTM (שלב 7) ופעולות המרה (שלב 8) קודם — אחרת הקמפיינים יוצאים עם מעקב שבור.'
+              : (hasAudit ? '' : 'דורש שלב 5 (אודיט)'),
             elapsed: planElapsed,
             primaryAction: planRunning
               ? { label: '⏳ ' + planElapsed, disabled: true }
               : (hasPlan
                   ? { label: 'בנו מחדש', onclick: 'generateMazhirMediaPlanFromTasks()' }
-                  : { label: '▶ בנו תוכנית (~4-6 דק׳)', onclick: 'generateMazhirMediaPlanFromTasks()', disabled: !hasAudit }),
+                  : { label: '▶ בנו תוכנית (~4-6 דק׳)', onclick: 'generateMazhirMediaPlanFromTasks()', disabled: !hasAudit || planGatedByTracking }),
             secondaryActions: hasPlan ? [{ label: 'צפו בתוכנית →', onclick: 'viewMazhirMediaPlan()' }] : []
           });
 
