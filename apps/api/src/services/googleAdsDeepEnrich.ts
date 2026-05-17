@@ -567,7 +567,10 @@ export async function pullChangeHistory(
     try {
         // v22 — change_event has a hard 30-day max window. `user_type` field was
         // removed. Use closed BETWEEN range. Keep `client_type` (still valid).
-        const cappedDays = Math.min(days, 30)
+        // Cap to 28 days — at 30 days exactly, Google often rejects due to
+        // calendar-day boundary math (start ms - 30 days can be 31 days ago
+        // in UTC if "now" is just past midnight). 28 is safely within bounds.
+        const cappedDays = Math.min(days, 28)
         const end = new Date()
         const start = new Date(end.getTime() - cappedDays * 24 * 3600 * 1000)
         const fmt = (d: Date) => `${d.toISOString().slice(0, 10)} ${d.toISOString().slice(11, 19)}`

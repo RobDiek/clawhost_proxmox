@@ -337,9 +337,19 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
         console.warn('[mazhirAudit] could not read agent_integrations:', (err as Error).message)
     }
 
-    // Existing account snapshot (only if hasExistingAccount + Google linked)
+    // Existing account snapshot — Phase 4.2.1-K: same ground-truth check as
+    // the SQR/changeHistory gate further down. pp.hasExistingAccount was set
+    // by the form modal based on a snapshot of instanceData that may be stale.
     const googleAdsConfig: any = inst.googleAdsConfig || {}
-    const accountSnapshot = pp.hasExistingAccount && googleAdsConfig.customerId
+    const _baselineCheck = (rd.results as Record<string, unknown> | undefined)?.client_account_baseline as
+        { dfsData?: { googleAds?: { available?: boolean; accountMetrics?: { available?: boolean; cost?: number; clicks?: number; conversions?: number; avgCpcIls?: number; conversionRatePct?: number; cpaIls?: number; daysAnalyzed?: number } } } } | undefined
+    const _baselineGads = _baselineCheck?.dfsData?.googleAds
+    const _hasBaselineGads = !!_baselineGads?.available
+    const _hasCreds = !!(googleAdsConfig.customerId
+        && googleAdsConfig.developerToken
+        && (googleTokensForAudit as { refreshToken?: string } | null)?.refreshToken)
+    const _accountConnected = _hasBaselineGads || _hasCreds
+    const accountSnapshot = _accountConnected && googleAdsConfig.customerId
         ? await pullExistingAccountSnapshot(apiKey, googleAdsConfig.customerId, googleTokensForAudit)
         : undefined
 
@@ -635,7 +645,36 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
     const { renderGA4AudiencesContext, renderGA4DemographicsContext, renderGA4FunnelContext, renderGA4SeasonalityContext } = await import('./ga4DeepEnrich')
     const { renderGSCPagesContext } = await import('./gscPagesEnrich')
     const { renderMetaAdsContext } = await import('./metaAdsLibrary')
+    // Phase 4.2.1-K — Account metrics ground-truth block from baseline.
+    // Without this, Opus would invent industry-benchmark CR (1.5-3%) even
+    // when baseline shows real CR (20.36% for Storage Station).
+    let accountMetricsBlock = ''
+    const _am = _baselineGads?.accountMetrics
+    if (_am?.available) {
+        accountMetricsBlock = `═══ ACCOUNT METRICS — REAL DATA FROM YOUR GOOGLE ADS (NOT INDUSTRY ESTIMATES) ═══
+
+Time window: last ${_am.daysAnalyzed} days, scoped to the campaigns the user selected.
+
+  • Total spend: ₪${(_am.cost ?? 0).toLocaleString()}
+  • Clicks: ${(_am.clicks ?? 0).toLocaleString()}
+  • Conversions: ${_am.conversions ?? 0}
+  • Average CPC: ₪${_am.avgCpcIls?.toFixed(2) ?? '?'}
+  • Conversion rate: ${_am.conversionRatePct?.toFixed(2) ?? '?'}%
+  • CPA: ₪${_am.cpaIls?.toFixed(2) ?? '?'}
+
+🚨 BINDING — use these numbers as ground truth:
+  1. estimatedMonthlyConversions MUST anchor on real CR (${_am.conversionRatePct?.toFixed(2) ?? '?'}%), NOT industry benchmark (1.5-3%).
+     Math: expected_clicks_per_month × ${_am.conversionRatePct?.toFixed(2) ?? '?'}% = baseline projection.
+     If you propose lower CR than the real account, NAME a specific reason (new ad groups in learning / mid-funnel keyword expansion / etc).
+  2. CPA range MUST anchor on real CPA (₪${_am.cpaIls?.toFixed(2) ?? '?'}). Industry benchmarks are NOT a substitute when real data exists.
+  3. NEVER say "no real conversion data from client" or "client has no existing Google Ads account" — the account is connected and these numbers are real.
+  4. CSV uploads (if any) are SUPPLEMENTARY history, not the primary source. The numbers above OVERRIDE any older CSV data.
+
+`
+    }
+
     const enrichmentBlocks = [
+        accountMetricsBlock,                          // Phase 4.2.1-K — REAL ground truth, MUST be first
         renderGA4Context(ga4Data),                    // GA4 first — overrides CSV "0 conversions"
         renderGA4DemographicsContext(ga4Demo),
         renderGA4FunnelContext(ga4Fun),
