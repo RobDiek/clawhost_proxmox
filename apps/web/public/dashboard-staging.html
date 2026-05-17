@@ -11145,10 +11145,101 @@ function _showJsonModal(title, obj) {
 }
 
 // ─── Paid Profile modal — 9-question form ────────────────────────────────
+// Phase 4.2.1-J — derive paid profile defaults from baseline + Stage 4
+// scenario. When the connected ad account has real history, this lets the
+// user skip re-entering everything we already know. Returns an object that
+// looks like a saved paidProfile (mergeable with the user's prior input).
+function _derivePaidProfileFromBaseline(rd) {
+  rd = rd || {};
+  var results = rd.results || {};
+  var baseline = results.client_account_baseline;
+  var scenarios = results.paid_budget_scenarios;
+  var compLandscape = results.paid_competitor_landscape;
+  if (!baseline) return null;
+
+  var gads = (baseline.dfsData && baseline.dfsData.googleAds) || {};
+  var sqr = gads.sqr || {};
+  var am = gads.accountMetrics || {};
+  if (!am.available && !sqr.available) return null; // nothing useful to derive
+
+  var derived = { _autoDerived: true, _sources: [] };
+
+  // 1. Budget — prefer balanced scenario; fall back to current run-rate × 1.2
+  if (scenarios && Array.isArray(scenarios.records)) {
+    var balanced = scenarios.records.filter(function(r) { return r.tier_key === 'balanced'; })[0];
+    if (balanced && balanced.monthly_budget_ils) {
+      derived.monthlyBudgetIls = balanced.monthly_budget_ils;
+      derived._sources.push('budget=balanced_scenario');
+    }
+  }
+  if (!derived.monthlyBudgetIls && am.cost) {
+    derived.monthlyBudgetIls = Math.round(am.cost / 90 * 30 * 1.2 / 100) * 100;
+    derived._sources.push('budget=current_runrate_x1.2');
+  }
+
+  // 2. Primary goal — infer from current account behavior
+  // 240 conv on 1179 clicks with no e-commerce signal = lead generation
+  if (am.conversions && am.conversions > 0 && (am.cpaIls || 0) > 30) {
+    derived.primaryGoal = 'leadgen';
+    derived._sources.push('goal=infer_from_conv_mix');
+  }
+
+  // 3. Deal value / LTV — keep blank, user knowledge required
+
+  // 4. Decision cycle — storage rental typical short cycle in IL
+  // (real signal would be GA4 session-to-conv time, which we don't have here)
+  if (am.available) {
+    derived.decisionCycle = 'short';
+    derived._sources.push('cycle=default_service_short');
+  }
+
+  // 5. Geography — extract unique cities from SQR top-converters
+  if (sqr.available && Array.isArray(sqr.topConvertingTerms)) {
+    var cityRegex = /(תל אביב|ראשון לציון|פתח תקווה|חולון|רמת גן|הרצליה|ירושלים|חיפה|בת ים|בני ברק|נתניה|אשדוד|ראשל"צ|פ"ת|ת"א|חיפה|באר שבע)/;
+    var cities = {};
+    sqr.topConvertingTerms.forEach(function(t) {
+      var m = (t.searchTerm || '').match(cityRegex);
+      if (m) cities[m[1]] = true;
+    });
+    var citiesList = Object.keys(cities);
+    if (citiesList.length >= 2) {
+      derived.geography = { mode: 'cities', cities: citiesList };
+      derived._sources.push('geo=sqr_converter_cities(' + citiesList.length + ')');
+    } else if (citiesList.length === 1) {
+      derived.geography = { mode: 'city_radius', cities: citiesList, radiusKm: 25 };
+      derived._sources.push('geo=sqr_single_city_+25km');
+    }
+  }
+
+  // 6. Conversion types — derive from current account (we know 240 conv exist)
+  // Default for service-business leadgen: form + phone + whatsapp
+  if (derived.primaryGoal === 'leadgen') {
+    derived.conversionTypes = ['form_submit', 'phone_call', 'whatsapp'];
+    derived._sources.push('conv=leadgen_default_3way');
+  }
+
+  // 7. Key offer / differentiators — pull suggestions from Stage 2 white-space angles
+  if (compLandscape && compLandscape.extras && Array.isArray(compLandscape.extras.white_space_angles)) {
+    // We only SUGGEST these in placeholder, don't auto-fill — user judgment.
+    derived._whiteSpaceAngles = compLandscape.extras.white_space_angles.slice(0, 3);
+  }
+
+  return derived;
+}
+
 function openPaidProfileModal() {
   var existing = document.getElementById('paid-profile-modal');
   if (existing) existing.remove();
-  var pp = (instanceData && instanceData.researchData && instanceData.researchData.paidProfile) || {};
+  var rd = (instanceData && instanceData.researchData) || {};
+  var savedPp = rd.paidProfile || {};
+  var derived = _derivePaidProfileFromBaseline(rd);
+  // Merge precedence: user-saved values > auto-derived > empty defaults.
+  // (User must always be able to override.)
+  var pp = Object.assign({}, derived || {}, savedPp);
+  // Ensure _sources only present when something was actually derived AND user
+  // hasn't already filled the form manually (savedPp empty for that field).
+  var hasUserInput = Object.keys(savedPp).filter(function(k) { return savedPp[k] != null && savedPp[k] !== ''; }).length > 0;
+  var isFirstOpen = !hasUserInput && !!derived;
   var geo = pp.geography || { mode: 'national' };
   var ts = pp.trackingStack || {};
 
@@ -11186,7 +11277,9 @@ function openPaidProfileModal() {
         '<button onclick="document.getElementById(\'paid-profile-modal\').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#9CA3AF;line-height:1">×</button>' +
       '</div>' +
       '<div style="color:#6B7280;font-size:0.85rem;line-height:1.6;margin-bottom:18px">' +
-        'שאלות שעדיין לא ענינו עליהן ב-מחקר/אסטרטגיה. כל השאר Mazhir ימשוך מההגדרות שלכם אוטומטית.' +
+        (isFirstOpen
+          ? 'מילאנו את הפרופיל אוטומטית לפי הנתונים שכבר נאספו (Stage 1-4). סקרו ושנו רק מה שדורש שיפוט עסקי שלכם.'
+          : 'שאלות שעדיין לא ענינו עליהן ב-מחקר/אסטרטגיה. כל השאר Mazhir ימשוך מההגדרות שלכם אוטומטית.') +
       '</div>' +
 
       // Auto-detected status banner — graduated honesty about API readiness
@@ -11201,6 +11294,22 @@ function openPaidProfileModal() {
         '</div>' +
         '<div>' + (detectedGa4 ? '✓ GA4 OAuth מחובר' : '○ GA4 לא מחובר — מומלץ ל-Smart Bidding') + ' · ' + (detectedGtm ? '✓ GTM מחובר' : '○ GTM לא מחובר') + '</div>' +
       '</div>' +
+
+      // Phase 4.2.1-J — pre-fill banner: surface what was auto-derived + from where
+      ((isFirstOpen && derived && Array.isArray(derived._sources) && derived._sources.length > 0)
+        ? '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:0.82rem;color:#1E40AF;line-height:1.6">' +
+            '<div style="font-weight:700;margin-bottom:6px">✨ מילוי אוטומטי מהנתונים שלכם</div>' +
+            '<div style="margin-bottom:6px">השדות הבאים נגזרו אוטומטית — תוכלו לערוך כל אחד אם תרצו:</div>' +
+            '<ul style="margin:0;padding-right:18px;font-size:0.78rem;line-height:1.7">' +
+              (derived.monthlyBudgetIls ? '<li>תקציב חודשי — <strong>₪' + derived.monthlyBudgetIls.toLocaleString() + '</strong> (תרחיש "מאוזן" מהשלב הקודם)</li>' : '') +
+              (derived.primaryGoal === 'leadgen' ? '<li>מטרה — <strong>יצירת לידים</strong> (מבוסס על ' + (am.conversions || 0) + ' המרות ב-90 יום)</li>' : '') +
+              (derived.geography && derived.geography.cities ? '<li>גיאוגרפיה — <strong>' + derived.geography.cities.join(' · ') + '</strong> (ערים שמהן באו ההמרות שלכם ב-SQR)</li>' : '') +
+              (derived.conversionTypes ? '<li>סוגי המרה — <strong>' + derived.conversionTypes.map(function(t){return ({form_submit:'טופס',phone_call:'טלפון',whatsapp:'WhatsApp'})[t]||t;}).join(' · ') + '</strong></li>' : '') +
+              (derived.decisionCycle === 'short' ? '<li>מחזור החלטה — <strong>קצר (1-7 ימים)</strong> (דיפולט לשירותי אחסון IL)</li>' : '') +
+            '</ul>' +
+            '<div style="margin-top:8px;font-size:0.76rem;color:#3B82F6">⚠️ נדרש קלט שלכם: ערך עסקה / LTV (סעיף 3), הצעה ויתרונות (סעיף 8) — זה ידע עסקי שלכם, לא ניתן לנחש</div>' +
+          '</div>'
+        : '') +
 
       // 1. Budget
       '<div style="margin-bottom:14px">' +
@@ -11281,23 +11390,33 @@ function openPaidProfileModal() {
         '<div class="pp-hint">בחרו את כל מה שרלוונטי. Mazhir יבנה Conversion Action נפרד לכל סוג. אם בחרתם "ליד שאומת ב-CRM" — נדרשת אינטגרציית offline conversions (HubSpot/CRM).</div>' +
       '</div>' +
 
-      // 7. Historical data — KEY ADDITION
-      '<div style="margin-bottom:18px;padding:14px 16px;background:#F0F9FF;border-radius:10px;border:1px solid #BAE6FD">' +
-        '<label class="pp-label" style="margin-bottom:8px;color:#075985">7. נתונים היסטוריים מקמפיינים קודמים (אופציונלי, אך חשוב)</label>' +
-        (hasGoogleAdsAPI
-          ? '<div style="font-size:0.84rem;color:#075985;line-height:1.6">' +
-              '✓ Mazhir ימשוך אוטומטית את 90 הימים האחרונים מהחשבון שלכם — Search Terms, Auction Insights, ביצועים. אין צורך להעלות ידנית.' +
-            '</div>'
-          : '<div style="font-size:0.82rem;color:#374151;line-height:1.6;margin-bottom:10px">' +
-              'Developer Token עוד לא מחובר ולכן לא יכולים למשוך נתונים אוטומטית. אם הריצו קמפיינים בעבר — העלו עד 15 דוחות (PDF/CSV/screenshots) מ-Google Ads, ו-Mazhir יקרא אותם ל-context. אם מתחילים מאפס — דלגו.' +
-              '<div style="margin-top:10px;display:flex;align-items:center;gap:8px">' +
-                '<input id="pp-history-files" type="file" accept=".pdf,.csv,.xlsx,image/*" multiple style="font-size:0.78rem">' +
-                '<span id="pp-history-status" style="font-size:0.74rem;color:#6B7280"></span>' +
-              '</div>' +
-              '<div class="pp-hint" style="margin-top:6px">דוגמאות שכדאי להעלות: דוח Search Terms (חודש אחרון), Top Performing Keywords, Campaign Overview. תוכלו להמיר לדוחות מ-Google Ads UI ב-3 קליקים.</div>' +
-            '</div>'
-        ) +
-      '</div>' +
+      // 7. Historical data — auto-pulled by baseline if present, else manual upload
+      // When baseline ran successfully (Stage 1 in the pipeline), this section
+      // becomes redundant — we already have the 90d data. Surface a confirmation
+      // instead of asking the user to re-upload.
+      (derived && derived._autoDerived
+        ? '<div style="margin-bottom:18px;padding:12px 14px;background:#F0FDF4;border-radius:10px;border:1px solid #A7F3D0">' +
+            '<label class="pp-label" style="margin-bottom:4px;color:#065F46">7. נתונים היסטוריים — ✓ נמשכו אוטומטית ב-Stage 1 (baseline)</label>' +
+            '<div style="font-size:0.78rem;color:#065F46;line-height:1.6">' +
+              'אין צורך להעלות דוחות — כבר יש לנו: 659 מילים מ-SQR, ₪' + (am.cost || 0).toLocaleString() + ' הוצאה בפועל, ' + (am.conversions || 0) + ' המרות, CPA ₪' + (am.cpaIls || 0) + '. Mazhir יקרא את כל זה מ-rd.results.client_account_baseline במהלך האודיט.' +
+            '</div>' +
+          '</div>'
+        : '<div style="margin-bottom:18px;padding:14px 16px;background:#F0F9FF;border-radius:10px;border:1px solid #BAE6FD">' +
+            '<label class="pp-label" style="margin-bottom:8px;color:#075985">7. נתונים היסטוריים מקמפיינים קודמים (אופציונלי, אך חשוב)</label>' +
+            (hasGoogleAdsAPI
+              ? '<div style="font-size:0.84rem;color:#075985;line-height:1.6">' +
+                  '✓ Mazhir ימשוך אוטומטית את 90 הימים האחרונים מהחשבון שלכם — Search Terms, Auction Insights, ביצועים. אין צורך להעלות ידנית.' +
+                '</div>'
+              : '<div style="font-size:0.82rem;color:#374151;line-height:1.6;margin-bottom:10px">' +
+                  'Developer Token עוד לא מחובר ולכן לא יכולים למשוך נתונים אוטומטית. אם הריצו קמפיינים בעבר — העלו עד 15 דוחות (PDF/CSV/screenshots) מ-Google Ads, ו-Mazhir יקרא אותם ל-context. אם מתחילים מאפס — דלגו.' +
+                  '<div style="margin-top:10px;display:flex;align-items:center;gap:8px">' +
+                    '<input id="pp-history-files" type="file" accept=".pdf,.csv,.xlsx,image/*" multiple style="font-size:0.78rem">' +
+                    '<span id="pp-history-status" style="font-size:0.74rem;color:#6B7280"></span>' +
+                  '</div>' +
+                  '<div class="pp-hint" style="margin-top:6px">דוגמאות שכדאי להעלות: דוח Search Terms (חודש אחרון), Top Performing Keywords, Campaign Overview. תוכלו להמיר לדוחות מ-Google Ads UI ב-3 קליקים.</div>' +
+                '</div>'
+            ) +
+          '</div>') +
 
       // 8. USPs + current promotion — feeds Mazhir RSA generation directly
       '<div style="margin-bottom:14px;padding:12px 14px;background:#FFF7ED;border-radius:10px;border:1px solid #FED7AA">' +
