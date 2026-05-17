@@ -3560,6 +3560,46 @@ export function buildPaidBudgetScenariosPrompt(opts: PromptOpts): PromptResult {
     const benchmarksBlock = renderBenchmarksForPrompt(bundle.vertical)
     const scenariosBlock = renderScenariosForPrompt(bundle)
 
+    // Phase 4.2.1-I — force Opus to anchor rationale on REAL account history.
+    // Previous run incorrectly claimed "עוד לא הוכיח ROI" even though baseline
+    // showed ₪16K → 240 conv @ ₪68 CPA = clear proven ROI. We make the anchor
+    // a hard requirement, not an optional input.
+    let accountHistoryBlock = ''
+    const anchor = bundle.diagnostics.account_anchor
+    if (anchor) {
+        accountHistoryBlock = `
+
+---
+
+## 🎯 ACCOUNT HISTORY — REAL DATA (NOT INDUSTRY ESTIMATES)
+
+The user's connected Google Ads account (filtered to selected campaigns) has 90 days of REAL performance data:
+
+- **Total spend:** ₪${(anchor.totalCost90d ?? 0).toLocaleString()}
+- **Total conversions:** ${anchor.conversions90d ?? '?'}
+- **Average CPC:** ₪${anchor.avgCpcIls.toFixed(2)}
+- **Conversion rate:** ${anchor.conversionRatePct.toFixed(2)}%
+- **CPA:** ₪${(anchor.cpaIls ?? 0).toFixed(2)}
+
+**🚨 BINDING RULES — your output MUST follow:**
+
+1. **NEVER claim "the business hasn't yet proven paid ROI" or similar.** This account HAS proven ROI: ${anchor.conversions90d ?? '?'} conversions @ ₪${(anchor.cpaIls ?? 0).toFixed(0)} CPA with ${anchor.conversionRatePct.toFixed(1)}% CR. Whether to scale is the question, not whether to start.
+
+2. **recommended_rationale_he MUST explicitly cite the real numbers** — at minimum reference the 90d spend OR conversion count OR real CPA. Example phrasing: "בהינתן 240 המרות שכבר נאספו ב-90 יום על ₪16K..." or "ה-CPA הקיים של ₪68 מעיד שיש product-market fit ב-search — התרחיש המאוזן מאפשר לסקייל..."
+
+3. **expected_cpa_ils_range — be honest about scale-out cost:**
+   - If proposed median CPA < real CPA × 0.7 → must justify by specific named optimization (e.g., "waste cuts from SQR negatives", "removing residential-rental contamination", "switching to value-based bidding")
+   - If proposed median CPA > real CPA × 2 → flag confidence as "working_hypothesis" AND explain WHY in rationale (cold-start of new ad groups, expansion beyond proven top-converters, etc.) — don't silently degrade.
+
+4. **expected_conversions — anchor on real baseline scaling math:**
+   - Current run rate: ~${Math.round((anchor.conversions90d ?? 0) / 90 * 365)} conversions/year at ₪${anchor.cpaIls?.toFixed(0)} CPA × ₪${Math.round((anchor.totalCost90d ?? 0) / 90 * 365 / 1000)}K annual spend
+   - A balanced tier at 1.5-2× current spend should propose 1.3-1.8× current conversions, NOT less. If you propose fewer conversions per shekel than current, you're degrading on purpose — say why.
+
+5. **expected_roas_range** — derive from real CPA × estimated LTV (if user provided products with priceIls) or from vertical benchmarks. If the real CPA is ₪${anchor.cpaIls?.toFixed(0)} and typical LTV in this vertical is ₪X, ROAS = X/${anchor.cpaIls?.toFixed(0)}. Don't invent ROAS from thin air.
+
+`
+    }
+
     return {
         agentId: 'menateach',
         useDirectApi: true,
@@ -3583,7 +3623,7 @@ ${benchmarksBlock}
 ## Baseline Scenario Projections (deterministic math from upstream research)
 
 ${scenariosBlock}
-
+${accountHistoryBlock}
 ---
 
 ## פקודות עבודה
