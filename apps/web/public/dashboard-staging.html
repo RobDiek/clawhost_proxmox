@@ -3761,6 +3761,37 @@ function withActiveAgent(path) {
         var path = input.slice(API.length);
         input = API + withActiveAgent(path);
       }
+      // ── DIAGNOSTIC + HARD-BLOCK: media-plan POST when audit blockers unresolved.
+      // Backend returns 409 in this state; we abort BEFORE the network call AND
+      // dump the JS call stack so we can identify the caller. This catches:
+      //   - cached old code
+      //   - hidden setInterval / setTimeout / Promise chain
+      //   - third-party scripts
+      //   - service workers
+      var isMediaPlanPost = typeof input === 'string'
+        && input.indexOf('/mazhir/media-plan') !== -1
+        && input.indexOf('/manual.html') === -1
+        && input.indexOf('/revise') === -1
+        && input.indexOf('/approve') === -1
+        && input.indexOf('force=1') === -1
+        && opts && (opts.method || '').toUpperCase() === 'POST';
+      if (isMediaPlanPost) {
+        var idata = window.instanceData;
+        var rdDiag = (idata && idata.researchData) || {};
+        var blockersDiag = (rdDiag.mazhirAudit && Array.isArray(rdDiag.mazhirAudit.blockers)) ? rdDiag.mazhirAudit.blockers.length : 0;
+        var gtmDiag = !!(rdDiag.mazhirGtm && rdDiag.mazhirGtm.lastSetupResult && rdDiag.mazhirGtm.lastSetupResult.published);
+        var convDiag = (rdDiag.mazhirConversions && Array.isArray(rdDiag.mazhirConversions.created))
+          ? rdDiag.mazhirConversions.created.length : 0;
+        var hasFullDiag = !!(idata && idata.hasGoogleAds && idata.googleAdsCustomerId && idata.googleAdsHasDevToken);
+        if (hasFullDiag && blockersDiag >= 2 && !gtmDiag && convDiag === 0) {
+          console.error('[CF_GATE] BLOCKED media-plan POST. blockers=' + blockersDiag + ' gtm=' + gtmDiag + ' conv=' + convDiag);
+          console.trace('[CF_GATE] caller stack:');
+          if (window.showToast) {
+            window.showToast('Media plan BLOCKED — run GTM (Step 7) + Conversions (Step 8) first. Stack trace в console.', 'warning');
+          }
+          return Promise.reject(new Error('Media plan blocked by client-side gate (CF_GATE). See console.trace for caller.'));
+        }
+      }
     } catch (_) { /* fall through unchanged */ }
     return _origFetch(input, opts);
   };
