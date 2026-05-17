@@ -8875,14 +8875,18 @@ export const listMazhirGtmTargets = async (c: Context) => {
         // Phase 4.2.1-L — pre-check the GTM scope so we return a clean
         // "missing scope" error instead of a 500 unwrapped from a Google 403.
         // The frontend uses this signal to offer a "re-authorize" CTA.
+        // Scopes may be stored as URLs ('https://...tagmanager...') OR as
+        // aliases ('gtm') — current storage uses aliases.
         const _gt = inst.googleTokens as { scopes?: unknown }
-        const _scopes = (() => {
+        const _scopesText = (() => {
             const raw = _gt?.scopes
             if (Array.isArray(raw)) return raw.join(' ').toLowerCase()
             if (typeof raw === 'string') return raw.toLowerCase()
             return ''
         })()
-        if (!/tagmanager/.test(_scopes)) {
+        const _scopesTokens = _scopesText.split(/[\s,]+/)
+        const _hasGtm = /tagmanager/.test(_scopesText) || _scopesTokens.includes('gtm')
+        if (!_hasGtm) {
             return fail(c, 'MISSING_GTM_SCOPE: Google OAuth was granted without tagmanager scope. Re-authorize with GTM scope to list containers.', 400)
         }
         const { listGtmTargets } = await import('@/services/mazhirGtmSetup')
