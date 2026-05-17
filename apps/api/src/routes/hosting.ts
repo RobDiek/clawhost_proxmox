@@ -85,6 +85,8 @@ import {
     exportBrandV2Html, exportBrandV2AssetManifest,
     listMazhirGtmTargets,
     saveMazhirGtmTarget,
+    createMazhirGtmContainer,
+    getMazhirGtmInstallSnippet,
     setupMazhirConversions,
     autoSetupMazhirGtm,
     getMazhirPreflight,
@@ -442,6 +444,9 @@ app.post('/instances/:id/mazhir/media-plan/revise', reviseMazhirMediaPlan)
 app.get('/instances/:id/mazhir/media-plan/manual.html', getMazhirMediaPlanManualHtml)
 app.get('/instances/:id/mazhir/gtm/targets', listMazhirGtmTargets)
 app.post('/instances/:id/mazhir/gtm/target', saveMazhirGtmTarget)
+// Phase 4.2.1-M — create new GTM container + retrieve install snippet
+app.post('/instances/:id/mazhir/gtm/create-container', createMazhirGtmContainer)
+app.get('/instances/:id/mazhir/gtm/snippet', getMazhirGtmInstallSnippet)
 app.post('/instances/:id/mazhir/conversions/setup', setupMazhirConversions)
 app.post('/instances/:id/mazhir/gtm/auto-setup', autoSetupMazhirGtm)
 app.get('/instances/:id/mazhir/preflight', getMazhirPreflight)

@@ -9865,39 +9865,127 @@ async function openGtmTargetPicker() {
       throw new Error(msg || 'list failed');
     }
     var targets = (r.data && r.data.targets) || [];
-    if (targets.length === 0) {
-      showToast('לא נמצאו GTM containers — חברו את Google עם scope "gtm" ב-Integrations', 'warning');
-      if (btn) { btn.disabled = false; btn.textContent = '▶ בחרו container'; }
-      return;
+
+    // Phase 4.2.1-M — wizard with smart match + create-new + install snippet.
+    // Derive site URL + domain from research answers for domain matching.
+    var rdData = (instanceData && instanceData.researchData) || {};
+    var siteUrl = (rdData.answers && rdData.answers.websiteUrl) || '';
+    var siteDomain = '';
+    try {
+      if (siteUrl) {
+        var u = siteUrl.indexOf('://') === -1 ? 'https://' + siteUrl : siteUrl;
+        siteDomain = new URL(u).hostname.replace(/^www\./, '');
+      }
+    } catch (_) { /* invalid URL */ }
+    var domainCore = siteDomain.split('.')[0] || ''; // e.g. "storage-station"
+
+    // Mark each target with a match score against the site
+    var scored = targets.map(function(t) {
+      var name = (t.name || '').toLowerCase();
+      var pub = (t.publicId || '').toLowerCase();
+      var matchExact = siteDomain && name.indexOf(siteDomain) !== -1;
+      var matchPartial = !matchExact && domainCore && name.indexOf(domainCore) !== -1;
+      return Object.assign({}, t, { matchExact: matchExact, matchPartial: matchPartial });
+    });
+    var hasMatch = scored.some(function(s) { return s.matchExact || s.matchPartial; });
+    var recommended = scored.filter(function(s) { return s.matchExact || s.matchPartial; });
+    var others = scored.filter(function(s) { return !s.matchExact && !s.matchPartial; });
+
+    // List GTM accounts (collapse by accountId for "create new" dropdown)
+    var accountsMap = {};
+    targets.forEach(function(t) { accountsMap[t.accountId] = true; });
+    var accountIds = Object.keys(accountsMap);
+
+    function renderTargetCard(t) {
+      var serv = (t.usageContext || []).indexOf('server') >= 0;
+      var bg = t.matchExact ? '#F0FDF4' : (t.matchPartial ? '#EFF6FF' : '#F9FAFB');
+      var border = t.matchExact ? '#86EFAC' : (t.matchPartial ? '#BFDBFE' : '#E5E7EB');
+      var badge = t.matchExact
+        ? '<span style="background:#10B981;color:#fff;padding:1px 8px;border-radius:9px;font-size:0.7rem;margin-right:6px">🎯 התאמה מדויקת</span>'
+        : (t.matchPartial ? '<span style="background:#3B82F6;color:#fff;padding:1px 8px;border-radius:9px;font-size:0.7rem;margin-right:6px">קרוב לשם</span>' : '');
+      return '<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;cursor:' + (serv ? 'not-allowed' : 'pointer') + ';opacity:' + (serv ? '0.5' : '1') + '">' +
+        '<input type="radio" name="gtm-target" value="' + escapeHtml(t.accountId + ':' + t.containerId) + '"' + (serv ? ' disabled' : '') + ' style="margin-top:3px">' +
+        '<div style="flex:1"><div style="font-weight:600;color:#1F2937;font-size:0.9rem">' + escapeHtml(t.name || '(no name)') + badge + '</div>' +
+        '<div style="font-size:0.78rem;color:#6B7280;direction:ltr;text-align:left">' + escapeHtml(t.publicId) + ' · ' + escapeHtml((t.usageContext || []).join('+')) + (serv ? ' <span style="color:#991B1B">(server-side לא נתמך כרגע)</span>' : '') + '</div></div>' +
+      '</label>';
     }
+
     var existing = document.getElementById('gtm-pick-modal'); if (existing) existing.remove();
     var modal = document.createElement('div');
     modal.id = 'gtm-pick-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-    modal.innerHTML =
-      '<div style="background:#FFF;border-radius:12px;padding:22px 24px;max-width:560px;width:100%;max-height:80vh;overflow-y:auto">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-weight:700;color:#1F2937">בחרו GTM container</div><button onclick="document.getElementById(\'gtm-pick-modal\').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#9CA3AF">×</button></div>' +
-        '<div style="color:#6B7280;font-size:0.84rem;margin-bottom:14px;line-height:1.6">בחרו את ה-GTM container שמותקן באתר שלכם. ה-GA4 Measurement ID (G-XXXXXXXXXX) יקושר אוטומטית במהלך setup.</div>' +
-        '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">' +
-          targets.map(function(t) {
-            var serv = (t.usageContext || []).indexOf('server') >= 0;
-            return '<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;cursor:' + (serv ? 'not-allowed' : 'pointer') + ';opacity:' + (serv ? '0.5' : '1') + '">' +
-              '<input type="radio" name="gtm-target" value="' + escapeHtml(t.accountId + ':' + t.containerId) + '"' + (serv ? ' disabled' : '') + ' style="margin-top:3px">' +
-              '<div><div style="font-weight:600;color:#1F2937;font-size:0.9rem">' + escapeHtml(t.name || '(no name)') + '</div>' +
-                '<div style="font-size:0.78rem;color:#6B7280;direction:ltr;text-align:left">' + escapeHtml(t.publicId) + ' · ' + escapeHtml((t.usageContext || []).join('+')) + (serv ? ' <span style="color:#991B1B">(server-side לא נתמך כרגע)</span>' : '') + '</div></div>' +
-            '</label>';
-          }).join('') +
-        '</div>' +
-        '<div style="margin-bottom:14px">' +
-          '<label style="display:block;font-size:0.84rem;color:#374151;margin-bottom:4px">GA4 Measurement ID (G-...)</label>' +
-          '<input id="gtm-pick-mid" type="text" placeholder="G-XXXXXXXXXX" dir="ltr" style="width:100%;padding:8px 10px;border:1px solid #D1D5DB;border-radius:6px;font-size:0.88rem">' +
-          '<div style="font-size:0.74rem;color:#9CA3AF;margin-top:3px">אופציונלי — אם מולא, Mazhir ייצור גם GA4 base + event tags. אם ריק — רק Google Ads conversion tags ייווצרו.</div>' +
-        '</div>' +
-        '<div style="display:flex;gap:8px;justify-content:flex-end">' +
-          '<button onclick="document.getElementById(\'gtm-pick-modal\').remove()" class="btn btn-outline btn-sm">ביטול</button>' +
-          '<button onclick="saveGtmTargetPick()" id="gtm-pick-save" class="btn btn-primary btn-sm">שמרו ←</button>' +
-        '</div>' +
-      '</div>';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto';
+
+    var html = '<div style="background:#FFF;border-radius:12px;padding:22px 24px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-weight:700;color:#1F2937">בחרו GTM container</div><button onclick="document.getElementById(\'gtm-pick-modal\').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#9CA3AF">×</button></div>' +
+      (siteDomain
+        ? '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:8px 12px;margin-bottom:14px;font-size:0.82rem;color:#1E40AF;line-height:1.5">' +
+            '🌐 האתר שלכם: <strong dir="ltr">' + escapeHtml(siteDomain) + '</strong>' +
+            (hasMatch
+              ? ' · ✓ זוהה container עם שם תואם — מומלץ לבחור אותו.'
+              : ' · ⚠️ לא נמצא container עם שם תואם. בחרו אחד מהקיימים אם הוא מותקן באתר, או צרו חדש למטה.') +
+          '</div>'
+        : '') +
+      '<div style="color:#6B7280;font-size:0.82rem;margin-bottom:14px;line-height:1.6">ה-container שתבחרו ישמש להתקנת tags של Google Ads conversion + GA4. אחרי הבחירה נציג לכם snippet HTML להתקנה באתר (אם עוד לא מותקן).</div>';
+
+    // Recommended group
+    if (recommended.length > 0) {
+      html += '<div style="font-weight:600;font-size:0.8rem;color:#065F46;margin:8px 0 6px">🎯 מומלצים לאתר שלכם</div>' +
+              '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">' +
+                recommended.map(renderTargetCard).join('') +
+              '</div>';
+    }
+    // Others group
+    if (others.length > 0) {
+      html += '<div style="font-weight:600;font-size:0.8rem;color:#6B7280;margin:8px 0 6px">' + (recommended.length > 0 ? 'אחרים' : 'ה-containers שלכם') + '</div>' +
+              '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">' +
+                others.map(renderTargetCard).join('') +
+              '</div>';
+    }
+
+    // Empty state
+    if (targets.length === 0) {
+      html += '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:0.84rem;color:#92400E;line-height:1.6">' +
+                'לא נמצאו GTM containers בחשבון Google שלכם. צרו אחד חדש למטה — המערכת תיצור אותו ב-GTM ותחזיר לכם את ה-snippet להתקנה באתר.' +
+              '</div>';
+    }
+
+    // Create new container section
+    if (accountIds.length > 0 || targets.length === 0) {
+      html += '<div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px;padding:12px 14px;margin-bottom:14px">' +
+        '<div style="font-weight:600;font-size:0.85rem;color:#5B21B6;margin-bottom:8px">🆕 או צרו container חדש' + (siteDomain ? ' עבור <strong dir="ltr">' + escapeHtml(siteDomain) + '</strong>' : '') + '</div>' +
+        '<div style="display:grid;gap:8px;font-size:0.84rem">';
+      if (accountIds.length > 1) {
+        html += '<div><label style="color:#374151;display:block;margin-bottom:2px">חשבון GTM</label>' +
+          '<select id="gtm-create-account" style="width:100%;padding:6px 8px;border:1px solid #D1D5DB;border-radius:6px;font-size:0.84rem">' +
+            accountIds.map(function(aid) {
+              return '<option value="' + escapeHtml(aid) + '">' + escapeHtml(aid) + '</option>';
+            }).join('') +
+          '</select></div>';
+      } else if (accountIds.length === 1) {
+        html += '<input type="hidden" id="gtm-create-account" value="' + escapeHtml(accountIds[0]) + '">';
+      } else {
+        html += '<div style="color:#991B1B;font-size:0.8rem">⚠️ אין לכם חשבון GTM כלל. צרו אחד ב-<a href="https://tagmanager.google.com/" target="_blank" style="color:#5B21B6">tagmanager.google.com</a> ואז חזרו לכאן.</div>';
+      }
+      if (accountIds.length > 0) {
+        html += '<div><label style="color:#374151;display:block;margin-bottom:2px">שם container</label>' +
+          '<input id="gtm-create-name" type="text" placeholder="' + escapeHtml(siteDomain || 'Storage Station') + '" value="' + escapeHtml(siteDomain || '') + '" style="width:100%;padding:6px 8px;border:1px solid #D1D5DB;border-radius:6px;font-size:0.84rem"></div>';
+        html += '<button onclick="createGtmContainerFromWizard()" id="gtm-create-btn" class="btn btn-primary btn-sm" style="margin-top:4px;background:#7C3AED;border-color:#7C3AED">🆕 צרו container חדש</button>';
+      }
+      html += '</div></div>';
+    }
+
+    html += '<div style="margin-bottom:14px">' +
+      '<label style="display:block;font-size:0.84rem;color:#374151;margin-bottom:4px">GA4 Measurement ID (G-...)</label>' +
+      '<input id="gtm-pick-mid" type="text" placeholder="G-XXXXXXXXXX" dir="ltr" style="width:100%;padding:8px 10px;border:1px solid #D1D5DB;border-radius:6px;font-size:0.88rem">' +
+      '<div style="font-size:0.74rem;color:#9CA3AF;margin-top:3px">אופציונלי — אם מולא, Mazhir ייצור גם GA4 base + event tags. אם ריק — רק Google Ads conversion tags ייווצרו.</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+      '<button onclick="document.getElementById(\'gtm-pick-modal\').remove()" class="btn btn-outline btn-sm">ביטול</button>' +
+      (targets.length > 0 ? '<button onclick="saveGtmTargetPick()" id="gtm-pick-save" class="btn btn-primary btn-sm">שמרו container קיים ←</button>' : '') +
+    '</div>' +
+    '</div>';
+
+    modal.innerHTML = html;
     document.body.appendChild(modal);
     // Stash targets for the save handler
     window._mazhirGtmTargets = targets;
@@ -9930,11 +10018,126 @@ async function saveGtmTargetPick() {
     }
     showToast('GTM container נשמר ✓', 'success');
     document.getElementById('gtm-pick-modal').remove();
+    // Phase 4.2.1-M — after save, show install snippet for user to verify
+    // they have GTM code on their site. If yes, proceed to auto-setup.
+    showGtmInstallSnippet(target.publicId, target.name, false);
     renderMazhirCard();
   } catch (err) {
     showToast('שגיאה: ' + err.message, 'error');
     if (btn) { btn.disabled = false; btn.textContent = 'שמרו ←'; }
   }
+}
+
+// Phase 4.2.1-M — create new GTM container under user's account
+async function createGtmContainerFromWizard() {
+  var accountId = (document.getElementById('gtm-create-account') || {}).value || '';
+  var name = ((document.getElementById('gtm-create-name') || {}).value || '').trim();
+  if (!accountId) { showToast('בחרו GTM account', 'warning'); return; }
+  if (!name) { showToast('הזינו שם container', 'warning'); return; }
+  var mid = (document.getElementById('gtm-pick-mid') || {}).value || '';
+  var btn = document.getElementById('gtm-create-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ יוצר container...'; }
+  var rdData = (instanceData && instanceData.researchData) || {};
+  var siteUrl = (rdData.answers && rdData.answers.websiteUrl) || '';
+  var siteDomain = '';
+  try {
+    if (siteUrl) {
+      var u = siteUrl.indexOf('://') === -1 ? 'https://' + siteUrl : siteUrl;
+      siteDomain = new URL(u).hostname.replace(/^www\./, '');
+    }
+  } catch (_) {}
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/gtm/create-container', {
+      method: 'POST',
+      body: JSON.stringify({ accountId: accountId, name: name, domainName: siteDomain || undefined, measurementId: mid.trim() || undefined }),
+    });
+    if (!r.success) throw new Error(r.message || 'create failed');
+    if (instanceData && instanceData.researchData) {
+      instanceData.researchData.mazhirGtm = instanceData.researchData.mazhirGtm || {};
+      instanceData.researchData.mazhirGtm.target = {
+        accountId: r.data.accountId, containerId: r.data.containerId,
+        publicId: r.data.publicId, name: r.data.name,
+        usageContext: r.data.usageContext, measurementId: mid.trim() || undefined,
+      };
+    }
+    showToast('Container נוצר: ' + r.data.publicId + ' ✓', 'success');
+    document.getElementById('gtm-pick-modal').remove();
+    // Always show snippet after creation — the container is brand new, NOT yet
+    // installed on the site. User MUST install before auto-setup can work.
+    showGtmInstallSnippet(r.data.publicId, r.data.name, true);
+    renderMazhirCard();
+  } catch (err) {
+    showToast('שגיאה ביצירת container: ' + err.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '🆕 צרו container חדש'; }
+  }
+}
+
+// Phase 4.2.1-M — show install snippet modal
+function showGtmInstallSnippet(publicId, name, isNewContainer) {
+  var existing = document.getElementById('gtm-snippet-modal'); if (existing) existing.remove();
+  var rdData = (instanceData && instanceData.researchData) || {};
+  var siteUrl = (rdData.answers && rdData.answers.websiteUrl) || '';
+
+  // Standard GTM snippets — same as buildGtmHeadSnippet/buildGtmBodySnippet on backend
+  var headSnippet =
+    '<!-- Google Tag Manager -->\n' +
+    '<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({\'gtm.start\':\n' +
+    'new Date().getTime(),event:\'gtm.js\'});var f=d.getElementsByTagName(s)[0],\n' +
+    'j=d.createElement(s),dl=l!=\'dataLayer\'?\'&l=\'+l:\'\';j.async=true;j.src=\n' +
+    '\'https://www.googletagmanager.com/gtm.js?id=\'+i+dl;f.parentNode.insertBefore(j,f);\n' +
+    '})(window,document,\'script\',\'dataLayer\',\'' + publicId + '\');</' + 'script>\n' +
+    '<!-- End Google Tag Manager -->';
+  var bodySnippet =
+    '<!-- Google Tag Manager (noscript) -->\n' +
+    '<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=' + publicId + '"\n' +
+    'height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>\n' +
+    '<!-- End Google Tag Manager (noscript) -->';
+
+  var modal = document.createElement('div');
+  modal.id = 'gtm-snippet-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto';
+  modal.innerHTML =
+    '<div style="background:#FFF;border-radius:12px;padding:22px 24px;max-width:720px;width:100%;max-height:92vh;overflow-y:auto">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+        '<div style="font-weight:700;color:#1F2937">' + (isNewContainer ? '🆕 Container נוצר — הזמן להתקין באתר' : '📋 קוד GTM להתקנה (אם עוד לא מותקן)') + '</div>' +
+        '<button onclick="document.getElementById(\'gtm-snippet-modal\').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#9CA3AF">×</button>' +
+      '</div>' +
+      '<div style="background:' + (isNewContainer ? '#FEF3C7' : '#EFF6FF') + ';border:1px solid ' + (isNewContainer ? '#FDE68A' : '#BFDBFE') + ';border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:0.85rem;color:' + (isNewContainer ? '#92400E' : '#1E40AF') + ';line-height:1.6">' +
+        (isNewContainer
+          ? '⚠️ <strong>Container חדש לגמרי</strong> — הוא קיים ב-GTM שלכם אבל לא מותקן באתר עדיין. בלי קוד באתר הtags לא יירוצו.'
+          : '💡 <strong>אם הקוד כבר מותקן באתר שלכם — דלגו</strong>. הקוד למטה משמש רק אם עוד לא הוספתם אותו. תוכלו לבדוק ב-DevTools (Network → "gtm.js").') +
+      '</div>' +
+      '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:0.82rem;color:#1F2937">' +
+        '<strong>Container:</strong> ' + escapeHtml(name) + ' (' + escapeHtml(publicId) + ')' +
+        (siteUrl ? '<br><strong>אתר יעד:</strong> <span dir="ltr">' + escapeHtml(siteUrl) + '</span>' : '') +
+      '</div>' +
+      '<div style="margin-bottom:12px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
+          '<label style="font-weight:600;font-size:0.85rem;color:#1F2937">קוד 1 — להוסיף בתוך <code>&lt;head&gt;</code> (גבוה ככל האפשר):</label>' +
+          '<button onclick="navigator.clipboard.writeText(document.getElementById(\'gtm-head-snippet\').textContent);showToast(\'הקוד הועתק ✓\',\'success\')" class="btn btn-outline btn-sm" style="font-size:0.74rem">📋 העתיקו</button>' +
+        '</div>' +
+        '<pre id="gtm-head-snippet" style="background:#1F2937;color:#10B981;padding:10px 12px;border-radius:6px;font-size:0.74rem;direction:ltr;text-align:left;overflow-x:auto;white-space:pre-wrap;line-height:1.5;font-family:Consolas,monospace">' + headSnippet + '</pre>' +
+      '</div>' +
+      '<div style="margin-bottom:14px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
+          '<label style="font-weight:600;font-size:0.85rem;color:#1F2937">קוד 2 — להוסיף ישר אחרי <code>&lt;body&gt;</code>:</label>' +
+          '<button onclick="navigator.clipboard.writeText(document.getElementById(\'gtm-body-snippet\').textContent);showToast(\'הקוד הועתק ✓\',\'success\')" class="btn btn-outline btn-sm" style="font-size:0.74rem">📋 העתיקו</button>' +
+        '</div>' +
+        '<pre id="gtm-body-snippet" style="background:#1F2937;color:#10B981;padding:10px 12px;border-radius:6px;font-size:0.74rem;direction:ltr;text-align:left;overflow-x:auto;white-space:pre-wrap;line-height:1.5;font-family:Consolas,monospace">' + bodySnippet + '</pre>' +
+      '</div>' +
+      '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:0.8rem;color:#4B5563;line-height:1.7">' +
+        '<strong>הוראות התקנה לפי פלטפורמה:</strong><br>' +
+        '• <strong>WordPress</strong>: Plugin "GTM4WP" → Settings → הדביקו את ה-Container ID (' + escapeHtml(publicId) + ').<br>' +
+        '• <strong>Wix / Squarespace / Shopify</strong>: Settings → Custom code → Header → קוד 1. Body start → קוד 2.<br>' +
+        '• <strong>HTML גולמי</strong>: עורכים את template.html → מדביקים קוד 1 בתוך <code dir="ltr">&lt;head&gt;</code>, קוד 2 ישר אחרי <code dir="ltr">&lt;body&gt;</code>.<br>' +
+        '• אחרי התקנה: רעננו את האתר → DevTools Network → סננו "gtm" → ודאו שיש בקשה ל-<code dir="ltr">gtm.js?id=' + escapeHtml(publicId) + '</code>.' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+        '<button onclick="document.getElementById(\'gtm-snippet-modal\').remove()" class="btn btn-outline btn-sm">סגרו</button>' +
+        '<button onclick="document.getElementById(\'gtm-snippet-modal\').remove();showToast(\'נמשיך לשלב 8 — ConversionActions\',\'info\')" class="btn btn-primary btn-sm">✓ התקנתי / מותקן כבר — המשיכו</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
 }
 
 async function setupMazhirConversions() {

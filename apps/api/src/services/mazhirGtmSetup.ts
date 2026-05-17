@@ -441,3 +441,69 @@ export async function saveGtmSetupResult(instanceId: string, result: GtmAutoSetu
     rd.mazhirGtm = { ...(rd.mazhirGtm || {}), lastSetupResult: result, lastSetupAt: new Date().toISOString() }
     await db.update(instances).set({ researchData: rd as any }).where(eq(instances.id, instanceId))
 }
+
+// ─── Phase 4.2.1-M: Create a new GTM container under user's account ──────
+// Used when user has no container matching their site (very common — most
+// users connect Google to OUR app but never thought about GTM before). Saves
+// a separate trip to tagmanager.google.com manually creating one, then
+// returns the public ID + install snippet so the dashboard can show the
+// install instructions in one flow.
+export interface CreateGtmContainerInput {
+    googleTokens: { accessToken?: string; refreshToken: string; expiresAt?: number }
+    accountId: string         // existing GTM account id (user picks)
+    name: string              // container display name (e.g. "Storage Station")
+    domainName?: string       // optional — saved as container.domainName for reference
+}
+export interface CreateGtmContainerResult {
+    accountId: string
+    containerId: string
+    publicId: string          // GTM-XXXXXXXX
+    name: string
+    usageContext: string[]
+    installSnippetHead: string // <script>...</script> for <head>
+    installSnippetBody: string // <noscript><iframe>...</iframe></noscript> for <body>
+}
+
+export async function createGtmContainer(opts: CreateGtmContainerInput): Promise<CreateGtmContainerResult> {
+    if (!opts.googleTokens?.refreshToken) throw new Error('Google OAuth tokens missing')
+    const accessToken = await getAccessToken(opts.googleTokens)
+
+    const body: Record<string, unknown> = {
+        name: opts.name,
+        usageContext: ['web'],
+    }
+    if (opts.domainName) body.domainName = [opts.domainName]
+
+    const res = await gtmFetch(`/accounts/${opts.accountId}/containers`, accessToken, 'POST', body)
+    const ct: any = res
+    if (!ct?.containerId || !ct?.publicId) {
+        throw new Error(`GTM container creation failed: ${JSON.stringify(res).slice(0, 300)}`)
+    }
+    return {
+        accountId: opts.accountId,
+        containerId: String(ct.containerId),
+        publicId: String(ct.publicId),
+        name: ct.name || opts.name,
+        usageContext: Array.isArray(ct.usageContext) ? ct.usageContext : ['web'],
+        installSnippetHead: buildGtmHeadSnippet(String(ct.publicId)),
+        installSnippetBody: buildGtmBodySnippet(String(ct.publicId)),
+    }
+}
+
+// Standard GTM container snippet (HTML for paste into site <head> + <body>).
+// Reference: https://developers.google.com/tag-platform/tag-manager/web
+export function buildGtmHeadSnippet(publicId: string): string {
+    return `<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${publicId}');</script>
+<!-- End Google Tag Manager -->`
+}
+export function buildGtmBodySnippet(publicId: string): string {
+    return `<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${publicId}"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->`
+}

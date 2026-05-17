@@ -8904,6 +8904,76 @@ export const listMazhirGtmTargets = async (c: Context) => {
     }
 }
 
+// ─── POST /hosting/instances/:id/mazhir/gtm/create-container ─────────────
+// Phase 4.2.1-M — create a fresh GTM container under user's account.
+// Used when user has no container matching the site they want to track
+// (very common — picker shows only siblings from agency work, none for
+// the current instance's site). After create, auto-saves it as the active
+// target so user can proceed straight to auto-setup. Returns the install
+// snippet so frontend can show install instructions.
+export const createMazhirGtmContainer = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!inst?.googleTokens) return fail(c, 'Google not connected', 400)
+
+        const body = await c.req.json<{ accountId?: string; name?: string; domainName?: string; measurementId?: string }>()
+        if (!body.accountId) return fail(c, 'accountId required', 400)
+        const name = (body.name || '').trim()
+        if (!name) return fail(c, 'name required', 400)
+
+        const gt = inst.googleTokens as { accessToken?: string; refreshToken?: string; expiresAt?: number }
+        if (!gt.refreshToken) return fail(c, 'OAuth refresh_token missing', 400)
+
+        const { createGtmContainer, saveGtmTarget } = await import('@/services/mazhirGtmSetup')
+        const created = await createGtmContainer({
+            googleTokens: { accessToken: gt.accessToken, refreshToken: gt.refreshToken, expiresAt: gt.expiresAt },
+            accountId: String(body.accountId),
+            name,
+            domainName: body.domainName,
+        })
+
+        // Auto-save as the active target so user doesn't need a separate save click.
+        await saveGtmTarget(instanceId, {
+            accountId: created.accountId,
+            containerId: created.containerId,
+            publicId: created.publicId,
+            name: created.name,
+            usageContext: created.usageContext,
+            measurementId: body.measurementId,
+        })
+
+        return ok(c, created, `GTM container "${created.name}" created (${created.publicId})`)
+    } catch (err) {
+        console.error('createMazhirGtmContainer error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── GET /hosting/instances/:id/mazhir/gtm/snippet ────────────────────────
+// Returns the install snippet for the currently-saved GTM target. Used by
+// the frontend wizard to show install instructions after pick or create.
+export const getMazhirGtmInstallSnippet = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!inst) return fail(c, 'Instance not found', 404)
+        const target = (inst.researchData as Record<string, unknown> | null)?.mazhirGtm as { target?: { publicId?: string; name?: string } } | undefined
+        if (!target?.target?.publicId) return fail(c, 'No GTM target saved yet', 400)
+        const { buildGtmHeadSnippet, buildGtmBodySnippet } = await import('@/services/mazhirGtmSetup')
+        return ok(c, {
+            publicId: target.target.publicId,
+            name: target.target.name,
+            installSnippetHead: buildGtmHeadSnippet(target.target.publicId),
+            installSnippetBody: buildGtmBodySnippet(target.target.publicId),
+        })
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/mazhir/gtm/target — pick container ──────
 export const saveMazhirGtmTarget = async (c: Context) => {
     try {
