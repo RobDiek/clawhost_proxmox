@@ -524,6 +524,13 @@ export const getMyInstances = async (c: Context) => {
                 })(),
                 haasTier: i.haasTier,                // 'starter' | 'growth' | 'autopilot' | null
                 googleAdsMode: i.googleAdsMode || 'self',
+                // Phase 4.2.1-K — surface API readiness signals to frontend so
+                // client-side gates can match backend logic (e.g. media-plan
+                // gate that checks customerId + developerToken before allowing
+                // generation). Without these, the frontend always sees
+                // hasFullAdsAPI=false and the 409 flow can't be prevented.
+                googleAdsCustomerId: ((i.googleAdsConfig as Record<string, unknown> | null) || {}).customerId || null,
+                googleAdsHasDevToken: !!((i.googleAdsConfig as Record<string, unknown> | null) || {}).developerToken,
                 hasMetaAds: (() => {
                     const mt = i.metaTokens as any
                     if (!mt) return false
