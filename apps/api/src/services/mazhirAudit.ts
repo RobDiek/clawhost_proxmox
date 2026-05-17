@@ -342,16 +342,40 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
     // by the form modal based on a snapshot of instanceData that may be stale.
     const googleAdsConfig: any = inst.googleAdsConfig || {}
     const _baselineCheck = (rd.results as Record<string, unknown> | undefined)?.client_account_baseline as
-        { dfsData?: { googleAds?: { available?: boolean; accountMetrics?: { available?: boolean; cost?: number; clicks?: number; conversions?: number; avgCpcIls?: number; conversionRatePct?: number; cpaIls?: number; daysAnalyzed?: number } } } } | undefined
+        { dfsData?: { googleAds?: { available?: boolean; accountMetrics?: { available?: boolean; cost?: number; clicks?: number; conversions?: number; impressions?: number; avgCpcIls?: number; ctrPct?: number; conversionRatePct?: number; cpaIls?: number; daysAnalyzed?: number } } } } | undefined
     const _baselineGads = _baselineCheck?.dfsData?.googleAds
     const _hasBaselineGads = !!_baselineGads?.available
     const _hasCreds = !!(googleAdsConfig.customerId
         && googleAdsConfig.developerToken
         && (googleTokensForAudit as { refreshToken?: string } | null)?.refreshToken)
     const _accountConnected = _hasBaselineGads || _hasCreds
-    const accountSnapshot = _accountConnected && googleAdsConfig.customerId
-        ? await pullExistingAccountSnapshot(apiKey, googleAdsConfig.customerId, googleTokensForAudit)
-        : undefined
+
+    // Phase 4.2.1-K (continued) — read from baseline instead of duplicate API call.
+    // pullExistingAccountSnapshot uses getCampaignMetrics with `LAST_90_DAYS` enum
+    // (deprecated in v22) + `metrics.search_impression_share` (also dropped).
+    // Baseline.accountMetrics already has all this data; no need to refetch.
+    let accountSnapshot: MazhirAudit['existingAccountAudit'] | undefined
+    const _baselineAm = _baselineGads?.accountMetrics
+    if (_baselineAm?.available) {
+        accountSnapshot = {
+            accessible: true,
+            last90Days: {
+                spendIls: _baselineAm.cost ?? 0,
+                clicks: _baselineAm.clicks ?? 0,
+                conversions: _baselineAm.conversions ?? 0,
+                ctr: _baselineAm.ctrPct ?? 0,
+                avgCpcIls: _baselineAm.avgCpcIls ?? 0,
+                convRate: _baselineAm.conversionRatePct ?? 0,
+            },
+            topRecommendations: [],   // Google Ads Recommendations API call is independent — keep as TODO
+        }
+    } else if (_accountConnected && googleAdsConfig.customerId) {
+        // Fallback to direct fetch only when baseline didn't run successfully.
+        // This path will continue to fail in v22 until getCampaignMetrics is
+        // updated, but that's an acceptable failure mode since users get the
+        // recommended path (run baseline first).
+        accountSnapshot = await pullExistingAccountSnapshot(apiKey, googleAdsConfig.customerId, googleTokensForAudit)
+    }
 
     // Build the Opus prompt — concrete, structured, with industry methodology baked in
     const businessName = (brand as any)?.businessName || rd.answers?.businessName || 'unknown'
