@@ -8872,12 +8872,31 @@ export const listMazhirGtmTargets = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!inst?.googleTokens) return fail(c, 'Google not connected — link OAuth first', 400)
+        // Phase 4.2.1-L — pre-check the GTM scope so we return a clean
+        // "missing scope" error instead of a 500 unwrapped from a Google 403.
+        // The frontend uses this signal to offer a "re-authorize" CTA.
+        const _gt = inst.googleTokens as { scopes?: unknown }
+        const _scopes = (() => {
+            const raw = _gt?.scopes
+            if (Array.isArray(raw)) return raw.join(' ').toLowerCase()
+            if (typeof raw === 'string') return raw.toLowerCase()
+            return ''
+        })()
+        if (!/tagmanager/.test(_scopes)) {
+            return fail(c, 'MISSING_GTM_SCOPE: Google OAuth was granted without tagmanager scope. Re-authorize with GTM scope to list containers.', 400)
+        }
         const { listGtmTargets } = await import('@/services/mazhirGtmSetup')
         const targets = await listGtmTargets(inst.googleTokens)
         return ok(c, { targets })
     } catch (err) {
+        const msg = (err as Error).message || ''
         console.error('listMazhirGtmTargets error:', err)
-        return fail(c, (err as Error).message, 500)
+        // Translate Google's 403 "insufficient authentication scopes" into the
+        // same MISSING_GTM_SCOPE signal so frontend treats it consistently.
+        if (/insufficient.*scope|tagmanager.*403|403:.*scope/i.test(msg)) {
+            return fail(c, 'MISSING_GTM_SCOPE: ' + msg, 400)
+        }
+        return fail(c, msg, 500)
     }
 }
 
