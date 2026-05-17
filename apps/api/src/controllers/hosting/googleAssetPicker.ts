@@ -129,7 +129,14 @@ export const listGA4Properties = async (c: Context) => {
         if (!token) {
             return fail(c, 'Google not connected. Connect first.', 400)
         }
-        if (!config?.scopes?.some(s => /analytics/i.test(s))) {
+        // Scopes may be URLs ('https://www.googleapis.com/auth/analytics.*')
+        // OR aliases ('ga4', 'analytics'). Match both.
+        const _ga4ScopesArr = Array.isArray(config?.scopes) ? config!.scopes : []
+        const _hasGa4Scope = _ga4ScopesArr.some(s => {
+            const str = String(s).toLowerCase()
+            return /analytics/i.test(str) || str === 'ga4'
+        })
+        if (!_hasGa4Scope) {
             return fail(c, 'Missing analytics OAuth scope. Reconnect with GA4 scope.', 400)
         }
 
@@ -171,8 +178,8 @@ export const listGA4Properties = async (c: Context) => {
         return ok(c, {
             properties,
             currentSelection: {
-                ga4PropertyId: config.ga4PropertyId || null,
-                ga4PropertyName: config.ga4PropertyName || null,
+                ga4PropertyId: config?.ga4PropertyId || null,
+                ga4PropertyName: config?.ga4PropertyName || null,
             },
         }, properties.length > 0
             ? `Found ${properties.length} GA4 properties`
@@ -234,7 +241,13 @@ export const listGTMContainers = async (c: Context) => {
         }
         const { token, config } = await getFreshAccessToken(instanceId)
         if (!token) return fail(c, 'Google not connected. Connect first.', 400)
-        if (!config?.scopes?.some(s => /tagmanager/i.test(s))) {
+        // Scopes may be stored as either:
+        //   - URLs: ['https://www.googleapis.com/auth/tagmanager.edit.containers', ...]
+        //   - Aliases: ['ads', 'gtm', 'ga4', ...] (current SCOPE_MAP storage)
+        // Match both forms.
+        const _scopesArr = Array.isArray(config?.scopes) ? config!.scopes : []
+        const _hasGtmScope = _scopesArr.some(s => /tagmanager/i.test(String(s)) || String(s).toLowerCase() === 'gtm')
+        if (!_hasGtmScope) {
             return fail(c, 'Missing tagmanager OAuth scope. Reconnect with GTM scope.', 400)
         }
 
@@ -290,11 +303,11 @@ export const listGTMContainers = async (c: Context) => {
         return ok(c, {
             accounts: out,
             currentSelection: {
-                gtmAccountId: config.gtmAccountId || null,
-                gtmAccountName: config.gtmAccountName || null,
-                gtmContainerId: config.gtmContainerId || null,
-                gtmContainerName: config.gtmContainerName || null,
-                gtmContainerPublicId: config.gtmContainerPublicId || null,
+                gtmAccountId: config?.gtmAccountId || null,
+                gtmAccountName: config?.gtmAccountName || null,
+                gtmContainerId: config?.gtmContainerId || null,
+                gtmContainerName: config?.gtmContainerName || null,
+                gtmContainerPublicId: config?.gtmContainerPublicId || null,
             },
         }, out.length > 0
             ? `Found ${out.length} GTM accounts`
