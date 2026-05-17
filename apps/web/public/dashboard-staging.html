@@ -11071,6 +11071,60 @@ async function setupMazhirConversionsFromTasks() {
 }
 
 async function generateMazhirMediaPlan() {
+  // Phase 4.2.1-K — client-side gate matching backend generateMazhirMediaPlan
+  // gating in agentSetup.ts. Prevents the raw 409 from leaking to the user
+  // when prereqs aren't met. Same condition as the pipeline step's planGatedByTracking.
+  var rdGate = (instanceData && instanceData.researchData) || {};
+  var auditGate = rdGate.mazhirAudit;
+  var blockerCountGate = (auditGate && Array.isArray(auditGate.blockers)) ? auditGate.blockers.length : 0;
+  var gtmPublishedGate = !!(rdGate.mazhirGtm && rdGate.mazhirGtm.lastSetupResult && rdGate.mazhirGtm.lastSetupResult.published);
+  var convCreatedGate = (rdGate.mazhirConversions && Array.isArray(rdGate.mazhirConversions.created))
+    ? rdGate.mazhirConversions.created.length : 0;
+  var hasFullAdsAPIGate = !!(instanceData && instanceData.hasGoogleAds
+    && instanceData.googleAdsCustomerId
+    && instanceData.googleAdsHasDevToken);
+  if (hasFullAdsAPIGate && blockerCountGate >= 2 && !gtmPublishedGate && convCreatedGate === 0) {
+    var go = await showConfirm({
+      icon: '⚠️',
+      title: 'תוכנית מדיה חסומה — הריצו GTM ופעולות המרה קודם',
+      descHtml:
+        '<div style="background:#FEF2F2;border-right:3px solid #DC2626;padding:10px 12px;border-radius:6px;margin-bottom:10px;font-size:0.85rem;color:#7F1D1D;line-height:1.6;text-align:right">' +
+        '<div style="font-weight:700;margin-bottom:6px">האודיט זיהה ' + blockerCountGate + ' חסמים פתוחים</div>' +
+        '<div>בלי GTM ופעולות המרה מותקנות, התוכנית תיצא עם <strong>מעקב המרות שבור</strong> — Smart Bidding יבזבז תקציב על אות רעוע, ולא יהיה ניתן לבדוק ROI. השלבים נקבעו לפי המלצת האודיט עצמו ב-Day 1-2.</div>' +
+        '</div>' +
+        '<div style="font-size:0.85rem;color:#374151;line-height:1.6;text-align:right">' +
+        '<strong>הפעולות הנדרשות:</strong>' +
+        '<ol style="margin:6px 0 0 18px;padding:0;line-height:1.7">' +
+        '<li>שלב 7 — הקמת GTM אוטומטית (~30 שנ׳)</li>' +
+        '<li>שלב 8 — פעולות המרה (~30 שנ׳)</li>' +
+        '<li>חזרו ולחצו "צרו תוכנית מדיה"</li>' +
+        '</ol></div>',
+      okText: 'בכל זאת המשיכו (force) — אקבל מעקב שבור',
+      okClass: 'btn-danger-outline',
+      cancelText: 'חזרה — אריץ GTM קודם',
+    });
+    if (!go) return;
+    // User chose force — proceed via ?force=1 query param (backend supports it)
+    var btnF = document.getElementById('mazhir-plan-btn');
+    if (btnF) { btnF.disabled = true; btnF.textContent = '⏳ יוצר תוכנית (force=1)...'; }
+    try {
+      var rF = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/media-plan?force=1', { method: 'POST' });
+      if (!rF.success) throw new Error(rF.message || 'Media plan generation failed');
+      var planF = rF.data && rF.data.mediaPlan;
+      showToast('תוכנית מדיה נוצרה (force) ✓ · ' + (planF.campaigns ? planF.campaigns.length : 0) + ' קמפיינים', 'success');
+      if (instanceData && instanceData.researchData) {
+        if (!instanceData.researchData.strategy) instanceData.researchData.strategy = {};
+        instanceData.researchData.strategy.mediaPlan = planF;
+      }
+      renderMazhirCard();
+      renderApprovalQueue();
+    } catch (errF) {
+      showToast('שגיאה: ' + errF.message, 'error');
+      if (btnF) { btnF.disabled = false; btnF.textContent = '▶ צרו תוכנית מדיה (Opus, ~2-3 דק׳)'; }
+    }
+    return;
+  }
+
   var btn = document.getElementById('mazhir-plan-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ יוצר תוכנית (~2-3 דק׳)...'; }
   try {
