@@ -260,6 +260,18 @@ export const getInstance = async (c: Context<HonoEnv>) => {
         const _gadsCfg = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
         response.googleAdsCustomerId = _gadsCfg.customerId || null
         response.googleAdsHasDevToken = !!_gadsCfg.developerToken
+        // Phase 4.2.1-L — per-API OAuth scope booleans. Use activeAgent's
+        // googleTokens when available (per-agent OAuth), else instance row.
+        const _activeGt = (response.googleTokens as { scopes?: string[] | string; scope?: string } | null)
+            || (instance.googleTokens as { scopes?: string[] | string; scope?: string } | null)
+        const _scopeText = (() => {
+            if (!_activeGt) return ''
+            const raw = _activeGt.scopes || _activeGt.scope || ''
+            return Array.isArray(raw) ? raw.join(' ').toLowerCase() : String(raw).toLowerCase()
+        })()
+        const _scopeTokens = _scopeText.split(/[\s,]+/)
+        response.hasGtmScope = _scopeText.includes('tagmanager') || _scopeTokens.includes('gtm')
+        response.hasGa4Scope = _scopeText.includes('analytics') || _scopeTokens.includes('ga4') || _scopeTokens.includes('analytics')
 
         return ok(c, response, 'Instance retrieved.')
     } catch (err) {

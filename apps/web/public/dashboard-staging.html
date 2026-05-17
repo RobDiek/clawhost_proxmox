@@ -9705,19 +9705,47 @@ function renderMazhirCard() {
       && instanceData.googleAdsCustomerId
       && instanceData.googleAdsHasDevToken);
 
+    // Phase 4.2.1-L — proactive scope detection. If user is missing GTM OAuth
+    // scope, the entire GTM/Conversions chain is impossible until OAuth is
+    // re-granted. Show that as the FIRST blocker rather than letting the user
+    // discover it 3 clicks deep.
+    var _hasGtmScope_card = !!(instanceData && instanceData.hasGtmScope);
+
     var setupRow = '';
     if (_hasFullAdsApi_card) {
+      var gtmStepHtml;
+      if (_gtmDone_card) {
+        gtmStepHtml = '<span style="color:#065F46;font-size:0.82rem;background:#F0FDF4;padding:4px 10px;border-radius:4px;border:1px solid #A7F3D0">✓ GTM מותקן</span>';
+      } else if (!_hasGtmScope_card) {
+        // No GTM OAuth scope yet — direct connect button, NOT auto-setup.
+        gtmStepHtml = '<button class="btn btn-primary btn-sm" onclick="connectGoogleScopeAdditive(\'gtm\')" style="font-size:0.78rem;background:#7C3AED;border-color:#7C3AED">🔑 חברו Google Tag Manager (OAuth, שלב 7a)</button>';
+      } else {
+        gtmStepHtml = '<button class="btn btn-primary btn-sm" onclick="autoSetupMazhirGtmFromTasks()" id="mazhir-gtm-btn-card" style="font-size:0.78rem">▶ הפעילו GTM auto-setup (שלב 7, ~30 שנ׳)</button>';
+      }
+
+      var convStepHtml;
+      if (_convDone_card) {
+        convStepHtml = '<span style="color:#065F46;font-size:0.82rem;background:#F0FDF4;padding:4px 10px;border-radius:4px;border:1px solid #A7F3D0">✓ ConversionActions נוצרו (' + instanceData.researchData.mazhirConversions.created.length + ')</span>';
+      } else {
+        var convBlocked = !_hasGtmScope_card || !_gtmDone_card;
+        var convReason = !_hasGtmScope_card ? 'דורש חיבור GTM OAuth קודם'
+                       : !_gtmDone_card ? 'דורש GTM auto-setup קודם'
+                       : '';
+        convStepHtml = '<button class="btn btn-' + (convBlocked ? 'outline' : 'primary') + ' btn-sm" onclick="setupMazhirConversionsFromTasks()" ' + (convBlocked ? 'disabled title="' + convReason + '"' : '') + ' style="font-size:0.78rem">▶ צרו ConversionActions (שלב 8, ~30 שנ׳)</button>';
+      }
+
+      var scopeWarning = (!_hasGtmScope_card && !_gtmDone_card)
+        ? '<div style="margin-top:6px;padding:6px 10px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;font-size:0.74rem;color:#92400E;line-height:1.5">⚠️ ה-OAuth שלכם מחובר ל-Google Ads/GA4 אבל לא ל-Tag Manager. בלי scope של GTM אי-אפשר להתקין pixels אוטומטית. לחיצה על הכפתור הסגול תפתח Google OAuth עם הרשאת GTM נוספת — שאר ההרשאות יישארו פעילות.</div>'
+        : '';
+
       setupRow =
         '<div style="margin-top:10px;padding:10px 12px;background:#FFF;border:1px solid #BBF7D0;border-radius:8px">' +
           '<div style="font-size:0.78rem;color:#065F46;font-weight:600;margin-bottom:6px">לפני תוכנית מדיה — הקמת מעקב (חובה לפי האודיט):</div>' +
           '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
-            (_gtmDone_card
-              ? '<span style="color:#065F46;font-size:0.82rem;background:#F0FDF4;padding:4px 10px;border-radius:4px;border:1px solid #A7F3D0">✓ GTM מותקן</span>'
-              : '<button class="btn btn-primary btn-sm" onclick="autoSetupMazhirGtmFromTasks()" id="mazhir-gtm-btn-card" style="font-size:0.78rem">▶ הפעילו GTM auto-setup (שלב 7, ~30 שנ׳)</button>') +
-            (_convDone_card
-              ? '<span style="color:#065F46;font-size:0.82rem;background:#F0FDF4;padding:4px 10px;border-radius:4px;border:1px solid #A7F3D0">✓ ConversionActions נוצרו (' + instanceData.researchData.mazhirConversions.created.length + ')</span>'
-              : '<button class="btn btn-' + (_gtmDone_card ? 'primary' : 'outline') + ' btn-sm" onclick="setupMazhirConversionsFromTasks()" ' + (!_gtmDone_card ? 'disabled title="דורש GTM קודם"' : '') + ' style="font-size:0.78rem">▶ צרו ConversionActions (שלב 8, ~30 שנ׳)</button>') +
+            gtmStepHtml +
+            convStepHtml +
           '</div>' +
+          scopeWarning +
         '</div>';
     }
     var planBtnEnabled = !_hasFullAdsApi_card || (_gtmDone_card && _convDone_card);

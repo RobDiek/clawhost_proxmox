@@ -531,6 +531,27 @@ export const getMyInstances = async (c: Context) => {
                 // hasFullAdsAPI=false and the 409 flow can't be prevented.
                 googleAdsCustomerId: ((i.googleAdsConfig as Record<string, unknown> | null) || {}).customerId || null,
                 googleAdsHasDevToken: !!((i.googleAdsConfig as Record<string, unknown> | null) || {}).developerToken,
+                // Phase 4.2.1-L — per-API OAuth scope booleans so the dashboard
+                // can render proactive "connect X" buttons instead of letting
+                // users discover missing scopes mid-flow.
+                hasGtmScope: (() => {
+                    const gt = i.googleTokens as { scopes?: string[] | string; scope?: string } | null
+                    if (!gt) return false
+                    const raw = (gt.scopes || gt.scope || '')
+                    const text = Array.isArray(raw) ? raw.join(' ').toLowerCase() : String(raw).toLowerCase()
+                    if (text.includes('tagmanager')) return true
+                    const tokens = text.split(/[\s,]+/)
+                    return tokens.includes('gtm')
+                })(),
+                hasGa4Scope: (() => {
+                    const gt = i.googleTokens as { scopes?: string[] | string; scope?: string } | null
+                    if (!gt) return false
+                    const raw = (gt.scopes || gt.scope || '')
+                    const text = Array.isArray(raw) ? raw.join(' ').toLowerCase() : String(raw).toLowerCase()
+                    if (text.includes('analytics')) return true
+                    const tokens = text.split(/[\s,]+/)
+                    return tokens.includes('ga4') || tokens.includes('analytics')
+                })(),
                 hasMetaAds: (() => {
                     const mt = i.metaTokens as any
                     if (!mt) return false
