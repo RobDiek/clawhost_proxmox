@@ -177,6 +177,7 @@ export const getInstance = async (c: Context<HonoEnv>) => {
                 const tokens = scopes.split(/[\s,]+/)
                 return tokens.includes('ads')
             })()
+            // (googleAdsCustomerId/HasDevToken set unconditionally below; no need to repeat per-branch)
             response.hasMetaAds = (() => {
                 const mt = activeAgent.metaTokens as {
                     adAccountId?: string;
@@ -250,6 +251,15 @@ export const getInstance = async (c: Context<HonoEnv>) => {
                 .limit(1)
             response.hasBrandBook = !!approvedBb
         }
+
+        // Phase 4.2.1-K — unconditional surfacing of API readiness signals.
+        // Frontend gates check instanceData.googleAdsCustomerId/HasDevToken;
+        // these must be present regardless of whether the agent-overlay
+        // branch executed. The values always come from instance row's
+        // googleAdsConfig (which is per-instance, not per-agent).
+        const _gadsCfg = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
+        response.googleAdsCustomerId = _gadsCfg.customerId || null
+        response.googleAdsHasDevToken = !!_gadsCfg.developerToken
 
         return ok(c, response, 'Instance retrieved.')
     } catch (err) {
