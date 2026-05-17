@@ -11240,6 +11240,11 @@ function openPaidProfileModal() {
   // hasn't already filled the form manually (savedPp empty for that field).
   var hasUserInput = Object.keys(savedPp).filter(function(k) { return savedPp[k] != null && savedPp[k] !== ''; }).length > 0;
   var isFirstOpen = !hasUserInput && !!derived;
+  // Pull baseline accountMetrics into modal scope so the banner + historical-
+  // data section can cite real numbers without re-deriving.
+  var _baseline = (rd.results || {}).client_account_baseline;
+  var am = (_baseline && _baseline.dfsData && _baseline.dfsData.googleAds && _baseline.dfsData.googleAds.accountMetrics) || {};
+  var sqr = (_baseline && _baseline.dfsData && _baseline.dfsData.googleAds && _baseline.dfsData.googleAds.sqr) || {};
   var geo = pp.geography || { mode: 'national' };
   var ts = pp.trackingStack || {};
 
@@ -11398,7 +11403,7 @@ function openPaidProfileModal() {
         ? '<div style="margin-bottom:18px;padding:12px 14px;background:#F0FDF4;border-radius:10px;border:1px solid #A7F3D0">' +
             '<label class="pp-label" style="margin-bottom:4px;color:#065F46">7. נתונים היסטוריים — ✓ נמשכו אוטומטית ב-Stage 1 (baseline)</label>' +
             '<div style="font-size:0.78rem;color:#065F46;line-height:1.6">' +
-              'אין צורך להעלות דוחות — כבר יש לנו: 659 מילים מ-SQR, ₪' + (am.cost || 0).toLocaleString() + ' הוצאה בפועל, ' + (am.conversions || 0) + ' המרות, CPA ₪' + (am.cpaIls || 0) + '. Mazhir יקרא את כל זה מ-rd.results.client_account_baseline במהלך האודיט.' +
+              'אין צורך להעלות דוחות — כבר יש לנו: ' + (sqr.totalTerms || 0) + ' מילים מ-SQR, ₪' + (am.cost || 0).toLocaleString() + ' הוצאה בפועל, ' + (am.conversions || 0) + ' המרות, CPA ₪' + (am.cpaIls || 0) + '. Mazhir יקרא את כל זה מ-baseline במהלך האודיט.' +
             '</div>' +
           '</div>'
         : '<div style="margin-bottom:18px;padding:14px 16px;background:#F0F9FF;border-radius:10px;border:1px solid #BAE6FD">' +
