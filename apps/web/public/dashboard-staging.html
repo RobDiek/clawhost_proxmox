@@ -11115,6 +11115,62 @@ function viewPaidBudgetScenarios() {
 
 async function autoSetupMazhirGtmFromTasks() {
   if (_gtmSetupRunning) { showToast('GTM setup כבר רץ — חכו לסיום', 'warning'); return; }
+
+  // Phase 4.2.1-L — prerequisite chain: backend gtm/auto-setup requires
+  //   1. rd.mazhirGtm.target  — user-picked GTM container
+  //   2. rd.mazhirConversions.created — at least one ConversionAction
+  // Check both; redirect to the right setup if either is missing.
+  var rdGtmCheck = (instanceData && instanceData.researchData) || {};
+  var hasGtmTarget = !!(rdGtmCheck.mazhirGtm && rdGtmCheck.mazhirGtm.target);
+  var convCreatedCount = (rdGtmCheck.mazhirConversions && Array.isArray(rdGtmCheck.mazhirConversions.created))
+    ? rdGtmCheck.mazhirConversions.created.length : 0;
+
+  if (!hasGtmTarget) {
+    var openPicker = await showConfirm({
+      icon: '🏷️',
+      title: 'נדרשת בחירת GTM container',
+      descHtml:
+        '<div style="background:#FFFBEB;border-right:3px solid #F59E0B;padding:10px 12px;border-radius:6px;font-size:0.85rem;color:#78350F;line-height:1.6;text-align:right">' +
+        '<div style="font-weight:700;margin-bottom:4px">לפני התקנת תגיות צריך לבחור באיזה container הן יותקנו</div>' +
+        '<div>אתם עשויים לנהל כמה GTM containers (אחד לכל אתר). בחירה זו נשמרת ב-instance ומשמשת לכל ההתקנות הבאות.</div>' +
+        '</div>',
+      okText: 'בחרו container ←',
+      okClass: 'btn-primary',
+      cancelText: 'ביטול',
+    });
+    if (!openPicker) return;
+    if (typeof openGtmTargetPicker === 'function') {
+      openGtmTargetPicker();
+    } else {
+      showToast('שגיאה: GTM target picker חסר', 'error');
+    }
+    return; // user picks → save → manually re-clicks GTM step
+  }
+
+  if (convCreatedCount === 0) {
+    var runConv = await showConfirm({
+      icon: '🔗',
+      title: 'נדרש להגדיר תחילה ConversionActions',
+      descHtml:
+        '<div style="background:#FFFBEB;border-right:3px solid #F59E0B;padding:10px 12px;border-radius:6px;font-size:0.85rem;color:#78350F;line-height:1.6;text-align:right">' +
+        '<div style="font-weight:700;margin-bottom:4px">סדר נכון: ConversionActions קודם, אחר כך GTM tags</div>' +
+        '<div>תגיות ה-GTM מקושרות פר-conversion (awct לכל ConversionAction). בלי actions לא יודעים מה לשייך לתגיות. הריצו שלב 8 (פעולות המרה) קודם.</div>' +
+        '</div>',
+      okText: 'הריצו ConversionActions עכשיו',
+      okClass: 'btn-primary',
+      cancelText: 'ביטול',
+    });
+    if (!runConv) return;
+    if (typeof setupMazhirConversionsFromTasks === 'function') {
+      await setupMazhirConversionsFromTasks();
+      // After conversions are set up, user clicks GTM again
+      showToast('ConversionActions הוקמו. עכשיו לחצו "▶ הפעילו GTM auto-setup" שוב.', 'info');
+    } else {
+      showToast('שגיאה: setupMazhirConversionsFromTasks חסר', 'error');
+    }
+    return;
+  }
+
   _gtmSetupRunning = true;
   _gtmSetupStartedAt = Date.now();
   _startMazhirTicker();
