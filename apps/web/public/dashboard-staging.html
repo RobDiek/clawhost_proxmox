@@ -3,9 +3,13 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <title>ClawFlow — לוח בקרה (STAGING)</title>
 <!-- STAGING dashboard — master canary only. Devops pushes go here first.
-     Admin clicks 'Publish' in /admin to promote → dashboard.html (prod) for all clients. -->
+     Admin clicks 'Publish' in /admin to promote → dashboard.html (prod) for all clients.
+     CACHE-BUST: phase-4.2.1-K-c2b92ada — force browser refresh after gate fixes. -->
 <style>
   body::before {
     content: 'STAGING · גרסת בדיקה (מאסטר בלבד)';
@@ -10531,6 +10535,26 @@ async function generateMazhirMediaPlanFromTasks() {
     showToast('תוכנית המדיה כבר נבנית — חכו לסיום', 'warning');
     return;
   }
+  // Phase 4.2.1-K — ABSOLUTE function-level gate. Mirrors backend logic
+  // exactly. No matter what calls us (button click, programmatic dispatch,
+  // stale cached HTML, auto-runner), we refuse before the POST.
+  try {
+    var rdGate2 = (instanceData && instanceData.researchData) || {};
+    var auditGate2 = rdGate2.mazhirAudit;
+    var blockerCount2 = (auditGate2 && Array.isArray(auditGate2.blockers)) ? auditGate2.blockers.length : 0;
+    var gtmPublished2 = !!(rdGate2.mazhirGtm && rdGate2.mazhirGtm.lastSetupResult && rdGate2.mazhirGtm.lastSetupResult.published);
+    var convCreated2 = (rdGate2.mazhirConversions && Array.isArray(rdGate2.mazhirConversions.created))
+      ? rdGate2.mazhirConversions.created.length : 0;
+    var hasFullAdsAPI2 = !!(instanceData && instanceData.hasGoogleAds
+      && instanceData.googleAdsCustomerId
+      && instanceData.googleAdsHasDevToken);
+    if (hasFullAdsAPI2 && blockerCount2 >= 2 && !gtmPublished2 && convCreated2 === 0) {
+      console.warn('[generateMazhirMediaPlanFromTasks] BLOCKED by client-side gate: blockers=' + blockerCount2 + ', gtm=' + gtmPublished2 + ', conv=' + convCreated2);
+      showToast('תוכנית מדיה חסומה: הריצו GTM (שלב 7) ופעולות המרה (שלב 8) קודם — אחרת הקמפיינים יוצאים עם מעקב שבור', 'warning');
+      return;
+    }
+  } catch (_) { /* if gate evaluation fails, fall through and let backend 409 handle it */ }
+
   _mazhirPlanRunning = true;
   _mazhirPlanStartedAt = Date.now();
   _startMazhirTicker();
