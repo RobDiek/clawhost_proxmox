@@ -9655,6 +9655,39 @@ function renderMazhirCard() {
           '</ul>' +
         '</div>'
       : '';
+    // Phase 4.2.1-K — after audit, render GTM + Conversions buttons BEFORE
+    // media-plan (matches audit's "Day 1-2" recommendation + backend gating).
+    // The audit explicitly says to install tracking before any bidding.
+    var _gtmDone_card = !!(instanceData && instanceData.researchData
+      && instanceData.researchData.mazhirGtm
+      && instanceData.researchData.mazhirGtm.lastSetupResult
+      && instanceData.researchData.mazhirGtm.lastSetupResult.published);
+    var _convDone_card = !!(instanceData && instanceData.researchData
+      && instanceData.researchData.mazhirConversions
+      && Array.isArray(instanceData.researchData.mazhirConversions.created)
+      && instanceData.researchData.mazhirConversions.created.length > 0);
+    var _hasFullAdsApi_card = !!(instanceData && instanceData.hasGoogleAds
+      && instanceData.googleAdsCustomerId
+      && instanceData.googleAdsHasDevToken);
+
+    var setupRow = '';
+    if (_hasFullAdsApi_card) {
+      setupRow =
+        '<div style="margin-top:10px;padding:10px 12px;background:#FFF;border:1px solid #BBF7D0;border-radius:8px">' +
+          '<div style="font-size:0.78rem;color:#065F46;font-weight:600;margin-bottom:6px">לפני תוכנית מדיה — הקמת מעקב (חובה לפי האודיט):</div>' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+            (_gtmDone_card
+              ? '<span style="color:#065F46;font-size:0.82rem;background:#F0FDF4;padding:4px 10px;border-radius:4px;border:1px solid #A7F3D0">✓ GTM מותקן</span>'
+              : '<button class="btn btn-primary btn-sm" onclick="autoSetupMazhirGtmFromTasks()" id="mazhir-gtm-btn-card" style="font-size:0.78rem">▶ הפעילו GTM auto-setup (שלב 7, ~30 שנ׳)</button>') +
+            (_convDone_card
+              ? '<span style="color:#065F46;font-size:0.82rem;background:#F0FDF4;padding:4px 10px;border-radius:4px;border:1px solid #A7F3D0">✓ ConversionActions נוצרו (' + instanceData.researchData.mazhirConversions.created.length + ')</span>'
+              : '<button class="btn btn-' + (_gtmDone_card ? 'primary' : 'outline') + ' btn-sm" onclick="setupMazhirConversionsFromTasks()" ' + (!_gtmDone_card ? 'disabled title="דורש GTM קודם"' : '') + ' style="font-size:0.78rem">▶ צרו ConversionActions (שלב 8, ~30 שנ׳)</button>') +
+          '</div>' +
+        '</div>';
+    }
+    var planBtnEnabled = !_hasFullAdsApi_card || (_gtmDone_card && _convDone_card);
+    var planBtnTooltip = planBtnEnabled ? '' : ' title="חסום: הריצו GTM (שלב 7) ו-ConversionActions (שלב 8) קודם"';
+
     workflowHtml =
       '<div style="margin-top:14px;padding:14px 16px;background:#F0FDF4;border-radius:10px;border:1px solid #BBF7D0">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px">' +
@@ -9663,7 +9696,8 @@ function renderMazhirCard() {
         '</div>' +
         '<div style="font-size:0.83rem;color:#374151;line-height:1.6;margin-bottom:8px">' + escapeHtml(audit.summary || '') + '</div>' +
         blockerHtml +
-        '<div style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="generateMazhirMediaPlan()" id="mazhir-plan-btn">▶ צרו תוכנית מדיה (Opus, ~4-6 דק׳)</button></div>' +
+        setupRow +
+        '<div style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="generateMazhirMediaPlan()" id="mazhir-plan-btn"' + planBtnTooltip + (planBtnEnabled ? '' : ' disabled') + '>▶ צרו תוכנית מדיה (Opus, ~4-6 דק׳)</button></div>' +
       '</div>';
   } else {
     var statusLabel = mediaPlan.status === 'approved' ? '✓ אושרה' : (mediaPlan.status === 'pending_review' ? '⏳ ממתינה לאישור' : escapeHtml(mediaPlan.status));
