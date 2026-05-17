@@ -411,14 +411,33 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
         return [...found]
     })()
 
-    const customerIdForDeep = pp.hasExistingAccount ? googleAdsConfig.customerId : undefined
-    const developerTokenForDeep = pp.hasExistingAccount ? (googleAdsConfig as { developerToken?: string }).developerToken : undefined
+    // Phase 4.2.1-F (mazhir_audit) — DON'T trust pp.hasExistingAccount.
+    // That flag is form-driven and goes stale if the modal cached an outdated
+    // instanceData (e.g. user connected Google Ads AFTER opening the form).
+    // The ground truth is: do we have the actual credentials in DB right now?
+    // We require customerId + developerToken + refreshToken; if all 3 present,
+    // we can pull, regardless of what the user clicked in the form.
+    const _baseline = (rd.results as Record<string, unknown> | undefined)?.client_account_baseline as
+        { dfsData?: { googleAds?: { available?: boolean; sqr?: unknown; accountMetrics?: unknown } } } | undefined
+    const baselineHasGads = !!_baseline?.dfsData?.googleAds?.available
+    const cfgHasCreds = !!(googleAdsConfig.customerId
+        && (googleAdsConfig as { developerToken?: string }).developerToken
+        && (googleTokensForAudit as { refreshToken?: string } | null)?.refreshToken)
+    // Use the real signal — either baseline successfully pulled (best), or
+    // raw credentials present in DB (fallback).
+    const canPullGoogleAds = baselineHasGads || cfgHasCreds
+    const customerIdForDeep = canPullGoogleAds ? googleAdsConfig.customerId : undefined
+    const developerTokenForDeep = canPullGoogleAds ? (googleAdsConfig as { developerToken?: string }).developerToken : undefined
     const loginCustomerIdForDeep = (googleAdsConfig as { loginCustomerId?: string }).loginCustomerId
     const rawScopeForDeep = (googleAdsConfig as { scope?: { mode?: string; campaignIds?: string[]; operatingCustomerId?: string } }).scope
     const operatingCustomerIdForDeep = (rawScopeForDeep?.operatingCustomerId || '').replace(/\D/g, '') || undefined
     const scopeForDeep = rawScopeForDeep?.mode === 'account'
         ? { mode: 'account' as const, operatingCustomerId: operatingCustomerIdForDeep }
         : { mode: 'campaigns' as const, operatingCustomerId: operatingCustomerIdForDeep, campaignIds: (rawScopeForDeep?.campaignIds || []).filter(id => /^\d+$/.test(id)) }
+
+    if (canPullGoogleAds) {
+        console.log(`[mazhirAudit] ${instanceId} canPullGoogleAds=true (baseline=${baselineHasGads} creds=${cfgHasCreds}) scope=${scopeForDeep.mode}/${(scopeForDeep.campaignIds||[]).length}`)
+    }
     const historicalReports = ((pp as any).historicalReports || []) as Array<{ name: string; type: string; size: number; uploadedAt: string; base64: string }>
 
     const callTrackingCfg = (inst as any).callTrackingConfig || null
