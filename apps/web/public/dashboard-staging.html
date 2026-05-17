@@ -8060,10 +8060,16 @@ async function doPullModel(modelId, btn) {
 var _confirmResolve = null;
 
 function showConfirm(opts) {
-  // opts: { icon, title, desc, okText, okClass, cancelText }
+  // opts: { icon, title, desc, descHtml, okText, okClass, cancelText }
   document.getElementById('confirmIcon').textContent = opts.icon || '⚠';
   document.getElementById('confirmTitle').textContent = opts.title || 'אתם בטוחים?';
-  document.getElementById('confirmDesc').textContent = opts.desc || '';
+  var descEl = document.getElementById('confirmDesc');
+  if (opts.descHtml) {
+    // Trusted HTML — only callers that build the content themselves should use this.
+    descEl.innerHTML = opts.descHtml;
+  } else {
+    descEl.textContent = opts.desc || '';
+  }
   var okBtn = document.getElementById('confirmOkBtn');
   okBtn.textContent = opts.okText || 'אישור';
   okBtn.className = 'btn ' + (opts.okClass || 'btn-danger-outline');
@@ -10532,27 +10538,44 @@ async function _runPaidStage(stageId, flagName, startedAtName, label, durationLa
         var fails = pfRes.data.checks.filter(function(ch) { return ch.status === 'fail'; });
         var warns = pfRes.data.checks.filter(function(ch) { return ch.status === 'warning'; });
         if (fails.length > 0 || warns.length > 0) {
-          var msgLines = [];
-          msgLines.push('⚠️ לפני הרצה — בדיקת איכות:');
-          msgLines.push('');
+          // Build structured HTML for the custom confirm modal
+          var sections = [];
           if (fails.length > 0) {
-            msgLines.push('🛑 שלבים שיכשלו:');
-            fails.forEach(function(ch) {
-              msgLines.push('  • ' + ch.label_he);
-              if (ch.actionable_hint_he) msgLines.push('    → ' + ch.actionable_hint_he);
-            });
-            msgLines.push('');
+            sections.push(
+              '<div style="background:#FEF2F2;border-right:3px solid #DC2626;padding:10px 12px;border-radius:6px;margin-bottom:10px">' +
+              '<div style="font-weight:600;color:#991B1B;margin-bottom:6px;font-size:0.88rem">🛑 שלבים שיכשלו</div>' +
+              '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#7F1D1D;line-height:1.6">' +
+              fails.map(function(ch) {
+                return '<li><strong>' + escapeHtml(ch.label_he || '') + '</strong>' +
+                  (ch.actionable_hint_he ? '<div style="color:#991B1B;opacity:0.85;margin-top:2px">→ ' + escapeHtml(ch.actionable_hint_he) + '</div>' : '') +
+                  '</li>';
+              }).join('') +
+              '</ul></div>'
+            );
           }
           if (warns.length > 0) {
-            msgLines.push('⚠️ ירידת איכות (יעבוד אבל פחות מדויק):');
-            warns.forEach(function(ch) {
-              msgLines.push('  • ' + ch.label_he);
-              if (ch.actionable_hint_he) msgLines.push('    → ' + ch.actionable_hint_he);
-            });
-            msgLines.push('');
+            sections.push(
+              '<div style="background:#FFFBEB;border-right:3px solid #F59E0B;padding:10px 12px;border-radius:6px;margin-bottom:10px">' +
+              '<div style="font-weight:600;color:#92400E;margin-bottom:6px;font-size:0.88rem">⚠️ ירידת איכות (יעבוד אבל פחות מדויק)</div>' +
+              '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#78350F;line-height:1.6">' +
+              warns.map(function(ch) {
+                return '<li><strong>' + escapeHtml(ch.label_he || '') + '</strong>' +
+                  (ch.actionable_hint_he ? '<div style="color:#92400E;opacity:0.85;margin-top:2px">→ ' + escapeHtml(ch.actionable_hint_he) + '</div>' : '') +
+                  '</li>';
+              }).join('') +
+              '</ul></div>'
+            );
           }
-          msgLines.push('להמשיך בכל זאת?');
-          var go = confirm(msgLines.join('\n'));
+          sections.push('<div style="font-size:0.85rem;color:#374151;margin-top:8px;text-align:center;font-weight:600">להמשיך בכל זאת?</div>');
+
+          var go = await showConfirm({
+            icon: fails.length > 0 ? '🛑' : '⚠️',
+            title: 'בדיקת איכות לפני הרצה',
+            descHtml: sections.join(''),
+            okText: 'המשך — אני מבין/ה את ההגבלות',
+            okClass: fails.length > 0 ? 'btn-danger-outline' : 'btn-primary',
+            cancelText: 'ביטול',
+          });
           if (!go) return;
           window._paidPreflightShownThisSession = true;
         } else {
