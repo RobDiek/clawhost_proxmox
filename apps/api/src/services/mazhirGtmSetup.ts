@@ -218,18 +218,63 @@ export async function autoSetupGtmContainer(
 
     const wsBase = `/accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}`
 
-    // Scan existing tags/triggers to skip duplicates (default workspace would have them too, but we're in fresh)
-    // Still, we scan to be defensive in case workspace started with anything
+    // Scan existing tags/triggers/variables. Phase 4.2.3-C: detect against
+    // ALL existing tags (user's pre-existing + Mazhir's prior runs), not just
+    // by Mazhir naming convention. The workspace inherits live container state
+    // so user's existing tags are visible here.
     const existing = await scanExistingWorkspace(accessToken, accountId, containerId, workspaceId)
     const findTagByName = (name: string) => existing.tags.find(t => t.name === name)
     const findTrigByName = (name: string) => existing.triggers.find(t => t.name === name)
     const findVarByName = (name: string) => existing.variables.find(v => v.name === name)
 
+    // Phase 4.2.3-C idempotency helpers:
+    //   findTagByTypeAndParam — finds ANY tag of given type with a specific param value
+    //     (used for: gclidw, html-with-gclid-content, awct-with-conversionId-label, gaawe-by-event)
+    //   findTriggerByCustomEventName — finds ANY customEvent trigger matching event name
+    const findTagByType = (type: string) => existing.tags.find(t => t.type === type)
+    const findAwctByConversionId = (conversionId: string, conversionLabel: string) =>
+        existing.tags.find(t => {
+            if (t.type !== 'awct') return false
+            const params: any[] = t.parameter || []
+            const id = params.find((p: any) => p.key === 'conversionId')?.value
+            const label = params.find((p: any) => p.key === 'conversionLabel')?.value
+            return id === conversionId && label === conversionLabel
+        })
+    const findGaaweByEventName = (eventName: string) =>
+        existing.tags.find(t => {
+            if (t.type !== 'gaawe') return false
+            const params: any[] = t.parameter || []
+            const evt = params.find((p: any) => p.key === 'eventName')?.value
+            return evt === eventName
+        })
+    const findHtmlTagWithGclidLogic = () =>
+        existing.tags.find(t => {
+            if (t.type !== 'html') return false
+            const params: any[] = t.parameter || []
+            const html: string = params.find((p: any) => p.key === 'html')?.value || ''
+            // Heuristic: HTML tag that handles gclid persistence in localStorage / dataLayer
+            return /gclid/i.test(html) && /(localStorage|dataLayer)/i.test(html)
+        })
+    const findCustomEventTrigByEventName = (eventName: string) =>
+        existing.triggers.find(t => {
+            if (t.type !== 'customEvent') return false
+            const filters: any[] = t.customEventFilter || []
+            return filters.some((f: any) => {
+                const params: any[] = f.parameter || []
+                const arg0 = params.find((p: any) => p.key === 'arg0')?.value
+                const arg1 = params.find((p: any) => p.key === 'arg1')?.value
+                return arg0 === '{{_event}}' && arg1 === eventName
+            })
+        })
+
     const ALL_PAGES_TRIGGER_ID = '2147479553'  // GTM built-in All Pages trigger constant
 
     // ── 2. Conversion Linker (gclidw) ──
+    // Phase 4.2.3-C: detect by TYPE not just name — if user has their own
+    // Conversion Linker (any name), reuse rather than create a duplicate.
     const linkerName = 'Mazhir — Conversion Linker'
-    if (!findTagByName(linkerName)) {
+    const existingLinker = findTagByName(linkerName) || findTagByType('gclidw')
+    if (!existingLinker) {
         try {
             const linker = await gtmFetch(`${wsBase}/tags`, accessToken, 'POST', {
                 name: linkerName,
@@ -247,12 +292,19 @@ export async function autoSetupGtmContainer(
             result.errors.push({ step: 'conversion_linker', error: (err as Error).message })
         }
     } else {
-        result.skipped.push({ type: 'tag:gclidw', name: linkerName, reason: 'already exists' })
+        result.skipped.push({
+            type: 'tag:gclidw',
+            name: existingLinker.name,
+            reason: existingLinker.name === linkerName ? 'already exists' : 'user already has Conversion Linker tag (different name) — reusing',
+        })
     }
 
     // ── 3. GCLID Capture HTML tag — All Pages ──
+    // Phase 4.2.3-C: detect by HTML content heuristic (any HTML tag handling
+    // gclid → localStorage/dataLayer). Skip if user already has equivalent.
     const gclidCaptureName = 'Mazhir — GCLID Capture'
-    if (!findTagByName(gclidCaptureName)) {
+    const existingGclidHtml = findTagByName(gclidCaptureName) || findHtmlTagWithGclidLogic()
+    if (!existingGclidHtml) {
         const html = `<script>
 (function() {
   try {
@@ -280,17 +332,27 @@ export async function autoSetupGtmContainer(
             result.errors.push({ step: 'gclid_capture', error: (err as Error).message })
         }
     } else {
-        result.skipped.push({ type: 'tag:html', name: gclidCaptureName, reason: 'already exists' })
+        result.skipped.push({
+            type: 'tag:html',
+            name: existingGclidHtml.name,
+            reason: existingGclidHtml.name === gclidCaptureName ? 'already exists' : 'user already has GCLID-handling HTML tag — reusing',
+        })
     }
 
     // ── 4. Custom event triggers per conversion action ──
+    // Phase 4.2.3-C: also detect by trigger's customEventFilter (any name
+    // that fires on the same {{_event}}==actionKey filter is a match).
     const triggerIdByAction: Record<string, string> = {}
     for (const conv of req.conversions) {
         const trigName = `Mazhir CE — ${conv.actionKey}`
-        const existingTrig = findTrigByName(trigName)
+        const existingTrig = findTrigByName(trigName) || findCustomEventTrigByEventName(conv.actionKey)
         if (existingTrig) {
             triggerIdByAction[conv.actionKey] = String(existingTrig.triggerId)
-            result.skipped.push({ type: 'trigger:customEvent', name: trigName, reason: 'already exists' })
+            result.skipped.push({
+                type: 'trigger:customEvent',
+                name: existingTrig.name,
+                reason: existingTrig.name === trigName ? 'already exists' : 'user already has matching customEvent trigger — reusing',
+            })
             continue
         }
         try {
@@ -350,10 +412,21 @@ export async function autoSetupGtmContainer(
     }
 
     // ── 5. Google Ads conversion tags (awct), one per action ──
+    // Phase 4.2.3-C: also detect by (conversionId, conversionLabel) — if user
+    // already has an awct tag firing on the same conversion (any name), skip
+    // to prevent double-counting that same conversion from this site.
     for (const conv of req.conversions) {
         const tagName = `Mazhir GAds Conv — ${conv.actionKey}`
-        if (findTagByName(tagName)) {
-            result.skipped.push({ type: 'tag:awct', name: tagName, reason: 'already exists' })
+        const existingAwct = findTagByName(tagName)
+            || findAwctByConversionId(conv.googleAdsConversionId, conv.googleAdsConversionLabel)
+        if (existingAwct) {
+            result.skipped.push({
+                type: 'tag:awct',
+                name: existingAwct.name,
+                reason: existingAwct.name === tagName
+                    ? 'already exists'
+                    : `user already has awct tag for ${conv.googleAdsConversionId}/${conv.googleAdsConversionLabel} — skipping to avoid double-count`,
+            })
             continue
         }
         const trigId = triggerIdByAction[conv.actionKey]
@@ -422,10 +495,17 @@ export async function autoSetupGtmContainer(
         }
 
         // Event tags per conversion action (mirror but for GA4)
+        // Phase 4.2.3-C: detect by event name param (gaawe tag firing same
+        // event name = duplicate, regardless of tag name).
         for (const conv of req.conversions) {
             const evName = `Mazhir GA4 — ${conv.actionKey}`
-            if (findTagByName(evName)) {
-                result.skipped.push({ type: 'tag:gaawe', name: evName, reason: 'already exists' })
+            const existingGaawe = findTagByName(evName) || findGaaweByEventName(conv.actionKey)
+            if (existingGaawe) {
+                result.skipped.push({
+                    type: 'tag:gaawe',
+                    name: existingGaawe.name,
+                    reason: existingGaawe.name === evName ? 'already exists' : `user already has gaawe tag for event "${conv.actionKey}" — skipping`,
+                })
                 continue
             }
             const trigId = triggerIdByAction[conv.actionKey]

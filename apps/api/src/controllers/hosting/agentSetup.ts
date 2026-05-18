@@ -9119,27 +9119,35 @@ export const autoSetupMazhirGtm = async (c: Context) => {
         const rd: any = inst.researchData || {}
         const target = rd.mazhirGtm?.target
         if (!target) return fail(c, 'GTM target not picked — call /mazhir/gtm/target first', 400)
-        // Phase 4.2.3-B: read `active` (unified mapped+created) for GTM wiring.
-        // Fallback to `created` for legacy data shape compatibility.
-        const conversions = rd.mazhirConversions?.active || rd.mazhirConversions?.created || []
         const profile = rd.paidProfile
 
-        // Build GtmConversionConfig list from saved Google Ads conversion actions
+        // Phase 4.2.3-C: prefer the saved `gtmConfigs` from Stage 8 — it's
+        // already filtered to only source='created' actions (mapped actions
+        // have their own native firing mechanisms, so no awct tag from us).
+        // Fall back to deriving from active/created for legacy data shapes.
+        let gtmConfigs: any[] = rd.mazhirConversions?.gtmConfigs || []
+        if (!Array.isArray(gtmConfigs) || gtmConfigs.length === 0) {
+            const conversions = rd.mazhirConversions?.active || rd.mazhirConversions?.created || []
+            gtmConfigs = conversions
+                .filter((cv: any) => cv.source ? cv.source === 'created' : true)
+                .filter((cv: any) => cv.googleAdsConversionId && cv.googleAdsConversionLabel)
+                .filter((cv: any) => cv.actionKey !== 'qualified_lead' && cv.actionKey !== 'phone_call_offline')
+                .map((cv: any) => ({
+                    actionKey: cv.actionKey === 'form_submit' ? 'generate_lead' : cv.actionKey,
+                    googleAdsConversionId: cv.googleAdsConversionId,
+                    googleAdsConversionLabel: cv.googleAdsConversionLabel,
+                    sendValue: true,
+                    defaultValueIls: profile?.avgDealValueIls || 100,
+                    defaultCurrency: 'ILS',
+                }))
+        }
+
+        // Phase 4.2.3-C: zero gtmConfigs is OK in mature_setup mode — when user
+        // mapped all specs to existing actions (no Mazhir-created), there are
+        // no awct tags to wire. autoSetupGtmContainer still creates baseline
+        // infrastructure (Conversion Linker, GCLID Capture) and publishes —
+        // useful for Enhanced Conversions to work cleanly.
         const { autoSetupGtmContainer, saveGtmSetupResult } = await import('@/services/mazhirGtmSetup')
-        const gtmConfigs = conversions
-            .filter((cv: any) => cv.googleAdsConversionId && cv.googleAdsConversionLabel)
-            .filter((cv: any) => cv.actionKey !== 'qualified_lead' && cv.actionKey !== 'phone_call_offline')
-            .map((cv: any) => ({
-                actionKey: cv.actionKey === 'form_submit' ? 'generate_lead' : cv.actionKey,
-                googleAdsConversionId: cv.googleAdsConversionId,
-                googleAdsConversionLabel: cv.googleAdsConversionLabel,
-                sendValue: true,
-                defaultValueIls: profile?.avgDealValueIls || 100,
-                defaultCurrency: 'ILS',
-            }))
-
-        if (gtmConfigs.length === 0) return fail(c, 'No GTM-eligible conversion actions found — run /mazhir/conversions/setup first', 400)
-
         const result = await autoSetupGtmContainer(inst.googleTokens, {
             target,
             measurementId: target.measurementId,
