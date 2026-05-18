@@ -10033,12 +10033,24 @@ async function saveGtmTargetPick() {
       instanceData.researchData.mazhirGtm = instanceData.researchData.mazhirGtm || {};
       instanceData.researchData.mazhirGtm.target = { accountId: target.accountId, containerId: target.containerId, publicId: target.publicId, name: target.name, usageContext: target.usageContext, measurementId: mid.trim() || undefined };
     }
-    showToast('GTM container נשמר ✓ — אפשר להמשיך לשלב הבא', 'success');
+    showToast('GTM container נשמר ✓', 'success');
     document.getElementById('gtm-pick-modal').remove();
     // Phase 4.2.1-M (fix) — for EXISTING container, don't auto-open snippet.
     // User picked it because it's already working. If they need the snippet
     // for any reason, the Mazhir card now exposes a "view snippet" link.
     renderMazhirCard();
+    // Phase 4.2.1-M (refined-2): for pick-existing, AUTO-CHAIN into Stage 7+8.
+    // User picked an existing working container → they want tags published.
+    // Don't make them hunt for the "▶ הפעילו GTM auto-setup" button on a
+    // yellow card — call autoSetupMazhirGtmFromTasks() now, which will:
+    //  1. Detect conversions are 0 → show "ריצה משולבת" combined confirm
+    //  2. On confirm → run Conversions + GTM auto-setup back-to-back
+    //  3. refreshInstanceData() to flip hasGtmPublished gate
+    // For create-new flow this is skipped (createGtmContainerFromWizard
+    // shows install snippet first — auto-setup would fail on uninstalled tags).
+    if (typeof autoSetupMazhirGtmFromTasks === 'function') {
+      setTimeout(function() { autoSetupMazhirGtmFromTasks(); }, 400);
+    }
   } catch (err) {
     showToast('שגיאה: ' + err.message, 'error');
     if (btn) { btn.disabled = false; btn.textContent = 'שמרו ←'; }
