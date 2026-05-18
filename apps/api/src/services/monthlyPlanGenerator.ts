@@ -185,7 +185,8 @@ interface PromptCtx {
     audit: any
     mediaPlan: any
     strategy: any
-    chosenScenario: string | undefined
+    chosenScenarioKey: string | undefined          // 'smart' | 'aggressive'
+    chosenScenarioFull: any                        // full strategy object (30-day plan, KPIs, do-not-channels, first_win, risks)
     costTimeline: any
     paidBudget: any
     clientBaseline: any
@@ -213,18 +214,24 @@ function jstr(obj: any, max = 8000): string {
 
 function buildUserPrompt(ctx: PromptCtx): string {
     const scenarioBlock = (() => {
-        if (!ctx.chosenScenario || !ctx.costTimeline) {
-            return `═══ CHOSEN SCENARIO: ${ctx.chosenScenario || '(missing — user must pick in strategy_options first)'} ═══\n(no calibrated budgets available)`
+        if (!ctx.chosenScenarioKey) {
+            return `═══ CHOSEN SCENARIO: (missing — user must pick in strategy_options first) ═══\n(no calibrated budgets available)`
         }
         const records = (ctx.costTimeline as any)?.records || []
-        const picked = records.find((r: any) => r.scenario === ctx.chosenScenario || r.tier_key === ctx.chosenScenario)
-        return `═══ CHOSEN SCENARIO: ${ctx.chosenScenario} ═══
+        const picked = records.find((r: any) => r.scenario === ctx.chosenScenarioKey || r.tier_key === ctx.chosenScenarioKey)
+        return `═══ CHOSEN SCENARIO: ${ctx.chosenScenarioKey} ═══
 
 Calibrated budget (NEVER override; reference verbatim):
 ${jstr(picked, 3000)}
 
 Full cost_timeline_modeling records (both scenarios for context):
-${jstr({ records }, 4000)}`
+${jstr({ records }, 4000)}
+
+${ctx.chosenScenarioFull ? `═══ STRATEGY DETAIL (full chosenScenario object — USE AS PRIMARY SOURCE) ═══
+
+This object was auto-selected from strategy_options (confidence: ${(ctx.chosenScenarioFull as any).confidence || 'unknown'}) and contains the complete 30-day plan, 90-day KPI projections, primary persona, first-win channel, do-not channels with rationale, channel priority list with 30/60/90 outcomes, risks + mitigations, and funnel mapping. Anchor your monthly tasks on these — every task should trace to either a 30_day_plan.actions item, a channel_priority_list entry, or a risk mitigation.
+
+${jstr(ctx.chosenScenarioFull, 12000)}` : '(chosenScenario stored as legacy string — full strategy object not available)'}`
     })()
 
     const prevTasksBlock = ctx.previousMonthlyPlan?.tasks
@@ -405,7 +412,20 @@ export async function generateMonthlyPlan(
     const mediaPlan = rd.mediaPlan
     const audit = rd.mazhirAudit
     const strategy = rd.strategy
-    const chosenScenario: string | undefined = rd.chosenScenario
+    // Phase 4.3-B fix: chosenScenario lives in research_data in TWO shapes:
+    //   (a) legacy: just a string 'smart' | 'aggressive' (early tenants)
+    //   (b) current: full strategy object with .scenario field (the auto-selected
+    //       record from strategy_options + 30_day_plan + kpis_90_day + first_win +
+    //       do_not_channels + risks + channel_priority_list + funnel). This is
+    //       gold for the synergy prompt.
+    const chosenScenarioRaw = rd.chosenScenario
+    const chosenScenarioKey: string | undefined =
+        typeof chosenScenarioRaw === 'string'
+            ? chosenScenarioRaw
+            : (chosenScenarioRaw && typeof chosenScenarioRaw === 'object')
+                ? (chosenScenarioRaw as any).scenario
+                : undefined
+    const chosenScenarioFull = (typeof chosenScenarioRaw === 'object' && chosenScenarioRaw) ? chosenScenarioRaw : undefined
     const contentPlan = rd.contentPlan
     const paidProfile = rd.paidProfile
     const answers = rd.answers || {}
@@ -425,8 +445,8 @@ export async function generateMonthlyPlan(
     if (!paidProfile && !audit) {
         throw new Error('Either paidProfile or mazhirAudit required — run paid_data_inventory + mazhir/audit first')
     }
-    if (!chosenScenario) {
-        throw new Error('research_data.chosenScenario not set — user must pick smart or aggressive in strategy_options first')
+    if (!chosenScenarioKey) {
+        throw new Error('research_data.chosenScenario not set or malformed — user must pick smart or aggressive in strategy_options first')
     }
 
     const [brand] = await db.select().from(brandBooks).where(eq(brandBooks.instanceId, instanceId))
@@ -498,7 +518,7 @@ Output STRICT JSON — no markdown fences, no commentary. Schema in user message
     const userPrompt = buildUserPrompt({
         businessName, websiteUrl, businessDesc,
         paidProfile, audit, mediaPlan, strategy,
-        chosenScenario, costTimeline, paidBudget,
+        chosenScenarioKey, chosenScenarioFull, costTimeline, paidBudget,
         clientBaseline, paidCompetitorLandscape, paidKeywordResearch,
         seoKeywordResearch, competitorLandscape,
         audiencePersonas, positioningResults,
@@ -507,7 +527,7 @@ Output STRICT JSON — no markdown fences, no commentary. Schema in user message
         trigger,
     })
 
-    console.log(`[monthlyPlanGenerator] ${instanceId}: Opus call starting (model=${model}, prompt=${system.length + userPrompt.length} chars, scenario=${chosenScenario})`)
+    console.log(`[monthlyPlanGenerator] ${instanceId}: Opus call starting (model=${model}, prompt=${system.length + userPrompt.length} chars, scenario=${chosenScenarioKey})`)
 
     const raw = await callOpus({
         apiKey, model, system, user: userPrompt,
@@ -657,7 +677,7 @@ Output STRICT JSON — no markdown fences, no commentary. Schema in user message
                 P1: plan.summary.byPriority.P1,
                 P2: plan.summary.byPriority.P2,
                 trigger,
-                chosenScenario,
+                chosenScenario: chosenScenarioKey,
                 estimatedTotalImpact: plan.summary.estimatedTotalImpact,
             } as any,
         }).returning()
@@ -672,7 +692,7 @@ Output STRICT JSON — no markdown fences, no commentary. Schema in user message
     }
 
     const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
-    console.log(`[monthlyPlanGenerator] ${instanceId}: ready in ${elapsed}s (tasks=${plan.summary.totalTasks}, P0=${plan.summary.byPriority.P0}, scenario=${chosenScenario}, outputId=${outputId})`)
+    console.log(`[monthlyPlanGenerator] ${instanceId}: ready in ${elapsed}s (tasks=${plan.summary.totalTasks}, P0=${plan.summary.byPriority.P0}, scenario=${chosenScenarioKey}, outputId=${outputId})`)
 
     return { monthlyPlan: plan, outputId, cost: { model } }
 }
