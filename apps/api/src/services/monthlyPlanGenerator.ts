@@ -454,8 +454,13 @@ export async function generateMonthlyPlan(
     const websiteUrl = answers.websiteUrl || ''
     const businessDesc = answers.businessDescription || ''
 
-    const model = await resolveDirectModel(instanceId, 'mazhir').catch(() => 'claude-opus-4-7')
-    const usingOpus = model.startsWith('claude-opus')
+    // Phase 4.3-B: ALWAYS use Opus 4.7 for monthly plan synthesis.
+    // This is the most strategic task in the platform — Sonnet 4.6 emits poorly
+    // escaped JSON on long Hebrew outputs (unescaped " in ש"ח, embedded
+    // newlines inside multi-paragraph summaries). Per memory feedback_model_tiers
+    // — strategic tasks default to Opus, not whatever resolveDirectModel returns.
+    const model = 'claude-opus-4-7'
+    const usingOpus = true
 
     // Tenant classification (read-only) — informs prompt context
     let tenantState: any = null
@@ -513,7 +518,18 @@ For each task:
 - "Optimize X" / "Improve Y" — must be specific
 - Recommending Twenty CRM or any deprecated integration
 
-Output STRICT JSON — no markdown fences, no commentary. Schema in user message.`
+═══ JSON STRICTNESS (CRITICAL — avoid parse failures) ═══
+
+Output VALID JSON parseable by JSON.parse():
+- All strings use DOUBLE quotes, never single quotes
+- Escape ALL internal double quotes as \\"  e.g. "ש\\"ח" not "ש"ח"
+- Use ₪ symbol (not ש"ח) wherever possible to avoid escaping issues
+- Hebrew apostrophes (') do NOT need escaping in double-quoted strings — but use sparingly
+- NEVER embed literal newlines inside strings. If you need multi-line content, use \\n
+- No trailing commas before } or ]
+- No comments inside the JSON
+
+Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in user message.`
 
     const userPrompt = buildUserPrompt({
         businessName, websiteUrl, businessDesc,
