@@ -70,6 +70,7 @@ import {
     runMazhirAuditController,
     getMazhirAudit,
     getMazhirDataPreflight,
+    getMazhirTenantState,
     generateMazhirMediaPlan,
     getMazhirMediaPlan,
     approveMazhirMediaPlan,
@@ -441,6 +442,8 @@ app.post('/instances/:id/paid-profile/historical-reports', uploadHistoricalRepor
 app.post('/instances/:id/mazhir/audit', runMazhirAuditController)
 app.get('/instances/:id/mazhir/audit', getMazhirAudit)
 app.get('/instances/:id/mazhir/data-preflight', getMazhirDataPreflight)
+// Phase 4.2.3-F — tenant state classification (read-only) for UI mode-awareness
+app.get('/instances/:id/mazhir/tenant-state', getMazhirTenantState)
 app.post('/instances/:id/mazhir/media-plan', generateMazhirMediaPlan)
 app.get('/instances/:id/mazhir/media-plan', getMazhirMediaPlan)
 app.post('/instances/:id/mazhir/media-plan/approve', approveMazhirMediaPlan)

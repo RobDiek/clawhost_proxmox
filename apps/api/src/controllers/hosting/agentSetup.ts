@@ -8764,6 +8764,21 @@ export const getMazhirDataPreflight = async (c: Context) => {
     }
 }
 
+// Phase 4.2.3-F — surface tenant classification to the dashboard so the
+// orchestrator UI can pick the right modal copy / chain behavior. Pure
+// read-only classification + signal discovery (no DB writes, no mutations).
+export const getMazhirTenantState = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { classifyTenantSetupState } = await import('@/services/tenantSetupState')
+        const result = await classifyTenantSetupState(instanceId)
+        return ok(c, result)
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/mazhir/media-plan — generate plan ────────
 export const generateMazhirMediaPlan = async (c: Context) => {
     try {

@@ -11471,23 +11471,73 @@ async function autoSetupMazhirGtmFromTasks() {
   }
 
   if (convCreatedCount === 0) {
-    // Phase 4.2.1-M (refined): CHAIN both operations into one user action.
-    // Old behavior: "run conversions, then click GTM again" — two clicks.
-    // New behavior: one confirmation → conversions auto-runs → GTM auto-setup
-    // auto-runs after → both steps complete from a single click.
+    // Phase 4.2.3-F: tenant-state-aware modal copy. We MUST NOT show greenfield
+    // "we'll create 20-40 ConversionActions" copy to a mature_setup tenant
+    // whose Google Ads account already has wired conv_actions — the underlying
+    // code IS idempotent (Phase B/C), but the user has no way to know that
+    // from the modal text. Pull classification → branch modal accordingly.
+    var tenantState = null;
+    try {
+      var ts = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/tenant-state');
+      tenantState = (ts && ts.success && ts.data) || null;
+    } catch (_) { /* fall back to legacy copy if classification fails */ }
+    var stage7Mode = tenantState && tenantState.recommendedMode && tenantState.recommendedMode.stage7_gtm || 'create_and_install';
+    var stage8Mode = tenantState && tenantState.recommendedMode && tenantState.recommendedMode.stage8_conv || 'create_all';
+    var classification = tenantState && tenantState.classification || 'greenfield';
+    var existingConvCount = tenantState && tenantState.signals && tenantState.signals.googleAds && Array.isArray(tenantState.signals.googleAds.existingConversionActions)
+      ? tenantState.signals.googleAds.existingConversionActions.length : 0;
+    var gtmHasLive = !!(tenantState && tenantState.signals && tenantState.signals.gtm && tenantState.signals.gtm.hasLiveVersion);
+    var gtmTagCount = (tenantState && tenantState.signals && tenantState.signals.gtm && tenantState.signals.gtm.liveVersionTagCount) || 0;
+    console.log('[autoSetupMazhirGtmFromTasks] tenant classification=' + classification + ' stage7=' + stage7Mode + ' stage8=' + stage8Mode + ' existingConv=' + existingConvCount + ' gtmTags=' + gtmTagCount);
+
+    var modalTitle, modalSteps, modalLeadIn, modalOkText, badgeBg, badgeText;
+    if (classification === 'mature_setup' || stage8Mode === 'map_only' || (existingConvCount >= 1 && gtmHasLive)) {
+      // Mature: detect and map, do NOT create from scratch
+      modalTitle = 'הקמת מעקב המרות — חשבון בוגר (גילוי + מיפוי)';
+      badgeBg = '#0EA5E9';
+      badgeText = '⚡ מצב בוגר — לא מייצרים מחדש';
+      modalLeadIn = 'הזיהוי שלנו: ' + existingConvCount + ' ConversionActions קיימים ב-Google Ads, GTM container פעיל עם ' + gtmTagCount + ' tags. ננתח את הקיים, נמפה את הסיגנלים, ולא נכפיל כלום.';
+      modalSteps = [
+        'שלב 8 — סריקת ' + existingConvCount + ' ConversionActions קיימים, ניקוד 4-שכבתי, ומיפוי לכל קטגוריית המרה. ConversionActions של Mazhir שכבר נוצרו יזוהו ולא ייווצרו מחדש.',
+        'שלב 7 — בדיקת GTM container הקיים. תגיות שכבר קיימות (awct/gaawe/Conversion Linker) ייזוהו בסיגנל; רק מה שחסר יתווסף ב-workspace חדש (mazhir-auto-N).',
+      ];
+      modalOkText = '▶ גלו ומפו את הקיים';
+    } else if (classification === 'partial_setup' || stage8Mode === 'map_existing_create_missing') {
+      // Partial: hybrid — map what exists, fill gaps
+      modalTitle = 'הקמת מעקב המרות — חשבון חלקי (היברידי)';
+      badgeBg = '#8B5CF6';
+      badgeText = '⚙ מצב חלקי — נמלא פערים';
+      modalLeadIn = 'הזיהוי: ' + existingConvCount + ' ConversionActions קיימים, GTM ' + (gtmHasLive ? 'פעיל (' + gtmTagCount + ' tags)' : 'לא פורסם עדיין') + '. נמפה את הקיים ונייצר רק מה שחסר.';
+      modalSteps = [
+        'שלב 8 — מיפוי ' + existingConvCount + ' פעולות קיימות + יצירת חסרים (~10-30 שנ׳)',
+        'שלב 7 — הוספת tags חסרים ב-GTM (Conversion Linker, GCLID, awct, gaawe, Enhanced Conversions, Consent Mode v2 — רק את אלה שעדיין אין)',
+      ];
+      modalOkText = '▶ מפו ומלאו פערים';
+    } else {
+      // Greenfield: legacy create-from-scratch copy
+      modalTitle = 'הקמת מעקב המרות — ריצה משולבת';
+      badgeBg = '#10B981';
+      badgeText = '🆕 חשבון חדש — בנייה מאפס';
+      modalLeadIn = 'לחיצה אחת — שני שלבים יבוצעו אוטומטית:';
+      modalSteps = [
+        'יצירת ConversionActions ב-Google Ads (~20-40 שנ׳)',
+        'התקנת tags ב-GTM container — Conversion Linker, GCLID, awct, gaawe, Enhanced Conversions, Consent Mode v2 (~30-60 שנ׳)',
+      ];
+      modalOkText = '▶ הריצו את שניהם עכשיו';
+    }
     var runConv = await showConfirm({
       icon: '🔗',
-      title: 'הקמת מעקב המרות — ריצה משולבת',
+      title: modalTitle,
       descHtml:
+        '<div style="margin-bottom:8px"><span style="font-size:0.72rem;font-weight:600;padding:3px 9px;border-radius:999px;background:' + badgeBg + '15;color:' + badgeBg + ';border:1px solid ' + badgeBg + '40">' + badgeText + '</span></div>' +
         '<div style="background:#EFF6FF;border-right:3px solid #2563EB;padding:10px 12px;border-radius:6px;font-size:0.85rem;color:#1E40AF;line-height:1.6;text-align:right">' +
-        '<div style="font-weight:700;margin-bottom:4px">לחיצה אחת — שני שלבים יבוצעו אוטומטית:</div>' +
+        '<div style="font-weight:700;margin-bottom:6px">' + modalLeadIn + '</div>' +
         '<ol style="margin:4px 18px 0;padding:0;line-height:1.7">' +
-        '<li>יצירת ConversionActions ב-Google Ads (~20-40 שנ׳)</li>' +
-        '<li>התקנת tags ב-GTM container — Conversion Linker, GCLID, awct, gaawe, Enhanced Conversions, Consent Mode v2 (~30-60 שנ׳)</li>' +
+        modalSteps.map(function(s) { return '<li>' + s + '</li>'; }).join('') +
         '</ol>' +
         '<div style="margin-top:6px">סך הכל ~1-2 דקות. אחרי הריצה שני שלבים 7 ו-8 יסומנו כמושלמים.</div>' +
         '</div>',
-      okText: '▶ הריצו את שניהם עכשיו',
+      okText: modalOkText,
       okClass: 'btn-primary',
       cancelText: 'ביטול',
     });
