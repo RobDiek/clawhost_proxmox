@@ -138,13 +138,15 @@ export async function listGtmTargets(googleTokens: any): Promise<GtmTarget[]> {
 
 // ─── Helper: scan existing workspace tags to enable idempotency ───────────
 async function scanExistingWorkspace(accessToken: string, accountId: string, containerId: string, workspaceId: string) {
-    const [tagsRes, trigsRes] = await Promise.all([
+    const [tagsRes, trigsRes, varsRes] = await Promise.all([
         gtmFetch(`/accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}/tags`, accessToken).catch(() => ({})),
         gtmFetch(`/accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}/triggers`, accessToken).catch(() => ({})),
+        gtmFetch(`/accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}/variables`, accessToken).catch(() => ({})),
     ])
     return {
         tags: (tagsRes.tag || []) as any[],
         triggers: (trigsRes.trigger || []) as any[],
+        variables: (varsRes.variable || []) as any[],
     }
 }
 
@@ -221,6 +223,7 @@ export async function autoSetupGtmContainer(
     const existing = await scanExistingWorkspace(accessToken, accountId, containerId, workspaceId)
     const findTagByName = (name: string) => existing.tags.find(t => t.name === name)
     const findTrigByName = (name: string) => existing.triggers.find(t => t.name === name)
+    const findVarByName = (name: string) => existing.variables.find(v => v.name === name)
 
     const ALL_PAGES_TRIGGER_ID = '2147479553'  // GTM built-in All Pages trigger constant
 
@@ -306,6 +309,43 @@ export async function autoSetupGtmContainer(
             result.created.push({ type: 'trigger:customEvent', name: trigName, id: String(trig.triggerId) })
         } catch (err) {
             result.errors.push({ step: `trigger:${conv.actionKey}`, error: (err as Error).message })
+        }
+    }
+
+    // ── 4.5. DataLayer Variables referenced by awct + gaawe tags ──
+    // Phase 4.2.2-C4 (real bug): the awct/gaawe tags below reference
+    // {{DLV - lead_value}}, {{DLV - transaction_id}}, {{DLV - user.email}},
+    // {{DLV - user.phone}}. If these variables don't exist, GTM marks the
+    // version's `compilerError: true` and refuses to publish (returning a
+    // misleading 404 "Not found or permission denied" — the same error
+    // shape as a real permission denial, which caused us to chase ghost
+    // permission bugs). Create them here defensively before the tags.
+    const dlvSpecs = [
+        { name: 'DLV - lead_value',     dataLayerKey: 'lead_value',     defaultValue: '0',  needed: req.conversions.some(c => c.sendValue) },
+        { name: 'DLV - transaction_id', dataLayerKey: 'transaction_id', defaultValue: '',   needed: req.conversions.some(c => c.sendValue) },
+        { name: 'DLV - user.email',     dataLayerKey: 'user.email',     defaultValue: '',   needed: !!req.enhancedConversions },
+        { name: 'DLV - user.phone',     dataLayerKey: 'user.phone',     defaultValue: '',   needed: !!req.enhancedConversions },
+    ]
+    for (const spec of dlvSpecs) {
+        if (!spec.needed) continue
+        if (findVarByName(spec.name)) {
+            result.skipped.push({ type: 'variable:dlv', name: spec.name, reason: 'already exists' })
+            continue
+        }
+        try {
+            const varRes = await gtmFetch(`${wsBase}/variables`, accessToken, 'POST', {
+                name: spec.name,
+                type: 'v',    // DataLayer Variable type code
+                parameter: [
+                    { type: 'integer',  key: 'dataLayerVersion', value: '2' },
+                    { type: 'boolean',  key: 'setDefaultValue',  value: 'true' },
+                    { type: 'template', key: 'defaultValue',     value: spec.defaultValue },
+                    { type: 'template', key: 'name',             value: spec.dataLayerKey },
+                ],
+            })
+            result.created.push({ type: 'variable:dlv', name: spec.name, id: String(varRes.variableId) })
+        } catch (err) {
+            result.errors.push({ step: `variable:${spec.name}`, error: (err as Error).message })
         }
     }
 
