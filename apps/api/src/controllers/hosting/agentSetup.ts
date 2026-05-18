@@ -6361,6 +6361,145 @@ export interface MediaPlan {
     estimatedTimeToLaunch: 'immediate' | '24-48h' | '7-14d' | '14-30d'
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// Phase 4.3 — Unified Monthly Marketing Plan
+// ════════════════════════════════════════════════════════════════════════════
+// Over-structure on top of mediaPlan (paid) + strategy (organic) + contentPlan
+// (content) + audit. The synergy generator (Opus) reads all 4 sources and emits
+// a stream of atomic tasks. Every task is approval-gated (משימות פעילות) and
+// references its upstream source so the user sees WHY it was proposed.
+//
+// Design principles:
+//   1. 1 task = 1 atomic action (e.g. "add 23 negatives", not "optimize campaign")
+//   2. Every task requires explicit user approval — no batch auto-apply
+//      (see feedback_no_automatic_actions)
+//   3. Tasks reference upstream sources (mediaPlan.optimization, audit, GSC, etc.)
+//      so user can drill down into WHY before approving
+//   4. dependsOn lets us model task ordering (e.g. "create LP" → "run city Search ad")
+//   5. The actual mutation of external systems happens in the executor AFTER
+//      approval, NOT during plan generation
+
+export interface MonthlyTaskImpact {
+    metric: 'conversions' | 'cpa_reduction_pct' | 'spend_savings_ils'
+          | 'ctr_pct' | 'ranking_position' | 'organic_traffic_pct'
+          | 'leads_per_month' | 'roas_pct' | 'qs_points' | 'other'
+    value: number                          // direction implied by metric (e.g. cpa_reduction_pct=15 means -15%)
+    horizon: '7d' | '14d' | '30d' | '60d' | '90d'
+    confidence: 'high' | 'medium' | 'low'  // based on source strength
+    rationale: string                      // Hebrew, 1 sentence: WHY this number
+}
+
+export interface MonthlyTaskSource {
+    type: 'mediaPlan.optimization' | 'mediaPlan.campaign'
+        | 'audit.recommendedActions.immediate' | 'audit.recommendedActions.shortTerm' | 'audit.recommendedActions.ongoing'
+        | 'audit.existingAccountAudit.topRecommendations'
+        | 'audit.industrySignals'
+        | 'gsc.queries' | 'gsc.pages'
+        | 'dfs.keywords'
+        | 'ga4.event' | 'ga4.funnel' | 'ga4.demographics' | 'ga4.seasonality'
+        | 'strategy.positioning' | 'strategy.persona' | 'strategy.intent_ladder'
+        | 'contentPlan.gap' | 'contentPlan.item'
+        | 'sqr.waste' | 'aucIns.opportunity' | 'changeHistory.gap'
+        | 'transparency.competitor'
+        | 'paidHypothesis' | 'other'
+    ref: string                            // e.g. "opt_idx:0,change_idx:0" or "query:קרטונים"
+    excerpt?: string                       // optional Hebrew quote from the source
+}
+
+export interface MonthlyTaskActionStep {
+    step: string                           // Hebrew: WHAT the executor does
+    automated: boolean                     // true = system executes via API after approval; false = user-only TODO
+    estimatedMinutes?: number              // automated steps estimate API call time; manual steps estimate user effort
+}
+
+export interface MonthlyTask {
+    id: string                             // tsk_<nanoid>
+    type: 'paid_optimization' | 'content_creation' | 'landing_page'
+        | 'tracking_setup' | 'audience_expansion' | 'keyword_expansion'
+        | 'cross_channel_amplification' | 'website_change' | 'creative_refresh'
+        | 'measurement_gap' | 'experiment' | 'other'
+    title: string                          // Hebrew, ≤80 chars — shown as task card headline
+    summary: string                        // Hebrew, 1-2 sentences — body of the card
+    channel: 'google_ads' | 'meta' | 'seo' | 'content' | 'gtm' | 'ga4'
+           | 'website' | 'gbp' | 'whatsapp' | 'email' | 'cross'
+    priority: 'P0' | 'P1' | 'P2'           // P0 = ship this week; P1 = this month; P2 = quarterly
+    estimatedEffort: '15_min' | '30_min' | '1_hour' | '2_3_hours' | '1_day' | '2_3_days' | '1_week'
+
+    expectedImpact: MonthlyTaskImpact
+    sources: MonthlyTaskSource[]           // at least 1 — every task must trace to upstream evidence
+    dependsOn: string[]                    // other task IDs that must be approved/completed first
+    actionPlan: MonthlyTaskActionStep[]    // ordered steps the executor runs after approval
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────
+    status: 'proposed' | 'approved' | 'rejected' | 'skipped'
+          | 'in_progress' | 'completed' | 'failed'
+    proposedAt: string
+    approvedAt?: string
+    approvedByUserId?: string
+    rejectedAt?: string
+    rejectedReason?: string                // optional user note explaining why
+    skippedUntil?: string                  // ISO date — re-surfaces in next refresh after this
+    startedAt?: string                     // when executor began
+    completedAt?: string
+    failureReason?: string                 // executor failure detail
+
+    // ── Execution links ───────────────────────────────────────────────────
+    executionOutputId?: string             // agent_outputs row id when executor produces output
+    childTaskIds?: string[]                // sub-tasks spawned during execution
+
+    // ── Cross-references to legacy systems (Coexist mode) ─────────────────
+    paidHypothesisId?: string              // wraps an existing paid_hypothesis
+    contentPlanItemId?: string             // wraps an existing contentPlan.items[] entry
+    mediaPlanOptIndex?: number             // wraps mediaPlan.campaignOptimizations[i]
+}
+
+export interface MonthlyPlanSummary {
+    totalTasks: number
+    byStatus: { proposed: number; approved: number; rejected: number; skipped: number; in_progress: number; completed: number; failed: number }
+    byPriority: { P0: number; P1: number; P2: number }
+    byChannel: Record<string, number>
+    byType: Record<string, number>
+    estimatedTotalImpact: {
+        extraConversions30d?: number
+        spendSavingsIls30d?: number
+        cpaReductionPct?: number
+        extraOrganicTraffic30d?: number
+        extraLeadsPerMonth?: number
+    }
+}
+
+export interface MonthlyPlanOverview {
+    hebrew: string                         // 3-5 sentence strategic narrative for the month
+    keyTheme: string                       // 1-line headline e.g. "אופטימיזציית STAG עירוני + הרחבת cross-sell"
+    focusAreas: string[]                   // 3-5 bullet points (Hebrew)
+}
+
+export interface MonthlyMarketingPlan {
+    generatedAt: string
+    generatedBy: 'cron_monthly' | 'on_demand' | 'auto_refresh'
+    horizon: '30d' | '60d' | '90d'         // window the plan covers
+
+    summary: MonthlyPlanSummary
+    overview: MonthlyPlanOverview
+    tasks: MonthlyTask[]
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────
+    status: 'draft' | 'active' | 'archived'
+    activatedAt?: string                   // first time user interacted with it (saw card / approved task)
+    archivedAt?: string
+    nextRefreshAt?: string                 // when cron should regenerate (~1st of next month)
+
+    // ── Source snapshots (frozen at generation time so we know freshness) ──
+    sourceSnapshots: {
+        mediaPlanGeneratedAt?: string
+        auditGeneratedAt?: string
+        contentPlanGeneratedAt?: string
+        strategyUpdatedAt?: string
+    }
+
+    qualityWarnings?: string[]             // generator-side warnings (e.g. stale audit, missing source)
+}
+
 // Source coverage badge — phase 1 contract.
 // Every Mazhir audit reports which data sources were pulled, when, and why
 // missing ones aren't there. UI renders these as Hebrew badges next to
