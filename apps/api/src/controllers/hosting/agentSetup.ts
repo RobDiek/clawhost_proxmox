@@ -6253,11 +6253,65 @@ export interface CampaignBriefDraft {
     googleAdsCampaignId?: string         // populated after executor launches
 }
 
+// Phase 4.2.3-E: optimization brief against an existing campaign.
+// Produced by Mazhir when tenant is mature_setup (or hybrid). Mazhir references
+// the real Google Ads campaign by id+name and prescribes concrete changes
+// instead of building a fresh campaign from scratch. The executor consumes
+// `campaignOptimizations[]` separately from `campaigns[]` so we can ship
+// optimize-only plans (campaigns:[] is valid in optimize_existing mode).
+export interface CampaignOptimizationBrief {
+    targetCampaignId?: string                // real GAds campaign id (string for safety)
+    targetCampaignName: string               // user-readable name as it appears in Google Ads
+    targetCampaignType?: string              // SEARCH | PERFORMANCE_MAX | DISPLAY | ...
+    currentSnapshot?: {
+        spendIls90d?: number
+        conversions90d?: number
+        clicks90d?: number
+        impressions90d?: number
+        ctr?: number                          // 0-1
+        avgCpcIls?: number
+        convRate?: number                     // 0-1
+        cpaIls?: number
+    }
+    changes: Array<{
+        change:
+            | 'switch_bid_strategy'
+            | 'budget_adjustment'
+            | 'add_negatives'
+            | 'refresh_ad_copy'
+            | 'restructure_ad_groups'
+            | 'add_extensions'
+            | 'pause_keywords'
+            | 'expand_keywords'
+            | 'geo_adjustment'
+            | 'schedule_adjustment'
+            | 'landing_page_change'
+            | 'audience_adjustment'
+            | 'attribution_change'
+            | 'other'
+        what: string                          // Hebrew: WHAT specifically to change (with concrete value/list)
+        why: string                           // Hebrew: WHY — expected impact + reasoning anchored on data
+        priority: 'P0' | 'P1' | 'P2'          // P0 = within 7d, P1 = 7-30d, P2 = ongoing
+        expectedImpact?: string               // Hebrew, quantified when possible
+        requiresApproval: boolean             // true → pending_review; false → Mazhir may auto-apply
+        evidence?: string                     // Hebrew snippet from audit/SQR/AucIns that justifies this change
+    }>
+    overallRationale: string                  // Hebrew, 1-2 sentence headline for this campaign's plan
+}
+
 export interface MediaPlan {
     generatedAt: string
     status: 'draft' | 'pending_review' | 'approved' | 'live' | 'archived'
     approvedAt?: string
     approvedByUserId?: string
+
+    // Phase 4.2.3-E: mode-aware plan shape.
+    //   'build_new'         — greenfield/launch-now: only `campaigns[]` populated
+    //   'hybrid'            — partial: `campaignOptimizations[]` + supplementary `campaigns[]`
+    //   'optimize_existing' — mature: `campaignOptimizations[]` primary; `campaigns[]`
+    //                         may be empty or list ONLY new supplementary campaigns
+    //                         (e.g. remarketing layer) that complement existing ones.
+    planMode?: 'build_new' | 'hybrid' | 'optimize_existing'
 
     methodology: {
         framework: 'STAG' | 'STAG+PMax' | 'Hagakure' | 'Hagakure+PMax+DemandGen' | 'compressed_launch_now'
@@ -6274,6 +6328,7 @@ export interface MediaPlan {
     }
 
     campaigns: CampaignBriefDraft[]
+    campaignOptimizations?: CampaignOptimizationBrief[]
 
     negativeKeywordLibrary: {
         industry: string[]               // e.g. ['free storage', 'diy storage'] for paid storage biz

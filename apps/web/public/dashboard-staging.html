@@ -9795,10 +9795,32 @@ function renderMazhirCard() {
         '<div style="font-size:0.74rem;color:#9CA3AF;margin-top:3px">' + escapeHtml(lastExec.startedAt) + '</div>' +
       '</div>';
     }
+    // Phase 4.2.3-E: mode-aware title.
+    //   optimize_existing → "אופטימיזציה — N קמפיינים קיימים"
+    //   hybrid            → "היברידי — N אופטימיזציות + M חדשים"
+    //   build_new         → legacy: "תוכנית מדיה · N קמפיינים"
+    var _planMode = mediaPlan.planMode || 'build_new';
+    var _optCount = (mediaPlan.campaignOptimizations || []).length;
+    var _campCount = mediaPlan.campaigns ? mediaPlan.campaigns.length : 0;
+    var _modeBadgeBg = _planMode === 'optimize_existing' ? '#0EA5E9'
+                     : _planMode === 'hybrid' ? '#8B5CF6'
+                     : '#10B981';
+    var _modeBadgeLabel = _planMode === 'optimize_existing' ? '⚡ אופטימיזציה'
+                        : _planMode === 'hybrid' ? '⚙ היברידי'
+                        : '🆕 בנייה מאפס';
+    var _titleStats = _planMode === 'optimize_existing'
+        ? (_optCount + ' אופטימיזציות' + (_campCount > 0 ? ' + ' + _campCount + ' קמפיינים חדשים' : ''))
+        : _planMode === 'hybrid'
+            ? (_optCount + ' אופטימיזציות + ' + _campCount + ' חדשים')
+            : (_campCount + ' קמפיינים');
     workflowHtml =
       '<div style="margin-top:14px;padding:14px 16px;background:#F9FAFB;border-radius:10px;border:1px solid #E5E7EB">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">' +
-          '<div style="font-weight:600;color:#1F2937;font-size:0.92rem">תוכנית מדיה · ' + (mediaPlan.campaigns ? mediaPlan.campaigns.length : 0) + ' קמפיינים · <span style="color:' + statusColor + '">' + statusLabel + '</span></div>' +
+          '<div style="display:flex;align-items:center;gap:8px;font-weight:600;color:#1F2937;font-size:0.92rem">' +
+            '<span>תוכנית מדיה · ' + _titleStats + '</span>' +
+            '<span style="font-size:0.7rem;font-weight:600;padding:2px 8px;border-radius:999px;background:' + _modeBadgeBg + '15;color:' + _modeBadgeBg + ';border:1px solid ' + _modeBadgeBg + '40">' + _modeBadgeLabel + '</span>' +
+            '<span style="color:' + statusColor + '">' + statusLabel + '</span>' +
+          '</div>' +
           '<div style="display:flex;gap:6px">' +
             '<button class="btn btn-outline btn-sm" onclick="showMazhirMediaPlan()" style="font-size:0.78rem">צפו</button>' +
             (mediaPlan.status !== 'approved' ? '<button class="btn btn-primary btn-sm" onclick="approveMazhirMediaPlan()" id="mazhir-approve-btn" style="font-size:0.78rem">✓ אשרו</button>' : '') +
@@ -10894,8 +10916,15 @@ async function generateMazhirMediaPlanFromTasks() {
       if (!instanceData.researchData.strategy) instanceData.researchData.strategy = {};
       if (typeof instanceData.researchData.strategy === 'object') instanceData.researchData.strategy.mediaPlan = plan;
     }
-    var n = (plan && Array.isArray(plan.campaigns)) ? plan.campaigns.length : 0;
-    showToast('תוכנית מדיה מוכנה ✓ · ' + n + ' קמפיינים', 'success');
+    // Phase 4.2.3-E: mode-aware success toast
+    var nC = (plan && Array.isArray(plan.campaigns)) ? plan.campaigns.length : 0;
+    var nO = (plan && Array.isArray(plan.campaignOptimizations)) ? plan.campaignOptimizations.length : 0;
+    var msg = plan && plan.planMode === 'optimize_existing'
+        ? ('תוכנית אופטימיזציה מוכנה ✓ · ' + nO + ' קמפיינים קיימים' + (nC > 0 ? ' + ' + nC + ' חדשים' : ''))
+        : plan && plan.planMode === 'hybrid'
+            ? ('תוכנית היברידית מוכנה ✓ · ' + nO + ' אופטימיזציות + ' + nC + ' חדשים')
+            : ('תוכנית מדיה מוכנה ✓ · ' + nC + ' קמפיינים');
+    showToast(msg, 'success');
     if (typeof renderApprovalQueue === 'function') renderApprovalQueue();
   } catch (err) {
     showToast('יצירת תוכנית נכשלה: ' + (err.message || err), 'error');
@@ -11894,7 +11923,15 @@ async function generateMazhirMediaPlan() {
       var rF = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/media-plan?force=1', { method: 'POST' });
       if (!rF.success) throw new Error(rF.message || 'Media plan generation failed');
       var planF = rF.data && rF.data.mediaPlan;
-      showToast('תוכנית מדיה נוצרה (force) ✓ · ' + (planF.campaigns ? planF.campaigns.length : 0) + ' קמפיינים', 'success');
+      // Phase 4.2.3-E: mode-aware toast
+      var _fnC = (planF && Array.isArray(planF.campaigns)) ? planF.campaigns.length : 0;
+      var _fnO = (planF && Array.isArray(planF.campaignOptimizations)) ? planF.campaignOptimizations.length : 0;
+      var _fMsg = planF && planF.planMode === 'optimize_existing'
+          ? ('תוכנית אופטימיזציה נוצרה (force) ✓ · ' + _fnO + ' קמפיינים קיימים' + (_fnC > 0 ? ' + ' + _fnC + ' חדשים' : ''))
+          : planF && planF.planMode === 'hybrid'
+              ? ('תוכנית היברידית נוצרה (force) ✓ · ' + _fnO + ' אופטימיזציות + ' + _fnC + ' חדשים')
+              : ('תוכנית מדיה נוצרה (force) ✓ · ' + _fnC + ' קמפיינים');
+      showToast(_fMsg, 'success');
       if (instanceData && instanceData.researchData) {
         if (!instanceData.researchData.strategy) instanceData.researchData.strategy = {};
         instanceData.researchData.strategy.mediaPlan = planF;
@@ -11914,7 +11951,15 @@ async function generateMazhirMediaPlan() {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/media-plan', { method: 'POST' });
     if (!r.success) throw new Error(r.message || 'Media plan generation failed');
     var plan = r.data && r.data.mediaPlan;
-    showToast('תוכנית מדיה נוצרה ✓ · ' + (plan.campaigns ? plan.campaigns.length : 0) + ' קמפיינים', 'success');
+    // Phase 4.2.3-E: mode-aware toast
+    var _nC = (plan && Array.isArray(plan.campaigns)) ? plan.campaigns.length : 0;
+    var _nO = (plan && Array.isArray(plan.campaignOptimizations)) ? plan.campaignOptimizations.length : 0;
+    var _msgOk = plan && plan.planMode === 'optimize_existing'
+        ? ('תוכנית אופטימיזציה נוצרה ✓ · ' + _nO + ' קמפיינים קיימים' + (_nC > 0 ? ' + ' + _nC + ' חדשים' : ''))
+        : plan && plan.planMode === 'hybrid'
+            ? ('תוכנית היברידית נוצרה ✓ · ' + _nO + ' אופטימיזציות + ' + _nC + ' חדשים')
+            : ('תוכנית מדיה נוצרה ✓ · ' + _nC + ' קמפיינים');
+    showToast(_msgOk, 'success');
     if (instanceData && instanceData.researchData) {
       if (!instanceData.researchData.strategy) instanceData.researchData.strategy = {};
       instanceData.researchData.strategy.mediaPlan = plan;
