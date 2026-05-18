@@ -71,6 +71,8 @@ import {
     getMazhirAudit,
     getMazhirDataPreflight,
     getMazhirTenantState,
+    generateMonthlyPlanController,
+    getMonthlyPlanController,
     generateMazhirMediaPlan,
     getMazhirMediaPlan,
     approveMazhirMediaPlan,
@@ -444,6 +446,9 @@ app.get('/instances/:id/mazhir/audit', getMazhirAudit)
 app.get('/instances/:id/mazhir/data-preflight', getMazhirDataPreflight)
 // Phase 4.2.3-F — tenant state classification (read-only) for UI mode-awareness
 app.get('/instances/:id/mazhir/tenant-state', getMazhirTenantState)
+// Phase 4.3-B — unified monthly marketing plan (paid + organic + content synthesis)
+app.post('/instances/:id/monthly-plan', generateMonthlyPlanController)
+app.get('/instances/:id/monthly-plan', getMonthlyPlanController)
 app.post('/instances/:id/mazhir/media-plan', generateMazhirMediaPlan)
 app.get('/instances/:id/mazhir/media-plan', getMazhirMediaPlan)
 app.post('/instances/:id/mazhir/media-plan/approve', approveMazhirMediaPlan)

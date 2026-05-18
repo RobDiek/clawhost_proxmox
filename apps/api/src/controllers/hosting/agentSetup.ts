@@ -8918,6 +8918,37 @@ export const getMazhirTenantState = async (c: Context) => {
     }
 }
 
+// ─── Phase 4.3-B: Unified Monthly Marketing Plan ─────────────────────────
+// POST  /hosting/instances/:id/monthly-plan          — generate (on-demand)
+// GET   /hosting/instances/:id/monthly-plan          — read current plan
+
+export const generateMonthlyPlanController = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { generateMonthlyPlan } = await import('@/services/monthlyPlanGenerator')
+        const trigger = (c.req.query('trigger') as 'cron_monthly' | 'on_demand' | 'auto_refresh') || 'on_demand'
+        const result = await generateMonthlyPlan(instanceId, trigger)
+        return ok(c, result, `Monthly plan generated · ${result.monthlyPlan.summary.totalTasks} tasks`)
+    } catch (err) {
+        console.error('generateMonthlyPlanController error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+export const getMonthlyPlanController = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { resolveActiveAgent, readResearchData } = await import('@/services/agentContext')
+        const agent = await resolveActiveAgent(c, instanceId)
+        const rd: any = (await readResearchData(agent, instanceId)) || {}
+        return ok(c, { monthlyPlan: rd.monthlyPlan || null })
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/mazhir/media-plan — generate plan ────────
 export const generateMazhirMediaPlan = async (c: Context) => {
     try {
