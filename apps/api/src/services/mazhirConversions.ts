@@ -138,13 +138,19 @@ export async function checkEnhancedConversionsEligibility(
     loginCustomerId?: string,
 ): Promise<{ eligible: boolean; reason: string; rawSetting?: any }> {
     try {
-        const data = await gadsFetch(customerId, 'googleAds:search', googleTokens, developerToken, {
+        const data = await gadsFetch(customerId, 'googleAds:searchStream', googleTokens, developerToken, {
             query: `SELECT customer.conversion_tracking_setting.accepted_customer_data_terms,
                            customer.conversion_tracking_setting.enhanced_conversions_for_leads_enabled,
                            customer.conversion_tracking_setting.google_ads_conversion_customer
                     FROM customer`,
         }, loginCustomerId)
-        const row = (data.results || data?.[0]?.results)?.[0]
+        const chunks = Array.isArray(data) ? data : [data]
+        const allRows: any[] = []
+        for (const chunk of chunks) {
+            const rows = chunk?.results || []
+            for (const r of rows) allRows.push(r)
+        }
+        const row = allRows[0]
         const setting = row?.customer?.conversionTrackingSetting || row?.customer?.conversion_tracking_setting
         if (!setting) return { eligible: false, reason: 'No conversion_tracking_setting available — account may not be fully provisioned' }
         if (!setting.acceptedCustomerDataTerms && !setting.accepted_customer_data_terms) {
@@ -157,20 +163,31 @@ export async function checkEnhancedConversionsEligibility(
 }
 
 // ─── Find existing conversion actions by name (idempotency support) ──────
-// Phase 4.2.1-O: SELECT no longer redundantly lists resource_name (it's always
-// returned by default in v22 search responses — having both `id` AND
-// `resource_name` on `conversion_action` was triggering one source of the
-// 400 "Request contains an invalid argument" we saw on prod). Also fixed
-// the WHERE on enum field — v22 GAQL accepts unquoted enums for status.
+// Phase 4.2.1-Q: switch from googleAds:search to googleAds:searchStream
+// (matches baseline's gaqlQuery — known to work against the same operating
+// sub-account with login-customer-id header set to the MCC root). `:search`
+// was returning 403 USER_PERMISSION_DENIED despite identical credentials,
+// likely because v22 enforces different per-endpoint auth for the non-stream
+// `:search` variant when the OAuth user is a client-customer user (not
+// directly authorized on the manager). Stream variant doesn't have this
+// restriction.
 async function findExistingAction(customerId: string, tokens: GoogleTokens, developerToken: string, name: string, loginCustomerId?: string): Promise<{ resourceName: string; tagSnippets: any[] } | null> {
     try {
         const escName = name.replace(/'/g, "\\'")
-        const data = await gadsFetch(customerId, 'googleAds:search', tokens, developerToken, {
+        const data = await gadsFetch(customerId, 'googleAds:searchStream', tokens, developerToken, {
             query: `SELECT conversion_action.id, conversion_action.name, conversion_action.tag_snippets, conversion_action.status
                     FROM conversion_action
                     WHERE conversion_action.name = '${escName}'`,
         }, loginCustomerId)
-        const row = (data.results || data?.[0]?.results)?.[0]
+        // searchStream returns an array of response chunks: [{ results: [...] }, ...]
+        // Flatten across chunks since a chunk can contain a subset of rows.
+        const chunks = Array.isArray(data) ? data : [data]
+        const allRows: any[] = []
+        for (const chunk of chunks) {
+            const rows = chunk?.results || []
+            for (const r of rows) allRows.push(r)
+        }
+        const row = allRows[0]
         if (!row) return null
         const action = row.conversionAction || row.conversion_action
         return {
@@ -233,6 +250,13 @@ export async function ensureConversionAction(
     }
 
     // 2. Create new
+    // Phase 4.2.1-Q: removed `attribution_model_settings.attribution_model`.
+    // v22 returned 400 INVALID_ARGUMENT for 'GOOGLE_ADS_DATA_DRIVEN' —
+    // that enum value doesn't exist in v22 (canonical name is now
+    // 'GOOGLE_ANALYTICS_DATA_DRIVEN' but that's GA-only; for Google Ads
+    // accounts, attribution model is auto-assigned by Google when creating
+    // new conversion actions — explicitly setting it is unnecessary and
+    // brittle across API versions. Let Google pick the default DDA.
     const createBody = {
         operations: [{
             create: {
@@ -245,9 +269,6 @@ export async function ensureConversionAction(
                 countingType: spec.countingType || meta.countingType,
                 clickThroughLookbackWindowDays: meta.clickThroughDays,
                 viewThroughLookbackWindowDays: meta.viewThroughDays,
-                attributionModelSettings: {
-                    attributionModel: 'GOOGLE_ADS_DATA_DRIVEN',
-                },
                 valueSettings: {
                     defaultValue: spec.defaultValueIls,
                     defaultCurrencyCode: 'ILS',
@@ -264,17 +285,25 @@ export async function ensureConversionAction(
     if (!resourceName) throw new Error(`Create returned no resourceName: ${JSON.stringify(createRes).slice(0, 300)}`)
 
     // 3. Read back tag_snippets to extract (conversionId, conversionLabel)
+    // Phase 4.2.1-Q: also use :searchStream here (same auth pattern as
+    // findExistingAction above).
     const conversionActionId = resourceName.split('/').pop()
     let idLabel: { conversionId: string; conversionLabel: string } | null = null
     for (let attempt = 0; attempt < 4 && !idLabel; attempt++) {
         if (attempt > 0) await new Promise(r => setTimeout(r, 1500))
         try {
-            const data = await gadsFetch(customerId, 'googleAds:search', tokens, developerToken, {
+            const data = await gadsFetch(customerId, 'googleAds:searchStream', tokens, developerToken, {
                 query: `SELECT conversion_action.id, conversion_action.tag_snippets
                         FROM conversion_action
                         WHERE conversion_action.id = ${conversionActionId}`,
             }, loginCustomerId)
-            const row = (data.results || data?.[0]?.results)?.[0]
+            const chunks = Array.isArray(data) ? data : [data]
+            const allRows: any[] = []
+            for (const chunk of chunks) {
+                const rows = chunk?.results || []
+                for (const r of rows) allRows.push(r)
+            }
+            const row = allRows[0]
             const snippets = row?.conversionAction?.tagSnippets || row?.conversion_action?.tag_snippets || []
             idLabel = extractIdAndLabelFromSnippets(snippets)
         } catch (err) {
