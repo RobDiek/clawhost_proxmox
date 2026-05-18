@@ -250,13 +250,13 @@ export async function ensureConversionAction(
     }
 
     // 2. Create new
-    // Phase 4.2.1-Q: removed `attribution_model_settings.attribution_model`.
-    // v22 returned 400 INVALID_ARGUMENT for 'GOOGLE_ADS_DATA_DRIVEN' —
-    // that enum value doesn't exist in v22 (canonical name is now
-    // 'GOOGLE_ANALYTICS_DATA_DRIVEN' but that's GA-only; for Google Ads
-    // accounts, attribution model is auto-assigned by Google when creating
-    // new conversion actions — explicitly setting it is unnecessary and
-    // brittle across API versions. Let Google pick the default DDA.
+    // Phase 4.2.1-Q: removed `attribution_model_settings.attribution_model`
+    // (enum value 'GOOGLE_ADS_DATA_DRIVEN' doesn't exist in v22 — Google
+    // auto-assigns DDA for new actions).
+    // Phase 4.2.1-R: removed `include_in_conversions_metric` — v22 marks
+    // this field IMMUTABLE on create (system-managed at creation time;
+    // can be modified later via update). Trying to set it returned
+    // 400 IMMUTABLE_FIELD.
     const createBody = {
         operations: [{
             create: {
@@ -265,7 +265,6 @@ export async function ensureConversionAction(
                 type: meta.type,
                 status: 'ENABLED',
                 primaryForGoal: meta.primaryForGoal,
-                includeInConversionsMetric: true,
                 countingType: spec.countingType || meta.countingType,
                 clickThroughLookbackWindowDays: meta.clickThroughDays,
                 viewThroughLookbackWindowDays: meta.viewThroughDays,
