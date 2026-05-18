@@ -539,6 +539,101 @@ Output STRICT JSON — no markdown fences, no commentary. Schema in user message
     // Persist via dual-write
     await writeResearchData(agent, instanceId, { ...rd, monthlyPlan: plan })
 
+    // ─── Phase 4.3-C: emit ONE agent_outputs row PER TASK ─────────────────
+    // Each task surfaces in משימות פעילות as its own approval card.
+    // outputType='monthly_task' triggers the task lifecycle UI on the dashboard.
+    // Carry-over tasks (those that already exist from prior month) get their
+    // existing output row reused — detect by metadata.taskId match.
+    const taskOutputIdByTaskId = new Map<string, string>()
+    try {
+        // Find any existing monthly_task outputs for this instance — to detect carry-over
+        const { and, eq: eqOp, sql } = await import('drizzle-orm')
+        const existing = await db.select().from(agentOutputs)
+            .where(and(
+                eqOp(agentOutputs.instanceId, instanceId),
+                eqOp(agentOutputs.outputType, 'monthly_task'),
+            ))
+        const existingByTaskId = new Map<string, any>()
+        for (const row of existing) {
+            const tid = (row.metadata as any)?.taskId
+            if (tid) existingByTaskId.set(tid, row)
+        }
+
+        for (const task of plan.tasks) {
+            const carry = existingByTaskId.get(task.id)
+            if (carry && (carry.status === 'pending_review' || carry.status === 'approved' || carry.status === 'in_progress')) {
+                // Carry-over: reuse the existing output row, update content + metadata
+                taskOutputIdByTaskId.set(task.id, carry.id)
+                await db.update(agentOutputs).set({
+                    title: `${task.priority} · ${task.title}`.slice(0, 200),
+                    content: JSON.stringify({
+                        summary: task.summary,
+                        type: task.type,
+                        channel: task.channel,
+                        priority: task.priority,
+                        estimatedEffort: task.estimatedEffort,
+                        expectedImpact: task.expectedImpact,
+                        sources: task.sources,
+                        actionPlan: task.actionPlan,
+                        dependsOn: task.dependsOn,
+                    }, null, 2).slice(0, 12000),
+                    metadata: {
+                        taskId: task.id,
+                        type: task.type,
+                        channel: task.channel,
+                        priority: task.priority,
+                        monthlyPlanGeneratedAt: plan.generatedAt,
+                    } as any,
+                }).where(eqOp(agentOutputs.id, carry.id))
+                continue
+            }
+
+            // New task → new output row
+            const [taskRow] = await db.insert(agentOutputs).values({
+                id: 'mt_' + randomBytes(6).toString('hex'),
+                instanceId,
+                agentRole: 'mazhir',
+                outputType: 'monthly_task',
+                platform: task.channel === 'google_ads' ? 'google_ads'
+                        : task.channel === 'meta' ? 'meta'
+                        : task.channel === 'seo' || task.channel === 'content' ? 'content'
+                        : 'multi',
+                status: 'pending_review',
+                title: `${task.priority} · ${task.title}`.slice(0, 200),
+                content: JSON.stringify({
+                    summary: task.summary,
+                    type: task.type,
+                    channel: task.channel,
+                    priority: task.priority,
+                    estimatedEffort: task.estimatedEffort,
+                    expectedImpact: task.expectedImpact,
+                    sources: task.sources,
+                    actionPlan: task.actionPlan,
+                    dependsOn: task.dependsOn,
+                }, null, 2).slice(0, 12000),
+                metadata: {
+                    taskId: task.id,
+                    type: task.type,
+                    channel: task.channel,
+                    priority: task.priority,
+                    monthlyPlanGeneratedAt: plan.generatedAt,
+                } as any,
+            }).returning()
+            if (taskRow?.id) taskOutputIdByTaskId.set(task.id, taskRow.id)
+        }
+
+        // Mirror per-task output ID back onto each task for executor cross-ref
+        for (const task of plan.tasks) {
+            const oid = taskOutputIdByTaskId.get(task.id)
+            if (oid) task.executionOutputId = oid
+        }
+        // Re-persist with executionOutputIds populated
+        await writeResearchData(agent, instanceId, { ...rd, monthlyPlan: plan })
+        console.log(`[monthlyPlanGenerator] ${instanceId}: emitted ${taskOutputIdByTaskId.size} per-task agent_outputs rows`)
+    } catch (err) {
+        console.warn('[monthlyPlanGenerator] per-task output emission failed:', (err as Error).message)
+    }
+
     // Surface to approval queue (overall plan; per-task surface in Phase C)
     let outputId: string | undefined
     try {

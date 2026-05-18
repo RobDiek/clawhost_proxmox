@@ -8949,6 +8949,147 @@ export const getMonthlyPlanController = async (c: Context) => {
     }
 }
 
+// ─── Phase 4.3-C: per-task lifecycle (approve / reject / skip) ───────────
+//
+// Approve = user signs off → executor runs the actionPlan asynchronously.
+// Reject  = task dropped for this cycle (with optional reason).
+// Skip    = defer until skipUntil ISO date (re-surfaces in next refresh).
+// All three mutate research_data.monthlyPlan.tasks[].status AND the per-task
+// agent_outputs row, keeping the משימות פעילות feed and the plan in sync.
+
+async function _mutateMonthlyTaskStatus(
+    instanceId: string,
+    taskId: string,
+    next: { status: 'approved' | 'rejected' | 'skipped'; rejectedReason?: string; skippedUntil?: string; approvedByUserId?: string },
+): Promise<{ ok: boolean; task?: any; outputId?: string }> {
+    const { resolvePrimaryAgent, mutateResearchData } = await import('@/services/agentContext')
+    const agent = await resolvePrimaryAgent(instanceId)
+    let task: any = null
+    let outputId: string | undefined
+    await mutateResearchData(agent, instanceId, (rd: any) => {
+        const plan = rd.monthlyPlan
+        if (!plan?.tasks) return rd
+        const t = plan.tasks.find((x: any) => x.id === taskId)
+        if (!t) return rd
+        t.status = next.status
+        if (next.status === 'approved') {
+            t.approvedAt = new Date().toISOString()
+            t.approvedByUserId = next.approvedByUserId
+        } else if (next.status === 'rejected') {
+            t.rejectedAt = new Date().toISOString()
+            t.rejectedReason = next.rejectedReason
+        } else if (next.status === 'skipped') {
+            t.skippedUntil = next.skippedUntil
+        }
+        task = t
+        outputId = t.executionOutputId
+        // Refresh summary.byStatus
+        if (plan.summary?.byStatus) {
+            const counts: any = { proposed: 0, approved: 0, rejected: 0, skipped: 0, in_progress: 0, completed: 0, failed: 0 }
+            for (const tk of plan.tasks) counts[tk.status] = (counts[tk.status] || 0) + 1
+            plan.summary.byStatus = counts
+        }
+        return rd
+    })
+    return { ok: !!task, task, outputId }
+}
+
+export const approveMonthlyTask = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const taskId = c.req.param('taskId')
+        const userId = resolveUserId(c)
+        if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
+
+        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'approved', approvedByUserId: userId || undefined })
+        if (!r.ok) return fail(c, `Task ${taskId} not found in monthlyPlan`, 404)
+
+        // Mirror status on per-task agent_outputs row
+        if (r.outputId) {
+            try {
+                await db.update(agentOutputs).set({ status: 'approved' }).where(eq(agentOutputs.id, r.outputId))
+            } catch (err) {
+                console.warn('[approveMonthlyTask] failed to update output row:', (err as Error).message)
+            }
+        }
+
+        // Fire-and-forget executor — runs in background after HTTP response
+        ;(async () => {
+            try {
+                const { executeTask } = await import('@/services/monthlyTaskExecutor')
+                const result = await executeTask(instanceId, taskId)
+                console.log(`[approveMonthlyTask] ${instanceId}/${taskId}: executor result ok=${result.ok}, ${result.outputDescription?.slice(0, 100)}`)
+            } catch (err) {
+                console.error(`[approveMonthlyTask] ${instanceId}/${taskId}: executor crashed:`, err)
+            }
+        })()
+
+        return ok(c, { task: r.task }, 'Task approved — executing in background')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+export const rejectMonthlyTask = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const taskId = c.req.param('taskId')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        let body: any = {}
+        try { body = await c.req.json() } catch { /* allow empty body */ }
+        const reason = typeof body.reason === 'string' ? body.reason.slice(0, 500) : undefined
+
+        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'rejected', rejectedReason: reason })
+        if (!r.ok) return fail(c, `Task ${taskId} not found in monthlyPlan`, 404)
+        if (r.outputId) {
+            try {
+                await db.update(agentOutputs).set({ status: 'rejected' }).where(eq(agentOutputs.id, r.outputId))
+            } catch (err) {
+                console.warn('[rejectMonthlyTask] failed to update output row:', (err as Error).message)
+            }
+        }
+        return ok(c, { task: r.task }, 'Task rejected')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+export const skipMonthlyTask = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const taskId = c.req.param('taskId')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        let body: any = {}
+        try { body = await c.req.json() } catch { /* allow empty body */ }
+        let skippedUntil: string | undefined
+        if (typeof body.skippedUntil === 'string') {
+            const d = new Date(body.skippedUntil)
+            if (!isNaN(d.getTime())) skippedUntil = d.toISOString()
+        }
+        if (!skippedUntil) {
+            // Default: skip until next monthly refresh (1st of next month)
+            const now = new Date()
+            const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+            skippedUntil = next.toISOString()
+        }
+
+        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'skipped', skippedUntil })
+        if (!r.ok) return fail(c, `Task ${taskId} not found in monthlyPlan`, 404)
+        if (r.outputId) {
+            try {
+                await db.update(agentOutputs).set({ status: 'archived' }).where(eq(agentOutputs.id, r.outputId))
+            } catch (err) {
+                console.warn('[skipMonthlyTask] failed to update output row:', (err as Error).message)
+            }
+        }
+        return ok(c, { task: r.task, skippedUntil }, 'Task skipped')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/mazhir/media-plan — generate plan ────────
 export const generateMazhirMediaPlan = async (c: Context) => {
     try {

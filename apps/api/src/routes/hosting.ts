@@ -73,6 +73,9 @@ import {
     getMazhirTenantState,
     generateMonthlyPlanController,
     getMonthlyPlanController,
+    approveMonthlyTask,
+    rejectMonthlyTask,
+    skipMonthlyTask,
     generateMazhirMediaPlan,
     getMazhirMediaPlan,
     approveMazhirMediaPlan,
@@ -449,6 +452,10 @@ app.get('/instances/:id/mazhir/tenant-state', getMazhirTenantState)
 // Phase 4.3-B — unified monthly marketing plan (paid + organic + content synthesis)
 app.post('/instances/:id/monthly-plan', generateMonthlyPlanController)
 app.get('/instances/:id/monthly-plan', getMonthlyPlanController)
+// Phase 4.3-C — per-task lifecycle (approve fires executor; reject + skip mutate only)
+app.post('/instances/:id/monthly-plan/tasks/:taskId/approve', approveMonthlyTask)
+app.post('/instances/:id/monthly-plan/tasks/:taskId/reject', rejectMonthlyTask)
+app.post('/instances/:id/monthly-plan/tasks/:taskId/skip', skipMonthlyTask)
 app.post('/instances/:id/mazhir/media-plan', generateMazhirMediaPlan)
 app.get('/instances/:id/mazhir/media-plan', getMazhirMediaPlan)
 app.post('/instances/:id/mazhir/media-plan/approve', approveMazhirMediaPlan)
