@@ -72,23 +72,49 @@ function loadSeoResearch2026(): string {
 }
 
 async function callOpus(args: { apiKey: string; model: string; system: string; user: string; maxTokens?: number; timeoutMs?: number }): Promise<string> {
-    const res = await fetch(ANTHROPIC_URL, {
-        method: 'POST',
-        headers: {
-            'x-api-key': args.apiKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-            model: args.model,
-            max_tokens: args.maxTokens || 32000,
-            system: args.system,
-            messages: [{ role: 'user', content: args.user }],
-        }),
-        signal: AbortSignal.timeout(args.timeoutMs || 600000),
+    const body = JSON.stringify({
+        model: args.model,
+        max_tokens: args.maxTokens || 32000,
+        system: args.system,
+        messages: [{ role: 'user', content: args.user }],
     })
+    console.log(`[callOpus] POST ${ANTHROPIC_URL} model=${args.model} max_tokens=${args.maxTokens} bodyLen=${body.length} apiKeyLen=${args.apiKey?.length || 0}`)
+    let res: Response
+    try {
+        res = await fetch(ANTHROPIC_URL, {
+            method: 'POST',
+            headers: {
+                'x-api-key': args.apiKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json',
+            },
+            body,
+            signal: AbortSignal.timeout(args.timeoutMs || 600000),
+        })
+    } catch (err) {
+        // Extract undici's `cause` chain — that's where the real network/parse
+        // error lives. `fetch failed` is just the wrapper message.
+        const e = err as any
+        const cause = e?.cause
+        const chain: any[] = []
+        let cur = e
+        while (cur && chain.length < 5) {
+            chain.push({
+                name: cur.name,
+                message: cur.message,
+                code: cur.code,
+                errno: cur.errno,
+                syscall: cur.syscall,
+                hostname: cur.hostname,
+            })
+            cur = cur.cause
+        }
+        console.error(`[callOpus] fetch threw. chain=${JSON.stringify(chain, null, 2)} causeMsg=${cause?.message || '(none)'}`)
+        throw new Error(`Anthropic fetch failed: ${e.message} — cause: ${cause?.message || cause?.code || '(unknown)'}`)
+    }
     if (!res.ok) {
         const t = await res.text().catch(() => '')
+        console.error(`[callOpus] HTTP ${res.status} body=${t.slice(0, 1000)}`)
         throw new Error(`Opus ${res.status}: ${t.slice(0, 400)}`)
     }
     const j = await res.json() as any
