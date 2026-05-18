@@ -25,9 +25,8 @@
  *   https://developers.google.com/tag-platform/tag-manager/api/v2/devguide
  */
 
-import { eq } from 'drizzle-orm'
-import { db } from '@/db'
-import { instances } from '@/db/schema'
+// Phase 4.2.1-N: research_data writes go via mutateResearchData (in
+// agentContext) — direct `instances` table writes were silently clobbered.
 
 const GTM_BASE = 'https://tagmanager.googleapis.com/tagmanager/v2'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
@@ -426,20 +425,28 @@ export async function autoSetupGtmContainer(
 }
 
 // ─── Persist GTM target choice on instance.researchData.mazhirGtm ─────────
+// Phase 4.2.1-N: writes via mutateResearchData so that BOTH instances AND
+// mateh_agents tables get updated. Earlier impl wrote only to instances,
+// which meant any subsequent patchResearchData() call (e.g. integrations sync,
+// google-ads-mode) — which reads from mateh_agents (no mazhirGtm) and writes
+// back to BOTH tables — would silently wipe mazhirGtm from instances.
+// Same class of bug as the Google Ads DB sync gap.
 export async function saveGtmTarget(instanceId: string, target: GtmTarget): Promise<void> {
-    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-    if (!inst) throw new Error('Instance not found')
-    const rd: any = inst.researchData || {}
-    rd.mazhirGtm = { ...(rd.mazhirGtm || {}), target, savedAt: new Date().toISOString() }
-    await db.update(instances).set({ researchData: rd as any }).where(eq(instances.id, instanceId))
+    const { resolvePrimaryAgent, mutateResearchData } = await import('@/services/agentContext')
+    const agent = await resolvePrimaryAgent(instanceId)
+    await mutateResearchData(agent, instanceId, (rd: any) => {
+        rd.mazhirGtm = { ...(rd.mazhirGtm || {}), target, savedAt: new Date().toISOString() }
+        return rd
+    })
 }
 
 export async function saveGtmSetupResult(instanceId: string, result: GtmAutoSetupResult): Promise<void> {
-    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-    if (!inst) throw new Error('Instance not found')
-    const rd: any = inst.researchData || {}
-    rd.mazhirGtm = { ...(rd.mazhirGtm || {}), lastSetupResult: result, lastSetupAt: new Date().toISOString() }
-    await db.update(instances).set({ researchData: rd as any }).where(eq(instances.id, instanceId))
+    const { resolvePrimaryAgent, mutateResearchData } = await import('@/services/agentContext')
+    const agent = await resolvePrimaryAgent(instanceId)
+    await mutateResearchData(agent, instanceId, (rd: any) => {
+        rd.mazhirGtm = { ...(rd.mazhirGtm || {}), lastSetupResult: result, lastSetupAt: new Date().toISOString() }
+        return rd
+    })
 }
 
 // ─── Phase 4.2.1-M: Create a new GTM container under user's account ──────

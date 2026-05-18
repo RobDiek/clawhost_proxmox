@@ -342,9 +342,16 @@ export async function setupConversionActionsForInstance(
             defaultCurrency: 'ILS',
         }))
 
-    // Persist
-    rd.mazhirConversions = { created, warnings, savedAt: new Date().toISOString() }
-    await db.update(instances).set({ researchData: rd as any }).where(eq(instances.id, instanceId))
+    // Persist via mutateResearchData so BOTH instances + mateh_agents tables
+    // get updated. Phase 4.2.1-N — same fix as saveGtmTarget/saveGtmSetupResult:
+    // single-table writes get clobbered by subsequent patchResearchData calls
+    // that read from mateh_agents and dual-write back.
+    const { resolvePrimaryAgent, mutateResearchData } = await import('@/services/agentContext')
+    const agent = await resolvePrimaryAgent(instanceId)
+    await mutateResearchData(agent, instanceId, (cur: any) => {
+        cur.mazhirConversions = { created, warnings, savedAt: new Date().toISOString() }
+        return cur
+    })
 
     return { created, gtmConfigs, warnings }
 }
