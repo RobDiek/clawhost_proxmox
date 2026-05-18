@@ -74,8 +74,17 @@ async function gadsFetch(customerId: string, path: string, tokens: GoogleTokens,
     let data: any = {}
     try { data = text ? JSON.parse(text) : {} } catch { data = { raw: text } }
     if (!res.ok) {
-        const m = data?.error?.message || data?.error?.details?.[0]?.errors?.[0]?.message || text.slice(0, 400)
-        throw new Error(`GAds ${method} ${path} → ${res.status}: ${m}`)
+        // Phase 4.2.1-P: surface deep error info so 403/permission diagnoses
+        // are not flattened to "The caller does not have permission". The
+        // first GoogleAdsError inside details often names the exact failed
+        // field/resource which tells us if it's tier, scope, or account-link.
+        const firstErr = data?.error?.details?.[0]?.errors?.[0]
+        const errType = firstErr?.errorCode ? Object.entries(firstErr.errorCode).map(([k, v]) => `${k}=${v}`).join(',') : ''
+        const trigger = firstErr?.trigger?.stringValue || firstErr?.trigger?.int64Value || ''
+        const m = firstErr?.message || data?.error?.message || text.slice(0, 400)
+        const fullDiag = `GAds ${method} ${path} cust=${customerId} login=${loginCustomerId || '<none>'} → ${res.status}: ${m}` + (errType ? ` [${errType}]` : '') + (trigger ? ` trigger=${trigger}` : '')
+        console.error('[gadsFetch] full error:', JSON.stringify(data?.error || data).slice(0, 800))
+        throw new Error(fullDiag)
     }
     return data
 }
