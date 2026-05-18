@@ -11681,26 +11681,32 @@ async function openConversionMappingOverride() {
   }
 }
 
-// ─── Suggestion modal renderer (override path) ──────────────────────────
+// ─── Suggestion modal renderer (override path — MULTI-SELECT via checkboxes) ─
+// Phase 4.2.3-B4: each actionKey row can have MULTIPLE picks (e.g. form_submit
+// can map to יצירת קשר + האתרים שלנו form_submit at the same time — both are
+// valid Smart Bidding signal sources). Replaced radio buttons with checkboxes.
 function showConversionMappingModal(suggestionsResult) {
   var existing = document.getElementById('conv-mapping-modal'); if (existing) existing.remove();
   var sugs = (suggestionsResult.suggestions || []);
   var classification = suggestionsResult.classification || 'unknown';
   var modeLabel = suggestionsResult.mode === 'map_existing_create_missing' ? 'הצעת מיפוי לאקשנים קיימים' : 'יצירה מחדש';
 
-  // Per actionKey: track selected resourceName (or '__create_new__')
+  // Per actionKey: track set of selected resourceNames + create_new flag
+  // Shape: { actionKey: { mapExisting: Set<resourceName>, createNew: boolean } }
   window._convMappingState = {};
   for (var i = 0; i < sugs.length; i++) {
     var s = sugs[i];
-    var picked = s.autoPickedResourceName || (s.orCreateNew.recommended ? '__create_new__' : '__create_new__');
-    window._convMappingState[s.actionKey] = picked;
+    var state = { mapExisting: new Set(), createNew: false };
+    if (s.autoPickedResourceName) state.mapExisting.add(s.autoPickedResourceName);
+    if (s.orCreateNew.recommended) state.createNew = true;
+    window._convMappingState[s.actionKey] = state;
   }
 
   var contentHtml = '';
   contentHtml += '<div style="background:#EFF6FF;border-right:3px solid #2563EB;padding:10px 12px;border-radius:6px;font-size:0.84rem;color:#1E40AF;line-height:1.55;margin-bottom:12px;text-align:right">' +
     '<div style="font-weight:700;margin-bottom:4px">סיווג חשבון: ' + _escapeHtml(classification === 'mature_setup' ? 'מוגדר ומבוסס' : classification === 'partial_setup' ? 'תחילי' : 'ריק') + '</div>' +
-    '<div>זיהינו ' + sugs.length + ' סיגנלי המרה שצריך להגדיר. עבור כל אחד — בחרו "להשתמש באקשן קיים שלכם" (recommended ★) או "ליצור Mazhir חדש".</div>' +
-    '<div style="margin-top:4px;opacity:0.85">לחיצה אחת על "אישור" תיישם את הברירות המומלצות. או — בחרו אחרת ל-spec ספציפי.</div>' +
+    '<div>זיהינו ' + sugs.length + ' סיגנלי המרה שצריך להגדיר. ניתן לבחור <strong>מספר אקשנים</strong> בכל קטגוריה (Smart Bidding יכול להשתמש בכמה signals במקביל).</div>' +
+    '<div style="margin-top:4px;opacity:0.85">★ recommended = הברירת מחדל. סמנו <strong>checkbox</strong> כדי להוסיף signal — או הסירו סימון להוצאה.</div>' +
     '</div>';
   for (var j = 0; j < sugs.length; j++) {
     contentHtml += _renderConvSuggestionBlock(sugs[j]);
@@ -11725,30 +11731,33 @@ function showConversionMappingModal(suggestionsResult) {
 }
 
 function _renderConvSuggestionBlock(s) {
+  var state = (window._convMappingState && window._convMappingState[s.actionKey]) || { mapExisting: new Set(), createNew: false };
   var html = '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:10px">';
-  html += '<div style="font-weight:700;font-size:0.92rem;color:#111827;margin-bottom:2px">' + _escapeHtml(s.actionKey) + '</div>';
+  html += '<div style="font-weight:700;font-size:0.92rem;color:#111827;margin-bottom:2px">' + _escapeHtml(s.actionKey) +
+    '<span id="conv-pick-count-' + _escapeHtml(s.actionKey) + '" style="font-size:0.74rem;font-weight:400;color:#6B7280;margin-inline-start:8px">— ' + _renderPickCountBadge(state) + '</span>' +
+    '</div>';
   html += '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">' + _escapeHtml(s.descriptionHe) + '</div>';
-  // Candidates radios
+  // Candidates as checkboxes (multi-select)
   for (var i = 0; i < s.candidates.length; i++) {
     var c = s.candidates[i];
-    var checked = c.resourceName === s.autoPickedResourceName ? 'checked' : '';
+    var checked = state.mapExisting.has(c.resourceName) ? 'checked' : '';
     var starBadge = c.recommended ? ' <span style="color:#10B981;font-weight:700">★ מומלץ</span>' : '';
     var mazhirBadge = c.isMazhirOwned ? ' <span style="background:#FEF3C7;color:#92400E;padding:1px 6px;border-radius:4px;font-size:0.7rem">Mazhir</span>' : '';
+    var attribInfo = (c.attributedConv90d > 0) ? ' · ' + Math.round(c.attributedConv90d) + ' המרות לקמפיין שלכם' : (c.last90dConv > 0 ? ' · ' + c.last90dConv + ' המרות 90 ימים' : '');
     html += '<label style="display:block;padding:6px 0;cursor:pointer;font-size:0.84rem;color:#1F2937;line-height:1.5">' +
-      '<input type="radio" name="conv-pick-' + _escapeHtml(s.actionKey) + '" value="' + _escapeHtml(c.resourceName) + '" ' + checked + ' onchange="_setConvMappingChoice(\'' + s.actionKey + '\', \'' + _escapeHtml(c.resourceName) + '\')" style="margin-inline-start:6px">' +
+      '<input type="checkbox" data-actionkey="' + _escapeHtml(s.actionKey) + '" data-resource="' + _escapeHtml(c.resourceName) + '" ' + checked + ' onchange="_toggleConvMappingChoice(this)" style="margin-inline-start:6px">' +
       '<strong>' + _escapeHtml(c.name) + '</strong>' + starBadge + mazhirBadge +
       '<div style="font-size:0.72rem;color:#6B7280;margin-top:2px;padding-inline-start:22px">' +
-        _escapeHtml(c.category) + ' / ' + _escapeHtml(c.type) +
-        (c.last90dConv > 0 ? ' · ' + c.last90dConv + ' המרות 90 ימים' : '') +
+        _escapeHtml(c.category) + ' / ' + _escapeHtml(c.type) + attribInfo +
         ' · ' + _escapeHtml(c.rationaleHe) +
       '</div>' +
       '</label>';
   }
-  // Create new option
-  var createChecked = s.orCreateNew.recommended ? 'checked' : '';
+  // Create new option (checkbox too)
+  var createChecked = state.createNew ? 'checked' : '';
   var createStar = s.orCreateNew.recommended ? ' <span style="color:#10B981;font-weight:700">★ מומלץ</span>' : '';
   html += '<label style="display:block;padding:6px 0;cursor:pointer;font-size:0.84rem;color:#1F2937;line-height:1.5;border-top:1px solid #E5E7EB;margin-top:6px;padding-top:8px">' +
-    '<input type="radio" name="conv-pick-' + _escapeHtml(s.actionKey) + '" value="__create_new__" ' + createChecked + ' onchange="_setConvMappingChoice(\'' + s.actionKey + '\', \'__create_new__\')" style="margin-inline-start:6px">' +
+    '<input type="checkbox" data-actionkey="' + _escapeHtml(s.actionKey) + '" data-create-new="1" ' + createChecked + ' onchange="_toggleConvMappingCreateNew(this)" style="margin-inline-start:6px">' +
     '<strong>🆕 ' + _escapeHtml(s.orCreateNew.name) + '</strong>' + createStar +
     '<div style="font-size:0.72rem;color:#6B7280;margin-top:2px;padding-inline-start:22px">' + _escapeHtml(s.orCreateNew.rationaleHe) + '</div>' +
     '</label>';
@@ -11756,22 +11765,62 @@ function _renderConvSuggestionBlock(s) {
   return html;
 }
 
-function _setConvMappingChoice(actionKey, value) {
+function _renderPickCountBadge(state) {
+  var n = (state.mapExisting ? state.mapExisting.size : 0) + (state.createNew ? 1 : 0);
+  if (n === 0) return '<span style="color:#DC2626">⚠ לא נבחר כלום</span>';
+  if (n === 1) return '1 signal';
+  return n + ' signals';
+}
+
+function _updatePickCountBadge(actionKey) {
+  var state = window._convMappingState && window._convMappingState[actionKey];
+  if (!state) return;
+  var el = document.getElementById('conv-pick-count-' + actionKey);
+  if (el) el.innerHTML = '— ' + _renderPickCountBadge(state);
+}
+
+function _toggleConvMappingChoice(input) {
   if (!window._convMappingState) window._convMappingState = {};
-  window._convMappingState[actionKey] = value;
+  var actionKey = input.getAttribute('data-actionkey');
+  var resource = input.getAttribute('data-resource');
+  if (!window._convMappingState[actionKey]) window._convMappingState[actionKey] = { mapExisting: new Set(), createNew: false };
+  var st = window._convMappingState[actionKey];
+  if (input.checked) st.mapExisting.add(resource); else st.mapExisting.delete(resource);
+  _updatePickCountBadge(actionKey);
+}
+
+function _toggleConvMappingCreateNew(input) {
+  if (!window._convMappingState) window._convMappingState = {};
+  var actionKey = input.getAttribute('data-actionkey');
+  if (!window._convMappingState[actionKey]) window._convMappingState[actionKey] = { mapExisting: new Set(), createNew: false };
+  window._convMappingState[actionKey].createNew = !!input.checked;
+  _updatePickCountBadge(actionKey);
 }
 
 async function applyConversionMappingFromModal() {
   var state = window._convMappingState || {};
   var userChoices = [];
+  var emptyKeys = [];
   for (var k in state) {
     if (!Object.prototype.hasOwnProperty.call(state, k)) continue;
-    var v = state[k];
-    if (v === '__create_new__') {
-      userChoices.push({ actionKey: k, choice: { type: 'create_new' } });
-    } else {
-      userChoices.push({ actionKey: k, choice: { type: 'map_existing', resourceName: v } });
+    var st = state[k];
+    var picks = 0;
+    // Each map_existing becomes its own choice entry
+    if (st.mapExisting && st.mapExisting.size > 0) {
+      st.mapExisting.forEach(function(rn) {
+        userChoices.push({ actionKey: k, choice: { type: 'map_existing', resourceName: rn } });
+        picks++;
+      });
     }
+    if (st.createNew) {
+      userChoices.push({ actionKey: k, choice: { type: 'create_new' } });
+      picks++;
+    }
+    if (picks === 0) emptyKeys.push(k);
+  }
+  if (emptyKeys.length > 0) {
+    showToast('יש לבחור לפחות אופציה אחת לכל ספציפיקציה: ' + emptyKeys.join(', '), 'warning');
+    return;
   }
   if (userChoices.length === 0) { showToast('לא נבחרה אופציה', 'warning'); return; }
   var btn = document.getElementById('conv-mapping-apply');
@@ -11793,7 +11842,7 @@ async function applyConversionMappingFromModal() {
     if (instanceData && instanceData.researchData) {
       instanceData.researchData.mazhirConversions = data;
     }
-    showToast(`✓ ${mapped} mapped, ${created} created, ${archived} archived`, 'success');
+    showToast('✓ ' + mapped + ' mapped, ' + created + ' created, ' + archived + ' archived', 'success');
     document.getElementById('conv-mapping-modal').remove();
   } catch (err) {
     showToast('שגיאה: ' + (err.message || err), 'error');

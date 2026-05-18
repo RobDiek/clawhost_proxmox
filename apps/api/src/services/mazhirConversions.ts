@@ -735,10 +735,10 @@ export async function applyConversionMappings(
     }
 
     // ── Archive superseded Mazhir actions ──
-    // For each Mazhir-owned 0-conv action: if the user MAPPED its inferred actionKey
-    // to a non-Mazhir action, this Mazhir is now superseded → archive.
-    // Never archive an action the user explicitly chose (e.g. they picked the
-    // existing Mazhir action via map_existing).
+    // Phase 4.2.3-B4: multi-select aware. For each Mazhir-owned 0-conv action:
+    //   - if user explicitly picked it (mapExisting=resourceName among choices) → keep
+    //   - else if user picked ANY non-Mazhir alternative for this actionKey → archive
+    //   - else (no non-Mazhir alternative picked) → keep
     const archived: ArchivedConversionAction[] = []
     const userPickedResourceNames = new Set<string>(
         userChoices
@@ -749,12 +749,15 @@ export async function applyConversionMappings(
         if (userPickedResourceNames.has(a.resourceName)) continue  // user explicitly kept this Mazhir
         const inferredKey = categoryToActionKey(a.category)
         if (!inferredKey) continue
-        const choice = userChoices.find(c => c.actionKey === inferredKey)
-        if (!choice) continue
-        // Archive when: user mapped this key to a NON-Mazhir alternative
-        const supersededByUserMap = choice.choice.type === 'map_existing'
-            && choice.choice.resourceName !== a.resourceName
-        if (!supersededByUserMap) continue
+        const choicesForKey = userChoices.filter(c => c.actionKey === inferredKey)
+        if (choicesForKey.length === 0) continue
+        // Did the user pick a non-Mazhir action for this actionKey?
+        const hasNonMazhirAlternative = choicesForKey.some(c => {
+            if (c.choice.type !== 'map_existing') return false
+            const target = ctx.existingActions.find((x: any) => x.resourceName === (c.choice as { resourceName: string }).resourceName)
+            return target && !target.isMazhirOwned
+        })
+        if (!hasNonMazhirAlternative) continue   // no superseding alternative — keep
         try {
             await gadsFetch(ctx.customerId, 'conversionActions:mutate', ctx.tokens, ctx.developerToken, {
                 operations: [{ remove: a.resourceName }],
@@ -765,7 +768,7 @@ export async function applyConversionMappings(
                 resourceName: a.resourceName,
                 name: a.name,
                 category: a.category,
-                reason: `superseded by user-confirmed mapping ${inferredKey} → ${a.name === (choice.choice as any).resourceName ? '' : 'user alternative'}`,
+                reason: `superseded by user-confirmed mapping ${inferredKey} → user alternative(s)`,
             })
         } catch (err) {
             warnings.push(`archive "${a.name}" failed: ${(err as Error).message}`)
