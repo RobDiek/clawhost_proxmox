@@ -11577,8 +11577,14 @@ async function autoSetupMazhirGtmFromTasks() {
       instanceData.researchData.mazhirGtm = instanceData.researchData.mazhirGtm || {};
       instanceData.researchData.mazhirGtm.lastSetupResult = gtmResult;
     }
+    // Phase 4.2.3-F2: distinguish no-op (idempotent skip) from real publish
     var nTags = (gtmResult && Array.isArray(gtmResult.created)) ? gtmResult.created.length : 0;
-    showToast('GTM auto-setup הושלם ✓ — ' + nTags + ' tags published. שלבים 7+8 הושלמו.', 'success');
+    var nSkipped = (gtmResult && Array.isArray(gtmResult.skipped)) ? gtmResult.skipped.length : 0;
+    var isNoop = !!(gtmResult && gtmResult.noopReason);
+    var gtmToastMsg = isNoop
+      ? ('GTM כבר מוגדר ✓ — ' + nSkipped + ' תגיות קיימות זוהו, אין צורך בפרסום חדש. שלבים 7+8 הושלמו.')
+      : ('GTM auto-setup הושלם ✓ — ' + nTags + ' tags published, ' + nSkipped + ' skipped (existing). שלבים 7+8 הושלמו.');
+    showToast(gtmToastMsg, 'success');
   } catch (err) {
     showToast('GTM setup נכשל: ' + (err.message || err), 'error');
   } finally {
