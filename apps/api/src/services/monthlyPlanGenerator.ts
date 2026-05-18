@@ -491,7 +491,16 @@ export async function generateMonthlyPlan(
 
 ═══ DEPTH STANDARDS (quality bar — failure = unusable plan) ═══
 
-**QUANTITY**: Target **30-50 tasks per month**. We have 10 sub-agents in parallel — under-tasking means agents sit idle. Spread work across channels so each specialist has 3-7 tasks of their kind.
+**QUANTITY**: Target **30-40 tasks per month**. We have 10 sub-agents in parallel — under-tasking means agents sit idle. Spread work across channels so each specialist has 3-7 tasks of their kind.
+
+**COMPACTNESS** (CRITICAL — we have ~32K output budget for 30-40 deep tasks):
+- title: ≤80 Hebrew chars
+- summary: ≤2 sentences, ≤200 chars
+- expectedImpact.rationale: 1 sentence, ≤120 chars
+- source.excerpt: 1 quote/number, ≤100 chars (DO quote real data, but DO NOT repeat the whole audit paragraph)
+- actionPlan[].step: ≤120 chars per step. Concrete but tight.
+- For creative briefs (RSA headlines / Meta carousel / FAQ items / persona УТП variants): pack them into actionPlan steps OR a single field; do NOT inflate.
+- NO redundant narrative. Every word earns its place. The plan is a working artifact, not a thought essay.
 
 **SOURCES (per task)**: MINIMUM 3, target 4-6. Each source.excerpt = quote the SPECIFIC number/finding (not "see audit"). Example: "audit.existingAccountAudit.wasteAnalysis.topWasteTerms[0]: 'מכולה' ₪613 / 33 קליקים / 0 conv". Mix types:
   - audit.* (immediate/shortTerm/ongoing/blockers/existingAccountAudit)
@@ -613,14 +622,13 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
 
     const raw = await callOpus({
         apiKey, model, system, user: userPrompt,
-        // 64K maxTokens for Opus 4.7 — DEPTH STANDARDS demand 30-50 tasks each
-        // with 4-6 sources + 5-8 actionPlan steps + creative briefs + per-persona
-        // variants. Earlier 32K was hitting truncation on Hebrew long output.
-        maxTokens: usingOpus ? 64000 : 16000,
-        // 20-min timeout — Opus 4.7 with 64K maxTokens on Hebrew can run 12-18min.
-        // First v2 attempt hit fetch-failed at 10min ceiling. Hebrew tokenization
-        // is ~2-3× slower than English so we need real headroom.
-        timeoutMs: 1200000,
+        // 32K maxTokens — Anthropic non-streaming hard limit for Opus 4.7.
+        // 64K requires streaming SSE or a beta header; transparent non-streaming
+        // calls with 64K return TCP-drop ("fetch failed") not a clean HTTP error.
+        // 32K Hebrew ≈ 30-40 deep tasks if Opus is compact in excerpts.
+        maxTokens: usingOpus ? 32000 : 16000,
+        // 15-min timeout — Opus 4.7 with 32K on Hebrew runs 8-12min typically.
+        timeoutMs: 900000,
     })
 
     const parsed = extractLlmJson<Partial<MonthlyMarketingPlan>>(raw, 'monthlyPlan')
