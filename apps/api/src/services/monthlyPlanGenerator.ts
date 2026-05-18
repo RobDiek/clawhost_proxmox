@@ -52,7 +52,7 @@ function loadSeoResearch2026(): string {
         '/opt/openclaw-hosting/research/seo_algorithm_2026.md',
         join(process.cwd(), 'research', 'seo_algorithm_2026.md'),
         join(process.cwd(), '..', '..', 'research', 'seo_algorithm_2026.md'),
-        join(__dirname, '..', '..', '..', '..', 'research', 'seo_algorithm_2026.md'),
+        join(process.cwd(), '..', 'research', 'seo_algorithm_2026.md'),
     ].filter(Boolean)
     for (const p of candidates) {
         try {
