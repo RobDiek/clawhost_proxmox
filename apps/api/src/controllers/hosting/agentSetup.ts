@@ -6365,6 +6365,12 @@ export interface DerivedNumber {
 
 export interface MazhirAudit {
     generatedAt: string
+    // Phase 4.2.3-D: mode-aware audit driven by tenant classification.
+    //   'readiness'           — greenfield/partial: audits setup gaps before launch
+    //   'performance_review'  — mature: audits performance of existing active
+    //                           campaigns (CTR/QS/IS lost/SQR waste/attribution)
+    //                           skipping readiness blockers that are already wired.
+    mode?: 'readiness' | 'performance_review'
     summary: string                      // 2-3 sentence executive summary
     trackingHealth: {
         score: 'critical' | 'poor' | 'good' | 'excellent'

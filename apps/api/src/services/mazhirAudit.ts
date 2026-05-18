@@ -377,6 +377,39 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
         accountSnapshot = await pullExistingAccountSnapshot(apiKey, googleAdsConfig.customerId, googleTokensForAudit)
     }
 
+    // ── Phase 4.2.3-D: tenant-state-aware audit mode ──
+    // 'readiness' (greenfield/partial) audits setup gaps before launch.
+    // 'performance_review' (mature) audits performance of existing active
+    // campaigns and skips readiness-style blockers (those gates are passed).
+    let auditMode: 'readiness' | 'performance_review' = 'readiness'
+    let tenantStateForAudit: any = null
+    try {
+        const { classifyTenantSetupState } = await import('./tenantSetupState')
+        tenantStateForAudit = await classifyTenantSetupState(instanceId)
+        auditMode = tenantStateForAudit?.recommendedMode?.stage6_audit || 'readiness'
+    } catch (err) {
+        console.warn('[mazhirAudit] tenant state classification failed — defaulting to readiness mode:', (err as Error).message)
+    }
+    // Mature ecosystem evidence (loaded only when audit is performance_review)
+    const matureEvidence = auditMode === 'performance_review' && tenantStateForAudit ? {
+        classification: tenantStateForAudit.classification,
+        activeCampaigns: tenantStateForAudit.signals.googleAds.activeCampaignsCount,
+        last90dConversions: tenantStateForAudit.signals.googleAds.last90dConversions,
+        last90dSpendIls: tenantStateForAudit.signals.googleAds.last90dSpendIls,
+        primaryConversionActions: (tenantStateForAudit.signals.googleAds.existingConversionActions || [])
+            .filter((a: any) => a.primaryForGoal)
+            .slice(0, 25)
+            .map((a: any) => ({ name: a.name, category: a.category, type: a.type, isMazhirOwned: !!a.isMazhirOwned })),
+        gtmConnected: tenantStateForAudit.signals.gtm.connected,
+        gtmPublished: !!tenantStateForAudit.signals.gtm.hasLiveVersion,
+        gtmInstalledOnSite: !!tenantStateForAudit.signals.gtm.snippetInstalledOnSite,
+        ga4Connected: tenantStateForAudit.signals.ga4.connected,
+        callTracking: tenantStateForAudit.signals.websiteCallTracking,
+        mazhirConversionsActive: Array.isArray((rd.mazhirConversions || {}).active) ? rd.mazhirConversions.active.length : 0,
+        mazhirConversionsMapped: Array.isArray((rd.mazhirConversions || {}).mapped) ? rd.mazhirConversions.mapped.length : 0,
+        mazhirConversionsCreated: Array.isArray((rd.mazhirConversions || {}).created) ? rd.mazhirConversions.created.length : 0,
+    } : null
+
     // Build the Opus prompt — concrete, structured, with industry methodology baked in
     const businessName = (brand as any)?.businessName || rd.answers?.businessName || 'unknown'
     const businessDesc = rd.answers?.businessDescription || ''
@@ -813,7 +846,57 @@ Time window: last ${_am.daysAnalyzed} days, scoped to the campaigns the user sel
 
 Output STRICT JSON matching the schema described in the user message. No prose outside JSON. Use Hebrew for any user-facing strings (recommendations, findings) since this client operates in Israel. Keywords/technical terms can stay English where natural.`
 
-    const userPrompt = `Run a complete senior-PPC audit on this client and produce a MazhirAudit JSON.
+    // Phase 4.2.3-D: mode-aware preamble + evidence block. For mature accounts
+    // we explicitly tell Opus that tracking infrastructure is wired (don't flag
+    // it as a blocker) and ground the audit in performance metrics + ecosystem.
+    const modePreamble = auditMode === 'performance_review' && matureEvidence
+        ? `═══ AUDIT MODE: PERFORMANCE_REVIEW (mature account) ═══
+
+Tenant classification: ${matureEvidence.classification}
+- This account is ALREADY in production with ${matureEvidence.activeCampaigns} active campaign(s),
+  ${matureEvidence.last90dConversions} conv / ₪${matureEvidence.last90dSpendIls.toLocaleString()} spend in last 90 days.
+- Tracking infrastructure is wired via the platform (Mazhir auto-setup):
+  • GTM connected: ${matureEvidence.gtmConnected} · live version: ${matureEvidence.gtmPublished} · snippet on site: ${matureEvidence.gtmInstalledOnSite}
+  • GA4 scope: ${matureEvidence.ga4Connected ? 'connected' : 'not yet'} · call tracking: ${matureEvidence.callTracking}
+  • Mazhir conversion mapping done: ${matureEvidence.mazhirConversionsActive} active signals (${matureEvidence.mazhirConversionsMapped} mapped from user's existing, ${matureEvidence.mazhirConversionsCreated} created)
+- Primary conversion actions in account (top ${matureEvidence.primaryConversionActions.length}):
+${matureEvidence.primaryConversionActions.map((a: any, i: number) => `    ${i + 1}. ${a.name} [${a.category} / ${a.type}]${a.isMazhirOwned ? ' (Mazhir-created)' : ''}`).join('\n')}
+
+CRITICAL FOR THIS MODE — DO NOT LIST AS BLOCKERS:
+  ✗ "GA4 not installed"            — already evaluated via tenant state
+  ✗ "GTM not connected"            — see above signals
+  ✗ "No call tracking"             — see above
+  ✗ "OAuth missing for GTM/Ads"    — verified in state
+  ✗ "Conversion pixel not deployed"— mapped/created above
+
+WHAT TO AUDIT INSTEAD (performance issues in EXISTING campaigns):
+  ✓ Search Impression Share lost (rank vs budget) and what's driving it
+  ✓ CTR vs benchmarks per campaign type/category
+  ✓ Quality Score patterns (low-QS keyword clusters → ad relevance gap)
+  ✓ Search terms n-gram waste — actual junk patterns in SQR
+  ✓ Bid strategy fit vs account history (e.g. tCPA running on <30 conv/30d)
+  ✓ Attribution model fit — conversion lag, view-through vs click
+  ✓ Cross-business conversion noise (when account is shared) — flag if Mazhir's
+    Storage-Station-specific signal source is weaker than aggregate signals
+  ✓ Negative keyword gaps (compare to industry waste patterns)
+  ✓ Ad copy fatigue / RSA assets variety
+  ✓ Sitelinks / extensions completeness
+  ✓ Budget allocation vs conversion concentration (Pareto)
+
+Recommendations in this mode should be CHANGE-ORIENTED for existing campaigns
+(switch bid strategy, refresh ad copy, prune kw, restructure ad groups, add
+extensions, fix landing pages) — NOT "set up GA4" or "install GTM".
+
+Output JSON should still match the schema, but:
+  - "mode": "performance_review"
+  - "blockers": ONLY hard blockers preventing optimization (e.g. budget too low for current bid strategy, account suspended, etc.) — NEVER readiness gaps.
+  - "trackingHealth.issues" — still allowed BUT only when there's an actual problem with currently-wired tracking (e.g. tag firing 0× last 7d) — not "tracking missing".
+  - "recommendedActions.immediate" — concrete tweaks for next 7 days, not setup steps.
+
+`
+        : '═══ AUDIT MODE: READINESS (greenfield/partial — pre-launch setup audit) ═══\n\nFocus on what needs to be in place BEFORE launching paid campaigns.\n\n'
+
+    const userPrompt = `${modePreamble}Run a complete senior-PPC audit on this client and produce a MazhirAudit JSON.
 
 ═══ CLIENT CONTEXT ═══
 
@@ -1042,11 +1125,13 @@ Else:
 
 ═══ BLOCKERS — APPEND EACH IF TRUE ═══
 
-- If trackingStack.ga4 = false → "GA4 לא מותקן — Smart Bidding לא יעבוד עד ש-GA4 מחובר ויורה אירועים"
+${auditMode === 'performance_review'
+            ? `(PERFORMANCE_REVIEW MODE: tracking blockers below are SUPPRESSED. The platform already wired GA4/GTM/conversions per the tenant state above. Output blockers only for issues that prevent OPTIMIZATION of running campaigns, e.g. account suspended, budget below bid-strategy minimum, conversion goal misconfigured at campaign level.)`
+            : `- If trackingStack.ga4 = false → "GA4 לא מותקן — Smart Bidding לא יעבוד עד ש-GA4 מחובר ויורה אירועים"
 - If trackingStack.gtm = false → "אין GTM — לא ניתן ליצור tags לאישור המרות; חיבור GTM נדרש"
 - If phoneCallsRelevant = true AND callTracking = "none" → "שיחות טלפון = ליד עיקרי, אבל אין מעקב שיחות — Google Ads מקבל רק לחיצה על tel:, לא תוצאה. נדרש CallRail/WhatConverts"
 - If methodology contains "PMax" AND primaryGoal = "leadgen" AND no offline qualified-lead upload mentioned → "Performance Max עבור leadgen ללא העלאת המרות לידים מוסמכים יוצר קמפיין של junk-leads. נחסם עד שתשתית ה-offline upload פעילה"
-- If hasExistingAccount = true AND accountSnapshot.accessible = false → "חשבון Google Ads קיים אך לא מחובר ל-Mazhir — נדרש OAuth"
+- If hasExistingAccount = true AND accountSnapshot.accessible = false → "חשבון Google Ads קיים אך לא מחובר ל-Mazhir — נדרש OAuth"`}
 
 Return ONLY the JSON object. No markdown fences, no commentary.`
 
@@ -1110,6 +1195,7 @@ Return ONLY the JSON object. No markdown fences, no commentary.`
     const audit: MazhirAudit = {
         ...parsed,
         generatedAt: new Date().toISOString(),
+        mode: auditMode,                 // Phase 4.2.3-D: surface mode to UI
         sourceCoverage,                  // server-built, never trust LLM-emitted
         qualityWarnings,
         dataGaps,                        // server-built — registry-driven impact + fallback per gap
