@@ -11432,27 +11432,42 @@ async function autoSetupMazhirGtmFromTasks() {
   }
 
   if (convCreatedCount === 0) {
+    // Phase 4.2.1-M (refined): CHAIN both operations into one user action.
+    // Old behavior: "run conversions, then click GTM again" — two clicks.
+    // New behavior: one confirmation → conversions auto-runs → GTM auto-setup
+    // auto-runs after → both steps complete from a single click.
     var runConv = await showConfirm({
       icon: '🔗',
-      title: 'נדרש להגדיר תחילה ConversionActions',
+      title: 'הקמת מעקב המרות — ריצה משולבת',
       descHtml:
-        '<div style="background:#FFFBEB;border-right:3px solid #F59E0B;padding:10px 12px;border-radius:6px;font-size:0.85rem;color:#78350F;line-height:1.6;text-align:right">' +
-        '<div style="font-weight:700;margin-bottom:4px">סדר נכון: ConversionActions קודם, אחר כך GTM tags</div>' +
-        '<div>תגיות ה-GTM מקושרות פר-conversion (awct לכל ConversionAction). בלי actions לא יודעים מה לשייך לתגיות. הריצו שלב 8 (פעולות המרה) קודם.</div>' +
+        '<div style="background:#EFF6FF;border-right:3px solid #2563EB;padding:10px 12px;border-radius:6px;font-size:0.85rem;color:#1E40AF;line-height:1.6;text-align:right">' +
+        '<div style="font-weight:700;margin-bottom:4px">לחיצה אחת — שני שלבים יבוצעו אוטומטית:</div>' +
+        '<ol style="margin:4px 18px 0;padding:0;line-height:1.7">' +
+        '<li>יצירת ConversionActions ב-Google Ads (~20-40 שנ׳)</li>' +
+        '<li>התקנת tags ב-GTM container — Conversion Linker, GCLID, awct, gaawe, Enhanced Conversions, Consent Mode v2 (~30-60 שנ׳)</li>' +
+        '</ol>' +
+        '<div style="margin-top:6px">סך הכל ~1-2 דקות. אחרי הריצה שני שלבים 7 ו-8 יסומנו כמושלמים.</div>' +
         '</div>',
-      okText: 'הריצו ConversionActions עכשיו',
+      okText: '▶ הריצו את שניהם עכשיו',
       okClass: 'btn-primary',
       cancelText: 'ביטול',
     });
     if (!runConv) return;
-    if (typeof setupMazhirConversionsFromTasks === 'function') {
-      await setupMazhirConversionsFromTasks();
-      // After conversions are set up, user clicks GTM again
-      showToast('ConversionActions הוקמו. עכשיו לחצו "▶ הפעילו GTM auto-setup" שוב.', 'info');
-    } else {
+    // Step 1 — conversions inline
+    if (typeof setupMazhirConversionsFromTasks !== 'function') {
       showToast('שגיאה: setupMazhirConversionsFromTasks חסר', 'error');
+      return;
     }
-    return;
+    await setupMazhirConversionsFromTasks();
+    // Re-check conversions actually got created (don't run GTM if conversions failed)
+    var rdAfterConv = (instanceData && instanceData.researchData) || {};
+    var convAfterCount = (rdAfterConv.mazhirConversions && Array.isArray(rdAfterConv.mazhirConversions.created))
+      ? rdAfterConv.mazhirConversions.created.length : 0;
+    if (convAfterCount === 0) {
+      showToast('ConversionActions לא נוצרו — לא ממשיכים ל-GTM', 'error');
+      return;
+    }
+    // Fall through to GTM auto-setup below (chained)
   }
 
   _gtmSetupRunning = true;
@@ -11463,16 +11478,25 @@ async function autoSetupMazhirGtmFromTasks() {
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/gtm/auto-setup', { method: 'POST' });
     if (!r.success) throw new Error(r.message || 'GTM setup failed');
+    // Backend response may wrap result in .data or .data.result depending on
+    // controller. Save both pathways so the hasGtmPublished gate flips.
+    var gtmResult = (r.data && r.data.result) || r.data;
     if (instanceData && instanceData.researchData) {
       instanceData.researchData.mazhirGtm = instanceData.researchData.mazhirGtm || {};
-      instanceData.researchData.mazhirGtm.lastSetupResult = r.data && r.data.result;
+      instanceData.researchData.mazhirGtm.lastSetupResult = gtmResult;
     }
-    showToast('GTM auto-setup הושלם ✓ workspace published', 'success');
+    var nTags = (gtmResult && Array.isArray(gtmResult.created)) ? gtmResult.created.length : 0;
+    showToast('GTM auto-setup הושלם ✓ — ' + nTags + ' tags published. שלבים 7+8 הושלמו.', 'success');
   } catch (err) {
     showToast('GTM setup נכשל: ' + (err.message || err), 'error');
   } finally {
     _gtmSetupRunning = false;
     if (typeof renderHome === 'function') renderHome();
+    // Refresh instance data so step states (hasGtmPublished, convCreated) reflect reality
+    if (typeof refreshInstanceData === 'function') {
+      try { await refreshInstanceData(); } catch (_) {}
+      if (typeof renderHome === 'function') renderHome();
+    }
   }
 }
 
