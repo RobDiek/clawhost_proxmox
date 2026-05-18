@@ -2705,30 +2705,28 @@ input{font-family:inherit}
         </div>
       </div>
 
-      <!-- Google Tag Manager (separate scope, additive OAuth) -->
+      <!-- Google Tag Manager — Phase 4.2.2-C diagnostic-driven card -->
       <div class="int-card" id="gtm-card" data-tooltip="Google Tag Manager — Mazhir מגדיר אוטומטית tags ל-Google Ads ו-GA4 (Conversion Linker, GCLID, awct, gaawe). חיוני לקמפיינים ממומנים ב-Google.">
         <div class="int-card-header">
           <div class="int-icon" style="background:#E8F0FE"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="#246FDB" stroke-width="1.5" fill="white"/><path d="M12 2v20M3 7l9 5 9-5" stroke="#246FDB" stroke-width="1.5"/></svg></div>
-          <div><strong>Google Tag Manager</strong><div class="int-status" id="gtm-status">לא מחובר</div></div>
+          <div style="flex:1"><strong>Google Tag Manager</strong><div class="int-status" id="gtm-status">בודק...</div></div>
         </div>
         <div class="int-card-body hidden" id="int-gtm-body">
-          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:10px">
-            Mazhir יוצר ב-GTM container שלכם: Conversion Linker, GCLID Capture, customEvent triggers, awct (Google Ads), ו-gaawe (GA4) — ויפרסם אוטומטית. חיוני להשקת קמפיינים.
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:12px">
+            המערכת תזהה אוטומטית את מצב החיבור שלכם ל-GTM ותתקן מה שאפשר. במקרים שדורשים פעולה ידנית — ניתן הוראות מדויקות עם קישור ישיר לממשק Google.
           </div>
-          <div id="gtm-not-connected">
-            <div style="font-size:0.72rem;color:#6B7280;margin-bottom:6px">משתמש באותו OAuth של Google. אם חשבון Google כבר מחובר — נוסיף רק את הרשאת Tag Manager.</div>
+          <!-- Top action bar -->
+          <div id="gtm-diagnostic-toolbar" style="display:flex;gap:6px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" id="gtm-autofix-btn" onclick="runGtmAutoFixFromCard()" style="font-size:0.82rem">🚀 הגדירו הכל אוטומטית</button>
+            <button class="btn btn-outline btn-sm" onclick="loadGtmDiagnostic(true)" style="font-size:0.78rem">🔄 רענן diagnostic</button>
+            <button class="btn btn-outline btn-sm" onclick="disconnectGoogleScope('gtm')" style="color:#EF4444;border-color:#FECACA;font-size:0.74rem;margin-inline-start:auto">נתק GTM</button>
+          </div>
+          <!-- Per-gate diagnostic results (populated by renderGtmDiagnosticGates) -->
+          <div id="gtm-diagnostic-gates"><div style="font-size:0.82rem;color:#6B7280;text-align:center;padding:14px">⏳ טוען diagnostic...</div></div>
+          <!-- Legacy minimal fallback shown only if diagnostic endpoint unavailable -->
+          <div id="gtm-diagnostic-fallback" style="display:none">
             <button class="btn btn-primary btn-sm" onclick="connectGoogleScopeAdditive('gtm')">→ חברו GTM (OAuth)</button>
             <a href="https://tagmanager.google.com" target="_blank" class="int-help-link">פתחו GTM &#8599;</a>
-          </div>
-          <div id="gtm-connected" style="display:none">
-            <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px;margin-bottom:8px">
-              <div style="display:flex;align-items:center;gap:8px"><span style="color:#10B981;font-size:1rem">✓</span><span style="font-weight:600;font-size:0.88rem;color:#065F46">Google Tag Manager מחובר</span></div>
-              <div id="gtm-selection-display" style="margin-top:8px;font-size:0.82rem;color:#374151;line-height:1.5"></div>
-            </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <button class="btn btn-primary btn-sm" onclick="openGTMContainerPicker()" style="font-size:0.78rem">🎯 בחרו container</button>
-              <button class="btn btn-outline btn-sm" onclick="disconnectGoogleScope('gtm')" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו GTM</button>
-            </div>
           </div>
         </div>
       </div>
@@ -22589,24 +22587,26 @@ function updateGoogleScopeCards() {
   var aliases = _currentGoogleScopeAliases();
   var hasGtm = aliases.indexOf('gtm') !== -1;
   var hasGa4 = aliases.indexOf('analytics') !== -1;
-  // GTM card
-  var gtmStatus = document.getElementById('gtm-status');
+  // Phase 4.2.2-C — GTM card now diagnostic-driven. Status text/class is
+  // updated by renderGtmDiagnosticGates(); we just kick off the load here.
   var gtmCard = document.getElementById('gtm-card');
-  var gtmConnected = document.getElementById('gtm-connected');
-  var gtmNotConnected = document.getElementById('gtm-not-connected');
-  if (gtmStatus && gtmCard && gtmConnected && gtmNotConnected) {
+  if (gtmCard) {
     if (hasGtm) {
-      gtmStatus.innerHTML = '<span class="int-status-dot"></span>מחובר';
-      gtmStatus.className = 'int-status connected';
       gtmCard.classList.add('connected-card');
-      gtmConnected.style.display = '';
-      gtmNotConnected.style.display = 'none';
+      if (typeof loadGtmDiagnostic === 'function') loadGtmDiagnostic(false);
     } else {
-      gtmStatus.textContent = 'לא מחובר';
-      gtmStatus.className = 'int-status';
       gtmCard.classList.remove('connected-card');
-      gtmConnected.style.display = 'none';
-      gtmNotConnected.style.display = '';
+      var gtmStatus = document.getElementById('gtm-status');
+      if (gtmStatus) { gtmStatus.textContent = 'לא מחובר'; gtmStatus.className = 'int-status'; }
+      var gatesEl = document.getElementById('gtm-diagnostic-gates');
+      if (gatesEl) {
+        gatesEl.innerHTML =
+          '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:12px;font-size:0.84rem;color:#78350F;line-height:1.6;text-align:right">' +
+            '<div style="font-weight:700;margin-bottom:4px">Google לא מחובר</div>' +
+            '<div>חברו Google תחילה (כרטיס Google למעלה), ואז chאזרו לכאן.</div>' +
+          '</div>' +
+          '<div style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="connectGoogleScopeAdditive(\'gtm\')">→ חברו GTM (OAuth)</button></div>';
+      }
     }
   }
   // GA4 card
@@ -22634,6 +22634,214 @@ function updateGoogleScopeCards() {
     if (typeof _refreshGoogleSelectionDisplays === 'function') {
       _refreshGoogleSelectionDisplays();
     }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Phase 4.2.2-C — GTM Integration Card (diagnostic-driven UI)
+// ════════════════════════════════════════════════════════════════════════
+// loadGtmDiagnostic     — GET /integrations/gtm/diagnostic + renderGates
+// renderGtmDiagnosticGates — build per-gate row markup with action buttons
+// runGtmAutoFixFromCard — POST /integrations/gtm/auto-fix + handle response
+// _gtmGateActionClick   — per-gate button click dispatcher
+
+var _gtmDiagnosticLoading = false;
+var _gtmAutoFixRunning = false;
+
+async function loadGtmDiagnostic(force) {
+  if (!instanceId) return;
+  if (_gtmDiagnosticLoading && !force) return;
+  var gatesEl = document.getElementById('gtm-diagnostic-gates');
+  var statusEl = document.getElementById('gtm-status');
+  if (gatesEl && force) gatesEl.innerHTML = '<div style="font-size:0.82rem;color:#6B7280;text-align:center;padding:14px">⏳ טוען diagnostic...</div>';
+  _gtmDiagnosticLoading = true;
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/integrations/gtm/diagnostic');
+    if (!r.success) throw new Error(r.message || 'diagnostic failed');
+    var diag = r.data || {};
+    renderGtmDiagnosticGates(diag);
+    // Status pill
+    if (statusEl) {
+      if (diag.status === 'ready') {
+        statusEl.innerHTML = '<span class="int-status-dot"></span>הכל מוכן';
+        statusEl.className = 'int-status connected';
+      } else if (diag.status === 'needs_action') {
+        statusEl.textContent = '⚠ דורש פעולה';
+        statusEl.className = 'int-status warning';
+      } else {
+        statusEl.textContent = 'לא מחובר';
+        statusEl.className = 'int-status';
+      }
+    }
+    // Auto-fix button enabled state
+    var btn = document.getElementById('gtm-autofix-btn');
+    if (btn) {
+      // Enable when there's at least one auto-fixable thing OR final auto-setup is possible
+      var hasAutoActionable = (diag.gates || []).some(function(g) {
+        return g.status !== 'pass' && g.action && g.action.type === 'auto_fix';
+      });
+      var canAutoSetup = diag.readyToAutoSetup === true && (!diag.lastSetup || !diag.lastSetup.published);
+      btn.disabled = !(hasAutoActionable || canAutoSetup);
+      if (diag.lastSetup && diag.lastSetup.published) btn.textContent = '🔄 הריצו שוב';
+      else if (canAutoSetup) btn.textContent = '🚀 פרסמו tags עכשיו';
+      else btn.textContent = '🚀 הגדירו הכל אוטומטית';
+    }
+  } catch (err) {
+    if (gatesEl) gatesEl.innerHTML = '<div style="background:#FEE2E2;border:1px solid #FCA5A5;border-radius:8px;padding:12px;font-size:0.84rem;color:#7F1D1D;line-height:1.6">שגיאה בטעינת diagnostic: ' + _escapeHtml(err.message || String(err)) + '</div>';
+    var fallback = document.getElementById('gtm-diagnostic-fallback');
+    if (fallback) fallback.style.display = '';
+  } finally {
+    _gtmDiagnosticLoading = false;
+  }
+}
+
+function renderGtmDiagnosticGates(diag) {
+  var el = document.getElementById('gtm-diagnostic-gates');
+  if (!el) return;
+  var gates = diag.gates || [];
+  // Top summary banner
+  var summary = '';
+  if (diag.oauth && diag.oauth.connected) {
+    summary += '<div style="background:#F3F4F6;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:0.78rem;color:#374151;line-height:1.5">' +
+      '<strong>Google:</strong> ' + _escapeHtml(diag.oauth.email || 'אנונימי');
+    if (diag.target && diag.target.picked) summary += ' · <strong>Container:</strong> ' + _escapeHtml(diag.target.publicId) + ' (' + _escapeHtml(diag.target.name || '') + ')';
+    if (diag.conversions) summary += ' · <strong>Conversions:</strong> ' + diag.conversions.eligibleForGtm + '/' + diag.conversions.total;
+    if (diag.lastSetup && diag.lastSetup.published) summary += ' · ✓ <strong>tags פורסמו</strong> (' + diag.lastSetup.tagsCreated + ')';
+    summary += '</div>';
+  }
+  // Gate rows
+  var rows = gates.map(_gtmGateRowHtml).join('');
+  el.innerHTML = summary + rows;
+}
+
+function _gtmGateRowHtml(gate) {
+  var ICONS = { pass: '✓', warn: '⚠', fail: '✗', pending: '⏳', skipped: '—' };
+  var COLORS = {
+    pass:    { bg: '#F0FDF4', border: '#A7F3D0', text: '#065F46', icon: '#10B981' },
+    warn:    { bg: '#FEF3C7', border: '#FDE68A', text: '#78350F', icon: '#F59E0B' },
+    fail:    { bg: '#FEE2E2', border: '#FCA5A5', text: '#7F1D1D', icon: '#DC2626' },
+    pending: { bg: '#F3F4F6', border: '#E5E7EB', text: '#374151', icon: '#9CA3AF' },
+    skipped: { bg: '#F9FAFB', border: '#E5E7EB', text: '#9CA3AF', icon: '#D1D5DB' },
+  };
+  var c = COLORS[gate.status] || COLORS.pending;
+  var actionBtn = '';
+  if (gate.action && gate.status !== 'pass' && gate.status !== 'skipped') {
+    var label = _escapeHtml(gate.action.label || 'פעולה');
+    actionBtn = '<button class="btn btn-outline btn-sm" onclick="_gtmGateActionClick(' + JSON.stringify(gate.id).replace(/"/g, '&quot;') + ')" style="font-size:0.74rem;margin-top:6px">' + label + ' →</button>';
+  }
+  var detailHtml = gate.detail
+    ? '<div style="font-size:0.74rem;color:' + c.text + ';opacity:0.85;margin-top:4px;line-height:1.5">' + _escapeHtml(gate.detail) + '</div>'
+    : '';
+  return '<div style="background:' + c.bg + ';border:1px solid ' + c.border + ';border-radius:8px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:flex-start;gap:10px">' +
+    '<div style="color:' + c.icon + ';font-size:1.1rem;font-weight:700;line-height:1.2;min-width:18px;text-align:center">' + ICONS[gate.status] + '</div>' +
+    '<div style="flex:1">' +
+      '<div style="font-size:0.84rem;font-weight:600;color:' + c.text + '">' + _escapeHtml(gate.label) +
+        (gate.blocking ? '' : ' <span style="font-size:0.66rem;font-weight:400;opacity:0.6">(לא חוסם)</span>') +
+      '</div>' +
+      '<div style="font-size:0.78rem;color:' + c.text + ';opacity:0.92;line-height:1.5;margin-top:2px">' + _escapeHtml(gate.message) + '</div>' +
+      detailHtml +
+      actionBtn +
+    '</div>' +
+    '</div>';
+}
+
+async function _gtmGateActionClick(gateId) {
+  // Find the gate by id from current diagnostic state
+  // Re-fetch to get fresh action data
+  var r = await apiFetch('/hosting/instances/' + instanceId + '/integrations/gtm/diagnostic');
+  if (!r.success) { showToast('שגיאה: ' + r.message, 'error'); return; }
+  var gate = ((r.data || {}).gates || []).find(function(g) { return g.id === gateId; });
+  if (!gate || !gate.action) { showToast('פעולה לא זמינה', 'warning'); return; }
+
+  var action = gate.action;
+  // ── auto_fix: hit the endpoint inline, show progress
+  if (action.type === 'auto_fix') {
+    var btn = event && event.target;
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ מריץ...'; }
+    try {
+      var actR = await apiFetch(action.endpoint, { method: 'POST' });
+      if (!actR.success) throw new Error(actR.message || 'failed');
+      showToast(action.label + ' הושלם ✓', 'success');
+      await loadGtmDiagnostic(true);
+    } catch (err) {
+      showToast('שגיאה: ' + (err.message || err), 'error');
+      if (btn) { btn.disabled = false; btn.textContent = action.label + ' →'; }
+    }
+    return;
+  }
+  // ── oauth: redirect to OAuth flow
+  if (action.type === 'oauth') {
+    // The endpoint here is /hosting/instances/:id/google/auth?addScopes=gtm — wire through existing helper
+    if (typeof connectGoogleScopeAdditive === 'function') {
+      connectGoogleScopeAdditive('gtm');
+    } else {
+      window.location.href = action.endpoint;
+    }
+    return;
+  }
+  // ── manual: show modal with steps + open external URL in new tab
+  _showGtmManualInstructions(gate);
+}
+
+function _showGtmManualInstructions(gate) {
+  var existing = document.getElementById('gtm-manual-modal'); if (existing) existing.remove();
+  var steps = (gate.action && gate.action.steps) || [];
+  var url = gate.action && gate.action.externalUrl;
+  var stepsHtml = steps.length
+    ? '<ol style="margin:8px 18px 0;padding:0;line-height:1.7;font-size:0.86rem;color:#1F2937">' + steps.map(function(s) { return '<li>' + _escapeHtml(s) + '</li>'; }).join('') + '</ol>'
+    : '';
+  var modal = document.createElement('div');
+  modal.id = 'gtm-manual-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:10000';
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:12px;max-width:600px;width:92%;max-height:88vh;overflow-y:auto;padding:22px;direction:rtl;text-align:right">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+        '<h3 style="margin:0;font-size:1.05rem;color:#111827">' + _escapeHtml(gate.label) + ' — הוראות</h3>' +
+        '<button onclick="document.getElementById(\'gtm-manual-modal\').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6B7280">×</button>' +
+      '</div>' +
+      '<div style="background:#FEF3C7;border-right:3px solid #F59E0B;padding:10px 12px;border-radius:6px;font-size:0.86rem;color:#78350F;line-height:1.55;margin-bottom:10px">' +
+        '<div style="font-weight:700;margin-bottom:4px">' + _escapeHtml(gate.message) + '</div>' +
+        (gate.detail ? '<div>' + _escapeHtml(gate.detail) + '</div>' : '') +
+      '</div>' +
+      stepsHtml +
+      '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-start">' +
+        (url ? '<a href="' + _escapeHtml(url) + '" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="font-size:0.84rem">' + _escapeHtml(gate.action.label || 'פתחו') + ' ↗</a>' : '') +
+        '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'gtm-manual-modal\').remove(); loadGtmDiagnostic(true);" style="font-size:0.82rem">🔄 בדקו שוב</button>' +
+        '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'gtm-manual-modal\').remove()" style="font-size:0.82rem">סגירה</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+async function runGtmAutoFixFromCard() {
+  if (_gtmAutoFixRunning) { showToast('כבר רץ — חכו לסיום', 'warning'); return; }
+  if (!instanceId) return;
+  _gtmAutoFixRunning = true;
+  var btn = document.getElementById('gtm-autofix-btn');
+  var origLabel = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ מריץ chain...'; }
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/integrations/gtm/auto-fix', { method: 'POST' });
+    if (!r.success) throw new Error(r.message || 'auto-fix failed');
+    var result = r.data || {};
+    if (result.completed) {
+      var publishedTags = result.finalDiagnostic && result.finalDiagnostic.lastSetup && result.finalDiagnostic.lastSetup.tagsCreated;
+      showToast('GTM integration הושלם ✓ — ' + (publishedTags || 0) + ' tags פורסמו', 'success');
+    } else if (result.userActionRequired) {
+      // Open the manual instructions modal for the blocking gate
+      var nextGate = (result.finalDiagnostic.gates || []).find(function(g) { return g.id === result.userActionRequired.gateId; });
+      if (nextGate) _showGtmManualInstructions(nextGate);
+      else showToast('נדרשת פעולה: ' + result.userActionRequired.label, 'warning');
+    } else {
+      showToast('Chain עצר — בדקו את ה-gates', 'info');
+    }
+    // Always refresh diagnostic at the end
+    await loadGtmDiagnostic(true);
+  } catch (err) {
+    showToast('שגיאה ב-auto-fix: ' + (err.message || err), 'error');
+  } finally {
+    _gtmAutoFixRunning = false;
+    if (btn) { btn.disabled = false; btn.textContent = origLabel || '🚀 הגדירו הכל אוטומטית'; }
   }
 }
 
