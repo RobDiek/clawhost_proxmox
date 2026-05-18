@@ -617,7 +617,10 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
         // with 4-6 sources + 5-8 actionPlan steps + creative briefs + per-persona
         // variants. Earlier 32K was hitting truncation on Hebrew long output.
         maxTokens: usingOpus ? 64000 : 16000,
-        timeoutMs: 600000,
+        // 20-min timeout — Opus 4.7 with 64K maxTokens on Hebrew can run 12-18min.
+        // First v2 attempt hit fetch-failed at 10min ceiling. Hebrew tokenization
+        // is ~2-3× slower than English so we need real headroom.
+        timeoutMs: 1200000,
     })
 
     const parsed = extractLlmJson<Partial<MonthlyMarketingPlan>>(raw, 'monthlyPlan')
