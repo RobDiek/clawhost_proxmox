@@ -55,14 +55,19 @@ async function getAccessToken(tokens: GoogleTokens): Promise<string> {
     return j.access_token
 }
 
-async function gadsFetch(customerId: string, path: string, tokens: GoogleTokens, body?: unknown, loginCustomerId?: string, method = 'POST'): Promise<any> {
+// Phase 4.2.1-O: developerToken is now a REQUIRED param. The prod env doesn't
+// set GOOGLE_ADS_DEVELOPER_TOKEN — the token lives in googleAdsConfig.developerToken
+// (per-tenant) and must be passed through explicitly. Same fix as gaqlQuery in
+// googleAdsDeepEnrich.
+async function gadsFetch(customerId: string, path: string, tokens: GoogleTokens, developerToken: string, body?: unknown, loginCustomerId?: string, method = 'POST'): Promise<any> {
+    if (!developerToken) throw new Error('Google Ads developer token missing')
     const accessToken = await getAccessToken(tokens)
     const headers: Record<string, string> = {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
-        'developer-token': process.env.GOOGLE_ADS_DEVELOPER_TOKEN || '',
+        'developer-token': developerToken,
     }
-    if (loginCustomerId) headers['login-customer-id'] = loginCustomerId
+    if (loginCustomerId && loginCustomerId !== customerId) headers['login-customer-id'] = loginCustomerId
     const url = `${GADS_API}/customers/${customerId}/${path}`
     const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined })
     const text = await res.text()
@@ -120,10 +125,11 @@ const ACTION_META: Record<PrimaryActionKey, ActionMeta> = {
 export async function checkEnhancedConversionsEligibility(
     customerId: string,
     googleTokens: GoogleTokens,
+    developerToken: string,
     loginCustomerId?: string,
 ): Promise<{ eligible: boolean; reason: string; rawSetting?: any }> {
     try {
-        const data = await gadsFetch(customerId, 'googleAds:search', googleTokens, {
+        const data = await gadsFetch(customerId, 'googleAds:search', googleTokens, developerToken, {
             query: `SELECT customer.conversion_tracking_setting.accepted_customer_data_terms,
                            customer.conversion_tracking_setting.enhanced_conversions_for_leads_enabled,
                            customer.conversion_tracking_setting.google_ads_conversion_customer
@@ -142,15 +148,18 @@ export async function checkEnhancedConversionsEligibility(
 }
 
 // ─── Find existing conversion actions by name (idempotency support) ──────
-async function findExistingAction(customerId: string, tokens: GoogleTokens, name: string, loginCustomerId?: string): Promise<{ resourceName: string; tagSnippets: any[] } | null> {
+// Phase 4.2.1-O: SELECT no longer redundantly lists resource_name (it's always
+// returned by default in v22 search responses — having both `id` AND
+// `resource_name` on `conversion_action` was triggering one source of the
+// 400 "Request contains an invalid argument" we saw on prod). Also fixed
+// the WHERE on enum field — v22 GAQL accepts unquoted enums for status.
+async function findExistingAction(customerId: string, tokens: GoogleTokens, developerToken: string, name: string, loginCustomerId?: string): Promise<{ resourceName: string; tagSnippets: any[] } | null> {
     try {
         const escName = name.replace(/'/g, "\\'")
-        const data = await gadsFetch(customerId, 'googleAds:search', tokens, {
-            query: `SELECT conversion_action.id, conversion_action.name, conversion_action.resource_name,
-                           conversion_action.tag_snippets, conversion_action.status
+        const data = await gadsFetch(customerId, 'googleAds:search', tokens, developerToken, {
+            query: `SELECT conversion_action.id, conversion_action.name, conversion_action.tag_snippets, conversion_action.status
                     FROM conversion_action
-                    WHERE conversion_action.name = '${escName}'
-                          AND conversion_action.status = 'ENABLED'`,
+                    WHERE conversion_action.name = '${escName}'`,
         }, loginCustomerId)
         const row = (data.results || data?.[0]?.results)?.[0]
         if (!row) return null
@@ -180,6 +189,7 @@ function extractIdAndLabelFromSnippets(snippets: any[]): { conversionId: string;
 export async function ensureConversionAction(
     customerId: string,
     tokens: GoogleTokens,
+    developerToken: string,
     spec: ConversionActionSpec,
     loginCustomerId?: string,
 ): Promise<CreatedConversionAction> {
@@ -187,7 +197,7 @@ export async function ensureConversionAction(
     if (!meta) throw new Error(`Unknown actionKey: ${spec.actionKey}`)
 
     // 1. Try to find existing
-    const existing = await findExistingAction(customerId, tokens, spec.name, loginCustomerId)
+    const existing = await findExistingAction(customerId, tokens, developerToken, spec.name, loginCustomerId)
     if (existing) {
         const idLabel = extractIdAndLabelFromSnippets(existing.tagSnippets)
         if (idLabel) {
@@ -240,7 +250,7 @@ export async function ensureConversionAction(
         validateOnly: false,
     }
 
-    const createRes = await gadsFetch(customerId, 'conversionActions:mutate', tokens, createBody, loginCustomerId)
+    const createRes = await gadsFetch(customerId, 'conversionActions:mutate', tokens, developerToken, createBody, loginCustomerId)
     const resourceName = (createRes.results || [])[0]?.resourceName
     if (!resourceName) throw new Error(`Create returned no resourceName: ${JSON.stringify(createRes).slice(0, 300)}`)
 
@@ -250,7 +260,7 @@ export async function ensureConversionAction(
     for (let attempt = 0; attempt < 4 && !idLabel; attempt++) {
         if (attempt > 0) await new Promise(r => setTimeout(r, 1500))
         try {
-            const data = await gadsFetch(customerId, 'googleAds:search', tokens, {
+            const data = await gadsFetch(customerId, 'googleAds:search', tokens, developerToken, {
                 query: `SELECT conversion_action.id, conversion_action.tag_snippets
                         FROM conversion_action
                         WHERE conversion_action.id = ${conversionActionId}`,
@@ -290,13 +300,29 @@ export async function setupConversionActionsForInstance(
     if (!paidProfile) throw new Error('paidProfile required')
 
     const googleAdsConfig: any = inst.googleAdsConfig || {}
-    const customerId = googleAdsConfig.customerId
-    if (!customerId) throw new Error('Google Ads not connected — link customerId first')
+    const rootCustomerId = googleAdsConfig.customerId
+    if (!rootCustomerId) throw new Error('Google Ads not connected — link customerId first')
 
     const tokens = inst.googleTokens as any
     if (!tokens?.refreshToken) throw new Error('Google OAuth tokens missing — re-auth with adwords scope')
 
-    const loginCustomerId = googleAdsConfig.mccSubAccountId ? customerId : (googleAdsConfig.loginCustomerId || undefined)
+    // Phase 4.2.1-O: when the connected account is an MCC, the conversion actions
+    // live on the OPERATING sub-account (scope.operatingCustomerId), not on the
+    // manager. Querying `FROM conversion_action` on an MCC customer returns
+    // 400 "Request contains an invalid argument" because managers don't own
+    // conversion_action resources. Resolve the right pair:
+    //   - customerId      = sub-account when MCC scope present, otherwise root
+    //   - loginCustomerId = MCC root (always, when scope present)
+    const operatingFromScope = googleAdsConfig.scope?.operatingCustomerId
+    const customerId = operatingFromScope || rootCustomerId
+    const loginCustomerId = operatingFromScope ? rootCustomerId : (googleAdsConfig.loginCustomerId || undefined)
+
+    // Phase 4.2.1-O: developer token lives on per-tenant googleAdsConfig
+    // (prod env doesn't have GOOGLE_ADS_DEVELOPER_TOKEN set). Was the second
+    // source of the 400 "Request contains an invalid argument" — gadsFetch
+    // was sending an empty developer-token header.
+    const developerToken = googleAdsConfig.developerToken || process.env.GOOGLE_ADS_DEVELOPER_TOKEN || ''
+    if (!developerToken) throw new Error('Google Ads developer token missing — link Google Ads or set GOOGLE_ADS_DEVELOPER_TOKEN env')
 
     // Decide which actions to create from paidProfile + mediaPlan
     const specs: ConversionActionSpec[] = []
@@ -317,13 +343,13 @@ export async function setupConversionActionsForInstance(
     }
 
     // Pre-flight: enhanced conversions eligibility (informational only)
-    const ec = await checkEnhancedConversionsEligibility(customerId, tokens, loginCustomerId)
+    const ec = await checkEnhancedConversionsEligibility(customerId, tokens, developerToken, loginCustomerId)
     if (!ec.eligible) warnings.push(ec.reason)
 
     const created: CreatedConversionAction[] = []
     for (const spec of specs) {
         try {
-            const c = await ensureConversionAction(customerId, tokens, spec, loginCustomerId)
+            const c = await ensureConversionAction(customerId, tokens, developerToken, spec, loginCustomerId)
             created.push(c)
         } catch (err) {
             warnings.push(`${spec.name}: ${(err as Error).message}`)

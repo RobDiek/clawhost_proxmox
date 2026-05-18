@@ -103,7 +103,13 @@ export async function runPreflight(instanceId: string): Promise<PreflightResult>
     // ── 7. Enhanced Conversions eligibility (soft) ──
     if (adsConnected) {
         try {
-            const ec = await checkEnhancedConversionsEligibility(googleAdsConfig.customerId, tokens, googleAdsConfig.loginCustomerId)
+            // Phase 4.2.1-O: thread developerToken from per-tenant config + use
+            // operating sub-account when MCC scope is present.
+            const _opCust = googleAdsConfig.scope?.operatingCustomerId
+            const _ecCust = _opCust || googleAdsConfig.customerId
+            const _ecLogin = _opCust ? googleAdsConfig.customerId : (googleAdsConfig.loginCustomerId || undefined)
+            const _ecToken = googleAdsConfig.developerToken || process.env.GOOGLE_ADS_DEVELOPER_TOKEN || ''
+            const ec = await checkEnhancedConversionsEligibility(_ecCust, tokens, _ecToken, _ecLogin)
             if (!ec.eligible) warnings.push({ code: 'enhanced_conv_terms', message: ec.reason })
         } catch (err) {
             warnings.push({ code: 'enhanced_conv_check_failed', message: (err as Error).message })
