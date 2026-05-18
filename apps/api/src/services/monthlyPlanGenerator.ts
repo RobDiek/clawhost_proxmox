@@ -71,14 +71,29 @@ function loadSeoResearch2026(): string {
     return ''
 }
 
+/**
+ * Call Anthropic with STREAMING (SSE) response. Streaming avoids undici's
+ * 5-min HeadersTimeout ceiling — server returns headers immediately and we
+ * accumulate tokens as they arrive. Required for Opus 4.7 long Hebrew outputs
+ * (12-18 min generation) on non-streaming would always hit headers timeout.
+ *
+ * Parses Anthropic SSE events:
+ *   event: message_start
+ *   event: content_block_start
+ *   event: content_block_delta   <- text_delta chunks aggregated here
+ *   event: content_block_stop
+ *   event: message_stop
+ */
 async function callOpus(args: { apiKey: string; model: string; system: string; user: string; maxTokens?: number; timeoutMs?: number }): Promise<string> {
     const body = JSON.stringify({
         model: args.model,
         max_tokens: args.maxTokens || 32000,
         system: args.system,
         messages: [{ role: 'user', content: args.user }],
+        stream: true,
     })
-    console.log(`[callOpus] POST ${ANTHROPIC_URL} model=${args.model} max_tokens=${args.maxTokens} bodyLen=${body.length} apiKeyLen=${args.apiKey?.length || 0}`)
+    console.log(`[callOpus] STREAM POST ${ANTHROPIC_URL} model=${args.model} max_tokens=${args.maxTokens} bodyLen=${body.length}`)
+    const t0 = Date.now()
     let res: Response
     try {
         res = await fetch(ANTHROPIC_URL, {
@@ -87,40 +102,78 @@ async function callOpus(args: { apiKey: string; model: string; system: string; u
                 'x-api-key': args.apiKey,
                 'anthropic-version': '2023-06-01',
                 'content-type': 'application/json',
+                'accept': 'text/event-stream',
             },
             body,
-            signal: AbortSignal.timeout(args.timeoutMs || 600000),
+            signal: AbortSignal.timeout(args.timeoutMs || 1200000),
         })
     } catch (err) {
-        // Extract undici's `cause` chain — that's where the real network/parse
-        // error lives. `fetch failed` is just the wrapper message.
         const e = err as any
-        const cause = e?.cause
-        const chain: any[] = []
-        let cur = e
-        while (cur && chain.length < 5) {
-            chain.push({
-                name: cur.name,
-                message: cur.message,
-                code: cur.code,
-                errno: cur.errno,
-                syscall: cur.syscall,
-                hostname: cur.hostname,
-            })
-            cur = cur.cause
-        }
-        console.error(`[callOpus] fetch threw. chain=${JSON.stringify(chain, null, 2)} causeMsg=${cause?.message || '(none)'}`)
-        throw new Error(`Anthropic fetch failed: ${e.message} — cause: ${cause?.message || cause?.code || '(unknown)'}`)
+        console.error(`[callOpus] fetch threw before stream open. cause=${e?.cause?.message || e?.cause?.code || '(none)'}`)
+        throw new Error(`Anthropic stream open failed: ${e.message}`)
     }
     if (!res.ok) {
         const t = await res.text().catch(() => '')
         console.error(`[callOpus] HTTP ${res.status} body=${t.slice(0, 1000)}`)
         throw new Error(`Opus ${res.status}: ${t.slice(0, 400)}`)
     }
-    const j = await res.json() as any
-    const text = j?.content?.[0]?.text
-    if (!text || typeof text !== 'string') throw new Error('Opus returned no text')
-    return text
+    if (!res.body) throw new Error('Anthropic stream returned no body')
+
+    // Read SSE chunks
+    const reader = (res.body as any).getReader()
+    const decoder = new TextDecoder('utf-8')
+    let buffer = ''
+    let assembled = ''
+    let lastProgressLog = Date.now()
+    let stopReason: string | undefined
+    let inputTokens: number | undefined
+    let outputTokens: number | undefined
+    while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        // SSE messages are separated by \n\n
+        const messages = buffer.split('\n\n')
+        buffer = messages.pop() || ''
+        for (const msg of messages) {
+            const lines = msg.split('\n')
+            let eventName = ''
+            let dataStr = ''
+            for (const line of lines) {
+                if (line.startsWith('event:')) eventName = line.slice(6).trim()
+                else if (line.startsWith('data:')) dataStr = line.slice(5).trim()
+            }
+            if (!dataStr) continue
+            let payload: any
+            try { payload = JSON.parse(dataStr) } catch { continue }
+            switch (eventName) {
+                case 'content_block_delta':
+                    if (payload?.delta?.type === 'text_delta' && typeof payload.delta.text === 'string') {
+                        assembled += payload.delta.text
+                    }
+                    break
+                case 'message_delta':
+                    if (payload?.delta?.stop_reason) stopReason = payload.delta.stop_reason
+                    if (payload?.usage?.output_tokens) outputTokens = payload.usage.output_tokens
+                    break
+                case 'message_start':
+                    if (payload?.message?.usage?.input_tokens) inputTokens = payload.message.usage.input_tokens
+                    break
+                case 'error':
+                    throw new Error(`Anthropic stream error: ${JSON.stringify(payload).slice(0, 400)}`)
+            }
+        }
+        // Progress log every 60s — helpful for diagnosing long Opus runs
+        if (Date.now() - lastProgressLog > 60000) {
+            const elapsed = Math.round((Date.now() - t0) / 1000)
+            console.log(`[callOpus] stream progress: ${elapsed}s elapsed, ${assembled.length} chars assembled`)
+            lastProgressLog = Date.now()
+        }
+    }
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
+    console.log(`[callOpus] stream done: ${elapsed}s, ${assembled.length} chars, stop=${stopReason || '?'}, in=${inputTokens || '?'} out=${outputTokens || '?'}`)
+    if (!assembled) throw new Error('Opus stream produced no text')
+    return assembled
 }
 
 // ─── Guardrails — enforce policy + derive summary stats ───────────────────
