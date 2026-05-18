@@ -1123,6 +1123,11 @@ input{font-family:inherit}
       <div class="content-calendar" id="contentCalendar"></div>
     </div>
 
+    <!-- Phase 4.3-D: Monthly Marketing Plan overview card. Synthesized from
+         paid + organic + content + audit + 2026 algo research; renders the
+         strategic narrative + counters + per-task lifecycle hub. -->
+    <div id="monthlyPlanCard" style="display:none"></div>
+
     <!-- Mazhir paid-marketing card moved into משימות הגדרה checklist as the
          'paid_profile' setup task. Mazhir audit + media plan + executor live
          inside the ניהול שיווק tab (per-pipeline controls). -->
@@ -5608,6 +5613,10 @@ function renderHome() {
 
   // Approval Queue — throttled (hits /outputs every tick otherwise)
   _runHomeThrottled('approvalQueue', 30000, renderApprovalQueue);
+  // Phase 4.3-D — monthly plan overview card (reads from researchData, no network)
+  if (typeof renderMonthlyPlanCard === 'function') {
+    try { renderMonthlyPlanCard(); } catch (e) { console.warn('[renderMonthlyPlanCard] error:', e); }
+  }
   renderContentCalendar();
 
   // Phase 4.3.4 — Paid-track hypothesis cards (throttled lazy-load)
@@ -6281,9 +6290,13 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
     var iconClass = t.status === 'planned' ? 'pending' : t.status;
     var actionsHtml = '';
     if (t.status === 'awaiting') {
+      // Phase 4.3-D: monthly_task gets skip button too (defer to next month)
+      var isMonthly = t.type === 'monthly_task' || (t.metadata && t.metadata.taskId);
       actionsHtml = '<div class="aq-actions">' +
         '<button class="aq-btn approve" onclick="event.stopPropagation();approveTask(\'' + t.id + '\')">אשרו</button>' +
-        '<button class="aq-btn edit" onclick="event.stopPropagation();editTask(\'' + t.id + '\')">תקנו</button>' +
+        (isMonthly
+          ? '<button class="aq-btn edit" onclick="event.stopPropagation();skipMonthlyTaskUI(\'' + t.id + '\')" style="background:#FEF3C7;color:#78350F;border-color:#FDE68A" title="דחה לחודש הבא">⏭ דחה</button>'
+          : '<button class="aq-btn edit" onclick="event.stopPropagation();editTask(\'' + t.id + '\')">תקנו</button>') +
         '<button class="aq-btn reject" onclick="event.stopPropagation();rejectTask(\'' + t.id + '\')">דחו</button>' +
       '</div>';
     }
@@ -8988,6 +9001,28 @@ function showPublishGuide(platform) {
 }
 
 function approveTask(taskId) {
+  // Phase 4.3-D: detect monthly_task outputs and dispatch to real backend.
+  // Other outputType (content, ads, etc.) remain on legacy localStorage path
+  // until they get their own backend approval endpoints.
+  var task = (currentTasksCache || []).find(function(t) { return t.id === taskId; });
+  var isMonthlyTask = task && (task.type === 'monthly_task' || (task.metadata && task.metadata.taskId));
+  if (isMonthlyTask && task.metadata && task.metadata.taskId) {
+    var monthlyTaskId = task.metadata.taskId;
+    showToast('מאשרים ומריצים: ' + (task.title || '').slice(0, 40) + '...', 'info');
+    apiFetch('/hosting/instances/' + instanceId + '/monthly-plan/tasks/' + encodeURIComponent(monthlyTaskId) + '/approve', { method: 'POST' })
+      .then(function(r) {
+        if (!r.success) throw new Error(r.message || 'אישור נכשל');
+        showToast('המשימה אושרה — מבצעים ברקע ✓', 'success');
+        // Refresh both approval queue and monthly plan card
+        setTimeout(function() {
+          renderApprovalQueue();
+          if (typeof renderMonthlyPlanCard === 'function') renderMonthlyPlanCard();
+        }, 800);
+      })
+      .catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
+    return;
+  }
+  // Legacy localStorage path
   var statuses = JSON.parse(localStorage.getItem('cf_task_statuses_' + instanceId) || '{}');
   statuses[taskId] = 'approved';
   localStorage.setItem('cf_task_statuses_' + instanceId, JSON.stringify(statuses));
@@ -9046,11 +9081,59 @@ function submitTaskEdit(taskId) {
 }
 
 function rejectTask(taskId) {
+  // Phase 4.3-D: monthly_task → real backend reject
+  var task = (currentTasksCache || []).find(function(t) { return t.id === taskId; });
+  var isMonthlyTask = task && (task.type === 'monthly_task' || (task.metadata && task.metadata.taskId));
+  if (isMonthlyTask && task.metadata && task.metadata.taskId) {
+    var monthlyTaskId = task.metadata.taskId;
+    var reason = prompt('סיבת דחייה (אופציונלי):', '') || '';
+    apiFetch('/hosting/instances/' + instanceId + '/monthly-plan/tasks/' + encodeURIComponent(monthlyTaskId) + '/reject', {
+      method: 'POST',
+      body: JSON.stringify({ reason: reason })
+    })
+      .then(function(r) {
+        if (!r.success) throw new Error(r.message || 'דחייה נכשלה');
+        showToast('המשימה נדחתה', 'info');
+        setTimeout(function() {
+          renderApprovalQueue();
+          if (typeof renderMonthlyPlanCard === 'function') renderMonthlyPlanCard();
+        }, 500);
+      })
+      .catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
+    return;
+  }
+  // Legacy localStorage path
   var statuses = JSON.parse(localStorage.getItem('cf_task_statuses_' + instanceId) || '{}');
   statuses[taskId] = 'planned';
   localStorage.setItem('cf_task_statuses_' + instanceId, JSON.stringify(statuses));
   showToast('המשימה הוחזרה לתכנון', 'info');
   renderApprovalQueue();
+}
+
+// Phase 4.3-D: skip a monthly task — defer to next refresh (or specific date)
+function skipMonthlyTaskUI(taskId) {
+  var task = (currentTasksCache || []).find(function(t) { return t.id === taskId; });
+  if (!task || !task.metadata || !task.metadata.taskId) {
+    showToast('לא ניתן לדחות משימה זו', 'warning');
+    return;
+  }
+  var monthlyTaskId = task.metadata.taskId;
+  // Default skip: until 1st of next month
+  var now = new Date();
+  var defaultSkip = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  apiFetch('/hosting/instances/' + instanceId + '/monthly-plan/tasks/' + encodeURIComponent(monthlyTaskId) + '/skip', {
+    method: 'POST',
+    body: JSON.stringify({ skippedUntil: defaultSkip.toISOString() })
+  })
+    .then(function(r) {
+      if (!r.success) throw new Error(r.message || 'דחייה נכשלה');
+      showToast('נדחה עד ' + defaultSkip.toLocaleDateString('he-IL'), 'info');
+      setTimeout(function() {
+        renderApprovalQueue();
+        if (typeof renderMonthlyPlanCard === 'function') renderMonthlyPlanCard();
+      }, 500);
+    })
+    .catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
 }
 
 /* ===== Content Calendar (לוח תוכן) — reads contentPlan[] from researchData ===== */
@@ -9481,6 +9564,180 @@ async function runPaidDataInventoryRefresh() {
   } catch (err) {
     showToast('שגיאה: ' + (err && err.message || 'unknown'), 'error');
     if (btn) { btn.disabled = false; btn.textContent = '↻ רענן'; }
+  }
+}
+
+// Phase 4.3-D: Monthly plan overview card.
+// Synthesizes paid + organic + content + audit + 2026 algo research into a
+// unified monthly action plan. Surfaces counters (P0/P1/P2 split, estimated
+// impact) + strategic theme + button to (re-)generate. Each task within
+// the plan lives in משימות פעילות with אשרו/דחה/דחו controls.
+var _monthlyPlanRunning = false;
+var _monthlyPlanStartedAt = 0;
+
+function renderMonthlyPlanCard() {
+  var el = document.getElementById('monthlyPlanCard');
+  if (!el) return;
+  var rd = (instanceData && instanceData.researchData) || {};
+  var plan = rd.monthlyPlan;
+  var chosenScenario = rd.chosenScenario;
+  var hasPrereqs = !!(rd.paidProfile || rd.mazhirAudit) && !!chosenScenario;
+
+  // Hide entirely if no paidProfile AND no mazhirAudit AND no chosenScenario —
+  // means user is too early in the pipeline; no monthly plan yet.
+  if (!hasPrereqs && !plan) {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'block';
+
+  // No plan yet — show CTA to generate
+  if (!plan) {
+    var prereqsHtml = '';
+    if (!rd.paidProfile) prereqsHtml += '<li>חסר: פרופיל קידום ממומן</li>';
+    if (!chosenScenario) prereqsHtml += '<li>חסר: בחירת תרחיש אסטרטגיה (smart/aggressive)</li>';
+    if (!rd.mazhirAudit) prereqsHtml += '<li>חסר: אודיט Mazhir</li>';
+    el.innerHTML =
+      '<div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;margin-bottom:14px">' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+          '<div style="font-weight:700;font-size:0.95rem;color:#1F2937">📅 תוכנית חודשית מאוחדת</div>' +
+          '<span style="font-size:0.7rem;font-weight:600;padding:2px 9px;border-radius:999px;background:#0EA5E91A;color:#0EA5E9;border:1px solid #0EA5E940">בטא — Phase 4.3</span>' +
+        '</div>' +
+        '<div style="font-size:0.85rem;color:#6B7280;line-height:1.6;margin-bottom:10px">' +
+          'תוכנית חודשית שמשלבת קמפיינים בתשלום, אסטרטגיה אורגנית, תוכן ומשימות מעקב — מבוססת על מחקר אלגוריתם 2026 ועל התרחיש שבחרתם. כל משימה עוברת אישור נפרד.' +
+        '</div>' +
+        (prereqsHtml
+          ? '<div style="background:#FEF2F2;border-right:3px solid #DC2626;padding:10px 12px;border-radius:6px;font-size:0.82rem;color:#7F1D1D;line-height:1.6">' +
+            '<div style="font-weight:600;margin-bottom:4px">דרישות מוקדמות לפני יצירת תוכנית:</div>' +
+            '<ul style="margin:0;padding-right:18px;line-height:1.7">' + prereqsHtml + '</ul>' +
+            '</div>'
+          : '<button class="btn btn-primary btn-sm" onclick="generateMonthlyPlan()" id="monthly-plan-btn" style="font-size:0.85rem">' +
+            '▶ צרו תוכנית חודשית (Opus, ~3-5 דק׳)</button>') +
+      '</div>';
+    return;
+  }
+
+  // Plan exists — render summary
+  var summary = plan.summary || {};
+  var byPri = summary.byPriority || { P0: 0, P1: 0, P2: 0 };
+  var byStat = summary.byStatus || { proposed: 0, approved: 0, rejected: 0, skipped: 0, in_progress: 0, completed: 0, failed: 0 };
+  var impact = summary.estimatedTotalImpact || {};
+  var overview = plan.overview || {};
+  var keyTheme = overview.keyTheme || '';
+  var hebrew = overview.hebrew || '';
+  var focusAreas = overview.focusAreas || [];
+  var generatedAt = plan.generatedAt ? new Date(plan.generatedAt).toLocaleString('he-IL') : '';
+  var totalTasks = summary.totalTasks || 0;
+  var approvedCount = byStat.approved + byStat.in_progress + byStat.completed;
+  var pendingCount = byStat.proposed;
+  var progressPct = totalTasks > 0 ? Math.round((approvedCount + byStat.completed) / totalTasks * 100) : 0;
+
+  var impactHtml = '';
+  if (impact.spendSavingsIls30d) impactHtml += '<span class="mp-impact-chip">חיסכון: ₪' + Math.round(impact.spendSavingsIls30d).toLocaleString() + '/חודש</span>';
+  if (impact.extraConversions30d) impactHtml += '<span class="mp-impact-chip">+' + Math.round(impact.extraConversions30d) + ' המרות/חודש</span>';
+  if (impact.cpaReductionPct) impactHtml += '<span class="mp-impact-chip">CPA ↓ ' + Math.round(impact.cpaReductionPct) + '%</span>';
+  if (impact.extraOrganicTraffic30d) impactHtml += '<span class="mp-impact-chip">+' + Math.round(impact.extraOrganicTraffic30d) + '% תנועה אורגנית</span>';
+
+  var focusHtml = focusAreas.length > 0
+    ? '<ul style="margin:8px 0 0;padding-right:18px;line-height:1.7;font-size:0.82rem;color:#4B5563">' +
+      focusAreas.slice(0, 5).map(function(f) { return '<li>' + escapeHtml(f) + '</li>'; }).join('') + '</ul>'
+    : '';
+
+  // Running indicator
+  if (_monthlyPlanRunning) {
+    var elapsed = Math.floor((Date.now() - _monthlyPlanStartedAt) / 1000);
+    var runningBanner = '<div style="background:#EFF6FF;border-right:3px solid #2563EB;padding:8px 12px;border-radius:6px;font-size:0.82rem;color:#1E40AF;margin-bottom:10px">' +
+      '⏳ בונים תוכנית חודשית מחדש... (' + elapsed + 'ש׳)' + '</div>';
+    el.innerHTML =
+      '<div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;margin-bottom:14px">' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+          '<div style="font-weight:700;font-size:0.95rem;color:#1F2937">📅 תוכנית חודשית מאוחדת</div>' +
+        '</div>' +
+        runningBanner +
+      '</div>';
+    return;
+  }
+
+  el.innerHTML =
+    '<style>' +
+    '.mp-impact-chip { display:inline-block;font-size:0.74rem;font-weight:600;padding:3px 9px;border-radius:999px;background:#10B98115;color:#065F46;border:1px solid #A7F3D0;margin-left:4px;margin-bottom:4px }' +
+    '.mp-priority-pill { display:inline-flex;align-items:center;gap:4px;font-size:0.78rem;font-weight:700;padding:3px 9px;border-radius:6px;margin-left:4px }' +
+    '.mp-pri-p0 { background:#FEE2E2;color:#991B1B }' +
+    '.mp-pri-p1 { background:#FEF3C7;color:#92400E }' +
+    '.mp-pri-p2 { background:#E0F2FE;color:#075985 }' +
+    '</style>' +
+    '<div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;margin-bottom:14px">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
+        '<div style="font-weight:700;font-size:0.95rem;color:#1F2937">📅 תוכנית חודשית מאוחדת</div>' +
+        '<span style="font-size:0.7rem;font-weight:600;padding:2px 9px;border-radius:999px;background:#0EA5E91A;color:#0EA5E9;border:1px solid #0EA5E940">' +
+          (chosenScenario === 'smart' ? 'תרחיש חכם' : chosenScenario === 'aggressive' ? 'תרחיש אגרסיבי' : chosenScenario) +
+        '</span>' +
+        '<div style="margin-inline-start:auto;font-size:0.72rem;color:#9CA3AF">עודכנה: ' + generatedAt + '</div>' +
+      '</div>' +
+      (keyTheme ? '<div style="font-weight:600;color:#0EA5E9;font-size:0.88rem;margin-bottom:6px">🎯 ' + escapeHtml(keyTheme) + '</div>' : '') +
+      (hebrew ? '<div style="font-size:0.85rem;color:#4B5563;line-height:1.6;margin-bottom:8px">' + escapeHtml(hebrew) + '</div>' : '') +
+      focusHtml +
+      '<div style="margin-top:14px;padding-top:12px;border-top:1px solid #F3F4F6;display:flex;flex-wrap:wrap;align-items:center;gap:10px">' +
+        '<span style="font-size:0.92rem;font-weight:700;color:#1F2937">' + totalTasks + ' משימות</span>' +
+        '<span class="mp-priority-pill mp-pri-p0">P0 · ' + byPri.P0 + '</span>' +
+        '<span class="mp-priority-pill mp-pri-p1">P1 · ' + byPri.P1 + '</span>' +
+        '<span class="mp-priority-pill mp-pri-p2">P2 · ' + byPri.P2 + '</span>' +
+        '<span style="font-size:0.78rem;color:#6B7280">אישרתם: ' + approvedCount + ' · ממתינות: ' + pendingCount + (byStat.rejected ? ' · נדחו: ' + byStat.rejected : '') + (byStat.skipped ? ' · נדחו: ' + byStat.skipped : '') + '</span>' +
+      '</div>' +
+      (impactHtml ? '<div style="margin-top:10px">' + impactHtml + '</div>' : '') +
+      (progressPct > 0
+        ? '<div style="margin-top:10px;background:#F3F4F6;height:6px;border-radius:3px;overflow:hidden">' +
+          '<div style="height:100%;background:linear-gradient(90deg,#10B981,#059669);width:' + progressPct + '%"></div>' +
+          '</div>' +
+          '<div style="font-size:0.72rem;color:#6B7280;margin-top:4px">' + progressPct + '% מהתוכנית בוצעה</div>'
+        : '') +
+      '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button class="btn btn-primary btn-sm" onclick="scrollToApprovalQueue()" style="font-size:0.82rem">📋 צפו במשימות (' + pendingCount + ')</button>' +
+        '<button class="btn btn-outline btn-sm" onclick="generateMonthlyPlan(true)" style="font-size:0.82rem" title="חישוב מחדש עם הנתונים העדכניים">⟲ צרו מחדש</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function scrollToApprovalQueue() {
+  // Filter approval queue to pending_review only + scroll into view
+  if (typeof setAqFilter === 'function') setAqFilter('pending_review');
+  var el = document.querySelector('.aq-list, #approvalQueueList, [class*="approval"]');
+  if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function generateMonthlyPlan(forceRegen) {
+  if (_monthlyPlanRunning) {
+    showToast('תוכנית חודשית כבר נבנית — חכו לסיום', 'warning');
+    return;
+  }
+  if (forceRegen) {
+    var go = await showConfirm({
+      icon: '⟲',
+      title: 'יצירה מחדש של התוכנית החודשית?',
+      descHtml: '<div style="font-size:0.85rem;color:#374151;line-height:1.6">המערכת תקרא את המצב העדכני של החשבון (Mazhir audit, mediaPlan, אסטרטגיה, תוכן, מחקר 2026) ותחזור עם רשימת משימות חדשה. משימות ממתינות שלא אושרו עדיין יעודכנו, משימות שהושלמו כבר יישמרו במצבן.</div>',
+      okText: 'צרו מחדש',
+      okClass: 'btn-primary',
+      cancelText: 'ביטול'
+    });
+    if (!go) return;
+  }
+  _monthlyPlanRunning = true;
+  _monthlyPlanStartedAt = Date.now();
+  renderMonthlyPlanCard();
+  showToast('בונים תוכנית חודשית מאוחדת... (~3-5 דק׳)', 'info');
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/monthly-plan?trigger=on_demand', { method: 'POST' });
+    if (!r.success) throw new Error(r.message || 'יצירת התוכנית נכשלה');
+    var plan = r.data && r.data.monthlyPlan;
+    if (instanceData && instanceData.researchData) instanceData.researchData.monthlyPlan = plan;
+    var total = (plan && plan.summary && plan.summary.totalTasks) || 0;
+    showToast('תוכנית חודשית מוכנה ✓ · ' + total + ' משימות', 'success');
+    if (typeof renderApprovalQueue === 'function') renderApprovalQueue();
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || err), 'error');
+  } finally {
+    _monthlyPlanRunning = false;
+    renderMonthlyPlanCard();
   }
 }
 
