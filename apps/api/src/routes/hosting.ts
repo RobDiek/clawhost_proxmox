@@ -87,6 +87,8 @@ import {
     saveMazhirGtmTarget,
     createMazhirGtmContainer,
     getMazhirGtmInstallSnippet,
+    getGtmIntegrationDiagnostic,
+    runGtmAutoFix,
     setupMazhirConversions,
     autoSetupMazhirGtm,
     getMazhirPreflight,
@@ -449,6 +451,10 @@ app.post('/instances/:id/mazhir/gtm/create-container', createMazhirGtmContainer)
 app.get('/instances/:id/mazhir/gtm/snippet', getMazhirGtmInstallSnippet)
 app.post('/instances/:id/mazhir/conversions/setup', setupMazhirConversions)
 app.post('/instances/:id/mazhir/gtm/auto-setup', autoSetupMazhirGtm)
+// Phase 4.2.2-A — GTM integration card diagnostic (probe-based gate status)
+app.get('/instances/:id/integrations/gtm/diagnostic', getGtmIntegrationDiagnostic)
+// Phase 4.2.2-B — GTM auto-fix orchestrator (single-button chain)
+app.post('/instances/:id/integrations/gtm/auto-fix', runGtmAutoFix)
 app.get('/instances/:id/mazhir/preflight', getMazhirPreflight)
 app.post('/instances/:id/mazhir/execute', executeMazhirPlan)
 app.get('/instances/:id/mazhir/wp-snippet', getMazhirWpSnippet)

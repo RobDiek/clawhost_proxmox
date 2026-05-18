@@ -8974,6 +8974,46 @@ export const getMazhirGtmInstallSnippet = async (c: Context) => {
     }
 }
 
+// ═════════════════════════════════════════════════════════════════════════
+// Phase 4.2.2-A: GTM Integration Diagnostic
+// ═════════════════════════════════════════════════════════════════════════
+// GET /hosting/instances/:id/integrations/gtm/diagnostic
+// Returns the per-gate status of GTM integration (8 gates from OAuth →
+// account → container → install → permission → conversions). Used by the
+// Integrations card UI to render actionable state.
+export const getGtmIntegrationDiagnostic = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { runGtmDiagnostic } = await import('@/services/gtmIntegrationDiagnostic')
+        const diagnostic = await runGtmDiagnostic(instanceId)
+        return ok(c, diagnostic)
+    } catch (err) {
+        console.error('getGtmIntegrationDiagnostic error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// Phase 4.2.2-B: GTM Auto-Fix Orchestrator
+// ═════════════════════════════════════════════════════════════════════════
+// POST /hosting/instances/:id/integrations/gtm/auto-fix
+// Runs the auto-fixable steps in order (conversions setup → publish tags),
+// stopping at the first manual gate (OAuth grant, accept ToS, give Publish
+// permission). Frontend single-button experience.
+export const runGtmAutoFix = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { runGtmAutoFixChain } = await import('@/services/gtmIntegrationDiagnostic')
+        const result = await runGtmAutoFixChain(instanceId)
+        return ok(c, result, result.completed ? 'GTM integration fully configured ✓' : 'Stopped at manual gate — see userActionRequired')
+    } catch (err) {
+        console.error('runGtmAutoFix error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/mazhir/gtm/target — pick container ──────
 export const saveMazhirGtmTarget = async (c: Context) => {
     try {
