@@ -9711,6 +9711,17 @@ function renderMazhirCard() {
     // discover it 3 clicks deep.
     var _hasGtmScope_card = !!(instanceData && instanceData.hasGtmScope);
 
+    var _gtmTargetSaved_card = !!(instanceData && instanceData.researchData
+      && instanceData.researchData.mazhirGtm
+      && instanceData.researchData.mazhirGtm.target
+      && instanceData.researchData.mazhirGtm.target.publicId);
+    var _gtmTargetPublicId_card = _gtmTargetSaved_card
+      ? instanceData.researchData.mazhirGtm.target.publicId
+      : '';
+    var _gtmTargetName_card = _gtmTargetSaved_card
+      ? (instanceData.researchData.mazhirGtm.target.name || '')
+      : '';
+
     var setupRow = '';
     if (_hasFullAdsApi_card) {
       var gtmStepHtml;
@@ -9719,6 +9730,12 @@ function renderMazhirCard() {
       } else if (!_hasGtmScope_card) {
         // No GTM OAuth scope yet — direct connect button, NOT auto-setup.
         gtmStepHtml = '<button class="btn btn-primary btn-sm" onclick="connectGoogleScopeAdditive(\'gtm\')" style="font-size:0.78rem;background:#7C3AED;border-color:#7C3AED">🔑 חברו Google Tag Manager (OAuth, שלב 7a)</button>';
+      } else if (_gtmTargetSaved_card) {
+        // Phase 4.2.1-M (refined) — target already picked. Show ready-to-run
+        // button + a tiny "view install snippet" link (in case site doesn't
+        // have the code yet).
+        gtmStepHtml = '<button class="btn btn-primary btn-sm" onclick="autoSetupMazhirGtmFromTasks()" id="mazhir-gtm-btn-card" style="font-size:0.78rem">▶ הפעילו GTM auto-setup (שלב 7, ~30 שנ׳)</button>' +
+          '<button class="btn btn-outline btn-sm" onclick="showGtmInstallSnippet(\'' + escapeJsAttr(_gtmTargetPublicId_card) + '\',\'' + escapeJsAttr(_gtmTargetName_card) + '\',false)" style="font-size:0.72rem;color:#6B7280">קוד GTM</button>';
       } else {
         gtmStepHtml = '<button class="btn btn-primary btn-sm" onclick="autoSetupMazhirGtmFromTasks()" id="mazhir-gtm-btn-card" style="font-size:0.78rem">▶ הפעילו GTM auto-setup (שלב 7, ~30 שנ׳)</button>';
       }
@@ -10016,11 +10033,11 @@ async function saveGtmTargetPick() {
       instanceData.researchData.mazhirGtm = instanceData.researchData.mazhirGtm || {};
       instanceData.researchData.mazhirGtm.target = { accountId: target.accountId, containerId: target.containerId, publicId: target.publicId, name: target.name, usageContext: target.usageContext, measurementId: mid.trim() || undefined };
     }
-    showToast('GTM container נשמר ✓', 'success');
+    showToast('GTM container נשמר ✓ — אפשר להמשיך לשלב הבא', 'success');
     document.getElementById('gtm-pick-modal').remove();
-    // Phase 4.2.1-M — after save, show install snippet for user to verify
-    // they have GTM code on their site. If yes, proceed to auto-setup.
-    showGtmInstallSnippet(target.publicId, target.name, false);
+    // Phase 4.2.1-M (fix) — for EXISTING container, don't auto-open snippet.
+    // User picked it because it's already working. If they need the snippet
+    // for any reason, the Mazhir card now exposes a "view snippet" link.
     renderMazhirCard();
   } catch (err) {
     showToast('שגיאה: ' + err.message, 'error');
@@ -10078,20 +10095,29 @@ function showGtmInstallSnippet(publicId, name, isNewContainer) {
   var rdData = (instanceData && instanceData.researchData) || {};
   var siteUrl = (rdData.answers && rdData.answers.websiteUrl) || '';
 
-  // Standard GTM snippets — same as buildGtmHeadSnippet/buildGtmBodySnippet on backend
-  var headSnippet =
+  // Standard GTM snippets — same as buildGtmHeadSnippet/buildGtmBodySnippet on backend.
+  // Build as plain text, then HTML-escape before injecting into <pre> so
+  // browser doesn't parse <script>/<noscript> as real elements (which would
+  // render empty boxes — the original bug).
+  var headSnippetRaw =
     '<!-- Google Tag Manager -->\n' +
     '<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({\'gtm.start\':\n' +
     'new Date().getTime(),event:\'gtm.js\'});var f=d.getElementsByTagName(s)[0],\n' +
     'j=d.createElement(s),dl=l!=\'dataLayer\'?\'&l=\'+l:\'\';j.async=true;j.src=\n' +
     '\'https://www.googletagmanager.com/gtm.js?id=\'+i+dl;f.parentNode.insertBefore(j,f);\n' +
-    '})(window,document,\'script\',\'dataLayer\',\'' + publicId + '\');</' + 'script>\n' +
+    '})(window,document,\'script\',\'dataLayer\',\'' + publicId + '\');<\/script>\n' +
     '<!-- End Google Tag Manager -->';
-  var bodySnippet =
+  var bodySnippetRaw =
     '<!-- Google Tag Manager (noscript) -->\n' +
     '<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=' + publicId + '"\n' +
-    'height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>\n' +
+    'height="0" width="0" style="display:none;visibility:hidden"><\/iframe><\/noscript>\n' +
     '<!-- End Google Tag Manager (noscript) -->';
+  // Cache raw forms on window so the clipboard button can grab them without
+  // re-extracting (escapeHtml entities back).
+  window._gtmHeadSnippetRaw = headSnippetRaw;
+  window._gtmBodySnippetRaw = bodySnippetRaw;
+  var headSnippet = escapeHtml(headSnippetRaw);
+  var bodySnippet = escapeHtml(bodySnippetRaw);
 
   var modal = document.createElement('div');
   modal.id = 'gtm-snippet-modal';
@@ -10114,14 +10140,14 @@ function showGtmInstallSnippet(publicId, name, isNewContainer) {
       '<div style="margin-bottom:12px">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
           '<label style="font-weight:600;font-size:0.85rem;color:#1F2937">קוד 1 — להוסיף בתוך <code>&lt;head&gt;</code> (גבוה ככל האפשר):</label>' +
-          '<button onclick="navigator.clipboard.writeText(document.getElementById(\'gtm-head-snippet\').textContent);showToast(\'הקוד הועתק ✓\',\'success\')" class="btn btn-outline btn-sm" style="font-size:0.74rem">📋 העתיקו</button>' +
+          '<button onclick="navigator.clipboard.writeText(window._gtmHeadSnippetRaw||\'\');showToast(\'הקוד הועתק ✓\',\'success\')" class="btn btn-outline btn-sm" style="font-size:0.74rem">📋 העתיקו</button>' +
         '</div>' +
         '<pre id="gtm-head-snippet" style="background:#1F2937;color:#10B981;padding:10px 12px;border-radius:6px;font-size:0.74rem;direction:ltr;text-align:left;overflow-x:auto;white-space:pre-wrap;line-height:1.5;font-family:Consolas,monospace">' + headSnippet + '</pre>' +
       '</div>' +
       '<div style="margin-bottom:14px">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
           '<label style="font-weight:600;font-size:0.85rem;color:#1F2937">קוד 2 — להוסיף ישר אחרי <code>&lt;body&gt;</code>:</label>' +
-          '<button onclick="navigator.clipboard.writeText(document.getElementById(\'gtm-body-snippet\').textContent);showToast(\'הקוד הועתק ✓\',\'success\')" class="btn btn-outline btn-sm" style="font-size:0.74rem">📋 העתיקו</button>' +
+          '<button onclick="navigator.clipboard.writeText(window._gtmBodySnippetRaw||\'\');showToast(\'הקוד הועתק ✓\',\'success\')" class="btn btn-outline btn-sm" style="font-size:0.74rem">📋 העתיקו</button>' +
         '</div>' +
         '<pre id="gtm-body-snippet" style="background:#1F2937;color:#10B981;padding:10px 12px;border-radius:6px;font-size:0.74rem;direction:ltr;text-align:left;overflow-x:auto;white-space:pre-wrap;line-height:1.5;font-family:Consolas,monospace">' + bodySnippet + '</pre>' +
       '</div>' +
