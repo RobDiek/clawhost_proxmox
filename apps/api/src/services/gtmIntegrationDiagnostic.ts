@@ -419,6 +419,14 @@ export async function runGtmDiagnostic(instanceId: string): Promise<GtmDiagnosti
     })
 
     // ── Gate 7: Publish permission on the picked container ──
+    // Phase 4.2.2-C2 fix: this gate is NEVER hard-`fail` from historical
+    // errors alone. Google doesn't expose container-level role checks via
+    // API for non-account-admins, so the only ground truth is "did the
+    // last publish call succeed?". A past failure becomes `warn` (yellow,
+    // non-blocking) with a remediation hint — auto-fix will retry; if the
+    // user has since granted Publish role, the retry succeeds and the
+    // gate flips green. If it fails again, the orchestrator surfaces the
+    // fresh error in a modal.
     let publishGate: DiagnosticGate
     if (!pickedOk) {
         publishGate = {
@@ -440,10 +448,12 @@ export async function runGtmDiagnostic(instanceId: string): Promise<GtmDiagnosti
         publishGate = {
             id: 'gtm_publish_permission',
             label: 'הרשאת Publish',
-            status: 'fail',
-            message: 'משתמש המחובר עכשיו אינו Publisher על container זה',
-            detail: 'GTM API החזיר 404/permission denied על שלב ה-publish. הוסיפו את משתמש Google המחובר (' + (actualEmail || 'unknown') + ') כ-Publisher בהגדרות ה-container.',
-            blocking: true,
+            status: 'warn',
+            message: 'ניסיון publish קודם נכשל — auto-fix ינסה שוב',
+            detail:
+                'API של Google לא חושף בדיקת הרשאת Publish ברמת container. הניסיון הקודם נכשל כי משתמש Google המחובר (' +
+                (actualEmail || 'unknown') + ') לא היה Publisher. אם הוספתם הרשאה זה עתה — לחצו "auto-fix" ונבדוק. אם לא — פתחו User Management במדריך הידני.',
+            blocking: false,    // do NOT block auto-fix — let it retry to verify
             action: {
                 type: 'manual',
                 label: 'פתחו User Management של ה-container',
@@ -453,12 +463,13 @@ export async function runGtmDiagnostic(instanceId: string): Promise<GtmDiagnosti
                     'לחצו "+" כדי להוסיף משתמש',
                     `הכניסו: ${actualEmail || '<email המחובר>'}`,
                     'בחרו רמת הרשאה: Publish (כוללת גם Approve + Edit + Read)',
-                    'Save → חזרו לכאן ולחצו "רענן diagnostic"',
+                    'Save → חזרו לכאן ולחצו "🔄 רענן" או "🚀 auto-fix"',
                 ],
             },
         }
     } else {
-        // Probe via user_permissions API. If we have admin read → confirmed. Otherwise pending.
+        // No past attempt — probe via user_permissions API for account-admin
+        // confirmation. If 403, mark pending (will be tested at auto-fix time).
         const probe = await probePublishPermission(accessToken, target!.accountId)
         publishGate = {
             id: 'gtm_publish_permission',
@@ -468,7 +479,7 @@ export async function runGtmDiagnostic(instanceId: string): Promise<GtmDiagnosti
                 ? 'מאומת — Admin על החשבון'
                 : 'יבדק בעת publish הבא',
             detail: probe.reason,
-            blocking: false,    // we don't block — we'll find out when we run
+            blocking: false,    // not blocking — orchestrator will discover at runtime
         }
     }
     gates.push(publishGate)
@@ -577,10 +588,13 @@ export async function runGtmAutoFixChain(instanceId: string): Promise<AutoFixCha
     // ── Pass 1: diagnose current state ──
     let diag = await runGtmDiagnostic(instanceId)
 
-    // ── If any non-auto-fixable gate is failing → bail out with user action ──
+    // ── If any BLOCKING gate with status='fail' has a non-auto-fixable
+    //    action → bail out with user action. Note: `warn` doesn't bail (e.g.
+    //    publish_permission past-error becomes warn — we want orchestrator
+    //    to actually try publish and find out fresh truth). ──
     const userActionGate = diag.gates.find(g =>
         g.blocking
-        && (g.status === 'fail' || g.status === 'warn')
+        && g.status === 'fail'
         && g.action
         && g.action.type !== 'auto_fix'
     )
@@ -644,8 +658,8 @@ export async function runGtmAutoFixChain(instanceId: string): Promise<AutoFixCha
         }
     }
 
-    // ── Re-check: any other blocking gate still failing? ──
-    const stillFailing = diag.gates.find(g => g.blocking && (g.status === 'fail' || g.status === 'warn') && g.action)
+    // ── Re-check: any other blocking gate still failing (fail only, not warn)? ──
+    const stillFailing = diag.gates.find(g => g.blocking && g.status === 'fail' && g.action)
     if (stillFailing) {
         return {
             completed: false,
@@ -719,6 +733,23 @@ export async function runGtmAutoFixChain(instanceId: string): Promise<AutoFixCha
         steps,
         finalDiagnostic: finalDiag,
         userActionRequired: completed ? undefined : (() => {
+            // If our just-run publish failed, ALWAYS surface the publish gate's
+            // manual remediation — even when its status is `warn`. The user
+            // attempted auto-fix and it didn't complete, so we owe them the
+            // remediation steps.
+            const lastPublishStep = steps.find(s => s.action === 'gtm_auto_setup' && s.result === 'fail')
+            if (lastPublishStep) {
+                const pubGate = finalDiag.gates.find(g => g.id === 'gtm_publish_permission')
+                if (pubGate && pubGate.action) {
+                    return {
+                        gateId: pubGate.id,
+                        label: pubGate.action.label,
+                        actionType: pubGate.action.type,
+                        steps: (pubGate.action as any).steps,
+                        externalUrl: (pubGate.action as any).externalUrl,
+                    }
+                }
+            }
             const next = finalDiag.gates.find(g => g.blocking && g.status === 'fail' && g.action)
             if (!next) return undefined
             return {
