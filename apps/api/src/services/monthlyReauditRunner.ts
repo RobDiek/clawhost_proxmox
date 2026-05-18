@@ -14,6 +14,11 @@
  *
  * Schedule: hourly check; fires only when day-of-month=1 AND not already
  * fired this month (tracked via researchData.lastMonthlyReauditAt).
+ *
+ * Phase 4.3-E: after audit completes, also regenerate the unified monthly
+ * marketing plan (services/monthlyPlanGenerator) for instances with
+ * chosenScenario set. The plan picks up the fresh audit findings and
+ * carries over still-pending tasks from the previous plan.
  */
 
 import { eq, isNotNull } from 'drizzle-orm'
@@ -26,8 +31,11 @@ export async function runMonthlyReaudits(): Promise<{
     skippedAlreadyFired: number
     skippedNoPaid: number
     errors: number
+    planFired: number
+    planSkippedNoScenario: number
+    planErrors: number
 }> {
-    const stats = { eligible: 0, fired: 0, skippedAlreadyFired: 0, skippedNoPaid: 0, errors: 0 }
+    const stats = { eligible: 0, fired: 0, skippedAlreadyFired: 0, skippedNoPaid: 0, errors: 0, planFired: 0, planSkippedNoScenario: 0, planErrors: 0 }
 
     const now = new Date()
     const currentMonthKey = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`
@@ -79,6 +87,30 @@ export async function runMonthlyReaudits(): Promise<{
                         const summary = `📊 אודיט חודשי חדש מוכן · ${diff.changes.length} שינויים · ${diff.summary || ''}`
                         await telegram.alertAdmin(`[${row.id}] ${summary}`)
                     } catch { /* best-effort */ }
+                }
+
+                // Phase 4.3-E: regenerate unified monthly plan now that audit is fresh.
+                // Hard gates: chosenScenario must be set; paidProfile present (already
+                // guaranteed by mazhirAudit existence). Per-instance failure isolated.
+                if (nextRd.chosenScenario) {
+                    try {
+                        const { generateMonthlyPlan } = await import('./monthlyPlanGenerator')
+                        const r = await generateMonthlyPlan(row.id, 'cron_monthly')
+                        stats.planFired++
+                        console.log(`[monthlyReauditRunner] ${row.id}: monthly plan refreshed (${r.monthlyPlan.summary.totalTasks} tasks)`)
+                        // Notify on plan regenerate
+                        try {
+                            const telegram = (await import('./telegram')).default
+                            const t = r.monthlyPlan
+                            const msg = `📅 תוכנית חודשית חדשה · ${t.summary.totalTasks} משימות · P0=${t.summary.byPriority.P0}, P1=${t.summary.byPriority.P1}, P2=${t.summary.byPriority.P2}`
+                            await telegram.alertAdmin(`[${row.id}] ${msg}`)
+                        } catch { /* best-effort */ }
+                    } catch (err) {
+                        stats.planErrors++
+                        console.error(`[monthlyReauditRunner] ${row.id} monthly plan failed:`, err)
+                    }
+                } else {
+                    stats.planSkippedNoScenario++
                 }
             } catch (err) {
                 stats.errors++
