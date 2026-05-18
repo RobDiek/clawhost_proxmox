@@ -222,7 +222,8 @@ export async function runGtmDiagnostic(instanceId: string): Promise<GtmDiagnosti
     const target = rd.mazhirGtm?.target
     const lastSetup = rd.mazhirGtm?.lastSetupResult
     const lastSetupAt: string | null = rd.mazhirGtm?.lastSetupAt || null
-    const conversions: any[] = rd.mazhirConversions?.created || []
+    // Phase 4.2.3-B: read `active` (unified mapped+created) with legacy fallback.
+    const conversions: any[] = rd.mazhirConversions?.active || rd.mazhirConversions?.created || []
     const siteUrl: string | undefined = rd.answers?.websiteUrl || rd.paidProfile?.websiteUrl
 
     const gates: DiagnosticGate[] = []
@@ -708,7 +709,8 @@ export async function runGtmAutoFixChain(instanceId: string): Promise<AutoFixCha
         if (!inst?.googleTokens) throw new Error('Google tokens missing')
         const rd: any = inst.researchData || {}
         const target = rd.mazhirGtm?.target
-        const conversions = rd.mazhirConversions?.created || []
+        // Phase 4.2.3-B: read `active` (unified mapped+created) with legacy fallback.
+        const conversions = rd.mazhirConversions?.active || rd.mazhirConversions?.created || []
         const profile = rd.paidProfile
         const gtmConfigs = conversions
             .filter((cv: any) => cv.googleAdsConversionId && cv.googleAdsConversionLabel)

@@ -8722,7 +8722,9 @@ export const generateMazhirMediaPlan = async (c: Context) => {
             const rd: any = inst?.researchData || {}
             const audit = rd.mazhirAudit
             const blockers = Array.isArray(audit?.blockers) ? audit.blockers : []
-            const conversions = (rd.mazhirConversions?.created || []).length
+            // Phase 4.2.3-B: state-aware Stage 8 saves `active` (unified
+            // mapped + created list). Old data still has only `created`.
+            const conversions = (rd.mazhirConversions?.active || rd.mazhirConversions?.created || []).length
             const gtmPublished = !!(rd.mazhirGtm?.lastSetupResult?.published)
             const googleAdsConfig: any = (inst as any)?.googleAdsConfig || {}
             const hasFullAdsAPI = !!googleAdsConfig.customerId && !!googleAdsConfig.developerToken
@@ -9038,15 +9040,67 @@ export const saveMazhirGtmTarget = async (c: Context) => {
 
 // ─── POST /hosting/instances/:id/mazhir/conversions/setup ─────────────────
 // Auto-creates Google Ads conversion actions per primary action implied by paidProfile.
+// Phase 4.2.3-B: when tenant is mature, this now runs discover → smart defaults → apply
+// instead of always creating Mazhir-named duplicates. For full control, UI should use
+// GET /suggestions + POST /confirm-mappings instead.
 export const setupMazhirConversions = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const { setupConversionActionsForInstance } = await import('@/services/mazhirConversions')
         const r = await setupConversionActionsForInstance(instanceId)
-        return ok(c, r, `Created ${r.created.length} conversion actions`)
+        return ok(c, r, `Applied: ${r.mapped.length} mapped, ${r.created.length} created, ${r.archived.length} archived`)
     } catch (err) {
         console.error('setupMazhirConversions error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── GET /hosting/instances/:id/mazhir/conversions/suggestions ────────────
+// Phase 4.2.3-B: read-only discovery — returns per-actionKey candidates from user's
+// existing Google Ads conversion_actions, with smart-default recommendations. UI renders
+// radio buttons; user picks; then POSTs to /confirm-mappings to apply.
+export const getConversionSuggestions = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { discoverConversionSuggestions } = await import('@/services/mazhirConversions')
+        const r = await discoverConversionSuggestions(instanceId)
+        return ok(c, r)
+    } catch (err) {
+        console.error('getConversionSuggestions error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/conversions/confirm ───────────────
+// Phase 4.2.3-B: applies user's confirmed mapping choices. Body:
+//   { userChoices: [{ actionKey, choice: { type: 'map_existing'|'create_new', resourceName? } }, ...] }
+// On map_existing: registers the user-owned action as the active signal for that key
+// (no new Mazhir action created). On create_new: creates a new Mazhir-named action.
+// Auto-archives Mazhir 0-conv actions that have been superseded by user's mapping picks.
+export const confirmConversionMappings = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const body = await c.req.json<{ userChoices?: any[] }>()
+        if (!Array.isArray(body?.userChoices)) return fail(c, 'userChoices[] required', 400)
+        // Validate each choice shape
+        for (const ch of body.userChoices) {
+            if (!ch || typeof ch.actionKey !== 'string') return fail(c, 'invalid choice — actionKey required', 400)
+            if (!ch.choice || typeof ch.choice.type !== 'string') return fail(c, 'invalid choice — choice.type required', 400)
+            if (ch.choice.type !== 'map_existing' && ch.choice.type !== 'create_new') {
+                return fail(c, `invalid choice.type "${ch.choice.type}" — must be map_existing|create_new`, 400)
+            }
+            if (ch.choice.type === 'map_existing' && typeof ch.choice.resourceName !== 'string') {
+                return fail(c, 'map_existing requires choice.resourceName', 400)
+            }
+        }
+        const { applyConversionMappings } = await import('@/services/mazhirConversions')
+        const r = await applyConversionMappings(instanceId, body.userChoices)
+        return ok(c, r, `Applied: ${r.mapped.length} mapped, ${r.created.length} created, ${r.archived.length} archived`)
+    } catch (err) {
+        console.error('confirmConversionMappings error:', err)
         return fail(c, (err as Error).message, 500)
     }
 }
@@ -9065,7 +9119,9 @@ export const autoSetupMazhirGtm = async (c: Context) => {
         const rd: any = inst.researchData || {}
         const target = rd.mazhirGtm?.target
         if (!target) return fail(c, 'GTM target not picked — call /mazhir/gtm/target first', 400)
-        const conversions = rd.mazhirConversions?.created || []
+        // Phase 4.2.3-B: read `active` (unified mapped+created) for GTM wiring.
+        // Fallback to `created` for legacy data shape compatibility.
+        const conversions = rd.mazhirConversions?.active || rd.mazhirConversions?.created || []
         const profile = rd.paidProfile
 
         // Build GtmConversionConfig list from saved Google Ads conversion actions

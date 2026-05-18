@@ -325,10 +325,146 @@ export async function ensureConversionAction(
     }
 }
 
-// ─── Bulk: create the conversion actions implied by a paidProfile + plan ─
-export async function setupConversionActionsForInstance(
-    instanceId: string,
-): Promise<{ created: CreatedConversionAction[]; gtmConfigs: GtmConversionConfig[]; warnings: string[] }> {
+// ─── Mapped conversion action: an EXISTING user action we adopt for Smart Bidding ─
+export interface MappedConversionAction {
+    actionKey: PrimaryActionKey
+    resourceName: string                  // user's existing action resource name
+    existingName: string                  // user's display name (e.g. "Calls from ads")
+    category: string                      // category from existing action
+    type: string                          // type from existing action
+    googleAdsConversionId?: string        // from existing tag_snippets (may be missing for AD_CALL/GA4 imports)
+    googleAdsConversionLabel?: string
+    last90dConv: number                   // existing volume (drives Smart Bidding confidence)
+    primaryForGoal: boolean
+}
+
+// ─── A candidate user can pick for an actionKey (or pick "create new") ─
+export interface ConversionCandidate {
+    resourceName: string
+    name: string
+    category: string
+    type: string
+    primaryForGoal: boolean
+    last90dConv: number
+    googleAdsConversionId?: string
+    googleAdsConversionLabel?: string
+    isMazhirOwned: boolean                // surfaced so user can tell if it's a prior Mazhir creation
+    recommended: boolean                  // smart-default pick flag (one per actionKey)
+    rationaleHe: string                   // 1-line Hebrew explanation of why this candidate
+}
+
+// ─── A suggestion for one of our specs: list of candidates + create-new fallback ─
+export interface ConversionSuggestion {
+    actionKey: PrimaryActionKey
+    descriptionHe: string                 // Hebrew explanation of what this signal represents
+    candidates: ConversionCandidate[]     // user's existing primary actions matching this spec
+    orCreateNew: {
+        name: string
+        defaultValueIls: number
+        recommended: boolean              // true when no acceptable existing candidate
+        rationaleHe: string
+    }
+    autoPickedResourceName: string | null // null if create_new is recommended
+}
+
+export interface ConversionSuggestionsResult {
+    classification: 'greenfield' | 'partial_setup' | 'mature_setup'
+    mode: 'create_all' | 'map_existing_create_missing' | 'map_only'
+    suggestions: ConversionSuggestion[]
+    existingMazhirOwned: Array<{ resourceName: string; name: string; category: string; last90dConv: number }>
+    warnings: string[]
+}
+
+// ─── User's explicit choice per actionKey (sent from UI to confirm endpoint) ─
+export interface UserConversionChoice {
+    actionKey: PrimaryActionKey
+    choice: { type: 'map_existing'; resourceName: string } | { type: 'create_new' }
+}
+
+// ─── Archived: Mazhir-owned 0-conv action we removed as a duplicate ─
+export interface ArchivedConversionAction {
+    resourceName: string
+    name: string
+    category: string
+    reason: string
+}
+
+// ─── Unified for downstream consumers (GTM, plan generators) ─
+export interface ActiveConversionAction {
+    actionKey: PrimaryActionKey
+    source: 'created' | 'mapped'
+    name: string                          // Mazhir-named (created) OR user's existing (mapped)
+    resourceName: string
+    googleAdsConversionId: string         // ALWAYS populated — mapped without IDs are filtered out
+    googleAdsConversionLabel: string
+    type: string                          // WEBPAGE / WEBPAGE_CODELESS / etc.
+    last90dConv: number                   // historical signal (created = 0, mapped = real)
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// Shared helpers — used by both discover (suggestions) and apply
+// ═════════════════════════════════════════════════════════════════════════
+
+// Category mapping (our actionKey → Google Ads conversion_action.category):
+const SPEC_TO_CATEGORY: Record<PrimaryActionKey, string[]> = {
+    form_submit:        ['SUBMIT_LEAD_FORM', 'CONTACT', 'SIGNUP'],
+    generate_lead:      ['SUBMIT_LEAD_FORM', 'CONTACT', 'SIGNUP'],
+    phone_call:         ['PHONE_CALL_LEAD'],
+    phone_call_offline: ['PHONE_CALL_LEAD'],
+    purchase:           ['PURCHASE'],
+    qualified_lead:     ['QUALIFIED_LEAD'],
+}
+
+// Inverse: category → which of our actionKeys it best represents (for archive supersession)
+function categoryToActionKey(category: string): PrimaryActionKey | null {
+    if (['SUBMIT_LEAD_FORM', 'CONTACT', 'SIGNUP'].includes(category)) return 'form_submit'
+    if (category === 'PHONE_CALL_LEAD') return 'phone_call'
+    if (category === 'PURCHASE') return 'purchase'
+    if (category === 'QUALIFIED_LEAD') return 'qualified_lead'
+    return null
+}
+
+// Type quality rank — lower = better. Used to rank candidates within a spec.
+//
+// Ranking rationale for multi-business accounts:
+//   WEBPAGE (1)            — gtag awct, scoped to wherever the tag is installed
+//   WEBPAGE_CODELESS (2)   — Enhanced Conversions auto-tag, account-wide (covers all
+//                            domains the user owns — safest mapping when business
+//                            identity isn't easily verified)
+//   AD_CALL (3)            — phone calls from Google Ads call extensions, account-wide
+//                            (signal source is the ad surface, not any specific domain)
+//   GOOGLE_ANALYTICS_4_*   — GA4 stream-bound (4). These actions fire per-stream config
+//                            which is GENERALLY business/property-specific. Risky to
+//                            map cross-business without confirming the stream covers
+//                            our domain.
+//   UPLOAD_* (5)           — offline upload, requires CRM integration
+//
+// Tie-breakers after type: last90dConv DESC, then alphabetical name.
+function typeRank(type: string): number {
+    if (type === 'WEBPAGE') return 1
+    if (type === 'WEBPAGE_CODELESS') return 2
+    if (type === 'AD_CALL') return 3
+    if (type === 'GOOGLE_ANALYTICS_4_CUSTOM') return 4
+    if (type === 'GOOGLE_ANALYTICS_4_PURCHASE') return 4
+    if (type === 'UPLOAD_CALLS' || type === 'UPLOAD_CLICKS') return 5
+    return 9
+}
+
+interface LoadedContext {
+    inst: any
+    customerId: string
+    loginCustomerId: string | undefined
+    developerToken: string
+    specs: ConversionActionSpec[]
+    existingActions: any[]                // from tenantSetupState
+    avgDealValue: number
+    classification: 'greenfield' | 'partial_setup' | 'mature_setup'
+    mode: 'create_all' | 'map_existing_create_missing' | 'map_only'
+    tokens: any
+    warnings: string[]
+}
+
+async function loadContext(instanceId: string): Promise<LoadedContext> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error('Instance not found')
 
@@ -343,25 +479,19 @@ export async function setupConversionActionsForInstance(
     const tokens = inst.googleTokens as any
     if (!tokens?.refreshToken) throw new Error('Google OAuth tokens missing — re-auth with adwords scope')
 
-    // Phase 4.2.1-O: when the connected account is an MCC, the conversion actions
-    // live on the OPERATING sub-account (scope.operatingCustomerId), not on the
-    // manager. Querying `FROM conversion_action` on an MCC customer returns
-    // 400 "Request contains an invalid argument" because managers don't own
-    // conversion_action resources. Resolve the right pair:
-    //   - customerId      = sub-account when MCC scope present, otherwise root
-    //   - loginCustomerId = MCC root (always, when scope present)
     const operatingFromScope = googleAdsConfig.scope?.operatingCustomerId
     const customerId = operatingFromScope || rootCustomerId
     const loginCustomerId = operatingFromScope ? rootCustomerId : (googleAdsConfig.loginCustomerId || undefined)
-
-    // Phase 4.2.1-O: developer token lives on per-tenant googleAdsConfig
-    // (prod env doesn't have GOOGLE_ADS_DEVELOPER_TOKEN set). Was the second
-    // source of the 400 "Request contains an invalid argument" — gadsFetch
-    // was sending an empty developer-token header.
     const developerToken = googleAdsConfig.developerToken || process.env.GOOGLE_ADS_DEVELOPER_TOKEN || ''
     if (!developerToken) throw new Error('Google Ads developer token missing — link Google Ads or set GOOGLE_ADS_DEVELOPER_TOKEN env')
 
-    // Decide which actions to create from paidProfile + mediaPlan
+    // Tenant state drives mode
+    const { classifyTenantSetupState } = await import('@/services/tenantSetupState')
+    const tenantState = await classifyTenantSetupState(instanceId)
+    const mode = tenantState.recommendedMode.stage8_conv as 'create_all' | 'map_existing_create_missing' | 'map_only'
+    const existingActions = tenantState.signals.googleAds.existingConversionActions || []
+
+    // Decide which spec actions we want for this profile
     const specs: ConversionActionSpec[] = []
     const warnings: string[] = []
     const goal = paidProfile.primaryGoal as string
@@ -371,7 +501,6 @@ export async function setupConversionActionsForInstance(
     if (goal === 'leadgen' || goal === 'store_visits' || goal === 'app_installs') {
         specs.push({ actionKey: 'form_submit', name: 'Mazhir — Form Submit', defaultValueIls: avgDealValue })
         if (phone) specs.push({ actionKey: 'phone_call', name: 'Mazhir — Phone Click', defaultValueIls: avgDealValue })
-        // Qualified lead — for offline CRM upload, optional but recommended
         specs.push({ actionKey: 'qualified_lead', name: 'Mazhir — Qualified Lead (CRM)', defaultValueIls: avgDealValue * 3 })
     } else if (goal === 'ecommerce') {
         specs.push({ actionKey: 'purchase', name: 'Mazhir — Purchase', defaultValueIls: avgDealValue })
@@ -379,44 +508,330 @@ export async function setupConversionActionsForInstance(
         warnings.push(`primaryGoal="${goal}" — no default conversion actions configured for this profile`)
     }
 
-    // Pre-flight: enhanced conversions eligibility (informational only)
-    const ec = await checkEnhancedConversionsEligibility(customerId, tokens, developerToken, loginCustomerId)
-    if (!ec.eligible) warnings.push(ec.reason)
+    return {
+        inst, customerId, loginCustomerId, developerToken, specs, existingActions,
+        avgDealValue, classification: tenantState.classification, mode, tokens, warnings,
+    }
+}
 
-    const created: CreatedConversionAction[] = []
-    for (const spec of specs) {
-        try {
-            const c = await ensureConversionAction(customerId, tokens, developerToken, spec, loginCustomerId)
-            created.push(c)
-        } catch (err) {
-            warnings.push(`${spec.name}: ${(err as Error).message}`)
+// ═════════════════════════════════════════════════════════════════════════
+// Phase 1: DISCOVER (read-only) — build suggestions for UI
+// ═════════════════════════════════════════════════════════════════════════
+
+// Hebrew descriptions per actionKey
+const ACTION_KEY_DESCRIPTION_HE: Record<PrimaryActionKey, string> = {
+    form_submit:        'מילוי טופס באתר — סיגנל ליד עיקרי',
+    generate_lead:      'יצירת ליד — סיגנל ליד עיקרי',
+    phone_call:         'לחיצה על כפתור טלפון באתר',
+    phone_call_offline: 'שיחת טלפון (נתון offline מ-CRM)',
+    purchase:           'רכישה באתר (eCommerce)',
+    qualified_lead:     'ליד מוסמך מ-CRM (offline upload)',
+}
+
+export async function discoverConversionSuggestions(
+    instanceId: string,
+): Promise<ConversionSuggestionsResult> {
+    const ctx = await loadContext(instanceId)
+
+    const suggestions: ConversionSuggestion[] = []
+    for (const spec of ctx.specs) {
+        const wantedCategories = SPEC_TO_CATEGORY[spec.actionKey] || []
+        // Candidates: ALL primary-for-goal user actions in matching category,
+        // plus Mazhir-owned existing actions (so user can keep or replace them).
+        const rawCandidates = ctx.existingActions.filter(a =>
+            wantedCategories.includes(a.category) && a.primaryForGoal
+        )
+        // Sort: type rank, then by last90dConv desc, then name
+        rawCandidates.sort((a: any, b: any) => {
+            const tr = typeRank(a.type) - typeRank(b.type)
+            if (tr !== 0) return tr
+            const cv = (b.last90dConv || 0) - (a.last90dConv || 0)
+            if (cv !== 0) return cv
+            return String(a.name).localeCompare(String(b.name))
+        })
+
+        // Decide recommended: prefer user-owned over Mazhir; prefer non-empty conv volume
+        const userOwned = rawCandidates.filter((a: any) => !a.isMazhirOwned)
+        const recommendedAction = userOwned.length > 0 ? userOwned[0] : (rawCandidates[0] || null)
+
+        const candidates: ConversionCandidate[] = rawCandidates.map((a: any) => {
+            const rationale =
+                a.isMazhirOwned ? 'נוצר ע״י Mazhir בריצה קודמת'
+                : a.type === 'WEBPAGE' ? 'אקשן WEBPAGE עם conversionId מלא — מוכן ל-GTM'
+                : a.type === 'WEBPAGE_CODELESS' ? 'Enhanced Conversions אוטומטי — מכסה את כל הדומיינים של החשבון'
+                : a.type === 'AD_CALL' ? 'מעקב שיחות מהמודעות (Ad-side) — לא דורש GTM'
+                : a.type.startsWith('GOOGLE_ANALYTICS_4_') ? 'מיובא מ-GA4 stream — מקור הסיגנל תלוי בקונפיגורציה של ה-stream'
+                : 'אחר'
+            return {
+                resourceName: a.resourceName,
+                name: a.name,
+                category: a.category,
+                type: a.type,
+                primaryForGoal: a.primaryForGoal,
+                last90dConv: a.last90dConv || 0,
+                googleAdsConversionId: a.googleAdsConversionId,
+                googleAdsConversionLabel: a.googleAdsConversionLabel,
+                isMazhirOwned: a.isMazhirOwned,
+                recommended: recommendedAction ? a.resourceName === recommendedAction.resourceName : false,
+                rationaleHe: rationale,
+            }
+        })
+
+        const noUserCandidate = userOwned.length === 0
+        const orCreateNew = {
+            name: spec.name,
+            defaultValueIls: spec.defaultValueIls,
+            recommended: noUserCandidate,
+            rationaleHe: noUserCandidate
+                ? 'אין אקשן קיים בקטגוריה הזו — Mazhir ייצור חדש (firing דרך GTM)'
+                : 'אופציה: ליצור per-instance signal source חדש דרך GTM (להחזיק נפרד מהאקשנים הקיימים)',
         }
+
+        // Auto-picked resource — null if create_new is recommended
+        const autoPickedResourceName = orCreateNew.recommended
+            ? null
+            : (recommendedAction ? recommendedAction.resourceName : null)
+
+        suggestions.push({
+            actionKey: spec.actionKey,
+            descriptionHe: ACTION_KEY_DESCRIPTION_HE[spec.actionKey] || '',
+            candidates,
+            orCreateNew,
+            autoPickedResourceName,
+        })
     }
 
-    const gtmConfigs: GtmConversionConfig[] = created
-        .filter(c => c.googleAdsConversionId && c.googleAdsConversionLabel)
-        .filter(c => c.actionKey !== 'qualified_lead' && c.actionKey !== 'phone_call_offline')  // these are upload-based, no GTM tag
-        .map(c => ({
-            actionKey: (c.actionKey === 'form_submit' ? 'generate_lead' : c.actionKey) as GtmConversionConfig['actionKey'],
-            googleAdsConversionId: c.googleAdsConversionId,
-            googleAdsConversionLabel: c.googleAdsConversionLabel,
-            sendValue: true,
-            defaultValueIls: avgDealValue,
-            defaultCurrency: 'ILS',
+    // Mazhir-owned actions currently in account (potential archive targets when user maps to alternatives)
+    const existingMazhirOwned = ctx.existingActions
+        .filter((a: any) => a.isMazhirOwned)
+        .map((a: any) => ({
+            resourceName: a.resourceName,
+            name: a.name,
+            category: a.category,
+            last90dConv: a.last90dConv || 0,
         }))
 
-    // Persist via mutateResearchData so BOTH instances + mateh_agents tables
-    // get updated. Phase 4.2.1-N — same fix as saveGtmTarget/saveGtmSetupResult:
-    // single-table writes get clobbered by subsequent patchResearchData calls
-    // that read from mateh_agents and dual-write back.
+    // Persist suggestions so UI doesn't have to refetch
     const { resolvePrimaryAgent, mutateResearchData } = await import('@/services/agentContext')
     const agent = await resolvePrimaryAgent(instanceId)
     await mutateResearchData(agent, instanceId, (cur: any) => {
-        cur.mazhirConversions = { created, warnings, savedAt: new Date().toISOString() }
+        cur.mazhirConversions = cur.mazhirConversions || {}
+        cur.mazhirConversions.pendingSuggestions = suggestions
+        cur.mazhirConversions.pendingSuggestionsAt = new Date().toISOString()
         return cur
     })
 
-    return { created, gtmConfigs, warnings }
+    return {
+        classification: ctx.classification,
+        mode: ctx.mode === 'map_only' ? 'map_existing_create_missing' : ctx.mode,
+        suggestions,
+        existingMazhirOwned,
+        warnings: ctx.warnings,
+    }
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// Phase 2: APPLY (commits user choices) — creates / maps / archives
+// ═════════════════════════════════════════════════════════════════════════
+
+export interface ApplyMappingsResult {
+    active: ActiveConversionAction[]
+    mapped: MappedConversionAction[]
+    created: CreatedConversionAction[]
+    archived: ArchivedConversionAction[]
+    gtmConfigs: GtmConversionConfig[]
+    warnings: string[]
+    mode: 'create_all' | 'map_existing_create_missing'
+    classification: 'greenfield' | 'partial_setup' | 'mature_setup'
+}
+
+export async function applyConversionMappings(
+    instanceId: string,
+    userChoices: UserConversionChoice[],
+): Promise<ApplyMappingsResult> {
+    const ctx = await loadContext(instanceId)
+    const warnings: string[] = [...ctx.warnings]
+
+    // Pre-flight: enhanced conversions (informational)
+    const ec = await checkEnhancedConversionsEligibility(ctx.customerId, ctx.tokens, ctx.developerToken, ctx.loginCustomerId)
+    if (!ec.eligible) warnings.push(ec.reason)
+
+    // ── Apply each user choice ──
+    const mapped: MappedConversionAction[] = []
+    const created: CreatedConversionAction[] = []
+
+    for (const choice of userChoices) {
+        const spec = ctx.specs.find(s => s.actionKey === choice.actionKey)
+        if (!spec) {
+            warnings.push(`unknown actionKey "${choice.actionKey}" in user choices — skipped`)
+            continue
+        }
+        if (choice.choice.type === 'map_existing') {
+            const targetResourceName = choice.choice.resourceName
+            const existing = ctx.existingActions.find((a: any) => a.resourceName === targetResourceName)
+            if (!existing) {
+                warnings.push(`map_existing target "${targetResourceName}" not found — falling back to create`)
+                try {
+                    const c = await ensureConversionAction(ctx.customerId, ctx.tokens, ctx.developerToken, spec, ctx.loginCustomerId)
+                    created.push(c)
+                } catch (err) {
+                    warnings.push(`${spec.name} fallback create failed: ${(err as Error).message}`)
+                }
+                continue
+            }
+            mapped.push({
+                actionKey: choice.actionKey,
+                resourceName: existing.resourceName,
+                existingName: existing.name,
+                category: existing.category,
+                type: existing.type,
+                googleAdsConversionId: existing.googleAdsConversionId,
+                googleAdsConversionLabel: existing.googleAdsConversionLabel,
+                last90dConv: existing.last90dConv || 0,
+                primaryForGoal: existing.primaryForGoal,
+            })
+        } else {
+            // create_new
+            try {
+                const c = await ensureConversionAction(ctx.customerId, ctx.tokens, ctx.developerToken, spec, ctx.loginCustomerId)
+                created.push(c)
+            } catch (err) {
+                warnings.push(`${spec.name}: ${(err as Error).message}`)
+            }
+        }
+    }
+
+    // ── Archive superseded Mazhir actions ──
+    // For each Mazhir-owned 0-conv action: if the user MAPPED its inferred actionKey
+    // to a non-Mazhir action, this Mazhir is now superseded → archive.
+    // Never archive an action the user explicitly chose (e.g. they picked the
+    // existing Mazhir action via map_existing).
+    const archived: ArchivedConversionAction[] = []
+    const userPickedResourceNames = new Set<string>(
+        userChoices
+            .filter(c => c.choice.type === 'map_existing')
+            .map(c => (c.choice as { type: 'map_existing'; resourceName: string }).resourceName)
+    )
+    for (const a of ctx.existingActions.filter((x: any) => x.isMazhirOwned && x.last90dConv === 0)) {
+        if (userPickedResourceNames.has(a.resourceName)) continue  // user explicitly kept this Mazhir
+        const inferredKey = categoryToActionKey(a.category)
+        if (!inferredKey) continue
+        const choice = userChoices.find(c => c.actionKey === inferredKey)
+        if (!choice) continue
+        // Archive when: user mapped this key to a NON-Mazhir alternative
+        const supersededByUserMap = choice.choice.type === 'map_existing'
+            && choice.choice.resourceName !== a.resourceName
+        if (!supersededByUserMap) continue
+        try {
+            await gadsFetch(ctx.customerId, 'conversionActions:mutate', ctx.tokens, ctx.developerToken, {
+                operations: [{ remove: a.resourceName }],
+                partialFailure: false,
+                validateOnly: false,
+            }, ctx.loginCustomerId)
+            archived.push({
+                resourceName: a.resourceName,
+                name: a.name,
+                category: a.category,
+                reason: `superseded by user-confirmed mapping ${inferredKey} → ${a.name === (choice.choice as any).resourceName ? '' : 'user alternative'}`,
+            })
+        } catch (err) {
+            warnings.push(`archive "${a.name}" failed: ${(err as Error).message}`)
+        }
+    }
+
+    // ── Build unified active list ──
+    const active: ActiveConversionAction[] = []
+    for (const m of mapped) {
+        if (m.googleAdsConversionId && m.googleAdsConversionLabel) {
+            active.push({
+                actionKey: m.actionKey,
+                source: 'mapped',
+                name: m.existingName,
+                resourceName: m.resourceName,
+                googleAdsConversionId: m.googleAdsConversionId,
+                googleAdsConversionLabel: m.googleAdsConversionLabel,
+                type: m.type,
+                last90dConv: m.last90dConv,
+            })
+        } else {
+            warnings.push(`Mapped ${m.actionKey} → "${m.existingName}" (${m.type}) — no GTM-compatible IDs available; Smart Bidding will still use this signal but no GTM tag will be created.`)
+        }
+    }
+    for (const c of created) {
+        active.push({
+            actionKey: c.actionKey,
+            source: 'created',
+            name: c.name,
+            resourceName: c.resourceName,
+            googleAdsConversionId: c.googleAdsConversionId,
+            googleAdsConversionLabel: c.googleAdsConversionLabel,
+            type: 'WEBPAGE',
+            last90dConv: 0,
+        })
+    }
+
+    // ── GTM configs: only created actions need our awct tag (mapped existing signals are already tracked) ──
+    const gtmConfigs: GtmConversionConfig[] = active
+        .filter(a => a.source === 'created')
+        .filter(a => a.actionKey !== 'qualified_lead' && a.actionKey !== 'phone_call_offline')
+        .map(a => ({
+            actionKey: (a.actionKey === 'form_submit' ? 'generate_lead' : a.actionKey) as GtmConversionConfig['actionKey'],
+            googleAdsConversionId: a.googleAdsConversionId,
+            googleAdsConversionLabel: a.googleAdsConversionLabel,
+            sendValue: true,
+            defaultValueIls: ctx.avgDealValue,
+            defaultCurrency: 'ILS',
+        }))
+
+    // Persist
+    const { resolvePrimaryAgent, mutateResearchData } = await import('@/services/agentContext')
+    const agent = await resolvePrimaryAgent(instanceId)
+    await mutateResearchData(agent, instanceId, (cur: any) => {
+        cur.mazhirConversions = {
+            ...(cur.mazhirConversions || {}),
+            active,
+            created,
+            mapped,
+            archived,
+            warnings,
+            userChoices,
+            mode: ctx.mode,
+            classification: ctx.classification,
+            savedAt: new Date().toISOString(),
+            // Clear pending suggestions — they've been resolved
+            pendingSuggestions: null,
+            pendingSuggestionsAt: null,
+        }
+        return cur
+    })
+
+    return {
+        active, mapped, created, archived, gtmConfigs, warnings,
+        mode: ctx.mode === 'map_only' ? 'map_existing_create_missing' : ctx.mode,
+        classification: ctx.classification,
+    }
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// Backwards-compat: auto-apply smart defaults (for non-UI callers that still
+// POST /conversions/setup directly without going through suggestions UI)
+// ═════════════════════════════════════════════════════════════════════════
+
+export async function setupConversionActionsForInstance(
+    instanceId: string,
+): Promise<ApplyMappingsResult> {
+    // Run discover → derive smart defaults → apply
+    const suggestions = await discoverConversionSuggestions(instanceId)
+    const userChoices: UserConversionChoice[] = suggestions.suggestions.map(s => {
+        if (s.orCreateNew.recommended || !s.autoPickedResourceName) {
+            return { actionKey: s.actionKey, choice: { type: 'create_new' as const } }
+        }
+        return {
+            actionKey: s.actionKey,
+            choice: { type: 'map_existing' as const, resourceName: s.autoPickedResourceName },
+        }
+    })
+    return applyConversionMappings(instanceId, userChoices)
 }
 
 export { GtmConversionConfig }

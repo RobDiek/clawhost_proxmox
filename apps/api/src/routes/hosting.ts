@@ -90,6 +90,8 @@ import {
     getGtmIntegrationDiagnostic,
     runGtmAutoFix,
     setupMazhirConversions,
+    getConversionSuggestions,
+    confirmConversionMappings,
     autoSetupMazhirGtm,
     getMazhirPreflight,
     executeMazhirPlan,
@@ -450,6 +452,9 @@ app.post('/instances/:id/mazhir/gtm/target', saveMazhirGtmTarget)
 app.post('/instances/:id/mazhir/gtm/create-container', createMazhirGtmContainer)
 app.get('/instances/:id/mazhir/gtm/snippet', getMazhirGtmInstallSnippet)
 app.post('/instances/:id/mazhir/conversions/setup', setupMazhirConversions)
+// Phase 4.2.3-B — auto-suggest + user-confirm flow (UI-driven)
+app.get('/instances/:id/mazhir/conversions/suggestions', getConversionSuggestions)
+app.post('/instances/:id/mazhir/conversions/confirm', confirmConversionMappings)
 app.post('/instances/:id/mazhir/gtm/auto-setup', autoSetupMazhirGtm)
 // Phase 4.2.2-A — GTM integration card diagnostic (probe-based gate status)
 app.get('/instances/:id/integrations/gtm/diagnostic', getGtmIntegrationDiagnostic)

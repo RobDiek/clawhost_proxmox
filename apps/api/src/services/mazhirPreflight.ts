@@ -47,7 +47,8 @@ export async function runPreflight(instanceId: string): Promise<PreflightResult>
     const mediaPlan = rd.mediaPlan || (rd.strategy && typeof rd.strategy === 'object' ? rd.strategy.mediaPlan : null)
     const tokens = inst.googleTokens as any
     const googleAdsConfig: any = inst.googleAdsConfig || {}
-    const conversions = rd.mazhirConversions?.created || []
+    // Phase 4.2.3-B: read `active` (unified mapped+created) with legacy fallback.
+    const conversions = rd.mazhirConversions?.active || rd.mazhirConversions?.created || []
 
     const blockers: PreflightResult['blockers'] = []
     const warnings: PreflightResult['warnings'] = []
