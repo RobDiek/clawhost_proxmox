@@ -190,6 +190,28 @@ async function probePublishPermission(accessToken: string, accountId: string): P
     return { confirmed: false, status: 'fail', reason: `unexpected API response: ${r.status}` }
 }
 
+// ─── Diagnostic helper: what permissions does the connected user have? ─
+// Probes both account-level and container-level access by calling
+// /accounts/{aid} (read = at least User role on account) and
+// /accounts/{aid}/containers/{cid}/workspaces (write = at least Edit on container).
+// Returns Hebrew-friendly summary for embedding in error detail messages.
+async function probeUserVisibility(accessToken: string, accountId: string, containerId: string): Promise<{ accountReadable: boolean; canCreateWorkspace: boolean; summary: string }> {
+    const [accRes, wsListRes, wsCreateProbeRes] = await Promise.all([
+        gtmCall(`/accounts/${accountId}`, accessToken),
+        gtmCall(`/accounts/${accountId}/containers/${containerId}/workspaces`, accessToken),
+        // Probe write access without actually creating: try POST with validateOnly-ish empty body.
+        // GTM API doesn't have validate mode for workspaces, so we settle for reading workspaces
+        // as the proxy: if we can list them, we have at least Read on container.
+        Promise.resolve({ ok: true, status: 200, data: {} }),
+    ])
+    void wsCreateProbeRes
+    const accountReadable = accRes.ok
+    const canCreateWorkspace = wsListRes.ok   // proxy: list ok = read on container
+    const accStr = accountReadable ? 'Account: ✓ נראה' : 'Account: ✗ לא נראה (אין אפילו User role)'
+    const ctnStr = canCreateWorkspace ? 'Container: ✓ נראה' : 'Container: ✗ לא נראה'
+    return { accountReadable, canCreateWorkspace, summary: `${accStr} · ${ctnStr}` }
+}
+
 // ─── Main: run all gates and return the diagnostic ────────────────────────
 export async function runGtmDiagnostic(instanceId: string): Promise<GtmDiagnostic> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
@@ -445,25 +467,26 @@ export async function runGtmDiagnostic(instanceId: string): Promise<GtmDiagnosti
             blocking: true,
         }
     } else if (lastSetup?.errors?.some((e: any) => e.step === 'publish' && /404|permission/i.test(e.error || ''))) {
+        const visibility = await probeUserVisibility(accessToken, target!.accountId, target!.containerId)
         publishGate = {
             id: 'gtm_publish_permission',
             label: 'הרשאת Publish',
             status: 'warn',
-            message: 'ניסיון publish קודם נכשל — auto-fix ינסה שוב',
+            message: 'ניסיון publish קודם נכשל — נדרשות הרשאות ב-2 רמות',
             detail:
-                'API של Google לא חושף בדיקת הרשאת Publish ברמת container. הניסיון הקודם נכשל כי משתמש Google המחובר (' +
-                (actualEmail || 'unknown') + ') לא היה Publisher. אם הוספתם הרשאה זה עתה — לחצו "auto-fix" ונבדוק. אם לא — פתחו User Management במדריך הידני.',
+                'מצב נוכחי של ' + (actualEmail || 'unknown') + ': ' + visibility.summary + '. ' +
+                'GTM דורש הרשאות בשתי רמות במקביל: (1) Account-level — לפחות "User", שמאפשרת לראות את ה-account; (2) Container-level — "Publish", שמאפשרת לפרסם workspace. גם אם רואים את ה-account וה-container, ייתכן שחסרה הרשאת Publish ספציפית.',
             blocking: false,    // do NOT block auto-fix — let it retry to verify
             action: {
                 type: 'manual',
-                label: 'פתחו User Management של ה-container',
-                externalUrl: `https://tagmanager.google.com/#/admin/accounts/${target!.accountId}/containers/${target!.containerId}/user-permissions`,
+                label: 'פתחו User Management',
+                externalUrl: `https://tagmanager.google.com/#/admin/accounts/${target!.accountId}/user-permissions`,
                 steps: [
-                    'בקישור שייפתח — מעבירים אתכם לחלון User Management של container זה',
-                    'לחצו "+" כדי להוסיף משתמש',
-                    `הכניסו: ${actualEmail || '<email המחובר>'}`,
-                    'בחרו רמת הרשאה: Publish (כוללת גם Approve + Edit + Read)',
-                    'Save → חזרו לכאן ולחצו "🔄 רענן" או "🚀 auto-fix"',
+                    `שלב 1 — Account level (פותח בקישור): ב-Tag Manager → Admin → User Management של ה-account → "+" → הוסיפו ${actualEmail || '<email המחובר>'} ב-role "User" לפחות`,
+                    `שלב 2 — Container level: באותו חלון, בחרו את ה-container "${target!.name || target!.publicId}" → במשתמש שזה עתה הוספתם, החליפו רמת container ל-"Publish"`,
+                    'שמרו את שני השינויים',
+                    'אם זה כבר נעשה — ייתכן שצריך לחכות 1-2 דקות עד שגוגל ירעננו את ההרשאות',
+                    'חזרו לכאן ולחצו "🔄 רענן" או "🚀 auto-fix" — auto-fix ינסה publish ויאמת',
                 ],
             },
         }

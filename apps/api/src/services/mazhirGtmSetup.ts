@@ -170,21 +170,47 @@ export async function autoSetupGtmContainer(
         errors: [],
     }
 
-    // ── Create dedicated workspace ──
-    const wsName = `mazhir-auto-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`
+    // ── Resolve workspace: reuse existing mazhir-auto-* or create new ──
+    // GTM Standard has a 3-workspace cap (Default + max 2 named). Past test/
+    // failed runs leave behind named workspaces, tripping 429 "Resource
+    // exhausted" on POST /workspaces. We can't DELETE them — that requires
+    // the tagmanager.delete.containers scope which we don't request. So
+    // instead we REUSE the most recent mazhir-auto-* if one exists; the
+    // idempotent tag/trigger creation logic below skips anything already
+    // configured. Only fall through to creating a fresh workspace when no
+    // mazhir-auto-* exists.
     let workspaceId: string
+    let wsName: string
+    let reused = false
     try {
-        const wsRes = await gtmFetch(
+        const existingWs = await gtmFetch(
             `/accounts/${accountId}/containers/${containerId}/workspaces`,
             accessToken,
-            'POST',
-            { name: wsName, description: 'Mazhir auto-setup of conversion infrastructure' },
         )
-        workspaceId = String(wsRes.workspaceId)
-        result.workspaceId = workspaceId
-        result.created.push({ type: 'workspace', name: wsName, id: workspaceId })
+        const mazhirWorkspaces = (existingWs.workspace || [])
+            .filter((w: any) => typeof w.name === 'string' && w.name.startsWith('mazhir-auto-'))
+            .sort((a: any, b: any) => String(b.name).localeCompare(String(a.name)))    // newest first
+        if (mazhirWorkspaces.length > 0) {
+            const w = mazhirWorkspaces[0]
+            workspaceId = String(w.workspaceId)
+            wsName = String(w.name)
+            reused = true
+            result.workspaceId = workspaceId
+            result.skipped.push({ type: 'workspace', name: wsName, reason: 'reused existing workspace id=' + workspaceId })
+        } else {
+            wsName = `mazhir-auto-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`
+            const wsRes = await gtmFetch(
+                `/accounts/${accountId}/containers/${containerId}/workspaces`,
+                accessToken,
+                'POST',
+                { name: wsName, description: 'Mazhir auto-setup of conversion infrastructure' },
+            )
+            workspaceId = String(wsRes.workspaceId)
+            result.workspaceId = workspaceId
+            result.created.push({ type: 'workspace', name: wsName, id: workspaceId })
+        }
     } catch (err) {
-        result.errors.push({ step: 'create_workspace', error: (err as Error).message })
+        result.errors.push({ step: reused ? 'list_workspaces' : 'create_workspace', error: (err as Error).message })
         return result
     }
 
