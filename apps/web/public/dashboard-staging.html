@@ -11514,24 +11514,38 @@ async function autoSetupMazhirGtmFromTasks() {
 }
 
 // ════════════════════════════════════════════════════════════════════════
-// Phase 4.2.3-B — Conversion Actions: auto-suggest + user-confirm flow
+// Phase 4.2.3-B3 — Conversion Actions: auto-discover + apply + verify
 // ════════════════════════════════════════════════════════════════════════
-// Old behavior: clicking "create conversions" auto-created Mazhir-named
-// actions, potentially duplicating user's existing tracking.
-// New behavior: opens a modal showing user's existing actions per spec,
-// with smart-default recommendations. User confirms (1 click for most),
-// or customizes per-action choice. Then apply runs.
+// Path B (Sergei's preference): system auto-picks per-spec top candidates
+// using 4-layer evidence (campaign selective_opt + empirical attribution +
+// GTM tag inspection + name/type heuristics) and APPLIES them automatically.
+// User sees a verification banner showing what was picked + reasoning, and
+// can either:
+//   - [Confirm]  one click → done
+//   - [Change]   opens detailed modal with all candidates per spec for override
+// Never blocks/asks user mid-flow.
 
 async function setupMazhirConversionsFromTasks() {
   if (_conversionsSetupRunning) { showToast('Conversions setup כבר רץ — חכו לסיום', 'warning'); return; }
   if (!instanceId) return;
-  showToast('מזהה אקשנים קיימים בחשבון Google Ads שלך... (~5-10 שניות)', 'info');
+  _conversionsSetupRunning = true;
+  _conversionsSetupStartedAt = Date.now();
+  _startMazhirTicker();
+  if (typeof renderHome === 'function') renderHome();
+  showToast('מזהה אוטומטית את הקישורים בחשבון Google Ads + GTM... (~10-20 שניות)', 'info');
   try {
-    var r = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/conversions/suggestions');
-    if (!r.success) throw new Error(r.message || 'discovery failed');
-    showConversionMappingModal(r.data);
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/conversions/setup', { method: 'POST' });
+    if (!r.success) throw new Error(r.message || 'auto-setup failed');
+    var data = r.data || {};
+    if (instanceData && instanceData.researchData) {
+      instanceData.researchData.mazhirConversions = data;
+    }
+    showConversionVerificationBanner(data);
   } catch (err) {
-    showToast('שגיאה בזיהוי אקשנים: ' + (err.message || err), 'error');
+    showToast('שגיאה: ' + (err.message || err), 'error');
+  } finally {
+    _conversionsSetupRunning = false;
+    if (typeof renderHome === 'function') renderHome();
   }
 }
 
@@ -11563,7 +11577,111 @@ async function setupMazhirConversionsAutoApply() {
   }
 }
 
-// ─── Suggestion modal renderer ──────────────────────────────────────────
+// ─── Verification banner (post-auto-apply summary) ──────────────────────
+// Shows what the system mapped/created/archived + reasoning per spec.
+// User confirms in one click OR clicks "Change" to override via modal.
+function showConversionVerificationBanner(applyResult) {
+  var existing = document.getElementById('conv-verify-modal'); if (existing) existing.remove();
+  var mapped = applyResult.mapped || [];
+  var created = applyResult.created || [];
+  var archived = applyResult.archived || [];
+  var sug = applyResult.suggestionsResult || {};
+
+  var content = '';
+  content += '<div style="background:#F0FDF4;border-right:3px solid #10B981;padding:10px 12px;border-radius:6px;font-size:0.84rem;color:#065F46;line-height:1.55;margin-bottom:12px;text-align:right">' +
+    '<div style="font-weight:700;margin-bottom:4px">✓ זוהו אוטומטית — בדקו שהכל נכון</div>' +
+    '<div style="opacity:0.9">המערכת ניתחה את חשבון Google Ads + GTM וזיהתה את הקישורים. סקירה מהירה למטה. לחצו "מאשרים" אם הכל נכון, או "שנו" לעריכה ידנית.</div>' +
+    '</div>';
+
+  // Per actionKey block
+  var suggestions = sug.suggestions || [];
+  for (var i = 0; i < suggestions.length; i++) {
+    var s = suggestions[i];
+    var mappedHere = mapped.find(function(m) { return m.actionKey === s.actionKey; });
+    var createdHere = created.find(function(c) { return c.actionKey === s.actionKey; });
+    var conf = s.topConfidence || 'medium';
+    var confColor = conf === 'high' ? { bg: '#F0FDF4', border: '#A7F3D0', text: '#065F46', icon: '✓' }
+                   : conf === 'medium' ? { bg: '#FEF3C7', border: '#FDE68A', text: '#78350F', icon: '⚠' }
+                   : { bg: '#FEE2E2', border: '#FCA5A5', text: '#7F1D1D', icon: '✗' };
+    var titleHe = mappedHere
+      ? 'מופה ל-"' + _escapeHtml(mappedHere.existingName) + '"'
+      : createdHere
+        ? 'נוצר חדש: "' + _escapeHtml(createdHere.name) + '"'
+        : 'לא הוחל';
+    var convInfo = '';
+    if (mappedHere) {
+      var attribCand = (s.candidates || []).find(function(c) { return c.resourceName === mappedHere.resourceName; });
+      var attrib = attribCand ? attribCand.attributedConv90d : mappedHere.last90dConv;
+      convInfo = attrib > 0 ? ' (' + Math.round(attrib) + ' המרות 90 ימים)' : '';
+    }
+    var rationaleHe = '';
+    if (mappedHere) {
+      var cand = (s.candidates || []).find(function(c) { return c.resourceName === mappedHere.resourceName; });
+      rationaleHe = cand ? cand.rationaleHe : '';
+    } else if (createdHere) {
+      rationaleHe = s.orCreateNew.rationaleHe || '';
+    }
+    content +=
+      '<div style="background:' + confColor.bg + ';border:1px solid ' + confColor.border + ';border-radius:8px;padding:10px 12px;margin-bottom:8px">' +
+        '<div style="display:flex;align-items:flex-start;gap:10px">' +
+          '<div style="color:' + confColor.text + ';font-size:1.1rem;font-weight:700;line-height:1.2;min-width:18px;text-align:center">' + confColor.icon + '</div>' +
+          '<div style="flex:1">' +
+            '<div style="font-weight:700;font-size:0.92rem;color:' + confColor.text + '">' + _escapeHtml(s.actionKey) +
+              '<span style="font-size:0.7rem;font-weight:400;opacity:0.7;margin-inline-start:6px">[ביטחון: ' + conf + ']</span>' +
+            '</div>' +
+            '<div style="font-size:0.84rem;color:' + confColor.text + ';margin-top:2px">' + _escapeHtml(titleHe) + _escapeHtml(convInfo) + '</div>' +
+            (rationaleHe ? '<div style="font-size:0.74rem;color:' + confColor.text + ';opacity:0.85;margin-top:4px">למה: ' + _escapeHtml(rationaleHe) + '</div>' : '') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+  // Archived summary
+  if (archived.length > 0) {
+    content += '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:0.78rem;color:#6B7280">' +
+      '<strong>ארכיון אוטומטי (' + archived.length + ' אקשנים של Mazhir שהוחלפו):</strong> ' +
+      archived.map(function(a) { return _escapeHtml(a.name); }).join(' · ') +
+      '</div>';
+  }
+  // Warnings
+  var warnings = applyResult.warnings || [];
+  if (warnings.length > 0) {
+    content += '<div style="background:#FFFBEB;border-right:3px solid #F59E0B;padding:8px 12px;border-radius:6px;font-size:0.74rem;color:#92400E;line-height:1.55;margin-bottom:8px;text-align:right">' +
+      '<strong>⚠ אזהרות:</strong><ul style="margin:4px 18px 0;padding:0">' +
+      warnings.map(function(w) { return '<li>' + _escapeHtml(w) + '</li>'; }).join('') + '</ul></div>';
+  }
+
+  var modal = document.createElement('div');
+  modal.id = 'conv-verify-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:10000';
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:12px;max-width:720px;width:92%;max-height:88vh;overflow-y:auto;padding:22px;direction:rtl;text-align:right">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+        '<h3 style="margin:0;font-size:1.05rem;color:#111827">סיכום הקישורים שזוהו אוטומטית</h3>' +
+        '<button onclick="document.getElementById(\'conv-verify-modal\').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6B7280">×</button>' +
+      '</div>' +
+      content +
+      '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">' +
+        '<button class="btn btn-outline btn-sm" onclick="openConversionMappingOverride()" style="font-size:0.82rem">✏ שנו ידנית</button>' +
+        '<button class="btn btn-primary btn-sm" onclick="document.getElementById(\'conv-verify-modal\').remove(); showToast(\'מאומת ✓\', \'success\')" style="font-size:0.84rem">✓ מאשרים</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+// Override flow: re-fetch suggestions + open detailed modal where user can change picks
+async function openConversionMappingOverride() {
+  var existing = document.getElementById('conv-verify-modal'); if (existing) existing.remove();
+  showToast('טוען רשימת אקשנים מלאה...', 'info');
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/conversions/suggestions');
+    if (!r.success) throw new Error(r.message || 'load failed');
+    showConversionMappingModal(r.data);
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || err), 'error');
+  }
+}
+
+// ─── Suggestion modal renderer (override path) ──────────────────────────
 function showConversionMappingModal(suggestionsResult) {
   var existing = document.getElementById('conv-mapping-modal'); if (existing) existing.remove();
   var sugs = (suggestionsResult.suggestions || []);

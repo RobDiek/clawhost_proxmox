@@ -345,12 +345,15 @@ export interface ConversionCandidate {
     category: string
     type: string
     primaryForGoal: boolean
-    last90dConv: number
+    last90dConv: number                   // historical conversion count (per-action)
+    attributedConv90d: number             // conv ATTRIBUTED to OUR scope's campaigns specifically
     googleAdsConversionId?: string
     googleAdsConversionLabel?: string
     isMazhirOwned: boolean                // surfaced so user can tell if it's a prior Mazhir creation
     recommended: boolean                  // smart-default pick flag (one per actionKey)
     rationaleHe: string                   // 1-line Hebrew explanation of why this candidate
+    score: number                         // total scoring (debug-visible)
+    confidence: 'high' | 'medium' | 'low' // bucketed for UI rendering
 }
 
 // ─── A suggestion for one of our specs: list of candidates + create-new fallback ─
@@ -365,6 +368,8 @@ export interface ConversionSuggestion {
         rationaleHe: string
     }
     autoPickedResourceName: string | null // null if create_new is recommended
+    autoApprovable: boolean               // top candidate has confidence='high' OR create_new with no alternatives
+    topConfidence: 'high' | 'medium' | 'low'
 }
 
 export interface ConversionSuggestionsResult {
@@ -373,6 +378,7 @@ export interface ConversionSuggestionsResult {
     suggestions: ConversionSuggestion[]
     existingMazhirOwned: Array<{ resourceName: string; name: string; category: string; last90dConv: number }>
     warnings: string[]
+    allAutoApprovable: boolean            // true ↔ every spec has high confidence OR clear create_new path
 }
 
 // ─── User's explicit choice per actionKey (sent from UI to confirm endpoint) ─
@@ -533,64 +539,88 @@ export async function discoverConversionSuggestions(
 ): Promise<ConversionSuggestionsResult> {
     const ctx = await loadContext(instanceId)
 
+    // Phase 4.2.3-B3: collect evidence from 4 layers (campaign_selective_opt + empirical
+    // attribution + GTM tag inspection + name/type heuristics)
+    const { collectMappingEvidence, scoreCandidate } = await import('@/services/conversionMappingScorer')
+    const evidence = await collectMappingEvidence(instanceId)
+
     const suggestions: ConversionSuggestion[] = []
+    let allAutoApprovable = true
+
     for (const spec of ctx.specs) {
         const wantedCategories = SPEC_TO_CATEGORY[spec.actionKey] || []
-        // Candidates: ALL primary-for-goal user actions in matching category,
-        // plus Mazhir-owned existing actions (so user can keep or replace them).
         const rawCandidates = ctx.existingActions.filter(a =>
             wantedCategories.includes(a.category) && a.primaryForGoal
         )
-        // Sort: type rank, then by last90dConv desc, then name
-        rawCandidates.sort((a: any, b: any) => {
-            const tr = typeRank(a.type) - typeRank(b.type)
-            if (tr !== 0) return tr
-            const cv = (b.last90dConv || 0) - (a.last90dConv || 0)
-            if (cv !== 0) return cv
-            return String(a.name).localeCompare(String(b.name))
-        })
 
-        // Decide recommended: prefer user-owned over Mazhir; prefer non-empty conv volume
-        const userOwned = rawCandidates.filter((a: any) => !a.isMazhirOwned)
-        const recommendedAction = userOwned.length > 0 ? userOwned[0] : (rawCandidates[0] || null)
-
-        const candidates: ConversionCandidate[] = rawCandidates.map((a: any) => {
-            const rationale =
-                a.isMazhirOwned ? 'נוצר ע״י Mazhir בריצה קודמת'
-                : a.type === 'WEBPAGE' ? 'אקשן WEBPAGE עם conversionId מלא — מוכן ל-GTM'
-                : a.type === 'WEBPAGE_CODELESS' ? 'Enhanced Conversions אוטומטי — מכסה את כל הדומיינים של החשבון'
-                : a.type === 'AD_CALL' ? 'מעקב שיחות מהמודעות (Ad-side) — לא דורש GTM'
-                : a.type.startsWith('GOOGLE_ANALYTICS_4_') ? 'מיובא מ-GA4 stream — מקור הסיגנל תלוי בקונפיגורציה של ה-stream'
-                : 'אחר'
-            return {
+        // Score each candidate using evidence layers (A/B/C/D/E combined)
+        const scored = rawCandidates.map((a: any) => {
+            const s = scoreCandidate({
                 resourceName: a.resourceName,
                 name: a.name,
                 category: a.category,
                 type: a.type,
                 primaryForGoal: a.primaryForGoal,
-                last90dConv: a.last90dConv || 0,
                 googleAdsConversionId: a.googleAdsConversionId,
                 googleAdsConversionLabel: a.googleAdsConversionLabel,
                 isMazhirOwned: a.isMazhirOwned,
-                recommended: recommendedAction ? a.resourceName === recommendedAction.resourceName : false,
-                rationaleHe: rationale,
-            }
+            }, evidence, spec.actionKey)
+            const attributedConv = evidence.attributedConv.get(a.resourceName) || 0
+            return { action: a, score: s, attributedConv }
         })
 
-        const noUserCandidate = userOwned.length === 0
+        // Sort by score desc; tiebreaker = !isMazhirOwned (prefer user's) then attributedConv
+        scored.sort((x, y) => {
+            const ds = y.score.score - x.score.score
+            if (ds !== 0) return ds
+            if (x.action.isMazhirOwned !== y.action.isMazhirOwned) return x.action.isMazhirOwned ? 1 : -1
+            return (y.attributedConv || 0) - (x.attributedConv || 0)
+        })
+
+        const topNonMazhir = scored.find(s => !s.action.isMazhirOwned)
+        // Prefer non-Mazhir if it has any meaningful score; fall back to top overall
+        const topPick = (topNonMazhir && topNonMazhir.score.score >= 10) ? topNonMazhir : scored[0]
+        const topScore = topPick?.score.score || 0
+        const topConfidence: 'high' | 'medium' | 'low' = topPick?.score.confidence || 'low'
+
+        // Candidates ordered by score for UI
+        const candidates: ConversionCandidate[] = scored.map(s => ({
+            resourceName: s.action.resourceName,
+            name: s.action.name,
+            category: s.action.category,
+            type: s.action.type,
+            primaryForGoal: s.action.primaryForGoal,
+            last90dConv: s.action.last90dConv || 0,
+            attributedConv90d: s.attributedConv,
+            googleAdsConversionId: s.action.googleAdsConversionId,
+            googleAdsConversionLabel: s.action.googleAdsConversionLabel,
+            isMazhirOwned: s.action.isMazhirOwned,
+            recommended: !!(topPick && s.action.resourceName === topPick.action.resourceName),
+            rationaleHe: s.score.rationaleHe,
+            score: s.score.score,
+            confidence: s.score.confidence,
+        }))
+
+        // Create-new option: recommended when no real candidate OR top user candidate has low score
+        const noUsableUserCandidate = !topPick || topPick.action.isMazhirOwned || topScore < 10
         const orCreateNew = {
             name: spec.name,
             defaultValueIls: spec.defaultValueIls,
-            recommended: noUserCandidate,
-            rationaleHe: noUserCandidate
-                ? 'אין אקשן קיים בקטגוריה הזו — Mazhir ייצור חדש (firing דרך GTM)'
-                : 'אופציה: ליצור per-instance signal source חדש דרך GTM (להחזיק נפרד מהאקשנים הקיימים)',
+            recommended: noUsableUserCandidate,
+            rationaleHe: noUsableUserCandidate
+                ? 'אין אקשן קיים מתאים בחשבון — Mazhir ייצור חדש (firing דרך GTM, signal source נקי)'
+                : 'אופציה חלופית: ליצור per-instance signal source חדש דרך GTM (להחזיק נפרד)',
         }
 
-        // Auto-picked resource — null if create_new is recommended
-        const autoPickedResourceName = orCreateNew.recommended
-            ? null
-            : (recommendedAction ? recommendedAction.resourceName : null)
+        const autoPickedResourceName: string | null = noUsableUserCandidate ? null
+            : (topPick ? topPick.action.resourceName : null)
+
+        // Per-spec auto-approvable:
+        //   - high confidence on an existing pick, OR
+        //   - clear create_new with no usable alternatives
+        const specAutoApprovable = (autoPickedResourceName !== null && topConfidence === 'high')
+            || (autoPickedResourceName === null && noUsableUserCandidate)
+        if (!specAutoApprovable) allAutoApprovable = false
 
         suggestions.push({
             actionKey: spec.actionKey,
@@ -598,6 +628,8 @@ export async function discoverConversionSuggestions(
             candidates,
             orCreateNew,
             autoPickedResourceName,
+            autoApprovable: specAutoApprovable,
+            topConfidence: noUsableUserCandidate ? 'high' : topConfidence,
         })
     }
 
@@ -627,6 +659,7 @@ export async function discoverConversionSuggestions(
         suggestions,
         existingMazhirOwned,
         warnings: ctx.warnings,
+        allAutoApprovable,
     }
 }
 
@@ -819,10 +852,18 @@ export async function applyConversionMappings(
 
 export async function setupConversionActionsForInstance(
     instanceId: string,
-): Promise<ApplyMappingsResult> {
-    // Run discover → derive smart defaults → apply
-    const suggestions = await discoverConversionSuggestions(instanceId)
-    const userChoices: UserConversionChoice[] = suggestions.suggestions.map(s => {
+): Promise<ApplyMappingsResult & { autoApplied: boolean; suggestionsResult: ConversionSuggestionsResult }> {
+    // Phase 4.2.3-B3: state-aware auto-apply (Path B — always apply top picks,
+    // user verifies at the end via a banner, never asked to disambiguate mid-flow).
+    // - Run discover with scoring (Layer A/B/C/D/E evidence)
+    // - Always apply top-scoring picks for every spec
+    // - UI shows a verification banner with the chosen mappings + reasoning;
+    //   user can confirm in one click OR open the override modal to change
+    //   any specific mapping.
+    // - The `allAutoApprovable` flag is still propagated for UI presentation
+    //   (high-confidence picks get green badges; medium/low get yellow hints).
+    const suggestionsResult = await discoverConversionSuggestions(instanceId)
+    const userChoices: UserConversionChoice[] = suggestionsResult.suggestions.map(s => {
         if (s.orCreateNew.recommended || !s.autoPickedResourceName) {
             return { actionKey: s.actionKey, choice: { type: 'create_new' as const } }
         }
@@ -831,7 +872,9 @@ export async function setupConversionActionsForInstance(
             choice: { type: 'map_existing' as const, resourceName: s.autoPickedResourceName },
         }
     })
-    return applyConversionMappings(instanceId, userChoices)
+
+    const applied = await applyConversionMappings(instanceId, userChoices)
+    return { ...applied, autoApplied: true, suggestionsResult }
 }
 
 export { GtmConversionConfig }
