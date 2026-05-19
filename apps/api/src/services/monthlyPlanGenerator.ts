@@ -649,6 +649,52 @@ Each task MUST include scheduledFor (ISO date YYYY-MM-DD) within the current mon
   - **medium** — based on industry benchmark or scenario projection.
   - **low** — ONLY for experimental hypotheses without supporting data.
 
+═══ STATE-RECONCILIATION (critical — avoid stale audit findings) ═══
+
+The mazhirAudit may have been generated BEFORE the user completed setup steps
+(GTM target picker, GA4 property picker, conversion mapping). Audit findings
+become STALE when user later resolves them via UI. ALWAYS reconcile:
+
+- For EACH audit.blockers[] entry, check current tenantState.signals BEFORE
+  proposing a task to resolve it:
+  · "GTM mismatch" / "GTM not connected" — IF tenantState.signals.gtm.targetPicked
+    AND tenantState.signals.gtm.snippetInstalledOnSite AND gtm.hasLiveVersion →
+    blocker is STALE, do NOT propose a "fix GTM" task. The user already resolved
+    via picker. Mark this in qualityWarnings: "audit blocker X resolved via picker
+    — ignored".
+  · "GA4 not connected" — IF tenantState.signals.ga4.connected AND
+    tenantState.signals.ga4.measurementId → STALE, skip. IF connected but no
+    measurementId → propose "pick GA4 property" task (NOT "connect GA4 OAuth").
+    IF not connected → propose "connect GA4 OAuth + scope" task.
+  · "0 Mazhir conversion signals" — IF tenantState.signals.googleAds.existingConversionActions
+    has items mapped via Mazhir (isMazhirOwned or in mazhirConversions.active) →
+    STALE, skip.
+  · "Campaign suspended / paused" — IF tenantState.signals.googleAds.activeCampaignsCount > 0 →
+    STALE.
+- Multiple GA4/GTM properties per user is COMMON. Don't propose "connect" when
+  user has already picked from picker.
+
+═══ BACKLINK AUDIT GATE (mandatory before any link acquisition task) ═══
+
+DO NOT propose specific external link directories (B144, Dapei Zahav, Zap, etc.)
+or outreach targets WITHOUT KNOWING which the site already has.
+
+If research_data.results contains backlink_audit / linking_sites_report data
+that lists existing referring domains:
+  · Cross-reference proposed directories against existing list
+  · Skip ones already present (call out: "B144 already linked — skip")
+  · Recommend only directories NOT in existing list
+
+If NO backlink data is available in research_data.results:
+  · DO NOT just propose B144/Zap/Dapei Zahav blindly
+  · INSTEAD: propose 1 P0 prerequisite task "backlink audit pre-check —
+    pull existing referring domains via GSC Links Report / manual Ahrefs export"
+  · Then link-acquisition tasks DEPEND on this audit (use dependsOn[])
+  · Mark in qualityWarnings: "specific directory targets pending backlink audit"
+
+This is a hard rule. Inventing link targets without audit is the marketing
+equivalent of inventing budget numbers — top-agency-unacceptable.
+
 ═══ SENIOR AGENCY BAR (mandatory — distinguishes mid-tier from top agency) ═══
 
 These checks MUST pass on every plan. A monthly plan that misses any of these
@@ -797,13 +843,14 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
 
     const raw = await callOpus({
         apiKey, model, system, user: userPrompt,
-        // 32K maxTokens — Anthropic non-streaming hard limit for Opus 4.7.
-        // 64K requires streaming SSE or a beta header; transparent non-streaming
-        // calls with 64K return TCP-drop ("fetch failed") not a clean HTTP error.
-        // 32K Hebrew ≈ 30-40 deep tasks if Opus is compact in excerpts.
-        maxTokens: usingOpus ? 32000 : 16000,
-        // 15-min timeout — Opus 4.7 with 32K on Hebrew runs 8-12min typically.
-        timeoutMs: 900000,
+        // 64K maxTokens via streaming + anthropic-beta:output-128k header.
+        // Sergei: 'better spend more tokens but max quality'. 32K was truncating
+        // the senior-bar tail (competitive intel, CRO, mobile, email nurture
+        // tasks dropping out). 64K gives Opus full room for 30-50 deep tasks
+        // + complete coverage of all 10 senior-tier rules.
+        maxTokens: usingOpus ? 64000 : 16000,
+        // 25-min timeout — Opus 4.7 with 64K on Hebrew can run 16-22min.
+        timeoutMs: 1500000,
     })
 
     // Phase 4.3-G debug: dump raw Opus output to /tmp for inspection if parsing fails.
