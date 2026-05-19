@@ -1,41 +1,95 @@
 /**
- * Phase 4.3-B: Unified Monthly Marketing Plan Generator
+ * Phase 4.3-N v8 — Monthly Marketing Plan: Multi-Pass Orchestrator.
  *
- * Reads ALL upstream sources (paid + organic + content + audit + scenarios) +
- * 2026 SEO algorithm research as ground-truth context, calls Opus 4.7 to
- * synthesize a unified plan of atomic, approval-gated tasks for the month.
+ * v7 (single-pass) consistently hit the 32K output cap, truncating senior-bar
+ * coverage and link-strategy depth. v8 splits generation into 3 deterministic
+ * passes:
+ *   Pass 1 — monthlyPlanSkeleton:       single Opus call, ~10K out, 50-70 task placeholders
+ *   Pass 2 — monthlyPlanDetailer:       parallel batched Opus calls, channel-grouped, full detail
+ *   Pass 3 — monthlyPlanSeniorBarCheck: deterministic 15-rule coverage scan + targeted fills
  *
- * Hard contracts (enforced via prompt + guardrails):
- *   - Every task.requiresApproval is implicitly true (no auto-apply; executor
- *     reads task.status === 'approved' before running anything).
- *   - Every task has ≥1 source — server-side guardrail flags otherwise.
+ * Each pass fits comfortably under 32K independently — token cap is structural,
+ * not a tuning problem. Multi-pass also lets us guarantee senior-bar rule
+ * coverage (Pass 3 is deterministic, not LLM-decided).
+ *
+ * Hard contracts (preserved from v7):
+ *   - Every task.requiresApproval is implicitly true; executor reads
+ *     task.status === 'approved' before any external-system mutation.
+ *   - Every task has ≥1 source (guardrails fill missing with a flag).
  *   - Link budgets come from research_data.chosenScenario + cost_timeline_modeling
- *     VERBATIM (project_link_strategy_scenarios). Never invented.
+ *     VERBATIM. Never invented.
  *   - 2026 algorithm research is read at runtime; quarterly refresh expected.
  *
  * Wiring:
  *   - resolveActiveAgent → readResearchData / writeResearchData (dual-write)
- *   - resolveDirectModel('mazhir') → Opus 4.7 by default for strategic synthesis
- *   - emits one agent_outputs row of outputType='monthly_marketing_plan' for
- *     the OVERALL plan; per-task משימות פעילות rows are created in Phase C
- *     when the user opens the plan in dashboard (or eagerly at generation time).
+ *   - per-task agent_outputs rows emitted with outputType='monthly_task'
+ *   - overall plan agent_outputs row with outputType='monthly_marketing_plan'
+ *   - orphan archive: prior-generation rows whose task IDs are not in new plan
  */
 
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { randomBytes } from 'crypto'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances, brandBooks, agentOutputs } from '@/db/schema'
-import { resolveDirectModel } from '@/controllers/hosting/agentSetup'
 import { sendApprovalQueueMessage } from '@/services/approvalQueueTelegram'
-import { extractLlmJson } from '@/services/llmJson'
-import { callOpusStream } from '@/services/llmStream'
+import { applyMonthlyPlanGuardrails } from './monthlyPlanGuardrails'
+import { generateSkeleton } from './monthlyPlanSkeleton'
+import { elaborateTasks } from './monthlyPlanDetailer'
+import { ensureCoverage } from './monthlyPlanSeniorBarCheck'
 import type {
     MonthlyMarketingPlan,
     MonthlyTask,
-    MonthlyPlanSummary,
 } from '@/controllers/hosting/agentSetup'
+
+// ─── Shared types ─────────────────────────────────────────────────────────
+// Exported so the per-pass modules (monthlyPlanSkeleton / Detailer /
+// SeniorBarCheck) consume the same context shape. Owner is the orchestrator.
+export interface PromptCtx {
+    businessName: string
+    websiteUrl: string
+    businessDesc: string
+    paidProfile: any
+    audit: any
+    mediaPlan: any
+    strategy: any
+    chosenScenarioKey: string | undefined
+    chosenScenarioFull: any
+    strategyOptionsAll: any
+    paidAudit: any
+    paidDataInventory: any
+    internalSeoAudit: any
+    linkAudit: any
+    aeoVisibility: any
+    validation: any
+    opsBriefs: any
+    latestOpsBrief: any
+    marketingIntents: any
+    integrationsState: any
+    brandBookFull: any
+    pastAgentOutputs: any[]
+    agentIntegrations: any[]
+    pastHypotheses: any[]
+    creativePerformance: any[]
+    creativeFatigueAlerts: any[]
+    paidLearnings: any[]
+    strategyLearnings: any[]
+    costTimeline: any
+    paidBudget: any
+    clientBaseline: any
+    paidCompetitorLandscape: any
+    paidKeywordResearch: any
+    seoKeywordResearch: any
+    competitorLandscape: any
+    audiencePersonas: any
+    positioningResults: any
+    contentPlan: any
+    previousMonthlyPlan: MonthlyMarketingPlan | undefined
+    tenantState: any
+    seoResearch2026: string
+    trigger: 'cron_monthly' | 'on_demand' | 'auto_refresh'
+}
 
 // ─── 2026 SEO research loader (cached) ────────────────────────────────────
 let _seoResearch2026Cache: { content: string; loadedAt: number } | null = null
@@ -70,518 +124,24 @@ function loadSeoResearch2026(): string {
     return ''
 }
 
-// callOpus moved to services/llmStream.ts as callOpusStream — shared across
-// all long-output Opus/Sonnet generators so a new tenant on a new VPS doesn't
-// re-hit the same UND_ERR_HEADERS_TIMEOUT class of bug. Local alias for
-// backwards-compat readability:
-const callOpus = (args: Parameters<typeof callOpusStream>[0]) =>
-    callOpusStream({ label: 'monthlyPlanGenerator', ...args })
-
-// ─── Guardrails — enforce policy + derive summary stats ───────────────────
-function applyMonthlyPlanGuardrails(plan: MonthlyMarketingPlan): MonthlyMarketingPlan {
-    const fixedTasks: MonthlyTask[] = []
-    const warnings: string[] = []
-
-    for (const t of (plan.tasks || [])) {
-        const fixed: MonthlyTask = { ...t }
-        if (!fixed.id) fixed.id = 'tsk_' + randomBytes(5).toString('hex')
-        if (!fixed.proposedAt) fixed.proposedAt = new Date().toISOString()
-        if (!fixed.status) fixed.status = 'proposed'
-        if (!Array.isArray(fixed.sources) || fixed.sources.length === 0) {
-            warnings.push(`task "${(fixed.title || '').slice(0, 60)}" — no sources cited; flag for human review`)
-            fixed.sources = [{ type: 'other', ref: 'missing', excerpt: '(no upstream evidence)' }]
-        }
-        if (!Array.isArray(fixed.dependsOn)) fixed.dependsOn = []
-        if (!Array.isArray(fixed.actionPlan)) fixed.actionPlan = []
-        if (!Array.isArray(fixed.childTaskIds)) fixed.childTaskIds = []
-        // Defensive: clamp priority + status to known enums
-        if (!['P0', 'P1', 'P2'].includes(fixed.priority)) fixed.priority = 'P1'
-        fixedTasks.push(fixed)
-    }
-
-    // Sort: P0 first, then P1, then P2; within priority by impact descending
-    const priorityOrder: Record<string, number> = { P0: 0, P1: 1, P2: 2 }
-    fixedTasks.sort((a, b) => {
-        const pa = priorityOrder[a.priority] ?? 9
-        const pb = priorityOrder[b.priority] ?? 9
-        if (pa !== pb) return pa - pb
-        return (b.expectedImpact?.value || 0) - (a.expectedImpact?.value || 0)
-    })
-
-    // Phase 4.3-G: server-side fallback for scheduledFor + weekOfMonth.
-    // If Opus omitted either, distribute tasks by priority across the month,
-    // skipping weekends (IL: Sat = day 6 in ISO, also avoid Fri afternoon).
-    // P0 → days 1-14, P1 → days 8-21, P2 → days 15-28.
-    const today = new Date()
-    const baseY = today.getUTCFullYear()
-    const baseM = today.getUTCMonth()
-    const baseD = today.getUTCDate()
-    function isoDate(year: number, month0: number, day: number): string {
-        const d = new Date(Date.UTC(year, month0, day))
-        return d.toISOString().slice(0, 10)
-    }
-    function nextWorkday(dayOffset: number): string {
-        // dayOffset is days from today. Skip Saturdays (6) and Fridays (5) after offset 12pm — for simplicity skip both 5 and 6.
-        let off = dayOffset
-        for (let i = 0; i < 14; i++) {
-            const d = new Date(Date.UTC(baseY, baseM, baseD + off))
-            const dow = d.getUTCDay()  // 0=Sun, 5=Fri, 6=Sat
-            if (dow !== 5 && dow !== 6) return d.toISOString().slice(0, 10)
-            off++
-        }
-        return isoDate(baseY, baseM, baseD + dayOffset)
-    }
-
-    // Group tasks by priority + index, distribute across the appropriate window
-    const buckets: Record<string, { start: number; end: number; tasks: MonthlyTask[] }> = {
-        P0: { start: 0, end: 13, tasks: [] },
-        P1: { start: 7, end: 20, tasks: [] },
-        P2: { start: 14, end: 27, tasks: [] },
-    }
-    for (const t of fixedTasks) {
-        buckets[t.priority]?.tasks.push(t)
-    }
-    for (const key of ['P0', 'P1', 'P2'] as const) {
-        const b = buckets[key]
-        const span = b.end - b.start + 1
-        b.tasks.forEach((t, idx) => {
-            if (!t.scheduledFor) {
-                const offset = b.start + Math.floor((idx * span) / Math.max(b.tasks.length, 1))
-                t.scheduledFor = nextWorkday(offset)
-            }
-            if (!t.weekOfMonth) {
-                const offset = Math.floor((new Date(t.scheduledFor).getTime() - Date.UTC(baseY, baseM, baseD)) / (24 * 3600 * 1000))
-                t.weekOfMonth = Math.max(1, Math.min(4, Math.ceil((offset + 1) / 7))) as 1 | 2 | 3 | 4
-            }
-        })
-    }
-
-    // Build summary
-    const summary: MonthlyPlanSummary = {
-        totalTasks: fixedTasks.length,
-        byStatus: { proposed: fixedTasks.length, approved: 0, rejected: 0, skipped: 0, in_progress: 0, completed: 0, failed: 0 },
-        byPriority: { P0: 0, P1: 0, P2: 0 },
-        byChannel: {},
-        byType: {},
-        estimatedTotalImpact: {},
-    }
-    for (const t of fixedTasks) {
-        summary.byPriority[t.priority] = (summary.byPriority[t.priority] || 0) + 1
-        summary.byChannel[t.channel] = (summary.byChannel[t.channel] || 0) + 1
-        summary.byType[t.type] = (summary.byType[t.type] || 0) + 1
-        const ei = t.expectedImpact
-        if (ei && ei.value > 0) {
-            // Aggregate only 7d/14d/30d horizons; 60d/90d are out-of-scope for monthly totals
-            const inWindow = ei.horizon === '7d' || ei.horizon === '14d' || ei.horizon === '30d'
-            if (!inWindow) continue
-            switch (ei.metric) {
-                case 'conversions':
-                    // Phase 4.3-F fix: don't double-count. extraConversions30d is the
-                    // primary count; extraLeadsPerMonth only added when the metric is
-                    // explicitly leads_per_month (the case below).
-                    summary.estimatedTotalImpact.extraConversions30d =
-                        (summary.estimatedTotalImpact.extraConversions30d || 0) + ei.value
-                    break
-                case 'leads_per_month':
-                    summary.estimatedTotalImpact.extraLeadsPerMonth =
-                        (summary.estimatedTotalImpact.extraLeadsPerMonth || 0) + ei.value
-                    break
-                case 'spend_savings_ils':
-                    summary.estimatedTotalImpact.spendSavingsIls30d =
-                        (summary.estimatedTotalImpact.spendSavingsIls30d || 0) + ei.value
-                    break
-                case 'cpa_reduction_pct':
-                    summary.estimatedTotalImpact.cpaReductionPct =
-                        Math.max(summary.estimatedTotalImpact.cpaReductionPct || 0, ei.value)
-                    break
-                case 'organic_traffic_pct':
-                    summary.estimatedTotalImpact.extraOrganicTraffic30d =
-                        (summary.estimatedTotalImpact.extraOrganicTraffic30d || 0) + ei.value
-                    break
-            }
-        }
-    }
-
-    plan.tasks = fixedTasks
-    plan.summary = summary
-    plan.qualityWarnings = [...(plan.qualityWarnings || []), ...warnings]
-    return plan
-}
-
-// ─── Build the long, structured user-prompt ───────────────────────────────
-interface PromptCtx {
-    businessName: string
-    websiteUrl: string
-    businessDesc: string
-    paidProfile: any
-    audit: any
-    mediaPlan: any
-    strategy: any
-    chosenScenarioKey: string | undefined          // 'smart' | 'aggressive'
-    chosenScenarioFull: any                        // full strategy object (30-day plan, KPIs, do-not-channels, first_win, risks)
-    strategyOptionsAll: any                        // full strategy_options records (both smart + aggressive for context)
-    paidAudit: any                                 // paid-track audit (may complement mazhirAudit)
-    paidDataInventory: any                         // tier classification + capabilities
-    internalSeoAudit: any                          // on-page SEO audit
-    linkAudit: any                                 // backlink profile + over-optimization flags + link-gap
-    aeoVisibility: any                             // AI Overview presence + AEO targets
-    validation: any                                // fact-checking results from validation stage
-    // Category 2: research_data top-level (operational state + time-series)
-    opsBriefs: any                                 // weekly performance history (8-12+ entries)
-    latestOpsBrief: any                            // most-recent week brief
-    marketingIntents: any                          // user-chosen channels
-    integrationsState: any                         // connection state per integration
-    // Category 3: DB tables outside research_data
-    brandBookFull: any                             // FULL brand book (voice / USPs / banned / vocab)
-    pastAgentOutputs: any[]                        // past content drafts + perf
-    agentIntegrations: any[]                       // per-agent integration state
-    pastHypotheses: any[]                          // past experiments + outcomes
-    creativePerformance: any[]                     // creative win/decay patterns
-    creativeFatigueAlerts: any[]                   // decayed creatives needing refresh
-    paidLearnings: any[]                           // aggregated paid learnings
-    strategyLearnings: any[]                       // strategy learner aggregations
-    costTimeline: any
-    paidBudget: any
-    clientBaseline: any
-    paidCompetitorLandscape: any
-    paidKeywordResearch: any
-    seoKeywordResearch: any
-    competitorLandscape: any
-    audiencePersonas: any
-    positioningResults: any
-    contentPlan: any
-    previousMonthlyPlan: MonthlyMarketingPlan | undefined
-    tenantState: any
-    seoResearch2026: string
-    trigger: 'cron_monthly' | 'on_demand' | 'auto_refresh'
-}
-
-function jstr(obj: any, max = 8000): string {
-    if (obj == null) return '(not available)'
-    try {
-        const s = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2)
-        if (s.length <= max) return s
-        return s.slice(0, max) + `\n… [truncated; original was ${s.length} chars]`
-    } catch { return '(unserializable)' }
-}
-
-function buildUserPrompt(ctx: PromptCtx): string {
-    const scenarioBlock = (() => {
-        if (!ctx.chosenScenarioKey) {
-            return `═══ CHOSEN SCENARIO: (missing — user must pick in strategy_options first) ═══\n(no calibrated budgets available)`
-        }
-        const records = (ctx.costTimeline as any)?.records || []
-        const picked = records.find((r: any) => r.scenario === ctx.chosenScenarioKey || r.tier_key === ctx.chosenScenarioKey)
-        return `═══ CHOSEN SCENARIO: ${ctx.chosenScenarioKey} ═══
-
-Calibrated budget (NEVER override; reference verbatim):
-${jstr(picked, 3000)}
-
-Full cost_timeline_modeling records (both scenarios for context):
-${jstr({ records }, 4000)}
-
-${ctx.chosenScenarioFull ? `═══ STRATEGY DETAIL (full chosenScenario object — USE AS PRIMARY SOURCE) ═══
-
-This object was auto-selected from strategy_options (confidence: ${(ctx.chosenScenarioFull as any).confidence || 'unknown'}) and contains the complete 30-day plan, 90-day KPI projections, primary persona, first-win channel, do-not channels with rationale, channel priority list with 30/60/90 outcomes, risks + mitigations, and funnel mapping. Anchor your monthly tasks on these — every task should trace to either a 30_day_plan.actions item, a channel_priority_list entry, or a risk mitigation.
-
-${jstr(ctx.chosenScenarioFull, 12000)}` : '(chosenScenario stored as legacy string — full strategy object not available)'}`
-    })()
-
-    const prevTasksBlock = ctx.previousMonthlyPlan?.tasks
-        ? `═══ PREVIOUS MONTH'S TASKS (do not duplicate; reference status when relevant) ═══
-
-${jstr(ctx.previousMonthlyPlan.tasks.map((t: MonthlyTask) => ({
-    id: t.id, title: t.title, status: t.status, priority: t.priority, channel: t.channel,
-    completedAt: t.completedAt, rejectedAt: t.rejectedAt, rejectedReason: t.rejectedReason,
-})), 6000)}
-
-If a previous task is still 'proposed' or 'skipped' and still relevant, CARRY IT OVER (same id) updating priority/sources as needed. If 'completed' — assume that capability is in place when designing follow-on tasks. If 'rejected' — DO NOT re-propose unless a new evidence material change exists.`
-        : ''
-
-    const tenantBlock = ctx.tenantState ? `═══ TENANT CLASSIFICATION ═══
-
-Classification: ${ctx.tenantState.classification}
-Reason: ${ctx.tenantState.classificationReason}
-Stage modes for downstream wiring:
-  stage6_audit: ${ctx.tenantState.recommendedMode?.stage6_audit}
-  stage7_gtm: ${ctx.tenantState.recommendedMode?.stage7_gtm}
-  stage8_conv: ${ctx.tenantState.recommendedMode?.stage8_conv}
-  stage9_plan: ${ctx.tenantState.recommendedMode?.stage9_plan}
-
-Google Ads: connected=${ctx.tenantState.signals?.googleAds?.connected}, ${ctx.tenantState.signals?.googleAds?.activeCampaignsCount} active campaigns, ${ctx.tenantState.signals?.googleAds?.last90dConversions} conv / ₪${(ctx.tenantState.signals?.googleAds?.last90dSpendIls || 0).toLocaleString()} spend in 90d
-GTM: connected=${ctx.tenantState.signals?.gtm?.connected}, snippet on site=${ctx.tenantState.signals?.gtm?.snippetInstalledOnSite}, ${ctx.tenantState.signals?.gtm?.liveVersionTagCount} live tags
-GA4: connected=${ctx.tenantState.signals?.ga4?.connected}, propertyId=${ctx.tenantState.signals?.ga4?.measurementId || 'none'}
-` : ''
-
-    return `${tenantBlock}
-
-═══ CLIENT ═══
-
-Business: ${ctx.businessName}
-Website: ${ctx.websiteUrl}
-Description: ${(ctx.businessDesc || '').slice(0, 800)}
-Trigger for this generation: ${ctx.trigger}
-
-${scenarioBlock}
-
-═══ PAID PROFILE (client-provided) ═══
-
-${jstr(ctx.paidProfile, 4000)}
-
-═══ MAZHIR AUDIT (most recent — read findings + recommendedActions) ═══
-
-${jstr(ctx.audit, 12000)}
-
-═══ MEDIA PLAN (paid optimizations + new campaigns — wrap each as task) ═══
-
-Pay special attention to:
-  - mediaPlan.campaignOptimizations[].changes[] — each item should become at minimum one task with source pointing to mediaPlanOptIndex
-  - mediaPlan.campaigns[] — supplementary new campaigns are tasks of type 'paid_optimization'
-  - mediaPlan.planMode — informs whether tasks are optimize_existing vs build_new flavored
-
-${jstr(ctx.mediaPlan, 14000)}
-
-═══ ORGANIC STRATEGY (read full text or object) ═══
-
-${jstr(ctx.strategy, 8000)}
-
-═══ POSITIONING + AUDIENCE PERSONAS ═══
-
-${jstr(ctx.positioningResults, 3000)}
-
-${jstr(ctx.audiencePersonas, 4000)}
-
-═══ COMPETITOR LANDSCAPES ═══
-
-Organic competitors:
-${jstr(ctx.competitorLandscape, 4000)}
-
-Paid competitors:
-${jstr(ctx.paidCompetitorLandscape, 4000)}
-
-═══ KEYWORD RESEARCH ═══
-
-Paid keywords (already grouped by intent):
-${jstr(ctx.paidKeywordResearch, 5000)}
-
-SEO keywords:
-${jstr(ctx.seoKeywordResearch, 5000)}
-
-═══ CLIENT ACCOUNT BASELINE (real metrics) ═══
-
-${jstr(ctx.clientBaseline, 5000)}
-
-═══ PAID-DATA INVENTORY (tier classification + adapter capabilities) ═══
-
-${jstr(ctx.paidDataInventory, 4000)}
-
-═══ PAID AUDIT (research-stage paid audit — complements mazhirAudit) ═══
-
-${jstr(ctx.paidAudit, 6000)}
-
-═══ INTERNAL SEO AUDIT (on-page — schema, meta, structure, content gaps) ═══
-
-Use this for ALL on-page tasks. Don't propose schema/meta/structure changes without referencing the specific finding here.
-
-${jstr(ctx.internalSeoAudit, 8000)}
-
-═══ LINK AUDIT (DataForSEO backlink profile — CRITICAL for link strategy) ═══
-
-This is REAL backlink data — referring domains, anchor distribution, over-optimization
-flags, lostLinks recovery candidates, linkGap competitor-only domains. USE IT to:
-  - Skip directories the site already has (don't waste budget re-recommending them)
-  - Address anchor over-optimization (if exact-match >50% → diversification task)
-  - Target linkGap domains (competitors-only refer) as outreach prospects
-  - Recover lostLinks (drop-zero referring domains)
-DO NOT propose generic "register at B144/Zap" tasks without checking if site is already there.
-
-${jstr(ctx.linkAudit, 12000)}
-
-═══ AEO VISIBILITY (AI Overview presence + AEO targets) ═══
-
-For AEO/LLM-citation tasks, ground in this data — which queries trigger AI Overview, which
-competitors get cited, where the brand-mention gap is.
-
-${jstr(ctx.aeoVisibility, 5000)}
-
-═══ STRATEGY OPTIONS (full records — both scenarios for delta context) ═══
-
-${jstr(ctx.strategyOptionsAll, 5000)}
-
-═══ VALIDATION (fact-checking — what's confirmed vs assumed) ═══
-
-${jstr(ctx.validation, 3000)}
-
-═══ BRAND BOOK (voice / principles / USPs / banned phrases / vocabulary) ═══
-
-CRITICAL for ALL creative tasks (RSA copy, GBP posts, content drafts, ad creatives).
-Headlines/descriptions MUST follow brand voice principles. NEVER use banned phrases.
-Use approved vocabulary + USPs in copy. Reference taglineHe / mission / positioning.
-
-${jstr(ctx.brandBookFull, 8000)}
-
-═══ WEEKLY OPS BRIEFS (performance time-series — ${(ctx.opsBriefs as any[])?.length || 0} weeks) ═══
-
-Latest brief contains last-week deltas + alerts. Plan tasks that ADDRESS recurring
-problems flagged across multiple briefs. If brief says "CPA rising 3 weeks in a row"
-→ this should be P0 in monthly plan.
-
-Latest:
-${jstr(ctx.latestOpsBrief, 5000)}
-
-History (compact summary):
-${jstr((ctx.opsBriefs as any[] || []).slice(-5).map((b: any) => ({
-    weekOf: b.weekOf || b.generatedAt,
-    summary: b.summary || b.overview,
-    topAlerts: b.alerts?.slice?.(0, 3) || b.findings?.slice?.(0, 3),
-})), 4000)}
-
-═══ USER MARKETING INTENTS (channels user chose — DO NOT propose excluded ones) ═══
-
-${jstr(ctx.marketingIntents, 2000)}
-
-═══ INTEGRATIONS STATE (what is actually connected — affects executability) ═══
-
-${jstr(ctx.integrationsState, 3000)}
-
-═══ AGENT INTEGRATIONS (per-agent connection state) ═══
-
-${jstr(ctx.agentIntegrations, 2500)}
-
-═══ PAST AGENT OUTPUTS (winners/losers — ${ctx.pastAgentOutputs.length} drafts) ═══
-
-Past content drafts + their final status (approved/published/rejected). Pattern-match:
-- Don't propose drafts that duplicate existing approved/published.
-- If post types with high engagement exist → propose more in that pattern.
-- If rejected outputs share a pattern → avoid it.
-
-${jstr(ctx.pastAgentOutputs.slice(0, 30).map((o: any) => ({
-    id: o.id, type: o.outputType, status: o.status, agent: o.agentRole,
-    title: (o.title || '').slice(0, 60), createdAt: o.createdAt,
-})), 5000)}
-
-═══ PAST HYPOTHESES (experiments already run — DO NOT re-propose same) ═══
-
-${jstr(ctx.pastHypotheses, 4000)}
-
-═══ CREATIVE PERFORMANCE + FATIGUE ALERTS ═══
-
-${jstr(ctx.creativePerformance, 3000)}
-
-${jstr(ctx.creativeFatigueAlerts, 2000)}
-
-═══ PAID LEARNINGS (aggregated outcomes from past paid experiments) ═══
-
-${jstr(ctx.paidLearnings, 3000)}
-
-═══ STRATEGY LEARNINGS (strategy learner aggregations) ═══
-
-${jstr(ctx.strategyLearnings, 3000)}
-
-═══ EXISTING CONTENT PLAN (do not duplicate items) ═══
-
-${jstr(ctx.contentPlan, 6000)}
-
-${prevTasksBlock}
-
-═══ 2026 GOOGLE ALGORITHM & AEO RESEARCH (ground truth for ranking signal prioritization) ═══
-
-${ctx.seoResearch2026 || '(2026 algorithm research not available; fall back to general SEO best-practice but flag in qualityWarnings)'}
-
-═══ YOUR TASK — PRODUCE STRICT JSON ═══
-
-Synthesize ONE unified monthly plan that:
-  1. References each upstream evidence source via task.sources[] (mediaPlan.optimization, audit.recommendedActions.X, gsc.queries, ga4.X, strategy.persona, contentPlan.gap, sqr.waste, etc.)
-  2. Orders by impact (P0 first; within same priority, by expectedImpact.value descending)
-  3. Atomizes — every action is ONE task; don't bundle
-  4. Forecasts expectedImpact with REAL numbers anchored on the data above (CPA delta, traffic lift, conv increase). If you can't justify a number, mark confidence='low' and use a conservative estimate.
-  5. Builds actionPlan[] with a step-by-step executor recipe. Each step has automated:true (system can do via API after approval) or automated:false (user TODO with brief). For 'paid_optimization' type — automated:true with Google Ads API mutate. For 'content_creation' / 'landing_page' / 'website_change' — automated:true via WordPress/GitHub IF integration available, otherwise automated:false with detailed brief. For 'tracking_setup' — automated:true via Mazhir GTM/conversions endpoints.
-  6. Builds dependsOn[] when one task gates another (e.g. "create city LP" must approve+complete before "add Search campaign for that city").
-  7. Cross-channel synergy: actively look for paid→organic and organic→paid synergies. Examples:
-     - SQR shows query "X" wasting budget with 0 conv → if same X has GSC striking-distance position → propose: pause kw in paid + invest in organic LP refresh + content
-     - Paid drives brand search → schedule a "brand mention monitor" task to capture unlinked mentions for E-E-A-T
-     - Content cluster about Y → propose paid amplification kw for top-converting page
-  8. Link tasks reference chosenScenario's backlink_acquisition budget VERBATIM. Per scenario:
-     - Smart: 2-3 mid-DR links/month at ~₪400-500/link, total ~₪1,000
-     - Aggressive: 5-8 multi-tier links/month, total ~₪3,000
-     For each link task, include the target DR tier + outreach approach (digital PR / niche edit / citation / etc.).
-  9. Schema priority: For LLM/AEO tasks, use Article + FAQPage + HowTo + Organization combo (2.5-2.7× citation; from 2026 research).
- 10. Hebrew strings for title/summary/sources.excerpt/actionPlan.step. English technical terms (campaign, keyword, schema, etc.) ok inline.
-
-Output JSON exactly this shape (no markdown fences, no commentary before/after):
-
-{
-  "horizon": "30d",
-  "overview": {
-    "hebrew": "<3-5 sentence strategic narrative for the month — what's the focus, why now, what wins to expect>",
-    "keyTheme": "<1-line headline e.g. 'אופטימיזציית STAG עירוני + הרחבת AEO ב-FAQ'>",
-    "focusAreas": ["<3-5 Hebrew bullets — the strategic themes of the month>"]
-  },
-  "tasks": [
-    {
-      "id": "<tsk_xxxxxxxxxx — 10-char nanoid; omit if you want server to generate>",
-      "type": "<paid_optimization | content_creation | landing_page | tracking_setup | audience_expansion | keyword_expansion | cross_channel_amplification | website_change | creative_refresh | measurement_gap | experiment | other>",
-      "title": "<Hebrew, ≤80 chars>",
-      "summary": "<Hebrew, 1-2 sentences>",
-      "channel": "<google_ads | meta | seo | content | gtm | ga4 | website | gbp | whatsapp | email | cross>",
-      "priority": "<P0 | P1 | P2>",
-      "estimatedEffort": "<15_min | 30_min | 1_hour | 2_3_hours | 1_day | 2_3_days | 1_week>",
-      "expectedImpact": {
-        "metric": "<conversions | cpa_reduction_pct | spend_savings_ils | ctr_pct | ranking_position | organic_traffic_pct | leads_per_month | roas_pct | qs_points | other>",
-        "value": <number — direction implied by metric, e.g. cpa_reduction_pct=15 means -15%>,
-        "horizon": "<7d | 14d | 30d | 60d | 90d>",
-        "confidence": "<high | medium | low>",
-        "rationale": "<Hebrew, 1 sentence: WHY this number, anchored on which data point>"
-      },
-      "sources": [
-        { "type": "<see schema above>", "ref": "<e.g. opt_idx:0,change_idx:0 or query:קרטונים>", "excerpt": "<optional Hebrew quote>" }
-      ],
-      "dependsOn": ["<other task IDs, or empty array>"],
-      "actionPlan": [
-        { "step": "<Hebrew: what executor does>", "automated": <true|false>, "estimatedMinutes": <number> }
-      ],
-      "scheduledFor": "<ISO YYYY-MM-DD within next 30 days; P0=week1-2, P1=week2-3, P2=week3-4; respect dependsOn ordering>",
-      "weekOfMonth": <1|2|3|4 — bucket matching scheduledFor>,
-      "mediaPlanOptIndex": <number — if this wraps mediaPlan.campaignOptimizations[i]>,
-      "contentPlanItemId": "<string — if this wraps contentPlan.items[i].id>",
-      "paidHypothesisId": "<string — if this wraps a paid_hypothesis>"
-    }
-  ],
-  "qualityWarnings": ["<any concerns about data freshness, missing sources, conflicts>"]
-}
-
-Return ONLY the JSON. No markdown fences. No preamble. No conclusion text.`
-}
-
-// ─── Main entry ───────────────────────────────────────────────────────────
-export async function generateMonthlyPlan(
+// ─── Build PromptCtx from instanceId ──────────────────────────────────────
+async function buildPromptCtx(
     instanceId: string,
-    trigger: 'cron_monthly' | 'on_demand' | 'auto_refresh' = 'on_demand',
-): Promise<{ monthlyPlan: MonthlyMarketingPlan; outputId?: string; cost: { model: string } }> {
-    const t0 = Date.now()
-
+    trigger: PromptCtx['trigger'],
+): Promise<{ ctx: PromptCtx; agent: any; rd: any; apiKey: string }> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error('Instance not found')
 
     const apiKey = (inst as any).aiProviderKey || process.env.ANTHROPIC_API_KEY
     if (!apiKey) throw new Error('Anthropic API key missing')
 
-    const { resolvePrimaryAgent, readResearchData, writeResearchData } = await import('./agentContext')
+    const { resolvePrimaryAgent, readResearchData } = await import('./agentContext')
     const agent = await resolvePrimaryAgent(instanceId)
     const rd: any = (await readResearchData(agent, instanceId)) || {}
 
-    // Read ALL upstream sources from research_data + research_data.results.
-    // Phase 4.3-I systemic fix: generator was reading 9 of 17 available result
-    // stages — ignoring link_audit (backlink profile), internal_seo_audit,
-    // aeo_visibility, paid_audit, paid_data_inventory, strategy_options (full
-    // records, not just chosen), validation. Top agency operates with ALL
-    // available intelligence; we were planning with half.
     const mediaPlan = rd.mediaPlan
     const audit = rd.mazhirAudit
     const strategy = rd.strategy
-    // Phase 4.3-B fix: chosenScenario lives in research_data in TWO shapes:
-    //   (a) legacy: just a string 'smart' | 'aggressive' (early tenants)
-    //   (b) current: full strategy object with .scenario field
     const chosenScenarioRaw = rd.chosenScenario
     const chosenScenarioKey: string | undefined =
         typeof chosenScenarioRaw === 'string'
@@ -594,7 +154,6 @@ export async function generateMonthlyPlan(
     const paidProfile = rd.paidProfile
     const answers = rd.answers || {}
     const results = rd.results || {}
-    // Paid-side inputs
     const costTimeline = results.cost_timeline_modeling
     const paidBudget = results.paid_budget_scenarios
     const clientBaseline = results.client_account_baseline
@@ -602,7 +161,6 @@ export async function generateMonthlyPlan(
     const paidKeywordResearch = results.paid_keyword_research
     const paidAudit = results.paid_audit
     const paidDataInventory = results.paid_data_inventory
-    // Organic-side inputs
     const seoKeywordResearch = results.seo_keyword_research
     const competitorLandscape = results.competitor_landscape
     const audiencePersonas = results.audience_personas
@@ -610,28 +168,23 @@ export async function generateMonthlyPlan(
     const internalSeoAudit = results.internal_seo_audit
     const linkAudit = results.link_audit
     const aeoVisibility = results.aeo_visibility
-    // Strategy-side inputs
     const strategyOptionsAll = results.strategy_options
     const validation = results.validation
     const previousMonthlyPlan: MonthlyMarketingPlan | undefined = rd.monthlyPlan
 
-    // Phase 4.3-I v7 — Category 2: research_data TOP-LEVEL (not in .results)
-    // operational state + time-series performance data we were ignoring.
-    const opsBriefs = rd.opsBriefs                          // weekly performance history (often 8-12+ entries)
-    const latestOpsBrief = rd.latestOpsBrief                // most-recent week brief
-    const marketingIntents = rd.marketingIntents            // user-chosen channels (DON'T propose excluded ones)
-    const integrationsState = rd.integrationsState          // connection state per integration
+    const opsBriefs = rd.opsBriefs
+    const latestOpsBrief = rd.latestOpsBrief
+    const marketingIntents = rd.marketingIntents
+    const integrationsState = rd.integrationsState
 
-    // Phase 4.3-I v7 — Category 3: DB tables OUTSIDE research_data.
-    // Persistent per-instance data we were planning blind to.
-    let brandBookFull: any = undefined          // voice, USPs, banned, vocabulary — ALL creative tasks need this
-    let pastAgentOutputs: any[] = []            // winners/losers patterns from past drafts
-    let agentIntegrations: any[] = []           // actual connection state per agent role
-    let pastHypotheses: any[] = []              // experiments + outcomes — don't duplicate
-    let creativePerformance: any[] = []         // which creatives win vs decay
-    let creativeFatigueAlerts: any[] = []       // creative_fatigue table
-    let paidLearnings: any[] = []               // aggregated paid learnings
-    let strategyLearnings: any[] = []           // strategy learner aggregations
+    let brandBookFull: any = undefined
+    let pastAgentOutputs: any[] = []
+    let agentIntegrations: any[] = []
+    let pastHypotheses: any[] = []
+    let creativePerformance: any[] = []
+    let creativeFatigueAlerts: any[] = []
+    let paidLearnings: any[] = []
+    let strategyLearnings: any[] = []
     try {
         const [bb] = await db.select().from(brandBooks).where(eq(brandBooks.instanceId, instanceId))
         brandBookFull = bb
@@ -644,7 +197,6 @@ export async function generateMonthlyPlan(
             strategyLearnings: strategyLearningsTbl,
         } = await import('@/db/schema') as any
         const { desc } = await import('drizzle-orm')
-        // Cap each pull at 50 most-recent so prompt stays bounded
         pastAgentOutputs = await db.select().from(agentOutputsTbl)
             .where(eq(agentOutputsTbl.instanceId, instanceId))
             .orderBy(desc(agentOutputsTbl.createdAt))
@@ -681,7 +233,6 @@ export async function generateMonthlyPlan(
     }
     console.log(`[monthlyPlanGenerator] ${instanceId} historical: outputs=${pastAgentOutputs.length} integrations=${agentIntegrations.length} hypotheses=${pastHypotheses.length} creativePerf=${creativePerformance.length} fatigue=${creativeFatigueAlerts.length} paidLearn=${paidLearnings.length} stratLearn=${strategyLearnings.length} opsBriefs=${(opsBriefs as any[])?.length || 0}`)
 
-    // Hard preconditions
     if (!paidProfile && !audit) {
         throw new Error('Either paidProfile or mazhirAudit required — run paid_data_inventory + mazhir/audit first')
     }
@@ -694,15 +245,6 @@ export async function generateMonthlyPlan(
     const websiteUrl = answers.websiteUrl || ''
     const businessDesc = answers.businessDescription || ''
 
-    // Phase 4.3-B: ALWAYS use Opus 4.7 for monthly plan synthesis.
-    // This is the most strategic task in the platform — Sonnet 4.6 emits poorly
-    // escaped JSON on long Hebrew outputs (unescaped " in ש"ח, embedded
-    // newlines inside multi-paragraph summaries). Per memory feedback_model_tiers
-    // — strategic tasks default to Opus, not whatever resolveDirectModel returns.
-    const model = 'claude-opus-4-7'
-    const usingOpus = true
-
-    // Tenant classification (read-only) — informs prompt context
     let tenantState: any = null
     try {
         const { classifyTenantSetupState } = await import('./tenantSetupState')
@@ -713,333 +255,12 @@ export async function generateMonthlyPlan(
 
     const seoResearch2026 = loadSeoResearch2026()
 
-    const system = `You are the senior strategic marketing director for an Israeli SMB AI marketing platform (ClawFlow). Behind you stand **10 specialist sub-agents** working in parallel: paid PPC analyst, SEO strategist, content writer, creative director, social media manager, conversion optimizer, link outreach specialist, technical SEO auditor, hypothesis tester, brand analyst. Your job: synthesize the client's complete marketing state (paid + organic + content + audit + scenarios) into a UNIFIED MONTHLY PLAN — deep, parallel, multi-channel, hypothesis-driven, creative-rich.
-
-═══ HARD POLICY (NON-NEGOTIABLE) ═══
-
-1. Human-in-the-loop for MUTATIONS — every task that WRITES/PUBLISHES/CHANGES external systems is approval-gated in משימות פעילות. The agent proposes; the user decides.
-2. **Read-only verifications NEVER become user tasks** — status checks, scans, audits-of-existing-state, monitoring, indexation checks, "verify campaign is active" — all of these are AUTO and live INSIDE other tasks as PRE-CHECK actionPlan steps (automated:true, ~5min). Never surface as standalone user tasks. Type 'measurement_gap' is RESERVED for setting up NEW tracking infrastructure (new pixel, new event, new property) — never for verifying existing-state. If you find yourself writing a task with metric='other' and value=1 that just says "verify X" or "check Y" — DELETE it and fold it into the appropriate write-task as its first actionPlan step.
-3. Atomic tasks — 1 task = 1 atomic action. "Add 23 negatives" is one task; "Switch bid strategy" is another; "Publish 5 city LPs" → 5 separate tasks. Don't bundle.
-4. Source citation MANDATORY — every task.sources[] has **≥3 entries** (aim for 4-6) pointing to specific upstream evidence with **meaningful excerpts** (real numbers/quotes, not "see audit"). Mix source types.
-5. Link budgets are PRE-CALIBRATED — read chosenScenario + cost_timeline_modeling VERBATIM. NEVER invent new link budgets.
-6. Order by impact — P0 ships this week; P1 this month; P2 quarterly. Within priority, by expectedImpact.value descending.
-7. Israeli market context — Hebrew strings for user-facing fields. English technical terms (campaign, keyword, schema, awct, RSA, CPA) inline ok.
-
-═══ HEBREW UX STANDARDS (CRITICAL — end users are non-technical IL SMB owners) ═══
-
-ALL user-facing strings (title / summary / overview.hebrew / focusAreas / source.excerpt /
-expectedImpact.rationale / actionPlan.step text-before-the-adapter-name) must be in **clean Hebrew**.
-No English jargon in user-facing copy. Technical terms get HEBREW EXPLANATIONS inline.
-
-Forbidden English words in user-facing strings:
-- CPA, RSA, tCPA, INP, CWV, GTM, GA4, AEO, SEO, FAQPage, schema, pixel, Smart Bidding,
-  remarketing, retargeting, audience, conversion, attribution, indexation, ranking,
-  carousel, reel, headline, description, pillar, spoke, hub.
-
-Hebrew replacements WITH inline explanation (first occurrence):
-- CPA → "עלות לליד (CPA)" — מחיר ממוצע ללקוח פוטנציאלי
-- tCPA → "אסטרטגיית הצעות מבוססת יעד עלות לליד (tCPA)"
-- RSA → "מודעת חיפוש מותאמת (RSA)"
-- INP → "זמן התגובה לאינטראקציה (INP)"
-- CWV → "אותות חוויית משתמש בליבה (Core Web Vitals)"
-- GTM → "מנהל התגיות של גוגל (GTM)"
-- GA4 → "Google Analytics 4 (GA4)"
-- AEO → "אופטימיזציה למענה (AEO)"
-- FAQPage → "סכמת שאלות נפוצות (FAQPage)"
-- schema → "סכמה" / "תיוג מובנה"
-- Pixel → "פיקסל מעקב"
-- Smart Bidding → "הצעות חכמות"
-- remarketing/retargeting → "פנייה חוזרת לגולשים"
-- audience → "קהל יעד"
-- conversion → "המרה" / "פעולת ערך"
-- attribution → "ייחוס"
-- pillar → "דף עוגן"
-- spoke → "דף נושא משני" / "דף קשור"
-- carousel → "קרוסלת תמונות"
-- reel → "סרטון קצר (Reel)"
-- headline → "כותרת מודעה"
-- description → "תיאור מודעה"
-
-Inside actionPlan steps where automated:true, the adapter call (e.g. "google_ads_mutate.add_negatives")
-is OK in English as it's a system identifier — but the human-readable preamble before/after must be Hebrew.
-
-The plan is READ by a non-technical Israeli business owner. Every sentence must be understandable.
-
-═══ NARRATIVE OVERVIEW STANDARDS (the "story" of the month) ═══
-
-overview.hebrew is NOT a 3-sentence abstract. It is a **6-8 paragraph plan-as-a-story** that walks
-the owner through what we'll do and WHY in that order. One paragraph PER CHANNEL we're activating:
-
-Template (apply to each active channel):
-  **SEO/אורגני:** "קודם נכוון פנימה — נשפר את [page] כי יש לה כבר [N impressions ב-position P].
-  אחרי שהבסיס יציב, נבנה [M dedicated pages] לערים הקיימות... רק כשהכל מוכן פנים האתר, נצא לבניית
-  סמכות חיצונית — נירשם ל-[directories], נפנה ל-[outreach targets]..."
-
-  **פרסום ממומן:** "הצעד הראשון לעצור את הבזבוז — ₪X הולכים לחיפושים לא רלוונטיים על [terms].
-  אחרי שנוסיף שליליים נעבור מ-[strategy A] ל-[strategy B] כי שיעור ההמרה הנוכחי [CR%] מצדיק
-  אופטימיזציה אלגוריתמית..."
-
-  **תוכן ומדיה:** "נכתוב [N posts] לפי [persona breakdown]. דנה במעבר מקבלת [topic A], איתי
-  המשופץ מקבל [topic B]..."
-
-  **GMB וניהול מותג:** "..."
-
-  **מעקב ואנליטיקה:** "לפני שמשיקים אופטימיזציות חזקות, חייבים סוגרים את [tracking gap]..."
-
-  **ניסויים השפעה:** "השמשתי [N hypotheses] השפעה השונה — [list]..."
-
-Tone: clear, plain, conversational — like a senior marketer briefing the founder. No bullet points
-inside overview.hebrew — coherent prose paragraphs only. Each paragraph 60-150 Hebrew words.
-
-═══ CALENDAR SCHEDULING (NEW — every task scheduledFor a date) ═══
-
-Each task MUST include scheduledFor (ISO date YYYY-MM-DD) within the current month (or following
-30 days from generatedAt). Distribution rules:
-  - P0 → week 1-2 (days 1-14 from generation date)
-  - P1 → week 2-3 (days 8-21)
-  - P2 → week 3-4 (days 15-28)
-  - For tasks with dependsOn[], scheduledFor MUST be AT LEAST 1 day after the latest dep
-  - Balance load: don't pile 8 tasks on the same day. Aim for 1-3 tasks per workday (Sun-Thu)
-  - No weekend scheduling (Friday afternoon / Saturday for IL market)
-  - Also set weekOfMonth (1/2/3/4) for compact display
-
-═══ DEPTH STANDARDS (quality bar — failure = unusable plan) ═══
-
-**QUANTITY**: Target **30-40 tasks per month**. We have 10 sub-agents in parallel — under-tasking means agents sit idle. Spread work across channels so each specialist has 3-7 tasks of their kind.
-
-**COMPACTNESS** (CRITICAL — we have ~32K output budget for 30-40 deep tasks):
-- title: ≤80 Hebrew chars
-- summary: ≤2 sentences, ≤200 chars
-- expectedImpact.rationale: 1 sentence, ≤120 chars
-- source.excerpt: 1 quote/number, ≤100 chars (DO quote real data, but DO NOT repeat the whole audit paragraph)
-- actionPlan[].step: ≤120 chars per step. Concrete but tight.
-- For creative briefs (RSA headlines / Meta carousel / FAQ items / persona УТП variants): pack them into actionPlan steps OR a single field; do NOT inflate.
-- NO redundant narrative. Every word earns its place. The plan is a working artifact, not a thought essay.
-
-**SOURCES (per task)**: MINIMUM 3, target 4-6. Each source.excerpt = quote the SPECIFIC number/finding (not "see audit"). Example: "audit.existingAccountAudit.wasteAnalysis.topWasteTerms[0]: 'מכולה' ₪613 / 33 קליקים / 0 conv". Mix types:
-  - audit.* (immediate/shortTerm/ongoing/blockers/existingAccountAudit)
-  - gsc.queries (specific query + position + impressions + clicks)
-  - dfs.keywords (specific keyword + vol + cpc)
-  - ga4.event/funnel/demographics (specific event + count + segment)
-  - strategy.persona / strategy.positioning / strategy.intent_ladder (specific persona name + jobs)
-  - chosenScenario.{first_win,channel_priority_list,risks,30_day_plan,kpis_90_day} (specific entry index)
-  - contentPlan.gap (specific missing pillar/cluster)
-  - sqr.waste / aucIns.opportunity / changeHistory.gap (specific term/competitor/gap)
-  - transparency.competitor (specific competitor + ad type)
-  - paidHypothesis (specific hypothesis if exists)
-  - research_2026.section_N.topic (which section of the algo research backs this)
-
-**ACTION PLANS (per task)**: 5-8 steps. Each step is CONCRETE:
-  - For automated:true: name the integration adapter exactly ('google_ads_mutate.add_negatives', 'wordpress_publish_draft', 'github_create_pr', 'gtm_mutate.create_tag', 'mazhir_gtm_auto_setup', 'mazhir_conv_setup', 'content_plan_v4_enqueue', 'gbp_post_create') + specific resource targets (campaign ID, ad group name, page URL).
-  - For automated:false: tell user EXACTLY what to do (open URL X → fill field Y with value Z → click button K → screenshot for verification).
-  - Each step has estimatedMinutes (realistic — API mutations 2-10min; content drafts 30-90min; manual placements 15-60min).
-  - Include a monitoring/verification step (last step typically: "monitor metric M for N days; threshold for success/kill = T").
-
-**CREATIVE DETAIL** (mandatory for creative-bearing channels):
-  - **Meta tasks**: specify FORMAT (single_image / carousel / reel / story / video). For carousel: list 3-5 card concepts. For reel: hook in first 3 seconds + script outline + caption + CTA. **Per-persona variants**: 1 task per persona with persona-specific УТП. Hebrew copy, real headlines.
-  - **Google Ads RSA**: list the actual 15 headlines and 4 descriptions (real Hebrew text, ≤30/≤90 chars).
-  - **Content/landing pages**: H1 + H2 outline (8-12 sections) + intro hook (2 sentences) + 15+ entities to cover + 4-6 FAQ items (40-60 word answers) + CTA copy + social proof slot + form fields.
-  - **GBP posts**: full Hebrew copy + image brief + CTA + scheduling.
-  - **Display creatives**: image brief (composition + colors + text overlay + persona-targeted).
-  - **YouTube/Video**: 6-second bumper script OR 15-second in-stream script with hook + value prop + CTA.
-
-**HYPOTHESIS TASKS (REQUIRED, type='experiment')**: minimum 2-3 per month. Structure:
-  - hypothesis: "If we change [variable] from [baseline] to [new], then [metric] will move by [delta] within [window]"
-  - success_criteria: "≥X% improvement on [metric] OR ≥N conversions within Y days"
-  - decision_rule: "kill if <X / iterate if X-Y / scale if >Y"
-  - sample_size: "min N impressions / N clicks / N conv"
-  - duration: ISO days
-
-**CONFIDENCE labels**:
-  - **high** — when prediction directly anchors on hard data (GSC impressions, SQR ₪ spent, audit numbers, last-90d performance). Use freely.
-  - **medium** — based on industry benchmark or scenario projection.
-  - **low** — ONLY for experimental hypotheses without supporting data.
-
-═══ STATE-RECONCILIATION (critical — avoid stale audit findings) ═══
-
-The mazhirAudit may have been generated BEFORE the user completed setup steps
-(GTM target picker, GA4 property picker, conversion mapping). Audit findings
-become STALE when user later resolves them via UI. ALWAYS reconcile:
-
-- For EACH audit.blockers[] entry, check current tenantState.signals BEFORE
-  proposing a task to resolve it:
-  · "GTM mismatch" / "GTM not connected" — IF tenantState.signals.gtm.targetPicked
-    AND tenantState.signals.gtm.snippetInstalledOnSite AND gtm.hasLiveVersion →
-    blocker is STALE, do NOT propose a "fix GTM" task. The user already resolved
-    via picker. Mark this in qualityWarnings: "audit blocker X resolved via picker
-    — ignored".
-  · "GA4 not connected" — IF tenantState.signals.ga4.connected AND
-    tenantState.signals.ga4.measurementId → STALE, skip. IF connected but no
-    measurementId → propose "pick GA4 property" task (NOT "connect GA4 OAuth").
-    IF not connected → propose "connect GA4 OAuth + scope" task.
-  · "0 Mazhir conversion signals" — IF tenantState.signals.googleAds.existingConversionActions
-    has items mapped via Mazhir (isMazhirOwned or in mazhirConversions.active) →
-    STALE, skip.
-  · "Campaign suspended / paused" — IF tenantState.signals.googleAds.activeCampaignsCount > 0 →
-    STALE.
-- Multiple GA4/GTM properties per user is COMMON. Don't propose "connect" when
-  user has already picked from picker.
-
-═══ BACKLINK AUDIT GATE (mandatory before any link acquisition task) ═══
-
-DO NOT propose specific external link directories (B144, Dapei Zahav, Zap, etc.)
-or outreach targets WITHOUT KNOWING which the site already has.
-
-If research_data.results contains backlink_audit / linking_sites_report data
-that lists existing referring domains:
-  · Cross-reference proposed directories against existing list
-  · Skip ones already present (call out: "B144 already linked — skip")
-  · Recommend only directories NOT in existing list
-
-If NO backlink data is available in research_data.results:
-  · DO NOT just propose B144/Zap/Dapei Zahav blindly
-  · INSTEAD: propose 1 P0 prerequisite task "backlink audit pre-check —
-    pull existing referring domains via GSC Links Report / manual Ahrefs export"
-  · Then link-acquisition tasks DEPEND on this audit (use dependsOn[])
-  · Mark in qualityWarnings: "specific directory targets pending backlink audit"
-
-This is a hard rule. Inventing link targets without audit is the marketing
-equivalent of inventing budget numbers — top-agency-unacceptable.
-
-═══ SENIOR AGENCY BAR (mandatory — distinguishes mid-tier from top agency) ═══
-
-These checks MUST pass on every plan. A monthly plan that misses any of these
-is mid-tier (Wpromote/Tinuiti/iProspect would reject it):
-
-1. **CR validation precedes Smart Bidding migration**. Before any tCPA/tROAS
-   experiment task, propose a P0 measurement_gap task that AUDITS what counts
-   as conversion in the current Google Ads account (form submit / phone click /
-   WhatsApp click / generate_lead / etc.) AND validates the funnel from
-   button-click → form-submit → qualified-lead → customer. Inflated CR
-   (e.g. button clicks counted as conversions when only 5% become real leads)
-   makes Smart Bidding misfire. The tCPA task MUST list this validation task
-   in dependsOn[].
-
-2. **Creative diversity for paid**. Don't ship one generic RSA refresh. Split
-   into 2-3 separate ad-group-variant tasks with distinct messaging angles:
-   - A) price-first (e.g. "29.9₪/קוב" anchor)
-   - B) urgency (e.g. "השבת קלוט!", "מקום מוגבל")
-   - C) trust (e.g. "ביטוח כלול", "24/7 אבטחה", reviews count)
-   Each task isolates a psychological lever and produces independent learning.
-
-3. **Funnel-stage content coverage**. Plan must include tasks for:
-   - TOFU (awareness): "מה זה X / איך עובד"
-   - MOFU (consideration): "איך לבחור / כמה עולה"
-   - BOFU (decision): **comparison page vs primary competitor** — e.g.
-     "Storage Station vs avia2000" — using competitor name from competitorLandscape.
-     This is the highest-converting page type for recurring-revenue sites.
-
-4. **Competitive intelligence monitor**. Include 1 monthly task that sets up
-   weekly competitive monitoring: Transparency Center scan + Wayback site
-   diff + backlink alerts for top 3 competitors. Reaction window 24-48h.
-
-5. **Conversion path / CRO audit task**. At least one task per plan that
-   audits form fields, WhatsApp button placement, trust signal proximity,
-   mobile page speed. Top agency does heatmap + session recording + form
-   abandonment analytics.
-
-6. **Retention / LTV for recurring-revenue**. If business is recurring (storage,
-   SaaS, subscription, services with repeat purchase): include 1+ task for
-   cross-sell / reactivation / referral. NOT optional. Acquisition-only plans
-   leave 30-50% revenue on table.
-
-7. **Mobile-first optimizations** (mandatory for IL market). Click-to-call
-   optimization, WhatsApp Business automation with lead-qualification flow,
-   mobile LP variants. At least 1 dedicated mobile task per plan.
-
-8. **Data warehouse / attribution architecture** task. GA4 → BigQuery export
-   for cross-channel attribution. First-party hashed-data upload to Google
-   Ads Customer Match for lookalike audience expansion. At least 1 task per
-   quarter (P2 in monthly plan).
-
-9. **Decision rule / replan triggers**. Plan must include — either as a
-   dedicated task or in qualityWarnings — explicit escalation triggers:
-   "CPA >40% above baseline for 14 days → emergency replan task spawned",
-   "ranking drop >5 positions on tracked query → incident response",
-   "traffic drop >20% week-over-week → root cause investigation".
-
-10. **Email lead nurture sequence** for primary persona with longer research
-    cycle. If audience persona has 2+ week research period (moving, weddings,
-    renovation, B2B), include 1 task for lead-magnet + 3-5 email sequence.
-
-═══ CHANNEL COVERAGE (MANDATORY MINIMUMS) ═══
-
-For ALL plans, regardless of chosenScenario, include AT LEAST:
-  - **google_ads**: 8-12 tasks (paid_optimization / keyword_expansion / creative_refresh / audience_expansion / experiment)
-  - **seo**: 4-6 tasks (covering pillar, spokes, AEO content, internal-linking, schema, CWV-if-needed, NAP citations)
-  - **content**: 3-5 tasks (blog/AEO articles, social copy, email newsletter — if applicable)
-  - **gbp**: 2-3 tasks (reviews wave, posts, photos, Q&A, services)
-  - **meta**: 2-4 tasks. **If client has Meta OAuth**: retargeting + creative variants per persona + brand awareness. **If NO Meta OAuth but business profile fits Meta (consumer leadgen, visual product, brand-building stage)**: 1 P1 task "Connect Meta + start with ₪500 test budget" with full brief on test design.
-  - **gtm/ga4**: tasks for any tracking gap. **ALWAYS** include "Connect GA4" as P0 if scope missing — regardless of other state.
-  - **website**: structural/schema/CWV/UX tasks.
-  - **link acquisition**: per chosenScenario monthly count (Smart = 2-3; Aggressive = 5-8) — already calibrated.
-  - **hypothesis tests (experiment type)**: 2-3 explicit experiments with structure above.
-
-═══ STRATEGIC PRIORITIES (Sergei's principles) ═══
-
-1. Internal optimization FIRST, link building SECOND. Lead with on-page wins (audit immediates, SQR cleanup, schema, content upgrade), then layer link strategy.
-2. Sequence: keyword grouping → page mapping → new pages → meta+schema → link building.
-3. Continuous evaluation — every task's expectedImpact produces a measurable delta the weekly KPI brief can read.
-4. Paid → Organic synergy is a real 2026 mechanism (NavBoost + branded search + unlinked-mention detection). Look for cross-channel tasks (paid drives brand search → organic CTR; GMB reviews drive paid trust; content drives paid LP quality score).
-5. Schema priority for LLM/AEO: Article + FAQPage + HowTo + Organization combo = 2.5-2.7× citation in AI Overviews (2026 research).
-
-═══ TASK GENERATION GUIDELINES ═══
-
-For each task:
-- Read the 2026 algorithm research and weight ranking signals correctly. INP/CWV are tiebreakers — never lead with them when content gaps exist.
-- Wrap each existing mediaPlan.campaignOptimizations[].changes[] entry as a separate task (use mediaPlanOptIndex). Don't duplicate the optimization itself; cite it AND enrich with specific actionPlan adapters + monitoring.
-- Wrap audit.recommendedActions.immediate as P0; shortTerm as P1; ongoing as P2.
-- For each GSC striking-distance query (rank 4-15 with vol>20): propose a specific content/website task pushing it to top-3 (cite the query text + current position + impressions).
-- For each chosenScenario.channel_priority_list entry: produce 1-3 tasks operationalizing its content_formula + expected_30_60_90_outcomes.
-- For each persona in research_data.results.audience_personas: at least 1 task with persona-tailored creative or content variant.
-- For chosenScenario.do_not_channels: do NOT propose tasks in those channels.
-- For chosenScenario.risks_mitigations: 1 mitigation task per high-impact risk (P0/P1 depending on probability).
-- expectedImpact: SPECIFIC numbers. "+25 conv/mo" not "growth"; "-15% CPA" not "improvement".
-
-═══ DEDUPE RULES ═══
-
-- DO NOT propose a task that duplicates a previousMonthlyPlan task still in proposed/skipped/approved/in_progress status. Carry it over with same id, update fields if newer evidence.
-- DO NOT propose contentPlan items already in drafting/awaiting_review/approved status.
-- DO NOT propose creating ConversionActions/GTM tags that already exist in tenantState.signals.
-
-═══ FORBIDDEN ═══
-
-- Tasks with <3 sources[]
-- Read-only verification/status-check tasks for the user to approve (these are auto)
-- Inventing link/paid budgets (must cite chosenScenario)
-- Bundling unrelated changes into one task
-- Generic titles like "Optimize X" / "Improve Y" — must be specific (numbers, real values)
-- Creative tasks WITHOUT specific copy / format / persona УТП
-- Hypothesis tasks WITHOUT success_criteria + decision_rule
-- "TODO: review" steps without specific instructions
-- Recommending Twenty CRM or any deprecated integration
-
-═══ JSON STRICTNESS (CRITICAL — avoid parse failures) ═══
-
-Output VALID JSON parseable by JSON.parse():
-- JSON delimiters use DOUBLE quotes. INSIDE strings, use SINGLE quotes 'word' for any emphasis/quotation.
-  RIGHT: "excerpt": "בדוק 'פעיל' וגם budget"
-  WRONG: "excerpt": "בדוק "פעיל" וגם budget"   ← unescaped internal " breaks JSON
-- **NEVER include JSON-formatted arrays or objects as string content.** If you need to mention a list of items inside excerpt or rationale, write them as plain comma-separated text WITHOUT [ ] brackets.
-  RIGHT: "excerpt": "רשימת שליליים: חינם, DIY, cloud storage, ביטוח"
-  WRONG: "excerpt": "['חינם','DIY','cloud storage','ביטוח']"   ← embedded JSON breaks parsing
-- If you absolutely must include a literal " inside a string, escape as \\" — but PREFER single quotes.
-- Use ₪ symbol (not ש"ח) wherever possible to avoid escaping issues.
-- Hebrew apostrophes (') do NOT need escaping in double-quoted strings — but use sparingly.
-- NEVER embed literal newlines inside strings. If you need multi-line content, use \\n.
-- No trailing commas before } or ].
-- No comments inside the JSON.
-- Be COMPACT — we have ~32K output budget for 30-40 deep tasks. Don't waste tokens on verbose narration.
-
-Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in user message.`
-
-    const userPrompt = buildUserPrompt({
+    const ctx: PromptCtx = {
         businessName, websiteUrl, businessDesc,
         paidProfile, audit, mediaPlan, strategy,
         chosenScenarioKey, chosenScenarioFull,
         strategyOptionsAll, paidAudit, paidDataInventory,
         internalSeoAudit, linkAudit, aeoVisibility, validation,
-        // Phase 4.3-I v7 — categories 2 + 3
         opsBriefs, latestOpsBrief, marketingIntents, integrationsState,
         brandBookFull, pastAgentOutputs, agentIntegrations, pastHypotheses,
         creativePerformance, creativeFatigueAlerts, paidLearnings, strategyLearnings,
@@ -1050,71 +271,29 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
         contentPlan, previousMonthlyPlan,
         tenantState, seoResearch2026,
         trigger,
-    })
-
-    console.log(`[monthlyPlanGenerator] ${instanceId}: Opus call starting (model=${model}, prompt=${system.length + userPrompt.length} chars, scenario=${chosenScenarioKey})`)
-
-    const raw = await callOpus({
-        apiKey, model, system, user: userPrompt,
-        // 32K maxTokens — Anthropic non-streaming hard limit + Opus 4.7 doesn't
-        // accept the output-128k-2025-02-19 beta header (that's for Sonnet 3.5).
-        // v5 attempt with 64K + beta got TLS terminated. Compensate with stronger
-        // compactness rules in prompt + auto-close recovery for truncation.
-        maxTokens: usingOpus ? 32000 : 16000,
-        // 20-min timeout — Opus 4.7 with 32K on Hebrew can run 9-15min.
-        timeoutMs: 1200000,
-    })
-
-    // Phase 4.3-G debug: dump raw Opus output to /tmp for inspection if parsing fails.
-    // This is invaluable for diagnosing JSON quirks across iterations.
-    let parsed: Partial<MonthlyMarketingPlan>
-    try {
-        parsed = extractLlmJson<Partial<MonthlyMarketingPlan>>(raw, 'monthlyPlan')
-    } catch (err) {
-        try {
-            const fs = await import('node:fs/promises')
-            const dumpPath = `/tmp/monthly_plan_raw_${instanceId}_${Date.now()}.txt`
-            await fs.writeFile(dumpPath, raw, 'utf-8')
-            console.error(`[monthlyPlanGenerator] PARSE FAIL — raw output dumped to ${dumpPath} (${raw.length} chars)`)
-        } catch { /* best-effort */ }
-        throw err
     }
 
-    let plan: MonthlyMarketingPlan = {
-        generatedAt: new Date().toISOString(),
-        generatedBy: trigger,
-        horizon: parsed.horizon || '30d',
-        summary: { totalTasks: 0, byStatus: { proposed: 0, approved: 0, rejected: 0, skipped: 0, in_progress: 0, completed: 0, failed: 0 }, byPriority: { P0: 0, P1: 0, P2: 0 }, byChannel: {}, byType: {}, estimatedTotalImpact: {} },
-        overview: parsed.overview || { hebrew: '', keyTheme: '', focusAreas: [] },
-        tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
-        status: 'draft',
-        sourceSnapshots: {
-            mediaPlanGeneratedAt: mediaPlan?.generatedAt,
-            auditGeneratedAt: audit?.generatedAt,
-            contentPlanGeneratedAt: contentPlan?.generatedAt,
-            strategyUpdatedAt: (typeof strategy === 'object' && strategy) ? (strategy as any).updatedAt : undefined,
-        },
-        qualityWarnings: parsed.qualityWarnings || [],
-    }
+    return { ctx, agent, rd, apiKey }
+}
 
-    plan = applyMonthlyPlanGuardrails(plan)
-
-    // Persist via dual-write
+// ─── Persist plan + emit per-task agent_outputs rows ──────────────────────
+async function persistAndEmit(
+    instanceId: string,
+    plan: MonthlyMarketingPlan,
+    agent: any,
+    rd: any,
+    trigger: PromptCtx['trigger'],
+    chosenScenarioKey: string | undefined,
+): Promise<{ outputId: string | undefined }> {
+    const { writeResearchData } = await import('./agentContext')
     await writeResearchData(agent, instanceId, { ...rd, monthlyPlan: plan })
 
-    // ─── Phase 4.3-C: emit ONE agent_outputs row PER TASK ─────────────────
-    // Each task surfaces in משימות פעילות as its own approval card.
-    // outputType='monthly_task' triggers the task lifecycle UI on the dashboard.
-    // Carry-over tasks (those that already exist from prior month) get their
-    // existing output row reused — detect by metadata.taskId match.
     const taskOutputIdByTaskId = new Map<string, string>()
     try {
-        // Find any existing monthly_task outputs for this instance — to detect carry-over
-        const { and, eq: eqOp, sql } = await import('drizzle-orm')
         const existing = await db.select().from(agentOutputs)
             .where(and(
-                eqOp(agentOutputs.instanceId, instanceId),
-                eqOp(agentOutputs.outputType, 'monthly_task'),
+                eq(agentOutputs.instanceId, instanceId),
+                eq(agentOutputs.outputType, 'monthly_task'),
             ))
         const existingByTaskId = new Map<string, any>()
         for (const row of existing) {
@@ -1125,7 +304,6 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
         for (const task of plan.tasks) {
             const carry = existingByTaskId.get(task.id)
             if (carry && (carry.status === 'pending_review' || carry.status === 'approved' || carry.status === 'in_progress')) {
-                // Carry-over: reuse the existing output row, update content + metadata
                 taskOutputIdByTaskId.set(task.id, carry.id)
                 await db.update(agentOutputs).set({
                     title: `${task.priority} · ${task.title}`.slice(0, 200),
@@ -1147,11 +325,10 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
                         priority: task.priority,
                         monthlyPlanGeneratedAt: plan.generatedAt,
                     } as any,
-                }).where(eqOp(agentOutputs.id, carry.id))
+                }).where(eq(agentOutputs.id, carry.id))
                 continue
             }
 
-            // New task → new output row
             const [taskRow] = await db.insert(agentOutputs).values({
                 id: 'mt_' + randomBytes(6).toString('hex'),
                 instanceId,
@@ -1185,34 +362,28 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
             if (taskRow?.id) taskOutputIdByTaskId.set(task.id, taskRow.id)
         }
 
-        // Mirror per-task output ID back onto each task for executor cross-ref
         for (const task of plan.tasks) {
             const oid = taskOutputIdByTaskId.get(task.id)
             if (oid) task.executionOutputId = oid
         }
-        // Re-persist with executionOutputIds populated
         await writeResearchData(agent, instanceId, { ...rd, monthlyPlan: plan })
         console.log(`[monthlyPlanGenerator] ${instanceId}: emitted ${taskOutputIdByTaskId.size} per-task agent_outputs rows`)
 
-        // Phase 4.3-K: archive orphan monthly_task rows from PRIOR generations
-        // whose task IDs are NOT in the new plan. This prevents accumulation
-        // (a year of monthly regenerations would leave hundreds of stale rows).
-        // Carry-over rows reused above had their metadata.monthlyPlanGeneratedAt
-        // bumped to current plan.generatedAt — orphans still have the old value.
+        // Archive orphan monthly_task rows from PRIOR generations
         try {
             const currentTaskIds = new Set(plan.tasks.map(t => t.id))
             const allMonthlyTaskRows = await db.select().from(agentOutputs)
                 .where(and(
-                    eqOp(agentOutputs.instanceId, instanceId),
-                    eqOp(agentOutputs.outputType, 'monthly_task'),
-                    eqOp(agentOutputs.status, 'pending_review'),
+                    eq(agentOutputs.instanceId, instanceId),
+                    eq(agentOutputs.outputType, 'monthly_task'),
+                    eq(agentOutputs.status, 'pending_review'),
                 ))
             let archivedCount = 0
             for (const row of allMonthlyTaskRows) {
                 const tid = (row.metadata as any)?.taskId
                 if (tid && !currentTaskIds.has(tid)) {
                     await db.update(agentOutputs).set({ status: 'archived' })
-                        .where(eqOp(agentOutputs.id, row.id))
+                        .where(eq(agentOutputs.id, row.id))
                     archivedCount++
                 }
             }
@@ -1226,7 +397,7 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
         console.warn('[monthlyPlanGenerator] per-task output emission failed:', (err as Error).message)
     }
 
-    // Surface to approval queue (overall plan; per-task surface in Phase C)
+    // Surface overall plan to approval queue
     let outputId: string | undefined
     try {
         const summaryText = `${plan.summary.totalTasks} tasks · ${plan.summary.byPriority.P0} P0 · ${plan.summary.byPriority.P1} P1 · ${plan.summary.byPriority.P2} P2`
@@ -1263,8 +434,80 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
         console.warn('[monthlyPlanGenerator] approval_queue insert failed:', (err as Error).message)
     }
 
+    return { outputId }
+}
+
+// ─── Main entry — thin orchestrator over the 3 passes ─────────────────────
+export async function generateMonthlyPlan(
+    instanceId: string,
+    trigger: PromptCtx['trigger'] = 'on_demand',
+): Promise<{ monthlyPlan: MonthlyMarketingPlan; outputId?: string; cost: { model: string } }> {
+    const t0 = Date.now()
+    const model = 'claude-opus-4-7'
+
+    // Build context once — all 3 passes share it
+    const { ctx, agent, rd, apiKey } = await buildPromptCtx(instanceId, trigger)
+
+    console.log(`[monthlyPlanGenerator] ${instanceId}: v8 multi-pass starting (model=${model}, scenario=${ctx.chosenScenarioKey})`)
+
+    // ─── Pass 1: Skeleton ────────────────────────────────────────────────
+    const tPass1Start = Date.now()
+    const { skeleton } = await generateSkeleton(ctx, apiKey, model)
+    const pass1Elapsed = ((Date.now() - tPass1Start) / 1000).toFixed(1)
+    console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 1 (skeleton) done in ${pass1Elapsed}s — ${skeleton.tasks.length} skeletons`)
+
+    // ─── Pass 2: Detail elaboration (parallel batches) ───────────────────
+    const tPass2Start = Date.now()
+    const { tasks: detailedTasks, batchStats } = await elaborateTasks(ctx, skeleton.tasks, apiKey, model)
+    const pass2Elapsed = ((Date.now() - tPass2Start) / 1000).toFixed(1)
+    console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 2 (detail) done in ${pass2Elapsed}s — ${batchStats.succeeded}/${batchStats.total} batches succeeded, ${detailedTasks.length} tasks merged`)
+
+    // ─── Pass 3: Senior-bar coverage check + fills ───────────────────────
+    const tPass3Start = Date.now()
+    const { tasks: finalTasks, coverage } = await ensureCoverage(ctx, detailedTasks, apiKey, model)
+    const pass3Elapsed = ((Date.now() - tPass3Start) / 1000).toFixed(1)
+    const filledRules = coverage.filter(c => c.status === 'filled').map(c => c.rule)
+    const failedFills = coverage.filter(c => c.status === 'fill_failed').map(c => c.rule)
+    console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 3 (coverage) done in ${pass3Elapsed}s — filled=[${filledRules.join(',')}] failed=[${failedFills.join(',')}]`)
+
+    // ─── Assemble plan + apply guardrails ────────────────────────────────
+    const qualityWarnings: string[] = [
+        ...(skeleton.qualityWarnings || []),
+    ]
+    if (batchStats.failed > 0) {
+        qualityWarnings.push(`Pass 2: ${batchStats.failed} of ${batchStats.total} batches failed — affected tasks shipped with skeleton-only fallback (no sources/actionPlan)`)
+    }
+    if (filledRules.length > 0) {
+        qualityWarnings.push(`Pass 3 auto-filled missing senior-bar rules: ${filledRules.join(', ')}`)
+    }
+    if (failedFills.length > 0) {
+        qualityWarnings.push(`Pass 3 fill failed for: ${failedFills.join(', ')} — manually escalate; senior-bar coverage incomplete`)
+    }
+
+    let plan: MonthlyMarketingPlan = {
+        generatedAt: new Date().toISOString(),
+        generatedBy: trigger,
+        horizon: '30d',
+        summary: { totalTasks: 0, byStatus: { proposed: 0, approved: 0, rejected: 0, skipped: 0, in_progress: 0, completed: 0, failed: 0 }, byPriority: { P0: 0, P1: 0, P2: 0 }, byChannel: {}, byType: {}, estimatedTotalImpact: {} },
+        overview: skeleton.overview || { hebrew: '', keyTheme: '', focusAreas: [] },
+        tasks: finalTasks,
+        status: 'draft',
+        sourceSnapshots: {
+            mediaPlanGeneratedAt: ctx.mediaPlan?.generatedAt,
+            auditGeneratedAt: ctx.audit?.generatedAt,
+            contentPlanGeneratedAt: ctx.contentPlan?.generatedAt,
+            strategyUpdatedAt: (typeof ctx.strategy === 'object' && ctx.strategy) ? (ctx.strategy as any).updatedAt : undefined,
+        },
+        qualityWarnings,
+    }
+
+    plan = applyMonthlyPlanGuardrails(plan)
+
+    // ─── Persist + emit ──────────────────────────────────────────────────
+    const { outputId } = await persistAndEmit(instanceId, plan, agent, rd, trigger, ctx.chosenScenarioKey)
+
     const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
-    console.log(`[monthlyPlanGenerator] ${instanceId}: ready in ${elapsed}s (tasks=${plan.summary.totalTasks}, P0=${plan.summary.byPriority.P0}, scenario=${chosenScenarioKey}, outputId=${outputId})`)
+    console.log(`[monthlyPlanGenerator] ${instanceId}: v8 ready in ${elapsed}s total (Pass1=${pass1Elapsed}s, Pass2=${pass2Elapsed}s, Pass3=${pass3Elapsed}s; tasks=${plan.summary.totalTasks}; P0=${plan.summary.byPriority.P0}; scenario=${ctx.chosenScenarioKey}; outputId=${outputId})`)
 
     return { monthlyPlan: plan, outputId, cost: { model } }
 }
