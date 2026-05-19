@@ -10,18 +10,7 @@
 <!-- STAGING dashboard — master canary only. Devops pushes go here first.
      Admin clicks 'Publish' in /admin to promote → dashboard.html (prod) for all clients.
      CACHE-BUST: phase-4.2.1-K-c2b92ada — force browser refresh after gate fixes. -->
-<style>
-  body::before {
-    content: 'STAGING · גרסת בדיקה (מאסטר בלבד)';
-    position: fixed; top: 0; left: 0; right: 0; z-index: 999999;
-    background: linear-gradient(90deg, #F59E0B, #D97706);
-    color: #fff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px;
-    text-align: center; padding: 4px 0;
-    font-family: Arial, 'Arial Hebrew', Helvetica, sans-serif;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  }
-  body { padding-top: 22px !important; }
-</style>
+<!-- Phase 4.3-N v8: removed STAGING orange ribbon per Sergei (obvious it's master, no need for ribbon) -->
 <meta name="description" content="לוח הבקרה של ClawFlow — ניהול סוכני AI, סטטוס שרתים, אינטגרציות ותשלומים."/>
 <meta name="robots" content="noindex, nofollow"/>
 <link rel="icon" href="/favicon.ico?v=cf2"/>
@@ -5597,60 +5586,56 @@ function renderHome() {
     var mediaPlanExists = !!(instanceData && instanceData.researchData && instanceData.researchData.mediaPlan);
     var hasBrand = !!(instanceData && instanceData.researchData && instanceData.researchData.brandBook);
 
+    // Phase 4.3-N v8: stacked single-column cards, compact height, ONE button each
     var card = function(opts) {
-      // opts: {icon, title, subtitle, ready, primaryLabel, primaryOnClick, secondaryLabel, secondaryOnClick}
+      // opts: {icon, title, subtitle, ready, primaryLabel, primaryOnClick}
       var dotColor = opts.ready ? '#10B981' : '#F59E0B';
       var bg = opts.ready ? 'linear-gradient(180deg,#F0FDF4,#FFFFFF)' : 'linear-gradient(180deg,#FFFBEB,#FFFFFF)';
       var border = opts.ready ? '#BBF7D0' : '#FDE68A';
-      return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-height:130px">' +
-        '<div style="display:flex;align-items:center;gap:8px">' +
-          '<span style="font-size:1.1rem">' + opts.icon + '</span>' +
-          '<div style="font-weight:700;color:#1F2937;font-size:0.92rem">' + opts.title + '</div>' +
-          '<span style="margin-inline-start:auto;width:8px;height:8px;border-radius:50%;background:' + dotColor + '"></span>' +
-        '</div>' +
-        '<div style="font-size:0.78rem;color:#6B7280;line-height:1.5;flex:1">' + opts.subtitle + '</div>' +
-        '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
-          '<button class="notif-action" onclick="' + opts.primaryOnClick + '">' + opts.primaryLabel + '</button>' +
-          (opts.secondaryLabel ? '<button class="notif-action" onclick="' + opts.secondaryOnClick + '" style="background:transparent;color:#6B7280">' + opts.secondaryLabel + '</button>' : '') +
-        '</div>' +
+      return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px">' +
+          '<span style="font-size:1.05rem;flex-shrink:0">' + opts.icon + '</span>' +
+          '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">' +
+            '<div style="display:flex;align-items:center;gap:6px">' +
+              '<div style="font-weight:700;color:#1F2937;font-size:0.88rem">' + opts.title + '</div>' +
+              '<span style="width:7px;height:7px;border-radius:50%;background:' + dotColor + ';flex-shrink:0"></span>' +
+            '</div>' +
+            '<div style="font-size:0.74rem;color:#6B7280;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + opts.subtitle + '</div>' +
+          '</div>' +
+          '<button class="notif-action" style="flex-shrink:0;white-space:nowrap" onclick="' + opts.primaryOnClick + '">' + opts.primaryLabel + '</button>' +
       '</div>';
     };
 
     var card1 = card({
       icon: '🎨',
       title: 'מיתוג',
-      subtitle: hasBrand ? 'ברנד-בוק מאושר — ניתן לערוך קול, צבעים, USPs, מסרים אסורים' : 'הברנד-בוק עדיין לא נבנה. בנו אותו כדי שכל הכתיבה והקריאייטיב יהיו עקביים',
+      subtitle: hasBrand ? 'ברנד-בוק מאושר — קול, צבעים, USPs, מסרים אסורים' : 'הברנד-בוק עדיין לא נבנה',
       ready: hasBrand,
-      primaryLabel: hasBrand ? 'פתחו את הברנד-בוק ←' : 'בנו ברנד-בוק ←',
+      primaryLabel: hasBrand ? 'פתחו ←' : 'בנו ברנד-בוק ←',
       primaryOnClick: 'openBrandFoundation()',
     });
 
     var card2 = card({
       icon: '🔍',
       title: 'מחקר שוק ואסטרטגיה',
-      subtitle: (hasResearch && hasStrategy) ? 'דוח מחקר ואסטרטגיה מוכנים. ניתן לעיין ולערוך תרחישים' : 'מחקר או אסטרטגיה עדיין לא הושלמו',
+      subtitle: (hasResearch && hasStrategy) ? 'דוח מחקר ואסטרטגיה מוכנים — עיון ועריכת תרחישים' : 'מחקר או אסטרטגיה עדיין לא הושלמו',
       ready: hasResearch && hasStrategy,
-      primaryLabel: 'דוח מחקר ←',
-      primaryOnClick: "viewReport()",
-      secondaryLabel: 'אסטרטגיה ←',
-      secondaryOnClick: "viewStrategy()",
+      primaryLabel: 'פתחו אסטרטגיה ←',
+      primaryOnClick: "viewStrategy()",
     });
 
     var card3 = card({
       icon: '🎯',
       title: 'הגדרה של הממומן',
-      subtitle: mediaPlanExists ? 'פרופיל קידום + תוכנית מדיה מוכנים. ניתן לערוך תקציבים, יעדים, פלטפורמות' : (paidProfileExists ? 'פרופיל קידום מוגדר. תוכנית מדיה ממתינה לעיון' : 'הגדרת ערוצים בתשלום עדיין לא הושלמה'),
+      subtitle: mediaPlanExists ? 'פרופיל קידום + תוכנית מדיה מוכנים' : (paidProfileExists ? 'פרופיל קידום מוגדר. תוכנית מדיה ממתינה לעיון' : 'הגדרת ערוצים בתשלום עדיין לא הושלמה'),
       ready: paidProfileExists && mediaPlanExists,
-      primaryLabel: paidProfileExists ? 'ערכו פרופיל קידום ←' : 'הגדירו פרופיל קידום ←',
-      primaryOnClick: "openPaidProfileModal()",
-      secondaryLabel: mediaPlanExists ? 'תוכנית מדיה ←' : '',
-      secondaryOnClick: "switchTab('marketing')",
+      primaryLabel: mediaPlanExists ? 'תוכנית מדיה ←' : (paidProfileExists ? 'ערכו פרופיל ←' : 'הגדירו פרופיל ←'),
+      primaryOnClick: mediaPlanExists ? "switchTab('marketing')" : "openPaidProfileModal()",
     });
 
     var completedHtml = '<div class="section-title" style="display:flex;align-items:center;gap:6px">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' +
       'סטטוס מערכת</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">' +
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
         card1 + card2 + card3 +
       '</div>';
     document.getElementById('homeTasks').style.display = '';
@@ -9298,6 +9283,12 @@ function renderContentCalendar() {
     .filter(function(it) {
       if (calendarFilter === 'all') return true;
       if (calendarFilter === 'ads') return it.channel === 'google_ads' || it.channel === 'meta';
+      // Phase 4.3-N v8: monthly tasks use 'meta' (covers FB+IG) and 'seo'/'content' (covers blog).
+      // Legacy contentPlan keeps facebook/instagram/blog as distinct channels;
+      // bridge the taxonomies so the UI tabs work for both data shapes.
+      if (calendarFilter === 'facebook' || calendarFilter === 'instagram') return it.channel === 'meta';
+      if (calendarFilter === 'blog') return it.channel === 'seo' || it.channel === 'content';
+      if (calendarFilter === 'reports') return false; // legacy-only filter
       return it.channel === calendarFilter;
     });
 
@@ -9314,7 +9305,11 @@ function renderContentCalendar() {
   });
 
   // Header
-  var hasPlan = plan.length > 0;
+  // Phase 4.3-N v8: calendar surfaces TWO data sources — legacy contentPlan
+  // items AND monthlyPlan.tasks. Empty state should fire only when BOTH are
+  // empty. Previously it short-circuited on legacy contentPlan alone, hiding
+  // all 47 monthly tasks on tenants that have a v8 plan but no legacy items.
+  var hasPlan = plan.length > 0 || monthlyAsCalendarItems.length > 0;
   // Phase 4.3-L: removed legacy "↻ רענן" pill. Calendar auto-syncs from
   // monthlyPlan.tasks + contentPlan.items on every renderHome() call. The
   // button regenerated only the content plan (not monthly plan) which was
