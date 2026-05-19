@@ -110,13 +110,63 @@ function findLastBalancedClose(src: string): number {
     return lastValidEnd
 }
 
+/**
+ * Walk the source as a bracket/quote state machine. Returns a JSON string with
+ * any unclosed structures (open string, open arrays/objects) closed at the end.
+ * Used as a fallback for truncated LLM output (max_tokens cap mid-stream).
+ */
+function autoCloseTruncated(src: string): string {
+    let inStr = false
+    let esc = false
+    const stack: string[] = []  // '}' or ']'
+    let lastSafeEnd = 0          // position after last comma/bracket — safe truncation point
+    for (let i = 0; i < src.length; i++) {
+        const ch = src[i]
+        if (inStr) {
+            if (esc) { esc = false; continue }
+            if (ch === '\\') { esc = true; continue }
+            if (ch === '"') { inStr = false; lastSafeEnd = i + 1; continue }
+            continue
+        }
+        if (ch === '"') { inStr = true; continue }
+        if (ch === '{') { stack.push('}'); continue }
+        if (ch === '[') { stack.push(']'); continue }
+        if (ch === '}' || ch === ']') { stack.pop(); lastSafeEnd = i + 1; continue }
+        if (ch === ',' || ch === ':') { lastSafeEnd = i + 1; continue }
+    }
+    // Truncate to lastSafeEnd to avoid the half-finished key/value at the tail.
+    // But only if we're CURRENTLY in a string OR there are open brackets.
+    let result = src.slice(0, lastSafeEnd).replace(/,\s*$/, '')
+    // Re-walk to determine open brackets at lastSafeEnd
+    inStr = false
+    esc = false
+    const openStack: string[] = []
+    for (let i = 0; i < result.length; i++) {
+        const ch = result[i]
+        if (inStr) {
+            if (esc) { esc = false; continue }
+            if (ch === '\\') { esc = true; continue }
+            if (ch === '"') inStr = false
+            continue
+        }
+        if (ch === '"') inStr = true
+        else if (ch === '{') openStack.push('}')
+        else if (ch === '[') openStack.push(']')
+        else if (ch === '}' || ch === ']') openStack.pop()
+    }
+    if (inStr) result += '"'
+    while (openStack.length > 0) result += openStack.pop()
+    return result
+}
+
 export function extractLlmJson<T>(raw: string, hint = 'output'): T {
     const fenced = raw.match(/```(?:json)?\s*\n([\s\S]*?)```/)
     const candidate = fenced ? fenced[1] : raw
     const start = candidate.indexOf('{')
-    const end = candidate.lastIndexOf('}')
-    if (start < 0 || end < 0) throw new Error(`No JSON in ${hint}: ${raw.slice(0, 300)}`)
-    const json = candidate.slice(start, end + 1)
+    if (start < 0) throw new Error(`No JSON in ${hint}: ${raw.slice(0, 300)}`)
+    // Phase 4.3-G: don't slice to lastIndexOf('}') — that discards truncated tail.
+    // Instead take everything from first { to end, then let auto-close handle truncation.
+    const json = candidate.slice(start)
 
     const sc = sanitizeJsonControlChars(json)
     const tc = stripTrailingCommas(sc)
@@ -156,6 +206,19 @@ export function extractLlmJson<T>(raw: string, hint = 'output'): T {
             const truncated = a.slice(0, lastClose + 1)
             try { return JSON.parse(truncated) as T } catch { /* keep trying */ }
         }
+    }
+
+    // Phase 4.3-G: ALWAYS try auto-close as a last resort — even if failure
+    // position isn't near end of string. Truncated Opus output can have the
+    // PARSER fail very early due to lastIndexOf('}') having cut off mid-doc,
+    // but the actual truncation is at the end. Auto-close walks the whole
+    // input and closes open structures.
+    for (const candidateSrc of [sc, tc, ag, agtc]) {
+        try {
+            const closed = autoCloseTruncated(candidateSrc)
+            console.warn(`[llmJson] auto-close attempt: orig ${candidateSrc.length} → closed ${closed.length}`)
+            return JSON.parse(closed) as T
+        } catch { /* keep trying */ }
     }
 
     // Auto-close truncated output by appending missing brackets/quotes
