@@ -841,7 +841,20 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
         timeoutMs: 900000,
     })
 
-    const parsed = extractLlmJson<Partial<MonthlyMarketingPlan>>(raw, 'monthlyPlan')
+    // Phase 4.3-G debug: dump raw Opus output to /tmp for inspection if parsing fails.
+    // This is invaluable for diagnosing JSON quirks across iterations.
+    let parsed: Partial<MonthlyMarketingPlan>
+    try {
+        parsed = extractLlmJson<Partial<MonthlyMarketingPlan>>(raw, 'monthlyPlan')
+    } catch (err) {
+        try {
+            const fs = await import('node:fs/promises')
+            const dumpPath = `/tmp/monthly_plan_raw_${instanceId}_${Date.now()}.txt`
+            await fs.writeFile(dumpPath, raw, 'utf-8')
+            console.error(`[monthlyPlanGenerator] PARSE FAIL — raw output dumped to ${dumpPath} (${raw.length} chars)`)
+        } catch { /* best-effort */ }
+        throw err
+    }
 
     let plan: MonthlyMarketingPlan = {
         generatedAt: new Date().toISOString(),
