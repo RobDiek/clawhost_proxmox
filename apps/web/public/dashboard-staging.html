@@ -9237,9 +9237,45 @@ function renderContentCalendar() {
     return it.channel === calendarFilter;
   });
 
-  // Group plan items by date
+  // Phase 4.3-G: also fold in monthlyPlan.tasks (each task has scheduledFor ISO date)
+  var monthlyTasks = (instanceData && instanceData.researchData && instanceData.researchData.monthlyPlan && Array.isArray(instanceData.researchData.monthlyPlan.tasks))
+    ? instanceData.researchData.monthlyPlan.tasks : [];
+  var monthlyAsCalendarItems = monthlyTasks
+    .filter(function(t) { return t && t.scheduledFor && (t.status === 'proposed' || t.status === 'approved' || t.status === 'in_progress'); })
+    .map(function(t) {
+      return {
+        // Calendar entry shape: date, time, channel, type, hook, brief, agentRole, status
+        id: t.id,
+        date: t.scheduledFor,
+        time: '09:00',  // default — calendar sorts by time; we don't have time-of-day on tasks
+        channel: t.channel,
+        type: 'monthly_task',
+        pillar: t.title || '',
+        hook: t.title || '',
+        brief: t.summary || '',
+        persona: '',
+        agentRole: 'mazhir',
+        status: t.status === 'approved' || t.status === 'in_progress' ? 'approved' : 'planned',
+        _isMonthlyTask: true,
+        _priority: t.priority,
+        _effort: t.estimatedEffort,
+        _impactMetric: t.expectedImpact && t.expectedImpact.metric,
+        _impactValue: t.expectedImpact && t.expectedImpact.value,
+        _scheduledFor: t.scheduledFor,
+      };
+    })
+    .filter(function(it) {
+      if (calendarFilter === 'all') return true;
+      if (calendarFilter === 'ads') return it.channel === 'google_ads' || it.channel === 'meta';
+      return it.channel === calendarFilter;
+    });
+
+  // Group plan items + monthly tasks by date
   var byDate = {};
   filtered.forEach(function(it) {
+    (byDate[it.date] = byDate[it.date] || []).push(it);
+  });
+  monthlyAsCalendarItems.forEach(function(it) {
     (byDate[it.date] = byDate[it.date] || []).push(it);
   });
   Object.keys(byDate).forEach(function(d) {
@@ -9326,9 +9362,19 @@ function renderContentCalendar() {
         ? '<span class="cal-event-badge" style="color:' + statusMeta.dot + '">' + statusMeta.badge + '</span>'
         : '<span class="cal-event-dot" style="background:' + statusMeta.dot + '"></span>';
 
-      html += '<div class="cal-event ch-' + ev.channel + ' st-' + effectiveStatus + '"' +
+      var clickHandler = ev._isMonthlyTask
+        ? ('openMonthlyTaskFromCalendar(\'' + ev.id + '\')')
+        : ('openContentPlanItem(\'' + ev.id + '\')');
+      // Monthly-task pill carries priority chip + effort badge
+      var pillExtra = '';
+      if (ev._isMonthlyTask) {
+        var pColor = ev._priority === 'P0' ? '#DC2626' : ev._priority === 'P1' ? '#D97706' : '#0EA5E9';
+        pillExtra = ' style="border-inline-start:3px solid ' + pColor + '"';
+      }
+      html += '<div class="cal-event ch-' + ev.channel + ' st-' + effectiveStatus + (ev._isMonthlyTask ? ' is-monthly-task' : '') + '"' +
         ' title="' + titleAttr + '"' +
-        ' onclick="openContentPlanItem(\'' + ev.id + '\')">' +
+        ' onclick="' + clickHandler + '"' +
+        pillExtra + '>' +
           '<span class="cal-event-icon">' + icon + '</span>' +
           '<span class="cal-event-time">' + (ev.time || '') + '</span>' +
           '<span class="cal-event-title">' + escapeHtml(ev.hook || ev.brief || '').substring(0, 32) + '</span>' +
@@ -9352,6 +9398,118 @@ function renderContentCalendar() {
   '</div>';
 
   el.innerHTML = html;
+}
+
+// Phase 4.3-G: open a monthly task in a dedicated popup from calendar click.
+// Shows full task details (sources, actionPlan, dependencies, expected impact)
+// + the approve/skip/reject controls.
+function openMonthlyTaskFromCalendar(taskId) {
+  var plan = instanceData && instanceData.researchData && instanceData.researchData.monthlyPlan;
+  if (!plan || !Array.isArray(plan.tasks)) { showToast('תוכנית חודשית לא נטענה', 'warning'); return; }
+  var task = plan.tasks.find(function(t) { return t.id === taskId; });
+  if (!task) { showToast('המשימה לא נמצאה', 'warning'); return; }
+
+  var prioColor = task.priority === 'P0' ? '#DC2626' : task.priority === 'P1' ? '#D97706' : '#0EA5E9';
+  var prioLabel = task.priority === 'P0' ? 'דחוף (השבוע)' : task.priority === 'P1' ? 'בחודש זה' : 'רבעוני';
+  var effortLabel = {
+    '15_min': '15 דקות', '30_min': '30 דקות', '1_hour': 'שעה', '2_3_hours': '2-3 שעות',
+    '1_day': 'יום', '2_3_days': '2-3 ימים', '1_week': 'שבוע'
+  }[task.estimatedEffort] || task.estimatedEffort;
+  var statusLabel = {
+    proposed: 'ממתינה לאישור', approved: 'אושרה — בביצוע', rejected: 'נדחתה',
+    skipped: 'נדחתה לחודש הבא', in_progress: 'בביצוע ברקע', completed: 'הושלמה ✓', failed: 'נכשלה'
+  }[task.status] || task.status;
+
+  var sourcesHtml = (task.sources || []).map(function(s) {
+    return '<li><strong>' + escapeHtml(s.type) + ':</strong> ' + escapeHtml(s.ref || '') +
+      (s.excerpt ? ' — <em style="color:#4B5563">"' + escapeHtml(s.excerpt) + '"</em>' : '') + '</li>';
+  }).join('');
+
+  var stepsHtml = (task.actionPlan || []).map(function(s, i) {
+    var chip = s.automated
+      ? '<span style="font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px;background:#10B98115;color:#065F46;margin-inline-start:6px">⚡ אוטומטי</span>'
+      : '<span style="font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px;background:#F59E0B15;color:#92400E;margin-inline-start:6px">✋ ידני</span>';
+    var time = s.estimatedMinutes ? ' <span style="font-size:0.7rem;color:#9CA3AF">(~' + s.estimatedMinutes + ' דק׳)</span>' : '';
+    return '<li style="margin-bottom:6px">' + (i + 1) + '. ' + escapeHtml(s.step) + chip + time + '</li>';
+  }).join('');
+
+  var depsHtml = '';
+  if (Array.isArray(task.dependsOn) && task.dependsOn.length > 0) {
+    var depTitles = task.dependsOn.map(function(depId) {
+      var dep = plan.tasks.find(function(t) { return t.id === depId; });
+      var status = dep ? '(' + (dep.status === 'completed' ? '✓' : dep.status === 'approved' || dep.status === 'in_progress' ? '⏳' : '⏸') + ')' : '';
+      return '<li>' + (dep ? escapeHtml(dep.title) : depId) + ' ' + status + '</li>';
+    }).join('');
+    depsHtml = '<div style="margin-top:14px"><strong style="font-size:0.85rem;color:#1F2937">תלוי בהשלמת:</strong><ul style="margin:6px 0 0 18px;font-size:0.83rem;color:#4B5563;line-height:1.6">' + depTitles + '</ul></div>';
+  }
+
+  var actionsHtml = '';
+  if (task.status === 'proposed') {
+    actionsHtml =
+      '<button class="btn btn-primary btn-sm" onclick="approveMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem">✓ אשרו והריצו</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="skipMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem;color:#92400E;border-color:#FDE68A">⏭ דחו לחודש הבא</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="rejectMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem;color:#7F1D1D;border-color:#FCA5A5">✕ דחו</button>';
+  }
+
+  var existing = document.getElementById('monthly-task-modal');
+  if (existing) existing.remove();
+  var modal = document.createElement('div');
+  modal.id = 'monthly-task-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML =
+    '<div style="background:#FFF;border-radius:12px;max-width:780px;width:100%;max-height:90vh;overflow-y:auto;padding:22px;direction:rtl;text-align:right">' +
+      '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">' +
+        '<span style="font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:6px;background:' + prioColor + '15;color:' + prioColor + ';border:1px solid ' + prioColor + '40;flex-shrink:0">' + task.priority + ' · ' + prioLabel + '</span>' +
+        '<span style="font-size:0.72rem;color:#6B7280">' + effortLabel + '</span>' +
+        '<span style="font-size:0.72rem;color:#9CA3AF;margin-inline-start:auto">תזמון: ' + (task.scheduledFor || '?') + '</span>' +
+        '<button onclick="document.getElementById(\'monthly-task-modal\').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#9CA3AF;margin-inline-start:6px">×</button>' +
+      '</div>' +
+      '<h3 style="margin:0 0 6px;font-size:1.05rem;color:#111827">' + escapeHtml(task.title) + '</h3>' +
+      '<div style="font-size:0.85rem;color:#4B5563;line-height:1.6;margin-bottom:14px">' + escapeHtml(task.summary || '') + '</div>' +
+      (task.expectedImpact ? '<div style="padding:8px 12px;background:#EFF6FF;border-right:3px solid #2563EB;border-radius:6px;font-size:0.82rem;color:#1E40AF;margin-bottom:14px">' +
+        '<strong>השפעה צפויה:</strong> ' + escapeHtml(task.expectedImpact.metric || '') + ' = ' + (task.expectedImpact.value || 0) + ' (' + (task.expectedImpact.horizon || '?') + ', ' + (task.expectedImpact.confidence || '?') + ')<br>' +
+        '<em style="font-size:0.78rem;opacity:0.9">' + escapeHtml(task.expectedImpact.rationale || '') + '</em>' +
+        '</div>' : '') +
+      (sourcesHtml ? '<div style="margin-bottom:14px"><strong style="font-size:0.85rem;color:#1F2937">מקורות נתונים:</strong><ul style="margin:6px 0 0 18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' + sourcesHtml + '</ul></div>' : '') +
+      (stepsHtml ? '<div style="margin-bottom:14px"><strong style="font-size:0.85rem;color:#1F2937">תוכנית הביצוע:</strong><ol style="margin:6px 0 0;padding-inline-start:8px;font-size:0.84rem;color:#1F2937;line-height:1.7;list-style:none">' + stepsHtml + '</ol></div>' : '') +
+      depsHtml +
+      '<div style="margin-top:8px;padding:6px 10px;background:#F9FAFB;border-radius:6px;font-size:0.78rem;color:#6B7280">סטטוס: <strong style="color:#1F2937">' + statusLabel + '</strong></div>' +
+      (actionsHtml ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">' + actionsHtml + '</div>' : '') +
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+function approveMonthlyTaskFromModal(taskId) {
+  document.getElementById('monthly-task-modal').remove();
+  showToast('מאשרים ומריצים ברקע...', 'info');
+  apiFetch('/hosting/instances/' + instanceId + '/monthly-plan/tasks/' + encodeURIComponent(taskId) + '/approve', { method: 'POST' })
+    .then(function(r) {
+      if (!r.success) throw new Error(r.message || 'אישור נכשל');
+      showToast('המשימה אושרה — מבצעים ברקע ✓', 'success');
+      setTimeout(function() { refreshInstanceData(); renderMonthlyPlanCard(); renderContentCalendar(); renderApprovalQueue(); }, 800);
+    })
+    .catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
+}
+function skipMonthlyTaskFromModal(taskId) {
+  document.getElementById('monthly-task-modal').remove();
+  apiFetch('/hosting/instances/' + instanceId + '/monthly-plan/tasks/' + encodeURIComponent(taskId) + '/skip', { method: 'POST', body: JSON.stringify({}) })
+    .then(function(r) {
+      if (!r.success) throw new Error(r.message || 'דחייה נכשלה');
+      showToast('נדחתה לחודש הבא', 'info');
+      setTimeout(function() { refreshInstanceData(); renderMonthlyPlanCard(); renderContentCalendar(); }, 500);
+    })
+    .catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
+}
+function rejectMonthlyTaskFromModal(taskId) {
+  var reason = prompt('סיבת דחייה (אופציונלי):', '') || '';
+  document.getElementById('monthly-task-modal').remove();
+  apiFetch('/hosting/instances/' + instanceId + '/monthly-plan/tasks/' + encodeURIComponent(taskId) + '/reject', { method: 'POST', body: JSON.stringify({ reason: reason }) })
+    .then(function(r) {
+      if (!r.success) throw new Error(r.message || 'דחייה נכשלה');
+      showToast('המשימה נדחתה', 'info');
+      setTimeout(function() { refreshInstanceData(); renderMonthlyPlanCard(); renderContentCalendar(); }, 500);
+    })
+    .catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
 }
 
 // Open a content plan item in the task popup — bridges plan item → existing
@@ -9580,7 +9738,14 @@ function renderMonthlyPlanCard() {
   if (!el) return;
   var rd = (instanceData && instanceData.researchData) || {};
   var plan = rd.monthlyPlan;
-  var chosenScenario = rd.chosenScenario;
+  // Phase 4.3-G fix: chosenScenario lives in two shapes — legacy string
+  // ('smart'/'aggressive') OR full strategy object with .scenario field.
+  // The badge "[object Object]" bug came from comparing the object against
+  // string. Extract the key consistently here.
+  var chosenScenarioRaw = rd.chosenScenario;
+  var chosenScenario = (typeof chosenScenarioRaw === 'string')
+    ? chosenScenarioRaw
+    : (chosenScenarioRaw && typeof chosenScenarioRaw === 'object' ? chosenScenarioRaw.scenario : '');
   var hasPrereqs = !!(rd.paidProfile || rd.mazhirAudit) && !!chosenScenario;
 
   // Hide entirely if no paidProfile AND no mazhirAudit AND no chosenScenario —
@@ -9691,18 +9856,11 @@ function renderMonthlyPlanCard() {
           '</div>' +
           '<div style="font-size:0.72rem;color:#6B7280;margin-top:4px">' + progressPct + '% מהתוכנית בוצעה</div>'
         : '') +
-      '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">' +
-        '<button class="btn btn-primary btn-sm" onclick="scrollToApprovalQueue()" style="font-size:0.82rem">📋 צפו במשימות (' + pendingCount + ')</button>' +
-        '<button class="btn btn-outline btn-sm" onclick="generateMonthlyPlan(true)" style="font-size:0.82rem" title="חישוב מחדש עם הנתונים העדכניים">⟲ צרו מחדש</button>' +
+      '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+        '<div style="font-size:0.78rem;color:#6B7280">המשימות מופיעות בלוח התוכן לפי תאריך מתוכנן ↓</div>' +
+        '<button class="btn btn-outline btn-sm" onclick="generateMonthlyPlan(true)" style="font-size:0.82rem;margin-inline-start:auto" title="חישוב מחדש עם הנתונים העדכניים">⟲ צרו מחדש</button>' +
       '</div>' +
     '</div>';
-}
-
-function scrollToApprovalQueue() {
-  // Filter approval queue to pending_review only + scroll into view
-  if (typeof setAqFilter === 'function') setAqFilter('pending_review');
-  var el = document.querySelector('.aq-list, #approvalQueueList, [class*="approval"]');
-  if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function generateMonthlyPlan(forceRegen) {

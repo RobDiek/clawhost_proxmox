@@ -207,6 +207,54 @@ function applyMonthlyPlanGuardrails(plan: MonthlyMarketingPlan): MonthlyMarketin
         return (b.expectedImpact?.value || 0) - (a.expectedImpact?.value || 0)
     })
 
+    // Phase 4.3-G: server-side fallback for scheduledFor + weekOfMonth.
+    // If Opus omitted either, distribute tasks by priority across the month,
+    // skipping weekends (IL: Sat = day 6 in ISO, also avoid Fri afternoon).
+    // P0 → days 1-14, P1 → days 8-21, P2 → days 15-28.
+    const today = new Date()
+    const baseY = today.getUTCFullYear()
+    const baseM = today.getUTCMonth()
+    const baseD = today.getUTCDate()
+    function isoDate(year: number, month0: number, day: number): string {
+        const d = new Date(Date.UTC(year, month0, day))
+        return d.toISOString().slice(0, 10)
+    }
+    function nextWorkday(dayOffset: number): string {
+        // dayOffset is days from today. Skip Saturdays (6) and Fridays (5) after offset 12pm — for simplicity skip both 5 and 6.
+        let off = dayOffset
+        for (let i = 0; i < 14; i++) {
+            const d = new Date(Date.UTC(baseY, baseM, baseD + off))
+            const dow = d.getUTCDay()  // 0=Sun, 5=Fri, 6=Sat
+            if (dow !== 5 && dow !== 6) return d.toISOString().slice(0, 10)
+            off++
+        }
+        return isoDate(baseY, baseM, baseD + dayOffset)
+    }
+
+    // Group tasks by priority + index, distribute across the appropriate window
+    const buckets: Record<string, { start: number; end: number; tasks: MonthlyTask[] }> = {
+        P0: { start: 0, end: 13, tasks: [] },
+        P1: { start: 7, end: 20, tasks: [] },
+        P2: { start: 14, end: 27, tasks: [] },
+    }
+    for (const t of fixedTasks) {
+        buckets[t.priority]?.tasks.push(t)
+    }
+    for (const key of ['P0', 'P1', 'P2'] as const) {
+        const b = buckets[key]
+        const span = b.end - b.start + 1
+        b.tasks.forEach((t, idx) => {
+            if (!t.scheduledFor) {
+                const offset = b.start + Math.floor((idx * span) / Math.max(b.tasks.length, 1))
+                t.scheduledFor = nextWorkday(offset)
+            }
+            if (!t.weekOfMonth) {
+                const offset = Math.floor((new Date(t.scheduledFor).getTime() - Date.UTC(baseY, baseM, baseD)) / (24 * 3600 * 1000))
+                t.weekOfMonth = Math.max(1, Math.min(4, Math.ceil((offset + 1) / 7))) as 1 | 2 | 3 | 4
+            }
+        })
+    }
+
     // Build summary
     const summary: MonthlyPlanSummary = {
         totalTasks: fixedTasks.length,
@@ -463,6 +511,8 @@ Output JSON exactly this shape (no markdown fences, no commentary before/after):
       "actionPlan": [
         { "step": "<Hebrew: what executor does>", "automated": <true|false>, "estimatedMinutes": <number> }
       ],
+      "scheduledFor": "<ISO YYYY-MM-DD within next 30 days; P0=week1-2, P1=week2-3, P2=week3-4; respect dependsOn ordering>",
+      "weekOfMonth": <1|2|3|4 — bucket matching scheduledFor>,
       "mediaPlanOptIndex": <number — if this wraps mediaPlan.campaignOptimizations[i]>,
       "contentPlanItemId": "<string — if this wraps contentPlan.items[i].id>",
       "paidHypothesisId": "<string — if this wraps a paid_hypothesis>"
@@ -561,12 +611,90 @@ export async function generateMonthlyPlan(
 ═══ HARD POLICY (NON-NEGOTIABLE) ═══
 
 1. Human-in-the-loop for MUTATIONS — every task that WRITES/PUBLISHES/CHANGES external systems is approval-gated in משימות פעילות. The agent proposes; the user decides.
-2. **EXCEPTION: read-only verifications, scans, status checks, monitoring, data pulls — these are AUTO. Do NOT propose them as user tasks. The platform self-checks campaign status, indexation, rankings, ad fatigue. Only surface the FINDING + the WRITE-task that resolves it.**
+2. **Read-only verifications NEVER become user tasks** — status checks, scans, audits-of-existing-state, monitoring, indexation checks, "verify campaign is active" — all of these are AUTO and live INSIDE other tasks as PRE-CHECK actionPlan steps (automated:true, ~5min). Never surface as standalone user tasks. Type 'measurement_gap' is RESERVED for setting up NEW tracking infrastructure (new pixel, new event, new property) — never for verifying existing-state. If you find yourself writing a task with metric='other' and value=1 that just says "verify X" or "check Y" — DELETE it and fold it into the appropriate write-task as its first actionPlan step.
 3. Atomic tasks — 1 task = 1 atomic action. "Add 23 negatives" is one task; "Switch bid strategy" is another; "Publish 5 city LPs" → 5 separate tasks. Don't bundle.
 4. Source citation MANDATORY — every task.sources[] has **≥3 entries** (aim for 4-6) pointing to specific upstream evidence with **meaningful excerpts** (real numbers/quotes, not "see audit"). Mix source types.
 5. Link budgets are PRE-CALIBRATED — read chosenScenario + cost_timeline_modeling VERBATIM. NEVER invent new link budgets.
 6. Order by impact — P0 ships this week; P1 this month; P2 quarterly. Within priority, by expectedImpact.value descending.
 7. Israeli market context — Hebrew strings for user-facing fields. English technical terms (campaign, keyword, schema, awct, RSA, CPA) inline ok.
+
+═══ HEBREW UX STANDARDS (CRITICAL — end users are non-technical IL SMB owners) ═══
+
+ALL user-facing strings (title / summary / overview.hebrew / focusAreas / source.excerpt /
+expectedImpact.rationale / actionPlan.step text-before-the-adapter-name) must be in **clean Hebrew**.
+No English jargon in user-facing copy. Technical terms get HEBREW EXPLANATIONS inline.
+
+Forbidden English words in user-facing strings:
+- CPA, RSA, tCPA, INP, CWV, GTM, GA4, AEO, SEO, FAQPage, schema, pixel, Smart Bidding,
+  remarketing, retargeting, audience, conversion, attribution, indexation, ranking,
+  carousel, reel, headline, description, pillar, spoke, hub.
+
+Hebrew replacements WITH inline explanation (first occurrence):
+- CPA → "עלות לליד (CPA)" — מחיר ממוצע ללקוח פוטנציאלי
+- tCPA → "אסטרטגיית הצעות מבוססת יעד עלות לליד (tCPA)"
+- RSA → "מודעת חיפוש מותאמת (RSA)"
+- INP → "זמן התגובה לאינטראקציה (INP)"
+- CWV → "אותות חוויית משתמש בליבה (Core Web Vitals)"
+- GTM → "מנהל התגיות של גוגל (GTM)"
+- GA4 → "Google Analytics 4 (GA4)"
+- AEO → "אופטימיזציה למענה (AEO)"
+- FAQPage → "סכמת שאלות נפוצות (FAQPage)"
+- schema → "סכמה" / "תיוג מובנה"
+- Pixel → "פיקסל מעקב"
+- Smart Bidding → "הצעות חכמות"
+- remarketing/retargeting → "פנייה חוזרת לגולשים"
+- audience → "קהל יעד"
+- conversion → "המרה" / "פעולת ערך"
+- attribution → "ייחוס"
+- pillar → "דף עוגן"
+- spoke → "דף נושא משני" / "דף קשור"
+- carousel → "קרוסלת תמונות"
+- reel → "סרטון קצר (Reel)"
+- headline → "כותרת מודעה"
+- description → "תיאור מודעה"
+
+Inside actionPlan steps where automated:true, the adapter call (e.g. "google_ads_mutate.add_negatives")
+is OK in English as it's a system identifier — but the human-readable preamble before/after must be Hebrew.
+
+The plan is READ by a non-technical Israeli business owner. Every sentence must be understandable.
+
+═══ NARRATIVE OVERVIEW STANDARDS (the "story" of the month) ═══
+
+overview.hebrew is NOT a 3-sentence abstract. It is a **6-8 paragraph plan-as-a-story** that walks
+the owner through what we'll do and WHY in that order. One paragraph PER CHANNEL we're activating:
+
+Template (apply to each active channel):
+  **SEO/אורגני:** "קודם נכוון פנימה — נשפר את [page] כי יש לה כבר [N impressions ב-position P].
+  אחרי שהבסיס יציב, נבנה [M dedicated pages] לערים הקיימות... רק כשהכל מוכן פנים האתר, נצא לבניית
+  סמכות חיצונית — נירשם ל-[directories], נפנה ל-[outreach targets]..."
+
+  **פרסום ממומן:** "הצעד הראשון לעצור את הבזבוז — ₪X הולכים לחיפושים לא רלוונטיים על [terms].
+  אחרי שנוסיף שליליים נעבור מ-[strategy A] ל-[strategy B] כי שיעור ההמרה הנוכחי [CR%] מצדיק
+  אופטימיזציה אלגוריתמית..."
+
+  **תוכן ומדיה:** "נכתוב [N posts] לפי [persona breakdown]. דנה במעבר מקבלת [topic A], איתי
+  המשופץ מקבל [topic B]..."
+
+  **GMB וניהול מותג:** "..."
+
+  **מעקב ואנליטיקה:** "לפני שמשיקים אופטימיזציות חזקות, חייבים סוגרים את [tracking gap]..."
+
+  **ניסויים השפעה:** "השמשתי [N hypotheses] השפעה השונה — [list]..."
+
+Tone: clear, plain, conversational — like a senior marketer briefing the founder. No bullet points
+inside overview.hebrew — coherent prose paragraphs only. Each paragraph 60-150 Hebrew words.
+
+═══ CALENDAR SCHEDULING (NEW — every task scheduledFor a date) ═══
+
+Each task MUST include scheduledFor (ISO date YYYY-MM-DD) within the current month (or following
+30 days from generatedAt). Distribution rules:
+  - P0 → week 1-2 (days 1-14 from generation date)
+  - P1 → week 2-3 (days 8-21)
+  - P2 → week 3-4 (days 15-28)
+  - For tasks with dependsOn[], scheduledFor MUST be AT LEAST 1 day after the latest dep
+  - Balance load: don't pile 8 tasks on the same day. Aim for 1-3 tasks per workday (Sun-Thu)
+  - No weekend scheduling (Friday afternoon / Saturday for IL market)
+  - Also set weekOfMonth (1/2/3/4) for compact display
 
 ═══ DEPTH STANDARDS (quality bar — failure = unusable plan) ═══
 

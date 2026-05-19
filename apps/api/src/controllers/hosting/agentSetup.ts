@@ -6434,6 +6434,12 @@ export interface MonthlyTask {
     status: 'proposed' | 'approved' | 'rejected' | 'skipped'
           | 'in_progress' | 'completed' | 'failed'
     proposedAt: string
+    // Phase 4.3-G: calendar scheduling — generator assigns each task a target
+    // date within the month (P0 in week 1-2, P1 in weeks 2-3, P2 in weeks 3-4,
+    // respecting dependsOn graph). Dashboard renders tasks alongside
+    // contentPlan.items on the same calendar widget.
+    scheduledFor?: string                  // ISO date (YYYY-MM-DD) when this task is recommended to start
+    weekOfMonth?: 1 | 2 | 3 | 4            // bucket for compact display
     approvedAt?: string
     approvedByUserId?: string
     rejectedAt?: string
