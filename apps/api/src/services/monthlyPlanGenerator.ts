@@ -748,6 +748,67 @@ Each task MUST include scheduledFor (ISO date YYYY-MM-DD) within the current mon
   - **medium** — based on industry benchmark or scenario projection.
   - **low** — ONLY for experimental hypotheses without supporting data.
 
+═══ SENIOR AGENCY BAR (mandatory — distinguishes mid-tier from top agency) ═══
+
+These checks MUST pass on every plan. A monthly plan that misses any of these
+is mid-tier (Wpromote/Tinuiti/iProspect would reject it):
+
+1. **CR validation precedes Smart Bidding migration**. Before any tCPA/tROAS
+   experiment task, propose a P0 measurement_gap task that AUDITS what counts
+   as conversion in the current Google Ads account (form submit / phone click /
+   WhatsApp click / generate_lead / etc.) AND validates the funnel from
+   button-click → form-submit → qualified-lead → customer. Inflated CR
+   (e.g. button clicks counted as conversions when only 5% become real leads)
+   makes Smart Bidding misfire. The tCPA task MUST list this validation task
+   in dependsOn[].
+
+2. **Creative diversity for paid**. Don't ship one generic RSA refresh. Split
+   into 2-3 separate ad-group-variant tasks with distinct messaging angles:
+   - A) price-first (e.g. "29.9₪/קוב" anchor)
+   - B) urgency (e.g. "השבת קלוט!", "מקום מוגבל")
+   - C) trust (e.g. "ביטוח כלול", "24/7 אבטחה", reviews count)
+   Each task isolates a psychological lever and produces independent learning.
+
+3. **Funnel-stage content coverage**. Plan must include tasks for:
+   - TOFU (awareness): "מה זה X / איך עובד"
+   - MOFU (consideration): "איך לבחור / כמה עולה"
+   - BOFU (decision): **comparison page vs primary competitor** — e.g.
+     "Storage Station vs avia2000" — using competitor name from competitorLandscape.
+     This is the highest-converting page type for recurring-revenue sites.
+
+4. **Competitive intelligence monitor**. Include 1 monthly task that sets up
+   weekly competitive monitoring: Transparency Center scan + Wayback site
+   diff + backlink alerts for top 3 competitors. Reaction window 24-48h.
+
+5. **Conversion path / CRO audit task**. At least one task per plan that
+   audits form fields, WhatsApp button placement, trust signal proximity,
+   mobile page speed. Top agency does heatmap + session recording + form
+   abandonment analytics.
+
+6. **Retention / LTV for recurring-revenue**. If business is recurring (storage,
+   SaaS, subscription, services with repeat purchase): include 1+ task for
+   cross-sell / reactivation / referral. NOT optional. Acquisition-only plans
+   leave 30-50% revenue on table.
+
+7. **Mobile-first optimizations** (mandatory for IL market). Click-to-call
+   optimization, WhatsApp Business automation with lead-qualification flow,
+   mobile LP variants. At least 1 dedicated mobile task per plan.
+
+8. **Data warehouse / attribution architecture** task. GA4 → BigQuery export
+   for cross-channel attribution. First-party hashed-data upload to Google
+   Ads Customer Match for lookalike audience expansion. At least 1 task per
+   quarter (P2 in monthly plan).
+
+9. **Decision rule / replan triggers**. Plan must include — either as a
+   dedicated task or in qualityWarnings — explicit escalation triggers:
+   "CPA >40% above baseline for 14 days → emergency replan task spawned",
+   "ranking drop >5 positions on tracked query → incident response",
+   "traffic drop >20% week-over-week → root cause investigation".
+
+10. **Email lead nurture sequence** for primary persona with longer research
+    cycle. If audience persona has 2+ week research period (moving, weddings,
+    renovation, B2B), include 1 task for lead-magnet + 3-5 email sequence.
+
 ═══ CHANNEL COVERAGE (MANDATORY MINIMUMS) ═══
 
 For ALL plans, regardless of chosenScenario, include AT LEAST:
