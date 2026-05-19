@@ -1108,6 +1108,12 @@ input{font-family:inherit}
          strategic-plan → daily-execution-grid. -->
     <div id="monthlyPlanCard" style="display:none"></div>
 
+    <!-- Phase 4.3-N v8: External Links strategy widget — DFS-sourced backlink
+         intelligence + 10 link tasks pipeline. Visibility-gated to instances
+         that have research_data.results.link_audit OR a monthly plan with
+         link tasks. Hidden otherwise. -->
+    <div id="externalLinksWidget" style="display:none"></div>
+
     <!-- Row: לוח תוכן — visible only when content/social_organic intent active -->
     <div style="margin-top:16px" id="home-calendar-section">
       <div class="section-title" style="display:flex;align-items:center;gap:6px;margin-top:0;margin-bottom:8px">
@@ -5656,6 +5662,11 @@ function renderHome() {
   if (typeof renderMonthlyPlanCard === 'function') {
     try { renderMonthlyPlanCard(); } catch (e) { console.warn('[renderMonthlyPlanCard] error:', e); }
   }
+  // Phase 4.3-N v8: External Links strategy widget (DFS backlink intelligence
+  // + 10 link tasks pipeline). Self-gating — hides if no link_audit + no plan.
+  if (typeof renderExternalLinksWidget === 'function') {
+    try { renderExternalLinksWidget(); } catch (e) { console.warn('[renderExternalLinksWidget] error:', e); }
+  }
   renderContentCalendar();
 
   // Phase 4.3.4 — Paid-track hypothesis cards (throttled lazy-load)
@@ -9943,6 +9954,281 @@ async function generateMonthlyPlan(forceRegen) {
     _monthlyPlanRunning = false;
     renderMonthlyPlanCard();
   }
+}
+
+// Phase 4.3-N v8: External Links strategy widget.
+// Surfaces DFS-sourced backlink intelligence (referring domains, anchor
+// distribution, competitor benchmarks, velocity) alongside the 10 link tasks
+// from the monthly plan + scenario-calibrated budget. Read-only synthesis —
+// every actionable item is approval-gated via existing monthly_task flow.
+function renderExternalLinksWidget() {
+  var el = document.getElementById('externalLinksWidget');
+  if (!el) return;
+  var rd = (instanceData && instanceData.researchData) || {};
+  var la = rd.results && rd.results.link_audit;
+  var plan = rd.monthlyPlan;
+  // Hide entirely if neither link_audit data nor monthly plan exists.
+  if (!la && !plan) { el.style.display = 'none'; return; }
+
+  var extras = (la && la.extras) || {};
+  var ourProfile = extras.our_profile_summary || {};
+  var velocity = extras.velocity_signal || {};
+  var anchors = extras.anchor_distribution_analysis || {};
+  var competitors = Array.isArray(extras.competitor_link_benchmarks) ? extras.competitor_link_benchmarks : [];
+  var dfsRecords = (la && Array.isArray(la.records)) ? la.records : [];
+
+  // Pull link-related tasks from the monthly plan. Match by keyword (channel='seo'
+  // is too broad — we want actual link work, not on-page SEO).
+  var linkTasks = (plan && Array.isArray(plan.tasks))
+    ? plan.tasks.filter(function(t) {
+        var text = ((t.title || '') + ' ' + (t.summary || '')).toLowerCase();
+        return /\blink|קישור|backlink|anchor|עוגן|דירקטור|directory|outreach\b/i.test(text)
+          || (t.id && /lnk|link/i.test(t.id));
+      })
+    : [];
+
+  // Scenario + calibrated budget (verbatim from cost_timeline_modeling).
+  var scenarioRaw = rd.chosenScenario;
+  var scenarioKey = (typeof scenarioRaw === 'string') ? scenarioRaw
+    : (scenarioRaw && typeof scenarioRaw === 'object' ? scenarioRaw.scenario : '');
+  var costTimeline = rd.results && rd.results.cost_timeline_modeling;
+  var pickedScenarioRecord = null;
+  if (costTimeline && Array.isArray(costTimeline.records)) {
+    pickedScenarioRecord = costTimeline.records.find(function(r) { return r.scenario === scenarioKey; });
+  }
+  var linkBudget = pickedScenarioRecord
+    && pickedScenarioRecord.monthly_budget_breakdown_ils
+    && pickedScenarioRecord.monthly_budget_breakdown_ils.link_outreach;
+  var linksPerMonthTarget = (scenarioKey === 'smart') ? '2-3' : (scenarioKey === 'aggressive') ? '5-8' : '—';
+  var linkTierTarget = (scenarioKey === 'smart') ? 'mid-DR' : (scenarioKey === 'aggressive') ? 'multi-tier' : '—';
+
+  // Task pipeline status breakdown
+  var statusCounts = { proposed: 0, approved: 0, in_progress: 0, completed: 0, rejected: 0, skipped: 0 };
+  linkTasks.forEach(function(t) {
+    var s = t.status || 'proposed';
+    if (statusCounts[s] !== undefined) statusCounts[s]++;
+  });
+  var totalLinkTasks = linkTasks.length;
+  var doneCount = statusCounts.completed + statusCounts.approved + statusCounts.in_progress;
+
+  // Empty state: no link_audit but plan exists with link tasks → smaller widget
+  // No link_audit and no link tasks → hide entirely (already handled above).
+  var hasDfsData = !!(ourProfile.referring_domains_total !== undefined || ourProfile.backlinks_total !== undefined || competitors.length > 0 || (anchors.exact_match_pct !== undefined));
+
+  // ── Build HTML ──────────────────────────────────────────────────────
+  var html = '<div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;margin-bottom:14px">';
+
+  // Header
+  html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">'
+    + '<div style="font-weight:700;font-size:0.95rem;color:#1F2937">🔗 אסטרטגיית קישורים חיצוניים</div>';
+  if (scenarioKey) {
+    var scenarioLabel = scenarioKey === 'smart' ? 'תרחיש חכם' : scenarioKey === 'aggressive' ? 'תרחיש אגרסיבי' : scenarioKey;
+    html += '<span style="font-size:0.7rem;font-weight:600;padding:2px 9px;border-radius:999px;background:#0EA5E91A;color:#0EA5E9;border:1px solid #0EA5E940">' + escapeHtml(scenarioLabel) + '</span>';
+  }
+  if (linkBudget) {
+    html += '<span style="font-size:0.72rem;color:#6B7280;margin-inline-start:auto">תקציב: ₪' + Number(linkBudget).toLocaleString() + '/חודש · ' + linksPerMonthTarget + ' קישורי ' + linkTierTarget + '</span>';
+  }
+  html += '</div>';
+
+  // ── Profile health snapshot (4 stat tiles) ─────────────────────────
+  if (hasDfsData) {
+    var rd_count = ourProfile.referring_domains_total;
+    var bl_count = ourProfile.backlinks_total;
+    var dr_rank = ourProfile.domain_rank;
+    var exactPct = anchors.exact_match_pct;
+    var penguinRisk = (typeof exactPct === 'number' && exactPct >= 50);
+    var riskFlags = Array.isArray(anchors.risk_flags) ? anchors.risk_flags : [];
+
+    var tile = function(value, label, sub, color) {
+      return '<div style="flex:1;min-width:120px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px">'
+        + '<div style="font-size:1.4rem;font-weight:700;color:' + (color || '#1F2937') + ';line-height:1">' + value + '</div>'
+        + '<div style="font-size:0.72rem;color:#6B7280;margin-top:4px">' + label + '</div>'
+        + (sub ? '<div style="font-size:0.66rem;color:#9CA3AF;margin-top:2px">' + sub + '</div>' : '')
+        + '</div>';
+    };
+
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">'
+      + tile((rd_count != null ? rd_count : '—'), 'דומיינים מקשרים', null, '#1F2937')
+      + tile((bl_count != null ? bl_count : '—'), 'קישורים נכנסים סה״כ', null, '#1F2937')
+      + tile((dr_rank != null ? dr_rank : '—'), 'Domain Rank', dr_rank != null ? 'גבוה = חזק יותר' : null, '#1F2937')
+      + tile(
+          (exactPct != null ? exactPct + '%' : '—'),
+          'עוגנים exact-match',
+          penguinRisk ? '⚠ סיכון Penguin' : (exactPct != null ? 'בטוח' : null),
+          penguinRisk ? '#DC2626' : (exactPct != null && exactPct < 35 ? '#10B981' : '#1F2937'),
+        )
+      + '</div>';
+
+    // Risk flags + competitive gap summary
+    if (riskFlags.length > 0 || ourProfile.vs_competitors_summary) {
+      html += '<div style="background:#FEF2F2;border-right:3px solid #DC2626;border-radius:6px;padding:10px 12px;margin-bottom:12px">';
+      if (riskFlags.length > 0) {
+        var flagLabels = {
+          over_optimization: 'אופטימיזציית-יתר של עוגנים',
+          thin_diversity: 'גיוון דק מדי',
+          spam_score_high: 'ציון ספאם גבוה',
+          velocity_drop: 'ירידה בקצב צבירה',
+        };
+        html += '<div style="font-size:0.78rem;font-weight:600;color:#991B1B;margin-bottom:4px">⚠ דגלים אדומים: '
+          + riskFlags.map(function(f) { return escapeHtml(flagLabels[f] || f); }).join(' · ') + '</div>';
+      }
+      if (ourProfile.vs_competitors_summary) {
+        html += '<div style="font-size:0.78rem;color:#7F1D1D;line-height:1.6">' + escapeHtml(ourProfile.vs_competitors_summary) + '</div>';
+      }
+      html += '</div>';
+    }
+  }
+
+  // ── Anchor distribution bar (only if data present) ────────────────
+  if (anchors && typeof anchors.exact_match_pct === 'number') {
+    var rows = [
+      { key: 'exact_match_pct', label: 'Exact-match', color: '#DC2626' },
+      { key: 'branded_pct',     label: 'Branded',     color: '#10B981' },
+      { key: 'topical_pct',     label: 'Topical',     color: '#0EA5E9' },
+      { key: 'naked_url_pct',   label: 'Naked URL',   color: '#7C3AED' },
+      { key: 'generic_pct',     label: 'Generic',     color: '#9CA3AF' },
+    ];
+    html += '<details open style="border:1px solid #E5E7EB;border-radius:8px;margin-bottom:10px">'
+      + '<summary style="cursor:pointer;padding:8px 12px;background:#F9FAFB;border-radius:8px 8px 0 0;font-size:0.82rem;font-weight:600;color:#374151">חלוקת עוגנים (DFS · ' + (anchors.confidence || 'medium') + ')</summary>'
+      + '<div style="padding:12px">';
+    rows.forEach(function(r) {
+      var pct = anchors[r.key] || 0;
+      if (pct === 0 && r.key !== 'exact_match_pct') return; // skip empty slices unless it's exact-match
+      var barWidth = Math.max(2, Math.round(pct * 2)); // px width up to 200
+      html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;font-size:0.76rem">'
+        + '<div style="width:90px;color:#4B5563">' + r.label + '</div>'
+        + '<div style="flex:1;background:#F3F4F6;border-radius:3px;height:10px;overflow:hidden">'
+        +   '<div style="width:' + Math.min(pct, 100) + '%;height:100%;background:' + r.color + '"></div>'
+        + '</div>'
+        + '<div style="width:50px;text-align:left;direction:ltr;color:#1F2937;font-weight:600">' + pct + '%</div>'
+        + '</div>';
+    });
+    if (anchors._note) {
+      html += '<div style="font-size:0.7rem;color:#6B7280;line-height:1.6;margin-top:8px;padding-top:8px;border-top:1px solid #F3F4F6">' + escapeHtml(anchors._note) + '</div>';
+    }
+    html += '</div></details>';
+  }
+
+  // ── Velocity ──────────────────────────────────────────────────────
+  if (velocity && (velocity.new_referring_30d != null || velocity.new_referring_90d != null)) {
+    var v30 = velocity.new_referring_30d;
+    var v90 = velocity.new_referring_90d;
+    var velocityNote = velocity._note || '';
+    var velocityColor = (v30 === 0 && v90 === 0) ? '#DC2626' : (v30 >= 2 ? '#10B981' : '#F59E0B');
+    html += '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:10px">'
+      + '<div style="font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:4px">קצב צבירה (Velocity)</div>'
+      + '<div style="display:flex;gap:16px;font-size:0.78rem;color:' + velocityColor + ';font-weight:600">'
+      +   '<span>+' + (v30 != null ? v30 : '—') + ' ב-30 ימים אחרונים</span>'
+      +   '<span>+' + (v90 != null ? v90 : '—') + ' ב-90 ימים אחרונים</span>'
+      + '</div>'
+      + (velocityNote ? '<div style="font-size:0.7rem;color:#6B7280;line-height:1.5;margin-top:6px">' + escapeHtml(velocityNote) + '</div>' : '')
+      + '</div>';
+  }
+
+  // ── Competitor benchmarks (collapsed) ─────────────────────────────
+  if (competitors.length > 0) {
+    html += '<details style="border:1px solid #E5E7EB;border-radius:8px;margin-bottom:10px">'
+      + '<summary style="cursor:pointer;padding:8px 12px;background:#F9FAFB;border-radius:8px 8px 0 0;font-size:0.82rem;font-weight:600;color:#374151">בנצ׳מארק מתחרים (' + competitors.length + ')</summary>'
+      + '<div style="padding:0 12px 12px"><table style="width:100%;font-size:0.74rem;border-collapse:collapse">'
+      +   '<thead style="background:#F9FAFB;color:#6B7280"><tr>'
+      +     '<th style="padding:6px 8px;text-align:right">דומיין</th>'
+      +     '<th style="padding:6px 8px;text-align:left;direction:ltr">RD</th>'
+      +     '<th style="padding:6px 8px;text-align:left;direction:ltr">Backlinks</th>'
+      +     '<th style="padding:6px 8px;text-align:left;direction:ltr">DR</th>'
+      +     '<th style="padding:6px 8px;text-align:right">מצב</th>'
+      +   '</tr></thead><tbody>';
+    competitors.forEach(function(c) {
+      var statusEmoji = c.vs_us === 'ahead' ? '🔴 לפנינו' : c.vs_us === 'behind' ? '🟢 מאחורינו' : '🟡 קרוב';
+      html += '<tr style="border-top:1px solid #F3F4F6">'
+        +   '<td style="padding:6px 8px;direction:ltr;font-weight:600;color:#1F2937">' + escapeHtml(c.domain || '—') + '</td>'
+        +   '<td style="padding:6px 8px;direction:ltr">' + (c.referring_domains != null ? c.referring_domains : '—') + '</td>'
+        +   '<td style="padding:6px 8px;direction:ltr">' + (c.backlinks != null ? c.backlinks.toLocaleString() : '—') + '</td>'
+        +   '<td style="padding:6px 8px;direction:ltr">' + (c.domain_rank != null ? c.domain_rank : '—') + '</td>'
+        +   '<td style="padding:6px 8px;text-align:right;font-size:0.7rem">' + statusEmoji + '</td>'
+        + '</tr>';
+      if (c.key_anchor_pattern) {
+        html += '<tr style="background:#FAFAFA"><td colspan="5" style="padding:4px 8px 8px;font-size:0.7rem;color:#6B7280;line-height:1.5;border-top:none">' + escapeHtml(c.key_anchor_pattern) + '</td></tr>';
+      }
+    });
+    html += '</tbody></table></div></details>';
+  }
+
+  // ── Monthly plan task pipeline ────────────────────────────────────
+  if (totalLinkTasks > 0) {
+    html += '<div style="background:#FFFFFF;border-top:1px solid #F3F4F6;padding-top:14px;margin-top:6px">';
+
+    var progressPct = totalLinkTasks > 0 ? Math.round((doneCount / totalLinkTasks) * 100) : 0;
+    html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">'
+      + '<div style="font-size:0.86rem;font-weight:700;color:#1F2937">משימות תוכנית חודשית (' + totalLinkTasks + ')</div>'
+      + '<span style="font-size:0.72rem;padding:2px 8px;border-radius:999px;background:#FEE2E2;color:#991B1B">P0/P1: ממתינות ' + statusCounts.proposed + '</span>'
+      + (doneCount > 0 ? '<span style="font-size:0.72rem;padding:2px 8px;border-radius:999px;background:#D1FAE5;color:#065F46">בביצוע/הושלמו: ' + doneCount + '</span>' : '')
+      + (statusCounts.skipped + statusCounts.rejected > 0 ? '<span style="font-size:0.72rem;padding:2px 8px;border-radius:999px;background:#F3F4F6;color:#6B7280">דחויות: ' + (statusCounts.skipped + statusCounts.rejected) + '</span>' : '')
+      + '<div style="margin-inline-start:auto;font-size:0.72rem;color:#6B7280">' + progressPct + '% הושלמו</div>'
+      + '</div>';
+
+    // Progress bar
+    html += '<div style="background:#F3F4F6;border-radius:3px;height:6px;overflow:hidden;margin-bottom:12px">'
+      +   '<div style="width:' + progressPct + '%;height:100%;background:linear-gradient(90deg,#0EA5E9,#10B981)"></div>'
+      + '</div>';
+
+    // Task list (sorted P0 first, then by status)
+    var statusOrder = { in_progress: 0, approved: 1, proposed: 2, completed: 3, skipped: 4, rejected: 5 };
+    var prioOrder = { P0: 0, P1: 1, P2: 2 };
+    var sortedTasks = linkTasks.slice().sort(function(a, b) {
+      var pa = prioOrder[a.priority] != null ? prioOrder[a.priority] : 9;
+      var pb = prioOrder[b.priority] != null ? prioOrder[b.priority] : 9;
+      if (pa !== pb) return pa - pb;
+      var sa = statusOrder[a.status] != null ? statusOrder[a.status] : 9;
+      var sb = statusOrder[b.status] != null ? statusOrder[b.status] : 9;
+      return sa - sb;
+    });
+
+    sortedTasks.forEach(function(t) {
+      var prioColor = t.priority === 'P0' ? '#DC2626' : t.priority === 'P1' ? '#D97706' : '#0EA5E9';
+      var statusEmoji = t.status === 'completed' ? '✓'
+        : t.status === 'in_progress' ? '⏳'
+        : t.status === 'approved' ? '▶'
+        : t.status === 'rejected' ? '✕'
+        : t.status === 'skipped' ? '⏭'
+        : '•';
+      var statusColor = t.status === 'completed' ? '#10B981'
+        : t.status === 'in_progress' || t.status === 'approved' ? '#0EA5E9'
+        : t.status === 'rejected' || t.status === 'skipped' ? '#9CA3AF'
+        : '#F59E0B';
+      var statusLabel = t.status === 'completed' ? 'הושלמה'
+        : t.status === 'in_progress' ? 'בביצוע'
+        : t.status === 'approved' ? 'מאושרת'
+        : t.status === 'rejected' ? 'נדחתה'
+        : t.status === 'skipped' ? 'נדחתה לחודש הבא'
+        : 'ממתינה לאישור';
+      html += '<div onclick="openMonthlyTaskFromCalendar(\'' + t.id + '\')" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #F3F4F6;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background=\'#F9FAFB\'" onmouseout="this.style.background=\'transparent\'">'
+        + '<span style="color:' + statusColor + ';font-weight:700;flex-shrink:0;width:14px;text-align:center">' + statusEmoji + '</span>'
+        + '<span style="font-size:0.7rem;font-weight:700;color:#fff;background:' + prioColor + ';padding:1px 6px;border-radius:3px;flex-shrink:0">' + (t.priority || 'P?') + '</span>'
+        + '<span style="flex:1;min-width:0;font-size:0.82rem;color:#1F2937;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(t.title || t.id) + '</span>'
+        + '<span style="font-size:0.7rem;color:' + statusColor + ';flex-shrink:0">' + statusLabel + '</span>'
+        + '</div>';
+    });
+    html += '</div>';
+  } else if (hasDfsData) {
+    html += '<div style="background:#FEF3C7;border-right:3px solid #F59E0B;border-radius:6px;padding:10px 12px;margin-top:8px;font-size:0.78rem;color:#92400E;line-height:1.6">'
+      + 'יש לכם נתוני קישורים נכנסים אבל אין משימות בתוכנית החודשית. צרו את התוכנית כדי לקבל פעולות מבוססות-מחקר.'
+      + '</div>';
+  }
+
+  // ── DFS-stage records (collapsed; complementary to monthly tasks) ─
+  if (dfsRecords.length > 0) {
+    html += '<details style="border:1px solid #E5E7EB;border-radius:8px;margin-top:12px">'
+      + '<summary style="cursor:pointer;padding:8px 12px;background:#F9FAFB;border-radius:8px 8px 0 0;font-size:0.82rem;font-weight:600;color:#374151">' + dfsRecords.length + ' המלצות שלב Link Audit (DFS-sourced)</summary>'
+      + '<div style="padding:8px 12px 12px;font-size:0.74rem;color:#6B7280">'
+      + 'המלצות אלה הוזנו לתוכנית החודשית. אם משימה ספציפית חסרה, צרו את התוכנית מחדש או הוסיפו ידנית.'
+      + '</div>'
+      + '<div style="padding:0 12px 12px">' + renderLinkAuditRecords(dfsRecords) + '</div>'
+      + '</details>';
+  }
+
+  html += '</div>';
+  el.innerHTML = html;
+  el.style.display = '';
 }
 
 // Surfaces the paidProfile state. If empty, renders a "configure" CTA;
