@@ -43,7 +43,12 @@ function aggressiveJsonClean(src: string): string {
     s = s.replace(/\/\*[\s\S]*?\*\//g, '')
     s = s.replace(/,(\s*[}\]])/g, '$1')
     s = s.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*:)/g, '$1"$2"$3')
-    s = s.replace(/'((?:[^'\\]|\\.)*)'(\s*[:,}\]])/g, '"$1"$2')
+    // Phase 4.3-G fix: REMOVED the single-quote → double-quote conversion.
+    // It was context-blind and destroyed Hebrew narrative content where we
+    // EXPLICITLY ask Opus to use 'word' for emphasis inside strings. The
+    // regex matched 'word', anywhere — including inside hebrew value of
+    // overview — and produced unescaped " inside a JSON string. Single
+    // quotes inside JSON strings are valid content and should be preserved.
     return s
 }
 
@@ -184,12 +189,18 @@ function flattenEmbeddedJsonInStrings(src: string): string {
  * Walk the source as a bracket/quote state machine. Returns a JSON string with
  * any unclosed structures (open string, open arrays/objects) closed at the end.
  * Used as a fallback for truncated LLM output (max_tokens cap mid-stream).
+ *
+ * "Safe boundary" rules:
+ *   - End of complete value (closing " of string, } or ] of obj/array)
+ *   - After a `,` separator
+ *   - NOT after `:` because that would leave key:VALUE-MISSING
+ *   - When wrapped object/array is open and we cut mid-string, fall back
+ *     to last safe boundary OUTSIDE the current string
  */
 function autoCloseTruncated(src: string): string {
     let inStr = false
     let esc = false
-    const stack: string[] = []  // '}' or ']'
-    let lastSafeEnd = 0          // position after last comma/bracket — safe truncation point
+    let lastSafeEnd = 0          // position after last comma or balanced }/] — safe truncation point
     for (let i = 0; i < src.length; i++) {
         const ch = src[i]
         if (inStr) {
@@ -199,15 +210,54 @@ function autoCloseTruncated(src: string): string {
             continue
         }
         if (ch === '"') { inStr = true; continue }
-        if (ch === '{') { stack.push('}'); continue }
-        if (ch === '[') { stack.push(']'); continue }
-        if (ch === '}' || ch === ']') { stack.pop(); lastSafeEnd = i + 1; continue }
-        if (ch === ',' || ch === ':') { lastSafeEnd = i + 1; continue }
+        if (ch === '{' || ch === '[') { continue }  // opening — NOT safe boundary alone
+        if (ch === '}' || ch === ']') { lastSafeEnd = i + 1; continue }
+        if (ch === ',') { lastSafeEnd = i + 1; continue }
+        // Phase 4.3-G: do NOT treat `:` as safe — that leaves dangling key:
     }
-    // Truncate to lastSafeEnd to avoid the half-finished key/value at the tail.
-    // But only if we're CURRENTLY in a string OR there are open brackets.
     let result = src.slice(0, lastSafeEnd).replace(/,\s*$/, '')
-    // Re-walk to determine open brackets at lastSafeEnd
+
+    // Phase 4.3-G: trim back any orphan partial object/array that has no
+    // complete key:value pair. After initial cut, the tail may look like:
+    //   "actionPlan": [\n{"step"   ← orphan key with no value
+    // or "actionPlan": [\n{   ← empty object inside an array
+    // Strip back until we find a clean cut point — preferring the boundary
+    // just AFTER the comma before the orphan, so the result ends like:
+    //   "actionPlan": [\n  ← will be auto-closed as [] below
+    // Walk backwards skipping whitespace, and if we hit content of an open
+    // object/array that's incomplete, scan back to the opening bracket.
+    {
+        // Repeatedly remove trailing partial-key fragments / empty opens.
+        // Pattern: `{...\n  "key"$` or `[\n  {"key"$` — strip back to before `{`.
+        for (let iter = 0; iter < 8; iter++) {
+            // If result ends with a `"text"` that's directly preceded by `{` (or `{` with whitespace) AND not followed by `:`, it's orphan key inside object
+            const m1 = result.match(/(\{\s*"[^"]*")\s*$/)
+            if (m1) {
+                // Remove the `{...partial` entirely — back to before `{`
+                const cutAt = result.lastIndexOf('{', result.length - 1)
+                if (cutAt > 0) {
+                    // Also strip the preceding `,` if any (we had element-separator in array)
+                    result = result.slice(0, cutAt).replace(/,\s*$/, '')
+                    continue
+                }
+            }
+            // If result ends with `{` (empty open object), drop it + preceding `,`
+            const m2 = result.match(/,\s*\{\s*$|\{\s*$/)
+            if (m2 && m2.index !== undefined) {
+                result = result.slice(0, m2.index)
+                continue
+            }
+            // If result ends with `,` after a stripped trailing chunk
+            const m3 = result.match(/,\s*$/)
+            if (m3) {
+                result = result.replace(/,\s*$/, '')
+                continue
+            }
+            break
+        }
+    }
+
+    // Re-walk to determine open brackets at end
     inStr = false
     esc = false
     const openStack: string[] = []
