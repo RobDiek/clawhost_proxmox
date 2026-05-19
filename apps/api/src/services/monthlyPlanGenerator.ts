@@ -806,6 +806,9 @@ Output VALID JSON parseable by JSON.parse():
 - JSON delimiters use DOUBLE quotes. INSIDE strings, use SINGLE quotes 'word' for any emphasis/quotation.
   RIGHT: "excerpt": "בדוק 'פעיל' וגם budget"
   WRONG: "excerpt": "בדוק "פעיל" וגם budget"   ← unescaped internal " breaks JSON
+- **NEVER include JSON-formatted arrays or objects as string content.** If you need to mention a list of items inside excerpt or rationale, write them as plain comma-separated text WITHOUT [ ] brackets.
+  RIGHT: "excerpt": "רשימת שליליים: חינם, DIY, cloud storage, ביטוח"
+  WRONG: "excerpt": "['חינם','DIY','cloud storage','ביטוח']"   ← embedded JSON breaks parsing
 - If you absolutely must include a literal " inside a string, escape as \\" — but PREFER single quotes.
 - Use ₪ symbol (not ש"ח) wherever possible to avoid escaping issues.
 - Hebrew apostrophes (') do NOT need escaping in double-quoted strings — but use sparingly.

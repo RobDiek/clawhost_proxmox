@@ -111,6 +111,76 @@ function findLastBalancedClose(src: string): number {
 }
 
 /**
+ * Convert embedded-JSON-array content inside a string value into plain text.
+ *
+ * Detects the failure mode where an LLM emits:
+ *   "excerpt": "[\"item1\",\"item2\",\"item3\"]"
+ * but FORGOT to escape the inner quotes — producing instead:
+ *   "excerpt": "["item1","item2","item3"]"
+ *
+ * Heuristic: find any colon-prefixed string value that opens with `[` or `{`
+ * (literal bracket immediately after the opening "). Inside that scope,
+ * convert all unescaped " to ' until we hit the matching ] or } followed by
+ * a closing ". This converts the inner quotes from JSON-breaking double
+ * quotes to JSON-safe single quotes.
+ */
+function flattenEmbeddedJsonInStrings(src: string): string {
+    let out = ''
+    let i = 0
+    while (i < src.length) {
+        // Look for the pattern : "[  or  : "{
+        const m = src.slice(i).match(/(:\s*")(\s*[[{])/)
+        if (!m || m.index === undefined) {
+            out += src.slice(i)
+            break
+        }
+        const matchPos = i + m.index
+        const opener = m[1]
+        const bracket = m[2].trim()
+        const closer = bracket === '[' ? ']' : '}'
+        // Copy everything up to the start of the string value
+        out += src.slice(i, matchPos) + opener
+        let j = matchPos + opener.length
+        // Now scan looking for the matching closer followed by ", converting all inner " to '
+        let depth = 0
+        let escapedNext = false
+        while (j < src.length) {
+            const ch = src[j]
+            if (escapedNext) { out += ch; escapedNext = false; j++; continue }
+            if (ch === '\\') { out += ch; escapedNext = true; j++; continue }
+            if (ch === bracket) { depth++; out += ch; j++; continue }
+            if (ch === closer) {
+                depth--
+                out += ch
+                j++
+                if (depth === 0) {
+                    // The next char should be " — string terminator
+                    // (after possible whitespace)
+                    let k = j
+                    while (k < src.length && /\s/.test(src[k])) k++
+                    if (k < src.length && src[k] === '"') {
+                        out += src.slice(j, k + 1)
+                        j = k + 1
+                    }
+                    break
+                }
+                continue
+            }
+            if (ch === '"') {
+                // Convert to single quote
+                out += "'"
+                j++
+                continue
+            }
+            out += ch
+            j++
+        }
+        i = j
+    }
+    return out
+}
+
+/**
  * Walk the source as a bracket/quote state machine. Returns a JSON string with
  * any unclosed structures (open string, open arrays/objects) closed at the end.
  * Used as a fallback for truncated LLM output (max_tokens cap mid-stream).
@@ -213,7 +283,15 @@ export function extractLlmJson<T>(raw: string, hint = 'output'): T {
     // PARSER fail very early due to lastIndexOf('}') having cut off mid-doc,
     // but the actual truncation is at the end. Auto-close walks the whole
     // input and closes open structures.
-    for (const candidateSrc of [sc, tc, ag, agtc]) {
+    //
+    // Layer the flattening pass on aggressively-cleaned versions so that
+    // embedded JSON arrays inside string values (Opus failure mode:
+    // "excerpt": "[\"x\",\"y\"]" → unescaped "x" breaks parsing) get
+    // their inner " converted to '.
+    const flat_sc = flattenEmbeddedJsonInStrings(sc)
+    const flat_ag = flattenEmbeddedJsonInStrings(ag)
+    const flat_agtc = stripTrailingCommas(flat_ag)
+    for (const candidateSrc of [sc, tc, ag, agtc, flat_sc, flat_ag, flat_agtc]) {
         try {
             const closed = autoCloseTruncated(candidateSrc)
             console.warn(`[llmJson] auto-close attempt: orig ${candidateSrc.length} → closed ${closed.length}`)
