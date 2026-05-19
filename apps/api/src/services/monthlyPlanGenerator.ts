@@ -219,6 +219,13 @@ interface PromptCtx {
     strategy: any
     chosenScenarioKey: string | undefined          // 'smart' | 'aggressive'
     chosenScenarioFull: any                        // full strategy object (30-day plan, KPIs, do-not-channels, first_win, risks)
+    strategyOptionsAll: any                        // full strategy_options records (both smart + aggressive for context)
+    paidAudit: any                                 // paid-track audit (may complement mazhirAudit)
+    paidDataInventory: any                         // tier classification + capabilities
+    internalSeoAudit: any                          // on-page SEO audit
+    linkAudit: any                                 // backlink profile + over-optimization flags + link-gap
+    aeoVisibility: any                             // AI Overview presence + AEO targets
+    validation: any                                // fact-checking results from validation stage
     costTimeline: any
     paidBudget: any
     clientBaseline: any
@@ -350,6 +357,47 @@ ${jstr(ctx.seoKeywordResearch, 5000)}
 
 ${jstr(ctx.clientBaseline, 5000)}
 
+═══ PAID-DATA INVENTORY (tier classification + adapter capabilities) ═══
+
+${jstr(ctx.paidDataInventory, 4000)}
+
+═══ PAID AUDIT (research-stage paid audit — complements mazhirAudit) ═══
+
+${jstr(ctx.paidAudit, 6000)}
+
+═══ INTERNAL SEO AUDIT (on-page — schema, meta, structure, content gaps) ═══
+
+Use this for ALL on-page tasks. Don't propose schema/meta/structure changes without referencing the specific finding here.
+
+${jstr(ctx.internalSeoAudit, 8000)}
+
+═══ LINK AUDIT (DataForSEO backlink profile — CRITICAL for link strategy) ═══
+
+This is REAL backlink data — referring domains, anchor distribution, over-optimization
+flags, lostLinks recovery candidates, linkGap competitor-only domains. USE IT to:
+  - Skip directories the site already has (don't waste budget re-recommending them)
+  - Address anchor over-optimization (if exact-match >50% → diversification task)
+  - Target linkGap domains (competitors-only refer) as outreach prospects
+  - Recover lostLinks (drop-zero referring domains)
+DO NOT propose generic "register at B144/Zap" tasks without checking if site is already there.
+
+${jstr(ctx.linkAudit, 12000)}
+
+═══ AEO VISIBILITY (AI Overview presence + AEO targets) ═══
+
+For AEO/LLM-citation tasks, ground in this data — which queries trigger AI Overview, which
+competitors get cited, where the brand-mention gap is.
+
+${jstr(ctx.aeoVisibility, 5000)}
+
+═══ STRATEGY OPTIONS (full records — both scenarios for delta context) ═══
+
+${jstr(ctx.strategyOptionsAll, 5000)}
+
+═══ VALIDATION (fact-checking — what's confirmed vs assumed) ═══
+
+${jstr(ctx.validation, 3000)}
+
 ═══ EXISTING CONTENT PLAN (do not duplicate items) ═══
 
 ${jstr(ctx.contentPlan, 6000)}
@@ -442,16 +490,18 @@ export async function generateMonthlyPlan(
     const agent = await resolvePrimaryAgent(instanceId)
     const rd: any = (await readResearchData(agent, instanceId)) || {}
 
-    // Read all upstream sources
+    // Read ALL upstream sources from research_data + research_data.results.
+    // Phase 4.3-I systemic fix: generator was reading 9 of 17 available result
+    // stages — ignoring link_audit (backlink profile), internal_seo_audit,
+    // aeo_visibility, paid_audit, paid_data_inventory, strategy_options (full
+    // records, not just chosen), validation. Top agency operates with ALL
+    // available intelligence; we were planning with half.
     const mediaPlan = rd.mediaPlan
     const audit = rd.mazhirAudit
     const strategy = rd.strategy
     // Phase 4.3-B fix: chosenScenario lives in research_data in TWO shapes:
     //   (a) legacy: just a string 'smart' | 'aggressive' (early tenants)
-    //   (b) current: full strategy object with .scenario field (the auto-selected
-    //       record from strategy_options + 30_day_plan + kpis_90_day + first_win +
-    //       do_not_channels + risks + channel_priority_list + funnel). This is
-    //       gold for the synergy prompt.
+    //   (b) current: full strategy object with .scenario field
     const chosenScenarioRaw = rd.chosenScenario
     const chosenScenarioKey: string | undefined =
         typeof chosenScenarioRaw === 'string'
@@ -464,15 +514,25 @@ export async function generateMonthlyPlan(
     const paidProfile = rd.paidProfile
     const answers = rd.answers || {}
     const results = rd.results || {}
+    // Paid-side inputs
     const costTimeline = results.cost_timeline_modeling
     const paidBudget = results.paid_budget_scenarios
     const clientBaseline = results.client_account_baseline
     const paidCompetitorLandscape = results.paid_competitor_landscape
     const paidKeywordResearch = results.paid_keyword_research
+    const paidAudit = results.paid_audit
+    const paidDataInventory = results.paid_data_inventory
+    // Organic-side inputs
     const seoKeywordResearch = results.seo_keyword_research
     const competitorLandscape = results.competitor_landscape
     const audiencePersonas = results.audience_personas
     const positioningResults = results.positioning
+    const internalSeoAudit = results.internal_seo_audit
+    const linkAudit = results.link_audit
+    const aeoVisibility = results.aeo_visibility
+    // Strategy-side inputs
+    const strategyOptionsAll = results.strategy_options
+    const validation = results.validation
     const previousMonthlyPlan: MonthlyMarketingPlan | undefined = rd.monthlyPlan
 
     // Hard preconditions
@@ -830,7 +890,10 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
     const userPrompt = buildUserPrompt({
         businessName, websiteUrl, businessDesc,
         paidProfile, audit, mediaPlan, strategy,
-        chosenScenarioKey, chosenScenarioFull, costTimeline, paidBudget,
+        chosenScenarioKey, chosenScenarioFull,
+        strategyOptionsAll, paidAudit, paidDataInventory,
+        internalSeoAudit, linkAudit, aeoVisibility, validation,
+        costTimeline, paidBudget,
         clientBaseline, paidCompetitorLandscape, paidKeywordResearch,
         seoKeywordResearch, competitorLandscape,
         audiencePersonas, positioningResults,
@@ -843,14 +906,13 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
 
     const raw = await callOpus({
         apiKey, model, system, user: userPrompt,
-        // 64K maxTokens via streaming + anthropic-beta:output-128k header.
-        // Sergei: 'better spend more tokens but max quality'. 32K was truncating
-        // the senior-bar tail (competitive intel, CRO, mobile, email nurture
-        // tasks dropping out). 64K gives Opus full room for 30-50 deep tasks
-        // + complete coverage of all 10 senior-tier rules.
-        maxTokens: usingOpus ? 64000 : 16000,
-        // 25-min timeout — Opus 4.7 with 64K on Hebrew can run 16-22min.
-        timeoutMs: 1500000,
+        // 32K maxTokens — Anthropic non-streaming hard limit + Opus 4.7 doesn't
+        // accept the output-128k-2025-02-19 beta header (that's for Sonnet 3.5).
+        // v5 attempt with 64K + beta got TLS terminated. Compensate with stronger
+        // compactness rules in prompt + auto-close recovery for truncation.
+        maxTokens: usingOpus ? 32000 : 16000,
+        // 20-min timeout — Opus 4.7 with 32K on Hebrew can run 9-15min.
+        timeoutMs: 1200000,
     })
 
     // Phase 4.3-G debug: dump raw Opus output to /tmp for inspection if parsing fails.

@@ -42,18 +42,15 @@ export async function callOpusStream(args: LlmStreamArgs): Promise<string> {
     const t0 = Date.now()
     let res: Response
     try {
-        // Extended-output beta enables max_tokens up to 64K for Opus 4.7+.
-        // Without this header the API caps at 32K — truncating long Hebrew
-        // outputs and dropping the senior-bar tail of tasks. Streaming +
-        // extended-output is the official path for high-quality long outputs.
+        // 32K is the practical max for Opus 4.7 streaming without beta header.
+        // The output-128k-2025-02-19 beta header is for Sonnet 3.5; on Opus 4.7
+        // it returns TLS terminated. If/when Anthropic ships an Opus 4.7+
+        // extended-output beta, swap header here.
         const headers: Record<string, string> = {
             'x-api-key': args.apiKey,
             'anthropic-version': '2023-06-01',
             'content-type': 'application/json',
             'accept': 'text/event-stream',
-        }
-        if ((args.maxTokens || 0) > 32000) {
-            headers['anthropic-beta'] = 'output-128k-2025-02-19'
         }
         res = await fetch(ANTHROPIC_URL, {
             method: 'POST',
