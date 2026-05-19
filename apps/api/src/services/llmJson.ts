@@ -47,6 +47,52 @@ function aggressiveJsonClean(src: string): string {
     return s
 }
 
+/**
+ * Phase 4.3-G: heuristic fixer for unescaped " inside JSON string values —
+ * the #1 failure mode on Hebrew Opus output. Pattern: Opus uses "word" for
+ * emphasis inside a string instead of 'word' or \"word\".
+ *
+ * Strategy: walk the source as a state machine. We're inside a string when
+ * the previous unescaped " opened one. A " is a STRING TERMINATOR only when
+ * followed (after optional whitespace) by ',', '}', ']', or ':'. Any other "
+ * inside a string body is treated as a content character and escaped.
+ *
+ * This is heuristic but catches the common case without regex backtracking.
+ */
+function escapeInternalQuotes(src: string): string {
+    let out = ''
+    let inStr = false
+    let escNext = false
+    for (let i = 0; i < src.length; i++) {
+        const ch = src[i]
+        if (escNext) { out += ch; escNext = false; continue }
+        if (ch === '\\') { out += ch; escNext = true; continue }
+        if (!inStr) {
+            out += ch
+            if (ch === '"') inStr = true
+            continue
+        }
+        // Inside string: decide if this " terminates or is content
+        if (ch === '"') {
+            // Look ahead past whitespace for the next non-space char
+            let j = i + 1
+            while (j < src.length && (src[j] === ' ' || src[j] === '\t' || src[j] === '\n' || src[j] === '\r')) j++
+            const next = src[j]
+            if (next === ',' || next === '}' || next === ']' || next === ':' || j >= src.length) {
+                // Real string terminator
+                out += ch
+                inStr = false
+            } else {
+                // Content " — escape it
+                out += '\\"'
+            }
+            continue
+        }
+        out += ch
+    }
+    return out
+}
+
 function findLastBalancedClose(src: string): number {
     let depth = 0, inStr = false, esc = false, lastValidEnd = -1
     for (let i = 0; i < src.length; i++) {
@@ -76,12 +122,21 @@ export function extractLlmJson<T>(raw: string, hint = 'output'): T {
     const tc = stripTrailingCommas(sc)
     const ag = aggressiveJsonClean(sc)
     const agtc = stripTrailingCommas(ag)
+    // Phase 4.3-G: also try with unescaped-internal-quote fix layered on top
+    const eq = escapeInternalQuotes(sc)
+    const eqtc = stripTrailingCommas(eq)
+    const eqag = escapeInternalQuotes(ag)
+    const eqagtc = stripTrailingCommas(eqag)
     const attempts: Array<{ name: string; src: string }> = [
         { name: 'raw', src: json },
         { name: 'sanitize-control', src: sc },
         { name: 'strip-trailing', src: tc },
         { name: 'aggressive', src: ag },
         { name: 'aggressive+trailing', src: agtc },
+        { name: 'escape-internal-quotes', src: eq },
+        { name: 'escape-quotes+trailing', src: eqtc },
+        { name: 'escape-quotes+aggressive', src: eqag },
+        { name: 'escape-quotes+all', src: eqagtc },
     ]
     let lastErr: Error | null = null
     let posOfFailure = -1

@@ -803,13 +803,16 @@ For each task:
 ═══ JSON STRICTNESS (CRITICAL — avoid parse failures) ═══
 
 Output VALID JSON parseable by JSON.parse():
-- All strings use DOUBLE quotes, never single quotes
-- Escape ALL internal double quotes as \\"  e.g. "ש\\"ח" not "ש"ח"
-- Use ₪ symbol (not ש"ח) wherever possible to avoid escaping issues
-- Hebrew apostrophes (') do NOT need escaping in double-quoted strings — but use sparingly
-- NEVER embed literal newlines inside strings. If you need multi-line content, use \\n
-- No trailing commas before } or ]
-- No comments inside the JSON
+- JSON delimiters use DOUBLE quotes. INSIDE strings, use SINGLE quotes 'word' for any emphasis/quotation.
+  RIGHT: "excerpt": "בדוק 'פעיל' וגם budget"
+  WRONG: "excerpt": "בדוק "פעיל" וגם budget"   ← unescaped internal " breaks JSON
+- If you absolutely must include a literal " inside a string, escape as \\" — but PREFER single quotes.
+- Use ₪ symbol (not ש"ח) wherever possible to avoid escaping issues.
+- Hebrew apostrophes (') do NOT need escaping in double-quoted strings — but use sparingly.
+- NEVER embed literal newlines inside strings. If you need multi-line content, use \\n.
+- No trailing commas before } or ].
+- No comments inside the JSON.
+- Be COMPACT — we have ~32K output budget for 30-40 deep tasks. Don't waste tokens on verbose narration.
 
 Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in user message.`
 
