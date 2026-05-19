@@ -226,6 +226,20 @@ interface PromptCtx {
     linkAudit: any                                 // backlink profile + over-optimization flags + link-gap
     aeoVisibility: any                             // AI Overview presence + AEO targets
     validation: any                                // fact-checking results from validation stage
+    // Category 2: research_data top-level (operational state + time-series)
+    opsBriefs: any                                 // weekly performance history (8-12+ entries)
+    latestOpsBrief: any                            // most-recent week brief
+    marketingIntents: any                          // user-chosen channels
+    integrationsState: any                         // connection state per integration
+    // Category 3: DB tables outside research_data
+    brandBookFull: any                             // FULL brand book (voice / USPs / banned / vocab)
+    pastAgentOutputs: any[]                        // past content drafts + perf
+    agentIntegrations: any[]                       // per-agent integration state
+    pastHypotheses: any[]                          // past experiments + outcomes
+    creativePerformance: any[]                     // creative win/decay patterns
+    creativeFatigueAlerts: any[]                   // decayed creatives needing refresh
+    paidLearnings: any[]                           // aggregated paid learnings
+    strategyLearnings: any[]                       // strategy learner aggregations
     costTimeline: any
     paidBudget: any
     clientBaseline: any
@@ -398,6 +412,72 @@ ${jstr(ctx.strategyOptionsAll, 5000)}
 
 ${jstr(ctx.validation, 3000)}
 
+═══ BRAND BOOK (voice / principles / USPs / banned phrases / vocabulary) ═══
+
+CRITICAL for ALL creative tasks (RSA copy, GBP posts, content drafts, ad creatives).
+Headlines/descriptions MUST follow brand voice principles. NEVER use banned phrases.
+Use approved vocabulary + USPs in copy. Reference taglineHe / mission / positioning.
+
+${jstr(ctx.brandBookFull, 8000)}
+
+═══ WEEKLY OPS BRIEFS (performance time-series — ${(ctx.opsBriefs as any[])?.length || 0} weeks) ═══
+
+Latest brief contains last-week deltas + alerts. Plan tasks that ADDRESS recurring
+problems flagged across multiple briefs. If brief says "CPA rising 3 weeks in a row"
+→ this should be P0 in monthly plan.
+
+Latest:
+${jstr(ctx.latestOpsBrief, 5000)}
+
+History (compact summary):
+${jstr((ctx.opsBriefs as any[] || []).slice(-5).map((b: any) => ({
+    weekOf: b.weekOf || b.generatedAt,
+    summary: b.summary || b.overview,
+    topAlerts: b.alerts?.slice?.(0, 3) || b.findings?.slice?.(0, 3),
+})), 4000)}
+
+═══ USER MARKETING INTENTS (channels user chose — DO NOT propose excluded ones) ═══
+
+${jstr(ctx.marketingIntents, 2000)}
+
+═══ INTEGRATIONS STATE (what is actually connected — affects executability) ═══
+
+${jstr(ctx.integrationsState, 3000)}
+
+═══ AGENT INTEGRATIONS (per-agent connection state) ═══
+
+${jstr(ctx.agentIntegrations, 2500)}
+
+═══ PAST AGENT OUTPUTS (winners/losers — ${ctx.pastAgentOutputs.length} drafts) ═══
+
+Past content drafts + their final status (approved/published/rejected). Pattern-match:
+- Don't propose drafts that duplicate existing approved/published.
+- If post types with high engagement exist → propose more in that pattern.
+- If rejected outputs share a pattern → avoid it.
+
+${jstr(ctx.pastAgentOutputs.slice(0, 30).map((o: any) => ({
+    id: o.id, type: o.outputType, status: o.status, agent: o.agentRole,
+    title: (o.title || '').slice(0, 60), createdAt: o.createdAt,
+})), 5000)}
+
+═══ PAST HYPOTHESES (experiments already run — DO NOT re-propose same) ═══
+
+${jstr(ctx.pastHypotheses, 4000)}
+
+═══ CREATIVE PERFORMANCE + FATIGUE ALERTS ═══
+
+${jstr(ctx.creativePerformance, 3000)}
+
+${jstr(ctx.creativeFatigueAlerts, 2000)}
+
+═══ PAID LEARNINGS (aggregated outcomes from past paid experiments) ═══
+
+${jstr(ctx.paidLearnings, 3000)}
+
+═══ STRATEGY LEARNINGS (strategy learner aggregations) ═══
+
+${jstr(ctx.strategyLearnings, 3000)}
+
 ═══ EXISTING CONTENT PLAN (do not duplicate items) ═══
 
 ${jstr(ctx.contentPlan, 6000)}
@@ -534,6 +614,72 @@ export async function generateMonthlyPlan(
     const strategyOptionsAll = results.strategy_options
     const validation = results.validation
     const previousMonthlyPlan: MonthlyMarketingPlan | undefined = rd.monthlyPlan
+
+    // Phase 4.3-I v7 — Category 2: research_data TOP-LEVEL (not in .results)
+    // operational state + time-series performance data we were ignoring.
+    const opsBriefs = rd.opsBriefs                          // weekly performance history (often 8-12+ entries)
+    const latestOpsBrief = rd.latestOpsBrief                // most-recent week brief
+    const marketingIntents = rd.marketingIntents            // user-chosen channels (DON'T propose excluded ones)
+    const integrationsState = rd.integrationsState          // connection state per integration
+
+    // Phase 4.3-I v7 — Category 3: DB tables OUTSIDE research_data.
+    // Persistent per-instance data we were planning blind to.
+    let brandBookFull: any = undefined          // voice, USPs, banned, vocabulary — ALL creative tasks need this
+    let pastAgentOutputs: any[] = []            // winners/losers patterns from past drafts
+    let agentIntegrations: any[] = []           // actual connection state per agent role
+    let pastHypotheses: any[] = []              // experiments + outcomes — don't duplicate
+    let creativePerformance: any[] = []         // which creatives win vs decay
+    let creativeFatigueAlerts: any[] = []       // creative_fatigue table
+    let paidLearnings: any[] = []               // aggregated paid learnings
+    let strategyLearnings: any[] = []           // strategy learner aggregations
+    try {
+        const [bb] = await db.select().from(brandBooks).where(eq(brandBooks.instanceId, instanceId))
+        brandBookFull = bb
+    } catch (e) { console.warn('[monthlyPlanGenerator] brandBook pull failed:', (e as Error).message) }
+
+    try {
+        const { agentOutputs: agentOutputsTbl, agentIntegrations: agentIntegrationsTbl,
+            creativePerformance: creativePerformanceTbl, creativeFatigueAlerts: creativeFatigueTbl,
+            hypotheses: hypothesesTbl, paidLearnings: paidLearningsTbl,
+            strategyLearnings: strategyLearningsTbl,
+        } = await import('@/db/schema') as any
+        const { desc } = await import('drizzle-orm')
+        // Cap each pull at 50 most-recent so prompt stays bounded
+        pastAgentOutputs = await db.select().from(agentOutputsTbl)
+            .where(eq(agentOutputsTbl.instanceId, instanceId))
+            .orderBy(desc(agentOutputsTbl.createdAt))
+            .limit(50)
+        agentIntegrations = await db.select().from(agentIntegrationsTbl)
+            .where(eq(agentIntegrationsTbl.instanceId, instanceId))
+        if (creativePerformanceTbl) {
+            creativePerformance = await db.select().from(creativePerformanceTbl)
+                .where(eq(creativePerformanceTbl.instanceId, instanceId))
+                .limit(30)
+        }
+        if (creativeFatigueTbl) {
+            creativeFatigueAlerts = await db.select().from(creativeFatigueTbl)
+                .where(eq(creativeFatigueTbl.instanceId, instanceId))
+                .limit(20)
+        }
+        if (hypothesesTbl) {
+            pastHypotheses = await db.select().from(hypothesesTbl)
+                .where(eq(hypothesesTbl.instanceId, instanceId))
+                .limit(30)
+        }
+        if (paidLearningsTbl) {
+            paidLearnings = await db.select().from(paidLearningsTbl)
+                .where(eq(paidLearningsTbl.instanceId, instanceId))
+                .limit(30)
+        }
+        if (strategyLearningsTbl) {
+            strategyLearnings = await db.select().from(strategyLearningsTbl)
+                .where(eq(strategyLearningsTbl.instanceId, instanceId))
+                .limit(30)
+        }
+    } catch (e) {
+        console.warn('[monthlyPlanGenerator] historical-data pulls failed (non-fatal):', (e as Error).message)
+    }
+    console.log(`[monthlyPlanGenerator] ${instanceId} historical: outputs=${pastAgentOutputs.length} integrations=${agentIntegrations.length} hypotheses=${pastHypotheses.length} creativePerf=${creativePerformance.length} fatigue=${creativeFatigueAlerts.length} paidLearn=${paidLearnings.length} stratLearn=${strategyLearnings.length} opsBriefs=${(opsBriefs as any[])?.length || 0}`)
 
     // Hard preconditions
     if (!paidProfile && !audit) {
@@ -893,6 +1039,10 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
         chosenScenarioKey, chosenScenarioFull,
         strategyOptionsAll, paidAudit, paidDataInventory,
         internalSeoAudit, linkAudit, aeoVisibility, validation,
+        // Phase 4.3-I v7 — categories 2 + 3
+        opsBriefs, latestOpsBrief, marketingIntents, integrationsState,
+        brandBookFull, pastAgentOutputs, agentIntegrations, pastHypotheses,
+        creativePerformance, creativeFatigueAlerts, paidLearnings, strategyLearnings,
         costTimeline, paidBudget,
         clientBaseline, paidCompetitorLandscape, paidKeywordResearch,
         seoKeywordResearch, competitorLandscape,
