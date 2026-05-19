@@ -1114,19 +1114,19 @@ input{font-family:inherit}
       </div>
     </div>
 
+    <!-- Phase 4.3-G: Monthly Marketing Plan overview card FIRST, then calendar
+         shows its tasks distributed across the month. User expectation is
+         strategic-plan → daily-execution-grid. -->
+    <div id="monthlyPlanCard" style="display:none"></div>
+
     <!-- Row: לוח תוכן — visible only when content/social_organic intent active -->
     <div style="margin-top:16px" id="home-calendar-section">
       <div class="section-title" style="display:flex;align-items:center;gap:6px;margin-top:0;margin-bottom:8px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        לוח תוכן
+        לוח תוכן ומשימות חודשיות
       </div>
       <div class="content-calendar" id="contentCalendar"></div>
     </div>
-
-    <!-- Phase 4.3-D: Monthly Marketing Plan overview card. Synthesized from
-         paid + organic + content + audit + 2026 algo research; renders the
-         strategic narrative + counters + per-task lifecycle hub. -->
-    <div id="monthlyPlanCard" style="display:none"></div>
 
     <!-- Mazhir paid-marketing card moved into משימות הגדרה checklist as the
          'paid_profile' setup task. Mazhir audit + media plan + executor live
@@ -9209,7 +9209,10 @@ function renderContentCalendar() {
   var section = document.getElementById('home-calendar-section');
   var hasProfile = !!(instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.businessName);
   var hasResearch = !!(instanceData && instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1));
-  var visible = hasProfile && hasResearch;
+  // Phase 4.3-G: also activate calendar when monthlyPlan exists (Storage Station
+  // case — has monthlyPlan but legacy report/stage1 fields may not be set).
+  var hasMonthlyPlan = !!(instanceData && instanceData.researchData && instanceData.researchData.monthlyPlan);
+  var visible = hasProfile && (hasResearch || hasMonthlyPlan);
   if (section) section.style.display = visible ? '' : 'none';
   if (!visible) return;
 
@@ -9840,7 +9843,25 @@ function renderMonthlyPlanCard() {
         '<div style="margin-inline-start:auto;font-size:0.72rem;color:#9CA3AF">עודכנה: ' + generatedAt + '</div>' +
       '</div>' +
       (keyTheme ? '<div style="font-weight:600;color:#0EA5E9;font-size:0.88rem;margin-bottom:6px">🎯 ' + escapeHtml(keyTheme) + '</div>' : '') +
-      (hebrew ? '<div style="font-size:0.85rem;color:#4B5563;line-height:1.6;margin-bottom:8px">' + escapeHtml(hebrew) + '</div>' : '') +
+      // Phase 4.3-G: paragraph-formatted narrative with collapsible 3-line preview
+      (hebrew ? (function() {
+        // Convert markdown bold **text** to <strong> and split paragraphs by \n\n
+        var paragraphs = hebrew.split(/\n\s*\n/).filter(function(p) { return p.trim(); });
+        var fmt = function(p) {
+          // Escape, then re-introduce <strong> for **bold**
+          var esc = escapeHtml(p.trim());
+          esc = esc.replace(/\*\*([^*]+)\*\*/g, '<strong style="color:#1F2937">$1</strong>');
+          return esc;
+        };
+        var fullHtml = paragraphs.map(function(p) {
+          return '<p style="font-size:0.85rem;color:#4B5563;line-height:1.7;margin:0 0 8px">' + fmt(p) + '</p>';
+        }).join('');
+        return '<div id="mp-narrative" style="position:relative;max-height:5em;overflow:hidden;transition:max-height 0.3s ease;margin-bottom:6px">' +
+          fullHtml +
+          '<div id="mp-fade" style="position:absolute;bottom:0;left:0;right:0;height:2em;background:linear-gradient(180deg,transparent,#FFF);pointer-events:none"></div>' +
+        '</div>' +
+        '<button onclick="(function(){var el=document.getElementById(\'mp-narrative\');var f=document.getElementById(\'mp-fade\');var b=document.getElementById(\'mp-toggle\');if(el.style.maxHeight===\'5em\'||!el.style.maxHeight){el.style.maxHeight=\'2000px\';f.style.display=\'none\';b.textContent=\'הסתירו\';}else{el.style.maxHeight=\'5em\';f.style.display=\'block\';b.textContent=\'הציגו הכל\';}})();" id="mp-toggle" style="font-size:0.78rem;color:#0EA5E9;background:none;border:none;cursor:pointer;padding:0;font-weight:600;margin-bottom:8px">הציגו הכל ↓</button>';
+      })() : '') +
       focusHtml +
       '<div style="margin-top:14px;padding-top:12px;border-top:1px solid #F3F4F6;display:flex;flex-wrap:wrap;align-items:center;gap:10px">' +
         '<span style="font-size:0.92rem;font-weight:700;color:#1F2937">' + totalTasks + ' משימות</span>' +
