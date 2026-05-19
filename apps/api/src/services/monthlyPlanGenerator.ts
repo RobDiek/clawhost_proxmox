@@ -1193,6 +1193,35 @@ Output STRICT JSON — no markdown fences, no commentary, no preamble. Schema in
         // Re-persist with executionOutputIds populated
         await writeResearchData(agent, instanceId, { ...rd, monthlyPlan: plan })
         console.log(`[monthlyPlanGenerator] ${instanceId}: emitted ${taskOutputIdByTaskId.size} per-task agent_outputs rows`)
+
+        // Phase 4.3-K: archive orphan monthly_task rows from PRIOR generations
+        // whose task IDs are NOT in the new plan. This prevents accumulation
+        // (a year of monthly regenerations would leave hundreds of stale rows).
+        // Carry-over rows reused above had their metadata.monthlyPlanGeneratedAt
+        // bumped to current plan.generatedAt — orphans still have the old value.
+        try {
+            const currentTaskIds = new Set(plan.tasks.map(t => t.id))
+            const allMonthlyTaskRows = await db.select().from(agentOutputs)
+                .where(and(
+                    eqOp(agentOutputs.instanceId, instanceId),
+                    eqOp(agentOutputs.outputType, 'monthly_task'),
+                    eqOp(agentOutputs.status, 'pending_review'),
+                ))
+            let archivedCount = 0
+            for (const row of allMonthlyTaskRows) {
+                const tid = (row.metadata as any)?.taskId
+                if (tid && !currentTaskIds.has(tid)) {
+                    await db.update(agentOutputs).set({ status: 'archived' })
+                        .where(eqOp(agentOutputs.id, row.id))
+                    archivedCount++
+                }
+            }
+            if (archivedCount > 0) {
+                console.log(`[monthlyPlanGenerator] ${instanceId}: archived ${archivedCount} orphan monthly_task rows`)
+            }
+        } catch (err) {
+            console.warn('[monthlyPlanGenerator] orphan archive failed (non-fatal):', (err as Error).message)
+        }
     } catch (err) {
         console.warn('[monthlyPlanGenerator] per-task output emission failed:', (err as Error).message)
     }

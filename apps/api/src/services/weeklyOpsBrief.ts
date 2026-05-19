@@ -52,6 +52,16 @@ export async function runWeeklyOpsBriefs(): Promise<{
                 stats.skipped++
                 continue
             }
+            // Phase 4.3-K: instance-readiness gate. weekly_ops_brief compares
+            // actual KPIs vs target. Without a monthlyPlan in place, there are
+            // no targets — brief is noise. Skip emit until user has plan.
+            const { shouldEmitToReviewQueue } = await import('./instanceReadinessGate')
+            const gate = await shouldEmitToReviewQueue(row.id, 'weekly_ops_brief')
+            if (!gate.allow) {
+                stats.skipped++
+                console.log(`[weeklyOpsBrief] ${row.id} skipped: ${gate.reason} (${gate.detail || ''})`)
+                continue
+            }
             try {
                 const r = await runOpsBriefForInstance(row.id)
                 if (r.ok) stats.generated++

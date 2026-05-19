@@ -509,6 +509,17 @@ async function sweepAllInstances(): Promise<void> {
             // content drafts auto-generated.
             const enabled = await isPipelineEnabled(row.id, 'content_calendar')
             if (!enabled) { totalSkipped++; continue }
+            // Phase 4.3-K: instance-readiness gate. Don't emit content_post /
+            // blog_article drafts to משימות פעילות until contentPlan has been
+            // approved by user. Otherwise users see drafts for items they
+            // haven't yet committed to publishing.
+            const { shouldEmitToReviewQueue } = await import('./instanceReadinessGate')
+            const gate = await shouldEmitToReviewQueue(row.id, 'content_post')
+            if (!gate.allow) {
+                totalSkipped++
+                console.log(`[planDraftRunner] ${row.id} skipped: ${gate.reason}`)
+                continue
+            }
             const res = await draftDuePlanItemsForInstance(row.id)
             totalDrafted += res.drafted.length
             totalFailed += res.failed.length
