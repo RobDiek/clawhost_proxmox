@@ -24177,6 +24177,15 @@ async function loadConversionPicker() {
     if (!r.success) { el.style.display = 'none'; return; }
     var data = r.data || {};
     var draft = data.draftMapping;
+    // Legacy-shape draft (pre-v2 had `mappings[]`, no `candidates[]`). If
+    // we see one, auto-trigger a fresh detect so the user doesn't have to
+    // know about the schema migration.
+    if (draft && (!draft.candidates || draft.candidates.length === 0) && Array.isArray(draft.mappings)) {
+      el.style.display = '';
+      el.innerHTML = '<div style="text-align:center;padding:18px;color:#6B7280;font-size:0.84rem">🔄 מעדכן זיהוי פעולות המרה...</div>';
+      await reDetectConversions(true);
+      return;
+    }
     if (!draft || !draft.candidates || draft.candidates.length === 0) {
       el.style.display = 'none';
       return;
@@ -24185,6 +24194,25 @@ async function loadConversionPicker() {
     renderConversionPicker(el, draft, data.active || []);
   } catch (_) {
     el.style.display = 'none';
+  }
+}
+
+// Re-run detection (fresh API call to Google Ads). When silent=true,
+// suppresses the toast and just re-renders.
+async function reDetectConversions(silent) {
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/conversions/detect-existing', {
+      method: 'POST',
+    });
+    if (!r.success) {
+      showToast('זיהוי נכשל: ' + (r.message || ''), 'error');
+      return;
+    }
+    if (!silent) showToast(r.message || 'זיהוי הסתיים', 'success');
+    // Refresh the picker after detection wrote a new draft.
+    await loadConversionPicker();
+  } catch (err) {
+    showToast('זיהוי נכשל: ' + (err.message || err), 'error');
   }
 }
 
@@ -24257,8 +24285,9 @@ function renderConversionPicker(el, draft, active) {
   });
   html += '</div>';
   // Apply / refresh actions
-  html += '<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">'
-    + '<button class="btn btn-outline btn-sm" onclick="loadConversionPicker()" style="font-size:0.78rem">🔄 רענן</button>'
+  html += '<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;flex-wrap:wrap">'
+    + '<button class="btn btn-outline btn-sm" onclick="reDetectConversions()" style="font-size:0.78rem" title="קריאה חוזרת ל-Google Ads API — אם הוספתם/הסרתם פעולות, או החלפתם operating customer">🔍 חפשו מחדש ב-Google Ads</button>'
+    + '<button class="btn btn-outline btn-sm" onclick="loadConversionPicker()" style="font-size:0.78rem">🔄 רענן תצוגה</button>'
     + '<button class="btn btn-primary btn-sm" onclick="applyConversionPickerSelection()" style="font-size:0.82rem">✓ החל את הבחירה</button>'
     + '</div>';
   el.innerHTML = html;
