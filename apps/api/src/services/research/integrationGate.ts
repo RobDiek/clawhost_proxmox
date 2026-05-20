@@ -383,10 +383,15 @@ export function checkRequirementStatus(
             return row?.connected ? 'connected' : 'missing'
         }
         case 'wordpress': {
-            // WordPress: agent_integrations row with config = {url, username, password}
+            // WordPress: agent_integrations row with config = {url, user, appPassword}.
+            // (Some older deploys used { username, password } — accept both
+            // shapes so this precheck doesn't disagree with the integrations
+            // card which only looks at status='connected'.)
             const row = src.integrations?.wordpress
-            const cfg = row?.config as { url?: string; username?: string; password?: string; appPassword?: string } | undefined
-            const hasCreds = !!(cfg?.url && cfg?.username && (cfg?.password || cfg?.appPassword))
+            const cfg = row?.config as { url?: string; user?: string; username?: string; password?: string; appPassword?: string } | undefined
+            const userField = cfg?.user || cfg?.username
+            const passField = cfg?.appPassword || cfg?.password
+            const hasCreds = !!(cfg?.url && userField && passField)
             return row?.connected && hasCreds ? 'connected' : 'missing'
         }
         case 'google_workspace': {
