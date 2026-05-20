@@ -35,9 +35,22 @@ import { archiveOrphanedItems, previewOrphanedItems } from '@/services/orphanedI
 import { resolveActiveAgent, readResearchData, writeResearchData } from '@/services/agentContext'
 
 // ─── helper: load + persist researchData with safe merge ─────────────────
-async function loadInstance(instanceId: string) {
+// Phase 4.3-O systemic-fix: when called from a request context (c provided),
+// returns the instance row with researchData OVERRIDDEN by the active agent's
+// data (per-agent isolation for marketing intents / hub state).
+async function loadInstance(instanceId: string, c?: Context) {
     const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
-    return instance || null
+    if (!instance) return null
+    if (c) {
+        try {
+            const { readResearchDataForActive } = await import('@/services/agentContext')
+            const { rd } = await readResearchDataForActive(c, instanceId)
+            return { ...instance, researchData: rd as any } as typeof instance
+        } catch (e) {
+            console.warn(`[marketingHub] active-agent overlay failed (fall back to instances.rd):`, (e as Error).message)
+        }
+    }
+    return instance
 }
 
 async function patchResearchData(
@@ -79,7 +92,7 @@ export const getMarketingIntents = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const inst = await loadInstance(instanceId)
+        const inst = await loadInstance(instanceId, c)
         if (!inst) return fail(c, 'Instance not found', 404)
         const rd = (inst.researchData || {}) as MarketingResearchData
         const agents: string[] = Array.isArray(inst.selectedComponents) ? (inst.selectedComponents as string[]) : []
@@ -193,7 +206,7 @@ export const getIntegrationHub = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const inst = await loadInstance(instanceId)
+        const inst = await loadInstance(instanceId, c)
         if (!inst) return fail(c, 'Instance not found', 404)
         const rd = (inst.researchData || {}) as MarketingResearchData
         const agents: string[] = Array.isArray(inst.selectedComponents) ? (inst.selectedComponents as string[]) : []
@@ -341,7 +354,7 @@ export const pipelinePrecheck = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const pipeline = getPipeline(pipelineId as never)
         if (!pipeline) return fail(c, 'Unknown pipeline: ' + pipelineId, 400)
-        const inst = await loadInstance(instanceId)
+        const inst = await loadInstance(instanceId, c)
         if (!inst) return fail(c, 'Instance not found', 404)
         const rd = (inst.researchData || {}) as MarketingResearchData
         const agents: string[] = Array.isArray(inst.selectedComponents) ? (inst.selectedComponents as string[]) : []
@@ -400,7 +413,7 @@ export const previewHubForIntents = async (c: Context) => {
         const cleaned = Array.isArray(body.intents)
             ? (body.intents as unknown[]).filter((s): s is MarketingIntent => typeof s === 'string' && isValidIntent(s))
             : []
-        const inst = await loadInstance(instanceId)
+        const inst = await loadInstance(instanceId, c)
         if (!inst) return fail(c, 'Instance not found', 404)
         const rd = (inst.researchData || {}) as MarketingResearchData
         const connected = listConnectedIntegrationIds(rd)

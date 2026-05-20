@@ -46,11 +46,19 @@ async function enrichWithUtm(
         let contentPlanItemId: string | undefined
         if (media?.contentPlanItemId) {
             contentPlanItemId = media.contentPlanItemId
-            const [inst] = await db.select().from(instancesTable).where(eq(instancesTable.id, instanceId))
-            const plan = (inst?.researchData as any)?.contentPlan
-            if (Array.isArray(plan)) {
-                const item = plan.find((p: any) => p?.id === media.contentPlanItemId)
-                if (item) { hook = item.hook; persona = item.persona }
+            // Phase 4.3-O systemic-fix: contentPlan item can live in any agent's
+            // research_data on this VPS (multi-agent topology). Search across all
+            // agents instead of reading instances.researchData (= primary mirror).
+            const { matehAgents } = await import('@/db/schema')
+            const agents = await db.select({ researchData: matehAgents.researchData })
+                .from(matehAgents)
+                .where(eq(matehAgents.vpsInstanceId, instanceId))
+            for (const a of agents) {
+                const plan = (a?.researchData as any)?.contentPlan
+                if (Array.isArray(plan)) {
+                    const item = plan.find((p: any) => p?.id === media.contentPlanItemId)
+                    if (item) { hook = item.hook; persona = item.persona; break }
+                }
             }
         }
         return appendUtm(rawUrl, {

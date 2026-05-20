@@ -73,8 +73,10 @@ export const getResearchStageStatus = async (c: Context) => {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
 
-        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const rd = (inst?.researchData as ResearchDataV2 | null) || {}
+        // Phase 4.3-O systemic-fix: per-active-agent stage status (each agent has its own pipeline).
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd: rdGeneric } = await readResearchDataForActive(c, instanceId)
+        const rd = rdGeneric as ResearchDataV2
         return ok(c, {
             stageId,
             status: rd.plan?.status?.[stageId] || { state: 'pending' },

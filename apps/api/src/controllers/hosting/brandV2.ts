@@ -243,8 +243,12 @@ export const scanWebsiteForBrandV2 = async (c: Context) => {
         const { db } = await import('@/db')
         const { instances } = await import('@/db/schema')
         const { eq } = await import('drizzle-orm')
+        // Phase 4.3-O systemic-fix: per-active-agent. Needed for secondary agents
+        // so wizard's URL default comes from the AGENT'S answers, not primary's.
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd: rdActive } = await readResearchDataForActive(c, instanceId)
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const rd: any = inst?.researchData || {}
+        const rd: any = rdActive
 
         // Resolve URL: explicit > paid_profile.businessUrl > research.answers.websiteUrl
         let websiteUrl = (body.websiteUrl || '').trim()
@@ -278,7 +282,9 @@ export const scanWebsiteForBrandV2 = async (c: Context) => {
             await startNewDraft({ instanceId, sourceFlow: 'website_scan' })
         }
         const { scanWebsiteForBrand } = await import('@/services/brandWebsiteScanner')
-        const result = await scanWebsiteForBrand({ instanceId, websiteUrl })
+        // Phase 4.3-O systemic-fix: pass active agentId so scanner reads agent's rd
+        const __activeForScan = await resolveActiveAgent(c, instanceId)
+        const result = await scanWebsiteForBrand({ instanceId, websiteUrl, agentId: __activeForScan?.id })
 
         // Merge extracted keys into draft
         const updates: Record<string, any> = {}

@@ -34,7 +34,7 @@
  *       from their actual site (so they can validate output is real)
  */
 
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { uploadAssetToVps } from './brandAssetStorage'
@@ -48,6 +48,11 @@ interface ScanArgs {
     websiteUrl: string
     /** Page paths (besides homepage) to attempt scraping */
     extraPaths?: string[]
+    /** Phase 4.3-O systemic-fix: optional active-agent ID. When set, scanner reads
+     * research_data from THIS agent's row, not the primary's mirror — critical for
+     * secondary agents where instances.researchData reflects primary only.
+     */
+    agentId?: string
 }
 
 export interface ScanResult {
@@ -642,7 +647,7 @@ const META = (confidence: 'high' | 'medium' | 'low' = 'high') => ({
 })
 
 export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
-    const { instanceId, websiteUrl } = args
+    const { instanceId, websiteUrl, agentId } = args
     const notes: string[] = []
     const extractedKeys: string[] = []
 
@@ -653,7 +658,18 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     if (!firecrawlKey) throw new Error('Firecrawl API key not configured for this instance')
     if (!aiKey) throw new Error('Anthropic API key not configured')
 
-    const rd: any = inst.researchData || {}
+    // Phase 4.3-O systemic-fix: read research_data from the specific agent
+    // (when agentId provided). Fallback to instances.researchData for legacy/primary.
+    let rd: any = {}
+    if (agentId) {
+        const { matehAgents } = await import('@/db/schema')
+        const [agentRow] = await db.select({ researchData: matehAgents.researchData })
+            .from(matehAgents)
+            .where(and(eq(matehAgents.id, agentId), eq(matehAgents.vpsInstanceId, instanceId)))
+        rd = agentRow?.researchData || {}
+    } else {
+        rd = inst.researchData || {}
+    }
 
     // ── PASS A — Visual ──
     notes.push('Pass A: Scraping homepage…')

@@ -34,10 +34,11 @@ export const getStageImpact = async (c: Context) => {
         const { computeStageImpact } = await import('@/services/research/dependencyGraph')
         const impact = computeStageImpact(stageId)
 
-        // Cross-reference against current data: filter out stages that have
-        // no result yet (re-running an upstream doesn't affect them).
-        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const rd = (inst?.researchData as Record<string, unknown> | null) || {}
+        // Phase 4.3-O systemic-fix: per-active-agent — each agent has its own
+        // result set, so impact reporting must scope to active agent.
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd: rdActive } = await readResearchDataForActive(c, instanceId)
+        const rd = rdActive as Record<string, unknown>
         const results = (rd.results as Record<string, unknown>) || {}
         const currentlyAffectedStages = impact.downstreamStages.filter(
             (s) => results[s] !== undefined && results[s] !== null,

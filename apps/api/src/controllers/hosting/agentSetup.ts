@@ -8918,9 +8918,10 @@ export const getMazhirAudit = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const rd: any = inst?.researchData || {}
-        return ok(c, { audit: rd.mazhirAudit || null, diff: rd.mazhirAuditDiff || null })
+        // Phase 4.3-O systemic-fix: per-active-agent read.
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = await readResearchDataForActive(c, instanceId)
+        return ok(c, { audit: (rd as any).mazhirAudit || null, diff: (rd as any).mazhirAuditDiff || null })
     } catch (err) {
         return fail(c, (err as Error).message, 500)
     }
@@ -9219,8 +9220,11 @@ export const generateMazhirMediaPlan = async (c: Context) => {
         // Override allowed via ?force=1.
         const force = c.req.query('force') === '1'
         if (!force) {
+            // Phase 4.3-O systemic-fix: per-active-agent read.
+            const { readResearchDataForActive } = await import('@/services/agentContext')
+            const { rd: rdActive } = await readResearchDataForActive(c, instanceId)
             const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-            const rd: any = inst?.researchData || {}
+            const rd: any = rdActive
             const audit = rd.mazhirAudit
             const blockers = Array.isArray(audit?.blockers) ? audit.blockers : []
             // Phase 4.2.3-B: state-aware Stage 8 saves `active` (unified
@@ -9253,9 +9257,10 @@ export const getMazhirMediaPlan = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const rd: any = inst?.researchData || {}
-        const plan = rd.mediaPlan || (rd.strategy && typeof rd.strategy === 'object' ? rd.strategy.mediaPlan : null) || null
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = await readResearchDataForActive(c, instanceId)
+        const rdAny: any = rd
+        const plan = rdAny.mediaPlan || (rdAny.strategy && typeof rdAny.strategy === 'object' ? rdAny.strategy.mediaPlan : null) || null
         return ok(c, { mediaPlan: plan })
     } catch (err) {
         return fail(c, (err as Error).message, 500)
@@ -9268,19 +9273,25 @@ export const getMazhirMediaPlanManualHtml = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const rd: any = inst?.researchData || {}
-        const plan = rd.mediaPlan
+        // Phase 4.3-O systemic-fix: per-active-agent read + per-agent brand book lookup.
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd, agent } = await readResearchDataForActive(c, instanceId)
+        const rdAny: any = rd
+        const plan = rdAny.mediaPlan
         if (!plan) return fail(c, 'No media plan available', 404)
         let html = (plan as any).manualSetupHtml
         if (!html) {
             // generate on-the-fly if missing
             const { exportPlanAsManualHtml } = await import('@/services/mazhirManualExporter')
-            const audit = rd.mazhirAudit
-            const pp = rd.paidProfile
+            const audit = rdAny.mazhirAudit
+            const pp = rdAny.paidProfile
             if (!audit || !pp) return fail(c, 'Audit + paidProfile required', 400)
-            const [brand] = await db.select().from(brandBooks).where(eq(brandBooks.instanceId, instanceId))
-            const businessName = (brand as any)?.businessName || rd.answers?.businessName || 'Business'
+            // Scope brand book to active agent (Phase 4.3-O brand-fix)
+            const brandWhere = agent?.id
+                ? and(eq(brandBooks.instanceId, instanceId), eq(brandBooks.agentId, agent.id))
+                : eq(brandBooks.instanceId, instanceId)
+            const [brand] = await db.select().from(brandBooks).where(brandWhere)
+            const businessName = (brand as any)?.businessName || rdAny.answers?.businessName || 'Business'
             html = exportPlanAsManualHtml({ plan, audit, paidProfile: pp, businessName })
         }
         c.header('Content-Type', 'text/html; charset=utf-8')
@@ -9461,9 +9472,10 @@ export const getMazhirGtmInstallSnippet = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        if (!inst) return fail(c, 'Instance not found', 404)
-        const target = (inst.researchData as Record<string, unknown> | null)?.mazhirGtm as { target?: { publicId?: string; name?: string } } | undefined
+        // Phase 4.3-O systemic-fix: per-active-agent read (GTM target is per-agent).
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = await readResearchDataForActive(c, instanceId)
+        const target = (rd as Record<string, unknown>)?.mazhirGtm as { target?: { publicId?: string; name?: string } } | undefined
         if (!target?.target?.publicId) return fail(c, 'No GTM target saved yet', 400)
         const { buildGtmHeadSnippet, buildGtmBodySnippet } = await import('@/services/mazhirGtmSetup')
         return ok(c, {
@@ -9615,20 +9627,25 @@ export const autoSetupMazhirGtm = async (c: Context) => {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
 
+        // Phase 4.3-O systemic-fix: per-active-agent read of GTM target + paidProfile.
+        // googleTokens is still per-instance for now (Google OAuth at instance level
+        // until per-agent token migration completes).
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = await readResearchDataForActive(c, instanceId)
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!inst?.googleTokens) return fail(c, 'Google not connected', 400)
-        const rd: any = inst.researchData || {}
-        const target = rd.mazhirGtm?.target
+        const rdAny: any = rd
+        const target = rdAny.mazhirGtm?.target
         if (!target) return fail(c, 'GTM target not picked — call /mazhir/gtm/target first', 400)
-        const profile = rd.paidProfile
+        const profile = rdAny.paidProfile
 
         // Phase 4.2.3-C: prefer the saved `gtmConfigs` from Stage 8 — it's
         // already filtered to only source='created' actions (mapped actions
         // have their own native firing mechanisms, so no awct tag from us).
         // Fall back to deriving from active/created for legacy data shapes.
-        let gtmConfigs: any[] = rd.mazhirConversions?.gtmConfigs || []
+        let gtmConfigs: any[] = rdAny.mazhirConversions?.gtmConfigs || []
         if (!Array.isArray(gtmConfigs) || gtmConfigs.length === 0) {
-            const conversions = rd.mazhirConversions?.active || rd.mazhirConversions?.created || []
+            const conversions = rdAny.mazhirConversions?.active || rdAny.mazhirConversions?.created || []
             gtmConfigs = conversions
                 .filter((cv: any) => cv.source ? cv.source === 'created' : true)
                 .filter((cv: any) => cv.googleAdsConversionId && cv.googleAdsConversionLabel)
@@ -9698,10 +9715,12 @@ export const getMazhirWpSnippet = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const rd: any = inst?.researchData || {}
-        const profile = rd.paidProfile
-        const target = rd.mazhirGtm?.target
+        // Phase 4.3-O systemic-fix: per-active-agent read.
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = await readResearchDataForActive(c, instanceId)
+        const rdAny: any = rd
+        const profile = rdAny.paidProfile
+        const target = rdAny.mazhirGtm?.target
         const measurementId = target?.measurementId || ''
         const gtmId = target?.publicId || 'GTM-XXXXXXX'
         const avgValue = profile?.avgDealValueIls || 100

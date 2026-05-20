@@ -172,6 +172,36 @@ export async function readResearchData(
 }
 
 /**
+ * Phase 4.3-O systemic-fix: convenience helper for controllers handling HTTP
+ * requests. Resolves the ACTIVE agent (honoring ?agentId= query) and returns
+ * that agent's research_data.
+ *
+ * USE THIS in any HTTP controller that reads research_data scoped to a request
+ * (i.e. anywhere you'd otherwise write `inst.researchData`). The direct
+ * `instances.researchData` is only the PRIMARY agent's mirror — for secondary
+ * agents (multi-agent VPS topology) it returns the wrong data.
+ *
+ * Exception: cron jobs / background tasks that operate on the primary by
+ * design should use `resolvePrimaryAgent` + `readResearchData` explicitly.
+ *
+ * @example
+ *   // Bad — silently uses primary's data for secondary agents:
+ *   const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+ *   const rd = inst.researchData || {}
+ *
+ *   // Good — scoped to whichever agent the request targets:
+ *   const { rd, agent } = await readResearchDataForActive(c, instanceId)
+ */
+export async function readResearchDataForActive(
+    c: Context,
+    instanceId: string,
+): Promise<{ rd: ResearchData; agent: MatehAgentRow | null }> {
+    const agent = await resolveActiveAgent(c, instanceId)
+    const rd = await readResearchData(agent, instanceId)
+    return { rd, agent }
+}
+
+/**
  * Writes the given research_data object atomically to mateh_agents.research_data
  * (and mirrors to instances.research_data when the agent is primary).
  *
