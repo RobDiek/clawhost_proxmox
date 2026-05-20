@@ -9704,6 +9704,62 @@ export const autoSetupMazhirGtm = async (c: Context) => {
     }
 }
 
+// ─── POST /hosting/instances/:id/mazhir/conversions/detect-existing ──────
+// Phase 4.3-P(B) — read-only scan of the active agent's Google Ads account
+// for existing ConversionActions. Maps them to our actionKey schema, writes
+// a DRAFT to research_data.mazhirConversions.draftMapping, and creates a
+// `conversion_mapping_proposal` task in משימות פעילות for the user to
+// review. NEVER creates or modifies anything in Google Ads.
+export const detectExistingConversionActions = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const { detectExistingConversionActions: runDetect, persistDetectionAsDraft } =
+            await import('@/services/mazhirConversionsDetect')
+        const result = await runDetect(instanceId, __agent?.id || null)
+        if ('error' in result) {
+            return fail(c, `${result.error}: ${result.reason}`, 400)
+        }
+        if (result.mappings.length === 0 && result.enabledCount === 0) {
+            return ok(c, {
+                ...result,
+                approvalTaskId: null,
+                hint: 'לא נמצאו ConversionActions פעילות. ניתן ליצור חדשות דרך setup.',
+            }, 'אין פעולות המרה ב-Google Ads')
+        }
+        const { approvalTaskId } = await persistDetectionAsDraft(instanceId, __agent?.id || null, result)
+        return ok(c, {
+            ...result,
+            approvalTaskId,
+            hint: `נמצאו ${result.enabledCount} פעולות פעילות. ${result.mappings.length} מהן ממופות אוטומטית — אישור ב-משימות פעילות.`,
+        }, `זוהו ${result.mappings.length} פעולות המרה — מחכים לאישור`)
+    } catch (err) {
+        console.error('detectExistingConversionActions error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/conversions/apply-mapping ────────
+// Called from the משימות פעילות approval handler after user clicks "Approve"
+// on a conversion_mapping_proposal task. Promotes the draftMapping entries
+// into mazhirConversions.active[] so the GTM diagnostic gate goes green.
+export const applyConversionMapping = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const { applyApprovedConversionMapping } = await import('@/services/mazhirConversionsDetect')
+        const { activated } = await applyApprovedConversionMapping(instanceId, __agent?.id || null)
+        return ok(c, { activated }, `${activated} פעולות המרה הופעלו`)
+    } catch (err) {
+        console.error('applyConversionMapping error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── GET /hosting/instances/:id/mazhir/preflight ──────────────────────────
 export const getMazhirPreflight = async (c: Context) => {
     try {

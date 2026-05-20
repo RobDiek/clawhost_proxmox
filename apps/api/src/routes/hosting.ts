@@ -99,6 +99,8 @@ import {
     setupMazhirConversions,
     getConversionSuggestions,
     confirmConversionMappings,
+    detectExistingConversionActions,
+    applyConversionMapping,
     autoSetupMazhirGtm,
     getMazhirPreflight,
     executeMazhirPlan,
@@ -515,6 +517,10 @@ app.post('/instances/:id/mazhir/conversions/setup', setupMazhirConversions)
 // Phase 4.2.3-B — auto-suggest + user-confirm flow (UI-driven)
 app.get('/instances/:id/mazhir/conversions/suggestions', getConversionSuggestions)
 app.post('/instances/:id/mazhir/conversions/confirm', confirmConversionMappings)
+// Phase 4.3-P(B) — read-only detect-existing flow: scan live Ads ConversionActions,
+// match onto our schema, draft mapping → user approves in משימות פעילות → apply.
+app.post('/instances/:id/mazhir/conversions/detect-existing', detectExistingConversionActions)
+app.post('/instances/:id/mazhir/conversions/apply-mapping', applyConversionMapping)
 app.post('/instances/:id/mazhir/gtm/auto-setup', autoSetupMazhirGtm)
 // Phase 4.2.2-A — GTM integration card diagnostic (probe-based gate status)
 app.get('/instances/:id/integrations/gtm/diagnostic', getGtmIntegrationDiagnostic)

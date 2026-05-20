@@ -520,23 +520,66 @@ export async function runGtmDiagnostic(instanceId: string, agentId?: string): Pr
     gates.push(publishGate)
 
     // ── Gate 8: Conversion actions ready (for wiring up Ads conversion tags) ──
+    // Phase 4.3-P(B): the gate previously only looked at OUR record of created
+    // actions. If the user already has ConversionActions in Google Ads (the
+    // common case — agency clients, established advertisers), they were
+    // invisible and the gate told them to "create new" — duplicating data.
+    //
+    // New flow:
+    //   1) Look at our internal active[] first (mapped or created actions
+    //      already approved by the user).
+    //   2) Look at draftMapping — if present, the user has a pending review
+    //      task; surface "waiting for approval" with a manual action.
+    //   3) Otherwise, gate is failing — but the action now hints at
+    //      DETECTION first (`mazhir/conversions/detect-existing` → draft
+    //      mapping → review task) before creating new.
     const eligibleConv = conversions.filter(c => c.googleAdsConversionId && c.googleAdsConversionLabel
         && c.actionKey !== 'qualified_lead' && c.actionKey !== 'phone_call_offline')
+    const draftMapping = (rd.mazhirConversions?.draftMapping as { mappings?: unknown[]; appliedAt?: string } | undefined)
+    const hasDraft = !!(draftMapping?.mappings && (draftMapping.mappings.length > 0) && !draftMapping.appliedAt)
     const conversionsReady = eligibleConv.length > 0
-    gates.push({
-        id: 'conversion_actions_ready',
-        label: 'פעולות המרה מוכנות (Ads)',
-        status: conversionsReady ? 'pass' : 'fail',
-        message: conversionsReady
-            ? `${eligibleConv.length} ConversionActions מוכנות לחיבור ל-tags`
-            : 'אין ConversionActions ב-Google Ads — נדרש להריץ setup',
-        blocking: true,
-        action: conversionsReady ? undefined : {
-            type: 'auto_fix',
-            endpoint: `/hosting/instances/${instanceId}/mazhir/conversions/setup`,
-            label: '▶ צרו ConversionActions',
-        },
-    })
+    if (conversionsReady) {
+        gates.push({
+            id: 'conversion_actions_ready',
+            label: 'פעולות המרה מוכנות (Ads)',
+            status: 'pass',
+            message: `${eligibleConv.length} ConversionActions מוכנות לחיבור ל-tags`,
+            blocking: true,
+        })
+    } else if (hasDraft) {
+        gates.push({
+            id: 'conversion_actions_ready',
+            label: 'פעולות המרה מוכנות (Ads)',
+            status: 'warn',
+            message: `${draftMapping?.mappings?.length || 0} מיפויים מחכים לאישור ב-משימות פעילות`,
+            detail: 'הסיסטם זיהה פעולות המרה קיימות ב-Google Ads ומציע מיפוי. אשרו אותו ב-משימות פעילות לפני שנמשיך.',
+            blocking: true,
+            action: {
+                type: 'manual',
+                label: '→ פתחו משימות פעילות',
+                steps: [
+                    'פתחו את לשונית "משימות פעילות" בדשבורד',
+                    'מצאו את המשימה "אישור מיפוי פעולות המרה"',
+                    'בדקו את ההצעה ולחצו "אשר" אם המיפוי נכון',
+                    'חזרו לכאן ולחצו "🔄 רענן" — gate יהיה ירוק',
+                ],
+            },
+        })
+    } else {
+        gates.push({
+            id: 'conversion_actions_ready',
+            label: 'פעולות המרה מוכנות (Ads)',
+            status: 'fail',
+            message: 'לא זוהו ConversionActions לסוכן זה',
+            detail: 'הסיסטם ינסה קודם לזהות פעולות המרה קיימות ב-Google Ads. אם אין — נציע ליצור חדשות.',
+            blocking: true,
+            action: {
+                type: 'auto_fix',
+                endpoint: `/hosting/instances/${instanceId}/mazhir/conversions/detect-existing`,
+                label: '🔍 חפשו ConversionActions קיימות',
+            },
+        })
+    }
 
     return finalize({
         oauth: { connected: true, email: actualEmail, connectedAt: tokens?.connectedAt || null, scopes: actualScopes },

@@ -245,6 +245,29 @@ export const approveOutput = async (c: Context<HonoEnv>) => {
 async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
     const meta = output.metadata as Record<string, unknown> | null
 
+    // Phase 4.3-P(B) — Conversion mapping proposal approved → promote
+    // draftMapping in research_data into active[] so the GTM diagnostic
+    // gate goes green. Idempotent: if user re-approves, applyApprovedConversionMapping
+    // just re-writes the same set.
+    if (output.outputType === 'conversion_mapping_proposal') {
+        console.log(`Conversion mapping approved: ${output.id} → applying to active[]`)
+        try {
+            const { applyApprovedConversionMapping } = await import('@/services/mazhirConversionsDetect')
+            const { activated } = await applyApprovedConversionMapping(output.instanceId, output.agentId || null)
+            await db.update(agentOutputs).set({
+                metadata: { ...(meta || {}), activated, appliedAt: new Date().toISOString() } as any,
+                updatedAt: new Date(),
+            }).where(eq(agentOutputs.id, output.id))
+        } catch (err) {
+            console.error('applyApprovedConversionMapping error:', err)
+            await db.update(agentOutputs).set({
+                metadata: { ...(meta || {}), applyError: (err as Error).message } as any,
+                updatedAt: new Date(),
+            }).where(eq(agentOutputs.id, output.id))
+        }
+        return
+    }
+
     // Bid Transition Proposal approved → flip the campaign's bidding strategy
     if (output.outputType === 'bid_transition_proposal') {
         console.log(`Bid transition approved: ${output.id} → applying`)

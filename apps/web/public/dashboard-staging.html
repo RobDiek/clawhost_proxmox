@@ -23861,15 +23861,33 @@ async function openGA4PropertyPicker() {
       modal.querySelector('[data-picker-list]').innerHTML = '<div style="padding:24px;text-align:center;color:#991B1B">לא נמצאו properties ב-GA4. ודאו שיש לכם גישה ל-Analytics אצל Google.</div>';
       return;
     }
-    var html = '<div style="font-size:0.78rem;color:#9CA3AF;margin-bottom:8px">' + props.length + ' properties נמצאו</div>';
+    // Phase 4.3-P(C) — backend tags the brand-domain match as _suggested.
+    // Pre-select it when nothing was previously saved so the user gets
+    // a sane default without picking the wrong tenant on multi-client OAuth.
+    var hasPrev = !!sel.ga4PropertyId;
+    var suggested = null;
+    for (var si = 0; si < props.length; si++) { if (props[si]._suggested) { suggested = props[si]; break; } }
+    var html = '<div style="font-size:0.78rem;color:#9CA3AF;margin-bottom:8px">' + props.length + ' properties נמצאו' +
+      (suggested ? ' · מסומן כברירת מחדל: ' + escapeHtml(suggested.displayName) : '') + '</div>';
     for (var i = 0; i < props.length; i++) {
       var p = props[i];
-      var checked = (sel.ga4PropertyId === p.propertyId) ? ' checked' : '';
-      html += '<label style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:6px;cursor:pointer">' +
+      var checked = (sel.ga4PropertyId === p.propertyId)
+        ? ' checked'
+        : (!hasPrev && p._suggested ? ' checked' : '');
+      var rowBg = p._suggested ? '#F0FDF4' : '#fff';
+      var rowBd = p._suggested ? '#A7F3D0' : '#E5E7EB';
+      var suggestBadge = p._suggested
+        ? '<div style="display:inline-block;background:#10B981;color:#fff;font-size:0.66rem;padding:2px 6px;border-radius:999px;margin-inline-start:6px">✓ מומלץ</div>'
+        : '';
+      var suggestReason = p._suggested && p._suggestReason
+        ? '<div style="font-size:0.7rem;color:#065F46;margin-top:2px">' + escapeHtml(p._suggestReason) + '</div>'
+        : '';
+      html += '<label style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:' + rowBg + ';border:1px solid ' + rowBd + ';border-radius:8px;margin-bottom:6px;cursor:pointer">' +
         '<input type="radio" name="pdiPropPick" value="' + escapeAttr(p.propertyId) + '" data-name="' + escapeAttr(p.displayName) + '" style="margin-top:2px"' + checked + '>' +
         '<div style="flex:1;min-width:0">' +
-          '<div style="font-weight:600;color:#1F2937">' + escapeHtml(p.displayName) + '</div>' +
+          '<div style="font-weight:600;color:#1F2937">' + escapeHtml(p.displayName) + suggestBadge + '</div>' +
           '<div style="font-size:0.75rem;color:#6B7280">ID: ' + escapeHtml(p.propertyId) + (p.accountName ? ' · חשבון: ' + escapeHtml(p.accountName) : '') + '</div>' +
+          suggestReason +
         '</div>' +
       '</label>';
     }
@@ -24211,7 +24229,15 @@ async function _gtmGateActionClick(gateId) {
     try {
       var actR = await apiFetch(action.endpoint, { method: 'POST' });
       if (!actR.success) throw new Error(actR.message || 'failed');
-      showToast(action.label + ' הושלם ✓', 'success');
+      // Prefer the backend's contextual message ("זוהו 3 פעולות המרה...")
+      // over the generic action label — much more informative.
+      showToast(actR.message || (action.label + ' הושלם ✓'), 'success');
+      // If detect-existing found mappings, gently push the user to משימות פעילות.
+      if (actR.data && actR.data.approvalTaskId) {
+        setTimeout(function() {
+          showToast('פתחו משימות פעילות לאישור המיפוי', 'info');
+        }, 1500);
+      }
       await loadGtmDiagnostic(true);
     } catch (err) {
       showToast('שגיאה: ' + (err.message || err), 'error');

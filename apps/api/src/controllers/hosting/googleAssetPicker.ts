@@ -166,7 +166,7 @@ export const listGA4Properties = async (c: Context) => {
             }>
         }
 
-        const properties: GA4Property[] = []
+        const properties: Array<GA4Property & { _suggested?: boolean; _suggestReason?: string }> = []
         for (const acc of j.accountSummaries || []) {
             const accountName = acc.displayName || acc.name?.replace('accounts/', '') || ''
             for (const p of acc.propertySummaries || []) {
@@ -179,6 +179,57 @@ export const listGA4Properties = async (c: Context) => {
                 })
             }
         }
+
+        // Phase 4.3-P(C) — auto-suggest by brand domain match. Pull the active
+        // agent's brand context, score each property's display name + account
+        // name against it. Top hit gets `_suggested:true` so the frontend can
+        // pre-select it (saves users from picking the wrong tenant on a
+        // multi-client OAuth — exactly the cross-client-data risk this picker
+        // was built to prevent).
+        try {
+            const { readResearchData } = await import('@/services/agentContext')
+            const rd = (await readResearchData(__agent, instanceId)) as Record<string, unknown>
+            const answers = (rd?.answers as Record<string, unknown>) || {}
+            const paidProfile = (rd?.paidProfile as Record<string, unknown>) || {}
+            const websiteUrl = String(answers.websiteUrl || paidProfile.websiteUrl || '').trim()
+            const brandName = String(answers.businessName || __agent?.name || '').trim()
+            // Derive a normalized hostname from the websiteUrl so we can substring-match.
+            let hostKey = ''
+            if (websiteUrl) {
+                try {
+                    const u = new URL(/^https?:\/\//i.test(websiteUrl) ? websiteUrl : 'https://' + websiteUrl)
+                    hostKey = u.hostname.toLowerCase().replace(/^www\./, '').split('.')[0]
+                } catch { /* ignore */ }
+            }
+            // Brand tokens (≥4 chars to avoid noise like "ltd", "co").
+            const brandTokens = brandName.toLowerCase().split(/[\s\W]+/).filter(t => t.length >= 4)
+            const allTokens = Array.from(new Set([hostKey, ...brandTokens].filter(Boolean)))
+
+            if (allTokens.length > 0) {
+                let best: { prop: typeof properties[number]; score: number; reason: string } | null = null
+                for (const prop of properties) {
+                    const hay = `${prop.displayName} ${prop.accountName || ''}`.toLowerCase()
+                    let score = 0
+                    const matched: string[] = []
+                    for (const tok of allTokens) {
+                        if (hay.includes(tok)) { score += (tok === hostKey ? 3 : 2); matched.push(tok) }
+                    }
+                    if (score > 0 && (!best || score > best.score)) {
+                        best = {
+                            prop,
+                            score,
+                            reason: matched.length === 1
+                                ? `שם ה-property מכיל "${matched[0]}"`
+                                : `שם ה-property תואם: ${matched.join(', ')}`,
+                        }
+                    }
+                }
+                if (best) {
+                    best.prop._suggested = true
+                    best.prop._suggestReason = best.reason
+                }
+            }
+        } catch { /* suggest is best-effort */ }
 
         return ok(c, {
             properties,
