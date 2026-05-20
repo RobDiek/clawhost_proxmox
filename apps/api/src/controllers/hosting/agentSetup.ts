@@ -3591,25 +3591,24 @@ print('Google Ads config updated')
         // Update SOUL with playbook (idempotent)
         await updateSoulWithGoogleAdsTools(instance.ip, instance.rootPassword || undefined)
 
-        // Phase 4.2.1 — DUAL-WRITE: persist to DB so server-side services
-        // (pullSearchTermsReport, pullAuctionInsights, client_account_baseline)
-        // can read the config. VPS-only previously left server unaware.
-        // Existing scope is preserved if already set (re-saving creds shouldn't
-        // wipe campaign allowlist).
-        const prevCfg = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
+        // Phase 4.3-P — per-active-agent persistence. The dual-write helper
+        // writes to mateh_agents.googleAdsConfig (canonical) and mirrors to
+        // instances.googleAdsConfig only when the active agent is primary
+        // (legacy callers that still read the instance row). Secondary agents
+        // (Packing) now keep their own config block separate from primary.
+        const { readGoogleAdsConfigForActive, writeGoogleAdsConfig } = await import('@/services/agentContext')
+        const { config: prevCfg, agent } = await readGoogleAdsConfigForActive(c, instanceId)
         const dbConfig = {
             customerId,
             loginCustomerId: loginCustomerId || customerId,
             developerToken,
             linkedAt: new Date().toISOString(),
             // Preserve previous scope selection if it exists (campaign picker)
-            scope: (prevCfg as { scope?: unknown }).scope,
+            scope: prevCfg?.scope,
         }
-        await db.update(instances)
-            .set({ googleAdsConfig: dbConfig, googleAdsMode: 'self' })
-            .where(eq(instances.id, instanceId))
+        await writeGoogleAdsConfig(agent, instanceId, { config: dbConfig, mode: 'self' })
 
-        console.log(`Google Ads config saved for ${instanceId}: customerId=${customerId} (VPS+DB)`)
+        console.log(`Google Ads config saved for ${instanceId} agent=${agent?.id || 'legacy'}: customerId=${customerId}`)
         return ok(c, { customerId, connected: true, scopeConfigured: !!dbConfig.scope }, 'Google Ads מוגדר.')
     } catch (err) {
         console.error('saveGoogleAdsConfig error:', err)
@@ -3657,15 +3656,14 @@ print('Google Ads config cleared')
             }
         }
 
-        // 2. Clear platform DB record so dashboard /status returns disconnected
-        await db.update(instances)
-            .set({
-                googleAdsConfig: null as never,
-                googleAdsMode: null as never,
-            })
-            .where(eq(instances.id, instanceId))
+        // 2. Clear per-active-agent DB record so dashboard /status returns
+        // disconnected. Phase 4.3-P: disconnect only the active agent — other
+        // agents on the same VPS keep their own Ads config intact.
+        const { writeGoogleAdsConfig, resolveActiveAgent } = await import('@/services/agentContext')
+        const __agent = await resolveActiveAgent(c, instanceId)
+        await writeGoogleAdsConfig(__agent, instanceId, { config: null, mode: null })
 
-        console.log(`Google Ads config disconnected for ${instanceId}`)
+        console.log(`Google Ads config disconnected for ${instanceId} agent=${__agent?.id || 'legacy'}`)
         return ok(c, { connected: false }, 'Google Ads disconnected')
     } catch (err) {
         console.error('disconnectGoogleAdsConfig error:', err)
@@ -3674,25 +3672,24 @@ print('Google Ads config cleared')
 }
 
 // ── GET /hosting/instances/:id/integrations/googleads/status ──
+// Phase 4.3-P: status comes from per-active-agent DB row (mateh_agents) so
+// secondary agents don't show the primary's connection. The VPS openclaw.json
+// probe is removed — on multi-MATEH installs there's only ONE gateway per
+// VPS, so the file would only describe the primary anyway.
 export const getGoogleAdsConfigStatus = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        if (!instance?.ip) return ok(c, { connected: false })
-
-        // Read plugin config from VPS openclaw.json
-        const out = await sshExec(instance.ip,
-            `su - openclaw -c "cat /home/openclaw/.openclaw/openclaw.json 2>/dev/null | python3 -c 'import sys, json; d=json.load(sys.stdin); cfg=d.get(\\"plugins\\",{}).get(\\"entries\\",{}).get(\\"openclaw-googleads\\",{}).get(\\"config\\",{}); print(\\"CID:\\"+cfg.get(\\"customerId\\",\\"\\")+\\";DT:\\"+(\\"yes\\" if cfg.get(\\"developerToken\\") else \\"no\\"))'"`,
-            instance.rootPassword || undefined, 15000
-        )
-        const m = out.match(/CID:(\d*);DT:(yes|no)/)
-        const cid = m?.[1] || ''
-        const hasDT = m?.[2] === 'yes'
+        const { readGoogleAdsConfigForActive } = await import('@/services/agentContext')
+        const { config } = await readGoogleAdsConfigForActive(c, instanceId)
+        if (!config?.customerId) return ok(c, { connected: false })
+        const cid = String(config.customerId).replace(/\D/g, '')
         return ok(c, {
-            connected: !!(cid && hasDT),
+            connected: !!(cid && config.developerToken),
             customerId: cid ? cid.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') : '',
-            hasDeveloperToken: hasDT,
+            hasDeveloperToken: !!config.developerToken,
+            scopeConfigured: !!config.scope,
+            operatingCustomerId: config.scope?.operatingCustomerId,
         })
     } catch (err) {
         console.error('getGoogleAdsConfigStatus error:', err)
@@ -3712,11 +3709,15 @@ export const listGoogleAdsCampaignsForScope = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const cfg = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
-        const customerId = cfg.customerId as string | undefined
-        const loginCustomerId = (cfg.loginCustomerId as string | undefined) || customerId
-        const developerToken = cfg.developerToken as string | undefined
-        const gt = (instance.googleTokens as { refreshToken?: string; refresh_token?: string } | null)
+        // Phase 4.3-P — per-active-agent Ads config + tokens. Without this a
+        // secondary agent would scope-list against the primary's customer.
+        const { readGoogleAdsConfigForActive } = await import('@/services/agentContext')
+        const { config: cfg, agent: __agent } = await readGoogleAdsConfigForActive(c, instanceId)
+        const customerId = cfg?.customerId
+        const loginCustomerId = cfg?.loginCustomerId || customerId
+        const developerToken = cfg?.developerToken
+        const gt = (__agent?.googleTokens as { refreshToken?: string; refresh_token?: string } | null)
+            ?? (instance.googleTokens as { refreshToken?: string; refresh_token?: string } | null)
         const refreshToken = gt?.refreshToken || gt?.refresh_token
 
         if (!customerId || !refreshToken) {
@@ -3734,8 +3735,12 @@ export const listGoogleAdsCampaignsForScope = async (c: Context) => {
         const { listCampaigns } = await import('@/services/googleAdsDeepEnrich')
         const result = await listCampaigns(customerId, { refreshToken }, developerToken, loginCustomerId, subAccountId)
 
-        const prevScope = cfg.scope as { campaignIds?: string[]; operatingCustomerId?: string } | undefined
-        const brandName = ((instance.researchData as { answers?: { businessName?: string } } | null)?.answers?.businessName || '').trim()
+        const prevScope = cfg?.scope as { campaignIds?: string[]; operatingCustomerId?: string } | undefined
+        // Brand name comes from the ACTIVE agent's research_data (each agent
+        // has its own brand). Falling back to instance mirror = primary only.
+        const rdActive = (__agent?.researchData as { answers?: { businessName?: string } } | null)
+            ?? (instance.researchData as { answers?: { businessName?: string } } | null)
+        const brandName = (rdActive?.answers?.businessName || '').trim()
         const brandTokens = brandName ? brandName.toLowerCase().split(/\s+/).filter(t => t.length >= 3) : []
 
         // Augment campaigns with brand-match + previously-selected hints
@@ -3779,11 +3784,12 @@ export const saveGoogleAdsCampaignScope = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        if (!instance) return fail(c, 'Instance not found', 404)
 
-        const cfg = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
-        if (!cfg.customerId) return fail(c, 'יש לחבר Google Ads קודם', 400)
+        // Phase 4.3-P — per-active-agent scope. Two agents sharing one MCC
+        // can pick disjoint campaign sets without overwriting each other.
+        const { readGoogleAdsConfigForActive, writeGoogleAdsConfig, mutateResearchData } = await import('@/services/agentContext')
+        const { config: cfg, agent: __agent } = await readGoogleAdsConfigForActive(c, instanceId)
+        if (!cfg?.customerId) return fail(c, 'יש לחבר Google Ads קודם', 400)
 
         const body = await c.req.json<{ mode: 'account' | 'campaigns'; campaignIds?: string[]; operatingCustomerId?: string }>()
         const mode = body.mode === 'campaigns' ? 'campaigns' : 'account'
@@ -3800,7 +3806,7 @@ export const saveGoogleAdsCampaignScope = async (c: Context) => {
         const scope = {
             mode,
             // operatingCustomerId = the SUB-account ID under MCC that owns this
-            // instance's campaigns. When set, every pull queries this customer
+            // agent's campaigns. When set, every pull queries this customer
             // ID instead of the MCC ID (which can't return metrics).
             operatingCustomerId,
             campaignIds: mode === 'campaigns' ? campaignIds : undefined,
@@ -3809,21 +3815,20 @@ export const saveGoogleAdsCampaignScope = async (c: Context) => {
         }
 
         const newCfg = { ...cfg, scope }
-        await db.update(instances).set({ googleAdsConfig: newCfg }).where(eq(instances.id, instanceId))
+        await writeGoogleAdsConfig(__agent, instanceId, { config: newCfg })
 
         // Phase 4.2.1 — invalidate any cached client_account_baseline so the
-        // next paid stage run pulls fresh data with the new scope.
-        const rd = (instance.researchData as Record<string, unknown> | null) || {}
-        const rdResults = (rd.results as Record<string, unknown> | null) || {}
-        if (rdResults.client_account_baseline) {
-            const newResults = { ...rdResults }
+        // next paid stage run pulls fresh data with the new scope. Per-active-
+        // agent so secondary's cache invalidation doesn't trash primary's.
+        await mutateResearchData(__agent, instanceId, (rd) => {
+            const results = (rd.results as Record<string, unknown> | null) || {}
+            if (!results.client_account_baseline) return rd
+            const newResults = { ...results }
             delete newResults.client_account_baseline
-            await db.update(instances)
-                .set({ researchData: { ...rd, results: newResults } })
-                .where(eq(instances.id, instanceId))
-        }
+            return { ...rd, results: newResults }
+        })
 
-        console.log(`Google Ads scope saved for ${instanceId}: mode=${mode} ids=${campaignIds.length}`)
+        console.log(`Google Ads scope saved for ${instanceId} agent=${__agent?.id || 'legacy'}: mode=${mode} ids=${campaignIds.length}`)
         return ok(c, { scope }, 'היקף הקמפיינים נשמר.')
     } catch (err) {
         console.error('saveGoogleAdsCampaignScope error:', err)

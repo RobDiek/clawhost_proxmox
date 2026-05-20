@@ -230,9 +230,10 @@ export const setGoogleAdsMode = async (c: Context) => {
             return fail(c, 'mode must be "self" or "haas"', 400)
         }
 
-        await db.update(instances)
-            .set({ googleAdsMode: mode })
-            .where(eq(instances.id, instanceId))
+        // Phase 4.3-P — per-agent. Mode is now stored on mateh_agents row.
+        const { resolveActiveAgent, writeGoogleAdsConfig } = await import('@/services/agentContext')
+        const __agent = await resolveActiveAgent(c, instanceId)
+        await writeGoogleAdsConfig(__agent, instanceId, { mode })
 
         return ok(c, { mode }, 'Google Ads mode saved')
     } catch (err) {
@@ -261,19 +262,20 @@ export const requestHaasMccInvite = async (c: Context) => {
             return fail(c, 'customerId must be 10 digits', 400)
         }
 
-        // Persist request to googleAdsConfig (so we can reconcile later).
-        const existing = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
-        await db.update(instances)
-            .set({
-                googleAdsMode: 'haas',
-                googleAdsConfig: {
-                    ...existing,
-                    customerId,
-                    haasInviteRequestedAt: new Date().toISOString(),
-                    haasInviteStatus: 'pending',
-                } as never,
-            })
-            .where(eq(instances.id, instanceId))
+        // Phase 4.3-P — per-active-agent. HaaS invite is requested for a
+        // SPECIFIC agent (which has its own customerId pending). Don't
+        // overwrite the primary's record when a secondary requests.
+        const { readGoogleAdsConfigForActive, writeGoogleAdsConfig } = await import('@/services/agentContext')
+        const { config: existing, agent: __agent } = await readGoogleAdsConfigForActive(c, instanceId)
+        await writeGoogleAdsConfig(__agent, instanceId, {
+            mode: 'haas',
+            config: {
+                ...(existing || {}),
+                customerId,
+                haasInviteRequestedAt: new Date().toISOString(),
+                haasInviteStatus: 'pending',
+            },
+        })
 
         // Alert ops on Telegram. Failure is non-blocking — request is already
         // persisted, ops can pick up via dashboard/admin view.

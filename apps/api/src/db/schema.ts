@@ -461,6 +461,13 @@ export const matehAgents = pgTable(
         metaTokens: jsonb('meta_tokens'),
         microsoftTokens: jsonb('microsoft_tokens'),
         gscTokens: jsonb('gsc_tokens'),
+        // Phase 4.3-P: Google Ads config moved from instances → per-agent.
+        // Same shape as instances.googleAdsConfig: { customerId, loginCustomerId,
+        // developerToken, scope: { mode, operatingCustomerId, campaignIds[], ... } }.
+        // Secondary agents (same MCC, different operatingCustomer + campaigns) now
+        // have their own isolated config so cross-agent leak ends.
+        googleAdsMode: text('google_ads_mode'),         // 'self' | 'managed' (no default — inherit from instance for legacy)
+        googleAdsConfig: jsonb('google_ads_config'),
         githubConfig: jsonb('github_config'),
         telegramChatId: text('telegram_chat_id'),
         telegramBotToken: text('telegram_bot_token'),

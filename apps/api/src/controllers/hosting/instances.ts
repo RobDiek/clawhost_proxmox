@@ -253,16 +253,15 @@ export const getInstance = async (c: Context<HonoEnv>) => {
         }
 
         // Phase 4.2.1-K — surfacing of API readiness signals.
-        // Phase 4.3-O fix: googleAdsConfig is instance-level (per-VPS), but Google
-        // Ads OAuth is per-agent. If the active agent does NOT have 'ads' scope,
-        // surfacing the instance's customerId would falsely tell the UI that
-        // Google Ads is connected for this agent (cross-agent leak — exactly
-        // what Sergei saw on Packing Station). Gate on hasGoogleAds.
-        //
-        // Roadmap follow-up: move googleAdsConfig to mateh_agents (per-agent),
-        // so each agent has its own customerId + developerToken (Packing might
-        // use a different ad account than Storage on the same VPS).
-        const _gadsCfg = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
+        // Phase 4.3-P: googleAdsConfig is now per-agent (mateh_agents column).
+        // Read the ACTIVE agent's config directly; fall back to instance row
+        // only when the agent has no row of its own (legacy VPSes pre-2.1).
+        // Combined with the hasGoogleAds (ads OAuth scope) check, this fully
+        // closes the cross-agent leak Sergei reported.
+        const _agentGadsCfg = (activeAgent?.googleAdsConfig as Record<string, unknown> | null) ?? null
+        const _gadsCfg = _agentGadsCfg
+            ?? (activeAgent?.isPrimary ? (instance.googleAdsConfig as Record<string, unknown> | null) : null)
+            ?? {}
         if (response.hasGoogleAds) {
             response.googleAdsCustomerId = _gadsCfg.customerId || null
             response.googleAdsHasDevToken = !!_gadsCfg.developerToken
@@ -270,6 +269,10 @@ export const getInstance = async (c: Context<HonoEnv>) => {
             response.googleAdsCustomerId = null
             response.googleAdsHasDevToken = false
         }
+        response.googleAdsConfig = _gadsCfg.customerId ? _gadsCfg : null
+        // Mode is per-agent too. Don't let secondary inherit primary's mode.
+        response.googleAdsMode = (activeAgent?.googleAdsMode as string | null)
+            ?? (activeAgent?.isPrimary ? (instance.googleAdsMode || null) : null)
         // Phase 4.2.1-L — per-API OAuth scope booleans. Use activeAgent's
         // googleTokens when available (per-agent OAuth), else instance row.
         const _activeGt = (response.googleTokens as { scopes?: string[] | string; scope?: string } | null)

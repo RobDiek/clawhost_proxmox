@@ -310,6 +310,115 @@ export async function writeAgentTokens(
 }
 
 /**
+ * Phase 4.3-P — Google Ads config dual store (per-agent).
+ *
+ * Until Phase 4.3-P `instances.googleAdsConfig` was the only home for the
+ * customerId / loginCustomerId / developerToken + the chosen scope
+ * (operatingCustomerId + campaignIds). On multi-MATEH VPSes that meant the
+ * secondary agent's UI showed the PRIMARY agent's operating account and
+ * campaign list — and any publish from the secondary would write to the
+ * wrong campaigns. The migration moves the canonical row to mateh_agents.
+ *
+ * Use these helpers anywhere code touches `googleAdsConfig` / `googleAdsMode`
+ * so we never accidentally reach back into the instance-level mirror.
+ */
+
+export interface GoogleAdsConfig {
+    customerId?: string
+    loginCustomerId?: string
+    developerToken?: string
+    linkedAt?: string
+    mccSubAccountId?: string
+    scope?: {
+        // Historical values seen in prod: 'campaigns' (allowlist) or
+        // 'account'/'all' (use the entire account). Treat anything not
+        // 'campaigns' as 'all'.
+        mode?: string
+        operatingCustomerId?: string
+        campaignIds?: string[]
+        selectedAt?: string
+        selectedBy?: string | null
+    }
+    [k: string]: unknown
+}
+
+export async function readGoogleAdsConfig(
+    agent: MatehAgentRow | null,
+    instanceId: string,
+): Promise<{ config: GoogleAdsConfig | null; mode: string | null }> {
+    if (agent) {
+        const cfg = (agent.googleAdsConfig as GoogleAdsConfig | null) || null
+        const mode = (agent.googleAdsMode as string | null) || null
+        if (cfg || mode) return { config: cfg, mode }
+        // Pre-migration fallback (legacy primary whose row was backfilled but
+        // is still NULL because the migration ran AFTER the row was created):
+        // read from instances.googleAdsConfig if this is the primary.
+        if (agent.isPrimary) {
+            const { instances } = await import('@/db/schema')
+            const [inst] = await db
+                .select({ cfg: instances.googleAdsConfig, mode: instances.googleAdsMode })
+                .from(instances)
+                .where(eq(instances.id, instanceId))
+            return { config: ((inst?.cfg as GoogleAdsConfig | null) || null), mode: inst?.mode || null }
+        }
+        // Secondary with no config = honestly disconnected. Do NOT fall back
+        // to the instance mirror — that's the primary's, and reading it is
+        // exactly the leak this migration fixes.
+        return { config: null, mode: null }
+    }
+    // No agent row at all (very old legacy instance): use instance mirror.
+    const { instances } = await import('@/db/schema')
+    const [inst] = await db
+        .select({ cfg: instances.googleAdsConfig, mode: instances.googleAdsMode })
+        .from(instances)
+        .where(eq(instances.id, instanceId))
+    return { config: ((inst?.cfg as GoogleAdsConfig | null) || null), mode: inst?.mode || null }
+}
+
+/**
+ * Same as readGoogleAdsConfig but resolves the active agent from the Hono
+ * Context (?agentId= aware). Drop-in for controllers.
+ */
+export async function readGoogleAdsConfigForActive(
+    c: Context,
+    instanceId: string,
+): Promise<{ config: GoogleAdsConfig | null; mode: string | null; agent: MatehAgentRow | null }> {
+    const agent = await resolveActiveAgent(c, instanceId)
+    const { config, mode } = await readGoogleAdsConfig(agent, instanceId)
+    return { config, mode, agent }
+}
+
+/**
+ * Write Google Ads config + mode to the active agent. Mirrors to the
+ * instances row only when the agent is primary (legacy callers like the
+ * VPS-side n8n config sync read from there).
+ */
+export async function writeGoogleAdsConfig(
+    agent: MatehAgentRow | null,
+    instanceId: string,
+    next: { config?: GoogleAdsConfig | null; mode?: string | null },
+): Promise<void> {
+    const fields: Record<string, unknown> = {}
+    if ('config' in next) fields.googleAdsConfig = next.config as never
+    if ('mode' in next) fields.googleAdsMode = next.mode as never
+    if (Object.keys(fields).length === 0) return
+
+    if (agent) {
+        await db.update(matehAgents)
+            .set({ ...fields, updatedAt: new Date() } as never)
+            .where(eq(matehAgents.id, agent.id))
+        if (agent.isPrimary) {
+            const { instances } = await import('@/db/schema')
+            await db.update(instances).set(fields as never).where(eq(instances.id, instanceId))
+        }
+    } else {
+        // Legacy fallback — no agent row exists.
+        const { instances } = await import('@/db/schema')
+        await db.update(instances).set(fields as never).where(eq(instances.id, instanceId))
+    }
+}
+
+/**
  * Phase 2.3.J — write tokens to a SPECIFIC mateh_agent by id, bypassing
  * the Context-based resolver. Required for OAuth callback handlers where
  * the request comes from Google/Meta/etc with no `?agentId=` (it must be
