@@ -119,7 +119,8 @@ export const googleAuth = async (c: Context) => {
         const agentIdFromContext = __activeAgentForStart?.id || ''
 
         // State = instanceId + scopes + agent + agentId + HMAC signature (prevents tampering)
-        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId, agent: agentType, agentId: agentIdFromContext })
+        // Phase 4.3-O M4: TTL — stale state stolen from logs/history can't be reused after 10 min.
+        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId, agent: agentType, agentId: agentIdFromContext, exp: Date.now() + 10 * 60 * 1000 })
         const stateHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(statePayload).digest('base64url')
         const state = Buffer.from(JSON.stringify({ p: statePayload, s: stateHmac })).toString('base64url')
 
@@ -165,6 +166,14 @@ export const googleCallback = async (c: Context) => {
             console.error('Google OAuth state HMAC mismatch — possible tampering')
             return c.redirect(`${FRONTEND_URL}/dashboard.html?google_error=invalid_state`)
         }
+        // Phase 4.3-O M4: state TTL verification (10 min from issue time).
+        try {
+            const _stateData = JSON.parse(stateOuter.p)
+            if (_stateData.exp && Date.now() > _stateData.exp) {
+                console.error('Google OAuth state expired')
+                return c.redirect(`${FRONTEND_URL}/dashboard.html?google_error=state_expired`)
+            }
+        } catch { /* exp check best-effort — main HMAC check above is authoritative */ }
 
         // Route to GSC callback if state indicates GSC auth
         try {

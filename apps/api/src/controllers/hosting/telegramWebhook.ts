@@ -43,6 +43,33 @@ interface TelegramUpdate {
     }
 }
 
+// Phase 4.3-O H10: Telegram source-IP allowlist.
+// Per https://core.telegram.org/bots/webhooks — Telegram BOT API webhooks come
+// from 149.154.160.0/20 (149.154.160.0 .. 149.154.175.255) and 91.108.4.0/22
+// (91.108.4.0 .. 91.108.7.255). Defense-in-depth: even if a tenant's secret
+// leaks, an attacker forging callback_queries from elsewhere is rejected.
+//
+// IPv4 only — Telegram doesn't advertise an IPv6 webhook range. If they ever
+// add one we'll fail safe (reject) and update the list.
+function isTelegramSourceIp(ip: string | null): boolean {
+    if (!ip) return false
+    // Strip IPv6-mapped prefix
+    const clean = ip.replace(/^::ffff:/, '').trim()
+    if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(clean)) return false
+    const parts = clean.split('.').map(Number)
+    if (parts.some(p => p < 0 || p > 255)) return false
+    const ipInt = (parts[0] << 24 >>> 0) + (parts[1] << 16) + (parts[2] << 8) + parts[3]
+    // 149.154.160.0/20 → 149.154.160.0 .. 149.154.175.255
+    const r1Start = (149 << 24 >>> 0) + (154 << 16) + (160 << 8) + 0
+    const r1End   = (149 << 24 >>> 0) + (154 << 16) + (175 << 8) + 255
+    if (ipInt >= r1Start && ipInt <= r1End) return true
+    // 91.108.4.0/22 → 91.108.4.0 .. 91.108.7.255
+    const r2Start = (91 << 24 >>> 0) + (108 << 16) + (4 << 8) + 0
+    const r2End   = (91 << 24 >>> 0) + (108 << 16) + (7 << 8) + 255
+    if (ipInt >= r2Start && ipInt <= r2End) return true
+    return false
+}
+
 export const telegramWebhook = async (c: Context) => {
     try {
         const instanceId = c.req.param('instanceId')
@@ -50,6 +77,18 @@ export const telegramWebhook = async (c: Context) => {
 
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance?.telegramBotToken) return c.json({ ok: true }, 200)
+
+        // Phase 4.3-O H10: defense-in-depth IP allowlist (Telegram-issued CIDRs).
+        // Caddy injects X-Forwarded-For; we take the FIRST entry (left-most client IP).
+        // Per OWASP — never trust right-most when behind a controlled reverse proxy.
+        // If TELEGRAM_IP_ALLOWLIST_DISABLED=1 (env), skip the check (testing only).
+        const skipIpAllowlist = process.env.TELEGRAM_IP_ALLOWLIST_DISABLED === '1'
+        const xff = (c.req.header('x-forwarded-for') || '').split(',')[0]?.trim() || null
+        const sourceIp = xff || c.req.header('x-real-ip') || null
+        if (!skipIpAllowlist && !isTelegramSourceIp(sourceIp)) {
+            console.warn(`[telegramWebhook] ${instanceId} rejected source IP: ${sourceIp || '(none)'}`)
+            return c.json({ ok: false, error: 'forbidden_source' }, 403)
+        }
 
         // Secret token header check. Telegram echoes whatever we passed to
         // setWebhook's secret_token. If it's missing or wrong, reject.

@@ -104,8 +104,8 @@ export const microsoftAuth = async (c: Context) => {
         const __msStartAgent = await resolveActiveAgent(c, instanceId)
         const agentIdFromContext = __msStartAgent?.id || ''
 
-        // State = instanceId + scopes + agent + agentId + HMAC signature (prevents tampering)
-        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId, agent: agentType, agentId: agentIdFromContext })
+        // State = instanceId + scopes + agent + agentId + HMAC signature + exp TTL (Phase 4.3-O M4)
+        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId, agent: agentType, agentId: agentIdFromContext, exp: Date.now() + 10 * 60 * 1000 })
         const stateHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(statePayload).digest('base64url')
         const state = Buffer.from(JSON.stringify({ p: statePayload, s: stateHmac })).toString('base64url')
 
@@ -152,6 +152,11 @@ export const microsoftCallback = async (c: Context) => {
             return c.redirect(`${FRONTEND_URL}/dashboard.html?ms_error=invalid_state`)
         }
         const stateData = JSON.parse(stateOuter.p)
+        // Phase 4.3-O M4: state TTL check
+        if (stateData.exp && Date.now() > stateData.exp) {
+            console.error('Microsoft OAuth state expired')
+            return c.redirect(`${FRONTEND_URL}/dashboard.html?ms_error=state_expired`)
+        }
         const { instanceId, scopes } = stateData
         // Extract agent type from state (defaults to primary agent for backward compat)
         const agentType: AgentType = stateData.agent || 'oc'

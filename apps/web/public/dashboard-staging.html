@@ -4643,9 +4643,16 @@ function renderTenantFilterOptions() {
   var sel = document.getElementById('tenant-filter');
   if (!sel) return;
   var current = localStorage.getItem('cf_active_tenant') || '';
+  // Phase 4.3-O H8: escape t.id (attribute context) and t.name (text context).
+  // Tenant names are user-controlled — agency mode users name their tenants freely.
+  // Without escaping, a malicious tenant name like </option><script>... would XSS
+  // every agency user viewing the dropdown.
   sel.innerHTML = '<option value="">All tenants</option>' +
     (window._myTenants || []).map(function(t){
-      return '<option value="' + t.id + '"' + (current === t.id ? ' selected' : '') + '>' + (t.name || t.id) + ' (' + (t.instanceCount || 0) + ')</option>';
+      var idAttr = escapeHtml(t.id || '');
+      var label = escapeHtml(t.name || t.id || '');
+      var count = parseInt(t.instanceCount, 10) || 0;
+      return '<option value="' + idAttr + '"' + (current === t.id ? ' selected' : '') + '>' + label + ' (' + count + ')</option>';
     }).join('');
 }
 
@@ -6816,7 +6823,9 @@ async function loadTaskMedia(itemId) {
     // Task popup grid shows only non-archived
     renderTaskMedia(itemId, renders.filter(function(rd) { return rd.status !== 'archived'; }));
   } catch (err) {
-    body.innerHTML = '<div style="color:#EF4444;font-size:0.82rem">שגיאה בטעינת מדיה: ' + err.message + '</div>';
+    // Phase 4.3-O H8: escape err.message — error strings can carry server-supplied
+    // values (URL fragments, file names, etc.) that are not safe in innerHTML.
+    body.innerHTML = '<div style="color:#EF4444;font-size:0.82rem">שגיאה בטעינת מדיה: ' + escapeHtml(err.message || '') + '</div>';
   }
 }
 

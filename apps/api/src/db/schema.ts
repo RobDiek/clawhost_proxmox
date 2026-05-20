@@ -8,11 +8,13 @@ import {
     jsonb,
     index,
     unique,
+    uniqueIndex,
     uuid,
     bigserial,
     bigint,
     date
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 import { userRole } from '@openclaw/shared'
 
 export const users = pgTable('users', {
@@ -1285,7 +1287,19 @@ export const dfsLedger = pgTable('dfs_ledger', {
     /** Free-text reason for admin_credit/refund/adjustment */
     note:             text('note'),
     createdAt:        timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+}, (t) => ({
+    // Phase 4.3-O H3: hard idempotency. With this UNIQUE constraint, concurrent
+    // duplicate webhooks racing past the SELECT idempotency check in credit()
+    // hit a Postgres ON CONFLICT — second INSERT fails atomically. Without it,
+    // an attacker replaying a topup webhook could double-credit if the second
+    // request arrived before the first one's transaction committed.
+    //
+    // Partial unique: only enforced when allpay_order_id is set (debits, admin
+    // credits, refunds don't have one).
+    uniqueAllpayOrderPerInstance: uniqueIndex('dfs_ledger_instance_allpay_order_uidx')
+        .on(t.instanceId, t.allpayOrderId)
+        .where(sql`${t.allpayOrderId} IS NOT NULL`),
+}))
 
 // ── System config singleton ────────────────────────────────────────────────
 // Single-row-per-key store for runtime-mutable config. v1 keys:

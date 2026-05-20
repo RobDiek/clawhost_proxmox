@@ -9000,20 +9000,29 @@ export const getMonthlyPlanController = async (c: Context) => {
 async function _mutateMonthlyTaskStatus(
     instanceId: string,
     taskId: string,
-    next: { status: 'approved' | 'rejected' | 'skipped' | 'completed'; rejectedReason?: string; skippedUntil?: string; approvedByUserId?: string; completedNote?: string },
+    next: { status: 'approved' | 'rejected' | 'skipped' | 'completed'; rejectedReason?: string; skippedUntil?: string; approvedByUserId?: string; completedNote?: string; expectedCurrentStatus?: string },
     agentId?: string,    // Phase 4.3-N v8: optional secondary-agent resolver
-): Promise<{ ok: boolean; task?: any; outputId?: string }> {
+): Promise<{ ok: boolean; task?: any; outputId?: string; reason?: string }> {
     const { resolvePrimaryAgent, resolveAgentById, mutateResearchData } = await import('@/services/agentContext')
     const agent = agentId
         ? (await resolveAgentById(instanceId, agentId)) || (await resolvePrimaryAgent(instanceId))
         : await resolvePrimaryAgent(instanceId)
     let task: any = null
     let outputId: string | undefined
+    let reason: string | undefined
     await mutateResearchData(agent, instanceId, (rd: any) => {
         const plan = rd.monthlyPlan
         if (!plan?.tasks) return rd
         const t = plan.tasks.find((x: any) => x.id === taskId)
         if (!t) return rd
+        // Phase 4.3-O H6: optional CAS check. If caller asserted what the current
+        // status should be (e.g. approve only if currently 'proposed'), reject the
+        // mutation when the state already advanced. Defends against UI double-click
+        // racing the executor: second click sees status='in_progress' and refuses.
+        if (next.expectedCurrentStatus && t.status !== next.expectedCurrentStatus) {
+            reason = `expected status='${next.expectedCurrentStatus}', current='${t.status}'`
+            return rd
+        }
         t.status = next.status
         if (next.status === 'approved') {
             t.approvedAt = new Date().toISOString()
@@ -9051,7 +9060,7 @@ async function _mutateMonthlyTaskStatus(
         }
         return rd
     })
-    return { ok: !!task, task, outputId }
+    return { ok: !!task && !reason, task, outputId, reason }
 }
 
 export const approveMonthlyTask = async (c: Context) => {
@@ -9062,8 +9071,17 @@ export const approveMonthlyTask = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
 
         const agentId = (c.req.query('agentId') || '').trim() || undefined
-        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'approved', approvedByUserId: userId || undefined }, agentId)
-        if (!r.ok) return fail(c, `Task ${taskId} not found in monthlyPlan`, 404)
+        // Phase 4.3-O H6: CAS — refuse if task isn't currently 'proposed'.
+        // Defends against UI double-click that previously spawned 2 executors.
+        const r = await _mutateMonthlyTaskStatus(
+            instanceId, taskId,
+            { status: 'approved', approvedByUserId: userId || undefined, expectedCurrentStatus: 'proposed' },
+            agentId,
+        )
+        if (!r.ok) {
+            if (r.reason) return fail(c, `Task ${taskId} cannot be approved: ${r.reason}`, 409)
+            return fail(c, `Task ${taskId} not found in monthlyPlan`, 404)
+        }
 
         // Mirror status on per-task agent_outputs row
         if (r.outputId) {

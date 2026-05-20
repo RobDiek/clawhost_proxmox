@@ -68,40 +68,52 @@ export async function runMonthlyReaudits(): Promise<{
             }
 
             try {
-                // Phase 4.3-N v8: BEFORE re-audit, freeze the CURRENT baseline as the
+                // Phase 4.3-O M6: stamp lastMonthlyReauditAt BEFORE expensive work,
+                // not after. If audit/plan crashes after this, next cron hour will
+                // skip (better than re-fire + double DFS charges). Operator can
+                // manually clear if a retry is genuinely needed.
+                // Phase 4.3-O H7: use mutateResearchData (NOT raw db.update) per
+                // feedback_research_data_dual_write — secondary agents on this VPS
+                // need to see the stamp too.
+                const { resolvePrimaryAgent, mutateResearchData } = await import('./agentContext')
+                const agent = await resolvePrimaryAgent(row.id)
+                await mutateResearchData(agent, row.id, (rd2: any) => {
+                    rd2.lastMonthlyReauditAt = currentMonthKey
+                    return rd2
+                })
+
+                // Phase 4.3-N v8 / 4.3-O H7: BEFORE re-audit, freeze the CURRENT baseline as the
                 // previous-month reference (research_data.baselineHistory[month_key]).
-                // This is the snapshot we'll compare current results against later.
-                // Then re-pull baseline (client_account_baseline) so audit + plan see
-                // fresh numbers.
                 try {
                     const currentBaseline = rd?.results?.client_account_baseline
                     if (currentBaseline && currentBaseline.pulledAt) {
                         const prevMonth = new Date(now)
                         prevMonth.setUTCMonth(prevMonth.getUTCMonth() - 1)
                         const prevMonthKey = `${prevMonth.getUTCFullYear()}-${String(prevMonth.getUTCMonth() + 1).padStart(2, '0')}`
-                        const baselineHistory = rd.baselineHistory || {}
-                        if (!baselineHistory[prevMonthKey]) {
-                            baselineHistory[prevMonthKey] = currentBaseline
-                            await db.update(instances).set({ researchData: { ...rd, baselineHistory } as any }).where(eq(instances.id, row.id))
-                            console.log(`[monthlyReauditRunner] ${row.id}: archived baseline as baselineHistory[${prevMonthKey}]`)
-                        }
+                        await mutateResearchData(agent, row.id, (rd2: any) => {
+                            const baselineHistory = rd2.baselineHistory || {}
+                            if (!baselineHistory[prevMonthKey]) {
+                                baselineHistory[prevMonthKey] = currentBaseline
+                                rd2.baselineHistory = baselineHistory
+                            }
+                            return rd2
+                        })
+                        console.log(`[monthlyReauditRunner] ${row.id}: archived baseline as baselineHistory[${prevMonthKey}]`)
                     }
                 } catch (e) {
                     console.warn(`[monthlyReauditRunner] ${row.id}: baseline archive failed (non-fatal):`, (e as Error).message)
                 }
 
                 // Re-pull baseline (current month) — without this the audit + plan see stale numbers.
-                // The prefetcher mutates rd.results.client_account_baseline internally via the stage executor;
-                // we just need to invoke it with the current rd snapshot.
                 try {
                     const { prefetchClientAccountBaseline } = await import('@/controllers/hosting/research/stages/prefetch/client_account_baseline')
                     const newBaseline = await prefetchClientAccountBaseline(row.id, rd)
-                    // Persist the fresh baseline ourselves (we're outside the stage executor)
-                    const currentRd = (await db.select({ researchData: instances.researchData })
-                        .from(instances).where(eq(instances.id, row.id)))[0]?.researchData as any || {}
-                    const results = currentRd.results || {}
-                    results.client_account_baseline = newBaseline
-                    await db.update(instances).set({ researchData: { ...currentRd, results } as any }).where(eq(instances.id, row.id))
+                    await mutateResearchData(agent, row.id, (rd2: any) => {
+                        const results = rd2.results || {}
+                        results.client_account_baseline = newBaseline
+                        rd2.results = results
+                        return rd2
+                    })
                     console.log(`[monthlyReauditRunner] ${row.id}: baseline re-pulled + persisted for ${currentMonthKey}`)
                 } catch (e) {
                     console.warn(`[monthlyReauditRunner] ${row.id}: baseline re-pull failed (non-fatal):`, (e as Error).message)
@@ -111,12 +123,10 @@ export async function runMonthlyReaudits(): Promise<{
                 await runMazhirAudit(row.id)
                 stats.fired++
 
-                // Stamp the month so we don't re-fire if cron retries
+                // Re-read for diff inspection below (audit + baseline writes happened in-loop)
                 const updated = (await db.select({ researchData: instances.researchData })
                     .from(instances).where(eq(instances.id, row.id)))[0]
                 const nextRd: any = updated?.researchData || {}
-                nextRd.lastMonthlyReauditAt = currentMonthKey
-                await db.update(instances).set({ researchData: nextRd as any }).where(eq(instances.id, row.id))
 
                 // Notify if diff has material changes
                 const diff = nextRd.mazhirAuditDiff

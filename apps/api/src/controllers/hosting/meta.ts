@@ -12,6 +12,7 @@
 
 import type { Context } from 'hono'
 import { readFileSync } from 'fs'
+import * as crypto from 'crypto'
 import { db } from '@/db'
 import { instances, matehAgents } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -83,8 +84,17 @@ export const metaSaveCredentials = async (c: Context) => {
         const __metaStartAgent = await resolveActiveAgent(c, instanceId)
         const agentIdForState = __metaStartAgent?.id || ''
 
-        // Build OAuth URL — include agentId in state
-        const state = Buffer.from(JSON.stringify({ instanceId, agentId: agentIdForState })).toString('base64')
+        // Phase 4.3-O H4 + M4: HMAC-sign the state with TTL. Previously this
+        // was raw base64 JSON — attacker could forge state with any instanceId/
+        // agentId and hijack the callback to write tokens into a foreign agent.
+        // exp: 10 minutes — OAuth flow shouldn't take longer.
+        const statePayload = JSON.stringify({
+            instanceId,
+            agentId: agentIdForState,
+            exp: Date.now() + 10 * 60 * 1000,
+        })
+        const stateHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(statePayload).digest('base64url')
+        const state = Buffer.from(JSON.stringify({ p: statePayload, s: stateHmac })).toString('base64url')
         const authUrl = `https://www.facebook.com/v21.0/dialog/oauth?` +
             `client_id=${appId}` +
             `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
@@ -116,12 +126,37 @@ export const metaCallback = async (c: Context) => {
             return fail(c, 'Missing code or state', 400)
         }
 
-        // Decode state
-        const state = JSON.parse(Buffer.from(stateParam, 'base64').toString())
-        const instanceId = state.instanceId
+        // Phase 4.3-O H4 + M4: decode + verify HMAC-signed state with TTL.
+        let stateData: { instanceId: string; agentId?: string; exp?: number }
+        try {
+            const stateOuter = JSON.parse(Buffer.from(stateParam, 'base64url').toString())
+            // Backwards compat: if it's still the raw base64 JSON (no .p/.s),
+            // accept ONLY if state has instanceId/agentId at top level AND
+            // we're in soft-launch mode. Otherwise reject hard.
+            if (!stateOuter.p || !stateOuter.s) {
+                // Legacy unsigned state (pre-H4). For safety: reject.
+                console.error('Meta OAuth state missing HMAC signature — rejecting (legacy unsigned)')
+                return c.redirect(`${process.env.FRONTEND_URL || ''}/dashboard.html?meta_error=invalid_state`)
+            }
+            const expectedHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(stateOuter.p).digest('base64url')
+            if (stateOuter.s !== expectedHmac) {
+                console.error('Meta OAuth state HMAC mismatch — possible tampering')
+                return c.redirect(`${process.env.FRONTEND_URL || ''}/dashboard.html?meta_error=invalid_state`)
+            }
+            stateData = JSON.parse(stateOuter.p)
+            if (stateData.exp && Date.now() > stateData.exp) {
+                console.error('Meta OAuth state expired')
+                return c.redirect(`${process.env.FRONTEND_URL || ''}/dashboard.html?meta_error=state_expired`)
+            }
+        } catch (parseErr) {
+            console.error('Meta OAuth state parse failed:', (parseErr as Error).message)
+            return c.redirect(`${process.env.FRONTEND_URL || ''}/dashboard.html?meta_error=state_parse`)
+        }
+
+        const instanceId = stateData.instanceId
         // Phase 2.3.J — agentId pinned at OAuth start; required to write
         // tokens to the correct mateh_agent (Meta strips ?agentId= on redirect).
-        const agentIdFromState: string = state.agentId || ''
+        const agentIdFromState: string = stateData.agentId || ''
 
         // Get saved credentials — read from the SPECIFIC agent that started
         // OAuth, not from instance row (which holds primary's appId/secret).

@@ -215,17 +215,22 @@ export async function applyBidTransition(outputId: string): Promise<{ ok: boolea
         })
         if (!r.ok) return r
 
-        // Stamp transitionedAt on the plan campaign
-        const rd: any = inst.researchData || {}
-        if (rd.mediaPlan && Array.isArray(rd.mediaPlan.campaigns)) {
-            const idx = rd.mediaPlan.campaigns.findIndex((c: any) => c.googleAdsCampaignId === campaignId)
-            if (idx >= 0) {
-                rd.mediaPlan.campaigns[idx].transitionedAt = new Date().toISOString()
-                rd.mediaPlan.campaigns[idx].activeBidStrategy = toStrategy
-                if (targetCpaIls) rd.mediaPlan.campaigns[idx].activeTargetCpaIls = targetCpaIls
-                await db.update(instances).set({ researchData: rd as any }).where(eq(instances.id, inst.id))
+        // Phase 4.3-O H7: use mutateResearchData to honor dual-write contract.
+        // Raw db.update(instances).set({researchData}) was silently wiped by next
+        // mutateResearchData call (memory: feedback_research_data_dual_write).
+        const { resolvePrimaryAgent, mutateResearchData } = await import('./agentContext')
+        const agent = await resolvePrimaryAgent(inst.id)
+        await mutateResearchData(agent, inst.id, (rd2: any) => {
+            if (rd2.mediaPlan && Array.isArray(rd2.mediaPlan.campaigns)) {
+                const idx = rd2.mediaPlan.campaigns.findIndex((c: any) => c.googleAdsCampaignId === campaignId)
+                if (idx >= 0) {
+                    rd2.mediaPlan.campaigns[idx].transitionedAt = new Date().toISOString()
+                    rd2.mediaPlan.campaigns[idx].activeBidStrategy = toStrategy
+                    if (targetCpaIls) rd2.mediaPlan.campaigns[idx].activeTargetCpaIls = targetCpaIls
+                }
             }
-        }
+            return rd2
+        })
         return { ok: true }
     } catch (err) {
         return { ok: false, reason: (err as Error).message }

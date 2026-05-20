@@ -1,4 +1,6 @@
-import { createHash } from 'crypto'
+import { createHash, timingSafeEqual } from 'crypto'
+// Local alias for timing-safe HMAC compare (Phase 4.3-O H2)
+const crypto = { timingSafeEqual }
 import { INSTALLMENTS } from '@openclaw/shared'
 
 const ALLPAY_BASE = 'https://allpay.to/app/'
@@ -201,7 +203,18 @@ const allpay = {
         delete bodyWithoutSign.sign
         const expectedSign = computeSign(bodyWithoutSign, apiKey)
 
-        return expectedSign === receivedSign
+        // Phase 4.3-O H2: constant-time HMAC compare to defeat timing attacks.
+        // Same SHA256 hex string lengths required — return false on mismatch
+        // before invoking timingSafeEqual (which throws on length-mismatch).
+        if (expectedSign.length !== receivedSign.length) return false
+        try {
+            return crypto.timingSafeEqual(
+                Buffer.from(expectedSign, 'hex'),
+                Buffer.from(receivedSign, 'hex'),
+            )
+        } catch {
+            return false
+        }
     },
 
     parseWebhook(body: Record<string, unknown>): WebhookResult {

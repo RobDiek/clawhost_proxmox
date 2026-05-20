@@ -71,12 +71,31 @@ const provisioner = {
         const subdomainFlows = `${name}-flows.clawflow`
         const subdomainObs = `${name}-obs.clawflow`
 
-        const dnsRecords = [
-            cloudflare.createDNSRecord(subdomainAgent, server.ip),
-            cloudflare.createDNSRecord(subdomainFlows, server.ip),
-            cloudflare.createDNSRecord(subdomainObs, server.ip),
-        ]
-        await Promise.all(dnsRecords)
+        // Phase 4.3-O H5: partial-state alert. If DNS create fails AFTER the VPS
+        // is already paid+created, user is stuck in half-state (paid but no URL).
+        // Telegram admin alert lets ops intervene immediately. Full rollback
+        // (delete VPS + reverse charge) is a separate iteration.
+        try {
+            await Promise.all([
+                cloudflare.createDNSRecord(subdomainAgent, server.ip),
+                cloudflare.createDNSRecord(subdomainFlows, server.ip),
+                cloudflare.createDNSRecord(subdomainObs, server.ip),
+            ])
+        } catch (dnsErr) {
+            console.error(`[provisioner] DNS creation FAILED after VPS ${server.serverId} created. Partial state — manual cleanup needed. Error: ${(dnsErr as Error).message}`)
+            // Best-effort admin alert. Non-blocking — re-throw original error so
+            // the caller knows provisioning failed.
+            try {
+                const telegram = (await import('./telegram')).default
+                await telegram.alertAdmin(
+                    `🚨 PARTIAL PROVISIONING — VPS ${server.serverId} (ip=${server.ip}) created but DNS failed.\n` +
+                    `Subdomains: ${subdomainAgent}, ${subdomainFlows}, ${subdomainObs}\n` +
+                    `Error: ${(dnsErr as Error).message}\n` +
+                    `Manual cleanup: (1) delete VPS via Hetzner, (2) check Cloudflare for partial records, (3) reverse AllPay charge.`
+                )
+            } catch { /* alert is best-effort */ }
+            throw dnsErr
+        }
 
         return {
             serverId: String(server.serverId),
@@ -160,17 +179,38 @@ const provisioner = {
             : `${instanceId}-flows.clawflow`
         const obsHost = agentHost.replace('.clawflow', '-obs.clawflow')
 
-        const records = await Promise.all([
-            cloudflare.findDNSRecord(agentHost).catch(() => null),
-            cloudflare.findDNSRecord(flowsHost).catch(() => null),
-            cloudflare.findDNSRecord(obsHost).catch(() => null),
-        ])
+        // Phase 4.3-O M11: log DNS lookup failures explicitly. Previously
+        // `.catch(() => null)` silently treated transient Cloudflare API errors
+        // (5xx, rate-limits) as "no record exists" → DNS records left dangling
+        // forever, pointing at recycled IPs. Now we log + alert admin so the
+        // record can be manually cleaned.
+        const hosts = [agentHost, flowsHost, obsHost]
+        const records = await Promise.all(hosts.map(async (h, i) => {
+            try {
+                return await cloudflare.findDNSRecord(h)
+            } catch (err) {
+                console.error(`[provisioner] DNS lookup failed for ${h} (instance ${instanceId}, idx=${i}): ${(err as Error).message}. Record may be dangling — verify manually.`)
+                // Best-effort admin alert (non-blocking, never throws)
+                try {
+                    const telegram = (await import('./telegram')).default
+                    await telegram.alertAdmin(`⚠ DNS cleanup failed for ${h} during terminate of ${instanceId} — manual check needed in Cloudflare`)
+                } catch { /* alert is best-effort */ }
+                return null
+            }
+        }))
 
+        const recordsToDelete = records.filter(Boolean) as Array<{ id: string }>
         await Promise.all(
-            records.filter(Boolean).map(r => cloudflare.deleteDNSRecord(r!.id))
+            recordsToDelete.map(async r => {
+                try {
+                    await cloudflare.deleteDNSRecord(r.id)
+                } catch (err) {
+                    console.error(`[provisioner] DNS delete failed for record ${r.id} (instance ${instanceId}): ${(err as Error).message}`)
+                }
+            })
         )
 
-        console.log(`[provisioner] Terminated ${instanceId}: server ${serverId} deleted, DNS cleaned (${agentHost}, ${flowsHost})`)
+        console.log(`[provisioner] Terminated ${instanceId}: server ${serverId} deleted, DNS cleaned (${agentHost}, ${flowsHost}, ${obsHost}) — ${recordsToDelete.length}/${hosts.length} records removed`)
     },
 
     async suspend(serverId: string): Promise<void> {

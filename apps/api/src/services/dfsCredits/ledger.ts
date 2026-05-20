@@ -176,6 +176,45 @@ export async function credit(args: {
         }
     }
 
+    // Phase 4.3-O H3: race-safe ordering — INSERT ledger row FIRST (UNIQUE
+    // constraint on (instance_id, allpay_order_id) blocks duplicates). Only
+    // bump balance if INSERT succeeded. Previously balance was bumped first
+    // then ledger row added — a concurrent webhook racing past the SELECT
+    // could double-credit balance while the second INSERT failed silently.
+    if (allpayOrderId) {
+        try {
+            await db.insert(dfsLedger).values({
+                instanceId,
+                kind,
+                amountUsdCents,
+                allpayOrderId,
+                note: note || null,
+            })
+        } catch (err: any) {
+            // 23505 = unique_violation in Postgres. Means a concurrent webhook
+            // already credited this orderId. Treat as idempotent skip.
+            if (err && (err.code === '23505' || /unique/i.test(err.message || ''))) {
+                const [inst] = await db.select({ balance: instances.dfsBalanceUsdCents })
+                    .from(instances).where(eq(instances.id, instanceId))
+                return {
+                    newBalanceUsdCents: inst?.balance ?? 0,
+                    alreadyApplied: true,
+                }
+            }
+            throw err
+        }
+        const [updated] = await db.update(instances)
+            .set({ dfsBalanceUsdCents: sql`${instances.dfsBalanceUsdCents} + ${amountUsdCents}` })
+            .where(eq(instances.id, instanceId))
+            .returning({ newBalance: instances.dfsBalanceUsdCents })
+        if (!updated) {
+            throw new LedgerError('instance_not_found', `Instance ${instanceId} not found`)
+        }
+        return { newBalanceUsdCents: updated.newBalance, alreadyApplied: false }
+    }
+
+    // No allpayOrderId (admin credit / refund without order id) — original
+    // bump-then-insert order, no race protection but no replay risk either.
     const [updated] = await db.update(instances)
         .set({ dfsBalanceUsdCents: sql`${instances.dfsBalanceUsdCents} + ${amountUsdCents}` })
         .where(eq(instances.id, instanceId))
@@ -183,15 +222,13 @@ export async function credit(args: {
     if (!updated) {
         throw new LedgerError('instance_not_found', `Instance ${instanceId} not found`)
     }
-
     await db.insert(dfsLedger).values({
         instanceId,
         kind,
         amountUsdCents,
-        allpayOrderId: allpayOrderId || null,
+        allpayOrderId: null,
         note: note || null,
     })
-
     return { newBalanceUsdCents: updated.newBalance, alreadyApplied: false }
 }
 

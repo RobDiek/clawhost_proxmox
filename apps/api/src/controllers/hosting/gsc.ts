@@ -96,8 +96,8 @@ export const gscAuth = async (c: Context) => {
         const activeAgent = await resolveActiveAgent(c, instanceId)
         const agentId = activeAgent?.id || ''
 
-        // State = instanceId + siteUrl + agentId + HMAC signature
-        const statePayload = JSON.stringify({ instanceId, siteUrl, uid: userId, type: 'gsc', agentId })
+        // State = instanceId + siteUrl + agentId + HMAC signature + exp TTL (Phase 4.3-O M4)
+        const statePayload = JSON.stringify({ instanceId, siteUrl, uid: userId, type: 'gsc', agentId, exp: Date.now() + 10 * 60 * 1000 })
         const stateHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(statePayload).digest('base64url')
         const state = Buffer.from(JSON.stringify({ p: statePayload, s: stateHmac })).toString('base64url')
 
@@ -243,7 +243,10 @@ export const gscCallback = async (c: Context) => {
         const expectedHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(stateOuter.p).digest('base64url')
         if (stateOuter.s !== expectedHmac) return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=invalid_state`)
 
-        const { instanceId, siteUrl, agentId } = JSON.parse(stateOuter.p)
+        const stateData = JSON.parse(stateOuter.p)
+        // Phase 4.3-O M4: state TTL check
+        if (stateData.exp && Date.now() > stateData.exp) return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=state_expired`)
+        const { instanceId, siteUrl, agentId } = stateData
         return processGscCallback(c, code, instanceId, siteUrl || '', agentId || '')
     } catch (err) {
         console.error('gscCallback error:', err)

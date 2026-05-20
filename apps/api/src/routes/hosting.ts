@@ -312,6 +312,43 @@ import {
 
 const app = new Hono()
 
+// ── Phase 4.3-O H1 (defensive): observability middleware. ──
+// All /hosting/* routes are designed to perform JWT auth INSIDE each controller
+// (via resolveUserId + getOwnedInstance) — Firebase auth at app.ts is intentionally
+// NOT applied here. This works as long as every new controller respects the
+// contract; a single forgotten resolveUserId call = silent bypass. As a safety
+// net, this middleware logs (does NOT block) any request hitting a non-unauth-
+// allowlisted /hosting endpoint without an Authorization header. Operator
+// reviews logs to catch regressions early.
+//
+// Allowlist — endpoints that legitimately accept unauth requests (login OTP,
+// webhooks, OAuth callbacks, public referral validation, contact forms).
+const HOSTING_UNAUTH_ALLOWLIST: Array<RegExp> = [
+    /^\/auth\/send-otp$/,
+    /^\/auth\/verify-otp$/,
+    /^\/webhooks\//,                                  // AllPay, future webhooks
+    /^\/telegram\/webhook\//,
+    /^\/integrations\/(google|gsc|meta|microsoft)\/callback$/,
+    /^\/oauth\/microsoft\/callback$/,
+    /^\/referral\/validate\//,
+    /^\/newsletter\//,
+    /^\/contact\//,
+    /^\/health$/,
+]
+app.use('/*', async (c, next) => {
+    const path = c.req.path.replace(/^\/hosting/, '')   // strip /hosting prefix
+    const isUnauthAllowed = HOSTING_UNAUTH_ALLOWLIST.some(re => re.test(path))
+    if (!isUnauthAllowed) {
+        const authHeader = c.req.header('Authorization')
+        if (!authHeader?.startsWith('Bearer ')) {
+            console.warn(`[hosting-auth-guard] ${c.req.method} ${c.req.path} — request without Authorization header on auth-required route. Controllers MUST validate; if this fires, a controller may be bypassing auth.`)
+            // Soft warn for now — controllers still enforce. Future hard-block:
+            // return c.json({ success: false, message: 'Unauthorized' }, 401)
+        }
+    }
+    return next()
+})
+
 // ── Auth ──
 app.post('/auth/send-otp', sendOtpHosting)
 app.post('/auth/verify-otp', verifyOtpHosting)
