@@ -6190,6 +6190,13 @@ export const resetResearch = async (c: Context) => {
 
 export interface PaidProfile {
     monthlyBudgetIls: number
+    // Phase 4.3-N v8: hard CPA ceiling. Optional. When set, Mazhir audit + media
+    // plan + monthly plan generator treat this as a non-negotiable constraint:
+    //  - every TARGET_CPA campaign tCPA <= maxCpaIls
+    //  - any task proposing Smart Bidding migration must show ROI math under this ceiling
+    //  - if current CPA > maxCpaIls × 1.2 → flag as P0 emergency in the plan
+    // Empty/undefined = no explicit ceiling; Mazhir derives a heuristic from dealValue/LTV.
+    maxCpaIls?: number
     primaryGoal: 'leadgen' | 'ecommerce' | 'awareness' | 'store_visits' | 'app_installs'
     geography: {
         mode: 'city_radius' | 'national' | 'cities' | 'international'
@@ -8673,6 +8680,11 @@ export const savePaidProfile = async (c: Context) => {
             && (typeof body.avgDealValueIls !== 'number' || body.avgDealValueIls < 0)) {
             return fail(c, 'avgDealValueIls must be a non-negative number', 400)
         }
+        // Phase 4.3-N v8: optional max CPA ceiling. Validate type only.
+        if (body.maxCpaIls !== undefined && body.maxCpaIls !== null
+            && (typeof body.maxCpaIls !== 'number' || body.maxCpaIls < 0)) {
+            return fail(c, 'maxCpaIls must be a non-negative number', 400)
+        }
         const cycleAllowed = ['impulse', 'short', 'medium', 'long']
         if (!body.decisionCycle || !cycleAllowed.includes(body.decisionCycle)) {
             return fail(c, 'decisionCycle required (' + cycleAllowed.join('|') + ')', 400)
@@ -8747,6 +8759,7 @@ export const savePaidProfile = async (c: Context) => {
             // saving the profile after upload silently wipes the files.
             ...(existing || {}),
             monthlyBudgetIls: body.monthlyBudgetIls,
+            maxCpaIls: typeof body.maxCpaIls === 'number' && body.maxCpaIls > 0 ? body.maxCpaIls : undefined,
             primaryGoal: body.primaryGoal,
             geography: body.geography,
             avgDealValueIls: typeof body.avgDealValueIls === 'number' && body.avgDealValueIls > 0 ? body.avgDealValueIls : 0,
@@ -8966,7 +8979,7 @@ export const getMonthlyPlanController = async (c: Context) => {
 async function _mutateMonthlyTaskStatus(
     instanceId: string,
     taskId: string,
-    next: { status: 'approved' | 'rejected' | 'skipped'; rejectedReason?: string; skippedUntil?: string; approvedByUserId?: string },
+    next: { status: 'approved' | 'rejected' | 'skipped' | 'completed'; rejectedReason?: string; skippedUntil?: string; approvedByUserId?: string; completedNote?: string },
 ): Promise<{ ok: boolean; task?: any; outputId?: string }> {
     const { resolvePrimaryAgent, mutateResearchData } = await import('@/services/agentContext')
     const agent = await resolvePrimaryAgent(instanceId)
@@ -8986,6 +8999,14 @@ async function _mutateMonthlyTaskStatus(
             t.rejectedReason = next.rejectedReason
         } else if (next.status === 'skipped') {
             t.skippedUntil = next.skippedUntil
+        } else if (next.status === 'completed') {
+            // Phase 4.3-N v8: manual-done flow. User marks task as completed
+            // without running the executor (typical when integration is absent
+            // and user did the work by hand). Unblocks any tasks dependsOn this id.
+            t.completedAt = new Date().toISOString()
+            if (next.completedNote) t.failureReason = undefined // clear any prior failure
+            ;(t as any).completedMethod = 'manual'
+            if (next.completedNote) (t as any).completedNote = next.completedNote.slice(0, 500)
         }
         task = t
         outputId = t.executionOutputId
@@ -9056,6 +9077,38 @@ export const rejectMonthlyTask = async (c: Context) => {
             }
         }
         return ok(c, { task: r.task }, 'Task rejected')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// Phase 4.3-N v8: mark a task as done manually (without executor).
+// Used when the action requires manual work outside the system OR when the
+// relevant integration isn't connected. Unblocks any task whose dependsOn[]
+// contains this task's id (downstream tasks remain status='proposed' but
+// their dependency-completion check now passes — UI surfaces them as actionable).
+export const completeMonthlyTaskManually = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const taskId = c.req.param('taskId')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        let body: any = {}
+        try { body = await c.req.json() } catch { /* allow empty body */ }
+        const note = typeof body.note === 'string' ? body.note.slice(0, 500) : undefined
+
+        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'completed', completedNote: note })
+        if (!r.ok) return fail(c, `Task ${taskId} not found in monthlyPlan`, 404)
+
+        // Mirror status on per-task agent_outputs row
+        if (r.outputId) {
+            try {
+                await db.update(agentOutputs).set({ status: 'completed' }).where(eq(agentOutputs.id, r.outputId))
+            } catch (err) {
+                console.warn('[completeMonthlyTaskManually] failed to update output row:', (err as Error).message)
+            }
+        }
+        return ok(c, { task: r.task }, 'Task marked as manually completed')
     } catch (err) {
         return fail(c, (err as Error).message, 500)
     }

@@ -1108,11 +1108,8 @@ input{font-family:inherit}
          strategic-plan → daily-execution-grid. -->
     <div id="monthlyPlanCard" style="display:none"></div>
 
-    <!-- Phase 4.3-N v8: External Links strategy widget — DFS-sourced backlink
-         intelligence + 10 link tasks pipeline. Visibility-gated to instances
-         that have research_data.results.link_audit OR a monthly plan with
-         link tasks. Hidden otherwise. -->
-    <div id="externalLinksWidget" style="display:none"></div>
+<!-- Phase 4.3-N v8: external links moved into popup (openExternalLinksPopup),
+         called from a 4th card in סטטוס מערכת. No inline mount needed. -->
 
     <!-- Row: לוח תוכן — visible only when content/social_organic intent active -->
     <div style="margin-top:16px" id="home-calendar-section">
@@ -5638,11 +5635,30 @@ function renderHome() {
       primaryOnClick: mediaPlanExists ? "switchTab('marketing')" : "openPaidProfileModal()",
     });
 
+    // Phase 4.3-N v8: 4th card — external links strategy (DFS-sourced).
+    // Visible only when link_audit data exists in research_data.
+    var rdForLinks = instanceData && instanceData.researchData;
+    var hasLinksData = (typeof hasExternalLinksData === 'function') && hasExternalLinksData(rdForLinks);
+    var card4 = '';
+    if (hasLinksData) {
+      var linksHeadline = (typeof externalLinksHeadline === 'function') ? externalLinksHeadline(rdForLinks) : '';
+      var anchorsCheck = (rdForLinks && rdForLinks.results && rdForLinks.results.link_audit && rdForLinks.results.link_audit.extras && rdForLinks.results.link_audit.extras.anchor_distribution_analysis) || {};
+      var penguinReady = (typeof anchorsCheck.exact_match_pct === 'number' && anchorsCheck.exact_match_pct < 35);
+      card4 = card({
+        icon: '🔗',
+        title: 'אסטרטגיית קישורים חיצוניים',
+        subtitle: linksHeadline || 'נתוני קישורים נכנסים מ-DataForSEO',
+        ready: penguinReady,
+        primaryLabel: 'פתחו ניתוח ←',
+        primaryOnClick: 'openExternalLinksPopup()',
+      });
+    }
+
     var completedHtml = '<div class="section-title" style="display:flex;align-items:center;gap:6px">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' +
       'סטטוס מערכת</div>' +
       '<div style="display:flex;flex-direction:column;gap:8px">' +
-        card1 + card2 + card3 +
+        card1 + card2 + card3 + card4 +
       '</div>';
     document.getElementById('homeTasks').style.display = '';
     document.getElementById('homeTasks').innerHTML = completedHtml;
@@ -5662,11 +5678,8 @@ function renderHome() {
   if (typeof renderMonthlyPlanCard === 'function') {
     try { renderMonthlyPlanCard(); } catch (e) { console.warn('[renderMonthlyPlanCard] error:', e); }
   }
-  // Phase 4.3-N v8: External Links strategy widget (DFS backlink intelligence
-  // + 10 link tasks pipeline). Self-gating — hides if no link_audit + no plan.
-  if (typeof renderExternalLinksWidget === 'function') {
-    try { renderExternalLinksWidget(); } catch (e) { console.warn('[renderExternalLinksWidget] error:', e); }
-  }
+  // Phase 4.3-N v8: External links moved into popup, accessed via 4th card
+  // in סטטוס מערכת. No render call here.
   renderContentCalendar();
 
   // Phase 4.3.4 — Paid-track hypothesis cards (throttled lazy-load)
@@ -9260,6 +9273,8 @@ function renderContentCalendar() {
   var filtered = plan.filter(function(it) {
     if (calendarFilter === 'all') return true;
     if (calendarFilter === 'ads') return it.channel === 'google_ads' || it.channel === 'meta_ads';
+    // Phase 4.3-N v8: 'meta' tab covers BOTH FB+IG legacy channels + meta_ads.
+    if (calendarFilter === 'meta') return it.channel === 'facebook' || it.channel === 'instagram' || it.channel === 'meta_ads';
     if (calendarFilter === 'reports') return it.type === 'report' || it.agentRole === 'menateach' || it.agentRole === 'sayer';
     return it.channel === calendarFilter;
   });
@@ -9294,10 +9309,9 @@ function renderContentCalendar() {
     .filter(function(it) {
       if (calendarFilter === 'all') return true;
       if (calendarFilter === 'ads') return it.channel === 'google_ads' || it.channel === 'meta';
-      // Phase 4.3-N v8: monthly tasks use 'meta' (covers FB+IG) and 'seo'/'content' (covers blog).
-      // Legacy contentPlan keeps facebook/instagram/blog as distinct channels;
-      // bridge the taxonomies so the UI tabs work for both data shapes.
-      if (calendarFilter === 'facebook' || calendarFilter === 'instagram') return it.channel === 'meta';
+      // Phase 4.3-N v8: FB+IG merged into 'meta' tab — monthly tasks use the 'meta' channel.
+      if (calendarFilter === 'meta') return it.channel === 'meta';
+      // Blog tab includes seo + content (organic publishing channels).
       if (calendarFilter === 'blog') return it.channel === 'seo' || it.channel === 'content';
       if (calendarFilter === 'reports') return false; // legacy-only filter
       return it.channel === calendarFilter;
@@ -9329,13 +9343,38 @@ function renderContentCalendar() {
   // plan overview card is the canonical entry point.
   var regenBtn = '';
 
+  // Phase 4.3-N v8: merged FB+IG into single Meta tab (same channel under the hood).
+  // Counts come from BOTH legacy contentPlan items AND monthlyPlan.tasks so user
+  // sees "Ads (16)" vs "Meta (2)" and knows where the work is before clicking.
+  var countFor = function(filterKey) {
+    var n = 0;
+    plan.forEach(function(it) {
+      if (filterKey === 'all') n++;
+      else if (filterKey === 'ads' && (it.channel === 'google_ads' || it.channel === 'meta_ads')) n++;
+      else if (filterKey === 'meta' && (it.channel === 'facebook' || it.channel === 'instagram' || it.channel === 'meta_ads')) n++;
+      else if (filterKey === 'blog' && it.channel === 'blog') n++;
+      else if (filterKey === 'email' && it.channel === 'email') n++;
+      else if (filterKey === 'reports' && (it.type === 'report' || it.agentRole === 'menateach' || it.agentRole === 'sayer')) n++;
+    });
+    // Count ALL monthly tasks (not the filter-applied subset) so each pill shows its OWN count
+    var allMonthly = monthlyTasks
+      .filter(function(t) { return t && t.scheduledFor && (t.status === 'proposed' || t.status === 'approved' || t.status === 'in_progress'); });
+    allMonthly.forEach(function(t) {
+      if (filterKey === 'all') n++;
+      else if (filterKey === 'ads' && (t.channel === 'google_ads' || t.channel === 'meta')) n++;
+      else if (filterKey === 'meta' && t.channel === 'meta') n++;
+      else if (filterKey === 'blog' && (t.channel === 'seo' || t.channel === 'content')) n++;
+      else if (filterKey === 'email' && t.channel === 'email') n++;
+      // reports tab is legacy-only; monthly tasks don't contribute
+    });
+    return n;
+  };
   var filters = [
     { k: 'all', label: 'הכל' },
-    { k: 'facebook', label: '📘 FB' },
-    { k: 'instagram', label: '📷 IG' },
+    { k: 'ads', label: '🎯 Ads' },
+    { k: 'meta', label: '📘 Meta' },       // FB + IG merged (same Meta channel)
     { k: 'blog', label: '📝 בלוג' },
     { k: 'email', label: '✉️ ניוזלטר' },
-    { k: 'ads', label: '🎯 Ads' },
     { k: 'reports', label: '📊 דוחות' }
   ];
 
@@ -9349,7 +9388,9 @@ function renderContentCalendar() {
     '<div class="cal-actions">' +
       filters.map(function(f) {
         var active = calendarFilter === f.k ? ' active' : '';
-        return '<button class="cal-filter-pill' + active + '" onclick="calendarFilter=\'' + f.k + '\';renderContentCalendar()">' + f.label + '</button>';
+        var n = countFor(f.k);
+        var badge = n > 0 ? ' <span style="background:rgba(255,255,255,0.25);padding:1px 6px;border-radius:8px;font-size:0.68rem;font-weight:600;margin-inline-start:4px">' + n + '</span>' : '';
+        return '<button class="cal-filter-pill' + active + '" onclick="calendarFilter=\'' + f.k + '\';renderContentCalendar()">' + f.label + badge + '</button>';
       }).join('') +
       regenBtn +
     '</div>' +
@@ -9482,12 +9523,30 @@ function openMonthlyTaskFromCalendar(taskId) {
     depsHtml = '<div style="margin-top:14px"><strong style="font-size:0.85rem;color:#1F2937">תלוי בהשלמת:</strong><ul style="margin:6px 0 0 18px;font-size:0.83rem;color:#4B5563;line-height:1.6">' + depTitles + '</ul></div>';
   }
 
+  // Phase 4.3-N v8: classify task by automation profile to surface the right primary CTA.
+  //   - has any automated:true step → אשרו והריצו (system runs after approve)
+  //   - all manual / no actionPlan → primary = בוצע (user does it manually, then marks done)
+  // The other action (the secondary "I'll do this manually" button) is always available
+  // so the user can override the default for any task — useful when an integration is set
+  // up but the user prefers to handle this one by hand.
+  var hasAutomatedStep = Array.isArray(task.actionPlan) && task.actionPlan.some(function(s) { return s && s.automated === true; });
+  var allManual = Array.isArray(task.actionPlan) && task.actionPlan.length > 0 && task.actionPlan.every(function(s) { return s && s.automated === false; });
+
   var actionsHtml = '';
-  if (task.status === 'proposed') {
-    actionsHtml =
-      '<button class="btn btn-primary btn-sm" onclick="approveMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem">✓ אשרו והריצו</button>' +
-      '<button class="btn btn-outline btn-sm" onclick="skipMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem;color:#92400E;border-color:#FDE68A">⏭ דחו לחודש הבא</button>' +
-      '<button class="btn btn-outline btn-sm" onclick="rejectMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem;color:#7F1D1D;border-color:#FCA5A5">✕ דחו</button>';
+  if (task.status === 'proposed' || task.status === 'approved') {
+    var primary = (hasAutomatedStep && task.status === 'proposed')
+      ? '<button class="btn btn-primary btn-sm" onclick="approveMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem">✓ אשרו והריצו</button>'
+      : '';
+    var manualDone = '<button class="btn btn-outline btn-sm" onclick="completeMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem;color:#065F46;border-color:#A7F3D0;background:#F0FDF4">✓ בוצע ידנית</button>';
+    actionsHtml = primary + manualDone;
+    if (task.status === 'proposed') {
+      actionsHtml +=
+        '<button class="btn btn-outline btn-sm" onclick="skipMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem;color:#92400E;border-color:#FDE68A">⏭ דחו לחודש הבא</button>' +
+        '<button class="btn btn-outline btn-sm" onclick="rejectMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem;color:#7F1D1D;border-color:#FCA5A5">✕ דחו</button>';
+    }
+    if (allManual) {
+      actionsHtml = '<div style="font-size:0.74rem;color:#6B7280;margin-bottom:6px;width:100%">משימה ידנית — לחצו ✓ בוצע ידנית לאחר השלמה כדי לשחרר משימות תלויות.</div>' + actionsHtml;
+    }
   }
 
   var existing = document.getElementById('monthly-task-modal');
@@ -9547,6 +9606,22 @@ function rejectMonthlyTaskFromModal(taskId) {
       if (!r.success) throw new Error(r.message || 'דחייה נכשלה');
       showToast('המשימה נדחתה', 'info');
       setTimeout(function() { refreshInstanceData(); renderMonthlyPlanCard(); renderContentCalendar(); }, 500);
+    })
+    .catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
+}
+// Phase 4.3-N v8: mark a task as manually completed (executor NOT invoked).
+// Used when the user did the work outside the system OR when the relevant
+// integration is absent. Downstream tasks whose dependsOn includes this id
+// are now unblocked (their UI reflects the dependency as 'completed' next time
+// the modal opens).
+function completeMonthlyTaskFromModal(taskId) {
+  var note = prompt('הערה לתיעוד (אופציונלי) — מה בדיוק עשיתם?', '') || '';
+  document.getElementById('monthly-task-modal').remove();
+  apiFetch('/hosting/instances/' + instanceId + '/monthly-plan/tasks/' + encodeURIComponent(taskId) + '/complete', { method: 'POST', body: JSON.stringify({ note: note }) })
+    .then(function(r) {
+      if (!r.success) throw new Error(r.message || 'סימון בוצע נכשל');
+      showToast('המשימה סומנה כבוצעה ✓ — משימות תלויות שוחררו', 'success');
+      setTimeout(function() { refreshInstanceData(); renderMonthlyPlanCard(); renderContentCalendar(); renderApprovalQueue(); }, 500);
     })
     .catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
 }
@@ -9956,19 +10031,43 @@ async function generateMonthlyPlan(forceRegen) {
   }
 }
 
-// Phase 4.3-N v8: External Links strategy widget.
+// Phase 4.3-N v8: External Links strategy popup.
 // Surfaces DFS-sourced backlink intelligence (referring domains, anchor
-// distribution, competitor benchmarks, velocity) alongside the 10 link tasks
-// from the monthly plan + scenario-calibrated budget. Read-only synthesis —
-// every actionable item is approval-gated via existing monthly_task flow.
-function renderExternalLinksWidget() {
-  var el = document.getElementById('externalLinksWidget');
-  if (!el) return;
+// distribution, velocity, competitor benchmarks, DFS-stage recommendations)
+// + scenario-calibrated link budget. Read-only analysis view.
+// Tasks themselves live in calendar + משימות פעילות — no duplicate task list here.
+// Triggered by 4th card in סטטוס מערכת.
+
+function hasExternalLinksData(rd) {
+  if (!rd) return false;
+  var la = rd.results && rd.results.link_audit;
+  return !!(la && la.extras);
+}
+
+function externalLinksHeadline(rd) {
+  // Compact one-line summary for the status card: counts + flags
+  if (!rd || !rd.results || !rd.results.link_audit) return '';
+  var ex = rd.results.link_audit.extras || {};
+  var our = ex.our_profile_summary || {};
+  var anchors = ex.anchor_distribution_analysis || {};
+  var parts = [];
+  if (our.referring_domains_total != null) parts.push(our.referring_domains_total + ' RD');
+  if (anchors.exact_match_pct != null) {
+    var penguin = anchors.exact_match_pct >= 50 ? ' ⚠' : '';
+    parts.push(anchors.exact_match_pct + '% exact' + penguin);
+  }
+  var velocity = ex.velocity_signal || {};
+  if (velocity.new_referring_90d === 0) parts.push('0 קישורים חדשים ב-90 ימים');
+  return parts.join(' · ');
+}
+
+function openExternalLinksPopup() {
   var rd = (instanceData && instanceData.researchData) || {};
   var la = rd.results && rd.results.link_audit;
-  var plan = rd.monthlyPlan;
-  // Hide entirely if neither link_audit data nor monthly plan exists.
-  if (!la && !plan) { el.style.display = 'none'; return; }
+  if (!la && !rd.monthlyPlan) {
+    showToast('עדיין אין נתוני קישורים נכנסים — הריצו את שלב Link Audit במחקר.', 'warning');
+    return;
+  }
 
   var extras = (la && la.extras) || {};
   var ourProfile = extras.our_profile_summary || {};
@@ -9976,16 +10075,6 @@ function renderExternalLinksWidget() {
   var anchors = extras.anchor_distribution_analysis || {};
   var competitors = Array.isArray(extras.competitor_link_benchmarks) ? extras.competitor_link_benchmarks : [];
   var dfsRecords = (la && Array.isArray(la.records)) ? la.records : [];
-
-  // Pull link-related tasks from the monthly plan. Match by keyword (channel='seo'
-  // is too broad — we want actual link work, not on-page SEO).
-  var linkTasks = (plan && Array.isArray(plan.tasks))
-    ? plan.tasks.filter(function(t) {
-        var text = ((t.title || '') + ' ' + (t.summary || '')).toLowerCase();
-        return /\blink|קישור|backlink|anchor|עוגן|דירקטור|directory|outreach\b/i.test(text)
-          || (t.id && /lnk|link/i.test(t.id));
-      })
-    : [];
 
   // Scenario + calibrated budget (verbatim from cost_timeline_modeling).
   var scenarioRaw = rd.chosenScenario;
@@ -10002,33 +10091,25 @@ function renderExternalLinksWidget() {
   var linksPerMonthTarget = (scenarioKey === 'smart') ? '2-3' : (scenarioKey === 'aggressive') ? '5-8' : '—';
   var linkTierTarget = (scenarioKey === 'smart') ? 'mid-DR' : (scenarioKey === 'aggressive') ? 'multi-tier' : '—';
 
-  // Task pipeline status breakdown
-  var statusCounts = { proposed: 0, approved: 0, in_progress: 0, completed: 0, rejected: 0, skipped: 0 };
-  linkTasks.forEach(function(t) {
-    var s = t.status || 'proposed';
-    if (statusCounts[s] !== undefined) statusCounts[s]++;
-  });
-  var totalLinkTasks = linkTasks.length;
-  var doneCount = statusCounts.completed + statusCounts.approved + statusCounts.in_progress;
-
-  // Empty state: no link_audit but plan exists with link tasks → smaller widget
-  // No link_audit and no link tasks → hide entirely (already handled above).
   var hasDfsData = !!(ourProfile.referring_domains_total !== undefined || ourProfile.backlinks_total !== undefined || competitors.length > 0 || (anchors.exact_match_pct !== undefined));
 
-  // ── Build HTML ──────────────────────────────────────────────────────
-  var html = '<div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;margin-bottom:14px">';
+  // ── Build HTML (modal body — no surrounding card wrapper, modal provides chrome) ──
+  var html = '';
 
   // Header
-  html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">'
-    + '<div style="font-weight:700;font-size:0.95rem;color:#1F2937">🔗 אסטרטגיית קישורים חיצוניים</div>';
+  html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">'
+    + '<div style="font-weight:700;font-size:1.05rem;color:#1F2937">🔗 אסטרטגיית קישורים חיצוניים</div>';
   if (scenarioKey) {
     var scenarioLabel = scenarioKey === 'smart' ? 'תרחיש חכם' : scenarioKey === 'aggressive' ? 'תרחיש אגרסיבי' : scenarioKey;
     html += '<span style="font-size:0.7rem;font-weight:600;padding:2px 9px;border-radius:999px;background:#0EA5E91A;color:#0EA5E9;border:1px solid #0EA5E940">' + escapeHtml(scenarioLabel) + '</span>';
   }
   if (linkBudget) {
-    html += '<span style="font-size:0.72rem;color:#6B7280;margin-inline-start:auto">תקציב: ₪' + Number(linkBudget).toLocaleString() + '/חודש · ' + linksPerMonthTarget + ' קישורי ' + linkTierTarget + '</span>';
+    html += '<span style="font-size:0.72rem;color:#6B7280;margin-inline-start:auto">תקציב חודשי: ₪' + Number(linkBudget).toLocaleString() + ' · ' + linksPerMonthTarget + ' קישורי ' + linkTierTarget + '</span>';
   }
   html += '</div>';
+  html += '<div style="font-size:0.78rem;color:#6B7280;line-height:1.6;margin-bottom:14px;padding:8px 12px;background:#F9FAFB;border-radius:6px;border-right:3px solid #0EA5E9">'
+    + 'הניתוח מבוסס על נתוני DataForSEO + מתחרים. המשימות הנגזרות נמצאות ב<strong>לוח התוכן</strong> וב<strong>משימות פעילות</strong> — כל משימה עוברת אישור נפרד.'
+    + '</div>';
 
   // ── Profile health snapshot (4 stat tiles) ─────────────────────────
   if (hasDfsData) {
@@ -10153,82 +10234,29 @@ function renderExternalLinksWidget() {
     html += '</tbody></table></div></details>';
   }
 
-  // ── Monthly plan task pipeline ────────────────────────────────────
-  if (totalLinkTasks > 0) {
-    html += '<div style="background:#FFFFFF;border-top:1px solid #F3F4F6;padding-top:14px;margin-top:6px">';
-
-    var progressPct = totalLinkTasks > 0 ? Math.round((doneCount / totalLinkTasks) * 100) : 0;
-    html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">'
-      + '<div style="font-size:0.86rem;font-weight:700;color:#1F2937">משימות תוכנית חודשית (' + totalLinkTasks + ')</div>'
-      + '<span style="font-size:0.72rem;padding:2px 8px;border-radius:999px;background:#FEE2E2;color:#991B1B">P0/P1: ממתינות ' + statusCounts.proposed + '</span>'
-      + (doneCount > 0 ? '<span style="font-size:0.72rem;padding:2px 8px;border-radius:999px;background:#D1FAE5;color:#065F46">בביצוע/הושלמו: ' + doneCount + '</span>' : '')
-      + (statusCounts.skipped + statusCounts.rejected > 0 ? '<span style="font-size:0.72rem;padding:2px 8px;border-radius:999px;background:#F3F4F6;color:#6B7280">דחויות: ' + (statusCounts.skipped + statusCounts.rejected) + '</span>' : '')
-      + '<div style="margin-inline-start:auto;font-size:0.72rem;color:#6B7280">' + progressPct + '% הושלמו</div>'
-      + '</div>';
-
-    // Progress bar
-    html += '<div style="background:#F3F4F6;border-radius:3px;height:6px;overflow:hidden;margin-bottom:12px">'
-      +   '<div style="width:' + progressPct + '%;height:100%;background:linear-gradient(90deg,#0EA5E9,#10B981)"></div>'
-      + '</div>';
-
-    // Task list (sorted P0 first, then by status)
-    var statusOrder = { in_progress: 0, approved: 1, proposed: 2, completed: 3, skipped: 4, rejected: 5 };
-    var prioOrder = { P0: 0, P1: 1, P2: 2 };
-    var sortedTasks = linkTasks.slice().sort(function(a, b) {
-      var pa = prioOrder[a.priority] != null ? prioOrder[a.priority] : 9;
-      var pb = prioOrder[b.priority] != null ? prioOrder[b.priority] : 9;
-      if (pa !== pb) return pa - pb;
-      var sa = statusOrder[a.status] != null ? statusOrder[a.status] : 9;
-      var sb = statusOrder[b.status] != null ? statusOrder[b.status] : 9;
-      return sa - sb;
-    });
-
-    sortedTasks.forEach(function(t) {
-      var prioColor = t.priority === 'P0' ? '#DC2626' : t.priority === 'P1' ? '#D97706' : '#0EA5E9';
-      var statusEmoji = t.status === 'completed' ? '✓'
-        : t.status === 'in_progress' ? '⏳'
-        : t.status === 'approved' ? '▶'
-        : t.status === 'rejected' ? '✕'
-        : t.status === 'skipped' ? '⏭'
-        : '•';
-      var statusColor = t.status === 'completed' ? '#10B981'
-        : t.status === 'in_progress' || t.status === 'approved' ? '#0EA5E9'
-        : t.status === 'rejected' || t.status === 'skipped' ? '#9CA3AF'
-        : '#F59E0B';
-      var statusLabel = t.status === 'completed' ? 'הושלמה'
-        : t.status === 'in_progress' ? 'בביצוע'
-        : t.status === 'approved' ? 'מאושרת'
-        : t.status === 'rejected' ? 'נדחתה'
-        : t.status === 'skipped' ? 'נדחתה לחודש הבא'
-        : 'ממתינה לאישור';
-      html += '<div onclick="openMonthlyTaskFromCalendar(\'' + t.id + '\')" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #F3F4F6;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background=\'#F9FAFB\'" onmouseout="this.style.background=\'transparent\'">'
-        + '<span style="color:' + statusColor + ';font-weight:700;flex-shrink:0;width:14px;text-align:center">' + statusEmoji + '</span>'
-        + '<span style="font-size:0.7rem;font-weight:700;color:#fff;background:' + prioColor + ';padding:1px 6px;border-radius:3px;flex-shrink:0">' + (t.priority || 'P?') + '</span>'
-        + '<span style="flex:1;min-width:0;font-size:0.82rem;color:#1F2937;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(t.title || t.id) + '</span>'
-        + '<span style="font-size:0.7rem;color:' + statusColor + ';flex-shrink:0">' + statusLabel + '</span>'
-        + '</div>';
-    });
-    html += '</div>';
-  } else if (hasDfsData) {
-    html += '<div style="background:#FEF3C7;border-right:3px solid #F59E0B;border-radius:6px;padding:10px 12px;margin-top:8px;font-size:0.78rem;color:#92400E;line-height:1.6">'
-      + 'יש לכם נתוני קישורים נכנסים אבל אין משימות בתוכנית החודשית. צרו את התוכנית כדי לקבל פעולות מבוססות-מחקר.'
-      + '</div>';
-  }
-
-  // ── DFS-stage records (collapsed; complementary to monthly tasks) ─
+  // ── DFS-stage records (collapsed; complementary intelligence) ─────
   if (dfsRecords.length > 0) {
     html += '<details style="border:1px solid #E5E7EB;border-radius:8px;margin-top:12px">'
       + '<summary style="cursor:pointer;padding:8px 12px;background:#F9FAFB;border-radius:8px 8px 0 0;font-size:0.82rem;font-weight:600;color:#374151">' + dfsRecords.length + ' המלצות שלב Link Audit (DFS-sourced)</summary>'
       + '<div style="padding:8px 12px 12px;font-size:0.74rem;color:#6B7280">'
-      + 'המלצות אלה הוזנו לתוכנית החודשית. אם משימה ספציפית חסרה, צרו את התוכנית מחדש או הוסיפו ידנית.'
+      + 'המלצות אלה כבר נכנסו לתוכנית החודשית. לצפייה במשימות הקונקרטיות — לוח התוכן או משימות פעילות.'
       + '</div>'
       + '<div style="padding:0 12px 12px">' + renderLinkAuditRecords(dfsRecords) + '</div>'
       + '</details>';
   }
 
-  html += '</div>';
-  el.innerHTML = html;
-  el.style.display = '';
+  // ── Open modal ────────────────────────────────────────────────────
+  var existing = document.getElementById('external-links-modal');
+  if (existing) existing.remove();
+  var modal = document.createElement('div');
+  modal.id = 'external-links-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto';
+  modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+  modal.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:760px;width:100%;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,0.25);position:relative">'
+    + '<button onclick="document.getElementById(\'external-links-modal\').remove()" style="position:absolute;top:14px;left:14px;background:#F3F4F6;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:1.1rem;color:#6B7280">×</button>'
+    + html
+    + '</div>';
+  document.body.appendChild(modal);
 }
 
 // Surfaces the paidProfile state. If empty, renders a "configure" CTA;
@@ -13094,6 +13122,13 @@ function openPaidProfileModal() {
         '<div class="pp-hint" style="grid-column:1/-1">משמש את Mazhir לחישוב tCPA הגיוני. אם תשאירו ריק, Mazhir יגזור הערכה מהמחקר והאסטרטגיה שלכם — אבל מספר מדויק תמיד עדיף.</div>' +
       '</div>' +
 
+      // Phase 4.3-N v8: 3b. Max CPA ceiling (optional, but if set — HARD constraint)
+      '<div style="margin-bottom:14px">' +
+        '<label class="pp-label">3ב. עלות לליד מקסימלית — תקרה קשה (₪) <span style="color:#9CA3AF;font-weight:400">— אופציונלי</span></label>' +
+        '<input id="pp-max-cpa" type="number" min="0" step="10" value="' + num(pp.maxCpaIls) + '" placeholder="לדוגמה: 120" class="pp-input">' +
+        '<div class="pp-hint">אם תזינו ערך — Mazhir והתוכנית החודשית יתייחסו אליו כתקרה <strong>בלתי-עבירה</strong>: כל מעבר להצעות חכמות (tCPA / Smart Bidding) יוגבל אליו, וכל עלות נוכחית מעל ' + (pp.maxCpaIls ? '₪' + pp.maxCpaIls : 'הערך הזה') + ' × 1.2 תיכנס לתוכנית כ-P0 חירום. השאירו ריק → התקרה תיגזר אוטומטית מערך עסקה / LTV.</div>' +
+      '</div>' +
+
       // 4. Decision cycle
       '<div style="margin-bottom:14px">' +
         '<label class="pp-label">4. מחזור החלטה אצל הלקוח</label>' +
@@ -13385,8 +13420,10 @@ async function savePaidProfileFromModal() {
   // pulled from research data on backend.
   var hasAcct = val('pp-account') === 'yes';
   var phoneAsConversion = conversionTypes.indexOf('phone_call') !== -1;
+  var maxCpa = num('pp-max-cpa');
   var payload = {
     monthlyBudgetIls: budget,
+    maxCpaIls: maxCpa > 0 ? maxCpa : undefined,
     primaryGoal: goal,
     geography: geography,
     avgDealValueIls: dealValue,

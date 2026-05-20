@@ -98,6 +98,25 @@ GTM: connected=${ctx.tenantState.signals?.gtm?.connected}, snippet=${ctx.tenantS
 GA4: connected=${ctx.tenantState.signals?.ga4?.connected}, propertyId=${ctx.tenantState.signals?.ga4?.measurementId || 'none'}
 ` : ''
 
+    // Phase 4.3-N v8: extract hard CPA ceiling for paid-task constraint block
+    const maxCpa = (ctx.paidProfile as any)?.maxCpaIls
+    const maxCpaBlock = (typeof maxCpa === 'number' && maxCpa > 0)
+        ? `\n═══ HARD CONSTRAINT — MAX CPA (user-defined ceiling) ═══
+The client has set a HARD MAX CPA of ₪${maxCpa.toLocaleString()}. This is non-
+negotiable. Every paid_optimization / experiment task that touches bid strategy
+MUST respect this. Specifically:
+  · Any TARGET_CPA recommendation: tCPA ≤ ₪${maxCpa.toLocaleString()}
+  · Any Smart Bidding migration task MUST show in its _oneLineRationale the
+    expected CPA stays under this ceiling
+  · If clientBaseline shows current CPA > ₪${Math.round(maxCpa * 1.2).toLocaleString()}
+    (= maxCpa × 1.2), spawn a P0 emergency optimization task with rationale
+    'CPA חורגת מהתקרה (₪${maxCpa.toLocaleString()})' and dependsOn the CR
+    validation task
+  · Brand-defense + retargeting / RT campaigns are EXEMPT (different CPA economics)
+  · Never propose campaigns/tasks with expectedImpact.metric='cpa_reduction_pct'
+    targeting a value that would land above the ceiling`
+        : ''
+
     return `${tenantBlock}
 
 ═══ CLIENT ═══
@@ -107,6 +126,7 @@ Description: ${(ctx.businessDesc || '').slice(0, 600)}
 Trigger: ${ctx.trigger}
 
 ${scenarioBlock}
+${maxCpaBlock}
 
 ═══ PAID PROFILE ═══
 ${jstr(ctx.paidProfile, 3000)}

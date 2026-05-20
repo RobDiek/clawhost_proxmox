@@ -105,13 +105,19 @@ const RULES: RuleDefinition[] = [
                 /(המרה|conversion|cr |cr validation|funnel|פאנל|הגדרת המרות|אימות המרה)/i,
             ])
         ),
-        fillBrief: () => ({
-            type: 'measurement_gap',
-            channel: 'google_ads',
-            priority: 'P0',
-            systemAddon: 'You produce a P0 measurement_gap task that audits current Google Ads conversion definitions + validates the funnel from button-click → form-submit → qualified-lead → customer. The output task MUST be a hard dependency for any tCPA/Smart-Bidding task in the plan.',
-            userBrief: `Produce ONE measurement_gap task titled in Hebrew (≤80 chars) about auditing what counts as conversion in the current Google Ads account and validating the funnel before any Smart-Bidding migration. Sources should cite the existing conversion_actions list from tenantState.signals.googleAds.existingConversionActions, GA4 event definitions, and the chosenScenario's first_win + 30_day_plan if they mention bid-strategy changes. ActionPlan must include: (a) Mazhir conv audit endpoint call (automated:true ~10min), (b) GA4 funnel audit (automated:true), (c) manual interview-1 with founder about which actions = qualified lead (automated:false ~20min), (d) reconciliation document, (e) monitoring trigger for next month.`,
-        }),
+        fillBrief: (ctx) => {
+            const maxCpa = (ctx.paidProfile as any)?.maxCpaIls
+            const cpaConstraint = (typeof maxCpa === 'number' && maxCpa > 0)
+                ? ` The user has set a HARD MAX CPA of ₪${maxCpa.toLocaleString()} — the validation MUST explicitly verify the CR definition supports landing at or below this ceiling, and the actionPlan must include a step that confirms 'current measured CR × ₪${maxCpa.toLocaleString()} target produces conversions matching account economics'.`
+                : ''
+            return {
+                type: 'measurement_gap',
+                channel: 'google_ads',
+                priority: 'P0',
+                systemAddon: 'You produce a P0 measurement_gap task that audits current Google Ads conversion definitions + validates the funnel from button-click → form-submit → qualified-lead → customer. The output task MUST be a hard dependency for any tCPA/Smart-Bidding task in the plan.' + cpaConstraint,
+                userBrief: `Produce ONE measurement_gap task titled in Hebrew (≤80 chars) about auditing what counts as conversion in the current Google Ads account and validating the funnel before any Smart-Bidding migration. Sources should cite the existing conversion_actions list from tenantState.signals.googleAds.existingConversionActions, GA4 event definitions, and the chosenScenario's first_win + 30_day_plan if they mention bid-strategy changes. ActionPlan must include: (a) Mazhir conv audit endpoint call (automated:true ~10min), (b) GA4 funnel audit (automated:true), (c) manual interview-1 with founder about which actions = qualified lead (automated:false ~20min), (d) reconciliation document, (e) monitoring trigger for next month.${cpaConstraint}`,
+            }
+        },
     },
 
     // 2. Creative diversity: 3 RSA variants (price / urgency / trust)

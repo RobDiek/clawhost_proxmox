@@ -101,6 +101,24 @@ ${jstr(ctx.chosenScenarioFull, 7000)}`)
 ${jstr(ctx.audit, 7000)}`)
 
     if (wantPaid) {
+        // Phase 4.3-N v8: surface the user-defined max CPA ceiling as a HARD constraint
+        // in every paid batch — every actionPlan + expectedImpact must respect it.
+        const maxCpa = (ctx.paidProfile as any)?.maxCpaIls
+        if (typeof maxCpa === 'number' && maxCpa > 0) {
+            parts.push(`═══ HARD CONSTRAINT — MAX CPA = ₪${maxCpa.toLocaleString()} ═══
+This is a USER-DEFINED CEILING. Every paid_optimization / experiment task you
+elaborate MUST:
+  · For TARGET_CPA campaigns: explicitly state in an actionPlan step that
+    tCPA is set to ≤ ₪${maxCpa.toLocaleString()}
+  · For Smart Bidding migration: expectedImpact.rationale MUST show the math
+    (e.g. 'current CPA ₪X → target ₪${maxCpa.toLocaleString()} = -Y% reduction')
+  · If skeleton is for an emergency P0 because current CPA exceeds the ceiling:
+    actionPlan step 1 MUST be 'pause/throttle campaign X spending ₪Y over CPA
+    ceiling' before any optimization attempt
+  · Source citation: include paidProfile.maxCpaIls reference (type='other',
+    ref='paidProfile.maxCpaIls', excerpt='תקרת CPA: ₪${maxCpa.toLocaleString()}')
+  · Brand-defense + retargeting campaigns are exempt — note this in actionPlan`)
+        }
         parts.push(`═══ MEDIA PLAN (paid optimizations — every changes[] entry should already have a wrapping skeleton task) ═══
 ${jstr(ctx.mediaPlan, 10000)}`)
         parts.push(`═══ PAID KEYWORDS + COMPETITOR LANDSCAPE ═══

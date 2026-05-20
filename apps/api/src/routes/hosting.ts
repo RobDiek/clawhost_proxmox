@@ -76,6 +76,7 @@ import {
     approveMonthlyTask,
     rejectMonthlyTask,
     skipMonthlyTask,
+    completeMonthlyTaskManually,
     generateMazhirMediaPlan,
     getMazhirMediaPlan,
     approveMazhirMediaPlan,
@@ -456,6 +457,8 @@ app.get('/instances/:id/monthly-plan', getMonthlyPlanController)
 app.post('/instances/:id/monthly-plan/tasks/:taskId/approve', approveMonthlyTask)
 app.post('/instances/:id/monthly-plan/tasks/:taskId/reject', rejectMonthlyTask)
 app.post('/instances/:id/monthly-plan/tasks/:taskId/skip', skipMonthlyTask)
+// Phase 4.3-N v8: manual-done flow (task done outside the system; unblocks dependsOn chain).
+app.post('/instances/:id/monthly-plan/tasks/:taskId/complete', completeMonthlyTaskManually)
 app.post('/instances/:id/mazhir/media-plan', generateMazhirMediaPlan)
 app.get('/instances/:id/mazhir/media-plan', getMazhirMediaPlan)
 app.post('/instances/:id/mazhir/media-plan/approve', approveMazhirMediaPlan)
