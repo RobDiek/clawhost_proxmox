@@ -8611,19 +8611,50 @@ function saveBlogIntegration() {
 
   var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'מחבר WordPress');
 
+  // Phase 4.3-O fix: normalize + validate URL BEFORE network call.
+  // Catches typos like 'packing-station.co.i' (Sergei's onboarding test).
+  function normalizeBlogUrl(raw) {
+    var u = (raw || '').trim();
+    if (!u) return null;
+    if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+    u = u.replace(/\/+$/, '');
+    var parsed;
+    try { parsed = new URL(u); } catch (e) { return null; }
+    if (!parsed.hostname || !parsed.hostname.includes('.')) return null;
+    return parsed.origin;
+  }
+  var normUrl = normalizeBlogUrl(url);
+  if (!normUrl) {
+    showToast('כתובת האתר לא תקינה. דוגמה: https://example.com', 'error');
+    return;
+  }
+  if (normUrl !== url) { url = normUrl; document.getElementById('pub-blog-url').value = url; }
+
+  // Phase 4.3-O fix: detect Application Password format (24-char, often pasted with spaces).
+  var passNoSpaces = pass.replace(/\s+/g, '');
+  if (passNoSpaces.length < 24) {
+    if (!confirm('הסיסמה קצרה מ-24 תווים. סיסמת Application של WordPress היא 24 תווים (לרוב עם רווחים). השתמשתם בסיסמה הרגילה? היא לא תעבוד עם REST API.\n\nלהמשיך בכל זאת?')) return;
+  }
+
   // First verify connection works
-  var auth = btoa(user + ':' + pass);
-  fetch(url.replace(/\/$/, '') + '/wp-json/wp/v2/posts?per_page=1', {
+  var auth = btoa(user + ':' + passNoSpaces);
+  fetch(url + '/wp-json/wp/v2/posts?per_page=1', {
     headers: { 'Authorization': 'Basic ' + auth }
   }).then(function(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+    if (!r.ok) {
+      var msg = 'HTTP ' + r.status;
+      if (r.status === 401) msg = '401 — שם משתמש או Application Password שגויים. ודאו שיצרתם Application Password ב-WP Admin → Profile → Application Passwords (לא סיסמה רגילה).';
+      else if (r.status === 403) msg = '403 — למשתמש אין הרשאות לפרסום באתר.';
+      else if (r.status === 404) msg = '404 — לא נמצא /wp-json/ באתר. ייתכן ש-REST API מבוטל בתוסף אבטחה.';
+      throw new Error(msg);
+    }
     return r.json();
   }).then(function() {
     // Connection works — save to VPS
     return fetch(API + '/hosting/instances/' + instanceId + '/integrations/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ type: 'wordpress', key: JSON.stringify({ url: url, user: user, appPassword: pass }) })
+      body: JSON.stringify({ type: 'wordpress', key: JSON.stringify({ url: url, user: user, appPassword: passNoSpaces }) })
     });
   }).then(function(r) { return r.json(); })
   .then(function(d) {
@@ -8635,7 +8666,14 @@ function saveBlogIntegration() {
       document.getElementById('pub-blog-card').classList.add('connected');
     } else showToast(d.message || 'שגיאה', 'error');
   }).catch(function(e) {
-    showToast('חיבור WordPress נכשל — בדקו URL, שם משתמש וסיסמה. ' + (e.message || ''), 'error');
+    // Phase 4.3-O fix: distinguish error classes for actionable user feedback.
+    var msg = e.message || 'unknown';
+    if (/failed to fetch|networkerror|err_name_not_resolved|err_connection|net::/i.test(msg)) {
+      msg = 'אתר לא נגיש: כתובת DNS לא מזוהה / אתר כבוי / חוסם CORS. ודאו שה-URL נכון: ' + url;
+    } else if (/cors/i.test(msg)) {
+      msg = 'WordPress חוסם CORS — ייתכן שתוסף אבטחה חוסם בקשות חיצוניות.';
+    }
+    showToast('חיבור WordPress נכשל — ' + msg, 'error');
   }).finally(function() { _unlock(); });
 }
 
