@@ -98,6 +98,45 @@ GTM: connected=${ctx.tenantState.signals?.gtm?.connected}, snippet=${ctx.tenantS
 GA4: connected=${ctx.tenantState.signals?.ga4?.connected}, propertyId=${ctx.tenantState.signals?.ga4?.measurementId || 'none'}
 ` : ''
 
+    // Phase 4.3-N v8: month-over-month baseline delta narrative.
+    // Surfaces "you were at X, now Y, delta = Z%" so Opus can reference real
+    // movement in priorities + rationales. Falls back gracefully when no
+    // prior baseline exists (first month → null).
+    const baselineDeltaBlock = ctx.baselineDelta
+        ? `\n═══ BASELINE DELTA — MONTH-OVER-MONTH PERFORMANCE ═══
+Prior baseline pulled: ${ctx.baselineDelta._pulledFrom || 'unknown'}
+Current baseline pulled: ${ctx.baselineDelta._pulledTo || 'unknown'}
+
+Real movement (Google Ads account-level metrics — cite these verbatim in expectedImpact.rationale + overview.hebrew when relevant):
+${(['cost', 'conversions', 'clicks', 'ctr', 'avgCpc', 'convRate', 'costPerConv'] as const)
+    .map(k => {
+        const d = (ctx.baselineDelta as any)[k]
+        if (!d) return null
+        const arrow = d.improved ? '✓' : '⚠'
+        const direction = d.deltaPct > 0 ? '+' : ''
+        return `  ${arrow} ${d.labelHe}: ${d.prior.toLocaleString()} → ${d.current.toLocaleString()} (${direction}${d.deltaPct.toFixed(1)}%)`
+    }).filter(Boolean).join('\n')}
+
+INSTRUCTIONS:
+  · Reference this delta in overview.hebrew paragraphs ("CPA ירד מ-₪X ל-₪Y — Z% שיפור")
+  · For P0 tasks that worsen vs baseline (⚠), add explicit rationale "regression vs last month"
+  · For metrics that improved (✓), build on the win — propose tasks that double-down on what worked
+  · Don't repeat tasks from the previous plan that produced no measurable improvement (see completedTaskOutcomes below)`
+        : ''
+
+    const completedOutcomesBlock = (ctx.completedTaskOutcomes && ctx.completedTaskOutcomes.length > 0)
+        ? `\n═══ COMPLETED TASKS FROM PREVIOUS PLAN — outcomes ═══
+${ctx.completedTaskOutcomes.length} tasks from last month transitioned to completed/in_progress. Use their outcomes
+(if recorded) to decide what to KEEP DOING, STOP DOING, or REPLICATE for the new month:
+
+${jstr(ctx.completedTaskOutcomes.slice(0, 20), 3000)}
+
+INSTRUCTIONS:
+  · Tasks where expectedImpact matched actualImpact (within 20%) → REPLICATE pattern in new plan
+  · Tasks where actualImpact missed expectedImpact by >40% → DON'T propose similar; investigate root cause via measurement_gap task
+  · Tasks with completedMethod='manual' (no integration) → next month consider proposing the INTEGRATION SETUP as P1 task so future runs can be automated`
+        : ''
+
     // Phase 4.3-N v8: extract hard CPA ceiling for paid-task constraint block
     const maxCpa = (ctx.paidProfile as any)?.maxCpaIls
     const maxCpaBlock = (typeof maxCpa === 'number' && maxCpa > 0)
@@ -126,6 +165,8 @@ Description: ${(ctx.businessDesc || '').slice(0, 600)}
 Trigger: ${ctx.trigger}
 
 ${scenarioBlock}
+${baselineDeltaBlock}
+${completedOutcomesBlock}
 ${maxCpaBlock}
 
 ═══ PAID PROFILE ═══

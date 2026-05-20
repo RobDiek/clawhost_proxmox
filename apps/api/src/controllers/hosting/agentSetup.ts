@@ -6460,6 +6460,25 @@ export interface MonthlyTask {
     executionOutputId?: string             // agent_outputs row id when executor produces output
     childTaskIds?: string[]                // sub-tasks spawned during execution
 
+    // ── Phase 4.3-N v8: outcome capture (read by next month's monthlyPlanGenerator) ──
+    completedMethod?: 'automated' | 'manual'  // executor vs user-confirmed
+    completedNote?: string                    // user-supplied note when manually completed
+    executionOutcome?: {                       // populated immediately after executor returns
+        completedAt: string
+        completedMethod: 'automated' | 'manual'
+        outputDescription?: string             // Hebrew, what was done
+        stepResults?: Array<{ step: string; ok: boolean; detail?: string }>
+        error?: string
+    }
+    actualImpact?: {                           // populated by a future TaskOutcomeAttribution cron 7-30d post-completion
+        metric: string
+        value: number
+        horizon: string
+        measuredAt: string
+        rationale: string                      // Hebrew narrative of "expected X, got Y"
+        deltaVsExpected: number                // (actualValue - expectedValue) / expectedValue * 100
+    }
+
     // ── Cross-references to legacy systems (Coexist mode) ─────────────────
     paidHypothesisId?: string              // wraps an existing paid_hypothesis
     contentPlanItemId?: string             // wraps an existing contentPlan.items[] entry
@@ -8947,7 +8966,9 @@ export const generateMonthlyPlanController = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const { generateMonthlyPlan } = await import('@/services/monthlyPlanGenerator')
         const trigger = (c.req.query('trigger') as 'cron_monthly' | 'on_demand' | 'auto_refresh') || 'on_demand'
-        const result = await generateMonthlyPlan(instanceId, trigger)
+        // Phase 4.3-N v8: multi-agent topology. ?agentId= selects secondary agent.
+        const agentId = (c.req.query('agentId') || '').trim() || undefined
+        const result = await generateMonthlyPlan(instanceId, trigger, agentId)
         return ok(c, result, `Monthly plan generated · ${result.monthlyPlan.summary.totalTasks} tasks`)
     } catch (err) {
         console.error('generateMonthlyPlanController error:', err)
@@ -8980,9 +9001,12 @@ async function _mutateMonthlyTaskStatus(
     instanceId: string,
     taskId: string,
     next: { status: 'approved' | 'rejected' | 'skipped' | 'completed'; rejectedReason?: string; skippedUntil?: string; approvedByUserId?: string; completedNote?: string },
+    agentId?: string,    // Phase 4.3-N v8: optional secondary-agent resolver
 ): Promise<{ ok: boolean; task?: any; outputId?: string }> {
-    const { resolvePrimaryAgent, mutateResearchData } = await import('@/services/agentContext')
-    const agent = await resolvePrimaryAgent(instanceId)
+    const { resolvePrimaryAgent, resolveAgentById, mutateResearchData } = await import('@/services/agentContext')
+    const agent = agentId
+        ? (await resolveAgentById(instanceId, agentId)) || (await resolvePrimaryAgent(instanceId))
+        : await resolvePrimaryAgent(instanceId)
     let task: any = null
     let outputId: string | undefined
     await mutateResearchData(agent, instanceId, (rd: any) => {
@@ -9003,10 +9027,19 @@ async function _mutateMonthlyTaskStatus(
             // Phase 4.3-N v8: manual-done flow. User marks task as completed
             // without running the executor (typical when integration is absent
             // and user did the work by hand). Unblocks any tasks dependsOn this id.
-            t.completedAt = new Date().toISOString()
+            const now2 = new Date().toISOString()
+            t.completedAt = now2
             if (next.completedNote) t.failureReason = undefined // clear any prior failure
             ;(t as any).completedMethod = 'manual'
             if (next.completedNote) (t as any).completedNote = next.completedNote.slice(0, 500)
+            // Same shape as executor-populated executionOutcome — gives next plan
+            // a uniform structure to read regardless of which path completed the task.
+            ;(t as any).executionOutcome = {
+                completedAt: now2,
+                completedMethod: 'manual',
+                outputDescription: next.completedNote || 'Completed manually by user',
+                stepResults: [],
+            }
         }
         task = t
         outputId = t.executionOutputId
@@ -9028,7 +9061,8 @@ export const approveMonthlyTask = async (c: Context) => {
         const userId = resolveUserId(c)
         if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
 
-        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'approved', approvedByUserId: userId || undefined })
+        const agentId = (c.req.query('agentId') || '').trim() || undefined
+        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'approved', approvedByUserId: userId || undefined }, agentId)
         if (!r.ok) return fail(c, `Task ${taskId} not found in monthlyPlan`, 404)
 
         // Mirror status on per-task agent_outputs row
@@ -9067,7 +9101,8 @@ export const rejectMonthlyTask = async (c: Context) => {
         try { body = await c.req.json() } catch { /* allow empty body */ }
         const reason = typeof body.reason === 'string' ? body.reason.slice(0, 500) : undefined
 
-        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'rejected', rejectedReason: reason })
+        const agentId = (c.req.query('agentId') || '').trim() || undefined
+        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'rejected', rejectedReason: reason }, agentId)
         if (!r.ok) return fail(c, `Task ${taskId} not found in monthlyPlan`, 404)
         if (r.outputId) {
             try {
@@ -9097,7 +9132,8 @@ export const completeMonthlyTaskManually = async (c: Context) => {
         try { body = await c.req.json() } catch { /* allow empty body */ }
         const note = typeof body.note === 'string' ? body.note.slice(0, 500) : undefined
 
-        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'completed', completedNote: note })
+        const agentId = (c.req.query('agentId') || '').trim() || undefined
+        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'completed', completedNote: note }, agentId)
         if (!r.ok) return fail(c, `Task ${taskId} not found in monthlyPlan`, 404)
 
         // Mirror status on per-task agent_outputs row
@@ -9134,7 +9170,8 @@ export const skipMonthlyTask = async (c: Context) => {
             skippedUntil = next.toISOString()
         }
 
-        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'skipped', skippedUntil })
+        const agentId = (c.req.query('agentId') || '').trim() || undefined
+        const r = await _mutateMonthlyTaskStatus(instanceId, taskId, { status: 'skipped', skippedUntil }, agentId)
         if (!r.ok) return fail(c, `Task ${taskId} not found in monthlyPlan`, 404)
         if (r.outputId) {
             try {

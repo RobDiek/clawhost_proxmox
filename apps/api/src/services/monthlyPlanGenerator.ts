@@ -89,6 +89,12 @@ export interface PromptCtx {
     tenantState: any
     seoResearch2026: string
     trigger: 'cron_monthly' | 'on_demand' | 'auto_refresh'
+    // Phase 4.3-N v8: baseline-delta context for month-over-month performance narrative.
+    // baselineHistory[monthKey] holds frozen baselines from prior months.
+    // baselineDelta is the computed comparison (current vs most-recent prior).
+    baselineHistory: any
+    baselineDelta: any
+    completedTaskOutcomes: any[]
 }
 
 // ─── 2026 SEO research loader (cached) ────────────────────────────────────
@@ -128,6 +134,7 @@ function loadSeoResearch2026(): string {
 async function buildPromptCtx(
     instanceId: string,
     trigger: PromptCtx['trigger'],
+    agentId?: string,    // Phase 4.3-N v8: optional — resolve specific secondary agent (multi-agent VPS support)
 ): Promise<{ ctx: PromptCtx; agent: any; rd: any; apiKey: string }> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error('Instance not found')
@@ -135,8 +142,12 @@ async function buildPromptCtx(
     const apiKey = (inst as any).aiProviderKey || process.env.ANTHROPIC_API_KEY
     if (!apiKey) throw new Error('Anthropic API key missing')
 
-    const { resolvePrimaryAgent, readResearchData } = await import('./agentContext')
-    const agent = await resolvePrimaryAgent(instanceId)
+    // Phase 4.3-N v8: multi-agent topology. If agentId given, resolve THAT agent
+    // (e.g. Packing Station). Otherwise fall back to primary (legacy single-agent).
+    const { resolvePrimaryAgent, resolveAgentById, readResearchData } = await import('./agentContext')
+    const agent = agentId
+        ? (await resolveAgentById(instanceId, agentId)) || (await resolvePrimaryAgent(instanceId))
+        : await resolvePrimaryAgent(instanceId)
     const rd: any = (await readResearchData(agent, instanceId)) || {}
 
     const mediaPlan = rd.mediaPlan
@@ -177,6 +188,24 @@ async function buildPromptCtx(
     const marketingIntents = rd.marketingIntents
     const integrationsState = rd.integrationsState
 
+    // Phase 4.3-N v8: baseline-delta computation for month-over-month narrative.
+    const baselineHistory = rd.baselineHistory || {}
+    const currentBaseline = clientBaseline
+    const priorMonthKeys = Object.keys(baselineHistory).sort().reverse()
+    const priorBaseline = priorMonthKeys.length > 0 ? baselineHistory[priorMonthKeys[0]] : null
+    const baselineDelta = (currentBaseline && priorBaseline) ? computeBaselineDelta(priorBaseline, currentBaseline) : null
+
+    // Phase 4.3-N v8: extract completed task outcomes from previous plan for next-month context.
+    const completedTaskOutcomes: any[] = (previousMonthlyPlan?.tasks || [])
+        .filter((t: any) => t.status === 'completed' || t.status === 'in_progress')
+        .map((t: any) => ({
+            id: t.id, title: t.title, type: t.type, channel: t.channel,
+            completedAt: t.completedAt, completedMethod: t.completedMethod,
+            executionOutcome: t.executionOutcome,   // populated by executor post-run
+            actualImpact: t.actualImpact,           // optional — captured by future executors
+            expectedImpact: t.expectedImpact,
+        }))
+
     let brandBookFull: any = undefined
     let pastAgentOutputs: any[] = []
     let agentIntegrations: any[] = []
@@ -186,7 +215,12 @@ async function buildPromptCtx(
     let paidLearnings: any[] = []
     let strategyLearnings: any[] = []
     try {
-        const [bb] = await db.select().from(brandBooks).where(eq(brandBooks.instanceId, instanceId))
+        // Phase 4.3-N v8: multi-agent — scope brand book to the resolved agent
+        // (Storage Station vs Packing Station have distinct voice/USPs).
+        const whereClause = agent?.id
+            ? and(eq(brandBooks.instanceId, instanceId), eq(brandBooks.agentId, agent.id))
+            : eq(brandBooks.instanceId, instanceId)
+        const [bb] = await db.select().from(brandBooks).where(whereClause)
         brandBookFull = bb
     } catch (e) { console.warn('[monthlyPlanGenerator] brandBook pull failed:', (e as Error).message) }
 
@@ -240,7 +274,11 @@ async function buildPromptCtx(
         throw new Error('research_data.chosenScenario not set or malformed — user must pick smart or aggressive in strategy_options first')
     }
 
-    const [brand] = await db.select().from(brandBooks).where(eq(brandBooks.instanceId, instanceId))
+    // Phase 4.3-N v8: agent-scoped brand book for businessName resolution.
+    const brandWhere = agent?.id
+        ? and(eq(brandBooks.instanceId, instanceId), eq(brandBooks.agentId, agent.id))
+        : eq(brandBooks.instanceId, instanceId)
+    const [brand] = await db.select().from(brandBooks).where(brandWhere)
     const businessName = (brand as any)?.businessName || answers.businessName || 'unknown'
     const websiteUrl = answers.websiteUrl || ''
     const businessDesc = answers.businessDescription || ''
@@ -271,9 +309,51 @@ async function buildPromptCtx(
         contentPlan, previousMonthlyPlan,
         tenantState, seoResearch2026,
         trigger,
+        baselineHistory, baselineDelta, completedTaskOutcomes,
     }
 
     return { ctx, agent, rd, apiKey }
+}
+
+// Phase 4.3-N v8: compute baseline delta (prior → current). Returns null on
+// missing data. Output structure surfaces deltas Opus can cite verbatim in
+// the monthly plan narrative — e.g. "CPA was ₪150 → now ₪120 = -20%".
+function computeBaselineDelta(prior: any, current: any): any {
+    try {
+        const priorAds = prior?.dfsData?.googleAds?.accountMetrics || {}
+        const currAds = current?.dfsData?.googleAds?.accountMetrics || {}
+        const delta: any = { _pulledFrom: prior?.pulledAt, _pulledTo: current?.pulledAt }
+
+        const num = (v: any): number | null => (typeof v === 'number' && !isNaN(v)) ? v : null
+
+        // Core metrics: cost, conversions, clicks, ctr, cpc, conv_rate, cpa
+        const metrics: Array<{ key: string; labelHe: string; betterDir: 'up' | 'down' }> = [
+            { key: 'cost',             labelHe: 'הוצאה',          betterDir: 'down' },
+            { key: 'conversions',      labelHe: 'המרות',          betterDir: 'up' },
+            { key: 'clicks',           labelHe: 'קליקים',         betterDir: 'up' },
+            { key: 'impressions',      labelHe: 'חשיפות',         betterDir: 'up' },
+            { key: 'ctr',              labelHe: 'CTR',            betterDir: 'up' },
+            { key: 'avgCpc',           labelHe: 'CPC ממוצע',      betterDir: 'down' },
+            { key: 'convRate',         labelHe: 'שיעור המרה',     betterDir: 'up' },
+            { key: 'costPerConv',      labelHe: 'CPA',            betterDir: 'down' },
+        ]
+        for (const m of metrics) {
+            const a = num(priorAds[m.key])
+            const b = num(currAds[m.key])
+            if (a === null || b === null || a === 0) continue
+            const deltaAbs = b - a
+            const deltaPct = (deltaAbs / Math.abs(a)) * 100
+            const improved = m.betterDir === 'up' ? deltaAbs > 0 : deltaAbs < 0
+            delta[m.key] = {
+                prior: a, current: b, deltaAbs, deltaPct: Math.round(deltaPct * 10) / 10,
+                improved, labelHe: m.labelHe,
+            }
+        }
+        return delta
+    } catch (err) {
+        console.warn('[monthlyPlanGenerator] computeBaselineDelta failed:', (err as Error).message)
+        return null
+    }
 }
 
 // ─── Persist plan + emit per-task agent_outputs rows ──────────────────────
@@ -441,12 +521,14 @@ async function persistAndEmit(
 export async function generateMonthlyPlan(
     instanceId: string,
     trigger: PromptCtx['trigger'] = 'on_demand',
+    agentId?: string,    // Phase 4.3-N v8: optional — resolve secondary agent for multi-agent VPS support
 ): Promise<{ monthlyPlan: MonthlyMarketingPlan; outputId?: string; cost: { model: string } }> {
     const t0 = Date.now()
     const model = 'claude-opus-4-7'
 
     // Build context once — all 3 passes share it
-    const { ctx, agent, rd, apiKey } = await buildPromptCtx(instanceId, trigger)
+    const { ctx, agent, rd, apiKey } = await buildPromptCtx(instanceId, trigger, agentId)
+    console.log(`[monthlyPlanGenerator] ${instanceId}: building plan for agent=${agent?.id || 'primary-fallback'} (${agent?.name || 'unnamed'})`)
 
     console.log(`[monthlyPlanGenerator] ${instanceId}: v8 multi-pass starting (model=${model}, scenario=${ctx.chosenScenarioKey})`)
 
@@ -482,6 +564,27 @@ export async function generateMonthlyPlan(
     }
     if (failedFills.length > 0) {
         qualityWarnings.push(`Pass 3 fill failed for: ${failedFills.join(', ')} — manually escalate; senior-bar coverage incomplete`)
+    }
+
+    // Phase 4.3-N v8: stale-upstream check. Surface in qualityWarnings if any
+    // research stage feeding this plan is stale (its upstream was edited after
+    // it last ran). Non-blocking — user can still generate, but the plan is
+    // built on partially-stale data. UI surfaces stale stages in סטטוס מערכת.
+    const staleUpstream: string[] = []
+    const planStatus = (rd?.plan?.status) || {}
+    const criticalStages = [
+        'audience_personas', 'positioning', 'strategy_options', 'cost_timeline_modeling',
+        'paid_audit', 'paid_data_inventory', 'client_account_baseline',
+        'internal_seo_audit', 'link_audit', 'competitor_landscape',
+    ]
+    for (const stageId of criticalStages) {
+        const s = planStatus[stageId]
+        if (s?.stale) {
+            staleUpstream.push(`${stageId} (changed by ${s.stale.sourceStage || 'unknown'})`)
+        }
+    }
+    if (staleUpstream.length > 0) {
+        qualityWarnings.push(`⚠ Plan built with stale upstream stages: ${staleUpstream.join('; ')}. Re-run these stages and regenerate the plan for full accuracy.`)
     }
 
     let plan: MonthlyMarketingPlan = {

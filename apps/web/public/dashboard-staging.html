@@ -5587,7 +5587,11 @@ function renderHome() {
     // - הגדרה של הממומן (paid profile + media plan)
     var paidProfileExists = !!(instanceData && instanceData.researchData && instanceData.researchData.paidProfile);
     var mediaPlanExists = !!(instanceData && instanceData.researchData && instanceData.researchData.mediaPlan);
-    var hasBrand = !!(instanceData && instanceData.researchData && instanceData.researchData.brandBook);
+    // Phase 4.3-N v8 fix: brand book status lives in instances.hasBrandBook (set
+    // when brandV2 approve flow completes). The old researchData.brandBook check
+    // was a legacy mirror that's not actually populated, so the card was always
+    // showing yellow/amber even when the brand WAS built. Use the canonical flag.
+    var hasBrand = !!(instanceData && (instanceData.hasBrandBook || (instanceData.researchData && instanceData.researchData.brandBook)));
 
     // Phase 4.3-N v8: stacked single-column cards, compact height, ONE button each
     var card = function(opts) {
@@ -5617,22 +5621,25 @@ function renderHome() {
       primaryOnClick: 'openBrandFoundation()',
     });
 
+    // Phase 4.3-N v8: status cards open STEP-WIZARDS (openPipelineV2 for research,
+    // marketing tab for media plan + paid setup), so user can edit individual
+    // stages — not just view the final aggregated report.
     var card2 = card({
       icon: '🔍',
       title: 'מחקר שוק ואסטרטגיה',
-      subtitle: (hasResearch && hasStrategy) ? 'דוח מחקר ואסטרטגיה מוכנים — עיון ועריכת תרחישים' : 'מחקר או אסטרטגיה עדיין לא הושלמו',
+      subtitle: (hasResearch && hasStrategy) ? 'דוח מחקר ואסטרטגיה מוכנים — לחצו לעריכת שלבים' : 'מחקר או אסטרטגיה עדיין לא הושלמו',
       ready: hasResearch && hasStrategy,
-      primaryLabel: 'פתחו אסטרטגיה ←',
-      primaryOnClick: "viewStrategy()",
+      primaryLabel: 'פתחו שלבים ←',
+      primaryOnClick: "openPipelineV2()",
     });
 
     var card3 = card({
       icon: '🎯',
       title: 'הגדרה של הממומן',
-      subtitle: mediaPlanExists ? 'פרופיל קידום + תוכנית מדיה מוכנים' : (paidProfileExists ? 'פרופיל קידום מוגדר. תוכנית מדיה ממתינה לעיון' : 'הגדרת ערוצים בתשלום עדיין לא הושלמה'),
+      subtitle: mediaPlanExists ? 'פרופיל קידום + תוכנית מדיה מוכנים — לחצו לעריכת שלבים' : (paidProfileExists ? 'פרופיל קידום מוגדר. תוכנית מדיה ממתינה לעיון' : 'הגדרת ערוצים בתשלום עדיין לא הושלמה'),
       ready: paidProfileExists && mediaPlanExists,
-      primaryLabel: mediaPlanExists ? 'תוכנית מדיה ←' : (paidProfileExists ? 'ערכו פרופיל ←' : 'הגדירו פרופיל ←'),
-      primaryOnClick: mediaPlanExists ? "switchTab('marketing')" : "openPaidProfileModal()",
+      primaryLabel: paidProfileExists ? 'פתחו שלבים ←' : 'הגדירו פרופיל ←',
+      primaryOnClick: paidProfileExists ? "openPipelineV2()" : "openPaidProfileModal()",
     });
 
     // Phase 4.3-N v8: 4th card — external links strategy (DFS-sourced).
@@ -5654,9 +5661,16 @@ function renderHome() {
       });
     }
 
+    // Phase 4.3-N v8: cascade UI surface. Detects stale stages from
+    // research_data.plan.status[*].stale + research_data._artifactFreshness.
+    // If any stale, surface a warning block ABOVE the 4 status cards with
+    // re-run CTAs. Built so backend cascade isn't invisible to the user.
+    var staleAlertHtml = (typeof renderStaleStagesAlert === 'function') ? renderStaleStagesAlert() : '';
+
     var completedHtml = '<div class="section-title" style="display:flex;align-items:center;gap:6px">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' +
       'סטטוס מערכת</div>' +
+      staleAlertHtml +
       '<div style="display:flex;flex-direction:column;gap:8px">' +
         card1 + card2 + card3 + card4 +
       '</div>';
@@ -10031,6 +10045,147 @@ async function generateMonthlyPlan(forceRegen) {
   }
 }
 
+// Phase 4.3-N v8: cascade UI surface.
+// Reads research_data.plan.status[*].stale (set by stageExecutor when an
+// upstream stage re-runs) + research_data._artifactFreshness (wrappers like
+// mediaPlan/contentPlan/monthlyPlan invalidation markers). Surfaces a
+// red-bordered alert with re-run CTAs in סטטוס מערכת.
+var STAGE_TITLES_HE = {
+  competitor_landscape: 'נוף תחרותי',
+  internal_seo_audit: 'אודיט SEO פנימי',
+  seo_keyword_research: 'מחקר מילות מפתח (SEO)',
+  aeo_visibility: 'נראות AI (AEO)',
+  link_audit: 'אודיט פרופיל קישורים',
+  paid_data_inventory: 'מלאי נתונים — פרסום ממומן',
+  client_account_baseline: 'נתוני חשבון היסטוריים',
+  paid_audit: 'אודיט פרסום ממומן',
+  paid_competitor_landscape: 'נוף תחרותי — ממומן',
+  paid_keyword_research: 'מחקר מילות מפתח (ממומן)',
+  paid_budget_scenarios: 'תרחישי תקציב — ממומן',
+  social_landscape: 'נוף סוציאלי',
+  email_competitor_audit: 'אודיט מייל — מתחרים',
+  audience_personas: 'פרסונות קהל',
+  positioning: 'מיצוב',
+  cost_timeline_modeling: 'מודל עלות + לוח זמנים',
+  strategy_options: 'אפשרויות אסטרטגיה',
+  validation: 'אימות עובדות',
+  content_plan: 'תוכנית תוכן',
+  media_plan: 'תוכנית מדיה',
+};
+var WRAPPER_TITLES_HE = {
+  mazhirAudit: 'אודיט Mazhir',
+  mediaPlan: 'תוכנית מדיה',
+  contentPlan: 'תוכנית תוכן',
+  chosenScenario: 'תרחיש שנבחר',
+  marketingIntents: 'יעדי שיווק',
+  brandSemanticFields: 'שדות סמנטיים של המותג (מיצוב/קול/פרסונות)',
+};
+
+function renderStaleStagesAlert() {
+  var rd = (instanceData && instanceData.researchData) || {};
+  var plan = rd.plan || {};
+  var statuses = plan.status || {};
+  var freshness = rd._artifactFreshness || {};
+
+  var staleStages = [];
+  Object.keys(statuses).forEach(function(stageId) {
+    var s = statuses[stageId];
+    if (s && s.stale && s.stale.since) {
+      staleStages.push({
+        id: stageId,
+        title: STAGE_TITLES_HE[stageId] || stageId,
+        since: s.stale.since,
+        sourceStage: s.stale.sourceStage,
+        sourceTitle: STAGE_TITLES_HE[s.stale.sourceStage] || s.stale.sourceStage,
+      });
+    }
+  });
+
+  var staleWrappers = [];
+  Object.keys(freshness).forEach(function(wrapperId) {
+    var w = freshness[wrapperId];
+    if (w && w.stale && w.stale.since) {
+      staleWrappers.push({
+        id: wrapperId,
+        title: WRAPPER_TITLES_HE[wrapperId] || wrapperId,
+        sourceStage: w.stale.sourceStage,
+        sourceTitle: STAGE_TITLES_HE[w.stale.sourceStage] || w.stale.sourceStage,
+      });
+    }
+  });
+
+  if (staleStages.length === 0 && staleWrappers.length === 0) return '';
+
+  // Sort stages by category-ish ordering (discovery → audience → strategy → execution)
+  var STAGE_ORDER = Object.keys(STAGE_TITLES_HE);
+  staleStages.sort(function(a, b) { return STAGE_ORDER.indexOf(a.id) - STAGE_ORDER.indexOf(b.id); });
+
+  var html = '<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-right:3px solid #DC2626;border-radius:10px;padding:12px 14px;margin-bottom:12px">'
+    + '<div style="font-weight:700;color:#991B1B;font-size:0.88rem;margin-bottom:6px">⚠ ישנם שלבים שיש לרענן</div>'
+    + '<div style="font-size:0.78rem;color:#7F1D1D;line-height:1.6;margin-bottom:10px">'
+    + 'ערכתם שלב מוקדם — שלבים תלויים נהפכו ל-stale. צרו אותם מחדש כדי שהאסטרטגיה והתוכנית החודשית יתבססו על נתונים עדכניים.'
+    + '</div>';
+
+  if (staleStages.length > 0) {
+    html += '<div style="margin-bottom:8px"><strong style="font-size:0.78rem;color:#991B1B">שלבי מחקר (' + staleStages.length + '):</strong></div>'
+      + '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px">';
+    staleStages.forEach(function(s) {
+      html += '<div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #FCA5A5;border-radius:6px;padding:6px 10px;font-size:0.78rem">'
+        + '<span style="color:#DC2626">●</span>'
+        + '<span style="flex:1;color:#1F2937">'
+        +   '<strong>' + escapeHtml(s.title) + '</strong>'
+        +   (s.sourceTitle ? '<span style="color:#9CA3AF;font-weight:400"> ← שונה: ' + escapeHtml(s.sourceTitle) + '</span>' : '')
+        + '</span>'
+        + '<button class="notif-action" style="background:#DC2626;color:#fff;font-size:0.72rem" onclick="rerunResearchStage(\'' + s.id + '\')">צרו מחדש ←</button>'
+        + '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (staleWrappers.length > 0) {
+    html += '<div style="margin-bottom:8px"><strong style="font-size:0.78rem;color:#991B1B">תוצרים תלויים (' + staleWrappers.length + '):</strong></div>'
+      + '<div style="display:flex;flex-direction:column;gap:4px">';
+    staleWrappers.forEach(function(w) {
+      var actionLabel = w.id === 'monthlyPlan' || w.id === 'mediaPlan' || w.id === 'contentPlan'
+        ? 'צרו מחדש ←' : 'פתחו ←';
+      var actionOnClick = w.id === 'mediaPlan' ? "switchTab('marketing')"
+        : w.id === 'contentPlan' ? "regenerateContentPlanFromUI()"
+        : w.id === 'monthlyPlan' ? "generateMonthlyPlan()"
+        : w.id === 'mazhirAudit' ? "switchTab('marketing')"
+        : w.id === 'chosenScenario' ? "rerunResearchStage('strategy_options')"
+        : "viewStrategy()";
+      html += '<div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #FCA5A5;border-radius:6px;padding:6px 10px;font-size:0.78rem">'
+        + '<span style="color:#DC2626">●</span>'
+        + '<span style="flex:1;color:#1F2937">'
+        +   '<strong>' + escapeHtml(w.title) + '</strong>'
+        +   (w.sourceTitle ? '<span style="color:#9CA3AF;font-weight:400"> ← שונה: ' + escapeHtml(w.sourceTitle) + '</span>' : '')
+        + '</span>'
+        + '<button class="notif-action" style="background:#DC2626;color:#fff;font-size:0.72rem" onclick="' + actionOnClick + '">' + actionLabel + '</button>'
+        + '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+// Trigger a research stage re-run via the existing setup/agents/research endpoint.
+// On success → backend stageExecutor will clear the stale flag for this stage AND
+// cascade-mark downstream stages as stale. UI re-renders home automatically.
+async function rerunResearchStage(stageId) {
+  if (!confirm('לרענן את השלב "' + (STAGE_TITLES_HE[stageId] || stageId) + '"? שלבים תלויים יסומנו לרענון.')) return;
+  showToast('מריץ ' + (STAGE_TITLES_HE[stageId] || stageId) + ' ברקע...', 'info');
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/research/stage/' + encodeURIComponent(stageId), { method: 'POST' });
+    if (!r.success) throw new Error(r.message || 'הרצה נכשלה');
+    showToast('השלב רץ — מרענן את לוח הבקרה', 'success');
+    setTimeout(function() { refreshInstanceData(); renderHome(); }, 1500);
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+  }
+}
+
 // Phase 4.3-N v8: External Links strategy popup.
 // Surfaces DFS-sourced backlink intelligence (referring domains, anchor
 // distribution, velocity, competitor benchmarks, DFS-stage recommendations)
@@ -13702,31 +13857,28 @@ function renderAgentsTab() {
     }
     var matehAgents = (window._myMatehAgents || []).filter(function(a){ return !a.isPrimary; });
     matehAgents.forEach(function(a){
+      // Phase 4.3-N v8: secondary agent cards now match primary shape — click
+      // anywhere on card opens detail; no inline buttons. Tenant marker shown
+      // as subtle pill (not bright blue) so it doesn't dominate visually.
       var tenantBadge = a.tenantName
-        ? '<span style="background:#3B82F6;color:#fff;padding:1px 8px;border-radius:10px;font-size:.7rem;margin-right:6px">'+escapeHtmlDash(a.tenantName)+'</span>'
+        ? '<span style="background:#EEF2FF;color:#4338CA;padding:1px 6px;border-radius:8px;font-size:.65rem;margin-right:6px" title="לקוח (tenant): '+escapeHtmlDash(a.tenantName)+'">'+escapeHtmlDash(a.tenantName)+'</span>'
         : '';
       var statusColor = a.status === 'running' ? '#10B981' : (a.status === 'provisioning' ? '#F59E0B' : '#EF4444');
       var statusLabel = a.status === 'running' ? '✓ פעיל' : (a.status === 'provisioning' ? '⏳ מתקין' : '⚠ ' + a.status);
-      var openUrl = a.subdomainAgent ? ('https://' + a.subdomainAgent) : '';
-      // Phase 2.3.A — clicking the CARD switches to this agent and opens the
-      // FULL MATEH detail UI (same tabs/profile/research as the primary).
-      // The ⚙ button still opens the slim settings modal explicitly.
       html += '<div class="int-card" style="cursor:pointer" onclick="enterSecondaryAgent(\''+escapeHtmlDash(a.id)+'\')">' +
         '<div class="int-card-header">' +
           '<div class="int-icon" style="background:#F0FDF4">' + (SVG_ICONS.robot || '') + '</div>' +
           '<div>' +
-            tenantBadge +
             '<strong>' + escapeHtmlDash(a.name) + '</strong>' +
-            '<div style="font-size:.78rem;color:'+statusColor+';margin-top:2px">' + statusLabel + '</div>' +
-            '<div style="font-size:.7rem;color:#9CA3AF;margin-top:2px">' + escapeHtmlDash(a.brandSlug) + ' · port ' + (a.gatewayPort||'?') + '</div>' +
+            tenantBadge +
+            '<div class="int-status connected">&#10003; ' + statusLabel.replace(/^[✓⏳⚠]\s*/, '') + '</div>' +
           '</div>' +
         '</div>' +
-        '<div style="display:flex;gap:6px;margin-top:8px">' +
-          '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openSecondaryAgentSettings(\''+escapeHtmlDash(a.id)+'\')">⚙ הגדרות</button>' +
-          (openUrl ? '<a href="'+openUrl+'" target="_blank" onclick="event.stopPropagation()" class="btn btn-outline btn-sm">פתיחה ↗</a>' : '') +
-          '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();deleteMyAgentConfirm(\''+escapeHtmlDash(a.id)+'\',\''+escapeHtmlDash(a.name)+'\')" style="color:#EF4444">מחק</button>' +
-        '</div>' +
+        '<div style="font-size:0.78rem;color:#6B7280;margin:4px 0">סוכן שיווק · ' + escapeHtmlDash(a.brandSlug || '') + '</div>' +
       '</div>';
+      // Hint: card click → enterSecondaryAgent (same pattern as primary cards).
+      // Status color hint preserved via CSS class; statusColor unused here intentionally.
+      void statusColor;
     });
   }
 

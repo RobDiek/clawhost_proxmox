@@ -116,14 +116,27 @@ export async function executeTask(instanceId: string, taskId: string): Promise<E
         result = { ok: false, outputDescription: '', error: (err as Error).message }
     }
 
-    // Mark completion
+    // Mark completion + capture executionOutcome (Phase 4.3-N v8)
     const finalStatus: MonthlyTask['status'] = result.ok ? 'completed' : 'failed'
+    const completedAt = new Date().toISOString()
     await mutateResearchData(agent, instanceId, (rd2: any) => {
         const plan2: MonthlyMarketingPlan = rd2.monthlyPlan
         if (plan2 && plan2.tasks[taskIdx]) {
             plan2.tasks[taskIdx].status = finalStatus
-            plan2.tasks[taskIdx].completedAt = new Date().toISOString()
+            plan2.tasks[taskIdx].completedAt = completedAt
             if (!result.ok) plan2.tasks[taskIdx].failureReason = result.error
+            // Phase 4.3-N v8: persistent executionOutcome — what was actually done.
+            // Read by NEXT month's monthlyPlanGenerator to inform "stop / replicate / iterate"
+            // decisions. actualImpact (real Google Ads metrics delta) is populated later by a
+            // separate cron 7-30 days after completion (TaskOutcomeAttribution — Phase 4.3-O,
+            // not in this release).
+            ;(plan2.tasks[taskIdx] as any).executionOutcome = {
+                completedAt,
+                completedMethod: 'automated',
+                outputDescription: result.outputDescription,
+                stepResults: result.stepResults || [],
+                error: result.error,
+            }
         }
         return rd2
     })

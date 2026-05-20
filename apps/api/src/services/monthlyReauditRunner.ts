@@ -68,6 +68,45 @@ export async function runMonthlyReaudits(): Promise<{
             }
 
             try {
+                // Phase 4.3-N v8: BEFORE re-audit, freeze the CURRENT baseline as the
+                // previous-month reference (research_data.baselineHistory[month_key]).
+                // This is the snapshot we'll compare current results against later.
+                // Then re-pull baseline (client_account_baseline) so audit + plan see
+                // fresh numbers.
+                try {
+                    const currentBaseline = rd?.results?.client_account_baseline
+                    if (currentBaseline && currentBaseline.pulledAt) {
+                        const prevMonth = new Date(now)
+                        prevMonth.setUTCMonth(prevMonth.getUTCMonth() - 1)
+                        const prevMonthKey = `${prevMonth.getUTCFullYear()}-${String(prevMonth.getUTCMonth() + 1).padStart(2, '0')}`
+                        const baselineHistory = rd.baselineHistory || {}
+                        if (!baselineHistory[prevMonthKey]) {
+                            baselineHistory[prevMonthKey] = currentBaseline
+                            await db.update(instances).set({ researchData: { ...rd, baselineHistory } as any }).where(eq(instances.id, row.id))
+                            console.log(`[monthlyReauditRunner] ${row.id}: archived baseline as baselineHistory[${prevMonthKey}]`)
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`[monthlyReauditRunner] ${row.id}: baseline archive failed (non-fatal):`, (e as Error).message)
+                }
+
+                // Re-pull baseline (current month) — without this the audit + plan see stale numbers.
+                // The prefetcher mutates rd.results.client_account_baseline internally via the stage executor;
+                // we just need to invoke it with the current rd snapshot.
+                try {
+                    const { prefetchClientAccountBaseline } = await import('@/controllers/hosting/research/stages/prefetch/client_account_baseline')
+                    const newBaseline = await prefetchClientAccountBaseline(row.id, rd)
+                    // Persist the fresh baseline ourselves (we're outside the stage executor)
+                    const currentRd = (await db.select({ researchData: instances.researchData })
+                        .from(instances).where(eq(instances.id, row.id)))[0]?.researchData as any || {}
+                    const results = currentRd.results || {}
+                    results.client_account_baseline = newBaseline
+                    await db.update(instances).set({ researchData: { ...currentRd, results } as any }).where(eq(instances.id, row.id))
+                    console.log(`[monthlyReauditRunner] ${row.id}: baseline re-pulled + persisted for ${currentMonthKey}`)
+                } catch (e) {
+                    console.warn(`[monthlyReauditRunner] ${row.id}: baseline re-pull failed (non-fatal):`, (e as Error).message)
+                }
+
                 const { runMazhirAudit } = await import('./mazhirAudit')
                 await runMazhirAudit(row.id)
                 stats.fired++
