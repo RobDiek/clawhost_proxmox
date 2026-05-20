@@ -8646,24 +8646,32 @@ function saveBlogIntegration() {
     if (!r.success) throw new Error(r.message || 'בקשת ה-test נכשלה');
     var d = r.data || {};
     if (!d.ok) {
-      var hint = d.hint || ('שגיאה ' + d.status);
-      throw new Error(hint);
+      // Surface BOTH the actionable hint AND WP's verbatim message — the
+      // verbatim message reveals issues the hint can't infer (Wordfence
+      // block, "incorrect_password", "invalid_username" vs. application
+      // passwords disabled, etc.).
+      var parts = [];
+      if (d.hint) parts.push(d.hint);
+      if (d.wpMessage && d.wpMessage !== d.hint) parts.push('תגובת WP: ' + d.wpMessage);
+      // Also log the diagnostic to console for support — Sergei can copy-paste.
+      try { console.warn('WordPress test failed:', d); } catch (_) {}
+      throw new Error(parts.join(' · ') || ('שגיאה ' + d.status));
     }
-    // Test passed — now persist to VPS
-    return fetch(API + '/hosting/instances/' + instanceId + '/integrations/save', {
+    // Test passed — now persist to VPS. Use apiFetch so the monkey-patched
+    // ?agentId= query gets appended; raw fetch would default to PRIMARY,
+    // leaking secondary-agent creds onto the primary's integration row.
+    return apiFetch('/hosting/instances/' + instanceId + '/integrations/save', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ type: 'wordpress', key: JSON.stringify({ url: url, user: user, appPassword: passNoSpaces }) })
     });
-  }).then(function(r) { return r.json(); })
-  .then(function(d) {
-    if (d.success) {
+  }).then(function(d) {
+    if (d && d.success) {
       showToast('WordPress חובר בהצלחה!', 'success');
       intStorSet('cf_wordpress_saved', '1');
       var statusEl = document.getElementById('pub-blog-status');
       if (statusEl) { statusEl.textContent = '\u2713 מחובר'; statusEl.className = 'int-status connected'; }
       document.getElementById('pub-blog-card').classList.add('connected');
-    } else showToast(d.message || 'שגיאה', 'error');
+    } else showToast((d && d.message) || 'שגיאה', 'error');
   }).catch(function(e) {
     // Phase 4.3-O fix: distinguish error classes for actionable user feedback.
     var msg = e.message || 'unknown';
