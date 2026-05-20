@@ -24188,6 +24188,21 @@ async function _gtmGateActionClick(gateId) {
   var gate = ((r.data || {}).gates || []).find(function(g) { return g.id === gateId; });
   if (!gate || !gate.action) { showToast('פעולה לא זמינה', 'warning'); return; }
 
+  // ── UI-routed gates: backend tags these as 'auto_fix' but the endpoint
+  // is actually a GET list (picker) or requires user input (create), not
+  // a fire-and-forget POST. Route these to the existing UI flows.
+  if (gateId === 'gtm_target_picked') {
+    if (typeof openGtmTargetPicker === 'function') { openGtmTargetPicker(); return; }
+  }
+  if (gateId === 'gtm_container_available') {
+    if (typeof openGtmTargetPicker === 'function') {
+      // The picker UI exposes "create new container" as a primary option
+      // when no containers exist. Same entrypoint either way.
+      openGtmTargetPicker();
+      return;
+    }
+  }
+
   var action = gate.action;
   // ── auto_fix: hit the endpoint inline, show progress
   if (action.type === 'auto_fix') {
