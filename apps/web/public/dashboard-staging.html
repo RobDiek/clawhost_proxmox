@@ -24245,43 +24245,50 @@ function renderConversionPicker(el, draft, active) {
     + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#DC2626;margin-inline-end:4px;vertical-align:middle"></span>עסק אחר ב-MCC (' + sibCount + ')</span>'
     + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#9CA3AF;margin-inline-end:4px;vertical-align:middle"></span>לא ידוע (' + noneCount + ')</span>'
     + '</div>';
-  // Rows
-  html += '<div id="gtm-conv-picker-list" style="display:flex;flex-direction:column;gap:6px">';
-  cands.forEach(function(c, idx) {
+  // Rows — compact 2-line layout per row:
+  //   [✓] ●  <name>  …………………………………… [actionKey ▼]  ⚠
+  //          <details: category · AW-id · sibling-of-X · confidence>
+  html += '<div id="gtm-conv-picker-list" style="display:flex;flex-direction:column;gap:4px">';
+  cands.forEach(function(c) {
     var dotColor = c.brandAffinity === 'this' ? '#10B981' : (c.brandAffinity === 'sibling' ? '#DC2626' : '#9CA3AF');
     var rowBg = c.brandAffinity === 'this' ? '#F0FDF4' : (c.brandAffinity === 'sibling' ? '#FEF2F2' : '#fff');
     var rowBd = c.brandAffinity === 'this' ? '#A7F3D0' : (c.brandAffinity === 'sibling' ? '#FECACA' : '#E5E7EB');
     var defaultChecked = !!c.defaultChecked;
     var hasSnippet = !!(c.googleAdsConversionId && c.googleAdsConversionLabel);
-    var disabled = !hasSnippet;
     var siblingLabel = c.brandAffinity === 'sibling' && c.siblingAgentName ? ' · ' + _escapeHtml(c.siblingAgentName) : '';
-    var confidenceLabel = c.confidence && c.confidence !== 'none' ? ' · ביטחון ' + c.confidence : '';
-    var snippetWarn = !hasSnippet ? '<span style="color:#92400E;font-size:0.72rem;margin-inline-start:6px">(אין tag-snippet — לא ניתן להשתמש ב-GTM)</span>' : '';
+    var confidenceLabel = c.confidence && c.confidence !== 'none' ? ' · ' + c.confidence : '';
+    var snippetWarn = !hasSnippet
+      ? '<span title="אין tag-snippet — לא ניתן לחבר ל-GTM. הסימון יישמר אך לא יתבצע apply." style="color:#D97706;font-size:0.78rem;cursor:help">⚠</span>'
+      : '<span style="width:14px;display:inline-block"></span>';
     var keyOptionsHtml = ACTION_KEYS.map(function(k){
       var sel = k.v === c.suggestedActionKey ? ' selected' : '';
       return '<option value="' + k.v + '"' + sel + '>' + _escapeHtml(k.l) + '</option>';
     }).join('');
-    html += '<div class="gtm-conv-row" data-ads-id="' + _escapeHtml(c.adsId) + '" style="display:flex;align-items:flex-start;gap:8px;padding:9px 10px;background:' + rowBg + ';border:1px solid ' + rowBd + ';border-radius:8px">'
-      + '<input type="checkbox" class="gtm-conv-check" ' + (defaultChecked ? 'checked' : '') + (disabled ? ' disabled' : '') + ' style="margin-top:4px">'
-      + '<div style="flex:1;min-width:0">'
-        + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
-          + '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + dotColor + '"></span>'
-          + '<strong style="font-size:0.84rem;color:#1F2937">' + _escapeHtml(c.name) + '</strong>'
-          + snippetWarn
+    var awId = c.googleAdsConversionId ? '<span style="font-family:monospace;direction:ltr;display:inline-block">AW-' + _escapeHtml(c.googleAdsConversionId) + '</span>' : '';
+    html += '<div class="gtm-conv-row" data-ads-id="' + _escapeHtml(c.adsId) + '" '
+      + 'style="display:grid;grid-template-columns:18px 14px 1fr 200px 14px;column-gap:10px;align-items:center;'
+      + 'padding:6px 10px;background:' + rowBg + ';border:1px solid ' + rowBd + ';border-radius:6px;font-size:0.82rem">'
+      // Col 1: checkbox (NEVER disabled — user can always uncheck)
+      + '<input type="checkbox" class="gtm-conv-check" ' + (defaultChecked ? 'checked' : '') + ' style="margin:0">'
+      // Col 2: brand dot
+      + '<span style="width:8px;height:8px;border-radius:50%;background:' + dotColor + '"></span>'
+      // Col 3: name + details (2 stacked lines)
+      + '<div style="min-width:0;line-height:1.25">'
+        + '<div style="font-weight:600;color:#1F2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + _escapeHtml(c.name) + '">'
+          + _escapeHtml(c.name)
         + '</div>'
-        + '<div style="font-size:0.72rem;color:#6B7280;margin-top:2px">'
-          + (c.category || 'ללא קטגוריה') + (c.type ? ' · ' + c.type : '') + confidenceLabel + siblingLabel
-          + (c.googleAdsConversionId ? ' · <span style="font-family:monospace">AW-' + _escapeHtml(c.googleAdsConversionId) + '</span>' : '')
-        + '</div>'
-        + '<div style="margin-top:6px;display:flex;align-items:center;gap:6px">'
-          + '<span style="font-size:0.72rem;color:#6B7280">סוג פעולה:</span>'
-          + '<select class="gtm-conv-key" style="font-size:0.78rem;padding:3px 6px;border:1px solid #E5E7EB;border-radius:5px">'
-            + keyOptionsHtml
-          + '</select>'
+        + '<div style="font-size:0.7rem;color:#6B7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+          + _escapeHtml(c.category || 'ללא קטגוריה') + confidenceLabel + siblingLabel
+          + (awId ? ' · ' + awId : '')
         + '</div>'
       + '</div>'
+      // Col 4: actionKey dropdown — fixed width avoids RTL char-wrapping
+      + '<select class="gtm-conv-key" style="width:200px;font-size:0.74rem;padding:3px 4px;border:1px solid #E5E7EB;border-radius:4px;background:#fff">'
+        + keyOptionsHtml
+      + '</select>'
+      // Col 5: warn icon (only if no snippet)
+      + snippetWarn
     + '</div>';
-    void idx;
   });
   html += '</div>';
   // Apply / refresh actions

@@ -300,12 +300,16 @@ function tokenizeBrand(s: string): string[] {
 /**
  * Classify an action's brand affinity vs the active tenant + its VPS siblings.
  *
- *   - 'this'    → name contains ≥1 active-brand discriminating token AND
- *                 (no sibling token OR all sibling tokens are also active's)
- *   - 'sibling' → name contains ≥1 sibling's discriminating token that's
- *                 NOT shared with active's tokens. Returns the matched
- *                 sibling so the UI can label it.
- *   - 'none'    → no brand tokens matched
+ * Uniqueness rule: an action only counts as 'this' if it contains a token
+ * UNIQUE to the active brand — not shared with any sibling. Without this,
+ * "Moving Station purchase" matches Packing Station's "station" token even
+ * though the action belongs to a different business altogether.
+ *
+ *   - 'this'    → name contains ≥1 token that is unique to active (not in
+ *                 ANY sibling's token list)
+ *   - 'sibling' → name contains ≥1 token unique to a specific sibling
+ *   - 'none'    → only shared tokens matched, or no tokens matched at all.
+ *                 User decides explicitly.
  */
 function classifyBrandAffinity(
     actionName: string,
@@ -315,24 +319,27 @@ function classifyBrandAffinity(
     const hay = actionName.toLowerCase()
     const activeSet = new Set(activeTokens)
 
-    // Sibling tokens that DON'T overlap with active's are 'unique' identifiers.
-    let siblingHit: { slug: string; name: string } | null = null
+    // Tokens that ONLY the active brand has (not in any sibling). These are
+    // the discriminating tokens — a match here means the action belongs to
+    // active and not to a sibling.
+    const activeUnique = activeTokens.filter(t =>
+        !siblings.some(sib => sib.tokens.includes(t)),
+    )
+
+    // First check siblings — their unique tokens are unambiguous claims.
     for (const sib of siblings) {
-        const uniqueSibTokens = sib.tokens.filter(t => !activeSet.has(t))
-        for (const t of uniqueSibTokens) {
-            if (hay.includes(t)) { siblingHit = { slug: sib.slug, name: sib.name }; break }
+        const sibUnique = sib.tokens.filter(t => !activeSet.has(t))
+        for (const t of sibUnique) {
+            if (hay.includes(t)) return { affinity: 'sibling', siblingSlug: sib.slug, siblingName: sib.name }
         }
-        if (siblingHit) break
     }
 
-    // Active brand match: any of its discriminating tokens (whether shared with
-    // siblings or not). If active matches but a sibling ALSO matches, sibling
-    // wins (the unique-token rule excludes shared tokens already, so a sibling
-    // hit means a really sibling-specific keyword was found).
-    const activeHit = activeTokens.some(t => hay.includes(t))
+    // Then check active's unique tokens.
+    for (const t of activeUnique) {
+        if (hay.includes(t)) return { affinity: 'this' }
+    }
 
-    if (siblingHit) return { affinity: 'sibling', siblingSlug: siblingHit.slug, siblingName: siblingHit.name }
-    if (activeHit) return { affinity: 'this' }
+    // Only shared tokens matched (or nothing) — ambiguous. User decides.
     return { affinity: 'none' }
 }
 
