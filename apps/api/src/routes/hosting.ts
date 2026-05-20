@@ -162,6 +162,7 @@ import {
     deployCustomAgent,
     saveIntegration,
     testSmtp,
+    testWordpress,
     serverStats,
     serverLogs,
     diskBreakdown,
@@ -579,6 +580,8 @@ app.post('/instances/:id/files/rename', renameFile)
 app.post('/instances/:id/files/deploy-agent', deployCustomAgent)
 app.post('/instances/:id/integrations/save', saveIntegration)
 app.post('/instances/:id/integrations/test-smtp', testSmtp)
+// Phase 4.3-O: backend WordPress credentials test (bypasses browser CORS / CF WAF).
+app.post('/instances/:id/integrations/test-wordpress', testWordpress)
 
 // ── Server ──
 app.get('/instances/:id/server-stats', serverStats)  // renamed from /stats — collided with /stats (getAgentStats)

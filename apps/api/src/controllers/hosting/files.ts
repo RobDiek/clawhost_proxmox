@@ -938,6 +938,111 @@ print('OK: primary=' + prefs['simple'])
     }
 }
 
+// POST /hosting/instances/:id/integrations/test-wordpress
+// Phase 4.3-O fix: backend-proxied WordPress credentials test. Eliminates
+// browser CORS / Cloudflare-WAF Authorization-stripping / btoa Unicode quirks
+// — server-side fetch with explicit User-Agent + clean Basic Auth construction.
+// Returns structured diagnostic: { ok, status, error, hint }. Frontend renders
+// `hint` in Hebrew to guide user.
+export const testWordpress = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = getUserId(c)
+        const instance = await getInstance(instanceId, userId)
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const { url, username, password } = await c.req.json<{ url: string; username: string; password: string }>()
+        if (!url || !username || !password) return fail(c, 'url, username, password required', 400)
+
+        // Sanitize password: strip ALL whitespace classes including NBSP, zero-width chars.
+        // Done in two passes to avoid the ZWNJ+ZWJ joiner sequence in a single char class
+        // (which would trip ESLint no-misleading-character-class).
+        let cleanPass = password.replace(/\s/g, '')
+        const hiddenChars = [0x00A0, 0x200B, 0x200C, 0x200D, 0xFEFF]
+        for (const cp of hiddenChars) {
+            cleanPass = cleanPass.split(String.fromCharCode(cp)).join('')
+        }
+        const cleanUser = username.trim()
+
+        // Validate URL — must be absolute http(s) with hostname containing a dot
+        let normalized: string
+        try {
+            const parsed = new URL(url)
+            if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('protocol')
+            if (!parsed.hostname.includes('.')) throw new Error('hostname')
+            normalized = parsed.origin
+        } catch {
+            return ok(c, { ok: false, status: 0, error: 'invalid_url', hint: 'כתובת האתר לא תקינה' })
+        }
+
+        // Server-side fetch — no CORS, no btoa quirks, Cloudflare won't strip
+        // Authorization header for server-to-server requests.
+        const probeUrl = `${normalized}/wp-json/wp/v2/users/me`
+        const basic = Buffer.from(`${cleanUser}:${cleanPass}`, 'utf-8').toString('base64')
+
+        let res: Response
+        try {
+            res = await fetch(probeUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Basic ${basic}`,
+                    'User-Agent': 'ClawFlow-Integration-Test/1.0',
+                    'Accept': 'application/json',
+                },
+                signal: AbortSignal.timeout(15000),
+            })
+        } catch (err) {
+            const msg = (err as Error).message || ''
+            if (/dns|enotfound|getaddrinfo|name not resolved/i.test(msg)) {
+                return ok(c, { ok: false, status: 0, error: 'dns', hint: 'DNS לא מזהה את הדומיין. ודאו שה-URL נכון.' })
+            }
+            if (/timeout|aborted/i.test(msg)) {
+                return ok(c, { ok: false, status: 0, error: 'timeout', hint: 'האתר לא ענה תוך 15 שניות.' })
+            }
+            return ok(c, { ok: false, status: 0, error: 'network', hint: 'שגיאת רשת: ' + msg })
+        }
+
+        const bodyText = await res.text().catch(() => '')
+        let bodyJson: any = null
+        try { bodyJson = JSON.parse(bodyText) } catch { /* not JSON */ }
+
+        if (res.ok) {
+            // 200 + user object back — credentials valid
+            const me = bodyJson || {}
+            return ok(c, {
+                ok: true,
+                status: res.status,
+                user: { id: me.id, name: me.name, roles: me.roles },
+                hint: 'אימות תקין · WordPress מחובר',
+            })
+        }
+
+        // Specific WP error code → actionable Hebrew hint
+        const wpCode = bodyJson?.code || ''
+        const wpMsg = bodyJson?.message || bodyText.slice(0, 300)
+        let hint = `שגיאה ${res.status}`
+        if (res.status === 401 && /incorrect_password|invalid_username|application_passwords/i.test(wpCode + wpMsg)) {
+            hint = '401 — Application Password לא תקין. ודאו: (a) זה Application Password ולא סיסמה רגילה, (b) משויך לאותו משתמש שכתבתם ב-username, (c) לא פג / לא נמחק.'
+        } else if (res.status === 401) {
+            hint = '401 — שם משתמש שגוי או Application Passwords מבוטל באתר (תוסף אבטחה?). פרטים: ' + wpMsg.slice(0, 150)
+        } else if (res.status === 403) {
+            hint = '403 — למשתמש אין הרשאות לגשת ל-REST API. הוסיפו לתפקיד Editor/Administrator.'
+        } else if (res.status === 404) {
+            hint = '404 — לא נמצא /wp-json/. REST API מבוטל בתוסף אבטחה (Wordfence / iThemes)?'
+        }
+
+        return ok(c, {
+            ok: false,
+            status: res.status,
+            error: wpCode || 'http_error',
+            hint,
+            wpMessage: wpMsg.slice(0, 300),
+        })
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // POST /hosting/instances/:id/integrations/test-smtp
 export const testSmtp = async (c: Context) => {
     try {

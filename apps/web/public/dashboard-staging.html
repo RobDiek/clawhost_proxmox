@@ -8636,21 +8636,20 @@ function saveBlogIntegration() {
     if (!confirm('הסיסמה קצרה מ-24 תווים. סיסמת Application של WordPress היא 24 תווים (לרוב עם רווחים). השתמשתם בסיסמה הרגילה? היא לא תעבוד עם REST API.\n\nלהמשיך בכל זאת?')) return;
   }
 
-  // First verify connection works
-  var auth = btoa(user + ':' + passNoSpaces);
-  fetch(url + '/wp-json/wp/v2/posts?per_page=1', {
-    headers: { 'Authorization': 'Basic ' + auth }
+  // Phase 4.3-O fix: route through backend proxy so we bypass browser CORS,
+  // Cloudflare-WAF Authorization-stripping, and btoa Unicode quirks. Backend
+  // returns { ok, status, error, hint } so we can show actionable errors.
+  apiFetch('/hosting/instances/' + instanceId + '/integrations/test-wordpress', {
+    method: 'POST',
+    body: JSON.stringify({ url: url, username: user, password: passNoSpaces }),
   }).then(function(r) {
-    if (!r.ok) {
-      var msg = 'HTTP ' + r.status;
-      if (r.status === 401) msg = '401 — שם משתמש או Application Password שגויים. ודאו שיצרתם Application Password ב-WP Admin → Profile → Application Passwords (לא סיסמה רגילה).';
-      else if (r.status === 403) msg = '403 — למשתמש אין הרשאות לפרסום באתר.';
-      else if (r.status === 404) msg = '404 — לא נמצא /wp-json/ באתר. ייתכן ש-REST API מבוטל בתוסף אבטחה.';
-      throw new Error(msg);
+    if (!r.success) throw new Error(r.message || 'בקשת ה-test נכשלה');
+    var d = r.data || {};
+    if (!d.ok) {
+      var hint = d.hint || ('שגיאה ' + d.status);
+      throw new Error(hint);
     }
-    return r.json();
-  }).then(function() {
-    // Connection works — save to VPS
+    // Test passed — now persist to VPS
     return fetch(API + '/hosting/instances/' + instanceId + '/integrations/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
