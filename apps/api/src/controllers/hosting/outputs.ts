@@ -2,7 +2,7 @@ import type { Context } from 'hono'
 import type { HonoEnv } from '@/ts/Types'
 import { db } from '@/db'
 import { agentOutputs, instances } from '@/db/schema'
-import { eq, and, ne, desc, inArray } from 'drizzle-orm'
+import { eq, and, or, ne, desc, inArray, isNull } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import { randomBytes } from 'crypto'
 import { createCampaign, type CampaignPlan, type GoogleTokens } from '@/services/googleAds'
@@ -83,7 +83,11 @@ export const getOutputs = async (c: Context<HonoEnv>) => {
         const excludeArchived = c.req.query('exclude_archived') === '1'
 
         const agentFilter = c.req.query('agent') // 'oc', 'mt', 'bare'
-        const MATEH_ROLES = ['mateh', 'sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor']
+        // Phase 4.3-P fix: include 'mazhir' — the role that generates
+        // monthly_task, monthly_marketing_plan, conversion_mapping_proposal,
+        // and other MATEH-orchestrator outputs. Was missing → those rows
+        // got hidden from משימות פעילות whenever the agentFilter was 'mt'.
+        const MATEH_ROLES = ['mateh', 'mazhir', 'sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor']
 
         const conditions = [eq(agentOutputs.instanceId, instanceId)]
         if (status) {
@@ -103,11 +107,22 @@ export const getOutputs = async (c: Context<HonoEnv>) => {
 
         // Phase 2.3.C — per-agent isolation. Filter outputs by the active
         // mateh_agent so secondaries on the same VPS don't see the primary's
-        // queue (and vice versa). Backfill mapped legacy outputs to the
-        // primary agent, so this filter behaves correctly for both.
+        // queue (and vice versa). Phase 4.3-P fix: legacy rows pre-dating the
+        // backfill have agent_id=NULL — they historically belong to the VPS
+        // primary, so include them when the active agent IS the primary. A
+        // secondary agent never sees NULL-agent rows.
         const __agent = await resolveActiveAgent(c, instanceId)
         if (__agent) {
-            conditions.push(eq(agentOutputs.agentId, __agent.id))
+            if (__agent.isPrimary) {
+                conditions.push(
+                    or(
+                        eq(agentOutputs.agentId, __agent.id),
+                        isNull(agentOutputs.agentId),
+                    ) as never,
+                )
+            } else {
+                conditions.push(eq(agentOutputs.agentId, __agent.id))
+            }
         }
 
         const results = await db.select()
