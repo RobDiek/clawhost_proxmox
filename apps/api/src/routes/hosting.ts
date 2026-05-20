@@ -101,6 +101,8 @@ import {
     confirmConversionMappings,
     detectExistingConversionActions,
     applyConversionMapping,
+    getConversionDraft,
+    applySelectedConversionMapping,
     autoSetupMazhirGtm,
     getMazhirPreflight,
     executeMazhirPlan,
@@ -521,6 +523,9 @@ app.post('/instances/:id/mazhir/conversions/confirm', confirmConversionMappings)
 // match onto our schema, draft mapping → user approves in משימות פעילות → apply.
 app.post('/instances/:id/mazhir/conversions/detect-existing', detectExistingConversionActions)
 app.post('/instances/:id/mazhir/conversions/apply-mapping', applyConversionMapping)
+// Phase 4.3-P(B v2) — rich picker: granular per-row selection from the GTM card.
+app.get('/instances/:id/mazhir/conversions/draft', getConversionDraft)
+app.post('/instances/:id/mazhir/conversions/apply-selected', applySelectedConversionMapping)
 app.post('/instances/:id/mazhir/gtm/auto-setup', autoSetupMazhirGtm)
 // Phase 4.2.2-A — GTM integration card diagnostic (probe-based gate status)
 app.get('/instances/:id/integrations/gtm/diagnostic', getGtmIntegrationDiagnostic)

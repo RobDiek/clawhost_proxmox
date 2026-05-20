@@ -2720,6 +2720,8 @@ input{font-family:inherit}
           </div>
           <!-- Per-gate diagnostic results (populated by renderGtmDiagnosticGates) -->
           <div id="gtm-diagnostic-gates"><div style="font-size:0.82rem;color:#6B7280;text-align:center;padding:14px">⏳ טוען diagnostic...</div></div>
+          <!-- Phase 4.3-P(B v2) — ConversionActions picker (hidden unless draftMapping exists) -->
+          <div id="gtm-conv-picker" style="display:none;margin-top:14px;border:1px solid #E5E7EB;border-radius:10px;background:#FAFAFA;padding:14px"></div>
           <!-- Legacy minimal fallback shown only if diagnostic endpoint unavailable -->
           <div id="gtm-diagnostic-fallback" style="display:none">
             <button class="btn btn-primary btn-sm" onclick="connectGoogleScopeAdditive('gtm')">→ חברו GTM (OAuth)</button>
@@ -24145,6 +24147,149 @@ async function loadGtmDiagnostic(force) {
     if (fallback) fallback.style.display = '';
   } finally {
     _gtmDiagnosticLoading = false;
+  }
+  // Phase 4.3-P(B v2) — load the per-action picker IF a draftMapping exists.
+  try { loadConversionPicker(); } catch (_) {}
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Phase 4.3-P(B v2) — ConversionActions picker (granular per-row select)
+// ════════════════════════════════════════════════════════════════════════
+// Renders inside the GTM card whenever research_data.mazhirConversions.draftMapping
+// is populated. User picks WHICH detected actions to use + can override the
+// suggested actionKey. Defaults pre-check brand-match rows, leave
+// sibling-brand rows unchecked (cross-tenant leak protection).
+
+var ACTION_KEYS = [
+  { v: 'form_submit',        l: 'form_submit (טופס)' },
+  { v: 'generate_lead',      l: 'generate_lead (ליד)' },
+  { v: 'phone_call',         l: 'phone_call (שיחה — לחיצה)' },
+  { v: 'phone_call_offline', l: 'phone_call_offline (שיחה — call-tracking)' },
+  { v: 'purchase',           l: 'purchase (רכישה)' },
+  { v: 'qualified_lead',     l: 'qualified_lead (ליד מוסמך)' },
+];
+
+async function loadConversionPicker() {
+  var el = document.getElementById('gtm-conv-picker');
+  if (!el || !instanceId) return;
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/conversions/draft');
+    if (!r.success) { el.style.display = 'none'; return; }
+    var data = r.data || {};
+    var draft = data.draftMapping;
+    if (!draft || !draft.candidates || draft.candidates.length === 0) {
+      el.style.display = 'none';
+      return;
+    }
+    el.style.display = '';
+    renderConversionPicker(el, draft, data.active || []);
+  } catch (_) {
+    el.style.display = 'none';
+  }
+}
+
+function renderConversionPicker(el, draft, active) {
+  var cands = draft.candidates || [];
+  var brandName = draft.activeBrandName || draft.activeBrandSlug || 'העסק הזה';
+  // Header + warning banner
+  var thisCount = cands.filter(function(c){ return c.brandAffinity === 'this'; }).length;
+  var sibCount = cands.filter(function(c){ return c.brandAffinity === 'sibling'; }).length;
+  var noneCount = cands.filter(function(c){ return c.brandAffinity === 'none'; }).length;
+  var html = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><strong style="font-size:0.92rem;color:#1F2937">פעולות המרה שזוהו ב-Google Ads</strong>'
+    + '<span style="font-size:0.74rem;color:#6B7280">' + _escapeHtml(brandName)
+    + (draft.operatingCustomerId ? ' · operating: ' + _escapeHtml(draft.operatingCustomerId) : '')
+    + '</span></div>';
+  if (draft.crossTenantLeakSuspected) {
+    html += '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:10px;margin-bottom:10px;font-size:0.78rem;color:#78350F;line-height:1.5">'
+      + '<strong>⚠ זוהו פעולות שנראות שייכות לעסק אחר ב-MCC</strong> ('
+      + _escapeHtml(sibCount.toString()) + ' פעולות). זה לרוב סימן שה-operating customer שנבחר הוא ה-MCC שורש ולא sub-account. ניתן עדיין לבחור אותן ידנית, אבל מומלץ לוודא שבחרתם את ה-operatingCustomerId הנכון ב-Google Ads connect.'
+      + '</div>';
+  }
+  // Active mapping summary
+  if (active.length > 0) {
+    html += '<div style="background:#D1FAE5;border:1px solid #A7F3D0;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:0.78rem;color:#065F46">'
+      + '✓ פעיל כרגע: ' + active.length + ' פעולות ' + _escapeHtml(active.map(function(a){ return a.actionKey; }).join(', '))
+      + '</div>';
+  }
+  // Legend
+  html += '<div style="display:flex;gap:14px;margin-bottom:8px;font-size:0.72rem;color:#6B7280">'
+    + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10B981;margin-inline-end:4px;vertical-align:middle"></span>עסק זה (' + thisCount + ')</span>'
+    + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#DC2626;margin-inline-end:4px;vertical-align:middle"></span>עסק אחר ב-MCC (' + sibCount + ')</span>'
+    + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#9CA3AF;margin-inline-end:4px;vertical-align:middle"></span>לא ידוע (' + noneCount + ')</span>'
+    + '</div>';
+  // Rows
+  html += '<div id="gtm-conv-picker-list" style="display:flex;flex-direction:column;gap:6px">';
+  cands.forEach(function(c, idx) {
+    var dotColor = c.brandAffinity === 'this' ? '#10B981' : (c.brandAffinity === 'sibling' ? '#DC2626' : '#9CA3AF');
+    var rowBg = c.brandAffinity === 'this' ? '#F0FDF4' : (c.brandAffinity === 'sibling' ? '#FEF2F2' : '#fff');
+    var rowBd = c.brandAffinity === 'this' ? '#A7F3D0' : (c.brandAffinity === 'sibling' ? '#FECACA' : '#E5E7EB');
+    var defaultChecked = !!c.defaultChecked;
+    var hasSnippet = !!(c.googleAdsConversionId && c.googleAdsConversionLabel);
+    var disabled = !hasSnippet;
+    var siblingLabel = c.brandAffinity === 'sibling' && c.siblingAgentName ? ' · ' + _escapeHtml(c.siblingAgentName) : '';
+    var confidenceLabel = c.confidence && c.confidence !== 'none' ? ' · ביטחון ' + c.confidence : '';
+    var snippetWarn = !hasSnippet ? '<span style="color:#92400E;font-size:0.72rem;margin-inline-start:6px">(אין tag-snippet — לא ניתן להשתמש ב-GTM)</span>' : '';
+    var keyOptionsHtml = ACTION_KEYS.map(function(k){
+      var sel = k.v === c.suggestedActionKey ? ' selected' : '';
+      return '<option value="' + k.v + '"' + sel + '>' + _escapeHtml(k.l) + '</option>';
+    }).join('');
+    html += '<div class="gtm-conv-row" data-ads-id="' + _escapeHtml(c.adsId) + '" style="display:flex;align-items:flex-start;gap:8px;padding:9px 10px;background:' + rowBg + ';border:1px solid ' + rowBd + ';border-radius:8px">'
+      + '<input type="checkbox" class="gtm-conv-check" ' + (defaultChecked ? 'checked' : '') + (disabled ? ' disabled' : '') + ' style="margin-top:4px">'
+      + '<div style="flex:1;min-width:0">'
+        + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+          + '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + dotColor + '"></span>'
+          + '<strong style="font-size:0.84rem;color:#1F2937">' + _escapeHtml(c.name) + '</strong>'
+          + snippetWarn
+        + '</div>'
+        + '<div style="font-size:0.72rem;color:#6B7280;margin-top:2px">'
+          + (c.category || 'ללא קטגוריה') + (c.type ? ' · ' + c.type : '') + confidenceLabel + siblingLabel
+          + (c.googleAdsConversionId ? ' · <span style="font-family:monospace">AW-' + _escapeHtml(c.googleAdsConversionId) + '</span>' : '')
+        + '</div>'
+        + '<div style="margin-top:6px;display:flex;align-items:center;gap:6px">'
+          + '<span style="font-size:0.72rem;color:#6B7280">סוג פעולה:</span>'
+          + '<select class="gtm-conv-key" style="font-size:0.78rem;padding:3px 6px;border:1px solid #E5E7EB;border-radius:5px">'
+            + keyOptionsHtml
+          + '</select>'
+        + '</div>'
+      + '</div>'
+    + '</div>';
+    void idx;
+  });
+  html += '</div>';
+  // Apply / refresh actions
+  html += '<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">'
+    + '<button class="btn btn-outline btn-sm" onclick="loadConversionPicker()" style="font-size:0.78rem">🔄 רענן</button>'
+    + '<button class="btn btn-primary btn-sm" onclick="applyConversionPickerSelection()" style="font-size:0.82rem">✓ החל את הבחירה</button>'
+    + '</div>';
+  el.innerHTML = html;
+}
+
+async function applyConversionPickerSelection() {
+  var rows = document.querySelectorAll('#gtm-conv-picker-list .gtm-conv-row');
+  var selections = [];
+  rows.forEach(function(row) {
+    var check = row.querySelector('.gtm-conv-check');
+    if (!check || !check.checked) return;
+    var keyEl = row.querySelector('.gtm-conv-key');
+    var key = keyEl ? keyEl.value : '';
+    var adsId = row.getAttribute('data-ads-id');
+    if (adsId && key) selections.push({ adsConversionActionId: adsId, actionKey: key });
+  });
+  if (selections.length === 0) {
+    if (!confirm('לא נבחרו פעולות. להמשיך בלי להפעיל אף פעולת המרה?')) return;
+  }
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/mazhir/conversions/apply-selected', {
+      method: 'POST',
+      body: JSON.stringify({ selections: selections }),
+    });
+    if (!r.success) throw new Error(r.message || 'failed');
+    showToast(r.message || (r.data && r.data.activated + ' פעולות הופעלו') || 'הוחל', 'success');
+    // Reload both the picker (active section will update) and diagnostic (gate goes green)
+    await loadGtmDiagnostic(true);
+    if (typeof renderApprovalQueue === 'function') renderApprovalQueue();
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || err), 'error');
   }
 }
 

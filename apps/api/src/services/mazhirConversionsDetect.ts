@@ -19,7 +19,7 @@
  * (every external-system write requires user approval).
  */
 
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, ne, desc } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances, matehAgents, agentOutputs } from '@/db/schema'
 import type { PrimaryActionKey } from './mazhirConversions'
@@ -62,14 +62,55 @@ export interface ConversionActionMappingDraft {
     raw: AdsConversionActionRaw
 }
 
+/**
+ * Brand-affinity classification for a detected action against the active
+ * tenant. Drives the auto-checked state in the picker UI:
+ *   - 'this'    → name matches active agent's brand → pre-checked, green
+ *   - 'sibling' → name matches ANOTHER agent on same VPS → pre-unchecked,
+ *                 red, label "Belongs to: <agent name>"; warns the user
+ *                 that their operatingCustomerId may be misconfigured
+ *                 (probably MCC root instead of sub-account).
+ *   - 'none'    → no brand match → unchecked, neutral; user decides
+ */
+export type BrandAffinity = 'this' | 'sibling' | 'none'
+
+export interface DetectionCandidate {
+    // Raw Ads data
+    adsId: string                             // numeric ConversionAction id
+    adsResourceName: string                   // customers/{cid}/conversionActions/{id}
+    name: string
+    category: string
+    type: string
+    primaryForGoal: boolean
+    includeInConversionsMetric: boolean
+    googleAdsConversionId?: string
+    googleAdsConversionLabel?: string
+
+    // Our matcher's verdict
+    suggestedActionKey: PrimaryActionKey | null
+    confidence: 'high' | 'medium' | 'low' | 'none'
+    matchReason: string
+
+    // Brand affinity vs active tenant
+    brandAffinity: BrandAffinity
+    siblingAgentSlug?: string                 // when affinity='sibling'
+    siblingAgentName?: string
+
+    // What the UI should pre-check
+    defaultChecked: boolean
+}
+
 export interface DetectionResult {
     customerId: string
     operatingCustomerId?: string
+    activeBrandSlug?: string                  // the tenant we're detecting FOR
+    activeBrandName?: string
+    siblingBrandSlugs: string[]               // other agents on same VPS
     totalFound: number
     enabledCount: number
-    skipped: AdsConversionActionRaw[]         // REMOVED/HIDDEN/UNKNOWN — not mappable
-    mappings: ConversionActionMappingDraft[]  // one per actionKey we found a candidate for
-    unmapped: AdsConversionActionRaw[]        // ENABLED actions that didn't match any key
+    skipped: AdsConversionActionRaw[]         // REMOVED/HIDDEN/UNKNOWN
+    candidates: DetectionCandidate[]          // EVERY enabled action (unfiltered)
+    crossTenantLeakSuspected: boolean         // true when ≥1 sibling-match
     fetchedAt: string
 }
 
@@ -237,12 +278,71 @@ export function matchAdsActionToKey(action: AdsConversionActionRaw): ConversionA
     return null
 }
 
-// ── Run detection: pull live actions + map them ──────────────────────────
+// ── Brand affinity helper ─────────────────────────────────────────────────
 /**
- * Reads google_ads_config + googleTokens for the active agent, pulls all
- * ConversionActions from the configured operating account, maps them onto
- * our schema, picks one BEST candidate per actionKey, and returns the
- * draft mapping. Does NOT persist anything — caller decides.
+ * Tokenize a brand_slug or name into discriminating words (≥4 chars, no
+ * generic stopwords). 'packing-station' → ['packing','station'];
+ * 'storage-station' → ['storage','station']. Common token 'station' is OK
+ * here because we compare the SET — if action name contains 'station' AND
+ * 'packing' we score for packing; if it contains 'station' AND 'storage'
+ * we score for storage. The shared token alone is ambiguous.
+ */
+function tokenizeBrand(s: string): string[] {
+    if (!s) return []
+    const STOP = new Set(['the','and','of','for','with','site','web','www','com','co','il','ltd','inc','app','llc'])
+    return Array.from(new Set(
+        s.toLowerCase()
+            .split(/[\s\W_]+/)
+            .filter(t => t.length >= 4 && !STOP.has(t)),
+    ))
+}
+
+/**
+ * Classify an action's brand affinity vs the active tenant + its VPS siblings.
+ *
+ *   - 'this'    → name contains ≥1 active-brand discriminating token AND
+ *                 (no sibling token OR all sibling tokens are also active's)
+ *   - 'sibling' → name contains ≥1 sibling's discriminating token that's
+ *                 NOT shared with active's tokens. Returns the matched
+ *                 sibling so the UI can label it.
+ *   - 'none'    → no brand tokens matched
+ */
+function classifyBrandAffinity(
+    actionName: string,
+    activeTokens: string[],
+    siblings: Array<{ slug: string; name: string; tokens: string[] }>,
+): { affinity: BrandAffinity; siblingSlug?: string; siblingName?: string } {
+    const hay = actionName.toLowerCase()
+    const activeSet = new Set(activeTokens)
+
+    // Sibling tokens that DON'T overlap with active's are 'unique' identifiers.
+    let siblingHit: { slug: string; name: string } | null = null
+    for (const sib of siblings) {
+        const uniqueSibTokens = sib.tokens.filter(t => !activeSet.has(t))
+        for (const t of uniqueSibTokens) {
+            if (hay.includes(t)) { siblingHit = { slug: sib.slug, name: sib.name }; break }
+        }
+        if (siblingHit) break
+    }
+
+    // Active brand match: any of its discriminating tokens (whether shared with
+    // siblings or not). If active matches but a sibling ALSO matches, sibling
+    // wins (the unique-token rule excludes shared tokens already, so a sibling
+    // hit means a really sibling-specific keyword was found).
+    const activeHit = activeTokens.some(t => hay.includes(t))
+
+    if (siblingHit) return { affinity: 'sibling', siblingSlug: siblingHit.slug, siblingName: siblingHit.name }
+    if (activeHit) return { affinity: 'this' }
+    return { affinity: 'none' }
+}
+
+// ── Run detection: pull live actions + classify them ─────────────────────
+/**
+ * Reads google_ads_config + googleTokens for the active agent, pulls every
+ * ENABLED ConversionAction from the operating account, runs each through
+ * matchAdsActionToKey() + classifyBrandAffinity(), and returns the full
+ * candidate list. Does NOT filter to best-per-key — the picker UI shows
+ * everything and lets the user decide.
  */
 export async function detectExistingConversionActions(
     instanceId: string,
@@ -284,44 +384,82 @@ export async function detectExistingConversionActions(
     const enabled = actions.filter(a => a.status === 'ENABLED')
     const skipped = actions.filter(a => a.status !== 'ENABLED')
 
-    // 4) Match each enabled action.
-    const matched: ConversionActionMappingDraft[] = []
-    const unmapped: AdsConversionActionRaw[] = []
-    for (const a of enabled) {
-        const m = matchAdsActionToKey(a)
-        if (m) matched.push(m); else unmapped.push(a)
+    // 4) Build brand-context: active agent's tokens + tokens of every OTHER
+    //    mateh_agent on the same VPS. Used to mark "Moving Station purchase
+    //    action" as 'sibling' when active is Packing.
+    const activeSlug = agent?.brandSlug || ''
+    const activeName = agent?.name || ''
+    const activeTokens = Array.from(new Set([
+        ...tokenizeBrand(activeSlug),
+        ...tokenizeBrand(activeName),
+    ]))
+
+    let siblings: Array<{ slug: string; name: string; tokens: string[] }> = []
+    if (agent) {
+        const sibRows = await db.select({
+            id: matehAgents.id,
+            slug: matehAgents.brandSlug,
+            name: matehAgents.name,
+        })
+            .from(matehAgents)
+            .where(and(
+                eq(matehAgents.vpsInstanceId, instanceId),
+                ne(matehAgents.id, agent.id),
+            ))
+        siblings = sibRows.map(s => ({
+            slug: s.slug,
+            name: s.name,
+            tokens: Array.from(new Set([...tokenizeBrand(s.slug), ...tokenizeBrand(s.name)])),
+        }))
     }
 
-    // 5) Per actionKey, pick the BEST candidate — prefer:
-    //    a) primaryForGoal=true
-    //    b) higher confidence
-    //    c) has googleAdsConversionId+Label (needed for GTM wiring)
-    //    d) more recent (we don't have updated_at in the SELECT but we can
-    //       sort by includeInConversionsMetric for now)
-    const bestPerKey = new Map<PrimaryActionKey, ConversionActionMappingDraft>()
-    const confidenceRank: Record<'high' | 'medium' | 'low', number> = { high: 3, medium: 2, low: 1 }
-    for (const m of matched) {
-        const existing = bestPerKey.get(m.actionKey)
-        if (!existing) { bestPerKey.set(m.actionKey, m); continue }
-        const scoreA = (m.raw.primaryForGoal ? 4 : 0)
-            + confidenceRank[m.confidence]
-            + (m.raw.googleAdsConversionId ? 2 : 0)
-            + (m.raw.includeInConversionsMetric ? 1 : 0)
-        const scoreB = (existing.raw.primaryForGoal ? 4 : 0)
-            + confidenceRank[existing.confidence]
-            + (existing.raw.googleAdsConversionId ? 2 : 0)
-            + (existing.raw.includeInConversionsMetric ? 1 : 0)
-        if (scoreA > scoreB) bestPerKey.set(m.actionKey, m)
+    // 5) Build a candidate per ENABLED action — match + classify + decide
+    //    defaultChecked.
+    const candidates: DetectionCandidate[] = []
+    let crossTenantLeakSuspected = false
+    for (const a of enabled) {
+        const m = matchAdsActionToKey(a)
+        const aff = classifyBrandAffinity(a.name, activeTokens, siblings)
+        if (aff.affinity === 'sibling') crossTenantLeakSuspected = true
+
+        // Defaults:
+        //  - sibling: NEVER pre-check (cross-tenant leak protection)
+        //  - this + has actionKey: pre-check
+        //  - this + no actionKey: pre-check anyway, UI gets a yellow "pick key"
+        //  - none: don't pre-check; user decides
+        const defaultChecked = aff.affinity === 'this' && !!m
+
+        candidates.push({
+            adsId: a.id,
+            adsResourceName: a.resourceName,
+            name: a.name,
+            category: a.category,
+            type: a.type,
+            primaryForGoal: a.primaryForGoal,
+            includeInConversionsMetric: a.includeInConversionsMetric,
+            googleAdsConversionId: a.googleAdsConversionId,
+            googleAdsConversionLabel: a.googleAdsConversionLabel,
+            suggestedActionKey: m?.actionKey || null,
+            confidence: m?.confidence || 'none',
+            matchReason: m?.reason || '',
+            brandAffinity: aff.affinity,
+            siblingAgentSlug: aff.siblingSlug,
+            siblingAgentName: aff.siblingName,
+            defaultChecked,
+        })
     }
 
     return {
         customerId: String(config.customerId),
         operatingCustomerId,
+        activeBrandSlug: activeSlug || undefined,
+        activeBrandName: activeName || undefined,
+        siblingBrandSlugs: siblings.map(s => s.slug),
         totalFound: actions.length,
         enabledCount: enabled.length,
         skipped,
-        mappings: Array.from(bestPerKey.values()),
-        unmapped,
+        candidates,
+        crossTenantLeakSuspected,
         fetchedAt: new Date().toISOString(),
     }
 }
@@ -329,13 +467,14 @@ export async function detectExistingConversionActions(
 // ── Draft persistence: write detection into research_data + approval task ─
 /**
  * Persists a detection result into research_data.mazhirConversions as a
- * DRAFT mapping (`source='detected'`, all entries marked `pending`) and
- * creates a `pending_review` agent_output so the user can approve the
- * mapping in משימות פעילות.
+ * DRAFT mapping AND creates a `pending_review` agent_output as a
+ * notification. The actual mapping selection happens in the rich GTM-card
+ * picker (frontend) — the user picks WHICH candidates count, then calls
+ * /apply-selected. The agent_output is mainly a queue indicator.
  *
- * After approval, applyApprovedConversionMapping promotes the draft into
- * `mazhirConversions.active[]` with `source='mapped'` — that's the shape
- * the diagnostic and GTM auto-setup already understand.
+ * No filtering happens here: every enabled action is stored in candidates[]
+ * so the UI can let the user override sibling-leak default-unchecks and
+ * change suggested actionKeys.
  */
 export async function persistDetectionAsDraft(
     instanceId: string,
@@ -347,31 +486,23 @@ export async function persistDetectionAsDraft(
         ? await resolveAgentById(instanceId, agentId)
         : await resolvePrimaryAgent(instanceId)
 
-    // Build the draft block.
+    // Build the draft block. We keep the FULL DetectionResult so the
+    // picker can render brandAffinity, defaultChecked, suggestedActionKey,
+    // and the cross-tenant-leak warning.
     const draft = {
         source: 'detected' as const,
         detectedAt: result.fetchedAt,
         customerId: result.customerId,
         operatingCustomerId: result.operatingCustomerId,
-        mappings: result.mappings.map(m => ({
-            actionKey: m.actionKey,
-            confidence: m.confidence,
-            reason: m.reason,
-            adsConversionActionId: m.raw.id,
-            adsResourceName: m.raw.resourceName,
-            name: m.raw.name,
-            category: m.raw.category,
-            type: m.raw.type,
-            primaryForGoal: m.raw.primaryForGoal,
-            googleAdsConversionId: m.raw.googleAdsConversionId || null,
-            googleAdsConversionLabel: m.raw.googleAdsConversionLabel || null,
-        })),
-        unmapped: result.unmapped.map(a => ({
-            id: a.id,
-            name: a.name,
-            category: a.category,
-        })),
-        skipped: result.skipped.map(a => ({ id: a.id, name: a.name, status: a.status })),
+        activeBrandSlug: result.activeBrandSlug,
+        activeBrandName: result.activeBrandName,
+        siblingBrandSlugs: result.siblingBrandSlugs,
+        enabledCount: result.enabledCount,
+        crossTenantLeakSuspected: result.crossTenantLeakSuspected,
+        candidates: result.candidates,
+        // Pre-applied count: candidates that the system pre-checked. This
+        // is what bulk-Approve would apply (sibling actions stay unchecked).
+        defaultCheckedCount: result.candidates.filter(c => c.defaultChecked).length,
     }
 
     await mutateResearchData(agent, instanceId, (rd: any) => {
@@ -379,13 +510,32 @@ export async function persistDetectionAsDraft(
         return rd
     })
 
-    // Create approval task in משימות פעילות.
+    // Create approval task. Title + content are summaries — the rich picker
+    // is inside the GTM card; the task itself is mainly a notification.
     const approvalTaskId = nanoid(12)
-    const summary = `מצאנו ${result.enabledCount} פעולות המרה פעילות ב-Google Ads. מיפינו ${draft.mappings.length} מהן על המבנה הפנימי שלנו.`
-        + (result.unmapped.length > 0 ? ` ${result.unmapped.length} פעולות לא זוהו אוטומטית — ניתן להתעלם או למפות ידנית.` : '')
-        + ' אישור לא משנה שום דבר ב-Google Ads — רק מסמן את הפעולות הקיימות כמוכנות לשימוש ע״י Mazhir.'
-    const bulletLines = draft.mappings
-        .map(m => `- **${m.actionKey}** ← "${m.name}" (${m.category || 'ללא קטגוריה'}) · ביטחון ${m.confidence}`)
+    const thisCount = result.candidates.filter(c => c.brandAffinity === 'this').length
+    const siblingCount = result.candidates.filter(c => c.brandAffinity === 'sibling').length
+    const otherCount = result.candidates.filter(c => c.brandAffinity === 'none').length
+    const summaryParts: string[] = [
+        `מצאנו ${result.enabledCount} פעולות המרה פעילות ב-Google Ads.`,
+        `${thisCount} תואמות לעסק הזה (${result.activeBrandName || 'הסוכן'}) ומסומנות כברירת מחדל.`,
+    ]
+    if (siblingCount > 0) {
+        summaryParts.push(`⚠ ${siblingCount} פעולות נראות שייכות לעסק אחר ב-MCC — לא יסומנו אוטומטית.`)
+    }
+    if (otherCount > 0) {
+        summaryParts.push(`${otherCount} פעולות ללא זיהוי ברור של עסק — בידיכם להחליט.`)
+    }
+    summaryParts.push('פתחו את כרטיס GTM באינטגרציות לבחירה גרגרנית.')
+    const bulletLines = result.candidates
+        .map(c => {
+            const checkbox = c.defaultChecked ? '[x]' : '[ ]'
+            const tag = c.brandAffinity === 'this' ? '✓ עסק זה'
+                : c.brandAffinity === 'sibling' ? `⚠ ${c.siblingAgentName || 'עסק אחר'}`
+                : '◯ לא ידוע'
+            const key = c.suggestedActionKey || '(no key)'
+            return `- ${checkbox} **${key}** ← "${c.name}" (${c.category || 'ללא קטגוריה'}) · ${tag}`
+        })
         .join('\n')
     await db.insert(agentOutputs).values({
         id: approvalTaskId,
@@ -394,8 +544,8 @@ export async function persistDetectionAsDraft(
         agentRole: 'mazhir',
         outputType: 'conversion_mapping_proposal',
         status: 'pending_review',
-        title: `אישור מיפוי פעולות המרה (${draft.mappings.length})`,
-        content: `${summary}\n\n${bulletLines}`,
+        title: `אישור מיפוי פעולות המרה (${thisCount}/${result.enabledCount})`,
+        content: summaryParts.join(' ') + '\n\n' + bulletLines,
         metadata: { draft, kind: 'conversion_mapping_proposal' } as never,
         createdAt: new Date(),
     } as never).onConflictDoNothing()
@@ -403,39 +553,52 @@ export async function persistDetectionAsDraft(
     return { approvalTaskId }
 }
 
-// ── Approve: promote draft → active mappings ─────────────────────────────
+// ── Apply: convert candidates → active[] ─────────────────────────────────
 /**
- * Called when the user approves the mapping proposal in משימות פעילות.
- * Promotes draftMapping entries into mazhirConversions.active[] in the
- * shape the diagnostic + GTM auto-setup already understand.
+ * Generic apply helper. Takes a set of (adsId → actionKey) selections and
+ * promotes the matching candidates from draftMapping.candidates[] into
+ * mazhirConversions.active[]. Skips entries without (conversionId, label).
  *
- * Per-agent: writes to the agent that owns the approval task.
+ * Used both by applyApprovedConversionMapping (bulk-approve → uses
+ * defaultChecked subset) and applySelectedMapping (UI picker → uses the
+ * explicit user selection).
  */
-export async function applyApprovedConversionMapping(
+async function promoteCandidatesToActive(
     instanceId: string,
     agentId: string | null,
-): Promise<{ activated: number }> {
+    selections: Map<string, PrimaryActionKey>,
+): Promise<{ activated: number; skippedNoSnippet: number }> {
     const { resolveAgentById, resolvePrimaryAgent, mutateResearchData } = await import('./agentContext')
     const agent = agentId
         ? await resolveAgentById(instanceId, agentId)
         : await resolvePrimaryAgent(instanceId)
     let activated = 0
+    let skippedNoSnippet = 0
     await mutateResearchData(agent, instanceId, (rd: any) => {
         const draft = rd.mazhirConversions?.draftMapping
         if (!draft) return rd
-        const active = (draft.mappings || [])
-            .filter((m: any) => m.googleAdsConversionId && m.googleAdsConversionLabel)
-            .map((m: any) => ({
-                actionKey: m.actionKey,
-                name: m.name,
-                resourceName: m.adsResourceName,
-                googleAdsConversionId: m.googleAdsConversionId,
-                googleAdsConversionLabel: m.googleAdsConversionLabel,
-                status: 'reused',                       // matches shape used by mazhirConversions
-                enhancedConversionsEligible: false,     // not measured yet — set by separate eligibility probe
+        const cands: DetectionCandidate[] = draft.candidates || []
+        const active: any[] = []
+        for (const c of cands) {
+            const chosenKey = selections.get(c.adsId)
+            if (!chosenKey) continue
+            if (!c.googleAdsConversionId || !c.googleAdsConversionLabel) {
+                skippedNoSnippet++
+                continue
+            }
+            active.push({
+                actionKey: chosenKey,
+                name: c.name,
+                resourceName: c.adsResourceName,
+                googleAdsConversionId: c.googleAdsConversionId,
+                googleAdsConversionLabel: c.googleAdsConversionLabel,
+                status: 'reused',
+                enhancedConversionsEligible: false,
                 source: 'mapped',
+                brandAffinity: c.brandAffinity,
                 approvedAt: new Date().toISOString(),
-            }))
+            })
+        }
         activated = active.length
         rd.mazhirConversions = {
             ...(rd.mazhirConversions || {}),
@@ -444,8 +607,52 @@ export async function applyApprovedConversionMapping(
         }
         return rd
     })
+    return { activated, skippedNoSnippet }
+}
+
+/**
+ * Bulk-Approve path: takes ONLY the candidates that the detector
+ * pre-checked (defaultChecked=true), which excludes sibling-brand matches
+ * by construction. So even if a user clicks "Approve all" without opening
+ * the picker, sibling actions stay out — critical safety against the
+ * Moving-Station-class cross-tenant leak.
+ */
+export async function applyApprovedConversionMapping(
+    instanceId: string,
+    agentId: string | null,
+): Promise<{ activated: number }> {
+    const { resolveAgentById, resolvePrimaryAgent, readResearchData } = await import('./agentContext')
+    const agent = agentId
+        ? await resolveAgentById(instanceId, agentId)
+        : await resolvePrimaryAgent(instanceId)
+    const rd = await readResearchData(agent, instanceId)
+    const draft = ((rd as any).mazhirConversions?.draftMapping) as
+        { candidates?: DetectionCandidate[] } | undefined
+    if (!draft?.candidates) return { activated: 0 }
+    const selections = new Map<string, PrimaryActionKey>()
+    for (const c of draft.candidates) {
+        if (c.defaultChecked && c.suggestedActionKey) selections.set(c.adsId, c.suggestedActionKey)
+    }
+    const { activated } = await promoteCandidatesToActive(instanceId, agentId, selections)
     return { activated }
 }
 
+/**
+ * Explicit UI selection: user picks exactly which (adsId, actionKey) pairs
+ * become active. Used by the rich GTM-card picker. Empty selections list =
+ * no mapping applied; the draft stays present so user can come back.
+ */
+export async function applySelectedMapping(
+    instanceId: string,
+    agentId: string | null,
+    selections: Array<{ adsConversionActionId: string; actionKey: PrimaryActionKey }>,
+): Promise<{ activated: number; skippedNoSnippet: number }> {
+    const sel = new Map<string, PrimaryActionKey>()
+    for (const s of selections) {
+        if (s.adsConversionActionId && s.actionKey) sel.set(String(s.adsConversionActionId), s.actionKey)
+    }
+    return promoteCandidatesToActive(instanceId, agentId, sel)
+}
+
 // ── Stale: research_data + agent_outputs imports kept above ──────────────
-void instances; void matehAgents; void and; void desc
+void instances; void matehAgents; void and; void ne; void desc

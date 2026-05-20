@@ -9722,7 +9722,7 @@ export const detectExistingConversionActions = async (c: Context) => {
         if ('error' in result) {
             return fail(c, `${result.error}: ${result.reason}`, 400)
         }
-        if (result.mappings.length === 0 && result.enabledCount === 0) {
+        if (result.enabledCount === 0) {
             return ok(c, {
                 ...result,
                 approvalTaskId: null,
@@ -9730,11 +9730,17 @@ export const detectExistingConversionActions = async (c: Context) => {
             }, 'אין פעולות המרה ב-Google Ads')
         }
         const { approvalTaskId } = await persistDetectionAsDraft(instanceId, __agent?.id || null, result)
+        const thisCount = result.candidates.filter(c => c.brandAffinity === 'this').length
+        const siblingCount = result.candidates.filter(c => c.brandAffinity === 'sibling').length
+        const hintParts = [`נמצאו ${result.enabledCount} פעולות פעילות`]
+        if (thisCount > 0) hintParts.push(`${thisCount} תואמות לעסק זה`)
+        if (siblingCount > 0) hintParts.push(`⚠ ${siblingCount} כנראה מעסק אחר ב-MCC — לא יסומנו`)
+        hintParts.push('בחירה גרגרנית בכרטיס GTM באינטגרציות')
         return ok(c, {
             ...result,
             approvalTaskId,
-            hint: `נמצאו ${result.enabledCount} פעולות פעילות. ${result.mappings.length} מהן ממופות אוטומטית — אישור ב-משימות פעילות.`,
-        }, `זוהו ${result.mappings.length} פעולות המרה — מחכים לאישור`)
+            hint: hintParts.join(' · '),
+        }, `זוהו ${result.enabledCount} פעולות המרה — בחירה ב-GTM card`)
     } catch (err) {
         console.error('detectExistingConversionActions error:', err)
         return fail(c, (err as Error).message, 500)
@@ -9742,9 +9748,10 @@ export const detectExistingConversionActions = async (c: Context) => {
 }
 
 // ─── POST /hosting/instances/:id/mazhir/conversions/apply-mapping ────────
-// Called from the משימות פעילות approval handler after user clicks "Approve"
-// on a conversion_mapping_proposal task. Promotes the draftMapping entries
-// into mazhirConversions.active[] so the GTM diagnostic gate goes green.
+// Bulk-Approve path — applies the candidates that detection pre-checked
+// (defaultChecked=true), which by construction excludes sibling-brand
+// matches. Called from the משימות פעילות approval handler when user
+// clicks "אשרו" on the bulk task.
 export const applyConversionMapping = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
@@ -9756,6 +9763,76 @@ export const applyConversionMapping = async (c: Context) => {
         return ok(c, { activated }, `${activated} פעולות המרה הופעלו`)
     } catch (err) {
         console.error('applyConversionMapping error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── GET /hosting/instances/:id/mazhir/conversions/draft ─────────────────
+// Returns the active agent's current draftMapping block so the GTM-card
+// picker can render checkboxes + actionKey dropdowns over the candidates.
+export const getConversionDraft = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = await readResearchDataForActive(c, instanceId)
+        const draft = (rd as Record<string, unknown>)?.mazhirConversions as Record<string, unknown> | undefined
+        return ok(c, {
+            draftMapping: draft?.draftMapping || null,
+            active: draft?.active || [],
+        })
+    } catch (err) {
+        console.error('getConversionDraft error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/conversions/apply-selected ───────
+// Granular-Approve path — UI sends an explicit selection {adsId, actionKey}[]
+// from the GTM-card picker. Only these are promoted into active[]. Sibling
+// rows the user explicitly opted-in to ARE included; sibling rows left
+// unchecked are NOT.
+export const applySelectedConversionMapping = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const body = await c.req.json<{ selections?: Array<{ adsConversionActionId?: string; actionKey?: string }> }>()
+        const raw = Array.isArray(body.selections) ? body.selections : []
+        const VALID_KEYS = new Set(['form_submit', 'generate_lead', 'phone_call', 'phone_call_offline', 'purchase', 'qualified_lead'])
+        const cleanSelections: Array<{ adsConversionActionId: string; actionKey: 'form_submit' | 'generate_lead' | 'phone_call' | 'phone_call_offline' | 'purchase' | 'qualified_lead' }> = []
+        for (const s of raw) {
+            if (s?.adsConversionActionId && s.actionKey && VALID_KEYS.has(s.actionKey)) {
+                cleanSelections.push({
+                    adsConversionActionId: String(s.adsConversionActionId),
+                    actionKey: s.actionKey as never,
+                })
+            }
+        }
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const { applySelectedMapping } = await import('@/services/mazhirConversionsDetect')
+        const result = await applySelectedMapping(instanceId, __agent?.id || null, cleanSelections)
+
+        // Best-effort: auto-resolve the open approval task so it leaves
+        // משימות פעילות. We don't fail the apply if this errors out.
+        try {
+            const { agentOutputs } = await import('@/db/schema')
+            const { eq, and } = await import('drizzle-orm')
+            await db.update(agentOutputs)
+                .set({ status: 'approved', approvedAt: new Date(), updatedAt: new Date() } as never)
+                .where(and(
+                    eq(agentOutputs.instanceId, instanceId),
+                    eq(agentOutputs.outputType, 'conversion_mapping_proposal'),
+                    eq(agentOutputs.status, 'pending_review'),
+                ))
+        } catch (taskErr) {
+            console.warn('applySelected: task auto-resolve failed:', (taskErr as Error).message)
+        }
+
+        return ok(c, result, `${result.activated} פעולות המרה הופעלו` +
+            (result.skippedNoSnippet ? ` · ${result.skippedNoSnippet} ללא tag-snippet — לא ניתן להשתמש ב-GTM` : ''))
+    } catch (err) {
+        console.error('applySelectedConversionMapping error:', err)
         return fail(c, (err as Error).message, 500)
     }
 }
