@@ -24161,12 +24161,13 @@ async function loadGtmDiagnostic(force) {
 // sibling-brand rows unchecked (cross-tenant leak protection).
 
 var ACTION_KEYS = [
-  { v: 'form_submit',        l: 'form_submit (טופס)' },
-  { v: 'generate_lead',      l: 'generate_lead (ליד)' },
-  { v: 'phone_call',         l: 'phone_call (שיחה — לחיצה)' },
-  { v: 'phone_call_offline', l: 'phone_call_offline (שיחה — call-tracking)' },
-  { v: 'purchase',           l: 'purchase (רכישה)' },
-  { v: 'qualified_lead',     l: 'qualified_lead (ליד מוסמך)' },
+  // Shorter labels so the <select> stays narrow.
+  { v: 'form_submit',        l: 'form_submit' },
+  { v: 'generate_lead',      l: 'generate_lead' },
+  { v: 'phone_call',         l: 'phone_call' },
+  { v: 'phone_call_offline', l: 'phone_call_offline' },
+  { v: 'purchase',           l: 'purchase' },
+  { v: 'qualified_lead',     l: 'qualified_lead' },
 ];
 
 async function loadConversionPicker() {
@@ -24245,9 +24246,10 @@ function renderConversionPicker(el, draft, active) {
     + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#DC2626;margin-inline-end:4px;vertical-align:middle"></span>עסק אחר ב-MCC (' + sibCount + ')</span>'
     + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#9CA3AF;margin-inline-end:4px;vertical-align:middle"></span>לא ידוע (' + noneCount + ')</span>'
     + '</div>';
-  // Rows — compact 2-line layout per row:
-  //   [✓] ●  <name>  …………………………………… [actionKey ▼]  ⚠
-  //          <details: category · AW-id · sibling-of-X · confidence>
+  // Rows — flex 2-line layout. Row 1 has the controls; row 2 has details
+  // beneath the name so the name is ALWAYS visible (the previous grid
+  // layout squeezed the name column to 0 in narrow card widths).
+  // Each row has a full tooltip with name + Ads-id + category etc.
   html += '<div id="gtm-conv-picker-list" style="display:flex;flex-direction:column;gap:4px">';
   cands.forEach(function(c) {
     var dotColor = c.brandAffinity === 'this' ? '#10B981' : (c.brandAffinity === 'sibling' ? '#DC2626' : '#9CA3AF');
@@ -24255,39 +24257,56 @@ function renderConversionPicker(el, draft, active) {
     var rowBd = c.brandAffinity === 'this' ? '#A7F3D0' : (c.brandAffinity === 'sibling' ? '#FECACA' : '#E5E7EB');
     var defaultChecked = !!c.defaultChecked;
     var hasSnippet = !!(c.googleAdsConversionId && c.googleAdsConversionLabel);
-    var siblingLabel = c.brandAffinity === 'sibling' && c.siblingAgentName ? ' · ' + _escapeHtml(c.siblingAgentName) : '';
-    var confidenceLabel = c.confidence && c.confidence !== 'none' ? ' · ' + c.confidence : '';
+    var affinityLabel = c.brandAffinity === 'this' ? 'עסק זה'
+        : c.brandAffinity === 'sibling' ? ('עסק אחר ב-MCC' + (c.siblingAgentName ? ' (' + c.siblingAgentName + ')' : ''))
+        : 'לא ידוע';
+    var confidenceLabel = c.confidence && c.confidence !== 'none' ? c.confidence : '';
     var snippetWarn = !hasSnippet
-      ? '<span title="אין tag-snippet — לא ניתן לחבר ל-GTM. הסימון יישמר אך לא יתבצע apply." style="color:#D97706;font-size:0.78rem;cursor:help">⚠</span>'
-      : '<span style="width:14px;display:inline-block"></span>';
+      ? '<span title="אין tag-snippet — לא ניתן לחבר ל-GTM. הסימון יישמר אך לא יתבצע apply." style="color:#D97706;font-size:0.82rem;cursor:help;margin-inline-start:4px">⚠</span>'
+      : '';
     var keyOptionsHtml = ACTION_KEYS.map(function(k){
       var sel = k.v === c.suggestedActionKey ? ' selected' : '';
       return '<option value="' + k.v + '"' + sel + '>' + _escapeHtml(k.l) + '</option>';
     }).join('');
-    var awId = c.googleAdsConversionId ? '<span style="font-family:monospace;direction:ltr;display:inline-block">AW-' + _escapeHtml(c.googleAdsConversionId) + '</span>' : '';
-    html += '<div class="gtm-conv-row" data-ads-id="' + _escapeHtml(c.adsId) + '" '
-      + 'style="display:grid;grid-template-columns:18px 14px 1fr 200px 14px;column-gap:10px;align-items:center;'
-      + 'padding:6px 10px;background:' + rowBg + ';border:1px solid ' + rowBd + ';border-radius:6px;font-size:0.82rem">'
-      // Col 1: checkbox (NEVER disabled — user can always uncheck)
-      + '<input type="checkbox" class="gtm-conv-check" ' + (defaultChecked ? 'checked' : '') + ' style="margin:0">'
-      // Col 2: brand dot
-      + '<span style="width:8px;height:8px;border-radius:50%;background:' + dotColor + '"></span>'
-      // Col 3: name + details (2 stacked lines)
-      + '<div style="min-width:0;line-height:1.25">'
-        + '<div style="font-weight:600;color:#1F2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + _escapeHtml(c.name) + '">'
+    // Detail line beneath the name.
+    var detailBits = [];
+    detailBits.push(_escapeHtml(c.category || 'ללא קטגוריה'));
+    if (c.type) detailBits.push(_escapeHtml(c.type));
+    if (confidenceLabel) detailBits.push('ביטחון ' + confidenceLabel);
+    detailBits.push(_escapeHtml(affinityLabel));
+    if (c.googleAdsConversionId) detailBits.push('<span style="font-family:monospace;direction:ltr">AW-' + _escapeHtml(c.googleAdsConversionId) + '</span>');
+    if (!hasSnippet) detailBits.push('<span style="color:#D97706">⚠ ללא snippet</span>');
+    // Full-row tooltip with everything (since the visible line clips long names).
+    var tooltipParts = [];
+    tooltipParts.push('שם: ' + c.name);
+    if (c.category) tooltipParts.push('קטגוריה: ' + c.category);
+    if (c.type) tooltipParts.push('סוג: ' + c.type);
+    if (c.googleAdsConversionId) tooltipParts.push('Ads ID: ' + c.googleAdsConversionId);
+    if (c.googleAdsConversionLabel) tooltipParts.push('Ads Label: ' + c.googleAdsConversionLabel);
+    if (c.adsId) tooltipParts.push('Resource: ' + c.adsId);
+    tooltipParts.push('שיוך מותג: ' + affinityLabel);
+    if (confidenceLabel) tooltipParts.push('ביטחון מאצ׳ר: ' + confidenceLabel);
+    if (c.matchReason) tooltipParts.push('סיבה: ' + c.matchReason);
+    if (!hasSnippet) tooltipParts.push('— ⚠ אין tag-snippet ב-Ads, לא ניתן להתקין דרך GTM');
+    var tooltip = escapeAttr(tooltipParts.join('\n'));
+    html += '<div class="gtm-conv-row" data-ads-id="' + _escapeHtml(c.adsId) + '" title="' + tooltip + '" '
+      + 'style="padding:6px 10px;background:' + rowBg + ';border:1px solid ' + rowBd + ';border-radius:6px;font-size:0.82rem">'
+      // Line 1: checkbox · dot · name (ellipsis) · select · warn
+      + '<div style="display:flex;align-items:center;gap:8px">'
+        + '<input type="checkbox" class="gtm-conv-check" ' + (defaultChecked ? 'checked' : '') + ' style="margin:0;flex-shrink:0">'
+        + '<span style="width:8px;height:8px;border-radius:50%;background:' + dotColor + ';flex-shrink:0"></span>'
+        + '<div style="flex:1;min-width:0;font-weight:600;color:#1F2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
           + _escapeHtml(c.name)
         + '</div>'
-        + '<div style="font-size:0.7rem;color:#6B7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
-          + _escapeHtml(c.category || 'ללא קטגוריה') + confidenceLabel + siblingLabel
-          + (awId ? ' · ' + awId : '')
-        + '</div>'
+        + '<select class="gtm-conv-key" style="flex-shrink:0;width:140px;font-size:0.72rem;padding:2px 4px;border:1px solid #E5E7EB;border-radius:4px;background:#fff">'
+          + keyOptionsHtml
+        + '</select>'
+        + snippetWarn
       + '</div>'
-      // Col 4: actionKey dropdown — fixed width avoids RTL char-wrapping
-      + '<select class="gtm-conv-key" style="width:200px;font-size:0.74rem;padding:3px 4px;border:1px solid #E5E7EB;border-radius:4px;background:#fff">'
-        + keyOptionsHtml
-      + '</select>'
-      // Col 5: warn icon (only if no snippet)
-      + snippetWarn
+      // Line 2: details (cat · type · affinity · AW-id)
+      + '<div style="font-size:0.68rem;color:#6B7280;margin-top:2px;padding-inline-start:30px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:rtl">'
+        + detailBits.join(' · ')
+      + '</div>'
     + '</div>';
   });
   html += '</div>';
