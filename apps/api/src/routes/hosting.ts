@@ -330,6 +330,10 @@ const HOSTING_UNAUTH_ALLOWLIST: Array<RegExp> = [
     /^\/telegram\/webhook\//,
     /^\/integrations\/(google|gsc|meta|microsoft)\/callback$/,
     /^\/oauth\/microsoft\/callback$/,
+    // Phase 4.3-O fix: OAuth /auth START endpoints redirect from a browser link;
+    // they can't carry an Authorization header. Token is in query (?token=) and
+    // the controller validates it. This is intentional, not a bypass.
+    /^\/integrations\/(google|gsc|meta|microsoft)\/auth$/,
     /^\/referral\/validate\//,
     /^\/newsletter\//,
     /^\/contact\//,

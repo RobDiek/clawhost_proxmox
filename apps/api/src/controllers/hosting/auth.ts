@@ -509,28 +509,40 @@ export const getMyInstances = async (c: Context) => {
                 hasFirecrawl: !!i.firecrawlKey,
                 hasFalKey: !!i.falApiKey,
                 hasElevenlabsKey: !!i.elevenlabsApiKey,
+                // Phase 4.3-O fix: hasGoogleAds derived from agent-level scopes.
+                // For the /my-instances bundle (this endpoint, no active-agent
+                // context yet), we conservatively check instance.googleTokens
+                // which is PRIMARY's tokens — the active-agent overlay in
+                // instances.ts:172 corrects this per-agent on the deep-load
+                // endpoint. The customerId is gated below to avoid false-positive
+                // for secondary agents that don't have 'ads' scope.
                 hasGoogleAds: (() => {
                     const gt = i.googleTokens as any
                     if (!gt) return false
-                    // googleTokens.scopes can be:
-                    //   - aliases: ['ads', 'gtm', ...] (current SCOPE_MAP storage)
-                    //   - URLs:    ['https://www.googleapis.com/auth/adwords', ...] (legacy)
-                    // Match both forms.
                     const scopes = (gt.scopes || gt.scope || '').toString().toLowerCase()
                     if (scopes.includes('adwords')) return true
-                    // Alias check — split-friendly so 'sads' or 'adsfoo' don't false-match
                     const tokens = scopes.split(/[\s,]+/)
                     return tokens.includes('ads')
                 })(),
-                haasTier: i.haasTier,                // 'starter' | 'growth' | 'autopilot' | null
+                haasTier: i.haasTier,
                 googleAdsMode: i.googleAdsMode || 'self',
-                // Phase 4.2.1-K — surface API readiness signals to frontend so
-                // client-side gates can match backend logic (e.g. media-plan
-                // gate that checks customerId + developerToken before allowing
-                // generation). Without these, the frontend always sees
-                // hasFullAdsAPI=false and the 409 flow can't be prevented.
-                googleAdsCustomerId: ((i.googleAdsConfig as Record<string, unknown> | null) || {}).customerId || null,
-                googleAdsHasDevToken: !!((i.googleAdsConfig as Record<string, unknown> | null) || {}).developerToken,
+                // Phase 4.3-O fix: gate customerId on hasGoogleAds (primary's
+                // scopes here). Cross-agent leak avoided because the instances.ts
+                // endpoint re-computes both based on active agent.
+                googleAdsCustomerId: (() => {
+                    const gt = i.googleTokens as any
+                    const scopes = (gt?.scopes || gt?.scope || '').toString().toLowerCase()
+                    const hasAds = scopes.includes('adwords') || scopes.split(/[\s,]+/).includes('ads')
+                    if (!hasAds) return null
+                    return ((i.googleAdsConfig as Record<string, unknown> | null) || {}).customerId || null
+                })(),
+                googleAdsHasDevToken: (() => {
+                    const gt = i.googleTokens as any
+                    const scopes = (gt?.scopes || gt?.scope || '').toString().toLowerCase()
+                    const hasAds = scopes.includes('adwords') || scopes.split(/[\s,]+/).includes('ads')
+                    if (!hasAds) return false
+                    return !!((i.googleAdsConfig as Record<string, unknown> | null) || {}).developerToken
+                })(),
                 // Phase 4.2.1-L — per-API OAuth scope booleans so the dashboard
                 // can render proactive "connect X" buttons instead of letting
                 // users discover missing scopes mid-flow.

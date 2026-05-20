@@ -252,14 +252,24 @@ export const getInstance = async (c: Context<HonoEnv>) => {
             response.hasBrandBook = !!approvedBb
         }
 
-        // Phase 4.2.1-K — unconditional surfacing of API readiness signals.
-        // Frontend gates check instanceData.googleAdsCustomerId/HasDevToken;
-        // these must be present regardless of whether the agent-overlay
-        // branch executed. The values always come from instance row's
-        // googleAdsConfig (which is per-instance, not per-agent).
+        // Phase 4.2.1-K — surfacing of API readiness signals.
+        // Phase 4.3-O fix: googleAdsConfig is instance-level (per-VPS), but Google
+        // Ads OAuth is per-agent. If the active agent does NOT have 'ads' scope,
+        // surfacing the instance's customerId would falsely tell the UI that
+        // Google Ads is connected for this agent (cross-agent leak — exactly
+        // what Sergei saw on Packing Station). Gate on hasGoogleAds.
+        //
+        // Roadmap follow-up: move googleAdsConfig to mateh_agents (per-agent),
+        // so each agent has its own customerId + developerToken (Packing might
+        // use a different ad account than Storage on the same VPS).
         const _gadsCfg = (instance.googleAdsConfig as Record<string, unknown> | null) || {}
-        response.googleAdsCustomerId = _gadsCfg.customerId || null
-        response.googleAdsHasDevToken = !!_gadsCfg.developerToken
+        if (response.hasGoogleAds) {
+            response.googleAdsCustomerId = _gadsCfg.customerId || null
+            response.googleAdsHasDevToken = !!_gadsCfg.developerToken
+        } else {
+            response.googleAdsCustomerId = null
+            response.googleAdsHasDevToken = false
+        }
         // Phase 4.2.1-L — per-API OAuth scope booleans. Use activeAgent's
         // googleTokens when available (per-agent OAuth), else instance row.
         const _activeGt = (response.googleTokens as { scopes?: string[] | string; scope?: string } | null)
