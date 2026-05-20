@@ -24365,6 +24365,29 @@ async function _gtmGateActionClick(gateId) {
       return;
     }
   }
+  // Phase 4.3-P(B v2): conversion_actions_ready gate with draftMapping has
+  // a rich picker right below the gates list. Skip the legacy "go to msimot
+  // peilut" modal and scroll/highlight the picker instead.
+  if (gateId === 'conversion_actions_ready') {
+    var picker = document.getElementById('gtm-conv-picker');
+    if (picker && picker.style.display !== 'none') {
+      picker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      picker.style.transition = 'box-shadow 0.4s';
+      picker.style.boxShadow = '0 0 0 3px #FBBF24';
+      setTimeout(function() { picker.style.boxShadow = ''; }, 1800);
+      return;
+    }
+    // Picker not loaded yet — try to load it then scroll.
+    if (typeof loadConversionPicker === 'function') {
+      loadConversionPicker().then(function() {
+        var p2 = document.getElementById('gtm-conv-picker');
+        if (p2 && p2.style.display !== 'none') {
+          p2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+      return;
+    }
+  }
 
   var action = gate.action;
   // ── auto_fix: hit the endpoint inline, show progress

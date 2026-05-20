@@ -547,21 +547,26 @@ export async function runGtmDiagnostic(instanceId: string, agentId?: string): Pr
             blocking: true,
         })
     } else if (hasDraft) {
+        // Phase 4.3-P(B v2): the rich picker lives inside this same GTM card.
+        // Action label hints "scroll down". Frontend (_gtmGateActionClick)
+        // special-cases this gateId and scrolls to #gtm-conv-picker instead
+        // of opening the legacy modal.
+        const cands = (rd.mazhirConversions?.draftMapping as { candidates?: unknown[] })?.candidates
+        const candCount = Array.isArray(cands) ? cands.length : 0
         gates.push({
             id: 'conversion_actions_ready',
             label: 'פעולות המרה מוכנות (Ads)',
             status: 'warn',
-            message: `${draftMapping?.mappings?.length || 0} מיפויים מחכים לאישור ב-משימות פעילות`,
-            detail: 'הסיסטם זיהה פעולות המרה קיימות ב-Google Ads ומציע מיפוי. אשרו אותו ב-משימות פעילות לפני שנמשיך.',
+            message: `${candCount} פעולות מחכות לבחירה למטה`,
+            detail: 'בחרו את הפעולות הרלוונטיות בכרטיס בחירת פעולות המרה למטה. פעולות שייכות לעסקים אחרים ב-MCC מסומנות באדום ולא מסומנות כברירת מחדל.',
             blocking: true,
             action: {
                 type: 'manual',
-                label: '→ פתחו משימות פעילות',
+                label: '↓ פתחו את הבחירה למטה',
                 steps: [
-                    'פתחו את לשונית "משימות פעילות" בדשבורד',
-                    'מצאו את המשימה "אישור מיפוי פעולות המרה"',
-                    'בדקו את ההצעה ולחצו "אשר" אם המיפוי נכון',
-                    'חזרו לכאן ולחצו "🔄 רענן" — gate יהיה ירוק',
+                    'גללו למטה — סעיף "פעולות המרה שזוהו ב-Google Ads"',
+                    'סמנו את הפעולות הרלוונטיות (אדומות = עסק אחר ב-MCC, לא לסמן)',
+                    'לחצו "✓ החל את הבחירה"',
                 ],
             },
         })
