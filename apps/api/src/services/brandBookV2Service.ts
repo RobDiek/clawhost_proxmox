@@ -28,7 +28,7 @@
 
 import { eq, and, desc } from 'drizzle-orm'
 import { db } from '@/db'
-import { brandBooks, instances } from '@/db/schema'
+import { brandBooks, instances, matehAgents } from '@/db/schema'
 import type {
     BrandBookV2,
     BrandKeyMeta,
@@ -260,12 +260,31 @@ export async function startNewDraft(args: {
     // Auto-prefill businessName + tagline from all available sources before
     // ever asking client / scanning website. We've already done research,
     // strategy, paid profile — the data is here, just spread across tables.
-    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-    const rd: any = inst?.researchData || {}
+    //
+    // Phase 4.3-O brand-fix: read research_data from THE RESOLVED AGENT'S row,
+    // not instances.researchData (which is the PRIMARY agent's mirror only).
+    // Without this, a secondary agent's brand wizard would prefill with the
+    // primary agent's businessName/websiteUrl — explaining the
+    // Packing-Station-scraped-from-storage-station.co.il bug seen in prod.
+    let rd: any = {}
+    if (resolvedAgentId) {
+        const [agentRow] = await db.select({ researchData: matehAgents.researchData })
+            .from(matehAgents)
+            .where(and(eq(matehAgents.id, resolvedAgentId), eq(matehAgents.vpsInstanceId, instanceId)))
+        rd = agentRow?.researchData || {}
+    } else {
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        rd = (inst?.researchData as any) || {}
+    }
     const ans: any = rd.answers || {}
     const pp: any = rd.paidProfile || {}
+    // Phase 4.3-O brand-fix: scope legacyBrand lookup by agentId so secondary
+    // agents don't inherit the primary's tagline/missionHe as "default".
+    const legacyBrandWhere = resolvedAgentId
+        ? and(eq(brandBooks.instanceId, instanceId), eq(brandBooks.agentId, resolvedAgentId))
+        : eq(brandBooks.instanceId, instanceId)
     const [legacyBrand] = await db.select().from(brandBooks)
-        .where(and(eq(brandBooks.instanceId, instanceId)))
+        .where(legacyBrandWhere)
         .orderBy(desc(brandBooks.version))
         .limit(1)
 
@@ -410,6 +429,35 @@ export async function approveDraft(args: {
     if (!skipGates) {
         const gates = evaluateQualityGates(book)
         if (!gates.passed) return { ok: false, reason: 'Quality gates failed: ' + gates.criticalFailed.join(', ') }
+    }
+
+    // Phase 4.3-O brand-fix: even with skipGates, REQUIRE businessName + websiteUrl
+    // to match the agent's actual identity (research_data.answers). This blocks
+    // the Packing-Station-pointing-at-storage-station.co.il bug: secondary agents
+    // whose brand wizard prefilled with primary's data would never pass this gate
+    // unless user manually corrected before submit. Light-mode skipGates was for
+    // Brand-Light (pre-research) — NOT for accepting wrong-identity brand books.
+    let rdForVerify: any = {}
+    if (agentId) {
+        const [agentRow] = await db.select({ researchData: matehAgents.researchData })
+            .from(matehAgents)
+            .where(and(eq(matehAgents.id, agentId), eq(matehAgents.vpsInstanceId, instanceId)))
+        rdForVerify = agentRow?.researchData || {}
+    } else {
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        rdForVerify = (inst?.researchData as any) || {}
+    }
+    const answerName = (rdForVerify?.answers?.businessName || '').toString().trim().toLowerCase()
+    const answerUrl = (rdForVerify?.answers?.websiteUrl || '').toString().trim().toLowerCase()
+    const bookName = (book.identity?.businessName?.he || book.identity?.businessName?.en || '').toString().trim().toLowerCase()
+    const bookUrl = ((book as any).websiteUrl || (book as any).sourceUrl || '').toString().trim().toLowerCase()
+    if (answerName && bookName && answerName !== bookName) {
+        return { ok: false, reason: `Brand book businessName mismatch: book='${bookName}' vs answers='${answerName}'. Re-run brand wizard with correct identity.` }
+    }
+    // URL match — strip trailing slash + protocol for fair compare
+    function normUrl(u: string) { return u.replace(/^https?:\/\//, '').replace(/\/$/, '') }
+    if (answerUrl && bookUrl && normUrl(answerUrl) !== normUrl(bookUrl)) {
+        return { ok: false, reason: `Brand book websiteUrl mismatch: book='${bookUrl}' vs answers='${answerUrl}'. Re-run brand wizard with correct site.` }
     }
 
     // Archive existing approved (only THIS agent's)

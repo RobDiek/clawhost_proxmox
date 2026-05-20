@@ -5594,11 +5594,35 @@ function renderHome() {
     // - הגדרה של הממומן (paid profile + media plan)
     var paidProfileExists = !!(instanceData && instanceData.researchData && instanceData.researchData.paidProfile);
     var mediaPlanExists = !!(instanceData && instanceData.researchData && instanceData.researchData.mediaPlan);
-    // Phase 4.3-N v8 fix: brand book status lives in instances.hasBrandBook (set
-    // when brandV2 approve flow completes). The old researchData.brandBook check
-    // was a legacy mirror that's not actually populated, so the card was always
-    // showing yellow/amber even when the brand WAS built. Use the canonical flag.
-    var hasBrand = !!(instanceData && (instanceData.hasBrandBook || (instanceData.researchData && instanceData.researchData.brandBook)));
+    // Phase 4.3-N v8 fix: brand book status lives in instances.hasBrandBook.
+    // Phase 4.3-O brand-fix: STRICT check — green only when:
+    //   (a) hasBrandBook flag set, AND
+    //   (b) brand_book.businessName matches answers.businessName (catches the
+    //       cloned-from-primary-agent bug where Packing Station inherited
+    //       Storage Station's brand wholesale), AND
+    //   (c) brand qualityGates passed (or no gates structure = legacy).
+    // Without these, secondary agents would show "approved" green even though
+    // they're pointing at the wrong site / business identity.
+    var hasBrand = (function() {
+      if (!instanceData) return false;
+      var flagSet = !!(instanceData.hasBrandBook || (instanceData.researchData && instanceData.researchData.brandBook));
+      if (!flagSet) return false;
+      // Loose match: if brand book's businessName matches answers.businessName, accept.
+      var bb = instanceData.brandBookSummary || instanceData.brandBook || {};
+      var brandName = (bb.businessName || (bb.identity && bb.identity.businessName && (bb.identity.businessName.he || bb.identity.businessName.en)) || '').toString().trim().toLowerCase();
+      var answerName = ((instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.businessName) || '').toString().trim().toLowerCase();
+      if (brandName && answerName && brandName !== answerName) {
+        console.warn('[hasBrand] mismatch — brand_book.businessName=' + JSON.stringify(brandName) + ' vs answers.businessName=' + JSON.stringify(answerName) + '. Showing as NOT-ready so user re-runs wizard.');
+        return false;
+      }
+      // qualityGates check — if structure exists, require passed=true
+      var gates = bb.qualityGates;
+      if (gates && gates.passed === false) {
+        console.warn('[hasBrand] qualityGates.passed=false — showing as NOT-ready');
+        return false;
+      }
+      return true;
+    })();
 
     // Phase 4.3-N v8: stacked single-column cards, compact height, ONE button each
     var card = function(opts) {
