@@ -97,13 +97,17 @@ async function refreshAccessToken(refreshToken: string): Promise<string | null> 
 }
 
 // ── Resolve fresh access token from instance's google integration ────────
-async function getFreshAccessToken(instanceId: string): Promise<{
+// Multi-MATEH per VPS: agentId MUST be honored. Without it `getAgentIntegration`
+// resolves to the primary agent and returns the wrong row (e.g. Storage's
+// connection when the UI is operating on Packing). Same isolation gap that
+// `readResearchDataForActive` solves for research_data reads.
+async function getFreshAccessToken(instanceId: string, agentId?: string): Promise<{
     token: string | null
     config: GoogleTokensConfig | null
 }> {
     // Try agent_integrations first (canonical), then fall back via primary agent
-    const integration = await getAgentIntegration(instanceId, 'mt', 'google')
-        || await getAgentIntegration(instanceId, 'oc', 'google')
+    const integration = await getAgentIntegration(instanceId, 'mt', 'google', agentId)
+        || await getAgentIntegration(instanceId, 'oc', 'google', agentId)
     if (!integration || !integration.config) return { token: null, config: null }
     const cfg = integration.config as unknown as GoogleTokensConfig
     if (!cfg.refreshToken) return { token: null, config: cfg }
@@ -125,7 +129,8 @@ export const listGA4Properties = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) {
             return fail(c, 'Instance not found', 404)
         }
-        const { token, config } = await getFreshAccessToken(instanceId)
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const { token, config } = await getFreshAccessToken(instanceId, __agent?.id)
         if (!token) {
             return fail(c, 'Google not connected. Connect first.', 400)
         }
@@ -209,7 +214,7 @@ export const selectGA4Property = async (c: Context) => {
         // Read existing google integration config (per-agent)
         const __agent = await resolveActiveAgent(c, instanceId)
         const agentType: 'mt' | 'oc' = __agent?.agentType === 'mateh' ? 'mt' : 'oc'
-        const integration = await getAgentIntegration(instanceId, agentType, 'google')
+        const integration = await getAgentIntegration(instanceId, agentType, 'google', __agent?.id)
         if (!integration) return fail(c, 'Google integration not found', 404)
         const cfg = (integration.config as unknown as GoogleTokensConfig) || {} as GoogleTokensConfig
 
@@ -239,7 +244,8 @@ export const listGTMContainers = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) {
             return fail(c, 'Instance not found', 404)
         }
-        const { token, config } = await getFreshAccessToken(instanceId)
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const { token, config } = await getFreshAccessToken(instanceId, __agent?.id)
         if (!token) return fail(c, 'Google not connected. Connect first.', 400)
         // Scopes may be stored as either:
         //   - URLs: ['https://www.googleapis.com/auth/tagmanager.edit.containers', ...]
@@ -339,7 +345,7 @@ export const selectGTMContainer = async (c: Context) => {
 
         const __agent = await resolveActiveAgent(c, instanceId)
         const agentType: 'mt' | 'oc' = __agent?.agentType === 'mateh' ? 'mt' : 'oc'
-        const integration = await getAgentIntegration(instanceId, agentType, 'google')
+        const integration = await getAgentIntegration(instanceId, agentType, 'google', __agent?.id)
         if (!integration) return fail(c, 'Google integration not found', 404)
         const cfg = (integration.config as unknown as GoogleTokensConfig) || {} as GoogleTokensConfig
 

@@ -297,8 +297,11 @@ export const googleDisconnect = async (c: Context) => {
             ? agentParam
             : getPrimaryAgent((instance.selectedComponents as string[]) || [])
 
-        // Get tokens from agent_integrations (primary source)
-        const agentInt = await getAgentIntegration(instanceId, agentType, 'google')
+        // Get tokens from agent_integrations (primary source) — must be
+        // agentId-scoped so we don't revoke another agent's token on a
+        // multi-MATEH VPS.
+        const __activeAgentForDisc = await resolveActiveAgent(c, instanceId)
+        const agentInt = await getAgentIntegration(instanceId, agentType, 'google', __activeAgentForDisc?.id)
         const tokens = agentInt?.config as any
         if (tokens?.accessToken) {
             try {
@@ -309,7 +312,6 @@ export const googleDisconnect = async (c: Context) => {
         }
 
         // Remove from per-agent integrations — Phase 2.3.E: pass agentId
-        const __activeAgentForDisc = await resolveActiveAgent(c, instanceId)
         await removeAgentIntegration(instanceId, agentType, 'google', __activeAgentForDisc?.id)
 
         // Phase 2.3.B — clear tokens on the active mateh_agent. For primary,
