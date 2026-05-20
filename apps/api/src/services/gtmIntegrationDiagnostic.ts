@@ -213,12 +213,23 @@ async function probeUserVisibility(accessToken: string, accountId: string, conta
 }
 
 // ─── Main: run all gates and return the diagnostic ────────────────────────
-export async function runGtmDiagnostic(instanceId: string): Promise<GtmDiagnostic> {
+// Multi-MATEH: agentId scopes the diagnostic to a specific agent. Without it
+// the function reads inst.googleTokens / inst.researchData, which are
+// PRIMARY-agent mirrors — and a secondary agent's GTM card then shows the
+// primary's saved container as "connected" (the user-visible leak).
+export async function runGtmDiagnostic(instanceId: string, agentId?: string): Promise<GtmDiagnostic> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error('Instance not found')
 
-    const tokens: any = inst.googleTokens || null
-    const rd: any = inst.researchData || {}
+    // Resolve per-agent state from mateh_agents when agentId is provided.
+    // Falls back to the primary mateh_agent row (same as instance mirror in
+    // single-tenant) so legacy callers still work.
+    const { resolveAgentById, resolvePrimaryAgent } = await import('./agentContext')
+    const agent = agentId
+        ? await resolveAgentById(instanceId, agentId)
+        : await resolvePrimaryAgent(instanceId)
+    const tokens: any = (agent?.googleTokens as any) ?? inst.googleTokens ?? null
+    const rd: any = (agent?.researchData as any) ?? inst.researchData ?? {}
     const target = rd.mazhirGtm?.target
     const lastSetup = rd.mazhirGtm?.lastSetupResult
     const lastSetupAt: string | null = rd.mazhirGtm?.lastSetupAt || null
@@ -606,11 +617,11 @@ export interface AutoFixChainResult {
     }
 }
 
-export async function runGtmAutoFixChain(instanceId: string): Promise<AutoFixChainResult> {
+export async function runGtmAutoFixChain(instanceId: string, agentId?: string): Promise<AutoFixChainResult> {
     const steps: AutoFixStepResult[] = []
 
     // ── Pass 1: diagnose current state ──
-    let diag = await runGtmDiagnostic(instanceId)
+    let diag = await runGtmDiagnostic(instanceId, agentId)
 
     // ── If any BLOCKING gate with status='fail' has a non-auto-fixable
     //    action → bail out with user action. Note: `warn` doesn't bail (e.g.
@@ -664,7 +675,7 @@ export async function runGtmAutoFixChain(instanceId: string): Promise<AutoFixCha
             })
         }
         // Re-diagnose to refresh state
-        diag = await runGtmDiagnostic(instanceId)
+        diag = await runGtmDiagnostic(instanceId, agentId)
     }
 
     // ── If conversions still missing → cannot proceed to GTM auto-setup ──
@@ -705,9 +716,16 @@ export async function runGtmAutoFixChain(instanceId: string): Promise<AutoFixCha
     }
     const t1 = Date.now()
     try {
+        // Multi-MATEH: read per-agent state from mateh_agents when agentId is set,
+        // not from instances mirror (which is primary-only).
+        const { resolveAgentById, resolvePrimaryAgent } = await import('./agentContext')
+        const agent = agentId
+            ? await resolveAgentById(instanceId, agentId)
+            : await resolvePrimaryAgent(instanceId)
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        if (!inst?.googleTokens) throw new Error('Google tokens missing')
-        const rd: any = inst.researchData || {}
+        const googleTokens = (agent?.googleTokens as any) ?? inst?.googleTokens
+        if (!googleTokens) throw new Error('Google tokens missing')
+        const rd: any = (agent?.researchData as any) ?? inst?.researchData ?? {}
         const target = rd.mazhirGtm?.target
         // Phase 4.2.3-B: read `active` (unified mapped+created) with legacy fallback.
         const conversions = rd.mazhirConversions?.active || rd.mazhirConversions?.created || []
@@ -724,13 +742,13 @@ export async function runGtmAutoFixChain(instanceId: string): Promise<AutoFixCha
                 defaultCurrency: 'ILS',
             }))
         const { autoSetupGtmContainer, saveGtmSetupResult } = await import('@/services/mazhirGtmSetup')
-        const result = await autoSetupGtmContainer(inst.googleTokens as any, {
+        const result = await autoSetupGtmContainer(googleTokens, {
             target,
             measurementId: target.measurementId,
             conversions: gtmConfigs,
             enhancedConversions: true,
         })
-        await saveGtmSetupResult(instanceId, result)
+        await saveGtmSetupResult(instanceId, result, agentId)
         steps.push({
             gateId: 'gtm_publish_permission',
             action: 'gtm_auto_setup',
@@ -751,7 +769,7 @@ export async function runGtmAutoFixChain(instanceId: string): Promise<AutoFixCha
     }
 
     // ── Final state ──
-    const finalDiag = await runGtmDiagnostic(instanceId)
+    const finalDiag = await runGtmDiagnostic(instanceId, agentId)
     const completed = finalDiag.lastSetup.published === true
     return {
         completed,

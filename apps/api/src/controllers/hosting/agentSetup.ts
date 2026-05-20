@@ -9384,14 +9384,19 @@ export const listMazhirGtmTargets = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        // Multi-MATEH: read googleTokens from the ACTIVE agent (mateh_agents),
+        // not the instance-level mirror (primary only).
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __agent = await resolveActiveAgent(c, instanceId)
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        if (!inst?.googleTokens) return fail(c, 'Google not connected — link OAuth first', 400)
+        const googleTokens = (__agent?.googleTokens as any) ?? inst?.googleTokens
+        if (!googleTokens) return fail(c, 'Google not connected — link OAuth first', 400)
         // Phase 4.2.1-L — pre-check the GTM scope so we return a clean
         // "missing scope" error instead of a 500 unwrapped from a Google 403.
         // The frontend uses this signal to offer a "re-authorize" CTA.
         // Scopes may be stored as URLs ('https://...tagmanager...') OR as
         // aliases ('gtm') — current storage uses aliases.
-        const _gt = inst.googleTokens as { scopes?: unknown }
+        const _gt = googleTokens as { scopes?: unknown }
         const _scopesText = (() => {
             const raw = _gt?.scopes
             if (Array.isArray(raw)) return raw.join(' ').toLowerCase()
@@ -9404,7 +9409,7 @@ export const listMazhirGtmTargets = async (c: Context) => {
             return fail(c, 'MISSING_GTM_SCOPE: Google OAuth was granted without tagmanager scope. Re-authorize with GTM scope to list containers.', 400)
         }
         const { listGtmTargets } = await import('@/services/mazhirGtmSetup')
-        const targets = await listGtmTargets(inst.googleTokens)
+        const targets = await listGtmTargets(googleTokens)
         return ok(c, { targets })
     } catch (err) {
         const msg = (err as Error).message || ''
@@ -9429,15 +9434,19 @@ export const createMazhirGtmContainer = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        // Multi-MATEH: read tokens + save target under the ACTIVE agent.
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __agent = await resolveActiveAgent(c, instanceId)
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        if (!inst?.googleTokens) return fail(c, 'Google not connected', 400)
+        const googleTokens = (__agent?.googleTokens as any) ?? inst?.googleTokens
+        if (!googleTokens) return fail(c, 'Google not connected', 400)
 
         const body = await c.req.json<{ accountId?: string; name?: string; domainName?: string; measurementId?: string }>()
         if (!body.accountId) return fail(c, 'accountId required', 400)
         const name = (body.name || '').trim()
         if (!name) return fail(c, 'name required', 400)
 
-        const gt = inst.googleTokens as { accessToken?: string; refreshToken?: string; expiresAt?: number }
+        const gt = googleTokens as { accessToken?: string; refreshToken?: string; expiresAt?: number }
         if (!gt.refreshToken) return fail(c, 'OAuth refresh_token missing', 400)
 
         const { createGtmContainer, saveGtmTarget } = await import('@/services/mazhirGtmSetup')
@@ -9456,7 +9465,7 @@ export const createMazhirGtmContainer = async (c: Context) => {
             name: created.name,
             usageContext: created.usageContext,
             measurementId: body.measurementId,
-        })
+        }, __agent?.id)
 
         return ok(c, created, `GTM container "${created.name}" created (${created.publicId})`)
     } catch (err) {
@@ -9500,8 +9509,12 @@ export const getGtmIntegrationDiagnostic = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        // Multi-MATEH: scope the diagnostic to the active agent so secondary
+        // agents don't see the primary's saved GTM target as "connected".
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { runGtmDiagnostic } = await import('@/services/gtmIntegrationDiagnostic')
-        const diagnostic = await runGtmDiagnostic(instanceId)
+        const diagnostic = await runGtmDiagnostic(instanceId, __agent?.id)
         return ok(c, diagnostic)
     } catch (err) {
         console.error('getGtmIntegrationDiagnostic error:', err)
@@ -9520,8 +9533,10 @@ export const runGtmAutoFix = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { runGtmAutoFixChain } = await import('@/services/gtmIntegrationDiagnostic')
-        const result = await runGtmAutoFixChain(instanceId)
+        const result = await runGtmAutoFixChain(instanceId, __agent?.id)
         return ok(c, result, result.completed ? 'GTM integration fully configured ✓' : 'Stopped at manual gate — see userActionRequired')
     } catch (err) {
         console.error('runGtmAutoFix error:', err)
@@ -9536,6 +9551,8 @@ export const saveMazhirGtmTarget = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const body = await c.req.json<any>()
         if (!body.accountId || !body.containerId) return fail(c, 'accountId + containerId required', 400)
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { saveGtmTarget } = await import('@/services/mazhirGtmSetup')
         await saveGtmTarget(instanceId, {
             accountId: String(body.accountId),
@@ -9544,7 +9561,7 @@ export const saveMazhirGtmTarget = async (c: Context) => {
             name: String(body.name || ''),
             usageContext: Array.isArray(body.usageContext) ? body.usageContext : ['web'],
             measurementId: body.measurementId,
-        })
+        }, __agent?.id)
         return ok(c, {}, 'GTM target saved')
     } catch (err) {
         return fail(c, (err as Error).message, 500)
@@ -9628,12 +9645,14 @@ export const autoSetupMazhirGtm = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
 
         // Phase 4.3-O systemic-fix: per-active-agent read of GTM target + paidProfile.
-        // googleTokens is still per-instance for now (Google OAuth at instance level
-        // until per-agent token migration completes).
-        const { readResearchDataForActive } = await import('@/services/agentContext')
+        // googleTokens read from the active agent's mateh_agents row so secondary
+        // agents use THEIR own OAuth tokens, not the primary's.
+        const { readResearchDataForActive, resolveActiveAgent } = await import('@/services/agentContext')
         const { rd } = await readResearchDataForActive(c, instanceId)
+        const __agent = await resolveActiveAgent(c, instanceId)
         const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        if (!inst?.googleTokens) return fail(c, 'Google not connected', 400)
+        const googleTokens = (__agent?.googleTokens as any) ?? inst?.googleTokens
+        if (!googleTokens) return fail(c, 'Google not connected', 400)
         const rdAny: any = rd
         const target = rdAny.mazhirGtm?.target
         if (!target) return fail(c, 'GTM target not picked — call /mazhir/gtm/target first', 400)
@@ -9666,13 +9685,13 @@ export const autoSetupMazhirGtm = async (c: Context) => {
         // infrastructure (Conversion Linker, GCLID Capture) and publishes —
         // useful for Enhanced Conversions to work cleanly.
         const { autoSetupGtmContainer, saveGtmSetupResult } = await import('@/services/mazhirGtmSetup')
-        const result = await autoSetupGtmContainer(inst.googleTokens, {
+        const result = await autoSetupGtmContainer(googleTokens, {
             target,
             measurementId: target.measurementId,
             conversions: gtmConfigs,
             enhancedConversions: true,
         })
-        await saveGtmSetupResult(instanceId, result)
+        await saveGtmSetupResult(instanceId, result, __agent?.id)
         return ok(c, result, result.published ? 'GTM workspace published' : 'GTM workspace partially configured')
     } catch (err) {
         console.error('autoSetupMazhirGtm error:', err)
