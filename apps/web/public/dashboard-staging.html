@@ -14506,12 +14506,26 @@ function renderIntegrations() {
   // WordPress status — Phase 2.3.K(fix5): prefer backend overlay flag
   // (set per-agent from agent_integrations); fallback to localStorage for
   // pre-overlay deploys.
+  // Phase 4.3-P(C+): deterministic — also reset to disconnected when
+  // all signals are false (stale state was lingering between agent
+  // switches). Console log surfaces each signal source in DevTools.
   var pubBlogStatus = document.getElementById('pub-blog-status');
-  if (pubBlogStatus && ((instanceData && instanceData.hasWordpress) || (agentInts.wordpress && agentInts.wordpress.connected) || intStorGet('cf_wordpress_saved'))) {
-    pubBlogStatus.textContent = '\u2713 מחובר';
-    pubBlogStatus.className = 'int-status connected';
-    var pubBlogCard = document.getElementById('pub-blog-card');
-    if (pubBlogCard) pubBlogCard.classList.add('connected');
+  var pubBlogCard = document.getElementById('pub-blog-card');
+  if (pubBlogStatus) {
+    var sigHasWordpress = !!(instanceData && instanceData.hasWordpress);
+    var sigAgentInts = !!(agentInts.wordpress && agentInts.wordpress.connected);
+    var sigLocalStor = !!intStorGet('cf_wordpress_saved');
+    var wpConnected = sigHasWordpress || sigAgentInts || sigLocalStor;
+    try { console.log('[renderIntegrations] WP signals', { hasWordpress: sigHasWordpress, agentInts: sigAgentInts, localStorage: sigLocalStor, resolved: wpConnected, activeMatehAgentId: __activeMatehId || '(none)' }); } catch (_) {}
+    if (wpConnected) {
+      pubBlogStatus.textContent = '\u2713 מחובר';
+      pubBlogStatus.className = 'int-status connected';
+      if (pubBlogCard) pubBlogCard.classList.add('connected');
+    } else {
+      pubBlogStatus.textContent = 'לא מחובר';
+      pubBlogStatus.className = 'int-status';
+      if (pubBlogCard) pubBlogCard.classList.remove('connected');
+    }
   }
 
   // Newsletter status (from Resend) — same backend-overlay-first pattern
