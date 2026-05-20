@@ -244,7 +244,10 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
 
         if (!output.content) {
             await _abortStage(instanceId, stageId, __agent?.id, output.errorMessage || 'no content from executor')
-            return fail(c, output.errorMessage || 'Stage failed', (output.httpCode || 500) as 400 | 500)
+            // 503 surfaces transient-network exhaustion so frontend can offer
+            // "retry now" instead of a generic stage failure.
+            const code = (output.httpCode || 500) as 400 | 422 | 429 | 500 | 503
+            return fail(c, output.errorMessage || 'Stage failed', code as 400 | 500)
         }
 
         // ─── Self-critique gate (Phase 3.5e) ──

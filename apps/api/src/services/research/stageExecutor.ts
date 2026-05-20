@@ -52,7 +52,22 @@ import type {
 //     SSE event log and accumulates text_delta events. Used by the CLI
 //     fallback path which constructs its own fetch but reuses parsing.
 
-async function callAnthropicStreaming(
+/**
+ * Detect transient network errors that are safe to retry. Anthropic SSE
+ * streams can be cut by intermediate proxies on long Opus calls (4-8 min);
+ * fetch surfaces these as `terminated`, `ECONNRESET`, `socket hang up`,
+ * or `UND_ERR_SOCKET` — all distinct from a real API failure (which would
+ * arrive as a structured 4xx/5xx with body text).
+ */
+function isTransientNetworkError(err: unknown): boolean {
+    const msg = (err as { message?: string; cause?: { code?: string; message?: string } } | null)?.message || ''
+    const causeCode = (err as { cause?: { code?: string } } | null)?.cause?.code || ''
+    const causeMsg = (err as { cause?: { message?: string } } | null)?.cause?.message || ''
+    const combined = `${msg} ${causeCode} ${causeMsg}`.toLowerCase()
+    return /terminated|econnreset|socket hang up|und_err_socket|und_err_connect|ehostunreach|enetunreach|read econnreset|fetch failed/.test(combined)
+}
+
+async function callAnthropicStreamingOnce(
     apiKey: string,
     model: string,
     prompt: string,
@@ -81,6 +96,48 @@ async function callAnthropicStreaming(
     }
     const text = await consumeAnthropicStream(apiRes)
     return { ok: true, text }
+}
+
+/**
+ * Wrapper: up to 3 attempts on transient network errors with 10s / 30s
+ * backoff. Non-transient errors (4xx/5xx API responses) return immediately
+ * — caller handles those with specific user-facing messages (rate-limit,
+ * credit-balance, invalid-key, etc).
+ *
+ * Was bare callAnthropicStreaming before — a 4-minute Opus call cut by a
+ * proxy gave the user a generic 500 with no retry. This is the most common
+ * failure mode for long research stages.
+ */
+async function callAnthropicStreaming(
+    apiKey: string,
+    model: string,
+    prompt: string,
+    maxTokens: number,
+): Promise<{ ok: true; text: string } | { ok: false; status: number; errorText: string }> {
+    const backoffsMs = [10_000, 30_000]
+    let lastErr: unknown = null
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            const r = await callAnthropicStreamingOnce(apiKey, model, prompt, maxTokens)
+            // If the API returned a structured non-OK response (rate-limit,
+            // credit issue, etc), don't retry — the caller knows what to do.
+            return r
+        } catch (err) {
+            lastErr = err
+            if (!isTransientNetworkError(err)) throw err
+            if (attempt < backoffsMs.length) {
+                const wait = backoffsMs[attempt]
+                console.warn(`[stageExecutor] Anthropic call attempt ${attempt + 1} terminated (${(err as Error).message}); retry in ${wait / 1000}s`)
+                await new Promise(r => setTimeout(r, wait))
+                continue
+            }
+        }
+    }
+    // All retries exhausted on transient errors — surface as a 503-like
+    // structured response so the caller can show "service unavailable, try
+    // again in a minute" instead of a generic crash.
+    const finalMsg = (lastErr as Error)?.message || 'unknown'
+    return { ok: false, status: 503, errorText: `Anthropic streaming connection failed after 3 attempts: ${finalMsg}` }
 }
 
 async function consumeAnthropicStream(res: Response): Promise<string> {
@@ -248,7 +305,7 @@ export interface ExecuteStageOutput {
     /** Final status — caller persists into plan.status. */
     status: StageStatus
     /** When non-empty content is missing, caller uses these to build error response. */
-    httpCode?: 400 | 422 | 429 | 500
+    httpCode?: 400 | 422 | 429 | 500 | 503
     errorMessage?: string
     /** Set by runStageGeneric after parsing the hybrid response — records[] from JSON block. */
     records?: unknown[]
@@ -387,9 +444,29 @@ export async function executeStage(input: ExecuteStageInput): Promise<ExecuteSta
                         errorMessage: 'מפתח Anthropic נדחה ע"י השרת — בדקו תקינות במ-/settings/api-keys',
                     }
                 }
+                // Phase 4.3-Q: transient-network exhaustion (3 retries failed)
+                // surfaces as status=503 with a clear Hebrew explanation —
+                // user sees actionable text instead of a generic stage failure.
+                if (streamRes.status === 503) {
+                    return {
+                        content: '', source: 'anthropic', integrationsUsed: [],
+                        status: { state: 'failed', failureReason: 'anthropic_network_transient' },
+                        httpCode: 503,
+                        errorMessage: 'החיבור ל-Anthropic נופל באמצע סטרים של תשובה (אחרי 3 ניסיונות). זה בדרך כלל תקלה רגעית. נסו שוב תוך דקה. אם חוזר — בדקו status.anthropic.com.',
+                    }
+                }
             }
         } catch (apiErr) {
             console.error(`[research/${stageId}] API exception:`, (apiErr as Error).message)
+            // callAnthropicStreaming converts transient errors to status=503
+            // returns, so this catch is for non-transient throws only (eg.
+            // bug in our code, malformed prompt). Surface as 500.
+            return {
+                content: '', source: 'anthropic', integrationsUsed: [],
+                status: { state: 'failed', failureReason: 'anthropic_unexpected' },
+                httpCode: 500,
+                errorMessage: 'שגיאה לא צפויה בקריאה ל-Anthropic: ' + ((apiErr as Error).message || 'unknown'),
+            }
         }
     } else {
         // OpenClaw CLI path — agent has access to Brave/DataForSEO/Firecrawl MCPs.
