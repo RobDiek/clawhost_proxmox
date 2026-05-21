@@ -1,6 +1,6 @@
 {
     "name": "mobile",
-    "version": "0.0.518",
+    "version": "0.0.519",
     "private": true,
     "main": "./index.ts",
     "scripts": {

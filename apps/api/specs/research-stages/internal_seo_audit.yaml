@@ -1,0 +1,272 @@
+# ============================================================================
+# Stage: internal_seo_audit
+# Version: 2026.01
+# Status: APPROVED 2026-05-21 (Sergei + spec polish session)
+# ============================================================================
+# Source documents:
+#   - roadmap/13-2026-pipeline-audit.md  (audit & gaps)
+#   - memory/feedback_seo_depth.md       (Sergei's 7-year SEO bar)
+#   - memory/project_seo_playbook_sergei.md
+#   - memory/feedback_validate_inputs_first.md
+# ============================================================================
+
+stage_id: internal_seo_audit
+version: 2026.01
+purpose: |
+  Technical + on-page + E-E-A-T + AEO readiness audit для OUR site.
+  Output feeds: aeo_visibility (schema gaps), link_audit (page-level authority),
+  strategy_options (technical debt hours), content_plan (refresh candidates).
+
+# ----------------------------------------------------------------------------
+# Inputs
+# ----------------------------------------------------------------------------
+inputs:
+  required:
+    - field: rd.answers.websiteUrl
+      constraint: valid URL, normalizable to https://
+  recommended:
+    - field: rd.results.competitor_landscape
+      reason: provides peer benchmarks for onpage scores + schema coverage
+      missing_action: degraded warning, audit still runs
+    - field: agent_integrations.googleSearchConsole
+      reason: enables 16-month pages report + hybrid sampling
+      missing_action: degraded; sampling falls back to (critical + sitemap order)
+
+# ----------------------------------------------------------------------------
+# Page coverage strategy
+# ----------------------------------------------------------------------------
+page_coverage:
+  cap: 100
+  homepage_always_included: true
+  canonical_dedup_via: dataDedupCheck   # strip trailing slash, lowercase, no fragment
+
+  sampling_when_sitemap_larger_than_cap:
+    strategy: hybrid
+    allocation:
+      gsc_top_traffic: 0.50      # top URLs by clicks last 90 days (requires GSC)
+      critical_pages: 0.20       # homepage, /contact, /about, /pricing, /services, /shop
+      random_fill: 0.30          # stratified random from remaining sitemap
+
+    fallback_no_gsc:
+      critical_pages: 0.30
+      sitemap_order_fill: 0.70
+
+  critical_pages_patterns:
+    - "/$"                       # homepage variants
+    - "/contact/?$"
+    - "/about(?:-[a-z0-9-]+)?/?$"
+    - "/pricing/?$"
+    - "/services?/?$"
+    - "/shop/?$"
+
+# ----------------------------------------------------------------------------
+# Output schema
+# ----------------------------------------------------------------------------
+outputs:
+  records:
+    min_count: 1
+    max_count: 100
+    per_record_schema:
+      url:               { type: string, constraint: normalized canonical }
+      page_type:         { type: enum, values: [homepage, product, blog_post, landing, local_page, service, about, contact, legal, checkout, account, other] }
+      h1_count:          { type: int, min: 0 }
+      title_length:      { type: int, min: 0 }
+      meta_length:       { type: int, min: 0 }
+      word_count:        { type: int, min: 0 }
+      onpage_score:      { type: float, range: [0, 100] }
+      schemas_present:   { type: array<string>, source: dfs+ld_json_probe }
+      schemas_missing:   { type: array<string>, computed_from: expected_for_page_type }
+      issues_critical:   { type: array<string> }
+      issues_warning:    { type: array<string> }
+      issues_info:       { type: array<string> }
+
+      priority_score:    { type: float, formula: see_priority_section }
+      priority_action:   { type: string, constraint: Hebrew_mn_chase_entity_first }
+
+      quadrant_scores:
+        technical: { type: int, range: [0, 100] }
+        content:   { type: int, range: [0, 100] }
+        authority: { type: int, range: [0, 100] }
+        eeat:      { type: int, range: [0, 100] }
+
+  aggregate:
+    helpful_content_vulnerability_score:
+      type: float
+      range: [0, 100]
+      computed_as: weighted_avg_of_4_signals
+
+    helpful_content_signals:
+      index_ratio_pct:
+        type: float
+        nullable_if: gsc_not_connected
+        threshold_vulnerable: 70    # below this is a concern
+      thin_content_pct:
+        type: float
+        threshold_vulnerable: 30    # >30% pages with <300 unique words
+      templated_meta_pct:
+        type: float
+        threshold_vulnerable: 40    # >40% URLs with near-duplicate titles
+        detected_via: string_similarity_clustering
+      orphan_rate_pct:
+        type: float
+        nullable_if: no_link_graph
+        threshold_vulnerable: 15
+
+    quadrant_summary:
+      technical: { type: int, range: [0, 100] }
+      content:   { type: int, range: [0, 100] }
+      authority: { type: int, range: [0, 100] }
+      eeat:      { type: int, range: [0, 100] }
+
+    eeat_audit:
+      organization_schema_complete:    bool
+      organization_sameAs_count:       int
+      organization_sameAs_links:       array<string>
+      author_person_schema_present:    bool
+      wikidata_qid_status:             enum: [not_created, suggested, draft, verified, unknown]
+      missing_required_properties:     array<string>
+
+    il_specific:
+      mobile_first_compliance:         { type: int, range: [0, 100] }
+      rtl_implementation_quality:      { type: int, range: [0, 100] }
+      hebrew_alt_text_coverage_pct:    { type: float, range: [0, 100] }
+      hreflang_he_il_present:          bool
+      bdi_wrapping_for_numbers_urls:   bool
+
+    top_priority_actions:
+      type: array<{ url, priority_score, action_he, effort_hours, confidence }>
+      max_count: 10
+      ordering: priority_score desc
+
+# ----------------------------------------------------------------------------
+# Priority formula (Reach × Impact × Confidence / Effort)
+# ----------------------------------------------------------------------------
+priority_score_formula:
+  base_formula: (reach * impact * confidence) / max(effort, 1.0)
+
+  reach:
+    type: float
+    range: [0.0, 1.0]
+    semantics: |
+      Share of audited pages affected (for multi-page issues).
+      Single-page issues use the page's traffic share (GSC) — fallback 0.1.
+
+  impact:
+    type: enum
+    values:
+      minor:    0.2
+      medium:   0.5
+      high:     1.0
+      critical: 1.5
+
+  confidence:
+    type: enum
+    values: [0.5, 0.7, 0.9, 1.0]
+    semantics: how sure we are this fix actually moves rankings
+
+  effort:
+    type: float
+    semantics: dev-hours estimate
+
+  il_multipliers:
+    mobile_performance_issue:        1.5    # 75% IL traffic mobile
+    rtl_implementation_issue:        1.3
+    hebrew_native_content_issue:     1.3
+    helpful_content_signal_match:    1.4
+    aeo_extractability_issue:        1.2    # 2026 LLM-search funnel
+
+  classification:
+    P0: { score: ">=10",         label_he: "קריטי — לפתור מיד" }
+    P1: { score: ">=5 <10",      label_he: "חשוב — בטווח 30 יום" }
+    backlog: { score: "<5",      label_he: "Backlog — כשיהיה זמן" }
+
+# ----------------------------------------------------------------------------
+# Quality gates
+# ----------------------------------------------------------------------------
+quality_gates:
+  hard:
+    - id: at_least_one_record
+      check: total_records >= 1
+    - id: homepage_audited
+      check: any(r.url) matches homepage_canonical
+    - id: no_canonical_dedup_violations
+      check: dataDedupCheck.findings.fail == 0
+    - id: ground_truth_clean
+      check: groundTruthCheck.findings.fail == 0
+      reason: no false missing_h1/meta/schema claims vs live HTML
+
+  soft:
+    - id: coverage_minimum
+      check: records_count >= 0.8 * effective_cap
+      degrade_message_he: "נסרקו רק X מתוך Y עמודים שנמצאו ב-sitemap"
+    - id: eeat_organization_schema
+      check: aggregate.eeat_audit.organization_schema_complete
+      degrade_message_he: "סכמת Organization חסרה או חלקית — הזדמנות E-E-A-T"
+    - id: mobile_first_compliance
+      check: aggregate.il_specific.mobile_first_compliance >= 80
+      degrade_message_he: "ביצועי מובייל מתחת ל-80 — קריטי בישראל (75% תנועה ניידת)"
+    - id: rtl_implementation
+      check: aggregate.il_specific.rtl_implementation_quality >= 70
+      degrade_message_he: "מימוש RTL זקוק לשיפור (bdi לחסומי מספרים/URL, hreflang he-IL, logical CSS)"
+    - id: hebrew_content_quality
+      check: aggregate.records_pct_with_hebrew_native_issues < 15
+      degrade_message_he: "יותר מ-15% מהעמודים עם בעיות איכות עברית"
+
+# ----------------------------------------------------------------------------
+# AEO consumption rules (priority_actions must be LLM-extractable)
+# ----------------------------------------------------------------------------
+aeo_consumption:
+  quotability_score_min: 60        # average across priority_actions
+  hebrew_quality_score_min: 80     # native-grade Hebrew, mn.ch., no English leak
+  entity_first_phrasing: required  # action starts with brand/entity name, not pronoun
+  max_word_count_per_action: 30
+  forbidden_modality: [may, might, typically, often, perhaps, אולי, בדרך כלל]
+
+# ----------------------------------------------------------------------------
+# DFS call discipline (per cross-cutting Phase A spec)
+# ----------------------------------------------------------------------------
+dfs_calls:
+  endpoints_used:
+    - /on_page/instant_pages
+    - /serp/google/organic/live/advanced  # for schema verification when needed
+  caching:
+    cache_key_includes: [endpoint, url, location_code, language_code, device]
+    ttl_hours: 24
+  parameters_il:
+    location_code: 2376
+    language_code: he
+    device: mobile
+  budget_guard:
+    max_usd_per_run: 0.50
+    max_calls_per_run: 110
+
+# ----------------------------------------------------------------------------
+# LLM call discipline
+# ----------------------------------------------------------------------------
+llm_calls:
+  model: claude-opus-4-7
+  max_tokens_total: 50000
+  retry_on_transient_error: 3
+  output_format: hybrid_markdown_json
+
+# ----------------------------------------------------------------------------
+# Failure modes
+# ----------------------------------------------------------------------------
+failure_modes:
+  no_sitemap:
+    action: degraded_warning
+    fallback: homepage_only_crawl
+  dfs_call_partial_failure:
+    threshold: 50%
+    action_below_threshold: per_url_skip_log
+    action_above_threshold: degraded_warning
+  all_urls_failed:
+    action: hard_fail
+    message_he: "האודיט הפנימי נכשל — כל בקשות DFS נכשלו. אנא בדקו זמינות האתר ושיתוף הפעולה."
+  gsc_not_connected:
+    action: degraded_warning
+    fallback: critical_pages_plus_sitemap_order_sampling
+  ldjson_probe_blocked:
+    action: degraded_warning
+    fallback: dfs_native_schema_data_only
+    message_he: "בדיקת LD-JSON נחסמה (WAF/Cloudflare) — נתוני סכמה מבוססים על DFS בלבד"
