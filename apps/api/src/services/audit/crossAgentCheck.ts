@@ -44,11 +44,13 @@ export const crossAgentCheck = async (ctx: AuditContext): Promise<AuditFinding[]
     const activeTokens = tokenize(activeSlug).concat(tokenize(active.name || ''))
     const siblingIdentifiers: Array<{ id: string; name: string; slug: string; uniqueTokens: string[] }> = []
     for (const s of siblings) {
-        const sibTokens = tokenize(s.brandSlug || '').concat(tokenize(s.name || ''))
+        const sibTokens = Array.from(new Set(
+            tokenize(s.brandSlug || '').concat(tokenize(s.name || '')),
+        ))
         const unique = sibTokens.filter(t => !activeTokens.includes(t))
         siblingIdentifiers.push({
             id: s.id, name: s.name, slug: s.brandSlug,
-            uniqueTokens: unique,
+            uniqueTokens: unique,   // already deduped above; was producing N×duplicate findings
         })
     }
 
@@ -87,15 +89,40 @@ export const crossAgentCheck = async (ctx: AuditContext): Promise<AuditFinding[]
     // 4) Check: agent_integrations — every row claims to belong to active
     // but ALSO check sibling agents' integration shapes for "leak-by-id"
     // (e.g. wrong agent_id assignment).
+    //
+    // Important: some integrations LEGITIMATELY contain lists of OTHER
+    // properties owned by the user (GSC returns all sites the OAuth user
+    // can access; Meta returns all ad accounts; Google returns all
+    // ga4Properties). Those listings are NOT cross-agent leaks — they're
+    // the user's other businesses on the same Google/Meta account. We
+    // strip known list-fields from the haystack before matching.
+    const LIST_FIELDS_TO_STRIP: Record<string, string[]> = {
+        gsc:    ['sites'],
+        google: ['ga4Properties', 'gtmContainers', 'gtmAccounts', 'sites', 'adAccounts'],
+        meta:   ['adAccounts', 'pages', 'instagramAccounts'],
+        microsoft: ['adAccounts'],
+    }
     const activeIntegrations = await db.select().from(agentIntegrations)
         .where(and(eq(agentIntegrations.instanceId, ctx.instanceId), eq(agentIntegrations.agentId, ctx.agentId)))
     for (const ig of activeIntegrations) {
         const cfg = ig.config as Record<string, unknown> | null
         if (!cfg) continue
-        const cfgText = JSON.stringify(cfg).toLowerCase()
+        // Build the haystack from cfg MINUS known list-fields. The active
+        // identifier fields (siteUrl, adAccountId, ga4PropertyId — the
+        // user's CHOSEN target) are still included so a wrong choice IS
+        // surfaced.
+        const stripFields = LIST_FIELDS_TO_STRIP[ig.integrationType] || []
+        const cfgForCheck: Record<string, unknown> = {}
+        for (const [k, v] of Object.entries(cfg)) {
+            if (!stripFields.includes(k)) cfgForCheck[k] = v
+        }
+        const cfgText = JSON.stringify(cfgForCheck).toLowerCase()
+        const reported = new Set<string>()
         for (const sib of siblingIdentifiers) {
             for (const t of sib.uniqueTokens) {
+                if (reported.has(`${sib.slug}:${t}`)) continue   // dedupe within this row
                 if (cfgText.includes(t)) {
+                    reported.add(`${sib.slug}:${t}`)
                     findings.push({
                         category: 'cross_agent',
                         id: `ig_sibling_leak:${ig.integrationType}:${sib.slug}`,
@@ -104,7 +131,8 @@ export const crossAgentCheck = async (ctx: AuditContext): Promise<AuditFinding[]
                         detail:
                             `Integration ${ig.integrationType} for agent ${ctx.agentId} contains sibling-unique token "${t}" ` +
                             `(belongs to agent ${sib.id} = ${sib.name}). This is a cross-tenant leak — the integration ` +
-                            `was likely saved against the wrong agent or copies sibling's credentials.`,
+                            `was likely saved against the wrong agent or copies sibling's credentials. ` +
+                            `(List-only fields like ${stripFields.join('/') || 'none'} are excluded from this check.)`,
                         fixHint:
                             `Inspect agent_integrations.config for this row. If it really belongs to sibling, ` +
                             `disconnect on the active agent and reconnect properly. Mirror state on instances.* ` +

@@ -213,11 +213,21 @@ export const schemaDriftCheck = async (ctx: AuditContext): Promise<AuditFinding[
 
 function getItemsArray(response: unknown): unknown[] {
     if (!response || typeof response !== 'object') return []
-    const tasks = (response as { tasks?: unknown[] }).tasks
-    if (!Array.isArray(tasks) || tasks.length === 0) return []
-    const result = (tasks[0] as { result?: unknown[] }).result
-    if (!Array.isArray(result) || result.length === 0) return []
-    const items = (result[0] as { items?: unknown[] }).items
-    if (Array.isArray(items)) return items
-    return [result[0]]   // some endpoints (backlinks/summary) return data directly at result[0]
+    const obj = response as Record<string, unknown>
+
+    // Shape A — our wrapper's cached shape: { cost, cached, items: [...] }
+    if (Array.isArray(obj.items)) return obj.items as unknown[]
+
+    // Shape B — raw DFS response: { tasks: [{ result: [{ items: [...] }] }] }
+    const tasks = obj.tasks
+    if (Array.isArray(tasks) && tasks.length > 0) {
+        const result = (tasks[0] as { result?: unknown[] }).result
+        if (Array.isArray(result) && result.length > 0) {
+            const items = (result[0] as { items?: unknown[] }).items
+            if (Array.isArray(items)) return items
+            // Some endpoints (backlinks/summary) put data directly on result[0]
+            return [result[0]]
+        }
+    }
+    return []
 }

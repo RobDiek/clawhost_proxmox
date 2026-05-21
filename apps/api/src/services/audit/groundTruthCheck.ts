@@ -202,13 +202,24 @@ export const groundTruthCheck = async (ctx: AuditContext): Promise<AuditFinding[
         }
 
         // ── Check: no_schema vs live LD-JSON presence
+        // Known DFS coverage gap — `item.schema[]` from on_page/instant_pages
+        // covers microdata/RDFa but NOT modern <script type="application/ld+json">.
+        // Yoast/RankMath emit LD-JSON only; DFS reports no_schema even when
+        // the page is fully marked up. We surface this as INFO not warn —
+        // it's actionable for the data pipeline (consider adding LD-JSON
+        // probe to prefetch) but not a false claim about the page.
         if (allClaims.includes('no_schema') && live.hasJsonLd) {
             findings.push({
                 category: 'ground_truth',
-                id: `false_no_schema:${url}`,
-                title: `הודעה שגויה: "no_schema" בעוד שיש LD-JSON ב-${url}`,
-                severity: 'warn',
-                detail: `Audit claimed no_schema but live page has LD-JSON schemas: ${live.ldJsonTypes.join(', ')}. DFS schema array may not capture LD-JSON embedded mid-body.`,
+                id: `dfs_misses_ldjson:${url}`,
+                title: `DFS לא רואה LD-JSON ב-${url} (claimed "no_schema")`,
+                severity: 'info',
+                detail:
+                    `Audit claimed no_schema but live HTML contains LD-JSON: ${live.ldJsonTypes.join(', ')}. ` +
+                    `Known DFS coverage gap — its schema[] field covers microdata/RDFa but doesn't always pick up ` +
+                    `<script type="application/ld+json"> output by Yoast/RankMath. The audit claim was faithful to ` +
+                    `what DFS returned; the underlying signal is just incomplete.`,
+                fixHint: 'Add a lightweight LD-JSON probe to the internal_seo_audit prefetch (fetch HTML once per URL, regex for ld+json scripts, populate item.schema[]).',
                 evidence: { url, liveLdJsonTypes: live.ldJsonTypes },
                 scope: { instanceId: ctx.instanceId, agentId: ctx.agentId, stageId: 'internal_seo_audit', url, recordIndex: i },
             })
