@@ -19,6 +19,7 @@ import { crossAgentCheck } from './crossAgentCheck'
 import { groundTruthCheck } from './groundTruthCheck'
 import { integrationCoherenceCheck } from './integrationCoherenceCheck'
 import { pipelineHealthCheck } from './pipelineHealthCheck'
+import { staticSignatureCheck } from './staticSignatureCheck'
 import { resolveAgentById, resolvePrimaryAgent } from '../agentContext'
 
 const CATEGORIES: AuditCategory[] = [
@@ -58,6 +59,7 @@ export async function runOnboardingAudit(opts: AuditOpts): Promise<AuditReport> 
     const checks: Array<{ name: string; fn: () => Promise<AuditFinding[]> }> = [
         { name: 'schema_drift', fn: () => schemaDriftCheck(ctx) },
         { name: 'cross_agent', fn: () => crossAgentCheck(ctx) },
+        { name: 'static_signature', fn: () => staticSignatureCheck(ctx) },
         { name: 'integration', fn: () => integrationCoherenceCheck(ctx) },
         { name: 'pipeline_health', fn: () => pipelineHealthCheck(ctx) },
         { name: 'ground_truth', fn: () => groundTruthCheck(ctx) },

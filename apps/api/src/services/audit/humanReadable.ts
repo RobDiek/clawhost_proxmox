@@ -125,6 +125,22 @@ const FINDING_TEMPLATES: Record<string, (f: AuditFinding) => Omit<PlainFinding, 
         action: 'הנדסה: בדקו את ה-type definition והשוו לתגובה אמיתית של DFS.',
     }),
 
+    // ── Static-signature (catches "optional agentId" class of bugs)
+    optional_agent_id: (f) => ({
+        headline: 'נמצאו פונקציות שמקבלות agentId כפרמטר אופציונלי',
+        explanation: `הסריקה מצאה ${(f.evidence as { sampleLines?: unknown[] })?.sampleLines?.length || '?'} חתימות עם \`agentId?: string\` (אופציונלי) ב-${(f.evidence as { file?: string })?.file || '?'}. כל אחת כזו בסיכון של נפילה שקטה לסוכן הראשי כשמי שקרא לפונקציה שכח להעביר agentId — בדיוק כמו הבאג עם wizard ה-Brand Book.`,
+        action: 'הנדסה: שנו לחתימה חובה (string | null) — TypeScript יחסום כל caller שלא מעביר.',
+    }),
+    db_query_missing_agentid: (f) => ({
+        headline: 'נמצאו שאילתות DB לטבלאות per-agent בלי סינון agent_id',
+        explanation: `הסריקה מצאה ${(f.evidence as { sites?: unknown[] })?.sites?.length || '?'} מקומות שמשתמשים ב-DB queries לטבלאות per-agent (brand_books / agent_integrations / mateh_agents / agent_outputs) בלי לסנן לפי agent_id.`,
+        action: 'הנדסה: עברו על כל מקום ובדקו אם השאילתה אמורה לחזור על פני סוכנים (legitimate) או חסר לה סינון agent_id.',
+    }),
+    static_signature_clean: () => ({
+        headline: 'אין חתימות עם agentId אופציונלי בקוד הסוכן',
+        explanation: 'סריקת קוד של src/services + src/controllers מצאה אפס פונקציות עם `agentId?: string` ואפס שאילתות לטבלאות per-agent בלי סינון.',
+    }),
+
     // ── Defaults
     schema_drift_clean: () => ({
         headline: 'אין רחיפת סכמה בין צד הנתונים ל-extractors שלנו',
