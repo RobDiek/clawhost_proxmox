@@ -513,6 +513,18 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         await saveStageResult(instanceId, stageId, output, __agent?.id)
         console.log(`[research/${stageId}] complete: ${output.content.length} chars, source=${output.source}, records=${parsed.records?.length ?? 0}, dfsCost=$${dfsCost.toFixed(4)}, confidence=${finalConfidence ?? 'n/a'}, qualityGate=${output.qualityGate ? (output.qualityGate.pass ? 'pass' : `fail(${output.qualityGate.hardFailures.length}h/${output.qualityGate.warnings.length}w)`) : 'n/a'}`)
 
+        // Phase 4.3-S — auto-audit hook. For high-value stages (currently
+        // just internal_seo_audit), run the full onboarding audit in the
+        // background and persist the report as a pending_review agent_output
+        // so the user gets a plain-language quality check after each major
+        // research milestone. Non-blocking — fire-and-forget.
+        try {
+            const { maybeAutoAuditAfterStage } = await import('@/services/audit/autoAuditHook')
+            void maybeAutoAuditAfterStage(instanceId, __agent?.id || null, stageId)
+        } catch (err) {
+            console.warn(`[research/${stageId}] auto-audit hook import failed:`, (err as Error).message)
+        }
+
         releaseResearchLock(instanceId)
         return ok(c, {
             stageId,

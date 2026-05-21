@@ -184,6 +184,45 @@ export async function prefetchInternalSeoAudit(
         enrichmentMissing.push('all_urls_failed')
     }
 
+    // Phase 4.3-S — LD-JSON probe to close DFS coverage gap.
+    // DFS's `item.schema[]` covers microdata/RDFa but doesn't always pick up
+    // <script type="application/ld+json"> output by Yoast/RankMath/etc. So we
+    // do one lightweight HTML fetch per URL, regex out ld+json scripts, and
+    // merge their @type values into the entry's schemaTypes. Without this,
+    // 100% of WordPress sites get false "no_schema" audit claims.
+    //
+    // Parallel in batches of 10 with 8s timeout per URL. ~12s total for 50 URLs.
+    const LDJSON_BATCH = 10
+    let ldJsonAdded = 0
+    for (let i = 0; i < audited.length; i += LDJSON_BATCH) {
+        const batch = audited.slice(i, i + LDJSON_BATCH).filter(a => a.fetchOk)
+        if (batch.length === 0) continue
+        const probes = await Promise.allSettled(batch.map(a => probeLdJsonTypes(a.url)))
+        for (let j = 0; j < batch.length; j++) {
+            const probe = probes[j]
+            if (probe.status === 'fulfilled' && probe.value.length > 0) {
+                const entry = batch[j]
+                // Merge — preserve DFS-detected schemas (microdata/RDFa); add
+                // LD-JSON types if they aren't already covered (case-insensitive).
+                const existing = new Set(entry.schemaTypes.map(s => s.toLowerCase()))
+                for (const t of probe.value) {
+                    if (!existing.has(t.toLowerCase())) {
+                        entry.schemaTypes.push(t)
+                        ldJsonAdded++
+                    }
+                }
+                // Recompute clientIssues with the merged schema list. Specifically
+                // the `no_schema` flag must drop if we found ANY schema, and
+                // page-type-expected schemas (missing_organization_schema etc)
+                // need re-evaluation.
+                entry.clientIssues = recomputeClientIssuesAfterLdJson(entry)
+            }
+        }
+    }
+    if (ldJsonAdded > 0) {
+        console.log(`[prefetch/internal_seo_audit] ld-json probe added ${ldJsonAdded} schema types missed by DFS`)
+    }
+
     const aggregate = computeAggregate(audited)
 
     console.log(`[prefetch/internal_seo_audit] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} urls=${audited.length} avg_words=${aggregate.avgWordCount} deep=${aggregate.deepPagesCount} thin=${aggregate.thinContentCount}`)
@@ -524,6 +563,82 @@ function expectedSchemaForType(pageType: string): string[] {
         case 'local_page':  return ['LocalBusiness']
         default:            return []
     }
+}
+
+// ─── Phase 4.3-S: LD-JSON probe ────────────────────────────────────────────
+// Lightweight HTML fetch + regex extraction of <script type="application/ld+json">.
+// Used to supplement DFS's `item.schema[]` which only covers microdata/RDFa.
+const LDJSON_FETCH_TIMEOUT_MS = 8_000
+const LDJSON_UA = 'Mozilla/5.0 (compatible; FlowmaticAudit/1.0; +https://flowmatic.co.il)'
+
+async function probeLdJsonTypes(url: string): Promise<string[]> {
+    try {
+        const res = await fetch(url, {
+            headers: { 'User-Agent': LDJSON_UA, 'Accept': 'text/html,*/*' },
+            redirect: 'follow',
+            signal: AbortSignal.timeout(LDJSON_FETCH_TIMEOUT_MS),
+        })
+        if (!res.ok) return []
+        const html = await res.text()
+        const types: string[] = []
+        const re = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
+        let m: RegExpExecArray | null
+        while ((m = re.exec(html)) !== null) {
+            try {
+                const parsed = JSON.parse(m[1].trim())
+                // LD-JSON can be: {@type:X}, [{@type:X},...], or {@graph:[...]}
+                collectTypes(parsed, types)
+            } catch { /* invalid LD-JSON; skip */ }
+        }
+        return Array.from(new Set(types))
+    } catch (err) {
+        // Network errors are non-fatal — DFS data still flows through, we just
+        // miss the LD-JSON enrichment for this URL.
+        void err
+        return []
+    }
+}
+
+function collectTypes(node: unknown, out: string[]): void {
+    if (!node) return
+    if (Array.isArray(node)) { for (const n of node) collectTypes(n, out); return }
+    if (typeof node !== 'object') return
+    const obj = node as Record<string, unknown>
+    const t = obj['@type']
+    if (typeof t === 'string') out.push(t)
+    else if (Array.isArray(t)) for (const tt of t) if (typeof tt === 'string') out.push(tt)
+    // Recurse into @graph (common Yoast pattern)
+    const graph = obj['@graph']
+    if (Array.isArray(graph)) for (const g of graph) collectTypes(g, out)
+}
+
+/**
+ * Recompute clientIssues after LD-JSON schemas were merged into schemaTypes.
+ * Specifically drops `no_schema` if any schema now present, and drops
+ * `missing_X_schema` for each expected type that's now satisfied.
+ *
+ * Other issues (missing_h1 / canonical / thin_content etc) are not affected
+ * by the LD-JSON merge — preserve them as-is.
+ */
+function recomputeClientIssuesAfterLdJson(entry: UrlAuditEntry): string[] {
+    const remaining: string[] = []
+    const schemaLower = entry.schemaTypes.map(s => s.toLowerCase())
+    const expected = expectedSchemaForType(entry.inferredPageType)
+    for (const issue of entry.clientIssues) {
+        if (issue === 'no_schema') {
+            if (entry.schemaTypes.length > 0) continue  // drop — now we have schema
+        }
+        const missingMatch = issue.match(/^missing_(.+)_schema$/)
+        if (missingMatch) {
+            const target = missingMatch[1]
+            // Drop if any schemaType contains this expected name (case-insensitive)
+            if (schemaLower.some(s => s.includes(target))) continue
+            // Also drop if the expected list itself is empty for this page type
+            if (expected.length === 0) continue
+        }
+        remaining.push(issue)
+    }
+    return remaining
 }
 
 // ────────────────────────────────────────────────────────────────────────────

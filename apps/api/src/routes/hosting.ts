@@ -311,7 +311,7 @@ import {
     listPaidLearnings,
     previewPaidLearningsInjection,
     getCrossPlatformTruthController,
-    auditOnboarding, auditOnboardingText,
+    auditOnboarding, auditOnboardingText, runAuditNow,
     getLatestManifest, getInstanceVersionStatus,
     triggerInstanceUpgrade, getUpgradeProgressEndpoint,
 } from '@/controllers/hosting'
@@ -577,6 +577,8 @@ app.get('/instances/:id/cross-platform-truth', getCrossPlatformTruthController)
 // ground-truth + integration-coherence + pipeline-health).
 app.post('/instances/:id/audit/onboarding', auditOnboarding)
 app.get('/instances/:id/audit/onboarding/text', auditOnboardingText)
+// Phase 4.3-S — manual "run audit + create task" trigger.
+app.post('/instances/:id/audit/run-now', runAuditNow)
 app.post('/instances/:id/marketing-intents/preview-cleanup', previewIntentCleanup)
 app.get('/instances/:id/integration-hub', getIntegrationHub)
 app.post('/instances/:id/integration-hub/preview', previewHubForIntents)

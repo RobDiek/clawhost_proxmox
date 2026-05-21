@@ -59,3 +59,24 @@ export const auditOnboardingText = async (c: Context) => {
         return fail(c, (err as Error).message, 500)
     }
 }
+
+/**
+ * Phase 4.3-S — manual "run audit now" endpoint that ALSO persists the
+ * report as an agent_output task with plain-language Hebrew summary. The
+ * post-stage hook does the same thing automatically; this endpoint lets
+ * the user trigger it on demand.
+ */
+export const runAuditNow = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
+        const queryAgentId = (c.req.query('agentId') || '').trim() || null
+        const { runAndPersistAudit } = await import('@/services/audit/autoAuditHook')
+        const result = await runAndPersistAudit(instanceId, queryAgentId, 'manual_run_via_endpoint')
+        return ok(c, result, `Audit ${result.overall} — task created/updated in משימות פעילות`)
+    } catch (err) {
+        console.error('runAuditNow error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
