@@ -248,23 +248,40 @@ export const crossAgentCheck = async (ctx: AuditContext): Promise<AuditFinding[]
     return findings
 }
 
+// Keys that legitimately carry sibling-brand identifiers ANYWHERE in the tree.
+// These are stripped recursively from the haystack before token-counting:
+//   - referringDomains  (DFS backlinks: siblings link to active brand naturally)
+//   - referring_domains (snake_case variant from raw DFS responses)
+//   - records           (competitor_landscape competitor entries — sibling MAY be a real competitor)
+//   - linkGapCandidates (link gap analysis lists sibling/competitor domains)
+//   - anchorPatterns    (anchor-text analysis may mirror competitor anchors)
+//   - siblingBrandSlugs (deliberate platform-side sibling tracker with crossTenantLeakSuspected flag)
+//   - competitors       (DFS competitor lists)
+//   - byBrand           (per-brand baseline maps)
+const STRIP_KEYS = new Set([
+    'referringDomains', 'referring_domains', 'records', 'linkGapCandidates',
+    'anchorPatterns', 'siblingBrandSlugs', 'competitors', 'byBrand',
+])
+
 function stripLegitSiblingPaths(rd: Record<string, unknown>): Record<string, unknown> {
-    // Deep-clone then prune. Keeps the audit-relevant fields, drops paths
-    // that intentionally reference siblings.
     const copy: any = JSON.parse(JSON.stringify(rd))
-    // results.competitor_landscape.{referringDomains, records}
-    const cl = copy?.results?.competitor_landscape
-    if (cl && typeof cl === 'object') {
-        delete cl.referringDomains
-        delete cl.records
-    }
-    // mazhirConversions.siblingBrandSlugs (kept as explicit tracker)
-    if (copy?.mazhirConversions && typeof copy.mazhirConversions === 'object') {
-        delete copy.mazhirConversions.siblingBrandSlugs
-    }
-    // baselineHistory (historical snapshots, not own-brand state)
+    pruneInPlace(copy)
+    // baselineHistory (whole subtree: frozen prior-month snapshots, not own-brand state)
     delete copy.baselineHistory
     return copy
+}
+
+function pruneInPlace(node: any): void {
+    if (!node) return
+    if (Array.isArray(node)) {
+        for (const item of node) pruneInPlace(item)
+        return
+    }
+    if (typeof node !== 'object') return
+    for (const k of Object.keys(node)) {
+        if (STRIP_KEYS.has(k)) { delete node[k]; continue }
+        pruneInPlace(node[k])
+    }
 }
 
 function tokenize(s: string): string[] {
