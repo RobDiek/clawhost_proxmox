@@ -467,12 +467,35 @@ export async function approveDraft(args: {
     }
     const answerName = (rdForVerify?.answers?.businessName || '').toString().trim().toLowerCase()
     const answerUrl = (rdForVerify?.answers?.websiteUrl || '').toString().trim().toLowerCase()
-    const bookName = (book.identity?.businessName?.he || book.identity?.businessName?.en || '').toString().trim().toLowerCase()
-    const bookUrl = ((book as any).websiteUrl || (book as any).sourceUrl || '').toString().trim().toLowerCase()
-    if (answerName && bookName && answerName !== bookName) {
-        return { ok: false, reason: `Brand book businessName mismatch: book='${bookName}' vs answers='${answerName}'. Re-run brand wizard with correct identity.` }
+    // Phase 4.3-T2: match against ALL candidate identity strings, not just .he.
+    // Previous `he || en` short-circuited on .he — if the wizard scraped a logo
+    // alt-text like "לוגו פקינג סטיישן" into .he while .en was correctly
+    // "Packing Station", the gate failed even though the brand was right.
+    // Accept if ANY candidate substring-matches the answer (covers
+    // transliteration mismatches: en answer vs he scraped name).
+    const bookNameCandidates = [
+        book.identity?.businessName?.he,
+        book.identity?.businessName?.en,
+        book.identity?.legalName?.value,
+    ]
+        .map(s => (s || '').toString().trim().toLowerCase())
+        .filter(s => s.length > 0)
+    if (answerName && bookNameCandidates.length > 0) {
+        // Match = exact OR substring either way (handles "פקינג סטיישן" ⊂ "לוגו פקינג סטיישן")
+        const matched = bookNameCandidates.some(c =>
+            c === answerName || c.includes(answerName) || answerName.includes(c),
+        )
+        if (!matched) {
+            return {
+                ok: false,
+                reason:
+                    `Brand book businessName mismatch: candidates=[${bookNameCandidates.join(' | ')}] ` +
+                    `vs answers='${answerName}'. Re-run brand wizard with correct identity.`,
+            }
+        }
     }
     // URL match — strip trailing slash + protocol for fair compare
+    const bookUrl = ((book as any).websiteUrl || (book as any).sourceUrl || '').toString().trim().toLowerCase()
     function normUrl(u: string) { return u.replace(/^https?:\/\//, '').replace(/\/$/, '') }
     if (answerUrl && bookUrl && normUrl(answerUrl) !== normUrl(bookUrl)) {
         return { ok: false, reason: `Brand book websiteUrl mismatch: book='${bookUrl}' vs answers='${answerUrl}'. Re-run brand wizard with correct site.` }
