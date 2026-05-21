@@ -54,10 +54,20 @@ export const crossAgentCheck = async (ctx: AuditContext): Promise<AuditFinding[]
         })
     }
 
-    // 3) Check: research_data string fields for sibling-brand tokens
+    // 3) Check: research_data string fields for sibling-brand tokens.
+    //
+    // Some sub-trees LEGITIMATELY contain sibling-brand identifiers and are
+    // NOT contamination — they represent intentional competitor/backlink
+    // intel or the platform's own sibling-awareness tracking. Strip these
+    // before counting:
+    //   - results.competitor_landscape.referringDomains[]  (DFS backlinks data)
+    //   - results.competitor_landscape.records[].name      (competitor entries — sibling brand may legitimately be a competitor)
+    //   - mazhirConversions.siblingBrandSlugs[]            (deliberate sibling tracker; carries crossTenantLeakSuspected flag)
+    //   - baselineHistory[*]                               (frozen previous-month snapshots — historical, not own-brand state)
     const rd = active.researchData as Record<string, unknown> | null
     if (rd) {
-        const haystack = JSON.stringify(rd).toLowerCase()
+        const rdStripped = stripLegitSiblingPaths(rd)
+        const haystack = JSON.stringify(rdStripped).toLowerCase()
         for (const sib of siblingIdentifiers) {
             const hits: string[] = []
             for (const t of sib.uniqueTokens) {
@@ -73,8 +83,9 @@ export const crossAgentCheck = async (ctx: AuditContext): Promise<AuditFinding[]
                     title: `research_data של ${active.name} מזכיר ${sib.name} (אחיו ב-VPS)`,
                     severity: 'warn',
                     detail:
-                        `Found sibling-unique tokens [${hits.join(', ')}] inside ${active.name}'s research_data. ` +
-                        `Could be a legitimate competitor mention OR a cross-agent leak. ` +
+                        `Found sibling-unique tokens [${hits.join(', ')}] inside ${active.name}'s research_data ` +
+                        `(after stripping legit competitor/backlink/sibling-tracker paths). ` +
+                        `Could still be a legitimate competitor mention OR a cross-agent leak. ` +
                         `Spot-check the records that contain these tokens to verify they're treated as competitor evidence, not as own-brand data.`,
                     fixHint:
                         `Inspect research_data->'results'->'*' for records whose brand/owner fields reference ${sib.slug}. ` +
@@ -235,6 +246,25 @@ export const crossAgentCheck = async (ctx: AuditContext): Promise<AuditFinding[]
     }
 
     return findings
+}
+
+function stripLegitSiblingPaths(rd: Record<string, unknown>): Record<string, unknown> {
+    // Deep-clone then prune. Keeps the audit-relevant fields, drops paths
+    // that intentionally reference siblings.
+    const copy: any = JSON.parse(JSON.stringify(rd))
+    // results.competitor_landscape.{referringDomains, records}
+    const cl = copy?.results?.competitor_landscape
+    if (cl && typeof cl === 'object') {
+        delete cl.referringDomains
+        delete cl.records
+    }
+    // mazhirConversions.siblingBrandSlugs (kept as explicit tracker)
+    if (copy?.mazhirConversions && typeof copy.mazhirConversions === 'object') {
+        delete copy.mazhirConversions.siblingBrandSlugs
+    }
+    // baselineHistory (historical snapshots, not own-brand state)
+    delete copy.baselineHistory
+    return copy
 }
 
 function tokenize(s: string): string[] {
