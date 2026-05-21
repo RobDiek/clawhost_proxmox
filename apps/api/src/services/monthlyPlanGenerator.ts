@@ -134,7 +134,7 @@ function loadSeoResearch2026(): string {
 async function buildPromptCtx(
     instanceId: string,
     trigger: PromptCtx['trigger'],
-    agentId?: string,    // Phase 4.3-N v8: optional — resolve specific secondary agent (multi-agent VPS support)
+    agentId: string | null | undefined,    // Phase 4.3-N v8: optional — resolve specific secondary agent (multi-agent VPS support)
 ): Promise<{ ctx: PromptCtx; agent: any; rd: any; apiKey: string }> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error('Instance not found')
@@ -521,7 +521,7 @@ async function persistAndEmit(
 export async function generateMonthlyPlan(
     instanceId: string,
     trigger: PromptCtx['trigger'] = 'on_demand',
-    agentId?: string,    // Phase 4.3-N v8: optional — resolve secondary agent for multi-agent VPS support
+    agentId: string | null | undefined,    // Phase 4.3-N v8: optional — resolve secondary agent for multi-agent VPS support
 ): Promise<{ monthlyPlan: MonthlyMarketingPlan; outputId?: string; cost: { model: string } }> {
     const t0 = Date.now()
     const model = 'claude-opus-4-7'

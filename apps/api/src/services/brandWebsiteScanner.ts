@@ -52,7 +52,7 @@ interface ScanArgs {
      * research_data from THIS agent's row, not the primary's mirror — critical for
      * secondary agents where instances.researchData reflects primary only.
      */
-    agentId?: string
+    agentId: string | null | undefined
 }
 
 export interface ScanResult {

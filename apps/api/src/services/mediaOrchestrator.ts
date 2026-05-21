@@ -112,7 +112,7 @@ export interface GenerateImagesResult {
 
 export async function generateImagesForContentPlanItem(
     instanceId: string,
-    opts: GenerateImagesOpts & { agentId?: string },
+    opts: GenerateImagesOpts & { agentId: string | null | undefined },
 ): Promise<GenerateImagesResult> {
     const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!instance) throw new Error('Instance not found')
@@ -245,7 +245,8 @@ export async function generateMediaForPlanItem(
         channels?: string[]              // default: [item.channel]
         numVariantsPerChannel?: number   // default 3
         model?: FalImageModel            // explicit override; else via scenario/brief
-    } = {},
+        agentId: string | null | undefined  // Phase 4.3-T: required for per-agent isolation
+    },
 ): Promise<(GenerateImagesResult & {
     briefRationale?: string
     briefCostUsd?: number
@@ -300,6 +301,7 @@ export async function generateMediaForPlanItem(
         overlayText: brief.overlayText,
         overlayPosition: brief.overlayPosition,
         scenario: scenarioId,
+        agentId: opts.agentId,
     })
 
     console.log(`[mediaOrchestrator] ${item.id} done — scenario=${scenarioId}, model=${model}, overlay=${brief.overlayText ? brief.overlayPosition : 'none'}`)

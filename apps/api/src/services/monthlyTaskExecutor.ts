@@ -323,7 +323,9 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
                 conversions: rd.mazhirConversions?.gtmConfigs || [],
                 enhancedConversions: true,
             })
-            await saveGtmSetupResult(instanceId, gtmResult)
+            // Phase 4.3-T: monthly task runs as background job; pass null
+            // (primary fallback acceptable until secondary-agent cron paths exist).
+            await saveGtmSetupResult(instanceId, gtmResult, null)
             stepResults.push({
                 step: 'GTM auto-setup',
                 ok: gtmResult.published,

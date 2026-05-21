@@ -48,6 +48,7 @@ export async function run(c: Context): Promise<Response> {
             stageId: 'paid_audit',
             summaryMd,
             integrationsUsed: ['anthropic', 'googleAds', 'meta'],
+            agentId: __agentForLock?.id,
         })
 
         releaseResearchLock(instanceId)

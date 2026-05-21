@@ -481,7 +481,7 @@ async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
                 await db.insert(agentOutputs).values({
                     id: articleId,
                     instanceId: output.instanceId,
-                    agentId: (output as { agentId?: string | null }).agentId || null,
+                    agentId: (output as { agentId: string | null | undefined | null }).agentId || null,
                     agentRole: 'et',
                     outputType: 'content_post',
                     title: firstTitle,
@@ -569,7 +569,7 @@ export const editOutput = async (c: Context<HonoEnv>) => {
                 id: revisionId,
                 instanceId: existing.instanceId,
                 // Phase 2.3.C — revision lives in the same agent's queue
-                agentId: (existing as { agentId?: string | null }).agentId || null,
+                agentId: (existing as { agentId: string | null | undefined | null }).agentId || null,
                 agentRole: existing.agentRole,
                 outputType: existing.outputType,
                 title: '(תיקון) ' + existing.title,

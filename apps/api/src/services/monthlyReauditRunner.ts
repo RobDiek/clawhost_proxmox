@@ -144,7 +144,9 @@ export async function runMonthlyReaudits(): Promise<{
                 if (nextRd.chosenScenario) {
                     try {
                         const { generateMonthlyPlan } = await import('./monthlyPlanGenerator')
-                        const r = await generateMonthlyPlan(row.id, 'cron_monthly')
+                        // Phase 4.3-T: cron-monthly path operates on primary by design.
+                        // Pass null explicitly so brandWhere() falls back via warning log.
+                        const r = await generateMonthlyPlan(row.id, 'cron_monthly', null)
                         stats.planFired++
                         console.log(`[monthlyReauditRunner] ${row.id}: monthly plan refreshed (${r.monthlyPlan.summary.totalTasks} tasks)`)
                         // Notify on plan regenerate

@@ -5874,6 +5874,7 @@ export const regenerateItemMedia = async (c: Context) => {
             ))
 
         const { generateMediaForPlanItem } = await import('@/services/mediaOrchestrator')
+        const __agentForGen = await resolveActiveAgent(c, instanceId)
         const res = await generateMediaForPlanItem(instanceId, {
             id: item.id,
             hook: item.hook,
@@ -5887,6 +5888,7 @@ export const regenerateItemMedia = async (c: Context) => {
         }, {
             channels: body.channels,
             numVariantsPerChannel: body.numVariants || 3,
+            agentId: __agentForGen?.id,
         })
 
         if (!res) return fail(c, 'Brief generation failed', 500)
@@ -5922,12 +5924,14 @@ export const testGenerateMedia = async (c: Context) => {
         const contentPlanItemId = body.contentPlanItemId || ('test_' + Date.now())
 
         const { generateImagesForContentPlanItem } = await import('@/services/mediaOrchestrator')
+        const __agent = await resolveActiveAgent(c, instanceId)
         const result = await generateImagesForContentPlanItem(instanceId, {
             contentPlanItemId,
             prompt,
             channels,
             numVariantsPerChannel: body.numVariants || 1,
             model: body.model,
+            agentId: __agent?.id,
         })
 
         return ok(c, {

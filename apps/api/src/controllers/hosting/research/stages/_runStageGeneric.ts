@@ -37,7 +37,7 @@ import {
  * permanent "running" status after a crash. Pairs with the "running"
  * status write at the top of runStageGeneric.
  */
-async function _abortStage(instanceId: string, stageId: string, agentId?: string, reason?: string): Promise<void> {
+async function _abortStage(instanceId: string, stageId: string, agentId: string | null | undefined, reason?: string): Promise<void> {
     releaseResearchLock(instanceId)
     try {
         const agentContext = await import('@/services/agentContext')

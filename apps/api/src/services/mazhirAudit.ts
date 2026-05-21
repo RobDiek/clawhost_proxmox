@@ -322,9 +322,12 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
     let gscTokens: any = (inst as any).gscTokens
     try {
         const { getAgentIntegration } = await import('./agentIntegrations')
+        // Phase 4.3-T: pass primary's agent id explicitly. mazhirAudit is an
+        // instance-level cron — primary is the right default until secondary-
+        // agent audit pipelines come online.
         const [googleInt, gscInt] = await Promise.all([
-            getAgentIntegration(instanceId, 'mt' as any, 'google' as any),
-            getAgentIntegration(instanceId, 'mt' as any, 'gsc' as any),
+            getAgentIntegration(instanceId, 'mt' as any, 'google' as any, agent?.id || null),
+            getAgentIntegration(instanceId, 'mt' as any, 'gsc' as any, agent?.id || null),
         ])
         if (googleInt?.config) {
             const legacyScopes: string[] = Array.isArray((inst.googleTokens as any)?.scopes) ? (inst.googleTokens as any).scopes : []

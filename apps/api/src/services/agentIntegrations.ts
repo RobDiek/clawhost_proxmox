@@ -30,7 +30,7 @@ export async function getAgentIntegration(
     instanceId: string,
     agentType: AgentType,
     integrationType: IntegrationType,
-    agentId?: string,
+    agentId: string | null | undefined,
 ): Promise<{ config: Record<string, unknown>; status: string } | null> {
     let resolvedAgentId = agentId || null
     if (!resolvedAgentId) {
@@ -68,7 +68,7 @@ export async function getAgentIntegration(
 export async function getAgentIntegrations(
     instanceId: string,
     agentType: AgentType,
-    agentId?: string,
+    agentId: string | null | undefined,
 ): Promise<Array<{ integrationType: string; config: Record<string, unknown>; status: string }>> {
     let resolvedAgentId = agentId || null
     if (!resolvedAgentId) {
@@ -121,7 +121,7 @@ export async function setAgentIntegration(
     integrationType: IntegrationType,
     config: Record<string, unknown>,
     status: string = 'connected',
-    agentId?: string,
+    agentId: string | null | undefined,
 ): Promise<void> {
     let resolvedAgentId = agentId || null
     if (!resolvedAgentId) {
@@ -158,7 +158,7 @@ export async function removeAgentIntegration(
     instanceId: string,
     agentType: AgentType,
     integrationType: IntegrationType,
-    agentId?: string,
+    agentId: string | null | undefined,
 ): Promise<void> {
     let resolvedAgentId = agentId || null
     if (!resolvedAgentId) {
@@ -190,9 +190,10 @@ export async function removeAgentIntegration(
 export async function hasAgentIntegration(
     instanceId: string,
     agentType: AgentType,
-    integrationType: IntegrationType
+    integrationType: IntegrationType,
+    agentId: string | null | undefined,
 ): Promise<boolean> {
-    const result = await getAgentIntegration(instanceId, agentType, integrationType)
+    const result = await getAgentIntegration(instanceId, agentType, integrationType, agentId)
     return result !== null && result.status === 'connected'
 }
 

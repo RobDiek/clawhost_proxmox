@@ -217,7 +217,7 @@ async function probeUserVisibility(accessToken: string, accountId: string, conta
 // the function reads inst.googleTokens / inst.researchData, which are
 // PRIMARY-agent mirrors — and a secondary agent's GTM card then shows the
 // primary's saved container as "connected" (the user-visible leak).
-export async function runGtmDiagnostic(instanceId: string, agentId?: string): Promise<GtmDiagnostic> {
+export async function runGtmDiagnostic(instanceId: string, agentId: string | null | undefined): Promise<GtmDiagnostic> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error('Instance not found')
 
@@ -665,7 +665,7 @@ export interface AutoFixChainResult {
     }
 }
 
-export async function runGtmAutoFixChain(instanceId: string, agentId?: string): Promise<AutoFixChainResult> {
+export async function runGtmAutoFixChain(instanceId: string, agentId: string | null | undefined): Promise<AutoFixChainResult> {
     const steps: AutoFixStepResult[] = []
 
     // ── Pass 1: diagnose current state ──

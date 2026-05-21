@@ -593,7 +593,7 @@ export async function autoSetupGtmContainer(
 // google-ads-mode) — which reads from mateh_agents (no mazhirGtm) and writes
 // back to BOTH tables — would silently wipe mazhirGtm from instances.
 // Same class of bug as the Google Ads DB sync gap.
-export async function saveGtmTarget(instanceId: string, target: GtmTarget, agentId?: string): Promise<void> {
+export async function saveGtmTarget(instanceId: string, target: GtmTarget, agentId: string | null | undefined): Promise<void> {
     const { resolvePrimaryAgent, resolveAgentById, mutateResearchData } = await import('@/services/agentContext')
     const agent = agentId
         ? await resolveAgentById(instanceId, agentId)
@@ -604,7 +604,7 @@ export async function saveGtmTarget(instanceId: string, target: GtmTarget, agent
     })
 }
 
-export async function saveGtmSetupResult(instanceId: string, result: GtmAutoSetupResult, agentId?: string): Promise<void> {
+export async function saveGtmSetupResult(instanceId: string, result: GtmAutoSetupResult, agentId: string | null | undefined): Promise<void> {
     const { resolvePrimaryAgent, resolveAgentById, mutateResearchData } = await import('@/services/agentContext')
     const agent = agentId
         ? await resolveAgentById(instanceId, agentId)

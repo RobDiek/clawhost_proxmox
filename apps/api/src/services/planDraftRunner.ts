@@ -473,7 +473,7 @@ export async function draftDuePlanItemsForInstance(
                 type: item.type,
                 productRef: item.productRef,
                 ctaType: item.ctaType,
-            }, { numVariantsPerChannel: 3 }).then(res => {
+            }, { numVariantsPerChannel: 3, agentId: null /* Phase 4.3-T: planDraft cron uses primary */ }).then(res => {
                 if (res) {
                     console.log(`[planDraftRunner] ${item.id} media: ${res.renders.length} renders, $${res.totalCostUsd.toFixed(3)}`)
                 } else {

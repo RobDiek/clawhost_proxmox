@@ -21,7 +21,7 @@ export async function markWrapperStageCompleted(args: {
     stageId: StageId
     summaryMd: string
     integrationsUsed: string[]
-    agentId?: string
+    agentId: string | null | undefined
     /**
      * Phase 4.0(fix13) — wrapper stages (content_plan, media_plan,
      * paid_audit) historically kept their data in legacy top-level

@@ -197,7 +197,7 @@ async function consumeAnthropicStream(res: Response): Promise<string> {
 // "completed" state → has no idea a fresh run is mid-flight server-side).
 export interface ActiveRun {
     stageId: string
-    agentId?: string
+    agentId: string | null | undefined
     startedAt: number
 }
 const activeResearchRuns = new Map<string, ActiveRun>()
@@ -211,8 +211,8 @@ const RESEARCH_LOCK_TTL = 25 * 60 * 1000
 
 export function acquireResearchLock(
     instanceId: string,
-    stageId?: string,
-    agentId?: string,
+    stageId: string | undefined,
+    agentId: string | null | undefined,
 ): { acquired: boolean; secondsLeft?: number } {
     const existing = activeResearchRuns.get(instanceId)
     if (existing && Date.now() - existing.startedAt < RESEARCH_LOCK_TTL) {
@@ -705,7 +705,7 @@ export async function saveStageResult(
     instanceId: string,
     stageId: StageId,
     output: ExecuteStageOutput,
-    agentId?: string,
+    agentId: string | null | undefined,
 ): Promise<void> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error(`saveStageResult: instance ${instanceId} not found`)
@@ -795,7 +795,7 @@ export async function saveStageResult(
 export async function wipeDownstreamResults(
     instanceId: string,
     stageId: StageId,
-    agentId?: string,
+    agentId: string | null | undefined,
 ): Promise<{ wipedStages: StageId[]; wipedWrappers: string[] }> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error(`wipeDownstreamResults: instance ${instanceId} not found`)
