@@ -195,7 +195,7 @@ function renderEnrichmentTable(top: CompetitorEnrichment[]): string {
             : '*(backlinks data unavailable — ' + e.enrichmentMissing.filter(m => m === 'backlinks_summary').join('') + ')*'
         const topAnchors = e.anchorPatterns?.slice(0, 5).map(a => `"${a.anchor}" (${a.referring_domains})`).join(', ') || '*(anchor data unavailable)*'
         const onPage = e.onPage
-            ? `onpage_score=${e.onPage.onpage_score ?? '—'}, schema=${(e.onPage.schema?.map(s => s.type).join(',')) || 'none'}, plain_text_words=${e.onPage.meta?.content?.plain_text_word_count ?? '—'}, h1=${e.onPage.meta?.h1?.[0]?.substring(0, 60) ?? '—'}`
+            ? `onpage_score=${e.onPage.onpage_score ?? '—'}, schema=${(e.onPage.schema?.map(s => s.type).join(',')) || 'none'}, plain_text_words=${e.onPage.meta?.content?.plain_text_word_count ?? '—'}, h1=${(e.onPage.meta?.htags?.h1 || e.onPage.meta?.h1 || [])[0]?.substring(0, 60) ?? '—'}`
             : '*(on-page audit unavailable)*'
         const deepBlock = e.deepPages && e.deepPages.length > 0
             ? '\n- **Money-pages deep scan (Phase E2.1 — Firecrawl on top-3 ranked URLs):**\n' + renderDeepPagesBlock(e.deepPages)

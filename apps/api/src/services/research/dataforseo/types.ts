@@ -309,7 +309,20 @@ export interface OnPageItem {
         title?: string
         description?: string
         canonical?: string
+        /** Heading tags. Actual DFS path is `meta.htags.h1` (not `meta.h1`).
+         *  The legacy h1/h2 fields below are kept ONLY for forward-compat with
+         *  callers that already read them; new code must use `htags.h1` etc. */
+        htags?: {
+            h1?: string[]
+            h2?: string[]
+            h3?: string[]
+            h4?: string[]
+            h5?: string[]
+            h6?: string[]
+        }
+        /** @deprecated DFS does NOT put h1 here — use `meta.htags.h1`. */
         h1?: string[]
+        /** @deprecated DFS does NOT put h2 here — use `meta.htags.h2`. */
         h2?: string[]
         scripts?: string[]
         social_media_tags?: Record<string, string>
@@ -322,6 +335,10 @@ export interface OnPageItem {
             title_to_content_consistency?: number
         }
     }
+    /** Boolean check matrix DFS emits per page. Use these as ground truth
+     *  for "no_h1_tag", "no_title", "no_description", "is_redirect", etc —
+     *  they're DFS's own deterministic verdict on the rendered HTML. */
+    checks?: Record<string, boolean>
     page_timing?: {
         time_to_interactive?: number
         dom_complete?: number

@@ -337,8 +337,15 @@ function buildUrlAuditEntry(url: string, ourDomain: string, item: OnPageItem): U
     const pathDepth = computePathDepth(url)
     const title = item.meta?.title?.trim()
     const meta = item.meta?.description?.trim()
-    const h1List = (item.meta?.h1 || []).filter(h => h && h.trim().length > 0)
-    const h2List = (item.meta?.h2 || []).filter(h => h && h.trim().length > 0)
+    // Phase 4.3-R(fix1) — H1/H2 live at `meta.htags.h1` / `meta.htags.h2` in
+    // the actual DFS response. Older legacy callers expected `meta.h1` and
+    // got `undefined` → audit reported false "missing_h1" on pages that had
+    // it. We now prefer `htags.h1` and fall back to legacy `h1` (in case any
+    // DFS version returns it that way). Same fix for h2.
+    const h1Raw = item.meta?.htags?.h1 || item.meta?.h1 || []
+    const h2Raw = item.meta?.htags?.h2 || item.meta?.h2 || []
+    const h1List = h1Raw.filter(h => h && h.trim().length > 0)
+    const h2List = h2Raw.filter(h => h && h.trim().length > 0)
     const wordCount = item.meta?.content?.plain_text_word_count
     const canonical = item.meta?.canonical?.trim()
     const canonicalSelf = canonical ? normalizeUrl(canonical) === normalizeUrl(url) : false
@@ -351,7 +358,7 @@ function buildUrlAuditEntry(url: string, ourDomain: string, item: OnPageItem): U
 
     const dfsIssues: string[] = []
     // DFS sometimes returns broken_resources / checks fields — surface them
-    const checks = (item as Record<string, unknown>).checks as Record<string, unknown> | undefined
+    const checks = item.checks
     if (checks) {
         for (const [k, v] of Object.entries(checks)) {
             if (v === true) dfsIssues.push(k)
@@ -361,6 +368,7 @@ function buildUrlAuditEntry(url: string, ourDomain: string, item: OnPageItem): U
     const inferredPageType = inferPageType(url, title || '')
     const clientIssues = detectClientIssues({
         title, meta, h1List, wordCount, canonical, canonicalSelf, schemaTypes, inferredPageType,
+        dfsChecks: checks,
     })
 
     return {
@@ -458,19 +466,31 @@ interface ClientIssueArgs {
     canonicalSelf: boolean
     schemaTypes: string[]
     inferredPageType: string
+    /** DFS-emitted boolean ground-truth checks. When DFS says `no_h1_tag: false`
+     *  we trust it over an empty h1List (which can happen if extraction missed
+     *  the field path — exactly the bug Sergei caught). */
+    dfsChecks?: Record<string, boolean>
 }
 
 function detectClientIssues(a: ClientIssueArgs): string[] {
     const issues: string[] = []
-    if (!a.title) issues.push('missing_title')
-    else if (a.title.length < 30) issues.push('short_title')
-    else if (a.title.length > 70) issues.push('long_title')
+    // Phase 4.3-R: cross-check with DFS's own checks before flagging absence.
+    // DFS sees the rendered HTML — if its `no_h1_tag=false`, we MUST not say
+    // "missing_h1" even if our extracted h1List came up empty (extraction
+    // mismatch class bug). Same for title / description.
+    const dfsSaysNoTitle = a.dfsChecks?.no_title === true
+    const dfsSaysNoDesc = a.dfsChecks?.no_description === true
+    const dfsSaysNoH1 = a.dfsChecks?.no_h1_tag === true
 
-    if (!a.meta) issues.push('missing_meta_description')
-    else if (a.meta.length < 70) issues.push('short_meta_description')
-    else if (a.meta.length > 170) issues.push('long_meta_description')
+    if (!a.title && (!a.dfsChecks || dfsSaysNoTitle)) issues.push('missing_title')
+    else if (a.title && a.title.length < 30) issues.push('short_title')
+    else if (a.title && a.title.length > 70) issues.push('long_title')
 
-    if (a.h1List.length === 0) issues.push('missing_h1')
+    if (!a.meta && (!a.dfsChecks || dfsSaysNoDesc)) issues.push('missing_meta_description')
+    else if (a.meta && a.meta.length < 70) issues.push('short_meta_description')
+    else if (a.meta && a.meta.length > 170) issues.push('long_meta_description')
+
+    if (a.h1List.length === 0 && (!a.dfsChecks || dfsSaysNoH1)) issues.push('missing_h1')
     else if (a.h1List.length > 1) issues.push('multiple_h1')
 
     if (a.wordCount !== undefined && a.wordCount < 300) issues.push('thin_content')
