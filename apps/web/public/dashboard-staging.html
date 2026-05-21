@@ -4881,7 +4881,11 @@ function renderHome() {
         rsDesc = 'מתחרים, מילות מפתח, קהל יעד, ערוצים → אסטרטגיה → 3 תרחישי תקציב לבחירה. בלוק אחד, ~15-20 דק׳.';
       } else if (!hasStrategy) {
         rsLabel = 'מחקר ואסטרטגיה — אסטרטגיה ממתינה';
-        rsAction = 'runChainStrategy()';
+        // Phase 4.3-Q: route to V2 pipeline (openPipelineV2) — the same
+        // board used for research. strategy_options is one of the canonical
+        // 20 stages. The legacy 4-step modal runChainStrategy() is no
+        // longer reachable from home.
+        rsAction = 'openPipelineV2()';
         rsActionLabel = 'המשיכו לאסטרטגיה';
         rsDesc = 'מחקר הושלם ✓ · עכשיו בונים אסטרטגיה + 3 תרחישי תקציב.';
       } else if (!hasChosenScenario) {
@@ -10550,7 +10554,7 @@ function renderMazhirCard() {
     var missingLabel = !hasResearch ? 'מחקר שוק' : 'אסטרטגיה';
     var nextStepCta = !hasResearch
       ? '<button class="btn btn-secondary btn-sm" onclick="runChainResearch()">התחילו מחקר ←</button>'
-      : '<button class="btn btn-secondary btn-sm" onclick="runChainStrategy()">בנו אסטרטגיה ←</button>';
+      : '<button class="btn btn-secondary btn-sm" onclick="openPipelineV2()">בנו אסטרטגיה ←</button>';
     el.innerHTML =
       '<div style="background:#F9FAFB;border:1px dashed #D1D5DB;border-radius:12px;padding:18px 20px">' +
         '<div style="display:flex;align-items:flex-start;gap:14px">' +
@@ -21551,8 +21555,16 @@ var strategyPipelineStage = 0;
 var strategyModelChoice = 'claude-opus-4-7'; // default — highest quality
 
 async function runChainStrategy() {
+  // Phase 4.3-Q: redirect to V2 pipeline (openPipelineV2). The legacy
+  // 4-stage modal below is preserved for archival reference but is no
+  // longer the intended entry point — strategy_options is a single
+  // stage inside the canonical 20-stage V2 pipeline.
+  if (typeof openPipelineV2 === 'function') {
+    return openPipelineV2();
+  }
   if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
 
+  // ── legacy 4-stage modal (unreachable from current UI) ──
   // Determine start stage from DB
   var startStage = 1;
   if (instanceData && instanceData.researchData) {
@@ -25224,7 +25236,7 @@ function renderAgentResearchChips() {
   } else if (hasResearch) {
     rows.push('<div class="agent-chip-row">' +
       '<div class="agent-chip-left"><span class="agent-chip-dot warn"></span><div><div class="agent-chip-title">אסטרטגיה</div><div class="agent-chip-sub">מוכנה להרצה על בסיס המחקר</div></div></div>' +
-      '<div class="agent-chip-right"><button class="btn btn-primary btn-sm" onclick="runChainStrategy()" style="font-size:0.76rem">בנו →</button></div>' +
+      '<div class="agent-chip-right"><button class="btn btn-primary btn-sm" onclick="openPipelineV2()" style="font-size:0.76rem">בנו →</button></div>' +
       '</div>');
   }
   content.innerHTML = rows.join('');
