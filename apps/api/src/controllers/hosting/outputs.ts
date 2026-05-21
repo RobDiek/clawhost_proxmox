@@ -911,14 +911,26 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                     publishError = 'WordPress לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → WordPress.'
                     publishErrorType = 'missing_integration'
                 } else {
-                    const wpConfig = JSON.parse(wpConfigRaw) as { url: string; user: string; appPassword: string }
-                    if (!wpConfig.url || !wpConfig.user || !wpConfig.appPassword) {
+                    // Phase 4.3-R: accept BOTH writer shapes ({user, appPassword}
+                    // and {username, password}) so this publisher can never
+                    // crash when integrationGate accepts an alternate shape.
+                    // Same defensive read as integrationGate.ts.
+                    const wpConfig = JSON.parse(wpConfigRaw) as {
+                        url?: string;
+                        user?: string;
+                        username?: string;
+                        appPassword?: string;
+                        password?: string;
+                    }
+                    const wpUser = wpConfig.user || wpConfig.username
+                    const wpPass = wpConfig.appPassword || wpConfig.password
+                    if (!wpConfig.url || !wpUser || !wpPass) {
                         publishError = 'הגדרות WordPress חסרות. בדקו URL, שם משתמש ו-Application Password.'
                         publishErrorType = 'missing_integration'
                     } else {
                         // WordPress REST API — professional post with SEO + featured media
                         const wpUrl = wpConfig.url.replace(/\/$/, '')
-                        const auth = Buffer.from(`${wpConfig.user}:${wpConfig.appPassword}`).toString('base64')
+                        const auth = Buffer.from(`${wpUser}:${wpPass}`).toString('base64')
 
                         // Pull SEO extras + featured image from agent_output metadata
                         const outMeta = (output.metadata as any) || {}

@@ -311,6 +311,7 @@ import {
     listPaidLearnings,
     previewPaidLearningsInjection,
     getCrossPlatformTruthController,
+    auditOnboarding, auditOnboardingText,
     getLatestManifest, getInstanceVersionStatus,
     triggerInstanceUpgrade, getUpgradeProgressEndpoint,
 } from '@/controllers/hosting'
@@ -572,6 +573,10 @@ app.get('/instances/:id/paid-learnings/injectable', previewPaidLearningsInjectio
 
 // ── Phase 4.4: Cross-Platform Truth (MER + aMER + per-platform trust) ──
 app.get('/instances/:id/cross-platform-truth', getCrossPlatformTruthController)
+// Phase 4.3-R — comprehensive onboarding audit (schema-drift + cross-agent +
+// ground-truth + integration-coherence + pipeline-health).
+app.post('/instances/:id/audit/onboarding', auditOnboarding)
+app.get('/instances/:id/audit/onboarding/text', auditOnboardingText)
 app.post('/instances/:id/marketing-intents/preview-cleanup', previewIntentCleanup)
 app.get('/instances/:id/integration-hub', getIntegrationHub)
 app.post('/instances/:id/integration-hub/preview', previewHubForIntents)

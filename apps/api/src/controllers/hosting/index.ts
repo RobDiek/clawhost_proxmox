@@ -85,5 +85,7 @@ export {
     runPaidLearnerAggregation, listPaidLearnings, previewPaidLearningsInjection,
 } from './paidLearner'
 export { getCrossPlatformTruthController } from './crossPlatformTruth'
+// Phase 4.3-R — comprehensive onboarding audit
+export { auditOnboarding, auditOnboardingText } from './audit'
 // Twenty CRM removed — AGPLv3 license risk
 // export { installTwenty } from './twenty'
