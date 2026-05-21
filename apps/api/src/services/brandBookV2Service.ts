@@ -163,9 +163,27 @@ async function persistBookToRow(rowId: string, book: BrandBookV2): Promise<void>
  * primary mateh_agent for backwards compatibility. Returns the where-clause
  * fragment that callers and-merge into their query.
  */
-async function brandWhere(instanceId: string, agentId?: string) {
-    let resolvedAgentId = agentId || null
-    if (!resolvedAgentId) {
+/**
+ * Phase 4.3-T — agentId now REQUIRED (was optional → defaulted to primary).
+ *
+ * The optional-with-primary-fallback signature was the root cause of the
+ * "Packing's brand wizard scrapes storage-station.co.il" bug: every caller
+ * that forgot to pass agentId silently operated on the primary agent (Storage),
+ * even when the request was meant for Packing.
+ *
+ * New rule:
+ *   - Pass the active agent's id (`activeAgent?.id`) — typical case.
+ *   - Pass `null` if you EXPLICITLY want to operate without agent scope
+ *     (legacy / cron / instance-only paths). Use sparingly and document.
+ * TypeScript now blocks any caller that forgets either branch.
+ */
+async function brandWhere(instanceId: string, agentId: string | null | undefined) {
+    let resolvedAgentId = agentId
+    if (resolvedAgentId === null) {
+        // Explicit null → fall back to primary, but log so we can audit such
+        // calls. If you see this in prod, you're probably missing an
+        // active-agent resolution at the call site.
+        console.warn(`[brandBookV2Service.brandWhere] called with agentId=null for instance=${instanceId} — falling back to primary. Verify caller intent.`)
         const { resolvePrimaryAgent } = await import('@/services/agentContext')
         const primary = await resolvePrimaryAgent(instanceId)
         resolvedAgentId = primary?.id || null
@@ -179,7 +197,7 @@ async function brandWhere(instanceId: string, agentId?: string) {
  * Get current draft for an instance, or null. Draft is the working copy —
  * NEVER returns approved/archived (use getApproved for that).
  */
-export async function getCurrentDraft(instanceId: string, agentId?: string): Promise<{ rowId: string; book: BrandBookV2 } | null> {
+export async function getCurrentDraft(instanceId: string, agentId: string | null | undefined): Promise<{ rowId: string; book: BrandBookV2 } | null> {
     const baseWhere = await brandWhere(instanceId, agentId)
     const rows = await db.select().from(brandBooks)
         .where(and(baseWhere, eq(brandBooks.status, 'draft')))
@@ -190,7 +208,7 @@ export async function getCurrentDraft(instanceId: string, agentId?: string): Pro
 }
 
 /** Get the currently approved book (used by Mazhir / content plan / executors) */
-export async function getApprovedBook(instanceId: string, agentId?: string): Promise<BrandBookV2 | null> {
+export async function getApprovedBook(instanceId: string, agentId: string | null | undefined): Promise<BrandBookV2 | null> {
     const baseWhere = await brandWhere(instanceId, agentId)
     const rows = await db.select().from(brandBooks)
         .where(and(baseWhere, eq(brandBooks.status, 'approved')))
@@ -200,7 +218,7 @@ export async function getApprovedBook(instanceId: string, agentId?: string): Pro
 }
 
 /** Latest version any status */
-export async function getLatest(instanceId: string, agentId?: string): Promise<{ rowId: string; book: BrandBookV2 } | null> {
+export async function getLatest(instanceId: string, agentId: string | null | undefined): Promise<{ rowId: string; book: BrandBookV2 } | null> {
     const baseWhere = await brandWhere(instanceId, agentId)
     const rows = await db.select().from(brandBooks)
         .where(baseWhere)
@@ -222,7 +240,7 @@ export async function startNewDraft(args: {
     instanceId: string
     sourceFlow: BrandBookV2['sourceFlow']
     startedFromScratch?: boolean
-    agentId?: string
+    agentId: string | null | undefined
 }): Promise<{ rowId: string; book: BrandBookV2 }> {
     const { instanceId, sourceFlow, startedFromScratch, agentId } = args
 
@@ -358,7 +376,7 @@ export async function startNewDraft(args: {
 export async function updateDraftKeys(
     instanceId: string,
     updates: Record<string, any>,
-    agentId?: string,
+    agentId: string | null | undefined,
 ): Promise<{ rowId: string; book: BrandBookV2 }> {
     const draft = await getCurrentDraft(instanceId, agentId)
     if (!draft) throw new Error('No draft found — call startNewDraft first')
@@ -386,7 +404,7 @@ export async function updateDraftKeys(
  */
 export async function submitForApproval(
     instanceId: string,
-    agentId?: string,
+    agentId: string | null | undefined,
 ): Promise<{ ok: boolean; book?: BrandBookV2; gates?: any; reason?: string }> {
     const draft = await getCurrentDraft(instanceId, agentId)
     if (!draft) return { ok: false, reason: 'No draft to submit' }
@@ -413,7 +431,7 @@ export async function approveDraft(args: {
     instanceId: string
     userId?: string
     skipGates?: boolean
-    agentId?: string
+    agentId: string | null | undefined
 }): Promise<{ ok: boolean; book?: BrandBookV2; reason?: string }> {
     const { instanceId, userId, skipGates, agentId } = args
     const baseWhere = await brandWhere(instanceId, agentId)
@@ -481,7 +499,7 @@ export async function approveDraft(args: {
 }
 
 /** Discard current draft (returns to last approved state) */
-export async function discardDraft(instanceId: string, agentId?: string): Promise<{ ok: boolean }> {
+export async function discardDraft(instanceId: string, agentId: string | null | undefined): Promise<{ ok: boolean }> {
     const baseWhere = await brandWhere(instanceId, agentId)
     await db.delete(brandBooks)
         .where(and(baseWhere, eq(brandBooks.status, 'draft')))
@@ -492,13 +510,13 @@ export async function discardDraft(instanceId: string, agentId?: string): Promis
 export async function startOverFresh(args: {
     instanceId: string
     sourceFlow: BrandBookV2['sourceFlow']
-    agentId?: string
+    agentId: string | null | undefined
 }): Promise<{ rowId: string; book: BrandBookV2 }> {
     return startNewDraft({ instanceId: args.instanceId, sourceFlow: args.sourceFlow, startedFromScratch: true, agentId: args.agentId })
 }
 
 /** Edit an approved book → creates a new draft cloned from approved */
-export async function editApproved(instanceId: string, agentId?: string): Promise<{ rowId: string; book: BrandBookV2 }> {
+export async function editApproved(instanceId: string, agentId: string | null | undefined): Promise<{ rowId: string; book: BrandBookV2 }> {
     const approved = await getApprovedBook(instanceId, agentId)
     if (!approved) throw new Error('No approved book to edit')
     // Clone approved into new draft
@@ -537,7 +555,7 @@ export async function editApproved(instanceId: string, agentId?: string): Promis
 }
 
 /** History of all versions */
-export async function getHistory(instanceId: string, agentId?: string): Promise<BrandRowSummary[]> {
+export async function getHistory(instanceId: string, agentId: string | null | undefined): Promise<BrandRowSummary[]> {
     const baseWhere = await brandWhere(instanceId, agentId)
     const rows = await db.select().from(brandBooks)
         .where(baseWhere)

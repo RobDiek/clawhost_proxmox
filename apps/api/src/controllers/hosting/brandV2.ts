@@ -276,14 +276,16 @@ export const scanWebsiteForBrandV2 = async (c: Context) => {
             }, 'Website URL missing')
         }
 
+        // Phase 4.3-T: resolve active agent ONCE at top of function so all
+        // downstream brand-V2 helpers operate on the right agent. Was the
+        // root cause of Packing-scrapes-Storage-URL bug.
+        const __activeForScan = await resolveActiveAgent(c, instanceId)
         // Ensure draft exists
         const { getCurrentDraft, startNewDraft, updateDraftKeys } = await import('@/services/brandBookV2Service')
-        if (!await getCurrentDraft(instanceId)) {
-            await startNewDraft({ instanceId, sourceFlow: 'website_scan' })
+        if (!await getCurrentDraft(instanceId, __activeForScan?.id)) {
+            await startNewDraft({ instanceId, sourceFlow: 'website_scan', agentId: __activeForScan?.id })
         }
         const { scanWebsiteForBrand } = await import('@/services/brandWebsiteScanner')
-        // Phase 4.3-O systemic-fix: pass active agentId so scanner reads agent's rd
-        const __activeForScan = await resolveActiveAgent(c, instanceId)
         const result = await scanWebsiteForBrand({ instanceId, websiteUrl, agentId: __activeForScan?.id })
 
         // Merge extracted keys into draft
@@ -292,17 +294,21 @@ export const scanWebsiteForBrandV2 = async (c: Context) => {
         if (result.book.visual) for (const [k, v] of Object.entries(result.book.visual)) updates[`visual.${k}`] = v
         if (result.book.voice) for (const [k, v] of Object.entries(result.book.voice)) updates[`voice.${k}`] = v
         if (result.book.audience) for (const [k, v] of Object.entries(result.book.audience)) updates[`audience.${k}`] = v
-        if (Object.keys(updates).length > 0) await updateDraftKeys(instanceId, updates)
+        if (Object.keys(updates).length > 0) await updateDraftKeys(instanceId, updates, __activeForScan?.id)
 
         // Stamp DB row with the URL + timestamp so the wizard can detect "scan
         // ran" vs "never ran" (drives the scan_done banner + suppresses
-        // "scan_ready" CTAs for already-scraped drafts).
+        // "scan_ready" CTAs for already-scraped drafts). Filter by agent_id
+        // to avoid stamping sibling agents' drafts.
         try {
             const { brandBooks } = await import('@/db/schema')
             const { and: andOp, eq: eqOp } = await import('drizzle-orm')
+            const stampWhere = __activeForScan?.id
+                ? andOp(eqOp(brandBooks.instanceId, instanceId), eqOp(brandBooks.agentId, __activeForScan.id), eqOp(brandBooks.status, 'draft'))
+                : andOp(eqOp(brandBooks.instanceId, instanceId), eqOp(brandBooks.status, 'draft'))
             await db.update(brandBooks)
                 .set({ sourceUrl: websiteUrl, sourceScrapedAt: new Date() })
-                .where(andOp(eqOp(brandBooks.instanceId, instanceId), eqOp(brandBooks.status, 'draft')))
+                .where(stampWhere)
         } catch (e) {
             console.warn('[scanWebsiteForBrandV2] source_url/source_scraped_at write failed:', (e as Error).message)
         }
@@ -356,9 +362,10 @@ export const adoptGeneratedBrandLogo = async (c: Context) => {
         const { adoptGeneratedLogo } = await import('@/services/brandAIGenerator')
         const logo = await adoptGeneratedLogo({ instanceId, falApiKey, candidateUrl: body.candidateUrl })
 
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { updateDraftKeys, getCurrentDraft, startNewDraft } = await import('@/services/brandBookV2Service')
-        if (!await getCurrentDraft(instanceId)) await startNewDraft({ instanceId, sourceFlow: 'mixed' })
-        await updateDraftKeys(instanceId, { 'visual.logo': logo })
+        if (!await getCurrentDraft(instanceId, __agent?.id)) await startNewDraft({ instanceId, sourceFlow: 'mixed', agentId: __agent?.id })
+        await updateDraftKeys(instanceId, { 'visual.logo': logo }, __agent?.id)
         return ok(c, { logo }, 'Logo adopted into draft')
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -387,8 +394,9 @@ export const generateBrandImagery = async (c: Context) => {
             count: body.count || 5,
         })
         // Stash imagery URLs into draft
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { updateDraftKeys, getCurrentDraft, startNewDraft } = await import('@/services/brandBookV2Service')
-        if (!await getCurrentDraft(instanceId)) await startNewDraft({ instanceId, sourceFlow: 'mixed' })
+        if (!await getCurrentDraft(instanceId, __agent?.id)) await startNewDraft({ instanceId, sourceFlow: 'mixed', agentId: __agent?.id })
         await updateDraftKeys(instanceId, {
             'visual.imagery': {
                 style: body.style || 'warm lifestyle photography',
@@ -398,7 +406,7 @@ export const generateBrandImagery = async (c: Context) => {
                 generatedBy: 'fal-ai/flux-2-pro',
                 updatedAt: new Date().toISOString(),
             },
-        })
+        }, __agent?.id)
         return ok(c, r, `Generated ${r.images.length} imagery references`)
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -426,6 +434,7 @@ export const generateBrandVoiceFor = async (c: Context) => {
         })
 
         const meta = { confidence: 'medium', source: 'generated', generatedBy: 'claude-sonnet-4-6', updatedAt: new Date().toISOString() }
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { updateDraftKeys } = await import('@/services/brandBookV2Service')
         await updateDraftKeys(instanceId, {
             'identity.tagline': { ...r.tagline, ...meta },
@@ -446,7 +455,7 @@ export const generateBrandVoiceFor = async (c: Context) => {
                 boilerplate: r.boilerplate,
                 ...meta,
             },
-        })
+        }, __agent?.id)
         return ok(c, r, 'Voice + messaging generated')
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -473,6 +482,7 @@ export const generateBrandPersonasFor = async (c: Context) => {
             count: body.count || 3,
         })
 
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { updateDraftKeys } = await import('@/services/brandBookV2Service')
         await updateDraftKeys(instanceId, {
             'audience.personas': {
@@ -482,7 +492,7 @@ export const generateBrandPersonasFor = async (c: Context) => {
                 generatedBy: 'claude-sonnet-4-6',
                 updatedAt: new Date().toISOString(),
             },
-        })
+        }, __agent?.id)
         return ok(c, r, `Generated ${r.personas.length} personas`)
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -508,8 +518,9 @@ export const generateBrandColorPaletteFor = async (c: Context) => {
             voiceTone: body.voiceTone,
             seedColor: body.seedColor,
         })
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { updateDraftKeys } = await import('@/services/brandBookV2Service')
-        await updateDraftKeys(instanceId, { 'visual.colors': palette })
+        await updateDraftKeys(instanceId, { 'visual.colors': palette }, __agent?.id)
         return ok(c, { palette }, 'Color palette generated')
     } catch (err) { return fail(c, (err as Error).message, 500) }
 }
@@ -525,8 +536,9 @@ export const exportBrandV2Html = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { getApprovedBook, getCurrentDraft } = await import('@/services/brandBookV2Service')
-        const book = (await getApprovedBook(instanceId)) || (await getCurrentDraft(instanceId))?.book
+        const book = (await getApprovedBook(instanceId, __agent?.id)) || (await getCurrentDraft(instanceId, __agent?.id))?.book
         if (!book) return fail(c, 'No brand book found', 404)
 
         const skipAI = c.req.query('ai') === 'false'
@@ -573,8 +585,9 @@ export const exportBrandV2AssetManifest = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { getApprovedBook, getCurrentDraft } = await import('@/services/brandBookV2Service')
-        const book = (await getApprovedBook(instanceId)) || (await getCurrentDraft(instanceId))?.book
+        const book = (await getApprovedBook(instanceId, __agent?.id)) || (await getCurrentDraft(instanceId, __agent?.id))?.book
         if (!book) return fail(c, 'No brand book found', 404)
         const { getBrandAssetManifest } = await import('@/services/brandBookExporter')
         const manifest = getBrandAssetManifest(book)
@@ -586,8 +599,9 @@ export const getBrandV2QualityGates = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { getCurrentDraft } = await import('@/services/brandBookV2Service')
-        const draft = await getCurrentDraft(instanceId)
+        const draft = await getCurrentDraft(instanceId, __agent?.id)
         if (!draft) return fail(c, 'No draft', 404)
         const { evaluateQualityGates } = await import('../../../../../packages/shared/src/brand/brandBookV2')
         const gates = evaluateQualityGates(draft.book)
