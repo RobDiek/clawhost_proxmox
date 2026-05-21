@@ -141,10 +141,26 @@ export async function prefetchInternalSeoAudit(
     // ─── sitemap inventory
     const sitemap = await discoverSitemap(homepageUrl, robotsTxt.sitemapReference, enrichmentMissing)
 
-    // ─── URL inventory: prefer sitemap; fall back to homepage-only
-    let inventory: string[] = sitemap.entryCount > 0 ? sitemap.urlsExtracted.slice(0, URL_CAP) : [homepageUrl]
-    // Always include homepage, even if sitemap missed it
-    if (!inventory.includes(homepageUrl)) inventory = [homepageUrl, ...inventory].slice(0, URL_CAP)
+    // ─── URL inventory: prefer sitemap; fall back to homepage-only.
+    //
+    // Phase 4.3-T2: canonicalize + dedupe BEFORE sending to DFS. Without
+    // this, sitemaps that include trailing-slash variants of the homepage
+    // (or any path) produced two records for the same logical URL —
+    // wasting an audit slot AND generating false `duplicate_title` /
+    // `duplicate_about` issues since the audit found "two pages with the
+    // same title". Canonical form: lowercased, no fragment, single
+    // trailing slash for root (`https://domain/`), no trailing slash for
+    // sub-paths (`/about`, not `/about/`).
+    const rawInventory = sitemap.entryCount > 0 ? sitemap.urlsExtracted.slice(0, URL_CAP * 2) : [homepageUrl]
+    const seen = new Set<string>()
+    const inventory: string[] = []
+    for (const u of [homepageUrl, ...rawInventory]) {
+        const key = normalizeUrl(u)   // strips trailing slash, fragment, lowercase
+        if (!key || seen.has(key)) continue
+        seen.add(key)
+        inventory.push(u)
+        if (inventory.length >= URL_CAP) break
+    }
 
     // ─── DFS onPageInstant per URL — batched parallel
     let totalCostUsd = 0

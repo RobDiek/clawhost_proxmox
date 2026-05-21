@@ -20,11 +20,12 @@ import { groundTruthCheck } from './groundTruthCheck'
 import { integrationCoherenceCheck } from './integrationCoherenceCheck'
 import { pipelineHealthCheck } from './pipelineHealthCheck'
 import { staticSignatureCheck } from './staticSignatureCheck'
+import { dataDedupCheck } from './dataDedupCheck'
 import { resolveAgentById, resolvePrimaryAgent } from '../agentContext'
 
 const CATEGORIES: AuditCategory[] = [
     'schema_drift', 'cross_agent', 'integration', 'ground_truth',
-    'pipeline_health', 'retry_resilience', 'render_determinism',
+    'pipeline_health', 'retry_resilience', 'render_determinism', 'data_dedup',
 ]
 
 export interface AuditOpts {
@@ -63,6 +64,7 @@ export async function runOnboardingAudit(opts: AuditOpts): Promise<AuditReport> 
         { name: 'integration', fn: () => integrationCoherenceCheck(ctx) },
         { name: 'pipeline_health', fn: () => pipelineHealthCheck(ctx) },
         { name: 'ground_truth', fn: () => groundTruthCheck(ctx) },
+        { name: 'data_dedup', fn: () => dataDedupCheck(ctx) },
     ]
 
     const allFindings: AuditFinding[] = []

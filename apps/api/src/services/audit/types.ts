@@ -26,6 +26,7 @@ export type AuditCategory =
     | 'pipeline_health'     // Stage completion, NULL agent_ids, stuck states
     | 'retry_resilience'    // Long-running API calls without retry
     | 'render_determinism'  // UI render correctness (advisory only)
+    | 'data_dedup'          // Records collapsing to same logical entity (URL trailing slash, etc.)
 
 export interface AuditFinding {
     category: AuditCategory
