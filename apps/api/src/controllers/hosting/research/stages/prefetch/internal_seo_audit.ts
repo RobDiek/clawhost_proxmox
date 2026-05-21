@@ -111,16 +111,44 @@ export interface InternalSeoAuditDfsData {
     enrichmentMissing: string[]
 }
 
-const URL_CAP = 50
+// Phase 2026.01 — coverage cap doubled per spec (internal_seo_audit.yaml)
+const URL_CAP = 100
 const SITEMAP_FETCH_TIMEOUT_MS = 15_000
 const ROBOTS_FETCH_TIMEOUT_MS = 10_000
 
+// Critical-page patterns (always audited if present in sitemap, regardless of sampling)
+const CRITICAL_PAGE_PATTERNS: RegExp[] = [
+    /\/$/,                                  // homepage variants
+    /\/contact\/?$/i,
+    /\/about(?:-[a-z0-9-]+)?\/?$/i,
+    /\/pricing\/?$/i,
+    /\/services?\/?$/i,
+    /\/shop\/?$/i,
+]
+
+function isCriticalPage(url: string): boolean {
+    try {
+        const u = new URL(url)
+        const path = u.pathname || '/'
+        return CRITICAL_PAGE_PATTERNS.some(re => re.test(path))
+    } catch {
+        return false
+    }
+}
+
 /**
  * Public entry point.
+ *
+ * @param agentId Optional. When provided, GSC pages report is pulled for
+ *                this agent's connected Search Console site and used as
+ *                the primary sampling signal (top-traffic URLs). Without
+ *                agentId or without GSC, falls back to critical-page +
+ *                sitemap-order sampling.
  */
 export async function prefetchInternalSeoAudit(
     instanceId: string,
     rd: ResearchDataV2,
+    agentId?: string | null,
 ): Promise<InternalSeoAuditDfsData> {
     const answers = (rd.answers || {}) as Record<string, unknown>
     const websiteUrl = String(answers.websiteUrl || '').trim()
@@ -146,25 +174,46 @@ export async function prefetchInternalSeoAudit(
     // ─── sitemap inventory
     const sitemap = await discoverSitemap(homepageUrl, robotsTxt.sitemapReference, enrichmentMissing)
 
-    // ─── URL inventory: prefer sitemap; fall back to homepage-only.
+    // ─── URL inventory: hybrid sampling per spec v2026.01.
     //
-    // Phase 4.3-T2: canonicalize + dedupe BEFORE sending to DFS. Without
-    // this, sitemaps that include trailing-slash variants of the homepage
-    // (or any path) produced two records for the same logical URL —
-    // wasting an audit slot AND generating false `duplicate_title` /
-    // `duplicate_about` issues since the audit found "two pages with the
-    // same title". Canonical form: lowercased, no fragment, single
-    // trailing slash for root (`https://domain/`), no trailing slash for
-    // sub-paths (`/about`, not `/about/`).
-    const rawInventory = sitemap.entryCount > 0 ? sitemap.urlsExtracted.slice(0, URL_CAP * 2) : [homepageUrl]
-    const seen = new Set<string>()
-    const inventory: string[] = []
-    for (const u of [homepageUrl, ...rawInventory]) {
-        const key = normalizeUrl(u)   // strips trailing slash, fragment, lowercase
-        if (!key || seen.has(key)) continue
-        seen.add(key)
-        inventory.push(u)
-        if (inventory.length >= URL_CAP) break
+    // Strategy:
+    //   - If sitemap ≤ URL_CAP: audit everything (no sampling needed)
+    //   - If sitemap > URL_CAP: allocate 50% slots to GSC top-traffic
+    //     (real impact pages), 20% to critical pages (homepage/about/
+    //     contact/pricing/services/shop), 30% to random fill from
+    //     remaining sitemap (coverage).
+    //   - Fallback when GSC unavailable: 30% critical + 70% sitemap order.
+    //
+    // Phase 4.3-T2 dedup: canonical URL keying via normalizeUrl strips
+    // trailing slash, fragment, lowercases — same logical page never
+    // audited twice.
+    const sitemapPool = sitemap.entryCount > 0 ? sitemap.urlsExtracted : [homepageUrl]
+
+    // Try GSC top-traffic pull (best signal for sampling)
+    let gscTopUrls: string[] = []
+    if (agentId) {
+        try {
+            gscTopUrls = await pullGSCTopTrafficUrls(instanceId, agentId, ourDomain, 90)
+            if (gscTopUrls.length > 0) {
+                console.log(`[prefetch/internal_seo_audit] GSC returned ${gscTopUrls.length} top-traffic URLs for sampling`)
+            }
+        } catch (err) {
+            console.warn(`[prefetch/internal_seo_audit] GSC pull failed (non-fatal): ${(err as Error).message}`)
+        }
+    }
+
+    const inventory = buildHybridInventory({
+        sitemapUrls: sitemapPool,
+        homepageUrl,
+        gscTopUrls,
+        cap: URL_CAP,
+    })
+
+    if (sitemapPool.length > URL_CAP) {
+        enrichmentMissing.push(`sitemap_sampled:${sitemapPool.length}_of_${URL_CAP}`)
+    }
+    if (sitemapPool.length > URL_CAP && gscTopUrls.length === 0) {
+        enrichmentMissing.push('gsc_unavailable_for_sampling')
     }
 
     // ─── DFS onPageInstant per URL — batched parallel under run budget
@@ -514,6 +563,137 @@ function normalizeUrl(u: string): string {
     } catch {
         return u.toLowerCase()
     }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Phase 2026.01 — Hybrid sampling (GSC top-traffic + critical + random fill)
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Pull top-traffic URLs for the agent's connected Search Console site.
+ * Returns URLs sorted by clicks DESC. Returns [] silently if GSC not
+ * connected, tokens expired, scope missing, or site not in user's GSC.
+ */
+async function pullGSCTopTrafficUrls(
+    instanceId: string,
+    agentId: string,
+    ourDomain: string,
+    days: number,
+): Promise<string[]> {
+    // Load agent's GSC integration. agentType='mateh' since research stages
+    // run under marketing agents (Mazhir scope).
+    const { getAgentIntegrations } = await import('@/services/agentIntegrations')
+    const integrations = await getAgentIntegrations(instanceId, 'mt', agentId)
+    const gsc = integrations.find(i => i.integrationType === 'gsc' || i.integrationType === 'google')
+    if (!gsc) return []
+    const cfg = (gsc.config as Record<string, unknown>) || {}
+    const tokens = (cfg.tokens || cfg) as { accessToken?: string; refreshToken?: string; expiresAt?: number; scopes?: string[] }
+    if (!tokens.refreshToken) return []
+
+    const { pullGSCPages } = await import('@/services/gscPagesEnrich')
+    const candidateSites = [
+        `https://${ourDomain}/`,
+        `https://${ourDomain}`,
+        `sc-domain:${ourDomain}`,
+        `https://www.${ourDomain}/`,
+    ]
+    for (const siteUrl of candidateSites) {
+        try {
+            const r = await pullGSCPages(tokens, siteUrl, days)
+            if (r.available && r.pages.length > 0) {
+                // Sort by clicks DESC, return URLs only
+                return r.pages
+                    .slice()
+                    .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
+                    .map(p => p.page)
+                    .filter(u => typeof u === 'string' && u.length > 0)
+            }
+        } catch {
+            // try next candidate
+        }
+    }
+    return []
+}
+
+interface HybridInventoryOpts {
+    sitemapUrls: string[]
+    homepageUrl: string
+    gscTopUrls: string[]
+    cap: number
+}
+
+/**
+ * Build inventory using hybrid sampling strategy:
+ *   - If sitemap ≤ cap: take all (no sampling)
+ *   - With GSC: 50% top-traffic + 20% critical + 30% random fill
+ *   - Without GSC: 30% critical + 70% sitemap order
+ *
+ * Always includes homepage. All URLs canonical-deduped via normalizeUrl key.
+ */
+function buildHybridInventory(opts: HybridInventoryOpts): string[] {
+    const { sitemapUrls, homepageUrl, gscTopUrls, cap } = opts
+    const sitemapSet = new Set(sitemapUrls.map(normalizeUrl))
+    const usedKeys = new Set<string>()
+    const inventory: string[] = []
+
+    function add(u: string): boolean {
+        if (!u || typeof u !== 'string') return false
+        const key = normalizeUrl(u)
+        if (!key || usedKeys.has(key)) return false
+        usedKeys.add(key)
+        inventory.push(u)
+        return true
+    }
+
+    // 1. Homepage always
+    add(homepageUrl)
+
+    // 2. If sitemap fits within cap, take all
+    if (sitemapUrls.length <= cap) {
+        for (const u of sitemapUrls) add(u)
+        return inventory.slice(0, cap)
+    }
+
+    // 3. Sampling mode
+    const useGsc = gscTopUrls.length > 0
+    const criticalQuota = useGsc ? Math.floor(cap * 0.20) : Math.floor(cap * 0.30)
+    const gscQuota      = useGsc ? Math.floor(cap * 0.50) : 0
+    const randomQuota   = cap - criticalQuota - gscQuota - inventory.length  // remainder
+
+    // 3a. Critical pages from sitemap
+    let criticalAdded = 0
+    for (const u of sitemapUrls) {
+        if (criticalAdded >= criticalQuota) break
+        if (isCriticalPage(u) && add(u)) criticalAdded++
+    }
+
+    // 3b. GSC top-traffic (filter to URLs that are on our site)
+    if (useGsc) {
+        let gscAdded = 0
+        for (const u of gscTopUrls) {
+            if (gscAdded >= gscQuota) break
+            // Only include if URL is in the sitemap (avoid 404s on outdated GSC data)
+            if (sitemapSet.has(normalizeUrl(u)) && add(u)) gscAdded++
+        }
+    }
+
+    // 3c. Random fill from remaining sitemap
+    const remaining = sitemapUrls.filter(u => !usedKeys.has(normalizeUrl(u)))
+    // Deterministic "random" — use modulo stride over remaining to spread the sample
+    const stride = Math.max(1, Math.floor(remaining.length / Math.max(1, randomQuota + 5)))
+    let idx = 0
+    let filled = 0
+    while (filled < randomQuota && idx < remaining.length) {
+        if (add(remaining[idx])) filled++
+        idx += stride
+    }
+    // Backfill any remaining slots from start
+    for (const u of remaining) {
+        if (inventory.length >= cap) break
+        add(u)
+    }
+
+    return inventory.slice(0, cap)
 }
 
 /**

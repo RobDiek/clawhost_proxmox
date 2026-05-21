@@ -85,7 +85,7 @@ import { resolveActiveAgent, readResearchData } from '@/services/agentContext'
  * as `dfsData` into PromptOpts. Stages without an entry skip the prefetch
  * entirely (current behavior unchanged).
  */
-type Prefetcher = (instanceId: string, rd: ResearchDataV2) => Promise<unknown>
+type Prefetcher = (instanceId: string, rd: ResearchDataV2, agentId?: string | null) => Promise<unknown>
 
 const STAGE_PREFETCHERS: Partial<Record<StageId, Prefetcher>> = {
     competitor_landscape: prefetchCompetitorLandscape,
@@ -201,7 +201,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         const prefetcher = STAGE_PREFETCHERS[stageId]
         if (prefetcher) {
             try {
-                dfsData = await prefetcher(instanceId, rd)
+                dfsData = await prefetcher(instanceId, rd, __agent?.id)
                 if (dfsData && typeof dfsData === 'object' && 'totalCostUsd' in dfsData) {
                     dfsCost = (dfsData as { totalCostUsd: number }).totalCostUsd
                 }
