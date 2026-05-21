@@ -33,6 +33,11 @@ import {
     DfsError,
     type OnPageItem,
 } from '@/services/research/dataforseo'
+import {
+    extractH1, extractTitle, extractMetaDescription, extractCanonical,
+    extractWordCount, extractOnPageScore, extractSchemas, extractPageTiming,
+} from '@/services/research/dataforseo/safeExtract'
+import { RunBudget, RunBudgetExceededError } from '@/services/research/dataforseo/runBudget'
 import type { ResearchDataV2 } from '@/services/research/types'
 
 export interface UrlAuditEntry {
@@ -162,27 +167,24 @@ export async function prefetchInternalSeoAudit(
         if (inventory.length >= URL_CAP) break
     }
 
-    // ─── DFS onPageInstant per URL — batched parallel
-    let totalCostUsd = 0
-    let cacheHits = 0
-    let cacheMisses = 0
-    const trackCall = <T>(r: { cost: number; cached: boolean; items: T[] }) => {
-        totalCostUsd += r.cost
-        if (r.cached) cacheHits++
-        else cacheMisses++
-        return r
-    }
-
+    // ─── DFS onPageInstant per URL — batched parallel under run budget
+    // Phase 2026.01: RunBudget enforces per-stage USD cap from spec
+    // (internal_seo_audit.yaml says max_dfs_usd_per_run: 0.50). If we'd
+    // exceed, we skip remaining URLs and surface in summary instead of
+    // burning past the cap.
+    const budget = new RunBudget(0.50, 'internal_seo_audit')
     const audited: UrlAuditEntry[] = []
     const BATCH = 5
-    for (let i = 0; i < inventory.length; i += BATCH) {
+    let budgetExceeded = false
+    for (let i = 0; i < inventory.length && !budgetExceeded; i += BATCH) {
         const batch = inventory.slice(i, i + BATCH)
         const results = await Promise.allSettled(batch.map(u => onPageInstant(instanceId, u)))
         for (let j = 0; j < results.length; j++) {
             const url = batch[j]
             const res = results[j]
             if (res.status === 'fulfilled') {
-                trackCall(res.value)
+                if (res.value.cached) budget.recordCacheHit()
+                else { budget.recordCacheMiss(); budget.recordSpend(res.value.cost) }
                 const item = res.value.items[0]
                 if (item) {
                     audited.push(buildUrlAuditEntry(url, ourDomain, item))
@@ -194,7 +196,26 @@ export async function prefetchInternalSeoAudit(
                 audited.push(buildEmptyEntry(url, ourDomain, 'dfs_call_failed'))
             }
         }
+        // After batch: check if we're still within budget for next iteration
+        try {
+            budget.requireRemaining(0.01)   // rough estimated per-call cost
+        } catch (err) {
+            if (err instanceof RunBudgetExceededError) {
+                budgetExceeded = true
+                const remaining = inventory.length - audited.length
+                if (remaining > 0) {
+                    console.warn(`[prefetch/internal_seo_audit] budget cap hit at ${budget.summary().spent_usd}, skipping ${remaining} remaining URLs`)
+                    for (let k = 0; k < remaining; k++) budget.recordSkipped()
+                    enrichmentMissing.push(`budget_cap_skipped:${remaining}`)
+                }
+            }
+        }
     }
+    // Mirror to legacy local vars (downstream still reads these names)
+    const budgetSummary = budget.summary()
+    const totalCostUsd = budgetSummary.spent_usd
+    const cacheHits = budgetSummary.cache_hits
+    const cacheMisses = budgetSummary.cache_misses
 
     if (audited.filter(a => a.fetchOk).length === 0) {
         enrichmentMissing.push('all_urls_failed')
@@ -389,30 +410,35 @@ async function discoverSitemap(
 // URL audit entry builder
 
 function buildUrlAuditEntry(url: string, ourDomain: string, item: OnPageItem): UrlAuditEntry {
+    void ourDomain
+    // Phase 2026.01 migration — all field extractions go through safeExtract.
+    // This closes the field-name drift class of bugs that caused the H1
+    // false-claims regression (meta.htags.h1 vs meta.h1) AND the recent
+    // product-schema regression. Every reader now uses the same safe path
+    // resolver + drift detection.
     const pathDepth = computePathDepth(url)
-    const title = item.meta?.title?.trim()
-    const meta = item.meta?.description?.trim()
-    // Phase 4.3-R(fix1) — H1/H2 live at `meta.htags.h1` / `meta.htags.h2` in
-    // the actual DFS response. Older legacy callers expected `meta.h1` and
-    // got `undefined` → audit reported false "missing_h1" on pages that had
-    // it. We now prefer `htags.h1` and fall back to legacy `h1` (in case any
-    // DFS version returns it that way). Same fix for h2.
-    const h1Raw = item.meta?.htags?.h1 || item.meta?.h1 || []
-    const h2Raw = item.meta?.htags?.h2 || item.meta?.h2 || []
-    const h1List = h1Raw.filter(h => h && h.trim().length > 0)
-    const h2List = h2Raw.filter(h => h && h.trim().length > 0)
-    const wordCount = item.meta?.content?.plain_text_word_count
-    const canonical = item.meta?.canonical?.trim()
+    const h1 = extractH1(item)
+    const titleEx = extractTitle(item)
+    const metaEx = extractMetaDescription(item)
+    const canonical = extractCanonical(item)
     const canonicalSelf = canonical ? normalizeUrl(canonical) === normalizeUrl(url) : false
-    const schemaTypes = (item.schema || []).map(s => String(s.type || '')).filter(Boolean)
+    const wordCount = extractWordCount(item)
+    const onPageScore = extractOnPageScore(item)
+    const schemaTypes = extractSchemas(item)
+    const timing = extractPageTiming(item)
     const pageTiming = {
-        lcp_ms: item.page_timing?.largest_contentful_paint,
-        tti_ms: item.page_timing?.time_to_interactive,
-        dom_complete_ms: item.page_timing?.dom_complete,
+        lcp_ms: timing.lcp_ms ?? undefined,
+        tti_ms: timing.tti_ms ?? undefined,
+        dom_complete_ms: timing.dom_complete_ms ?? undefined,
     }
 
-    const dfsIssues: string[] = []
+    // legacy h2 list — keep raw access until we add extractH2 helper. h2 used
+    // less than h1 and isn't tied to the regression bug class.
+    const h2Raw = item.meta?.htags?.h2 || item.meta?.h2 || []
+    const h2List = h2Raw.filter(h => h && h.trim().length > 0)
+
     // DFS sometimes returns broken_resources / checks fields — surface them
+    const dfsIssues: string[] = []
     const checks = item.checks
     if (checks) {
         for (const [k, v] of Object.entries(checks)) {
@@ -420,26 +446,29 @@ function buildUrlAuditEntry(url: string, ourDomain: string, item: OnPageItem): U
         }
     }
 
+    const title = titleEx.text || undefined
+    const metaDescription = metaEx.text || undefined
     const inferredPageType = inferPageType(url, title || '')
     const clientIssues = detectClientIssues({
-        title, meta, h1List, wordCount, canonical, canonicalSelf, schemaTypes, inferredPageType,
-        dfsChecks: checks,
+        title, meta: metaDescription, h1List: h1.texts, wordCount,
+        canonical: canonical || undefined, canonicalSelf,
+        schemaTypes, inferredPageType, dfsChecks: checks,
     })
 
     return {
         url,
         pathDepth,
         title,
-        titleLength: title?.length,
-        metaDescription: meta,
-        metaLength: meta?.length,
-        canonicalUrl: canonical,
+        titleLength: titleEx.length || undefined,
+        metaDescription,
+        metaLength: metaEx.length || undefined,
+        canonicalUrl: canonical || undefined,
         canonicalSelf,
-        h1List,
-        h1Count: h1List.length,
+        h1List: h1.texts,
+        h1Count: h1.count,
         h2Count: h2List.length,
-        wordCount,
-        onpageScore: item.onpage_score,
+        wordCount: wordCount || undefined,
+        onpageScore: onPageScore || undefined,
         schemaTypes,
         pageTiming,
         dfsIssues,
@@ -588,29 +617,47 @@ const LDJSON_FETCH_TIMEOUT_MS = 8_000
 const LDJSON_UA = 'Mozilla/5.0 (compatible; FlowmaticAudit/1.0; +https://flowmatic.co.il)'
 
 async function probeLdJsonTypes(url: string): Promise<string[]> {
+    // Phase 2026.01: full diagnostic logging on miss — needed to debug the
+    // product-schema regression where parallel probe to Hebrew-encoded
+    // product URLs returned [] (suspected Cloudflare WAF or rate limit).
+    let httpStatus = 0
+    let bodyLen = 0
     try {
         const res = await fetch(url, {
             headers: { 'User-Agent': LDJSON_UA, 'Accept': 'text/html,*/*' },
             redirect: 'follow',
             signal: AbortSignal.timeout(LDJSON_FETCH_TIMEOUT_MS),
         })
-        if (!res.ok) return []
+        httpStatus = res.status
+        if (!res.ok) {
+            console.warn(`[ldJsonProbe] non-OK ${httpStatus} for ${url.slice(0, 100)} — skipping LD-JSON enrichment`)
+            return []
+        }
         const html = await res.text()
+        bodyLen = html.length
         const types: string[] = []
         const re = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
         let m: RegExpExecArray | null
         while ((m = re.exec(html)) !== null) {
             try {
                 const parsed = JSON.parse(m[1].trim())
-                // LD-JSON can be: {@type:X}, [{@type:X},...], or {@graph:[...]}
                 collectTypes(parsed, types)
             } catch { /* invalid LD-JSON; skip */ }
         }
-        return Array.from(new Set(types))
+        const unique = Array.from(new Set(types))
+        if (unique.length === 0 && bodyLen > 5000) {
+            // Body big enough that LD-JSON SHOULD be there for a WordPress page
+            // (Yoast/RankMath inject schemas in head). Zero matches = likely
+            // Cloudflare challenge page returning 200 with JS challenge, OR
+            // page genuinely has no LD-JSON. Log for diagnostics.
+            console.warn(`[ldJsonProbe] 0 types found despite ${bodyLen}b body for ${url.slice(0, 100)} — suspect WAF challenge or genuine absence`)
+        }
+        return unique
     } catch (err) {
         // Network errors are non-fatal — DFS data still flows through, we just
         // miss the LD-JSON enrichment for this URL.
-        void err
+        const e = err as Error
+        console.warn(`[ldJsonProbe] fetch failed for ${url.slice(0, 100)}: ${e.name}/${e.message}`)
         return []
     }
 }
