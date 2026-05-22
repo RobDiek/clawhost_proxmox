@@ -290,6 +290,25 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         if (stageId === 'competitor_landscape' && parsed.records) {
             recomputeCompetitorScorecards(parsed.records)
         }
+        // Phase 2026.01 — per-record augmentation for internal_seo_audit:
+        //   quadrant_scores, priority_score, priority_class, il_multipliers_applied
+        // Deterministic computation from LLM-emitted issues + IL prefetch signals.
+        // See specs/research-stages/internal_seo_audit.yaml.
+        if (stageId === 'internal_seo_audit' && parsed.records) {
+            try {
+                const { augmentInternalSeoAuditRecords } = await import('@/services/research/stagePostProcessors/internal_seo_audit')
+                const augmented = augmentInternalSeoAuditRecords(
+                    parsed.records as Array<Record<string, unknown>>,
+                    dfsData as Parameters<typeof augmentInternalSeoAuditRecords>[1],
+                )
+                parsed.records = augmented
+                const p0Count = augmented.filter(r => r.priority_class === 'P0').length
+                const p1Count = augmented.filter(r => r.priority_class === 'P1').length
+                console.log(`[research/internal_seo_audit] augmented ${augmented.length} records: P0=${p0Count} P1=${p1Count}`)
+            } catch (err) {
+                console.warn('[research/internal_seo_audit] augment failed (non-fatal):', (err as Error).message)
+            }
+        }
         // Phase 3.17d — same problem on seo_keyword_research: model emits
         // opportunity.{components} + _formula_verification trail with correct
         // arithmetic, but the standalone `opportunity.total` and `aeo.total`
