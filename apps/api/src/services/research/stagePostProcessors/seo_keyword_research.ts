@@ -18,14 +18,32 @@
 import { checkHebrewQA } from '../qualityGates/hebrewQA'
 import { scoreQuotability } from '../qualityGates/quotability'
 
+/**
+ * Real SKR record shape (verified against Packing 2026-05-22 prod output):
+ *   - `intent` is an OBJECT, not a string. Primary value at `intent.primary`.
+ *   - JTBD already emitted by LLM at `intent.jtbd` (Hebrew).
+ *   - Hebrew action narrative at `recommended_action` (not priority_action).
+ *   - `cluster` is the Hebrew cluster label.
+ * Legacy fields (`why`, `jtbd_moment`, `priority_action`) kept as fallbacks
+ * in case future prompt rewrites or other stages use them.
+ */
 interface RawKeywordRecord {
     keyword?: string
-    intent?: string       // legacy: 'tofu' | 'mofu' | 'bofu' OR 7-taxonomy
+    intent?: string | {
+        primary?: string
+        jtbd?: string
+        urgency?: string
+        locality?: string
+        trust_load?: string
+        language_mode?: string
+        buyer_maturity?: string
+    }
     cluster?: string
-    why?: string          // legacy "rationale" text in Hebrew
-    why_chosen_he?: string
-    jtbd_moment?: string
-    rationale?: string
+    recommended_action?: string   // ACTUAL field: Hebrew action narrative
+    why?: string                  // legacy fallback
+    why_chosen_he?: string        // legacy fallback
+    jtbd_moment?: string          // legacy fallback (top-level)
+    rationale?: string            // legacy fallback
     [k: string]: unknown
 }
 
@@ -101,24 +119,43 @@ export function augmentKeywordResearchRecords(
         const out: RawKeywordRecord = { ...r }
         const kw = String(r.keyword || '?').slice(0, 60)
 
-        // Normalize intent to 7-taxonomy
-        const rawIntent = String(r.intent || '').toLowerCase()
+        // Resolve intent — supports both legacy string AND modern object shape
+        // (LLM emits `intent: { primary: "transactional", jtbd: "...", ... }`).
+        let rawIntent = ''
+        let intentJtbd: string | undefined
+        if (typeof r.intent === 'string') {
+            rawIntent = r.intent.toLowerCase()
+        } else if (r.intent && typeof r.intent === 'object') {
+            rawIntent = String(r.intent.primary || '').toLowerCase()
+            intentJtbd = typeof r.intent.jtbd === 'string' ? r.intent.jtbd : undefined
+        }
         const normalizedIntent = LEGACY_INTENT_MAP[rawIntent] || null
         if (normalizedIntent && VALID_INTENTS.has(normalizedIntent)) {
-            out.intent = normalizedIntent
             sevenIntentCompliant++
             if (normalizedIntent === 'conversational_aio') conversationalAioCount++
+            // Annotate the intent object/string with the normalized value
+            // (preserves the rich LLM intent object alongside our 7-taxonomy)
+            if (r.intent && typeof r.intent === 'object') {
+                out.intent = { ...r.intent, primary_normalized: normalizedIntent } as RawKeywordRecord['intent']
+            } else {
+                out.intent = normalizedIntent
+            }
         }
-        const finalIntent = String(out.intent || 'unknown')
+        const finalIntent = normalizedIntent || rawIntent || 'unknown'
         intentDist[finalIntent] = (intentDist[finalIntent] || 0) + 1
 
-        // JTBD presence
-        if (!r.jtbd_moment || String(r.jtbd_moment).trim().length === 0) {
+        // JTBD presence — check both legacy top-level field AND modern intent.jtbd
+        const jtbdValue = intentJtbd || (r.jtbd_moment as string | undefined)
+        if (!jtbdValue || String(jtbdValue).trim().length === 0) {
             recordsMissingJtbd++
         }
 
-        // Hebrew QA: check `why_chosen_he` / `rationale` / `why` / `jtbd_moment`
+        // Hebrew QA — check all narrative fields the LLM might emit
         const hebrewFields: Array<[string, string | undefined]> = [
+            ['recommended_action', r.recommended_action as string | undefined],
+            ['intent.jtbd', intentJtbd],
+            ['cluster', r.cluster as string | undefined],
+            // legacy fallbacks (older prompts):
             ['why_chosen_he', r.why_chosen_he as string | undefined],
             ['rationale', r.rationale as string | undefined],
             ['why', r.why as string | undefined],
@@ -137,11 +174,12 @@ export function augmentKeywordResearchRecords(
             }
         }
 
-        // Quotability — score short narrative fields
+        // Quotability — narrative fields only
         const quotabilityFields: Array<[string, string | undefined]> = [
+            ['recommended_action', r.recommended_action as string | undefined],
+            ['intent.jtbd', intentJtbd],
             ['why_chosen_he', r.why_chosen_he as string | undefined],
             ['rationale', r.rationale as string | undefined],
-            ['jtbd_moment', r.jtbd_moment as string | undefined],
         ]
         for (const [field, value] of quotabilityFields) {
             if (!value || typeof value !== 'string' || value.trim().length === 0) continue
