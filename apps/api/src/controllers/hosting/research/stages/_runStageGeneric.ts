@@ -315,6 +315,21 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         // disagree. Server recomputes both from authoritative components.
         if (stageId === 'seo_keyword_research' && parsed.records) {
             recomputeKeywordScores(parsed.records)
+            // Phase 2026.01 — Hebrew QA + Quotability gate + 7-intent normalization
+            // Per specs/research-stages/seo_keyword_research.yaml. Non-fatal:
+            // findings surface in stage output for review; doesn't break save.
+            try {
+                const { augmentKeywordResearchRecords } = await import('@/services/research/stagePostProcessors/seo_keyword_research')
+                const aug = augmentKeywordResearchRecords(
+                    parsed.records as Array<Record<string, unknown>>,
+                    { brandName: businessName },
+                )
+                parsed.records = aug.augmented_records
+                ;(parsed as unknown as Record<string, unknown>).quality_findings = aug.quality_findings
+                console.log(`[research/seo_keyword_research] quality: hebrew_qa_avg=${aug.quality_findings.hebrew_qa.avg_score} (${aug.quality_findings.hebrew_qa.fields_failed} failed) | quotability_avg=${aug.quality_findings.quotability.avg_score} (${aug.quality_findings.quotability.items_passed}/${aug.quality_findings.quotability.items_scored} passed) | seven_intent_compliance=${aug.quality_findings.seven_intent_compliance_pct}% | aio_keywords=${aug.quality_findings.conversational_aio_count} | missing_jtbd=${aug.quality_findings.records_missing_jtbd}`)
+            } catch (err) {
+                console.warn('[research/seo_keyword_research] augment failed (non-fatal):', (err as Error).message)
+            }
             // Phase QA round-5 — server-side DFS enrichment of volume / CPC /
             // KD per record. Model previously left these null for ~85-95% of
             // records because: (a) it had to cross-reference two separate

@@ -1,0 +1,220 @@
+# ============================================================================
+# Stage: seo_keyword_research
+# Version: 2026.01
+# Status: APPROVED 2026-05-22 (autonomous, based on Iteration 1 framework)
+# ============================================================================
+# Source documents:
+#   - roadmap/13-2026-pipeline-audit.md (audit & gaps, Stage 3 section)
+#   - memory/feedback_seo_depth.md (Sergei's 7-year SEO bar)
+#   - memory/project_seo_playbook_sergei.md
+# ============================================================================
+
+stage_id: seo_keyword_research
+version: 2026.01
+purpose: |
+  Keyword landscape with 7-intent taxonomy, AIO trigger probing, Hebrew
+  modifier patterns, JTBD-driven discovery. Output feeds: aeo_visibility
+  (priority queries), strategy_options (TOFU/MOFU/BOFU allocation),
+  content_plan (article topics).
+
+# ----------------------------------------------------------------------------
+# Inputs
+# ----------------------------------------------------------------------------
+inputs:
+  required:
+    - field: rd.answers.businessName
+    - field: rd.answers.websiteUrl
+  recommended:
+    - field: rd.results.competitor_landscape
+      reason: competitor ranking baseline + topic clusters context
+    - field: rd.results.internal_seo_audit
+      reason: existing site coverage informs gap identification
+    - field: agent_integrations.googleSearchConsole
+      reason: GSC clicks/impressions per query for striking distance
+
+# ----------------------------------------------------------------------------
+# 7-intent ladder (modernized for 2026 with AIO impact)
+# ----------------------------------------------------------------------------
+intent_taxonomy:
+  - id: informational
+    label_he: אינפורמטיבי
+    aio_eaten_pct_estimate: 60      # AIO has eaten this much of top-funnel
+    deprioritize_in_2026: true       # less ROI for IL SMB in 2026
+    examples_he: ["מה זה X", "איך עובד Y"]
+
+  - id: navigational
+    label_he: ניווט
+    aio_eaten_pct_estimate: 0
+    examples_he: ["X login", "Y שעות פתיחה"]
+
+  - id: commercial_investigation
+    label_he: חקירה מסחרית
+    aio_eaten_pct_estimate: 10
+    deprioritize_in_2026: false      # MAIN focus for SMB in 2026
+    examples_he: ["X לעומת Y", "ביקורת X", "מדריך לבחירת X"]
+    main_focus: true
+
+  - id: transactional
+    label_he: רכישתי
+    aio_eaten_pct_estimate: 0       # AIO doesn't eat "buy" queries
+    examples_he: ["X לקנייה", "מחיר X", "להזמין X"]
+    main_focus: true
+
+  - id: local
+    label_he: לוקאלי
+    aio_eaten_pct_estimate: 5
+    examples_he: ["X ליד", "X תל אביב", "X בחיפה"]
+    relevant_for: [service, retail, local_business]
+
+  - id: visual
+    label_he: ויזואלי
+    aio_eaten_pct_estimate: 15
+    examples_he: ["X תמונות", "איך נראה X"]
+
+  - id: conversational_aio
+    label_he: שיחתי / AIO-targeted
+    aio_eaten_pct_estimate: 0       # this IS where you want AIO citations
+    examples_he: ["איך לבחור X לעסק קטן בישראל", "מה הצעדים לעשיית Y"]
+    new_in_2026: true
+    main_focus: true
+
+# ----------------------------------------------------------------------------
+# Output schema
+# ----------------------------------------------------------------------------
+outputs:
+  records:
+    min_count: 15
+    max_count: 60
+    per_record_schema:
+      keyword: string
+      intent:
+        type: enum
+        values: [informational, navigational, commercial_investigation, transactional, local, visual, conversational_aio]
+        required: true
+      volume:           { type: int | null, source: dfs_search_volume }
+      cpc:              { type: float | null, source: dfs_search_volume }
+      difficulty:       { type: int | null, range: [0, 100], source: dfs_keyword_difficulty }
+      rank_our_domain:  { type: int | null, source: gsc_or_dfs_ranked_keywords }
+      cluster:          { type: string, semantics: parent_topic_label_he }
+      jtbd_moment:
+        type: string
+        constraint: |
+          Hebrew, plain language, life-moment + pain framing.
+          Bad: "מערכת CRM קטנה"
+          Good: "אני שוכח לקוחות שאמרתי שאחזור אליהם ועובד מהפלאפון בשטח"
+      aio_triggers:     { type: bool | null, source: serp_advanced_check }
+      serp_features:    { type: array<string>, examples: [featured_snippet, paa, ai_overview, image_pack, local_pack] }
+      striking_distance: { type: bool, semantics: "currently_position_4-15_capture_in_1-3_months" }
+      hebrew_modifier_suffix:
+        type: string | null
+        examples: ["הכי טוב", "במחיר טוב", "לעסקים קטנים", "ליד", "תל אביב"]
+      confidence:       { type: enum, values: [high, medium, working_hypothesis] }
+      evidence:         array<string>
+
+  aggregate:
+    intent_distribution: { type: Record<intent_id, count> }
+    aio_trigger_pct: { type: float, semantics: "%_of_keywords_with_AIO_in_SERP" }
+    hebrew_aio_share_pct:
+      type: float
+      semantics: "AIO citation share in Hebrew specifically (lower coverage = window of opportunity)"
+    striking_distance_count: int
+    avg_difficulty: float
+    avg_volume: int
+    total_volume_addressable: int
+    top_10_priority_targets:
+      type: array<{ keyword, intent, volume, cpc, why_chosen_he }>
+      max_count: 10
+
+# ----------------------------------------------------------------------------
+# Quality gates
+# ----------------------------------------------------------------------------
+quality_gates:
+  hard:
+    - id: min_keyword_count
+      check: records.length >= 15
+    - id: intent_distribution_balanced
+      check: at_least_3_of_7_intents_represented
+    - id: every_record_has_intent
+      check: records.every(r => r.intent in {7 valid values})
+    - id: jtbd_present_for_clusters
+      check: every_cluster_has_at_least_one_jtbd_moment
+    - id: hebrew_qa_passes
+      check: batchCheckHebrewQA on all priority/why fields, fail_count == 0
+
+  soft:
+    - id: conversational_aio_present
+      check: at_least_1_conversational_aio_keyword
+      degrade_he: "אין מילים מסוג AIO-targeted — תפספסו את 2026 LLM funnel"
+
+    - id: striking_distance_count
+      check: aggregate.striking_distance_count >= 3
+      degrade_he: "פחות מ-3 striking distance keywords — quick wins מוגבלים"
+
+    - id: il_modifier_diversity
+      check: at_least_3_distinct_hebrew_modifier_suffixes_used
+      degrade_he: "מגוון modifier suffixes נמוך — חוסר כיסוי של Hebrew query patterns"
+
+    - id: aeo_quotability_avg
+      check: batchScoreQuotability on jtbd_moment + why_chosen_he fields, avg >= 60
+      degrade_he: "JTBD/WHY texts לא extraction-friendly לLLMs (score < 60)"
+
+  aeo_consumption:
+    quotability_score_min: 60
+    hebrew_quality_score_min: 80
+    forbidden_modality:
+      he: [אולי, יתכן, בדרך כלל, נדמה]
+      en: [may, might, typically, often]
+
+il_specific:
+  - rule: |
+      Hebrew average prompt length is 6-10 words (vs 12-18 EN). Don't bias
+      records toward only long-tail. Mix short head + mid + long-tail.
+  - rule: |
+      Code-switching is normal ("best CRM לעסק קטן בישראל"). Treat as ONE
+      keyword entry, don't split into 2.
+  - rule: |
+      AIO Hebrew coverage is only 20-25% of queries (vs 47% EN) — flag
+      this as window of opportunity in aggregate narrative.
+
+# ----------------------------------------------------------------------------
+# DFS call discipline
+# ----------------------------------------------------------------------------
+dfs_calls:
+  endpoints_used:
+    - keywords_data/google_ads/search_volume/live
+    - dataforseo_labs/google/keyword_ideas/live
+    - dataforseo_labs/google/keyword_difficulty/live
+    - dataforseo_labs/google/ranked_keywords/live
+    - serp/google/organic/live/advanced     # for AIO trigger detection per priority kw
+  caching:
+    cache_key_includes: [endpoint, location_code, language_code, device, normalized_params]
+  parameters_il:
+    location_code: 2376
+    language_code: he
+    device: mobile
+  budget_guard:
+    max_usd_per_run: 1.50    # higher than ISA — needs multi-endpoint pulls
+
+# ----------------------------------------------------------------------------
+# LLM call discipline
+# ----------------------------------------------------------------------------
+llm_calls:
+  model: claude-opus-4-7
+  max_tokens_total: 80000   # bigger output, more keywords
+  retry_on_transient_error: 3
+  output_format: hybrid_markdown_json
+
+# ----------------------------------------------------------------------------
+# Failure modes
+# ----------------------------------------------------------------------------
+failure_modes:
+  no_search_volume_data:
+    action: degraded_warning
+    fallback: use_keyword_ideas_volume_buckets
+  aio_probe_partial_failure:
+    threshold: 50%
+    action_above: degraded_warning
+    fallback: skip_aio_triggers_field
+  dfs_quota_hit:
+    action: hard_fail
+    message_he: "מכסת DataForSEO נגמרה — אנא הוסיפו קרדיט והריצו שוב."
