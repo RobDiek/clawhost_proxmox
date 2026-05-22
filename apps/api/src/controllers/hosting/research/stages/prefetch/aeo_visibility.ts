@@ -87,6 +87,21 @@ export interface AeoVisibilityDfsData {
         why_critical_for_aeo: string
         urls_affected_count: number
     }>
+    /** Phase 2026.01 — multi-engine probing layer. Currently ships
+     *  google_aio (via DFS SERP) and claude (via Anthropic API). Other
+     *  engines (chatgpt/perplexity/bing_copilot) are placeholder entries.
+     *  This data SUPPLEMENTS (does not replace) the legacy citationProbes
+     *  array above. The augmenter merges both views into the LLM prompt
+     *  context. */
+    aeoEngineResults?: Array<{
+        engine: string
+        keywords: string[]
+        cited_count: number
+        citation_share_pct: number
+        total_cost_usd: number
+        duration_ms: number
+        sample_citations: Array<{ keyword: string; cited_us: boolean; top_competitors: string[] }>
+    }>
     totalCostUsd: number
     enrichmentMissing: string[]
 }
@@ -173,6 +188,48 @@ export async function prefetchAeoVisibility(
     // ─── Schema gap analysis cross-referenced with AEO requirements
     const aeoSchemaGaps = computeAeoSchemaGaps(topUrls)
 
+    // ─── Phase 2026.01 — multi-engine AEO probing (additive)
+    // Currently runs google_aio (DFS SERP advanced — cheap, cached) +
+    // claude (Haiku-4.5, recognition probing without web). Other
+    // engines (chatgpt/perplexity/bing_copilot) deferred to 2026.02.
+    let aeoEngineResults: NonNullable<AeoVisibilityDfsData['aeoEngineResults']> = []
+    if (ourDomain && priorityKeywords.length > 0) {
+        try {
+            const { probeBrandVisibility } = await import('@/services/research/aeoProbing')
+            const ourIdentifiers = [ourDomain, businessName].filter(s => s && s.length >= 3)
+            const kwStrings = priorityKeywords
+                .map(k => String((k as Record<string, unknown>).keyword || '').trim())
+                .filter(k => k.length > 0)
+            const batches = await probeBrandVisibility({
+                instanceId,
+                ourDomain,
+                ourIdentifiers,
+                keywords: kwStrings,
+                engines: ['google_aio', 'claude'],
+                maxProbesPerEngine: 5,
+            })
+            aeoEngineResults = batches.map(b => ({
+                engine: b.engine,
+                keywords: b.keywords,
+                cited_count: b.results.filter(r => r.cited_us).length,
+                citation_share_pct: b.citation_share_pct,
+                total_cost_usd: b.total_cost_usd,
+                duration_ms: b.duration_ms,
+                sample_citations: b.results.slice(0, 5).map(r => ({
+                    keyword: r.keyword,
+                    cited_us: r.cited_us,
+                    top_competitors: r.citations.slice(0, 3).map(c => c.source),
+                })),
+            }))
+            const totalProbeCost = batches.reduce((s, b) => s + b.total_cost_usd, 0)
+            totalCostUsd += totalProbeCost
+            console.log(`[prefetch/aeo_visibility] multi-engine probes: ${batches.map(b => `${b.engine}=${b.citation_share_pct}%`).join(', ')} (+$${totalProbeCost.toFixed(4)})`)
+        } catch (err) {
+            console.warn(`[prefetch/aeo_visibility] multi-engine probing failed (non-fatal): ${(err as Error).message}`)
+            enrichmentMissing.push('aeo_engine_probing_failed')
+        }
+    }
+
     console.log(`[prefetch/aeo_visibility] cost~$${totalCostUsd.toFixed(4)} probes=${citationProbes.length} cited=${citationStats.brand_cited_count}/${citationStats.probes_run} upstream_ok=${hasUpstream}`)
 
     return {
@@ -184,6 +241,7 @@ export async function prefetchAeoVisibility(
         citationProbes,
         citationStats,
         aeoSchemaGaps,
+        aeoEngineResults,
         totalCostUsd,
         enrichmentMissing,
     }

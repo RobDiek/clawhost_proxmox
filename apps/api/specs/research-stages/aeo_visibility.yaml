@@ -1,0 +1,183 @@
+# ============================================================================
+# Stage: aeo_visibility
+# Version: 2026.01
+# Status: APPROVED 2026-05-22 (autonomous, biggest delta vs 2026)
+# ============================================================================
+# THIS IS THE STAGE WITH THE LARGEST GAP vs 2026 BEST PRACTICE (per audit).
+# v2026.01 is a major rewrite: 5-engine probing (this iteration ships 2),
+# bilingual schema strategy, DefinedTerm/ClaimReview, Wikidata Q-ID,
+# quotability standards, reverse-engineering loop.
+# ============================================================================
+
+stage_id: aeo_visibility
+version: 2026.01
+purpose: |
+  Measure + improve brand visibility in answer engines (AIO, ChatGPT,
+  Perplexity, Claude, Bing Copilot). Outputs feed: positioning
+  (entity-first phrasing), content_plan (citation-friendly structure),
+  internal_seo_audit (schema gaps for AEO).
+
+# ----------------------------------------------------------------------------
+# Inputs
+# ----------------------------------------------------------------------------
+inputs:
+  required:
+    - field: rd.answers.businessName
+    - field: rd.answers.websiteUrl
+  recommended:
+    - field: rd.results.seo_keyword_research
+      reason: priority keywords to probe with
+    - field: rd.results.internal_seo_audit
+      reason: schema coverage baseline for gap analysis
+
+# ----------------------------------------------------------------------------
+# AEO probing strategy (5 engines target; Phase 2026.01 ships 2)
+# ----------------------------------------------------------------------------
+probing:
+  engines_phase_2026_01:
+    - id: google_aio
+      method: dfs_serp_advanced
+      cost_per_probe_usd: 0.003
+      cached: true
+      enabled: true
+
+    - id: claude
+      method: anthropic_api
+      cost_per_probe_usd: 0.02
+      cached: false
+      enabled: true
+
+  engines_phase_2026_02:
+    - id: chatgpt
+      method: openai_browsing_api
+      requires_env: [OPENAI_API_KEY]
+      enabled: false
+
+    - id: perplexity
+      method: perplexity_api
+      requires_env: [PERPLEXITY_API_KEY]
+      enabled: false
+
+    - id: bing_copilot
+      method: bing_webmaster_tools
+      requires_env: [BING_API_KEY]
+      enabled: false
+
+  priority_keywords:
+    source: rd.results.seo_keyword_research.top_10_priority_targets
+    fallback: derived_from_businessName + businessDesc
+    max_count: 10
+
+# ----------------------------------------------------------------------------
+# Output schema
+# ----------------------------------------------------------------------------
+outputs:
+  records:
+    per_record_schema:
+      keyword: string
+      citation_engines:
+        type: array<string>
+        semantics: "engines that cited us for this keyword"
+      cited_in_aio: bool
+      cited_in_claude: bool
+      cited_competitors:
+        type: array<{ source, engine, rank }>
+      extractability_score:
+        type: int
+        range: [0, 100]
+        semantics: "weighted from quotability + schema completeness for top URL targeting this keyword"
+      schema_coverage_for_ai:
+        type: array<string>
+        examples: [Article, Organization, Person, DefinedTerm, FAQPage, ClaimReview]
+      bilingual_strategy_status:
+        type: enum
+        values: [none, partial, full]
+        semantics: "Hebrew + English alias coverage in schema"
+      recommendations_he:
+        type: array<string>
+
+  aggregate:
+    citation_share_by_engine:
+      type: Record<engine_id, pct>
+      example: { google_aio: 12, claude: 25 }
+    overall_citation_share_pct: float
+    schema_gaps:
+      organization_sameAs_count: int
+      wikidata_qid_status: enum [not_created, suggested, draft, verified, unknown]
+      missing_required_schemas: array<string>
+    cooccurrence_targets:
+      type: array<{ topic, suggested_outlets_he }>
+      semantics: "Where to publish so brand co-occurs with target topics"
+    quotability_score_avg: float
+    bilingual_recommendation:
+      type: object
+      fields:
+        primary_lang: enum [hebrew, english]
+        alternate_lang: enum [hebrew, english]
+        rationale_he: string
+
+# ----------------------------------------------------------------------------
+# Quality gates
+# ----------------------------------------------------------------------------
+quality_gates:
+  hard:
+    - id: at_least_one_engine_probed
+      check: probing.engines_actually_used >= 1
+    - id: hebrew_qa_passes_on_recommendations
+      check: batchCheckHebrewQA on all recommendations_he, fail_count == 0
+
+  soft:
+    - id: at_least_5_keywords_probed
+      check: records.length >= 5
+
+    - id: extractability_avg_threshold
+      check: aggregate.quotability_score_avg >= 60
+      degrade_he: "Quotability ממוצע נמוך — שיפור citation pickup דורש answer-first sentence structure"
+
+    - id: schema_coverage_for_ai
+      check: at_least_3_of_{Article,Organization,Person,DefinedTerm,FAQPage} present
+      degrade_he: "פחות מ-3 schema types חיוניים ל-AEO"
+
+    - id: wikidata_strategy_active
+      check: aggregate.schema_gaps.wikidata_qid_status != 'not_created'
+      degrade_he: "אין Wikidata entry — חולשה משמעותית ב-LLM grounding ל-2026"
+
+    - id: bilingual_strategy_present
+      check: aggregate.bilingual_recommendation defined and explainable
+      degrade_he: "אין אסטרטגיה bilingual schema — Hebrew sites cited פי 3 פחות מ-EN ב-AIO"
+
+il_specific:
+  - rule: |
+      Hebrew sites cited by AIO at ~12-18% of Hebrew queries (vs 40% for
+      .com on English queries). The bilingual abstract strategy (Hebrew
+      content + English description in schema) boosts retrieval 2-3x.
+  - rule: |
+      Israeli prompt patterns are shorter (6-10 words avg vs 12-18 EN).
+      Probing prompts should reflect realistic Hebrew patterns, not
+      translated English long-form prompts.
+  - rule: |
+      Brand entity should have ONE primary name with alternateName
+      (Hebrew + English). NOT two separate entities — LLMs won't merge.
+
+# ----------------------------------------------------------------------------
+# Cost guards
+# ----------------------------------------------------------------------------
+cost_constraints:
+  max_dfs_usd_per_run: 0.50         # google_aio probes
+  max_anthropic_usd_per_run: 0.50   # claude probes (10 keywords × ~$0.02)
+  max_llm_synthesis_tokens: 60000
+
+# ----------------------------------------------------------------------------
+# Failure modes
+# ----------------------------------------------------------------------------
+failure_modes:
+  all_engines_failed:
+    action: hard_fail
+    message_he: "כל מנועי ה-AEO לא זמינים. אנא בדקו את חיבור DataForSEO ו-Anthropic."
+  partial_engine_failure:
+    threshold: 1_engine
+    action: degraded_warning
+    fallback: report_on_engines_that_worked
+  no_priority_keywords:
+    action: derive_from_business_name
+    fallback: probe_brand_name_only
