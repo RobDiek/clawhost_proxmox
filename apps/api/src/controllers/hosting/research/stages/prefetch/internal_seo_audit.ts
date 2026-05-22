@@ -308,36 +308,47 @@ export async function prefetchInternalSeoAudit(
     // merge their @type values into the entry's schemaTypes. Without this,
     // 100% of WordPress sites get false "no_schema" audit claims.
     //
-    // Parallel in batches of 10 with 8s timeout per URL. ~12s total for 50 URLs.
-    const LDJSON_BATCH = 10
+    // Parallel in batches of 5 with 15s timeout per URL. ~30s total for 100 URLs.
+    // Reduced from 10 to 5 after observing Cloudflare-level rate limits on
+    // Packing's product pages — 10 concurrent fetches against same origin
+    // triggered intermittent 8-second timeouts.
+    const LDJSON_BATCH = 5
     let ldJsonAdded = 0
+    let ldJsonProbeFailures = 0
     for (let i = 0; i < audited.length; i += LDJSON_BATCH) {
         const batch = audited.slice(i, i + LDJSON_BATCH).filter(a => a.fetchOk)
         if (batch.length === 0) continue
         const probes = await Promise.allSettled(batch.map(a => probeLdJsonTypes(a.url)))
         for (let j = 0; j < batch.length; j++) {
             const probe = probes[j]
-            if (probe.status === 'fulfilled' && probe.value.length > 0) {
-                const entry = batch[j]
-                // Merge — preserve DFS-detected schemas (microdata/RDFa); add
-                // LD-JSON types if they aren't already covered (case-insensitive).
-                const existing = new Set(entry.schemaTypes.map(s => s.toLowerCase()))
-                for (const t of probe.value) {
-                    if (!existing.has(t.toLowerCase())) {
-                        entry.schemaTypes.push(t)
-                        ldJsonAdded++
-                    }
+            if (probe.status === 'fulfilled') {
+                const result = probe.value
+                if (result.failed) {
+                    ldJsonProbeFailures++
+                    continue
                 }
-                // Recompute clientIssues with the merged schema list. Specifically
-                // the `no_schema` flag must drop if we found ANY schema, and
-                // page-type-expected schemas (missing_organization_schema etc)
-                // need re-evaluation.
-                entry.clientIssues = recomputeClientIssuesAfterLdJson(entry)
+                if (result.types.length > 0) {
+                    const entry = batch[j]
+                    const existing = new Set(entry.schemaTypes.map(s => s.toLowerCase()))
+                    for (const t of result.types) {
+                        if (!existing.has(t.toLowerCase())) {
+                            entry.schemaTypes.push(t)
+                            ldJsonAdded++
+                        }
+                    }
+                    entry.clientIssues = recomputeClientIssuesAfterLdJson(entry)
+                }
+            } else {
+                // probeLdJsonTypes catches its own errors; rejected means unexpected
+                ldJsonProbeFailures++
             }
         }
     }
     if (ldJsonAdded > 0) {
-        console.log(`[prefetch/internal_seo_audit] ld-json probe added ${ldJsonAdded} schema types missed by DFS`)
+        console.log(`[prefetch/internal_seo_audit] ld-json probe added ${ldJsonAdded} schema types missed by DFS (${ldJsonProbeFailures} probe failures)`)
+    }
+    if (ldJsonProbeFailures > 0) {
+        enrichmentMissing.push(`ldjson_probe_failed:${ldJsonProbeFailures}`)
     }
 
     const aggregate = computeAggregate(audited)
@@ -834,25 +845,38 @@ function expectedSchemaForType(pageType: string): string[] {
 // ─── Phase 4.3-S: LD-JSON probe ────────────────────────────────────────────
 // Lightweight HTML fetch + regex extraction of <script type="application/ld+json">.
 // Used to supplement DFS's `item.schema[]` which only covers microdata/RDFa.
-const LDJSON_FETCH_TIMEOUT_MS = 8_000
-const LDJSON_UA = 'Mozilla/5.0 (compatible; FlowmaticAudit/1.0; +https://flowmatic.co.il)'
+//
+// Phase 2026.01 (post-validation): timeout raised 8s → 15s after observing
+// 11+ TimeoutError failures on slow WP product pages on Packing Station
+// (which sits behind Cloudflare + has heavy WooCommerce queries). With 8s,
+// schema coverage was 55% (27/49). With 15s — TBD, expected 95%+.
+const LDJSON_FETCH_TIMEOUT_MS = 15_000
+// Use a realistic browser UA to avoid Cloudflare bot-challenge on probe
+// fetches. The FlowmaticAudit UA we used before sometimes triggered JS
+// challenge pages that returned 200 with no LD-JSON content.
+const LDJSON_UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 
-async function probeLdJsonTypes(url: string): Promise<string[]> {
+interface LdJsonProbeResult {
+    types: string[]
+    failed: boolean
+    /** Diagnostic reason — fetch_timeout / http_non_ok / parse_failed / no_schemas_found / ok */
+    reason: string
+}
+
+async function probeLdJsonTypes(url: string): Promise<LdJsonProbeResult> {
     // Phase 2026.01: full diagnostic logging on miss — needed to debug the
     // product-schema regression where parallel probe to Hebrew-encoded
-    // product URLs returned [] (suspected Cloudflare WAF or rate limit).
-    let httpStatus = 0
+    // product URLs returned [] (Cloudflare timeout on slow WP pages).
+    // Now retry once on timeout with extended deadline.
     let bodyLen = 0
     try {
-        const res = await fetch(url, {
-            headers: { 'User-Agent': LDJSON_UA, 'Accept': 'text/html,*/*' },
-            redirect: 'follow',
-            signal: AbortSignal.timeout(LDJSON_FETCH_TIMEOUT_MS),
-        })
-        httpStatus = res.status
+        const res = await fetchProbeWithRetry(url, 1)
+        if (!res) {
+            return { types: [], failed: true, reason: 'fetch_timeout' }
+        }
         if (!res.ok) {
-            console.warn(`[ldJsonProbe] non-OK ${httpStatus} for ${url.slice(0, 100)} — skipping LD-JSON enrichment`)
-            return []
+            console.warn(`[ldJsonProbe] non-OK ${res.status} for ${url.slice(0, 100)} — skipping LD-JSON enrichment`)
+            return { types: [], failed: true, reason: `http_${res.status}` }
         }
         const html = await res.text()
         bodyLen = html.length
@@ -867,20 +891,43 @@ async function probeLdJsonTypes(url: string): Promise<string[]> {
         }
         const unique = Array.from(new Set(types))
         if (unique.length === 0 && bodyLen > 5000) {
-            // Body big enough that LD-JSON SHOULD be there for a WordPress page
-            // (Yoast/RankMath inject schemas in head). Zero matches = likely
-            // Cloudflare challenge page returning 200 with JS challenge, OR
-            // page genuinely has no LD-JSON. Log for diagnostics.
             console.warn(`[ldJsonProbe] 0 types found despite ${bodyLen}b body for ${url.slice(0, 100)} — suspect WAF challenge or genuine absence`)
         }
-        return unique
+        return { types: unique, failed: false, reason: unique.length > 0 ? 'ok' : 'no_schemas_found' }
     } catch (err) {
-        // Network errors are non-fatal — DFS data still flows through, we just
-        // miss the LD-JSON enrichment for this URL.
         const e = err as Error
         console.warn(`[ldJsonProbe] fetch failed for ${url.slice(0, 100)}: ${e.name}/${e.message}`)
-        return []
+        return { types: [], failed: true, reason: `error_${e.name}` }
     }
+}
+
+/**
+ * Fetch with one retry on timeout. Returns null if both attempts time out.
+ * Other errors propagate. Adds a small jitter delay before retry to avoid
+ * synchronizing concurrent retries against the same origin.
+ */
+async function fetchProbeWithRetry(url: string, retries: number): Promise<Response | null> {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            return await fetch(url, {
+                headers: { 'User-Agent': LDJSON_UA, 'Accept': 'text/html,*/*' },
+                redirect: 'follow',
+                signal: AbortSignal.timeout(LDJSON_FETCH_TIMEOUT_MS),
+            })
+        } catch (err) {
+            const e = err as Error
+            if ((e.name === 'TimeoutError' || e.name === 'AbortError') && attempt < retries) {
+                // Random 200-700ms jitter to desync concurrent retries
+                await new Promise(r => setTimeout(r, 200 + Math.floor(Math.random() * 500)))
+                continue
+            }
+            if (e.name === 'TimeoutError' || e.name === 'AbortError') {
+                return null
+            }
+            throw err
+        }
+    }
+    return null
 }
 
 function collectTypes(node: unknown, out: string[]): void {
