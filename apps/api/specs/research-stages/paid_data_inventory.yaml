@@ -1,0 +1,175 @@
+# ============================================================================
+# Stage: paid_data_inventory
+# Version: 2026.01
+# Status: APPROVED 2026-05-22 (autonomous, per audit recommendation)
+# ============================================================================
+
+stage_id: paid_data_inventory
+version: 2026.01
+purpose: |
+  Deterministic classification of paid-readiness — T-tier (data volume)
+  AND tracking_quality (signal correctness) orthogonally. Output feeds
+  all downstream paid stages (paid_competitor / paid_keyword / paid_audit /
+  paid_budget / media_plan).
+
+# ----------------------------------------------------------------------------
+# Inputs
+# ----------------------------------------------------------------------------
+inputs:
+  required:
+    - field: agent's integration adapters (googleAds, meta, ga4, gtm)
+  recommended:
+    - field: agent_integrations.googleAds.config — for Enhanced Conversions check
+    - field: agent_integrations.meta.config — for CAPI EMQ check (Phase 2026.02)
+    - field: agent_integrations.ga4.config — for events + funnel data
+
+# ----------------------------------------------------------------------------
+# Two orthogonal classification axes
+# ----------------------------------------------------------------------------
+classification:
+  t_tier:
+    description: data volume
+    values:
+      T0_cold_start:
+        condition: no_paid_history AND <10 conversions/30d
+        label_he: "מתחילים — אין נתונים"
+      T1_data_thin:
+        condition: 10-30 conversions/30d
+        label_he: "דק — נתונים מועטים"
+      T2_warming:
+        condition: 30-100 conversions/30d
+        label_he: "מתחמם — מספיק ל-tCPA"
+      T3_zombie:
+        condition: previously high, dropped to <30/30d
+        label_he: "זומבי — קריסת אותות"
+      T4_mature:
+        condition: ≥100 conversions/30d, ≥6 months history
+        label_he: "בוגר — מוכן ל-tROAS"
+
+  tracking_quality:
+    description: signal correctness (NEW in 2026.01)
+    values:
+      broken:
+        conditions:
+          - no_enhanced_conversions OR enhanced_conversions_match_rate <50%
+          - missing_OCI_if_service_business
+          - meta_emq_score <5 (Phase 2026.02 — when EMQ accessible)
+        label_he: "תקוע — האותות שבורים"
+        severity: CRITICAL
+      partial:
+        conditions:
+          - EC enabled but match_rate 50-70%
+          - OCI missing for some service paths
+        label_he: "חלקי — חוסר התאמה ב-30-50%"
+      mature:
+        conditions:
+          - EC match_rate ≥70%
+          - OCI present if service business
+          - Consent Mode v2 enabled
+          - Hebrew phone format compliant (+972XXXXXXXXX) in customer_match
+        label_he: "בריא — אותות מלאים"
+
+# ----------------------------------------------------------------------------
+# NEW checks (Phase 2026.01) — orthogonal to T-tier
+# ----------------------------------------------------------------------------
+new_checks:
+  - id: asc_eligibility
+    description: |
+      Meta Advantage+ Shopping Campaigns require ≥50 purchases/week.
+      Below threshold, ASC burns budget in "exploration mode" without
+      reaching learned phase. Recommend traditional Conversion campaigns
+      instead.
+    derivation: meta.purchases_last_4_weeks >= 200
+    output_field: asc_viable: bool
+
+  - id: hebrew_phone_audit
+    description: |
+      Customer Match lists for IL must use +972XXXXXXXXX format
+      (no leading 0, no 0972 prefix). Match rate drops to ~30% when
+      format wrong.
+    derivation: |
+      Sample customer_match list — count entries with valid +972 vs
+      0972/05X/other formats.
+    output_field: hebrew_phone_compliance_pct: float
+
+  - id: il_currency_consistency
+    description: |
+      GA4 + Google Ads + Merchant Center must all report in ILS.
+      Mismatch breaks ROAS bidding.
+    output_field: il_currency_consistent: bool
+
+  - id: consent_mode_v2
+    description: |
+      In IL formally not required (no GDPR) but Google rewards Consent
+      Mode v2 accounts with better modeling. Basic mode minimum.
+    output_field: consent_mode_v2_status: enum[disabled, basic, advanced]
+
+  - id: data_driven_attribution_readiness
+    description: |
+      DDA requires ≥300 conversions/30d. Below this it's noise — last-click
+      default is less harmful.
+    output_field: attribution_readiness: enum[ready, thin, insufficient]
+
+# ----------------------------------------------------------------------------
+# Output schema
+# ----------------------------------------------------------------------------
+outputs:
+  # Same top-level structure as v1 (back-compat) plus new fields
+  t_tier: enum
+  t_tier_rationale_he: string
+
+  tracking_quality: enum   # NEW
+  tracking_quality_rationale_he: string  # NEW
+
+  asc_viable: bool         # NEW
+  hebrew_phone_compliance_pct: float | null   # NEW
+  il_currency_consistent: bool                  # NEW
+  consent_mode_v2_status: enum                  # NEW
+  attribution_readiness: enum                   # NEW
+
+  adapters: array<{ provider, status, last_event_at, conversions_30d, conversions_90d }>
+  capabilities: array<string>
+  actions:
+    type: array<{ id, priority_class, action_he, effort_hours, prerequisite_for_tier_advance }>
+    semantics: "ordered by priority_class P0/P1/backlog; Hebrew action text"
+  estimated_setup_cost_monthly_ils: number
+  estimated_days_to_next_tier: int
+
+# ----------------------------------------------------------------------------
+# Quality gates
+# ----------------------------------------------------------------------------
+quality_gates:
+  hard:
+    - id: t_tier_classified
+      check: t_tier in valid 5 values
+    - id: tracking_quality_classified
+      check: tracking_quality in [broken, partial, mature]
+    - id: every_action_has_priority
+      check: actions.every(a => a.priority_class in [P0, P1, backlog])
+
+  soft:
+    - id: tracking_quality_alert_if_broken
+      check: tracking_quality != 'broken'
+      degrade_he: "tracking_quality=broken — 20-40% budget waste צפוי עד תיקון"
+
+    - id: hebrew_phone_audit_warning
+      check: hebrew_phone_compliance_pct == null OR hebrew_phone_compliance_pct >= 80
+      degrade_he: "פחות מ-80% מטלפוני customer_match בפורמט +972 — match rate נמוך"
+
+# ----------------------------------------------------------------------------
+# Cost (deterministic stage, no DFS / LLM)
+# ----------------------------------------------------------------------------
+cost_constraints:
+  max_dfs_usd_per_run: 0   # no DFS
+  max_llm_tokens_per_run: 0   # no LLM
+
+# ----------------------------------------------------------------------------
+# Failure modes
+# ----------------------------------------------------------------------------
+failure_modes:
+  no_adapters_connected:
+    action: degraded_warning
+    fallback: classify_as_T0_cold_start
+  meta_emq_not_accessible:
+    action: skip_check
+    note: deferred to Phase 2026.02 when Meta Marketing API EMQ endpoint integrated

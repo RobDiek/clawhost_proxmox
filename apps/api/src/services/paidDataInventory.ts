@@ -128,6 +128,29 @@ export interface PaidDataInventory {
         conv30d: number
     }>
     dominantPlatform?: string | null
+
+    // Phase 2026.01 — orthogonal tracking_quality dimension + ASC/IL checks.
+    // See specs/research-stages/paid_data_inventory.yaml v2026.01.
+    trackingQuality?: {
+        status: 'broken' | 'partial' | 'mature'
+        rationaleHe: string
+        signals: {
+            enhanced_conversions_match_rate_pct: number | null
+            oci_present_if_needed: boolean | null
+            consent_mode_v2_status: 'disabled' | 'basic' | 'advanced' | 'unknown'
+            il_currency_consistent: boolean | null
+            hebrew_phone_compliance_pct: number | null
+        }
+    }
+    advantagePlusEligibility?: {
+        asc_viable: boolean
+        meta_purchases_4w: number | null
+        reason_he: string
+    }
+    attributionReadiness?: {
+        status: 'ready' | 'thin' | 'insufficient'
+        rationale_he: string
+    }
 }
 
 // ─── Tier classification logic ─────────────────────────────────────────────
@@ -778,6 +801,11 @@ export async function runPaidDataInventory(instanceId: string): Promise<PaidData
                 : tierInfo.tier === 'T2' ? 14
                     : 30
 
+    // ── Phase 2026.01 — orthogonal tracking_quality + ASC + attribution checks ──
+    const trackingQuality = computeTrackingQuality({ adapters, capabilities, paidProfile: pp, answers })
+    const advantagePlusEligibility = computeAdvantagePlusEligibility({ adapters, perPlatform: perPlatformTiers })
+    const attributionReadiness = computeAttributionReadiness({ conv30d: aggregateConv30d })
+
     return {
         instanceId,
         agentId: agent?.id,
@@ -805,5 +833,133 @@ export async function runPaidDataInventory(instanceId: string): Promise<PaidData
             }))
             : undefined,
         dominantPlatform: dominantPlatform || undefined,
+        trackingQuality,
+        advantagePlusEligibility,
+        attributionReadiness,
     }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Phase 2026.01 — Tracking quality / ASC / Attribution checks
+// ────────────────────────────────────────────────────────────────────────────
+
+function computeTrackingQuality(args: {
+    adapters: AdapterStatus[]
+    capabilities: { available: PaidCapability[]; blocked: CapabilityBlockedReason[] }
+    paidProfile: Record<string, unknown>
+    answers: Record<string, unknown>
+}): NonNullable<PaidDataInventory['trackingQuality']> {
+    const { adapters, capabilities, paidProfile } = args
+    const adsAdapter = adapters.find(a => a.id === 'google_ads')
+    const ga4Adapter = adapters.find(a => a.id === 'ga4')
+
+    // EC match rate — pulled from googleAdsConfig.enhancedConversionsStatus if present
+    const ecMatchRate = (adsAdapter?.metadata?.enhancedConversionsMatchRate as number | undefined) ?? null
+
+    // OCI presence — for service businesses ONLY
+    const ts = (paidProfile?.trackingStack as { phoneCallsRelevant?: boolean; ociEnabled?: boolean } | undefined) || {}
+    const isService = String(paidProfile?.businessKind || '').toLowerCase().includes('service')
+        || ts.phoneCallsRelevant === true
+    const ociPresent = capabilities.available.includes('enhanced_conversions_for_leads' as PaidCapability)
+        || ts.ociEnabled === true
+    const oci_present_if_needed = isService ? ociPresent : true
+
+    // Consent Mode v2 — read from paidProfile.consentMode or default unknown
+    const consentMode = (paidProfile?.consentMode as 'disabled' | 'basic' | 'advanced' | undefined) || 'unknown'
+
+    // IL currency consistency — best-effort from adapter metadata
+    const adsCurrency = (adsAdapter?.metadata?.currency as string | undefined) || null
+    const ga4Currency = (ga4Adapter?.metadata?.currency as string | undefined) || null
+    const il_currency_consistent = adsCurrency && ga4Currency
+        ? (adsCurrency === 'ILS' && ga4Currency === 'ILS')
+        : null
+
+    // Hebrew phone compliance — sample customer_match list if available
+    const customerMatchSample = (paidProfile?.customerMatchSample as string[] | undefined) || []
+    const hebrew_phone_compliance_pct = customerMatchSample.length > 0
+        ? Math.round((customerMatchSample.filter(p => /^\+972\d{8,9}$/.test(p.trim())).length / customerMatchSample.length) * 100)
+        : null
+
+    // Classify
+    const isBroken = (
+        (ecMatchRate !== null && ecMatchRate < 50)
+        || (isService && !ociPresent)
+    )
+    const isMature = (
+        (ecMatchRate !== null && ecMatchRate >= 70)
+        && (oci_present_if_needed)
+        && (consentMode !== 'disabled')
+        && (hebrew_phone_compliance_pct === null || hebrew_phone_compliance_pct >= 80)
+    )
+    let status: 'broken' | 'partial' | 'mature'
+    let rationaleHe: string
+    if (isBroken) {
+        status = 'broken'
+        rationaleHe = ecMatchRate !== null && ecMatchRate < 50
+            ? `Enhanced Conversions match rate נמוך (${ecMatchRate}% < 50%) — 20-40% מהאותות אבודים`
+            : 'חסר Offline Conversion Import לעסק שירות — לידים איכותיים לא נספרים'
+    } else if (isMature) {
+        status = 'mature'
+        rationaleHe = 'אותות מלאים — EC ≥70%, OCI ✓, Consent Mode v2 ✓'
+    } else {
+        status = 'partial'
+        rationaleHe = ecMatchRate !== null
+            ? `EC match rate ${ecMatchRate}% (50-70%) — מספיק לפעולה אבל לא מקסימלי`
+            : 'מצב חלקי — חלק מהאותות הוגדרו, חסר מעט להשלמה'
+    }
+
+    return {
+        status,
+        rationaleHe,
+        signals: {
+            enhanced_conversions_match_rate_pct: ecMatchRate,
+            oci_present_if_needed,
+            consent_mode_v2_status: consentMode,
+            il_currency_consistent,
+            hebrew_phone_compliance_pct,
+        },
+    }
+}
+
+function computeAdvantagePlusEligibility(args: {
+    adapters: AdapterStatus[]
+    perPlatform: Array<{ platform: string; conv30: number }>
+}): NonNullable<PaidDataInventory['advantagePlusEligibility']> {
+    const metaAdapter = args.adapters.find(a => a.id === 'meta_ads')
+    if (!metaAdapter?.connected) {
+        return {
+            asc_viable: false,
+            meta_purchases_4w: null,
+            reason_he: 'Meta Ads לא מחובר — לא ניתן להעריך ASC',
+        }
+    }
+    // Estimate weekly purchases — Meta conv30d / 30 × 7
+    const meta = args.perPlatform.find(p => p.platform.toLowerCase().includes('meta'))
+    const metaPurchases4w = meta?.conv30 ?? null
+    if (metaPurchases4w === null) {
+        return {
+            asc_viable: false,
+            meta_purchases_4w: null,
+            reason_he: 'לא נמצאו נתוני רכישה ב-Meta ל-30 הימים האחרונים',
+        }
+    }
+    // ASC threshold: 50 purchases/week = 200/month
+    const ascViable = metaPurchases4w >= 200
+    return {
+        asc_viable: ascViable,
+        meta_purchases_4w: metaPurchases4w,
+        reason_he: ascViable
+            ? `${metaPurchases4w} רכישות ב-30 ימים — מעל סף ASC (200)`
+            : `${metaPurchases4w} רכישות ב-30 ימים — מתחת לסף ASC (200). השתמשו ב-Conversion campaigns מסורתיים.`,
+    }
+}
+
+function computeAttributionReadiness(args: { conv30d: number }): NonNullable<PaidDataInventory['attributionReadiness']> {
+    if (args.conv30d >= 300) {
+        return { status: 'ready', rationale_he: `${args.conv30d} המרות ב-30 ימים — data-driven attribution מוכן` }
+    }
+    if (args.conv30d >= 100) {
+        return { status: 'thin', rationale_he: `${args.conv30d} המרות ב-30 ימים — DDA אפשרי אבל רעש משמעותי. שקלו last-click כברירת מחדל.` }
+    }
+    return { status: 'insufficient', rationale_he: `${args.conv30d} המרות ב-30 ימים — לא מספיק ל-DDA. last-click default מומלץ.` }
 }
