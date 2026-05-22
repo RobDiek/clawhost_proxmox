@@ -105,6 +105,37 @@ export interface InternalSeoAuditDfsData {
         deepPagesCount: number            // pathDepth >= 4
         schemaTypeFrequency: Record<string, number>
     }
+    /** Phase 2026.01 — Helpful Content vulnerability + E-E-A-T + IL signals.
+     *  Computed deterministically from `urls[]` + sitemap data. Consumed by
+     *  LLM prompt for narrative + by audit framework for quality gates. */
+    helpfulContent: {
+        vulnerability_score: number          // 0-100, weighted from 4 signals
+        signals: {
+            index_ratio_pct: number | null      // null if GSC unavailable
+            thin_content_pct: number            // % pages with word_count < 300
+            templated_meta_pct: number          // % URLs with near-duplicate titles
+            orphan_rate_pct: number | null      // null if no link graph
+        }
+    }
+    eeatAudit: {
+        organization_schema_present: boolean
+        organization_schema_complete: boolean   // has name + url + sameAs[]
+        organization_sameAs_count: number
+        author_person_schema_present: boolean
+        wikidata_qid_status: 'not_created' | 'suggested' | 'verified' | 'unknown'
+    }
+    ilSpecific: {
+        mobile_first_compliance: number      // 0-100 (mobile-related signals from page_timing + checks)
+        rtl_implementation_quality: number   // 0-100 (hreflang, dir attribute, ...)
+        hebrew_alt_text_coverage_pct: number // % images with alt (proxy from DFS checks)
+        hreflang_he_il_present: boolean
+    }
+    quadrantSummary: {
+        technical: number                    // 0-100 (CWV + schema + crawlability)
+        content: number                      // 0-100 (word counts + intent coverage)
+        authority: number                    // 0-100 (currently a proxy from onpage_score avg)
+        eeat: number                         // 0-100 (computed from eeatAudit fields)
+    }
     totalCostUsd: number
     cacheHits: number
     cacheMisses: number
@@ -311,7 +342,13 @@ export async function prefetchInternalSeoAudit(
 
     const aggregate = computeAggregate(audited)
 
-    console.log(`[prefetch/internal_seo_audit] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} urls=${audited.length} avg_words=${aggregate.avgWordCount} deep=${aggregate.deepPagesCount} thin=${aggregate.thinContentCount}`)
+    // Phase 2026.01 — Helpful Content vulnerability + E-E-A-T + IL signals
+    const helpfulContent = computeHelpfulContent(audited, aggregate, sitemap.entryCount)
+    const eeatAudit = computeEeatAudit(audited, homepageUrl)
+    const ilSpecific = computeIlSpecific(audited, ourDomain)
+    const quadrantSummary = computeQuadrantSummary(aggregate, helpfulContent, eeatAudit, ilSpecific)
+
+    console.log(`[prefetch/internal_seo_audit] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} urls=${audited.length} avg_words=${aggregate.avgWordCount} thin=${aggregate.thinContentCount} hc_vuln=${helpfulContent.vulnerability_score} eeat=${quadrantSummary.eeat}`)
 
     return {
         ourDomain,
@@ -330,6 +367,10 @@ export async function prefetchInternalSeoAudit(
         },
         urls: audited,
         aggregate,
+        helpfulContent,
+        eeatAudit,
+        ilSpecific,
+        quadrantSummary,
         totalCostUsd,
         cacheHits,
         cacheMisses,
@@ -951,4 +992,212 @@ function computeAggregate(urls: UrlAuditEntry[]): InternalSeoAuditDfsData['aggre
         deepPagesCount: deepCount,
         schemaTypeFrequency: schemaFreq,
     }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Phase 2026.01 — Helpful Content / E-E-A-T / IL-specific computations
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Helpful Content Vulnerability — weighted score from 4 senior-validated signals:
+ *   - Index ratio (indexed / submitted) < 70%  → Google's explicit verdict
+ *   - Thin content % (pages with word_count < 300) > 30%
+ *   - Templated meta titles > 40% (string similarity clustering)
+ *   - Orphan rate > 15% (pages without internal links)
+ *
+ * Weights derived from Sergei's playbook: index ratio carries the most
+ * weight (it's Google's own verdict). Orphan rate has lower weight here
+ * because we lack a link graph (Firecrawl deferred to Phase E2) — would
+ * upgrade once we have it.
+ */
+function computeHelpfulContent(
+    urls: UrlAuditEntry[],
+    aggregate: InternalSeoAuditDfsData['aggregate'],
+    sitemapEntryCount: number,
+): InternalSeoAuditDfsData['helpfulContent'] {
+    const okUrls = urls.filter(u => u.fetchOk)
+    const totalCrawled = okUrls.length
+
+    // Signal 1: index_ratio_pct — requires GSC (not available in prefetch context)
+    // For now, null. Phase 2026.02 will pull this from agent's GSC integration.
+    const index_ratio_pct: number | null = null
+
+    // Signal 2: thin content %
+    const thin_content_pct = totalCrawled > 0
+        ? Math.round((aggregate.thinContentCount / totalCrawled) * 100)
+        : 0
+
+    // Signal 3: templated meta titles — count URLs sharing identical or near-identical titles
+    const dupTitleUrls = aggregate.urlsWithDuplicateTitle.reduce((sum, g) => sum + g.urls.length, 0)
+    const templated_meta_pct = totalCrawled > 0
+        ? Math.round((dupTitleUrls / totalCrawled) * 100)
+        : 0
+
+    // Signal 4: orphan_rate_pct — needs link graph, deferred
+    const orphan_rate_pct: number | null = null
+
+    // Weighted score (0-100 vulnerability: higher = more vulnerable)
+    // Each signal contributes max points equal to its threshold weight when at/above threshold,
+    // partial credit otherwise. Score capped at 100.
+    let score = 0
+    // index_ratio: weight 35 (Google's own verdict — heaviest)
+    if (index_ratio_pct !== null) {
+        if (index_ratio_pct < 70) score += 35 * Math.min(1, (70 - index_ratio_pct) / 30)
+    }
+    // thin_content: weight 25
+    if (thin_content_pct > 30) score += 25 * Math.min(1, (thin_content_pct - 30) / 30)
+    // templated_meta: weight 25
+    if (templated_meta_pct > 40) score += 25 * Math.min(1, (templated_meta_pct - 40) / 30)
+    // orphan_rate: weight 15
+    if (orphan_rate_pct !== null && orphan_rate_pct > 15) {
+        score += 15 * Math.min(1, (orphan_rate_pct - 15) / 20)
+    }
+
+    // Adjust for sitemap size — large sites with templated patterns are at higher risk
+    if (sitemapEntryCount > 500 && templated_meta_pct > 20) score += 5
+
+    return {
+        vulnerability_score: Math.min(100, Math.round(score)),
+        signals: {
+            index_ratio_pct,
+            thin_content_pct,
+            templated_meta_pct,
+            orphan_rate_pct,
+        },
+    }
+}
+
+/**
+ * E-E-A-T audit — checks for Organization + Person schema presence, sameAs
+ * coverage. Wikidata Q-ID status is 'unknown' until we integrate Wikidata
+ * Query Service (deferred). All gates are SOFT per spec — surface as
+ * opportunity, not block.
+ */
+function computeEeatAudit(
+    urls: UrlAuditEntry[],
+    homepageUrl: string,
+): InternalSeoAuditDfsData['eeatAudit'] {
+    void homepageUrl
+    const allSchemas = new Set<string>()
+    const sameAsCount = 0
+    for (const u of urls) {
+        if (!u.fetchOk) continue
+        for (const s of u.schemaTypes) allSchemas.add(s.toLowerCase())
+    }
+    const hasOrg = allSchemas.has('organization') || allSchemas.has('localbusiness')
+    const hasPerson = allSchemas.has('person')
+
+    // sameAs count — would need to actually parse the LD-JSON to count entries.
+    // We don't currently extract that, so set 0 here (will be enriched in
+    // Phase 2026.02 when we add structured-data deep extraction).
+    void sameAsCount
+
+    return {
+        organization_schema_present: hasOrg,
+        organization_schema_complete: hasOrg,    // simplified — true complete check needs sameAs parsing
+        organization_sameAs_count: 0,            // requires LD-JSON deep parse, Phase 2026.02
+        author_person_schema_present: hasPerson,
+        wikidata_qid_status: 'unknown',          // requires Wikidata Query Service, Phase 2026.02
+    }
+}
+
+/**
+ * IL-specific signals — mobile-first compliance, RTL implementation, Hebrew
+ * alt text coverage, hreflang. Mobile gets 1.5x weight in priority score per
+ * spec (75% IL traffic is mobile).
+ */
+function computeIlSpecific(
+    urls: UrlAuditEntry[],
+    ourDomain: string,
+): InternalSeoAuditDfsData['ilSpecific'] {
+    void ourDomain
+    const ok = urls.filter(u => u.fetchOk)
+
+    // Mobile-first compliance — proxy from page_timing (LCP, DOM complete)
+    // LCP < 2500ms = good, LCP < 4000ms = needs improvement, > 4000ms = poor
+    let mobileScoreSum = 0
+    let mobileScoreSamples = 0
+    for (const u of ok) {
+        const lcp = u.pageTiming?.lcp_ms
+        if (typeof lcp !== 'number') continue
+        const pageScore = lcp < 2500 ? 100 : lcp < 4000 ? 60 : 30
+        mobileScoreSum += pageScore
+        mobileScoreSamples++
+    }
+    const mobile_first_compliance = mobileScoreSamples > 0
+        ? Math.round(mobileScoreSum / mobileScoreSamples)
+        : 50  // no timing data = unknown, default mid
+
+    // RTL implementation quality — would need actual HTML inspection.
+    // For now, return a neutral 70 (no hard signal yet). Phase 2026.02 adds
+    // proper HTML head extraction (hreflang, <html dir>, <bdi> usage).
+    const rtl_implementation_quality = 70
+
+    // Hebrew alt text coverage — would need image-level DFS data or HTML probe.
+    // DFS exposes `checks.no_image_alt` as boolean per page. Use that as proxy.
+    let altOk = 0
+    let altSamples = 0
+    for (const u of ok) {
+        // We don't store checks in UrlAuditEntry currently — only dfsIssues
+        // (truthy keys). Treat presence of 'no_image_alt' issue as a missing-alt
+        // signal. Phase 2026.02 will expose checks directly.
+        if (u.dfsIssues.includes('no_image_alt')) altSamples++
+        else altSamples++
+        if (!u.dfsIssues.includes('no_image_alt')) altOk++
+    }
+    const hebrew_alt_text_coverage_pct = altSamples > 0
+        ? Math.round((altOk / altSamples) * 100)
+        : 0
+
+    // hreflang_he_il_present — would need HTML head probe. Default false.
+    const hreflang_he_il_present = false
+
+    return {
+        mobile_first_compliance,
+        rtl_implementation_quality,
+        hebrew_alt_text_coverage_pct,
+        hreflang_he_il_present,
+    }
+}
+
+/**
+ * Compute 4-quadrant summary (technical / content / authority / E-E-A-T).
+ * Each quadrant is 0-100. Used by audit framework + LLM prompt for narrative.
+ */
+function computeQuadrantSummary(
+    aggregate: InternalSeoAuditDfsData['aggregate'],
+    helpfulContent: InternalSeoAuditDfsData['helpfulContent'],
+    eeatAudit: InternalSeoAuditDfsData['eeatAudit'],
+    ilSpecific: InternalSeoAuditDfsData['ilSpecific'],
+): InternalSeoAuditDfsData['quadrantSummary'] {
+    // Technical: avgOnpageScore + mobile compliance + schema coverage
+    const schemaCoveragePct = aggregate.crawledCount > 0
+        ? Math.round(((aggregate.crawledCount - aggregate.urlsWithoutSchema) / aggregate.crawledCount) * 100)
+        : 0
+    const technical = Math.round(
+        (aggregate.avgOnpageScore * 0.5) +
+        (ilSpecific.mobile_first_compliance * 0.3) +
+        (schemaCoveragePct * 0.2),
+    )
+
+    // Content: word count avg + thin pct (inverted) + duplicate titles (inverted)
+    const wordScore = aggregate.avgWordCount > 800 ? 100 : aggregate.avgWordCount > 400 ? 70 : aggregate.avgWordCount > 200 ? 40 : 20
+    const thinInverse = 100 - helpfulContent.signals.thin_content_pct
+    const templatedInverse = 100 - helpfulContent.signals.templated_meta_pct
+    const content = Math.round((wordScore * 0.4) + (thinInverse * 0.3) + (templatedInverse * 0.3))
+
+    // Authority: currently a proxy (avgOnpageScore again — needs backlink data
+    // from link_audit stage to be properly computed). Phase 2026.02.
+    const authority = Math.round(aggregate.avgOnpageScore)
+
+    // E-E-A-T: composite of org/person schema + sameAs + Wikidata status
+    let eeat = 0
+    if (eeatAudit.organization_schema_present) eeat += 30
+    if (eeatAudit.organization_schema_complete) eeat += 20
+    if (eeatAudit.author_person_schema_present) eeat += 25
+    if (eeatAudit.organization_sameAs_count >= 3) eeat += 15
+    if (eeatAudit.wikidata_qid_status === 'verified') eeat += 10
+    eeat = Math.min(100, eeat)
+
+    return { technical, content, authority, eeat }
 }
