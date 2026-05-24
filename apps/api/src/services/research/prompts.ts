@@ -1465,7 +1465,7 @@ ${haBlock}
 
 אתם senior מרקטולוג עם 15 שנות ניסיון. צרו **שתי אופציות אסטרטגיה מלאות** מבוססות על הנתונים שלמעלה:
 - **Smart** (low-comp / lean budget) — תקיפת long-tail + striking distance + AEO targets. ${ctmAvailable ? 'תקציב חודשי + משך + KPI חייבים להיות זהים ל-cost_timeline_modeling.smart record.' : 'ללא calibration זמין — סמנו working_hypothesis.'}
-- **All-In** (head terms / aggressive) — תקיפת keywords תחרותיים + paid acceleration. ${ctmAvailable ? 'תקציב חודשי + משך + KPI חייבים להיות זהים ל-cost_timeline_modeling.aggressive record.' : 'ללא calibration זמין — סמנו working_hypothesis.'}
+- **Aggressive** (head terms / paid acceleration) — תקיפת keywords תחרותיים + paid acceleration. ${ctmAvailable ? 'תקציב חודשי + משך + KPI חייבים להיות זהים ל-cost_timeline_modeling.aggressive record.' : 'ללא calibration זמין — סמנו working_hypothesis.'}
 
 ${ctmAvailable ? '**אסור להמציא מספרים** — cost_timeline_modeling stage כבר חישב אותם ב-IL constants + formulas מדויקים. תפקידכם: אסטרטגיה (channels / KPIs / risks / first-win) — לא תקצוב.' : ''}
 
@@ -1575,9 +1575,9 @@ ${JSON_OUTPUT_RULES}
         }
       },
       "budget_allocation_ils": [
-        { "monthly_budget_ils": 1000, "channel_1_ils": 0, "channel_2_ils": 0, "channel_3_ils": 0, "reserve_ils": 0 },
-        { "monthly_budget_ils": 3000, "channel_1_ils": 0, "channel_2_ils": 0, "channel_3_ils": 0, "reserve_ils": 0 },
-        { "monthly_budget_ils": 5000, "channel_1_ils": 0, "channel_2_ils": 0, "channel_3_ils": 0, "reserve_ils": 0 }
+        { "monthly_budget_ils": 1000, "channel_1_ils": 0, "channel_2_ils": 0, "channel_3_ils": 0, "aeo_geo_setup_ils": 0, "reserve_ils": 0 },
+        { "monthly_budget_ils": 3000, "channel_1_ils": 0, "channel_2_ils": 0, "channel_3_ils": 0, "aeo_geo_setup_ils": 0, "reserve_ils": 0 },
+        { "monthly_budget_ils": 5000, "channel_1_ils": 0, "channel_2_ils": 0, "channel_3_ils": 0, "aeo_geo_setup_ils": 0, "reserve_ils": 0 }
       ],
       "risks_mitigations": [
         { "risk": "1 שורה", "probability": "low | medium | high", "impact": "low | medium | high", "mitigation": "1 שורה — פעולה קונקרטית" }
@@ -1588,19 +1588,19 @@ ${JSON_OUTPUT_RULES}
       "generated_at": "ISO timestamp"
     },
     {
-      "scenario": "all_in",
-      "scenario_label_he": "All-In — תוקפים head terms + paid acceleration",
+      "scenario": "aggressive",
+      "scenario_label_he": "Aggressive — תוקפים head terms + paid acceleration",
       "// _": "Same shape as smart — fill all fields. Different first_win_channel + heavier budget + longer timeline + paid component."
     }
   ],
-  "recommended_default": "smart | all_in",
+  "recommended_default": "smart | aggressive",
   "recommendation_rationale": "1-2 משפטים: למה ה-default מומלץ עבור profile העסק הזה — תקציב, bandwidth, מצב תחרותי",
   "confidence": "high | medium | working_hypothesis"
 }
 \`\`\`
 
 **חובה:**
-- בדיוק **2 records**: scenario='smart' + scenario='all_in'. אסור ליצור hybrid או לדלג על אחד.
+- בדיוק **2 records**: scenario='smart' + scenario='aggressive'. אסור ליצור hybrid או לדלג על אחד. אסור להשתמש בשמות אחרים (אסור 'all_in', אסור 'conservative' — רק 'smart' / 'aggressive').
 - כל record חייב לעבור 3 must-pass tests של first_win_channel — אם לא עובר, סמנו hard_stops + confidence: working_hypothesis.
 - KPI metrics חייבים להכיל לפחות 6 מדדים: ביקורים אורגניים, לידים, לקוחות משלמים, MRR, CAC, LTV:CAC.
 - 3 תרחישים בכל KPI: conservative / base / upside — אסור לדלג על conservative ("realistic minimum").
@@ -1608,6 +1608,8 @@ ${JSON_OUTPUT_RULES}
 - ל-30_day_plan חייבים להיות 4 day_range buckets (1-3, 4-10, 11-20, 21-30) — לא להמציא חלוקה אחרת.
 - linked_keywords / linked_persona / linked_competitors חייבים להפנות לרשומות אמיתיות מ-upstream stages — אסור להמציא keyword או persona שלא מופיעים שם.
 - realism_checklist_passed: כל item שלא עובר → confidence ל-record יורד ל-medium לפחות; 3+ items נופלים → working_hypothesis.
+- **\`hard_stops_applied\`** חייב להיות מערך (לפחות \`[]\` אם אין). אסור שיהיה undefined/null. רישום ערכים: כל hard stop שמוחל מ-FIRST_WIN_CHANNEL_RULES (no_distinct_intent_page_type, cant_beat_serp_uniqueness, ymyl_without_expert_review, almost_only_zero_click, programmatic_thin_risk).
+- **\`aeo_geo_setup_ils\` ב-\`budget_allocation_ils\`** — חובה למלא לפי \`cost_timeline_modeling.records[scenario].aeo_geo_effort_breakdown.agency_equivalent_cost_ils\` חלקי משך התרחיש (one-time → מפוזר על-פני חודשים 1-2). דוגמה: Smart=₪3,250 setup ÷ 2 חודשים = ₪1,625/חודש בחודשים 1-2 ואז ₪0 מחודש 3. אם Stage 8 לא ריצה — סמנו ${'$'}{ctmAvailable ? '' : '0 + הסבר ב-confidence_rationale'}.
 
 ### חלק 3: Tradeoff Analysis (markdown)
 טבלה: Smart vs All-In on 5 dimensions: time-to-first-customer, total budget, risk profile, scalability ceiling, team bandwidth required. כל cell עם confidence inline marker.
