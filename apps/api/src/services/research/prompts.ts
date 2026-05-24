@@ -2969,12 +2969,22 @@ ${JSON_OUTPUT_RULES}
         "links_total": ${smart.inputs.links_total ?? 'מתוך inputs'},
         "tech_seo_hours": ${smart.inputs.tech_seo_hours ?? 'מתוך inputs'}
       },
+      "aeo_geo_effort_breakdown": {
+        "_note": "AEO/GEO setup work hours — once-off in months 1-2 (Wikidata entry creation requires human verification; Person/Org schema deployment requires CMS access; DefinedTerm rollout per glossary page; AIO probing infrastructure already bundled in platform). Multiply hours × ₪${dfs.constants_snapshot.tech_seo_ils_per_hour}/h for agency-equivalent cost; platform-DIY = ₪0 labor as agents draft.",
+        "wikidata_qid_setup_hours": 0,
+        "person_organization_schema_deploy_hours": 0,
+        "definedterm_glossary_rollout_hours": 0,
+        "aio_probing_setup_hours": 0,
+        "total_aeo_geo_hours": 0,
+        "agency_equivalent_cost_ils": 0,
+        "platform_diy_cost_ils": 0
+      },
       "monthly_kpi_projection": ${JSON.stringify(smart.monthly_kpis)},
       "risk_factors": ${JSON.stringify(smart.model_trace.risk_factors)},
       "what_could_go_wrong": ["3 דברים קונקרטיים בעברית — מה יכול לעצור את התרחיש"],
       "early_warning_signs": ["3 leading indicators בעברית שצריך לעקוב אחריהם בחודשים 1-3"],
       "confidence": "high | medium | working_hypothesis",
-      "evidence": ["upstream_internal_seo_audit", "upstream_seo_keyword_research", "upstream_link_audit", "il_constants_2026", "platform_diy_baseline"]
+      "evidence": ["upstream_competitor_landscape", "upstream_internal_seo_audit", "upstream_seo_keyword_research", "upstream_aeo_visibility", "upstream_link_audit", "upstream_audience_personas", "il_constants_2026", "platform_diy_baseline"]
     },
     {
       "scenario": "aggressive",
@@ -3002,12 +3012,22 @@ ${JSON_OUTPUT_RULES}
         "links_total": ${aggressive.inputs.links_total ?? 'מתוך inputs'},
         "tech_seo_hours": ${aggressive.inputs.tech_seo_hours ?? 'מתוך inputs'}
       },
+      "aeo_geo_effort_breakdown": {
+        "_note": "AEO/GEO setup work hours — once-off in months 1-2. Aggressive scenario gets MORE thorough AEO investment (deeper Wikidata, broader DefinedTerm coverage, more frequent AIO probing).",
+        "wikidata_qid_setup_hours": 0,
+        "person_organization_schema_deploy_hours": 0,
+        "definedterm_glossary_rollout_hours": 0,
+        "aio_probing_setup_hours": 0,
+        "total_aeo_geo_hours": 0,
+        "agency_equivalent_cost_ils": 0,
+        "platform_diy_cost_ils": 0
+      },
       "monthly_kpi_projection": ${JSON.stringify(aggressive.monthly_kpis)},
       "risk_factors": ${JSON.stringify(aggressive.model_trace.risk_factors)},
       "what_could_go_wrong": ["3 דברים קונקרטיים בעברית"],
       "early_warning_signs": ["3 leading indicators בעברית"],
       "confidence": "high | medium | working_hypothesis",
-      "evidence": ["upstream_internal_seo_audit", "upstream_seo_keyword_research", "upstream_link_audit", "il_constants_2026", "platform_diy_baseline"]
+      "evidence": ["upstream_competitor_landscape", "upstream_internal_seo_audit", "upstream_seo_keyword_research", "upstream_aeo_visibility", "upstream_link_audit", "upstream_audience_personas", "il_constants_2026", "platform_diy_baseline"]
     }
   ],
   "decision_guidance": {
@@ -3031,6 +3051,13 @@ ${JSON_OUTPUT_RULES}
 - \`what_could_go_wrong\` חייב להיות **קונקרטי** (לא "מתחרים יזיזו" אלא "אם avia2000 משחרר 3 long-form pillars ברבעון 1, ה-DR-gap יגדל וה-timeline יימתח ל-${aggressive.duration_months.max} חודשים").
 - \`early_warning_signs\` חייב להיות **measurable** (לדוגמה: "פחות מ-50 organic clicks בחודש 3 = לא הולכים לפי המודל").
 - אם confidence: working_hypothesis לאיזשהו scenario — חובה לציין למה ב-evidence.
+- **\`aeo_geo_effort_breakdown\`** — חובה למלא בשעות ריאליות (לא אפס):
+  * **Smart scenario** typical: wikidata=2-3h, schema=3-5h, definedterm=4-6h, aio_probing=0-1h → total ≈ 9-15h
+  * **Aggressive scenario** typical: wikidata=3-4h, schema=5-7h, definedterm=8-12h, aio_probing=1-2h → total ≈ 17-25h
+  * \`agency_equivalent_cost_ils\` = total_aeo_geo_hours × ₪${dfs.constants_snapshot.tech_seo_ils_per_hour}/h
+  * \`platform_diy_cost_ils\` = ₪0 (agents draft content, human only verifies/submits to Wikidata)
+  * **Rationale ל-AEO/GEO investment:** ב-2026 AIO citation share = leading indicator לכל ה-LLM funnel; אסור לדלג גם ב-Smart.
+- **\`evidence\`** — חובה לציין את כל ה-upstream stages שהשפיעו על המודל: לפחות \`upstream_competitor_landscape\`, \`upstream_internal_seo_audit\`, \`upstream_seo_keyword_research\`, \`upstream_aeo_visibility\`, \`upstream_link_audit\`, \`upstream_audience_personas\` (במידה ו-upstream נמצא). אם upstream חסר — אסור לציין אותו.
 
 ### חלק 3: המלצה אישית (markdown — בעברית בלבד)
 לפי ה-business_context (DR שלנו, top competitor DR, רמת תחרות, target keyword count) — **המלצה ספציפית** איזה scenario שווה יותר, מה צריך להחליט קודם, ואיך מתחילים שבוע 1.
