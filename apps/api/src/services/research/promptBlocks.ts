@@ -148,7 +148,7 @@ fog→ערפל | happens→מתרחש | shopping (בלי schema)→קניות |
 export const INTENT_TAXONOMY = `
 ## טקסונומיית כוונה (Intent) — חובה לכל keyword/topic
 
-**שכבה 1: כוונה בסיסית (בחרו אחת):**
+**שכבה 1: כוונה בסיסית (בחרו אחת מ-10 הקטגוריות הבאות — 7-intent ladder מורחב לפי 2026 IL spec):**
 - \`navigational\` — חיפוש URL/דף ספציפי (לוגו של brand exact)
 - \`brand_validation\` — בדיקת brand reputation, reviews, "X scam"
 - \`info_broad\` — שאלה כללית, browsing topic
@@ -156,6 +156,9 @@ export const INTENT_TAXONOMY = `
 - \`commercial_eval\` — השוואה לפני קנייה, "best X", "X reviews", "X vs Y"
 - \`transactional\` — כוונה לקנות/לפעול עכשיו
 - \`support\` — post-purchase, problem with existing product
+- \`local\` — *(Phase 2026.01)* כוונה גיאוגרפית בסיסית: "קרטונים פתח תקווה", "מסעדה ליד", "אינסטלטור בחיפה". טריגר ל-Local Pack/GMP-first. שונה ממודיפיקטור \`locality\` בכך שהlocality כוונה היא הציר הראשי, לא overlay.
+- \`visual\` — *(Phase 2026.01)* "X לפני ואחרי", "תמונות X", queries שמטרגטים Image Pack. חיוני ל-Hebrew (Image Pack מופיע ב-~40% מ-IL queries).
+- \`conversational_aio\` — *(Phase 2026.01)* long-form FAQ-style/AIO-targeted: "איך, מה, מתי, האם" של 6-10+ מילים. ה-cornerstone ל-AEO funnel — Hebrew AIO coverage עוד נמוך (~20-25%), זה window of opportunity.
 
 **שכבה 2: מודיפיקטורים (אורתוגונליים — כל שילוב אפשרי):**
 - \`locality\`: none / city / region / near_me / branch
@@ -165,7 +168,9 @@ export const INTENT_TAXONOMY = `
 - \`buyer_maturity\`: first_time / switcher / expert
 
 **JTBD = שכבת הסבר, לא peer-class.** הוא overlay מעל intent — אסור להציג כאלטרנטיבה ל-intent. JTBD statement format:
-"כש[סיטואציה], אני רוצה [פעולה], על מנת ש[תוצאה], מבלי לסכן [חרדה / עלות מעבר / חיסרון]."`
+"כש[סיטואציה], אני רוצה [פעולה], על מנת ש[תוצאה], מבלי לסכן [חרדה / עלות מעבר / חיסרון]."
+
+**Coverage requirement (Phase 2026.01):** records[] חייבים לכסות לפחות 5 מ-10 הקטגוריות (אם הtopic מאפשר). חובה ≥1 record עם \`conversational_aio\` (אם business יש blog/FAQ surface) — זה ה-funnel ל-AEO.`
 
 // ────────────────────────────────────────────────────────────────────────────
 // 2. Opportunity Score — weighted formula instructions

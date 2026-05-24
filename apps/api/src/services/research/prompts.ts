@@ -533,6 +533,8 @@ ${DFS_DATA_RULE}
       },
       "content_gaps_at_competitor": ["topic A", "intent B", "format C"],
       "threats_to_us": ["מה המסוכן ביותר לנו עם השחקן הזה — 2-3 איומים קונקרטיים"],
+      "aio_citation_share_pct": 0,
+      "_aio_citation_share_pct_note": "Phase 2026.01 — % of AI Overview citations on top contested keywords that come from this competitor's domain. גזרו מ-serp_ownership ai_overview_owners_top: אם הדומיין מופיע ב-top-3 AIO owners עם N keywords ש-AIO triggered, חשבו share. אם אין AIO triggers על ה-keywords ב-serp_ownership או הדומיין לא מופיע ב-ai_overview_owners — null. אסור להמציא — null עדיף מניחוש.",
       "confidence": "high" | "medium" | "working_hypothesis",
       "evidence": ["dfs_competitors_domain", "dfs_backlinks_summary", "dfs_on_page_audit", "dfs_gmb"],
       "generated_at": "ISO timestamp"
@@ -843,7 +845,7 @@ ${DFS_DATA_RULE}
       "keyword": "מילת המפתח (Hebrew או English)",
       "language": "he" | "en",
       "intent": {
-        "primary": "navigational" | "brand_validation" | "info_broad" | "info_deep" | "commercial_eval" | "transactional" | "support",
+        "primary": "navigational" | "brand_validation" | "info_broad" | "info_deep" | "commercial_eval" | "transactional" | "support" | "local" | "visual" | "conversational_aio",
         "locality": "none" | "city" | "region" | "near_me" | "branch",
         "urgency": "none" | "same_day" | "urgent",
         "trust_load": "low" | "medium" | "high" | "ymyl",
@@ -951,6 +953,7 @@ ${DFS_DATA_RULE}
   - ≥ 6 with opportunity.decision = "take_now" (score ≥ 70)
   - ≥ 3 AEO-priority (aeo.is_priority = true, score ≥ 70)
   - ≥ 3 striking-distance (current_position 4-20, אם יש GSC/ranked_keywords data)
+  - **Intent coverage (Phase 2026.01):** ≥1 record בכל intent.primary שהtopic מאפשר. **חובה ≥1 record עם \`conversational_aio\`** (long-form FAQ for AEO funnel). **חובה ≥1 record עם \`local\`** (אם business יש city presence — local intent → Local Pack).
 - **\`cluster_architecture\` חובה** — מינימום 3 clusters, כל cluster עם pillar + 4-8 spokes (חייבים להיות מוזכרים ב-records[]).
 - **\`cannibalization_audit\` חובה** — סקירה מול כל records. אם 0 risks → ציינו במפורש "לא זוהו risks" + הסבר.
 - **\`content_briefs\` חובה** — brief מלא לכל record עם opportunity.decision = "take_now" (לפחות 6).
@@ -1170,10 +1173,16 @@ ${DFS_DATA_RULE}
       "pricing_validation": {
         "competitor_benchmark_range_ils": "₪X-Y (טווח + מקור — מ-Trustpilot reviews / pricing pages / public data)",
         "wtp_range_ils": "₪X-Y (טווח + ראיה — ציטוט / מחקר / pattern review-mining)",
-        "price_sensitivity": "low" | "medium" | "high",
+        "price_sensitivity": "low" | "medium" | "high" | "extreme",
         "recommended_price_point_ils": "₪X-Y/חודש או חד-פעמי — לפי מודל מחיר",
         "method_used": ["competitor_pricing_benchmark", "review_mining", "vertical_priors"]
       },
+      "il_language_preference": "hebrew_primary" | "hebrew_with_english" | "russian_first" | "arabic_first",
+      "_il_language_preference_note": "Phase 2026.01 — IL linguistic segmentation. Russian-speakers ≈18% מהאוכלוסיה, Arabic-speakers ≈21%, code-switching נורמלי. בחרו לפי דמוגרפיה של הפרסונה: מבוגרים ישראלים מבוססים=hebrew_primary; דור צעיר/סטודנטים=hebrew_with_english; עולים רוסיים ≈55+ או דוברי רוסית=russian_first; ערבים=arabic_first.",
+      "trust_signal_priority": ["family", "friends", "industry_experts", "influencers", "brands"],
+      "_trust_signal_priority_note": "Phase 2026.01 — ordered list (5 items, מ-IL trust hierarchy) מהכי חזק לחלש לפרסונה הזו. IL: family > friends > industry experts > influencers > brands ברוב המקרים, אבל לכל פרסונה לפי context — B2B מקצועיים מקדמים industry_experts לראש; דור צעיר מעדיף influencers על industry_experts; ישראלים מבוגרים family/friends הכי דומיננטי.",
+      "mobile_channel_share_pct": 0,
+      "_mobile_channel_share_pct_note": "Phase 2026.01 — integer 50-95. % מהאינטראקציות של הפרסונה שקורות במובייל. ברירת מחדל IL SMB: 75%. דור צעיר: 85-95%. B2B מקצועיים שמשלבים desktop: 60-75%. אסור מתחת ל-50 ב-IL — ה-traffic הזה הוא mobile-first ב-2026.",
       "confidence": "high" | "medium" | "working_hypothesis",
       "evidence": ["dfs_keyword_ideas_intent", "dfs_trustpilot_reviews:domain.com", "upstream_competitor_landscape", "answers.targetAudience"],
       "generated_at": "ISO timestamp"
@@ -1186,6 +1195,7 @@ ${DFS_DATA_RULE}
 **חובה:**
 - 2-3 פרסונות (לא 5+ — אם זוהו יותר, אחדו או חדדו)
 - כל 11 השדות הנדרשים בכל record (segment_definition, jtbd_statement, primary_triggers, top_queries_by_stage, decision_criteria, trust_hierarchy, objections_anxieties, switching_cost, preferred_proof, channels_and_behaviors, language_mode)
+- **+3 שדות 2026.01 spec חובה בכל record:** \`il_language_preference\`, \`trust_signal_priority\` (5-item ordered array), \`mobile_channel_share_pct\` (integer 50-95)
 - jtbd_statement חייב להיות במבנה 4 השדות (situation/progress/outcome/risk) — לא משפט אחד
 - pricing_validation.method_used חייב לציין שיטה — אם המקור היחיד הוא review-mining + competitor benchmark (אין WTP interviews), confidence ל-pricing = working_hypothesis
 - top_queries_by_stage חייב לכלול keywords מ-DFS intent_keywords רלוונטיים (לא להמציא)
@@ -1583,6 +1593,21 @@ ${JSON_OUTPUT_RULES}
         { "risk": "1 שורה", "probability": "low | medium | high", "impact": "low | medium | high", "mitigation": "1 שורה — פעולה קונקרטית" }
       ],
       "hard_stops_applied": ["any of: no_distinct_intent_page_type / cant_beat_serp_uniqueness / ymyl_without_expert_review / almost_only_zero_click / programmatic_thin_risk"],
+      "aeo_geo_focus_pct": 0,
+      "_aeo_geo_focus_pct_note": "Phase 2026.01 — integer 0-100 — % strategic emphasis בתרחיש על AEO/AI Overviews/citations vs classic organic SEO. Smart בדרך כלל 25-40 (focus ראשי על SEO classic + AEO secondary), Aggressive 40-60 (paid acceleration + AEO + classic). מבוסס על opportunity של conversational_aio keywords + Hebrew AIO under-coverage (~20-25%).",
+      "il_realistic_channel_check": {
+        "_note": "Phase 2026.01 — IL budget channel gate. אם monthly_budget_ils < 10000, YouTube primary לא נכלל (פרסום וידאו דורש budget גבוה ל-IL להגיע ל-statistical significance). אם budget ≥ 10000 ו-vertical יש B2C visual angle, YouTube primary יכול להיכלל.",
+        "budget_under_10k_excludes_youtube": true,
+        "channels_pass_check": ["Channel names from channel_priority_list+first_win_channel"],
+        "channels_excluded_with_reason": [{"channel": "YouTube primary", "reason_he": "תקציב < ₪10K — YouTube primary לא efficient ב-IL"}]
+      },
+      "strategy_learning_references": [
+        {
+          "_note": "Phase 2026.01 — array of {source, applies_to}. ציטוט memory references מ-Sergei's playbook שמחזקים את האסטרטגיה. דוגמאות sources: project_link_strategy_scenarios / feedback_senior_marketing_bar / project_seo_playbook_sergei / project_seo_algorithm_2026 / project_link_strategy_scenarios. מינימום 2-3 references.",
+          "source": "project_link_strategy_scenarios",
+          "applies_to": "1-2 משפטים בעברית — איך הreference מתחבר ל-strategy"
+        }
+      ],
       "confidence": "high | medium | working_hypothesis",
       "evidence": ["upstream_competitor_landscape", "upstream_seo_keyword_research", "upstream_audience_personas", "upstream_positioning", "answers.budget"],
       "generated_at": "ISO timestamp"
@@ -1610,6 +1635,8 @@ ${JSON_OUTPUT_RULES}
 - realism_checklist_passed: כל item שלא עובר → confidence ל-record יורד ל-medium לפחות; 3+ items נופלים → working_hypothesis.
 - **\`hard_stops_applied\`** חייב להיות מערך (לפחות \`[]\` אם אין). אסור שיהיה undefined/null. רישום ערכים: כל hard stop שמוחל מ-FIRST_WIN_CHANNEL_RULES (no_distinct_intent_page_type, cant_beat_serp_uniqueness, ymyl_without_expert_review, almost_only_zero_click, programmatic_thin_risk).
 - **\`aeo_geo_setup_ils\` ב-\`budget_allocation_ils\`** — חובה למלא לפי \`cost_timeline_modeling.records[scenario].aeo_geo_effort_breakdown.agency_equivalent_cost_ils\` חלקי משך התרחיש (one-time → מפוזר על-פני חודשים 1-2). דוגמה: Smart=₪3,250 setup ÷ 2 חודשים = ₪1,625/חודש בחודשים 1-2 ואז ₪0 מחודש 3. אם Stage 8 לא ריצה — סמנו ${'$'}{ctmAvailable ? '' : '0 + הסבר ב-confidence_rationale'}.
+- **3 שדות 2026.01 spec חובה בכל record:** \`aeo_geo_focus_pct\` (integer 0-100), \`il_realistic_channel_check\` (object — budget gate ל-YouTube), \`strategy_learning_references[]\` (array — מינימום 2-3 references ל-memory entries מ-Sergei's playbook).
+- **Cross-stage consistency חובה:** \`first_win_channel.primary_persona\` חייב להיות בדיוק אחד מ-\`audience_personas.records[].name\`. אסור drift — אם persona name = "דנה — אם משפחה במעבר מתוכנן", אסור לכתוב "דנה — משפחה במעבר" (חצי-שונה). אסור להמציא שמות באנגלית כמו "Itai" / "Maya" אם הפרסונה ב-Hebrew. אסור הוספה של פרסונה שלא קיימת ב-audience_personas.records.
 
 ### חלק 3: Tradeoff Analysis (markdown)
 טבלה: Smart vs All-In on 5 dimensions: time-to-first-customer, total budget, risk profile, scalability ceiling, team bandwidth required. כל cell עם confidence inline marker.
@@ -1750,10 +1777,14 @@ ${JSON_OUTPUT_RULES}
 }
 \`\`\`
 
-**חובה:**
+**חובה (Phase 2026.01 — Mom-Test framework enforced):**
 - 1 record per interview script (mode='real_interviews').
 - 5 sections (פתיחה / הקשר / כאבים / אימות / סגירה) ב-script_sections — במשך הזמן הנכון (סך = 20 דק').
-- כל question חייב כל 4 השדות: question_he / what_we_learn / red_flag_response / follow_up.
+- **מינימום 10 שאלות סך-הכל ב-questions arrays** (Mom-Test bar). אסור פחות.
+- **≥70% מהשאלות חייבות להיות behavioral (past actions, what they actually did)** ולא intent-based (what they would do). פורמט behavioral: "כשהיתה לך X לאחרונה, מה עשית?" ולא "האם היית רוצה X?". פורמט intent: "מה תקנה?" / "האם תרצה?". סמנו כל question בשדה \`question_type: "behavioral" | "intent"\`. אם < 70% behavioral → confidence ירד ל-working_hypothesis.
+- אסור שאלות שמטרגטות future intent ללא past-behavior anchor. דוגמאות אסורות: "כמה תהיה מוכן לשלם על X?" (intent) — חייב להפוך ל-"בפעם האחרונה שקנית פתרון דומה — כמה שילמת בפועל?" (behavioral).
+- אסור להזכיר את המוצר/הצעת הערך של ${'$'}{businessName} ב-3 הסקציות הראשונות (פתיחה / הקשר / כאבים) — רק מסקציה 4 (אימות הזדמנות). אחרת הראיון מקבל confirmation bias.
+- כל question חייב כל 5 השדות: question_he / question_type (behavioral | intent) / what_we_learn / red_flag_response / follow_up.
 - linked_hypotheses_to_validate חייב לכלול לפחות 5 השערות מ-strategy_options + positioning.
 - confidence ל-record כולו: 'medium' מקסימום (interview script הוא ב-essence working hypothesis עד שהראיונות באמת התקיימו).
 
@@ -1892,6 +1923,19 @@ ${JSON_OUTPUT_RULES}
       "timeline": "this week | next 2 weeks | before launch"
     }
   ],
+  "upstream_degraded_warnings": {
+    "_note": "Phase 2026.01 — aggregate degraded/working_hypothesis flags מ-upstream stages. אם stage Q ran ב-degraded mode (חסר DFS subscription, חסר GSC, יש enrichmentMissing), זה משפיע על אמינות validation שמסתמכת על אותו stage. סווגו לפי risk_level.",
+    "degraded_stages_count": 0,
+    "stages_flagged": [
+      {
+        "stage_id": "competitor_landscape | seo_keyword_research | aeo_visibility | link_audit | etc",
+        "reason_he": "1 משפט בעברית למה stage היה degraded",
+        "risk_to_validation": "low | medium | high",
+        "what_this_changes_he": "1 משפט: איך זה משנה אמינות validation_rate"
+      }
+    ],
+    "overall_risk_he": "1-2 משפטים בעברית: סיכון מצטבר ל-strategy אם 2+ stages degraded → recommendation להגביל confidence_score.score_0_100 ל-70 מקסימום"
+  },
   "confidence": "high | medium | working_hypothesis"
 }
 \`\`\`
@@ -2101,6 +2145,32 @@ ${DFS_DATA_RULE}
     "comparison_to_top_competitor": "stronger | similar | weaker | unavailable",
     "confidence": "high | medium | working_hypothesis"
   },
+  "il_tier_targets": {
+    "_note": "Phase 2026.01 — סיווג target domains לרכישת ssylki לפי playbook IL link sources. tier-1: Globes/Calcalist/TheMarker/Mako/Ynet/Geektime (דורש data-driven pitch); tier-2: business associations (lahav.org.il, MAOF, IATI); tier-3: industry/general blogs. מהמיועדים ב-records[] type=link_gap_outreach, סווגו לפי tier.",
+    "tier_1_count": 0,
+    "tier_1_examples": ["domain"],
+    "tier_2_count": 0,
+    "tier_2_examples": ["domain"],
+    "tier_3_count": 0,
+    "tier_3_examples": ["domain"],
+    "tier_1_pitch_template_he": "1-2 משפטים בעברית — template/angle מומלץ ל-tier-1 outreach (data-driven, exclusive insight, original research)",
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "brand_mentions_count": {
+    "_note": "Phase 2026.01 — brand mentions בלי backlink (co-citation signal ≈ 70% weight של backlink). אם DFS Content Analysis API לא נחקר — סמנו unavailable. אם יש partial — count + sources.",
+    "total_unlinked_mentions": 0,
+    "top_mention_sources": ["domain1", "domain2"],
+    "ratio_mentions_to_backlinks": 0,
+    "interpretation_he": "1 משפט בעברית: מה זה אומר על brand entity strength",
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "co_citation_matrix": {
+    "_note": "Phase 2026.01 — domains שמזכירים אותנו יחד עם מתחרים באותו context (co-citation). אם 'unavailable' זה OK עם confidence: working_hypothesis. בקיום נתון — domains × competitors matrix.",
+    "competitors_in_matrix": ["competitor.com"],
+    "shared_citation_domains_count": 0,
+    "strongest_co_citation_signal_he": "1 משפט בעברית: עם איזה מתחרה אנחנו הכי הרבה pair-מוזכרים, מאיזה domain, ומה זה אומר",
+    "confidence": "high | medium | working_hypothesis"
+  },
   "confidence": "high | medium | working_hypothesis"
 }
 \`\`\`
@@ -2110,7 +2180,7 @@ ${DFS_DATA_RULE}
   - לפחות 3 \`lost_link_recovery\` (אם יש lost links data)
   - לפחות 5 \`link_gap_outreach\` (אם יש linkGap data)
   - לפחות 1 \`anchor_remediation\` אם זוהה over-optimization (exact_match_pct > 30%)
-  - לפחות 1 \`spam_disavow\` אם זוהו דומיינים מפנים עם spam_score > 70
+  - לפחות 1 \`spam_disavow\` **רק אם** \`googleSearchConsole.manualActions !== null\` או יש evidence של negative SEO attack. *(Phase 2026.01 — SpamBrain replacement of Penguin: disavow ל-95% מהאתרים = נזק גדול מתועלת.)*
 - כל record עם evidence array שמסביר מאיזה DFS endpoint הגיע הנתון
 - Priority: high קודם, אחר כך medium, לבסוף low
 - אם DFS data חסר לקטגוריה (\`enrichmentMissing\` מציין) — סמנו את הסעיף כ-confidence: working_hypothesis
@@ -2397,6 +2467,33 @@ ${DFS_DATA_RULE}
     "total_hours_estimate": 0,
     "confidence": "high | medium | working_hypothesis"
   },
+  "helpful_content_vulnerability_score": {
+    "_note": "Phase 2026.01 — Helpful Content vulnerability index (0-100, גבוה = פגיע יותר). חישוב: index_ratio_pct (כמה % URLs מסומנים indexable + נסרקים בגוגל), thin_pages_pct (word_count<300 / total), templated_meta_pct (חזרתיות גבוהה ב-meta description), orphan_urls_pct (URLs ללא קישורים פנימיים מהאתר — proxy: not_in_sitemap_or_no_nav). Formula: vuln = (thin_pages_pct·0.40 + templated_meta_pct·0.30 + orphan_urls_pct·0.20 + (100 − index_ratio_pct)·0.10). אם נתון חסר — null במקום ניחוש.",
+    "score_0_100": 0,
+    "index_ratio_pct": 0,
+    "thin_pages_pct": 0,
+    "templated_meta_pct": 0,
+    "orphan_urls_pct": 0,
+    "interpretation": "1 משפט בעברית: מה הציון אומר על האתר ו-3 פעולות מובילות להפחתת הסיכון",
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "top_10_priority_actions": [
+    {
+      "_note": "Phase 2026.01 — Reach × Impact × Confidence / Effort ranking — top 10 פעולות לפי priority_score (מחושב מ-records). מסונן ל-10 הכי חשובים בלבד, כפול הפעולה הברורה ביותר לכל אחד.",
+      "rank": 1,
+      "url_or_scope": "URL ספציפי או 'site-wide' אם פעולה אופקית",
+      "action_he": "1-2 משפטים — פעולה קונקרטית בעברית",
+      "category": "schema | content | technical | ia | meta | duplicates",
+      "reach_score_0_100": 0,
+      "impact_score_0_100": 0,
+      "confidence_0_to_1": 0,
+      "effort_dev_days": 0,
+      "priority_score": 0,
+      "_priority_formula": "(reach·impact·confidence) / effort_dev_days",
+      "owner": "תפקיד בעברית",
+      "expected_outcome_he": "1 משפט — KPI delta צפוי"
+    }
+  ],
   "confidence": "high | medium | working_hypothesis"
 }
 \`\`\`
