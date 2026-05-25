@@ -86,6 +86,55 @@ export function validateCompetitorLandscape(stage: Record_): ContentQualityWarni
     return out
 }
 
+// ── Stage 2: internal_seo_audit — 2026 senior IL signals ─────────────────
+
+export function validateInternalSeoAudit(stage: Record_): ContentQualityWarning[] {
+    const out: ContentQualityWarning[] = []
+    const content = String(stage.content || '')
+    const extras = ext(stage.extras)
+    const records = rec(stage.records)
+
+    // 2026 senior signals coverage checks (content + extras + records)
+    // Use Hebrew + English variants to handle bilingual content
+    const hasCwvOrInp = /\bINP\b|\bLCP\b|\bCWV\b|Core Web Vitals|מהירות טעינה|page_timing|page experience/i.test(content)
+    const hasRtl = /RTL|dir="rtl"|<bdi>|logical CSS|hebrew direction/i.test(content) ||
+        records.some(r => r.il_rtl_issues !== undefined)
+    const hasHreflang = /hreflang|he-IL|en-IL/i.test(content)
+    const hasGscReference = /GSC|Search Console|google search console|impressions|clicks/i.test(content) ||
+        Boolean(extras.gsc_pages_integration_summary)
+    const hasEeatQuadrant = records.some(r => {
+        const q = (r.quadrant_scores as Record_ | undefined) || {}
+        return typeof q.eeat === 'number'
+    })
+
+    if (!hasCwvOrInp) {
+        out.push(warn('internal_seo_audit', 'critical', 'missing_core_web_vitals',
+            'אין הזכרה של Core Web Vitals / INP / LCP באודיט',
+            'Phase 2026.01: CWV+INP הם ranking factor 2024+. prefetch מספק page_timing per URL — חובה לנתח LCP > 2.5s / dom_complete > 5s URLs ולהוסיף core_web_vitals_fixes ל-tech_debt_summary.'))
+    }
+    if (!hasRtl) {
+        out.push(warn('internal_seo_audit', 'critical', 'missing_rtl_audit',
+            'אין הזכרה של RTL technical (dir/bdi/logical CSS) באודיט',
+            'IL Hebrew RTL technical gotchas (iOS Safari direction bugs, missing <bdi> on numbers/URLs, physical-CSS-instead-of-logical) הם senior baseline. חובה ב-content + il_rtl_issues per record.'))
+    }
+    if (!hasHreflang) {
+        out.push(warn('internal_seo_audit', 'important', 'missing_hreflang_check',
+            'אין הזכרה של hreflang (he-IL/en-IL) באודיט',
+            'גם אם site Hebrew-only — חובה לציין explicit (e.g. "hreflang לא נדרש — site מונולינגי"). senior audit לא משאיר שדה כזה ללא answer.'))
+    }
+    if (!hasGscReference) {
+        out.push(warn('internal_seo_audit', 'important', 'gsc_not_integrated',
+            'GSC top URLs לא מופיעים ב-narrative או extras',
+            'Per Sergei\'s playbook: "audit STARTS with GSC, not crawl." Prefetch מספק 50 top-traffic URLs מ-GSC. חובה לציין מי מהם thin/missing-schema = priority refresh targets.'))
+    }
+    if (!hasEeatQuadrant) {
+        out.push(warn('internal_seo_audit', 'important', 'missing_eeat_quadrant',
+            'records חסרים quadrant_scores.eeat (E-E-A-T 4th quadrant)',
+            'Phase 2026.01 senior audit = 4-quadrant (technical/content/authority/eeat). Records בלי eeat score = audit ב-3 צירים בלבד (2022 standard).'))
+    }
+    return out
+}
+
 // ── Stage 3: seo_keyword_research ─────────────────────────────────────────
 
 export function validateSeoKeywordResearch(stage: Record_): ContentQualityWarning[] {
@@ -241,6 +290,7 @@ export function validateStrategyOptions(stage: Record_): ContentQualityWarning[]
 
 const VALIDATORS: Partial<Record<StageId, (stage: Record_) => ContentQualityWarning[]>> = {
     competitor_landscape: validateCompetitorLandscape,
+    internal_seo_audit: validateInternalSeoAudit,
     seo_keyword_research: validateSeoKeywordResearch,
     aeo_visibility: validateAeoVisibility,
     link_audit: validateLinkAudit,

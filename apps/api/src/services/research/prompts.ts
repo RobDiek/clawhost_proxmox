@@ -2471,10 +2471,45 @@ ${DFS_DATA_RULE}
 
 ---
 
+## אודיט senior 2026 — חובה לכסות 4 ציר (לא רק 2022 "thin + schema + dups")
+
+**Phase 2026.01 — senior IL audit bar.** האודיט חייב להפיק narrative + records המכסים את 4 הצירים האלה. אסור לוותר על אחד — אם נתון חסר, ציינו degraded mode עם הסבר.
+
+1. **Core Web Vitals + INP** (ראנקינג פקטור 2024+ — מחליף FID): נתוני page_timing מ-DFS prefetch כוללים lcp_ms / tti_ms / dom_complete_ms לכל URL. ל-INP אין direct DFS measurement, אבל proxies: dom_complete_ms גבוה + GTM tag count > 30 + render-blocking scripts = INP risk. חובה ב-narrative:
+   - איזה URL-ים עם LCP > 2.5s (critical) או > 4s (poor)?
+   - איזה URL-ים עם dom_complete > 5s = INP risk?
+   - 3 פעולות technical to fix: break long tasks / debounce input handlers / clean GTM tags (>30 = red flag)
+   - חובה לכלול ב-tech_debt_summary.by_category_hours שורה "core_web_vitals_fixes"
+
+2. **IL Hebrew RTL technical** (קריטי ל-IL): בדיקות ספציפיות לעברית:
+   - האם \`<html dir="rtl" lang="he-IL">\` נכון?
+   - האם משתמשים ב-logical CSS properties (\`margin-inline-start\` במקום \`margin-left\`) או physical (יוצר bugs בRTL)?
+   - האם יש \`<bdi>\` tags על numbers/URLs בתוך Hebrew text? (אחרת iOS Safari משבש direction)
+   - האם hreflang מוגדר נכון (\`he-IL\` + \`en-IL\` if bilingual)?
+   - אם site יחיד-שפה (Hebrew-only), hreflang לא חובה, אבל לציין explicit.
+   - חובה ב-records: \`il_rtl_issues\` array per URL (אם זוהו).
+
+3. **GSC Pages report integration** (audit starts with GSC, not crawl): prefetch.gsc.top_urls (50 entries) זמין. חובה לציין:
+   - כמה URL-ים יש GSC clicks/impressions בniche-trafficking (>10 clicks/16mo)?
+   - אילו URL-ים בinventory ב-DFS אבל בלי GSC traffic = "orphan in production" (יש בsitemap, גוגל לא רואה click value)?
+   - אילו GSC top URLs יש thin_content או missing schema = priority refresh targets (משלבים traffic potential + audit gap).
+   - אם prefetch.gsc.available=false → ציינו במפורש "GSC unavailable, audit relies on crawl-only" + confidence: working_hypothesis לhelpful_content_vulnerability calc.
+
+4. **E-E-A-T quadrant** (4-th quadrant beyond technical/content/authority): בדיקות E-E-A-T specifically:
+   - Author Person schema present on articles?
+   - sameAs coverage on Organization schema (≥5 strongest IL profiles: GMB / LinkedIn / Facebook / Globes profile / TheMarker)?
+   - Reviews/Testimonials section on money pages?
+   - About + Privacy + Terms pages exist + linked?
+   - חובה ב-records.quadrant_scores.eeat score 0-100 + 1 משפט rationale אם score < 60.
+
+**\`top_10_priority_actions\` חובה לכלול 1+ פעולה מכל ציר** (CWV / RTL / GSC-driven / EEAT) — אם הציר לא רלוונטי, ציינו במפורש "ציר X לא רלוונטי כי ...".
+
+---
+
 ## פלט נדרש
 
 ### חלק 1: תקציר מנהלים (markdown — בעברית, 2-3 פסקאות)
-3 דברים: (א) בריאות טכנית כללית — לאן הנקודה החזקה ביותר ולאן החלשה ביותר; (ב) הסיכון הכי דחוף — מה יקלקל לנו את ה-SEO אם לא נטפל מיד (אינדקסציה? duplicate? thin? schema?); (ג) ההזדמנות הכי גדולה — מה השיפור עם ROI הגבוה ביותר ביחס למאמץ.
+3 דברים: (א) בריאות טכנית כללית — לאן הנקודה החזקה ביותר ולאן החלשה ביותר; (ב) הסיכון הכי דחוף — מה יקלקל לנו את ה-SEO אם לא נטפל מיד (אינדקסציה? duplicate? thin? schema? INP/CWV?); (ג) ההזדמנות הכי גדולה — מה השיפור עם ROI הגבוה ביותר ביחס למאמץ.
 
 ### חלק 2: רשומות JSON — URL audit + תוכנית תיקון (חובה!)
 
