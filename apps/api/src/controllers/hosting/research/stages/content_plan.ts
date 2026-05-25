@@ -36,14 +36,7 @@ export async function run(c: Context): Promise<Response> {
         const __agent = await resolveActiveAgent(c, instanceId)
         const rd = await readResearchData(__agent, instanceId) as Record<string, unknown>
 
-        // Gate: content plan needs an EXPLICITLY CHOSEN scenario (Phase 2026.01).
-        // Previously the stage auto-selected the highest-confidence record from
-        // strategy_options.records — but per ClawFlow policy of no automatic
-        // strategic actions ([[feedback-no-automatic-actions]]) and to make the
-        // smart-vs-aggressive tradeoff visible to the user, this gate now hard
-        // fails until the user calls POST /research/scenario/choose explicitly.
-        // An auto-selected scenario (_autoSelected:true) does NOT pass the gate —
-        // user must reconfirm via the explicit choose endpoint.
+        // Gate 1 — EXPLICITLY CHOSEN scenario (Phase 2026.01).
         const chosen = rd.chosenScenario as { chosenByUser?: boolean; scenario?: string; _autoSelected?: boolean } | undefined
         const isExplicit = !!(chosen && chosen.chosenByUser === true)
         if (!isExplicit) {
@@ -54,6 +47,19 @@ export async function run(c: Context): Promise<Response> {
                 return fail(c, 'תחילה הריצו את שלב אסטרטגיה (strategy_options) — content_plan נשען על המסלול שנבחר שם.', 422)
             }
             return fail(c, 'בחרו תרחיש אסטרטגיה לפני הרצת תוכנית התוכן: smart או aggressive. גלילו לכרטיסי האסטרטגיה ולחצו "בחר תרחיש זה".', 422)
+        }
+
+        // Gate 2 — Cross-stage consistency (Phase 2026.01).
+        // After validation stage, computed unresolved_validation_patches: any
+        // strategy_change with field pointing to upstream stage where current
+        // value still matches "from" (not patched to "to"). High-impact
+        // diverged patches block content_plan until resolved. Memory:
+        // [[schema-not-equal-strategy]].
+        const { shouldBlockDownstream } = await import('@/services/research/qualityGates/crossStageConsistency')
+        const block = shouldBlockDownstream(rd)
+        if (block.blocked) {
+            releaseResearchLock(instanceId)
+            return fail(c, block.reason_he || 'תוכנית התוכן חסומה בגלל פערים לא פתורים מ-validation. הריצו מחדש את ה-stages הרלוונטיים.', 422)
         }
 
         const body = await c.req.json<{ weeksAhead?: number; startDate?: string }>().catch(() => ({} as { weeksAhead?: number; startDate?: string }))

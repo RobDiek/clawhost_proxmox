@@ -861,6 +861,17 @@ ${DFS_DATA_RULE}
       "difficulty_0_100": 0,
       "current_position": null,
       "striking_bucket": "fast_optimization" | "content_upgrade" | "rebuild_or_remap" | null,
+      "striking_distance_realism": {
+        "_note": "Phase 2026.01 — striking-distance forecast honesty check. Position 8 → top 3 в 30-45 דק NOT free — backlink gap + content depth + brand authority all gate the lift. Sergei's playbook explicit: when striking_bucket exists, must quantify constraints, not just ' optimization needed'.",
+        "competitor_at_top_3_dr": 0,
+        "_competitor_dr_note": "DR of #1-3 ranking competitor on this kw — used to gauge backlink gap blocker",
+        "our_referring_domains_gap": 0,
+        "_rd_gap_note": "Difference in referring domains: (top_3_competitor_RD - our_RD). If positive >50% → backlink gap blocks position 4-3-2-1 climb regardless of on-page.",
+        "expected_lift_with_on_page_only": "1-3 positions | 4-6 positions | unlikely_without_links",
+        "_expected_lift_note": "Honest forecast: on-page optimization + CTR + content depth can usually move position 4-6 positions max in 45 days. Beyond that = needs link velocity OR brand authority signal accumulation. אסור 'top 3 in 30 days' если RD gap > 50.",
+        "kpi_haircut_recommended": 0.7,
+        "_kpi_haircut_note": "Multiplier for downstream KPI realism. 1.0=base forecast, 0.85=execution risk, 0.7=execution + market risk (default), 0.5=high uncertainty. Strategy_options must apply this haircut to expected_organic_clicks per record."
+      },
       "opportunity": {
         "business_value": 0,
         "win_probability": 0,
@@ -1608,6 +1619,96 @@ ${JSON_OUTPUT_RULES}
           "applies_to": "1-2 משפטים בעברית — איך הreference מתחבר ל-strategy"
         }
       ],
+      "programmatic_city_pages_plan": {
+        "_note": "Phase 2026.01 — IL local intent capture via programmatic city pages. Per Sergei's playbook 6-rules safety check. Mandatory plan even if status='deferred' — must explicitly evaluate safety + recommend timing.",
+        "status": "now | month_2 | month_3 | month_6 | deferred_with_reason",
+        "rationale_he": "1-2 משפטים — למה התזמון הזה",
+        "safety_check_6_rules": {
+          "rule_1_unique_data_per_page": true,
+          "rule_2_distinct_intent_signal": true,
+          "rule_3_no_thin_content": true,
+          "rule_4_unique_local_proof": true,
+          "rule_5_internal_linking_planned": true,
+          "rule_6_indexability_throttled": true,
+          "_rules_note": "כל 6 חייבים להיות true כדי לעבור 'now'. אם false אחד — push to month_3+ עם action plan לתיקון."
+        },
+        "candidate_cities": [
+          {
+            "city_he": "תל אביב",
+            "url_slug": "/example-tel-aviv/",
+            "unique_data": "1 line — איזה data ייחודי לעיר (delivery zone / local reviews / city-specific FAQ)",
+            "expected_local_keyword_volume": 0,
+            "current_local_ranking": 0
+          }
+        ],
+        "_candidate_cities_note": "מינימום 3-5 cities relevant ל-IL geography של הbusiness. בחירת ערים מבוססת על local keyword volume מ-seo_keyword_research (intent.primary=local) + delivery/service zone reality."
+      },
+      "cro_mechanisms": {
+        "_note": "Phase 2026.01 — Conversion Rate Optimization mechanisms beyond keyword/content strategy. Validation often surfaces friction (e.g. 'price transparency before address entry') — these need explicit channel-level actions.",
+        "ga4_events_required": ["page_view","add_to_cart","begin_checkout","purchase","lead_form_submit","whatsapp_click","phone_click","scroll_75_pct"],
+        "_ga4_events_note": "Minimum 8 events. Per Sergei's playbook — measurement-first. אסור 'TBD' — strategy must commit which events fire.",
+        "exit_intent_targets": ["pricing_page", "cart"],
+        "_exit_intent_note": "Where exit-intent popups fire — based on validation findings of friction points",
+        "form_friction_mitigation_he": "1-2 משפטים — איך מצמצמים friction (multi-step vs single-step / address before/after pricing / WhatsApp deflection for questions)",
+        "whatsapp_conversion_play_he": "2-3 משפטים — IL-specific WhatsApp deflection. WhatsApp leads convert 2-4x higher than form fills ב-IL. איך מטמיעים: floating button / inline CTA / lead form fallback.",
+        "trust_signals_above_fold": ["533 GMB reviews 5.0★", "delivery_promise", "money_back_guarantee"],
+        "_trust_signals_note": "≥3 trust signals must appear above-fold on every money page. List the specific signals based on what the brand has."
+      },
+      "seasonality_play": {
+        "_note": "Phase 2026.01 — IL-specific seasonality with explicit surge/cut plays. Calendar-based budget adjustments + content sprints.",
+        "peak_windows": [
+          {
+            "name_he": "1 משפט — שם החלון (e.g. 'מעבר דירה קיץ', 'ניקיון פסח')",
+            "dates_he": "מאי-אוגוסט",
+            "expected_demand_multiplier": 2.5,
+            "surge_actions_he": ["1-3 פעולות קונקרטיות לתקופה — תוכן ספציפי / paid surge / inventory build-up"],
+            "budget_adjustment_pct": 50
+          }
+        ],
+        "_peak_windows_note": "מינימום 2 peak windows רלוונטיים לvertical. IL canonical events: Passover (Mar-Apr cleaning), Summer (May-Aug moving/school-end), Tishrei (Sep-Oct holidays), Black Friday IL (Nov), Hanukkah (Dec).",
+        "low_windows": [
+          {
+            "name_he": "שפל",
+            "dates_he": "נובמבר-פברואר",
+            "expected_demand_multiplier": 0.6,
+            "defensive_actions_he": ["1-2 פעולות הגנתיות — long-term content building / brand awareness / paused paid"],
+            "budget_adjustment_pct": -20
+          }
+        ]
+      },
+      "conversion_measurement_plan": {
+        "_note": "Phase 2026.01 — measurement architecture per Sergei's playbook. אסור 'TBD' or 'industry standard' — must commit specific stack choices.",
+        "ga4_property_id_status": "connected | needs_setup | not_applicable",
+        "enhanced_conversions_status": "deployed | recommended | not_applicable",
+        "_enhanced_conversions_note": "EC match rate >70% required for 2026 paid + accurate organic measurement. State current % if known, recommend deployment if not.",
+        "server_side_gtm_status": "deployed | recommended_phase_2 | not_applicable",
+        "_sgtm_note": "Critical for WhatsApp click tracking (client-side ad blockers cut signal). Phase 2 if budget tight, but call it out.",
+        "consent_mode_v2_status": "deployed | recommended | needs_legal_review",
+        "_consent_mode_note": "IL post-2024 legal requirement. אסור skip — flag for legal review if uncertain.",
+        "offline_conversion_import": "deployed | recommended | not_applicable",
+        "_oci_note": "For services with >24h sales cycle (most B2B + high-ticket B2C) — OCI feeds Smart Bidding properly. Recommended for any vertical where lead-to-sale > 1 day.",
+        "attribution_model_recommended": "data_driven | last_click | position_based",
+        "_attribution_note": "Data-driven requires 300+ conversions/30d (Google threshold). Below = last_click. Be honest about volume readiness."
+      },
+      "comparison_pages_plan": {
+        "_note": "Phase 2026.01 — X-vs-Y comparison pages with ClaimReview schema. Perplexity citation magnet. Required output even if status=defer.",
+        "status": "now | month_3 | month_6 | deferred_no_comparable_competitor",
+        "rationale_he": "1-2 משפטים — למה התזמון הזה. אם defer — חובה לציין why (e.g. no comparable competitor).",
+        "primary_comparison": {
+          "page_slug": "/business-name-vs-competitor/",
+          "competitor": "competitor.co.il",
+          "comparison_dimensions": ["price","delivery_time","selection","reviews","support"],
+          "claimreview_schema_required": true,
+          "expected_perplexity_lift_he": "1 משפט — צפי לציטוט ב-Perplexity / Claude / ChatGPT"
+        },
+        "secondary_comparisons": [
+          {
+            "page_slug": "/business-name-vs-substitute/",
+            "competitor": "substitute.co.il",
+            "comparison_dimensions": ["..."]
+          }
+        ]
+      },
       "confidence": "high | medium | working_hypothesis",
       "evidence": ["upstream_competitor_landscape", "upstream_seo_keyword_research", "upstream_audience_personas", "upstream_positioning", "answers.budget"],
       "generated_at": "ISO timestamp"
@@ -2146,14 +2247,28 @@ ${DFS_DATA_RULE}
     "confidence": "high | medium | working_hypothesis"
   },
   "il_tier_targets": {
-    "_note": "Phase 2026.01 — סיווג target domains לרכישת ssylki לפי playbook IL link sources. tier-1: Globes/Calcalist/TheMarker/Mako/Ynet/Geektime (דורש data-driven pitch); tier-2: business associations (lahav.org.il, MAOF, IATI); tier-3: industry/general blogs. מהמיועדים ב-records[] type=link_gap_outreach, סווגו לפי tier.",
-    "tier_1_count": 0,
-    "tier_1_examples": ["domain"],
+    "_note": "Phase 2026.01 — IL link source tiers per Sergei's playbook. Senior bar: tier-1 MUST be primary focus (not tier-3 directories). Lower tiers = supplementary.",
+    "tier_1_canonical_sources": ["globes.co.il","calcalist.co.il","themarker.com","mako.co.il","ynet.co.il","geektime.co.il"],
+    "_tier_1_note": "Phase 2026.01 — these are the canonical tier-1 IL editorial sources. Any link strategy MUST attempt at least 2 of these. Pitches require: data-driven angle, exclusive insight, original research, OR consumer-relevance hook. Generic outreach to these = guaranteed reject.",
+    "tier_1_specific_targets": [
+      {
+        "source": "globes.co.il | calcalist.co.il | themarker.com | mako.co.il | ynet.co.il | geektime.co.il | other_tier1",
+        "specific_section_or_journalist": "1-2 lines — name the section (e.g., 'TheMarker SME column'), journalist if known, OR the recurring data-piece slot",
+        "pitch_angle_he": "2-3 משפטים בעברית — האנגל הקונקרטי. אסור 'we offer X' (rejected). חייב: data piece / industry-first / exclusive insight relevant to readers. דוגמה ל-Packing: 'מחקר ראשון מסוגו: כמה קרטונים זורקים ישראלים בשנת מעבר דירה — 5,400 קילומטר של נייר ממוחזר'.",
+        "data_to_provide": "1 line — what proprietary data we'll supply (own orders dataset / GMB reviews patterns / vertical pricing analysis)",
+        "estimated_difficulty_1_to_10": 0,
+        "expected_lift_he": "1 line — DR/ETV impact if landed"
+      }
+    ],
     "tier_2_count": 0,
-    "tier_2_examples": ["domain"],
+    "tier_2_examples": ["lahav.org.il", "domain"],
+    "_tier_2_note": "Business associations: lahav.org.il (artisan/SMB), MAOF, IATI, vertical industry bodies (e.g., 'איגוד המובילים' for moving-related). Lower bar than tier-1, more attainable, still topical authority.",
     "tier_3_count": 0,
-    "tier_3_examples": ["domain"],
-    "tier_1_pitch_template_he": "1-2 משפטים בעברית — template/angle מומלץ ל-tier-1 outreach (data-driven, exclusive insight, original research)",
+    "tier_3_examples": ["b144.co.il", "dapei-zahav.co.il"],
+    "_tier_3_note": "General directories (B144, dapei-zahav) + vertical-specific blogs. Easiest to land but lowest DR. Should be ≤30% of monthly link target.",
+    "tier_distribution_target_pct": { "tier_1": 30, "tier_2": 40, "tier_3": 30 },
+    "_tier_distribution_note": "Phase 2026.01 — strategic distribution per monthly link budget. Tier-1 30% (1 landing every 2-3 months = realistic), tier-2 40%, tier-3 30%. If budget < ₪1.5K/mo, tier-1 effort may be quarterly not monthly — flag in rationale.",
+    "tier_1_pitch_template_he": "1-2 משפטים בעברית — generic template/angle ל-tier-1 outreach (will be customized per source above)",
     "confidence": "high | medium | working_hypothesis"
   },
   "brand_mentions_count": {
@@ -2700,12 +2815,15 @@ ${JSON_OUTPUT_RULES}
   },
   "records": [
     {
-      "type": "schema_implementation | content_extractability_upgrade | citation_outreach | structured_data_audit | answer_block_optimization",
-      "target": "URL או page_type או keyword cluster",
-      "_target_kind": "url | page_type | cluster",
-      "current_state": "1-2 משפטים בעברית — מה המצב היום (no_schema / thin_answer_blocks / weak_entity_signals / וכו')",
-      "recommended_action": "2-3 משפטים בעברית — מה לעשות בדיוק",
+      "type": "schema_implementation | content_extractability_upgrade | citation_outreach | structured_data_audit | answer_block_optimization | brand_entity_wikidata | founder_person_schema | definedterm_glossary | comparison_claimreview | bilingual_abstract | cooccurrence_engineering | reverse_engineering_probe",
+      "_type_taxonomy_note": "Phase 2026.01 senior AEO architecture (per Sergei's playbook + 2026 algorithm research). 12 types covering 4 strategic layers:\n  ENTITY layer: brand_entity_wikidata (Q-ID creation/verification), founder_person_schema (Person schema sameAs ≥5), cooccurrence_engineering (where brand must appear alongside topics).\n  EXTRACTION layer: schema_implementation (JSON-LD per page_type), content_extractability_upgrade (TLDR + answer-first H2 + numeric content), answer_block_optimization (per top conversational query).\n  AUTHORITY layer: definedterm_glossary (DefinedTerm+DefinedTermSet — underused, high leverage), comparison_claimreview (X-vs-Y pages with ClaimReview — Perplexity loves these), bilingual_abstract (HE+EN in schema description — IL AIO citation lift 2-3x).\n  MEASUREMENT layer: citation_outreach (manual brand mention pursuit), structured_data_audit (verification pass), reverse_engineering_probe (test prompts that should cite us).",
+      "target": "URL או page_type או keyword cluster או entity_name (для brand_entity_wikidata/founder_person_schema)",
+      "_target_kind": "url | page_type | cluster | entity",
+      "current_state": "1-2 משפטים בעברית — מה המצב היום (no_schema / thin_answer_blocks / weak_entity_signals / no_wikidata_qid / no_bilingual_abstract / וכו')",
+      "recommended_action": "2-3 משפטים בעברית — מה לעשות בדיוק. ל-brand_entity_wikidata חובה לציין: האם Q-ID קיים? אם כן URL ל-Wikidata; אם לא — recommended notability claim (533 GMB reviews / industry first / data piece / וכו'). ל-bilingual_abstract חובה לציין שתי שורות לדוגמה (HE+EN). ל-comparison_claimreview חובה לציין pair (e.g., 'Packing Station vs Get Packing').",
       "expected_aeo_impact": "high | medium | low",
+      "quotability_score_0_100": 0,
+      "_quotability_score_note": "Phase 2026.01 — 0-100 estimate of how citation-friendly the resulting content/asset will be after this action. Score based on: standalone-sense (does any sentence make sense extracted?), entity-first phrasing (brand name not pronoun), numeric content (statistics/dimensions/dates), no-modality (no 'usually/often/might'), 15-30 words per fact statement. Action that produces high-quotability content = high score.",
       "rationale": "1-2 משפטים — למה זה משפר נראות ב-AI search ספציפית",
       "owner": "תפקיד אחראי בעברית: 'מנהל SEO' / 'מנהל תוכן' / 'מפתח'",
       "estimated_effort_hours": 0,
@@ -2747,12 +2865,23 @@ ${JSON_OUTPUT_RULES}
 }
 \`\`\`
 
-**חובה:**
-- **records** מינימום 8: לפחות 3 \`schema_implementation\` (אם יש gaps), לפחות 2 \`content_extractability_upgrade\`, לפחות 1 \`answer_block_optimization\`. השאר לפי שיקול.
+**חובה (Phase 2026.01 senior AEO bar — content quality validator יבדוק):**
+- **records** מינימום 12 (לא 8 — 2026 AEO דורש יותר רחב). Mandatory coverage:
+  - ≥1 \`brand_entity_wikidata\` — Q-ID creation/verification. ל-IL SMB: Wikidata accepts entries без Wikipedia notability threshold. Critical for entity disambiguation in LLMs. אם business כבר מספיק established (GMB reviews ≥100 OR domain age >2y OR press mentions ≥3) → status="action_required"; אחרת "future_pending".
+  - ≥1 \`founder_person_schema\` — Person schema LD-JSON for founder/CEO with sameAs (LinkedIn + at least 2 more profiles). Boosts E-E-A-T for YMYL-adjacent verticals; baseline for AI-search authority.
+  - ≥1 \`definedterm_glossary\` — DefinedTerm + DefinedTermSet markup. List 5+ industry terms unique to the business (e.g. for packing: "קרטון דופן כפולה", "מארז מעבר", "אריזת זכוכית"). Underused signal, high leverage in 2026.
+  - ≥1 \`comparison_claimreview\` — X-vs-Y page with ClaimReview schema. Identify primary direct competitor for comparison. Perplexity citation magnet.
+  - ≥1 \`bilingual_abstract\` — Hebrew + English bilingual abstract in schema description. IL .il sites cited by AIO 12-18% vs .com 40% — bilingual lifts retrieval 2-3x.
+  - ≥1 \`cooccurrence_engineering\` — list 3-5 venues (publications/blogs/forums) where brand SHOULD be mentioned alongside core topic terms. Builds entity graph signal.
+  - ≥3 \`schema_implementation\` (if gaps exist) — JSON-LD by page_type
+  - ≥2 \`content_extractability_upgrade\` — TLDR + answer-first H2 patterns
+  - ≥1 \`answer_block_optimization\` per top conversational query
+  - Remaining: structured_data_audit, citation_outreach, reverse_engineering_probe at discretion.
 - כל record עם evidence מרשימת ה-DFS data במקור — אסור להמציא evidence sources.
 - \`schema_priority_plan\` חייב לכסות את כל ה-aeoSchemaGaps שזוהו.
 - \`competitor_aeo_advantage\` רשומה לכל competitor שצוטט באחד מהprobes.
 - אם \`probes_run = 0\` — כל confidence: working_hypothesis עם הסבר ב-rationale.
+- ל-12 record types — IF a type cannot apply (e.g. no comparable direct competitor exists for comparison_claimreview), STILL emit a record with confidence=working_hypothesis and rationale explaining why (e.g., "no head-to-head competitor of comparable size; defer comparison_claimreview to month 6 after audit re-runs").
 
 ### חלק 3: 5 פעולות AEO לרבעון הבא (markdown — בעברית בלבד)
 מבחר 5 הפעולות עם ה-impact/effort הטוב ביותר ל-AEO ספציפית. כל פעולה: מה לעשות, למה זה משפר AI search, מי האחראי, timeline, ROI צפוי.

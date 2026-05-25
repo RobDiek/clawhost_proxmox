@@ -771,11 +771,42 @@ export async function saveStageResult(
         }
     }
 
+    // Phase 2026.01 — run post-stage content quality validators (soft).
+    // Schema check passes once required fields exist; content validators
+    // surface SENIOR-level gaps (missing AEO record types, no tier-1 link
+    // sources, missing strategy plan blocks) as non-blocking warnings.
+    // Memory: [[schema-not-equal-strategy]]
+    const { validateStageContentQuality } = await import('./qualityGates/contentQuality')
+    const contentWarnings = validateStageContentQuality(stageId, stageResult as unknown as Record<string, unknown>)
+    // Aggregate into research_data.contentQualityWarnings[] (per-stage replace).
+    type CQW = { stageId: StageId; severity: string; code: string; title_he: string; detail_he: string; actionable_hint_he?: string; surfaced_at: string }
+    const existingWarnings = Array.isArray(rd.contentQualityWarnings) ? (rd.contentQualityWarnings as CQW[]) : []
+    const otherStageWarnings = existingWarnings.filter(w => w.stageId !== stageId)
+    const updatedWarnings = [...otherStageWarnings, ...contentWarnings]
+    if (contentWarnings.length > 0) {
+        const critCount = contentWarnings.filter(w => w.severity === 'critical').length
+        console.log(`[contentQuality/${stageId}] ${contentWarnings.length} warnings (${critCount} critical)`)
+    }
+
+    // Phase 2026.01 — after validation stage, compute unresolved_validation_patches
+    // for hard cross-stage consistency enforcement (Itai-WTP-class divergences).
+    let unresolvedPatches: unknown[] = (rd.unresolved_validation_patches as unknown[] | undefined) || []
+    if (stageId === 'validation') {
+        const { computeUnresolvedPatches } = await import('./qualityGates/crossStageConsistency')
+        // Note: pass the rd WITH the new validation result included
+        const rdWithResult = { ...rd, results: { ...(rd.results as Record<string, unknown> || {}), [stageId]: stageResult } }
+        unresolvedPatches = computeUnresolvedPatches(rdWithResult as Record<string, unknown>)
+        const diverged = unresolvedPatches.filter(p => (p as { diverged?: boolean }).diverged === true).length
+        console.log(`[crossStageConsistency] ${unresolvedPatches.length} validation patches checked, ${diverged} diverged from upstream`)
+    }
+
     await writeResearchData(agent, instanceId, {
         ...rd,
         results,
         plan: { ...plan, status },
         _artifactFreshness: artifactFreshness,
+        contentQualityWarnings: updatedWarnings,
+        unresolved_validation_patches: unresolvedPatches,
     })
 }
 
