@@ -22612,12 +22612,15 @@ async function openScenarioPicker() {
   document.getElementById('pipelineBody').innerHTML =
     '<div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>';
 
-  // ── (1) NEW 11-stage model — strategy_options stage produced 3 scenario records.
+  // ── (1) NEW 11-stage model — strategy_options stage produced scenario records.
   // Transform them into the legacy picker shape so renderScenarioPicker keeps working
   // without re-running the deprecated buildStrategyScenarios API.
+  // Accept >=1 record; Stage 9 sometimes returns 2 of 3 scenarios under output token
+  // pressure (e.g. smart + aggressive without balanced). The transformer filters
+  // nulls so the picker renders just what's present rather than failing entirely.
   var rd = (instanceData && instanceData.researchData) || {};
   var newModelRecords = rd.results && rd.results.strategy_options && rd.results.strategy_options.records;
-  if (Array.isArray(newModelRecords) && newModelRecords.length >= 3) {
+  if (Array.isArray(newModelRecords) && newModelRecords.length >= 1) {
     var conf10 = rd.results && rd.results.confidence_score;
     currentScenarios = transformStrategyOptionsToPickerShape(newModelRecords, conf10, rd);
     var rec = (currentScenarios.validation && currentScenarios.validation.recommendedKey) || 'recommended';
@@ -22724,11 +22727,22 @@ function transformStrategyOptionsToPickerShape(records, conf10, rd) {
     };
   }).filter(Boolean);
 
-  // Recommended key — prefer Stage 10 confidence_score recommendation if present
+  // Recommended key — prefer Stage 10 confidence_score recommendation if present.
+  // If the mapped scenario is missing from the available records (Stage 9 sometimes
+  // produces 2 of 3), fall back to whatever IS present (prefer highest confidence).
+  var availableKeys = scenarios.map(function(s) { return s.key; });
   var recommendedKey = 'recommended';
   if (conf10 && conf10.recommendation) {
     if (conf10.recommendation === 'continue' || conf10.recommendation === 'small_pivot') recommendedKey = 'recommended';
     else if (conf10.recommendation === 'back_to_research') recommendedKey = 'conservative';
+  }
+  if (availableKeys.indexOf(recommendedKey) === -1) {
+    // Mapped scenario absent — pick by confidence (high > medium > low) then first available
+    var CONF_RANK = { high: 3, medium: 2, low: 1 };
+    var bestSc = scenarios.slice().sort(function(a, b) {
+      return (CONF_RANK[b.confidence] || 0) - (CONF_RANK[a.confidence] || 0);
+    })[0];
+    recommendedKey = bestSc ? bestSc.key : (availableKeys[0] || 'recommended');
   }
 
   return {

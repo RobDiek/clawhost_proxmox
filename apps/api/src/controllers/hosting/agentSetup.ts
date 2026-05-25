@@ -2510,11 +2510,11 @@ export const buildStrategyScenarios = async (c: Context) => {
         const rd = await readResearchData(__agent, instanceId) as any
 
         // New 11-stage model short-circuit: if Stage 9 (strategy_options) already produced
-        // 3 scenario records, the frontend transforms them client-side via
+        // scenario records, the frontend transforms them client-side via
         // transformStrategyOptionsToPickerShape — this endpoint should never be hit.
-        // Return a clear signal so a stale-cache frontend can recover gracefully.
+        // Accept >=1 record (Stage 9 occasionally outputs 2 of 3 under token pressure).
         const newModelRecords = rd?.results?.strategy_options?.records
-        if (Array.isArray(newModelRecords) && newModelRecords.length >= 3) {
+        if (Array.isArray(newModelRecords) && newModelRecords.length >= 1) {
             return c.json({
                 success: true,
                 data: { source: 'new_model', message: 'Scenarios already in research_data.results.strategy_options.records — use client transformer' }
