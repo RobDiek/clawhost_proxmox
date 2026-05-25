@@ -4939,12 +4939,16 @@ function renderHome() {
         rsDesc = 'מחקר הושלם ✓ · עכשיו בונים אסטרטגיה + 3 תרחישי תקציב.';
       } else if (!hasChosenScenario) {
         rsLabel = 'מחקר ואסטרטגיה — בחרו מסלול';
-        rsAction = 'openScenarioPicker()';
+        // Route to V2 pipeline (board with all stages incl. strategy_options).
+        // The legacy openScenarioPicker modal hits a deprecated API path that
+        // only knows the old 4-step model; new-model tenants land in stage 9
+        // (strategy_options) inside the V2 board to review and pick a scenario.
+        rsAction = 'openPipelineV2()';
         rsActionLabel = hasScenarios ? 'בחרו מסלול' : 'התאימו מסלול';
         rsDesc = 'מחקר + אסטרטגיה מוכנים ✓ · בחרו תרחיש תקציב (שמרני / מאוזן / אגרסיבי).';
       } else {
         rsLabel = 'מחקר ואסטרטגיה';
-        rsAction = 'openScenarioPicker()';
+        rsAction = 'openPipelineV2()';
         rsActionLabel = 'ערכו';
         rsDesc = 'מחקר, אסטרטגיה ומסלול תקציב פעילים. ניתן להחליף בכל עת.';
       }
