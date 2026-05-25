@@ -3421,7 +3421,11 @@ ${HEBREW_ONLY_BLOCK}
       "landing_page_strengths": ["whatsapp_cta_present", "schema_markup_complete"],
       "landing_page_weaknesses": ["form_too_long_7_fields", "no_hero_video"],
       "strategic_threat_level": "high|medium|low",
-      "strategic_threat_rationale_he": "..."
+      "strategic_threat_rationale_he": "...",
+      "creative_structure_match": "yes|partial|no",
+      "_creative_structure_match_note": "Phase 2026.01 — האם המודעות שלהם בנויות לפי Pattern Interrupt → Value Density → Soft CTA (3-8 שניות)? yes=כל 3 שלבים נוכחים; partial=2 מ-3; no=פחות מ-2. critical ל-IL הר vertical creative — חוסר structure = יחסר RIGHT-time CRO.",
+      "il_viewing_pattern_match": "aligned|misaligned|unknown",
+      "_il_viewing_pattern_match_note": "Phase 2026.01 — האם תזמון מודעות תואם IL prime time (19:00-23:00) + מתחשב ב-Shabbat drop 40-60%? aligned=ad scheduling או delivery pattern תואמים; misaligned=runs flat 24/7 בלי IL adaptation; unknown=אין נתוני timing."
     }
   ],
   "extras": {
@@ -3606,11 +3610,15 @@ ${HEBREW_ONLY_BLOCK}
       "keywords": [
         {
           "keyword": "...",
-          "match_type": "exact|phrase|broad",
+          "match_type": "exact|phrase|broad|broad_with_smart_bidding",
+          "_match_type_note": "Phase 2026.01 — broad_with_smart_bidding = STAG pattern (Single Theme Ad Group): broad match + Smart Bidding once volume ≥30 conv/week. אסור broad בלי Smart Bidding ו-aggressive negatives — אחרת רחל.",
+          "match_type_rationale_he": "1 שורה — למה הסוג הזה ולא אחר (BOFU=exact, MOFU=phrase, TOFU=broad_with_smart_bidding only if 30+ conv/wk)",
           "monthly_volume": <int>,
           "cpc_estimate_ils": <float>,
           "competition_index": <int>,
           "recommended_max_cpc_ils": <float>,
+          "cpc_within_il_vertical_range": true|false,
+          "_cpc_within_il_vertical_range_note": "Phase 2026.01 — האם cpc_estimate בטווח של vertical IL (services ₪3-15, ecom ₪1-8, B2B ₪10-50)? אם false → degraded warning ב-extras.",
           "why_chosen_he": "<1-line explanation>"
         }
       ],
@@ -3628,6 +3636,10 @@ ${HEBREW_ONLY_BLOCK}
     "account_level_negatives": ["..."],
     "budget_allocation_preview_pct": { "ag_1": <float>, "ag_2": <float>, ... },
     "il_cpc_benchmark_position": "above_p75|p25_to_p75|below_p25",
+    "multi_language_query_share_pct": <int>,
+    "_multi_language_query_share_pct_note": "Phase 2026.01 — % מ-SQR queries שאינן Hebrew (Arabic/Russian/English overlay על Hebrew sites — בדרך כלל 20-30% ב-IL). מקור: בדיקת language detection על top 100 SQR queries מ-baseline. ניתוח: אם >25% non-Hebrew → המלצה למודעות multi-language target (HE+RU+AR+EN).",
+    "cpc_out_of_range_keywords": ["..."],
+    "_cpc_out_of_range_note": "Phase 2026.01 — keywords שcpc_estimate חורג מטווח vertical IL (services ₪3-15, ecom ₪1-8, B2B ₪10-50). flag כדי שלא תוצא budget hint לא ריאלי.",
     "open_questions": ["..."]
   },
   "confidence": "high|medium|working_hypothesis"
@@ -3820,6 +3832,39 @@ ${HEBREW_ONLY_BLOCK}
         "expected_roas_range": { "low": <float>, "median": <float>, "high": <float> },
         "confidence": "high|medium|working_hypothesis"
       },
+      "il_budget_tier_band": "3k_5k|5k_10k|10k_20k|20k_50k|50k_plus",
+      "_il_budget_tier_band_note": "Phase 2026.01 — IL SMB budget tier matrix לפי 2026 spec. סווגו monthly_budget_ils לתוך הטווח המתאים. הסתכלו מה ה-band מאפשר: 3k_5k=1 Search Hagakure + Brand defense + minimal PMax tests; 5k_10k=Search consolidated + PMax + Brand; 10k_20k=+Demand Gen + OCI essential; 20k_50k=+competitor Search + custom audiences + sGTM + value-based bidding; 50k_plus=+dedicated YouTube + advanced segments.",
+      "phase_allocation": [
+        {
+          "phase": 1,
+          "weeks": "1-2",
+          "channel_split_pct": { "search": 60, "pmax": 20, "brand": 20, "demand_gen": 0, "display": 0, "meta": 0 },
+          "rationale_he": "1 משפט — למה החלוקה הזו ב-phase הזה (typical: 60/20/20 ב-weeks 1-2 → 40/30/20/10 ב-month 3+)"
+        }
+      ],
+      "_phase_allocation_note": "Phase 2026.01 — חובה לכל תרחיש. minimum 2 phases (weeks 1-2 = learning; weeks 3+ = scale). channel_split_pct סך = 100. Phase 1 הוא תמיד learning — אסור להפעיל ערוצים חדשים בלי 50%+ ב-Search.",
+      "bid_strategy_migration": [
+        {
+          "week_range": "1-4",
+          "strategy": "max_conversions",
+          "rationale_he": "1 משפט — learning phase, אין מספיק conv ל-tCPA"
+        },
+        {
+          "week_range": "5-12",
+          "strategy": "target_cpa",
+          "rationale_he": "1 משפט — 30+ conv accumulated, switch ל-tCPA"
+        }
+      ],
+      "_bid_strategy_migration_note": "Phase 2026.01 — חובה sequential progression: Max Conv (learning) → tCPA (30+ conv) → tROAS (50+ conv עם valid conversion value). אסור jumps כמו Max Conv → tROAS ישירות. minimum 2 steps, max 4 steps לתוך 12 שבועות.",
+      "il_seasonality_adjustments": [
+        {
+          "event": "Passover",
+          "dates": "מרץ-אפריל",
+          "budget_adjustment_pct": -15,
+          "rationale_he": "1 משפט — הסבר ל-IL-specific impact של event הזה על vertical"
+        }
+      ],
+      "_il_seasonality_note": "Phase 2026.01 — חובה לכלול: Passover (Mar-Apr), Tishrei holidays (Sep-Oct), Black Friday IL (Nov), summer dip (Aug). + vertical-specific (e.g. moving=June-July peak, B2B=Tishrei dead, ecom=Black Friday peak).",
       "month1_launch_checklist_he": ["...", "..."],
       "il_risks_he": ["..."]
     }
