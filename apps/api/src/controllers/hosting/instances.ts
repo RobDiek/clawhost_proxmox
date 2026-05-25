@@ -241,6 +241,14 @@ export const getInstance = async (c: Context<HonoEnv>) => {
             response.hasProfile = !!rd.answers
             response.hasResearch = !!(rd.report || rd.stage1 || hasV2Research)
             response.hasStrategy = !!(rd.strategy || (results && results.strategy_options))
+            // Pipeline-complete = Stage 10 (validation / confidence_score) finished.
+            // Once this is true the home-card for research+strategy can flip green
+            // regardless of whether the user has explicitly committed a scenario
+            // via /research/scenario/choose. The chosenScenario commit is still
+            // required for downstream content_plan generation (a separate gate),
+            // but the user shouldn't see a yellow "incomplete" card after every
+            // pipeline stage passed.
+            response.hasPipelineComplete = !!(results && (results.validation || results.confidence_score))
             const { brandBooks } = await import('@/db/schema')
             const [approvedBb] = await db.select({ id: brandBooks.id }).from(brandBooks)
                 .where(and(

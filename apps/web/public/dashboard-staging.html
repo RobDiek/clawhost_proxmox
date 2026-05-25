@@ -4921,7 +4921,11 @@ function renderHome() {
     // user re-uploads a brand book or it auto-archives.
     if (hasAgents && (hasBrandBook || hasResearch)) {
       var rsLabel, rsAction, rsActionLabel, rsDesc;
-      var rsDone = !!hasResearch && !!hasStrategy && !!hasChosenScenario;
+      // Pipeline-complete (Stage 10 validation) flips the card green even
+      // without an explicit chosenScenario commit. Explicit commit is still
+      // required for downstream content_plan generation (its own gate).
+      var hasPipelineComplete = !!(instanceData && instanceData.hasPipelineComplete);
+      var rsDone = !!hasResearch && !!hasStrategy && (!!hasChosenScenario || hasPipelineComplete);
 
       if (!hasResearch) {
         rsLabel = 'מחקר ואסטרטגיה';
