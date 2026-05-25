@@ -10258,6 +10258,21 @@ function renderStaleStagesAlert() {
 // On success → backend stageExecutor will clear the stale flag for this stage AND
 // cascade-mark downstream stages as stale. UI re-renders home automatically.
 async function rerunResearchStage(stageId) {
+  // Phase 2026.01 — content_plan requires EXPLICIT user-confirmed scenario choice.
+  // Gate at click level so the user gets a clear Hebrew popup instead of 422.
+  // Note: an _autoSelected scenario does NOT count as explicit — user must
+  // click "בחרו תרחיש זה" on a card to confirm.
+  if (stageId === 'content_plan') {
+    var rd = (window.instanceData && window.instanceData.researchData) || {};
+    var chosen = rd.chosenScenario;
+    var chosenKey = (typeof chosen === 'string') ? chosen
+      : (chosen && typeof chosen === 'object' ? chosen.scenario : '');
+    var isExplicit = chosenKey && chosen && typeof chosen === 'object' && chosen.chosenByUser === true;
+    if (!chosenKey || !isExplicit) {
+      alert('בחרו תרחיש אסטרטגיה לפני הרצת תוכנית התוכן.\n\nגלילו לכרטיסי האסטרטגיה (smart / aggressive) ולחצו "בחרו תרחיש זה" באחד מהם.\n\nתוכנית התוכן מותאמת לתרחיש שבחרתם — אסור להריץ אותה ללא בחירה מפורשת.');
+      return;
+    }
+  }
   if (!confirm('לרענן את השלב "' + (STAGE_TITLES_HE[stageId] || stageId) + '"? שלבים תלויים יסומנו לרענון.')) return;
   showToast('מריץ ' + (STAGE_TITLES_HE[stageId] || stageId) + ' ברקע...', 'info');
   try {
@@ -10265,6 +10280,26 @@ async function rerunResearchStage(stageId) {
     if (!r.success) throw new Error(r.message || 'הרצה נכשלה');
     showToast('השלב רץ — מרענן את לוח הבקרה', 'success');
     setTimeout(function() { refreshInstanceData(); renderHome(); }, 1500);
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+  }
+}
+
+// Phase 2026.01 — explicit scenario choice (Q1).
+// User clicks "Choose this scenario" on a strategy_options card.
+async function chooseScenarioCommit(scenario) {
+  if (scenario !== 'smart' && scenario !== 'aggressive') return;
+  var label = scenario === 'smart' ? 'תרחיש חכם' : 'תרחיש אגרסיבי';
+  if (!confirm('לבחור ' + label + ' כתרחיש האסטרטגיה? תוכנית התוכן ושאר השלבים יוקצו לפי תרחיש זה. ניתן לשנות מאוחר יותר על-ידי בחירה מחדש.')) return;
+  showToast('שומר בחירת תרחיש...', 'info');
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/research/scenario/choose', {
+      method: 'POST',
+      body: JSON.stringify({ scenario: scenario }),
+    });
+    if (!r.success) throw new Error(r.message || 'שמירת תרחיש נכשלה');
+    showToast('✓ ' + label + ' נשמר. עכשיו ניתן להריץ את שלב תוכנית התוכן.', 'success');
+    setTimeout(function() { refreshInstanceData(); renderHome(); }, 800);
   } catch (err) {
     showToast('שגיאה: ' + err.message, 'error');
   }
@@ -17699,14 +17734,31 @@ function renderScenarioCard(s) {
   var budgets = s.budget_allocation_ils || [];
   var risks = s.risks_mitigations || [];
 
+  // Phase 2026.01 — explicit user choice. Highlight the selected scenario;
+  // expose "Choose this scenario" CTA on the other.
+  var rd0 = (window.instanceData && window.instanceData.researchData) || {};
+  var chosenScenarioRaw = rd0.chosenScenario;
+  var chosenScenarioKey = (typeof chosenScenarioRaw === 'string')
+    ? chosenScenarioRaw
+    : (chosenScenarioRaw && typeof chosenScenarioRaw === 'object' ? chosenScenarioRaw.scenario : '');
+  var isChosen = chosenScenarioKey && chosenScenarioKey === s.scenario;
+  var isAutoSelected = isChosen && chosenScenarioRaw && typeof chosenScenarioRaw === 'object' && chosenScenarioRaw._autoSelected === true;
+
   var bg = s.scenario === 'smart' ? '#F0F9FF' : '#FEF3C7';
   var border = s.scenario === 'smart' ? '#BFDBFE' : '#FDE68A';
   var fg = s.scenario === 'smart' ? '#1E3A8A' : '#92400E';
+  if (isChosen && !isAutoSelected) { border = '#10B981'; }
 
-  return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:10px;padding:12px 14px;margin-bottom:10px">'
+  return '<div style="background:' + bg + ';border:2px solid ' + border + ';border-radius:10px;padding:12px 14px;margin-bottom:10px;position:relative">'
+    + (isChosen && !isAutoSelected ? '<div style="position:absolute;top:-10px;inset-inline-end:14px;background:#10B981;color:#fff;padding:2px 10px;border-radius:999px;font-size:0.7rem;font-weight:600">✓ נבחר</div>' : '')
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px">'
     +   '<strong style="font-size:0.95rem;color:' + fg + '">' + escapeHtml(s.scenario_label_he || s.scenario || '') + '</strong>'
     +   confidencePill(s.confidence)
+    + '</div>'
+    + '<div style="margin-bottom:10px">'
+    +   (isChosen && !isAutoSelected
+        ? '<button class="btn-sm" style="background:#10B981;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:default" disabled>✓ זהו התרחיש שלכם</button>'
+        : '<button class="btn-sm" style="background:' + fg + ';color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer" onclick="chooseScenarioCommit(\'' + s.scenario + '\')">בחרו תרחיש זה ←</button>')
     + '</div>'
     + (fw.channel ? '<div style="background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:8px"><div style="font-size:0.7rem;color:#6B7280;font-weight:500">🎯 ערוץ הניצחון הראשון</div><div style="font-size:0.88rem;font-weight:600;color:#1F2937;margin-top:2px">' + escapeHtml(fw.channel) + '</div>' + (fw.primary_persona ? '<div style="font-size:0.74rem;color:#6B7280;margin-top:2px">פרסונה: ' + escapeHtml(fw.primary_persona) + '</div>' : '') + (fw.specific_action ? '<div style="font-size:0.78rem;color:#374151;margin-top:4px">' + escapeHtml(fw.specific_action) + '</div>' : '') + (fw.expected_first_5_customers_days ? '<div style="font-size:0.74rem;color:#10B981;margin-top:4px">צפי: 5 לקוחות ראשונים תוך ' + fw.expected_first_5_customers_days + ' ימים</div>' : '') + '</div>' : '')
     + (channels.length ? '<details style="margin-bottom:6px"><summary style="cursor:pointer;font-size:0.78rem;font-weight:500;color:#374151">ערוצים נוספים (' + channels.length + ')</summary><div style="padding:6px 0;font-size:0.74rem">' + channels.map(function(c) { return '<div style="border-bottom:1px solid rgba(0,0,0,0.05);padding:6px 0"><strong>#' + (c.rank || '?') + ' ' + escapeHtml(c.channel || '') + '</strong>' + (c.priority_marker ? ' <span style="font-size:0.66rem;color:#6B7280">[' + escapeHtml(c.priority_marker) + ']</span>' : '') + (c.monthly_cost_ils ? ' <span style="color:#6B7280">~₪' + c.monthly_cost_ils + '/חודש</span>' : '') + (c.linked_persona ? '<div style="font-size:0.7rem;color:#6B7280">פרסונה: ' + escapeHtml(c.linked_persona) + '</div>' : '') + '</div>'; }).join('') + '</div></details>' : '')

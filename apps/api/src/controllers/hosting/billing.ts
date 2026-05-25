@@ -141,8 +141,24 @@ export const checkout = async (c: Context<HonoEnv>) => {
             subdomainName: subdomainName || null,
             trialEndsAt,
             onboardingStep: 0,
-            onboardingCompleted: false
+            onboardingCompleted: false,
         })
+
+        // Phase 2026.01 — $10 startup DFS credit (1000 cents) so onboarding
+        // research stages run on real DFS data out of the box. User connects
+        // their own DFS account when this credit is exhausted (~$5-10 covers
+        // full onboarding). Routed through ledger() for auditability.
+        try {
+            const { credit } = await import('@/services/dfsCredits/ledger')
+            await credit({
+                instanceId,
+                amountUsdCents: 1000,
+                kind: 'admin_credit',
+                note: 'Startup credit — Phase 2026.01 onboarding grant',
+            })
+        } catch (err) {
+            console.warn(`Startup DFS credit grant failed for ${instanceId} (non-critical):`, (err as Error).message)
+        }
 
         // Save customer name to user profile
         if (customerName && userId) {
