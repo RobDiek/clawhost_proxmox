@@ -4866,8 +4866,19 @@ function renderHome() {
         ? instanceData.researchData.marketingIntents : [];
       var connectedIds2 = (typeof getConnectedIntegrationIdsFromState === 'function')
         ? getConnectedIntegrationIdsFromState() : [];
+      // Phase 2026.01 — channels are implicit in the new 11-stage model:
+      // strategy_options.records[].channel_priority_list IS the channel mix.
+      // So treat "strategy stage completed" + "at least one connection" as configured,
+      // even if the legacy explicit marketingIntents array is empty.
+      var rdResults = instanceData && instanceData.researchData && instanceData.researchData.results;
+      var hasStrategyOptions = !!(rdResults && rdResults.strategy_options &&
+        Array.isArray(rdResults.strategy_options.records) &&
+        rdResults.strategy_options.records.length > 0);
+      var hasChosen = !!(instanceData && instanceData.researchData && instanceData.researchData.chosenScenario);
+
       var hasMktConfig = false;
       if (rdMI2.length > 0) {
+        // Legacy explicit-intents path
         var hubPipelines2 = (typeof marketingHubState !== 'undefined' && marketingHubState.pipelines) || [];
         if (hubPipelines2.length > 0) {
           hasMktConfig = hubPipelines2.some(function(s) {
@@ -4877,13 +4888,13 @@ function renderHome() {
               && isPipelineActive(s.pipeline.id, s.pipeline, rdMI2, connectedIds2);
           });
         }
-        // Fallback when hub not yet loaded — accept any non-trivial set of
-        // connections as "configured". Prevents the card from staying yellow
-        // forever just because marketingHubState lazy-load hasn't fired yet
-        // on home render (the previous bug Sergei flagged in the screenshot).
         if (!hasMktConfig && connectedIds2.length >= 1) {
           hasMktConfig = true;
         }
+      } else if ((hasStrategyOptions || hasChosen) && connectedIds2.length >= 1) {
+        // New 11-stage model: channels implicit in strategy_options. Strategy
+        // completed + at least one tool connected = treat as configured.
+        hasMktConfig = true;
       }
 
       tasks.push({
@@ -22587,7 +22598,11 @@ function renderOpsBrief(brief, history, scenario) {
   document.getElementById('pipelineNextBtn').onclick = generateOpsBrief;
 }
 
-// Open picker from home card — loads cached scenarios or generates fresh
+// Open picker from home card — loads cached scenarios or generates fresh.
+// Order of precedence:
+//   1. New 11-stage model: rd.results.strategy_options.records[] (transform → legacy shape)
+//   2. Legacy cached scenarios (rd.scenarios from old buildStrategyScenarios API)
+//   3. Fall through to API call (legacy generation)
 async function openScenarioPicker() {
   if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
   document.getElementById('pipelineOverlay').classList.remove('hidden');
@@ -22597,13 +22612,34 @@ async function openScenarioPicker() {
   document.getElementById('pipelineBody').innerHTML =
     '<div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>';
 
-  var cached = instanceData && instanceData.researchData && instanceData.researchData.scenarios;
+  // ── (1) NEW 11-stage model — strategy_options stage produced 3 scenario records.
+  // Transform them into the legacy picker shape so renderScenarioPicker keeps working
+  // without re-running the deprecated buildStrategyScenarios API.
+  var rd = (instanceData && instanceData.researchData) || {};
+  var newModelRecords = rd.results && rd.results.strategy_options && rd.results.strategy_options.records;
+  if (Array.isArray(newModelRecords) && newModelRecords.length >= 3) {
+    var conf10 = rd.results && rd.results.confidence_score;
+    currentScenarios = transformStrategyOptionsToPickerShape(newModelRecords, conf10, rd);
+    var rec = (currentScenarios.validation && currentScenarios.validation.recommendedKey) || 'recommended';
+    selectedScenarioKey = rec;
+    channelOverrides = null;
+    // Honor prior commit if present
+    var chosenNew = rd.chosenScenario;
+    if (chosenNew && chosenNew.key) {
+      selectedScenarioKey = chosenNew.key;
+      if (chosenNew.channelOverrides) channelOverrides = chosenNew.channelOverrides;
+    }
+    renderScenarioPicker();
+    return;
+  }
+
+  // ── (2) LEGACY cached scenarios
+  var cached = rd.scenarios;
   if (cached && cached.scenarios && cached.scenarios.length === 3) {
     currentScenarios = cached;
     selectedScenarioKey = (cached.validation && cached.validation.recommendedKey) || 'recommended';
     channelOverrides = null;
-    // Restore from chosenScenario if already committed
-    var chosen = instanceData.researchData.chosenScenario;
+    var chosen = rd.chosenScenario;
     if (chosen && chosen.key) {
       selectedScenarioKey = chosen.key;
       if (chosen.channelOverrides) channelOverrides = chosen.channelOverrides;
@@ -22611,8 +22647,98 @@ async function openScenarioPicker() {
     renderScenarioPicker();
     return;
   }
-  // No cache — generate fresh
+  // ── (3) No cache, no new model — generate fresh via legacy API
   runBuildScenarios();
+}
+
+// Transformer: new 11-stage strategy_options.records[] → legacy picker shape.
+// Maps scenario IDs (smart/balanced/aggressive) → picker keys (conservative/recommended/aggressive).
+// Pulls cost data from rd.results.cost_timeline_modeling when available, else falls back to
+// safe defaults so the cards render meaningfully even pre-launch.
+function transformStrategyOptionsToPickerShape(records, conf10, rd) {
+  var SCENARIO_META = {
+    smart:      { key: 'conservative', name: 'חכם',    emoji: '🛡️', tagline: 'שמרני — מינימום סיכון, max validation לפני סקלינג' },
+    balanced:   { key: 'recommended',  name: 'מאוזן',  emoji: '⚖️', tagline: 'בלאנס בין צמיחה לסיכון' },
+    aggressive: { key: 'aggressive',   name: 'אגרסיבי', emoji: '🚀', tagline: 'מקסימום צמיחה, השקעה מלאה מהיום הראשון' }
+  };
+  var costModel = rd.results && rd.results.cost_timeline_modeling;
+  var costRecs  = (costModel && Array.isArray(costModel.records)) ? costModel.records : [];
+
+  function findCostsFor(scenarioId) {
+    var rec = costRecs.find(function(r) { return r.scenario === scenarioId; });
+    if (!rec) return null;
+    var tokensMo = rec.monthly_token_cost_usd != null ? rec.monthly_token_cost_usd : (rec.tokens_usd_per_month || 0);
+    var toolsMo  = rec.monthly_tools_cost_usd  != null ? rec.monthly_tools_cost_usd  : (rec.tools_usd_per_month  || 0);
+    var paidMo   = rec.monthly_paid_traffic_ils != null ? rec.monthly_paid_traffic_ils : (rec.paid_ils_per_month  || 0);
+    return {
+      tokensUsd: { min: tokensMo, max: tokensMo },
+      toolsUsd:  { total: toolsMo },
+      paidTrafficIls: paidMo,
+      estimateTotalIls: Math.round((tokensMo + toolsMo) * 3.8 + paidMo)
+    };
+  }
+
+  function extractChannels(rec) {
+    var out = [];
+    if (Array.isArray(rec.channel_priority_list)) {
+      out = rec.channel_priority_list.map(function(c) {
+        return (typeof c === 'string') ? c : (c.channel || c.name || '');
+      }).filter(Boolean).slice(0, 5);
+    }
+    if (out.length === 0 && rec.first_win_channel) {
+      var fw = rec.first_win_channel;
+      out = [typeof fw === 'string' ? fw : (fw.channel || fw.name || 'Pillar SEO')];
+    }
+    return out;
+  }
+
+  function kpiSummary(rec, when) {
+    var metrics = (rec.kpis_90_day && rec.kpis_90_day.metrics) || [];
+    var out = {};
+    metrics.forEach(function(m) {
+      if (!m.name || !m[when]) return;
+      var v = m[when].base != null ? m[when].base : (m[when].expected || 0);
+      out[m.name] = v + (m.unit ? ' ' + m.unit : '');
+    });
+    return out;
+  }
+
+  var scenarios = ['smart', 'balanced', 'aggressive'].map(function(id) {
+    var rec = records.find(function(r) { return r.scenario === id; });
+    if (!rec) return null;
+    var meta = SCENARIO_META[id];
+    return {
+      key: meta.key,
+      name: meta.name,
+      emoji: meta.emoji,
+      tagline: meta.tagline,
+      costs: findCostsFor(id) || { tokensUsd: { min: 0, max: 0 }, toolsUsd: { total: 0 }, paidTrafficIls: 0, estimateTotalIls: 0 },
+      timeline: (rec.timeline_he || (rec['30_day_plan'] && rec['30_day_plan'].length + ' שלבי 30 יום') || '90 ימים'),
+      primaryChannels: extractChannels(rec),
+      kpis: { month1: kpiSummary(rec, 'scenarios_30d'), month3: kpiSummary(rec, 'scenarios_90d') },
+      confidence: rec.confidence,
+      thirtyDayPlan: rec['30_day_plan'] || [],
+      kpis90: rec.kpis_90_day || null,
+      croMechanisms: rec.cro_mechanisms || null,
+      doNotChannels: rec.do_not_channels || []
+    };
+  }).filter(Boolean);
+
+  // Recommended key — prefer Stage 10 confidence_score recommendation if present
+  var recommendedKey = 'recommended';
+  if (conf10 && conf10.recommendation) {
+    if (conf10.recommendation === 'continue' || conf10.recommendation === 'small_pivot') recommendedKey = 'recommended';
+    else if (conf10.recommendation === 'back_to_research') recommendedKey = 'conservative';
+  }
+
+  return {
+    validation: {
+      recommendedKey: recommendedKey,
+      confidenceScore: conf10 && typeof conf10.score === 'number' ? conf10.score : null,
+      reasoning: conf10 && conf10.reasoning_he || conf10 && conf10.reasoning || ''
+    },
+    scenarios: scenarios
+  };
 }
 
 async function runBuildScenarios() {

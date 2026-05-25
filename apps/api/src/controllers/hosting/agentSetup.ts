@@ -2509,10 +2509,26 @@ export const buildStrategyScenarios = async (c: Context) => {
         const __agent = await resolveActiveAgent(c, instanceId)
         const rd = await readResearchData(__agent, instanceId) as any
 
-        // Precondition: all 4 strategy stages must exist
+        // New 11-stage model short-circuit: if Stage 9 (strategy_options) already produced
+        // 3 scenario records, the frontend transforms them client-side via
+        // transformStrategyOptionsToPickerShape — this endpoint should never be hit.
+        // Return a clear signal so a stale-cache frontend can recover gracefully.
+        const newModelRecords = rd?.results?.strategy_options?.records
+        if (Array.isArray(newModelRecords) && newModelRecords.length >= 3) {
+            return c.json({
+                success: true,
+                data: { source: 'new_model', message: 'Scenarios already in research_data.results.strategy_options.records — use client transformer' }
+            })
+        }
+
+        // Legacy 4-stage precondition (kept for tenants still on the old pipeline)
         const missing = [1, 2, 3, 4].filter(s => !rd[`strategyStage${s}`])
         if (missing.length > 0) {
-            return fail(c, `חסרים שלבי אסטרטגיה: ${missing.join(', ')}. הריצו תחילה את כל 4 השלבים.`, 400)
+            return fail(
+                c,
+                `חסרים נתוני אסטרטגיה (legacy ${missing.join(', ')} / new model strategy_options). הריצו תחילה את שלבי המחקר.`,
+                400,
+            )
         }
 
         const answers = rd.answers || {}
