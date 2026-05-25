@@ -46,6 +46,7 @@ export function validateCompetitorLandscape(stage: Record_): ContentQualityWarni
     const buckets = records.map(r => String(r.bucket || ''))
     const direct = buckets.filter(b => b === 'direct').length
     const adjacent = buckets.filter(b => b === 'adjacent').length
+    const substitute = buckets.filter(b => b === 'substitute').length
     if (direct < 1) {
         out.push(warn('competitor_landscape', 'critical', 'no_direct_competitor',
             'אין מתחרה ישיר ב-records',
@@ -55,6 +56,32 @@ export function validateCompetitorLandscape(stage: Record_): ContentQualityWarni
         out.push(warn('competitor_landscape', 'important', 'no_adjacent_competitor',
             'אין מתחרה adjacent ב-records',
             'spec ממליץ ≥1 ב-bucket="adjacent" (אופציה חלופית מאותה JTBD). יכול לחשוף הרחבה אסטרטגית.'))
+    }
+    if (substitute < 1) {
+        out.push(warn('competitor_landscape', 'important', 'no_substitute_competitor',
+            'אין מתחרה substitute ב-records',
+            'Phase 2026.01: ל-vertical עם commodity component (קרטונים, רהיטים יד שניה וכו) חובה substitute שמייצג free/used alternative (Yad2, קבוצות, שווקי יד 2). ללא record כזה — strategy מתעלמת מסגמנט-budget הדומיננטי.'))
+    }
+    // Phase 2026.01 — per-record minimum content (no junior shells)
+    const recordsWithoutThreats = records.filter(r => {
+        const t = r.threats_to_us
+        return !Array.isArray(t) || (t as unknown[]).length < 1
+    })
+    const recordsWithoutGaps = records.filter(r => {
+        const g = r.content_gaps_at_competitor
+        return !Array.isArray(g) || (g as unknown[]).length < 1
+    })
+    if (recordsWithoutThreats.length > 0) {
+        const names = recordsWithoutThreats.map(r => String(r.name || 'unnamed')).join(', ')
+        out.push(warn('competitor_landscape', 'important', 'records_without_threats',
+            `${recordsWithoutThreats.length} records ללא threats_to_us`,
+            `Records ללא איומים: ${names}. גם unenriched competitors חייבים לפחות 1 threat hypothesis מבוסס bucket+domain.`))
+    }
+    if (recordsWithoutGaps.length > 0) {
+        const names = recordsWithoutGaps.map(r => String(r.name || 'unnamed')).join(', ')
+        out.push(warn('competitor_landscape', 'important', 'records_without_content_gaps',
+            `${recordsWithoutGaps.length} records ללא content_gaps_at_competitor`,
+            `Records ללא פערים: ${names}. גם unenriched competitors חייבים ≥1 content_gap hypothesis מבוסס vertical norms.`))
     }
     return out
 }

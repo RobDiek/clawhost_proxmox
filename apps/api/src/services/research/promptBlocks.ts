@@ -329,6 +329,19 @@ export const COMPETITOR_BUCKETING = `
 | Adjacent (סמוכה) | קטגוריה שכנה, חפיפה חלקית ב-SERP+audience, expansion lane |
 | Reference / Aspirational | דוגמת biztronz גבוהה (לא בהכרח מתחרה אמיתי) — standards-setting |
 
+**Substitute vs Adjacent — disambiguation (Phase 2026.01):**
+שאלת הבחנה: האם הלקוח מבצע את אותו ה-JTBD כשהוא משתמש במתחרה? אם כן → substitute. אם הלקוח נשאר לבצע ה-JTBD שלנו אבל ויכול לקנות גם משם → adjacent. דוגמה: עבור חברת קרטונים, חברת הובלות (Get Moving) = SUBSTITUTE כי אותו JTBD ("אני עובר דירה — מה אני צריך?") + הלקוח לא רוכש בנפרד קרטונים (השירות כולל / מספק). חברת ארגוניות בית = ADJACENT — חופף audience אבל JTBD שונה ("לארגן את הבית" ≠ "לארוז למעבר").
+
+**Free / secondhand alternatives — חובה לכלול אם vertical יש commodity component (Phase 2026.01):**
+ל-vertical שבו free or used substitute is widely available (e.g. cartons → Yad2 / קבוצות פייסבוק / סופרי שכונה; furniture → Yad2; software → open-source), חובה להוסיף ≥1 record עם bucket="substitute" שמייצג את ערוץ ה-free-source הזה — גם אם הוא לא חברה traditional. הסיבה: free alternative משפיע ישירות על WTP של segment-budget, ו-Stage 6 personas + Stage 10 validation יחשפו את זה. תקציר השפעה ב-threats_to_us של אותו record.
+
+**Per-record minimum content (Phase 2026.01) — חובה גם ל-unenriched competitors:**
+לכל record ב-records[], גם אם enrichmentMissing משמעותי (no deep pages, no backlinks summary, no reviews), חובה לכלול:
+- threats_to_us[]: לפחות 1 איום קונקרטי (גם אם confidence=working_hypothesis מבוסס על bucket + domain pattern + name)
+- content_gaps_at_competitor[]: לפחות 1 פער תוכן/SEO (גם hypothesis based על vertical norms)
+- backlink_worthy_assets_inventory[]: לפחות 1 asset hypothesis (לפחות "homepage / category pages" אם אין יותר ספציפי)
+ערכים ריקים ([]) אסורים — junior-level analysis. אם באמת אין מידע — מציינים confidence:working_hypothesis + ערך כללי מבוסס bucket.
+
 **Scorecard (60% score / 40% narrative):**
 
 | Dimension | Weight |
