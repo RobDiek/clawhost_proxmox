@@ -4857,6 +4857,44 @@ function renderHome() {
       });
     }
 
+    // Phase 2026.01 — ניהול שיווק section moved BEFORE מחקר ואסטרטגיה per
+    // Q2 (connections-first onboarding). Gate is now just hasAgents+hasBrandBook
+    // (don't wait for hasStrategy — connections should be set up before
+    // running research so research uses real GSC/GA4 data, not fallback).
+    if (hasAgents && hasBrandBook) {
+      var rdMI2 = (instanceData && instanceData.researchData && Array.isArray(instanceData.researchData.marketingIntents))
+        ? instanceData.researchData.marketingIntents : [];
+      var connectedIds2 = (typeof getConnectedIntegrationIdsFromState === 'function')
+        ? getConnectedIntegrationIdsFromState() : [];
+      var hasMktConfig = false;
+      if (rdMI2.length > 0) {
+        var hubPipelines2 = (typeof marketingHubState !== 'undefined' && marketingHubState.pipelines) || [];
+        if (hubPipelines2.length > 0) {
+          hasMktConfig = hubPipelines2.some(function(s) {
+            return s.relevantToCurrentIntents
+              && s.state !== 'locked'
+              && (typeof isPipelineActive === 'function')
+              && isPipelineActive(s.pipeline.id, s.pipeline, rdMI2, connectedIds2);
+          });
+        }
+        // Fallback when hub not yet loaded — accept any non-trivial set of
+        // connections as "configured". Prevents the card from staying yellow
+        // forever just because marketingHubState lazy-load hasn't fired yet
+        // on home render (the previous bug Sergei flagged in the screenshot).
+        if (!hasMktConfig && connectedIds2.length >= 1) {
+          hasMktConfig = true;
+        }
+      }
+
+      tasks.push({
+        id: 'marketing_config', label: 'ניהול שיווק — ערוצים וחיבורים',
+        done: !!hasMktConfig,
+        action: "switchTab('marketing')",
+        actionLabel: 'הגדירו',
+        desc: 'בחרו ערוצים (Google Ads / SEO / תוכן / רשתות) וחברו את הכלים הנדרשים. הסוכנים יתחילו לפעול אוטומטית. מומלץ להגדיר חיבורים לפני מחקר ואסטרטגיה — כך תקבלו נתונים אמיתיים מ-GSC/GA4 ולא fallback של LLM.'
+      });
+    }
+
     // ── Phase 3+4 unified: מחקר ואסטרטגיה ───────────────────────────────────
     // Single onboarding task that progressively walks the user through:
     //   1. Run market research (mazhir's 5-stage research pipeline)
@@ -4915,37 +4953,6 @@ function renderHome() {
       if (hasChosenScenario) {
         var rdMI = (instanceData && instanceData.researchData && Array.isArray(instanceData.researchData.marketingIntents))
           ? instanceData.researchData.marketingIntents : [];
-        // STRICT done check — intents set AND at least one pipeline that's
-        // ACTIVE (intent matches + ALL required integrations connected).
-        // Previously this was loose (intents.length > 0 was enough), which
-        // meant the task showed green even when nothing was actually running
-        // because no integrations were connected.
-        var hasMktConfig = false;
-        if (rdMI.length > 0) {
-          var hubPipelines = (typeof marketingHubState !== 'undefined' && marketingHubState.pipelines) || [];
-          var connectedIds = (typeof getConnectedIntegrationIdsFromState === 'function')
-            ? getConnectedIntegrationIdsFromState() : [];
-          if (hubPipelines.length > 0) {
-            hasMktConfig = hubPipelines.some(function(s) {
-              return s.relevantToCurrentIntents
-                && s.state !== 'locked'
-                && (typeof isPipelineActive === 'function')
-                && isPipelineActive(s.pipeline.id, s.pipeline, rdMI, connectedIds);
-            });
-          }
-          // If hub not loaded yet, leave hasMktConfig=false — the task will
-          // re-render once renderMarketingTab fires the hub fetch on next
-          // tab open, and the home view will pick it up on the next
-          // renderHome tick. Avoiding the previous false-positive.
-        }
-
-        tasks.push({
-          id: 'marketing_config', label: 'ניהול שיווק — ערוצים וחיבורים',
-          done: !!hasMktConfig,
-          action: "switchTab('marketing')",
-          actionLabel: 'הגדירו',
-          desc: 'בחרו ערוצים (Google Ads / SEO / תוכן / רשתות) וחברו את הכלים הנדרשים. הסוכנים יתחילו לפעול אוטומטית.'
-        });
 
         // ─── Phase 4.2 — Unified Paid Track Pipeline (2 phases, 8 steps) ──
         // ONE widget showing the full paid journey from "I want paid ads"
@@ -10269,11 +10276,20 @@ async function rerunResearchStage(stageId) {
       : (chosen && typeof chosen === 'object' ? chosen.scenario : '');
     var isExplicit = chosenKey && chosen && typeof chosen === 'object' && chosen.chosenByUser === true;
     if (!chosenKey || !isExplicit) {
-      alert('בחרו תרחיש אסטרטגיה לפני הרצת תוכנית התוכן.\n\nגלילו לכרטיסי האסטרטגיה (smart / aggressive) ולחצו "בחרו תרחיש זה" באחד מהם.\n\nתוכנית התוכן מותאמת לתרחיש שבחרתם — אסור להריץ אותה ללא בחירה מפורשת.');
+      await hebrewAlert({
+        title: 'בחירת תרחיש נדרשת',
+        body: 'בחרו תרחיש אסטרטגיה לפני הרצת תוכנית התוכן.\n\nגלילו לכרטיסי האסטרטגיה (smart / aggressive) ולחצו "בחרו תרחיש זה" באחד מהם.\n\nתוכנית התוכן מותאמת לתרחיש שבחרתם — אסור להריץ אותה ללא בחירה מפורשת.',
+      });
       return;
     }
   }
-  if (!confirm('לרענן את השלב "' + (STAGE_TITLES_HE[stageId] || stageId) + '"? שלבים תלויים יסומנו לרענון.')) return;
+  var ok = await hebrewConfirm({
+    title: 'רענון שלב מחקר',
+    body: 'לרענן את השלב "' + (STAGE_TITLES_HE[stageId] || stageId) + '"? שלבים תלויים יסומנו לרענון.',
+    confirmLabel: 'רענן',
+    cancelLabel: 'ביטול',
+  });
+  if (!ok) return;
   showToast('מריץ ' + (STAGE_TITLES_HE[stageId] || stageId) + ' ברקע...', 'info');
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/research/stage/' + encodeURIComponent(stageId), { method: 'POST' });
@@ -10290,7 +10306,13 @@ async function rerunResearchStage(stageId) {
 async function chooseScenarioCommit(scenario) {
   if (scenario !== 'smart' && scenario !== 'aggressive') return;
   var label = scenario === 'smart' ? 'תרחיש חכם' : 'תרחיש אגרסיבי';
-  if (!confirm('לבחור ' + label + ' כתרחיש האסטרטגיה? תוכנית התוכן ושאר השלבים יוקצו לפי תרחיש זה. ניתן לשנות מאוחר יותר על-ידי בחירה מחדש.')) return;
+  var ok = await hebrewConfirm({
+    title: 'בחירת תרחיש אסטרטגיה',
+    body: 'לבחור ' + label + ' כתרחיש האסטרטגיה?\n\nתוכנית התוכן ושאר השלבים יוקצו לפי תרחיש זה. ניתן לשנות מאוחר יותר על-ידי בחירה מחדש.',
+    confirmLabel: 'בחר ' + label,
+    cancelLabel: 'ביטול',
+  });
+  if (!ok) return;
   showToast('שומר בחירת תרחיש...', 'info');
   try {
     var r = await apiFetch('/hosting/instances/' + instanceId + '/research/scenario/choose', {
@@ -10298,7 +10320,7 @@ async function chooseScenarioCommit(scenario) {
       body: JSON.stringify({ scenario: scenario }),
     });
     if (!r.success) throw new Error(r.message || 'שמירת תרחיש נכשלה');
-    showToast('✓ ' + label + ' נשמר. עכשיו ניתן להריץ את שלב תוכנית התוכן.', 'success');
+    showToast('✓ ' + label + ' נשמר.', 'success');
     setTimeout(function() { refreshInstanceData(); renderHome(); }, 800);
   } catch (err) {
     showToast('שגיאה: ' + err.message, 'error');
@@ -31127,6 +31149,63 @@ function cfConfirm(title, desc) {
     okBtn.onclick = function() { cleanup(); resolve(true); };
     document.getElementById('cf-modal-cancel').onclick = function() { cleanup(); resolve(false); };
     overlay.onclick = function(e) { if (e.target === overlay) { cleanup(); resolve(false); } };
+  });
+}
+
+/* ===== Hebrew custom modal (replaces native confirm/alert) ===== */
+// Phase 2026.01 — native browser confirm/alert show locale-specific OS chrome
+// ("Подтвердите действие на …", "OK/Отмена") which breaks Hebrew RTL UX.
+// All confirm/alert callsites must use these helpers instead.
+function hebrewConfirm(opts) {
+  // opts: { title, body, confirmLabel='אישור', cancelLabel='ביטול', destructive=false }
+  return new Promise(function(resolve) {
+    var title = (opts && opts.title) || 'אישור פעולה';
+    var body = (opts && opts.body) || '';
+    var ok = (opts && opts.confirmLabel) || 'אישור';
+    var cancel = (opts && opts.cancelLabel) || 'ביטול';
+    var destructive = !!(opts && opts.destructive);
+    var okBg = destructive ? '#DC2626' : '#2563EB';
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);display:flex;align-items:center;justify-content:center;z-index:99999;direction:rtl;font-family:Arial, "Arial Hebrew", Helvetica, sans-serif';
+    overlay.innerHTML =
+      '<div role="dialog" aria-modal="true" style="background:#fff;border-radius:14px;max-width:480px;width:92%;padding:22px 24px 18px;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:right">' +
+        '<div style="font-size:1.05rem;font-weight:700;color:#1F2937;margin-bottom:10px">' + (title || '') + '</div>' +
+        '<div style="font-size:0.88rem;color:#4B5563;line-height:1.55;margin-bottom:18px;white-space:pre-line">' + (body || '') + '</div>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-start">' +
+          '<button id="hc-ok" style="background:' + okBg + ';color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:0.86rem;font-weight:600;cursor:pointer">' + ok + '</button>' +
+          '<button id="hc-cancel" style="background:#F3F4F6;color:#374151;border:none;padding:8px 18px;border-radius:8px;font-size:0.86rem;font-weight:500;cursor:pointer">' + cancel + '</button>' +
+        '</div>' +
+      '</div>';
+    function close(v) { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); resolve(v); }
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) close(false); });
+    document.body.appendChild(overlay);
+    overlay.querySelector('#hc-ok').addEventListener('click', function() { close(true); });
+    overlay.querySelector('#hc-cancel').addEventListener('click', function() { close(false); });
+    setTimeout(function() { var b = overlay.querySelector('#hc-ok'); if (b) b.focus(); }, 0);
+  });
+}
+
+function hebrewAlert(opts) {
+  // opts: { title, body, okLabel='הבנתי' }
+  return new Promise(function(resolve) {
+    var title = (opts && opts.title) || 'הודעה';
+    var body = (opts && opts.body) || '';
+    var ok = (opts && opts.okLabel) || 'הבנתי';
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);display:flex;align-items:center;justify-content:center;z-index:99999;direction:rtl;font-family:Arial, "Arial Hebrew", Helvetica, sans-serif';
+    overlay.innerHTML =
+      '<div role="alertdialog" aria-modal="true" style="background:#fff;border-radius:14px;max-width:480px;width:92%;padding:22px 24px 18px;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:right">' +
+        '<div style="font-size:1.05rem;font-weight:700;color:#1F2937;margin-bottom:10px">' + (title || '') + '</div>' +
+        '<div style="font-size:0.88rem;color:#4B5563;line-height:1.55;margin-bottom:18px;white-space:pre-line">' + (body || '') + '</div>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-start">' +
+          '<button id="ha-ok" style="background:#2563EB;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:0.86rem;font-weight:600;cursor:pointer">' + ok + '</button>' +
+        '</div>' +
+      '</div>';
+    function close() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); resolve(); }
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
+    document.body.appendChild(overlay);
+    overlay.querySelector('#ha-ok').addEventListener('click', close);
+    setTimeout(function() { var b = overlay.querySelector('#ha-ok'); if (b) b.focus(); }, 0);
   });
 }
 

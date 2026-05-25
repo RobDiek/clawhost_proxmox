@@ -124,11 +124,16 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
     // gives it a competitor benchmark to compare technical metrics against)
     // and before seo_keyword_research (which uses indexed-pages inventory to
     // ground striking-distance + cannibalization analysis on real URLs).
+    // Phase 2026.01 — content_plan REMOVED from research pipeline (per Q5
+    // restructure). It's now a separate, FINAL onboarding step that runs
+    // AFTER paid channels setup is complete. Handler still exists and
+    // is triggered manually (or by the final-onboarding-step flow) — it
+    // just isn't surfaced as a "מחקר ואסטרטגיה" stage card anymore.
     switch (intent) {
         case 'seo_organic':
             return ['competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
                 'aeo_visibility', 'link_audit',
-                ...UNIVERSAL_STAGES, 'content_plan']
+                ...UNIVERSAL_STAGES]
         case 'paid_search':
             // Phase 4.2 — paid research pipeline (3 new stages between organic
             // competitor_landscape and the existing paid_audit):
@@ -144,10 +149,10 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
                 'media_plan']
         case 'social_organic':
             return ['competitor_landscape', 'social_landscape',
-                ...UNIVERSAL_STAGES, 'content_plan']
+                ...UNIVERSAL_STAGES]
         case 'email_crm':
             return ['competitor_landscape', 'email_competitor_audit',
-                ...UNIVERSAL_STAGES, 'content_plan']
+                ...UNIVERSAL_STAGES]
         case 'ecommerce':
             // Phase 4.2 — ecommerce gets the full paid research pipeline too
             // (paid traffic is the primary growth lever for IL ecommerce SMBs).
@@ -156,7 +161,7 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
                 'audience_personas', 'positioning',
                 'paid_budget_scenarios', 'cost_timeline_modeling',
                 'paid_audit', 'strategy_options', 'validation',
-                'media_plan', 'content_plan']
+                'media_plan']
         case 'multichannel':
             return ['competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
                 'aeo_visibility', 'link_audit',
@@ -165,7 +170,7 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
                 'audience_personas', 'positioning',
                 'paid_budget_scenarios', 'cost_timeline_modeling',
                 'strategy_options', 'validation',
-                'content_plan', 'media_plan']
+                'media_plan']
     }
 }
 
