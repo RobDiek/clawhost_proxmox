@@ -2617,6 +2617,53 @@ ${DFS_DATA_RULE}
     "total_hours_estimate": 0,
     "confidence": "high | medium | working_hypothesis"
   },
+  "cwv_audit": {
+    "_note": "Phase 2026.01 — Core Web Vitals + INP analysis (MANDATORY field, not optional). Based on page_timing from prefetch (lcp_ms / tti_ms / dom_complete_ms per URL). INP has no direct DFS measurement — use proxies: dom_complete_ms > 5s + GTM tag count > 30 + render-blocking scripts = INP risk. If page_timing absent: confidence=working_hypothesis + degraded_reason explicit.",
+    "lcp_critical_urls_count": 0,
+    "_lcp_critical_note": "URLs with LCP > 2.5s (poor experience threshold)",
+    "lcp_poor_urls_count": 0,
+    "_lcp_poor_note": "URLs with LCP > 4.0s (Google CWV poor classification)",
+    "inp_risk_urls_count": 0,
+    "_inp_risk_note": "URLs with dom_complete > 5s OR GTM tags > 30 OR multiple render-blocking scripts — INP risk proxy",
+    "avg_lcp_ms": 0,
+    "top_3_offending_urls": ["url1","url2","url3"],
+    "fixes_recommended_he": ["1 line: break long JS tasks", "1 line: debounce input handlers", "1 line: clean GTM (>30 tags)"],
+    "_fixes_note": "מינימום 3 פעולות technical — minimum requirement, can be more",
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "rtl_audit": {
+    "_note": "Phase 2026.01 — IL Hebrew RTL technical audit (MANDATORY). Critical because IL Hebrew sites have iOS Safari direction bugs from missing <bdi> on numbers/URLs in Hebrew, broken alignment from physical CSS (margin-left vs margin-inline-start), incorrect dir/lang attrs.",
+    "html_dir_attribute": "rtl | ltr | missing",
+    "html_lang_attribute": "he | he-IL | en | other | missing",
+    "uses_logical_css": true,
+    "_logical_css_note": "true = uses margin-inline-start/padding-inline-end (RTL-safe). false = uses margin-left/padding-right (breaks RTL). unknown if can't determine.",
+    "bdi_tags_present": true,
+    "_bdi_note": "<bdi> tags wrap numbers/URLs inside Hebrew text — prevents iOS Safari direction inversion bugs",
+    "rtl_specific_issues": ["1 line per issue identified, e.g. 'price numbers reversed on mobile due to missing <bdi>'"],
+    "fixes_recommended_he": ["1-3 fixes"],
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "hreflang_audit": {
+    "_note": "Phase 2026.01 — hreflang status (MANDATORY). Even if site is monolingual (Hebrew-only), MUST explicitly state status=not_required_monolingual — senior audit does not leave this field blank.",
+    "status": "complete | partial | missing | not_required_monolingual",
+    "languages_detected": ["he", "en"],
+    "issues": ["1 line per issue, or empty array"],
+    "recommendation_he": "1-2 lines",
+    "confidence": "high | medium | working_hypothesis"
+  },
+  "gsc_pages_integration_summary": {
+    "_note": "Phase 2026.01 — GSC top URLs integration (MANDATORY when GSC available). Per Sergei's playbook: audit STARTS with GSC, not crawl. If GSC unavailable, status='gsc_not_connected' + content fallback.",
+    "status": "integrated | gsc_not_connected | partial",
+    "gsc_top_urls_count": 0,
+    "_gsc_count_note": "Count from prefetch.gsc.top_urls (typically 50 URLs)",
+    "orphan_in_production_count": 0,
+    "_orphan_note": "URLs in DFS inventory with thin/missing-schema BUT zero GSC traffic = wasted indexing budget",
+    "traffic_priority_refresh_targets": [
+      { "url": "url1", "gsc_clicks": 0, "audit_issue": "1 line", "refresh_priority_score": 0 }
+    ],
+    "_targets_note": "URLs with GSC clicks > 10/16mo AND audit issue (thin/no schema/duplicate). These are highest ROI for refresh.",
+    "confidence": "high | medium | working_hypothesis"
+  },
   "helpful_content_vulnerability_score": {
     "_note": "Phase 2026.01 — Helpful Content vulnerability index (0-100, גבוה = פגיע יותר). חישוב: index_ratio_pct (כמה % URLs מסומנים indexable + נסרקים בגוגל), thin_pages_pct (word_count<300 / total), templated_meta_pct (חזרתיות גבוהה ב-meta description), orphan_urls_pct (URLs ללא קישורים פנימיים מהאתר — proxy: not_in_sitemap_or_no_nav). Formula: vuln = (thin_pages_pct·0.40 + templated_meta_pct·0.30 + orphan_urls_pct·0.20 + (100 − index_ratio_pct)·0.10). אם נתון חסר — null במקום ניחוש.",
     "score_0_100": 0,

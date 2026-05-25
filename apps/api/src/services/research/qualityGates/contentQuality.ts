@@ -90,42 +90,39 @@ export function validateCompetitorLandscape(stage: Record_): ContentQualityWarni
 
 export function validateInternalSeoAudit(stage: Record_): ContentQualityWarning[] {
     const out: ContentQualityWarning[] = []
-    const content = String(stage.content || '')
     const extras = ext(stage.extras)
     const records = rec(stage.records)
 
-    // 2026 senior signals coverage checks (content + extras + records)
-    // Use Hebrew + English variants to handle bilingual content
-    const hasCwvOrInp = /\bINP\b|\bLCP\b|\bCWV\b|Core Web Vitals|מהירות טעינה|page_timing|page experience/i.test(content)
-    const hasRtl = /RTL|dir="rtl"|<bdi>|logical CSS|hebrew direction/i.test(content) ||
-        records.some(r => r.il_rtl_issues !== undefined)
-    const hasHreflang = /hreflang|he-IL|en-IL/i.test(content)
-    const hasGscReference = /GSC|Search Console|google search console|impressions|clicks/i.test(content) ||
-        Boolean(extras.gsc_pages_integration_summary)
+    // 2026 senior signals — checked via STRUCTURED FIELDS in extras
+    // (fields beat prose — schema-enforced is the only way LLMs reliably comply)
+    const hasCwvAudit = Boolean(extras.cwv_audit)
+    const hasRtlAudit = Boolean(extras.rtl_audit)
+    const hasHreflangAudit = Boolean(extras.hreflang_audit)
+    const hasGscIntegration = Boolean(extras.gsc_pages_integration_summary)
     const hasEeatQuadrant = records.some(r => {
         const q = (r.quadrant_scores as Record_ | undefined) || {}
         return typeof q.eeat === 'number'
     })
 
-    if (!hasCwvOrInp) {
-        out.push(warn('internal_seo_audit', 'critical', 'missing_core_web_vitals',
-            'אין הזכרה של Core Web Vitals / INP / LCP באודיט',
-            'Phase 2026.01: CWV+INP הם ranking factor 2024+. prefetch מספק page_timing per URL — חובה לנתח LCP > 2.5s / dom_complete > 5s URLs ולהוסיף core_web_vitals_fixes ל-tech_debt_summary.'))
+    if (!hasCwvAudit) {
+        out.push(warn('internal_seo_audit', 'critical', 'missing_cwv_audit',
+            'extras.cwv_audit חסר — אין ניתוח Core Web Vitals + INP',
+            'Phase 2026.01: CWV+INP הם ranking factor 2024+. prefetch מספק page_timing per URL — חובה לפלוט extras.cwv_audit עם lcp_critical_urls_count + inp_risk_urls_count + top_3_offending_urls + fixes_recommended_he.'))
     }
-    if (!hasRtl) {
+    if (!hasRtlAudit) {
         out.push(warn('internal_seo_audit', 'critical', 'missing_rtl_audit',
-            'אין הזכרה של RTL technical (dir/bdi/logical CSS) באודיט',
-            'IL Hebrew RTL technical gotchas (iOS Safari direction bugs, missing <bdi> on numbers/URLs, physical-CSS-instead-of-logical) הם senior baseline. חובה ב-content + il_rtl_issues per record.'))
+            'extras.rtl_audit חסר — אין בדיקת RTL technical',
+            'IL Hebrew RTL technical gotchas (iOS Safari direction bugs, missing <bdi>, physical CSS) הם senior baseline. חובה ב-extras.rtl_audit עם html_dir_attribute + uses_logical_css + bdi_tags_present + rtl_specific_issues.'))
     }
-    if (!hasHreflang) {
-        out.push(warn('internal_seo_audit', 'important', 'missing_hreflang_check',
-            'אין הזכרה של hreflang (he-IL/en-IL) באודיט',
-            'גם אם site Hebrew-only — חובה לציין explicit (e.g. "hreflang לא נדרש — site מונולינגי"). senior audit לא משאיר שדה כזה ללא answer.'))
+    if (!hasHreflangAudit) {
+        out.push(warn('internal_seo_audit', 'important', 'missing_hreflang_audit',
+            'extras.hreflang_audit חסר — אין הצהרה על hreflang status',
+            'גם אם site Hebrew-only — חובה לציין explicit status="not_required_monolingual". senior audit לא משאיר שדה כזה ללא answer.'))
     }
-    if (!hasGscReference) {
-        out.push(warn('internal_seo_audit', 'important', 'gsc_not_integrated',
-            'GSC top URLs לא מופיעים ב-narrative או extras',
-            'Per Sergei\'s playbook: "audit STARTS with GSC, not crawl." Prefetch מספק 50 top-traffic URLs מ-GSC. חובה לציין מי מהם thin/missing-schema = priority refresh targets.'))
+    if (!hasGscIntegration) {
+        out.push(warn('internal_seo_audit', 'important', 'missing_gsc_integration',
+            'extras.gsc_pages_integration_summary חסר',
+            'Per Sergei\'s playbook: audit STARTS with GSC. Prefetch מספק 50 top-traffic URLs מ-GSC. חובה לפלוט traffic_priority_refresh_targets + orphan_in_production_count.'))
     }
     if (!hasEeatQuadrant) {
         out.push(warn('internal_seo_audit', 'important', 'missing_eeat_quadrant',
