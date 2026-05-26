@@ -4176,26 +4176,58 @@ export function buildClientAccountBaselinePrompt(opts: PromptOpts): PromptResult
 
 ${context}
 
-החזירו **JSON בלבד**, שדה אחד "records" עם 4-7 תצפיות מובנות:
+═══ קריטי — בדיקת איכות סיגנל המרות (playbook §4.4.5) ═══
+
+לפני שאתם מסכמים ביצועים, חובה לבדוק אם נתוני ההמרה **אמינים בכלל**.
+חשבון יכול להראות "CPA נמוך, CR גבוה" ולמעשה להיות זבל לחלוטין אם:
+
+1. **Static value pollution** — אם נראה שפעולות המרה רבות מחזירות ערך אחיד (למשל phone_click תמיד 1₪ כי לא הוגדר ערך מותאם), זה דגל אדום. ההצעה למשתמש: "Smart Bidding מתאמן על ערך דמה" — לא מומלץ tCPA.
+
+2. **First valid conversion date < 30 ימים** — Smart Bidding דורש ≥30 יום סיגנל נקי. אם change_history מראה שינוי בהגדרת conversion_action בחודשיים האחרונים, או account_metrics מראה Spike של המרות בתאריך ספציפי, סמנו "חשבון בתחילת חיים — לא יציב לאסטרטגיות אוטומטיות".
+
+3. **Gross-vs-net contamination** — אם conv_value כולל מע"מ + משלוח (gross) ולא net revenue, ROAS מנופח, בידינג בזבזני. סימן: aggregate conv_value / aggregate orders יוצא מספר עגול חשוד (~1.17× הסכום נטו של ההזמנה).
+
+4. **Multi-action same value** — אם purchase + form_submit + phone_click כולם מחזירים את אותו ערך (1₪ או דומה), זה template misconfig.
+
+5. **GA4 ↔ Ads value mismatch** — אם GA4 events מראה purchase_value ממוצע ₪X אבל Ads conversion_value ממוצע ₪X×0.05, ערך לא זורם נכון ל-Ads.
+
+6. **Conv volume sudden jump** — אם daily conversions קפצו >5× בלי שינוי בהוצאה, סימן ל-double-fire או tag misconfig.
+
+7. **Conv value variance < 5%** — אם std deviation של conv values < 5% מהממוצע, כל ההמרות באותו ערך — סיגנל שטוח.
+
+**אסטרטגיות לבדיקה מהנתונים שלפניכם:**
+- השוו aggregate \`account_metrics.cpa\` מול \`sqr.topConvertingTerms\` CPA חציוני. אם aggregate משמעותית נמוך יותר → ערכי המרה דמה דוללו את ה-CPA הכולל.
+- בדקו \`change_history.bigChanges\` — האם יש שינויים ב-conversion_action ב-60 הימים האחרונים? זה רומז ל"תאריך התחלה" של מעקב תקין.
+- אם GA4 events מראה purchase events אבל \`account_metrics.conversionValue\` חסר/אפס → ערך לא זורם.
+- מספר ההמרות 4,000+ מול spend ₪60K = ₪15 CPA חציוני. אם זה ecom_physical (playbook §3.2 floor: CPA ≤ ₪70, CR 1.8-2.8%), זה חשוד נמוך מדי. סמנו "חשד ל-conv מנופח".
+
+═══
+
+החזירו **JSON בלבד**, שדה אחד "records" עם 4-9 תצפיות מובנות:
 {
   "records": [
     {
-      "category": "spend|waste|competition|conversions|tracking|seasonality|change_history",
+      "category": "spend|waste|competition|conversions|tracking|seasonality|change_history|conv_value_quality",
       "headline_he": "כותרת קצרה (≤80 תווים) בעברית",
       "detail_he": "1-2 משפטים מציאותיים על מה הנתון אומר על מצב החשבון",
-      "ground_truth_source": "google_ads_sqr | google_ads_auction_insights | google_ads_change_history | ga4_events | ga4_funnel | ga4_seasonality",
-      "actionable_for_downstream": "איזה שלב עתידי צריך להשתמש בנתון הזה (paid_keyword_research / paid_competitor_landscape / paid_budget_scenarios / mazhir_audit)"
+      "ground_truth_source": "google_ads_sqr | google_ads_auction_insights | google_ads_change_history | google_ads_account_metrics | ga4_events | ga4_funnel | ga4_seasonality | conv_value_inference",
+      "actionable_for_downstream": "איזה שלב עתידי צריך להשתמש בנתון הזה (paid_keyword_research / paid_competitor_landscape / paid_budget_scenarios / mazhir_audit)",
+      "conv_value_quality_flag": "static_value_pollution | first_valid_date_under_30d | gross_vs_net | multi_action_same_value | ga4_ads_value_mismatch | volume_sudden_jump | low_variance | clean — סמנו רק אם category=conv_value_quality"
     }
   ],
+  "conv_value_quality_subscore_0_100": <מספר>,
+  "conv_value_quality_rationale_he": "1-2 משפטים — איך הגעתם לציון. אם זיהיתם דגלים אדומים, פרטו אותם.",
   "confidence": "high | medium | working_hypothesis",
   "data_quality_notes_he": "1-2 שורות על שלמות הנתונים — מה חסר, מה משוער"
 }
 
 כללים:
-- אם הנתונים ריקים (Google Ads לא מחובר / לא נבחרו קמפיינים) — החזירו רשומה אחת בלבד עם category="tracking" וכותרת "אין נתונים היסטוריים — המחקר ירוץ ללא ground-truth מהחשבון"
+- **חובה לכלול לפחות record אחד עם category="conv_value_quality"** — אפילו אם הסיגנל נקי, סמנו זאת עם flag="clean".
+- אם הנתונים ריקים (Google Ads לא מחובר / לא נבחרו קמפיינים) — החזירו רשומה אחת בלבד עם category="tracking" וכותרת "אין נתונים היסטוריים — המחקר ירוץ ללא ground-truth מהחשבון". conv_value_quality_subscore_0_100=0.
 - אסור להמציא מספרים — אם לא בקונטקסט, לא קיים
 - 2-nd person plural בלבד (תוכלו / שלכם), לא יחיד
-- אסור להציע פעולות אופטימיזציה — זאת לא המטרה של השלב הזה`
+- אסור להציע פעולות אופטימיזציה — זאת לא המטרה של השלב הזה
+- conv_value_quality_subscore < 30 = audit downstream יעבור ל-fix_tracking_first verdict. זה הצמתת של ה-pipeline.`
 
     return {
         agentId: 'menateach',
