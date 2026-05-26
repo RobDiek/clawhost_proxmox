@@ -143,9 +143,13 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
             // branch. Stage runner skips stages that don't apply to the chosen
             // path (e.g. paid_questionnaire is no-op on has_history, csv stages
             // are no-op on integration-connected path).
+            //
+            // Both client_account_baseline (live API) and client_account_baseline_csv
+            // (CSV ingest) are listed — runner picks which one to populate based
+            // on rd.results.paid_setup_fork.extras.has_integration.
             return ['competitor_landscape', 'paid_setup_fork',
                 'paid_data_inventory', 'paid_questionnaire',
-                'paid_csv_ingest', 'client_account_baseline_csv',
+                'paid_csv_ingest', 'client_account_baseline', 'client_account_baseline_csv',
                 'paid_competitor_landscape', 'paid_keyword_research',
                 'audience_personas', 'positioning',
                 'paid_budget_scenarios', 'cost_timeline_modeling',
@@ -160,10 +164,12 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
         case 'ecommerce':
             // Phase 4.2 — ecommerce gets the full paid research pipeline too
             // (paid traffic is the primary growth lever for IL ecommerce SMBs).
-            // Phase 2026.02 — fork + branch stages included; runner skips non-applicable.
+            // Phase 2026.02 — fork + branch stages included (both live and csv
+            // baselines), runner skips non-applicable.
             return ['competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
                 'paid_setup_fork', 'paid_data_inventory',
-                'paid_questionnaire', 'paid_csv_ingest', 'client_account_baseline_csv',
+                'paid_questionnaire', 'paid_csv_ingest',
+                'client_account_baseline', 'client_account_baseline_csv',
                 'paid_competitor_landscape', 'paid_keyword_research',
                 'audience_personas', 'positioning',
                 'paid_budget_scenarios', 'cost_timeline_modeling',
@@ -173,7 +179,8 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
             return ['competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
                 'aeo_visibility', 'link_audit',
                 'paid_setup_fork', 'paid_data_inventory',
-                'paid_questionnaire', 'paid_csv_ingest', 'client_account_baseline_csv',
+                'paid_questionnaire', 'paid_csv_ingest',
+                'client_account_baseline', 'client_account_baseline_csv',
                 'paid_competitor_landscape', 'paid_keyword_research',
                 'paid_audit', 'social_landscape',
                 'audience_personas', 'positioning',
