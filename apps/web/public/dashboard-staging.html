@@ -3435,6 +3435,16 @@ input{font-family:inherit}
     <!-- Pipeline progress bar -->
     <div style="flex-shrink:0;height:3px;background:#E5E7EB"><div id="pipelineV2-progress-bar" style="height:100%;background:linear-gradient(90deg,#2563EB,#10B981);transition:width .4s;width:0%"></div></div>
 
+    <!-- Phase 2026.02 — Tab bar: split research vs paid (per playbook 15 §C) -->
+    <div id="pipelineV2-tabs" style="flex-shrink:0;display:flex;border-bottom:1px solid #E5E7EB;background:#FAFAFA;padding:0 24px">
+      <button id="pipelineV2-tab-research" onclick="switchPipelineV2Tab('research')" style="background:none;border:none;border-bottom:3px solid transparent;padding:11px 18px;cursor:pointer;font-size:0.88rem;font-weight:600;color:#6B7280;transition:all 0.15s;font-family:inherit">
+        🔬 מחקר ואסטרטגיה <span id="pipelineV2-tab-research-count" style="font-size:0.74rem;color:#9CA3AF;margin-right:4px">(—/—)</span>
+      </button>
+      <button id="pipelineV2-tab-paid" onclick="switchPipelineV2Tab('paid')" style="background:none;border:none;border-bottom:3px solid transparent;padding:11px 18px;cursor:pointer;font-size:0.88rem;font-weight:600;color:#6B7280;transition:all 0.15s;font-family:inherit">
+        🎯 פרסום ממומן <span id="pipelineV2-tab-paid-count" style="font-size:0.74rem;color:#9CA3AF;margin-right:4px">(—/—)</span>
+      </button>
+    </div>
+
     <!-- Body: stage cards (left) + result panel (right slide-out, hidden by default) -->
     <div style="flex:1;display:flex;min-height:0;overflow:hidden">
       <!-- Stage list -->
@@ -5693,16 +5703,21 @@ function renderHome() {
       subtitle: (hasResearch && hasStrategy) ? 'דוח מחקר ואסטרטגיה מוכנים — לחצו לעריכת שלבים' : 'מחקר או אסטרטגיה עדיין לא הושלמו',
       ready: hasResearch && hasStrategy,
       primaryLabel: 'פתחו שלבים ←',
-      primaryOnClick: "openPipelineV2()",
+      primaryOnClick: "openPipelineV2('research')",
     });
 
+    // Phase 2026.02 — both states route into pipeline V2 paid tab (Option C).
+    // openPaidProfileModal is deprecated as a standalone entry point — paid
+    // profile collection moves into paid_questionnaire stage inside the paid
+    // tab (Block 1C). The modal is kept reachable as a quick-edit shortcut
+    // from the Mazhir audit card only.
     var card3 = card({
       icon: '🎯',
       title: 'הגדרה של הממומן',
-      subtitle: mediaPlanExists ? 'פרופיל קידום + תוכנית מדיה מוכנים — לחצו לעריכת שלבים' : (paidProfileExists ? 'פרופיל קידום מוגדר. תוכנית מדיה ממתינה לעיון' : 'הגדרת ערוצים בתשלום עדיין לא הושלמה'),
+      subtitle: mediaPlanExists ? 'תוכנית מדיה מוכנה — לחצו לפתיחת לוח השלבים' : (paidProfileExists ? 'פרופיל קידום מוגדר. השלבים הבאים ממתינים בלוח' : 'הגדרת ערוצים בתשלום עדיין לא הושלמה'),
       ready: paidProfileExists && mediaPlanExists,
-      primaryLabel: paidProfileExists ? 'פתחו שלבים ←' : 'הגדירו פרופיל ←',
-      primaryOnClick: paidProfileExists ? "openPipelineV2()" : "openPaidProfileModal()",
+      primaryLabel: 'פתחו לוח פרסום ←',
+      primaryOnClick: "openPipelineV2('paid')",
     });
 
     // Phase 4.3-N v8: 4th card — external links strategy (DFS-sourced).
@@ -15845,6 +15860,38 @@ var STAGE_CATALOG_V2 = {
   media_plan:             { titleHe: 'תוכנית מדיה (פרסום)',          descHe: 'קמפיינים, ad groups, תקציבים, KPIs, gates' }
 };
 
+// Phase 2026.02 — stage → pipeline tab classification (Option C split).
+// 'research' = discovery + planning + content (lives in מחקר ואסטרטגיה tab).
+// 'paid'     = paid setup + execution prep + media plan (lives in פרסום ממומן tab).
+// Shared data store (rd.results.*) — tabs only filter rendering, not data flow.
+var PIPELINE_TAB_V2 = {
+  competitor_landscape:        'research',
+  internal_seo_audit:          'research',
+  seo_keyword_research:        'research',
+  aeo_visibility:              'research',
+  link_audit:                  'research',
+  social_landscape:            'research',
+  email_competitor_audit:      'research',
+  audience_personas:           'research',
+  positioning:                 'research',
+  cost_timeline_modeling:      'research',
+  strategy_options:            'research',
+  validation:                  'research',
+  content_plan:                'research',
+  // Paid pipeline
+  paid_setup_fork:             'paid',
+  paid_data_inventory:         'paid',
+  client_account_baseline:     'paid',
+  paid_questionnaire:          'paid',
+  paid_csv_ingest:             'paid',
+  client_account_baseline_csv: 'paid',
+  paid_competitor_landscape:   'paid',
+  paid_keyword_research:       'paid',
+  paid_budget_scenarios:       'paid',
+  paid_audit:                  'paid',
+  media_plan:                  'paid'
+};
+
 var INTENT_LABELS_V2 = {
   seo_organic:    'SEO + תוכן אורגני',
   paid_search:    'פרסום ממומן (Google/Meta)',
@@ -15859,9 +15906,29 @@ var pipelineV2State = {
   intent: null,
   results: {},        // stageId → result obj
   loading: new Set(), // stageIds currently in-flight
+  activeTab: 'research', // Phase 2026.02 — 'research' | 'paid'
 };
 
-async function openPipelineV2() {
+// Phase 2026.02 — switch active tab in pipeline V2 board.
+// Persists choice in localStorage so re-opening the overlay restores last tab.
+function switchPipelineV2Tab(tab) {
+  if (tab !== 'research' && tab !== 'paid') return;
+  pipelineV2State.activeTab = tab;
+  try { localStorage.setItem('cf_pipelineV2_tab', tab); } catch (_) {}
+  renderPipelineV2();
+}
+
+async function openPipelineV2(initialTab) {
+  // Phase 2026.02 — accept optional initial tab. Home card "הגדרה של הממומן"
+  // calls openPipelineV2('paid') to deep-link into the paid setup tab.
+  if (initialTab === 'paid' || initialTab === 'research') {
+    pipelineV2State.activeTab = initialTab;
+  } else {
+    // Restore last-used tab if no explicit hint
+    var stored;
+    try { stored = localStorage.getItem('cf_pipelineV2_tab'); } catch (_) { stored = null; }
+    pipelineV2State.activeTab = (stored === 'paid') ? 'paid' : 'research';
+  }
   // Phase 2.3.H — preflight gate at the FIRST entry point. Before opening
   // the research zone, check what integrations the user's profile requires.
   // If MANDATORY are missing → show the checklist modal as a blocker; user
@@ -16000,9 +16067,45 @@ function renderPipelineV2() {
     }
   }
 
-  // Progress
-  var total = p.plan.stages.length;
-  var done = p.plan.stages.filter(function(sid) {
+  // Phase 2026.02 — per-tab stage filtering. Stages keep their global index
+  // for "stage N of M" numbering, but renderer only shows the active tab's
+  // stages. Progress + cost computed against the WHOLE plan (single source of
+  // truth across tabs); per-tab counts shown in tab labels.
+  var activeTab = p.activeTab || 'research';
+  var allStages = p.plan.stages;
+  function stageTab(sid) { return PIPELINE_TAB_V2[sid] || 'research'; }
+  var visibleStages = allStages.filter(function(sid) { return stageTab(sid) === activeTab; });
+
+  // Per-tab progress for the tab label badges
+  function countTab(tab) {
+    var stagesIn = allStages.filter(function(sid) { return stageTab(sid) === tab; });
+    var doneIn = stagesIn.filter(function(sid) {
+      var st = p.plan.status && p.plan.status[sid];
+      return st && (st.state === 'completed' || st.state === 'degraded');
+    }).length;
+    return { total: stagesIn.length, done: doneIn };
+  }
+  var resCount = countTab('research');
+  var paidCount = countTab('paid');
+  var resEl = document.getElementById('pipelineV2-tab-research-count');
+  if (resEl) resEl.textContent = '(' + resCount.done + '/' + resCount.total + ')';
+  var paidEl = document.getElementById('pipelineV2-tab-paid-count');
+  if (paidEl) paidEl.textContent = '(' + paidCount.done + '/' + paidCount.total + ')';
+  // Visual highlight of active tab
+  var researchTabBtn = document.getElementById('pipelineV2-tab-research');
+  var paidTabBtn = document.getElementById('pipelineV2-tab-paid');
+  if (researchTabBtn && paidTabBtn) {
+    var activeBtn = activeTab === 'paid' ? paidTabBtn : researchTabBtn;
+    var inactiveBtn = activeTab === 'paid' ? researchTabBtn : paidTabBtn;
+    activeBtn.style.borderBottomColor = '#2563EB';
+    activeBtn.style.color = '#1E3A8A';
+    inactiveBtn.style.borderBottomColor = 'transparent';
+    inactiveBtn.style.color = '#6B7280';
+  }
+
+  // Overall progress (across whole plan — both tabs combined)
+  var total = allStages.length;
+  var done = allStages.filter(function(sid) {
     var st = p.plan.status && p.plan.status[sid];
     return st && (st.state === 'completed' || st.state === 'degraded');
   }).length;
@@ -16017,10 +16120,18 @@ function renderPipelineV2() {
   }
   document.getElementById('pipelineV2-cost').textContent = '$' + totalCost.toFixed(2);
 
-  // Stage cards
-  var html = p.plan.stages.map(function(sid, idx) {
+  // Stage cards — only active-tab stages. Index = position within filtered list
+  // (per-tab numbering 1..N, not global plan index — easier to scan).
+  var html = visibleStages.map(function(sid, idx) {
     return renderStageCardV2(sid, idx);
   }).join('');
+  if (visibleStages.length === 0) {
+    html = '<div style="text-align:center;padding:40px;color:#9CA3AF;font-size:0.88rem">' +
+      (activeTab === 'paid'
+        ? 'הוסיפו ערוץ פרסום ממומן (Google Ads / Meta) ב-<a href="#" onclick="switchTab(\'marketing\');return false;" style="color:#2563EB">ניהול שיווק</a> כדי להפעיל את צינור הפרסום.'
+        : 'לא נמצאו שלבי מחקר. בדקו את ההגדרות.') +
+    '</div>';
+  }
   document.getElementById('pipelineV2-body').innerHTML = html;
 }
 
