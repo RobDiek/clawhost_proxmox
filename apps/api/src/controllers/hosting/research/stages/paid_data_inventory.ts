@@ -32,12 +32,17 @@ export async function run(c: Context): Promise<Response> {
     }
 
     try {
+        // Phase 2026.02 — resolve active agent FIRST so the inventory service
+        // reads from the right agent's research_data + integrations. Without
+        // this, on multi-agent VPS the service reads primary's data and writes
+        // to the active agent — causing fork_path=null + wrong-tier outputs
+        // (the bug Sergei caught on Packing Station vs Storage Station primary).
+        const __agent = await resolveActiveAgent(c, instanceId)
         const { runPaidDataInventory } = await import('@/services/paidDataInventory')
-        const inventory = await runPaidDataInventory(instanceId)
+        const inventory = await runPaidDataInventory(instanceId, __agent?.id || null)
 
         // Persist to rd.paidDataInventory for downstream consumers (paid_audit,
         // paid_media_plan, UI panels). Multi-tenant safe via agentContext.
-        const __agent = await resolveActiveAgent(c, instanceId)
         const rd = await readResearchData(__agent, instanceId) as Record<string, unknown>
         await writeResearchData(__agent, instanceId, { ...rd, paidDataInventory: inventory })
 

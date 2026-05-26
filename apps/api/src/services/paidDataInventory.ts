@@ -390,9 +390,17 @@ function deriveCapabilities(i: CapabilityInputs): { available: PaidCapability[];
 }
 
 // ─── Helper: detect adapters from existing data sources ────────────────────
-async function readAgentIntegrations(instanceId: string): Promise<Map<string, { config: Record<string, unknown>; status: string; updatedAt: Date }>> {
-    const rows = await db.select().from(agentIntegrations)
-        .where(eq(agentIntegrations.instanceId, instanceId))
+// Phase 2026.02 — accepts optional agentId. When provided, scopes integrations
+// to that agent only (matters for multi-agent VPS where secondary agents have
+// their own OAuth tokens). Falls back to instance-wide when null (legacy).
+async function readAgentIntegrations(
+    instanceId: string,
+    agentId?: string | null,
+): Promise<Map<string, { config: Record<string, unknown>; status: string; updatedAt: Date }>> {
+    const baseWhere = agentId
+        ? and(eq(agentIntegrations.instanceId, instanceId), eq(agentIntegrations.agentId, agentId))
+        : eq(agentIntegrations.instanceId, instanceId)
+    const rows = await db.select().from(agentIntegrations).where(baseWhere)
     const map = new Map<string, { config: Record<string, unknown>; status: string; updatedAt: Date }>()
     for (const r of rows) {
         const key = String(r.integrationType)
@@ -409,12 +417,24 @@ async function readAgentIntegrations(instanceId: string): Promise<Map<string, { 
 }
 
 // ─── Main entry ────────────────────────────────────────────────────────────
-export async function runPaidDataInventory(instanceId: string): Promise<PaidDataInventory> {
+// Phase 2026.02 — agentId parameter is now REQUIRED in practice for
+// multi-agent VPS (primary agent's data leaks into secondary's inventory
+// otherwise). Stage controllers pass the active agent's id. When omitted,
+// falls back to primary for backward compat with legacy callers (cron jobs).
+export async function runPaidDataInventory(
+    instanceId: string,
+    agentId?: string | null,
+): Promise<PaidDataInventory> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error('Instance not found')
 
-    const { resolvePrimaryAgent, readResearchData } = await import('./agentContext')
-    const agent = await resolvePrimaryAgent(instanceId)
+    const { resolvePrimaryAgent, resolveAgentById, readResearchData } = await import('./agentContext')
+    const agent = agentId
+        ? await resolveAgentById(instanceId, agentId)
+        : await resolvePrimaryAgent(instanceId)
+    if (!agent && agentId) {
+        throw new Error(`paidDataInventory: agent ${agentId} not found for instance ${instanceId}`)
+    }
     const rd: any = await readResearchData(agent, instanceId) || {}
     const pp: any = rd.paidProfile || {}
     const answers: any = rd.answers || {}
@@ -438,7 +458,7 @@ export async function runPaidDataInventory(instanceId: string): Promise<PaidData
     // source field (Block 1D). The inference: has_history && !has_integration.
     const forkUsesCsv = forkPath === 'has_history' && !forkHasIntegration
 
-    const integrations = await readAgentIntegrations(instanceId)
+    const integrations = await readAgentIntegrations(instanceId, agent?.id || null)
 
     // Detect each adapter from one or more sources, in priority order.
     const adapters: AdapterStatus[] = []
