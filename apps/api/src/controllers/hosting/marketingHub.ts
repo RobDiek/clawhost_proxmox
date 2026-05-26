@@ -145,11 +145,28 @@ export const saveMarketingIntents = async (c: Context) => {
         const { platformsTextFromIntents, goalsTextFromIntents } = await import('@openclaw/shared')
         const platformsText = platformsTextFromIntents(cleaned)
         const goalsText = goalsTextFromIntents(cleaned)
+        // Phase 2026.02 systemic fix — auto-regenerate plan.stages from new intents.
+        // Without this, planResolver keeps using the OLD rd.intent (often 'seo_organic'
+        // set during initial onboarding) even after the user adds paid_search /
+        // paid_social channels, so paid stages never appear in the pipeline V2 board.
+        const { planFromMarketingIntents } = await import('@/services/research/planResolver')
+        const { intent: newIntent, stages: newStages } = planFromMarketingIntents(cleaned)
+
         const next = await patchResearchData(c, instanceId, rd => {
             const ans = ((rd as unknown as { answers?: Record<string, unknown> }).answers as Record<string, unknown>) || {}
+            // Preserve plan.status for stages that survive the regeneration.
+            // New stages get default 'pending'; removed stages drop out of status too.
+            const prevPlan = ((rd as unknown as { plan?: { stages?: string[]; status?: Record<string, unknown> } }).plan) || {}
+            const prevStatus = (prevPlan.status || {}) as Record<string, unknown>
+            const nextStatus: Record<string, unknown> = {}
+            for (const s of newStages) {
+                if (prevStatus[s]) nextStatus[s] = prevStatus[s]
+            }
             return ({
                 ...rd,
                 marketingIntents: cleaned,
+                intent: newIntent,
+                plan: { ...prevPlan, stages: newStages, status: nextStatus },
                 // Update display text only when intents derive non-empty values
                 // (preserves user's free-text additions when they emptied all chips).
                 answers: {
@@ -168,7 +185,12 @@ export const saveMarketingIntents = async (c: Context) => {
             console.warn('archiveOrphanedItems failed:', err)
             return { outputsArchived: 0, contentPlanArchived: 0, affectedChannels: [] }
         })
-        return ok(c, { intents: next.marketingIntents, cleanup }, 'Intents saved')
+        return ok(c, {
+            intents: next.marketingIntents,
+            intent: newIntent,
+            stages: newStages,
+            cleanup,
+        }, 'Intents saved + plan regenerated')
     } catch (err) {
         console.error('saveMarketingIntents error:', err)
         return fail(c, (err as Error).message, 500)

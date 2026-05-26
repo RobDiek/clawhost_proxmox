@@ -198,3 +198,72 @@ export function planForIntents(intents: ResearchIntent[]): StageId[] {
     }
     return ordered
 }
+
+/**
+ * Phase 2026.02 systemic fix — map user-facing MarketingIntent[] (what the
+ * tenant toggles in "ניהול שיווק" tab) → pipeline-driver ResearchIntent[]
+ * (what planResolver consumes to build plan.stages).
+ *
+ * Rules:
+ *   - paid_search / paid_social  → 'paid_search'       (one paid pipeline,
+ *                                                       Meta/Google share stages)
+ *   - lead_generation            → 'paid_search'       (paid-driven by default)
+ *   - brand_awareness            → 'paid_search'       (paid display/video)
+ *   - seo / content              → 'seo_organic'       (content marketing
+ *                                                       lives in SEO pipeline)
+ *   - social_organic             → 'social_organic'
+ *   - email_marketing            → 'email_crm'
+ *   - ecommerce                  → 'ecommerce'         (carries paid + SEO
+ *                                                       sub-pipeline already)
+ *
+ * If the mapped set has ≥3 distinct ResearchIntent categories → collapse
+ * to ['multichannel'] (single intent that includes all stages from all).
+ * This matches existing 'multichannel' handling and avoids duplicating
+ * stage union logic.
+ */
+export function deriveResearchIntentsFromMarketing(
+    marketingIntents: readonly string[],
+): ResearchIntent[] {
+    const mapped = new Set<ResearchIntent>()
+    for (const mi of marketingIntents) {
+        switch (mi) {
+            case 'paid_search':
+            case 'paid_social':
+            case 'lead_generation':
+            case 'brand_awareness':
+                mapped.add('paid_search')
+                break
+            case 'seo':
+            case 'content':
+                mapped.add('seo_organic')
+                break
+            case 'social_organic':
+                mapped.add('social_organic')
+                break
+            case 'email_marketing':
+                mapped.add('email_crm')
+                break
+            case 'ecommerce':
+                mapped.add('ecommerce')
+                break
+        }
+    }
+    if (mapped.size === 0) return ['seo_organic']     // safe default
+    if (mapped.size >= 3) return ['multichannel']    // collapse — multichannel covers all
+    return Array.from(mapped)
+}
+
+/**
+ * Phase 2026.02 systemic fix — given marketingIntents, build a fresh plan
+ * (stages list + primary intent). Caller merges with existing plan.status
+ * to preserve completion state for stages that survive the regeneration.
+ */
+export function planFromMarketingIntents(marketingIntents: readonly string[]): {
+    intent: ResearchIntent
+    stages: StageId[]
+} {
+    const researchIntents = deriveResearchIntentsFromMarketing(marketingIntents)
+    const stages = planForIntents(researchIntents)
+    // Primary intent = first in derived list. For multichannel that's 'multichannel'.
+    return { intent: researchIntents[0], stages }
+}
