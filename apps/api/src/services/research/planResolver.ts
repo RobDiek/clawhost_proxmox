@@ -135,13 +135,17 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
                 'aeo_visibility', 'link_audit',
                 ...UNIVERSAL_STAGES]
         case 'paid_search':
-            // Phase 4.2 — paid research pipeline (3 new stages between organic
-            // competitor_landscape and the existing paid_audit):
-            //   - paid_competitor_landscape: who's bidding now, their creatives + LPs
-            //   - paid_keyword_research: paid keyword landscape + CPC estimates
-            //   - paid_budget_scenarios: 3 IL-specific budget tiers with KPIs
-            // These give paid the same research depth organic already has.
-            return ['competitor_landscape', 'paid_data_inventory',
+            // Phase 2026.02 — paid_setup_fork inserted at the head of the paid
+            // sequence so the user picks Path A (no_history) vs Path B (has_history)
+            // BEFORE paid_data_inventory runs. Downstream stages branch based on
+            // rd.results.paid_setup_fork.path; the static plan list keeps all
+            // possible stages so the UI board can show progress regardless of
+            // branch. Stage runner skips stages that don't apply to the chosen
+            // path (e.g. paid_questionnaire is no-op on has_history, csv stages
+            // are no-op on integration-connected path).
+            return ['competitor_landscape', 'paid_setup_fork',
+                'paid_data_inventory', 'paid_questionnaire',
+                'paid_csv_ingest', 'client_account_baseline_csv',
                 'paid_competitor_landscape', 'paid_keyword_research',
                 'audience_personas', 'positioning',
                 'paid_budget_scenarios', 'cost_timeline_modeling',
@@ -156,8 +160,11 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
         case 'ecommerce':
             // Phase 4.2 — ecommerce gets the full paid research pipeline too
             // (paid traffic is the primary growth lever for IL ecommerce SMBs).
+            // Phase 2026.02 — fork + branch stages included; runner skips non-applicable.
             return ['competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
-                'paid_data_inventory', 'paid_competitor_landscape', 'paid_keyword_research',
+                'paid_setup_fork', 'paid_data_inventory',
+                'paid_questionnaire', 'paid_csv_ingest', 'client_account_baseline_csv',
+                'paid_competitor_landscape', 'paid_keyword_research',
                 'audience_personas', 'positioning',
                 'paid_budget_scenarios', 'cost_timeline_modeling',
                 'paid_audit', 'strategy_options', 'validation',
@@ -165,7 +172,9 @@ export function planForIntent(intent: ResearchIntent): StageId[] {
         case 'multichannel':
             return ['competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
                 'aeo_visibility', 'link_audit',
-                'paid_data_inventory', 'paid_competitor_landscape', 'paid_keyword_research',
+                'paid_setup_fork', 'paid_data_inventory',
+                'paid_questionnaire', 'paid_csv_ingest', 'client_account_baseline_csv',
+                'paid_competitor_landscape', 'paid_keyword_research',
                 'paid_audit', 'social_landscape',
                 'audience_personas', 'positioning',
                 'paid_budget_scenarios', 'cost_timeline_modeling',

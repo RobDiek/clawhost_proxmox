@@ -15824,6 +15824,15 @@ var STAGE_CATALOG_V2 = {
   seo_keyword_research:   { titleHe: 'מחקר מילות מפתח (SEO)',         descHe: '30+ keywords עם volume/CPC/difficulty + SERP analysis' },
   aeo_visibility:         { titleHe: 'נראות AI (AEO)',                descHe: 'citation probes ב-Anthropic + schema gap analysis + extractability audit' },
   link_audit:             { titleHe: 'אודיט פרופיל קישורים',         descHe: 'profile audit + lost links + outreach roadmap. דורש DFS Backlinks API פעיל' },
+  paid_setup_fork:        { titleHe: 'הגדרת פרסום — נקודת התחלה',    descHe: 'בחירה מפורשת: יש קמפיינים פעילים/היסטוריה (≥30 יום), או מתחילים מאפס. נועלת את המסלול הבא.' },
+  paid_data_inventory:    { titleHe: 'מלאי נתונים — פרסום ממומן',     descHe: 'מיפוי חיבורים → קביעת tier T0-T4 → רשימת פעולות setup חסרות.' },
+  client_account_baseline:{ titleHe: 'מה אנחנו רואים בחשבון שלכם',    descHe: 'משיכת היסטוריה חיה: SQR, Auction Insights, היסטוריית שינויים, GA4 events/funnel.' },
+  paid_questionnaire:     { titleHe: 'שאלון פרסום — מתחילים מאפס',    descHe: 'מסלול A: 12 שדות סטנדרטיים שמזינים את setup_roadmap של 14 ימים.' },
+  paid_csv_ingest:        { titleHe: 'יבוא דוחות CSV — פרסום ממומן',  descHe: 'מסלול B-2: העלאת 4 קבצי CSV חובה + 2 אופציונליים. parser פנימי.' },
+  client_account_baseline_csv:{ titleHe: 'בייסליין חשבון — מקור CSV', descHe: 'תאום ל-client_account_baseline אבל מבוסס CSV במקום API חי.' },
+  paid_competitor_landscape:{ titleHe: 'נוף תחרותי — פרסום ממומן',   descHe: 'מי מפרסם, באילו פלטפורמות, יצירתיים, LPs (Meta Library + Google Transparency).' },
+  paid_keyword_research:  { titleHe: 'מחקר מילות מפתח — פרסום ממומן', descHe: 'paid keyword landscape, CPC estimates, intent ladder.' },
+  paid_budget_scenarios:  { titleHe: 'תרחישי תקציב — פרסום ממומן',    descHe: '3 דרגות (שמרני/מאוזן/אגרסיבי) עם KPI projection לפי benchmarks IL.' },
   paid_audit:             { titleHe: 'אודיט פרסום ממומן',            descHe: 'Google Ads + Meta — היסטוריה, blockers, methodology' },
   social_landscape:       { titleHe: 'נוף רשתות חברתיות',            descHe: 'מתחרים ב-IG/FB/LinkedIn, content patterns, tone' },
   email_competitor_audit: { titleHe: 'אודיט ניוזלטרים מתחרים',       descHe: 'תדירות, טון, נושאים, CTAs של 5+ מתחרים' },
@@ -16494,6 +16503,14 @@ async function rerunStageV2WithImpactCheck(sid) {
 async function runStageV2(sid) {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) return;
+
+  // Phase 2026.02 — paid_setup_fork is a user-choice gate, not an LLM stage.
+  // Show a modal asking which path BEFORE POSTing to the runner. The modal's
+  // commit handler calls commitPaidSetupFork() which POSTs { path } and then
+  // refreshes the board. Don't fall through to generic stage execution.
+  if (sid === 'paid_setup_fork') {
+    return openPaidSetupForkModal();
+  }
 
   // Phase QA — pre-flight gate. On the FIRST stage the user runs in a session,
   // automatically validate prerequisites. If anything is `fail`, stop and show
@@ -31297,6 +31314,104 @@ function cfConfirm(title, desc) {
     okBtn.onclick = function() { cleanup(); resolve(true); };
     document.getElementById('cf-modal-cancel').onclick = function() { cleanup(); resolve(false); };
     overlay.onclick = function(e) { if (e.target === overlay) { cleanup(); resolve(false); } };
+  });
+}
+
+/* ===== Paid setup fork modal (Phase 2026.02) ===== */
+// Renders the explicit "has history vs no history" question per playbook §1.1.
+// POSTs { path } to paid_setup_fork stage. On success closes modal, refreshes
+// the pipeline board so the user sees the fork stage flip to ✓ + the next
+// stage hint enabled.
+function openPaidSetupForkModal() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+
+  // If user is changing an existing fork commitment, surface a reset warning.
+  var existing = pipelineV2State && pipelineV2State.results && pipelineV2State.results.paid_setup_fork;
+  var existingPath = existing && existing.extras && existing.extras.path;
+  var isReset = !!existingPath;
+
+  var overlay = document.createElement('div');
+  overlay.id = 'paid-fork-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);display:flex;align-items:center;justify-content:center;z-index:99999;direction:rtl;font-family:Arial, "Arial Hebrew", Helvetica, sans-serif';
+
+  var resetBanner = isReset
+    ? '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:0.82rem;color:#92400E"><strong>⚠ שינוי מסלול:</strong> כבר נבחר מסלול קודם (' + (existingPath === 'has_history' ? 'יש היסטוריה' : 'מתחילים מאפס') + '). מעבר למסלול אחר יאפס את שלבי הפרסום שכבר רצו ויכריח אותם להריץ מחדש.</div>'
+    : '';
+
+  overlay.innerHTML =
+    '<div role="dialog" aria-modal="true" style="background:#fff;border-radius:14px;max-width:600px;width:94%;padding:24px 26px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:right;max-height:85vh;overflow-y:auto">' +
+      '<div style="font-size:1.15rem;font-weight:700;color:#1F2937;margin-bottom:6px">הגדרת פרסום ממומן — נקודת התחלה</div>' +
+      '<div style="font-size:0.82rem;color:#6B7280;margin-bottom:18px">שאלה אחת — היא נועלת את כל המסלול הבא ומונעת ניחושים אוטומטיים שגויים. תוכלו לשנות מאוחר יותר.</div>' +
+      resetBanner +
+      '<div style="margin-bottom:18px">' +
+        '<label style="display:block;border:2px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor=\'#2563EB\'" onmouseout="this.style.borderColor=this.querySelector(\'input\').checked?\'#2563EB\':\'#E5E7EB\'">' +
+          '<div style="display:flex;align-items:flex-start;gap:10px">' +
+            '<input type="radio" name="paid-fork-path" value="has_history" style="margin-top:3px;cursor:pointer">' +
+            '<div style="flex:1">' +
+              '<div style="font-weight:600;font-size:0.95rem;color:#1F2937;margin-bottom:4px">כן — יש קמפיינים פעילים או נתוני עבר משמעותיים</div>' +
+              '<div style="font-size:0.78rem;color:#6B7280;line-height:1.5">לפחות 30 יום של פעילות, או חשבון פרסום מנוהל בהווה. נמשוך את הנתונים (API חי או העלאת CSV אם אין חיבור) ונבצע אודיט מלא לפי 5 ממדים — מבנה, טירגוט, יצירתי, מדידה, ביידינג.</div>' +
+            '</div>' +
+          '</div>' +
+        '</label>' +
+        '<label style="display:block;border:2px solid #E5E7EB;border-radius:10px;padding:14px 16px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor=\'#2563EB\'" onmouseout="this.style.borderColor=this.querySelector(\'input\').checked?\'#2563EB\':\'#E5E7EB\'">' +
+          '<div style="display:flex;align-items:flex-start;gap:10px">' +
+            '<input type="radio" name="paid-fork-path" value="no_history" style="margin-top:3px;cursor:pointer">' +
+            '<div style="flex:1">' +
+              '<div style="font-weight:600;font-size:0.95rem;color:#1F2937;margin-bottom:4px">לא — אנחנו מתחילים מאפס</div>' +
+              '<div style="font-size:0.78rem;color:#6B7280;line-height:1.5">אין חשבון פרסום, או חשבון ריק, או נסיונות קצרים לא משמעותיים. נמלא שאלון של 12 שדות ונבנה setup_roadmap של 14 ימים לפי playbook IL.</div>' +
+            '</div>' +
+          '</div>' +
+        '</label>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-start">' +
+        '<button id="paid-fork-commit" style="background:#2563EB;color:#fff;border:none;padding:9px 22px;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer">המשך &#8592;</button>' +
+        '<button id="paid-fork-cancel" style="background:#F3F4F6;color:#374151;border:none;padding:9px 22px;border-radius:8px;font-size:0.9rem;font-weight:500;cursor:pointer">ביטול</button>' +
+      '</div>' +
+    '</div>';
+
+  function close() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#paid-fork-cancel').addEventListener('click', close);
+  overlay.querySelector('#paid-fork-commit').addEventListener('click', async function() {
+    var selected = overlay.querySelector('input[name="paid-fork-path"]:checked');
+    if (!selected) {
+      hebrewAlert({ title: 'בחירה חסרה', body: 'יש לבחור אחת משתי האפשרויות לפני המשך.' });
+      return;
+    }
+    var path = selected.value;
+    if (isReset) {
+      var confirmed = await hebrewConfirm({
+        title: 'איפוס מסלול פרסום',
+        body: 'שינוי המסלול יאפס את שלבי הפרסום הבאים: data inventory, baseline, competitor landscape, keyword research, budget scenarios, audit. תצטרכו להריץ אותם מחדש. להמשיך?',
+        confirmLabel: 'איפוס + שינוי',
+        cancelLabel: 'ביטול',
+        destructive: true,
+      });
+      if (!confirmed) return;
+    }
+    var btn = overlay.querySelector('#paid-fork-commit');
+    btn.disabled = true;
+    btn.textContent = 'שומר...';
+    var url = '/hosting/instances/' + iid + '/research/stage/paid_setup_fork' + (isReset ? '?reset=1' : '');
+    var r = await apiFetch(url, { method: 'POST', body: JSON.stringify({ path: path }) });
+    if (!r || !r.success) {
+      btn.disabled = false;
+      btn.textContent = 'נסו שוב &#8592;';
+      showToast((r && r.message) || 'שמירה נכשלה', 'error');
+      return;
+    }
+    close();
+    showToast('מסלול נשמר — עכשיו ניתן להריץ את השלב הבא', 'success');
+    // Refresh the pipeline board so the new stage status and any cleared
+    // downstream stages render correctly.
+    if (typeof loadPipelineV2 === 'function') {
+      await loadPipelineV2();
+    } else if (typeof openPipelineV2 === 'function') {
+      // fallback — re-open which refetches plan + results
+    }
   });
 }
 

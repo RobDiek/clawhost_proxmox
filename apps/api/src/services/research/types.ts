@@ -32,8 +32,12 @@ export type StageId =
     | 'seo_keyword_research'
     | 'aeo_visibility'
     | 'link_audit'
+    | 'paid_setup_fork'             // Phase 2026.02 — explicit user choice: has_history vs no_history (gates Path A vs B)
     | 'paid_data_inventory'
     | 'client_account_baseline'     // Phase 4.2.1 — Google Ads + GA4 historical reality anchor (preflight for all paid stages)
+    | 'paid_questionnaire'          // Phase 2026.02 — Path A (no_history) starting numbers + preferences (12 fields per playbook §1.2)
+    | 'paid_csv_ingest'             // Phase 2026.02 — Path B-2 (has_history + no_integration) CSV uploads + parse
+    | 'client_account_baseline_csv' // Phase 2026.02 — mirror of client_account_baseline that reads parsed CSV instead of live API
     | 'paid_competitor_landscape'   // Phase 4.2.1 — paid-specific competitor research
     | 'paid_keyword_research'       // Phase 4.2.2 — paid keyword landscape
     | 'paid_budget_scenarios'       // Phase 4.2.3 — IL-specific paid budget tiers
@@ -54,8 +58,10 @@ export type StageId =
 export const ALL_STAGE_IDS: readonly StageId[] = [
     'competitor_landscape', 'internal_seo_audit', 'seo_keyword_research',
     'aeo_visibility', 'link_audit',
+    'paid_setup_fork',
     'paid_data_inventory',
     'client_account_baseline',
+    'paid_questionnaire', 'paid_csv_ingest', 'client_account_baseline_csv',
     'paid_competitor_landscape', 'paid_keyword_research', 'paid_budget_scenarios',
     'paid_audit',
     'social_landscape', 'email_competitor_audit',
@@ -127,6 +133,14 @@ export const STAGE_CATALOG: Record<StageId, StageDescriptor> = {
         preferredIntegrations: ['dataforseo'],
         upstream: ['competitor_landscape'],
     },
+    paid_setup_fork: {
+        id: 'paid_setup_fork', category: 'discovery',
+        titleHe: 'הגדרת פרסום — נקודת התחלה',
+        descriptionHe: 'בחירה מפורשת של המשתמש: האם יש היסטוריה / קמפיינים פעילים, או מתחילים מאפס. ' +
+            'נועל את המסלול הבא — paid_questionnaire (אפס היסטוריה) או client_account_baseline / paid_csv_ingest (יש היסטוריה).',
+        preferredIntegrations: [],
+        upstream: [],
+    },
     paid_data_inventory: {
         id: 'paid_data_inventory', category: 'discovery',
         titleHe: 'מלאי נתונים — פרסום ממומן',
@@ -134,7 +148,34 @@ export const STAGE_CATALOG: Record<StageId, StageDescriptor> = {
             'קובע tier (T0-T4) — איזה bid strategies מותרים, אילו פעולות setup חסרות. ' +
             'מתנהג כ-prerequisite ל-paid_audit ול-media_plan.',
         preferredIntegrations: ['googleAds', 'meta', 'ga4', 'gsc'],
-        upstream: [],
+        upstream: ['paid_setup_fork'],
+    },
+    paid_questionnaire: {
+        id: 'paid_questionnaire', category: 'discovery',
+        titleHe: 'שאלון פרסום — מתחילים מאפס',
+        descriptionHe: 'מסלול A (no_history) בלבד: 12 שדות סטנדרטיים שמזינים את setup_roadmap — ' +
+            'מטרה ראשית, תקציב התחלתי, חלוקת ערוצים, גיאוגרפיה, URL מוצר, פעולות המרה קיימות, ' +
+            'יכולת בדיקה (שבועות), התנגדות מרכזית, מתחרים חסומים.',
+        preferredIntegrations: [],
+        upstream: ['paid_setup_fork'],
+    },
+    paid_csv_ingest: {
+        id: 'paid_csv_ingest', category: 'discovery',
+        titleHe: 'יבוא דוחות CSV — פרסום ממומן',
+        descriptionHe: 'מסלול B-2 (has_history + ללא חיבור OAuth): העלאת 4 קבצים נדרשים + 2 אופציונליים ' +
+            'מ-Google Ads / Meta Ads Manager / GA4. הפלט מנורמל לאותו schema שמייצר client_account_baseline החי. ' +
+            'parser פנימי — לא ספרייה חיצונית.',
+        preferredIntegrations: [],
+        upstream: ['paid_setup_fork'],
+    },
+    client_account_baseline_csv: {
+        id: 'client_account_baseline_csv', category: 'discovery',
+        titleHe: 'בייסליין חשבון — מקור CSV',
+        descriptionHe: 'תאום ל-client_account_baseline אבל קורא מ-paid_csv_ingest במקום מה-API החי. ' +
+            'שלבי downstream (paid_competitor_landscape, paid_keyword_research, paid_budget_scenarios, paid_audit) ' +
+            'מקבלים את אותו schema ולא צריכים לדעת מאיפה הגיעו הנתונים.',
+        preferredIntegrations: [],
+        upstream: ['paid_csv_ingest'],
     },
     // Phase 4.2.1 — runs ONCE per research session, cached 24h. Pulls all
     // client-specific reality data (SQR, Auction Insights, Change History,
