@@ -71,6 +71,9 @@ ${inventory.tierRationaleHe}
             extras: {
                 tier: inventory.tier,
                 tier_rationale_he: inventory.tierRationaleHe,
+                tier_warnings: inventory.tierWarnings || [],
+                fork_path: inventory.forkPath || null,
+                fork_has_integration: inventory.forkHasIntegration ?? null,
                 adapters_summary: {
                     connected: inventory.adapters.filter(a => a.connected).length,
                     total: inventory.adapters.length,

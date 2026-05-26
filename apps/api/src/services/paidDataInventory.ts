@@ -104,6 +104,17 @@ export interface PaidDataInventory {
     tierRationaleHe: string
     generatedAt: string
 
+    /**
+     * Phase 2026.02 — soft validator output. Surfaces fork_override events
+     * (user choice overriding heuristic), CSV-path provisional tier flags,
+     * etc. Downstream stages + UI can show these as ⚠ warnings without
+     * blocking. Hard validators move to paidConsistency.ts in Block 6.
+     */
+    tierWarnings?: string[]
+    /** Source flag for fork-aware downstream stages. */
+    forkPath?: 'has_history' | 'no_history' | null
+    forkHasIntegration?: boolean
+
     adapters: AdapterStatus[]
     capabilities: {
         available: PaidCapability[]
@@ -408,6 +419,25 @@ export async function runPaidDataInventory(instanceId: string): Promise<PaidData
     const pp: any = rd.paidProfile || {}
     const answers: any = rd.answers || {}
 
+    // Phase 2026.02 — read fork extras (playbook §6.1). User-explicit choice
+    // overrides any heuristic-based tier classification: if user picked
+    // "no_history" they get T0 regardless of API spend signals (Garbage
+    // historical ingestion ≠ active state). If they picked "has_history"
+    // but only have CSV data (no live OAuth), the tier must NOT drop to T0
+    // even if Layer-1 ingestion is empty during the window between fork
+    // commit and CSV ingest completion.
+    const fork = (rd?.results?.paid_setup_fork?.extras || {}) as {
+        path?: 'has_history' | 'no_history'
+        has_integration?: boolean
+        chosen_by_user?: boolean
+    }
+    const forkPath = fork.path || null
+    const forkHasIntegration = !!fork.has_integration
+    // CSV-source flag set when user is on Path B-2 (has_history but no OAuth).
+    // We infer it here from fork extras until paid_csv_ingest writes its own
+    // source field (Block 1D). The inference: has_history && !has_integration.
+    const forkUsesCsv = forkPath === 'has_history' && !forkHasIntegration
+
     const integrations = await readAgentIntegrations(instanceId)
 
     // Detect each adapter from one or more sources, in priority order.
@@ -654,6 +684,45 @@ export async function runPaidDataInventory(instanceId: string): Promise<PaidData
         })
     }
 
+    // Phase 2026.02 — fork-aware overrides (playbook §6.1).
+    // The fork was committed by the user with an explicit click; that beats
+    // any heuristic. Soft validator entries persist so downstream stages
+    // and the UI can flag legitimate mismatches.
+    const tierWarnings: string[] = []
+    const tierRank = { T0: 0, T1: 1, T2: 2, T3: 3, T4: 4 } as const
+    if (forkPath === 'no_history' && tierInfo.tier !== 'T0') {
+        tierWarnings.push(
+            `fork_override: user chose no_history but heuristic returned ${tierInfo.tier} ` +
+            `(spend90d=${aggregate90dSpend}, conv30d=${aggregateConv30d}). ` +
+            `Forcing T0 per playbook §6.1 (explicit user choice wins).`,
+        )
+        tierInfo = {
+            tier: 'T0',
+            rationale: `User explicitly chose "no_history" path in paid_setup_fork. ` +
+                `Treating as cold start regardless of any residual ingestion data.`,
+            rationaleHe: 'הלקוח בחר במפורש במסלול "מתחילים מאפס" (paid_setup_fork). ' +
+                'תייגנו כ-T0 (cold start) ללא תלות בנתונים היסטוריים שעלולים להיוותר במערכת.',
+        }
+    } else if (forkUsesCsv && tierRank[tierInfo.tier] < tierRank.T2) {
+        // Path B-2: user confirmed history exists but only via CSV. paid_csv_ingest
+        // (Block 1D) will fill ingested_data_points; until then the tier can read
+        // empty and drop to T0/T1, which contradicts the user's stated history.
+        // Bump to T2 with a source_note so downstream knows it's a provisional tier.
+        tierWarnings.push(
+            `fork_override: user chose has_history without OAuth (CSV path). ` +
+            `Heuristic returned ${tierInfo.tier} (likely paid_csv_ingest hasn't ` +
+            `populated yet). Bumping to T2 provisionally per playbook §6.1.`,
+        )
+        tierInfo = {
+            tier: 'T2',
+            rationale: `User confirmed paid history via fork (has_history, CSV ingest path). ` +
+                `Provisional T2 — re-classify after paid_csv_ingest completes and ` +
+                `aggregate90dSpend/aggregateConv30d reflect uploaded reports.`,
+            rationaleHe: 'הלקוח אישר היסטוריה דרך paid_setup_fork (מסלול CSV). ' +
+                'tier זמני T2 — סיווג מחדש לאחר paid_csv_ingest ועדכון aggregateSpend/Conv.',
+        }
+    }
+
     // ─── Capabilities matrix ────────────────────────────────────────────────
     const enhancedConversionsActive = false  // V1: not yet detectable without Google Ads API call
     const consentModeAdvanced = false        // V1: detect via GTM scan in Phase B
@@ -813,6 +882,10 @@ export async function runPaidDataInventory(instanceId: string): Promise<PaidData
         tierRationale: tierInfo.rationale,
         tierRationaleHe: tierInfo.rationaleHe,
         generatedAt: new Date().toISOString(),
+        // Phase 2026.02 — surface fork awareness for downstream stages.
+        tierWarnings: tierWarnings.length > 0 ? tierWarnings : undefined,
+        forkPath,
+        forkHasIntegration,
         adapters,
         capabilities,
         actions,
