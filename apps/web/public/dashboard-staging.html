@@ -16076,9 +16076,40 @@ function renderPipelineV2() {
   function stageTab(sid) { return PIPELINE_TAB_V2[sid] || 'research'; }
   var visibleStages = allStages.filter(function(sid) { return stageTab(sid) === activeTab; });
 
-  // Per-tab progress for the tab label badges
+  // Phase 2026.02 — fork-aware applicability. Non-applicable stages render
+  // dimmed with reason; counts exclude them so progress reflects the chosen
+  // path. Per playbook §1: Path A skips csv+baseline*, Path B skips
+  // questionnaire, B-1 skips csv stages, B-2 skips client_account_baseline.
+  function isStageApplicableForFork(sid, fork) {
+    if (!fork || !fork.path) return { applicable: true };
+    if (fork.path === 'no_history') {
+      if (sid === 'paid_csv_ingest') return { applicable: false, reasonHe: 'מסלול שנבחר: ללא היסטוריה — קובץ CSV אינו רלוונטי.' };
+      if (sid === 'client_account_baseline') return { applicable: false, reasonHe: 'מסלול שנבחר: ללא היסטוריה — baseline חי דורש OAuth + היסטוריה.' };
+      if (sid === 'client_account_baseline_csv') return { applicable: false, reasonHe: 'מסלול שנבחר: ללא היסטוריה — אין CSV להעלאה.' };
+      return { applicable: true };
+    }
+    // path === 'has_history'
+    if (sid === 'paid_questionnaire') return { applicable: false, reasonHe: 'מסלול שנבחר: יש היסטוריה — שאלון 12 השדות רלוונטי רק למסלול ללא היסטוריה.' };
+    if (fork.has_integration) {
+      if (sid === 'paid_csv_ingest') return { applicable: false, reasonHe: 'מחובר OAuth (Google Ads / Meta) — אין צורך ב-CSV ingest. נשתמש ב-API חי.' };
+      if (sid === 'client_account_baseline_csv') return { applicable: false, reasonHe: 'מחובר OAuth — baseline נשען על API חי (client_account_baseline) ולא על CSV.' };
+    } else {
+      if (sid === 'client_account_baseline') return { applicable: false, reasonHe: 'אין חיבור OAuth — נשתמש ב-baseline_csv (מבוסס CSV) במקום API חי.' };
+    }
+    return { applicable: true };
+  }
+  // Read fork state — used by stage card renderer + applicability filter.
+  var __forkExtras = p.results && p.results.paid_setup_fork && p.results.paid_setup_fork.extras;
+  var __forkState = __forkExtras ? { path: __forkExtras.path, has_integration: !!__forkExtras.has_integration } : null;
+
+  // Per-tab progress for the tab label badges — exclude non-applicable stages
   function countTab(tab) {
-    var stagesIn = allStages.filter(function(sid) { return stageTab(sid) === tab; });
+    var stagesIn = allStages.filter(function(sid) {
+      if (stageTab(sid) !== tab) return false;
+      // Exclude non-applicable from count so badge reflects only stages user must run
+      var app = isStageApplicableForFork(sid, __forkState);
+      return app.applicable;
+    });
     var doneIn = stagesIn.filter(function(sid) {
       var st = p.plan.status && p.plan.status[sid];
       return st && (st.state === 'completed' || st.state === 'degraded');
@@ -16141,6 +16172,43 @@ function renderStageCardV2(sid, idx) {
   var status = (p.plan.status && p.plan.status[sid]) || { state: 'pending' };
   var result = p.results[sid];
   var isLoading = p.loading.has(sid);
+
+  // Phase 2026.02 — fork-aware applicability. If user has committed a paid
+  // setup fork and this stage doesn't apply to the chosen path, render
+  // a dimmed "not applicable" card with the reason — no run button. Prevents
+  // user from clicking stages that would return 501 (e.g. paid_questionnaire
+  // when path=has_history) or run against the wrong data path.
+  var forkExtras = p.results && p.results.paid_setup_fork && p.results.paid_setup_fork.extras;
+  if (forkExtras && forkExtras.path && typeof PIPELINE_TAB_V2 !== 'undefined' && PIPELINE_TAB_V2[sid] === 'paid') {
+    var nonApplicable = null;
+    if (forkExtras.path === 'no_history') {
+      if (sid === 'paid_csv_ingest') nonApplicable = 'מסלול נוכחי: ללא היסטוריה — קובץ CSV אינו רלוונטי.';
+      else if (sid === 'client_account_baseline') nonApplicable = 'מסלול נוכחי: ללא היסטוריה — baseline חי דורש OAuth + נתונים היסטוריים.';
+      else if (sid === 'client_account_baseline_csv') nonApplicable = 'מסלול נוכחי: ללא היסטוריה — אין CSV להעלאה.';
+    } else if (forkExtras.path === 'has_history') {
+      if (sid === 'paid_questionnaire') nonApplicable = 'מסלול נוכחי: יש היסטוריה — שאלון 12 השדות רלוונטי רק למסלול ללא היסטוריה.';
+      else if (forkExtras.has_integration) {
+        if (sid === 'paid_csv_ingest') nonApplicable = 'מחובר OAuth (Google Ads / Meta) — אין צורך ב-CSV. נשתמש ב-API חי.';
+        else if (sid === 'client_account_baseline_csv') nonApplicable = 'מחובר OAuth — baseline נשען על API חי (client_account_baseline), לא על CSV.';
+      } else {
+        if (sid === 'client_account_baseline') nonApplicable = 'אין חיבור OAuth — נשתמש ב-baseline_csv (מבוסס CSV) במקום API חי.';
+      }
+    }
+    if (nonApplicable) {
+      return '<div style="border:1px dashed #D1D5DB;border-radius:10px;padding:10px 14px;margin-bottom:8px;background:#F9FAFB;opacity:0.65">'
+        + '<div style="display:flex;align-items:flex-start;gap:12px">'
+        +   '<div style="font-size:0.9rem;color:#9CA3AF;font-weight:600;width:24px;text-align:center">' + (idx + 1) + '</div>'
+        +   '<div style="flex:1;min-width:0">'
+        +     '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">'
+        +       '<strong style="font-size:0.92rem;color:#6B7280;text-decoration:line-through">' + meta.titleHe + '</strong>'
+        +       '<span style="font-size:0.7rem;background:#E5E7EB;color:#6B7280;padding:2px 8px;border-radius:4px;font-weight:500">לא רלוונטי למסלול זה</span>'
+        +     '</div>'
+        +     '<div style="font-size:0.74rem;color:#9CA3AF;line-height:1.4">' + nonApplicable + '</div>'
+        +   '</div>'
+        + '</div>'
+        + '</div>';
+    }
+  }
 
   // State → visual
   var stateColor, stateLabel, stateBg;
@@ -16621,6 +16689,28 @@ async function runStageV2(sid) {
   // refreshes the board. Don't fall through to generic stage execution.
   if (sid === 'paid_setup_fork') {
     return openPaidSetupForkModal();
+  }
+
+  // Phase 2026.02 — fork applicability guard. The render layer hides the
+  // run button for non-applicable stages, but if user clicks via stale
+  // snapshot (rare race), block here with explicit Hebrew message.
+  var __forkExtras = pipelineV2State.results && pipelineV2State.results.paid_setup_fork && pipelineV2State.results.paid_setup_fork.extras;
+  if (__forkExtras && __forkExtras.path && typeof PIPELINE_TAB_V2 !== 'undefined' && PIPELINE_TAB_V2[sid] === 'paid') {
+    var skipReason = null;
+    if (__forkExtras.path === 'no_history' && (sid === 'paid_csv_ingest' || sid === 'client_account_baseline' || sid === 'client_account_baseline_csv')) {
+      skipReason = 'שלב זה אינו רלוונטי למסלול שנבחר (ללא היסטוריה).';
+    } else if (__forkExtras.path === 'has_history') {
+      if (sid === 'paid_questionnaire') skipReason = 'שלב זה אינו רלוונטי — השאלון מיועד למסלול ללא היסטוריה.';
+      else if (__forkExtras.has_integration && (sid === 'paid_csv_ingest' || sid === 'client_account_baseline_csv')) {
+        skipReason = 'OAuth מחובר — נשתמש ב-API חי, לא ב-CSV.';
+      } else if (!__forkExtras.has_integration && sid === 'client_account_baseline') {
+        skipReason = 'אין חיבור OAuth — נשתמש ב-baseline_csv במקום.';
+      }
+    }
+    if (skipReason) {
+      hebrewAlert({ title: 'שלב לא רלוונטי למסלול זה', body: skipReason });
+      return;
+    }
   }
 
   // Phase QA — pre-flight gate. On the FIRST stage the user runs in a session,
