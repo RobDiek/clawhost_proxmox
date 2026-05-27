@@ -3588,6 +3588,13 @@ ${HEBREW_ONLY_BLOCK}
 - מה ה-LP שלהם חזק בו ובמה חלש (form length, hero, social proof, IL signals)
 - מה זה אומר אסטרטגית עלינו: מה לקבל / מה להימנע / איפה לתקוף
 
+**חובה — 4 buckets מנדטוריים** (playbook §6.2). אל תחזיר רק direct/substitute/adjacent — תמיד כלול לפחות record אחד עם **bucket="reference"**:
+- **direct** = מתחרה ישיר באותה קטגוריה ובאותו שוק (e.g. מחסני אחסון IL אחרים).
+- **substitute** = פתרון חלופי לאותה בעיה (e.g. yad2 השכרת מחסן ישיר, או הובלה במקום אחסון).
+- **adjacent** = בקטגוריה קרובה אבל לא ישירה (e.g. Home Center — חומרי אריזה, רהיטים).
+- **reference** = מותגים בינלאומיים / authorities שמגדירים סטנדרט הקטגוריה גם אם לא מתחרים ב-IL. דוגמאות לאחסון: U-Haul, Public Storage, PODS, Container Store, Manhattan Mini Storage. דוגמאות לאריזה/מעבר דירה: U-Haul, Two Men and a Truck, College Hunks. מטרת ה-reference: לזהות סטנדרטים שלקוחות מצפים אליהם (calculator, online quote, transparent pricing, schema markup) גם אם המתחרים המקומיים עוד לא הגיעו לזה.
+אם אין reference brand רלוונטית (vertical מקומי ייחודי) — תחזיר record אחד עם domain="(no_international_reference)" + רציונל קצר למה. אסור פשוט לוותר על ה-bucket.
+
 ### 3. דפוסים cross-competitor
 - אנגלים שחוזרים אצל 3+ מתחרים → "saturated angles" — חייבים לדפדף בשונה
 - אנגלים שאף אחד לא משתמש → "white-space angles" — ההזדמנות שלנו

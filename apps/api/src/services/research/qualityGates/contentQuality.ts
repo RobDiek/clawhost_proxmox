@@ -283,6 +283,30 @@ export function validateStrategyOptions(stage: Record_): ContentQualityWarning[]
     return out
 }
 
+// ── Phase 2026.02 — Paid pipeline validators ───────────────────────────────
+
+/** Playbook §6.2 — 4 buckets mandatory: direct / substitute / adjacent / reference. */
+export function validatePaidCompetitorLandscape(stage: Record_): ContentQualityWarning[] {
+    const out: ContentQualityWarning[] = []
+    const records = rec(stage.records)
+    if (records.length === 0) {
+        out.push(warn('paid_competitor_landscape', 'critical', 'no_records',
+            'אין competitor records', 'paid_competitor_landscape חזר ריק — strategic blind spot.'))
+        return out
+    }
+    const buckets = new Set(records.map(r => String(r.bucket || '').toLowerCase()))
+    const requiredBuckets = ['direct', 'substitute', 'adjacent', 'reference']
+    for (const b of requiredBuckets) {
+        if (!buckets.has(b)) {
+            out.push(warn('paid_competitor_landscape', 'important', `missing_bucket_${b}`,
+                `bucket "${b}" חסר`,
+                `Playbook §6.2 מחייב 4 buckets (direct/substitute/adjacent/reference). חסר "${b}" — strategic blind spot. ל-reference: international leaders (U-Haul, Container Store, PODS) מגדירים סטנדרט גם אם לא מתחרים ב-IL.`,
+                'הוסיפו record עם bucket="' + b + '" + רציונל.'))
+        }
+    }
+    return out
+}
+
 // ── Dispatcher ────────────────────────────────────────────────────────────
 
 const VALIDATORS: Partial<Record<StageId, (stage: Record_) => ContentQualityWarning[]>> = {
@@ -293,6 +317,7 @@ const VALIDATORS: Partial<Record<StageId, (stage: Record_) => ContentQualityWarn
     link_audit: validateLinkAudit,
     audience_personas: validateAudiencePersonas,
     strategy_options: validateStrategyOptions,
+    paid_competitor_landscape: validatePaidCompetitorLandscape,
 }
 
 export function validateStageContentQuality(stageId: StageId, stage: Record_): ContentQualityWarning[] {
