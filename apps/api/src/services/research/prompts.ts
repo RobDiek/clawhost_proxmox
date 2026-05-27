@@ -3710,7 +3710,7 @@ const IL_KEYWORD_SIGNALS = `**IL-specific keyword risks**:
 - **Avoid Israel-specific dirt**: Hebrew transliterations of English brands ("גוגל אדס") tend to be navigational, not commercial. Don't bid unless our service IS Google Ads management.`
 
 export function buildPaidKeywordResearchPrompt(opts: PromptOpts): PromptResult {
-    const { businessName, businessDesc, answers, feedback, historicalAssetsBlock } = opts
+    const { businessName, businessDesc, answers, feedback, historicalAssetsBlock, rd } = opts
     const haBlock = historicalAssetsBlock || ''
     const prodBlk = productsBlock(answers)
     const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
@@ -3719,6 +3719,17 @@ export function buildPaidKeywordResearchPrompt(opts: PromptOpts): PromptResult {
     if (!landscape) throw new Error('paid_keyword_research: dfsData prefetch (PaidKeywordLandscape) is required')
 
     const landscapeBlock = renderPaidKeywordLandscapeForPrompt(landscape)
+
+    // Phase 2026.02 — pull conv_value_quality from upstream client_account_baseline.
+    // Without this injection the LLM defaults to "subscore not supplied from
+    // upstream" and applies safe-Manual-CPC but can't cite real subscore in
+    // rationale, breaking cross-stage proof chain.
+    const baselineExtras = ((rd?.results as Record<string, { extras?: Record<string, unknown> } | undefined> | undefined)?.client_account_baseline?.extras) || {}
+    const convQualSubscore = baselineExtras.conv_value_quality_subscore_0_100
+    const convQualRationaleHe = baselineExtras.conv_value_quality_rationale_he
+    const baselineSignalBlock = (typeof convQualSubscore === 'number')
+        ? `\n## 🚨 איכות סיגנל המרה (מ-upstream client_account_baseline)\n\n**conv_value_quality_subscore_0_100 = ${convQualSubscore}** ${convQualSubscore < 30 ? '(< 30 → fix_tracking_first verdict mandatory)' : convQualSubscore < 60 ? '(30-60 → Manual/Enhanced CPC only)' : '(≥60 → Smart Bidding unlocked)'}\n${convQualRationaleHe ? `\n**רציונל מ-baseline:** ${convQualRationaleHe}\n` : ''}\n**חובה לציטוט במורד הזרם:** כל record של ad group MUST cite this exact subscore ב-bid_strategy_rationale_he.\n---\n`
+        : `\n## ⚠ איכות סיגנל המרה — לא ידועה\n\nupstream client_account_baseline.extras.conv_value_quality_subscore_0_100 לא סופק. default ל-Manual CPC עד שיש אישור על נקיון signal.\n---\n`
 
     return {
         agentId: 'menateach',
@@ -3733,7 +3744,7 @@ ${haBlock}
 ${feedbackLine}
 
 ---
-
+${baselineSignalBlock}
 ## נתוני prefetch — להשתמש verbatim, אסור להמציא
 
 ${landscapeBlock}
