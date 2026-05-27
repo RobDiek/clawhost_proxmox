@@ -285,9 +285,10 @@ export const STAGE_CATALOG: Record<StageId, StageDescriptor> = {
     media_plan: {
         id: 'media_plan', category: 'execution',
         titleHe: 'תוכנית מדיה (פרסום ממומן)',
-        descriptionHe: 'קמפיינים, ad groups, תקציבים, KPIs, gates לעלייה',
-        preferredIntegrations: ['googleAds', 'meta', 'anthropic'],
-        upstream: ['paid_audit', 'strategy_options'],
+        descriptionHe: 'Phase 2026.02 Block 5 — campaigns + ad_groups + budgets + KPIs aligned with ' +
+            'paid_audit verdict + bid-strategy gates + IL mobile-first (playbook §6).',
+        preferredIntegrations: ['anthropic'],
+        upstream: ['paid_audit', 'paid_keyword_research', 'paid_budget_scenarios', 'paid_competitor_landscape', 'audience_personas'],
     },
 }
 

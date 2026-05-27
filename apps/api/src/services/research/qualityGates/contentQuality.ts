@@ -547,6 +547,80 @@ export function validatePaidBudgetScenarios(stage: Record_, rd?: Record_): Conte
     return out
 }
 
+/**
+ * Playbook §6 Block 5 — media_plan validator.
+ * Verdict-respect (tracking-first → no Smart Bidding phase 1),
+ * IL mobile-first ≥1 mobile_specific=true, citation discipline.
+ */
+export function validateMediaPlan(stage: Record_, rd?: Record_): ContentQualityWarning[] {
+    const out: ContentQualityWarning[] = []
+    const records = rec(stage.records)
+    if (records.length === 0) {
+        out.push(warn('media_plan', 'critical', 'no_campaigns',
+            'אין campaign records', 'media_plan חזר ריק — אין campaigns לרוץ.'))
+        return out
+    }
+    if (records.length < 3 || records.length > 8) {
+        out.push(warn('media_plan', 'enhancement', 'campaign_count_off',
+            `${records.length} campaigns (טווח מומלץ 3-8)`,
+            'Playbook §6: too few campaigns = under-coverage; too many = creative+tracking labor overload.'))
+    }
+
+    // Cross-stage gate
+    const results = (rd?.results as Record<string, { extras?: Record<string, unknown> } | undefined> | undefined) || {}
+    const auditExtras = results.paid_audit?.extras || {}
+    const baselineExtras = results.client_account_baseline?.extras || {}
+    const verdict = String(auditExtras.verdict || '')
+    const rawSubscore = baselineExtras.conv_value_quality_subscore_0_100
+    const convQualSubscore = typeof rawSubscore === 'string' ? parseInt(rawSubscore, 10)
+        : typeof rawSubscore === 'number' ? rawSubscore : NaN
+    const trackingFirstActive = verdict === 'fix_tracking_first' || (Number.isFinite(convQualSubscore) && convQualSubscore < 30)
+
+    // Per-record checks
+    const SMART_BIDDING = new Set(['target_cpa', 'target_roas', 'max_conversions', 'max_conversion_value'])
+    for (const r of records) {
+        const phase = typeof r.phase === 'number' ? r.phase : parseInt(String(r.phase), 10)
+        const strat = String(r.bid_strategy || '').toLowerCase()
+        const cid = String(r.campaign_id || '?')
+
+        // Verdict-respect: tracking-first + phase 1 + Smart Bidding = critical
+        if (trackingFirstActive && phase === 1 && SMART_BIDDING.has(strat)) {
+            out.push(warn('media_plan', 'critical', `phase1_smart_bidding_${cid}`,
+                `${cid}: phase 1 = ${strat} (Smart Bidding) tracking-first active`,
+                `Playbook §4.5+§6: tracking-first verdict (subscore=${Number.isFinite(convQualSubscore) ? convQualSubscore : '?'}) blocks Smart Bidding in phase 1.`))
+        }
+
+        // Citation discipline (§7.1)
+        const evidence = String(r.evidence_he || '')
+        if (evidence.length < 20) {
+            out.push(warn('media_plan', 'important', `evidence_too_thin_${cid}`,
+                `${cid}: evidence_he חלשה`,
+                'Playbook §7.1: each campaign MUST cite upstream field path (paid_audit / paid_keyword_research / etc.).'))
+        }
+    }
+
+    // IL mobile-first hard rule (§8.5)
+    const extras = (stage.extras as Record<string, unknown> | undefined) || {}
+    const mobileShare = typeof extras.il_mobile_share_assumed_pct === 'number' ? extras.il_mobile_share_assumed_pct : 0
+    const mobileSpecificCount = typeof extras.mobile_specific_campaign_count === 'number' ? extras.mobile_specific_campaign_count
+        : records.filter(r => r.mobile_specific === true).length
+    if (mobileShare > 70 && mobileSpecificCount < 1) {
+        out.push(warn('media_plan', 'critical', 'no_mobile_specific_campaign',
+            `mobile_share > 70% אבל אין mobile_specific campaign`,
+            'Playbook §8.5: IL mobile-first hard block — ≥1 campaign mobile_specific=true (WhatsApp ext / click-to-call / 9:16 Reels).'))
+    }
+
+    // Tracking dependencies declaration when tracking-first active
+    const trackingDeps = (extras.tracking_fix_dependencies as unknown[] | undefined) || []
+    if (trackingFirstActive && (!Array.isArray(trackingDeps) || trackingDeps.length === 0)) {
+        out.push(warn('media_plan', 'critical', 'no_tracking_dependencies_declared',
+            'tracking-first active אבל tracking_fix_dependencies ריק',
+            'Playbook §6: tracking-first verdict requires media_plan to list which measurement fixes block which campaigns.'))
+    }
+
+    return out
+}
+
 /** Playbook §6.2 — 4 buckets mandatory: direct / substitute / adjacent / reference. */
 export function validatePaidCompetitorLandscape(stage: Record_): ContentQualityWarning[] {
     const out: ContentQualityWarning[] = []
@@ -583,6 +657,7 @@ const VALIDATORS: Partial<Record<StageId, (stage: Record_, rd?: Record_) => Cont
     paid_keyword_research: validatePaidKeywordResearch,
     paid_audit: validatePaidAudit,
     paid_budget_scenarios: validatePaidBudgetScenarios,
+    media_plan: validateMediaPlan,
 }
 
 export function validateStageContentQuality(stageId: StageId, stage: Record_, rd?: Record_): ContentQualityWarning[] {

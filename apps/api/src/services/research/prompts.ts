@@ -4328,6 +4328,206 @@ ${context}
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// Phase 2026.02 Block 5 — media_plan playbook-grade rewrite (§6).
+// Produces campaigns + ad_groups + budgets + KPIs + creative briefs aligned
+// with all upstream paid stages. Verdict-aware: fix_tracking_first → phase 1
+// setup-only manual_cpc; optimize_incremental → full scale at chosen tier.
+// ────────────────────────────────────────────────────────────────────────────
+
+export function buildMediaPlanPrompt(opts: PromptOpts): PromptResult {
+    const { businessName, businessDesc, answers, rd, feedback } = opts
+    const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
+    const prodBlk = productsBlock(answers)
+
+    const results = (rd?.results as Record<string, { records?: unknown[]; extras?: Record<string, unknown>; content?: string } | undefined> | undefined) || {}
+    const audit = results.paid_audit
+    const kwResearch = results.paid_keyword_research
+    const budgetScenarios = results.paid_budget_scenarios
+    const compLandscape = results.paid_competitor_landscape
+    const personas = results.audience_personas
+    const positioning = results.positioning
+    const baseline = results.client_account_baseline
+    const baselineExtras = baseline?.extras || {}
+
+    // Critical cross-stage gates
+    const auditExtras = audit?.extras || {}
+    const verdict = String(auditExtras.verdict || 'unknown')
+    const totalScore = auditExtras.total_score_0_100
+    const auditChanges = (auditExtras.action_plan as { changes?: unknown[]; measurement_fixes_first?: unknown[] } | undefined)?.changes || []
+    const measurementFixesFirst = (auditExtras.action_plan as { measurement_fixes_first?: unknown[] } | undefined)?.measurement_fixes_first || []
+    const rawSubscore = baselineExtras.conv_value_quality_subscore_0_100
+    const convQualSubscore = typeof rawSubscore === 'string' ? parseInt(rawSubscore, 10)
+        : typeof rawSubscore === 'number' ? rawSubscore : NaN
+    const trackingFirstActive = verdict === 'fix_tracking_first' || (Number.isFinite(convQualSubscore) && convQualSubscore < 30)
+
+    // Compact upstream summaries
+    const adGroups = (kwResearch?.records as Array<Record<string, unknown>> | undefined) || []
+    const adGroupsSummary = adGroups.slice(0, 10).map((ag, i) =>
+        `  ${i + 1}. ${ag.ad_group_label_he || ag.ad_group_id} (${ag.intent_tier}) — ` +
+        `bid=${ag.bid_strategy_recommended}, blocked=${ag.bid_strategy_blocked_until_tracking_fix}, ` +
+        `kws=${Array.isArray(ag.keywords) ? ag.keywords.length : 0}, bid_range=${JSON.stringify(ag.ad_group_bid_range_ils)}`,
+    ).join('\n')
+
+    const budgetTiers = (budgetScenarios?.records as Array<Record<string, unknown>> | undefined) || []
+    const budgetTiersSummary = budgetTiers.map((t) => {
+        const yrKpis = t.adjusted_year1_kpis as Record<string, unknown> | undefined
+        const cpa = (yrKpis?.expected_cpa_ils_range as { median?: number } | undefined)?.median
+        return `  • ${t.tier_key} (${t.tier_label_he}): ₪${t.monthly_budget_ils}/mo, ` +
+            `phase1=${(Array.isArray(t.bid_strategy_migration) && (t.bid_strategy_migration[0] as Record<string, unknown>)?.strategy) || '?'}, ` +
+            `CPA median=₪${cpa ?? '?'}, confidence=${yrKpis?.confidence || '?'}`
+    }).join('\n')
+
+    const compRecords = (compLandscape?.records as Array<Record<string, unknown>> | undefined) || []
+    const compCount = compRecords.length
+    const compHighlights = compRecords.filter(r => String(r.strategic_threat_level) === 'high')
+        .slice(0, 3).map(r => `  • ${r.domain} (${r.bucket}, high threat)`).join('\n')
+    const whitespaceAngles = (compLandscape?.extras?.white_space_angles as string[] | undefined) || []
+
+    const personaRecords = (personas?.records as Array<Record<string, unknown>> | undefined) || []
+    const personaSummary = personaRecords.slice(0, 3).map(p =>
+        `  • ${p.name || p.persona_name_he} — JTBD: ${p.jtbd_he || p.jtbd || '?'}; WTP: ${p.wtp_ils || p.willingnessToPayIls || '?'}`,
+    ).join('\n')
+
+    const posExtras = positioning?.extras || {}
+
+    const contextBlock = `
+═══ UPSTREAM CONTEXT — read carefully, cite verbatim in media_plan ═══
+
+## paid_audit verdict (CRITICAL)
+- **verdict = "${verdict}"** (total_score=${totalScore})
+${trackingFirstActive ? `
+🚨 **tracking_first_active=TRUE** → phase 1 of media_plan MUST be setup-only:
+   - Bidding: manual_cpc / max_clicks ONLY (no Smart Bidding)
+   - Budget allocation: minimal active campaigns; majority budget allocated to tracking-fix execution
+   - measurement_fixes_first from audit (${measurementFixesFirst.length} items) — these run BEFORE any new campaign launches
+   - Top 5 audit action_plan.changes preview:
+${(auditChanges as Array<Record<string, unknown>>).slice(0, 5).map((c, i) => `     ${i + 1}. ${(c.change_he || c.change_en || '').toString().substring(0, 120)}`).join('\n')}
+` : `
+✓ Audit verdict allows full media plan execution. Apply chosen budget tier's bid strategies.
+`}
+
+## Ad groups planned (from paid_keyword_research)
+${adGroups.length} ad groups total. First 10:
+${adGroupsSummary}
+
+## Budget tier options
+${budgetTiers.length} tiers from paid_budget_scenarios:
+${budgetTiersSummary}
+
+## Competitive landscape
+${compCount} competitors. High-threat:
+${compHighlights || '  (none high-threat)'}
+Whitespace creative angles available: ${whitespaceAngles.join(', ') || '(none)'}
+
+## Audience personas (top 3)
+${personaSummary || '  (no personas extracted yet)'}
+
+## Positioning anchors
+- voice/tone: ${(posExtras.voice_he || posExtras.brand_voice || '?') as string}
+- key value props (cited if needed): ${JSON.stringify(posExtras.value_propositions || posExtras.usps || []).substring(0, 200)}
+
+## Baseline conv value quality
+- conv_value_quality_subscore = ${Number.isFinite(convQualSubscore) ? convQualSubscore : 'unknown'}
+- IL mobile share assumed 70-95% (default for IL ecom — playbook §3.5)
+
+═══ END UPSTREAM ═══`
+
+    const prompt = `# תוכנית מדיה — Phase 2026.02 Block 5 (playbook §6)
+
+## תיאור העסק
+${businessDesc} — "${businessName}"
+${prodBlk}
+${feedbackLine}
+
+${contextBlock}
+
+═══ MISSION ═══
+
+עליכם להפיק תוכנית מדיה ברמת senior IL PPC consultant:
+**campaigns + ad_groups + budgets + KPIs + creative briefs**, מבוססת על כל ה-upstream context.
+
+⚠ **חוקים נוקשים — אסור לעקוף:**
+
+1. **verdict-respect:** אם paid_audit.verdict=fix_tracking_first → phase 1 של media_plan MUST be setup-only:
+   - All campaigns Manual CPC OR Max Clicks (no Smart Bidding).
+   - Total active spend phase 1 should be CAPPED (recommend ~30% of budget tier; rest reserved for tracking setup work).
+   - First milestone: complete all measurement_fixes_first (${measurementFixesFirst.length} items).
+
+2. **bid_strategy_gated:** ad groups marked blocked_until_tracking_fix=true MUST use manual_cpc/max_clicks regardless of tier choice.
+
+3. **IL mobile-first (§8.5 hard rule):** ≥1 campaign with mobile_specific=true (WhatsApp click extension / click-to-call / 9:16 Reels / mobile-preferred RSA / LCP<2.5s).
+
+4. **Tier alignment:** if user picks balanced tier (₪20K), don't oversize ad groups; if conservative (₪8K), force consolidate ad groups.
+
+5. **Citation discipline:** every campaign.evidence_he MUST cite upstream field path (paid_audit / paid_keyword_research / etc.). NO bare "improve creative".
+
+═══ FORMAT — JSON only, single code-block ═══
+
+⚠ **CRITICAL: שדות חוץ מ-records הם top-level — אל תעטפו ב-"extras". double-wrap משבר ולידציה.**
+
+\`\`\`json
+{
+  "records": [
+    {
+      "campaign_id": "cmp_1",
+      "campaign_name_he": "...",
+      "platform": "google_search | google_pmax | google_demand_gen | meta_ads | meta_advantage_plus",
+      "phase": 1 | 2 | 3,
+      "phase_purpose_he": "setup / data_capture / scale / brand_defense / etc.",
+      "monthly_budget_ils": <int>,
+      "bid_strategy": "manual_cpc | enhanced_cpc | max_clicks | max_conversions | target_cpa | target_roas",
+      "bid_strategy_rationale_he": "1 משפט — למה בחרת ב-strategy זה (cite verdict + tier + ad group)",
+      "ad_groups_planned": ["ag_1", "ag_3"],
+      "targeting_he": "audiences / geo / language / device — 1-2 משפטים",
+      "creative_brief_he": "1-2 משפטים — angle ראשי + format + Hebrew RTL + mobile-first hints",
+      "mobile_specific": true | false,
+      "expected_monthly_kpis": {
+        "impressions_low": <int>,
+        "impressions_high": <int>,
+        "clicks_low": <int>,
+        "clicks_high": <int>,
+        "conversions_low": <int>,
+        "conversions_high": <int>,
+        "cpa_ils_low": <int>,
+        "cpa_ils_high": <int>
+      },
+      "evidence_he": "1 משפט + cite upstream field path (e.g. paid_audit.extras.verdict / paid_keyword_research.records[N] / chosenScenario)",
+      "playbook_section": "§6 | §4.5 | §8.5 | etc."
+    }
+  ],
+  "total_monthly_budget_ils": <int>,
+  "budget_tier_anchor": "conservative | balanced | aggressive",
+  "budget_tier_rationale_he": "1-2 משפטים — איזה tier מ-paid_budget_scenarios בחרתי + למה",
+  "phase_timeline_he": "אילו campaigns רצים מתי. phase 1 (weeks 1-X) — מטרה. phase 2 — מטרה. וכו'",
+  "tracking_fix_dependencies": [
+    "<measurement_fix from paid_audit that must complete before campaign X starts>"
+  ],
+  "il_mobile_share_assumed_pct": <int>,
+  "mobile_specific_campaign_count": <int>,
+  "il_specific_features_used": ["whatsapp_extension", "click_to_call", "hebrew_rtl_creative", "reels_9_16", "..."],
+  "data_gaps_he": "1 משפט — מה חסר ב-upstream שמגביל את ה-media_plan",
+  "confidence": "high | medium | working_hypothesis"
+}
+\`\`\`
+
+**Quality bar:**
+- confidence="high" only if: every campaign cites upstream evidence_he; tier anchor explicit; ≥1 mobile_specific=true; verdict respected (manual_cpc phase 1 if fix_tracking_first).
+- confidence="medium" if 1-2 campaigns relied on industry priors.
+- confidence="working_hypothesis" if verdict=fix_tracking_first AND no concrete measurement fix timeline; or chosen tier missing from upstream.
+- 3-8 campaigns total. Don't overload (each needs creative + tracking setup labor).
+- Hebrew RTL plural address everywhere (תוכלו, שלכם — לא אתה).
+- IF tracking_first_active: tracking_fix_dependencies MUST list all measurement_fixes_first items + any campaign blocking on them.
+`
+
+    return {
+        agentId: 'menateach',
+        useDirectApi: true,
+        minLength: 2500,
+        prompt,
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Phase 2026.02 Block 4 — paid_audit playbook-grade rewrite (§4-§5).
 // Replaces the legacy mazhirAudit-driven prompt with the 5-dim rubric:
 // Structure / Targeting / Creative / Measurement / Bidding (each 0-100),
@@ -4618,6 +4818,8 @@ export function buildPromptForStage(stageId: StageId, opts: PromptOpts): PromptR
         case 'paid_budget_scenarios':      return buildPaidBudgetScenariosPrompt(opts)
         // Phase 2026.02 — Block 4 paid_audit playbook rewrite
         case 'paid_audit':                 return buildPaidAuditPrompt(opts)
+        // Phase 2026.02 — Block 5 media_plan playbook rewrite
+        case 'media_plan':                 return buildMediaPlanPrompt(opts)
         // Phase 4 stages (live integrations) + intent wrappers handle their
         // own prompt construction inside their per-stage controller.
         default: return null
