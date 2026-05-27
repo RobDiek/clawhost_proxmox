@@ -777,7 +777,11 @@ export async function saveStageResult(
     // sources, missing strategy plan blocks) as non-blocking warnings.
     // Memory: [[schema-not-equal-strategy]]
     const { validateStageContentQuality } = await import('./qualityGates/contentQuality')
-    const contentWarnings = validateStageContentQuality(stageId, stageResult as unknown as Record<string, unknown>)
+    // Pass full rd (with this stage's freshly-saved result merged in) so
+    // cross-stage validators (paid_budget_scenarios → paid_audit verdict) can
+    // inspect upstream extras without re-fetching.
+    const rdForValidator = { ...rd, results: { ...(rd.results as Record<string, unknown> || {}), [stageId]: stageResult } } as Record<string, unknown>
+    const contentWarnings = validateStageContentQuality(stageId, stageResult as unknown as Record<string, unknown>, rdForValidator)
     // Aggregate into research_data.contentQualityWarnings[] (per-stage replace).
     type CQW = { stageId: StageId; severity: string; code: string; title_he: string; detail_he: string; actionable_hint_he?: string; surfaced_at: string }
     const existingWarnings = Array.isArray(rd.contentQualityWarnings) ? (rd.contentQualityWarnings as CQW[]) : []

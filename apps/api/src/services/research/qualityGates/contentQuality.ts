@@ -40,7 +40,7 @@ function ext(obj: unknown): Record_ {
 
 // ── Stage 1: competitor_landscape ─────────────────────────────────────────
 
-export function validateCompetitorLandscape(stage: Record_): ContentQualityWarning[] {
+export function validateCompetitorLandscape(stage: Record_, _rd?: Record_): ContentQualityWarning[] {
     const out: ContentQualityWarning[] = []
     const records = rec(stage.records)
     const buckets = records.map(r => String(r.bucket || ''))
@@ -450,6 +450,103 @@ export function validatePaidAudit(stage: Record_): ContentQualityWarning[] {
     return out
 }
 
+/**
+ * Playbook §6.4 + cross-stage — paid_budget_scenarios must respect
+ * upstream paid_audit verdict + baseline conv_value_quality.
+ *
+ * If upstream tracking-first is active (verdict=fix_tracking_first OR
+ * conv_value_quality<30), budget scenarios MUST:
+ *   - have phase 1 = manual_cpc (no Smart Bidding from week 1)
+ *   - expected_cpa anchored on vertical floor, not polluted current
+ *   - adjusted_year1_kpis.confidence = "working_hypothesis" or lower
+ *   - recommended_rationale_he MUST cite verdict
+ */
+export function validatePaidBudgetScenarios(stage: Record_, rd?: Record_): ContentQualityWarning[] {
+    const out: ContentQualityWarning[] = []
+    const records = rec(stage.records)
+    if (records.length === 0) {
+        out.push(warn('paid_budget_scenarios', 'critical', 'no_records',
+            'אין scenario records', 'paid_budget_scenarios חזר ריק — אין 3 דרגות תקציב.'))
+        return out
+    }
+
+    // Need rd context for cross-stage gate inspection
+    const results = (rd?.results as Record<string, { extras?: Record<string, unknown> } | undefined> | undefined) || {}
+    const auditExtras = results.paid_audit?.extras || {}
+    const baselineExtras = results.client_account_baseline?.extras || {}
+    const verdict = String(auditExtras.verdict || '')
+    const rawSubscore = baselineExtras.conv_value_quality_subscore_0_100
+    const convQualSubscore = typeof rawSubscore === 'string' ? parseInt(rawSubscore, 10)
+        : typeof rawSubscore === 'number' ? rawSubscore : NaN
+    const trackingFirstActive = verdict === 'fix_tracking_first' || (Number.isFinite(convQualSubscore) && convQualSubscore < 30)
+
+    // 3-tier coverage check (playbook §6.4)
+    const tierKeys = new Set(records.map(r => String(r.tier_key || r.scenario || '').toLowerCase()))
+    const REQUIRED_TIERS = ['conservative', 'balanced', 'aggressive']
+    for (const t of REQUIRED_TIERS) {
+        if (!tierKeys.has(t)) {
+            out.push(warn('paid_budget_scenarios', 'important', `missing_tier_${t}`,
+                `tier "${t}" חסר`,
+                'Playbook §6.4 מחייב 3 tiers: conservative / balanced / aggressive.'))
+        }
+    }
+
+    if (!trackingFirstActive) return out  // baseline conv quality healthy — no extra gates
+
+    // Cross-stage gate enforcement: tracking-first verdict implies all scenarios
+    // must start with manual_cpc, cite vertical floor CPA, mark confidence
+    // working_hypothesis.
+    const VERTICAL_FLOOR_CPA_ECOM_PHYSICAL = 50  // playbook §3.2 ecom_physical floor (mid-band)
+
+    for (const r of records) {
+        const tier = String(r.tier_key || r.scenario || 'unknown')
+
+        // Phase 1 must be manual_cpc when tracking-first active
+        const bidMigration = Array.isArray(r.bid_strategy_migration) ? r.bid_strategy_migration : []
+        if (bidMigration.length > 0) {
+            const phase1 = bidMigration[0] as Record<string, unknown>
+            const phase1Strat = String(phase1.strategy || '').toLowerCase()
+            const SMART_STRATS = new Set(['target_cpa', 'target_roas', 'max_conversions', 'max_conversion_value'])
+            if (SMART_STRATS.has(phase1Strat)) {
+                out.push(warn('paid_budget_scenarios', 'critical', `phase1_smart_bidding_${tier}`,
+                    `${tier}: phase 1 = ${phase1Strat} (Smart Bidding) למרות fix_tracking_first`,
+                    `Playbook §4.5+§7.3+§6.4: tracking-first verdict מחייב phase 1 = manual_cpc/enhanced_cpc/max_clicks בלבד. ` +
+                    `התקבל "${phase1Strat}". Smart Bidding על סיגנל מזוהם trains על micro-conversions.`))
+            }
+        }
+
+        // expected_cpa anchor check
+        const yrKpis = r.adjusted_year1_kpis as Record<string, unknown> | undefined
+        const cpaRange = yrKpis?.expected_cpa_ils_range as Record<string, unknown> | undefined
+        const medianCpa = typeof cpaRange?.median === 'number' ? cpaRange.median
+            : parseInt(String(cpaRange?.median ?? ''), 10)
+        if (Number.isFinite(medianCpa) && (medianCpa as number) < VERTICAL_FLOOR_CPA_ECOM_PHYSICAL) {
+            out.push(warn('paid_budget_scenarios', 'important', `cpa_below_floor_${tier}`,
+                `${tier}: expected_cpa median=₪${medianCpa} < vertical floor ₪${VERTICAL_FLOOR_CPA_ECOM_PHYSICAL}`,
+                `Playbook §6.4 + §3.2: ecom_physical CPA floor ≥ ₪${VERTICAL_FLOOR_CPA_ECOM_PHYSICAL}. ` +
+                `tracking-first active means current polluted CPA (~₪13) IRRELEVANT — anchor on floor.`))
+        }
+
+        // Confidence must be working_hypothesis or medium
+        const conf = String(yrKpis?.confidence || '').toLowerCase()
+        if (conf === 'high') {
+            out.push(warn('paid_budget_scenarios', 'important', `confidence_too_high_${tier}`,
+                `${tier}: adjusted_year1_kpis.confidence="high" while tracking-first active`,
+                'Playbook §6.4 cross-stage: confidence MUST be working_hypothesis עד tracking fixed. Real ROAS unknowable.'))
+        }
+
+        // Rationale must cite verdict
+        const rationale = String(r.recommended_rationale_he || '')
+        if (rationale.length > 0 && !/tracking|verdict|fix_tracking|מעקב.*?תיקון|conv_value_quality/i.test(rationale)) {
+            out.push(warn('paid_budget_scenarios', 'enhancement', `rationale_no_verdict_citation_${tier}`,
+                `${tier}: recommended_rationale_he doesn't cite tracking-first verdict`,
+                'Playbook §6.4: rationale חייב לציין שהתרחיש מותנה ב-tracking fix כי verdict=fix_tracking_first.'))
+        }
+    }
+
+    return out
+}
+
 /** Playbook §6.2 — 4 buckets mandatory: direct / substitute / adjacent / reference. */
 export function validatePaidCompetitorLandscape(stage: Record_): ContentQualityWarning[] {
     const out: ContentQualityWarning[] = []
@@ -474,7 +571,7 @@ export function validatePaidCompetitorLandscape(stage: Record_): ContentQualityW
 
 // ── Dispatcher ────────────────────────────────────────────────────────────
 
-const VALIDATORS: Partial<Record<StageId, (stage: Record_) => ContentQualityWarning[]>> = {
+const VALIDATORS: Partial<Record<StageId, (stage: Record_, rd?: Record_) => ContentQualityWarning[]>> = {
     competitor_landscape: validateCompetitorLandscape,
     internal_seo_audit: validateInternalSeoAudit,
     seo_keyword_research: validateSeoKeywordResearch,
@@ -485,11 +582,12 @@ const VALIDATORS: Partial<Record<StageId, (stage: Record_) => ContentQualityWarn
     paid_competitor_landscape: validatePaidCompetitorLandscape,
     paid_keyword_research: validatePaidKeywordResearch,
     paid_audit: validatePaidAudit,
+    paid_budget_scenarios: validatePaidBudgetScenarios,
 }
 
-export function validateStageContentQuality(stageId: StageId, stage: Record_): ContentQualityWarning[] {
+export function validateStageContentQuality(stageId: StageId, stage: Record_, rd?: Record_): ContentQualityWarning[] {
     const fn = VALIDATORS[stageId]
-    return fn ? fn(stage) : []
+    return fn ? fn(stage, rd) : []
 }
 
 function warn(stageId: StageId, severity: ContentQualityWarning['severity'],

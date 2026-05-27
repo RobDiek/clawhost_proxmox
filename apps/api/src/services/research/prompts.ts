@@ -3940,7 +3940,7 @@ const SCENARIO_DISCIPLINE = `**Critique discipline** — Opus must:
    Score, mobile-form-friction, WhatsApp-conv-tracking-gap.`
 
 export function buildPaidBudgetScenariosPrompt(opts: PromptOpts): PromptResult {
-    const { businessName, businessDesc, answers, feedback, historicalAssetsBlock } = opts
+    const { businessName, businessDesc, answers, feedback, historicalAssetsBlock, rd } = opts
     const haBlock = historicalAssetsBlock || ''
     const prodBlk = productsBlock(answers)
     const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
@@ -3950,6 +3950,48 @@ export function buildPaidBudgetScenariosPrompt(opts: PromptOpts): PromptResult {
 
     const benchmarksBlock = renderBenchmarksForPrompt(bundle.vertical)
     const scenariosBlock = renderScenariosForPrompt(bundle)
+
+    // Phase 2026.02 — cross-stage gate: respect upstream paid_audit verdict +
+    // baseline conv_value_quality. Without this injection LLM anchored
+    // projections on polluted current CPA (₪13 micro-conv) and recommended
+    // Smart Bidding from week 1, contradicting Stage 9 fix_tracking_first.
+    const results = (rd?.results as Record<string, { extras?: Record<string, unknown> } | undefined> | undefined) || {}
+    const auditExtras = results.paid_audit?.extras || {}
+    const baselineExtras = results.client_account_baseline?.extras || {}
+    const verdict = String(auditExtras.verdict || '')
+    const rawSubscore = baselineExtras.conv_value_quality_subscore_0_100
+    const convQualSubscore = typeof rawSubscore === 'string' ? parseInt(rawSubscore, 10)
+        : typeof rawSubscore === 'number' ? rawSubscore : NaN
+    const trackingFirstActive = verdict === 'fix_tracking_first' || (Number.isFinite(convQualSubscore) && convQualSubscore < 30)
+    const upstreamGateBlock = trackingFirstActive ? `
+
+═══ 🚨 CROSS-STAGE GATE: tracking-first verdict ACTIVE ═══
+
+paid_audit.verdict = "${verdict || 'inferred-from-low-conv-quality'}"
+client_account_baseline.conv_value_quality_subscore = ${Number.isFinite(convQualSubscore) ? convQualSubscore : '?'} (< 30 → סיגנל מזוהם)
+
+**ביטולים של ה-account_anchor rules למטה לתרחיש הזה (חובה):**
+
+1. **\`expected_cpa_ils_range\` MUST NOT anchor on current polluted CPA (₪${baselineExtras.account_cpa_ils ?? '13'}).**
+   ה-CPA הנוכחי מבוסס על micro-conversions (phone_click flat 1₪, etc) — לא purchase signal.
+   Anchor instead על vertical floor: ecom_physical CPA floor ≥ ₪70 (playbook §3.2). expected_cpa_ils_range MUST be ₪50-80 median, NOT ₪12-19.
+
+2. **bid_strategy_migration MUST start with manual_cpc phase.**
+   - Phase 1 (weeks 1-${trackingFirstActive ? '4' : '2'}): \`manual_cpc\` ONLY + parallel tracking fix execution. NO Smart Bidding.
+   - Phase 2 (weeks ${trackingFirstActive ? '5-8' : '3-12'}): \`max_clicks\` או \`enhanced_cpc\` while accumulating 15+ CLEAN purchase conversions.
+   - Phase 3 (weeks 9+): \`max_conversions\` if ≥15 clean conv/30d, then \`target_cpa\` after 30+ stable.
+
+3. **\`expected_conversions\` MUST be discounted 60-80%** below current "conv count" (4,729/90d), because most current "conv" are junk. Real purchase conv likely 500-1,500/90d post-fix. Apply EXTRA 0.7 haircut on top of normal execution risk.
+
+4. **\`expected_roas_range\` confidence MUST be "working_hypothesis"** (NOT "high"/"medium"). Real ROAS unknowable until tracking fixed. Use vertical ROAS floor (3.5× ecom_physical playbook §3.2) as upper-bound estimate, not anchor.
+
+5. **\`recommended_rationale_he\` MUST cite verdict=fix_tracking_first AS THE OVERRIDING CONSTRAINT.** Example phrasing: "בהינתן verdict=fix_tracking_first מ-paid_audit (conv_value_quality_subscore=${convQualSubscore}), כל התרחיש מותנה ב-tracking fix תוך שבועיים. עד אז Manual CPC. תקציב המומלץ ל-${'<scenario_name>'} מתבסס על vertical floor (₪70 CPA) ולא על ₪${baselineExtras.account_cpa_ils ?? '13'} המזויף."
+
+6. **Phase 1 channel_split_pct MUST include 'tracking_setup_weeks' field** (boolean true) marking the first phase as setup-not-spend. Suggest ₪0 paid spend during weeks 1-2 if tracking fixes deploy fast, OR continue current spend at Manual CPC if tracking takes longer (estimate from paid_audit.action_plan.execution_days).
+
+═══ END CROSS-STAGE GATE ═══
+
+` : ''
 
     // Phase 4.2.1-I — force Opus to anchor rationale on REAL account history.
     // Previous run incorrectly claimed "עוד לא הוכיח ROI" even though baseline
@@ -4014,6 +4056,7 @@ ${benchmarksBlock}
 ## Baseline Scenario Projections (deterministic math from upstream research)
 
 ${scenariosBlock}
+${upstreamGateBlock}
 ${accountHistoryBlock}
 ---
 
