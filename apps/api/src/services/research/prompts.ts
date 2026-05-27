@@ -3725,10 +3725,13 @@ export function buildPaidKeywordResearchPrompt(opts: PromptOpts): PromptResult {
     // upstream" and applies safe-Manual-CPC but can't cite real subscore in
     // rationale, breaking cross-stage proof chain.
     const baselineExtras = ((rd?.results as Record<string, { extras?: Record<string, unknown> } | undefined> | undefined)?.client_account_baseline?.extras) || {}
-    const convQualSubscore = baselineExtras.conv_value_quality_subscore_0_100
+    const rawSubscore = baselineExtras.conv_value_quality_subscore_0_100
+    // Tolerate both string and number — DB writes from LLM JSON may stringify integers
+    const convQualSubscore = typeof rawSubscore === 'string' ? parseInt(rawSubscore, 10)
+        : typeof rawSubscore === 'number' ? rawSubscore : NaN
     const convQualRationaleHe = baselineExtras.conv_value_quality_rationale_he
-    const baselineSignalBlock = (typeof convQualSubscore === 'number')
-        ? `\n## 🚨 איכות סיגנל המרה (מ-upstream client_account_baseline)\n\n**conv_value_quality_subscore_0_100 = ${convQualSubscore}** ${convQualSubscore < 30 ? '(< 30 → fix_tracking_first verdict mandatory)' : convQualSubscore < 60 ? '(30-60 → Manual/Enhanced CPC only)' : '(≥60 → Smart Bidding unlocked)'}\n${convQualRationaleHe ? `\n**רציונל מ-baseline:** ${convQualRationaleHe}\n` : ''}\n**חובה לציטוט במורד הזרם:** כל record של ad group MUST cite this exact subscore ב-bid_strategy_rationale_he.\n---\n`
+    const baselineSignalBlock = Number.isFinite(convQualSubscore)
+        ? `\n## 🚨 איכות סיגנל המרה (מ-upstream client_account_baseline)\n\n**conv_value_quality_subscore_0_100 = ${convQualSubscore}** ${convQualSubscore < 30 ? '(< 30 → fix_tracking_first verdict mandatory — Smart Bidding אסור!)' : convQualSubscore < 60 ? '(30-60 → Manual / Enhanced CPC only)' : '(≥60 → Smart Bidding unlocked)'}\n${convQualRationaleHe ? `\n**רציונל מ-baseline:**\n> ${convQualRationaleHe}\n` : ''}\n**חובה לציטוט במורד הזרם:** כל record של ad group MUST cite this exact subscore (${convQualSubscore}) ב-bid_strategy_rationale_he. אסור לכתוב "subscore לא סופק" — subscore = ${convQualSubscore} מ-upstream baseline.\n---\n`
         : `\n## ⚠ איכות סיגנל המרה — לא ידועה\n\nupstream client_account_baseline.extras.conv_value_quality_subscore_0_100 לא סופק. default ל-Manual CPC עד שיש אישור על נקיון signal.\n---\n`
 
     return {
