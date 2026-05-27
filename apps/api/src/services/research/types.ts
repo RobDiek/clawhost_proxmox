@@ -193,10 +193,11 @@ export const STAGE_CATALOG: Record<StageId, StageDescriptor> = {
     paid_audit: {
         id: 'paid_audit', category: 'discovery',
         titleHe: 'אודיט פרסום ממומן',
-        descriptionHe: 'Google Ads + Meta — היסטוריה, blockers, איכות מעקב, methodology. ' +
-            'במצב cold (T0/T1): מחזיר setup roadmap של 7 ימים. במצב warm (T2+): takeover audit.',
+        descriptionHe: 'Phase 2026.02 — 5-dim audit (Structure / Targeting / Creative / Measurement / Bidding) ' +
+            'מ-baseline + keyword research + competitor landscape. ' +
+            'Verdict: fix_tracking_first / optimize_incremental / restructure / rebuild_from_scratch לפי playbook §4-§5.',
         preferredIntegrations: ['googleAds', 'meta', 'ga4'],
-        upstream: ['paid_data_inventory'],
+        upstream: ['paid_data_inventory', 'client_account_baseline', 'paid_competitor_landscape', 'paid_keyword_research'],
     },
     paid_competitor_landscape: {
         id: 'paid_competitor_landscape', category: 'discovery',

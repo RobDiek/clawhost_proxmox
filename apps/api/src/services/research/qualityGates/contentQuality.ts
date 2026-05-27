@@ -337,6 +337,119 @@ export function validatePaidKeywordResearch(stage: Record_): ContentQualityWarni
     return out
 }
 
+/**
+ * Playbook §4-§5 + §6.5 — paid_audit 5-dim rubric validator.
+ * Soft warnings only; hard validators (verdict-must-match-scores,
+ * tracking-first-no-bidding-changes) live in paidConsistency.ts (Block 6).
+ */
+export function validatePaidAudit(stage: Record_): ContentQualityWarning[] {
+    const out: ContentQualityWarning[] = []
+    const records = rec(stage.records)
+    const REQUIRED_DIMS = new Set(['structure', 'targeting', 'creative', 'measurement', 'bidding'])
+
+    // 5-dim coverage check
+    if (records.length === 0) {
+        out.push(warn('paid_audit', 'critical', 'no_records',
+            'אין dimension records', 'paid_audit חזר ריק — אין 5-dim scores לפי playbook §4.'))
+        return out
+    }
+    const dimsPresent = new Set(records.map(r => String(r.dimension || '').toLowerCase()))
+    for (const d of REQUIRED_DIMS) {
+        if (!dimsPresent.has(d)) {
+            out.push(warn('paid_audit', 'critical', `missing_dimension_${d}`,
+                `dimension "${d}" חסר`,
+                `Playbook §4 מחייב 5 dimensions מנדטוריים (Structure/Targeting/Creative/Measurement/Bidding). חסר "${d}".`))
+        }
+    }
+
+    // Per-record evidence quality
+    for (const r of records) {
+        const dim = String(r.dimension || '')
+        const score = typeof r.score_0_100 === 'number' ? r.score_0_100 : parseInt(String(r.score_0_100), 10)
+        if (!Number.isFinite(score) || score < 0 || score > 100) {
+            out.push(warn('paid_audit', 'critical', `invalid_score_${dim}`,
+                `score לא תקין ל-${dim}`, `score_0_100 חייב להיות מספר 0-100, התקבל "${r.score_0_100}".`))
+        }
+        if (!r.evidence_he || String(r.evidence_he).length < 30) {
+            out.push(warn('paid_audit', 'important', `evidence_too_thin_${dim}`,
+                `${dim}: evidence_he חלשה מדי`,
+                'evidence_he חייב להיות ≥30 chars + לצטט נתון ספציפי מ-upstream (baseline / kw / competitor).'))
+        }
+        if (!r.actionable_he || String(r.actionable_he).length < 20) {
+            out.push(warn('paid_audit', 'important', `actionable_too_thin_${dim}`,
+                `${dim}: actionable_he חלש`,
+                'actionable_he חייב להיות ≥20 chars + fix קונקרטי, לא "improve creative".'))
+        }
+    }
+
+    // Verdict logic check (extras-level)
+    const extras = (stage.extras as Record<string, unknown> | undefined) || {}
+    const totalScore = typeof extras.total_score_0_100 === 'number' ? extras.total_score_0_100
+        : parseInt(String(extras.total_score_0_100 ?? ''), 10)
+    const verdict = String(extras.verdict || '')
+    const VALID_VERDICTS = new Set(['fix_tracking_first', 'optimize_incremental', 'restructure', 'rebuild_from_scratch'])
+    if (!VALID_VERDICTS.has(verdict)) {
+        out.push(warn('paid_audit', 'critical', 'invalid_verdict',
+            `verdict "${verdict}" לא חוקי`,
+            `Playbook §5.1 מגדיר 4 verdicts בלבד. התקבל "${verdict}".`))
+    }
+
+    // Verdict must match total_score per §5.1 (excluding measurement<30 override)
+    const measurementRec = records.find(r => String(r.dimension).toLowerCase() === 'measurement')
+    const measScore = measurementRec && (typeof measurementRec.score_0_100 === 'number'
+        ? measurementRec.score_0_100 : parseInt(String(measurementRec.score_0_100), 10))
+    if (Number.isFinite(measScore) && (measScore as number) < 30 && verdict !== 'fix_tracking_first') {
+        out.push(warn('paid_audit', 'critical', 'measurement_low_verdict_mismatch',
+            'measurement < 30 אבל verdict ≠ fix_tracking_first',
+            `Playbook §4.4.4 hard rule: measurement_score=${measScore} < 30 → verdict חובה fix_tracking_first. התקבל "${verdict}".`))
+    } else if (Number.isFinite(totalScore) && Number.isFinite(measScore) && (measScore as number) >= 30) {
+        // Apply §5.1 thresholds
+        if ((totalScore as number) >= 70 && verdict !== 'optimize_incremental') {
+            out.push(warn('paid_audit', 'important', 'verdict_threshold_mismatch_high',
+                `total=${totalScore} ≥70 אבל verdict="${verdict}"`,
+                'Playbook §5.1: total ≥70 → optimize_incremental.'))
+        } else if ((totalScore as number) < 40 && verdict !== 'rebuild_from_scratch') {
+            out.push(warn('paid_audit', 'important', 'verdict_threshold_mismatch_low',
+                `total=${totalScore} <40 אבל verdict="${verdict}"`,
+                'Playbook §5.1: total <40 → rebuild_from_scratch.'))
+        } else if ((totalScore as number) >= 40 && (totalScore as number) < 70 && verdict !== 'restructure') {
+            out.push(warn('paid_audit', 'enhancement', 'verdict_threshold_mismatch_mid',
+                `total=${totalScore} 40-70 אבל verdict="${verdict}"`,
+                'Playbook §5.1: total 40-70 → restructure (unless edge case applies).'))
+        }
+    }
+
+    // action_plan citation check (§6.5)
+    const actionPlan = extras.action_plan as { changes?: unknown[]; measurement_fixes_first?: unknown[] } | undefined
+    if (actionPlan?.changes && Array.isArray(actionPlan.changes)) {
+        const noEvidence = actionPlan.changes.filter((ch: unknown) => {
+            const c = ch as Record<string, unknown>
+            return !c.evidence_source || String(c.evidence_source).length < 10
+        }).length
+        if (noEvidence > 0) {
+            out.push(warn('paid_audit', 'important', 'action_plan_missing_evidence',
+                `${noEvidence}/${actionPlan.changes.length} action plan changes ללא evidence_source`,
+                'Playbook §7.1: action_plan.changes[*].evidence_source חייב לצטט baseline/kw/competitor field path.'))
+        }
+    }
+    if (verdict === 'fix_tracking_first' && (!actionPlan?.measurement_fixes_first || (actionPlan.measurement_fixes_first as unknown[]).length < 3)) {
+        out.push(warn('paid_audit', 'critical', 'tracking_first_insufficient_fixes',
+            'verdict=fix_tracking_first אבל measurement_fixes_first < 3',
+            'Playbook §5.3: fix_tracking_first verdict חייב ≥3 specific tracking gaps.'))
+    }
+
+    // IL mobile-first (§8.5)
+    const mobileShareAssumed = typeof extras.il_mobile_share_assumed_pct === 'number' ? extras.il_mobile_share_assumed_pct : 0
+    const mobileChangesCount = typeof extras.mobile_specific_changes_count === 'number' ? extras.mobile_specific_changes_count : 0
+    if (mobileShareAssumed > 70 && mobileChangesCount < 1 && actionPlan?.changes && (actionPlan.changes as unknown[]).length > 0) {
+        out.push(warn('paid_audit', 'critical', 'no_mobile_specific_action',
+            'mobile_share > 70% אבל אין mobile-specific changes',
+            'Playbook §8.5: IL mobile-first hard block. action plan חייב ≥1 mobile-specific item (WhatsApp ext / click-to-call / 9:16 Reels / LCP<2.5s).'))
+    }
+
+    return out
+}
+
 /** Playbook §6.2 — 4 buckets mandatory: direct / substitute / adjacent / reference. */
 export function validatePaidCompetitorLandscape(stage: Record_): ContentQualityWarning[] {
     const out: ContentQualityWarning[] = []
@@ -371,6 +484,7 @@ const VALIDATORS: Partial<Record<StageId, (stage: Record_) => ContentQualityWarn
     strategy_options: validateStrategyOptions,
     paid_competitor_landscape: validatePaidCompetitorLandscape,
     paid_keyword_research: validatePaidKeywordResearch,
+    paid_audit: validatePaidAudit,
 }
 
 export function validateStageContentQuality(stageId: StageId, stage: Record_): ContentQualityWarning[] {

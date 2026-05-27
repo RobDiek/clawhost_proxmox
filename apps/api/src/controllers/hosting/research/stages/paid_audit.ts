@@ -1,61 +1,28 @@
 /**
- * Stage: paid_audit — Google Ads + Meta paid audit. Thin wrapper around
- * services/mazhirAudit. We delegate the actual audit, then mark the stage
- * completed in plan.status so the pipeline widget reflects it.
+ * Stage: paid_audit — Phase 2026.02 Block 4 playbook-grade rewrite.
  *
- * Underlying data stays in rd.mazhirAudit (its existing home) — UI for the
- * paid section reads from there directly and is unchanged.
+ * Replaces the legacy mazhirAudit-driven flow (which required paidProfile
+ * filled via openPaidProfileModal — Path A onboarding only) with the
+ * standard runStageGeneric pipeline backed by buildPaidAuditPrompt.
+ *
+ * The new prompt produces the 5-dim rubric (Structure / Targeting /
+ * Creative / Measurement / Bidding) per playbook §4, deterministic
+ * verdict per §5, and action plan with cited evidence per §6.5.
+ *
+ * Reads upstream from rd.results.*:
+ *   - paid_data_inventory (tier + fork)
+ *   - client_account_baseline (conv_value_quality, sqr, change history)
+ *   - paid_competitor_landscape (saturated/whitespace, IL signals)
+ *   - paid_keyword_research (ad groups, bid strategy gates)
+ *
+ * Legacy mazhirAudit.ts is left untouched — invoked only by the legacy
+ * Path A widget (openPaidProfileModal) which is deprecated but kept for
+ * tenants pre-2026.02 migration.
  */
 
 import type { Context } from 'hono'
-import { fail, ok } from '@/lib/response'
-import { resolveUserId, getOwnedInstance } from '../../authHelper'
-import {
-    acquireResearchLock,
-    releaseResearchLock,
-} from '@/services/research/stageExecutor'
-import { markWrapperStageCompleted } from './_wrapperHelpers'
-import { resolveActiveAgent } from '@/services/agentContext'
+import { runStageGeneric } from './_runStageGeneric'
 
 export async function run(c: Context): Promise<Response> {
-    const instanceId = c.req.param('id')
-    if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-
-    const __agentForLock = await resolveActiveAgent(c, instanceId)
-    const lock = acquireResearchLock(instanceId, 'paid_audit', __agentForLock?.id)
-    if (!lock.acquired) {
-        return fail(c, `שלב מחקר כבר רץ כרגע. נסו שוב בעוד ${lock.secondsLeft} שניות.`, 429)
-    }
-
-    try {
-        const { runMazhirAudit } = await import('@/services/mazhirAudit')
-        const { audit, cost } = await runMazhirAudit(instanceId)
-
-        // Build a brief Hebrew summary as the StageResult.content. UI for
-        // the audit itself reads rd.mazhirAudit — this is just a marker so
-        // the pipeline widget shows the stage as completed.
-        const blockers = Array.isArray((audit as { blockers?: unknown[] })?.blockers)
-            ? (audit as { blockers?: unknown[] }).blockers!.length : 0
-        const summaryMd = `# אודיט פרסום ממומן — הושלם
-
-האודיט המלא זמין בכרטיס "מזהיר — אודיט" בלשונית פרסום ממומן.
-
-- מספר חסמים שזוהו: ${blockers}
-- עלות הרצה: $${(cost as { totalUsd?: number })?.totalUsd?.toFixed(4) || '0.0000'}`
-
-        await markWrapperStageCompleted({
-            instanceId,
-            stageId: 'paid_audit',
-            summaryMd,
-            integrationsUsed: ['anthropic', 'googleAds', 'meta'],
-            agentId: __agentForLock?.id,
-        })
-
-        releaseResearchLock(instanceId)
-        return ok(c, { audit, cost }, 'Audit complete')
-    } catch (err) {
-        releaseResearchLock(instanceId)
-        console.error(`[research/paid_audit] error:`, err)
-        return fail(c, (err as Error).message, 500)
-    }
+    return runStageGeneric(c, 'paid_audit')
 }

@@ -4285,6 +4285,272 @@ ${context}
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// Phase 2026.02 Block 4 — paid_audit playbook-grade rewrite (§4-§5).
+// Replaces the legacy mazhirAudit-driven prompt with the 5-dim rubric:
+// Structure / Targeting / Creative / Measurement / Bidding (each 0-100),
+// total_score = average, verdict by deterministic thresholds.
+// Hard rule: measurement_score < 30 → verdict=fix_tracking_first regardless
+// of all other dimensions. Same rule applies to conv_value_quality<30 from
+// upstream baseline (signal pollution).
+// ────────────────────────────────────────────────────────────────────────────
+
+export function buildPaidAuditPrompt(opts: PromptOpts): PromptResult {
+    const { businessName, businessDesc, answers, rd, feedback } = opts
+    const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
+    const prodBlk = productsBlock(answers)
+
+    // Upstream context — read from rd.results.*. All paid_audit upstream is
+    // already persisted by prior stages; this prompt rehydrates the key
+    // signals into a compact context block.
+    const results = (rd?.results as Record<string, { records?: unknown[]; extras?: Record<string, unknown>; content?: string } | undefined> | undefined) || {}
+    const inv = results.paid_data_inventory
+    const baseline = results.client_account_baseline
+    const compLandscape = results.paid_competitor_landscape
+    const kwResearch = results.paid_keyword_research
+
+    // Conv value quality — THE most critical input for measurement dimension.
+    const rawSubscore = baseline?.extras?.conv_value_quality_subscore_0_100
+    const convQualSubscore = typeof rawSubscore === 'string' ? parseInt(rawSubscore, 10)
+        : typeof rawSubscore === 'number' ? rawSubscore : NaN
+    const convQualRationaleHe = baseline?.extras?.conv_value_quality_rationale_he as string | undefined
+
+    const tier = inv?.extras?.tier as string | undefined
+    const forkPath = inv?.extras?.fork_path as string | undefined
+    const forkHasIntegration = !!(inv?.extras?.fork_has_integration)
+    const adaptersConn = inv?.extras?.adapters_summary as { connected?: number; critical_connected?: number; critical_total?: number } | undefined
+
+    const baselineExcerpt = (baseline?.content || '').toString().substring(0, 2500)
+    const compExcerpt = (compLandscape?.content || '').toString().substring(0, 1500)
+    const kwAdGroups = (kwResearch?.records as Array<Record<string, unknown>> | undefined) || []
+    const kwAdGroupsSummary = kwAdGroups.slice(0, 10).map((ag, i) =>
+        `  ${i + 1}. ${ag.ad_group_label_he || ag.ad_group_id} (${ag.intent_tier}) — ` +
+        `bid=${ag.bid_strategy_recommended}, blocked=${ag.bid_strategy_blocked_until_tracking_fix}, ` +
+        `kws=${Array.isArray(ag.keywords) ? ag.keywords.length : 0}`,
+    ).join('\n')
+
+    const contextBlock = `
+═══ UPSTREAM CONTEXT — read carefully, cite verbatim in audit ═══
+
+## Tier classification (from paid_data_inventory)
+- tier: ${tier || 'unknown'}
+- fork_path: ${forkPath || 'unknown'} (has_integration: ${forkHasIntegration})
+- adapters: ${adaptersConn?.connected ?? '?'}/${adaptersConn?.critical_total ?? '?'} critical connected
+
+## Conv value quality (from client_account_baseline.extras) — CRITICAL
+${Number.isFinite(convQualSubscore)
+    ? `**conv_value_quality_subscore_0_100 = ${convQualSubscore}**\n${convQualRationaleHe ? `Rationale: ${convQualRationaleHe}\n` : ''}` +
+      (convQualSubscore < 30 ? '🚨 < 30 → measurement dimension AUTO-CAPPED at 30, verdict=fix_tracking_first MANDATORY (playbook §4.4.5 + §5.1).' :
+       convQualSubscore < 60 ? '⚠ 30-60 → Smart Bidding restricted to manual/eCPC; tCPA needs subscore ≥70.' :
+       '✓ ≥60 — signal trusted, Smart Bidding allowed if tier supports.')
+    : 'subscore not supplied — treat as < 30 (safe default).'}
+
+## Baseline observations (excerpt)
+${baselineExcerpt || '(empty — baseline not run yet)'}
+
+## Competitor landscape (excerpt)
+${compExcerpt || '(empty)'}
+
+## Keyword research ad groups (${kwAdGroups.length} total, first 10 shown)
+${kwAdGroupsSummary || '(empty)'}
+
+═══ END UPSTREAM ═══`
+
+    const prompt = `# אודיט פרסום ממומן — 5-dim rubric (playbook §4-§5)
+
+## תיאור העסק
+${businessDesc} — "${businessName}"
+${prodBlk}
+${feedbackLine}
+
+${contextBlock}
+
+═══ MISSION ═══
+
+עליכם להפיק אודיט senior-level של חשבון הפרסום הקיים לפי 5 dimensions של playbook §4.
+כל dimension מקבל ציון 0-100. total_score = ממוצע.
+verdict נקבע דטרמיניסטית מהציונים — אסור לסטות מהלוגיקה ב-§5.
+
+⚠ **אם conv_value_quality_subscore < 30 (מ-baseline) → measurement_score MUST be ≤ 30 ו-verdict חייב להיות fix_tracking_first.**
+זה override של playbook §4.4.5 + §5.1. אל תנסו לעקוף את זה גם אם המבנה / יצירתי נראים טובים — סיגנל מזוהם מרעיל את כל ה-bidding.
+
+═══ 5 DIMENSIONS — צריו ציון מנומק לכל אחד ═══
+
+### 1. Structure (0-100)
+- 90-100: SKAGs או ad groups צמודים-תמטית (≤7 kws), Search מופרד מ-Display, brand מופרד מ-non-brand, geo segmented איפה רלוונטי, PMax brand exclusions configured (2026)
+- 70-89: theme-tight AGs, bleed קטן בין Search/Display, mostly clean
+- 50-69: mixed-intent AGs (broad+exact+phrase ביחד), אין brand/non-brand split
+- 30-49: single-AG-per-campaign anti-pattern, אין theme structure
+- <30: campaign אחד עם הכל, או auto-applied recommendations הרסו structure
+
+### 2. Targeting (0-100)
+- 90-100: negative keyword list >300 per Search campaign, in-market audiences, demographic exclusions, RLSA layers, IL geo precision (תל אביב ≠ פתח תקווה), Hebrew language enforced
+- 70-89: 100-300 negatives, חלק audiences, geo city level
+- 50-69: <100 negatives, אין audiences, country-level geo בלבד
+- 30-49: אין negatives, מקבל את כל match types
+- <30: auto-targeting פעיל ללא guardrails
+
+### 3. Creative (0-100)
+**Google Search:**
+- 90-100: RSA עם 15 headlines + 4 descriptions per AG **על copy של המפרסם** (לא Google-auto-generated, אשר מסומן ב-2026), asset strength=Excellent, sitelinks/callouts/structured snippets, Hebrew RTL נכון
+- 70-89: RSA "Good", 8-12 headlines, רוב assets present
+- 50-69: "Average" strength, חסר sitelinks/callouts
+- 30-49: "Poor", 3-5 headlines בלבד
+- <30: ETA only (deprecated), או RSA fully auto-generated
+
+**Meta:**
+- 90-100: 4+ creative variants per ad set, distinct angles, Hebrew RTL, vertical 9:16 designed-from-scratch, safe zones (14% top / 35% bottom / 6% sides), captions for sound-off
+- 70-89: 2-3 variants, mix of formats
+- 50-69: single creative per ad set, partial localization
+- 30-49: English creative on IL audience
+- <30: boosted posts only
+
+### 4. Measurement (0-100) — THE CRITICAL DIMENSION
+**Score = min(google_subscore, meta_subscore, conv_value_quality_subscore from baseline).**
+
+Google subscore (Conversion Linker × Enhanced Conv × Consent Mode v2):
+- ✓✓✓ = 70-100 (2026 baseline)
+- ✓✓✗ = 60-75
+- ✓✗✓ = 50-65
+- ✗✓✓ = 30-50 (Enhanced Conv recovers ~40-60% iOS via first-party hash)
+- ✗✗✓ = 15-30
+- ✗✗✗ = <15
+
+Meta subscore (Pixel × CAPI × Server-side GTM):
+- ✓✓✓ = 80-100
+- ✓✓✗ = 60-80
+- ✗✓✓ = 55-70
+- Pixel-only ✓✗✗ = ≤40 (2026 — Safari 26 strips client-side)
+- ✗✗ = <15
+
+Conv value quality (from baseline.extras): ${Number.isFinite(convQualSubscore) ? convQualSubscore : 'unknown — assume < 30'}
+→ **measurement_score MUST be ≤ this subscore** (signal floor caps measurement).
+
+Hard rule: measurement_score < 30 → verdict=fix_tracking_first regardless of other dimensions.
+
+### 5. Bidding (0-100)
+- 90-100: bid strategy matches tier (T2+ Max Conversions, T3+ tCPA/tROAS), tCPA matches actual blended CAC ±15%, budget pacing reviewed weekly, seasonality adjusted
+- 70-89: strategy matches tier, tCPA reasonable
+- 50-69: strategy one tier ahead (tCPA on T2 with insufficient data)
+- 30-49: strategy two+ tiers ahead OR Maximize Clicks (broken intent)
+- <30: Manual CPC עם זרו review for 30+ days, OR Max Conversion Value on T1 with 5 conv/month
+
+**Hard rule:** if conv_value_quality_subscore < 30 OR fork.has_integration=false (CSV path), bidding score MUST cap at 50 — cannot recommend Smart Bidding strategies without clean signal.
+
+═══ VERDICT LOGIC (§5.1 — deterministic) ═══
+
+\`\`\`
+total_score = mean(structure, targeting, creative, measurement, bidding)
+
+IF measurement < 30:
+  verdict = "fix_tracking_first"
+ELSE IF total_score >= 70:
+  verdict = "optimize_incremental"
+ELSE IF 40 <= total_score < 70:
+  verdict = "restructure"
+ELSE:
+  verdict = "rebuild_from_scratch"
+\`\`\`
+
+Edge cases (§5.2):
+- structure >= 70 but creative < 40 → restructure (creative rebuild only)
+- measurement >= 70 but bidding < 30 → optimize_incremental (bidding-only changes)
+- all clustered 55-65 → optimize_incremental, target LOWEST score
+- tier mismatch in bidding → restructure regardless
+
+═══ ACTION PLAN per verdict (§5.3 — cited evidence MANDATORY) ═══
+
+**fix_tracking_first:** list ≥3 specific tracking gaps (cite agentIntegrations.gtmConfig field or baseline observation). אסור bidding strategy changes — only measurement fixes. NO new ad creation until fixed.
+
+**optimize_incremental:** 3-5 changes. Each MUST have format:
+- change_he: specific action (НЕ "improve creative")
+- expected_impact: { metric, delta_pct_low, delta_pct_high }
+- evidence_source: must reference client_account_baseline.X / paid_keyword_research.records[N] / paid_competitor_landscape.records[N] / chosenScenario.X
+- execution_days: int
+
+**restructure:** cite which dimension scored 40-69, propose ad-group-level rebuild. אסור pause קמפיינים.
+
+**rebuild_from_scratch:** cite ≥2 dimensions <40 OR total <40. Include 14-day rebuild timeline. pause_recommended=true.
+
+═══ IL-SPECIFIC SENIOR BAR (§8) ═══
+
+- IL mobile share > 70% default → action_plan חייב להכיל ≥1 mobile-specific item (WhatsApp ext, click-to-call, 9:16 Reels, mobile-preferred RSA, LCP<2.5s blocker)
+- Server-side GTM mandatory T2+ если iOS Safari >25% (default IL ecom) — otherwise measurement capped at 65
+- PMax/Advantage+ Shopping без CAPI → flag strategic_blocker; Meta subscore capped at 50
+- First-party data import חובה для lead-gen T2+ (post-2024 cookie deprecation)
+
+═══ HEBREW RTL + PLURAL ADDRESS ═══
+
+כל הטקסט בעברית RTL, שני-גוף רבים (תוכלו, שלכם). אסור singular form.
+
+═══ FORMAT — JSON only, single code-block ═══
+
+\`\`\`json
+{
+  "records": [
+    {
+      "dimension": "structure | targeting | creative | measurement | bidding",
+      "score_0_100": <int>,
+      "score_label_he": "מעולה | טוב | ממוצע | חלש | קריטי",
+      "evidence_he": "1-2 משפטים — מהי הראיה הספציפית מה-upstream שמובילה לציון הזה. cite specific data point",
+      "actionable_he": "1-2 משפטים — מה ה-fix הקונקרטי",
+      "playbook_section": "§4.1 | §4.2 | §4.3 | §4.4 | §4.5"
+    }
+    // 5 records total — один per dimension
+  ],
+  "extras": {
+    "total_score_0_100": <int>,
+    "verdict": "fix_tracking_first | optimize_incremental | restructure | rebuild_from_scratch",
+    "verdict_rationale_he": "1-2 משפטים — איך הגעתם ל-verdict הזה לפי §5.1 logic",
+    "verdict_citations": [
+      { "dimension": "...", "score": <int>, "evidence_he": "...", "source_field_path": "client_account_baseline.extras.X | paid_keyword_research.records[N] | ..." }
+    ],
+    "action_plan": {
+      "changes": [
+        {
+          "change_he": "<specific action>",
+          "priority": 1 | 2 | 3,
+          "expected_impact": { "metric_he": "...", "delta_pct_low": <int>, "delta_pct_high": <int> },
+          "evidence_source": "client_account_baseline.X | paid_keyword_research.X | ...",
+          "execution_days": <int>,
+          "mobile_specific": true | false
+        }
+      ],
+      "measurement_fixes_first": [
+        // required only if verdict=fix_tracking_first
+        "<specific tracking fix>"
+      ],
+      "rebuild_timeline_days": <int | null>,
+      "pause_recommended": true | false,
+      "strategic_blockers": [
+        // PMax sans CAPI / vertical mismatch / Hebrew site running English ads / etc.
+        "<blocker description>"
+      ]
+    },
+    "il_mobile_share_assumed_pct": <int>,
+    "mobile_specific_changes_count": <int>,
+    "data_gaps_he": "<משפט אחד או יותר — מה חסר ב-upstream שמגביל את ה-audit>"
+  },
+  "confidence": "high | medium | working_hypothesis"
+}
+\`\`\`
+
+**Quality bar:**
+- confidence="high" only if: all 5 dimensions cited specific baseline/competitor/kw data; verdict citations point to real field paths; action_plan changes each have specific evidence_source.
+- confidence="medium" if 1-2 dimensions relied on industry priors instead of upstream data.
+- confidence="working_hypothesis" if measurement subscore unknown (treat as <30 then).
+- NEVER fabricate numbers. If upstream baseline missing — explicit "data_gaps_he".
+- mobile_specific_changes_count ≥1 mandatory if il_mobile_share_assumed_pct > 70 (default).
+`
+
+    return {
+        agentId: 'menateach',
+        useDirectApi: true,
+        minLength: 2500,
+        prompt,
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Dispatch helper — used by per-stage controllers to get prompt by id.
 // New prompts (aeo_visibility, social_landscape, email_competitor_audit)
 // belong here when they ship (Phase 4).
@@ -4307,6 +4573,8 @@ export function buildPromptForStage(stageId: StageId, opts: PromptOpts): PromptR
         case 'paid_competitor_landscape':  return buildPaidCompetitorLandscapePrompt(opts)
         case 'paid_keyword_research':      return buildPaidKeywordResearchPrompt(opts)
         case 'paid_budget_scenarios':      return buildPaidBudgetScenariosPrompt(opts)
+        // Phase 2026.02 — Block 4 paid_audit playbook rewrite
+        case 'paid_audit':                 return buildPaidAuditPrompt(opts)
         // Phase 4 stages (live integrations) + intent wrappers handle their
         // own prompt construction inside their per-stage controller.
         default: return null
