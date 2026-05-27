@@ -5092,9 +5092,20 @@ function renderHome() {
           }
 
           // ── Phase 2: Mazhir state ──
-          var hasPaidProfile = !!(rd.paidProfile && rd.paidProfile.monthlyBudgetIls);
-          var hasAudit = !!rd.mazhirAudit;
-          var auditMethodology = hasAudit && rd.mazhirAudit.methodology;
+          // Phase 2026.02 Block 6: Path B-1 tenants run paid_audit + media_plan
+          // via Pipeline V2 (rd.results.*), not the legacy Path A form-based
+          // flow. Recognise new-schema results as equivalent to legacy fields
+          // so the wizard marks them done instead of demanding ‏פרופיל ממומן again.
+          var rdResultsForPaid = (rd.results) || {};
+          var hasPaidAuditNew = !!(rdResultsForPaid.paid_audit
+            && (rdResultsForPaid.paid_audit.records || rdResultsForPaid.paid_audit.extras));
+          var hasMediaPlanNew = !!(rdResultsForPaid.media_plan
+            && (rdResultsForPaid.media_plan.records || rdResultsForPaid.media_plan.extras));
+          var hasPaidProfile = !!(rd.paidProfile && rd.paidProfile.monthlyBudgetIls)
+            || (hasPaidAuditNew && hasPaidBud);  // new-schema: profile fields covered by audit+budget+positioning
+          var hasAudit = !!rd.mazhirAudit || hasPaidAuditNew;
+          var auditMethodology = (rd.mazhirAudit && rd.mazhirAudit.methodology)
+            || (hasPaidAuditNew && 'Opus + 5-dim rubric (Phase 2026.02)');
           var auditRunning = !!_mazhirAuditRunning;
           var auditElapsed = auditRunning ? _fmtElapsed(Date.now() - _mazhirAuditStartedAt) : '';
           var hasFullAdsAPI = !!(instanceData && instanceData.hasGoogleAds
@@ -5105,14 +5116,27 @@ function renderHome() {
             ? rd.mazhirConversions.created.length : 0;
           var mediaPlan = rd.mediaPlan
             || (rd.strategy && typeof rd.strategy === 'object' && rd.strategy.mediaPlan);
-          var hasPlan = !!mediaPlan;
-          var campaignCount = hasPlan && Array.isArray(mediaPlan.campaigns) ? mediaPlan.campaigns.length : 0;
+          var hasPlan = !!mediaPlan || hasMediaPlanNew;
+          var campaignCount = hasPlan && mediaPlan && Array.isArray(mediaPlan.campaigns)
+            ? mediaPlan.campaigns.length
+            : (hasMediaPlanNew && Array.isArray(rdResultsForPaid.media_plan.records)
+                ? rdResultsForPaid.media_plan.records.length
+                : 0);
           var planRunning = !!_mazhirPlanRunning;
           var planElapsed = planRunning ? _fmtElapsed(Date.now() - _mazhirPlanStartedAt) : '';
           var planAdGroups = 0, planKeywords = 0;
-          if (hasPlan && Array.isArray(mediaPlan.campaigns)) {
+          if (hasPlan && mediaPlan && Array.isArray(mediaPlan.campaigns)) {
             mediaPlan.campaigns.forEach(function(cmp) {
               (cmp.adGroups || []).forEach(function(g) {
+                planAdGroups++;
+                planKeywords += (g.keywords || []).length;
+              });
+            });
+          } else if (hasMediaPlanNew && Array.isArray(rdResultsForPaid.media_plan.records)) {
+            // Phase 2026.02 Block 5 shape: records[] = campaigns;
+            // each campaign has ad_groups[] with keywords[] inside (snake_case).
+            rdResultsForPaid.media_plan.records.forEach(function(cmp) {
+              (cmp.ad_groups || cmp.adGroups || []).forEach(function(g) {
                 planAdGroups++;
                 planKeywords += (g.keywords || []).length;
               });
@@ -5206,7 +5230,11 @@ function renderHome() {
             whyMatters: 'אתם מתרגמים את ההמלצות מהמחקר (חלקים 1-4) לבחירה עסקית קונקרטית. אם הרצתם תרחישי תקציב — תוכלו לבחור תרחיש מומלץ. **בלי זה האודיט והתוכנית לא יודעים תקציב ומטרה.**',
             status: hasPaidProfile ? 'done' : (hasPaidBud ? 'active' : 'locked'),
             lockedReason: hasPaidBud ? '' : 'מומלץ לסיים את שלבי 1-4 (המחקר) — אבל ניתן למלא ידנית גם בלי',
-            primaryAction: { label: hasPaidProfile ? 'ערכו' : 'מלאו פרופיל', onclick: 'openPaidProfileModal()' },
+            // Phase 2026.02 Block 6: when new-schema covers the profile fields,
+            // primary action becomes a no-op viewer; the wizard step is informational.
+            primaryAction: (hasPaidAuditNew && hasPaidBud && !rd.paidProfile)
+              ? { label: 'הפרופיל מולא דרך Pipeline V2 ✓', onclick: 'openPipelineV2("paid")' }
+              : { label: hasPaidProfile ? 'ערכו' : 'מלאו פרופיל', onclick: 'openPaidProfileModal()' },
             secondaryActions: hasPaidProfile ? [{ label: 'בדיקת נתונים', onclick: 'viewMazhirDataPreflight()' }] : []
           });
 
@@ -5225,9 +5253,11 @@ function renderHome() {
             primaryAction: auditRunning
               ? { label: '⏳ ' + auditElapsed, disabled: true }
               : (hasAudit
-                  ? { label: 'הריצו מחדש', onclick: 'runMazhirAuditFromTasks()' }
+                  ? { label: 'הריצו מחדש', onclick: (hasPaidAuditNew && !rd.mazhirAudit) ? 'openPipelineV2("paid")' : 'runMazhirAuditFromTasks()' }
                   : { label: '▶ הריצו אודיט (~2-4 דק׳)', onclick: 'runMazhirAuditFromTasks()', disabled: !hasPaidProfile }),
-            secondaryActions: hasAudit ? [{ label: 'צפו באודיט →', onclick: 'viewMazhirAudit()' }] : []
+            secondaryActions: hasAudit
+              ? [{ label: 'צפו באודיט →', onclick: (hasPaidAuditNew && !rd.mazhirAudit) ? 'openPipelineV2("paid")' : 'viewMazhirAudit()' }]
+              : []
           });
 
           // Steps 7 + 8: GTM + Conversions (only when FullAdsAPI is connected)
@@ -5293,9 +5323,11 @@ function renderHome() {
             primaryAction: planRunning
               ? { label: '⏳ ' + planElapsed, disabled: true }
               : (hasPlan
-                  ? { label: 'בנו מחדש', onclick: 'generateMazhirMediaPlanFromTasks()' }
+                  ? { label: 'בנו מחדש', onclick: (hasMediaPlanNew && !rd.mediaPlan) ? 'openPipelineV2("paid")' : 'generateMazhirMediaPlanFromTasks()' }
                   : { label: '▶ בנו תוכנית (~4-6 דק׳)', onclick: 'generateMazhirMediaPlanFromTasks()', disabled: !hasAudit || planGatedByTracking }),
-            secondaryActions: hasPlan ? [{ label: 'צפו בתוכנית →', onclick: 'viewMazhirMediaPlan()' }] : []
+            secondaryActions: hasPlan
+              ? [{ label: 'צפו בתוכנית →', onclick: (hasMediaPlanNew && !rd.mediaPlan) ? 'openPipelineV2("paid")' : 'viewMazhirMediaPlan()' }]
+              : []
           });
 
           var pipelineDone = pipelineSteps.every(function(s) { return s.status === 'done'; });
