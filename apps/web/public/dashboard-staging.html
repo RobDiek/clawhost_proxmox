@@ -9999,11 +9999,16 @@ function renderMonthlyPlanCard() {
   var chosenScenario = (typeof chosenScenarioRaw === 'string')
     ? chosenScenarioRaw
     : (chosenScenarioRaw && typeof chosenScenarioRaw === 'object' ? chosenScenarioRaw.scenario : '');
-  var hasPrereqs = !!(rd.paidProfile || rd.mazhirAudit) && !!chosenScenario;
+  // Phase 2026.02 Block 6: accept new-schema paid_audit as alternative to
+  // legacy paidProfile/mazhirAudit. Path B-1 tenants only have rd.results.paid_audit.
+  var rdResults = rd.results || {};
+  var hasPaidAuditNew = !!(rdResults.paid_audit && (rdResults.paid_audit.records || rdResults.paid_audit.extras));
+  var hasAuditEvidence = !!(rd.paidProfile || rd.mazhirAudit || hasPaidAuditNew);
+  var hasStrategyOptionsRecords = !!(rdResults.strategy_options && Array.isArray(rdResults.strategy_options.records) && rdResults.strategy_options.records.length > 0);
+  var hasPrereqs = hasAuditEvidence && !!chosenScenario;
 
-  // Hide entirely if no paidProfile AND no mazhirAudit AND no chosenScenario —
-  // means user is too early in the pipeline; no monthly plan yet.
-  if (!hasPrereqs && !plan) {
+  // Hide entirely if no audit evidence AND no plan exists yet.
+  if (!hasAuditEvidence && !plan) {
     el.style.display = 'none';
     return;
   }
@@ -10012,9 +10017,12 @@ function renderMonthlyPlanCard() {
   // No plan yet — show CTA to generate
   if (!plan) {
     var prereqsHtml = '';
-    if (!rd.paidProfile) prereqsHtml += '<li>חסר: פרופיל קידום ממומן</li>';
-    if (!chosenScenario) prereqsHtml += '<li>חסר: בחירת תרחיש אסטרטגיה (smart/aggressive)</li>';
-    if (!rd.mazhirAudit) prereqsHtml += '<li>חסר: אודיט Mazhir</li>';
+    if (!hasAuditEvidence) prereqsHtml += '<li>חסר: אודיט ממומן (הריצו את שלב paid_audit ב-Pipeline)</li>';
+    if (!chosenScenario) {
+      prereqsHtml += hasStrategyOptionsRecords
+        ? '<li>חסר: <button class="btn-link" onclick="openPipelineV2(\'research\')" style="background:none;border:none;color:#0EA5E9;text-decoration:underline;cursor:pointer;padding:0;font-size:inherit">בחירת תרחיש אסטרטגיה (Smart vs Aggressive)</button> — פתחו את Pipeline → strategy_options</li>'
+        : '<li>חסר: בחירת תרחיש אסטרטגיה (smart/aggressive) — הריצו תחילה strategy_options</li>';
+    }
     el.innerHTML =
       '<div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;margin-bottom:14px">' +
         '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +

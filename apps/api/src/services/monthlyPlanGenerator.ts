@@ -267,8 +267,12 @@ async function buildPromptCtx(
     }
     console.log(`[monthlyPlanGenerator] ${instanceId} historical: outputs=${pastAgentOutputs.length} integrations=${agentIntegrations.length} hypotheses=${pastHypotheses.length} creativePerf=${creativePerformance.length} fatigue=${creativeFatigueAlerts.length} paidLearn=${paidLearnings.length} stratLearn=${strategyLearnings.length} opsBriefs=${(opsBriefs as any[])?.length || 0}`)
 
-    if (!paidProfile && !audit) {
-        throw new Error('Either paidProfile or mazhirAudit required — run paid_data_inventory + mazhir/audit first')
+    // Phase 2026.02 Block 6: accept new-schema paidAudit (rd.results.paid_audit)
+    // as alternative to legacy mazhirAudit. Path B-1 tenants only have the new
+    // schema — legacy paidProfile/mazhirAudit are populated only via the Path A
+    // openPaidProfileModal flow (pre-2026.02 onboarding).
+    if (!paidProfile && !audit && !paidAudit) {
+        throw new Error('Either paidProfile, mazhirAudit, or new-schema paid_audit (rd.results.paid_audit) required — run paid_data_inventory + paid_audit first')
     }
     if (!chosenScenarioKey) {
         throw new Error('research_data.chosenScenario not set or malformed — user must pick smart or aggressive in strategy_options first')
