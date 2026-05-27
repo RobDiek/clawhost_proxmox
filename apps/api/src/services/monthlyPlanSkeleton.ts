@@ -488,7 +488,9 @@ export async function generateSkeleton(
         apiKey, model,
         system: SKELETON_SYSTEM,
         user: userPrompt,
-        maxTokens: 16000,    // skeleton fits easily under 16K — half the cap, safety margin
+        maxTokens: 32000,    // Phase 2026.02 Block 6: 16K hit `stop=max_tokens` truncation on
+                             // 46-task aggressive-scenario skeletons (29K char raw → JSON unterminated).
+                             // 32K leaves headroom; Opus 4.7 supports up to 64K output.
         timeoutMs: 900000,   // 15 min — pass 1 typically 3-6 min on Opus 4.7
     })
     let parsed: SkeletonOutput
