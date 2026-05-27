@@ -5339,13 +5339,23 @@ function renderHome() {
 
           var pipelineDone = pipelineSteps.every(function(s) { return s.status === 'done'; });
 
-          tasks.push({
-            id: 'paid_track_pipeline',
-            customWidget: true,
-            label: 'מסלול פרסום ממומן — מחקר → הקמת קמפיין',
-            done: pipelineDone,
-            steps: pipelineSteps,
-          });
+          // Phase 2026.02 Block 6: hide the legacy paid_track_pipeline wizard
+          // entirely when all 6 new-schema stages are complete. Remaining
+          // execution tasks (GTM auto-setup + ConversionAction creation) flow
+          // through monthly_plan as Phase-1 tracking-first tasks per playbook
+          // §6 — they belong in משימות פעילות (approval queue), not in a
+          // parallel setup checklist that demands re-doing what's already done.
+          var newSchemaPaidComplete = hasBaseline && hasPaidComp && hasPaidKw
+            && hasPaidBud && hasPaidAuditNew && hasMediaPlanNew;
+          if (!newSchemaPaidComplete) {
+            tasks.push({
+              id: 'paid_track_pipeline',
+              customWidget: true,
+              label: 'מסלול פרסום ממומן — מחקר → הקמת קמפיין',
+              done: pipelineDone,
+              steps: pipelineSteps,
+            });
+          }
         }
         // (Legacy mazhir_pipeline removed — replaced by unified paid_track_pipeline above)
       }
