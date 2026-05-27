@@ -1060,6 +1060,14 @@ input{font-family:inherit}
       <div>
         <div id="homeTasks"></div>
 
+        <!-- Phase 2026.02 Block 6: monthly plan card moved INSIDE the setup
+             column, immediately below the משימות הגדרה checklist. The user
+             sees the monthly-plan generate button as the natural next step
+             after completing the paid_track_pipeline. Previously the card
+             lived outside the home-top-grid, so it appeared far below the
+             notifications/approval-queue area — easy to miss. -->
+        <div id="monthlyPlanCard" style="display:none;margin-top:4px;margin-bottom:14px"></div>
+
         <!-- Progressive Journey Banner — shows the right next step based on user stage -->
         <div id="journey-banner" style="display:none;margin-bottom:16px"></div>
 
@@ -1103,10 +1111,9 @@ input{font-family:inherit}
       </div>
     </div>
 
-    <!-- Phase 4.3-G: Monthly Marketing Plan overview card FIRST, then calendar
-         shows its tasks distributed across the month. User expectation is
-         strategic-plan → daily-execution-grid. -->
-    <div id="monthlyPlanCard" style="display:none"></div>
+<!-- Phase 2026.02 Block 6: monthlyPlanCard relocated into Column 1 of
+         home-top-grid (right under #homeTasks) so it sits inside the
+         משימות הגדרה area instead of below the fold. -->
 
 <!-- Phase 4.3-N v8: external links moved into popup (openExternalLinksPopup),
          called from a 4th card in סטטוס מערכת. No inline mount needed. -->
