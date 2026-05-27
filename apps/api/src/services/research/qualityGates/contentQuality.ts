@@ -285,6 +285,58 @@ export function validateStrategyOptions(stage: Record_): ContentQualityWarning[]
 
 // ── Phase 2026.02 — Paid pipeline validators ───────────────────────────────
 
+/**
+ * Playbook §6.3 + §4.4.5 + §8.4 — paid_keyword_research must respect
+ * upstream client_account_baseline's conv_value_quality_subscore. If < 30,
+ * Smart Bidding (tCPA / Max Conversions / Max Conv Value) is forbidden
+ * regardless of conv volume — signal is junk and bidding optimizer chases
+ * polluted values. Manual CPC only until tracking fixed.
+ *
+ * Note: this validator does NOT itself fetch upstream baseline. Block 6
+ * (paidConsistency hard validator) will cross-reference. Here we surface
+ * a soft warning when Smart Bidding is recommended without an explicit
+ * bid_strategy_blocked_until_tracking_fix=false (i.e. record didn't
+ * acknowledge the gate at all).
+ */
+export function validatePaidKeywordResearch(stage: Record_): ContentQualityWarning[] {
+    const out: ContentQualityWarning[] = []
+    const records = rec(stage.records)
+    if (records.length === 0) {
+        out.push(warn('paid_keyword_research', 'critical', 'no_records',
+            'אין ad group records', 'paid_keyword_research חזר ריק — אין seeds ל-campaign setup.'))
+        return out
+    }
+    const SMART_BIDDING = new Set(['target_cpa', 'target_roas', 'max_conversions', 'max_conversion_value'])
+    let smartBiddingCount = 0
+    let acknowledgedGate = 0
+    for (const r of records) {
+        const strategy = String(r.bid_strategy_recommended || '').toLowerCase()
+        if (SMART_BIDDING.has(strategy)) {
+            smartBiddingCount++
+            if (r.bid_strategy_blocked_until_tracking_fix !== undefined) {
+                acknowledgedGate++
+            }
+        }
+        // Per-keyword intent_classification (playbook §6.3 — 4-bucket taxonomy at keyword level)
+        const keywords = rec(r.keywords)
+        if (keywords.length > 0) {
+            const withIntent = keywords.filter(k => typeof k.intent_classification === 'string').length
+            if (withIntent < keywords.length / 2) {
+                out.push(warn('paid_keyword_research', 'enhancement', `intent_classification_sparse_${r.ad_group_id || '?'}`,
+                    `intent_classification חסר ב-${r.ad_group_label_he || r.ad_group_id || 'ad group'}`,
+                    `Playbook §6.3 דורש intent_classification per-keyword (4-bucket: Informational/Navigational/Commercial/Transactional). פחות ממחצית מ-keywords כוללים זאת.`))
+            }
+        }
+    }
+    if (smartBiddingCount > 0 && acknowledgedGate < smartBiddingCount) {
+        out.push(warn('paid_keyword_research', 'critical', 'smart_bidding_without_signal_gate',
+            'Smart Bidding מומלץ ללא הצהרת bid_strategy_blocked_until_tracking_fix',
+            `${smartBiddingCount} ad groups מציעים Smart Bidding (tCPA / Max Conversions). Playbook §4.4.5+§8.4: אם conv_value_quality_subscore < 30 → Smart Bidding אסור גם אם volume נראה גבוה. records חייבים להצהיר במפורש על bid_strategy_blocked_until_tracking_fix (true/false) ולהוכיח שקראו את upstream baseline.`,
+            'בעת re-run של paid_keyword_research, ה-prompt דורש לקרוא upstream client_account_baseline.conv_value_quality_subscore_0_100.'))
+    }
+    return out
+}
+
 /** Playbook §6.2 — 4 buckets mandatory: direct / substitute / adjacent / reference. */
 export function validatePaidCompetitorLandscape(stage: Record_): ContentQualityWarning[] {
     const out: ContentQualityWarning[] = []
@@ -318,6 +370,7 @@ const VALIDATORS: Partial<Record<StageId, (stage: Record_) => ContentQualityWarn
     audience_personas: validateAudiencePersonas,
     strategy_options: validateStrategyOptions,
     paid_competitor_landscape: validatePaidCompetitorLandscape,
+    paid_keyword_research: validatePaidKeywordResearch,
 }
 
 export function validateStageContentQuality(stageId: StageId, stage: Record_): ContentQualityWarning[] {

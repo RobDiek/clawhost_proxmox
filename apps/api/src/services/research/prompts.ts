@@ -3761,6 +3761,28 @@ ${EVIDENCE_HONESTY_RULE}
 
 ${HEBREW_ONLY_BLOCK}
 
+### חובה — גשר על איכות סיגנל ההמרה (playbook §4.4.5 + §8.4)
+
+לפני כל המלצת bid_strategy, חובה לקרוא מ-upstream client_account_baseline:
+- \`conv_value_quality_subscore_0_100\` — אם < 30 → ALL ad groups MUST recommend \`bid_strategy_recommended="manual_cpc"\` בלבד.
+- אסור tCPA / Max Conversions / Max Conv Value עד שהסיגנל נקי, גם אם המרות חודשיות > 30 (volume לא קובע אם הערך זבל — playbook §8.4).
+- כל record שעבר ל-Smart Bidding על account עם conv_value_quality < 30 = hard validator failure במורד הזרם (Block 6 paidConsistency).
+- אם conv_value_quality 30-60 → Manual CPC או Enhanced CPC בלבד. tCPA רק מ-≥70.
+
+הוסיפו לכל record:
+- \`bid_strategy_blocked_until_tracking_fix\`: true|false — true אם conv_value_quality_subscore < 30
+- \`bid_strategy_rationale_he\` MUST cite conv_value_quality_subscore אם < 60.
+
+### חובה — Intent ladder לפי playbook §6.3 (4 buckets)
+
+playbook §6.3 דורש סיווג intent מפורש לכל keyword לפי 4 buckets:
+- **Informational** (TOFU) — "איך", "מה זה", "מדריך"
+- **Navigational** — שמות מתחרים / מותגים ("פקינג סטיישן", "U-Haul")
+- **Commercial** (MOFU) — "השוואה", "מומלץ", "ביקורות"
+- **Transactional** (BOFU) — "מחיר", "להזמין", "להשכיר", "לקנות"
+
+זה ה-intent_classification של ה-keyword (per-keyword field), מנפרד מ-intent_tier של ה-ad group (שיכול להישאר BOFU/MOFU/TOFU/BRAND).
+
 ---
 
 ## פלט נדרש — markdown narrative + structured JSON
@@ -3826,6 +3848,8 @@ ${HEBREW_ONLY_BLOCK}
           "match_type": "exact|phrase|broad|broad_with_smart_bidding",
           "_match_type_note": "Phase 2026.01 — broad_with_smart_bidding = STAG pattern (Single Theme Ad Group): broad match + Smart Bidding once volume ≥30 conv/week. אסור broad בלי Smart Bidding ו-aggressive negatives — אחרת רחל.",
           "match_type_rationale_he": "1 שורה — למה הסוג הזה ולא אחר (BOFU=exact, MOFU=phrase, TOFU=broad_with_smart_bidding only if 30+ conv/wk)",
+          "intent_classification": "Informational|Navigational|Commercial|Transactional",
+          "_intent_classification_note": "Phase 2026.02 — playbook §6.3 4-bucket taxonomy at keyword level (separate from ad-group intent_tier).",
           "monthly_volume": <int>,
           "cpc_estimate_ils": <float>,
           "competition_index": <int>,
@@ -3836,8 +3860,10 @@ ${HEBREW_ONLY_BLOCK}
         }
       ],
       "ad_group_bid_range_ils": { "low": <float>, "high": <float> },
-      "bid_strategy_recommended": "manual_cpc|max_clicks|max_conversions|target_cpa",
-      "bid_strategy_rationale_he": "<1-2 line explanation>",
+      "bid_strategy_recommended": "manual_cpc|enhanced_cpc|max_clicks|max_conversions|target_cpa",
+      "bid_strategy_rationale_he": "<1-2 line explanation. CITE upstream conv_value_quality_subscore אם < 60>",
+      "bid_strategy_blocked_until_tracking_fix": true|false,
+      "_bid_strategy_blocked_note": "Phase 2026.02 — true אם conv_value_quality_subscore < 30 (per playbook §4.4.5 + §8.4). אז Smart Bidding אסור גם אם volume > 30 conv/month.",
       "negative_keywords": ["..."],
       "il_specific_notes_he": "<localization / brand-bidding / Hebrew-prefix notes if relevant>"
     }
