@@ -16640,13 +16640,23 @@ async function rerunStageV2WithImpactCheck(sid) {
     return '• ' + (WRAPPER_HE[w] || w);
   }).join('\n');
 
-  var msg = '⚠️ הרצה מחדש של "' + ((STAGE_TITLES[sid] && STAGE_TITLES[sid].titleHe) || sid) + '" תשפיע על הבאים:\n\n';
-  if (stagesList) msg += '— שלבים תלויים שיתבטלו:\n' + stagesList + '\n\n';
-  if (wrappersList) msg += '— תוצרים נלווים שיימחקו:\n' + wrappersList + '\n\n';
-  msg += 'לאחר ההרצה תצטרכו להריץ מחדש את כל השלבים הללו כדי להחזיר את העקביות.\n\n';
-  msg += 'להמשיך?';
+  var title = 'הרצה מחדש של "' + ((STAGE_TITLES[sid] && STAGE_TITLES[sid].titleHe) || sid) + '" תשפיע על הבאים:';
+  var body = '';
+  if (stagesList) body += 'שלבים תלויים שיתבטלו:\n' + stagesList + '\n\n';
+  if (wrappersList) body += 'תוצרים נלווים שיימחקו:\n' + wrappersList + '\n\n';
+  body += 'לאחר ההרצה תצטרכו להריץ מחדש את כל השלבים הללו כדי להחזיר את העקביות.';
 
-  if (!confirm(msg)) return;
+  // Phase 2026.01 — Hebrew RTL modal instead of native browser confirm
+  // (browser confirm shows OS chrome in locale language e.g. "Подтвердите
+  // действие на clawflow.flowmatic.co.il" — breaks Hebrew UX).
+  var ok = await hebrewConfirm({
+    title: title,
+    body: body,
+    confirmLabel: 'הריצו מחדש',
+    cancelLabel: 'ביטול',
+    destructive: true,
+  });
+  if (!ok) return;
 
   // Wipe downstream server-side BEFORE re-running so the next plan-poll
   // reflects the cleared state and the UI doesn't show stale data flickering.

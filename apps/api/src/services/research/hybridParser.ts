@@ -45,17 +45,29 @@ export function parseHybridResponse(content: string): HybridParseResult {
     // Phase 3.18 — extract JSON text. Try canonical fenced match first; if
     // the closing ``` is missing (truncation symptom — model hit max_tokens
     // mid-output) fall back to "open fence + everything to end of content".
+    // Phase 2026.02 — added 3rd fallback: raw JSON without any fence (some
+    // prompts produce JSON-only output, e.g. client_account_baseline v2 prompt
+    // explicitly asks "JSON only"). Detected by content starting with `{` or `[`.
     let jsonText: string
     const match = content.match(JSON_BLOCK_RE)
     if (match) {
         jsonText = match[1].trim()
     } else {
         const openFenceIdx = content.search(/```json\s*\n/i)
-        if (openFenceIdx === -1) return result
-        // No closing fence — slice from after the opening fence to end-of-content
-        // and let the truncated-JSON repair tier handle it.
-        const afterFence = content.substring(openFenceIdx).replace(/^```json\s*\n/i, '')
-        jsonText = afterFence.trim()
+        if (openFenceIdx !== -1) {
+            // No closing fence — slice from after the opening fence to end-of-content
+            // and let the truncated-JSON repair tier handle it.
+            const afterFence = content.substring(openFenceIdx).replace(/^```json\s*\n/i, '')
+            jsonText = afterFence.trim()
+        } else {
+            // No fence at all. Check if content is a raw JSON object/array.
+            const trimmed = content.trim()
+            if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                jsonText = trimmed
+            } else {
+                return result
+            }
+        }
     }
 
     let parsed: unknown
