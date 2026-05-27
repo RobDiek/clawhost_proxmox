@@ -10063,8 +10063,43 @@ function renderMonthlyPlanCard() {
   }
   el.style.display = 'block';
 
-  // No plan yet — show CTA to generate
+  // No plan yet — show CTA to generate, OR running state when in flight.
   if (!plan) {
+    // Phase 2026.02 Block 6: running state inside the card itself instead of
+    // only a transient toast. _monthlyPlanRunning is the in-flight flag set
+    // by generateMonthlyPlan; _monthlyPlanStartedAt drives an elapsed timer
+    // that re-ticks on each renderMonthlyPlanCard() call (kicked by setInterval).
+    if (_monthlyPlanRunning) {
+      var elapsedMs = Date.now() - (_monthlyPlanStartedAt || Date.now());
+      var elapsed = _fmtElapsed(elapsedMs);
+      var pctEstimate = Math.min(95, Math.floor(elapsedMs / 1000 / 240 * 100));  // assume ~4min total
+      el.innerHTML =
+        '<div style="background:#FFFFFF;border:1px solid #2563EB;border-radius:12px;padding:18px 20px;margin-bottom:14px;box-shadow:0 0 0 3px rgba(37,99,235,0.08)">' +
+          '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+            '<div style="font-weight:700;font-size:0.95rem;color:#1F2937">📅 בונה תוכנית חודשית...</div>' +
+            '<span style="font-size:0.7rem;font-weight:600;padding:2px 9px;border-radius:999px;background:#2563EB1A;color:#2563EB;border:1px solid #2563EB40">⏳ ' + elapsed + '</span>' +
+          '</div>' +
+          '<div style="font-size:0.85rem;color:#6B7280;line-height:1.6;margin-bottom:12px">' +
+            'Opus קורא את כל המחקר (audit, media plan, אסטרטגיה, פרסונות, מחקר אלגוריתם 2026) ובונה תוכנית מאוחדת. זמן משוער: 3-5 דקות. <strong>אל תרעננו את הדף</strong> — אם כן, תוכלו לחזור לכאן והתהליך יושלם ברקע.' +
+          '</div>' +
+          '<div style="height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden;margin-bottom:6px">' +
+            '<div style="height:100%;background:linear-gradient(90deg,#2563EB,#3B82F6);width:' + pctEstimate + '%;border-radius:3px;transition:width .5s"></div>' +
+          '</div>' +
+          '<div style="font-size:0.72rem;color:#9CA3AF">' + pctEstimate + '% · ' + elapsed + ' שעבר</div>' +
+        '</div>';
+      // Re-tick every second so the elapsed timer + progress bar update.
+      if (!window._monthlyPlanTicker) {
+        window._monthlyPlanTicker = setInterval(function() {
+          if (!_monthlyPlanRunning) {
+            clearInterval(window._monthlyPlanTicker);
+            window._monthlyPlanTicker = null;
+            return;
+          }
+          renderMonthlyPlanCard();
+        }, 1000);
+      }
+      return;
+    }
     var prereqsHtml = '';
     if (!hasAuditEvidence) prereqsHtml += '<li>חסר: אודיט ממומן (הריצו את שלב paid_audit ב-Pipeline)</li>';
     if (!chosenScenario) {
