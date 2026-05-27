@@ -4484,6 +4484,8 @@ Edge cases (§5.2):
 
 ═══ FORMAT — JSON only, single code-block ═══
 
+⚠ **CRITICAL: שדות חוץ מ-records הם top-level. אל תעטפו אותם ב-"extras"!** ה-generic runner מעלה כל top-level JSON sibling ל-extras אוטומטית. עטיפה ב-extras יוצרת double-wrap (extras.extras.verdict) שמשבר את ה-validators.
+
 \`\`\`json
 {
   "records": [
@@ -4495,41 +4497,39 @@ Edge cases (§5.2):
       "actionable_he": "1-2 משפטים — מה ה-fix הקונקרטי",
       "playbook_section": "§4.1 | §4.2 | §4.3 | §4.4 | §4.5"
     }
-    // 5 records total — один per dimension
+    // 5 records total — אחד per dimension
   ],
-  "extras": {
-    "total_score_0_100": <int>,
-    "verdict": "fix_tracking_first | optimize_incremental | restructure | rebuild_from_scratch",
-    "verdict_rationale_he": "1-2 משפטים — איך הגעתם ל-verdict הזה לפי §5.1 logic",
-    "verdict_citations": [
-      { "dimension": "...", "score": <int>, "evidence_he": "...", "source_field_path": "client_account_baseline.extras.X | paid_keyword_research.records[N] | ..." }
+  "total_score_0_100": <int>,
+  "verdict": "fix_tracking_first | optimize_incremental | restructure | rebuild_from_scratch",
+  "verdict_rationale_he": "1-2 משפטים — איך הגעתם ל-verdict הזה לפי §5.1 logic",
+  "verdict_citations": [
+    { "dimension": "...", "score": <int>, "evidence_he": "...", "source_field_path": "client_account_baseline.extras.X | paid_keyword_research.records[N] | ..." }
+  ],
+  "action_plan": {
+    "changes": [
+      {
+        "change_he": "<specific action>",
+        "priority": 1 | 2 | 3,
+        "expected_impact": { "metric_he": "...", "delta_pct_low": <int>, "delta_pct_high": <int> },
+        "evidence_source": "client_account_baseline.X | paid_keyword_research.X | ...",
+        "execution_days": <int>,
+        "mobile_specific": true | false
+      }
     ],
-    "action_plan": {
-      "changes": [
-        {
-          "change_he": "<specific action>",
-          "priority": 1 | 2 | 3,
-          "expected_impact": { "metric_he": "...", "delta_pct_low": <int>, "delta_pct_high": <int> },
-          "evidence_source": "client_account_baseline.X | paid_keyword_research.X | ...",
-          "execution_days": <int>,
-          "mobile_specific": true | false
-        }
-      ],
-      "measurement_fixes_first": [
-        // required only if verdict=fix_tracking_first
-        "<specific tracking fix>"
-      ],
-      "rebuild_timeline_days": <int | null>,
-      "pause_recommended": true | false,
-      "strategic_blockers": [
-        // PMax sans CAPI / vertical mismatch / Hebrew site running English ads / etc.
-        "<blocker description>"
-      ]
-    },
-    "il_mobile_share_assumed_pct": <int>,
-    "mobile_specific_changes_count": <int>,
-    "data_gaps_he": "<משפט אחד או יותר — מה חסר ב-upstream שמגביל את ה-audit>"
+    "measurement_fixes_first": [
+      // required only if verdict=fix_tracking_first
+      "<specific tracking fix>"
+    ],
+    "rebuild_timeline_days": <int | null>,
+    "pause_recommended": true | false,
+    "strategic_blockers": [
+      // PMax sans CAPI / vertical mismatch / Hebrew site running English ads / etc.
+      "<blocker description>"
+    ]
   },
+  "il_mobile_share_assumed_pct": <int>,
+  "mobile_specific_changes_count": <int>,
+  "data_gaps_he": "<משפט אחד או יותר — מה חסר ב-upstream שמגביל את ה-audit>",
   "confidence": "high | medium | working_hypothesis"
 }
 \`\`\`
