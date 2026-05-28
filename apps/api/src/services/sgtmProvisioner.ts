@@ -129,7 +129,12 @@ export async function provisionSgtm(
 
     const vpsSubdomain = inst.subdomainName || inst.id.slice(0, 8)
     const sgtmSubdomain = `sgtm.${vpsSubdomain}.${ROOT_DOMAIN}`
-    const sgtmSubdomainShort = `sgtm.${vpsSubdomain}`     // zone-relative for Cloudflare
+    // CRITICAL: Cloudflare zone is `flowmatic.co.il` (not `clawflow.flowmatic.co.il`),
+    // so the record name relative to zone MUST include the `clawflow` segment.
+    // Passing `sgtm.{vpsSubdomain}` would create `sgtm.{vpsSubdomain}.flowmatic.co.il`
+    // (NXDOMAIN against the intended FQDN). The full FQDN form survives both
+    // possible zone configurations.
+    const sgtmSubdomainShort = sgtmSubdomain  // pass FQDN; Cloudflare strips zone suffix automatically
     const sgtmUrl = `https://${sgtmSubdomain}`
     const ip = inst.ip
     const password = inst.rootPassword
