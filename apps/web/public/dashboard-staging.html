@@ -11105,11 +11105,20 @@ function renderMazhirCard() {
   // the card permanently hidden.
   // Show Mazhir ONLY when user has paid intent (paid_search or paid_social
   // in marketingIntents). Without paid intent → hidden entirely.
-  if (el) el.style.display = (hasProfile && hasPaidIntent) ? '' : 'none';
+  // Phase 2026.02 Block 6: ALSO hide entirely when new-schema paid pipeline
+  // is complete (paid_audit + media_plan + budget_scenarios in rd.results).
+  // For Path B-1 tenants the legacy Mazhir wizard is redundant — they
+  // approve individual tasks through משימות פעילות (monthly plan) instead.
+  var _v2HasPaidAudit = !!(_v2Results.paid_audit && (_v2Results.paid_audit.records || _v2Results.paid_audit.extras));
+  var _v2HasMediaPlan = !!(_v2Results.media_plan && (_v2Results.media_plan.records || _v2Results.media_plan.extras));
+  var _v2HasPaidBudget = !!_v2Results.paid_budget_scenarios;
+  var newSchemaPaidComplete = _v2HasPaidAudit && _v2HasMediaPlan && _v2HasPaidBudget;
+  var shouldShowMazhir = hasProfile && hasPaidIntent && !newSchemaPaidComplete;
+  if (el) el.style.display = shouldShowMazhir ? '' : 'none';
   // Legacy compat — still toggle home-mazhir-section if it ever gets added
   var section = document.getElementById('home-mazhir-section');
-  if (section) section.style.display = (hasProfile && hasPaidIntent) ? '' : 'none';
-  if (!hasProfile || !hasPaidIntent) return;
+  if (section) section.style.display = shouldShowMazhir ? '' : 'none';
+  if (!shouldShowMazhir) return;
 
   // Locked state — research/strategy not yet done. Explain that Mazhir reads
   // their output and waits sequentially rather than running in parallel.
