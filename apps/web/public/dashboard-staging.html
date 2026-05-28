@@ -1087,10 +1087,12 @@ input{font-family:inherit}
             </span>
             <span id="aqCounter" style="font-size:0.75rem;color:#9CA3AF"></span>
           </div>
-          <div id="aqFilters" style="display:flex;gap:4px;margin-bottom:8px">
+          <div id="aqFilters" style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">
             <button class="aq-filter" data-filter="" onclick="setAqFilter('')">הכל</button>
             <button class="aq-filter active" data-filter="pending_review" onclick="setAqFilter('pending_review')">ממתינים</button>
+            <button class="aq-filter" data-filter="awaiting_manual" onclick="setAqFilter('awaiting_manual')" style="background:#FEF3C7;color:#78350F;border-color:#FDE68A">⏳ ידני</button>
             <button class="aq-filter" data-filter="approved" onclick="setAqFilter('approved')">אושרו</button>
+            <button class="aq-filter" data-filter="completed" onclick="setAqFilter('completed')">הושלמו</button>
             <button class="aq-filter" data-filter="published" onclick="setAqFilter('published')">פורסמו</button>
             <button class="aq-filter" data-filter="archived" onclick="setAqFilter('archived')">ארכיון</button>
           </div>
