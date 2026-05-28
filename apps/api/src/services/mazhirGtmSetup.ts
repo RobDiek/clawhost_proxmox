@@ -1013,7 +1013,43 @@ export async function createGtmContainer(opts: CreateGtmContainerInput): Promise
     }
     if (opts.domainName) body.domainName = [opts.domainName]
 
-    const res = await gtmFetch(`/accounts/${opts.accountId}/containers`, accessToken, 'POST', body)
+    let res: any
+    try {
+        res = await gtmFetch(`/accounts/${opts.accountId}/containers`, accessToken, 'POST', body)
+    } catch (err) {
+        // Phase 2026.02 Block 6 Pattern I: idempotent fallback. GTM API
+        // returns 400 'Found entity with duplicate name' when a container
+        // with the same name already exists in this account (very common
+        // re-run scenario, or when user created a 'temp' container during
+        // account creation and now we try to create with same name). Look
+        // up the existing container and adopt it.
+        const msg = (err as Error).message
+        if (/duplicate[\s-]*name|already[\s-]*exists/i.test(msg)) {
+            try {
+                const listRes = await gtmFetch(`/accounts/${opts.accountId}/containers`, accessToken)
+                const existing = (listRes.container || []) as any[]
+                const matched = existing.find((c: any) => c.name === opts.name)
+                if (matched && matched.containerId && matched.publicId) {
+                    return {
+                        accountId: opts.accountId,
+                        containerId: String(matched.containerId),
+                        publicId: String(matched.publicId),
+                        name: matched.name,
+                        usageContext: Array.isArray(matched.usageContext) ? matched.usageContext : ['web'],
+                        installSnippetHead: buildGtmHeadSnippet(String(matched.publicId)),
+                        installSnippetBody: buildGtmBodySnippet(String(matched.publicId)),
+                    }
+                }
+                // Match by name failed but containers exist — surface available
+                // names to caller so they can rename or pick existing.
+                throw new Error(`GTM container '${opts.name}' name collision but no exact match found. Existing containers: ${existing.map((c: any) => `"${c.name}" (${c.publicId})`).join(', ')}`)
+            } catch (lookupErr) {
+                throw new Error(`GTM container create failed with duplicate name; lookup also failed: ${(lookupErr as Error).message}`)
+            }
+        }
+        throw err
+    }
+
     const ct: any = res
     if (!ct?.containerId || !ct?.publicId) {
         throw new Error(`GTM container creation failed: ${JSON.stringify(res).slice(0, 300)}`)
