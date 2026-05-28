@@ -8202,6 +8202,17 @@ function renderMonthlyTaskPopup(task) {
 }
 
 function renderMonthlyTaskFooter(task) {
+  // Phase 2026.02 Block 6 Pattern I: dedicated GTM Unified Setup task.
+  // Bypasses the normal approve→execute flow — clicking the primary
+  // button opens the wizard directly. Wizard does all the work + marks
+  // the task done via apiMarkManualDone.
+  var isGtmUnified = task.metadata && task.metadata.taskId === 'tsk_gtm_unified_setup';
+  if (isGtmUnified && (task.status === 'awaiting' || task.status === 'pending_review' || task.status === 'awaiting_manual')) {
+    return '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()" style="font-size:0.85rem">✗ דחו</button>' +
+           '<button class="aq-btn edit" onclick="skipMonthlyTaskUI(\'' + task.id + '\');closeTaskPopup()" style="background:#FEF3C7;color:#78350F;border-color:#FDE68A;font-size:0.85rem">⏭ דחו לחודש הבא</button>' +
+           '<button class="aq-btn approve" onclick="openGtmFreshStackWizard({taskId:\'' + task.id + '\'})" style="background:#0EA5E9;color:#fff;font-size:0.88rem;font-weight:600">▶ פתחו GTM Setup Wizard</button>';
+  }
+
   // Phase 2026.02 Block 6 Pattern F: awaiting_manual status. Auto-execute
   // pre-provisioned what it could; user must finish a remaining manual step
   // (e.g. paste GTM CONTAINER_CONFIG, demote a codeless conversion action in
