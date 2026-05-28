@@ -422,20 +422,31 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
                     detail: report.demoted.map(d => `${d.name} (${d.category})`).join('; ').slice(0, 500),
                 })
             }
-            // Phase 2026.02 Block 6: pivot to GA4 Admin for read-only failures.
-            // GA4-imported actions in Google Ads can't be mutated from the Ads
-            // side (MUTATE_NOT_ALLOWED), but the underlying GA4 Key Event CAN
-            // be deleted via analyticsadmin.properties.keyEvents.delete — that
-            // unbinds the conversion mark and the Ads import becomes inert.
-            // Requires analytics.edit OAuth scope (newer than analytics.readonly).
+            // Phase 2026.02 Block 6: pivot to GA4 Admin for read-only failures
+            // that ARE GA4-imported. Plus a separate hand-off for
+            // WEBPAGE_CODELESS (Google's codeless conversion actions — created
+            // via Ads UI, intentionally non-mutable via API per Google's
+            // architecture; manual UI edit is the only path).
             let ga4Demoted = 0
             const ga4Failures: Array<{ name: string; reason: string }> = []
+            const codelessAction: Array<{ name: string; resourceName: string; category: string }> = []
+            const otherReadOnly: Array<{ name: string; category: string; type: string; error: string }> = []
+
             if (report.failed.length > 0) {
+                // Bucket failures by handling strategy.
                 const ga4Eligible = report.failed.filter(f =>
-                    !f.intendedPrimary
-                    && f.ga4EventName
-                    && f.ga4PropertyId
+                    !f.intendedPrimary && f.ga4EventName && f.ga4PropertyId,
                 )
+                for (const f of report.failed) {
+                    if (ga4Eligible.includes(f)) continue
+                    if (f.type === 'WEBPAGE_CODELESS') {
+                        codelessAction.push({ name: f.name, resourceName: f.resourceName, category: f.category })
+                    } else {
+                        otherReadOnly.push({ name: f.name, category: f.category, type: f.type, error: f.error })
+                    }
+                }
+
+                // GA4 pivot — un-mark Key Event when action is GA4-imported.
                 if (ga4Eligible.length > 0) {
                     try {
                         const { findKeyEventByEventName, deleteKeyEvent } = await import('./ga4Admin')
@@ -460,7 +471,6 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
                                     (ga4Failures.length > 0 ? `; failures: ${ga4Failures.map(x => `${x.name}: ${x.reason}`).join('; ').slice(0, 400)}` : ''),
                         })
                     } catch (e) {
-                        // OAuth scope insufficient (analytics.readonly only) — surface clearly.
                         const msg = (e as Error).message
                         const isScope = /insufficient|forbidden|403|scope/i.test(msg)
                         stepResults.push({
@@ -472,24 +482,64 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
                         })
                     }
                 }
-                const remainingManual = report.failed.length - ga4Demoted
-                if (remainingManual > 0) {
+
+                // WEBPAGE_CODELESS — known Google architectural limit. Surface
+                // clear Hebrew instructions with deep link to that specific
+                // action in Google Ads UI.
+                if (codelessAction.length > 0) {
+                    const baseCid = operatingCustomerId.replace(/-/g, '')
+                    const instructions = codelessAction.map(a => {
+                        const actionId = a.resourceName.split('/').pop() || ''
+                        const deepLink = `https://ads.google.com/aw/conversions/customers/${baseCid}/detail?ocid=&conversionTypeId=${actionId}`
+                        return `• ${a.name} (${a.category})\n  📌 Google Ads UI: ${deepLink}\n  פעולה: לחצו על הפעולה → ערכו → סמנו 'Secondary action' → שמרו`
+                    }).join('\n\n')
                     stepResults.push({
-                        step: 'Remaining manual GA4 steps',
+                        step: 'Codeless conversion actions — manual UI step required (Google architectural limit)',
                         ok: false,
-                        detail: report.failed
-                            .filter(f => !ga4Eligible.includes(f) || ga4Failures.find(x => x.name === f.name))
-                            .map(f => `${f.name} (${f.category}): ${f.error}`)
-                            .join('\n').slice(0, 800),
+                        detail: `${codelessAction.length} action(s) of type WEBPAGE_CODELESS cannot be mutated via API by Google's design. Manual edit needed:\n\n${instructions}`,
+                    })
+                }
+
+                if (otherReadOnly.length > 0) {
+                    stepResults.push({
+                        step: 'Other read-only actions — manual review',
+                        ok: false,
+                        detail: otherReadOnly.map(f => `${f.name} (${f.category}, type=${f.type}): ${f.error}`).join('\n').slice(0, 800),
                     })
                 }
             }
-            const overallOk = report.promoted.length > 0 || report.demoted.length > 0 || ga4Demoted > 0
+
+            // Phase 2026.02 Block 6: idempotent success semantics.
+            // The task is "ok" when:
+            //   (a) we made progress this run (promoted/demoted/ga4Demoted > 0), OR
+            //   (b) nothing needed to change (all 16 already unchanged AND only
+            //       failures are known architectural limits — codeless actions
+            //       requiring manual UI step), OR
+            //   (c) progress was made AND only remaining failures are codeless.
+            const totalApplied = report.promoted.length + report.demoted.length + ga4Demoted
+            const onlyCodelessRemains = otherReadOnly.length === 0 && ga4Failures.length === 0
+            const alreadyDone = totalApplied === 0
+                && report.unchanged.length > 0
+                && onlyCodelessRemains
+                && codelessAction.length === report.failed.length
+            const overallOk = totalApplied > 0 || alreadyDone
+
+            const manualCount = codelessAction.length + otherReadOnly.length + ga4Failures.length
+            let summary = `Marked ${desiredCategory} as primary; `
+            if (totalApplied > 0) {
+                summary += `demoted ${report.demoted.length} in Google Ads`
+                if (ga4Demoted > 0) summary += ` + ${ga4Demoted} GA4 Key Events un-marked`
+            } else if (alreadyDone) {
+                summary += `all ${report.unchanged.length} actions already in target state`
+            }
+            if (manualCount > 0) {
+                summary += ` (${manualCount} need manual UI step — Google API limit on codeless actions)`
+            }
+            summary += '.'
+
             return {
                 ok: overallOk,
-                outputDescription: `Marked ${desiredCategory} as primary; demoted ${report.demoted.length} actions in Google Ads` +
-                    (ga4Demoted > 0 ? ` + ${ga4Demoted} GA4 Key Events un-marked` : '') +
-                    (report.failed.length - ga4Demoted > 0 ? ` (${report.failed.length - ga4Demoted} need manual review)` : '') + '.',
+                outputDescription: summary,
                 stepResults,
             }
         }

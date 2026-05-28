@@ -510,6 +510,7 @@ export interface PrimaryReconcileReport {
         resourceName: string
         name: string
         category: string
+        type: string                   // WEBPAGE_CODELESS / UPLOAD_CALLS / etc.
         intendedPrimary: boolean
         error: string
         // Phase 2026.02 Block 6: surfaced so the executor can pivot to GA4
@@ -551,7 +552,7 @@ export async function reconcilePrimaryConversionActions(
     interface PendingOp {
         resourceName: string
         primary: boolean
-        meta: { name: string; category: string; ga4EventName?: string; ga4PropertyId?: string }
+        meta: { name: string; category: string; type: string; ga4EventName?: string; ga4PropertyId?: string }
     }
     const ops: PendingOp[] = []
     for (const a of all) {
@@ -559,6 +560,7 @@ export async function reconcilePrimaryConversionActions(
         const meta = {
             name: a.name,
             category: a.category,
+            type: a.type,
             ga4EventName: a.googleAnalytics4EventName,
             ga4PropertyId: a.googleAnalytics4PropertyId,
         }
@@ -592,6 +594,7 @@ export async function reconcilePrimaryConversionActions(
                 resourceName: op.resourceName,
                 name: op.meta.name,
                 category: op.meta.category,
+                type: op.meta.type,
                 intendedPrimary: op.primary,
                 error: r.error || 'unknown',
                 ga4EventName: op.meta.ga4EventName,
