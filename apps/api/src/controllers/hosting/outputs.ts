@@ -312,24 +312,126 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             return rd
         })
 
-        // ── 2. Populate fixtures via autoSetupGtmContainer ──
-        // Existing fixtures: Conversion Linker, GCLID Capture, Consent Mode v2,
-        // GA4 events tag (if measurementId), Enhanced Conversions vars.
+        // ── 2a. Auto-detect GA4 measurementId (Pattern K1) ──
+        // Hands-off: if the tenant has a GA4 property on the same domain,
+        // we discover its measurementId and feed it to autoSetupGtmContainer
+        // so the GA4 base tag + per-conversion gaawe event tags get created
+        // automatically (instead of asking the user to type G-XXXXXXXXXX).
+        let autoMeasurementId: string | undefined = stack.target.measurementId
+        try {
+            if (!autoMeasurementId) {
+                const { findGa4MeasurementId } = await import('@/services/ga4Admin')
+                const found = await findGa4MeasurementId(tokens, siteDomain)
+                if (found) {
+                    autoMeasurementId = found.measurementId
+                    // persist on target so future runs reuse it
+                    stack.target.measurementId = found.measurementId
+                    await saveGtmTarget(instanceId, stack.target, agent.id || null)
+                    chainSteps.push({
+                        step: 'GA4 measurementId auto-detected',
+                        ok: true,
+                        detail: `${found.measurementId} from property ${found.propertyId} (${found.matched} match: ${found.streamUri || 'no URI'})`,
+                    })
+                } else {
+                    chainSteps.push({
+                        step: 'GA4 measurementId auto-detect',
+                        ok: false,
+                        detail: 'No web data stream found across user\'s GA4 properties. Set up GA4 first (analytics.google.com), then re-run.',
+                    })
+                }
+            } else {
+                chainSteps.push({ step: 'GA4 measurementId (cached)', ok: true, detail: autoMeasurementId })
+            }
+        } catch (e) {
+            chainSteps.push({ step: 'GA4 measurementId auto-detect failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
+        }
+
+        // ── 2b. Auto-derive Google Ads awct configs (Pattern K2) ──
+        // Read currently-active conversion actions from the tenant's Ads
+        // account and map them to GtmConversionConfig[]. Skips actions without
+        // tag_snippets (UPLOAD-only) since awct requires a conversionLabel.
+        let gtmConversions: any[] = []
         try {
             const rd = (agent as any).researchData || {}
+            // Prefer manually-curated configs if a previous run produced them
+            // (these include sendValue/defaultValueIls finely tuned). Otherwise
+            // pull live from Ads.
+            const curatedConfigs = rd.mazhirConversions?.gtmConfigs as any[] | undefined
+            if (Array.isArray(curatedConfigs) && curatedConfigs.length > 0) {
+                gtmConversions = curatedConfigs
+                chainSteps.push({
+                    step: `Google Ads conversions (curated)`,
+                    ok: true,
+                    detail: `${curatedConfigs.length} actions from prior mapping: ${curatedConfigs.map((c: any) => c.actionKey).join(', ')}`,
+                })
+            } else {
+                const { readGoogleAdsConfig } = await import('@/services/agentContext')
+                const adsCfgRes = await readGoogleAdsConfig(agent, instanceId).catch(() => ({ config: null }))
+                const adsCfg: any = (adsCfgRes as any).config
+                if (adsCfg?.customerId && adsCfg?.developerToken) {
+                    const operatingCustomerId = String(adsCfg.scope?.operatingCustomerId || adsCfg.customerId || '').replace(/\D/g, '')
+                    const loginCustomerId = String(adsCfg.loginCustomerId || adsCfg.customerId || '').replace(/\D/g, '')
+                    const { deriveGtmConversionsFromAds } = await import('@/services/mazhirConversionsDetect')
+                    const auto = await deriveGtmConversionsFromAds({
+                        operatingCustomerId,
+                        loginCustomerId,
+                        tokens: { refreshToken: tokens.refreshToken },
+                        developerToken: String(adsCfg.developerToken),
+                    })
+                    gtmConversions = auto.configs
+                    chainSteps.push({
+                        step: 'Google Ads conversions auto-derived',
+                        ok: auto.configs.length > 0,
+                        detail: auto.configs.length > 0
+                            ? `${auto.configs.length} awct configs: ${auto.configs.map(c => `${c.actionKey} (AW-${c.googleAdsConversionId}/${c.googleAdsConversionLabel.slice(0, 6)}…)`).join(', ')}${auto.skipped.length ? ` · skipped ${auto.skipped.length}` : ''}`
+                            : `No eligible conversion actions found (skipped ${auto.skipped.length}: ${auto.skipped.slice(0, 3).map(s => `${s.name}=${s.reason}`).join('; ')})`,
+                    })
+                } else {
+                    chainSteps.push({
+                        step: 'Google Ads not connected — skipping awct wiring',
+                        ok: false,
+                        detail: 'Connect Google Ads in Integrations to auto-wire conversion tags. Container will still get Conversion Linker + GCLID + GA4 base + Consent Mode.',
+                    })
+                }
+            }
+        } catch (e) {
+            chainSteps.push({ step: 'Google Ads conversion auto-derive failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
+        }
+
+        // ── 2c. Populate fixtures via autoSetupGtmContainer ──
+        // Existing fixtures: Conversion Linker, GCLID Capture, Consent Mode v2,
+        // GA4 base + per-conversion gaawe (if measurementId), awct per
+        // Google Ads conversion (if any), Enhanced Conversions vars.
+        let gtmResultGlobal: any = null
+        try {
             const gtmResult = await autoSetupGtmContainer(tokens, {
                 target: stack.target,
-                measurementId: stack.target.measurementId,
-                conversions: rd.mazhirConversions?.gtmConfigs || [],
+                measurementId: autoMeasurementId,
+                conversions: gtmConversions,
                 enhancedConversions: true,
             })
+            gtmResultGlobal = gtmResult
             await saveGtmSetupResult(instanceId, gtmResult, agent.id || null)
+            // Decompose published fixtures into per-layer chainSteps so the UI
+            // can show "GA4 base ✓ / awct[purchase] ✓ / Consent Mode ✓" per
+            // Pattern K5 — explicit per-component status, not a single blob.
+            const byType = (prefix: string) => gtmResult.created.filter((c: any) => c.type === prefix).map((c: any) => c.name)
+            const ga4Base = byType('tag:googtag')
+            const ga4Events = byType('tag:gaawe')
+            const awctTags = byType('tag:awct')
+            const linkerTags = byType('tag:gclidw')
+            const consentTags = [...byType('tag:consent_default'), ...byType('tag:consent_update')]
+            chainSteps.push({ step: 'Conversion Linker (gclidw)', ok: linkerTags.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:gclidw'), detail: linkerTags.length > 0 ? linkerTags.join('; ') : 'already present (reused)' })
+            chainSteps.push({ step: `GA4 base tag (googtag)${autoMeasurementId ? ` for ${autoMeasurementId}` : ''}`, ok: ga4Base.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:googtag'), detail: ga4Base.length > 0 ? ga4Base.join('; ') : (autoMeasurementId ? 'already present (reused)' : 'skipped — no measurementId') })
+            chainSteps.push({ step: `GA4 event tags (gaawe)`, ok: ga4Events.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:gaawe') || gtmConversions.length === 0, detail: ga4Events.length > 0 ? `${ga4Events.length} created: ${ga4Events.join('; ')}` : (gtmConversions.length > 0 ? 'already present (reused)' : 'no conversions to map') })
+            chainSteps.push({ step: `Google Ads awct tags`, ok: awctTags.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:awct') || gtmConversions.length === 0, detail: awctTags.length > 0 ? `${awctTags.length} created: ${awctTags.join('; ')}` : (gtmConversions.length > 0 ? 'already present (reused)' : 'no conversions to map') })
+            chainSteps.push({ step: 'Consent Mode v2 (default+update)', ok: consentTags.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:consent_default' || s.type === 'tag:consent_update'), detail: consentTags.length > 0 ? consentTags.join('; ') : 'already present (reused)' })
             chainSteps.push({
-                step: 'Fixtures published (Consent Mode v2 + Conversion Linker + GCLID + EC variables)',
+                step: 'Container version published',
                 ok: gtmResult.published,
                 detail: gtmResult.published
-                    ? `Created ${gtmResult.created.length}, skipped ${gtmResult.skipped.length}, version=${gtmResult.versionId || '(no-op)'}`
-                    : `errors: ${gtmResult.errors.map(e => e.error).join('; ')}`,
+                    ? `Created ${gtmResult.created.length}, skipped ${gtmResult.skipped.length}, version=${gtmResult.versionId || '(no-op: ' + (gtmResult.noopReason || 'already-in-state') + ')'}`
+                    : `errors: ${gtmResult.errors.map((e: any) => e.error).join('; ')}`,
             })
         } catch (e) {
             chainSteps.push({
@@ -338,6 +440,34 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                 detail: (e as Error).message.slice(0, 400),
             })
         }
+
+        // ── 2d. Live validation against published version (Pattern K4) ──
+        // Read /versions:live and confirm the fixtures we wanted are actually
+        // present on production. Different from #2c which reports what THIS
+        // run did — validation here is independent: "is the live state correct
+        // right now?" (catches scenarios where prior workspace had stale refs
+        // → publish silently failed → autoSetupGtmContainer reported ok).
+        try {
+            const { validateGtmFixtures } = await import('@/services/mazhirGtmSetup')
+            const validation = await validateGtmFixtures(tokens, stack.target, {
+                expectConversionLinker: true,
+                expectGclidCapture: true,
+                expectGaawe: !!autoMeasurementId,
+                expectEnhancedConversions: true,
+                expectConsentMode: true,
+                expectAwct: gtmConversions.map((c: any) => `Mazhir GAds Conv — ${c.actionKey}`),
+            })
+            for (const fx of validation.fixtures) {
+                chainSteps.push({
+                    step: `Live validation: ${fx.label}`,
+                    ok: fx.present,
+                    detail: fx.present ? `found: "${fx.foundName || '(unnamed)'}"${fx.notes ? ` · ${fx.notes}` : ''}` : `MISSING in live container (version=${validation.workspaceId || 'n/a'}, tags=${validation.tagCount}, vars=${validation.variableCount})`,
+                })
+            }
+        } catch (e) {
+            chainSteps.push({ step: 'Live validation failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
+        }
+        void gtmResultGlobal
 
         // ── 3. WP companion plugin install + snippet inject + stale GTM scan ──
         // Phase 2026.02 Block 6 Pattern J. Three sub-steps with full
@@ -384,7 +514,82 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                 })
 
                 if (pluginRes.installed && pluginRes.activated) {
-                    // 3b. POST snippet to companion plugin endpoint
+                    // Phase 2026.02 Block 6 Pattern K3: probe site capabilities
+                    // (WooCommerce active? plugin version?) so the UI can show
+                    // "WooCommerce v8.5 detected — ecommerce dataLayer hooks
+                    // active" or warn if site is non-WC (no purchase events).
+                    try {
+                        const { probeWpCapabilities } = await import('@/services/wpCompanionInstaller')
+                        const caps = await probeWpCapabilities(cfg)
+                        if (caps) {
+                            chainSteps.push({
+                                step: 'WP capabilities probe',
+                                ok: true,
+                                detail: `Plugin v${caps.pluginVersion} on WP ${caps.wordpressVersion}; ${caps.wooCommerceActive ? `WooCommerce v${caps.wooCommerceVersion || '?'} ACTIVE → purchase/add_to_cart/begin_checkout dataLayer events auto-pushed` : 'WooCommerce NOT detected — ecommerce events will not fire (lead/form_submit events still work)'}`,
+                            })
+                        } else {
+                            chainSteps.push({ step: 'WP capabilities probe', ok: false, detail: 'plugin /capabilities endpoint not reachable (legacy plugin version?)' })
+                        }
+                    } catch (e) {
+                        chainSteps.push({ step: 'WP capabilities probe failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
+                    }
+
+                    // Phase 2026.02 Block 6 Pattern L: auto-cleanup OLD GTM
+                    // snippets BEFORE installing the new one. Critical per
+                    // Sergei: 'сначала удалить старый код, потом добавить новый'.
+                    //
+                    // 3-pre. Scan first to know what's stale.
+                    let preScan: any = null
+                    try {
+                        const { scanStaleGtmSnippets, removeStaleGtmOptions } = await import('@/services/wpCompanionInstaller')
+                        preScan = await scanStaleGtmSnippets(cfg)
+                        if (preScan && preScan.foreignCount > 0) {
+                            // Split findings: wp_options (safe auto-remove) vs theme_file (manual)
+                            const safeKeys: string[] = []
+                            const themeFindings: any[] = []
+                            for (const f of (preScan.findings || [])) {
+                                if (f.source === 'wp_options' && f.key) safeKeys.push(f.key)
+                                else themeFindings.push(f)
+                            }
+                            let removedCount = 0
+                            if (safeKeys.length > 0) {
+                                try {
+                                    const removeRes = await removeStaleGtmOptions(cfg, safeKeys)
+                                    removedCount = (removeRes.removed || []).length
+                                    chainSteps.push({
+                                        step: 'Stale GTM auto-cleanup (wp_options)',
+                                        ok: removedCount === safeKeys.length,
+                                        detail: `Removed ${removedCount}/${safeKeys.length} foreign wp_options entries with old GTM-XXX: ${safeKeys.join(', ').slice(0, 300)}`,
+                                    })
+                                } catch (e) {
+                                    chainSteps.push({
+                                        step: 'Stale GTM auto-cleanup failed (non-fatal)',
+                                        ok: false,
+                                        detail: (e as Error).message.slice(0, 300),
+                                    })
+                                }
+                            }
+                            if (themeFindings.length > 0) {
+                                chainSteps.push({
+                                    step: 'Stale GTM — theme files require MANUAL cleanup (risky to auto-edit)',
+                                    ok: false,
+                                    detail: themeFindings.map((f: any) =>
+                                        `${f.key}: ${(f.gtmIds || []).join(', ')} (${f.excerpt})`
+                                    ).join('\n').slice(0, 600),
+                                })
+                            }
+                        } else {
+                            chainSteps.push({
+                                step: 'Pre-install stale scan — no foreign GTM snippets',
+                                ok: true,
+                                detail: 'wp_options + theme files clean — new snippet has no conflicts',
+                            })
+                        }
+                    } catch (e) {
+                        chainSteps.push({ step: 'Pre-install stale scan failed', ok: false, detail: (e as Error).message.slice(0, 200) })
+                    }
+
+                    // 3b. POST snippet to companion plugin endpoint (AFTER cleanup)
                     const snipRes = await installGtmSnippet(
                         cfg,
                         stack.container.publicId,
@@ -406,27 +611,28 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                         })
                     }
 
-                    // 3c. Scan for stale (foreign) GTM snippets to surface to user
-                    try {
-                        staleScan = await scanStaleGtmSnippets(cfg)
-                        if (staleScan && staleScan.foreignCount > 0) {
-                            const examples = (staleScan.findings || []).slice(0, 3).map((f: any) =>
-                                `${f.source}:${f.key} (${(f.gtmIds || []).join(', ')})`
-                            ).join('; ')
+                    // 3c. Post-install verification — fetch site HTML and confirm
+                    // NEW GTM ID present + OLD ones gone (Pattern L verification).
+                    if (wpInstalled && siteDomain) {
+                        try {
+                            const { scanSiteHtmlForGtm } = await import('@/services/wpCompanionInstaller')
+                            const liveScan = await scanSiteHtmlForGtm(`https://${siteDomain.replace(/^https?:\/\//, '').replace(/\/$/, '')}`)
+                            const hasNew = liveScan.gtmIds.includes(stack.container.publicId)
+                            const oldFound = liveScan.gtmIds.filter(id => id !== stack.container.publicId)
                             chainSteps.push({
-                                step: 'Stale GTM scan — OLD snippets found',
-                                ok: false,
-                                detail: `${staleScan.foreignCount} foreign location(s) with old GTM-XXXXXXX: ${examples}. New snippet WILL conflict with old until removed. Use the migration UI to clean up.`,
+                                step: 'Live HTML verification (post-install)',
+                                ok: hasNew && oldFound.length === 0,
+                                detail: hasNew
+                                    ? (oldFound.length === 0
+                                        ? `✓ NEW ${stack.container.publicId} found on live site; no foreign GTM-XXX remaining.`
+                                        : `⚠ NEW ${stack.container.publicId} present but OLD also present: ${oldFound.join(', ')}. Remove from theme files manually.`)
+                                    : `✗ NEW ${stack.container.publicId} NOT yet visible on live HTML (cache/CDN delay or plugin not loaded). Found: ${liveScan.gtmIds.join(', ') || 'none'}.`,
                             })
-                        } else {
-                            chainSteps.push({
-                                step: 'Stale GTM scan — clean',
-                                ok: true,
-                                detail: 'no foreign GTM snippets in wp_options or theme files',
-                            })
+                            // surface staleScan if any remaining issues
+                            staleScan = { ourPublicId: stack.container.publicId, foreignCount: oldFound.length, findings: oldFound }
+                        } catch (e) {
+                            chainSteps.push({ step: 'Live HTML scan failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
                         }
-                    } catch (e) {
-                        chainSteps.push({ step: 'Stale GTM scan failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
                     }
                 }
             }

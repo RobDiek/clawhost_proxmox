@@ -171,3 +171,101 @@ export async function findKeyEventByEventName(
     const target = eventName.trim().toLowerCase()
     return all.find(ke => (ke.eventName || '').toLowerCase() === target) || null
 }
+
+// ─── Data Streams ───────────────────────────────────────────────────────
+// Phase 2026.02 Block 6 Pattern K1 — auto-detect the GA4 measurementId
+// (G-XXXXXXXXXX) by listing all WEB_DATA_STREAM resources across properties
+// the OAuth user can read, and selecting the one whose web stream URL
+// matches the tenant's site domain. Result is fed into autoSetupGtmContainer
+// so GA4 base tag + per-conversion gaawe tags get created automatically
+// (instead of the user having to type it manually).
+
+export interface Ga4DataStream {
+    name: string                  // properties/{pid}/dataStreams/{sid}
+    propertyId: string            // numeric
+    streamId: string              // numeric
+    displayName: string
+    type: string                  // 'WEB_DATA_STREAM' | 'IOS_APP_DATA_STREAM' | 'ANDROID_APP_DATA_STREAM'
+    measurementId?: string        // G-XXXXXXXXXX (web only)
+    defaultUri?: string           // https://example.com (web only)
+}
+
+export async function listGa4DataStreams(tokens: GoogleTokens, propertyId: string): Promise<Ga4DataStream[]> {
+    const out: Ga4DataStream[] = []
+    let pageToken: string | undefined
+    do {
+        const path: string = `/properties/${propertyId}/dataStreams${pageToken ? `?pageToken=${encodeURIComponent(pageToken)}` : ''}`
+        const data = await ga4Fetch<{ dataStreams?: any[]; nextPageToken?: string }>(path, tokens).catch(() => ({} as any))
+        for (const s of (data.dataStreams || [])) {
+            const fullName: string = s.name || ''
+            const streamId = fullName.split('/').pop() || ''
+            const web = s.webStreamData || {}
+            out.push({
+                name: fullName,
+                propertyId,
+                streamId,
+                displayName: s.displayName || '',
+                type: s.type || '',
+                measurementId: web.measurementId || undefined,
+                defaultUri: web.defaultUri || undefined,
+            })
+        }
+        pageToken = data.nextPageToken
+    } while (pageToken)
+    return out
+}
+
+/**
+ * Search ALL GA4 properties accessible to the OAuth user for a web data
+ * stream whose default URI matches `siteDomain`. Returns the best match
+ * (first exact match, then first contains-match, then first WEB stream
+ * across any property if no domain hint).
+ *
+ * Match strategy:
+ *   1. exact host match on defaultUri
+ *   2. contains-match (handles www vs non-www, trailing slash, http vs https)
+ *   3. fallback: first WEB stream found anywhere
+ *
+ * Returns null if no web streams exist at all on any property.
+ */
+export async function findGa4MeasurementId(
+    tokens: GoogleTokens,
+    siteDomain?: string,
+): Promise<{ measurementId: string; propertyId: string; streamUri?: string; matched: 'exact' | 'contains' | 'fallback' } | null> {
+    const target = (siteDomain || '').replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').toLowerCase()
+    const properties = await listGa4Properties(tokens).catch(() => [] as Ga4Property[])
+    if (properties.length === 0) return null
+
+    const allWebStreams: Ga4DataStream[] = []
+    for (const p of properties) {
+        try {
+            const streams = await listGa4DataStreams(tokens, p.propertyId)
+            for (const s of streams) {
+                if (s.type === 'WEB_DATA_STREAM' && s.measurementId) {
+                    allWebStreams.push(s)
+                }
+            }
+        } catch {
+            // property may be inaccessible — skip silently
+        }
+    }
+    if (allWebStreams.length === 0) return null
+
+    if (target) {
+        // exact match first
+        const exact = allWebStreams.find(s => {
+            const uri = (s.defaultUri || '').replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').toLowerCase()
+            return uri === target
+        })
+        if (exact) return { measurementId: exact.measurementId!, propertyId: exact.propertyId, streamUri: exact.defaultUri, matched: 'exact' }
+
+        const contains = allWebStreams.find(s => {
+            const uri = (s.defaultUri || '').toLowerCase()
+            return uri.includes(target) || target.includes((uri.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '')))
+        })
+        if (contains) return { measurementId: contains.measurementId!, propertyId: contains.propertyId, streamUri: contains.defaultUri, matched: 'contains' }
+    }
+
+    const first = allWebStreams[0]
+    return { measurementId: first.measurementId!, propertyId: first.propertyId, streamUri: first.defaultUri, matched: 'fallback' }
+}

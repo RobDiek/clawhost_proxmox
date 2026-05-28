@@ -2,8 +2,8 @@
 /**
  * Plugin Name: ClawFlow Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
- * Description: ClawFlow platform companion — injects GTM snippets to <head>+<body> via REST API, scans for legacy GTM snippets, supports clean migration.
- * Version: 1.0.0
+ * Description: ClawFlow platform companion — GTM snippet injection, legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push.
+ * Version: 1.1.0
  * Author: ClawFlow by Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -207,3 +207,168 @@ add_action('wp_body_open', function () {
         echo "\n<!-- End ClawFlow GTM noscript -->\n";
     }
 }, 1);
+
+/**
+ * WooCommerce ecommerce dataLayer auto-push (Pattern K3)
+ *
+ * Pushes GA4-style ecommerce events into the dataLayer so GTM tags
+ * (Google Ads awct sendValue + GA4 gaawe) can pick them up and forward to
+ * Google Ads / GA4 with full value + transaction_id + items context. No
+ * configuration required on the user side — works the moment GTM is
+ * installed AND WooCommerce is active.
+ *
+ * Events pushed (mirrors GA4 ecommerce schema):
+ *   add_to_cart      — woocommerce_add_to_cart action
+ *   begin_checkout   — woocommerce_before_checkout_form action
+ *   purchase         — woocommerce_thankyou action (the conversion event)
+ *
+ * The purchase push uses the standard GA4 keys (value, currency,
+ * transaction_id, items[]) so the awct tag's {{DLV - lead_value}} +
+ * {{DLV - transaction_id}} variables resolve correctly. Also doubles as
+ * a generate_lead/form_submit signal mirror — the GTM custom event
+ * triggers fire on _event names matching our PrimaryActionKey schema.
+ */
+add_action('init', function () {
+    if (!class_exists('WooCommerce')) return;
+
+    // purchase — woocommerce_thankyou is the canonical "order complete" hook
+    add_action('woocommerce_thankyou', function ($order_id) {
+        if (!$order_id) return;
+        $order = wc_get_order($order_id);
+        if (!$order) return;
+
+        // Guard: only push once per session per order (WooCommerce can
+        // call thankyou twice if user refreshes).
+        $session_key = 'clawflow_purchase_pushed_' . $order_id;
+        if (function_exists('WC') && WC()->session && WC()->session->get($session_key)) return;
+        if (function_exists('WC') && WC()->session) WC()->session->set($session_key, 1);
+
+        $items = [];
+        foreach ($order->get_items() as $item) {
+            $product = $item->get_product();
+            $items[] = [
+                'item_id'    => $product ? (string)$product->get_id() : '',
+                'item_name'  => (string)$item->get_name(),
+                'price'      => $product ? (float)$product->get_price() : 0,
+                'quantity'   => (int)$item->get_quantity(),
+                'item_brand' => $product ? (string)wp_strip_all_tags(get_post_meta($product->get_id(), '_brand', true)) : '',
+            ];
+        }
+        $payload = [
+            'event'           => 'purchase',
+            'ecommerce'       => [
+                'transaction_id' => (string)$order->get_id(),
+                'value'          => (float)$order->get_total(),
+                'tax'            => (float)$order->get_total_tax(),
+                'shipping'       => (float)$order->get_shipping_total(),
+                'currency'       => (string)$order->get_currency(),
+                'coupon'         => implode(',', $order->get_coupon_codes()),
+                'items'          => $items,
+            ],
+            // Top-level mirrors so {{DLV - lead_value}} + {{DLV - transaction_id}}
+            // (the awct tag's value/orderId references) resolve without nested
+            // path complications.
+            'lead_value'      => (float)$order->get_total(),
+            'transaction_id'  => (string)$order->get_id(),
+        ];
+        ?>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        // Reset previous ecommerce object per GA4 best-practice before push
+        window.dataLayer.push({ ecommerce: null });
+        window.dataLayer.push(<?php echo wp_json_encode($payload); ?>);
+        </script>
+        <?php
+    }, 10, 1);
+
+    // begin_checkout — fires on checkout page load
+    add_action('woocommerce_before_checkout_form', function () {
+        if (!function_exists('WC') || !WC()->cart) return;
+        $cart = WC()->cart;
+        $items = [];
+        foreach ($cart->get_cart() as $cart_item) {
+            $product = $cart_item['data'] ?? null;
+            $items[] = [
+                'item_id'   => $product ? (string)$product->get_id() : '',
+                'item_name' => $product ? (string)$product->get_name() : '',
+                'price'     => $product ? (float)$product->get_price() : 0,
+                'quantity'  => (int)($cart_item['quantity'] ?? 1),
+            ];
+        }
+        $payload = [
+            'event'     => 'begin_checkout',
+            'ecommerce' => [
+                'value'    => (float)$cart->get_total('edit'),
+                'currency' => (string)get_woocommerce_currency(),
+                'items'    => $items,
+            ],
+        ];
+        ?>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ ecommerce: null });
+        window.dataLayer.push(<?php echo wp_json_encode($payload); ?>);
+        </script>
+        <?php
+    }, 5);
+
+    // add_to_cart — fires on every add. Async product fetch keeps it
+    // server-rendered (no fragile JS heuristics).
+    add_action('woocommerce_add_to_cart', function ($cart_item_key, $product_id, $quantity, $variation_id) {
+        $product = wc_get_product($variation_id ?: $product_id);
+        if (!$product) return;
+        $payload = [
+            'event'     => 'add_to_cart',
+            'ecommerce' => [
+                'currency' => (string)get_woocommerce_currency(),
+                'value'    => (float)$product->get_price() * (int)$quantity,
+                'items'    => [[
+                    'item_id'   => (string)$product->get_id(),
+                    'item_name' => (string)$product->get_name(),
+                    'price'     => (float)$product->get_price(),
+                    'quantity'  => (int)$quantity,
+                ]],
+            ],
+        ];
+        // add_to_cart fires server-side without a page render — push via
+        // a transient that the next page-load picks up.
+        set_transient('clawflow_pending_atc_' . get_current_user_id(), $payload, 60);
+    }, 10, 4);
+
+    // Drain pending add_to_cart payloads on the next page-load
+    add_action('wp_footer', function () {
+        $pending = get_transient('clawflow_pending_atc_' . get_current_user_id());
+        if (!$pending) return;
+        delete_transient('clawflow_pending_atc_' . get_current_user_id());
+        ?>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ ecommerce: null });
+        window.dataLayer.push(<?php echo wp_json_encode($pending); ?>);
+        </script>
+        <?php
+    }, 100);
+});
+
+/**
+ * Capability discovery endpoint — UI uses this to decide whether to
+ * mention WooCommerce in chainSteps and whether to expect ecommerce
+ * events. Also surfaces other relevant flags (whether Application
+ * Password auth is configured properly etc.).
+ */
+add_action('rest_api_init', function () {
+    register_rest_route('clawflow/v1', '/capabilities', [
+        'methods'             => 'GET',
+        'permission_callback' => function () { return current_user_can('manage_options'); },
+        'callback'            => function () {
+            return [
+                'pluginVersion'       => '1.1.0',
+                'wordpressVersion'    => get_bloginfo('version'),
+                'wooCommerceActive'   => class_exists('WooCommerce'),
+                'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,
+                'gtmInstalled'        => !empty(get_option('clawflow_gtm_public_id', '')),
+                'siteUrl'             => get_site_url(),
+            ];
+        },
+    ]);
+});

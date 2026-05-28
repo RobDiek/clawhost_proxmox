@@ -663,3 +663,95 @@ export async function applySelectedMapping(
 
 // ── Stale: research_data + agent_outputs imports kept above ──────────────
 void instances; void matehAgents; void and; void ne; void desc
+
+// ═══════════════════════════════════════════════════════════════════════
+// Phase 2026.02 Block 6 Pattern K2 — Auto-derive GtmConversionConfig[]
+// from currently-active (status=ENABLED) Google Ads conversion actions.
+// Used by gtmFreshStack to skip the manual "configure conversions" step
+// when the tenant already has actions defined in their Ads account.
+// ═══════════════════════════════════════════════════════════════════════
+//
+// Strategy:
+//   1. Call listAdsConversionActions(operatingCustomerId)
+//   2. Filter to status=ENABLED + tag_snippets present (so we have
+//      conversionId+conversionLabel — required by awct tag)
+//   3. mapActionToKey() → derive our PrimaryActionKey
+//   4. Map only keys that GtmConversionConfig accepts (no 'phone_call_offline'
+//      — that one is for UPLOAD_CALLS / offline imports, not gtag awct)
+//   5. Per-action sendValue + defaultValueIls based on raw value field
+//
+// Falls back to [] if Ads not connected — caller already handles empty
+// conversions[] (autoSetupGtmContainer skips awct creation but still
+// publishes Conversion Linker + GCLID Capture + GA4 base + Consent Mode).
+
+import type { GtmConversionConfig } from './mazhirGtmSetup'
+
+const ADS_KEY_TO_GTM_KEY: Record<PrimaryActionKey, GtmConversionConfig['actionKey'] | null> = {
+    form_submit: 'form_submit',
+    generate_lead: 'generate_lead',
+    phone_call: 'phone_call',
+    phone_call_offline: null,    // skip — offline-import action, not awct-eligible
+    purchase: 'purchase',
+    qualified_lead: 'qualified_lead',
+}
+
+export async function deriveGtmConversionsFromAds(opts: {
+    operatingCustomerId: string
+    loginCustomerId: string
+    tokens: GoogleTokens
+    developerToken: string
+    defaultCurrency?: string
+}): Promise<{ configs: GtmConversionConfig[]; skipped: Array<{ id: string; name: string; reason: string }> }> {
+    const all = await listAdsConversionActions(
+        opts.operatingCustomerId,
+        opts.loginCustomerId,
+        opts.tokens,
+        opts.developerToken,
+    )
+    const configs: GtmConversionConfig[] = []
+    const skipped: Array<{ id: string; name: string; reason: string }> = []
+    const seen = new Set<GtmConversionConfig['actionKey']>()
+
+    for (const raw of all) {
+        if (raw.status !== 'ENABLED') {
+            skipped.push({ id: raw.id, name: raw.name, reason: `status=${raw.status}` })
+            continue
+        }
+        if (!raw.googleAdsConversionId || !raw.googleAdsConversionLabel) {
+            skipped.push({ id: raw.id, name: raw.name, reason: 'no tag_snippets (likely UPLOAD-only — not gtag-eligible)' })
+            continue
+        }
+        const draft = matchAdsActionToKey(raw)
+        if (!draft) {
+            skipped.push({ id: raw.id, name: raw.name, reason: 'category/name unmatched' })
+            continue
+        }
+        const draftKey: PrimaryActionKey = draft.actionKey
+        const gtmKey = ADS_KEY_TO_GTM_KEY[draftKey]
+        if (!gtmKey) {
+            skipped.push({ id: raw.id, name: raw.name, reason: `actionKey=${draftKey} not awct-eligible` })
+            continue
+        }
+        // Dedupe: GTM has one tag per actionKey (e.g. one 'purchase' awct). If
+        // Ads has multiple ENABLED purchase actions, take the primaryForGoal=true
+        // one (or the first encountered if none is primary).
+        if (seen.has(gtmKey)) {
+            const existingIdx = configs.findIndex(c => c.actionKey === gtmKey)
+            const existing = configs[existingIdx]
+            if (!raw.primaryForGoal && existing) {
+                skipped.push({ id: raw.id, name: raw.name, reason: `dup actionKey=${gtmKey}; kept primaryForGoal action` })
+                continue
+            }
+        }
+
+        configs.push({
+            actionKey: gtmKey,
+            googleAdsConversionId: raw.googleAdsConversionId,
+            googleAdsConversionLabel: raw.googleAdsConversionLabel,
+            sendValue: gtmKey === 'purchase',  // only purchases auto-send value; leads use static value
+            defaultCurrency: opts.defaultCurrency || 'ILS',
+        })
+        seen.add(gtmKey)
+    }
+    return { configs, skipped }
+}

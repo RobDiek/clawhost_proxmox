@@ -311,6 +311,32 @@ export async function installGtmSnippet(
     }
 }
 
+export interface WpCapabilities {
+    pluginVersion: string
+    wordpressVersion: string
+    wooCommerceActive: boolean
+    wooCommerceVersion: string | null
+    gtmInstalled: boolean
+    siteUrl: string
+}
+
+/**
+ * Probe the companion plugin's /capabilities endpoint to discover what
+ * plugins/features the site has — so the UI can show "WooCommerce v8.5
+ * detected → ecommerce dataLayer hooks active" or similar. Returns null
+ * if plugin isn't installed yet OR endpoint is unreachable (legacy v1.0
+ * plugin without /capabilities — caller should treat as "unknown").
+ */
+export async function probeWpCapabilities(cfg: WpCfg): Promise<WpCapabilities | null> {
+    try {
+        const res = await wpGet(cfg, '/wp-json/clawflow/v1/capabilities')
+        if (!res || typeof res !== 'object') return null
+        return res as WpCapabilities
+    } catch {
+        return null
+    }
+}
+
 /**
  * Scan the live homepage HTML for GTM- snippets — does NOT require the
  * companion plugin (works on any WP/non-WP site). Used as a sanity check
