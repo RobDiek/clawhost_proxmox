@@ -6647,6 +6647,26 @@ function renderTaskPopup(task) {
     return;
   }
 
+  // ── Phase 2026.02 Block 6: Monthly-plan task popup renderer ──────────
+  // Looks up the full task definition in researchData.monthlyPlan.tasks[]
+  // by metadata.taskId, renders: priority chip, channel, dependsOn warning,
+  // expectedImpact, sources (citation chain), actionPlan steps with per-step
+  // automation/effort badges, integration availability check, verification
+  // preview. Sergei's Phase B audit loop reads this card; backend
+  // executionPayload/verification/rollback fields will be added per-task
+  // as gaps emerge during validation.
+  if (task.type === 'monthly_task' && task.metadata && task.metadata.taskId) {
+    var monthlyTaskBlock = renderMonthlyTaskPopup(task);
+    if (monthlyTaskBlock) {
+      bodyHtml += monthlyTaskBlock;
+      document.getElementById('taskPopupBody').innerHTML = bodyHtml;
+      document.getElementById('taskPopupFooter').innerHTML = renderMonthlyTaskFooter(task);
+      document.getElementById('taskPopupOverlay').classList.remove('hidden');
+      return;
+    }
+    // If lookup failed (plan not loaded yet) fall through to generic renderer.
+  }
+
   // ── Real content from agent (if available) ──
   var displayContent = task.editedContent || task.content;
   if (displayContent) {
@@ -7932,6 +7952,231 @@ function renderCreativeFinal(d) {
   h += '<strong>💡 אחרי אישור:</strong><br>1. fal.ai מרנדר → 2. הורדה ל-' + escapeHtml(d.outputPath || '') + '<br>3. Hebrew overlay על ה-VPS שלכם → 4. audio merge (אם יש) → 5. upscale (אם premium)';
   h += '</div>';
   return h;
+}
+
+// ── Phase 2026.02 Block 6 — Monthly-plan task popup renderer ──────────
+// Pulls the full task definition from researchData.monthlyPlan.tasks[]
+// by taskId in metadata, then composes a senior-grade audit card:
+// priority chip, channel, dependsOn warning, expectedImpact box,
+// sources (citation chain), actionPlan steps (badges per step:
+// "אוטומציה זמינה" vs "ידני" + ⏱ X דק׳), integration availability.
+
+var MONTHLY_TASK_CHANNEL_LABEL = {
+  google_ads: 'Google Ads',
+  gtm: 'מנהל התגיות (GTM)',
+  ga4: 'Google Analytics 4',
+  gbp: 'Google Business Profile',
+  meta: 'Meta (Facebook/Instagram)',
+  whatsapp: 'WhatsApp Business',
+  email: 'דוא״ל',
+  content: 'תוכן',
+  seo: 'SEO',
+  website: 'אתר',
+  cross: 'רב-ערוצי',
+};
+
+var MONTHLY_TASK_TYPE_LABEL = {
+  tracking_setup: '🔧 הקמת מעקב',
+  paid_optimization: '⚡ אופטימיזציה ממומנת',
+  measurement_gap: '📊 פער מדידה',
+  seo: '🔍 SEO',
+  content_creation: '✍️ יצירת תוכן',
+  website_change: '🌐 שינוי אתר',
+  creative_refresh: '🎨 רענון יצירתי',
+  audience_expansion: '👥 הרחבת קהל',
+  landing_page: '📄 דף נחיתה',
+  experiment: '🧪 ניסוי',
+  keyword_expansion: '🔑 הרחבת מילות מפתח',
+  other: '📌 משימה כללית',
+};
+
+var MONTHLY_TASK_PRIORITY_STYLE = {
+  P0: { bg: '#DC26261A', color: '#991B1B', border: '#FCA5A5', label: 'P0 — קריטי' },
+  P1: { bg: '#F59E0B1A', color: '#92400E', border: '#FCD34D', label: 'P1 — חשוב' },
+  P2: { bg: '#0EA5E91A', color: '#075985', border: '#7DD3FC', label: 'P2 — רצוי' },
+};
+
+// Maps the task's `channel` to runtime integration availability.
+// Returns { connected: bool, label: string, hint: string }.
+function checkMonthlyTaskIntegration(channel) {
+  var rd = (instanceData && instanceData.researchData) || {};
+  var integ = (instanceData && instanceData.activeAgentIntegrations) || {};
+  switch (channel) {
+    case 'google_ads':
+      var ok = !!(instanceData && instanceData.hasGoogleAds
+        && instanceData.googleAdsCustomerId && instanceData.googleAdsHasDevToken);
+      return { connected: ok, label: 'Google Ads (MCC + Dev Token)',
+        hint: ok ? 'API mutate זמין — אוטומציה אפשרית' : 'חסר Dev Token או MCC — תרוצו רק שלבים ידניים' };
+    case 'gtm':
+      var gtmOk = !!(rd.mazhirGtm && rd.mazhirGtm.lastSetupResult && rd.mazhirGtm.lastSetupResult.published);
+      var gtmAuthed = !!(integ.gtm && integ.gtm.connected);
+      return { connected: gtmOk || gtmAuthed, label: 'מנהל התגיות (GTM API)',
+        hint: gtmOk ? 'API publish זמין' : (gtmAuthed ? 'OAuth זמין — צריך setup ראשוני' : 'לא מחובר — יצריך פעולות ידניות בממשק GTM') };
+    case 'ga4':
+      var gaOk = !!(integ.google && integ.google.connected);
+      return { connected: gaOk, label: 'Google Analytics 4',
+        hint: gaOk ? 'API קריאה זמין' : 'OAuth חסר — חברו ב-תוספים' };
+    case 'gbp':
+      var gbpOk = !!(integ.gbp && integ.gbp.connected);
+      return { connected: gbpOk, label: 'Google Business Profile',
+        hint: gbpOk ? 'API פוסטים/ביקורות זמין' : 'לא מחובר — פעולות דרך ממשק GBP' };
+    case 'meta':
+      var metaOk = !!(integ.meta && integ.meta.connected) || !!(instanceData && instanceData.metaTokens);
+      return { connected: metaOk, label: 'Meta Ads + Pixel',
+        hint: metaOk ? 'API mutate זמין' : 'לא מחובר — פעולות ידניות' };
+    case 'website':
+    case 'seo':
+    case 'content':
+      var wpOk = !!(integ.wordpress && integ.wordpress.connected);
+      var ghOk = !!(integ.github && integ.github.connected);
+      if (wpOk) return { connected: true, label: 'WordPress (REST API)', hint: 'עריכת תוכן + סכמות זמין' };
+      if (ghOk) return { connected: true, label: 'GitHub (commit + PR)', hint: 'קוד דרך PR — דורש merge' };
+      return { connected: false, label: 'WordPress / GitHub', hint: 'אין אינטגרציה — הוראות מפורטות לביצוע ידני' };
+    case 'whatsapp':
+      return { connected: false, label: 'WhatsApp Business API', hint: 'דורש WhatsApp Business + Cloud API — פעולות ידניות לעת עתה' };
+    case 'email':
+      return { connected: false, label: 'דוא״ל (ESP)', hint: 'תלוי בספק (Mailchimp/Klaviyo/etc.) — הוראות לפי הספק' };
+    default:
+      return { connected: false, label: channel || 'לא ידוע', hint: 'ערוץ לא מסווג' };
+  }
+}
+
+function _esc(s) { return (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+function renderMonthlyTaskPopup(task) {
+  var rd = (instanceData && instanceData.researchData) || {};
+  var plan = rd.monthlyPlan;
+  if (!plan || !Array.isArray(plan.tasks)) return '';
+  var fullTask = plan.tasks.find(function(t) { return t.id === task.metadata.taskId; });
+  if (!fullTask) return '';
+
+  var pri = MONTHLY_TASK_PRIORITY_STYLE[fullTask.priority] || MONTHLY_TASK_PRIORITY_STYLE.P2;
+  var typeLabel = MONTHLY_TASK_TYPE_LABEL[fullTask.type] || fullTask.type;
+  var channelLabel = MONTHLY_TASK_CHANNEL_LABEL[fullTask.channel] || fullTask.channel;
+  var integ = checkMonthlyTaskIntegration(fullTask.channel);
+
+  var h = '';
+
+  // ── Top chips row ─────────────────────────────────────────────────
+  h += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">' +
+    '<span style="font-size:0.74rem;font-weight:700;padding:3px 10px;border-radius:999px;background:' + pri.bg + ';color:' + pri.color + ';border:1px solid ' + pri.border + '">' + pri.label + '</span>' +
+    '<span style="font-size:0.74rem;font-weight:600;padding:3px 10px;border-radius:999px;background:#F3F4F6;color:#374151;border:1px solid #E5E7EB">' + typeLabel + '</span>' +
+    '<span style="font-size:0.74rem;font-weight:600;padding:3px 10px;border-radius:999px;background:#EEF2FF;color:#3730A3;border:1px solid #C7D2FE">📡 ' + _esc(channelLabel) + '</span>' +
+    (fullTask.estimatedEffort ? '<span style="font-size:0.74rem;font-weight:600;padding:3px 10px;border-radius:999px;background:#FEF3C7;color:#78350F;border:1px solid #FDE68A">⏱ ' + _esc(fullTask.estimatedEffort.replace('_', ' ')) + '</span>' : '') +
+    (fullTask.weekOfMonth ? '<span style="font-size:0.74rem;font-weight:600;padding:3px 10px;border-radius:999px;background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0">📅 שבוע ' + fullTask.weekOfMonth + '</span>' : '') +
+  '</div>';
+
+  // ── DependsOn warning ─────────────────────────────────────────────
+  if (Array.isArray(fullTask.dependsOn) && fullTask.dependsOn.length > 0) {
+    var depsHtml = fullTask.dependsOn.map(function(depId) {
+      var dep = plan.tasks.find(function(t) { return t.id === depId; });
+      if (!dep) return '<li>' + _esc(depId) + ' (לא נמצא)</li>';
+      var depStatus = dep.status === 'completed' ? '✓ הושלם' : dep.status === 'approved' ? '⚙ בתהליך' : '⏳ ממתין';
+      var depColor = dep.status === 'completed' ? '#10B981' : dep.status === 'approved' ? '#F59E0B' : '#EF4444';
+      return '<li style="margin-bottom:4px"><span style="color:' + depColor + ';font-weight:600">' + depStatus + '</span> · ' + _esc(dep.title) + '</li>';
+    }).join('');
+    var allDone = fullTask.dependsOn.every(function(depId) {
+      var dep = plan.tasks.find(function(t) { return t.id === depId; });
+      return dep && dep.status === 'completed';
+    });
+    var depBg = allDone ? '#ECFDF5' : '#FEF2F2';
+    var depBorder = allDone ? '#A7F3D0' : '#FCA5A5';
+    var depText = allDone ? '#065F46' : '#7F1D1D';
+    h += '<div style="background:' + depBg + ';border-right:3px solid ' + depBorder + ';padding:10px 12px;border-radius:6px;margin-bottom:12px">' +
+      '<div style="font-size:0.85rem;font-weight:600;color:' + depText + ';margin-bottom:6px">⚠ תלות במשימות אחרות</div>' +
+      '<ul style="margin:0;padding-right:18px;font-size:0.8rem;color:' + depText + ';line-height:1.6">' + depsHtml + '</ul>' +
+    '</div>';
+  }
+
+  // ── Summary ───────────────────────────────────────────────────────
+  if (fullTask.summary) {
+    h += '<div style="font-size:0.9rem;color:#374151;line-height:1.6;margin-bottom:14px;background:#F9FAFB;padding:12px 14px;border-radius:8px;border:1px solid #F3F4F6">' + _esc(fullTask.summary) + '</div>';
+  }
+
+  // ── Expected impact ───────────────────────────────────────────────
+  if (fullTask.expectedImpact) {
+    var imp = fullTask.expectedImpact;
+    var impLabel = '';
+    if (imp.metric === 'spend_savings_ils') impLabel = '₪' + Math.round(imp.value).toLocaleString() + ' חיסכון';
+    else if (imp.metric === 'extra_conversions') impLabel = '+' + Math.round(imp.value) + ' המרות';
+    else if (imp.metric === 'extra_leads') impLabel = '+' + Math.round(imp.value) + ' לידים';
+    else if (imp.metric === 'cpa_reduction_pct') impLabel = 'CPA ↓ ' + Math.round(imp.value) + '%';
+    else if (imp.metric === 'extra_organic_traffic_pct') impLabel = 'תנועה אורגנית ↑ ' + Math.round(imp.value) + '%';
+    else impLabel = imp.value + ' ' + (imp.metric || '');
+    var confColor = imp.confidence === 'high' ? '#10B981' : imp.confidence === 'medium' ? '#F59E0B' : '#9CA3AF';
+    h += '<div style="background:linear-gradient(180deg,#F0FDF4,#FFFFFF);border:1px solid #BBF7D0;border-radius:8px;padding:12px 14px;margin-bottom:14px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+        '<div style="font-size:0.82rem;color:#15803D;font-weight:700">📊 השפעה צפויה (' + _esc(imp.horizon || '30d') + ')</div>' +
+        '<div style="font-size:1.05rem;font-weight:700;color:#15803D">' + _esc(impLabel) + '</div>' +
+      '</div>' +
+      (imp.rationale ? '<div style="font-size:0.78rem;color:#4B5563;line-height:1.5;margin-top:4px">' + _esc(imp.rationale) + '</div>' : '') +
+      (imp.confidence ? '<div style="font-size:0.72rem;margin-top:6px"><span style="color:' + confColor + ';font-weight:600">●</span> ביטחון: ' + _esc(imp.confidence) + '</div>' : '') +
+    '</div>';
+  }
+
+  // ── Sources (citation chain) ──────────────────────────────────────
+  if (Array.isArray(fullTask.sources) && fullTask.sources.length > 0) {
+    var srcHtml = fullTask.sources.map(function(s, i) {
+      return '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:10px 12px;margin-bottom:6px">' +
+        '<div style="font-size:0.72rem;color:#6B7280;font-weight:600;margin-bottom:4px">[' + (i + 1) + '] ' + _esc(s.type || 'source') + ' · <code style="font-family:monospace;color:#0EA5E9;background:#F0F9FF;padding:1px 5px;border-radius:3px">' + _esc(s.ref || '') + '</code></div>' +
+        '<div style="font-size:0.82rem;color:#374151;line-height:1.5">' + _esc(s.excerpt || '') + '</div>' +
+      '</div>';
+    }).join('');
+    h += '<div style="margin-bottom:14px">' +
+      '<div style="font-size:0.82rem;font-weight:700;color:#1F2937;margin-bottom:8px">🔗 בסיס ראיות (' + fullTask.sources.length + ' מקורות)</div>' +
+      srcHtml +
+    '</div>';
+  }
+
+  // ── ActionPlan steps ──────────────────────────────────────────────
+  if (Array.isArray(fullTask.actionPlan) && fullTask.actionPlan.length > 0) {
+    var totalMin = fullTask.actionPlan.reduce(function(acc, s) { return acc + (s.estimatedMinutes || 0); }, 0);
+    var stepsHtml = fullTask.actionPlan.map(function(s, i) {
+      var auto = !!s.automated;
+      var badge = auto
+        ? '<span style="font-size:0.7rem;font-weight:600;padding:2px 8px;border-radius:999px;background:#10B98120;color:#065F46;border:1px solid #10B98140">⚡ אוטומציה זמינה</span>'
+        : '<span style="font-size:0.7rem;font-weight:600;padding:2px 8px;border-radius:999px;background:#F3F4F6;color:#374151;border:1px solid #E5E7EB">👤 ידני</span>';
+      var minBadge = s.estimatedMinutes ? '<span style="font-size:0.7rem;color:#9CA3AF;margin-right:6px">⏱ ' + s.estimatedMinutes + ' דק׳</span>' : '';
+      return '<div style="display:flex;gap:10px;padding:10px 12px;border-bottom:1px solid #F3F4F6">' +
+        '<div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:#EEF2FF;color:#3730A3;font-weight:700;font-size:0.75rem;display:flex;align-items:center;justify-content:center">' + (i + 1) + '</div>' +
+        '<div style="flex:1">' +
+          '<div style="font-size:0.85rem;color:#1F2937;line-height:1.5;margin-bottom:4px">' + _esc(s.step) + '</div>' +
+          '<div style="display:flex;gap:6px;align-items:center">' + badge + minBadge + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    h += '<div style="border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;margin-bottom:14px">' +
+      '<div style="background:#F9FAFB;padding:10px 12px;font-size:0.82rem;font-weight:700;color:#1F2937;border-bottom:1px solid #E5E7EB;display:flex;justify-content:space-between">' +
+        '<span>🛠 תוכנית פעולה (' + fullTask.actionPlan.length + ' שלבים)</span>' +
+        '<span style="font-weight:500;color:#6B7280">סה״כ ~' + totalMin + ' דק׳</span>' +
+      '</div>' +
+      stepsHtml +
+    '</div>';
+  }
+
+  // ── Integration status ────────────────────────────────────────────
+  var integBg = integ.connected ? '#ECFDF5' : '#FEF3C7';
+  var integBorder = integ.connected ? '#A7F3D0' : '#FDE68A';
+  var integText = integ.connected ? '#065F46' : '#78350F';
+  var integIcon = integ.connected ? '✓' : '⚠';
+  h += '<div style="background:' + integBg + ';border:1px solid ' + integBorder + ';border-radius:8px;padding:10px 12px;margin-bottom:14px">' +
+    '<div style="font-size:0.82rem;font-weight:700;color:' + integText + ';margin-bottom:4px">🔌 ' + integIcon + ' מצב אינטגרציה</div>' +
+    '<div style="font-size:0.85rem;color:' + integText + ';font-weight:600">' + _esc(integ.label) + (integ.connected ? ' — מחובר' : ' — לא מחובר') + '</div>' +
+    '<div style="font-size:0.78rem;color:' + integText + ';opacity:0.85;margin-top:4px;line-height:1.5">' + _esc(integ.hint) + '</div>' +
+  '</div>';
+
+  return h;
+}
+
+function renderMonthlyTaskFooter(task) {
+  if (task.status === 'approved') return '<span style="color:#10B981;font-weight:600;padding:8px">✓ אושר</span>';
+  if (task.status === 'rejected') return '<span style="color:#EF4444;font-weight:600;padding:8px">✗ נדחה</span>';
+  if (task.status === 'awaiting') {
+    return '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()">✗ דחו</button>' +
+           '<button class="aq-btn edit" onclick="skipMonthlyTaskUI(\'' + task.id + '\');closeTaskPopup()" style="background:#FEF3C7;color:#78350F;border-color:#FDE68A">⏭ דחו לחודש הבא</button>' +
+           '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">✓ אשרו</button>';
+  }
+  return '';
 }
 
 function renderCreativeApprovalFooter(task) {
