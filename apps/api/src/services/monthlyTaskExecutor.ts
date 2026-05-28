@@ -110,7 +110,7 @@ export async function executeTask(
                 break
             case 'tracking_setup':
             case 'measurement_gap':
-                result = await runTrackingSetupAdapter(instanceId, task, plan)
+                result = await runTrackingSetupAdapter(instanceId, task, plan, agent)
                 break
             case 'content_creation':
                 result = await runContentCreationAdapter(instanceId, task, plan)
@@ -301,13 +301,35 @@ function _extractNegativesFromTask(task: MonthlyTask, mpOpt: any): string[] {
 // Adapter: tracking_setup — delegate to Mazhir GTM + conversions
 // ════════════════════════════════════════════════════════════════════════
 
-async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _plan: MonthlyMarketingPlan): Promise<ExecutorResult> {
+async function runTrackingSetupAdapter(
+    instanceId: string,
+    task: MonthlyTask,
+    _plan: MonthlyMarketingPlan,
+    agent?: any,    // Phase 2026.02 Block 6: agent-scoped reads (multi-agent VPS).
+                    // Resolved upstream in executeTask; we use it for
+                    // research_data reads (mazhirGtm.target etc.) and writes.
+): Promise<ExecutorResult> {
     const stepResults: Array<{ step: string; ok: boolean; detail?: string }> = []
 
-    // Determine whether this is about conversions, GTM, or both — read task hints
+    // Determine whether this is about conversions, GTM, or both — read task hints.
+    // Phase 2026.02 Block 6: tightened regex. Old `/conv/` matched 'consent'
+    // (false positive on tsk_consent_mode_v2). Old `/tag/` matched any 'tag'
+    // word. Now:
+    //   - wantsConv = explicit conversion-creation signal (paid_profile flow).
+    //     Skipped entirely for tracking_setup/measurement_gap (Path B-1
+    //     tenants don't have paidProfile — they use the wantsPrimaryReconcile
+    //     branch and autoSetupGtmContainer instead).
+    //   - wantsGtm = GTM tag publish signal, includes consent/enhanced_conversions
+    //     variants used by tracking-foundation Mission #1.
     const text = (task.title + ' ' + task.summary + ' ' + (task.actionPlan || []).map(s => s.step).join(' ')).toLowerCase()
-    const wantsConv = /conversion|המרה|המרות|conv|פיקסל|tag/.test(text)
-    const wantsGtm = /gtm|tag manager|tag|הקמת|setup/.test(text)
+    const wantsConv = task.type !== 'tracking_setup' && task.type !== 'measurement_gap'
+        && /\bconversion\b|המרה|המרות|פיקסל|conversionaction|פעולות[\s-]*ערך/i.test(text)
+    // sGTM (server-side container deploy on Cloud Run / VPS) is NOT
+    // autoSetupGtmContainer's job — autoSetupGtmContainer publishes
+    // CLIENT-side tags into the existing GTM workspace. Treat sGTM as
+    // its own manual-brief track until we wire VPS auto-deploy.
+    const wantsSgtm = /\bsgtm\b|server[-\s]*side[-\s]*gtm|server[-\s]*side[-\s]*container|sgtm[-\s]*container|cloud[-\s]*run/i.test(text)
+    const wantsGtm = !wantsSgtm && /\bgtm\b|מנהל[\s-]*התגיות|tag[\s-]*manager|consent[\s-]*mode|enhanced[\s-]*conversions/i.test(text)
     // Phase 2026.02 Block 6: detect "mark primary / demote others" tasks
     // (tsk_cr_validation archetype). measurement_gap + Hebrew/English "primary"
     // keywords route to reconcilePrimaryConversionActions instead of full
@@ -322,24 +344,13 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
             const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
             // Phase 2026.02 Block 6: prefer mateh_agent.googleAdsConfig (multi-agent
             // VPS) over legacy instances.googleAdsConfig — agent owns scope.
-            const { resolvePrimaryAgent, resolveAgentById } = await import('./agentContext')
-            const ownerAgent = task.executionOutputId
-                ? null  // best-effort below
-                : await resolvePrimaryAgent(instanceId)
-            // Fast path: read fresh from DB for this agent if we can resolve.
-            // Otherwise fall back to instances.googleAdsConfig.
-            let cfg: any = {}
-            let tokens: any = {}
-            try {
-                if (ownerAgent) {
-                    cfg = (ownerAgent as any).googleAdsConfig || {}
-                    tokens = (ownerAgent as any).googleTokens || {}
-                }
-                if (!cfg.customerId || !tokens.refreshToken) {
-                    cfg = (inst as any).googleAdsConfig || {}
-                    tokens = (inst as any).googleTokens || {}
-                }
-            } catch { /* fall back */ }
+            // `agent` is passed in from executeTask (post agentId resolution).
+            let cfg: any = (agent as any)?.googleAdsConfig || {}
+            let tokens: any = (agent as any)?.googleTokens || {}
+            if (!cfg.customerId || !tokens.refreshToken) {
+                cfg = (inst as any).googleAdsConfig || {}
+                tokens = (inst as any).googleTokens || {}
+            }
 
             if (!cfg.customerId || !cfg.developerToken || !tokens.refreshToken) {
                 stepResults.push({ step: 'primary reconcile pre-check', ok: false, detail: 'Google Ads API tokens incomplete' })
@@ -553,24 +564,95 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
                 detail: `${result.mapped?.length || 0} mapped, ${result.created?.length || 0} created`,
             })
         }
+        // Phase 2026.02 Block 6: sGTM (server-side GTM container) — DIFFERENT
+        // from client-side autoSetupGtmContainer. Requires Docker container on
+        // Cloud Run or a Hetzner VPS subdomain — neither is wired yet. Surface
+        // manual brief with Hebrew instructions + GCP/VPS deep links.
+        if (wantsSgtm) {
+            stepResults.push({
+                step: 'sGTM server-side container — manual setup (auto-deploy on VPS planned)',
+                ok: false,
+                detail: 'הקמת server-side GTM container דורשת deploy ל-Cloud Run (או VPS שלכם).\n' +
+                    'שלבים:\n' +
+                    '1. Google Cloud Console → Cloud Run → Create service\n' +
+                    '2. Container image: gcr.io/cloud-tagging-10302018/gtm-cloud-image:stable\n' +
+                    '3. Env var CONTAINER_CONFIG = (Tag Manager → Container → Tagging Server → Manually provision)\n' +
+                    '4. Region: europe-west1 (קרוב לישראל)\n' +
+                    '5. Custom domain: sgtm.your-site.co.il (DNS CNAME)\n' +
+                    '6. Verify: https://sgtm.your-site.co.il/healthy — should return 200\n\n' +
+                    'אוטומציה (auto-deploy על VPS שלכם) בפיתוח — תיכלל ב-Pattern G של תוכנית החודש.',
+            })
+            return {
+                ok: false,
+                outputDescription: 'sGTM container — manual setup required (auto-deploy on VPS planned).',
+                stepResults,
+            }
+        }
+
         if (wantsGtm) {
             const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-            const rd: any = (inst as any)?.researchData || {}
-            const target = rd.mazhirGtm?.target
+            // Phase 2026.02 Block 6: agent-scoped read. Multi-agent VPS stores
+            // mazhirGtm.target per-agent in mateh_agents.research_data, not in
+            // legacy instances.research_data.
+            const { readResearchData } = await import('./agentContext')
+            const rd: any = (agent
+                ? (await readResearchData(agent, instanceId))
+                : (inst as any)?.researchData) || {}
+            // Phase 2026.02 Block 6: auto-discover GTM target if not picked.
+            let target = rd.mazhirGtm?.target
+            const tokens = (agent as any)?.googleTokens || (inst as any)?.googleTokens
             if (!target) {
-                stepResults.push({ step: 'GTM auto-setup', ok: false, detail: 'GTM target not picked — user must select container first' })
-                return { ok: false, outputDescription: 'GTM target missing', error: 'GTM target not picked', stepResults }
+                if (!tokens?.refreshToken) {
+                    stepResults.push({ step: 'GTM auto-discover', ok: false, detail: 'No Google OAuth tokens — reconnect Google in Integrations' })
+                    return { ok: false, outputDescription: 'GTM tokens missing', error: 'no GTM tokens', stepResults }
+                }
+                try {
+                    const { listGtmTargets, saveGtmTarget } = await import('./mazhirGtmSetup')
+                    const candidates = await listGtmTargets(tokens)
+                    if (candidates.length === 0) {
+                        stepResults.push({ step: 'GTM auto-discover', ok: false, detail: 'No GTM containers found in this Google account — create one at tagmanager.google.com first' })
+                        return { ok: false, outputDescription: 'no GTM containers', error: 'no containers in account', stepResults }
+                    } else if (candidates.length === 1) {
+                        target = candidates[0]
+                        stepResults.push({
+                            step: 'GTM auto-discover',
+                            ok: true,
+                            detail: `auto-picked single available container: ${target.name} (${target.publicId})`,
+                        })
+                        // Persist on owner agent so subsequent runs skip discovery.
+                        if (agent) {
+                            await saveGtmTarget(instanceId, target, agent.id || null)
+                        }
+                    } else {
+                        // Multiple containers — let user pick. Surface list.
+                        stepResults.push({
+                            step: 'GTM auto-discover',
+                            ok: false,
+                            detail: `${candidates.length} GTM containers found — manual pick required:\n` +
+                                candidates.map(c => `• ${c.name} (${c.publicId}, accountId=${c.accountId})`).join('\n') +
+                                `\n\nOpen dashboard → Integrations → GTM → Pick container.`,
+                        })
+                        return {
+                            ok: false,
+                            outputDescription: `${candidates.length} GTM containers — user must pick`,
+                            error: 'multiple containers — user pick required',
+                            stepResults,
+                        }
+                    }
+                } catch (e) {
+                    const msg = (e as Error).message
+                    stepResults.push({ step: 'GTM auto-discover', ok: false, detail: `Discovery failed: ${msg.slice(0, 300)}` })
+                    return { ok: false, outputDescription: 'GTM discovery failed', error: msg, stepResults }
+                }
             }
             const { autoSetupGtmContainer, saveGtmSetupResult } = await import('./mazhirGtmSetup')
-            const gtmResult = await autoSetupGtmContainer((inst as any).googleTokens, {
+            const gtmResult = await autoSetupGtmContainer(tokens, {
                 target,
                 measurementId: target.measurementId,
                 conversions: rd.mazhirConversions?.gtmConfigs || [],
                 enhancedConversions: true,
             })
-            // Phase 4.3-T: monthly task runs as background job; pass null
-            // (primary fallback acceptable until secondary-agent cron paths exist).
-            await saveGtmSetupResult(instanceId, gtmResult, null)
+            await saveGtmSetupResult(instanceId, gtmResult, agent?.id || null)
             stepResults.push({
                 step: 'GTM auto-setup',
                 ok: gtmResult.published,
