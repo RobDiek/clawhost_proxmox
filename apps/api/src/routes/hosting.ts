@@ -187,6 +187,7 @@ import {
     getOutput,
     ingestOutput,
     approveOutput,
+    markManualDone,
     rejectOutput,
     editOutput,
     publishOutput,
@@ -771,6 +772,12 @@ app.get('/instances/:id/outputs', getOutputs)
 app.get('/instances/:id/outputs/:outputId', getOutput)
 app.post('/instances/:id/outputs/ingest', ingestOutput)
 app.patch('/instances/:id/outputs/:outputId/approve', approveOutput)
+// Phase 2026.02 Block 6 Pattern F: mark a 'awaiting_manual' task as
+// completed after the user finished the manual step (e.g. pasted GTM
+// container config, deployed sGTM via Cloud Run, manually adjusted a
+// codeless conversion action). Updates agent_outputs.status='completed'
+// AND mirrors plan.tasks[idx].status='completed' in research_data.
+app.patch('/instances/:id/outputs/:outputId/mark-manual-done', markManualDone)
 app.patch('/instances/:id/outputs/:outputId/reject', rejectOutput)
 app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)

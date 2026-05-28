@@ -6414,7 +6414,17 @@ function getChannelLabel(task) {
 function renderApprovalQueueData(el, counterEl, apiOutputs) {
   // Map API outputs to task format
   var tasks = apiOutputs.map(function(o) {
-    var statusMap = { pending_review: 'awaiting', approved: 'approved', published: 'published', rejected: 'rejected' };
+    // Phase 2026.02 Block 6 Pattern F: pass-through awaiting_manual + completed + failed
+    // so the popup footer can render the right action buttons.
+    var statusMap = {
+      pending_review: 'awaiting',
+      approved: 'approved',
+      published: 'published',
+      rejected: 'rejected',
+      awaiting_manual: 'awaiting_manual',
+      completed: 'completed',
+      failed: 'failed',
+    };
     return {
       id: o.id,
       title: o.title,
@@ -8190,14 +8200,41 @@ function renderMonthlyTaskPopup(task) {
 }
 
 function renderMonthlyTaskFooter(task) {
+  // Phase 2026.02 Block 6 Pattern F: awaiting_manual status. Auto-execute
+  // pre-provisioned what it could; user must finish a remaining manual step
+  // (e.g. paste GTM CONTAINER_CONFIG, demote a codeless conversion action in
+  // Google Ads UI). Show '✓ ביצעתי ידנית' to mark completed once user
+  // finishes the manual step described in the popup body.
+  if (task.status === 'awaiting_manual') {
+    return '<span style="color:#92400E;font-weight:600;padding:8px;background:#FEF3C7;border-radius:6px;border:1px solid #FDE68A">⏳ ממתין לפעולה ידנית</span>' +
+           '<button class="aq-btn approve" onclick="apiMarkManualDone(\'' + task.id + '\');closeTaskPopup()" style="background:#10B981;color:#fff">✓ ביצעתי ידנית</button>';
+  }
+  if (task.status === 'completed') return '<span style="color:#10B981;font-weight:600;padding:8px">✓ הושלם</span>';
   if (task.status === 'approved') return '<span style="color:#10B981;font-weight:600;padding:8px">✓ אושר</span>';
   if (task.status === 'rejected') return '<span style="color:#EF4444;font-weight:600;padding:8px">✗ נדחה</span>';
+  if (task.status === 'failed') return '<span style="color:#EF4444;font-weight:600;padding:8px">✗ נכשל</span>' +
+    '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()" title="נסו לבצע מחדש">↻ הריצו מחדש</button>';
   if (task.status === 'awaiting') {
     return '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()">✗ דחו</button>' +
            '<button class="aq-btn edit" onclick="skipMonthlyTaskUI(\'' + task.id + '\');closeTaskPopup()" style="background:#FEF3C7;color:#78350F;border-color:#FDE68A">⏭ דחו לחודש הבא</button>' +
            '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">✓ אשרו</button>';
   }
   return '';
+}
+
+// Phase 2026.02 Block 6 Pattern F — promote awaiting_manual → completed.
+// Used by '✓ ביצעתי ידנית' button. Endpoint also mirrors status to
+// research_data.monthlyPlan.tasks[idx].
+function apiMarkManualDone(outputId) {
+  fetch(API + '/hosting/instances/' + instanceId + '/outputs/' + outputId + '/mark-manual-done', {
+    method: 'PATCH',
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) { showToast('משימה הושלמה ידנית', 'success'); renderApprovalQueue(); }
+    else { showToast('שגיאה: ' + (d.message || 'failed to mark manual done'), 'error'); }
+  })
+  .catch(function() { showToast('שגיאת רשת', 'error'); });
 }
 
 // Phase 2026.02 Block 6 — Overall monthly_marketing_plan popup renderer.

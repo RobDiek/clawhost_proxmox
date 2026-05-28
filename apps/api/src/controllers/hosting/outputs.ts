@@ -213,6 +213,66 @@ export const ingestOutput = async (c: Context<HonoEnv>) => {
     }
 }
 
+// ── PATCH /hosting/instances/:id/outputs/:outputId/mark-manual-done ──
+// Phase 2026.02 Block 6 Pattern F: completion path for tasks that ran
+// auto-execute but require a final manual step (e.g. sGTM Cloud Run deploy,
+// codeless conversion action demote, ga4 BigQuery linkage). Executor left
+// the task in 'awaiting_manual' status; user clicks "✓ ביצעתי ידנית" in
+// the popup and we promote it to 'completed' AND mirror the same status
+// on plan.tasks[idx] in research_data.
+export const markManualDone = async (c: Context<HonoEnv>) => {
+    try {
+        const outputId = c.req.param('outputId')
+        const userId = c.get('userId')
+
+        const [updated] = await db.update(agentOutputs)
+            .set({
+                status: 'completed',
+                publishedAt: new Date(),     // reuse publishedAt as 'final state at'
+                updatedAt: new Date(),
+            })
+            .where(and(
+                eq(agentOutputs.id, outputId),
+                eq(agentOutputs.status, 'awaiting_manual'),
+            ))
+            .returning()
+
+        if (!updated) return fail(c, 'Output not found or not in awaiting_manual status', 404)
+
+        // Mirror to research_data.monthlyPlan.tasks[idx].status = 'completed'.
+        const meta = updated.metadata as Record<string, unknown> | null
+        const taskId = meta?.taskId as string | undefined
+        if (taskId && updated.outputType === 'monthly_task') {
+            try {
+                const { resolveAgentById, resolvePrimaryAgent, mutateResearchData } =
+                    await import('@/services/agentContext')
+                const agent = updated.agentId
+                    ? (await resolveAgentById(updated.instanceId, updated.agentId)) || (await resolvePrimaryAgent(updated.instanceId))
+                    : await resolvePrimaryAgent(updated.instanceId)
+                await mutateResearchData(agent, updated.instanceId, (rd: any) => {
+                    const plan = rd?.monthlyPlan
+                    if (!plan || !Array.isArray(plan.tasks)) return rd
+                    const idx = plan.tasks.findIndex((t: any) => t.id === taskId)
+                    if (idx === -1) return rd
+                    plan.tasks[idx].status = 'completed'
+                    plan.tasks[idx].completedAt = new Date().toISOString()
+                    ;(plan.tasks[idx] as any).completedMethod = 'manual_user_confirm'
+                    ;(plan.tasks[idx] as any).completedBy = userId
+                    return rd
+                })
+            } catch (err) {
+                console.warn(`[markManualDone] mirror to research_data failed for ${outputId}:`, (err as Error).message)
+            }
+        }
+
+        console.log(`Output ${outputId} (taskId=${taskId}) marked manual-done by ${userId}`)
+        return ok(c, updated, 'Manual step confirmed — task marked completed')
+    } catch (err) {
+        console.error('markManualDone error:', err)
+        return fail(c, 'Failed to mark manual done', 500)
+    }
+}
+
 // ── PATCH /hosting/instances/:id/outputs/:outputId/approve ──
 export const approveOutput = async (c: Context<HonoEnv>) => {
     try {

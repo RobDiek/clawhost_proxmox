@@ -40,6 +40,12 @@ export interface ExecutorResult {
     outputDescription: string                  // Hebrew, what was done
     error?: string
     stepResults?: Array<{ step: string; ok: boolean; detail?: string }>
+    // Phase 2026.02 Block 6 Pattern F: task is NOT a failure — auto-execute
+    // did what it could (e.g. surfaced manual instructions with our help)
+    // but the final step requires user action. Maps to agent_outputs.status
+    // = 'awaiting_manual'. User clicks "✓ ביצעתי ידנית" in UI to flip
+    // status → 'completed'.
+    awaitingManual?: boolean
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -128,7 +134,11 @@ export async function executeTask(
     }
 
     // Mark completion + capture executionOutcome (Phase 4.3-N v8)
-    const finalStatus: MonthlyTask['status'] = result.ok ? 'completed' : 'failed'
+    // Phase 2026.02 Block 6 Pattern F: tri-state outcome —
+    //   ok:true + awaitingManual:true → 'awaiting_manual' (UI shows "✓ ביצעתי" button)
+    //   ok:true                       → 'completed'
+    //   ok:false                      → 'failed'
+    const finalStatus: any = result.awaitingManual ? 'awaiting_manual' : (result.ok ? 'completed' : 'failed')
     const completedAt = new Date().toISOString()
     await mutateResearchData(agent, instanceId, (rd2: any) => {
         const plan2: MonthlyMarketingPlan = rd2.monthlyPlan
@@ -143,7 +153,7 @@ export async function executeTask(
             // not in this release).
             ;(plan2.tasks[taskIdx] as any).executionOutcome = {
                 completedAt,
-                completedMethod: 'automated',
+                completedMethod: result.awaitingManual ? 'auto_pre_provision_manual_followup' : 'automated',
                 outputDescription: result.outputDescription,
                 stepResults: result.stepResults || [],
                 error: result.error,
@@ -156,7 +166,7 @@ export async function executeTask(
     if (task.executionOutputId) {
         try {
             await db.update(agentOutputs).set({
-                status: result.ok ? 'completed' : 'failed',
+                status: finalStatus,
                 content: JSON.stringify({
                     outputDescription: result.outputDescription,
                     stepResults: result.stepResults,
@@ -569,6 +579,10 @@ async function runTrackingSetupAdapter(
         // Cloud Run or a Hetzner VPS subdomain — neither is wired yet. Surface
         // manual brief with Hebrew instructions + GCP/VPS deep links.
         if (wantsSgtm) {
+            // Pattern F (Manual brief + done button) — Pattern G (full hybrid
+            // auto-deploy on VPS) is a separate sprint. For now surface
+            // Hebrew instructions clearly; task waits in 'awaiting_manual'
+            // status until user clicks "✓ ביצעתי ידנית".
             stepResults.push({
                 step: 'sGTM server-side container — manual setup (auto-deploy on VPS planned)',
                 ok: false,
@@ -580,11 +594,12 @@ async function runTrackingSetupAdapter(
                     '4. Region: europe-west1 (קרוב לישראל)\n' +
                     '5. Custom domain: sgtm.your-site.co.il (DNS CNAME)\n' +
                     '6. Verify: https://sgtm.your-site.co.il/healthy — should return 200\n\n' +
-                    'אוטומציה (auto-deploy על VPS שלכם) בפיתוח — תיכלל ב-Pattern G של תוכנית החודש.',
+                    'אוטומציה (auto-deploy על VPS שלכם) בפיתוח — תיכלל בעדכון הבא.',
             })
             return {
-                ok: false,
-                outputDescription: 'sGTM container — manual setup required (auto-deploy on VPS planned).',
+                ok: true,
+                awaitingManual: true,
+                outputDescription: 'sGTM container — manual setup required. Click "✓ ביצעתי ידנית" when done.',
                 stepResults,
             }
         }
