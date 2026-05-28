@@ -252,9 +252,12 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             return fail(c, 'No Google OAuth tokens for this agent — reconnect Google in Integrations first', 400)
         }
 
-        const { createFreshGtmStack, saveGtmTarget, buildGtmHeadSnippet, buildGtmBodySnippet } =
+        const { createFreshGtmStack, saveGtmTarget, autoSetupGtmContainer, saveGtmSetupResult, buildGtmHeadSnippet, buildGtmBodySnippet } =
             await import('@/services/mazhirGtmSetup')
 
+        const chainSteps: Array<{ step: string; ok: boolean; detail?: string }> = []
+
+        // ── 1. Create container in existing/new account ──
         const stack = await createFreshGtmStack({
             googleTokens: tokens,
             accountName,
@@ -262,11 +265,16 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             containerName,
             siteDomain,
         })
+        chainSteps.push({
+            step: 'GTM Container created',
+            ok: true,
+            detail: `Account: ${stack.account.name} (${stack.account.accountId}); Container: ${stack.container.name} (${stack.container.publicId})`,
+        })
 
         // Save target → research_data.mazhirGtm.target (replaces prior target).
         await saveGtmTarget(instanceId, stack.target, agent.id || null)
 
-        // Also record creation event in research_data for audit history.
+        // Record creation event for audit history.
         await mutateResearchData(agent, instanceId, (rd: any) => {
             rd.mazhirGtm = {
                 ...(rd.mazhirGtm || {}),
@@ -283,6 +291,96 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             return rd
         })
 
+        // ── 2. Populate fixtures via autoSetupGtmContainer ──
+        // Existing fixtures: Conversion Linker, GCLID Capture, Consent Mode v2,
+        // GA4 events tag (if measurementId), Enhanced Conversions vars.
+        try {
+            const rd = (agent as any).researchData || {}
+            const gtmResult = await autoSetupGtmContainer(tokens, {
+                target: stack.target,
+                measurementId: stack.target.measurementId,
+                conversions: rd.mazhirConversions?.gtmConfigs || [],
+                enhancedConversions: true,
+            })
+            await saveGtmSetupResult(instanceId, gtmResult, agent.id || null)
+            chainSteps.push({
+                step: 'Fixtures published (Consent Mode v2 + Conversion Linker + GCLID + EC variables)',
+                ok: gtmResult.published,
+                detail: gtmResult.published
+                    ? `Created ${gtmResult.created.length}, skipped ${gtmResult.skipped.length}, version=${gtmResult.versionId || '(no-op)'}`
+                    : `errors: ${gtmResult.errors.map(e => e.error).join('; ')}`,
+            })
+        } catch (e) {
+            chainSteps.push({
+                step: 'Fixtures publish failed',
+                ok: false,
+                detail: (e as Error).message.slice(0, 400),
+            })
+        }
+
+        // ── 3. WP REST snippet install (best-effort) ──
+        // Phase 2026.02 Block 6 Pattern I: try to auto-install the GTM snippet
+        // on the user's WordPress site via the existing 'wordpress' agent
+        // integration. If WP isn't connected, fall through and surface the
+        // snippet to the user for manual paste.
+        let wpInstalled = false
+        let wpError = ''
+        try {
+            const { db } = await import('@/db')
+            const { agentIntegrations } = await import('@/db/schema')
+            const { and, eq } = await import('drizzle-orm')
+            const wpRows = await db.select().from(agentIntegrations).where(
+                and(
+                    eq(agentIntegrations.instanceId, instanceId),
+                    eq(agentIntegrations.integrationType, 'wordpress'),
+                ),
+            )
+            const wp = wpRows.find(r => {
+                const cfg = (r.config as any) || {}
+                const url = String(cfg.url || '').replace(/^https?:\/\//, '').replace(/\/$/, '')
+                const target = String(siteDomain || '').replace(/^https?:\/\//, '').replace(/\/$/, '')
+                return target && url && url.includes(target)
+            }) || wpRows[0]
+            if (wp && (wp.config as any)?.url && (wp.config as any)?.user && (wp.config as any)?.appPassword) {
+                const cfg = wp.config as any
+                const auth = Buffer.from(`${cfg.user}:${cfg.appPassword}`).toString('base64')
+                // Use WordPress 'options' REST endpoint to write a custom
+                // option key that our companion plugin reads + injects to
+                // <head>. If the user has no companion plugin, this is a
+                // no-op stored value (we surface snippet for manual paste too).
+                const snippet = buildGtmHeadSnippet(stack.container.publicId)
+                const optionRes = await fetch(`${cfg.url}/wp-json/clawflow/v1/gtm-snippet`, {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Basic ${auth}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        publicId: stack.container.publicId,
+                        head: snippet,
+                        body: buildGtmBodySnippet(stack.container.publicId),
+                    }),
+                }).catch((e) => { wpError = (e as Error).message; return null })
+                if (optionRes && optionRes.ok) {
+                    wpInstalled = true
+                    chainSteps.push({ step: 'WordPress snippet installed (via Clawflow companion plugin)', ok: true, detail: cfg.url })
+                } else if (optionRes) {
+                    wpError = `HTTP ${optionRes.status}: ${(await optionRes.text()).slice(0, 200)}`
+                    chainSteps.push({
+                        step: 'WordPress auto-install failed — companion plugin missing',
+                        ok: false,
+                        detail: `Falling back to manual paste. ${wpError}. Install our Clawflow WP plugin or paste the snippet below into your theme's <head>.`,
+                    })
+                } else {
+                    chainSteps.push({ step: 'WordPress REST unreachable', ok: false, detail: wpError })
+                }
+            } else {
+                chainSteps.push({ step: 'WordPress not connected', ok: false, detail: 'No matching WP integration — paste snippet manually' })
+            }
+        } catch (e) {
+            chainSteps.push({ step: 'WordPress install error', ok: false, detail: (e as Error).message.slice(0, 300) })
+        }
+
         return ok(c, {
             account: stack.account,
             container: stack.container,
@@ -291,8 +389,12 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                 head: buildGtmHeadSnippet(stack.container.publicId),
                 body: buildGtmBodySnippet(stack.container.publicId),
             },
-            instructions: `Site snippet update — replace existing GTM snippet on ${siteDomain || 'your site'} with the new snippets. Then re-run autoSetupGtmContainer to populate fixtures.`,
-        }, 'Fresh GTM stack created')
+            chainSteps,
+            wpInstalled,
+            instructions: wpInstalled
+                ? `✓ Done! New GTM snippet auto-installed on ${siteDomain}. Verify by visiting the site and opening GTM Preview mode.`
+                : `Site snippet update required: copy the head + body snippets below into your site's <head> and <body> tags. Container ID: ${stack.container.publicId}.`,
+        }, 'Fresh GTM stack created + fixtures populated')
     } catch (err) {
         console.error('gtmFreshStack error:', err)
         return fail(c, 'Fresh GTM stack creation failed: ' + (err as Error).message, 500)
