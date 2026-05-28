@@ -8434,8 +8434,19 @@ function renderGtmWizardSuccess(data, taskId) {
       ? '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:0.85rem;color:#1E40AF">' +
           '🚀 ה-Snippet הותקן אוטומטית באתר. אמתו דרך GTM Preview mode על: ' + escapeHtml(data.instructions || '') +
         '</div>'
-      : '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-bottom:14px">' +
-          '<div style="font-size:0.85rem;font-weight:600;color:#92400E;margin-bottom:8px">📌 התקנה ידנית באתר (חסר WP companion plugin):</div>' +
+      : '<div style="background:#DBEAFE;border:1px solid #93C5FD;border-radius:8px;padding:14px 16px;margin-bottom:14px">' +
+          '<div style="font-size:0.92rem;font-weight:700;color:#1E3A8A;margin-bottom:8px">📦 התקנה אוטומטית — שלב חד-פעמי (30 שניות):</div>' +
+          '<div style="font-size:0.85rem;color:#1E3A8A;line-height:1.7;margin-bottom:10px">' +
+            'WordPress לא מאפשרת להתקין plugins מותאמים דרך REST API (החלטת אבטחה של Google + WP). פעם אחת בלבד — הורידו את ה-Plugin שלנו והעלו אותו דרך WP Admin. אחרי זה — הכל אוטומטי לתמיד.' +
+          '</div>' +
+          '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">' +
+            '<a href="' + API + '/hosting/instances/' + instanceId + '/wp/companion-plugin.zip?token=' + encodeURIComponent(token) + '" download="clawflow-companion.zip" style="background:#1D4ED8;color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none;font-size:0.85rem;font-weight:600">⬇ הורידו clawflow-companion.zip</a>' +
+            '<span style="font-size:0.8rem;color:#1E40AF">→ WP Admin → Plugins → Add New → Upload Plugin → Activate</span>' +
+          '</div>' +
+          '<button onclick="retryGtmFreshStackInstall(\'' + escapeHtml(data.account.accountId) + '\', \'' + escapeHtml(data.container.name) + '\', \'' + escapeHtml(data.target.publicId) + '\', ' + (taskId ? "'" + taskId + "'" : 'null') + ')" style="background:#10B981;color:#fff;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;font-size:0.85rem;font-weight:600">✓ התקנתי את ה-Plugin — נסו שוב</button>' +
+        '</div>' +
+        '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-bottom:14px">' +
+          '<div style="font-size:0.85rem;font-weight:600;color:#92400E;margin-bottom:8px">או — התקנה ידנית של ה-Snippets (חלופה ל-Plugin):</div>' +
           '<div style="font-size:0.82rem;color:#78350F;line-height:1.6;margin-bottom:8px">העתיקו את שני ה-snippets והדביקו לפני סגירת ה-&lt;/head&gt; ואחרי פתיחת ה-&lt;body&gt; בערכת העיצוב של האתר:</div>' +
           '<div style="margin-bottom:10px">' +
             '<div style="font-size:0.78rem;color:#92400E;font-weight:600;margin-bottom:4px">HEAD snippet:</div>' +
@@ -8455,6 +8466,32 @@ function renderGtmWizardSuccess(data, taskId) {
     '</div>';
 
   showToast('GTM Stack מוכן', 'success');
+}
+
+// Phase 2026.02 Block 6 Pattern J — re-run fresh-stack after user has
+// manually uploaded + activated the Clawflow companion plugin in WP Admin.
+// Backend now finds the plugin active → snippet POST works → wpInstalled=true.
+function retryGtmFreshStackInstall(accountId, containerName, publicId, taskId) {
+  var siteDomain = (instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.websiteUrl) || 'packing-station.co.il';
+  siteDomain = siteDomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  showToast('מנסים שוב את ההתקנה ב-WP — בדיקה שה-Plugin פעיל...', 'info');
+  var agent = activeAgent || 'oc';
+  var agentParam = window.activeAgentId ? '&agentId=' + window.activeAgentId : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/gtm/fresh-stack?agent=' + agent + agentParam, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ existingAccountId: accountId, containerName: containerName, siteDomain: siteDomain })
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) {
+      var step2 = document.getElementById('gtmWizardStep2');
+      if (step2) step2.innerHTML = '';
+      renderGtmWizardSuccess(d.data, taskId);
+    } else {
+      showToast('עדיין נכשל: ' + (d.message || 'unknown'), 'error');
+    }
+  })
+  .catch(function(err) { showToast('שגיאת רשת: ' + (err && err.message || ''), 'error'); });
 }
 
 function copyToClipboard(text, label) {

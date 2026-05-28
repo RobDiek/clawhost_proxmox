@@ -221,14 +221,28 @@ async function wpDelete(cfg: WpCfg, path: string): Promise<any> {
 // ─── Plugin install via REST /wp/v2/plugins ───────────────────────────────
 
 /**
- * Install + activate the ClawFlow companion plugin via WP REST API.
- * Strategy:
- *   1. List installed plugins. If 'clawflow-companion/clawflow-companion'
- *      is already active → method='already_active', return.
- *   2. If installed but inactive → activate via PATCH (status=active).
- *   3. If not installed → build zip in memory, upload via multipart POST.
+ * Build the companion plugin zip on demand — used by the
+ * `/hosting/instances/:id/wp/companion-plugin.zip` download endpoint so
+ * users can upload via WP Admin → Plugins → Add New → Upload Plugin.
+ */
+export async function buildCompanionPluginZip(): Promise<Buffer> {
+    return await buildPluginZipBuffer()
+}
+
+/**
+ * Check + activate the ClawFlow companion plugin via WP REST API.
  *
- * Requires WP 5.5+ + Application Password owner with manage_options.
+ * WordPress's POST /wp/v2/plugins requires a `slug` from the public
+ * WP.org plugin directory — there is NO standard REST mechanism for
+ * uploading a CUSTOM plugin .zip (by design, security). So the install
+ * flow is necessarily HYBRID:
+ *   1. List installed plugins. If 'clawflow-companion' is active → ok.
+ *   2. If installed but inactive → activate via POST {status:'active'}.
+ *   3. If not installed → surface a clear notInstalled state to caller
+ *      so the UI can offer the .zip download + manual upload instruction.
+ *      A retry path then runs steps 1+2 once user finishes.
+ *
+ * Requires Application Password owner with manage_options.
  */
 export async function installCompanionPlugin(cfg: WpCfg): Promise<InstallResult> {
     const notes: string[] = []
@@ -259,54 +273,17 @@ export async function installCompanionPlugin(cfg: WpCfg): Promise<InstallResult>
         }
     }
 
-    // 2. Build zip + upload multipart
-    let zipBuffer: Buffer
-    try {
-        zipBuffer = await buildPluginZipBuffer()
-        notes.push(`built plugin zip: ${zipBuffer.length} bytes`)
-    } catch (err) {
-        return { installed: false, activated: false, pluginSlug, method: 'rest_upload', notes, error: 'zip build: ' + (err as Error).message }
-    }
-
-    try {
-        // Multipart form: WP REST plugins endpoint accepts pkg= (the .zip file)
-        const boundary = '----ClawFlowPluginBoundary' + Date.now()
-        const head = Buffer.from(
-            `--${boundary}\r\n` +
-            `Content-Disposition: form-data; name="pkg"; filename="clawflow-companion.zip"\r\n` +
-            `Content-Type: application/zip\r\n\r\n`,
-        )
-        const tail = Buffer.from(`\r\n--${boundary}--\r\n`)
-        const body = Buffer.concat([head, zipBuffer, tail])
-
-        const uploadRes = await fetch(`${normalizeWpUrl(cfg.url)}/wp-json/wp/v2/plugins`, {
-            method: 'POST',
-            headers: {
-                Authorization: authHeader(cfg),
-                'Content-Type': `multipart/form-data; boundary=${boundary}`,
-            },
-            body,
-        })
-        const txt = await uploadRes.text().catch(() => '')
-        if (!uploadRes.ok) {
-            // WP plugin upload often requires file system perms — surface root cause
-            return {
-                installed: false, activated: false, pluginSlug, method: 'rest_upload', notes,
-                error: `upload ${uploadRes.status}: ${txt.slice(0, 400)}`,
-            }
-        }
-
-        // Activate after install
-        try {
-            await wpPostJson(cfg, `/wp-json/wp/v2/plugins/${encodeURIComponent(pluginSlug)}`, { status: 'active' })
-            notes.push('uploaded + activated via REST')
-            return { installed: true, activated: true, pluginSlug, method: 'rest_upload', notes }
-        } catch (err) {
-            notes.push(`uploaded but activate failed: ${(err as Error).message.slice(0, 200)}`)
-            return { installed: true, activated: false, pluginSlug, method: 'rest_upload', notes, error: (err as Error).message }
-        }
-    } catch (err) {
-        return { installed: false, activated: false, pluginSlug, method: 'rest_upload', notes, error: (err as Error).message }
+    // 2. Plugin not installed. WP REST does NOT accept custom plugin .zip
+    //    uploads (only WP.org slugs). Surface the manual install path so
+    //    the wizard UI can offer a download link + clear Hebrew instructions.
+    notes.push('plugin not installed — manual upload required via WP Admin (REST does not accept custom plugin uploads)')
+    return {
+        installed: false,
+        activated: false,
+        pluginSlug,
+        method: 'rest_upload',
+        notes,
+        error: 'NOT_INSTALLED_MANUAL_REQUIRED',
     }
 }
 

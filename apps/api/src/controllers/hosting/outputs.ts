@@ -213,6 +213,27 @@ export const ingestOutput = async (c: Context<HonoEnv>) => {
     }
 }
 
+// ── GET /hosting/instances/:id/wp/companion-plugin.zip ──
+// Phase 2026.02 Block 6 Pattern J: streams the ClawFlow companion plugin
+// .zip so the user can install via WP Admin → Plugins → Add New →
+// Upload Plugin. WordPress REST POST /wp/v2/plugins requires a
+// WordPress.org `slug` — there's no standard REST endpoint for custom
+// plugin uploads, so this hybrid path is unavoidable. ~30 sec one-time
+// manual step per tenant.
+export const wpCompanionPluginZip = async (c: Context<HonoEnv>) => {
+    try {
+        const { buildCompanionPluginZip } = await import('@/services/wpCompanionInstaller')
+        const buf = await buildCompanionPluginZip()
+        c.header('Content-Type', 'application/zip')
+        c.header('Content-Disposition', 'attachment; filename="clawflow-companion.zip"')
+        c.header('Content-Length', String(buf.length))
+        return c.body(new Uint8Array(buf))
+    } catch (err) {
+        console.error('wpCompanionPluginZip error:', err)
+        return fail(c, 'Failed to build plugin zip: ' + (err as Error).message, 500)
+    }
+}
+
 // ── POST /hosting/instances/:id/gtm/fresh-stack ──
 // Phase 2026.02 Block 6 Pattern I: create a brand-new GTM Account +
 // Container under the user's OWN Google account. Used for:
