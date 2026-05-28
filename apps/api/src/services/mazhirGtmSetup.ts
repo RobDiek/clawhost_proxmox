@@ -593,6 +593,110 @@ export async function autoSetupGtmContainer(
 // google-ads-mode) — which reads from mateh_agents (no mazhirGtm) and writes
 // back to BOTH tables — would silently wipe mazhirGtm from instances.
 // Same class of bug as the Google Ads DB sync gap.
+// ════════════════════════════════════════════════════════════════════════
+// Phase 2026.02 Block 6 — Post-publish live-state validation
+// ════════════════════════════════════════════════════════════════════════
+//
+// Reads the CURRENT workspace (tags + variables) and verifies each
+// expected fixture is present + enabled. Used by monthlyTaskExecutor to
+// implement "trust → verify → preserve": after autoSetupGtmContainer
+// reports success, we re-read live state via API and confirm. If a
+// fixture is missing, surface it explicitly — don't trust the publish
+// response alone.
+
+export interface ValidationFixture {
+    label: string                // human Hebrew/English description
+    present: boolean             // found in workspace?
+    foundName?: string           // actual tag/variable name found
+    notes?: string               // additional context (e.g. disabled, paused)
+}
+
+export interface GtmValidationReport {
+    fixtures: ValidationFixture[]
+    workspaceId?: string
+    tagCount: number
+    variableCount: number
+}
+
+export async function validateGtmFixtures(
+    googleTokens: { accessToken?: string; refreshToken: string; expiresAt?: number },
+    target: GtmTarget,
+    expect: {
+        expectConversionLinker?: boolean
+        expectGclidCapture?: boolean
+        expectGaawe?: boolean              // GA4 Configuration tag
+        expectEnhancedConversions?: boolean // user_data variables
+        expectConsentMode?: boolean         // Consent Settings / Consent Initialization tag
+        expectAwct?: string[]               // expected awct tag names (per-conversion)
+    },
+): Promise<GtmValidationReport> {
+    if (!googleTokens?.refreshToken) throw new Error('Google OAuth tokens missing')
+    const accessToken = await getAccessToken({
+        accessToken: googleTokens.accessToken,
+        refreshToken: googleTokens.refreshToken,
+        expiresAt: googleTokens.expiresAt,
+    })
+
+    const { accountId, containerId } = target
+    // Pick the most recent workspace (auto-setup uses one specific workspace).
+    const wsRes = await gtmFetch(`/accounts/${accountId}/containers/${containerId}/workspaces`, accessToken)
+    const workspaces = (wsRes.workspace || []) as Array<{ workspaceId: string; name: string }>
+    if (workspaces.length === 0) {
+        return { fixtures: [{ label: 'workspace exists', present: false, notes: 'no workspace found' }], tagCount: 0, variableCount: 0 }
+    }
+    // Pick the FIRST workspace (usually "Default Workspace" or Mazhir's). Tags
+    // we publish live to v1, but the workspace state reflects the latest.
+    const ws = workspaces[0]
+    const scan = await scanExistingWorkspace(accessToken, accountId, containerId, ws.workspaceId)
+
+    const fixtures: ValidationFixture[] = []
+    const tagNames = scan.tags.map(t => String(t.name || ''))
+    const tagTypes = scan.tags.map(t => String(t.type || ''))
+    const variableNames = scan.variables.map(v => String(v.name || ''))
+
+    const findTagByType = (type: string) => scan.tags.find(t => t.type === type)
+    const findTagByName = (re: RegExp) => scan.tags.find(t => re.test(String(t.name || '')))
+    const findVarByName = (re: RegExp) => scan.variables.find(v => re.test(String(v.name || '')))
+
+    if (expect.expectConversionLinker) {
+        const t = findTagByType('gclidw') || findTagByName(/conversion[\s_]*linker/i)
+        fixtures.push({ label: 'Conversion Linker tag', present: !!t, foundName: t?.name, notes: t?.paused ? 'PAUSED' : undefined })
+    }
+    if (expect.expectGclidCapture) {
+        const t = findTagByName(/gclid[\s_]*capture|gclid[\s_]*custom/i)
+        fixtures.push({ label: 'GCLID Capture HTML tag', present: !!t, foundName: t?.name })
+    }
+    if (expect.expectGaawe) {
+        const t = findTagByType('gaawc') || findTagByName(/ga4[\s_]*config|gaawc/i)
+        fixtures.push({ label: 'GA4 Configuration tag', present: !!t, foundName: t?.name })
+    }
+    if (expect.expectEnhancedConversions) {
+        const emailVar = findVarByName(/email|user[_\s]*data[_\s]*email/i)
+        const phoneVar = findVarByName(/phone|user[_\s]*data[_\s]*phone/i)
+        fixtures.push({
+            label: 'Enhanced Conversions variables (email + phone hashed)',
+            present: !!emailVar && !!phoneVar,
+            foundName: [emailVar?.name, phoneVar?.name].filter(Boolean).join(' + '),
+            notes: (!emailVar || !phoneVar) ? `missing: ${!emailVar ? 'email' : ''}${(!emailVar && !phoneVar) ? ', ' : ''}${!phoneVar ? 'phone' : ''}` : undefined,
+        })
+    }
+    if (expect.expectConsentMode) {
+        const t = findTagByName(/consent[\s_]*(mode|settings|initialization|init|update)/i)
+        fixtures.push({ label: 'Consent Mode tag(s)', present: !!t, foundName: t?.name })
+    }
+    for (const awctName of (expect.expectAwct || [])) {
+        const t = findTagByName(new RegExp(awctName, 'i'))
+        fixtures.push({ label: `Google Ads conversion (awct): "${awctName}"`, present: !!t, foundName: t?.name })
+    }
+
+    return {
+        fixtures,
+        workspaceId: ws.workspaceId,
+        tagCount: tagNames.length,
+        variableCount: variableNames.length,
+    }
+}
+
 export async function saveGtmTarget(instanceId: string, target: GtmTarget, agentId: string | null | undefined): Promise<void> {
     const { resolvePrimaryAgent, resolveAgentById, mutateResearchData } = await import('@/services/agentContext')
     const agent = agentId

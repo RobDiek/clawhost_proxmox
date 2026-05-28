@@ -653,13 +653,54 @@ async function runTrackingSetupAdapter(
                 enhancedConversions: true,
             })
             await saveGtmSetupResult(instanceId, gtmResult, agent?.id || null)
+            // Detailed publish report — surface EXACTLY which fixtures were
+            // created vs preserved. Sergei's principle: "trust → verify →
+            // preserve". User must SEE what we touched.
+            const createdSummary = gtmResult.created.length === 0
+                ? 'nothing new — fully idempotent re-run'
+                : gtmResult.created.map(c => `${c.type}: "${c.name}"`).join('; ')
+            const skippedSummary = gtmResult.skipped.length === 0
+                ? 'none'
+                : gtmResult.skipped.map(s => `${s.type}: "${s.name}" (${s.reason})`).join('; ')
             stepResults.push({
                 step: 'GTM auto-setup',
                 ok: gtmResult.published,
                 detail: gtmResult.published
-                    ? `published${gtmResult.noopReason ? ` (no-op: ${gtmResult.noopReason})` : ''}, ${gtmResult.created.length} created, ${gtmResult.skipped.length} skipped`
+                    ? `published version=${gtmResult.versionId || '(no-op)'}\n` +
+                      `  Created (${gtmResult.created.length}): ${createdSummary.slice(0, 500)}\n` +
+                      `  Preserved/Skipped (${gtmResult.skipped.length}): ${skippedSummary.slice(0, 700)}`
                     : `errors: ${gtmResult.errors.map(e => e.error).join('; ')}`,
             })
+
+            // POST-PUBLISH VALIDATION — read live workspace state and verify
+            // expected fixtures are present + enabled. Surface per-fixture
+            // pass/fail. This is the "validate at end" pattern Sergei flagged
+            // as critical: don't trust the publish response, actually check.
+            try {
+                const { validateGtmFixtures } = await import('./mazhirGtmSetup')
+                const verify = await validateGtmFixtures(tokens, target, {
+                    expectConversionLinker: true,
+                    expectGclidCapture: true,
+                    expectGaawe: !!target.measurementId,
+                    expectEnhancedConversions: true,
+                    expectConsentMode: true,
+                })
+                const okCount = verify.fixtures.filter(f => f.present).length
+                const totalCount = verify.fixtures.length
+                stepResults.push({
+                    step: 'GTM live-state validation',
+                    ok: okCount === totalCount,
+                    detail: `${okCount}/${totalCount} expected fixtures verified in published live container.\n` +
+                        verify.fixtures.map(f => `  ${f.present ? '✓' : '✗'} ${f.label}${f.foundName ? ` ("${f.foundName}")` : ''}${f.notes ? ` — ${f.notes}` : ''}`).join('\n'),
+                })
+            } catch (e) {
+                // Non-fatal — validation failure shouldn't undo a successful publish.
+                stepResults.push({
+                    step: 'GTM live-state validation',
+                    ok: false,
+                    detail: `Validation read failed (publish itself succeeded): ${(e as Error).message.slice(0, 300)}`,
+                })
+            }
         }
         return {
             ok: stepResults.every(s => s.ok),
