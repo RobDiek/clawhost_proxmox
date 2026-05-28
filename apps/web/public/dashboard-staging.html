@@ -6667,6 +6667,22 @@ function renderTaskPopup(task) {
     // If lookup failed (plan not loaded yet) fall through to generic renderer.
   }
 
+  // ── Phase 2026.02 Block 6: Overall monthly_marketing_plan popup ──────
+  // Previously this card fell through to the markdown renderer which dumped
+  // raw JSON (summary/byStatus/byChannel keys) — unreadable for the end user.
+  // Render human Hebrew sections: theme, totals, impact, focus areas,
+  // narrative overview, channel/type breakdowns.
+  if (task.type === 'monthly_marketing_plan') {
+    var planBlock = renderMonthlyMarketingPlanPopup(task);
+    if (planBlock) {
+      bodyHtml += planBlock;
+      document.getElementById('taskPopupBody').innerHTML = bodyHtml;
+      document.getElementById('taskPopupFooter').innerHTML = renderMonthlyTaskFooter(task);
+      document.getElementById('taskPopupOverlay').classList.remove('hidden');
+      return;
+    }
+  }
+
   // ── Real content from agent (if available) ──
   var displayContent = task.editedContent || task.content;
   if (displayContent) {
@@ -8177,6 +8193,120 @@ function renderMonthlyTaskFooter(task) {
            '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">✓ אשרו</button>';
   }
   return '';
+}
+
+// Phase 2026.02 Block 6 — Overall monthly_marketing_plan popup renderer.
+// Reads from researchData.monthlyPlan (loaded into instanceData on dashboard
+// refresh) and composes a clean Hebrew summary: theme, KPI chips, expected
+// impact, focus areas list, narrative overview paragraphs, and breakdowns
+// by priority/channel/type. No raw JSON exposed to the user.
+function renderMonthlyMarketingPlanPopup(task) {
+  var rd = (instanceData && instanceData.researchData) || {};
+  var plan = rd.monthlyPlan;
+  if (!plan) return '';
+
+  var summary = plan.summary || {};
+  var overview = plan.overview || {};
+  var byPri = summary.byPriority || { P0: 0, P1: 0, P2: 0 };
+  var byChan = summary.byChannel || {};
+  var byType = summary.byType || {};
+  var impact = summary.estimatedTotalImpact || {};
+
+  var h = '';
+
+  // ── Hero: theme + totals ─────────────────────────────────────────
+  if (overview.keyTheme) {
+    h += '<div style="background:linear-gradient(180deg,#EEF2FF,#FFFFFF);border:1px solid #C7D2FE;border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
+      '<div style="font-size:0.74rem;color:#4338CA;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">נושא מרכזי</div>' +
+      '<div style="font-size:1rem;font-weight:700;color:#1E1B4B;line-height:1.4">' + _esc(overview.keyTheme) + '</div>' +
+    '</div>';
+  }
+
+  // ── KPI chips ────────────────────────────────────────────────────
+  h += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">' +
+    '<div style="flex:1;min-width:90px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;text-align:center">' +
+      '<div style="font-size:1.4rem;font-weight:700;color:#1F2937">' + (summary.totalTasks || 0) + '</div>' +
+      '<div style="font-size:0.72rem;color:#6B7280">משימות סה״כ</div>' +
+    '</div>' +
+    '<div style="flex:1;min-width:90px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;text-align:center">' +
+      '<div style="font-size:1.4rem;font-weight:700;color:#991B1B">' + byPri.P0 + '</div>' +
+      '<div style="font-size:0.72rem;color:#7F1D1D">קריטיות (P0)</div>' +
+    '</div>' +
+    '<div style="flex:1;min-width:90px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:10px 12px;text-align:center">' +
+      '<div style="font-size:1.4rem;font-weight:700;color:#92400E">' + byPri.P1 + '</div>' +
+      '<div style="font-size:0.72rem;color:#78350F">חשובות (P1)</div>' +
+    '</div>' +
+    '<div style="flex:1;min-width:90px;background:#F0F9FF;border:1px solid #7DD3FC;border-radius:8px;padding:10px 12px;text-align:center">' +
+      '<div style="font-size:1.4rem;font-weight:700;color:#075985">' + byPri.P2 + '</div>' +
+      '<div style="font-size:0.72rem;color:#0C4A6E">רצויות (P2)</div>' +
+    '</div>' +
+  '</div>';
+
+  // ── Expected impact (30d horizon) ────────────────────────────────
+  var impactRows = [];
+  if (impact.spendSavingsIls30d) impactRows.push({ label: 'חיסכון בהוצאה ממומנת', val: '₪' + Math.round(impact.spendSavingsIls30d).toLocaleString(), color: '#15803D' });
+  if (impact.extraConversions30d) impactRows.push({ label: 'המרות נוספות', val: '+' + Math.round(impact.extraConversions30d), color: '#15803D' });
+  if (impact.extraLeadsPerMonth) impactRows.push({ label: 'לידים נוספים', val: '+' + Math.round(impact.extraLeadsPerMonth), color: '#15803D' });
+  if (impact.cpaReductionPct) impactRows.push({ label: 'הפחתת CPA', val: '↓ ' + Math.round(impact.cpaReductionPct) + '%', color: '#15803D' });
+  if (impact.extraOrganicTraffic30d) impactRows.push({ label: 'תנועה אורגנית', val: '↑ ' + Math.round(impact.extraOrganicTraffic30d) + '%', color: '#15803D' });
+  if (impactRows.length > 0) {
+    var impactHtml = impactRows.map(function(r) {
+      return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #D1FAE5">' +
+        '<span style="font-size:0.85rem;color:#065F46">' + _esc(r.label) + '</span>' +
+        '<span style="font-size:0.95rem;font-weight:700;color:' + r.color + '">' + _esc(r.val) + '</span>' +
+      '</div>';
+    }).join('');
+    h += '<div style="background:linear-gradient(180deg,#F0FDF4,#FFFFFF);border:1px solid #BBF7D0;border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
+      '<div style="font-size:0.82rem;font-weight:700;color:#15803D;margin-bottom:8px">📊 השפעה צפויה (30 יום)</div>' +
+      impactHtml +
+    '</div>';
+  }
+
+  // ── Focus areas ───────────────────────────────────────────────────
+  if (Array.isArray(overview.focusAreas) && overview.focusAreas.length > 0) {
+    var faHtml = overview.focusAreas.map(function(f, i) {
+      return '<li style="margin-bottom:8px;line-height:1.5;font-size:0.88rem;color:#1F2937"><span style="font-weight:700;color:#4338CA">' + (i + 1) + '.</span> ' + _esc(f) + '</li>';
+    }).join('');
+    h += '<div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
+      '<div style="font-size:0.82rem;font-weight:700;color:#1F2937;margin-bottom:10px">🎯 מוקדי פעולה</div>' +
+      '<ol style="margin:0;padding-right:8px;list-style:none">' + faHtml + '</ol>' +
+    '</div>';
+  }
+
+  // ── Narrative overview (Hebrew text, split by double newline into paragraphs) ─
+  if (overview.hebrew) {
+    var paragraphs = overview.hebrew.split(/\n\n+/).map(function(p) { return p.trim(); }).filter(function(p) { return p.length > 0; });
+    var paraHtml = paragraphs.map(function(p) {
+      return '<p style="margin:0 0 12px 0;line-height:1.7;font-size:0.9rem;color:#374151">' + _esc(p) + '</p>';
+    }).join('');
+    h += '<div style="background:#F9FAFB;border:1px solid #F3F4F6;border-radius:10px;padding:14px 18px;margin-bottom:14px">' +
+      '<div style="font-size:0.82rem;font-weight:700;color:#1F2937;margin-bottom:10px">📝 סקירה מפורטת</div>' +
+      paraHtml +
+    '</div>';
+  }
+
+  // ── By channel breakdown ─────────────────────────────────────────
+  var channelEntries = Object.keys(byChan).map(function(k) { return { key: k, count: byChan[k] }; }).sort(function(a, b) { return b.count - a.count; });
+  if (channelEntries.length > 0) {
+    var chanHtml = channelEntries.map(function(e) {
+      var label = MONTHLY_TASK_CHANNEL_LABEL[e.key] || e.key;
+      return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #E5E7EB">' +
+        '<span style="font-size:0.85rem;color:#374151">' + _esc(label) + '</span>' +
+        '<span style="font-size:0.82rem;font-weight:700;color:#1F2937">' + e.count + ' משימות</span>' +
+      '</div>';
+    }).join('');
+    h += '<div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
+      '<div style="font-size:0.82rem;font-weight:700;color:#1F2937;margin-bottom:8px">📡 פילוח לפי ערוץ</div>' +
+      chanHtml +
+    '</div>';
+  }
+
+  // ── CTA: drill down via individual tasks ──────────────────────────
+  h += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 12px;margin-bottom:6px;text-align:center">' +
+    '<div style="font-size:0.82rem;color:#1E40AF;line-height:1.5">💡 לפרטים מלאים על כל משימה — לחצו על משימה בודדת ב-<strong>משימות פעילות</strong> למטה. כל משימה כוללת מקורות ראיות, תוכנית פעולה צעד-אחר-צעד, השפעה צפויה ומצב אינטגרציה.</div>' +
+  '</div>';
+
+  return h;
 }
 
 function renderCreativeApprovalFooter(task) {

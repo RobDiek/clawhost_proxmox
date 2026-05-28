@@ -491,7 +491,11 @@ async function persistAndEmit(
     // Surface overall plan to approval queue
     let outputId: string | undefined
     try {
-        const summaryText = `${plan.summary.totalTasks} tasks · ${plan.summary.byPriority.P0} P0 · ${plan.summary.byPriority.P1} P1 · ${plan.summary.byPriority.P2} P2`
+        // Phase 2026.02 Block 6: Hebrew title for the overall plan card.
+        // Previously the title mixed English ("57 tasks · 18 P0") into a
+        // Hebrew-RTL UI. Keep only universally-understood acronyms
+        // (P0/P1/P2) plus Hebrew labels.
+        const summaryText = `${plan.summary.totalTasks} משימות · ${plan.summary.byPriority.P0} P0 · ${plan.summary.byPriority.P1} P1 · ${plan.summary.byPriority.P2} P2`
         const [outputRow] = await db.insert(agentOutputs).values({
             id: 'mp_month_' + randomBytes(6).toString('hex'),
             instanceId,
