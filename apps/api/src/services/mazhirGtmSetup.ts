@@ -638,16 +638,33 @@ export async function validateGtmFixtures(
     })
 
     const { accountId, containerId } = target
-    // Pick the most recent workspace (auto-setup uses one specific workspace).
-    const wsRes = await gtmFetch(`/accounts/${accountId}/containers/${containerId}/workspaces`, accessToken)
-    const workspaces = (wsRes.workspace || []) as Array<{ workspaceId: string; name: string }>
-    if (workspaces.length === 0) {
-        return { fixtures: [{ label: 'workspace exists', present: false, notes: 'no workspace found' }], tagCount: 0, variableCount: 0 }
+
+    // Phase 2026.02 Block 6: read LIVE published version (what's actually
+    // running on the user's site) — not any workspace. autoSetupGtmContainer
+    // creates a temp workspace, publishes it, then deletes the workspace
+    // (or leaves it stale). Workspace state ≠ live state. The live version
+    // is the source of truth for "what's currently on production".
+    let scan: { tags: any[]; triggers: any[]; variables: any[] } = { tags: [], triggers: [], variables: [] }
+    let liveVersionId: string | undefined
+    try {
+        const liveRes = await gtmFetch(
+            `/accounts/${accountId}/containers/${containerId}/versions:live`,
+            accessToken,
+        )
+        liveVersionId = liveRes.containerVersionId || liveRes.versionId
+        scan.tags = liveRes.tag || []
+        scan.triggers = liveRes.trigger || []
+        scan.variables = liveRes.variable || []
+    } catch (e) {
+        // No live version yet (brand-new container) — fall back to first
+        // workspace as best-effort.
+        const wsRes = await gtmFetch(`/accounts/${accountId}/containers/${containerId}/workspaces`, accessToken)
+        const workspaces = (wsRes.workspace || []) as Array<{ workspaceId: string; name: string }>
+        if (workspaces.length === 0) {
+            return { fixtures: [{ label: 'workspace exists', present: false, notes: `no live version + no workspace; error: ${(e as Error).message.slice(0, 200)}` }], tagCount: 0, variableCount: 0 }
+        }
+        scan = await scanExistingWorkspace(accessToken, accountId, containerId, workspaces[0].workspaceId)
     }
-    // Pick the FIRST workspace (usually "Default Workspace" or Mazhir's). Tags
-    // we publish live to v1, but the workspace state reflects the latest.
-    const ws = workspaces[0]
-    const scan = await scanExistingWorkspace(accessToken, accountId, containerId, ws.workspaceId)
 
     const fixtures: ValidationFixture[] = []
     const tagNames = scan.tags.map(t => String(t.name || ''))
@@ -691,7 +708,7 @@ export async function validateGtmFixtures(
 
     return {
         fixtures,
-        workspaceId: ws.workspaceId,
+        workspaceId: liveVersionId ? `version:${liveVersionId}` : '(workspace-fallback)',
         tagCount: tagNames.length,
         variableCount: variableNames.length,
     }
