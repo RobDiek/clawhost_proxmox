@@ -66,7 +66,13 @@ const SCOPE_MAP: Record<string, string> = {
     contacts:  'https://www.googleapis.com/auth/contacts',
     ads:       'https://www.googleapis.com/auth/adwords',
     drive:     'https://www.googleapis.com/auth/drive.file',
-    analytics: 'https://www.googleapis.com/auth/analytics.readonly',
+    // Phase 2026.02 Block 6: bumped from analytics.readonly to analytics.edit.
+    // analytics.edit covers full Admin API (properties / data streams /
+    // key events delete + patch / bigquery links / conversion exports) PLUS
+    // analytics.readonly's data API access. Existing tenants with the old
+    // readonly token must re-auth once to grant the upgrade — UI surfaces
+    // this via the integrations page when the GA4 capability check fails.
+    analytics: 'https://www.googleapis.com/auth/analytics.edit https://www.googleapis.com/auth/analytics.readonly',
     youtube:   'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly',
     // ── Mazhir scopes ──
     // tagmanager.edit.containers — create/update tags & triggers in workspaces

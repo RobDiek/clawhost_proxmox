@@ -339,6 +339,11 @@ export interface ConversionActionSummary {
     primaryForGoal: boolean
     countingType: string
     defaultValueIls: number | undefined
+    // Phase 2026.02 Block 6: surfaced so the executor can pivot to GA4 Admin
+    // for read-only (GA4-imported) actions whose primary_for_goal can't be
+    // mutated from the Ads side. Empty when the action is not GA4-imported.
+    googleAnalytics4EventName?: string    // the GA4 event_name (e.g. 'form_submit')
+    googleAnalytics4PropertyId?: string   // numeric property id
 }
 
 /**
@@ -362,7 +367,9 @@ export async function listConversionActions(
             conversion_action.status,
             conversion_action.primary_for_goal,
             conversion_action.counting_type,
-            conversion_action.value_settings.default_value
+            conversion_action.value_settings.default_value,
+            conversion_action.google_analytics_4_settings.event_name,
+            conversion_action.google_analytics_4_settings.property_id
         FROM conversion_action
         WHERE conversion_action.status = 'ENABLED'`,
     }, loginCustomerId)
@@ -375,6 +382,7 @@ export async function listConversionActions(
     return rows.map((r: any) => {
         const ca = r.conversionAction || r.conversion_action || {}
         const vs = ca.valueSettings || ca.value_settings || {}
+        const ga4 = ca.googleAnalytics4Settings || ca.google_analytics_4_settings || {}
         return {
             resourceName: ca.resourceName || ca.resource_name,
             id: String(ca.id),
@@ -385,6 +393,8 @@ export async function listConversionActions(
             primaryForGoal: !!(ca.primaryForGoal ?? ca.primary_for_goal),
             countingType: ca.countingType || ca.counting_type,
             defaultValueIls: typeof vs.defaultValue === 'number' ? vs.defaultValue : (vs.default_value || undefined),
+            googleAnalytics4EventName: ga4.eventName || ga4.event_name || undefined,
+            googleAnalytics4PropertyId: ga4.propertyId || ga4.property_id ? String(ga4.propertyId || ga4.property_id) : undefined,
         }
     })
 }
@@ -496,7 +506,18 @@ export interface PrimaryReconcileReport {
     promoted: Array<{ resourceName: string; name: string; previouslyPrimary: boolean }>
     demoted: Array<{ resourceName: string; name: string; category: string }>
     unchanged: Array<{ resourceName: string; name: string; primaryForGoal: boolean }>
-    failed: Array<{ resourceName: string; name: string; category: string; intendedPrimary: boolean; error: string }>
+    failed: Array<{
+        resourceName: string
+        name: string
+        category: string
+        intendedPrimary: boolean
+        error: string
+        // Phase 2026.02 Block 6: surfaced so the executor can pivot to GA4
+        // Admin (deleteKeyEvent) for GA4-imported actions whose
+        // primary_for_goal can't be mutated from Google Ads side.
+        ga4EventName?: string
+        ga4PropertyId?: string
+    }>
     warnings: string[]
 }
 
@@ -527,13 +548,24 @@ export async function reconcilePrimaryConversionActions(
     // all needed mutations and dispatch one batch with partialFailure=true
     // so read-only actions (GA4-imported, UPLOAD_CALLS, system-managed)
     // fail per-op without killing the whole reconcile.
-    const ops: Array<{ resourceName: string; primary: boolean; meta: { name: string; category: string } }> = []
+    interface PendingOp {
+        resourceName: string
+        primary: boolean
+        meta: { name: string; category: string; ga4EventName?: string; ga4PropertyId?: string }
+    }
+    const ops: PendingOp[] = []
     for (const a of all) {
         const shouldBePrimary = a.category === desiredCategory
+        const meta = {
+            name: a.name,
+            category: a.category,
+            ga4EventName: a.googleAnalytics4EventName,
+            ga4PropertyId: a.googleAnalytics4PropertyId,
+        }
         if (shouldBePrimary && !a.primaryForGoal) {
-            ops.push({ resourceName: a.resourceName, primary: true, meta: { name: a.name, category: a.category } })
+            ops.push({ resourceName: a.resourceName, primary: true, meta })
         } else if (!shouldBePrimary && a.primaryForGoal) {
-            ops.push({ resourceName: a.resourceName, primary: false, meta: { name: a.name, category: a.category } })
+            ops.push({ resourceName: a.resourceName, primary: false, meta })
         } else {
             report.unchanged.push({ resourceName: a.resourceName, name: a.name, primaryForGoal: a.primaryForGoal })
         }
@@ -562,6 +594,8 @@ export async function reconcilePrimaryConversionActions(
                 category: op.meta.category,
                 intendedPrimary: op.primary,
                 error: r.error || 'unknown',
+                ga4EventName: op.meta.ga4EventName,
+                ga4PropertyId: op.meta.ga4PropertyId,
             })
         }
     }

@@ -422,21 +422,74 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
                     detail: report.demoted.map(d => `${d.name} (${d.category})`).join('; ').slice(0, 500),
                 })
             }
+            // Phase 2026.02 Block 6: pivot to GA4 Admin for read-only failures.
+            // GA4-imported actions in Google Ads can't be mutated from the Ads
+            // side (MUTATE_NOT_ALLOWED), but the underlying GA4 Key Event CAN
+            // be deleted via analyticsadmin.properties.keyEvents.delete — that
+            // unbinds the conversion mark and the Ads import becomes inert.
+            // Requires analytics.edit OAuth scope (newer than analytics.readonly).
+            let ga4Demoted = 0
+            const ga4Failures: Array<{ name: string; reason: string }> = []
             if (report.failed.length > 0) {
-                // Read-only actions (GA4-imported / UPLOAD_CALLS / system-managed)
-                // can NOT be mutated from the Google Ads API — these need to be
-                // adjusted in GA4 Admin (mark/unmark event as conversion) or
-                // accepted as-is. Surface them as a manual follow-up step.
-                stepResults.push({
-                    step: 'Mutate-not-allowed (read-only actions — manual GA4 step required)',
-                    ok: false,
-                    detail: report.failed.map(f => `${f.name} (${f.category}): ${f.error}`).join('\n').slice(0, 800),
-                })
+                const ga4Eligible = report.failed.filter(f =>
+                    !f.intendedPrimary
+                    && f.ga4EventName
+                    && f.ga4PropertyId
+                )
+                if (ga4Eligible.length > 0) {
+                    try {
+                        const { findKeyEventByEventName, deleteKeyEvent } = await import('./ga4Admin')
+                        for (const f of ga4Eligible) {
+                            try {
+                                const ke = await findKeyEventByEventName(tokens, f.ga4PropertyId!, f.ga4EventName!)
+                                if (!ke) {
+                                    ga4Failures.push({ name: f.name, reason: `GA4 event_name="${f.ga4EventName}" not found as Key Event on property ${f.ga4PropertyId}` })
+                                    continue
+                                }
+                                await deleteKeyEvent(tokens, ke.name)
+                                ga4Demoted++
+                            } catch (e) {
+                                const msg = (e as Error).message
+                                ga4Failures.push({ name: f.name, reason: msg.slice(0, 200) })
+                            }
+                        }
+                        stepResults.push({
+                            step: 'GA4 Key Event un-mark (read-only fallback)',
+                            ok: ga4Demoted > 0,
+                            detail: `${ga4Demoted}/${ga4Eligible.length} GA4 events un-marked as Key Event` +
+                                    (ga4Failures.length > 0 ? `; failures: ${ga4Failures.map(x => `${x.name}: ${x.reason}`).join('; ').slice(0, 400)}` : ''),
+                        })
+                    } catch (e) {
+                        // OAuth scope insufficient (analytics.readonly only) — surface clearly.
+                        const msg = (e as Error).message
+                        const isScope = /insufficient|forbidden|403|scope/i.test(msg)
+                        stepResults.push({
+                            step: 'GA4 Key Event un-mark (read-only fallback)',
+                            ok: false,
+                            detail: isScope
+                                ? 'OAuth scope analytics.edit missing — reconnect Google with full permissions in Integrations.'
+                                : msg.slice(0, 400),
+                        })
+                    }
+                }
+                const remainingManual = report.failed.length - ga4Demoted
+                if (remainingManual > 0) {
+                    stepResults.push({
+                        step: 'Remaining manual GA4 steps',
+                        ok: false,
+                        detail: report.failed
+                            .filter(f => !ga4Eligible.includes(f) || ga4Failures.find(x => x.name === f.name))
+                            .map(f => `${f.name} (${f.category}): ${f.error}`)
+                            .join('\n').slice(0, 800),
+                    })
+                }
             }
-            const overallOk = report.promoted.length > 0 || report.demoted.length > 0
+            const overallOk = report.promoted.length > 0 || report.demoted.length > 0 || ga4Demoted > 0
             return {
                 ok: overallOk,
-                outputDescription: `Marked ${desiredCategory} as primary; demoted ${report.demoted.length} actions to secondary${report.failed.length > 0 ? ` (${report.failed.length} read-only — manual GA4 step)` : ''}.`,
+                outputDescription: `Marked ${desiredCategory} as primary; demoted ${report.demoted.length} actions in Google Ads` +
+                    (ga4Demoted > 0 ? ` + ${ga4Demoted} GA4 Key Events un-marked` : '') +
+                    (report.failed.length - ga4Demoted > 0 ? ` (${report.failed.length - ga4Demoted} need manual review)` : '') + '.',
                 stepResults,
             }
         }
