@@ -545,6 +545,130 @@ export async function autoSetupGtmContainer(
         }
     }
 
+    // ── 7.5. Consent Mode v2 — Phase 2026.02 Block 6 ──
+    // Two tags:
+    //   A) "Consent Default - Denied" — fires on Consent Initialization
+    //      trigger (GTM built-in 'consentInit'). Sets all storage to denied
+    //      by default so EU/UK/IL compliance traffic is blocked until user
+    //      consents via the CMP.
+    //   B) "Consent Update - On Accept" — fires on Custom Event trigger
+    //      'consent_update' which the user's CMP banner pushes to dataLayer
+    //      after consent. Promotes storage to granted.
+    //
+    // GTM has a BUILT-IN trigger for Consent Initialization (the only way to
+    // fire BEFORE all other tags). Its built-in trigger ID is 2147479573.
+    const CONSENT_INIT_TRIGGER_ID = '2147479573'  // GTM built-in Consent Initialization - All Pages
+
+    // A) Consent Default - Denied
+    const consentDefaultName = 'Consent Default - Denied (Mazhir)'
+    const existingConsentDefault = findTagByName(consentDefaultName) ||
+        existing.tags.find((t: any) => /consent[\s_]*default|consent[\s_]*deny|gtag.*consent.*default/i.test(String(t.name || '')))
+    if (!existingConsentDefault) {
+        const consentDefaultHtml = `<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', {
+  ad_storage: 'denied',
+  ad_user_data: 'denied',
+  ad_personalization: 'denied',
+  analytics_storage: 'denied',
+  functionality_storage: 'granted',
+  security_storage: 'granted',
+  wait_for_update: 500
+});
+</script>`
+        try {
+            const tag = await gtmFetch(`${wsBase}/tags`, accessToken, 'POST', {
+                name: consentDefaultName,
+                type: 'html',
+                parameter: [{ type: 'template', key: 'html', value: consentDefaultHtml }],
+                firingTriggerId: [CONSENT_INIT_TRIGGER_ID],
+                // tagFiringOption oncePerEvent ensures it fires per page-load.
+                tagFiringOption: 'oncePerEvent',
+            })
+            result.created.push({ type: 'tag:consent_default', name: consentDefaultName, id: String(tag.tagId) })
+        } catch (err) {
+            result.errors.push({ step: 'consent_default', error: (err as Error).message })
+        }
+    } else {
+        result.skipped.push({
+            type: 'tag:consent_default',
+            name: existingConsentDefault.name,
+            reason: existingConsentDefault.name === consentDefaultName ? 'already exists' : 'user already has Consent Default tag — reusing',
+        })
+    }
+
+    // B) Consent Update - On Accept (requires a custom event trigger that the
+    //    user's CMP banner pushes — typically 'consent_update' or 'cookie_consent_update').
+    //    We create the trigger + tag, then document the integration contract.
+    const consentUpdateTrigName = 'Mazhir CE — consent_update'
+    let consentUpdateTrigId: string | undefined
+    const existingConsentUpdateTrig = findTrigByName(consentUpdateTrigName) ||
+        findCustomEventTrigByEventName('consent_update') ||
+        findCustomEventTrigByEventName('cookie_consent_accept')
+    if (existingConsentUpdateTrig) {
+        consentUpdateTrigId = String(existingConsentUpdateTrig.triggerId)
+        result.skipped.push({
+            type: 'trigger:consent_update',
+            name: existingConsentUpdateTrig.name,
+            reason: existingConsentUpdateTrig.name === consentUpdateTrigName ? 'already exists' : 'user already has consent_update custom event trigger — reusing',
+        })
+    } else {
+        try {
+            const trig = await gtmFetch(`${wsBase}/triggers`, accessToken, 'POST', {
+                name: consentUpdateTrigName,
+                type: 'customEvent',
+                customEventFilter: [{
+                    type: 'equals',
+                    parameter: [
+                        { type: 'template', key: 'arg0', value: '{{_event}}' },
+                        { type: 'template', key: 'arg1', value: 'consent_update' },
+                    ],
+                }],
+            })
+            consentUpdateTrigId = String(trig.triggerId)
+            result.created.push({ type: 'trigger:consent_update', name: consentUpdateTrigName, id: consentUpdateTrigId })
+        } catch (err) {
+            result.errors.push({ step: 'consent_update_trigger', error: (err as Error).message })
+        }
+    }
+
+    if (consentUpdateTrigId) {
+        const consentUpdateTagName = 'Consent Update - On Accept (Mazhir)'
+        const existingConsentUpdate = findTagByName(consentUpdateTagName) ||
+            existing.tags.find((t: any) => /consent[\s_]*update|consent[\s_]*grant|gtag.*consent.*update/i.test(String(t.name || '')))
+        if (!existingConsentUpdate) {
+            const consentUpdateHtml = `<script>
+// Promote consent to granted. Fired by the site's CMP via:
+//   window.dataLayer.push({ event: 'consent_update' });
+// Override these per-storage if your CMP collects granular consent.
+gtag('consent', 'update', {
+  ad_storage: 'granted',
+  ad_user_data: 'granted',
+  ad_personalization: 'granted',
+  analytics_storage: 'granted'
+});
+</script>`
+            try {
+                const tag = await gtmFetch(`${wsBase}/tags`, accessToken, 'POST', {
+                    name: consentUpdateTagName,
+                    type: 'html',
+                    parameter: [{ type: 'template', key: 'html', value: consentUpdateHtml }],
+                    firingTriggerId: [consentUpdateTrigId],
+                })
+                result.created.push({ type: 'tag:consent_update', name: consentUpdateTagName, id: String(tag.tagId) })
+            } catch (err) {
+                result.errors.push({ step: 'consent_update_tag', error: (err as Error).message })
+            }
+        } else {
+            result.skipped.push({
+                type: 'tag:consent_update',
+                name: existingConsentUpdate.name,
+                reason: existingConsentUpdate.name === consentUpdateTagName ? 'already exists' : 'user already has Consent Update tag — reusing',
+            })
+        }
+    }
+
     // ── 8. Create version + publish ──
     // Phase 4.2.3-F2: skip publish when this run made ZERO changes — every
     // tag/variable/trigger we wanted was already present in the live container
