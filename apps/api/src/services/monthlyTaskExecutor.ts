@@ -339,7 +339,12 @@ async function runTrackingSetupAdapter(
     // CLIENT-side tags into the existing GTM workspace. Treat sGTM as
     // its own manual-brief track until we wire VPS auto-deploy.
     const wantsSgtm = /\bsgtm\b|server[-\s]*side[-\s]*gtm|server[-\s]*side[-\s]*container|sgtm[-\s]*container|cloud[-\s]*run/i.test(text)
-    const wantsGtm = !wantsSgtm && /\bgtm\b|מנהל[\s-]*התגיות|tag[\s-]*manager|consent[\s-]*mode|enhanced[\s-]*conversions/i.test(text)
+    // GA4 → BigQuery export — requires user GCP project + billing + IAM grant
+    // for firebase-measurement service account. Cannot fully auto without
+    // expanded OAuth scopes (cloudbilling/serviceusage/iam/resourcemanager).
+    // For now surfaces a manual brief via Pattern F awaiting_manual.
+    const wantsGa4BigQuery = /bigquery|big[-\s]*query|bq[-\s]*export|ga4.*bigquery|ga4.*bq/i.test(text)
+    const wantsGtm = !wantsSgtm && !wantsGa4BigQuery && /\bgtm\b|מנהל[\s-]*התגיות|tag[\s-]*manager|consent[\s-]*mode|enhanced[\s-]*conversions/i.test(text)
     // Phase 2026.02 Block 6: detect "mark primary / demote others" tasks
     // (tsk_cr_validation archetype). measurement_gap + Hebrew/English "primary"
     // keywords route to reconcilePrimaryConversionActions instead of full
@@ -578,6 +583,32 @@ async function runTrackingSetupAdapter(
         // from client-side autoSetupGtmContainer. Requires Docker container on
         // Cloud Run or a Hetzner VPS subdomain — neither is wired yet. Surface
         // manual brief with Hebrew instructions + GCP/VPS deep links.
+        // GA4 → BigQuery export — Pattern F manual brief until Pattern H
+        // (expanded OAuth scopes for cloudbilling/serviceusage/iam) ships.
+        if (wantsGa4BigQuery) {
+            stepResults.push({
+                step: 'GA4 → BigQuery export — manual setup (auto via expanded OAuth scopes planned)',
+                ok: false,
+                detail: 'יצוא יומי של GA4 ל-BigQuery דורש GCP project + billing + הרשאות IAM.\n' +
+                    'שלבים:\n' +
+                    '1. Google Cloud Console → New Project (אם אין) → Enable billing (חיוב)\n' +
+                    '2. APIs & Services → Enable: BigQuery API, Analytics Data API\n' +
+                    '3. IAM → הוסיפו serviceAccount firebase-measurement@system.gserviceaccount.com\n' +
+                    '   עם role BigQuery Data Editor + BigQuery Job User\n' +
+                    '4. GA4 Admin → Property settings → BigQuery Links → Link a project\n' +
+                    '5. בחרו את ה-Project ID שיצרתם, מיקום: EU (לישראל)\n' +
+                    '6. Frequency: Daily (לא Streaming אם לא נדרש real-time)\n' +
+                    '7. Include: All events\n\n' +
+                    'אוטומציה מלאה (אנחנו מבצעים את הכול במקומכם) דורשת הרחבת הרשאות OAuth — תיכלל בעדכון הבא.',
+            })
+            return {
+                ok: true,
+                awaitingManual: true,
+                outputDescription: 'GA4 BigQuery export — manual setup required. Click "✓ ביצעתי ידנית" when done.',
+                stepResults,
+            }
+        }
+
         if (wantsSgtm) {
             // Pattern F (Manual brief + done button) — Pattern G (full hybrid
             // auto-deploy on VPS) is a separate sprint. For now surface
