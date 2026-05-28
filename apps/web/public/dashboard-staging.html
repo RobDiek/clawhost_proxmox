@@ -8365,12 +8365,18 @@ function submitGtmFreshStack(taskId) {
   var containerName = (document.getElementById('gtmWizardContainerName').value || '').trim();
   var siteDomain = (document.getElementById('gtmWizardSiteDomain').value || '').trim();
 
-  if (!/^\d{6,}$/.test(accountId)) {
-    showToast('Account ID חייב להיות מספר (6+ ספרות)', 'warning');
+  // Phase 2026.02 Block 6 Pattern I: relaxed validation. GTM Account IDs are
+  // typically numeric (e.g. 6314893549) but Google has been observed using
+  // alphanumeric public-id style IDs in some flows (e.g. 5ZXPBG5B). Accept
+  // 5+ alphanumeric chars; backend will validate via API account.get call
+  // and surface a precise error if the ID doesn't exist or user lacks access.
+  if (!/^[A-Za-z0-9-]{5,}$/.test(accountId)) {
+    showToast('Account ID נראה לא תקין — צריך 5+ תווים אלפא-נומריים', 'warning');
     return;
   }
   if (!containerName) { showToast('הזינו שם Container', 'warning'); return; }
   if (!siteDomain) { showToast('הזינו דומיין', 'warning'); return; }
+  console.log('[gtmWizard] submit', { accountId: accountId, containerName: containerName, siteDomain: siteDomain });
 
   var btn = document.getElementById('gtmWizardSubmit');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ עובד...'; }
