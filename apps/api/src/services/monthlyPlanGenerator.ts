@@ -390,6 +390,12 @@ async function persistAndEmit(
             if (carry && (carry.status === 'pending_review' || carry.status === 'approved' || carry.status === 'in_progress')) {
                 taskOutputIdByTaskId.set(task.id, carry.id)
                 await db.update(agentOutputs).set({
+                    // Phase 2026.02 Block 6: per-agent isolation. Without
+                    // agentId, secondary agents (Packing Station etc.) hit the
+                    // outputs.ts filter (line 124: eq(agentId, secondary.id))
+                    // and see an empty approval queue. Always scope rows to
+                    // the agent that owns the plan.
+                    agentId: agent?.id || null,
                     title: `${task.priority} · ${task.title}`.slice(0, 200),
                     content: JSON.stringify({
                         summary: task.summary,
@@ -416,6 +422,7 @@ async function persistAndEmit(
             const [taskRow] = await db.insert(agentOutputs).values({
                 id: 'mt_' + randomBytes(6).toString('hex'),
                 instanceId,
+                agentId: agent?.id || null,
                 agentRole: 'mazhir',
                 outputType: 'monthly_task',
                 platform: task.channel === 'google_ads' ? 'google_ads'
@@ -488,6 +495,7 @@ async function persistAndEmit(
         const [outputRow] = await db.insert(agentOutputs).values({
             id: 'mp_month_' + randomBytes(6).toString('hex'),
             instanceId,
+            agentId: agent?.id || null,
             agentRole: 'mazhir',
             outputType: 'monthly_marketing_plan',
             platform: 'multi',
