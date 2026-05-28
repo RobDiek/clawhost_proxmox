@@ -189,6 +189,7 @@ import {
     approveOutput,
     markManualDone,
     sgtmConfigure,
+    gtmFreshStack,
     rejectOutput,
     editOutput,
     publishOutput,
@@ -783,6 +784,11 @@ app.patch('/instances/:id/outputs/:outputId/mark-manual-done', markManualDone)
 // 'awaiting_manual' sGTM task. SSH-writes /opt/openclaw/sgtm/.env,
 // restarts the container, polls /healthy; on 200 → task=completed.
 app.post('/instances/:id/outputs/:outputId/sgtm/configure', sgtmConfigure)
+// Phase 2026.02 Block 6 Pattern I — create fresh GTM Account + Container.
+// Body: { accountName, containerName, siteDomain }. Returns new IDs +
+// snippets to install on the site. Used for migration from agency-shared
+// accounts AND for greenfield new tenants without any GTM infrastructure.
+app.post('/instances/:id/gtm/fresh-stack', gtmFreshStack)
 app.patch('/instances/:id/outputs/:outputId/reject', rejectOutput)
 app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)

@@ -860,6 +860,91 @@ export async function saveGtmSetupResult(instanceId: string, result: GtmAutoSetu
     })
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// Phase 2026.02 Block 6 Pattern I — Create fresh GTM Account + Container
+// ═══════════════════════════════════════════════════════════════════════
+//
+// Used when tenant either:
+//   (a) Inherited a container from an agency and wants clean separation
+//       (Packing Station case — currently inside agency's GTM Account
+//       "תורג'מן י.ר נכסים" alongside 50+ other clients), OR
+//   (b) Has no GTM infrastructure yet (greenfield new tenant)
+//
+// Returns the new account/container info + install snippet to put on
+// the site. Caller should then re-run autoSetupGtmContainer to populate
+// the empty container with standard fixtures (Conversion Linker, GCLID,
+// EC variables, Consent Mode v2 etc.).
+
+export interface CreateGtmAccountInput {
+    googleTokens: { accessToken?: string; refreshToken: string; expiresAt?: number }
+    name: string             // e.g. "Packing Station" or "Flowmatic — {tenant}"
+    shareData?: boolean      // shareData=true allows benchmarking comparisons (default false for privacy)
+}
+export interface CreateGtmAccountResult {
+    accountId: string
+    name: string
+    path: string             // accounts/{accountId}
+}
+
+export async function createGtmAccount(opts: CreateGtmAccountInput): Promise<CreateGtmAccountResult> {
+    if (!opts.googleTokens?.refreshToken) throw new Error('Google OAuth tokens missing')
+    const accessToken = await getAccessToken(opts.googleTokens)
+
+    const body: Record<string, unknown> = {
+        name: opts.name,
+        shareData: !!opts.shareData,
+    }
+    const res = await gtmFetch(`/accounts`, accessToken, 'POST', body)
+    const acc: any = res
+    if (!acc?.accountId) {
+        throw new Error(`GTM account creation failed: ${JSON.stringify(res).slice(0, 300)}`)
+    }
+    return {
+        accountId: String(acc.accountId),
+        name: String(acc.name || opts.name),
+        path: String(acc.path || `accounts/${acc.accountId}`),
+    }
+}
+
+export interface FreshGtmStackInput {
+    googleTokens: { accessToken?: string; refreshToken: string; expiresAt?: number }
+    accountName: string       // for new account creation
+    containerName: string     // for new container creation
+    siteDomain?: string       // optional — saved to container.domainName
+}
+export interface FreshGtmStackResult {
+    account: CreateGtmAccountResult
+    container: CreateGtmContainerResult
+    target: GtmTarget         // for saving to research_data.mazhirGtm.target
+}
+
+/**
+ * Orchestrator: create new GTM Account + Container in one shot. Returns
+ * the GtmTarget shape directly compatible with mazhirGtm.target for
+ * autoSetupGtmContainer follow-up.
+ */
+export async function createFreshGtmStack(opts: FreshGtmStackInput): Promise<FreshGtmStackResult> {
+    const account = await createGtmAccount({
+        googleTokens: opts.googleTokens,
+        name: opts.accountName,
+        shareData: false,
+    })
+    const container = await createGtmContainer({
+        googleTokens: opts.googleTokens,
+        accountId: account.accountId,
+        name: opts.containerName,
+        domainName: opts.siteDomain,
+    })
+    const target: GtmTarget = {
+        accountId: account.accountId,
+        containerId: container.containerId,
+        publicId: container.publicId,
+        name: container.name,
+        usageContext: container.usageContext,
+    }
+    return { account, container, target }
+}
+
 // ─── Phase 4.2.1-M: Create a new GTM container under user's account ──────
 // Used when user has no container matching their site (very common — most
 // users connect Google to OUR app but never thought about GTM before). Saves

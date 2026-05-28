@@ -213,6 +213,87 @@ export const ingestOutput = async (c: Context<HonoEnv>) => {
     }
 }
 
+// ── POST /hosting/instances/:id/gtm/fresh-stack ──
+// Phase 2026.02 Block 6 Pattern I: create a brand-new GTM Account +
+// Container under the user's OWN Google account. Used for:
+//   (a) Migration from a shared agency GTM Account (clean separation)
+//   (b) Bootstrap for new tenants with no GTM infrastructure
+//
+// On success:
+//   1. Saves target to mateh_agents.research_data.mazhirGtm.target
+//      (replacing any prior agency-owned target)
+//   2. Returns { accountId, containerId, publicId (GTM-XXX), snippets }
+//      for the caller to surface to the user
+//   3. Caller should re-run autoSetupGtmContainer afterward to populate
+//      the new (empty) container with the standard fixtures.
+export const gtmFreshStack = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = c.get('userId')
+        const body = await c.req.json<{ accountName?: string; containerName?: string; siteDomain?: string }>().catch(() => ({} as any))
+        const accountName = (body as any).accountName || 'GTM Account'
+        const containerName = (body as any).containerName || 'Web Container'
+        const siteDomain = (body as any).siteDomain || undefined
+
+        const { resolveAgentById, resolvePrimaryAgent, mutateResearchData } =
+            await import('@/services/agentContext')
+        const agentIdParam = c.req.query('agentId')
+        const agent = agentIdParam
+            ? (await resolveAgentById(instanceId, agentIdParam)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+        if (!agent) return fail(c, 'No agent found for this instance', 404)
+
+        const tokens = (agent as any).googleTokens
+        if (!tokens?.refreshToken) {
+            return fail(c, 'No Google OAuth tokens for this agent — reconnect Google in Integrations first', 400)
+        }
+
+        const { createFreshGtmStack, saveGtmTarget, buildGtmHeadSnippet, buildGtmBodySnippet } =
+            await import('@/services/mazhirGtmSetup')
+
+        const stack = await createFreshGtmStack({
+            googleTokens: tokens,
+            accountName,
+            containerName,
+            siteDomain,
+        })
+
+        // Save target → research_data.mazhirGtm.target (replaces prior target).
+        await saveGtmTarget(instanceId, stack.target, agent.id || null)
+
+        // Also record creation event in research_data for audit history.
+        await mutateResearchData(agent, instanceId, (rd: any) => {
+            rd.mazhirGtm = {
+                ...(rd.mazhirGtm || {}),
+                freshStackHistory: [...((rd.mazhirGtm?.freshStackHistory) || []), {
+                    createdAt: new Date().toISOString(),
+                    createdBy: userId,
+                    accountId: stack.account.accountId,
+                    accountName: stack.account.name,
+                    containerId: stack.container.containerId,
+                    publicId: stack.container.publicId,
+                    siteDomain,
+                }],
+            }
+            return rd
+        })
+
+        return ok(c, {
+            account: stack.account,
+            container: stack.container,
+            target: stack.target,
+            snippets: {
+                head: buildGtmHeadSnippet(stack.container.publicId),
+                body: buildGtmBodySnippet(stack.container.publicId),
+            },
+            instructions: `Site snippet update — replace existing GTM snippet on ${siteDomain || 'your site'} with the new snippets. Then re-run autoSetupGtmContainer to populate fixtures.`,
+        }, 'Fresh GTM stack created')
+    } catch (err) {
+        console.error('gtmFreshStack error:', err)
+        return fail(c, 'Fresh GTM stack creation failed: ' + (err as Error).message, 500)
+    }
+}
+
 // ── POST /hosting/instances/:id/outputs/:outputId/sgtm/configure ──
 // Phase 2026.02 Block 6 Pattern G: user pasted CONTAINER_CONFIG from GTM UI.
 // SSH-write to /opt/openclaw/sgtm/.env, restart container, verify /healthy.
