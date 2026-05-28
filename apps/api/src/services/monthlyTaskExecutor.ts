@@ -297,8 +297,84 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
     const text = (task.title + ' ' + task.summary + ' ' + (task.actionPlan || []).map(s => s.step).join(' ')).toLowerCase()
     const wantsConv = /conversion|המרה|המרות|conv|פיקסל|tag/.test(text)
     const wantsGtm = /gtm|tag manager|tag|הקמת|setup/.test(text)
+    // Phase 2026.02 Block 6: detect "mark primary / demote others" tasks
+    // (tsk_cr_validation archetype). measurement_gap + Hebrew/English "primary"
+    // keywords route to reconcilePrimaryConversionActions instead of full
+    // setupConversionActionsForInstance (which would CREATE new actions; we
+    // want to DEMOTE existing phantom-signal primaries and PROMOTE the real
+    // conversion category).
+    const wantsPrimaryReconcile = task.type === 'measurement_gap'
+        && /ראשית|primary[\s-]*(for[\s-]*goal|conversion|action)|מסומן|סימון.{0,40}(רכישה|primary)/i.test(text)
 
     try {
+        if (wantsPrimaryReconcile) {
+            const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+            const cfg: any = (inst as any).googleAdsConfig || {}
+            const tokens: any = (inst as any).googleTokens || {}
+            if (!cfg.customerId || !cfg.developerToken || !tokens.refreshToken) {
+                stepResults.push({ step: 'primary reconcile pre-check', ok: false, detail: 'Google Ads API tokens incomplete' })
+                return runManualTodoAdapter(instanceId, task, _plan, 'Google Ads API לא מחובר במלואו — סימון "ראשית" ידנית מ-Google Ads → Goals', { stepResults })
+            }
+
+            // Infer desired primary category from task text.
+            // For Packing Station: רכישה → PURCHASE. For a SaaS lead: → LEAD/SUBMIT_LEAD_FORM.
+            // Defaults to PURCHASE which matches the most common eCom playbook.
+            const desiredCategory: 'PURCHASE' | 'LEAD' | 'SUBMIT_LEAD_FORM' | 'PHONE_CALL_LEAD' | 'QUALIFIED_LEAD' =
+                /רכישה|purchase|order|הזמנה/i.test(text) ? 'PURCHASE'
+                : /טופס|form/i.test(text) ? 'SUBMIT_LEAD_FORM'
+                : /qualified|מוסמך/i.test(text) ? 'QUALIFIED_LEAD'
+                : 'LEAD'
+
+            const { listConversionActions, ensureConversionAction, reconcilePrimaryConversionActions } =
+                await import('./mazhirConversions')
+            const loginCustomerId = cfg.loginCustomerId || cfg.managerCustomerId || undefined
+
+            // 1. Check existence — create missing desired action.
+            const existing = await listConversionActions(cfg.customerId, tokens, cfg.developerToken, loginCustomerId)
+            const hasDesired = existing.some(a => a.category === desiredCategory)
+            if (!hasDesired) {
+                const actionKey = desiredCategory === 'PURCHASE' ? 'purchase'
+                    : desiredCategory === 'SUBMIT_LEAD_FORM' ? 'form_submit'
+                    : desiredCategory === 'QUALIFIED_LEAD' ? 'qualified_lead'
+                    : 'generate_lead'
+                const created = await ensureConversionAction(cfg.customerId, tokens, cfg.developerToken, {
+                    actionKey,
+                    name: `${desiredCategory} (ClawFlow auto-created)`,
+                    // Placeholder; actual transaction value is sent via gtag
+                    // (alwaysUseDefaultValue=false in ensureConversionAction)
+                    // so this only fires if the page tag forgets the value.
+                    defaultValueIls: 1,
+                }, loginCustomerId)
+                stepResults.push({
+                    step: `Create ${desiredCategory} conversion action`,
+                    ok: true,
+                    detail: `${created.status}: ${created.resourceName}`,
+                })
+            }
+
+            // 2. Reconcile — promote desired, demote everything else currently primary.
+            const report = await reconcilePrimaryConversionActions(
+                cfg.customerId, tokens, cfg.developerToken, desiredCategory, loginCustomerId,
+            )
+            stepResults.push({
+                step: `Reconcile primary → ${desiredCategory}`,
+                ok: true,
+                detail: `promoted ${report.promoted.length}, demoted ${report.demoted.length}, unchanged ${report.unchanged.length}`,
+            })
+            if (report.demoted.length > 0) {
+                stepResults.push({
+                    step: 'Demoted to secondary',
+                    ok: true,
+                    detail: report.demoted.map(d => `${d.name} (${d.category})`).join('; ').slice(0, 500),
+                })
+            }
+            return {
+                ok: true,
+                outputDescription: `Marked ${desiredCategory} as primary; demoted ${report.demoted.length} phantom-signal actions to secondary.`,
+                stepResults,
+            }
+        }
+
         if (wantsConv) {
             const { setupConversionActionsForInstance } = await import('./mazhirConversions')
             const result = await setupConversionActionsForInstance(instanceId)
