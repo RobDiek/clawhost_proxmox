@@ -230,10 +230,14 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
     try {
         const instanceId = c.req.param('id')
         const userId = c.get('userId')
-        const body = await c.req.json<{ accountName?: string; containerName?: string; siteDomain?: string }>().catch(() => ({} as any))
-        const accountName = (body as any).accountName || 'GTM Account'
+        const body = await c.req.json<{ accountName?: string; existingAccountId?: string; containerName?: string; siteDomain?: string }>().catch(() => ({} as any))
+        const accountName = (body as any).accountName || undefined
+        const existingAccountId = (body as any).existingAccountId || undefined
         const containerName = (body as any).containerName || 'Web Container'
         const siteDomain = (body as any).siteDomain || undefined
+        if (!accountName && !existingAccountId) {
+            return fail(c, 'Either accountName (attempt API create) or existingAccountId (use existing) required', 400)
+        }
 
         const { resolveAgentById, resolvePrimaryAgent, mutateResearchData } =
             await import('@/services/agentContext')
@@ -254,6 +258,7 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
         const stack = await createFreshGtmStack({
             googleTokens: tokens,
             accountName,
+            existingAccountId,
             containerName,
             siteDomain,
         })

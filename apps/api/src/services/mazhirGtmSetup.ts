@@ -908,27 +908,63 @@ export async function createGtmAccount(opts: CreateGtmAccountInput): Promise<Cre
 
 export interface FreshGtmStackInput {
     googleTokens: { accessToken?: string; refreshToken: string; expiresAt?: number }
-    accountName: string       // for new account creation
-    containerName: string     // for new container creation
-    siteDomain?: string       // optional — saved to container.domainName
+    containerName: string             // for new container creation
+    siteDomain?: string               // optional — saved to container.domainName
+    // Choose ONE of:
+    accountName?: string              // attempt API account creation (likely 404 — Google API limit)
+    existingAccountId?: string        // OR use an account user already created in GTM UI
 }
 export interface FreshGtmStackResult {
     account: CreateGtmAccountResult
     container: CreateGtmContainerResult
-    target: GtmTarget         // for saving to research_data.mazhirGtm.target
+    target: GtmTarget                 // for saving to research_data.mazhirGtm.target
 }
 
 /**
  * Orchestrator: create new GTM Account + Container in one shot. Returns
  * the GtmTarget shape directly compatible with mazhirGtm.target for
  * autoSetupGtmContainer follow-up.
+ *
+ * IMPORTANT — Google does NOT expose `tagmanager.accounts.create` via
+ * public API (404 Not Found). If `existingAccountId` is provided, we
+ * skip the create-account step. Otherwise we attempt it and surface
+ * the precise error so the caller can fall back to manual UI flow.
  */
 export async function createFreshGtmStack(opts: FreshGtmStackInput): Promise<FreshGtmStackResult> {
-    const account = await createGtmAccount({
-        googleTokens: opts.googleTokens,
-        name: opts.accountName,
-        shareData: false,
-    })
+    let account: CreateGtmAccountResult
+    if (opts.existingAccountId) {
+        // Skip create; treat the provided accountId as the host for the new container.
+        // Read the account meta back via API to confirm access + name.
+        const accessToken = await getAccessToken(opts.googleTokens)
+        const res = await gtmFetch(`/accounts/${opts.existingAccountId}`, accessToken)
+        if (!res?.accountId) {
+            throw new Error(`Existing accountId ${opts.existingAccountId} not accessible — verify the OAuth user has Admin on that GTM account`)
+        }
+        account = {
+            accountId: String(res.accountId),
+            name: String(res.name || ''),
+            path: String(res.path || `accounts/${res.accountId}`),
+        }
+    } else if (opts.accountName) {
+        try {
+            account = await createGtmAccount({
+                googleTokens: opts.googleTokens,
+                name: opts.accountName,
+                shareData: false,
+            })
+        } catch (err) {
+            const msg = (err as Error).message
+            const is404 = /404|Not Found/i.test(msg)
+            throw new Error(
+                is404
+                    ? 'Google does not allow GTM account creation via public API. User must create the account manually in GTM UI (tagmanager.google.com → Create Account), then call this endpoint again with existingAccountId.'
+                    : msg,
+            )
+        }
+    } else {
+        throw new Error('Either accountName or existingAccountId must be provided')
+    }
+
     const container = await createGtmContainer({
         googleTokens: opts.googleTokens,
         accountId: account.accountId,
