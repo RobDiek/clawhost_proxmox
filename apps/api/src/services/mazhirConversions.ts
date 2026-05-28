@@ -325,6 +325,158 @@ export async function ensureConversionAction(
     }
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// Phase 2026.02 Block 6 — primitives for monthlyTaskExecutor
+// ════════════════════════════════════════════════════════════════════════
+
+export interface ConversionActionSummary {
+    resourceName: string
+    id: string
+    name: string
+    category: string         // PURCHASE | LEAD | PHONE_CALL_LEAD | etc.
+    type: string             // WEBPAGE | UPLOAD_CALLS | etc.
+    status: string           // ENABLED | REMOVED | HIDDEN
+    primaryForGoal: boolean
+    countingType: string
+    defaultValueIls: number | undefined
+}
+
+/**
+ * List ALL enabled conversion actions for an account.
+ * Used by tsk_cr_validation to discover current primary/secondary state
+ * before deciding which to demote and which to mark primary.
+ */
+export async function listConversionActions(
+    customerId: string,
+    tokens: GoogleTokens,
+    developerToken: string,
+    loginCustomerId?: string,
+): Promise<ConversionActionSummary[]> {
+    const data = await gadsFetch(customerId, 'googleAds:searchStream', tokens, developerToken, {
+        query: `SELECT
+            conversion_action.resource_name,
+            conversion_action.id,
+            conversion_action.name,
+            conversion_action.category,
+            conversion_action.type,
+            conversion_action.status,
+            conversion_action.primary_for_goal,
+            conversion_action.counting_type,
+            conversion_action.value_settings.default_value
+        FROM conversion_action
+        WHERE conversion_action.status = 'ENABLED'`,
+    }, loginCustomerId)
+
+    const chunks = Array.isArray(data) ? data : [data]
+    const rows: any[] = []
+    for (const chunk of chunks) {
+        for (const r of (chunk?.results || [])) rows.push(r)
+    }
+    return rows.map((r: any) => {
+        const ca = r.conversionAction || r.conversion_action || {}
+        const vs = ca.valueSettings || ca.value_settings || {}
+        return {
+            resourceName: ca.resourceName || ca.resource_name,
+            id: String(ca.id),
+            name: ca.name,
+            category: ca.category,
+            type: ca.type,
+            status: ca.status,
+            primaryForGoal: !!(ca.primaryForGoal ?? ca.primary_for_goal),
+            countingType: ca.countingType || ca.counting_type,
+            defaultValueIls: typeof vs.defaultValue === 'number' ? vs.defaultValue : (vs.default_value || undefined),
+        }
+    })
+}
+
+/**
+ * Toggle primary_for_goal on a single conversion action.
+ * Atomic — only one field updated. Used to demote phantom-signal actions
+ * (e.g. phone_call valued at ₪1) to secondary, then promote a real Purchase
+ * action to primary as part of tsk_cr_validation tracking-first cluster.
+ */
+export async function setConversionActionPrimary(
+    customerId: string,
+    tokens: GoogleTokens,
+    developerToken: string,
+    resourceName: string,
+    primary: boolean,
+    loginCustomerId?: string,
+): Promise<void> {
+    const body = {
+        operations: [{
+            update: {
+                resourceName,
+                primaryForGoal: primary,
+            },
+            updateMask: 'primary_for_goal',
+        }],
+        partialFailure: false,
+        validateOnly: false,
+    }
+    await gadsFetch(customerId, 'conversionActions:mutate', tokens, developerToken, body, loginCustomerId)
+}
+
+/**
+ * Orchestrator for tsk_cr_validation: ensure exactly the right conversion
+ * actions count toward the Conversions metric (i.e. drive Smart Bidding).
+ *
+ * Plan:
+ *   1. List all enabled actions.
+ *   2. Identify which match the desired primary category (e.g. PURCHASE).
+ *   3. If the desired action is missing → caller must invoke
+ *      ensureConversionAction() first (this function does not create).
+ *   4. Mark desired action(s) primary_for_goal=true.
+ *   5. Demote every OTHER currently-primary action to primary_for_goal=false.
+ *
+ * Returns: detailed before/after report for verification + Telegram surfacing.
+ */
+export interface PrimaryReconcileReport {
+    desiredCategory: string
+    promoted: Array<{ resourceName: string; name: string; previouslyPrimary: boolean }>
+    demoted: Array<{ resourceName: string; name: string; category: string }>
+    unchanged: Array<{ resourceName: string; name: string; primaryForGoal: boolean }>
+    warnings: string[]
+}
+
+export async function reconcilePrimaryConversionActions(
+    customerId: string,
+    tokens: GoogleTokens,
+    developerToken: string,
+    desiredCategory: 'PURCHASE' | 'LEAD' | 'SUBMIT_LEAD_FORM' | 'PHONE_CALL_LEAD' | 'QUALIFIED_LEAD',
+    loginCustomerId?: string,
+): Promise<PrimaryReconcileReport> {
+    const all = await listConversionActions(customerId, tokens, developerToken, loginCustomerId)
+    const report: PrimaryReconcileReport = {
+        desiredCategory,
+        promoted: [],
+        demoted: [],
+        unchanged: [],
+        warnings: [],
+    }
+
+    const desiredActions = all.filter(a => a.category === desiredCategory)
+    if (desiredActions.length === 0) {
+        report.warnings.push(`No ENABLED conversion action found in category ${desiredCategory}. Caller must create one (ensureConversionAction) before promotion.`)
+        return report
+    }
+
+    for (const a of all) {
+        const shouldBePrimary = a.category === desiredCategory
+        if (shouldBePrimary && !a.primaryForGoal) {
+            await setConversionActionPrimary(customerId, tokens, developerToken, a.resourceName, true, loginCustomerId)
+            report.promoted.push({ resourceName: a.resourceName, name: a.name, previouslyPrimary: false })
+        } else if (!shouldBePrimary && a.primaryForGoal) {
+            await setConversionActionPrimary(customerId, tokens, developerToken, a.resourceName, false, loginCustomerId)
+            report.demoted.push({ resourceName: a.resourceName, name: a.name, category: a.category })
+        } else {
+            report.unchanged.push({ resourceName: a.resourceName, name: a.name, primaryForGoal: a.primaryForGoal })
+        }
+    }
+
+    return report
+}
+
 // ─── Mapped conversion action: an EXISTING user action we adopt for Smart Bidding ─
 export interface MappedConversionAction {
     actionKey: PrimaryActionKey

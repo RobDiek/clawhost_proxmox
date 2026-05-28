@@ -1,6 +1,6 @@
 {
     "name": "api",
-    "version": "0.0.599",
+    "version": "0.0.600",
     "private": true,
     "type": "module",
     "scripts": {
