@@ -248,7 +248,34 @@ export async function mutateResearchData(
     instanceId: string,
     mutator: (current: ResearchData) => ResearchData,
 ): Promise<ResearchData> {
-    const current = await readResearchData(agent, instanceId)
+    // CRITICAL — read FRESH from DB, not from the (possibly stale) in-memory
+    // agent.researchData snapshot. Without this fresh read, a long-running
+    // adapter that calls multiple mutateResearchData operations interleaved
+    // with other writers (e.g. monthlyTaskExecutor mark-in-progress →
+    // saveGtmSetupResult → mark-completed) silently loses intermediate
+    // writes: each mutator() reads the OLD agent.researchData snapshot,
+    // patches it, and writes — overwriting any side-effects from another
+    // mutator call that ran in between with the same stale base.
+    //
+    // The behavior matched a memory we already had:
+    //   feedback_research_data_dual_write — ALL writes to research_data MUST
+    //   use mutateResearchData/writeResearchData. Raw db.update gets silently
+    //   wiped by next patchResearchData call.
+    // The underlying mechanism is the stale in-memory read — fixed here so
+    // every mutator gets a true current state to merge into.
+    let current: ResearchData
+    if (agent) {
+        const [fresh] = await db.select({ rd: matehAgents.researchData })
+            .from(matehAgents)
+            .where(eq(matehAgents.id, agent.id))
+        current = (fresh ? fresh.rd as ResearchData : null) || {}
+    } else {
+        const { instances } = await import('@/db/schema')
+        const [inst] = await db.select({ rd: instances.researchData })
+            .from(instances)
+            .where(eq(instances.id, instanceId))
+        current = (inst ? inst.rd as ResearchData : null) || {}
+    }
     const next = mutator(current) || {}
     await writeResearchData(agent, instanceId, next)
     return next
