@@ -318,13 +318,17 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             })
         }
 
-        // ── 3. WP REST snippet install (best-effort) ──
-        // Phase 2026.02 Block 6 Pattern I: try to auto-install the GTM snippet
-        // on the user's WordPress site via the existing 'wordpress' agent
-        // integration. If WP isn't connected, fall through and surface the
-        // snippet to the user for manual paste.
+        // ── 3. WP companion plugin install + snippet inject + stale GTM scan ──
+        // Phase 2026.02 Block 6 Pattern J. Three sub-steps with full
+        // hands-off goal (handle the WP integration end-to-end):
+        //   3a. Install ClawFlow companion plugin via WP REST /wp/v2/plugins
+        //       (multipart .zip upload; only needs Application Password)
+        //   3b. POST our GTM snippet to /wp-json/clawflow/v1/gtm-snippet
+        //   3c. Scan site for stale GTM- snippets (foreign IDs) — surface
+        //       to user so they can remove the OLD agency container snippet
+        //       BEFORE going live with the new one
         let wpInstalled = false
-        let wpError = ''
+        let staleScan: any = null
         try {
             const { db } = await import('@/db')
             const { agentIntegrations } = await import('@/db/schema')
@@ -341,41 +345,69 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                 const target = String(siteDomain || '').replace(/^https?:\/\//, '').replace(/\/$/, '')
                 return target && url && url.includes(target)
             }) || wpRows[0]
-            if (wp && (wp.config as any)?.url && (wp.config as any)?.user && (wp.config as any)?.appPassword) {
-                const cfg = wp.config as any
-                const auth = Buffer.from(`${cfg.user}:${cfg.appPassword}`).toString('base64')
-                // Use WordPress 'options' REST endpoint to write a custom
-                // option key that our companion plugin reads + injects to
-                // <head>. If the user has no companion plugin, this is a
-                // no-op stored value (we surface snippet for manual paste too).
-                const snippet = buildGtmHeadSnippet(stack.container.publicId)
-                const optionRes = await fetch(`${cfg.url}/wp-json/clawflow/v1/gtm-snippet`, {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Basic ${auth}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        publicId: stack.container.publicId,
-                        head: snippet,
-                        body: buildGtmBodySnippet(stack.container.publicId),
-                    }),
-                }).catch((e) => { wpError = (e as Error).message; return null })
-                if (optionRes && optionRes.ok) {
-                    wpInstalled = true
-                    chainSteps.push({ step: 'WordPress snippet installed (via Clawflow companion plugin)', ok: true, detail: cfg.url })
-                } else if (optionRes) {
-                    wpError = `HTTP ${optionRes.status}: ${(await optionRes.text()).slice(0, 200)}`
-                    chainSteps.push({
-                        step: 'WordPress auto-install failed — companion plugin missing',
-                        ok: false,
-                        detail: `Falling back to manual paste. ${wpError}. Install our Clawflow WP plugin or paste the snippet below into your theme's <head>.`,
-                    })
-                } else {
-                    chainSteps.push({ step: 'WordPress REST unreachable', ok: false, detail: wpError })
-                }
-            } else {
+
+            if (!wp || !(wp.config as any)?.url || !(wp.config as any)?.appPassword) {
                 chainSteps.push({ step: 'WordPress not connected', ok: false, detail: 'No matching WP integration — paste snippet manually' })
+            } else {
+                const cfg = wp.config as { url: string; user: string; appPassword: string }
+                const { installCompanionPlugin, installGtmSnippet, scanStaleGtmSnippets } = await import('@/services/wpCompanionInstaller')
+
+                // 3a. Install + activate companion plugin
+                const pluginRes = await installCompanionPlugin(cfg)
+                chainSteps.push({
+                    step: 'WP ClawFlow companion plugin',
+                    ok: pluginRes.installed && pluginRes.activated,
+                    detail: pluginRes.installed && pluginRes.activated
+                        ? `${pluginRes.method} · ${pluginRes.notes.join('; ').slice(0, 300)}`
+                        : `failed: ${pluginRes.error || pluginRes.notes.join('; ')}`,
+                })
+
+                if (pluginRes.installed && pluginRes.activated) {
+                    // 3b. POST snippet to companion plugin endpoint
+                    const snipRes = await installGtmSnippet(
+                        cfg,
+                        stack.container.publicId,
+                        buildGtmHeadSnippet(stack.container.publicId),
+                        buildGtmBodySnippet(stack.container.publicId),
+                    )
+                    if (snipRes.ok) {
+                        wpInstalled = true
+                        chainSteps.push({
+                            step: 'WP GTM snippet installed via companion plugin',
+                            ok: true,
+                            detail: `publicId=${snipRes.publicId} · auto-injected to <head> + <body> on every page`,
+                        })
+                    } else {
+                        chainSteps.push({
+                            step: 'WP snippet POST failed (plugin installed but endpoint errored)',
+                            ok: false,
+                            detail: snipRes.error || 'unknown',
+                        })
+                    }
+
+                    // 3c. Scan for stale (foreign) GTM snippets to surface to user
+                    try {
+                        staleScan = await scanStaleGtmSnippets(cfg)
+                        if (staleScan && staleScan.foreignCount > 0) {
+                            const examples = (staleScan.findings || []).slice(0, 3).map((f: any) =>
+                                `${f.source}:${f.key} (${(f.gtmIds || []).join(', ')})`
+                            ).join('; ')
+                            chainSteps.push({
+                                step: 'Stale GTM scan — OLD snippets found',
+                                ok: false,
+                                detail: `${staleScan.foreignCount} foreign location(s) with old GTM-XXXXXXX: ${examples}. New snippet WILL conflict with old until removed. Use the migration UI to clean up.`,
+                            })
+                        } else {
+                            chainSteps.push({
+                                step: 'Stale GTM scan — clean',
+                                ok: true,
+                                detail: 'no foreign GTM snippets in wp_options or theme files',
+                            })
+                        }
+                    } catch (e) {
+                        chainSteps.push({ step: 'Stale GTM scan failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
+                    }
+                }
             }
         } catch (e) {
             chainSteps.push({ step: 'WordPress install error', ok: false, detail: (e as Error).message.slice(0, 300) })
