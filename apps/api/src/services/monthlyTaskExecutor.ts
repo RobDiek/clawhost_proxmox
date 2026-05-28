@@ -610,28 +610,55 @@ async function runTrackingSetupAdapter(
         }
 
         if (wantsSgtm) {
-            // Pattern F (Manual brief + done button) — Pattern G (full hybrid
-            // auto-deploy on VPS) is a separate sprint. For now surface
-            // Hebrew instructions clearly; task waits in 'awaiting_manual'
-            // status until user clicks "✓ ביצעתי ידנית".
-            stepResults.push({
-                step: 'sGTM server-side container — manual setup (auto-deploy on VPS planned)',
-                ok: false,
-                detail: 'הקמת server-side GTM container דורשת deploy ל-Cloud Run (או VPS שלכם).\n' +
-                    'שלבים:\n' +
-                    '1. Google Cloud Console → Cloud Run → Create service\n' +
-                    '2. Container image: gcr.io/cloud-tagging-10302018/gtm-cloud-image:stable\n' +
-                    '3. Env var CONTAINER_CONFIG = (Tag Manager → Container → Tagging Server → Manually provision)\n' +
-                    '4. Region: europe-west1 (קרוב לישראל)\n' +
-                    '5. Custom domain: sgtm.your-site.co.il (DNS CNAME)\n' +
-                    '6. Verify: https://sgtm.your-site.co.il/healthy — should return 200\n\n' +
-                    'אוטומציה (auto-deploy על VPS שלכם) בפיתוח — תיכלל בעדכון הבא.',
-            })
-            return {
-                ok: true,
-                awaitingManual: true,
-                outputDescription: 'sGTM container — manual setup required. Click "✓ ביצעתי ידנית" when done.',
-                stepResults,
+            // Pattern G hybrid auto-deploy. We provision DNS + Docker + nginx
+            // + certbot on the client VPS automatically. The one step Google
+            // does NOT expose via API is CONTAINER_CONFIG generation (security
+            // — it's a credential token). User pastes it once via the
+            // "Configure sGTM" form in the popup (Pattern F UX).
+            try {
+                const { provisionSgtm } = await import('./sgtmProvisioner')
+                const sgtm = await provisionSgtm(instanceId, agent?.id || null)
+                stepResults.push({
+                    step: 'sGTM infrastructure auto-provisioned',
+                    ok: true,
+                    detail: `URL: ${sgtm.sgtmUrl}\n` +
+                        `DNS: ${sgtm.dnsCreated ? '✓ Cloudflare A record created' : '⚠ DNS create failed (manual fallback)'}\n` +
+                        `Docker: ${sgtm.placeholderActive ? '✓ container running (placeholder config)' : '⚠ docker compose up failed (manual fallback)'}\n` +
+                        `Nginx: ${sgtm.nginxConfigured ? '✓ vhost configured + reloaded' : '✗ failed'}\n` +
+                        `SSL: ${sgtm.certbotQueued ? '⏳ certbot queued (async — runs after DNS propagates ~2-5 min)' : '✗ certbot skipped'}`,
+                })
+                stepResults.push({
+                    step: 'User action required — CONTAINER_CONFIG paste',
+                    ok: false,
+                    detail: `הקמת sGTM כמעט הושלמה. נשאר שלב אחד שלא ניתן לבצע אוטומטית כי Google לא חושפת את ה-CONTAINER_CONFIG דרך ה-API:\n\n` +
+                        `1. פתחו GTM: https://tagmanager.google.com\n` +
+                        `2. בחרו את ה-Container שלכם (web)\n` +
+                        `3. Admin → Container Settings → Tagging Server (gear icon)\n` +
+                        `4. Manually provision tagging server\n` +
+                        `5. Tagging server URL: ${sgtm.sgtmUrl}\n` +
+                        `6. העתיקו את ה-Container configuration string שמופיע\n` +
+                        `7. הדביקו אותו בטופס "הגדרת sGTM" שייפתח בפופאפ של המשימה הזאת\n` +
+                        `8. הקליקו "שמרו" — אנחנו נעדכן את ה-Docker אוטומטית ונאמת ש-/healthy מחזיר 200\n\n` +
+                        `הערה: שלב 7 דורש OAuth UI — Google שמרה אותו לאבטחה. כל השאר בוצע אוטומטית.`,
+                })
+                return {
+                    ok: true,
+                    awaitingManual: true,
+                    outputDescription: `sGTM auto-provisioned at ${sgtm.sgtmUrl}. Awaiting CONTAINER_CONFIG paste.`,
+                    stepResults,
+                }
+            } catch (e) {
+                stepResults.push({
+                    step: 'sGTM auto-provisioning failed',
+                    ok: false,
+                    detail: `Could not auto-provision sGTM infrastructure: ${(e as Error).message.slice(0, 500)}\n\nFall back to manual setup — open Google Cloud Console → Cloud Run → deploy ${'gcr.io/cloud-tagging-10302018/gtm-cloud-image:stable'} manually.`,
+                })
+                return {
+                    ok: true,
+                    awaitingManual: true,
+                    outputDescription: 'sGTM auto-provision failed — manual setup required.',
+                    stepResults,
+                }
             }
         }
 

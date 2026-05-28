@@ -213,6 +213,81 @@ export const ingestOutput = async (c: Context<HonoEnv>) => {
     }
 }
 
+// ── POST /hosting/instances/:id/outputs/:outputId/sgtm/configure ──
+// Phase 2026.02 Block 6 Pattern G: user pasted CONTAINER_CONFIG from GTM UI.
+// SSH-write to /opt/openclaw/sgtm/.env, restart container, verify /healthy.
+// On success → promote task to 'completed' + mirror status in research_data.
+export const sgtmConfigure = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const outputId = c.req.param('outputId')
+        const userId = c.get('userId')
+        const body = await c.req.json<{ containerConfig?: string }>().catch(() => ({} as { containerConfig?: string }))
+        const containerConfig = ((body as { containerConfig?: string }).containerConfig || '').trim()
+        if (!containerConfig) return fail(c, 'containerConfig required in body', 400)
+
+        const [output] = await db.select().from(agentOutputs).where(eq(agentOutputs.id, outputId))
+        if (!output) return fail(c, 'Output not found', 404)
+        if (output.outputType !== 'monthly_task') return fail(c, 'Not a monthly_task', 400)
+
+        const { applyContainerConfig } = await import('@/services/sgtmProvisioner')
+        const result = await applyContainerConfig(instanceId, containerConfig)
+
+        if (!result.healthy) {
+            // Don't mark task completed — surface the failure so user can retry.
+            await db.update(agentOutputs).set({
+                metadata: {
+                    ...((output.metadata as any) || {}),
+                    sgtmConfigure: { healthy: false, error: result.error, attemptedAt: new Date().toISOString() },
+                } as any,
+                updatedAt: new Date(),
+            }).where(eq(agentOutputs.id, outputId))
+            return fail(c, result.error || 'sGTM container did not become healthy', 422)
+        }
+
+        // Healthy → promote task to completed + mirror to research_data
+        const meta = output.metadata as Record<string, unknown> | null
+        const taskId = meta?.taskId as string | undefined
+        await db.update(agentOutputs).set({
+            status: 'completed',
+            publishedAt: new Date(),
+            metadata: {
+                ...(meta || {}),
+                sgtmConfigure: { healthy: true, sgtmUrl: result.sgtmUrl, completedAt: new Date().toISOString() },
+            } as any,
+            updatedAt: new Date(),
+        }).where(eq(agentOutputs.id, outputId))
+
+        if (taskId) {
+            try {
+                const { resolveAgentById, resolvePrimaryAgent, mutateResearchData } =
+                    await import('@/services/agentContext')
+                const agent = output.agentId
+                    ? (await resolveAgentById(output.instanceId, output.agentId)) || (await resolvePrimaryAgent(output.instanceId))
+                    : await resolvePrimaryAgent(output.instanceId)
+                await mutateResearchData(agent, output.instanceId, (rd: any) => {
+                    const plan = rd?.monthlyPlan
+                    if (!plan || !Array.isArray(plan.tasks)) return rd
+                    const idx = plan.tasks.findIndex((t: any) => t.id === taskId)
+                    if (idx === -1) return rd
+                    plan.tasks[idx].status = 'completed'
+                    plan.tasks[idx].completedAt = new Date().toISOString()
+                    ;(plan.tasks[idx] as any).completedMethod = 'hybrid_auto_plus_user_config'
+                    ;(plan.tasks[idx] as any).completedBy = userId
+                    return rd
+                })
+            } catch (err) {
+                console.warn(`[sgtmConfigure] research_data mirror failed:`, (err as Error).message)
+            }
+        }
+
+        return ok(c, { sgtmUrl: result.sgtmUrl, healthy: true }, 'sGTM configured + healthy')
+    } catch (err) {
+        console.error('sgtmConfigure error:', err)
+        return fail(c, 'sGTM configure failed: ' + (err as Error).message, 500)
+    }
+}
+
 // ── PATCH /hosting/instances/:id/outputs/:outputId/mark-manual-done ──
 // Phase 2026.02 Block 6 Pattern F: completion path for tasks that ran
 // auto-execute but require a final manual step (e.g. sGTM Cloud Run deploy,

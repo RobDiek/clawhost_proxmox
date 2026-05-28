@@ -8208,6 +8208,23 @@ function renderMonthlyTaskFooter(task) {
   // Google Ads UI). Show '✓ ביצעתי ידנית' to mark completed once user
   // finishes the manual step described in the popup body.
   if (task.status === 'awaiting_manual') {
+    // Phase 2026.02 Block 6 Pattern G: sGTM task has a special inline form
+    // for CONTAINER_CONFIG paste — the hybrid flow lets us auto-restart
+    // the Docker container with the user's config + verify /healthy.
+    var isSgtm = task.metadata && task.metadata.taskId === 'tsk_server_side_gtm';
+    if (isSgtm) {
+      return '<div style="display:flex;flex-direction:column;gap:10px;width:100%">' +
+        '<div style="display:flex;gap:8px;align-items:center">' +
+          '<span style="color:#92400E;font-weight:600;padding:6px 10px;background:#FEF3C7;border-radius:6px;border:1px solid #FDE68A;font-size:0.82rem">⏳ ממתינה ל-CONTAINER_CONFIG</span>' +
+        '</div>' +
+        '<textarea id="sgtmConfigInput-' + task.id + '" placeholder="הדביקו את ה-CONTAINER_CONFIG string מ-GTM Container Settings → Tagging Server" rows="3" style="width:100%;padding:10px;font-family:monospace;font-size:0.8rem;border:1px solid #D1D5DB;border-radius:6px;resize:vertical;direction:ltr;text-align:left"></textarea>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+          '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()" style="font-size:0.82rem">✗ דחו</button>' +
+          '<button class="aq-btn" onclick="apiMarkManualDone(\'' + task.id + '\');closeTaskPopup()" style="font-size:0.82rem;background:#F3F4F6;color:#374151">סמנו כידני</button>' +
+          '<button class="aq-btn approve" onclick="apiSgtmConfigure(\'' + task.id + '\')" style="background:#10B981;color:#fff;font-size:0.82rem">▶ שמרו והפעילו sGTM</button>' +
+        '</div>' +
+      '</div>';
+    }
     return '<span style="color:#92400E;font-weight:600;padding:8px;background:#FEF3C7;border-radius:6px;border:1px solid #FDE68A">⏳ ממתין לפעולה ידנית</span>' +
            '<button class="aq-btn approve" onclick="apiMarkManualDone(\'' + task.id + '\');closeTaskPopup()" style="background:#10B981;color:#fff">✓ ביצעתי ידנית</button>';
   }
@@ -8237,6 +8254,32 @@ function apiMarkManualDone(outputId) {
     else { showToast('שגיאה: ' + (d.message || 'failed to mark manual done'), 'error'); }
   })
   .catch(function() { showToast('שגיאת רשת', 'error'); });
+}
+
+// Phase 2026.02 Block 6 Pattern G — submit CONTAINER_CONFIG for an sGTM
+// task. Backend SSH-writes /opt/openclaw/sgtm/.env, restarts container,
+// verifies /healthy → 200. On success task auto-promotes to 'completed'.
+function apiSgtmConfigure(outputId) {
+  var textarea = document.getElementById('sgtmConfigInput-' + outputId);
+  if (!textarea) { showToast('שדה CONTAINER_CONFIG לא נמצא', 'error'); return; }
+  var cfg = (textarea.value || '').trim();
+  if (cfg.length < 50) { showToast('CONTAINER_CONFIG קצר מדי — העתיקו את המחרוזת המלאה מ-GTM', 'warning'); return; }
+  showToast('מעדכן sGTM container — זה ייקח עד 30 שניות...', 'info');
+  fetch(API + '/hosting/instances/' + instanceId + '/outputs/' + outputId + '/sgtm/configure', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ containerConfig: cfg })
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) {
+      showToast('sGTM פעיל ובריא ב-' + (d.data && d.data.sgtmUrl ? d.data.sgtmUrl : ''), 'success');
+      closeTaskPopup();
+      renderApprovalQueue();
+    } else {
+      showToast('sGTM configure נכשל: ' + (d.message || 'unknown'), 'error');
+    }
+  })
+  .catch(function(err) { showToast('שגיאת רשת: ' + (err && err.message || ''), 'error'); });
 }
 
 // Phase 2026.02 Block 6 — Overall monthly_marketing_plan popup renderer.

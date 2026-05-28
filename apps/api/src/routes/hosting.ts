@@ -188,6 +188,7 @@ import {
     ingestOutput,
     approveOutput,
     markManualDone,
+    sgtmConfigure,
     rejectOutput,
     editOutput,
     publishOutput,
@@ -778,6 +779,10 @@ app.patch('/instances/:id/outputs/:outputId/approve', approveOutput)
 // codeless conversion action). Updates agent_outputs.status='completed'
 // AND mirrors plan.tasks[idx].status='completed' in research_data.
 app.patch('/instances/:id/outputs/:outputId/mark-manual-done', markManualDone)
+// Phase 2026.02 Block 6 Pattern G — POST CONTAINER_CONFIG for an
+// 'awaiting_manual' sGTM task. SSH-writes /opt/openclaw/sgtm/.env,
+// restarts the container, polls /healthy; on 200 → task=completed.
+app.post('/instances/:id/outputs/:outputId/sgtm/configure', sgtmConfigure)
 app.patch('/instances/:id/outputs/:outputId/reject', rejectOutput)
 app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
