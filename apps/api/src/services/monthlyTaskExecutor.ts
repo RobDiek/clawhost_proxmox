@@ -320,12 +320,51 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
     try {
         if (wantsPrimaryReconcile) {
             const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-            const cfg: any = (inst as any).googleAdsConfig || {}
-            const tokens: any = (inst as any).googleTokens || {}
+            // Phase 2026.02 Block 6: prefer mateh_agent.googleAdsConfig (multi-agent
+            // VPS) over legacy instances.googleAdsConfig — agent owns scope.
+            const { resolvePrimaryAgent, resolveAgentById } = await import('./agentContext')
+            const ownerAgent = task.executionOutputId
+                ? null  // best-effort below
+                : await resolvePrimaryAgent(instanceId)
+            // Fast path: read fresh from DB for this agent if we can resolve.
+            // Otherwise fall back to instances.googleAdsConfig.
+            let cfg: any = {}
+            let tokens: any = {}
+            try {
+                if (ownerAgent) {
+                    cfg = (ownerAgent as any).googleAdsConfig || {}
+                    tokens = (ownerAgent as any).googleTokens || {}
+                }
+                if (!cfg.customerId || !tokens.refreshToken) {
+                    cfg = (inst as any).googleAdsConfig || {}
+                    tokens = (inst as any).googleTokens || {}
+                }
+            } catch { /* fall back */ }
+
             if (!cfg.customerId || !cfg.developerToken || !tokens.refreshToken) {
                 stepResults.push({ step: 'primary reconcile pre-check', ok: false, detail: 'Google Ads API tokens incomplete' })
                 return runManualTodoAdapter(instanceId, task, _plan, 'Google Ads API לא מחובר במלואו — סימון "ראשית" ידנית מ-Google Ads → Goals', { stepResults })
             }
+
+            // CRITICAL: in MCC topologies, conversion actions live on the
+            // OPERATING sub-account (scope.operatingCustomerId), NOT on the
+            // login MCC (customerId). Querying the MCC returns either empty
+            // results or "Manager accounts can't have conversion actions" —
+            // and our reconcile reported "demoted 0" because the API was
+            // pointed at the wrong customer. Always use operatingCustomerId
+            // when present (= the sub-account), with customerId as the
+            // OAuth login_customer_id header.
+            const operatingCustomerId: string = cfg.scope?.operatingCustomerId
+                || cfg.operatingCustomerId
+                || cfg.customerId
+            const loginCustomerId: string = cfg.loginCustomerId
+                || cfg.customerId
+                || operatingCustomerId
+            stepResults.push({
+                step: 'resolve MCC topology',
+                ok: true,
+                detail: `operating=${operatingCustomerId}, login=${loginCustomerId}`,
+            })
 
             // Infer desired primary category from task text.
             // For Packing Station: רכישה → PURCHASE. For a SaaS lead: → LEAD/SUBMIT_LEAD_FORM.
@@ -338,17 +377,21 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
 
             const { listConversionActions, ensureConversionAction, reconcilePrimaryConversionActions } =
                 await import('./mazhirConversions')
-            const loginCustomerId = cfg.loginCustomerId || cfg.managerCustomerId || undefined
 
             // 1. Check existence — create missing desired action.
-            const existing = await listConversionActions(cfg.customerId, tokens, cfg.developerToken, loginCustomerId)
+            const existing = await listConversionActions(operatingCustomerId, tokens, cfg.developerToken, loginCustomerId)
+            stepResults.push({
+                step: 'list conversion actions',
+                ok: true,
+                detail: `total=${existing.length}, primary=${existing.filter(a => a.primaryForGoal).length}, by_category=${[...new Set(existing.map(a => a.category))].join(',')}`,
+            })
             const hasDesired = existing.some(a => a.category === desiredCategory)
             if (!hasDesired) {
                 const actionKey = desiredCategory === 'PURCHASE' ? 'purchase'
                     : desiredCategory === 'SUBMIT_LEAD_FORM' ? 'form_submit'
                     : desiredCategory === 'QUALIFIED_LEAD' ? 'qualified_lead'
                     : 'generate_lead'
-                const created = await ensureConversionAction(cfg.customerId, tokens, cfg.developerToken, {
+                const created = await ensureConversionAction(operatingCustomerId, tokens, cfg.developerToken, {
                     actionKey,
                     name: `${desiredCategory} (ClawFlow auto-created)`,
                     // Placeholder; actual transaction value is sent via gtag
@@ -365,7 +408,7 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
 
             // 2. Reconcile — promote desired, demote everything else currently primary.
             const report = await reconcilePrimaryConversionActions(
-                cfg.customerId, tokens, cfg.developerToken, desiredCategory, loginCustomerId,
+                operatingCustomerId, tokens, cfg.developerToken, desiredCategory, loginCustomerId,
             )
             stepResults.push({
                 step: `Reconcile primary → ${desiredCategory}`,
