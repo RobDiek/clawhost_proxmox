@@ -418,6 +418,66 @@ export async function setConversionActionPrimary(
 }
 
 /**
+ * Batched primary_for_goal mutation — one API call with N operations and
+ * partialFailure=true. Used by reconcilePrimaryConversionActions instead of
+ * looping one-at-a-time because:
+ *   (a) Single-op per request → first MUTATE_NOT_ALLOWED kills the loop
+ *       and zero changes get applied. Batched + partialFailure isolates
+ *       failures per-op while letting valid ops succeed.
+ *   (b) 17 actions × 1 request each = 17 HTTPS round trips. One batch = 1 RT.
+ *   (c) Some action types are read-only (UPLOAD_CALLS, GA4-imported,
+ *       system-managed "Calls from ads"). Their primary_for_goal CANNOT be
+ *       mutated; partialFailure lets us discover which without blocking.
+ *
+ * Returns per-op result with success flag + error reason (if any).
+ */
+export async function batchSetConversionActionPrimary(
+    customerId: string,
+    tokens: GoogleTokens,
+    developerToken: string,
+    operations: Array<{ resourceName: string; primary: boolean }>,
+    loginCustomerId?: string,
+): Promise<Array<{ resourceName: string; primary: boolean; ok: boolean; error?: string }>> {
+    if (operations.length === 0) return []
+    const body = {
+        operations: operations.map(op => ({
+            update: {
+                resourceName: op.resourceName,
+                primaryForGoal: op.primary,
+            },
+            updateMask: 'primary_for_goal',
+        })),
+        partialFailure: true,
+        validateOnly: false,
+    }
+    const res = await gadsFetch(customerId, 'conversionActions:mutate', tokens, developerToken, body, loginCustomerId)
+    // partial_failure_error is set when ANY op failed; per-op errors live in
+    // partial_failure_error.details[].errors with location pointing to the op index.
+    const partialErr = res?.partialFailureError || res?.partial_failure_error
+    const opIndexErrors = new Map<number, string>()
+    if (partialErr?.details) {
+        for (const detail of partialErr.details) {
+            const failure = detail?.errors || []
+            for (const e of failure) {
+                const idxField = (e.location?.fieldPathElements || []).find((f: any) => f.fieldName === 'operations')
+                const idx = typeof idxField?.index === 'number' ? idxField.index : -1
+                if (idx >= 0) {
+                    const codeKey = e.errorCode ? Object.keys(e.errorCode)[0] : 'unknown'
+                    const codeVal = e.errorCode ? Object.values(e.errorCode)[0] : 'unknown'
+                    opIndexErrors.set(idx, `${codeKey}=${codeVal}: ${e.message || ''}`.slice(0, 200))
+                }
+            }
+        }
+    }
+    return operations.map((op, i) => ({
+        resourceName: op.resourceName,
+        primary: op.primary,
+        ok: !opIndexErrors.has(i),
+        error: opIndexErrors.get(i),
+    }))
+}
+
+/**
  * Orchestrator for tsk_cr_validation: ensure exactly the right conversion
  * actions count toward the Conversions metric (i.e. drive Smart Bidding).
  *
@@ -436,6 +496,7 @@ export interface PrimaryReconcileReport {
     promoted: Array<{ resourceName: string; name: string; previouslyPrimary: boolean }>
     demoted: Array<{ resourceName: string; name: string; category: string }>
     unchanged: Array<{ resourceName: string; name: string; primaryForGoal: boolean }>
+    failed: Array<{ resourceName: string; name: string; category: string; intendedPrimary: boolean; error: string }>
     warnings: string[]
 }
 
@@ -452,6 +513,7 @@ export async function reconcilePrimaryConversionActions(
         promoted: [],
         demoted: [],
         unchanged: [],
+        failed: [],
         warnings: [],
     }
 
@@ -461,16 +523,46 @@ export async function reconcilePrimaryConversionActions(
         return report
     }
 
+    // Compute desired state per action — but do NOT mutate inline. Collect
+    // all needed mutations and dispatch one batch with partialFailure=true
+    // so read-only actions (GA4-imported, UPLOAD_CALLS, system-managed)
+    // fail per-op without killing the whole reconcile.
+    const ops: Array<{ resourceName: string; primary: boolean; meta: { name: string; category: string } }> = []
     for (const a of all) {
         const shouldBePrimary = a.category === desiredCategory
         if (shouldBePrimary && !a.primaryForGoal) {
-            await setConversionActionPrimary(customerId, tokens, developerToken, a.resourceName, true, loginCustomerId)
-            report.promoted.push({ resourceName: a.resourceName, name: a.name, previouslyPrimary: false })
+            ops.push({ resourceName: a.resourceName, primary: true, meta: { name: a.name, category: a.category } })
         } else if (!shouldBePrimary && a.primaryForGoal) {
-            await setConversionActionPrimary(customerId, tokens, developerToken, a.resourceName, false, loginCustomerId)
-            report.demoted.push({ resourceName: a.resourceName, name: a.name, category: a.category })
+            ops.push({ resourceName: a.resourceName, primary: false, meta: { name: a.name, category: a.category } })
         } else {
             report.unchanged.push({ resourceName: a.resourceName, name: a.name, primaryForGoal: a.primaryForGoal })
+        }
+    }
+
+    if (ops.length === 0) return report
+
+    const results = await batchSetConversionActionPrimary(
+        customerId, tokens, developerToken,
+        ops.map(o => ({ resourceName: o.resourceName, primary: o.primary })),
+        loginCustomerId,
+    )
+    for (let i = 0; i < ops.length; i++) {
+        const op = ops[i]
+        const r = results[i]
+        if (r.ok) {
+            if (op.primary) {
+                report.promoted.push({ resourceName: op.resourceName, name: op.meta.name, previouslyPrimary: false })
+            } else {
+                report.demoted.push({ resourceName: op.resourceName, name: op.meta.name, category: op.meta.category })
+            }
+        } else {
+            report.failed.push({
+                resourceName: op.resourceName,
+                name: op.meta.name,
+                category: op.meta.category,
+                intendedPrimary: op.primary,
+                error: r.error || 'unknown',
+            })
         }
     }
 

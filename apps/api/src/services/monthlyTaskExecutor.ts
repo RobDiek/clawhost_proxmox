@@ -412,8 +412,8 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
             )
             stepResults.push({
                 step: `Reconcile primary → ${desiredCategory}`,
-                ok: true,
-                detail: `promoted ${report.promoted.length}, demoted ${report.demoted.length}, unchanged ${report.unchanged.length}`,
+                ok: report.failed.length === 0,
+                detail: `promoted ${report.promoted.length}, demoted ${report.demoted.length}, unchanged ${report.unchanged.length}, failed ${report.failed.length}`,
             })
             if (report.demoted.length > 0) {
                 stepResults.push({
@@ -422,9 +422,21 @@ async function runTrackingSetupAdapter(instanceId: string, task: MonthlyTask, _p
                     detail: report.demoted.map(d => `${d.name} (${d.category})`).join('; ').slice(0, 500),
                 })
             }
+            if (report.failed.length > 0) {
+                // Read-only actions (GA4-imported / UPLOAD_CALLS / system-managed)
+                // can NOT be mutated from the Google Ads API — these need to be
+                // adjusted in GA4 Admin (mark/unmark event as conversion) or
+                // accepted as-is. Surface them as a manual follow-up step.
+                stepResults.push({
+                    step: 'Mutate-not-allowed (read-only actions — manual GA4 step required)',
+                    ok: false,
+                    detail: report.failed.map(f => `${f.name} (${f.category}): ${f.error}`).join('\n').slice(0, 800),
+                })
+            }
+            const overallOk = report.promoted.length > 0 || report.demoted.length > 0
             return {
-                ok: true,
-                outputDescription: `Marked ${desiredCategory} as primary; demoted ${report.demoted.length} phantom-signal actions to secondary.`,
+                ok: overallOk,
+                outputDescription: `Marked ${desiredCategory} as primary; demoted ${report.demoted.length} actions to secondary${report.failed.length > 0 ? ` (${report.failed.length} read-only — manual GA4 step)` : ''}.`,
                 stepResults,
             }
         }
