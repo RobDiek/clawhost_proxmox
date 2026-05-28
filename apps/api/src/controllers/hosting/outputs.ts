@@ -403,6 +403,54 @@ async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
         return
     }
 
+    // Phase 2026.02 Block 6 — monthly_task approved → run the executor.
+    // Previously approve just flipped status in agent_outputs without invoking
+    // monthlyTaskExecutor.executeTask, so Mission #1 tasks (tsk_cr_validation,
+    // tsk_consent_mode_v2, tsk_enhanced_conversions) silently did nothing
+    // after the user clicked אשרו. This branch:
+    //   1. Updates the MonthlyTask in research_data.monthlyPlan.tasks to status='approved'
+    //      (executor refuses to run unless the task object itself is approved).
+    //   2. Fire-and-forget invokes executeTask(instanceId, taskId).
+    //   3. Executor writes back completion / failure / executionOutcome.
+    if (output.outputType === 'monthly_task') {
+        const taskId = meta?.taskId as string | undefined
+        if (!taskId) {
+            console.error(`monthly_task approved but metadata.taskId missing: ${output.id}`)
+            return
+        }
+        console.log(`Monthly task approved: ${taskId} (output ${output.id}) — invoking executor`)
+        try {
+            const { resolveAgentById, resolvePrimaryAgent, readResearchData, mutateResearchData } =
+                await import('@/services/agentContext')
+            const agent = output.agentId
+                ? (await resolveAgentById(output.instanceId, output.agentId)) || (await resolvePrimaryAgent(output.instanceId))
+                : await resolvePrimaryAgent(output.instanceId)
+            // 1. Mark the MonthlyTask object approved (executor pre-check requires it).
+            await mutateResearchData(agent, output.instanceId, (rd: any) => {
+                const plan = rd?.monthlyPlan
+                if (!plan || !Array.isArray(plan.tasks)) return rd
+                const idx = plan.tasks.findIndex((t: any) => t.id === taskId)
+                if (idx === -1) return rd
+                plan.tasks[idx].status = 'approved'
+                plan.tasks[idx].approvedAt = new Date().toISOString()
+                return rd
+            })
+            // 2. Mark queued in agent_outputs for UI feedback.
+            await db.update(agentOutputs).set({
+                metadata: { ...(meta || {}), executionStatus: 'queued', approvedForExecutionAt: new Date().toISOString() } as any,
+                updatedAt: new Date(),
+            }).where(eq(agentOutputs.id, output.id))
+            // 3. Fire-and-forget. executeTask updates research_data + agent_outputs on completion.
+            const { executeTask } = await import('@/services/monthlyTaskExecutor')
+            executeTask(output.instanceId, taskId)
+                .then(r => console.log(`[monthlyTaskExecutor] ${taskId} → ${r.ok ? 'ok' : 'failed'}: ${r.outputDescription || r.error || ''}`))
+                .catch(err => console.error(`monthlyTaskExecutor crash for ${taskId}:`, err))
+        } catch (err) {
+            console.error(`monthly_task post-approve trigger failed for ${output.id}:`, err)
+        }
+        return
+    }
+
     // Earlier creative gates (concept/character/scenes) — auto-invoke yotzer cascade
     // to generate the next gate's draft. This closes the HITL loop without manual CLI.
     if (output.outputType && output.outputType.startsWith('creative_') && output.outputType !== 'creative_final_draft') {
