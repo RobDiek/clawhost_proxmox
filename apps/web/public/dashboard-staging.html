@@ -6211,10 +6211,15 @@ function renderApprovalQueue() {
   var counterEl = document.getElementById('aqCounter');
   if (!el || !instanceId) return;
 
-  // Fetch real outputs from API
+  // Fetch real outputs from API.
+  // Phase 2026.02 Block 6: limit bumped 20→100. A monthly_plan generation
+  // emits 50-70 per-task agent_outputs rows in a single batch; with the
+  // prior 20-row cap the user saw only a partial slice and assumed the
+  // remaining tasks were duplicates of the visible ones. 100 covers the
+  // full plan plus headroom for other pending outputs.
   var filterParam = aqFilterStatus ? '&status=' + aqFilterStatus : '&exclude_archived=1';
   var agentParam = activeAgent ? '&agent=' + activeAgent : '';
-  fetch(API + '/hosting/instances/' + instanceId + '/outputs?limit=20' + filterParam + agentParam, {
+  fetch(API + '/hosting/instances/' + instanceId + '/outputs?limit=100' + filterParam + agentParam, {
     headers: { 'Authorization': 'Bearer ' + token }
   }).then(function(r) { return r.ok ? r.json() : null; })
   .then(function(d) {

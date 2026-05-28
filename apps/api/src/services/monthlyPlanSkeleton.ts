@@ -353,7 +353,12 @@ const SKELETON_SYSTEM = `You are the senior strategic marketing director for an 
 
 ═══ HEBREW UX STANDARDS ═══
 
-Forbidden English (in user-facing strings): CPA, RSA, tCPA, INP, CWV, GTM, GA4, AEO, SEO, FAQPage, schema, pixel, Smart Bidding, remarketing, retargeting, audience, conversion, attribution, indexation, ranking, carousel, reel, headline, description, pillar, spoke, hub.
+Forbidden English (in user-facing strings): CPA, RSA, tCPA, INP, CWV, GTM, GA4, AEO, SEO, FAQPage, schema, pixel, Smart Bidding, remarketing, retargeting, audience, conversion, attribution, indexation, ranking, carousel, reel, headline, description, pillar, spoke, hub, static_value_pollution, striking distance, anchor (in SEO link context), micro-conversion, branded search, generic search, long-tail, head term, geo-targeting, dayparting, Customer Match, lookalike, refresh, audit, baseline, snapshot.
+
+ARROWS in keyTheme / focusAreas / overview.hebrew — DO NOT use → (RIGHTWARDS ARROW). In RTL the visual flow is right-to-left, so "→" reads backward. Use one of:
+  · middot " · " (e.g. "תיקון מעקב · ייצוב הצעות · תקיפה")
+  · LEFTWARDS ARROW "←" if explicit sequence is required (e.g. "תיקון מעקב ← ייצוב הצעות")
+  · numbered list (e.g. "(1) תיקון מעקב, (2) ייצוב, (3) תקיפה")
 
 Hebrew replacements WITH inline explanation (first occurrence only):
   CPA → "עלות לליד (CPA)"
@@ -376,6 +381,22 @@ Hebrew replacements WITH inline explanation (first occurrence only):
   spoke → "דף נושא משני"
   carousel → "קרוסלת תמונות"
   reel → "סרטון קצר (Reel)"
+  static_value_pollution → "זיהום ערך סטטי (סימון ערך קבוע במקום ערך עסקה אמיתי)"
+  striking distance → "מרחק תקיפה (מילים במיקום ממוצע 4-15 שניתן לפרוץ מהן לעמוד 1)"
+  anchor (SEO link context) → "טקסט עוגן" (השאירו pillar → "דף עוגן" ללא שינוי — שני מושגים נפרדים)
+  micro-conversion → "המרת ביניים"
+  branded search → "חיפוש מותגי"
+  generic search → "חיפוש גנרי"
+  long-tail → "מילים ארוכות זנב"
+  head term → "מילה ראשית"
+  geo-targeting → "מיקוד גיאוגרפי"
+  dayparting → "התאמת שעות פעילות"
+  Customer Match → "התאמת לקוחות (Customer Match)"
+  lookalike → "קהל דומה (Lookalike)"
+  refresh → "רענון"
+  audit → "סקירה" / "אודיט (סקירת חשבון)"
+  baseline → "בסיס" / "מצב הבסיס"
+  snapshot → "תמונת מצב"
 
 Use 2nd person plural (אתם/לכם/תוכלו) or impersonal infinitive — never 2nd person singular.
 

@@ -488,13 +488,17 @@ async function persistAndEmit(
         console.warn('[monthlyPlanGenerator] per-task output emission failed:', (err as Error).message)
     }
 
-    // Surface overall plan to approval queue
+    // Surface overall plan as a historical/published artefact.
+    // Phase 2026.02 Block 6: NOT in approval queue (status='published' not
+    // 'pending_review'). The overall plan is redundant in משימות פעילות —
+    // the dashboard already shows the same data via monthlyPlanCard above
+    // the queue, and the 57 per-task rows are the only ones that need
+    // explicit approval. Keep the row for audit history + Telegram anchor
+    // but stop cluttering the user's queue with a non-actionable card.
     let outputId: string | undefined
     try {
-        // Phase 2026.02 Block 6: Hebrew title for the overall plan card.
-        // Previously the title mixed English ("57 tasks · 18 P0") into a
-        // Hebrew-RTL UI. Keep only universally-understood acronyms
-        // (P0/P1/P2) plus Hebrew labels.
+        // Hebrew title — only acronyms in Latin letters (P0/P1/P2). Plan's
+        // keyTheme is allowed in Hebrew + acronyms. Truncated for length.
         const summaryText = `${plan.summary.totalTasks} משימות · ${plan.summary.byPriority.P0} P0 · ${plan.summary.byPriority.P1} P1 · ${plan.summary.byPriority.P2} P2`
         const [outputRow] = await db.insert(agentOutputs).values({
             id: 'mp_month_' + randomBytes(6).toString('hex'),
@@ -503,7 +507,7 @@ async function persistAndEmit(
             agentRole: 'mazhir',
             outputType: 'monthly_marketing_plan',
             platform: 'multi',
-            status: 'pending_review',
+            status: 'published',
             title: `תוכנית חודשית — ${summaryText} · ${(plan.overview?.keyTheme || '').slice(0, 60)}`,
             content: JSON.stringify({
                 summary: plan.summary,
