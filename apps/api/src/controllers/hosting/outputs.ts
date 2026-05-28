@@ -441,8 +441,10 @@ async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
                 updatedAt: new Date(),
             }).where(eq(agentOutputs.id, output.id))
             // 3. Fire-and-forget. executeTask updates research_data + agent_outputs on completion.
+            // Pass output.agentId so multi-agent VPS topology resolves the right
+            // mateh_agent (Packing Station as secondary etc.).
             const { executeTask } = await import('@/services/monthlyTaskExecutor')
-            executeTask(output.instanceId, taskId)
+            executeTask(output.instanceId, taskId, output.agentId)
                 .then(r => console.log(`[monthlyTaskExecutor] ${taskId} → ${r.ok ? 'ok' : 'failed'}: ${r.outputDescription || r.error || ''}`))
                 .catch(err => console.error(`monthlyTaskExecutor crash for ${taskId}:`, err))
         } catch (err) {

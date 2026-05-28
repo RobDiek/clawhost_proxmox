@@ -46,13 +46,24 @@ export interface ExecutorResult {
 // Dispatcher
 // ════════════════════════════════════════════════════════════════════════
 
-export async function executeTask(instanceId: string, taskId: string): Promise<ExecutorResult> {
+export async function executeTask(
+    instanceId: string,
+    taskId: string,
+    agentId?: string | null,    // Phase 2026.02 Block 6: multi-agent VPS support.
+    //                            When agent owning the plan is SECONDARY (e.g. Packing
+    //                            Station mta_Un9jXRuf vs primary Storage Station),
+    //                            resolvePrimaryAgent reads Storage's research_data and
+    //                            finds no monthlyPlan → 'monthlyPlan missing' error.
+    //                            Caller (triggerPostApprove) passes output.agentId.
+): Promise<ExecutorResult> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) return { ok: false, outputDescription: '', error: 'Instance not found' }
 
-    const { resolvePrimaryAgent, readResearchData, mutateResearchData } =
+    const { resolvePrimaryAgent, resolveAgentById, readResearchData, mutateResearchData } =
         await import('./agentContext')
-    const agent = await resolvePrimaryAgent(instanceId)
+    const agent = agentId
+        ? (await resolveAgentById(instanceId, agentId)) || (await resolvePrimaryAgent(instanceId))
+        : await resolvePrimaryAgent(instanceId)
     const rd: any = (await readResearchData(agent, instanceId)) || {}
     const plan: MonthlyMarketingPlan | undefined = rd.monthlyPlan
     if (!plan) return { ok: false, outputDescription: '', error: 'monthlyPlan missing' }
