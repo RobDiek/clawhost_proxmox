@@ -8646,10 +8646,14 @@ function renderGtmWizardSuccess(data, taskId) {
                 var featureEsc = escapeHtml(s.feature);
                 var btnLabel = s.feature === 'deactivate_plugin' ? '🚫 השביתו פלאגין כעת' : '✓ הפעילו עכשיו';
                 var btnColor = s.severity === 'destructive' ? '#7F1D1D' : (s.severity === 'caution' ? '#92400E' : '#10B981');
-                var confirmJs = s.feature === 'deactivate_plugin'
-                  ? 'if(confirm("השבתת הפלאגין " + "' + pluginEsc + '" + "? פעולה זו כבדה — ודאו שקראתם את האזהרה.")) '
-                  : '';
-                button = '<button onclick="' + confirmJs + 'resolveTrackingConflict(\'' + pluginEsc + '\', \'' + featureEsc + '\', this, ' + (taskId ? "'" + taskId + "'" : 'null') + ')" style="background:' + btnColor + ';color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:0.85rem;font-weight:600;cursor:pointer;margin-top:8px">' + btnLabel + '</button>';
+                // K10 fix: previous version used confirm() inline inside onclick="...",
+                // but the inner double-quotes break HTML attr parsing → click silently
+                // does nothing. Route through dedicated confirmAndResolveConflict()
+                // helper that handles confirm in pure JS context.
+                var handler = s.feature === 'deactivate_plugin'
+                  ? "confirmAndResolveConflict('" + pluginEsc + "', '" + featureEsc + "', this, " + (taskId ? "'" + taskId + "'" : 'null') + ")"
+                  : "resolveTrackingConflict('" + pluginEsc + "', '" + featureEsc + "', this, " + (taskId ? "'" + taskId + "'" : 'null') + ")";
+                button = '<button onclick="' + handler + '" style="background:' + btnColor + ';color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:0.85rem;font-weight:600;cursor:pointer;margin-top:8px">' + btnLabel + '</button>';
               }
 
               var stepIcon = s.kind === 'auto_button' ? '⚡' : s.kind === 'manual_navigation' ? '✋' : s.kind === 'wait' ? '🔄' : 'ℹ';
@@ -8742,6 +8746,16 @@ function renderGtmWizardSuccess(data, taskId) {
 // Phase 2026.02 Block 6 Pattern J — re-run fresh-stack after user has
 // manually uploaded + activated the Clawflow companion plugin in WP Admin.
 // Backend now finds the plugin active → snippet POST works → wpInstalled=true.
+// K10 fix: confirm + resolve in pure JS context (avoids HTML attr quote
+// nesting problems that silently broke the deactivate button).
+function confirmAndResolveConflict(plugin, feature, btn, taskId) {
+  var msg = 'השבתת הפלאגין "' + plugin + '"?\n\n'
+    + 'פעולה זו תכבה את הפלאגין כליל. ודאו שקראתם את האזהרה למעלה (איזה פיצ\'רים תאבדו).\n\n'
+    + 'לאישור — לחצו OK.';
+  if (!confirm(msg)) return;
+  resolveTrackingConflict(plugin, feature, btn, taskId);
+}
+
 // Phase 2026.02 Block 6 K8 — resolve a tracking conflict by calling the
 // platform's /gtm/resolve-conflict endpoint, which proxies to the companion
 // plugin's /disable-plugin-feature. Disables the conflicting plugin's feature
