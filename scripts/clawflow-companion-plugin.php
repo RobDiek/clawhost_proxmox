@@ -2,8 +2,8 @@
 /**
  * Plugin Name: ClawFlow Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
- * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection.
- * Version: 1.3.0
+ * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection + surgical resolution.
+ * Version: 1.4.0
  * Author: ClawFlow by Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -380,7 +380,7 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.3.0',
+                'pluginVersion'       => '1.4.0',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'wooCommerceActive'   => class_exists('WooCommerce'),
                 'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,
@@ -636,6 +636,79 @@ add_action('rest_api_init', function () {
                 if ($feature === 'ga4' || $feature === 'all') {
                     delete_option('gla_ga4_measurement_id');
                     $changes[] = 'gla_ga4_measurement_id deleted';
+                }
+            }
+
+            // ── Site Kit by Google ──
+            // Site Kit modules are stored in 'googlesitekit_active_modules'
+            // as an array of slugs. To disable a tracker, REMOVE that module
+            // from active_modules (surgical — leaves Search Console / AdSense
+            // intact if user had those). Also wipe per-module settings so
+            // re-activation requires reconfigure (avoids stale tracking ID
+            // sneaking back into the page).
+            if ($plugin === 'google-site-kit' || strpos($plugin, 'google-site-kit') === 0) {
+                $modules = (array)get_option('googlesitekit_active_modules', []);
+                $modulesToRemove = [];
+                if ($feature === 'ga4' || $feature === 'all') $modulesToRemove[] = 'analytics-4';
+                if ($feature === 'google_ads' || $feature === 'all') $modulesToRemove[] = 'ads';
+                if ($feature === 'meta_pixel') {
+                    $changes[] = 'site-kit has no meta_pixel module — no-op';
+                }
+                $newModules = array_values(array_diff($modules, $modulesToRemove));
+                if (count($newModules) !== count($modules)) {
+                    update_option('googlesitekit_active_modules', $newModules, false);
+                    $changes[] = 'googlesitekit_active_modules: removed ' . implode(', ', array_diff($modules, $newModules));
+                }
+                // Clear per-module settings so reactivating requires reconfig
+                foreach ($modulesToRemove as $mod) {
+                    $key = 'googlesitekit_' . $mod . '_settings';
+                    if (get_option($key) !== false) {
+                        delete_option($key);
+                        $changes[] = $key . ' deleted';
+                    }
+                }
+                // Also clear measurement-id-specific stored values used by
+                // Site Kit's analytics-4 frontend (just in case)
+                if ($feature === 'ga4' || $feature === 'all') {
+                    delete_option('googlesitekit_analytics_settings');
+                    delete_option('googlesitekit_analytics-4_settings');
+                    $changes[] = 'analytics legacy settings wiped';
+                }
+            }
+
+            // ── MonsterInsights / ExactMetrics ──
+            if (strpos($plugin, 'monsterinsights') !== false || strpos($plugin, 'google-analytics-for-wordpress') !== false) {
+                if ($feature === 'ga4' || $feature === 'all') {
+                    $mi = get_option('monsterinsights_settings', []);
+                    if (is_array($mi)) {
+                        unset($mi['manual_v4_id']);
+                        unset($mi['measurement_protocol_secret']);
+                        $mi['analytics_profile'] = '';
+                        update_option('monsterinsights_settings', $mi, false);
+                        $changes[] = 'monsterinsights_settings.manual_v4_id + analytics_profile cleared';
+                    }
+                }
+            }
+            if (strpos($plugin, 'google-analytics-dashboard-for-wp') !== false) {
+                if ($feature === 'ga4' || $feature === 'all') {
+                    $em = get_option('exactmetrics_settings', []);
+                    if (is_array($em)) {
+                        unset($em['manual_v4_id']);
+                        update_option('exactmetrics_settings', $em, false);
+                        $changes[] = 'exactmetrics_settings.manual_v4_id cleared';
+                    }
+                }
+            }
+
+            // ── GTM4WP (DuracellTomi) ──
+            if (strpos($plugin, 'duracelltomi-google-tag-manager') !== false) {
+                if ($feature === 'all' || $feature === 'gtm' || $feature === 'deactivate_plugin') {
+                    $opt = get_option('gtm4wp-options', []);
+                    if (is_array($opt)) {
+                        $opt['gtm-code'] = '';
+                        update_option('gtm4wp-options', $opt, false);
+                        $changes[] = 'gtm4wp-options.gtm-code cleared';
+                    }
                 }
             }
 

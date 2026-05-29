@@ -8736,10 +8736,18 @@ function resolveTrackingConflict(plugin, feature, btn, taskId) {
     }
     var changes = (d.data && d.data.changes) || [];
     if (btn) {
-      btn.textContent = '✓ Disabled (' + changes.length + ' changes)';
-      btn.style.background = '#10B981';
+      if (changes.length === 0) {
+        // 0 changes = endpoint didn't match — likely plugin v1.3 without
+        // the disable branch for THIS plugin. Surface as warning.
+        btn.textContent = '⚠ 0 changes (upgrade plugin to v1.4)';
+        btn.style.background = '#F59E0B';
+        showToast('Auto-fix returned 0 changes — companion plugin v1.4 required for this plugin. Download new .zip and re-install.', 'warning');
+      } else {
+        btn.textContent = '✓ Disabled (' + changes.length + ' changes)';
+        btn.style.background = '#10B981';
+        showToast('Conflict resolved: ' + changes.length + ' option(s) updated. Re-run wizard to verify.', 'success');
+      }
     }
-    showToast('Conflict resolved: ' + changes.length + ' option(s) updated. Re-run wizard to verify.', 'success');
   })
   .catch(function(err) {
     showToast('Network error: ' + (err && err.message || ''), 'error');
