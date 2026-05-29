@@ -31,19 +31,44 @@ interface AgentRow {
     researchData: any
 }
 
+// Chunked cleanup — the cleanup pass wraps the entire task list in one
+// Anthropic call, which fails on plans with 30+ verbose tasks (request body
+// + Sonnet output JSON ≥ 60K tokens, undici reports "fetch failed"). Splitting
+// into batches of 15 keeps every call under the limit and isolates failures.
+const CHUNK_SIZE = 15
+
 async function processAgent(row: AgentRow): Promise<{ status: 'cleaned' | 'skipped' | 'failed'; reason?: string; taskCount?: number }> {
     const rd = row.researchData || {}
     const tasks = rd?.monthlyPlan?.tasks
     if (!Array.isArray(tasks) || tasks.length === 0) {
         return { status: 'skipped', reason: 'no monthlyPlan.tasks' }
     }
-    const cleanup = await runMonthlyPlanHebrewCleanup({
-        tasks: tasks as Array<Record<string, unknown>>,
-        instanceId: row.vpsInstanceId,
-    })
-    if (!cleanup.applied || !cleanup.cleanedTasks) {
-        return { status: 'skipped', reason: cleanup.reason || 'cleanup not applied', taskCount: tasks.length }
+
+    const cleanedAll: Array<Record<string, unknown>> = []
+    let cleanedBatches = 0
+    let skippedBatches = 0
+    for (let i = 0; i < tasks.length; i += CHUNK_SIZE) {
+        const batch = tasks.slice(i, i + CHUNK_SIZE) as Array<Record<string, unknown>>
+        const cleanup = await runMonthlyPlanHebrewCleanup({
+            tasks: batch,
+            instanceId: row.vpsInstanceId,
+        })
+        if (cleanup.applied && cleanup.cleanedTasks && cleanup.cleanedTasks.length === batch.length) {
+            cleanedAll.push(...cleanup.cleanedTasks)
+            cleanedBatches++
+        } else {
+            // Preserve the originals untouched — never drop tasks because cleanup
+            // failed on a single batch.
+            cleanedAll.push(...batch)
+            skippedBatches++
+            console.warn(`  ↳ batch ${Math.floor(i / CHUNK_SIZE) + 1} kept as-is: ${cleanup.reason || 'unknown'}`)
+        }
     }
+
+    if (cleanedBatches === 0) {
+        return { status: 'skipped', reason: `all ${skippedBatches} batches skipped`, taskCount: tasks.length }
+    }
+
     // Persist via mutateResearchData — reads fresh from DB, merges cleaned
     // tasks, dual-writes mateh_agents + instances (when primary). Honors
     // feedback_research_data_dual_write — raw db.update on research_data gets
@@ -51,10 +76,10 @@ async function processAgent(row: AgentRow): Promise<{ status: 'cleaned' | 'skipp
     await mutateResearchData(row as unknown as MatehAgentRow, row.vpsInstanceId, (current: any) => {
         const cur = current || {}
         const curPlan = cur.monthlyPlan || {}
-        return { ...cur, monthlyPlan: { ...curPlan, tasks: cleanup.cleanedTasks } }
+        return { ...cur, monthlyPlan: { ...curPlan, tasks: cleanedAll } }
     })
 
-    return { status: 'cleaned', taskCount: cleanup.cleanedTasks.length }
+    return { status: 'cleaned', taskCount: cleanedAll.length, reason: `${cleanedBatches} batches cleaned, ${skippedBatches} kept as-is` }
 }
 
 async function main(): Promise<void> {
@@ -94,7 +119,7 @@ async function main(): Promise<void> {
         try {
             const r = await processAgent(row)
             stats[r.status]++
-            const suffix = r.status === 'cleaned' ? ` — ${r.taskCount} tasks cleaned` :
+            const suffix = r.status === 'cleaned' ? ` — ${r.taskCount} tasks (${r.reason})` :
                            r.status === 'skipped' ? ` — ${r.reason}` :
                            ` — ${r.reason}`
             console.log(`${label}: ${r.status.toUpperCase()}${suffix}`)
