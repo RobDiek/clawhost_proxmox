@@ -395,6 +395,23 @@ export interface SiteGtmScan {
     contexts: Array<{ gtmId: string; excerpt: string; hint: string }>
 }
 
+export interface DirectTrackingLoad {
+    platform: 'google_ads' | 'ga4' | 'gtm' | 'meta_pixel'
+    id: string
+    // Script src URL (for gtag/js loads) or inline-script context (for fbq init)
+    sourceUrl?: string
+    // Short excerpt of surrounding HTML — helps identify which plugin owns it
+    excerpt: string
+    // Heuristic hint based on excerpt patterns
+    hint: string
+}
+
+export interface SiteTrackingScan {
+    url: string
+    status: number
+    directLoads: DirectTrackingLoad[]   // gtag/js?id=AW-/G-, GTM scripts, fbq init scripts
+}
+
 /**
  * Scan the live homepage HTML for GTM- snippets — does NOT require the
  * companion plugin (works on any WP/non-WP site). Used as a sanity check
@@ -432,7 +449,80 @@ export async function scanSiteHtmlForGtm(siteUrl: string): Promise<SiteGtmScan> 
             contexts.push({ gtmId: id, excerpt: excerpt.slice(0, 240), hint })
         }
         return { url, gtmIds: Array.from(seen), status: res.status, contexts }
-    } catch (err) {
+    } catch {
         return { url, gtmIds: [], status: 0, contexts: [] }
+    }
+}
+
+/**
+ * Scan live HTML for ALL tracking ID loads — not just GTM. Catches:
+ *   gtag/js?id=AW-XXX       → direct Google Ads conversion gtag
+ *   gtag/js?id=G-XXX        → direct GA4 gtag
+ *   gtag/js?id=GTM-XXX      → GTM via gtag wrapper
+ *   fbq('init', '12345')    → Meta Pixel inline init
+ *
+ * Works independently of WP plugin slug detection. Detects tracking
+ * even when our /tracking-audit endpoint missed the plugin (because
+ * its option key wasn't recognized). Returns context around each match
+ * with a heuristic hint about which plugin/source emits it.
+ */
+export async function scanSiteHtmlForTrackingIds(siteUrl: string): Promise<SiteTrackingScan> {
+    const url = normalizeWpUrl(siteUrl)
+    try {
+        const res = await fetch(url, { headers: { 'User-Agent': 'ClawFlow Tracking Scanner/1.0' } })
+        const html = await res.text().catch(() => '')
+        const directLoads: DirectTrackingLoad[] = []
+
+        const captureContext = (idx: number, idLen: number): { excerpt: string; hint: string } => {
+            const start = Math.max(0, idx - 200)
+            const end = Math.min(html.length, idx + idLen + 200)
+            const excerpt = html.slice(start, end).replace(/\s+/g, ' ').trim().slice(0, 400)
+            // Heuristic hint — extract plugin name from comments / src paths
+            let hint = 'unknown source'
+            if (/google\s+for\s+woocommerce/i.test(excerpt)) hint = 'Google for WooCommerce plugin'
+            else if (/google-listings-and-ads/i.test(excerpt)) hint = 'Google Listings & Ads plugin'
+            else if (/pixelyoursite|pys[._-]/i.test(excerpt)) hint = 'PixelYourSite plugin'
+            else if (/monsterinsights/i.test(excerpt)) hint = 'MonsterInsights plugin'
+            else if (/exactmetrics/i.test(excerpt)) hint = 'ExactMetrics plugin'
+            else if (/googlesitekit|site[._-]?kit/i.test(excerpt)) hint = 'Site Kit by Google plugin'
+            else if (/gtm4wp|duracelltomi/i.test(excerpt)) hint = 'GTM4WP plugin'
+            else if (/wp-content\/themes\/([^/'"\s]+)/i.test(excerpt)) {
+                const themeMatch = /wp-content\/themes\/([^/'"\s]+)/i.exec(excerpt)
+                hint = `theme: ${themeMatch?.[1] || 'unknown'}`
+            }
+            else if (/<!--\s*([^>]+?)\s*-->/i.test(excerpt)) {
+                const commentMatch = /<!--\s*([^>]+?)\s*-->/i.exec(excerpt)
+                hint = `comment: ${(commentMatch?.[1] || '').slice(0, 80)}`
+            }
+            return { excerpt, hint }
+        }
+
+        // gtag/js?id=XXX direct loads
+        const gtagRe = /<script[^>]+src=["']https?:\/\/(?:www\.)?googletagmanager\.com\/gtag\/js\?id=([A-Z0-9-]+)["']/gi
+        let m: RegExpExecArray | null
+        while ((m = gtagRe.exec(html)) !== null) {
+            const id = m[1]
+            const { excerpt, hint } = captureContext(m.index, m[0].length)
+            const platform: DirectTrackingLoad['platform'] = id.startsWith('AW-')
+                ? 'google_ads'
+                : id.startsWith('G-')
+                    ? 'ga4'
+                    : id.startsWith('GTM-')
+                        ? 'gtm'
+                        : 'ga4'
+            directLoads.push({ platform, id, sourceUrl: m[0], excerpt, hint })
+        }
+
+        // fbq('init', '<id>')
+        const fbqRe = /fbq\s*\(\s*['"]init['"]\s*,\s*['"](\d+)['"]/gi
+        while ((m = fbqRe.exec(html)) !== null) {
+            const id = m[1]
+            const { excerpt, hint } = captureContext(m.index, m[0].length)
+            directLoads.push({ platform: 'meta_pixel', id, excerpt, hint })
+        }
+
+        return { url, status: res.status, directLoads }
+    } catch {
+        return { url, status: 0, directLoads: [] }
     }
 }

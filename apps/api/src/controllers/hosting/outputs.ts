@@ -944,8 +944,13 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                     // verdict for Packing Station — and prevents it for all
                     // future tenants.
                     try {
-                        const { probeTrackingAudit } = await import('@/services/wpCompanionInstaller')
+                        const { probeTrackingAudit, scanSiteHtmlForTrackingIds } = await import('@/services/wpCompanionInstaller')
                         const audit = await probeTrackingAudit(cfg)
+                        // HTML-level scan catches direct gtag/fbq loads from
+                        // plugins our PHP audit slug-detection missed.
+                        const siteScan = siteDomain
+                            ? await scanSiteHtmlForTrackingIds(`https://${siteDomain.replace(/^https?:\/\//, '').replace(/\/$/, '')}`)
+                            : undefined
                         if (audit) {
                             const { analyzeTrackingConflicts } = await import('@/services/trackingConflicts')
                             const analysis = analyzeTrackingConflicts(audit, {
@@ -953,7 +958,7 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                                 googleAdsConversionId: gtmConversions[0]?.googleAdsConversionId,
                                 ga4MeasurementId: autoMeasurementId,
                                 metaPixelId: metaPixelConfig?.pixelId,
-                            })
+                            }, siteScan)
                             conflictAnalysis = analysis
                             // Headline chainStep — overall conflict state
                             chainSteps.push({

@@ -2,8 +2,8 @@
 /**
  * Plugin Name: ClawFlow Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
- * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection + surgical resolution.
- * Version: 1.4.0
+ * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection + surgical resolution (expanded slug detection).
+ * Version: 1.4.1
  * Author: ClawFlow by Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -380,7 +380,7 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.4.0',
+                'pluginVersion'       => '1.4.1',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'wooCommerceActive'   => class_exists('WooCommerce'),
                 'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,
@@ -467,21 +467,50 @@ add_action('rest_api_init', function () {
             }
 
             // ─── Google for WooCommerce (formerly Google Listings & Ads) ───
-            if (is_plugin_active('google-listings-and-ads/google-listings-and-ads.php')) {
-                $gla = get_option('gla_options', []);
+            // Plugin has been renamed multiple times — check all known slug
+            // variants. Falls back to any active plugin slug containing
+            // 'google-listings' OR 'google-for-woocommerce'.
+            $glaSlugCandidates = [
+                'google-listings-and-ads/google-listings-and-ads.php',
+                'google-for-woocommerce/google-for-woocommerce.php',
+                'woocommerce-google-feed-manager/woocommerce-google-feed-manager.php',
+            ];
+            $glaActive = false;
+            foreach ($glaSlugCandidates as $slug) {
+                if (is_plugin_active($slug)) { $glaActive = true; break; }
+            }
+            // Fallback: scan active_plugins for any matching pattern
+            if (!$glaActive) {
+                foreach ((array)get_option('active_plugins', []) as $p) {
+                    if (preg_match('/(google-listings-and-ads|google-for-woocommerce|woocommerce-google-feed)/i', $p)) {
+                        $glaActive = true; break;
+                    }
+                }
+            }
+            if ($glaActive) {
                 $sends = [];
-                // GLA stores Ads conversion settings in 'gla_ads_id' or similar
-                $awId = $gla['ads_id'] ?? get_option('gla_ads_conversion_action', '');
+                // Try multiple option key variants
+                $glaOpts = get_option('gla_options', []);
+                if (!is_array($glaOpts)) $glaOpts = [];
+                $awId = $glaOpts['ads_id']
+                    ?? $glaOpts['conversion_id']
+                    ?? get_option('gla_ads_conversion_action', '')
+                    ?? get_option('gla_ads_id', '')
+                    ?? get_option('woocommerce_google_ads_id', '');
                 if ($awId) $sends[] = ['platform' => 'google_ads', 'id' => 'AW-' . preg_replace('/^AW-/', '', (string)$awId), 'feature' => 'gtag direct conversion (WC purchase)'];
-                $g4 = $gla['ga4_measurement_id'] ?? get_option('gla_ga4_measurement_id', '');
+                $g4 = $glaOpts['ga4_measurement_id'] ?? get_option('gla_ga4_measurement_id', '') ?? get_option('woocommerce_ga4_id', '');
                 if ($g4) $sends[] = ['platform' => 'ga4', 'id' => $g4, 'feature' => 'GA4 ecommerce events'];
+                // Without identifiable ID — still register the plugin so user knows it's there
+                if (empty($sends)) {
+                    $sends[] = ['platform' => 'google_ads', 'id' => '(configured but ID not readable from options)', 'feature' => 'gtag direct conversion — see WC Marketing → Google'];
+                }
                 $detected[] = [
                     'plugin' => 'google-listings-and-ads',
                     'name'   => 'Google for WooCommerce',
                     'version'=> defined('WC_GLA_VERSION') ? WC_GLA_VERSION : 'unknown',
                     'active' => true,
                     'sends'  => $sends,
-                    'resolutionHint' => 'Google for WooCommerce → Settings → disable Conversion Tracking to avoid AW-XXX double-count vs GTM awct.',
+                    'resolutionHint' => 'WC Admin → Marketing → Google → Settings → Conversion Tracking → OFF (avoids AW-XXX double-count vs GTM awct).',
                 ];
             }
 

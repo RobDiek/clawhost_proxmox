@@ -17,7 +17,7 @@
  *               transparency, not actionable.
  */
 
-import type { TrackingAuditResult } from './wpCompanionInstaller'
+import type { TrackingAuditResult, SiteTrackingScan } from './wpCompanionInstaller'
 
 export interface ConflictFinding {
     severity: 'critical' | 'high' | 'medium' | 'info'
@@ -59,6 +59,7 @@ function normalizeAwId(raw: string): string {
 export function analyzeTrackingConflicts(
     audit: TrackingAuditResult,
     ours: OurTrackingState,
+    siteScan?: SiteTrackingScan,
 ): ConflictAnalysis {
     const conflicts: ConflictFinding[] = []
     const detected = audit.detected || []
@@ -216,6 +217,65 @@ export function analyzeTrackingConflicts(
                         : undefined,
                 })
             }
+        }
+    }
+
+    // ─── HTML-level direct gtag/fbq scan (catches plugins our PHP audit missed) ───
+    // The /tracking-audit endpoint reads per-plugin wp_options keys, which
+    // requires knowing the exact slug AND option storage shape. When that
+    // misses (slug rebrand, custom option, theme-side injection), the
+    // server-side HTML scan catches the actual <script src> + fbq init.
+    // Filter out IDs already attributed to a detected plugin to avoid
+    // double-counting; what's LEFT is "unknown source" — surface as
+    // critical conflict with hint about which plugin/source.
+    if (siteScan && ours.googleAdsConversionId) {
+        const ourAwNorm2 = normalizeAwId(ours.googleAdsConversionId)
+        const knownAwSources = new Set<string>()
+        for (const p of detected) {
+            for (const s of p.sends) {
+                if (s.platform === 'google_ads') knownAwSources.add(normalizeAwId(s.id))
+            }
+        }
+        const htmlAwHits = siteScan.directLoads.filter(d =>
+            d.platform === 'google_ads' && normalizeAwId(d.id) === ourAwNorm2
+        )
+        const unattributedAw = htmlAwHits.filter(h => !knownAwSources.has(normalizeAwId(h.id)))
+        // unattributedAw.length > 0 → there's a direct gtag load that no plugin
+        // we know about claims. STILL a conflict because GTM awct + direct
+        // gtag both send to the same AW-XXX/label.
+        if (unattributedAw.length > 0) {
+            const headHint = unattributedAw[0].hint
+            conflicts.push({
+                severity: 'critical',
+                platform: 'google_ads',
+                summary: `Direct gtag/js?id=AW-${ourAwNorm2} loaded on site — source not identified by plugin scan`,
+                detail: `HTML inspection found <script src="googletagmanager.com/gtag/js?id=AW-${ourAwNorm2}"> but our WP plugin audit didn't attribute it to any known plugin. Likely source: ${headHint}. This script can send purchase conversions independently of our GTM awct → double-counted. Excerpt: …${unattributedAw[0].excerpt.slice(0, 200)}…  Resolve manually: WC Admin → Marketing → Google → Settings → disable Conversion Tracking (or whichever plugin owns this script).`,
+                sources: unattributedAw.map(h => ({ plugin: h.hint, id: h.id, feature: 'direct gtag/js conversion script' })),
+                autoFixable: false,
+            })
+        }
+    }
+    // Same idea for GA4
+    if (siteScan && ours.ga4MeasurementId) {
+        const knownGaSources = new Set<string>()
+        for (const p of detected) {
+            for (const s of p.sends) {
+                if (s.platform === 'ga4') knownGaSources.add(s.id)
+            }
+        }
+        const htmlGaHits = siteScan.directLoads.filter(d =>
+            d.platform === 'ga4' && d.id === ours.ga4MeasurementId
+        )
+        const unattributedGa = htmlGaHits.filter(h => !knownGaSources.has(h.id))
+        if (unattributedGa.length > 0) {
+            conflicts.push({
+                severity: 'critical',
+                platform: 'ga4',
+                summary: `Direct gtag/js?id=${ours.ga4MeasurementId} loaded — source not identified by plugin scan`,
+                detail: `HTML found GA4 base gtag script unattributed to a detected plugin. Source hint: ${unattributedGa[0].hint}. Disable manually.`,
+                sources: unattributedGa.map(h => ({ plugin: h.hint, id: h.id, feature: 'direct gtag/js GA4 script' })),
+                autoFixable: false,
+            })
         }
     }
 
