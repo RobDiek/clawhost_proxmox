@@ -8617,23 +8617,42 @@ function renderGtmWizardSuccess(data, taskId) {
     renderGroup('validation', groups.validation) +
     renderGroup('other', groups.other);
 
-  // Conflict resolution buttons — render below grouped steps if there are
-  // any auto-fixable conflicts in the analysis.
+  // Conflict resolution buttons — render below grouped steps. Two button
+  // tiers per conflict:
+  //   surgical (red, primary) — disables just the conflicting feature
+  //   fallback (dark red w/ warning, secondary) — deactivates entire plugin
   var conflictResolutionHtml = '';
   if (data.conflictAnalysis && Array.isArray(data.conflictAnalysis.conflicts)) {
-    var fixable = data.conflictAnalysis.conflicts.filter(function(c) { return c.autoFixable && c.autoFixAction; });
-    if (fixable.length > 0) {
+    var actionable = data.conflictAnalysis.conflicts.filter(function(c) {
+      return (c.autoFixable && c.autoFixAction) || c.fallbackAction;
+    });
+    if (actionable.length > 0) {
       conflictResolutionHtml =
         '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:14px 16px;margin-bottom:14px">' +
-          '<div style="font-size:0.9rem;font-weight:700;color:#991B1B;margin-bottom:6px">🔴 Auto-fix available — ' + fixable.length + ' conflict' + (fixable.length > 1 ? 's' : '') + '</div>' +
-          '<div style="font-size:0.82rem;color:#7F1D1D;line-height:1.6;margin-bottom:10px">לחיצה תכבה את הפיצ\'ר הספציפי בפלאגין המתנגש (לא מסירה את הפלאגין כולו), כדי לסיים את ה-double-counting. אחרי התיקון, כדאי להריץ את ה-Wizard שוב כדי לוודא.</div>' +
-          fixable.map(function(c, idx) {
-            var pluginEsc = escapeHtml(c.autoFixAction.plugin);
-            var featureEsc = escapeHtml(c.autoFixAction.feature);
+          '<div style="font-size:0.9rem;font-weight:700;color:#991B1B;margin-bottom:6px">🔴 Resolution available — ' + actionable.length + ' conflict' + (actionable.length > 1 ? 's' : '') + '</div>' +
+          '<div style="font-size:0.82rem;color:#7F1D1D;line-height:1.6;margin-bottom:10px">לחיצה Surgical Disable מכבה את הפיצ\'ר הספציפי (משאיר את הפלאגין). Deactivate Plugin מסיר את כל הפלאגין (ראו warning). אחרי תיקון — הריצו את ה-Wizard שוב.</div>' +
+          actionable.map(function(c, idx) {
+            var surgicalBtn = '';
+            if (c.autoFixable && c.autoFixAction) {
+              var p1 = escapeHtml(c.autoFixAction.plugin);
+              var f1 = escapeHtml(c.autoFixAction.feature);
+              surgicalBtn = '<button onclick="resolveTrackingConflict(\'' + p1 + '\', \'' + f1 + '\', this, ' + (taskId ? "'" + taskId + "'" : 'null') + ')" style="background:#DC2626;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:0.82rem;font-weight:600;cursor:pointer;margin-left:6px">🔧 Surgical: disable ' + f1 + '</button>';
+            }
+            var fallbackBtn = '';
+            if (c.fallbackAction) {
+              var p2 = escapeHtml(c.fallbackAction.plugin);
+              var warn = escapeHtml(c.fallbackAction.warning);
+              fallbackBtn =
+                '<div style="margin-top:8px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:8px 10px">' +
+                  '<div style="font-size:0.75rem;color:#78350F;line-height:1.5;margin-bottom:6px">' + warn + '</div>' +
+                  '<button onclick="if(confirm(\'Deactivate plugin ' + p2 + '? This is heavier than surgical disable — see warning above.\')) resolveTrackingConflict(\'' + p2 + '\', \'deactivate_plugin\', this, ' + (taskId ? "'" + taskId + "'" : 'null') + ')" style="background:#7F1D1D;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:0.78rem;font-weight:600;cursor:pointer">🚫 Deactivate plugin entirely</button>' +
+                '</div>';
+            }
             return '<div style="background:#fff;border:1px solid #FCA5A5;border-radius:6px;padding:10px 12px;margin-bottom:8px">' +
               '<div style="font-size:0.82rem;font-weight:600;color:#1F2937;margin-bottom:4px">' + escapeHtml(c.summary) + '</div>' +
-              '<div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">Plugin: ' + pluginEsc + ' · Feature: ' + featureEsc + '</div>' +
-              '<button onclick="resolveTrackingConflict(\'' + pluginEsc + '\', \'' + featureEsc + '\', this, ' + (taskId ? "'" + taskId + "'" : 'null') + ')" id="resolveBtn-' + idx + '" style="background:#DC2626;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:0.82rem;font-weight:600;cursor:pointer">▶ Disable ' + featureEsc + ' on ' + pluginEsc + '</button>' +
+              '<div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">Severity: ' + escapeHtml(c.severity) + ' · Platform: ' + escapeHtml(c.platform) + '</div>' +
+              (surgicalBtn ? '<div>' + surgicalBtn + '</div>' : '') +
+              fallbackBtn +
             '</div>';
           }).join('') +
         '</div>';

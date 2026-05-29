@@ -27,6 +27,10 @@ export interface ConflictFinding {
     sources: Array<{ plugin: string; id: string; feature: string }>
     autoFixable: boolean
     autoFixAction?: { plugin: string; feature: string }
+    // Optional fallback action: full plugin deactivation when surgical disable
+    // isn't possible (option keys unknown / slug rebrand / etc).
+    // Includes warning text about what user will lose.
+    fallbackAction?: { plugin: string; feature: 'deactivate_plugin'; warning: string }
 }
 
 export interface ConflictAnalysis {
@@ -54,6 +58,52 @@ const PLATFORM_NAMES: Record<ConflictFinding['platform'], string> = {
 
 function normalizeAwId(raw: string): string {
     return String(raw || '').replace(/^AW-/i, '').replace(/\D/g, '')
+}
+
+/**
+ * Map a heuristic hint (from scanSiteHtmlForTrackingIds) to a known plugin
+ * slug + warning text for the "deactivate entire plugin" fallback action.
+ * Returns undefined when hint doesn't match a known plugin (e.g. theme
+ * inline injection — can't deactivate a theme via this plugin).
+ */
+function hintToFallbackAction(hint: string): { plugin: string; feature: 'deactivate_plugin'; warning: string } | undefined {
+    const h = (hint || '').toLowerCase()
+    if (h.includes('google for woocommerce') || h.includes('google-listings-and-ads') || h.includes('google listings')) {
+        return {
+            plugin: 'google-listings-and-ads',
+            feature: 'deactivate_plugin',
+            warning: '⚠ Deactivating "Google for WooCommerce" also disables: product feed sync to Google Merchant Center (your products will stop appearing in Google Shopping), Performance Max integration, ad campaign management UI. Only deactivate if you do NOT use these features.',
+        }
+    }
+    if (h.includes('pixelyoursite') || h.includes('pys ')) {
+        return {
+            plugin: 'pixelyoursite',
+            feature: 'deactivate_plugin',
+            warning: '⚠ Deactivating "PixelYourSite" also disables: Facebook Pixel, TikTok Pixel, Pinterest Tag, Bing UET (if configured). Prefer surgical "Disable google_ads" if available.',
+        }
+    }
+    if (h.includes('monsterinsights') || h.includes('exactmetrics')) {
+        return {
+            plugin: 'monsterinsights-lite',
+            feature: 'deactivate_plugin',
+            warning: '⚠ Deactivating MonsterInsights also disables: GA4 reports inside WordPress dashboard, custom dimensions, eCommerce tracking.',
+        }
+    }
+    if (h.includes('site kit') || h.includes('googlesitekit')) {
+        return {
+            plugin: 'google-site-kit',
+            feature: 'deactivate_plugin',
+            warning: '⚠ Deactivating Site Kit also disables: Search Console widget, AdSense reports, PageSpeed Insights inside WP dashboard.',
+        }
+    }
+    if (h.includes('gtm4wp') || h.includes('duracelltomi')) {
+        return {
+            plugin: 'duracelltomi-google-tag-manager',
+            feature: 'deactivate_plugin',
+            warning: '⚠ Deactivating GTM4WP removes its dataLayer extras (logged-in user data, WC ecommerce, post categories pushed automatically). Verify your custom triggers don\'t rely on them.',
+        }
+    }
+    return undefined
 }
 
 export function analyzeTrackingConflicts(
@@ -240,18 +290,19 @@ export function analyzeTrackingConflicts(
             d.platform === 'google_ads' && normalizeAwId(d.id) === ourAwNorm2
         )
         const unattributedAw = htmlAwHits.filter(h => !knownAwSources.has(normalizeAwId(h.id)))
-        // unattributedAw.length > 0 → there's a direct gtag load that no plugin
-        // we know about claims. STILL a conflict because GTM awct + direct
-        // gtag both send to the same AW-XXX/label.
         if (unattributedAw.length > 0) {
             const headHint = unattributedAw[0].hint
+            // Map hint → plugin slug to enable fallback "deactivate entire
+            // plugin" action even when surgical disable isn't supported.
+            const fallback = hintToFallbackAction(headHint)
             conflicts.push({
                 severity: 'critical',
                 platform: 'google_ads',
-                summary: `Direct gtag/js?id=AW-${ourAwNorm2} loaded on site — source not identified by plugin scan`,
-                detail: `HTML inspection found <script src="googletagmanager.com/gtag/js?id=AW-${ourAwNorm2}"> but our WP plugin audit didn't attribute it to any known plugin. Likely source: ${headHint}. This script can send purchase conversions independently of our GTM awct → double-counted. Excerpt: …${unattributedAw[0].excerpt.slice(0, 200)}…  Resolve manually: WC Admin → Marketing → Google → Settings → disable Conversion Tracking (or whichever plugin owns this script).`,
+                summary: `Direct gtag/js?id=AW-${ourAwNorm2} loaded on site — source: ${headHint}`,
+                detail: `HTML inspection found <script src="googletagmanager.com/gtag/js?id=AW-${ourAwNorm2}"> from ${headHint}. This script sends purchase conversions independently of our GTM awct → double-counted. Either disable tracking inside the plugin's settings UI, OR deactivate the entire plugin (see fallback action). Excerpt: …${unattributedAw[0].excerpt.slice(0, 200)}…`,
                 sources: unattributedAw.map(h => ({ plugin: h.hint, id: h.id, feature: 'direct gtag/js conversion script' })),
                 autoFixable: false,
+                fallbackAction: fallback,
             })
         }
     }
