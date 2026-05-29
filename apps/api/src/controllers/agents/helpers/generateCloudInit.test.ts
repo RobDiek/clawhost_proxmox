@@ -89,7 +89,7 @@ describe('generateCloudInit', () => {
         })
 
         it('creates hermes user', () => {
-            expect(output).toContain('useradd -r -m -d /home/hermes')
+            expect(output).toContain('useradd -m -d /home/hermes')
         })
 
         it('runs hermes install script with --skip-setup', () => {
@@ -107,13 +107,15 @@ describe('generateCloudInit', () => {
             expect(output).not.toContain('hermes.json')
         })
 
-        it('installs a hermes-gateway systemd unit but does not enable it', () => {
+        it('installs and enables the hermes-gateway systemd unit', () => {
             expect(output).toContain(
                 '/etc/systemd/system/hermes-gateway.service'
             )
-            expect(output).toContain('ExecStart=/home/hermes/.local/bin/hermes gateway start')
-            expect(output).not.toContain('systemctl enable hermes-gateway')
-            expect(output).not.toContain('systemctl start hermes-gateway')
+            expect(output).toContain(
+                'ExecStart=/home/hermes/.local/bin/hermes gateway run --replace'
+            )
+            expect(output).toContain('systemctl enable hermes-gateway')
+            expect(output).toContain('systemctl start hermes-gateway')
         })
 
         it('does not set up nginx reverse proxy', () => {

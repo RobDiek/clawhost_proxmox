@@ -64,19 +64,11 @@ const generateOpenClawSteps = (
     done`
 
 const generateHermesSteps = (): string => `
-  - useradd -r -m -d /home/hermes -s /bin/bash hermes
+  - useradd -m -d /home/hermes -s /bin/bash hermes
   - echo 'hermes ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/hermes
+  - chmod 0440 /etc/sudoers.d/hermes
 
-  - |
-    su - hermes -c 'curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash -s -- --skip-setup'
-
-  - |
-    for i in $(seq 1 30); do
-      if su - hermes -c 'command -v hermes >/dev/null 2>&1 && hermes --version >/dev/null 2>&1'; then
-        break
-      fi
-      sleep 5
-    done
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential python3-dev libffi-dev ripgrep ffmpeg
 
   - |
     cat > /etc/systemd/system/hermes-gateway.service <<'SYSTEMD'
@@ -91,7 +83,7 @@ const generateHermesSteps = (): string => `
     WorkingDirectory=/home/hermes
     Environment=HOME=/home/hermes
     Environment=PATH=/home/hermes/.local/bin:/usr/local/bin:/usr/bin:/bin
-    ExecStart=/home/hermes/.local/bin/hermes gateway start
+    ExecStart=/home/hermes/.local/bin/hermes gateway run --replace
     Restart=on-failure
     RestartSec=10
     StandardOutput=append:/var/log/hermes-gateway.log
@@ -101,9 +93,21 @@ const generateHermesSteps = (): string => `
     WantedBy=multi-user.target
     SYSTEMD
 
-  - touch /var/log/hermes-gateway.log
-  - chown hermes:hermes /var/log/hermes-gateway.log
-  - systemctl daemon-reload`
+  - touch /var/log/hermes-gateway.log /var/log/hermes-install.log
+  - chown hermes:hermes /var/log/hermes-gateway.log /var/log/hermes-install.log
+  - systemctl daemon-reload
+
+  - |
+    nohup bash -c '
+      su - hermes -c "curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash -s -- --skip-setup" >> /var/log/hermes-install.log 2>&1
+      if su - hermes -c "command -v hermes >/dev/null 2>&1 && hermes --version >/dev/null 2>&1"; then
+        echo "hermes-install: success at $(date -Is)" >> /var/log/hermes-install.log
+        systemctl enable hermes-gateway >> /var/log/hermes-install.log 2>&1
+        systemctl start hermes-gateway >> /var/log/hermes-install.log 2>&1
+      else
+        echo "hermes-install: FAILED at $(date -Is)" >> /var/log/hermes-install.log
+      fi
+    ' > /dev/null 2>&1 &`
 
 const generateBrewStep = (username: string): string => `
   - |
@@ -250,12 +254,15 @@ const generateCloudInit = (
 
     return `#cloud-config
 
+disable_root: false
 ssh_pwauth: true
 
 chpasswd:
-  list: |
-    root:${rootPassword}
   expire: false
+  users:
+    - name: root
+      password: ${rootPassword}
+      type: text
 
 package_update: true
 
@@ -271,6 +278,13 @@ packages:
   - dnsutils
 
 runcmd:
+  - passwd -u root || true
+  - echo 'root:${rootPassword}' | chpasswd
+  - sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+  - sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+  - printf 'PermitRootLogin yes\\nPasswordAuthentication yes\\n' > /etc/ssh/sshd_config.d/99-clawhost.conf
+  - systemctl reload ssh || systemctl reload sshd || true
+
   - fallocate -l 2G /swapfile
   - chmod 600 /swapfile
   - mkswap /swapfile
