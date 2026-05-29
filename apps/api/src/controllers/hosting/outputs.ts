@@ -255,6 +255,9 @@ export const gtmFreshStackPreflight = async (c: Context<HonoEnv>) => {
 
         const tokens = (agent as any).googleTokens || {}
         const googleConnected = !!tokens.refreshToken
+        // Hoisted: used by both Meta Pixel domain matching + WP integration
+        // matching. Declared once here, used multiple times below.
+        const rd: any = (agent as any).researchData || {}
 
         // GA4 accessibility: only probe if Google connected. Single accountSummaries
         // GET — cheap (<500ms) and surfaces 401/403 immediately so user knows
@@ -303,7 +306,11 @@ export const gtmFreshStackPreflight = async (c: Context<HonoEnv>) => {
             }
         } catch (e) { metaError = (e as Error).message.slice(0, 200) }
 
-        // WordPress integration
+        // WordPress integration — match by agent_id first (proper per-agent
+        // isolation), then fall back to siteDomain match. Without this, a
+        // packing-station agent on a VPS that also hosts a storage-station
+        // agent would pick the FIRST wp row (storage-station) by created_at
+        // order, probe its plugin, and falsely report "plugin not installed".
         let wpConnected = false
         let wpUrl: string | undefined
         let wpPluginInstalled = false
@@ -318,7 +325,21 @@ export const gtmFreshStackPreflight = async (c: Context<HonoEnv>) => {
                     eq(agentIntegrations.integrationType, 'wordpress'),
                 ),
             )
-            const wp = wpRows[0]
+            // 1. Match by agent.id (preferred)
+            let wp = wpRows.find(r => r.agentId === agent.id)
+            // 2. Fall back to siteDomain url-contains match
+            if (!wp) {
+                const target = (rd?.answers?.websiteUrl || '').replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+                if (target) {
+                    wp = wpRows.find(r => {
+                        const url = String((r.config as any)?.url || '').replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+                        return url && (url.includes(target) || target.includes(url))
+                    })
+                }
+            }
+            // 3. Last resort — first row (legacy single-agent VPS)
+            if (!wp) wp = wpRows[0]
+
             if (wp && (wp.config as any)?.url && (wp.config as any)?.appPassword) {
                 wpConnected = true
                 wpUrl = String((wp.config as any).url)
@@ -338,7 +359,7 @@ export const gtmFreshStackPreflight = async (c: Context<HonoEnv>) => {
         // Tenant state: greenfield = no prior GTM target, migration = has target
         // pointing at a non-self-owned container (heuristic: account name doesn't
         // match brand). For now: has_target if mazhirGtm.target.publicId is set.
-        const rd: any = (agent as any).researchData || {}
+        // (rd already hoisted at top of try block.)
         const gtmTargetExists = !!(rd.mazhirGtm?.target?.publicId)
         const tenantState: 'greenfield' | 'migration' | 'has_target' = gtmTargetExists
             ? 'has_target'
@@ -607,7 +628,14 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                                 eq(agentIntegrations.integrationType, 'wordpress'),
                             ),
                         )
-                        const wpRow = wpRows[0]
+                        // Per-agent isolation: prefer the WP row owned by this agent.
+                        const wpRow = wpRows.find(r => r.agentId === agent.id)
+                            || wpRows.find(r => {
+                                const url = String((r.config as any)?.url || '').replace(/^https?:\/\//, '').replace(/\/$/, '')
+                                const target = String(siteDomain || '').replace(/^https?:\/\//, '').replace(/\/$/, '')
+                                return target && url && url.includes(target)
+                            })
+                            || wpRows[0]
                         if (wpRow) {
                             const { probeWpCapabilities } = await import('@/services/wpCompanionInstaller')
                             const caps = await probeWpCapabilities(wpRow.config as any)
@@ -751,12 +779,16 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                     eq(agentIntegrations.integrationType, 'wordpress'),
                 ),
             )
-            const wp = wpRows.find(r => {
-                const cfg = (r.config as any) || {}
-                const url = String(cfg.url || '').replace(/^https?:\/\//, '').replace(/\/$/, '')
-                const target = String(siteDomain || '').replace(/^https?:\/\//, '').replace(/\/$/, '')
-                return target && url && url.includes(target)
-            }) || wpRows[0]
+            // Match priority: agent.id → siteDomain url-contains → first row.
+            // Per-agent isolation matters when VPS hosts multiple tenants.
+            const wp = wpRows.find(r => r.agentId === agent.id)
+                || wpRows.find(r => {
+                    const cfg = (r.config as any) || {}
+                    const url = String(cfg.url || '').replace(/^https?:\/\//, '').replace(/\/$/, '')
+                    const target = String(siteDomain || '').replace(/^https?:\/\//, '').replace(/\/$/, '')
+                    return target && url && url.includes(target)
+                })
+                || wpRows[0]
 
             if (!wp || !(wp.config as any)?.url || !(wp.config as any)?.appPassword) {
                 chainSteps.push({ step: 'WordPress not connected', ok: false, detail: 'No matching WP integration — paste snippet manually' })
