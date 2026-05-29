@@ -139,11 +139,13 @@ startOptimizationCron()
 import { startPlanDraftRunner } from '@/services/planDraftRunner'
 startPlanDraftRunner()
 
-// K14 — Bidding recovery scheduler — daily check for tenants needing
-// post-strategy follow-up tasks (Conservative=14d, Aggressive=30d).
-import { runBiddingRecoveryCheck } from '@/services/biddingRecoveryScheduler'
-setInterval(() => { runBiddingRecoveryCheck().catch(err => console.error('[biddingRecovery] cron error:', err)) }, 24 * 3600 * 1000)
-setTimeout(() => { runBiddingRecoveryCheck().catch(err => console.error('[biddingRecovery] first run error:', err)) }, 120 * 1000)
+// K15 — Generic Deferred Actions scheduler — replaces K14 bidding-only.
+// Scans research_data.deferredActions[] for ALL kinds (bidding_strategy +
+// future: plugin_tracking_disable, ga4_setting_change, campaign_pause).
+// Each kind self-registers a handler with custom restore + validation logic.
+import { runDeferredActionsScheduler } from '@/services/deferredActions/scheduler'
+setInterval(() => { runDeferredActionsScheduler().catch(err => console.error('[deferredActions] cron error:', err)) }, 24 * 3600 * 1000)
+setTimeout(() => { runDeferredActionsScheduler().catch(err => console.error('[deferredActions] first run error:', err)) }, 120 * 1000)
 
 // Trial manager — check trial expiry every hour
 import { runTrialManager } from '@/jobs/trialManager'

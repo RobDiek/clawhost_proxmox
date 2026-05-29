@@ -1019,6 +1019,9 @@ input{font-family:inherit}
   <!-- Tab: Home (ראשי) -->
   <div class="tab-content" id="tab-home">
 
+    <!-- K15: Active deferred actions banner (Conservative bidding in 11d etc.) -->
+    <div id="activeDeferredActionsBanner"></div>
+
     <!-- Agent Context Bar (shown when multi-agent) -->
     <div id="agentContextBar" style="display:none;background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 20px;margin-bottom:16px;align-items:center;gap:12px">
       <div id="acbIcon" class="agent-icon-circle oc" style="width:38px;height:38px"></div>
@@ -4691,11 +4694,46 @@ if (typeof token !== 'undefined' && token) { syncProfileFromServer(); }
 // Apply cached agency_mode setting immediately on page load to avoid UI flicker
 if (typeof window !== 'undefined') applyAgencyModeUi();
 
+// K15: load + render active deferred actions widget (e.g. Conservative
+// bidding strategy in 11 days). Surfaces all active temporary platform
+// actions in a top-bar banner so user has visibility before recovery
+// task auto-appears.
+function loadActiveDeferredActionsBanner() {
+  var holder = document.getElementById('activeDeferredActionsBanner');
+  if (!holder) return;
+  if (typeof instanceId === 'undefined' || !instanceId) { holder.innerHTML = ''; return; }
+  var agentParam = window.activeAgentId ? '?agentId=' + window.activeAgentId : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/safety/active-actions' + agentParam, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d.success || !d.data.items || d.data.items.length === 0) { holder.innerHTML = ''; return; }
+    holder.innerHTML = d.data.items.map(function(it) {
+      var desc = it.descriptor || {};
+      var bg = desc.severity === 'critical' ? '#FEF2F2' : desc.severity === 'warning' ? '#FFFBEB' : '#EFF6FF';
+      var border = desc.severity === 'critical' ? '#FCA5A5' : desc.severity === 'warning' ? '#FDE68A' : '#BFDBFE';
+      var color = desc.severity === 'critical' ? '#991B1B' : desc.severity === 'warning' ? '#92400E' : '#1E40AF';
+      var daysText = desc.daysRemaining >= 0 ? desc.daysRemaining + ' ימים נותרו עד תזכורת' : 'תזכורת תיווצר בקרוב';
+      return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;direction:rtl">' +
+        '<div style="font-size:1.4rem">' + escapeHtml(desc.icon || '⏳') + '</div>' +
+        '<div style="flex:1">' +
+          '<div style="font-size:0.88rem;font-weight:700;color:' + color + '">' + escapeHtml(desc.titleHe || it.kind) + '</div>' +
+          '<div style="font-size:0.78rem;color:' + color + ';opacity:0.85">' + escapeHtml(desc.subtitleHe || '') + ' · ' + daysText + '</div>' +
+        '</div>' +
+        '<div style="font-size:0.72rem;color:' + color + ';opacity:0.7">applied ' + new Date(it.appliedAt).toLocaleDateString('he-IL') + '</div>' +
+      '</div>';
+    }).join('');
+  })
+  .catch(function() { holder.innerHTML = ''; });
+}
+
 function renderAgentHomeContext() {
   var agents = getAgentComponents();
   var isMultiAgent = agents.length > 1;
   var agent = activeAgent || 'oc';
   var comp = COMPONENTS[agent] || COMPONENTS.oc;
+  // K15: refresh deferred actions banner on agent context render
+  setTimeout(loadActiveDeferredActionsBanner, 200);
 
   // Agent Context Bar — only visible when multi-agent
   var acb = document.getElementById('agentContextBar');

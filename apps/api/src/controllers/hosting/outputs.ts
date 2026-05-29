@@ -1468,6 +1468,25 @@ export const applyBiddingStrategy = async (c: Context<HonoEnv>) => {
         const scopedCampaignIds: string[] = Array.isArray(ads.scope?.campaignIds) ? ads.scope.campaignIds.map(String) : []
         if (scopedCampaignIds.length === 0) return fail(c, 'No scoped campaignIds (set Google Ads scope first)', 400)
 
+        // K15: idempotency check — block re-apply of same strategy in active window
+        try {
+            const { readDeferredActions } = await import('@/services/deferredActions/store')
+            const { getHandler } = await import('@/services/deferredActions/registry')
+            await import('@/services/deferredActions/handlers/index')
+            const existing = await readDeferredActions(instanceId, agent.id, { kind: 'bidding_strategy' })
+            const handler = getHandler('bidding_strategy')
+            if (handler?.detectDuplicate) {
+                const dupMsg = handler.detectDuplicate(
+                    { instanceId, agentId: agent.id, tokens: { refreshToken: tokens.refreshToken } },
+                    { strategy, customerId: operatingCustomerId, loginCustomerId },
+                    existing as never,
+                )
+                if (dupMsg) return fail(c, dupMsg, 409)
+            }
+        } catch (e) {
+            console.warn('[applyBiddingStrategy] duplicate check failed (non-fatal):', (e as Error).message)
+        }
+
         const { applyBiddingStrategy: apply } = await import('@/services/googleAdsBiddingStrategy')
         const result = await apply({
             customerId: operatingCustomerId,
@@ -1512,7 +1531,28 @@ export const applyBiddingStrategy = async (c: Context<HonoEnv>) => {
                     rd.adsBiddingHistory = [...((rd.adsBiddingHistory) || []), entry]
                     return rd
                 })
-                console.log(`[applyBiddingStrategy] history entry ${historyId} saved (recovery in ${STRATEGY_RECOVERY_DAYS[strategy]} days)`)
+                // K15: also record in generic deferredActions[] (legacy + new co-exist during transition)
+                const { recordDeferredAction } = await import('@/services/deferredActions/store')
+                await recordDeferredAction(instanceId, agent.id, {
+                    id: historyId,
+                    kind: 'bidding_strategy',
+                    appliedAt: entry.appliedAt,
+                    appliedBy: entry.appliedBy,
+                    recoveryDays: entry.recoveryDays,
+                    payload: {
+                        strategy,
+                        customerId: operatingCustomerId,
+                        loginCustomerId,
+                        previousState: result.previousState,
+                        newState: result.newState,
+                        actionsApplied: result.actionsApplied,
+                    },
+                    state: 'active',
+                    followupGeneratedAt: null,
+                    restoredAt: null,
+                    dismissedAt: null,
+                })
+                console.log(`[applyBiddingStrategy] history entry ${historyId} saved (recovery in ${STRATEGY_RECOVERY_DAYS[strategy]} days, dual-write legacy+generic)`)
             } catch (histErr) {
                 console.warn(`[applyBiddingStrategy] history save failed (non-fatal): ${(histErr as Error).message}`)
             }
@@ -1522,6 +1562,156 @@ export const applyBiddingStrategy = async (c: Context<HonoEnv>) => {
     } catch (err) {
         console.error('[applyBiddingStrategy] ERROR:', err)
         return fail(c, `Apply bidding strategy failed: ${(err as Error).message}`, 500)
+    }
+}
+
+// ── K15: Generic deferred actions endpoints ──
+
+// GET /hosting/instances/:id/safety/active-actions
+// Lists ACTIVE deferred actions for dashboard widget. Returns array
+// with descriptor (titleHe, daysRemaining, severity) per handler.
+export const listActiveDeferredActions = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const agentIdParam = c.req.query('agentId')
+        const { resolveAgentById, resolvePrimaryAgent } = await import('@/services/agentContext')
+        const agent = agentIdParam
+            ? (await resolveAgentById(instanceId, agentIdParam)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+        const { readDeferredActions } = await import('@/services/deferredActions/store')
+        const { getHandler } = await import('@/services/deferredActions/registry')
+        await import('@/services/deferredActions/handlers/index')
+
+        const allActions = await readDeferredActions(instanceId, agent?.id || null)
+        const active = allActions.filter(a => a.state === 'active')
+        const items = active.map(action => {
+            const handler = getHandler(action.kind)
+            const descriptor = handler?.describeForDashboard ? handler.describeForDashboard(action) : {
+                titleHe: `פעולה זמנית: ${action.kind}`,
+                subtitleHe: '',
+                daysRemaining: action.recoveryDays - Math.floor((Date.now() - new Date(action.appliedAt).getTime()) / 86400000),
+                severity: 'info' as const,
+                icon: '⏳',
+            }
+            return { id: action.id, kind: action.kind, appliedAt: action.appliedAt, descriptor }
+        })
+        return ok(c, { items, count: items.length }, 'Active deferred actions')
+    } catch (err) {
+        return fail(c, `List active actions failed: ${(err as Error).message}`, 500)
+    }
+}
+
+// POST /hosting/instances/:id/safety/record-deferred-action
+// Backfill an external action into deferredActions[]. Body:
+//   { kind, appliedAt, recoveryDays, payload }
+// Used for migration from out-of-band changes that need follow-up reminders.
+export const recordDeferredActionEndpoint = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const body = await c.req.json<{ kind?: string; appliedAt?: string; recoveryDays?: number; payload?: Record<string, unknown> }>().catch(() => ({}))
+        const kind = String((body as Record<string, unknown>).kind || '').trim()
+        const appliedAt = String((body as Record<string, unknown>).appliedAt || new Date().toISOString())
+        const recoveryDays = Number((body as Record<string, unknown>).recoveryDays || 14)
+        const payload = (body as Record<string, unknown>).payload || {}
+        if (!kind) return fail(c, 'kind required', 400)
+
+        const agentIdParam = c.req.query('agentId')
+        const { resolveAgentById, resolvePrimaryAgent } = await import('@/services/agentContext')
+        const agent = agentIdParam
+            ? (await resolveAgentById(instanceId, agentIdParam)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+        if (!agent) return fail(c, 'No agent', 404)
+
+        const { recordDeferredAction } = await import('@/services/deferredActions/store')
+        const actionId = `${kind.slice(0, 4)}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+        await recordDeferredAction(instanceId, agent.id, {
+            id: actionId,
+            kind: kind as never,
+            appliedAt,
+            appliedBy: (c.get('userId') as string | undefined) || 'backfill',
+            recoveryDays,
+            payload,
+            state: 'active',
+            followupGeneratedAt: null,
+            restoredAt: null,
+            dismissedAt: null,
+        })
+        return ok(c, { actionId }, 'Action recorded')
+    } catch (err) {
+        return fail(c, `Record action failed: ${(err as Error).message}`, 500)
+    }
+}
+
+// POST /hosting/instances/:id/safety/restore-deferred-action
+// Generic restore — finds handler by action.kind, calls handler.restore()
+// with delta-based reconciliation. Replaces the old restore-bidding endpoint
+// (which remains for backwards compat).
+export const restoreDeferredAction = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const body = await c.req.json<{ actionId?: string }>().catch(() => ({}))
+        const actionId = String((body as Record<string, unknown>).actionId || '').trim()
+        if (!actionId) return fail(c, 'actionId required', 400)
+
+        const agentIdParam = c.req.query('agentId')
+        const { resolveAgentById, resolvePrimaryAgent } = await import('@/services/agentContext')
+        const agent = agentIdParam
+            ? (await resolveAgentById(instanceId, agentIdParam)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+        if (!agent) return fail(c, 'No agent', 404)
+        const tokens = (agent as Record<string, unknown>).googleTokens as { refreshToken?: string } | undefined
+        if (!tokens?.refreshToken) return fail(c, 'No Google OAuth tokens', 400)
+
+        const { readDeferredActions, updateDeferredAction } = await import('@/services/deferredActions/store')
+        const { getHandler } = await import('@/services/deferredActions/registry')
+        await import('@/services/deferredActions/handlers/index')
+
+        const actions = await readDeferredActions(instanceId, agent.id)
+        const action = actions.find(a => a.id === actionId)
+        if (!action) return fail(c, `Action ${actionId} not found`, 404)
+        if (action.state === 'restored') return fail(c, 'Already restored', 400)
+
+        const handler = getHandler(action.kind)
+        if (!handler) return fail(c, `No handler for kind=${action.kind}`, 500)
+
+        const result = await handler.restore(
+            { instanceId, agentId: agent.id, tokens: { refreshToken: tokens.refreshToken } },
+            action,
+        )
+
+        console.log(`[restoreDeferredAction] instance=${instanceId} actionId=${actionId} kind=${action.kind} applied=${result.actionsApplied.length} errors=${result.errors.length}`)
+        for (const a of result.actionsApplied) console.log(`[restoreDeferredAction]   ✓ ${a.resourceId}: ${a.change}`)
+        for (const e of result.errors) console.log(`[restoreDeferredAction]   ✗ ${e.resourceId}: ${e.error}`)
+
+        await updateDeferredAction(instanceId, agent.id, actionId, {
+            state: 'restored',
+            restoredAt: new Date().toISOString(),
+        })
+
+        return ok(c, { actionId, kind: action.kind, result }, `Restored: ${result.summary}`)
+    } catch (err) {
+        console.error('[restoreDeferredAction] ERROR:', err)
+        return fail(c, `Restore failed: ${(err as Error).message}`, 500)
+    }
+}
+
+// POST /hosting/instances/:id/safety/migrate-bidding-history
+// One-time migration: move legacy adsBiddingHistory[] → deferredActions[].
+// Safe to call multiple times (idempotent).
+export const migrateBiddingHistoryEndpoint = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const agentIdParam = c.req.query('agentId')
+        const { resolveAgentById, resolvePrimaryAgent } = await import('@/services/agentContext')
+        const agent = agentIdParam
+            ? (await resolveAgentById(instanceId, agentIdParam)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+        if (!agent) return fail(c, 'No agent', 404)
+        const { migrateBiddingHistoryToDeferredActions } = await import('@/services/deferredActions/store')
+        const stats = await migrateBiddingHistoryToDeferredActions(instanceId, agent.id)
+        return ok(c, stats, `Migrated ${stats.migrated}, skipped ${stats.skipped}`)
+    } catch (err) {
+        return fail(c, `Migration failed: ${(err as Error).message}`, 500)
     }
 }
 
