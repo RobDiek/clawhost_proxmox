@@ -6985,7 +6985,11 @@ function renderTaskPopup(task) {
     var monthlyTaskBlock = renderMonthlyTaskPopup(task);
     if (monthlyTaskBlock) {
       bodyHtml += monthlyTaskBlock;
-      document.getElementById('taskPopupBody').innerHTML = bodyHtml;
+      var bodyEl = document.getElementById('taskPopupBody');
+      bodyEl.innerHTML = bodyHtml;
+      // K21 — remember which task is open so markActionStepUI can re-render
+      // the popup on per-step status changes without a full close/reopen.
+      bodyEl.setAttribute('data-open-task-id', task.id);
       document.getElementById('taskPopupFooter').innerHTML = renderMonthlyTaskFooter(task);
       document.getElementById('taskPopupOverlay').classList.remove('hidden');
       return;
@@ -8470,27 +8474,55 @@ function renderMonthlyTaskPopup(task) {
     '</div>';
   }
 
-  // ── ActionPlan steps ──────────────────────────────────────────────
+  // ── ActionPlan steps (K21: per-step checklist) ────────────────────
   if (Array.isArray(fullTask.actionPlan) && fullTask.actionPlan.length > 0) {
     var totalMin = fullTask.actionPlan.reduce(function(acc, s) { return acc + (s.estimatedMinutes || 0); }, 0);
+    var doneCount = fullTask.actionPlan.filter(function(s) { return s && (s.status === 'done' || s.status === 'skipped'); }).length;
+    var totalSteps = fullTask.actionPlan.length;
+    var outputIdForSteps = task.id;   // output id (mt_xxx) — endpoint takes outputId
     var stepsHtml = fullTask.actionPlan.map(function(s, i) {
       var auto = !!s.automated;
+      var status = s.status || 'pending';
+      var isDone = status === 'done';
+      var isSkipped = status === 'skipped';
       var badge = auto
         ? '<span style="font-size:0.7rem;font-weight:600;padding:2px 8px;border-radius:999px;background:#10B98120;color:#065F46;border:1px solid #10B98140">⚡ אוטומציה זמינה</span>'
         : '<span style="font-size:0.7rem;font-weight:600;padding:2px 8px;border-radius:999px;background:#F3F4F6;color:#374151;border:1px solid #E5E7EB">👤 ידני</span>';
       var minBadge = s.estimatedMinutes ? '<span style="font-size:0.7rem;color:#9CA3AF;margin-right:6px">⏱ ' + s.estimatedMinutes + ' דק׳</span>' : '';
-      return '<div style="display:flex;gap:10px;padding:10px 12px;border-bottom:1px solid #F3F4F6">' +
-        '<div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:#EEF2FF;color:#3730A3;font-weight:700;font-size:0.75rem;display:flex;align-items:center;justify-content:center">' + (i + 1) + '</div>' +
+      var statusBadge = isDone
+        ? '<span style="font-size:0.68rem;font-weight:600;padding:2px 8px;border-radius:999px;background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7" title="הושלם ' + _esc(s.completedAt ? new Date(s.completedAt).toLocaleString('he-IL') : '') + '">✓ בוצע</span>'
+        : isSkipped
+          ? '<span style="font-size:0.68rem;font-weight:600;padding:2px 8px;border-radius:999px;background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB" title="דולג">⊘ דולג</span>'
+          : '';
+      var noteHtml = (isDone || isSkipped) && s.completedNote
+        ? '<div style="font-size:0.74rem;color:#6B7280;font-style:italic;margin-top:4px;padding-inline-start:6px;border-inline-start:2px solid #E5E7EB">' + _esc(s.completedNote) + '</div>'
+        : '';
+      // K21 — interactive controls. Done = "↺" to undo; pending = "✓" + "⊘".
+      var controls = isDone || isSkipped
+        ? '<button onclick="markActionStepUI(\'' + outputIdForSteps + '\',' + i + ',\'pending\')" title="בטלו סימון" style="font-size:0.72rem;padding:3px 8px;border-radius:4px;background:#FFF;border:1px solid #D1D5DB;color:#6B7280;cursor:pointer">↺ בטלו</button>'
+        : '<button onclick="markActionStepUI(\'' + outputIdForSteps + '\',' + i + ',\'done\')" title="סמנו כבוצע" style="font-size:0.72rem;padding:3px 8px;border-radius:4px;background:#10B981;border:1px solid #10B981;color:#FFF;cursor:pointer">✓ בוצע</button>' +
+          '<button onclick="markActionStepUI(\'' + outputIdForSteps + '\',' + i + ',\'skipped\')" title="דלגו" style="font-size:0.72rem;padding:3px 8px;border-radius:4px;background:#FFF;border:1px solid #D1D5DB;color:#6B7280;cursor:pointer;margin-inline-start:4px">⊘ דלגו</button>';
+      var rowBg = isDone ? 'background:#F0FDF4;' : isSkipped ? 'background:#F9FAFB;' : '';
+      var stepStrike = isDone || isSkipped ? 'text-decoration:line-through;color:#9CA3AF;' : '';
+      return '<div style="display:flex;gap:10px;padding:10px 12px;border-bottom:1px solid #F3F4F6;' + rowBg + '">' +
+        '<div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:' + (isDone ? '#10B981' : isSkipped ? '#9CA3AF' : '#EEF2FF') + ';color:' + (isDone || isSkipped ? '#FFF' : '#3730A3') + ';font-weight:700;font-size:0.75rem;display:flex;align-items:center;justify-content:center">' + (isDone ? '✓' : isSkipped ? '⊘' : (i + 1)) + '</div>' +
         '<div style="flex:1">' +
-          '<div style="font-size:0.85rem;color:#1F2937;line-height:1.5;margin-bottom:4px">' + _esc(s.step) + '</div>' +
-          '<div style="display:flex;gap:6px;align-items:center">' + badge + minBadge + '</div>' +
+          '<div style="font-size:0.85rem;color:#1F2937;line-height:1.5;margin-bottom:4px;' + stepStrike + '">' + _esc(s.step) + '</div>' +
+          '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' + badge + minBadge + statusBadge + '</div>' +
+          noteHtml +
         '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:4px;align-self:flex-start">' + controls + '</div>' +
       '</div>';
     }).join('');
+    var progressPct = totalSteps > 0 ? Math.round((doneCount / totalSteps) * 100) : 0;
+    var progressBar = '<div style="background:#F3F4F6;height:4px;border-radius:2px;overflow:hidden;margin-top:6px"><div style="height:100%;background:linear-gradient(90deg,#10B981,#059669);width:' + progressPct + '%;transition:width 0.3s ease"></div></div>';
     h += '<div style="border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;margin-bottom:14px">' +
-      '<div style="background:#F9FAFB;padding:10px 12px;font-size:0.82rem;font-weight:700;color:#1F2937;border-bottom:1px solid #E5E7EB;display:flex;justify-content:space-between">' +
-        '<span>🛠 תוכנית פעולה (' + fullTask.actionPlan.length + ' שלבים)</span>' +
-        '<span style="font-weight:500;color:#6B7280">סה״כ ~' + totalMin + ' דק׳</span>' +
+      '<div style="background:#F9FAFB;padding:10px 12px;font-size:0.82rem;font-weight:700;color:#1F2937;border-bottom:1px solid #E5E7EB">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+          '<span>🛠 תוכנית פעולה (' + doneCount + '/' + totalSteps + ' הושלמו)</span>' +
+          '<span style="font-weight:500;color:#6B7280">סה״כ ~' + totalMin + ' דק׳</span>' +
+        '</div>' +
+        progressBar +
       '</div>' +
       stepsHtml +
     '</div>';
@@ -10869,6 +10901,54 @@ function approveTask(taskId) {
   localStorage.setItem('cf_task_statuses_' + instanceId, JSON.stringify(statuses));
   showToast('משימה אושרה', 'success');
   renderApprovalQueue();
+}
+
+// K21 — per-step action plan checklist. Calls /steps/:idx/mark-step.
+// On success, re-renders the popup (so the row picks up the new status)
+// and the queue (so the parent task card reflects progress). When the
+// last step is marked done, prompts the founder to call markManualDone
+// on the whole task — keeps autonomy in the founder's hands.
+function markActionStepUI(outputId, stepIdx, status) {
+  apiFetch('/hosting/instances/' + instanceId + '/outputs/' + outputId + '/steps/' + stepIdx + '/mark-step', {
+    method: 'POST',
+    body: JSON.stringify({ status: status }),
+  })
+    .then(function(r) {
+      if (!r.success) throw new Error(r.message || 'עדכון השלב נכשל');
+      // Refresh the in-memory plan task so subsequent renders see the new
+      // step status without a server round-trip.
+      try {
+        var rd = instanceData && instanceData.researchData;
+        var plan = rd && rd.monthlyPlan;
+        var task = (currentTasksCache || []).find(function(t) { return t.id === outputId; });
+        var planTaskId = task && task.metadata && task.metadata.taskId;
+        if (plan && Array.isArray(plan.tasks) && planTaskId) {
+          var pt = plan.tasks.find(function(t) { return t.id === planTaskId; });
+          if (pt && Array.isArray(pt.actionPlan) && pt.actionPlan[stepIdx]) {
+            pt.actionPlan[stepIdx].status = status;
+            if (status === 'done' || status === 'skipped') {
+              pt.actionPlan[stepIdx].completedAt = new Date().toISOString();
+            } else {
+              delete pt.actionPlan[stepIdx].completedAt;
+              delete pt.actionPlan[stepIdx].completedNote;
+            }
+          }
+        }
+      } catch (e) { /* non-fatal */ }
+      // Re-open the popup with refreshed data. Idempotent — popup is already
+      // open so it just rerenders contents.
+      var popupBody = document.getElementById('taskPopupBody');
+      var openTaskId = popupBody && popupBody.getAttribute('data-open-task-id');
+      if (openTaskId === outputId) {
+        try { openTaskPopup(outputId); } catch (e) { /* non-fatal */ }
+      }
+      // Whole-task completion suggestion
+      if (r.data && r.data.allDone && status === 'done') {
+        showToast('כל השלבים הושלמו ✓ — לחצו "סיימתי ידנית" כדי לסמן את המשימה כהושלמה', 'success');
+      }
+      renderApprovalQueue();
+    })
+    .catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
 }
 
 // K20 — manual retry for failed monthly_task. Outputs id (e.g. mt_xxx),

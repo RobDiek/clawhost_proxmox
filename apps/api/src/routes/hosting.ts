@@ -190,6 +190,7 @@ import {
     bulkApproveOutputs,
     bulkRejectOutputs,
     retryFailedTaskNow,
+    markActionStep,
     markManualDone,
     sgtmConfigure,
     gtmFreshStack,
@@ -827,6 +828,8 @@ app.post('/instances/:id/outputs/bulk-reject', bulkRejectOutputs)
 // re-fires the executor immediately. Capped at 3 retries (after which
 // an investigate child task already exists).
 app.post('/instances/:id/outputs/:outputId/retry-now', retryFailedTaskNow)
+// K21 — per-step checklist tracking. Body: { status, note? }
+app.post('/instances/:id/outputs/:outputId/steps/:stepIdx/mark-step', markActionStep)
 app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)

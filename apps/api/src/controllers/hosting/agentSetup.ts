@@ -6442,6 +6442,14 @@ export interface MonthlyTaskActionStep {
     step: string                           // Hebrew: WHAT the executor does
     automated: boolean                     // true = system executes via API after approval; false = user-only TODO
     estimatedMinutes?: number              // automated steps estimate API call time; manual steps estimate user effort
+    // K21 — per-step completion tracking. Lets the founder check off
+    // individual steps in a multi-step actionPlan (especially manual ones)
+    // instead of marking the whole task done in one shot. When ALL steps
+    // are 'done' the dashboard surfaces a "סיים משימה" CTA. Skipped steps
+    // count as terminal — they don't block whole-task completion.
+    status?: 'pending' | 'done' | 'skipped'
+    completedAt?: string                   // ISO timestamp when this step was marked done/skipped
+    completedNote?: string                 // optional founder note (≤500 chars)
 }
 
 export interface MonthlyTask {

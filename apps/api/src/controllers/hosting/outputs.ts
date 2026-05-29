@@ -2341,6 +2341,74 @@ export const rejectOutput = async (c: Context<HonoEnv>) => {
     }
 }
 
+// ── POST /hosting/instances/:id/outputs/:outputId/steps/:stepIdx/mark-step ──
+// K21 — per-step completion tracking. Body:
+//   { status: 'pending' | 'done' | 'skipped', note?: string }
+// Server mutates research_data.monthlyPlan.tasks[i].actionPlan[stepIdx]
+// in place via mutateResearchData. No-op if the step index is out of
+// range (caller bug protection). Idempotent — re-marking 'done' just
+// refreshes completedAt + completedNote.
+export const markActionStep = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const outputId = c.req.param('outputId')
+        const stepIdx = Number(c.req.param('stepIdx'))
+        const userId = c.get('userId')
+        if (!Number.isInteger(stepIdx) || stepIdx < 0 || stepIdx > 30) return fail(c, 'invalid stepIdx', 400)
+
+        const body = await c.req.json<{ status?: string; note?: string }>().catch(() => ({} as { status?: string; note?: string }))
+        const status = body.status === 'done' || body.status === 'pending' || body.status === 'skipped' ? body.status : null
+        if (!status) return fail(c, "status must be 'pending' | 'done' | 'skipped'", 400)
+        const note = typeof body.note === 'string' ? body.note.slice(0, 500) : undefined
+
+        const [output] = await db.select().from(agentOutputs)
+            .where(and(eq(agentOutputs.id, outputId), eq(agentOutputs.instanceId, instanceId)))
+        if (!output) return fail(c, 'Output not found', 404)
+        const meta = output.metadata as Record<string, unknown> | null
+        const taskId = meta?.taskId as string | undefined
+        if (!taskId) return fail(c, 'Output has no linked taskId', 400)
+
+        const { resolveAgentById, resolvePrimaryAgent, mutateResearchData } =
+            await import('@/services/agentContext')
+        const agent = output.agentId
+            ? (await resolveAgentById(instanceId, output.agentId)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+
+        let outOfRange = false
+        let allDone = false
+        await mutateResearchData(agent, instanceId, (rd: any) => {
+            const plan = rd?.monthlyPlan
+            if (!plan || !Array.isArray(plan.tasks)) return rd
+            const taskIdx = plan.tasks.findIndex((t: any) => t.id === taskId)
+            if (taskIdx === -1) return rd
+            const task = plan.tasks[taskIdx]
+            if (!Array.isArray(task.actionPlan) || stepIdx >= task.actionPlan.length) {
+                outOfRange = true
+                return rd
+            }
+            const step = task.actionPlan[stepIdx]
+            step.status = status
+            if (status === 'done' || status === 'skipped') {
+                step.completedAt = new Date().toISOString()
+                if (note) step.completedNote = note
+            } else {
+                delete step.completedAt
+                delete step.completedNote
+            }
+            // K21: detect whole-task completion when every step is done/skipped.
+            allDone = task.actionPlan.every((s: any) => s.status === 'done' || s.status === 'skipped')
+            return rd
+        })
+        if (outOfRange) return fail(c, 'stepIdx out of range', 400)
+
+        console.log(`Step ${stepIdx} on ${outputId} marked ${status} by ${userId}`)
+        return ok(c, { stepIdx, status, allDone }, 'Step status updated')
+    } catch (err) {
+        console.error('markActionStep error:', err)
+        return fail(c, 'Failed to mark step', 500)
+    }
+}
+
 // ── POST /hosting/instances/:id/outputs/:outputId/retry-now ──
 // K20 — manual retry for a failed monthly_task. Bypasses the cron-driven
 // backoff schedule (1h/4h/24h) and re-fires the executor immediately.
