@@ -438,12 +438,14 @@ async function elaborateBatch(
     model: string,
 ): Promise<BatchOutput | null> {
     const userPrompt = buildBatchUserPrompt(ctx, batch)
-    console.log(`[monthlyPlanDetailer] batch=${batch.label} (${batch.skeletons.length} tasks) starting (prompt=${DETAILER_SYSTEM.length + userPrompt.length} chars)`)
+    const { withHebrewStyleGuide } = await import('./hebrewStyleGuide')
+    const fullSystem = withHebrewStyleGuide(DETAILER_SYSTEM)
+    console.log(`[monthlyPlanDetailer] batch=${batch.label} (${batch.skeletons.length} tasks) starting (prompt=${fullSystem.length + userPrompt.length} chars)`)
     try {
         const raw = await callOpusStream({
             label: `monthlyPlanDetailer:${batch.label}`,
             apiKey, model,
-            system: DETAILER_SYSTEM,
+            system: fullSystem,
             user: userPrompt,
             maxTokens: BATCH_MAX_TOKENS,
             timeoutMs: BATCH_TIMEOUT_MS,

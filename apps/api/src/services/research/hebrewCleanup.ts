@@ -109,11 +109,34 @@ const CLEANUP_PROMPT_TEMPLATE = (content: string, recordsJson: string | null, st
 ❌ "tradeoff" → ✅ "פשרה / איזון בין"
 ❌ "extractability" → ✅ "יכולת חילוץ"
 
+## K16 — מזהים תכנותיים אסורים בטקסט פונה-משתמש
+
+❌ snake_case ו-camelCase של מזהים תכנותיים בתוך **נראטיב עברית** או בתוך **string values** עבריים — חייבים תרגום.
+
+דוגמאות אסורות שנצפו בייצור (יש לתרגם):
+
+❌ "static_value_pollution" → ✅ "זיהום ערכי המרות סטטיים"
+❌ "conv_value_quality_subscore" → ✅ "ציון איכות ערך ההמרה"
+❌ "fix_tracking_first" → ✅ "תיקון מעקב ראשון"
+❌ "Smart Bidding" → ✅ "אופטימיזציית הצעות חכמה"
+❌ "createGtmContainer" → ✅ "יצירת מנהל תגיות (GTM)"
+❌ "MAXIMIZE_CONVERSION_VALUE" → ✅ "אופטימיזציה לערך מרבי מהמרות"
+❌ "MANUAL_CPC" → ✅ "הצעות ידניות לעלות לקליק"
+❌ "ENABLED" / "PAUSED" → ✅ "פעיל" / "מושהה"
+❌ "Conversion Linker" → ✅ "מקשר המרות"
+❌ "Consent Mode v2" → ✅ "מצב הסכמה (Consent Mode v2)"
+❌ "audience match" → ✅ "התאמת קהל"
+❌ "snippet install" → ✅ "התקנת קטע הקוד"
+
+חוק: כל מחרוזת ב-snake_case או SCREAMING_SNAKE_CASE שלא ב-allowlist, ושמופיעה בתוך text/title/summary/rationale/description שעברית — חייבת תרגום עם הסבר טבעי בעברית. אסור להשאיר את המזהה התכנותי כתחליף לטקסט פונה-משתמש.
+
 ✅ "FAQPage schema" — נשאר (Schema.org type)
 ✅ "ה-CTR נמוך" — נשאר (allowlist acronym)
 ✅ "Storage Station" — נשאר (שם מותג)
 ✅ "Yad2" — נשאר (שם מותג)
 ✅ "long-tail" / "head term" — נשאר (allowlist SEO term)
+✅ "campaign.id = '23184792647'" — נשאר (numeric ID, technical context)
+✅ JSON field names באנגלית — נשארים: { "campaignId": "...", "status": "..." }
 
 ## פלט
 

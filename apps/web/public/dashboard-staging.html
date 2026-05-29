@@ -4720,7 +4720,7 @@ function loadActiveDeferredActionsBanner() {
           '<div style="font-size:0.88rem;font-weight:700;color:' + color + '">' + escapeHtml(desc.titleHe || it.kind) + '</div>' +
           '<div style="font-size:0.78rem;color:' + color + ';opacity:0.85">' + escapeHtml(desc.subtitleHe || '') + ' · ' + daysText + '</div>' +
         '</div>' +
-        '<div style="font-size:0.72rem;color:' + color + ';opacity:0.7">applied ' + new Date(it.appliedAt).toLocaleDateString('he-IL') + '</div>' +
+        '<div style="font-size:0.72rem;color:' + color + ';opacity:0.7">הוחל ב-' + new Date(it.appliedAt).toLocaleDateString('he-IL') + '</div>' +
       '</div>';
     }).join('');
   })
@@ -9100,7 +9100,7 @@ function applySafetyFix(kind, btn) {
         btn.style.background = '#10B981';
       }
     }
-    showToast(partial ? '⚠ Fix partially applied — check details' : '✓ Fix applied. Re-run wizard to verify.', partial ? 'warning' : 'success');
+    showToast(partial ? '⚠ הוחל חלקית — בדקו פרטים' : '✓ הוחל בהצלחה. הריצו את ה-Wizard שוב לאימות.', partial ? 'warning' : 'success');
   })
   .catch(function(err) {
     showToast('Network error: ' + (err && err.message || ''), 'error');

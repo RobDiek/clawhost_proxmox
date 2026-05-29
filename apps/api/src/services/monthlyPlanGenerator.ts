@@ -564,9 +564,27 @@ export async function generateMonthlyPlan(
     const pass2Elapsed = ((Date.now() - tPass2Start) / 1000).toFixed(1)
     console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 2 (detail) done in ${pass2Elapsed}s — ${batchStats.succeeded}/${batchStats.total} batches succeeded, ${detailedTasks.length} tasks merged`)
 
+    // ─── K16: Hebrew cleanup pass — strips snake_case / English jargon ──
+    // from user-facing task strings (title / summary / actionPlan[].step /
+    // expectedImpact.rationale / sources[].excerpt) without changing
+    // structure. Runs BEFORE Pass 3 so coverage fills also get cleaned.
+    let cleanedDetailedTasks = detailedTasks
+    try {
+        const { runMonthlyPlanHebrewCleanup } = await import('./monthlyPlanHebrewCleanup')
+        const cleanup = await runMonthlyPlanHebrewCleanup({ tasks: detailedTasks as unknown as Array<Record<string, unknown>>, instanceId })
+        if (cleanup.applied && cleanup.cleanedTasks) {
+            cleanedDetailedTasks = cleanup.cleanedTasks as unknown as typeof detailedTasks
+            console.log(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup applied to ${cleanup.cleanedTasks.length} tasks`)
+        } else {
+            console.log(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup skipped (${cleanup.reason})`)
+        }
+    } catch (e) {
+        console.warn(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup error (non-fatal):`, (e as Error).message)
+    }
+
     // ─── Pass 3: Senior-bar coverage check + fills ───────────────────────
     const tPass3Start = Date.now()
-    const { tasks: finalTasks, coverage } = await ensureCoverage(ctx, detailedTasks, apiKey, model)
+    const { tasks: finalTasks, coverage } = await ensureCoverage(ctx, cleanedDetailedTasks, apiKey, model)
     const pass3Elapsed = ((Date.now() - tPass3Start) / 1000).toFixed(1)
     const filledRules = coverage.filter(c => c.status === 'filled').map(c => c.rule)
     const failedFills = coverage.filter(c => c.status === 'fill_failed').map(c => c.rule)

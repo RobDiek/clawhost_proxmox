@@ -503,11 +503,13 @@ export async function generateSkeleton(
     model = 'claude-opus-4-7',
 ): Promise<{ skeleton: SkeletonOutput; rawLength: number }> {
     const userPrompt = buildSkeletonUserPrompt(ctx)
-    console.log(`[monthlyPlanSkeleton] starting Pass 1 (model=${model}, prompt=${SKELETON_SYSTEM.length + userPrompt.length} chars, scenario=${ctx.chosenScenarioKey})`)
+    const { withHebrewStyleGuide } = await import('./hebrewStyleGuide')
+    const fullSystem = withHebrewStyleGuide(SKELETON_SYSTEM)
+    console.log(`[monthlyPlanSkeleton] starting Pass 1 (model=${model}, prompt=${fullSystem.length + userPrompt.length} chars, scenario=${ctx.chosenScenarioKey})`)
     const raw = await callOpusStream({
         label: 'monthlyPlanSkeleton',
         apiKey, model,
-        system: SKELETON_SYSTEM,
+        system: fullSystem,
         user: userPrompt,
         maxTokens: 32000,    // Phase 2026.02 Block 6: 16K hit `stop=max_tokens` truncation on
                              // 46-task aggressive-scenario skeletons (29K char raw → JSON unterminated).
