@@ -49,24 +49,66 @@ async function getAccessToken(tokens: { accessToken?: string; refreshToken: stri
     return j.access_token
 }
 
+// GTM API rate limits: 25 Queries Per Minute Per User. autoSetupGtmContainer
+// fires ~20+ writes (create workspace + variables + triggers + tags + version
+// + publish), often blowing through 25 QPM and getting 429. Per-write throttle
+// + retry-with-backoff is required for autonomous unattended runs.
+//
+// Strategy:
+//   - Throttle: WRITE methods (POST/PUT/PATCH/DELETE) sleep `WRITE_DELAY_MS`
+//     before each call to stay under the QPM ceiling. READS (GET) skip the
+//     throttle since they don't count toward write-specific subquota.
+//   - Retry: on 429 OR 5xx, exponential backoff (3s, 9s, 27s) for up to 3
+//     attempts. Respects Retry-After header if present.
+const WRITE_DELAY_MS = 2500
+const MAX_RETRIES = 3
+let lastWriteAt = 0
+
 async function gtmFetch(path: string, accessToken: string, method = 'GET', body?: unknown): Promise<any> {
     const url = path.startsWith('http') ? path : `${GTM_BASE}${path}`
-    const res = await fetch(url, {
-        method,
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-        },
-        body: body ? JSON.stringify(body) : undefined,
-    })
-    const text = await res.text()
-    let data: any = {}
-    try { data = text ? JSON.parse(text) : {} } catch { data = { raw: text } }
-    if (!res.ok) {
-        const msg = data?.error?.message || text.slice(0, 400)
-        throw new Error(`GTM ${method} ${path} → ${res.status}: ${msg}`)
+    const isWrite = method !== 'GET'
+    if (isWrite) {
+        const elapsed = Date.now() - lastWriteAt
+        const wait = WRITE_DELAY_MS - elapsed
+        if (wait > 0) await new Promise(r => setTimeout(r, wait))
+        lastWriteAt = Date.now()
     }
-    return data
+
+    let attempt = 0
+    let lastErr: Error | null = null
+    while (attempt <= MAX_RETRIES) {
+        const res = await fetch(url, {
+            method,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: body ? JSON.stringify(body) : undefined,
+        })
+        const text = await res.text()
+        let data: any = {}
+        try { data = text ? JSON.parse(text) : {} } catch { data = { raw: text } }
+        if (res.ok) return data
+
+        const status = res.status
+        const msg = data?.error?.message || text.slice(0, 400)
+
+        const isRetryable = status === 429 || (status >= 500 && status < 600)
+        if (!isRetryable || attempt === MAX_RETRIES) {
+            throw new Error(`GTM ${method} ${path} → ${status}: ${msg}`)
+        }
+
+        const retryAfterHdr = res.headers.get('Retry-After')
+        const retryAfterSec = retryAfterHdr ? parseInt(retryAfterHdr, 10) : NaN
+        const backoffMs = Number.isFinite(retryAfterSec) && retryAfterSec > 0
+            ? retryAfterSec * 1000
+            : Math.min(60_000, 3000 * Math.pow(3, attempt))  // 3s, 9s, 27s
+        await new Promise(r => setTimeout(r, backoffMs))
+        attempt++
+        lastErr = new Error(`GTM ${method} ${path} → ${status}: ${msg}`)
+        if (isWrite) lastWriteAt = Date.now()
+    }
+    throw lastErr || new Error('gtmFetch: unknown retry failure')
 }
 
 // ─── Public types ─────────────────────────────────────────────────────────

@@ -228,44 +228,77 @@ export async function listGa4DataStreams(tokens: GoogleTokens, propertyId: strin
  *
  * Returns null if no web streams exist at all on any property.
  */
+export interface Ga4MeasurementIdSearchResult {
+    measurementId?: string
+    propertyId?: string
+    streamUri?: string
+    matched?: 'exact' | 'contains' | 'fallback'
+    diagnostic: {
+        propertiesFound: number
+        propertiesAttempted: string[]
+        webStreamsFound: number
+        webStreamsWithMeasurementId: number
+        accessibilityErrors: Array<{ propertyId: string; error: string }>
+    }
+}
+
 export async function findGa4MeasurementId(
     tokens: GoogleTokens,
     siteDomain?: string,
-): Promise<{ measurementId: string; propertyId: string; streamUri?: string; matched: 'exact' | 'contains' | 'fallback' } | null> {
+): Promise<Ga4MeasurementIdSearchResult> {
     const target = (siteDomain || '').replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').toLowerCase()
-    const properties = await listGa4Properties(tokens).catch(() => [] as Ga4Property[])
-    if (properties.length === 0) return null
+    const diagnostic: Ga4MeasurementIdSearchResult['diagnostic'] = {
+        propertiesFound: 0,
+        propertiesAttempted: [],
+        webStreamsFound: 0,
+        webStreamsWithMeasurementId: 0,
+        accessibilityErrors: [],
+    }
+
+    let properties: Ga4Property[] = []
+    try {
+        properties = await listGa4Properties(tokens)
+    } catch (e) {
+        diagnostic.accessibilityErrors.push({ propertyId: '(accountSummaries)', error: (e as Error).message.slice(0, 200) })
+        return { diagnostic }
+    }
+    diagnostic.propertiesFound = properties.length
+    if (properties.length === 0) return { diagnostic }
 
     const allWebStreams: Ga4DataStream[] = []
     for (const p of properties) {
+        diagnostic.propertiesAttempted.push(`${p.propertyId}:${p.displayName}`)
         try {
             const streams = await listGa4DataStreams(tokens, p.propertyId)
             for (const s of streams) {
-                if (s.type === 'WEB_DATA_STREAM' && s.measurementId) {
-                    allWebStreams.push(s)
+                if (s.type === 'WEB_DATA_STREAM') {
+                    diagnostic.webStreamsFound++
+                    if (s.measurementId) {
+                        diagnostic.webStreamsWithMeasurementId++
+                        allWebStreams.push(s)
+                    }
                 }
             }
-        } catch {
-            // property may be inaccessible — skip silently
+        } catch (e) {
+            diagnostic.accessibilityErrors.push({ propertyId: p.propertyId, error: (e as Error).message.slice(0, 200) })
         }
     }
-    if (allWebStreams.length === 0) return null
+    if (allWebStreams.length === 0) return { diagnostic }
 
     if (target) {
-        // exact match first
         const exact = allWebStreams.find(s => {
             const uri = (s.defaultUri || '').replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').toLowerCase()
             return uri === target
         })
-        if (exact) return { measurementId: exact.measurementId!, propertyId: exact.propertyId, streamUri: exact.defaultUri, matched: 'exact' }
+        if (exact) return { measurementId: exact.measurementId!, propertyId: exact.propertyId, streamUri: exact.defaultUri, matched: 'exact', diagnostic }
 
         const contains = allWebStreams.find(s => {
             const uri = (s.defaultUri || '').toLowerCase()
-            return uri.includes(target) || target.includes((uri.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '')))
+            return uri.includes(target) || (uri && target.includes(uri.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '')))
         })
-        if (contains) return { measurementId: contains.measurementId!, propertyId: contains.propertyId, streamUri: contains.defaultUri, matched: 'contains' }
+        if (contains) return { measurementId: contains.measurementId!, propertyId: contains.propertyId, streamUri: contains.defaultUri, matched: 'contains', diagnostic }
     }
 
     const first = allWebStreams[0]
-    return { measurementId: first.measurementId!, propertyId: first.propertyId, streamUri: first.defaultUri, matched: 'fallback' }
+    return { measurementId: first.measurementId!, propertyId: first.propertyId, streamUri: first.defaultUri, matched: 'fallback', diagnostic }
 }

@@ -708,10 +708,11 @@ export async function deriveGtmConversionsFromAds(opts: {
         opts.tokens,
         opts.developerToken,
     )
-    const configs: GtmConversionConfig[] = []
     const skipped: Array<{ id: string; name: string; reason: string }> = []
-    const seen = new Set<GtmConversionConfig['actionKey']>()
 
+    // First pass: build candidate list of eligible actions
+    type Candidate = { raw: AdsConversionActionRaw; gtmKey: GtmConversionConfig['actionKey'] }
+    const candidates: Candidate[] = []
     for (const raw of all) {
         if (raw.status !== 'ENABLED') {
             skipped.push({ id: raw.id, name: raw.name, reason: `status=${raw.status}` })
@@ -726,32 +727,51 @@ export async function deriveGtmConversionsFromAds(opts: {
             skipped.push({ id: raw.id, name: raw.name, reason: 'category/name unmatched' })
             continue
         }
-        const draftKey: PrimaryActionKey = draft.actionKey
-        const gtmKey = ADS_KEY_TO_GTM_KEY[draftKey]
+        const gtmKey = ADS_KEY_TO_GTM_KEY[draft.actionKey]
         if (!gtmKey) {
-            skipped.push({ id: raw.id, name: raw.name, reason: `actionKey=${draftKey} not awct-eligible` })
+            skipped.push({ id: raw.id, name: raw.name, reason: `actionKey=${draft.actionKey} not awct-eligible` })
             continue
         }
-        // Dedupe: GTM has one tag per actionKey (e.g. one 'purchase' awct). If
-        // Ads has multiple ENABLED purchase actions, take the primaryForGoal=true
-        // one (or the first encountered if none is primary).
-        if (seen.has(gtmKey)) {
-            const existingIdx = configs.findIndex(c => c.actionKey === gtmKey)
-            const existing = configs[existingIdx]
-            if (!raw.primaryForGoal && existing) {
-                skipped.push({ id: raw.id, name: raw.name, reason: `dup actionKey=${gtmKey}; kept primaryForGoal action` })
-                continue
-            }
-        }
+        candidates.push({ raw, gtmKey })
+    }
 
+    // Second pass: dedupe per actionKey. Priority:
+    //   1. primaryForGoal=true
+    //   2. includeInConversionsMetric=true
+    //   3. lowest id (oldest = most-tested action)
+    // Only ONE awct config per actionKey — autoSetupGtmContainer creates
+    // tags named `Mazhir GAds Conv — ${actionKey}` and rejects duplicates.
+    const byKey = new Map<GtmConversionConfig['actionKey'], Candidate>()
+    for (const cand of candidates) {
+        const existing = byKey.get(cand.gtmKey)
+        if (!existing) {
+            byKey.set(cand.gtmKey, cand)
+            continue
+        }
+        const beats = (a: Candidate, b: Candidate): boolean => {
+            if (a.raw.primaryForGoal && !b.raw.primaryForGoal) return true
+            if (!a.raw.primaryForGoal && b.raw.primaryForGoal) return false
+            if (a.raw.includeInConversionsMetric && !b.raw.includeInConversionsMetric) return true
+            if (!a.raw.includeInConversionsMetric && b.raw.includeInConversionsMetric) return false
+            return Number(a.raw.id || '0') < Number(b.raw.id || '0')
+        }
+        if (beats(cand, existing)) {
+            skipped.push({ id: existing.raw.id, name: existing.raw.name, reason: `dup actionKey=${cand.gtmKey}; replaced by id=${cand.raw.id} (higher priority)` })
+            byKey.set(cand.gtmKey, cand)
+        } else {
+            skipped.push({ id: cand.raw.id, name: cand.raw.name, reason: `dup actionKey=${cand.gtmKey}; kept id=${existing.raw.id} (higher priority)` })
+        }
+    }
+
+    const configs: GtmConversionConfig[] = []
+    for (const cand of byKey.values()) {
         configs.push({
-            actionKey: gtmKey,
-            googleAdsConversionId: raw.googleAdsConversionId,
-            googleAdsConversionLabel: raw.googleAdsConversionLabel,
-            sendValue: gtmKey === 'purchase',  // only purchases auto-send value; leads use static value
+            actionKey: cand.gtmKey,
+            googleAdsConversionId: cand.raw.googleAdsConversionId!,
+            googleAdsConversionLabel: cand.raw.googleAdsConversionLabel!,
+            sendValue: cand.gtmKey === 'purchase',
             defaultCurrency: opts.defaultCurrency || 'ILS',
         })
-        seen.add(gtmKey)
     }
     return { configs, skipped }
 }

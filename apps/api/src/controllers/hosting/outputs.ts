@@ -322,9 +322,8 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             if (!autoMeasurementId) {
                 const { findGa4MeasurementId } = await import('@/services/ga4Admin')
                 const found = await findGa4MeasurementId(tokens, siteDomain)
-                if (found) {
+                if (found.measurementId) {
                     autoMeasurementId = found.measurementId
-                    // persist on target so future runs reuse it
                     stack.target.measurementId = found.measurementId
                     await saveGtmTarget(instanceId, stack.target, agent.id || null)
                     chainSteps.push({
@@ -333,10 +332,24 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                         detail: `${found.measurementId} from property ${found.propertyId} (${found.matched} match: ${found.streamUri || 'no URI'})`,
                     })
                 } else {
+                    const d = found.diagnostic
+                    let reason = ''
+                    if (d.accessibilityErrors.length > 0 && d.propertiesFound === 0) {
+                        const e0 = d.accessibilityErrors[0]
+                        reason = `OAuth user has no GA4 access (accountSummaries: ${e0.error.slice(0, 150)}). Re-OAuth Google with analytics scope using an account that admins the GA4 property.`
+                    } else if (d.propertiesFound === 0) {
+                        reason = `OAuth user (hello@flowmatic.co.il) has 0 GA4 properties. Either no GA4 created yet (analytics.google.com → admin → create property), OR a different Google account owns the property (re-OAuth with that account).`
+                    } else if (d.webStreamsFound === 0) {
+                        reason = `${d.propertiesFound} GA4 propert${d.propertiesFound === 1 ? 'y' : 'ies'} visible (${d.propertiesAttempted.join(', ')}) but NONE have a web data stream. Create one: GA4 Admin → Data Streams → Add stream → Web → enter site URL.`
+                    } else if (d.webStreamsWithMeasurementId === 0) {
+                        reason = `${d.webStreamsFound} web streams found but none have a measurementId (very unusual). Check GA4 Admin → Data Streams → Web → Measurement ID field.`
+                    } else {
+                        reason = `${d.webStreamsWithMeasurementId} web streams exist but none match site domain "${siteDomain || '(not provided)'}". Saved fallback would have been ${d.webStreamsWithMeasurementId > 0 ? 'available' : 'none'}.`
+                    }
                     chainSteps.push({
                         step: 'GA4 measurementId auto-detect',
                         ok: false,
-                        detail: 'No web data stream found across user\'s GA4 properties. Set up GA4 first (analytics.google.com), then re-run.',
+                        detail: reason,
                     })
                 }
             } else {
