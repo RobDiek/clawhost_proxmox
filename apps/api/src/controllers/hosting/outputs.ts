@@ -2341,6 +2341,108 @@ export const rejectOutput = async (c: Context<HonoEnv>) => {
     }
 }
 
+// ── POST /hosting/instances/:id/outputs/bulk-approve ──
+// K19 — bulk approve N pending_review outputs in one click. Body:
+//   { outputIds: ["mt_xxx", "mt_yyy", ...] }   max 100 per call
+// Per-output failures don't fail the request; returns { approved, failed[] }.
+// Each approved output fires its own triggerPostApprove (executor handles
+// dependency check, IL policy "every external-system mutation gates"
+// preserved). Telegram sync runs async.
+export const bulkApproveOutputs = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = c.get('userId')
+        const body = await c.req.json<{ outputIds?: unknown }>().catch(() => ({} as { outputIds?: unknown }))
+        const ids = Array.isArray(body.outputIds) ? body.outputIds.filter((x): x is string => typeof x === 'string') : []
+        if (ids.length === 0) return fail(c, 'outputIds array required', 400)
+        if (ids.length > 100) return fail(c, 'max 100 outputs per bulk call', 400)
+
+        const approved: string[] = []
+        const failed: Array<{ id: string; reason: string }> = []
+        for (const outputId of ids) {
+            try {
+                const [updated] = await db.update(agentOutputs)
+                    .set({
+                        status: 'approved',
+                        approvedAt: new Date(),
+                        approvedBy: userId,
+                        updatedAt: new Date(),
+                    })
+                    .where(and(
+                        eq(agentOutputs.id, outputId),
+                        eq(agentOutputs.instanceId, instanceId),
+                        eq(agentOutputs.status, 'pending_review'),
+                    ))
+                    .returning()
+                if (!updated) {
+                    failed.push({ id: outputId, reason: 'not found or already processed' })
+                    continue
+                }
+                approved.push(outputId)
+                triggerPostApprove(updated).catch(err => console.error(`Bulk post-approve trigger error for ${outputId}:`, err))
+                import('@/services/approvalQueueTelegram').then(m =>
+                    m.updateApprovalQueueMessage(outputId)
+                ).catch(() => { /* non-fatal */ })
+            } catch (err) {
+                failed.push({ id: outputId, reason: (err as Error).message.slice(0, 100) })
+            }
+        }
+        console.log(`Bulk approve by ${userId} on ${instanceId}: ${approved.length} approved, ${failed.length} failed`)
+        return ok(c, { approved, failed, total: ids.length }, `Bulk approve: ${approved.length}/${ids.length} succeeded`)
+    } catch (err) {
+        console.error('bulkApproveOutputs error:', err)
+        return fail(c, 'Failed bulk approve', 500)
+    }
+}
+
+// ── POST /hosting/instances/:id/outputs/bulk-reject ──
+// Same shape as bulk-approve. Body may include optional `reason`.
+export const bulkRejectOutputs = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = c.get('userId')
+        const body = await c.req.json<{ outputIds?: unknown; reason?: string }>().catch(() => ({} as { outputIds?: unknown; reason?: string }))
+        const ids = Array.isArray(body.outputIds) ? body.outputIds.filter((x): x is string => typeof x === 'string') : []
+        if (ids.length === 0) return fail(c, 'outputIds array required', 400)
+        if (ids.length > 100) return fail(c, 'max 100 outputs per bulk call', 400)
+        const reason = typeof body.reason === 'string' ? body.reason.slice(0, 500) : null
+
+        const rejected: string[] = []
+        const failed: Array<{ id: string; reason: string }> = []
+        for (const outputId of ids) {
+            try {
+                const [updated] = await db.update(agentOutputs)
+                    .set({
+                        status: 'rejected',
+                        rejectionReason: reason,
+                        updatedAt: new Date(),
+                    })
+                    .where(and(
+                        eq(agentOutputs.id, outputId),
+                        eq(agentOutputs.instanceId, instanceId),
+                        eq(agentOutputs.status, 'pending_review'),
+                    ))
+                    .returning()
+                if (!updated) {
+                    failed.push({ id: outputId, reason: 'not found or already processed' })
+                    continue
+                }
+                rejected.push(outputId)
+                import('@/services/approvalQueueTelegram').then(m =>
+                    m.updateApprovalQueueMessage(outputId)
+                ).catch(() => { /* non-fatal */ })
+            } catch (err) {
+                failed.push({ id: outputId, reason: (err as Error).message.slice(0, 100) })
+            }
+        }
+        console.log(`Bulk reject by ${userId} on ${instanceId}: ${rejected.length} rejected, ${failed.length} failed`)
+        return ok(c, { rejected, failed, total: ids.length }, `Bulk reject: ${rejected.length}/${ids.length} succeeded`)
+    } catch (err) {
+        console.error('bulkRejectOutputs error:', err)
+        return fail(c, 'Failed bulk reject', 500)
+    }
+}
+
 // ── PATCH /hosting/instances/:id/outputs/:outputId/edit ──
 // User edits content before approval (preserves original)
 export const editOutput = async (c: Context<HonoEnv>) => {

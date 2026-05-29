@@ -15,6 +15,7 @@
  */
 
 import { randomBytes } from 'crypto'
+import { isWorkDay } from './ilCalendar'
 import type {
     MonthlyMarketingPlan,
     MonthlyTask,
@@ -58,11 +59,13 @@ export function applyMonthlyPlanGuardrails(plan: MonthlyMarketingPlan): MonthlyM
         return d.toISOString().slice(0, 10)
     }
     function nextWorkday(dayOffset: number): string {
+        // K19: use ilCalendar.isWorkDay — knows Shabbat + Friday + Israeli
+        // holidays 2026. Old impl only knew Fri/Sat → tasks could land on
+        // Pesach / Rosh Hashana / Yom Kippur, instantly unactionable.
         let off = dayOffset
         for (let i = 0; i < 14; i++) {
-            const d = new Date(Date.UTC(baseY, baseM, baseD + off))
-            const dow = d.getUTCDay()  // 0=Sun, 5=Fri, 6=Sat
-            if (dow !== 5 && dow !== 6) return d.toISOString().slice(0, 10)
+            const iso = isoDate(baseY, baseM, baseD + off)
+            if (isWorkDay(iso)) return iso
             off++
         }
         return isoDate(baseY, baseM, baseD + dayOffset)

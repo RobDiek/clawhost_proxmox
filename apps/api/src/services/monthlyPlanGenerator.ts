@@ -408,11 +408,20 @@ async function persistAndEmit(
                         actionPlan: task.actionPlan,
                         dependsOn: task.dependsOn,
                     }, null, 2).slice(0, 12000),
+                    // K19: scheduledFor column lets the UI filter "future tasks" without
+                    // a research_data lookup. Mirrors task.scheduledFor verbatim.
+                    scheduledFor: task.scheduledFor ? new Date(task.scheduledFor) : null,
                     metadata: {
                         taskId: task.id,
                         type: task.type,
                         channel: task.channel,
                         priority: task.priority,
+                        // K19: surface schedule + dependency info on the output row
+                        // so the dashboard filter/badge logic doesn't need to cross-
+                        // reference research_data.monthlyPlan.tasks for every task.
+                        weekOfMonth: task.weekOfMonth,
+                        scheduledFor: task.scheduledFor,
+                        dependsOn: task.dependsOn,
                         monthlyPlanGeneratedAt: plan.generatedAt,
                     } as any,
                 }).where(eq(agentOutputs.id, carry.id))
@@ -442,11 +451,15 @@ async function persistAndEmit(
                     actionPlan: task.actionPlan,
                     dependsOn: task.dependsOn,
                 }, null, 2).slice(0, 12000),
+                scheduledFor: task.scheduledFor ? new Date(task.scheduledFor) : null,
                 metadata: {
                     taskId: task.id,
                     type: task.type,
                     channel: task.channel,
                     priority: task.priority,
+                    weekOfMonth: task.weekOfMonth,
+                    scheduledFor: task.scheduledFor,
+                    dependsOn: task.dependsOn,
                     monthlyPlanGeneratedAt: plan.generatedAt,
                 } as any,
             }).returning()

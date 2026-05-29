@@ -490,6 +490,11 @@ input{font-family:inherit}
 .aq-filter { font-size:0.72rem; padding:3px 10px; border-radius:6px; border:1px solid #E5E7EB; background:#fff; color:#6B7280; cursor:pointer; font-weight:500; }
 .aq-filter:hover { background:#F9FAFB; }
 .aq-filter.active { background:#2563EB; color:#fff; border-color:#2563EB; }
+/* K19 — secondary filter chips (priority/week). Smaller + use inline color
+   palette from the chip itself when active. */
+.aq-k19-chip { font-size:0.72rem; padding:2px 8px; border-radius:4px; border:1px solid #D1D5DB; background:#FFF; color:#6B7280; cursor:pointer; font-weight:500; }
+.aq-k19-chip:hover { background:#F3F4F6; }
+.aq-k19-chip.active { box-shadow:inset 0 0 0 2px currentColor; font-weight:600; }
 .aq-archive-btn { background:none; border:none; color:#D1D5DB; cursor:pointer; font-size:0.75rem; padding:2px 4px; margin-right:4px; }
 .aq-archive-btn:hover { color:#9CA3AF; }
 
@@ -1098,6 +1103,51 @@ input{font-family:inherit}
             <button class="aq-filter" data-filter="completed" onclick="setAqFilter('completed')">הושלמו</button>
             <button class="aq-filter" data-filter="published" onclick="setAqFilter('published')">פורסמו</button>
             <button class="aq-filter" data-filter="archived" onclick="setAqFilter('archived')">ארכיון</button>
+          </div>
+          <!-- K19: secondary filter row — priority / week / channel / future / bulk mode.
+               Only visible when status filter is pending_review (the operational case
+               where 58 monthly_task rows demand triage). For other status filters the
+               row stays hidden to avoid noise. -->
+          <div id="aqK19Filters" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding:8px 10px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;font-size:0.74rem">
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="color:#6B7280">עדיפות:</span>
+              <button class="aq-k19-chip aq-k19-pri active" data-pri="all" onclick="setAqK19Priority('all')">הכל</button>
+              <button class="aq-k19-chip aq-k19-pri" data-pri="P0" onclick="setAqK19Priority('P0')" style="background:#FEE2E2;color:#991B1B;border-color:#FCA5A5">P0</button>
+              <button class="aq-k19-chip aq-k19-pri" data-pri="P1" onclick="setAqK19Priority('P1')" style="background:#FEF3C7;color:#92400E;border-color:#FDE68A">P1</button>
+              <button class="aq-k19-chip aq-k19-pri" data-pri="P2" onclick="setAqK19Priority('P2')" style="background:#E0F2FE;color:#075985;border-color:#7DD3FC">P2</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="color:#6B7280">שבוע:</span>
+              <button class="aq-k19-chip aq-k19-wk active" data-wk="all" onclick="setAqK19Week('all')">הכל</button>
+              <button class="aq-k19-chip aq-k19-wk" data-wk="1" onclick="setAqK19Week('1')">1</button>
+              <button class="aq-k19-chip aq-k19-wk" data-wk="2" onclick="setAqK19Week('2')">2</button>
+              <button class="aq-k19-chip aq-k19-wk" data-wk="3" onclick="setAqK19Week('3')">3</button>
+              <button class="aq-k19-chip aq-k19-wk" data-wk="4" onclick="setAqK19Week('4')">4</button>
+            </div>
+            <select id="aqK19ChannelSelect" onchange="setAqK19Channel(this.value)" style="font-size:0.74rem;padding:3px 8px;border-radius:4px;border:1px solid #D1D5DB;background:#FFF">
+              <option value="all">כל הערוצים</option>
+              <option value="google_ads">Google Ads</option>
+              <option value="meta">Meta</option>
+              <option value="seo">SEO</option>
+              <option value="content">Content</option>
+              <option value="gtm">GTM</option>
+              <option value="ga4">GA4</option>
+              <option value="website">Website</option>
+              <option value="gbp">GBP</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="email">Email</option>
+              <option value="cross">Cross</option>
+            </select>
+            <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;color:#374151">
+              <input type="checkbox" id="aqK19ShowFuture" onchange="setAqK19ShowFuture(this.checked)" style="margin:0"> הציגו עתידיות
+            </label>
+            <button id="aqK19BulkToggle" onclick="toggleAqK19BulkMode()" style="margin-inline-start:auto;font-size:0.74rem;padding:3px 10px;border-radius:4px;border:1px solid #D1D5DB;background:#FFF;cursor:pointer">☐ בחירה מרובה</button>
+          </div>
+          <div id="aqK19BulkBar" style="display:none;padding:8px 10px;background:#EFF6FF;border:1px solid #2563EB;border-radius:6px;margin-bottom:8px;font-size:0.78rem;color:#1E40AF;align-items:center;gap:8px">
+            <span id="aqK19BulkCount" style="font-weight:600">0 נבחרו</span>
+            <button onclick="bulkApproveSelected()" style="font-size:0.78rem;font-weight:600;padding:4px 12px;border-radius:4px;background:#10B981;color:#FFF;border:none;cursor:pointer">✓ אשרו את כל הנבחרים</button>
+            <button onclick="bulkRejectSelected()" style="font-size:0.78rem;padding:4px 12px;border-radius:4px;background:#FFF;color:#DC2626;border:1px solid #FCA5A5;cursor:pointer">דחו את כל הנבחרים</button>
+            <button onclick="bulkClearSelection()" style="font-size:0.74rem;color:#6B7280;background:none;border:none;cursor:pointer;margin-inline-start:auto">נקו בחירה</button>
           </div>
           <div class="approval-queue" id="approvalQueue"></div>
         </div>
@@ -6465,6 +6515,7 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
       completed: 'completed',
       failed: 'failed',
     };
+    var meta = o.metadata || {};
     return {
       id: o.id,
       title: o.title,
@@ -6477,12 +6528,56 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
       mediaType: o.media_type || o.mediaType,
       mediaMeta: o.media_meta || o.mediaMeta,
       platform: o.platform,
-      scheduledFor: o.scheduled_for || o.scheduledFor,
-      metadata: o.metadata,
+      scheduledFor: o.scheduled_for || o.scheduledFor || meta.scheduledFor,
+      metadata: meta,
+      // K19 — hoist filter-relevant fields out of metadata for the filter logic
+      // and dependency badge. Falls back to nulls if absent (legacy rows pre-K19).
+      taskId: meta.taskId,
+      priority: meta.priority,
+      channel: meta.channel,
+      weekOfMonth: meta.weekOfMonth,
+      dependsOn: Array.isArray(meta.dependsOn) ? meta.dependsOn : [],
       editedContent: o.edited_content || o.editedContent,
       createdAt: o.created_at || o.createdAt
     };
   });
+
+  // K19 — apply secondary filters in pending_review status only (where the
+  // 58-task operational queue lives). Order: future-gating → priority → week
+  // → channel. Each filter short-circuits to keep render fast.
+  if (aqFilterStatus === 'pending_review') {
+    var todayIso = new Date().toISOString().slice(0, 10);
+    tasks = tasks.filter(function(t) {
+      if (!aqK19ShowFuture && t.scheduledFor) {
+        var sched = String(t.scheduledFor).slice(0, 10);
+        if (sched > todayIso) return false;
+      }
+      if (aqK19Priority !== 'all' && t.priority !== aqK19Priority) return false;
+      if (aqK19Week !== 'all' && String(t.weekOfMonth) !== aqK19Week) return false;
+      if (aqK19Channel !== 'all' && t.channel !== aqK19Channel) return false;
+      return true;
+    });
+  }
+
+  // K19 — pre-compute "dep not done" lookup so the deps badge renders without
+  // refetching. Reads research_data.monthlyPlan.tasks (a single map keyed by
+  // task id) and counts how many of THIS task's dependsOn[] are not yet
+  // status=completed in the plan.
+  var _planTasksById = {};
+  try {
+    var _plan = instanceData && instanceData.researchData && instanceData.researchData.monthlyPlan;
+    var _planTasks = (_plan && _plan.tasks) || [];
+    for (var i = 0; i < _planTasks.length; i++) {
+      if (_planTasks[i] && _planTasks[i].id) _planTasksById[_planTasks[i].id] = _planTasks[i];
+    }
+  } catch (e) { /* non-fatal */ }
+  function depsWaitingOn(t) {
+    if (!Array.isArray(t.dependsOn) || t.dependsOn.length === 0) return [];
+    return t.dependsOn.filter(function(depId) {
+      var depTask = _planTasksById[depId];
+      return depTask && depTask.status !== 'completed';
+    });
+  }
 
   // SVG icons matching sidebar style
   var statusIcons = {
@@ -6515,14 +6610,18 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
   var awaitingCount = tasks.filter(function(t) { return t.status === 'awaiting'; }).length;
   if (counterEl) counterEl.textContent = awaitingCount > 0 ? awaitingCount + ' ממתינים לאישור' : '';
 
-  var MAX_VISIBLE = showAllTasksMode ? tasks.length : 4;
+  // K19 — in pending_review with any K19 filter narrowing the set OR bulk
+  // mode active, show all matching tasks (not just 4). Otherwise keep the
+  // 4-or-all default behavior.
+  var anyK19FilterActive = aqFilterStatus === 'pending_review' && (aqK19Priority !== 'all' || aqK19Week !== 'all' || aqK19Channel !== 'all' || aqK19ShowFuture || aqK19BulkMode);
+  var MAX_VISIBLE = (showAllTasksMode || anyK19FilterActive) ? tasks.length : 4;
   var visibleTasks = tasks.slice(0, MAX_VISIBLE);
   var hiddenCount = tasks.length - MAX_VISIBLE;
 
   var html = visibleTasks.map(function(t) {
     var iconClass = t.status === 'planned' ? 'pending' : t.status;
     var actionsHtml = '';
-    if (t.status === 'awaiting') {
+    if (t.status === 'awaiting' && !aqK19BulkMode) {
       // Phase 4.3-D: monthly_task gets skip button too (defer to next month)
       var isMonthly = t.type === 'monthly_task' || (t.metadata && t.metadata.taskId);
       actionsHtml = '<div class="aq-actions">' +
@@ -6533,10 +6632,25 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
         '<button class="aq-btn reject" onclick="event.stopPropagation();rejectTask(\'' + t.id + '\')">דחו</button>' +
       '</div>';
     }
-    return '<div class="aq-item" onclick="openTaskPopup(\'' + t.id + '\')">' +
+    // K19 — deps badge: "ממתינה ל-N" when this task has un-completed deps.
+    var waitingOn = depsWaitingOn(t);
+    var depsBadge = waitingOn.length > 0
+      ? '<span style="font-size:0.68rem;font-weight:600;padding:2px 7px;border-radius:999px;background:#FEF3C7;color:#78350F;border:1px solid #FDE68A;margin-inline-end:4px" title="' + waitingOn.length + ' תלויות שטרם הושלמו: ' + waitingOn.join(", ") + '">⏳ ממתינה ל-' + waitingOn.length + '</span>'
+      : '';
+    // K19 — bulk checkbox column. Click toggles selection; doesn't open popup.
+    var isSelected = !!aqK19BulkSelected[t.id];
+    var bulkCheckHtml = aqK19BulkMode
+      ? '<label onclick="event.stopPropagation();toggleBulkSelected(\'' + t.id + '\');this.querySelector(\'input\').checked=!this.querySelector(\'input\').checked;renderApprovalQueue();" style="display:inline-flex;align-items:center;margin-inline-end:8px;cursor:pointer"><input type="checkbox" ' + (isSelected ? 'checked' : '') + ' style="width:16px;height:16px"></label>'
+      : '';
+    var itemBg = isSelected ? 'background:#EFF6FF;' : '';
+    var openHandler = aqK19BulkMode
+      ? 'onclick="toggleBulkSelected(\'' + t.id + '\');renderApprovalQueue();"'
+      : 'onclick="openTaskPopup(\'' + t.id + '\')"';
+    return '<div class="aq-item" style="' + itemBg + '" ' + openHandler + '>' +
+      bulkCheckHtml +
       '<div class="aq-icon ' + iconClass + '">' + (statusIcons[t.status] || statusIcons.pending) + '</div>' +
       '<div class="aq-body">' +
-        '<div class="aq-title">' + t.title + '</div>' +
+        '<div class="aq-title">' + depsBadge + t.title + '</div>' +
         '<div class="aq-agent">' + t.agent + '</div>' +
       '</div>' +
       '<div class="aq-meta" style="display:flex;align-items:center;gap:6px">' +
@@ -6565,6 +6679,129 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
 var showAllTasksMode = false;
 var aqFilterStatus = 'pending_review'; // default — show pending review
 
+// K19 — secondary filter state for the operational task queue.
+var aqK19Priority = 'all';      // 'all' | 'P0' | 'P1' | 'P2'
+var aqK19Week = 'all';          // 'all' | '1' | '2' | '3' | '4'
+var aqK19Channel = 'all';       // 'all' | 'google_ads' | 'meta' | etc.
+var aqK19ShowFuture = false;    // hide scheduledFor > today by default
+var aqK19BulkMode = false;      // bulk select toggle
+var aqK19BulkSelected = {};     // outputId → true
+
+function _refreshAqK19FiltersVisibility() {
+  var bar = document.getElementById('aqK19Filters');
+  if (bar) bar.style.display = (aqFilterStatus === 'pending_review') ? 'flex' : 'none';
+}
+
+function setAqK19Priority(pri) {
+  aqK19Priority = pri;
+  document.querySelectorAll('.aq-k19-pri').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-pri') === pri);
+  });
+  renderApprovalQueue();
+}
+function setAqK19Week(wk) {
+  aqK19Week = wk;
+  document.querySelectorAll('.aq-k19-wk').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-wk') === wk);
+  });
+  renderApprovalQueue();
+}
+function setAqK19Channel(ch) {
+  aqK19Channel = ch;
+  renderApprovalQueue();
+}
+function setAqK19ShowFuture(v) {
+  aqK19ShowFuture = !!v;
+  renderApprovalQueue();
+}
+function toggleAqK19BulkMode() {
+  aqK19BulkMode = !aqK19BulkMode;
+  aqK19BulkSelected = {};
+  var btn = document.getElementById('aqK19BulkToggle');
+  if (btn) btn.textContent = aqK19BulkMode ? '☑ בחירה מרובה' : '☐ בחירה מרובה';
+  _updateBulkBar();
+  renderApprovalQueue();
+}
+function toggleBulkSelected(outputId) {
+  if (aqK19BulkSelected[outputId]) delete aqK19BulkSelected[outputId];
+  else aqK19BulkSelected[outputId] = true;
+  _updateBulkBar();
+}
+function bulkClearSelection() {
+  aqK19BulkSelected = {};
+  _updateBulkBar();
+  renderApprovalQueue();
+}
+function _updateBulkBar() {
+  var bar = document.getElementById('aqK19BulkBar');
+  var count = Object.keys(aqK19BulkSelected).length;
+  if (!bar) return;
+  bar.style.display = (aqK19BulkMode && count > 0) ? 'flex' : 'none';
+  var label = document.getElementById('aqK19BulkCount');
+  if (label) label.textContent = count + ' נבחרו';
+}
+async function bulkApproveSelected() {
+  var ids = Object.keys(aqK19BulkSelected);
+  if (ids.length === 0) return;
+  var go = await showConfirm({
+    icon: '✓',
+    title: 'לאשר ' + ids.length + ' משימות?',
+    descHtml: '<div style="font-size:0.85rem;color:#374151;line-height:1.6">כל משימה תיכנס לתור הביצוע. תוכלו לראות התקדמות בלוח הבקרה.</div>',
+    okText: 'אשרו ' + ids.length,
+    cancelText: 'ביטול',
+  });
+  if (!go) return;
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/outputs/bulk-approve', {
+      method: 'POST',
+      body: JSON.stringify({ outputIds: ids }),
+    });
+    if (r && r.success) {
+      var ok = (r.data && r.data.approved && r.data.approved.length) || 0;
+      var failed = (r.data && r.data.failed && r.data.failed.length) || 0;
+      showToast('אושרו ' + ok + (failed > 0 ? ' · נכשלו ' + failed : ''), 'success');
+      aqK19BulkSelected = {};
+      _updateBulkBar();
+      renderApprovalQueue();
+    } else {
+      throw new Error((r && r.message) || 'אישור מרובה נכשל');
+    }
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || err), 'error');
+  }
+}
+async function bulkRejectSelected() {
+  var ids = Object.keys(aqK19BulkSelected);
+  if (ids.length === 0) return;
+  var go = await showConfirm({
+    icon: '✗',
+    title: 'לדחות ' + ids.length + ' משימות?',
+    descHtml: '<div style="font-size:0.85rem;color:#374151;line-height:1.6">הן יסומנו כנדחו ולא ייכנסו לתור הביצוע. תוכלו לראות אותן תחת מסנן "נדחו".</div>',
+    okText: 'דחו ' + ids.length,
+    cancelText: 'ביטול',
+    okStyle: 'danger',
+  });
+  if (!go) return;
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/outputs/bulk-reject', {
+      method: 'POST',
+      body: JSON.stringify({ outputIds: ids, reason: 'bulk reject from dashboard' }),
+    });
+    if (r && r.success) {
+      var ok = (r.data && r.data.rejected && r.data.rejected.length) || 0;
+      var failed = (r.data && r.data.failed && r.data.failed.length) || 0;
+      showToast('נדחו ' + ok + (failed > 0 ? ' · נכשלו ' + failed : ''), 'info');
+      aqK19BulkSelected = {};
+      _updateBulkBar();
+      renderApprovalQueue();
+    } else {
+      throw new Error((r && r.message) || 'דחייה מרובה נכשלה');
+    }
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || err), 'error');
+  }
+}
+
 function showAllTasks() {
   showAllTasksMode = true;
   renderApprovalQueue();
@@ -6582,6 +6819,7 @@ function setAqFilter(status) {
   document.querySelectorAll('.aq-filter').forEach(function(btn) {
     btn.classList.toggle('active', btn.getAttribute('data-filter') === status);
   });
+  _refreshAqK19FiltersVisibility();
   renderApprovalQueue();
 }
 

@@ -187,6 +187,8 @@ import {
     getOutput,
     ingestOutput,
     approveOutput,
+    bulkApproveOutputs,
+    bulkRejectOutputs,
     markManualDone,
     sgtmConfigure,
     gtmFreshStack,
@@ -816,6 +818,10 @@ app.post('/instances/:id/safety/migrate-bidding-history', migrateBiddingHistoryE
 // re-run completes the snippet POST + stale scan auto-flows.
 app.get('/instances/:id/wp/companion-plugin.zip', wpCompanionPluginZip)
 app.patch('/instances/:id/outputs/:outputId/reject', rejectOutput)
+// K19 — bulk approve / reject N pending_review outputs in one call.
+// Body: { outputIds: ["mt_xxx", ...], reason?: string }   max 100
+app.post('/instances/:id/outputs/bulk-approve', bulkApproveOutputs)
+app.post('/instances/:id/outputs/bulk-reject', bulkRejectOutputs)
 app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)
