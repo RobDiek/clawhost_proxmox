@@ -8208,8 +8208,13 @@ function renderMonthlyTaskFooter(task) {
   // the task done via apiMarkManualDone.
   var isGtmUnified = task.metadata && task.metadata.taskId === 'tsk_gtm_unified_setup';
   if (isGtmUnified && (task.status === 'awaiting' || task.status === 'pending_review' || task.status === 'awaiting_manual')) {
+    // Phase 2026.02 Block 6 Pattern J: plugin .zip download button — needed
+    // BEFORE running the wizard (WP REST does not accept custom plugin
+    // uploads, so the user must install it manually via WP Admin once).
+    var pluginUrl = API + '/hosting/instances/' + instanceId + '/wp/companion-plugin.zip';
     return '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()" style="font-size:0.85rem">✗ דחו</button>' +
            '<button class="aq-btn edit" onclick="skipMonthlyTaskUI(\'' + task.id + '\');closeTaskPopup()" style="background:#FEF3C7;color:#78350F;border-color:#FDE68A;font-size:0.85rem">⏭ דחו לחודש הבא</button>' +
+           '<a href="' + pluginUrl + '" download="clawflow-companion.zip" class="aq-btn" style="background:#1D4ED8;color:#fff;border:none;font-size:0.85rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px" title="הורידו את ה-WP plugin להעלאה ידנית ב-WP Admin → Plugins → Add New → Upload">⬇ WP Plugin (.zip)</a>' +
            '<button class="aq-btn approve" onclick="openGtmFreshStackWizard({taskId:\'' + task.id + '\'})" style="background:#0EA5E9;color:#fff;font-size:0.88rem;font-weight:600">▶ פתחו GTM Setup Wizard</button>';
   }
 
@@ -8327,6 +8332,19 @@ function openGtmFreshStackWizard(opts) {
             '<li>Container Setup: דלגו (אנחנו ניצור אוטומטית). אם דורש — תנו שם זמני "Temp"</li>' +
             '<li>אחרי יצירה — ה-URL יהיה <code style="background:#fff;padding:2px 5px;border-radius:3px;font-size:0.75rem">tagmanager.google.com/#/admin/accounts/<strong>XXXXXXXXX</strong>/...</code> — העתיקו את ה-Account ID (מספר)</li>' +
           '</ol>' +
+        '</div>' +
+
+        // Pattern J: WP companion plugin .zip — must be uploaded manually
+        // (WP REST does not accept custom plugin uploads). Put the download
+        // link FRONT-AND-CENTER so it can be grabbed before running the wizard.
+        '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 14px;margin-bottom:16px">' +
+          '<div style="font-size:0.82rem;font-weight:600;color:#1E40AF;margin-bottom:6px">📦 שלב ידני נוסף — התקנת WP Plugin (פעם אחת):</div>' +
+          '<ol style="margin:0;padding-right:18px;font-size:0.82rem;color:#1E3A8A;line-height:1.7">' +
+            '<li>הורידו <a href="' + API + '/hosting/instances/' + instanceId + '/wp/companion-plugin.zip" download="clawflow-companion.zip" style="color:#1D4ED8;text-decoration:underline;font-weight:600">clawflow-companion.zip</a></li>' +
+            '<li>WP Admin → Plugins → <strong>Add New</strong> → <strong>Upload Plugin</strong></li>' +
+            '<li>בחרו את הקובץ → <strong>Install Now</strong> → <strong>Activate</strong></li>' +
+          '</ol>' +
+          '<div style="font-size:0.78rem;color:#1E40AF;margin-top:8px;opacity:0.85">לאחר ההתקנה, ה-Wizard מטפל בכל השאר אוטומטית — הזרקת snippet, ניקוי GTM ישן, ואימות.</div>' +
         '</div>' +
 
         '<div style="margin-bottom:14px">' +
