@@ -45,6 +45,8 @@ export interface ActionPlanStep {
     // For auto_button kind:
     plugin?: string
     feature?: string
+    // For 'delete_orphaned_options' feature: keys to delete
+    orphanedKeys?: string[]
     // For manual_navigation: clickable URL (external)
     externalUrl?: string
     severity?: 'safe' | 'caution' | 'destructive'
@@ -129,25 +131,83 @@ function hintToFallbackAction(hint: string): { plugin: string; feature: 'deactiv
  * conflicting <script> block — leaves the user's other snippets intact.
  */
 export function buildManualSnippetActionPlan(c: ConflictFinding): ActionPlanStep[] {
-    if (!c.sources.some(s => /(ihaf_insert|insert-headers-and-footers|wp_options\.)/i.test(s.plugin) || /manual snippet|wp_options\./i.test(s.feature))) {
-        return []
+    // K11: distinguish IHAF (snippet injector — surgical script removal)
+    // vs orphaned wp_options (residual config from uninstalled plugins —
+    // delete the actual option keys directly).
+    const ihafHit = c.sources.some(s =>
+        /(ihaf_insert|insert-headers-and-footers)/i.test(s.plugin)
+        || /manual snippet/i.test(s.feature)
+    )
+    const orphanedHit = c.sources.some(s =>
+        /(orphaned-wp-options|wp_options\.)/i.test(s.plugin)
+        || /wp_options\./i.test(s.feature)
+    )
+
+    if (ihafHit) {
+        return [
+            {
+                kind: 'auto_button',
+                titleHe: '🔧 ניקוי כירורגי של ה-snippet הכפול ב-IHAF',
+                detailHe: 'מסיר רק את ה-<script> של מעקב המתנגש מתוך Insert Headers and Footers, משאיר את כל יתר ה-snippets שלכם בלי שינוי.',
+                plugin: 'insert-headers-and-footers',
+                feature: 'google_ads',
+                severity: 'safe',
+            },
+            {
+                kind: 'manual_navigation',
+                titleHe: '✋ אופציה ידנית — מ-WP Admin:',
+                detailHe: 'Settings → Insert Headers and Footers → מצאו את ה-<script> שמכיל gtag/js?id=AW-XXX → מחקו רק את הבלוק הזה. שמרו.',
+                severity: 'safe',
+            },
+        ]
     }
-    return [
-        {
-            kind: 'auto_button',
-            titleHe: '🔧 ניקוי כירורגי של ה-snippet הכפול',
-            detailHe: 'מסיר רק את ה-<script> של מעקב המתנגש מתוך Insert Headers and Footers, משאיר את כל יתר ה-snippets שלכם בלי שינוי.',
-            plugin: 'insert-headers-and-footers',
-            feature: 'google_ads',
-            severity: 'safe',
-        },
-        {
-            kind: 'manual_navigation',
-            titleHe: '✋ אופציה ידנית — מ-WP Admin:',
-            detailHe: 'Settings → Insert Headers and Footers → מצאו את ה-<script> שמכיל gtag/js?id=AW-XXX → מחקו רק את הבלוק הזה. שמרו.',
-            severity: 'safe',
-        },
-    ]
+
+    if (orphanedHit) {
+        // Extract the wp_options key names from sources (format: "wp_options.<key>")
+        const orphanedKeys = c.sources
+            .map(s => {
+                const m = /wp_options\.([\w-]+)/i.exec(s.feature || '')
+                return m?.[1]
+            })
+            .filter((k): k is string => !!k)
+
+        // De-dupe
+        const uniqueKeys = Array.from(new Set(orphanedKeys))
+
+        // Pre-build extended key list: add commonly-paired sibling options
+        // that may also need cleaning (e.g. gla_ads_conversion_action +
+        // gla_options + gla_ga4_measurement_id all left behind together).
+        const extendedKeys = new Set(uniqueKeys)
+        for (const k of uniqueKeys) {
+            if (k.startsWith('gla_')) {
+                extendedKeys.add('gla_options')
+                extendedKeys.add('gla_ads_conversion_action')
+                extendedKeys.add('gla_ads_id')
+                extendedKeys.add('gla_ga4_measurement_id')
+            }
+        }
+        const finalKeys = Array.from(extendedKeys)
+
+        return [
+            {
+                kind: 'auto_button',
+                titleHe: '🗑 מחיקת ה-options היתומים מ-DB',
+                detailHe: `מוחק ${finalKeys.length} wp_options ש-${uniqueKeys.length} מהם נמצאו בסריקה: ${uniqueKeys.join(', ')}. בנוסף יימחקו options נלווים מאותה משפחה שעלולים עדיין לפעול.`,
+                plugin: 'orphaned-wp-options',
+                feature: 'delete_orphaned_options',
+                orphanedKeys: finalKeys,
+                severity: 'safe',
+            },
+            {
+                kind: 'manual_navigation',
+                titleHe: '✋ אופציה ידנית — phpMyAdmin / WP CLI:',
+                detailHe: `מחקו את ה-rows מ-wp_options: ${finalKeys.join(', ')}. או דרך WP CLI: wp option delete ${finalKeys.join(' ')}`,
+                severity: 'safe',
+            },
+        ]
+    }
+
+    return []
 }
 
 export function analyzeTrackingConflicts(

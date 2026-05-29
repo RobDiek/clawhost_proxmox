@@ -388,6 +388,13 @@ export async function disablePluginTrackingFeature(
     return await wpPostJson(cfg, '/wp-json/clawflow/v1/disable-plugin-feature', { plugin, feature })
 }
 
+export async function deleteOrphanedWpOptions(
+    cfg: WpCfg,
+    keys: string[],
+): Promise<{ ok: boolean; deleted: string[]; rejected: string[] }> {
+    return await wpPostJson(cfg, '/wp-json/clawflow/v1/delete-wp-options', { keys })
+}
+
 export interface SiteGtmScan {
     url: string
     gtmIds: string[]

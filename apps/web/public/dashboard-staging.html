@@ -8644,16 +8644,19 @@ function renderGtmWizardSuccess(data, taskId) {
               if (s.kind === 'auto_button' && s.plugin && s.feature) {
                 var pluginEsc = escapeHtml(s.plugin);
                 var featureEsc = escapeHtml(s.feature);
-                var btnLabel = s.feature === 'deactivate_plugin' ? '🚫 השביתו פלאגין כעת' : '✓ הפעילו עכשיו';
+                var btnLabel = s.feature === 'deactivate_plugin' ? '🚫 השביתו פלאגין כעת'
+                  : s.feature === 'delete_orphaned_options' ? '🗑 מחקו עכשיו'
+                  : '✓ הפעילו עכשיו';
                 var btnColor = s.severity === 'destructive' ? '#7F1D1D' : (s.severity === 'caution' ? '#92400E' : '#10B981');
-                // K10 fix: previous version used confirm() inline inside onclick="...",
-                // but the inner double-quotes break HTML attr parsing → click silently
-                // does nothing. Route through dedicated confirmAndResolveConflict()
-                // helper that handles confirm in pure JS context.
+                // K11: stash orphanedKeys (and step context) on the button as
+                // data-attribute. Avoids quote-nesting nightmares in onclick.
+                // Click handler reads it back from this.dataset.
+                var keysJson = s.orphanedKeys ? JSON.stringify(s.orphanedKeys) : '';
+                var dataAttr = keysJson ? ' data-orphaned-keys=\'' + escapeHtml(keysJson) + '\'' : '';
                 var handler = s.feature === 'deactivate_plugin'
                   ? "confirmAndResolveConflict('" + pluginEsc + "', '" + featureEsc + "', this, " + (taskId ? "'" + taskId + "'" : 'null') + ")"
-                  : "resolveTrackingConflict('" + pluginEsc + "', '" + featureEsc + "', this, " + (taskId ? "'" + taskId + "'" : 'null') + ")";
-                button = '<button onclick="' + handler + '" style="background:' + btnColor + ';color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:0.85rem;font-weight:600;cursor:pointer;margin-top:8px">' + btnLabel + '</button>';
+                  : "resolveTrackingConflictFromBtn(this, '" + pluginEsc + "', '" + featureEsc + "', " + (taskId ? "'" + taskId + "'" : 'null') + ")";
+                button = '<button onclick="' + handler + '"' + dataAttr + ' style="background:' + btnColor + ';color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:0.85rem;font-weight:600;cursor:pointer;margin-top:8px">' + btnLabel + '</button>';
               }
 
               var stepIcon = s.kind === 'auto_button' ? '⚡' : s.kind === 'manual_navigation' ? '✋' : s.kind === 'wait' ? '🔄' : 'ℹ';
@@ -8746,6 +8749,17 @@ function renderGtmWizardSuccess(data, taskId) {
 // Phase 2026.02 Block 6 Pattern J — re-run fresh-stack after user has
 // manually uploaded + activated the Clawflow companion plugin in WP Admin.
 // Backend now finds the plugin active → snippet POST works → wpInstalled=true.
+// K11: button-context-aware handler. Reads orphanedKeys from
+// button.dataset.orphanedKeys (if present) so we can carry array params
+// through onclick without breaking HTML.
+function resolveTrackingConflictFromBtn(btn, plugin, feature, taskId) {
+  var orphanedKeys = null;
+  if (btn && btn.dataset && btn.dataset.orphanedKeys) {
+    try { orphanedKeys = JSON.parse(btn.dataset.orphanedKeys); } catch (e) { orphanedKeys = null; }
+  }
+  resolveTrackingConflict(plugin, feature, btn, taskId, orphanedKeys);
+}
+
 // K10 fix: confirm + resolve in pure JS context (avoids HTML attr quote
 // nesting problems that silently broke the deactivate button).
 function confirmAndResolveConflict(plugin, feature, btn, taskId) {
@@ -8760,14 +8774,16 @@ function confirmAndResolveConflict(plugin, feature, btn, taskId) {
 // platform's /gtm/resolve-conflict endpoint, which proxies to the companion
 // plugin's /disable-plugin-feature. Disables the conflicting plugin's feature
 // (e.g. PYS Google Ads tracking) WITHOUT deactivating the plugin entirely.
-function resolveTrackingConflict(plugin, feature, btn, taskId) {
+function resolveTrackingConflict(plugin, feature, btn, taskId, orphanedKeys) {
   if (btn) { btn.disabled = true; btn.textContent = '⏳ מתקן...'; btn.style.background = '#9CA3AF'; }
   var agent = activeAgent || 'oc';
   var agentParam = window.activeAgentId ? '?agentId=' + window.activeAgentId : '';
+  var reqBody = { plugin: plugin, feature: feature };
+  if (orphanedKeys && orphanedKeys.length) reqBody.orphanedKeys = orphanedKeys;
   fetch(API + '/hosting/instances/' + instanceId + '/gtm/resolve-conflict' + agentParam, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ plugin: plugin, feature: feature })
+    body: JSON.stringify(reqBody)
   }).then(function(r) { return r.json(); })
   .then(function(d) {
     if (!d.success) {

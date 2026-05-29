@@ -2,8 +2,8 @@
 /**
  * Plugin Name: ClawFlow Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
- * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection + surgical resolution + manual snippet (IHAF) detection.
- * Version: 1.5.0
+ * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
+ * Version: 1.6.0
  * Author: ClawFlow by Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -380,7 +380,7 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.5.0',
+                'pluginVersion'       => '1.6.0',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'wooCommerceActive'   => class_exists('WooCommerce'),
                 'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,
@@ -694,6 +694,42 @@ add_action('rest_api_init', function () {
      * — keeps the plugin active for features the user still wants (e.g. PYS
      * Facebook Pixel kept, PYS Google Ads disabled).
      */
+    /**
+     * POST /clawflow/v1/delete-wp-options
+     * Body: { keys: ['gla_ads_conversion_action', 'gla_ga4_measurement_id', ...] }
+     *
+     * Deletes ORPHANED wp_options (leftovers from uninstalled plugins) that
+     * still emit tracking scripts on the page. Used for AW-XXX residuals
+     * from old Google for WooCommerce installs.
+     *
+     * Safety: only allows option names matching /^(gla_|ga_|google_|gtm_|fb_|fbq_|pys_|monsterinsights_|exactmetrics_|googlesitekit_|gtm4wp-|wc_google|woocommerce_google|leader_)/
+     * — prevents accidental deletion of unrelated WP options.
+     */
+    register_rest_route('clawflow/v1', '/delete-wp-options', [
+        'methods'             => 'POST',
+        'permission_callback' => function () { return current_user_can('manage_options'); },
+        'callback'            => function (WP_REST_Request $req) {
+            $keys = (array)$req->get_param('keys');
+            $allowedPrefixes = '/^(gla_|ga_|google_|gtm_|fb_|fbq_|pys_|monsterinsights_|exactmetrics_|googlesitekit_|gtm4wp-|wc_google|woocommerce_google|leader_|wc_facebook|wc_meta)/i';
+            $deleted = [];
+            $rejected = [];
+            foreach ($keys as $key) {
+                $key = sanitize_text_field((string)$key);
+                if (!preg_match($allowedPrefixes, $key)) {
+                    $rejected[] = $key . ' (prefix not in allowlist)';
+                    continue;
+                }
+                if (get_option($key) !== false) {
+                    delete_option($key);
+                    $deleted[] = $key;
+                } else {
+                    $rejected[] = $key . ' (not in DB)';
+                }
+            }
+            return ['ok' => true, 'deleted' => $deleted, 'rejected' => $rejected];
+        },
+    ]);
+
     register_rest_route('clawflow/v1', '/disable-plugin-feature', [
         'methods'             => 'POST',
         'permission_callback' => function () { return current_user_can('manage_options'); },

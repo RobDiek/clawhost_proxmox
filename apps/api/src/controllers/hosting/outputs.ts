@@ -1155,11 +1155,12 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
 export const gtmResolveConflict = async (c: Context<HonoEnv>) => {
     try {
         const instanceId = c.req.param('id')
-        const body = await c.req.json<{ plugin?: string; feature?: string }>().catch(() => ({}))
+        const body = await c.req.json<{ plugin?: string; feature?: string; orphanedKeys?: string[] }>().catch(() => ({}))
         const plugin = String((body as any).plugin || '').trim()
-        const feature = String((body as any).feature || '').trim() as 'google_ads' | 'ga4' | 'meta_pixel' | 'all' | 'deactivate_plugin'
+        const feature = String((body as any).feature || '').trim() as 'google_ads' | 'ga4' | 'meta_pixel' | 'all' | 'deactivate_plugin' | 'delete_orphaned_options'
+        const orphanedKeys = Array.isArray((body as any).orphanedKeys) ? (body as any).orphanedKeys.map(String) : []
         if (!plugin || !feature) return fail(c, 'plugin + feature required', 400)
-        if (!['google_ads','ga4','meta_pixel','all','deactivate_plugin'].includes(feature)) {
+        if (!['google_ads','ga4','meta_pixel','all','deactivate_plugin','delete_orphaned_options'].includes(feature)) {
             return fail(c, 'invalid feature value', 400)
         }
 
@@ -1184,7 +1185,18 @@ export const gtmResolveConflict = async (c: Context<HonoEnv>) => {
 
         const { disablePluginTrackingFeature, probeTrackingAudit } = await import('@/services/wpCompanionInstaller')
         const cfg = wp.config as { url: string; user: string; appPassword: string }
-        const result = await disablePluginTrackingFeature(cfg, plugin, feature)
+
+        // K11: delete-orphaned-options branch (orphan wp_options leftover
+        // from uninstalled tracking plugins). Goes through different endpoint.
+        let result: { ok: boolean; changes: string[] }
+        if (feature === 'delete_orphaned_options') {
+            if (orphanedKeys.length === 0) return fail(c, 'orphanedKeys required for delete_orphaned_options', 400)
+            const { deleteOrphanedWpOptions } = await import('@/services/wpCompanionInstaller')
+            const del = await deleteOrphanedWpOptions(cfg, orphanedKeys)
+            result = { ok: del.ok, changes: del.deleted.map(k => `deleted wp_option: ${k}`).concat(del.rejected.map(k => `rejected: ${k}`)) }
+        } else {
+            result = await disablePluginTrackingFeature(cfg, plugin, feature as 'google_ads' | 'ga4' | 'meta_pixel' | 'all' | 'deactivate_plugin')
+        }
 
         // Log every change so journalctl shows what really happened (no need
         // for blind trust on "0 changes" mysteries).
