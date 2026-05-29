@@ -1356,6 +1356,19 @@ export const applySafetyFix = async (c: Context<HonoEnv>) => {
                 developerToken: String(ads.developerToken),
                 campaignIds: payload.campaignIds || [],
             })
+        } else if (kind === 'pause_campaigns') {
+            const ads = (await readGoogleAdsConfig(agent, instanceId)).config as any
+            if (!ads?.customerId || !ads?.developerToken) return fail(c, 'Google Ads not connected', 400)
+            const operatingCustomerId = String(ads.scope?.operatingCustomerId || ads.customerId || '').replace(/\D/g, '')
+            const loginCustomerId = String(ads.loginCustomerId || ads.customerId || '').replace(/\D/g, '')
+            const { pauseCampaigns } = await import('@/services/googleAdsSafetyAudit')
+            result = await pauseCampaigns({
+                customerId: operatingCustomerId,
+                loginCustomerId,
+                tokens: { refreshToken: tokens.refreshToken },
+                developerToken: String(ads.developerToken),
+                campaignIds: payload.campaignIds || [],
+            })
         } else if (kind === 'create_negatives_list') {
             const ads = (await readGoogleAdsConfig(agent, instanceId)).config as any
             if (!ads?.customerId || !ads?.developerToken) return fail(c, 'Google Ads not connected', 400)
@@ -1404,6 +1417,11 @@ export const applySafetyFix = async (c: Context<HonoEnv>) => {
             const errs = (result?.errors || []).length
             if (errs > 0 && attached === 0) totalFailure = true
             else if (errs > 0 || attached === 0) partialFailure = true
+        } else if (kind === 'pause_campaigns') {
+            const paused = (result?.paused || []).length
+            const errs = (result?.errors || []).length
+            if (paused === 0 && errs > 0) totalFailure = true
+            else if (paused > 0 && errs > 0) partialFailure = true
         }
 
         if (totalFailure) {

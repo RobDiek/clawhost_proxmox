@@ -196,13 +196,13 @@ export async function auditGa4Health(opts: Ga4HealthAuditInput): Promise<Ga4Heal
         )
         snap.dataRetention = dr.eventDataRetention || 'MONTHS_2'
 
-        if (dr.eventDataRetention !== 'MONTHS_14') {
+        if (dr.eventDataRetention !== 'FOURTEEN_MONTHS') {
             findings.push({
                 id: 'data_retention_below_max',
                 severity: 'high',
                 category: 'data_retention',
                 summary: `Data Retention is ${dr.eventDataRetention || 'default 2 months'} — recommended 14 months`,
-                detail: `GA4 default is 2 months. For IL retention analysis, 14-month attribution windows, and cohort/LTV reporting you need 14 months. Free to upgrade (no GA4 360 needed for this setting). Auto-fix updates eventDataRetention → MONTHS_14.`,
+                detail: `GA4 default is 2 months. For IL retention analysis, 14-month attribution windows, and cohort/LTV reporting you need 14 months. Free to upgrade (no GA4 360 needed for this setting). Auto-fix updates eventDataRetention → FOURTEEN_MONTHS.`,
                 autoFixable: true,
                 autoFixAction: { kind: 'set_data_retention_14_months', payload: { propertyId } },
             })
@@ -361,11 +361,14 @@ function finalize(findings: Ga4Finding[], snap: Ga4HealthReport['rawSnapshot']):
 // ─── Auto-fix actions ────────────────────────────────────────────────────
 
 export async function setDataRetention14Months(tokens: GoogleTokens, propertyId: string): Promise<void> {
+    // GA4 Admin API enum is FOURTEEN_MONTHS, not MONTHS_14 (gotcha — naming
+    // is inconsistent with internal docs). Other valid values:
+    // TWO_MONTHS / TWENTY_SIX_MONTHS / THIRTY_EIGHT_MONTHS / FIFTY_MONTHS.
     await ga4Fetch(
         `/properties/${propertyId}/dataRetentionSettings?updateMask=eventDataRetention`,
         tokens,
         'PATCH',
-        { eventDataRetention: 'MONTHS_14' },
+        { eventDataRetention: 'FOURTEEN_MONTHS' },
     )
 }
 

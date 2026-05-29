@@ -249,23 +249,48 @@ export async function auditGoogleAdsSafety(opts: AdsSafetyAuditInput): Promise<A
     snap.manualBiddingCount = enabledCampaigns.filter(c => MANUAL_BIDDING_TYPES.has(c.bidding)).length
 
     // FINDING #1: Smart Bidding on polluted signal
+    // K12-fix3: separate "switchable" campaigns (SEARCH/DISPLAY/SHOPPING —
+    // can switch to Manual CPC) from PMax (PERFORMANCE_MAX — locked, must
+    // be paused or reverted to Search). Auto-fix payload only contains
+    // switchable IDs; PMax campaigns get a separate finding with manual
+    // pause instructions.
     if (snap.smartBiddingCount > 0) {
-        const poolutedSignal = (opts.convValueQualitySubscore ?? 100) < 70
+        const polluted = (opts.convValueQualitySubscore ?? 100) < 70
         const smartCampaigns = enabledCampaigns.filter(c => SMART_BIDDING_TYPES.has(c.bidding))
-        findings.push({
-            id: 'smart_bidding_polluted_signal',
-            severity: poolutedSignal ? 'critical' : 'medium',
-            category: 'bidding',
-            summary: poolutedSignal
-                ? `🔴 ${snap.smartBiddingCount} campaign(s) on Smart Bidding while conv_value_quality=${opts.convValueQualitySubscore} < 70`
-                : `⚠ ${snap.smartBiddingCount} campaign(s) on Smart Bidding — confirm conversion data quality`,
-            detail: poolutedSignal
-                ? `Smart Bidding (tCPA / tROAS / MaxConv) optimizes on the conversion signal. Your audit shows conv_value_quality_subscore=${opts.convValueQualitySubscore} (out of 100, threshold 70). Smart Bidding will spend budget chasing inflated CR — exactly the pattern that caused CR 18%, CPA ₪13.25 on Packing Station. Recommendation: switch ALL campaigns to MANUAL_CPC for 30 days. Re-enable Smart Bidding only after 30+ real purchases recorded with the cleaned signal. Affected: ${smartCampaigns.map(c => `${c.name}(${c.bidding})`).join(', ')}.`
-                : `Smart Bidding active across ${snap.smartBiddingCount} campaigns. Per audit playbook §4.5, valid ONLY when conv_value_quality_subscore ≥ 70. Verify your conversion tracking is reporting clean data before relying on these optimizations.`,
-            autoFixable: true,
-            autoFixAction: { kind: 'switch_to_manual_cpc', payload: { campaignIds: smartCampaigns.map(c => c.id) } },
-            affected: smartCampaigns,
-        })
+        const switchable = smartCampaigns.filter(c =>
+            ['SEARCH', 'DISPLAY', 'SHOPPING'].includes(c.channel)
+        )
+        const pmaxOnSmart = smartCampaigns.filter(c => c.channel === 'PERFORMANCE_MAX')
+
+        if (switchable.length > 0) {
+            findings.push({
+                id: 'smart_bidding_polluted_signal',
+                severity: polluted ? 'critical' : 'medium',
+                category: 'bidding',
+                summary: polluted
+                    ? `🔴 ${switchable.length} Search/Display campaign(s) on Smart Bidding while conv_value_quality=${opts.convValueQualitySubscore} < 70`
+                    : `⚠ ${switchable.length} Search/Display campaign(s) on Smart Bidding`,
+                detail: polluted
+                    ? `Smart Bidding (tCPA / tROAS / MaxConv) optimizes on the conversion signal. Your audit shows conv_value_quality_subscore=${opts.convValueQualitySubscore} (out of 100, threshold 70). Smart Bidding will spend budget chasing inflated CR — exactly the pattern that caused CR 18%, CPA ₪13.25 on Packing Station. Recommendation: switch to MANUAL_CPC for 30 days. Re-enable Smart Bidding only after 30+ real purchases recorded with the cleaned signal. Affected: ${switchable.map(c => `${c.name}(${c.bidding})`).join(', ')}.`
+                    : `Smart Bidding active across ${switchable.length} campaigns. Per audit playbook §4.5, valid ONLY when conv_value_quality_subscore ≥ 70.`,
+                autoFixable: true,
+                autoFixAction: { kind: 'switch_to_manual_cpc', payload: { campaignIds: switchable.map(c => c.id) } },
+                affected: switchable,
+            })
+        }
+
+        if (pmaxOnSmart.length > 0) {
+            findings.push({
+                id: 'pmax_on_polluted_signal',
+                severity: polluted ? 'critical' : 'high',
+                category: 'bidding',
+                summary: `🔴 ${pmaxOnSmart.length} Performance Max campaign(s) — locked to Smart Bidding on polluted signal`,
+                detail: `PMax campaigns DON'T support Manual CPC — they're hard-locked to MaxConv/MaxConvValue. Per audit playbook, while conv_value_quality<70, recommended action is to PAUSE these PMax campaigns until tracking accumulates 30+ clean purchases. Then resume. Affected: ${pmaxOnSmart.map(c => c.name).join(', ')}. Auto-fix: pause these campaigns.`,
+                autoFixable: true,
+                autoFixAction: { kind: 'pause_campaigns', payload: { campaignIds: pmaxOnSmart.map(c => c.id) } },
+                affected: pmaxOnSmart,
+            })
+        }
     }
 
     // 2. Change history velocity
@@ -378,18 +403,18 @@ export async function switchCampaignsToManualCpc(opts: {
 }): Promise<{ switched: string[]; skipped: string[]; errors: Array<{ id: string; error: string }> }> {
     const result = { switched: [] as string[], skipped: [] as string[], errors: [] as Array<{ id: string; error: string }> }
 
-    // K12-fix2: when switching FROM Smart Bidding (MaxConvValue / tCPA / etc)
-    // TO Manual CPC, the campaign currently has NO manual_cpc field set —
-    // so updateMask='manual_cpc.enhanced_cpc_enabled' (subfield) returns 400.
-    // Correct form: updateMask='manual_cpc' replaces the WHOLE bidding
-    // strategy oneof, and the API automatically clears the old strategy
-    // (max_conversion_value, target_cpa, etc.) on the same operation.
+    // K12-fix3: correct updateMask is the SUBFIELD path. Whole-message mask
+    // 'manual_cpc' returns "field with subfields" error. Subfield path tells
+    // the API to set THAT field; switching from another strategy (MaxConvValue
+    // etc.) is implicit when the new strategy field is populated. Confirmed
+    // working pattern from Google Ads API samples for bidding-strategy
+    // switching.
     const operations = opts.campaignIds.map(id => ({
         update: {
             resourceName: `customers/${opts.customerId}/campaigns/${id}`,
             manualCpc: { enhancedCpcEnabled: false },
         },
-        updateMask: 'manual_cpc',
+        updateMask: 'manual_cpc.enhanced_cpc_enabled',
     }))
 
     // Use partial_failure so one bad campaign doesn't kill the batch
@@ -417,6 +442,53 @@ export async function switchCampaignsToManualCpc(opts: {
         }
     } catch (e) {
         // Whole batch failed
+        for (const id of opts.campaignIds) {
+            result.errors.push({ id, error: (e as Error).message.slice(0, 200) })
+        }
+    }
+    return result
+}
+
+/**
+ * Pause a list of campaigns. Used for PMax campaigns on a polluted signal
+ * (since they can't be switched to Manual CPC). User can resume manually
+ * once tracking is clean.
+ */
+export async function pauseCampaigns(opts: {
+    customerId: string
+    loginCustomerId: string
+    tokens: GoogleTokens
+    developerToken: string
+    campaignIds: string[]
+}): Promise<{ paused: string[]; errors: Array<{ id: string; error: string }> }> {
+    const result = { paused: [] as string[], errors: [] as Array<{ id: string; error: string }> }
+    const operations = opts.campaignIds.map(id => ({
+        update: {
+            resourceName: `customers/${opts.customerId}/campaigns/${id}`,
+            status: 'PAUSED',
+        },
+        updateMask: 'status',
+    }))
+    try {
+        const res = await gadsMutate(
+            opts.customerId,
+            opts.loginCustomerId,
+            opts.developerToken,
+            opts.tokens,
+            'campaigns:mutate',
+            { operations, partial_failure: true },
+        )
+        for (const r of (res.results || [])) {
+            const id = String(r.resourceName || '').split('/').pop() || ''
+            if (id) result.paused.push(id)
+        }
+        const partial = res.partialFailureError?.details?.[0]?.errors || []
+        for (const e of partial) {
+            const idx = e.location?.fieldPathElements?.find((p: any) => p.fieldName === 'operations')?.index
+            const id = typeof idx === 'number' ? opts.campaignIds[idx] : 'unknown'
+            result.errors.push({ id, error: e.message?.slice(0, 200) || 'unknown' })
+        }
+    } catch (e) {
         for (const id of opts.campaignIds) {
             result.errors.push({ id, error: (e as Error).message.slice(0, 200) })
         }
