@@ -959,6 +959,55 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                                 ga4MeasurementId: autoMeasurementId,
                                 metaPixelId: metaPixelConfig?.pixelId,
                             }, siteScan)
+
+                            // K9: if any conflict has fallbackAction for
+                            // 'google-listings-and-ads', probe the Ads account
+                            // for Shopping/PMax/Merchant Center usage so the
+                            // wizard can answer "is it safe to deactivate?"
+                            // DETERMINISTICALLY instead of asking the user.
+                            const hasGlaFallback = analysis.conflicts.some((c: any) =>
+                                c.fallbackAction?.plugin === 'google-listings-and-ads'
+                            )
+                            if (hasGlaFallback) {
+                                try {
+                                    const { readGoogleAdsConfig } = await import('@/services/agentContext')
+                                    const adsCfgRes = await readGoogleAdsConfig(agent, instanceId).catch(() => ({ config: null }))
+                                    const adsCfg: any = (adsCfgRes as any).config
+                                    if (adsCfg?.customerId && adsCfg?.developerToken) {
+                                        const { probeShoppingUsage } = await import('@/services/googleAdsShoppingProbe')
+                                        const operatingCustomerId = String(adsCfg.scope?.operatingCustomerId || adsCfg.customerId || '').replace(/\D/g, '')
+                                        const loginCustomerId = String(adsCfg.loginCustomerId || adsCfg.customerId || '').replace(/\D/g, '')
+                                        const shopping = await probeShoppingUsage({
+                                            operatingCustomerId,
+                                            loginCustomerId,
+                                            tokens: { refreshToken: tokens.refreshToken },
+                                            developerToken: String(adsCfg.developerToken),
+                                        })
+                                        // Decorate the conflict with the probe result
+                                        for (const c of analysis.conflicts as any[]) {
+                                            if (c.fallbackAction?.plugin === 'google-listings-and-ads') {
+                                                if (shopping.safeToDeactivateGoogleForWoo) {
+                                                    c.fallbackAction.warning = '✓ ' + shopping.summary + ' (auto-verified via Google Ads API) — deactivation is safe.'
+                                                } else if (shopping.diagnostic) {
+                                                    c.fallbackAction.warning = '? ' + shopping.summary
+                                                } else {
+                                                    c.fallbackAction.warning = '🛑 ' + shopping.summary
+                                                    // If active Shopping/PMax found, REMOVE the deactivate action
+                                                    // and keep only surgical-with-instructions message.
+                                                    if (shopping.hasShoppingCampaigns || shopping.hasPmaxCampaigns) {
+                                                        delete c.fallbackAction
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        ;(analysis as any).shoppingProbe = shopping
+                                    } else {
+                                        ;(analysis as any).shoppingProbe = { summary: 'Google Ads not connected — cannot auto-verify shopping usage', safeToDeactivateGoogleForWoo: false }
+                                    }
+                                } catch (e) {
+                                    console.warn(`[gtmFreshStack] shopping probe failed (non-fatal): ${(e as Error).message.slice(0, 200)}`)
+                                }
+                            }
                             conflictAnalysis = analysis
                             // Headline chainStep — overall conflict state
                             chainSteps.push({
