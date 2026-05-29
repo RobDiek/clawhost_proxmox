@@ -320,6 +320,28 @@ export interface WpCapabilities {
     siteUrl: string
 }
 
+export interface TrackingSend {
+    platform: 'meta_pixel' | 'google_ads' | 'ga4' | 'gtm' | 'pinterest' | 'tiktok' | 'datalayer'
+    id: string
+    feature: string
+}
+
+export interface DetectedTrackingPlugin {
+    plugin: string
+    name: string
+    version: string
+    active: boolean
+    sends: TrackingSend[]
+    resolutionHint: string
+}
+
+export interface TrackingAuditResult {
+    detected: DetectedTrackingPlugin[]
+    unknownTracking: string[]
+    raw?: Record<string, unknown>
+    scannedAt: string
+}
+
 /**
  * Probe the companion plugin's /capabilities endpoint to discover what
  * plugins/features the site has — so the UI can show "WooCommerce v8.5
@@ -335,6 +357,35 @@ export async function probeWpCapabilities(cfg: WpCfg): Promise<WpCapabilities | 
     } catch {
         return null
     }
+}
+
+/**
+ * Run the tracking conflict audit on the site. Requires companion plugin
+ * v1.3.0+. Returns null if endpoint not available (older plugin) or
+ * request fails — caller should surface this as "upgrade plugin to v1.3+
+ * to enable conflict detection".
+ */
+export async function probeTrackingAudit(cfg: WpCfg): Promise<TrackingAuditResult | null> {
+    try {
+        const res = await wpGet(cfg, '/wp-json/clawflow/v1/tracking-audit')
+        if (!res || typeof res !== 'object') return null
+        return res as TrackingAuditResult
+    } catch {
+        return null
+    }
+}
+
+/**
+ * Disable a tracking feature on a specific plugin. Used to resolve
+ * conflicts surgically (e.g. keep PixelYourSite for Facebook Pixel,
+ * disable its Google Ads tracking).
+ */
+export async function disablePluginTrackingFeature(
+    cfg: WpCfg,
+    plugin: string,
+    feature: 'google_ads' | 'ga4' | 'meta_pixel' | 'all' | 'deactivate_plugin',
+): Promise<{ ok: boolean; changes: string[] }> {
+    return await wpPostJson(cfg, '/wp-json/clawflow/v1/disable-plugin-feature', { plugin, feature })
 }
 
 export interface SiteGtmScan {

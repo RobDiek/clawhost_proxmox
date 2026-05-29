@@ -769,6 +769,7 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
         //       BEFORE going live with the new one
         let wpInstalled = false
         let staleScan: any = null
+        let conflictAnalysis: any = null     // populated by Phase 1 tracking-audit probe
         try {
             const { db } = await import('@/db')
             const { agentIntegrations } = await import('@/db/schema')
@@ -932,6 +933,57 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                             chainSteps.push({ step: 'Live HTML scan failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
                         }
                     }
+
+                    // ── 3d. Tracking Conflict Audit (K8) ──
+                    // Probe companion plugin /tracking-audit endpoint to detect
+                    // OTHER active WP tracking plugins (PixelYourSite, Google
+                    // for WooCommerce, MonsterInsights, Site Kit, GTM4WP, etc.)
+                    // and classify conflicts vs our GTM (AW-/G-/fbq) tags.
+                    // Surfaces the conv_value_pollution pattern (double-counting)
+                    // that the paid_audit identified as fix_tracking_first
+                    // verdict for Packing Station — and prevents it for all
+                    // future tenants.
+                    try {
+                        const { probeTrackingAudit } = await import('@/services/wpCompanionInstaller')
+                        const audit = await probeTrackingAudit(cfg)
+                        if (audit) {
+                            const { analyzeTrackingConflicts } = await import('@/services/trackingConflicts')
+                            const analysis = analyzeTrackingConflicts(audit, {
+                                gtmPublicId: stack.container.publicId,
+                                googleAdsConversionId: gtmConversions[0]?.googleAdsConversionId,
+                                ga4MeasurementId: autoMeasurementId,
+                                metaPixelId: metaPixelConfig?.pixelId,
+                            })
+                            conflictAnalysis = analysis
+                            // Headline chainStep — overall conflict state
+                            chainSteps.push({
+                                step: `Tracking conflicts: ${analysis.summary}`,
+                                ok: analysis.cleanState,
+                                detail: analysis.conflicts.length === 0
+                                    ? `0 conflicts. Scanned ${audit.detected.length} active tracking plugins.`
+                                    : analysis.conflicts.map(c => `[${c.severity.toUpperCase()}] ${c.summary}`).join(' | '),
+                            })
+                            // Per-conflict chainSteps so UI grouping picks them
+                            // up into a dedicated "⚠ Conflicts" category.
+                            for (const c of analysis.conflicts) {
+                                const sigil = c.severity === 'critical' ? '🔴' : c.severity === 'high' ? '🟠' : c.severity === 'medium' ? '🟡' : 'ℹ'
+                                chainSteps.push({
+                                    step: `Conflict [${c.severity}] ${sigil} ${c.platform}: ${c.summary}`,
+                                    // info-only conflicts don't fail the chain
+                                    ok: c.severity === 'info' || c.severity === 'medium',
+                                    detail: `${c.detail}${c.autoFixable ? ` · AUTO-FIXABLE via /disable-plugin-feature plugin=${c.autoFixAction?.plugin} feature=${c.autoFixAction?.feature}` : ''}`,
+                                })
+                            }
+                        } else {
+                            chainSteps.push({
+                                step: 'Tracking conflict audit',
+                                ok: true,
+                                detail: 'SKIPPED — companion plugin v1.3+ required for tracking-audit endpoint',
+                            })
+                        }
+                    } catch (e) {
+                        chainSteps.push({ step: 'Tracking conflict audit failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
+                    }
                 }
             }
         } catch (e) {
@@ -1025,6 +1077,7 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             chainSteps,
             wpInstalled,
             autoCompleted,
+            conflictAnalysis,
             instructions: wpInstalled
                 ? `✓ Done! New GTM snippet auto-installed on ${siteDomain}. Verify by visiting the site and opening GTM Preview mode.`
                 : `Site snippet update required: copy the head + body snippets below into your site's <head> and <body> tags. Container ID: ${stack.container.publicId}.`,
@@ -1032,6 +1085,64 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
     } catch (err) {
         console.error('gtmFreshStack error:', err)
         return fail(c, 'Fresh GTM stack creation failed: ' + (err as Error).message, 500)
+    }
+}
+
+// ── POST /hosting/instances/:id/gtm/resolve-conflict ──
+// Phase 2026.02 Block 6 K8 — resolve a detected tracking conflict by
+// disabling the conflicting plugin's feature surgically (keeps the
+// plugin active for unrelated features the user may still want).
+//
+// Body: { plugin: string, feature: 'google_ads' | 'ga4' | 'meta_pixel' | 'all' | 'deactivate_plugin' }
+//
+// Looks up the WP integration (per-agent isolation), proxies the call
+// to companion plugin /disable-plugin-feature endpoint, returns the
+// list of wp_options changes.
+export const gtmResolveConflict = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const body = await c.req.json<{ plugin?: string; feature?: string }>().catch(() => ({}))
+        const plugin = String((body as any).plugin || '').trim()
+        const feature = String((body as any).feature || '').trim() as 'google_ads' | 'ga4' | 'meta_pixel' | 'all' | 'deactivate_plugin'
+        if (!plugin || !feature) return fail(c, 'plugin + feature required', 400)
+        if (!['google_ads','ga4','meta_pixel','all','deactivate_plugin'].includes(feature)) {
+            return fail(c, 'invalid feature value', 400)
+        }
+
+        const { resolveAgentById, resolvePrimaryAgent } = await import('@/services/agentContext')
+        const agentIdParam = c.req.query('agentId')
+        const agent = agentIdParam
+            ? (await resolveAgentById(instanceId, agentIdParam)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+        if (!agent) return fail(c, 'No agent found for this instance', 404)
+
+        const { agentIntegrations } = await import('@/db/schema')
+        const wpRows = await db.select().from(agentIntegrations).where(
+            and(
+                eq(agentIntegrations.instanceId, instanceId),
+                eq(agentIntegrations.integrationType, 'wordpress'),
+            ),
+        )
+        const wp = wpRows.find(r => r.agentId === agent.id) || wpRows[0]
+        if (!wp || !(wp.config as any)?.appPassword) {
+            return fail(c, 'WordPress not connected for this agent', 400)
+        }
+
+        const { disablePluginTrackingFeature, probeTrackingAudit } = await import('@/services/wpCompanionInstaller')
+        const cfg = wp.config as { url: string; user: string; appPassword: string }
+        const result = await disablePluginTrackingFeature(cfg, plugin, feature)
+
+        // Re-run tracking audit to confirm the conflict is gone
+        const reAudit = await probeTrackingAudit(cfg).catch(() => null)
+
+        return ok(c, {
+            disabledPlugin: plugin,
+            disabledFeature: feature,
+            changes: result.changes,
+            postFixAudit: reAudit,
+        }, 'Conflict resolution applied')
+    } catch (err) {
+        return fail(c, 'Conflict resolution failed: ' + (err as Error).message, 500)
     }
 }
 

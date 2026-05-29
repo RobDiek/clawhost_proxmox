@@ -2,8 +2,8 @@
 /**
  * Plugin Name: ClawFlow Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
- * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push.
- * Version: 1.2.0
+ * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection.
+ * Version: 1.3.0
  * Author: ClawFlow by Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -380,13 +380,283 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.2.0',
+                'pluginVersion'       => '1.3.0',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'wooCommerceActive'   => class_exists('WooCommerce'),
                 'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,
                 'gtmInstalled'        => !empty(get_option('clawflow_gtm_public_id', '')),
                 'siteUrl'             => get_site_url(),
             ];
+        },
+    ]);
+
+    /**
+     * GET /clawflow/v1/tracking-audit
+     *
+     * Phase 2026.02 Block 6 K8 — detect ALL active tracking plugins +
+     * their configured tracking IDs (GA4 / Google Ads conversion / Meta
+     * Pixel / TikTok / Pinterest). Backend uses this to flag conflicts
+     * with our GTM container (e.g. PixelYourSite + GTM both sending the
+     * same AW-XXX conversion → double-counted purchases → exactly the
+     * conv_value_pollution audit pattern we saw on Packing Station).
+     *
+     * Per-plugin detection: option keys extracted from each plugin's
+     * source (verified by reading the plugin code on disk). Patterns
+     * cover the top 8 IL/Shopify-WC tracking plugins:
+     *   - PixelYourSite (PYS) — pys_options, pys_woo_options, pys_facebook_*
+     *   - Google for WooCommerce — gla_options / wc-google-listings
+     *   - MonsterInsights — monsterinsights_settings
+     *   - Site Kit by Google — googlesitekit-modules
+     *   - GA Google Analytics (by ExactMetrics) — ga_googleanalytics
+     *   - Pixel Caffeine — pca_options
+     *   - Tag Manager for WordPress (DuracellTomi) — gtm4wp-options
+     *   - Sales & Conversion Optimization (woopt) — woopt_*
+     */
+    register_rest_route('clawflow/v1', '/tracking-audit', [
+        'methods'             => 'GET',
+        'permission_callback' => function () { return current_user_can('manage_options'); },
+        'callback'            => function () {
+            if (!function_exists('is_plugin_active')) {
+                require_once ABSPATH . 'wp-admin/includes/plugin.php';
+            }
+            $detected = [];
+            $rawSources = [];
+
+            // ─── PixelYourSite (PYS) — top IL tracking plugin ───
+            if (is_plugin_active('pixelyoursite/pixelyoursite.php') ||
+                is_plugin_active('pixelyoursite-pro/pixelyoursite-pro.php')) {
+                $main = get_option('pys_core_settings', []);
+                $fb = get_option('pys_facebook_options', []);
+                $gads = get_option('pys_google_options', []) ?: get_option('pys_ads_options', []);
+                $ga = get_option('pys_ga_options', []) ?: get_option('pys_analytics_options', []);
+                $woo = get_option('pys_woo_options', []);
+
+                $sends = [];
+                // Facebook Pixel — PYS stores pixel IDs as JSON array string or array
+                $pixelIdsRaw = $fb['pixel_id'] ?? '';
+                $pixelIds = [];
+                if (is_array($pixelIdsRaw)) $pixelIds = $pixelIdsRaw;
+                elseif (is_string($pixelIdsRaw) && $pixelIdsRaw !== '') {
+                    $decoded = json_decode($pixelIdsRaw, true);
+                    $pixelIds = is_array($decoded) ? $decoded : [$pixelIdsRaw];
+                }
+                $pixelIds = array_filter(array_map('trim', $pixelIds));
+                foreach ($pixelIds as $pid) {
+                    if ($pid) $sends[] = ['platform' => 'meta_pixel', 'id' => $pid, 'feature' => 'fbq init + events'];
+                }
+                // Google Ads conversion id (gtag direct, AW-)
+                $awId = $gads['conversion_id'] ?? '';
+                if ($awId) $sends[] = ['platform' => 'google_ads', 'id' => 'AW-' . preg_replace('/^AW-/', '', $awId), 'feature' => 'gtag awct conversion'];
+                // GA4 measurement id
+                $g4 = $ga['ga4_measurement_id'] ?? ($ga['measurement_id'] ?? '');
+                if ($g4) $sends[] = ['platform' => 'ga4', 'id' => $g4, 'feature' => 'gtag config events'];
+                // WC ecommerce dataLayer pushes
+                if (!empty($woo['enabled'])) $sends[] = ['platform' => 'datalayer', 'id' => 'wc_ecommerce', 'feature' => 'WooCommerce dataLayer push (add_to_cart / purchase)'];
+
+                if (!empty($sends)) {
+                    $detected[] = [
+                        'plugin' => 'pixelyoursite',
+                        'name'   => 'PixelYourSite',
+                        'version'=> defined('PYS_VERSION') ? PYS_VERSION : 'unknown',
+                        'active' => true,
+                        'sends'  => $sends,
+                        'resolutionHint' => 'PYS Settings → disable Facebook Pixel / Google Ads / GA4 per integration to avoid conflict with GTM.',
+                    ];
+                }
+                $rawSources['pys'] = ['has_fb' => !empty($fb), 'has_gads' => !empty($gads), 'has_ga' => !empty($ga), 'has_woo' => !empty($woo)];
+            }
+
+            // ─── Google for WooCommerce (formerly Google Listings & Ads) ───
+            if (is_plugin_active('google-listings-and-ads/google-listings-and-ads.php')) {
+                $gla = get_option('gla_options', []);
+                $sends = [];
+                // GLA stores Ads conversion settings in 'gla_ads_id' or similar
+                $awId = $gla['ads_id'] ?? get_option('gla_ads_conversion_action', '');
+                if ($awId) $sends[] = ['platform' => 'google_ads', 'id' => 'AW-' . preg_replace('/^AW-/', '', (string)$awId), 'feature' => 'gtag direct conversion (WC purchase)'];
+                $g4 = $gla['ga4_measurement_id'] ?? get_option('gla_ga4_measurement_id', '');
+                if ($g4) $sends[] = ['platform' => 'ga4', 'id' => $g4, 'feature' => 'GA4 ecommerce events'];
+                $detected[] = [
+                    'plugin' => 'google-listings-and-ads',
+                    'name'   => 'Google for WooCommerce',
+                    'version'=> defined('WC_GLA_VERSION') ? WC_GLA_VERSION : 'unknown',
+                    'active' => true,
+                    'sends'  => $sends,
+                    'resolutionHint' => 'Google for WooCommerce → Settings → disable Conversion Tracking to avoid AW-XXX double-count vs GTM awct.',
+                ];
+            }
+
+            // ─── MonsterInsights / ExactMetrics ───
+            foreach ([
+                ['monsterinsights-lite/googleanalytics.php', 'MonsterInsights', 'monsterinsights_settings'],
+                ['google-analytics-for-wordpress/googleanalytics.php', 'MonsterInsights Pro', 'monsterinsights_settings'],
+                ['google-analytics-dashboard-for-wp/gadwp.php', 'ExactMetrics', 'exactmetrics_settings'],
+            ] as [$file, $name, $optKey]) {
+                if (is_plugin_active($file)) {
+                    $opt = get_option($optKey, []);
+                    $sends = [];
+                    $g4 = $opt['measurement_id'] ?? ($opt['ga4_id'] ?? '');
+                    if ($g4) $sends[] = ['platform' => 'ga4', 'id' => $g4, 'feature' => 'GA4 page view + events'];
+                    $detected[] = [
+                        'plugin' => $file, 'name' => $name, 'version' => 'unknown',
+                        'active' => true, 'sends' => $sends,
+                        'resolutionHint' => $name . ' → Settings → Tracking → Disable or set "Use GTM" mode to avoid GA4 double-fire vs our GTM gaawe tags.',
+                    ];
+                }
+            }
+
+            // ─── Google Site Kit ───
+            if (is_plugin_active('google-site-kit/google-site-kit.php')) {
+                $modules = get_option('googlesitekit_active_modules', []);
+                $sends = [];
+                if (in_array('analytics-4', (array)$modules, true)) {
+                    $a4 = get_option('googlesitekit_analytics-4_settings', []);
+                    if (!empty($a4['measurementID'])) $sends[] = ['platform' => 'ga4', 'id' => $a4['measurementID'], 'feature' => 'GA4 base tag (gtag)'];
+                }
+                if (in_array('ads', (array)$modules, true)) {
+                    $ads = get_option('googlesitekit_ads_settings', []);
+                    if (!empty($ads['conversionID'])) $sends[] = ['platform' => 'google_ads', 'id' => 'AW-' . preg_replace('/^AW-/', '', $ads['conversionID']), 'feature' => 'Ads conversion tag'];
+                }
+                $detected[] = [
+                    'plugin' => 'google-site-kit', 'name' => 'Site Kit by Google', 'version' => 'unknown',
+                    'active' => true, 'sends' => $sends,
+                    'resolutionHint' => 'Site Kit → disable Analytics + Ads modules (Site Kit and GTM should not BOTH inject the same tag IDs).',
+                ];
+            }
+
+            // ─── Tag Manager for WordPress (GTM4WP by DuracellTomi) ───
+            if (is_plugin_active('duracelltomi-google-tag-manager/duracelltomi-google-tag-manager-for-wordpress.php')) {
+                $opt = get_option('gtm4wp-options', []);
+                $sends = [];
+                $gtmId = $opt['gtm-code'] ?? '';
+                if ($gtmId) $sends[] = ['platform' => 'gtm', 'id' => $gtmId, 'feature' => 'GTM container snippet (second container — conflicts with ClawFlow GTM)'];
+                $detected[] = [
+                    'plugin' => 'duracelltomi-google-tag-manager', 'name' => 'GTM4WP', 'version' => 'unknown',
+                    'active' => true, 'sends' => $sends,
+                    'resolutionHint' => 'GTM4WP loads ANOTHER GTM container alongside ClawFlow GTM. Disable plugin OR replace its container ID with ClawFlow GTM-XXX.',
+                ];
+            }
+
+            // ─── Pinterest for WooCommerce ───
+            if (is_plugin_active('pinterest-for-woocommerce/pinterest-for-woocommerce.php')) {
+                $opt = get_option('pinterest_for_woocommerce', []);
+                $sends = [];
+                if (!empty($opt['tag_id'])) $sends[] = ['platform' => 'pinterest', 'id' => $opt['tag_id'], 'feature' => 'Pinterest Tag (events)'];
+                $detected[] = [
+                    'plugin' => 'pinterest-for-woocommerce', 'name' => 'Pinterest for WooCommerce', 'version' => 'unknown',
+                    'active' => true, 'sends' => $sends,
+                    'resolutionHint' => 'Independent tracker — no conflict with GTM unless you ALSO add Pinterest Tag via GTM.',
+                ];
+            }
+
+            // ─── Catch-all: scan all active plugins for tracking markers ───
+            $allActive = (array)get_option('active_plugins', []);
+            $knownTracking = ['pixelyoursite', 'google-listings-and-ads', 'monsterinsights', 'google-analytics-for-wordpress',
+                'google-analytics-dashboard-for-wp', 'google-site-kit', 'duracelltomi-google-tag-manager',
+                'pinterest-for-woocommerce', 'facebook-for-woocommerce', 'tiktok-for-business'];
+            $unknownTracking = [];
+            foreach ($allActive as $p) {
+                $slug = explode('/', $p)[0];
+                if (preg_match('/(pixel|tag-?manager|analytics|tracking|conversion|gtag|fbq|gtm|ga4|google-ads|meta-?ads)/i', $slug)
+                    && !in_array($slug, $knownTracking, true)) {
+                    $unknownTracking[] = $slug;
+                }
+            }
+
+            return [
+                'detected'        => $detected,
+                'unknownTracking' => $unknownTracking,
+                'raw'             => $rawSources,
+                'scannedAt'       => gmdate('c'),
+            ];
+        },
+    ]);
+
+    /**
+     * POST /clawflow/v1/disable-plugin-feature
+     * Body: { plugin: 'pixelyoursite', feature: 'google_ads' | 'ga4' | 'meta_pixel' | 'all' }
+     *
+     * Per-plugin per-feature surgical disable. NOT a full plugin deactivation
+     * — keeps the plugin active for features the user still wants (e.g. PYS
+     * Facebook Pixel kept, PYS Google Ads disabled).
+     */
+    register_rest_route('clawflow/v1', '/disable-plugin-feature', [
+        'methods'             => 'POST',
+        'permission_callback' => function () { return current_user_can('manage_options'); },
+        'callback'            => function (WP_REST_Request $req) {
+            $plugin  = sanitize_text_field((string)$req->get_param('plugin'));
+            $feature = sanitize_text_field((string)$req->get_param('feature'));
+            if (!$plugin || !$feature) return new WP_Error('bad_args', 'plugin + feature required', ['status' => 400]);
+
+            $changes = [];
+
+            if ($plugin === 'pixelyoursite') {
+                if ($feature === 'google_ads' || $feature === 'all') {
+                    $gads = get_option('pys_google_options', []);
+                    if (is_array($gads)) {
+                        $gads['gads_enabled'] = '';
+                        $gads['gads_purchase_event_on'] = '';
+                        $gads['gads_lead_event_on'] = '';
+                        update_option('pys_google_options', $gads, false);
+                        $changes[] = 'pys_google_options.gads_enabled cleared';
+                    }
+                }
+                if ($feature === 'meta_pixel' || $feature === 'all') {
+                    $fb = get_option('pys_facebook_options', []);
+                    if (is_array($fb)) {
+                        $fb['facebook_enabled'] = '';
+                        $fb['pixel_id'] = '';
+                        update_option('pys_facebook_options', $fb, false);
+                        $changes[] = 'pys_facebook_options.facebook_enabled + pixel_id cleared';
+                    }
+                }
+                if ($feature === 'ga4' || $feature === 'all') {
+                    $ga = get_option('pys_ga_options', []);
+                    if (is_array($ga)) {
+                        $ga['ga_enabled'] = '';
+                        $ga['ga4_enabled'] = '';
+                        update_option('pys_ga_options', $ga, false);
+                        $changes[] = 'pys_ga_options.ga_enabled + ga4_enabled cleared';
+                    }
+                }
+            }
+
+            if ($plugin === 'google-listings-and-ads') {
+                if ($feature === 'google_ads' || $feature === 'all') {
+                    $gla = get_option('gla_options', []);
+                    if (is_array($gla)) {
+                        $gla['ads_id'] = '';
+                        $gla['conversion_tracking_enabled'] = false;
+                        update_option('gla_options', $gla, false);
+                        $changes[] = 'gla_options.ads_id + conversion_tracking_enabled cleared';
+                    }
+                    delete_option('gla_ads_id');
+                    delete_option('gla_ads_conversion_action');
+                    $changes[] = 'gla_ads_* options deleted';
+                }
+                if ($feature === 'ga4' || $feature === 'all') {
+                    delete_option('gla_ga4_measurement_id');
+                    $changes[] = 'gla_ga4_measurement_id deleted';
+                }
+            }
+
+            // Deactivate entire plugin (fallback for plugins without surgical option mapping)
+            if ($feature === 'deactivate_plugin' && $plugin) {
+                if (!function_exists('deactivate_plugins')) {
+                    require_once ABSPATH . 'wp-admin/includes/plugin.php';
+                }
+                $found = false;
+                foreach (get_option('active_plugins', []) as $p) {
+                    if (strpos($p, $plugin) === 0) {
+                        deactivate_plugins($p, true);
+                        $changes[] = 'plugin ' . $p . ' deactivated';
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) $changes[] = 'plugin ' . $plugin . ' not found in active list';
+            }
+
+            return ['ok' => true, 'changes' => $changes];
         },
     ]);
 });

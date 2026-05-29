@@ -8547,6 +8547,7 @@ function submitGtmFreshStack(taskId) {
 // known prefixes. Catch-all bucket = 'Other'.
 function classifyGtmChainStep(stepName) {
   var n = (stepName || '').toLowerCase();
+  if (/^conflict |tracking conflict/i.test(n)) return 'conflicts';
   if (/gtm container created|container version published|workspace|gtm account/i.test(n)) return 'account';
   if (/ga4|measurement|googtag|gaawe|google ads|awct|conversion|gclidw|conversion linker|gclid capture|meta pixel/i.test(n)) return 'analytics';
   if (/consent/i.test(n)) return 'privacy';
@@ -8562,6 +8563,7 @@ function renderGtmWizardSuccess(data, taskId) {
 
   // Group chainSteps
   var groups = {
+    conflicts:  { title: '⚠ Tracking Conflicts', steps: [], ok: 0, fail: 0 },
     account:    { title: '🏗 GTM Account & Container', steps: [], ok: 0, fail: 0 },
     analytics:  { title: '📊 Analytics & Conversions', steps: [], ok: 0, fail: 0 },
     privacy:    { title: '🛡 Privacy (Consent Mode v2)', steps: [], ok: 0, fail: 0 },
@@ -8605,13 +8607,44 @@ function renderGtmWizardSuccess(data, taskId) {
     '</details>';
   }
 
+  // Conflicts FIRST (top of report) — they're the most actionable + highest-impact.
   var stepsHtml = '' +
+    renderGroup('conflicts', groups.conflicts) +
     renderGroup('account', groups.account) +
     renderGroup('analytics', groups.analytics) +
     renderGroup('privacy', groups.privacy) +
     renderGroup('wp', groups.wp) +
     renderGroup('validation', groups.validation) +
     renderGroup('other', groups.other);
+
+  // Conflict resolution buttons — render below grouped steps if there are
+  // any auto-fixable conflicts in the analysis.
+  var conflictResolutionHtml = '';
+  if (data.conflictAnalysis && Array.isArray(data.conflictAnalysis.conflicts)) {
+    var fixable = data.conflictAnalysis.conflicts.filter(function(c) { return c.autoFixable && c.autoFixAction; });
+    if (fixable.length > 0) {
+      conflictResolutionHtml =
+        '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:14px 16px;margin-bottom:14px">' +
+          '<div style="font-size:0.9rem;font-weight:700;color:#991B1B;margin-bottom:6px">🔴 Auto-fix available — ' + fixable.length + ' conflict' + (fixable.length > 1 ? 's' : '') + '</div>' +
+          '<div style="font-size:0.82rem;color:#7F1D1D;line-height:1.6;margin-bottom:10px">לחיצה תכבה את הפיצ\'ר הספציפי בפלאגין המתנגש (לא מסירה את הפלאגין כולו), כדי לסיים את ה-double-counting. אחרי התיקון, כדאי להריץ את ה-Wizard שוב כדי לוודא.</div>' +
+          fixable.map(function(c, idx) {
+            var pluginEsc = escapeHtml(c.autoFixAction.plugin);
+            var featureEsc = escapeHtml(c.autoFixAction.feature);
+            return '<div style="background:#fff;border:1px solid #FCA5A5;border-radius:6px;padding:10px 12px;margin-bottom:8px">' +
+              '<div style="font-size:0.82rem;font-weight:600;color:#1F2937;margin-bottom:4px">' + escapeHtml(c.summary) + '</div>' +
+              '<div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">Plugin: ' + pluginEsc + ' · Feature: ' + featureEsc + '</div>' +
+              '<button onclick="resolveTrackingConflict(\'' + pluginEsc + '\', \'' + featureEsc + '\', this, ' + (taskId ? "'" + taskId + "'" : 'null') + ')" id="resolveBtn-' + idx + '" style="background:#DC2626;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:0.82rem;font-weight:600;cursor:pointer">▶ Disable ' + featureEsc + ' on ' + pluginEsc + '</button>' +
+            '</div>';
+          }).join('') +
+        '</div>';
+    } else if (data.conflictAnalysis.conflicts.length > 0) {
+      conflictResolutionHtml =
+        '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-bottom:14px">' +
+          '<div style="font-size:0.85rem;font-weight:700;color:#92400E;margin-bottom:6px">⚠ Manual resolution required</div>' +
+          '<div style="font-size:0.82rem;color:#78350F;line-height:1.6">קונפליקטים זוהו אבל אינם auto-fixable דרך הפלאגין. ראו פירוט בקבוצה "⚠ Tracking Conflicts" למעלה.</div>' +
+        '</div>';
+    }
+  }
 
   var totalSteps = (data.chainSteps || []).length;
   var totalFail = (data.chainSteps || []).filter(function(s) { return !s.ok; }).length;
@@ -8637,6 +8670,7 @@ function renderGtmWizardSuccess(data, taskId) {
       '<div style="font-size:0.85rem;font-weight:700;color:#1F2937;margin-bottom:8px">שלבי הביצוע:</div>' +
       stepsHtml +
     '</div>' +
+    conflictResolutionHtml +
 
     (data.wpInstalled
       ? '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:0.85rem;color:#1E40AF">' +
@@ -8681,6 +8715,38 @@ function renderGtmWizardSuccess(data, taskId) {
 // Phase 2026.02 Block 6 Pattern J — re-run fresh-stack after user has
 // manually uploaded + activated the Clawflow companion plugin in WP Admin.
 // Backend now finds the plugin active → snippet POST works → wpInstalled=true.
+// Phase 2026.02 Block 6 K8 — resolve a tracking conflict by calling the
+// platform's /gtm/resolve-conflict endpoint, which proxies to the companion
+// plugin's /disable-plugin-feature. Disables the conflicting plugin's feature
+// (e.g. PYS Google Ads tracking) WITHOUT deactivating the plugin entirely.
+function resolveTrackingConflict(plugin, feature, btn, taskId) {
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ מתקן...'; btn.style.background = '#9CA3AF'; }
+  var agent = activeAgent || 'oc';
+  var agentParam = window.activeAgentId ? '?agentId=' + window.activeAgentId : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/gtm/resolve-conflict' + agentParam, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plugin: plugin, feature: feature })
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d.success) {
+      showToast('Conflict resolution failed: ' + (d.message || 'unknown'), 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '▶ Disable ' + feature + ' on ' + plugin; btn.style.background = '#DC2626'; }
+      return;
+    }
+    var changes = (d.data && d.data.changes) || [];
+    if (btn) {
+      btn.textContent = '✓ Disabled (' + changes.length + ' changes)';
+      btn.style.background = '#10B981';
+    }
+    showToast('Conflict resolved: ' + changes.length + ' option(s) updated. Re-run wizard to verify.', 'success');
+  })
+  .catch(function(err) {
+    showToast('Network error: ' + (err && err.message || ''), 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '▶ Disable ' + feature + ' on ' + plugin; btn.style.background = '#DC2626'; }
+  });
+}
+
 function retryGtmFreshStackInstall(accountId, containerName, publicId, taskId) {
   var siteDomain = (instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.websiteUrl) || 'packing-station.co.il';
   siteDomain = siteDomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
