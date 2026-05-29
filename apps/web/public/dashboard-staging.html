@@ -8213,15 +8213,26 @@ function renderMonthlyTaskFooter(task) {
     task.metadata.taskId === 'tsk_gtm_unified_setup' ||
     task.metadata.taskId === 'tsk_meta_pixel_install'
   );
-  if (isGtmUnified && (task.status === 'awaiting' || task.status === 'pending_review' || task.status === 'awaiting_manual')) {
+  if (isGtmUnified) {
     // Phase 2026.02 Block 6 Pattern J: plugin .zip download button — needed
     // BEFORE running the wizard (WP REST does not accept custom plugin
     // uploads, so the user must install it manually via WP Admin once).
     var pluginUrl = API + '/hosting/instances/' + instanceId + '/wp/companion-plugin.zip';
-    return '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()" style="font-size:0.85rem">✗ דחו</button>' +
-           '<button class="aq-btn edit" onclick="skipMonthlyTaskUI(\'' + task.id + '\');closeTaskPopup()" style="background:#FEF3C7;color:#78350F;border-color:#FDE68A;font-size:0.85rem">⏭ דחו לחודש הבא</button>' +
+
+    // K7 systemic: wizard is RE-RUNNABLE forever (idempotent), even after
+    // task is completed. Always show the launcher so users can refresh
+    // their stack (sync Default Workspace, pick up new Pixels, validate
+    // live state) without having to reopen the task.
+    var isCompleted = (task.status === 'completed' || task.status === 'published');
+    var btnLabel = isCompleted ? '🔄 הריצו שוב את ה-Wizard' : '▶ פתחו GTM Setup Wizard';
+    var rejectBtns = isCompleted
+      ? ''
+      : '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()" style="font-size:0.85rem">✗ דחו</button>' +
+        '<button class="aq-btn edit" onclick="skipMonthlyTaskUI(\'' + task.id + '\');closeTaskPopup()" style="background:#FEF3C7;color:#78350F;border-color:#FDE68A;font-size:0.85rem">⏭ דחו לחודש הבא</button>';
+
+    return rejectBtns +
            '<a href="' + pluginUrl + '" download="clawflow-companion.zip" class="aq-btn" style="background:#1D4ED8;color:#fff;border:none;font-size:0.85rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px" title="הורידו את ה-WP plugin להעלאה ידנית ב-WP Admin → Plugins → Add New → Upload">⬇ WP Plugin (.zip)</a>' +
-           '<button class="aq-btn approve" onclick="openGtmFreshStackWizard({taskId:\'' + task.id + '\'})" style="background:#0EA5E9;color:#fff;font-size:0.88rem;font-weight:600">▶ פתחו GTM Setup Wizard</button>';
+           '<button class="aq-btn approve" onclick="openGtmFreshStackWizard({taskId:\'' + task.id + '\'})" style="background:#0EA5E9;color:#fff;font-size:0.88rem;font-weight:600">' + btnLabel + '</button>';
   }
 
   // Phase 2026.02 Block 6 Pattern F: awaiting_manual status. Auto-execute
