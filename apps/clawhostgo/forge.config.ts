@@ -27,6 +27,17 @@ const copyNodePty = (
     callback()
 }
 
+const {
+    APPLE_SIGNING_IDENTITY,
+    APPLE_ID,
+    APPLE_ID_PASSWORD,
+    APPLE_TEAM_ID
+} = process.env
+
+const shouldSign = Boolean(
+    APPLE_SIGNING_IDENTITY && APPLE_ID && APPLE_ID_PASSWORD && APPLE_TEAM_ID
+)
+
 const config: ForgeConfig = {
     packagerConfig: {
         asar: {
@@ -35,7 +46,24 @@ const config: ForgeConfig = {
         name: 'ClawHostGo',
         icon: './resources/icon',
         extraResource: ['./resources/node'],
-        afterCopy: [copyNodePty]
+        afterCopy: [copyNodePty],
+        ...(shouldSign
+            ? {
+                  osxSign: {
+                      identity: APPLE_SIGNING_IDENTITY,
+                      optionsForFile: () => ({
+                          entitlements: './resources/entitlements.mac.plist',
+                          hardenedRuntime: true,
+                          'gatekeeper-assess': false
+                      })
+                  },
+                  osxNotarize: {
+                      appleId: APPLE_ID as string,
+                      appleIdPassword: APPLE_ID_PASSWORD as string,
+                      teamId: APPLE_TEAM_ID as string
+                  }
+              }
+            : {})
     },
     makers: [
         new MakerZIP({}, ['darwin']),
