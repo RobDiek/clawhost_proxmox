@@ -32,10 +32,10 @@ interface AgentRow {
 }
 
 // Chunked cleanup — the cleanup pass wraps the entire task list in one
-// Anthropic call, which fails on plans with 30+ verbose tasks (request body
-// + Sonnet output JSON ≥ 60K tokens, undici reports "fetch failed"). Splitting
-// into batches of 15 keeps every call under the limit and isolates failures.
-const CHUNK_SIZE = 15
+// Anthropic call. With 8+ verbose tasks the Sonnet response takes >5 min →
+// undici default headersTimeout (300s) fires and reports "fetch failed".
+// 3 tasks per batch completes in <60s. 58 tasks → ~20 batches → ~15 min total.
+const CHUNK_SIZE = 3
 
 async function processAgent(row: AgentRow): Promise<{ status: 'cleaned' | 'skipped' | 'failed'; reason?: string; taskCount?: number }> {
     const rd = row.researchData || {}
