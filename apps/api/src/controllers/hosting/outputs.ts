@@ -1386,9 +1386,34 @@ export const applySafetyFix = async (c: Context<HonoEnv>) => {
             return fail(c, `Unknown fix kind: ${kind}`, 400)
         }
 
-        console.log(`[applySafetyFix] instance=${instanceId} kind=${kind} result=${JSON.stringify(result).slice(0, 300)}`)
-        return ok(c, { kind, result }, 'Safety fix applied')
+        console.log(`[applySafetyFix] instance=${instanceId} kind=${kind} result=${JSON.stringify(result).slice(0, 500)}`)
+
+        // K12-fix2: detect partial / total failure inside result so UI doesn't
+        // falsely flip to "Applied". For Google Ads switch: if errors.length>0
+        // AND switched.length===0 → total failure. For negatives: errors.length>0
+        // OR campaignsAttached===0 → degraded.
+        let partialFailure = false
+        let totalFailure = false
+        if (kind === 'switch_to_manual_cpc') {
+            const switched = (result?.switched || []).length
+            const errs = (result?.errors || []).length
+            if (switched === 0 && errs > 0) totalFailure = true
+            else if (switched > 0 && errs > 0) partialFailure = true
+        } else if (kind === 'create_negatives_list') {
+            const attached = result?.campaignsAttached || 0
+            const errs = (result?.errors || []).length
+            if (errs > 0 && attached === 0) totalFailure = true
+            else if (errs > 0 || attached === 0) partialFailure = true
+        }
+
+        if (totalFailure) {
+            const errSummary = JSON.stringify(result?.errors || result).slice(0, 250)
+            return fail(c, `Safety fix totally failed: ${errSummary}`, 422)
+        }
+        return ok(c, { kind, result, partialFailure }, partialFailure ? 'Safety fix partially applied' : 'Safety fix applied')
     } catch (err) {
+        // K12-fix2: log full stacktrace so journalctl shows what failed
+        console.error(`[applySafetyFix] ERROR kind=? instance=${c.req.param('id')}:`, err)
         return fail(c, `Safety fix failed: ${(err as Error).message}`, 500)
     }
 }

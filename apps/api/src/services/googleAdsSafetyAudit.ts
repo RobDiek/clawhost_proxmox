@@ -378,14 +378,21 @@ export async function switchCampaignsToManualCpc(opts: {
 }): Promise<{ switched: string[]; skipped: string[]; errors: Array<{ id: string; error: string }> }> {
     const result = { switched: [] as string[], skipped: [] as string[], errors: [] as Array<{ id: string; error: string }> }
 
+    // K12-fix2: when switching FROM Smart Bidding (MaxConvValue / tCPA / etc)
+    // TO Manual CPC, the campaign currently has NO manual_cpc field set —
+    // so updateMask='manual_cpc.enhanced_cpc_enabled' (subfield) returns 400.
+    // Correct form: updateMask='manual_cpc' replaces the WHOLE bidding
+    // strategy oneof, and the API automatically clears the old strategy
+    // (max_conversion_value, target_cpa, etc.) on the same operation.
     const operations = opts.campaignIds.map(id => ({
         update: {
             resourceName: `customers/${opts.customerId}/campaigns/${id}`,
             manualCpc: { enhancedCpcEnabled: false },
         },
-        updateMask: 'manual_cpc.enhanced_cpc_enabled',
+        updateMask: 'manual_cpc',
     }))
 
+    // Use partial_failure so one bad campaign doesn't kill the batch
     try {
         const res = await gadsMutate(
             opts.customerId,
@@ -393,15 +400,23 @@ export async function switchCampaignsToManualCpc(opts: {
             opts.developerToken,
             opts.tokens,
             'campaigns:mutate',
-            { operations },
+            { operations, partial_failure: true },
         )
+        // Per-operation results — track successes
         const results: any[] = res.results || []
         for (const r of results) {
             const id = String(r.resourceName || '').split('/').pop() || ''
             if (id) result.switched.push(id)
         }
+        // partial_failure returns errors per failed op
+        const partialErrors = res.partialFailureError?.details?.[0]?.errors || []
+        for (const e of partialErrors) {
+            const idx = e.location?.fieldPathElements?.find((p: any) => p.fieldName === 'operations')?.index
+            const id = typeof idx === 'number' ? opts.campaignIds[idx] : 'unknown'
+            result.errors.push({ id, error: e.message?.slice(0, 200) || 'unknown error' })
+        }
     } catch (e) {
-        // Batch failed — push as single error per id
+        // Whole batch failed
         for (const id of opts.campaignIds) {
             result.errors.push({ id, error: (e as Error).message.slice(0, 200) })
         }

@@ -8863,15 +8863,33 @@ function applySafetyFix(kind, btn) {
   }).then(function(r) { return r.json(); })
   .then(function(d) {
     if (!d.success) {
-      showToast('Fix failed: ' + (d.message || 'unknown'), 'error');
-      if (btn) { btn.disabled = false; btn.textContent = '▶ Apply fix'; btn.style.background = '#92400E'; }
+      // K12-fix2: extract error detail from response — could be total failure
+      // with stringified errors array (422 status) or generic failure (500).
+      var msg = d.message || 'unknown';
+      showToast('✗ Fix FAILED: ' + msg.slice(0, 200), 'error');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '⚠ Failed — retry';
+        btn.style.background = '#DC2626';
+      }
       return;
     }
+    // K12-fix2: detect partial failure inside data.partialFailure
+    var partial = d.data && d.data.partialFailure;
+    var resultDetail = d.data && d.data.result;
     if (btn) {
-      btn.textContent = '✓ Applied';
-      btn.style.background = '#10B981';
+      if (partial) {
+        var summary = '';
+        if (kind === 'switch_to_manual_cpc') summary = (resultDetail.switched || []).length + '/' + ((resultDetail.switched || []).length + (resultDetail.errors || []).length);
+        else if (kind === 'create_negatives_list') summary = (resultDetail.campaignsAttached || 0) + ' attached, ' + (resultDetail.errors || []).length + ' errors';
+        btn.textContent = '⚠ Partial: ' + summary;
+        btn.style.background = '#F59E0B';
+      } else {
+        btn.textContent = '✓ Applied';
+        btn.style.background = '#10B981';
+      }
     }
-    showToast('Fix applied. Re-run wizard to verify.', 'success');
+    showToast(partial ? '⚠ Fix partially applied — check details' : '✓ Fix applied. Re-run wizard to verify.', partial ? 'warning' : 'success');
   })
   .catch(function(err) {
     showToast('Network error: ' + (err && err.message || ''), 'error');
