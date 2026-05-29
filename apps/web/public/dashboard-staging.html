@@ -8548,6 +8548,8 @@ function submitGtmFreshStack(taskId) {
 function classifyGtmChainStep(stepName) {
   var n = (stepName || '').toLowerCase();
   if (/^conflict |tracking conflict/i.test(n)) return 'conflicts';
+  if (/^ads safety|google ads safety/i.test(n)) return 'ads_safety';
+  if (/^ga4 health|ga4 health audit/i.test(n)) return 'ga4_health';
   if (/gtm container created|container version published|workspace|gtm account/i.test(n)) return 'account';
   if (/ga4|measurement|googtag|gaawe|google ads|awct|conversion|gclidw|conversion linker|gclid capture|meta pixel/i.test(n)) return 'analytics';
   if (/consent/i.test(n)) return 'privacy';
@@ -8564,6 +8566,8 @@ function renderGtmWizardSuccess(data, taskId) {
   // Group chainSteps
   var groups = {
     conflicts:  { title: '⚠ Tracking Conflicts', steps: [], ok: 0, fail: 0 },
+    ads_safety: { title: '📈 Google Ads Safety', steps: [], ok: 0, fail: 0 },
+    ga4_health: { title: '📊 GA4 Setup Health', steps: [], ok: 0, fail: 0 },
     account:    { title: '🏗 GTM Account & Container', steps: [], ok: 0, fail: 0 },
     analytics:  { title: '📊 Analytics & Conversions', steps: [], ok: 0, fail: 0 },
     privacy:    { title: '🛡 Privacy (Consent Mode v2)', steps: [], ok: 0, fail: 0 },
@@ -8607,15 +8611,39 @@ function renderGtmWizardSuccess(data, taskId) {
     '</details>';
   }
 
-  // Conflicts FIRST (top of report) — they're the most actionable + highest-impact.
+  // Conflicts + Safety FIRST (top of report) — most actionable + highest-impact.
   var stepsHtml = '' +
     renderGroup('conflicts', groups.conflicts) +
+    renderGroup('ads_safety', groups.ads_safety) +
+    renderGroup('ga4_health', groups.ga4_health) +
     renderGroup('account', groups.account) +
     renderGroup('analytics', groups.analytics) +
     renderGroup('privacy', groups.privacy) +
     renderGroup('wp', groups.wp) +
     renderGroup('validation', groups.validation) +
     renderGroup('other', groups.other);
+
+  // Auto-fix buttons for adsSafety + ga4Health findings (D + E auto-fixes)
+  var safetyFixHtml = '';
+  function renderSafetyFix(report, title, color) {
+    if (!report || !Array.isArray(report.findings)) return '';
+    var fixable = report.findings.filter(function(f) { return f.autoFixable && f.autoFixAction; });
+    if (fixable.length === 0) return '';
+    return '<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:14px;margin-bottom:14px">' +
+      '<div style="font-size:0.95rem;font-weight:700;color:' + color + ';margin-bottom:8px">⚡ ' + title + ' — ' + fixable.length + ' תיקונים זמינים</div>' +
+      fixable.map(function(f) {
+        var sevIcon = f.severity === 'critical' ? '🔴' : f.severity === 'high' ? '🟠' : '🟡';
+        var payloadJson = JSON.stringify(f.autoFixAction.payload || {});
+        return '<div style="background:#fff;border:1px solid #FDE68A;border-radius:6px;padding:10px 12px;margin-bottom:8px">' +
+          '<div style="font-size:0.85rem;font-weight:600;color:#1F2937;margin-bottom:4px">' + sevIcon + ' ' + escapeHtml(f.summary) + '</div>' +
+          '<div style="font-size:0.76rem;color:#6B7280;line-height:1.5;margin-bottom:8px">' + escapeHtml((f.detail || '').slice(0, 300)) + '</div>' +
+          '<button onclick="applySafetyFix(\'' + escapeHtml(f.autoFixAction.kind) + '\', this)" data-payload=\'' + escapeHtml(payloadJson) + '\' style="background:#92400E;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:0.82rem;font-weight:600;cursor:pointer">▶ Apply fix</button>' +
+        '</div>';
+      }).join('') +
+    '</div>';
+  }
+  safetyFixHtml += renderSafetyFix(data.adsSafety, '📈 Google Ads Safety — fixes', '#92400E');
+  safetyFixHtml += renderSafetyFix(data.ga4Health, '📊 GA4 Health — fixes', '#1E40AF');
 
   // K10 — actionable conflict resolution UI. For EACH conflict, render
   // its actionPlan steps (Hebrew, always concrete). Buttons stay clickable;
@@ -8704,6 +8732,7 @@ function renderGtmWizardSuccess(data, taskId) {
       '<div style="font-size:0.85rem;font-weight:700;color:#1F2937;margin-bottom:8px">שלבי הביצוע:</div>' +
       stepsHtml +
     '</div>' +
+    safetyFixHtml +
     conflictResolutionHtml +
 
     (data.wpInstalled
@@ -8811,6 +8840,42 @@ function resolveTrackingConflict(plugin, feature, btn, taskId, orphanedKeys) {
   .catch(function(err) {
     showToast('Network error: ' + (err && err.message || ''), 'error');
     if (btn) { btn.disabled = false; btn.textContent = '▶ Disable ' + feature + ' on ' + plugin; btn.style.background = '#DC2626'; }
+  });
+}
+
+// K12: apply D/E safety auto-fix. Reads payload from button data-attribute
+// (avoids quote-nesting nightmares), POSTs to /safety/apply-fix.
+function applySafetyFix(kind, btn) {
+  var payload = {};
+  if (btn && btn.dataset && btn.dataset.payload) {
+    try { payload = JSON.parse(btn.dataset.payload); } catch (e) { payload = {}; }
+  }
+  if (kind === 'switch_to_manual_cpc' && !confirm('Switch ' + (payload.campaignIds || []).length + ' campaigns to Manual CPC?\n\nThis is recommended after tracking cleanup. You can re-enable Smart Bidding after 30+ real purchases recorded with the clean signal.')) return;
+  if (kind === 'create_negatives_list' && !confirm('Add ' + (payload.keywords || []).length + ' account-level negative keywords + attach to all enabled Search campaigns?')) return;
+
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Applying...'; btn.style.background = '#9CA3AF'; }
+  var agent = activeAgent || 'oc';
+  var agentParam = window.activeAgentId ? '?agentId=' + window.activeAgentId : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/safety/apply-fix' + agentParam, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind: kind, payload: payload })
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d.success) {
+      showToast('Fix failed: ' + (d.message || 'unknown'), 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '▶ Apply fix'; btn.style.background = '#92400E'; }
+      return;
+    }
+    if (btn) {
+      btn.textContent = '✓ Applied';
+      btn.style.background = '#10B981';
+    }
+    showToast('Fix applied. Re-run wizard to verify.', 'success');
+  })
+  .catch(function(err) {
+    showToast('Network error: ' + (err && err.message || ''), 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '▶ Apply fix'; btn.style.background = '#92400E'; }
   });
 }
 

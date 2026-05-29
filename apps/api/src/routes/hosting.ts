@@ -192,6 +192,7 @@ import {
     gtmFreshStack,
     gtmFreshStackPreflight,
     gtmResolveConflict,
+    applySafetyFix,
     wpCompanionPluginZip,
     rejectOutput,
     editOutput,
@@ -794,6 +795,7 @@ app.post('/instances/:id/outputs/:outputId/sgtm/configure', sgtmConfigure)
 app.post('/instances/:id/gtm/fresh-stack', gtmFreshStack)
 app.get('/instances/:id/gtm/fresh-stack/preflight', gtmFreshStackPreflight)
 app.post('/instances/:id/gtm/resolve-conflict', gtmResolveConflict)
+app.post('/instances/:id/safety/apply-fix', applySafetyFix)
 // Phase 2026.02 Block 6 Pattern J — download Clawflow Companion plugin
 // .zip (single-file PHP plugin). User uploads via WP Admin → Plugins →
 // Add New → Upload Plugin (~30 sec one-time). After install, fresh-stack

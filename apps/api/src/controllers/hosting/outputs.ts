@@ -770,6 +770,8 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
         let wpInstalled = false
         let staleScan: any = null
         let conflictAnalysis: any = null     // populated by Phase 1 tracking-audit probe
+        let adsSafety: any = null            // populated by D — Google Ads safety audit
+        let ga4Health: any = null            // populated by E — GA4 health audit
         try {
             const { db } = await import('@/db')
             const { agentIntegrations } = await import('@/db/schema')
@@ -1044,6 +1046,83 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             chainSteps.push({ step: 'WordPress install error', ok: false, detail: (e as Error).message.slice(0, 300) })
         }
 
+        // ── 4. Google Ads Safety Audit (K12 / Variant D) ──
+        // Detects Smart Bidding on polluted signal, high change velocity, missing
+        // account-level negatives. Surfaces with auto-fix actions when possible.
+        try {
+            const { readGoogleAdsConfig } = await import('@/services/agentContext')
+            const adsCfgRes = await readGoogleAdsConfig(agent, instanceId).catch(() => ({ config: null }))
+            const adsCfg: any = (adsCfgRes as any).config
+            if (adsCfg?.customerId && adsCfg?.developerToken) {
+                const operatingCustomerId = String(adsCfg.scope?.operatingCustomerId || adsCfg.customerId || '').replace(/\D/g, '')
+                const loginCustomerId = String(adsCfg.loginCustomerId || adsCfg.customerId || '').replace(/\D/g, '')
+                // Pull conv_value_quality_subscore from paid_audit if present
+                let convValueQualitySubscore: number | undefined
+                try {
+                    const paidAuditContent = (agent as any).researchData?.results?.paid_audit?.content
+                    if (typeof paidAuditContent === 'string') {
+                        const m = /conv_value_quality_subscore[^\d]*(\d+)/i.exec(paidAuditContent)
+                        if (m) convValueQualitySubscore = parseInt(m[1], 10)
+                    }
+                } catch { /* skip */ }
+                const { auditGoogleAdsSafety } = await import('@/services/googleAdsSafetyAudit')
+                adsSafety = await auditGoogleAdsSafety({
+                    operatingCustomerId,
+                    loginCustomerId,
+                    developerToken: String(adsCfg.developerToken),
+                    tokens: { refreshToken: tokens.refreshToken },
+                    convValueQualitySubscore,
+                })
+                chainSteps.push({
+                    step: `Google Ads safety: ${adsSafety.summary}`,
+                    ok: adsSafety.cleanState,
+                    detail: `Scanned ${adsSafety.rawSnapshot.campaignCount} enabled campaigns. Smart Bidding: ${adsSafety.rawSnapshot.smartBiddingCount} · Manual: ${adsSafety.rawSnapshot.manualBiddingCount} · Changes/7d: ${adsSafety.rawSnapshot.changeEventsLast7d} · Negative lists: ${adsSafety.rawSnapshot.negativeListsAttached}`,
+                })
+                for (const f of adsSafety.findings) {
+                    const sigil = f.severity === 'critical' ? '🔴' : f.severity === 'high' ? '🟠' : f.severity === 'medium' ? '🟡' : 'ℹ'
+                    chainSteps.push({
+                        step: `Ads safety [${f.severity}] ${sigil}: ${f.summary}`,
+                        ok: f.severity === 'info' || f.severity === 'medium',
+                        detail: `${f.detail}${f.autoFixable ? ` · AUTO-FIXABLE` : ''}`,
+                    })
+                }
+            } else {
+                chainSteps.push({ step: 'Google Ads safety audit — SKIPPED', ok: true, detail: 'Google Ads not connected — connect in Integrations to enable safety audit' })
+            }
+        } catch (e) {
+            chainSteps.push({ step: 'Google Ads safety audit failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
+        }
+
+        // ── 5. GA4 Health Audit (K12 / Variant E) ──
+        // Data Retention, Enhanced Measurement, Key Events, BigQuery link,
+        // Google Ads link. Auto-fix for Retention + Enhanced Measurement.
+        try {
+            if (autoMeasurementId && tokens.refreshToken) {
+                const { auditGa4Health } = await import('@/services/ga4HealthAudit')
+                ga4Health = await auditGa4Health({
+                    tokens: { refreshToken: tokens.refreshToken },
+                    siteDomain,
+                })
+                chainSteps.push({
+                    step: `GA4 health: ${ga4Health.summary}`,
+                    ok: ga4Health.cleanState,
+                    detail: `Property: ${ga4Health.rawSnapshot.propertyId || 'n/a'} · Retention: ${ga4Health.rawSnapshot.dataRetention || 'unknown'} · Enhanced Measurement: ${ga4Health.rawSnapshot.enhancedMeasurementEnabled ? 'ON' : 'OFF'} · Key Events: ${ga4Health.rawSnapshot.keyEventCount || 0} · BigQuery: ${ga4Health.rawSnapshot.bigQueryLinkCount || 0} · Ads Links: ${ga4Health.rawSnapshot.googleAdsLinkCount || 0}`,
+                })
+                for (const f of ga4Health.findings) {
+                    const sigil = f.severity === 'critical' ? '🔴' : f.severity === 'high' ? '🟠' : f.severity === 'medium' ? '🟡' : 'ℹ'
+                    chainSteps.push({
+                        step: `GA4 health [${f.severity}] ${sigil}: ${f.summary}`,
+                        ok: f.severity === 'info' || f.severity === 'medium',
+                        detail: `${f.detail}${f.autoFixable ? ` · AUTO-FIXABLE` : ''}`,
+                    })
+                }
+            } else {
+                chainSteps.push({ step: 'GA4 health audit — SKIPPED', ok: true, detail: 'GA4 measurementId not detected — fix upstream GA4 step first' })
+            }
+        } catch (e) {
+            chainSteps.push({ step: 'GA4 health audit failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
+        }
+
         // Server-side log of ALL chainSteps (✓ + ✗) so journalctl shows the
         // full pipeline state without depending on UI screenshots or the
         // user remembering exact wording.
@@ -1132,6 +1211,8 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             wpInstalled,
             autoCompleted,
             conflictAnalysis,
+            adsSafety,
+            ga4Health,
             instructions: wpInstalled
                 ? `✓ Done! New GTM snippet auto-installed on ${siteDomain}. Verify by visiting the site and opening GTM Preview mode.`
                 : `Site snippet update required: copy the head + body snippets below into your site's <head> and <body> tags. Container ID: ${stack.container.publicId}.`,
@@ -1221,6 +1302,78 @@ export const gtmResolveConflict = async (c: Context<HonoEnv>) => {
         }, 'Conflict resolution applied')
     } catch (err) {
         return fail(c, 'Conflict resolution failed: ' + (err as Error).message, 500)
+    }
+}
+
+// ── POST /hosting/instances/:id/safety/apply-fix ──
+// Phase 2026.02 Block 6 K12 — apply a D (Google Ads) or E (GA4) auto-fix
+// surfaced by the safety audit. Body: { kind, payload }.
+//
+// Supported kinds:
+//   switch_to_manual_cpc          payload: { campaignIds: string[] }
+//   create_negatives_list         payload: { keywords: string[] }
+//   set_data_retention_14_months  payload: { propertyId: string }
+//   enable_enhanced_measurement_all  payload: { propertyId, streamId }
+export const applySafetyFix = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const body = await c.req.json<{ kind?: string; payload?: any }>().catch(() => ({}))
+        const kind = String((body as any).kind || '').trim()
+        const payload = (body as any).payload || {}
+        if (!kind) return fail(c, 'kind required', 400)
+
+        const { resolveAgentById, resolvePrimaryAgent, readGoogleAdsConfig } = await import('@/services/agentContext')
+        const agentIdParam = c.req.query('agentId')
+        const agent = agentIdParam
+            ? (await resolveAgentById(instanceId, agentIdParam)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+        if (!agent) return fail(c, 'No agent found', 404)
+        const tokens = (agent as any).googleTokens
+        if (!tokens?.refreshToken) return fail(c, 'No Google OAuth tokens', 400)
+
+        let result: any = null
+        if (kind === 'switch_to_manual_cpc') {
+            const ads = (await readGoogleAdsConfig(agent, instanceId)).config as any
+            if (!ads?.customerId || !ads?.developerToken) return fail(c, 'Google Ads not connected', 400)
+            const operatingCustomerId = String(ads.scope?.operatingCustomerId || ads.customerId || '').replace(/\D/g, '')
+            const loginCustomerId = String(ads.loginCustomerId || ads.customerId || '').replace(/\D/g, '')
+            const { switchCampaignsToManualCpc } = await import('@/services/googleAdsSafetyAudit')
+            result = await switchCampaignsToManualCpc({
+                customerId: operatingCustomerId,
+                loginCustomerId,
+                tokens: { refreshToken: tokens.refreshToken },
+                developerToken: String(ads.developerToken),
+                campaignIds: payload.campaignIds || [],
+            })
+        } else if (kind === 'create_negatives_list') {
+            const ads = (await readGoogleAdsConfig(agent, instanceId)).config as any
+            if (!ads?.customerId || !ads?.developerToken) return fail(c, 'Google Ads not connected', 400)
+            const operatingCustomerId = String(ads.scope?.operatingCustomerId || ads.customerId || '').replace(/\D/g, '')
+            const loginCustomerId = String(ads.loginCustomerId || ads.customerId || '').replace(/\D/g, '')
+            const { createAndAttachNegativesList } = await import('@/services/googleAdsSafetyAudit')
+            result = await createAndAttachNegativesList({
+                customerId: operatingCustomerId,
+                loginCustomerId,
+                tokens: { refreshToken: tokens.refreshToken },
+                developerToken: String(ads.developerToken),
+                keywords: payload.keywords || [],
+            })
+        } else if (kind === 'set_data_retention_14_months') {
+            const { setDataRetention14Months } = await import('@/services/ga4HealthAudit')
+            await setDataRetention14Months({ refreshToken: tokens.refreshToken }, String(payload.propertyId || ''))
+            result = { ok: true, propertyId: payload.propertyId, set: 'MONTHS_14' }
+        } else if (kind === 'enable_enhanced_measurement_all') {
+            const { enableEnhancedMeasurementAll } = await import('@/services/ga4HealthAudit')
+            await enableEnhancedMeasurementAll({ refreshToken: tokens.refreshToken }, String(payload.propertyId || ''), String(payload.streamId || ''))
+            result = { ok: true, propertyId: payload.propertyId, streamId: payload.streamId }
+        } else {
+            return fail(c, `Unknown fix kind: ${kind}`, 400)
+        }
+
+        console.log(`[applySafetyFix] instance=${instanceId} kind=${kind} result=${JSON.stringify(result).slice(0, 300)}`)
+        return ok(c, { kind, result }, 'Safety fix applied')
+    } catch (err) {
+        return fail(c, `Safety fix failed: ${(err as Error).message}`, 500)
     }
 }
 
