@@ -123,6 +123,33 @@ function hintToFallbackAction(hint: string): { plugin: string; feature: 'deactiv
     return undefined
 }
 
+/**
+ * Build a manual-snippet conflict resolution for "Insert Headers and Footers"
+ * + similar snippet-injector plugins. Surgical removal of just the
+ * conflicting <script> block — leaves the user's other snippets intact.
+ */
+export function buildManualSnippetActionPlan(c: ConflictFinding): ActionPlanStep[] {
+    if (!c.sources.some(s => /(ihaf_insert|insert-headers-and-footers|wp_options\.)/i.test(s.plugin) || /manual snippet|wp_options\./i.test(s.feature))) {
+        return []
+    }
+    return [
+        {
+            kind: 'auto_button',
+            titleHe: '🔧 ניקוי כירורגי של ה-snippet הכפול',
+            detailHe: 'מסיר רק את ה-<script> של מעקב המתנגש מתוך Insert Headers and Footers, משאיר את כל יתר ה-snippets שלכם בלי שינוי.',
+            plugin: 'insert-headers-and-footers',
+            feature: 'google_ads',
+            severity: 'safe',
+        },
+        {
+            kind: 'manual_navigation',
+            titleHe: '✋ אופציה ידנית — מ-WP Admin:',
+            detailHe: 'Settings → Insert Headers and Footers → מצאו את ה-<script> שמכיל gtag/js?id=AW-XXX → מחקו רק את הבלוק הזה. שמרו.',
+            severity: 'safe',
+        },
+    ]
+}
+
 export function analyzeTrackingConflicts(
     audit: TrackingAuditResult,
     ours: OurTrackingState,
@@ -402,6 +429,23 @@ export function analyzeTrackingConflicts(
  */
 function buildActionPlan(c: ConflictFinding): ActionPlanStep[] {
     const steps: ActionPlanStep[] = []
+
+    // Manual snippet conflicts (IHAF + similar injectors) — these have a
+    // distinct flow: surgical removal of just the conflicting <script>
+    // block, NOT a full plugin disable (IHAF often has dozens of other
+    // user snippets the user wants to keep).
+    const ihafSteps = buildManualSnippetActionPlan(c)
+    if (ihafSteps.length > 0) {
+        steps.push(...ihafSteps)
+        // Always finish with "re-run wizard to verify"
+        steps.push({
+            kind: 'wait',
+            titleHe: '🔄 לאחר תיקון — הריצו את ה-Wizard שוב לאימות',
+            detailHe: 'ה-Conflicts צריך לרדת ל-0 או רק info. רק אז כדאי לסמוך על נתוני המרות.',
+            severity: 'safe',
+        })
+        return steps
+    }
 
     // 1. Auto-fix button (if available)
     if (c.autoFixable && c.autoFixAction) {

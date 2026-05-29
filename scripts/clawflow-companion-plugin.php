@@ -2,8 +2,8 @@
 /**
  * Plugin Name: ClawFlow Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
- * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection + surgical resolution (robust plugin family deactivation).
- * Version: 1.4.2
+ * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection + surgical resolution + manual snippet (IHAF) detection.
+ * Version: 1.5.0
  * Author: ClawFlow by Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -380,7 +380,7 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.4.2',
+                'pluginVersion'       => '1.5.0',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'wooCommerceActive'   => class_exists('WooCommerce'),
                 'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,
@@ -577,6 +577,92 @@ add_action('rest_api_init', function () {
                 ];
             }
 
+            // ─── Insert Headers and Footers (IHAF) — common snippet injector ───
+            // Users paste tracking snippets here when they don't have a
+            // tracking plugin OR after uninstalling one. Detects AW-XXX,
+            // G-XXXX, fbq init in header/footer/body options.
+            if (is_plugin_active('insert-headers-and-footers/ihaf.php') ||
+                is_plugin_active('header-footer-code-manager/header-footer-code-manager.php') ||
+                is_plugin_active('wpcode-lite/wpcode.php')) {
+                $sends = [];
+                $snippetSources = [];
+                // IHAF stores HTML in wp_options 'ihaf_insert_header', '_body', '_footer'
+                $ihafKeys = ['ihaf_insert_header', 'ihaf_insert_body', 'ihaf_insert_footer'];
+                foreach ($ihafKeys as $ihKey) {
+                    $val = (string)get_option($ihKey, '');
+                    if ($val === '') continue;
+                    // Detect AW conversion id
+                    if (preg_match_all('/AW-(\d{6,})/i', $val, $m)) {
+                        foreach (array_unique($m[1]) as $awId) {
+                            $sends[] = ['platform' => 'google_ads', 'id' => 'AW-' . $awId, 'feature' => 'manual snippet in ' . $ihKey];
+                        }
+                        $snippetSources[] = $ihKey;
+                    }
+                    // Detect GA4 measurement id
+                    if (preg_match_all('/G-([A-Z0-9]{8,})/i', $val, $m)) {
+                        foreach (array_unique($m[1]) as $g4Id) {
+                            $sends[] = ['platform' => 'ga4', 'id' => 'G-' . $g4Id, 'feature' => 'manual snippet in ' . $ihKey];
+                        }
+                        $snippetSources[] = $ihKey;
+                    }
+                    // Detect Meta Pixel fbq init
+                    if (preg_match_all('/fbq\s*\(\s*[\'"]init[\'"]\s*,\s*[\'"](\d{10,})[\'"]/', $val, $m)) {
+                        foreach (array_unique($m[1]) as $pxId) {
+                            $sends[] = ['platform' => 'meta_pixel', 'id' => $pxId, 'feature' => 'manual fbq init in ' . $ihKey];
+                        }
+                        $snippetSources[] = $ihKey;
+                    }
+                }
+                if (!empty($sends)) {
+                    $detected[] = [
+                        'plugin' => 'insert-headers-and-footers',
+                        'name'   => 'Insert Headers and Footers (manual snippet injector)',
+                        'version'=> 'unknown',
+                        'active' => true,
+                        'sends'  => $sends,
+                        'resolutionHint' => 'WP Admin → Settings → Insert Headers and Footers → delete the tracking snippet from: ' . implode(', ', array_unique($snippetSources)),
+                    ];
+                }
+            }
+
+            // ─── Generic wp_options scan for residual AW/G-/fbq snippets ───
+            // Catches any plugin/option (not in our known list) storing a
+            // tracking ID. Lookups for "AW-XXXXX" pattern across ALL options.
+            global $wpdb;
+            $orphanedAw = $wpdb->get_results(
+                "SELECT option_name, LEFT(option_value, 400) AS preview
+                 FROM {$wpdb->options}
+                 WHERE option_value LIKE '%AW-1%'
+                       AND option_name NOT IN ('pys_google_options', 'pys_options', 'pys_core_settings',
+                                               'pys_woo_options', 'pys_facebook_options', 'gla_options',
+                                               'googlesitekit_ads_settings', 'googlesitekit_analytics-4_settings',
+                                               'ihaf_insert_header', 'ihaf_insert_body', 'ihaf_insert_footer',
+                                               'gtm4wp-options', 'clawflow_gtm_head_snippet',
+                                               'clawflow_gtm_body_snippet')
+                 LIMIT 50",
+                ARRAY_A
+            );
+            $orphanedSends = [];
+            $orphanedKeys = [];
+            foreach ((array)$orphanedAw as $row) {
+                if (preg_match_all('/AW-(\d{6,})/i', $row['preview'], $m)) {
+                    foreach (array_unique($m[1]) as $awId) {
+                        $orphanedSends[] = ['platform' => 'google_ads', 'id' => 'AW-' . $awId, 'feature' => 'wp_options.' . $row['option_name']];
+                        $orphanedKeys[] = $row['option_name'];
+                    }
+                }
+            }
+            if (!empty($orphanedSends)) {
+                $detected[] = [
+                    'plugin' => 'orphaned-wp-options',
+                    'name'   => 'Tracking snippets in wp_options (no plugin owns them)',
+                    'version'=> 'n/a',
+                    'active' => true,
+                    'sends'  => $orphanedSends,
+                    'resolutionHint' => 'These wp_options contain AW conversion IDs but no known plugin claims them: ' . implode(', ', array_unique($orphanedKeys)) . '. Manual cleanup via /clawflow/v1/delete-wp-option endpoint.',
+                ];
+            }
+
             // ─── Catch-all: scan all active plugins for tracking markers ───
             $allActive = (array)get_option('active_plugins', []);
             $knownTracking = ['pixelyoursite', 'google-listings-and-ads', 'monsterinsights', 'google-analytics-for-wordpress',
@@ -725,6 +811,34 @@ add_action('rest_api_init', function () {
                         unset($em['manual_v4_id']);
                         update_option('exactmetrics_settings', $em, false);
                         $changes[] = 'exactmetrics_settings.manual_v4_id cleared';
+                    }
+                }
+            }
+
+            // ── Insert Headers and Footers (IHAF) — surgical: remove AW/G-/fbq lines only ──
+            if (strpos($plugin, 'insert-headers-and-footers') !== false) {
+                $ihKeys = ['ihaf_insert_header', 'ihaf_insert_body', 'ihaf_insert_footer'];
+                foreach ($ihKeys as $ihKey) {
+                    $val = (string)get_option($ihKey, '');
+                    if ($val === '') continue;
+                    $orig = $val;
+                    if ($feature === 'google_ads' || $feature === 'all') {
+                        // Strip the entire <script> block(s) referencing gtag/js?id=AW-
+                        // Also strip the surrounding HTML comment + inline gtag() config.
+                        $val = preg_replace('#<!--\s*Global\s+site\s+tag.*?Google\s+Ads:\s*AW-\d+.*?-->#is', '', $val);
+                        $val = preg_replace('#<script[^>]+gtag/js\?id=AW-\d+[^>]*>\s*</script>#i', '', $val);
+                        $val = preg_replace('#<script>(?:(?!</script>).)*?gtag\s*\(\s*["\']config["\']\s*,\s*["\']AW-\d+["\'](?:(?!</script>).)*?</script>#is', '', $val);
+                    }
+                    if ($feature === 'ga4' || $feature === 'all') {
+                        $val = preg_replace('#<script[^>]+gtag/js\?id=G-[A-Z0-9]+[^>]*>\s*</script>#i', '', $val);
+                        $val = preg_replace('#<script>(?:(?!</script>).)*?gtag\s*\(\s*["\']config["\']\s*,\s*["\']G-[A-Z0-9]+["\'](?:(?!</script>).)*?</script>#is', '', $val);
+                    }
+                    if ($feature === 'meta_pixel' || $feature === 'all') {
+                        $val = preg_replace('#<script>(?:(?!</script>).)*?fbq\s*\(\s*[\'"]init[\'"]\s*,\s*[\'"]\d{10,}[\'"](?:(?!</script>).)*?</script>#is', '', $val);
+                    }
+                    if ($val !== $orig) {
+                        update_option($ihKey, trim($val), false);
+                        $changes[] = $ihKey . ' cleaned (stripped tracking snippet)';
                     }
                 }
             }
