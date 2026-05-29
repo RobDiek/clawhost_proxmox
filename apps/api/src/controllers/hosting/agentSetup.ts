@@ -6485,6 +6485,17 @@ export interface MonthlyTask {
     executionOutputId?: string             // agent_outputs row id when executor produces output
     childTaskIds?: string[]                // sub-tasks spawned during execution
 
+    // ── K20: Failure recovery ─────────────────────────────────────────────
+    // Set by monthlyTaskExecutor on a failed dispatch. `retryCount` tracks
+    // how many times we've already retried (0 = original attempt). `nextRetryAt`
+    // is the earliest time the failedTaskRetryRunner cron may re-fire this
+    // task. After MAX retries (=3) the executor spawns an investigate child
+    // task and stamps `retryChildTaskId` here so the dashboard can link to it.
+    retryCount?: number
+    nextRetryAt?: string                   // ISO timestamp
+    lastRetryError?: string                // most recent error message, ≤200 chars
+    retryChildTaskId?: string              // id of the spawned investigate task
+
     // ── Phase 4.3-N v8: outcome capture (read by next month's monthlyPlanGenerator) ──
     completedMethod?: 'automated' | 'manual'  // executor vs user-confirmed
     completedNote?: string                    // user-supplied note when manually completed

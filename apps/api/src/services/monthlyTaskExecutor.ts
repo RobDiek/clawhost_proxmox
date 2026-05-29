@@ -31,6 +31,7 @@
  */
 
 import { eq } from 'drizzle-orm'
+import { randomBytes } from 'crypto'
 import { db } from '@/db'
 import { instances, agentOutputs } from '@/db/schema'
 import type { MonthlyTask, MonthlyMarketingPlan } from '@/controllers/hosting/agentSetup'
@@ -78,8 +79,12 @@ export async function executeTask(
     if (taskIdx === -1) return { ok: false, outputDescription: '', error: `task ${taskId} not found in plan` }
 
     const task = plan.tasks[taskIdx]
-    if (task.status !== 'approved') {
-        return { ok: false, outputDescription: '', error: `task.status=${task.status}, expected 'approved' before execution` }
+    // K20: allow 'failed' as a re-entry status when retryCount < 3, so the
+    // failedTaskRetryRunner cron can re-dispatch without first flipping the
+    // status (which would create a confusing 'approved' intermediate state).
+    const isRetryAttempt = task.status === 'failed' && ((task as any).retryCount || 0) < 3
+    if (task.status !== 'approved' && !isRetryAttempt) {
+        return { ok: false, outputDescription: '', error: `task.status=${task.status}, expected 'approved' or 'failed' with retries remaining` }
     }
 
     // Check dependencies
@@ -140,17 +145,75 @@ export async function executeTask(
     //   ok:false                      → 'failed'
     const finalStatus: any = result.awaitingManual ? 'awaiting_manual' : (result.ok ? 'completed' : 'failed')
     const completedAt = new Date().toISOString()
+    // K20: failure retry book-keeping. Computed BEFORE the mutate so we can
+    // reason about whether to spawn an investigate child task at max retries.
+    const MAX_RETRIES = 3
+    const RETRY_BACKOFF_HOURS = [1, 4, 24]   // hours after each failure
+    let spawnedChildTaskId: string | undefined
+    let isFinalFailure = false
+    if (!result.ok) {
+        const prevRetryCount = (task as any).retryCount || 0
+        const nextRetryCount = prevRetryCount + 1
+        if (nextRetryCount >= MAX_RETRIES) {
+            isFinalFailure = true
+            spawnedChildTaskId = 'tsk_inv_' + randomBytes(5).toString('hex')
+        }
+    }
     await mutateResearchData(agent, instanceId, (rd2: any) => {
         const plan2: MonthlyMarketingPlan = rd2.monthlyPlan
         if (plan2 && plan2.tasks[taskIdx]) {
             plan2.tasks[taskIdx].status = finalStatus
             plan2.tasks[taskIdx].completedAt = completedAt
-            if (!result.ok) plan2.tasks[taskIdx].failureReason = result.error
+            if (!result.ok) {
+                plan2.tasks[taskIdx].failureReason = result.error
+                // K20: increment retry counters + schedule next attempt OR spawn
+                // an investigate child task on final failure.
+                const cur: any = plan2.tasks[taskIdx]
+                cur.retryCount = (cur.retryCount || 0) + 1
+                cur.lastRetryError = String(result.error || '').slice(0, 200)
+                if (cur.retryCount < MAX_RETRIES) {
+                    const hours = RETRY_BACKOFF_HOURS[cur.retryCount - 1] || 24
+                    cur.nextRetryAt = new Date(Date.now() + hours * 3600 * 1000).toISOString()
+                } else if (spawnedChildTaskId) {
+                    cur.retryChildTaskId = spawnedChildTaskId
+                    cur.childTaskIds = Array.isArray(cur.childTaskIds) ? [...cur.childTaskIds, spawnedChildTaskId] : [spawnedChildTaskId]
+                    // Spawn the investigate task inline so monthlyReauditRunner sees it next month
+                    // and the dashboard can link to it immediately.
+                    const investigateTask: MonthlyTask = {
+                        id: spawnedChildTaskId,
+                        type: 'measurement_gap',
+                        title: `חקירת תקלה חוזרת: ${(cur.title || '').slice(0, 60)}`,
+                        summary: `המשימה נכשלה ${MAX_RETRIES} פעמים. נדרשת בדיקה ידנית של הסיבה לפני ניסיון נוסף.`,
+                        channel: cur.channel || 'cross',
+                        priority: cur.priority === 'P0' ? 'P0' : 'P1',
+                        estimatedEffort: '1_hour',
+                        expectedImpact: {
+                            metric: 'other',
+                            value: 1,
+                            horizon: '7d',
+                            confidence: 'high',
+                            rationale: 'חקירת שורש לכשל חוזר במשימה האב',
+                        },
+                        sources: [{ type: 'other', ref: `parent_task:${cur.id}`, excerpt: `שגיאה אחרונה: ${String(result.error || '').slice(0, 100)}` }],
+                        dependsOn: [],
+                        actionPlan: [
+                            { step: `בדקו את ה-error log עבור המשימה ${cur.id}`, automated: false, estimatedMinutes: 10 },
+                            { step: 'אבחנו אם השגיאה ניתנת לפתרון אוטומטי (rate limit / network) או דורשת תיקון הגדרות', automated: false, estimatedMinutes: 15 },
+                            { step: 'אם ניתן לפתרון — חזרו לכרטיס המקור ולחצו "נסה שוב". אחרת — תקנו את ההגדרות הבסיסיות ויצרו משימה חדשה', automated: false, estimatedMinutes: 20 },
+                            { step: 'תעדו את שורש הבעיה לטובת חקירה עתידית של דפוסי כשל', automated: false, estimatedMinutes: 5 },
+                        ],
+                        status: 'proposed',
+                        proposedAt: new Date().toISOString(),
+                        scheduledFor: new Date().toISOString().slice(0, 10),
+                        weekOfMonth: cur.weekOfMonth,
+                    }
+                    plan2.tasks.push(investigateTask)
+                }
+            }
             // Phase 4.3-N v8: persistent executionOutcome — what was actually done.
             // Read by NEXT month's monthlyPlanGenerator to inform "stop / replicate / iterate"
-            // decisions. actualImpact (real Google Ads metrics delta) is populated later by a
-            // separate cron 7-30 days after completion (TaskOutcomeAttribution — Phase 4.3-O,
-            // not in this release).
+            // decisions. actualImpact (real Google Ads metrics delta) is populated later by
+            // K18's TaskOutcomeAttribution cron (services/taskOutcomeAttribution.ts).
             ;(plan2.tasks[taskIdx] as any).executionOutcome = {
                 completedAt,
                 completedMethod: result.awaitingManual ? 'auto_pre_provision_manual_followup' : 'automated',
@@ -161,6 +224,31 @@ export async function executeTask(
         }
         return rd2
     })
+
+    // K20: Telegram alert on failure. Two levels of severity:
+    //   transient (retryCount < MAX): low-priority info, automatic retry scheduled
+    //   final (retryCount = MAX):     alert with link to spawned investigate task
+    if (!result.ok) {
+        try {
+            const telegram = (await import('./telegram')).default
+            const titleShort = (task.title || '').slice(0, 60)
+            const errShort = String(result.error || 'unknown').slice(0, 120)
+            if (isFinalFailure) {
+                const msg = `🚨 *משימה נכשלה ${MAX_RETRIES} פעמים* · ${instanceId}\n\n` +
+                    `${titleShort}\n\n` +
+                    `שגיאה אחרונה: _${errShort}_\n\n` +
+                    `נוצרה משימת חקירה חדשה: ${spawnedChildTaskId || ''}\n` +
+                    `_פתחו את הדאשבורד כדי לחקור או לנסות מחדש ידנית_`
+                await telegram.alertAdmin(msg)
+            } else {
+                const retryNum = ((task as any).retryCount || 0) + 1
+                const msg = `❌ ${titleShort} נכשלה (ניסיון ${retryNum}/${MAX_RETRIES}) · ${instanceId}\n_${errShort}_\nניסיון חוזר אוטומטי יבוצע בקרוב.`
+                await telegram.alertAdmin(msg)
+            }
+        } catch (err) {
+            console.warn('[monthlyTaskExecutor] K20 failure alert failed:', (err as Error).message)
+        }
+    }
 
     // Update per-task agent_outputs row
     if (task.executionOutputId) {

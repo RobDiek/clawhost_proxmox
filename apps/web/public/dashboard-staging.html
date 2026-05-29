@@ -6578,6 +6578,17 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
       return depTask && depTask.status !== 'completed';
     });
   }
+  // K20: pull retry book-keeping from the linked plan task so the queue row
+  // can render "ניסיון N/3" beside the failed status. Falls back to nothing
+  // for non-failed or legacy tasks without retry tracking.
+  function retryBookkeepingFor(t) {
+    var pt = _planTasksById[t.taskId];
+    if (!pt) return null;
+    var retryCount = Number(pt.retryCount || 0);
+    var max = 3;
+    var hasRetry = pt.status === 'failed' && retryCount > 0;
+    return hasRetry ? { count: retryCount, max: max, exhausted: retryCount >= max, nextRetryAt: pt.nextRetryAt, lastError: pt.lastRetryError, childTaskId: pt.retryChildTaskId } : null;
+  }
 
   // SVG icons matching sidebar style
   var statusIcons = {
@@ -6631,12 +6642,34 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
           : '<button class="aq-btn edit" onclick="event.stopPropagation();editTask(\'' + t.id + '\')">תקנו</button>') +
         '<button class="aq-btn reject" onclick="event.stopPropagation();rejectTask(\'' + t.id + '\')">דחו</button>' +
       '</div>';
+    } else if (t.status === 'failed' && retryInfo && !retryInfo.exhausted && !aqK19BulkMode) {
+      // K20 — failed but retries remaining → manual "retry now" button bypasses the
+      // cron backoff and re-fires the executor immediately.
+      actionsHtml = '<div class="aq-actions">' +
+        '<button class="aq-btn approve" onclick="event.stopPropagation();retryTaskNow(\'' + t.id + '\')" style="background:#FEF3C7;color:#92400E;border-color:#FDE68A" title="הפעלת ניסיון מיידי">🔁 נסה שוב</button>' +
+      '</div>';
+    } else if (t.status === 'failed' && retryInfo && retryInfo.exhausted && retryInfo.childTaskId && !aqK19BulkMode) {
+      // K20 — escalated: a child investigate task exists, link to it.
+      actionsHtml = '<div class="aq-actions">' +
+        '<button class="aq-btn edit" onclick="event.stopPropagation();showToast(\'משימת חקירה: \' + ' + JSON.stringify(retryInfo.childTaskId) + ', \'info\')" style="background:#FEE2E2;color:#991B1B;border-color:#FCA5A5" title="ראו את משימת החקירה">🔎 חקירה</button>' +
+      '</div>';
     }
     // K19 — deps badge: "ממתינה ל-N" when this task has un-completed deps.
     var waitingOn = depsWaitingOn(t);
     var depsBadge = waitingOn.length > 0
       ? '<span style="font-size:0.68rem;font-weight:600;padding:2px 7px;border-radius:999px;background:#FEF3C7;color:#78350F;border:1px solid #FDE68A;margin-inline-end:4px" title="' + waitingOn.length + ' תלויות שטרם הושלמו: ' + waitingOn.join(", ") + '">⏳ ממתינה ל-' + waitingOn.length + '</span>'
       : '';
+    // K20 — retry badge + "retry now" button on failed tasks.
+    var retryInfo = retryBookkeepingFor(t);
+    var retryBadge = '';
+    if (retryInfo) {
+      var badgeColor = retryInfo.exhausted ? '#991B1B' : '#92400E';
+      var badgeBg = retryInfo.exhausted ? '#FEE2E2' : '#FEF3C7';
+      var badgeTitle = retryInfo.exhausted
+        ? 'מוצתה מכסת הניסיונות (' + retryInfo.max + '). נוצרה משימת חקירה.'
+        : 'ניסיון ' + retryInfo.count + ' מתוך ' + retryInfo.max + (retryInfo.nextRetryAt ? ' · הניסיון הבא: ' + new Date(retryInfo.nextRetryAt).toLocaleString('he-IL') : '');
+      retryBadge = '<span style="font-size:0.68rem;font-weight:600;padding:2px 7px;border-radius:999px;background:' + badgeBg + ';color:' + badgeColor + ';border:1px solid ' + badgeColor + '40;margin-inline-end:4px" title="' + badgeTitle.replace(/"/g, '&quot;') + '">🔁 ' + retryInfo.count + '/' + retryInfo.max + '</span>';
+    }
     // K19 — bulk checkbox column. Click toggles selection; doesn't open popup.
     var isSelected = !!aqK19BulkSelected[t.id];
     var bulkCheckHtml = aqK19BulkMode
@@ -6650,7 +6683,7 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
       bulkCheckHtml +
       '<div class="aq-icon ' + iconClass + '">' + (statusIcons[t.status] || statusIcons.pending) + '</div>' +
       '<div class="aq-body">' +
-        '<div class="aq-title">' + depsBadge + t.title + '</div>' +
+        '<div class="aq-title">' + depsBadge + retryBadge + t.title + '</div>' +
         '<div class="aq-agent">' + t.agent + '</div>' +
       '</div>' +
       '<div class="aq-meta" style="display:flex;align-items:center;gap:6px">' +
@@ -10836,6 +10869,24 @@ function approveTask(taskId) {
   localStorage.setItem('cf_task_statuses_' + instanceId, JSON.stringify(statuses));
   showToast('משימה אושרה', 'success');
   renderApprovalQueue();
+}
+
+// K20 — manual retry for failed monthly_task. Outputs id (e.g. mt_xxx),
+// NOT the inner taskId. Server resolves the linked plan task and bypasses
+// the cron backoff schedule.
+function retryTaskNow(outputId) {
+  showToast('מפעילים ניסיון מיידי...', 'info');
+  apiFetch('/hosting/instances/' + instanceId + '/outputs/' + outputId + '/retry-now', { method: 'POST' })
+    .then(function(r) {
+      if (!r.success) throw new Error(r.message || 'הפעלה מחדש נכשלה');
+      var resultOk = r.data && r.data.ok;
+      showToast(resultOk ? 'משימה הופעלה מחדש בהצלחה ✓' : 'נכשלה — תוזמן ניסיון חוזר אוטומטי', resultOk ? 'success' : 'warning');
+      setTimeout(function() {
+        renderApprovalQueue();
+        if (typeof renderMonthlyPlanCard === 'function') renderMonthlyPlanCard();
+      }, 800);
+    })
+    .catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
 }
 
 function editTask(taskId) {

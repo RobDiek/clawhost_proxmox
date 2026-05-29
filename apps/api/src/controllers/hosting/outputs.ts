@@ -2341,6 +2341,55 @@ export const rejectOutput = async (c: Context<HonoEnv>) => {
     }
 }
 
+// ── POST /hosting/instances/:id/outputs/:outputId/retry-now ──
+// K20 — manual retry for a failed monthly_task. Bypasses the cron-driven
+// backoff schedule (1h/4h/24h) and re-fires the executor immediately.
+// Honors the 3-retry cap — beyond that an investigate child task already
+// exists and the user should look at that instead.
+export const retryFailedTaskNow = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const outputId = c.req.param('outputId')
+        const userId = c.get('userId')
+
+        const [output] = await db.select().from(agentOutputs)
+            .where(and(eq(agentOutputs.id, outputId), eq(agentOutputs.instanceId, instanceId)))
+        if (!output) return fail(c, 'Output not found', 404)
+        if (output.outputType !== 'monthly_task') return fail(c, 'Not a monthly_task', 400)
+        const meta = output.metadata as Record<string, unknown> | null
+        const taskId = meta?.taskId as string | undefined
+        if (!taskId) return fail(c, 'Output has no linked taskId', 400)
+
+        // Reset nextRetryAt to now so the next executeTask call dispatches
+        // immediately (executor's K20 catch path will set a fresh schedule
+        // if the retry also fails).
+        const { resolveAgentById, resolvePrimaryAgent, mutateResearchData } =
+            await import('@/services/agentContext')
+        const agent = output.agentId
+            ? (await resolveAgentById(instanceId, output.agentId)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+        await mutateResearchData(agent, instanceId, (rd: any) => {
+            const plan = rd?.monthlyPlan
+            if (!plan || !Array.isArray(plan.tasks)) return rd
+            const idx = plan.tasks.findIndex((t: any) => t.id === taskId)
+            if (idx === -1) return rd
+            const task = plan.tasks[idx]
+            if (task.status !== 'failed') return rd   // only retry failed tasks
+            if ((task.retryCount || 0) >= 3) return rd   // already escalated
+            task.nextRetryAt = new Date().toISOString()
+            return rd
+        })
+
+        const { executeTask } = await import('@/services/monthlyTaskExecutor')
+        const result = await executeTask(instanceId, taskId, output.agentId || null)
+        console.log(`Retry-now by ${userId} on ${outputId} (taskId=${taskId}): ok=${result.ok}`)
+        return ok(c, { ok: result.ok, error: result.error }, result.ok ? 'משימה הופעלה מחדש בהצלחה' : 'הפעלה מחדש נכשלה — תוזמן ניסיון אוטומטי')
+    } catch (err) {
+        console.error('retryFailedTaskNow error:', err)
+        return fail(c, 'Failed to retry', 500)
+    }
+}
+
 // ── POST /hosting/instances/:id/outputs/bulk-approve ──
 // K19 — bulk approve N pending_review outputs in one click. Body:
 //   { outputIds: ["mt_xxx", "mt_yyy", ...] }   max 100 per call

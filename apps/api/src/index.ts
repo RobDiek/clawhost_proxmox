@@ -156,6 +156,14 @@ import { runTaskOutcomeAttribution } from '@/services/taskOutcomeAttribution'
 setInterval(() => { runTaskOutcomeAttribution().catch(err => console.error('[taskOutcomeAttribution] cron error:', err)) }, 24 * 3600 * 1000)
 setTimeout(() => { runTaskOutcomeAttribution().catch(err => console.error('[taskOutcomeAttribution] first run error:', err)) }, 180 * 1000)
 
+// K20 — Failed Task Retry Runner: every 30 min, re-fires failed monthly_task
+// entries whose nextRetryAt has elapsed and retryCount < 3. Exponential
+// backoff (1h, 4h, 24h) is set by monthlyTaskExecutor's catch block. After
+// 3 retries the executor spawns an investigate child task and stops retrying.
+import { runFailedTaskRetry } from '@/services/failedTaskRetryRunner'
+setInterval(() => { runFailedTaskRetry().catch(err => console.error('[failedTaskRetry] cron error:', err)) }, 30 * 60 * 1000)
+setTimeout(() => { runFailedTaskRetry().catch(err => console.error('[failedTaskRetry] first run error:', err)) }, 240 * 1000)
+
 // Trial manager — check trial expiry every hour
 import { runTrialManager } from '@/jobs/trialManager'
 setInterval(runTrialManager, 3600000) // every hour

@@ -189,6 +189,7 @@ import {
     approveOutput,
     bulkApproveOutputs,
     bulkRejectOutputs,
+    retryFailedTaskNow,
     markManualDone,
     sgtmConfigure,
     gtmFreshStack,
@@ -822,6 +823,10 @@ app.patch('/instances/:id/outputs/:outputId/reject', rejectOutput)
 // Body: { outputIds: ["mt_xxx", ...], reason?: string }   max 100
 app.post('/instances/:id/outputs/bulk-approve', bulkApproveOutputs)
 app.post('/instances/:id/outputs/bulk-reject', bulkRejectOutputs)
+// K20 — manual retry for a failed monthly_task. Bypasses cron backoff,
+// re-fires the executor immediately. Capped at 3 retries (after which
+// an investigate child task already exists).
+app.post('/instances/:id/outputs/:outputId/retry-now', retryFailedTaskNow)
 app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)
