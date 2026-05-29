@@ -179,6 +179,11 @@ export interface AdsSafetyAuditInput {
     developerToken: string
     // Optional: pulled from research_data.results.paid_audit
     convValueQualitySubscore?: number
+    // K12-fix: tenant scope. When operatingCustomerId is shared across multiple
+    // brands (MCC sub-account), pass the explicit campaignIds owned by THIS
+    // tenant (from googleAdsConfig.scope.campaignIds). Audit ignores other
+    // campaigns + auto-fix actions never touch them.
+    scopedCampaignIds?: string[]
 }
 
 export async function auditGoogleAdsSafety(opts: AdsSafetyAuditInput): Promise<AdsSafetyReport> {
@@ -218,12 +223,22 @@ export async function auditGoogleAdsSafety(opts: AdsSafetyAuditInput): Promise<A
         return { findings, summary: '⚠ Audit incomplete', counts: countFindings(findings), cleanState: false, rawSnapshot: snap }
     }
 
+    // Build scope filter set if provided. Empty/missing = audit ALL enabled
+    // campaigns (single-tenant operating customer). Non-empty = only audit
+    // those exact campaignIds (MCC sub-account shared across brands).
+    const scopeSet = opts.scopedCampaignIds && opts.scopedCampaignIds.length > 0
+        ? new Set(opts.scopedCampaignIds.map(String))
+        : null
+
     const enabledCampaigns: any[] = []
     for (const row of campaigns) {
         const c = row.campaign || {}
         if (String(c.status) !== 'ENABLED') continue
+        const campId = String(c.id || '')
+        // K12-fix: tenant scope filter
+        if (scopeSet && !scopeSet.has(campId)) continue
         enabledCampaigns.push({
-            id: String(c.id || ''),
+            id: campId,
             name: String(c.name || ''),
             bidding: String(c.biddingStrategyType || c.bidding_strategy_type || ''),
             channel: String(c.advertisingChannelType || c.advertising_channel_type || ''),
@@ -406,6 +421,10 @@ export async function createAndAttachNegativesList(opts: {
     developerToken: string
     keywords: string[]
     sharedSetName?: string
+    // K12-fix: only attach to these campaigns (tenant-scoped). When empty,
+    // attaches to all enabled Search campaigns in the operating customer
+    // (single-tenant mode).
+    scopedCampaignIds?: string[]
 }): Promise<{ sharedSetId?: string; created: boolean; keywordsAdded: number; campaignsAttached: number; errors: string[] }> {
     const result = {
         sharedSetId: undefined as string | undefined,
@@ -478,8 +497,11 @@ export async function createAndAttachNegativesList(opts: {
         result.errors.push(`add keywords: ${(e as Error).message.slice(0, 200)}`)
     }
 
-    // 3. Attach to all enabled Search campaigns
+    // 3. Attach to scoped enabled Search campaigns
     try {
+        const scopeSet = opts.scopedCampaignIds && opts.scopedCampaignIds.length > 0
+            ? new Set(opts.scopedCampaignIds.map(String))
+            : null
         const campaigns = await gadsQuery(
             opts.customerId,
             opts.loginCustomerId,
@@ -488,7 +510,10 @@ export async function createAndAttachNegativesList(opts: {
             `SELECT campaign.id FROM campaign
              WHERE campaign.status = 'ENABLED' AND campaign.advertising_channel_type = 'SEARCH'`,
         )
-        const ops = campaigns.map(r => ({
+        const filtered = scopeSet
+            ? campaigns.filter(r => scopeSet.has(String(r.campaign?.id || r.campaign?.['id'] || '')))
+            : campaigns
+        const ops = filtered.map(r => ({
             create: {
                 campaign: `customers/${opts.customerId}/campaigns/${r.campaign?.id || r.campaign?.['id']}`,
                 sharedSet: `customers/${opts.customerId}/sharedSets/${result.sharedSetId}`,

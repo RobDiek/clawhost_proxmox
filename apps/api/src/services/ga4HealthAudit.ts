@@ -24,7 +24,7 @@
  *   6. Google Ads link — present + active? Surface only.
  */
 
-import { listKeyEvents, listGa4Properties } from './ga4Admin'
+import { listKeyEvents, listGa4Properties, listGa4DataStreams } from './ga4Admin'
 
 const GA4_ADMIN_BASE = 'https://analyticsadmin.googleapis.com/v1beta'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
@@ -110,15 +110,27 @@ export interface Ga4HealthReport {
 
 export interface Ga4HealthAuditInput {
     tokens: GoogleTokens
-    propertyId?: string              // if known. Otherwise we'll pick best-match by siteDomain
+    propertyId?: string              // if known. Otherwise resolution priority:
+                                     //   1. measurementId → property containing that stream
+                                     //   2. siteDomain fuzzy match
+                                     //   3. fallback to props[0]
     siteDomain?: string
+    // K12-fix: when set, scan dataStreams across all GA4 properties for one
+    // that has THIS measurementId. Locks audit to the exact property our GTM
+    // is wired to — avoids cross-tenant property leaks when multiple GA4
+    // properties are accessible on the OAuth token.
+    measurementId?: string
 }
 
 export async function auditGa4Health(opts: Ga4HealthAuditInput): Promise<Ga4HealthReport> {
     const findings: Ga4Finding[] = []
     const snap: Ga4HealthReport['rawSnapshot'] = {}
 
-    // Resolve property
+    // Resolve property — priority:
+    //   1. explicit propertyId
+    //   2. measurementId → scan dataStreams across properties (deterministic)
+    //   3. siteDomain fuzzy displayName match
+    //   4. fallback props[0]
     let propertyId = opts.propertyId
     if (!propertyId) {
         try {
@@ -134,14 +146,31 @@ export async function auditGa4Health(opts: Ga4HealthAuditInput): Promise<Ga4Heal
                 })
                 return finalize(findings, snap)
             }
-            // Heuristic: pick by domain match if possible
-            propertyId = props[0].propertyId
-            if (opts.siteDomain) {
-                const target = opts.siteDomain.replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase()
+
+            // K12-fix: prefer measurementId-based resolution. Locks audit to
+            // the property our GTM is wired to (cross-tenant property leak
+            // prevention when OAuth user manages multiple brands).
+            if (opts.measurementId) {
                 for (const p of props) {
-                    if (p.displayName.toLowerCase().includes(target.split('.')[0])) {
-                        propertyId = p.propertyId
-                        break
+                    try {
+                        const streams = await listGa4DataStreams(opts.tokens, p.propertyId)
+                        if (streams.some(s => s.measurementId === opts.measurementId)) {
+                            propertyId = p.propertyId
+                            break
+                        }
+                    } catch { /* skip property */ }
+                }
+            }
+
+            if (!propertyId) {
+                propertyId = props[0].propertyId
+                if (opts.siteDomain) {
+                    const target = opts.siteDomain.replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase()
+                    for (const p of props) {
+                        if (p.displayName.toLowerCase().includes(target.split('.')[0])) {
+                            propertyId = p.propertyId
+                            break
+                        }
                     }
                 }
             }

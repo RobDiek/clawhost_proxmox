@@ -1066,12 +1066,19 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                     }
                 } catch { /* skip */ }
                 const { auditGoogleAdsSafety } = await import('@/services/googleAdsSafetyAudit')
+                // K12-fix: pass scope.campaignIds so MCC sub-account with
+                // multiple brands doesn't leak Storage/Moving Station campaigns
+                // into Packing Station's audit + auto-fix actions.
+                const scopedCampaignIds: string[] = Array.isArray(adsCfg.scope?.campaignIds)
+                    ? adsCfg.scope.campaignIds.map(String)
+                    : []
                 adsSafety = await auditGoogleAdsSafety({
                     operatingCustomerId,
                     loginCustomerId,
                     developerToken: String(adsCfg.developerToken),
                     tokens: { refreshToken: tokens.refreshToken },
                     convValueQualitySubscore,
+                    scopedCampaignIds,
                 })
                 chainSteps.push({
                     step: `Google Ads safety: ${adsSafety.summary}`,
@@ -1099,9 +1106,13 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
         try {
             if (autoMeasurementId && tokens.refreshToken) {
                 const { auditGa4Health } = await import('@/services/ga4HealthAudit')
+                // K12-fix: pass measurementId so audit locks to the property
+                // our GTM is actually wired to (no fuzzy displayName matches
+                // landing on a sibling-brand property).
                 ga4Health = await auditGa4Health({
                     tokens: { refreshToken: tokens.refreshToken },
                     siteDomain,
+                    measurementId: autoMeasurementId,
                 })
                 chainSteps.push({
                     step: `GA4 health: ${ga4Health.summary}`,
@@ -1351,12 +1362,17 @@ export const applySafetyFix = async (c: Context<HonoEnv>) => {
             const operatingCustomerId = String(ads.scope?.operatingCustomerId || ads.customerId || '').replace(/\D/g, '')
             const loginCustomerId = String(ads.loginCustomerId || ads.customerId || '').replace(/\D/g, '')
             const { createAndAttachNegativesList } = await import('@/services/googleAdsSafetyAudit')
+            // K12-fix: only attach to tenant-scoped campaigns
+            const scopedCampaignIds: string[] = Array.isArray(ads.scope?.campaignIds)
+                ? ads.scope.campaignIds.map(String)
+                : []
             result = await createAndAttachNegativesList({
                 customerId: operatingCustomerId,
                 loginCustomerId,
                 tokens: { refreshToken: tokens.refreshToken },
                 developerToken: String(ads.developerToken),
                 keywords: payload.keywords || [],
+                scopedCampaignIds,
             })
         } else if (kind === 'set_data_retention_14_months') {
             const { setDataRetention14Months } = await import('@/services/ga4HealthAudit')
