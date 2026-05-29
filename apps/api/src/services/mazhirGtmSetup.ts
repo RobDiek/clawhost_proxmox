@@ -132,11 +132,21 @@ export interface GtmConversionConfig {
     defaultCurrency: string              // 'ILS'
 }
 
+export interface MetaPixelConfig {
+    pixelId: string                      // e.g. "1234567890"
+    events: Array<'Purchase' | 'Lead' | 'AddToCart' | 'InitiateCheckout' | 'ViewContent' | 'CompleteRegistration'>
+    // Map of GTM customEvent actionKey → Meta event name. Reuses the same
+    // customEvent triggers we created for awct/gaawe (one trigger per
+    // actionKey). E.g. {'purchase':'Purchase','generate_lead':'Lead'}.
+    actionKeyToEventName: Record<string, string>
+}
+
 export interface GtmAutoSetupRequest {
     target: GtmTarget
     measurementId?: string               // GA4 G-...
     conversions: GtmConversionConfig[]
     enhancedConversions: boolean         // wire userProperties (email/phone) on awct tags
+    metaPixel?: MetaPixelConfig          // Meta Pixel base init + per-event Custom HTML tags
 }
 
 export interface GtmAutoSetupResult {
@@ -587,6 +597,138 @@ export async function autoSetupGtmContainer(
         }
     }
 
+    // ── 7.6. Meta Pixel base + per-event tags — Phase 2026.02 Block 6 K6 ──
+    //
+    // Custom HTML strategy (not the Facebook Pixel community gallery
+    // template — that requires manual gallery import). Two parts:
+    //
+    //   A) "Meta Pixel — Base Init" on All Pages — fbq.init + PageView
+    //   B) "Meta Pixel Event — <Event>" on the matching customEvent trigger
+    //      (REUSES the same triggers we built for awct/gaawe; one Custom
+    //      HTML per Meta event mapped from actionKey via
+    //      metaPixel.actionKeyToEventName)
+    //
+    // Idempotency: detect existing fbq init by HTML content (any HTML tag
+    // containing `fbq('init',` with our pixelId) — skip if user already
+    // has one. Same for per-event tags (HTML containing `fbq('track', '<event>'`).
+    if (req.metaPixel?.pixelId) {
+        const px = req.metaPixel
+        const baseName = 'Meta Pixel — Base Init (Mazhir)'
+        const existingBase = findTagByName(baseName) ||
+            existing.tags.find((t: any) => {
+                if (t.type !== 'html') return false
+                const html: string = ((t.parameter || []).find((p: any) => p.key === 'html')?.value) || ''
+                return /fbq\s*\(\s*['"]init['"]/i.test(html) && html.includes(px.pixelId)
+            })
+        if (!existingBase) {
+            const baseHtml = `<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '${px.pixelId}');
+fbq('track', 'PageView');
+</script>`
+            try {
+                const tag = await gtmFetch(`${wsBase}/tags`, accessToken, 'POST', {
+                    name: baseName,
+                    type: 'html',
+                    parameter: [{ type: 'template', key: 'html', value: baseHtml }],
+                    firingTriggerId: [ALL_PAGES_TRIGGER_ID],
+                    // Fire ONLY after consent_update (so the pixel respects Consent Mode).
+                    // GTM auto-blocks tags via consent settings if user wires CMP.
+                })
+                result.created.push({ type: 'tag:meta_pixel_base', name: baseName, id: String(tag.tagId) })
+            } catch (err) {
+                result.errors.push({ step: 'meta_pixel_base', error: (err as Error).message })
+            }
+        } else {
+            result.skipped.push({
+                type: 'tag:meta_pixel_base',
+                name: existingBase.name,
+                reason: existingBase.name === baseName ? 'already exists' : `user already has fbq init tag for pixel ${px.pixelId} — reusing`,
+            })
+        }
+
+        // B) Per-event Custom HTML tags. One per Meta event in px.events.
+        // Triggers: reuse customEvent triggers from triggerIdByAction (built for
+        // awct/gaawe per actionKey). Each Meta event tag fires on its mapped
+        // actionKey trigger.
+        for (const event of px.events) {
+            // Find which actionKey maps to this Meta event
+            const actionKey = Object.entries(px.actionKeyToEventName).find(([_k, v]) => v === event)?.[0]
+            if (!actionKey) {
+                result.skipped.push({ type: 'tag:meta_pixel_event', name: event, reason: 'no actionKey mapped to this event' })
+                continue
+            }
+            const trigId = triggerIdByAction[actionKey]
+            if (!trigId) {
+                // No trigger yet — could happen if this event isn't in req.conversions.
+                // Create a customEvent trigger now (lazy), so Meta Pixel works
+                // even for events without a matching Google Ads conversion action
+                // (e.g. AddToCart, InitiateCheckout — usually no Ads action).
+                try {
+                    const trig = await gtmFetch(`${wsBase}/triggers`, accessToken, 'POST', {
+                        name: `Mazhir CE — ${actionKey}`,
+                        type: 'customEvent',
+                        customEventFilter: [{
+                            type: 'equals',
+                            parameter: [
+                                { type: 'template', key: 'arg0', value: '{{_event}}' },
+                                { type: 'template', key: 'arg1', value: actionKey },
+                            ],
+                        }],
+                    })
+                    triggerIdByAction[actionKey] = String(trig.triggerId)
+                    result.created.push({ type: 'trigger:customEvent', name: `Mazhir CE — ${actionKey}`, id: String(trig.triggerId) })
+                } catch (err) {
+                    result.errors.push({ step: `meta_pixel:${event}:trigger`, error: (err as Error).message })
+                    continue
+                }
+            }
+            const tagName = `Meta Pixel — ${event} (Mazhir)`
+            const existingPxEvent = findTagByName(tagName) ||
+                existing.tags.find((t: any) => {
+                    if (t.type !== 'html') return false
+                    const html: string = ((t.parameter || []).find((p: any) => p.key === 'html')?.value) || ''
+                    return new RegExp(`fbq\\s*\\(\\s*['"]track['"]\\s*,\\s*['"]${event}['"]`, 'i').test(html) &&
+                        html.includes(px.pixelId)
+                })
+            if (existingPxEvent) {
+                result.skipped.push({
+                    type: 'tag:meta_pixel_event',
+                    name: existingPxEvent.name,
+                    reason: existingPxEvent.name === tagName ? 'already exists' : `user already has fbq track ${event} tag — reusing`,
+                })
+                continue
+            }
+            // Build event-specific Custom HTML. Purchase/InitiateCheckout/AddToCart
+            // include value+currency from DLV references (matches the dataLayer
+            // payload our companion plugin pushes for WooCommerce).
+            const includesValue = event === 'Purchase' || event === 'InitiateCheckout' || event === 'AddToCart'
+            const params = includesValue
+                ? `{value: parseFloat({{DLV - lead_value}}) || 0, currency: 'ILS'${event === 'Purchase' ? `, content_ids: [], num_items: 1` : ''}}`
+                : '{}'
+            const eventHtml = `<script>
+if (typeof fbq === 'function') {
+  fbq('track', '${event}', ${params});
+}
+</script>`
+            try {
+                const tag = await gtmFetch(`${wsBase}/tags`, accessToken, 'POST', {
+                    name: tagName,
+                    type: 'html',
+                    parameter: [{ type: 'template', key: 'html', value: eventHtml }],
+                    firingTriggerId: [triggerIdByAction[actionKey]],
+                })
+                result.created.push({ type: 'tag:meta_pixel_event', name: tagName, id: String(tag.tagId) })
+            } catch (err) {
+                result.errors.push({ step: `meta_pixel:${event}`, error: (err as Error).message })
+            }
+        }
+    }
+
     // ── 7.5. Consent Mode v2 — Phase 2026.02 Block 6 ──
     // Two tags:
     //   A) "Consent Default - Denied" — fires on Consent Initialization
@@ -800,6 +942,127 @@ gtag('consent', 'update', {
     return result
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// Phase 2026.02 Block 6 K6 — Meta Pixel auto-discovery from Meta Graph API
+// ═══════════════════════════════════════════════════════════════════════
+//
+// Given Meta tokens with adAccountId, list pixels owned by the account
+// and select the best match by site domain. Used by gtmFreshStack to
+// auto-populate GtmAutoSetupRequest.metaPixel without the user typing
+// the pixel ID manually.
+
+export interface MetaPixelDiscoveryResult {
+    pixelId?: string
+    pixelName?: string
+    matched?: 'domain_match' | 'first_active' | 'fallback'
+    diagnostic: {
+        pixelCount: number
+        adAccountId?: string
+        error?: string
+        pixelsListed: Array<{ id: string; name: string }>
+    }
+}
+
+export async function findMetaPixelForAccount(
+    metaTokens: { accessToken?: string; adAccountId?: string } | null | undefined,
+    siteDomain?: string,
+): Promise<MetaPixelDiscoveryResult> {
+    const diagnostic: MetaPixelDiscoveryResult['diagnostic'] = { pixelCount: 0, pixelsListed: [] }
+    if (!metaTokens?.accessToken || !metaTokens?.adAccountId) {
+        diagnostic.error = 'Meta tokens missing accessToken or adAccountId'
+        return { diagnostic }
+    }
+    const adAccountId = metaTokens.adAccountId.startsWith('act_') ? metaTokens.adAccountId : `act_${metaTokens.adAccountId}`
+    diagnostic.adAccountId = adAccountId
+
+    try {
+        const url = `https://graph.facebook.com/v21.0/${adAccountId}/adspixels?fields=id,name,last_fired_time&limit=50&access_token=${metaTokens.accessToken}`
+        const res = await fetch(url)
+        const data = await res.json() as { data?: Array<{ id: string; name: string; last_fired_time?: string }>; error?: any }
+        if (!res.ok || data.error) {
+            diagnostic.error = data.error?.message || `HTTP ${res.status}`
+            return { diagnostic }
+        }
+        const pixels = data.data || []
+        diagnostic.pixelCount = pixels.length
+        diagnostic.pixelsListed = pixels.map(p => ({ id: p.id, name: p.name || '' }))
+        if (pixels.length === 0) return { diagnostic }
+
+        // Prefer domain-matched name
+        const target = (siteDomain || '').replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').toLowerCase()
+        if (target) {
+            const match = pixels.find(p => (p.name || '').toLowerCase().includes(target.split('.')[0]))
+            if (match) {
+                return { pixelId: match.id, pixelName: match.name, matched: 'domain_match', diagnostic }
+            }
+        }
+        // Prefer most-recently-fired (active) pixel
+        const sorted = pixels.slice().sort((a, b) => String(b.last_fired_time || '').localeCompare(String(a.last_fired_time || '')))
+        const first = sorted[0]
+        return { pixelId: first.id, pixelName: first.name, matched: first.last_fired_time ? 'first_active' : 'fallback', diagnostic }
+    } catch (err) {
+        diagnostic.error = (err as Error).message
+        return { diagnostic }
+    }
+}
+
+// Default mapping from our PrimaryActionKey schema → Meta event taxonomy.
+// WooCommerce companion plugin pushes 'purchase' / 'begin_checkout' /
+// 'add_to_cart' dataLayer events — these map cleanly to fbq event names.
+export const DEFAULT_META_EVENT_MAP: Record<string, string> = {
+    purchase:       'Purchase',
+    generate_lead:  'Lead',
+    form_submit:    'Lead',
+    qualified_lead: 'Lead',
+    phone_call:     'Lead',
+    add_to_cart:    'AddToCart',
+    begin_checkout: 'InitiateCheckout',
+    view_item:      'ViewContent',
+}
+
+// Build a MetaPixelConfig from auto-detected pixel ID + active conversions.
+// Always includes Purchase + Lead if the corresponding triggers exist (typical
+// e-commerce baseline). For WooCommerce sites, also adds AddToCart +
+// InitiateCheckout since the companion plugin pushes those dataLayer events.
+export function buildMetaPixelConfig(opts: {
+    pixelId: string
+    activeActionKeys: string[]               // from req.conversions
+    wooCommerceActive: boolean
+}): MetaPixelConfig {
+    const actionKeyToEventName: Record<string, string> = {}
+    const events: MetaPixelConfig['events'] = []
+
+    // Always include events for any active conversion action that maps
+    for (const ak of opts.activeActionKeys) {
+        const event = DEFAULT_META_EVENT_MAP[ak]
+        if (event && !events.includes(event as any)) {
+            events.push(event as any)
+            actionKeyToEventName[ak] = event
+        }
+    }
+
+    // WooCommerce baseline: ensure AddToCart + InitiateCheckout are present
+    // (companion plugin pushes 'add_to_cart' + 'begin_checkout' events
+    // regardless of whether the user defined Google Ads conversion actions
+    // for them).
+    if (opts.wooCommerceActive) {
+        if (!events.includes('AddToCart')) {
+            events.push('AddToCart')
+            actionKeyToEventName['add_to_cart'] = 'AddToCart'
+        }
+        if (!events.includes('InitiateCheckout')) {
+            events.push('InitiateCheckout')
+            actionKeyToEventName['begin_checkout'] = 'InitiateCheckout'
+        }
+        if (!events.includes('Purchase')) {
+            events.push('Purchase')
+            actionKeyToEventName['purchase'] = 'Purchase'
+        }
+    }
+
+    return { pixelId: opts.pixelId, events, actionKeyToEventName }
+}
+
 // ─── Persist GTM target choice on instance.researchData.mazhirGtm ─────────
 // Phase 4.2.1-N: writes via mutateResearchData so that BOTH instances AND
 // mateh_agents tables get updated. Earlier impl wrote only to instances,
@@ -842,6 +1105,7 @@ export async function validateGtmFixtures(
         expectEnhancedConversions?: boolean // user_data variables
         expectConsentMode?: boolean         // Consent Settings / Consent Initialization tag
         expectAwct?: string[]               // expected awct tag names (per-conversion)
+        expectMetaPixel?: { pixelId: string; events: string[] }  // Phase 2026.02 K6 — Meta Pixel base + per-event
     },
 ): Promise<GtmValidationReport> {
     if (!googleTokens?.refreshToken) throw new Error('Google OAuth tokens missing')
@@ -921,6 +1185,24 @@ export async function validateGtmFixtures(
     for (const awctName of (expect.expectAwct || [])) {
         const t = findTagByName(new RegExp(awctName, 'i'))
         fixtures.push({ label: `Google Ads conversion (awct): "${awctName}"`, present: !!t, foundName: t?.name })
+    }
+    if (expect.expectMetaPixel?.pixelId) {
+        const px = expect.expectMetaPixel
+        // Meta Pixel base — Custom HTML containing fbq init + our pixelId
+        const base = scan.tags.find((t: any) => {
+            if (t.type !== 'html') return false
+            const html: string = ((t.parameter || []).find((p: any) => p.key === 'html')?.value) || ''
+            return /fbq\s*\(\s*['"]init['"]/i.test(html) && html.includes(px.pixelId)
+        })
+        fixtures.push({ label: `Meta Pixel base (fbq init ${px.pixelId})`, present: !!base, foundName: base?.name })
+        for (const event of px.events) {
+            const eventTag = scan.tags.find((t: any) => {
+                if (t.type !== 'html') return false
+                const html: string = ((t.parameter || []).find((p: any) => p.key === 'html')?.value) || ''
+                return new RegExp(`fbq\\s*\\(\\s*['"]track['"]\\s*,\\s*['"]${event}['"]`, 'i').test(html)
+            })
+            fixtures.push({ label: `Meta Pixel event: ${event}`, present: !!eventTag, foundName: eventTag?.name })
+        }
     }
 
     return {

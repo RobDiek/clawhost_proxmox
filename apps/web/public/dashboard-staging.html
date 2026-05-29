@@ -8206,7 +8206,13 @@ function renderMonthlyTaskFooter(task) {
   // Bypasses the normal approve→execute flow — clicking the primary
   // button opens the wizard directly. Wizard does all the work + marks
   // the task done via apiMarkManualDone.
-  var isGtmUnified = task.metadata && task.metadata.taskId === 'tsk_gtm_unified_setup';
+  // tsk_meta_pixel_install routes through the SAME wizard — autoSetupGtmContainer
+  // detects Meta tokens and auto-creates Pixel base + per-event Custom HTML tags
+  // when Meta is connected. Tenant just needs to click the same wizard launcher.
+  var isGtmUnified = task.metadata && (
+    task.metadata.taskId === 'tsk_gtm_unified_setup' ||
+    task.metadata.taskId === 'tsk_meta_pixel_install'
+  );
   if (isGtmUnified && (task.status === 'awaiting' || task.status === 'pending_review' || task.status === 'awaiting_manual')) {
     // Phase 2026.02 Block 6 Pattern J: plugin .zip download button — needed
     // BEFORE running the wizard (WP REST does not accept custom plugin
@@ -8375,6 +8381,17 @@ function renderGtmWizardStep1(p, taskId) {
         p.wooCommerceActive ? 'WooCommerce v' + (p.wooCommerceVersion || '?') + ' זוהה — ecommerce dataLayer יפעל' : 'WooCommerce לא זוהה — purchase events לא ייפעלו')
     : rowOk('WP Plugin לא מותקן', false, 'יש להוריד ולהעלות ידנית פעם אחת');
 
+  // Meta row: connected? pixel found?
+  var metaHint = '';
+  if (p.metaConnected) {
+    metaHint = p.metaPixelId
+      ? 'Pixel ' + p.metaPixelId + (p.metaPixelName ? ' (' + p.metaPixelName + ')' : '') + ' יוזרק אוטומטית'
+      : (p.metaError || 'Meta מחובר אבל אין Pixel — צרו ב-business.facebook.com → Events Manager');
+  } else {
+    metaHint = 'אופציונלי — אם מחובר, Pixel + per-event tags יוזרקו אוטומטית';
+  }
+  var metaRow = rowOk('Meta + Pixel', p.metaConnected && !!p.metaPixelId, metaHint);
+
   var readinessHtml =
     '<div style="background:' + (p.ready ? '#ECFDF5' : '#FEF3C7') + ';border:1px solid ' + (p.ready ? '#A7F3D0' : '#FDE68A') + ';border-radius:8px;padding:12px 14px;margin-bottom:14px">' +
       '<div style="font-size:0.85rem;font-weight:700;color:' + (p.ready ? '#065F46' : '#92400E') + ';margin-bottom:8px">' +
@@ -8385,6 +8402,7 @@ function renderGtmWizardStep1(p, taskId) {
         ? p.ga4PropertiesCount + ' GA4 properties זוהו'
         : (p.ga4Error || 'יש לעשות re-OAuth Google עם scope analytics')) +
       rowOk('Google Ads מחובר', p.adsConnected, p.adsConnected ? '' : 'אופציונלי — אם מחובר, נקשר conversion actions אוטומטית') +
+      metaRow +
       rowOk('WordPress מחובר', p.wpConnected, p.wpConnected ? (p.wpUrl || '') : 'אופציונלי — אם מחובר, snippet יוזרק אוטומטית') +
       pluginRow +
     '</div>';
@@ -8519,7 +8537,7 @@ function submitGtmFreshStack(taskId) {
 function classifyGtmChainStep(stepName) {
   var n = (stepName || '').toLowerCase();
   if (/gtm container created|container version published|workspace|gtm account/i.test(n)) return 'account';
-  if (/ga4|measurement|googtag|gaawe|google ads|awct|conversion|gclidw|conversion linker|gclid capture/i.test(n)) return 'analytics';
+  if (/ga4|measurement|googtag|gaawe|google ads|awct|conversion|gclidw|conversion linker|gclid capture|meta pixel/i.test(n)) return 'analytics';
   if (/consent/i.test(n)) return 'privacy';
   if (/wp |wordpress|plugin|capabilities|stale|snippet|companion|live html/i.test(n)) return 'wp';
   if (/live validation|validation/i.test(n)) return 'validation';

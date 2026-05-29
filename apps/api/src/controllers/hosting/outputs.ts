@@ -285,6 +285,24 @@ export const gtmFreshStackPreflight = async (c: Context<HonoEnv>) => {
             adsConnected = !!(adsCfg?.customerId && adsCfg?.developerToken)
         } catch { /* leave false */ }
 
+        // Meta + Pixel discovery (K6)
+        let metaConnected = false
+        let metaPixelId: string | undefined
+        let metaPixelName: string | undefined
+        let metaError: string | undefined
+        try {
+            const metaTokens = (agent as any).metaTokens
+            if (metaTokens?.accessToken && metaTokens?.adAccountId) {
+                metaConnected = true
+                const { findMetaPixelForAccount } = await import('@/services/mazhirGtmSetup')
+                const detectedDomain = String((agent as any).researchData?.answers?.websiteUrl || '').replace(/^https?:\/\//, '').replace(/\/$/, '')
+                const found = await findMetaPixelForAccount(metaTokens, detectedDomain)
+                metaPixelId = found.pixelId
+                metaPixelName = found.pixelName
+                if (!found.pixelId) metaError = found.diagnostic.error || `0 pixels on ad account ${found.diagnostic.adAccountId}`
+            }
+        } catch (e) { metaError = (e as Error).message.slice(0, 200) }
+
         // WordPress integration
         let wpConnected = false
         let wpUrl: string | undefined
@@ -344,6 +362,10 @@ export const gtmFreshStackPreflight = async (c: Context<HonoEnv>) => {
             ga4PropertiesCount,
             ga4Error,
             adsConnected,
+            metaConnected,
+            metaPixelId,
+            metaPixelName,
+            metaError,
             wpConnected,
             wpUrl,
             wpPluginInstalled,
@@ -560,10 +582,70 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             chainSteps.push({ step: 'Google Ads conversion auto-derive failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
         }
 
+        // ── 2b-meta. Auto-detect Meta Pixel (K6) ──
+        // Same pattern as GA4 measurementId + Ads awct: if Meta is connected
+        // with adAccountId, list pixels via Graph API, pick the best match
+        // by site domain, and build a MetaPixelConfig (Purchase + Lead by
+        // default + AddToCart + InitiateCheckout when WooCommerce active).
+        let metaPixelConfig: any = null
+        let metaPixelDiagnostic = ''
+        try {
+            const metaTokens = (agent as any).metaTokens
+            if (metaTokens?.accessToken && metaTokens?.adAccountId) {
+                const { findMetaPixelForAccount, buildMetaPixelConfig } = await import('@/services/mazhirGtmSetup')
+                const found = await findMetaPixelForAccount(metaTokens, siteDomain)
+                if (found.pixelId) {
+                    // Detect WooCommerce via WP capabilities probe (already done above)
+                    let wooActive = false
+                    try {
+                        const { db } = await import('@/db')
+                        const { agentIntegrations } = await import('@/db/schema')
+                        const { and, eq } = await import('drizzle-orm')
+                        const wpRows = await db.select().from(agentIntegrations).where(
+                            and(
+                                eq(agentIntegrations.instanceId, instanceId),
+                                eq(agentIntegrations.integrationType, 'wordpress'),
+                            ),
+                        )
+                        const wpRow = wpRows[0]
+                        if (wpRow) {
+                            const { probeWpCapabilities } = await import('@/services/wpCompanionInstaller')
+                            const caps = await probeWpCapabilities(wpRow.config as any)
+                            wooActive = !!caps?.wooCommerceActive
+                        }
+                    } catch { /* leave wooActive false */ }
+                    metaPixelConfig = buildMetaPixelConfig({
+                        pixelId: found.pixelId,
+                        activeActionKeys: gtmConversions.map((c: any) => c.actionKey),
+                        wooCommerceActive: wooActive,
+                    })
+                    chainSteps.push({
+                        step: 'Meta Pixel auto-detected',
+                        ok: true,
+                        detail: `Pixel ${found.pixelId} (${found.pixelName || 'unnamed'}) — ${found.matched} match. Events to wire: ${metaPixelConfig.events.join(', ')}`,
+                    })
+                } else {
+                    metaPixelDiagnostic = found.diagnostic.error
+                        ? `Meta Pixel discovery failed: ${found.diagnostic.error}`
+                        : `Meta connected but 0 pixels on ad account ${found.diagnostic.adAccountId}. Create one: business.facebook.com → Events Manager → Connect Data Sources → Web.`
+                    chainSteps.push({ step: 'Meta Pixel auto-detect', ok: false, detail: metaPixelDiagnostic })
+                }
+            } else {
+                chainSteps.push({
+                    step: 'Meta Pixel — Meta not connected',
+                    ok: true,
+                    detail: 'SKIPPED — connect Meta in Integrations to auto-wire Pixel base + per-event tags',
+                })
+            }
+        } catch (e) {
+            chainSteps.push({ step: 'Meta Pixel auto-detect failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
+        }
+
         // ── 2c. Populate fixtures via autoSetupGtmContainer ──
         // Existing fixtures: Conversion Linker, GCLID Capture, Consent Mode v2,
         // GA4 base + per-conversion gaawe (if measurementId), awct per
-        // Google Ads conversion (if any), Enhanced Conversions vars.
+        // Google Ads conversion (if any), Enhanced Conversions vars,
+        // Meta Pixel base + per-event Custom HTML (if Meta connected).
         let gtmResultGlobal: any = null
         try {
             const gtmResult = await autoSetupGtmContainer(tokens, {
@@ -571,6 +653,7 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                 measurementId: autoMeasurementId,
                 conversions: gtmConversions,
                 enhancedConversions: true,
+                metaPixel: metaPixelConfig || undefined,
             })
             gtmResultGlobal = gtmResult
             await saveGtmSetupResult(instanceId, gtmResult, agent.id || null)
@@ -595,6 +678,13 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                 chainSteps.push({ step: 'GA4 tags (googtag + gaawe)', ok: true, detail: 'SKIPPED — no measurementId detected. Fix the upstream GA4 step and re-run.' })
             }
             chainSteps.push({ step: `Google Ads awct tags`, ok: awctTags.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:awct') || gtmConversions.length === 0, detail: awctTags.length > 0 ? `${awctTags.length} created: ${awctTags.join('; ')}` : (gtmConversions.length > 0 ? 'already present (reused)' : 'no conversions to map') })
+            // Meta Pixel layers — only meaningful when metaPixelConfig is present
+            if (metaPixelConfig) {
+                const metaBase = byType('tag:meta_pixel_base')
+                const metaEvents = byType('tag:meta_pixel_event')
+                chainSteps.push({ step: `Meta Pixel base (fbq init ${metaPixelConfig.pixelId})`, ok: metaBase.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:meta_pixel_base'), detail: metaBase.length > 0 ? metaBase.join('; ') : 'already present (reused)' })
+                chainSteps.push({ step: `Meta Pixel events (${metaPixelConfig.events.join(', ')})`, ok: metaEvents.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:meta_pixel_event') || metaPixelConfig.events.length === 0, detail: metaEvents.length > 0 ? `${metaEvents.length} created: ${metaEvents.join('; ')}` : 'already present (reused)' })
+            }
             chainSteps.push({ step: 'Consent Mode v2 (default+update)', ok: consentTags.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:consent_default' || s.type === 'tag:consent_update'), detail: consentTags.length > 0 ? consentTags.join('; ') : 'already present (reused)' })
             chainSteps.push({
                 step: 'Container version published',
@@ -626,6 +716,7 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                 expectEnhancedConversions: true,
                 expectConsentMode: true,
                 expectAwct: gtmConversions.map((c: any) => `Mazhir GAds Conv — ${c.actionKey}`),
+                expectMetaPixel: metaPixelConfig ? { pixelId: metaPixelConfig.pixelId, events: metaPixelConfig.events } : undefined,
             })
             for (const fx of validation.fixtures) {
                 chainSteps.push({
