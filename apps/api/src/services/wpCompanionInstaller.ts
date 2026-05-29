@@ -337,19 +337,51 @@ export async function probeWpCapabilities(cfg: WpCfg): Promise<WpCapabilities | 
     }
 }
 
+export interface SiteGtmScan {
+    url: string
+    gtmIds: string[]
+    status: number
+    contexts: Array<{ gtmId: string; excerpt: string; hint: string }>
+}
+
 /**
  * Scan the live homepage HTML for GTM- snippets — does NOT require the
  * companion plugin (works on any WP/non-WP site). Used as a sanity check
  * before AND after migration.
+ *
+ * Phase 2026.02 Block 6 enhancement: also captures ~100 chars of context
+ * around each match so we can hint at where the snippet is loaded from
+ * (header.php inline, third-party plugin, CDN worker, gtm-loader script,
+ * etc.). Helps users find OLD GTM- snippets our automatic cleanup can't
+ * reach (anything outside wp_options or theme header.php/functions.php).
  */
-export async function scanSiteHtmlForGtm(siteUrl: string): Promise<{ url: string; gtmIds: string[]; status: number }> {
+export async function scanSiteHtmlForGtm(siteUrl: string): Promise<SiteGtmScan> {
     const url = normalizeWpUrl(siteUrl)
     try {
         const res = await fetch(url, { headers: { 'User-Agent': 'ClawFlow GTM Scanner/1.0' } })
         const html = await res.text().catch(() => '')
-        const matches = html.match(/GTM-[A-Z0-9]{4,}/g) || []
-        return { url, gtmIds: Array.from(new Set(matches)), status: res.status }
+        const re = /GTM-[A-Z0-9]{4,}/g
+        const seen = new Set<string>()
+        const contexts: SiteGtmScan['contexts'] = []
+        let m: RegExpExecArray | null
+        while ((m = re.exec(html)) !== null) {
+            const id = m[0]
+            if (seen.has(id)) continue
+            seen.add(id)
+            const idx = m.index
+            const start = Math.max(0, idx - 120)
+            const end = Math.min(html.length, idx + 120)
+            const excerpt = html.slice(start, end).replace(/\s+/g, ' ').trim()
+            // Best-effort hint: look for typical loader patterns within the excerpt
+            let hint = 'unknown loader'
+            if (/<!--\s*google\s+tag\s+manager/i.test(excerpt)) hint = 'inline GTM bootstrap script (hardcoded or theme)'
+            else if (/gtm\.js|gtm-loader|googletagmanager/i.test(excerpt)) hint = 'GTM loader (gtm.js / googletagmanager.com)'
+            else if (/dataLayer/i.test(excerpt)) hint = 'dataLayer push pattern (could be plugin or theme)'
+            else if (/<iframe[^>]+ns\.html/i.test(excerpt)) hint = 'noscript iframe (gtm.js fallback)'
+            contexts.push({ gtmId: id, excerpt: excerpt.slice(0, 240), hint })
+        }
+        return { url, gtmIds: Array.from(seen), status: res.status, contexts }
     } catch (err) {
-        return { url, gtmIds: [], status: 0 }
+        return { url, gtmIds: [], status: 0, contexts: [] }
     }
 }

@@ -1,7 +1,7 @@
 {
     "name": "clawhostgo",
     "productName": "ClawHostGo",
-    "version": "0.0.598",
+    "version": "0.0.599",
     "private": true,
     "main": ".vite/build/main.js",
     "scripts": {

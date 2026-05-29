@@ -60,7 +60,11 @@ async function ga4Fetch<T = any>(
     method: 'GET' | 'POST' | 'PATCH' | 'DELETE' = 'GET',
     body?: unknown,
 ): Promise<T> {
-    const accessToken = tokens.accessToken && tokens.expiresAt && tokens.expiresAt > Date.now() / 1000 + 60
+    // expiresAt is stored as ms-since-epoch (Date.now() style). Earlier code
+    // divided Date.now() by 1000 — which made the comparison always true and
+    // the refresh path dead, causing 401s once the access_token actually
+    // expired (~1h after OAuth). Compare ms to ms with a 60s buffer.
+    const accessToken = tokens.accessToken && tokens.expiresAt && tokens.expiresAt > Date.now() + 60_000
         ? tokens.accessToken
         : await refreshAccessToken(tokens)
     const url = `${GA4_ADMIN_BASE}${path}`

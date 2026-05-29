@@ -435,8 +435,16 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             const linkerTags = byType('tag:gclidw')
             const consentTags = [...byType('tag:consent_default'), ...byType('tag:consent_update')]
             chainSteps.push({ step: 'Conversion Linker (gclidw)', ok: linkerTags.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:gclidw'), detail: linkerTags.length > 0 ? linkerTags.join('; ') : 'already present (reused)' })
-            chainSteps.push({ step: `GA4 base tag (googtag)${autoMeasurementId ? ` for ${autoMeasurementId}` : ''}`, ok: ga4Base.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:googtag'), detail: ga4Base.length > 0 ? ga4Base.join('; ') : (autoMeasurementId ? 'already present (reused)' : 'skipped — no measurementId') })
-            chainSteps.push({ step: `GA4 event tags (gaawe)`, ok: ga4Events.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:gaawe') || gtmConversions.length === 0, detail: ga4Events.length > 0 ? `${ga4Events.length} created: ${ga4Events.join('; ')}` : (gtmConversions.length > 0 ? 'already present (reused)' : 'no conversions to map') })
+            // GA4 layers only meaningful when measurementId is available. If we
+            // never got one, mark these as ok=true (not applicable) so they don't
+            // pollute the failure count — the real signal is in the upstream
+            // "GA4 measurementId auto-detect" step which already failed loudly.
+            if (autoMeasurementId) {
+                chainSteps.push({ step: `GA4 base tag (googtag) for ${autoMeasurementId}`, ok: ga4Base.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:googtag'), detail: ga4Base.length > 0 ? ga4Base.join('; ') : 'already present (reused)' })
+                chainSteps.push({ step: `GA4 event tags (gaawe)`, ok: ga4Events.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:gaawe') || gtmConversions.length === 0, detail: ga4Events.length > 0 ? `${ga4Events.length} created: ${ga4Events.join('; ')}` : (gtmConversions.length > 0 ? 'already present (reused)' : 'no conversions to map') })
+            } else {
+                chainSteps.push({ step: 'GA4 tags (googtag + gaawe)', ok: true, detail: 'SKIPPED — no measurementId detected. Fix the upstream GA4 step and re-run.' })
+            }
             chainSteps.push({ step: `Google Ads awct tags`, ok: awctTags.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:awct') || gtmConversions.length === 0, detail: awctTags.length > 0 ? `${awctTags.length} created: ${awctTags.join('; ')}` : (gtmConversions.length > 0 ? 'already present (reused)' : 'no conversions to map') })
             chainSteps.push({ step: 'Consent Mode v2 (default+update)', ok: consentTags.length > 0 || gtmResult.skipped.some((s: any) => s.type === 'tag:consent_default' || s.type === 'tag:consent_update'), detail: consentTags.length > 0 ? consentTags.join('; ') : 'already present (reused)' })
             chainSteps.push({
@@ -632,16 +640,21 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                             const liveScan = await scanSiteHtmlForGtm(`https://${siteDomain.replace(/^https?:\/\//, '').replace(/\/$/, '')}`)
                             const hasNew = liveScan.gtmIds.includes(stack.container.publicId)
                             const oldFound = liveScan.gtmIds.filter(id => id !== stack.container.publicId)
+                            // Pinpoint OLD GTM loader locations from context excerpts —
+                            // helps user find where it's loaded from (theme inline,
+                            // third-party plugin, CDN worker, etc.) since our auto-
+                            // cleanup only handles wp_options + theme header.php.
+                            const oldContexts = liveScan.contexts.filter(c => oldFound.includes(c.gtmId))
+                            const oldHints = oldContexts.map(c => `${c.gtmId} [${c.hint}]: …${c.excerpt}…`).join(' | ').slice(0, 500)
                             chainSteps.push({
                                 step: 'Live HTML verification (post-install)',
                                 ok: hasNew && oldFound.length === 0,
                                 detail: hasNew
                                     ? (oldFound.length === 0
                                         ? `✓ NEW ${stack.container.publicId} found on live site; no foreign GTM-XXX remaining.`
-                                        : `⚠ NEW ${stack.container.publicId} present but OLD also present: ${oldFound.join(', ')}. Remove from theme files manually.`)
-                                    : `✗ NEW ${stack.container.publicId} NOT yet visible on live HTML (cache/CDN delay or plugin not loaded). Found: ${liveScan.gtmIds.join(', ') || 'none'}.`,
+                                        : `⚠ NEW ${stack.container.publicId} present but OLD also present: ${oldFound.join(', ')}. Context: ${oldHints}`)
+                                    : `✗ NEW ${stack.container.publicId} NOT yet visible on live HTML. Found OLD: ${liveScan.gtmIds.join(', ') || 'none'}. Context: ${oldHints || '(no excerpts)'}`,
                             })
-                            // surface staleScan if any remaining issues
                             staleScan = { ourPublicId: stack.container.publicId, foreignCount: oldFound.length, findings: oldFound }
                         } catch (e) {
                             chainSteps.push({ step: 'Live HTML scan failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
