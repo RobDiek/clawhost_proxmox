@@ -8642,8 +8642,35 @@ function renderGtmWizardSuccess(data, taskId) {
       }).join('') +
     '</div>';
   }
-  safetyFixHtml += renderSafetyFix(data.adsSafety, '📈 Google Ads Safety — fixes', '#92400E');
+  // K13: bidding_strategy_decision gets a SPECIAL 3-card chooser instead
+  // of a single Apply-fix button. Pull it out of normal renderSafetyFix
+  // and render below.
+  function biddingDecisionFinding(report) {
+    if (!report || !Array.isArray(report.findings)) return null;
+    return report.findings.find(function(f) { return f.id === 'bidding_strategy_decision'; });
+  }
+  function reportWithoutBiddingDecision(report) {
+    if (!report || !Array.isArray(report.findings)) return report;
+    return Object.assign({}, report, {
+      findings: report.findings.filter(function(f) { return f.id !== 'bidding_strategy_decision'; }),
+    });
+  }
+  var biddingFinding = biddingDecisionFinding(data.adsSafety);
+  safetyFixHtml += renderSafetyFix(reportWithoutBiddingDecision(data.adsSafety), '📈 Google Ads Safety — fixes', '#92400E');
   safetyFixHtml += renderSafetyFix(data.ga4Health, '📊 GA4 Health — fixes', '#1E40AF');
+
+  // K13: bidding strategy decision card — 3 options side by side
+  if (biddingFinding) {
+    safetyFixHtml +=
+      '<div style="background:#F0F9FF;border:2px solid #0EA5E9;border-radius:10px;padding:16px 18px;margin-bottom:14px">' +
+        '<div style="font-size:1.0rem;font-weight:700;color:#0C4A6E;margin-bottom:6px">📊 בחירת אסטרטגיית Bidding לאחר ניקוי</div>' +
+        '<div style="font-size:0.82rem;color:#075985;line-height:1.6;margin-bottom:12px">' + escapeHtml(biddingFinding.detail || '') + '</div>' +
+        '<div style="font-size:0.78rem;color:#0C4A6E;background:#fff;border:1px solid #BAE6FD;border-radius:6px;padding:8px 10px;margin-bottom:12px">' +
+          '<strong>💡 המלצה</strong>: התחל מ-Conservative אם אינך בטוח. תמיד אפשר לעבור ל-Moderate/Aggressive מאוחר יותר. החזרה ממצב Aggressive ל-Conservative דורשת ידנית 30 ימים המתנה.' +
+        '</div>' +
+        '<div id="biddingStrategyCards">⏳ טוען אופציות...</div>' +
+      '</div>';
+  }
 
   // K10 — actionable conflict resolution UI. For EACH conflict, render
   // its actionPlan steps (Hebrew, always concrete). Buttons stay clickable;
@@ -8773,6 +8800,10 @@ function renderGtmWizardSuccess(data, taskId) {
     '</div>';
 
   showToast(data.autoCompleted ? 'GTM Stack מוכן · המשימה הושלמה' : (totalFail === 0 ? 'GTM Stack מוכן' : 'GTM Stack חלקית — בדקו שלבים אדומים'), totalFail === 0 ? 'success' : 'warning');
+
+  // K13: kick off bidding strategy chooser load (only if biddingFinding present
+  // — the function checks DOM existence + exits silently if not).
+  setTimeout(loadBiddingStrategyCards, 100);
 }
 
 // Phase 2026.02 Block 6 Pattern J — re-run fresh-stack after user has
@@ -8840,6 +8871,86 @@ function resolveTrackingConflict(plugin, feature, btn, taskId, orphanedKeys) {
   .catch(function(err) {
     showToast('Network error: ' + (err && err.message || ''), 'error');
     if (btn) { btn.disabled = false; btn.textContent = '▶ Disable ' + feature + ' on ' + plugin; btn.style.background = '#DC2626'; }
+  });
+}
+
+// K13: Fetch + render bidding strategy chooser cards into #biddingStrategyCards
+function loadBiddingStrategyCards() {
+  var container = document.getElementById('biddingStrategyCards');
+  if (!container) return;
+  var agent = activeAgent || 'oc';
+  var agentParam = window.activeAgentId ? '?agentId=' + window.activeAgentId : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/safety/bidding-strategies' + agentParam, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d.success) { container.innerHTML = 'שגיאה בטעינה: ' + escapeHtml(d.message || ''); return; }
+    var defaultS = d.data.defaultStrategy || 'conservative';
+    var strats = d.data.strategies || {};
+    var order = ['conservative', 'moderate', 'aggressive'];
+    container.innerHTML =
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">' +
+      order.map(function(k) {
+        var s = strats[k]; if (!s) return '';
+        var isDefault = k === defaultS;
+        var borderColor = k === 'conservative' ? '#10B981' : k === 'moderate' ? '#F59E0B' : '#DC2626';
+        var bg = k === 'conservative' ? '#F0FDF4' : k === 'moderate' ? '#FFFBEB' : '#FEF2F2';
+        var btnColor = borderColor;
+        return '<div style="background:' + bg + ';border:2px solid ' + borderColor + ';border-radius:10px;padding:12px;display:flex;flex-direction:column">' +
+          '<div style="font-size:0.95rem;font-weight:700;color:' + borderColor + ';margin-bottom:6px">' + s.riskIcon + ' ' + escapeHtml(s.titleHe) + (isDefault ? ' <span style="font-size:0.7rem;background:#0EA5E9;color:#fff;padding:1px 6px;border-radius:4px;margin-right:4px">מומלץ</span>' : '') + '</div>' +
+          '<div style="font-size:0.78rem;color:#1F2937;line-height:1.5;margin-bottom:8px">' + escapeHtml(s.descriptionHe) + '</div>' +
+          '<div style="font-size:0.76rem;font-weight:600;color:#065F46;margin-top:6px;margin-bottom:3px">✓ מה מקבלים:</div>' +
+          '<ul style="font-size:0.74rem;color:#374151;line-height:1.5;margin:0 18px 8px 0;padding:0">' +
+            s.whatYouGetHe.map(function(t) { return '<li style="margin-bottom:2px">' + escapeHtml(t) + '</li>'; }).join('') +
+          '</ul>' +
+          '<div style="font-size:0.76rem;font-weight:600;color:#991B1B;margin-bottom:3px">✗ מה מקריבים:</div>' +
+          '<ul style="font-size:0.74rem;color:#374151;line-height:1.5;margin:0 18px 8px 0;padding:0">' +
+            s.whatYouGiveUpHe.map(function(t) { return '<li style="margin-bottom:2px">' + escapeHtml(t) + '</li>'; }).join('') +
+          '</ul>' +
+          '<div style="font-size:0.72rem;color:#6B7280;font-style:italic;margin-bottom:10px">' + escapeHtml(s.bestForHe) + '</div>' +
+          '<button onclick="applyBiddingStrategy(\'' + k + '\', this)" style="background:' + btnColor + ';color:#fff;border:none;border-radius:6px;padding:8px;font-size:0.82rem;font-weight:600;cursor:pointer;margin-top:auto">▶ החילו אסטרטגיית ' + escapeHtml(s.titleHe.split(' ')[0]) + '</button>' +
+        '</div>';
+      }).join('') +
+      '</div>';
+  })
+  .catch(function(err) {
+    container.innerHTML = 'שגיאת רשת: ' + escapeHtml((err && err.message) || '');
+  });
+}
+
+function applyBiddingStrategy(strategy, btn) {
+  var labels = { conservative: 'Conservative (שמרני, ללא הפסקת תנועה)',
+                 moderate: 'Moderate (מאוזן, החלפה ל-tCPA)',
+                 aggressive: 'Aggressive (השבתת PMax למשך 30 יום)' };
+  if (!confirm('להפעיל אסטרטגיה: ' + labels[strategy] + '?\n\nהפעולה תרוץ מיד דרך Google Ads API. אפשר להפעיל אסטרטגיה אחרת בכל עת.')) return;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ מפעיל...'; btn.style.opacity = '0.6'; }
+  var agent = activeAgent || 'oc';
+  var agentParam = window.activeAgentId ? '?agentId=' + window.activeAgentId : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/safety/apply-bidding-strategy' + agentParam, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ strategy: strategy })
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d.success) {
+      showToast('Strategy apply failed: ' + (d.message || 'unknown'), 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '▶ נסה שוב'; btn.style.opacity = '1'; }
+      return;
+    }
+    var result = d.data && d.data.result;
+    var actions = result ? (result.actionsApplied || []).length : 0;
+    var errs = result ? (result.errors || []).length : 0;
+    if (btn) {
+      btn.textContent = '✓ הוחל (' + actions + ' פעולות)';
+      btn.style.background = '#065F46';
+      btn.style.opacity = '1';
+    }
+    var msg = strategy + ' applied: ' + actions + ' actions' + (errs ? ', ' + errs + ' errors' : '');
+    showToast('✓ ' + msg + '. הריצו את ה-Wizard שוב לאימות.', errs > 0 ? 'warning' : 'success');
+  })
+  .catch(function(err) {
+    showToast('Network error: ' + ((err && err.message) || ''), 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '▶ נסה שוב'; btn.style.opacity = '1'; }
   });
 }
 

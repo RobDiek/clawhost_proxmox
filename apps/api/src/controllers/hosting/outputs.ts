@@ -1436,6 +1436,71 @@ export const applySafetyFix = async (c: Context<HonoEnv>) => {
     }
 }
 
+// ── POST /hosting/instances/:id/safety/apply-bidding-strategy ──
+// K13: graduated 3-option bidding strategy chooser. Replaces the
+// single-button aggressive default with risk-aware decision UI.
+//
+// Body: { strategy: 'conservative' | 'moderate' | 'aggressive', moderateTargetCpaIls?: number }
+//
+// Side effect: applying CONSERVATIVE or MODERATE on campaigns previously
+// hit by AGGRESSIVE naturally REVERTS (resume paused + restore Smart
+// Bidding). Doubles as "undo prior aggressive action" + "apply new strategy".
+export const applyBiddingStrategy = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const body = await c.req.json<{ strategy?: string; moderateTargetCpaIls?: number }>().catch(() => ({}))
+        const strategy = String((body as any).strategy || '').trim() as 'conservative' | 'moderate' | 'aggressive'
+        if (!['conservative','moderate','aggressive'].includes(strategy)) return fail(c, 'invalid strategy', 400)
+
+        const { resolveAgentById, resolvePrimaryAgent, readGoogleAdsConfig } = await import('@/services/agentContext')
+        const agentIdParam = c.req.query('agentId')
+        const agent = agentIdParam
+            ? (await resolveAgentById(instanceId, agentIdParam)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+        if (!agent) return fail(c, 'No agent found', 404)
+        const tokens = (agent as any).googleTokens
+        if (!tokens?.refreshToken) return fail(c, 'No Google OAuth tokens', 400)
+
+        const ads = (await readGoogleAdsConfig(agent, instanceId)).config as any
+        if (!ads?.customerId || !ads?.developerToken) return fail(c, 'Google Ads not connected', 400)
+        const operatingCustomerId = String(ads.scope?.operatingCustomerId || ads.customerId || '').replace(/\D/g, '')
+        const loginCustomerId = String(ads.loginCustomerId || ads.customerId || '').replace(/\D/g, '')
+        const scopedCampaignIds: string[] = Array.isArray(ads.scope?.campaignIds) ? ads.scope.campaignIds.map(String) : []
+        if (scopedCampaignIds.length === 0) return fail(c, 'No scoped campaignIds (set Google Ads scope first)', 400)
+
+        const { applyBiddingStrategy: apply } = await import('@/services/googleAdsBiddingStrategy')
+        const result = await apply({
+            customerId: operatingCustomerId,
+            loginCustomerId,
+            tokens: { refreshToken: tokens.refreshToken },
+            developerToken: String(ads.developerToken),
+            scopedCampaignIds,
+            strategy,
+            moderateTargetCpaIls: (body as any).moderateTargetCpaIls,
+        })
+
+        console.log(`[applyBiddingStrategy] instance=${instanceId} strategy=${strategy} actions=${result.actionsApplied.length} errors=${result.errors.length}`)
+        for (const a of result.actionsApplied) console.log(`[applyBiddingStrategy]   ✓ ${a.campaignName}: ${a.change}`)
+        for (const e of result.errors) console.log(`[applyBiddingStrategy]   ✗ ${e.campaignId}: ${e.error}`)
+
+        return ok(c, { strategy, result }, `Strategy "${strategy}" applied: ${result.summary}`)
+    } catch (err) {
+        console.error('[applyBiddingStrategy] ERROR:', err)
+        return fail(c, `Apply bidding strategy failed: ${(err as Error).message}`, 500)
+    }
+}
+
+// ── GET /hosting/instances/:id/safety/bidding-strategies ──
+// Returns the 3 strategy definitions (titles, descriptions, what you get/give up)
+// for the UI to render the chooser card.
+export const listBiddingStrategies = async (c: Context<HonoEnv>) => {
+    const { BIDDING_STRATEGIES } = await import('@/services/googleAdsBiddingStrategy')
+    return ok(c, {
+        defaultStrategy: 'conservative',
+        strategies: BIDDING_STRATEGIES,
+    }, 'Bidding strategies')
+}
+
 // ── POST /hosting/instances/:id/outputs/:outputId/sgtm/configure ──
 // Phase 2026.02 Block 6 Pattern G: user pasted CONTAINER_CONFIG from GTM UI.
 // SSH-write to /opt/openclaw/sgtm/.env, restart container, verify /healthy.

@@ -231,66 +231,53 @@ export async function auditGoogleAdsSafety(opts: AdsSafetyAuditInput): Promise<A
         : null
 
     const enabledCampaigns: any[] = []
+    const pausedCampaigns: any[] = []
     for (const row of campaigns) {
         const c = row.campaign || {}
-        if (String(c.status) !== 'ENABLED') continue
+        const status = String(c.status)
         const campId = String(c.id || '')
         // K12-fix: tenant scope filter
         if (scopeSet && !scopeSet.has(campId)) continue
-        enabledCampaigns.push({
+        const cmp = {
             id: campId,
             name: String(c.name || ''),
+            status,
             bidding: String(c.biddingStrategyType || c.bidding_strategy_type || ''),
             channel: String(c.advertisingChannelType || c.advertising_channel_type || ''),
-        })
+        }
+        if (status === 'ENABLED') enabledCampaigns.push(cmp)
+        else if (status === 'PAUSED') pausedCampaigns.push(cmp)
     }
     snap.campaignCount = enabledCampaigns.length
     snap.smartBiddingCount = enabledCampaigns.filter(c => SMART_BIDDING_TYPES.has(c.bidding)).length
     snap.manualBiddingCount = enabledCampaigns.filter(c => MANUAL_BIDDING_TYPES.has(c.bidding)).length
 
-    // FINDING #1: Smart Bidding on polluted signal
-    // K12-fix3: separate "switchable" campaigns (SEARCH/DISPLAY/SHOPPING —
-    // can switch to Manual CPC) from PMax (PERFORMANCE_MAX — locked, must
-    // be paused or reverted to Search). Auto-fix payload only contains
-    // switchable IDs; PMax campaigns get a separate finding with manual
-    // pause instructions.
-    if (snap.smartBiddingCount > 0) {
+    // FINDING #1: Smart Bidding on polluted signal — K13: surface as a
+    // STRATEGY CHOICE (Conservative/Moderate/Aggressive) instead of a
+    // single aggressive "switch to Manual CPC" button. UI renders 3-option
+    // card; user picks based on business context.
+    //
+    // Also covers REVERT case: if previous aggressive action left campaigns
+    // PAUSED or on Manual CPC, applying Conservative naturally restores them.
+    const anyPaused = pausedCampaigns.length > 0
+    const anyManualCpc = enabledCampaigns.filter(c => c.bidding === 'MANUAL_CPC').length > 0
+    const anySmartBidding = snap.smartBiddingCount > 0
+    if (anySmartBidding || anyPaused || anyManualCpc) {
         const polluted = (opts.convValueQualitySubscore ?? 100) < 70
         const smartCampaigns = enabledCampaigns.filter(c => SMART_BIDDING_TYPES.has(c.bidding))
-        const switchable = smartCampaigns.filter(c =>
-            ['SEARCH', 'DISPLAY', 'SHOPPING'].includes(c.channel)
-        )
         const pmaxOnSmart = smartCampaigns.filter(c => c.channel === 'PERFORMANCE_MAX')
-
-        if (switchable.length > 0) {
-            findings.push({
-                id: 'smart_bidding_polluted_signal',
-                severity: polluted ? 'critical' : 'medium',
-                category: 'bidding',
-                summary: polluted
-                    ? `🔴 ${switchable.length} Search/Display campaign(s) on Smart Bidding while conv_value_quality=${opts.convValueQualitySubscore} < 70`
-                    : `⚠ ${switchable.length} Search/Display campaign(s) on Smart Bidding`,
-                detail: polluted
-                    ? `Smart Bidding (tCPA / tROAS / MaxConv) optimizes on the conversion signal. Your audit shows conv_value_quality_subscore=${opts.convValueQualitySubscore} (out of 100, threshold 70). Smart Bidding will spend budget chasing inflated CR — exactly the pattern that caused CR 18%, CPA ₪13.25 on Packing Station. Recommendation: switch to MANUAL_CPC for 30 days. Re-enable Smart Bidding only after 30+ real purchases recorded with the cleaned signal. Affected: ${switchable.map(c => `${c.name}(${c.bidding})`).join(', ')}.`
-                    : `Smart Bidding active across ${switchable.length} campaigns. Per audit playbook §4.5, valid ONLY when conv_value_quality_subscore ≥ 70.`,
-                autoFixable: true,
-                autoFixAction: { kind: 'switch_to_manual_cpc', payload: { campaignIds: switchable.map(c => c.id) } },
-                affected: switchable,
-            })
-        }
-
-        if (pmaxOnSmart.length > 0) {
-            findings.push({
-                id: 'pmax_on_polluted_signal',
-                severity: polluted ? 'critical' : 'high',
-                category: 'bidding',
-                summary: `🔴 ${pmaxOnSmart.length} Performance Max campaign(s) — locked to Smart Bidding on polluted signal`,
-                detail: `PMax campaigns DON'T support Manual CPC — they're hard-locked to MaxConv/MaxConvValue. Per audit playbook, while conv_value_quality<70, recommended action is to PAUSE these PMax campaigns until tracking accumulates 30+ clean purchases. Then resume. Affected: ${pmaxOnSmart.map(c => c.name).join(', ')}. Auto-fix: pause these campaigns.`,
-                autoFixable: true,
-                autoFixAction: { kind: 'pause_campaigns', payload: { campaignIds: pmaxOnSmart.map(c => c.id) } },
-                affected: pmaxOnSmart,
-            })
-        }
+        findings.push({
+            id: 'bidding_strategy_decision',
+            severity: polluted ? 'high' : 'medium',
+            category: 'bidding',
+            summary: polluted
+                ? `Choose bidding strategy — ${snap.smartBiddingCount} on Smart Bidding, conv_value_quality=${opts.convValueQualitySubscore}`
+                : `Bidding strategy review — ${snap.smartBiddingCount} on Smart Bidding`,
+            detail: `${snap.smartBiddingCount} of ${enabledCampaigns.length} scoped campaigns on Smart Bidding${pmaxOnSmart.length > 0 ? ` (${pmaxOnSmart.length} PMax)` : ''}. After tracking cleanup, choose how aggressively to adjust: Conservative (safest, ~0 traffic loss), Moderate (balanced), or Aggressive (full reset, 30 days no PMax). See decision card below.`,
+            autoFixable: true,
+            autoFixAction: { kind: 'open_bidding_strategy_chooser', payload: {} },
+            affected: smartCampaigns,
+        })
     }
 
     // 2. Change history velocity
