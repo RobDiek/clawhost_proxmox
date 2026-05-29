@@ -8617,50 +8617,58 @@ function renderGtmWizardSuccess(data, taskId) {
     renderGroup('validation', groups.validation) +
     renderGroup('other', groups.other);
 
-  // Conflict resolution buttons — render below grouped steps. Two button
-  // tiers per conflict:
-  //   surgical (red, primary) — disables just the conflicting feature
-  //   fallback (dark red w/ warning, secondary) — deactivates entire plugin
+  // K10 — actionable conflict resolution UI. For EACH conflict, render
+  // its actionPlan steps (Hebrew, always concrete). Buttons stay clickable;
+  // manual_navigation steps show as numbered Hebrew instructions; wait
+  // steps show as "re-run wizard" reminder. No more "Manual resolution
+  // required" dead-end messages.
   var conflictResolutionHtml = '';
-  if (data.conflictAnalysis && Array.isArray(data.conflictAnalysis.conflicts)) {
-    var actionable = data.conflictAnalysis.conflicts.filter(function(c) {
-      return (c.autoFixable && c.autoFixAction) || c.fallbackAction;
+  if (data.conflictAnalysis && Array.isArray(data.conflictAnalysis.conflicts) && data.conflictAnalysis.conflicts.length > 0) {
+    var actionableConflicts = data.conflictAnalysis.conflicts.filter(function(c) {
+      return c.severity !== 'info' || (c.actionPlan && c.actionPlan.length > 0);
     });
-    if (actionable.length > 0) {
+    if (actionableConflicts.length > 0) {
       conflictResolutionHtml =
-        '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:14px 16px;margin-bottom:14px">' +
-          '<div style="font-size:0.9rem;font-weight:700;color:#991B1B;margin-bottom:6px">🔴 Resolution available — ' + actionable.length + ' conflict' + (actionable.length > 1 ? 's' : '') + '</div>' +
-          '<div style="font-size:0.82rem;color:#7F1D1D;line-height:1.6;margin-bottom:10px">לחיצה Surgical Disable מכבה את הפיצ\'ר הספציפי (משאיר את הפלאגין). Deactivate Plugin מסיר את כל הפלאגין (ראו warning). אחרי תיקון — הריצו את ה-Wizard שוב.</div>' +
-          actionable.map(function(c, idx) {
-            var surgicalBtn = '';
-            if (c.autoFixable && c.autoFixAction) {
-              var p1 = escapeHtml(c.autoFixAction.plugin);
-              var f1 = escapeHtml(c.autoFixAction.feature);
-              surgicalBtn = '<button onclick="resolveTrackingConflict(\'' + p1 + '\', \'' + f1 + '\', this, ' + (taskId ? "'" + taskId + "'" : 'null') + ')" style="background:#DC2626;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:0.82rem;font-weight:600;cursor:pointer;margin-left:6px">🔧 Surgical: disable ' + f1 + '</button>';
-            }
-            var fallbackBtn = '';
-            if (c.fallbackAction) {
-              var p2 = escapeHtml(c.fallbackAction.plugin);
-              var warn = escapeHtml(c.fallbackAction.warning);
-              fallbackBtn =
-                '<div style="margin-top:8px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:8px 10px">' +
-                  '<div style="font-size:0.75rem;color:#78350F;line-height:1.5;margin-bottom:6px">' + warn + '</div>' +
-                  '<button onclick="if(confirm(\'Deactivate plugin ' + p2 + '? This is heavier than surgical disable — see warning above.\')) resolveTrackingConflict(\'' + p2 + '\', \'deactivate_plugin\', this, ' + (taskId ? "'" + taskId + "'" : 'null') + ')" style="background:#7F1D1D;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:0.78rem;font-weight:600;cursor:pointer">🚫 Deactivate plugin entirely</button>' +
-                '</div>';
-            }
-            return '<div style="background:#fff;border:1px solid #FCA5A5;border-radius:6px;padding:10px 12px;margin-bottom:8px">' +
-              '<div style="font-size:0.82rem;font-weight:600;color:#1F2937;margin-bottom:4px">' + escapeHtml(c.summary) + '</div>' +
-              '<div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">Severity: ' + escapeHtml(c.severity) + ' · Platform: ' + escapeHtml(c.platform) + '</div>' +
-              (surgicalBtn ? '<div>' + surgicalBtn + '</div>' : '') +
-              fallbackBtn +
+        '<div style="background:#FEF2F2;border:2px solid #DC2626;border-radius:10px;padding:16px 18px;margin-bottom:14px">' +
+          '<div style="font-size:1.0rem;font-weight:700;color:#991B1B;margin-bottom:6px">🔴 דרושים תיקונים — ' + actionableConflicts.length + ' התנגשויות חוסמות נתוני המרות נקיים</div>' +
+          '<div style="font-size:0.82rem;color:#7F1D1D;line-height:1.6;margin-bottom:14px">לכל התנגשות מטה — בחרו את האופציה המתאימה לכם (כפתורים אוטומטיים או הוראות ידניות). לאחר תיקון, הריצו את ה-Wizard שוב.</div>' +
+          actionableConflicts.map(function(c, cIdx) {
+            // Step rendering — each actionPlan step becomes its own visual block
+            var stepsHtml = (c.actionPlan || []).map(function(s, sIdx) {
+              var bg, border, color;
+              if (s.severity === 'destructive') { bg = '#FEF2F2'; border = '#FCA5A5'; color = '#991B1B'; }
+              else if (s.severity === 'caution') { bg = '#FEF3C7'; border = '#FDE68A'; color = '#92400E'; }
+              else { bg = '#F0FDF4'; border = '#BBF7D0'; color = '#065F46'; }
+
+              var button = '';
+              if (s.kind === 'auto_button' && s.plugin && s.feature) {
+                var pluginEsc = escapeHtml(s.plugin);
+                var featureEsc = escapeHtml(s.feature);
+                var btnLabel = s.feature === 'deactivate_plugin' ? '🚫 השביתו פלאגין כעת' : '✓ הפעילו עכשיו';
+                var btnColor = s.severity === 'destructive' ? '#7F1D1D' : (s.severity === 'caution' ? '#92400E' : '#10B981');
+                var confirmJs = s.feature === 'deactivate_plugin'
+                  ? 'if(confirm("השבתת הפלאגין " + "' + pluginEsc + '" + "? פעולה זו כבדה — ודאו שקראתם את האזהרה.")) '
+                  : '';
+                button = '<button onclick="' + confirmJs + 'resolveTrackingConflict(\'' + pluginEsc + '\', \'' + featureEsc + '\', this, ' + (taskId ? "'" + taskId + "'" : 'null') + ')" style="background:' + btnColor + ';color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:0.85rem;font-weight:600;cursor:pointer;margin-top:8px">' + btnLabel + '</button>';
+              }
+
+              var stepIcon = s.kind === 'auto_button' ? '⚡' : s.kind === 'manual_navigation' ? '✋' : s.kind === 'wait' ? '🔄' : 'ℹ';
+
+              return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;padding:10px 12px;margin-bottom:8px">' +
+                '<div style="font-size:0.88rem;font-weight:600;color:' + color + ';margin-bottom:4px">' + stepIcon + ' ' + (sIdx + 1) + '. ' + escapeHtml(s.titleHe) + '</div>' +
+                (s.detailHe ? '<div style="font-size:0.78rem;color:#4B5563;line-height:1.5;direction:rtl">' + escapeHtml(s.detailHe) + '</div>' : '') +
+                button +
+              '</div>';
+            }).join('');
+
+            var sevIcon = c.severity === 'critical' ? '🔴' : c.severity === 'high' ? '🟠' : c.severity === 'medium' ? '🟡' : 'ℹ';
+
+            return '<div style="background:#fff;border:1px solid #FCA5A5;border-radius:8px;padding:12px 14px;margin-bottom:12px">' +
+              '<div style="font-size:0.95rem;font-weight:700;color:#1F2937;margin-bottom:6px">' + sevIcon + ' ' + escapeHtml(c.summary) + '</div>' +
+              '<div style="font-size:0.78rem;color:#6B7280;line-height:1.5;margin-bottom:12px">' + escapeHtml((c.detail || '').slice(0, 350)) + '</div>' +
+              (stepsHtml ? '<div style="font-size:0.82rem;font-weight:700;color:#374151;margin-bottom:6px">🎯 צעדים לתיקון:</div>' + stepsHtml : '<div style="font-size:0.78rem;color:#6B7280;font-style:italic">אין פעולה דרושה.</div>') +
             '</div>';
           }).join('') +
-        '</div>';
-    } else if (data.conflictAnalysis.conflicts.length > 0) {
-      conflictResolutionHtml =
-        '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-bottom:14px">' +
-          '<div style="font-size:0.85rem;font-weight:700;color:#92400E;margin-bottom:6px">⚠ Manual resolution required</div>' +
-          '<div style="font-size:0.82rem;color:#78350F;line-height:1.6">קונפליקטים זוהו אבל אינם auto-fixable דרך הפלאגין. ראו פירוט בקבוצה "⚠ Tracking Conflicts" למעלה.</div>' +
         '</div>';
     }
   }

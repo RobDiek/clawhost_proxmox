@@ -31,6 +31,23 @@ export interface ConflictFinding {
     // isn't possible (option keys unknown / slug rebrand / etc).
     // Includes warning text about what user will lose.
     fallbackAction?: { plugin: string; feature: 'deactivate_plugin'; warning: string }
+    // K10: ALWAYS-present action plan for the user. Even when no auto-fix
+    // exists, we surface concrete step-by-step Hebrew instructions so the
+    // user is never left with "Manual resolution required — see details
+    // above" with no actual guidance.
+    actionPlan?: ActionPlanStep[]
+}
+
+export interface ActionPlanStep {
+    kind: 'auto_button' | 'manual_navigation' | 'wait' | 'info'
+    titleHe: string                     // Hebrew action label
+    detailHe?: string                   // Optional sub-text
+    // For auto_button kind:
+    plugin?: string
+    feature?: string
+    // For manual_navigation: clickable URL (external)
+    externalUrl?: string
+    severity?: 'safe' | 'caution' | 'destructive'
 }
 
 export interface ConflictAnalysis {
@@ -369,6 +386,124 @@ export function analyzeTrackingConflicts(
     const order = { critical: 0, high: 1, medium: 2, info: 3 }
     conflicts.sort((a, b) => order[a.severity] - order[b.severity])
 
+    // K10: generate actionPlan for each conflict so UI ALWAYS has clear next steps
+    for (const c of conflicts) {
+        c.actionPlan = buildActionPlan(c)
+    }
+
     void PLATFORM_NAMES  // reserved for future per-platform summary
     return { conflicts, counts, summary, cleanState }
+}
+
+/**
+ * Generate a 1-3 step actionable plan in Hebrew for the user. Always
+ * provides at least ONE clear next step, even when no auto-fix exists.
+ * Buttons + manual nav + wait combos make this deterministic UX.
+ */
+function buildActionPlan(c: ConflictFinding): ActionPlanStep[] {
+    const steps: ActionPlanStep[] = []
+
+    // 1. Auto-fix button (if available)
+    if (c.autoFixable && c.autoFixAction) {
+        const featureLabel = c.autoFixAction.feature === 'google_ads' ? 'מעקב Google Ads'
+            : c.autoFixAction.feature === 'ga4' ? 'GA4'
+            : c.autoFixAction.feature === 'meta_pixel' ? 'Meta Pixel'
+            : c.autoFixAction.feature
+        steps.push({
+            kind: 'auto_button',
+            titleHe: `🔧 כיבוי כירורגי: ${featureLabel} בפלאגין ${c.autoFixAction.plugin}`,
+            detailHe: 'משאיר את הפלאגין פעיל לפיצ\'רים אחרים — מכבה רק את הפיצ\'ר שמתנגש.',
+            plugin: c.autoFixAction.plugin,
+            feature: c.autoFixAction.feature,
+            severity: 'safe',
+        })
+    }
+
+    // 2. Per-conflict manual + deactivate suggestions
+    if (c.platform === 'google_ads' && (c.summary.includes('Google for WooCommerce') || c.sources.some(s => /google.for.woo|google-listings/i.test(s.plugin)))) {
+        // Manual: click into WC Admin → Marketing → Google → Settings → Conversion Tracking → OFF
+        steps.push({
+            kind: 'manual_navigation',
+            titleHe: '✋ אופציה ידנית — בתוך הפלאגין:',
+            detailHe: 'WP Admin → Marketing → Google → Settings → Conversion Tracking → OFF.  משאיר את כל יתר הפיצ\'רים (product feed, Performance Max) פעילים.',
+            severity: 'safe',
+        })
+        // Deactivate plugin button — added after manual so user sees softer option first
+        if (c.fallbackAction) {
+            const warn = c.fallbackAction.warning || ''
+            const isSafe = warn.startsWith('✓')
+            steps.push({
+                kind: 'auto_button',
+                titleHe: isSafe ? '🚫 השבתת הפלאגין במלואו (מאומת בטוח)' : '🚫 השבתת הפלאגין במלואו ⚠',
+                detailHe: warn,
+                plugin: c.fallbackAction.plugin,
+                feature: c.fallbackAction.feature,
+                severity: isSafe ? 'safe' : 'destructive',
+            })
+        }
+    } else if (c.platform === 'ga4' && (c.summary.includes('Google for WooCommerce') || c.summary.includes('plugin'))) {
+        steps.push({
+            kind: 'manual_navigation',
+            titleHe: '✋ אופציה ידנית — בתוך הפלאגין:',
+            detailHe: 'WP Admin → Marketing → Google → Settings → Analytics → Disable. ה-GTM שלנו יישאר Source אחד יחיד ל-GA4.',
+            severity: 'safe',
+        })
+        if (c.fallbackAction) {
+            const warn = c.fallbackAction.warning || ''
+            steps.push({
+                kind: 'auto_button',
+                titleHe: '🚫 השבתת הפלאגין במלואו',
+                detailHe: warn,
+                plugin: c.fallbackAction.plugin,
+                feature: c.fallbackAction.feature,
+                severity: 'destructive',
+            })
+        }
+    } else if (c.platform === 'meta_pixel' && c.fallbackAction) {
+        steps.push({
+            kind: 'manual_navigation',
+            titleHe: '✋ אופציה ידנית בתוך PixelYourSite:',
+            detailHe: 'WP Admin → Pixel Your Site → Facebook Pixel → Disabled. או PYS → Google → Disable Google Ads Tag.',
+            severity: 'safe',
+        })
+    } else if (c.platform === 'gtm') {
+        // Second GTM container loaded — likely GTM4WP
+        if (c.fallbackAction) {
+            steps.push({
+                kind: 'auto_button',
+                titleHe: '🚫 השבתת הפלאגין GTM4WP',
+                detailHe: 'מסיר את ה-Container הכפול. ה-GTM שלנו (' + c.sources[0]?.id + ') נשאר Source יחיד.',
+                plugin: c.fallbackAction.plugin,
+                feature: c.fallbackAction.feature,
+                severity: 'caution',
+            })
+        } else {
+            steps.push({
+                kind: 'manual_navigation',
+                titleHe: '✋ אופציה ידנית: החליפו את ה-Container ID בפלאגין החיצוני ל-' + c.sources[0]?.id,
+                detailHe: 'או השביתו את הפלאגין כליל מ-WP Admin → Plugins.',
+                severity: 'caution',
+            })
+        }
+    } else if (c.severity === 'info') {
+        // Info-only conflicts get no actionable steps — just acknowledge
+        steps.push({
+            kind: 'info',
+            titleHe: 'ℹ אין פעולה דרושה כעת',
+            detailHe: 'זה תזכורת לעתיד — אם תחברו את הפלטפורמה הזו ב-Integrations, ה-Wizard יזהה כפילות פוטנציאלית ויציע פתרון.',
+            severity: 'safe',
+        })
+    }
+
+    // 3. Universal "re-run wizard to verify" step at the end
+    if (steps.length > 0 && c.severity !== 'info') {
+        steps.push({
+            kind: 'wait',
+            titleHe: '🔄 לאחר תיקון — הריצו את ה-Wizard שוב לאימות',
+            detailHe: 'ה-Conflicts צריך לרדת ל-0 או רק info. רק אז כדאי לסמוך על נתוני המרות.',
+            severity: 'safe',
+        })
+    }
+
+    return steps
 }
