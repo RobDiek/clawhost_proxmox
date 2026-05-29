@@ -1483,10 +1483,107 @@ export const applyBiddingStrategy = async (c: Context<HonoEnv>) => {
         for (const a of result.actionsApplied) console.log(`[applyBiddingStrategy]   ✓ ${a.campaignName}: ${a.change}`)
         for (const e of result.errors) console.log(`[applyBiddingStrategy]   ✗ ${e.campaignId}: ${e.error}`)
 
+        // K14: persist history for deferred follow-up. Recovery scheduler
+        // reads research_data.adsBiddingHistory[] daily and generates
+        // monthly_task at appliedAt + recoveryDays. Restoring the exact
+        // previousState (budgets, bidding, status) is just inverse mutation.
+        if (result.actionsApplied.length > 0) {
+            try {
+                const { STRATEGY_RECOVERY_DAYS } = await import('@/services/googleAdsBiddingStrategy')
+                const { mutateResearchData } = await import('@/services/agentContext')
+                const historyId = `bid_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+                const entry = {
+                    id: historyId,
+                    appliedAt: new Date().toISOString(),
+                    appliedBy: (c.get('userId') as string | undefined) || 'unknown',
+                    strategy,
+                    recoveryDays: STRATEGY_RECOVERY_DAYS[strategy],
+                    customerId: operatingCustomerId,
+                    loginCustomerId,
+                    previousState: result.previousState,
+                    newState: result.newState,
+                    actionsApplied: result.actionsApplied,
+                    followupGenerated: false,
+                    followupGeneratedAt: null,
+                    restored: false,
+                    restoredAt: null,
+                }
+                await mutateResearchData(agent, instanceId, (rd: any) => {
+                    rd.adsBiddingHistory = [...((rd.adsBiddingHistory) || []), entry]
+                    return rd
+                })
+                console.log(`[applyBiddingStrategy] history entry ${historyId} saved (recovery in ${STRATEGY_RECOVERY_DAYS[strategy]} days)`)
+            } catch (histErr) {
+                console.warn(`[applyBiddingStrategy] history save failed (non-fatal): ${(histErr as Error).message}`)
+            }
+        }
+
         return ok(c, { strategy, result }, `Strategy "${strategy}" applied: ${result.summary}`)
     } catch (err) {
         console.error('[applyBiddingStrategy] ERROR:', err)
         return fail(c, `Apply bidding strategy failed: ${(err as Error).message}`, 500)
+    }
+}
+
+// ── POST /hosting/instances/:id/safety/restore-bidding ──
+// K14: restore campaigns to a previously snapshotted state. Used by:
+//   - "Restore to original" button on tsk_restore_bidding monthly tasks
+//   - Manual undo from UI
+// Body: { historyId: string }
+export const restoreBiddingFromHistory = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const body = await c.req.json<{ historyId?: string }>().catch(() => ({}))
+        const historyId = String((body as any).historyId || '').trim()
+        if (!historyId) return fail(c, 'historyId required', 400)
+
+        const { resolveAgentById, resolvePrimaryAgent, readGoogleAdsConfig, mutateResearchData } = await import('@/services/agentContext')
+        const agentIdParam = c.req.query('agentId')
+        const agent = agentIdParam
+            ? (await resolveAgentById(instanceId, agentIdParam)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+        if (!agent) return fail(c, 'No agent found', 404)
+        const tokens = (agent as any).googleTokens
+        if (!tokens?.refreshToken) return fail(c, 'No Google OAuth tokens', 400)
+
+        const rd: any = (agent as any).researchData || {}
+        const history = (rd.adsBiddingHistory || []) as any[]
+        const entry = history.find(h => h.id === historyId)
+        if (!entry) return fail(c, `History entry ${historyId} not found`, 404)
+        if (entry.restored) return fail(c, 'Already restored', 400)
+
+        const ads = (await readGoogleAdsConfig(agent, instanceId)).config as any
+        if (!ads?.customerId || !ads?.developerToken) return fail(c, 'Google Ads not connected', 400)
+
+        const { restoreBiddingFromHistory: restoreFn } = await import('@/services/googleAdsBiddingStrategy')
+        const result = await restoreFn({
+            customerId: String(entry.customerId),
+            loginCustomerId: String(entry.loginCustomerId),
+            tokens: { refreshToken: tokens.refreshToken },
+            developerToken: String(ads.developerToken),
+            previousState: entry.previousState,
+        })
+
+        console.log(`[restoreBidding] instance=${instanceId} historyId=${historyId} restored=${result.restored.length} errors=${result.errors.length}`)
+        for (const r of result.restored) console.log(`[restoreBidding]   ✓ ${r.campaignId}: ${r.change}`)
+        for (const e of result.errors) console.log(`[restoreBidding]   ✗ ${e.campaignId}: ${e.error}`)
+
+        // Mark restored in history
+        await mutateResearchData(agent, instanceId, (rdInner: any) => {
+            const hist = (rdInner.adsBiddingHistory || []) as any[]
+            const idx = hist.findIndex((h) => h.id === historyId)
+            if (idx >= 0) {
+                hist[idx].restored = true
+                hist[idx].restoredAt = new Date().toISOString()
+            }
+            rdInner.adsBiddingHistory = hist
+            return rdInner
+        })
+
+        return ok(c, { historyId, result }, `Restored ${result.restored.length} actions, ${result.errors.length} errors`)
+    } catch (err) {
+        console.error('[restoreBidding] ERROR:', err)
+        return fail(c, `Restore failed: ${(err as Error).message}`, 500)
     }
 }
 

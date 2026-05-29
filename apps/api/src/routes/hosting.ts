@@ -195,6 +195,7 @@ import {
     applySafetyFix,
     applyBiddingStrategy,
     listBiddingStrategies,
+    restoreBiddingFromHistory,
     wpCompanionPluginZip,
     rejectOutput,
     editOutput,
@@ -800,6 +801,7 @@ app.post('/instances/:id/gtm/resolve-conflict', gtmResolveConflict)
 app.post('/instances/:id/safety/apply-fix', applySafetyFix)
 app.get('/instances/:id/safety/bidding-strategies', listBiddingStrategies)
 app.post('/instances/:id/safety/apply-bidding-strategy', applyBiddingStrategy)
+app.post('/instances/:id/safety/restore-bidding', restoreBiddingFromHistory)
 // Phase 2026.02 Block 6 Pattern J — download Clawflow Companion plugin
 // .zip (single-file PHP plugin). User uploads via WP Admin → Plugins →
 // Add New → Upload Plugin (~30 sec one-time). After install, fresh-stack

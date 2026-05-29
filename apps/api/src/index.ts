@@ -139,6 +139,12 @@ startOptimizationCron()
 import { startPlanDraftRunner } from '@/services/planDraftRunner'
 startPlanDraftRunner()
 
+// K14 — Bidding recovery scheduler — daily check for tenants needing
+// post-strategy follow-up tasks (Conservative=14d, Aggressive=30d).
+import { runBiddingRecoveryCheck } from '@/services/biddingRecoveryScheduler'
+setInterval(() => { runBiddingRecoveryCheck().catch(err => console.error('[biddingRecovery] cron error:', err)) }, 24 * 3600 * 1000)
+setTimeout(() => { runBiddingRecoveryCheck().catch(err => console.error('[biddingRecovery] first run error:', err)) }, 120 * 1000)
+
 // Trial manager — check trial expiry every hour
 import { runTrialManager } from '@/jobs/trialManager'
 setInterval(runTrialManager, 3600000) // every hour

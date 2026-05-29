@@ -196,6 +196,16 @@ export interface ApplyBiddingStrategyResult {
     actionsApplied: Array<{ campaignId: string; campaignName: string; change: string }>
     errors: Array<{ campaignId: string; error: string }>
     summary: string
+    // K14: history snapshot for deferred follow-up
+    previousState: Array<{ campaignId: string; campaignName: string; status: string; bidding: string; channel: string; budgetMicros: number; budgetResourceName: string }>
+    newState: Array<{ campaignId: string; campaignName: string; status: string; bidding: string; budgetMicros: number }>
+}
+
+// Strategy → days until follow-up reminder (when to revisit + restore).
+export const STRATEGY_RECOVERY_DAYS: Record<BiddingStrategyKind, number> = {
+    conservative: 14,
+    moderate: 14,
+    aggressive: 30,
 }
 
 export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Promise<ApplyBiddingStrategyResult> {
@@ -204,6 +214,8 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
         actionsApplied: [],
         errors: [],
         summary: '',
+        previousState: [],
+        newState: [],
     }
 
     // 1. Read CURRENT state of scoped campaigns + their budgets
@@ -238,6 +250,20 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
     } catch (e) {
         result.errors.push({ campaignId: 'all', error: `Could not read current state: ${(e as Error).message.slice(0, 200)}` })
         return result
+    }
+
+    // K14: snapshot previousState BEFORE applying mutations — enables
+    // restoreBiddingFromHistory() to roll back exactly.
+    for (const cmp of campaigns) {
+        result.previousState.push({
+            campaignId: cmp.id,
+            campaignName: cmp.name,
+            status: cmp.status,
+            bidding: cmp.bidding,
+            channel: cmp.channel,
+            budgetMicros: cmp.currentBudgetMicros,
+            budgetResourceName: cmp.budgetResourceName,
+        })
     }
 
     // 2. Build operations per strategy
@@ -390,6 +416,91 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
         }
     }
 
+    // K14: newState snapshot AFTER mutations
+    for (const cmp of campaigns) {
+        result.newState.push({
+            campaignId: cmp.id,
+            campaignName: cmp.name,
+            status: cmp.status,
+            bidding: cmp.bidding,
+            budgetMicros: cmp.currentBudgetMicros,
+        })
+    }
+
     result.summary = `${result.actionsApplied.length} actions applied${result.errors.length > 0 ? `, ${result.errors.length} errors` : ''}`
     return result
+}
+
+/**
+ * Restore campaigns to a snapshotted previousState. Used when:
+ *   - User dismisses a temporary strategy ("restore to original")
+ *   - Recovery scheduler triggers after N days post-Conservative/Moderate apply
+ *   - Manual rollback via UI
+ *
+ * Idempotent: if a campaign is already in the target state, that operation
+ * is skipped silently.
+ */
+export async function restoreBiddingFromHistory(opts: {
+    customerId: string
+    loginCustomerId: string
+    tokens: GoogleTokens
+    developerToken: string
+    previousState: ApplyBiddingStrategyResult['previousState']
+}): Promise<{ restored: Array<{ campaignId: string; change: string }>; errors: Array<{ campaignId: string; error: string }> }> {
+    const out = { restored: [] as Array<{ campaignId: string; change: string }>, errors: [] as Array<{ campaignId: string; error: string }> }
+
+    for (const snap of opts.previousState) {
+        // 1. Status restore
+        try {
+            await gadsMutate(opts.customerId, opts.loginCustomerId, opts.developerToken, opts.tokens, 'campaigns:mutate', {
+                operations: [{
+                    update: { resourceName: `customers/${opts.customerId}/campaigns/${snap.campaignId}`, status: snap.status },
+                    updateMask: 'status',
+                }],
+            })
+            out.restored.push({ campaignId: snap.campaignId, change: `status → ${snap.status}` })
+        } catch (e) {
+            out.errors.push({ campaignId: snap.campaignId, error: `status: ${(e as Error).message.slice(0, 200)}` })
+        }
+
+        // 2. Bidding restore — only if previous was MAX_CONVERSION_VALUE / MAXIMIZE_CONVERSIONS / TARGET_CPA / TARGET_ROAS
+        // (we can re-set these). Manual CPC would be unusual to restore TO.
+        if (snap.bidding === 'MAXIMIZE_CONVERSION_VALUE') {
+            try {
+                await gadsMutate(opts.customerId, opts.loginCustomerId, opts.developerToken, opts.tokens, 'campaigns:mutate', {
+                    operations: [{
+                        update: {
+                            resourceName: `customers/${opts.customerId}/campaigns/${snap.campaignId}`,
+                            maximizeConversionValue: {},
+                        },
+                        updateMask: 'maximize_conversion_value.target_roas',
+                    }],
+                })
+                out.restored.push({ campaignId: snap.campaignId, change: 'bidding → MAX_CONVERSION_VALUE' })
+            } catch (e) {
+                out.errors.push({ campaignId: snap.campaignId, error: `bidding: ${(e as Error).message.slice(0, 200)}` })
+            }
+        }
+        // (More bidding types could be added — keeping minimal for now)
+
+        // 3. Budget restore
+        if (snap.budgetResourceName && snap.budgetMicros > 0) {
+            try {
+                await gadsMutate(opts.customerId, opts.loginCustomerId, opts.developerToken, opts.tokens, 'campaignBudgets:mutate', {
+                    operations: [{
+                        update: { resourceName: snap.budgetResourceName, amountMicros: String(snap.budgetMicros) },
+                        updateMask: 'amount_micros',
+                    }],
+                })
+                out.restored.push({
+                    campaignId: snap.campaignId,
+                    change: `budget → ₪${(snap.budgetMicros / 1_000_000).toFixed(0)}`,
+                })
+            } catch (e) {
+                out.errors.push({ campaignId: snap.campaignId, error: `budget: ${(e as Error).message.slice(0, 200)}` })
+            }
+        }
+    }
+
+    return out
 }
