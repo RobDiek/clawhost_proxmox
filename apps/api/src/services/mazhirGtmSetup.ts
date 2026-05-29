@@ -719,8 +719,56 @@ gtag('consent', 'update', {
     // has stale dangling refs from a prior failed run. Mark `published=true`
     // since the container IS in the desired state — just not via a new version.
     if (result.created.length === 0) {
-        result.published = true
-        result.noopReason = 'live container already has all required tags/variables/triggers — no new version needed'
+        // Phase 2026.02 Block 6 hotfix: don't naively trust "no new tags →
+        // already in desired state". Workspace ≠ live. A previous run may have
+        // created tags in the workspace, then failed on create_version (429,
+        // compilerError, etc.) — leaving fixtures DANGLING (in workspace, not
+        // published). Verify by reading LIVE state: if live has fewer/differing
+        // expected fixtures, force a publish to push workspace state live.
+        let liveHasAllFixtures = false
+        try {
+            const liveRes = await gtmFetch(
+                `/accounts/${accountId}/containers/${containerId}/versions:live`,
+                accessToken,
+            ).catch(() => ({} as any))
+            const liveTags: any[] = liveRes?.tag || []
+            const liveTriggers: any[] = liveRes?.trigger || []
+            // Naive coverage check: live has at least as many tags+triggers as workspace
+            // AND contains the conversion linker (mandatory baseline fixture).
+            const wsTagCount = existing.tags.length
+            const wsTrigCount = existing.triggers.length
+            const liveHasLinker = liveTags.some((t: any) => t.type === 'gclidw' || /conversion[\s_]*linker/i.test(String(t.name || '')))
+            liveHasAllFixtures = liveTags.length >= wsTagCount && liveTriggers.length >= wsTrigCount && liveHasLinker
+        } catch {
+            liveHasAllFixtures = false
+        }
+
+        if (liveHasAllFixtures) {
+            result.published = true
+            result.noopReason = 'live version verified to contain all workspace fixtures — no new version needed'
+        } else {
+            // Force publish workspace → live. Drops into the normal create_version+publish path below.
+            try {
+                const versionRes = await gtmFetch(`${wsBase}:create_version`, accessToken, 'POST', {
+                    name: `Mazhir auto v${new Date().toISOString().slice(0, 10)} (force-publish)`,
+                    notes: 'Force-publish: workspace had fixtures but live version was missing them (likely 429/compilerError in prior run).',
+                })
+                const versionId = String(versionRes.containerVersion?.containerVersionId || '')
+                const compilerError = versionRes.containerVersion?.compilerError
+                if (versionId) {
+                    result.versionId = versionId
+                    await gtmFetch(`/accounts/${accountId}/containers/${containerId}/versions/${versionId}:publish`, accessToken, 'POST')
+                    result.published = true
+                    result.noopReason = 'force-published workspace state (live was behind)'
+                } else if (compilerError) {
+                    result.errors.push({ step: 'force_publish', error: `compilerError: ${JSON.stringify(compilerError).slice(0, 400)}` })
+                } else {
+                    result.errors.push({ step: 'force_publish', error: 'create_version returned no versionId — workspace may have stale refs' })
+                }
+            } catch (err) {
+                result.errors.push({ step: 'force_publish', error: (err as Error).message })
+            }
+        }
     } else if (result.errors.length === 0 || result.created.length > 0) {
         try {
             const versionRes = await gtmFetch(`${wsBase}:create_version`, accessToken, 'POST', {
