@@ -956,13 +956,37 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
         let autoCompleted = false
         if (taskOutputId && failCount === 0 && wpInstalled) {
             try {
+                // First check if the task already exists + its current status.
+                // If it's already completed, we still report autoCompleted=true
+                // (idempotent — re-runs on already-closed tasks are valid; UI
+                // should hide the "✓ סיימתי" button to avoid a 404 click).
+                const [existingTask] = await db.select().from(agentOutputs)
+                    .where(and(
+                        eq(agentOutputs.id, taskOutputId),
+                        eq(agentOutputs.instanceId, instanceId),
+                    ))
+                if (existingTask && (existingTask.status === 'completed' || existingTask.status === 'published')) {
+                    autoCompleted = true
+                    console.log(`[gtmFreshStack] task ${taskOutputId} already ${existingTask.status} — reporting autoCompleted (no state change needed)`)
+                    return ok(c, {
+                        account: stack.account,
+                        container: stack.container,
+                        target: stack.target,
+                        snippets: {
+                            head: buildGtmHeadSnippet(stack.container.publicId),
+                            body: buildGtmBodySnippet(stack.container.publicId),
+                        },
+                        chainSteps,
+                        wpInstalled,
+                        autoCompleted: true,
+                        instructions: `✓ Done! Stack refreshed — task already marked completed previously.`,
+                    }, 'Fresh GTM stack created + fixtures populated')
+                }
                 const [updated] = await db.update(agentOutputs)
                     .set({ status: 'completed', publishedAt: new Date(), updatedAt: new Date() })
                     .where(and(
                         eq(agentOutputs.id, taskOutputId),
                         eq(agentOutputs.instanceId, instanceId),
-                        // accept BOTH statuses — wizard may run when task is pending_review (not yet approved)
-                        // OR awaiting_manual (post Pattern F branch).
                         sql`status IN ('pending_review','awaiting_manual')`,
                     ))
                     .returning()
@@ -1110,7 +1134,17 @@ export const markManualDone = async (c: Context<HonoEnv>) => {
             ))
             .returning()
 
-        if (!updated) return fail(c, 'Output not found or not in awaiting_manual status', 404)
+        if (!updated) {
+            // Idempotency check: if the output exists but is already completed,
+            // return success (no-op). Avoids the 404 "ghost error" UX when user
+            // clicks "✓ סיימתי" on a task that was auto-completed by the wizard
+            // or completed in a prior flow.
+            const [existing] = await db.select().from(agentOutputs).where(eq(agentOutputs.id, outputId))
+            if (existing && (existing.status === 'completed' || existing.status === 'published')) {
+                return ok(c, { id: outputId, alreadyCompleted: true }, 'Already completed')
+            }
+            return fail(c, 'Output not found or not in awaiting_manual status', 404)
+        }
 
         // Mirror to research_data.monthlyPlan.tasks[idx].status = 'completed'.
         const meta = updated.metadata as Record<string, unknown> | null
