@@ -225,47 +225,58 @@ export async function autoSetupGtmContainer(
         errors: [],
     }
 
-    // ── Resolve workspace: reuse existing mazhir-auto-* or create new ──
-    // GTM Standard has a 3-workspace cap (Default + max 2 named). Past test/
-    // failed runs leave behind named workspaces, tripping 429 "Resource
-    // exhausted" on POST /workspaces. We can't DELETE them — that requires
-    // the tagmanager.delete.containers scope which we don't request. So
-    // instead we REUSE the most recent mazhir-auto-* if one exists; the
-    // idempotent tag/trigger creation logic below skips anything already
-    // configured. Only fall through to creating a fresh workspace when no
-    // mazhir-auto-* exists.
+    // ── Resolve workspace: ALWAYS use Default Workspace ──
+    // Phase 2026.02 Block 6 K7: switch from named mazhir-auto-* workspaces
+    // back to Default Workspace.
+    //
+    // Why: every container has exactly ONE Default Workspace (immutable id
+    // in GTM, accessible via name="Default Workspace"). When we wrote tags
+    // to a named workspace + published, GTM's auto-cleanup deleted the
+    // named workspace after publish — leaving Default Workspace EMPTY in
+    // the UI (its base = old version that never had our tags). Users open
+    // GTM, see Default Workspace with 0 tags, and assume nothing was done.
+    //
+    // New approach: use Default Workspace. Before writing, call workspaces/
+    // {wsId}:sync to bring its base up to the latest published version
+    // (otherwise Default's base may be Version 1 = pre-Mazhir empty state).
+    // After sync, scanExistingWorkspace sees all live tags as already-
+    // existing → idempotent skip logic prevents duplicates. New tags add
+    // as workspace deltas → publish creates next version. Default Workspace
+    // ALWAYS contains the live state.
     let workspaceId: string
-    let wsName: string
-    let reused = false
     try {
         const existingWs = await gtmFetch(
             `/accounts/${accountId}/containers/${containerId}/workspaces`,
             accessToken,
         )
-        const mazhirWorkspaces = (existingWs.workspace || [])
-            .filter((w: any) => typeof w.name === 'string' && w.name.startsWith('mazhir-auto-'))
-            .sort((a: any, b: any) => String(b.name).localeCompare(String(a.name)))    // newest first
-        if (mazhirWorkspaces.length > 0) {
-            const w = mazhirWorkspaces[0]
-            workspaceId = String(w.workspaceId)
-            wsName = String(w.name)
-            reused = true
-            result.workspaceId = workspaceId
-            result.skipped.push({ type: 'workspace', name: wsName, reason: 'reused existing workspace id=' + workspaceId })
-        } else {
-            wsName = `mazhir-auto-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`
-            const wsRes = await gtmFetch(
-                `/accounts/${accountId}/containers/${containerId}/workspaces`,
-                accessToken,
-                'POST',
-                { name: wsName, description: 'Mazhir auto-setup of conversion infrastructure' },
-            )
-            workspaceId = String(wsRes.workspaceId)
-            result.workspaceId = workspaceId
-            result.created.push({ type: 'workspace', name: wsName, id: workspaceId })
+        const allWorkspaces = (existingWs.workspace || []) as Array<{ workspaceId: string; name: string }>
+        // Find Default Workspace by name (case-insensitive). GTM auto-creates
+        // it for every container — it MUST exist. If not found, that's a
+        // hard error.
+        const defaultWs = allWorkspaces.find(w => /^default\s+workspace$/i.test(String(w.name || '')))
+        if (!defaultWs) {
+            result.errors.push({ step: 'find_default_workspace', error: `Default Workspace not found. Container has ${allWorkspaces.length} workspaces: ${allWorkspaces.map(w => w.name).join(', ')}` })
+            return result
+        }
+        workspaceId = String(defaultWs.workspaceId)
+        result.workspaceId = workspaceId
+        result.skipped.push({ type: 'workspace', name: 'Default Workspace', reason: `using Default Workspace id=${workspaceId}` })
+
+        // Sync Default Workspace to latest published version so its base
+        // includes all previously-published Mazhir fixtures. Without sync,
+        // Default's base may be an empty Version 1 and our scan won't see
+        // the live tags → duplicate creation attempt → 400 conflict.
+        try {
+            await gtmFetch(`${`/accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}`}:sync`, accessToken, 'POST', {})
+            result.skipped.push({ type: 'workspace', name: 'Default Workspace', reason: 'synced base with latest published version' })
+        } catch (syncErr) {
+            // Sync can fail if the workspace has no diff vs latest (already current) or
+            // for permission reasons. Non-fatal — proceed and let scan detect what's
+            // actually in workspace.
+            console.warn(`[gtmSetup] Default Workspace sync warning (non-fatal): ${(syncErr as Error).message.slice(0, 200)}`)
         }
     } catch (err) {
-        result.errors.push({ step: reused ? 'list_workspaces' : 'create_workspace', error: (err as Error).message })
+        result.errors.push({ step: 'list_workspaces', error: (err as Error).message })
         return result
     }
 
