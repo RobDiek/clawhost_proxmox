@@ -11564,6 +11564,37 @@ function renderMonthlyPlanCard() {
           '</div>' +
           '<div style="font-size:0.72rem;color:#6B7280;margin-top:4px">' + progressPct + '% מהתוכנית בוצעה</div>'
         : '') +
+      // K18 — outcome widget: "מה הצלחנו בחודש שעבר".
+      // Counts tasks where actualImpact has been measured (cron or manual).
+      // Hidden if zero measurements yet (early in the month / no completions).
+      (function() {
+        var planTasks = (plan && plan.tasks) || [];
+        var measured = planTasks.filter(function(t) { return t && t.actualImpact && t.actualImpact.measuredAt; });
+        if (measured.length === 0) return '';
+        var hits = measured.filter(function(t) { return t.actualImpact.category === 'hit'; });
+        var mixed = measured.filter(function(t) { return t.actualImpact.category === 'mixed'; });
+        var missed = measured.filter(function(t) { return t.actualImpact.category === 'missed'; });
+        var unknown = measured.filter(function(t) { return t.actualImpact.category === 'unknown'; });
+        var topHits = hits.slice(0, 3).map(function(t) {
+          var pct = t.actualImpact.realizedPct != null ? Math.round(t.actualImpact.realizedPct) + '%' : '?';
+          return '<li>' + escapeHtml((t.title || '').slice(0, 60)) + ' <span style="color:#059669;font-weight:600">(' + pct + ')</span></li>';
+        }).join('');
+        var topMisses = missed.slice(0, 3).map(function(t) {
+          var pct = t.actualImpact.realizedPct != null ? Math.round(t.actualImpact.realizedPct) + '%' : '?';
+          return '<li>' + escapeHtml((t.title || '').slice(0, 60)) + ' <span style="color:#DC2626;font-weight:600">(' + pct + ')</span></li>';
+        }).join('');
+        return '<div style="margin-top:14px;padding:12px 14px;background:#FAFAFA;border:1px solid #E5E7EB;border-radius:8px">' +
+          '<div style="font-size:0.85rem;font-weight:700;color:#1F2937;margin-bottom:8px">📊 מה הצלחנו עד עכשיו</div>' +
+          '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:0.78rem;color:#4B5563;margin-bottom:10px">' +
+            '<span><strong style="color:#059669">' + hits.length + '</strong> עמדו ביעד</span>' +
+            '<span><strong style="color:#D97706">' + mixed.length + '</strong> חלקי</span>' +
+            '<span><strong style="color:#DC2626">' + missed.length + '</strong> לא עמדו</span>' +
+            (unknown.length > 0 ? '<span style="color:#9CA3AF"><strong>' + unknown.length + '</strong> ללא נתונים</span>' : '') +
+          '</div>' +
+          (topHits ? '<div style="font-size:0.78rem;color:#065F46;font-weight:600;margin-bottom:4px">✅ הצלחות מובילות:</div><ul style="margin:0 0 8px;padding-inline-start:20px;font-size:0.78rem;color:#374151;line-height:1.7">' + topHits + '</ul>' : '') +
+          (topMisses ? '<div style="font-size:0.78rem;color:#991B1B;font-weight:600;margin-bottom:4px">❌ דרושות חקירה:</div><ul style="margin:0;padding-inline-start:20px;font-size:0.78rem;color:#374151;line-height:1.7">' + topMisses + '</ul>' : '') +
+        '</div>';
+      })() +
       '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
         '<div style="font-size:0.78rem;color:#6B7280">המשימות מופיעות בלוח התוכן לפי תאריך מתוכנן ↓</div>' +
         '<button class="btn btn-outline btn-sm" onclick="generateMonthlyPlan(true)" style="font-size:0.82rem;margin-inline-start:auto" title="חישוב מחדש עם הנתונים העדכניים">⟲ צרו מחדש</button>' +

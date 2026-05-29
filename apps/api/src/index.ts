@@ -147,6 +147,15 @@ import { runDeferredActionsScheduler } from '@/services/deferredActions/schedule
 setInterval(() => { runDeferredActionsScheduler().catch(err => console.error('[deferredActions] cron error:', err)) }, 24 * 3600 * 1000)
 setTimeout(() => { runDeferredActionsScheduler().catch(err => console.error('[deferredActions] first run error:', err)) }, 120 * 1000)
 
+// K18 — Task Outcome Attribution: daily scan of completed monthly_task tasks
+// where completedAt + expectedImpact.horizon has elapsed but actualImpact has
+// not been measured yet. Routes per-channel adapter, writes actualImpact +
+// category ('hit' | 'mixed' | 'missed' | 'unknown') so monthlyReauditRunner
+// can learn what worked vs missed and shape next month's plan.
+import { runTaskOutcomeAttribution } from '@/services/taskOutcomeAttribution'
+setInterval(() => { runTaskOutcomeAttribution().catch(err => console.error('[taskOutcomeAttribution] cron error:', err)) }, 24 * 3600 * 1000)
+setTimeout(() => { runTaskOutcomeAttribution().catch(err => console.error('[taskOutcomeAttribution] first run error:', err)) }, 180 * 1000)
+
 // Trial manager — check trial expiry every hour
 import { runTrialManager } from '@/jobs/trialManager'
 setInterval(runTrialManager, 3600000) // every hour

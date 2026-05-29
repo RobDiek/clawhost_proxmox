@@ -124,17 +124,42 @@ INSTRUCTIONS:
   · Don't repeat tasks from the previous plan that produced no measurable improvement (see completedTaskOutcomes below)`
         : ''
 
+    // K18: pre-compute aggregated outcome buckets so Opus reads explicit
+    // category labels written by taskOutcomeAttribution cron, not interpret
+    // raw deltas itself. Categories: hit (≥80% of expected), mixed (50-80%),
+    // missed (<50%), unknown (no data — measurement failed or manual not
+    // annotated).
+    const outcomesByCategory = { hit: [] as any[], mixed: [] as any[], missed: [] as any[], unknown: [] as any[] }
+    for (const o of (ctx.completedTaskOutcomes || [])) {
+        const cat = o?.actualImpact?.category as 'hit' | 'mixed' | 'missed' | 'unknown' | undefined
+        if (cat && outcomesByCategory[cat]) outcomesByCategory[cat].push(o)
+    }
+    const totalMeasured = outcomesByCategory.hit.length + outcomesByCategory.mixed.length + outcomesByCategory.missed.length + outcomesByCategory.unknown.length
+
     const completedOutcomesBlock = (ctx.completedTaskOutcomes && ctx.completedTaskOutcomes.length > 0)
         ? `\n═══ COMPLETED TASKS FROM PREVIOUS PLAN — outcomes ═══
-${ctx.completedTaskOutcomes.length} tasks from last month transitioned to completed/in_progress. Use their outcomes
-(if recorded) to decide what to KEEP DOING, STOP DOING, or REPLICATE for the new month:
+${ctx.completedTaskOutcomes.length} tasks from last month transitioned to completed/in_progress.
+Of these, ${totalMeasured} have been MEASURED by the TaskOutcomeAttribution cron (K18):
+  · ✅ hit (≥80% of expected): ${outcomesByCategory.hit.length}
+  · 🟡 mixed (50-80%):        ${outcomesByCategory.mixed.length}
+  · ❌ missed (<50%):          ${outcomesByCategory.missed.length}
+  · ❔ unknown (no data):      ${outcomesByCategory.unknown.length}
 
-${jstr(ctx.completedTaskOutcomes.slice(0, 20), 3000)}
+${outcomesByCategory.hit.length > 0 ? `── HIT (replicate the pattern in new plan) ──
+${outcomesByCategory.hit.slice(0, 10).map((o: any) => `  ✓ ${(o.title || '').slice(0, 70)} [${o.type}/${o.channel}] — expected=${o.expectedImpact?.value}${o.expectedImpact?.metric} got=${o.actualImpact?.value} (${Math.round(o.actualImpact?.realizedPct || 0)}%)`).join('\n')}
+` : ''}
+${outcomesByCategory.missed.length > 0 ? `── MISSED (do NOT propose similar; spawn a P1 measurement_gap to investigate) ──
+${outcomesByCategory.missed.slice(0, 10).map((o: any) => `  ✗ ${(o.title || '').slice(0, 70)} [${o.type}/${o.channel}] — expected=${o.expectedImpact?.value}${o.expectedImpact?.metric} got=${o.actualImpact?.value} (${Math.round(o.actualImpact?.realizedPct || 0)}%) — ${(o.actualImpact?.rationale || '').slice(0, 80)}`).join('\n')}
+` : ''}
+${outcomesByCategory.unknown.length > 0 ? `── UNKNOWN (measurement failed — propose explicit signal capture) ──
+${outcomesByCategory.unknown.slice(0, 5).map((o: any) => `  ? ${(o.title || '').slice(0, 70)} [${o.type}/${o.channel}] — ${(o.actualImpact?.rationale || 'no measurement attempted').slice(0, 80)}`).join('\n')}
+` : ''}
 
-INSTRUCTIONS:
-  · Tasks where expectedImpact matched actualImpact (within 20%) → REPLICATE pattern in new plan
-  · Tasks where actualImpact missed expectedImpact by >40% → DON'T propose similar; investigate root cause via measurement_gap task
-  · Tasks with completedMethod='manual' (no integration) → next month consider proposing the INTEGRATION SETUP as P1 task so future runs can be automated`
+INSTRUCTIONS — apply rigorously:
+  1. For each HIT task → propose a NEW task that DOUBLES DOWN on the same pattern (e.g. hit was "negatives added on campaign X" → propose "expand same negative discipline to campaigns Y/Z"). Reference the hit task explicitly in your task's rationale + sources.
+  2. For each MISSED task → DO NOT re-propose it verbatim. Instead emit ONE P1 measurement_gap task titled "מה השתבש ב-<TITLE> וכיצד מתקנים" with actionPlan steps: (a) review GA4/Ads metrics in the task's measurement window, (b) interview founder for context, (c) hypothesis for failure (mis-attribution / wrong KPI / external factor), (d) corrective replan.
+  3. For UNKNOWN tasks → if completedMethod was manual and founder didn't fill the popup, propose a small P2 process task "תבקשו מהמשתמש למלא דיווח תוצאה" via Telegram nudge. If completedMethod was automated but adapter returned no_data, propose adding the measurement signal (e.g. "חברו GSC", "הוסיפו campaign ID labeling") as P1 measurement_gap.
+  4. Tasks with no category label (no actualImpact written yet) → treat as still-pending; do not re-propose.`
         : ''
 
     // Phase 4.3-N v8: extract hard CPA ceiling for paid-task constraint block

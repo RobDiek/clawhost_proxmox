@@ -6495,13 +6495,19 @@ export interface MonthlyTask {
         stepResults?: Array<{ step: string; ok: boolean; detail?: string }>
         error?: string
     }
-    actualImpact?: {                           // populated by a future TaskOutcomeAttribution cron 7-30d post-completion
+    actualImpact?: {                           // populated by TaskOutcomeAttribution cron at completedAt + horizon
         metric: string
         value: number
         horizon: string
         measuredAt: string
         rationale: string                      // Hebrew narrative of "expected X, got Y"
         deltaVsExpected: number                // (actualValue - expectedValue) / expectedValue * 100
+        // K18: outcome classification + provenance — read by monthlyReauditRunner
+        // to feed Pass 1 skeleton with "what worked / what missed" context.
+        realizedPct?: number                   // actual / expected as a %; 100 = exact hit. Differs from deltaVsExpected which is signed delta.
+        category?: 'hit' | 'mixed' | 'missed' | 'unknown'  // hit ≥ 80%, mixed 50-80%, missed < 50%, unknown = no_data
+        source?: 'automated_paid' | 'automated_seo' | 'automated_content' | 'measurement_gap' | 'manual' | 'no_data'
+        evidence?: string[]                    // ["campaignId=123","ga4_event=click_on_whatsapp"] — where the number came from
     }
 
     // ── Cross-references to legacy systems (Coexist mode) ─────────────────

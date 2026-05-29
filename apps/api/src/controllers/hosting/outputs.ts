@@ -1875,6 +1875,20 @@ export const markManualDone = async (c: Context<HonoEnv>) => {
         const outputId = c.req.param('outputId')
         const userId = c.get('userId')
 
+        // K18 — optional outcome capture. Founder may provide:
+        //   { actualValue: number, actualNote?: string }
+        // alongside the mark-done action. If present, write actualImpact with
+        // source='manual' so the next monthly re-audit sees a real signal
+        // rather than 'no_data'.
+        const userOutcome: { actualValue?: number; actualNote?: string } = {}
+        try {
+            const body = await c.req.json().catch(() => ({}))
+            if (body && typeof body === 'object') {
+                if (typeof body.actualValue === 'number' && Number.isFinite(body.actualValue)) userOutcome.actualValue = body.actualValue
+                if (typeof body.actualNote === 'string') userOutcome.actualNote = body.actualNote.slice(0, 500)
+            }
+        } catch { /* body optional */ }
+
         const [updated] = await db.update(agentOutputs)
             .set({
                 status: 'completed',
@@ -1914,10 +1928,37 @@ export const markManualDone = async (c: Context<HonoEnv>) => {
                     if (!plan || !Array.isArray(plan.tasks)) return rd
                     const idx = plan.tasks.findIndex((t: any) => t.id === taskId)
                     if (idx === -1) return rd
-                    plan.tasks[idx].status = 'completed'
-                    plan.tasks[idx].completedAt = new Date().toISOString()
-                    ;(plan.tasks[idx] as any).completedMethod = 'manual_user_confirm'
-                    ;(plan.tasks[idx] as any).completedBy = userId
+                    const task = plan.tasks[idx]
+                    task.status = 'completed'
+                    task.completedAt = new Date().toISOString()
+                    task.completedMethod = 'manual_user_confirm'
+                    task.completedBy = userId
+                    // K18: capture user-reported outcome immediately if provided.
+                    if (userOutcome.actualValue != null) {
+                        const expectedValue = Number(task.expectedImpact?.value) || 0
+                        const realizedPct = expectedValue !== 0
+                            ? (userOutcome.actualValue / expectedValue) * 100
+                            : undefined
+                        const deltaVsExpected = expectedValue !== 0
+                            ? ((userOutcome.actualValue - expectedValue) / Math.abs(expectedValue)) * 100
+                            : 0
+                        const category = realizedPct == null ? 'unknown'
+                            : realizedPct >= 80 ? 'hit'
+                            : realizedPct >= 50 ? 'mixed'
+                            : 'missed'
+                        task.actualImpact = {
+                            metric: task.expectedImpact?.metric || 'other',
+                            value: userOutcome.actualValue,
+                            horizon: task.expectedImpact?.horizon || '30d',
+                            measuredAt: new Date().toISOString(),
+                            rationale: userOutcome.actualNote || `המשתמש דיווח ערך בפועל ${userOutcome.actualValue}`,
+                            deltaVsExpected,
+                            realizedPct,
+                            category,
+                            source: 'manual',
+                            evidence: ['user_confirmed'],
+                        }
+                    }
                     return rd
                 })
             } catch (err) {
@@ -1925,7 +1966,7 @@ export const markManualDone = async (c: Context<HonoEnv>) => {
             }
         }
 
-        console.log(`Output ${outputId} (taskId=${taskId}) marked manual-done by ${userId}`)
+        console.log(`Output ${outputId} (taskId=${taskId}) marked manual-done by ${userId}${userOutcome.actualValue != null ? ` outcome=${userOutcome.actualValue}` : ''}`)
         return ok(c, updated, 'Manual step confirmed — task marked completed')
     } catch (err) {
         console.error('markManualDone error:', err)
