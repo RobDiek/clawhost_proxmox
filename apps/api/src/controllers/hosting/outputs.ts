@@ -666,17 +666,14 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             chainSteps.push({ step: 'WordPress install error', ok: false, detail: (e as Error).message.slice(0, 300) })
         }
 
-        // Server-side log of failing chainSteps so we can diagnose UI-reported
-        // errors without depending on screenshots. Logs full step content for
-        // any step with ok:false (sanitized to first 400 chars).
-        const failingSteps = chainSteps.filter(s => !s.ok)
-        if (failingSteps.length > 0) {
-            console.log(`[gtmFreshStack] instance=${instanceId} agent=${agent.id} failingSteps=${failingSteps.length} OK=${chainSteps.length - failingSteps.length}/${chainSteps.length}`)
-            for (const s of failingSteps) {
-                console.log(`[gtmFreshStack]   ✗ ${s.step}: ${(s.detail || '').slice(0, 400)}`)
-            }
-        } else {
-            console.log(`[gtmFreshStack] instance=${instanceId} agent=${agent.id} all ${chainSteps.length} steps OK`)
+        // Server-side log of ALL chainSteps (✓ + ✗) so journalctl shows the
+        // full pipeline state without depending on UI screenshots or the
+        // user remembering exact wording.
+        const failCount = chainSteps.filter(s => !s.ok).length
+        console.log(`[gtmFreshStack] instance=${instanceId} agent=${agent.id} steps=${chainSteps.length} ok=${chainSteps.length - failCount} fail=${failCount}`)
+        for (const s of chainSteps) {
+            const sigil = s.ok ? '✓' : '✗'
+            console.log(`[gtmFreshStack]   ${sigil} ${s.step}: ${(s.detail || '').slice(0, 400)}`)
         }
 
         return ok(c, {

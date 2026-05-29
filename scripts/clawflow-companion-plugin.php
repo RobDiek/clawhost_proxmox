@@ -2,8 +2,8 @@
 /**
  * Plugin Name: ClawFlow Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
- * Description: ClawFlow platform companion — GTM snippet injection, legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push.
- * Version: 1.1.0
+ * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push.
+ * Version: 1.2.0
  * Author: ClawFlow by Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -124,26 +124,44 @@ add_action('rest_api_init', function () {
                 }
             }
 
-            // 2. Scan theme files (header.php, functions.php) if readable
-            $themeDir = get_template_directory();
-            foreach (['header.php', 'functions.php'] as $f) {
-                $p = $themeDir . '/' . $f;
-                if (is_readable($p)) {
-                    $contents = (string)file_get_contents($p);
-                    if (preg_match_all('/GTM-[A-Z0-9]{4,}/', $contents, $m)) {
-                        $ids = array_unique($m[0]);
-                        $foreignIds = array_values(array_filter($ids, function ($id) use ($ourId) {
-                            return $id !== $ourId;
-                        }));
-                        if (!empty($foreignIds)) {
-                            $findings[] = [
-                                'source'  => 'theme_file',
-                                'key'     => $f,
-                                'gtmIds'  => $foreignIds,
-                                'excerpt' => 'in ' . basename($themeDir) . '/' . $f,
-                            ];
-                        }
-                    }
+            // 2. Recursively scan ALL .php files in active theme + child theme
+            //    + mu-plugins (most common hiding spots for hard-coded GTM
+            //    snippets). Skip vendor/, node_modules/ (rare in WP but possible).
+            $scanDirs = array_unique(array_filter([
+                get_stylesheet_directory(),       // child theme (if active)
+                get_template_directory(),         // parent theme
+                WPMU_PLUGIN_DIR,                  // mu-plugins
+            ]));
+            foreach ($scanDirs as $dir) {
+                if (!is_dir($dir) || !is_readable($dir)) continue;
+                $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS));
+                $checked = 0;
+                foreach ($rii as $f) {
+                    if ($checked++ > 500) break;  // safety cap
+                    if (!$f->isFile()) continue;
+                    $path = $f->getPathname();
+                    if (!preg_match('/\\.(php|phtml)$/i', $path)) continue;
+                    if (preg_match('#/(vendor|node_modules|cache|backup)/#i', $path)) continue;
+                    $contents = @file_get_contents($path);
+                    if (!$contents) continue;
+                    if (!preg_match_all('/GTM-[A-Z0-9]{4,}/', $contents, $m)) continue;
+                    $ids = array_unique($m[0]);
+                    $foreignIds = array_values(array_filter($ids, function ($id) use ($ourId) {
+                        return $id !== $ourId;
+                    }));
+                    if (empty($foreignIds)) continue;
+                    $rel = ltrim(str_replace($dir, '', $path), '/\\');
+                    // capture ~120 chars of context around first match for hint
+                    $pos = strpos($contents, $foreignIds[0]);
+                    $excerpt = $pos !== false
+                        ? trim(preg_replace('/\s+/', ' ', substr($contents, max(0, $pos - 80), 240)))
+                        : 'in ' . basename($dir) . '/' . $rel;
+                    $findings[] = [
+                        'source'  => 'theme_file',
+                        'key'     => basename($dir) . '/' . $rel,
+                        'gtmIds'  => $foreignIds,
+                        'excerpt' => mb_substr($excerpt, 0, 240),
+                    ];
                 }
             }
 
@@ -362,7 +380,7 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.1.0',
+                'pluginVersion'       => '1.2.0',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'wooCommerceActive'   => class_exists('WooCommerce'),
                 'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,

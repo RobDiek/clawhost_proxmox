@@ -898,8 +898,11 @@ export async function validateGtmFixtures(
         fixtures.push({ label: 'GCLID Capture HTML tag', present: !!t, foundName: t?.name })
     }
     if (expect.expectGaawe) {
-        const t = findTagByType('gaawc') || findTagByName(/ga4[\s_]*config|gaawc/i)
-        fixtures.push({ label: 'GA4 Configuration tag', present: !!t, foundName: t?.name })
+        // GA4 base config — modern Google Tag (googtag) replaced the legacy
+        // GA4 Configuration tag (gaawc) in 2023. Accept either. Also accept
+        // by name pattern for hand-rolled or older containers.
+        const t = findTagByType('googtag') || findTagByType('gaawc') || findTagByName(/ga4[\s_]*config|ga4[\s_]*base|google[\s_]*tag|googtag|gaawc/i)
+        fixtures.push({ label: 'GA4 base tag (googtag / gaawc)', present: !!t, foundName: t?.name })
     }
     if (expect.expectEnhancedConversions) {
         const emailVar = findVarByName(/email|user[_\s]*data[_\s]*email/i)
