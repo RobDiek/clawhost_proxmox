@@ -2,8 +2,8 @@
 /**
  * Plugin Name: ClawFlow Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
- * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection + surgical resolution (expanded slug detection).
- * Version: 1.4.1
+ * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection + surgical resolution (robust plugin family deactivation).
+ * Version: 1.4.2
  * Author: ClawFlow by Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -380,7 +380,7 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.4.1',
+                'pluginVersion'       => '1.4.2',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'wooCommerceActive'   => class_exists('WooCommerce'),
                 'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,
@@ -741,21 +741,45 @@ add_action('rest_api_init', function () {
                 }
             }
 
-            // Deactivate entire plugin (fallback for plugins without surgical option mapping)
+            // ── Deactivate entire plugin — robust slug family matching ──
+            //
+            // Many tracking plugins have had multiple rebrands / vendor prefix
+            // changes (e.g. "Google Listings & Ads" → "Google for WooCommerce",
+            // "Conversion Tracking" → "PixelYourSite Pro"). Exact slug match
+            // would miss these. We define plugin FAMILIES of related slug
+            // patterns and deactivate ALL active plugins matching the family.
             if ($feature === 'deactivate_plugin' && $plugin) {
                 if (!function_exists('deactivate_plugins')) {
                     require_once ABSPATH . 'wp-admin/includes/plugin.php';
                 }
-                $found = false;
-                foreach (get_option('active_plugins', []) as $p) {
-                    if (strpos($p, $plugin) === 0) {
-                        deactivate_plugins($p, true);
-                        $changes[] = 'plugin ' . $p . ' deactivated';
-                        $found = true;
-                        break;
-                    }
+                // Map canonical name → regex patterns of related slugs
+                $families = [
+                    'google-listings-and-ads' => '/(google-listings-and-ads|google-for-woocommerce|woocommerce-google-feed|wc-google-ads|google-ads-for-woo)/i',
+                    'pixelyoursite'           => '/(pixelyoursite|pixel-your-site|pys-)/i',
+                    'monsterinsights-lite'    => '/(monsterinsights|google-analytics-for-wordpress)/i',
+                    'google-site-kit'         => '/(google-site-kit|sitekit)/i',
+                    'duracelltomi-google-tag-manager' => '/(duracelltomi-google-tag-manager|gtm4wp)/i',
+                    'exactmetrics'            => '/(exactmetrics|google-analytics-dashboard-for-wp)/i',
+                    'pinterest-for-woocommerce' => '/pinterest-for-woocommerce/i',
+                    'facebook-for-woocommerce'  => '/facebook-for-woocommerce/i',
+                ];
+                $pattern = $families[$plugin] ?? '/^' . preg_quote($plugin, '/') . '/i';
+                $allActive = (array)get_option('active_plugins', []);
+                $matched = [];
+                foreach ($allActive as $p) {
+                    if (preg_match($pattern, $p)) $matched[] = $p;
                 }
-                if (!$found) $changes[] = 'plugin ' . $plugin . ' not found in active list';
+                if (!empty($matched)) {
+                    foreach ($matched as $p) {
+                        deactivate_plugins($p, true);
+                        $changes[] = 'plugin deactivated: ' . $p;
+                    }
+                } else {
+                    // Diagnostic: list active plugins so caller can identify
+                    // the right slug for next attempt.
+                    $changes[] = 'no plugins matched pattern ' . $pattern . ' (family: ' . $plugin . ')';
+                    $changes[] = 'active plugins: ' . implode(', ', array_slice($allActive, 0, 30));
+                }
             }
 
             return ['ok' => true, 'changes' => $changes];

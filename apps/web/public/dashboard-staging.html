@@ -8776,17 +8776,19 @@ function resolveTrackingConflict(plugin, feature, btn, taskId) {
       return;
     }
     var changes = (d.data && d.data.changes) || [];
+    var actuallyDidSomething = !!(d.data && d.data.actuallyDidSomething);
     if (btn) {
-      if (changes.length === 0) {
-        // 0 changes = endpoint didn't match — likely plugin v1.3 without
-        // the disable branch for THIS plugin. Surface as warning.
-        btn.textContent = '⚠ 0 changes (upgrade plugin to v1.4)';
+      if (!actuallyDidSomething) {
+        // Backend reports no-op (plugin slug not found, or unknown disable
+        // path). Surface the diagnostic from changes[] so user can see WHY.
+        btn.textContent = '⚠ לא נמצא בפלאגינים פעילים';
         btn.style.background = '#F59E0B';
-        showToast('Auto-fix returned 0 changes — companion plugin v1.4 required for this plugin. Download new .zip and re-install.', 'warning');
+        var diag = changes.join(' · ');
+        showToast('הפעולה לא הצליחה — הפלאגין לא נמצא ברשימת הפעילים. עדכנו לפלאגין v1.4.2: ' + diag.slice(0, 300), 'warning');
       } else {
-        btn.textContent = '✓ Disabled (' + changes.length + ' changes)';
+        btn.textContent = '✓ הושבת (' + changes.length + ' שינויים)';
         btn.style.background = '#10B981';
-        showToast('Conflict resolved: ' + changes.length + ' option(s) updated. Re-run wizard to verify.', 'success');
+        showToast('הקונפליקט נפתר: ' + changes.length + ' שינויים. הריצו את ה-Wizard שוב לאימות.', 'success');
       }
     }
   })

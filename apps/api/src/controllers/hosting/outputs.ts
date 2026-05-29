@@ -1186,13 +1186,25 @@ export const gtmResolveConflict = async (c: Context<HonoEnv>) => {
         const cfg = wp.config as { url: string; user: string; appPassword: string }
         const result = await disablePluginTrackingFeature(cfg, plugin, feature)
 
+        // Log every change so journalctl shows what really happened (no need
+        // for blind trust on "0 changes" mysteries).
+        console.log(`[resolveConflict] instance=${instanceId} plugin=${plugin} feature=${feature} changesCount=${result.changes.length}`)
+        for (const ch of result.changes) console.log(`[resolveConflict]   · ${ch}`)
+
         // Re-run tracking audit to confirm the conflict is gone
         const reAudit = await probeTrackingAudit(cfg).catch(() => null)
+
+        // K10 fix: tell UI explicitly when the action had no effect, so it
+        // can show a clearer error than "0 changes" without context.
+        const actuallyDidSomething = result.changes.some(c =>
+            !/not found|no plugins matched|active plugins:/i.test(c)
+        )
 
         return ok(c, {
             disabledPlugin: plugin,
             disabledFeature: feature,
             changes: result.changes,
+            actuallyDidSomething,
             postFixAudit: reAudit,
         }, 'Conflict resolution applied')
     } catch (err) {
