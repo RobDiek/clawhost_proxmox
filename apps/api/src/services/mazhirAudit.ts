@@ -27,6 +27,7 @@ import { db } from '@/db'
 import { instances, brandBooks } from '@/db/schema'
 import { resolveDirectModel } from '@/controllers/hosting/agentSetup'
 import { getCampaignMetrics, getRecommendations } from '@/services/googleAds'
+import { withHebrewStyleGuide } from './hebrewStyleGuide'
 import type { MazhirAudit, PaidProfile } from '@/controllers/hosting/agentSetup'
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages'
@@ -1141,7 +1142,7 @@ Return ONLY the JSON object. No markdown fences, no commentary.`
     const raw = await callOpus({
         apiKey,
         model,
-        system,
+        system: withHebrewStyleGuide(system),
         user: userPrompt,
         maxTokens: usingOpus ? 32000 : 12000,
         timeoutMs: 300000,

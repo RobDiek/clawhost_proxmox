@@ -564,31 +564,33 @@ export async function generateMonthlyPlan(
     const pass2Elapsed = ((Date.now() - tPass2Start) / 1000).toFixed(1)
     console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 2 (detail) done in ${pass2Elapsed}s — ${batchStats.succeeded}/${batchStats.total} batches succeeded, ${detailedTasks.length} tasks merged`)
 
-    // ─── K16: Hebrew cleanup pass — strips snake_case / English jargon ──
+    // ─── Pass 3: Senior-bar coverage check + fills ───────────────────────
+    const tPass3Start = Date.now()
+    const { tasks: pass3Tasks, coverage } = await ensureCoverage(ctx, detailedTasks, apiKey, model)
+    const pass3Elapsed = ((Date.now() - tPass3Start) / 1000).toFixed(1)
+    const filledRules = coverage.filter(c => c.status === 'filled').map(c => c.rule)
+    const failedFills = coverage.filter(c => c.status === 'fill_failed').map(c => c.rule)
+    console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 3 (coverage) done in ${pass3Elapsed}s — filled=[${filledRules.join(',')}] failed=[${failedFills.join(',')}]`)
+
+    // ─── K17: Hebrew cleanup pass — strips snake_case / English jargon ──
     // from user-facing task strings (title / summary / actionPlan[].step /
     // expectedImpact.rationale / sources[].excerpt) without changing
-    // structure. Runs BEFORE Pass 3 so coverage fills also get cleaned.
-    let cleanedDetailedTasks = detailedTasks
+    // structure. Runs AFTER Pass 3 so coverage fills ALSO get cleaned
+    // (Pass 3 still injects fresh Opus output that may contain
+    // snake_case / English jargon despite the style guide).
+    let finalTasks = pass3Tasks
     try {
         const { runMonthlyPlanHebrewCleanup } = await import('./monthlyPlanHebrewCleanup')
-        const cleanup = await runMonthlyPlanHebrewCleanup({ tasks: detailedTasks as unknown as Array<Record<string, unknown>>, instanceId })
+        const cleanup = await runMonthlyPlanHebrewCleanup({ tasks: pass3Tasks as unknown as Array<Record<string, unknown>>, instanceId })
         if (cleanup.applied && cleanup.cleanedTasks) {
-            cleanedDetailedTasks = cleanup.cleanedTasks as unknown as typeof detailedTasks
-            console.log(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup applied to ${cleanup.cleanedTasks.length} tasks`)
+            finalTasks = cleanup.cleanedTasks as unknown as typeof pass3Tasks
+            console.log(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup applied to ${cleanup.cleanedTasks.length} tasks (post-Pass 3)`)
         } else {
             console.log(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup skipped (${cleanup.reason})`)
         }
     } catch (e) {
         console.warn(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup error (non-fatal):`, (e as Error).message)
     }
-
-    // ─── Pass 3: Senior-bar coverage check + fills ───────────────────────
-    const tPass3Start = Date.now()
-    const { tasks: finalTasks, coverage } = await ensureCoverage(ctx, cleanedDetailedTasks, apiKey, model)
-    const pass3Elapsed = ((Date.now() - tPass3Start) / 1000).toFixed(1)
-    const filledRules = coverage.filter(c => c.status === 'filled').map(c => c.rule)
-    const failedFills = coverage.filter(c => c.status === 'fill_failed').map(c => c.rule)
-    console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 3 (coverage) done in ${pass3Elapsed}s — filled=[${filledRules.join(',')}] failed=[${failedFills.join(',')}]`)
 
     // ─── Assemble plan + apply guardrails ────────────────────────────────
     const qualityWarnings: string[] = [

@@ -18,6 +18,7 @@
 import type { PromptCtx } from './monthlyPlanGenerator'
 import { callOpusStream } from './llmStream'
 import { extractLlmJson } from './llmJson'
+import { withHebrewStyleGuide } from './hebrewStyleGuide'
 import { randomBytes } from 'crypto'
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
 
@@ -553,7 +554,7 @@ async function generateFill(
 ): Promise<MonthlyTask[]> {
     const brief = rule.fillBrief(ctx)
     const userPrompt = buildFillUserPrompt(ctx, rule)
-    const system = FILL_SYSTEM_BASE + '\n\n' + brief.systemAddon
+    const system = withHebrewStyleGuide(FILL_SYSTEM_BASE + '\n\n' + brief.systemAddon)
     console.log(`[monthlyPlanSeniorBarCheck] fill rule=${rule.id} starting (prompt=${system.length + userPrompt.length} chars)`)
     try {
         const raw = await callOpusStream({
