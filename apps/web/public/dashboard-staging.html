@@ -8302,75 +8302,168 @@ function apiMarkManualDone(outputId) {
 function openGtmFreshStackWizard(opts) {
   opts = opts || {};
   var taskId = opts.taskId || '';
-  var defaultDomain = opts.siteDomain || (instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.websiteUrl) || '';
-  // Strip protocol + trailing slash for default value
-  defaultDomain = defaultDomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
-  var defaultContainerName = (opts.brandName || (instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.businessName) || 'Web Container').slice(0, 60);
 
   var overlay = document.createElement('div');
   overlay.id = 'gtmWizardOverlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
   overlay.innerHTML =
-    '<div style="background:#fff;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;border-radius:14px;padding:24px 28px;direction:rtl;font-family:Arial,sans-serif">' +
+    '<div style="background:#fff;max-width:720px;width:100%;max-height:90vh;overflow-y:auto;border-radius:14px;padding:24px 28px;direction:rtl;font-family:Arial,sans-serif">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">' +
-        '<div style="font-size:1.05rem;font-weight:700;color:#1F2937">🆕 הקמת GTM Account חדש</div>' +
+        '<div style="font-size:1.05rem;font-weight:700;color:#1F2937" id="gtmWizardTitle">⏳ בודקים מצב חיבורים...</div>' +
         '<button onclick="closeGtmWizard()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#9CA3AF">✕</button>' +
       '</div>' +
-
-      '<div id="gtmWizardStep1">' +
-        '<div style="font-size:0.85rem;color:#4B5563;line-height:1.6;margin-bottom:14px">' +
-          'נמיגרציה מ-GTM Account ששייך לסוכנות (או הקמה חדשה לגמרי). כל מה שצריך מכם — Account ID. אנחנו ניצור את ה-Container, נפרסם את כל ה-Tags, ונתקין את ה-snippet באתר אוטומטית.' +
-        '</div>' +
-
-        '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-bottom:16px">' +
-          '<div style="font-size:0.82rem;font-weight:600;color:#92400E;margin-bottom:6px">⚠️ שלב ידני (פעם אחת):</div>' +
-          '<ol style="margin:0;padding-right:18px;font-size:0.82rem;color:#78350F;line-height:1.7">' +
-            '<li>פתחו <a href="https://tagmanager.google.com" target="_blank" style="color:#0EA5E9;text-decoration:underline">tagmanager.google.com</a> (בחשבון Google שלכם)</li>' +
-            '<li>לחצו על drop-down של ה-Account → <strong>Create Account</strong></li>' +
-            '<li>Account Name: <code style="background:#fff;padding:2px 5px;border-radius:3px">' + defaultContainerName + ' (Flowmatic)</code></li>' +
-            '<li>Country: <code style="background:#fff;padding:2px 5px;border-radius:3px">Israel</code></li>' +
-            '<li>Container Setup: דלגו (אנחנו ניצור אוטומטית). אם דורש — תנו שם זמני "Temp"</li>' +
-            '<li>אחרי יצירה — ה-URL יהיה <code style="background:#fff;padding:2px 5px;border-radius:3px;font-size:0.75rem">tagmanager.google.com/#/admin/accounts/<strong>XXXXXXXXX</strong>/...</code> — העתיקו את ה-Account ID (מספר)</li>' +
-          '</ol>' +
-        '</div>' +
-
-        // Pattern J: WP companion plugin .zip — must be uploaded manually
-        // (WP REST does not accept custom plugin uploads). Put the download
-        // link FRONT-AND-CENTER so it can be grabbed before running the wizard.
-        '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 14px;margin-bottom:16px">' +
-          '<div style="font-size:0.82rem;font-weight:600;color:#1E40AF;margin-bottom:6px">📦 שלב ידני נוסף — התקנת WP Plugin (פעם אחת):</div>' +
-          '<ol style="margin:0;padding-right:18px;font-size:0.82rem;color:#1E3A8A;line-height:1.7">' +
-            '<li>הורידו <a href="' + API + '/hosting/instances/' + instanceId + '/wp/companion-plugin.zip" download="clawflow-companion.zip" style="color:#1D4ED8;text-decoration:underline;font-weight:600">clawflow-companion.zip</a></li>' +
-            '<li>WP Admin → Plugins → <strong>Add New</strong> → <strong>Upload Plugin</strong></li>' +
-            '<li>בחרו את הקובץ → <strong>Install Now</strong> → <strong>Activate</strong></li>' +
-          '</ol>' +
-          '<div style="font-size:0.78rem;color:#1E40AF;margin-top:8px;opacity:0.85">לאחר ההתקנה, ה-Wizard מטפל בכל השאר אוטומטית — הזרקת snippet, ניקוי GTM ישן, ואימות.</div>' +
-        '</div>' +
-
-        '<div style="margin-bottom:14px">' +
-          '<label style="display:block;font-size:0.85rem;font-weight:600;color:#374151;margin-bottom:6px">GTM Account ID (מספר מ-URL)</label>' +
-          '<input type="text" id="gtmWizardAccountId" placeholder="לדוגמה: 6789012345" style="width:100%;padding:10px 12px;font-size:0.95rem;font-family:monospace;border:1px solid #D1D5DB;border-radius:6px;direction:ltr;text-align:left">' +
-        '</div>' +
-
-        '<div style="margin-bottom:14px">' +
-          '<label style="display:block;font-size:0.85rem;font-weight:600;color:#374151;margin-bottom:6px">שם ה-Container</label>' +
-          '<input type="text" id="gtmWizardContainerName" value="' + escapeHtml(defaultContainerName + ' — Web') + '" style="width:100%;padding:10px 12px;font-size:0.95rem;border:1px solid #D1D5DB;border-radius:6px">' +
-        '</div>' +
-
-        '<div style="margin-bottom:18px">' +
-          '<label style="display:block;font-size:0.85rem;font-weight:600;color:#374151;margin-bottom:6px">דומיין של האתר</label>' +
-          '<input type="text" id="gtmWizardSiteDomain" value="' + escapeHtml(defaultDomain) + '" placeholder="example.co.il" style="width:100%;padding:10px 12px;font-size:0.95rem;font-family:monospace;border:1px solid #D1D5DB;border-radius:6px;direction:ltr;text-align:left">' +
-        '</div>' +
-
-        '<div style="display:flex;gap:10px;justify-content:flex-end">' +
-          '<button onclick="closeGtmWizard()" style="padding:8px 16px;background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:6px;cursor:pointer;font-size:0.88rem">ביטול</button>' +
-          '<button onclick="submitGtmFreshStack(' + (taskId ? "'" + taskId + "'" : 'null') + ')" id="gtmWizardSubmit" style="padding:8px 16px;background:#10B981;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.88rem;font-weight:600">▶ צרו והגדירו אוטומטית</button>' +
-        '</div>' +
-      '</div>' +
-
+      '<div id="gtmWizardStep1"><div style="text-align:center;padding:40px 0;color:#6B7280;font-size:0.9rem">⏳ בודקים: Google · GA4 · Google Ads · WordPress · Plugin</div></div>' +
       '<div id="gtmWizardStep2" style="display:none"></div>' +
     '</div>';
   document.body.appendChild(overlay);
+
+  // Edit 2: pre-flight check. Surfaces readiness BEFORE the user invests
+  // effort entering Account ID. Hides plugin download if already installed
+  // and adapts copy by tenantState (greenfield vs has_target / migration).
+  var agent = activeAgent || 'oc';
+  var agentParam = window.activeAgentId ? '?agentId=' + window.activeAgentId : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/gtm/fresh-stack/preflight' + agentParam, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d.success) {
+      document.getElementById('gtmWizardStep1').innerHTML =
+        '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:14px;color:#991B1B;font-size:0.88rem">' +
+          '⚠ שגיאה ב-pre-flight: ' + escapeHtml(d.message || 'unknown') +
+        '</div>' +
+        '<div style="margin-top:14px;text-align:left"><button onclick="closeGtmWizard()" style="padding:8px 16px;background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:6px;cursor:pointer;font-size:0.88rem">סגרו</button></div>';
+      return;
+    }
+    renderGtmWizardStep1(d.data, taskId);
+  })
+  .catch(function(err) {
+    document.getElementById('gtmWizardStep1').innerHTML =
+      '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:14px;color:#991B1B;font-size:0.88rem">' +
+        '⚠ שגיאת רשת ב-pre-flight: ' + escapeHtml((err && err.message) || '') +
+      '</div>';
+  });
+}
+
+// Pre-flight readiness card + adaptive step-1. Adapts copy by tenantState:
+//   greenfield  → "Setup GTM for the first time"
+//   has_target  → "Refresh/re-run existing setup"
+//   migration   → (treated as has_target for now)
+function renderGtmWizardStep1(p, taskId) {
+  var defaultDomain = p.detectedSiteDomain || '';
+  var defaultContainerName = (p.detectedBrandName || 'Web Container').slice(0, 60);
+  var hasTarget = !!p.gtmTargetExists;
+  var titleEl = document.getElementById('gtmWizardTitle');
+  if (titleEl) {
+    titleEl.textContent = hasTarget
+      ? '🔄 רענון הגדרות GTM קיימות'
+      : '🆕 הקמת GTM Account חדש (לראשונה)';
+  }
+
+  // Readiness card
+  function rowOk(label, ok, hint) {
+    var icon = ok ? '✓' : '⚠';
+    var color = ok ? '#10B981' : '#F59E0B';
+    return '<div style="display:flex;gap:8px;align-items:flex-start;padding:4px 0">' +
+      '<div style="color:' + color + ';font-weight:700;min-width:18px">' + icon + '</div>' +
+      '<div style="flex:1;font-size:0.85rem;color:#1F2937"><strong>' + escapeHtml(label) + '</strong>' +
+        (hint ? '<div style="font-size:0.78rem;color:#6B7280;margin-top:2px">' + escapeHtml(hint) + '</div>' : '') +
+      '</div></div>';
+  }
+
+  var pluginRow = p.wpPluginInstalled
+    ? rowOk('Plugin v' + (p.wpPluginVersion || '?') + ' מותקן', true,
+        p.wooCommerceActive ? 'WooCommerce v' + (p.wooCommerceVersion || '?') + ' זוהה — ecommerce dataLayer יפעל' : 'WooCommerce לא זוהה — purchase events לא ייפעלו')
+    : rowOk('WP Plugin לא מותקן', false, 'יש להוריד ולהעלות ידנית פעם אחת');
+
+  var readinessHtml =
+    '<div style="background:' + (p.ready ? '#ECFDF5' : '#FEF3C7') + ';border:1px solid ' + (p.ready ? '#A7F3D0' : '#FDE68A') + ';border-radius:8px;padding:12px 14px;margin-bottom:14px">' +
+      '<div style="font-size:0.85rem;font-weight:700;color:' + (p.ready ? '#065F46' : '#92400E') + ';margin-bottom:8px">' +
+        (p.ready ? '✓ מוכן להפעלה' : '⚠ חסרים חיבורים — הריצו אחרי תיקון') +
+      '</div>' +
+      rowOk('Google Account מחובר', p.googleConnected, p.googleConnected ? '' : 'יש לחבר Google ב-Integrations עם scopes: ads + analytics + gtm') +
+      rowOk('GA4 נגיש', p.ga4Accessible, p.ga4Accessible
+        ? p.ga4PropertiesCount + ' GA4 properties זוהו'
+        : (p.ga4Error || 'יש לעשות re-OAuth Google עם scope analytics')) +
+      rowOk('Google Ads מחובר', p.adsConnected, p.adsConnected ? '' : 'אופציונלי — אם מחובר, נקשר conversion actions אוטומטית') +
+      rowOk('WordPress מחובר', p.wpConnected, p.wpConnected ? (p.wpUrl || '') : 'אופציונלי — אם מחובר, snippet יוזרק אוטומטית') +
+      pluginRow +
+    '</div>';
+
+  // Adaptive copy by tenant state
+  var explainHtml = '';
+  if (hasTarget && p.existingTarget) {
+    explainHtml =
+      '<div style="font-size:0.85rem;color:#4B5563;line-height:1.6;margin-bottom:14px">' +
+        'הגדרות קודמות זוהו: <code style="background:#F3F4F6;padding:2px 6px;border-radius:3px;direction:ltr;display:inline-block">' + escapeHtml(p.existingTarget.publicId || '?') + '</code> ' +
+        'בחשבון <code style="background:#F3F4F6;padding:2px 6px;border-radius:3px">' + escapeHtml(p.existingTarget.accountId || '?') + '</code>. ' +
+        'הפעלה חוזרת תרענן Tags, תוסיף חסרים, ותפרסם גרסה חדשה (idempotent — לא ייווצר container כפול).' +
+      '</div>';
+  } else {
+    explainHtml =
+      '<div style="font-size:0.85rem;color:#4B5563;line-height:1.6;margin-bottom:14px">' +
+        'הקמה ראשונה של GTM Account עצמאי. אנחנו ניצור Container, נפרסם את כל ה-Tags ' +
+        '(Conversion Linker · GCLID Capture · GA4 base + events · Google Ads awct · Consent Mode v2), ונתקין snippet באתר אוטומטית.' +
+      '</div>';
+  }
+
+  // Manual GTM Account creation card — only if no existing target
+  var gtmAccountCard = hasTarget ? '' :
+    '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-bottom:16px">' +
+      '<div style="font-size:0.82rem;font-weight:600;color:#92400E;margin-bottom:6px">⚠️ שלב ידני (פעם אחת בלבד, ~30 שניות):</div>' +
+      '<ol style="margin:0;padding-right:18px;font-size:0.82rem;color:#78350F;line-height:1.7">' +
+        '<li>פתחו <a href="https://tagmanager.google.com" target="_blank" style="color:#0EA5E9;text-decoration:underline">tagmanager.google.com</a> (באותו Google Account)</li>' +
+        '<li>לחצו על drop-down של ה-Account → <strong>Create Account</strong></li>' +
+        '<li>Account Name: <code style="background:#fff;padding:2px 5px;border-radius:3px">' + escapeHtml(defaultContainerName) + ' (Flowmatic)</code></li>' +
+        '<li>Country: <code style="background:#fff;padding:2px 5px;border-radius:3px">Israel</code></li>' +
+        '<li>Container Setup: דלגו (אנחנו ניצור אוטומטית). אם דורש — תנו שם זמני "Temp"</li>' +
+        '<li>העתיקו את ה-Account ID מה-URL: <code style="background:#fff;padding:2px 5px;border-radius:3px;font-size:0.75rem">/accounts/<strong>XXXXXXXXX</strong>/</code></li>' +
+      '</ol>' +
+    '</div>';
+
+  // Plugin install card — ONLY if not installed (Edit 2)
+  var pluginCard = p.wpPluginInstalled ? '' :
+    '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 14px;margin-bottom:16px">' +
+      '<div style="font-size:0.82rem;font-weight:600;color:#1E40AF;margin-bottom:6px">📦 התקנת WP Plugin (פעם אחת):</div>' +
+      '<ol style="margin:0;padding-right:18px;font-size:0.82rem;color:#1E3A8A;line-height:1.7">' +
+        '<li>הורידו <a href="' + API + '/hosting/instances/' + instanceId + '/wp/companion-plugin.zip" download="clawflow-companion.zip" style="color:#1D4ED8;text-decoration:underline;font-weight:600">clawflow-companion.zip</a></li>' +
+        '<li>WP Admin → Plugins → <strong>Add New</strong> → <strong>Upload Plugin</strong></li>' +
+        '<li>בחרו את הקובץ → <strong>Install Now</strong> → <strong>Activate</strong></li>' +
+      '</ol>' +
+    '</div>';
+
+  // Account ID input only when no existing target
+  var accountIdField = hasTarget ? '' :
+    '<div style="margin-bottom:14px">' +
+      '<label style="display:block;font-size:0.85rem;font-weight:600;color:#374151;margin-bottom:6px">GTM Account ID (מספר מ-URL)</label>' +
+      '<input type="text" id="gtmWizardAccountId" placeholder="לדוגמה: 6789012345" style="width:100%;padding:10px 12px;font-size:0.95rem;font-family:monospace;border:1px solid #D1D5DB;border-radius:6px;direction:ltr;text-align:left">' +
+    '</div>';
+
+  // Hidden field carries existing account ID for re-run
+  if (hasTarget && p.existingTarget) {
+    accountIdField = '<input type="hidden" id="gtmWizardAccountId" value="' + escapeHtml(p.existingTarget.accountId || '') + '">';
+  }
+
+  var submitDisabled = !p.ready;
+  var submitLabel = hasTarget ? '🔄 רעננו הגדרות' : '▶ צרו והגדירו אוטומטית';
+
+  document.getElementById('gtmWizardStep1').innerHTML =
+    readinessHtml +
+    explainHtml +
+    gtmAccountCard +
+    pluginCard +
+    accountIdField +
+    '<div style="margin-bottom:14px">' +
+      '<label style="display:block;font-size:0.85rem;font-weight:600;color:#374151;margin-bottom:6px">שם ה-Container</label>' +
+      '<input type="text" id="gtmWizardContainerName" value="' + escapeHtml((p.existingTarget && p.existingTarget.name) || (defaultContainerName + ' — Web')) + '" style="width:100%;padding:10px 12px;font-size:0.95rem;border:1px solid #D1D5DB;border-radius:6px">' +
+    '</div>' +
+    '<div style="margin-bottom:18px">' +
+      '<label style="display:block;font-size:0.85rem;font-weight:600;color:#374151;margin-bottom:6px">דומיין של האתר</label>' +
+      '<input type="text" id="gtmWizardSiteDomain" value="' + escapeHtml(defaultDomain) + '" placeholder="example.co.il" style="width:100%;padding:10px 12px;font-size:0.95rem;font-family:monospace;border:1px solid #D1D5DB;border-radius:6px;direction:ltr;text-align:left">' +
+    '</div>' +
+    '<div style="display:flex;gap:10px;justify-content:flex-end">' +
+      '<button onclick="closeGtmWizard()" style="padding:8px 16px;background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:6px;cursor:pointer;font-size:0.88rem">ביטול</button>' +
+      '<button onclick="submitGtmFreshStack(' + (taskId ? "'" + taskId + "'" : 'null') + ')" id="gtmWizardSubmit" ' + (submitDisabled ? 'disabled' : '') + ' style="padding:8px 16px;background:' + (submitDisabled ? '#9CA3AF' : '#10B981') + ';color:#fff;border:none;border-radius:6px;cursor:' + (submitDisabled ? 'not-allowed' : 'pointer') + ';font-size:0.88rem;font-weight:600">' + submitLabel + '</button>' +
+    '</div>';
 }
 
 function closeGtmWizard() {
@@ -8404,7 +8497,8 @@ function submitGtmFreshStack(taskId) {
   fetch(API + '/hosting/instances/' + instanceId + '/gtm/fresh-stack?agent=' + agent + agentParam, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ existingAccountId: accountId, containerName: containerName, siteDomain: siteDomain })
+    // Edit 1: pass taskId so backend auto-completes the monthly_task on full success.
+    body: JSON.stringify({ existingAccountId: accountId, containerName: containerName, siteDomain: siteDomain, taskId: taskId || null })
   }).then(function(r) { return r.json(); })
   .then(function(d) {
     if (!d.success) {
@@ -8420,27 +8514,94 @@ function submitGtmFreshStack(taskId) {
   });
 }
 
+// Edit 3: group chainSteps by category. Pattern-match each step.name against
+// known prefixes. Catch-all bucket = 'Other'.
+function classifyGtmChainStep(stepName) {
+  var n = (stepName || '').toLowerCase();
+  if (/gtm container created|container version published|workspace|gtm account/i.test(n)) return 'account';
+  if (/ga4|measurement|googtag|gaawe|google ads|awct|conversion|gclidw|conversion linker|gclid capture/i.test(n)) return 'analytics';
+  if (/consent/i.test(n)) return 'privacy';
+  if (/wp |wordpress|plugin|capabilities|stale|snippet|companion|live html/i.test(n)) return 'wp';
+  if (/live validation|validation/i.test(n)) return 'validation';
+  return 'other';
+}
+
 function renderGtmWizardSuccess(data, taskId) {
   document.getElementById('gtmWizardStep1').style.display = 'none';
   var step2 = document.getElementById('gtmWizardStep2');
   step2.style.display = 'block';
 
-  var stepsHtml = (data.chainSteps || []).map(function(s) {
+  // Group chainSteps
+  var groups = {
+    account:    { title: '🏗 GTM Account & Container', steps: [], ok: 0, fail: 0 },
+    analytics:  { title: '📊 Analytics & Conversions', steps: [], ok: 0, fail: 0 },
+    privacy:    { title: '🛡 Privacy (Consent Mode v2)', steps: [], ok: 0, fail: 0 },
+    wp:         { title: '🌐 WordPress integration', steps: [], ok: 0, fail: 0 },
+    validation: { title: '🔍 Live validation', steps: [], ok: 0, fail: 0 },
+    other:      { title: '· Other', steps: [], ok: 0, fail: 0 },
+  };
+  (data.chainSteps || []).forEach(function(s) {
+    var key = classifyGtmChainStep(s.step);
+    if (!groups[key]) key = 'other';
+    groups[key].steps.push(s);
+    if (s.ok) groups[key].ok++; else groups[key].fail++;
+  });
+
+  function renderGroupRow(s) {
     var icon = s.ok ? '✓' : '✗';
     var color = s.ok ? '#10B981' : '#EF4444';
-    return '<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px dashed #E5E7EB">' +
-      '<div style="color:' + color + ';font-weight:700;font-size:1.05rem;line-height:1.3">' + icon + '</div>' +
+    return '<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px dashed #E5E7EB">' +
+      '<div style="color:' + color + ';font-weight:700;font-size:0.95rem;line-height:1.4;min-width:14px">' + icon + '</div>' +
       '<div style="flex:1">' +
-        '<div style="font-size:0.85rem;color:#1F2937;font-weight:500">' + escapeHtml(s.step) + '</div>' +
-        (s.detail ? '<div style="font-size:0.78rem;color:#6B7280;margin-top:3px;font-family:monospace">' + escapeHtml(s.detail) + '</div>' : '') +
+        '<div style="font-size:0.82rem;color:#1F2937;font-weight:500">' + escapeHtml(s.step) + '</div>' +
+        (s.detail ? '<div style="font-size:0.74rem;color:#6B7280;margin-top:2px;font-family:monospace;word-break:break-word">' + escapeHtml(s.detail) + '</div>' : '') +
       '</div>' +
     '</div>';
-  }).join('');
+  }
+
+  function renderGroup(key, g) {
+    if (g.steps.length === 0) return '';
+    var headerColor = g.fail > 0 ? '#DC2626' : '#059669';
+    var headerBg = g.fail > 0 ? '#FEF2F2' : '#ECFDF5';
+    var summary = g.fail > 0 ? (g.ok + ' מתוך ' + (g.ok + g.fail) + ' עברו') : (g.ok + '/' + g.ok + ' ✓');
+    var openAttr = g.fail > 0 ? ' open' : '';   // auto-expand failed groups
+    return '<details' + openAttr + ' style="border:1px solid ' + (g.fail > 0 ? '#FECACA' : '#A7F3D0') + ';border-radius:8px;margin-bottom:10px;overflow:hidden">' +
+      '<summary style="background:' + headerBg + ';color:' + headerColor + ';padding:10px 14px;font-size:0.88rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center">' +
+        '<span>' + g.title + '</span>' +
+        '<span style="font-size:0.78rem;font-weight:500;opacity:0.85">' + summary + '</span>' +
+      '</summary>' +
+      '<div style="padding:8px 14px;background:#fff">' +
+        g.steps.map(renderGroupRow).join('') +
+      '</div>' +
+    '</details>';
+  }
+
+  var stepsHtml = '' +
+    renderGroup('account', groups.account) +
+    renderGroup('analytics', groups.analytics) +
+    renderGroup('privacy', groups.privacy) +
+    renderGroup('wp', groups.wp) +
+    renderGroup('validation', groups.validation) +
+    renderGroup('other', groups.other);
+
+  var totalSteps = (data.chainSteps || []).length;
+  var totalFail = (data.chainSteps || []).filter(function(s) { return !s.ok; }).length;
+  var totalOk = totalSteps - totalFail;
+  var bannerColor = totalFail === 0 ? '#065F46' : '#92400E';
+  var bannerBg = totalFail === 0 ? '#ECFDF5' : '#FEF3C7';
+  var bannerBorder = totalFail === 0 ? '#A7F3D0' : '#FDE68A';
+  var bannerIcon = totalFail === 0 ? '✅' : '⚠️';
+  var bannerTitle = totalFail === 0
+    ? (data.autoCompleted ? 'GTM Stack מוכן · המשימה סומנה כהושלמה אוטומטית' : 'GTM Stack נוצר בהצלחה')
+    : 'GTM Stack חלקית — ' + totalFail + ' שלבים דורשים תיקון';
 
   step2.innerHTML =
-    '<div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:8px;padding:12px 14px;margin-bottom:14px">' +
-      '<div style="font-size:0.85rem;font-weight:700;color:#065F46;margin-bottom:6px">✅ GTM Stack נוצר בהצלחה</div>' +
-      '<div style="font-size:0.85rem;color:#065F46">Container ID: <code style="background:#fff;padding:3px 7px;border-radius:4px;font-size:0.85rem;direction:ltr;display:inline-block">' + escapeHtml(data.container.publicId) + '</code></div>' +
+    '<div style="background:' + bannerBg + ';border:1px solid ' + bannerBorder + ';border-radius:8px;padding:12px 14px;margin-bottom:14px">' +
+      '<div style="font-size:0.92rem;font-weight:700;color:' + bannerColor + ';margin-bottom:6px">' + bannerIcon + ' ' + bannerTitle + '</div>' +
+      '<div style="font-size:0.82rem;color:' + bannerColor + ';display:flex;gap:12px;flex-wrap:wrap;align-items:center">' +
+        '<span>Container ID: <code style="background:#fff;padding:2px 6px;border-radius:4px;font-size:0.82rem;direction:ltr;display:inline-block">' + escapeHtml(data.container.publicId) + '</code></span>' +
+        '<span>· ' + totalOk + '/' + totalSteps + ' שלבים ✓</span>' +
+      '</div>' +
     '</div>' +
 
     '<div style="margin-bottom:14px">' +
@@ -8479,11 +8640,13 @@ function renderGtmWizardSuccess(data, taskId) {
         '</div>') +
 
     '<div style="display:flex;gap:10px;justify-content:flex-end">' +
-      (taskId ? '<button onclick="apiMarkManualDone(\'' + taskId + '\');closeGtmWizard();closeTaskPopup()" style="padding:8px 16px;background:#10B981;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.88rem;font-weight:600">✓ סיימתי</button>' : '') +
-      '<button onclick="closeGtmWizard()" style="padding:8px 16px;background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:6px;cursor:pointer;font-size:0.88rem">סגרו</button>' +
+      // Edit 1: if backend already auto-completed the task, skip the manual
+      // "✓ סיימתי" button — it would 404 against status=completed anyway.
+      (taskId && !data.autoCompleted ? '<button onclick="apiMarkManualDone(\'' + taskId + '\');closeGtmWizard();closeTaskPopup()" style="padding:8px 16px;background:#10B981;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.88rem;font-weight:600">✓ סיימתי</button>' : '') +
+      (data.autoCompleted ? '<button onclick="closeGtmWizard();closeTaskPopup();window.location.reload()" style="padding:8px 16px;background:#10B981;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.88rem;font-weight:600">✓ סגרו ורענן</button>' : '<button onclick="closeGtmWizard()" style="padding:8px 16px;background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;border-radius:6px;cursor:pointer;font-size:0.88rem">סגרו</button>') +
     '</div>';
 
-  showToast('GTM Stack מוכן', 'success');
+  showToast(data.autoCompleted ? 'GTM Stack מוכן · המשימה הושלמה' : (totalFail === 0 ? 'GTM Stack מוכן' : 'GTM Stack חלקית — בדקו שלבים אדומים'), totalFail === 0 ? 'success' : 'warning');
 }
 
 // Phase 2026.02 Block 6 Pattern J — re-run fresh-stack after user has
@@ -8498,7 +8661,7 @@ function retryGtmFreshStackInstall(accountId, containerName, publicId, taskId) {
   fetch(API + '/hosting/instances/' + instanceId + '/gtm/fresh-stack?agent=' + agent + agentParam, {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ existingAccountId: accountId, containerName: containerName, siteDomain: siteDomain })
+    body: JSON.stringify({ existingAccountId: accountId, containerName: containerName, siteDomain: siteDomain, taskId: taskId || null })
   }).then(function(r) { return r.json(); })
   .then(function(d) {
     if (d.success) {

@@ -190,6 +190,7 @@ import {
     markManualDone,
     sgtmConfigure,
     gtmFreshStack,
+    gtmFreshStackPreflight,
     wpCompanionPluginZip,
     rejectOutput,
     editOutput,
@@ -790,6 +791,7 @@ app.post('/instances/:id/outputs/:outputId/sgtm/configure', sgtmConfigure)
 // snippets to install on the site. Used for migration from agency-shared
 // accounts AND for greenfield new tenants without any GTM infrastructure.
 app.post('/instances/:id/gtm/fresh-stack', gtmFreshStack)
+app.get('/instances/:id/gtm/fresh-stack/preflight', gtmFreshStackPreflight)
 // Phase 2026.02 Block 6 Pattern J — download Clawflow Companion plugin
 // .zip (single-file PHP plugin). User uploads via WP Admin → Plugins →
 // Add New → Upload Plugin (~30 sec one-time). After install, fresh-stack

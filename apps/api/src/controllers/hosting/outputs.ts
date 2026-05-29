@@ -2,7 +2,7 @@ import type { Context } from 'hono'
 import type { HonoEnv } from '@/ts/Types'
 import { db } from '@/db'
 import { agentOutputs, instances } from '@/db/schema'
-import { eq, and, or, ne, desc, inArray, isNull } from 'drizzle-orm'
+import { eq, and, or, ne, desc, inArray, isNull, sql } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import { randomBytes } from 'crypto'
 import { createCampaign, type CampaignPlan, type GoogleTokens } from '@/services/googleAds'
@@ -220,6 +220,154 @@ export const ingestOutput = async (c: Context<HonoEnv>) => {
 // WordPress.org `slug` — there's no standard REST endpoint for custom
 // plugin uploads, so this hybrid path is unavoidable. ~30 sec one-time
 // manual step per tenant.
+
+// ── GET /hosting/instances/:id/gtm/fresh-stack/preflight ──
+// Edit 2: pre-flight readiness probe. Called when wizard opens so the
+// step-1 UI shows the user EXACTLY what's ready and what's missing
+// BEFORE they invest effort entering Account ID. Returns:
+//   googleConnected     — Google OAuth refresh token present
+//   ga4Accessible       — can list GA4 properties (catches scope-mismatch
+//                          even when Google connected)
+//   adsConnected        — Google Ads operatingCustomerId + developer token saved
+//   wpConnected         — WordPress integration row + appPassword saved
+//   wpPluginInstalled   — companion plugin v1.x active on the site
+//   wpPluginVersion     — actual version if installed (so we can show "upgrade
+//                          needed" when v1.0 is installed but v1.2 is current)
+//   wooCommerceActive   — Pattern K3 ecommerce hooks fire only with WC
+//   tenantState         — 'greenfield' | 'migration' | 'has_target' —
+//                          drives wizard copy variant
+//   gtmTargetExists     — true if mazhirGtm.target was set in a prior run
+//                          (re-run idempotently rather than creating duplicate)
+//   detectedSiteDomain  — best guess from research_data.answers.websiteUrl
+//                          or instances.domain
+//   detectedBrandName   — for default container-name placeholder
+export const gtmFreshStackPreflight = async (c: Context<HonoEnv>) => {
+    try {
+        const instanceId = c.req.param('id')
+        const agentIdParam = c.req.query('agentId')
+
+        const { resolveAgentById, resolvePrimaryAgent, readGoogleAdsConfig } =
+            await import('@/services/agentContext')
+        const agent = agentIdParam
+            ? (await resolveAgentById(instanceId, agentIdParam)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+        if (!agent) return fail(c, 'No agent found for this instance', 404)
+
+        const tokens = (agent as any).googleTokens || {}
+        const googleConnected = !!tokens.refreshToken
+
+        // GA4 accessibility: only probe if Google connected. Single accountSummaries
+        // GET — cheap (<500ms) and surfaces 401/403 immediately so user knows
+        // re-OAuth needed before touching the wizard.
+        let ga4Accessible = false
+        let ga4PropertiesCount = 0
+        let ga4Error: string | undefined
+        if (googleConnected) {
+            try {
+                const { listGa4Properties } = await import('@/services/ga4Admin')
+                const props = await listGa4Properties({
+                    accessToken: tokens.accessToken,
+                    refreshToken: tokens.refreshToken,
+                    expiresAt: tokens.expiresAt,
+                })
+                ga4Accessible = true
+                ga4PropertiesCount = props.length
+            } catch (e) {
+                ga4Error = (e as Error).message.slice(0, 200)
+            }
+        }
+
+        // Google Ads
+        let adsConnected = false
+        try {
+            const adsCfgRes = await readGoogleAdsConfig(agent, instanceId).catch(() => ({ config: null }))
+            const adsCfg: any = (adsCfgRes as any).config
+            adsConnected = !!(adsCfg?.customerId && adsCfg?.developerToken)
+        } catch { /* leave false */ }
+
+        // WordPress integration
+        let wpConnected = false
+        let wpUrl: string | undefined
+        let wpPluginInstalled = false
+        let wpPluginVersion: string | undefined
+        let wooCommerceActive = false
+        let wooCommerceVersion: string | null = null
+        try {
+            const { agentIntegrations } = await import('@/db/schema')
+            const wpRows = await db.select().from(agentIntegrations).where(
+                and(
+                    eq(agentIntegrations.instanceId, instanceId),
+                    eq(agentIntegrations.integrationType, 'wordpress'),
+                ),
+            )
+            const wp = wpRows[0]
+            if (wp && (wp.config as any)?.url && (wp.config as any)?.appPassword) {
+                wpConnected = true
+                wpUrl = String((wp.config as any).url)
+                try {
+                    const { probeWpCapabilities } = await import('@/services/wpCompanionInstaller')
+                    const caps = await probeWpCapabilities(wp.config as { url: string; user: string; appPassword: string })
+                    if (caps) {
+                        wpPluginInstalled = true
+                        wpPluginVersion = caps.pluginVersion
+                        wooCommerceActive = !!caps.wooCommerceActive
+                        wooCommerceVersion = caps.wooCommerceVersion
+                    }
+                } catch { /* plugin not installed yet */ }
+            }
+        } catch { /* leave false */ }
+
+        // Tenant state: greenfield = no prior GTM target, migration = has target
+        // pointing at a non-self-owned container (heuristic: account name doesn't
+        // match brand). For now: has_target if mazhirGtm.target.publicId is set.
+        const rd: any = (agent as any).researchData || {}
+        const gtmTargetExists = !!(rd.mazhirGtm?.target?.publicId)
+        const tenantState: 'greenfield' | 'migration' | 'has_target' = gtmTargetExists
+            ? 'has_target'
+            : 'greenfield'
+
+        // Detected domain + brand for wizard default values
+        const detectedSiteDomain = String(
+            rd?.answers?.websiteUrl ||
+            rd?.results?.brand_book?.summary?.domain ||
+            ''
+        ).replace(/^https?:\/\//, '').replace(/\/$/, '')
+        const detectedBrandName = String(
+            rd?.answers?.businessName ||
+            (agent as any).name ||
+            ''
+        )
+
+        return ok(c, {
+            googleConnected,
+            ga4Accessible,
+            ga4PropertiesCount,
+            ga4Error,
+            adsConnected,
+            wpConnected,
+            wpUrl,
+            wpPluginInstalled,
+            wpPluginVersion,
+            wooCommerceActive,
+            wooCommerceVersion,
+            tenantState,
+            gtmTargetExists,
+            existingTarget: gtmTargetExists ? rd.mazhirGtm.target : null,
+            detectedSiteDomain,
+            detectedBrandName,
+            // Overall readiness summary: true only if BLOCKERS resolved (Google + GA4).
+            // WP-not-connected is recoverable (manual snippet paste); WC-not-active
+            // is fine for non-shop sites. So they're informational, not blockers.
+            ready: googleConnected && ga4Accessible,
+            blockers: [
+                ...(googleConnected ? [] : [{ id: 'google', message: 'Google לא מחובר. חברו Google Account (scope: ads + analytics + gtm)' }]),
+                ...(ga4Accessible ? [] : [{ id: 'ga4', message: ga4Error ? `GA4 access denied: ${ga4Error}` : 'GA4 לא נגיש — re-OAuth Google עם scope analytics' }]),
+            ],
+        }, 'Pre-flight readiness')
+    } catch (err) {
+        return fail(c, 'Pre-flight failed: ' + (err as Error).message, 500)
+    }
+}
 export const wpCompanionPluginZip = async (c: Context<HonoEnv>) => {
     try {
         const { buildCompanionPluginZip } = await import('@/services/wpCompanionInstaller')
@@ -251,11 +399,12 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
     try {
         const instanceId = c.req.param('id')
         const userId = c.get('userId')
-        const body = await c.req.json<{ accountName?: string; existingAccountId?: string; containerName?: string; siteDomain?: string }>().catch(() => ({} as any))
+        const body = await c.req.json<{ accountName?: string; existingAccountId?: string; containerName?: string; siteDomain?: string; taskId?: string }>().catch(() => ({} as any))
         const accountName = (body as any).accountName || undefined
         const existingAccountId = (body as any).existingAccountId || undefined
         const containerName = (body as any).containerName || 'Web Container'
         const siteDomain = (body as any).siteDomain || undefined
+        const taskOutputId = ((body as any).taskId || '').trim() || undefined
         if (!accountName && !existingAccountId) {
             return fail(c, 'Either accountName (attempt API create) or existingAccountId (use existing) required', 400)
         }
@@ -676,6 +825,48 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             console.log(`[gtmFreshStack]   ${sigil} ${s.step}: ${(s.detail || '').slice(0, 400)}`)
         }
 
+        // Edit 1: auto-complete monthly_task on full success. If 0 failures AND
+        // wpInstalled AND a taskId was provided, promote the matching agent_output
+        // (status pending_review|awaiting_manual) to completed and mirror to
+        // research_data.monthlyPlan.tasks[idx]. Drops the manual "✓ סיימתי" click —
+        // task auto-disappears from the queue once GTM is verifiably live.
+        let autoCompleted = false
+        if (taskOutputId && failCount === 0 && wpInstalled) {
+            try {
+                const [updated] = await db.update(agentOutputs)
+                    .set({ status: 'completed', publishedAt: new Date(), updatedAt: new Date() })
+                    .where(and(
+                        eq(agentOutputs.id, taskOutputId),
+                        eq(agentOutputs.instanceId, instanceId),
+                        // accept BOTH statuses — wizard may run when task is pending_review (not yet approved)
+                        // OR awaiting_manual (post Pattern F branch).
+                        sql`status IN ('pending_review','awaiting_manual')`,
+                    ))
+                    .returning()
+                if (updated) {
+                    autoCompleted = true
+                    const meta = updated.metadata as Record<string, unknown> | null
+                    const planTaskId = meta?.taskId as string | undefined
+                    if (planTaskId) {
+                        await mutateResearchData(agent, instanceId, (rd: any) => {
+                            const plan = rd?.monthlyPlan
+                            if (!plan || !Array.isArray(plan.tasks)) return rd
+                            const idx = plan.tasks.findIndex((t: any) => t.id === planTaskId)
+                            if (idx === -1) return rd
+                            plan.tasks[idx].status = 'completed'
+                            plan.tasks[idx].completedAt = new Date().toISOString()
+                            ;(plan.tasks[idx] as any).completedMethod = 'gtm_wizard_auto'
+                            ;(plan.tasks[idx] as any).completedBy = userId
+                            return rd
+                        })
+                    }
+                    console.log(`[gtmFreshStack] auto-completed task ${taskOutputId} (planTaskId=${planTaskId || 'n/a'})`)
+                }
+            } catch (err) {
+                console.warn(`[gtmFreshStack] auto-complete failed (non-fatal): ${(err as Error).message}`)
+            }
+        }
+
         return ok(c, {
             account: stack.account,
             container: stack.container,
@@ -686,6 +877,7 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             },
             chainSteps,
             wpInstalled,
+            autoCompleted,
             instructions: wpInstalled
                 ? `✓ Done! New GTM snippet auto-installed on ${siteDomain}. Verify by visiting the site and opening GTM Preview mode.`
                 : `Site snippet update required: copy the head + body snippets below into your site's <head> and <body> tags. Container ID: ${stack.container.publicId}.`,
