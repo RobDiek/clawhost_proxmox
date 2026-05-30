@@ -20,7 +20,13 @@
 import { getApiKeyForInstance } from '@/controllers/hosting/agentSetup'
 
 const SONNET_MODEL = 'claude-sonnet-4-6'
-const MAX_INPUT_TOKENS_APPROX = 60_000      // safety cap
+const MAX_INPUT_TOKENS_APPROX = 60_000      // safety cap (per batch)
+// K19-fix: chunk size matched to the backfill script. 3 tasks per Sonnet
+// call keeps each request well under the per-call token cap AND well under
+// undici's default headersTimeout (5min). 60 tasks → 20 sequential batches
+// → ~10–15 min total. Replaces the previous single-call mode that skipped
+// entire 60-task plans (190K+ chars > 180K threshold).
+const CHUNK_SIZE = 3
 
 const STRICT_RULES = `אתה עורך תוכן עברי מקצועי. המשימה: לקחת תוכניות עבודה חודשיות עם משימות, ולהפוך כל טקסט פונה-משתמש לעברית פשוטה ויומיומית — בלי מילים באנגלית מלבד קיצורים מקובלים.
 
@@ -95,23 +101,14 @@ interface MonthlyPlanCleanupResult {
     reason?: string
 }
 
-export async function runMonthlyPlanHebrewCleanup(input: MonthlyPlanCleanupInput): Promise<MonthlyPlanCleanupResult> {
-    const { tasks, instanceId } = input
-    if (!Array.isArray(tasks) || tasks.length === 0) {
-        return { applied: false, skipped: true, reason: 'no tasks' }
+// Cleans a single CHUNK_SIZE-sized batch. Returns the cleaned subset on
+// success, or {ok:false} on any failure (HTTP error, JSON parse, count
+// mismatch). Callers should fall back to the original batch tasks.
+async function cleanupOneBatch(batch: Array<Record<string, unknown>>, apiKey: string): Promise<{ ok: boolean; cleaned?: Array<Record<string, unknown>>; reason?: string }> {
+    const tasksJson = JSON.stringify(batch)
+    if (tasksJson.length > MAX_INPUT_TOKENS_APPROX * 3) {
+        return { ok: false, reason: `batch too large (${tasksJson.length} chars) — increase chunk granularity` }
     }
-
-    let apiKey: string
-    try { apiKey = await getApiKeyForInstance(instanceId) } catch (e) {
-        return { applied: false, skipped: true, reason: `no api key: ${(e as Error).message}` }
-    }
-
-    const tasksJson = JSON.stringify(tasks)
-    if (tasksJson.length > MAX_INPUT_TOKENS_APPROX * 3) {   // ~3 chars/token
-        console.log(`[monthlyPlanHebrewCleanup] tasks too large (${tasksJson.length} chars) — skipping`)
-        return { applied: false, skipped: true, reason: 'tasks too large for cleanup' }
-    }
-
     const prompt = `${STRICT_RULES}
 
 ## משימות לשכתוב
@@ -136,36 +133,65 @@ ${tasksJson}
         })
         if (!res.ok) {
             const text = await res.text().catch(() => '')
-            console.warn(`[monthlyPlanHebrewCleanup] HTTP ${res.status}: ${text.slice(0, 200)}`)
-            return { applied: false, skipped: true, reason: `HTTP ${res.status}` }
+            return { ok: false, reason: `HTTP ${res.status}: ${text.slice(0, 120)}` }
         }
         const data = await res.json() as { content?: Array<{ text?: string }> }
         const rawText = data.content?.[0]?.text || ''
         const jsonMatch = /\{[\s\S]*\}/.exec(rawText)
-        if (!jsonMatch) {
-            console.warn('[monthlyPlanHebrewCleanup] no JSON in response')
-            return { applied: false, skipped: true, reason: 'no JSON in response' }
-        }
+        if (!jsonMatch) return { ok: false, reason: 'no JSON in response' }
         let parsed: { cleaned_tasks_json?: string }
         try { parsed = JSON.parse(jsonMatch[0]) } catch (e) {
-            console.warn('[monthlyPlanHebrewCleanup] response JSON parse failed:', (e as Error).message)
-            return { applied: false, skipped: true, reason: 'response JSON parse failed' }
+            return { ok: false, reason: `response JSON parse failed: ${(e as Error).message.slice(0, 80)}` }
         }
         const cleanedJson = parsed.cleaned_tasks_json
-        if (!cleanedJson) return { applied: false, skipped: true, reason: 'no cleaned_tasks_json' }
+        if (!cleanedJson) return { ok: false, reason: 'no cleaned_tasks_json' }
         let cleanedTasks: Array<Record<string, unknown>>
         try { cleanedTasks = JSON.parse(cleanedJson) } catch (e) {
-            console.warn('[monthlyPlanHebrewCleanup] cleaned_tasks_json parse failed:', (e as Error).message)
-            return { applied: false, skipped: true, reason: 'cleaned_tasks_json parse failed' }
+            return { ok: false, reason: `cleaned_tasks_json parse failed: ${(e as Error).message.slice(0, 80)}` }
         }
-        if (!Array.isArray(cleanedTasks) || cleanedTasks.length !== tasks.length) {
-            console.warn(`[monthlyPlanHebrewCleanup] task count changed ${tasks.length} → ${cleanedTasks.length} — rejecting`)
-            return { applied: false, skipped: true, reason: 'task count mismatch' }
+        if (!Array.isArray(cleanedTasks) || cleanedTasks.length !== batch.length) {
+            return { ok: false, reason: `task count changed ${batch.length} → ${cleanedTasks.length}` }
         }
-        console.log(`[monthlyPlanHebrewCleanup] applied — ${tasks.length} tasks cleaned`)
-        return { applied: true, skipped: false, cleanedTasks }
+        return { ok: true, cleaned: cleanedTasks }
     } catch (err) {
-        console.warn('[monthlyPlanHebrewCleanup] error:', (err as Error).message)
-        return { applied: false, skipped: true, reason: `error: ${(err as Error).message.slice(0, 100)}` }
+        return { ok: false, reason: `fetch error: ${(err as Error).message.slice(0, 100)}` }
     }
+}
+
+export async function runMonthlyPlanHebrewCleanup(input: MonthlyPlanCleanupInput): Promise<MonthlyPlanCleanupResult> {
+    const { tasks, instanceId } = input
+    if (!Array.isArray(tasks) || tasks.length === 0) {
+        return { applied: false, skipped: true, reason: 'no tasks' }
+    }
+
+    let apiKey: string
+    try { apiKey = await getApiKeyForInstance(instanceId) } catch (e) {
+        return { applied: false, skipped: true, reason: `no api key: ${(e as Error).message}` }
+    }
+
+    // K19-fix: chunk over CHUNK_SIZE-sized batches; per-batch failures keep
+    // originals untouched. Single-call mode previously skipped 60-task plans
+    // entirely (190K+ chars > 180K threshold) so the safety-net never ran.
+    const merged: Array<Record<string, unknown>> = []
+    let batchesCleaned = 0
+    let batchesKept = 0
+    const failureReasons: string[] = []
+    for (let i = 0; i < tasks.length; i += CHUNK_SIZE) {
+        const batch = tasks.slice(i, i + CHUNK_SIZE)
+        const r = await cleanupOneBatch(batch, apiKey)
+        if (r.ok && r.cleaned) {
+            merged.push(...r.cleaned)
+            batchesCleaned++
+        } else {
+            merged.push(...batch)
+            batchesKept++
+            if (failureReasons.length < 3 && r.reason) failureReasons.push(r.reason)
+        }
+    }
+    if (batchesCleaned === 0) {
+        console.warn(`[monthlyPlanHebrewCleanup] all ${batchesKept} batches kept as-is. First failures: ${failureReasons.join(' | ')}`)
+        return { applied: false, skipped: true, reason: `all ${batchesKept} batches failed cleanup` }
+    }
+    console.log(`[monthlyPlanHebrewCleanup] applied — ${batchesCleaned} batches cleaned, ${batchesKept} kept as-is (total ${tasks.length} tasks)`)
+    return { applied: true, skipped: false, cleanedTasks: merged }
 }
