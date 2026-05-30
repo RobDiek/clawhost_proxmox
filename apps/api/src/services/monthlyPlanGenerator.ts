@@ -585,19 +585,44 @@ export async function generateMonthlyPlan(
     const failedFills = coverage.filter(c => c.status === 'fill_failed').map(c => c.rule)
     console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 3 (coverage) done in ${pass3Elapsed}s — filled=[${filledRules.join(',')}] failed=[${failedFills.join(',')}]`)
 
+    // ─── Pass 4: Structured fillers (K23) ────────────────────────────────
+    // Closes the systemic data-siloing gap: 5 research stages produce
+    // structured records[] (internal_seo_audit URL audits, aeo_visibility
+    // citation probes, seo_keyword_research opportunities, paid_keyword_research
+    // ad-group landscape, paid_competitor_landscape threats) which Pass 1/2/3
+    // Opus prompts only see as markdown. Fillers cluster records[] into
+    // deterministic aggregate tasks so concrete audit findings (e.g.
+    // "missing Product schema on N pages") always make it into the plan.
+    const tPass4Start = Date.now()
+    let pass4Tasks = pass3Tasks
+    try {
+        const { runStructuredFillers } = await import('./monthlyPlanStructuredFillers')
+        const fillerResult = runStructuredFillers(rd, pass3Tasks as any)
+        if (fillerResult.spawned.length > 0) {
+            pass4Tasks = [...pass3Tasks, ...(fillerResult.spawned as unknown as typeof pass3Tasks)]
+            console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 4 (structured fillers) added ${fillerResult.spawned.length} tasks — ${fillerResult.perStageStats.map(s => `${s.stageId}=${s.spawnedCount}`).join(', ')}`)
+        } else {
+            console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 4 — no records[] data eligible across ${fillerResult.perStageStats.length} stages`)
+        }
+    } catch (err) {
+        console.warn(`[monthlyPlanGenerator] ${instanceId}: Pass 4 error (non-fatal):`, (err as Error).message)
+    }
+    const pass4Elapsed = ((Date.now() - tPass4Start) / 1000).toFixed(1)
+    console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 4 done in ${pass4Elapsed}s (deterministic, no LLM call)`)
+
     // ─── K17: Hebrew cleanup pass — strips snake_case / English jargon ──
     // from user-facing task strings (title / summary / actionPlan[].step /
     // expectedImpact.rationale / sources[].excerpt) without changing
-    // structure. Runs AFTER Pass 3 so coverage fills ALSO get cleaned
-    // (Pass 3 still injects fresh Opus output that may contain
-    // snake_case / English jargon despite the style guide).
-    let finalTasks = pass3Tasks
+    // structure. Runs AFTER Pass 3 + Pass 4 so coverage fills AND structured
+    // fillers ALSO get cleaned (Opus output + our deterministic copy may
+    // contain English terms despite the style guide).
+    let finalTasks = pass4Tasks
     try {
         const { runMonthlyPlanHebrewCleanup } = await import('./monthlyPlanHebrewCleanup')
-        const cleanup = await runMonthlyPlanHebrewCleanup({ tasks: pass3Tasks as unknown as Array<Record<string, unknown>>, instanceId })
+        const cleanup = await runMonthlyPlanHebrewCleanup({ tasks: pass4Tasks as unknown as Array<Record<string, unknown>>, instanceId })
         if (cleanup.applied && cleanup.cleanedTasks) {
-            finalTasks = cleanup.cleanedTasks as unknown as typeof pass3Tasks
-            console.log(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup applied to ${cleanup.cleanedTasks.length} tasks (post-Pass 3)`)
+            finalTasks = cleanup.cleanedTasks as unknown as typeof pass4Tasks
+            console.log(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup applied to ${cleanup.cleanedTasks.length} tasks (post-Pass 4)`)
         } else {
             console.log(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup skipped (${cleanup.reason})`)
         }
