@@ -499,6 +499,287 @@ const PAID_COMP_FILLER: StructuredFiller = {
     },
 }
 
+// ═══ K24 — AEO/LLM PROGRAM FILLERS ═══════════════════════════════════════
+// 4 fillers that turn the 1-task "improve AEO" gap into a coherent program.
+// All read research_data signals; tenant-agnostic.
+
+// K24-a: Entity authority (Wikidata + Knowledge Panel + Person schema).
+// AEO citations require credibility signals: business as recognized entity,
+// authors with sameAs trails. Single setup task per tenant; idempotent
+// (skipped on re-run once any matching task exists in the plan).
+const ENTITY_AUTHORITY_FILLER: StructuredFiller = {
+    stageId: 'k24_entity_authority',
+    description: 'Wikidata + Knowledge Panel + Author Person schema setup for AEO citations',
+    fill(_rd, existingTasks) {
+        if (_existingTaskMatches(existingTasks, [/wikidata|knowledge panel|person schema|sameAs|sameas|מנוע ידע|ישות אנציקלופדית/i])) {
+            return []
+        }
+        return [{
+            id: newTaskId('tsk_k24_entity_auth'),
+            type: 'website_change',
+            title: 'הגדרת ישות מותג למנועי AI — Wikidata, Knowledge Panel, סכמת Person',
+            summary: 'תשתית citation עבור ChatGPT/Gemini/Perplexity: הגדרת המותג כישות מוכרת + סכמת מומחה לכל מחבר תוכן.',
+            channel: 'seo',
+            priority: 'P1',
+            estimatedEffort: '1_week',
+            expectedImpact: {
+                metric: 'other',
+                value: 3,
+                horizon: '90d',
+                confidence: 'medium',
+                rationale: 'מותגים עם Wikidata entity + Knowledge Panel מקבלים 3-10× יותר citation במנועי AI לעומת בלי.',
+            },
+            sources: [
+                { type: 'other', ref: 'aeo_citation_authority_baseline', excerpt: 'מותגים בעלי ישות אנציקלופדית מצוטטים על ידי מודלי שפה כמקור סמכותי.' },
+                { type: 'other', ref: 'knowledge_graph_entry_door', excerpt: 'Wikidata = שער כניסה ל-Google Knowledge Graph + Wikipedia.' },
+            ],
+            dependsOn: [],
+            actionPlan: [
+                _step('צרו Wikidata entity למותג: שם, סוג עסק, תאריך הקמה, מיקום, sameAs לפרופילים (LinkedIn / Facebook / GBP). השלימו 8-10 properties עיקריים.', false, 90),
+                _step('דרישת Knowledge Panel: וודאו GBP מאומת, Wikipedia stub (אופציונלי לעסק קטן), GBP במצב complete (8+ attributes), Wikidata קיים.', false, 60),
+                _step('הוסיפו לכל דף תוכן עם author byline סכמת Person: name, jobTitle, sameAs (LinkedIn URL, Twitter URL). מחבר אחיד מותג = recommended.', false, 90),
+                _step('הוסיפו סכמת Organization על דף הבית: legalName, foundingDate, founder Person ref, employee count range, areaServed (אזורי שירות בישראל).', false, 60),
+                _step('שדרגו sameAs בסכמת Organization: GBP profile URL, Facebook, Instagram, LinkedIn, Wikidata entity ID (Q-number).', false, 30),
+                _step('הריצו בוחן rich-snippets test על דף הבית + 3 pillar pages — וודאו שכל הסכמות עוברות validation.', false, 30),
+                _step('ניטור 90 יום: השוו ציטוטים של המותג ב-ChatGPT/Gemini/Perplexity לפני ואחרי (ראו filler multi_engine_probe).', false, 30),
+            ],
+            status: 'proposed',
+            proposedAt: nowIso(),
+            weekOfMonth: 2,
+        }]
+    },
+}
+
+// K24-b: Multi-engine AEO probe scheduler. Without ongoing measurement,
+// we can't tell which AI engines cite us and on which queries. One-time
+// setup task to configure the probe cron + dashboard.
+const AEO_PROBE_FILLER: StructuredFiller = {
+    stageId: 'k24_aeo_probe',
+    description: 'Set up weekly probe cron across ChatGPT/Gemini/Perplexity/Claude for citation tracking',
+    fill(_rd, existingTasks) {
+        if (_existingTaskMatches(existingTasks, [/multi.?engine|probe.*ai|ai.*probe|מנועי AI.*בדיקה|citation.*tracking|מעקב.*ציטוט|ChatGPT.*Gemini/i])) {
+            return []
+        }
+        return [{
+            id: newTaskId('tsk_k24_aeo_probe'),
+            type: 'measurement_gap',
+            title: 'מעקב ציטוט שבועי במנועי AI — 20 prompts × 4 מנועים',
+            summary: 'תשתית מדידה: הרצה שבועית של 20 שאלות JTBD על ChatGPT/Gemini/Perplexity/Claude — תיעוד brandCited + competitorsCited.',
+            channel: 'seo',
+            priority: 'P1',
+            estimatedEffort: '2_3_hours',
+            expectedImpact: {
+                metric: 'other',
+                value: 20,
+                horizon: '30d',
+                confidence: 'high',
+                rationale: 'ללא מדידה אין שיפור. 20 prompts × 4 מנועים = 80 data points/שבוע על visibility במנועי AI.',
+            },
+            sources: [
+                { type: 'other', ref: 'aeo_measurement_baseline', excerpt: 'Citation tracking הוא המקבילה ל-GSC עבור מנועי AI.' },
+                { type: 'strategy.persona', ref: 'audience_personas.jtbd_statements', excerpt: 'הפרומפטים מבוססים על JTBD של הפרסונות שלכם.' },
+            ],
+            dependsOn: [],
+            actionPlan: [
+                _step('הגדירו 20 prompts מבוססי JTBD של הפרסונות הראשיות (גוף ראשון, ייפוי כוח לקבלת המלצה).', false, 60),
+                _step('בחרו כלי probe: AthenaHQ / Profound / Otterly / AlsoAsked — או build-your-own דרך OpenAI/Anthropic API.', false, 30),
+                _step('הגדירו cron שבועי שמריץ את 20 פרומפטים על 4 מנועים (ChatGPT, Gemini, Perplexity, Claude). תיעוד: brandCited?, citationContext, competitorsCited[].', false, 60),
+                _step('הקימו dashboard פשוט (Google Sheet / Notion) שמראה: % brandCited per engine, share-of-voice vs competitors, ציטוטים חדשים השבוע.', false, 45),
+                _step('ראשון של כל חודש: סקירה שבועית-מצרפית → זיהו את 3 ה-prompts הקשים ביותר → spawn content/schema tasks.', false, 15),
+            ],
+            status: 'proposed',
+            proposedAt: nowIso(),
+            weekOfMonth: 1,
+        }]
+    },
+}
+
+// K24-c: Quotability optimization. Reads seo_keyword_research.records[].aeo
+// fields (fact_density, citation_value, synthesis_need). Spawns optimization
+// task for top-3 high-traffic pages with low quotability.
+const QUOTABILITY_FILLER: StructuredFiller = {
+    stageId: 'k24_quotability',
+    description: 'Optimize top pages for AI citation extraction (fact density, expert quotes, source links)',
+    fill(rd, existingTasks) {
+        const records: any[] = rd?.results?.seo_keyword_research?.records || []
+        if (records.length === 0) return []
+        // Keywords with high volume but low aeo.citation_value or fact_density
+        const lowQuotable = records.filter(r =>
+            (r.volume_monthly || 0) >= 1000
+            && (
+                (typeof r.aeo?.citation_value === 'number' && r.aeo.citation_value < 70)
+                || (typeof r.aeo?.fact_density === 'number' && r.aeo.fact_density < 70)
+            )
+        )
+        if (lowQuotable.length < 2) return []
+        if (_existingTaskMatches(existingTasks, [/quotability|ציטוטיות|fact.?density|expert.*quote|בני.?ציטוט/i])) {
+            return []
+        }
+        const top = lowQuotable.slice(0, 5)
+        return [{
+            id: newTaskId('tsk_k24_quotability'),
+            type: 'content_creation',
+            title: `אופטימיזציית ציטוטיות (Quotability) ל-${lowQuotable.length} דפים בעלי תעבורה גבוהה`,
+            summary: `${lowQuotable.length} דפים עם נפח חיפוש גבוה אך citation_value/fact_density נמוך — הוספת עובדות מספריות + ציטוטי מומחה + מקורות חיצוניים = פתח לציטוט במנועי AI.`,
+            channel: 'content',
+            priority: 'P1',
+            estimatedEffort: '2_3_days',
+            expectedImpact: {
+                metric: 'other',
+                value: top.length,
+                horizon: '90d',
+                confidence: 'medium',
+                rationale: `דפים עם 5+ עובדות מספריות + ציטוטי מומחה מקבלים 4-7× citation במודלי שפה לעומת prose generic.`,
+            },
+            sources: top.map(r => ({
+                type: 'dfs.keywords' as const,
+                ref: `seo_keyword_research.records[].keyword="${r.keyword}" (vol ${r.volume_monthly}, citation_value ${r.aeo?.citation_value ?? '?'})`,
+                excerpt: `${r.keyword}: ${(r.recommended_action || '').slice(0, 120)}`,
+            })),
+            dependsOn: [],
+            actionPlan: [
+                _step(`עבדו על top-${Math.min(top.length, 3)} דפים מהרשימה — לכל אחד הוסיפו 5+ עובדות מספריות (₪, מספרים, אחוזים, תאריכים).`, false, 120),
+                _step('הוסיפו ציטוט/דעת מומחה בפורמט בלוק: "[שם המומחה], [תפקיד]: "..."" — מקור עם sameAs לפרופיל מקצועי.', false, 90),
+                _step('הוסיפו 3-5 מקורות חיצוניים מהימנים (Lamas / משרד הבינוי / academia / מחקרי שוק) — קישורי outbound בעלי נושא רלוונטי.', false, 60),
+                _step('הוסיפו FAQ section עם 5-8 שאלות; תשובות 40-60 מילים (אופטימליות לציטוט במודלי שפה).', false, 90),
+                _step('הוסיפו סכמת Article + ScholarlyArticle (אופציונלי) או FAQPage עם author Person ref.', false, 30),
+                _step('ניטור 90 יום: הריצו probes (filler aeo_probe) על שאלות שמכוונות ל-keywords הנ"ל; מדדו citation lift.', false, 15),
+            ],
+            status: 'proposed',
+            proposedAt: nowIso(),
+            weekOfMonth: 2,
+        }]
+    },
+}
+
+// ═══ K25 — LOCAL SEO DEPTH FILLERS ════════════════════════════════════════
+
+// K25-a: City pages. Read top cities from research signals (paidProfile.geography,
+// audience_personas demographics, internal_seo gsc city breakdown if available).
+// Fallback: hardcoded top-5 IL metros that fit most local businesses.
+// Spawn ONE aggregate task to create city pages for top-N cities.
+const CITY_PAGES_FILLER: StructuredFiller = {
+    stageId: 'k25_city_pages',
+    description: 'Spawn city page architecture task for top IL cities',
+    fill(rd, existingTasks) {
+        if (_existingTaskMatches(existingTasks, [/city page|דף עיר|local seo.*דף|דפי ערים|local landing|דף עירוני/i])) {
+            return []
+        }
+        // Try to read cities from multiple research signals; fall back to top IL metros.
+        let cities: string[] = []
+        try {
+            const pp = rd?.paidProfile?.geography
+            if (Array.isArray(pp?.cities) && pp.cities.length > 0) cities = pp.cities.slice(0, 10)
+            // Personas may carry geo signals in jtbd_statement
+            const personas: any[] = rd?.results?.audience_personas?.records || []
+            const personaText = personas.map(p => JSON.stringify(p)).join(' ')
+            // Top-12 IL metros — present in any IL local-services tenant's geography
+            const ilMetros = ['תל אביב', 'גוש דן', 'ירושלים', 'חיפה', 'באר שבע', 'פתח תקווה', 'ראשון לציון', 'אשדוד', 'נתניה', 'רמת גן', 'בני ברק', 'חולון']
+            if (cities.length === 0) {
+                cities = ilMetros.filter(c => personaText.includes(c)).slice(0, 5)
+            }
+            if (cities.length === 0) cities = ilMetros.slice(0, 5)
+        } catch { /* defensive */ }
+
+        return [{
+            id: newTaskId('tsk_k25_city_pages'),
+            type: 'content_creation',
+            title: `יצירת ${cities.length} דפי ערים — ${cities.slice(0, 3).join(' / ')}…`,
+            summary: `ארכיטקטורת דפי ערים לטופ-${cities.length} ערי שירות — נדבך חובה ב-Local SEO לקליטת שאילתות "[שירות] ב[עיר]".`,
+            channel: 'seo',
+            priority: 'P0',
+            estimatedEffort: '2_3_days',
+            expectedImpact: {
+                metric: 'organic_traffic_pct',
+                value: 30,
+                horizon: '90d',
+                confidence: 'medium',
+                rationale: `דפי ערים תופסים local-pack + organic top-3 על שאילתות "[שירות] ב[עיר]" — 30-50% מתעבורה לוקאלית נכנסת דרכם.`,
+            },
+            sources: [
+                { type: 'other', ref: 'local_seo_baseline.city_pages', excerpt: `${cities.length} ערים זוהו ממקורות מחקר: ${cities.join(', ')}.` },
+                { type: 'strategy.persona', ref: 'audience_personas.geography', excerpt: 'פרסונות הראשיות פועלות בערים אלה.' },
+                { type: 'gsc.pages', ref: 'local_pack_opportunities', excerpt: 'ה-SERPs לשאילתות מקומיות מציגים local_pack — דף עיר ייעודי נכנס.' },
+            ],
+            dependsOn: [],
+            actionPlan: [
+                _step(`צרו תבנית unified לדף עיר עם: H1="[שירות] ב[עיר]", פיסקת פתיחה מאופיינת מקומית (תחנות, שכונות), טבלת אזורי שירות, FAQ מקומי, GBP map embed.`, false, 90),
+                _step(`כתבו ${cities.length} דפי ערים — כל אחד 800-1,200 מילים, ייחודי (לא משכפול). השתמשו ב-GSC top queries לכל עיר אם זמין.`, false, 360),
+                _step('הוסיפו לכל דף LocalBusiness schema עם address מלא, geo coordinates, areaServed (אזורי שירות הקרובים), opening_hours.', false, 60),
+                _step('יצרו internal linking: דף ראשי → דפי ערים (בתת-תפריט "אזורי שירות"), דפי ערים → ל-pillar הראשי.', false, 30),
+                _step('שלחו את ה-URLs ל-GSC URL Inspection → Request indexing. הוסיפו את כל ה-URLs ל-sitemap.xml.', false, 20),
+                _step('ניטור 90 יום: מיקום ב-GSC לשאילתות "[שירות] [עיר]" + clicks. יעד: top-5 על 60% מהשאילתות תוך 90 יום.', false, 20),
+            ],
+            status: 'proposed',
+            proposedAt: nowIso(),
+            weekOfMonth: 2,
+        }]
+    },
+}
+
+// K25-b: Persona LP coverage. Read audience_personas.records[]; for each
+// persona where no LP appears to exist, spawn a creation task.
+const PERSONA_LP_FILLER: StructuredFiller = {
+    stageId: 'k25_persona_lps',
+    description: 'Spawn dedicated landing pages per primary persona',
+    fill(rd, existingTasks) {
+        const personas: any[] = rd?.results?.audience_personas?.records || []
+        if (personas.length === 0) return []
+        const out: MonthlyTask[] = []
+        // For each persona, check if there's an existing LP task referencing it.
+        // Use the persona's name first token as the proxy (e.g. "דנה — משפחה בתזוזה" → "דנה").
+        for (const p of personas) {
+            const fullName = (p?.name || '').trim()
+            if (!fullName) continue
+            const firstToken = fullName.split(/[\s—-]/)[0]
+            if (!firstToken || firstToken.length < 2) continue
+            // Idempotency: skip if existing task title/summary already references this persona AND mentions LP/דף נחיתה/landing.
+            const personaPattern = new RegExp(firstToken.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i')
+            const hasLp = existingTasks.some(t => {
+                const text = `${t.title || ''} ${t.summary || ''}`.toLowerCase()
+                return personaPattern.test(text) && /(landing|דף נחיתה|persona lp|פרסונ.*דף)/i.test(text)
+            })
+            if (hasLp) continue
+            // Spawn LP for this persona.
+            out.push({
+                id: newTaskId('tsk_k25_persona_lp'),
+                type: 'landing_page',
+                title: `דף נחיתה ייעודי לפרסונה ${firstToken}`.slice(0, 80),
+                summary: `${firstToken} — דף נחיתה ממוקד לפי JTBD + preferred_proof + objections של הפרסונה. ערוץ המרה מותאם.`,
+                channel: 'seo',
+                priority: 'P1',
+                estimatedEffort: '1_day',
+                expectedImpact: {
+                    metric: 'conversions',
+                    value: 5,
+                    horizon: '60d',
+                    confidence: 'medium',
+                    rationale: `LP לפרסונה ראשית = CR גבוה ב-30-80% לעומת LP גנרי. מבוסס על JTBD + trust hierarchy מהמחקר.`,
+                },
+                sources: ([
+                    { type: 'strategy.persona' as const, ref: `audience_personas.records[].name="${fullName}"`, excerpt: (p?.jtbd_statement?.progress || '').slice(0, 150) },
+                    { type: 'strategy.persona' as const, ref: `audience_personas.records[].preferred_proof`, excerpt: Array.isArray(p?.preferred_proof) ? p.preferred_proof.slice(0, 2).join(' · ') : '' },
+                ] as Array<{ type: 'strategy.persona'; ref: string; excerpt: string }>).filter(s => s.excerpt),
+                dependsOn: [],
+                actionPlan: [
+                    _step(`קראו מחדש את הפרסונה ${firstToken} ב-research_data — שמרו JTBD, switching_cost, preferred_proof, trust_hierarchy.`, false, 30),
+                    _step(`כתבו H1 ופסקת hero על בסיס JTBD progress של ${firstToken} — לא generic.`, false, 30),
+                    _step(`הוסיפו 3 בלוקי trust signals לפי trust_hierarchy של הפרסונה (top 3 weights).`, false, 60),
+                    _step(`טיפול ב-objections: כל preferred_proof → סקציה ייעודית עם תשובה ברורה (טבלה / FAQ / video).`, false, 90),
+                    _step(`CTA primary מותאם לטון הפרסונה. CTA secondary = WhatsApp / טלפון אם הפרסונה מעדיפה ערוץ זה.`, false, 30),
+                    _step(`הוסיפו אירוע GA4 ייעודי "persona_${firstToken}_landing_view" + "persona_${firstToken}_cta_click".`, true, 15),
+                    _step(`ניטור 60 יום: CR של הדף vs LP גנרי דומה. יעד: +30% CR.`, false, 20),
+                ],
+                status: 'proposed',
+                proposedAt: nowIso(),
+                weekOfMonth: 3,
+            })
+        }
+        // Cap at 2 LPs per regen to avoid plan explosion if many personas.
+        return out.slice(0, 2)
+    },
+}
+
 // ─── Registry + entry point ───────────────────────────────────────────────
 const ALL_FILLERS: StructuredFiller[] = [
     INTERNAL_SEO_FILLER,
@@ -506,6 +787,13 @@ const ALL_FILLERS: StructuredFiller[] = [
     SEO_KW_FILLER,
     PAID_KW_FILLER,
     PAID_COMP_FILLER,
+    // K24 — AEO/LLM Program
+    ENTITY_AUTHORITY_FILLER,
+    AEO_PROBE_FILLER,
+    QUOTABILITY_FILLER,
+    // K25 — Local SEO Depth
+    CITY_PAGES_FILLER,
+    PERSONA_LP_FILLER,
 ]
 
 export interface FillerRunResult {
