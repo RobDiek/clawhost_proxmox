@@ -105,6 +105,7 @@ function extractUrls(task: MonthlyTask): string[] {
 async function attributePaid(
     task: MonthlyTask,
     instanceId: string,
+    rd: any,
 ): Promise<AdapterResult> {
     const campaignIds = extractCampaignIds(task)
     if (campaignIds.length === 0) {
@@ -177,6 +178,7 @@ async function attributePaid(
 async function attributeSeo(
     task: MonthlyTask,
     instanceId: string,
+    rd: any,
 ): Promise<AdapterResult> {
     const urls = extractUrls(task)
     try {
@@ -188,7 +190,11 @@ async function attributeSeo(
         const gscTokens: any = (inst as any).gscTokens || (inst as any).googleTokens
         if (!gscTokens?.refreshToken) throw new Error('GSC OAuth missing')
 
-        const websiteUrl: string | undefined = (inst as any).websiteUrl
+        // Multi-agent VPS: inst.websiteUrl holds the PRIMARY agent's domain.
+        // For secondary agents (e.g. Packing Station on Storage Station's VPS)
+        // the agent's research_data.answers.websiteUrl is authoritative.
+        // Fall back to instance only if agent-specific answer is missing.
+        const websiteUrl: string | undefined = rd?.answers?.websiteUrl || (inst as any).websiteUrl
         const horizon = task.expectedImpact?.horizon || '30d'
         const days = horizonDays(horizon)
 
@@ -272,10 +278,10 @@ async function routeAdapter(
         }
     }
     if (task.channel === 'google_ads' || task.channel === 'meta') {
-        return attributePaid(task, instanceId)
+        return attributePaid(task, instanceId, rd)
     }
     if (task.channel === 'seo' || task.channel === 'content') {
-        return attributeSeo(task, instanceId)
+        return attributeSeo(task, instanceId, rd)
     }
     if (task.type === 'measurement_gap' || task.type === 'tracking_setup') {
         return attributeMeasurementGap(task, instanceId, rd)
