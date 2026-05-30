@@ -15,7 +15,7 @@
  */
 
 import { randomBytes } from 'crypto'
-import { isWorkDay } from './ilCalendar'
+import { isWorkDay, nextWorkDay } from './ilCalendar'
 import type {
     MonthlyMarketingPlan,
     MonthlyTask,
@@ -86,6 +86,11 @@ export function applyMonthlyPlanGuardrails(plan: MonthlyMarketingPlan): MonthlyM
             if (!t.scheduledFor) {
                 const offset = b.start + Math.floor((idx * span) / Math.max(b.tasks.length, 1))
                 t.scheduledFor = nextWorkday(offset)
+            } else if (!isWorkDay(t.scheduledFor)) {
+                // K19-fix: Opus picked a Sat/Fri/IL-holiday date in its own
+                // assignment. Push it forward to the next work day so the
+                // founder never sees a scheduled-for-Pesach task.
+                t.scheduledFor = nextWorkDay(t.scheduledFor)
             }
             if (!t.weekOfMonth) {
                 const offset = Math.floor((new Date(t.scheduledFor).getTime() - Date.UTC(baseY, baseM, baseD)) / (24 * 3600 * 1000))
