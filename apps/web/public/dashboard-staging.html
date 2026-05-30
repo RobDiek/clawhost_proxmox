@@ -1024,8 +1024,7 @@ input{font-family:inherit}
   <!-- Tab: Home (ראשי) -->
   <div class="tab-content" id="tab-home">
 
-    <!-- K15: Active deferred actions banner (Conservative bidding in 11d etc.) -->
-    <div id="activeDeferredActionsBanner"></div>
+    <!-- K22: activeDeferredActionsBanner moved to right column (homeNotifications) -->
 
     <!-- Agent Context Bar (shown when multi-agent) -->
     <div id="agentContextBar" style="display:none;background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 20px;margin-bottom:16px;align-items:center;gap:12px">
@@ -1157,6 +1156,12 @@ input{font-family:inherit}
       <div id="homeNotifications">
         <!-- Stack version + upgrade card (Sprint A+B) -->
         <div id="versionCard" style="margin-bottom:14px;display:none"></div>
+
+        <!-- K22: Active deferred actions banner (Conservative bidding etc.)
+             relocated from top-of-home to the notifications column. Frees up
+             prime real estate; the banner remains visible because it's
+             informational about temporary platform actions. -->
+        <div id="activeDeferredActionsBanner"></div>
 
         <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
           <span>עדכונים והמלצות</span>
@@ -5775,6 +5780,13 @@ function renderHome() {
     // - הגדרה של הממומן (paid profile + media plan)
     var paidProfileExists = !!(instanceData && instanceData.researchData && instanceData.researchData.paidProfile);
     var mediaPlanExists = !!(instanceData && instanceData.researchData && instanceData.researchData.mediaPlan);
+    // K22: new pipeline (Path B / Mazhir v2) keeps paid setup under
+    // results.paid_audit instead of the legacy paidProfile + mediaPlan top-level
+    // fields. Treat that as a valid "ready" signal so the home card flips green
+    // for new-pipeline tenants instead of staying perpetually orange.
+    var paidAuditNew = (instanceData && instanceData.researchData && instanceData.researchData.results && instanceData.researchData.results.paid_audit) || null;
+    var paidAuditReady = !!(paidAuditNew && (paidAuditNew.records || paidAuditNew.extras || paidAuditNew.content));
+    var paidSetupReady = (paidProfileExists && mediaPlanExists) || paidAuditReady;
     // Phase 4.3-N v8 fix: brand book status lives in instances.hasBrandBook.
     // Phase 4.3-O brand-fix: STRICT check — green only when:
     //   (a) hasBrandBook flag set, AND
@@ -5805,14 +5817,31 @@ function renderHome() {
       return true;
     })();
 
+    // K22: stroke SVG icon set (Lucide-style). 22x22 viewBox, 1.7 stroke,
+    // tinted to match the card's ready/orange state. Replaces emoji icons
+    // (🎨🔍🎯🔗) for a more professional + consistent visual language with
+    // the rest of the dashboard.
+    var SETUP_CARD_ICONS = {
+      palette: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.1 0 2-.9 2-2 0-.51-.19-.98-.51-1.34-.31-.36-.5-.83-.5-1.34 0-1.1.9-2 2-2h2.36C20.21 15.32 22 13.78 22 11.5 22 6.25 17.5 2 12 2z"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/><circle cx="9.5" cy="6.5" r="1.2" fill="currentColor"/><circle cx="14.5" cy="6.5" r="1.2" fill="currentColor"/><circle cx="17" cy="11" r="1.2" fill="currentColor"/>',
+      search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.5-4.5"/>',
+      target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>',
+      link: '<path d="M10 14a4.5 4.5 0 0 0 6.36 0l3.18-3.18a4.5 4.5 0 0 0-6.36-6.36l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.36 0L4.46 13.18a4.5 4.5 0 0 0 6.36 6.36l1-1"/>',
+    };
+
     // Phase 4.3-N v8: stacked single-column cards, compact height, ONE button each
     var card = function(opts) {
-      // opts: {icon, title, subtitle, ready, primaryLabel, primaryOnClick}
+      // opts: {icon, iconKey, title, subtitle, ready, primaryLabel, primaryOnClick}
+      // K22: prefer iconKey (SVG from SETUP_CARD_ICONS) over emoji icon.
       var dotColor = opts.ready ? '#10B981' : '#F59E0B';
+      var iconBg = opts.ready ? '#DCFCE7' : '#FEF3C7';
+      var iconColor = opts.ready ? '#15803D' : '#B45309';
       var bg = opts.ready ? 'linear-gradient(180deg,#F0FDF4,#FFFFFF)' : 'linear-gradient(180deg,#FFFBEB,#FFFFFF)';
       var border = opts.ready ? '#BBF7D0' : '#FDE68A';
+      var iconHtml = opts.iconKey && SETUP_CARD_ICONS[opts.iconKey]
+        ? '<div style="flex-shrink:0;width:32px;height:32px;border-radius:8px;background:' + iconBg + ';display:flex;align-items:center;justify-content:center;color:' + iconColor + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px">' + SETUP_CARD_ICONS[opts.iconKey] + '</svg></div>'
+        : '<span style="font-size:1.05rem;flex-shrink:0">' + (opts.icon || '') + '</span>';
       return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px">' +
-          '<span style="font-size:1.05rem;flex-shrink:0">' + opts.icon + '</span>' +
+          iconHtml +
           '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">' +
             '<div style="display:flex;align-items:center;gap:6px">' +
               '<div style="font-weight:700;color:#1F2937;font-size:0.88rem">' + opts.title + '</div>' +
@@ -5825,7 +5854,7 @@ function renderHome() {
     };
 
     var card1 = card({
-      icon: '🎨',
+      iconKey: 'palette',
       title: 'מיתוג',
       subtitle: hasBrand ? 'ברנד-בוק מאושר — קול, צבעים, USPs, מסרים אסורים' : 'הברנד-בוק עדיין לא נבנה',
       ready: hasBrand,
@@ -5837,7 +5866,7 @@ function renderHome() {
     // marketing tab for media plan + paid setup), so user can edit individual
     // stages — not just view the final aggregated report.
     var card2 = card({
-      icon: '🔍',
+      iconKey: 'search',
       title: 'מחקר שוק ואסטרטגיה',
       subtitle: (hasResearch && hasStrategy) ? 'דוח מחקר ואסטרטגיה מוכנים — לחצו לעריכת שלבים' : 'מחקר או אסטרטגיה עדיין לא הושלמו',
       ready: hasResearch && hasStrategy,
@@ -5851,10 +5880,13 @@ function renderHome() {
     // tab (Block 1C). The modal is kept reachable as a quick-edit shortcut
     // from the Mazhir audit card only.
     var card3 = card({
-      icon: '🎯',
+      iconKey: 'target',
       title: 'הגדרה של הממומן',
-      subtitle: mediaPlanExists ? 'תוכנית מדיה מוכנה — לחצו לפתיחת לוח השלבים' : (paidProfileExists ? 'פרופיל קידום מוגדר. השלבים הבאים ממתינים בלוח' : 'הגדרת ערוצים בתשלום עדיין לא הושלמה'),
-      ready: paidProfileExists && mediaPlanExists,
+      subtitle: mediaPlanExists ? 'תוכנית מדיה מוכנה — לחצו לפתיחת לוח השלבים' :
+                paidAuditReady ? 'אודיט ממומן מוכן — שלבי ההגדרה מסונכרנים בלוח' :
+                paidProfileExists ? 'פרופיל קידום מוגדר. השלבים הבאים ממתינים בלוח' :
+                'הגדרת ערוצים בתשלום עדיין לא הושלמה',
+      ready: paidSetupReady,
       primaryLabel: 'פתחו לוח פרסום ←',
       primaryOnClick: "openPipelineV2('paid')",
     });
@@ -5869,7 +5901,7 @@ function renderHome() {
       var anchorsCheck = (rdForLinks && rdForLinks.results && rdForLinks.results.link_audit && rdForLinks.results.link_audit.extras && rdForLinks.results.link_audit.extras.anchor_distribution_analysis) || {};
       var penguinReady = (typeof anchorsCheck.exact_match_pct === 'number' && anchorsCheck.exact_match_pct < 35);
       card4 = card({
-        icon: '🔗',
+        iconKey: 'link',
         title: 'אסטרטגיית קישורים חיצוניים',
         subtitle: linksHeadline || 'נתוני קישורים נכנסים מ-DataForSEO',
         ready: penguinReady,
@@ -11882,17 +11914,96 @@ function renderMonthlyPlanCard() {
     return;
   }
 
-  el.innerHTML =
+  // K22: compact card on home, full details inflate to popup on click.
+  // Common CSS for both views.
+  var sharedStyles =
     '<style>' +
     '.mp-impact-chip { display:inline-block;font-size:0.74rem;font-weight:600;padding:3px 9px;border-radius:999px;background:#10B98115;color:#065F46;border:1px solid #A7F3D0;margin-left:4px;margin-bottom:4px }' +
     '.mp-priority-pill { display:inline-flex;align-items:center;gap:4px;font-size:0.78rem;font-weight:700;padding:3px 9px;border-radius:6px;margin-left:4px }' +
     '.mp-pri-p0 { background:#FEE2E2;color:#991B1B }' +
     '.mp-pri-p1 { background:#FEF3C7;color:#92400E }' +
     '.mp-pri-p2 { background:#E0F2FE;color:#075985 }' +
-    '</style>' +
-    '<div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;margin-bottom:14px">' +
+    '</style>';
+
+  // K22: Lucide-style stroke icon for the monthly plan header. Replaces 📅.
+  var calendarSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:#0EA5E9"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
+
+  var scenarioBadge = '<span style="font-size:0.7rem;font-weight:600;padding:2px 9px;border-radius:999px;background:#0EA5E91A;color:#0EA5E9;border:1px solid #0EA5E940">' +
+    (chosenScenario === 'smart' ? 'תרחיש חכם' : chosenScenario === 'aggressive' ? 'תרחיש אגרסיבי' : chosenScenario) +
+    '</span>';
+
+  // ── COMPACT version (lives on home) ────────────────────────────────
+  var compactHtml = sharedStyles +
+    '<div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;margin-bottom:14px">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+        calendarSvg +
+        '<div style="font-weight:700;font-size:0.95rem;color:#1F2937">תוכנית חודשית מאוחדת</div>' +
+        scenarioBadge +
+        '<div style="margin-inline-start:auto;font-size:0.7rem;color:#9CA3AF">' + generatedAt + '</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px">' +
+        '<span style="font-size:0.92rem;font-weight:700;color:#1F2937">' + totalTasks + ' משימות</span>' +
+        '<span class="mp-priority-pill mp-pri-p0">P0 · ' + byPri.P0 + '</span>' +
+        '<span class="mp-priority-pill mp-pri-p1">P1 · ' + byPri.P1 + '</span>' +
+        '<span class="mp-priority-pill mp-pri-p2">P2 · ' + byPri.P2 + '</span>' +
+      '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:0.76rem;color:#6B7280;margin-bottom:10px">' +
+        'אישרתם: ' + approvedCount + ' · ממתינות: ' + pendingCount + (byStat.rejected ? ' · נדחו: ' + byStat.rejected : '') + (byStat.completed ? ' · הושלמו: ' + byStat.completed : '') +
+      '</div>' +
+      (progressPct > 0
+        ? '<div style="background:#F3F4F6;height:5px;border-radius:3px;overflow:hidden;margin-bottom:6px">' +
+          '<div style="height:100%;background:linear-gradient(90deg,#10B981,#059669);width:' + progressPct + '%"></div>' +
+          '</div>' +
+          '<div style="font-size:0.7rem;color:#6B7280;margin-bottom:10px">' + progressPct + '% מהתוכנית בוצעה</div>'
+        : '') +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+        '<button class="btn btn-primary btn-sm" onclick="openMonthlyPlanFullPopup()" style="font-size:0.82rem;flex:1;min-width:120px">פתחו פרטים מלאים →</button>' +
+        '<button class="btn btn-outline btn-sm" onclick="generateMonthlyPlan(true)" style="font-size:0.82rem" title="חישוב מחדש עם הנתונים העדכניים">⟲ צרו מחדש</button>' +
+      '</div>' +
+    '</div>';
+  el.innerHTML = compactHtml;
+  return;
+}
+
+// K22 (continued): the full (legacy) card body, kept intact for the popup.
+// Invoked by openMonthlyPlanFullPopup() — renders the same HTML the home
+// card used to show (narrative, focus areas, outcome widget, full chips).
+function _buildMonthlyPlanFullHtml() {
+  var rd = (instanceData && instanceData.researchData) || {};
+  var plan = rd.monthlyPlan;
+  if (!plan) return '';
+  var chosenScenarioRaw = rd.chosenScenario;
+  var chosenScenario = (typeof chosenScenarioRaw === 'string')
+    ? chosenScenarioRaw
+    : (chosenScenarioRaw && typeof chosenScenarioRaw === 'object' ? chosenScenarioRaw.scenario : '');
+  var summary = plan.summary || {};
+  var byPri = summary.byPriority || { P0: 0, P1: 0, P2: 0 };
+  var byStat = summary.byStatus || { proposed: 0, approved: 0, rejected: 0, skipped: 0, in_progress: 0, completed: 0, failed: 0 };
+  var impact = summary.estimatedTotalImpact || {};
+  var overview = plan.overview || {};
+  var keyTheme = overview.keyTheme || '';
+  var hebrew = overview.hebrew || '';
+  var focusAreas = overview.focusAreas || [];
+  var generatedAt = plan.generatedAt ? new Date(plan.generatedAt).toLocaleString('he-IL') : '';
+  var totalTasks = summary.totalTasks || 0;
+  var approvedCount = byStat.approved + byStat.in_progress + byStat.completed;
+  var pendingCount = byStat.proposed;
+  var progressPct = totalTasks > 0 ? Math.round((approvedCount + byStat.completed) / totalTasks * 100) : 0;
+
+  var impactHtml = '';
+  if (impact.spendSavingsIls30d) impactHtml += '<span class="mp-impact-chip">חיסכון: ₪' + Math.round(impact.spendSavingsIls30d).toLocaleString() + '/חודש</span>';
+  if (impact.extraConversions30d) impactHtml += '<span class="mp-impact-chip">+' + Math.round(impact.extraConversions30d) + ' המרות/חודש</span>';
+  if (impact.cpaReductionPct) impactHtml += '<span class="mp-impact-chip">CPA ↓ ' + Math.round(impact.cpaReductionPct) + '%</span>';
+  if (impact.extraOrganicTraffic30d) impactHtml += '<span class="mp-impact-chip">+' + Math.round(impact.extraOrganicTraffic30d) + '% תנועה אורגנית</span>';
+
+  var focusHtml = focusAreas.length > 0
+    ? '<ul style="margin:8px 0 0;padding-right:18px;line-height:1.7;font-size:0.82rem;color:#4B5563">' +
+      focusAreas.slice(0, 5).map(function(f) { return '<li>' + escapeHtml(f) + '</li>'; }).join('') + '</ul>'
+    : '';
+
+  return '<div style="padding:18px 20px">' +
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
-        '<div style="font-weight:700;font-size:0.95rem;color:#1F2937">📅 תוכנית חודשית מאוחדת</div>' +
+        '<div style="font-weight:700;font-size:0.95rem;color:#1F2937">תוכנית חודשית מאוחדת</div>' +
         '<span style="font-size:0.7rem;font-weight:600;padding:2px 9px;border-radius:999px;background:#0EA5E91A;color:#0EA5E9;border:1px solid #0EA5E940">' +
           (chosenScenario === 'smart' ? 'תרחיש חכם' : chosenScenario === 'aggressive' ? 'תרחיש אגרסיבי' : chosenScenario) +
         '</span>' +
@@ -11969,6 +12080,27 @@ function renderMonthlyPlanCard() {
         '<button class="btn btn-outline btn-sm" onclick="generateMonthlyPlan(true)" style="font-size:0.82rem;margin-inline-start:auto" title="חישוב מחדש עם הנתונים העדכניים">⟲ צרו מחדש</button>' +
       '</div>' +
     '</div>';
+}
+
+// K22 — full monthly plan popup. Triggered from the compact home card.
+// Inflates the same full HTML the legacy card used to show into a centered
+// overlay; outside-click + ✕ button close. Reuses the .mp-* CSS classes
+// already defined by the compact card.
+function openMonthlyPlanFullPopup() {
+  var existing = document.getElementById('mp-full-popup');
+  if (existing) existing.remove();
+  var body = _buildMonthlyPlanFullHtml();
+  if (!body) return;
+  var overlay = document.createElement('div');
+  overlay.id = 'mp-full-popup';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.55);z-index:1100;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;direction:rtl';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  overlay.innerHTML =
+    '<div style="background:#FFFFFF;border-radius:14px;max-width:760px;width:100%;box-shadow:0 20px 60px rgba(15,23,42,0.25);position:relative">' +
+      '<button onclick="document.getElementById(\'mp-full-popup\').remove()" aria-label="סגרו" style="position:absolute;top:12px;left:12px;background:none;border:none;font-size:1.4rem;line-height:1;color:#9CA3AF;cursor:pointer;padding:4px 8px;border-radius:6px">✕</button>' +
+      body +
+    '</div>';
+  document.body.appendChild(overlay);
 }
 
 async function generateMonthlyPlan(forceRegen) {
