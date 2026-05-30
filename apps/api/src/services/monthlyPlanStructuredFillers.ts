@@ -511,7 +511,10 @@ const ENTITY_AUTHORITY_FILLER: StructuredFiller = {
     stageId: 'k24_entity_authority',
     description: 'Wikidata + Knowledge Panel + Author Person schema setup for AEO citations',
     fill(_rd, existingTasks) {
-        if (_existingTaskMatches(existingTasks, [/wikidata|knowledge panel|person schema|sameAs|sameas|מנוע ידע|ישות אנציקלופדית/i])) {
+        // Scope-specific check: Wikidata entity OR Knowledge Panel claim — these
+        // are the unique markers. Don't block on generic "sameAs" or "Organization
+        // schema" matches (those are partial coverage; K24 wants the full triad).
+        if (_existingTaskMatches(existingTasks, [/wikidata|מנוע ידע|knowledge panel|ישות אנציקלופדית/i])) {
             return []
         }
         return [{
@@ -557,7 +560,11 @@ const AEO_PROBE_FILLER: StructuredFiller = {
     stageId: 'k24_aeo_probe',
     description: 'Set up weekly probe cron across ChatGPT/Gemini/Perplexity/Claude for citation tracking',
     fill(_rd, existingTasks) {
-        if (_existingTaskMatches(existingTasks, [/multi.?engine|probe.*ai|ai.*probe|מנועי AI.*בדיקה|citation.*tracking|מעקב.*ציטוט|ChatGPT.*Gemini/i])) {
+        // Scope-specific check: weekly probe / citation tracking infrastructure.
+        // The generic K22 AEO_FILLER task mentions ChatGPT/Gemini in passing,
+        // but does NOT set up measurement infrastructure — that's our unique
+        // scope. Tighter regex avoids that false-positive.
+        if (_existingTaskMatches(existingTasks, [/probe.*שבועי|מעקב ציטוט שבועי|weekly probe|citation tracking|measurement.*citation|cron.*citation|20 prompts|probe scheduler/i])) {
             return []
         }
         return [{
@@ -612,7 +619,13 @@ const QUOTABILITY_FILLER: StructuredFiller = {
             )
         )
         if (lowQuotable.length < 2) return []
-        if (_existingTaskMatches(existingTasks, [/quotability|ציטוטיות|fact.?density|expert.*quote|בני.?ציטוט/i])) {
+        // Scope-specific check: optimization of specific high-volume pages for
+        // quotability (fact density + expert quotes + sources). The generic
+        // K22 AEO_FILLER task mentions "quotability" in summary, but is about
+        // adding citations to pages without specifying TOP pages. K24 quotability
+        // is page-by-page page-level optimization. Tighten regex to title-only
+        // markers that match the K24 task type.
+        if (_existingTaskMatches(existingTasks, [/אופטימיזציית ציטוטיות|fact density audit|page.*quotability|דפים.*ציטוטיות|quotability.*optimization|quotability.*page/i])) {
             return []
         }
         const top = lowQuotable.slice(0, 5)
@@ -781,13 +794,15 @@ const PERSONA_LP_FILLER: StructuredFiller = {
 }
 
 // ─── Registry + entry point ───────────────────────────────────────────────
+// K24 supersedes the generic K22 AEO_FILLER (a single "improve AEO visibility"
+// task) with 3 focused fillers (entity authority + probe + quotability). The
+// generic filler is removed from the registry to avoid duplicate coverage.
 const ALL_FILLERS: StructuredFiller[] = [
     INTERNAL_SEO_FILLER,
-    AEO_FILLER,
     SEO_KW_FILLER,
     PAID_KW_FILLER,
     PAID_COMP_FILLER,
-    // K24 — AEO/LLM Program
+    // K24 — AEO/LLM Program (replaces K22 generic AEO_FILLER)
     ENTITY_AUTHORITY_FILLER,
     AEO_PROBE_FILLER,
     QUOTABILITY_FILLER,
