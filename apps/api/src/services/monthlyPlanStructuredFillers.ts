@@ -47,9 +47,14 @@ function nowIso(): string {
     return new Date().toISOString()
 }
 
+// K23 idempotency check. ONLY title+summary, NOT actionPlan steps —
+// actionPlan steps reference concepts in passing (e.g. "write meta title"
+// inside a single-page task) which would create false positives that block
+// cross-site fillers (e.g. "write meta description for 50 missing pages").
+// A task's focus = its title+summary, not its internal mechanics.
 function _existingTaskMatches(existingTasks: MonthlyTask[], patterns: RegExp[]): boolean {
     return existingTasks.some(t => {
-        const hay = `${t.title || ''} ${t.summary || ''} ${(t.actionPlan || []).map(s => s.step).join(' ')}`.toLowerCase()
+        const hay = `${t.title || ''} ${t.summary || ''}`.toLowerCase()
         return patterns.some(p => p.test(hay))
     })
 }
@@ -86,7 +91,7 @@ const INTERNAL_SEO_FILLER: StructuredFiller = {
             && (r.page_type === 'product' || /\/product\//i.test(r.url || ''))
         )
         if (productSchemaMissing.length >= 3
-            && !_existingTaskMatches(existingTasks, [/product schema|productschema|schema.*Product/i])
+            && !_existingTaskMatches(existingTasks, [/product schema|productschema|schema.*product/i, /סכמ[התה].*מוצר|תיוג.*מובנה.*מוצר|מוצר.*סכמ[התה]|מוצר.*תיוג מובנה/i])
         ) {
             const urls = productSchemaMissing.slice(0, 10).map(r => r.url).filter(Boolean)
             out.push({
@@ -222,9 +227,11 @@ const AEO_FILLER: StructuredFiller = {
 
         const out: MonthlyTask[] = []
 
-        // Group records by type (entity_authority / content_quotability / etc.)
+        // Group records by quotability score. Threshold ≥ 2 (not 3) — AEO citation
+        // gaps are individually painful: each missed citation = a competitor cited
+        // instead. Spawning an aggregate task even on 2 gaps is worthwhile.
         const lowQuotability = records.filter(r => typeof r.quotability_score_0_100 === 'number' && r.quotability_score_0_100 < 50)
-        if (lowQuotability.length >= 3
+        if (lowQuotability.length >= 2
             && !_existingTaskMatches(existingTasks, [/AEO|aeo|ציטוט|נראות AI|chatgpt|gemini|מנועי AI/i])
         ) {
             const top = lowQuotability.slice(0, 5)
@@ -444,11 +451,11 @@ const PAID_COMP_FILLER: StructuredFiller = {
 
         const out: MonthlyTask[] = []
 
-        // High-threat competitors with consistently running ads (longest_running_ad_days ≥ 30)
+        // High-threat competitors. Ad-run-days filter was too strict (excluded
+        // many tenants whose competitors run shorter cycles). Now: ANY
+        // strategic_threat_level=high|critical qualifies; threshold ≥ 2 records.
         const highThreat = records.filter(r =>
-            (r.strategic_threat_level === 'high' || r.strategic_threat_level === 'critical')
-            && typeof r.longest_running_ad_days === 'number'
-            && r.longest_running_ad_days >= 30
+            r.strategic_threat_level === 'high' || r.strategic_threat_level === 'critical'
         )
         if (highThreat.length >= 2
             && !_existingTaskMatches(existingTasks, [/ניטור.*מתחר|competitor.*monitor|transparency.*center|מודעות.*מתחר/i])
