@@ -71,14 +71,50 @@ function hasPaidSearchActive(ctx: PromptCtx, tasks: MonthlyTask[]): boolean {
 }
 
 // ─── Link-audit signal detection ──────────────────────────────────────────
+// K22: ctx.linkAudit IS `rd.results.link_audit` (the whole object, NOT just
+// extras). Real schema produced by the link_audit prefetch stage:
+//   linkAudit.extras = {
+//     our_profile_summary: { referring_domains_total, spam_score, ... },
+//     anchor_distribution_analysis: { exact_match_pct, partial_pct, ... },
+//     velocity_signal: { new_referring_90d, lost_referring_90d },
+//     competitor_link_benchmarks: [...],
+//     ...
+//   }
+//   linkAudit.records = [
+//     { type: 'link_gap_outreach',  domain, outreach_angle, priority, ... },
+//     { type: 'lost_link_recovery', domain, _metric_value, outreach_angle, ... },
+//     { type: 'anchor_remediation', ... },
+//   ]
+// Legacy fields (la.linkGap / la.lostLinks / la.anchor_distribution / la.
+// referring_domains_total at root) are kept as fallbacks so older fixtures
+// continue to work; new prefetch shape takes precedence.
 function linkAuditData(ctx: PromptCtx): { hasData: boolean; exactMatchPct: number; linkGapCount: number; lostLinksCount: number; referringDomains: number } {
     const la: any = ctx.linkAudit || {}
-    const hasData = !!la && (la.referring_domains_total !== undefined || la.referringDomains !== undefined || Array.isArray(la.linkGap) || Array.isArray(la.lostLinks) || la.anchor_distribution || la.anchorDistribution)
-    const anchor = la.anchor_distribution || la.anchorDistribution || {}
+    const extras: any = la.extras || {}
+    const records: any[] = Array.isArray(la.records) ? la.records : []
+
+    const anchor = extras.anchor_distribution_analysis || la.anchor_distribution || la.anchorDistribution || {}
     const exactMatchPct = Number(anchor.exact_match_pct || anchor.exactMatchPct || 0)
-    const linkGapCount = Array.isArray(la.linkGap) ? la.linkGap.length : 0
-    const lostLinksCount = Array.isArray(la.lostLinks) ? la.lostLinks.length : 0
-    const referringDomains = Number(la.referring_domains_total || la.referringDomainsTotal || (Array.isArray(la.referringDomains) ? la.referringDomains.length : 0))
+
+    // Prefer records[] from the new prefetch; fall back to legacy arrays.
+    const linkGapCount = records.filter(r => r && r.type === 'link_gap_outreach').length
+        || (Array.isArray(la.linkGap) ? la.linkGap.length : 0)
+    const lostLinksCount = records.filter(r => r && r.type === 'lost_link_recovery').length
+        || (Array.isArray(la.lostLinks) ? la.lostLinks.length : 0)
+
+    const ourProfile = extras.our_profile_summary || {}
+    const referringDomains = Number(
+        ourProfile.referring_domains_total
+        || la.referring_domains_total
+        || la.referringDomainsTotal
+        || (Array.isArray(la.referringDomains) ? la.referringDomains.length : 0)
+    )
+
+    const hasData = referringDomains > 0
+        || linkGapCount > 0
+        || lostLinksCount > 0
+        || exactMatchPct > 0
+        || records.length > 0
     return { hasData, exactMatchPct, linkGapCount, lostLinksCount, referringDomains }
 }
 
@@ -344,12 +380,22 @@ const RULES: RuleDefinition[] = [
         ),
         fillBrief: (ctx) => {
             const la = linkAuditData(ctx)
+            // K22-fix2: serialize real records[] so Opus sees concrete domains
+            // + outreach_angle + priority from the prefetch, instead of citing
+            // a non-existent linkAudit.linkGap[] field. Falls back to legacy
+            // shape only if no records exist.
+            const records = Array.isArray((ctx.linkAudit as any)?.records)
+                ? ((ctx.linkAudit as any).records as any[]).filter(r => r?.type === 'link_gap_outreach').slice(0, 5)
+                : []
+            const recordsBlock = records.length > 0
+                ? `\n\nReal linkGap candidates from link_audit.records (top ${records.length}, already analyzed):\n${records.map((r, i) => `  ${i + 1}. ${r.domain || '?'} — priority=${r.priority || 'medium'}, current_rank=${r.current_rank ?? '?'}, outreach_angle="${(r.outreach_angle || '').slice(0, 200)}", est_effort=${r.estimated_effort_hours || '?'}h`).join('\n')}`
+                : `\n\n(records[] empty — fall back to legacy linkAudit.linkGap[] if present)`
             return {
                 type: 'cross_channel_amplification',
                 channel: 'seo',
                 priority: 'P1',
                 systemAddon: 'You produce a linkGap outreach task — domains that link to competitors but not us are high-conversion targets.',
-                userBrief: `Produce ONE outreach task targeting the top-5 linkGap domains from linkAudit.linkGap (${la.linkGapCount} total prospects available). Sources cite linkAudit.linkGap[0..4] with each domain + DR + referring-competitor count. ActionPlan: (1) score top-5 by DR + relevance (automated DFS backlinks pull), (2) find decision-maker contact (LinkedIn / Apollo / Hunter — automated:false ~30min total), (3) craft personalized Hebrew outreach email per domain (mention which of our competitors they link to + what we offer above), (4) send 5 emails, (5) follow-up cadence (Day 3 / Day 7 / Day 14), (6) target: 1-2 placements within 30d, monitor.`,
+                userBrief: `Produce ONE outreach task targeting the top-${records.length || 5} linkGap domains (${la.linkGapCount} total prospects identified by DFS prefetch). Sources MUST cite link_audit.records[i] with concrete domain + DFS-derived outreach_angle. ActionPlan: (1) review the pre-computed outreach_angle per domain (DON'T re-research what was already analyzed), (2) find decision-maker contact (LinkedIn / Apollo / Hunter — automated:false ~30min total), (3) craft personalized Hebrew outreach email per domain using the outreach_angle as the hook, (4) send ${records.length || 5} emails, (5) follow-up cadence (Day 3 / Day 7 / Day 14), (6) target: 1-2 placements within 30d, monitor.${recordsBlock}`,
             }
         },
     },
@@ -364,12 +410,20 @@ const RULES: RuleDefinition[] = [
         ),
         fillBrief: (ctx) => {
             const la = linkAuditData(ctx)
+            // K22-fix2: same as linkgap_outreach — pass real records[] of
+            // type='lost_link_recovery' with domain, lost_date, outreach_angle.
+            const records = Array.isArray((ctx.linkAudit as any)?.records)
+                ? ((ctx.linkAudit as any).records as any[]).filter(r => r?.type === 'lost_link_recovery').slice(0, 5)
+                : []
+            const recordsBlock = records.length > 0
+                ? `\n\nReal lost-link recovery candidates from link_audit.records (top ${records.length}):\n${records.map((r, i) => `  ${i + 1}. ${r.domain || '?'} — lost ${r._metric_value || '?'}, priority=${r.priority || 'medium'}, outreach_angle="${(r.outreach_angle || '').slice(0, 200)}", est_effort=${r.estimated_effort_hours || '?'}h`).join('\n')}`
+                : `\n\n(records[] empty — fall back to legacy linkAudit.lostLinks[] if present)`
             return {
                 type: 'website_change',
                 channel: 'seo',
                 priority: 'P1',
                 systemAddon: 'You produce a lostLinks recovery task — domains that USED to link to us and stopped are easier to win back than new links.',
-                userBrief: `Produce ONE lostLinks recovery task. ${la.lostLinksCount} lost referring domains identified in linkAudit.lostLinks. Sources cite linkAudit.lostLinks[0..4] with each domain + when-lost + likely-cause. ActionPlan: (1) classify each loss reason (broken anchor URL, page removed, replaced our link with competitor, site redesign dropped sidebar), (2) for broken-URL cases: 301-redirect or restore page (automated via WordPress), (3) for replaced-link cases: outreach to ask for reinstate (Hebrew email, mention the historical relationship), (4) target top-5 of ${la.lostLinksCount}, (5) monitor restore rate over 30d, (6) document recurring loss patterns for prevention playbook.`,
+                userBrief: `Produce ONE lostLinks recovery task. ${la.lostLinksCount} lost referring domains identified. Sources MUST cite link_audit.records[i] with domain + lost date + DFS-derived outreach_angle. ActionPlan: (1) review the pre-computed outreach_angle per domain (classification already done — broken URL vs replaced vs removed), (2) for broken-URL cases: 301-redirect or restore page (automated via WordPress), (3) for replaced-link cases: outreach using the outreach_angle (Hebrew email, mention the historical relationship), (4) target top-${records.length || 5}, (5) monitor restore rate over 30d, (6) document recurring loss patterns for prevention playbook.${recordsBlock}`,
             }
         },
     },
