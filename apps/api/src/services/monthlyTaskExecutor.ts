@@ -1252,6 +1252,24 @@ async function runTrackingSetupAdapter(
                 })
             }
         }
+        // K34 follow-on: channels that don't map to any tracking-API adapter
+        // (seo / cross / website / email / whatsapp / gbp / content) used to
+        // fall off the end with stepResults=[] — K31 then flagged
+        // not_implemented + Telegram OWNER alert + finalStatus=failed.
+        // That's the right systemic detection ONLY when there IS a missing
+        // adapter. For inherently-manual channels (SEO audits, sitemap
+        // monitoring, brand defense briefs) the correct path is a manual
+        // brief — Opus mis-types them as measurement_gap but the work is
+        // pure human-in-the-loop content/process. Fall through to the
+        // manual-todo brief instead of failing them.
+        if (stepResults.length === 0) {
+            const trackingApiChannels = new Set(['ga4', 'meta', 'google_ads', 'gtm'])
+            if (!trackingApiChannels.has(task.channel)) {
+                return runManualTodoAdapter(instanceId, task, _plan,
+                    `מעקב/ביקורת ידנית (channel=${task.channel}) — בצעו לפי ה-brief למטה ולחצו "✓ ביצעתי ידנית" בסיום.`,
+                    { stepResults: [{ step: `route channel=${task.channel} → manual brief`, ok: true, detail: 'no tracking-API adapter for this channel — surfaced as manual todo' }] })
+            }
+        }
         return {
             ok: stepResults.every(s => s.ok),
             outputDescription: `Tracking setup: ${stepResults.length} steps executed`,
