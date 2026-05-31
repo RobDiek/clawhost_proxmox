@@ -182,6 +182,14 @@ export async function executeTask(
     // Dispatch
     let result: ExecutorResult
     try {
+        // Cross-type detection: "write/optimize meta descriptions for existing
+        // pages" tasks arrive from Opus as website_change / other (channel seo /
+        // website), so the type switch alone would route them to the manual
+        // brief. Detect by intent + route to the real WordPress batch adapter —
+        // same pattern as switch_bid_strategy detection inside runGoogleAdsAdapter.
+        if (isSeoMetaBatchTask(task)) {
+            result = await runSeoMetaBatchAdapter(instanceId, task, plan, agent)
+        } else {
         switch (task.type) {
             case 'paid_optimization':
             case 'keyword_expansion':
@@ -204,6 +212,7 @@ export async function executeTask(
             default:
                 result = await runManualTodoAdapter(instanceId, task, plan)
                 break
+        }
         }
     } catch (err) {
         result = { ok: false, outputDescription: '', error: (err as Error).message }
@@ -1277,6 +1286,100 @@ async function runTrackingSetupAdapter(
         }
     } catch (err) {
         return { ok: false, outputDescription: 'tracking_setup failed', error: (err as Error).message, stepResults }
+    }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Adapter: seo_meta_batch — batch-write meta descriptions to existing WP pages
+// ════════════════════════════════════════════════════════════════════════
+
+/**
+ * Detect a "write/optimize meta descriptions for existing pages" task. These
+ * come from Opus as type=website_change|other (channel seo/website/content),
+ * so the type switch would otherwise route them to the manual brief. Requires
+ * an explicit meta-description mention AND a bulk/existing-pages signal to
+ * avoid hijacking single new-article content tasks.
+ */
+function isSeoMetaBatchTask(task: MonthlyTask): boolean {
+    // content_creation owns new-article generation (incl. its own meta) — never
+    // hijack it even if an action step mentions a meta description.
+    if (task.type === 'content_creation') return false
+    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    const mentionsMeta = /meta\s*-?\s*desc|תיאור(?:י)?\s*מטא/i.test(text)
+    if (!mentionsMeta) return false
+    const bulkOrExisting = /קיימ|existing|כל ה|batch|bulk|עמודים|דפים|פוסטים|posts|pages|all pages/i.test(text)
+    const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
+    return channelOk && bulkOrExisting
+}
+
+async function runSeoMetaBatchAdapter(
+    instanceId: string,
+    task: MonthlyTask,
+    _plan: MonthlyMarketingPlan,
+    agent: { id?: string } | null,
+): Promise<ExecutorResult> {
+    const { runSeoMetaBatch } = await import('./seoMetaBatch')
+
+    let businessName: string | undefined
+    try {
+        const { readResearchData } = await import('./agentContext')
+        const rd: any = (await readResearchData(agent as any, instanceId)) || {}
+        businessName = rd?.answers?.businessName
+    } catch { /* tone fallback handled downstream */ }
+
+    const res = await runSeoMetaBatch(instanceId, { agentId: agent?.id, businessName })
+
+    if (res.integrationMissing) {
+        return {
+            ok: false,
+            outputDescription: 'WordPress לא מחובר — לא ניתן לעדכן תיאורי מטא אוטומטית.',
+            error: 'wordpress integration missing',
+            errorCategory: 'integration_missing',
+            userAction: {
+                title_he: 'WordPress לא מחובר — נדרשת התחברות',
+                cta_he: 'חברו את WordPress →',
+                action_path: '/dashboard#integrations',
+                integrationKey: 'wordpress',
+            },
+        }
+    }
+
+    if (res.error && res.updated.length === 0) {
+        return {
+            ok: false,
+            outputDescription: `שגיאה בגישה ל-WordPress: ${res.error}`,
+            error: res.error,
+            errorCategory: 'systemic_bug',
+        }
+    }
+
+    const stepResults = [
+        { step: 'סריקת WordPress', ok: true, detail: `${res.scanned} עמודים נסרקו · ${res.candidates} עם תיאור מטא חסר/חלש` },
+        ...res.updated.map(u => ({ step: `עודכן: ${u.title}`, ok: true, detail: u.metaDescription })),
+        ...res.failures.map(f => ({ step: `נכשל: ${f.type} #${f.id}`, ok: false, detail: f.error })),
+    ]
+
+    if (res.candidates === 0) {
+        const msg = res.detectorAvailable
+            ? `כל ${res.scanned} העמודים שנסרקו כבר כוללים תיאור מטא תקין — אין מה לעדכן.`
+            : `נסרקו ${res.scanned} עמודים. לא זוהה תוסף SEO קריא (Yoast/Rank Math) דרך ה-API ולא נמצאו עמודים ללא תקציר — אין מה לעדכן אוטומטית.`
+        return { ok: true, outputDescription: msg, errorCategory: 'completed_idempotent_noop', stepResults }
+    }
+
+    if (res.updated.length === 0) {
+        // Had candidates but wrote nothing — almost always the SEO plugin's REST
+        // meta fields aren't writable (Yoast/Rank Math missing or REST disabled).
+        return runManualTodoAdapter(instanceId, task, _plan,
+            `נמצאו ${res.candidates} עמודים עם תיאור מטא חסר/חלש, אך לא ניתן היה לכתוב דרך ה-API (ודאו ש-Yoast או Rank Math מותקנים ופעילים). בצעו ידנית לפי ה-brief.`,
+            { stepResults })
+    }
+
+    const lines = res.updated.map(u => `• ${u.title} — ${u.link}`).join('\n')
+    return {
+        ok: true,
+        outputDescription: `עודכנו תיאורי מטא ל-${res.updated.length} עמודים ב-WordPress${res.failures.length ? ` (${res.failures.length} נכשלו)` : ''}:\n${lines}`,
+        errorCategory: 'completed',
+        stepResults,
     }
 }
 
