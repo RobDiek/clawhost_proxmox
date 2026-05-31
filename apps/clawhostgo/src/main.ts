@@ -79,7 +79,6 @@ if (!gotLock) {
         nodeBinary.ensureNode()
         reverseProxy.start()
         dnsResolver.startDns()
-        dnsResolver.ensurePortRedirect()
         appUpdater.start()
     })
 

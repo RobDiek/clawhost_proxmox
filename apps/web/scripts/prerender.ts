@@ -107,9 +107,7 @@ function writePrerenderedPage(routePath: string, html: string) {
         fs.writeFileSync(path.join(DIST, 'index.html'), html)
         return
     }
-    const dir = path.join(DIST, routePath)
-    fs.mkdirSync(dir, { recursive: true })
-    fs.writeFileSync(path.join(dir, 'index.html'), html)
+    fs.writeFileSync(path.join(DIST, `${routePath}.html`), html)
 }
 
 const staticPages: { path: string; meta: PrerenderMeta }[] = [
@@ -230,9 +228,7 @@ for (const post of posts) {
         }
     })
 
-    const dir = path.join(DIST, post.slug)
-    fs.mkdirSync(dir, { recursive: true })
-    fs.writeFileSync(path.join(dir, 'index.html'), postHtml)
+    fs.writeFileSync(path.join(DIST, `${post.slug}.html`), postHtml)
 }
 
 console.log(
