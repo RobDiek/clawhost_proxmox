@@ -622,7 +622,12 @@ async function runTrackingSetupAdapter(
     // K32-fix2: relax type constraint — Opus generates "primary reconcile" tasks
     // as both measurement_gap (validation) AND tracking_setup (mark/promote)
     // depending on context. The behavior is identical so both should route here.
-    const wantsPrimaryReconcile = (task.type === 'measurement_gap' || task.type === 'tracking_setup')
+    // K33: bind to channel='google_ads' — Enhanced Conversions / Consent Mode
+    // are channel='gtm' tasks whose actionPlan ALSO mentions ראשית (purchase
+    // primary as a verification dependency), causing wantsPrimaryReconcile to
+    // hijack them. Channel is the source of truth for which API stack runs.
+    const wantsPrimaryReconcile = task.channel === 'google_ads'
+        && (task.type === 'measurement_gap' || task.type === 'tracking_setup')
         && /ראשית|primary[\s-]*(for[\s-]*goal|conversion|action)|מסומן|סימון.{0,40}(רכישה|primary)/i.test(text)
 
     // ─── K31: GA4 reconnect path ──────────────────────────────────────

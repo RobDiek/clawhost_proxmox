@@ -2187,6 +2187,11 @@ async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
                 ? (await resolveAgentById(output.instanceId, output.agentId)) || (await resolvePrimaryAgent(output.instanceId))
                 : await resolvePrimaryAgent(output.instanceId)
             // 1. Mark the MonthlyTask object approved (executor pre-check requires it).
+            //    K33: also bind executionOutputId to the output the user just approved.
+            //    Previously, when a task already had executionOutputId from an earlier
+            //    run, executor.persistResult() updated that OLD row — so the NEW
+            //    pending_review row that the user is watching stayed empty (content=null).
+            //    Binding here guarantees writes land on the row the dashboard renders.
             await mutateResearchData(agent, output.instanceId, (rd: any) => {
                 const plan = rd?.monthlyPlan
                 if (!plan || !Array.isArray(plan.tasks)) return rd
@@ -2194,6 +2199,7 @@ async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
                 if (idx === -1) return rd
                 plan.tasks[idx].status = 'approved'
                 plan.tasks[idx].approvedAt = new Date().toISOString()
+                plan.tasks[idx].executionOutputId = output.id
                 return rd
             })
             // 2. Mark queued in agent_outputs for UI feedback.
