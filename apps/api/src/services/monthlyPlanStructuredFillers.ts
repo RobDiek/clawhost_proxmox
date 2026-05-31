@@ -295,7 +295,12 @@ const SEO_KW_FILLER: StructuredFiller = {
             && (r.opportunity?.decision === 'take_now' || r.striking_bucket === 'content_upgrade')
         )
         if (striking.length >= 3
-            && !_existingTaskMatches(existingTasks, [/striking.?distance|מיקום.*4-10|רענון.*pillar|striking_bucket/i])
+            // K28-fix: Hebrew cleanup translates "striking-distance" →
+            // "מרחק פריצה" / "מרחק הגעה" / "במרחק". Match all variants +
+            // positional range 4-15 / 4-10 / 5-15. Without this, Opus
+            // generates a striking task in Pass 1/2 and the filler creates
+            // a duplicate in Pass 4 (semantic dupe — same 17 keywords).
+            && !_existingTaskMatches(existingTasks, [/striking.?distance|מיקום\s*\d{1,2}[-\s]\d{1,2}|מרחק\s*(פריצה|הגעה|הגעה לטופ)|במרחק\s*פריצה|striking_bucket|רענון.*דפים.*מיקום/i])
         ) {
             const top = striking.slice(0, 5)
             out.push({
