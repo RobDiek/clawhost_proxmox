@@ -63,6 +63,7 @@ export interface ExecutorResult {
     //                                 Distinguished from not_implemented to avoid false alarms.
     errorCategory?: 'completed' | 'awaiting_user_action' | 'integration_missing'
                   | 'systemic_bug' | 'not_implemented' | 'completed_idempotent_noop'
+                  | 'blocked_by_deps'
     // For integration_missing — payload that powers the notifications widget.
     userAction?: {
         title_he: string         // "GA4 לא מחובר — נדרשת התחברות"
@@ -117,7 +118,54 @@ export async function executeTask(
             return !dep || dep.status !== 'completed'
         })
         if (unmet.length > 0) {
-            return { ok: false, outputDescription: '', error: `unmet dependencies: ${unmet.join(', ')}` }
+            // K32: surface "blocked by deps" to UI explicitly. agent_outputs
+            // status flips to 'blocked_by_deps' (instead of staying 'approved'
+            // silently — that was confusing user), with a list of unmet deps
+            // in the content payload so the queue can render which to do first.
+            const unmetTitles = unmet.map(depId => {
+                const d = plan.tasks.find(t => t.id === depId)
+                return d ? `${depId} — "${(d.title || '').slice(0, 60)}"` : depId
+            })
+            await mutateResearchData(agent, instanceId, (rd2: any) => {
+                const plan2: MonthlyMarketingPlan = rd2.monthlyPlan
+                if (plan2 && plan2.tasks[taskIdx]) {
+                    // Reset to 'approved' so user can re-approve after deps done,
+                    // and re-fire will skip dep check + run executor body.
+                    plan2.tasks[taskIdx].status = 'approved'
+                    ;(plan2.tasks[taskIdx] as any).errorCategory = 'blocked_by_deps'
+                    ;(plan2.tasks[taskIdx] as any).blockedByTaskIds = unmet
+                }
+                return rd2
+            })
+            if (task.executionOutputId) {
+                try {
+                    // K32: keep agent_outputs.status='pending_review' so task
+                    // stays in the default ממתינים לאישור filter. Surface
+                    // "blocked by deps" via metadata + content only — UI badge
+                    // reads metadata.blockedByTaskIds. After deps complete,
+                    // user re-approves and executor proceeds normally.
+                    const [existing] = await db.select().from(agentOutputs).where(eq(agentOutputs.id, task.executionOutputId))
+                    const existingMeta: any = existing?.metadata || {}
+                    await db.update(agentOutputs).set({
+                        status: 'pending_review',
+                        metadata: { ...existingMeta, blockedByTaskIds: unmet, blockedAt: new Date().toISOString() } as any,
+                        content: JSON.stringify({
+                            outputDescription: `חסומה — ${unmet.length} תלויות לא הושלמו`,
+                            blockedByTaskIds: unmet,
+                            unmetTitles,
+                            note_he: `המשימה לא תרוץ עד שתשלימו: ${unmetTitles.join(' · ')}`,
+                        }, null, 2),
+                    }).where(eq(agentOutputs.id, task.executionOutputId))
+                } catch (err) {
+                    console.warn('[monthlyTaskExecutor] failed to update output for blocked_by_deps:', (err as Error).message)
+                }
+            }
+            return {
+                ok: false,
+                outputDescription: `Blocked by ${unmet.length} unmet dependency: ${unmet.join(', ')}`,
+                error: `unmet dependencies: ${unmet.join(', ')}`,
+                errorCategory: 'blocked_by_deps' as any,
+            }
         }
     }
 
@@ -223,7 +271,7 @@ export async function executeTask(
     //   - not_implemented:     code fix needed (silent skip); retry would loop
     //   - systemic_bug:        code fix needed; retry would loop
     // Only transient failures (network glitches, rate limits) deserve retry.
-    const noRetryCategories = new Set(['integration_missing', 'not_implemented', 'systemic_bug'])
+    const noRetryCategories = new Set(['integration_missing', 'not_implemented', 'systemic_bug', 'blocked_by_deps'])
     const shouldRetry = !result.ok && !noRetryCategories.has(result.errorCategory || '')
     if (shouldRetry) {
         const prevRetryCount = (task as any).retryCount || 0
