@@ -1088,6 +1088,105 @@ const CONTENT_REFRESH_FILLER: StructuredFiller = {
 // K26 adds 8 Tier-1 SEO completeness fillers (internal links, image SEO, video
 // schema, comparison pages, technical schema, review schema, sitemap, content
 // refresh).
+// ═══ K27 — SCHEMA PRIORITY PLAN CONSUMER (extras-level read) ═════════════
+// The LLM-generated extras `aeo_visibility.extras.schema_priority_plan` and
+// `internal_seo_audit.extras.schema_gap_analysis` are rich action-oriented
+// lists of schemas to add per-page-type with url_examples, expected_aio_lift,
+// urls_to_add_count, estimated_effort_hours, and implementation_approach.
+// Earlier fillers consumed records[] but NOT these extras — this filler
+// unlocks them. For each high|medium-priority schema gap NOT already covered
+// by existing tasks, spawn an aggregate "implement [Schema] on N URLs" task.
+const SCHEMA_PRIORITY_FILLER: StructuredFiller = {
+    stageId: 'k27_schema_priority',
+    description: 'Consume aeo_visibility.schema_priority_plan + internal_seo_audit.schema_gap_analysis for missing schemas',
+    fill(rd, existingTasks) {
+        const aeoPlan: any[] = rd?.results?.aeo_visibility?.extras?.schema_priority_plan || []
+        const seoGap: any[] = rd?.results?.internal_seo_audit?.extras?.schema_gap_analysis || []
+        const candidates: Array<{ schema: string; pageType: string; count: number; priority: string; approach?: string; urls?: string[]; lift?: string; hours?: number; source: 'aeo' | 'seo' }> = []
+
+        for (const p of aeoPlan) {
+            if (!p?.schema_type || (p.urls_to_add_count || 0) < 1) continue
+            candidates.push({
+                schema: String(p.schema_type),
+                pageType: String(p.page_type || 'multiple'),
+                count: Number(p.urls_to_add_count) || 0,
+                priority: String(p.priority || 'medium'),
+                approach: p.implementation_approach,
+                urls: Array.isArray(p.url_examples) ? p.url_examples.slice(0, 3) : [],
+                lift: p.expected_aio_lift,
+                hours: Number(p.estimated_effort_hours) || undefined,
+                source: 'aeo',
+            })
+        }
+        for (const g of seoGap) {
+            if (!Array.isArray(g?.expected_schemas) || (g.missing_urls_count || 0) < 1) continue
+            for (const sch of g.expected_schemas) {
+                candidates.push({
+                    schema: String(sch),
+                    pageType: String(g.page_type || 'multiple'),
+                    count: Number(g.missing_urls_count) || 0,
+                    priority: String(g.priority || 'medium'),
+                    approach: g.implementation_note,
+                    urls: [],
+                    lift: undefined,
+                    hours: undefined,
+                    source: 'seo',
+                })
+            }
+        }
+
+        const out: MonthlyTask[] = []
+        const seen = new Set<string>()
+        for (const c of candidates) {
+            const key = `${c.schema.toLowerCase()}|${c.pageType.toLowerCase()}`
+            if (seen.has(key)) continue
+            seen.add(key)
+            if (c.priority === 'low') continue
+            const schemaPattern = new RegExp(`\\b${c.schema.toLowerCase().replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i')
+            // Skip if any existing task title/summary mentions this schema name.
+            if (existingTasks.some(t => schemaPattern.test(`${t.title || ''} ${t.summary || ''}`))) continue
+
+            out.push({
+                id: newTaskId('tsk_k27_schema'),
+                type: 'website_change',
+                title: `הוספת סכמת ${c.schema} ל-${c.count} דפי ${c.pageType}`.slice(0, 80),
+                summary: `${c.priority} priority — ${c.lift ? c.lift.slice(0, 150) : `סגירת פער schema על ${c.count} דפים`}`,
+                channel: 'seo',
+                priority: c.priority === 'high' ? 'P0' : c.priority === 'medium' ? 'P1' : 'P2',
+                estimatedEffort: c.hours && c.hours > 16 ? '2_3_days' : c.hours && c.hours > 4 ? '1_day' : '2_3_hours',
+                expectedImpact: {
+                    metric: 'organic_traffic_pct',
+                    value: c.priority === 'high' ? 15 : 8,
+                    horizon: '60d',
+                    confidence: 'medium',
+                    rationale: `סכמת ${c.schema} על ${c.count} דפים פותחת rich snippets / AI citation ל-page_type=${c.pageType}.`,
+                },
+                sources: [
+                    {
+                        type: 'other' as const,
+                        ref: c.source === 'aeo' ? `aeo_visibility.extras.schema_priority_plan[].schema_type=${c.schema}` : `internal_seo_audit.extras.schema_gap_analysis[].page_type=${c.pageType}`,
+                        excerpt: (c.approach || `${c.count} דפים זוהו ללא ${c.schema} schema.`).slice(0, 200),
+                    },
+                    ...(c.urls && c.urls.length > 0 ? c.urls.slice(0, 2).map(u => ({ type: 'other' as const, ref: `url_example`, excerpt: u })) : []),
+                ],
+                dependsOn: [],
+                actionPlan: [
+                    _step(`גישה: ${(c.approach || 'הטמעה דרך template/plugin בקובץ אחד שמייצר אוטומטית לכל דף.').slice(0, 200)}`, false, 30),
+                    _step(`מקדו את template/CMS שיוצר את הסכמה — וודאו fields חובה לפי Schema.org docs לסוג ${c.schema}.`, false, 60),
+                    _step(`עברו על top-${Math.min(c.count, 3)} URLs — וודאו שהסכמה מתקבלת תקין ב-Rich Results Test.`, false, 30),
+                    _step('בקשו re-crawl ב-GSC URL Inspection ל-top 5 URLs רלוונטיים.', false, 20),
+                    _step(`ניטור 60 יום: GSC → Search appearance ל-${c.schema} — מדדו impressions delta.`, false, 15),
+                ],
+                status: 'proposed',
+                proposedAt: nowIso(),
+                weekOfMonth: c.priority === 'high' ? 1 : 2,
+            })
+            if (out.length >= 3) break   // Cap to keep plan focused
+        }
+        return out
+    },
+}
+
 const ALL_FILLERS: StructuredFiller[] = [
     INTERNAL_SEO_FILLER,
     SEO_KW_FILLER,
@@ -1109,6 +1208,8 @@ const ALL_FILLERS: StructuredFiller[] = [
     REVIEW_SCHEMA_FILLER,
     SITEMAP_VALIDATION_FILLER,
     CONTENT_REFRESH_FILLER,
+    // K27 — Extras-level schema priority plan consumer
+    SCHEMA_PRIORITY_FILLER,
 ]
 
 export interface FillerRunResult {
