@@ -19,6 +19,7 @@ import type {
     AGENT_DETAIL_TABS,
     COMPARE_FEATURE_STATUS,
     COPIED_FIELD_TYPE,
+    DETECTION_UNKNOWN,
     LOGIN_LOADING_METHOD,
     OAUTH_PROVIDER,
     PREVIEW_STATUS,
@@ -107,8 +108,8 @@ export type GoPlatform = (typeof GO_PLATFORM)[keyof typeof GO_PLATFORM]
 
 export type MacArch = (typeof MAC_ARCH)[keyof typeof MAC_ARCH]
 
-export type DetectedMacArch = MacArch | 'unknown'
+export type DetectedMacArch = MacArch | typeof DETECTION_UNKNOWN
 
-export type DetectedOS = GoPlatform | 'unknown'
+export type DetectedOS = GoPlatform | typeof DETECTION_UNKNOWN
 
 export type GoDownloadVariant = 'primary' | 'secondary'

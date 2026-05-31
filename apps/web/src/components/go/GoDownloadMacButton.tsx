@@ -2,44 +2,40 @@ import type { FC, ReactNode, MouseEvent } from 'react'
 import type { GoPlatformButtonProps } from '@/ts/Interfaces'
 import type { MacArch } from '@/ts/Types'
 
-import { useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { Button } from '@/components/ui'
-import { useUIStore } from '@/lib/store'
-import { useMacArch } from '@/hooks'
-import { downloadGoBinary } from '@/lib'
-import { TOAST_TYPE, GO_PLATFORM, MAC_ARCH } from '@/lib/constants'
+import { useGoBinaryDownload, useMacArch } from '@/hooks'
+import {
+    DETECTION_UNKNOWN,
+    GO_PLATFORM,
+    GO_PRIMARY_GRADIENT,
+    MAC_ARCH
+} from '@/lib/constants'
 import { AppleLogoIcon, CircleNotchIcon } from '@phosphor-icons/react'
 
-const PRIMARY_CLASS =
-    'gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] px-6 font-semibold text-white'
+const PRIMARY_CLASS = `gap-2 ${GO_PRIMARY_GRADIENT} px-6 font-semibold`
 const SECONDARY_CLASS =
     'border-border text-foreground gap-2 border bg-transparent px-6 font-semibold hover:bg-white/5'
+const ATTACHED_CLASS =
+    'gap-2 border-0 bg-transparent px-6 font-semibold text-white rounded-r-none hover:bg-white/10'
 
 const GoDownloadMacButton: FC<GoPlatformButtonProps> = ({
-    variant
+    variant,
+    attached
 }): ReactNode => {
-    const [isFetching, setIsFetching] = useState(false)
-    const showToast = useUIStore((s) => s.showToast)
+    const { trigger, isFetching } = useGoBinaryDownload('GoDownloadMacButton')
     const detectedArch = useMacArch(true)
     const isPrimary = variant === 'primary'
-    const buttonClass = isPrimary ? PRIMARY_CLASS : SECONDARY_CLASS
+    const buttonClass = attached
+        ? ATTACHED_CLASS
+        : isPrimary
+          ? PRIMARY_CLASS
+          : SECONDARY_CLASS
 
-    const triggerDownload = async (arch: MacArch): Promise<void> => {
-        if (isFetching) return
-        setIsFetching(true)
-        try {
-            await downloadGoBinary(GO_PLATFORM.MAC, arch)
-            showToast(t('go.downloadStarted'), TOAST_TYPE.SUCCESS)
-        } catch (error) {
-            console.error('GoDownloadMacButton', error)
-            showToast(t('go.downloadFailed'), TOAST_TYPE.ERROR)
-        } finally {
-            setIsFetching(false)
-        }
-    }
+    const downloadFor = (arch: MacArch): Promise<void> =>
+        trigger(GO_PLATFORM.MAC, arch)
 
-    if (detectedArch === 'unknown') {
+    if (detectedArch === DETECTION_UNKNOWN) {
         return (
             <div className='flex flex-col items-center gap-2'>
                 <p className='text-muted-foreground text-xs'>
@@ -49,7 +45,7 @@ const GoDownloadMacButton: FC<GoPlatformButtonProps> = ({
                     <Button
                         size='lg'
                         disabled={isFetching}
-                        onClick={() => triggerDownload(MAC_ARCH.ARM64)}
+                        onClick={() => downloadFor(MAC_ARCH.ARM64)}
                         className={PRIMARY_CLASS}
                     >
                         <AppleLogoIcon className='h-5 w-5' weight='fill' />
@@ -58,7 +54,7 @@ const GoDownloadMacButton: FC<GoPlatformButtonProps> = ({
                     <Button
                         size='lg'
                         disabled={isFetching}
-                        onClick={() => triggerDownload(MAC_ARCH.X64)}
+                        onClick={() => downloadFor(MAC_ARCH.X64)}
                         className={SECONDARY_CLASS}
                     >
                         <AppleLogoIcon className='h-5 w-5' weight='fill' />
@@ -71,7 +67,7 @@ const GoDownloadMacButton: FC<GoPlatformButtonProps> = ({
 
     const handleClick = (e: MouseEvent<HTMLButtonElement>): void => {
         e.preventDefault()
-        triggerDownload(detectedArch)
+        downloadFor(detectedArch)
     }
 
     return (

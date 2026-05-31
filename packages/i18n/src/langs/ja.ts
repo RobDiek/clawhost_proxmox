@@ -85,7 +85,7 @@ const ja: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'OpenClawをデプロイ.',
         heroTitle2: 'ローカルで. 即座に.',
-        badge: 'OpenClawとHermesに対応',
+        badge: 'OpenClawとHermesをローカルで',
         description:
             'OpenClawインスタンスを管理する軽量デスクトップクライアント。デプロイ、監視、制御をお手元のマシンから.',
         features: '機能',
@@ -172,6 +172,7 @@ const ja: Translations = {
         appleSilicon: 'Apple Silicon',
         intel: 'Intel',
         chooseMacArch: 'お使いの Mac はどちらですか?',
+        otherVersions: 'その他のバージョン',
         joinWaitlist: 'ウェイトリストに参加',
         joinedWaitlist: 'ウェイトリスト参加済み',
         waitlistAlreadyJoinedToast:
@@ -1077,7 +1078,7 @@ const ja: Translations = {
         title: 'OpenClawをデプロイ。ワンクリック。完了。',
         description:
             'ワンクリックで自分のVPSにOpenClawをデプロイ。フルルートアクセス、グローバルロケーション、透明な料金のセルフホスト型クラウドホスティング。',
-        badge: 'OpenClawをシンプルに',
+        badge: 'OpenClawとHermesをクラウドで',
         tutorialBadge: '見て。デプロイ。',
         tutorialVideoThumbnail: 'ClawHostチュートリアル動画サムネイル',
         clawhostGoLogoAlt: 'ClawHost Go',

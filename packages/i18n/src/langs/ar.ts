@@ -85,7 +85,7 @@ const ar: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'انشر OpenClaw.',
         heroTitle2: 'محلياً. فوراً.',
-        badge: 'دعم OpenClaw وHermes',
+        badge: 'OpenClaw وHermes محلياً',
         description:
             'تطبيق سطح مكتب خفيف لإدارة مثيلات OpenClaw الخاصة بك. انشر وراقب وتحكم في claws الخاصة بك — مباشرة من جهازك.',
         features: 'الميزات',
@@ -172,6 +172,7 @@ const ar: Translations = {
         appleSilicon: 'Apple Silicon',
         intel: 'Intel',
         chooseMacArch: 'أي Mac تملك؟',
+        otherVersions: 'إصدارات أخرى',
         joinWaitlist: 'انضم لقائمة الانتظار',
         joinedWaitlist: 'تم الانضمام لقائمة الانتظار',
         waitlistAlreadyJoinedToast:
@@ -1045,7 +1046,7 @@ const ar: Translations = {
         title: 'انشر OpenClaw. بنقرة واحدة. انتهى.',
         description:
             'انشر OpenClaw على خادم VPS الخاص بك بنقرة واحدة. استضافة سحابية ذاتية مع وصول كامل للجذر ومواقع عالمية وأسعار شفافة.',
-        badge: 'OpenClaw مبسّط',
+        badge: 'OpenClaw وHermes في السحابة',
         tutorialBadge: 'شاهد. انشر.',
         tutorialVideoThumbnail: 'صورة مصغرة لفيديو شرح ClawHost',
         clawhostGoLogoAlt: 'ClawHost Go',

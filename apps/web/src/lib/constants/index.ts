@@ -6,6 +6,7 @@ import AGENT_AVATAR_SIZE from '@/lib/constants/agentAvatarSize'
 import AGENT_DETAIL_TABS from '@/lib/constants/agentDetailTabs'
 import COMPARE_FEATURE_STATUS from '@/lib/constants/compareFeatureStatus'
 import COPIED_FIELD_TYPE from '@/lib/constants/copiedFieldType'
+import DETECTION_UNKNOWN from '@/lib/constants/detectionUnknown'
 import LANGUAGES from '@/lib/constants/languages'
 import LOGIN_LOADING_METHOD from '@/lib/constants/loginLoadingMethod'
 import OAUTH_PROVIDER from '@/lib/constants/oauthProvider'
@@ -19,6 +20,7 @@ import TERMINAL_STATUS from '@/lib/constants/terminalStatus'
 import THEMES from '@/lib/constants/themes'
 import TOAST_TYPE from '@/lib/constants/toastType'
 import GO_PLATFORM from '@/lib/constants/goPlatform'
+import GO_PRIMARY_GRADIENT from '@/lib/constants/goPrimaryGradient'
 import MAC_ARCH from '@/lib/constants/macArch'
 
 export {
@@ -29,6 +31,7 @@ export {
     AGENT_DETAIL_TABS,
     COMPARE_FEATURE_STATUS,
     COPIED_FIELD_TYPE,
+    DETECTION_UNKNOWN,
     LANGUAGES,
     LOGIN_LOADING_METHOD,
     OAUTH_PROVIDER,
@@ -43,5 +46,6 @@ export {
     STORAGE_KEYS,
     TOAST_TYPE,
     GO_PLATFORM,
+    GO_PRIMARY_GRADIENT,
     MAC_ARCH
 }

@@ -85,7 +85,7 @@ const hi: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'OpenClaw डिप्लॉय करें.',
         heroTitle2: 'स्थानीय रूप से. तुरंत.',
-        badge: 'OpenClaw और Hermes समर्थित',
+        badge: 'OpenClaw और Hermes स्थानीय रूप से',
         description:
             'अपने OpenClaw इंस्टेंस प्रबंधित करने के लिए एक हल्का डेस्कटॉप क्लाइंट. अपनी मशीन से ही डिप्लॉय, मॉनिटर और नियंत्रित करें.',
         features: 'विशेषताएँ',
@@ -174,6 +174,7 @@ const hi: Translations = {
         appleSilicon: 'Apple Silicon',
         intel: 'Intel',
         chooseMacArch: 'आपके पास कौन सा Mac है?',
+        otherVersions: 'अन्य संस्करण',
         joinWaitlist: 'प्रतीक्षा सूची में शामिल हों',
         joinedWaitlist: 'प्रतीक्षा सूची में शामिल हो गए',
         waitlistAlreadyJoinedToast: 'यह ईमेल पहले से सूची में है.',
@@ -1083,7 +1084,7 @@ const hi: Translations = {
         title: 'OpenClaw डिप्लॉय करें. एक क्लिक. हो गया.',
         description:
             'एक क्लिक में अपने VPS पर OpenClaw डिप्लॉय करें. पूर्ण रूट एक्सेस, वैश्विक स्थान और पारदर्शी मूल्य निर्धारण के साथ सेल्फ-होस्टेबल क्लाउड होस्टिंग.',
-        badge: 'OpenClaw सरलीकृत',
+        badge: 'OpenClaw और Hermes क्लाउड पर',
         tutorialBadge: 'देखें. डिप्लॉय करें.',
         tutorialVideoThumbnail: 'ClawHost ट्यूटोरियल वीडियो थंबनेल',
         clawhostGoLogoAlt: 'ClawHost Go',

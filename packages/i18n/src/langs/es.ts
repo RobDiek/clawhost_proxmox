@@ -85,7 +85,7 @@ const es: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'Despliega OpenClaw.',
         heroTitle2: 'Localmente. Al instante.',
-        badge: 'OpenClaw y Hermes compatibles',
+        badge: 'OpenClaw y Hermes en local',
         description:
             'Un cliente de escritorio ligero para gestionar tus instancias de OpenClaw. Despliega, monitorea y controla tus claws — directamente desde tu máquina.',
         features: 'Características',
@@ -173,6 +173,7 @@ const es: Translations = {
         appleSilicon: 'Apple Silicon',
         intel: 'Intel',
         chooseMacArch: '¿Qué Mac tienes?',
+        otherVersions: 'Otras versiones',
         joinWaitlist: 'Unirse a la lista de espera',
         joinedWaitlist: 'En la lista de espera',
         waitlistAlreadyJoinedToast: 'Este email ya está en la lista.',
@@ -1101,7 +1102,7 @@ const es: Translations = {
         title: 'Despliega OpenClaw. Un clic. Listo.',
         description:
             'Despliega OpenClaw en tu propio VPS con un solo clic. Alojamiento en la nube auto-hospedable con acceso root completo, ubicaciones globales y precios transparentes.',
-        badge: 'OpenClaw simplificado',
+        badge: 'OpenClaw y Hermes en la nube',
         tutorialBadge: 'Mira. Despliega.',
         tutorialVideoThumbnail: 'Miniatura del video tutorial de ClawHost',
         clawhostGoLogoAlt: 'ClawHost Go',
