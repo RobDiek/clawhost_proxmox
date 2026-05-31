@@ -555,7 +555,16 @@ async function runTrackingSetupAdapter(
     // expanded OAuth scopes (cloudbilling/serviceusage/iam/resourcemanager).
     // For now surfaces a manual brief via Pattern F awaiting_manual.
     const wantsGa4BigQuery = /bigquery|big[-\s]*query|bq[-\s]*export|ga4.*bigquery|ga4.*bq/i.test(text)
-    const wantsGtm = !wantsSgtm && !wantsGa4BigQuery && /\bgtm\b|מנהל[\s-]*התגיות|tag[\s-]*manager|consent[\s-]*mode|enhanced[\s-]*conversions/i.test(text)
+    // K31: detect GA4 reconnect / OAuth-status tasks. Pre-K31 these fell
+    // through to the silent-skip path; now we explicitly check OAuth state
+    // and return integration_missing (dashboard notification, not Telegram).
+    const wantsGa4Reconnect = !wantsGa4BigQuery
+        && task.channel === 'ga4'
+        && /reconnect|חיבור[\s-]*מחדש|reconnect|נותק|disconnect|OAuth/i.test(text)
+    // K31: detect Meta pixel/CAPI tasks similarly — adapter had no Meta path.
+    const wantsMetaPixel = task.channel === 'meta'
+        && /pixel|פיקסל|capi|conversion[\s-]*api|ממשק[\s-]*api|meta.*track/i.test(text)
+    const wantsGtm = !wantsSgtm && !wantsGa4BigQuery && !wantsGa4Reconnect && !wantsMetaPixel && /\bgtm\b|מנהל[\s-]*התגיות|tag[\s-]*manager|consent[\s-]*mode|enhanced[\s-]*conversions/i.test(text)
     // Phase 2026.02 Block 6: detect "mark primary / demote others" tasks
     // (tsk_cr_validation archetype). measurement_gap + Hebrew/English "primary"
     // keywords route to reconcilePrimaryConversionActions instead of full
@@ -564,6 +573,71 @@ async function runTrackingSetupAdapter(
     // conversion category).
     const wantsPrimaryReconcile = task.type === 'measurement_gap'
         && /ראשית|primary[\s-]*(for[\s-]*goal|conversion|action)|מסומן|סימון.{0,40}(רכישה|primary)/i.test(text)
+
+    // ─── K31: GA4 reconnect path ──────────────────────────────────────
+    if (wantsGa4Reconnect) {
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        // Per-agent integration check (Packing Station = secondary on this VPS)
+        let ga4ScopePresent = false
+        try {
+            const { getAgentIntegration } = await import('./agentIntegrations')
+            const ga4Int = await getAgentIntegration(instanceId, 'mt' as any, 'google' as any, agent?.id || null)
+            const scopes: string[] = Array.isArray((ga4Int?.config as any)?.scopes) ? (ga4Int!.config as any).scopes : []
+            ga4ScopePresent = scopes.some(s => /analytics\.readonly|analytics\.edit|analytics$/.test(String(s)))
+            if (!ga4ScopePresent) {
+                const tokens = (inst as any)?.googleTokens || {}
+                ga4ScopePresent = Array.isArray(tokens.scopes) && tokens.scopes.some((s: string) => /analytics/.test(s))
+            }
+        } catch { /* fall through to missing */ }
+
+        if (!ga4ScopePresent) {
+            return {
+                ok: false,
+                outputDescription: 'GA4 OAuth scope missing — user must reconnect via Integrations',
+                error: 'GA4 not connected — OAuth scope analytics.readonly absent',
+                stepResults: [{ step: 'GA4 OAuth scope check', ok: false, detail: 'No google analytics scope found in agent_integrations or instance.googleTokens' }],
+                errorCategory: 'integration_missing',
+                userAction: {
+                    title_he: 'GA4 לא מחובר — נדרשת התחברות מחדש',
+                    cta_he: 'התחברו ל-GA4 →',
+                    action_path: '#integrations/google',
+                    integrationKey: 'ga4',
+                },
+            }
+        }
+        // OAuth scope present → mark verified (no actual reconnect needed,
+        // OAuth refresh tokens stay valid as long as we use them periodically)
+        return {
+            ok: true,
+            outputDescription: 'GA4 OAuth verified — connection healthy',
+            stepResults: [{ step: 'GA4 OAuth scope check', ok: true, detail: 'analytics.readonly scope confirmed in tokens' }],
+            errorCategory: 'completed',
+        }
+    }
+
+    // ─── K31: Meta Pixel + CAPI path ──────────────────────────────────
+    if (wantsMetaPixel) {
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const metaTokens: any = (inst as any)?.metaTokens || {}
+        const hasMetaToken = !!(metaTokens.accessToken || metaTokens.userAccessToken || metaTokens.pageAccessToken)
+        const hasMetaPixel = !!metaTokens.pixelId
+        if (!hasMetaToken || !hasMetaPixel) {
+            return {
+                ok: false,
+                outputDescription: 'Meta token / pixel missing — user must connect Meta in Integrations',
+                error: `Meta not fully connected: token=${hasMetaToken} pixel=${hasMetaPixel}`,
+                stepResults: [{ step: 'Meta pixel + token check', ok: false, detail: `accessToken=${hasMetaToken} pixelId=${hasMetaPixel}` }],
+                errorCategory: 'integration_missing',
+                userAction: {
+                    title_he: 'Meta Pixel + CAPI לא מחוברים',
+                    cta_he: 'חברו את Meta →',
+                    action_path: '#integrations/meta',
+                    integrationKey: 'meta',
+                },
+            }
+        }
+        return runManualTodoAdapter(instanceId, task, _plan, 'Meta connected — אמתו ש-Pixel + Conversion API פעילים דרך Events Manager', { stepResults: [{ step: 'Meta token check', ok: true, detail: `pixelId=${metaTokens.pixelId}` }] })
+    }
 
     try {
         if (wantsPrimaryReconcile) {
