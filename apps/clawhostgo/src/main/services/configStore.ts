@@ -5,8 +5,19 @@ import path from 'path'
 import os from 'os'
 import crypto from 'crypto'
 
-const BASE_DIR = path.join(os.homedir(), '.agenthostgo')
+const LEGACY_BASE_DIR = path.join(os.homedir(), '.agenthostgo')
+const BASE_DIR = path.join(os.homedir(), '.clawhostgo')
 const CONFIG_PATH = path.join(BASE_DIR, 'config.json')
+
+const migrateLegacyBaseDir = (): void => {
+    if (fs.existsSync(BASE_DIR)) return
+    if (!fs.existsSync(LEGACY_BASE_DIR)) return
+    try {
+        fs.renameSync(LEGACY_BASE_DIR, BASE_DIR)
+    } catch (error) {
+        console.error('migrateLegacyBaseDir', error)
+    }
+}
 
 const DEFAULT_CONFIG: ConfigFile = {
     agents: [],
@@ -34,6 +45,7 @@ const cleanupOrphanAgentDirs = (): void => {
 }
 
 const ensureDirectories = (): void => {
+    migrateLegacyBaseDir()
     const dirs = [
         BASE_DIR,
         path.join(BASE_DIR, 'agents'),

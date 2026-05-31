@@ -80,7 +80,7 @@ const buildResponse = (query: Buffer): Buffer => {
     return response.subarray(0, offset)
 }
 
-const isDomainAgenthost = (query: Buffer): boolean => {
+const isDomainClawhost = (query: Buffer): boolean => {
     let offset = 12
     const labels: string[] = []
     while (offset < query.length && query[offset] !== 0) {
@@ -100,7 +100,7 @@ const startDns = (): void => {
 
     server.on('message', (msg, rinfo) => {
         if (msg.length < 12) return
-        if (!isDomainAgenthost(msg)) return
+        if (!isDomainClawhost(msg)) return
 
         const response = buildResponse(msg)
         server?.send(response, rinfo.port, rinfo.address)
