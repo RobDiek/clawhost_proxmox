@@ -47,6 +47,29 @@ export interface ExecutorResult {
     // = 'awaiting_manual'. User clicks "✓ ביצעתי ידנית" in UI to flip
     // status → 'completed'.
     awaitingManual?: boolean
+    // K31 — Error UX taxonomy. Differentiates outcomes that look the same on
+    // the surface but mean very different things to the founder:
+    //   • completed              — real mutation performed (default for ok:true)
+    //   • awaiting_user_action   — adapter produced brief; founder clicks "סיימתי"
+    //   • integration_missing    — adapter blocked by missing OAuth / pixel / token.
+    //                              Surfaces in notifications widget with "connect X" CTA.
+    //                              Task remains in queue with 🔌 badge.
+    //   • systemic_bug           — adapter threw / unhandled exception.
+    //                              Telegram alert to OWNER (Sergei) — code fix needed.
+    //   • not_implemented        — adapter routing missed (ok:true + stepResults.length===0).
+    //                              Same severity as systemic_bug; OWNER alert.
+    //   • completed_idempotent_noop — adapter ran but state already correct (e.g. K31:
+    //                                 GTM check found all 10 tags already present).
+    //                                 Distinguished from not_implemented to avoid false alarms.
+    errorCategory?: 'completed' | 'awaiting_user_action' | 'integration_missing'
+                  | 'systemic_bug' | 'not_implemented' | 'completed_idempotent_noop'
+    // For integration_missing — payload that powers the notifications widget.
+    userAction?: {
+        title_he: string         // "GA4 לא מחובר — נדרשת התחברות"
+        cta_he: string           // "התחברו ל-GA4 →"
+        action_path?: string     // "/dashboard#integrations/ga4" — relative URL
+        integrationKey?: string  // "ga4" | "gtm" | "meta" | etc.
+    }
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -139,11 +162,55 @@ export async function executeTask(
     }
 
     // Mark completion + capture executionOutcome (Phase 4.3-N v8)
-    // Phase 2026.02 Block 6 Pattern F: tri-state outcome —
-    //   ok:true + awaitingManual:true → 'awaiting_manual' (UI shows "✓ ביצעתי" button)
-    //   ok:true                       → 'completed'
-    //   ok:false                      → 'failed'
-    const finalStatus: any = result.awaitingManual ? 'awaiting_manual' : (result.ok ? 'completed' : 'failed')
+    // K31 — Error UX taxonomy. Classify result BEFORE deciding status so we
+    // catch silent skips (ok:true + stepResults empty) as not_implemented,
+    // distinguish integration_missing from systemic_bug, and route to the
+    // right surface (Telegram OWNER vs notifications widget).
+    if (!result.errorCategory) {
+        const stepCount = Array.isArray(result.stepResults) ? result.stepResults.length : 0
+        const errStr = String(result.error || '').toLowerCase()
+        const isIntegrationError = /\b(oauth|token|not connected|missing|pixel|api key|developer token|refresh token|scope)\b/i.test(errStr)
+        const isStackTrace = /typeerror|undefined|cannot read|null reference|stack/i.test(errStr)
+        if (result.awaitingManual) {
+            result.errorCategory = 'awaiting_user_action'
+        } else if (result.ok && stepCount === 0) {
+            // Silent skip — adapter routing missed this task type. CRITICAL.
+            // Coerce ok→false so downstream failure path fires (Telegram OWNER).
+            result.errorCategory = 'not_implemented'
+            result.ok = false
+            result.error = result.error || `silent skip detected — adapter returned ok:true with 0 steps for type=${task.type}/channel=${task.channel}`
+        } else if (!result.ok && isIntegrationError) {
+            result.errorCategory = 'integration_missing'
+        } else if (!result.ok && isStackTrace) {
+            result.errorCategory = 'systemic_bug'
+        } else if (!result.ok) {
+            // ok:false без явных integration/stack маркеров — assume systemic.
+            result.errorCategory = 'systemic_bug'
+        } else {
+            // ok:true with steps — real completion (or idempotent noop if all
+            // stepResults indicate "already exists" / "no-op").
+            const allNoop = stepCount > 0 && (result.stepResults || []).every(s => {
+                const det = String(s.detail || '').toLowerCase()
+                return /no-op|already exists|already present|preserved|skipped|fully idempotent/.test(det)
+            })
+            result.errorCategory = allNoop ? 'completed_idempotent_noop' : 'completed'
+        }
+    }
+
+    // Map errorCategory → agent_outputs.status. blocked_integration is a NEW
+    // status that keeps task in queue (still actionable by founder) but with
+    // an integration-missing badge instead of completed/failed states.
+    const finalStatus: any = (() => {
+        switch (result.errorCategory) {
+            case 'awaiting_user_action':       return 'awaiting_manual'
+            case 'integration_missing':        return 'blocked_integration'
+            case 'systemic_bug':               return 'failed'
+            case 'not_implemented':            return 'failed'   // surface as failure; OWNER alert
+            case 'completed':
+            case 'completed_idempotent_noop':  return 'completed'
+            default:                           return result.awaitingManual ? 'awaiting_manual' : (result.ok ? 'completed' : 'failed')
+        }
+    })()
     const completedAt = new Date().toISOString()
     // K20: failure retry book-keeping. Computed BEFORE the mutate so we can
     // reason about whether to spawn an investigate child task at max retries.
@@ -151,7 +218,11 @@ export async function executeTask(
     const RETRY_BACKOFF_HOURS = [1, 4, 24]   // hours after each failure
     let spawnedChildTaskId: string | undefined
     let isFinalFailure = false
-    if (!result.ok) {
+    // K31: integration_missing is NOT a retry-worthy failure. User must
+    // connect the integration; retrying without the connection just wastes
+    // cycles. Same for awaiting_user_action / completed* states.
+    const shouldRetry = !result.ok && result.errorCategory !== 'integration_missing'
+    if (shouldRetry) {
         const prevRetryCount = (task as any).retryCount || 0
         const nextRetryCount = prevRetryCount + 1
         if (nextRetryCount >= MAX_RETRIES) {
@@ -166,48 +237,78 @@ export async function executeTask(
             plan2.tasks[taskIdx].completedAt = completedAt
             if (!result.ok) {
                 plan2.tasks[taskIdx].failureReason = result.error
-                // K20: increment retry counters + schedule next attempt OR spawn
-                // an investigate child task on final failure.
+                // K20+K31: only increment retry counters when retry is appropriate.
+                // integration_missing doesn't retry (user must connect first).
                 const cur: any = plan2.tasks[taskIdx]
-                cur.retryCount = (cur.retryCount || 0) + 1
-                cur.lastRetryError = String(result.error || '').slice(0, 200)
-                if (cur.retryCount < MAX_RETRIES) {
-                    const hours = RETRY_BACKOFF_HOURS[cur.retryCount - 1] || 24
-                    cur.nextRetryAt = new Date(Date.now() + hours * 3600 * 1000).toISOString()
-                } else if (spawnedChildTaskId) {
-                    cur.retryChildTaskId = spawnedChildTaskId
-                    cur.childTaskIds = Array.isArray(cur.childTaskIds) ? [...cur.childTaskIds, spawnedChildTaskId] : [spawnedChildTaskId]
-                    // Spawn the investigate task inline so monthlyReauditRunner sees it next month
-                    // and the dashboard can link to it immediately.
-                    const investigateTask: MonthlyTask = {
-                        id: spawnedChildTaskId,
-                        type: 'measurement_gap',
-                        title: `חקירת תקלה חוזרת: ${(cur.title || '').slice(0, 60)}`,
-                        summary: `המשימה נכשלה ${MAX_RETRIES} פעמים. נדרשת בדיקה ידנית של הסיבה לפני ניסיון נוסף.`,
-                        channel: cur.channel || 'cross',
-                        priority: cur.priority === 'P0' ? 'P0' : 'P1',
-                        estimatedEffort: '1_hour',
-                        expectedImpact: {
-                            metric: 'other',
-                            value: 1,
-                            horizon: '7d',
-                            confidence: 'high',
-                            rationale: 'חקירת שורש לכשל חוזר במשימה האב',
-                        },
-                        sources: [{ type: 'other', ref: `parent_task:${cur.id}`, excerpt: `שגיאה אחרונה: ${String(result.error || '').slice(0, 100)}` }],
-                        dependsOn: [],
-                        actionPlan: [
-                            { step: `בדקו את ה-error log עבור המשימה ${cur.id}`, automated: false, estimatedMinutes: 10 },
-                            { step: 'אבחנו אם השגיאה ניתנת לפתרון אוטומטי (rate limit / network) או דורשת תיקון הגדרות', automated: false, estimatedMinutes: 15 },
-                            { step: 'אם ניתן לפתרון — חזרו לכרטיס המקור ולחצו "נסה שוב". אחרת — תקנו את ההגדרות הבסיסיות ויצרו משימה חדשה', automated: false, estimatedMinutes: 20 },
-                            { step: 'תעדו את שורש הבעיה לטובת חקירה עתידית של דפוסי כשל', automated: false, estimatedMinutes: 5 },
-                        ],
-                        status: 'proposed',
-                        proposedAt: new Date().toISOString(),
-                        scheduledFor: new Date().toISOString().slice(0, 10),
-                        weekOfMonth: cur.weekOfMonth,
+                cur.errorCategory = result.errorCategory   // persist for UI
+                if (result.userAction) cur.userAction = result.userAction
+                if (!shouldRetry) {
+                    // integration_missing path — no retry scheduling, no child task.
+                    // Stays in queue (status='blocked_integration') for user to act.
+                } else {
+                    cur.retryCount = (cur.retryCount || 0) + 1
+                    cur.lastRetryError = String(result.error || '').slice(0, 200)
+                    if (cur.retryCount < MAX_RETRIES) {
+                        const hours = RETRY_BACKOFF_HOURS[cur.retryCount - 1] || 24
+                        cur.nextRetryAt = new Date(Date.now() + hours * 3600 * 1000).toISOString()
+                    } else if (spawnedChildTaskId) {
+                        cur.retryChildTaskId = spawnedChildTaskId
+                        cur.childTaskIds = Array.isArray(cur.childTaskIds) ? [...cur.childTaskIds, spawnedChildTaskId] : [spawnedChildTaskId]
+                        // Spawn the investigate task inline so monthlyReauditRunner sees it next month
+                        // and the dashboard can link to it immediately.
+                        const investigateTask: MonthlyTask = {
+                            id: spawnedChildTaskId,
+                            type: 'measurement_gap',
+                            title: `חקירת תקלה חוזרת: ${(cur.title || '').slice(0, 60)}`,
+                            summary: `המשימה נכשלה ${MAX_RETRIES} פעמים. נדרשת בדיקה ידנית של הסיבה לפני ניסיון נוסף.`,
+                            channel: cur.channel || 'cross',
+                            priority: cur.priority === 'P0' ? 'P0' : 'P1',
+                            estimatedEffort: '1_hour',
+                            expectedImpact: {
+                                metric: 'other',
+                                value: 1,
+                                horizon: '7d',
+                                confidence: 'high',
+                                rationale: 'חקירת שורש לכשל חוזר במשימה האב',
+                            },
+                            sources: [{ type: 'other', ref: `parent_task:${cur.id}`, excerpt: `שגיאה אחרונה: ${String(result.error || '').slice(0, 100)}` }],
+                            dependsOn: [],
+                            actionPlan: [
+                                { step: `בדקו את ה-error log עבור המשימה ${cur.id}`, automated: false, estimatedMinutes: 10 },
+                                { step: 'אבחנו אם השגיאה ניתנת לפתרון אוטומטי (rate limit / network) או דורשת תיקון הגדרות', automated: false, estimatedMinutes: 15 },
+                                { step: 'אם ניתן לפתרון — חזרו לכרטיס המקור ולחצו "נסה שוב". אחרת — תקנו את ההגדרות הבסיסיות ויצרו משימה חדשה', automated: false, estimatedMinutes: 20 },
+                                { step: 'תעדו את שורש הבעיה לטובת חקירה עתידית של דפוסי כשל', automated: false, estimatedMinutes: 5 },
+                            ],
+                            status: 'proposed',
+                            proposedAt: new Date().toISOString(),
+                            scheduledFor: new Date().toISOString().slice(0, 10),
+                            weekOfMonth: cur.weekOfMonth,
+                        }
+                        plan2.tasks.push(investigateTask)
                     }
-                    plan2.tasks.push(investigateTask)
+                }
+                // K31: integration_missing → push notification entry into
+                // research_data.notifications[] so dashboard widget surfaces
+                // "connect X" CTA. Idempotent: skip if same task already has
+                // a notification entry.
+                if (!shouldRetry && result.errorCategory === 'integration_missing' && result.userAction) {
+                    const notifs = Array.isArray(rd2.notifications) ? rd2.notifications : []
+                    const exists = notifs.some((n: any) => n?.taskId === cur.id && n?.type === 'integration_missing')
+                    if (!exists) {
+                        notifs.push({
+                            id: `notif_${randomBytes(4).toString('hex')}`,
+                            type: 'integration_missing',
+                            taskId: cur.id,
+                            outputId: task.executionOutputId,
+                            title_he: result.userAction.title_he,
+                            cta_he: result.userAction.cta_he,
+                            action_path: result.userAction.action_path,
+                            integrationKey: result.userAction.integrationKey,
+                            createdAt: new Date().toISOString(),
+                            dismissed: false,
+                        })
+                        rd2.notifications = notifs
+                    }
                 }
             }
             // Phase 4.3-N v8: persistent executionOutcome — what was actually done.
@@ -225,15 +326,33 @@ export async function executeTask(
         return rd2
     })
 
-    // K20: Telegram alert on failure. Two levels of severity:
-    //   transient (retryCount < MAX): low-priority info, automatic retry scheduled
-    //   final (retryCount = MAX):     alert with link to spawned investigate task
+    // K20+K31: Telegram alert routing by error category.
+    // - integration_missing  → NO alert (user-actionable; surfaces in dashboard notifications)
+    // - awaiting_user_action → NO alert (task stays in queue with "סיימתי" button)
+    // - systemic_bug + not_implemented → IMMEDIATE OWNER alert with full trace
+    // - failed (other reasons) → K20 retry escalation (existing logic)
     if (!result.ok) {
         try {
             const telegram = (await import('./telegram')).default
             const titleShort = (task.title || '').slice(0, 60)
-            const errShort = String(result.error || 'unknown').slice(0, 120)
-            if (isFinalFailure) {
+            const errShort = String(result.error || result.outputDescription || 'no detail').slice(0, 200)
+            if (result.errorCategory === 'integration_missing') {
+                // no-op — surfaced in dashboard notifications widget
+            } else if (result.errorCategory === 'systemic_bug' || result.errorCategory === 'not_implemented') {
+                // OWNER alert — code fix needed. Includes adapter routing hint.
+                const adapterHint = result.errorCategory === 'not_implemented'
+                    ? 'silent skip — adapter routing missed this task type'
+                    : 'unhandled exception / TypeError in executor'
+                const msg = `🐛 *Systemic bug — owner attention required*\n\n` +
+                    `Instance: \`${instanceId}\`\n` +
+                    `Task: \`${task.id}\`\n` +
+                    `Type/Channel: ${task.type}/${task.channel}\n` +
+                    `Title: ${titleShort}\n\n` +
+                    `Category: \`${result.errorCategory}\`\n` +
+                    `Hint: _${adapterHint}_\n\n` +
+                    `Error: ${errShort}`
+                await telegram.alertAdmin(msg)
+            } else if (isFinalFailure) {
                 const msg = `🚨 *משימה נכשלה ${MAX_RETRIES} פעמים* · ${instanceId}\n\n` +
                     `${titleShort}\n\n` +
                     `שגיאה אחרונה: _${errShort}_\n\n` +
@@ -246,7 +365,7 @@ export async function executeTask(
                 await telegram.alertAdmin(msg)
             }
         } catch (err) {
-            console.warn('[monthlyTaskExecutor] K20 failure alert failed:', (err as Error).message)
+            console.warn('[monthlyTaskExecutor] K20+K31 failure alert failed:', (err as Error).message)
         }
     }
 

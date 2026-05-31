@@ -6038,6 +6038,30 @@ function getNotifications() {
     if (dismissed.indexOf(n.id) === -1) notifs.push(n);
   });
 
+  // K31 — integration_missing notifications written by monthlyTaskExecutor
+  // when an adapter is blocked on a missing OAuth/pixel/token. Surfaces with
+  // CTA "התחברו ל-X →" pointing at Integrations tab. Survives across sessions
+  // because it lives in research_data (server-side), not localStorage.
+  try {
+    var serverNotifs = (instanceData && instanceData.researchData && instanceData.researchData.notifications) || [];
+    for (var i = 0; i < serverNotifs.length; i++) {
+      var n = serverNotifs[i];
+      if (!n || n.dismissed) continue;
+      if (dismissed.indexOf(n.id) !== -1) continue;
+      if (n.type === 'integration_missing') {
+        notifs.push({
+          id: n.id,
+          type: 'warning',
+          icon: '🔌',
+          title: n.title_he || 'אינטגרציה חסרה',
+          desc: n.cta_he ? 'משימה חסומה עד שתחברו את האינטגרציה. ' + (n.cta_he || '') : 'משימה חסומה — דרושה התחברות לכלי חיצוני.',
+          action: n.action_path ? "window.location.hash='" + (n.action_path.replace(/^#/, '')) + "';switchTab('integrations')" : "switchTab('integrations')",
+          actionLabel: n.cta_he || 'פתחו אינטגרציות →',
+        });
+      }
+    }
+  } catch (e) { /* defensive */ }
+
   return notifs;
 }
 
