@@ -263,7 +263,7 @@ async function writeMeta(cfg: WpCfg, item: WpItem, metaDescription: string): Pro
  */
 export async function runSeoMetaBatch(
     instanceId: string,
-    opts: { agentId?: string | null; businessName?: string; dryRun?: boolean } = {},
+    opts: { agentId?: string | null; businessName?: string; dryRun?: boolean; onlyIds?: number[] } = {},
 ): Promise<SeoMetaBatchResult> {
     const result: SeoMetaBatchResult = {
         ok: false, integrationMissing: false, detectorAvailable: false,
@@ -285,6 +285,12 @@ export async function runSeoMetaBatch(
     } catch (err) {
         result.error = (err as Error).message
         return result
+    }
+
+    // Optional scope: restrict to specific post/page IDs (still must be weak).
+    if (opts.onlyIds && opts.onlyIds.length) {
+        const allow = new Set(opts.onlyIds)
+        weak = weak.filter(it => allow.has(it.id))
     }
 
     result.candidates = weak.length

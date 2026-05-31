@@ -28,13 +28,37 @@ async function main() {
         console.log(`• instance=${r.instanceId} agent=${r.agentId} status=${r.status} url=${cfg.url} hasAppPw=${'appPassword' in cfg} hasPw=${'password' in cfg}`)
     }
 
-    console.log(`\n=== Dry-run for instance ${targetId} ===`)
     const cfg = await loadWpConfig(targetId)
     if (!cfg) {
         console.log('loadWpConfig → null (no usable WP config for this instance). Pass a different instanceId as argv[2].')
         process.exit(0)
     }
     console.log(`loadWpConfig OK → url=${cfg.url} user=${cfg.user}`)
+
+    // --write <id>: perform a REAL single-page write + read-back to verify
+    // writeMeta persists into Yoast/Rank Math. e.g. `... 44f484a852 --write 152`
+    const writeFlag = process.argv.indexOf('--write')
+    if (writeFlag !== -1 && process.argv[writeFlag + 1]) {
+        const id = Number(process.argv[writeFlag + 1])
+        console.log(`\n=== REAL WRITE test: ${targetId} page/post id=${id} ===`)
+        const before = await fetch(`${cfg.url.replace(/\/+$/, '')}/wp-json/wp/v2/pages/${id}?_fields=id,link,yoast_head_json,meta`, {
+            headers: { Authorization: 'Basic ' + Buffer.from(`${cfg.user}:${cfg.appPassword}`).toString('base64') },
+        }).then(r => r.ok ? r.json() : null).catch(() => null) as any
+        console.log(`before: yoast="${before?.yoast_head_json?.description || ''}" rankmath="${before?.meta?.rank_math_description || ''}"`)
+
+        const res = await runSeoMetaBatch(targetId, { onlyIds: [id] })
+        console.log(`write result: candidates=${res.candidates} updated=${res.updated.length} failures=${res.failures.length}${res.error ? ' error=' + res.error : ''}`)
+        for (const u of res.updated) console.log(`  wrote meta(${u.metaDescription.length}): ${u.metaDescription}`)
+        for (const f of res.failures) console.log(`  FAIL #${f.id}: ${f.error}`)
+
+        const after = await fetch(`${cfg.url.replace(/\/+$/, '')}/wp-json/wp/v2/pages/${id}?_fields=id,link,yoast_head_json,meta`, {
+            headers: { Authorization: 'Basic ' + Buffer.from(`${cfg.user}:${cfg.appPassword}`).toString('base64') },
+        }).then(r => r.ok ? r.json() : null).catch(() => null) as any
+        console.log(`after:  yoast="${after?.yoast_head_json?.description || ''}" rankmath="${after?.meta?.rank_math_description || ''}"`)
+        process.exit(0)
+    }
+
+    console.log(`\n=== Dry-run for instance ${targetId} ===`)
 
     const res = await runSeoMetaBatch(targetId, { dryRun: true })
     console.log('\n--- result ---')
