@@ -85,7 +85,7 @@ const tr: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'OpenClaw Dağıt.',
         heroTitle2: 'Yerel. Anında.',
-        badge: 'OpenClaw ve Hermes Destekli',
+        badge: 'OpenClaw ve Hermes Yerel',
         description:
             "OpenClaw örneklerinizi yönetmek için hafif bir masaüstü istemcisi. Claw'larınızı doğrudan bilgisayarınızdan dağıtın, izleyin ve kontrol edin.",
         features: 'Özellikler',
@@ -173,6 +173,7 @@ const tr: Translations = {
         appleSilicon: 'Apple Silicon',
         intel: 'Intel',
         chooseMacArch: 'Hangi Macʼiniz var?',
+        otherVersions: 'Diğer sürümler',
         joinWaitlist: 'Bekleme Listesine Katıl',
         joinedWaitlist: 'Bekleme Listesine Katıldı',
         waitlistAlreadyJoinedToast: 'Bu e-posta zaten listede.',
@@ -1079,7 +1080,7 @@ const tr: Translations = {
         title: 'OpenClaw Dağıt. Tek tık. Tamam.',
         description:
             "OpenClaw'u tek tıkla kendi VPS'inize dağıtın. Tam root erişimi, küresel konumlar ve şeffaf fiyatlandırma ile kendi kendine barındırılabilir bulut barındırma.",
-        badge: 'OpenClaw Basitleştirilmiş',
+        badge: 'OpenClaw ve Hermes Bulutta',
         tutorialBadge: 'İzle. Dağıt.',
         tutorialVideoThumbnail: 'ClawHost eğitim videosu küçük resmi',
         clawhostGoLogoAlt: 'ClawHost Go',

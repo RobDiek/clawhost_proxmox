@@ -85,7 +85,7 @@ const nl: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'Implementeer OpenClaw.',
         heroTitle2: 'Lokaal. Direct.',
-        badge: 'OpenClaw & Hermes ondersteund',
+        badge: 'OpenClaw & Hermes lokaal',
         description:
             'Een lichte desktopclient om je OpenClaw-instanties te beheren. Deploy, monitor en beheer je claws — rechtstreeks vanaf je computer.',
         features: 'Functies',
@@ -173,6 +173,7 @@ const nl: Translations = {
         appleSilicon: 'Apple Silicon',
         intel: 'Intel',
         chooseMacArch: 'Welke Mac heb je?',
+        otherVersions: 'Andere versies',
         joinWaitlist: 'Wachtlijst',
         joinedWaitlist: 'Op de wachtlijst',
         waitlistAlreadyJoinedToast: 'Dit e-mailadres staat al op de lijst.',
@@ -1094,7 +1095,7 @@ const nl: Translations = {
         title: 'Deploy OpenClaw. E\u00e9n klik. Klaar.',
         description:
             'Deploy OpenClaw op je eigen VPS met \u00e9\u00e9n klik. Zelfhostbare cloudhosting met volledige root-toegang, wereldwijde locaties en transparante prijzen.',
-        badge: 'OpenClaw vereenvoudigd',
+        badge: 'OpenClaw & Hermes in de cloud',
         tutorialBadge: 'Bekijk. Deploy.',
         tutorialVideoThumbnail: 'ClawHost handleiding videominiatuur',
         clawhostGoLogoAlt: 'ClawHost Go',

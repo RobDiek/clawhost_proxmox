@@ -85,7 +85,7 @@ const zh: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: '部署 OpenClaw.',
         heroTitle2: '本地. 即时.',
-        badge: '支持 OpenClaw 和 Hermes',
+        badge: '本地运行 OpenClaw 与 Hermes',
         description:
             '一款轻量级桌面客户端，用于管理您的 OpenClaw 实例。部署、监控和控制您的 claws — 直接在您的设备上完成.',
         features: '功能',
@@ -171,6 +171,7 @@ const zh: Translations = {
         appleSilicon: 'Apple Silicon',
         intel: 'Intel',
         chooseMacArch: '您使用的是哪种 Mac?',
+        otherVersions: '其他版本',
         joinWaitlist: '加入等待列表',
         joinedWaitlist: '已加入等待列表',
         waitlistAlreadyJoinedToast: '此邮箱已在列表中.',
@@ -1015,7 +1016,7 @@ const zh: Translations = {
         title: '部署 OpenClaw。一键完成。',
         description:
             '一键在您自己的 VPS 上部署 OpenClaw。自托管云托管，拥有完整 root 访问权限、全球位置和透明定价。',
-        badge: 'OpenClaw 简化版',
+        badge: '云端运行 OpenClaw 与 Hermes',
         tutorialBadge: '观看。部署。',
         tutorialVideoThumbnail: 'ClawHost 教程视频缩略图',
         clawhostGoLogoAlt: 'ClawHost Go',

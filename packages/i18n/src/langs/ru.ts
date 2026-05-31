@@ -85,7 +85,7 @@ const ru: Translations = {
         pageTitle: 'ClawHost Go',
         heroTitle1: 'Разверните OpenClaw.',
         heroTitle2: 'Локально. Мгновенно.',
-        badge: 'Поддержка OpenClaw и Hermes',
+        badge: 'OpenClaw и Hermes локально',
         description:
             'Лёгкий настольный клиент для управления вашими экземплярами OpenClaw. Разворачивайте, отслеживайте и управляйте claws — прямо с вашего компьютера.',
         features: 'Возможности',
@@ -173,6 +173,7 @@ const ru: Translations = {
         appleSilicon: 'Apple Silicon',
         intel: 'Intel',
         chooseMacArch: 'Какой у вас Mac?',
+        otherVersions: 'Другие версии',
         joinWaitlist: 'Записаться в лист ожидания',
         joinedWaitlist: 'Вы в листе ожидания',
         waitlistAlreadyJoinedToast: 'Этот email уже в списке.',
@@ -1080,7 +1081,7 @@ const ru: Translations = {
         title: 'Развернуть OpenClaw. Один клик. Готово.',
         description:
             'Разверните OpenClaw на собственном VPS в один клик. Самостоятельный облачный хостинг с полным root-доступом, глобальными локациями и прозрачными ценами.',
-        badge: 'OpenClaw — просто',
+        badge: 'OpenClaw и Hermes в облаке',
         tutorialBadge: 'Смотрите. Разворачивайте.',
         tutorialVideoThumbnail: 'Миниатюра обучающего видео ClawHost',
         clawhostGoLogoAlt: 'ClawHost Go',

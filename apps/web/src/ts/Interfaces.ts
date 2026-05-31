@@ -33,7 +33,9 @@ import type {
     Product,
     ChangelogFeatureType,
     CopiedFieldType,
-    GoDownloadVariant
+    GoDownloadVariant,
+    GoPlatform,
+    MacArch
 } from '@/ts/Types'
 
 export interface Volume {
@@ -705,6 +707,16 @@ export interface GoManifest {
 
 export interface GoPlatformButtonProps {
     variant: GoDownloadVariant
+    attached?: boolean
+}
+
+export interface GoDownloadVariantsDropdownProps {
+    attached?: boolean
+}
+
+export interface UseGoBinaryDownloadReturn {
+    trigger: (platform: GoPlatform, macArch?: MacArch) => Promise<void>
+    isFetching: boolean
 }
 
 export interface SSHKeyUploadFormProps {

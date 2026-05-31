@@ -102,6 +102,7 @@ import useVideoSync from '@/hooks/useVideoSync'
 import useDitherHover from '@/hooks/useDitherHover'
 import useAbortController from '@/hooks/useAbortController'
 import useDetectedOS from '@/hooks/useDetectedOS'
+import useGoBinaryDownload from '@/hooks/useGoBinaryDownload'
 import useMacArch from '@/hooks/useMacArch'
 
 export {
@@ -191,5 +192,6 @@ export {
     useDitherHover,
     useAbortController,
     useDetectedOS,
+    useGoBinaryDownload,
     useMacArch
 }
