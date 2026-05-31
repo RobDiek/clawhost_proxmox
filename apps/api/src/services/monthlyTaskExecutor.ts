@@ -619,7 +619,10 @@ async function runTrackingSetupAdapter(
     // setupConversionActionsForInstance (which would CREATE new actions; we
     // want to DEMOTE existing phantom-signal primaries and PROMOTE the real
     // conversion category).
-    const wantsPrimaryReconcile = task.type === 'measurement_gap'
+    // K32-fix2: relax type constraint — Opus generates "primary reconcile" tasks
+    // as both measurement_gap (validation) AND tracking_setup (mark/promote)
+    // depending on context. The behavior is identical so both should route here.
+    const wantsPrimaryReconcile = (task.type === 'measurement_gap' || task.type === 'tracking_setup')
         && /ראשית|primary[\s-]*(for[\s-]*goal|conversion|action)|מסומן|סימון.{0,40}(רכישה|primary)/i.test(text)
 
     // ─── K31: GA4 reconnect path ──────────────────────────────────────
