@@ -189,6 +189,12 @@ export interface ApplyBiddingStrategyInput {
     scopedCampaignIds: string[]
     strategy: BiddingStrategyKind
     moderateTargetCpaIls?: number    // for moderate; default ₪70
+    // K34: when true, read current state + compute would-be changes but do NOT
+    // call gadsMutate. actionsApplied is returned with the planned `change`
+    // strings + previousState snapshot. Used by monthlyTaskExecutor to surface
+    // a preview in awaiting_manual mode; explicit "apply for real" goes through
+    // the existing UI endpoint that calls this with dryRun=false (default).
+    dryRun?: boolean
 }
 
 export interface ApplyBiddingStrategyResult {
@@ -216,6 +222,15 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
         summary: '',
         previousState: [],
         newState: [],
+    }
+    // K34: dry-run wrapper — when opts.dryRun=true we skip the network call
+    // but still let the rest of the function record what WOULD have changed
+    // (actionsApplied + previousState snapshot are the inputs to the diff
+    // preview UI). Anything that reads opts.dryRun knows the mutation didn't
+    // actually happen — result.summary gets a "[preview]" prefix below.
+    const _mutate = async (resource: string, body: unknown): Promise<unknown> => {
+        if (opts.dryRun) return { dryRun: true }
+        return gadsMutate(opts.customerId, opts.loginCustomerId, opts.developerToken, opts.tokens, resource, body)
     }
 
     // 1. Read CURRENT state of scoped campaigns + their budgets
@@ -278,7 +293,7 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
             // A. Resume if PAUSED (undo aggressive)
             if (cmp.status === 'PAUSED') {
                 try {
-                    await gadsMutate(opts.customerId, opts.loginCustomerId, opts.developerToken, opts.tokens, 'campaigns:mutate', {
+                    await _mutate('campaigns:mutate', {
                         operations: [{
                             update: { resourceName: `customers/${opts.customerId}/campaigns/${cmp.id}`, status: 'ENABLED' },
                             updateMask: 'status',
@@ -293,7 +308,7 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
             // B. Revert MANUAL_CPC → MAX_CONVERSION_VALUE (undo aggressive)
             if (cmp.bidding === 'MANUAL_CPC' && isSearchOrDisplay) {
                 try {
-                    await gadsMutate(opts.customerId, opts.loginCustomerId, opts.developerToken, opts.tokens, 'campaigns:mutate', {
+                    await _mutate('campaigns:mutate', {
                         operations: [{
                             update: {
                                 resourceName: `customers/${opts.customerId}/campaigns/${cmp.id}`,
@@ -312,7 +327,7 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
             if (cmp.budgetResourceName && cmp.currentBudgetMicros > 0) {
                 const newBudgetMicros = Math.round(cmp.currentBudgetMicros * 0.7)
                 try {
-                    await gadsMutate(opts.customerId, opts.loginCustomerId, opts.developerToken, opts.tokens, 'campaignBudgets:mutate', {
+                    await _mutate('campaignBudgets:mutate', {
                         operations: [{
                             update: { resourceName: cmp.budgetResourceName, amountMicros: String(newBudgetMicros) },
                             updateMask: 'amount_micros',
@@ -332,7 +347,7 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
             // A. Resume if PAUSED
             if (cmp.status === 'PAUSED') {
                 try {
-                    await gadsMutate(opts.customerId, opts.loginCustomerId, opts.developerToken, opts.tokens, 'campaigns:mutate', {
+                    await _mutate('campaigns:mutate', {
                         operations: [{
                             update: { resourceName: `customers/${opts.customerId}/campaigns/${cmp.id}`, status: 'ENABLED' },
                             updateMask: 'status',
@@ -347,7 +362,7 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
             // B. Switch to tCPA with target ₪70 (Search/Display + PMax — PMax also supports tCPA)
             if (isSearchOrDisplay && cmp.bidding !== 'TARGET_CPA') {
                 try {
-                    await gadsMutate(opts.customerId, opts.loginCustomerId, opts.developerToken, opts.tokens, 'campaigns:mutate', {
+                    await _mutate('campaigns:mutate', {
                         operations: [{
                             update: {
                                 resourceName: `customers/${opts.customerId}/campaigns/${cmp.id}`,
@@ -365,7 +380,7 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
             if (cmp.budgetResourceName && cmp.currentBudgetMicros > 0) {
                 const newBudgetMicros = Math.round(cmp.currentBudgetMicros * 0.85)
                 try {
-                    await gadsMutate(opts.customerId, opts.loginCustomerId, opts.developerToken, opts.tokens, 'campaignBudgets:mutate', {
+                    await _mutate('campaignBudgets:mutate', {
                         operations: [{
                             update: { resourceName: cmp.budgetResourceName, amountMicros: String(newBudgetMicros) },
                             updateMask: 'amount_micros',
@@ -385,7 +400,7 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
             // A. Pause PMax
             if (isPmax && cmp.status === 'ENABLED') {
                 try {
-                    await gadsMutate(opts.customerId, opts.loginCustomerId, opts.developerToken, opts.tokens, 'campaigns:mutate', {
+                    await _mutate('campaigns:mutate', {
                         operations: [{
                             update: { resourceName: `customers/${opts.customerId}/campaigns/${cmp.id}`, status: 'PAUSED' },
                             updateMask: 'status',
@@ -399,7 +414,7 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
             // B. Switch Search/Display to Manual CPC
             if (isSearchOrDisplay && cmp.bidding !== 'MANUAL_CPC') {
                 try {
-                    await gadsMutate(opts.customerId, opts.loginCustomerId, opts.developerToken, opts.tokens, 'campaigns:mutate', {
+                    await _mutate('campaigns:mutate', {
                         operations: [{
                             update: {
                                 resourceName: `customers/${opts.customerId}/campaigns/${cmp.id}`,
@@ -427,7 +442,8 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
         })
     }
 
-    result.summary = `${result.actionsApplied.length} actions applied${result.errors.length > 0 ? `, ${result.errors.length} errors` : ''}`
+    const verb = opts.dryRun ? 'previewed' : 'applied'
+    result.summary = `${result.actionsApplied.length} actions ${verb}${result.errors.length > 0 ? `, ${result.errors.length} errors` : ''}`
     return result
 }
 

@@ -510,7 +510,143 @@ async function runGoogleAdsAdapter(instanceId: string, task: MonthlyTask, _plan:
                 stepResults.push({ step: 'identify keywords to pause', ok: true, detail: 'forwarded to manual brief' })
                 return runManualTodoAdapter(instanceId, task, _plan, 'Phase C-1: השהיית keywords דרך Ads UI', { stepResults })
             }
-            case 'switch_bid_strategy':
+            case 'switch_bid_strategy': {
+                // K34: real Google Ads API switch via applyBiddingStrategy service.
+                // Pre-K34 this fell through to runManualTodoAdapter and returned
+                // ok:true with stepResults=['Manual TODO brief produced'] — looks
+                // completed in UI but nothing actually mutated in Ads. Now we
+                // call the real mutation path that already exists (and is used
+                // by the explicit "apply strategy" UI endpoint).
+                //
+                // Strategy choice: default 'moderate' (tCPA target). Hard cap
+                // on automated decisions — anything that PAUSES PMax (aggressive)
+                // or DROPS budget >15% must go through the explicit UI chooser,
+                // not auto-execute. So the executor branch only ever runs
+                // conservative or moderate.
+                const { resolveAgentById, resolvePrimaryAgent, readGoogleAdsConfig, mutateResearchData } =
+                    await import('./agentContext')
+                const taskAgent = (task as any).agentId
+                    ? (await resolveAgentById(instanceId, (task as any).agentId)) || (await resolvePrimaryAgent(instanceId))
+                    : await resolvePrimaryAgent(instanceId)
+                if (!taskAgent) {
+                    return {
+                        ok: false, outputDescription: '', error: 'agent missing',
+                        errorCategory: 'systemic_bug', stepResults,
+                    }
+                }
+                const tokens = (taskAgent as any).googleTokens
+                if (!tokens?.refreshToken) {
+                    return {
+                        ok: false,
+                        outputDescription: 'Google Ads OAuth tokens missing — user must reconnect Google',
+                        error: 'No Google refresh token on agent',
+                        errorCategory: 'integration_missing',
+                        userAction: {
+                            title_he: 'Google Ads לא מחובר — נדרשת התחברות מחדש',
+                            cta_he: 'התחברו ל-Google →',
+                            action_path: '#integrations/google',
+                            integrationKey: 'google_ads',
+                        },
+                        stepResults,
+                    }
+                }
+                const ads = (await readGoogleAdsConfig(taskAgent, instanceId)).config as any
+                if (!ads?.customerId || !ads?.developerToken) {
+                    return {
+                        ok: false,
+                        outputDescription: 'Google Ads not connected (customerId / developerToken missing)',
+                        error: 'Google Ads config incomplete',
+                        errorCategory: 'integration_missing',
+                        userAction: {
+                            title_he: 'Google Ads לא מחובר במלואו',
+                            cta_he: 'השלימו הגדרת Google Ads →',
+                            action_path: '#integrations/google_ads',
+                            integrationKey: 'google_ads',
+                        },
+                        stepResults,
+                    }
+                }
+                const operatingCustomerId = String(ads.scope?.operatingCustomerId || ads.customerId || '').replace(/\D/g, '')
+                const loginCustomerId = String(ads.loginCustomerId || ads.customerId || '').replace(/\D/g, '')
+                const scopedCampaignIds: string[] = Array.isArray(ads.scope?.campaignIds) ? ads.scope.campaignIds.map(String) : []
+                if (scopedCampaignIds.length === 0) {
+                    // Without scope we'd touch every campaign — refuse and surface as
+                    // awaiting_user_action so user opens the scope picker first.
+                    return runManualTodoAdapter(instanceId, task, _plan,
+                        'חסר scope קמפיינים ב-Google Ads — פתחו את ההגדרות וסמנו אילו קמפיינים בקובץ ה-scope לפני שחרור Smart Bidding.',
+                        { stepResults: [...stepResults, { step: 'scope check', ok: false, detail: 'ads.scope.campaignIds empty — refusing to mutate every campaign' }] })
+                }
+
+                // Read target CPA from task text (Hebrew "₪80" / "tcpa target 80" / "80 שקל"),
+                // fallback to service default ₪70.
+                const fullText = (task.title + ' ' + task.summary + ' ' + (task.actionPlan || []).map(s => s.step).join(' '))
+                const cpaMatch = fullText.match(/(?:tcpa|cpa|יעד|target)[^\d]{0,15}(\d{2,4})|(\d{2,4})\s*(?:₪|שקל|nis|ils)/i)
+                const targetCpaIls = cpaMatch ? Number(cpaMatch[1] || cpaMatch[2]) : 70
+
+                stepResults.push({ step: 'preflight checks', ok: true, detail: `customer=${operatingCustomerId}, scope=${scopedCampaignIds.length} campaigns, target_cpa=₪${targetCpaIls}` })
+
+                // K34 policy: executor only runs DRY-RUN. Real mutation is a
+                // second, explicit step — user clicks "Apply strategy" in the
+                // UI dashboard which calls POST /instances/:id/safety/
+                // apply-bidding-strategy with dryRun=false. This matches the
+                // no-automatic-actions invariant for money-affecting Ads changes.
+                const { applyBiddingStrategy: apply } = await import('./googleAdsBiddingStrategy')
+                const preview = await apply({
+                    customerId: operatingCustomerId,
+                    loginCustomerId,
+                    tokens: { refreshToken: tokens.refreshToken },
+                    developerToken: String(ads.developerToken),
+                    scopedCampaignIds,
+                    strategy: 'moderate',
+                    moderateTargetCpaIls: targetCpaIls,
+                    dryRun: true,
+                })
+
+                stepResults.push({
+                    step: 'preview moderate bidding strategy (dry-run)',
+                    ok: preview.errors.length === 0,
+                    detail: preview.summary,
+                })
+                for (const a of preview.actionsApplied.slice(0, 8)) {
+                    stepResults.push({ step: `would change → ${a.campaignName}`, ok: true, detail: a.change })
+                }
+                for (const e of preview.errors.slice(0, 5)) {
+                    stepResults.push({ step: `✗ ${e.campaignId}`, ok: false, detail: e.error })
+                }
+
+                // Render structured preview table for dashboard (Hebrew-plural address)
+                const previewTable = preview.previousState.map(snap => {
+                    const planned = preview.actionsApplied.filter(a => a.campaignId === snap.campaignId).map(a => a.change).join(' · ')
+                    return `• ${snap.campaignName} (${snap.channel}, ${snap.status})\n   נוכחי: ${snap.bidding}, תקציב ₪${(snap.budgetMicros / 1_000_000).toFixed(0)}/יום\n   מתוכנן: ${planned || 'ללא שינוי'}`
+                }).join('\n\n')
+                const briefHe = [
+                    `**תצוגה מקדימה — שחרור Smart Bidding (moderate, tCPA ₪${targetCpaIls})**`,
+                    '',
+                    `Customer: \`${operatingCustomerId}\` · ${scopedCampaignIds.length} קמפיינים ב-scope`,
+                    '',
+                    previewTable,
+                    '',
+                    `סיכום: ${preview.summary}`,
+                    '',
+                    '⚠ *זוהי תצוגה בלבד — לא בוצעו שינויים בפועל.*',
+                    'אם אתם בטוחים — לחצו על "החל אסטרטגיית הצעות" בלשונית בטיחות Google Ads.',
+                    'ה-snapshot של previousState נשמר כדי לאפשר undo מלא אחרי הביצוע.',
+                ].join('\n')
+
+                return {
+                    ok: preview.errors.length === 0,
+                    outputDescription: briefHe,
+                    awaitingManual: true,
+                    error: preview.errors.length > 0 ? `${preview.errors.length} preview errors` : undefined,
+                    errorCategory: preview.errors.length === 0 ? 'awaiting_user_action' : 'systemic_bug',
+                    userAction: preview.errors.length === 0 ? {
+                        title_he: 'תצוגה מקדימה מוכנה — לחצו "החל אסטרטגיה"',
+                        cta_he: 'פתחו בטיחות Google Ads →',
+                        action_path: '#safety/bidding-strategies',
+                    } : undefined,
+                    stepResults,
+                }
+            }
             case 'budget_adjustment':
             case 'add_extensions':
             case 'refresh_ad_copy':
