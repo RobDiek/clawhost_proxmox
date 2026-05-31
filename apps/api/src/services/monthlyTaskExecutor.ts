@@ -218,10 +218,13 @@ export async function executeTask(
     const RETRY_BACKOFF_HOURS = [1, 4, 24]   // hours after each failure
     let spawnedChildTaskId: string | undefined
     let isFinalFailure = false
-    // K31: integration_missing is NOT a retry-worthy failure. User must
-    // connect the integration; retrying without the connection just wastes
-    // cycles. Same for awaiting_user_action / completed* states.
-    const shouldRetry = !result.ok && result.errorCategory !== 'integration_missing'
+    // K31: only retry recoverable failures. NOT retry-worthy:
+    //   - integration_missing: user must connect; retrying without won't help
+    //   - not_implemented:     code fix needed (silent skip); retry would loop
+    //   - systemic_bug:        code fix needed; retry would loop
+    // Only transient failures (network glitches, rate limits) deserve retry.
+    const noRetryCategories = new Set(['integration_missing', 'not_implemented', 'systemic_bug'])
+    const shouldRetry = !result.ok && !noRetryCategories.has(result.errorCategory || '')
     if (shouldRetry) {
         const prevRetryCount = (task as any).retryCount || 0
         const nextRetryCount = prevRetryCount + 1
@@ -352,6 +355,7 @@ export async function executeTask(
                     `Hint: _${adapterHint}_\n\n` +
                     `Error: ${errShort}`
                 await telegram.alertAdmin(msg)
+                console.log(`[monthlyTaskExecutor] K31 OWNER alert sent for ${task.id} (${result.errorCategory})`)
             } else if (isFinalFailure) {
                 const msg = `🚨 *משימה נכשלה ${MAX_RETRIES} פעמים* · ${instanceId}\n\n` +
                     `${titleShort}\n\n` +
