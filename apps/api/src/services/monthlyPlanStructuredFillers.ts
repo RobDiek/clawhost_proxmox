@@ -793,22 +793,322 @@ const PERSONA_LP_FILLER: StructuredFiller = {
     },
 }
 
+// ═══ K26 — TIER-1 SEO COMPLETENESS FILLERS ═══════════════════════════════
+// Round out the SEO program with 8 always-systemic fillers that close
+// audit-grade coverage gaps. All read from research_data or existing tasks;
+// tenant-agnostic; idempotent by title regex.
+
+// K26-a: Internal linking strategy task. When the plan contains ≥3 new
+// pillar/spoke/LP tasks, spawn ONE aggregate task to build N internal links
+// FROM existing content → to those new pages (and inverse for spokes → pillars).
+const INTERNAL_LINKING_FILLER: StructuredFiller = {
+    stageId: 'k26_internal_linking',
+    description: 'Aggregate internal linking task when ≥3 new pillar/spoke/LP pages are scheduled',
+    fill(_rd, existingTasks) {
+        const newPages = existingTasks.filter(t => {
+            const text = `${t.title || ''} ${t.summary || ''}`.toLowerCase()
+            return /pillar|spoke|landing|דף נחיתה|דף עוגן|דף נושא משני|דף עיר/i.test(text)
+        })
+        if (newPages.length < 3) return []
+        if (_existingTaskMatches(existingTasks, [/internal linking|קישור פנימי|קישורים פנימי|internal link build|link.*architecture/i])) return []
+        return [{
+            id: newTaskId('tsk_k26_internal_links'),
+            type: 'website_change',
+            title: `קישורים פנימיים — בניית ${newPages.length * 3}+ קישורים בין דפים חדשים`,
+            summary: `${newPages.length} דפים חדשים תוכננו לחודש — נדרשת ארכיטקטורת קישור פנימי (spokes→pillar, pillar→spokes, אזכורים contextual).`,
+            channel: 'seo',
+            priority: 'P1',
+            estimatedEffort: '2_3_hours',
+            expectedImpact: { metric: 'organic_traffic_pct', value: 15, horizon: '60d', confidence: 'high', rationale: `קישורים פנימיים הם הדרך המהירה ביותר להעביר authority לדפים חדשים. ${newPages.length}×3 קישורים = ~${newPages.length * 3} signal-passing edges בגרף האתר.` },
+            sources: newPages.slice(0, 4).map(p => ({ type: 'other' as const, ref: `existing_task.id=${p.id}`, excerpt: `${(p.title || '').slice(0, 80)}` })),
+            dependsOn: [],
+            actionPlan: [
+                _step('מפו את כל הדפים החדשים מהתוכנית — pillar / spoke / LP / city / persona. שמרו רשימה.', false, 20),
+                _step('לכל דף חדש: זהו 3-5 דפים קיימים רלוונטיים שיכולים לקשר אליו contextually (לא בכותרת/footer).', false, 90),
+                _step('הוסיפו אנקור מגוון: branded + descriptive + partial-match. הימנעו מ-exact-match (75% exact = penguin risk כפי שזוהה).', false, 60),
+                _step('הוסיפו inverse: pillar → spokes (חובה ב-cluster architecture). 3-5 קישורים יוצאים מ-pillar לכל spoke.', false, 45),
+                _step('הוסיפו breadcrumb navigation (HTML + BreadcrumbList schema) על כל דף שכן ב-IA.', false, 30),
+                _step('ניטור 60 יום: ב-GSC, מדדו crawl frequency של הדפים החדשים + internal link count ב-Internal Links report.', false, 15),
+            ],
+            status: 'proposed', proposedAt: nowIso(), weekOfMonth: 3,
+        }]
+    },
+}
+
+// K26-b: Image SEO audit. Always relevant (every site has images). Idempotent.
+const IMAGE_SEO_FILLER: StructuredFiller = {
+    stageId: 'k26_image_seo',
+    description: 'Image SEO audit: alt text, WebP/AVIF, lazy loading, image sitemap',
+    fill(_rd, existingTasks) {
+        if (_existingTaskMatches(existingTasks, [/image seo|alt text|תמונות.*alt|webp|avif|image sitemap|sitemap.*תמונות|תמונות.*מהירות/i])) return []
+        return [{
+            id: newTaskId('tsk_k26_image_seo'),
+            type: 'website_change',
+            title: 'ביקורת SEO תמונות — alt text, WebP, lazy loading, sitemap תמונות',
+            summary: 'תמונות הן 50%+ ממשקל הדף ברוב אתרי e-commerce — אופטימיזציה מורידה LCP, מעלה accessibility, פותחת image_pack ב-SERP.',
+            channel: 'seo',
+            priority: 'P1',
+            estimatedEffort: '1_day',
+            expectedImpact: { metric: 'organic_traffic_pct', value: 12, horizon: '60d', confidence: 'medium', rationale: 'אופטימיזציית תמונות מורידה LCP ב-30-50%, פותחת image_pack ל-15-25% משאילתות, ומעלה accessibility score.' },
+            sources: [{ type: 'other' as const, ref: 'core_web_vitals.image_baseline', excerpt: 'תמונות = 50-70% ממשקל דף ב-WooCommerce/e-commerce.' }],
+            dependsOn: [],
+            actionPlan: [
+                _step('ביצוע סריקה: כמה תמונות באתר ללא alt text? (השתמשו ב-Screaming Frog / Sitebulb / Ahrefs Audit).', false, 30),
+                _step('כתבו alt text בעברית לכל תמונה — descriptive (לא keyword stuffing), 5-12 מילים, כולל context.', false, 240),
+                _step('המירו תמונות JPG/PNG ל-WebP (קומפרסיה 25-35% טובה יותר). פלאגין WordPress: ShortPixel / WebP Express / Imagify.', false, 60),
+                _step('הפעילו lazy loading (native HTML loading="lazy" על כל img צו-fold + iframe). WordPress 5.5+ עושה אוטומטית.', false, 30),
+                _step('צרו image-sitemap.xml (נוסף ל-sitemap הראשי) ושלחו ל-GSC. RankMath/Yoast יוצרים אוטומטית.', false, 30),
+                _step('הוסיפו תמונת og:image לכל דף עם תוכן (1200×630 WebP) ו-twitter:image לשיתופים.', false, 45),
+                _step('ניטור 60 יום: GSC → Performance → Search appearance "Images" — מדדו clicks/impressions delta. CWV → LCP delta.', false, 15),
+            ],
+            status: 'proposed', proposedAt: nowIso(), weekOfMonth: 2,
+        }]
+    },
+}
+
+// K26-c: Video schema. Reads existing tasks that reference YouTube/וידאו/reel.
+// Spawns dedicated VideoObject schema task if videos are part of the plan.
+const VIDEO_SCHEMA_FILLER: StructuredFiller = {
+    stageId: 'k26_video_schema',
+    description: 'VideoObject schema task when plan contains video content',
+    fill(_rd, existingTasks) {
+        const hasVideo = existingTasks.some(t => {
+            const text = `${t.title || ''} ${t.summary || ''}`.toLowerCase()
+            return /youtube|וידאו|video|reel|סרטון|tiktok/i.test(text)
+        })
+        if (!hasVideo) return []
+        if (_existingTaskMatches(existingTasks, [/videoobject|video schema|וידאו.*סכמ|video.*schema|סכמת.*וידאו|video.*structured/i])) return []
+        return [{
+            id: newTaskId('tsk_k26_video_schema'),
+            type: 'website_change',
+            title: 'סכמת VideoObject + transcript + הטמעה SEO-friendly לסרטונים',
+            summary: 'כל וידאו בלי VideoObject schema = אבדן video carousel ב-SERP + אובדן הזדמנות citation במנועי AI. transcript = entity density.',
+            channel: 'seo',
+            priority: 'P2',
+            estimatedEffort: '2_3_hours',
+            expectedImpact: { metric: 'organic_traffic_pct', value: 8, horizon: '60d', confidence: 'medium', rationale: 'VideoObject schema פותח video carousel ב-SERP, מעלה CTR ב-15-25%. transcript מוסיף 500-1500 מילים entity-rich לדף.' },
+            sources: [{ type: 'other' as const, ref: 'serp_video_carousel_opportunity', excerpt: 'Video carousel ב-SERP מוצג ל-15-30% משאילתות how-to / tutorial.' }],
+            dependsOn: [],
+            actionPlan: [
+                _step('לכל סרטון מהתוכנית: יצרו transcript מלא בעברית (פלאגין: Otter.ai / Whisper API).', false, 60),
+                _step('הוסיפו VideoObject schema עם: name, description, thumbnailUrl, uploadDate, contentUrl, embedUrl, duration (ISO 8601), transcript.', false, 90),
+                _step('הטמיעו את הסרטון עם data-no-cookie="true" (YouTube nocookie embed) + lazy load via thumbnail click.', false, 30),
+                _step('הוסיפו את ה-transcript בתוך accordion <details> מתחת לסרטון — entity-rich text מאונדקס.', false, 30),
+                _step('שלחו את ה-URLs ל-GSC URL Inspection. בקשו indexing.', false, 15),
+                _step('ניטור 60 יום: GSC → Performance → Search appearance "Videos" — מדדו impressions delta.', false, 15),
+            ],
+            status: 'proposed', proposedAt: nowIso(), weekOfMonth: 3,
+        }]
+    },
+}
+
+// K26-d: Multi-competitor comparison pages. Read paid_competitor_landscape.records[]
+// for high-threat competitors; spawn comparison page tasks for those NOT already
+// in plan (Get Packing was covered; check Hakol Lamovil / BestBox etc).
+const COMPARISON_PAGES_FILLER: StructuredFiller = {
+    stageId: 'k26_comparison_pages',
+    description: 'BOFU comparison pages for top-3 competitors not already covered',
+    fill(rd, existingTasks) {
+        const records: any[] = rd?.results?.paid_competitor_landscape?.records || []
+        const competitors: any[] = records.filter(r => r?.domain && (r.strategic_threat_level === 'high' || r.strategic_threat_level === 'medium'))
+        if (competitors.length === 0) return []
+        const existingTitlesLc = existingTasks.map(t => (t.title || '').toLowerCase() + ' ' + (t.summary || '').toLowerCase())
+        const out: MonthlyTask[] = []
+        for (const c of competitors.slice(0, 5)) {
+            const compName = String(c.domain).replace(/^www\./, '').split('.')[0]
+            const compNameLc = compName.toLowerCase()
+            const alreadyCovered = existingTitlesLc.some(text =>
+                text.includes(compNameLc) && /(השוואה|vs\.|מול|comparison|comparison page|דף השוואה)/i.test(text)
+            )
+            if (alreadyCovered) continue
+            out.push({
+                id: newTaskId('tsk_k26_comparison'),
+                type: 'landing_page',
+                title: `דף השוואה — אנחנו מול ${compName}`.slice(0, 80),
+                summary: `דף BOFU להשוואה מול ${compName} (${c.strategic_threat_level} threat) — תופס שאילתות "[brand] vs ${compName}" ומחזק positioning.`,
+                channel: 'seo',
+                priority: 'P1',
+                estimatedEffort: '1_day',
+                expectedImpact: { metric: 'conversions', value: 3, horizon: '60d', confidence: 'medium', rationale: `דפי השוואה תופסים שאילתות BOFU (high intent), CR שלהם 2-4× מ-pillar pages.` },
+                sources: [
+                    { type: 'transparency.competitor' as const, ref: `paid_competitor_landscape.records[].domain=${c.domain}`, excerpt: (c.strategic_threat_rationale_he || '').slice(0, 150) || `${c.domain}: ${c.strategic_threat_level} threat` },
+                    ...(Array.isArray(c.landing_page_strengths) ? [{ type: 'transparency.competitor' as const, ref: `${c.domain}.landing_page_strengths`, excerpt: c.landing_page_strengths.slice(0, 2).join(' · ') }] : []),
+                ],
+                dependsOn: [],
+                actionPlan: [
+                    _step(`חקרו את ${compName} — מחיר, מארזים, זמן משלוח, אזורי שירות, ביקורות. שמרו טבלת השוואה.`, false, 60),
+                    _step(`כתבו H1: "אנחנו מול ${compName} — השוואה מלאה ${new Date().getFullYear()}". פסקת hero עם הבדל מרכזי.`, false, 45),
+                    _step('הוסיפו טבלת השוואה מובנית: 8-12 שורות (מחיר / משלוח / החזרות / אחריות / אזורי שירות / מארזים / טיפוח לקוחות / ביקורות).', false, 90),
+                    _step('הוסיפו 2-3 testimonials של לקוחות שעברו מ-המתחרה אליכם (אם קיימים).', false, 60),
+                    _step('הוסיפו ComparisonTable schema + FAQPage עם 5 שאלות "מה ההבדל בין X ל-Y?".', false, 30),
+                    _step('CTA primary: "השוו במחיר" / "התחילו עכשיו". CTA secondary: צ\'אט WhatsApp.', false, 20),
+                    _step('ניטור 60 יום: מיקום ב-GSC לשאילתת brand+competitor, CR של הדף. יעד: top-3 + CR >5%.', false, 15),
+                ],
+                status: 'proposed', proposedAt: nowIso(), weekOfMonth: 3,
+            })
+            if (out.length >= 2) break   // Cap at 2 spawns per regen
+        }
+        return out
+    },
+}
+
+// K26-e: BreadcrumbList + WebSite SearchAction schema. For any tenant with
+// pillar/spoke content tasks, spawn aggregate technical schema task.
+const TECHNICAL_SCHEMA_FILLER: StructuredFiller = {
+    stageId: 'k26_technical_schema',
+    description: 'BreadcrumbList + WebSite SearchAction schema (sitelinks search box)',
+    fill(_rd, existingTasks) {
+        const hasContent = existingTasks.some(t => /pillar|spoke|דף עוגן|דף נושא|landing|דף נחיתה|דף עיר/i.test(`${t.title || ''} ${t.summary || ''}`))
+        if (!hasContent) return []
+        if (_existingTaskMatches(existingTasks, [/breadcrumblist|breadcrumb schema|searchaction|website schema|sitelinks search|תיוג.*נתיב|searchbox/i])) return []
+        return [{
+            id: newTaskId('tsk_k26_tech_schema'),
+            type: 'website_change',
+            title: 'תיוג מובנה טכני — BreadcrumbList + WebSite SearchAction',
+            summary: 'שתי סכמות "תשתית" שמשפיעות על כל אתר: BreadcrumbList (פותח path display ב-SERP) + WebSite SearchAction (sitelinks search box על שאילתות brand).',
+            channel: 'seo',
+            priority: 'P1',
+            estimatedEffort: '2_3_hours',
+            expectedImpact: { metric: 'ctr_pct', value: 10, horizon: '30d', confidence: 'high', rationale: 'BreadcrumbList ב-SERP מעלה CTR ב-10-15% (path מציע context). sitelinks search box על branded queries = +CTR + brand trust.' },
+            sources: [{ type: 'other' as const, ref: 'technical_schema_baseline', excerpt: 'שתי הסכמות הללו = low-effort high-impact technical SEO.' }],
+            dependsOn: [],
+            actionPlan: [
+                _step('BreadcrumbList: הוסיפו על כל category / product / spoke / city page. RankMath/Yoast עושים אוטומטית — בדקו ב-Rich Results Test.', false, 45),
+                _step('WebSite schema + potentialAction (SearchAction): הוסיפו על דף הבית. target = /?s={query} (WordPress) או /search?q={query}.', false, 30),
+                _step('הוסיפו Organization schema על כל דף footer-wide (לא רק הבית) — sameAs + logo + contactPoint.', false, 30),
+                _step('בדקו ב-Rich Results Test על 5 דפים representative — וודאו שאין warnings.', false, 30),
+                _step('בקשו re-crawl ל-GSC לדפים הראשיים. עקבו אחרי "Sitelinks searchbox" ב-Search appearance.', false, 15),
+                _step('ניטור 30 יום: CTR delta בשאילתות branded.', false, 15),
+            ],
+            status: 'proposed', proposedAt: nowIso(), weekOfMonth: 1,
+        }]
+    },
+}
+
+// K26-f: Review schema for product pages. Read internal_seo_audit.records[]
+// for product pages count; spawn if ≥10 product pages exist.
+const REVIEW_SCHEMA_FILLER: StructuredFiller = {
+    stageId: 'k26_review_schema',
+    description: 'AggregateRating + Review schema for product pages',
+    fill(rd, existingTasks) {
+        const records: any[] = rd?.results?.internal_seo_audit?.records || []
+        const productPages = records.filter(r => r?.page_type === 'product' || /\/product\//i.test(r?.url || ''))
+        if (productPages.length < 10) return []
+        if (_existingTaskMatches(existingTasks, [/review schema|aggregaterating|ביקורות.*סכמ|rating.*schema|stars.*schema|כוכבי.*ביקורת/i])) return []
+        return [{
+            id: newTaskId('tsk_k26_review_schema'),
+            type: 'website_change',
+            title: `סכמת AggregateRating + Review ל-${productPages.length} דפי מוצר`,
+            summary: `${productPages.length} דפי מוצר ללא AggregateRating schema = אובדן star ratings ב-SERP. אחד מהגורמים החזקים ב-CTR ל-e-commerce.`,
+            channel: 'seo',
+            priority: 'P0',
+            estimatedEffort: '1_day',
+            expectedImpact: { metric: 'ctr_pct', value: 25, horizon: '30d', confidence: 'high', rationale: `Star ratings ב-SERP מעלות CTR ב-20-35% (אחד מ-features ה-rich-snippet הכי חזקים).` },
+            sources: [{ type: 'other' as const, ref: `internal_seo_audit.records[].page_type=product (n=${productPages.length})`, excerpt: `${productPages.length} דפי מוצר זוהו.` }],
+            dependsOn: [],
+            actionPlan: [
+                _step('סנכרנו עם source-of-truth של ביקורות (Google Reviews API / WooCommerce reviews / Trustpilot).', false, 45),
+                _step('עדכנו את תבנית WooCommerce להוסיף AggregateRating: ratingValue, reviewCount, bestRating=5. כללו ב-Product schema.', false, 90),
+                _step('הוסיפו Review schema לפחות לחמש ביקורות פר מוצר (top by helpfulness): author Person, datePublished, reviewBody, reviewRating.', false, 90),
+                _step('בדקו ב-Rich Results Test על 3 דפי מוצר — וודאו star rating מוצג. fix warnings.', false, 30),
+                _step('בקשו re-crawl ב-GSC לדפי מוצר עליונים. עקבו אחרי "Review snippet" ב-Search appearance.', false, 20),
+                _step('ניטור 30 יום: CTR delta על דפי מוצר + impressions עם "Review snippet" appearance.', false, 15),
+            ],
+            status: 'proposed', proposedAt: nowIso(), weekOfMonth: 1,
+        }]
+    },
+}
+
+// K26-g: Sitemap.xml validation post-deploy. Always relevant for tenants
+// who add new content. Idempotent.
+const SITEMAP_VALIDATION_FILLER: StructuredFiller = {
+    stageId: 'k26_sitemap_validation',
+    description: 'Sitemap.xml validation + GSC submission cadence',
+    fill(_rd, existingTasks) {
+        if (_existingTaskMatches(existingTasks, [/sitemap.*validat|sitemap.*xml|תוקפ.*sitemap|sitemap submission|sitemap.*gsc/i])) return []
+        return [{
+            id: newTaskId('tsk_k26_sitemap'),
+            type: 'measurement_gap',
+            title: 'ניטור sitemap.xml + הגשה אוטומטית ל-GSC לאחר כל deploy',
+            summary: 'בלי sitemap מסונכרן, indexing מתעכב 1-4 שבועות. Auto-submit ל-GSC + Bing אחרי כל פרסום = indexing תוך 24 שעות.',
+            channel: 'seo',
+            priority: 'P2',
+            estimatedEffort: '2_3_hours',
+            expectedImpact: { metric: 'organic_traffic_pct', value: 5, horizon: '30d', confidence: 'high', rationale: 'Indexing מהיר על דפים חדשים = compounding traffic. תהליך אוטומטי = zero ongoing effort.' },
+            sources: [{ type: 'other' as const, ref: 'sitemap_indexing_baseline', excerpt: 'GSC sitemap ping + IndexNow protocol מתועדים כ-baseline.' }],
+            dependsOn: [],
+            actionPlan: [
+                _step('וודאו ש-sitemap.xml הראשי מתעדכן אוטומטית אחרי כל פרסום (RankMath / Yoast / WP Sitemaps).', false, 30),
+                _step('הוסיפו image-sitemap.xml + video-sitemap.xml אם רלוונטי (e-commerce עם תמונות מוצר).', false, 30),
+                _step('הקימו IndexNow integration (Bing/Yandex) — פלאגין: IndexNow / Cloudflare worker.', false, 45),
+                _step('שלחו את ה-sitemaps ל-GSC + Bing Webmaster. וודאו status=Success.', false, 20),
+                _step('הקימו GitHub Action / cron weekly שמשגר POST /sitemap-ping ל-Google + Bing אחרי כל push.', false, 60),
+                _step('ניטור: GSC → Indexing → Pages — וודאו ש-discovered/indexed לא מתרחק יותר מ-7 ימים.', false, 15),
+            ],
+            status: 'proposed', proposedAt: nowIso(), weekOfMonth: 4,
+        }]
+    },
+}
+
+// K26-h: Quarterly content refresh schedule. Always relevant for tenants
+// with evergreen content (most are). Idempotent.
+const CONTENT_REFRESH_FILLER: StructuredFiller = {
+    stageId: 'k26_content_refresh',
+    description: 'Quarterly content refresh schedule for evergreen pages',
+    fill(_rd, existingTasks) {
+        if (_existingTaskMatches(existingTasks, [/content refresh|רענון.*תוכן|evergreen.*refresh|annual.*update|רענון רבעוני|content.*update.*schedule/i])) return []
+        return [{
+            id: newTaskId('tsk_k26_content_refresh'),
+            type: 'other',
+            title: 'לוח רענון תוכן רבעוני — top-20 דפים evergreen',
+            summary: 'תוכן ישן יורד במיקום. רענון רבעוני של top-20 evergreen pages = signal של "fresh content" + עדכון עובדות + הוספת entities.',
+            channel: 'content',
+            priority: 'P2',
+            estimatedEffort: '1_hour',
+            expectedImpact: { metric: 'organic_traffic_pct', value: 10, horizon: '90d', confidence: 'medium', rationale: 'דפים שמתעדכנים אחת לרבעון שומרים על top-10. דפים שלא מתעדכנים יורדים 3-7 מיקומים תוך 12 חודשים.' },
+            sources: [{ type: 'other' as const, ref: 'evergreen_refresh_baseline', excerpt: 'Content decay = 15-30% traffic loss תוך שנה ללא רענון.' }],
+            dependsOn: [],
+            actionPlan: [
+                _step('סנו רשימת top-20 evergreen pages לפי clicks (GSC → Performance → Pages, last 90d).', false, 30),
+                _step('צרו Google Sheet עם: URL, last_updated, primary_keyword, current_position, refresh_due_date (quarterly).', false, 30),
+                _step('הגדירו רוטינה רבעונית: 1 שבוע × 4-5 דפים. עדכונים: עובדות מספריות / שנה / טבלאות / FAQ חדשות.', false, 30),
+                _step('בכל רענון: עדכן title with current year, עדכן meta description, הוסיפו 100-300 מילים חדשות, בקשו re-crawl.', false, 20),
+                _step('הוסיפו reminder ל-Calendar: 1 של חודשים 1/4/7/10 — "רענון 4-5 דפים evergreen".', false, 10),
+                _step('ניטור: track position delta של 20 דפים. יעד: ≥80% שומרים על top-10 throughout השנה.', false, 15),
+            ],
+            status: 'proposed', proposedAt: nowIso(), weekOfMonth: 4,
+        }]
+    },
+}
+
 // ─── Registry + entry point ───────────────────────────────────────────────
 // K24 supersedes the generic K22 AEO_FILLER (a single "improve AEO visibility"
 // task) with 3 focused fillers (entity authority + probe + quotability). The
 // generic filler is removed from the registry to avoid duplicate coverage.
+// K26 adds 8 Tier-1 SEO completeness fillers (internal links, image SEO, video
+// schema, comparison pages, technical schema, review schema, sitemap, content
+// refresh).
 const ALL_FILLERS: StructuredFiller[] = [
     INTERNAL_SEO_FILLER,
     SEO_KW_FILLER,
     PAID_KW_FILLER,
     PAID_COMP_FILLER,
-    // K24 — AEO/LLM Program (replaces K22 generic AEO_FILLER)
+    // K24 — AEO/LLM Program
     ENTITY_AUTHORITY_FILLER,
     AEO_PROBE_FILLER,
     QUOTABILITY_FILLER,
     // K25 — Local SEO Depth
     CITY_PAGES_FILLER,
     PERSONA_LP_FILLER,
+    // K26 — Tier-1 SEO completeness
+    INTERNAL_LINKING_FILLER,
+    IMAGE_SEO_FILLER,
+    VIDEO_SCHEMA_FILLER,
+    COMPARISON_PAGES_FILLER,
+    TECHNICAL_SCHEMA_FILLER,
+    REVIEW_SCHEMA_FILLER,
+    SITEMAP_VALIDATION_FILLER,
+    CONTENT_REFRESH_FILLER,
 ]
 
 export interface FillerRunResult {
