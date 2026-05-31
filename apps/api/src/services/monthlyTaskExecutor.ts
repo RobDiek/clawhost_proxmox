@@ -1349,9 +1349,18 @@ async function runManualTodoAdapter(
         '**Evidence sources:**',
         sourcesHe || '(no sources)',
     ].join('\n')
+    // K34: every manual-brief outcome is awaiting_manual, not completed.
+    // Previously runManualTodoAdapter returned ok:true with no awaitingManual,
+    // which K31's classifier mapped to errorCategory='completed' — making
+    // tasks that surfaced a brief look like real mutations had happened.
+    // The UI then offered no "✓ ביצעתי ידנית" button because status was
+    // already 'completed'. The right shape: ok=true (we did our part —
+    // produced the brief), awaitingManual=true (caller still has work to do).
     return {
         ok: true,
         outputDescription: brief,
+        awaitingManual: true,
+        errorCategory: 'awaiting_user_action',
         stepResults: [
             ...(carryStepResults?.stepResults || []),
             { step: 'Manual TODO brief produced', ok: true, detail: brief.length + ' chars' },
