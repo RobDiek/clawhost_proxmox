@@ -12075,6 +12075,61 @@ function _buildMonthlyPlanFullHtml() {
           (topMisses ? '<div style="font-size:0.78rem;color:#991B1B;font-weight:600;margin-bottom:4px">❌ דרושות חקירה:</div><ul style="margin:0;padding-inline-start:20px;font-size:0.78rem;color:#374151;line-height:1.7">' + topMisses + '</ul>' : '') +
         '</div>';
       })() +
+      // K29-a: AEO citation tracker widget — surfaces brandCited delta from
+      // research_data.seoMonitoring.aeoProbes.weeklyHistory (populated by K28
+      // SEO Monitoring Runner). Hidden until first probe runs (no history).
+      (function() {
+        var sm = (instanceData && instanceData.researchData && instanceData.researchData.seoMonitoring) || {};
+        var hist = (sm.aeoProbes && sm.aeoProbes.weeklyHistory) || [];
+        if (hist.length === 0) return '';
+        var latest = hist[hist.length - 1];
+        var prev = hist.length >= 2 ? hist[hist.length - 2] : null;
+        var engines = ['claude', 'chatgpt', 'gemini', 'perplexity'];
+        var rows = engines.map(function(e) {
+          var cur = (latest.perEngine && latest.perEngine[e]) || {};
+          var p = prev && prev.perEngine && prev.perEngine[e];
+          var brandCur = (cur.brandCitedCount != null) ? cur.brandCitedCount : '—';
+          var totalCur = cur.totalProbes || '—';
+          var deltaIcon = '';
+          if (p && cur.brandCitedCount != null && p.brandCitedCount != null) {
+            var d = cur.brandCitedCount - p.brandCitedCount;
+            deltaIcon = d > 0 ? ' <span style="color:#10B981">↑'+d+'</span>' : d < 0 ? ' <span style="color:#DC2626">↓'+Math.abs(d)+'</span>' : '';
+          }
+          var stub = cur.status === 'engine_api_not_wired' ? ' <span style="color:#9CA3AF;font-size:0.7rem">(stub)</span>' : '';
+          return '<div style="display:flex;justify-content:space-between;font-size:0.76rem;color:#374151;padding:3px 0"><span>'+e+stub+'</span><span><strong>'+brandCur+'</strong>/'+totalCur+deltaIcon+'</span></div>';
+        }).join('');
+        return '<div style="margin-top:14px;padding:12px 14px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px">' +
+          '<div style="font-size:0.85rem;font-weight:700;color:#075985;margin-bottom:8px">🤖 ציטוטים במנועי AI — שבוע אחרון</div>' +
+          rows +
+          '<div style="font-size:0.7rem;color:#6B7280;margin-top:8px">היסטוריה: ' + hist.length + ' שבועות · עודכן: ' + new Date(latest.date).toLocaleDateString('he-IL') + '</div>' +
+        '</div>';
+      })() +
+      // K29-b: Topical authority graph (text-only v1) — shows cluster
+      // architecture coverage from research_data.results.seo_keyword_research
+      // .extras.cluster_architecture. SVG graph deferred to K29-b2.
+      (function() {
+        var clusterArch = (instanceData && instanceData.researchData && instanceData.researchData.results && instanceData.researchData.results.seo_keyword_research && instanceData.researchData.results.seo_keyword_research.extras && instanceData.researchData.results.seo_keyword_research.extras.cluster_architecture) || null;
+        if (!clusterArch || (Array.isArray(clusterArch) && clusterArch.length === 0) || (typeof clusterArch === 'object' && Object.keys(clusterArch).length === 0)) return '';
+        // Normalize into array of { name, pillar?, spokes? } shape
+        var clusters = Array.isArray(clusterArch) ? clusterArch
+          : (typeof clusterArch === 'object' && Array.isArray(clusterArch.clusters)) ? clusterArch.clusters
+          : (typeof clusterArch === 'object') ? Object.keys(clusterArch).map(function(k){ return { name:k, content:clusterArch[k] }; })
+          : [];
+        if (clusters.length === 0) return '';
+        var topClusters = clusters.slice(0, 5);
+        var listHtml = topClusters.map(function(c) {
+          var name = c.name || c.cluster_name || c.cluster || c.title || '(לא ידוע)';
+          var pillar = c.pillar || c.pillar_page || (c.pages && c.pages.pillar) || '';
+          var spokesArr = c.spokes || (c.pages && c.pages.spokes) || [];
+          var spokesN = Array.isArray(spokesArr) ? spokesArr.length : 0;
+          return '<li style="margin-bottom:4px"><strong>' + escapeHtml(name) + '</strong>' + (pillar ? ' — pillar: ' + escapeHtml(String(pillar).slice(0, 60)) : '') + (spokesN ? ' · ' + spokesN + ' spokes' : '') + '</li>';
+        }).join('');
+        return '<div style="margin-top:14px;padding:12px 14px;background:#FEFCE8;border:1px solid #FDE68A;border-radius:8px">' +
+          '<div style="font-size:0.85rem;font-weight:700;color:#78350F;margin-bottom:8px">🌐 ארכיטקטורת אשכולות (Topical authority)</div>' +
+          '<ul style="margin:0;padding-inline-start:20px;font-size:0.78rem;color:#374151;line-height:1.7">' + listHtml + '</ul>' +
+          (clusters.length > 5 ? '<div style="font-size:0.7rem;color:#6B7280;margin-top:6px">+ ' + (clusters.length - 5) + ' אשכולות נוספים</div>' : '') +
+        '</div>';
+      })() +
       '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
         '<div style="font-size:0.78rem;color:#6B7280">המשימות מופיעות בלוח התוכן לפי תאריך מתוכנן ↓</div>' +
         '<button class="btn btn-outline btn-sm" onclick="generateMonthlyPlan(true)" style="font-size:0.82rem;margin-inline-start:auto" title="חישוב מחדש עם הנתונים העדכניים">⟲ צרו מחדש</button>' +
