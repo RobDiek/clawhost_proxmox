@@ -164,6 +164,14 @@ import { runFailedTaskRetry } from '@/services/failedTaskRetryRunner'
 setInterval(() => { runFailedTaskRetry().catch(err => console.error('[failedTaskRetry] cron error:', err)) }, 30 * 60 * 1000)
 setTimeout(() => { runFailedTaskRetry().catch(err => console.error('[failedTaskRetry] first run error:', err)) }, 240 * 1000)
 
+// K28 — SEO Monitoring Runner: daily tick (GSC delta digest), weekly tick
+// (Helpful Content score + AEO citation probe), monthly tick (Wikidata + KP).
+// Persists everything under research_data.seoMonitoring with day-keyed
+// idempotency so re-runs within 24h don't double-write.
+import { runSeoMonitoring } from '@/services/seoMonitoringRunner'
+setInterval(() => { runSeoMonitoring().catch(err => console.error('[seoMonitoring] cron error:', err)) }, 24 * 60 * 60 * 1000)
+setTimeout(() => { runSeoMonitoring().catch(err => console.error('[seoMonitoring] first run error:', err)) }, 360 * 1000)
+
 // Trial manager — check trial expiry every hour
 import { runTrialManager } from '@/jobs/trialManager'
 setInterval(runTrialManager, 3600000) // every hour
