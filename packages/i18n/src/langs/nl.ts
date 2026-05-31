@@ -693,6 +693,11 @@ const nl: Translations = {
             'Beheer je betaalmethoden, abonnementen en facturen.',
         viewBillingHistory:
             'Bekijk je betalingsgeschiedenis, facturen en abonnementen.',
+        aboutApp: 'Over',
+        aboutAppDescription: 'App-informatie en versie.',
+        appVersion: 'App-versie',
+        operatingSystem: 'Besturingssysteem',
+        architecture: 'Architectuur',
         connectedAccounts: 'Verbonden accounts',
         connectedAccountsDescription:
             'Beheer de inlogmethoden die aan je account zijn gekoppeld.',

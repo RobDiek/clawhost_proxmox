@@ -722,6 +722,11 @@ const fr: Translations = {
             'Gérez vos moyens de paiement, abonnements et factures.',
         viewBillingHistory:
             'Consultez votre historique de paiement, factures et abonnements.',
+        aboutApp: 'À propos',
+        aboutAppDescription: 'Informations et version de l\'application.',
+        appVersion: 'Version de l\'application',
+        operatingSystem: 'Système d\'exploitation',
+        architecture: 'Architecture',
         connectedAccounts: 'Comptes connectés',
         connectedAccountsDescription:
             'Gérez les méthodes de connexion liées à votre compte.',

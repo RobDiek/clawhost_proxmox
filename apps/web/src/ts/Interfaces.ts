@@ -164,6 +164,11 @@ export interface ConnectedAccountsSectionProps {
     onUnlink: (provider: OAuthProvider) => void
 }
 
+export interface AboutAppSectionProps {
+    version: string
+    deviceInfo: DeviceInfo | null
+}
+
 export interface UseLinkedProviderReturn {
     linkingProvider: AuthMethod | null
     unlinkingProvider: AuthMethod | null
@@ -1578,9 +1583,15 @@ export interface CompareCategory {
     features: CompareFeature[]
 }
 
+export interface DeviceInfo {
+    platform: NodeJS.Platform
+    arch: string
+}
+
 export interface ElectronAPI {
     isDesktop?: boolean
     getAppVersion: () => Promise<string>
+    getDeviceInfo?: () => Promise<DeviceInfo>
     openExternal: (url: string) => Promise<void>
     openWindowed: (url: string) => Promise<void>
     checkNetwork: () => Promise<'online' | 'unstable' | 'offline'>

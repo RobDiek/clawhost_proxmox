@@ -38,7 +38,7 @@ if (!gotLock) {
                 preload: path.join(__dirname, 'preload.js'),
                 contextIsolation: true,
                 nodeIntegration: false,
-                devTools: true
+                devTools: !!MAIN_WINDOW_VITE_DEV_SERVER_URL
             }
         })
 

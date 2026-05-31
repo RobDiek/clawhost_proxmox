@@ -697,6 +697,11 @@ const pt: Translations = {
             'Gerencie seus métodos de pagamento, assinaturas e faturas.',
         viewBillingHistory:
             'Veja seu histórico de pagamentos, faturas e assinaturas.',
+        aboutApp: 'Sobre',
+        aboutAppDescription: 'Informações e versão do aplicativo.',
+        appVersion: 'Versão do aplicativo',
+        operatingSystem: 'Sistema operacional',
+        architecture: 'Arquitetura',
         connectedAccounts: 'Contas Conectadas',
         connectedAccountsDescription:
             'Gerencie os métodos de login vinculados à sua conta.',

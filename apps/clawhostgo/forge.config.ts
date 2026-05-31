@@ -2,7 +2,7 @@ import type { ForgeConfig } from '@electron-forge/shared-types'
 
 import path from 'path'
 import fs from 'fs'
-import { MakerZIP } from '@electron-forge/maker-zip'
+import { MakerDMG } from '@electron-forge/maker-dmg'
 import { MakerDeb } from '@electron-forge/maker-deb'
 import { MakerSquirrel } from '@electron-forge/maker-squirrel'
 import { VitePlugin } from '@electron-forge/plugin-vite'
@@ -15,17 +15,32 @@ const copyNodePty = (
     callback: (err?: Error) => void
 ) => {
     const rootNodeModules = path.resolve(__dirname, '../../node_modules')
-    const src = path.join(rootNodeModules, 'node-pty')
-    const dest = path.join(buildPath, 'node_modules', 'node-pty')
+    const src = path.join(rootNodeModules, NODE_PTY_PACKAGE)
+    const dest = path.join(buildPath, 'node_modules', NODE_PTY_PACKAGE)
 
     if (!fs.existsSync(src)) {
-        callback(new Error('node-pty not found in root node_modules'))
+        callback(new Error(`${NODE_PTY_PACKAGE} not found in root node_modules`))
         return
     }
 
     fs.cpSync(src, dest, { recursive: true })
     callback()
 }
+
+const APP_NAME = 'ClawHostGo'
+const ENTITLEMENTS_PATH = './resources/entitlements.mac.plist'
+const ICON_PATH = './resources/icon'
+const EXTRA_RESOURCES = ['./resources/node']
+const NODE_PTY_PACKAGE = 'node-pty'
+const NODE_PTY_ASAR_UNPACK = '**/node_modules/node-pty/**'
+const DMG_FORMAT = 'ULFO'
+const DARWIN_PLATFORMS: ['darwin'] = ['darwin']
+const MAIN_ENTRY = 'src/main.ts'
+const PRELOAD_ENTRY = 'src/preload.ts'
+const MAIN_VITE_CONFIG = 'vite.main.config.ts'
+const PRELOAD_VITE_CONFIG = 'vite.preload.config.ts'
+const RENDERER_VITE_CONFIG = 'vite.renderer.config.ts'
+const RENDERER_NAME = 'main_window'
 
 const {
     APPLE_SIGNING_IDENTITY,
@@ -41,18 +56,18 @@ const shouldSign = Boolean(
 const config: ForgeConfig = {
     packagerConfig: {
         asar: {
-            unpack: '**/node_modules/node-pty/**'
+            unpack: NODE_PTY_ASAR_UNPACK
         },
-        name: 'ClawHostGo',
-        icon: './resources/icon',
-        extraResource: ['./resources/node'],
+        name: APP_NAME,
+        icon: ICON_PATH,
+        extraResource: EXTRA_RESOURCES,
         afterCopy: [copyNodePty],
         ...(shouldSign
             ? {
                   osxSign: {
                       identity: APPLE_SIGNING_IDENTITY,
                       optionsForFile: () => ({
-                          entitlements: './resources/entitlements.mac.plist',
+                          entitlements: ENTITLEMENTS_PATH,
                           hardenedRuntime: true,
                           'gatekeeper-assess': false
                       })
@@ -66,26 +81,26 @@ const config: ForgeConfig = {
             : {})
     },
     makers: [
-        new MakerZIP({}, ['darwin']),
-        new MakerSquirrel({ name: 'ClawHostGo' }),
+        new MakerDMG({ format: DMG_FORMAT }, DARWIN_PLATFORMS),
+        new MakerSquirrel({ name: APP_NAME }),
         new MakerDeb({})
     ],
     plugins: [
         new VitePlugin({
             build: [
                 {
-                    entry: 'src/main.ts',
-                    config: 'vite.main.config.ts'
+                    entry: MAIN_ENTRY,
+                    config: MAIN_VITE_CONFIG
                 },
                 {
-                    entry: 'src/preload.ts',
-                    config: 'vite.preload.config.ts'
+                    entry: PRELOAD_ENTRY,
+                    config: PRELOAD_VITE_CONFIG
                 }
             ],
             renderer: [
                 {
-                    name: 'main_window',
-                    config: 'vite.renderer.config.ts'
+                    name: RENDERER_NAME,
+                    config: RENDERER_VITE_CONFIG
                 }
             ]
         })

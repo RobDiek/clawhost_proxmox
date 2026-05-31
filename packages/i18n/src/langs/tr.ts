@@ -683,6 +683,11 @@ const tr: Translations = {
             'Ödeme yöntemlerini, abonelikleri ve faturaları yönetin.',
         viewBillingHistory:
             'Ödeme geçmişinizi, faturalarınızı ve aboneliklerinizi görüntüleyin.',
+        aboutApp: 'Hakkında',
+        aboutAppDescription: 'Uygulama bilgileri ve sürümü.',
+        appVersion: 'Uygulama sürümü',
+        operatingSystem: 'İşletim sistemi',
+        architecture: 'Mimari',
         connectedAccounts: 'Bağlı Hesaplar',
         connectedAccountsDescription:
             'Hesabınıza bağlı giriş yöntemlerini yönetin.',

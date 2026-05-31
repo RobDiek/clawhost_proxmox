@@ -684,6 +684,11 @@ const ru: Translations = {
         billingAndSubscriptionDescription:
             'Управляйте способами оплаты, подписками и счетами.',
         viewBillingHistory: 'Просмотрите историю платежей, счета и подписки.',
+        aboutApp: 'О приложении',
+        aboutAppDescription: 'Информация о приложении и версия.',
+        appVersion: 'Версия приложения',
+        operatingSystem: 'Операционная система',
+        architecture: 'Архитектура',
         connectedAccounts: 'Подключённые аккаунты',
         connectedAccountsDescription:
             'Управляйте способами входа, привязанными к вашему аккаунту.',

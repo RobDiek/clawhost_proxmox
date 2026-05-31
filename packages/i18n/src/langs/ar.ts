@@ -663,6 +663,11 @@ const ar: Translations = {
         billingAndSubscriptionDescription:
             'إدارة طرق الدفع والاشتراكات والفواتير.',
         viewBillingHistory: 'عرض سجل المدفوعات والفواتير والاشتراكات.',
+        aboutApp: 'حول التطبيق',
+        aboutAppDescription: 'معلومات التطبيق والإصدار.',
+        appVersion: 'إصدار التطبيق',
+        operatingSystem: 'نظام التشغيل',
+        architecture: 'البنية',
         connectedAccounts: 'الحسابات المتصلة',
         connectedAccountsDescription: 'إدارة طرق تسجيل الدخول المرتبطة بحسابك.',
         authEmail: 'البريد الإلكتروني',

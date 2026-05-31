@@ -28,6 +28,7 @@ import {
 } from '@/components/landing'
 
 import {
+    AboutAppSection,
     AccountProfileSection,
     AccountSettingsSection,
     AccountBillingSection,
@@ -65,6 +66,7 @@ import {
 } from '@/components/shared'
 
 export {
+    AboutAppSection,
     AccountProfileSection,
     AccountSettingsSection,
     AccountBillingSection,

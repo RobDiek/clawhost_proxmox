@@ -13,8 +13,8 @@ const CDN_BASE = 'https://cdn.clawhost.cloud/go'
 const manifest = {
     version,
     mac: {
-        arm64: `${CDN_BASE}/clawhost-mac-arm64.zip`,
-        x64: `${CDN_BASE}/clawhost-mac-intel.zip`
+        arm64: `${CDN_BASE}/clawhost-mac-arm64.dmg`,
+        x64: `${CDN_BASE}/clawhost-mac-intel.dmg`
     },
     windows: `${CDN_BASE}/clawhost-windows.exe`
 }

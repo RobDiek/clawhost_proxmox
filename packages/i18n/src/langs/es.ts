@@ -704,6 +704,11 @@ const es: Translations = {
             'Administra tus métodos de pago, suscripciones y facturas.',
         viewBillingHistory:
             'Consulta tu historial de pagos, facturas y suscripciones.',
+        aboutApp: 'Acerca de',
+        aboutAppDescription: 'Información y versión de la aplicación.',
+        appVersion: 'Versión de la aplicación',
+        operatingSystem: 'Sistema operativo',
+        architecture: 'Arquitectura',
         connectedAccounts: 'Cuentas conectadas',
         connectedAccountsDescription:
             'Administra los métodos de inicio de sesión vinculados a tu cuenta.',

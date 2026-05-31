@@ -674,6 +674,11 @@ const en = {
             'Manage your payment methods, subscriptions, and invoices.',
         viewBillingHistory:
             'View your payment history, invoices, and subscriptions.',
+        aboutApp: 'About',
+        aboutAppDescription: 'App information and version.',
+        appVersion: 'App version',
+        operatingSystem: 'Operating system',
+        architecture: 'Architecture',
         connectedAccounts: 'Connected Accounts',
         connectedAccountsDescription:
             'Manage the sign-in methods linked to your account.',

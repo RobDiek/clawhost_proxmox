@@ -689,6 +689,11 @@ const hi: Translations = {
         billingAndSubscriptionDescription:
             'अपनी भुगतान विधियाँ, सदस्यताएँ और चालान प्रबंधित करें.',
         viewBillingHistory: 'अपना भुगतान इतिहास, चालान और सदस्यताएँ देखें.',
+        aboutApp: 'ऐप के बारे में',
+        aboutAppDescription: 'ऐप की जानकारी और संस्करण।',
+        appVersion: 'ऐप संस्करण',
+        operatingSystem: 'ऑपरेटिंग सिस्टम',
+        architecture: 'आर्किटेक्चर',
         connectedAccounts: 'कनेक्टेड खाते',
         connectedAccountsDescription:
             'अपने खाते से जुड़ी साइन-इन विधियाँ प्रबंधित करें.',
