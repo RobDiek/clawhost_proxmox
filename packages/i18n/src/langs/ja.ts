@@ -684,6 +684,11 @@ const ja: Translations = {
         billingAndSubscriptionDescription:
             'お支払い方法、サブスクリプション、請求書を管理。',
         viewBillingHistory: 'お支払い履歴、請求書、サブスクリプションを確認。',
+        aboutApp: '情報',
+        aboutAppDescription: 'アプリ情報とバージョン。',
+        appVersion: 'アプリのバージョン',
+        operatingSystem: 'オペレーティングシステム',
+        architecture: 'アーキテクチャ',
         connectedAccounts: '連携アカウント',
         connectedAccountsDescription:
             'アカウントに紐付けられたサインイン方法を管理。',

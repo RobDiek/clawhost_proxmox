@@ -8,6 +8,8 @@ import { useUIStore, usePreferencesStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { ROUTES } from '@/lib'
 import {
+    useAppVersion,
+    useDeviceInfo,
     useProfile,
     useUpdateProfile,
     useUserStats,
@@ -25,6 +27,7 @@ import {
     PageBackground,
     PageTitle,
     PageHeader,
+    AboutAppSection,
     AccountProfileSection,
     AccountSettingsSection,
     AccountBillingSection,
@@ -42,6 +45,8 @@ const Account: FC = (): ReactNode => {
     } = useAuth()
     const { showToast } = useUIStore()
     const { openLinksWindowed, setOpenLinksWindowed } = usePreferencesStore()
+    const appVersion = useAppVersion(!!isLocal)
+    const deviceInfo = useDeviceInfo(!!isLocal)
     const [name, setName] = useState('')
     const [hasChanges, setHasChanges] = useState(false)
 
@@ -192,6 +197,13 @@ const Account: FC = (): ReactNode => {
                                 onLink={handleLinkProvider}
                                 onUnlink={handleUnlinkProvider}
                             />
+
+                            {isLocal && appVersion && (
+                                <AboutAppSection
+                                    version={appVersion}
+                                    deviceInfo={deviceInfo}
+                                />
+                            )}
                         </Fragment>
                     )}
                 </motion.main>

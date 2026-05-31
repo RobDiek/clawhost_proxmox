@@ -693,6 +693,11 @@ const pl: Translations = {
         billingAndSubscriptionDescription:
             'Zarządzaj metodami płatności, subskrypcjami i fakturami.',
         viewBillingHistory: 'Zobacz historię płatności, faktury i subskrypcje.',
+        aboutApp: 'O aplikacji',
+        aboutAppDescription: 'Informacje o aplikacji i wersja.',
+        appVersion: 'Wersja aplikacji',
+        operatingSystem: 'System operacyjny',
+        architecture: 'Architektura',
         connectedAccounts: 'Połączone konta',
         connectedAccountsDescription:
             'Zarządzaj metodami logowania połączonymi z Twoim kontem.',

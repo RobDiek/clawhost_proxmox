@@ -25,7 +25,7 @@
     },
     "apps/api": {
       "name": "api",
-      "version": "0.0.273",
+      "version": "0.0.287",
       "dependencies": {
         "@openclaw/i18n": "workspace:*",
         "@openclaw/shared": "workspace:*",
@@ -52,7 +52,7 @@
     },
     "apps/clawhostgo": {
       "name": "clawhostgo",
-      "version": "0.0.1",
+      "version": "0.0.15",
       "dependencies": {
         "@openclaw/i18n": "workspace:*",
         "@openclaw/shared": "workspace:*",
@@ -104,7 +104,7 @@
     },
     "apps/web": {
       "name": "web",
-      "version": "0.0.269",
+      "version": "0.0.283",
       "dependencies": {
         "@codemirror/language": "^6.12.3",
         "@codemirror/language-data": "^6.5.2",

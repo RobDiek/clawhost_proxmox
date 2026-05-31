@@ -711,6 +711,11 @@ const it: Translations = {
             'Gestisci i metodi di pagamento, abbonamenti e fatture.',
         viewBillingHistory:
             'Visualizza lo storico pagamenti, fatture e abbonamenti.',
+        aboutApp: 'Informazioni',
+        aboutAppDescription: 'Informazioni e versione dell\'app.',
+        appVersion: 'Versione dell\'app',
+        operatingSystem: 'Sistema operativo',
+        architecture: 'Architettura',
         connectedAccounts: 'Account Collegati',
         connectedAccountsDescription:
             'Gestisci i metodi di accesso collegati al tuo account.',

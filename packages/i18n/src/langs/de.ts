@@ -707,6 +707,11 @@ const de: Translations = {
             'Verwalte deine Zahlungsmethoden, Abonnements und Rechnungen.',
         viewBillingHistory:
             'Zahlungsverlauf, Rechnungen und Abonnements einsehen.',
+        aboutApp: 'Über',
+        aboutAppDescription: 'App-Informationen und Version.',
+        appVersion: 'App-Version',
+        operatingSystem: 'Betriebssystem',
+        architecture: 'Architektur',
         connectedAccounts: 'Verbundene Konten',
         connectedAccountsDescription:
             'Verwalte die mit deinem Konto verknüpften Anmeldemethoden.',

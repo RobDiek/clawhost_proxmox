@@ -10,14 +10,19 @@ import registerAgentTerminalHandlers from '@/main/ipc/agentTerminal'
 import { appUpdater, dnsResolver } from '@/main/services'
 import { networkStatus } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
+import IPC_CHANNEL from '@/lib/ipcChannels'
 
 const registerAllHandlers = (): void => {
-    ipcMain.handle('get-app-version', () => app.getVersion())
-    ipcMain.handle('get-platform', () => process.platform)
-    ipcMain.handle('open-external', (_event: unknown, url: string) => {
+    ipcMain.handle(IPC_CHANNEL.GET_APP_VERSION, () => app.getVersion())
+    ipcMain.handle(IPC_CHANNEL.GET_PLATFORM, () => process.platform)
+    ipcMain.handle(IPC_CHANNEL.GET_DEVICE_INFO, () => ({
+        platform: process.platform,
+        arch: process.arch
+    }))
+    ipcMain.handle(IPC_CHANNEL.OPEN_EXTERNAL, (_event: unknown, url: string) => {
         execFile('open', [url])
     })
-    ipcMain.handle('open-windowed', (_event: unknown, url: string) => {
+    ipcMain.handle(IPC_CHANNEL.OPEN_WINDOWED, (_event: unknown, url: string) => {
         const win = new BrowserWindow({
             width: 1280,
             height: 800,
@@ -29,7 +34,7 @@ const registerAllHandlers = (): void => {
         win.setMenuBarVisibility(false)
         win.loadURL(url)
     })
-    ipcMain.handle('checkNetwork', async () => {
+    ipcMain.handle(IPC_CHANNEL.CHECK_NETWORK, async () => {
         const PING_URL = 'https://clients3.google.com/generate_204'
         const LATENCY_THRESHOLD = 3000
 
@@ -48,12 +53,12 @@ const registerAllHandlers = (): void => {
             return networkStatus.UNSTABLE
         }
     })
-    ipcMain.handle('getDnsStatus', () => dnsResolver.isDnsSetup())
-    ipcMain.handle('setupDns', () => dnsResolver.setupResolver())
-    ipcMain.handle('check-app-update', () => appUpdater.getPendingUpdate())
-    ipcMain.handle('quit-and-install', () => appUpdater.quitAndInstall())
+    ipcMain.handle(IPC_CHANNEL.GET_DNS_STATUS, () => dnsResolver.isDnsSetup())
+    ipcMain.handle(IPC_CHANNEL.SETUP_DNS, () => dnsResolver.setupResolver())
+    ipcMain.handle(IPC_CHANNEL.CHECK_APP_UPDATE, () => appUpdater.getPendingUpdate())
+    ipcMain.handle(IPC_CHANNEL.QUIT_AND_INSTALL, () => appUpdater.quitAndInstall())
     ipcMain.handle(
-        'oauth-window',
+        IPC_CHANNEL.OAUTH_WINDOW,
         (
             _event: unknown,
             url: string,
@@ -125,7 +130,7 @@ const registerAllHandlers = (): void => {
     )
 
     ipcMain.handle(
-        'oauth-github-exchange',
+        IPC_CHANNEL.OAUTH_GITHUB_EXCHANGE,
         async (_event: unknown, code: string) => {
             const response = await net.fetch(
                 'https://github.com/login/oauth/access_token',
