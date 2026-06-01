@@ -23,6 +23,24 @@ async function main() {
     const agentFlag = process.argv.indexOf('--agent')
     const agentId = agentFlag !== -1 ? process.argv[agentFlag + 1] : undefined
 
+    // --coverage: classify every task in the agent's monthlyPlan by autonomy.
+    if (process.argv.includes('--coverage')) {
+        const { resolveAgentById, resolvePrimaryAgent, readResearchData } = await import('@/services/agentContext')
+        const { computePlanCoverage } = await import('@/services/executorCapabilities')
+        const ag = agentId ? await resolveAgentById(targetId, agentId) : await resolvePrimaryAgent(targetId)
+        const rd: any = (await readResearchData(ag as any, targetId)) || {}
+        const tasks: any[] = rd?.monthlyPlan?.tasks || []
+        const cov = computePlanCoverage(tasks)
+        console.log(`\n=== plan coverage ${targetId} agent=${agentId || 'primary'} ===`)
+        console.log(`total tasks: ${cov.total}`)
+        console.log(`AUTONOMOUS: ${cov.autoPct}%  (auto_write=${cov.byAutonomy.auto_write}, auto_partial=${cov.byAutonomy.auto_partial})`)
+        console.log(`propose_only=${cov.byAutonomy.propose_only}  manual=${cov.byAutonomy.manual}`)
+        console.log(`by capability: ${JSON.stringify(cov.byCapability)}`)
+        console.log(`\n--- manual tasks (${cov.manualTasks.length}) — would need new capabilities ---`)
+        for (const m of cov.manualTasks) console.log(`  [${m.type}/${m.channel}] ${m.title}`)
+        process.exit(0)
+    }
+
     // --scan-tasks: load the agent's monthlyPlan and report which real tasks the
     // executor would route to runSeoMetaBatchAdapter (does Opus phrasing match?).
     if (process.argv.includes('--scan-tasks')) {
