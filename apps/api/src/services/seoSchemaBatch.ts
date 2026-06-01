@@ -56,7 +56,10 @@ async function listSchemaCandidates(cfg: WpCfg): Promise<{ candidates: SchemaIte
     let scanned = 0
     for (const type of ['posts', 'pages'] as WpContentType[]) {
         for (let page = 1; page <= MAX_SCAN_PAGES; page++) {
-            const url = `${base}/wp-json/wp/v2/${type}?per_page=100&page=${page}&status=publish&_fields=id,title,link,excerpt,content,meta`
+            // NOTE: do NOT request `content` here — Elementor pages embed huge
+            // HTML and pulling 100× full bodies times out. We fetch content
+            // per-candidate later (capped at MAX_UPDATES_PER_RUN).
+            const url = `${base}/wp-json/wp/v2/${type}?per_page=100&page=${page}&status=publish&_fields=id,title,link,excerpt,meta`
             let res: Response
             try {
                 res = await fetch(url, { headers: { Authorization: authHeader(cfg) }, signal: AbortSignal.timeout(30000) })
@@ -67,7 +70,7 @@ async function listSchemaCandidates(cfg: WpCfg): Promise<{ candidates: SchemaIte
             if (!res.ok) throw new Error(`WP GET ${type} → ${res.status}: ${(await res.text().catch(() => '')).slice(0, 200)}`)
             const items = await res.json().catch(() => []) as Array<{
                 id?: number; title?: { rendered?: string }; link?: string
-                excerpt?: { rendered?: string }; content?: { rendered?: string }
+                excerpt?: { rendered?: string }
                 meta?: Record<string, unknown>
             }>
             if (!Array.isArray(items) || items.length === 0) break
@@ -80,7 +83,7 @@ async function listSchemaCandidates(cfg: WpCfg): Promise<{ candidates: SchemaIte
                     title: stripHtml(it.title?.rendered || `#${it.id}`),
                     link: it.link || '',
                     excerpt: stripHtml(it.excerpt?.rendered || ''),
-                    contentSnippet: stripHtml(it.content?.rendered || '').slice(0, 1800),
+                    contentSnippet: '',   // filled per-candidate before generation
                     hasOurSchema: existing.trim().length > 0,
                 })
             }
@@ -89,6 +92,20 @@ async function listSchemaCandidates(cfg: WpCfg): Promise<{ candidates: SchemaIte
     }
     // Idempotent: only pages without our schema yet.
     return { candidates: all.filter(it => !it.hasOurSchema), scanned }
+}
+
+// Fetch a single page/post's content body (kept separate from the list scan so
+// the heavy Elementor HTML is only pulled for the ≤15 pages we actually process).
+async function fetchContentSnippet(cfg: WpCfg, type: WpContentType, id: number): Promise<string> {
+    const base = normalizeUrl(cfg.url)
+    try {
+        const res = await fetch(`${base}/wp-json/wp/v2/${type}/${id}?_fields=content`, {
+            headers: { Authorization: authHeader(cfg) }, signal: AbortSignal.timeout(30000),
+        })
+        if (!res.ok) return ''
+        const j = await res.json().catch(() => null) as { content?: { rendered?: string } } | null
+        return stripHtml(j?.content?.rendered || '').slice(0, 1800)
+    } catch { return '' }
 }
 
 /**
@@ -229,6 +246,7 @@ export async function runSeoSchemaBatch(
     const business = { name: opts.businessName || 'העסק', siteUrl: cfg.url }
 
     for (const item of toProcess) {
+        if (!item.contentSnippet) item.contentSnippet = await fetchContentSnippet(cfg, item.type, item.id)
         const jsonLd = await generateSchema(apiKey, model, business, item)
         if (!jsonLd) { result.failures.push({ type: item.type, id: item.id, error: 'no schema generated' }); continue }
         if (opts.dryRun) {
