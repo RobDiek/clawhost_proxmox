@@ -172,6 +172,16 @@ import { runSeoMonitoring } from '@/services/seoMonitoringRunner'
 setInterval(() => { runSeoMonitoring().catch(err => console.error('[seoMonitoring] cron error:', err)) }, 24 * 60 * 60 * 1000)
 setTimeout(() => { runSeoMonitoring().catch(err => console.error('[seoMonitoring] first run error:', err)) }, 360 * 1000)
 
+// Conversion Setup Audit — ONE-TIME check ~24h after each Mazhir GTM/conversion
+// auto-setup. Catches the Packing Station class of failure: own purchase signal
+// not firing in GA4, or a sibling brand's conversion action contaminating the
+// campaigns' bidding. Hourly sweep; each setup is audited exactly once (stamped
+// via research_data.mazhirGtm.auditRanAt). Surfaces pending_review + Telegram,
+// never auto-fixes.
+import { runConversionSetupAudit } from '@/services/conversionSetupAudit'
+setInterval(() => { runConversionSetupAudit().catch(err => console.error('[conversionAudit] cron error:', err)) }, 60 * 60 * 1000)
+setTimeout(() => { runConversionSetupAudit().catch(err => console.error('[conversionAudit] first run error:', err)) }, 420 * 1000)
+
 // Trial manager — check trial expiry every hour
 import { runTrialManager } from '@/jobs/trialManager'
 setInterval(runTrialManager, 3600000) // every hour

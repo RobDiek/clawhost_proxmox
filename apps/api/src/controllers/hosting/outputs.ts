@@ -2044,6 +2044,27 @@ async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
         return
     }
 
+    // Conversion isolation proposal approved → isolate this tenant's campaigns
+    // from sibling-brand conversion actions on a shared MCC operating account.
+    if (output.outputType === 'conversion_isolation_proposal') {
+        console.log(`Conversion isolation approved: ${output.id} → applying`)
+        try {
+            const { applyIsolationFromTask } = await import('@/services/campaignGoalIsolation')
+            const r = await applyIsolationFromTask(output)
+            await db.update(agentOutputs).set({
+                metadata: { ...(meta || {}), liveApiStatus: r.ok ? 'applied' : 'failed', applyResult: r.reason, appliedAt: new Date().toISOString() } as any,
+                updatedAt: new Date(),
+            }).where(eq(agentOutputs.id, output.id))
+        } catch (err) {
+            console.error('applyIsolationFromTask error:', err)
+            await db.update(agentOutputs).set({
+                metadata: { ...(meta || {}), liveApiStatus: 'failed', applyError: (err as Error).message } as any,
+                updatedAt: new Date(),
+            }).where(eq(agentOutputs.id, output.id))
+        }
+        return
+    }
+
     // Bid Transition Proposal approved → flip the campaign's bidding strategy
     if (output.outputType === 'bid_transition_proposal') {
         console.log(`Bid transition approved: ${output.id} → applying`)

@@ -9742,6 +9742,20 @@ export const autoSetupMazhirGtm = async (c: Context) => {
             enhancedConversions: true,
         })
         await saveGtmSetupResult(instanceId, result, __agent?.id)
+
+        // Phase 2026.06 — systemic cross-brand contamination guard. On shared MCC
+        // operating accounts, sibling brands' primary conversion actions would
+        // otherwise feed this tenant's bidding. Isolate the tenant's campaigns to
+        // their own conversions (hybrid: auto on unambiguous risk, else approval
+        // task). Fire-and-forget so it never blocks/breaks the setup response.
+        if (__agent && result.published) {
+            const agentForIso = __agent
+            import('@/services/campaignGoalIsolation')
+                .then(({ ensureCampaignGoalIsolation }) => ensureCampaignGoalIsolation(agentForIso, { source: 'gtm_setup' }))
+                .then(d => console.log(`[goalIsolation] gtm_setup ${agentForIso.id}: ${d.status} (${d.reason})`))
+                .catch(err => console.error('[goalIsolation] gtm_setup error:', (err as Error).message))
+        }
+
         return ok(c, result, result.published ? 'GTM workspace published' : 'GTM workspace partially configured')
     } catch (err) {
         console.error('autoSetupMazhirGtm error:', err)
