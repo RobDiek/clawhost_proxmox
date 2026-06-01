@@ -89,6 +89,25 @@ async function main() {
         process.exit(0)
     }
 
+    // --gh <op> [--write]: GitHub static-site retrofit. op = meta|schema|links|slug.
+    const ghFlag = process.argv.indexOf('--gh')
+    if (ghFlag !== -1 && process.argv[ghFlag + 1]) {
+        const { runSeoGithubBatch, loadGithubConfig } = await import('@/services/seoGithubBatch')
+        const op = process.argv[ghFlag + 1] as 'meta' | 'schema' | 'links' | 'slug'
+        const write = process.argv.includes('--write')
+        const ghc = await loadGithubConfig(targetId, agentId)
+        console.log(`\n=== GitHub ${op} ${targetId} write=${write} ===`)
+        console.log('githubConfig:', ghc ? `${ghc.repo}@${ghc.branch}:${ghc.contentPath}` : 'NONE')
+        if (!ghc) process.exit(0)
+        const res = await runSeoGithubBatch(targetId, op, { agentId, dryRun: !write })
+        console.log(`scanned=${res.scanned} candidates=${res.candidates} changed=${res.changed.length} proposals=${res.proposals.length} failures=${res.failures.length}${res.error ? ' error=' + res.error : ''}`)
+        if (res.prUrl) console.log('PR:', res.prUrl)
+        for (const c of res.changed) console.log(`  ✓ ${c.path} — ${c.detail}`)
+        for (const p of res.proposals) console.log(`  → ${p.path} : ${p.suggestedSlug}`)
+        for (const f of res.failures) console.log(`  ✗ ${f.path} — ${f.error}`)
+        process.exit(0)
+    }
+
     // --slugs: propose Latin slugs + 301s for %-encoded/Hebrew URLs (read-only).
     if (process.argv.includes('--slugs')) {
         const { proposeSlugs } = await import('@/services/seoSlugPropose')

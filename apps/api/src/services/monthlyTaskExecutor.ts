@@ -1319,6 +1319,61 @@ export function isSeoMetaBatchTask(task: MonthlyTask): boolean {
 }
 
 /**
+ * GitHub fallback for the SEO ops. When a tenant's site is a GitHub repo (not
+ * WordPress), the WP adapters find no WP integration; this runs the equivalent
+ * static-site retrofit (frontmatter/body + PR). Returns null when the tenant is
+ * not GitHub-connected (caller then surfaces the normal integration_missing).
+ */
+async function runGithubSeoFallback(
+    instanceId: string, op: 'meta' | 'schema' | 'links' | 'slug',
+    task: MonthlyTask, plan: MonthlyMarketingPlan, agent: { id?: string } | null,
+): Promise<ExecutorResult | null> {
+    const { loadGithubConfig, runSeoGithubBatch } = await import('./seoGithubBatch')
+    if (!(await loadGithubConfig(instanceId, agent?.id))) return null
+
+    let businessName: string | undefined
+    try {
+        const { readResearchData } = await import('./agentContext')
+        const rd: any = (await readResearchData(agent as any, instanceId)) || {}
+        businessName = rd?.answers?.businessName
+    } catch { /* fallback name */ }
+
+    const res = await runSeoGithubBatch(instanceId, op, { agentId: agent?.id, businessName })
+    const opHe: Record<string, string> = { meta: 'תיאורי מטא', schema: 'סכמת JSON-LD', links: 'קישורים פנימיים', slug: 'הצעות slug' }
+
+    if (res.error && res.changed.length === 0 && res.proposals.length === 0) {
+        return { ok: false, outputDescription: `שגיאה בגישה ל-GitHub: ${res.error}`, error: res.error, errorCategory: 'systemic_bug' }
+    }
+
+    // slug = propose-only brief
+    if (op === 'slug') {
+        if (res.proposals.length === 0) {
+            return { ok: true, outputDescription: `נסרקו ${res.scanned} קבצים ב-GitHub — אין כתובות לתעתק.`, errorCategory: 'completed_idempotent_noop' }
+        }
+        const brief = [`נמצאו ${res.proposals.length} קבצים עם שם בעברית/מקודד. הצעות slug לטיני ליישום ידני (שנו filename + frontmatter slug + הוסיפו redirect):`, '',
+            ...res.proposals.map(p => `• ${p.path}\n    → ${p.suggestedSlug}`)].join('\n')
+        return { ok: true, outputDescription: brief, awaitingManual: true, errorCategory: 'awaiting_user_action', stepResults: [{ step: `סריקת GitHub`, ok: true, detail: `${res.scanned} קבצים · ${res.candidates} דורשים תעתיק` }] }
+    }
+
+    const stepResults = [
+        { step: 'סריקת GitHub', ok: true, detail: `${res.scanned} קבצים · ${res.candidates} מועמדים` },
+        ...res.changed.map(c => ({ step: c.path, ok: true, detail: c.detail })),
+        ...res.failures.map(f => ({ step: f.path, ok: false, detail: f.error })),
+    ]
+    if (res.candidates === 0 || (res.changed.length === 0 && res.failures.length === 0)) {
+        return { ok: true, outputDescription: `כל ${res.scanned} הקבצים ב-GitHub כבר כוללים ${opHe[op]} — אין מה לעדכן.`, errorCategory: 'completed_idempotent_noop', stepResults }
+    }
+    if (res.changed.length === 0) {
+        return runManualTodoAdapter(instanceId, task, plan, `לא ניתן היה לעדכן ${opHe[op]} ב-GitHub אוטומטית. בצעו ידנית.`, { stepResults })
+    }
+    return {
+        ok: true,
+        outputDescription: `נוצר Pull Request ב-GitHub עם ${opHe[op]} ל-${res.changed.length} קבצים${res.prUrl ? `:\n${res.prUrl}` : ''}\n\n⚠️ סקרו ומזגו את ה-PR כדי להחיל את השינויים.`,
+        errorCategory: 'completed', stepResults,
+    }
+}
+
+/**
  * Detect a "schema markup / structured data for existing pages" task. Same
  * guardrails as the meta detector — explicit schema mention + bulk/existing
  * signal, on a web channel, never content_creation.
@@ -1368,6 +1423,8 @@ async function runSlugProposeAdapter(
     const res = await proposeSlugs(instanceId, { agentId: agent?.id })
 
     if (res.integrationMissing) {
+        const gh = await runGithubSeoFallback(instanceId, 'slug', task, _plan, agent)
+        if (gh) return gh
         return {
             ok: false, outputDescription: 'WordPress לא מחובר — לא ניתן להציע כתובות URL.',
             error: 'wordpress integration missing', errorCategory: 'integration_missing',
@@ -1415,6 +1472,8 @@ async function runInternalLinksAdapter(
     const res = await runInternalLinks(instanceId, { agentId: agent?.id })
 
     if (res.integrationMissing) {
+        const gh = await runGithubSeoFallback(instanceId, 'links', task, _plan, agent)
+        if (gh) return gh
         return {
             ok: false, outputDescription: 'WordPress לא מחובר — לא ניתן להוסיף קישורים פנימיים אוטומטית.',
             error: 'wordpress integration missing', errorCategory: 'integration_missing',
@@ -1469,6 +1528,8 @@ async function runSeoSchemaBatchAdapter(
     const res = await runSeoSchemaBatch(instanceId, { agentId: agent?.id, businessName })
 
     if (res.integrationMissing) {
+        const gh = await runGithubSeoFallback(instanceId, 'schema', task, _plan, agent)
+        if (gh) return gh
         return {
             ok: false,
             outputDescription: 'WordPress לא מחובר — לא ניתן להוסיף סכמה אוטומטית.',
@@ -1534,6 +1595,8 @@ async function runSeoMetaBatchAdapter(
     const res = await runSeoMetaBatch(instanceId, { agentId: agent?.id, businessName })
 
     if (res.integrationMissing) {
+        const gh = await runGithubSeoFallback(instanceId, 'meta', task, _plan, agent)
+        if (gh) return gh
         return {
             ok: false,
             outputDescription: 'WordPress לא מחובר — לא ניתן לעדכן תיאורי מטא אוטומטית.',
