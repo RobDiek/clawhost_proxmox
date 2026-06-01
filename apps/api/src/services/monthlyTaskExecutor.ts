@@ -1384,12 +1384,14 @@ async function runSeoMetaBatchAdapter(
     }
 
     if (res.updated.length === 0) {
-        // Had candidates but wrote nothing and no auth error — most likely the
-        // SEO plugin's REST meta fields aren't writable (Yoast/Rank Math missing
-        // or REST disabled).
-        return runManualTodoAdapter(instanceId, task, _plan,
-            `נמצאו ${res.candidates} עמודים עם תיאור מטא חסר/חלש, אך לא ניתן היה לכתוב דרך ה-API (ודאו ש-Yoast או Rank Math מותקנים ופעילים). בצעו ידנית לפי ה-brief.`,
-            { stepResults })
+        // Had candidates but wrote nothing and no auth error. Distinguish the
+        // "write accepted but silently dropped" case (companion plugin missing
+        // the show_in_rest meta registration) from a generic write failure.
+        const notPersisted = res.failures.some(f => /meta_not_persisted/.test(f.error))
+        const headline = notPersisted
+            ? `נמצאו ${res.candidates} עמודים לעדכון, אך WordPress קיבל את הכתיבה ולא שמר אותה — נדרש עדכון תוסף ClawFlow Companion ל-1.7.0+ (שמאפשר כתיבת תיאורי מטא דרך ה-API). בצעו ידנית בינתיים לפי ה-brief.`
+            : `נמצאו ${res.candidates} עמודים עם תיאור מטא חסר/חלש, אך לא ניתן היה לכתוב דרך ה-API (ודאו ש-Yoast או Rank Math מותקנים ופעילים). בצעו ידנית לפי ה-brief.`
+        return runManualTodoAdapter(instanceId, task, _plan, headline, { stepResults })
     }
 
     const lines = res.updated.map(u => `• ${u.title} — ${u.link}`).join('\n')

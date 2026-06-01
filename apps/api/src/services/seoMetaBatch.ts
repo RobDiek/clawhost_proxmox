@@ -237,9 +237,17 @@ ${JSON.stringify(list, null, 2)}
 }
 
 /**
- * Write a meta description to a single post/page via WP REST. Sends both the
- * Yoast + Rank Math fields (the active plugin consumes its own; the other's
- * key is ignored) — identical to the publish payload in outputs.ts.
+ * Write a meta description to a single post/page via WP REST.
+ *
+ * Writes the underlying Yoast + Rank Math post-meta keys via the core `meta`
+ * field. These keys are protected/custom and NOT REST-writable by default —
+ * the ClawFlow companion plugin (v1.7.0+) registers them with show_in_rest +
+ * an edit auth_callback, which is what makes this persist. The active SEO
+ * plugin reads its own key; the other key is harmless extra post meta.
+ *
+ * NOTE: the older `yoast_meta` wrapper does NOT work — Yoast never registered
+ * it as a writable field, so WP returned 200 and silently dropped it. Verified
+ * via --probe-meta on packing-station (2026-06-01).
  */
 async function writeMeta(cfg: WpCfg, item: WpItem, metaDescription: string): Promise<void> {
     const base = normalizeUrl(cfg.url)
@@ -247,14 +255,30 @@ async function writeMeta(cfg: WpCfg, item: WpItem, metaDescription: string): Pro
         method: 'POST',
         headers: { Authorization: authHeader(cfg), 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            yoast_meta: { yoast_wpseo_metadesc: metaDescription },
-            meta: { rank_math_description: metaDescription },
+            meta: {
+                _yoast_wpseo_metadesc: metaDescription,
+                rank_math_description: metaDescription,
+            },
         }),
         signal: AbortSignal.timeout(30000),
     })
     if (!res.ok) {
         const txt = await res.text().catch(() => '')
         throw new Error(`${res.status}: ${txt.slice(0, 200)}`)
+    }
+    // 200 alone is not proof — unregistered meta keys are silently dropped.
+    // Read back to confirm at least one key actually persisted.
+    const check = await fetch(`${base}/wp-json/wp/v2/${item.type}/${item.id}?context=edit&_fields=meta`, {
+        headers: { Authorization: authHeader(cfg) },
+        signal: AbortSignal.timeout(30000),
+    })
+    if (check.ok) {
+        const j = await check.json().catch(() => null) as { meta?: Record<string, unknown> } | null
+        const m = j?.meta || {}
+        const persisted = m._yoast_wpseo_metadesc === metaDescription || m.rank_math_description === metaDescription
+        if (!persisted) {
+            throw new Error('meta_not_persisted: WP accepted the write but did not store it — companion plugin v1.7.0+ (show_in_rest meta) likely not installed')
+        }
     }
 }
 

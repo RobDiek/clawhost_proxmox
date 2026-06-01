@@ -3,7 +3,7 @@
  * Plugin Name: ClawFlow Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
  * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
- * Version: 1.6.0
+ * Version: 1.7.0
  * Author: ClawFlow by Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -374,17 +374,56 @@ add_action('init', function () {
  * events. Also surfaces other relevant flags (whether Application
  * Password auth is configured properly etc.).
  */
+/**
+ * SEO meta REST writability.
+ *
+ * Yoast + Rank Math store the meta description in protected/custom post meta
+ * (`_yoast_wpseo_metadesc`, `rank_math_description`) that is NOT writable via
+ * the core REST API by default — a POST including them returns 200 but the
+ * value is silently dropped. ClawFlow's seoMetaBatch needs to set these, so we
+ * register them here with show_in_rest + an edit-capability auth_callback.
+ *
+ * The active SEO plugin reads its own key; the inactive plugin's key is simply
+ * harmless extra post meta. We register on both 'post' and 'page'. After this,
+ * a POST /wp/v2/{posts|pages}/{id} with `meta: { _yoast_wpseo_metadesc: "…",
+ * rank_math_description: "…" }` persists.
+ */
+add_action('init', function () {
+    $seoMetaKeys = [
+        '_yoast_wpseo_metadesc',
+        '_yoast_wpseo_focuskw',
+        '_yoast_wpseo_title',
+        'rank_math_description',
+        'rank_math_focus_keyword',
+        'rank_math_title',
+    ];
+    $editAuth = function ($allowed, $meta_key, $object_id) {
+        return current_user_can('edit_post', $object_id);
+    };
+    foreach (['post', 'page'] as $postType) {
+        foreach ($seoMetaKeys as $key) {
+            register_post_meta($postType, $key, [
+                'type'          => 'string',
+                'single'        => true,
+                'show_in_rest'  => true,
+                'auth_callback' => $editAuth,
+            ]);
+        }
+    }
+}, 20);  // priority 20 — run AFTER Yoast/Rank Math register their own (non-writable) meta so ours wins
+
 add_action('rest_api_init', function () {
     register_rest_route('clawflow/v1', '/capabilities', [
         'methods'             => 'GET',
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.6.0',
+                'pluginVersion'       => '1.7.0',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'wooCommerceActive'   => class_exists('WooCommerce'),
                 'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,
                 'gtmInstalled'        => !empty(get_option('clawflow_gtm_public_id', '')),
+                'seoMetaWritable'     => true,
                 'siteUrl'             => get_site_url(),
             ];
         },
