@@ -193,6 +193,8 @@ export async function executeTask(
             result = await runSeoSchemaBatchAdapter(instanceId, task, plan, agent)
         } else if (isInternalLinksTask(task)) {
             result = await runInternalLinksAdapter(instanceId, task, plan, agent)
+        } else if (isSlugProposeTask(task)) {
+            result = await runSlugProposeAdapter(instanceId, task, plan, agent)
         } else {
         switch (task.type) {
             case 'paid_optimization':
@@ -1342,6 +1344,65 @@ export function isInternalLinksTask(task: MonthlyTask): boolean {
     if (!mentions) return false
     const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
     return channelOk
+}
+
+/**
+ * Detect a "slug / URL transliteration / 301" task. Propose-only per policy.
+ */
+export function isSlugProposeTask(task: MonthlyTask): boolean {
+    if (task.type === 'content_creation') return false
+    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    const mentions = /slug|transliterat|permalink|url\s*structure|כתובת(?:ות)?\s*url|תעתיק|301|מבנה\s*כתובות|קישור\s*קבוע/i.test(text)
+    if (!mentions) return false
+    const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
+    return channelOk
+}
+
+async function runSlugProposeAdapter(
+    instanceId: string,
+    task: MonthlyTask,
+    _plan: MonthlyMarketingPlan,
+    agent: { id?: string } | null,
+): Promise<ExecutorResult> {
+    const { proposeSlugs } = await import('./seoSlugPropose')
+    const res = await proposeSlugs(instanceId, { agentId: agent?.id })
+
+    if (res.integrationMissing) {
+        return {
+            ok: false, outputDescription: 'WordPress לא מחובר — לא ניתן להציע כתובות URL.',
+            error: 'wordpress integration missing', errorCategory: 'integration_missing',
+            userAction: { title_he: 'WordPress לא מחובר — נדרשת התחברות', cta_he: 'חברו את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
+        }
+    }
+    if (res.error && res.proposals.length === 0) {
+        return { ok: false, outputDescription: `שגיאה בגישה ל-WordPress: ${res.error}`, error: res.error, errorCategory: 'systemic_bug' }
+    }
+    if (res.candidates === 0) {
+        return { ok: true, outputDescription: `כל ${res.scanned} הכתובות שנסרקו כבר באנגלית/תקינות — אין מה לתעתק.`, errorCategory: 'completed_idempotent_noop', stepResults: [{ step: 'סריקת כתובות URL', ok: true, detail: `${res.scanned} נסרקו, 0 דורשות תעתיק` }] }
+    }
+
+    // Propose-only: produce a brief the user applies manually (slug change + 301).
+    const lines = res.proposals.map(p =>
+        `• "${p.title}"\n    כעת: ${p.oldUrl}\n    מוצע: ${p.newUrl}\n    301: ${p.oldUrl} → ${p.newUrl}`,
+    ).join('\n')
+    const brief = [
+        `נמצאו ${res.candidates} כתובות URL בעברית/מקודדות. להלן הצעות תעתיק לטיני + הפניות 301 ליישום ידני (לא משנים URL של עמודים מדורגים אוטומטית):`,
+        '',
+        lines,
+        '',
+        '⚠️ שנו slug רק לעמודים שעדיין לא מדורגים/מקבלים תנועה. לכל שינוי — הקימו 301 מהכתובת הישנה לחדשה (Yoast Premium / Rank Math / תוסף Redirection) כדי לא לאבד דירוג.',
+    ].join('\n')
+
+    return {
+        ok: true,
+        outputDescription: brief,
+        awaitingManual: true,
+        errorCategory: 'awaiting_user_action',
+        stepResults: [
+            { step: 'סריקת כתובות URL', ok: true, detail: `${res.scanned} נסרקו · ${res.candidates} דורשות תעתיק` },
+            { step: `הופקו ${res.proposals.length} הצעות slug + 301`, ok: true },
+        ],
+    }
 }
 
 async function runInternalLinksAdapter(

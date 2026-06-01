@@ -89,6 +89,16 @@ async function main() {
         process.exit(0)
     }
 
+    // --slugs: propose Latin slugs + 301s for %-encoded/Hebrew URLs (read-only).
+    if (process.argv.includes('--slugs')) {
+        const { proposeSlugs } = await import('@/services/seoSlugPropose')
+        console.log(`\n=== slug proposals ${targetId} agent=${agentId || 'first'} ===`)
+        const res = await proposeSlugs(targetId, { agentId })
+        console.log(`scanned=${res.scanned} candidates=${res.candidates} proposals=${res.proposals.length}${res.error ? ' error=' + res.error : ''}`)
+        for (const p of res.proposals.slice(0, 20)) console.log(`  "${p.title}"\n     ${p.currentSlug || p.oldUrl}\n     → ${p.suggestedSlug}`)
+        process.exit(0)
+    }
+
     // --authcheck: probe auth-required endpoints to tell apart "auth broken"
     // (rest_not_logged_in everywhere) from "permission nuance".
     if (process.argv.includes('--authcheck')) {
