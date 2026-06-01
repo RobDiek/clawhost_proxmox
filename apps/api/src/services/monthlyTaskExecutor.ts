@@ -204,6 +204,8 @@ export async function executeTask(
             result = await runImageAltAdapter(instanceId, task, plan, agent)
         } else if (isLlmsTxtTask(task)) {
             result = await runLlmsTxtAdapter(instanceId, task, plan, agent)
+        } else if (isAnswerFirstTask(task)) {
+            result = await runAnswerFirstAdapter(instanceId, task, plan, agent)
         } else {
         switch (task.type) {
             case 'paid_optimization':
@@ -1449,6 +1451,53 @@ async function runLandingPageAdapter(
         errorCategory: 'awaiting_user_action',
         stepResults: [{ step: `דף נחיתה נוצר: ${res.title}`, ok: true, detail: res.editUrl }],
     }
+}
+
+/**
+ * Detect an "answer-first / featured-snippet / TL;DR" AEO task.
+ */
+export function isAnswerFirstTask(task: MonthlyTask): boolean {
+    if (task.type === 'content_creation') return false
+    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    const mentions = /answer[\s-]?first|featured\s*snippet|tl;?dr|תשובה\s*(קצרה|ישירה|ראשונה)|פסקת\s*תשובה|snippet\s*מוצג|תוכן\s*ל-?ai|answer\s*engine/i.test(text)
+    if (!mentions) return false
+    const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
+    return channelOk
+}
+
+async function runAnswerFirstAdapter(
+    instanceId: string, task: MonthlyTask, _plan: MonthlyMarketingPlan, agent: { id?: string } | null,
+): Promise<ExecutorResult> {
+    const { runAnswerFirst } = await import('./seoAnswerFirst')
+    let businessName: string | undefined
+    try {
+        const { readResearchData } = await import('./agentContext')
+        const rd: any = (await readResearchData(agent as any, instanceId)) || {}
+        businessName = rd?.answers?.businessName
+    } catch { /* fallback */ }
+    const res = await runAnswerFirst(instanceId, { agentId: agent?.id, businessName })
+
+    if (res.integrationMissing) {
+        return { ok: false, outputDescription: 'WordPress לא מחובר — לא ניתן להוסיף פסקת תשובה.', error: 'wordpress integration missing', errorCategory: 'integration_missing', userAction: { title_he: 'WordPress לא מחובר', cta_he: 'חברו את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' } }
+    }
+    if (res.authError && res.updated.length === 0) {
+        return { ok: false, outputDescription: 'החיבור ל-WordPress נדחה (401/403). חברו מחדש עם משתמש מנהל.', error: 'wp write rejected', errorCategory: 'integration_missing', userAction: { title_he: 'חיבור WordPress נדחה', cta_he: 'חברו מחדש →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' } }
+    }
+    if (res.error && res.updated.length === 0) {
+        return { ok: false, outputDescription: `שגיאה בגישה ל-WordPress: ${res.error}`, error: res.error, errorCategory: 'systemic_bug' }
+    }
+    const stepResults = [
+        { step: 'סריקת פוסטים', ok: true, detail: `${res.scanned} פוסטים` },
+        ...res.updated.map(u => ({ step: `פסקת תשובה: ${u.title}`, ok: true, detail: u.answer })),
+        ...res.failures.map(f => ({ step: `נכשל #${f.id}`, ok: false, detail: f.error })),
+    ]
+    if (res.updated.length === 0 && res.failures.length === 0) {
+        return { ok: true, outputDescription: `כל הפוסטים שנסרקו כבר כוללים פסקת תשובה — אין מה להוסיף.`, errorCategory: 'completed_idempotent_noop', stepResults }
+    }
+    if (res.updated.length === 0) {
+        return runManualTodoAdapter(instanceId, task, _plan, `לא ניתן היה להוסיף פסקאות תשובה אוטומטית. בצעו ידנית.`, { stepResults })
+    }
+    return { ok: true, outputDescription: `נוספה פסקת תשובה (AEO) ל-${res.updated.length} פוסטים ב-WordPress${res.failures.length ? ` (${res.failures.length} נכשלו)` : ''}.`, errorCategory: 'completed', stepResults }
 }
 
 /**
