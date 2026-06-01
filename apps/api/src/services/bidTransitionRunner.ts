@@ -26,6 +26,7 @@ import { eq, and, isNotNull } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances, agentOutputs } from '@/db/schema'
 import { randomBytes } from 'crypto'
+import { getTransitionForObjective } from './biddingObjective'
 
 interface CampaignBidContract {
     week1to4: string
@@ -112,23 +113,32 @@ export async function runBidTransitionCheck(): Promise<{
                 let totalConv = 0
                 for (const m of metrics) totalConv += Number(m?.metrics?.conversions || 0)
 
+                // The tenant's chosen bidding objective (goal-based) drives WHICH
+                // target strategy the transition flips to. Falls back to the
+                // campaign's stored bidContract when no objective is set.
+                const objective = (rd as any).biddingObjective
+                const objT = objective?.goal ? getTransitionForObjective(objective) : null
+
                 for (const c of campaignsWithContracts) {
-                    const trigger = c.bidContract.triggerConvCount ?? 30
+                    const trigger = objT?.triggerConvCount ?? c.bidContract.triggerConvCount ?? 30
                     if (totalConv < trigger) {
                         stats.blockedByConvCount++
                         continue
                     }
                     // Gate passed → propose transition (NOT auto-apply — needs client approval)
                     const proposalId = 'bt_' + randomBytes(6).toString('hex')
-                    const targetCpa = c.bidContract.targetTcpaIls
-                    const newStrategy = c.bidContract.weekAfterTransition || 'TARGET_CPA'
+                    const targetCpa = objT?.targetCpaIls ?? c.bidContract.targetTcpaIls
+                    const targetRoas = objT?.targetRoas
+                    const newStrategy = objT?.toStrategy || c.bidContract.weekAfterTransition || 'TARGET_CPA'
+                    const targetLineHe = targetRoas ? `  · יעד ROAS: ${Math.round(targetRoas * 100)}%`
+                        : targetCpa ? `  · יעד CPA: ₪${targetCpa}` : ''
                     const titleHe = `מעבר אסטרטגיה לקמפיין "${c.name}" — ${totalConv} המרות נצברו`
                     const contentHe = [
                         `הקמפיין "${c.name}" צבר ${totalConv} המרות ב-30 ימים האחרונים — דרישת המינימום (${trigger}) הושגה.`,
                         ``,
                         `מעבר מומלץ:`,
                         `  · אסטרטגיה: ${c.bidContract.week1to4} → ${newStrategy}`,
-                        targetCpa ? `  · יעד CPA: ₪${targetCpa}` : '',
+                        targetLineHe,
                         ``,
                         `הצרכים שלפני אישור:`,
                         `  · Enhanced Conversions פעיל ויורה אירועים ב-Google Ads`,
@@ -155,6 +165,8 @@ export async function runBidTransitionCheck(): Promise<{
                                 fromStrategy: c.bidContract.week1to4,
                                 toStrategy: newStrategy,
                                 targetCpaIls: targetCpa,
+                                targetRoas,
+                                objectiveGoal: objective?.goal,
                                 conversionsLast30d: totalConv,
                                 triggerThreshold: trigger,
                             } as any,
@@ -195,7 +207,7 @@ export async function applyBidTransition(outputId: string): Promise<{ ok: boolea
     if (output.outputType !== 'bid_transition_proposal') return { ok: false, reason: 'wrong output type' }
     if (output.status !== 'approved') return { ok: false, reason: 'output not approved yet' }
     const meta: any = output.metadata || {}
-    const { campaignId, toStrategy, targetCpaIls } = meta
+    const { campaignId, toStrategy, targetCpaIls, targetRoas } = meta
     if (!campaignId || !toStrategy) return { ok: false, reason: 'missing campaignId or strategy in metadata' }
 
     const [inst] = await db.select().from(instances).where(eq(instances.id, output.instanceId!))
@@ -212,6 +224,7 @@ export async function applyBidTransition(outputId: string): Promise<{ ok: boolea
             campaignId,
             newStrategy: toStrategy,
             targetCpaIls,
+            targetRoas,
         })
         if (!r.ok) return r
 
@@ -227,6 +240,7 @@ export async function applyBidTransition(outputId: string): Promise<{ ok: boolea
                     rd2.mediaPlan.campaigns[idx].transitionedAt = new Date().toISOString()
                     rd2.mediaPlan.campaigns[idx].activeBidStrategy = toStrategy
                     if (targetCpaIls) rd2.mediaPlan.campaigns[idx].activeTargetCpaIls = targetCpaIls
+                    if (targetRoas) rd2.mediaPlan.campaigns[idx].activeTargetRoas = targetRoas
                 }
             }
             return rd2
