@@ -17,6 +17,10 @@ import { runSeoMetaBatch, loadWpConfig } from '@/services/seoMetaBatch'
 
 async function main() {
     const targetId = process.argv[2] || '44f484a852'
+    // --agent <agentId>: pick a specific WP integration row (an instance can host
+    // multiple agents, each with its own WordPress site).
+    const agentFlag = process.argv.indexOf('--agent')
+    const agentId = agentFlag !== -1 ? process.argv[agentFlag + 1] : undefined
 
     console.log('=== WordPress-connected instances ===')
     const wpRows = await db.select().from(agentIntegrations).where(eq(agentIntegrations.integrationType, 'wordpress'))
@@ -28,7 +32,7 @@ async function main() {
         console.log(`• instance=${r.instanceId} agent=${r.agentId} status=${r.status} url=${cfg.url} hasAppPw=${'appPassword' in cfg} hasPw=${'password' in cfg}`)
     }
 
-    const cfg = await loadWpConfig(targetId)
+    const cfg = await loadWpConfig(targetId, agentId)
     if (!cfg) {
         console.log('loadWpConfig → null (no usable WP config for this instance). Pass a different instanceId as argv[2].')
         process.exit(0)
@@ -63,7 +67,7 @@ async function main() {
         }).then(r => r.ok ? r.json() : null).catch(() => null) as any
         console.log(`before: yoast="${before?.yoast_head_json?.description || ''}" rankmath="${before?.meta?.rank_math_description || ''}"`)
 
-        const res = await runSeoMetaBatch(targetId, { onlyIds: [id] })
+        const res = await runSeoMetaBatch(targetId, { agentId, onlyIds: [id] })
         console.log(`write result: candidates=${res.candidates} updated=${res.updated.length} failures=${res.failures.length}${res.error ? ' error=' + res.error : ''}`)
         for (const u of res.updated) console.log(`  wrote meta(${u.metaDescription.length}): ${u.metaDescription}`)
         for (const f of res.failures) console.log(`  FAIL #${f.id}: ${f.error}`)
@@ -77,7 +81,7 @@ async function main() {
 
     console.log(`\n=== Dry-run for instance ${targetId} ===`)
 
-    const res = await runSeoMetaBatch(targetId, { dryRun: true })
+    const res = await runSeoMetaBatch(targetId, { agentId, dryRun: true })
     console.log('\n--- result ---')
     console.log(`integrationMissing : ${res.integrationMissing}`)
     console.log(`detectorAvailable  : ${res.detectorAvailable}  (could read Yoast/RankMath meta via REST)`)
