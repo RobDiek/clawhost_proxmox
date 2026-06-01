@@ -108,6 +108,16 @@ async function main() {
         process.exit(0)
     }
 
+    // --write-all: REAL batch write of every weak candidate (no dryRun).
+    if (process.argv.includes('--write-all')) {
+        console.log(`\n=== REAL WRITE-ALL for ${targetId} (agent=${agentId || 'first'}) ===`)
+        const res = await runSeoMetaBatch(targetId, { agentId })
+        console.log(`scanned=${res.scanned} candidates=${res.candidates} updated=${res.updated.length} failures=${res.failures.length}${res.error ? ' error=' + res.error : ''} authError=${res.authError}`)
+        for (const u of res.updated) console.log(`  ✓ [${u.type}#${u.id}] ${u.title} — meta(${u.metaDescription.length})`)
+        for (const f of res.failures) console.log(`  ✗ [${f.type}#${f.id}] ${f.error}`)
+        process.exit(0)
+    }
+
     console.log(`\n=== Dry-run for instance ${targetId} ===`)
 
     const res = await runSeoMetaBatch(targetId, { agentId, dryRun: true })
