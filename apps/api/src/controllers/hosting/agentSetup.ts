@@ -3921,6 +3921,39 @@ export const getBiddingObjectiveRecommendation = async (c: Context) => {
     }
 }
 
+// ── GET /hosting/instances/:id/wp/companion-status ──
+// Verify the ClawFlow Companion plugin is installed + active on the tenant's
+// WP site (powers the "check plugin" button on the WordPress integration card).
+export const getWpCompanionStatus = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const { agentIntegrations } = await import('@/db/schema')
+        const { and, eq } = await import('drizzle-orm')
+        const __agent = await resolveActiveAgent(c, instanceId)
+        const rows = await db.select().from(agentIntegrations)
+            .where(and(eq(agentIntegrations.instanceId, instanceId), eq(agentIntegrations.integrationType, 'wordpress')))
+        const row = rows.find(r => r.agentId === __agent?.id) || rows[0]
+        const cfg = (row?.config || {}) as { url?: string; user?: string; appPassword?: string }
+        if (!cfg.url || !cfg.appPassword) return ok(c, { connected: false }, 'WordPress לא מחובר')
+        const { probeWpCapabilities } = await import('@/services/wpCompanionInstaller')
+        const caps: any = await probeWpCapabilities(cfg as any)
+        if (!caps) return ok(c, { connected: true, pluginInstalled: false }, 'התוסף לא מותקן/לא פעיל')
+        return ok(c, {
+            connected: true,
+            pluginInstalled: true,
+            pluginVersion: caps.pluginVersion,
+            wooCommerceActive: caps.wooCommerceActive,
+            gtmInstalled: caps.gtmInstalled,
+            serverSideEnabled: caps.serverSideEnabled === true,
+        }, 'ok')
+    } catch (err) {
+        console.error('getWpCompanionStatus error:', err)
+        return fail(c, 'status failed', 500)
+    }
+}
+
 // ── POST /hosting/instances/:id/facts/seed ──
 // One-shot seeding of Neo4j graph from existing research_data.
 // Extracts competitors, personas, keywords, channels, pillars from strategy

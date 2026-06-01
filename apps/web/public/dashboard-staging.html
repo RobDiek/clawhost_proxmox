@@ -2532,6 +2532,14 @@ input{font-family:inherit}
           <input type="password" id="pub-blog-apppass" placeholder="Application Password" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
           <button class="btn btn-primary btn-sm" onclick="saveBlogIntegration()">→ שמרו</button>
           <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('wordpress');return false" style="color:#2563EB">📖 איך ליצור Application Password</a></div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #E5E7EB">
+            <div style="font-size:0.72rem;color:#6B7280;margin-bottom:6px">📦 <strong>תוסף ClawFlow Companion</strong> — מדידת רכישות server-side (לוכד גם הזמנות שעוברות דרך שערי תשלום עם redirect) + הזרקת GTM. התקינו פעם אחת: WP Admin → Plugins → Add New → Upload Plugin.</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+              <button class="btn btn-outline btn-sm" onclick="downloadCompanionPlugin()" style="font-size:0.74rem">⬇ הורידו תוסף (.zip)</button>
+              <button class="btn btn-outline btn-sm" onclick="verifyCompanionPlugin()" style="font-size:0.74rem">🔍 בדקו שהתוסף פעיל</button>
+            </div>
+            <div id="pub-blog-plugin-result" style="font-size:0.74rem;margin-top:6px"></div>
+          </div>
         </div>
       </div>
 
@@ -10483,6 +10491,27 @@ function connectGoogleAds() {
     showToast('חברו קודם Google Workspace בכלי עבודה, ואז הוסיפו Google Ads', 'info');
     switchTab('integrations');
   }
+}
+
+function downloadCompanionPlugin() {
+  window.open(API + '/hosting/instances/' + instanceId + '/wp/companion-plugin.zip', '_blank');
+}
+function verifyCompanionPlugin() {
+  var el = document.getElementById('pub-blog-plugin-result');
+  if (el) el.innerHTML = '⏳ בודק...';
+  var agentParam = window.activeAgentId ? '?agentId=' + window.activeAgentId : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/wp/companion-status' + agentParam, { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!el) return;
+      if (!d.success) { el.innerHTML = '<span style="color:#EF4444">שגיאה: ' + escapeHtml(d.message || '') + '</span>'; return; }
+      var x = d.data || {};
+      if (!x.connected) { el.innerHTML = '<span style="color:#92400E">WordPress לא מחובר — שמרו פרטי גישה קודם</span>'; return; }
+      if (!x.pluginInstalled) { el.innerHTML = '<span style="color:#EF4444">✗ התוסף לא מותקן/לא פעיל — הורידו והעלו ב-WP Admin</span>'; return; }
+      var ss = x.serverSideEnabled ? '✓ server-side פעיל' : '⚠ server-side עוד לא מוגדר (ייקבע אוטומטית)';
+      el.innerHTML = '<span style="color:#10B981">✓ תוסף פעיל v' + escapeHtml(String(x.pluginVersion || '?')) + '</span> · WooCommerce ' + (x.wooCommerceActive ? '✓' : '—') + ' · GTM ' + (x.gtmInstalled ? '✓' : '—') + ' · ' + ss;
+    })
+    .catch(function(err) { if (el) el.innerHTML = '<span style="color:#EF4444">שגיאת רשת: ' + escapeHtml((err && err.message) || '') + '</span>'; });
 }
 
 function saveBlogIntegration() {

@@ -52,6 +52,7 @@ import {
     saveGoogleAdsCampaignScope,
     setBiddingObjectiveEndpoint,
     getBiddingObjectiveRecommendation,
+    getWpCompanionStatus,
     researchStage,
     researchSummary,
     strategySummary,
@@ -824,6 +825,7 @@ app.post('/instances/:id/safety/migrate-bidding-history', migrateBiddingHistoryE
 // Add New → Upload Plugin (~30 sec one-time). After install, fresh-stack
 // re-run completes the snippet POST + stale scan auto-flows.
 app.get('/instances/:id/wp/companion-plugin.zip', wpCompanionPluginZip)
+app.get('/instances/:id/wp/companion-status', getWpCompanionStatus)
 app.patch('/instances/:id/outputs/:outputId/reject', rejectOutput)
 // K19 — bulk approve / reject N pending_review outputs in one call.
 // Body: { outputIds: ["mt_xxx", ...], reason?: string }   max 100
