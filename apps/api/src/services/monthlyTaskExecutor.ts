@@ -195,6 +195,8 @@ export async function executeTask(
             result = await runInternalLinksAdapter(instanceId, task, plan, agent)
         } else if (isSlugProposeTask(task)) {
             result = await runSlugProposeAdapter(instanceId, task, plan, agent)
+        } else if (isImageAltTask(task)) {
+            result = await runImageAltAdapter(instanceId, task, plan, agent)
         } else {
         switch (task.type) {
             case 'paid_optimization':
@@ -1399,6 +1401,59 @@ export function isInternalLinksTask(task: MonthlyTask): boolean {
     if (!mentions) return false
     const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
     return channelOk
+}
+
+/**
+ * Detect an "image alt-text / image SEO" task.
+ */
+export function isImageAltTask(task: MonthlyTask): boolean {
+    if (task.type === 'content_creation') return false
+    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    const mentions = /alt[\s-]?text|alt\s*attribute|image\s*seo|טקסט\s*חלופי|תיוג\s*תמונות|alt\s*לתמונות|תמונות.*alt|ביקורת\s*seo\s*תמונות/i.test(text)
+    if (!mentions) return false
+    const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
+    return channelOk
+}
+
+async function runImageAltAdapter(
+    instanceId: string, task: MonthlyTask, _plan: MonthlyMarketingPlan, agent: { id?: string } | null,
+): Promise<ExecutorResult> {
+    const { runImageAltBatch } = await import('./seoImageAlt')
+    let businessName: string | undefined
+    try {
+        const { readResearchData } = await import('./agentContext')
+        const rd: any = (await readResearchData(agent as any, instanceId)) || {}
+        businessName = rd?.answers?.businessName
+    } catch { /* fallback */ }
+    const res = await runImageAltBatch(instanceId, { agentId: agent?.id, businessName })
+
+    if (res.integrationMissing) {
+        // image alt is WP-media-specific; GitHub static sites carry alt inline in
+        // markdown — route those through the GitHub fallback's links/body path later.
+        return {
+            ok: false, outputDescription: 'WordPress לא מחובר — לא ניתן לעדכן טקסט חלופי לתמונות.',
+            error: 'wordpress integration missing', errorCategory: 'integration_missing',
+            userAction: { title_he: 'WordPress לא מחובר — נדרשת התחברות', cta_he: 'חברו את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
+        }
+    }
+    if (res.authError && res.updated.length === 0) {
+        return { ok: false, outputDescription: 'החיבור ל-WordPress נדחה (401/403). חברו מחדש עם משתמש מנהל.', error: 'wp write rejected', errorCategory: 'integration_missing', userAction: { title_he: 'חיבור WordPress נדחה', cta_he: 'חברו מחדש →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' } }
+    }
+    if (res.error && res.updated.length === 0) {
+        return { ok: false, outputDescription: `שגיאה בגישה ל-WordPress: ${res.error}`, error: res.error, errorCategory: 'systemic_bug' }
+    }
+    const stepResults = [
+        { step: 'סריקת ספריית מדיה', ok: true, detail: `${res.scanned} תמונות · ${res.candidates} ללא alt` },
+        ...res.updated.map(u => ({ step: `alt נוסף: ${u.filename}`, ok: true, detail: u.altText })),
+        ...res.failures.map(f => ({ step: `נכשל #${f.id}`, ok: false, detail: f.error })),
+    ]
+    if (res.candidates === 0) {
+        return { ok: true, outputDescription: `כל ${res.scanned} התמונות שנסרקו כבר כוללות טקסט חלופי — אין מה לעדכן.`, errorCategory: 'completed_idempotent_noop', stepResults }
+    }
+    if (res.updated.length === 0) {
+        return runManualTodoAdapter(instanceId, task, _plan, `נמצאו ${res.candidates} תמונות ללא alt אך לא ניתן היה לכתוב דרך ה-API. בצעו ידנית.`, { stepResults })
+    }
+    return { ok: true, outputDescription: `נוסף טקסט חלופי ל-${res.updated.length} תמונות ב-WordPress${res.failures.length ? ` (${res.failures.length} נכשלו)` : ''}.`, errorCategory: 'completed', stepResults }
 }
 
 /**

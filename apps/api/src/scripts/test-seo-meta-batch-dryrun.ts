@@ -126,6 +126,18 @@ async function main() {
         process.exit(0)
     }
 
+    // --alt [--write]: image alt-text batch (WP media library).
+    if (process.argv.includes('--alt')) {
+        const { runImageAltBatch } = await import('@/services/seoImageAlt')
+        const write = process.argv.includes('--write')
+        console.log(`\n=== image alt ${targetId} agent=${agentId || 'first'} write=${write} ===`)
+        const res = await runImageAltBatch(targetId, { agentId, dryRun: !write })
+        console.log(`scanned=${res.scanned} candidates=${res.candidates} updated=${res.updated.length} failures=${res.failures.length} authError=${res.authError}${res.error ? ' error=' + res.error : ''}`)
+        for (const u of res.updated.slice(0, 25)) console.log(`  ✓ #${u.id} ${u.filename} — ${u.altText}`)
+        for (const f of res.failures.slice(0, 10)) console.log(`  ✗ #${f.id} ${f.error}`)
+        process.exit(0)
+    }
+
     // --slugs: propose Latin slugs + 301s for %-encoded/Hebrew URLs (read-only).
     if (process.argv.includes('--slugs')) {
         const { proposeSlugs } = await import('@/services/seoSlugPropose')

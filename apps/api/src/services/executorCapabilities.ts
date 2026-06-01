@@ -18,7 +18,7 @@
  * changing it. As new capabilities ship, add an entry here; coverage updates.
  */
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
-import { isSeoMetaBatchTask, isSeoSchemaTask, isInternalLinksTask, isSlugProposeTask } from '@/services/monthlyTaskExecutor'
+import { isSeoMetaBatchTask, isSeoSchemaTask, isInternalLinksTask, isSlugProposeTask, isImageAltTask } from '@/services/monthlyTaskExecutor'
 
 export type Autonomy =
     | 'auto_write'      // performs a real external mutation (verified)
@@ -44,6 +44,7 @@ export const CAPABILITIES: ExecutorCapability[] = [
     { id: 'seo.schema', label_he: 'סכמת JSON-LD (batch)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isSeoSchemaTask },
     { id: 'seo.internal_links', label_he: 'קישורים פנימיים', autonomy: 'auto_write', requires: ['wordpress|github'], match: isInternalLinksTask },
     { id: 'seo.slug', label_he: 'תעתיק slug + 301 (הצעה)', autonomy: 'propose_only', requires: ['wordpress|github'], match: isSlugProposeTask },
+    { id: 'seo.image_alt', label_he: 'טקסט חלופי לתמונות (batch)', autonomy: 'auto_write', requires: ['wordpress'], match: isImageAltTask },
     { id: 'paid.google_ads', label_he: 'אופטימיזציית Google Ads', autonomy: 'auto_partial', requires: ['google_ads'], match: t => PAID_TYPES.has(t.type) },
     { id: 'tracking.setup', label_he: 'מדידה — GTM/GA4/Pixel', autonomy: 'auto_partial', requires: ['gtm', 'ga4'], match: t => TRACKING_TYPES.has(t.type) },
     { id: 'content.create', label_he: 'יצירת תוכן (טיוטה)', autonomy: 'auto_write', requires: ['api_key'], match: t => t.type === 'content_creation' },
