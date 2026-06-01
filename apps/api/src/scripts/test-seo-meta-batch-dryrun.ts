@@ -56,6 +56,35 @@ async function main() {
         process.exit(0)
     }
 
+    // --probe-meta <id>: try several Yoast/Rank Math write strategies on one
+    // page and read back, to find which (if any) actually persists via REST.
+    const probeFlag = process.argv.indexOf('--probe-meta')
+    if (probeFlag !== -1 && process.argv[probeFlag + 1]) {
+        const id = Number(process.argv[probeFlag + 1])
+        const base = cfg.url.replace(/\/+$/, '')
+        const auth = 'Basic ' + Buffer.from(`${cfg.user}:${cfg.appPassword}`).toString('base64')
+        const readBack = async (): Promise<string> => {
+            const r = await fetch(`${base}/wp-json/wp/v2/pages/${id}?context=edit&_fields=yoast_head_json,meta`, { headers: { Authorization: auth } })
+            const j = await r.json() as any
+            return `yoast.desc=${JSON.stringify(j?.yoast_head_json?.description)} meta._yoast=${JSON.stringify(j?.meta?._yoast_wpseo_metadesc)} meta.rankmath=${JSON.stringify(j?.meta?.rank_math_description)}`
+        }
+        const strategies: Array<{ label: string; body: unknown }> = [
+            { label: 'meta._yoast_wpseo_metadesc', body: { meta: { _yoast_wpseo_metadesc: 'CLAWFLOW PROBE A — תיאור בדיקה' } } },
+            { label: 'meta.rank_math_description', body: { meta: { rank_math_description: 'CLAWFLOW PROBE B — תיאור בדיקה' } } },
+            { label: 'yoast_meta wrapper', body: { yoast_meta: { yoast_wpseo_metadesc: 'CLAWFLOW PROBE C — תיאור בדיקה' } } },
+        ]
+        console.log(`\n=== probe-meta page ${id} (${base}) ===`)
+        console.log('before:', await readBack())
+        for (const s of strategies) {
+            const r = await fetch(`${base}/wp-json/wp/v2/pages/${id}`, {
+                method: 'POST', headers: { Authorization: auth, 'Content-Type': 'application/json' }, body: JSON.stringify(s.body),
+            })
+            console.log(`\n[${s.label}] POST status=${r.status}`)
+            console.log('  after:', await readBack())
+        }
+        process.exit(0)
+    }
+
     // --write <id>: perform a REAL single-page write + read-back to verify
     // writeMeta persists into Yoast/Rank Math. e.g. `... 44f484a852 --write 152`
     const writeFlag = process.argv.indexOf('--write')
