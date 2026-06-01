@@ -49,6 +49,7 @@ export interface SeoMetaBatchResult {
     ok: boolean
     integrationMissing: boolean
     detectorAvailable: boolean     // could we read current meta via a SEO plugin's REST?
+    authError: boolean             // writes rejected 401/403 — app password invalid or header stripped
     scanned: number
     candidates: number
     updated: Array<{ type: WpContentType; id: number; title: string; link: string; metaDescription: string }>
@@ -267,6 +268,7 @@ export async function runSeoMetaBatch(
 ): Promise<SeoMetaBatchResult> {
     const result: SeoMetaBatchResult = {
         ok: false, integrationMissing: false, detectorAvailable: false,
+        authError: false,
         scanned: 0, candidates: 0, updated: [], failures: [],
     }
 
@@ -325,7 +327,12 @@ export async function runSeoMetaBatch(
                 if (!opts.dryRun) await writeMeta(cfg, item, meta)
                 result.updated.push({ type: item.type, id: item.id, title: item.title, link: item.link, metaDescription: meta })
             } catch (err) {
-                result.failures.push({ type: item.type, id: item.id, error: (err as Error).message })
+                const msg = (err as Error).message
+                // 401/403 → the WP connection can't write (app password revoked,
+                // user lacks edit caps, or the server strips Authorization). This
+                // is a connection problem, NOT a missing SEO plugin.
+                if (/^(401|403)\b/.test(msg)) result.authError = true
+                result.failures.push({ type: item.type, id: item.id, error: msg })
             }
         }
     }

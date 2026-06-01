@@ -1366,9 +1366,27 @@ async function runSeoMetaBatchAdapter(
         return { ok: true, outputDescription: msg, errorCategory: 'completed_idempotent_noop', stepResults }
     }
 
+    if (res.authError && res.updated.length === 0) {
+        // Writes rejected 401/403 — WordPress connection can't edit content.
+        return {
+            ok: false,
+            outputDescription: `נמצאו ${res.candidates} עמודים לעדכון, אך החיבור ל-WordPress נדחה (401/403) — סיסמת היישום (Application Password) פגה/בוטלה, למשתמש אין הרשאות עריכה, או השרת חוסם את כותרת ה-Authorization. חברו מחדש את WordPress עם משתמש מנהל.`,
+            error: 'wordpress write rejected (401/403)',
+            errorCategory: 'integration_missing',
+            userAction: {
+                title_he: 'חיבור WordPress נדחה — נדרש חיבור מחדש',
+                cta_he: 'חברו מחדש את WordPress →',
+                action_path: '/dashboard#integrations',
+                integrationKey: 'wordpress',
+            },
+            stepResults,
+        }
+    }
+
     if (res.updated.length === 0) {
-        // Had candidates but wrote nothing — almost always the SEO plugin's REST
-        // meta fields aren't writable (Yoast/Rank Math missing or REST disabled).
+        // Had candidates but wrote nothing and no auth error — most likely the
+        // SEO plugin's REST meta fields aren't writable (Yoast/Rank Math missing
+        // or REST disabled).
         return runManualTodoAdapter(instanceId, task, _plan,
             `נמצאו ${res.candidates} עמודים עם תיאור מטא חסר/חלש, אך לא ניתן היה לכתוב דרך ה-API (ודאו ש-Yoast או Rank Math מותקנים ופעילים). בצעו ידנית לפי ה-brief.`,
             { stepResults })
