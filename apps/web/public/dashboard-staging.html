@@ -9089,6 +9089,16 @@ function renderGtmWizardSuccess(data, taskId) {
       '</div>';
   }
 
+  // Bidding objective picker — the tenant's ONGOING paid goal (independent of
+  // the post-cleanup recovery card above). System cold-starts on max-conversions
+  // and auto-transitions to the chosen target once enough data accrues.
+  safetyFixHtml +=
+    '<div style="background:#F5F3FF;border:2px solid #7C3AED;border-radius:10px;padding:16px 18px;margin-bottom:14px">' +
+      '<div style="font-size:1.0rem;font-weight:700;color:#5B21B6;margin-bottom:6px">🎯 יעד הפרסום שלכם</div>' +
+      '<div style="font-size:0.82rem;color:#6D28D9;line-height:1.6;margin-bottom:12px">בחרו לאן לכוון. המערכת מתחילה במקסום המרות ועוברת ליעד שבחרתם אוטומטית לאחר צבירת מספיק נתונים (~50 רכישות) — כדי לא לבזבז תקציב לפני שיש לאלגוריתם נתונים ללמוד מהם.</div>' +
+      '<div id="biddingObjectiveCards">⏳ טוען...</div>' +
+    '</div>';
+
   // K10 — actionable conflict resolution UI. For EACH conflict, render
   // its actionPlan steps (Hebrew, always concrete). Buttons stay clickable;
   // manual_navigation steps show as numbered Hebrew instructions; wait
@@ -9221,6 +9231,7 @@ function renderGtmWizardSuccess(data, taskId) {
   // K13: kick off bidding strategy chooser load (only if biddingFinding present
   // — the function checks DOM existence + exits silently if not).
   setTimeout(loadBiddingStrategyCards, 100);
+  setTimeout(loadBiddingObjectiveCard, 100);
 }
 
 // Phase 2026.02 Block 6 Pattern J — re-run fresh-stack after user has
@@ -9411,6 +9422,77 @@ function applyBiddingStrategy(strategy, btn) {
     showToast('Network error: ' + ((err && err.message) || ''), 'error');
     if (btn) { btn.disabled = false; btn.textContent = '▶ נסה שוב'; btn.style.opacity = '1'; }
   });
+}
+
+// Bidding objective picker — GET recommendation + current, render 3 goal cards
+// with our "מומלץ" badge, POST the chosen goal. Backend auto-transitions later.
+function loadBiddingObjectiveCard() {
+  var container = document.getElementById('biddingObjectiveCards');
+  if (!container) return;
+  var agentParam = window.activeAgentId ? '?agentId=' + window.activeAgentId : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/mazhir/bidding-objective' + agentParam, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d.success) { container.innerHTML = 'שגיאה בטעינה: ' + escapeHtml(d.message || ''); return; }
+    var cur = (d.data && d.data.current) || null;
+    var rec = (d.data && d.data.recommended) || {};
+    var curGoal = cur && cur.goal;
+    var defRoas = (cur && cur.targetRoasPct) || rec.targetRoasPct || 400;
+    var defCpa = (cur && cur.targetCpaIls) || rec.targetCpaIls || '';
+    function badge(g) { return g === rec.goal ? ' <span style="font-size:0.7rem;background:#7C3AED;color:#fff;padding:1px 6px;border-radius:4px;margin-right:4px">מומלץ</span>' : ''; }
+    function chosen(g) { return g === curGoal ? ' <span style="font-size:0.7rem;background:#065F46;color:#fff;padding:1px 6px;border-radius:4px;margin-right:4px">✓ נבחר</span>' : ''; }
+    var html = '';
+    if (rec.rationaleHe) html += '<div style="font-size:0.78rem;color:#5B21B6;background:#fff;border:1px solid #DDD6FE;border-radius:6px;padding:8px 10px;margin-bottom:10px">💡 ' + escapeHtml(rec.rationaleHe) + '</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">';
+    html += '<div style="background:#F0FDF4;border:2px solid #10B981;border-radius:10px;padding:12px;display:flex;flex-direction:column">' +
+      '<div style="font-size:0.95rem;font-weight:700;color:#10B981;margin-bottom:6px">📈 מקסימום מכירות' + badge('max_sales') + chosen('max_sales') + '</div>' +
+      '<div style="font-size:0.78rem;color:#1F2937;line-height:1.5;margin-bottom:10px">ממקסם ערך המרות ללא תקרה — נפח מקסימלי. מתאים לפני שיש מספיק נתונים.</div>' +
+      '<button onclick="saveBiddingObjective(\'max_sales\', this)" style="background:#10B981;color:#fff;border:none;border-radius:6px;padding:8px;font-size:0.82rem;font-weight:600;cursor:pointer;margin-top:auto">בחר</button>' +
+    '</div>';
+    html += '<div style="background:#EFF6FF;border:2px solid #2563EB;border-radius:10px;padding:12px;display:flex;flex-direction:column">' +
+      '<div style="font-size:0.95rem;font-weight:700;color:#2563EB;margin-bottom:6px">🎯 Target ROAS' + badge('target_roas') + chosen('target_roas') + '</div>' +
+      '<div style="font-size:0.78rem;color:#1F2937;line-height:1.5;margin-bottom:8px">החזר על ההוצאה — כל ₪ מביא לפחות היעד. למסחר עם ערכי הזמנה משתנים.</div>' +
+      '<div style="margin-bottom:8px"><label style="font-size:0.76rem;color:#374151">יעד ROAS (%): </label><input id="objRoasInput" type="number" min="50" max="2000" step="10" value="' + defRoas + '" style="width:80px;padding:4px;border:1px solid #93C5FD;border-radius:4px;font-size:0.82rem"></div>' +
+      '<button onclick="saveBiddingObjective(\'target_roas\', this)" style="background:#2563EB;color:#fff;border:none;border-radius:6px;padding:8px;font-size:0.82rem;font-weight:600;cursor:pointer;margin-top:auto">בחר</button>' +
+    '</div>';
+    html += '<div style="background:#FFFBEB;border:2px solid #F59E0B;border-radius:10px;padding:12px;display:flex;flex-direction:column">' +
+      '<div style="font-size:0.95rem;font-weight:700;color:#B45309;margin-bottom:6px">💰 Target CPA' + badge('target_cpa') + chosen('target_cpa') + '</div>' +
+      '<div style="font-size:0.78rem;color:#1F2937;line-height:1.5;margin-bottom:8px">עלות מקסימלית לרכישה. מתאים כשהערך לרכישה קבוע יחסית.</div>' +
+      '<div style="margin-bottom:8px"><label style="font-size:0.76rem;color:#374151">יעד CPA (₪): </label><input id="objCpaInput" type="number" min="1" step="1" value="' + defCpa + '" style="width:80px;padding:4px;border:1px solid #FCD34D;border-radius:4px;font-size:0.82rem"></div>' +
+      '<button onclick="saveBiddingObjective(\'target_cpa\', this)" style="background:#F59E0B;color:#fff;border:none;border-radius:6px;padding:8px;font-size:0.82rem;font-weight:600;cursor:pointer;margin-top:auto">בחר</button>' +
+    '</div>';
+    html += '</div>';
+    container.innerHTML = html;
+  })
+  .catch(function(err) { container.innerHTML = 'שגיאת רשת: ' + escapeHtml((err && err.message) || ''); });
+}
+
+function saveBiddingObjective(goal, btn) {
+  var body = { goal: goal };
+  if (goal === 'target_roas') {
+    var v = parseInt((document.getElementById('objRoasInput') || {}).value, 10);
+    if (!(v >= 50 && v <= 2000)) { showToast('הזינו יעד ROAS בין 50 ל-2000%', 'error'); return; }
+    body.targetRoasPct = v;
+  }
+  if (goal === 'target_cpa') {
+    var cpa = parseFloat((document.getElementById('objCpaInput') || {}).value);
+    if (!(cpa > 0)) { showToast('הזינו יעד CPA חוקי', 'error'); return; }
+    body.targetCpaIls = cpa;
+  }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ שומר...'; btn.style.opacity = '0.6'; }
+  var agentParam = window.activeAgentId ? '?agentId=' + window.activeAgentId : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/mazhir/bidding-objective' + agentParam, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d.success) { showToast('שמירה נכשלה: ' + (d.message || ''), 'error'); if (btn) { btn.disabled = false; btn.textContent = 'בחר'; btn.style.opacity = '1'; } return; }
+    showToast('✓ היעד נשמר. המערכת תעבור ליעד אוטומטית לאחר צבירת נתונים (~50 רכישות).', 'success');
+    loadBiddingObjectiveCard();
+  })
+  .catch(function(err) { showToast('שגיאת רשת: ' + ((err && err.message) || ''), 'error'); if (btn) { btn.disabled = false; btn.textContent = 'בחר'; btn.style.opacity = '1'; } });
 }
 
 // K12: apply D/E safety auto-fix. Reads payload from button data-attribute

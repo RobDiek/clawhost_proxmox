@@ -77,6 +77,7 @@ export interface PromptCtx {
     strategyLearnings: any[]
     costTimeline: any
     paidBudget: any
+    biddingObjective?: any
     clientBaseline: any
     paidCompetitorLandscape: any
     paidKeywordResearch: any
@@ -163,6 +164,7 @@ async function buildPromptCtx(
     const chosenScenarioFull = (typeof chosenScenarioRaw === 'object' && chosenScenarioRaw) ? chosenScenarioRaw : undefined
     const contentPlan = rd.contentPlan
     const paidProfile = rd.paidProfile
+    const biddingObjective = (rd as any).biddingObjective || null
     const answers = rd.answers || {}
     const results = rd.results || {}
     const costTimeline = results.cost_timeline_modeling
@@ -306,7 +308,7 @@ async function buildPromptCtx(
         opsBriefs, latestOpsBrief, marketingIntents, integrationsState,
         brandBookFull, pastAgentOutputs, agentIntegrations, pastHypotheses,
         creativePerformance, creativeFatigueAlerts, paidLearnings, strategyLearnings,
-        costTimeline, paidBudget,
+        costTimeline, paidBudget, biddingObjective,
         clientBaseline, paidCompetitorLandscape, paidKeywordResearch,
         seoKeywordResearch, competitorLandscape,
         audiencePersonas, positioningResults,

@@ -78,7 +78,16 @@ Calibrated budget (verbatim — never invent):
 ${jstr(picked, 2500)}
 
 Full strategy object (channel_priority_list, 30_day_plan, risks, KPIs):
-${jstr(ctx.chosenScenarioFull, 9000)}`
+${jstr(ctx.chosenScenarioFull, 9000)}
+
+═══ BIDDING OBJECTIVE (the tenant's chosen paid goal — honor it in all bidding/budget decisions) ═══
+${ctx.biddingObjective ? jstr(ctx.biddingObjective, 800) : '(not set)'}${(ctx.biddingObjective as any)?.goal === 'target_roas'
+    ? `\nDIRECTIVE: optimize toward Target ROAS ≥ ${(ctx.biddingObjective as any).targetRoasPct}% and SCALE budget while marginal ROAS holds ≥ that floor. Cold-start on max-conversions; the system auto-transitions to tROAS after ~50 conversions — plan tasks accordingly (don't propose tROAS before data exists).`
+    : (ctx.biddingObjective as any)?.goal === 'target_cpa'
+    ? `\nDIRECTIVE: optimize toward Target CPA ₪${(ctx.biddingObjective as any).targetCpaIls}; scale volume while CPA holds.`
+    : (ctx.biddingObjective as any)?.goal === 'max_sales'
+    ? `\nDIRECTIVE: maximize conversion volume/value now; revisit a target once ~50 conversions accrue.`
+    : ''}`
     })()
 
     const prevTasksBlock = ctx.previousMonthlyPlan?.tasks
