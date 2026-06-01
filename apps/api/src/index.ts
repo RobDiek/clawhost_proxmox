@@ -101,6 +101,13 @@ startWeeklyOpsBrief()
 import { startBidTransitionRunner } from '@/services/bidTransitionRunner'
 startBidTransitionRunner()
 
+// Objective Transition Runner — daily; applies the tenant's chosen bidding
+// objective (target ROAS / target CPA) to IMPORTED campaigns (no bidContract,
+// e.g. Packing Station's Pmax/Search on a shared MCC) once enough conversions
+// accrue. Propose-only (pending_review); handles Pmax vs standard target fields.
+import { startObjectiveTransitionRunner } from '@/services/objectiveTransitionRunner'
+startObjectiveTransitionRunner()
+
 // Monthly Re-audit — fires on day-1 of each month for clients with active
 // paid_search pipeline; surfaces methodology shifts via auditDiff.
 import { startMonthlyReauditRunner } from '@/services/monthlyReauditRunner'

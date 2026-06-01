@@ -2065,6 +2065,28 @@ async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
         return
     }
 
+    // Imported-campaign objective transition approved → apply tROAS/tCPA to an
+    // existing (non-ClawFlow-launched) campaign, handling Pmax vs standard fields
+    // and the MCC operating/login customer ids.
+    if (output.outputType === 'imported_objective_transition') {
+        console.log(`Imported objective transition approved: ${output.id} → applying`)
+        try {
+            const { applyImportedObjectiveTransition } = await import('@/services/objectiveTransitionRunner')
+            const r = await applyImportedObjectiveTransition(output)
+            await db.update(agentOutputs).set({
+                metadata: { ...(meta || {}), liveApiStatus: r.ok ? 'applied' : 'failed', applyResult: r.reason, appliedAt: new Date().toISOString() } as any,
+                updatedAt: new Date(),
+            }).where(eq(agentOutputs.id, output.id))
+        } catch (err) {
+            console.error('applyImportedObjectiveTransition error:', err)
+            await db.update(agentOutputs).set({
+                metadata: { ...(meta || {}), liveApiStatus: 'failed', applyError: (err as Error).message } as any,
+                updatedAt: new Date(),
+            }).where(eq(agentOutputs.id, output.id))
+        }
+        return
+    }
+
     // Bid Transition Proposal approved → flip the campaign's bidding strategy
     if (output.outputType === 'bid_transition_proposal') {
         console.log(`Bid transition approved: ${output.id} → applying`)
