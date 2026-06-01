@@ -35,6 +35,23 @@ async function main() {
     }
     console.log(`loadWpConfig OK → url=${cfg.url} user=${cfg.user}`)
 
+    // --authcheck: probe auth-required endpoints to tell apart "auth broken"
+    // (rest_not_logged_in everywhere) from "permission nuance".
+    if (process.argv.includes('--authcheck')) {
+        const base = cfg.url.replace(/\/+$/, '')
+        const auth = 'Basic ' + Buffer.from(`${cfg.user}:${cfg.appPassword.replace(/\s+/g, '')}`).toString('base64')
+        const hit = async (path: string) => {
+            const r = await fetch(base + path, { headers: { Authorization: auth } })
+            const t = await r.text()
+            console.log(`GET ${path} -> ${r.status} ${t.slice(0, 150)}`)
+        }
+        console.log(`\n=== authcheck for ${targetId} (${base}, user=${cfg.user}) ===`)
+        await hit('/wp-json/wp/v2/users/me')   // any logged-in user
+        await hit('/wp-json/wp/v2/plugins')    // manage_options
+        await hit('/wp-json/wp/v2/settings')   // manage_options
+        process.exit(0)
+    }
+
     // --write <id>: perform a REAL single-page write + read-back to verify
     // writeMeta persists into Yoast/Rank Math. e.g. `... 44f484a852 --write 152`
     const writeFlag = process.argv.indexOf('--write')
