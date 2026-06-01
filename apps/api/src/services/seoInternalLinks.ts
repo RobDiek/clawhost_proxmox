@@ -75,6 +75,7 @@ function escapeRegExp(s: string): string { return s.replace(/[.*+?^${}()|[\]\\]/
 async function buildCorpus(cfg: WpCfg): Promise<{ corpus: CorpusEntry[]; scanned: number }> {
     const base = normalizeUrl(cfg.url)
     const corpus: CorpusEntry[] = []
+    const homeUrls = new Set([base, base + '/'])
     let scanned = 0
     for (const type of ['posts', 'pages'] as WpContentType[]) {
         for (let page = 1; page <= MAX_SCAN_PAGES; page++) {
@@ -87,6 +88,7 @@ async function buildCorpus(cfg: WpCfg): Promise<{ corpus: CorpusEntry[]; scanned
             for (const it of items) {
                 if (typeof it.id !== 'number' || !it.link) continue
                 scanned++
+                if (homeUrls.has(it.link.replace(/\/+$/, '')) || homeUrls.has(it.link)) continue  // never link to the homepage
                 const title = decodeEntities(it.title?.rendered || '')
                 // Anchor = the core topic phrase (before a ':' / '–' / '|' / '?'),
                 // which reads naturally and is far likelier to appear verbatim in
@@ -132,10 +134,19 @@ function linkableSegments(html: string): Array<{ text: string; linkable: boolean
  */
 function insertLinks(rawHtml: string, post: CorpusEntry, corpus: CorpusEntry[]): { html: string; inserted: Array<{ anchor: string; toUrl: string }> } {
     const inserted: Array<{ anchor: string; toUrl: string }> = []
-    // Targets = other entries, longer anchors first (more specific = better link).
-    const targets = corpus
-        .filter(t => t.id !== post.id && t.link !== post.link)
-        .sort((a, b) => b.anchor.length - a.anchor.length)
+    // Canonical destination per anchor phrase: when several posts share the same
+    // core phrase (e.g. many "פצפצים לאריזה" articles), ALL links for that phrase
+    // must point to ONE page — otherwise the same anchor splits ranking signal
+    // across near-duplicates. Pick the most comprehensive (longest full title).
+    const byAnchor = new Map<string, CorpusEntry>()
+    for (const t of corpus) {
+        if (t.id === post.id || t.link === post.link) continue
+        const key = t.anchor.toLowerCase()
+        const cur = byAnchor.get(key)
+        if (!cur || t.title.length > cur.title.length) byAnchor.set(key, t)
+    }
+    // Longer anchors first (more specific = better link).
+    const targets = Array.from(byAnchor.values()).sort((a, b) => b.anchor.length - a.anchor.length)
 
     let segs = linkableSegments(rawHtml)
     const alreadyLinkedUrls = new Set<string>()
