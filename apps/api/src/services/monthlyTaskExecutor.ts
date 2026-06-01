@@ -187,7 +187,12 @@ export async function executeTask(
         // website), so the type switch alone would route them to the manual
         // brief. Detect by intent + route to the real WordPress batch adapter —
         // same pattern as switch_bid_strategy detection inside runGoogleAdsAdapter.
-        if (isSeoMetaBatchTask(task)) {
+        // Landing-page first — task.type==='landing_page' is the strongest signal
+        // and its brief may mention schema/links keywords that would otherwise
+        // mis-route to an SEO batch.
+        if (isLandingPageTask(task)) {
+            result = await runLandingPageAdapter(instanceId, task, plan, agent)
+        } else if (isSeoMetaBatchTask(task)) {
             result = await runSeoMetaBatchAdapter(instanceId, task, plan, agent)
         } else if (isSeoSchemaTask(task)) {
             result = await runSeoSchemaBatchAdapter(instanceId, task, plan, agent)
@@ -1385,9 +1390,11 @@ async function runGithubSeoFallback(
 export function isSeoSchemaTask(task: MonthlyTask): boolean {
     if (task.type === 'content_creation') return false
     const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
-    const mentionsSchema = /schema|structured\s*data|json-?ld|rich\s*results|סכמה|נתונים\s*מובנים|markup\s*מובנה/i.test(text)
+    // Broadened: schema/structured-data + brand-entity-for-AI + technical markup
+    // (search box / breadcrumb) + Hebrew construct forms (סכמ covers סכמה/סכמת/סכמות).
+    const mentionsSchema = /schema|structured\s*data|json-?ld|rich\s*results|search\s*action|sitelinks|סכמ|נתונים\s*מובנים|markup|תיוג\s*מובנה|ישות\s*מותג|brand\s*entity|knowledge\s*(panel|graph)/i.test(text)
     if (!mentionsSchema) return false
-    const bulkOrExisting = /קיימ|existing|כל ה|batch|bulk|עמודים|דפים|פוסטים|posts|pages|all pages|אתר/i.test(text)
+    const bulkOrExisting = /קיימ|existing|כל ה|batch|bulk|עמודים|דפים|פוסטים|posts|pages|all pages|אתר|ישות|entity|מנועי|search/i.test(text)
     const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
     return channelOk && bulkOrExisting
 }
@@ -1403,6 +1410,45 @@ export function isInternalLinksTask(task: MonthlyTask): boolean {
     if (!mentions) return false
     const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
     return channelOk
+}
+
+/**
+ * Detect a "create a landing page" task (explicit type, or clear LP intent).
+ */
+export function isLandingPageTask(task: MonthlyTask): boolean {
+    if (task.type === 'landing_page') return true
+    const text = `${task.title} ${task.summary}`
+    return /landing\s*page|דף\s*נחיתה|דף\s*מכירה/i.test(text) && (task.channel === 'seo' || task.channel === 'website' || task.channel === 'content')
+}
+
+async function runLandingPageAdapter(
+    instanceId: string, task: MonthlyTask, _plan: MonthlyMarketingPlan, agent: { id?: string } | null,
+): Promise<ExecutorResult> {
+    const { runLandingPage } = await import('./seoLandingPage')
+    let businessName: string | undefined
+    try {
+        const { readResearchData } = await import('./agentContext')
+        const rd: any = (await readResearchData(agent as any, instanceId)) || {}
+        businessName = rd?.answers?.businessName
+    } catch { /* fallback */ }
+    const brief = [task.title, task.summary, '', ...(task.actionPlan || []).map(s => '• ' + s.step)].join('\n')
+    const res = await runLandingPage(instanceId, brief, { agentId: agent?.id, businessName })
+
+    if (res.integrationMissing) {
+        return { ok: false, outputDescription: 'אין אתר מחובר (WordPress/GitHub) — לא ניתן ליצור דף נחיתה.', error: 'no site integration', errorCategory: 'integration_missing', userAction: { title_he: 'חברו אתר', cta_he: 'חברו אתר →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' } }
+    }
+    if (res.error || !res.ok) {
+        return { ok: false, outputDescription: `יצירת דף נחיתה נכשלה: ${res.error || 'unknown'}`, error: res.error, errorCategory: 'systemic_bug' }
+    }
+    // Draft created — user reviews + publishes. Treated as awaiting_user_action
+    // (final publish is the human step), NOT a silent completed.
+    return {
+        ok: true,
+        outputDescription: `נוצר דף נחיתה כטיוטה ל-${res.platform === 'github' ? 'GitHub (PR)' : 'WordPress'}: "${res.title}"\n${res.editUrl}\n\n⚠️ בדקו ופרסמו את הטיוטה.`,
+        awaitingManual: true,
+        errorCategory: 'awaiting_user_action',
+        stepResults: [{ step: `דף נחיתה נוצר: ${res.title}`, ok: true, detail: res.editUrl }],
+    }
 }
 
 /**
@@ -1617,13 +1663,18 @@ async function runSeoSchemaBatchAdapter(
 ): Promise<ExecutorResult> {
     const { runSeoSchemaBatch } = await import('./seoSchemaBatch')
     let businessName: string | undefined
+    let sameAs: string[] | undefined
     try {
         const { readResearchData } = await import('./agentContext')
         const rd: any = (await readResearchData(agent as any, instanceId)) || {}
         businessName = rd?.answers?.businessName
+        // sameAs for brand entity — pull any social/Wikidata URLs we already know.
+        const candidates = [rd?.answers?.socialProfiles, rd?.answers?.socialLinks, rd?.brandBook?.sameAs, rd?.brand?.sameAs].flat()
+        const urls = candidates.filter((u: unknown): u is string => typeof u === 'string' && /^https?:\/\//.test(u))
+        if (urls.length) sameAs = Array.from(new Set(urls))
     } catch { /* tone fallback handled downstream */ }
 
-    const res = await runSeoSchemaBatch(instanceId, { agentId: agent?.id, businessName })
+    const res = await runSeoSchemaBatch(instanceId, { agentId: agent?.id, businessName, sameAs })
 
     if (res.integrationMissing) {
         const gh = await runGithubSeoFallback(instanceId, 'schema', task, _plan, agent)

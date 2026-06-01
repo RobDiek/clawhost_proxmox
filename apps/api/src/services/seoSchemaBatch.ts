@@ -139,7 +139,7 @@ async function fetchContentSnippet(cfg: WpCfg, type: WpContentType, id: number):
  */
 async function generateSchema(
     apiKey: string, model: string,
-    business: { name: string; siteUrl: string },
+    business: { name: string; siteUrl: string; sameAs?: string[] },
     item: SchemaItem,
 ): Promise<string | null> {
     const base = normalizeUrl(business.siteUrl)
@@ -153,11 +153,24 @@ async function generateSchema(
             ...(segs.length ? [{ '@type': 'ListItem', position: 2, name: item.title, item: item.link }] : []),
         ],
     }
-    const org = {
+    // Brand entity (AEO): Organization + sameAs (Wikidata/social) so AI engines
+    // resolve the brand as a known entity. sameAs comes from research_data when
+    // available; omitted otherwise (no fabricated links).
+    const org: Record<string, unknown> = {
         '@type': 'Organization', '@id': base + '/#organization',
         name: business.name, url: base + '/',
     }
-    const website = { '@type': 'WebSite', '@id': base + '/#website', url: base + '/', name: business.name, publisher: { '@id': base + '/#organization' }, inLanguage: 'he-IL' }
+    if (business.sameAs && business.sameAs.length) org.sameAs = business.sameAs.slice(0, 10)
+    // WebSite + SearchAction = sitelinks searchbox (technical structured markup).
+    const website = {
+        '@type': 'WebSite', '@id': base + '/#website', url: base + '/', name: business.name,
+        publisher: { '@id': base + '/#organization' }, inLanguage: 'he-IL',
+        potentialAction: {
+            '@type': 'SearchAction',
+            target: { '@type': 'EntryPoint', urlTemplate: `${base}/?s={search_term_string}` },
+            'query-input': 'required name=search_term_string',
+        },
+    }
 
     const prompt = `אתם עורך SEO טכני. צרו את צומת ה-schema.org הספציפי לעמוד הבא (סוג העמוד + FAQ אם קיים). עברית.
 
@@ -239,7 +252,7 @@ async function writeSchema(cfg: WpCfg, item: SchemaItem, jsonLd: string): Promis
 
 export async function runSeoSchemaBatch(
     instanceId: string,
-    opts: { agentId?: string | null; businessName?: string; dryRun?: boolean; onlyIds?: number[] } = {},
+    opts: { agentId?: string | null; businessName?: string; sameAs?: string[]; dryRun?: boolean; onlyIds?: number[] } = {},
 ): Promise<SeoSchemaBatchResult> {
     const result: SeoSchemaBatchResult = {
         ok: false, integrationMissing: false, authError: false,
@@ -266,7 +279,7 @@ export async function runSeoSchemaBatch(
     const apiKey = await getApiKeyForInstance(instanceId)
     if (!apiKey) { result.error = 'no API key for instance'; return result }
     const model = await resolveDirectModel(instanceId, 'yotzer')
-    const business = { name: opts.businessName || 'העסק', siteUrl: cfg.url }
+    const business = { name: opts.businessName || 'העסק', siteUrl: cfg.url, sameAs: opts.sameAs }
 
     for (const item of toProcess) {
         if (!item.contentSnippet) item.contentSnippet = await fetchContentSnippet(cfg, item.type, item.id)
