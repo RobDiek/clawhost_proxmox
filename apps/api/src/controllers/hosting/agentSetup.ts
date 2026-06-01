@@ -3852,6 +3852,75 @@ export const saveGoogleAdsCampaignScope = async (c: Context) => {
     }
 }
 
+// ── POST /hosting/instances/:id/mazhir/bidding-objective ──
+// Body: { goal: 'max_sales'|'target_roas'|'target_cpa', targetRoasPct?, targetCpaIls? }
+// The tenant's chosen paid-ads goal. Goal-based: the system manages the bidding
+// lifecycle (cold-start → auto-transition to the target once enough data). Stored
+// per-active-agent via mutateResearchData.
+export const setBiddingObjectiveEndpoint = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const { setBiddingObjective } = await import('@/services/biddingObjective')
+        const __agent = await resolveActiveAgent(c, instanceId)
+
+        const body = await c.req.json<{ goal?: string; targetRoasPct?: number; targetCpaIls?: number }>()
+        const goal = body.goal
+        if (goal !== 'max_sales' && goal !== 'target_roas' && goal !== 'target_cpa') {
+            return fail(c, 'goal must be max_sales | target_roas | target_cpa', 400)
+        }
+        if (goal === 'target_roas' && !(Number(body.targetRoasPct) >= 50 && Number(body.targetRoasPct) <= 2000)) {
+            return fail(c, 'targetRoasPct required (50–2000) for target_roas', 400)
+        }
+        if (goal === 'target_cpa' && !(Number(body.targetCpaIls) > 0)) {
+            return fail(c, 'targetCpaIls required (>0) for target_cpa', 400)
+        }
+        const obj = {
+            goal: goal as 'max_sales' | 'target_roas' | 'target_cpa',
+            targetRoasPct: goal === 'target_roas' ? Math.round(Number(body.targetRoasPct)) : undefined,
+            targetCpaIls: goal === 'target_cpa' ? Number(body.targetCpaIls) : undefined,
+            source: 'user' as const,
+            chosenAt: new Date().toISOString(),
+            chosenBy: resolveUserId(c) || undefined,
+        }
+        await setBiddingObjective(instanceId, __agent?.id || null, obj)
+        console.log(`Bidding objective saved for ${instanceId} agent=${__agent?.id || 'legacy'}: ${goal}`)
+        return ok(c, { biddingObjective: obj }, 'יעד הביידינג נשמר.')
+    } catch (err) {
+        console.error('setBiddingObjectiveEndpoint error:', err)
+        return fail(c, 'Save bidding objective failed', 500)
+    }
+}
+
+// ── GET /hosting/instances/:id/mazhir/bidding-objective ──
+// Returns the saved objective (if any) + our recommended default for this
+// business, so the UI can show "מומלץ" alongside the choices.
+export const getBiddingObjectiveRecommendation = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { recommendBiddingObjective } = await import('@/services/biddingObjective')
+        const { rd } = await readResearchDataForActive(c, instanceId)
+        const rdAny: any = rd || {}
+
+        const paidProfile = rdAny.paidProfile || {}
+        const inv: any = rdAny.results?.paid_data_inventory || rdAny.paidDataInventory || {}
+        const last30dConversions = Number(inv.last30dConversions ?? inv.conversionsLast30d ?? 0) || 0
+        const avgOrderValueIls = Number(paidProfile.avgDealValueIls ?? inv.avgOrderValueIls ?? 0) || undefined
+        const primaryGoal = String(paidProfile.primaryGoal || rdAny.chosenScenario?.primaryGoal || '')
+        const recommended = recommendBiddingObjective(
+            { last30dConversions, avgOrderValueIls, primaryGoal, aovVaries: true },
+            new Date().toISOString(),
+        )
+        return ok(c, { current: rdAny.biddingObjective || null, recommended }, 'ok')
+    } catch (err) {
+        console.error('getBiddingObjectiveRecommendation error:', err)
+        return fail(c, 'Recommendation failed', 500)
+    }
+}
+
 // ── POST /hosting/instances/:id/facts/seed ──
 // One-shot seeding of Neo4j graph from existing research_data.
 // Extracts competitors, personas, keywords, channels, pillars from strategy

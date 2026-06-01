@@ -50,6 +50,8 @@ import {
     disconnectGoogleAdsConfig,
     listGoogleAdsCampaignsForScope,
     saveGoogleAdsCampaignScope,
+    setBiddingObjectiveEndpoint,
+    getBiddingObjectiveRecommendation,
     researchStage,
     researchSummary,
     strategySummary,
@@ -463,6 +465,9 @@ app.post('/instances/:id/integrations/googleads/disconnect', disconnectGoogleAds
 // Phase 4.2.1 — campaign-scope picker (filter when account hosts multiple businesses)
 app.get('/instances/:id/integrations/googleads/campaigns', listGoogleAdsCampaignsForScope)
 app.post('/instances/:id/integrations/googleads/scope', saveGoogleAdsCampaignScope)
+// Goal-based bidding objective (max_sales / target_roas / target_cpa) + our recommendation
+app.get('/instances/:id/mazhir/bidding-objective', getBiddingObjectiveRecommendation)
+app.post('/instances/:id/mazhir/bidding-objective', setBiddingObjectiveEndpoint)
 app.post('/instances/:id/setup/agents/research/stage', researchStage)
 app.post('/instances/:id/setup/agents/research/summary', researchSummary)
 app.post('/instances/:id/setup/agents/strategy/summary', strategySummary)
