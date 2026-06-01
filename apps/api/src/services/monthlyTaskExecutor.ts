@@ -197,6 +197,8 @@ export async function executeTask(
             result = await runSlugProposeAdapter(instanceId, task, plan, agent)
         } else if (isImageAltTask(task)) {
             result = await runImageAltAdapter(instanceId, task, plan, agent)
+        } else if (isLlmsTxtTask(task)) {
+            result = await runLlmsTxtAdapter(instanceId, task, plan, agent)
         } else {
         switch (task.type) {
             case 'paid_optimization':
@@ -1401,6 +1403,47 @@ export function isInternalLinksTask(task: MonthlyTask): boolean {
     if (!mentions) return false
     const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
     return channelOk
+}
+
+/**
+ * Detect an "llms.txt / AI-crawler / AEO file" task.
+ */
+export function isLlmsTxtTask(task: MonthlyTask): boolean {
+    if (task.type === 'content_creation') return false
+    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    const mentions = /llms?\.?txt|llms-full|ai\s*crawler|מנועי\s*ai|קובץ\s*llms|llm\.txt/i.test(text)
+    if (!mentions) return false
+    const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
+    return channelOk
+}
+
+async function runLlmsTxtAdapter(
+    instanceId: string, task: MonthlyTask, _plan: MonthlyMarketingPlan, agent: { id?: string } | null,
+): Promise<ExecutorResult> {
+    const { runLlmsTxt } = await import('./seoLlmsTxt')
+    let businessName: string | undefined
+    try {
+        const { readResearchData } = await import('./agentContext')
+        const rd: any = (await readResearchData(agent as any, instanceId)) || {}
+        businessName = rd?.answers?.businessName
+    } catch { /* fallback */ }
+    const res = await runLlmsTxt(instanceId, { agentId: agent?.id, businessName })
+
+    if (res.integrationMissing) {
+        return { ok: false, outputDescription: 'אין אתר מחובר (WordPress/GitHub) — לא ניתן ליצור llms.txt.', error: 'no site integration', errorCategory: 'integration_missing', userAction: { title_he: 'חברו אתר (WordPress/GitHub)', cta_he: 'חברו אתר →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' } }
+    }
+    if (res.error) {
+        if (/llms_route_missing/.test(res.error)) {
+            return runManualTodoAdapter(instanceId, task, _plan, 'נדרש עדכון תוסף ClawFlow Companion ל-1.10.0+ כדי להגיש /llms.txt. עדכנו את התוסף ונסו שוב.', { stepResults: [{ step: 'llms.txt', ok: false, detail: res.error }] })
+        }
+        return { ok: false, outputDescription: `יצירת llms.txt נכשלה: ${res.error}`, error: res.error, errorCategory: 'systemic_bug' }
+    }
+    return {
+        ok: true,
+        outputDescription: `נוצר llms.txt (${res.pages} עמודים, ${res.bytes} bytes) ל-${res.platform === 'github' ? 'GitHub (PR)' : 'WordPress'}:\n${res.servedAt}`,
+        errorCategory: 'completed',
+        stepResults: [{ step: `סריקת ${res.pages} עמודים`, ok: true }, { step: `llms.txt פורסם`, ok: true, detail: res.servedAt }],
+    }
 }
 
 /**

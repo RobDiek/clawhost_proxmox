@@ -3,7 +3,7 @@
  * Plugin Name: ClawFlow Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
  * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
- * Version: 1.9.0
+ * Version: 1.10.0
  * Author: ClawFlow by Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -573,13 +573,46 @@ add_filter('rank_math/json_ld', function ($data) {
     return clawflow_current_schema_jsonld() !== '' ? array() : $data;
 }, 99, 1);
 
+/**
+ * llms.txt / llms-full.txt — AEO files for AI crawlers (ChatGPT, Perplexity,
+ * Gemini, Claude). Served from the SITE ROOT as text/plain. WordPress is a CMS,
+ * not a static host, so we intercept the request early (no rewrite-flush needed)
+ * and emit the stored option. Content is set by ClawFlow via the REST route below.
+ */
+add_action('init', function () {
+    $uri = strtok($_SERVER['REQUEST_URI'] ?? '', '?');
+    if ($uri === '/llms.txt' || $uri === '/llms-full.txt') {
+        $opt = $uri === '/llms.txt' ? 'clawflow_llms_txt' : 'clawflow_llms_full_txt';
+        $content = get_option($opt, '');
+        if ($content !== '') {
+            header('Content-Type: text/plain; charset=utf-8');
+            header('X-Robots-Tag: noindex');
+            echo $content;
+            exit;
+        }
+    }
+}, 1);
+
 add_action('rest_api_init', function () {
+    register_rest_route('clawflow/v1', '/llms-txt', [
+        'methods'             => 'POST',
+        'permission_callback' => function () { return current_user_can('manage_options'); },
+        'callback'            => function (WP_REST_Request $req) {
+            $main = (string) $req->get_param('content');
+            $full = (string) $req->get_param('fullContent');
+            update_option('clawflow_llms_txt', $main, false);
+            if ($full !== '') update_option('clawflow_llms_full_txt', $full, false);
+            update_option('clawflow_llms_updated_at', gmdate('c'), false);
+            return ['ok' => true, 'bytes' => strlen($main), 'url' => get_site_url() . '/llms.txt'];
+        },
+    ]);
+
     register_rest_route('clawflow/v1', '/capabilities', [
         'methods'             => 'GET',
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.9.0',
+                'pluginVersion'       => '1.10.0',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'wooCommerceActive'   => class_exists('WooCommerce'),
                 'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,
@@ -587,6 +620,8 @@ add_action('rest_api_init', function () {
                 'serverSideEnabled'   => !empty(get_option('clawflow_mp_measurement_id', '')) && !empty(get_option('clawflow_mp_api_secret', '')),
                 'seoMetaWritable'     => true,
                 'seoSchemaWritable'   => true,
+                'llmsTxtServable'     => true,
+                'llmsTxtInstalled'    => !empty(get_option('clawflow_llms_txt', '')),
                 'siteUrl'             => get_site_url(),
             ];
         },

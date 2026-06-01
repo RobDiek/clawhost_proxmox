@@ -126,6 +126,17 @@ async function main() {
         process.exit(0)
     }
 
+    // --llms [--write]: generate llms.txt (WP companion route / GitHub PR).
+    if (process.argv.includes('--llms')) {
+        const { runLlmsTxt } = await import('@/services/seoLlmsTxt')
+        const write = process.argv.includes('--write')
+        console.log(`\n=== llms.txt ${targetId} agent=${agentId || 'first'} write=${write} ===`)
+        const res = await runLlmsTxt(targetId, { agentId, dryRun: !write })
+        console.log(`platform=${res.platform} pages=${res.pages} bytes=${res.bytes} ok=${res.ok}${res.error ? ' error=' + res.error : ''}`)
+        if (res.servedAt) console.log('served:', res.servedAt)
+        process.exit(0)
+    }
+
     // --alt [--write]: image alt-text batch (WP media library).
     if (process.argv.includes('--alt')) {
         const { runImageAltBatch } = await import('@/services/seoImageAlt')
