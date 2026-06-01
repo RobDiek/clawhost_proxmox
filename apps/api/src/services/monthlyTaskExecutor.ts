@@ -191,6 +191,8 @@ export async function executeTask(
             result = await runSeoMetaBatchAdapter(instanceId, task, plan, agent)
         } else if (isSeoSchemaTask(task)) {
             result = await runSeoSchemaBatchAdapter(instanceId, task, plan, agent)
+        } else if (isInternalLinksTask(task)) {
+            result = await runInternalLinksAdapter(instanceId, task, plan, agent)
         } else {
         switch (task.type) {
             case 'paid_optimization':
@@ -1327,6 +1329,66 @@ export function isSeoSchemaTask(task: MonthlyTask): boolean {
     const bulkOrExisting = /קיימ|existing|כל ה|batch|bulk|עמודים|דפים|פוסטים|posts|pages|all pages|אתר/i.test(text)
     const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
     return channelOk && bulkOrExisting
+}
+
+/**
+ * Detect an "internal linking" task. Same guardrails as the other SEO
+ * detectors — explicit interlinking mention on a web channel, not content_creation.
+ */
+export function isInternalLinksTask(task: MonthlyTask): boolean {
+    if (task.type === 'content_creation') return false
+    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    const mentions = /internal\s*link|inter-?link|silo|קישור(?:ים)?\s*פנימי|לינקים\s*פנימי|קישורי\s*פנים/i.test(text)
+    if (!mentions) return false
+    const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
+    return channelOk
+}
+
+async function runInternalLinksAdapter(
+    instanceId: string,
+    task: MonthlyTask,
+    _plan: MonthlyMarketingPlan,
+    agent: { id?: string } | null,
+): Promise<ExecutorResult> {
+    const { runInternalLinks } = await import('./seoInternalLinks')
+    const res = await runInternalLinks(instanceId, { agentId: agent?.id })
+
+    if (res.integrationMissing) {
+        return {
+            ok: false, outputDescription: 'WordPress לא מחובר — לא ניתן להוסיף קישורים פנימיים אוטומטית.',
+            error: 'wordpress integration missing', errorCategory: 'integration_missing',
+            userAction: { title_he: 'WordPress לא מחובר — נדרשת התחברות', cta_he: 'חברו את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
+        }
+    }
+    if (res.authError && res.updated.length === 0) {
+        return {
+            ok: false, outputDescription: `החיבור ל-WordPress נדחה (401/403). חברו מחדש עם משתמש מנהל.`,
+            error: 'wordpress write rejected (401/403)', errorCategory: 'integration_missing',
+            userAction: { title_he: 'חיבור WordPress נדחה — נדרש חיבור מחדש', cta_he: 'חברו מחדש את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
+        }
+    }
+    if (res.error && res.updated.length === 0) {
+        return { ok: false, outputDescription: `שגיאה בגישה ל-WordPress: ${res.error}`, error: res.error, errorCategory: 'systemic_bug' }
+    }
+
+    const totalLinks = res.updated.reduce((n, u) => n + u.inserted.length, 0)
+    const stepResults = [
+        { step: 'סריקת WordPress', ok: true, detail: `${res.scanned} עמודים · ${res.candidates} פוסטים מועמדים` },
+        ...res.updated.map(u => ({ step: `קישורים נוספו: ${u.title}`, ok: true, detail: u.inserted.map(i => `"${i.anchor}" → ${i.toUrl}`).join(' · ') })),
+        ...res.failures.map(f => ({ step: `נכשל: #${f.id}`, ok: false, detail: f.error })),
+    ]
+
+    if (res.updated.length === 0 && res.failures.length === 0) {
+        return { ok: true, outputDescription: `לא נמצאו הזדמנויות לקישור פנימי טבעי ב-${res.candidates} הפוסטים שנסרקו (אנקור טבעי לא נמצא בגוף הטקסט).`, errorCategory: 'completed_idempotent_noop', stepResults }
+    }
+    if (res.updated.length === 0) {
+        return runManualTodoAdapter(instanceId, task, _plan, `לא ניתן היה להוסיף קישורים פנימיים אוטומטית (${res.failures.length} כשלים). בצעו ידנית לפי ה-brief.`, { stepResults })
+    }
+    return {
+        ok: true,
+        outputDescription: `נוספו ${totalLinks} קישורים פנימיים ל-${res.updated.length} פוסטים ב-WordPress${res.failures.length ? ` (${res.failures.length} נכשלו)` : ''}.`,
+        errorCategory: 'completed', stepResults,
+    }
 }
 
 async function runSeoSchemaBatchAdapter(

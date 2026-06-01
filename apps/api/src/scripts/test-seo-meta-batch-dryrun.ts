@@ -75,6 +75,20 @@ async function main() {
         process.exit(0)
     }
 
+    // --links-dryrun | --links-write [id] | --links-write-all: internal linking.
+    if (process.argv.some(a => a.startsWith('--links'))) {
+        const { runInternalLinks } = await import('@/services/seoInternalLinks')
+        const wf = process.argv.indexOf('--links-write')
+        const single = wf !== -1 && process.argv[wf + 1] && /^\d+$/.test(process.argv[wf + 1]) ? Number(process.argv[wf + 1]) : undefined
+        const dry = process.argv.includes('--links-dryrun')
+        console.log(`\n=== internal links ${targetId} agent=${agentId || 'first'} dry=${dry} single=${single ?? 'all'} ===`)
+        const res = await runInternalLinks(targetId, { agentId, dryRun: dry, onlyIds: single ? [single] : undefined })
+        console.log(`scanned=${res.scanned} candidates=${res.candidates} updated=${res.updated.length} failures=${res.failures.length} authError=${res.authError}${res.error ? ' error=' + res.error : ''}`)
+        for (const u of res.updated) { console.log(`  ✓ #${u.id} ${u.title}`); for (const i of u.inserted) console.log(`      "${i.anchor}" → ${i.toUrl}`) }
+        for (const f of res.failures) console.log(`  ✗ #${f.id} ${f.error}`)
+        process.exit(0)
+    }
+
     // --authcheck: probe auth-required endpoints to tell apart "auth broken"
     // (rest_not_logged_in everywhere) from "permission nuance".
     if (process.argv.includes('--authcheck')) {
