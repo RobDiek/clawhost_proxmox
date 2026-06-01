@@ -174,6 +174,17 @@ export async function auditAgentConversionSetup(agent: MatehAgentRow): Promise<A
         transient = true
     }
 
+    // Auto-provision server-side capture (GA4 MP secret + companion config).
+    try {
+        const { ensureServerSideTracking } = await import('@/services/serverSideTracking')
+        const ss = await ensureServerSideTracking(agent, { source: 'audit' })
+        if (ss.status === 'needs_ack') {
+            findings.push({ severity: 'warn', code: 'serverside_needs_ack', he: 'כדי להפעיל מדידת רכישות server-side, אשרו ב-GA4: Admin → Data collection → User Data Collection Acknowledgement (לחיצה אחת). לאחר מכן ניצור את החיבור אוטומטית.' })
+        }
+    } catch (err) {
+        console.warn(`[conversionAudit] ${agent.id} server-side provision failed:`, (err as Error).message)
+    }
+
     return { findings, isolation, transient }
 }
 

@@ -538,12 +538,25 @@ export async function runGtmDiagnostic(instanceId: string, agentId: string | nul
     const draftMapping = (rd.mazhirConversions?.draftMapping as { mappings?: unknown[]; appliedAt?: string } | undefined)
     const hasDraft = !!(draftMapping?.mappings && (draftMapping.mappings.length > 0) && !draftMapping.appliedAt)
     const conversionsReady = eligibleConv.length > 0
+    // GA4-import path: tenant's purchase is measured via GA4 → imported into
+    // Google Ads (no awct tag needed). These actions have no conversionId/label
+    // so they fail eligibleConv — but the conversion IS ready. Recognize it.
+    const hasGa4Import = (conversions || []).some((c: any) => c.source === 'ga4_import')
+        || !!(rd.serverSideTracking && rd.serverSideTracking.ga4ApiSecret)
     if (conversionsReady) {
         gates.push({
             id: 'conversion_actions_ready',
             label: 'פעולות המרה מוכנות (Ads)',
             status: 'pass',
             message: `${eligibleConv.length} ConversionActions מוכנות לחיבור ל-tags`,
+            blocking: true,
+        })
+    } else if (hasGa4Import) {
+        gates.push({
+            id: 'conversion_actions_ready',
+            label: 'פעולות המרה מוכנות (Ads)',
+            status: 'pass',
+            message: 'המרות נמדדות דרך GA4 ומיובאות ל-Google Ads (ללא צורך ב-awct)',
             blocking: true,
         })
     } else if (hasDraft) {

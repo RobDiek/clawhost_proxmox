@@ -9856,6 +9856,12 @@ export const autoSetupMazhirGtm = async (c: Context) => {
                 .then(({ ensureCampaignGoalIsolation }) => ensureCampaignGoalIsolation(agentForIso, { source: 'gtm_setup' }))
                 .then(d => console.log(`[goalIsolation] gtm_setup ${agentForIso.id}: ${d.status} (${d.reason})`))
                 .catch(err => console.error('[goalIsolation] gtm_setup error:', (err as Error).message))
+            // Phase 2026.06 — auto-provision server-side purchase capture (GA4 MP
+            // secret + companion config) so redirect-gateway orders are captured.
+            import('@/services/serverSideTracking')
+                .then(({ ensureServerSideTracking }) => ensureServerSideTracking(agentForIso, { source: 'gtm_setup' }))
+                .then(d => console.log(`[serverSideTracking] gtm_setup ${agentForIso.id}: ${d.status} (${d.reason})`))
+                .catch(err => console.error('[serverSideTracking] gtm_setup error:', (err as Error).message))
         }
 
         return ok(c, result, result.published ? 'GTM workspace published' : 'GTM workspace partially configured')
