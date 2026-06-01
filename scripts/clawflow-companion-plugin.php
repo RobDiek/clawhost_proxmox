@@ -3,7 +3,7 @@
  * Plugin Name: ClawFlow Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
  * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
- * Version: 1.8.0
+ * Version: 1.9.0
  * Author: ClawFlow by Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -523,8 +523,55 @@ add_action('init', function () {
                 'auth_callback' => $editAuth,
             ]);
         }
+        // Full-set schema.org JSON-LD (stored as a JSON string). When set,
+        // ClawFlow OWNS structured data for that page (see render + suppression
+        // below). Written via POST /wp/v2/{type}/{id} { meta: { _clawflow_schema_jsonld: "<json>" } }.
+        register_post_meta($postType, '_clawflow_schema_jsonld', [
+            'type'          => 'string',
+            'single'        => true,
+            'show_in_rest'  => true,
+            'auth_callback' => $editAuth,
+        ]);
     }
 }, 20);  // priority 20 — run AFTER Yoast/Rank Math register their own (non-writable) meta so ours wins
+
+/**
+ * ClawFlow Schema (full-set replacement).
+ *
+ * When a page has `_clawflow_schema_jsonld` set, we (1) render it in <head>,
+ * and (2) suppress Yoast / Rank Math structured data for that page so there's
+ * exactly ONE schema graph (no duplicate/competing @graph). Pages WITHOUT our
+ * meta are untouched — the existing SEO plugin keeps emitting its own.
+ */
+function clawflow_current_schema_jsonld() {
+    if (!is_singular()) return '';
+    $pid = get_queried_object_id();
+    if (!$pid) return '';
+    $raw = get_post_meta($pid, '_clawflow_schema_jsonld', true);
+    return is_string($raw) ? trim($raw) : '';
+}
+
+add_action('wp_head', function () {
+    $json = clawflow_current_schema_jsonld();
+    if ($json === '') return;
+    // Validate it parses before emitting — never inject broken JSON-LD.
+    $decoded = json_decode($json, true);
+    if (json_last_error() !== JSON_ERROR_NONE || empty($decoded)) return;
+    echo "\n<script type=\"application/ld+json\" data-clawflow=\"1\">" .
+        wp_json_encode($decoded) . "</script>\n";
+}, 99);
+
+// Suppress Yoast structured data when ClawFlow owns the page's schema.
+add_filter('wpseo_json_ld_output', function ($data) {
+    return clawflow_current_schema_jsonld() !== '' ? array() : $data;
+}, 10, 1);
+add_filter('wpseo_schema_graph', function ($graph) {
+    return clawflow_current_schema_jsonld() !== '' ? array() : $graph;
+}, 10, 1);
+// Suppress Rank Math structured data likewise.
+add_filter('rank_math/json_ld', function ($data) {
+    return clawflow_current_schema_jsonld() !== '' ? array() : $data;
+}, 99, 1);
 
 add_action('rest_api_init', function () {
     register_rest_route('clawflow/v1', '/capabilities', [
@@ -532,13 +579,14 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.8.0',
+                'pluginVersion'       => '1.9.0',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'wooCommerceActive'   => class_exists('WooCommerce'),
                 'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,
                 'gtmInstalled'        => !empty(get_option('clawflow_gtm_public_id', '')),
                 'serverSideEnabled'   => !empty(get_option('clawflow_mp_measurement_id', '')) && !empty(get_option('clawflow_mp_api_secret', '')),
                 'seoMetaWritable'     => true,
+                'seoSchemaWritable'   => true,
                 'siteUrl'             => get_site_url(),
             ];
         },

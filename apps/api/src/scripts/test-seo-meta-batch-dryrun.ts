@@ -60,6 +60,21 @@ async function main() {
     }
     console.log(`loadWpConfig OK → url=${cfg.url} user=${cfg.user}`)
 
+    // --schema-dryrun | --schema-write <id> | --schema-write-all: exercise the
+    // JSON-LD schema batch (writes _clawflow_schema_jsonld via companion v1.9.0).
+    if (process.argv.some(a => a.startsWith('--schema'))) {
+        const { runSeoSchemaBatch } = await import('@/services/seoSchemaBatch')
+        const wf = process.argv.indexOf('--schema-write')
+        const single = wf !== -1 && process.argv[wf + 1] ? Number(process.argv[wf + 1]) : undefined
+        const dry = process.argv.includes('--schema-dryrun')
+        console.log(`\n=== schema batch ${targetId} agent=${agentId || 'first'} dry=${dry} single=${single ?? 'all'} ===`)
+        const res = await runSeoSchemaBatch(targetId, { agentId, dryRun: dry, onlyIds: single ? [single] : undefined })
+        console.log(`scanned=${res.scanned} candidates=${res.candidates} updated=${res.updated.length} failures=${res.failures.length} authError=${res.authError}${res.error ? ' error=' + res.error : ''}`)
+        for (const u of res.updated) console.log(`  ✓ [${u.type}#${u.id}] ${u.title} — ${u.types.join(', ')}`)
+        for (const f of res.failures) console.log(`  ✗ [${f.type}#${f.id}] ${f.error}`)
+        process.exit(0)
+    }
+
     // --authcheck: probe auth-required endpoints to tell apart "auth broken"
     // (rest_not_logged_in everywhere) from "permission nuance".
     if (process.argv.includes('--authcheck')) {

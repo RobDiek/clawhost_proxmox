@@ -189,6 +189,8 @@ export async function executeTask(
         // same pattern as switch_bid_strategy detection inside runGoogleAdsAdapter.
         if (isSeoMetaBatchTask(task)) {
             result = await runSeoMetaBatchAdapter(instanceId, task, plan, agent)
+        } else if (isSeoSchemaTask(task)) {
+            result = await runSeoSchemaBatchAdapter(instanceId, task, plan, agent)
         } else {
         switch (task.type) {
             case 'paid_optimization':
@@ -1310,6 +1312,85 @@ export function isSeoMetaBatchTask(task: MonthlyTask): boolean {
     const bulkOrExisting = /קיימ|existing|כל ה|batch|bulk|עמודים|דפים|פוסטים|posts|pages|all pages/i.test(text)
     const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
     return channelOk && bulkOrExisting
+}
+
+/**
+ * Detect a "schema markup / structured data for existing pages" task. Same
+ * guardrails as the meta detector — explicit schema mention + bulk/existing
+ * signal, on a web channel, never content_creation.
+ */
+export function isSeoSchemaTask(task: MonthlyTask): boolean {
+    if (task.type === 'content_creation') return false
+    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    const mentionsSchema = /schema|structured\s*data|json-?ld|rich\s*results|סכמה|נתונים\s*מובנים|markup\s*מובנה/i.test(text)
+    if (!mentionsSchema) return false
+    const bulkOrExisting = /קיימ|existing|כל ה|batch|bulk|עמודים|דפים|פוסטים|posts|pages|all pages|אתר/i.test(text)
+    const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
+    return channelOk && bulkOrExisting
+}
+
+async function runSeoSchemaBatchAdapter(
+    instanceId: string,
+    task: MonthlyTask,
+    _plan: MonthlyMarketingPlan,
+    agent: { id?: string } | null,
+): Promise<ExecutorResult> {
+    const { runSeoSchemaBatch } = await import('./seoSchemaBatch')
+    let businessName: string | undefined
+    try {
+        const { readResearchData } = await import('./agentContext')
+        const rd: any = (await readResearchData(agent as any, instanceId)) || {}
+        businessName = rd?.answers?.businessName
+    } catch { /* tone fallback handled downstream */ }
+
+    const res = await runSeoSchemaBatch(instanceId, { agentId: agent?.id, businessName })
+
+    if (res.integrationMissing) {
+        return {
+            ok: false,
+            outputDescription: 'WordPress לא מחובר — לא ניתן להוסיף סכמה אוטומטית.',
+            error: 'wordpress integration missing',
+            errorCategory: 'integration_missing',
+            userAction: { title_he: 'WordPress לא מחובר — נדרשת התחברות', cta_he: 'חברו את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
+        }
+    }
+    if (res.authError && res.updated.length === 0) {
+        return {
+            ok: false,
+            outputDescription: `נמצאו ${res.candidates} עמודים, אך החיבור ל-WordPress נדחה (401/403). חברו מחדש עם משתמש מנהל.`,
+            error: 'wordpress write rejected (401/403)',
+            errorCategory: 'integration_missing',
+            userAction: { title_he: 'חיבור WordPress נדחה — נדרש חיבור מחדש', cta_he: 'חברו מחדש את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
+        }
+    }
+    if (res.error && res.updated.length === 0) {
+        return { ok: false, outputDescription: `שגיאה בגישה ל-WordPress: ${res.error}`, error: res.error, errorCategory: 'systemic_bug' }
+    }
+
+    const stepResults = [
+        { step: 'סריקת WordPress', ok: true, detail: `${res.scanned} עמודים נסרקו · ${res.candidates} ללא סכמה של ClawFlow` },
+        ...res.updated.map(u => ({ step: `סכמה נוספה: ${u.title}`, ok: true, detail: u.types.join(', ') })),
+        ...res.failures.map(f => ({ step: `נכשל: ${f.type} #${f.id}`, ok: false, detail: f.error })),
+    ]
+
+    if (res.candidates === 0) {
+        return { ok: true, outputDescription: `כל ${res.scanned} העמודים שנסרקו כבר כוללים סכמה של ClawFlow — אין מה להוסיף.`, errorCategory: 'completed_idempotent_noop', stepResults }
+    }
+    if (res.updated.length === 0) {
+        const notPersisted = res.failures.some(f => /schema_not_persisted/.test(f.error))
+        const headline = notPersisted
+            ? `נמצאו ${res.candidates} עמודים, אך WordPress לא שמר את הסכמה — נדרש עדכון תוסף ClawFlow Companion ל-1.9.0+. בצעו ידנית בינתיים.`
+            : `נמצאו ${res.candidates} עמודים ללא סכמה, אך לא ניתן היה לכתוב דרך ה-API. בצעו ידנית לפי ה-brief.`
+        return runManualTodoAdapter(instanceId, task, _plan, headline, { stepResults })
+    }
+
+    const lines = res.updated.map(u => `• ${u.title} — ${u.types.join(', ')}`).join('\n')
+    return {
+        ok: true,
+        outputDescription: `נוספה סכמת JSON-LD ל-${res.updated.length} עמודים ב-WordPress${res.failures.length ? ` (${res.failures.length} נכשלו)` : ''}:\n${lines}`,
+        errorCategory: 'completed',
+        stepResults,
+    }
 }
 
 async function runSeoMetaBatchAdapter(
