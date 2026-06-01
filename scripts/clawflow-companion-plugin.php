@@ -2,8 +2,8 @@
 /**
  * Plugin Name: ClawFlow Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
- * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
- * Version: 1.7.0
+ * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
+ * Version: 1.8.0
  * Author: ClawFlow by Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -369,6 +369,120 @@ add_action('init', function () {
 });
 
 /**
+ * Server-side GA4 Measurement Protocol purchase backfill (v1.8.0)
+ *
+ * Client-side dataLayer.purchase misses orders where the customer never lands
+ * on the order-received page (redirect payment gateways, closed tab) — on some
+ * stores that's ~50% of orders. This fires the purchase SERVER-SIDE on order
+ * status change, deduped against the client-side hit by transaction_id (= order
+ * id). client_id is captured from the _ga cookie at checkout so GA4 attributes
+ * the purchase to the correct (ad) session. Requires measurement_id + api_secret
+ * configured via POST /clawflow/v1/serverside-config.
+ */
+function clawflow_parse_ga_client_id($ga_cookie) {
+    if (!$ga_cookie) return '';
+    // _ga cookie: GA1.1.XXXXXXXXXX.YYYYYYYYYY -> client_id = XXXXXXXXXX.YYYYYYYYYY
+    $parts = explode('.', $ga_cookie);
+    $n = count($parts);
+    if ($n >= 4) return $parts[$n - 2] . '.' . $parts[$n - 1];
+    return '';
+}
+
+function clawflow_capture_attribution($order) {
+    if (!$order || !is_object($order)) return;
+    $cid = clawflow_parse_ga_client_id(isset($_COOKIE['_ga']) ? sanitize_text_field(wp_unslash($_COOKIE['_ga'])) : '');
+    if ($cid && !$order->get_meta('_clawflow_ga_client_id')) $order->update_meta_data('_clawflow_ga_client_id', $cid);
+    $gclid = '';
+    foreach (['gclid', '_gcl_aw'] as $ck) {
+        if (!empty($_COOKIE[$ck])) { $gclid = sanitize_text_field(wp_unslash($_COOKIE[$ck])); break; }
+    }
+    if ($gclid && !$order->get_meta('_clawflow_gclid')) $order->update_meta_data('_clawflow_gclid', $gclid);
+    $order->save();
+}
+add_action('woocommerce_checkout_create_order', function ($order) { clawflow_capture_attribution($order); }, 10, 1);
+add_action('woocommerce_store_api_checkout_update_order_from_request', function ($order, $request) { clawflow_capture_attribution($order); }, 10, 2);
+
+function clawflow_send_mp_purchase($order_id) {
+    $mid = get_option('clawflow_mp_measurement_id', '');
+    $secret = get_option('clawflow_mp_api_secret', '');
+    if (!$mid || !$secret || !$order_id) return;
+    if (!function_exists('wc_get_order')) return;
+    $order = wc_get_order($order_id);
+    if (!$order) return;
+    if ($order->get_meta('_clawflow_mp_sent')) return;  // once-per-order dedup guard
+
+    $cid = $order->get_meta('_clawflow_ga_client_id');
+    if (!$cid) {
+        // Fallback: deterministic client_id (purchase still counts; session attribution weaker)
+        $ts = $order->get_date_created() ? $order->get_date_created()->getTimestamp() : time();
+        $cid = '555' . (int)$order_id . '.' . $ts;
+    }
+    $items = [];
+    foreach ($order->get_items() as $item) {
+        $product = $item->get_product();
+        $items[] = [
+            'item_id'   => $product ? (string)$product->get_id() : '',
+            'item_name' => (string)$item->get_name(),
+            'price'     => $product ? (float)$product->get_price() : 0,
+            'quantity'  => (int)$item->get_quantity(),
+        ];
+    }
+    $payload = [
+        'client_id' => $cid,
+        'events' => [[
+            'name' => 'purchase',
+            'params' => [
+                'transaction_id' => (string)$order->get_id(),   // == client-side hit -> GA4 dedups
+                'value'          => (float)$order->get_total(),
+                'currency'       => (string)$order->get_currency(),
+                'items'          => $items,
+            ],
+        ]],
+    ];
+    $url = 'https://www.google-analytics.com/mp/collect?measurement_id=' . rawurlencode($mid) . '&api_secret=' . rawurlencode($secret);
+    $resp = wp_remote_post($url, [
+        'timeout'  => 8,
+        'headers'  => ['Content-Type' => 'application/json'],
+        'body'     => wp_json_encode($payload),
+        'blocking' => true,
+    ]);
+    if (!is_wp_error($resp)) {
+        $order->update_meta_data('_clawflow_mp_sent', gmdate('c'));
+        $order->save();
+    }
+}
+add_action('woocommerce_order_status_processing', 'clawflow_send_mp_purchase', 20, 1);
+add_action('woocommerce_order_status_completed', 'clawflow_send_mp_purchase', 20, 1);
+
+/**
+ * Server-side config endpoints — set/read the GA4 MP measurement_id + api_secret.
+ * The secret is stored in wp_options (autoload off) and never echoed back.
+ */
+add_action('rest_api_init', function () {
+    $perm = function () { return current_user_can('manage_options'); };
+    register_rest_route('clawflow/v1', '/serverside-config', [
+        'methods' => 'GET',
+        'permission_callback' => $perm,
+        'callback' => function () {
+            $mid = get_option('clawflow_mp_measurement_id', '');
+            $sec = get_option('clawflow_mp_api_secret', '');
+            return ['measurementId' => $mid, 'hasApiSecret' => !empty($sec), 'enabled' => !empty($mid) && !empty($sec)];
+        },
+    ]);
+    register_rest_route('clawflow/v1', '/serverside-config', [
+        'methods' => 'POST',
+        'permission_callback' => $perm,
+        'callback' => function (WP_REST_Request $req) {
+            $mid = trim((string)$req->get_param('measurementId'));
+            $secret = trim((string)$req->get_param('apiSecret'));
+            if ($mid !== '') update_option('clawflow_mp_measurement_id', $mid, false);
+            if ($secret !== '') update_option('clawflow_mp_api_secret', $secret, false);
+            return ['ok' => true, 'measurementId' => get_option('clawflow_mp_measurement_id', ''), 'hasApiSecret' => !empty(get_option('clawflow_mp_api_secret', ''))];
+        },
+    ]);
+});
+
+/**
  * Capability discovery endpoint — UI uses this to decide whether to
  * mention WooCommerce in chainSteps and whether to expect ecommerce
  * events. Also surfaces other relevant flags (whether Application
@@ -418,11 +532,12 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.7.0',
+                'pluginVersion'       => '1.8.0',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'wooCommerceActive'   => class_exists('WooCommerce'),
                 'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,
                 'gtmInstalled'        => !empty(get_option('clawflow_gtm_public_id', '')),
+                'serverSideEnabled'   => !empty(get_option('clawflow_mp_measurement_id', '')) && !empty(get_option('clawflow_mp_api_secret', '')),
                 'seoMetaWritable'     => true,
                 'siteUrl'             => get_site_url(),
             ];
