@@ -3102,14 +3102,17 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                             tags: tagIds.length ? tagIds : undefined,
                             featured_media: featuredMediaId || undefined,
                             date: isFuture && scheduledFor ? scheduledFor.toISOString() : undefined,
-                            // Yoast SEO fields (plugin: yoast/wordpress-seo)
-                            yoast_meta: seo.metaDescription ? {
-                                yoast_wpseo_metadesc: seo.metaDescription,
-                                yoast_wpseo_focuskw: seo.primaryKeyword || undefined,
-                                yoast_wpseo_title: output.title,
-                            } : undefined,
-                            // Rank Math fields (plugin: rankmath/seo-by-rank-math)
+                            // SEO meta via core `meta`. The old `yoast_meta` wrapper
+                            // NEVER worked — Yoast doesn't register it as writable, so
+                            // WP returned 200 and silently dropped it. These underscore/
+                            // custom keys are protected and only REST-writable because the
+                            // ClawFlow companion plugin v1.7.0+ registers them with
+                            // show_in_rest. The active SEO plugin reads its own keys.
+                            // (Verified 2026-06-01 on packing-station — see seoMetaBatch.)
                             meta: seo.metaDescription ? {
+                                _yoast_wpseo_metadesc: seo.metaDescription,
+                                _yoast_wpseo_focuskw: seo.primaryKeyword || undefined,
+                                _yoast_wpseo_title: output.title,
                                 rank_math_description: seo.metaDescription,
                                 rank_math_focus_keyword: seo.primaryKeyword || undefined,
                                 rank_math_title: output.title,
