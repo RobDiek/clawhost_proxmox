@@ -45,6 +45,29 @@ export interface SeoSchemaBatchResult {
 function authHeader(cfg: WpCfg): string {
     return 'Basic ' + Buffer.from(`${cfg.user}:${cfg.appPassword}`).toString('base64')
 }
+
+// This host sits behind Cloudflare and intermittently returns 522/504 origin
+// timeouts. Retry transient gateway errors (and network aborts) with backoff so
+// a single hiccup doesn't fail the whole batch.
+const TRANSIENT = new Set([429, 502, 503, 504, 520, 521, 522, 524])
+async function fetchRetry(url: string, init: RequestInit, tries = 3): Promise<Response> {
+    let lastErr: Error | null = null
+    for (let i = 0; i < tries; i++) {
+        try {
+            const res = await fetch(url, init)
+            if (TRANSIENT.has(res.status) && i < tries - 1) {
+                await new Promise(r => setTimeout(r, 1500 * (i + 1)))
+                continue
+            }
+            return res
+        } catch (err) {
+            lastErr = err as Error
+            if (i < tries - 1) await new Promise(r => setTimeout(r, 1500 * (i + 1)))
+        }
+    }
+    if (lastErr) throw lastErr
+    throw new Error('fetchRetry exhausted')
+}
 function normalizeUrl(url: string): string { return url.replace(/\/+$/, '') }
 function stripHtml(s: string): string {
     return String(s || '').replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<[^>]*>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim()
@@ -62,7 +85,7 @@ async function listSchemaCandidates(cfg: WpCfg): Promise<{ candidates: SchemaIte
             const url = `${base}/wp-json/wp/v2/${type}?per_page=100&page=${page}&status=publish&_fields=id,title,link,excerpt,meta`
             let res: Response
             try {
-                res = await fetch(url, { headers: { Authorization: authHeader(cfg) }, signal: AbortSignal.timeout(30000) })
+                res = await fetchRetry(url, { headers: { Authorization: authHeader(cfg) }, signal: AbortSignal.timeout(30000) })
             } catch (err) {
                 throw new Error(`WP GET ${type} p${page} failed: ${(err as Error).message}`)
             }
@@ -99,7 +122,7 @@ async function listSchemaCandidates(cfg: WpCfg): Promise<{ candidates: SchemaIte
 async function fetchContentSnippet(cfg: WpCfg, type: WpContentType, id: number): Promise<string> {
     const base = normalizeUrl(cfg.url)
     try {
-        const res = await fetch(`${base}/wp-json/wp/v2/${type}/${id}?_fields=content`, {
+        const res = await fetchRetry(`${base}/wp-json/wp/v2/${type}/${id}?_fields=content`, {
             headers: { Authorization: authHeader(cfg) }, signal: AbortSignal.timeout(30000),
         })
         if (!res.ok) return ''
@@ -195,7 +218,7 @@ URL: ${item.link}
 
 async function writeSchema(cfg: WpCfg, item: SchemaItem, jsonLd: string): Promise<void> {
     const base = normalizeUrl(cfg.url)
-    const res = await fetch(`${base}/wp-json/wp/v2/${item.type}/${item.id}`, {
+    const res = await fetchRetry(`${base}/wp-json/wp/v2/${item.type}/${item.id}`, {
         method: 'POST',
         headers: { Authorization: authHeader(cfg), 'Content-Type': 'application/json' },
         body: JSON.stringify({ meta: { _clawflow_schema_jsonld: jsonLd } }),
@@ -203,7 +226,7 @@ async function writeSchema(cfg: WpCfg, item: SchemaItem, jsonLd: string): Promis
     })
     if (!res.ok) throw new Error(`${res.status}: ${(await res.text().catch(() => '')).slice(0, 200)}`)
     // Read back — confirm the companion plugin actually stored it.
-    const check = await fetch(`${base}/wp-json/wp/v2/${item.type}/${item.id}?context=edit&_fields=meta`, {
+    const check = await fetchRetry(`${base}/wp-json/wp/v2/${item.type}/${item.id}?context=edit&_fields=meta`, {
         headers: { Authorization: authHeader(cfg) }, signal: AbortSignal.timeout(30000),
     })
     if (check.ok) {
