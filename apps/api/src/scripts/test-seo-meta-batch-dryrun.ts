@@ -14,6 +14,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { agentIntegrations } from '@/db/schema'
 import { runSeoMetaBatch, loadWpConfig } from '@/services/seoMetaBatch'
+import { isSeoMetaBatchTask } from '@/services/monthlyTaskExecutor'
 
 async function main() {
     const targetId = process.argv[2] || '44f484a852'
@@ -21,6 +22,26 @@ async function main() {
     // multiple agents, each with its own WordPress site).
     const agentFlag = process.argv.indexOf('--agent')
     const agentId = agentFlag !== -1 ? process.argv[agentFlag + 1] : undefined
+
+    // --scan-tasks: load the agent's monthlyPlan and report which real tasks the
+    // executor would route to runSeoMetaBatchAdapter (does Opus phrasing match?).
+    if (process.argv.includes('--scan-tasks')) {
+        const { resolveAgentById, resolvePrimaryAgent, readResearchData } = await import('@/services/agentContext')
+        const ag = agentId ? await resolveAgentById(targetId, agentId) : await resolvePrimaryAgent(targetId)
+        const rd: any = (await readResearchData(ag as any, targetId)) || {}
+        const tasks: any[] = rd?.monthlyPlan?.tasks || []
+        console.log(`\n=== scan-tasks ${targetId} agent=${agentId || 'primary'} — ${tasks.length} tasks ===`)
+        const matched = tasks.filter(t => isSeoMetaBatchTask(t))
+        console.log(`isSeoMetaBatchTask matches: ${matched.length}`)
+        for (const t of matched) console.log(`  ✓ [${t.type}/${t.channel}/${t.status}] ${t.title}`)
+        // also show seo/website tasks that mention meta but did NOT match, to spot misses
+        const near = tasks.filter(t => !isSeoMetaBatchTask(t) && /meta|תיאור/i.test(`${t.title} ${t.summary}`))
+        if (near.length) {
+            console.log(`\nnear-misses (mention meta but not routed):`)
+            for (const t of near) console.log(`  · [${t.type}/${t.channel}] ${t.title}`)
+        }
+        process.exit(0)
+    }
 
     console.log('=== WordPress-connected instances ===')
     const wpRows = await db.select().from(agentIntegrations).where(eq(agentIntegrations.integrationType, 'wordpress'))

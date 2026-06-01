@@ -1300,7 +1300,7 @@ async function runTrackingSetupAdapter(
  * an explicit meta-description mention AND a bulk/existing-pages signal to
  * avoid hijacking single new-article content tasks.
  */
-function isSeoMetaBatchTask(task: MonthlyTask): boolean {
+export function isSeoMetaBatchTask(task: MonthlyTask): boolean {
     // content_creation owns new-article generation (incl. its own meta) — never
     // hijack it even if an action step mentions a meta description.
     if (task.type === 'content_creation') return false
