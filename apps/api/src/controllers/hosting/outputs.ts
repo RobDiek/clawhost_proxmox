@@ -582,6 +582,8 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                         loginCustomerId,
                         tokens: { refreshToken: tokens.refreshToken },
                         developerToken: String(adsCfg.developerToken),
+                        agentId: (agent as any).id,
+                        vpsInstanceId: instanceId,
                     })
                     gtmConversions = auto.configs
                     chainSteps.push({

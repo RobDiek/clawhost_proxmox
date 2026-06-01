@@ -701,6 +701,12 @@ export async function deriveGtmConversionsFromAds(opts: {
     tokens: GoogleTokens
     developerToken: string
     defaultCurrency?: string
+    // Phase 2026.06: brand context so we NEVER auto-wire a sibling brand's
+    // conversion action into this tenant's awct tag on a shared MCC account
+    // (the Packing Station contamination root cause). When provided, sibling-
+    // affinity actions are excluded.
+    agentId?: string
+    vpsInstanceId?: string
 }): Promise<{ configs: GtmConversionConfig[]; skipped: Array<{ id: string; name: string; reason: string }> }> {
     const all = await listAdsConversionActions(
         opts.operatingCustomerId,
@@ -709,6 +715,20 @@ export async function deriveGtmConversionsFromAds(opts: {
         opts.developerToken,
     )
     const skipped: Array<{ id: string; name: string; reason: string }> = []
+
+    // Brand-affinity context (cross-brand safety). Mirrors detectExistingConversionActions.
+    let activeTokens: string[] = []
+    let siblings: Array<{ slug: string; name: string; tokens: string[] }> = []
+    if (opts.agentId && opts.vpsInstanceId) {
+        try {
+            const [agentRow] = await db.select({ slug: matehAgents.brandSlug, name: matehAgents.name })
+                .from(matehAgents).where(eq(matehAgents.id, opts.agentId))
+            if (agentRow) activeTokens = Array.from(new Set([...tokenizeBrand(agentRow.slug), ...tokenizeBrand(agentRow.name)]))
+            const sibRows = await db.select({ slug: matehAgents.brandSlug, name: matehAgents.name })
+                .from(matehAgents).where(and(eq(matehAgents.vpsInstanceId, opts.vpsInstanceId), ne(matehAgents.id, opts.agentId)))
+            siblings = sibRows.map(s => ({ slug: s.slug, name: s.name, tokens: Array.from(new Set([...tokenizeBrand(s.slug), ...tokenizeBrand(s.name)])) }))
+        } catch { /* best-effort; no brand filter if lookup fails */ }
+    }
 
     // First pass: build candidate list of eligible actions
     type Candidate = { raw: AdsConversionActionRaw; gtmKey: GtmConversionConfig['actionKey'] }
@@ -731,6 +751,15 @@ export async function deriveGtmConversionsFromAds(opts: {
         if (!gtmKey) {
             skipped.push({ id: raw.id, name: raw.name, reason: `actionKey=${draft.actionKey} not awct-eligible` })
             continue
+        }
+        // Cross-brand safety: never auto-wire a sibling brand's conversion
+        // action (root cause of the Packing Station → Moving Station leak).
+        if (activeTokens.length && siblings.length) {
+            const aff = classifyBrandAffinity(raw.name, activeTokens, siblings)
+            if (aff.affinity === 'sibling') {
+                skipped.push({ id: raw.id, name: raw.name, reason: `sibling brand (${aff.siblingName || 'other'}) — excluded for cross-brand safety` })
+                continue
+            }
         }
         candidates.push({ raw, gtmKey })
     }
