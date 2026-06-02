@@ -3936,18 +3936,30 @@ export const getWpCompanionStatus = async (c: Context) => {
             .where(and(eq(agentIntegrations.instanceId, instanceId), eq(agentIntegrations.integrationType, 'wordpress')))
         const row = rows.find(r => r.agentId === __agent?.id) || rows[0]
         const cfg = (row?.config || {}) as { url?: string; user?: string; appPassword?: string }
-        if (!cfg.url || !cfg.appPassword) return ok(c, { connected: false }, 'WordPress לא מחובר')
+        if (!cfg.url || !cfg.appPassword) return ok(c, { connected: false, ready: false }, 'WordPress לא מחובר')
         const { probeWpCapabilities } = await import('@/services/wpCompanionInstaller')
         const caps: any = await probeWpCapabilities(cfg as any)
-        if (!caps) return ok(c, { connected: true, pluginInstalled: false }, 'התוסף לא מותקן/לא פעיל')
+        // caps is null when the companion plugin is inactive/missing OR auth fails
+        // (the /capabilities route needs manage_options). Either way → not ready.
+        if (!caps) return ok(c, { connected: true, pluginInstalled: false, ready: false }, 'התוסף לא מותקן/לא פעיל (או שאימות נכשל)')
+        // "ready" = the full SEO/AEO stack is actually writable. Only then does the
+        // card show "מחובר ומאומת". seoMeta+seoSchema (v1.9.0) + llmsTxt (v1.10.0).
+        const seoMetaWritable = caps.seoMetaWritable === true
+        const seoSchemaWritable = caps.seoSchemaWritable === true
+        const llmsTxtServable = caps.llmsTxtServable === true
+        const ready = seoMetaWritable && seoSchemaWritable && llmsTxtServable
         return ok(c, {
             connected: true,
             pluginInstalled: true,
+            ready,
             pluginVersion: caps.pluginVersion,
+            seoMetaWritable,
+            seoSchemaWritable,
+            llmsTxtServable,
             wooCommerceActive: caps.wooCommerceActive,
             gtmInstalled: caps.gtmInstalled,
             serverSideEnabled: caps.serverSideEnabled === true,
-        }, 'ok')
+        }, ready ? 'ok' : 'נדרש עדכון/הפעלה של התוסף')
     } catch (err) {
         console.error('getWpCompanionStatus error:', err)
         return fail(c, 'status failed', 500)

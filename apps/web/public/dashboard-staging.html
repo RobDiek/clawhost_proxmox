@@ -10496,6 +10496,31 @@ function connectGoogleAds() {
 function downloadCompanionPlugin() {
   window.open(API + '/hosting/instances/' + instanceId + '/wp/companion-plugin.zip', '_blank');
 }
+// Honest WP badge: show "מחובר ומאומת" ONLY when companion-status confirms the
+// plugin is active + the SEO/AEO stack is writable (ready). Creds-saved alone is
+// NOT enough — auth can pass while the plugin is inactive (then nothing writes).
+function refreshWpBadge() {
+  var statusEl = document.getElementById('pub-blog-status');
+  var cardEl = document.getElementById('pub-blog-card');
+  if (!statusEl) return;
+  function setBadge(text, connected) {
+    statusEl.textContent = text;
+    statusEl.className = 'int-status' + (connected ? ' connected' : '');
+    statusEl.style.color = connected ? '' : '#92400E';
+    if (cardEl) cardEl.classList.toggle('connected', !!connected);
+  }
+  var agentParam = window.activeAgentId ? '?agentId=' + window.activeAgentId : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/wp/companion-status' + agentParam, { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var x = (d && d.data) || {};
+      if (!x.connected) { setBadge('לא מחובר', false); return; }
+      if (!x.pluginInstalled) { setBadge('⚠ נשמר — התוסף לא פעיל', false); return; }
+      if (!x.ready) { setBadge('⚠ נדרש עדכון תוסף (v' + (x.pluginVersion || '?') + ')', false); return; }
+      setBadge('✓ מחובר ומאומת', true);
+    })
+    .catch(function() { /* leave current badge on network error */ });
+}
 function verifyCompanionPlugin() {
   var el = document.getElementById('pub-blog-plugin-result');
   if (el) el.innerHTML = '⏳ בודק...';
@@ -10580,8 +10605,8 @@ function saveBlogIntegration() {
       showToast('WordPress חובר בהצלחה!', 'success');
       intStorSet('cf_wordpress_saved', '1');
       var statusEl = document.getElementById('pub-blog-status');
-      if (statusEl) { statusEl.textContent = '\u2713 מחובר'; statusEl.className = 'int-status connected'; }
-      document.getElementById('pub-blog-card').classList.add('connected');
+      if (statusEl) { statusEl.textContent = '⏳ בודק תוסף…'; statusEl.className = 'int-status'; }
+      refreshWpBadge();
     } else showToast((d && d.message) || 'שגיאה', 'error');
   }).catch(function(e) {
     // Phase 4.3-O fix: distinguish error classes for actionable user feedback.
@@ -16781,9 +16806,9 @@ function renderIntegrations() {
     var wpConnected = sigHasWordpress || sigAgentInts || sigLocalStor;
     try { console.log('[renderIntegrations] WP signals', { hasWordpress: sigHasWordpress, agentInts: sigAgentInts, localStorage: sigLocalStor, resolved: wpConnected, activeMatehAgentId: __activeMatehId || '(none)' }); } catch (_) {}
     if (wpConnected) {
-      pubBlogStatus.textContent = '\u2713 מחובר';
-      pubBlogStatus.className = 'int-status connected';
-      if (pubBlogCard) pubBlogCard.classList.add('connected');
+      pubBlogStatus.textContent = '⏳ בודק תוסף…';
+      pubBlogStatus.className = 'int-status';
+      refreshWpBadge();
     } else {
       pubBlogStatus.textContent = 'לא מחובר';
       pubBlogStatus.className = 'int-status';
