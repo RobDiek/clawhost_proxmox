@@ -126,6 +126,32 @@ async function main() {
         process.exit(0)
     }
 
+    // --landing [--write]: generate a landing page (WP draft / GitHub PR).
+    if (process.argv.includes('--landing')) {
+        const { runLandingPage } = await import('@/services/seoLandingPage')
+        const write = process.argv.includes('--write')
+        const brief = 'דף נחיתה לבדיקה — קרטונים למעבר משרד לעסקים קטנים באזור המרכז. יתרונות: משלוח מהיר, מחיר משתלם, איכות. קריאה לפעולה: הזמנה אונליין.'
+        console.log(`\n=== landing page ${targetId} write=${write} ===`)
+        const res = await runLandingPage(targetId, brief, { agentId, businessName: 'פקינג סטיישן', dryRun: !write })
+        console.log(`platform=${res.platform} ok=${res.ok} title="${res.title || ''}"${res.error ? ' error=' + res.error : ''}`)
+        if (res.editUrl) console.log('editUrl:', res.editUrl)
+        process.exit(0)
+    }
+
+    // --answer [--write] [--id N]: answer-first retrofit on WP posts.
+    if (process.argv.includes('--answer')) {
+        const { runAnswerFirst } = await import('@/services/seoAnswerFirst')
+        const write = process.argv.includes('--write')
+        const idIdx = process.argv.indexOf('--id')
+        const onlyIds = idIdx !== -1 && process.argv[idIdx + 1] ? [Number(process.argv[idIdx + 1])] : undefined
+        console.log(`\n=== answer-first ${targetId} write=${write} onlyIds=${onlyIds || 'all'} ===`)
+        const res = await runAnswerFirst(targetId, { agentId, businessName: 'פקינג סטיישן', dryRun: !write, onlyIds })
+        console.log(`scanned=${res.scanned} candidates=${res.candidates} updated=${res.updated.length} failures=${res.failures.length} authError=${res.authError}${res.error ? ' error=' + res.error : ''}`)
+        for (const u of res.updated.slice(0, 5)) console.log(`  ✓ #${u.id} ${u.title}\n      ${u.answer}`)
+        for (const f of res.failures.slice(0, 5)) console.log(`  ✗ #${f.id} ${f.error}`)
+        process.exit(0)
+    }
+
     // --llms [--write]: generate llms.txt (WP companion route / GitHub PR).
     if (process.argv.includes('--llms')) {
         const { runLlmsTxt } = await import('@/services/seoLlmsTxt')
