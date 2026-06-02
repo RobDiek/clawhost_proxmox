@@ -42,11 +42,17 @@ export async function runPreflight(instanceId: string): Promise<PreflightResult>
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error('Instance not found')
 
-    const rd: any = inst.researchData || {}
+    // Read from the primary agent's research_data + per-agent config/tokens —
+    // the SAME canonical store generateMediaPlan/executeMediaPlan use. Reading
+    // instances.* here (legacy/stale) made preflight block greenfield launches
+    // on every per-agent tenant. Systemic fix (matches mazhirExecutor).
+    const { resolvePrimaryAgent, readResearchData } = await import('@/services/agentContext')
+    const agent = await resolvePrimaryAgent(instanceId)
+    const rd: any = (await readResearchData(agent, instanceId)) || {}
     const profile = rd.paidProfile
     const mediaPlan = rd.mediaPlan || (rd.strategy && typeof rd.strategy === 'object' ? rd.strategy.mediaPlan : null)
-    const tokens = inst.googleTokens as any
-    const googleAdsConfig: any = inst.googleAdsConfig || {}
+    const tokens = (agent?.googleTokens as any) || inst.googleTokens as any
+    const googleAdsConfig: any = (agent?.googleAdsConfig as any) || inst.googleAdsConfig || {}
     // Phase 4.2.3-B: read `active` (unified mapped+created) with legacy fallback.
     const conversions = rd.mazhirConversions?.active || rd.mazhirConversions?.created || []
 
