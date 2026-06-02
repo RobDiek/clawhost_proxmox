@@ -130,6 +130,23 @@ const HAAS_TIERS: HaasTier[] = [
 
 const BASE_RAM = 0.5
 
+// ─── Single self-service plan (June 2026 repositioning) ───────────────
+// The 4 legacy VPS tiers (79/169/349/599) are no longer sold as separate
+// products. Self-checkout is ONE flat plan: ₪279/mo — "שירות עצמי" — which
+// includes 1 client workspace (1 Mateh) on a standard VPS. The Hetzner VPS
+// type is still sized internally by RAM (calcPlan → hetznerType), but the
+// CUSTOMER price is flat ₪279 regardless of tier. Add-ons (storage/backup)
+// stack on top. In-cabinet expansion stays admin-assisted (AllPay can't
+// mutate a live subscription's line items).
+export const SELF_SERVE_PRICE_ILS = 279
+
+// Self-serve provisions 1 Mateh marketing agent by default. Driving the
+// component list off this constant guarantees calcPlan sizes a VPS that
+// actually fits the Mateh (5.5GB → business/cx33), not a bare 4GB box.
+export const SELF_SERVE_COMPONENTS = ['mt']
+
+export const SELF_SERVE_NAME_HE = 'שירות עצמי'
+
 export function calcPlan(componentIds: string[]): {
     planKey: string
     ramNeeded: number
@@ -159,7 +176,9 @@ export function calcTotal(componentIds: string[], addonIds: string[]): {
     totalPrice: number
     plan: PlanInfo
 } {
-    const { planKey, ramNeeded, priceIls, plan } = calcPlan(componentIds)
+    // planKey/plan still derived by RAM (drives the Hetzner VPS type), but the
+    // customer-facing price is the single flat self-serve plan, NOT the tier price.
+    const { planKey, ramNeeded, plan } = calcPlan(componentIds)
 
     const addonsPrice = addonIds.reduce((sum, id) => {
         const addon = ADDONS.find(a => a.id === id)
@@ -169,9 +188,9 @@ export function calcTotal(componentIds: string[], addonIds: string[]): {
     return {
         planKey,
         ramNeeded,
-        planPrice: priceIls,
+        planPrice: SELF_SERVE_PRICE_ILS,
         addonsPrice,
-        totalPrice: priceIls + addonsPrice,
+        totalPrice: SELF_SERVE_PRICE_ILS + addonsPrice,
         plan
     }
 }

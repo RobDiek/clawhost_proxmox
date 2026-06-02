@@ -262,35 +262,28 @@ const API = 'https://api.clawflow.flowmatic.co.il';
 const refCode = new URLSearchParams(window.location.search).get('ref');
 if (refCode) localStorage.setItem('cf_ref', refCode);
 
-const PLANS = {
-  personal: { he: 'אישי', price: 79 },
-  business: { he: 'עסקי', price: 169 },
-  pro:      { he: 'פרו', price: 349 },
-  developer:{ he: 'מפתח', price: 599 }
-};
-
+// Single self-serve plan (June 2026): flat ₪279/mo.
+const SELF_SERVE_PRICE = 279;
 const ADDON_PRICES = { bk: 19, xs_20: 9, xs_100: 39, xs_500: 199 };
 
 // Parse URL params
 const params = new URLSearchParams(window.location.search);
-const planKey = params.get('plan');
 const components = (params.get('components') || '').split(',').filter(Boolean);
 const storageGb = parseInt(params.get('storage') || '0', 10);
-
-// Calculate total price with addons + billing period
 const billingPeriod = params.get('billing') || 'monthly';
-if (planKey && PLANS[planKey]) {
-  const plan = PLANS[planKey];
+
+// Always show the single self-serve plan badge (₪279 + any add-ons)
+{
   const discount = billingPeriod === 'annual' ? 0.82 : 1;
   let addonsTotal = 0;
   if (components.includes('bk')) addonsTotal += ADDON_PRICES.bk;
   if (storageGb === 20) addonsTotal += ADDON_PRICES.xs_20;
   else if (storageGb === 100) addonsTotal += ADDON_PRICES.xs_100;
   else if (storageGb === 500) addonsTotal += ADDON_PRICES.xs_500;
-  const totalPrice = Math.round((plan.price + addonsTotal) * discount);
+  const totalPrice = Math.round((SELF_SERVE_PRICE + addonsTotal) * discount);
   const periodLabel = billingPeriod === 'annual' ? '/חודש (שנתי)' : '/חודש';
 
-  document.getElementById('plan-name-display').textContent = 'תוכנית ' + plan.he;
+  document.getElementById('plan-name-display').textContent = 'תוכנית שירות עצמי';
   document.getElementById('plan-price-display').textContent = '₪' + totalPrice + periodLabel;
   document.getElementById('plan-info').classList.remove('hidden');
 }
@@ -452,6 +445,8 @@ async function verifyOtp() {
     const searchParams = new URLSearchParams(window.location.search);
     const subdomainVal = document.getElementById('subdomain').value.trim().toLowerCase();
     if (subdomainVal) searchParams.set('subdomain', subdomainVal);
+    // Single self-serve plan = 1 Mateh; ensure the component reaches checkout
+    if (!searchParams.get('components')) searchParams.set('components', 'mt');
     window.location.href = '/checkout?' + searchParams.toString();
   } catch (err) {
     showMsg('msg-otp', 'שגיאת תקשורת, נסו שוב', true);

@@ -1,7 +1,7 @@
 import type { Context } from 'hono'
 import type { HonoEnv } from '@/ts/Types'
 import crypto, { randomBytes } from 'crypto'
-import { calcTotal } from '@openclaw/shared'
+import { calcTotal, SELF_SERVE_COMPONENTS } from '@openclaw/shared'
 import { db } from '@/db'
 import { instances, payments, users } from '@/db/schema'
 import { eq, and, lt, ne } from 'drizzle-orm'
@@ -44,7 +44,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
         }
         const body = await c.req.json()
         const {
-            components,
+            components: rawComponents,
             automationTool,
             addons,
             customerEmail,
@@ -53,7 +53,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
             subdomainName,
             billingPeriod
         } = body as {
-            components: string[]
+            components?: string[]
             automationTool: 'activepieces'
             addons: string[]
             customerEmail: string
@@ -66,9 +66,9 @@ export const checkout = async (c: Context<HonoEnv>) => {
         const isAnnual = billingPeriod === 'annual'
         const discount = isAnnual ? 0.82 : 1  // 18% discount for annual
 
-        if (!components?.length) {
-            return fail(c, 'At least one component is required.', 400)
-        }
+        // Single self-serve plan: default to 1 Mateh if the client sent nothing,
+        // so the VPS is always sized to fit the agent (never a bare 4GB box).
+        const components = rawComponents?.length ? rawComponents : [...SELF_SERVE_COMPONENTS]
         if (!customerEmail || !customerName) {
             return fail(c, 'Customer details are required.', 400)
         }
@@ -181,9 +181,11 @@ export const checkout = async (c: Context<HonoEnv>) => {
             amountIls: String(chargePrice),
             status: 'pending'
         })
+        // Single self-serve plan — bill under one canonical name, not the
+        // internal RAM-derived VPS tier (אישי/עסקי/…). Customer sees ₪279.
         const planLabel = isAnnual
-            ? `Flowmatic — ${pricing.plan.nameHe} (שנתי)`
-            : `Flowmatic — ${pricing.plan.nameHe}`
+            ? `Flowmatic — שירות עצמי (שנתי)`
+            : `Flowmatic — שירות עצמי`
 
         try {
             paymentUrl = await allpay.createSubscription({

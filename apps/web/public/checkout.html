@@ -8,6 +8,8 @@
 <link rel="icon" href="/favicon.ico?v=cf2"/>
 <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=cf2"/>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<!-- AllPay Hosted Fields SDK — embeds PCI-compliant card fields inside our page -->
+<script src="https://allpay.to/js/allpay-hf.js"></script>
 <style>
 *, *::before, *::after {
   box-sizing: border-box;
@@ -242,8 +244,8 @@ a:hover { text-decoration: underline; }
   </div>
 </div>
 
-<!-- Customer Form -->
-<div class="card">
+<!-- Step 1: Customer details -->
+<div class="card" id="customer-card">
   <div class="card-title">פרטי לקוח</div>
 
   <div class="form-group">
@@ -259,24 +261,39 @@ a:hover { text-decoration: underline; }
   <input type="hidden" id="cust-phone" value=""/>
 
 
-  <button class="btn btn-primary" id="btn-pay" onclick="handleCheckout()">לתשלום →</button>
+  <button class="btn btn-primary" id="btn-continue" onclick="handleCheckout()">המשך לתשלום →</button>
   <div class="msg" id="msg-checkout"></div>
 
   <div class="secure-badge">
     <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
-    תשלום מאובטח דרך AllPay
+    תשלום מאובטח דרך AllPay · פרטי האשראי לא עוברים דרך השרת שלנו
   </div>
+</div>
+
+<!-- Step 2: Card entry (AllPay Hosted Fields iframe — shown after payment is created) -->
+<div class="card hidden" id="payment-card">
+  <div class="card-title">פרטי תשלום</div>
+  <p style="font-size:0.82rem;color:var(--text-2);margin-bottom:14px">הזינו את פרטי כרטיס האשראי. השדות מאובטחים ומנוהלים ישירות על ידי AllPay.</p>
+  <iframe id="allpay-hf" allow="payment *" style="width:100%;border:none;min-height:360px;display:block"></iframe>
+  <button class="btn btn-primary" id="btn-pay" onclick="doPay()">שלם <span id="pay-amount"></span> →</button>
+  <div class="msg" id="msg-pay"></div>
+  <a href="#" onclick="backToDetails(); return false;" style="display:block;text-align:center;font-size:0.8rem;margin-top:12px;color:var(--text-3)">← חזרה לפרטים</a>
 </div>
 
 <script>
 const API = 'https://api.clawflow.flowmatic.co.il';
 
-const PLANS = {
-  personal:  { he: 'אישי', price: 79 },
-  business:  { he: 'עסקי', price: 169 },
-  pro:       { he: 'פרו', price: 349 },
-  developer: { he: 'מפתח', price: 599 }
-};
+// Single self-serve plan (June 2026): flat ₪279/mo, includes 1 Mateh agent.
+const SELF_SERVE_PRICE = 279;
+const SELF_SERVE_LABEL = 'שירות עצמי';
+
+// AllPay Hosted Fields — embed card fields in our page instead of redirecting.
+// REQUIRES one-time AllPay dashboard setup: Settings → Integrations → My Sites
+// → enable "Hosted Fields" + whitelist the domain app.flowmatic.co.il.
+// Until that's done, AllPay's payment page refuses to load in an iframe
+// (X-Frame-Options), so keep this false → falls back to full-page redirect.
+// Flip to true once the dashboard config is confirmed.
+const HOSTED_FIELDS = false;
 
 const COMPONENT_NAMES = {
   oc: 'OpenClaw Personal',
@@ -297,18 +314,17 @@ if (!token) {
 
 // Parse URL params
 const params = new URLSearchParams(window.location.search);
-const planKey = params.get('plan') || 'personal';
-const components = (params.get('components') || '').split(',').filter(Boolean);
+const planKey = 'self_serve';
+let components = (params.get('components') || '').split(',').filter(Boolean);
+if (!components.length) components = ['mt'];  // self-serve = 1 Mateh marketing agent
 const storageGb = parseInt(params.get('storage') || '0', 10);
 const billingPeriod = params.get('billing') || 'monthly';
 const subdomainName = params.get('subdomain') || '';
 
-const plan = PLANS[planKey] || PLANS.personal;
-
 // Show subdomain if available
 if (subdomainName) {
   const addrEl = document.getElementById('address-display');
-  if (addrEl) addrEl.textContent = subdomainName + '.clawflow.flowmatic.co.il';
+  if (addrEl) addrEl.textContent = subdomainName + '.flowmatic.co.il';
 }
 
 // Render components list
@@ -335,8 +351,8 @@ var discount = isAnnual ? 0.82 : 1;  // 18% discount for annual
 var periodLabel = isAnnual ? '/חודש (שנתי)' : '/חודש';
 var periodNote = isAnnual ? ' · 18% הנחה' : '';
 
-var planPrice = Math.round(plan.price * discount);
-addRow('תוכנית ' + plan.he, '₪' + planPrice + periodLabel);
+var planPrice = Math.round(SELF_SERVE_PRICE * discount);
+addRow('תוכנית ' + SELF_SERVE_LABEL, '₪' + planPrice + periodLabel);
 if (storageGb > 0) {
   var storagePrice = Math.round((storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199) * discount);
   addRow('אחסון נוסף +' + storageGb + 'GB', '₪' + storagePrice + periodLabel);
@@ -354,7 +370,7 @@ if (components.includes('bk')) monthlyTotal += backupPrice;
 
 if (isAnnual) {
   var yearlyTotal = monthlyTotal * 12;
-  var savedPerYear = Math.round((plan.price + (storageGb > 0 ? (storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199) : 0) + (components.includes('bk') ? 19 : 0)) * 12 * 0.18);
+  var savedPerYear = Math.round((SELF_SERVE_PRICE + (storageGb > 0 ? (storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199) : 0) + (components.includes('bk') ? 19 : 0)) * 12 * 0.18);
   document.getElementById('total-price').innerHTML = '₪' + monthlyTotal + '/חודש<div style="font-size:0.82rem;color:#10B981;margin-top:4px">₪' + yearlyTotal + ' לשנה · חוסכים ₪' + savedPerYear + '</div>';
 } else {
   document.getElementById('total-price').textContent = '₪' + monthlyTotal + '/חודש';
@@ -369,18 +385,28 @@ function showMsg(text, isError) {
   el.className = 'msg ' + (isError ? 'msg-error' : '');
 }
 
+function showPayMsg(text, isError) {
+  var el = document.getElementById('msg-pay');
+  el.textContent = text;
+  el.className = 'msg ' + (isError ? 'msg-error' : '');
+}
+
+var instanceId = '';     // set after checkout, used by onSuccess redirect
+var Allpay = null;       // AllPay Hosted Fields handler instance
+
+// Step 1 → create the AllPay payment (subscription) on our server, then either
+// embed the Hosted Fields iframe (real AllPay url) or redirect (test-mode bypass).
 async function handleCheckout() {
   var name = document.getElementById('cust-name').value.trim();
   var phone = document.getElementById('cust-phone').value.trim();
 
   if (!name) { showMsg('הכניסו שם מלא', true); return; }
 
-  var btn = document.getElementById('btn-pay');
+  var btn = document.getElementById('btn-continue');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>מעבד...';
   showMsg('', false);
 
-  // Determine automation tool from components
   var automationTool = 'activepieces';
 
   // Build addons list
@@ -389,6 +415,11 @@ async function handleCheckout() {
   if (storageGb === 20) addons.push('storage_20');
   else if (storageGb === 100) addons.push('storage_100');
   else if (storageGb === 500) addons.push('storage_500');
+
+  function resetContinue() {
+    btn.disabled = false;
+    btn.innerHTML = 'המשך לתשלום →';
+  }
 
   try {
     var res = await fetch(API + '/hosting/checkout', {
@@ -413,14 +444,14 @@ async function handleCheckout() {
 
     if (!res.ok) {
       showMsg(data.message || 'שגיאה ביצירת התשלום', true);
-      btn.disabled = false;
-      btn.textContent = 'לתשלום';
+      resetContinue();
       return;
     }
 
     // Save instance data for dashboard
     if (data.data) {
-      localStorage.setItem('cf_instance_id', data.data.instanceId || '');
+      instanceId = data.data.instanceId || '';
+      localStorage.setItem('cf_instance_id', instanceId);
       localStorage.setItem('cf_instance_plan', planKey);
       localStorage.setItem('cf_instance_components', JSON.stringify(components));
       localStorage.setItem('cf_instance_subdomain', subdomainName || '');
@@ -428,11 +459,11 @@ async function handleCheckout() {
 
       // Activate referral if ref code exists
       var refCode = localStorage.getItem('cf_ref');
-      if (refCode && data.data.instanceId) {
+      if (refCode && instanceId) {
         fetch(API + '/hosting/referral/activate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ referralCode: refCode, instanceId: data.data.instanceId })
+          body: JSON.stringify({ referralCode: refCode, instanceId: instanceId })
         }).then(function() {
           localStorage.removeItem('cf_ref'); // clear used code
         }).catch(function() {}); // non-blocking
@@ -442,25 +473,84 @@ async function handleCheckout() {
     // Track checkout initiation
     if (window.plausible) plausible('Checkout Started', {props: {plan: planKey, billing: billingPeriod}, revenue: {currency: 'ILS', amount: monthlyTotal}});
 
-    // Redirect to AllPay payment page
-    if (data.data && data.data.paymentUrl) {
-      window.location.href = data.data.paymentUrl;
-    } else if (data.data && data.data.url) {
-      window.location.href = data.data.url;
-    } else {
+    var url = data.data && (data.data.paymentUrl || data.data.url);
+    if (!url) {
       showMsg('לא התקבל קישור לתשלום', true);
-      btn.disabled = false;
-      btn.textContent = 'לתשלום';
+      resetContinue();
+      return;
+    }
+
+    // Real AllPay payment url → embed Hosted Fields (when enabled). Otherwise
+    // (flag off, or test-mode bypass returns an onboarding url) → full-page
+    // redirect, as before.
+    if (HOSTED_FIELDS && /allpay\.(to|co\.il)/i.test(url)) {
+      startHostedFields(url);
+    } else {
+      window.location.href = url;
     }
   } catch (err) {
     showMsg('שגיאת תקשורת, נסו שוב', true);
-    btn.disabled = false;
-    btn.textContent = 'לתשלום';
+    resetContinue();
   }
 }
 
-// Enter key on phone field
-document.getElementById('cust-phone').addEventListener('keydown', function(e) {
+// Step 2 → swap the customer card for the AllPay Hosted Fields iframe.
+function startHostedFields(url) {
+  document.getElementById('customer-card').classList.add('hidden');
+  var pc = document.getElementById('payment-card');
+  pc.classList.remove('hidden');
+  document.getElementById('pay-amount').textContent = '₪' + monthlyTotal;
+
+  var iframe = document.getElementById('allpay-hf');
+  iframe.src = url;
+
+  try {
+    Allpay = new AllpayPayment({
+      iframeId: 'allpay-hf',
+      onSuccess: function () {
+        window.location.href = '/onboarding?instance=' + encodeURIComponent(instanceId);
+      },
+      onError: function (errNum, errMsg) {
+        showPayMsg('התשלום נכשל: ' + (errMsg || ('שגיאה ' + errNum)), true);
+        var b = document.getElementById('btn-pay');
+        b.disabled = false;
+        b.innerHTML = 'שלם ₪' + monthlyTotal + ' →';
+      }
+    });
+  } catch (e) {
+    // SDK blocked/unavailable → fall back to full-page redirect to AllPay
+    window.location.href = url;
+    return;
+  }
+
+  pc.scrollIntoView({ behavior: 'smooth' });
+}
+
+function doPay() {
+  if (!Allpay) { showPayMsg('הטופס עדיין נטען, נסו שוב בעוד רגע', true); return; }
+  var b = document.getElementById('btn-pay');
+  b.disabled = true;
+  b.innerHTML = '<span class="spinner"></span>מעבד תשלום...';
+  showPayMsg('', false);
+  try {
+    Allpay.pay();
+  } catch (e) {
+    showPayMsg('שגיאה בעיבוד התשלום, נסו שוב', true);
+    b.disabled = false;
+    b.innerHTML = 'שלם ₪' + monthlyTotal + ' →';
+  }
+}
+
+function backToDetails() {
+  document.getElementById('payment-card').classList.add('hidden');
+  document.getElementById('customer-card').classList.remove('hidden');
+  var btn = document.getElementById('btn-continue');
+  btn.disabled = false;
+  btn.innerHTML = 'המשך לתשלום →';
+}
+
+// Enter key on the name field submits step 1
+document.getElementById('cust-name').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') handleCheckout();
 });
 </script>
