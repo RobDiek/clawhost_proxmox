@@ -137,11 +137,11 @@ async function ghCommitRootFile(cfg: GithubCfg, filename: string, content: strin
 
 export async function runLlmsTxt(
     instanceId: string,
-    opts: { agentId?: string | null; businessName?: string; dryRun?: boolean } = {},
+    opts: { agentId?: string | null; businessName?: string; dryRun?: boolean; platform?: 'wordpress' | 'github' } = {},
 ): Promise<LlmsTxtResult> {
     const result: LlmsTxtResult = { ok: false, integrationMissing: false, platform: null, pages: 0, bytes: 0 }
 
-    const wp = await loadWpConfig(instanceId, opts.agentId)
+    const wp = opts.platform === 'github' ? null : await loadWpConfig(instanceId, opts.agentId)
     const ghc = wp ? null : await loadGithubConfig(instanceId, opts.agentId)
     if (!wp && !ghc) { result.integrationMissing = true; return result }
     result.platform = wp ? 'wordpress' : 'github'

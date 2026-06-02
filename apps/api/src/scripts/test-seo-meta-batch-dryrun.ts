@@ -131,8 +131,9 @@ async function main() {
         const { runLandingPage } = await import('@/services/seoLandingPage')
         const write = process.argv.includes('--write')
         const brief = 'דף נחיתה לבדיקה — קרטונים למעבר משרד לעסקים קטנים באזור המרכז. יתרונות: משלוח מהיר, מחיר משתלם, איכות. קריאה לפעולה: הזמנה אונליין.'
-        console.log(`\n=== landing page ${targetId} write=${write} ===`)
-        const res = await runLandingPage(targetId, brief, { agentId, businessName: 'פקינג סטיישן', dryRun: !write })
+        const platform = process.argv.includes('--github') ? 'github' as const : undefined
+        console.log(`\n=== landing page ${targetId} write=${write} platform=${platform || 'auto'} ===`)
+        const res = await runLandingPage(targetId, brief, { agentId, businessName: 'פקינג סטיישן', dryRun: !write, platform })
         console.log(`platform=${res.platform} ok=${res.ok} title="${res.title || ''}"${res.error ? ' error=' + res.error : ''}`)
         if (res.editUrl) console.log('editUrl:', res.editUrl)
         process.exit(0)
@@ -156,8 +157,9 @@ async function main() {
     if (process.argv.includes('--llms')) {
         const { runLlmsTxt } = await import('@/services/seoLlmsTxt')
         const write = process.argv.includes('--write')
-        console.log(`\n=== llms.txt ${targetId} agent=${agentId || 'first'} write=${write} ===`)
-        const res = await runLlmsTxt(targetId, { agentId, dryRun: !write })
+        const platform = process.argv.includes('--github') ? 'github' as const : undefined
+        console.log(`\n=== llms.txt ${targetId} agent=${agentId || 'first'} write=${write} platform=${platform || 'auto'} ===`)
+        const res = await runLlmsTxt(targetId, { agentId, dryRun: !write, platform })
         console.log(`platform=${res.platform} pages=${res.pages} bytes=${res.bytes} ok=${res.ok}${res.error ? ' error=' + res.error : ''}`)
         if (res.servedAt) console.log('served:', res.servedAt)
         process.exit(0)

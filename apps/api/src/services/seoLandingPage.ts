@@ -97,10 +97,10 @@ function faqSchema(draft: LandingDraft): string {
 export async function runLandingPage(
     instanceId: string,
     brief: string,
-    opts: { agentId?: string | null; businessName?: string; dryRun?: boolean } = {},
+    opts: { agentId?: string | null; businessName?: string; dryRun?: boolean; platform?: 'wordpress' | 'github' } = {},
 ): Promise<LandingPageResult> {
     const result: LandingPageResult = { ok: false, integrationMissing: false, platform: null }
-    const wp = await loadWpConfig(instanceId, opts.agentId)
+    const wp = opts.platform === 'github' ? null : await loadWpConfig(instanceId, opts.agentId)
     const ghc = wp ? null : await loadGithubConfig(instanceId, opts.agentId)
     if (!wp && !ghc) { result.integrationMissing = true; return result }
     result.platform = wp ? 'wordpress' : 'github'
