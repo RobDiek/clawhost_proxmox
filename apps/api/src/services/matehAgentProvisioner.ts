@@ -47,7 +47,7 @@ interface ProvisionResult {
 }
 
 const SECONDARY_PORT_BASE = 18790
-const ROOT_DOMAIN = 'clawflow.flowmatic.co.il'
+const ROOT_DOMAIN = 'flowmatic.co.il'
 
 /**
  * Allocates the next free loopback port on this VPS for a new agent.

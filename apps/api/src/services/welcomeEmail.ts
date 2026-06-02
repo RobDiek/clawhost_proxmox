@@ -219,8 +219,8 @@ export async function sendWelcomeEmailIfNeeded(args: SendArgs): Promise<{ sent: 
     const [user] = await db.select().from(users).where(eq(users.id, inst.userId))
     if (!user?.email) return { sent: false, reason: 'no user email' }
 
-    const agentUrl = inst.subdomainAgent || `agent.${inst.subdomainName}.clawflow.flowmatic.co.il`
-    const flowsUrl = inst.subdomainFlows || `flows.${inst.subdomainName}.clawflow.flowmatic.co.il`
+    const agentUrl = inst.subdomainAgent || `agent.${inst.subdomainName}.flowmatic.co.il`
+    const flowsUrl = inst.subdomainFlows || `flows.${inst.subdomainName}.flowmatic.co.il`
     const automationLabel = inst.automationTool === 'activepieces' ? 'Activepieces'
         : inst.automationTool === 'n8n' ? 'n8n' : 'Activepieces'
     const planLabel = PLAN_LABELS_HE[inst.planKey || ''] || inst.planKey || 'תוכנית פעילה'

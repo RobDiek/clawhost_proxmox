@@ -67,9 +67,9 @@ const provisioner = {
             cloudInitScript
         )
 
-        const subdomainAgent = `${name}.clawflow`
-        const subdomainFlows = `${name}-flows.clawflow`
-        const subdomainObs = `${name}-obs.clawflow`
+        const subdomainAgent = `${name}`
+        const subdomainFlows = `${name}-flows`
+        const subdomainObs = `${name}-obs`
 
         // Phase 4.3-O H5: partial-state alert. If DNS create fails AFTER the VPS
         // is already paid+created, user is stuck in half-state (paid but no URL).

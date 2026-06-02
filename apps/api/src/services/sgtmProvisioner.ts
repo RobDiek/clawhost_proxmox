@@ -34,7 +34,7 @@ import { instances } from '@/db/schema'
 import cloudflare from './cloudflare'
 import { sshExec, sshWriteFile } from '@/controllers/hosting/agentSetup'
 
-const ROOT_DOMAIN = 'clawflow.flowmatic.co.il'
+const ROOT_DOMAIN = 'flowmatic.co.il'
 const SGTM_PORT = 8090
 const SGTM_DIR = '/opt/openclaw/sgtm'
 const SGTM_IMAGE = 'gcr.io/cloud-tagging-10302018/gtm-cloud-image:stable'
