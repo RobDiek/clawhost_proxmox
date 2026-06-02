@@ -156,14 +156,37 @@ export async function executeMediaPlan(instanceId: string, opts: { dryRun?: bool
 
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) throw new Error('Instance not found')
-    const rd: any = inst.researchData || {}
+
+    // Read from the SAME store generateMediaPlan writes to — the primary agent's
+    // research_data (canonical). Previously this read instances.researchData
+    // (legacy/stale) + persisted via raw db.update(instances), so on any
+    // per-agent tenant the executor never saw the generated plan. Systemic fix.
+    const { resolvePrimaryAgent, readResearchData, writeResearchData } = await import('@/services/agentContext')
+    const agent = await resolvePrimaryAgent(instanceId)
+    const rd: any = (await readResearchData(agent, instanceId)) || {}
     const plan: MediaPlan = rd.mediaPlan || (rd.strategy && typeof rd.strategy === 'object' ? rd.strategy.mediaPlan : null)
     const profile = rd.paidProfile
 
-    const googleAdsConfig: any = inst.googleAdsConfig || {}
-    const customerId = googleAdsConfig.customerId as string
-    const loginCustomerId = googleAdsConfig.loginCustomerId || (googleAdsConfig.mccSubAccountId ? customerId : undefined)
-    const tokens = inst.googleTokens as any
+    // Per-agent Google Ads config + tokens (fall back to instance mirror).
+    const googleAdsConfig: any = (agent?.googleAdsConfig as any) || inst.googleAdsConfig || {}
+    // Resolve the OPERATING ad account (where campaigns actually live) vs the
+    // MANAGER (MCC). Campaigns can ONLY be created in the operating account — an
+    // MCC/manager cannot host campaigns. Systemic across all topologies:
+    //   • MCC tenants: scope.operatingCustomerId (or mccSubAccountId) = the
+    //     sub-account; customerId on the config is the manager → operate on the
+    //     sub-account with login-customer-id = manager.
+    //   • Direct accounts: no scope → operating == the account itself.
+    // (Previously this used googleAdsConfig.customerId directly, so on every MCC
+    // tenant campaign creation targeted the manager and failed.)
+    const managerCustomerId = String(googleAdsConfig.customerId || '')
+    const operatingCustomerId = String(
+        googleAdsConfig.scope?.operatingCustomerId || googleAdsConfig.mccSubAccountId || managerCustomerId,
+    )
+    const customerId = operatingCustomerId
+    const loginCustomerId = googleAdsConfig.loginCustomerId
+        || (operatingCustomerId !== managerCustomerId ? managerCustomerId : undefined)
+    console.log(`[mazhirExecutor] ${instanceId} agent=${agent?.id || '(none)'} operatingCustomerId=${customerId} loginCustomerId=${loginCustomerId || '(none)'} manager=${managerCustomerId} planCampaigns=${(plan?.campaigns || []).length}`)
+    const tokens = (agent?.googleTokens as any) || inst.googleTokens as any
     const tokenObj: any = {
         accessToken: tokens?.accessToken || '',
         refreshToken: tokens?.refreshToken,
@@ -313,9 +336,7 @@ export async function executeMediaPlan(instanceId: string, opts: { dryRun?: bool
             : plan.status,
     }
     if (!opts.dryRun) {
-        await db.update(instances).set({
-            researchData: { ...rd, mediaPlan: newPlan } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(agent, instanceId, { ...rd, mediaPlan: newPlan })
     }
 
     const finishedAt = new Date().toISOString()
@@ -336,9 +357,7 @@ export async function executeMediaPlan(instanceId: string, opts: { dryRun?: bool
             failed: failCount,
             perCampaign,
         })
-        await db.update(instances).set({
-            researchData: { ...rd, mazhirExecutionLog: log, mediaPlan: newPlan } as any,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(agent, instanceId, { ...rd, mazhirExecutionLog: log, mediaPlan: newPlan })
     }
 
     console.log(`[mazhirExecutor] ${instanceId}: status=${overallStatus} launched=${okCount}/${perCampaign.length} failed=${failCount}${opts.dryRun ? ' [DRY-RUN]' : ''}`)
