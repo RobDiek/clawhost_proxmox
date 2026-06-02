@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ClawFlow — לוח בקרה</title>
+<title>Flowmatic — לוח בקרה</title>
 <!-- ── Staging redirect (master canary only) ──
      This is the PROD dashboard — the stable version every paying client sees.
      Master accounts (canary) are redirected to /dashboard-staging where they
@@ -20,7 +20,7 @@
   } catch (e) { /* fall through to prod */ }
 })();
 </script>
-<meta name="description" content="לוח הבקרה של ClawFlow — ניהול סוכני AI, סטטוס שרתים, אינטגרציות ותשלומים."/>
+<meta name="description" content="לוח הבקרה של Flowmatic — ניהול סוכני AI, סטטוס שרתים, אינטגרציות ותשלומים."/>
 <meta name="robots" content="noindex, nofollow"/>
 <link rel="icon" href="/favicon.ico?v=cf2"/>
 <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=cf2"/>
@@ -830,7 +830,7 @@ input{font-family:inherit}
 <!-- Header -->
 <header class="header">
   <div class="header-right">
-    <a href="/dashboard" style="text-decoration:none"><img src="/logo-clawflow.png" alt="ClawFlow" style="height:36px"></a>
+    <a href="/dashboard" style="text-decoration:none"><img src="/logo-flowmatic.png" alt="Flowmatic" style="height:36px"></a>
     <!-- Agent Switcher -->
     <div class="agent-switcher" id="agentSwitcher">
       <button class="agent-switcher-btn" id="agentSwitcherBtn" onclick="toggleAgentSwitcher()">
@@ -1981,7 +1981,7 @@ input{font-family:inherit}
           </div>
           <input type="email" id="smtp-user" placeholder="אימייל / שם משתמש" dir="ltr" class="int-input" style="margin-bottom:4px"/>
           <input type="password" id="smtp-pass" placeholder="סיסמה / App Password" dir="ltr" class="int-input" style="margin-bottom:4px"/>
-          <input type="text" id="smtp-from" placeholder="שם השולח (ClawFlow)" class="int-input" style="margin-bottom:6px"/>
+          <input type="text" id="smtp-from" placeholder="שם השולח (Flowmatic)" class="int-input" style="margin-bottom:6px"/>
           <div style="display:flex;gap:6px">
             <button class="btn btn-primary btn-sm" onclick="saveSmtp()">שמרו</button>
             <button class="btn btn-outline btn-sm" onclick="testSmtp()">בדקו חיבור</button>
@@ -4954,7 +4954,7 @@ var FORMAT_NAMES_HE = {
 
 // Product SKU ref → Hebrew display name
 var PRODUCT_NAMES_HE = {
-  course_199: 'קורס ₪199', course_1499: 'קורס ₪1,499', clawflow: 'ClawFlow',
+  course_199: 'קורס ₪199', course_1499: 'קורס ₪1,499', clawflow: 'Flowmatic',
   mixed: 'משולב', none: 'ללא'
 };
 
@@ -7449,31 +7449,31 @@ var PUBLISH_GUIDES = {
     title: 'מדריך חיבור LinkedIn',
     steps: [
       { title: 'צרו LinkedIn Developer App', desc: 'היכנסו ל-<a href="https://www.linkedin.com/developers/apps" target="_blank" dir="ltr">linkedin.com/developers/apps</a> ← "Create App".' },
-      { title: 'הגדירו את האפליקציה', desc: 'שם: "ClawFlow Publisher" ← בחרו את דף החברה שלכם ← אשרו תנאים.' },
+      { title: 'הגדירו את האפליקציה', desc: 'שם: "Flowmatic Publisher" ← בחרו את דף החברה שלכם ← אשרו תנאים.' },
       { title: 'בקשו הרשאות', desc: 'Products ← בקשו "Share on LinkedIn" ו-"Sign in with LinkedIn using OpenID Connect".' },
       { title: 'הגדירו OAuth Redirect', desc: 'Auth ← Redirect URL ← הוסיפו: <code dir="ltr">https://api.clawflow.flowmatic.co.il/hosting/integrations/linkedin/callback</code>' },
       { title: 'העתיקו Client ID & Secret', desc: 'Auth ← העתיקו את Client ID ו-Client Secret.' },
-      { title: 'חזרו ולחצו "חברו LinkedIn"', desc: 'ב-ClawFlow תתבצע הפניה אוטומטית ל-LinkedIn לאישור.' }
+      { title: 'חזרו ולחצו "חברו LinkedIn"', desc: 'ב-Flowmatic תתבצע הפניה אוטומטית ל-LinkedIn לאישור.' }
     ]
   },
   twitter: {
     title: 'מדריך חיבור Twitter / X',
     steps: [
       { title: 'צרו Developer Account', desc: 'היכנסו ל-<a href="https://developer.twitter.com" target="_blank" dir="ltr">developer.twitter.com</a> ← "Sign Up" ← אשרו את חשבון המפתח.' },
-      { title: 'צרו Project ו-App', desc: 'Developer Portal ← "Projects & Apps" ← "New Project" ← שם: "ClawFlow" ← "New App".' },
+      { title: 'צרו Project ו-App', desc: 'Developer Portal ← "Projects & Apps" ← "New Project" ← שם: "Flowmatic" ← "New App".' },
       { title: 'הגדירו OAuth 2.0', desc: 'App Settings ← "User authentication settings" ← Enable OAuth 2.0 ← Type: "Web App".' },
       { title: 'Redirect URL', desc: 'הוסיפו: <code dir="ltr">https://api.clawflow.flowmatic.co.il/hosting/integrations/twitter/callback</code>' },
       { title: 'העתיקו Keys', desc: 'Keys & Tokens ← העתיקו Client ID ו-Client Secret.' },
-      { title: 'חזרו ולחצו "חברו X"', desc: 'ב-ClawFlow תתבצע הפניה אוטומטית ל-Twitter/X לאישור.' }
+      { title: 'חזרו ולחצו "חברו X"', desc: 'ב-Flowmatic תתבצע הפניה אוטומטית ל-Twitter/X לאישור.' }
     ]
   },
   wordpress: {
     title: 'מדריך חיבור WordPress',
     steps: [
       { title: 'היכנסו ל-WordPress Admin', desc: 'היכנסו לאתר שלכם ← wp-admin ← "משתמשים" ← "הפרופיל שלי".' },
-      { title: 'צרו Application Password', desc: 'גללו למטה ל-"Application Passwords" ← שם: "ClawFlow" ← לחצו "Add New Application Password".' },
+      { title: 'צרו Application Password', desc: 'גללו למטה ל-"Application Passwords" ← שם: "Flowmatic" ← לחצו "Add New Application Password".' },
       { title: 'העתיקו את הסיסמה', desc: 'הסיסמה תופיע <strong>פעם אחת בלבד</strong> — העתיקו אותה מיד!' },
-      { title: 'הדביקו ב-ClawFlow', desc: 'הזינו את כתובת האתר, שם המשתמש, וה-Application Password למעלה ← "שמרו".' }
+      { title: 'הדביקו ב-Flowmatic', desc: 'הזינו את כתובת האתר, שם המשתמש, וה-Application Password למעלה ← "שמרו".' }
     ]
   },
   googleads: {
@@ -10442,7 +10442,7 @@ async function draftPlanItemNow(itemId) {
 
 // ── Manual publish UX for content plan items ────────────────────────────
 // Flow: user sees a planned item → clicks "Copy" → pastes into FB/IG/LinkedIn
-// externally → comes back to ClawFlow → clicks "Mark as published" → pastes
+// externally → comes back to Flowmatic → clicks "Mark as published" → pastes
 // platform post id or URL → our metrics collector starts tracking it.
 function copyPlanItemForPublish(itemId) {
   var plan = (typeof getContentPlan === 'function') ? getContentPlan() : [];
@@ -16550,7 +16550,7 @@ async function saveSmtp() {
     secure: document.getElementById('smtp-secure').value,
     user: document.getElementById('smtp-user').value.trim(),
     pass: document.getElementById('smtp-pass').value,
-    from: document.getElementById('smtp-from').value.trim() || 'ClawFlow',
+    from: document.getElementById('smtp-from').value.trim() || 'Flowmatic',
   };
   if (!config.host || !config.user || !config.pass) { showToast('מלאו את כל השדות', 'error'); return; }
   var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'שומר SMTP');
@@ -17033,7 +17033,7 @@ function copyToClipboard(text) {
 }
 
 function logout() {
-  // Clear ALL ClawFlow-scoped localStorage so the next login starts clean.
+  // Clear ALL Flowmatic-scoped localStorage so the next login starts clean.
   // Without this, cf_hidden_tasks and per-integration cf_*_saved flags from
   // previous user persist and corrupt the new account's UI state.
   try {
@@ -20167,7 +20167,7 @@ function renderGhStep1() {
     '<li style="counter-increment:gh-step;background:#FAFAFA;border-right:3px solid #2563EB;padding:12px 16px;border-radius:6px;margin-bottom:10px">' +
     '<div style="font-weight:600;color:#1E3A5F;margin-bottom:6px">מלאו את הטופס:</div>' +
     '<div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:0.85rem;line-height:1.6">' +
-    '<div style="color:#6B7280">Token name:</div><div><code style="background:#E0E7FF;padding:2px 6px;border-radius:4px">ClawFlow — &lt;שם העסק&gt;</code></div>' +
+    '<div style="color:#6B7280">Token name:</div><div><code style="background:#E0E7FF;padding:2px 6px;border-radius:4px">Flowmatic — &lt;שם העסק&gt;</code></div>' +
     '<div style="color:#6B7280">Expiration:</div><div>90 days (מומלץ)</div>' +
     '<div style="color:#6B7280">Resource owner:</div><div>החשבון או ה-organization של ה-repo</div>' +
     '<div style="color:#6B7280">Repository access:</div><div><strong>"Only select repositories"</strong> → בחרו את ה-repo</div>' +

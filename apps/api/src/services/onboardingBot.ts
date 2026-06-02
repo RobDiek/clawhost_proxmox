@@ -43,7 +43,7 @@ async function handleMessage(chatId: number, text: string, userId: number): Prom
     if (text === '/start' || text === '/setup' || !session) {
         if (text === '/start') {
             await sendMessage(chatId,
-                `👋 *שלום! אני הבוט של ClawFlow.*\n\n` +
+                `👋 *שלום! אני הבוט של Flowmatic.*\n\n` +
                 `אני יכול להגדיר את מערכת הסוכנים שלכם תוך כמה דקות.\n\n` +
                 `כדי להתחיל, שלחו לי את מזהה ה-Instance שלכם:\n` +
                 `(תמצאו אותו בלוח הבקרה → הגדרות → מתקדם)\n\n` +

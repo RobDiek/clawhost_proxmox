@@ -1,6 +1,6 @@
 /**
  * Objective Transition Runner — apply the tenant's chosen bidding objective to
- * IMPORTED / existing Google Ads campaigns (the ones ClawFlow didn't launch, so
+ * IMPORTED / existing Google Ads campaigns (the ones Flowmatic didn't launch, so
  * they have no bidContract and the launch-path bidTransitionRunner never touches
  * them — e.g. Packing Station's Pmax/Search campaigns on a shared MCC).
  *

@@ -3,7 +3,7 @@
  *
  * Per-vertical "what's a realistic outcome at month 6 / 12" reference data.
  * Sourced from: Israeli SEO agency case studies, Ahrefs IL cohort data,
- * Search Console aggregates from active ClawFlow tenants. Used by validation
+ * Search Console aggregates from active Flowmatic tenants. Used by validation
  * stage to flag "this forecast is too optimistic / too pessimistic for an
  * IL business in this vertical".
  *

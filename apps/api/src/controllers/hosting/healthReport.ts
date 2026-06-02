@@ -79,7 +79,7 @@ export const healthReport = async (c: Context) => {
                 lastAlertTimes.set(alertKey, Date.now())
 
                 const subdomain = instance.subdomainName || instanceId
-                const msg = `⚠️ *ClawFlow Alert*\n\n${alerts.join('\n')}\n\n` +
+                const msg = `⚠️ *Flowmatic Alert*\n\n${alerts.join('\n')}\n\n` +
                     `Instance: ${subdomain}\n` +
                     `CPU: ${body.cpu}% · RAM: ${body.ram}% · Disk: ${body.disk}%`
 

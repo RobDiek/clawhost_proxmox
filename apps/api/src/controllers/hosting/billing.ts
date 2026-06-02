@@ -182,8 +182,8 @@ export const checkout = async (c: Context<HonoEnv>) => {
             status: 'pending'
         })
         const planLabel = isAnnual
-            ? `ClawFlow — ${pricing.plan.nameHe} (שנתי)`
-            : `ClawFlow — ${pricing.plan.nameHe}`
+            ? `Flowmatic — ${pricing.plan.nameHe} (שנתי)`
+            : `Flowmatic — ${pricing.plan.nameHe}`
 
         try {
             paymentUrl = await allpay.createSubscription({
@@ -253,7 +253,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
                                         email: customerEmail || 'admin@clawflow.local',
-                                        firstName: 'ClawFlow', lastName: 'Admin',
+                                        firstName: 'Flowmatic', lastName: 'Admin',
                                         password: result.automationPassword + '1'
                                     }),
                                     signal: AbortSignal.timeout(10000)
@@ -461,7 +461,7 @@ export const handleAllpayWebhook = async (c: Context) => {
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 email: ownerEmail,
-                                firstName: 'ClawFlow',
+                                firstName: 'Flowmatic',
                                 lastName: 'Admin',
                                 password: result.automationPassword + '1'
                             }),

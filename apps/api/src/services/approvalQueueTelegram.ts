@@ -28,7 +28,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { agentOutputs, instances } from '@/db/schema'
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://clawflow.flowmatic.co.il'
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://app.flowmatic.co.il'
 const API_URL = process.env.API_URL || 'https://api.clawflow.flowmatic.co.il'
 
 // ─── Hebrew channel/output-type labels ─────────────────────────────────────

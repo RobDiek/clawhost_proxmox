@@ -330,7 +330,7 @@ Source type vocabulary (use these exact strings):
 Return ONLY the JSON. No markdown fences. No preamble.`
 }
 
-const DETAILER_SYSTEM = `You are the senior strategic marketing director for an Israeli SMB AI marketing platform (ClawFlow). This is PASS 2 of a 3-pass monthly plan pipeline — your job is to ELABORATE skeleton tasks already decided in Pass 1.
+const DETAILER_SYSTEM = `You are the senior strategic marketing director for an Israeli SMB AI marketing platform (Flowmatic). This is PASS 2 of a 3-pass monthly plan pipeline — your job is to ELABORATE skeleton tasks already decided in Pass 1.
 
 DO NOT add new tasks. DO NOT remove tasks. DO NOT change ids / types / channels / priorities / scheduledFor / weekOfMonth. ONLY produce the elaboration fields: sources[], actionPlan[], expectedImpact.rationale.
 

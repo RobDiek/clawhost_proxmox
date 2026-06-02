@@ -986,7 +986,7 @@ export const testWordpress = async (c: Context) => {
                 method: 'GET',
                 headers: {
                     'Authorization': `Basic ${basic}`,
-                    'User-Agent': 'ClawFlow-Integration-Test/1.0',
+                    'User-Agent': 'Flowmatic-Integration-Test/1.0',
                     'Accept': 'application/json',
                 },
                 signal: AbortSignal.timeout(15000),
@@ -1084,9 +1084,9 @@ if not host or not user:
     print('ERROR: SMTP not configured')
     exit(1)
 
-msg = MIMEText('This is a test email from ClawFlow SMTP integration.\\n\\nIf you see this, SMTP is configured correctly!', 'plain', 'utf-8')
-msg['Subject'] = 'ClawFlow SMTP Test'
-msg['From'] = 'ClawFlow <' + user + '>'
+msg = MIMEText('This is a test email from Flowmatic SMTP integration.\\n\\nIf you see this, SMTP is configured correctly!', 'plain', 'utf-8')
+msg['Subject'] = 'Flowmatic SMTP Test'
+msg['From'] = 'Flowmatic <' + user + '>'
 msg['To'] = '${to.replace(/'/g, '')}'
 
 if port == 465:

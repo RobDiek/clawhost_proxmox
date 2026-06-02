@@ -3,7 +3,7 @@
  * Phase 2026.02 Block 6 Pattern J.
  *
  * Handles:
- *   - Build ClawFlow companion plugin .zip from scripts/clawflow-companion-plugin.php
+ *   - Build Flowmatic companion plugin .zip from scripts/clawflow-companion-plugin.php
  *   - Install + activate plugin via WP REST /wp/v2/plugins endpoint
  *   - Scan site for stale GTM- snippets after install
  *   - Remove stale snippet wp_options after user confirmation
@@ -230,7 +230,7 @@ export async function buildCompanionPluginZip(): Promise<Buffer> {
 }
 
 /**
- * Check + activate the ClawFlow companion plugin via WP REST API.
+ * Check + activate the Flowmatic companion plugin via WP REST API.
  *
  * WordPress's POST /wp/v2/plugins requires a `slug` from the public
  * WP.org plugin directory — there is NO standard REST mechanism for
@@ -287,7 +287,7 @@ export async function installCompanionPlugin(cfg: WpCfg): Promise<InstallResult>
     }
 }
 
-// ─── ClawFlow REST helpers ────────────────────────────────────────────────
+// ─── Flowmatic REST helpers ────────────────────────────────────────────────
 
 export async function scanStaleGtmSnippets(cfg: WpCfg): Promise<ScanResult> {
     return await wpPostJson(cfg, '/wp-json/clawflow/v1/scan-other-gtm', {})
@@ -433,7 +433,7 @@ export interface SiteTrackingScan {
 export async function scanSiteHtmlForGtm(siteUrl: string): Promise<SiteGtmScan> {
     const url = normalizeWpUrl(siteUrl)
     try {
-        const res = await fetch(url, { headers: { 'User-Agent': 'ClawFlow GTM Scanner/1.0' } })
+        const res = await fetch(url, { headers: { 'User-Agent': 'Flowmatic GTM Scanner/1.0' } })
         const html = await res.text().catch(() => '')
         const re = /GTM-[A-Z0-9]{4,}/g
         const seen = new Set<string>()
@@ -476,7 +476,7 @@ export async function scanSiteHtmlForGtm(siteUrl: string): Promise<SiteGtmScan> 
 export async function scanSiteHtmlForTrackingIds(siteUrl: string): Promise<SiteTrackingScan> {
     const url = normalizeWpUrl(siteUrl)
     try {
-        const res = await fetch(url, { headers: { 'User-Agent': 'ClawFlow Tracking Scanner/1.0' } })
+        const res = await fetch(url, { headers: { 'User-Agent': 'Flowmatic Tracking Scanner/1.0' } })
         const html = await res.text().catch(() => '')
         const directLoads: DirectTrackingLoad[] = []
 

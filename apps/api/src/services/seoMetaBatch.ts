@@ -241,7 +241,7 @@ ${JSON.stringify(list, null, 2)}
  *
  * Writes the underlying Yoast + Rank Math post-meta keys via the core `meta`
  * field. These keys are protected/custom and NOT REST-writable by default —
- * the ClawFlow companion plugin (v1.7.0+) registers them with show_in_rest +
+ * the Flowmatic companion plugin (v1.7.0+) registers them with show_in_rest +
  * an edit auth_callback, which is what makes this persist. The active SEO
  * plugin reads its own key; the other key is harmless extra post meta.
  *

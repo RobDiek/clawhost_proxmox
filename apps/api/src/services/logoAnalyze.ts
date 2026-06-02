@@ -147,7 +147,7 @@ async function loadImageBytes(url: string): Promise<{ bytes: Uint8Array | null; 
         const ctrl = new AbortController()
         const timer = setTimeout(() => ctrl.abort(), 15000)
         const res = await fetch(url, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ClawFlowBrandBot/1.0)' },
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FlowmaticBrandBot/1.0)' },
             redirect: 'follow',
             signal: ctrl.signal,
         })

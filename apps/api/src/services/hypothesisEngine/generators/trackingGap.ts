@@ -64,19 +64,19 @@ export async function generateTrackingGap(ctx: GeneratorContext): Promise<Hypoth
             manualInstructions: [
                 {
                     step: 1,
-                    platformLabel: 'ClawFlow Dashboard',
+                    platformLabel: 'Flowmatic Dashboard',
                     actionLabel: 'Go to "ניהול שיווק" → Paid Channels → Connect Meta Business Manager. Authorize the ad account.',
                     actionLabelHe: 'גשו ל"ניהול שיווק" → ערוצים בתשלום → חברו Meta Business Manager. אשרו את חשבון המודעות.',
                 },
                 {
                     step: 2,
-                    platformLabel: 'ClawFlow Dashboard',
+                    platformLabel: 'Flowmatic Dashboard',
                     actionLabel: 'Same screen → Connect Google Ads. Choose the customer ID (or MCC sub-account) for your business.',
                     actionLabelHe: 'אותו מסך → חברו Google Ads. בחרו את customer ID (או חשבון משני של MCC) של העסק.',
                 },
                 {
                     step: 3,
-                    platformLabel: 'ClawFlow Dashboard',
+                    platformLabel: 'Flowmatic Dashboard',
                     actionLabel: 'Wait 24 hours; daily sync will populate ingested_data_points with OAuth-grade rows.',
                     actionLabelHe: 'המתינו 24 שעות; הסנכרון היומי יאכלס את הנתונים עם שורות באיכות OAuth.',
                 },

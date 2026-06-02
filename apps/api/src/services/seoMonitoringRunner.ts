@@ -248,7 +248,7 @@ async function runKnowledgePanelStatus(agent: MatehAgentRow, instanceId: string,
     if (brandName) {
         try {
             const url = `https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=he&search=${encodeURIComponent(brandName)}&limit=3`
-            const res = await fetch(url, { headers: { 'User-Agent': 'ClawFlow-K28-Monitor/1.0' }, signal: AbortSignal.timeout(15000) })
+            const res = await fetch(url, { headers: { 'User-Agent': 'Flowmatic-K28-Monitor/1.0' }, signal: AbortSignal.timeout(15000) })
             if (res.ok) {
                 const data: any = await res.json()
                 if (Array.isArray(data?.search) && data.search.length > 0) {

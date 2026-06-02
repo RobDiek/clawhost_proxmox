@@ -375,7 +375,7 @@ Output STRICT JSON. No markdown fences. No commentary. Schema:
 Return ONLY the JSON.`
 }
 
-const SKELETON_SYSTEM = `You are the senior strategic marketing director for an Israeli SMB AI marketing platform (ClawFlow). This is PASS 1 of a 3-pass monthly plan pipeline — your job is to decide WHAT belongs in the month and WHEN, NOT how it gets executed.
+const SKELETON_SYSTEM = `You are the senior strategic marketing director for an Israeli SMB AI marketing platform (Flowmatic). This is PASS 1 of a 3-pass monthly plan pipeline — your job is to decide WHAT belongs in the month and WHEN, NOT how it gets executed.
 
 ═══ HARD POLICY (NON-NEGOTIABLE) ═══
 

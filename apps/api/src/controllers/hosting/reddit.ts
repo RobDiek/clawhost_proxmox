@@ -22,7 +22,7 @@ import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
-const REDDIT_USER_AGENT = 'ClawFlow:openclaw-agents:v1.0 (by /u/clawflow-bot)'
+const REDDIT_USER_AGENT = 'Flowmatic:openclaw-agents:v1.0 (by /u/clawflow-bot)'
 
 // Authenticate with Reddit via password grant (script apps only).
 // Returns { access_token, expires_in } or throws.

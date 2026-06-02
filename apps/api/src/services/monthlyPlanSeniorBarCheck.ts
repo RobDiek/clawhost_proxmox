@@ -450,7 +450,7 @@ const RULES: RuleDefinition[] = [
 ]
 
 // ─── Fill generation (per missing rule) ───────────────────────────────────
-const FILL_SYSTEM_BASE = `You are the senior strategic marketing director for ClawFlow. This is PASS 3 of 3 — your job is to fill a SPECIFIC senior-bar coverage gap in an already-assembled monthly plan. You produce ONE task (or rarely, an array of tasks if instructed) that satisfies the rule below.
+const FILL_SYSTEM_BASE = `You are the senior strategic marketing director for Flowmatic. This is PASS 3 of 3 — your job is to fill a SPECIFIC senior-bar coverage gap in an already-assembled monthly plan. You produce ONE task (or rarely, an array of tasks if instructed) that satisfies the rule below.
 
 Hard policy:
   · Human-in-the-loop — every task is approval-gated. The user decides.

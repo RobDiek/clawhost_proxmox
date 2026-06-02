@@ -308,7 +308,7 @@ export async function auditGoogleAdsSafety(opts: AdsSafetyAuditInput): Promise<A
                 severity: snap.changeEventsLast7d >= 10 ? 'high' : 'medium',
                 category: 'change_history',
                 summary: `${snap.changeEventsLast7d} significant changes in last 7 days — account instability`,
-                detail: `Audit playbook §4.5 requires 14-day stability window for Smart Bidding to learn. Changes by: ${userBreakdown}. Recommend manual 14-day change freeze. (Note: ClawFlow does NOT auto-freeze — surfaced for awareness.)`,
+                detail: `Audit playbook §4.5 requires 14-day stability window for Smart Bidding to learn. Changes by: ${userBreakdown}. Recommend manual 14-day change freeze. (Note: Flowmatic does NOT auto-freeze — surfaced for awareness.)`,
                 autoFixable: false,
             })
         }
@@ -507,7 +507,7 @@ export async function createAndAttachNegativesList(opts: {
         campaignsAttached: 0,
         errors: [] as string[],
     }
-    const sharedSetName = opts.sharedSetName || 'ClawFlow — Default IL Wasteful Negatives'
+    const sharedSetName = opts.sharedSetName || 'Flowmatic — Default IL Wasteful Negatives'
 
     // 1. Find or create shared set
     try {

@@ -70,7 +70,7 @@ async function wpCorpus(cfg: WpCfg): Promise<PageEntry[]> {
 async function ghCorpus(cfg: GithubCfg): Promise<PageEntry[]> {
     const out: PageEntry[] = []
     const res = await fetchRetry(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.contentPath}?ref=${encodeURIComponent(cfg.branch)}`, {
-        headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github.v3+json', 'User-Agent': 'ClawFlow-SEO' }, signal: AbortSignal.timeout(30000),
+        headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github.v3+json', 'User-Agent': 'Flowmatic-SEO' }, signal: AbortSignal.timeout(30000),
     })
     if (!res.ok) return out
     const entries = await res.json() as Array<{ type?: string; name?: string; path?: string }>
@@ -113,7 +113,7 @@ ${JSON.stringify(list, null, 2)}
 }
 
 async function ghCommitRootFile(cfg: GithubCfg, filename: string, content: string): Promise<string> {
-    const h = { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github.v3+json', 'User-Agent': 'ClawFlow-SEO', 'Content-Type': 'application/json' }
+    const h = { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github.v3+json', 'User-Agent': 'Flowmatic-SEO', 'Content-Type': 'application/json' }
     const refRes = await fetchRetry(`https://api.github.com/repos/${cfg.repo}/git/ref/heads/${encodeURIComponent(cfg.branch)}`, { headers: h })
     const baseSha = ((await refRes.json()) as { object?: { sha?: string } }).object?.sha
     if (!baseSha) throw new Error('no base sha')
@@ -129,7 +129,7 @@ async function ghCommitRootFile(cfg: GithubCfg, filename: string, content: strin
         body: JSON.stringify({ message: `SEO: add ${filename} for AI crawlers`, content: Buffer.from(content, 'utf-8').toString('base64'), branch: newBranch, sha }),
     })
     if (!put.ok) throw new Error(`put ${filename} ${put.status}`)
-    const pr = await fetchRetry(`https://api.github.com/repos/${cfg.repo}/pulls`, { method: 'POST', headers: h, body: JSON.stringify({ title: `ClawFlow SEO: ${filename}`, head: newBranch, base: cfg.branch, body: 'Automated llms.txt for AI crawlers by ClawFlow.' }) })
+    const pr = await fetchRetry(`https://api.github.com/repos/${cfg.repo}/pulls`, { method: 'POST', headers: h, body: JSON.stringify({ title: `Flowmatic SEO: ${filename}`, head: newBranch, base: cfg.branch, body: 'Automated llms.txt for AI crawlers by Flowmatic.' }) })
     if (pr.ok) return ((await pr.json()) as { html_url?: string }).html_url || `branch:${newBranch}`
     if (pr.status === 422) return `branch:${newBranch}`
     throw new Error(`open PR ${pr.status}`)

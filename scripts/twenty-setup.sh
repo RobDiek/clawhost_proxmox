@@ -3,7 +3,7 @@
 # Usage: bash twenty-setup.sh <email> <password>
 
 EMAIL="${1:-admin@clawflow.co.il}"
-PASS="${2:-ClawFlow2026!}"
+PASS="${2:-Flowmatic2026!}"
 
 dbcmd() {
   PGPASSWORD=twenty docker exec -e PGPASSWORD=twenty openclaw-twenty-db-1 psql -U twenty -d twenty -t -A -c "$1"
@@ -33,7 +33,7 @@ USER_ID=$(dbcmd "SELECT id FROM core.\"user\" WHERE email='$EMAIL' AND \"deleted
 echo "User: $USER_ID"
 
 # Create workspace
-dbcmd "INSERT INTO core.workspace (id, \"displayName\", subdomain, \"activationStatus\", \"createdAt\", \"updatedAt\") VALUES ('$WS_ID', 'ClawFlow CRM', 'twenty', 'ACTIVE', NOW(), NOW());"
+dbcmd "INSERT INTO core.workspace (id, \"displayName\", subdomain, \"activationStatus\", \"createdAt\", \"updatedAt\") VALUES ('$WS_ID', 'Flowmatic CRM', 'twenty', 'ACTIVE', NOW(), NOW());"
 echo "Workspace: $WS_ID"
 
 # Link user to workspace

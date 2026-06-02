@@ -23,7 +23,7 @@ export const getMyReferralCode = async (c: Context) => {
         if (existing.length > 0) {
             return ok(c, {
                 code: existing[0].referralCode,
-                link: `https://clawflow.flowmatic.co.il/?ref=${existing[0].referralCode}`,
+                link: `https://app.flowmatic.co.il/?ref=${existing[0].referralCode}`,
             }, 'Referral code')
         }
 
@@ -36,7 +36,7 @@ export const getMyReferralCode = async (c: Context) => {
 
         return ok(c, {
             code,
-            link: `https://clawflow.flowmatic.co.il/?ref=${code}`,
+            link: `https://app.flowmatic.co.il/?ref=${code}`,
         }, 'Referral code created')
     } catch (err) {
         console.error('getMyReferralCode error:', err)
@@ -174,7 +174,7 @@ export async function rewardReferrer(instanceId: string): Promise<void> {
 
             if (inst.telegramChatId) {
                 await telegram.sendMessage(inst.telegramChatId,
-                    '🎉 חבר שלך הצטרף ל-ClawFlow! קיבלתם שניכם חודש נוסף בחינם.').catch(() => {})
+                    '🎉 חבר שלך הצטרף ל-Flowmatic! קיבלתם שניכם חודש נוסף בחינם.').catch(() => {})
             }
         }
 

@@ -1,4 +1,4 @@
-// ClawFlow Chat Widget
+// Flowmatic Chat Widget
 (function() {
   const WS_URL = 'wss://api.clawflow.flowmatic.co.il/ws/chat';
   let ws = null;
@@ -60,7 +60,7 @@
     win.innerHTML = `
       <div id="cf-chat-header">
         <div>
-          <h4>ClawFlow</h4>
+          <h4>Flowmatic</h4>
           <div id="cf-chat-status">מחוברים</div>
         </div>
         <button onclick="document.getElementById('cf-chat-window').classList.remove('open')">✕</button>

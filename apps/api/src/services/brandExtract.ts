@@ -71,7 +71,7 @@ export interface ExtractedBrandSignals {
 }
 
 const USER_AGENT =
-    'Mozilla/5.0 (compatible; ClawFlowBrandBot/1.0; +https://clawflow.flowmatic.co.il)'
+    'Mozilla/5.0 (compatible; FlowmaticBrandBot/1.0; +https://clawflow.flowmatic.co.il)'
 
 const FETCH_TIMEOUT_MS = 15000
 const MAX_HTML_BYTES = 2 * 1024 * 1024   // 2MB cap
@@ -179,7 +179,7 @@ export async function extractBrandFromUrl(
         if (/\blogo\b/.test(src.toLowerCase())) { priority += 25; hints.push('src contains "logo"') }
         if (/\.svg(\?|$)/i.test(absSrc)) { priority += 15; hints.push('SVG format') }
         // Alt text equals (or closely matches) business name — strong signal
-        // BUT only if alt is SHORT (real logo alt is "ClawFlow", not a marketing caption mentioning the brand)
+        // BUT only if alt is SHORT (real logo alt is "Flowmatic", not a marketing caption mentioning the brand)
         const altLower = altText.toLowerCase().trim()
         if (brandNameCandidate && altText && altText.length <= 40) {
             const isExact = altLower === brandNameCandidate

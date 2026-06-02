@@ -4,7 +4,7 @@
  * Builds a conversion-focused landing page (hero → value props → social proof →
  * CTA → FAQ) in Hebrew from the approved task brief + business context, then:
  *   WP     → creates a PAGE as DRAFT (status='draft') so the user reviews +
- *            publishes in WP. Sets Yoast/Rank Math meta + ClawFlow schema.
+ *            publishes in WP. Sets Yoast/Rank Math meta + Flowmatic schema.
  *   GitHub → commits a new MDX file in contentPath on a branch + PR.
  *
  * Draft-first by design: a new public page is high-stakes, so even post-approval
@@ -139,7 +139,7 @@ export async function runLandingPage(
             result.editUrl = `${base}/wp-admin/post.php?post=${j.id}&action=edit`
         } else {
             const cfg = ghc!
-            const h = { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github.v3+json', 'User-Agent': 'ClawFlow-SEO', 'Content-Type': 'application/json' }
+            const h = { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github.v3+json', 'User-Agent': 'Flowmatic-SEO', 'Content-Type': 'application/json' }
             const refRes = await fetchRetry(`https://api.github.com/repos/${cfg.repo}/git/ref/heads/${encodeURIComponent(cfg.branch)}`, { headers: h })
             const baseSha = ((await refRes.json()) as { object?: { sha?: string } }).object?.sha
             if (!baseSha) throw new Error('no base sha')
@@ -153,7 +153,7 @@ export async function runLandingPage(
                 body: JSON.stringify({ message: `Landing page: ${draft.title}`, content: Buffer.from(fm + html, 'utf-8').toString('base64'), branch: newBranch }),
             })
             if (!put.ok) throw new Error(`put ${put.status}`)
-            const pr = await fetchRetry(`https://api.github.com/repos/${cfg.repo}/pulls`, { method: 'POST', headers: h, body: JSON.stringify({ title: `ClawFlow landing: ${draft.title}`, head: newBranch, base: cfg.branch, body: 'Draft landing page by ClawFlow — review and merge.' }) })
+            const pr = await fetchRetry(`https://api.github.com/repos/${cfg.repo}/pulls`, { method: 'POST', headers: h, body: JSON.stringify({ title: `Flowmatic landing: ${draft.title}`, head: newBranch, base: cfg.branch, body: 'Draft landing page by Flowmatic — review and merge.' }) })
             result.editUrl = pr.ok ? (((await pr.json()) as { html_url?: string }).html_url || `branch:${newBranch}`) : `branch:${newBranch}`
         }
         result.ok = true

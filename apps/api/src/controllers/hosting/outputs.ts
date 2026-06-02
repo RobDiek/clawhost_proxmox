@@ -214,7 +214,7 @@ export const ingestOutput = async (c: Context<HonoEnv>) => {
 }
 
 // ── GET /hosting/instances/:id/wp/companion-plugin.zip ──
-// Phase 2026.02 Block 6 Pattern J: streams the ClawFlow companion plugin
+// Phase 2026.02 Block 6 Pattern J: streams the Flowmatic companion plugin
 // .zip so the user can install via WP Admin → Plugins → Add New →
 // Upload Plugin. WordPress REST POST /wp/v2/plugins requires a
 // WordPress.org `slug` — there's no standard REST endpoint for custom
@@ -763,7 +763,7 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
         // ── 3. WP companion plugin install + snippet inject + stale GTM scan ──
         // Phase 2026.02 Block 6 Pattern J. Three sub-steps with full
         // hands-off goal (handle the WP integration end-to-end):
-        //   3a. Install ClawFlow companion plugin via WP REST /wp/v2/plugins
+        //   3a. Install Flowmatic companion plugin via WP REST /wp/v2/plugins
         //       (multipart .zip upload; only needs Application Password)
         //   3b. POST our GTM snippet to /wp-json/clawflow/v1/gtm-snippet
         //   3c. Scan site for stale GTM- snippets (foreign IDs) — surface
@@ -804,7 +804,7 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                 // 3a. Install + activate companion plugin
                 const pluginRes = await installCompanionPlugin(cfg)
                 chainSteps.push({
-                    step: 'WP ClawFlow companion plugin',
+                    step: 'WP Flowmatic companion plugin',
                     ok: pluginRes.installed && pluginRes.activated,
                     detail: pluginRes.installed && pluginRes.activated
                         ? `${pluginRes.method} · ${pluginRes.notes.join('; ').slice(0, 300)}`
@@ -2068,7 +2068,7 @@ async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
     }
 
     // Imported-campaign objective transition approved → apply tROAS/tCPA to an
-    // existing (non-ClawFlow-launched) campaign, handling Pmax vs standard fields
+    // existing (non-Flowmatic-launched) campaign, handling Pmax vs standard fields
     // and the MCC operating/login customer ids.
     if (output.outputType === 'imported_objective_transition') {
         console.log(`Imported objective transition approved: ${output.id} → applying`)
@@ -2948,7 +2948,7 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${cfgData.accessToken}`,
-                                'User-Agent': cfgData.userAgent || 'ClawFlow/1.0',
+                                'User-Agent': cfgData.userAgent || 'Flowmatic/1.0',
                                 'Content-Type': 'application/x-www-form-urlencoded',
                             },
                             body: form.toString(),
@@ -3151,7 +3151,7 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                             // NEVER worked — Yoast doesn't register it as writable, so
                             // WP returned 200 and silently dropped it. These underscore/
                             // custom keys are protected and only REST-writable because the
-                            // ClawFlow companion plugin v1.7.0+ registers them with
+                            // Flowmatic companion plugin v1.7.0+ registers them with
                             // show_in_rest. The active SEO plugin reads its own keys.
                             // (Verified 2026-06-01 on packing-station — see seoMetaBatch.)
                             meta: seo.metaDescription ? {
@@ -3291,7 +3291,7 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                         }
 
                         const fromEmail = (meta.fromEmail as string) || 'newsletter@flowmatic.co.il'
-                        const fromName = (meta.fromName as string) || 'ClawFlow'
+                        const fromName = (meta.fromName as string) || 'Flowmatic'
 
                         if (recipients.length === 0) {
                             publishError = 'אין נמענים לניוזלטר. הוסיפו רשימת אימיילים בהגדרות תוספים → ערוצי פרסום → ניוזלטר.'

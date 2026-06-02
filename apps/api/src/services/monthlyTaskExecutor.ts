@@ -922,7 +922,7 @@ async function runTrackingSetupAdapter(
                     : 'generate_lead'
                 const created = await ensureConversionAction(operatingCustomerId, tokens, cfg.developerToken, {
                     actionKey,
-                    name: `${desiredCategory} (ClawFlow auto-created)`,
+                    name: `${desiredCategory} (Flowmatic auto-created)`,
                     // Placeholder; actual transaction value is sent via gtag
                     // (alwaysUseDefaultValue=false in ensureConversionAction)
                     // so this only fires if the page tag forgets the value.
@@ -1529,7 +1529,7 @@ async function runLlmsTxtAdapter(
     }
     if (res.error) {
         if (/llms_route_missing/.test(res.error)) {
-            return runManualTodoAdapter(instanceId, task, _plan, 'נדרש עדכון תוסף ClawFlow Companion ל-1.10.0+ כדי להגיש /llms.txt. עדכנו את התוסף ונסו שוב.', { stepResults: [{ step: 'llms.txt', ok: false, detail: res.error }] })
+            return runManualTodoAdapter(instanceId, task, _plan, 'נדרש עדכון תוסף Flowmatic Companion ל-1.10.0+ כדי להגיש /llms.txt. עדכנו את התוסף ונסו שוב.', { stepResults: [{ step: 'llms.txt', ok: false, detail: res.error }] })
         }
         return { ok: false, outputDescription: `יצירת llms.txt נכשלה: ${res.error}`, error: res.error, errorCategory: 'systemic_bug' }
     }
@@ -1750,18 +1750,18 @@ async function runSeoSchemaBatchAdapter(
     }
 
     const stepResults = [
-        { step: 'סריקת WordPress', ok: true, detail: `${res.scanned} עמודים נסרקו · ${res.candidates} ללא סכמה של ClawFlow` },
+        { step: 'סריקת WordPress', ok: true, detail: `${res.scanned} עמודים נסרקו · ${res.candidates} ללא סכמה של Flowmatic` },
         ...res.updated.map(u => ({ step: `סכמה נוספה: ${u.title}`, ok: true, detail: u.types.join(', ') })),
         ...res.failures.map(f => ({ step: `נכשל: ${f.type} #${f.id}`, ok: false, detail: f.error })),
     ]
 
     if (res.candidates === 0) {
-        return { ok: true, outputDescription: `כל ${res.scanned} העמודים שנסרקו כבר כוללים סכמה של ClawFlow — אין מה להוסיף.`, errorCategory: 'completed_idempotent_noop', stepResults }
+        return { ok: true, outputDescription: `כל ${res.scanned} העמודים שנסרקו כבר כוללים סכמה של Flowmatic — אין מה להוסיף.`, errorCategory: 'completed_idempotent_noop', stepResults }
     }
     if (res.updated.length === 0) {
         const notPersisted = res.failures.some(f => /schema_not_persisted/.test(f.error))
         const headline = notPersisted
-            ? `נמצאו ${res.candidates} עמודים, אך WordPress לא שמר את הסכמה — נדרש עדכון תוסף ClawFlow Companion ל-1.9.0+. בצעו ידנית בינתיים.`
+            ? `נמצאו ${res.candidates} עמודים, אך WordPress לא שמר את הסכמה — נדרש עדכון תוסף Flowmatic Companion ל-1.9.0+. בצעו ידנית בינתיים.`
             : `נמצאו ${res.candidates} עמודים ללא סכמה, אך לא ניתן היה לכתוב דרך ה-API. בצעו ידנית לפי ה-brief.`
         return runManualTodoAdapter(instanceId, task, _plan, headline, { stepResults })
     }
@@ -1854,7 +1854,7 @@ async function runSeoMetaBatchAdapter(
         // the show_in_rest meta registration) from a generic write failure.
         const notPersisted = res.failures.some(f => /meta_not_persisted/.test(f.error))
         const headline = notPersisted
-            ? `נמצאו ${res.candidates} עמודים לעדכון, אך WordPress קיבל את הכתיבה ולא שמר אותה — נדרש עדכון תוסף ClawFlow Companion ל-1.7.0+ (שמאפשר כתיבת תיאורי מטא דרך ה-API). בצעו ידנית בינתיים לפי ה-brief.`
+            ? `נמצאו ${res.candidates} עמודים לעדכון, אך WordPress קיבל את הכתיבה ולא שמר אותה — נדרש עדכון תוסף Flowmatic Companion ל-1.7.0+ (שמאפשר כתיבת תיאורי מטא דרך ה-API). בצעו ידנית בינתיים לפי ה-brief.`
             : `נמצאו ${res.candidates} עמודים עם תיאור מטא חסר/חלש, אך לא ניתן היה לכתוב דרך ה-API (ודאו ש-Yoast או Rank Math מותקנים ופעילים). בצעו ידנית לפי ה-brief.`
         return runManualTodoAdapter(instanceId, task, _plan, headline, { stepResults })
     }

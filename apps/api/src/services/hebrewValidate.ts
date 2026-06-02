@@ -257,7 +257,7 @@ async function callHebrewValidator(
 6. **כפילויות בין שדות** — אם אותה פרזה מדויקת מופיעה גם ב-taglineHe וגם ב-manifestoHe / signaturePhrases, סמן את ההופעה השנייה כ-null (מחיקה) עם issue="כפילות מיותרת".
 
 **מה לא לתקן:**
-- מותגים/שמות באנגלית (Flowmatic, ClawFlow, AllPay)
+- מותגים/שמות באנגלית (Flowmatic, Flowmatic, AllPay)
 - קיצורים סטנדרטיים (AI, VPS, API, URL, SVG)
 - בחירות סגנוניות ("אתם" vs "אתה" — שיקול המותג)
 - מילים טכניות שאולות (יוזר, טאגליין, פרומפט)

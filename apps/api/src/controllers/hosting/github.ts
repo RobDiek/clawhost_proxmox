@@ -74,7 +74,7 @@ export const saveGithubConfig = async (c: Context) => {
             headers: {
                 'Authorization': `Bearer ${body.token}`,
                 'Accept': 'application/vnd.github.v3+json',
-                'User-Agent': 'ClawFlow-SEO',
+                'User-Agent': 'Flowmatic-SEO',
             },
         })
         if (testRes.status === 401) {
@@ -236,7 +236,7 @@ export const publishToGithub = async (c: Context) => {
                 headers: {
                     'Authorization': `Bearer ${config.token}`,
                     'Accept': 'application/vnd.github.v3+json',
-                    'User-Agent': 'ClawFlow-SEO',
+                    'User-Agent': 'Flowmatic-SEO',
                 },
             })
             if (existing.ok) {
@@ -258,7 +258,7 @@ export const publishToGithub = async (c: Context) => {
                 'Authorization': `Bearer ${config.token}`,
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json',
-                'User-Agent': 'ClawFlow-SEO',
+                'User-Agent': 'Flowmatic-SEO',
             },
             body: JSON.stringify(payload),
         })
@@ -334,7 +334,7 @@ async function buildMdxFromOutput(
         for (const t of seo.tags) fm.push(`  - '${esc(t)}'`)
     }
     if (featuredImage) fm.push(`featuredImage: '${esc(featuredImage)}'`)
-    fm.push(`author: 'ClawFlow'`)
+    fm.push(`author: 'Flowmatic'`)
     fm.push('---')
 
     // Body = content (markdown) + FAQ section (if present) + JSON-LD script
@@ -530,7 +530,7 @@ export const testGithubIntegration = async (c: Context) => {
             'Authorization': `Bearer ${config.token}`,
             'Accept': 'application/vnd.github.v3+json',
             'Content-Type': 'application/json',
-            'User-Agent': 'ClawFlow-SEO',
+            'User-Agent': 'Flowmatic-SEO',
         }
         const steps: Array<{ step: string; ok: boolean; detail?: string }> = []
 

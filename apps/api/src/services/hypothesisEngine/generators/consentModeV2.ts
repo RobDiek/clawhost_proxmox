@@ -201,12 +201,12 @@ export async function generateConsentModeV2(ctx: GeneratorContext): Promise<Hypo
             scopeDataType: 'account',
             scopeWindow: { start: windowStart, end: windowEnd },
 
-            observation: `Your account declares EU exposure (${eu.reasons.join('; ')}) but GTM is not connected to ClawFlow. Without GTM, we cannot deploy or audit Consent Mode v2 tags. Google Ads requires CMv2 for EEA bidding to function.`,
-            observationHe: `החשבון שלכם מצהיר על חשיפה ל-EU (${eu.reasons.join('; ')}) אבל GTM לא מחובר ל-ClawFlow. בלי GTM, אנחנו לא יכולים לפרוס או לבדוק תגי Consent Mode v2. Google Ads דורש CMv2 כדי ש-bidding ל-EEA יעבוד.`,
-            hypothesis: 'Connect Google Tag Manager (read + write scope) to ClawFlow. Once connected, we can audit existing CMv2 tags, deploy missing ones via Mazhir GTM auto-setup, and verify consent flow.',
-            hypothesisHe: 'חברו Google Tag Manager (read + write scope) ל-ClawFlow. ברגע שמחובר, נוכל לבדוק תגי CMv2 קיימים, לפרוס חסרים דרך Mazhir GTM auto-setup, ולוודא consent flow.',
-            reasoning: 'Without GTM connection, the entire CMv2 setup must be done manually by you in GTM UI. Connecting GTM to ClawFlow lets Mazhir handle the tag deployment automatically — including Consent Mode v2 advanced, Enhanced Conversions, and Conversion Linker — in one operation.',
-            reasoningHe: 'בלי חיבור GTM, כל ה-CMv2 setup חייב להיעשות ידנית על-ידכם ב-GTM UI. חיבור GTM ל-ClawFlow מאפשר ל-Mazhir לטפל ב-tag deployment אוטומטית — כולל Consent Mode v2 advanced, Enhanced Conversions, ו-Conversion Linker — בפעולה אחת.',
+            observation: `Your account declares EU exposure (${eu.reasons.join('; ')}) but GTM is not connected to Flowmatic. Without GTM, we cannot deploy or audit Consent Mode v2 tags. Google Ads requires CMv2 for EEA bidding to function.`,
+            observationHe: `החשבון שלכם מצהיר על חשיפה ל-EU (${eu.reasons.join('; ')}) אבל GTM לא מחובר ל-Flowmatic. בלי GTM, אנחנו לא יכולים לפרוס או לבדוק תגי Consent Mode v2. Google Ads דורש CMv2 כדי ש-bidding ל-EEA יעבוד.`,
+            hypothesis: 'Connect Google Tag Manager (read + write scope) to Flowmatic. Once connected, we can audit existing CMv2 tags, deploy missing ones via Mazhir GTM auto-setup, and verify consent flow.',
+            hypothesisHe: 'חברו Google Tag Manager (read + write scope) ל-Flowmatic. ברגע שמחובר, נוכל לבדוק תגי CMv2 קיימים, לפרוס חסרים דרך Mazhir GTM auto-setup, ולוודא consent flow.',
+            reasoning: 'Without GTM connection, the entire CMv2 setup must be done manually by you in GTM UI. Connecting GTM to Flowmatic lets Mazhir handle the tag deployment automatically — including Consent Mode v2 advanced, Enhanced Conversions, and Conversion Linker — in one operation.',
+            reasoningHe: 'בלי חיבור GTM, כל ה-CMv2 setup חייב להיעשות ידנית על-ידכם ב-GTM UI. חיבור GTM ל-Flowmatic מאפשר ל-Mazhir לטפל ב-tag deployment אוטומטית — כולל Consent Mode v2 advanced, Enhanced Conversions, ו-Conversion Linker — בפעולה אחת.',
 
             severity: 'high',
             confidence: 0.8,

@@ -29,4 +29,4 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 
-Sitemap: https://clawflow.flowmatic.co.il/sitemap.xml
+Sitemap: https://app.flowmatic.co.il/sitemap.xml

@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://clawflow.flowmatic.co.il/</loc>
+    <loc>https://app.flowmatic.co.il/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://clawflow.flowmatic.co.il/about.html</loc>
+    <loc>https://app.flowmatic.co.il/about.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://clawflow.flowmatic.co.il/terms.html</loc>
+    <loc>https://app.flowmatic.co.il/terms.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://clawflow.flowmatic.co.il/privacy.html</loc>
+    <loc>https://app.flowmatic.co.il/privacy.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://clawflow.flowmatic.co.il/disclosure.html</loc>
+    <loc>https://app.flowmatic.co.il/disclosure.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://clawflow.flowmatic.co.il/cancellation.html</loc>
+    <loc>https://app.flowmatic.co.il/cancellation.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>

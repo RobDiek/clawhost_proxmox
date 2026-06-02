@@ -10,7 +10,7 @@
  *   - 'links'  : insert contextual internal markdown links into the body
  *
  * Write operations land on a NEW branch + Pull Request (never a direct push to
- * the default branch) — matching the GitHub safety rules ClawFlow writes into
+ * the default branch) — matching the GitHub safety rules Flowmatic writes into
  * SOUL.md. Frontmatter edits are append-only (we never rewrite existing YAML).
  *
  * Invoked by monthlyTaskExecutor's SEO adapters when the tenant is GitHub-
@@ -55,7 +55,7 @@ async function gh(cfg: GithubCfg, path: string, init: RequestInit = {}, tries = 
                 headers: {
                     Authorization: `Bearer ${cfg.token}`,
                     Accept: 'application/vnd.github.v3+json',
-                    'User-Agent': 'ClawFlow-SEO',
+                    'User-Agent': 'Flowmatic-SEO',
                     ...(init.headers || {}),
                 },
                 signal: AbortSignal.timeout(30000),
@@ -169,7 +169,7 @@ async function commitViaPR(cfg: GithubCfg, opLabel: string, changes: Array<{ pat
     // open PR
     const pr = await gh(cfg, `/repos/${cfg.repo}/pulls`, {
         method: 'POST',
-        body: JSON.stringify({ title: `ClawFlow SEO: ${opLabel} (${changes.length} files)`, head: newBranch, base: cfg.branch, body: `Automated SEO ${opLabel} retrofit by ClawFlow. Review and merge.` }),
+        body: JSON.stringify({ title: `Flowmatic SEO: ${opLabel} (${changes.length} files)`, head: newBranch, base: cfg.branch, body: `Automated SEO ${opLabel} retrofit by Flowmatic. Review and merge.` }),
     })
     if (!pr.ok) {
         if (pr.status === 422) return `branch:${newBranch}`   // PR may already exist

@@ -1,5 +1,5 @@
 #!/bin/bash
-# ClawFlow Self-Healing Health Daemon v2
+# Flowmatic Self-Healing Health Daemon v2
 # Runs every 5 minutes via systemd timer on each client VPS
 
 INSTANCE_ID="__INSTANCE_ID__"

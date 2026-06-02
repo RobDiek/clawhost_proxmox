@@ -149,7 +149,7 @@ export async function sendEmailOtp(email: string): Promise<void> {
 
     const html = `<!DOCTYPE html><html dir="rtl"><body style="font-family:Arial;background:#0F172A;color:#fff;padding:32px">
 <div style="max-width:480px;margin:0 auto;background:#1E293B;border-radius:14px;padding:30px;border:1px solid #334155">
-  <h2 style="color:#fff;margin:0 0 14px;font-size:1.3rem">🔐 ClawFlow Admin Access</h2>
+  <h2 style="color:#fff;margin:0 0 14px;font-size:1.3rem">🔐 Flowmatic Admin Access</h2>
   <p style="color:#94A3B8;font-size:0.95rem;line-height:1.7;margin:0 0 18px">
     קוד גישה חד-פעמי לפאנל הניהול. תקף ל-10 דקות.
   </p>
@@ -165,7 +165,7 @@ export async function sendEmailOtp(email: string): Promise<void> {
     await getResend().emails.send({
         from: FROM_EMAIL,
         to: ADMIN_EMAIL,
-        subject: '🔐 ClawFlow Admin — קוד גישה',
+        subject: '🔐 Flowmatic Admin — קוד גישה',
         html,
         text: `Admin access code: ${code}\nValid for 10 minutes. Ignore if not requested.`,
     })
@@ -231,7 +231,7 @@ export async function generateTotpSetup(intermediateToken: string): Promise<{
             .set({ totpSecret: secret })
             .where(eq(adminUsers.id, admin.id))
     }
-    const otpauthUri = authenticator.keyuri(ADMIN_EMAIL, 'ClawFlow Admin', secret)
+    const otpauthUri = authenticator.keyuri(ADMIN_EMAIL, 'Flowmatic Admin', secret)
     const qrDataUrl = await QRCode.toDataURL(otpauthUri, { margin: 1, scale: 6 })
 
     return { ok: true, secret, otpauthUri, qrDataUrl }

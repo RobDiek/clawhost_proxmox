@@ -2,7 +2,7 @@
  * Green API WABA — WhatsApp Business API integration
  * Docs: https://green-api.com/en/waba/api/
  *
- * Each ClawFlow client has their own Green API instance.
+ * Each Flowmatic client has their own Green API instance.
  * We never store or proxy their credentials on management server —
  * credentials are saved on the client's VPS.
  */

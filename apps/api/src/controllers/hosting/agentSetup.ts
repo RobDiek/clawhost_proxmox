@@ -97,7 +97,7 @@ async function fetchLandingContent(url: string, userFirecrawlKey?: string): Prom
     // Fallback: plain fetch + strip HTML
     try {
         const res = await fetch(url, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ClawFlow/1.0)' },
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Flowmatic/1.0)' },
             signal: AbortSignal.timeout(15000),
             redirect: 'follow',
         })
@@ -3922,7 +3922,7 @@ export const getBiddingObjectiveRecommendation = async (c: Context) => {
 }
 
 // ── GET /hosting/instances/:id/wp/companion-status ──
-// Verify the ClawFlow Companion plugin is installed + active on the tenant's
+// Verify the Flowmatic Companion plugin is installed + active on the tenant's
 // WP site (powers the "check plugin" button on the WordPress integration card).
 export const getWpCompanionStatus = async (c: Context) => {
     try {
@@ -6935,8 +6935,8 @@ interface GenContext {
 // ── Brand-agnostic content plan taxonomy derivation ────────────────────────
 // Pillars + personas + CTAs + productRef enums + scenario v2 subobjects are
 // derived from research_data (positioning, audience_personas, chosenScenario,
-// answers.products, answers.conversionMechanism). NO hardcoded ClawFlow
-// defaults — those poison non-ClawFlow tenants (e.g. Storage Station getting
+// answers.products, answers.conversionMechanism). NO hardcoded Flowmatic
+// defaults — those poison non-Flowmatic tenants (e.g. Storage Station getting
 // "סיפורי כוויה מפרילנסרים" pillar + course_1499 quota).
 interface ContentPlanTaxonomy {
     pillars: string[]
@@ -8176,8 +8176,8 @@ export async function generateContentPlan(
 
     // Phase 4.0(fix14) — derive pillars/personas/CTAs/productRefs from research data
     // (positioning.value_props, audience_personas.records, chosenScenario v2 fields,
-    // answers.products + conversionMechanism). No more ClawFlow hardcoded fallbacks
-    // that poison non-ClawFlow tenants.
+    // answers.products + conversionMechanism). No more Flowmatic hardcoded fallbacks
+    // that poison non-Flowmatic tenants.
     const taxonomy = deriveContentPlanTaxonomy(rd, scenario, answers)
     const pillarWhitelist = taxonomy.pillars
     const personaTitles = taxonomy.personas

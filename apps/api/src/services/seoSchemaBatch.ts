@@ -1,7 +1,7 @@
 /**
  * SEO Schema (JSON-LD) Batch — full-set structured data for existing WP pages.
  *
- * Per Sergei's choice (2026-06-01): ClawFlow OWNS the page's structured data
+ * Per Sergei's choice (2026-06-01): Flowmatic OWNS the page's structured data
  * (full-set replacement). For each published page/post lacking our schema, we
  * generate ONE complete schema.org @graph (Organization + WebSite + WebPage/
  * Article + BreadcrumbList + FAQPage when FAQ content exists) and store it in

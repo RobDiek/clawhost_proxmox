@@ -163,7 +163,7 @@ ${ctx.statsBlock}
 | brief | מפרט / הנחיה |
 
 ### מה מותר להשאיר באנגלית (exceptions)
-- שמות מוצרים רשמיים: ClawFlow, HubSpot, Facebook, Instagram (כשזה השם הרשמי)
+- שמות מוצרים רשמיים: Flowmatic, HubSpot, Facebook, Instagram (כשזה השם הרשמי)
 - כתובות אתר ושמות חשבונות (example.com, @handle)
 - מספרים ומטבעות: ₪, $, %
 - כל השאר — חובה תרגום

@@ -118,7 +118,7 @@ function setupInstructionsHe(): { step: number; platformLabel: string; actionLab
         },
         {
             step: 4,
-            platformLabel: 'ClawFlow Dashboard',
+            platformLabel: 'Flowmatic Dashboard',
             actionLabel: 'In integrations tab → Meta Business → paste CAPI token + pixel ID',
             actionLabelHe: 'בלשונית תוספים → Meta Business → הדביקו את ה-CAPI token + pixel ID',
             verifyHe: 'אנחנו נשלח test event מיד אחרי השמירה — תצטרכו לראות אותו ב-Events Manager → Test Events',

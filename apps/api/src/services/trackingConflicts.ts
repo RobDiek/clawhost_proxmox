@@ -348,7 +348,7 @@ export function analyzeTrackingConflicts(
                 severity: 'info',
                 platform: 'meta_pixel',
                 summary: `Meta Pixel(s) already active via plugin: ${pxHits.map(h => h.id).join(', ')}`,
-                detail: `${pxHits.map(h => `${h.plugin}: ${h.id} (${h.feature})`).join('; ')}. If you later connect Meta in ClawFlow Integrations, the wizard will detect this and skip adding a second Pixel to avoid double-fire.`,
+                detail: `${pxHits.map(h => `${h.plugin}: ${h.id} (${h.feature})`).join('; ')}. If you later connect Meta in Flowmatic Integrations, the wizard will detect this and skip adding a second Pixel to avoid double-fire.`,
                 sources: pxHits,
                 autoFixable: false,
             })

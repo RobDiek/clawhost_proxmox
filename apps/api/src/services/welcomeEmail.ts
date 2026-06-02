@@ -10,7 +10,7 @@ import { db } from '@/db'
 import { instances, users } from '@/db/schema'
 import { getResend, FROM_EMAIL } from '@/services/resend'
 
-const DASHBOARD_URL = 'https://clawflow.flowmatic.co.il/dashboard'
+const DASHBOARD_URL = 'https://app.flowmatic.co.il/dashboard'
 const SUPPORT_EMAIL = 'support@flowmatic.co.il'
 
 interface SendArgs {
@@ -42,7 +42,7 @@ function buildHtml(args: {
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>הסביבה שלכם מוכנה — ClawFlow</title>
+<title>הסביבה שלכם מוכנה — Flowmatic</title>
 </head>
 <body style="margin:0;padding:0;background:#F5F7FA;font-family:Arial,'Arial Hebrew',Helvetica,sans-serif;color:#1F2937;direction:rtl">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F5F7FA;padding:32px 16px">
@@ -58,7 +58,7 @@ function buildHtml(args: {
       <tr><td style="padding:32px 32px 8px">
         <p style="margin:0 0 14px;font-size:1rem;line-height:1.7">${greeting}</p>
         <p style="margin:0 0 14px;font-size:0.95rem;line-height:1.75;color:#374151">
-          תודה שבחרתם ב-<strong style="color:#1F2937">ClawFlow</strong>. הסביבה שלכם הוקמה בהצלחה — שרת VPS פעיל, סוכני AI מותקנים, ו-SSL ודומיין מאובטחים. הכל מוכן לעבודה.
+          תודה שבחרתם ב-<strong style="color:#1F2937">Flowmatic</strong>. הסביבה שלכם הוקמה בהצלחה — שרת VPS פעיל, סוכני AI מותקנים, ו-SSL ודומיין מאובטחים. הכל מוכן לעבודה.
         </p>
         <p style="margin:0 0 22px;font-size:0.95rem;line-height:1.75;color:#374151">
           להלן הקישורים והפרטים שלכם. שמרו את המייל הזה במקום בטוח — הסיסמאות נחוצות לגישה.
@@ -135,7 +135,7 @@ function buildHtml(args: {
       </td></tr>
 
       <tr><td style="padding:18px 32px;background:#F9FAFB;text-align:center;font-size:0.74rem;color:#9CA3AF;line-height:1.6">
-        ClawFlow · by Flowmatic · ©&nbsp;2026<br>
+        Flowmatic · ©&nbsp;2026<br>
         מייל זה נשלח בעקבות הקמת חשבון פעיל. אין צורך להגיב — אבל תמיד אפשר.
       </td></tr>
 
@@ -159,7 +159,7 @@ function buildPlainText(args: {
     const lines: string[] = [
         args.name ? `שלום ${args.name},` : 'שלום וברוכים הבאים,',
         '',
-        'הסביבה שלכם ב-ClawFlow מוכנה ופעילה!',
+        'הסביבה שלכם ב-Flowmatic מוכנה ופעילה!',
         `תוכנית: ${args.planLabel}`,
         '',
         '— קישורים מהירים —',
@@ -253,7 +253,7 @@ export async function sendWelcomeEmailIfNeeded(args: SendArgs): Promise<{ sent: 
         const { error } = await getResend().emails.send({
             from: FROM_EMAIL,
             to: user.email,
-            subject: '🎉 הסביבה שלכם ב-ClawFlow מוכנה',
+            subject: '🎉 הסביבה שלכם ב-Flowmatic מוכנה',
             html,
             text,
         })

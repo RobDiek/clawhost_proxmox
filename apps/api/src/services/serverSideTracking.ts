@@ -3,7 +3,7 @@
  *
  * Closes the onboarding gap found via Packing Station: client-side
  * dataLayer.purchase misses redirect-gateway orders (~50% on some stores).
- * The ClawFlow Companion plugin (v1.8.0+) can fire purchase server-side via
+ * The Flowmatic Companion plugin (v1.8.0+) can fire purchase server-side via
  * GA4 Measurement Protocol — but it needs a measurement_id + api_secret, which
  * nothing created automatically. This service does it:
  *
@@ -76,7 +76,7 @@ async function getOrCreateMpSecret(at: string, streamName: string): Promise<{ se
     const ex = await gget(at, `${ADMIN_API}/${streamName}/measurementProtocolSecrets`)
     const secs = ex.measurementProtocolSecrets || []
     if (secs.length && secs[0].secretValue) return { secret: secs[0].secretValue }
-    const c = await gpost(at, `${ADMIN_API}/${streamName}/measurementProtocolSecrets`, { displayName: 'ClawFlow server-side purchase' })
+    const c = await gpost(at, `${ADMIN_API}/${streamName}/measurementProtocolSecrets`, { displayName: 'Flowmatic server-side purchase' })
     if (c.ok && c.body?.secretValue) return { secret: c.body.secretValue }
     const msg = JSON.stringify(c.body || {})
     if (/User Data Collection Acknowledgement/i.test(msg)) return { needsAck: true }

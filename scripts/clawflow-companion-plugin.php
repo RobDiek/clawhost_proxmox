@@ -1,10 +1,10 @@
 <?php
 /**
- * Plugin Name: ClawFlow Companion
+ * Plugin Name: Flowmatic Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
- * Description: ClawFlow platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
+ * Description: Flowmatic platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
  * Version: 1.10.0
- * Author: ClawFlow by Flowmatic
+ * Author: Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
  * Requires at least: 5.5
@@ -210,9 +210,9 @@ add_action('wp_head', function () {
     $head = get_option('clawflow_gtm_head_snippet', '');
     $pid  = get_option('clawflow_gtm_public_id', '');
     if ($head && $pid) {
-        echo "\n<!-- ClawFlow GTM ($pid) -->\n";
+        echo "\n<!-- Flowmatic GTM ($pid) -->\n";
         echo $head;
-        echo "\n<!-- End ClawFlow GTM -->\n";
+        echo "\n<!-- End Flowmatic GTM -->\n";
     }
 }, 1);
 
@@ -220,9 +220,9 @@ add_action('wp_body_open', function () {
     $body = get_option('clawflow_gtm_body_snippet', '');
     $pid  = get_option('clawflow_gtm_public_id', '');
     if ($body && $pid) {
-        echo "\n<!-- ClawFlow GTM noscript ($pid) -->\n";
+        echo "\n<!-- Flowmatic GTM noscript ($pid) -->\n";
         echo $body;
-        echo "\n<!-- End ClawFlow GTM noscript -->\n";
+        echo "\n<!-- End Flowmatic GTM noscript -->\n";
     }
 }, 1);
 
@@ -494,7 +494,7 @@ add_action('rest_api_init', function () {
  * Yoast + Rank Math store the meta description in protected/custom post meta
  * (`_yoast_wpseo_metadesc`, `rank_math_description`) that is NOT writable via
  * the core REST API by default — a POST including them returns 200 but the
- * value is silently dropped. ClawFlow's seoMetaBatch needs to set these, so we
+ * value is silently dropped. Flowmatic's seoMetaBatch needs to set these, so we
  * register them here with show_in_rest + an edit-capability auth_callback.
  *
  * The active SEO plugin reads its own key; the inactive plugin's key is simply
@@ -524,7 +524,7 @@ add_action('init', function () {
             ]);
         }
         // Full-set schema.org JSON-LD (stored as a JSON string). When set,
-        // ClawFlow OWNS structured data for that page (see render + suppression
+        // Flowmatic OWNS structured data for that page (see render + suppression
         // below). Written via POST /wp/v2/{type}/{id} { meta: { _clawflow_schema_jsonld: "<json>" } }.
         register_post_meta($postType, '_clawflow_schema_jsonld', [
             'type'          => 'string',
@@ -536,7 +536,7 @@ add_action('init', function () {
 }, 20);  // priority 20 — run AFTER Yoast/Rank Math register their own (non-writable) meta so ours wins
 
 /**
- * ClawFlow Schema (full-set replacement).
+ * Flowmatic Schema (full-set replacement).
  *
  * When a page has `_clawflow_schema_jsonld` set, we (1) render it in <head>,
  * and (2) suppress Yoast / Rank Math structured data for that page so there's
@@ -561,7 +561,7 @@ add_action('wp_head', function () {
         wp_json_encode($decoded) . "</script>\n";
 }, 99);
 
-// Suppress Yoast structured data when ClawFlow owns the page's schema.
+// Suppress Yoast structured data when Flowmatic owns the page's schema.
 add_filter('wpseo_json_ld_output', function ($data) {
     return clawflow_current_schema_jsonld() !== '' ? array() : $data;
 }, 10, 1);
@@ -577,7 +577,7 @@ add_filter('rank_math/json_ld', function ($data) {
  * llms.txt / llms-full.txt — AEO files for AI crawlers (ChatGPT, Perplexity,
  * Gemini, Claude). Served from the SITE ROOT as text/plain. WordPress is a CMS,
  * not a static host, so we intercept the request early (no rewrite-flush needed)
- * and emit the stored option. Content is set by ClawFlow via the REST route below.
+ * and emit the stored option. Content is set by Flowmatic via the REST route below.
  */
 add_action('init', function () {
     $uri = strtok($_SERVER['REQUEST_URI'] ?? '', '?');
@@ -794,11 +794,11 @@ add_action('rest_api_init', function () {
                 $opt = get_option('gtm4wp-options', []);
                 $sends = [];
                 $gtmId = $opt['gtm-code'] ?? '';
-                if ($gtmId) $sends[] = ['platform' => 'gtm', 'id' => $gtmId, 'feature' => 'GTM container snippet (second container — conflicts with ClawFlow GTM)'];
+                if ($gtmId) $sends[] = ['platform' => 'gtm', 'id' => $gtmId, 'feature' => 'GTM container snippet (second container — conflicts with Flowmatic GTM)'];
                 $detected[] = [
                     'plugin' => 'duracelltomi-google-tag-manager', 'name' => 'GTM4WP', 'version' => 'unknown',
                     'active' => true, 'sends' => $sends,
-                    'resolutionHint' => 'GTM4WP loads ANOTHER GTM container alongside ClawFlow GTM. Disable plugin OR replace its container ID with ClawFlow GTM-XXX.',
+                    'resolutionHint' => 'GTM4WP loads ANOTHER GTM container alongside Flowmatic GTM. Disable plugin OR replace its container ID with Flowmatic GTM-XXX.',
                 ];
             }
 

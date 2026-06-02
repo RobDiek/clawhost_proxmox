@@ -113,7 +113,7 @@ if (!JWT_SECRET || JWT_SECRET === 'dev-secret-change-me') {
 }
 const jwtSecret = JWT_SECRET || 'dev-secret-local-only'
 const RESEND_API_KEY = process.env.RESEND_API_KEY || ''
-const FROM_EMAIL = process.env.FROM_EMAIL || 'ClawFlow <onboarding@resend.dev>'
+const FROM_EMAIL = process.env.FROM_EMAIL || 'Flowmatic <onboarding@resend.dev>'
 const OTP_EXPIRY_MS = 10 * 60 * 1000 // 10 minutes
 const MAX_ATTEMPTS = 5
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -183,10 +183,10 @@ export const sendOtpHosting = async (c: Context) => {
                 body: JSON.stringify({
                     from: FROM_EMAIL,
                     to: normalizedEmail,
-                    subject: `${code} — קוד אימות ClawFlow`,
+                    subject: `${code} — קוד אימות Flowmatic`,
                     html: `
                         <div dir="rtl" style="font-family:Arial,'Arial Hebrew',sans-serif;max-width:400px;margin:0 auto;padding:32px;text-align:center">
-                            <h2 style="color:#111827;margin-bottom:8px">ClawFlow</h2>
+                            <h2 style="color:#111827;margin-bottom:8px">Flowmatic</h2>
                             <p style="color:#6B7280;font-size:14px;margin-bottom:24px">הקוד שלכם לכניסה לחשבון</p>
                             <div style="background:#EFF6FF;border:2px solid #2563EB;border-radius:12px;padding:20px;margin-bottom:24px">
                                 <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#2563EB">${code}</span>
@@ -660,7 +660,7 @@ export const setup2fa = async (c: Context) => {
         // Save secret (not yet enabled — user must verify first)
         await db.update(users).set({ totpSecret: secret }).where(eq(users.id, userId))
 
-        const otpauthUri = `otpauth://totp/ClawFlow:${user.email}?secret=${secret}&issuer=ClawFlow&digits=6&period=30`
+        const otpauthUri = `otpauth://totp/Flowmatic:${user.email}?secret=${secret}&issuer=Flowmatic&digits=6&period=30`
 
         return ok(c, { secret, otpauthUri }, '2FA setup initiated. Scan QR and verify.')
     } catch (err) {

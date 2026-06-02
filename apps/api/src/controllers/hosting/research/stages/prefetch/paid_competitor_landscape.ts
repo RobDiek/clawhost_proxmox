@@ -228,7 +228,7 @@ export async function prefetchPaidCompetitorLandscape(
 
     // Determine target country for Meta Ad Library policy gate.
     // paidProfile.geography or answers.geography may carry country codes.
-    // Default to 'IL' for ClawFlow's primary market; Meta API short-circuits
+    // Default to 'IL' for Flowmatic's primary market; Meta API short-circuits
     // for any non-EU/UK country (commercial ads not covered by API).
     const targetCountry = (() => {
         const pp = rd.paidProfile as Record<string, unknown> | undefined

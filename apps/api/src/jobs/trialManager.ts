@@ -35,7 +35,7 @@ export async function runTrialManager() {
                     `⏰ *תזכורת: תקופת הניסיון מסתיימת בעוד ${daysLeft} ימים*\n\n` +
                     `אחרי סיום הניסיון, התשלום יחויב אוטומטית לפי הכרטיס שהזנתם.\n` +
                     `אם תרצו לבטל — היכנסו לדשבורד → הגדרות → ביטול.\n\n` +
-                    `[פתחו את הדשבורד](https://clawflow.flowmatic.co.il/dashboard)`,
+                    `[פתחו את הדשבורד](https://app.flowmatic.co.il/dashboard)`,
                     'Markdown'
                 )
             } catch { /* non-critical */ }
@@ -76,7 +76,7 @@ export async function runTrialManager() {
                     `⚠️ *תקופת הניסיון הסתיימה*\n\n` +
                     `התשלום לא עבר — השרת הוקפא.\n` +
                     `הנתונים שלכם שמורים למשך 7 ימים.\n\n` +
-                    `[חדשו את המנוי בדשבורד](https://clawflow.flowmatic.co.il/dashboard)`,
+                    `[חדשו את המנוי בדשבורד](https://app.flowmatic.co.il/dashboard)`,
                     'Markdown'
                 )
             } catch { /* non-critical */ }

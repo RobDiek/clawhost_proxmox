@@ -1,6 +1,6 @@
 #cloud-config
 
-# ClawFlow VPS Bootstrap (~1.5 KB) — fits Hetzner's 32 KB user_data limit.
+# Flowmatic VPS Bootstrap (~1.5 KB) — fits Hetzner's 32 KB user_data limit.
 # All install logic lives at https://clawflow.flowmatic.co.il/install.sh
 # (apps/web/public/install.sh in the repo). This file just:
 #   1. Sets root password
@@ -47,4 +47,4 @@ runcmd:
     - chmod +x /opt/openclaw/install.sh
     - /opt/openclaw/install.sh > /var/log/openclaw-install.log 2>&1 &
 
-final_message: 'ClawFlow {{INSTANCE_ID}} bootstrap complete — install.sh running in background (~5-8 min until services ready).'
+final_message: 'Flowmatic {{INSTANCE_ID}} bootstrap complete — install.sh running in background (~5-8 min until services ready).'

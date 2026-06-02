@@ -251,7 +251,7 @@ function buildComposerPrompt(params: {
 }): string {
     const { scraped, logoAnalysis, research, userInputs } = params
 
-    let prompt = `אתה מעצב מותג בכיר ("mekhayev") בפלטפורמת ClawFlow. תפקידך — ליצור brand book מלא ועקבי לעסק.
+    let prompt = `אתה מעצב מותג בכיר ("mekhayev") בפלטפורמת Flowmatic. תפקידך — ליצור brand book מלא ועקבי לעסק.
 
 ## קהל היעד של הפלט שלך
 בעל העסק עצמו קורא את rationale + gaps + confidenceReasons — **הוא לא מעצב ולא איש שיווק**. כתוב בעברית פשוטה וברורה.
