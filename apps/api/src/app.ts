@@ -39,6 +39,7 @@ app.use(
                   'https://clawhost.cloud',
                   'https://www.clawhost.cloud',
                   'https://clawflow.flowmatic.co.il',
+                  'https://app.flowmatic.co.il',
                   'https://flowmatic.co.il',
                   'https://www.flowmatic.co.il',
                   'https://admin.flowmatic.co.il',
@@ -49,6 +50,7 @@ app.use(
                   'https://clawhost.cloud',
                   'https://www.clawhost.cloud',
                   'https://clawflow.flowmatic.co.il',
+                  'https://app.flowmatic.co.il',
                   'https://flowmatic.co.il',
                   'https://www.flowmatic.co.il',
                   'https://admin.flowmatic.co.il'
