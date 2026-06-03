@@ -76,53 +76,81 @@ export async function buildWeeklyReport(instanceId: string, agentId: string, opt
     const end = opts.end || 'yesterday'
     const start = opts.start || '7daysAgo'
 
-    const lines: string[] = []
-    lines.push(`📊 *דוח שבועי — ${biz}*`)
-    lines.push(`_${start} → ${end}_`)
     const data: any = { biz, start, end }
-
     const at = rt ? await refresh(rt) : null
     const prop = at && mid ? await resolveProperty(at, mid) : null
 
-    // ── Conversions by source ──
+    // ═══ gather: conversions by type × source ═══
+    const byEvent: Record<string, { total: number; rev: number; chans: Record<string, number> }> = {}
+    let ga4Err = ''
     if (at && prop) {
         try {
             const rows = await ga4(at, prop, start, end, ['eventName', 'sessionSource', 'sessionMedium'], CONV_EVENTS)
-            const byEvent: Record<string, { total: number; rev: number; chans: Record<string, number> }> = {}
             for (const r of rows) {
                 const e = r.d[0]; byEvent[e] = byEvent[e] || { total: 0, rev: 0, chans: {} }
                 byEvent[e].total += r.n; byEvent[e].rev += r.rev
                 const c = chan(r.d[1], r.d[2]); byEvent[e].chans[c] = (byEvent[e].chans[c] || 0) + r.n
             }
             data.conversions = byEvent
-            const purchase = byEvent['purchase']
-            if (purchase) { lines.push(``, `💰 *הכנסות:* ${ils(purchase.rev)} · *רכישות:* ${purchase.total}`) }
-            lines.push(``, `*המרות לפי מקור:*`)
-            for (const ev of CONV_EVENTS) {
-                const b = byEvent[ev]; if (!b || b.total === 0) continue
-                const top = Object.entries(b.chans).sort((x, y) => y[1] - x[1]).slice(0, 4).map(([c, n]) => `${c} ${n}`).join(' · ')
-                lines.push(`${EVENT_LABEL[ev] || ev}: ${b.total} — ${top}`)
-            }
-        } catch (e) { lines.push(`⚠️ GA4: ${(e as Error).message}`) }
-    } else { lines.push(`⚠️ GA4 לא מחובר`) }
+        } catch (e) { ga4Err = (e as Error).message }
+    } else ga4Err = 'GA4 לא מחובר'
 
-    // ── Paid (Google Ads) ──
+    // ═══ gather: paid ═══
     const cfg: any = a.googleAdsConfig || (await db.select().from(instances).where(eq(instances.id, a.vpsInstanceId)))[0]?.googleAdsConfig || {}
     const manager = String(cfg.customerId || ''); const operating = String(cfg.scope?.operatingCustomerId || cfg.mccSubAccountId || manager); const dev = cfg.developerToken
+    let paid: any = null
     if (at && operating && dev) {
         try {
-            // brand campaigns only (name starts with biz token); fall back to all
             const rows = await adsQuery(operating, manager, dev, at, `SELECT campaign.name, metrics.cost_micros, metrics.conversions, metrics.conversions_value, metrics.clicks FROM campaign WHERE segments.date DURING LAST_7_DAYS AND campaign.status = 'ENABLED'`)
             const brand = rows.filter(r => /packing|פקינג/i.test(r.campaign?.name || ''))
             const use = brand.length ? brand : rows
-            let cost = 0, conv = 0, val = 0
-            for (const r of use) { cost += Number(r.metrics?.costMicros || 0) / 1e6; conv += Number(r.metrics?.conversions || 0); val += Number(r.metrics?.conversionsValue || 0) }
-            data.paid = { cost, conv, val, campaigns: use.length }
-            const roas = cost > 0 ? (val / cost) : 0; const cpa = conv > 0 ? cost / conv : 0
-            lines.push(``, `🟢 *Google Ads (7 ימים):*`)
-            lines.push(`הוצאה ${ils(cost)} · המרות ${conv.toFixed(0)} · ערך ${ils(val)} · ROAS ${(roas * 100).toFixed(0)}% · CPA ${ils(cpa)}`)
-        } catch (e) { lines.push(`⚠️ Ads: ${(e as Error).message}`) }
+            let cost = 0, conv = 0, val = 0, clicks = 0
+            const camps = use.map(r => ({ name: r.campaign?.name, cost: Number(r.metrics?.costMicros || 0) / 1e6, conv: Number(r.metrics?.conversions || 0), val: Number(r.metrics?.conversionsValue || 0) }))
+            for (const c of camps) { cost += c.cost; conv += c.conv; val += c.val }
+            for (const r of use) clicks += Number(r.metrics?.clicks || 0)
+            paid = { cost, conv, val, clicks, camps: camps.sort((x, y) => y.cost - x.cost) }
+            data.paid = paid
+        } catch (e) { paid = { err: (e as Error).message } }
     }
+
+    // ═══ compose (agency-grade) ═══
+    const lines: string[] = []
+    const purchase = byEvent['purchase']; const calls = byEvent['Phone_call_from_Leader_GA4']; const wa = byEvent['WhatsApp from Leader']; const forms = byEvent['form_submit']
+    const onlineRev = purchase?.rev || 0
+    const totalLeads = (calls?.total || 0) + (wa?.total || 0) + (forms?.total || 0)
+
+    lines.push(`📊 *${biz} — דוח שבועי*`)
+    lines.push(`_${start} → ${end}_`)
+
+    // Executive summary
+    lines.push(``, `*תקציר מנהלים*`)
+    lines.push(`🛒 רכישות אונליין: *${purchase?.total || 0}* · הכנסה: *${ils(onlineRev)}*`)
+    lines.push(`📥 פניות (ליד): *${totalLeads}* — 📞 ${calls?.total || 0} · 💬 ${wa?.total || 0} · 📝 ${forms?.total || 0}`)
+    if (ga4Err) lines.push(`⚠️ _GA4: ${ga4Err}_`)
+
+    // Conversions by source — ALL types (this business converts heavily via call/WhatsApp)
+    if (Object.keys(byEvent).length) {
+        lines.push(``, `*המרות לפי ערוץ תנועה*`)
+        for (const ev of CONV_EVENTS) {
+            const b = byEvent[ev]; if (!b || b.total === 0) continue
+            const top = Object.entries(b.chans).sort((x, y) => y[1] - x[1]).slice(0, 4).map(([c, n]) => `${c} ${n}`).join(' · ')
+            const revStr = ev === 'purchase' && b.rev ? ` (${ils(b.rev)})` : ''
+            lines.push(`${EVENT_LABEL[ev] || ev}: *${b.total}*${revStr} — ${top}`)
+        }
+    }
+
+    // Paid + HONEST ROAS framing
+    if (paid && !paid.err) {
+        const onlineRoas = paid.cost > 0 ? paid.val / paid.cost : 0
+        const cpl = (paid.conv) > 0 ? paid.cost / paid.conv : 0
+        lines.push(``, `*ביצועי פרסום בתשלום (Google Ads)*`)
+        lines.push(`💸 הוצאה ${ils(paid.cost)} · קליקים ${paid.clicks} · המרות (מחושבות) ${paid.conv.toFixed(0)}`)
+        lines.push(`📈 ROAS אונליין: *${(onlineRoas * 100).toFixed(0)}%* · עלות להמרה ${ils(cpl)}`)
+        const top = paid.camps.slice(0, 3).map((c: any) => `• ${c.name}: ${ils(c.cost)} → ${ils(c.val)}`).join('\n')
+        if (top) lines.push(`קמפיינים מובילים (הוצאה→ערך):\n${top}`)
+        // The honesty note Sergei is right about:
+        lines.push(``, `ℹ️ *לגבי ROAS:* המספר למעלה מבוסס על *רכישות אונליין בלבד*. חלק ניכר מהפניות בתשלום הופכות להזמנות בטלפון/וואטסאפ (אופליין) שאינן נספרות בהכנסה האונליין — לכן ה-ROAS האמיתי *גבוה יותר*. לחישוב מלא נדרש מעקב הזמנות אופליין (ייבוא המרות לפי gclid) — בתהליך.`)
+    } else if (paid?.err) lines.push(``, `⚠️ _Ads: ${paid.err}_`)
 
     // ── Data integrity (site vs GA4 vs Ads) — single-day spot check (yesterday) ──
     try {
@@ -144,6 +172,18 @@ export async function buildWeeklyReport(instanceId: string, agentId: string, opt
         }
     } catch { /* integrity best-effort */ }
 
-    lines.push(``, `_מנוטר ע"י Flowmatic_`)
+    // ═══ recommendations (data-driven) ═══
+    const recs: string[] = []
+    const pchans = byEvent['purchase']?.chans || {}
+    const unattrib = (pchans['לא משויך (בעיית מדידה)'] || 0) + Object.entries(pchans).filter(([k]) => /hyp|yaad|pay/i.test(k)).reduce((s, [, n]) => s + n, 0)
+    if (purchase && unattrib / Math.max(1, purchase.total) > 0.3) {
+        recs.push(`רוב הרכישות מגיעות כ"לא משויך"/שער-תשלום → אטריבוציית הפרסום שבורה. תיקון בתהליך (ייבוא אופליין + gclid) יחשוף את ה-ROAS האמיתי.`)
+    }
+    if (totalLeads > (purchase?.total || 0)) {
+        recs.push(`הפניות (טלפון/וואטסאפ) עולות על הרכישות האונליין — מומלץ לחבר ייבוא הזמנות אופליין כדי לזקוף הכנסה אמיתית לקמפיינים.`)
+    }
+    if (recs.length) { lines.push(``, `*המלצות*`); recs.forEach((r, i) => lines.push(`${i + 1}. ${r}`)) }
+
+    lines.push(``, `_מנוטר אוטומטית ע"י Flowmatic_`)
     return { text: lines.join('\n'), data }
 }
