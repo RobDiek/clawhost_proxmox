@@ -16754,6 +16754,16 @@ function renderIntegrations() {
     var antCard = document.getElementById('anthropic-card');
     if (antCard) antCard.classList.add('connected');
     showApiKeySavedState('anthropic', null, 'sk-ant-');
+  } else {
+    // Per-agent truth: the ACTIVE agent has NO Anthropic key → reset the card
+    // to empty-input so the instance/primary key never bleeds into a secondary
+    // agent's card (agent isolation).
+    var antElN = document.getElementById('anthropic-status');
+    if (antElN) { antElN.textContent = 'לא מחובר'; antElN.className = 'int-status'; }
+    var antCardN = document.getElementById('anthropic-card');
+    if (antCardN) antCardN.classList.remove('connected', 'connected-card');
+    intStorRemove('cf_api_key_saved');
+    hideApiKeySavedState('anthropic');
   }
 
   // Update OpenAI status — backend only (Phase 2.3.J: no localStorage fallback)
@@ -16764,6 +16774,13 @@ function renderIntegrations() {
     var oaiCard = document.getElementById('openai-card');
     if (oaiCard) oaiCard.classList.add('connected');
     showApiKeySavedState('openai', null, 'sk-');
+  } else {
+    var oaiElN = document.getElementById('openai-status');
+    if (oaiElN) { oaiElN.textContent = 'לא מחובר'; oaiElN.className = 'int-status'; }
+    var oaiCardN = document.getElementById('openai-card');
+    if (oaiCardN) oaiCardN.classList.remove('connected', 'connected-card');
+    intStorRemove('cf_openai_saved');
+    hideApiKeySavedState('openai');
   }
 
   // Update Groq/Ollama status — per-agent
@@ -17564,6 +17581,19 @@ function showApiKeySavedState(provider, fullKey, prefix) {
   if (inputDiv) inputDiv.style.display = 'none';
   if (savedDiv) savedDiv.style.display = '';
   if (maskedEl) maskedEl.textContent = masked;
+}
+
+// Inverse of showApiKeySavedState — reset the card to the empty-input state
+// WITHOUT touching the server. Used when the per-agent overlay says the ACTIVE
+// agent has no key, so a primary/instance key never bleeds into a secondary
+// agent's card (agent isolation — Sergei, Moving Station onboarding).
+function hideApiKeySavedState(provider) {
+  var inputDiv = document.getElementById(provider + '-key-input');
+  var savedDiv = document.getElementById(provider + '-key-saved');
+  var inputEl = document.getElementById(provider + '-key');
+  if (savedDiv) savedDiv.style.display = 'none';
+  if (inputDiv) inputDiv.style.display = '';
+  if (inputEl) inputEl.value = '';
 }
 
 async function disconnectApiKey(provider) {
