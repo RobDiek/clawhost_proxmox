@@ -140,6 +140,21 @@ export async function ensureOfflineAction(agent: MatehAgentRow): Promise<Offline
     return { status: 'ok', reason: 'action_ready', actionResourceName: resourceName, watermark }
 }
 
+/** Extract the raw gclid from a captured value. The companion plugin stores the
+ * `_gcl_aw` Conversion Linker cookie, whose format is `GCL.<timestamp>.<gclid>`
+ * — Ads' uploadClickConversions needs the bare <gclid>, not the whole cookie
+ * (else "gclid could not be decoded"). A raw `gclid` cookie is passed through. */
+function normalizeGclid(raw: string): string {
+    const v = String(raw || '').trim()
+    if (/^GCL\./i.test(v)) {
+        const parts = v.split('.')
+        // GCL . <timestamp> . <gclid...>  — gclids have no dots, but rejoin defensively
+        if (parts.length >= 3) return parts.slice(2).join('.')
+        return ''
+    }
+    return v
+}
+
 /** Format an ISO date as Google Ads conversionDateTime: "yyyy-MM-dd HH:mm:ss+00:00". */
 function adsDateTime(iso: string): string {
     const d = new Date(iso)
@@ -182,9 +197,9 @@ export async function uploadNewStoreOrders(agent: MatehAgentRow, opts: { dryRun?
         const m: Record<string, any> = {}
         for (const md of o.meta_data || []) m[md.key] = md.value
         if (m['_clawflow_ads_uploaded']) continue
-        const gclid = m['_clawflow_gclid']
+        const gclid = normalizeGclid(m['_clawflow_gclid'])
         if (!gclid) continue   // no paid click captured → not an Ads conversion (handled later by Enhanced Conversions PII path)
-        eligible.push({ id: o.id, gclid: String(gclid), dt: adsDateTime(o.date_created_gmt + 'Z'), value: Number(o.total) || 0, currency: o.currency || 'ILS' })
+        eligible.push({ id: o.id, gclid, dt: adsDateTime(o.date_created_gmt + 'Z'), value: Number(o.total) || 0, currency: o.currency || 'ILS' })
     }
 
     const errors: string[] = []
