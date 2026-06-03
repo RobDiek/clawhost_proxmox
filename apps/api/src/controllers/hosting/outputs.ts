@@ -465,8 +465,11 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             return fail(c, 'No Google OAuth tokens for this agent — reconnect Google in Integrations first', 400)
         }
 
-        const { createFreshGtmStack, saveGtmTarget, autoSetupGtmContainer, saveGtmSetupResult, buildGtmHeadSnippet, buildGtmBodySnippet } =
+        const { createFreshGtmStack, saveGtmTarget, autoSetupGtmContainer, saveGtmSetupResult, buildGtmHeadSnippet, buildGtmBodySnippet, detectSiteCmp } =
             await import('@/services/mazhirGtmSetup')
+        // CMP-aware consent: if the site runs a CMP (Cookiebot/OneTrust/…) it OWNS
+        // Google Consent Mode — skip our consent tags to avoid double-management.
+        const cmpDetected = await detectSiteCmp(siteDomain).catch(() => false)
 
         const chainSteps: Array<{ step: string; ok: boolean; detail?: string }> = []
 
@@ -684,6 +687,7 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
                 conversions: gtmConversions,
                 enhancedConversions: true,
                 metaPixel: metaPixelConfig || undefined,
+                cmpDetected,
             })
             gtmResultGlobal = gtmResult
             await saveGtmSetupResult(instanceId, gtmResult, agent.id || null)
@@ -759,6 +763,28 @@ export const gtmFreshStack = async (c: Context<HonoEnv>) => {
             chainSteps.push({ step: 'Live validation failed (non-fatal)', ok: false, detail: (e as Error).message.slice(0, 200) })
         }
         void gtmResultGlobal
+
+        // ── 2e. Post-setup systemic provisioning (parity with autoSetupMazhirGtm) ──
+        // After the fresh GTM is published, fire the same hands-off systemic steps
+        // a normal GTM-setup would: cross-brand goal isolation (critical on shared
+        // MCC accounts), server-side purchase capture (GA4 MP secret + companion),
+        // and the offline store→Ads conversion bridge (gclid). Fire-and-forget so
+        // they never block/break the fresh-stack response.
+        if (gtmResultGlobal && gtmResultGlobal.published) {
+            const agentForProv = agent
+            import('@/services/campaignGoalIsolation')
+                .then(({ ensureCampaignGoalIsolation }) => ensureCampaignGoalIsolation(agentForProv, { source: 'gtm_fresh_stack' }))
+                .then(d => console.log(`[goalIsolation] fresh_stack ${agentForProv.id}: ${d.status} (${d.reason})`))
+                .catch(err => console.error('[goalIsolation] fresh_stack error:', (err as Error).message))
+            import('@/services/serverSideTracking')
+                .then(({ ensureServerSideTracking }) => ensureServerSideTracking(agentForProv, { source: 'gtm_fresh_stack' }))
+                .then(d => console.log(`[serverSideTracking] fresh_stack ${agentForProv.id}: ${d.status} (${d.reason})`))
+                .catch(err => console.error('[serverSideTracking] fresh_stack error:', (err as Error).message))
+            import('@/services/offlineConversionUpload')
+                .then(({ ensureOfflineAction }) => ensureOfflineAction(agentForProv))
+                .then(d => console.log(`[offlineConversionUpload] fresh_stack ${agentForProv.id}: ${d.status} (${d.reason})`))
+                .catch(err => console.error('[offlineConversionUpload] fresh_stack error:', (err as Error).message))
+        }
 
         // ── 3. WP companion plugin install + snippet inject + stale GTM scan ──
         // Phase 2026.02 Block 6 Pattern J. Three sub-steps with full
