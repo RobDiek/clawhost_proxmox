@@ -2805,6 +2805,23 @@ input{font-family:inherit}
         </div>
       </div>
 
+      <!-- Tracking Health — systemic verification suite (kabinet indications) -->
+      <div class="int-card" id="tracking-health-card" data-tooltip="תקינות מדידה — בדיקת מערכת אוטומטית של כל מנגנוני המדידה והאטריבוציה: רכישות, מקור תנועה, וואטסאפ/חיוג, פעולות המרה ב-Google Ads, וגשר הזמנות אופליין. אותה בדיקה רצה בסיום ההגדרה.">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#ECFDF5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 12h4l2 5 4-12 2 7h6" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div style="flex:1"><strong>תקינות מדידה</strong><div class="int-status" id="tracking-health-status">בודק...</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-tracking-health-body">
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:12px">
+            בדיקה אוטומטית של כל מצבי המדידה והאטריבוציה. <strong>✅</strong> תקין · <strong>🟡</strong> הוגדר / ממתין לנתונים · <strong>🔴</strong> דורש טיפול.
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center">
+            <button class="btn btn-outline btn-sm" onclick="loadTrackingHealth(true)" style="font-size:0.78rem">🔄 בדקו שוב</button>
+          </div>
+          <div id="tracking-health-checks"><div style="font-size:0.82rem;color:#6B7280;text-align:center;padding:14px">⏳ טוען...</div></div>
+        </div>
+      </div>
+
       <!-- Google Analytics 4 (separate scope, additive OAuth) -->
       <div class="int-card" id="ga4-card" data-tooltip="Google Analytics 4 — מקור האמת ל-conversions ולנתוני התנהגות. חובה ל-smart bidding ב-Google Ads. הרשאה לקריאה בלבד.">
         <div class="int-card-header">
@@ -26819,6 +26836,54 @@ async function loadGtmDiagnostic(force) {
   }
   // Phase 4.3-P(B v2) — load the per-action picker IF a draftMapping exists.
   try { loadConversionPicker(); } catch (_) {}
+  // Tracking Health card — reuse the same load trigger as the GTM card.
+  try { if (typeof loadTrackingHealth === 'function') loadTrackingHealth(false); } catch (_) {}
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// Tracking Health Card — systemic verification suite (kabinet indications)
+// ════════════════════════════════════════════════════════════════════════
+// GET /tracking/health → ✅/🟡/🔴 per check + score. Same engine that gates
+// the end of onboarding. Surfaces every measurement/attribution state so the
+// user sees what's healthy, what's awaiting data, and what needs a fix.
+var _trackingHealthLoading = false;
+async function loadTrackingHealth(force) {
+  if (!instanceId) return;
+  if (_trackingHealthLoading && !force) return;
+  var el = document.getElementById('tracking-health-checks');
+  var statusEl = document.getElementById('tracking-health-status');
+  if (el && force) el.innerHTML = '<div style="font-size:0.82rem;color:#6B7280;text-align:center;padding:14px">⏳ בודק...</div>';
+  _trackingHealthLoading = true;
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/tracking/health');
+    if (!r.success) throw new Error(r.message || 'health failed');
+    var rep = r.data || {};
+    var checks = rep.checks || [];
+    var ICON = { pass: '✅', warn: '🟡', fail: '🔴', skip: '⚪' };
+    var COLOR = { pass: '#10B981', warn: '#F59E0B', fail: '#EF4444', skip: '#9CA3AF' };
+    var rows = checks.map(function(c) {
+      return '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #F3F4F6">' +
+        '<div style="font-size:1rem;flex-shrink:0">' + (ICON[c.status] || '⚪') + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:0.84rem;color:#1F2937;line-height:1.5">' + _escapeHtml(c.he || c.id) + '</div>' +
+          (c.fix ? '<div style="font-size:0.76rem;color:' + (COLOR[c.status] || '#6B7280') + ';margin-top:2px;line-height:1.45">↳ ' + _escapeHtml(c.fix) + '</div>' : '') +
+        '</div></div>';
+    }).join('');
+    var score = typeof rep.score === 'number' ? rep.score : 0;
+    var scoreColor = score >= 85 ? '#10B981' : score >= 60 ? '#F59E0B' : '#EF4444';
+    el.innerHTML = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+      '<div style="font-size:1.6rem;font-weight:800;color:' + scoreColor + '">' + score + '<span style="font-size:0.9rem;color:#9CA3AF">/100</span></div>' +
+      '<div style="font-size:0.8rem;color:#6B7280">ציון תקינות מדידה</div></div>' + rows;
+    if (statusEl) {
+      if (score >= 85) { statusEl.innerHTML = '<span class="int-status-dot"></span>תקין'; statusEl.className = 'int-status connected'; }
+      else if (score >= 60) { statusEl.textContent = '⚠ ' + score + '/100'; statusEl.className = 'int-status warning'; }
+      else { statusEl.textContent = '🔴 ' + score + '/100'; statusEl.className = 'int-status'; }
+    }
+  } catch (err) {
+    if (el) el.innerHTML = '<div style="background:#FEE2E2;border:1px solid #FCA5A5;border-radius:8px;padding:12px;font-size:0.82rem;color:#7F1D1D">שגיאה בטעינת תקינות מדידה: ' + _escapeHtml(err.message || String(err)) + '</div>';
+  } finally {
+    _trackingHealthLoading = false;
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════════
