@@ -107,6 +107,7 @@ import {
     getConversionDraft,
     applySelectedConversionMapping,
     autoSetupMazhirGtm,
+    getTrackingHealth,
     getMazhirPreflight,
     executeMazhirPlan,
     getMazhirWpSnippet,
@@ -555,6 +556,8 @@ app.post('/instances/:id/mazhir/conversions/apply-mapping', applyConversionMappi
 app.get('/instances/:id/mazhir/conversions/draft', getConversionDraft)
 app.post('/instances/:id/mazhir/conversions/apply-selected', applySelectedConversionMapping)
 app.post('/instances/:id/mazhir/gtm/auto-setup', autoSetupMazhirGtm)
+// Tracking Health card (кабинет indications) — systemic verification suite
+app.get('/instances/:id/tracking/health', getTrackingHealth)
 // Phase 4.2.2-A — GTM integration card diagnostic (probe-based gate status)
 app.get('/instances/:id/integrations/gtm/diagnostic', getGtmIntegrationDiagnostic)
 // Phase 4.2.2-B — GTM auto-fix orchestrator (single-button chain)

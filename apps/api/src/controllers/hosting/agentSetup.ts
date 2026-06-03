@@ -9892,6 +9892,28 @@ export const autoSetupMazhirGtm = async (c: Context) => {
     }
 }
 
+// ─── GET /hosting/instances/:id/tracking/health ──────────────────────────
+// Tracking Health card for the dashboard (кабинет indications). Runs the
+// systemic verification suite (GA4 purchase firing + attribution %, WhatsApp/
+// call tracking, Ads conversion-action roles, store↔GA4 integrity) and returns
+// ✅/🟡/🔴 states + Hebrew remediation so the user sees every tracking state and
+// can act. Read-only. Same engine that gates the end of onboarding.
+export const getTrackingHealth = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const agent = await resolveActiveAgent(c, instanceId)
+        if (!agent) return fail(c, 'No active agent', 400)
+        const { runTrackingHealthCheck } = await import('@/services/trackingHealthCheck')
+        const report = await runTrackingHealthCheck(instanceId, agent.id)
+        return ok(c, report, `Tracking health ${report.score}/100`)
+    } catch (err) {
+        console.error('getTrackingHealth error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/mazhir/conversions/detect-existing ──────
 // Phase 4.3-P(B) — read-only scan of the active agent's Google Ads account
 // for existing ConversionActions. Maps them to our actionKey schema, writes

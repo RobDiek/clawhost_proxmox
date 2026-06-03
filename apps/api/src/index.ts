@@ -113,6 +113,12 @@ startObjectiveTransitionRunner()
 import { startMonthlyReauditRunner } from '@/services/monthlyReauditRunner'
 startMonthlyReauditRunner()
 
+// Offline Conversion Runner — daily; uploads new store orders carrying a gclid
+// to Google Ads as secondary conversions (paid-originated phone/WhatsApp/manual
+// orders the store records as direct). Systemic across all provisioned tenants.
+import { startOfflineConversionRunner } from '@/services/offlineConversionRunner'
+startOfflineConversionRunner()
+
 // One-shot research data migration: legacy researchData.stage1..stage5
 // → new intent + plan + results shape (docs/research-pipeline-design.md §10).
 // Idempotent — already-migrated rows are skipped. Deferred 30s after boot
