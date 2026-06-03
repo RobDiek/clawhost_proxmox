@@ -89,12 +89,26 @@ export async function runTrackingHealthCheck(instanceId: string, agentId: string
             }
         } catch (e) { add('purchase_firing', 'warn', `GA4 שגיאה: ${(e as Error).message}`) }
 
-        // whatsapp tracking (30d) — does ANY whatsapp event fire?
+        // whatsapp tracking (30d) — does ANY whatsapp event fire? When the GTM
+        // click-capture is configured but no clicks landed yet, show "awaiting"
+        // (🟡) not "missing" (🔴) — distinguishes setup-state from data-state.
         try {
             const ev = await ga4(at, prop, '30daysAgo', 'yesterday', ['eventName'])
             const wa = ev.filter((r: any) => /whats|wa_|message/i.test(r.d[0])).reduce((s: number, r: any) => s + r.n, 0)
-            add('whatsapp_tracking', wa > 0 ? 'pass' : 'fail', wa > 0 ? `מעקב וואטסאפ פעיל (${wa} ב-30 יום).` : 'אין שום אירוע וואטסאפ ב-GA4 — מעקב וואטסאפ לא קיים.', wa > 0 ? undefined : 'נדרש טריגר GTM על קליקים ל-wa.me/whatsapp → אירוע GA4 (secondary).')
+            const gtmConfigured = !!rd.mazhirGtm?.target
+            if (wa > 0) add('whatsapp_tracking', 'pass', `מעקב וואטסאפ פעיל (${wa} ב-30 יום).`)
+            else if (gtmConfigured) add('whatsapp_tracking', 'warn', 'מעקב וואטסאפ/טלפון הוגדר ב-GTM — ממתין לקליק ראשון (0 ב-30 יום).', 'ודאו שכפתורי וואטסאפ/חיוג הם קישורי wa.me / tel: בדף.')
+            else add('whatsapp_tracking', 'fail', 'אין מעקב וואטסאפ — GTM לא מוגדר.', 'נדרש GTM + טריגר קליקים ל-wa.me/tel: → אירוע GA4 (secondary).')
         } catch { /* ignore */ }
+    }
+
+    // offline store→Ads bridge state (paid-originated phone/WhatsApp/manual orders)
+    const oc = rd.offlineConversions
+    if (oc?.actionResourceName) {
+        const last = oc.lastUploaded
+        add('offline_bridge', 'pass', `גשר הזמנות אופליין → Ads פעיל${typeof last === 'number' ? ` (הועלו ${last} בריצה האחרונה)` : ''}.`)
+    } else {
+        add('offline_bridge', 'warn', 'גשר הזמנות אופליין → Ads לא הוגדר עדיין.', 'מופעל אוטומטית בסיום הגדרת GTM — הזמנות עם gclid יועלו ל-Ads כ-secondary.')
     }
 
     // conversion-action roles + enhanced conversions (Ads)
