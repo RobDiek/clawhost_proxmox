@@ -1,7 +1,6 @@
 import { createHash, timingSafeEqual } from 'crypto'
 // Local alias for timing-safe HMAC compare (Phase 4.3-O H2)
 const crypto = { timingSafeEqual }
-import { INSTALLMENTS } from '@openclaw/shared'
 
 const ALLPAY_BASE = 'https://allpay.to/app/'
 
@@ -141,7 +140,11 @@ const allpay = {
 
     async createSubscription(params: CreatePaymentParams): Promise<string> {
         const { login, apiKey } = getCredentials()
-        const installments = INSTALLMENTS[params.planKey] || 3
+
+        // Installments (תשלומים) only on the large annual upfront charge — let the
+        // customer split it into up to N card payments. Monthly recurring billing
+        // is a single charge per cycle (inst=1, no installment selector shown).
+        const installments = params.isAnnual ? 12 : 1
 
         const items = params.items.map(i => ({
             name: i.name,
@@ -166,11 +169,17 @@ const allpay = {
             backlink_url: params.failUrl,
             add_field_1: params.metadata.instanceId,
             add_field_2: params.metadata.planKey,
-            subscription: {
-                start_type: params.trialDays ? 3 : 1,  // 3 = delayed by N days
-                ...(params.trialDays ? { start_n: params.trialDays } : {}),
-                end_type: 1,
-            },
+            // Monthly = recurring subscription (AllPay re-charges each cycle).
+            // Annual = ONE-TIME upfront payment for the year (no subscription
+            // block) → split into up to `installments` תשלומים. Renewal handled
+            // separately (no auto-renew on the annual one-time).
+            ...(params.isAnnual ? {} : {
+                subscription: {
+                    start_type: params.trialDays ? 3 : 1,  // 3 = delayed by N days
+                    ...(params.trialDays ? { start_n: params.trialDays } : {}),
+                    end_type: 1,
+                },
+            }),
         }
 
         payload.sign = computeSign(payload, apiKey)

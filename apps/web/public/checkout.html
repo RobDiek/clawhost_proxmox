@@ -223,6 +223,42 @@ a:hover { text-decoration: underline; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .hidden { display: none !important; }
+
+/* ── Billing period toggle ── */
+.billing-toggle {
+  display: flex;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+.bt-opt {
+  flex: 1;
+  padding: 9px 8px;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all .15s;
+  line-height: 1.2;
+}
+.bt-opt .bt-save {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--success);
+}
+.bt-opt.active {
+  background: var(--surface);
+  color: var(--primary);
+  box-shadow: var(--shadow);
+}
 </style>
 </head>
 <body>
@@ -234,12 +270,17 @@ a:hover { text-decoration: underline; }
   </div>
   <div class="card-title">סיכום הזמנה</div>
 
+  <div class="billing-toggle">
+    <button type="button" class="bt-opt active" data-period="monthly" onclick="setBilling('monthly')">חודשי</button>
+    <button type="button" class="bt-opt" data-period="annual" onclick="setBilling('annual')">שנתי <span class="bt-save">· חוסכים 18%</span></button>
+  </div>
+
   <ul class="component-list" id="component-list"></ul>
 
   <div id="summary-rows"></div>
 
   <div class="summary-total">
-    <span>סה״כ לחודש</span>
+    <span id="total-label">סה״כ לחודש</span>
     <span class="value" id="total-price"></span>
   </div>
 </div>
@@ -318,7 +359,7 @@ const planKey = 'self_serve';
 let components = (params.get('components') || '').split(',').filter(Boolean);
 if (!components.length) components = ['mt'];  // self-serve = 1 Mateh marketing agent
 const storageGb = parseInt(params.get('storage') || '0', 10);
-const billingPeriod = params.get('billing') || 'monthly';
+let billingPeriod = params.get('billing') || 'monthly';
 const subdomainName = params.get('subdomain') || '';
 
 // Show subdomain if available
@@ -346,35 +387,68 @@ function addRow(label, value) {
   rowsEl.appendChild(div);
 }
 
-var isAnnual = billingPeriod === 'annual';
-var discount = isAnnual ? 0.82 : 1;  // 18% discount for annual
-var periodLabel = isAnnual ? '/חודש (שנתי)' : '/חודש';
-var periodNote = isAnnual ? ' · 18% הנחה' : '';
-
-var planPrice = Math.round(SELF_SERVE_PRICE * discount);
-addRow('תוכנית ' + SELF_SERVE_LABEL, '₪' + planPrice + periodLabel);
-if (storageGb > 0) {
-  var storagePrice = Math.round((storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199) * discount);
-  addRow('אחסון נוסף +' + storageGb + 'GB', '₪' + storagePrice + periodLabel);
-}
-var backupPrice = 0;
-if (components.includes('bk')) {
-  backupPrice = Math.round(19 * discount);
-  addRow('גיבוי יומי', '₪' + backupPrice + periodLabel);
+function storageMonthlyBase() {
+  if (storageGb <= 0) return 0;
+  return storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199;
 }
 
-// Total
-var monthlyTotal = planPrice;
-if (storageGb > 0) monthlyTotal += Math.round((storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199) * discount);
-if (components.includes('bk')) monthlyTotal += backupPrice;
+// Globals updated by renderSummary(); used by the payment step.
+var isAnnual = false;
+var monthlyTotal = 0;   // effective ₪/month (after annual discount)
+var chargeAmount = 0;   // what we actually charge now: month=monthlyTotal, year=×12
 
-if (isAnnual) {
-  var yearlyTotal = monthlyTotal * 12;
-  var savedPerYear = Math.round((SELF_SERVE_PRICE + (storageGb > 0 ? (storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199) : 0) + (components.includes('bk') ? 19 : 0)) * 12 * 0.18);
-  document.getElementById('total-price').innerHTML = '₪' + monthlyTotal + '/חודש<div style="font-size:0.82rem;color:#10B981;margin-top:4px">₪' + yearlyTotal + ' לשנה · חוסכים ₪' + savedPerYear + '</div>';
-} else {
-  document.getElementById('total-price').textContent = '₪' + monthlyTotal + '/חודש';
+function renderSummary() {
+  isAnnual = billingPeriod === 'annual';
+  var discount = isAnnual ? 0.82 : 1;  // 18% off for annual
+
+  rowsEl.innerHTML = '';
+
+  var planPrice = Math.round(SELF_SERVE_PRICE * discount);
+  addRow('תוכנית ' + SELF_SERVE_LABEL, '₪' + planPrice + '/חודש');
+
+  var storageMonthly = 0;
+  if (storageGb > 0) {
+    storageMonthly = Math.round(storageMonthlyBase() * discount);
+    addRow('אחסון נוסף +' + storageGb + 'GB', '₪' + storageMonthly + '/חודש');
+  }
+  var backupMonthly = 0;
+  if (components.includes('bk')) {
+    backupMonthly = Math.round(19 * discount);
+    addRow('גיבוי יומי', '₪' + backupMonthly + '/חודש');
+  }
+
+  monthlyTotal = planPrice + storageMonthly + backupMonthly;
+
+  var totalEl = document.getElementById('total-price');
+  var labelEl = document.getElementById('total-label');
+  if (isAnnual) {
+    var yearlyTotal = monthlyTotal * 12;
+    chargeAmount = yearlyTotal;
+    var savedPerYear = Math.round((SELF_SERVE_PRICE + storageMonthlyBase() + (components.includes('bk') ? 19 : 0)) * 12 * 0.18);
+    if (labelEl) labelEl.textContent = 'סה״כ לשנה';
+    totalEl.innerHTML = '₪' + yearlyTotal +
+      '<div style="font-size:0.8rem;color:#10B981;margin-top:4px;font-weight:600">≈ ₪' + monthlyTotal + '/חודש · חוסכים ₪' + savedPerYear + ' (18%)</div>' +
+      '<div style="font-size:0.72rem;color:var(--text-3);margin-top:3px;font-weight:400">ניתן לפצל עד 12 תשלומים</div>';
+  } else {
+    chargeAmount = monthlyTotal;
+    if (labelEl) labelEl.textContent = 'סה״כ לחודש';
+    totalEl.textContent = '₪' + monthlyTotal + '/חודש';
+  }
+
+  // reflect active toggle + keep the pay button amount in sync
+  document.querySelectorAll('.bt-opt').forEach(function(b) {
+    b.classList.toggle('active', b.getAttribute('data-period') === billingPeriod);
+  });
+  var payAmt = document.getElementById('pay-amount');
+  if (payAmt) payAmt.textContent = '₪' + chargeAmount;
 }
+
+function setBilling(period) {
+  billingPeriod = period;
+  renderSummary();
+}
+
+renderSummary();
 
 // Fill email
 document.getElementById('cust-email').value = email || '';
@@ -471,7 +545,7 @@ async function handleCheckout() {
     }
 
     // Track checkout initiation
-    if (window.plausible) plausible('Checkout Started', {props: {plan: planKey, billing: billingPeriod}, revenue: {currency: 'ILS', amount: monthlyTotal}});
+    if (window.plausible) plausible('Checkout Started', {props: {plan: planKey, billing: billingPeriod}, revenue: {currency: 'ILS', amount: chargeAmount}});
 
     var url = data.data && (data.data.paymentUrl || data.data.url);
     if (!url) {
@@ -499,7 +573,7 @@ function startHostedFields(url) {
   document.getElementById('customer-card').classList.add('hidden');
   var pc = document.getElementById('payment-card');
   pc.classList.remove('hidden');
-  document.getElementById('pay-amount').textContent = '₪' + monthlyTotal;
+  document.getElementById('pay-amount').textContent = '₪' + chargeAmount;
 
   var iframe = document.getElementById('allpay-hf');
   iframe.src = url;
@@ -514,7 +588,7 @@ function startHostedFields(url) {
         showPayMsg('התשלום נכשל: ' + (errMsg || ('שגיאה ' + errNum)), true);
         var b = document.getElementById('btn-pay');
         b.disabled = false;
-        b.innerHTML = 'שלם ₪' + monthlyTotal + ' →';
+        b.innerHTML = 'שלם ₪' + chargeAmount + ' →';
       }
     });
   } catch (e) {
