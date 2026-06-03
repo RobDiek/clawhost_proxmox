@@ -9848,12 +9848,21 @@ export const autoSetupMazhirGtm = async (c: Context) => {
         // no awct tags to wire. autoSetupGtmContainer still creates baseline
         // infrastructure (Conversion Linker, GCLID Capture) and publishes —
         // useful for Enhanced Conversions to work cleanly.
-        const { autoSetupGtmContainer, saveGtmSetupResult } = await import('@/services/mazhirGtmSetup')
+        const { autoSetupGtmContainer, saveGtmSetupResult, detectSiteCmp } = await import('@/services/mazhirGtmSetup')
+        // Detect a CMP on the tenant's site → it owns Google Consent Mode, so we
+        // skip our own consent default/update tags (double-management suppressed
+        // measurement on Packing). Resolve the site URL from answers, else WP.
+        let siteUrl: string | undefined = rdAny.answers?.website || rdAny.answers?.site || rdAny.answers?.url || rdAny.paidProfile?.siteUrl
+        if (!siteUrl) {
+            try { const { loadWpConfig } = await import('@/services/seoMetaBatch'); siteUrl = (await loadWpConfig(instanceId, __agent?.id || null))?.url } catch { /* best-effort */ }
+        }
+        const cmpDetected = await detectSiteCmp(siteUrl).catch(() => false)
         const result = await autoSetupGtmContainer(googleTokens, {
             target,
             measurementId: target.measurementId,
             conversions: gtmConfigs,
             enhancedConversions: true,
+            cmpDetected,
         })
         await saveGtmSetupResult(instanceId, result, __agent?.id)
 

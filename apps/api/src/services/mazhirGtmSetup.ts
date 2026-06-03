@@ -111,6 +111,23 @@ async function gtmFetch(path: string, accessToken: string, method = 'GET', body?
     throw lastErr || new Error('gtmFetch: unknown retry failure')
 }
 
+// Detect whether a site already runs a Consent Management Platform. When it
+// does, the CMP owns Google Consent Mode — we must NOT add our own consent
+// default/update tags (double-management suppressed measurement on Packing:
+// 60% "(not set)"). Best-effort homepage fetch + signature scan.
+const CMP_SIGNATURES = /cookiebot|onetrust|cookielaw\.org|complianz|cookie-law-info|cmplz|borlabs|iubenda|cookieyes|termly|usercentrics|didomi|quantcast|cookie-script|osano/i
+export async function detectSiteCmp(siteUrl?: string | null): Promise<boolean> {
+    if (!siteUrl) return false
+    let url = String(siteUrl).trim()
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url
+    try {
+        const res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(15000), headers: { 'User-Agent': 'Mozilla/5.0 (FlowmaticBot)' } })
+        if (!res.ok) return false
+        const html = (await res.text()).slice(0, 200_000)
+        return CMP_SIGNATURES.test(html)
+    } catch { return false }
+}
+
 // ─── Public types ─────────────────────────────────────────────────────────
 
 export interface GtmTarget {
@@ -147,6 +164,8 @@ export interface GtmAutoSetupRequest {
     conversions: GtmConversionConfig[]
     enhancedConversions: boolean         // wire userProperties (email/phone) on awct tags
     metaPixel?: MetaPixelConfig          // Meta Pixel base init + per-event Custom HTML tags
+    cmpDetected?: boolean                // site runs a CMP (Cookiebot/OneTrust/…) → it OWNS
+                                         // Consent Mode; skip our consent default/update tags
 }
 
 export interface GtmAutoSetupResult {
@@ -847,22 +866,32 @@ if (typeof fbq === 'function') {
     // fire BEFORE all other tags). Its built-in trigger ID is 2147479573.
     const CONSENT_INIT_TRIGGER_ID = '2147479573'  // GTM built-in Consent Initialization - All Pages
 
-    // A) Consent Default - Denied
+    // A) Consent Default. When the site already runs a CMP (Cookiebot/OneTrust/…)
+    // it OWNS Google Consent Mode — adding our own default DOUBLE-MANAGES consent
+    // and suppressed measurement on Packing (60% "(not set)"). So: skip ours when
+    // a CMP is present. When NOT present, region-scope the deny to EEA+UK only so
+    // the IL market (the product's audience) measures by default while EU stays
+    // GDPR-safe (granted-by-default-except-EEA — the standard non-EU pattern).
     const consentDefaultName = 'Consent Default - Denied (Mazhir)'
     const existingConsentDefault = findTagByName(consentDefaultName) ||
         existing.tags.find((t: any) => /consent[\s_]*default|consent[\s_]*deny|gtag.*consent.*default/i.test(String(t.name || '')))
-    if (!existingConsentDefault) {
+    if (req.cmpDetected) {
+        result.skipped.push({ type: 'tag:consent_default', name: consentDefaultName, reason: 'CMP detected on site — Consent Mode owned by the CMP (avoid double-management)' })
+    } else if (!existingConsentDefault) {
         const consentDefaultHtml = `<script>
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
+// Global default: GRANTED (IL market measures by default). EEA+UK: DENIED until
+// the user grants via a CMP. region-specific defaults override the global one.
 gtag('consent', 'default', {
-  ad_storage: 'denied',
-  ad_user_data: 'denied',
-  ad_personalization: 'denied',
-  analytics_storage: 'denied',
-  functionality_storage: 'granted',
-  security_storage: 'granted',
-  wait_for_update: 500
+  ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted',
+  analytics_storage: 'granted', functionality_storage: 'granted', security_storage: 'granted'
+});
+gtag('consent', 'default', {
+  ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
+  analytics_storage: 'denied', functionality_storage: 'granted', security_storage: 'granted',
+  wait_for_update: 500,
+  region: ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE','IS','LI','NO','GB']
 });
 </script>`
         try {
@@ -901,7 +930,7 @@ gtag('consent', 'default', {
             name: existingConsentUpdateTrig.name,
             reason: existingConsentUpdateTrig.name === consentUpdateTrigName ? 'already exists' : 'user already has consent_update custom event trigger — reusing',
         })
-    } else {
+    } else if (!req.cmpDetected) {
         try {
             const trig = await gtmFetch(`${wsBase}/triggers`, accessToken, 'POST', {
                 name: consentUpdateTrigName,
@@ -921,7 +950,7 @@ gtag('consent', 'default', {
         }
     }
 
-    if (consentUpdateTrigId) {
+    if (consentUpdateTrigId && !req.cmpDetected) {
         const consentUpdateTagName = 'Consent Update - On Accept (Mazhir)'
         const existingConsentUpdate = findTagByName(consentUpdateTagName) ||
             existing.tags.find((t: any) => /consent[\s_]*update|consent[\s_]*grant|gtag.*consent.*update/i.test(String(t.name || '')))
