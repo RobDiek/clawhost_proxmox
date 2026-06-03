@@ -245,7 +245,11 @@ export async function uploadNewStoreOrders(agent: MatehAgentRow, opts: { dryRun?
 
     // Advance watermark to newest scanned order (so next run starts after it).
     // Skipped on dryRun and when scanning an override window (self-test).
-    if (!dryRun && !opts.watermarkOverride && orders.length) {
+    // HOLD on any error (e.g. just-created-action 6h cooldown, transient API):
+    // the next run re-scans the same window and the `_clawflow_ads_uploaded`
+    // meta (+ Ads orderId dedup) skips the ones that already succeeded, so a
+    // transient failure never silently drops an order past the watermark.
+    if (!dryRun && !opts.watermarkOverride && orders.length && errors.length === 0) {
         const newest = orders[orders.length - 1]?.date_created_gmt
         if (newest) {
             const { mutateResearchData } = await import('./agentContext')
