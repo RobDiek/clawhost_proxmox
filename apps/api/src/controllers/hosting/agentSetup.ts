@@ -9874,6 +9874,15 @@ export const autoSetupMazhirGtm = async (c: Context) => {
                 .then(({ ensureServerSideTracking }) => ensureServerSideTracking(agentForIso, { source: 'gtm_setup' }))
                 .then(d => console.log(`[serverSideTracking] gtm_setup ${agentForIso.id}: ${d.status} (${d.reason})`))
                 .catch(err => console.error('[serverSideTracking] gtm_setup error:', (err as Error).message))
+            // Phase 2026.06 — provision the offline store→Ads conversion bridge
+            // (secondary "Store Orders (offline)" action + watermark=now). Captures
+            // paid-originated phone/WhatsApp/manual orders (gclid in store) that
+            // never fire a client-side Ads conversion. Recurring upload runs
+            // separately; this just ensures the action exists from onboarding.
+            import('@/services/offlineConversionUpload')
+                .then(({ ensureOfflineAction }) => ensureOfflineAction(agentForIso))
+                .then(d => console.log(`[offlineConversionUpload] gtm_setup ${agentForIso.id}: ${d.status} (${d.reason})`))
+                .catch(err => console.error('[offlineConversionUpload] gtm_setup error:', (err as Error).message))
         }
 
         return ok(c, result, result.published ? 'GTM workspace published' : 'GTM workspace partially configured')
