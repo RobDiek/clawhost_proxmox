@@ -147,15 +147,19 @@ function adsDateTime(iso: string): string {
     return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}+00:00`
 }
 
-/** Upload new (post-watermark) store orders that carry a gclid to Google Ads. */
-export async function uploadNewStoreOrders(agent: MatehAgentRow, opts: { dryRun?: boolean } = {}): Promise<OfflineUploadResult> {
+/** Upload new (post-watermark) store orders that carry a gclid to Google Ads.
+ * dryRun → uploadClickConversions with validateOnly:true (Ads validates gclid +
+ * action + payload, records NOTHING). watermarkOverride lets a self-test scan an
+ * earlier window against real gclid orders without touching the stored watermark. */
+export async function uploadNewStoreOrders(agent: MatehAgentRow, opts: { dryRun?: boolean; watermarkOverride?: string } = {}): Promise<OfflineUploadResult> {
     const dryRun = !!opts.dryRun
     const ctx = await resolveAdsCtx(agent)
     if (!ctx) return { status: 'no_ads', reason: 'google_ads_not_connected', dryRun }
     const rd: any = agent.researchData || {}
     const actionResourceName: string | undefined = rd.offlineConversions?.actionResourceName
-    const watermark: string | undefined = rd.offlineConversions?.watermark
-    if (!actionResourceName || !watermark) return { status: 'no_action', reason: 'run_ensureOfflineAction_first', dryRun }
+    const storedWatermark: string | undefined = rd.offlineConversions?.watermark
+    if (!actionResourceName || !storedWatermark) return { status: 'no_action', reason: 'run_ensureOfflineAction_first', dryRun }
+    const watermark = opts.watermarkOverride || storedWatermark
 
     const wp = await loadWpConfig(agent.vpsInstanceId, agent.id)
     if (!wp) return { status: 'no_store', reason: 'wordpress_not_connected', dryRun }
@@ -185,8 +189,9 @@ export async function uploadNewStoreOrders(agent: MatehAgentRow, opts: { dryRun?
 
     const errors: string[] = []
     let uploaded = 0
-    if (eligible.length && !dryRun) {
-        // uploadClickConversions in one batch (partialFailure → per-row errors)
+    if (eligible.length) {
+        // uploadClickConversions in one batch (partialFailure → per-row errors).
+        // dryRun → validateOnly: Ads validates everything but records nothing.
         const conversions = eligible.map(e => ({
             gclid: e.gclid,
             conversionAction: actionResourceName,
@@ -196,7 +201,7 @@ export async function uploadNewStoreOrders(agent: MatehAgentRow, opts: { dryRun?
             orderId: String(e.id),   // dedup key on Ads side
         }))
         try {
-            const res = await ads(ctx, ':uploadClickConversions', { conversions, partialFailure: true, validateOnly: false }, 'POST')
+            const res = await ads(ctx, ':uploadClickConversions', { conversions, partialFailure: true, validateOnly: dryRun }, 'POST')
             const pf = res.partialFailureError
             const rowErrs: Record<number, string> = {}
             if (pf?.details?.length) {
@@ -209,6 +214,7 @@ export async function uploadNewStoreOrders(agent: MatehAgentRow, opts: { dryRun?
             }
             for (let i = 0; i < eligible.length; i++) {
                 if (rowErrs[i]) { errors.push(`#${eligible[i].id}: ${rowErrs[i]}`); continue }
+                if (dryRun) { uploaded++; continue }   // validated OK (would upload)
                 // mark uploaded on the store order (companion-managed meta)
                 try {
                     await fetch(`${base}/wp-json/wc/v3/orders/${eligible[i].id}`, {
@@ -223,7 +229,8 @@ export async function uploadNewStoreOrders(agent: MatehAgentRow, opts: { dryRun?
     }
 
     // Advance watermark to newest scanned order (so next run starts after it).
-    if (!dryRun && orders.length) {
+    // Skipped on dryRun and when scanning an override window (self-test).
+    if (!dryRun && !opts.watermarkOverride && orders.length) {
         const newest = orders[orders.length - 1]?.date_created_gmt
         if (newest) {
             const { mutateResearchData } = await import('./agentContext')
@@ -240,7 +247,7 @@ export async function uploadNewStoreOrders(agent: MatehAgentRow, opts: { dryRun?
 }
 
 /** Convenience: load agent row + ensure action + upload. Used by scripts/executor. */
-export async function runOfflineUploadForAgent(agentId: string, opts: { dryRun?: boolean } = {}): Promise<OfflineUploadResult> {
+export async function runOfflineUploadForAgent(agentId: string, opts: { dryRun?: boolean; watermarkOverride?: string } = {}): Promise<OfflineUploadResult> {
     const [agent] = await db.select().from(matehAgents).where(eq(matehAgents.id, agentId))
     if (!agent) return { status: 'error', reason: `agent_not_found:${agentId}` }
     const ensured = await ensureOfflineAction(agent as MatehAgentRow)
