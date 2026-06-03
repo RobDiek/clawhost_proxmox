@@ -608,6 +608,99 @@ export async function autoSetupGtmContainer(
         }
     }
 
+    // ── 7.7. Click-to-contact tracking (WhatsApp + phone) — systemic ──
+    // Many IL service businesses convert primarily via WhatsApp/phone-click,
+    // not web forms (Packing Station: 0 WhatsApp events in GA4 = invisible).
+    // Native GTM has no wa.me/tel: listener, so inject a lightweight delegated
+    // click-capture HTML tag (All Pages) that pushes dataLayer events
+    // 'whatsapp_click' + 'phone_call'. customEvent triggers + GA4 event tags
+    // turn them into GA4 events → marked as key events → imported to Ads as
+    // SECONDARY conversions (counted, NOT biddable — bidding stays on purchase).
+    const clickCaptureName = 'Mazhir — Click-to-Contact Capture'
+    const existingClickCapture = findTagByName(clickCaptureName) ||
+        existing.tags.find((t: any) => {
+            if (t.type !== 'html') return false
+            const html: string = ((t.parameter || []).find((p: any) => p.key === 'html')?.value) || ''
+            return /wa\.me|whatsapp/i.test(html) && /addEventListener\(\s*['"]click/i.test(html)
+        })
+    if (!existingClickCapture) {
+        const html = `<script>
+(function(){
+  if (window.__mazhirClickCapture) return; window.__mazhirClickCapture = true;
+  window.dataLayer = window.dataLayer || [];
+  document.addEventListener('click', function(e){
+    try {
+      var a = (e.target && e.target.closest) ? e.target.closest('a') : null;
+      if (!a || !a.getAttribute) return;
+      var href = (a.getAttribute('href') || '').toLowerCase();
+      if (!href) return;
+      if (href.indexOf('wa.me') > -1 || href.indexOf('api.whatsapp.com') > -1 || href.indexOf('web.whatsapp.com') > -1 || href.indexOf('whatsapp://') === 0) {
+        window.dataLayer.push({ event: 'whatsapp_click', contact_method: 'whatsapp', link_url: a.href });
+      } else if (href.indexOf('tel:') === 0) {
+        window.dataLayer.push({ event: 'phone_call', contact_method: 'phone', link_url: a.href });
+      }
+    } catch(err) {}
+  }, true);
+})();
+</script>`
+        try {
+            const tag = await gtmFetch(`${wsBase}/tags`, accessToken, 'POST', {
+                name: clickCaptureName,
+                type: 'html',
+                parameter: [{ type: 'template', key: 'html', value: html }],
+                firingTriggerId: [ALL_PAGES_TRIGGER_ID],
+            })
+            result.created.push({ type: 'tag:html', name: clickCaptureName, id: String(tag.tagId) })
+        } catch (err) {
+            result.errors.push({ step: 'click_capture', error: (err as Error).message })
+        }
+    } else {
+        result.skipped.push({ type: 'tag:html', name: existingClickCapture.name, reason: 'click-to-contact capture tag already present' })
+    }
+
+    // Triggers + GA4 event tags for whatsapp_click / phone_call (idempotent).
+    for (const ev of ['whatsapp_click', 'phone_call']) {
+        let trigId = triggerIdByAction[ev]
+        if (!trigId) {
+            const trigName = `Mazhir CE — ${ev}`
+            const existingTrig = findTrigByName(trigName) || findCustomEventTrigByEventName(ev)
+            if (existingTrig) {
+                trigId = String(existingTrig.triggerId)
+                triggerIdByAction[ev] = trigId
+                result.skipped.push({ type: 'trigger:customEvent', name: existingTrig.name, reason: 'already exists' })
+            } else {
+                try {
+                    const trig = await gtmFetch(`${wsBase}/triggers`, accessToken, 'POST', {
+                        name: trigName,
+                        type: 'customEvent',
+                        customEventFilter: [{ type: 'equals', parameter: [{ type: 'template', key: 'arg0', value: '{{_event}}' }, { type: 'template', key: 'arg1', value: ev }] }],
+                    })
+                    trigId = String(trig.triggerId)
+                    triggerIdByAction[ev] = trigId
+                    result.created.push({ type: 'trigger:customEvent', name: trigName, id: trigId })
+                } catch (err) { result.errors.push({ step: `click_trigger:${ev}`, error: (err as Error).message }); continue }
+            }
+        }
+        if (req.measurementId) {
+            const evName = `Mazhir GA4 — ${ev}`
+            const existingGaawe = findTagByName(evName) || findGaaweByEventName(ev)
+            if (existingGaawe) { result.skipped.push({ type: 'tag:gaawe', name: existingGaawe.name, reason: 'already exists' }); continue }
+            try {
+                const tag = await gtmFetch(`${wsBase}/tags`, accessToken, 'POST', {
+                    name: evName,
+                    type: 'gaawe',
+                    parameter: [
+                        { type: 'template', key: 'eventName', value: ev },
+                        { type: 'template', key: 'measurementIdOverride', value: req.measurementId },
+                        { type: 'boolean', key: 'sendEcommerceData', value: 'false' },
+                    ],
+                    firingTriggerId: [trigId],
+                })
+                result.created.push({ type: 'tag:gaawe', name: evName, id: String(tag.tagId) })
+            } catch (err) { result.errors.push({ step: `click_gaawe:${ev}`, error: (err as Error).message }) }
+        }
+    }
+
     // ── 7.6. Meta Pixel base + per-event tags — Phase 2026.02 Block 6 K6 ──
     //
     // Custom HTML strategy (not the Facebook Pixel community gallery
