@@ -45,6 +45,22 @@ const wordCount = (h: string) => stripHtml(h).trim().split(/\s+/).filter(Boolean
 
 interface Target { type: WpType; id: number; title: string; link: string; content: string; words: number }
 
+// System / functional pages must NEVER be "expanded" with SEO content — cart,
+// checkout, account, shop, thank-you, contact, accessibility, blog index, etc.
+// Detected by slug, title, or (most robustly) a functional shortcode/block in
+// the body (WooCommerce + form pages always carry these).
+const SYSTEM_SLUG = /^(cart|checkout|my-account|account|shop|store|thank-?you|order-received|wishlist|login|log-in|register|lost-password|basket|wc-|sample-page|blog|home|homepage|front-page)$/i
+const SYSTEM_TITLE = /סל קניות|עגלת קניות|סיכום רכישה|תשלום|קופה|החשבון שלי|התחבר|הרשמ|נגישות|צור קשר|צרו קשר|יצירת קשר|מדיניות פרטיות|פרטיות|תקנון|תנאי שימוש|תודה|דף הבית|^בלוג$|^חנות$/
+const FUNCTIONAL_SHORTCODE = /\[(woocommerce_|product[s_]|add_to_cart|sale_products|featured_products|contact-form-7|wpforms|gravityform|ninja_form|cart|checkout|my_account|account)/i
+
+function isSystemPage(t: Target): boolean {
+    const slug = decodeURIComponent((t.link.match(/\/([^/]+)\/?$/)?.[1] || '')).toLowerCase()
+    if (SYSTEM_SLUG.test(slug)) return true
+    if (SYSTEM_TITLE.test((t.title || '').trim())) return true
+    if (FUNCTIONAL_SHORTCODE.test(t.content || '')) return true
+    return false
+}
+
 // Pull the word target from the task text if it states one (e.g. "→ 1,200",
 // "ל-1200 מילים", "1,500 מילים"). Else default.
 export function parseTargetWords(text: string): number {
@@ -144,7 +160,10 @@ export async function runPageRefresh(
         } else {
             const all = [...await fetchType(cfg, 'posts'), ...await fetchType(cfg, 'pages')]
             result.scanned = all.length
-            targets = all.filter(t => t.words < THIN_WORD_THRESHOLD).sort((a, b) => a.words - b.words)
+            // Thin CONTENT only — exclude system/functional pages (cart, checkout,
+            // account, thank-you, contact, accessibility, blog index, …) which must
+            // never be expanded with SEO content.
+            targets = all.filter(t => t.words < THIN_WORD_THRESHOLD && !isSystemPage(t)).sort((a, b) => a.words - b.words)
         }
     } catch (err) { result.error = (err as Error).message; return result }
 
