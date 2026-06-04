@@ -619,7 +619,13 @@ export async function generateMonthlyPlan(
     // fillers ALSO get cleaned (Opus output + our deterministic copy may
     // contain English terms despite the style guide).
     let finalTasks = pass4Tasks
-    try {
+    // SKIP_PLAN_HEBREW_CLEANUP=1 → save immediately after Pass 4, skip the
+    // cosmetic Hebrew polish (run it later as a cheap standalone pass on the
+    // saved plan). Lets a budget-constrained regen finish without the extra
+    // ~20 Sonnet calls / stall risk.
+    if (process.env.SKIP_PLAN_HEBREW_CLEANUP === '1') {
+        console.log(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup SKIPPED (SKIP_PLAN_HEBREW_CLEANUP=1)`)
+    } else try {
         const { runMonthlyPlanHebrewCleanup } = await import('./monthlyPlanHebrewCleanup')
         const cleanup = await runMonthlyPlanHebrewCleanup({ tasks: pass4Tasks as unknown as Array<Record<string, unknown>>, instanceId })
         if (cleanup.applied && cleanup.cleanedTasks) {
