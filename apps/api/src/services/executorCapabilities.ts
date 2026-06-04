@@ -18,7 +18,7 @@
  * changing it. As new capabilities ship, add an entry here; coverage updates.
  */
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
-import { isPageRefreshTask, isSiteWidgetTask, isSeoMetaBatchTask, isSeoSchemaTask, isInternalLinksTask, isSlugProposeTask, isImageAltTask, isLlmsTxtTask, isLandingPageTask, isAnswerFirstTask } from '@/services/monthlyTaskExecutor'
+import { isExternalOutreachTask, isPageRefreshTask, isSiteWidgetTask, isSeoMetaBatchTask, isSeoSchemaTask, isInternalLinksTask, isSlugProposeTask, isImageAltTask, isLlmsTxtTask, isLandingPageTask, isAnswerFirstTask } from '@/services/monthlyTaskExecutor'
 
 export type Autonomy =
     | 'auto_write'      // performs a real external mutation (verified)
@@ -56,10 +56,25 @@ export const CAPABILITIES: ExecutorCapability[] = [
 ]
 
 export function classifyTask(task: MonthlyTask): { capabilityId: string; autonomy: Autonomy } {
+    // External outreach can never be auto — force manual even if a loose on-site
+    // matcher would otherwise grab it (e.g. link-recovery mis-matched to seo.slug).
+    try { if (isExternalOutreachTask(task)) return { capabilityId: 'manual', autonomy: 'manual' } } catch { /* skip */ }
     for (const cap of CAPABILITIES) {
         try { if (cap.match(task)) return { capabilityId: cap.id, autonomy: cap.autonomy } } catch { /* skip */ }
     }
     return { capabilityId: 'manual', autonomy: 'manual' }
+}
+
+// A2: ALL matching on-site capabilities for a task (empty for external/manual).
+export function classifyTaskMulti(task: MonthlyTask): { capabilities: Array<{ id: string; autonomy: Autonomy }>; external: boolean } {
+    let external = false
+    try { external = isExternalOutreachTask(task) } catch { /* skip */ }
+    if (external) return { capabilities: [], external: true }
+    const capabilities: Array<{ id: string; autonomy: Autonomy }> = []
+    for (const cap of CAPABILITIES) {
+        try { if (cap.match(task)) capabilities.push({ id: cap.id, autonomy: cap.autonomy }) } catch { /* skip */ }
+    }
+    return { capabilities, external: false }
 }
 
 export interface PlanCoverage {

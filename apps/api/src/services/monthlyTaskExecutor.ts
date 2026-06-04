@@ -190,28 +190,34 @@ export async function executeTask(
         // Landing-page first — task.type==='landing_page' is the strongest signal
         // and its brief may mention schema/links keywords that would otherwise
         // mis-route to an SEO batch.
-        if (isPageRefreshTask(task)) {
-            // Refresh/expand EXISTING pages — must intercept BEFORE content_creation
-            // (which only writes NEW articles) and before the SEO batch matchers.
-            result = await runPageRefreshAdapter(instanceId, task, plan, agent)
-        } else if (isLandingPageTask(task)) {
-            result = await runLandingPageAdapter(instanceId, task, plan, agent)
-        } else if (isSeoMetaBatchTask(task)) {
-            result = await runSeoMetaBatchAdapter(instanceId, task, plan, agent)
-        } else if (isSeoSchemaTask(task)) {
-            result = await runSeoSchemaBatchAdapter(instanceId, task, plan, agent)
-        } else if (isInternalLinksTask(task)) {
-            result = await runInternalLinksAdapter(instanceId, task, plan, agent)
-        } else if (isSlugProposeTask(task)) {
-            result = await runSlugProposeAdapter(instanceId, task, plan, agent)
-        } else if (isImageAltTask(task)) {
-            result = await runImageAltAdapter(instanceId, task, plan, agent)
-        } else if (isLlmsTxtTask(task)) {
-            result = await runLlmsTxtAdapter(instanceId, task, plan, agent)
-        } else if (isAnswerFirstTask(task)) {
-            result = await runAnswerFirstAdapter(instanceId, task, plan, agent)
-        } else if (isSiteWidgetTask(task)) {
-            result = await runSiteWidgetAdapter(instanceId, task, plan, agent)
+        // A2 — run EVERY matching on-site auto-capability for this task, then
+        // aggregate. Composite tasks ("refresh page" = content + schema + links)
+        // get all their sub-ops executed, not just the first match. External
+        // outreach (link recovery / PR / 3rd-party directory) can NEVER be auto —
+        // short-circuit to the manual brief even if a loose matcher would grab it.
+        // Order matters: page_refresh/landing change content BEFORE schema/links.
+        const A2_ADAPTERS: Array<{ id: string; match: (t: MonthlyTask) => boolean; run: () => Promise<ExecutorResult> }> = [
+            { id: 'page_refresh', match: isPageRefreshTask, run: () => runPageRefreshAdapter(instanceId, task, plan, agent) },
+            { id: 'landing_page', match: isLandingPageTask, run: () => runLandingPageAdapter(instanceId, task, plan, agent) },
+            { id: 'site_widget', match: isSiteWidgetTask, run: () => runSiteWidgetAdapter(instanceId, task, plan, agent) },
+            { id: 'seo.meta', match: isSeoMetaBatchTask, run: () => runSeoMetaBatchAdapter(instanceId, task, plan, agent) },
+            { id: 'seo.schema', match: isSeoSchemaTask, run: () => runSeoSchemaBatchAdapter(instanceId, task, plan, agent) },
+            { id: 'seo.internal_links', match: isInternalLinksTask, run: () => runInternalLinksAdapter(instanceId, task, plan, agent) },
+            { id: 'seo.slug', match: isSlugProposeTask, run: () => runSlugProposeAdapter(instanceId, task, plan, agent) },
+            { id: 'seo.image_alt', match: isImageAltTask, run: () => runImageAltAdapter(instanceId, task, plan, agent) },
+            { id: 'aeo.llms_txt', match: isLlmsTxtTask, run: () => runLlmsTxtAdapter(instanceId, task, plan, agent) },
+            { id: 'aeo.answer_first', match: isAnswerFirstTask, run: () => runAnswerFirstAdapter(instanceId, task, plan, agent) },
+        ]
+        const matched = isExternalOutreachTask(task) ? [] : A2_ADAPTERS.filter(a => { try { return a.match(task) } catch { return false } })
+        if (matched.length === 1) {
+            result = await matched[0].run()
+        } else if (matched.length > 1) {
+            const subs: Array<{ id: string; r: ExecutorResult }> = []
+            for (const a of matched) {
+                try { subs.push({ id: a.id, r: await a.run() }) }
+                catch (e) { subs.push({ id: a.id, r: { ok: false, outputDescription: '', error: (e as Error).message } }) }
+            }
+            result = aggregateA2Results(subs)
         } else {
         switch (task.type) {
             case 'paid_optimization':
@@ -1323,6 +1329,38 @@ async function runTrackingSetupAdapter(
  * an explicit meta-description mention AND a bulk/existing-pages signal to
  * avoid hijacking single new-article content tasks.
  */
+// External / third-party outreach we can NEVER auto-execute (editing someone
+// else's site): link recovery from named publishers, PR pitches, directory /
+// price-comparison listings, partnership registrations. READ-only monitoring/
+// analysis is NOT external. Used to short-circuit A2 to a manual brief so a
+// loose on-site matcher never auto-attempts off-site work.
+export function isExternalOutreachTask(task: MonthlyTask): boolean {
+    if (/מעקב|ניטור|ניתוח|סקירה/i.test(task.title || '')) return false
+    const text = `${task.title} ${task.summary}`
+    return /שחזור קישור|יחסי ציבור|יח"?צ\b|פיץ'|פנייה ל.{0,4}אתרים|הרחבת פרופיל הקישורים|פוסט אורח|guest post|רישום ב-?\s*(zap|b144|זאפ|ספרי|מדריך|אינדקס|השוואת)|השוואת מחירים|שיתוף פעולה עם|התאחדות/i.test(text)
+}
+
+// Aggregate multiple A2 sub-adapter results into one task result.
+function aggregateA2Results(subs: Array<{ id: string; r: ExecutorResult }>): ExecutorResult {
+    const okCount = subs.filter(s => s.r.ok).length
+    const steps = subs.flatMap(s => [
+        { step: `▸ ${s.id}`, ok: s.r.ok, detail: (s.r.outputDescription || s.r.error || '').slice(0, 300) },
+        ...((s.r.stepResults || []) as Array<{ step: string; ok: boolean; detail?: string }>),
+    ])
+    const lines = subs.map(s => `${s.r.ok ? '✓' : '✗'} ${s.id}: ${(s.r.outputDescription || s.r.error || '').slice(0, 200)}`)
+    const anyIntegration = subs.some(s => s.r.errorCategory === 'integration_missing')
+    let errorCategory: ExecutorResult['errorCategory'] = 'completed'
+    if (okCount === 0) errorCategory = anyIntegration ? 'integration_missing' : 'systemic_bug'
+    const userAction = subs.find(s => s.r.userAction)?.r.userAction
+    return {
+        ok: okCount > 0,
+        outputDescription: `בוצעו ${okCount}/${subs.length} פעולות אוטומטיות במשימה:\n${lines.join('\n')}`,
+        errorCategory,
+        stepResults: steps,
+        ...(userAction ? { userAction } : {}),
+    }
+}
+
 // Refresh / expand / deepen EXISTING pages (not new-article creation). Routes to
 // the page-refresh adapter so "רענון 17 דפים", "הרחבת 35 דפים תוכן דק",
 // "רענון דף עוגן 325→1,200" actually update live pages instead of a manual brief.
