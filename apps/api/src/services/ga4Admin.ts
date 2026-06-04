@@ -176,6 +176,21 @@ export async function findKeyEventByEventName(
     return all.find(ke => (ke.eventName || '').toLowerCase() === target) || null
 }
 
+/** Mark an event as a GA4 Key Event (conversion). Idempotent — reuses if present.
+ * Required before a GA4 event (whatsapp_click / phone_call) can be imported to
+ * Google Ads as a conversion + before Google models it. */
+export async function ensureKeyEvent(
+    tokens: GoogleTokens,
+    propertyId: string,
+    eventName: string,
+    countingMethod: 'ONCE_PER_EVENT' | 'ONCE_PER_SESSION' = 'ONCE_PER_EVENT',
+): Promise<{ created: boolean; name: string }> {
+    const existing = await findKeyEventByEventName(tokens, propertyId, eventName)
+    if (existing) return { created: false, name: existing.name }
+    const ke = await ga4Fetch<{ name: string }>(`/properties/${propertyId}/keyEvents`, tokens, 'POST', { eventName, countingMethod })
+    return { created: true, name: ke.name || `properties/${propertyId}/keyEvents/?` }
+}
+
 // ─── Data Streams ───────────────────────────────────────────────────────
 // Phase 2026.02 Block 6 Pattern K1 — auto-detect the GA4 measurementId
 // (G-XXXXXXXXXX) by listing all WEB_DATA_STREAM resources across properties
