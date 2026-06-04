@@ -1430,8 +1430,11 @@ async function runPageRefreshAdapter(
 // Floating WhatsApp/call button OR exit-intent popup on the site. NOT WhatsApp
 // Business API automation (that needs a WA channel integration — stays manual).
 export function isSiteWidgetTask(task: MonthlyTask): boolean {
-    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
-    const buttons = /כפתור\s*(whatsapp|וואטסאפ|צף|חיוג)|click.?to.?call|floating\s*(whatsapp|button)|וואטסאפ צף|כפתור צף/i.test(text)
+    // Match on TITLE (+summary) only — the task's PURPOSE. Action steps of many
+    // unrelated tasks mention a CTA button / WhatsApp / popup incidentally, which
+    // caused heavy false-positives (calculator, comparison page, email nurture…).
+    const text = `${task.title || ''} ${task.summary || ''}`
+    const buttons = /כפתור\s*(whatsapp|וואטסאפ|חיוג)|click.?to.?call|floating\s*(whatsapp|button)|וואטסאפ צף|כפתור צף/i.test(text)
     const popup = /חלון יציאה|exit.?intent|פופ.?אפ|pop.?up/i.test(text)
     // exclude WhatsApp Business API automation (greeting/qualifying flows)
     const waBusiness = /whatsapp business|אוטומציה ב.?whatsapp|הודעת קבלת פנים|שאלות סינון/i.test(text)
