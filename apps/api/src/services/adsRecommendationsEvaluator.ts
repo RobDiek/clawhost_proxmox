@@ -32,8 +32,6 @@ const ADS_ASSETS = new Set(['RESPONSIVE_SEARCH_AD', 'TEXT_AD', 'SITELINK_ASSET',
 const KEYWORDS = new Set(['KEYWORD', 'KEYWORD_MATCH_TYPE', 'OPTIMIZE_AD_ROTATION'])
 const RISKY = new Set(['USE_BROAD_MATCH_KEYWORD', 'SEARCH_PARTNERS_OPT_IN', 'DISPLAY_EXPANSION_OPT_IN', 'UPGRADE_SMART_SHOPPING_CAMPAIGN_TO_PERFORMANCE_MAX', 'UPGRADE_LOCAL_CAMPAIGN_TO_PERFORMANCE_MAX', 'PERFORMANCE_MAX_OPT_IN', 'SEARCH_PLUS_OPT_IN', 'AI_MAX'])
 
-const ALL_TYPES = [...BIDDING, ...BUDGET, ...ADS_ASSETS, ...KEYWORDS, ...RISKY]
-
 export type Verdict = 'apply' | 'propose' | 'defer' | 'reject'
 export interface RecVerdict {
     type: string
@@ -92,10 +90,20 @@ function impactOf(rec: any): RecVerdict['impact'] {
 /** Conversion-data maturity: enough recent conversions + healthy tracking to
  * trust a bidding-strategy change. */
 async function assessMaturity(agent: MatehAgentRow, ctx: AdsCtx): Promise<EvalResult['maturity']> {
+    // Count ONLY this tenant's PRIMARY purchase conversions (what smart bidding
+    // learns from) — NOT the whole shared operating account (which mixes sibling
+    // brands + forms and would falsely look "mature").
+    const brand = String(agent.name || '').toLowerCase().split(/\s+/)[0] || ''
     let conversions14d = 0
     try {
-        const rows = await adsSearch(ctx, `SELECT metrics.conversions FROM customer WHERE segments.date DURING LAST_14_DAYS`)
-        conversions14d = rows.reduce((s, r) => s + Number(r.metrics?.conversions || 0), 0)
+        const rows = await adsSearch(ctx, `SELECT conversion_action.name, conversion_action.category, conversion_action.primary_for_goal, metrics.conversions FROM conversion_action WHERE segments.date DURING LAST_14_DAYS`)
+        for (const r of rows) {
+            const ca = r.conversionAction || {}
+            const name = String(ca.name || '').toLowerCase()
+            if (ca.category === 'PURCHASE' && ca.primaryForGoal && (!brand || name.includes(brand))) {
+                conversions14d += Number(r.metrics?.conversions || 0)
+            }
+        }
     } catch { /* ignore */ }
     let healthScore = 0
     try {
@@ -165,10 +173,11 @@ export async function evaluateAdsRecommendations(agent: MatehAgentRow, opts: { c
 
     result.maturity = await assessMaturity(agent, ctx)
 
+    // Read ALL recommendation types (no WHERE — invalid enum names 400 the query;
+    // classify whatever Google returns via categoryOf).
     let recs: any[]
     try {
-        const typeList = ALL_TYPES.map(t => `'${t}'`).join(', ')
-        recs = await adsSearch(ctx, `SELECT recommendation.type, recommendation.resource_name, recommendation.impact FROM recommendation WHERE recommendation.type IN (${typeList})`)
+        recs = await adsSearch(ctx, `SELECT recommendation.type, recommendation.resource_name, recommendation.impact FROM recommendation`)
     } catch (e) { result.error = `read_recommendations: ${(e as Error).message}`; return result }
 
     for (const row of recs) {
