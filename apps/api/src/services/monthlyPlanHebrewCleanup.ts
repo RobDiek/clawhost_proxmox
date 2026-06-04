@@ -117,45 +117,54 @@ async function cleanupOneBatch(batch: Array<Record<string, unknown>>, apiKey: st
 ${tasksJson}
 \`\`\``
 
-    try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01',
-                'content-type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: SONNET_MODEL,
-                max_tokens: 16000,
-                messages: [{ role: 'user', content: prompt }],
-            }),
-        })
-        if (!res.ok) {
-            const text = await res.text().catch(() => '')
-            return { ok: false, reason: `HTTP ${res.status}: ${text.slice(0, 120)}` }
+    // Up to 2 attempts; each fetch has a hard 90s timeout so a stalled/hung
+    // Anthropic connection (socket open, no response) can NEVER block the whole
+    // regen — it aborts, we retry once, then fall back to the original batch.
+    let lastErr = ''
+    for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+            const res = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01',
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: SONNET_MODEL,
+                    max_tokens: 16000,
+                    messages: [{ role: 'user', content: prompt }],
+                }),
+                signal: AbortSignal.timeout(90000),
+            })
+            if (!res.ok) {
+                const text = await res.text().catch(() => '')
+                return { ok: false, reason: `HTTP ${res.status}: ${text.slice(0, 120)}` }
+            }
+            const data = await res.json() as { content?: Array<{ text?: string }> }
+            const rawText = data.content?.[0]?.text || ''
+            const jsonMatch = /\{[\s\S]*\}/.exec(rawText)
+            if (!jsonMatch) return { ok: false, reason: 'no JSON in response' }
+            let parsed: { cleaned_tasks_json?: string }
+            try { parsed = JSON.parse(jsonMatch[0]) } catch (e) {
+                return { ok: false, reason: `response JSON parse failed: ${(e as Error).message.slice(0, 80)}` }
+            }
+            const cleanedJson = parsed.cleaned_tasks_json
+            if (!cleanedJson) return { ok: false, reason: 'no cleaned_tasks_json' }
+            let cleanedTasks: Array<Record<string, unknown>>
+            try { cleanedTasks = JSON.parse(cleanedJson) } catch (e) {
+                return { ok: false, reason: `cleaned_tasks_json parse failed: ${(e as Error).message.slice(0, 80)}` }
+            }
+            if (!Array.isArray(cleanedTasks) || cleanedTasks.length !== batch.length) {
+                return { ok: false, reason: `task count changed ${batch.length} → ${cleanedTasks.length}` }
+            }
+            return { ok: true, cleaned: cleanedTasks }
+        } catch (err) {
+            lastErr = (err as Error).message.slice(0, 100)
+            if (attempt < 2) continue   // timeout/abort/network → retry once
         }
-        const data = await res.json() as { content?: Array<{ text?: string }> }
-        const rawText = data.content?.[0]?.text || ''
-        const jsonMatch = /\{[\s\S]*\}/.exec(rawText)
-        if (!jsonMatch) return { ok: false, reason: 'no JSON in response' }
-        let parsed: { cleaned_tasks_json?: string }
-        try { parsed = JSON.parse(jsonMatch[0]) } catch (e) {
-            return { ok: false, reason: `response JSON parse failed: ${(e as Error).message.slice(0, 80)}` }
-        }
-        const cleanedJson = parsed.cleaned_tasks_json
-        if (!cleanedJson) return { ok: false, reason: 'no cleaned_tasks_json' }
-        let cleanedTasks: Array<Record<string, unknown>>
-        try { cleanedTasks = JSON.parse(cleanedJson) } catch (e) {
-            return { ok: false, reason: `cleaned_tasks_json parse failed: ${(e as Error).message.slice(0, 80)}` }
-        }
-        if (!Array.isArray(cleanedTasks) || cleanedTasks.length !== batch.length) {
-            return { ok: false, reason: `task count changed ${batch.length} → ${cleanedTasks.length}` }
-        }
-        return { ok: true, cleaned: cleanedTasks }
-    } catch (err) {
-        return { ok: false, reason: `fetch error: ${(err as Error).message.slice(0, 100)}` }
     }
+    return { ok: false, reason: `fetch error (after retry): ${lastErr}` }
 }
 
 export async function runMonthlyPlanHebrewCleanup(input: MonthlyPlanCleanupInput): Promise<MonthlyPlanCleanupResult> {
