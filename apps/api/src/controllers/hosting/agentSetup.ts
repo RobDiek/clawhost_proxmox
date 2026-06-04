@@ -9923,6 +9923,36 @@ export const getTrackingHealth = async (c: Context) => {
     }
 }
 
+// ─── POST /hosting/instances/:id/ads-recommendations/apply ───────────────
+// Apply Google Ads recommendations the user approved. With no body, applies the
+// latest review's safe 'apply'-verdict recs (ad/asset improvements); or pass
+// { resourceNames: [...] } to apply a specific selection (e.g. approved bidding).
+export const applyAdsRecommendations = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const agent = await resolveActiveAgent(c, instanceId)
+        if (!agent) return fail(c, 'No active agent', 400)
+        const body = await c.req.json<{ resourceNames?: string[] }>().catch(() => ({} as any))
+        let resourceNames: string[] = Array.isArray(body.resourceNames) ? body.resourceNames : []
+        if (!resourceNames.length) {
+            const { desc, and } = await import('drizzle-orm')
+            const rows = await db.select().from(agentOutputs).where(and(eq(agentOutputs.agentId, agent.id), eq(agentOutputs.outputType, 'ads_recommendations_review'))).orderBy(desc(agentOutputs.createdAt)).limit(1)
+            resourceNames = ((rows[0]?.metadata as any)?.applyResourceNames || []) as string[]
+        }
+        if (!resourceNames.length) return ok(c, { applied: 0 }, 'אין המלצות בטוחות ליישום')
+        const { applyRecommendationByResource } = await import('@/services/adsRecommendationsEvaluator')
+        const results: Array<{ rn: string; ok: boolean; error?: string }> = []
+        for (const rn of resourceNames) { const r = await applyRecommendationByResource(agent as any, rn); results.push({ rn, ok: r.ok, error: r.error }) }
+        const applied = results.filter(r => r.ok).length
+        return ok(c, { applied, total: resourceNames.length, results }, `יושמו ${applied}/${resourceNames.length} המלצות`)
+    } catch (err) {
+        console.error('applyAdsRecommendations error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/mazhir/conversions/detect-existing ──────
 // Phase 4.3-P(B) — read-only scan of the active agent's Google Ads account
 // for existing ConversionActions. Maps them to our actionKey schema, writes

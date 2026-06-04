@@ -108,6 +108,7 @@ import {
     applySelectedConversionMapping,
     autoSetupMazhirGtm,
     getTrackingHealth,
+    applyAdsRecommendations,
     getMazhirPreflight,
     executeMazhirPlan,
     getMazhirWpSnippet,
@@ -558,6 +559,8 @@ app.post('/instances/:id/mazhir/conversions/apply-selected', applySelectedConver
 app.post('/instances/:id/mazhir/gtm/auto-setup', autoSetupMazhirGtm)
 // Tracking Health card (кабинет indications) — systemic verification suite
 app.get('/instances/:id/tracking/health', getTrackingHealth)
+// Apply approved Google Ads recommendations (safe 'apply' set or a passed list)
+app.post('/instances/:id/ads-recommendations/apply', applyAdsRecommendations)
 // Phase 4.2.2-A — GTM integration card diagnostic (probe-based gate status)
 app.get('/instances/:id/integrations/gtm/diagnostic', getGtmIntegrationDiagnostic)
 // Phase 4.2.2-B — GTM auto-fix orchestrator (single-button chain)

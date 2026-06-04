@@ -119,6 +119,12 @@ startMonthlyReauditRunner()
 import { startOfflineConversionRunner } from '@/services/offlineConversionRunner'
 startOfflineConversionRunner()
 
+// Ads Recommendations Runner — weekly; evaluates Google's recommendation feed
+// per our strategy + conversion-data maturity (defers premature tROAS/tCPA) and
+// raises an approval task. Systemic across all Ads-connected tenants.
+import { startAdsRecommendationsRunner } from '@/services/adsRecommendationsRunner'
+startAdsRecommendationsRunner()
+
 // One-shot research data migration: legacy researchData.stage1..stage5
 // → new intent + plan + results shape (docs/research-pipeline-design.md §10).
 // Idempotent — already-migrated rows are skipped. Deferred 30s after boot
