@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Flowmatic Companion
- * Plugin URI: https://flowmatic.co.il/clawflow
+ * Plugin URI: https://flowmatic.co.il
  * Description: Flowmatic platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
  * Version: 1.11.0
  * Author: Flowmatic
