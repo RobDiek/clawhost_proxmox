@@ -18,7 +18,7 @@
  * changing it. As new capabilities ship, add an entry here; coverage updates.
  */
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
-import { isSeoMetaBatchTask, isSeoSchemaTask, isInternalLinksTask, isSlugProposeTask, isImageAltTask, isLlmsTxtTask, isLandingPageTask, isAnswerFirstTask } from '@/services/monthlyTaskExecutor'
+import { isPageRefreshTask, isSeoMetaBatchTask, isSeoSchemaTask, isInternalLinksTask, isSlugProposeTask, isImageAltTask, isLlmsTxtTask, isLandingPageTask, isAnswerFirstTask } from '@/services/monthlyTaskExecutor'
 
 export type Autonomy =
     | 'auto_write'      // performs a real external mutation (verified)
@@ -40,6 +40,7 @@ const TRACKING_TYPES = new Set(['tracking_setup', 'measurement_gap'])
 // Order matters — first match wins (mirrors executor dispatch: SEO detectors
 // run BEFORE the type switch).
 export const CAPABILITIES: ExecutorCapability[] = [
+    { id: 'cms.page_refresh', label_he: 'רענון/העמקת דף קיים', autonomy: 'auto_write', requires: ['wordpress'], match: isPageRefreshTask },
     { id: 'cms.landing_page', label_he: 'דף נחיתה (טיוטה)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isLandingPageTask },
     { id: 'seo.meta', label_he: 'תיאורי מטא (batch)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isSeoMetaBatchTask },
     { id: 'seo.schema', label_he: 'סכמת JSON-LD (batch)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isSeoSchemaTask },

@@ -190,7 +190,11 @@ export async function executeTask(
         // Landing-page first — task.type==='landing_page' is the strongest signal
         // and its brief may mention schema/links keywords that would otherwise
         // mis-route to an SEO batch.
-        if (isLandingPageTask(task)) {
+        if (isPageRefreshTask(task)) {
+            // Refresh/expand EXISTING pages — must intercept BEFORE content_creation
+            // (which only writes NEW articles) and before the SEO batch matchers.
+            result = await runPageRefreshAdapter(instanceId, task, plan, agent)
+        } else if (isLandingPageTask(task)) {
             result = await runLandingPageAdapter(instanceId, task, plan, agent)
         } else if (isSeoMetaBatchTask(task)) {
             result = await runSeoMetaBatchAdapter(instanceId, task, plan, agent)
@@ -1317,6 +1321,68 @@ async function runTrackingSetupAdapter(
  * an explicit meta-description mention AND a bulk/existing-pages signal to
  * avoid hijacking single new-article content tasks.
  */
+// Refresh / expand / deepen EXISTING pages (not new-article creation). Routes to
+// the page-refresh adapter so "רענון 17 דפים", "הרחבת 35 דפים תוכן דק",
+// "רענון דף עוגן 325→1,200" actually update live pages instead of a manual brief.
+export function isPageRefreshTask(task: MonthlyTask): boolean {
+    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    const refresh = /רענון|רענ(נ|ו)|הרחב(ת|ו|ה)?\s*\d|תוכן דק|דפים קיימ|העמק|עדכון תוכן קיים|\d{2,4}\s*→\s*[\d,]{3,5}|מ-?\s*\d{2,4}\s*ל-?\s*[\d,]{3,5}\s*מילים/i.test(text)
+    if (!refresh) return false
+    const channelOk = task.channel === 'seo' || task.channel === 'content' || task.channel === 'website'
+    const isNew = /מאמר חדש|כתבו מאמר|צרו מאמר|דף נושא|דף נחיתה|דף השוואה|דפי ערים|דף עיר|מאמר דף/i.test(text)
+    return channelOk && !isNew
+}
+
+async function runPageRefreshAdapter(
+    instanceId: string,
+    task: MonthlyTask,
+    _plan: MonthlyMarketingPlan,
+    agent: { id?: string } | null,
+): Promise<ExecutorResult> {
+    const { runPageRefresh, parseTargetWords } = await import('./seoPageRefresh')
+    let businessName: string | undefined
+    try {
+        const { readResearchData } = await import('./agentContext')
+        const rd: any = (await readResearchData(agent as any, instanceId)) || {}
+        businessName = rd?.answers?.businessName
+    } catch { /* fallback downstream */ }
+    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    const targetWords = parseTargetWords(text)
+    const res = await runPageRefresh(instanceId, { agentId: agent?.id, businessName, targetWords })
+
+    if (res.integrationMissing) {
+        return {
+            ok: false,
+            outputDescription: 'WordPress לא מחובר — לא ניתן לרענן דפים קיימים אוטומטית.',
+            error: 'wordpress integration missing',
+            errorCategory: 'integration_missing',
+            userAction: { title_he: 'WordPress לא מחובר — נדרשת התחברות', cta_he: 'חברו את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
+        }
+    }
+    if (res.error && res.updated.length === 0) {
+        return { ok: false, outputDescription: `שגיאה בגישה ל-WordPress: ${res.error}`, error: res.error, errorCategory: 'systemic_bug' }
+    }
+    const stepResults = [
+        { step: 'סריקת דפים', ok: true, detail: `${res.scanned} נסרקו · ${res.candidates} מועמדים לרענון · יעד ${res.targetWords} מילים` },
+        ...res.updated.map(u => ({ step: `עודכן: ${u.title}`, ok: true, detail: `${u.beforeWords}→${u.afterWords} מילים · ${u.link}` })),
+        ...res.failures.map(f => ({ step: `נכשל: ${f.type} #${f.id}`, ok: false, detail: f.error })),
+    ]
+    if (res.candidates === 0) {
+        return { ok: true, outputDescription: `כל הדפים שנסרקו כבר מעל סף התוכן — אין מה לרענן.`, errorCategory: 'completed_idempotent_noop', stepResults }
+    }
+    if (res.authError && res.updated.length === 0) {
+        return {
+            ok: false,
+            outputDescription: `נמצאו ${res.candidates} דפים לרענון אך החיבור ל-WordPress נדחה (401/403) — סיסמת היישום פגה/בוטלה או למשתמש אין הרשאות עריכה. חברו מחדש עם משתמש מנהל.`,
+            error: 'wordpress write rejected (401/403)',
+            errorCategory: 'integration_missing',
+            userAction: { title_he: 'חיבור WordPress נדחה — נדרש חיבור מחדש', cta_he: 'חברו מחדש את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
+            stepResults,
+        }
+    }
+    return { ok: res.ok, outputDescription: `רועננו ${res.updated.length} דפים — העמקת תוכן + כותרות H2 בפורמט שאלה + מקטע שאלות נפוצות.`, stepResults }
+}
+
 export function isSeoMetaBatchTask(task: MonthlyTask): boolean {
     // content_creation owns new-article generation (incl. its own meta) — never
     // hijack it even if an action step mentions a meta description.
