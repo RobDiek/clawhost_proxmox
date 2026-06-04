@@ -26,11 +26,40 @@ export interface LlmStreamArgs {
     user: string
     maxTokens?: number    // default 32000 — non-streaming Anthropic hard cap is ~32K for Opus 4.7
     timeoutMs?: number    // default 20 min — Hebrew + 32K can run 8-18min
+    stallMs?: number      // default 120s — abort+retry if NO chunk arrives for this long (hung stream)
+    maxAttempts?: number  // default 2 — retry the whole call on a stall/transient stream error
     label?: string        // log prefix for distinguishing concurrent calls
 }
 
+/**
+ * Resilient wrapper: retries the whole streamed call on a stall/transient error.
+ * A stalled stream (socket open, no chunks) used to hang forever — the 20-min
+ * overall AbortSignal doesn't fire on a quietly-stalled body read on this host.
+ * Now a per-chunk inactivity watchdog aborts after stallMs, and we retry.
+ */
 export async function callOpusStream(args: LlmStreamArgs): Promise<string> {
     const label = args.label || 'callOpusStream'
+    const maxAttempts = args.maxAttempts ?? 2
+    let lastErr: Error | undefined
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            return await streamOnce(args, attempt)
+        } catch (err) {
+            lastErr = err as Error
+            const retryable = /stall|abort|terminated|ECONNRESET|socket|network|fetch failed|stream open failed|no text/i.test(lastErr.message)
+            if (attempt < maxAttempts && retryable) {
+                console.warn(`[${label}] attempt ${attempt}/${maxAttempts} failed: ${lastErr.message} — retrying…`)
+                continue
+            }
+            throw lastErr
+        }
+    }
+    throw lastErr || new Error('callOpusStream: exhausted attempts')
+}
+
+async function streamOnce(args: LlmStreamArgs, attempt: number): Promise<string> {
+    const label = `${args.label || 'callOpusStream'}${attempt > 1 ? `#${attempt}` : ''}`
+    const stallMs = args.stallMs ?? 120000
     const body = JSON.stringify({
         model: args.model,
         max_tokens: args.maxTokens || 32000,
@@ -40,6 +69,15 @@ export async function callOpusStream(args: LlmStreamArgs): Promise<string> {
     })
     console.log(`[${label}] STREAM POST ${ANTHROPIC_URL} model=${args.model} max_tokens=${args.maxTokens} bodyLen=${body.length}`)
     const t0 = Date.now()
+    // Abort on (a) overall budget OR (b) per-chunk inactivity (stall watchdog).
+    const controller = new AbortController()
+    const overallTimer = setTimeout(() => controller.abort(new Error('overall timeout')), args.timeoutMs || 1200000)
+    let stallTimer: ReturnType<typeof setTimeout> | undefined
+    const armStall = () => {
+        if (stallTimer) clearTimeout(stallTimer)
+        stallTimer = setTimeout(() => controller.abort(new Error(`stream stalled — no data for ${Math.round(stallMs / 1000)}s`)), stallMs)
+    }
+    const clearTimers = () => { clearTimeout(overallTimer); if (stallTimer) clearTimeout(stallTimer) }
     let res: Response
     try {
         // 32K is the practical max for Opus 4.7 streaming without beta header.
@@ -52,23 +90,26 @@ export async function callOpusStream(args: LlmStreamArgs): Promise<string> {
             'content-type': 'application/json',
             'accept': 'text/event-stream',
         }
+        armStall()
         res = await fetch(ANTHROPIC_URL, {
             method: 'POST',
             headers,
             body,
-            signal: AbortSignal.timeout(args.timeoutMs || 1200000),
+            signal: controller.signal,
         })
     } catch (err) {
+        clearTimers()
         const e = err as any
         console.error(`[${label}] fetch threw before stream open. cause=${e?.cause?.message || e?.cause?.code || '(none)'}`)
         throw new Error(`Anthropic stream open failed: ${e.message}`)
     }
     if (!res.ok) {
+        clearTimers()
         const t = await res.text().catch(() => '')
         console.error(`[${label}] HTTP ${res.status} body=${t.slice(0, 1000)}`)
         throw new Error(`Opus ${res.status}: ${t.slice(0, 400)}`)
     }
-    if (!res.body) throw new Error('Anthropic stream returned no body')
+    if (!res.body) { clearTimers(); throw new Error('Anthropic stream returned no body') }
 
     const reader = (res.body as any).getReader()
     const decoder = new TextDecoder('utf-8')
@@ -78,9 +119,11 @@ export async function callOpusStream(args: LlmStreamArgs): Promise<string> {
     let stopReason: string | undefined
     let inputTokens: number | undefined
     let outputTokens: number | undefined
+    try {
     while (true) {
         const { value, done } = await reader.read()
         if (done) break
+        armStall()   // reset inactivity watchdog — data is flowing
         buffer += decoder.decode(value, { stream: true })
         const messages = buffer.split('\n\n')
         buffer = messages.pop() || ''
@@ -117,6 +160,9 @@ export async function callOpusStream(args: LlmStreamArgs): Promise<string> {
             console.log(`[${label}] stream progress: ${elapsed}s elapsed, ${assembled.length} chars assembled`)
             lastProgressLog = Date.now()
         }
+    }
+    } finally {
+        clearTimers()
     }
     const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
     console.log(`[${label}] stream done: ${elapsed}s, ${assembled.length} chars, stop=${stopReason || '?'}, in=${inputTokens || '?'} out=${outputTokens || '?'}`)
