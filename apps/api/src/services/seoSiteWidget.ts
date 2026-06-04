@@ -129,8 +129,13 @@ export async function runSiteWidget(
     opts: { agentId?: string | null; mode: WidgetMode; taskText?: string; dryRun?: boolean } = { mode: 'buttons' },
 ): Promise<SiteWidgetResult> {
     const result: SiteWidgetResult = { ok: false, integrationMissing: false, needsPhone: false, platform: null, applied: [] }
-    const { readResearchData } = await import('./agentContext')
-    const rd: any = (await readResearchData({ id: opts.agentId } as any, instanceId).catch(() => null)) || {}
+    // Read the agent row directly — readResearchData() returned a trimmed shape
+    // missing results.audience_personas.dfsData (where the GMB phone lives).
+    const { db } = await import('@/db')
+    const { matehAgents } = await import('@/db/schema')
+    const { eq } = await import('drizzle-orm')
+    const [agentRow] = opts.agentId ? await db.select().from(matehAgents).where(eq(matehAgents.id, opts.agentId)) : []
+    const rd: any = (agentRow?.researchData as any) || {}
     const businessName = rd?.answers?.businessName || 'העסק'
     const { whatsapp, call } = resolvePhone(rd)
 
