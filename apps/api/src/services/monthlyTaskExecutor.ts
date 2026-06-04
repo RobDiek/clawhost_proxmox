@@ -210,6 +210,8 @@ export async function executeTask(
             result = await runLlmsTxtAdapter(instanceId, task, plan, agent)
         } else if (isAnswerFirstTask(task)) {
             result = await runAnswerFirstAdapter(instanceId, task, plan, agent)
+        } else if (isSiteWidgetTask(task)) {
+            result = await runSiteWidgetAdapter(instanceId, task, plan, agent)
         } else {
         switch (task.type) {
             case 'paid_optimization':
@@ -1381,6 +1383,52 @@ async function runPageRefreshAdapter(
         }
     }
     return { ok: res.ok, outputDescription: `רועננו ${res.updated.length} דפים — העמקת תוכן + כותרות H2 בפורמט שאלה + מקטע שאלות נפוצות.`, stepResults }
+}
+
+// Floating WhatsApp/call button OR exit-intent popup on the site. NOT WhatsApp
+// Business API automation (that needs a WA channel integration — stays manual).
+export function isSiteWidgetTask(task: MonthlyTask): boolean {
+    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    const buttons = /כפתור\s*(whatsapp|וואטסאפ|צף|חיוג)|click.?to.?call|floating\s*(whatsapp|button)|וואטסאפ צף|כפתור צף/i.test(text)
+    const popup = /חלון יציאה|exit.?intent|פופ.?אפ|pop.?up/i.test(text)
+    // exclude WhatsApp Business API automation (greeting/qualifying flows)
+    const waBusiness = /whatsapp business|אוטומציה ב.?whatsapp|הודעת קבלת פנים|שאלות סינון/i.test(text)
+    if (waBusiness && !buttons && !popup) return false
+    return buttons || popup
+}
+
+async function runSiteWidgetAdapter(
+    instanceId: string,
+    task: MonthlyTask,
+    _plan: MonthlyMarketingPlan,
+    agent: { id?: string } | null,
+): Promise<ExecutorResult> {
+    const { runSiteWidget } = await import('./seoSiteWidget')
+    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    const mode: 'buttons' | 'popup' = /חלון יציאה|exit.?intent|פופ.?אפ|pop.?up/i.test(text) ? 'popup' : 'buttons'
+    const res = await runSiteWidget(instanceId, { agentId: agent?.id, mode, taskText: text })
+
+    if (res.needsPhone) {
+        return { ok: false, outputDescription: 'כדי להוסיף כפתור צף צריך מספר טלפון/וואטסאפ של העסק. הוסיפו אותו בפרטי העסק ונפעיל אוטומטית.', error: 'no business phone', errorCategory: 'awaiting_user_action', awaitingManual: true }
+    }
+    if (res.integrationMissing) {
+        return {
+            ok: false,
+            outputDescription: res.error || 'נדרש חיבור אתר (WordPress עם companion v1.11.0+ או GitHub) כדי להוסיף את הווידג\'ט.',
+            error: 'site integration missing', errorCategory: 'integration_missing',
+            userAction: { title_he: 'נדרש חיבור אתר', cta_he: 'חברו את האתר →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
+        }
+    }
+    if (!res.ok) {
+        return { ok: false, outputDescription: `לא ניתן היה להוסיף את הווידג'ט: ${res.error || 'שגיאה לא ידועה'}`, error: res.error, errorCategory: 'systemic_bug' }
+    }
+    const what = mode === 'popup' ? 'חלון יציאה (exit-intent)' : 'כפתורי WhatsApp/חיוג צפים'
+    const wherePr = res.platform === 'github' && res.prUrl ? ` · PR: ${res.prUrl}` : ''
+    return {
+        ok: true,
+        outputDescription: `הותקן ${what} ב${res.platform === 'github' ? 'אתר GitHub' : 'אתר וורדפרס'}${wherePr}.`,
+        stepResults: [{ step: 'הוספת ווידג\'ט', ok: true, detail: `mode=${mode} · ${res.applied.join(', ')}` }],
+    }
 }
 
 export function isSeoMetaBatchTask(task: MonthlyTask): boolean {

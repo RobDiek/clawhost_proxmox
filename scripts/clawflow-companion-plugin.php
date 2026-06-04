@@ -3,7 +3,7 @@
  * Plugin Name: Flowmatic Companion
  * Plugin URI: https://flowmatic.co.il/clawflow
  * Description: Flowmatic platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
- * Version: 1.10.0
+ * Version: 1.11.0
  * Author: Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -72,6 +72,41 @@ add_action('rest_api_init', function () {
             delete_option('clawflow_gtm_head_snippet');
             delete_option('clawflow_gtm_body_snippet');
             delete_option('clawflow_gtm_installed_at');
+            return ['ok' => true];
+        },
+    ]);
+
+    // ── Site Widgets — floating WhatsApp/call button + exit-intent popup ──
+    // Stored as one JSON blob in wp_options; rendered in wp_footer. Lets the
+    // platform auto-provision the "כפתור WhatsApp צף" + "חלון יציאה" tasks.
+    register_rest_route('clawflow/v1', '/site-widgets', [
+        'methods'             => 'GET',
+        'permission_callback' => $perm,
+        'callback'            => function () {
+            $cfg = json_decode(get_option('clawflow_site_widgets', '{}'), true);
+            return ['config' => is_array($cfg) ? $cfg : new stdClass(), 'updatedAt' => get_option('clawflow_site_widgets_at', '')];
+        },
+    ]);
+    register_rest_route('clawflow/v1', '/site-widgets', [
+        'methods'             => 'POST',
+        'permission_callback' => $perm,
+        'callback'            => function (WP_REST_Request $req) {
+            $cfg = $req->get_param('config');
+            if (is_array($cfg)) $cfg = wp_json_encode($cfg);
+            if (!is_string($cfg) || json_decode($cfg) === null) {
+                return new WP_Error('invalid_config', 'config must be valid JSON', ['status' => 400]);
+            }
+            update_option('clawflow_site_widgets', $cfg, false);
+            update_option('clawflow_site_widgets_at', gmdate('c'), false);
+            return ['ok' => true];
+        },
+    ]);
+    register_rest_route('clawflow/v1', '/site-widgets', [
+        'methods'             => 'DELETE',
+        'permission_callback' => $perm,
+        'callback'            => function () {
+            delete_option('clawflow_site_widgets');
+            delete_option('clawflow_site_widgets_at');
             return ['ok' => true];
         },
     ]);
@@ -225,6 +260,49 @@ add_action('wp_body_open', function () {
         echo "\n<!-- End Flowmatic GTM noscript -->\n";
     }
 }, 1);
+
+/**
+ * Site Widgets render — floating WhatsApp/call button + exit-intent popup.
+ * Driven by the clawflow_site_widgets option (set via REST). The wa.me / tel:
+ * links are picked up by the GTM Click-to-Contact capture → GA4 events.
+ */
+add_action('wp_footer', function () {
+    $raw = get_option('clawflow_site_widgets', '');
+    if (!$raw) return;
+    $cfg = json_decode($raw, true);
+    if (!is_array($cfg)) return;
+    $wa   = !empty($cfg['whatsapp']['enabled']) ? $cfg['whatsapp'] : null;
+    $call = !empty($cfg['call']['enabled']) ? $cfg['call'] : null;
+    $pop  = !empty($cfg['exitPopup']['enabled']) ? $cfg['exitPopup'] : null;
+    if (!$wa && !$call && !$pop) return;
+    echo "\n<!-- Flowmatic Site Widgets -->\n";
+
+    if ($wa || $call) {
+        echo '<div id="cf-fab" style="position:fixed;bottom:18px;left:18px;z-index:99998;display:flex;flex-direction:column;gap:10px">';
+        if ($wa) {
+            $phone = preg_replace('/[^0-9]/', '', (string)($wa['phone'] ?? ''));
+            $msg   = rawurlencode((string)($wa['message'] ?? ''));
+            $href  = 'https://wa.me/' . $phone . ($msg ? '?text=' . $msg : '');
+            echo '<a href="' . esc_url($href) . '" target="_blank" rel="noopener" aria-label="WhatsApp" style="width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.25)"><svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35M12.05 21.78h-.01a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 012.89 6.99c0 5.45-4.44 9.88-9.89 9.88M20.46 3.49A11.82 11.82 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.49-8.42"/></svg></a>';
+        }
+        if ($call) {
+            $cphone = (string)($call['phone'] ?? '');
+            echo '<a href="tel:' . esc_attr($cphone) . '" aria-label="Call" style="width:56px;height:56px;border-radius:50%;background:#2563EB;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.25)"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></a>';
+        }
+        echo '</div>';
+    }
+
+    if ($pop) {
+        $h      = esc_html((string)($pop['headline'] ?? ''));
+        $b      = esc_html((string)($pop['body'] ?? ''));
+        $coupon = esc_html((string)($pop['couponCode'] ?? ''));
+        $cta    = esc_html((string)($pop['ctaText'] ?? 'קבלו את ההטבה'));
+        $href   = esc_url((string)($pop['ctaHref'] ?? '#'));
+        echo '<div id="cf-exit" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.6);align-items:center;justify-content:center"><div style="background:#fff;max-width:420px;width:90%;border-radius:14px;padding:28px;text-align:center;direction:rtl;font-family:Arial,sans-serif;position:relative"><button id="cf-exit-x" aria-label="סגירה" style="position:absolute;top:10px;left:14px;border:0;background:0;font-size:22px;cursor:pointer;color:#94A3B8">&times;</button><h3 style="margin:0 0 10px;font-size:1.35rem;color:#0F172A">' . $h . '</h3><p style="margin:0 0 16px;color:#475569;font-size:.95rem;line-height:1.5">' . $b . '</p>' . ($coupon ? '<div style="font-size:1.2rem;font-weight:800;letter-spacing:1px;background:#F1F5F9;border:1px dashed #2563EB;border-radius:8px;padding:10px;margin-bottom:16px;color:#1D4ED8">' . $coupon . '</div>' : '') . '<a href="' . $href . '" style="display:inline-block;background:#2563EB;color:#fff;text-decoration:none;font-weight:700;padding:11px 26px;border-radius:8px">' . $cta . '</a></div></div>';
+        echo "<script>(function(){try{if(sessionStorage.getItem('cf_exit_seen'))return;var m=document.getElementById('cf-exit');if(!m)return;function show(){if(sessionStorage.getItem('cf_exit_seen'))return;sessionStorage.setItem('cf_exit_seen','1');m.style.display='flex';}function hide(){m.style.display='none';}document.addEventListener('mouseout',function(e){if(e.clientY<=0&&!e.relatedTarget)show();});setTimeout(show,45000);var x=document.getElementById('cf-exit-x');if(x)x.addEventListener('click',hide);m.addEventListener('click',function(e){if(e.target===m)hide();});}catch(e){}})();</script>";
+    }
+    echo "\n<!-- End Flowmatic Site Widgets -->\n";
+}, 20);
 
 /**
  * WooCommerce ecommerce dataLayer auto-push (Pattern K3)
@@ -612,8 +690,10 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.10.0',
+                'pluginVersion'       => '1.11.0',
                 'wordpressVersion'    => get_bloginfo('version'),
+                'siteWidgetsServable' => true,
+                'siteWidgetsActive'   => !empty(get_option('clawflow_site_widgets', '')),
                 'wooCommerceActive'   => class_exists('WooCommerce'),
                 'wooCommerceVersion'  => defined('WC_VERSION') ? WC_VERSION : null,
                 'gtmInstalled'        => !empty(get_option('clawflow_gtm_public_id', '')),
