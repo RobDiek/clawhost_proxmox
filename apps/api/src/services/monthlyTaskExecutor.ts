@@ -218,6 +218,10 @@ export async function executeTask(
                 catch (e) { subs.push({ id: a.id, r: { ok: false, outputDescription: '', error: (e as Error).message } }) }
             }
             result = aggregateA2Results(subs)
+        } else if (isAdsAnalysisTask(task)) {
+            result = await runAdsAnalysisAdapter(instanceId, task, plan, agent)
+        } else if (isSitePerfTask(task)) {
+            result = await runSitePerfAdapter(instanceId, task, plan, agent)
         } else {
         switch (task.type) {
             case 'paid_optimization':
@@ -1467,6 +1471,33 @@ async function runSiteWidgetAdapter(
         outputDescription: `הותקן ${what} ב${res.platform === 'github' ? 'אתר GitHub' : 'אתר וורדפרס'}${wherePr}.`,
         stepResults: [{ step: 'הוספת ווידג\'ט', ok: true, detail: `mode=${mode} · ${res.applied.join(', ')}` }],
     }
+}
+
+// Ads spend / keyword-overlap analysis → proposal (read-only).
+export function isAdsAnalysisTask(task: MonthlyTask): boolean {
+    const text = `${task.title} ${task.summary}`
+    return /חפיפת מילות מפתח|ניתוח.{0,15}(ממומן|מילות מפתח|מונחי חיפוש)|keyword overlap|הסטת תקציב|בזבוז.{0,10}תקציב/i.test(text)
+}
+async function runAdsAnalysisAdapter(instanceId: string, task: MonthlyTask, _plan: MonthlyMarketingPlan, agent: { id?: string } | null): Promise<ExecutorResult> {
+    void task
+    const { runAdsAnalysis } = await import('./adsKeywordOverlap')
+    const r = await runAdsAnalysis(instanceId, { agentId: agent?.id })
+    if (r.error === 'google_ads_not_connected') return { ok: false, outputDescription: 'Google Ads לא מחובר — לא ניתן לנתח מונחי חיפוש.', error: r.error, errorCategory: 'integration_missing', userAction: { title_he: 'חברו Google Ads', cta_he: 'חברו →', action_path: '/dashboard#integrations', integrationKey: 'google_ads' } }
+    if (!r.ok) return { ok: false, outputDescription: `שגיאה בניתוח Ads: ${r.error}`, error: r.error, errorCategory: 'systemic_bug' }
+    return { ok: true, outputDescription: r.proposalHe, stepResults: [{ step: 'ניתוח מונחי חיפוש', ok: true, detail: `${r.analyzedTerms} מונחים · ${r.wasteful} בזבזניים · ~₪${r.wastedSpend}` }] }
+}
+
+// Core Web Vitals / site performance → PageSpeed analysis + proposal (read-only).
+export function isSitePerfTask(task: MonthlyTask): boolean {
+    const text = `${task.title} ${task.summary}`
+    return /core web vitals|חוויית משתמש בליבה|מהירות (אתר|טעינה)|\bLCP\b|\bCLS\b|\bINP\b|page ?speed|הסרת iframes?/i.test(text)
+}
+async function runSitePerfAdapter(instanceId: string, task: MonthlyTask, _plan: MonthlyMarketingPlan, agent: { id?: string } | null): Promise<ExecutorResult> {
+    void task
+    const { runSitePerf } = await import('./sitePerf')
+    const r = await runSitePerf(instanceId, { agentId: agent?.id })
+    if (!r.ok) return { ok: false, outputDescription: `לא ניתן היה לנתח ביצועים: ${r.error}`, error: r.error, errorCategory: r.error === 'no site URL' ? 'integration_missing' : 'systemic_bug' }
+    return { ok: true, outputDescription: r.proposalHe, stepResults: [{ step: 'PageSpeed', ok: true, detail: r.url || '' }, ...r.cwv.map(c => ({ step: c.metric, ok: c.rating === 'טוב', detail: `${c.value} (${c.rating})` }))] }
 }
 
 export function isSeoMetaBatchTask(task: MonthlyTask): boolean {

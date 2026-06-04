@@ -18,7 +18,7 @@
  * changing it. As new capabilities ship, add an entry here; coverage updates.
  */
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
-import { isExternalOutreachTask, isPageRefreshTask, isSiteWidgetTask, isSeoMetaBatchTask, isSeoSchemaTask, isInternalLinksTask, isSlugProposeTask, isImageAltTask, isLlmsTxtTask, isLandingPageTask, isAnswerFirstTask } from '@/services/monthlyTaskExecutor'
+import { isExternalOutreachTask, isPageRefreshTask, isSiteWidgetTask, isAdsAnalysisTask, isSitePerfTask, isSeoMetaBatchTask, isSeoSchemaTask, isInternalLinksTask, isSlugProposeTask, isImageAltTask, isLlmsTxtTask, isLandingPageTask, isAnswerFirstTask } from '@/services/monthlyTaskExecutor'
 
 export type Autonomy =
     | 'auto_write'      // performs a real external mutation (verified)
@@ -53,6 +53,8 @@ export const CAPABILITIES: ExecutorCapability[] = [
     { id: 'paid.google_ads', label_he: 'אופטימיזציית Google Ads', autonomy: 'auto_partial', requires: ['google_ads'], match: t => PAID_TYPES.has(t.type) },
     { id: 'tracking.setup', label_he: 'מדידה — GTM/GA4/Pixel', autonomy: 'auto_partial', requires: ['gtm', 'ga4'], match: t => TRACKING_TYPES.has(t.type) },
     { id: 'content.create', label_he: 'יצירת תוכן (טיוטה)', autonomy: 'auto_write', requires: ['api_key'], match: t => t.type === 'content_creation' },
+    { id: 'ads.analysis', label_he: 'ניתוח בזבוז Ads (הצעה)', autonomy: 'propose_only', requires: ['google_ads'], match: isAdsAnalysisTask },
+    { id: 'site.perf', label_he: 'ביצועים/CWV (הצעה)', autonomy: 'propose_only', requires: ['wordpress|github'], match: isSitePerfTask },
 ]
 
 export function classifyTask(task: MonthlyTask): { capabilityId: string; autonomy: Autonomy } {
