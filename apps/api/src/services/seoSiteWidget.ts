@@ -33,8 +33,12 @@ const auth = (c: WpCfg) => 'Basic ' + Buffer.from(`${c.user}:${c.appPassword}`).
 function resolvePhone(rd: any): { whatsapp?: string; call?: string } {
     const a = rd?.answers || {}
     const p = rd?.paidProfile || {}
-    const wa = a.whatsapp || a.whatsappNumber || a.whatsapp_number || a.phone || a.telephone || a.businessPhone || p.phone || p.whatsapp
-    const call = a.phone || a.telephone || a.businessPhone || a.whatsapp || p.phone
+    // Canonical source for IL businesses: the verified Google Business Profile
+    // phone captured in the audience_personas DFS data. Onboarding answers have
+    // no phone field, so this is usually the only number we have.
+    const gmb = rd?.results?.audience_personas?.dfsData?.ourGmb?.phone
+    const wa = a.whatsapp || a.whatsappNumber || a.whatsapp_number || a.phone || a.telephone || a.businessPhone || p.phone || p.whatsapp || gmb
+    const call = a.phone || a.telephone || a.businessPhone || p.phone || gmb || wa
     return { whatsapp: wa ? String(wa) : undefined, call: call ? String(call) : undefined }
 }
 

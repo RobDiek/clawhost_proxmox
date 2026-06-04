@@ -9852,7 +9852,7 @@ export const autoSetupMazhirGtm = async (c: Context) => {
         // Detect a CMP on the tenant's site → it owns Google Consent Mode, so we
         // skip our own consent default/update tags (double-management suppressed
         // measurement on Packing). Resolve the site URL from answers, else WP.
-        let siteUrl: string | undefined = rdAny.answers?.website || rdAny.answers?.site || rdAny.answers?.url || rdAny.paidProfile?.siteUrl
+        let siteUrl: string | undefined = rdAny.answers?.websiteUrl || rdAny.answers?.website || rdAny.answers?.site || rdAny.answers?.url || rdAny.paidProfile?.siteUrl
         if (!siteUrl) {
             try { const { loadWpConfig } = await import('@/services/seoMetaBatch'); siteUrl = (await loadWpConfig(instanceId, __agent?.id || null))?.url } catch { /* best-effort */ }
         }

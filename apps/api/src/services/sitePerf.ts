@@ -21,7 +21,7 @@ export interface SitePerfResult {
 }
 
 async function resolveSiteUrl(instanceId: string, agentId?: string | null): Promise<string | null> {
-    try { const { readResearchData } = await import('./agentContext'); const rd: any = (await readResearchData({ id: agentId } as any, instanceId)) || {}; const u = rd?.answers?.website || rd?.answers?.site || rd?.paidProfile?.siteUrl; if (u) return String(u) } catch { /* */ }
+    try { const { readResearchData } = await import('./agentContext'); const rd: any = (await readResearchData({ id: agentId } as any, instanceId)) || {}; const u = rd?.answers?.websiteUrl || rd?.answers?.website || rd?.answers?.site || rd?.paidProfile?.siteUrl; if (u) return String(u) } catch { /* */ }
     const wp = await loadWpConfig(instanceId, agentId) as { url: string } | null
     if (wp?.url) return wp.url
     const gh = await loadGithubConfig(instanceId, agentId)
