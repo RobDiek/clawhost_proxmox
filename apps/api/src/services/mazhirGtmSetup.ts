@@ -872,12 +872,16 @@ if (typeof fbq === 'function') {
     // a CMP is present. When NOT present, region-scope the deny to EEA+UK only so
     // the IL market (the product's audience) measures by default while EU stays
     // GDPR-safe (granted-by-default-except-EEA — the standard non-EU pattern).
-    const consentDefaultName = 'Consent Default - Denied (Mazhir)'
+    // ALWAYS install the region-scoped granted-IL default (verified on Packing
+    // 2026-06). Do NOT skip when a CMP is present: on Packing the CMP (Consent
+    // Magic) did NOT reliably grant, so skipping would have left measurement
+    // crippled. The granted-IL default is the floor that guarantees the IL market
+    // measures; a CMP, if it does Consent Mode, refines per-user on top.
+    const consentDefaultName = 'Consent Default - Region-scoped (Mazhir)'
     const existingConsentDefault = findTagByName(consentDefaultName) ||
+        findTagByName('Consent Default - Denied (Mazhir)') ||
         existing.tags.find((t: any) => /consent[\s_]*default|consent[\s_]*deny|gtag.*consent.*default/i.test(String(t.name || '')))
-    if (req.cmpDetected) {
-        result.skipped.push({ type: 'tag:consent_default', name: consentDefaultName, reason: 'CMP detected on site — Consent Mode owned by the CMP (avoid double-management)' })
-    } else if (!existingConsentDefault) {
+    if (!existingConsentDefault) {
         const consentDefaultHtml = `<script>
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
