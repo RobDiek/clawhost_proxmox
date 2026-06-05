@@ -187,22 +187,34 @@ URL: ${item.link}
 }
 חוקים: faq רק אם יש באמת תוכן שאלות/תשובות בעמוד, אחרת []. אל תמציאו עובדות שלא בתוכן.`
 
-    const body: Record<string, unknown> = { model, max_tokens: 1500, messages: [{ role: 'user', content: prompt }] }
-    let parsed: { primaryType?: string; primaryNode?: Record<string, unknown>; faq?: Array<{ question?: string; answer?: string }> }
-    try {
+    type ParsedSchema = { primaryType?: string; primaryNode?: Record<string, unknown>; faq?: Array<{ question?: string; answer?: string }> }
+    // One self-correction retry: LLM-authored JSON-LD is occasionally malformed
+    // (trailing comma / unescaped quote in Hebrew strings) → JSON.parse throws.
+    // Without a retry the whole page silently loses its schema (hit on page 6811).
+    const genOnce = async (extra: string): Promise<ParsedSchema> => {
+        const body = { model, max_tokens: 2500, messages: [{ role: 'user', content: prompt + extra }] }
         const res = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
             body: JSON.stringify(body), signal: AbortSignal.timeout(120000),
         })
-        if (!res.ok) { console.warn(`[seoSchemaBatch] gen ${item.id} API ${res.status}`); return null }
+        if (!res.ok) throw new Error(`API ${res.status}`)
         const data = await res.json() as { content?: Array<{ type?: string; text?: string }> }
         const text = (data.content?.find(c => c.type === 'text')?.text || '').trim()
         const f = text.indexOf('{'), l = text.lastIndexOf('}')
-        if (f < 0 || l < 0) return null
-        parsed = JSON.parse(text.substring(f, l + 1))
+        if (f < 0 || l < 0) throw new Error('no JSON object in response')
+        return JSON.parse(text.substring(f, l + 1)) as ParsedSchema
+    }
+    let parsed: ParsedSchema
+    try {
+        try {
+            parsed = await genOnce('')
+        } catch (e1) {
+            console.warn(`[seoSchemaBatch] gen ${item.id} parse failed (${(e1 as Error).message}) — retrying with stricter instruction`)
+            parsed = await genOnce('\n\nשימו לב: הפלט הקודם לא היה JSON תקין. החזירו אך ורק אובייקט JSON תקין אחד, ללא טקסט לפני או אחרי, עם מירכאות נמלטות כראוי בתוך מחרוזות.')
+        }
     } catch (err) {
-        console.warn(`[seoSchemaBatch] gen ${item.id} error:`, (err as Error).message)
+        console.warn(`[seoSchemaBatch] gen ${item.id} error (after retry):`, (err as Error).message)
         return null
     }
 
