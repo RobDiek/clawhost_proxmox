@@ -677,6 +677,18 @@ export async function generateMonthlyPlan(
     // ─── Persist + emit ──────────────────────────────────────────────────
     const { outputId } = await persistAndEmit(instanceId, plan, agent, rd, trigger, ctx.chosenScenarioKey)
 
+    // ─── Post-save agent review (deterministic, awaited — verdicts ready now) ──
+    // Tags each saved task with a verdict + reason in metadata.agentReview
+    // (recommend_now / propose / review_risk / needs_integration / defer / manual)
+    // so the kabinet surfaces only what's sensible to do now. No LLM → never blocks.
+    try {
+        const { reviewSavedPlan } = await import('./monthlyPlanReview')
+        const rev = await reviewSavedPlan(agent, {})
+        console.log(`[monthlyPlanGenerator] ${instanceId}: agent-review → ${JSON.stringify(rev.byVerdict || {})}`)
+    } catch (e) {
+        console.warn(`[monthlyPlanGenerator] ${instanceId}: agent-review failed (non-fatal):`, (e as Error).message)
+    }
+
     // ─── Post-save Hebrew polish (fire-and-forget, under the hood) ────────
     // Plan is already saved above — this rewrites the saved per-task rows with
     // cleaned Hebrew. Bounded (90s/batch + per-batch fallback); any failure is
