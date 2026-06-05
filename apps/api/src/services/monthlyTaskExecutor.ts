@@ -201,6 +201,7 @@ export async function executeTask(
             { id: 'landing_page', match: isLandingPageTask, run: () => runLandingPageAdapter(instanceId, task, plan, agent) },
             { id: 'site_widget', match: isSiteWidgetTask, run: () => runSiteWidgetAdapter(instanceId, task, plan, agent) },
             { id: 'seo.meta', match: isSeoMetaBatchTask, run: () => runSeoMetaBatchAdapter(instanceId, task, plan, agent) },
+            { id: 'seo.product_schema', match: isProductSchemaTask, run: () => runProductSchemaAdapter(instanceId, task, plan, agent) },
             { id: 'seo.schema', match: isSeoSchemaTask, run: () => runSeoSchemaBatchAdapter(instanceId, task, plan, agent) },
             { id: 'seo.internal_links', match: isInternalLinksTask, run: () => runInternalLinksAdapter(instanceId, task, plan, agent) },
             { id: 'seo.slug', match: isSlugProposeTask, run: () => runSlugProposeAdapter(instanceId, task, plan, agent) },
@@ -1575,8 +1576,23 @@ async function runGithubSeoFallback(
  * guardrails as the meta detector — explicit schema mention + bulk/existing
  * signal, on a web channel, never content_creation.
  */
+/**
+ * Detect a WooCommerce PRODUCT-schema task (Product + Offer JSON-LD on product
+ * pages). Routed to runProductSchema (real WC data), NOT seoSchemaBatch (which
+ * only does posts/pages → Article/FAQ schema). isSeoSchemaTask excludes these.
+ */
+export function isProductSchemaTask(task: MonthlyTask): boolean {
+    if (task.type === 'content_creation') return false
+    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    const mentionsProductSchema = /product\s*(?:\+|and|&|,)?\s*offer|product\s*schema|schema.*product|סכמת\s*product|מוצר.*סכמ|סכמ.*מוצר|דפי\s*מוצר|woocommerce.*(?:schema|סכמ)|(?:schema|סכמ).*woocommerce/i.test(text)
+    if (!mentionsProductSchema) return false
+    const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
+    return channelOk
+}
+
 export function isSeoSchemaTask(task: MonthlyTask): boolean {
     if (task.type === 'content_creation') return false
+    if (isProductSchemaTask(task)) return false   // product schema → dedicated adapter
     const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
     // Broadened: schema/structured-data + brand-entity-for-AI + technical markup
     // (search box / breadcrumb) + Hebrew construct forms (סכמ covers סכמה/סכמת/סכמות).
@@ -1958,6 +1974,49 @@ async function runSeoSchemaBatchAdapter(
         outputDescription: `נוספה סכמת JSON-LD ל-${res.updated.length} עמודים ב-WordPress${res.failures.length ? ` (${res.failures.length} נכשלו)` : ''}:\n${lines}`,
         errorCategory: 'completed',
         stepResults,
+    }
+}
+
+async function runProductSchemaAdapter(
+    instanceId: string,
+    task: MonthlyTask,
+    _plan: MonthlyMarketingPlan,
+    agent: { id?: string } | null,
+): Promise<ExecutorResult> {
+    const { runProductSchema } = await import('./seoProductSchema')
+    const { resolveAgentById, resolvePrimaryAgent } = await import('./agentContext')
+    const ag = agent?.id ? (await resolveAgentById(instanceId, agent.id)) || (await resolvePrimaryAgent(instanceId)) : await resolvePrimaryAgent(instanceId)
+    const res = await runProductSchema(ag as never, {})
+
+    if (res.status === 'no_store') {
+        return {
+            ok: false,
+            outputDescription: 'WordPress/WooCommerce לא מחובר — לא ניתן להוסיף סכמת מוצר.',
+            error: 'wordpress integration missing', errorCategory: 'integration_missing',
+            userAction: { title_he: 'WordPress לא מחובר — נדרשת התחברות', cta_he: 'חברו את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
+        }
+    }
+    if (res.status === 'no_products') {
+        return { ok: true, outputDescription: 'לא נמצאו מוצרים פעילים בחנות — אין מה לעדכן.', errorCategory: 'completed_idempotent_noop' }
+    }
+    if (res.status === 'error') {
+        return { ok: false, outputDescription: `שגיאה בגישה ל-WooCommerce: ${res.reason}`, error: res.reason, errorCategory: 'systemic_bug' }
+    }
+    const stepResults = [
+        { step: 'סריקת מוצרים', ok: true, detail: `${res.scanned} מוצרים · ${res.updated} עודכנו · ${res.skipped || 0} דולגו · ${res.failures || 0} נכשלו` },
+        ...(res.samples || []).map(s => ({ step: `Product: ${s.name}`, ok: true, detail: `₪${s.price} · ${s.availability}${s.hasRating ? ' · דירוג אמיתי' : ''}` })),
+        ...(res.errors || []).map(e => ({ step: 'הערה', ok: false, detail: e })),
+    ]
+    if ((res.updated || 0) === 0) {
+        const headline = (res.skipped || 0) > 0
+            ? `נמצאו ${res.scanned} מוצרים אך WordPress לא שמר את הסכמה — נדרש עדכון תוסף Flowmatic Companion ל-1.12.0+ (תמיכה ב-product). בצעו עדכון ידני בינתיים.`
+            : 'לא ניתן היה לכתוב סכמת מוצר דרך ה-API.'
+        return runManualTodoAdapter(instanceId, task, _plan, headline, { stepResults })
+    }
+    return {
+        ok: true,
+        outputDescription: `נוספה סכמת Product + Offer ל-${res.updated} עמודי מוצר — מנתוני WooCommerce אמיתיים (מחיר, זמינות, דירוג רק אם קיימות ביקורות).${res.failures ? ` (${res.failures} נכשלו)` : ''}`,
+        errorCategory: 'completed', stepResults,
     }
 }
 

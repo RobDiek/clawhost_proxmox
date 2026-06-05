@@ -3,7 +3,7 @@
  * Plugin Name: Flowmatic Companion
  * Plugin URI: https://flowmatic.co.il
  * Description: Flowmatic platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
- * Version: 1.11.0
+ * Version: 1.12.0
  * Author: Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -592,7 +592,11 @@ add_action('init', function () {
     $editAuth = function ($allowed, $meta_key, $object_id) {
         return current_user_can('edit_post', $object_id);
     };
-    foreach (['post', 'page'] as $postType) {
+    // v1.12.0: include 'product' so SEO meta + Flowmatic schema (Product+Offer
+    // JSON-LD) are REST-writable + rendered on WooCommerce product pages too.
+    $clawflowMetaPostTypes = ['post', 'page'];
+    if (post_type_exists('product')) $clawflowMetaPostTypes[] = 'product';
+    foreach ($clawflowMetaPostTypes as $postType) {
         foreach ($seoMetaKeys as $key) {
             register_post_meta($postType, $key, [
                 'type'          => 'string',

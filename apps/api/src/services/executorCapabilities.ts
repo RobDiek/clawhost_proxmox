@@ -18,7 +18,7 @@
  * changing it. As new capabilities ship, add an entry here; coverage updates.
  */
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
-import { isExternalOutreachTask, isPageRefreshTask, isSiteWidgetTask, isAdsAnalysisTask, isSitePerfTask, isSeoMetaBatchTask, isSeoSchemaTask, isInternalLinksTask, isSlugProposeTask, isImageAltTask, isLlmsTxtTask, isLandingPageTask, isAnswerFirstTask } from '@/services/monthlyTaskExecutor'
+import { isExternalOutreachTask, isPageRefreshTask, isSiteWidgetTask, isAdsAnalysisTask, isSitePerfTask, isSeoMetaBatchTask, isSeoSchemaTask, isProductSchemaTask, isInternalLinksTask, isSlugProposeTask, isImageAltTask, isLlmsTxtTask, isLandingPageTask, isAnswerFirstTask } from '@/services/monthlyTaskExecutor'
 
 export type Autonomy =
     | 'auto_write'      // performs a real external mutation (verified)
@@ -44,6 +44,7 @@ export const CAPABILITIES: ExecutorCapability[] = [
     { id: 'cms.site_widget', label_he: 'ווידג\'ט אתר (WhatsApp/חיוג/popup)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isSiteWidgetTask },
     { id: 'cms.landing_page', label_he: 'דף נחיתה (טיוטה)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isLandingPageTask },
     { id: 'seo.meta', label_he: 'תיאורי מטא (batch)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isSeoMetaBatchTask },
+    { id: 'seo.product_schema', label_he: 'סכמת מוצר Product+Offer (WooCommerce)', autonomy: 'auto_write', requires: ['wordpress'], match: isProductSchemaTask },
     { id: 'seo.schema', label_he: 'סכמת JSON-LD (batch)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isSeoSchemaTask },
     { id: 'seo.internal_links', label_he: 'קישורים פנימיים', autonomy: 'auto_write', requires: ['wordpress|github'], match: isInternalLinksTask },
     { id: 'seo.slug', label_he: 'תעתיק slug + 301 (הצעה)', autonomy: 'propose_only', requires: ['wordpress|github'], match: isSlugProposeTask },
