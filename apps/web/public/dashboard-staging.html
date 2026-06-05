@@ -7050,6 +7050,13 @@ function humanizeContent(raw) {
   else if (typeof raw === 'string') {
     var s = raw.trim();
     if (s.charAt(0) === '{' || s.charAt(0) === '[') { try { obj = JSON.parse(s); } catch (e) { obj = null; } }
+    // Defensive: content may be a TRUNCATED JSON string (producers slice to a
+    // char cap → invalid JSON). displayHe is written first, so extract it raw
+    // even when the whole blob won't parse — prevents a raw-JSON dump.
+    if (!obj) {
+      var dm = raw.match(/"displayHe"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+      if (dm) { try { return renderMarkdown(JSON.parse('"' + dm[1] + '"')); } catch (e2) { return renderMarkdown(dm[1].replace(/\\n/g, '\n')); } }
+    }
   }
   if (!obj) return renderMarkdown(String(raw));
   if (obj.displayHe) return renderMarkdown(String(obj.displayHe));

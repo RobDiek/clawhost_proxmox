@@ -230,7 +230,12 @@ export async function evaluateAdsRecommendations(agent: MatehAgentRow, opts: { c
                 platform: 'google_ads',
                 status: 'pending_review',
                 title: `המלצות Google Ads — ${apply.length} ליישום · ${propose.length} לבחינה · ${defer.length} בהמתנה`,
-                content: JSON.stringify({ displayHe, maturity: result.maturity, summary: result.summary, verdicts: result.verdicts, narrative: lines }, null, 2).slice(0, 12000),
+                // content stays SMALL + valid JSON: displayHe (human render) +
+                // maturity + summary. The full verdicts[] live in research_data
+                // (adsRecommendations) and the apply set in metadata — no need to
+                // stuff them here (doing so blew past the 12000 cap → truncated,
+                // unparseable JSON → kabinet showed a raw dump).
+                content: JSON.stringify({ displayHe, maturity: result.maturity, summary: result.summary }, null, 2),
                 metadata: { evaluatedAt: new Date().toISOString(), applyResourceNames: apply.map(a => a.resourceName), maturity: result.maturity } as any,
             }).returning()
             result.taskId = row?.id
