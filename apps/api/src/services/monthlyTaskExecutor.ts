@@ -1583,9 +1583,13 @@ async function runGithubSeoFallback(
  */
 export function isProductSchemaTask(task: MonthlyTask): boolean {
     if (task.type === 'content_creation') return false
-    const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
-    const mentionsProductSchema = /product\s*(?:\+|and|&|,)?\s*offer|product\s*schema|schema.*product|סכמת\s*product|מוצר.*סכמ|סכמ.*מוצר|דפי\s*מוצר|woocommerce.*(?:schema|סכמ)|(?:schema|סכמ).*woocommerce/i.test(text)
-    if (!mentionsProductSchema) return false
+    // STRICT + TITLE-ONLY: the task's INTENT is in its title. Only genuine
+    // Product+Offer schema tasks ("הטמעת סכמת Product + Offer …"). Matching the
+    // summary/actionPlan too falsely grabbed INP/categories/AggregateRating
+    // tasks (their detail text mentions Product schema incidentally) and routed
+    // them to the product-schema adapter (wrong output). Title is unambiguous.
+    const isProductOfferSchema = /product\s*\+\s*offer|מוצר\s*\+\s*offer|\bproduct\s+schema\b|schema\.org\/product|סכמת\s*(?:product|מוצר)\b/i.test(task.title || '')
+    if (!isProductOfferSchema) return false
     const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
     return channelOk
 }
