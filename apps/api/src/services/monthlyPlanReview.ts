@@ -98,6 +98,21 @@ function unmetRequirements(requires: string[], integrations: Record<string, bool
 const RISK_AGG = /aggregate\s?rating|aggregaterating|ביקורות.*דפי|דירוג.*סכמ|סכמת.*ביקור|review schema/i
 const BIDDING_TARGET = /troas|t-roas|יעד.*roas|roas\s*\d|החזר הוצאה|target_roas/i
 
+// classifyTask matches by TYPE (e.g. experiment→paid.google_ads, measurement→
+// tracking.setup, anything→seo.schema), so some tasks LOOK auto but are not
+// executable that way. These overrides keep the verdict honest. Ordered;
+// checked only for tasks that would otherwise land auto / propose.
+const NOT_AUTO: Array<{ re: RegExp; verdict: ReviewVerdict; reasonHe: string; missing?: string[] }> = [
+    { re: /\bCRO\b|מפת חום|heatmap|הקלטות מושב|session record|hotjar|clarity/i, verdict: 'manual', reasonHe: 'אודיט CRO (מפות חום / הקלטות מושב) — דורש כלי צד-שלישי (Hotjar/Clarity) והתקנה + ניתוח ידני.' },
+    { re: /פיקסל meta|meta.*capi|\bcapi\b|המרות.*meta/i, verdict: 'needs_integration', reasonHe: 'הגדרת Meta Pixel + CAPI — דרושה אינטגרציית Meta (טרם מחוברת).', missing: ['Meta'] },
+    { re: /bigquery|מחסן נתונים/i, verdict: 'manual', reasonHe: 'ייצוא ל-BigQuery — דורש פרויקט Google Cloud והגדרה ידנית.' },
+    { re: /wikidata|knowledge panel|ישות מותג/i, verdict: 'manual', reasonHe: 'ישות מותג (Wikidata / Knowledge Panel) — עריכה חיצונית, לא אוטומטית באתר.' },
+    { re: /ניטור.*sitemap|sitemap.*ניטור|הגשה אוטומטית.*gsc/i, verdict: 'manual', reasonHe: 'ניטור sitemap / הגשה ל-GSC — תהליך תשתית מתמשך, לא פעולת אתר חד-פעמית.' },
+    { re: /מעקב ציטוט|ציטוט.*מנוע|מנוע.*ציטוט|prompts?\s*[×x]\s*\d/i, verdict: 'manual', reasonHe: 'מעקב ציטוטים ב-AI — מדידה תקופתית חיצונית, לא פעולת אתר אוטומטית.' },
+    { re: /רבעוני|quarterly|לוח רענון/i, verdict: 'manual', reasonHe: 'לוח רענון תוכן רבעוני — מסמך תכנון, לא ביצוע אוטומטי בודד.' },
+    { re: /youtube|ערוץ.*וידאו/i, verdict: 'manual', reasonHe: 'הקמת ערוץ YouTube + העלאה — דורש פעולה ידנית בפלטפורמה חיצונית.' },
+]
+
 function computeVerdict(task: MonthlyTask, capabilityId: string, autonomy: string, requires: string[], ctx: ReviewCtx): TaskReview {
     const base = { capabilityId, autonomy, reviewedAt: new Date().toISOString() }
     const title = task.title || ''
@@ -135,6 +150,12 @@ function computeVerdict(task: MonthlyTask, capabilityId: string, autonomy: strin
     // usually catch this; this is the belt-and-suspenders for a loose plan)
     if (capabilityId === 'paid.google_ads' && BIDDING_TARGET.test(title)) {
         return { ...base, verdict: 'defer', reasonHe: 'מעבר ליעד ROAS — רק אחרי צבירת ≥30 רכישות נקיות תחת המעקב החדש ואימות שיעור המרה. מוקדם מדי כעת.', readyWhen: 'צבירת ≥30 רכישות + אימות CR 14 יום' }
+    }
+
+    // 4.5) honesty override: TYPE-matched as auto but not actually executable
+    // that way (CRO tooling, Meta CAPI, BigQuery, Wikidata, sitemap monitoring…).
+    for (const p of NOT_AUTO) {
+        if (p.re.test(title)) return { ...base, verdict: p.verdict, reasonHe: p.reasonHe, missing: p.missing }
     }
 
     // 5) propose-only capability — produces a concrete suggestion, user applies
