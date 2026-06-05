@@ -7039,6 +7039,35 @@ function openCalendarEventPopup(title, type, date) {
   renderTaskPopup(task);
 }
 
+// ── Systemic human-readable content renderer ───────────────────────────
+// Convention: a producer SHOULD set content.displayHe (human Hebrew). This
+// renderer PREFERS it; if content is raw JSON without displayHe it formats a
+// readable key:value view (never dumps raw braces); plain text → markdown.
+// Fixes the recurring "raw JSON dump in the popup" problem once, for all types.
+function humanizeContent(raw) {
+  var obj = null;
+  if (raw && typeof raw === 'object') obj = raw;
+  else if (typeof raw === 'string') {
+    var s = raw.trim();
+    if (s.charAt(0) === '{' || s.charAt(0) === '[') { try { obj = JSON.parse(s); } catch (e) { obj = null; } }
+  }
+  if (!obj) return renderMarkdown(String(raw));
+  if (obj.displayHe) return renderMarkdown(String(obj.displayHe));
+  return '<div style="font-size:0.84rem;line-height:1.75">' + _humanKV(obj, 0) + '</div>';
+}
+function _humanKV(v, depth) {
+  if (v === null || v === undefined || v === '') return '<span style="color:#9CA3AF">—</span>';
+  if (typeof v !== 'object') return '<span>' + String(v) + '</span>';
+  if (Array.isArray(v)) {
+    if (!v.length) return '<span style="color:#9CA3AF">(ריק)</span>';
+    return '<ul style="margin:2px 0;padding-inline-start:18px">' + v.slice(0, 25).map(function(it) { return '<li>' + _humanKV(it, depth + 1) + '</li>'; }).join('') + (v.length > 25 ? '<li>…</li>' : '') + '</ul>';
+  }
+  var rows = Object.keys(v).map(function(k) {
+    return '<div style="margin:1px 0"><span style="color:#6B7280;font-weight:600">' + k + ':</span> ' + _humanKV(v[k], depth + 1) + '</div>';
+  });
+  return depth > 0 ? '<div style="padding-inline-start:12px;border-inline-start:2px solid #F3F4F6;margin:2px 0">' + rows.join('') + '</div>' : rows.join('');
+}
+
 function renderTaskPopup(task) {
   var statusLabelsPopup = {
     planned: 'מתוכנן', pending: 'בביצוע', awaiting: 'ממתין לאישור',
@@ -7128,7 +7157,7 @@ function renderTaskPopup(task) {
   // ── Real content from agent (if available) ──
   var displayContent = task.editedContent || task.content;
   if (displayContent) {
-    var contentHtml = '<div class="md-content" style="font-size:0.88rem">' + renderMarkdown(displayContent) + '</div>';
+    var contentHtml = '<div class="md-content" style="font-size:0.88rem">' + humanizeContent(displayContent) + '</div>';
 
     bodyHtml += '<div class="task-popup-field">' +
       '<div class="task-popup-label">תוכן</div>' +

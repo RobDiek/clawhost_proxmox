@@ -207,6 +207,20 @@ export async function evaluateAdsRecommendations(agent: MatehAgentRow, opts: { c
             const defer = result.verdicts.filter(v => v.verdict === 'defer')
             const propose = result.verdicts.filter(v => v.verdict === 'propose')
             const lines = result.verdicts.map(v => `${v.verdict === 'apply' ? '✅' : v.verdict === 'propose' ? '🟡' : v.verdict === 'defer' ? '⏸️' : '🚫'} [${v.type}] ${v.reason}`).join('\n')
+            // Human-readable Hebrew rendering (convention: content.displayHe) so the
+            // kabinet shows a readable card, not a raw-JSON dump.
+            const m = result.maturity
+            const displayHe = [
+                '## המלצות Google Ads',
+                '',
+                `**בשלות נתונים:** ${m.conversions14d} המרות ב-14 ימים · בריאות מעקב ${m.healthScore}/100 · ${m.mature ? 'בשל ✅' : 'עדיין נצבר ⏳'}`,
+                m.reason ? `_${m.reason}_` : '',
+                '',
+                `**סיכום:** ${apply.length} ליישום · ${propose.length} לבחינה · ${defer.length} בהמתנה · ${result.summary.reject} נדחו`,
+                '',
+                '### פירוט ההמלצות',
+                lines,
+            ].filter(Boolean).join('\n')
             const [row] = await db.insert(agentOutputs).values({
                 id: 'rec_' + randomBytes(6).toString('hex'),
                 instanceId: agent.vpsInstanceId,
@@ -216,7 +230,7 @@ export async function evaluateAdsRecommendations(agent: MatehAgentRow, opts: { c
                 platform: 'google_ads',
                 status: 'pending_review',
                 title: `המלצות Google Ads — ${apply.length} ליישום · ${propose.length} לבחינה · ${defer.length} בהמתנה`,
-                content: JSON.stringify({ maturity: result.maturity, summary: result.summary, verdicts: result.verdicts, narrative: lines }, null, 2).slice(0, 12000),
+                content: JSON.stringify({ displayHe, maturity: result.maturity, summary: result.summary, verdicts: result.verdicts, narrative: lines }, null, 2).slice(0, 12000),
                 metadata: { evaluatedAt: new Date().toISOString(), applyResourceNames: apply.map(a => a.resourceName), maturity: result.maturity } as any,
             }).returning()
             result.taskId = row?.id
