@@ -612,31 +612,13 @@ export async function generateMonthlyPlan(
     const pass4Elapsed = ((Date.now() - tPass4Start) / 1000).toFixed(1)
     console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 4 done in ${pass4Elapsed}s (deterministic, no LLM call)`)
 
-    // ─── K17: Hebrew cleanup pass — strips snake_case / English jargon ──
-    // from user-facing task strings (title / summary / actionPlan[].step /
-    // expectedImpact.rationale / sources[].excerpt) without changing
-    // structure. Runs AFTER Pass 3 + Pass 4 so coverage fills AND structured
-    // fillers ALSO get cleaned (Opus output + our deterministic copy may
-    // contain English terms despite the style guide).
-    let finalTasks = pass4Tasks
-    // SKIP_PLAN_HEBREW_CLEANUP=1 → save immediately after Pass 4, skip the
-    // cosmetic Hebrew polish (run it later as a cheap standalone pass on the
-    // saved plan). Lets a budget-constrained regen finish without the extra
-    // ~20 Sonnet calls / stall risk.
-    if (process.env.SKIP_PLAN_HEBREW_CLEANUP === '1') {
-        console.log(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup SKIPPED (SKIP_PLAN_HEBREW_CLEANUP=1)`)
-    } else try {
-        const { runMonthlyPlanHebrewCleanup } = await import('./monthlyPlanHebrewCleanup')
-        const cleanup = await runMonthlyPlanHebrewCleanup({ tasks: pass4Tasks as unknown as Array<Record<string, unknown>>, instanceId })
-        if (cleanup.applied && cleanup.cleanedTasks) {
-            finalTasks = cleanup.cleanedTasks as unknown as typeof pass4Tasks
-            console.log(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup applied to ${cleanup.cleanedTasks.length} tasks (post-Pass 4)`)
-        } else {
-            console.log(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup skipped (${cleanup.reason})`)
-        }
-    } catch (e) {
-        console.warn(`[monthlyPlanGenerator] ${instanceId}: Hebrew cleanup error (non-fatal):`, (e as Error).message)
-    }
+    // ─── K17: Hebrew cleanup now runs POST-SAVE (decoupled) ───────────────
+    // The cosmetic Hebrew polish (strips snake_case / English jargon from
+    // user-facing strings) used to run HERE, inline, before persisting — a
+    // slow/hung cleanup could block the whole plan from ever saving. It now
+    // runs fire-and-forget AFTER persistAndEmit (see below): the plan always
+    // persists first, polish is applied to the saved rows under the hood.
+    const finalTasks = pass4Tasks
 
     // ─── Assemble plan + apply guardrails ────────────────────────────────
     const qualityWarnings: string[] = [
@@ -694,6 +676,18 @@ export async function generateMonthlyPlan(
 
     // ─── Persist + emit ──────────────────────────────────────────────────
     const { outputId } = await persistAndEmit(instanceId, plan, agent, rd, trigger, ctx.chosenScenarioKey)
+
+    // ─── Post-save Hebrew polish (fire-and-forget, under the hood) ────────
+    // Plan is already saved above — this rewrites the saved per-task rows with
+    // cleaned Hebrew. Bounded (90s/batch + per-batch fallback); any failure is
+    // harmless. Non-awaited so generateMonthlyPlan returns immediately.
+    // SKIP_PLAN_HEBREW_CLEANUP=1 opts out (e.g. budget-constrained reruns).
+    if (process.env.SKIP_PLAN_HEBREW_CLEANUP !== '1') {
+        void import('./monthlyPlanCleanupSaved')
+            .then(({ runSavedPlanHebrewCleanup }) => runSavedPlanHebrewCleanup(agent.id, { instanceId }))
+            .then(r => console.log(`[monthlyPlanGenerator] ${instanceId}: post-save Hebrew cleanup → ${r.status} (updated ${r.updated || 0}/${r.scanned || 0})`))
+            .catch(e => console.warn(`[monthlyPlanGenerator] ${instanceId}: post-save Hebrew cleanup failed (non-fatal):`, (e as Error).message))
+    }
 
     const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
     console.log(`[monthlyPlanGenerator] ${instanceId}: v8 ready in ${elapsed}s total (Pass1=${pass1Elapsed}s, Pass2=${pass2Elapsed}s, Pass3=${pass3Elapsed}s; tasks=${plan.summary.totalTasks}; P0=${plan.summary.byPriority.P0}; scenario=${ctx.chosenScenarioKey}; outputId=${outputId})`)
