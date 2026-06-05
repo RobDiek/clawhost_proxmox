@@ -6626,6 +6626,7 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
   // K19 — apply secondary filters in pending_review status only (where the
   // 58-task operational queue lives). Order: future-gating → priority → week
   // → channel. Each filter short-circuits to keep render fast.
+  var aqDeferredTasks = [];   // B: agent-review verdict defer/needs_integration/manual
   if (aqFilterStatus === 'pending_review') {
     var todayIso = new Date().toISOString().slice(0, 10);
     tasks = tasks.filter(function(t) {
@@ -6638,6 +6639,14 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
       if (aqK19Channel !== 'all' && t.channel !== aqK19Channel) return false;
       return true;
     });
+    // B (agent-review): pull defer / needs_integration / manual out of the
+    // actionable "ממתין לאישור" list into a separate collapsed group, so the
+    // user is shown only what the agent recommends acting on now. Tasks with
+    // no review (e.g. ads-recs) stay actionable.
+    function _aqVerdict(t) { return t.metadata && t.metadata.agentReview && t.metadata.agentReview.verdict; }
+    var _aqDeferSet = { defer: 1, needs_integration: 1, manual: 1 };
+    aqDeferredTasks = tasks.filter(function(t) { return _aqDeferSet[_aqVerdict(t)]; });
+    tasks = tasks.filter(function(t) { return !_aqDeferSet[_aqVerdict(t)]; });
   }
 
   // K19 — pre-compute "dep not done" lookup so the deps badge renders without
@@ -6785,6 +6794,28 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
     html += '<div style="text-align:center;padding:10px;border-top:1px solid #F3F4F6">' +
       '<button onclick="collapseTasks()" style="font-size:0.78rem;color:#9CA3AF;background:none;border:none;cursor:pointer;font-weight:500">← הסתירו</button>' +
     '</div>';
+  }
+
+  // B: collapsed "deferred / blocked" group (agent-review verdicts). Each row
+  // shows a verdict badge + the agent's Hebrew reason; click opens the popup.
+  if (aqFilterStatus === 'pending_review' && aqDeferredTasks.length) {
+    var _vmeta = {
+      defer: { icon: '⏳', label: 'מושהה (תלות)', color: '#92400E', bg: '#FEF3C7' },
+      needs_integration: { icon: '🔌', label: 'דרוש חיבור', color: '#1E40AF', bg: '#DBEAFE' },
+      manual: { icon: '✋', label: 'ידני', color: '#6B7280', bg: '#F3F4F6' }
+    };
+    var defHtml = aqDeferredTasks.map(function(t) {
+      var ar = (t.metadata && t.metadata.agentReview) || {};
+      var vm = _vmeta[ar.verdict] || { icon: '•', label: '', color: '#6B7280', bg: '#F3F4F6' };
+      return '<div class="aq-item" onclick="openTaskPopup(\'' + t.id + '\')" style="opacity:0.72">' +
+        '<div class="aq-body"><div class="aq-title" style="font-size:0.82rem">' +
+        '<span style="font-size:0.64rem;font-weight:600;padding:1px 6px;border-radius:999px;background:' + vm.bg + ';color:' + vm.color + ';margin-inline-end:6px">' + vm.icon + ' ' + vm.label + '</span>' +
+        t.title + '</div>' +
+        '<div class="aq-agent" style="font-size:0.7rem;color:#9CA3AF">' + (ar.reasonHe || '') + '</div></div></div>';
+    }).join('');
+    html += '<div style="margin-top:10px;border-top:1px dashed #E5E7EB">' +
+      '<div style="padding:9px 4px;font-size:0.8rem;font-weight:600;color:#6B7280;cursor:pointer" onclick="var n=this.nextElementSibling;n.style.display=(n.style.display===\'none\'?\'block\':\'none\')">מושהה / חסום (' + aqDeferredTasks.length + ') — לא מומלץ כעת ▾</div>' +
+      '<div style="display:none">' + defHtml + '</div></div>';
   }
 
   el.innerHTML = html;
