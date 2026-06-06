@@ -191,6 +191,13 @@ import { runSeoMonitoring } from '@/services/seoMonitoringRunner'
 setInterval(() => { runSeoMonitoring().catch(err => console.error('[seoMonitoring] cron error:', err)) }, 24 * 60 * 60 * 1000)
 setTimeout(() => { runSeoMonitoring().catch(err => console.error('[seoMonitoring] first run error:', err)) }, 360 * 1000)
 
+// PAID DataForSEO tracking (opt-in, per-tenant monthly cap). Daily tick; weekly
+// features fire Sun UTC, monthly on the 1st — cadence gated inside runSeoTracking.
+// Skips tenants without seoTracking.config.enabled → zero cost for non-opted.
+import { runSeoTracking } from '@/services/seoTrackingRunner'
+setInterval(() => { runSeoTracking().catch(err => console.error('[seoTracking] cron error:', err)) }, 24 * 60 * 60 * 1000)
+setTimeout(() => { runSeoTracking().catch(err => console.error('[seoTracking] first run error:', err)) }, 420 * 1000)
+
 // Conversion Setup Audit — ONE-TIME check ~24h after each Mazhir GTM/conversion
 // auto-setup. Catches the Packing Station class of failure: own purchase signal
 // not firing in GA4, or a sibling brand's conversion action contaminating the
