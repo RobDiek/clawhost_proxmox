@@ -66,21 +66,25 @@ export async function llmResponse(
     if (cached) return { items: cached.items, cost: 0, cached: true }
 
     const { result, cost } = await dfsPost<any>(instanceId, endpoint, [params])
+    // Shape (verified live): result[0] has { model_name, money_spent, fan_out_queries,
+    // items: [{ sections: [{ type:'text', text, annotations:[{title,url}]|null }] }] }.
     const items: LlmResponseResult[] = []
     for (const r of (result || [])) {
-        const itemsArr = Array.isArray(r?.items) ? r.items : [r]
-        for (const it of itemsArr) {
-            if (!it) continue
-            const annotations = Array.isArray(it.annotations) ? it.annotations : []
-            items.push({
-                engine,
-                model: it.model_name || params.model_name as string,
-                text: typeof it.message === 'string' ? it.message : (it.text || it.content || ''),
-                citations: annotations.map((a: any) => ({ title: String(a?.title || ''), url: String(a?.url || '') })).filter((c: any) => c.url),
-                fanOutQueries: Array.isArray(it.fan_out_queries) ? it.fan_out_queries.map((q: any) => String(q)) : [],
-                moneySpent: Number(it.money_spent) || 0,
-            })
-        }
+        if (!r) continue
+        const sections = (Array.isArray(r.items) ? r.items : [])
+            .flatMap((it: any) => Array.isArray(it?.sections) ? it.sections : [])
+        const text = sections
+            .filter((s: any) => s?.type === 'text' && typeof s.text === 'string')
+            .map((s: any) => s.text).join('\n').trim()
+        const annotations = sections.flatMap((s: any) => Array.isArray(s?.annotations) ? s.annotations : [])
+        items.push({
+            engine,
+            model: r.model_name || (params.model_name as string),
+            text,
+            citations: annotations.map((a: any) => ({ title: String(a?.title || ''), url: String(a?.url || '') })).filter((c: any) => c.url),
+            fanOutQueries: Array.isArray(r.fan_out_queries) ? r.fan_out_queries.map((q: any) => String(q)) : [],
+            moneySpent: Number(r.money_spent) || 0,
+        })
     }
     await cacheSet(instanceId, endpoint, params, { items, cost }, cost)
     return { items, cost, cached: false }
