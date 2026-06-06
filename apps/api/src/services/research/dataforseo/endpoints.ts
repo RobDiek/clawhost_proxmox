@@ -375,6 +375,107 @@ export async function serpCompetitors(
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// DataForSEO Labs — historical / traffic / keyword-gap (time-series + opportunity)
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Historical rank overview — domain's organic position distribution + ETV
+ * BY MONTH. The native time-series for "are we climbing?" — no custom rank
+ * tracker needed. Endpoint: dataforseo_labs/google/historical_rank_overview/live
+ */
+export async function historicalRankOverview(
+    instanceId: string,
+    target: string,
+    opts: LocLang & { dateFrom?: string; dateTo?: string } = {},
+): Promise<CallResult<Record<string, unknown>>> {
+    const params: Record<string, unknown> = {
+        target,
+        location_name: LOCATION_NAME_IL,
+        language_name: languageName(opts.language_code ?? LANGUAGE_HE),
+    }
+    if (opts.dateFrom) params.date_from = opts.dateFrom
+    if (opts.dateTo) params.date_to = opts.dateTo
+    return cachedCall<Record<string, unknown>>(
+        instanceId,
+        'dataforseo_labs/google/historical_rank_overview/live',
+        params,
+    )
+}
+
+/**
+ * Domain rank overview — current snapshot: organic ETV, keyword count, position
+ * buckets (1-3 / 4-10 / 11-100). The organic baseline figure.
+ * Endpoint: dataforseo_labs/google/domain_rank_overview/live
+ */
+export async function domainRankOverview(
+    instanceId: string,
+    target: string,
+    opts: LocLang = {},
+): Promise<CallResult<Record<string, unknown>>> {
+    return cachedCall<Record<string, unknown>>(
+        instanceId,
+        'dataforseo_labs/google/domain_rank_overview/live',
+        {
+            target,
+            location_name: LOCATION_NAME_IL,
+            language_name: languageName(opts.language_code ?? LANGUAGE_HE),
+        },
+    )
+}
+
+/**
+ * Historical bulk traffic estimation — estimated organic traffic (ETV) for one
+ * or more domains OVER TIME. Powers the "organic traffic trend" in reports.
+ * Endpoint: dataforseo_labs/google/historical_bulk_traffic_estimation/live
+ */
+export async function historicalBulkTrafficEstimation(
+    instanceId: string,
+    targets: string[],
+    opts: LocLang & { dateFrom?: string; dateTo?: string } = {},
+): Promise<CallResult<Record<string, unknown>>> {
+    const params: Record<string, unknown> = {
+        targets: targets.slice(0, 1000),
+        location_name: LOCATION_NAME_IL,
+        language_name: languageName(opts.language_code ?? LANGUAGE_HE),
+    }
+    if (opts.dateFrom) params.date_from = opts.dateFrom
+    if (opts.dateTo) params.date_to = opts.dateTo
+    return cachedCall<Record<string, unknown>>(
+        instanceId,
+        'dataforseo_labs/google/historical_bulk_traffic_estimation/live',
+        params,
+    )
+}
+
+/**
+ * Keyword GAP — domain_intersection. Keywords that BOTH target1 and target2
+ * rank for; pass `intersections:false` to get target1's keywords target2 does
+ * NOT rank for (the gap we should attack). For us-vs-competitor opportunity.
+ * Endpoint: dataforseo_labs/google/domain_intersection/live
+ */
+export async function domainIntersection(
+    instanceId: string,
+    target1: string,
+    target2: string,
+    opts: LocLang & { limit?: number; intersections?: boolean; filters?: unknown[] } = {},
+): Promise<CallResult<Record<string, unknown>>> {
+    const params: Record<string, unknown> = {
+        target1,
+        target2,
+        location_name: LOCATION_NAME_IL,
+        language_name: languageName(opts.language_code ?? LANGUAGE_HE),
+        limit: opts.limit ?? 200,
+        intersections: opts.intersections ?? true,
+    }
+    if (opts.filters) params.filters = opts.filters
+    return cachedCall<Record<string, unknown>>(
+        instanceId,
+        'dataforseo_labs/google/domain_intersection/live',
+        params,
+    )
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Backlinks — link intelligence (replaces Ahrefs/Semrush per playbook §16)
 // ────────────────────────────────────────────────────────────────────────────
 
