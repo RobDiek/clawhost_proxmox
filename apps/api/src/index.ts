@@ -198,6 +198,14 @@ import { runSeoTracking } from '@/services/seoTrackingRunner'
 setInterval(() => { runSeoTracking().catch(err => console.error('[seoTracking] cron error:', err)) }, 24 * 60 * 60 * 1000)
 setTimeout(() => { runSeoTracking().catch(err => console.error('[seoTracking] first run error:', err)) }, 420 * 1000)
 
+// Monthly Report Card — goal↔actual reconciliation (paid + organic + AI). Daily
+// tick, gated to the 1st UTC; runs for tracking-enabled tenants after the
+// month's tracking data is in.
+import { runMonthlyReportCards } from '@/services/monthlyReportCard'
+setInterval(() => {
+    if (new Date().getUTCDate() === 1) runMonthlyReportCards().catch(err => console.error('[monthlyReportCard] cron error:', err))
+}, 24 * 60 * 60 * 1000)
+
 // Conversion Setup Audit — ONE-TIME check ~24h after each Mazhir GTM/conversion
 // auto-setup. Catches the Packing Station class of failure: own purchase signal
 // not firing in GA4, or a sibling brand's conversion action contaminating the

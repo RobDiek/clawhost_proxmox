@@ -104,12 +104,25 @@ export async function generateInstanceReport(instanceId: string): Promise<{
     }
 
     // Call Claude Sonnet to compose the Hebrew report
-    const content: string = await composeReport(anthropicKey, data)
+    let content: string = await composeReport(anthropicKey, data)
 
     // Insert into agent_outputs (cron-style — defaults to primary agent)
     const outputId = genId()
     const { resolvePrimaryAgent: __rp } = await import('@/services/agentContext')
     const __wcrAgent = await __rp(instanceId)
+
+    // Weave the organic + AI tracking block (week-over-week) if tracking is on.
+    try {
+        if (__wcrAgent) {
+            const { readSeoTracking } = await import('@/services/seoTracking')
+            const { summarizeOrganicAi, renderOrganicAiHe } = await import('@/services/seoTrackingReport')
+            const trk = readSeoTracking(__wcrAgent as never)
+            if (trk.config.enabled) {
+                const sum = summarizeOrganicAi(trk, { back: 1 })
+                if (sum.hasData) content += '\n\n' + renderOrganicAiHe(sum, 'מול שבוע קודם')
+            }
+        }
+    } catch { /* organic block is best-effort — never block the paid report */ }
     await db.insert(agentOutputs).values({
         id: outputId,
         instanceId,
