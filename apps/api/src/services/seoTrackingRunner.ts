@@ -70,8 +70,11 @@ export async function runSeoTrackingForAgent(
     const doMonthly = opts.force || opts.monthly || dom === 1
     if (!doWeekly && !doMonthly) { skipped.push('off-cadence'); return summary() }
 
-    // refresh scope from current strategy (keeps tracked keywords/competitors current)
-    const scope = state.scope.domain ? state.scope : deriveScope(agent)
+    // Always re-derive scope from the CURRENT research each run — so a research
+    // re-run (fresh keywords/competitors) is picked up automatically. Falls back
+    // to the stored scope only if derivation yields no domain (research absent).
+    const derived = deriveScope(agent)
+    const scope = derived.domain ? derived : state.scope
     if (!scope.domain) { skipped.push('no_domain'); return summary() }
 
     const cap = state.config.monthlyCapUsdCents
