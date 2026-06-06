@@ -27,10 +27,14 @@ export type LlmEngine = 'chat_gpt' | 'claude' | 'gemini' | 'perplexity'
 
 /** Sensible base model per engine — DFS auto-selects the latest version from a
  *  base name. Override per call; fetch live options via {engine}/llm_responses/models. */
+// Verified live (2026-06): gpt-4o + gemini-2.5-flash return web_search=false →
+// NO citations. The search-capable models below all return web_search=true →
+// grounded answers + citation annotations (needed for AEO citation tracking).
+// Kept cost-light for the 12-prompt × N-engine monthly probe.
 const DEFAULT_MODEL: Record<LlmEngine, string> = {
-    chat_gpt: 'gpt-4o',
-    claude: 'claude-sonnet-4-5',
-    gemini: 'gemini-2.5-flash',
+    chat_gpt: 'gpt-5-mini',
+    claude: 'claude-sonnet-4-6',
+    gemini: 'gemini-3.5-flash',
     perplexity: 'sonar',
 }
 
