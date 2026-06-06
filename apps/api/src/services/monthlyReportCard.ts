@@ -11,7 +11,7 @@
  */
 import { nanoid } from 'nanoid'
 import { db } from '@/db'
-import { agentOutputs, matehAgents } from '@/db/schema'
+import { agentOutputs, matehAgents, instances } from '@/db/schema'
 import type { MatehAgentRow } from '@/services/agentContext'
 import { readSeoTracking } from '@/services/seoTracking'
 import { summarizeOrganicAi, renderOrganicAiHe, type OrganicAiSummary } from '@/services/seoTrackingReport'
@@ -68,8 +68,7 @@ async function gather(agent: MatehAgentRow, instanceId: string): Promise<ReportC
     return { monthLabel, targets, paid, organicAi, gsc }
 }
 
-async function compose(data: ReportCardData): Promise<string> {
-    const apiKey = process.env.ANTHROPIC_API_KEY
+async function compose(data: ReportCardData, apiKey: string | undefined): Promise<string> {
     const organicBlock = renderOrganicAiHe(data.organicAi, 'מול חודש קודם')
     const facts = {
         month: data.monthLabel,
@@ -119,7 +118,8 @@ ${JSON.stringify(facts, null, 2)}`
 
 export async function generateMonthlyReportCard(agent: MatehAgentRow, instanceId: string): Promise<{ generated: boolean; outputId?: string; reason?: string }> {
     const data = await gather(agent, instanceId)
-    const displayHe = await compose(data)
+    const [inst] = await db.select({ aiProviderKey: instances.aiProviderKey }).from(instances).where(eq(instances.id, instanceId)) as any[]
+    const displayHe = await compose(data, inst?.aiProviderKey || process.env.ANTHROPIC_API_KEY)
     const outputId = 'mrc_' + nanoid(8)
     await db.insert(agentOutputs).values({
         id: outputId,
