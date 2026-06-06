@@ -141,7 +141,9 @@ export async function runSeoTrackingForAgent(
                 await feature('trafficTracking', UNIT_USD.historical_bulk_traffic_estimation, async () => {
                     const r = await historicalBulkTrafficEstimation(instanceId, [scope.domain])
                     const it = (r.items[0] || {}) as any
-                    const etv = Number(it?.metrics?.organic?.etv ?? it?.etv) || undefined
+                    // metrics.organic is an ARRAY of {year,month,etv,count} (newest first)
+                    const organic = it?.metrics?.organic
+                    const etv = Number((Array.isArray(organic) ? organic[0]?.etv : organic?.etv) ?? it?.etv) || undefined
                     state = withSeriesPoint(state, 'traffic', { date: todayIso(), etv })
                     return r.cost
                 })

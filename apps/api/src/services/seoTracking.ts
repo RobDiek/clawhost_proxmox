@@ -130,37 +130,36 @@ export function deriveScope(agent: MatehAgentRow, opts: { maxKeywords?: number }
     const rawDomain = rd.answers?.websiteUrl || rd.answers?.website || rd.websiteUrl || ''
     const domain = String(rawDomain).replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim()
 
-    // target keywords — prefer the curated/prioritized set, fall back to ideas
+    // target keywords — the canonical store is seo_keyword_research.records[]
+    // (each a keyword row with is_priority). Fall back to dfsData.rankedKeywords
+    // and the legacy curated-set shapes.
     const kr = results.seo_keyword_research || {}
-    let keywords: string[] = []
-    const candidates = [kr.targetKeywords, kr.prioritizedKeywords, kr.primaryKeywords, kr.keywords, kr.clusters]
-        .filter(Boolean)
-    for (const c of candidates) {
-        if (Array.isArray(c)) {
-            for (const k of c) {
-                const kw = typeof k === 'string' ? k : (k?.keyword || k?.term || k?.name)
-                if (kw && typeof kw === 'string') keywords.push(kw)
-            }
-        }
-        if (keywords.length) break
-    }
-    keywords = Array.from(new Set(keywords.map(k => k.trim()).filter(Boolean))).slice(0, maxKw)
+    const kwOf = (r: any): string => (typeof r === 'string' ? r : (r?.keyword || r?.term || r?.query || r?.kw || '')).trim()
+    let kwRows: any[] = []
+    if (Array.isArray(kr.records) && kr.records.length) kwRows = kr.records
+    else if (Array.isArray(kr.dfsData?.rankedKeywords)) kwRows = kr.dfsData.rankedKeywords
+    else kwRows = [kr.targetKeywords, kr.prioritizedKeywords, kr.primaryKeywords, kr.keywords].find(Array.isArray) || []
+    // priority keywords first
+    const prioritized = [...kwRows].sort((a, b) => (b?.is_priority ? 1 : 0) - (a?.is_priority ? 1 : 0))
+    const keywords = Array.from(new Set(prioritized.map(kwOf).filter(Boolean))).slice(0, maxKw)
 
-    // competitors — from competitor_landscape / competitors
-    const cl = results.competitor_landscape || results.competitors || {}
-    const comps: string[] = []
-    const compArr = cl.competitors || cl.topEnriched || cl.direct || (Array.isArray(cl) ? cl : [])
-    if (Array.isArray(compArr)) {
-        for (const c of compArr) {
-            const d = typeof c === 'string' ? c : (c?.domain || c?.url || c?.website)
-            if (d) comps.push(String(d).replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim())
-        }
-    }
-    const competitors = Array.from(new Set(comps.filter(Boolean))).slice(0, 5)
+    // competitors — competitor_landscape.records[] ({url,name,bucket}) +
+    // user-declared answers.competitors. Prefer direct competitors.
+    const cl = results.competitor_landscape || {}
+    const compRows: any[] = Array.isArray(cl.records) ? cl.records
+        : (Array.isArray(cl.dfsData?.competitors) ? cl.dfsData.competitors : [])
+    const toDomain = (s: any): string => String(s || '').replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '').trim()
+    const direct = compRows.filter(r => !r?.bucket || r.bucket === 'direct')
+    const compSorted = direct.length ? direct : compRows
+    const comps = compSorted.map(r => toDomain(typeof r === 'string' ? r : (r?.url || r?.domain || r?.website || r?.name)))
+    const userComps = (Array.isArray(rd.answers?.competitors) ? rd.answers.competitors : []).map((c: any) => toDomain(typeof c === 'string' ? c : (c?.url || c?.domain || c?.name)))
+    const competitors = Array.from(new Set([...comps, ...userComps].filter(Boolean).filter(d => d && d !== domain))).slice(0, 5)
 
-    // JTBD prompts for AEO probing — reuse existing AEO prompts if present
-    const aeoPrompts: string[] = rd.aeoPrompts || rd.seoMonitoring?.aeoProbes?.prompts || []
-    const llmPrompts = Array.isArray(aeoPrompts) ? aeoPrompts.slice(0, 20) : []
+    // JTBD prompts for the AI-responses probe — reuse stored AEO prompts, else
+    // derive from the top priority keywords (the AI-visibility queries we care about).
+    let llmPrompts: string[] = rd.aeoPrompts || rd.seoMonitoring?.aeoProbes?.prompts || []
+    if (!Array.isArray(llmPrompts) || !llmPrompts.length) llmPrompts = keywords.slice(0, 12)
+    else llmPrompts = llmPrompts.slice(0, 20)
 
     return { domain, keywords, competitors, llmPrompts }
 }
