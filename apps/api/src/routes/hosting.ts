@@ -483,6 +483,7 @@ app.post('/instances/:id/setup/agents/strategy/reset', resetStrategy)
 // alive until Phase 7 cleanup so the existing UI keeps working.
 import { getResearchPlan, setResearchPlan, expandResearchPlan } from '@/controllers/hosting/research/plan'
 import { runResearchStage, getResearchStageStatus } from '@/controllers/hosting/research/runStage'
+import { getSeoTracking, setSeoTracking, previewSeoTrackingCost, runSeoTrackingNow, generateReportCardNow } from '@/controllers/hosting/seoTracking'
 import { researchPreflight } from '@/controllers/hosting/research/preflight'
 import { getStageImpact, wipeStageDownstream } from '@/controllers/hosting/research/stageImpact'
 import { chooseScenario } from '@/controllers/hosting/research/chooseScenario'
@@ -673,6 +674,13 @@ app.get('/integrations/gsc/callback', gscCallback)
 app.post('/integrations/gsc/disconnect', gscDisconnect)
 app.get('/integrations/gsc/status', gscStatus)
 app.post('/integrations/gsc/set-site', gscSetSite)
+
+// SEO + AEO tracking (paid DataForSEO add-on; opt-in + per-tenant monthly cap)
+app.get('/integrations/seo-tracking', getSeoTracking)
+app.post('/integrations/seo-tracking', setSeoTracking)
+app.post('/integrations/seo-tracking/forecast', previewSeoTrackingCost)
+app.post('/integrations/seo-tracking/run', runSeoTrackingNow)
+app.post('/integrations/seo-tracking/report-card', generateReportCardNow)
 
 // ── DataForSEO ──
 app.post('/integrations/dataforseo/save', saveDataforseoKey)
