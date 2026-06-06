@@ -676,11 +676,11 @@ app.get('/integrations/gsc/status', gscStatus)
 app.post('/integrations/gsc/set-site', gscSetSite)
 
 // SEO + AEO tracking (paid DataForSEO add-on; opt-in + per-tenant monthly cap)
-app.get('/integrations/seo-tracking', getSeoTracking)
-app.post('/integrations/seo-tracking', setSeoTracking)
-app.post('/integrations/seo-tracking/forecast', previewSeoTrackingCost)
-app.post('/integrations/seo-tracking/run', runSeoTrackingNow)
-app.post('/integrations/seo-tracking/report-card', generateReportCardNow)
+app.get('/instances/:id/integrations/seo-tracking', getSeoTracking)
+app.post('/instances/:id/integrations/seo-tracking', setSeoTracking)
+app.post('/instances/:id/integrations/seo-tracking/forecast', previewSeoTrackingCost)
+app.post('/instances/:id/integrations/seo-tracking/run', runSeoTrackingNow)
+app.post('/instances/:id/integrations/seo-tracking/report-card', generateReportCardNow)
 
 // ── DataForSEO ──
 app.post('/integrations/dataforseo/save', saveDataforseoKey)

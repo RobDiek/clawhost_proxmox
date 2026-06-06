@@ -92,7 +92,10 @@ export function forecastTrackingCost(cfg: TrackingConfig, scope: TrackingScope):
     }
 }
 
-/** Default tracking config (per the agreed plan: weekly mentions + monthly responses). */
+/** Default tracking config. NOTE: llmMentions defaults OFF — it requires a
+ *  separate DataForSEO "LLM Mentions API" subscription (40204 until activated).
+ *  AEO is covered by llmResponses (live multi-engine probe + citations) until
+ *  the tenant activates Mentions, after which it can be toggled on. */
 export function defaultTrackingConfig(): TrackingConfig {
     return {
         rankTracking: true,
@@ -100,7 +103,7 @@ export function defaultTrackingConfig(): TrackingConfig {
         trafficTracking: true,
         keywordGap: true,
         aiKeywordData: true,
-        llmMentions: true,
+        llmMentions: false,
         llmResponses: true,
         engines: ['chat_gpt', 'claude', 'gemini', 'perplexity'],
     }

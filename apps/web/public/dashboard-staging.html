@@ -2334,6 +2334,118 @@ input{font-family:inherit}
         </div>
       </div>
 
+      <!-- SEO + AI tracking (paid DataForSEO add-on; opt-in + monthly cap) -->
+      <div class="int-card" id="seotrack-card" data-tooltip="מעקב SEO + AI — מיקומים בגוגל, תנועה אורגנית, פערי מילות מפתח, ונראות במנועי AI (ChatGPT/Gemini/Perplexity/Claude). מבוסס DataForSEO, חיוב לפי שימוש מהיתרה שלכם, עם תקרה חודשית.">
+        <div class="int-card-header" onclick="toggleSeoTrack()" style="cursor:pointer">
+          <div class="int-icon" style="background:#F0FDF4"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 19V5m0 14h16M8 16l3-4 3 3 4-6" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div><strong>מעקב SEO + AI</strong><div class="int-status" id="seotrack-status">לא מופעל</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-seotrack-body">
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">מעקב שבועי אחר מיקומים, תנועה אורגנית ונראות במנועי AI. החיוב מהיתרת DataForSEO שלכם, לפי שימוש בפועל, עד התקרה החודשית שתגדירו.</div>
+          <div id="seotrack-loading" style="font-size:0.8rem;color:#9CA3AF">טוען…</div>
+          <div id="seotrack-panel" style="display:none">
+            <div style="display:flex;flex-direction:column;gap:5px;font-size:0.8rem">
+              <label><input type="checkbox" data-feat="rankTracking"/> מעקב מיקומים (דומיין + היסטוריה)</label>
+              <label><input type="checkbox" data-feat="perKeywordSerp"/> מיקום לכל מילת מפתח (<span id="seotrack-kwcount">0</span> מילים)</label>
+              <label><input type="checkbox" data-feat="trafficTracking"/> תנועה אורגנית (הערכת ETV)</label>
+              <label><input type="checkbox" data-feat="keywordGap"/> פערי מילות מפתח מול מתחרים (<span id="seotrack-compcount">0</span>)</label>
+              <label><input type="checkbox" data-feat="aiKeywordData"/> נפח חיפוש במנועי AI</label>
+              <label title="דורש מנוי LLM Mentions ב-DataForSEO"><input type="checkbox" data-feat="llmMentions"/> אזכורי/ציטוטי מותג ב-AI <span style="color:#9CA3AF">(דורש מנוי DFS)</span></label>
+              <label><input type="checkbox" data-feat="llmResponses"/> בדיקת תשובות AI חיה (ציטוטים)</label>
+            </div>
+            <div style="margin:8px 0;padding:8px;background:#F8FAFC;border-radius:6px">
+              <div style="font-size:0.74rem;color:#6B7280;margin-bottom:4px">מנועי AI (לבדיקת תשובות):</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:0.78rem">
+                <label><input type="checkbox" data-eng="chat_gpt"/> ChatGPT</label>
+                <label><input type="checkbox" data-eng="gemini"/> Gemini</label>
+                <label><input type="checkbox" data-eng="perplexity"/> Perplexity</label>
+                <label><input type="checkbox" data-eng="claude"/> Claude</label>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <span style="font-size:0.78rem;color:#374151">תקרה חודשית $:</span>
+              <input type="number" id="seotrack-cap" min="0" step="1" placeholder="ללא" class="int-input" style="width:90px;direction:ltr" onchange="renderSeoTrackForecast()"/>
+            </div>
+            <div id="seotrack-forecast" style="background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border:1px solid #BBF7D0;border-radius:8px;padding:10px;margin-bottom:8px;font-size:0.8rem">
+              <div style="font-weight:600;color:#166534">עלות משוערת: <span id="seotrack-forecast-month" style="direction:ltr">$0</span>/חודש</div>
+              <div id="seotrack-forecast-lines" style="font-size:0.72rem;color:#4B5563;margin-top:4px"></div>
+            </div>
+            <div id="seotrack-statusline" style="font-size:0.76rem;margin-bottom:8px"></div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <label style="font-size:0.82rem;font-weight:600"><input type="checkbox" id="seotrack-enabled"/> מעקב פעיל</label>
+              <button class="btn btn-primary btn-sm" onclick="saveSeoTracking()">שמירה</button>
+              <button class="btn btn-outline btn-sm" onclick="runSeoTrackingNow()" style="font-size:0.74rem">הרץ עכשיו</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script>
+      (function(){
+        var ST_BASE = function(){ return '/hosting/instances/' + (window.instanceId || localStorage.getItem('cf_instance_id') || '') + '/integrations/seo-tracking'; };
+        var stLoaded = false;
+        function collectCfg(){
+          var cfg = {};
+          document.querySelectorAll('#seotrack-panel [data-feat]').forEach(function(el){ cfg[el.getAttribute('data-feat')] = el.checked; });
+          var engines = []; document.querySelectorAll('#seotrack-panel [data-eng]').forEach(function(el){ if(el.checked) engines.push(el.getAttribute('data-eng')); });
+          cfg.engines = engines;
+          var capEl = document.getElementById('seotrack-cap');
+          var capUsd = capEl && capEl.value ? Math.round(parseFloat(capEl.value)*100) : null;
+          return { config: cfg, enabled: document.getElementById('seotrack-enabled').checked, monthlyCapUsdCents: capUsd };
+        }
+        function applyState(d){
+          var cfg = d.config || {};
+          document.querySelectorAll('#seotrack-panel [data-feat]').forEach(function(el){ el.checked = !!cfg[el.getAttribute('data-feat')]; });
+          var engs = cfg.engines || [];
+          document.querySelectorAll('#seotrack-panel [data-eng]').forEach(function(el){ el.checked = engs.indexOf(el.getAttribute('data-eng')) !== -1; });
+          document.getElementById('seotrack-enabled').checked = !!cfg.enabled;
+          if (cfg.monthlyCapUsdCents != null) document.getElementById('seotrack-cap').value = (cfg.monthlyCapUsdCents/100);
+          document.getElementById('seotrack-kwcount').textContent = (d.scope && d.scope.keywords) || 0;
+          document.getElementById('seotrack-compcount').textContent = (d.scope && d.scope.competitors) || 0;
+          var sl = document.getElementById('seotrack-statusline');
+          var st = d.status || 'disabled';
+          var map = { active:'🟢 פעיל', paused_cap:'🟡 מושהה — תקרה חודשית', paused_balance:'🔴 מושהה — אין יתרה', disabled:'⚪ כבוי' };
+          sl.innerHTML = (map[st]||st) + (d.statusReason ? ' — '+d.statusReason : '');
+          document.getElementById('seotrack-status').textContent = st === 'active' ? 'פעיל' : (st.indexOf('paused')===0 ? 'מושהה' : 'לא מופעל');
+          renderForecast(d.forecast);
+        }
+        function renderForecast(f){
+          if(!f) return;
+          document.getElementById('seotrack-forecast-month').textContent = '$' + (Math.round((f.monthlyUsd||0)*100)/100);
+          var lines = (f.lines||[]).map(function(l){ return l.feature + ': $' + (Math.round(l.monthlyUsd*100)/100); }).join(' · ');
+          document.getElementById('seotrack-forecast-lines').textContent = lines;
+        }
+        window.renderSeoTrackForecast = function(){
+          apiFetch(ST_BASE()+'/forecast', { method:'POST', body: JSON.stringify(collectCfg()) }).then(function(r){ if(r&&r.success&&r.data) renderForecast(r.data.forecast); });
+        };
+        window.toggleSeoTrack = function(){
+          var b = document.getElementById('int-seotrack-body'); b.classList.toggle('hidden');
+          if(!b.classList.contains('hidden') && !stLoaded){ stLoaded = true; loadSt(); }
+        };
+        function loadSt(){
+          apiFetch(ST_BASE()).then(function(r){
+            document.getElementById('seotrack-loading').style.display='none';
+            document.getElementById('seotrack-panel').style.display='block';
+            if(r&&r.success&&r.data){ applyState(r.data);
+              document.querySelectorAll('#seotrack-panel input').forEach(function(el){ el.addEventListener('change', window.renderSeoTrackForecast); });
+            }
+          });
+        }
+        window.saveSeoTracking = function(){
+          apiFetch(ST_BASE(), { method:'POST', body: JSON.stringify(collectCfg()) }).then(function(r){
+            if(r&&r.success){ if(typeof showToast==='function') showToast('הגדרות מעקב נשמרו'); if(r.data) applyState(r.data); }
+            else if(typeof showToast==='function') showToast((r&&r.message)||'שגיאה בשמירה');
+          });
+        };
+        window.runSeoTrackingNow = function(){
+          if(typeof showToast==='function') showToast('מריץ מעקב…');
+          apiFetch(ST_BASE()+'/run', { method:'POST', body: JSON.stringify({}) }).then(function(r){
+            if(typeof showToast==='function') showToast(r&&r.success ? ('מעקב הורץ: '+((r.data&&r.data.ran)||[]).join(', ')) : ((r&&r.message)||'שגיאה'));
+            loadSt();
+          });
+        };
+      })();
+      </script>
+
       <!-- DataForSEO Credits — Phase 3.6d. Default = managed proxy credits.
            Advanced "own DFS account" mode collapsed under expander. -->
       <div class="int-card" id="dataforseo-card" data-tooltip="DataForSEO Credits — מחקר מילות מפתח, ניתוח מתחרים, בקלינקים, נראות AI. תשלום לפי שימוש דרך הפלטפורמה. בלי מינימום שנתי, בלי מינויים.">
