@@ -99,10 +99,16 @@ function buildProductGraph(p: any, ctx: { base: string; orgId: string; orgName: 
         product.aggregateRating = { '@type': 'AggregateRating', ratingValue: avgRating.toFixed(1), reviewCount: String(ratingCount) }
     }
 
-    // Breadcrumb: Home → primary category (if any) → product
+    // Breadcrumb: Home → [category if it has a real URL] → product. EVERY
+    // ListItem MUST carry `item` (a URL) or Google flags "Missing field 'item'
+    // in itemListElement" (critical). The category crumb is added only when we
+    // can build a concrete URL from its slug; otherwise skip it (Home→Product is
+    // valid) rather than emit an item-less ListItem.
     const cat = Array.isArray(p.categories) && p.categories[0] ? p.categories[0] : null
     const crumbs: any[] = [{ '@type': 'ListItem', position: 1, name: orgName, item: base + '/' }]
-    if (cat?.name) crumbs.push({ '@type': 'ListItem', position: crumbs.length + 1, name: stripHtml(cat.name) })
+    if (cat?.name && cat?.slug) {
+        crumbs.push({ '@type': 'ListItem', position: crumbs.length + 1, name: stripHtml(cat.name), item: `${base}/product-category/${cat.slug}/` })
+    }
     crumbs.push({ '@type': 'ListItem', position: crumbs.length + 1, name: stripHtml(p.name), item: p.permalink })
 
     return {
