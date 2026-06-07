@@ -34,7 +34,10 @@ export interface WpCfg {
     appPassword: string
 }
 
-type WpContentType = 'posts' | 'pages'
+// 'product' = WooCommerce products (post type `product`, exposed at wp/v2/product
+// — the same path seoProductSchema already writes to). Included so product pages
+// get SEO meta descriptions too, not just Article/page coverage.
+type WpContentType = 'posts' | 'pages' | 'product'
 
 interface WpItem {
     type: WpContentType
@@ -106,7 +109,7 @@ async function listWeakItems(cfg: WpCfg): Promise<{ candidates: WpItem[]; scanne
     let scanned = 0
     let detectorAvailable = false
 
-    for (const type of ['posts', 'pages'] as WpContentType[]) {
+    for (const type of ['posts', 'pages', 'product'] as WpContentType[]) {
         for (let page = 1; page <= MAX_SCAN_PAGES; page++) {
             const url = `${base}/wp-json/wp/v2/${type}?per_page=100&page=${page}&status=publish&_fields=id,title,link,excerpt,yoast_head_json,meta`
             let res: Response
@@ -117,6 +120,10 @@ async function listWeakItems(cfg: WpCfg): Promise<{ candidates: WpItem[]; scanne
             }
             // page beyond last → WP returns 400 rest_post_invalid_page_number; stop cleanly
             if (res.status === 400) break
+            // `product` route is absent when WooCommerce isn't installed / not
+            // REST-exposed → 404. That's not an error for a non-store site; just
+            // skip the type rather than failing the whole posts+pages batch.
+            if (res.status === 404 && type === 'product') break
             if (!res.ok) {
                 const txt = await res.text().catch(() => '')
                 throw new Error(`WP GET ${type} → ${res.status}: ${txt.slice(0, 200)}`)

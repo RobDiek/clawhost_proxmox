@@ -19,7 +19,23 @@ import { loadWpConfig, type WpCfg } from '@/services/seoMetaBatch'
 const MAX_UPDATES_PER_RUN = 15
 const MAX_SCAN_PAGES = 5
 
+// Bumped whenever generateSchema learns to emit a new node TYPE. Stored at the
+// JSON-LD doc root (`_fmSchemaV`). A stored graph below this version is treated
+// as stale → re-generated once so it picks up the newer node types (this is the
+// "enrich, don't skip-if-any" rollout). After re-gen it stamps the current
+// version and is stable. v2 = added VideoObject (from real embedded video).
+const SCHEMA_GEN_VERSION = 2
+
 type WpContentType = 'posts' | 'pages'
+
+// A real video embed discovered in page content. Only emitted from concrete
+// embeds (no fabricated metadata): YouTube/Vimeo IDs or a self-hosted <video>.
+interface VideoRef {
+    provider: 'youtube' | 'vimeo' | 'file'
+    contentUrl: string
+    embedUrl?: string
+    thumbnailUrl?: string
+}
 
 interface SchemaItem {
     type: WpContentType
@@ -28,7 +44,12 @@ interface SchemaItem {
     link: string
     excerpt: string
     contentSnippet: string
+    videos: VideoRef[]
     hasOurSchema: boolean
+    /** Existing Flowmatic graph is incomplete/outdated → re-generate to enrich. */
+    stale: boolean
+    /** Why this page is a candidate: brand-new schema vs enriching a stale one. */
+    reason: 'new' | 'enrich'
 }
 
 export interface SeoSchemaBatchResult {
@@ -37,7 +58,7 @@ export interface SeoSchemaBatchResult {
     authError: boolean
     scanned: number
     candidates: number
-    updated: Array<{ type: WpContentType; id: number; title: string; link: string; types: string[] }>
+    updated: Array<{ type: WpContentType; id: number; title: string; link: string; types: string[]; reason: 'new' | 'enrich' }>
     failures: Array<{ type: WpContentType; id: number; error: string }>
     error?: string
 }
@@ -73,6 +94,52 @@ function stripHtml(s: string): string {
     return String(s || '').replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<[^>]*>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim()
 }
 
+/**
+ * Inspect a stored `_clawflow_schema_jsonld` value (already returned by the list
+ * scan — no extra fetch). Returns whether it's ours and whether it's STALE, i.e.
+ * missing a base node we now always emit, missing the WebSite SearchAction, or
+ * stamped below the current generator version. Stale graphs are re-generated so
+ * existing pages gain newer node types ("enrich, don't skip-if-any").
+ */
+export function analyzeStored(raw: string): { hasOurSchema: boolean; stale: boolean } {
+    const s = (raw || '').trim()
+    if (!s) return { hasOurSchema: false, stale: false }
+    let doc: { '@graph'?: Array<Record<string, unknown>>; _fmSchemaV?: number }
+    try { doc = JSON.parse(s) } catch { return { hasOurSchema: true, stale: true } } // unparseable → re-gen
+    const graph = Array.isArray(doc['@graph']) ? doc['@graph'] : []
+    const typeOf = (n: Record<string, unknown>) => String(n['@type'] || '')
+    const types = new Set(graph.map(typeOf))
+    const website = graph.find(n => typeOf(n) === 'WebSite')
+    const hasSearchAction = !!(website && website.potentialAction)
+    const version = typeof doc._fmSchemaV === 'number' ? doc._fmSchemaV : 0
+    const missingBase = !types.has('Organization') || !types.has('WebSite') || !types.has('BreadcrumbList')
+    const stale = missingBase || !hasSearchAction || version < SCHEMA_GEN_VERSION
+    return { hasOurSchema: true, stale }
+}
+
+/** Extract real video embeds from raw page HTML. Deterministic, no fabrication. */
+export function detectVideos(html: string): VideoRef[] {
+    const out: VideoRef[] = []
+    const seen = new Set<string>()
+    const push = (v: VideoRef) => { if (!seen.has(v.contentUrl)) { seen.add(v.contentUrl); out.push(v) } }
+    const src = String(html || '')
+    // YouTube: embed/<id>, youtu.be/<id>, watch?v=<id>
+    for (const m of src.matchAll(/(?:youtube(?:-nocookie)?\.com\/embed\/|youtu\.be\/|youtube\.com\/watch\?v=)([A-Za-z0-9_-]{11})/g)) {
+        const id = m[1]
+        push({ provider: 'youtube', contentUrl: `https://www.youtube.com/watch?v=${id}`, embedUrl: `https://www.youtube.com/embed/${id}`, thumbnailUrl: `https://i.ytimg.com/vi/${id}/hqdefault.jpg` })
+    }
+    // Vimeo: player.vimeo.com/video/<id> or vimeo.com/<id>
+    for (const m of src.matchAll(/(?:player\.vimeo\.com\/video\/|vimeo\.com\/)(\d{6,})/g)) {
+        const id = m[1]
+        push({ provider: 'vimeo', contentUrl: `https://vimeo.com/${id}`, embedUrl: `https://player.vimeo.com/video/${id}` })
+    }
+    // Self-hosted <video><source src="...mp4">
+    for (const m of src.matchAll(/<(?:video|source)[^>]+src=["']([^"']+\.(?:mp4|webm|ogv|mov))["']/gi)) {
+        push({ provider: 'file', contentUrl: m[1] })
+    }
+    return out.slice(0, 3)
+}
+
 async function listSchemaCandidates(cfg: WpCfg): Promise<{ candidates: SchemaItem[]; scanned: number }> {
     const base = normalizeUrl(cfg.url)
     const all: SchemaItem[] = []
@@ -101,34 +168,44 @@ async function listSchemaCandidates(cfg: WpCfg): Promise<{ candidates: SchemaIte
                 if (typeof it.id !== 'number') continue
                 scanned++
                 const existing = it.meta && typeof it.meta._clawflow_schema_jsonld === 'string' ? it.meta._clawflow_schema_jsonld as string : ''
+                const { hasOurSchema, stale } = analyzeStored(existing)
                 all.push({
                     type, id: it.id,
                     title: stripHtml(it.title?.rendered || `#${it.id}`),
                     link: it.link || '',
                     excerpt: stripHtml(it.excerpt?.rendered || ''),
                     contentSnippet: '',   // filled per-candidate before generation
-                    hasOurSchema: existing.trim().length > 0,
+                    videos: [],           // filled per-candidate before generation
+                    hasOurSchema,
+                    stale,
+                    reason: hasOurSchema ? 'enrich' : 'new',
                 })
             }
             if (items.length < 100) break
         }
     }
-    // Idempotent: only pages without our schema yet.
-    return { candidates: all.filter(it => !it.hasOurSchema), scanned }
+    // Candidate when: no Flowmatic schema yet (new) OR an existing graph is stale
+    // (missing a base node / SearchAction / below current generator version) so it
+    // gets enriched. Complete, up-to-date graphs are skipped — still idempotent.
+    const candidates = all.filter(it => !it.hasOurSchema || it.stale)
+    return { candidates, scanned }
 }
 
 // Fetch a single page/post's content body (kept separate from the list scan so
 // the heavy Elementor HTML is only pulled for the ≤15 pages we actually process).
-async function fetchContentSnippet(cfg: WpCfg, type: WpContentType, id: number): Promise<string> {
+// Returns the stripped snippet (for the LLM) AND any real video embeds found in
+// the RAW HTML (extracted before stripping — iframe/src survive only in raw).
+async function fetchContent(cfg: WpCfg, type: WpContentType, id: number): Promise<{ snippet: string; videos: VideoRef[] }> {
     const base = normalizeUrl(cfg.url)
     try {
         const res = await fetchRetry(`${base}/wp-json/wp/v2/${type}/${id}?_fields=content`, {
             headers: { Authorization: authHeader(cfg) }, signal: AbortSignal.timeout(30000),
         })
-        if (!res.ok) return ''
+        if (!res.ok) return { snippet: '', videos: [] }
         const j = await res.json().catch(() => null) as { content?: { rendered?: string } } | null
-        return stripHtml(j?.content?.rendered || '').slice(0, 1800)
-    } catch { return '' }
+        const raw = j?.content?.rendered || ''
+        return { snippet: stripHtml(raw).slice(0, 1800), videos: detectVideos(raw) }
+    } catch { return { snippet: '', videos: [] } }
 }
 
 /**
@@ -237,7 +314,25 @@ URL: ${item.link}
             })
         }
     }
-    const doc = { '@context': 'https://schema.org', '@graph': graph }
+    // VideoObject — only from REAL embeds found in the page. name/description come
+    // from the page itself; uploadDate is OMITTED when unknown (never fabricated —
+    // a wrong uploadDate risks a structured-data manual action).
+    for (const v of item.videos.slice(0, 2)) {
+        const node: Record<string, unknown> = {
+            '@type': 'VideoObject',
+            name: item.title,
+            description: (item.excerpt || item.title).slice(0, 200),
+            contentUrl: v.contentUrl,
+            inLanguage: 'he-IL',
+        }
+        if (v.embedUrl) node.embedUrl = v.embedUrl
+        if (v.thumbnailUrl) node.thumbnailUrl = v.thumbnailUrl
+        graph.push(node)
+    }
+    // `_fmSchemaV` at doc root → lets the next scan know which generator version
+    // produced this graph (drives the stale/enrich check). Search engines read
+    // `@graph`; this extra root key is ignored by JSON-LD parsers.
+    const doc = { '@context': 'https://schema.org', '@graph': graph, _fmSchemaV: SCHEMA_GEN_VERSION }
     return JSON.stringify(doc)
 }
 
@@ -294,16 +389,20 @@ export async function runSeoSchemaBatch(
     const business = { name: opts.businessName || 'העסק', siteUrl: cfg.url, sameAs: opts.sameAs }
 
     for (const item of toProcess) {
-        if (!item.contentSnippet) item.contentSnippet = await fetchContentSnippet(cfg, item.type, item.id)
+        if (!item.contentSnippet) {
+            const { snippet, videos } = await fetchContent(cfg, item.type, item.id)
+            item.contentSnippet = snippet
+            item.videos = videos
+        }
         const jsonLd = await generateSchema(apiKey, model, business, item)
         if (!jsonLd) { result.failures.push({ type: item.type, id: item.id, error: 'no schema generated' }); continue }
         if (opts.dryRun) {
-            result.updated.push({ type: item.type, id: item.id, title: item.title, link: item.link, types: schemaTypes(jsonLd) })
+            result.updated.push({ type: item.type, id: item.id, title: item.title, link: item.link, types: schemaTypes(jsonLd), reason: item.reason })
             continue
         }
         try {
             await writeSchema(cfg, item, jsonLd)
-            result.updated.push({ type: item.type, id: item.id, title: item.title, link: item.link, types: schemaTypes(jsonLd) })
+            result.updated.push({ type: item.type, id: item.id, title: item.title, link: item.link, types: schemaTypes(jsonLd), reason: item.reason })
         } catch (err) {
             const msg = (err as Error).message
             if (/^(401|403)\b/.test(msg)) result.authError = true

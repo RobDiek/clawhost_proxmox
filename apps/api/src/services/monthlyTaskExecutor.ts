@@ -1965,14 +1965,16 @@ async function runSeoSchemaBatchAdapter(
         return { ok: false, outputDescription: `שגיאה בגישה ל-WordPress: ${res.error}`, error: res.error, errorCategory: 'systemic_bug' }
     }
 
+    const newCount = res.updated.filter(u => u.reason === 'new').length
+    const enrichCount = res.updated.filter(u => u.reason === 'enrich').length
     const stepResults = [
-        { step: 'סריקת WordPress', ok: true, detail: `${res.scanned} עמודים נסרקו · ${res.candidates} ללא סכמה של Flowmatic` },
-        ...res.updated.map(u => ({ step: `סכמה נוספה: ${u.title}`, ok: true, detail: u.types.join(', ') })),
+        { step: 'סריקת WordPress', ok: true, detail: `${res.scanned} עמודים נסרקו · ${res.candidates} להוספה/העשרה` },
+        ...res.updated.map(u => ({ step: `${u.reason === 'enrich' ? 'סכמה הועשרה' : 'סכמה נוספה'}: ${u.title}`, ok: true, detail: u.types.join(', ') })),
         ...res.failures.map(f => ({ step: `נכשל: ${f.type} #${f.id}`, ok: false, detail: f.error })),
     ]
 
     if (res.candidates === 0) {
-        return { ok: true, outputDescription: `כל ${res.scanned} העמודים שנסרקו כבר כוללים סכמה של Flowmatic — אין מה להוסיף.`, errorCategory: 'completed_idempotent_noop', stepResults }
+        return { ok: true, outputDescription: `כל ${res.scanned} העמודים שנסרקו כבר כוללים סכמה מלאה ועדכנית של Flowmatic — אין מה להוסיף.`, errorCategory: 'completed_idempotent_noop', stepResults }
     }
     if (res.updated.length === 0) {
         const notPersisted = res.failures.some(f => /schema_not_persisted/.test(f.error))
@@ -1983,9 +1985,12 @@ async function runSeoSchemaBatchAdapter(
     }
 
     const lines = res.updated.map(u => `• ${u.title} — ${u.types.join(', ')}`).join('\n')
+    const summary = enrichCount > 0
+        ? `עודכנה סכמת JSON-LD ב-${res.updated.length} עמודים (${newCount} חדשים, ${enrichCount} הועשרו) ב-WordPress`
+        : `נוספה סכמת JSON-LD ל-${res.updated.length} עמודים ב-WordPress`
     return {
         ok: true,
-        outputDescription: `נוספה סכמת JSON-LD ל-${res.updated.length} עמודים ב-WordPress${res.failures.length ? ` (${res.failures.length} נכשלו)` : ''}:\n${lines}`,
+        outputDescription: `${summary}${res.failures.length ? ` (${res.failures.length} נכשלו)` : ''}:\n${lines}`,
         errorCategory: 'completed',
         stepResults,
     }
