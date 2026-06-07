@@ -208,6 +208,7 @@ export async function executeTask(
             { id: 'seo.image_alt', match: isImageAltTask, run: () => runImageAltAdapter(instanceId, task, plan, agent) },
             { id: 'aeo.llms_txt', match: isLlmsTxtTask, run: () => runLlmsTxtAdapter(instanceId, task, plan, agent) },
             { id: 'aeo.answer_first', match: isAnswerFirstTask, run: () => runAnswerFirstAdapter(instanceId, task, plan, agent) },
+            { id: 'aeo.citation_monitor', match: isAeoCitationMonitorTask, run: () => runAeoCitationMonitorAdapter(instanceId, task, plan, agent) },
         ]
         const matched = isExternalOutreachTask(task) ? [] : A2_ADAPTERS.filter(a => { try { return a.match(task) } catch { return false } })
         if (matched.length === 1) {
@@ -821,6 +822,16 @@ async function runTrackingSetupAdapter(
     const wantsPrimaryReconcile = task.channel === 'google_ads'
         && (task.type === 'measurement_gap' || task.type === 'tracking_setup')
         && /ראשית|primary[\s-]*(for[\s-]*goal|conversion|action)|מסומן|סימון.{0,40}(רכישה|primary)/i.test(text)
+    // "Review/audit conversion-action settings BEFORE bid changes"
+    // (tsk_cr_validation_audit archetype). NOT a reconcile (no "primary" mark) —
+    // it's a health GATE that must run + pass before money-affecting bidding
+    // changes unblock. Pre-fix it had no adapter path → 0 steps → not_implemented
+    // (silent skip) → blocked the entire tROAS chain (#4/#5/#27). Now wires the
+    // real conversionSetupAudit (GA4 firing baseline + contamination isolation).
+    const wantsConversionAudit = !wantsPrimaryReconcile
+        && task.channel === 'google_ads'
+        && (task.type === 'measurement_gap' || task.type === 'tracking_setup')
+        && /סקירת|ביקורת|בדיקת|\baudit\b|\breview\b|לפני\s+כל\s+שינוי|לפני.*(שינוי|הצע)|הגדרות.*המרה|conversion\s*(action|setting)/i.test(text)
 
     // ─── K31: GA4 reconnect path ──────────────────────────────────────
     if (wantsGa4Reconnect) {
@@ -885,6 +896,43 @@ async function runTrackingSetupAdapter(
             }
         }
         return runManualTodoAdapter(instanceId, task, _plan, 'Meta connected — אמתו ש-Pixel + Conversion API פעילים דרך Events Manager', { stepResults: [{ step: 'Meta token check', ok: true, detail: `pixelId=${metaTokens.pixelId}` }] })
+    }
+
+    // ─── Conversion-setup audit gate (tsk_cr_validation_audit) ─────────────
+    // Runs the real GA4-firing + contamination audit. Clean → completed (which
+    // UNBLOCKS the dependent bidding tasks). Critical findings / unverifiable
+    // (transient / no OAuth) → awaiting_user_action so bidding stays blocked
+    // until the measurement is proven sound (never change bids on a broken setup).
+    if (wantsConversionAudit) {
+        try {
+            const { auditAgentConversionSetup } = await import('./conversionSetupAudit')
+            const audit = await auditAgentConversionSetup(agent as never)
+            const steps = audit.findings.map(f => ({ step: `${f.severity}: ${f.code}`, ok: f.severity !== 'critical', detail: f.he }))
+            const critical = audit.findings.filter(f => f.severity === 'critical')
+            const cannotVerify = audit.transient || audit.findings.some(f => f.code === 'no_oauth')
+            if (critical.length || cannotVerify) {
+                const headline = critical.length
+                    ? `ביקורת הגדרות ההמרה מצאה ${critical.length} בעיות קריטיות — תקנו אותן לפני שינוי הצעות מחיר.`
+                    : audit.transient
+                        ? 'לא ניתן היה לאמת את הגדרות ההמרה כרגע (תקלה זמנית בקריאת GA4) — הריצו שוב.'
+                        : 'לא ניתן לאמת את הגדרות ההמרה — חברו את חשבון Google ל-GA4/Ads.'
+                return {
+                    ok: false,
+                    outputDescription: headline + (audit.findings.length ? '\n' + audit.findings.map(f => `• ${f.he}`).join('\n') : ''),
+                    awaitingManual: true,
+                    errorCategory: 'awaiting_user_action',
+                    stepResults: steps.length ? steps : [{ step: 'ביקורת המרות', ok: false, detail: headline }],
+                }
+            }
+            return {
+                ok: true,
+                outputDescription: 'ביקורת הגדרות ההמרה: לא נמצאו בעיות חוסמות — המדידה תקינה, אפשר להמשיך לשינויי הצעות מחיר.',
+                errorCategory: 'completed',
+                stepResults: steps.length ? steps : [{ step: 'ביקורת המרות', ok: true, detail: 'לא נמצאו בעיות חוסמות' }],
+            }
+        } catch (err) {
+            return { ok: false, outputDescription: `ביקורת ההמרות נכשלה: ${(err as Error).message}`, error: (err as Error).message, errorCategory: 'systemic_bug' }
+        }
     }
 
     try {
@@ -1513,8 +1561,60 @@ async function runSitePerfAdapter(instanceId: string, task: MonthlyTask, _plan: 
     void task
     const { runSitePerf } = await import('./sitePerf')
     const r = await runSitePerf(instanceId, { agentId: agent?.id })
-    if (!r.ok) return { ok: false, outputDescription: `לא ניתן היה לנתח ביצועים: ${r.error}`, error: r.error, errorCategory: r.error === 'no site URL' ? 'integration_missing' : 'systemic_bug' }
+    if (!r.ok) {
+        const e = String(r.error || '')
+        // PageSpeed Insights daily quota / rate limit = transient infra limit, NOT
+        // a code bug. Surface as retryable (awaiting) so it doesn't fire the
+        // systemic_bug Telegram OWNER alert on a quota hiccup.
+        if (/\b429\b|quota exceeded|rate limit|userratelimit|resource has been exhausted/i.test(e)) {
+            return { ok: false, outputDescription: 'ניתוח הביצועים נדחה זמנית — מכסת PageSpeed היומית מוצתה. המשימה תרוץ שוב מאוחר יותר.', error: r.error, errorCategory: 'awaiting_user_action', awaitingManual: true }
+        }
+        return { ok: false, outputDescription: `לא ניתן היה לנתח ביצועים: ${r.error}`, error: r.error, errorCategory: e === 'no site URL' ? 'integration_missing' : 'systemic_bug' }
+    }
     return { ok: true, outputDescription: r.proposalHe, stepResults: [{ step: 'PageSpeed', ok: true, detail: r.url || '' }, ...r.cwv.map(c => ({ step: c.metric, ok: c.rating === 'טוב', detail: `${c.value} (${c.rating})` }))] }
+}
+
+/**
+ * Detect a RECURRING AI-citation MONITORING task ("מעקב ציטוט שבועי במנועי AI ·
+ * N prompts × M engines"). This is a measurement owned by the AEO/SEO tracking
+ * engine (seoTrackingRunner llmResponses/llmMentions + monthly report card), NOT
+ * a one-off schema/llms write. Pre-fix it fell into seo.schema+aeo.llms_txt and
+ * falsely reported "completed" without doing the monitoring. Excluded from those
+ * matchers so ONLY this adapter handles it.
+ */
+export function isAeoCitationMonitorTask(task: MonthlyTask): boolean {
+    if (task.type === 'content_creation') return false
+    const text = `${task.title || ''} ${task.summary || ''}`
+    const isMonitor = /מעקב.*ציטוט|ציטוט(?:ים)?.*(שבועי|חודשי|מנוע)|citation.*(monitor|track|weekly|monthly|share)|\d+\s*prompts?\s*[×x]\s*\d|prompts?\s*[×x]\s*\d+\s*(מנוע|engine)/i.test(text)
+    if (!isMonitor) return false
+    // measurement intent (not "add AEO answer/schema for AI")
+    return task.type === 'measurement_gap' || /מעקב|monitor|track|measure|מדידה|דו"?ח|report/i.test(text)
+}
+
+async function runAeoCitationMonitorAdapter(instanceId: string, task: MonthlyTask, _plan: MonthlyMarketingPlan, agent: { id?: string } | null): Promise<ExecutorResult> {
+    void task; void _plan
+    const { resolveAgentById, resolvePrimaryAgent } = await import('./agentContext')
+    const { readSeoTracking } = await import('./seoTracking')
+    const ag = agent?.id ? (await resolveAgentById(instanceId, agent.id)) || (await resolvePrimaryAgent(instanceId)) : await resolvePrimaryAgent(instanceId)
+    const st = ag ? readSeoTracking(ag as never) : null
+    const aeoActive = !!(st && st.status === 'active' && (st.config.llmResponses || st.config.llmMentions))
+    if (aeoActive) {
+        const engines = (st!.config.engines || []).join(', ') || 'מנועי AI'
+        return {
+            ok: true,
+            outputDescription: `מעקב ציטוטים ב-AI מנוהל אוטומטית ע"י מנוע מעקב ה-AEO (${engines}) — סבב מתוזמן + כרטיס דוח חודשי. אין צורך במשימה חד-פעמית; צפו בתוצאות בכרטיס הדוח.`,
+            errorCategory: 'completed',
+            stepResults: [{ step: 'מנוע מעקב AEO', ok: true, detail: `פעיל · ${engines}` }],
+        }
+    }
+    return {
+        ok: false,
+        outputDescription: 'מעקב ציטוטים ב-AI מתבצע דרך מנוע מעקב ה-AEO (לא משימת סכמה חד-פעמית). הפעילו llmResponses/llmMentions בלוח מעקב ה-SEO כדי לקבל סבב שבועי/חודשי + כרטיס דוח.',
+        awaitingManual: true,
+        errorCategory: 'awaiting_user_action',
+        userAction: { title_he: 'הפעילו מעקב ציטוטים (AEO)', cta_he: 'פתחו מעקב SEO →', action_path: '#seo-tracking' },
+        stepResults: [{ step: 'מנוע מעקב AEO', ok: false, detail: 'llmResponses/llmMentions לא מופעלים לטננט' }],
+    }
 }
 
 export function isSeoMetaBatchTask(task: MonthlyTask): boolean {
@@ -1622,6 +1722,7 @@ export function isProductSchemaTask(task: MonthlyTask): boolean {
 export function isSeoSchemaTask(task: MonthlyTask): boolean {
     if (task.type === 'content_creation') return false
     if (isProductSchemaTask(task)) return false   // product schema → dedicated adapter
+    if (isAeoCitationMonitorTask(task)) return false   // citation monitoring → AEO tracking engine
     const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
     // NOT JSON-LD-batch work even if the title says "schema/markup": technical
     // files (robots.txt / sitemap.xml / GSC submit), CRO trust widgets (trust
@@ -1697,6 +1798,7 @@ async function runLandingPageAdapter(
  */
 export function isAnswerFirstTask(task: MonthlyTask): boolean {
     if (task.type === 'content_creation') return false
+    if (isAeoCitationMonitorTask(task)) return false   // citation monitoring → AEO tracking engine
     const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
     const mentions = /answer[\s-]?first|featured\s*snippet|tl;?dr|תשובה\s*(קצרה|ישירה|ראשונה)|פסקת\s*תשובה|snippet\s*מוצג|תוכן\s*ל-?ai|answer\s*engine/i.test(text)
     if (!mentions) return false
@@ -1744,6 +1846,7 @@ async function runAnswerFirstAdapter(
  */
 export function isLlmsTxtTask(task: MonthlyTask): boolean {
     if (task.type === 'content_creation') return false
+    if (isAeoCitationMonitorTask(task)) return false   // citation monitoring → AEO tracking engine
     const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
     const mentions = /llms?\.?txt|llms-full|ai\s*crawler|מנועי\s*ai|קובץ\s*llms|llm\.txt/i.test(text)
     if (!mentions) return false

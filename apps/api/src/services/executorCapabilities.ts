@@ -18,7 +18,7 @@
  * changing it. As new capabilities ship, add an entry here; coverage updates.
  */
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
-import { isExternalOutreachTask, isPageRefreshTask, isSiteWidgetTask, isAdsAnalysisTask, isSitePerfTask, isSeoMetaBatchTask, isSeoSchemaTask, isProductSchemaTask, isInternalLinksTask, isSlugProposeTask, isImageAltTask, isLlmsTxtTask, isLandingPageTask, isAnswerFirstTask } from '@/services/monthlyTaskExecutor'
+import { isExternalOutreachTask, isPageRefreshTask, isSiteWidgetTask, isAdsAnalysisTask, isSitePerfTask, isSeoMetaBatchTask, isSeoSchemaTask, isProductSchemaTask, isInternalLinksTask, isSlugProposeTask, isImageAltTask, isLlmsTxtTask, isLandingPageTask, isAnswerFirstTask, isAeoCitationMonitorTask } from '@/services/monthlyTaskExecutor'
 
 export type Autonomy =
     | 'auto_write'      // performs a real external mutation (verified)
@@ -51,6 +51,7 @@ export const CAPABILITIES: ExecutorCapability[] = [
     { id: 'seo.image_alt', label_he: 'טקסט חלופי לתמונות (batch)', autonomy: 'auto_write', requires: ['wordpress'], match: isImageAltTask },
     { id: 'aeo.llms_txt', label_he: 'llms.txt למנועי AI', autonomy: 'auto_write', requires: ['wordpress|github'], match: isLlmsTxtTask },
     { id: 'aeo.answer_first', label_he: 'פסקת תשובה (AEO)', autonomy: 'auto_write', requires: ['wordpress'], match: isAnswerFirstTask },
+    { id: 'aeo.citation_monitor', label_he: 'מעקב ציטוטים ב-AI (AEO)', autonomy: 'auto_partial', requires: ['dataforseo'], match: isAeoCitationMonitorTask },
     { id: 'paid.google_ads', label_he: 'אופטימיזציית Google Ads', autonomy: 'auto_partial', requires: ['google_ads'], match: t => PAID_TYPES.has(t.type) },
     { id: 'tracking.setup', label_he: 'מדידה — GTM/GA4/Pixel', autonomy: 'auto_partial', requires: ['gtm', 'ga4'], match: t => TRACKING_TYPES.has(t.type) },
     { id: 'content.create', label_he: 'יצירת תוכן (טיוטה)', autonomy: 'auto_write', requires: ['api_key'], match: t => t.type === 'content_creation' },
