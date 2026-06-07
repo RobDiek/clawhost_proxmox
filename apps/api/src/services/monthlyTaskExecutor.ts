@@ -511,7 +511,7 @@ async function runGoogleAdsAdapter(instanceId: string, task: MonthlyTask, _plan:
     // benefit from a final structured summary the user can paste into Ads UI
     // if our mutate fails.
     const stepResults: Array<{ step: string; ok: boolean; detail?: string }> = []
-    let allOk = true
+    const allOk = true
 
     // Identify which mediaPlan optimization this wraps (if any)
     let mpOpt: any = undefined
@@ -529,12 +529,16 @@ async function runGoogleAdsAdapter(instanceId: string, task: MonthlyTask, _plan:
     try {
         switch (changeType) {
             case 'add_negatives': {
-                // Extract the list of negatives from actionPlan or change.what (Hebrew text)
+                // Extract the list of negatives from title / summary / actionPlan / change.what
                 const negs = _extractNegativesFromTask(task, mpOpt)
                 if (negs.length === 0) {
-                    stepResults.push({ step: 'parse negatives', ok: false, detail: 'no negatives extracted from task brief' })
-                    allOk = false
-                    break
+                    // Couldn't auto-parse the list → this is NOT a systemic bug; ship
+                    // a manual brief so the user adds them from the task text. (Pre-fix
+                    // this fell through to ok:false/no-category → mis-classified as
+                    // systemic_bug + a false Telegram OWNER alert.)
+                    return runManualTodoAdapter(instanceId, task, _plan,
+                        'לא הצלחנו לחלץ את רשימת השליליים אוטומטית — הוסיפו אותם ידנית מתוך תיאור המשימה ל-campaign שליליים ב-Google Ads.',
+                        { stepResults: [...stepResults, { step: 'parse negatives', ok: false, detail: 'no negatives extracted — manual brief' }] })
                 }
                 // Server-side execution: would call gads.addNegativesToCampaign(...)
                 // For Phase C we LOG the intent + ship a precise brief; real API call is
@@ -722,16 +726,21 @@ function _inferChangeFromActionPlan(task: MonthlyTask): string {
 }
 
 function _extractNegativesFromTask(task: MonthlyTask, mpOpt: any): string[] {
-    // Try mediaPlan change.what first (richest source)
-    const what: string = mpOpt?.changes?.[0]?.what || ''
-    // Match terms in Hebrew quoted-style: "x", או רשימה אחרי : או אחרי ה הוסף
     const negs: string[] = []
-    const colonSplit = what.split(/:\s*/)[1]
-    if (colonSplit) {
-        const parts = colonSplit.split(/[,،;|]/).map(s => s.trim()).filter(s => s.length > 1 && s.length < 40)
+    // Pull the comma list that follows the FIRST colon in a string. Opus phrases
+    // these as "...שליליים של מתחרים: storage station, get moving, home center".
+    const harvestAfterColon = (s: string) => {
+        const after = String(s || '').split(/:\s*/).slice(1).join(': ')   // everything past the first colon
+        if (!after) return
+        const parts = after.split(/[,،;|]/).map(p => p.trim()).filter(p => p.length > 1 && p.length < 40)
         negs.push(...parts)
     }
-    // Fallback: look in actionPlan steps
+    // Richest → weakest source. TITLE is where the list usually lives (the prior
+    // code missed it, so competitor/intent/housing negative tasks parsed 0 and
+    // failed). Then mediaPlan change.what, summary, then actionPlan steps.
+    harvestAfterColon(task.title || '')
+    harvestAfterColon(mpOpt?.changes?.[0]?.what || '')
+    if (negs.length === 0) harvestAfterColon(task.summary || '')
     if (negs.length === 0) {
         for (const s of (task.actionPlan || [])) {
             const m = s.step.match(/הוסיפ?ו?\s+([^.]+)/)
@@ -741,8 +750,12 @@ function _extractNegativesFromTask(task: MonthlyTask, mpOpt: any): string[] {
             }
         }
     }
-    // Dedupe + clean
-    return Array.from(new Set(negs.filter(n => !/^[\d.,]+$/.test(n)).map(n => n.replace(/^["'`]|["'`]$/g, '').trim())))
+    // Dedupe + clean. Drop pure-numeric tokens (e.g. the "12"/"18" count prefix)
+    // and any token that's clearly not a search term (contains 'שליליים').
+    return Array.from(new Set(
+        negs.map(n => n.replace(/^["'`]|["'`]$/g, '').trim())
+            .filter(n => n.length > 1 && !/^[\d.,]+$/.test(n) && !/שליליים|negative/i.test(n)),
+    ))
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -1590,8 +1603,18 @@ export function isProductSchemaTask(task: MonthlyTask): boolean {
     // them to the product-schema adapter (wrong output). Title is unambiguous.
     // Includes bare "Offer schema" / "סכמת Offer" — Offer JSON-LD is product/price
     // markup → belongs on WooCommerce products (product_schema), not posts/pages.
-    const isProductOfferSchema = /product\s*\+\s*offer|מוצר\s*\+\s*offer|\bproduct\s+schema\b|\boffer\s+schema\b|schema\.org\/product|סכמת\s*(?:product|מוצר|offer)\b/i.test(task.title || '')
-    if (!isProductOfferSchema) return false
+    const title = task.title || ''
+    const isProductOfferSchema = /product\s*\+\s*offer|מוצר\s*\+\s*offer|\bproduct\s+schema\b|\boffer\s+schema\b|schema\.org\/product|סכמת\s*(?:product|מוצר|offer)\b/i.test(title)
+    // AggregateRating / Review schema that targets PRODUCTS belongs here too:
+    // runProductSchema adds aggregateRating ONLY when a product has real reviews
+    // (rating_count>0) — honest, no fabrication. Pre-fix these fell to the
+    // posts/pages schema batch, which enriched a few unrelated shop pages and
+    // falsely reported "completed" without touching the products (hit on the
+    // "AggregateRating + Review ל-48 דפי מוצר" task). Guard: must name products,
+    // so Organization-level aggregateRating tasks (#28) stay on seo.schema.
+    const isProductRatingSchema = /aggregate\s*rating|aggregaterating|\breview\b|דירוג|ביקור/i.test(title)
+        && /מוצר|products?\b|דפי\s*מוצר|woo/i.test(title)
+    if (!isProductOfferSchema && !isProductRatingSchema) return false
     const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
     return channelOk
 }

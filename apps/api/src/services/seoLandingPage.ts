@@ -63,21 +63,25 @@ ${brief}
   "html": "<גוף הדף ב-HTML נקי לפי המבנה למעלה>",
   "faq": [ { "question": "<שאלה>", "answer": "<תשובה 40-70 מילים>" } ]
 }`
-    const res = await fetchRetry('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model, max_tokens: 5000, messages: [{ role: 'user', content: prompt }] }),
-        signal: AbortSignal.timeout(180000),
-    })
-    if (!res.ok) return null
-    const data = await res.json() as { content?: Array<{ type?: string; text?: string }> }
-    let text = (data.content?.find(c => c.type === 'text')?.text || '').trim()
-    const fi = text.indexOf('{'), li = text.lastIndexOf('}')
-    if (fi < 0 || li < 0) return null
-    text = text.substring(fi, li + 1)
-    text = Array.from(text).map(ch => { const c = ch.charCodeAt(0); return (c < 32 && ch !== '\n' && ch !== '\t' && ch !== '\r') ? '' : ch }).join('')
-    try {
-        const p = JSON.parse(text) as Partial<LandingDraft>
+    // One attempt → parse. Returns the draft or null (caller retries once).
+    // max_tokens 8000 (was 5000): comparison/long pages with tables were
+    // truncating mid-JSON → parse fail → null → "generation failed" (hit on the
+    // "X vs Y" comparison LP). Bigger budget + a self-correction retry fix it.
+    const genOnce = async (extra: string): Promise<LandingDraft | null> => {
+        const res = await fetchRetry('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+            body: JSON.stringify({ model, max_tokens: 8000, messages: [{ role: 'user', content: prompt + extra }] }),
+            signal: AbortSignal.timeout(180000),
+        })
+        if (!res.ok) return null
+        const data = await res.json() as { content?: Array<{ type?: string; text?: string }> }
+        let text = (data.content?.find(c => c.type === 'text')?.text || '').trim()
+        const fi = text.indexOf('{'), li = text.lastIndexOf('}')
+        if (fi < 0 || li < 0) return null
+        text = text.substring(fi, li + 1)
+        text = Array.from(text).map(ch => { const c = ch.charCodeAt(0); return (c < 32 && ch !== '\n' && ch !== '\t' && ch !== '\r') ? '' : ch }).join('')
+        const p = JSON.parse(text) as Partial<LandingDraft>   // may throw → caller catches
         if (!p.title || !p.html) return null
         const slug = (p.slug || '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'landing'
         return {
@@ -86,7 +90,16 @@ ${brief}
             html: String(p.html),
             faq: Array.isArray(p.faq) ? p.faq.filter(q => q && typeof q.question === 'string' && typeof q.answer === 'string').slice(0, 6) : [],
         }
-    } catch { return null }
+    }
+    try {
+        return await genOnce('')
+    } catch {
+        // Malformed/truncated JSON → one stricter retry (Hebrew bodies sometimes
+        // carry unescaped quotes; a truncated table breaks the closing braces).
+        try {
+            return await genOnce('\n\nשימו לב: החזירו אך ורק אובייקט JSON תקין אחד, ללא טקסט מסביב, עם מירכאות נמלטות כראוי וללא קטיעה באמצע.')
+        } catch { return null }
+    }
 }
 
 function faqSchema(draft: LandingDraft): string {
