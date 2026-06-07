@@ -57,7 +57,7 @@ const getCustomerPortal = withErrorHandler(
 
     if (!polarCustomerId) return fail(c, t('api.noBillingAccount'), 404)
 
-    const clientUrl = process.env.CLIENT
+    const clientUrl = (process.env.CLIENT || '').replace(/^https?:\/\//, '')
     const returnUrl = `https://${clientUrl}/account`
 
     const polar = getPolarClient()

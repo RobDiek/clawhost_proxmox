@@ -1,7 +1,7 @@
 import { apiPaths } from '@openclaw/shared'
 
 const getPolarConfig = () => {
-    const url = process.env.CLIENT
+    const url = (process.env.CLIENT || '').replace(/^https?:\/\//, '')
     const http = 'https'
 
     const successUrl = `${http}://${url}${apiPaths.CLAWS.BASE}?payment=success&checkout_id={CHECKOUT_ID}`
