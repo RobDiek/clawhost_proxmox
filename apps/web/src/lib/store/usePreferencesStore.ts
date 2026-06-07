@@ -13,7 +13,7 @@ const usePreferencesStore = create<PreferencesState>()(
             setAdminMode: (mode) => set({ adminMode: mode }),
             theme: THEMES.DARK,
             setTheme: (theme) => set({ theme }),
-            language: LANGUAGES.EN,
+            language: LANGUAGES.DE,
             setLanguage: (language) => {
                 loadLanguage(language).then(() => {
                     setI18nLanguage(language)
@@ -38,7 +38,7 @@ const usePreferencesStore = create<PreferencesState>()(
                     state.theme = state.theme || THEMES.SYSTEM
                 }
                 if (version < 3) {
-                    state.language = state.language || LANGUAGES.EN
+                    state.language = state.language || LANGUAGES.DE
                 }
                 if (version < 4) {
                     state.openLinksWindowed = state.openLinksWindowed ?? false

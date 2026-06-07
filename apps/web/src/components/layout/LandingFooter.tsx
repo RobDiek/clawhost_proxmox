@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import Logo from '@/components/layout/Logo'
-import { TrustMrrBadge } from '@/components/landing'
 import { ROUTES } from '@/lib'
 import { GITHUB_REPO_URL } from '@/hooks'
 import {
@@ -75,9 +74,6 @@ const LandingFooter: FC = (): ReactNode => {
                         <p className='text-muted-foreground mt-4 max-w-sm text-[15.5px]'>
                             {t('footer.productDescription')}
                         </p>
-                        <div className='mt-6'>
-                            <TrustMrrBadge />
-                        </div>
                         <div className='mt-6 flex items-center gap-3'>
                             <a
                                 href={GITHUB_REPO_URL}

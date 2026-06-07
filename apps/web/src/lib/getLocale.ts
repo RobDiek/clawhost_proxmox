@@ -20,6 +20,6 @@ const LOCALE_MAP: Record<Language, string> = {
     [LANGUAGES.PT]: 'pt-BR'
 }
 
-const getLocale = (): string => LOCALE_MAP[getLanguage() as Language] || 'en-US'
+const getLocale = (): string => LOCALE_MAP[getLanguage() as Language] || 'de-DE'
 
 export default getLocale
