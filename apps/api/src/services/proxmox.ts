@@ -495,9 +495,10 @@ apt_update -o Dir::Etc::sourcelist="sources.list.d/nodesource.list" -o Dir::Etc:
 apt_install nodejs
 
 # Configure sshd to allow password authentication (so dashboard works)
+echo "root:\${rootPassword}" | chpasswd
 sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
 sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
-printf 'PermitRootLogin yes\\nPasswordAuthentication yes\\n' > /etc/ssh/sshd_config.d/99-clawhost.conf
+printf 'PermitRootLogin yes\\nPasswordAuthentication yes\\n' > /etc/ssh/sshd_config.d/01-clawhost.conf
 systemctl reload ssh || systemctl reload sshd || true
 
 # Agent-specific setup
@@ -761,12 +762,30 @@ const proxmox: CloudProvider = {
             'GET',
             `/nodes/${node}/qemu`
         )
-        const map = new Map<string, ServerStatus>()
-        for (const vm of vms) {
-            map.set(vm.vmid.toString(), {
+        
+        const results = await Promise.all(vms.map(async (vm) => {
+            let ip = '0.0.0.0'
+            try {
+                const config = await callPVE<{ ipconfig0?: string }>('GET', `/nodes/${node}/qemu/${vm.vmid}/config`)
+                if (config.ipconfig0) {
+                    const match = config.ipconfig0.match(/ip=([0-9.]+)/)
+                    if (match) {
+                        ip = match[1]
+                    }
+                }
+            } catch {
+                // Ignore config read failures
+            }
+            return {
+                vmid: vm.vmid.toString(),
                 status: vm.status === 'running' ? 'running' : 'stopped',
-                ip: '0.0.0.0'
-            })
+                ip
+            }
+        }))
+
+        const map = new Map<string, ServerStatus>()
+        for (const res of results) {
+            map.set(res.vmid, { status: res.status, ip: res.ip })
         }
         return map
     },
