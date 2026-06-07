@@ -1098,9 +1098,9 @@ const en = {
         fullSpeed: 'Full Speed',
         fullSpeedDescription:
             'Dedicated VPS resources mean no throttling, full bandwidth, and lightning-fast internet.',
-        globalLocations: 'Global Locations',
+        globalLocations: 'Server Location',
         globalLocationsDescription:
-            'Deploy OpenClaw and Hermes across multiple global regions and choose the location closest to you.',
+            'Deploy OpenClaw and Hermes in our German server location to ensure the best performance and GDPR compliance.',
         fullSshAccess: 'Direct SSH Access',
         fullSshAccessDescription:
             'Access your server terminal directly from the platform. No external SSH clients needed.',
@@ -1203,7 +1203,7 @@ const en = {
             'No. We handle all infrastructure, setup, and maintenance. You can configure and manage OpenClaw through its UI, while Hermes runs through simple terminal commands — without touching servers or infrastructure yourself.',
         faq5Question: 'What locations are available?',
         faq5Answer:
-            'We offer multiple server locations worldwide, including US, Europe, and Asia. You can deploy OpenClaw or Hermes on multiple servers in different regions if needed.',
+            'Currently, our server location is available in Germany to ensure the best performance and GDPR compliance.',
         faq6Question: 'How much does it cost?',
         faq6Answer:
             'Pricing is based on the server you select. With multiple server options ranging from entry-level to high-performance, you choose what fits your needs and budget.',

@@ -862,9 +862,9 @@ const proxmox: CloudProvider = {
         return [
             {
                 id: 'proxmox',
-                name: 'Proxmox Cluster',
-                city: 'Local',
-                country: 'Local',
+                name: 'Germany',
+                city: 'Germany',
+                country: 'DE',
                 disabled: false
             }
         ]

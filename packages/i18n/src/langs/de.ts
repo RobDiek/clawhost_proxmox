@@ -1148,9 +1148,9 @@ const de: Translations = {
         fullSpeed: 'Volle Geschwindigkeit',
         fullSpeedDescription:
             'Dedizierte VPS-Ressourcen bedeuten kein Drosseln, volle Bandbreite und blitzschnelles Internet.',
-        globalLocations: 'Globale Standorte',
+        globalLocations: 'Serverstandort',
         globalLocationsDescription:
-            'Stelle OpenClaw und Hermes in mehreren globalen Regionen bereit und wähle den Standort, der dir am nächsten ist.',
+            'Stelle OpenClaw und Hermes an unserem deutschen Serverstandort bereit, um beste Performance und DSGVO-Konformität zu gewährleisten.',
         fullSshAccess: 'Direkter SSH-Zugriff',
         fullSshAccessDescription:
             'Greife direkt von der Plattform auf das Terminal deines Servers zu. Keine externen SSH-Clients nötig.',
@@ -1252,7 +1252,7 @@ const de: Translations = {
             'Nein. Wir kümmern uns um die gesamte Infrastruktur, Einrichtung und Wartung. Du kannst OpenClaw über die Oberfläche konfigurieren und verwalten, während Hermes über einfache Terminal-Befehle läuft — ohne Server oder Infrastruktur anzufassen.',
         faq5Question: 'Welche Standorte sind verfügbar?',
         faq5Answer:
-            'Wir bieten mehrere Serverstandorte weltweit, einschließlich USA, Europa und Asien. Bei Bedarf kannst du OpenClaw oder Hermes auf mehreren Servern in verschiedenen Regionen bereitstellen.',
+            'Derzeit ist unser Serverstandort in Deutschland verfügbar, um beste Performance und DSGVO-Konformität zu gewährleisten.',
         faq6Question: 'Wie viel kostet es?',
         faq6Answer:
             'Die Preise hängen vom gewählten Server ab. Mit mehreren Serveroptionen von Einsteiger bis Hochleistung wählst du das, was zu deinen Anforderungen und deinem Budget passt.',

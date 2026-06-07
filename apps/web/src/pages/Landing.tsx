@@ -237,11 +237,11 @@ const Landing: FC = (): ReactNode => {
                                         label: t('landing.startingPrice')
                                     },
                                     {
-                                        value: '30+',
+                                        value: '1',
                                         label: t('landing.locations')
                                     },
                                     {
-                                        value: '45+',
+                                        value: '4',
                                         label: t('landing.servers')
                                     },
                                     {
