@@ -317,6 +317,32 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         // inventing these numbers, so we compute them server-side.
         // See roadmap/external-links-upgrade.md.
         if (stageId === 'link_audit' && parsed.records) {
+            // Recover real per-prospect DR with ONE bulk_ranks call. The model
+            // proposes outreach/recovery domains (incl. playbook tier-1 IL
+            // editorials) that aren't in our own or competitors' referring-domain
+            // data, so their rank is otherwise unknown. Best-effort + cached.
+            try {
+                const avail = dfsData && typeof dfsData === 'object'
+                    ? (dfsData as { backlinksApiAvailable?: boolean }).backlinksApiAvailable !== false
+                    : false
+                if (avail) {
+                    const domains = Array.from(new Set(
+                        (parsed.records as Array<Record<string, unknown>>)
+                            .map(r => String(r.domain || '').trim().toLowerCase()
+                                .replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, ''))
+                            .filter(Boolean),
+                    ))
+                    if (domains.length > 0) {
+                        const { backlinksBulkRanks } = await import('@/services/research/dataforseo')
+                        const br = await backlinksBulkRanks(instanceId, domains)
+                        ;(dfsData as Record<string, unknown>).bulkRanks = br.items
+                        if (br.cost > 0) dfsCost += br.cost
+                        console.log(`[research/link_audit] bulk_ranks: ${br.items.length}/${domains.length} prospect domains (cached=${br.cached}, $${br.cost.toFixed(4)})`)
+                    }
+                }
+            } catch (err) {
+                console.warn('[research/link_audit] bulk_ranks fetch failed (non-fatal):', (err as Error).message)
+            }
             try {
                 const { augmentLinkAuditRecords } = await import('@/services/research/stagePostProcessors/link_audit')
                 const rawJson = (parsed.rawJson as Record<string, unknown> | undefined) || {}

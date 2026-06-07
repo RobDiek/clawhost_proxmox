@@ -568,6 +568,26 @@ export async function backlinksCompetitors(
     )
 }
 
+/**
+ * Bulk domain ranks — one call returns the backlinks `rank` (0-1000) for a
+ * list of arbitrary target domains. Used by link_audit to recover prospect
+ * Domain Rating for outreach/recovery targets that aren't in our own or our
+ * competitors' referring-domain lists (e.g. tier-1 IL editorial domains the
+ * model proposes from the playbook). Cheap (~$0.02/call, up to 1000 targets).
+ * Endpoint: backlinks/bulk_ranks/live
+ */
+export async function backlinksBulkRanks(
+    instanceId: string,
+    targets: string[],
+): Promise<CallResult<{ target: string; rank: number }>> {
+    const params = { targets: targets.slice(0, 1000) }
+    return cachedCall<{ target: string; rank: number }>(
+        instanceId,
+        'backlinks/bulk_ranks/live',
+        params,
+    )
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // On-Page audit
 // ────────────────────────────────────────────────────────────────────────────
