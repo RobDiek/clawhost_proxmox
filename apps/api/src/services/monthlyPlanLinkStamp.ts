@@ -56,11 +56,28 @@ function linkTaskType(t: LinkTaskLike): string {
     return 'link_gap_outreach'
 }
 
-// First real domain mentioned in the task (LTR domain token).
+// Bare brand names that appear in task titles WITHOUT a TLD (e.g. "פיץ' PR
+// ל-themarker", "הגשת citation: b144 + zap"). Mapping them recovers the DR
+// tier + cost that a bare-word would otherwise miss (→ ₪0).
+const DOMAIN_ALIASES: Record<string, string> = {
+    themarker: 'themarker.com', globes: 'globes.co.il', calcalist: 'calcalist.co.il',
+    ynet: 'ynet.co.il', mako: 'mako.co.il', geektime: 'geektime.co.il',
+    walla: 'walla.co.il', maariv: 'maariv.co.il', israelhayom: 'israelhayom.co.il',
+    haaretz: 'haaretz.co.il', mynet: 'mynet.co.il', b144: 'b144.co.il',
+    zap: 'zap.co.il', dapei: 'dapei-zahav.co.il', lahav: 'lahav.org.il', ice: 'ice.co.il',
+}
+
+// First real domain mentioned in the task (LTR domain token), or a known
+// bare-brand alias.
 function extractDomain(t: LinkTaskLike): string {
     const text = `${t.title || ''} ${t.summary || ''}`
     const m = text.match(/\b([a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)*\.(?:co\.il|org\.il|gov\.il|ac\.il|com|net|org|io))\b/i)
-    return m ? m[1].toLowerCase() : ''
+    if (m) return m[1].toLowerCase()
+    const lower = text.toLowerCase()
+    for (const [brand, domain] of Object.entries(DOMAIN_ALIASES)) {
+        if (lower.includes(brand)) return domain
+    }
+    return ''
 }
 
 export interface StampResult {
