@@ -238,7 +238,7 @@ export async function executeTask(
                 result = await runTrackingSetupAdapter(instanceId, task, plan, agent)
                 break
             case 'content_creation':
-                result = await runContentCreationAdapter(instanceId, task, plan)
+                result = await runContentCreationAdapter(instanceId, task, plan, agent)
                 break
             case 'landing_page':
             case 'website_change':
@@ -2334,12 +2334,14 @@ async function runSeoMetaBatchAdapter(
 // Adapter: content_creation — surface as draft brief to Content Plan v4 queue
 // ════════════════════════════════════════════════════════════════════════
 
-async function runContentCreationAdapter(instanceId: string, task: MonthlyTask, _plan: MonthlyMarketingPlan): Promise<ExecutorResult> {
+async function runContentCreationAdapter(instanceId: string, task: MonthlyTask, _plan: MonthlyMarketingPlan, agent: { id?: string } | null): Promise<ExecutorResult> {
     // If task references an existing contentPlanItemId, mark it for drafting.
     // Otherwise, append a new item to contentPlan.items (Phase 4 will pick it up).
-    const { resolvePrimaryAgent, readResearchData, mutateResearchData } = await import('./agentContext')
-    const agent = await resolvePrimaryAgent(instanceId)
-    const rd: any = (await readResearchData(agent, instanceId)) || {}
+    // CRITICAL: write to the TASK's agent, not the primary — on a secondary
+    // agent (e.g. Packing) resolvePrimaryAgent would land the item on the wrong
+    // tenant (storage-station). Mirror the SEO adapters: re-resolve by id.
+    const { resolveAgentById, resolvePrimaryAgent, mutateResearchData } = await import('./agentContext')
+    const ag = agent?.id ? (await resolveAgentById(instanceId, agent.id)) || (await resolvePrimaryAgent(instanceId)) : await resolvePrimaryAgent(instanceId)
     const stepResults: Array<{ step: string; ok: boolean; detail?: string }> = []
 
     try {
@@ -2369,8 +2371,11 @@ async function runContentCreationAdapter(instanceId: string, task: MonthlyTask, 
             agentRole: 'yotzer',
             status: 'planned',
         }
-        await mutateResearchData(agent, instanceId, (rd2: any) => {
-            if (!rd2.contentPlan) rd2.contentPlan = { items: [] }
+        await mutateResearchData(ag, instanceId, (rd2: any) => {
+            if (!rd2.contentPlan || Array.isArray(rd2.contentPlan)) {
+                // Coerce legacy bare-array (or missing) into the v4 object shape.
+                rd2.contentPlan = { items: Array.isArray(rd2.contentPlan) ? rd2.contentPlan : [] }
+            }
             if (!Array.isArray(rd2.contentPlan.items)) rd2.contentPlan.items = []
             rd2.contentPlan.items.push(newItem)
             return rd2

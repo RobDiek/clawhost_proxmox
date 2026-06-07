@@ -17,6 +17,21 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances, agentOutputs } from '@/db/schema'
 import { getApiKeyForInstance, formatAgentStats, formatLatestOptimizationReport, resolveDirectModel } from '@/controllers/hosting/agentSetup'
+import type { MatehAgentRow } from '@/services/agentContext'
+
+// Compose the research_data write-back so the contentPlan SHAPE is preserved:
+// v4 callers store contentPlan as { items: [...] }; legacy callers stored a
+// bare array. Writing a bare array over a v4 object would clobber sibling
+// fields (status, etc.) and re-break the dead-queue bug. Keep both shapes.
+function composeContentPlanWrite(
+    rd: Record<string, unknown>,
+    plan: PlanItem[],
+    isV4: boolean,
+): Record<string, unknown> {
+    return isV4
+        ? { ...rd, contentPlan: { ...(rd.contentPlan as Record<string, unknown>), items: plan } }
+        : { ...rd, contentPlan: plan }
+}
 
 const RUNNER_INTERVAL_MS = 60 * 60 * 1000   // every 60 min
 const DUE_WINDOW_MS = 60 * 60 * 1000        // produce drafts up to 60 min before scheduled time
@@ -302,7 +317,7 @@ ${wantsSeoExtras ? `{
  */
 export async function draftDuePlanItemsForInstance(
     instanceId: string,
-    opts: { onlyItemId?: string; now?: Date } = {},
+    opts: { onlyItemId?: string; now?: Date; agent?: MatehAgentRow } = {},
 ): Promise<{ drafted: string[]; skipped: number; failed: string[] }> {
     const now = opts.now || new Date()
     const drafted: string[] = []
@@ -312,12 +327,20 @@ export async function draftDuePlanItemsForInstance(
     const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!instance) return { drafted, skipped, failed }
 
-    // Phase 2.3.C — cron-style operation; default to primary mateh_agent
-    const { resolvePrimaryAgent: __rp, readResearchData: __rrd } =
+    // Phase 2.3.C — cron-style operation. Operate on the supplied agent (the
+    // per-agent sweep / manual endpoint pass the TASK's agent); fall back to
+    // primary for legacy single-agent callers.
+    const { resolvePrimaryAgent: __rp, readResearchData: __rrd, writeResearchData: __wrd } =
         await import('@/services/agentContext')
-    const __planAgent = await __rp(instanceId)
+    const __planAgent = opts.agent || (await __rp(instanceId))
     const rd = (await __rrd(__planAgent, instanceId)) as Record<string, unknown>
-    const plan = (Array.isArray(rd.contentPlan) ? rd.contentPlan : []) as PlanItem[]
+    // Shape-aware: content.create writes the v4 object contentPlan.items; legacy
+    // callers wrote a bare array. Read both; remember the shape so write-back
+    // never clobbers the v4 object with a bare array.
+    const isV4 = rd.contentPlan != null && !Array.isArray(rd.contentPlan)
+    const plan = (isV4
+        ? ((rd.contentPlan as { items?: PlanItem[] })?.items ?? [])
+        : (Array.isArray(rd.contentPlan) ? rd.contentPlan : [])) as PlanItem[]
     if (plan.length === 0) return { drafted, skipped, failed }
 
     const answers = (rd.answers as Record<string, unknown>) || {}
@@ -397,10 +420,7 @@ export async function draftDuePlanItemsForInstance(
     for (const item of toProcess) {
         // Transition to drafting (immediate save to prevent race if cron fires again)
         item.status = 'drafting'
-        {
-            const { writeResearchData: __wrd } = await import('@/services/agentContext')
-            await __wrd(__planAgent, instanceId, { ...rd, contentPlan: plan } as Record<string, unknown>)
-        }
+        await __wrd(__planAgent, instanceId, composeContentPlanWrite(rd, plan, isV4))
 
         const generated = await generateDraftContent(apiKey, instanceId, item, ctx)
         if (!generated) {
@@ -473,7 +493,7 @@ export async function draftDuePlanItemsForInstance(
                 type: item.type,
                 productRef: item.productRef,
                 ctaType: item.ctaType,
-            }, { numVariantsPerChannel: 3, agentId: null /* Phase 4.3-T: planDraft cron uses primary */ }).then(res => {
+            }, { numVariantsPerChannel: 3, agentId: __planAgent?.id || null /* attach media to the TASK's agent, not just primary */ }).then(res => {
                 if (res) {
                     console.log(`[planDraftRunner] ${item.id} media: ${res.renders.length} renders, $${res.totalCostUsd.toFixed(3)}`)
                 } else {
@@ -485,10 +505,12 @@ export async function draftDuePlanItemsForInstance(
         }
     }
 
-    // Persist final plan state
-    await db.update(instances).set({
-        researchData: { ...rd, contentPlan: plan } as unknown as Record<string, unknown>,
-    }).where(eq(instances.id, instanceId))
+    // Persist final plan state. Route through writeResearchData so the write
+    // lands on the TASK's agent (mateh_agents) — a raw db.update(instances)
+    // here would (a) write the wrong tenant for secondary agents and (b) be
+    // silently wiped by the next mutateResearchData (see
+    // feedback_research_data_dual_write).
+    await __wrd(__planAgent, instanceId, composeContentPlanWrite(rd, plan, isV4))
 
     if (drafted.length > 0) {
         console.log(`[planDraftRunner] ${instanceId}: drafted ${drafted.length}, failed ${failed.length}`)
@@ -497,39 +519,45 @@ export async function draftDuePlanItemsForInstance(
 }
 
 async function sweepAllInstances(): Promise<void> {
-    const live = await db.select({ id: instances.id }).from(instances)
+    // Iterate EVERY mateh_agent, not just one row per instance. A single VPS
+    // can host several agents (Packing + storage-station + Moving Station) each
+    // with its own contentPlan.items. The legacy per-instance sweep resolved
+    // only the primary agent, so secondaries were never drafted.
+    const { matehAgents } = await import('@/db/schema')
+    const agents = await db.select().from(matehAgents) as MatehAgentRow[]
     let totalDrafted = 0
     let totalFailed = 0
     let totalSkipped = 0
     const { isPipelineEnabled } = await import('./pipelineActivation')
-    for (const row of live) {
+    const { shouldEmitToReviewQueue } = await import('./instanceReadinessGate')
+    for (const agent of agents) {
+        const instanceId = agent.vpsInstanceId
+        if (!instanceId) { continue }
         try {
-            // Gate: only run for tenants where content_calendar pipeline is active.
-            // Paid-only tenants (e.g. Google Ads HaaS clients) don't want
-            // content drafts auto-generated.
-            const enabled = await isPipelineEnabled(row.id, 'content_calendar')
+            // Gate per-AGENT (against the agent's own research_data) so one
+            // un-onboarded agent never blocks its siblings on the same VPS.
+            // content_calendar pipeline must be active (paid-only tenants opt
+            // out of auto content drafts).
+            const enabled = await isPipelineEnabled(instanceId, 'content_calendar', agent)
             if (!enabled) { totalSkipped++; continue }
-            // Phase 4.3-K: instance-readiness gate. Don't emit content_post /
-            // blog_article drafts to משימות פעילות until contentPlan has been
-            // approved by user. Otherwise users see drafts for items they
-            // haven't yet committed to publishing.
-            const { shouldEmitToReviewQueue } = await import('./instanceReadinessGate')
-            const gate = await shouldEmitToReviewQueue(row.id, 'content_post')
+            // Phase 4.3-K: readiness gate — don't emit content drafts to
+            // משימות פעילות until this agent has an approved contentPlan.
+            const gate = await shouldEmitToReviewQueue(instanceId, 'content_post', agent)
             if (!gate.allow) {
                 totalSkipped++
-                console.log(`[planDraftRunner] ${row.id} skipped: ${gate.reason}`)
+                console.log(`[planDraftRunner] ${instanceId}/${agent.id} skipped: ${gate.reason}`)
                 continue
             }
-            const res = await draftDuePlanItemsForInstance(row.id)
+            const res = await draftDuePlanItemsForInstance(instanceId, { agent })
             totalDrafted += res.drafted.length
             totalFailed += res.failed.length
         } catch (err) {
-            console.warn(`[planDraftRunner] ${row.id} sweep error:`, (err as Error).message)
+            console.warn(`[planDraftRunner] ${instanceId}/${agent.id} sweep error:`, (err as Error).message)
             totalFailed++
         }
     }
     if (totalSkipped > 0) {
-        console.log(`[planDraftRunner] skipped ${totalSkipped} tenant(s) — content_calendar pipeline disabled`)
+        console.log(`[planDraftRunner] skipped ${totalSkipped} agent(s) — content_calendar pipeline disabled / not ready`)
     }
     if (totalDrafted > 0 || totalFailed > 0) {
         console.log(`[planDraftRunner] sweep done: +${totalDrafted} drafted, ${totalFailed} failed`)

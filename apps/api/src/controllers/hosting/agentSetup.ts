@@ -8751,7 +8751,12 @@ export const draftContentPlanItem = async (c: Context) => {
         const itemId = c.req.param('itemId')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const { draftDuePlanItemsForInstance } = await import('@/services/planDraftRunner')
-        const res = await draftDuePlanItemsForInstance(instanceId, { onlyItemId: itemId })
+        // Resolve the active agent (?agentId= or primary) so the item is found
+        // and drafted on the RIGHT tenant — a secondary agent (e.g. Packing)
+        // keeps its contentPlan.items on its own mateh_agents row.
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const agent = await resolveActiveAgent(c, instanceId)
+        const res = await draftDuePlanItemsForInstance(instanceId, { onlyItemId: itemId, agent: agent || undefined })
         if (res.drafted.includes(itemId)) {
             return ok(c, { itemId, drafted: true }, 'Draft ready — check task queue')
         }

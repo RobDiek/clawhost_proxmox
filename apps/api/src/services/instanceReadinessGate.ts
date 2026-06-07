@@ -50,6 +50,7 @@ export interface ReadinessResult {
 export async function shouldEmitToReviewQueue(
     instanceId: string,
     outputType: string,
+    agent?: { researchData?: unknown } | null,
 ): Promise<ReadinessResult> {
     // monthly_task / monthly_marketing_plan rows are emitted DURING monthly
     // plan generation — they don't need a gate (the plan itself is the gate).
@@ -57,24 +58,29 @@ export async function shouldEmitToReviewQueue(
         return { allow: true, reason: 'ok' }
     }
 
-    // Pull research_data. Try primary agent first (mateh_agents — canonical for
-    // multi-tenant); fall back to instances mirror for legacy single-agent
-    // setups.
+    // Pull research_data. When an explicit `agent` is supplied, gate against
+    // THAT agent's research_data (per-agent gate on a multi-agent VPS).
+    // Otherwise fall back to the primary agent (mateh_agents), then instances
+    // mirror for legacy single-agent setups.
     let rd: any = null
-    try {
-        const primaryAgents = await db.select().from(matehAgents)
-            .where(eq(matehAgents.vpsInstanceId, instanceId))
-        const primary = primaryAgents.find((a: any) => a.id === 'mta_' + instanceId) || primaryAgents[0]
-        if (primary?.researchData) {
-            rd = primary.researchData
-        } else {
-            const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-            if (!inst) return { allow: false, reason: 'instance_not_found' }
-            rd = inst.researchData || null
+    if (agent) {
+        rd = agent.researchData || null
+    } else {
+        try {
+            const primaryAgents = await db.select().from(matehAgents)
+                .where(eq(matehAgents.vpsInstanceId, instanceId))
+            const primary = primaryAgents.find((a: any) => a.id === 'mta_' + instanceId) || primaryAgents[0]
+            if (primary?.researchData) {
+                rd = primary.researchData
+            } else {
+                const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+                if (!inst) return { allow: false, reason: 'instance_not_found' }
+                rd = inst.researchData || null
+            }
+        } catch (e) {
+            console.warn(`[instanceReadinessGate] DB pull failed for ${instanceId}: ${(e as Error).message}`)
+            return { allow: false, reason: 'no_research_data', detail: (e as Error).message }
         }
-    } catch (e) {
-        console.warn(`[instanceReadinessGate] DB pull failed for ${instanceId}: ${(e as Error).message}`)
-        return { allow: false, reason: 'no_research_data', detail: (e as Error).message }
     }
     if (!rd) return { allow: false, reason: 'no_research_data' }
 

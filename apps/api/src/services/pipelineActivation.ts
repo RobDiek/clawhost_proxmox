@@ -56,15 +56,27 @@ function _intentsFor(rd: MarketingResearchData, agents: string[]): MarketingInte
     })
 }
 
-// Main check — call this before running any pipeline-bound work
+// Main check — call this before running any pipeline-bound work.
+// Pass `agent` to evaluate against that agent's OWN research_data (per-agent
+// gate on a multi-agent VPS); omit it for the legacy instance-level check.
 export async function isPipelineEnabled(
     instanceId: string,
-    pipelineId: PipelineId
+    pipelineId: PipelineId,
+    agent?: { researchData?: unknown } | null,
 ): Promise<boolean> {
-    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-    if (!inst) return false
+    let rd: MarketingResearchData
+    let agents: string[]
+    if (agent) {
+        rd = (agent.researchData || {}) as MarketingResearchData
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        agents = inst && Array.isArray(inst.selectedComponents) ? (inst.selectedComponents as string[]) : []
+    } else {
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!inst) return false
+        rd = (inst.researchData || {}) as MarketingResearchData
+        agents = Array.isArray(inst.selectedComponents) ? (inst.selectedComponents as string[]) : []
+    }
 
-    const rd = (inst.researchData || {}) as MarketingResearchData
     const activation = rd.pipelineActivation as Record<string, boolean> | undefined
     if (activation && typeof activation[pipelineId] === 'boolean') {
         return activation[pipelineId]
@@ -74,7 +86,6 @@ export async function isPipelineEnabled(
     const pipeline = PIPELINES.find(p => p.id === pipelineId)
     if (!pipeline) return false
 
-    const agents: string[] = Array.isArray(inst.selectedComponents) ? (inst.selectedComponents as string[]) : []
     const intents = _intentsFor(rd, agents)
     const connected = listConnectedIntegrationIds(rd)
     return _defaultActiveFor(pipeline, intents, connected)

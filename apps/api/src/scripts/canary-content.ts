@@ -24,11 +24,12 @@ async function main() {
         .from(agentOutputs).where(and(eq(agentOutputs.agentId, agentId), inArray(agentOutputs.outputType, ['blog_article', 'content_post']))) as any[]
     console.log(`\nexisting blog_article/content_post outputs: ${gen.length}`)
 
-    // Try to draft one cp_ item via the legacy runner
+    // Try to draft one cp_ item — pass the TASK's agent so the item is found
+    // on its own mateh_agents row (not the primary).
     const target = cpItems[0]
     if (target) {
-        console.log(`\n=== draftDuePlanItemsForInstance(onlyItemId=${target.id}) ===`)
-        const r = await draftDuePlanItemsForInstance(instanceId, { onlyItemId: target.id })
+        console.log(`\n=== draftDuePlanItemsForInstance(onlyItemId=${target.id}, agent=${agentId}) ===`)
+        const r = await draftDuePlanItemsForInstance(instanceId, { onlyItemId: target.id, agent: a })
         console.log(`drafted=${JSON.stringify(r.drafted)} skipped=${r.skipped} failed=${JSON.stringify(r.failed)}`)
     }
     process.exit(0)
