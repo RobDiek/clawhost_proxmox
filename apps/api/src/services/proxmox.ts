@@ -660,7 +660,7 @@ const proxmox: CloudProvider = {
         // 5.5 Resize VM disk to match plan disk size
         if (plan && plan.disk) {
             try {
-                await callPVE<unknown>(
+                const resizeUpid = await callPVE<string>(
                     'PUT',
                     `/nodes/${node}/qemu/${vmid}/resize`,
                     {
@@ -668,16 +668,18 @@ const proxmox: CloudProvider = {
                         size: `${plan.disk}G`
                     }
                 )
+                await waitTask(resizeUpid)
             } catch (resizeErr: any) {
                 console.error(`Failed to resize VM disk to ${plan.disk}G:`, resizeErr.message)
             }
         }
 
         // 6. Start the VM
-        await callPVE<unknown>(
+        const startUpid = await callPVE<string>(
             'POST',
             `/nodes/${node}/qemu/${vmid}/status/start`
         )
+        await waitTask(startUpid)
 
         // 7. Run bootstrap script via SSH in the background
         if (userData && rootPassword) {
