@@ -71,9 +71,13 @@ async function adsSearch(at: string, devToken: string, operatingCustomerId: stri
 
 interface CampaignRow { id: string; name: string; channelType: string; biddingType: string; conversions: number }
 
-async function fetchScopedCampaigns(at: string, devToken: string, operatingCustomerId: string, loginCustomerId: string, campaignIds: string[]): Promise<CampaignRow[]> {
+async function fetchScopedCampaigns(at: string, devToken: string, operatingCustomerId: string, loginCustomerId: string, campaignIds: string[], sinceDate?: string): Promise<CampaignRow[]> {
+    // When the tenant has a conversion-tracking-reliable-since date, count only
+    // the CLEAN window (segments.date >= since) so pre-fix/contaminated history
+    // doesn't inflate the conversion volume that triggers a bidding transition.
+    const dateClause = sinceDate ? `segments.date >= '${sinceDate}'` : 'segments.date DURING LAST_30_DAYS'
     const rows = await adsSearch(at, devToken, operatingCustomerId, loginCustomerId,
-        `SELECT campaign.id, campaign.name, campaign.advertising_channel_type, campaign.bidding_strategy_type, metrics.conversions FROM campaign WHERE campaign.id IN (${campaignIds.join(',')}) AND segments.date DURING LAST_30_DAYS`)
+        `SELECT campaign.id, campaign.name, campaign.advertising_channel_type, campaign.bidding_strategy_type, metrics.conversions FROM campaign WHERE campaign.id IN (${campaignIds.join(',')}) AND ${dateClause}`)
     // One row per campaign (aggregated over the window). De-dup defensively.
     const byId = new Map<string, CampaignRow>()
     for (const r of rows) {
@@ -167,7 +171,19 @@ export async function runObjectiveTransitionSweep(): Promise<{ scanned: number; 
             const at = await refresh(refreshToken)
             if (!at) { stats.errors++; continue }
             const objT = getTransitionForObjective(objective)
-            const campaigns = await fetchScopedCampaigns(at, devToken, operatingCustomerId, loginCustomerId, campaignIds)
+            // Clean-window gate: if the tenant's conversion tracking was fixed
+            // recently, count ONLY conversions since that date AND require ≥14
+            // clean days before proposing a target-based transition. Target-ROAS/CPA
+            // needs a stable, clean conversion base — proposing on a few post-fix
+            // days, or on contaminated pre-fix history, starves/misleads bidding.
+            const reliableSinceRaw = (agent.researchData as any)?.conversionTrackingReliableSince
+            let sinceDate: string | undefined
+            if (reliableSinceRaw) {
+                const cleanDays = (Date.now() - new Date(reliableSinceRaw).getTime()) / 86400000
+                if (cleanDays < 14) { stats.blockedByConv++; console.log(`[objectiveTransition] ${agent.id}: deferred — ${Math.floor(cleanDays)} clean conversion days (<14 since ${reliableSinceRaw})`); continue }
+                sinceDate = new Date(reliableSinceRaw).toISOString().slice(0, 10)
+            }
+            const campaigns = await fetchScopedCampaigns(at, devToken, operatingCustomerId, loginCustomerId, campaignIds, sinceDate)
             const totalConv = campaigns.reduce((s, c) => s + c.conversions, 0)
             if (totalConv < objT.triggerConvCount) { stats.blockedByConv++; continue }
 
@@ -183,7 +199,7 @@ export async function runObjectiveTransitionSweep(): Promise<{ scanned: number; 
                     ? `יעד ROAS ${objective.targetRoasPct || 400}%`
                     : `יעד CPA ₪${objective.targetCpaIls}`
                 const contentHe = [
-                    `הקמפיין "${c.name}" (${c.channelType}) צבר ${Math.round(totalConv)} המרות ב-30 ימים — מספיק כדי לעבור להצעות-מחיר לפי המטרה שבחרתם.`,
+                    `הקמפיין "${c.name}" (${c.channelType}) צבר ${Math.round(totalConv)} המרות ${sinceDate ? `בחלון מדידה נקי (מאז ${sinceDate})` : 'ב-30 ימים'} — מספיק כדי לעבור להצעות-מחיר לפי המטרה שבחרתם.`,
                     ``,
                     `מעבר מוצע: ${c.biddingType || 'אסטרטגיה נוכחית'} → ${targetHe}.`,
                     `ודאו שמדידת ההמרות נקייה (לאחר בידוד ההמרות של עסקים אחרים) לפני אישור.`,
