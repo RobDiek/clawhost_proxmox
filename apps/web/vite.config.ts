@@ -86,6 +86,9 @@ export default defineConfig(({ mode }) => {
                 }
             }
         },
+        preview: {
+            allowedHosts: ['clawnode.de', 'app.clawnode.de', 'clawhost.cloud', 'app.clawhost.cloud']
+        },
         server: {
             port: Number(env.VITE_PORT) || 1111,
             https: existsSync(path.resolve(__dirname, '.certs/cert.pem'))
