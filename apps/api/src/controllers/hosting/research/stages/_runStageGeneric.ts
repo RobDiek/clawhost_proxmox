@@ -309,6 +309,37 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                 console.warn('[research/internal_seo_audit] augment failed (non-fatal):', (err as Error).message)
             }
         }
+        // External-links upgrade — deterministic per-link enrichment for
+        // link_audit: prospect DR (from DFS), cost tier (ilCostConstants),
+        // target money page (seo_keyword_research), anchor + distributed type
+        // (anti-over-optimization), and build sequence packed into the
+        // chosenScenario monthly link budget. The LLM is forbidden from
+        // inventing these numbers, so we compute them server-side.
+        // See roadmap/external-links-upgrade.md.
+        if (stageId === 'link_audit' && parsed.records) {
+            try {
+                const { augmentLinkAuditRecords } = await import('@/services/research/stagePostProcessors/link_audit')
+                const rawJson = (parsed.rawJson as Record<string, unknown> | undefined) || {}
+                const anchorProfile = rawJson.anchor_distribution_analysis as { exact_match_pct?: number; risk_flags?: string[] } | undefined
+                const { augmented_records, link_strategy_summary } = augmentLinkAuditRecords(
+                    parsed.records as Array<Record<string, unknown>>,
+                    dfsData as Parameters<typeof augmentLinkAuditRecords>[1],
+                    rd as unknown as Record<string, unknown>,
+                    businessName,
+                    anchorProfile,
+                )
+                parsed.records = augmented_records
+                // Persist the strategy summary into rawJson so it flows into
+                // output.extras (UI link-strategy panel + monthly-plan reader).
+                if (parsed.rawJson && typeof parsed.rawJson === 'object') {
+                    (parsed.rawJson as Record<string, unknown>).link_strategy_summary = link_strategy_summary
+                }
+                const s = link_strategy_summary
+                console.log(`[research/link_audit] strategy: ${s.planned_links_total} links · ${s.scenario} ₪${s.monthly_budget_ils}/mo · ~${s.links_per_month}/mo · ${s.months_to_complete}mo · ₪${s.total_cost_ils} total · anchors ${JSON.stringify(s.anchor_distribution_pct)}${s.warnings.length ? ' ⚠ ' + s.warnings.join('; ') : ''}`)
+            } catch (err) {
+                console.warn('[research/link_audit] augment failed (non-fatal):', (err as Error).message)
+            }
+        }
         // Phase 3.17d — same problem on seo_keyword_research: model emits
         // opportunity.{components} + _formula_verification trail with correct
         // arithmetic, but the standalone `opportunity.total` and `aeo.total`
