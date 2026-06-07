@@ -7,8 +7,6 @@ import { billingInterval, YEARLY_PAID_MONTHS } from '@openclaw/shared'
 const OrderSummary: FC<OrderSummaryProps> = ({
     selectedPlan,
     name,
-    location,
-    locations,
     billingCycle,
     volumeSize,
     volumePricing
@@ -21,17 +19,6 @@ const OrderSummary: FC<OrderSummaryProps> = ({
                         {t('createClaw.clawName')}
                     </span>
                     <span>{name}</span>
-                </div>
-            )}
-            {location && (
-                <div className='flex justify-between text-sm'>
-                    <span className='text-muted-foreground'>
-                        {t('createClaw.location')}
-                    </span>
-                    <span>
-                        {locations.find((l) => l.id === location)?.city ||
-                            location}
-                    </span>
                 </div>
             )}
             <div className='flex justify-between text-sm'>

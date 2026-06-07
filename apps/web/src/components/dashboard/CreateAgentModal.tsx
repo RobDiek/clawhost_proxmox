@@ -49,7 +49,6 @@ import {
     AgentTypeSelector,
     BillingIntervalSelector,
     CreateAgentSubmitActions,
-    LocationSelector,
     OrderSummary,
     PlanSelector,
     TermsAgreement
@@ -347,22 +346,6 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                         }}
                         starsFor={starsFor}
                     />
-
-                    {!isLocal && (
-                        <LocationSelector
-                            locations={locations}
-                            location={location}
-                            planId={planId}
-                            isLoading={isProviderLoading}
-                            isLocationAvailableForPlan={
-                                isLocationAvailableForPlan
-                            }
-                            onLocationChange={(v) => setField('location', v)}
-                            onPlanChange={(v) => setField('planId', v)}
-                            plans={plans}
-                            isPlanAvailable={isPlanAvailable}
-                        />
-                    )}
 
                     {!isLocal && (
                         <BillingIntervalSelector
