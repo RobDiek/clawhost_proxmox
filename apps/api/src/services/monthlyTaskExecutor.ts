@@ -1013,7 +1013,30 @@ async function runTrackingSetupAdapter(
                 })
             }
 
-            // 2. Reconcile — promote desired, demote everything else currently primary.
+            // 2a. SHARED-ACCOUNT SAFETY GATE. reconcilePrimaryConversionActions is
+            // account-wide (no brand filter): on a shared MCC operating account it
+            // would re-promote THIS tenant's secondary purchase actions to
+            // account-level primary, contaminating sibling brands' bidding (the
+            // reverse of campaignGoalIsolation). When other brands share the account,
+            // the "purchase = primary" intent is governed by this tenant's
+            // CAMPAIGN-level custom goal, not account flags. So: ensure that goal is
+            // correct (re-sync) and SKIP the account-wide reconcile. Only run the
+            // reconcile when we CONFIRM the account is single-brand (no siblings).
+            const { ensureCampaignGoalIsolation } = await import('./campaignGoalIsolation')
+            const iso = await ensureCampaignGoalIsolation(agent as never, { source: 'primary_reconcile' })
+            if (iso.reason !== 'no_contamination') {
+                stepResults.push({ step: 'חשבון Ads משותף — בדיקת בטיחות', ok: true, detail: iso.siblingNames.length ? `מותגים נוספים בחשבון: ${iso.siblingNames.join(', ')}` : `סטטוס בידוד: ${iso.status}/${iso.reason}` })
+                stepResults.push({ step: 'מטרת המרה מבודדת ברמת קמפיין', ok: true, detail: `${iso.status}/${iso.reason}${iso.resyncedGoals?.length ? ` · עודכנו ${iso.resyncedGoals.length} מטרות` : ''} — דילוג על reconcile ברמת החשבון` })
+                return {
+                    ok: true,
+                    outputDescription: 'הרכישה מוגדרת כיעד ההמרה הראשי דרך מטרת קמפיין ייעודית (החשבון משותף עם מותגים נוספים). לא בוצע reconcile ברמת החשבון — כך שהאופטימיזציה של המותגים האחרים לא נפגעת, והקמפיינים שלכם מתאמנים רק על פעולת הרכישה שלכם.',
+                    errorCategory: 'completed',
+                    stepResults,
+                }
+            }
+
+            // 2b. Single-brand account → account-wide reconcile is safe.
+            // Reconcile — promote desired, demote everything else currently primary.
             const report = await reconcilePrimaryConversionActions(
                 operatingCustomerId, tokens, cfg.developerToken, desiredCategory, loginCustomerId,
             )
