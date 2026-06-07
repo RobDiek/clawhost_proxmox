@@ -1,6 +1,7 @@
 import type { CloudProvider } from '@/ts/Interfaces'
 
 import hetzner from '@/services/hetzner'
+import proxmox from '@/services/proxmox'
 import cache from '@/services/provider/cache'
 
 const CACHE_TTL = 5 * 60 * 1000
@@ -23,11 +24,11 @@ const cached = <T>(
     const promise = fn()
         .then((data) => {
             cache.set(key, { data, expiry: Date.now() + ttl })
-            inflight.delete(key)
+            jsInflightDelete(key)
             return data
         })
         .catch((err) => {
-            inflight.delete(key)
+            jsInflightDelete(key)
             throw err
         })
 
@@ -35,64 +36,76 @@ const cached = <T>(
     return promise
 }
 
+const jsInflightDelete = (key: string) => {
+    inflight.delete(key)
+}
+
 let wrappedProvider: CloudProvider | null = null
+let currentProviderType: string | null = null
 
 const getProvider = (): CloudProvider => {
-    if (wrappedProvider) return wrappedProvider
+    const providerType = process.env.CLOUD_PROVIDER || 'hetzner'
+
+    if (wrappedProvider && currentProviderType === providerType) {
+        return wrappedProvider
+    }
+
+    const providerImpl = providerType === 'proxmox' ? proxmox : hetzner
 
     const invalidateServer = (serverId: string) => {
-        cache.delete('hetzner:servers')
-        cache.delete(`hetzner:server:${serverId}`)
+        cache.delete(`${providerType}:servers`)
+        cache.delete(`${providerType}:server:${serverId}`)
     }
 
     const wrapped: CloudProvider = {
-        ...hetzner,
+        ...providerImpl,
         getServer: (serverId: string) =>
             cached(
-                `hetzner:server:${serverId}`,
-                () => hetzner.getServer(serverId),
+                `${providerType}:server:${serverId}`,
+                () => providerImpl.getServer(serverId),
                 SERVERS_CACHE_TTL
             ),
         getServers: () =>
             cached(
-                'hetzner:servers',
-                () => hetzner.getServers(),
+                `${providerType}:servers`,
+                () => providerImpl.getServers(),
                 SERVERS_CACHE_TTL
             ),
         getServerTypes: () =>
-            cached('hetzner:serverTypes', () => hetzner.getServerTypes()),
+            cached(`${providerType}:serverTypes`, () => providerImpl.getServerTypes()),
         getLocations: () =>
-            cached('hetzner:locations', () => hetzner.getLocations()),
+            cached(`${providerType}:locations`, () => providerImpl.getLocations()),
         getRawServerTypes: () =>
-            cached('hetzner:rawServerTypes', () => hetzner.getRawServerTypes()),
+            cached(`${providerType}:rawServerTypes`, () => providerImpl.getRawServerTypes()),
         getDatacenters: () =>
-            cached('hetzner:datacenters', () => hetzner.getDatacenters()),
+            cached(`${providerType}:datacenters`, () => providerImpl.getDatacenters()),
         getVolumePricing: () =>
-            cached('hetzner:volumePricing', () => hetzner.getVolumePricing()),
+            cached(`${providerType}:volumePricing`, () => providerImpl.getVolumePricing()),
         createServer: async (...args) => {
-            const result = await hetzner.createServer(...args)
-            cache.delete('hetzner:servers')
+            const result = await providerImpl.createServer(...args)
+            cache.delete(`${providerType}:servers`)
             return result
         },
         startServer: async (serverId) => {
-            await hetzner.startServer(serverId)
+            await providerImpl.startServer(serverId)
             invalidateServer(serverId)
         },
         stopServer: async (serverId) => {
-            await hetzner.stopServer(serverId)
+            await providerImpl.stopServer(serverId)
             invalidateServer(serverId)
         },
         restartServer: async (serverId) => {
-            await hetzner.restartServer(serverId)
+            await providerImpl.restartServer(serverId)
             invalidateServer(serverId)
         },
         deleteServer: async (serverId) => {
-            await hetzner.deleteServer(serverId)
+            await providerImpl.deleteServer(serverId)
             invalidateServer(serverId)
         }
     }
 
     wrappedProvider = wrapped
+    currentProviderType = providerType
     return wrapped
 }
 
