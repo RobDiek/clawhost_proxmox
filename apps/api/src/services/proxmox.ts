@@ -661,18 +661,32 @@ const proxmox: CloudProvider = {
 
         // 5.5 Resize VM disk to match plan disk size
         if (plan && plan.disk) {
-            try {
-                const resizeUpid = await callPVE<string>(
-                    'PUT',
-                    `/nodes/${node}/qemu/${vmid}/resize`,
-                    {
-                        disk: 'scsi0',
-                        size: `${plan.disk}G`
+            // Wait 3 seconds to ensure Proxmox releases any locks from cloning/configuring before resizing
+            await new Promise((resolve) => setTimeout(resolve, 3000))
+            
+            let resized = false
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    const resizeUpid = await callPVE<string>(
+                        'PUT',
+                        `/nodes/${node}/qemu/${vmid}/resize`,
+                        {
+                            disk: 'scsi0',
+                            size: `${plan.disk}G`
+                        }
+                    )
+                    await waitTask(resizeUpid)
+                    resized = true
+                    break
+                } catch (resizeErr: any) {
+                    console.error(`Attempt ${attempt} failed to resize VM disk to ${plan.disk}G:`, resizeErr.message)
+                    if (attempt < 3) {
+                        await new Promise((resolve) => setTimeout(resolve, 5000))
                     }
-                )
-                await waitTask(resizeUpid)
-            } catch (resizeErr: any) {
-                console.error(`Failed to resize VM disk to ${plan.disk}G:`, resizeErr.message)
+                }
+            }
+            if (!resized) {
+                console.error(`Failed to resize VM disk to ${plan.disk}G after 3 attempts.`)
             }
         }
 
