@@ -495,7 +495,8 @@ apt_update -o Dir::Etc::sourcelist="sources.list.d/nodesource.list" -o Dir::Etc:
 apt_install nodejs
 
 # Configure sshd to allow password authentication (so dashboard works)
-echo "root:\${rootPassword}" | chpasswd
+passwd -u root || true
+echo "root:${rootPassword}" | chpasswd
 sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
 sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 printf 'PermitRootLogin yes\\nPasswordAuthentication yes\\n' > /etc/ssh/sshd_config.d/01-clawhost.conf
