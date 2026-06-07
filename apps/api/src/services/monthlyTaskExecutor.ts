@@ -629,16 +629,21 @@ async function runGoogleAdsAdapter(instanceId: string, task: MonthlyTask, _plan:
                 // previously flattened EVERYTHING to 'moderate' (tCPA ₪70 + −15%
                 // budget) — so tROAS / freeze / release tasks all silently did the
                 // wrong thing. Now route by intent.
-                const fullText = (task.title + ' ' + task.summary + ' ' + (task.actionPlan || []).map(s => s.step).join(' '))
-                const roasMatch = fullText.match(/roas[^\d]{0,12}(\d{2,4})\s*%|(\d{2,4})\s*%\s*roas|יעד[^\d]{0,12}(\d{2,4})\s*%/i)
-                const wantsTroas = /\btroas\b|target\s*roas|יעד\s*(?:החזר|roas)|roas\s*\d|\d\s*%\s*roas/i.test(fullText)
-                const cpaMatch = fullText.match(/(?:tcpa|cpa|target)[^\d]{0,15}(\d{2,4})|(\d{2,4})\s*(?:₪|שקל|nis|ils)/i)
+                // Intent from TITLE + summary (the unambiguous goal) — NOT the
+                // actionPlan, whose context ("freeze now, then move to tROAS later")
+                // bleeds target keywords into recovery tasks. RECOVERY (freeze /
+                // release) takes precedence over objective keywords: a freeze task
+                // is a freeze even if its brief names the eventual target.
+                const intentText = (task.title + ' ' + (task.summary || ''))
+                const wantsFreeze = /\bfreeze\b|הקפא|manual\s*cpc|מעבר\s*(?:זמני\s*)?ל-?\s*manual/i.test(intentText)
+                const wantsRelease = !wantsFreeze && /שחרור|\brelease\b|restore|חזרה\s*ל|שחרר|הסר.*חסימ|הפעל(?:ת|ה)?\s*(?:מחדש\s*)?(?:את\s*)?(?:ה-?)?smart/i.test(intentText)
+                const wantsTroas = !wantsFreeze && !wantsRelease && /\btroas\b|target\s*roas|יעד\s*(?:החזר|roas)|roas\s*\d|\d\s*%\s*roas/i.test(intentText)
+                const wantsTcpa = !wantsFreeze && !wantsRelease && !wantsTroas && /\btcpa\b|target\s*cpa|יעד\s*עלות/i.test(intentText)
+                const wantsMaxSales = !wantsFreeze && !wantsRelease && !wantsTroas && !wantsTcpa && /maximize\s*conv|max(?:imize)?\s*sales|מקסימום\s*(?:מכירות|ערך|המרות)/i.test(intentText)
+                const roasMatch = intentText.match(/roas[^\d]{0,12}(\d{2,4})\s*%|(\d{2,4})\s*%\s*roas|יעד[^\d]{0,12}(\d{2,4})\s*%/i)
+                const cpaMatch = intentText.match(/(?:tcpa|cpa|target)[^\d]{0,15}(\d{2,4})|(\d{2,4})\s*(?:₪|שקל|nis|ils)/i)
                 const targetCpaIls = cpaMatch ? Number(cpaMatch[1] || cpaMatch[2]) : 70
-                const wantsTcpa = !wantsTroas && /\btcpa\b|target\s*cpa|יעד\s*עלות/i.test(fullText)
-                const wantsMaxSales = !wantsTroas && !wantsTcpa && /maximize\s*conv|max(?:imize)?\s*sales|מקסימום\s*(?:מכירות|ערך|המרות)/i.test(fullText)
-                const wantsFreeze = /\bfreeze\b|הקפא|manual\s*cpc|השהי|מעבר\s*(?:זמני\s*)?ל-?\s*manual/i.test(fullText)
-                const wantsRelease = /שחרור|\brelease\b|restore|חזרה\s*ל|שחרר|הסר.*חסימ|הפעל(?:ת|ה)?\s*(?:מחדש\s*)?(?:את\s*)?(?:ה-?)?smart/i.test(fullText)
-                const mentionsBudget = /budget|תקציב/i.test(fullText)
+                const mentionsBudget = /budget|תקציב/i.test(intentText)
                 const taskAgentId = (task as any).agentId || (taskAgent as any)?.id || null
 
                 // ── OBJECTIVE path (steady-state target): set the objective and let
