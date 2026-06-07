@@ -571,7 +571,7 @@ async function runGoogleAdsAdapter(instanceId: string, task: MonthlyTask, _plan:
                 // or DROPS budget >15% must go through the explicit UI chooser,
                 // not auto-execute. So the executor branch only ever runs
                 // conservative or moderate.
-                const { resolveAgentById, resolvePrimaryAgent, readGoogleAdsConfig, mutateResearchData } =
+                const { resolveAgentById, resolvePrimaryAgent, readGoogleAdsConfig } =
                     await import('./agentContext')
                 const taskAgent = (task as any).agentId
                     ? (await resolveAgentById(instanceId, (task as any).agentId)) || (await resolvePrimaryAgent(instanceId))
@@ -625,19 +625,54 @@ async function runGoogleAdsAdapter(instanceId: string, task: MonthlyTask, _plan:
                         { stepResults: [...stepResults, { step: 'scope check', ok: false, detail: 'ads.scope.campaignIds empty — refusing to mutate every campaign' }] })
                 }
 
-                // Read target CPA from task text (Hebrew "₪80" / "tcpa target 80" / "80 שקל"),
-                // fallback to service default ₪70.
+                // Detect the DESIRED bidding action from the task. The executor
+                // previously flattened EVERYTHING to 'moderate' (tCPA ₪70 + −15%
+                // budget) — so tROAS / freeze / release tasks all silently did the
+                // wrong thing. Now route by intent.
                 const fullText = (task.title + ' ' + task.summary + ' ' + (task.actionPlan || []).map(s => s.step).join(' '))
-                const cpaMatch = fullText.match(/(?:tcpa|cpa|יעד|target)[^\d]{0,15}(\d{2,4})|(\d{2,4})\s*(?:₪|שקל|nis|ils)/i)
+                const roasMatch = fullText.match(/roas[^\d]{0,12}(\d{2,4})\s*%|(\d{2,4})\s*%\s*roas|יעד[^\d]{0,12}(\d{2,4})\s*%/i)
+                const wantsTroas = /\btroas\b|target\s*roas|יעד\s*(?:החזר|roas)|roas\s*\d|\d\s*%\s*roas/i.test(fullText)
+                const cpaMatch = fullText.match(/(?:tcpa|cpa|target)[^\d]{0,15}(\d{2,4})|(\d{2,4})\s*(?:₪|שקל|nis|ils)/i)
                 const targetCpaIls = cpaMatch ? Number(cpaMatch[1] || cpaMatch[2]) : 70
+                const wantsTcpa = !wantsTroas && /\btcpa\b|target\s*cpa|יעד\s*עלות/i.test(fullText)
+                const wantsMaxSales = !wantsTroas && !wantsTcpa && /maximize\s*conv|max(?:imize)?\s*sales|מקסימום\s*(?:מכירות|ערך|המרות)/i.test(fullText)
+                const wantsFreeze = /\bfreeze\b|הקפא|manual\s*cpc|השהי|מעבר\s*(?:זמני\s*)?ל-?\s*manual/i.test(fullText)
+                const wantsRelease = /שחרור|\brelease\b|restore|חזרה\s*ל|שחרר|הסר.*חסימ|הפעל(?:ת|ה)?\s*(?:מחדש\s*)?(?:את\s*)?(?:ה-?)?smart/i.test(fullText)
+                const mentionsBudget = /budget|תקציב/i.test(fullText)
+                const taskAgentId = (task as any).agentId || (taskAgent as any)?.id || null
 
-                stepResults.push({ step: 'preflight checks', ok: true, detail: `customer=${operatingCustomerId}, scope=${scopedCampaignIds.length} campaigns, target_cpa=₪${targetCpaIls}` })
+                // ── OBJECTIVE path (steady-state target): set the objective and let
+                // the data-gated objectiveTransitionRunner apply it — no premature
+                // switch, no budget cut. Correct home for tROAS / tCPA / max-sales. ──
+                if (wantsTroas || wantsTcpa || wantsMaxSales) {
+                    const { setBiddingObjective, getTransitionForObjective } = await import('./biddingObjective')
+                    const nowIso = new Date().toISOString()
+                    const obj = wantsTroas
+                        ? { goal: 'target_roas' as const, targetRoasPct: Number(roasMatch?.[1] || roasMatch?.[2] || roasMatch?.[3] || 400), source: 'user' as const, chosenAt: nowIso, chosenBy: 'monthly_task' }
+                        : wantsTcpa
+                            ? { goal: 'target_cpa' as const, targetCpaIls, source: 'user' as const, chosenAt: nowIso, chosenBy: 'monthly_task' }
+                            : { goal: 'max_sales' as const, source: 'user' as const, chosenAt: nowIso, chosenBy: 'monthly_task' }
+                    await setBiddingObjective(instanceId, taskAgentId, obj)
+                    const tr = getTransitionForObjective(obj)
+                    const label = wantsTroas ? `Target ROAS ${obj.targetRoasPct}%` : wantsTcpa ? `Target CPA ₪${targetCpaIls}` : 'מקסימום ערך המרות'
+                    stepResults.push({ step: 'יעד הצעות מחיר נקבע', ok: true, detail: `${label} · ${scopedCampaignIds.length} קמפיינים ב-scope` })
+                    stepResults.push({ step: 'מעבר אוטומטי (data-gated)', ok: true, detail: `יוחל ${tr.toStrategy}${tr.targetRoas ? ` ${tr.targetRoas}x` : ''} ע"י מנוע המעבר ברגע ${tr.triggerConvCount}+ המרות נקיות — ללא שינוי תקציב` })
+                    return {
+                        ok: true,
+                        outputDescription: `יעד הצעות המחיר נקבע: **${label}**. מנוע המעבר יציע ויחיל את ${tr.toStrategy}${tr.targetRoas ? ` ${tr.targetRoas}x` : ''} על ${scopedCampaignIds.length} הקמפיינים ברגע שיצטברו ${tr.triggerConvCount}+ המרות נקיות (מאז שהמדידה אמינה). ללא שינוי תקציב וללא מעבר מוקדם מדי.`,
+                        errorCategory: 'completed',
+                        stepResults,
+                    }
+                }
 
-                // K34 policy: executor only runs DRY-RUN. Real mutation is a
-                // second, explicit step — user clicks "Apply strategy" in the
-                // UI dashboard which calls POST /instances/:id/safety/
-                // apply-bidding-strategy with dryRun=false. This matches the
-                // no-automatic-actions invariant for money-affecting Ads changes.
+                // ── RECOVERY path (cleanup after a tracking fix): freeze→aggressive,
+                // release→conservative, else moderate. Budget changes ONLY when the
+                // task explicitly asks. Dry-run preview → explicit UI apply. ──
+                const strategy: 'conservative' | 'moderate' | 'aggressive' = wantsFreeze ? 'aggressive' : wantsRelease ? 'conservative' : 'moderate'
+                stepResults.push({ step: 'preflight checks', ok: true, detail: `customer=${operatingCustomerId}, scope=${scopedCampaignIds.length} campaigns, strategy=${strategy}${strategy === 'moderate' ? `, target_cpa=₪${targetCpaIls}` : ''}, budget=${mentionsBudget ? 'adjust' : 'unchanged'}` })
+
+                // Executor only runs DRY-RUN. Real mutation = explicit UI "Apply
+                // strategy" (POST /safety/apply-bidding-strategy, dryRun=false).
                 const { applyBiddingStrategy: apply } = await import('./googleAdsBiddingStrategy')
                 const preview = await apply({
                     customerId: operatingCustomerId,
@@ -645,30 +680,24 @@ async function runGoogleAdsAdapter(instanceId: string, task: MonthlyTask, _plan:
                     tokens: { refreshToken: tokens.refreshToken },
                     developerToken: String(ads.developerToken),
                     scopedCampaignIds,
-                    strategy: 'moderate',
+                    strategy,
                     moderateTargetCpaIls: targetCpaIls,
+                    adjustBudget: mentionsBudget,
                     dryRun: true,
                 })
 
-                stepResults.push({
-                    step: 'preview moderate bidding strategy (dry-run)',
-                    ok: preview.errors.length === 0,
-                    detail: preview.summary,
-                })
-                for (const a of preview.actionsApplied.slice(0, 8)) {
-                    stepResults.push({ step: `would change → ${a.campaignName}`, ok: true, detail: a.change })
-                }
-                for (const e of preview.errors.slice(0, 5)) {
-                    stepResults.push({ step: `✗ ${e.campaignId}`, ok: false, detail: e.error })
-                }
+                stepResults.push({ step: `preview ${strategy} bidding strategy (dry-run)`, ok: preview.errors.length === 0, detail: preview.summary })
+                for (const a of preview.actionsApplied.slice(0, 8)) stepResults.push({ step: `would change → ${a.campaignName}`, ok: true, detail: a.change })
+                for (const e of preview.errors.slice(0, 5)) stepResults.push({ step: `✗ ${e.campaignId}`, ok: false, detail: e.error })
 
                 // Render structured preview table for dashboard (Hebrew-plural address)
                 const previewTable = preview.previousState.map(snap => {
                     const planned = preview.actionsApplied.filter(a => a.campaignId === snap.campaignId).map(a => a.change).join(' · ')
                     return `• ${snap.campaignName} (${snap.channel}, ${snap.status})\n   נוכחי: ${snap.bidding}, תקציב ₪${(snap.budgetMicros / 1_000_000).toFixed(0)}/יום\n   מתוכנן: ${planned || 'ללא שינוי'}`
                 }).join('\n\n')
+                const stratLabel = strategy === 'aggressive' ? 'הקפאה / Manual CPC' : strategy === 'conservative' ? 'שחזור Smart Bidding' : `מאוזן (tCPA ₪${targetCpaIls})`
                 const briefHe = [
-                    `**תצוגה מקדימה — שחרור Smart Bidding (moderate, tCPA ₪${targetCpaIls})**`,
+                    `**תצוגה מקדימה — ${stratLabel}**${mentionsBudget ? '' : ' · ללא שינוי תקציב'}`,
                     '',
                     `Customer: \`${operatingCustomerId}\` · ${scopedCampaignIds.length} קמפיינים ב-scope`,
                     '',
@@ -678,7 +707,6 @@ async function runGoogleAdsAdapter(instanceId: string, task: MonthlyTask, _plan:
                     '',
                     '⚠ *זוהי תצוגה בלבד — לא בוצעו שינויים בפועל.*',
                     'אם אתם בטוחים — לחצו על "החל אסטרטגיית הצעות" בלשונית בטיחות Google Ads.',
-                    'ה-snapshot של previousState נשמר כדי לאפשר undo מלא אחרי הביצוע.',
                 ].join('\n')
 
                 return {

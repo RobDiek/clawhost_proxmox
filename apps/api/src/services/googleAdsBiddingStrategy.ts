@@ -189,6 +189,11 @@ export interface ApplyBiddingStrategyInput {
     scopedCampaignIds: string[]
     strategy: BiddingStrategyKind
     moderateTargetCpaIls?: number    // for moderate; default ₪70
+    // Gate the strategy's bundled budget cut (conservative −30% / moderate −15%).
+    // Default true preserves the UI endpoint's behavior; the monthly-task executor
+    // passes false unless the task explicitly asks to change budget — a bid-strategy
+    // change shouldn't silently cut the client's spend.
+    adjustBudget?: boolean
     // K34: when true, read current state + compute would-be changes but do NOT
     // call gadsMutate. actionsApplied is returned with the planned `change`
     // strings + previousState snapshot. Used by monthlyTaskExecutor to surface
@@ -323,8 +328,8 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
                     result.errors.push({ campaignId: cmp.id, error: `restore bidding: ${(e as Error).message.slice(0, 200)}` })
                 }
             }
-            // C. Reduce budget by 30%
-            if (cmp.budgetResourceName && cmp.currentBudgetMicros > 0) {
+            // C. Reduce budget by 30% (only when budget adjustment is requested)
+            if (opts.adjustBudget !== false && cmp.budgetResourceName && cmp.currentBudgetMicros > 0) {
                 const newBudgetMicros = Math.round(cmp.currentBudgetMicros * 0.7)
                 try {
                     await _mutate('campaignBudgets:mutate', {
@@ -376,8 +381,8 @@ export async function applyBiddingStrategy(opts: ApplyBiddingStrategyInput): Pro
                     result.errors.push({ campaignId: cmp.id, error: `switch tcpa: ${(e as Error).message.slice(0, 200)}` })
                 }
             }
-            // C. Reduce budget by 15%
-            if (cmp.budgetResourceName && cmp.currentBudgetMicros > 0) {
+            // C. Reduce budget by 15% (only when budget adjustment is requested)
+            if (opts.adjustBudget !== false && cmp.budgetResourceName && cmp.currentBudgetMicros > 0) {
                 const newBudgetMicros = Math.round(cmp.currentBudgetMicros * 0.85)
                 try {
                     await _mutate('campaignBudgets:mutate', {
