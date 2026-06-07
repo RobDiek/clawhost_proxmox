@@ -40,5 +40,9 @@ check('#28 Organization schema → NOT citation-monitor', isAeoCitationMonitorTa
 const tLlms = T({ title: 'יצירת קובץ llms.txt למנועי AI' })
 check('generic llms.txt → isLlmsTxtTask, not citation-monitor', isLlmsTxtTask(tLlms) === true && isAeoCitationMonitorTask(tLlms) === false)
 
+// LocalBusiness needs real NAP → NOT the schema batch (routes to honest manual)
+const tLB = T({ title: 'סכמת LocalBusiness עם כתובת פתח תקווה + שעות + טלפון', summary: 'הטמעה בכל עמודי האתר' })
+check('LocalBusiness → NOT isSeoSchemaTask (manual)', isSeoSchemaTask(tLB) === false && isProductSchemaTask(tLB) === false)
+
 console.log(`\n=== ${pass} passed, ${fail} failed ===`)
 process.exit(fail === 0 ? 0 : 1)

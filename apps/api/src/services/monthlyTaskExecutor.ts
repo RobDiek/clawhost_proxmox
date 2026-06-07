@@ -1530,6 +1530,19 @@ async function runPageRefreshAdapter(
         ...res.failures.map(f => ({ step: `נכשל: ${f.type} #${f.id}`, ok: false, detail: f.error })),
     ]
     if (res.candidates === 0) {
+        // page_refresh only EXPANDS thin posts/pages. When the task's real intent
+        // is to BUILD a new page, improve already-ranking ("striking-distance")
+        // pages, or touch PRODUCT pages, a 0-candidate scan means the intent was
+        // NOT delivered — surface honest manual instead of a "completed" no-op that
+        // masks an unmet ask. A genuine "expand thin content" task with nothing thin
+        // stays an honest idempotent no-op.
+        const t = `${task.title || ''} ${task.summary || ''}`
+        const intentMismatch = /חדש|השלמ|בני[יה]|להקים|\bbuild\b|\bcreate\b|striking|מיקום\s*4|מיקום\s*5|pos(?:ition)?\s*4|דפי?\s*מוצר|\bproduct\b|מוצרים/i.test(t)
+        if (intentMismatch) {
+            return runManualTodoAdapter(instanceId, task, _plan,
+                `הסריקה לא מצאה דפים "דקים" להרחבה (נסרקו ${res.scanned} פוסטים/עמודים). המשימה כנראה מתכוונת לבניית דף חדש / שיפור דף שכבר מדורג / דפי מוצר — שאינם בתחום ההרחבה האוטומטית של תוכן דק. בצעו ידנית לפי ה-brief.`,
+                { stepResults })
+        }
         return { ok: true, outputDescription: `כל הדפים שנסרקו כבר מעל סף התוכן — אין מה לרענן.`, errorCategory: 'completed_idempotent_noop', stepResults }
     }
     if (res.authError && res.updated.length === 0) {
@@ -1786,7 +1799,10 @@ export function isSeoSchemaTask(task: MonthlyTask): boolean {
     // citations route to their own capability or to manual. Sending them to the
     // schema batch makes it scan posts/pages, find existing schema, and falsely
     // report "completed (nothing to add)" without doing the task's real intent.
-    const notSchemaAdapter = /robots\.txt|sitemap\.xml|הגשה ל-?gsc|הגשת\s*citation|citation:|directory.*citation|אותות\s*אמון|trust\s*signal|מעל\s*הקפל|above[- ]the[- ]fold|קרוסל.*ביקור|review\s*carousel/i
+    // LocalBusiness schema needs real NAP (address / phone / opening hours) we
+    // don't store — the schema batch can't fabricate it, so it'd enrich unrelated
+    // pages and falsely "complete". Route to honest manual instead.
+    const notSchemaAdapter = /robots\.txt|sitemap\.xml|הגשה ל-?gsc|הגשת\s*citation|citation:|directory.*citation|אותות\s*אמון|trust\s*signal|מעל\s*הקפל|above[- ]the[- ]fold|קרוסל.*ביקור|review\s*carousel|localbusiness|local\s*business|עסק\s*מקומי/i
     if (notSchemaAdapter.test(task.title || '')) return false
     // Broadened: schema/structured-data + brand-entity-for-AI + technical markup
     // (search box / breadcrumb) + Hebrew construct forms (סכמ covers סכמה/סכמת/סכמות).
