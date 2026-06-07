@@ -18,7 +18,7 @@ import { agents, sshKeys } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
-import crypto from 'crypto'
+import { execSync } from 'child_process'
 import { Client } from 'ssh2'
 import { sshDefaults } from '@/lib/constants'
 import { inputValidation } from '@openclaw/shared'
@@ -55,31 +55,16 @@ const getOrCreateMasterSSHKey = (): { publicKey: string; privateKey: string } =>
 
     try {
         fs.mkdirSync(keysDir, { recursive: true })
-    } catch (err) {
-        console.error(`Failed to create keys directory ${keysDir}:`, err)
-    }
-
-    console.log('Generating master SSH key pair...')
-    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
-        modulusLength: 2048,
-        publicKeyEncoding: {
-            type: 'spki',
-            format: 'ssh'
-        },
-        privateKeyEncoding: {
-            type: 'pkcs8',
-            format: 'pem'
+        console.log('Generating master SSH key pair via ssh-keygen...')
+        execSync(`ssh-keygen -t rsa -b 2048 -m PEM -N "" -f "${privateKeyPath}"`, { stdio: 'ignore' })
+        return {
+            privateKey: fs.readFileSync(privateKeyPath, 'utf8').trim(),
+            publicKey: fs.readFileSync(publicKeyPath, 'utf8').trim()
         }
-    } as any)
-
-    try {
-        fs.writeFileSync(privateKeyPath, privateKey, { mode: 0o600 })
-        fs.writeFileSync(publicKeyPath, publicKey, { mode: 0o644 })
     } catch (err) {
-        console.error('Failed to write master SSH key files:', err)
+        console.error('Failed to generate or read master SSH key files:', err)
+        throw err
     }
-
-    return { publicKey: publicKey.trim(), privateKey: privateKey.trim() }
 }
 
 const callPVE = async <T>(
