@@ -17,12 +17,69 @@ import { db } from '@/db'
 import { agents, sshKeys } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import fs from 'fs'
+import path from 'path'
+import crypto from 'crypto'
 import { Client } from 'ssh2'
 import { sshDefaults } from '@/lib/constants'
 import { inputValidation } from '@openclaw/shared'
 
 const getEnv = (key: string, defaultVal = ''): string => {
     return process.env[key] || defaultVal
+}
+
+const getOrCreateMasterSSHKey = (): { publicKey: string; privateKey: string } => {
+    if (fs.existsSync('/tmp/id_rsa_clawtest') && fs.existsSync('/tmp/id_rsa_clawtest.pub')) {
+        try {
+            return {
+                privateKey: fs.readFileSync('/tmp/id_rsa_clawtest', 'utf8').trim(),
+                publicKey: fs.readFileSync('/tmp/id_rsa_clawtest.pub', 'utf8').trim()
+            }
+        } catch {}
+    }
+
+    let keysDir = getEnv('MASTER_SSH_KEYS_DIR')
+    if (!keysDir) {
+        keysDir = path.join(process.cwd(), 'keys')
+    }
+    const privateKeyPath = path.join(keysDir, 'id_rsa_claw')
+    const publicKeyPath = path.join(keysDir, 'id_rsa_claw.pub')
+
+    if (fs.existsSync(privateKeyPath) && fs.existsSync(publicKeyPath)) {
+        try {
+            return {
+                privateKey: fs.readFileSync(privateKeyPath, 'utf8').trim(),
+                publicKey: fs.readFileSync(publicKeyPath, 'utf8').trim()
+            }
+        } catch {}
+    }
+
+    try {
+        fs.mkdirSync(keysDir, { recursive: true })
+    } catch (err) {
+        console.error(`Failed to create keys directory ${keysDir}:`, err)
+    }
+
+    console.log('Generating master SSH key pair...')
+    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+        modulusLength: 2048,
+        publicKeyEncoding: {
+            type: 'spki',
+            format: 'ssh'
+        },
+        privateKeyEncoding: {
+            type: 'pkcs8',
+            format: 'pem'
+        }
+    } as any)
+
+    try {
+        fs.writeFileSync(privateKeyPath, privateKey, { mode: 0o600 })
+        fs.writeFileSync(publicKeyPath, publicKey, { mode: 0o644 })
+    } catch (err) {
+        console.error('Failed to write master SSH key files:', err)
+    }
+
+    return { publicKey: publicKey.trim(), privateKey: privateKey.trim() }
 }
 
 const callPVE = async <T>(
@@ -556,15 +613,9 @@ const proxmox: CloudProvider = {
 
         // 4. Load SSH keys (DB lookup + fallback for test script)
         const agentId = name.split('-').pop()
-        let sshKeyStr = ''
-        
-        if (fs.existsSync('/tmp/id_rsa_clawtest.pub')) {
-            try {
-                sshKeyStr = fs.readFileSync('/tmp/id_rsa_clawtest.pub', 'utf8').trim()
-            } catch {}
-        }
+        let userSshKeyStr = ''
 
-        if (!sshKeyStr && agentId && agentId.length === 36) {
+        if (agentId && agentId.length === 36) {
             try {
                 const agentRow = await db
                     .select()
@@ -579,7 +630,7 @@ const proxmox: CloudProvider = {
                         .where(eq(sshKeys.id, agentRow[0].sshKeyId))
                         .limit(1)
                     if (keyRow[0]) {
-                        sshKeyStr = keyRow[0].publicKey
+                        userSshKeyStr = keyRow[0].publicKey.trim()
                     }
                 }
             } catch (dbErr) {
@@ -587,19 +638,25 @@ const proxmox: CloudProvider = {
             }
         }
 
+        // Get or generate master SSH key
+        const masterKey = getOrCreateMasterSSHKey()
+        
+        // Combine master SSH key and user's SSH key
+        const keysToInject: string[] = [masterKey.publicKey]
+        if (userSshKeyStr) {
+            keysToInject.push(userSshKeyStr)
+        }
+
         // 5. Configure VM config directly via Proxmox API (sets password, SSH keys & static networking)
         const configBody: Record<string, unknown> = {
             ipconfig0: `ip=${freeIp}/${netmask},gw=${gateway}`,
             scsihw: 'virtio-scsi-pci',
-            ciuser: getEnv('PROXMOX_SSH_USER', 'ubuntu')
+            ciuser: getEnv('PROXMOX_SSH_USER', 'ubuntu'),
+            sshkeys: encodeURIComponent(keysToInject.join('\n'))
         }
 
         if (rootPassword) {
             configBody.cipassword = rootPassword
-        }
-
-        if (sshKeyStr) {
-            configBody.sshkeys = encodeURIComponent(sshKeyStr)
         }
 
         // Map plan specs if matching plan found
@@ -651,18 +708,13 @@ const proxmox: CloudProvider = {
                 agentTypeVal
             )
 
-            // Connect over SSH with retries
+            // Connect over SSH with retries using the master private key
             let connected = false
-            let privateKeyPem = ''
-            if (fs.existsSync('/tmp/id_rsa_clawtest')) {
-                try {
-                    privateKeyPem = fs.readFileSync('/tmp/id_rsa_clawtest', 'utf8')
-                } catch {}
-            }
+            const privateKeyPem = masterKey.privateKey
 
             for (let attempt = 1; attempt <= 25; attempt++) {
                 try {
-                    // Try connecting using private key fallback first, then password
+                    // Try connecting using the master private key first, then fallback to rootPassword if any
                     await executeProxmoxSSH(freeIp, rootPassword, privateKeyPem, 'echo ready')
                     connected = true
                     break
