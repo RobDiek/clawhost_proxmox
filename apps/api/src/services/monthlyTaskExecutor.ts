@@ -1588,7 +1588,9 @@ export function isProductSchemaTask(task: MonthlyTask): boolean {
     // summary/actionPlan too falsely grabbed INP/categories/AggregateRating
     // tasks (their detail text mentions Product schema incidentally) and routed
     // them to the product-schema adapter (wrong output). Title is unambiguous.
-    const isProductOfferSchema = /product\s*\+\s*offer|מוצר\s*\+\s*offer|\bproduct\s+schema\b|schema\.org\/product|סכמת\s*(?:product|מוצר)\b/i.test(task.title || '')
+    // Includes bare "Offer schema" / "סכמת Offer" — Offer JSON-LD is product/price
+    // markup → belongs on WooCommerce products (product_schema), not posts/pages.
+    const isProductOfferSchema = /product\s*\+\s*offer|מוצר\s*\+\s*offer|\bproduct\s+schema\b|\boffer\s+schema\b|schema\.org\/product|סכמת\s*(?:product|מוצר|offer)\b/i.test(task.title || '')
     if (!isProductOfferSchema) return false
     const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
     return channelOk
@@ -1598,6 +1600,14 @@ export function isSeoSchemaTask(task: MonthlyTask): boolean {
     if (task.type === 'content_creation') return false
     if (isProductSchemaTask(task)) return false   // product schema → dedicated adapter
     const text = `${task.title} ${task.summary} ${(task.actionPlan || []).map(s => s.step).join(' ')}`
+    // NOT JSON-LD-batch work even if the title says "schema/markup": technical
+    // files (robots.txt / sitemap.xml / GSC submit), CRO trust widgets (trust
+    // signals / above-the-fold / review carousel), and external directory
+    // citations route to their own capability or to manual. Sending them to the
+    // schema batch makes it scan posts/pages, find existing schema, and falsely
+    // report "completed (nothing to add)" without doing the task's real intent.
+    const notSchemaAdapter = /robots\.txt|sitemap\.xml|הגשה ל-?gsc|הגשת\s*citation|citation:|directory.*citation|אותות\s*אמון|trust\s*signal|מעל\s*הקפל|above[- ]the[- ]fold|קרוסל.*ביקור|review\s*carousel/i
+    if (notSchemaAdapter.test(task.title || '')) return false
     // Broadened: schema/structured-data + brand-entity-for-AI + technical markup
     // (search box / breadcrumb) + Hebrew construct forms (סכמ covers סכמה/סכמת/סכמות).
     const mentionsSchema = /schema|structured\s*data|json-?ld|rich\s*results|search\s*action|sitelinks|סכמ|נתונים\s*מובנים|markup|תיוג\s*מובנה|ישות\s*מותג|brand\s*entity|knowledge\s*(panel|graph)/i.test(text)
