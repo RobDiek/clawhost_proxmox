@@ -6844,7 +6844,16 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
 
   currentTasksCache = tasks;
   var awaitingCount = tasks.filter(function(t) { return t.status === 'awaiting'; }).length;
-  if (counterEl) counterEl.textContent = awaitingCount > 0 ? awaitingCount + ' ממתינים לאישור' : '';
+  // Clear, honest counter: how many await approval out of the full monthly plan
+  // (so "25 ממתינים" reads against "83 בתוכנית" instead of looking inconsistent
+  // with the calendar week count or the show-more count).
+  var planTotal = 0;
+  try { planTotal = ((instanceData && instanceData.researchData && instanceData.researchData.monthlyPlan && instanceData.researchData.monthlyPlan.tasks) || []).length; } catch (e) { /* none */ }
+  if (counterEl) {
+    counterEl.textContent = awaitingCount > 0
+      ? (awaitingCount + ' ממתינים לאישור' + (planTotal ? ' · ' + planTotal + ' בתוכנית החודשית' : ''))
+      : (planTotal ? planTotal + ' משימות בתוכנית החודשית' : '');
+  }
 
   // K19 — in pending_review with any K19 filter narrowing the set OR bulk
   // mode active, show all matching tasks (not just 4). Otherwise keep the
@@ -6854,8 +6863,17 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
   var visibleTasks = tasks.slice(0, MAX_VISIBLE);
   var hiddenCount = tasks.length - MAX_VISIBLE;
 
+  var WAVE_BADGE_STYLE = {
+    0: 'background:#EDE9FE;color:#5B21B6;border:1px solid #C4B5FD',
+    1: 'background:#DBEAFE;color:#1E40AF;border:1px solid #93C5FD',
+    2: 'background:#FCE7F3;color:#9D174D;border:1px solid #F9A8D4'
+  };
   var html = visibleTasks.map(function(t) {
     var iconClass = t.status === 'planned' ? 'pending' : t.status;
+    // Execution-wave badge (W0/W1/W2) — only on plan tasks that carry a wave.
+    var waveBadge = (typeof t.wave === 'number')
+      ? '<span style="font-size:0.64rem;font-weight:700;padding:2px 6px;border-radius:999px;margin-inline-end:4px;' + (WAVE_BADGE_STYLE[t.wave] || '') + '" title="' + (t.waveLabel || '') + '">גל ' + t.wave + '</span>'
+      : '';
     var actionsHtml = '';
     if (t.status === 'awaiting' && !aqK19BulkMode) {
       // Phase 4.3-D: monthly_task gets skip button too (defer to next month)
@@ -6908,7 +6926,7 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
       bulkCheckHtml +
       '<div class="aq-icon ' + iconClass + '">' + (statusIcons[t.status] || statusIcons.pending) + '</div>' +
       '<div class="aq-body">' +
-        '<div class="aq-title">' + depsBadge + retryBadge + t.title + '</div>' +
+        '<div class="aq-title">' + waveBadge + depsBadge + retryBadge + t.title + '</div>' +
         '<div class="aq-agent">' + t.agent + '</div>' +
       '</div>' +
       '<div class="aq-meta" style="display:flex;align-items:center;gap:6px">' +
@@ -11604,7 +11622,11 @@ function renderContentCalendar() {
   var monthlyTasks = (instanceData && instanceData.researchData && instanceData.researchData.monthlyPlan && Array.isArray(instanceData.researchData.monthlyPlan.tasks))
     ? instanceData.researchData.monthlyPlan.tasks : [];
   var monthlyAsCalendarItems = monthlyTasks
-    .filter(function(t) { return t && t.scheduledFor && (t.status === 'proposed' || t.status === 'approved' || t.status === 'in_progress'); })
+    // Show EVERY scheduled task (any live status), colored by status — not just
+    // proposed/approved. Otherwise tasks that moved to completed/awaiting_manual/
+    // failed silently vanish from the board (looked like "16 of 83"). Archived /
+    // rejected are the only ones hidden.
+    .filter(function(t) { return t && t.scheduledFor && t.status !== 'archived' && t.status !== 'rejected'; })
     .map(function(t) {
       return {
         // Calendar entry shape: date, time, channel, type, hook, brief, agentRole, status
@@ -11618,7 +11640,10 @@ function renderContentCalendar() {
         brief: t.summary || '',
         persona: '',
         agentRole: 'mazhir',
-        status: t.status === 'approved' || t.status === 'in_progress' ? 'approved' : 'planned',
+        status: (t.status === 'completed') ? 'published'
+          : (t.status === 'approved' || t.status === 'in_progress') ? 'approved'
+          : (t.status === 'failed') ? 'blocked'
+          : 'planned',  // proposed / awaiting_manual / other live
         _isMonthlyTask: true,
         _priority: t.priority,
         _effort: t.estimatedEffort,
@@ -11667,9 +11692,16 @@ function renderContentCalendar() {
   // Phase 4.3-N v8: merged FB+IG into single Meta tab (same channel under the hood).
   // Counts come from BOTH legacy contentPlan items AND monthlyPlan.tasks so user
   // sees "Ads (16)" vs "Meta (2)" and knows where the work is before clicking.
+  // Counts are scoped to the VISIBLE week (matching the grid) so they change as
+  // you navigate weeks — previously they were month-totals and looked frozen.
+  var _toIso = function(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  var weekStartIso = _toIso(days[0]);
+  var weekEndIso = _toIso(days[6]);
+  var _inWeek = function(dateStr) { if (!dateStr) return false; var d = String(dateStr).slice(0, 10); return d >= weekStartIso && d <= weekEndIso; };
   var countFor = function(filterKey) {
     var n = 0;
     plan.forEach(function(it) {
+      if (!_inWeek(it.date)) return;
       if (filterKey === 'all') n++;
       else if (filterKey === 'ads' && (it.channel === 'google_ads' || it.channel === 'meta_ads')) n++;
       else if (filterKey === 'meta' && (it.channel === 'facebook' || it.channel === 'instagram' || it.channel === 'meta_ads')) n++;
@@ -11677,9 +11709,9 @@ function renderContentCalendar() {
       else if (filterKey === 'email' && it.channel === 'email') n++;
       else if (filterKey === 'reports' && (it.type === 'report' || it.agentRole === 'menateach' || it.agentRole === 'sayer')) n++;
     });
-    // Count ALL monthly tasks (not the filter-applied subset) so each pill shows its OWN count
+    // Monthly tasks in THIS week (same status set the grid shows: all live).
     var allMonthly = monthlyTasks
-      .filter(function(t) { return t && t.scheduledFor && (t.status === 'proposed' || t.status === 'approved' || t.status === 'in_progress'); });
+      .filter(function(t) { return t && t.scheduledFor && t.status !== 'archived' && t.status !== 'rejected' && _inWeek(t.scheduledFor); });
     allMonthly.forEach(function(t) {
       if (filterKey === 'all') n++;
       else if (filterKey === 'ads' && (t.channel === 'google_ads' || t.channel === 'meta')) n++;
