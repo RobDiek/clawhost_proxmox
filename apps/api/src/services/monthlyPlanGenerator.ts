@@ -618,7 +618,24 @@ export async function generateMonthlyPlan(
     // slow/hung cleanup could block the whole plan from ever saving. It now
     // runs fire-and-forget AFTER persistAndEmit (see below): the plan always
     // persists first, polish is applied to the saved rows under the hood.
-    const finalTasks = pass4Tasks
+    let finalTasks = pass4Tasks
+
+    // ─── Pass 4b: stamp external-link tasks (deterministic, no LLM) ───────
+    // Adds the per-link plan (target money page, planned anchor + type, ₪cost
+    // by DR tier, build sequence/month) to outreach/recovery/anchor tasks from
+    // the link_audit post-processor. Additive + idempotent + non-fatal.
+    try {
+        const { stampLinkTasks } = await import('./monthlyPlanLinkStamp')
+        const linkAuditResult = (rd.results as Record<string, unknown> | undefined)?.link_audit as Record<string, unknown> | undefined
+        const bn = ((rd.answers as Record<string, unknown> | undefined)?.businessName as string) || 'העסק'
+        const stampRes = stampLinkTasks(finalTasks as unknown as Record<string, unknown>[], linkAuditResult, rd as unknown as Record<string, unknown>, bn)
+        if (stampRes.stamped > 0) {
+            finalTasks = stampRes.updated as unknown as typeof finalTasks
+            console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 4b stamped ${stampRes.stamped} link tasks (${stampRes.domainsMatched} domains matched)`)
+        }
+    } catch (err) {
+        console.warn(`[monthlyPlanGenerator] ${instanceId}: Pass 4b link-stamp error (non-fatal):`, (err as Error).message)
+    }
 
     // ─── Assemble plan + apply guardrails ────────────────────────────────
     const qualityWarnings: string[] = [

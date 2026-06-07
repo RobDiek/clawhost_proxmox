@@ -164,17 +164,14 @@ export function augmentLinkAuditRecords(
         targetPages.push({ label: 'דף הבית (homepage)', anchorKeyword: businessName, cluster: 'brand', opportunity: 0 })
     }
 
-    // 4) Per-record: DR, tier, cost, relevance, target page.
-    const enriched = records.map((r, i) => {
+    // 4) Per-record: DR, tier, cost, relevance.
+    const enriched = records.map((r) => {
         const domain = normDomain(r.domain)
         const { dr, source } = resolveDr(domain, drMap)
         const tier = resolveTier(domain, dr)
         const costUsd = LINK_COSTS_USD[tier].avg_per_link_usd
         const estimated_cost_ils = Math.round(costUsd * USD_TO_ILS_RATE)
         const relevance = resolveRelevance(domain, r, drMap)
-        // Round-robin target pages by descending opportunity so the highest-value
-        // money pages receive the most link equity.
-        const tp = targetPages[i % targetPages.length]
         return {
             raw: r,
             domain,
@@ -183,9 +180,22 @@ export function augmentLinkAuditRecords(
             tier,
             relevance,
             estimated_cost_ils,
-            target_page: tp.label,
-            base_keyword: tp.anchorKeyword,
+            target_page: '',
+            base_keyword: '',
         }
+    })
+
+    // 4b) Assign target pages by PROSPECT VALUE → page OPPORTUNITY: the
+    // highest-authority/most-relevant links point at the top money pages
+    // (targetPages is already sorted by opportunity desc). Round-robin within
+    // that value order so equity still spreads across all commercial clusters.
+    const linkValue = (e: typeof enriched[number]) =>
+        (e.dr ?? 0) + (e.relevance === 'high' ? 50 : e.relevance === 'medium' ? 20 : 0)
+    const valueOrder = [...enriched.keys()].sort((a, b) => linkValue(enriched[b]) - linkValue(enriched[a]))
+    valueOrder.forEach((idx, rank) => {
+        const tp = targetPages[rank % targetPages.length]
+        enriched[idx].target_page = tp.label
+        enriched[idx].base_keyword = tp.anchorKeyword
     })
 
     // 5) Anchor distribution planner across the WHOLE set (anti-over-optimization).

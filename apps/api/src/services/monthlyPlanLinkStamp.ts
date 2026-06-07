@@ -26,13 +26,27 @@ interface LinkTaskLike {
     [k: string]: unknown
 }
 
+// Fields this stamp owns — stripped before each run so re-stamping is fully
+// idempotent and self-correcting (a task that no longer classifies as a link
+// task loses its stale link fields).
+const LINK_STAMP_FIELDS = [
+    'estimatedCostIls', 'targetPage', 'anchorKeyword', 'anchorType',
+    'prospectDr', 'linkTier', 'linkSequence', 'linkMonth',
+] as const
+
 // Genuine external-link tasks: outreach / lost-link recovery / citations /
-// anchor remediation. Excludes INTERNAL-link tasks and content/ads tasks.
+// anchor remediation. Excludes INTERNAL links, schema, and competitive
+// monitoring tasks (which mention "backlinks"/"links" but acquire nothing).
 function isLinkTask(t: LinkTaskLike): boolean {
     const text = `${t.title || ''} ${t.summary || ''}`
-    if (/internal|קישור(ים)? פנימי/i.test(text)) return false   // internal links ≠ backlinks
-    const outreach = /שחזור קישור|פניית|פנייה ל|link[ _-]?gap|outreach|backlink|citation|הגשת|פיץ['׳] ?PR|דילול פרופיל עוגנים|directory|אזכור מותג|לינק חיצוני/i.test(text)
-    return outreach && (t.channel === 'seo' || t.type === 'other')
+    // Hard excludes — these mention links but are NOT link acquisition.
+    if (/קישור(ים)? פנימי|internal link|סכמ[הת]|schema|videoobject|ניטור|monitor|תחרות[יו]|competitive|wayback|transparency/i.test(text)) return false
+    // Genuine acquisition / recovery / anchor remediation phrases.
+    const acq = /שחזור קישור|פניית outreach|פנייה לשחזור|link[ _-]?gap|הגשת citation|citation:|פיץ['׳] ?PR|דילול פרופיל עוגנים|הגשת.*(directory|b144|zap|dapei)|directory/i.test(text)
+    // ...or a real external prospect domain in an outreach/recovery context.
+    const hasExternalDomain = /\b[a-z0-9-]+\.(?:co\.il|org\.il|com|net)\b/i.test(text) &&
+        /outreach|פניי|שחזור|citation|פיץ|link[ _-]?gap|אזכור/i.test(text)
+    return (acq || hasExternalDomain) && (t.channel === 'seo' || t.type === 'other')
 }
 
 function linkTaskType(t: LinkTaskLike): string {
@@ -61,10 +75,15 @@ export function stampLinkTasks(
     rd: Record<string, unknown> | undefined,
     businessName: string,
 ): StampResult {
-    const updated = tasks.slice()
+    // Strip prior link-stamp fields first → idempotent + self-correcting.
+    const updated = tasks.map(t => {
+        const c: LinkTaskLike = { ...t }
+        for (const f of LINK_STAMP_FIELDS) delete c[f]
+        return c
+    })
     const linkIdx: number[] = []
     const pseudo: Array<{ type: string; domain: string; priority?: string }> = []
-    tasks.forEach((t, i) => {
+    updated.forEach((t, i) => {
         if (!isLinkTask(t)) return
         linkIdx.push(i)
         pseudo.push({ type: linkTaskType(t), domain: extractDomain(t), priority: t.priority })
