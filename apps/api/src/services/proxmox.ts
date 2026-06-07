@@ -225,7 +225,7 @@ const executeProxmoxSSH = (
     })
 }
 
-const generateProxmoxBashScript = (
+export const generateProxmoxBashScript = (
     rootPassword: string,
     subdomain: string,
     domain: string,
