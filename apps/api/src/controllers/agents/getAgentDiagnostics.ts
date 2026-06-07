@@ -6,7 +6,7 @@ import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 import { gatewayDefaults } from '@/lib/constants'
 
-const SEPARATOR = '---CLAWHOST_SEP---'
+const SEPARATOR = '---CLAWNODE_SEP---'
 
 const getAgentDiagnostics = async (c: AuthenticatedContext) => {
     try {

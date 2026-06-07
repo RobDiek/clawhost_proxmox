@@ -30,7 +30,7 @@ import { CheckIcon, XIcon, MinusIcon } from '@phosphor-icons/react'
 const Compare: FC = (): ReactNode => {
     const { competitors, categories } = getCompareData()
     const colSpan = competitors.length + 1
-    const clawhost = competitors.find((c) => c.highlighted)!
+    const clawnode = competitors.find((c) => c.highlighted)!
     const otherCompetitors = competitors.filter((c) => !c.highlighted)
     const [selectedCompetitorId, setSelectedCompetitorId] = useState(
         otherCompetitors[0].id
@@ -147,7 +147,7 @@ const Compare: FC = (): ReactNode => {
                 <div className='border-border overflow-hidden rounded-xl border lg:hidden'>
                     <CompareTableMobile
                         categories={categories}
-                        clawhost={clawhost}
+                        clawnode={clawnode}
                         selectedCompetitorId={selectedCompetitorId}
                         selectedCompetitorNameKey={selectedCompetitor.nameKey}
                         renderValue={renderValue}

@@ -18,7 +18,7 @@ interface ReleaseManifest {
     }>
 }
 
-const DEFAULT_PUBLIC_BASE_URL = 'https://cdn.clawhost.cloud/go'
+const DEFAULT_PUBLIC_BASE_URL = 'https://cdn.clawnode.cloud/go'
 const R2_REGION = 'auto'
 const R2_ENDPOINT_HOST = 'r2.cloudflarestorage.com'
 
@@ -42,9 +42,9 @@ const KEY_PREFIX = {
 } as const
 
 const STABLE_KEY = {
-    MAC_ARM64: 'go/clawhost-mac-arm64.dmg',
-    MAC_INTEL: 'go/clawhost-mac-intel.dmg',
-    WINDOWS: 'go/clawhost-windows.exe'
+    MAC_ARM64: 'go/clawnode-mac-arm64.dmg',
+    MAC_INTEL: 'go/clawnode-mac-intel.dmg',
+    WINDOWS: 'go/clawnode-windows.exe'
 } as const
 
 const STABLE_MAC_KEY: Record<MacArch, string> = {

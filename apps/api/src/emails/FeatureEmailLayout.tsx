@@ -38,11 +38,11 @@ const FeatureEmailLayout: FC<FeatureEmailLayoutProps> = ({
             <Body style={main}>
                 <Container style={container}>
                     <Section style={logoSection}>
-                        <Link href={externalUrls.CLAWHOST.BASE}>
+                        <Link href={externalUrls.CLAWNODE.BASE}>
                             <Img
                                 src={CDN_ASSETS.LOGO_DARK}
                                 width='140'
-                                alt='ClawHost'
+                                alt='ClawNode'
                                 style={logo}
                             />
                         </Link>

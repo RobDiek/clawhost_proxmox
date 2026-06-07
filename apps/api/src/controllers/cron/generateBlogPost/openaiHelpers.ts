@@ -18,7 +18,7 @@ const openaiHelpers = {
         const res = await openai.responses.create({
             model: MODEL,
             tools: [{ type: 'web_search_preview' }],
-            instructions: `You are a blog editor for ClawHost, the managed hosting platform for OpenClaw (an open-source AI agent framework). Your job is to find a trending topic in AI, tech, or open-source that can be written about from the perspective of OpenClaw and AI agents.
+            instructions: `You are a blog editor for ClawNode, the managed hosting platform for OpenClaw (an open-source AI agent framework). Your job is to find a trending topic in AI, tech, or open-source that can be written about from the perspective of OpenClaw and AI agents.
 
 Search the web for what is currently trending in AI news, AI agents, open-source AI, automation, or related technology topics.
 
@@ -60,11 +60,11 @@ Respond in EXACTLY this JSON format, nothing else:
         const res = await openai.responses.create({
             model: MODEL,
             tools: [{ type: 'web_search_preview' }],
-            instructions: `You are a senior technical writer for ClawHost, the managed hosting platform for OpenClaw.
+            instructions: `You are a senior technical writer for ClawNode, the managed hosting platform for OpenClaw.
 
 OpenClaw is an open-source AI agent framework with:
 - Browser automation
-- Runs on VPS or via ClawHost managed hosting
+- Runs on VPS or via ClawNode managed hosting
 - Uses AI models (Claude, GPT-4, local models via Ollama)
 - MIT licensed, ~140k GitHub stars
 - Created by Peter Steinberger

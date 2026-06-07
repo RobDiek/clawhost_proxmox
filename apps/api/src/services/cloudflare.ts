@@ -87,7 +87,7 @@ const cloudflare = {
 
         const client = getClient()
         const zoneId = getZoneId()
-        const fullName = `${subdomain}.${process.env.AGENT_DOMAIN || 'clawhost.cloud'}`
+        const fullName = `${subdomain}.${process.env.AGENT_DOMAIN || 'clawnode.cloud'}`
 
         const promise = client.dns.records
             .list({

@@ -5,7 +5,7 @@ import executeSSH from '@/services/ssh'
 import parseOverviewOutput from '@/controllers/agents/getAgentOverview/parsers'
 import { gatewayDefaults } from '@/lib/constants'
 
-const SEPARATOR = '---CLAWHOST_OVERVIEW_SEP---'
+const SEPARATOR = '---CLAWNODE_OVERVIEW_SEP---'
 
 const getAgentOverview = withAgent({
     requireSSH: 'api.failedToGetOverview'

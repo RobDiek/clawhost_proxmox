@@ -13,7 +13,7 @@ describe('checkSubdomainReady', () => {
         const result = await checkSubdomainReady('test-claw')
         expect(result).toBe(true)
         expect(fetch).toHaveBeenCalledWith(
-            'https://test-claw.clawhost.cloud',
+            'https://test-claw.clawnode.cloud',
             expect.objectContaining({ signal: expect.any(AbortSignal) })
         )
     })

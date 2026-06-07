@@ -27,7 +27,7 @@ const copyNodePty = (
     callback()
 }
 
-const APP_NAME = 'ClawHostGo'
+const APP_NAME = 'ClawNodeGo'
 const ENTITLEMENTS_PATH = './resources/entitlements.mac.plist'
 const ICON_PATH = './resources/icon'
 const EXTRA_RESOURCES = ['./resources/node']

@@ -282,7 +282,7 @@ runcmd:
   - echo 'root:${rootPassword}' | chpasswd
   - sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
   - sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
-  - printf 'PermitRootLogin yes\\nPasswordAuthentication yes\\n' > /etc/ssh/sshd_config.d/99-clawhost.conf
+  - printf 'PermitRootLogin yes\\nPasswordAuthentication yes\\n' > /etc/ssh/sshd_config.d/99-clawnode.conf
   - systemctl reload ssh || systemctl reload sshd || true
 
   - fallocate -l 2G /swapfile

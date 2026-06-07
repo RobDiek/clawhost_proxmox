@@ -17,7 +17,7 @@ const downloadGoBinary = async (
     }
     if (!url) throw new Error(`${platform} url missing`)
 
-    const filename = url.split('/').pop() || `clawhost-${platform}`
+    const filename = url.split('/').pop() || `clawnode-${platform}`
     const a = document.createElement('a')
     a.href = url
     a.download = decodeURIComponent(filename)

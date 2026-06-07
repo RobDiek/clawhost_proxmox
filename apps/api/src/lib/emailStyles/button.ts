@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react'
 
 const button: CSSProperties = {
-    background: 'linear-gradient(to right, #ef5350, #c62828)',
-    backgroundColor: '#ef5350',
+    background: 'linear-gradient(to right, #0072C6, #29F49A)',
+    backgroundColor: '#0072C6',
     borderRadius: '9999px',
     color: '#ffffff',
     fontSize: '15px',

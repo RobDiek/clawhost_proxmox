@@ -27,7 +27,7 @@ const repairAgent = async (c: AuthenticatedContext) => {
         const agentConfig = getAgentConfig(agent[0].agentType)
         const isHermes = !agentConfig.configFile
         const serviceFile = `/etc/systemd/system/${agentConfig.serviceName}.service`
-        const successMarker = 'CLAWHOST_REPAIR_OK'
+        const successMarker = 'CLAWNODE_REPAIR_OK'
 
         const sshFixes = [
             "sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config",

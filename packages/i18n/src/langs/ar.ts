@@ -26,10 +26,10 @@ const ar: Translations = {
         pageNotFound: 'الصفحة غير موجودة',
         closeNotification: 'إغلاق الإشعار',
         beta: 'تجريبي',
-        brandName: 'ClawHost',
-        brandNameGo: 'ClawHost Go',
-        brandNameGoVersion: 'ClawHost Go {{version}}',
-        pageTitleWithBrand: '{{title}} - ClawHost',
+        brandName: 'ClawNode',
+        brandNameGo: 'ClawNode Go',
+        brandNameGoVersion: 'ClawNode Go {{version}}',
+        pageTitleWithBrand: '{{title}} - ClawNode',
         menuFile: 'ملف',
         menuEdit: 'تحرير',
         menuView: 'عرض',
@@ -82,14 +82,14 @@ const ar: Translations = {
         goSubtitle: 'غير تقني'
     },
     go: {
-        pageTitle: 'ClawHost Go',
+        pageTitle: 'ClawNode Go',
         heroTitle1: 'انشر OpenClaw.',
         heroTitle2: 'محلياً. فوراً.',
         badge: 'OpenClaw وHermes محلياً',
         description:
             'تطبيق سطح مكتب خفيف لإدارة مثيلات OpenClaw الخاصة بك. انشر وراقب وتحكم في claws الخاصة بك — مباشرة من جهازك.',
         features: 'الميزات',
-        whyClawHostGo: 'ميزات شاملة',
+        whyClawNodeGo: 'ميزات شاملة',
         featuresDescription: 'لماذا نستحق التجربة، الميزات لا تكذب.',
         zeroConfigDescription:
             'وفّر ساعات من إعداد الخادم وOpenClaw وHermes. مثبتة مسبقًا وجاهزة في دقائق.',
@@ -133,25 +133,25 @@ const ar: Translations = {
         comparisonUpdatesOthers: 'تحديثات تلقائية',
         faqTitle: 'أسئلة',
         faqHeading: 'أسئلة شائعة',
-        faqDescription: 'كل ما تحتاج معرفته عن ClawHost Go.',
-        faq1Question: 'ما هو ClawHost Go؟',
+        faqDescription: 'كل ما تحتاج معرفته عن ClawNode Go.',
+        faq1Question: 'ما هو ClawNode Go؟',
         faq1Answer:
-            'ClawHost Go هو تطبيق سطح مكتب خفيف يتيح لك تشغيل OpenClaw محلياً على جهازك. لا حاجة لخوادم سحابية — ثبّت وشغّل وابدأ استخدام OpenClaw في ثوانٍ.',
-        faq2Question: 'كيف يختلف Go عن ClawHost Cloud؟',
+            'ClawNode Go هو تطبيق سطح مكتب خفيف يتيح لك تشغيل OpenClaw محلياً على جهازك. لا حاجة لخوادم سحابية — ثبّت وشغّل وابدأ استخدام OpenClaw في ثوانٍ.',
+        faq2Question: 'كيف يختلف Go عن ClawNode Cloud؟',
         faq2Answer:
-            'ClawHost Cloud ينشر OpenClaw على خوادم بعيدة مخصصة مع تشغيل على مدار الساعة ووصول عالمي. ClawHost Go يشغّل كل شيء محلياً على جهازك — مثالي للخصوصية والاستخدام دون اتصال والإعدادات البسيطة.',
+            'ClawNode Cloud ينشر OpenClaw على خوادم بعيدة مخصصة مع تشغيل على مدار الساعة ووصول عالمي. ClawNode Go يشغّل كل شيء محلياً على جهازك — مثالي للخصوصية والاستخدام دون اتصال والإعدادات البسيطة.',
         faq3Question: 'هل أحتاج إلى اتصال بالإنترنت؟',
         faq3Answer:
-            'ClawHost Go يعمل بدون اتصال للاستخدام المحلي. الاتصال بالإنترنت مطلوب فقط للإعداد الأولي والتحديثات وأي ميزات تتطلب استدعاءات API خارجية.',
+            'ClawNode Go يعمل بدون اتصال للاستخدام المحلي. الاتصال بالإنترنت مطلوب فقط للإعداد الأولي والتحديثات وأي ميزات تتطلب استدعاءات API خارجية.',
         faq4Question: 'هل الترخيص دفعة واحدة؟',
         faq4Answer:
-            'نعم. تدفع مرة واحدة وتحصل على وصول مدى الحياة إلى ClawHost Go، بما في ذلك جميع التحديثات المستقبلية. لا اشتراكات، لا رسوم متكررة.',
+            'نعم. تدفع مرة واحدة وتحصل على وصول مدى الحياة إلى ClawNode Go، بما في ذلك جميع التحديثات المستقبلية. لا اشتراكات، لا رسوم متكررة.',
         faq5Question: 'ما أنظمة التشغيل المدعومة؟',
         faq5Answer:
-            'ClawHost Go يدعم Windows وmacOS. كلا النظامين يحصلان على نفس الميزات ويتلقيان التحديثات في وقت واحد.',
+            'ClawNode Go يدعم Windows وmacOS. كلا النظامين يحصلان على نفس الميزات ويتلقيان التحديثات في وقت واحد.',
         faq6Question: 'هل يمكنني الانتقال من Go إلى Cloud لاحقاً؟',
         faq6Answer:
-            'بالتأكيد. يمكنك تصدير إعدادات OpenClaw من Go ونشرها على ClawHost Cloud في أي وقت. كلا المنصتين متوافقتان بالكامل.',
+            'بالتأكيد. يمكنك تصدير إعدادات OpenClaw من Go ونشرها على ClawNode Cloud في أي وقت. كلا المنصتين متوافقتان بالكامل.',
         statsPrice: '${{price}}',
         statsLifetime: 'مدى الحياة',
         statsOneTime: 'دفعة واحدة',
@@ -166,7 +166,7 @@ const ar: Translations = {
         downloadForMac: 'تنزيل لـ Mac',
         downloadVersion: 'الإصدار {{version}}',
         downloadForWindows: 'تنزيل لـ Windows',
-        deviceNotSupported: 'جهازك غير مدعوم بعد بواسطة ClawHost Go.',
+        deviceNotSupported: 'جهازك غير مدعوم بعد بواسطة ClawNode Go.',
         downloadFailed: 'فشل التنزيل!',
         downloadStarted: 'بدأ التنزيل.',
         appleSilicon: 'Apple Silicon',
@@ -214,7 +214,7 @@ const ar: Translations = {
     },
     footer: {
         website: 'الموقع',
-        copyrightName: 'ClawHost',
+        copyrightName: 'ClawNode',
         copyrightRights: 'جميع الحقوق محفوظة.',
         termsOfService: 'شروط الخدمة',
         privacyPolicy: 'سياسة الخصوصية',
@@ -234,7 +234,7 @@ const ar: Translations = {
         affiliateProgram: 'برنامج الإحالة',
         documentation: 'التوثيق',
         productDescription:
-            'انشر وكلاء OpenClaw وHermes في السحابة أو محلياً بنقرة واحدة — ابنِ واربط ووسّع وكلاء الذكاء الاصطناعي أسرع مع ClawHost.',
+            'انشر وكلاء OpenClaw وHermes في السحابة أو محلياً بنقرة واحدة — ابنِ واربط ووسّع وكلاء الذكاء الاصطناعي أسرع مع ClawNode.',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -505,12 +505,12 @@ const ar: Translations = {
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
     emails: {
-        otpSubject: 'رمز تسجيل الدخول إلى ClawHost',
-        otpPreview: 'رمز تسجيل الدخول إلى ClawHost: {{code}}',
+        otpSubject: 'رمز تسجيل الدخول إلى ClawNode',
+        otpPreview: 'رمز تسجيل الدخول إلى ClawNode: {{code}}',
         otpHeading: 'رمز تسجيل الدخول الخاص بك هو:',
         otpExpiry:
             'تنتهي صلاحية الرمز خلال 10 دقائق. إذا لم تكن أنت، تجاهل هذا البريد.',
-        featureFooter: 'تتلقى هذا البريد لأن لديك حساباً في ClawHost.',
+        featureFooter: 'تتلقى هذا البريد لأن لديك حساباً في ClawNode.',
         features: {
             terminal: {
                 subject: 'هل تعلم؟ لديك طرفية ويب',
@@ -518,7 +518,7 @@ const ar: Translations = {
                 tag: 'الطرفية الويب',
                 heading: 'خادمك على بعد نقرة واحدة',
                 description:
-                    'الوصول إلى خادمك مباشرة من متصفحك عبر الطرفية المدمجة. لا حاجة لعميل SSH — فقط افتح ClawHost وابدأ بكتابة الأوامر.',
+                    'الوصول إلى خادمك مباشرة من متصفحك عبر الطرفية المدمجة. لا حاجة لعميل SSH — فقط افتح ClawNode وابدأ بكتابة الأوامر.',
                 cta: 'فتح الطرفية'
             },
             logs: {
@@ -527,7 +527,7 @@ const ar: Translations = {
                 tag: 'السجلات المباشرة',
                 heading: 'شاهد ما يفعله خادمك',
                 description:
-                    'راقب سجلات خادمك في الوقت الفعلي من لوحة تحكم ClawHost. شخّص المشاكل وتتبّع عمليات النشر وأصلح تطبيقاتك دون مغادرة المتصفح.',
+                    'راقب سجلات خادمك في الوقت الفعلي من لوحة تحكم ClawNode. شخّص المشاكل وتتبّع عمليات النشر وأصلح تطبيقاتك دون مغادرة المتصفح.',
                 cta: 'عرض السجلات'
             },
             fileExplorer: {
@@ -536,7 +536,7 @@ const ar: Translations = {
                 tag: 'مستكشف الملفات',
                 heading: 'ملفاتك في متناول يدك',
                 description:
-                    'تصفّح واقرأ وحرّر الملفات على خادمك مباشرة من لوحة تحكم ClawHost. تلوين بناء الجمل والبحث والحفظ الفوري — بدون SSH.',
+                    'تصفّح واقرأ وحرّر الملفات على خادمك مباشرة من لوحة تحكم ClawNode. تلوين بناء الجمل والبحث والحفظ الفوري — بدون SSH.',
                 cta: 'فتح مستكشف الملفات'
             },
             diagnostics: {
@@ -549,12 +549,12 @@ const ar: Translations = {
                 cta: 'تشغيل التشخيصات'
             },
             sshKeys: {
-                subject: 'هل تعلم؟ إدارة مفاتيح SSH من ClawHost',
+                subject: 'هل تعلم؟ إدارة مفاتيح SSH من ClawNode',
                 preview: 'أنشئ وأدر أزواج مفاتيح SSH في لوحة التحكم',
                 tag: 'مفاتيح SSH',
                 heading: 'مفاتيح SSH مبسّطة',
                 description:
-                    'أنشئ أزواج مفاتيح SSH وانسخ المفاتيح العامة ونزّل المفاتيح الخاصة — كل ذلك من لوحة تحكم ClawHost. خصّص المفاتيح للمخالب للوصول الآمن.',
+                    'أنشئ أزواج مفاتيح SSH وانسخ المفاتيح العامة ونزّل المفاتيح الخاصة — كل ذلك من لوحة تحكم ClawNode. خصّص المفاتيح للمخالب للوصول الآمن.',
                 cta: 'إدارة مفاتيح SSH'
             },
             exportConfig: {
@@ -567,12 +567,12 @@ const ar: Translations = {
                 cta: 'تصدير الإعدادات'
             },
             multiLanguage: {
-                subject: 'هل تعلم؟ ClawHost يتحدث لغتك',
-                preview: 'استخدم ClawHost بـ 14 لغة',
+                subject: 'هل تعلم؟ ClawNode يتحدث لغتك',
+                preview: 'استخدم ClawNode بـ 14 لغة',
                 tag: 'متعدد اللغات',
-                heading: 'ClawHost بلغتك',
+                heading: 'ClawNode بلغتك',
                 description:
-                    'بدّل لوحة تحكم ClawHost بالكامل إلى أي من 14 لغة. كل شيء من الأزرار إلى رسائل الخطأ — مترجم بالكامل.',
+                    'بدّل لوحة تحكم ClawNode بالكامل إلى أي من 14 لغة. كل شيء من الأزرار إلى رسائل الخطأ — مترجم بالكامل.',
                 cta: 'تغيير اللغة'
             },
             subdomain: {
@@ -585,12 +585,12 @@ const ar: Translations = {
                 cta: 'عرض نطاقك الفرعي'
             },
             darkMode: {
-                subject: 'هل تعلم؟ ClawHost يدعم الوضع الداكن',
+                subject: 'هل تعلم؟ ClawNode يدعم الوضع الداكن',
                 preview: 'بدّل بين السمات الفاتحة والداكنة',
                 tag: 'الوضع الداكن',
                 heading: 'مريح للعيون',
                 description:
-                    'بدّل بين السمات الفاتحة والداكنة في لوحة تحكم ClawHost. يتم حفظ تفضيلك وتطبيقه تلقائياً في كل زيارة.',
+                    'بدّل بين السمات الفاتحة والداكنة في لوحة تحكم ClawNode. يتم حفظ تفضيلك وتطبيقه تلقائياً في كل زيارة.',
                 cta: 'جرّب الوضع الداكن'
             },
             reinstall: {
@@ -616,7 +616,7 @@ const ar: Translations = {
     auth: {
         signIn: 'المصادقة',
         signInDescription:
-            'سجّل الدخول إلى حساب ClawHost لإدارة نسخ OpenClaw الخاصة بك.',
+            'سجّل الدخول إلى حساب ClawNode لإدارة نسخ OpenClaw الخاصة بك.',
         signingIn: 'جارٍ المصادقة...',
         verifyCode: 'التحقق من الرمز',
         checkYourEmail: 'تحقق من بريدك الإلكتروني',
@@ -624,7 +624,7 @@ const ar: Translations = {
         codeSentTo: 'أرسلنا رمزاً مكوناً من 6 أرقام إلى',
         signInToDeployOpenClaw: 'قم بالمصادقة لإدارة ونشر الوكلاء بنقرة واحدة.',
         emailAddress: 'البريد الإلكتروني',
-        emailPlaceholder: 'example@clawhost.cloud',
+        emailPlaceholder: 'example@clawnode.cloud',
         continueWithEmail: 'المتابعة بالبريد الإلكتروني',
         otpDescription: 'سنرسل لك رمزاً لتسجيل الدخول. لا حاجة لكلمة مرور.',
         welcomeBack: 'مرحباً بعودتك.',
@@ -645,7 +645,7 @@ const ar: Translations = {
     },
     account: {
         title: 'الحساب',
-        description: 'إدارة إعدادات حساب ClawHost ومعلومات الملف الشخصي.',
+        description: 'إدارة إعدادات حساب ClawNode ومعلومات الملف الشخصي.',
         accountSettings: 'الحساب',
         manageYourAccount: 'إدارة ملفك الشخصي وإعدادات الحساب.',
         profileInformation: 'معلومات الملف الشخصي',
@@ -716,7 +716,7 @@ const ar: Translations = {
         pageTitle: 'الترخيص',
         pageDescription:
             'اشترِ ترخيصك لاستضافة نسخ OpenClaw محلياً باستخدام تطبيق Go.',
-        planName: 'ترخيص ClawHost Go',
+        planName: 'ترخيص ClawNode Go',
         oneTimePurchase: 'شراء لمرة واحدة',
         price: '${{price}}',
         priceNote: 'ادفع مرة واحدة وامتلكه للأبد.',
@@ -734,7 +734,7 @@ const ar: Translations = {
         whatsIncluded: 'ما يتضمنه',
         gateTitle: 'مطلوب ترخيص',
         gateDescription:
-            'تحتاج ترخيص ClawHost Go لنشر وإدارة نسخ OpenClaw محلياً.'
+            'تحتاج ترخيص ClawNode Go لنشر وإدارة نسخ OpenClaw محلياً.'
     },
     network: {
         offline: 'لا يوجد اتصال بالإنترنت',
@@ -901,7 +901,7 @@ const ar: Translations = {
             'قد يستغرق هذا بعض الوقت. يعتمد على OpenClaw وموقع الخادم و Cloudflare DNS.',
         paymentSuccess: 'جارٍ إنشاء وتهيئة مخلبك.',
         dnsSetupBanner:
-            'قم بإعداد DNS المحلي للوصول إلى مخالبك عبر subdomain.clawhost.',
+            'قم بإعداد DNS المحلي للوصول إلى مخالبك عبر subdomain.clawnode.',
         dnsSetupButton: 'إعداد DNS',
         dnsSetupSuccess: 'تم تهيئة محلل DNS بنجاح.',
         dnsSetupError: 'فشل في تهيئة محلل DNS !',
@@ -1053,14 +1053,14 @@ const ar: Translations = {
             'انشر OpenClaw على خادم VPS الخاص بك بنقرة واحدة. استضافة سحابية ذاتية مع وصول كامل للجذر ومواقع عالمية وأسعار شفافة.',
         badge: 'OpenClaw وHermes في السحابة',
         tutorialBadge: 'شاهد. انشر.',
-        tutorialVideoThumbnail: 'صورة مصغرة لفيديو شرح ClawHost',
-        clawhostGoLogoAlt: 'ClawHost Go',
+        tutorialVideoThumbnail: 'صورة مصغرة لفيديو شرح ClawNode',
+        clawnodeGoLogoAlt: 'ClawNode Go',
         trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
         macosPreviewTime: '22:12',
         heroTitle1: 'انشر OpenClaw.',
         heroTitle2: 'بنقرة واحدة. انتهى.',
         heroDescription:
-            'انشر وكلاء OpenClaw وHermes في السحابة أو محلياً بنقرة واحدة — ابنِ واربط ووسّع وكلاء الذكاء الاصطناعي بشكل أسرع مع ClawHost.',
+            'انشر وكلاء OpenClaw وHermes في السحابة أو محلياً بنقرة واحدة — ابنِ واربط ووسّع وكلاء الذكاء الاصطناعي بشكل أسرع مع ClawNode.',
         selfHost: 'مفتوح المصدر',
         startingPrice: 'بدءاً من',
         locations: 'المواقع',
@@ -1068,7 +1068,7 @@ const ar: Translations = {
         zeroCount: 'صفر',
         zeroConfig: 'بدون تهيئة',
         features: 'الميزات',
-        whyClawHost: 'ميزات شاملة',
+        whyClawNode: 'ميزات شاملة',
         featuresDescription: 'لماذا نستحق التجربة، الميزات لا تكذب.',
         zeroConfigDescription:
             'تخطَّ ساعات إعداد الخادم وOpenClaw. مثبت مسبقاً وجاهز خلال دقائق.',
@@ -1163,19 +1163,19 @@ const ar: Translations = {
         faqTitle: 'أسئلة',
         frequentlyAskedQuestions: 'أسئلة شائعة',
         faqDescription: 'كل سؤال شائع، مُجاب عنه.',
-        faq1Question: 'ما هو ClawHost؟',
+        faq1Question: 'ما هو ClawNode؟',
         faq1Answer:
-            'ClawHost هو منصة بُنيت لجعل OpenClaw وHermes في متناول الجميع. تتيح للمستخدمين غير التقنيين والمطورين على حد سواء تشغيلهما دون إدارة البنية التحتية. نحن نتولى الخوادم، ووقت التشغيل، والأمان، والصيانة — أنت فقط تستخدم وكلاءك.',
+            'ClawNode هو منصة بُنيت لجعل OpenClaw وHermes في متناول الجميع. تتيح للمستخدمين غير التقنيين والمطورين على حد سواء تشغيلهما دون إدارة البنية التحتية. نحن نتولى الخوادم، ووقت التشغيل، والأمان، والصيانة — أنت فقط تستخدم وكلاءك.',
         faq2Question: 'ما هو OpenClaw؟',
         faq2Answer:
             'OpenClaw هو طبقة وصول آمنة ذاتية الاستضافة لأدوات وخدمات الذكاء الاصطناعي. مُهيأ مسبقاً للأمان والأداء، حتى تتمكن من نشره والاتصال فوراً.',
         faqHermesQuestion: 'ما هو Hermes؟',
         faqHermesAnswer:
-            'Hermes هو وكيل ذكاء اصطناعي مستقل مزود بتصفح الويب، وإدارة التقويم، والاستدلال متعدد النماذج، وأتمتة المتصفح. يأتي مثبتًا مسبقًا إلى جانب OpenClaw على كل خادم ClawHost.',
+            'Hermes هو وكيل ذكاء اصطناعي مستقل مزود بتصفح الويب، وإدارة التقويم، والاستدلال متعدد النماذج، وأتمتة المتصفح. يأتي مثبتًا مسبقًا إلى جانب OpenClaw على كل خادم ClawNode.',
         faq3Question:
             'كيف يختلف هذا عن أدوات الذكاء الاصطناعي الأخرى أو المنصات المستضافة؟',
         faq3Answer:
-            'على عكس أدوات الذكاء الاصطناعي المستضافة، يمنحك ClawHost خادمًا حقيقيًا بـ OpenClaw وHermes مثبتَين. أنت تملك البنية التحتية، وتتحكم في كل شيء، ولست مقيدًا بمنصة أو نموذج مشترك.',
+            'على عكس أدوات الذكاء الاصطناعي المستضافة، يمنحك ClawNode خادمًا حقيقيًا بـ OpenClaw وHermes مثبتَين. أنت تملك البنية التحتية، وتتحكم في كل شيء، ولست مقيدًا بمنصة أو نموذج مشترك.',
         faq4Question: 'هل أحتاج معرفة تقنية؟',
         faq4Answer:
             'لا. نحن نتولى كل البنية التحتية، والإعداد، والصيانة. يمكنك تكوين وإدارة OpenClaw من خلال واجهته، بينما يعمل Hermes عبر أوامر طرفية بسيطة — دون لمس الخوادم أو البنية التحتية.',
@@ -1232,8 +1232,8 @@ const ar: Translations = {
     },
     changelog: {
         title: 'سجل التغييرات',
-        description: 'تتبع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
-        subtitle: 'جميع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
+        description: 'تتبع التحديثات والميزات الجديدة والتحسينات في ClawNode.',
+        subtitle: 'جميع التحديثات والميزات الجديدة والتحسينات في ClawNode.',
         release17Date: 'May 1, 2026',
         release17Title: 'Hermes Agents One-Click Deployment',
         release17Description:
@@ -1269,7 +1269,7 @@ const ar: Translations = {
         release15Description:
             'تبسيط المنصة بنقل الميزات المُدارة إلى OpenClaw، وإزالة عرض الملعب، وتقديم نطاقات فرعية مخصصة قابلة للتغيير.',
         release15Feature1:
-            'تبسيط ونقل الميزات المُدارة إلى OpenClaw، لا مزيد من دردشة ClawHost والوكلاء والقنوات والمتغيرات والمهارات',
+            'تبسيط ونقل الميزات المُدارة إلى OpenClaw، لا مزيد من دردشة ClawNode والوكلاء والقنوات والمتغيرات والمهارات',
         release15Feature2:
             'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
         release15Feature3:
@@ -1291,13 +1291,13 @@ const ar: Translations = {
         release12Date: '14 مارس 2026',
         release12Title: 'خطط سنوية ووضع الصوت والمزيد',
         release12Description:
-            'اشتراكات سنوية مع شهرين مجاناً ووضع الصوت وإعادة تثبيت النسخة وصفحة هبوط أولية لـ ClawHost Go.',
+            'اشتراكات سنوية مع شهرين مجاناً ووضع الصوت وإعادة تثبيت النسخة وصفحة هبوط أولية لـ ClawNode Go.',
         release12Feature1:
-            'صفحة هبوط لـ ClawHost Go، الاستضافة المحلية مع ClawHost',
+            'صفحة هبوط لـ ClawNode Go، الاستضافة المحلية مع ClawNode',
         release12Feature2:
             'دعم الاشتراك السنوي مع شهرين مجاناً عند الاشتراك سنوياً',
         release12Feature3:
-            'وضع الصوت للتفاعل مع وكلاء OpenClaw المستضافين على ClawHost',
+            'وضع الصوت للتفاعل مع وكلاء OpenClaw المستضافين على ClawNode',
         release12Feature4:
             'إعادة تثبيت OpenClaw على نسختك للبدء من جديد، متاح مرة واحدة يومياً',
         release11Date: '28 فبراير 2026',
@@ -1363,7 +1363,7 @@ const ar: Translations = {
         release1Date: '8 فبراير 2026',
         release1Title: 'الإصدار الأول',
         release1Description:
-            'الإصدار الرسمي الأول من ClawHost. انشر OpenClaw على خادم VPS الخاص بك بنقرة واحدة.',
+            'الإصدار الرسمي الأول من ClawNode. انشر OpenClaw على خادم VPS الخاص بك بنقرة واحدة.',
         release1Feature1: 'نشر OpenClaw بنقرة واحدة',
         release1Feature2:
             'لوحة تحكم لإدارة المخالب وتشغيل وإيقاف وإعادة تشغيل وحذف النسخ',
@@ -1380,7 +1380,7 @@ const ar: Translations = {
         release2Date: '8 فبراير 2026',
         release2Title: 'سجل التغييرات والمزيد',
         release2Description:
-            'طريقة جديدة للبقاء على اطلاع بكل ما يتعلق بـ ClawHost.',
+            'طريقة جديدة للبقاء على اطلاع بكل ما يتعلق بـ ClawNode.',
         release2Feature1:
             'صفحة سجل التغييرات لتتبع جميع تحديثات وإصدارات المنصة',
         release3Date: '10 فبراير 2026',
@@ -1507,7 +1507,7 @@ const ar: Translations = {
         awaitingPaymentAction: 'إتمام الدفع',
         loadingTip1: 'هل تعلم أنه يمكنك تشغيل وكلاء متعددين في OpenClaw واحد؟',
         loadingTip2: 'هل تعلم أن OpenClaw مفتوح المصدر؟',
-        loadingTip3: 'ClawHost هو أول مشروع يتيح استضافة OpenClaw بنقرة واحدة.',
+        loadingTip3: 'ClawNode هو أول مشروع يتيح استضافة OpenClaw بنقرة واحدة.',
         loadingTip4: 'يمكنك الوصول إلى وكيلك عبر SSH أو الطرفية المدمجة.',
         loadingTip5: 'يحصل وكيلك على نطاق فرعي خاص به تلقائيًا.',
         loadingTip6: 'يمكنك تخصيص أيقونة واسم وكيلك في أي وقت من الإعدادات.',
@@ -1521,7 +1521,7 @@ const ar: Translations = {
         loadingTip12:
             'يمكنك تدوير كلمة مرور الجذر ورمز البوابة من تبويب الأمان.',
         loadingTip13:
-            'يدعم ClawHost خوادم في مناطق متعددة عبر أوروبا والولايات المتحدة.',
+            'يدعم ClawNode خوادم في مناطق متعددة عبر أوروبا والولايات المتحدة.',
         tabSettings: 'الإعدادات',
         featureVersionUnsupported: '{{feature}} غير مدعوم على {{version}}',
         featureVersionUnsupportedDescription:
@@ -1663,14 +1663,14 @@ const ar: Translations = {
     privacy: {
         title: 'سياسة الخصوصية',
         description:
-            'تعرف على كيفية جمع واستخدام وحماية ClawHost لبياناتك الشخصية.',
+            'تعرف على كيفية جمع واستخدام وحماية ClawNode لبياناتك الشخصية.',
         lastUpdated: 'آخر تحديث: 14 مارس 2026',
         introTitle: '1. المقدمة',
         introText:
-            'ClawHost ("نحن" أو "لنا") ملتزمة بحماية خصوصيتك. توضح سياسة الخصوصية هذه كيف نجمع ونستخدم ونكشف ونحمي معلوماتك عند استخدام خدمتنا.',
+            'ClawNode ("نحن" أو "لنا") ملتزمة بحماية خصوصيتك. توضح سياسة الخصوصية هذه كيف نجمع ونستخدم ونكشف ونحمي معلوماتك عند استخدام خدمتنا.',
         authTitle: '2. المصادقة',
         authText:
-            'يستخدم ClawHost مصادقة Google Firebase لإدارة حسابات المستخدمين. يمكنك تسجيل الدخول بالبريد الإلكتروني أو Google أو GitHub. باستخدام طرق تسجيل الدخول هذه، توافق على شروطها وسياسات خصوصيتها. قد يجمع هؤلاء المزودون بيانات أساسية مثل عنوان بريدك الإلكتروني واسمك ومعلومات الجهاز. نحن نخزن فقط عنوان بريدك الإلكتروني واسم العرض.',
+            'يستخدم ClawNode مصادقة Google Firebase لإدارة حسابات المستخدمين. يمكنك تسجيل الدخول بالبريد الإلكتروني أو Google أو GitHub. باستخدام طرق تسجيل الدخول هذه، توافق على شروطها وسياسات خصوصيتها. قد يجمع هؤلاء المزودون بيانات أساسية مثل عنوان بريدك الإلكتروني واسمك ومعلومات الجهاز. نحن نخزن فقط عنوان بريدك الإلكتروني واسم العرض.',
         collectTitle: '3. المعلومات التي نجمعها',
         collectText: 'نجمع المعلومات بالطرق التالية:',
         personalInfoTitle: 'المعلومات الشخصية',
@@ -1719,7 +1719,7 @@ const ar: Translations = {
             'قد يتم نقل معلوماتك ومعالجتها في دول غير دولتك. نضمن وجود ضمانات مناسبة لحماية بياناتك وفقاً لسياسة الخصوصية هذه.',
         eligibilityTitle: '11. الأهلية',
         eligibilityText:
-            'خدمتنا متاحة للجميع. لا توجد قيود عمرية لاستخدام ClawHost.',
+            'خدمتنا متاحة للجميع. لا توجد قيود عمرية لاستخدام ClawNode.',
         changesTitle: '12. التغييرات على هذه السياسة',
         changesText:
             'قد نحدّث سياسة الخصوصية هذه من وقت لآخر. سنخطرك بأي تغييرات عبر نشر سياسة الخصوصية الجديدة على هذه الصفحة وتحديث تاريخ "آخر تحديث".',
@@ -1729,17 +1729,17 @@ const ar: Translations = {
     },
     terms: {
         title: 'شروط الخدمة',
-        description: 'اقرأ الشروط والأحكام لاستخدام خدمات ClawHost.',
+        description: 'اقرأ الشروط والأحكام لاستخدام خدمات ClawNode.',
         lastUpdated: 'آخر تحديث: 14 مارس 2026',
         acceptanceTitle: '1. قبول الشروط',
         acceptanceText:
-            'بالوصول إلى واستخدام ClawHost ("الخدمة")، فإنك تقبل وتوافق على الالتزام بشروط وأحكام هذه الاتفاقية. إذا لم توافق على هذه الشروط، يرجى عدم استخدام خدمتنا.',
+            'بالوصول إلى واستخدام ClawNode ("الخدمة")، فإنك تقبل وتوافق على الالتزام بشروط وأحكام هذه الاتفاقية. إذا لم توافق على هذه الشروط، يرجى عدم استخدام خدمتنا.',
         serviceTitle: '2. وصف الخدمة',
         serviceText:
-            'يوفر ClawHost نشرًا بنقرة واحدة لـ OpenClaw وHermes على خوادم مخصصة. نمكّن المستخدمين من نشر مثيلات OpenClaw وHermes المُعدّة مسبقًا وإدارتها والوصول إليها بصلاحيات root كاملة وموارد مخصصة.',
+            'يوفر ClawNode نشرًا بنقرة واحدة لـ OpenClaw وHermes على خوادم مخصصة. نمكّن المستخدمين من نشر مثيلات OpenClaw وHermes المُعدّة مسبقًا وإدارتها والوصول إليها بصلاحيات root كاملة وموارد مخصصة.',
         authTitle: '3. المصادقة',
         authText:
-            'يستخدم ClawHost مصادقة Google Firebase لإدارة تسجيل الدخول. يمكنك المصادقة بالبريد الإلكتروني أو Google أو GitHub. باستخدام هذه الطرق، توافق على الشروط وسياسات الخصوصية الخاصة بـ Google وGitHub. قد يجمع هؤلاء المزودون معلومات أساسية مثل عنوان بريدك الإلكتروني واسمك وبيانات الجهاز.',
+            'يستخدم ClawNode مصادقة Google Firebase لإدارة تسجيل الدخول. يمكنك المصادقة بالبريد الإلكتروني أو Google أو GitHub. باستخدام هذه الطرق، توافق على الشروط وسياسات الخصوصية الخاصة بـ Google وGitHub. قد يجمع هؤلاء المزودون معلومات أساسية مثل عنوان بريدك الإلكتروني واسمك وبيانات الجهاز.',
         responsibilitiesTitle: '4. مسؤوليات المستخدم',
         responsibilitiesText: 'أنت توافق على:',
         responsibilitiesAccurate: 'تقديم معلومات تسجيل دقيقة وكاملة',
@@ -1769,19 +1769,19 @@ const ar: Translations = {
             'نسعى للحفاظ على توفر عالٍ لكن لا نضمن الوصول المتواصل إلى الخدمة. نحتفظ بالحق في تعديل أو تعليق أو إيقاف أي جزء من الخدمة في أي وقت مع أو بدون إشعار.',
         liabilityTitle: '8. تحديد المسؤولية',
         liabilityText:
-            'إلى أقصى حد يسمح به القانون، لن يكون ClawHost مسؤولاً عن أي أضرار غير مباشرة أو عرضية أو خاصة أو تبعية أو عقابية، أو أي خسارة في الأرباح أو الإيرادات، سواء تم تكبدها مباشرة أو غير مباشرة.',
+            'إلى أقصى حد يسمح به القانون، لن يكون ClawNode مسؤولاً عن أي أضرار غير مباشرة أو عرضية أو خاصة أو تبعية أو عقابية، أو أي خسارة في الأرباح أو الإيرادات، سواء تم تكبدها مباشرة أو غير مباشرة.',
         terminationTitle: '9. الإنهاء',
         terminationText:
             'قد ننهي أو نعلق حسابك ووصولك إلى الخدمة فوراً، بدون إشعار مسبق، لسلوك نعتقد أنه ينتهك هذه الشروط أو يضر بالمستخدمين الآخرين أو بنا أو بأطراف ثالثة، أو لأي سبب آخر.',
         affiliateTitle: '10. Affiliate Program',
         affiliateText:
-            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+            'ClawNode offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
         affiliateCodeUnique:
             'Each user receives a unique referral code upon registration, which can be customized once.',
         affiliateCodeOneChange:
             'The referral code can only be changed one time. Choose your custom code carefully.',
         affiliateReferralWindow:
-            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+            'A referral is valid for 6 months from when the referred user first visits ClawNode with your referral link. After 6 months, the referral expires.',
         affiliateNoSelfReferral:
             'Self-referrals are not permitted. You may not refer your own accounts.',
         affiliateAbuse:
@@ -1794,16 +1794,16 @@ const ar: Translations = {
     },
     hermesBanner: {
         title: 'Hermes Agent',
-        message: 'أصبح وكلاء Hermes مدعومين الآن للنشر على ClawHost.'
+        message: 'أصبح وكلاء Hermes مدعومين الآن للنشر على ClawNode.'
     },
     compare: {
         title: 'مقارنة',
-        description: 'شاهد كيف يقارن ClawHost بمنصات استضافة OpenClaw الأخرى.',
+        description: 'شاهد كيف يقارن ClawNode بمنصات استضافة OpenClaw الأخرى.',
         badge: 'مقارنة',
         feature: 'المنصة',
         compareWith: 'قارن مع',
         lastUpdated: 'آخر تحديث: مارس 2026',
-        competitorClawHost: 'ClawHost',
+        competitorClawNode: 'ClawNode',
         competitorLobsterFarm: 'LobsterFarm',
         competitorSimpleAgent: 'SimpleAgent',
         competitorMyAgentAi: 'MyAgent.ai',
@@ -2038,7 +2038,7 @@ const ar: Translations = {
     },
     affiliate: {
         title: 'Affiliate',
-        description: 'Earn rewards by referring friends to ClawHost.',
+        description: 'Earn rewards by referring friends to ClawNode.',
         subtitle: 'Share your referral link and earn rewards.',
         learnMore: 'تعرف على المزيد حول برنامج الإحالة',
         referralCode: 'Referral Code',
@@ -2071,25 +2071,25 @@ const ar: Translations = {
     affiliateProgram: {
         title: 'برنامج الشراكة',
         description:
-            'تعرّف على كيفية عمل برنامج شراكة ClawHost، وكم يمكنك أن تكسب، وقواعد المشاركة.',
+            'تعرّف على كيفية عمل برنامج شراكة ClawNode، وكم يمكنك أن تكسب، وقواعد المشاركة.',
         lastUpdated: 'آخر تحديث: 1 أبريل 2026',
         overviewTitle: '1. نظرة عامة',
         overviewText:
-            'يتيح لك برنامج شراكة ClawHost كسب مكافآت عن طريق إحالة مستخدمين جدد إلى ClawHost. عندما يقوم شخص ما بإجراء عملية شراء بعد زيارة ClawHost من خلال رابط الإحالة الخاص بك، تكسب عمولة على مدفوعاته. البرنامج مجاني للانضمام ومتاح لجميع مستخدمي ClawHost المسجلين.',
+            'يتيح لك برنامج شراكة ClawNode كسب مكافآت عن طريق إحالة مستخدمين جدد إلى ClawNode. عندما يقوم شخص ما بإجراء عملية شراء بعد زيارة ClawNode من خلال رابط الإحالة الخاص بك، تكسب عمولة على مدفوعاته. البرنامج مجاني للانضمام ومتاح لجميع مستخدمي ClawNode المسجلين.',
         howItWorksTitle: '2. كيف يعمل',
         howItWorksText: 'البدء في برنامج الشراكة بسيط:',
         howItWorksStep1:
-            'أنشئ حساب ClawHost. يتم إنشاء رمز إحالة فريد لك تلقائيًا.',
+            'أنشئ حساب ClawNode. يتم إنشاء رمز إحالة فريد لك تلقائيًا.',
         howItWorksStep2:
-            'شارك رابط الإحالة الخاص بك مع الأصدقاء أو الزملاء أو جمهورك. رابطك يتبع التنسيق: clawhost.cloud?ref=YOUR_CODE.',
+            'شارك رابط الإحالة الخاص بك مع الأصدقاء أو الزملاء أو جمهورك. رابطك يتبع التنسيق: clawnode.cloud?ref=YOUR_CODE.',
         howItWorksStep3:
-            'عندما يقوم شخص ما بإجراء عملية شراء بعد زيارة ClawHost من خلال رابطك، يتم تسجيل ذلك كإحالتك.',
+            'عندما يقوم شخص ما بإجراء عملية شراء بعد زيارة ClawNode من خلال رابطك، يتم تسجيل ذلك كإحالتك.',
         howItWorksStep4:
             'تكسب عمولة في كل مرة يقوم فيها المستخدم المُحال بعملية شراء مؤهلة.',
         earningsTitle: '3. الأرباح والمدفوعات',
         earningsText: 'إليك كيفية عمل أرباح الشراكة:',
         earningsCommission:
-            'تكسب عمولة 15% على كل عملية شراء مؤهلة يقوم بها المستخدمون المُحالون. تنطبق العمولات على كل من خطط ClawHost Cloud وClawHost Go.',
+            'تكسب عمولة 15% على كل عملية شراء مؤهلة يقوم بها المستخدمون المُحالون. تنطبق العمولات على كل من خطط ClawNode Cloud وClawNode Go.',
         earningsMonthly:
             'بالنسبة للاشتراكات الشهرية، تكسب عمولات لمدة عام واحد من تاريخ الإحالة.',
         earningsYearly:
@@ -2110,11 +2110,11 @@ const ar: Translations = {
             'يمكن أن تحتوي رموز الإحالة على أحرف وأرقام وشرطات وشرطات سفلية فقط.',
         referralWindowTitle: '5. نافذة إسناد الإحالة',
         referralWindowText:
-            'تُسند الإحالة إليك لمدة 3 أشهر من لحظة زيارة المستخدم المُحال لـ ClawHost لأول مرة من خلال رابطك. إذا لم يقم المستخدم المُحال بعملية شراء خلال نافذة الـ 3 أشهر هذه، تنتهي صلاحية الإحالة ولن يتم كسب أي عمولة. إذا زار المستخدم من خلال رابط إحالة مختلف، يحل الرابط الجديد محل السابق.',
+            'تُسند الإحالة إليك لمدة 3 أشهر من لحظة زيارة المستخدم المُحال لـ ClawNode لأول مرة من خلال رابطك. إذا لم يقم المستخدم المُحال بعملية شراء خلال نافذة الـ 3 أشهر هذه، تنتهي صلاحية الإحالة ولن يتم كسب أي عمولة. إذا زار المستخدم من خلال رابط إحالة مختلف، يحل الرابط الجديد محل السابق.',
         eligibilityTitle: '6. الأهلية',
         eligibilityText:
             'للمشاركة في برنامج الشراكة، يجب أن تستوفي المتطلبات التالية:',
-        eligibilityAccount: 'يجب أن يكون لديك حساب ClawHost مسجل.',
+        eligibilityAccount: 'يجب أن يكون لديك حساب ClawNode مسجل.',
         eligibilityStanding:
             'يجب أن يكون حسابك في حالة جيدة بدون تاريخ من انتهاكات السياسة.',
         eligibilityAge:
@@ -2128,30 +2128,30 @@ const ar: Translations = {
         rulesNoSpam:
             'إرسال رسائل جماعية غير مرغوب فيها (بريد عشوائي) للترويج لرابط الإحالة الخاص بك غير مسموح به.',
         rulesNoMisrepresentation:
-            'لا يجوز لك تحريف ClawHost أو خدماته أو برنامج الشراكة بأي شكل من الأشكال.',
+            'لا يجوز لك تحريف ClawNode أو خدماته أو برنامج الشراكة بأي شكل من الأشكال.',
         rulesNoIncentivized:
             'تقديم حوافز مالية مباشرة (مثل الدفع للمستخدمين للتسجيل عبر رابطك) غير مسموح به.',
         terminationTitle: '8. المخالفة والإنهاء',
         terminationText:
-            'أي انتهاك لهذه القواعد سيؤدي إلى مصادرة فورية لجميع المكافآت المعلقة والمكتسبة. يحتفظ ClawHost بالحق في تعليق أو حظر حسابك نهائيًا من برنامج الشراكة. في الحالات الخطيرة، قد يتم إنهاء حساب ClawHost الخاص بك أيضًا. جميع القرارات المتعلقة بالمخالفات نهائية.',
+            'أي انتهاك لهذه القواعد سيؤدي إلى مصادرة فورية لجميع المكافآت المعلقة والمكتسبة. يحتفظ ClawNode بالحق في تعليق أو حظر حسابك نهائيًا من برنامج الشراكة. في الحالات الخطيرة، قد يتم إنهاء حساب ClawNode الخاص بك أيضًا. جميع القرارات المتعلقة بالمخالفات نهائية.',
         marketingTitle: '9. كيفية الترويج',
         marketingText:
             'هناك العديد من الطرق الإبداعية والمشروعة لمشاركة رابط الإحالة الخاص بك وزيادة أرباحك:',
         marketingSocial:
-            'شارك رابطك على منصات التواصل الاجتماعي مثل X و LinkedIn و Reddit و Facebook. اكتب عن تجربتك مع ClawHost وأدرج رابط الإحالة الخاص بك.',
+            'شارك رابطك على منصات التواصل الاجتماعي مثل X و LinkedIn و Reddit و Facebook. اكتب عن تجربتك مع ClawNode وأدرج رابط الإحالة الخاص بك.',
         marketingBlog:
-            'اكتب مقالات مدونة أو دروسًا تعليمية أو مراجعات حول ClawHost. أدرج رابط الإحالة الخاص بك بشكل طبيعي ضمن المحتوى.',
+            'اكتب مقالات مدونة أو دروسًا تعليمية أو مراجعات حول ClawNode. أدرج رابط الإحالة الخاص بك بشكل طبيعي ضمن المحتوى.',
         marketingVideo:
-            'أنشئ محتوى فيديو على YouTube أو TikTok يعرض كيفية استخدامك لـ ClawHost لنشر وإدارة وكلاء الذكاء الاصطناعي.',
+            'أنشئ محتوى فيديو على YouTube أو TikTok يعرض كيفية استخدامك لـ ClawNode لنشر وإدارة وكلاء الذكاء الاصطناعي.',
         marketingCommunity:
-            'شارك في مجتمعات المطورين والمنتديات وخوادم Discord. عندما يسأل شخص ما عن استضافة السحابة أو نشر وكلاء الذكاء الاصطناعي، أوصِ بـ ClawHost مع رابطك.',
+            'شارك في مجتمعات المطورين والمنتديات وخوادم Discord. عندما يسأل شخص ما عن استضافة السحابة أو نشر وكلاء الذكاء الاصطناعي، أوصِ بـ ClawNode مع رابطك.',
         marketingNewsletter:
-            'إذا كنت تدير نشرة إخبارية أو قائمة بريد إلكتروني، اذكر ClawHost في عدد ذي صلة مع رابط الإحالة الخاص بك.',
+            'إذا كنت تدير نشرة إخبارية أو قائمة بريد إلكتروني، اذكر ClawNode في عدد ذي صلة مع رابط الإحالة الخاص بك.',
         marketingComparison:
-            'اكتب مقالات مقارنة صادقة أو أدلة تبرز ما يميز ClawHost عن المنصات الأخرى.',
+            'اكتب مقالات مقارنة صادقة أو أدلة تبرز ما يميز ClawNode عن المنصات الأخرى.',
         changesToProgramTitle: '10. التغييرات على البرنامج',
         changesToProgramText:
-            'يحتفظ ClawHost بالحق في تعديل أو تعليق أو إيقاف برنامج الشراكة في أي وقت دون إشعار مسبق. يشمل ذلك التغييرات في معدلات العمولة ونوافذ الإحالة وحدود الدفع وقواعد البرنامج. تشكل المشاركة المستمرة بعد التغييرات قبولًا للشروط المحدثة.',
+            'يحتفظ ClawNode بالحق في تعديل أو تعليق أو إيقاف برنامج الشراكة في أي وقت دون إشعار مسبق. يشمل ذلك التغييرات في معدلات العمولة ونوافذ الإحالة وحدود الدفع وقواعد البرنامج. تشكل المشاركة المستمرة بعد التغييرات قبولًا للشروط المحدثة.',
         getStartedTitle: '11. ابدأ الآن',
         getStartedText:
             'هل أنت مستعد للبدء في الكسب؟ توجه إلى لوحة تحكم الشراكة الخاصة بك للحصول على رابط الإحالة وابدأ في مشاركته مع شبكتك.',

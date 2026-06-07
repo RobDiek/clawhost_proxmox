@@ -26,10 +26,10 @@ const zh: Translations = {
         pageNotFound: '页面未找到',
         closeNotification: '关闭通知',
         beta: '测试版',
-        brandName: 'ClawHost',
-        brandNameGo: 'ClawHost Go',
-        brandNameGoVersion: 'ClawHost Go {{version}}',
-        pageTitleWithBrand: '{{title}} - ClawHost',
+        brandName: 'ClawNode',
+        brandNameGo: 'ClawNode Go',
+        brandNameGoVersion: 'ClawNode Go {{version}}',
+        pageTitleWithBrand: '{{title}} - ClawNode',
         menuFile: '文件',
         menuEdit: '编辑',
         menuView: '显示',
@@ -82,14 +82,14 @@ const zh: Translations = {
         goSubtitle: '非技术型'
     },
     go: {
-        pageTitle: 'ClawHost Go',
+        pageTitle: 'ClawNode Go',
         heroTitle1: '部署 OpenClaw.',
         heroTitle2: '本地. 即时.',
         badge: '本地运行 OpenClaw 与 Hermes',
         description:
             '一款轻量级桌面客户端，用于管理您的 OpenClaw 实例。部署、监控和控制您的 claws — 直接在您的设备上完成.',
         features: '功能',
-        whyClawHostGo: '一体化功能',
+        whyClawNodeGo: '一体化功能',
         featuresDescription: '为什么值得一试，功能不会说谎.',
         zeroConfigDescription:
             '省去数小时的服务器、OpenClaw 和 Hermes 配置时间。预先安装，几分钟内即可使用。',
@@ -132,25 +132,25 @@ const zh: Translations = {
         comparisonUpdatesOthers: '自动更新',
         faqTitle: '问题',
         faqHeading: '常见问题',
-        faqDescription: '关于 ClawHost Go 您需要了解的一切.',
-        faq1Question: '什么是 ClawHost Go？',
+        faqDescription: '关于 ClawNode Go 您需要了解的一切.',
+        faq1Question: '什么是 ClawNode Go？',
         faq1Answer:
-            'ClawHost Go 是一款轻量级桌面应用程序，让您可以在自己的设备上本地运行 OpenClaw。无需云服务器 — 安装、启动，几秒内即可开始使用 OpenClaw.',
-        faq2Question: 'Go 与 ClawHost Cloud 有什么不同？',
+            'ClawNode Go 是一款轻量级桌面应用程序，让您可以在自己的设备上本地运行 OpenClaw。无需云服务器 — 安装、启动，几秒内即可开始使用 OpenClaw.',
+        faq2Question: 'Go 与 ClawNode Cloud 有什么不同？',
         faq2Answer:
-            'ClawHost Cloud 将 OpenClaw 部署在专用远程服务器上，提供 24/7 正常运行时间和全球访问。ClawHost Go 在您的设备上本地运行一切 — 非常适合隐私保护、离线使用和简单设置.',
+            'ClawNode Cloud 将 OpenClaw 部署在专用远程服务器上，提供 24/7 正常运行时间和全球访问。ClawNode Go 在您的设备上本地运行一切 — 非常适合隐私保护、离线使用和简单设置.',
         faq3Question: '我需要互联网连接吗？',
         faq3Answer:
-            'ClawHost Go 本地使用时可以离线工作。仅在初始设置、更新以及需要外部 API 调用的功能时才需要互联网连接.',
+            'ClawNode Go 本地使用时可以离线工作。仅在初始设置、更新以及需要外部 API 调用的功能时才需要互联网连接.',
         faq4Question: '许可证是一次性付款吗？',
         faq4Answer:
-            '是的。您只需支付一次，即可终身使用 ClawHost Go，包括所有未来更新。无订阅，无重复费用.',
+            '是的。您只需支付一次，即可终身使用 ClawNode Go，包括所有未来更新。无订阅，无重复费用.',
         faq5Question: '支持哪些操作系统？',
         faq5Answer:
-            'ClawHost Go 支持 Windows 和 macOS。两个平台拥有相同的功能并同时接收更新.',
+            'ClawNode Go 支持 Windows 和 macOS。两个平台拥有相同的功能并同时接收更新.',
         faq6Question: '以后可以从 Go 切换到 Cloud 吗？',
         faq6Answer:
-            '当然可以。您可以随时从 Go 导出您的 OpenClaw 配置并部署到 ClawHost Cloud。两个平台完全兼容.',
+            '当然可以。您可以随时从 Go 导出您的 OpenClaw 配置并部署到 ClawNode Cloud。两个平台完全兼容.',
         statsPrice: '${{price}}',
         statsLifetime: '终身',
         statsOneTime: '一次性',
@@ -165,7 +165,7 @@ const zh: Translations = {
         downloadForMac: '下载 Mac 版本',
         downloadVersion: '版本 {{version}}',
         downloadForWindows: '下载 Windows 版本',
-        deviceNotSupported: '您的设备暂不支持 ClawHost Go。',
+        deviceNotSupported: '您的设备暂不支持 ClawNode Go。',
         downloadFailed: '下载失败!',
         downloadStarted: '下载已开始。',
         appleSilicon: 'Apple Silicon',
@@ -210,7 +210,7 @@ const zh: Translations = {
     },
     footer: {
         website: '网站',
-        copyrightName: 'ClawHost',
+        copyrightName: 'ClawNode',
         copyrightRights: '保留所有权利.',
         termsOfService: '服务条款',
         privacyPolicy: '隐私政策',
@@ -230,7 +230,7 @@ const zh: Translations = {
         affiliateProgram: '联盟计划',
         documentation: '文档',
         productDescription:
-            '一键在云端或本地部署 OpenClaw 和 Hermes 代理 — 使用 ClawHost 更快地构建、连接和扩展您的 AI 代理.',
+            '一键在云端或本地部署 OpenClaw 和 Hermes 代理 — 使用 ClawNode 更快地构建、连接和扩展您的 AI 代理.',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -490,12 +490,12 @@ const zh: Translations = {
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
     emails: {
-        otpSubject: '您的 ClawHost 登录验证码',
-        otpPreview: '您的 ClawHost 登录验证码：{{code}}',
+        otpSubject: '您的 ClawNode 登录验证码',
+        otpPreview: '您的 ClawNode 登录验证码：{{code}}',
         otpHeading: '您的登录验证码是：',
         otpExpiry:
             '验证码将在 10 分钟后过期。如果这不是您本人的操作，请忽略此邮件。',
-        featureFooter: '您收到此邮件是因为您拥有 ClawHost 账户。',
+        featureFooter: '您收到此邮件是因为您拥有 ClawNode 账户。',
         features: {
             terminal: {
                 subject: '您知道吗？您拥有一个网页终端',
@@ -503,7 +503,7 @@ const zh: Translations = {
                 tag: '网页终端',
                 heading: '您的服务器只需一次点击',
                 description:
-                    '使用我们内置的终端直接从浏览器访问您的服务器。无需 SSH 客户端——只需打开 ClawHost 即可开始输入命令。',
+                    '使用我们内置的终端直接从浏览器访问您的服务器。无需 SSH 客户端——只需打开 ClawNode 即可开始输入命令。',
                 cta: '打开终端'
             },
             logs: {
@@ -512,7 +512,7 @@ const zh: Translations = {
                 tag: '实时日志',
                 heading: '查看服务器正在做什么',
                 description:
-                    '从 ClawHost 仪表板实时监控服务器日志。无需离开浏览器即可诊断问题、跟踪部署和调试应用程序。',
+                    '从 ClawNode 仪表板实时监控服务器日志。无需离开浏览器即可诊断问题、跟踪部署和调试应用程序。',
                 cta: '查看日志'
             },
             fileExplorer: {
@@ -521,7 +521,7 @@ const zh: Translations = {
                 tag: '文件浏览器',
                 heading: '文件触手可及',
                 description:
-                    '直接从 ClawHost 仪表板浏览、读取和编辑服务器上的文件。语法高亮、搜索和即时保存——无需 SSH。',
+                    '直接从 ClawNode 仪表板浏览、读取和编辑服务器上的文件。语法高亮、搜索和即时保存——无需 SSH。',
                 cta: '打开文件浏览器'
             },
             diagnostics: {
@@ -534,12 +534,12 @@ const zh: Translations = {
                 cta: '运行诊断'
             },
             sshKeys: {
-                subject: '您知道吗？可以从 ClawHost 管理 SSH 密钥',
+                subject: '您知道吗？可以从 ClawNode 管理 SSH 密钥',
                 preview: '在仪表板中生成和管理 SSH 密钥对',
                 tag: 'SSH 密钥',
                 heading: 'SSH 密钥，简化管理',
                 description:
-                    '生成 SSH 密钥对、复制公钥和下载私钥——全部在 ClawHost 仪表板中完成。将密钥分配给 Claws 以实现安全访问。',
+                    '生成 SSH 密钥对、复制公钥和下载私钥——全部在 ClawNode 仪表板中完成。将密钥分配给 Claws 以实现安全访问。',
                 cta: '管理 SSH 密钥'
             },
             exportConfig: {
@@ -552,12 +552,12 @@ const zh: Translations = {
                 cta: '导出配置'
             },
             multiLanguage: {
-                subject: '您知道吗？ClawHost 支持您的语言',
-                preview: '使用 14 种语言操作 ClawHost',
+                subject: '您知道吗？ClawNode 支持您的语言',
+                preview: '使用 14 种语言操作 ClawNode',
                 tag: '多语言',
-                heading: '用您的语言使用 ClawHost',
+                heading: '用您的语言使用 ClawNode',
                 description:
-                    '将整个 ClawHost 仪表板切换为 14 种语言中的任何一种。从按钮到错误消息——全面翻译。',
+                    '将整个 ClawNode 仪表板切换为 14 种语言中的任何一种。从按钮到错误消息——全面翻译。',
                 cta: '更改语言'
             },
             subdomain: {
@@ -570,12 +570,12 @@ const zh: Translations = {
                 cta: '查看您的子域名'
             },
             darkMode: {
-                subject: '您知道吗？ClawHost 支持深色模式',
+                subject: '您知道吗？ClawNode 支持深色模式',
                 preview: '在浅色和深色主题之间切换',
                 tag: '深色模式',
                 heading: '护眼体验',
                 description:
-                    '在 ClawHost 仪表板中切换浅色和深色主题。您的偏好会自动保存并在每次访问时应用。',
+                    '在 ClawNode 仪表板中切换浅色和深色主题。您的偏好会自动保存并在每次访问时应用。',
                 cta: '试试深色模式'
             },
             reinstall: {
@@ -600,7 +600,7 @@ const zh: Translations = {
     },
     auth: {
         signIn: '认证',
-        signInDescription: '登录您的 ClawHost 账户以管理您的 OpenClaw 实例。',
+        signInDescription: '登录您的 ClawNode 账户以管理您的 OpenClaw 实例。',
         signingIn: '认证中...',
         verifyCode: '验证代码',
         checkYourEmail: '检查您的邮箱',
@@ -608,7 +608,7 @@ const zh: Translations = {
         codeSentTo: '我们已向以下地址发送了 6 位验证码',
         signInToDeployOpenClaw: '认证以一键管理和部署代理。',
         emailAddress: '电子邮箱',
-        emailPlaceholder: 'example@clawhost.cloud',
+        emailPlaceholder: 'example@clawnode.cloud',
         continueWithEmail: '使用邮箱继续',
         otpDescription: '我们将向您发送登录验证码。无需密码。',
         welcomeBack: '欢迎回来。',
@@ -628,7 +628,7 @@ const zh: Translations = {
     },
     account: {
         title: '账户',
-        description: '管理您的 ClawHost 账户设置和个人资料信息。',
+        description: '管理您的 ClawNode 账户设置和个人资料信息。',
         accountSettings: '账户',
         manageYourAccount: '管理您的个人资料和账户设置。',
         profileInformation: '个人资料',
@@ -696,7 +696,7 @@ const zh: Translations = {
         pageTitle: '许可证',
         pageDescription:
             '购买许可证，使用我们的 Go 应用在本地自托管 OpenClaw 实例。',
-        planName: 'ClawHost Go 许可证',
+        planName: 'ClawNode Go 许可证',
         oneTimePurchase: '一次性购买',
         price: '${{price}}',
         priceNote: '一次付款，永久拥有。',
@@ -714,7 +714,7 @@ const zh: Translations = {
         whatsIncluded: '包含内容',
         gateTitle: '需要许可证',
         gateDescription:
-            '您需要 ClawHost Go 许可证才能在本地部署和管理 OpenClaw 实例。'
+            '您需要 ClawNode Go 许可证才能在本地部署和管理 OpenClaw 实例。'
     },
     network: {
         offline: '无网络连接',
@@ -873,7 +873,7 @@ const zh: Translations = {
             '这可能需要一些时间。取决于 OpenClaw、服务器位置和 Cloudflare DNS。',
         paymentSuccess: '您的 Claw 正在创建和配置中。',
         dnsSetupBanner:
-            '设置本地 DNS 以通过 subdomain.clawhost 访问您的 Claws。',
+            '设置本地 DNS 以通过 subdomain.clawnode 访问您的 Claws。',
         dnsSetupButton: '设置 DNS',
         dnsSetupSuccess: 'DNS 解析器配置成功。',
         dnsSetupError: '配置 DNS 解析器失败！',
@@ -1023,14 +1023,14 @@ const zh: Translations = {
             '一键在您自己的 VPS 上部署 OpenClaw。自托管云托管，拥有完整 root 访问权限、全球位置和透明定价。',
         badge: '云端运行 OpenClaw 与 Hermes',
         tutorialBadge: '观看。部署。',
-        tutorialVideoThumbnail: 'ClawHost 教程视频缩略图',
-        clawhostGoLogoAlt: 'ClawHost Go',
+        tutorialVideoThumbnail: 'ClawNode 教程视频缩略图',
+        clawnodeGoLogoAlt: 'ClawNode Go',
         trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
         macosPreviewTime: '22:12',
         heroTitle1: '部署 OpenClaw。',
         heroTitle2: '一键完成。',
         heroDescription:
-            '一键在云端或本地部署 OpenClaw 和 Hermes 代理——使用 ClawHost 更快地构建、连接和扩展您的 AI 代理。',
+            '一键在云端或本地部署 OpenClaw 和 Hermes 代理——使用 ClawNode 更快地构建、连接和扩展您的 AI 代理。',
         selfHost: '开源',
         startingPrice: '起步价',
         locations: '位置',
@@ -1038,7 +1038,7 @@ const zh: Translations = {
         zeroCount: '零',
         zeroConfig: '零配置',
         features: '功能',
-        whyClawHost: '一站式功能',
+        whyClawNode: '一站式功能',
         featuresDescription: '为什么值得一试，功能不会说谎。',
         zeroConfigDescription:
             '跳过数小时的服务器和 OpenClaw 设置。预装完毕，几分钟内即可使用。',
@@ -1132,18 +1132,18 @@ const zh: Translations = {
         faqTitle: '常见问题',
         frequentlyAskedQuestions: '常见问题',
         faqDescription: '每一个常见问题，都有解答。',
-        faq1Question: '什么是 ClawHost？',
+        faq1Question: '什么是 ClawNode？',
         faq1Answer:
-            'ClawHost 是一个让 OpenClaw 和 Hermes 人人可用的平台。无论是非技术用户还是开发者，都能无需管理基础设施即可运行它们。我们处理服务器、运行时间、安全和维护 — 您只需使用您的智能体。',
+            'ClawNode 是一个让 OpenClaw 和 Hermes 人人可用的平台。无论是非技术用户还是开发者，都能无需管理基础设施即可运行它们。我们处理服务器、运行时间、安全和维护 — 您只需使用您的智能体。',
         faq2Question: '什么是 OpenClaw？',
         faq2Answer:
             'OpenClaw 是一个自托管的安全访问层，用于您的 AI 工具和服务。它已预配置安全性和性能，因此您可以部署后即刻连接。',
         faqHermesQuestion: '什么是 Hermes？',
         faqHermesAnswer:
-            'Hermes 是一款具备网页浏览、日历管理、多模型推理和浏览器自动化能力的自主 AI 智能体。它已与 OpenClaw 一起预装在每台 ClawHost 服务器上。',
+            'Hermes 是一款具备网页浏览、日历管理、多模型推理和浏览器自动化能力的自主 AI 智能体。它已与 OpenClaw 一起预装在每台 ClawNode 服务器上。',
         faq3Question: '这与其他 AI 工具或托管平台有什么不同？',
         faq3Answer:
-            '与托管式 AI 工具不同，ClawHost 为您提供安装了 OpenClaw 和 Hermes 的真实服务器。您拥有基础设施，掌控一切，不受共享平台或模型的限制。',
+            '与托管式 AI 工具不同，ClawNode 为您提供安装了 OpenClaw 和 Hermes 的真实服务器。您拥有基础设施，掌控一切，不受共享平台或模型的限制。',
         faq4Question: '我需要技术知识吗？',
         faq4Answer:
             '不需要。所有基础设施、设置和维护我们都已处理。您可以通过 UI 配置和管理 OpenClaw，而 Hermes 通过简单的终端命令运行 — 无需接触服务器或基础设施。',
@@ -1199,8 +1199,8 @@ const zh: Translations = {
     },
     changelog: {
         title: '更新日志',
-        description: '跟踪 ClawHost 的更新、新功能和改进。',
-        subtitle: 'ClawHost 的所有更新、新功能和改进。',
+        description: '跟踪 ClawNode 的更新、新功能和改进。',
+        subtitle: 'ClawNode 的所有更新、新功能和改进。',
         release17Date: 'May 1, 2026',
         release17Title: 'Hermes Agents One-Click Deployment',
         release17Description:
@@ -1236,7 +1236,7 @@ const zh: Translations = {
         release15Description:
             '通过将托管功能迁移到 OpenClaw 简化平台，移除 Playground 视图，并引入可更改的自定义子域名。',
         release15Feature1:
-            '简化并将托管功能迁移到 OpenClaw，不再有 ClawHost 聊天、代理、频道、变量和技能',
+            '简化并将托管功能迁移到 OpenClaw，不再有 ClawNode 聊天、代理、频道、变量和技能',
         release15Feature2:
             'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
         release15Feature3:
@@ -1257,10 +1257,10 @@ const zh: Translations = {
         release12Date: '2026年3月14日',
         release12Title: '年付方案、语音模式及更多',
         release12Description:
-            '年付订阅免费 2 个月、语音模式、实例重装以及 ClawHost Go 初始着陆页。',
-        release12Feature1: 'ClawHost Go 着陆页，使用 ClawHost 进行本地托管',
+            '年付订阅免费 2 个月、语音模式、实例重装以及 ClawNode Go 初始着陆页。',
+        release12Feature1: 'ClawNode Go 着陆页，使用 ClawNode 进行本地托管',
         release12Feature2: '年付订阅支持，年付可享 2 个月免费',
-        release12Feature3: '语音模式，与 ClawHost 上托管的 OpenClaw 代理交互',
+        release12Feature3: '语音模式，与 ClawNode 上托管的 OpenClaw 代理交互',
         release12Feature4: '重新安装 OpenClaw 以全新开始，每天可用一次',
         release11Date: '2026年2月28日',
         release11Title: '文字转语音、终端、聊天标签和文件浏览器',
@@ -1313,7 +1313,7 @@ const zh: Translations = {
         release1Date: '2026年2月8日',
         release1Title: '首次发布',
         release1Description:
-            'ClawHost 的首个正式版本。一键在您自己的 VPS 上部署 OpenClaw.',
+            'ClawNode 的首个正式版本。一键在您自己的 VPS 上部署 OpenClaw.',
         release1Feature1: '一键部署 OpenClaw',
         release1Feature2: '仪表板管理 claws，启动、停止、重启和删除实例',
         release1Feature3: '18 种服务器方案，提供专用 vCPU、RAM 和存储选项',
@@ -1327,7 +1327,7 @@ const zh: Translations = {
         release1Feature11: '自动配置，OpenClaw 预装并已配置',
         release2Date: '2026年2月8日',
         release2Title: '更新日志及更多',
-        release2Description: '了解 ClawHost 最新动态的全新方式.',
+        release2Description: '了解 ClawNode 最新动态的全新方式.',
         release2Feature1: '更新日志页面，跟踪所有平台更新和发布',
         release3Date: '2026年2月10日',
         release3Title: '服务器洞察',
@@ -1444,7 +1444,7 @@ const zh: Translations = {
         awaitingPaymentAction: '完成支付',
         loadingTip1: '您知道吗？您可以在一个 OpenClaw 中运行多个代理.',
         loadingTip2: '您知道吗？OpenClaw 是开源的.',
-        loadingTip3: 'ClawHost 是首个支持一键 OpenClaw 托管的项目.',
+        loadingTip3: 'ClawNode 是首个支持一键 OpenClaw 托管的项目.',
         loadingTip4: '您可以通过 SSH 或内置终端访问您的代理.',
         loadingTip5: '您的代理会自动获得专属子域名.',
         loadingTip6: '您可以随时在设置中自定义代理的图标和名称.',
@@ -1454,7 +1454,7 @@ const zh: Translations = {
         loadingTip10: '您可以将整个代理配置导出为备份.',
         loadingTip11: 'SSH 密钥可以应用于正在运行的实例，无需重新安装.',
         loadingTip12: '您可以在安全标签页中轮换 root 密码和网关令牌.',
-        loadingTip13: 'ClawHost 支持欧洲和美国多个地区的服务器.',
+        loadingTip13: 'ClawNode 支持欧洲和美国多个地区的服务器.',
         tabSettings: '设置',
         featureVersionUnsupported: '{{feature}} 在 {{version}} 上不受支持',
         featureVersionUnsupportedDescription:
@@ -1588,14 +1588,14 @@ const zh: Translations = {
     },
     privacy: {
         title: '隐私政策',
-        description: '了解 ClawHost 如何收集、使用和保护您的个人数据。',
+        description: '了解 ClawNode 如何收集、使用和保护您的个人数据。',
         lastUpdated: '最后更新：2026年3月14日',
         introTitle: '1. 简介',
         introText:
-            'ClawHost（"我们"）致力于保护您的隐私。本隐私政策说明了当您使用我们的服务时，我们如何收集、使用、披露和保护您的信息。',
+            'ClawNode（"我们"）致力于保护您的隐私。本隐私政策说明了当您使用我们的服务时，我们如何收集、使用、披露和保护您的信息。',
         authTitle: '2. 身份验证',
         authText:
-            'ClawHost 使用 Google Firebase Authentication 管理用户账户。您可以使用电子邮箱、Google 或 GitHub 登录。使用这些登录方式即表示您同意其各自的条款和隐私政策。这些提供商可能会收集您的电子邮箱地址、姓名和设备信息等基本数据。我们仅存储您的电子邮箱地址和显示名称。',
+            'ClawNode 使用 Google Firebase Authentication 管理用户账户。您可以使用电子邮箱、Google 或 GitHub 登录。使用这些登录方式即表示您同意其各自的条款和隐私政策。这些提供商可能会收集您的电子邮箱地址、姓名和设备信息等基本数据。我们仅存储您的电子邮箱地址和显示名称。',
         collectTitle: '3. 我们收集的信息',
         collectText: '我们通过以下方式收集信息：',
         personalInfoTitle: '个人信息',
@@ -1641,7 +1641,7 @@ const zh: Translations = {
         transfersText:
             '您的信息可能会被传输到您所在国家以外的国家并在那里处理。我们确保采取适当的保障措施，按照本隐私政策保护您的数据。',
         eligibilityTitle: '11. 资格',
-        eligibilityText: '我们的服务对所有人开放。使用 ClawHost 没有年龄限制。',
+        eligibilityText: '我们的服务对所有人开放。使用 ClawNode 没有年龄限制。',
         changesTitle: '12. 本政策的变更',
         changesText:
             '我们可能会不时更新本隐私政策。我们将通过在此页面发布新的隐私政策并更新"最后更新"日期来通知您任何变更。',
@@ -1651,17 +1651,17 @@ const zh: Translations = {
     },
     terms: {
         title: '服务条款',
-        description: '阅读使用 ClawHost 服务的条款和条件。',
+        description: '阅读使用 ClawNode 服务的条款和条件。',
         lastUpdated: '最后更新：2026年3月14日',
         acceptanceTitle: '1. 条款接受',
         acceptanceText:
-            '访问和使用 ClawHost（"服务"）即表示您接受并同意受本协议条款的约束。如果您不同意这些条款，请不要使用我们的服务。',
+            '访问和使用 ClawNode（"服务"）即表示您接受并同意受本协议条款的约束。如果您不同意这些条款，请不要使用我们的服务。',
         serviceTitle: '2. 服务描述',
         serviceText:
-            'ClawHost 在专用服务器上提供 OpenClaw 和 Hermes 的一键部署。我们让用户可以部署、管理和访问预配置的 OpenClaw 和 Hermes 实例，享有完整 root 访问权限和专用资源。',
+            'ClawNode 在专用服务器上提供 OpenClaw 和 Hermes 的一键部署。我们让用户可以部署、管理和访问预配置的 OpenClaw 和 Hermes 实例，享有完整 root 访问权限和专用资源。',
         authTitle: '3. 身份验证',
         authText:
-            'ClawHost 使用 Google Firebase Authentication 管理登录。您可以使用电子邮箱、Google 或 GitHub 进行身份验证。使用这些方法即表示您同意 Google 和 GitHub 各自的条款和隐私政策。这些提供商可能会收集您的电子邮箱地址、姓名和设备数据等基本信息。',
+            'ClawNode 使用 Google Firebase Authentication 管理登录。您可以使用电子邮箱、Google 或 GitHub 进行身份验证。使用这些方法即表示您同意 Google 和 GitHub 各自的条款和隐私政策。这些提供商可能会收集您的电子邮箱地址、姓名和设备数据等基本信息。',
         responsibilitiesTitle: '4. 用户责任',
         responsibilitiesText: '您同意：',
         responsibilitiesAccurate: '提供准确和完整的注册信息',
@@ -1686,19 +1686,19 @@ const zh: Translations = {
             '我们努力保持高可用性，但不保证对服务的不间断访问。我们保留随时修改、暂停或终止服务任何部分的权利，无论是否通知。',
         liabilityTitle: '8. 责任限制',
         liabilityText:
-            '在法律允许的最大范围内，ClawHost 不对任何间接、附带、特殊、后果性或惩罚性损害赔偿，或直接或间接产生的任何利润或收入损失承担责任。',
+            '在法律允许的最大范围内，ClawNode 不对任何间接、附带、特殊、后果性或惩罚性损害赔偿，或直接或间接产生的任何利润或收入损失承担责任。',
         terminationTitle: '9. 终止',
         terminationText:
             '对于我们认为违反本条款或对其他用户、我们或第三方有害的行为，或出于任何其他原因，我们可能会立即终止或暂停您的账户和对服务的访问，无需事先通知。',
         affiliateTitle: '10. Affiliate Program',
         affiliateText:
-            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+            'ClawNode offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
         affiliateCodeUnique:
             'Each user receives a unique referral code upon registration, which can be customized once.',
         affiliateCodeOneChange:
             'The referral code can only be changed one time. Choose your custom code carefully.',
         affiliateReferralWindow:
-            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+            'A referral is valid for 6 months from when the referred user first visits ClawNode with your referral link. After 6 months, the referral expires.',
         affiliateNoSelfReferral:
             'Self-referrals are not permitted. You may not refer your own accounts.',
         affiliateAbuse:
@@ -1711,16 +1711,16 @@ const zh: Translations = {
     },
     hermesBanner: {
         title: 'Hermes Agent',
-        message: 'Hermes 代理现已支持在 ClawHost 上部署。'
+        message: 'Hermes 代理现已支持在 ClawNode 上部署。'
     },
     compare: {
         title: '对比',
-        description: '了解 ClawHost 与其他 OpenClaw 托管平台的对比。',
+        description: '了解 ClawNode 与其他 OpenClaw 托管平台的对比。',
         badge: '对比',
         feature: '平台',
         compareWith: '对比',
         lastUpdated: '最后更新：2026年3月',
-        competitorClawHost: 'ClawHost',
+        competitorClawNode: 'ClawNode',
         competitorLobsterFarm: 'LobsterFarm',
         competitorSimpleAgent: 'SimpleAgent',
         competitorMyAgentAi: 'MyAgent.ai',
@@ -1954,7 +1954,7 @@ const zh: Translations = {
     },
     affiliate: {
         title: 'Affiliate',
-        description: 'Earn rewards by referring friends to ClawHost.',
+        description: 'Earn rewards by referring friends to ClawNode.',
         subtitle: 'Share your referral link and earn rewards.',
         learnMore: '了解更多关于联盟计划',
         referralCode: 'Referral Code',
@@ -1987,25 +1987,25 @@ const zh: Translations = {
     affiliateProgram: {
         title: '联盟计划',
         description:
-            '了解 ClawHost 联盟计划的运作方式、您可以赚取多少以及参与规则。',
+            '了解 ClawNode 联盟计划的运作方式、您可以赚取多少以及参与规则。',
         lastUpdated: '最后更新：2026 年 4 月 1 日',
         overviewTitle: '1. 概述',
         overviewText:
-            'ClawHost 联盟计划让您通过推荐新用户到 ClawHost 来赚取奖励。当有人通过您的推荐链接访问 ClawHost 后进行购买时，您将从其付款中获得佣金。该计划免费加入，面向所有注册的 ClawHost 用户开放。',
+            'ClawNode 联盟计划让您通过推荐新用户到 ClawNode 来赚取奖励。当有人通过您的推荐链接访问 ClawNode 后进行购买时，您将从其付款中获得佣金。该计划免费加入，面向所有注册的 ClawNode 用户开放。',
         howItWorksTitle: '2. 运作方式',
         howItWorksText: '开始使用联盟计划非常简单：',
         howItWorksStep1:
-            '注册一个 ClawHost 账户。系统会自动为您生成一个唯一的推荐码。',
+            '注册一个 ClawNode 账户。系统会自动为您生成一个唯一的推荐码。',
         howItWorksStep2:
-            '与朋友、同事或您的受众分享您的推荐链接。您的链接格式为：clawhost.cloud?ref=YOUR_CODE。',
+            '与朋友、同事或您的受众分享您的推荐链接。您的链接格式为：clawnode.cloud?ref=YOUR_CODE。',
         howItWorksStep3:
-            '当有人通过您的链接访问 ClawHost 后进行购买时，这将被记录为您的推荐。',
+            '当有人通过您的链接访问 ClawNode 后进行购买时，这将被记录为您的推荐。',
         howItWorksStep4:
             '每当您推荐的用户进行符合条件的购买时，您都会获得佣金。',
         earningsTitle: '3. 收益与支付',
         earningsText: '联盟收益的运作方式如下：',
         earningsCommission:
-            '您从推荐用户的每笔符合条件的购买中获得 15% 的佣金。佣金适用于 ClawHost Cloud 和 ClawHost Go 计划。',
+            '您从推荐用户的每笔符合条件的购买中获得 15% 的佣金。佣金适用于 ClawNode Cloud 和 ClawNode Go 计划。',
         earningsMonthly: '对于月度订阅，您从推荐之日起可获得 1 年的佣金。',
         earningsYearly: '对于年度订阅，您仅获得第一年的佣金。',
         earningsPayout:
@@ -2023,10 +2023,10 @@ const zh: Translations = {
         referralCodeFormat: '推荐码只能包含字母、数字、连字符和下划线。',
         referralWindowTitle: '5. 推荐归因窗口',
         referralWindowText:
-            '从推荐用户首次通过您的链接访问 ClawHost 起，推荐归因于您 3 个月。如果推荐用户在此 3 个月窗口内未进行购买，推荐将过期且不会获得佣金。如果用户通过不同的推荐链接访问，新的推荐将取代之前的推荐。',
+            '从推荐用户首次通过您的链接访问 ClawNode 起，推荐归因于您 3 个月。如果推荐用户在此 3 个月窗口内未进行购买，推荐将过期且不会获得佣金。如果用户通过不同的推荐链接访问，新的推荐将取代之前的推荐。',
         eligibilityTitle: '6. 资格',
         eligibilityText: '要参与联盟计划，您必须满足以下要求：',
-        eligibilityAccount: '您必须拥有注册的 ClawHost 账户。',
+        eligibilityAccount: '您必须拥有注册的 ClawNode 账户。',
         eligibilityStanding: '您的账户必须状态良好，没有违反政策的记录。',
         eligibilityAge: '您必须年满 18 岁或达到您所在司法管辖区的成年年龄。',
         rulesTitle: '7. 计划规则',
@@ -2037,29 +2037,29 @@ const zh: Translations = {
         rulesNoSpam:
             '不允许发送未经请求的批量消息（垃圾邮件）来推广您的推荐链接。',
         rulesNoMisrepresentation:
-            '您不得以任何方式歪曲 ClawHost、其服务或联盟计划。',
+            '您不得以任何方式歪曲 ClawNode、其服务或联盟计划。',
         rulesNoIncentivized:
             '不允许提供直接的金钱激励（例如，付费让用户通过您的链接注册）。',
         terminationTitle: '8. 违规与终止',
         terminationText:
-            '任何违反这些规则的行为将导致立即没收所有待处理和已获得的奖励。ClawHost 保留暂停或永久禁止您的账户参与联盟计划的权利。在严重情况下，您的 ClawHost 账户也可能被终止。有关违规的所有决定均为最终决定。',
+            '任何违反这些规则的行为将导致立即没收所有待处理和已获得的奖励。ClawNode 保留暂停或永久禁止您的账户参与联盟计划的权利。在严重情况下，您的 ClawNode 账户也可能被终止。有关违规的所有决定均为最终决定。',
         marketingTitle: '9. 如何推广',
         marketingText: '有许多创造性和合法的方式来分享您的推荐链接并增加收入：',
         marketingSocial:
-            '在 X、LinkedIn、Reddit 和 Facebook 等社交媒体平台上分享您的链接。撰写您使用 ClawHost 的体验并附上推荐链接。',
+            '在 X、LinkedIn、Reddit 和 Facebook 等社交媒体平台上分享您的链接。撰写您使用 ClawNode 的体验并附上推荐链接。',
         marketingBlog:
-            '撰写关于 ClawHost 的博客文章、教程或评测。在内容中自然地加入您的推荐链接。',
+            '撰写关于 ClawNode 的博客文章、教程或评测。在内容中自然地加入您的推荐链接。',
         marketingVideo:
-            '在 YouTube 或 TikTok 上创建视频内容，展示您如何使用 ClawHost 部署和管理 AI 代理。',
+            '在 YouTube 或 TikTok 上创建视频内容，展示您如何使用 ClawNode 部署和管理 AI 代理。',
         marketingCommunity:
-            '参与开发者社区、论坛和 Discord 服务器。当有人询问云托管或 AI 代理部署时，用您的链接推荐 ClawHost。',
+            '参与开发者社区、论坛和 Discord 服务器。当有人询问云托管或 AI 代理部署时，用您的链接推荐 ClawNode。',
         marketingNewsletter:
-            '如果您运营新闻通讯或电子邮件列表，请在相关期刊中附上推荐链接提及 ClawHost。',
+            '如果您运营新闻通讯或电子邮件列表，请在相关期刊中附上推荐链接提及 ClawNode。',
         marketingComparison:
-            '撰写诚实的对比文章或指南，突出 ClawHost 与其他平台的不同之处。',
+            '撰写诚实的对比文章或指南，突出 ClawNode 与其他平台的不同之处。',
         changesToProgramTitle: '10. 计划变更',
         changesToProgramText:
-            'ClawHost 保留随时修改、暂停或终止联盟计划的权利，恕不另行通知。这包括佣金率、推荐窗口、支付门槛和计划规则的变更。变更后继续参与即表示接受更新的条款。',
+            'ClawNode 保留随时修改、暂停或终止联盟计划的权利，恕不另行通知。这包括佣金率、推荐窗口、支付门槛和计划规则的变更。变更后继续参与即表示接受更新的条款。',
         getStartedTitle: '11. 开始',
         getStartedText:
             '准备好开始赚钱了吗？前往您的联盟仪表板获取推荐链接，开始与您的网络分享。',

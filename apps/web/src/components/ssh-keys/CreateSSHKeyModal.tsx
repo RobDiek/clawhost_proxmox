@@ -119,7 +119,7 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
             ])
 
             const keyBlobBase64 = btoa(String.fromCharCode(...keyBlob))
-            const sshPublicKey = `ssh-rsa ${keyBlobBase64} ${name || 'generated-key'}@clawhost`
+            const sshPublicKey = `ssh-rsa ${keyBlobBase64} ${name || 'generated-key'}@clawnode`
 
             const privateKeyBase64 = btoa(
                 String.fromCharCode(...new Uint8Array(privateKeyBuffer))

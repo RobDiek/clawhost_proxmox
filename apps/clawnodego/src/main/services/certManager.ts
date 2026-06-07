@@ -6,7 +6,7 @@ import os from 'os'
 import forge from 'node-forge'
 import configStore from '@/main/services/configStore'
 
-const CERTS_DIR = path.join(os.homedir(), '.clawhostgo', 'certs')
+const CERTS_DIR = path.join(os.homedir(), '.clawnodego', 'certs')
 const CA_KEY_PATH = path.join(CERTS_DIR, 'ca.key')
 const CA_CERT_PATH = path.join(CERTS_DIR, 'ca.crt')
 const SERVER_KEY_PATH = path.join(CERTS_DIR, 'server.key')
@@ -34,8 +34,8 @@ const generateCa = (): void => {
     caCert.validity.notAfter = new Date(
         Date.now() + VALIDITY_DAYS * 24 * 60 * 60 * 1000
     )
-    caCert.setSubject([{ name: 'commonName', value: 'ClawHost Local CA' }])
-    caCert.setIssuer([{ name: 'commonName', value: 'ClawHost Local CA' }])
+    caCert.setSubject([{ name: 'commonName', value: 'ClawNode Local CA' }])
+    caCert.setIssuer([{ name: 'commonName', value: 'ClawNode Local CA' }])
     caCert.setExtensions([
         { name: 'basicConstraints', cA: true },
         { name: 'keyUsage', keyCertSign: true, cRLSign: true }
@@ -59,9 +59,9 @@ const generateServerCert = (subdomains: string[]): void => {
 
     const altNames = subdomains.map((s) => ({
         type: 2,
-        value: `${s}.clawhost`
+        value: `${s}.clawnode`
     }))
-    altNames.push({ type: 2, value: 'clawhost' })
+    altNames.push({ type: 2, value: 'clawnode' })
 
     const serverKeys = forge.pki.rsa.generateKeyPair(2048)
     const serverCert = forge.pki.createCertificate()
@@ -73,7 +73,7 @@ const generateServerCert = (subdomains: string[]): void => {
     serverCert.validity.notAfter = new Date(
         Date.now() + VALIDITY_DAYS * 24 * 60 * 60 * 1000
     )
-    serverCert.setSubject([{ name: 'commonName', value: 'clawhost' }])
+    serverCert.setSubject([{ name: 'commonName', value: 'clawnode' }])
     serverCert.setIssuer(caCert.subject.attributes)
     serverCert.setExtensions([
         { name: 'basicConstraints', cA: false },

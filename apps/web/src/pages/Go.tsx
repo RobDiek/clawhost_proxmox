@@ -222,7 +222,7 @@ const Go: FC = (): ReactNode => {
 
                 <FeaturesGrid
                     badge={t('go.features')}
-                    heading={t('go.whyClawHostGo')}
+                    heading={t('go.whyClawNodeGo')}
                     description={t('go.featuresDescription')}
                     features={getGoFeatures()}
                 />
@@ -233,7 +233,7 @@ const Go: FC = (): ReactNode => {
                 >
                     <div className='mx-auto max-w-4xl'>
                         <div className='mb-16 text-center'>
-                            <div className='mb-4 inline-flex items-center gap-2 rounded-full border border-[#ef5350]/20 bg-[#ef5350]/10 px-3 py-1 text-sm text-[#ef5350]'>
+                            <div className='mb-4 inline-flex items-center gap-2 rounded-full border border-[#0072C6]/20 bg-[#0072C6]/10 px-3 py-1 text-sm text-[#0072C6]'>
                                 {t('go.pricing')}
                             </div>
                             <h2 className='font-clash mb-4 text-3xl font-bold md:text-4xl'>

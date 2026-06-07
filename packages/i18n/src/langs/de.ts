@@ -26,10 +26,10 @@ const de: Translations = {
         pageNotFound: 'Seite nicht gefunden',
         closeNotification: 'Benachrichtigung schließen',
         beta: 'Beta',
-        brandName: 'ClawHost',
-        brandNameGo: 'ClawHost Go',
-        brandNameGoVersion: 'ClawHost Go {{version}}',
-        pageTitleWithBrand: '{{title}} - ClawHost',
+        brandName: 'ClawNode',
+        brandNameGo: 'ClawNode Go',
+        brandNameGoVersion: 'ClawNode Go {{version}}',
+        pageTitleWithBrand: '{{title}} - ClawNode',
         menuFile: 'Ablage',
         menuEdit: 'Bearbeiten',
         menuView: 'Darstellung',
@@ -83,14 +83,14 @@ const de: Translations = {
         goSubtitle: 'Nicht-technisch'
     },
     go: {
-        pageTitle: 'ClawHost Go',
+        pageTitle: 'ClawNode Go',
         heroTitle1: 'OpenClaw bereitstellen.',
         heroTitle2: 'Lokal. Sofort.',
         badge: 'OpenClaw & Hermes lokal',
         description:
             'Ein leichtgewichtiger Desktop-Client zur Verwaltung Ihrer OpenClaw-Instanzen. Bereitstellen, überwachen und steuern Sie Ihre Claws — direkt von Ihrem Rechner.',
         features: 'Funktionen',
-        whyClawHostGo: 'Alles-in-einem-Funktionen',
+        whyClawNodeGo: 'Alles-in-einem-Funktionen',
         featuresDescription:
             'Warum es sich lohnt – Funktionen sprechen für sich.',
         zeroConfigDescription:
@@ -135,25 +135,25 @@ const de: Translations = {
         comparisonUpdatesOthers: 'Automatische Updates',
         faqTitle: 'Fragen',
         faqHeading: 'Häufige Fragen',
-        faqDescription: 'Alles, was Sie über ClawHost Go wissen müssen.',
-        faq1Question: 'Was ist ClawHost Go?',
+        faqDescription: 'Alles, was Sie über ClawNode Go wissen müssen.',
+        faq1Question: 'Was ist ClawNode Go?',
         faq1Answer:
-            'ClawHost Go ist eine leichtgewichtige Desktop-Anwendung, mit der Sie OpenClaw lokal auf Ihrem Gerät ausführen können. Keine Cloud-Server nötig — installieren, starten und OpenClaw in Sekunden nutzen.',
-        faq2Question: 'Wie unterscheidet sich Go von ClawHost Cloud?',
+            'ClawNode Go ist eine leichtgewichtige Desktop-Anwendung, mit der Sie OpenClaw lokal auf Ihrem Gerät ausführen können. Keine Cloud-Server nötig — installieren, starten und OpenClaw in Sekunden nutzen.',
+        faq2Question: 'Wie unterscheidet sich Go von ClawNode Cloud?',
         faq2Answer:
-            'ClawHost Cloud stellt OpenClaw auf dedizierten Remote-Servern mit 24/7-Verfügbarkeit und globalem Zugriff bereit. ClawHost Go führt alles lokal auf Ihrem Gerät aus — ideal für Datenschutz, Offline-Nutzung und einfache Setups.',
+            'ClawNode Cloud stellt OpenClaw auf dedizierten Remote-Servern mit 24/7-Verfügbarkeit und globalem Zugriff bereit. ClawNode Go führt alles lokal auf Ihrem Gerät aus — ideal für Datenschutz, Offline-Nutzung und einfache Setups.',
         faq3Question: 'Brauche ich eine Internetverbindung?',
         faq3Answer:
-            'ClawHost Go funktioniert offline für lokale Nutzung. Eine Internetverbindung wird nur für die Ersteinrichtung, Updates und Funktionen benötigt, die externe API-Aufrufe erfordern.',
+            'ClawNode Go funktioniert offline für lokale Nutzung. Eine Internetverbindung wird nur für die Ersteinrichtung, Updates und Funktionen benötigt, die externe API-Aufrufe erfordern.',
         faq4Question: 'Ist die Lizenz eine Einmalzahlung?',
         faq4Answer:
-            'Ja. Sie zahlen einmal und erhalten lebenslangen Zugang zu ClawHost Go, einschließlich aller zukünftigen Updates. Keine Abonnements, keine wiederkehrenden Gebühren.',
+            'Ja. Sie zahlen einmal und erhalten lebenslangen Zugang zu ClawNode Go, einschließlich aller zukünftigen Updates. Keine Abonnements, keine wiederkehrenden Gebühren.',
         faq5Question: 'Welche Betriebssysteme werden unterstützt?',
         faq5Answer:
-            'ClawHost Go unterstützt Windows und macOS. Beide Plattformen erhalten die gleichen Funktionen und Updates gleichzeitig.',
+            'ClawNode Go unterstützt Windows und macOS. Beide Plattformen erhalten die gleichen Funktionen und Updates gleichzeitig.',
         faq6Question: 'Kann ich später von Go zu Cloud wechseln?',
         faq6Answer:
-            'Absolut. Sie können Ihre OpenClaw-Konfiguration aus Go exportieren und jederzeit auf ClawHost Cloud bereitstellen. Beide Plattformen sind vollständig kompatibel.',
+            'Absolut. Sie können Ihre OpenClaw-Konfiguration aus Go exportieren und jederzeit auf ClawNode Cloud bereitstellen. Beide Plattformen sind vollständig kompatibel.',
         statsPrice: '{{price}} $',
         statsLifetime: 'Lebenslang',
         statsOneTime: 'Einmalig',
@@ -168,7 +168,7 @@ const de: Translations = {
         downloadForMac: 'Für Mac herunterladen',
         downloadVersion: 'Version {{version}}',
         downloadForWindows: 'Für Windows herunterladen',
-        deviceNotSupported: 'Ihr Gerät wird von ClawHost Go noch nicht unterstützt.',
+        deviceNotSupported: 'Ihr Gerät wird von ClawNode Go noch nicht unterstützt.',
         downloadFailed: 'Download fehlgeschlagen!',
         downloadStarted: 'Download gestartet.',
         appleSilicon: 'Apple Silicon',
@@ -222,7 +222,7 @@ const de: Translations = {
     },
     footer: {
         website: 'Webseite',
-        copyrightName: 'ClawHost',
+        copyrightName: 'ClawNode',
         copyrightRights: 'Alle Rechte vorbehalten.',
         termsOfService: 'Nutzungsbedingungen',
         privacyPolicy: 'Datenschutzerklärung',
@@ -242,7 +242,7 @@ const de: Translations = {
         affiliateProgram: 'Partnerprogramm',
         documentation: 'Dokumentation',
         productDescription:
-            'OpenClaw- und Hermes-Agenten in der Cloud oder lokal mit einem Klick bereitstellen – erstelle, verbinde und skaliere deine KI-Agenten schneller mit ClawHost.',
+            'OpenClaw- und Hermes-Agenten in der Cloud oder lokal mit einem Klick bereitstellen – erstelle, verbinde und skaliere deine KI-Agenten schneller mit ClawNode.',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -543,13 +543,13 @@ const de: Translations = {
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
     emails: {
-        otpSubject: 'Dein ClawHost-Anmeldecode',
-        otpPreview: 'Dein ClawHost-Anmeldecode: {{code}}',
+        otpSubject: 'Dein ClawNode-Anmeldecode',
+        otpPreview: 'Dein ClawNode-Anmeldecode: {{code}}',
         otpHeading: 'Dein Anmeldecode lautet:',
         otpExpiry:
             'Der Code läuft in 10 Minuten ab. Falls du das nicht warst, ignoriere diese E-Mail.',
         featureFooter:
-            'Du erhältst diese E-Mail, weil du ein ClawHost-Konto hast.',
+            'Du erhältst diese E-Mail, weil du ein ClawNode-Konto hast.',
         features: {
             terminal: {
                 subject: 'Du hast ein Web-Terminal',
@@ -588,7 +588,7 @@ const de: Translations = {
                 cta: 'Diagnose Starten'
             },
             sshKeys: {
-                subject: 'SSH-Schlüssel von ClawHost verwalten',
+                subject: 'SSH-Schlüssel von ClawNode verwalten',
                 preview: 'Schlüsselpaare einfach generieren und verwalten',
                 tag: 'SSH-Schlüssel',
                 heading: 'SSH-Schlüssel, vereinfacht',
@@ -606,12 +606,12 @@ const de: Translations = {
                 cta: 'Config Exportieren'
             },
             multiLanguage: {
-                subject: 'ClawHost spricht 14 Sprachen',
+                subject: 'ClawNode spricht 14 Sprachen',
                 preview: 'Dashboard-Sprache wechseln',
                 tag: 'Mehrsprachig',
                 heading: '14 Sprachen, vollständig übersetzt',
                 description:
-                    'Wechsle ClawHost zu Deutsch, Englisch, Französisch, Spanisch und 10 weitere. Jeder Button, jede Nachricht.',
+                    'Wechsle ClawNode zu Deutsch, Englisch, Französisch, Spanisch und 10 weitere. Jeder Button, jede Nachricht.',
                 cta: 'Sprache Ändern'
             },
             subdomain: {
@@ -620,7 +620,7 @@ const de: Translations = {
                 tag: 'Subdomain',
                 heading: 'Dein Claw, deine URL',
                 description:
-                    'Jeder Claw bekommt eine einzigartige Subdomain wie meinclaw.clawhost.cloud. Von überall erreichbar, ohne VPN.',
+                    'Jeder Claw bekommt eine einzigartige Subdomain wie meinclaw.clawnode.cloud. Von überall erreichbar, ohne VPN.',
                 cta: 'Deine Subdomain Anzeigen'
             },
             darkMode: {
@@ -655,7 +655,7 @@ const de: Translations = {
     auth: {
         signIn: 'Authentifizierung',
         signInDescription:
-            'Melde dich bei deinem ClawHost-Konto an, um deine OpenClaw-Instanzen zu verwalten.',
+            'Melde dich bei deinem ClawNode-Konto an, um deine OpenClaw-Instanzen zu verwalten.',
         signingIn: 'Authentifizierung läuft...',
         verifyCode: 'Code bestätigen',
         checkYourEmail: 'Prüfe deine E-Mail',
@@ -664,7 +664,7 @@ const de: Translations = {
         signInToDeployOpenClaw:
             'Authentifiziere dich, um Agenten mit einem Klick zu verwalten und bereitzustellen.',
         emailAddress: 'E-Mail-Adresse',
-        emailPlaceholder: 'beispiel@clawhost.cloud',
+        emailPlaceholder: 'beispiel@clawnode.cloud',
         continueWithEmail: 'Weiter mit E-Mail',
         otpDescription:
             'Wir senden dir einen Code zum Anmelden. Kein Passwort nötig.',
@@ -687,7 +687,7 @@ const de: Translations = {
     account: {
         title: 'Konto',
         description:
-            'Verwalte deine ClawHost-Kontoeinstellungen und Profilinformationen.',
+            'Verwalte deine ClawNode-Kontoeinstellungen und Profilinformationen.',
         accountSettings: 'Konto',
         manageYourAccount: 'Verwalte dein Profil und deine Kontoeinstellungen.',
         profileInformation: 'Profilinformationen',
@@ -763,7 +763,7 @@ const de: Translations = {
         pageTitle: 'Lizenz',
         pageDescription:
             'Kaufe deine Lizenz für das lokale Self-Hosting von OpenClaw-Instanzen mit unserer Go-App.',
-        planName: 'ClawHost Go Lizenz',
+        planName: 'ClawNode Go Lizenz',
         oneTimePurchase: 'Einmalkauf',
         price: '{{price}} $',
         priceNote: 'Einmal zahlen, für immer besitzen.',
@@ -782,7 +782,7 @@ const de: Translations = {
         whatsIncluded: 'Was enthalten ist',
         gateTitle: 'Lizenz erforderlich',
         gateDescription:
-            'Du benötigst eine ClawHost Go Lizenz, um OpenClaw-Instanzen lokal bereitzustellen und zu verwalten.'
+            'Du benötigst eine ClawNode Go Lizenz, um OpenClaw-Instanzen lokal bereitzustellen und zu verwalten.'
     },
     network: {
         offline: 'Keine Internetverbindung',
@@ -961,7 +961,7 @@ const de: Translations = {
             'Dies kann einige Zeit dauern. Es hängt von OpenClaw, dem Serverstandort und Cloudflare DNS ab.',
         paymentSuccess: 'Dein Claw wird erstellt und konfiguriert.',
         dnsSetupBanner:
-            'Richte lokales DNS ein, um auf deine Claws über subdomain.clawhost zuzugreifen.',
+            'Richte lokales DNS ein, um auf deine Claws über subdomain.clawnode zuzugreifen.',
         dnsSetupButton: 'DNS einrichten',
         dnsSetupSuccess: 'DNS-Resolver erfolgreich konfiguriert.',
         dnsSetupError: 'DNS-Resolver konnte nicht konfiguriert werden!',
@@ -1122,14 +1122,14 @@ const de: Translations = {
             'Stelle OpenClaw mit einem Klick auf deinem eigenen VPS bereit. Selbst-hostbares Cloud-Hosting mit vollem Root-Zugriff, globalen Standorten und transparenten Preisen.',
         badge: 'OpenClaw & Hermes in der Cloud',
         tutorialBadge: 'Anschauen. Deployen.',
-        tutorialVideoThumbnail: 'ClawHost Tutorial-Video Vorschaubild',
-        clawhostGoLogoAlt: 'ClawHost Go',
+        tutorialVideoThumbnail: 'ClawNode Tutorial-Video Vorschaubild',
+        clawnodeGoLogoAlt: 'ClawNode Go',
         trustMrrBadgeAlt: 'TrustMRR verifiziertes Umsatz-Badge',
         macosPreviewTime: '22:12',
         heroTitle1: 'OpenClaw bereitstellen.',
         heroTitle2: 'Ein Klick. Fertig.',
         heroDescription:
-            'OpenClaw- und Hermes-Agenten in der Cloud oder lokal mit einem Klick bereitstellen – erstelle, verbinde und skaliere deine KI-Agenten schneller mit ClawHost.',
+            'OpenClaw- und Hermes-Agenten in der Cloud oder lokal mit einem Klick bereitstellen – erstelle, verbinde und skaliere deine KI-Agenten schneller mit ClawNode.',
         selfHost: 'Open Source',
         startingPrice: 'Ab',
         locations: 'Standorte',
@@ -1137,7 +1137,7 @@ const de: Translations = {
         zeroCount: 'Null',
         zeroConfig: 'Keine Konfiguration',
         features: 'Funktionen',
-        whyClawHost: 'Alles-in-einem-Funktionen',
+        whyClawNode: 'Alles-in-einem-Funktionen',
         featuresDescription:
             'Warum es sich lohnt – Funktionen sprechen für sich.',
         zeroConfigDescription:
@@ -1234,19 +1234,19 @@ const de: Translations = {
         faqTitle: 'Fragen',
         frequentlyAskedQuestions: 'Häufige Fragen',
         faqDescription: 'Jede häufig gestellte Frage, beantwortet.',
-        faq1Question: 'Was ist ClawHost?',
+        faq1Question: 'Was ist ClawNode?',
         faq1Answer:
-            'ClawHost ist eine Plattform, die OpenClaw und Hermes für alle zugänglich macht. Sie ermöglicht sowohl nicht-technischen Nutzern als auch Entwicklern, sie ohne Infrastruktur-Verwaltung zu betreiben. Wir kümmern uns um Server, Uptime, Sicherheit und Wartung — du nutzt einfach deine Agenten.',
+            'ClawNode ist eine Plattform, die OpenClaw und Hermes für alle zugänglich macht. Sie ermöglicht sowohl nicht-technischen Nutzern als auch Entwicklern, sie ohne Infrastruktur-Verwaltung zu betreiben. Wir kümmern uns um Server, Uptime, Sicherheit und Wartung — du nutzt einfach deine Agenten.',
         faq2Question: 'Was ist OpenClaw?',
         faq2Answer:
             'OpenClaw ist eine selbst-gehostete sichere Zugriffsschicht für deine KI-Werkzeuge und -Dienste. Es ist vorkonfiguriert für Sicherheit und Leistung, sodass du es bereitstellen und sofort verbinden kannst.',
         faqHermesQuestion: 'Was ist Hermes?',
         faqHermesAnswer:
-            'Hermes ist ein autonomer KI-Agent mit Web-Browsing, Kalenderverwaltung, Multi-Modell-Reasoning und Browser-Automatisierung. Er ist auf jedem ClawHost-Server zusammen mit OpenClaw vorinstalliert.',
+            'Hermes ist ein autonomer KI-Agent mit Web-Browsing, Kalenderverwaltung, Multi-Modell-Reasoning und Browser-Automatisierung. Er ist auf jedem ClawNode-Server zusammen mit OpenClaw vorinstalliert.',
         faq3Question:
             'Wie unterscheidet sich das von anderen KI-Werkzeugen oder gehosteten Plattformen?',
         faq3Answer:
-            'Im Gegensatz zu gehosteten KI-Tools bietet dir ClawHost einen echten Server mit OpenClaw und Hermes installiert. Du besitzt die Infrastruktur, kontrollierst alles und bist nicht durch eine geteilte Plattform oder ein Modell eingeschränkt.',
+            'Im Gegensatz zu gehosteten KI-Tools bietet dir ClawNode einen echten Server mit OpenClaw und Hermes installiert. Du besitzt die Infrastruktur, kontrollierst alles und bist nicht durch eine geteilte Plattform oder ein Modell eingeschränkt.',
         faq4Question: 'Brauche ich technisches Wissen?',
         faq4Answer:
             'Nein. Wir kümmern uns um die gesamte Infrastruktur, Einrichtung und Wartung. Du kannst OpenClaw über die Oberfläche konfigurieren und verwalten, während Hermes über einfache Terminal-Befehle läuft — ohne Server oder Infrastruktur anzufassen.',
@@ -1305,9 +1305,9 @@ const de: Translations = {
     changelog: {
         title: 'Änderungsprotokoll',
         description:
-            'Verfolge Updates, neue Funktionen und Verbesserungen an ClawHost.',
+            'Verfolge Updates, neue Funktionen und Verbesserungen an ClawNode.',
         subtitle:
-            'Alle Updates, neue Funktionen und Verbesserungen an ClawHost.',
+            'Alle Updates, neue Funktionen und Verbesserungen an ClawNode.',
         release17Date: 'May 1, 2026',
         release17Title: 'Hermes Agents One-Click Deployment',
         release17Description:
@@ -1343,7 +1343,7 @@ const de: Translations = {
         release15Description:
             'Vereinfachung der Plattform durch Migration der verwalteten Funktionen zu OpenClaw, Entfernung der Playground-Ansicht und Einführung änderbarer benutzerdefinierter Subdomains.',
         release15Feature1:
-            'Vereinfachung und Migration der verwalteten Funktionen zu OpenClaw, kein ClawHost-Chat, Agenten, Kanäle, Variablen und Fähigkeiten mehr',
+            'Vereinfachung und Migration der verwalteten Funktionen zu OpenClaw, kein ClawNode-Chat, Agenten, Kanäle, Variablen und Fähigkeiten mehr',
         release15Feature2:
             'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
         release15Feature3:
@@ -1365,13 +1365,13 @@ const de: Translations = {
         release12Date: '14. März 2026',
         release12Title: 'Jahresabonnements, Sprachmodus & mehr',
         release12Description:
-            'Jahresabonnements mit 2 Monaten gratis, Sprachmodus, Instanz-Neuinstallation und eine erste Landingpage für ClawHost Go.',
+            'Jahresabonnements mit 2 Monaten gratis, Sprachmodus, Instanz-Neuinstallation und eine erste Landingpage für ClawNode Go.',
         release12Feature1:
-            'Landingpage für ClawHost Go, lokales Hosting mit ClawHost',
+            'Landingpage für ClawNode Go, lokales Hosting mit ClawNode',
         release12Feature2:
             'Jahresabonnement-Support mit 2 Monaten gratis bei jährlicher Buchung',
         release12Feature3:
-            'Sprachmodus zur Interaktion mit den auf ClawHost gehosteten OpenClaw-Agenten',
+            'Sprachmodus zur Interaktion mit den auf ClawNode gehosteten OpenClaw-Agenten',
         release12Feature4:
             'OpenClaw auf Ihrer Instanz neu installieren, um von vorne zu beginnen, einmal pro Tag verfügbar',
         release11Date: '28. Februar 2026',
@@ -1443,7 +1443,7 @@ const de: Translations = {
         release1Date: '8. Februar 2026',
         release1Title: 'Erstveröffentlichung',
         release1Description:
-            'Die erste offizielle Veröffentlichung von ClawHost. Stelle OpenClaw mit einem Klick auf deinem eigenen VPS bereit.',
+            'Die erste offizielle Veröffentlichung von ClawNode. Stelle OpenClaw mit einem Klick auf deinem eigenen VPS bereit.',
         release1Feature1: 'Ein-Klick-OpenClaw-Bereitstellung',
         release1Feature2:
             'Dashboard zur Verwaltung von Claws – Instanzen starten, stoppen, neustarten und löschen',
@@ -1464,7 +1464,7 @@ const de: Translations = {
         release2Date: '8. Februar 2026',
         release2Title: 'Changelog & mehr',
         release2Description:
-            'Eine neue Möglichkeit, über alles rund um ClawHost informiert zu bleiben.',
+            'Eine neue Möglichkeit, über alles rund um ClawNode informiert zu bleiben.',
         release2Feature1:
             'Änderungsprotokoll-Seite zur Verfolgung aller Plattform-Updates und -Veröffentlichungen',
         release3Date: '10. Februar 2026',
@@ -1598,7 +1598,7 @@ const de: Translations = {
             'Wusstest du, dass du mehrere Agenten in einem OpenClaw betreiben kannst?',
         loadingTip2: 'Wusstest du, dass OpenClaw Open Source ist?',
         loadingTip3:
-            'ClawHost ist das erste Projekt überhaupt, das Ein-Klick-OpenClaw-Hosting ermöglicht.',
+            'ClawNode ist das erste Projekt überhaupt, das Ein-Klick-OpenClaw-Hosting ermöglicht.',
         loadingTip4:
             'Du kannst auf deinen Agenten per SSH oder über das integrierte Terminal zugreifen.',
         loadingTip5: 'Dein Agent erhält automatisch eine eigene Subdomain.',
@@ -1617,7 +1617,7 @@ const de: Translations = {
         loadingTip12:
             'Du kannst dein Root-Passwort und Gateway-Token im Sicherheits-Tab rotieren.',
         loadingTip13:
-            'ClawHost unterstützt Server in mehreren Regionen in Europa und den USA.',
+            'ClawNode unterstützt Server in mehreren Regionen in Europa und den USA.',
         tabSettings: 'Einstellungen',
         featureVersionUnsupported:
             '{{feature}} nicht unterstützt auf {{version}}',
@@ -1768,14 +1768,14 @@ const de: Translations = {
     privacy: {
         title: 'Datenschutzerklärung',
         description:
-            'Erfahre, wie ClawHost deine personenbezogenen Daten erhebt, verwendet und schützt.',
+            'Erfahre, wie ClawNode deine personenbezogenen Daten erhebt, verwendet und schützt.',
         lastUpdated: 'Zuletzt aktualisiert: 14. März 2026',
         introTitle: '1. Einleitung',
         introText:
-            'ClawHost („wir", „unser" oder „uns") ist dem Schutz deiner Privatsphäre verpflichtet. Diese Datenschutzerklärung erläutert, wie wir deine Daten erheben, verwenden, offenlegen und schützen, wenn du unseren Dienst nutzt.',
+            'ClawNode („wir", „unser" oder „uns") ist dem Schutz deiner Privatsphäre verpflichtet. Diese Datenschutzerklärung erläutert, wie wir deine Daten erheben, verwenden, offenlegen und schützen, wenn du unseren Dienst nutzt.',
         authTitle: '2. Authentifizierung',
         authText:
-            'ClawHost verwendet Google Firebase Authentication zur Verwaltung von Benutzerkonten. Du kannst dich mit E-Mail, Google oder GitHub anmelden. Durch die Nutzung dieser Anmeldemethoden stimmst du den jeweiligen Nutzungsbedingungen und Datenschutzerklärungen zu. Diese Anbieter können grundlegende Daten wie deine E-Mail-Adresse, deinen Namen und Geräteinformationen erheben. Wir speichern nur deine E-Mail-Adresse und deinen Anzeigenamen.',
+            'ClawNode verwendet Google Firebase Authentication zur Verwaltung von Benutzerkonten. Du kannst dich mit E-Mail, Google oder GitHub anmelden. Durch die Nutzung dieser Anmeldemethoden stimmst du den jeweiligen Nutzungsbedingungen und Datenschutzerklärungen zu. Diese Anbieter können grundlegende Daten wie deine E-Mail-Adresse, deinen Namen und Geräteinformationen erheben. Wir speichern nur deine E-Mail-Adresse und deinen Anzeigenamen.',
         collectTitle: '3. Von uns erhobene Daten',
         collectText: 'Wir erheben Daten auf folgende Weise:',
         personalInfoTitle: 'Personenbezogene Daten',
@@ -1829,7 +1829,7 @@ const de: Translations = {
             'Deine Daten können in andere Länder als dein eigenes übermittelt und dort verarbeitet werden. Wir stellen sicher, dass angemessene Schutzmaßnahmen zum Schutz deiner Daten gemäß dieser Datenschutzerklärung vorhanden sind.',
         eligibilityTitle: '11. Berechtigung',
         eligibilityText:
-            'Unser Dienst steht jedem zur Verfügung. Es gibt keine Altersbeschränkungen für die Nutzung von ClawHost.',
+            'Unser Dienst steht jedem zur Verfügung. Es gibt keine Altersbeschränkungen für die Nutzung von ClawNode.',
         changesTitle: '12. Änderungen dieser Richtlinie',
         changesText:
             'Wir können diese Datenschutzerklärung von Zeit zu Zeit aktualisieren. Wir werden dich über Änderungen informieren, indem wir die neue Datenschutzerklärung auf dieser Seite veröffentlichen und das Datum „Zuletzt aktualisiert" anpassen.',
@@ -1840,17 +1840,17 @@ const de: Translations = {
     terms: {
         title: 'Nutzungsbedingungen',
         description:
-            'Lies die Geschäftsbedingungen für die Nutzung der ClawHost-Dienste.',
+            'Lies die Geschäftsbedingungen für die Nutzung der ClawNode-Dienste.',
         lastUpdated: 'Zuletzt aktualisiert: 14. März 2026',
         acceptanceTitle: '1. Annahme der Bedingungen',
         acceptanceText:
-            'Durch den Zugriff auf und die Nutzung von ClawHost („Dienst") akzeptierst du die Bedingungen und Bestimmungen dieser Vereinbarung und erklärst dich damit einverstanden, daran gebunden zu sein. Wenn du diesen Bedingungen nicht zustimmst, nutze bitte unseren Dienst nicht.',
+            'Durch den Zugriff auf und die Nutzung von ClawNode („Dienst") akzeptierst du die Bedingungen und Bestimmungen dieser Vereinbarung und erklärst dich damit einverstanden, daran gebunden zu sein. Wenn du diesen Bedingungen nicht zustimmst, nutze bitte unseren Dienst nicht.',
         serviceTitle: '2. Beschreibung des Dienstes',
         serviceText:
-            'ClawHost bietet die Ein-Klick-Bereitstellung von OpenClaw und Hermes auf dedizierten Servern. Wir ermöglichen Nutzern, vorkonfigurierte OpenClaw- und Hermes-Instanzen mit vollem Root-Zugriff und dedizierten Ressourcen bereitzustellen, zu verwalten und darauf zuzugreifen.',
+            'ClawNode bietet die Ein-Klick-Bereitstellung von OpenClaw und Hermes auf dedizierten Servern. Wir ermöglichen Nutzern, vorkonfigurierte OpenClaw- und Hermes-Instanzen mit vollem Root-Zugriff und dedizierten Ressourcen bereitzustellen, zu verwalten und darauf zuzugreifen.',
         authTitle: '3. Authentifizierung',
         authText:
-            'ClawHost verwendet Google Firebase Authentication zur Anmeldungsverwaltung. Du kannst dich mit E-Mail, Google oder GitHub authentifizieren. Durch die Nutzung dieser Methoden stimmst du den jeweiligen Nutzungsbedingungen und Datenschutzerklärungen von Google und GitHub zu. Diese Anbieter können grundlegende Daten wie deine E-Mail-Adresse, deinen Namen und Gerätedaten erheben.',
+            'ClawNode verwendet Google Firebase Authentication zur Anmeldungsverwaltung. Du kannst dich mit E-Mail, Google oder GitHub authentifizieren. Durch die Nutzung dieser Methoden stimmst du den jeweiligen Nutzungsbedingungen und Datenschutzerklärungen von Google und GitHub zu. Diese Anbieter können grundlegende Daten wie deine E-Mail-Adresse, deinen Namen und Gerätedaten erheben.',
         responsibilitiesTitle: '4. Benutzerpflichten',
         responsibilitiesText: 'Du stimmst zu:',
         responsibilitiesAccurate:
@@ -1884,19 +1884,19 @@ const de: Translations = {
             'Wir bemühen uns um hohe Verfügbarkeit, garantieren jedoch keinen ununterbrochenen Zugang zum Dienst. Wir behalten uns das Recht vor, Teile des Dienstes jederzeit mit oder ohne Vorankündigung zu ändern, auszusetzen oder einzustellen.',
         liabilityTitle: '8. Haftungsbeschränkung',
         liabilityText:
-            'Im größtmöglichen gesetzlich zulässigen Umfang haftet ClawHost nicht für indirekte, zufällige, besondere, Folge- oder Strafschäden oder für entgangene Gewinne oder Einnahmen, unabhängig davon, ob sie direkt oder indirekt entstanden sind.',
+            'Im größtmöglichen gesetzlich zulässigen Umfang haftet ClawNode nicht für indirekte, zufällige, besondere, Folge- oder Strafschäden oder für entgangene Gewinne oder Einnahmen, unabhängig davon, ob sie direkt oder indirekt entstanden sind.',
         terminationTitle: '9. Kündigung',
         terminationText:
             'Wir können dein Konto und den Zugang zum Dienst sofort und ohne vorherige Ankündigung sperren oder kündigen, wenn wir der Ansicht sind, dass dein Verhalten gegen diese Bedingungen verstößt oder anderen Nutzern, uns oder Dritten schadet, oder aus jedem anderen Grund.',
         affiliateTitle: '10. Affiliate Program',
         affiliateText:
-            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+            'ClawNode offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
         affiliateCodeUnique:
             'Each user receives a unique referral code upon registration, which can be customized once.',
         affiliateCodeOneChange:
             'The referral code can only be changed one time. Choose your custom code carefully.',
         affiliateReferralWindow:
-            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+            'A referral is valid for 6 months from when the referred user first visits ClawNode with your referral link. After 6 months, the referral expires.',
         affiliateNoSelfReferral:
             'Self-referrals are not permitted. You may not refer your own accounts.',
         affiliateAbuse:
@@ -1911,17 +1911,17 @@ const de: Translations = {
     hermesBanner: {
         title: 'Hermes Agent',
         message:
-            'Hermes-Agenten werden jetzt für die Bereitstellung auf ClawHost unterstützt.'
+            'Hermes-Agenten werden jetzt für die Bereitstellung auf ClawNode unterstützt.'
     },
     compare: {
         title: 'Vergleich',
         description:
-            'Erfahre, wie sich ClawHost von anderen OpenClaw-Hosting-Plattformen unterscheidet.',
+            'Erfahre, wie sich ClawNode von anderen OpenClaw-Hosting-Plattformen unterscheidet.',
         badge: 'Vergleich',
         feature: 'Plattform',
         compareWith: 'Vergleichen mit',
         lastUpdated: 'Zuletzt aktualisiert: März 2026',
-        competitorClawHost: 'ClawHost',
+        competitorClawNode: 'ClawNode',
         competitorLobsterFarm: 'LobsterFarm',
         competitorSimpleAgent: 'SimpleAgent',
         competitorMyAgentAi: 'MyAgent.ai',
@@ -2160,7 +2160,7 @@ const de: Translations = {
     affiliate: {
         title: 'Partner',
         description:
-            'Verdiene Belohnungen, indem du Freunde zu ClawHost einlädst.',
+            'Verdiene Belohnungen, indem du Freunde zu ClawNode einlädst.',
         subtitle: 'Teile deinen Empfehlungslink und verdiene Belohnungen.',
         learnMore: 'Mehr über das Partnerprogramm erfahren',
         referralCode: 'Empfehlungscode',
@@ -2193,25 +2193,25 @@ const de: Translations = {
     affiliateProgram: {
         title: 'Partnerprogramm',
         description:
-            'Erfahre, wie das ClawHost-Partnerprogramm funktioniert, wie viel du verdienen kannst und welche Regeln für die Teilnahme gelten.',
+            'Erfahre, wie das ClawNode-Partnerprogramm funktioniert, wie viel du verdienen kannst und welche Regeln für die Teilnahme gelten.',
         lastUpdated: 'Zuletzt aktualisiert: 1. April 2026',
         overviewTitle: '1. Übersicht',
         overviewText:
-            'Das ClawHost-Partnerprogramm ermöglicht es dir, Belohnungen zu verdienen, indem du neue Benutzer an ClawHost empfiehlst. Wenn jemand einen Kauf tätigt, nachdem er ClawHost über deinen Empfehlungslink besucht hat, erhältst du eine Provision auf seine Zahlungen. Das Programm ist kostenlos und steht allen registrierten ClawHost-Benutzern zur Verfügung.',
+            'Das ClawNode-Partnerprogramm ermöglicht es dir, Belohnungen zu verdienen, indem du neue Benutzer an ClawNode empfiehlst. Wenn jemand einen Kauf tätigt, nachdem er ClawNode über deinen Empfehlungslink besucht hat, erhältst du eine Provision auf seine Zahlungen. Das Programm ist kostenlos und steht allen registrierten ClawNode-Benutzern zur Verfügung.',
         howItWorksTitle: '2. So funktioniert es',
         howItWorksText: 'Der Einstieg in das Partnerprogramm ist einfach:',
         howItWorksStep1:
-            'Erstelle ein ClawHost-Konto. Ein einzigartiger Empfehlungscode wird automatisch für dich generiert.',
+            'Erstelle ein ClawNode-Konto. Ein einzigartiger Empfehlungscode wird automatisch für dich generiert.',
         howItWorksStep2:
-            'Teile deinen Empfehlungslink mit Freunden, Kollegen oder deinem Publikum. Dein Link hat das Format: clawhost.cloud?ref=YOUR_CODE.',
+            'Teile deinen Empfehlungslink mit Freunden, Kollegen oder deinem Publikum. Dein Link hat das Format: clawnode.cloud?ref=YOUR_CODE.',
         howItWorksStep3:
-            'Wenn jemand einen Kauf tätigt, nachdem er ClawHost über deinen Link besucht hat, wird dies als deine Empfehlung erfasst.',
+            'Wenn jemand einen Kauf tätigt, nachdem er ClawNode über deinen Link besucht hat, wird dies als deine Empfehlung erfasst.',
         howItWorksStep4:
             'Du verdienst eine Provision jedes Mal, wenn dein empfohlener Benutzer einen qualifizierenden Kauf tätigt.',
         earningsTitle: '3. Verdienste und Auszahlungen',
         earningsText: 'So funktionieren die Partnerverdienste:',
         earningsCommission:
-            'Du verdienst eine Provision von 15% auf jeden qualifizierenden Kauf deiner empfohlenen Benutzer. Provisionen gelten sowohl für ClawHost Cloud- als auch ClawHost Go-Pläne.',
+            'Du verdienst eine Provision von 15% auf jeden qualifizierenden Kauf deiner empfohlenen Benutzer. Provisionen gelten sowohl für ClawNode Cloud- als auch ClawNode Go-Pläne.',
         earningsMonthly:
             'Bei monatlichen Abonnements verdienst du Provisionen für 1 Jahr ab dem Datum der Empfehlung.',
         earningsYearly:
@@ -2233,11 +2233,11 @@ const de: Translations = {
             'Empfehlungscodes dürfen nur Buchstaben, Zahlen, Bindestriche und Unterstriche enthalten.',
         referralWindowTitle: '5. Empfehlungs-Zuordnungsfenster',
         referralWindowText:
-            'Eine Empfehlung wird dir für 3 Monate ab dem Moment zugeordnet, in dem der empfohlene Benutzer ClawHost zum ersten Mal über deinen Link besucht. Wenn der empfohlene Benutzer innerhalb dieses 3-monatigen Fensters keinen Kauf tätigt, verfällt die Empfehlung und es wird keine Provision verdient. Wenn der Benutzer über einen anderen Empfehlungslink besucht, ersetzt die neue Empfehlung die vorherige.',
+            'Eine Empfehlung wird dir für 3 Monate ab dem Moment zugeordnet, in dem der empfohlene Benutzer ClawNode zum ersten Mal über deinen Link besucht. Wenn der empfohlene Benutzer innerhalb dieses 3-monatigen Fensters keinen Kauf tätigt, verfällt die Empfehlung und es wird keine Provision verdient. Wenn der Benutzer über einen anderen Empfehlungslink besucht, ersetzt die neue Empfehlung die vorherige.',
         eligibilityTitle: '6. Teilnahmeberechtigung',
         eligibilityText:
             'Um am Partnerprogramm teilzunehmen, musst du die folgenden Voraussetzungen erfüllen:',
-        eligibilityAccount: 'Du musst ein registriertes ClawHost-Konto haben.',
+        eligibilityAccount: 'Du musst ein registriertes ClawNode-Konto haben.',
         eligibilityStanding:
             'Dein Konto muss in gutem Zustand sein, ohne Verstöße gegen die Richtlinien.',
         eligibilityAge:
@@ -2252,30 +2252,30 @@ const de: Translations = {
         rulesNoSpam:
             'Das Versenden unerwünschter Massennachrichten (Spam) zur Bewerbung deines Empfehlungslinks ist nicht gestattet.',
         rulesNoMisrepresentation:
-            'Du darfst ClawHost, seine Dienste oder das Partnerprogramm in keiner Weise falsch darstellen.',
+            'Du darfst ClawNode, seine Dienste oder das Partnerprogramm in keiner Weise falsch darstellen.',
         rulesNoIncentivized:
             'Das Anbieten direkter finanzieller Anreize (z. B. Benutzer dafür zu bezahlen, sich über deinen Link anzumelden) ist nicht gestattet.',
         terminationTitle: '8. Verstoß und Kündigung',
         terminationText:
-            'Jeder Verstoß gegen diese Regeln führt zum sofortigen Verlust aller ausstehenden und verdienten Belohnungen. ClawHost behält sich das Recht vor, dein Konto vom Partnerprogramm zu sperren oder dauerhaft auszuschließen. In schweren Fällen kann auch dein ClawHost-Konto gekündigt werden. Alle Entscheidungen bezüglich Verstößen sind endgültig.',
+            'Jeder Verstoß gegen diese Regeln führt zum sofortigen Verlust aller ausstehenden und verdienten Belohnungen. ClawNode behält sich das Recht vor, dein Konto vom Partnerprogramm zu sperren oder dauerhaft auszuschließen. In schweren Fällen kann auch dein ClawNode-Konto gekündigt werden. Alle Entscheidungen bezüglich Verstößen sind endgültig.',
         marketingTitle: '9. Wie man wirbt',
         marketingText:
             'Es gibt viele kreative und legitime Möglichkeiten, deinen Empfehlungslink zu teilen und deine Einnahmen zu steigern:',
         marketingSocial:
-            'Teile deinen Link auf Social-Media-Plattformen wie X, LinkedIn, Reddit und Facebook. Schreibe über deine Erfahrung mit ClawHost und füge deinen Empfehlungslink ein.',
+            'Teile deinen Link auf Social-Media-Plattformen wie X, LinkedIn, Reddit und Facebook. Schreibe über deine Erfahrung mit ClawNode und füge deinen Empfehlungslink ein.',
         marketingBlog:
-            'Schreibe Blogbeiträge, Tutorials oder Bewertungen über ClawHost. Füge deinen Empfehlungslink natürlich in den Inhalt ein.',
+            'Schreibe Blogbeiträge, Tutorials oder Bewertungen über ClawNode. Füge deinen Empfehlungslink natürlich in den Inhalt ein.',
         marketingVideo:
-            'Erstelle Videoinhalte auf YouTube oder TikTok, die zeigen, wie du ClawHost zum Bereitstellen und Verwalten von KI-Agenten verwendest.',
+            'Erstelle Videoinhalte auf YouTube oder TikTok, die zeigen, wie du ClawNode zum Bereitstellen und Verwalten von KI-Agenten verwendest.',
         marketingCommunity:
-            'Nimm an Entwicklergemeinschaften, Foren und Discord-Servern teil. Wenn jemand nach Cloud-Hosting oder KI-Agenten-Bereitstellung fragt, empfehle ClawHost mit deinem Link.',
+            'Nimm an Entwicklergemeinschaften, Foren und Discord-Servern teil. Wenn jemand nach Cloud-Hosting oder KI-Agenten-Bereitstellung fragt, empfehle ClawNode mit deinem Link.',
         marketingNewsletter:
-            'Wenn du einen Newsletter oder eine E-Mail-Liste betreibst, erwähne ClawHost in einer relevanten Ausgabe mit deinem Empfehlungslink.',
+            'Wenn du einen Newsletter oder eine E-Mail-Liste betreibst, erwähne ClawNode in einer relevanten Ausgabe mit deinem Empfehlungslink.',
         marketingComparison:
-            'Schreibe ehrliche Vergleichsartikel oder Leitfäden, die hervorheben, was ClawHost von anderen Plattformen unterscheidet.',
+            'Schreibe ehrliche Vergleichsartikel oder Leitfäden, die hervorheben, was ClawNode von anderen Plattformen unterscheidet.',
         changesToProgramTitle: '10. Änderungen am Programm',
         changesToProgramText:
-            'ClawHost behält sich das Recht vor, das Partnerprogramm jederzeit ohne vorherige Ankündigung zu ändern, auszusetzen oder einzustellen. Dies umfasst Änderungen an Provisionssätzen, Empfehlungsfenstern, Auszahlungsschwellen und Programmregeln. Die fortgesetzte Teilnahme nach Änderungen gilt als Akzeptanz der aktualisierten Bedingungen.',
+            'ClawNode behält sich das Recht vor, das Partnerprogramm jederzeit ohne vorherige Ankündigung zu ändern, auszusetzen oder einzustellen. Dies umfasst Änderungen an Provisionssätzen, Empfehlungsfenstern, Auszahlungsschwellen und Programmregeln. Die fortgesetzte Teilnahme nach Änderungen gilt als Akzeptanz der aktualisierten Bedingungen.',
         getStartedTitle: '11. Loslegen',
         getStartedText:
             'Bereit zu verdienen? Gehe zu deinem Partner-Dashboard, um deinen Empfehlungslink zu erhalten und beginne, ihn mit deinem Netzwerk zu teilen.',

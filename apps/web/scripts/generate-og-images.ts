@@ -12,12 +12,12 @@ const OUTPUT = path.resolve(import.meta.dirname, '../public/og')
 const FONTS_DIR = path.resolve(import.meta.dirname, '../public/fonts')
 const LOGO_PATH = path.resolve(
     import.meta.dirname,
-    '../public/clawhost-logo-og.png'
+    '../public/clawnode-logo-og.png'
 )
 
 const WIDTH = 1200
 const HEIGHT = 630
-const ACCENT = '#ef5350'
+const ACCENT = '#0072C6'
 
 const hashString = (str: string): number => {
     let hash = 0

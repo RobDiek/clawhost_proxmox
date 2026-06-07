@@ -87,7 +87,7 @@ export default defineConfig(({ mode }) => {
             }
         },
         preview: {
-            allowedHosts: ['clawnode.de', 'app.clawnode.de', 'clawhost.cloud', 'app.clawhost.cloud']
+            allowedHosts: ['clawnode.de', 'app.clawnode.de', 'clawnode.cloud', 'app.clawnode.cloud']
         },
         server: {
             port: Number(env.VITE_PORT) || 1111,
@@ -112,12 +112,12 @@ export default defineConfig(({ mode }) => {
                     rewrite: (path) => path.replace(/^\/api/, '')
                 },
                 '/__/auth': {
-                    target: 'https://clawhost-prod.firebaseapp.com',
+                    target: 'https://clawnode-prod.firebaseapp.com',
                     changeOrigin: true,
                     secure: true
                 },
                 '/__/firebase': {
-                    target: 'https://clawhost-prod.firebaseapp.com',
+                    target: 'https://clawnode-prod.firebaseapp.com',
                     changeOrigin: true,
                     secure: true
                 }

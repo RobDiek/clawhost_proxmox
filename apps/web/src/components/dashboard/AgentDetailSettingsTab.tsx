@@ -74,7 +74,7 @@ const AgentDetailSettingsTab: FC<AgentDetailSettingsTabProps> = ({
                             }
                         }}
                         placeholder={t('clawDetail.settingsNamePlaceholder')}
-                        className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
+                        className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors focus:border-[#0072C6]/50 ${
                             settingsNameError
                                 ? 'border-red-500/50'
                                 : 'border-border'
@@ -118,7 +118,7 @@ const AgentDetailSettingsTab: FC<AgentDetailSettingsTabProps> = ({
                                 placeholder={t(
                                     'clawDetail.subdomainPlaceholder'
                                 )}
-                                className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-l-md border border-r-0 px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
+                                className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-l-md border border-r-0 px-3 py-2 text-sm outline-none transition-colors focus:border-[#0072C6]/50 ${
                                     settingsSubdomainError
                                         ? 'border-red-500/50'
                                         : 'border-border'
@@ -154,7 +154,7 @@ const AgentDetailSettingsTab: FC<AgentDetailSettingsTabProps> = ({
                             subdomainPending ||
                             emojiPending
                         }
-                        className='flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef5350] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#e53935] disabled:cursor-not-allowed disabled:opacity-50'
+                        className='flex w-full items-center justify-center gap-2 rounded-lg bg-[#0072C6] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#e53935] disabled:cursor-not-allowed disabled:opacity-50'
                     >
                         {(renamePending ||
                             subdomainPending ||

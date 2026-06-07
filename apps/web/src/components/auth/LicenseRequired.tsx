@@ -24,7 +24,7 @@ const LicenseRequired: FC = (): ReactNode => {
             </div>
             <Button
                 onClick={() => navigate(`${ROUTES.ACCOUNT}#license`)}
-                className='h-10 gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-sm text-white hover:opacity-90'
+                className='h-10 gap-2 border-0 bg-gradient-to-r from-[#0072C6] to-[#29F49A] text-sm text-white hover:opacity-90'
             >
                 {t('license.purchaseLicense')}
             </Button>

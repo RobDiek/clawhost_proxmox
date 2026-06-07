@@ -26,10 +26,10 @@ const ja: Translations = {
         pageNotFound: 'ページが見つかりません',
         closeNotification: '通知を閉じる',
         beta: 'ベータ',
-        brandName: 'ClawHost',
-        brandNameGo: 'ClawHost Go',
-        brandNameGoVersion: 'ClawHost Go {{version}}',
-        pageTitleWithBrand: '{{title}} - ClawHost',
+        brandName: 'ClawNode',
+        brandNameGo: 'ClawNode Go',
+        brandNameGoVersion: 'ClawNode Go {{version}}',
+        pageTitleWithBrand: '{{title}} - ClawNode',
         menuFile: 'ファイル',
         menuEdit: '編集',
         menuView: '表示',
@@ -82,14 +82,14 @@ const ja: Translations = {
         goSubtitle: '非技術者向け'
     },
     go: {
-        pageTitle: 'ClawHost Go',
+        pageTitle: 'ClawNode Go',
         heroTitle1: 'OpenClawをデプロイ.',
         heroTitle2: 'ローカルで. 即座に.',
         badge: 'OpenClawとHermesをローカルで',
         description:
             'OpenClawインスタンスを管理する軽量デスクトップクライアント。デプロイ、監視、制御をお手元のマシンから.',
         features: '機能',
-        whyClawHostGo: 'オールインワン機能',
+        whyClawNodeGo: 'オールインワン機能',
         featuresDescription: '試す価値がある理由、機能が証明します.',
         zeroConfigDescription:
             'サーバー、OpenClaw、Hermesのセットアップに何時間も費やす必要はありません。プリインストール済みで数分で利用可能。',
@@ -133,25 +133,25 @@ const ja: Translations = {
         comparisonUpdatesOthers: '自動アップデート',
         faqTitle: '質問',
         faqHeading: 'よくある質問',
-        faqDescription: 'ClawHost Goについて知っておくべきすべてのこと.',
-        faq1Question: 'ClawHost Goとは？',
+        faqDescription: 'ClawNode Goについて知っておくべきすべてのこと.',
+        faq1Question: 'ClawNode Goとは？',
         faq1Answer:
-            'ClawHost Goは、お手元のマシンでOpenClawをローカルに実行できる軽量デスクトップアプリケーションです。クラウドサーバーは不要 — インストールして起動するだけで、数秒でOpenClawを使い始められます.',
-        faq2Question: 'GoとClawHost Cloudの違いは？',
+            'ClawNode Goは、お手元のマシンでOpenClawをローカルに実行できる軽量デスクトップアプリケーションです。クラウドサーバーは不要 — インストールして起動するだけで、数秒でOpenClawを使い始められます.',
+        faq2Question: 'GoとClawNode Cloudの違いは？',
         faq2Answer:
-            'ClawHost CloudはOpenClawを24時間365日稼働のグローバルアクセス可能な専用リモートサーバーにデプロイします。ClawHost Goはすべてをお使いのデバイスでローカルに実行します — プライバシー、オフライン使用、シンプルなセットアップに最適です.',
+            'ClawNode CloudはOpenClawを24時間365日稼働のグローバルアクセス可能な専用リモートサーバーにデプロイします。ClawNode Goはすべてをお使いのデバイスでローカルに実行します — プライバシー、オフライン使用、シンプルなセットアップに最適です.',
         faq3Question: 'インターネット接続は必要ですか？',
         faq3Answer:
-            'ClawHost Goはローカル使用であればオフラインで動作します。インターネット接続は初期設定、アップデート、外部APIコールが必要な機能にのみ必要です.',
+            'ClawNode Goはローカル使用であればオフラインで動作します。インターネット接続は初期設定、アップデート、外部APIコールが必要な機能にのみ必要です.',
         faq4Question: 'ライセンスは一回払いですか？',
         faq4Answer:
-            'はい。一度支払えば、すべての将来のアップデートを含むClawHost Goへの永久アクセスを取得できます。サブスクリプションなし、継続料金なし.',
+            'はい。一度支払えば、すべての将来のアップデートを含むClawNode Goへの永久アクセスを取得できます。サブスクリプションなし、継続料金なし.',
         faq5Question: 'どのOSに対応していますか？',
         faq5Answer:
-            'ClawHost GoはWindowsとmacOSに対応しています。両プラットフォームとも同じ機能を備え、同時にアップデートを受け取れます.',
+            'ClawNode GoはWindowsとmacOSに対応しています。両プラットフォームとも同じ機能を備え、同時にアップデートを受け取れます.',
         faq6Question: '後からGoからCloudに切り替えられますか？',
         faq6Answer:
-            'もちろんです。GoからOpenClawの設定をエクスポートし、いつでもClawHost Cloudにデプロイできます。両プラットフォームは完全に互換性があります.',
+            'もちろんです。GoからOpenClawの設定をエクスポートし、いつでもClawNode Cloudにデプロイできます。両プラットフォームは完全に互換性があります.',
         statsPrice: '${{price}}',
         statsLifetime: '永久',
         statsOneTime: '一回',
@@ -166,7 +166,7 @@ const ja: Translations = {
         downloadForMac: 'Mac 用ダウンロード',
         downloadVersion: 'バージョン {{version}}',
         downloadForWindows: 'Windows 用ダウンロード',
-        deviceNotSupported: 'お使いのデバイスはまだ ClawHost Go に対応していません。',
+        deviceNotSupported: 'お使いのデバイスはまだ ClawNode Go に対応していません。',
         downloadFailed: 'ダウンロードに失敗しました!',
         downloadStarted: 'ダウンロードを開始しました。',
         appleSilicon: 'Apple Silicon',
@@ -219,7 +219,7 @@ const ja: Translations = {
     },
     footer: {
         website: 'ウェブサイト',
-        copyrightName: 'ClawHost',
+        copyrightName: 'ClawNode',
         copyrightRights: '全著作権所有.',
         termsOfService: '利用規約',
         privacyPolicy: 'プライバシーポリシー',
@@ -239,7 +239,7 @@ const ja: Translations = {
         affiliateProgram: 'アフィリエイトプログラム',
         documentation: 'ドキュメント',
         productDescription:
-            'ワンクリックでクラウドまたはローカルにOpenClawとHermesエージェントをデプロイ — ClawHostでAIエージェントをより速く構築、接続、スケーリング.',
+            'ワンクリックでクラウドまたはローカルにOpenClawとHermesエージェントをデプロイ — ClawNodeでAIエージェントをより速く構築、接続、スケーリング.',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -523,13 +523,13 @@ const ja: Translations = {
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
     emails: {
-        otpSubject: 'ClawHostサインインコード',
-        otpPreview: 'ClawHostサインインコード: {{code}}',
+        otpSubject: 'ClawNodeサインインコード',
+        otpPreview: 'ClawNodeサインインコード: {{code}}',
         otpHeading: 'サインインコード:',
         otpExpiry:
             'コードは10分で期限切れになります。心当たりがない場合は、このメールを無視してください。',
         featureFooter:
-            'ClawHostアカウントをお持ちのため、このメールをお送りしています。',
+            'ClawNodeアカウントをお持ちのため、このメールをお送りしています。',
         features: {
             terminal: {
                 subject: 'ご存知ですか？Webターミナルが使えます',
@@ -537,7 +537,7 @@ const ja: Translations = {
                 tag: 'Webターミナル',
                 heading: 'サーバーはワンクリックで',
                 description:
-                    '内蔵ターミナルでブラウザから直接サーバーにアクセスできます。SSHクライアント不要 — ClawHostを開いてコマンドを入力するだけ。',
+                    '内蔵ターミナルでブラウザから直接サーバーにアクセスできます。SSHクライアント不要 — ClawNodeを開いてコマンドを入力するだけ。',
                 cta: 'ターミナルを開く'
             },
             logs: {
@@ -546,7 +546,7 @@ const ja: Translations = {
                 tag: 'ライブログ',
                 heading: 'サーバーの状況を確認',
                 description:
-                    'ClawHostダッシュボードからリアルタイムでサーバーログを監視。問題の診断、デプロイの追跡、アプリケーションのデバッグをブラウザから。',
+                    'ClawNodeダッシュボードからリアルタイムでサーバーログを監視。問題の診断、デプロイの追跡、アプリケーションのデバッグをブラウザから。',
                 cta: 'ログを見る'
             },
             fileExplorer: {
@@ -555,7 +555,7 @@ const ja: Translations = {
                 tag: 'ファイルエクスプローラー',
                 heading: 'ファイルを手元に',
                 description:
-                    'ClawHostダッシュボードからサーバー上のファイルを直接閲覧、読み取り、編集。シンタックスハイライト、検索、即座の保存 — SSH不要。',
+                    'ClawNodeダッシュボードからサーバー上のファイルを直接閲覧、読み取り、編集。シンタックスハイライト、検索、即座の保存 — SSH不要。',
                 cta: 'ファイルエクスプローラーを開く'
             },
             diagnostics: {
@@ -568,12 +568,12 @@ const ja: Translations = {
                 cta: '診断を実行'
             },
             sshKeys: {
-                subject: 'ご存知ですか？ClawHostからSSHキーを管理',
+                subject: 'ご存知ですか？ClawNodeからSSHキーを管理',
                 preview: 'ダッシュボードでSSHキーペアを生成・管理',
                 tag: 'SSHキー',
                 heading: 'SSHキーをシンプルに',
                 description:
-                    'SSHキーペアの生成、公開鍵のコピー、秘密鍵のダウンロード — すべてClawHostダッシュボードから。セキュアなアクセスのためにClawにキーを割り当て。',
+                    'SSHキーペアの生成、公開鍵のコピー、秘密鍵のダウンロード — すべてClawNodeダッシュボードから。セキュアなアクセスのためにClawにキーを割り当て。',
                 cta: 'SSHキーを管理'
             },
             exportConfig: {
@@ -586,12 +586,12 @@ const ja: Translations = {
                 cta: '設定をエクスポート'
             },
             multiLanguage: {
-                subject: 'ご存知ですか？ClawHostはあなたの言語に対応',
-                preview: 'ClawHostを14言語で使用',
+                subject: 'ご存知ですか？ClawNodeはあなたの言語に対応',
+                preview: 'ClawNodeを14言語で使用',
                 tag: '多言語対応',
-                heading: 'あなたの言語でClawHost',
+                heading: 'あなたの言語でClawNode',
                 description:
-                    'ClawHostダッシュボード全体を14言語のいずれかに切り替え。ボタンからエラーメッセージまで — 完全に翻訳。',
+                    'ClawNodeダッシュボード全体を14言語のいずれかに切り替え。ボタンからエラーメッセージまで — 完全に翻訳。',
                 cta: '言語を変更'
             },
             subdomain: {
@@ -604,12 +604,12 @@ const ja: Translations = {
                 cta: 'サブドメインを見る'
             },
             darkMode: {
-                subject: 'ご存知ですか？ClawHostにはダークモードがあります',
+                subject: 'ご存知ですか？ClawNodeにはダークモードがあります',
                 preview: 'ライトテーマとダークテーマを切り替え',
                 tag: 'ダークモード',
                 heading: '目に優しい',
                 description:
-                    'ClawHostダッシュボードでライトテーマとダークテーマを切り替え。設定は保存され、毎回自動的に適用。',
+                    'ClawNodeダッシュボードでライトテーマとダークテーマを切り替え。設定は保存され、毎回自動的に適用。',
                 cta: 'ダークモードを試す'
             },
             reinstall: {
@@ -635,7 +635,7 @@ const ja: Translations = {
     auth: {
         signIn: '認証',
         signInDescription:
-            'ClawHostアカウントにサインインしてOpenClawインスタンスを管理。',
+            'ClawNodeアカウントにサインインしてOpenClawインスタンスを管理。',
         signingIn: '認証中...',
         verifyCode: 'コードを確認',
         checkYourEmail: 'メールを確認',
@@ -644,7 +644,7 @@ const ja: Translations = {
         signInToDeployOpenClaw:
             'ワンクリックでエージェントを管理・デプロイするために認証してください。',
         emailAddress: 'メールアドレス',
-        emailPlaceholder: 'example@clawhost.cloud',
+        emailPlaceholder: 'example@clawnode.cloud',
         continueWithEmail: 'メールで続行',
         otpDescription: 'サインインコードをお送りします。パスワード不要。',
         welcomeBack: 'おかえりなさい。',
@@ -665,7 +665,7 @@ const ja: Translations = {
     },
     account: {
         title: 'アカウント',
-        description: 'ClawHostアカウントの設定とプロフィール情報を管理。',
+        description: 'ClawNodeアカウントの設定とプロフィール情報を管理。',
         accountSettings: 'アカウント',
         manageYourAccount: 'プロフィールとアカウント設定を管理。',
         profileInformation: 'プロフィール情報',
@@ -740,7 +740,7 @@ const ja: Translations = {
         pageTitle: 'ライセンス',
         pageDescription:
             'Goアプリでローカルにセルフホストする場合にOpenClawインスタンスのライセンスを購入。',
-        planName: 'ClawHost Goライセンス',
+        planName: 'ClawNode Goライセンス',
         oneTimePurchase: '一回限りの購入',
         price: '${{price}}',
         priceNote: '一度支払えば、永久に所有。',
@@ -759,7 +759,7 @@ const ja: Translations = {
         whatsIncluded: '含まれるもの',
         gateTitle: 'ライセンスが必要',
         gateDescription:
-            'ローカルでOpenClawインスタンスをデプロイ・管理するにはClawHost Goライセンスが必要です。'
+            'ローカルでOpenClawインスタンスをデプロイ・管理するにはClawNode Goライセンスが必要です。'
     },
     network: {
         offline: 'インターネット接続なし',
@@ -932,7 +932,7 @@ const ja: Translations = {
             '時間がかかる場合があります。OpenClaw、サーバーロケーション、Cloudflare DNSに依存します。',
         paymentSuccess: 'Clawを作成・設定中です。',
         dnsSetupBanner:
-            'ローカルDNSを設定してsubdomain.clawhost経由でClawにアクセス。',
+            'ローカルDNSを設定してsubdomain.clawnode経由でClawにアクセス。',
         dnsSetupButton: 'DNSを設定',
         dnsSetupSuccess: 'DNSリゾルバーを設定しました。',
         dnsSetupError: 'DNSリゾルバーの設定に失敗しました！',
@@ -1085,14 +1085,14 @@ const ja: Translations = {
             'ワンクリックで自分のVPSにOpenClawをデプロイ。フルルートアクセス、グローバルロケーション、透明な料金のセルフホスト型クラウドホスティング。',
         badge: 'OpenClawとHermesをクラウドで',
         tutorialBadge: '見て。デプロイ。',
-        tutorialVideoThumbnail: 'ClawHostチュートリアル動画サムネイル',
-        clawhostGoLogoAlt: 'ClawHost Go',
+        tutorialVideoThumbnail: 'ClawNodeチュートリアル動画サムネイル',
+        clawnodeGoLogoAlt: 'ClawNode Go',
         trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
         macosPreviewTime: '22:12',
         heroTitle1: 'OpenClawをデプロイ。',
         heroTitle2: 'ワンクリック。完了。',
         heroDescription:
-            'ワンクリックでクラウドまたはローカルにOpenClawとHermesエージェントをデプロイ — ClawHostでAIエージェントをより速く構築、接続、スケール。',
+            'ワンクリックでクラウドまたはローカルにOpenClawとHermesエージェントをデプロイ — ClawNodeでAIエージェントをより速く構築、接続、スケール。',
         selfHost: 'オープンソース',
         startingPrice: '開始価格',
         locations: 'ロケーション',
@@ -1100,7 +1100,7 @@ const ja: Translations = {
         zeroCount: 'ゼロ',
         zeroConfig: 'ゼロ設定',
         features: '機能',
-        whyClawHost: 'オールインワン機能',
+        whyClawNode: 'オールインワン機能',
         featuresDescription: '試す価値がある理由。機能は嘘をつきません。',
         zeroConfigDescription:
             'サーバーとOpenClawのセットアップに何時間もかける必要はありません。プリインストールされ、数分で準備完了。',
@@ -1196,18 +1196,18 @@ const ja: Translations = {
         faqTitle: '質問',
         frequentlyAskedQuestions: 'よくある質問',
         faqDescription: 'よくある質問のすべてに回答.',
-        faq1Question: 'ClawHostとは？',
+        faq1Question: 'ClawNodeとは？',
         faq1Answer:
-            'ClawHostは、OpenClawとHermesを誰でも利用できるようにするために構築されたプラットフォームです。技術者でないユーザーも開発者も、インフラ管理なしでこれらを実行できます。サーバー、稼働時間、セキュリティ、メンテナンスは私たちが担当 — あなたはエージェントを使うだけです。',
+            'ClawNodeは、OpenClawとHermesを誰でも利用できるようにするために構築されたプラットフォームです。技術者でないユーザーも開発者も、インフラ管理なしでこれらを実行できます。サーバー、稼働時間、セキュリティ、メンテナンスは私たちが担当 — あなたはエージェントを使うだけです。',
         faq2Question: 'OpenClawとは？',
         faq2Answer:
             'OpenClawは、AIツールやサービスのためのセルフホスト型セキュアアクセスレイヤーです。セキュリティとパフォーマンスのために事前設定されているので、デプロイして即座に接続できます.',
         faqHermesQuestion: 'Hermesとは何ですか？',
         faqHermesAnswer:
-            'Hermesは、ウェブブラウジング、カレンダー管理、マルチモデル推論、ブラウザ自動化を備えた自律型AIエージェントです。ClawHostの全サーバーにOpenClawと共にプリインストールされています。',
+            'Hermesは、ウェブブラウジング、カレンダー管理、マルチモデル推論、ブラウザ自動化を備えた自律型AIエージェントです。ClawNodeの全サーバーにOpenClawと共にプリインストールされています。',
         faq3Question: '他のAIツールやホスティングプラットフォームとの違いは？',
         faq3Answer:
-            'ホスト型AIツールとは異なり、ClawHostではOpenClawとHermesがインストールされた実際のサーバーが手に入ります。インフラを所有し、すべてを制御でき、共有プラットフォームやモデルに制限されません。',
+            'ホスト型AIツールとは異なり、ClawNodeではOpenClawとHermesがインストールされた実際のサーバーが手に入ります。インフラを所有し、すべてを制御でき、共有プラットフォームやモデルに制限されません。',
         faq4Question: '技術的な知識は必要ですか？',
         faq4Answer:
             'いいえ。インフラ、セットアップ、メンテナンスはすべて私たちが担当します。OpenClawはUIから構成・管理でき、Hermesはシンプルなターミナルコマンドで動作します — サーバーやインフラに触れる必要はありません。',
@@ -1264,8 +1264,8 @@ const ja: Translations = {
     },
     changelog: {
         title: '変更履歴',
-        description: 'ClawHostのアップデート、新機能、改善を追跡。',
-        subtitle: 'ClawHostのすべてのアップデート、新機能、改善。',
+        description: 'ClawNodeのアップデート、新機能、改善を追跡。',
+        subtitle: 'ClawNodeのすべてのアップデート、新機能、改善。',
         release17Date: 'May 1, 2026',
         release17Title: 'Hermes Agents One-Click Deployment',
         release17Description:
@@ -1301,7 +1301,7 @@ const ja: Translations = {
         release15Description:
             '管理機能をOpenClawに移行してプラットフォームをシンプル化し、プレイグラウンドビューを削除、変更可能なカスタムサブドメインを導入しました。',
         release15Feature1:
-            '管理機能をシンプル化しOpenClawに移行、ClawHostチャット、エージェント、チャンネル、変数、スキルは廃止',
+            '管理機能をシンプル化しOpenClawに移行、ClawNodeチャット、エージェント、チャンネル、変数、スキルは廃止',
         release15Feature2:
             'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
         release15Feature3:
@@ -1323,12 +1323,12 @@ const ja: Translations = {
         release12Date: '2026年3月14日',
         release12Title: '年間プラン、ボイスモード & その他',
         release12Description:
-            '2ヶ月無料の年間サブスクリプション、ボイスモード、インスタンス再インストール、ClawHost Goの初期ランディングページ。',
+            '2ヶ月無料の年間サブスクリプション、ボイスモード、インスタンス再インストール、ClawNode Goの初期ランディングページ。',
         release12Feature1:
-            'ClawHost Goのランディングページ、ClawHostでローカルホスティング',
+            'ClawNode Goのランディングページ、ClawNodeでローカルホスティング',
         release12Feature2: '年間契約で2ヶ月無料の年間サブスクリプション対応',
         release12Feature3:
-            'ClawHostでホストされたOpenClawエージェントとのボイスモード',
+            'ClawNodeでホストされたOpenClawエージェントとのボイスモード',
         release12Feature4:
             'インスタンスにOpenClawを再インストールして新しく開始、1日1回利用可能',
         release11Date: '2026年2月28日',
@@ -1394,7 +1394,7 @@ const ja: Translations = {
         release1Date: '2026年2月8日',
         release1Title: '初期リリース',
         release1Description:
-            'ClawHostの最初の公式リリース。ワンクリックで自分のVPSにOpenClawをデプロイ。',
+            'ClawNodeの最初の公式リリース。ワンクリックで自分のVPSにOpenClawをデプロイ。',
         release1Feature1: 'ワンクリックOpenClawデプロイ',
         release1Feature2:
             'Clawの管理ダッシュボード、インスタンスの起動、停止、再起動、削除',
@@ -1413,7 +1413,7 @@ const ja: Translations = {
             'OpenClawプリインストール・設定済みの自動プロビジョニング',
         release2Date: '2026年2月8日',
         release2Title: 'Changelog & その他',
-        release2Description: 'ClawHostに関する最新情報を確認する新しい方法.',
+        release2Description: 'ClawNodeに関する最新情報を確認する新しい方法.',
         release2Feature1:
             'プラットフォームのすべてのアップデートとリリースを追跡する変更履歴ページ',
         release3Date: '2026年2月10日',
@@ -1546,7 +1546,7 @@ const ja: Translations = {
             '1つのOpenClawで複数のエージェントを実行できることをご存知ですか？',
         loadingTip2: 'OpenClawがオープンソースであることをご存知ですか？',
         loadingTip3:
-            'ClawHostは、ワンクリックOpenClawホスティングを可能にした史上初のプロジェクトです。',
+            'ClawNodeは、ワンクリックOpenClawホスティングを可能にした史上初のプロジェクトです。',
         loadingTip4:
             'SSHまたは内蔵ターミナルからエージェントにアクセスできます。',
         loadingTip5:
@@ -1565,7 +1565,7 @@ const ja: Translations = {
         loadingTip12:
             'セキュリティタブからrootパスワードとゲートウェイトークンをローテーションできます。',
         loadingTip13:
-            'ClawHostはヨーロッパとアメリカの複数のリージョンでサーバーをサポートしています。',
+            'ClawNodeはヨーロッパとアメリカの複数のリージョンでサーバーをサポートしています。',
         tabSettings: '設定',
         featureVersionUnsupported:
             '{{feature}} は {{version}} でサポートされていません',
@@ -1712,14 +1712,14 @@ const ja: Translations = {
     privacy: {
         title: 'プライバシーポリシー',
         description:
-            'ClawHostがどのように個人データを収集、使用、保護するかをご確認ください。',
+            'ClawNodeがどのように個人データを収集、使用、保護するかをご確認ください。',
         lastUpdated: '最終更新: 2026年3月14日',
         introTitle: '1. はじめに',
         introText:
-            'ClawHost（「当社」）は、お客様のプライバシーを保護することに取り組んでいます。このプライバシーポリシーは、当社のサービスをご利用の際に、お客様の情報をどのように収集、使用、開示、保護するかを説明します。',
+            'ClawNode（「当社」）は、お客様のプライバシーを保護することに取り組んでいます。このプライバシーポリシーは、当社のサービスをご利用の際に、お客様の情報をどのように収集、使用、開示、保護するかを説明します。',
         authTitle: '2. 認証',
         authText:
-            'ClawHostは、ユーザーアカウントの管理にGoogle Firebase Authenticationを使用しています。メール、Google、またはGitHubでサインインできます。これらのサインイン方法を使用することで、それぞれの利用規約とプライバシーポリシーに同意したものとみなされます。これらのプロバイダーは、メールアドレス、名前、デバイス情報などの基本データを収集する場合があります。当社はメールアドレスと表示名のみを保存します。',
+            'ClawNodeは、ユーザーアカウントの管理にGoogle Firebase Authenticationを使用しています。メール、Google、またはGitHubでサインインできます。これらのサインイン方法を使用することで、それぞれの利用規約とプライバシーポリシーに同意したものとみなされます。これらのプロバイダーは、メールアドレス、名前、デバイス情報などの基本データを収集する場合があります。当社はメールアドレスと表示名のみを保存します。',
         collectTitle: '3. 収集する情報',
         collectText: '以下の方法で情報を収集します:',
         personalInfoTitle: '個人情報',
@@ -1769,7 +1769,7 @@ const ja: Translations = {
             'お客様の情報は、お客様の国以外の国に転送され処理される場合があります。このプライバシーポリシーに従ってお客様のデータを保護するために適切な保護措置を講じます。',
         eligibilityTitle: '11. 利用資格',
         eligibilityText:
-            '当社のサービスはどなたでもご利用いただけます。ClawHostの利用に年齢制限はありません。',
+            '当社のサービスはどなたでもご利用いただけます。ClawNodeの利用に年齢制限はありません。',
         changesTitle: '12. ポリシーの変更',
         changesText:
             '当社は、このプライバシーポリシーを随時更新する場合があります。このページに新しいプライバシーポリシーを掲載し、「最終更新」日を更新することで変更をお知らせします。',
@@ -1779,17 +1779,17 @@ const ja: Translations = {
     },
     terms: {
         title: '利用規約',
-        description: 'ClawHostサービスの利用規約をお読みください。',
+        description: 'ClawNodeサービスの利用規約をお読みください。',
         lastUpdated: '最終更新: 2026年3月14日',
         acceptanceTitle: '1. 規約の承諾',
         acceptanceText:
-            'ClawHost（「サービス」）にアクセスし利用することで、この契約の条項に拘束されることに承諾し同意します。これらの規約に同意しない場合は、当社のサービスを使用しないでください。',
+            'ClawNode（「サービス」）にアクセスし利用することで、この契約の条項に拘束されることに承諾し同意します。これらの規約に同意しない場合は、当社のサービスを使用しないでください。',
         serviceTitle: '2. サービスの説明',
         serviceText:
-            'ClawHostは、専用サーバー上でOpenClawとHermesのワンクリックデプロイを提供します。フルルートアクセスと専用リソースを備えた事前構成済みのOpenClawおよびHermesインスタンスを、ユーザーがデプロイ・管理・アクセスできるようにします。',
+            'ClawNodeは、専用サーバー上でOpenClawとHermesのワンクリックデプロイを提供します。フルルートアクセスと専用リソースを備えた事前構成済みのOpenClawおよびHermesインスタンスを、ユーザーがデプロイ・管理・アクセスできるようにします。',
         authTitle: '3. 認証',
         authText:
-            'ClawHostは、サインインの管理にGoogle Firebase Authenticationを使用しています。メール、Google、またはGitHubで認証できます。これらの方法を使用することで、GoogleおよびGitHubのそれぞれの利用規約とプライバシーポリシーに同意したものとみなされます。これらのプロバイダーは、メールアドレス、名前、デバイスデータなどの基本情報を収集する場合があります。',
+            'ClawNodeは、サインインの管理にGoogle Firebase Authenticationを使用しています。メール、Google、またはGitHubで認証できます。これらの方法を使用することで、GoogleおよびGitHubのそれぞれの利用規約とプライバシーポリシーに同意したものとみなされます。これらのプロバイダーは、メールアドレス、名前、デバイスデータなどの基本情報を収集する場合があります。',
         responsibilitiesTitle: '4. ユーザーの責任',
         responsibilitiesText: 'お客様は以下に同意します:',
         responsibilitiesAccurate: '正確で完全な登録情報を提供すること',
@@ -1819,19 +1819,19 @@ const ja: Translations = {
             '当社は高い可用性を維持するよう努めますが、サービスへの中断のないアクセスを保証するものではありません。当社は、通知の有無にかかわらず、いつでもサービスの一部を変更、一時停止、または中止する権利を留保します。',
         liabilityTitle: '8. 責任の制限',
         liabilityText:
-            '法律で許される最大限の範囲において、ClawHostは、直接的または間接的に発生した間接的、偶発的、特別、結果的、または懲罰的損害、または利益または収益の損失について責任を負いません。',
+            '法律で許される最大限の範囲において、ClawNodeは、直接的または間接的に発生した間接的、偶発的、特別、結果的、または懲罰的損害、または利益または収益の損失について責任を負いません。',
         terminationTitle: '9. 終了',
         terminationText:
             '当社は、これらの規約に違反する、または他のユーザー、当社、または第三者に有害であると当社が判断する行為、またはその他の理由により、事前通知なしにお客様のアカウントとサービスへのアクセスを即座に終了または停止する場合があります。',
         affiliateTitle: '10. Affiliate Program',
         affiliateText:
-            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+            'ClawNode offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
         affiliateCodeUnique:
             'Each user receives a unique referral code upon registration, which can be customized once.',
         affiliateCodeOneChange:
             'The referral code can only be changed one time. Choose your custom code carefully.',
         affiliateReferralWindow:
-            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+            'A referral is valid for 6 months from when the referred user first visits ClawNode with your referral link. After 6 months, the referral expires.',
         affiliateNoSelfReferral:
             'Self-referrals are not permitted. You may not refer your own accounts.',
         affiliateAbuse:
@@ -1845,17 +1845,17 @@ const ja: Translations = {
     },
     hermesBanner: {
         title: 'Hermes Agent',
-        message: 'HermesエージェントがClawHostでのデプロイに対応しました。'
+        message: 'HermesエージェントがClawNodeでのデプロイに対応しました。'
     },
     compare: {
         title: '比較',
         description:
-            'ClawHostと他のOpenClawホスティングプラットフォームの比較をご覧ください。',
+            'ClawNodeと他のOpenClawホスティングプラットフォームの比較をご覧ください。',
         badge: '比較',
         feature: 'プラットフォーム',
         compareWith: '比較対象',
         lastUpdated: '最終更新：2026年3月',
-        competitorClawHost: 'ClawHost',
+        competitorClawNode: 'ClawNode',
         competitorLobsterFarm: 'LobsterFarm',
         competitorSimpleAgent: 'SimpleAgent',
         competitorMyAgentAi: 'MyAgent.ai',
@@ -2090,7 +2090,7 @@ const ja: Translations = {
     },
     affiliate: {
         title: 'Affiliate',
-        description: 'Earn rewards by referring friends to ClawHost.',
+        description: 'Earn rewards by referring friends to ClawNode.',
         subtitle: 'Share your referral link and earn rewards.',
         learnMore: 'アフィリエイトプログラムの詳細',
         referralCode: 'Referral Code',
@@ -2123,25 +2123,25 @@ const ja: Translations = {
     affiliateProgram: {
         title: 'アフィリエイトプログラム',
         description:
-            'ClawHost アフィリエイトプログラムの仕組み、獲得できる報酬額、参加ルールについてご説明します。',
+            'ClawNode アフィリエイトプログラムの仕組み、獲得できる報酬額、参加ルールについてご説明します。',
         lastUpdated: '最終更新日：2026年4月1日',
         overviewTitle: '1. 概要',
         overviewText:
-            'ClawHost アフィリエイトプログラムでは、新しいユーザーを ClawHost に紹介することで報酬を獲得できます。あなたの紹介リンクを通じて ClawHost を訪問した後に誰かが購入を行うと、その支払いからコミッションを獲得できます。プログラムは無料で参加でき、すべての登録済み ClawHost ユーザーが利用できます。',
+            'ClawNode アフィリエイトプログラムでは、新しいユーザーを ClawNode に紹介することで報酬を獲得できます。あなたの紹介リンクを通じて ClawNode を訪問した後に誰かが購入を行うと、その支払いからコミッションを獲得できます。プログラムは無料で参加でき、すべての登録済み ClawNode ユーザーが利用できます。',
         howItWorksTitle: '2. 仕組み',
         howItWorksText: 'アフィリエイトプログラムの開始は簡単です：',
         howItWorksStep1:
-            'ClawHost アカウントを作成します。固有の紹介コードが自動的に生成されます。',
+            'ClawNode アカウントを作成します。固有の紹介コードが自動的に生成されます。',
         howItWorksStep2:
-            '紹介リンクを友人、同僚、またはあなたのオーディエンスと共有します。リンクの形式は clawhost.cloud?ref=YOUR_CODE です。',
+            '紹介リンクを友人、同僚、またはあなたのオーディエンスと共有します。リンクの形式は clawnode.cloud?ref=YOUR_CODE です。',
         howItWorksStep3:
-            '誰かがあなたのリンクを通じて ClawHost を訪問した後に購入を行うと、あなたの紹介として追跡されます。',
+            '誰かがあなたのリンクを通じて ClawNode を訪問した後に購入を行うと、あなたの紹介として追跡されます。',
         howItWorksStep4:
             '紹介したユーザーが対象となる購入を行うたびにコミッションを獲得します。',
         earningsTitle: '3. 報酬と支払い',
         earningsText: 'アフィリエイト報酬の仕組みは以下の通りです：',
         earningsCommission:
-            '紹介したユーザーが行う対象購入ごとに 15% のコミッションを獲得します。コミッションは ClawHost Cloud と ClawHost Go の両方のプランに適用されます。',
+            '紹介したユーザーが行う対象購入ごとに 15% のコミッションを獲得します。コミッションは ClawNode Cloud と ClawNode Go の両方のプランに適用されます。',
         earningsMonthly:
             '月額サブスクリプションの場合、紹介日から1年間コミッションを獲得できます。',
         earningsYearly:
@@ -2162,11 +2162,11 @@ const ja: Translations = {
             '紹介コードには文字、数字、ハイフン、アンダースコアのみ使用できます。',
         referralWindowTitle: '5. 紹介帰属ウィンドウ',
         referralWindowText:
-            '紹介は、紹介されたユーザーがあなたのリンクを通じて初めて ClawHost を訪問した時点から 3 ヶ月間、あなたに帰属されます。紹介されたユーザーがこの 3 ヶ月のウィンドウ内に購入を行わない場合、紹介は期限切れとなりコミッションは獲得されません。ユーザーが別の紹介リンクを通じて訪問した場合、新しい紹介が以前のものに取って代わります。',
+            '紹介は、紹介されたユーザーがあなたのリンクを通じて初めて ClawNode を訪問した時点から 3 ヶ月間、あなたに帰属されます。紹介されたユーザーがこの 3 ヶ月のウィンドウ内に購入を行わない場合、紹介は期限切れとなりコミッションは獲得されません。ユーザーが別の紹介リンクを通じて訪問した場合、新しい紹介が以前のものに取って代わります。',
         eligibilityTitle: '6. 参加資格',
         eligibilityText:
             'アフィリエイトプログラムに参加するには、以下の要件を満たす必要があります：',
-        eligibilityAccount: '登録済みの ClawHost アカウントが必要です。',
+        eligibilityAccount: '登録済みの ClawNode アカウントが必要です。',
         eligibilityStanding:
             'アカウントがポリシー違反の履歴なく良好な状態である必要があります。',
         eligibilityAge:
@@ -2181,30 +2181,30 @@ const ja: Translations = {
         rulesNoSpam:
             '紹介リンクを宣伝するために未承諾の大量メッセージ（スパム）を送信することは許可されていません。',
         rulesNoMisrepresentation:
-            'ClawHost、そのサービス、またはアフィリエイトプログラムをいかなる方法でも虚偽表示することはできません。',
+            'ClawNode、そのサービス、またはアフィリエイトプログラムをいかなる方法でも虚偽表示することはできません。',
         rulesNoIncentivized:
             '直接的な金銭的インセンティブの提供（例：リンクを通じて登録するようユーザーに支払うこと）は許可されていません。',
         terminationTitle: '8. 違反と解除',
         terminationText:
-            'これらのルールへの違反は、保留中および獲得済みのすべての報酬の即時没収につながります。ClawHost は、アフィリエイトプログラムからのアカウントの一時停止または永久禁止の権利を留保します。重大な場合、ClawHost アカウント自体も解除される場合があります。違反に関するすべての決定は最終的なものです。',
+            'これらのルールへの違反は、保留中および獲得済みのすべての報酬の即時没収につながります。ClawNode は、アフィリエイトプログラムからのアカウントの一時停止または永久禁止の権利を留保します。重大な場合、ClawNode アカウント自体も解除される場合があります。違反に関するすべての決定は最終的なものです。',
         marketingTitle: '9. プロモーション方法',
         marketingText:
             '紹介リンクを共有して収益を増やすための創造的で合法的な方法がたくさんあります：',
         marketingSocial:
-            'X、LinkedIn、Reddit、Facebook などのソーシャルメディアプラットフォームでリンクを共有しましょう。ClawHost での体験について書き、紹介リンクを含めてください。',
+            'X、LinkedIn、Reddit、Facebook などのソーシャルメディアプラットフォームでリンクを共有しましょう。ClawNode での体験について書き、紹介リンクを含めてください。',
         marketingBlog:
-            'ClawHost についてのブログ記事、チュートリアル、レビューを書きましょう。コンテンツ内に自然に紹介リンクを含めてください。',
+            'ClawNode についてのブログ記事、チュートリアル、レビューを書きましょう。コンテンツ内に自然に紹介リンクを含めてください。',
         marketingVideo:
-            'YouTube や TikTok で、ClawHost を使って AI エージェントをデプロイ・管理する方法を紹介するビデオコンテンツを作成しましょう。',
+            'YouTube や TikTok で、ClawNode を使って AI エージェントをデプロイ・管理する方法を紹介するビデオコンテンツを作成しましょう。',
         marketingCommunity:
-            '開発者コミュニティ、フォーラム、Discord サーバーに参加しましょう。クラウドホスティングや AI エージェントのデプロイについて質問があった場合、リンク付きで ClawHost を推薦してください。',
+            '開発者コミュニティ、フォーラム、Discord サーバーに参加しましょう。クラウドホスティングや AI エージェントのデプロイについて質問があった場合、リンク付きで ClawNode を推薦してください。',
         marketingNewsletter:
-            'ニュースレターやメーリングリストを運営している場合、関連する号で紹介リンクとともに ClawHost を紹介してください。',
+            'ニュースレターやメーリングリストを運営している場合、関連する号で紹介リンクとともに ClawNode を紹介してください。',
         marketingComparison:
-            'ClawHost が他のプラットフォームとどう違うかを強調する、正直な比較記事やガイドを書きましょう。',
+            'ClawNode が他のプラットフォームとどう違うかを強調する、正直な比較記事やガイドを書きましょう。',
         changesToProgramTitle: '10. プログラムの変更',
         changesToProgramText:
-            'ClawHost は、事前の通知なくいつでもアフィリエイトプログラムを変更、一時停止、または廃止する権利を留保します。これにはコミッション率、紹介ウィンドウ、支払い閾値、プログラムルールの変更が含まれます。変更後の継続的な参加は、更新された条件の受諾を構成します。',
+            'ClawNode は、事前の通知なくいつでもアフィリエイトプログラムを変更、一時停止、または廃止する権利を留保します。これにはコミッション率、紹介ウィンドウ、支払い閾値、プログラムルールの変更が含まれます。変更後の継続的な参加は、更新された条件の受諾を構成します。',
         getStartedTitle: '11. 始めましょう',
         getStartedText:
             '報酬を獲得する準備はできましたか？アフィリエイトダッシュボードに移動して紹介リンクを取得し、ネットワークと共有しましょう。',

@@ -15,7 +15,7 @@ const HeroTitle: FC<HeroTitleProps> = ({
                     {line1}
                 </span>
                 <br />
-                <span className='animate-gradient bg-gradient-to-r from-[#ef5350] via-[#ff7043] to-[#ffab91] bg-clip-text text-transparent'>
+                <span className='animate-gradient bg-gradient-to-r from-[#0072C6] via-[#18B5B0] to-[#29F49A] bg-clip-text text-transparent'>
                     {line2}
                 </span>
             </h1>

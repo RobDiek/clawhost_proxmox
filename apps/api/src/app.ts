@@ -43,8 +43,8 @@ app.use(
     cors({
         origin: isDev
             ? [
-                  externalUrls.CLAWHOST.BASE,
-                  externalUrls.CLAWHOST.WWW,
+                  externalUrls.CLAWNODE.BASE,
+                  externalUrls.CLAWNODE.WWW,
                   externalUrls.LOCAL.WEB,
                   externalUrls.LOCAL.WEB_HTTPS,
                   externalUrls.LOCAL.API,
@@ -52,7 +52,7 @@ app.use(
                   externalUrls.LOCAL.DESKTOP,
                   externalUrls.LOCAL.DESKTOP_HTTPS
               ]
-            : [externalUrls.CLAWHOST.BASE, externalUrls.CLAWHOST.WWW],
+            : [externalUrls.CLAWNODE.BASE, externalUrls.CLAWNODE.WWW],
         allowMethods: httpMethod.ALL,
         allowHeaders: ['Content-Type', 'Authorization', 'X-Referral-Code'],
         exposeHeaders: [],
@@ -75,7 +75,7 @@ app.use('*', async (c, next) => {
     c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
     c.header(
         'Content-Security-Policy',
-        "default-src 'self'; script-src 'self' https://www.googletagmanager.com https://datafa.st; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.clawhost.cloud https://*.googleapis.com https://*.firebaseio.com https://datafa.st; font-src 'self'; frame-ancestors 'none'"
+        "default-src 'self'; script-src 'self' https://www.googletagmanager.com https://datafa.st; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.clawnode.cloud https://*.googleapis.com https://*.firebaseio.com https://datafa.st; font-src 'self'; frame-ancestors 'none'"
     )
 })
 

@@ -45,8 +45,8 @@ const OpenClawIcon: FC<IconProps> = ({ size = 20 }): ReactNode => {
                     y2='60.9468'
                     gradientUnits='userSpaceOnUse'
                 >
-                    <stop stopColor='#EF5350' />
-                    <stop offset='1' stopColor='#C62828' />
+                    <stop stopColor='#0072C6' />
+                    <stop offset='1' stopColor='#29F49A' />
                 </linearGradient>
                 <linearGradient
                     id='oa_grad1'
@@ -56,8 +56,8 @@ const OpenClawIcon: FC<IconProps> = ({ size = 20 }): ReactNode => {
                     y2='39.8639'
                     gradientUnits='userSpaceOnUse'
                 >
-                    <stop stopColor='#EF5350' />
-                    <stop offset='1' stopColor='#C62828' />
+                    <stop stopColor='#0072C6' />
+                    <stop offset='1' stopColor='#29F49A' />
                 </linearGradient>
                 <linearGradient
                     id='oa_grad2'
@@ -67,8 +67,8 @@ const OpenClawIcon: FC<IconProps> = ({ size = 20 }): ReactNode => {
                     y2='38.5653'
                     gradientUnits='userSpaceOnUse'
                 >
-                    <stop stopColor='#EF5350' />
-                    <stop offset='1' stopColor='#C62828' />
+                    <stop stopColor='#0072C6' />
+                    <stop offset='1' stopColor='#29F49A' />
                 </linearGradient>
                 <clipPath id='oa_clip'>
                     <rect width='64' height='64' fill='white' />

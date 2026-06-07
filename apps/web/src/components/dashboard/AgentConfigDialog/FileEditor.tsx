@@ -92,7 +92,7 @@ const FileEditor: FC<FileEditorProps> = ({
                     <button
                         onClick={handleSave}
                         disabled={!canSave}
-                        className='mb-1 flex shrink-0 items-center gap-1.5 rounded-md bg-[#ef5350] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#e53935] disabled:opacity-30'
+                        className='mb-1 flex shrink-0 items-center gap-1.5 rounded-md bg-[#0072C6] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#e53935] disabled:opacity-30'
                     >
                         {isSaving ? (
                             <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />

@@ -117,7 +117,7 @@ const PricingSection: FC<PricingSectionProps> = ({ plans }): ReactNode => {
                                                 <tr
                                                     className={`border-border border-b ${
                                                         isRecommended
-                                                            ? 'bg-[#ef5350]/5'
+                                                            ? 'bg-[#0072C6]/5'
                                                             : ''
                                                     }`}
                                                 >
@@ -130,7 +130,7 @@ const PricingSection: FC<PricingSectionProps> = ({ plans }): ReactNode => {
                                                                 )}
                                                             </span>
                                                             {isRecommended && (
-                                                                <Badge className='border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-xs text-white'>
+                                                                <Badge className='border-0 bg-gradient-to-r from-[#0072C6] to-[#29F49A] text-xs text-white'>
                                                                     {t(
                                                                         'landing.recommended'
                                                                     )}
@@ -175,7 +175,7 @@ const PricingSection: FC<PricingSectionProps> = ({ plans }): ReactNode => {
                                                             size='sm'
                                                             className={`gap-2 px-4 ${
                                                                 isRecommended
-                                                                    ? 'border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-white hover:opacity-90'
+                                                                    ? 'border-0 bg-gradient-to-r from-[#0072C6] to-[#29F49A] text-white hover:opacity-90'
                                                                     : 'bg-foreground/10 text-foreground hover:bg-foreground/20 border-0'
                                                             }`}
                                                             asChild

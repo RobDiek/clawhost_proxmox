@@ -80,8 +80,8 @@
         --chart-5: 27 87% 67%;
         --radius: 0.75rem;
 
-        --coral-bright: #ef5350;
-        --coral-dark: #c62828;
+        --coral-bright: #0072C6;
+        --coral-dark: #29F49A;
         --cyan-bright: #4dd0e1;
         --bg-deep: #0a0a0f;
     }
@@ -136,20 +136,20 @@
     background:
         radial-gradient(
             ellipse 80% 50% at 50% -20%,
-            rgba(239, 83, 80, 0.25),
+            rgba(0, 114, 198, 0.25),
             transparent
         ),
         radial-gradient(
             ellipse 60% 40% at 70% 5%,
-            rgba(198, 40, 40, 0.15),
+            rgba(41, 244, 154, 0.15),
             transparent
         );
 }
 
 .landing-grid {
     background-image:
-        linear-gradient(rgba(239, 83, 80, 0.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(239, 83, 80, 0.08) 1px, transparent 1px);
+        linear-gradient(rgba(0, 114, 198, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 114, 198, 0.08) 1px, transparent 1px);
     background-size: 50px 50px;
     height: 100vh;
     mask-image: linear-gradient(

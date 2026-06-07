@@ -38,7 +38,7 @@ const OtpCodeStep: FC<OtpCodeStepProps> = ({
 
             <div className='text-center'>
                 <div className='bg-foreground/5 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full'>
-                    <EnvelopeIcon className='h-8 w-8 text-[#ef5350]' />
+                    <EnvelopeIcon className='h-8 w-8 text-[#0072C6]' />
                 </div>
                 <h1 className='font-clash mb-2 text-2xl font-bold'>
                     {t('auth.checkYourEmailHeading')}
@@ -67,8 +67,8 @@ const OtpCodeStep: FC<OtpCodeStepProps> = ({
                             codeError
                                 ? 'border-red-500 focus:ring-red-500/20'
                                 : digit
-                                  ? 'border-[#ef5350] focus:ring-[#ef5350]/20'
-                                  : 'border-border focus:border-[#ef5350]/50 focus:ring-[#ef5350]/20'
+                                  ? 'border-[#0072C6] focus:ring-[#0072C6]/20'
+                                  : 'border-border focus:border-[#0072C6]/50 focus:ring-[#0072C6]/20'
                         }`}
                     />
                 ))}
@@ -77,7 +77,7 @@ const OtpCodeStep: FC<OtpCodeStepProps> = ({
             <Button
                 onClick={onVerify}
                 size='lg'
-                className='w-full gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-white hover:opacity-90'
+                className='w-full gap-2 border-0 bg-gradient-to-r from-[#0072C6] to-[#29F49A] text-white hover:opacity-90'
                 disabled={!!loadingMethod || !isCodeComplete}
             >
                 {loadingMethod === LOGIN_LOADING_METHOD.EMAIL && (

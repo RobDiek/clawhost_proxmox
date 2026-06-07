@@ -74,8 +74,8 @@ const Logo: FC<LogoProps> = ({ to }): ReactNode => {
                     y2='60.9468'
                     gradientUnits='userSpaceOnUse'
                 >
-                    <stop stopColor='#EF5350' />
-                    <stop offset='1' stopColor='#C62828' />
+                    <stop stopColor='#0072C6' />
+                    <stop offset='1' stopColor='#29F49A' />
                 </linearGradient>
                 <linearGradient
                     id='paint1_linear_4135_67'
@@ -85,8 +85,8 @@ const Logo: FC<LogoProps> = ({ to }): ReactNode => {
                     y2='39.8639'
                     gradientUnits='userSpaceOnUse'
                 >
-                    <stop stopColor='#EF5350' />
-                    <stop offset='1' stopColor='#C62828' />
+                    <stop stopColor='#0072C6' />
+                    <stop offset='1' stopColor='#29F49A' />
                 </linearGradient>
                 <linearGradient
                     id='paint2_linear_4135_67'
@@ -96,8 +96,8 @@ const Logo: FC<LogoProps> = ({ to }): ReactNode => {
                     y2='38.5653'
                     gradientUnits='userSpaceOnUse'
                 >
-                    <stop stopColor='#EF5350' />
-                    <stop offset='1' stopColor='#C62828' />
+                    <stop stopColor='#0072C6' />
+                    <stop offset='1' stopColor='#29F49A' />
                 </linearGradient>
                 <clipPath id='clip0_4135_67'>
                     <rect width='64' height='64' fill='white' />

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://cdn.clawhost.cloud/assets/generals/clawhost-logo-light.png" alt="ClawHost" height="42" />
+  <img src="https://cdn.clawnode.cloud/assets/generals/clawnode-logo-light.png" alt="ClawNode" height="42" />
 </p>
 
 <p align="center">
@@ -8,8 +8,8 @@
 </p>
 
 <p align="center">
-  <a href="https://clawhost.cloud">Website</a> &middot;
-  <a href="https://clawhost.cloud/posts">Blog</a> &middot;
+  <a href="https://clawnode.cloud">Website</a> &middot;
+  <a href="https://clawnode.cloud/posts">Blog</a> &middot;
   <a href="#self-hosting">Self-Host Guide</a>
 </p>
 
@@ -21,9 +21,9 @@
 
 ---
 
-## What is ClawHost?
+## What is ClawNode?
 
-ClawHost is an open-source, self-hostable cloud hosting platform that lets anyone deploy an AI agent runtime — [OpenClaw](https://openclaw.dev) or [Hermes](https://github.com/NousResearch/hermes-agent) — on a dedicated VPS in under a minute. It handles server provisioning, DNS, SSL, firewall configuration, and agent installation automatically.
+ClawNode is an open-source, self-hostable cloud hosting platform that lets anyone deploy an AI agent runtime — [OpenClaw](https://openclaw.dev) or [Hermes](https://github.com/NousResearch/hermes-agent) — on a dedicated VPS in under a minute. It handles server provisioning, DNS, SSL, firewall configuration, and agent installation automatically.
 
 ### Key Highlights
 
@@ -48,14 +48,14 @@ ClawHost is an open-source, self-hostable cloud hosting platform that lets anyon
 
 ## Architecture
 
-ClawHost is a TypeScript monorepo built with [Turborepo](https://turbo.build) and managed with [Bun](https://bun.sh).
+ClawNode is a TypeScript monorepo built with [Turborepo](https://turbo.build) and managed with [Bun](https://bun.sh).
 
 ```
-clawhost/
+clawnode/
 ├── apps/
 │   ├── api/                 # Hono.js backend API (runs on Bun)
 │   ├── web/                 # React + Vite frontend
-│   └── clawhostgo/          # Electron desktop app (ClawHostGo)
+│   └── clawnodego/          # Electron desktop app (ClawNodeGo)
 ├── packages/
 │   ├── shared/              # @openclaw/shared — HTTP client, API paths, status/role/provider
 │   │                        # constants, input validation, plan catalog, error types
@@ -136,8 +136,8 @@ A Hetzner Cloud API token is required for server provisioning.
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/bfzli/clawhost.git
-cd clawhost
+git clone https://github.com/bfzli/clawnode.git
+cd clawnode
 bun install
 ```
 
@@ -173,7 +173,7 @@ POLAR_WEBHOOK_SECRET=your-polar-webhook-secret
 POLAR_PRODUCT_CX23_MONTHLY=...
 POLAR_PRODUCT_CX23_YEARLY=...
 # ... repeat for every plan you offer
-POLAR_PRODUCT_LICENSE=...    # one-time desktop (ClawHostGo) license product
+POLAR_PRODUCT_LICENSE=...    # one-time desktop (ClawNodeGo) license product
 
 # Resend (email)
 RESEND_API_KEY=your-resend-api-key
@@ -321,7 +321,7 @@ bun dev:desktop
 | `bun dev`               | Start all apps in development mode              |
 | `bun dev:web`           | Start web app only                              |
 | `bun dev:api`           | Start API only                                  |
-| `bun dev:desktop`       | Start the ClawHostGo desktop app (Electron)     |
+| `bun dev:desktop`       | Start the ClawNodeGo desktop app (Electron)     |
 | `bun test`              | Run Vitest across the monorepo                  |
 | `bun test:watch`        | Run Vitest in watch mode                        |
 | `bun build-go-manifest` | Build the desktop release manifest              |
@@ -458,7 +458,7 @@ bun --filter api email:dev    # Preview email templates at localhost:3333
 | `GET`    | `/api/users/me/billing`                  | Get billing history                    |
 | `GET`    | `/api/users/me/billing/:orderId/invoice` | Get invoice for an order               |
 | `POST`   | `/api/users/me/billing/portal`           | Open the Polar billing portal          |
-| `POST`   | `/api/users/me/license/checkout`         | Purchase a ClawHostGo desktop license  |
+| `POST`   | `/api/users/me/license/checkout`         | Purchase a ClawNodeGo desktop license  |
 | `POST`   | `/api/users/me/auth/:method`             | Connect an auth method (Google/GitHub) |
 | `DELETE` | `/api/users/me/auth/:method`             | Disconnect an auth method              |
 

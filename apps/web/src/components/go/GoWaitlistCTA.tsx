@@ -91,7 +91,7 @@ const GoWaitlistCTA: FC = (): ReactNode => {
                     size='lg'
                     disabled={hasJoined || isJoining || isCheckingStatus}
                     onClick={() => handleJoinWaitlist(user.email!)}
-                    className='gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] px-6 font-semibold text-white'
+                    className='gap-2 border-0 bg-gradient-to-r from-[#0072C6] to-[#29F49A] px-6 font-semibold text-white'
                 >
                     {isJoining || isCheckingStatus ? (
                         <CircleNotchIcon className='h-5 w-5 animate-spin' />
@@ -124,7 +124,7 @@ const GoWaitlistCTA: FC = (): ReactNode => {
                 type='submit'
                 size='lg'
                 disabled={hasJoined || isJoining || !isValidEmail}
-                className='gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] px-6 font-semibold text-white'
+                className='gap-2 border-0 bg-gradient-to-r from-[#0072C6] to-[#29F49A] px-6 font-semibold text-white'
             >
                 {isJoining ? (
                     <CircleNotchIcon className='h-5 w-5 animate-spin' />

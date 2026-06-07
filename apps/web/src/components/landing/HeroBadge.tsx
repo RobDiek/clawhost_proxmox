@@ -12,7 +12,7 @@ const HeroBadge: FC<HeroBadgeProps> = ({
     return (
         <div className='mb-8 flex flex-wrap items-center justify-center gap-3'>
             <div className='glow-border border-border bg-foreground/5 inline-flex items-center gap-2 rounded-full border px-4 py-2'>
-                <SparkleIcon className='h-4 w-4 text-[#ef5350]' weight='fill' />
+                <SparkleIcon className='h-4 w-4 text-[#0072C6]' weight='fill' />
                 <span className='text-foreground/80 text-sm'>{label}</span>
             </div>
             {tutorialBadge && onTutorialClick && (
@@ -22,7 +22,7 @@ const HeroBadge: FC<HeroBadgeProps> = ({
                 >
                     <div className='relative h-7 w-10 flex-shrink-0 overflow-hidden rounded-full'>
                         <img
-                            src='https://img.youtube.com/vi/clawhost-tutorial/mqdefault.jpg'
+                            src='https://img.youtube.com/vi/clawnode-tutorial/mqdefault.jpg'
                             alt={t('landing.tutorialVideoThumbnail')}
                             className='h-full w-full object-cover'
                             width={320}

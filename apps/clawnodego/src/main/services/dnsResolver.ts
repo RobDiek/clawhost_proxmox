@@ -9,7 +9,7 @@ const DNS_PORT = 15353
 const PROXY_PORT = 18700
 const HTTPS_PROXY_PORT = 18701
 const RESOLVER_DIR = '/etc/resolver'
-const RESOLVER_PATH = path.join(RESOLVER_DIR, 'clawhost')
+const RESOLVER_PATH = path.join(RESOLVER_DIR, 'clawnode')
 
 let server: dgram.Socket | null = null
 let retryCount = 0
@@ -90,7 +90,7 @@ const isDomainClawhost = (query: Buffer): boolean => {
         offset += len
     }
     const domain = labels.join('.')
-    return domain.endsWith('.clawhost') || domain === 'clawhost'
+    return domain.endsWith('.clawnode') || domain === 'clawnode'
 }
 
 const startDns = (): void => {
@@ -129,8 +129,8 @@ const stopDns = (): void => {
     server = null
 }
 
-const PF_ANCHOR = 'com.clawhost'
-const PF_ANCHOR_FILE = '/etc/pf.anchors/com.clawhost'
+const PF_ANCHOR = 'com.clawnode'
+const PF_ANCHOR_FILE = '/etc/pf.anchors/com.clawnode'
 const PF_CONF = '/etc/pf.conf'
 const PF_RULE_HTTP = `rdr pass on lo0 inet proto tcp from any to 127.0.0.1 port 80 -> 127.0.0.1 port ${PROXY_PORT}`
 const PF_RULE_HTTPS = `rdr pass on lo0 inet proto tcp from any to 127.0.0.1 port 443 -> 127.0.0.1 port ${HTTPS_PROXY_PORT}`
@@ -162,7 +162,7 @@ const isCaTrusted = (): boolean => {
             .toUpperCase()
         if (!diskFingerprint) return false
         const keychainFingerprints = execSync(
-            `security find-certificate -a -c "ClawHost Local CA" -Z 2>/dev/null | grep "SHA-256 hash" || true`,
+            `security find-certificate -a -c "ClawNode Local CA" -Z 2>/dev/null | grep "SHA-256 hash" || true`,
             { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }
         )
             .split('\n')
@@ -184,7 +184,7 @@ const isDnsSetup = (): boolean =>
 
 const ensurePortRedirect = (): void => {
     if (!isResolverInstalled()) return
-    exec('pfctl -a com.clawhost -sr 2>/dev/null', (err, stdout) => {
+    exec('pfctl -a com.clawnode -sr 2>/dev/null', (err, stdout) => {
         if (
             !err &&
             stdout.includes('rdr pass') &&
@@ -198,7 +198,7 @@ const ensurePortRedirect = (): void => {
             'pfctl -e 2>/dev/null',
             'exit 0'
         ].join('\n')
-        const tmpScript = path.join(os.tmpdir(), 'clawhost-pf.sh')
+        const tmpScript = path.join(os.tmpdir(), 'clawnode-pf.sh')
         fs.writeFileSync(tmpScript, script, { mode: 0o755 })
         exec(
             `osascript -e 'do shell script "${tmpScript}" with administrator privileges'`,
@@ -247,14 +247,14 @@ const setupResolver = (): Promise<boolean> => {
             `pfctl -f ${PF_CONF} 2>/dev/null`,
             `printf '${PF_RULE_HTTP}\\n${PF_RULE_HTTPS}\\n' | pfctl -a "${PF_ANCHOR}" -f - 2>/dev/null`,
             `if [ -f "${caCertPath}" ]; then`,
-            `  while sudo -u "${userName}" security find-certificate -c "ClawHost Local CA" "${userKeychain}" >/dev/null 2>&1; do`,
-            `    sudo -u "${userName}" security delete-certificate -c "ClawHost Local CA" "${userKeychain}" 2>/dev/null || break`,
+            `  while sudo -u "${userName}" security find-certificate -c "ClawNode Local CA" "${userKeychain}" >/dev/null 2>&1; do`,
+            `    sudo -u "${userName}" security delete-certificate -c "ClawNode Local CA" "${userKeychain}" 2>/dev/null || break`,
             `  done`,
             `  security add-trusted-cert -p ssl -r trustRoot -k "${userKeychain}" "${caCertPath}" 2>/dev/null`,
             'fi',
             'exit 0'
         ].join('\n')
-        const tmpScript = path.join(os.tmpdir(), 'clawhost-dns-setup.sh')
+        const tmpScript = path.join(os.tmpdir(), 'clawnode-dns-setup.sh')
         fs.writeFileSync(tmpScript, script, { mode: 0o755 })
         exec(
             `osascript -e 'do shell script "${tmpScript}" with administrator privileges'`,

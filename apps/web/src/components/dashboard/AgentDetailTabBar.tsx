@@ -26,7 +26,7 @@ const AgentDetailTabBar: FC<AgentDetailTabBarProps> = ({
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-xs font-medium transition-colors ${fullScreen ? 'flex-1' : ''} ${
                         activeTab === tab.id
-                            ? 'text-foreground border-[#ef5350]'
+                            ? 'text-foreground border-[#0072C6]'
                             : 'text-muted-foreground hover:text-foreground/80 border-transparent'
                     }`}
                 >

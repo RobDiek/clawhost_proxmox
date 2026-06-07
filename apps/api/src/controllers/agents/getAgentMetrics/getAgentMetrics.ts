@@ -4,7 +4,7 @@ import { ok, fail } from '@/lib/response'
 import executeSSH from '@/services/ssh'
 import parseMetricsOutput from '@/controllers/agents/getAgentMetrics/parsers'
 
-const SEPARATOR = '---CLAWHOST_METRICS_SEP---'
+const SEPARATOR = '---CLAWNODE_METRICS_SEP---'
 
 const getAgentMetrics = withAgent({ requireSSH: 'api.failedToGetMetrics' })(
     async (c, agent) => {

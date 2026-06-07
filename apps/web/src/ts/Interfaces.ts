@@ -2385,7 +2385,7 @@ export interface BetaBadgeProps {
 
 export interface CompareTableMobileProps {
     categories: CompareCategory[]
-    clawhost: CompareCompetitor
+    clawnode: CompareCompetitor
     selectedCompetitorId: string
     selectedCompetitorNameKey: string
     renderValue: (value: CompareFeatureValue) => ReactNode

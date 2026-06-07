@@ -1,8 +1,8 @@
 {
-    "version": "0.0.19",
+    "version": "0.0.20",
     "mac": {
-        "arm64": "https://cdn.clawhost.cloud/go/clawhost-mac-arm64.dmg",
-        "x64": "https://cdn.clawhost.cloud/go/clawhost-mac-intel.dmg"
+        "arm64": "https://cdn.clawnode.cloud/go/clawnode-mac-arm64.dmg",
+        "x64": "https://cdn.clawnode.cloud/go/clawnode-mac-intel.dmg"
     },
-    "windows": "https://cdn.clawhost.cloud/go/clawhost-windows.exe"
+    "windows": "https://cdn.clawnode.cloud/go/clawnode-windows.exe"
 }

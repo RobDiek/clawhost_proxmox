@@ -26,10 +26,10 @@ const tr: Translations = {
         pageNotFound: 'Sayfa Bulunamadı',
         closeNotification: 'Bildirimi kapat',
         beta: 'Beta',
-        brandName: 'ClawHost',
-        brandNameGo: 'ClawHost Go',
-        brandNameGoVersion: 'ClawHost Go {{version}}',
-        pageTitleWithBrand: '{{title}} - ClawHost',
+        brandName: 'ClawNode',
+        brandNameGo: 'ClawNode Go',
+        brandNameGoVersion: 'ClawNode Go {{version}}',
+        pageTitleWithBrand: '{{title}} - ClawNode',
         menuFile: 'Dosya',
         menuEdit: 'Düzen',
         menuView: 'Görünüm',
@@ -82,14 +82,14 @@ const tr: Translations = {
         goSubtitle: 'Teknik olmayan'
     },
     go: {
-        pageTitle: 'ClawHost Go',
+        pageTitle: 'ClawNode Go',
         heroTitle1: 'OpenClaw Dağıt.',
         heroTitle2: 'Yerel. Anında.',
         badge: 'OpenClaw ve Hermes Yerel',
         description:
             "OpenClaw örneklerinizi yönetmek için hafif bir masaüstü istemcisi. Claw'larınızı doğrudan bilgisayarınızdan dağıtın, izleyin ve kontrol edin.",
         features: 'Özellikler',
-        whyClawHostGo: 'Hepsi Bir Arada Özellikler',
+        whyClawNodeGo: 'Hepsi Bir Arada Özellikler',
         featuresDescription:
             'Neden denemeye değeriz, özellikler burada yalan söylemez.',
         zeroConfigDescription:
@@ -134,25 +134,25 @@ const tr: Translations = {
         comparisonUpdatesOthers: 'Otomatik güncellemeler',
         faqTitle: 'Sorular',
         faqHeading: 'Sık Sorulan Sorular',
-        faqDescription: 'ClawHost Go hakkında bilmeniz gereken her şey.',
-        faq1Question: 'ClawHost Go nedir?',
+        faqDescription: 'ClawNode Go hakkında bilmeniz gereken her şey.',
+        faq1Question: 'ClawNode Go nedir?',
         faq1Answer:
-            "ClawHost Go, OpenClaw'u kendi bilgisayarınızda yerel olarak çalıştırmanızı sağlayan hafif bir masaüstü uygulamasıdır. Bulut sunucusu gerekmez — kurun, başlatın ve OpenClaw'u saniyeler içinde kullanmaya başlayın.",
-        faq2Question: "Go, ClawHost Cloud'dan nasıl farklıdır?",
+            "ClawNode Go, OpenClaw'u kendi bilgisayarınızda yerel olarak çalıştırmanızı sağlayan hafif bir masaüstü uygulamasıdır. Bulut sunucusu gerekmez — kurun, başlatın ve OpenClaw'u saniyeler içinde kullanmaya başlayın.",
+        faq2Question: "Go, ClawNode Cloud'dan nasıl farklıdır?",
         faq2Answer:
-            "ClawHost Cloud, OpenClaw'u 7/24 çalışma süresi ve küresel erişimle özel uzak sunuculara dağıtır. ClawHost Go her şeyi cihazınızda yerel olarak çalıştırır — gizlilik, çevrimdışı kullanım ve basit kurulumlar için idealdir.",
+            "ClawNode Cloud, OpenClaw'u 7/24 çalışma süresi ve küresel erişimle özel uzak sunuculara dağıtır. ClawNode Go her şeyi cihazınızda yerel olarak çalıştırır — gizlilik, çevrimdışı kullanım ve basit kurulumlar için idealdir.",
         faq3Question: 'İnternet bağlantısına ihtiyacım var mı?',
         faq3Answer:
-            'ClawHost Go yerel kullanım için çevrimdışı çalışır. İnternet bağlantısı yalnızca ilk kurulum, güncellemeler ve harici API çağrıları gerektiren özellikler için gereklidir.',
+            'ClawNode Go yerel kullanım için çevrimdışı çalışır. İnternet bağlantısı yalnızca ilk kurulum, güncellemeler ve harici API çağrıları gerektiren özellikler için gereklidir.',
         faq4Question: 'Lisans tek seferlik bir ödeme mi?',
         faq4Answer:
-            "Evet. Bir kez ödersiniz ve tüm gelecek güncellemeler dahil ClawHost Go'ya ömür boyu erişim elde edersiniz. Abonelik yok, tekrarlayan ücret yok.",
+            "Evet. Bir kez ödersiniz ve tüm gelecek güncellemeler dahil ClawNode Go'ya ömür boyu erişim elde edersiniz. Abonelik yok, tekrarlayan ücret yok.",
         faq5Question: 'Hangi işletim sistemleri destekleniyor?',
         faq5Answer:
-            "ClawHost Go, Windows ve macOS'u destekler. Her iki platform da aynı özelliklere sahiptir ve güncellemeleri aynı anda alır.",
+            "ClawNode Go, Windows ve macOS'u destekler. Her iki platform da aynı özelliklere sahiptir ve güncellemeleri aynı anda alır.",
         faq6Question: "Daha sonra Go'dan Cloud'a geçebilir miyim?",
         faq6Answer:
-            "Kesinlikle. OpenClaw yapılandırmanızı Go'dan dışa aktarabilir ve istediğiniz zaman ClawHost Cloud'a dağıtabilirsiniz. Her iki platform tamamen uyumludur.",
+            "Kesinlikle. OpenClaw yapılandırmanızı Go'dan dışa aktarabilir ve istediğiniz zaman ClawNode Cloud'a dağıtabilirsiniz. Her iki platform tamamen uyumludur.",
         statsPrice: '${{price}}',
         statsLifetime: 'Ömür Boyu',
         statsOneTime: 'Tek Seferlik',
@@ -167,7 +167,7 @@ const tr: Translations = {
         downloadForMac: 'Mac için İndir',
         downloadVersion: 'Sürüm {{version}}',
         downloadForWindows: 'Windows için İndir',
-        deviceNotSupported: 'Cihazınız henüz ClawHost Go tarafından desteklenmiyor.',
+        deviceNotSupported: 'Cihazınız henüz ClawNode Go tarafından desteklenmiyor.',
         downloadFailed: 'İndirme başarısız!',
         downloadStarted: 'İndirme başladı.',
         appleSilicon: 'Apple Silicon',
@@ -216,7 +216,7 @@ const tr: Translations = {
     },
     footer: {
         website: 'Web Sitesi',
-        copyrightName: 'ClawHost',
+        copyrightName: 'ClawNode',
         copyrightRights: 'Tüm hakları saklıdır.',
         termsOfService: 'Hizmet Şartları',
         privacyPolicy: 'Gizlilik Politikası',
@@ -236,7 +236,7 @@ const tr: Translations = {
         affiliateProgram: 'Ortaklık Programı',
         documentation: 'Belgeler',
         productDescription:
-            'OpenClaw ve Hermes ajanlarını bulutta veya yerel olarak tek tıkla dağıtın — ClawHost ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
+            'OpenClaw ve Hermes ajanlarını bulutta veya yerel olarak tek tıkla dağıtın — ClawNode ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -514,13 +514,13 @@ const tr: Translations = {
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
     emails: {
-        otpSubject: 'ClawHost giriş kodunuz',
-        otpPreview: 'ClawHost giriş kodunuz: {{code}}',
+        otpSubject: 'ClawNode giriş kodunuz',
+        otpPreview: 'ClawNode giriş kodunuz: {{code}}',
         otpHeading: 'Giriş kodunuz:',
         otpExpiry:
             'Kodun süresi 10 dakika içinde dolar. Bu siz değilseniz, bu e-postayı görmezden gelin.',
         featureFooter:
-            'Bu e-postayı ClawHost hesabınız olduğu için alıyorsunuz.',
+            'Bu e-postayı ClawNode hesabınız olduğu için alıyorsunuz.',
         features: {
             terminal: {
                 subject: 'Biliyor muydunuz? Web terminaliniz var',
@@ -528,7 +528,7 @@ const tr: Translations = {
                 tag: 'Web Terminal',
                 heading: 'Sunucunuz bir tık uzağınızda',
                 description:
-                    "Yerleşik terminalimizle sunucunuza doğrudan tarayıcınızdan erişin. SSH istemcisi gerekmez — ClawHost'u açın ve komut yazmaya başlayın.",
+                    "Yerleşik terminalimizle sunucunuza doğrudan tarayıcınızdan erişin. SSH istemcisi gerekmez — ClawNode'u açın ve komut yazmaya başlayın.",
                 cta: 'Terminali Aç'
             },
             logs: {
@@ -538,7 +538,7 @@ const tr: Translations = {
                 tag: 'Canlı Günlükler',
                 heading: 'Sunucunuzun ne yaptığını görün',
                 description:
-                    'ClawHost panelinden sunucu günlüklerinizi gerçek zamanlı izleyin. Sorunları teşhis edin, dağıtımları takip edin ve uygulamalarınızı tarayıcıdan ayrılmadan hata ayıklayın.',
+                    'ClawNode panelinden sunucu günlüklerinizi gerçek zamanlı izleyin. Sorunları teşhis edin, dağıtımları takip edin ve uygulamalarınızı tarayıcıdan ayrılmadan hata ayıklayın.',
                 cta: 'Günlükleri Görüntüle'
             },
             fileExplorer: {
@@ -548,7 +548,7 @@ const tr: Translations = {
                 tag: 'Dosya Gezgini',
                 heading: 'Dosyalarınız, parmaklarınızın ucunda',
                 description:
-                    'ClawHost panelinden sunucunuzdaki dosyaları doğrudan göz atın, okuyun ve düzenleyin. Sözdizimi vurgulama, arama ve anında kaydetme — SSH gerekmez.',
+                    'ClawNode panelinden sunucunuzdaki dosyaları doğrudan göz atın, okuyun ve düzenleyin. Sözdizimi vurgulama, arama ve anında kaydetme — SSH gerekmez.',
                 cta: 'Dosya Gezginini Aç'
             },
             diagnostics: {
@@ -562,12 +562,12 @@ const tr: Translations = {
             },
             sshKeys: {
                 subject:
-                    "Biliyor muydunuz? ClawHost'tan SSH anahtarlarını yönetin",
+                    "Biliyor muydunuz? ClawNode'tan SSH anahtarlarını yönetin",
                 preview: 'Panelde SSH anahtar çiftleri oluşturun ve yönetin',
                 tag: 'SSH Anahtarları',
                 heading: 'SSH anahtarları, basitleştirilmiş',
                 description:
-                    "SSH anahtar çiftleri oluşturun, açık anahtarları kopyalayın ve özel anahtarları indirin — hepsi ClawHost panelinden. Güvenli erişim için anahtarları claw'lara atayın.",
+                    "SSH anahtar çiftleri oluşturun, açık anahtarları kopyalayın ve özel anahtarları indirin — hepsi ClawNode panelinden. Güvenli erişim için anahtarları claw'lara atayın.",
                 cta: 'SSH Anahtarlarını Yönet'
             },
             exportConfig: {
@@ -581,12 +581,12 @@ const tr: Translations = {
                 cta: 'Yapılandırmayı Dışa Aktar'
             },
             multiLanguage: {
-                subject: 'Biliyor muydunuz? ClawHost sizin dilinizi konuşuyor',
-                preview: "ClawHost'u 14 dilde kullanın",
+                subject: 'Biliyor muydunuz? ClawNode sizin dilinizi konuşuyor',
+                preview: "ClawNode'u 14 dilde kullanın",
                 tag: 'Çok Dil',
-                heading: 'Kendi dilinizde ClawHost',
+                heading: 'Kendi dilinizde ClawNode',
                 description:
-                    'Tüm ClawHost panelini 14 dilden herhangi birine geçirin. Düğmelerden hata mesajlarına kadar her şey — tamamen çevrilmiş.',
+                    'Tüm ClawNode panelini 14 dilden herhangi birine geçirin. Düğmelerden hata mesajlarına kadar her şey — tamamen çevrilmiş.',
                 cta: 'Dili Değiştir'
             },
             subdomain: {
@@ -599,12 +599,12 @@ const tr: Translations = {
                 cta: 'Alt Alan Adınızı Görüntüleyin'
             },
             darkMode: {
-                subject: "Biliyor muydunuz? ClawHost'un koyu modu var",
+                subject: "Biliyor muydunuz? ClawNode'un koyu modu var",
                 preview: 'Açık ve koyu temalar arasında geçiş yapın',
                 tag: 'Karanlık Mod',
                 heading: 'Göze hoş gelen',
                 description:
-                    'ClawHost panelinde açık ve koyu temalar arasında geçiş yapın. Tercihiniz kaydedilir ve her ziyarette otomatik olarak uygulanır.',
+                    'ClawNode panelinde açık ve koyu temalar arasında geçiş yapın. Tercihiniz kaydedilir ve her ziyarette otomatik olarak uygulanır.',
                 cta: 'Koyu Modu Deneyin'
             },
             reinstall: {
@@ -632,7 +632,7 @@ const tr: Translations = {
     auth: {
         signIn: 'Kimlik Doğrulama',
         signInDescription:
-            'OpenClaw örneklerinizi yönetmek için ClawHost hesabınıza giriş yapın.',
+            'OpenClaw örneklerinizi yönetmek için ClawNode hesabınıza giriş yapın.',
         signingIn: 'Kimlik doğrulanıyor...',
         verifyCode: 'Kodu Doğrula',
         checkYourEmail: 'E-postanızı Kontrol Edin',
@@ -641,7 +641,7 @@ const tr: Translations = {
         signInToDeployOpenClaw:
             'Tek tıkla ajanları yönetmek ve dağıtmak için kimlik doğrulayın.',
         emailAddress: 'E-posta Adresi',
-        emailPlaceholder: 'example@clawhost.cloud',
+        emailPlaceholder: 'example@clawnode.cloud',
         continueWithEmail: 'E-posta ile Devam Et',
         otpDescription:
             'Giriş yapmanız için size bir kod göndereceğiz. Şifre gerekmez.',
@@ -664,7 +664,7 @@ const tr: Translations = {
     account: {
         title: 'Hesap',
         description:
-            'ClawHost hesap ayarlarınızı ve profil bilgilerinizi yönetin.',
+            'ClawNode hesap ayarlarınızı ve profil bilgilerinizi yönetin.',
         accountSettings: 'Hesap',
         manageYourAccount: 'Profilinizi ve hesap ayarlarınızı yönetin.',
         profileInformation: 'Profil Bilgileri',
@@ -739,7 +739,7 @@ const tr: Translations = {
         pageTitle: 'Lisans',
         pageDescription:
             'Go uygulamamızla OpenClaw örneklerini yerel olarak barındırmak için lisansınızı satın alın.',
-        planName: 'ClawHost Go Lisansı',
+        planName: 'ClawNode Go Lisansı',
         oneTimePurchase: 'Tek seferlik satın alma',
         price: '${{price}}',
         priceNote: 'Bir kez ödeyin, sonsuza kadar sahip olun.',
@@ -758,7 +758,7 @@ const tr: Translations = {
         whatsIncluded: 'Neler dahil',
         gateTitle: 'Lisans Gerekli',
         gateDescription:
-            'OpenClaw örneklerini yerel olarak dağıtmak ve yönetmek için ClawHost Go Lisansına ihtiyacınız var.'
+            'OpenClaw örneklerini yerel olarak dağıtmak ve yönetmek için ClawNode Go Lisansına ihtiyacınız var.'
     },
     network: {
         offline: 'İnternet Bağlantısı Yok',
@@ -931,7 +931,7 @@ const tr: Translations = {
             "Bu biraz zaman alabilir. OpenClaw, sunucu konumu ve Cloudflare DNS'e bağlıdır.",
         paymentSuccess: "Claw'ınız oluşturuluyor ve yapılandırılıyor.",
         dnsSetupBanner:
-            "Claw'larınıza subdomain.clawhost üzerinden erişmek için yerel DNS ayarlayın.",
+            "Claw'larınıza subdomain.clawnode üzerinden erişmek için yerel DNS ayarlayın.",
         dnsSetupButton: 'DNS Ayarla',
         dnsSetupSuccess: 'DNS çözümleyici başarıyla yapılandırıldı.',
         dnsSetupError: 'DNS çözümleyici yapılandırılamadı!',
@@ -1087,14 +1087,14 @@ const tr: Translations = {
             "OpenClaw'u tek tıkla kendi VPS'inize dağıtın. Tam root erişimi, küresel konumlar ve şeffaf fiyatlandırma ile kendi kendine barındırılabilir bulut barındırma.",
         badge: 'OpenClaw ve Hermes Bulutta',
         tutorialBadge: 'İzle. Dağıt.',
-        tutorialVideoThumbnail: 'ClawHost eğitim videosu küçük resmi',
-        clawhostGoLogoAlt: 'ClawHost Go',
+        tutorialVideoThumbnail: 'ClawNode eğitim videosu küçük resmi',
+        clawnodeGoLogoAlt: 'ClawNode Go',
         trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
         macosPreviewTime: '22:12',
         heroTitle1: 'OpenClaw Dağıt.',
         heroTitle2: 'Tek tık. Tamam.',
         heroDescription:
-            'OpenClaw ve Hermes ajanlarını bulutta veya yerel olarak tek tıkla dağıtın — ClawHost ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
+            'OpenClaw ve Hermes ajanlarını bulutta veya yerel olarak tek tıkla dağıtın — ClawNode ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
         selfHost: 'Açık Kaynak',
         startingPrice: 'Başlangıç',
         locations: 'Konumlar',
@@ -1102,7 +1102,7 @@ const tr: Translations = {
         zeroCount: 'Sıfır',
         zeroConfig: 'Sıfır Yapılandırma',
         features: 'Özellikler',
-        whyClawHost: 'Hepsi Bir Arada Özellikler',
+        whyClawNode: 'Hepsi Bir Arada Özellikler',
         featuresDescription:
             'Neden denemeye değeriz, özellikler burada yalan söylemez.',
         zeroConfigDescription:
@@ -1199,19 +1199,19 @@ const tr: Translations = {
         faqTitle: 'Sorular',
         frequentlyAskedQuestions: 'Sık Sorulan Sorular',
         faqDescription: 'Her sık sorulan soru, cevaplanmış.',
-        faq1Question: 'ClawHost nedir?',
+        faq1Question: 'ClawNode nedir?',
         faq1Answer:
-            "ClawHost, OpenClaw'u herkes için erişilebilir kılmak amacıyla oluşturulmuş bir platformdur. Hem teknik olmayan kullanıcıların hem de geliştiricilerin altyapı yönetmeden OpenClaw çalıştırmasını sağlar. Sunucuları, çalışma süresini, güvenliği ve bakımı biz yönetiyoruz — siz sadece OpenClaw'u kullanın.",
+            "ClawNode, OpenClaw'u herkes için erişilebilir kılmak amacıyla oluşturulmuş bir platformdur. Hem teknik olmayan kullanıcıların hem de geliştiricilerin altyapı yönetmeden OpenClaw çalıştırmasını sağlar. Sunucuları, çalışma süresini, güvenliği ve bakımı biz yönetiyoruz — siz sadece OpenClaw'u kullanın.",
         faq2Question: 'OpenClaw nedir?',
         faq2Answer:
             'OpenClaw, yapay zeka araçlarınız ve hizmetleriniz için kendi kendine barındırılan güvenli bir erişim katmanıdır. Güvenlik ve performans için önceden yapılandırılmıştır, böylece dağıtabilir ve anında bağlanabilirsiniz.',
         faqHermesQuestion: 'Hermes nedir?',
         faqHermesAnswer:
-            'Hermes; web tarama, takvim yönetimi, çoklu model akıl yürütme ve tarayıcı otomasyonu ile donatılmış otonom bir yapay zeka ajanıdır. Her ClawHost sunucusunda OpenClaw ile birlikte önceden yüklü gelir.',
+            'Hermes; web tarama, takvim yönetimi, çoklu model akıl yürütme ve tarayıcı otomasyonu ile donatılmış otonom bir yapay zeka ajanıdır. Her ClawNode sunucusunda OpenClaw ile birlikte önceden yüklü gelir.',
         faq3Question:
             'Bu, diğer yapay zeka araçlarından veya barındırılan platformlardan nasıl farklı?',
         faq3Answer:
-            'Barındırılan yapay zeka araçlarının aksine, ClawHost size OpenClaw ve Hermes yüklü gerçek bir sunucu sunar. Altyapıya sahip olur, her şeyi kontrol eder ve paylaşımlı bir platform veya modelle sınırlanmazsınız.',
+            'Barındırılan yapay zeka araçlarının aksine, ClawNode size OpenClaw ve Hermes yüklü gerçek bir sunucu sunar. Altyapıya sahip olur, her şeyi kontrol eder ve paylaşımlı bir platform veya modelle sınırlanmazsınız.',
         faq4Question: 'Teknik bilgiye ihtiyacım var mı?',
         faq4Answer:
             "Hayır. Tüm altyapı, kurulum ve bakımı biz yönetiyoruz. OpenClaw'u arayüzü üzerinden yapılandırabilir ve yönetebilir ve kullanımı özelleştirebilirsiniz — sunuculara veya altyapıya dokunmadan.",
@@ -1270,9 +1270,9 @@ const tr: Translations = {
     changelog: {
         title: 'Değişiklik Günlüğü',
         description:
-            'ClawHost güncellemelerini, yeni özelliklerini ve iyileştirmelerini takip edin.',
+            'ClawNode güncellemelerini, yeni özelliklerini ve iyileştirmelerini takip edin.',
         subtitle:
-            "ClawHost'un tüm güncellemeleri, yeni özellikleri ve iyileştirmeleri.",
+            "ClawNode'un tüm güncellemeleri, yeni özellikleri ve iyileştirmeleri.",
         release17Date: 'May 1, 2026',
         release17Title: 'Hermes Agents One-Click Deployment',
         release17Description:
@@ -1308,7 +1308,7 @@ const tr: Translations = {
         release15Description:
             "Yönetilen özelliklerin OpenClaw'a taşınmasıyla platform sadeleştirildi, playground görünümü kaldırıldı ve değiştirilebilir özel alt alan adları tanıtıldı.",
         release15Feature1:
-            "Yönetilen özellikler sadeleştirildi ve OpenClaw'a taşındı, artık ClawHost sohbet, ajanlar, kanallar, değişkenler ve beceriler yok",
+            "Yönetilen özellikler sadeleştirildi ve OpenClaw'a taşındı, artık ClawNode sohbet, ajanlar, kanallar, değişkenler ve beceriler yok",
         release15Feature2:
             'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
         release15Feature3:
@@ -1330,13 +1330,13 @@ const tr: Translations = {
         release12Date: '14 Mart 2026',
         release12Title: 'Yıllık Planlar, Ses Modu ve Daha Fazlası',
         release12Description:
-            '2 ay ücretsiz yıllık abonelikler, ses modu, örnek yeniden yükleme ve ClawHost Go için ilk açılış sayfası.',
+            '2 ay ücretsiz yıllık abonelikler, ses modu, örnek yeniden yükleme ve ClawNode Go için ilk açılış sayfası.',
         release12Feature1:
-            'ClawHost Go için açılış sayfası, ClawHost ile yerel barındırma',
+            'ClawNode Go için açılış sayfası, ClawNode ile yerel barındırma',
         release12Feature2:
             'Yıllık abone olduğunuzda 2 ay ücretsiz yıllık abonelik desteği',
         release12Feature3:
-            "ClawHost'ta barındırılan OpenClaw ajanlarıyla etkileşim için Ses Modu",
+            "ClawNode'ta barındırılan OpenClaw ajanlarıyla etkileşim için Ses Modu",
         release12Feature4:
             "Temiz başlangıç için örneğinizde OpenClaw'u yeniden yükleyin, günde bir kez kullanılabilir",
         release11Date: '28 Şubat 2026',
@@ -1409,7 +1409,7 @@ const tr: Translations = {
         release1Date: '8 Şubat 2026',
         release1Title: 'İlk Sürüm',
         release1Description:
-            "ClawHost'un ilk resmi sürümü. OpenClaw'u tek tıkla kendi VPS'inize dağıtın.",
+            "ClawNode'un ilk resmi sürümü. OpenClaw'u tek tıkla kendi VPS'inize dağıtın.",
         release1Feature1: 'Tek tıkla OpenClaw dağıtımı',
         release1Feature2:
             "Claw'ları yönetmek, örnekleri başlatmak, durdurmak, yeniden başlatmak ve silmek için panel",
@@ -1428,7 +1428,7 @@ const tr: Translations = {
             'OpenClaw önceden yüklü ve yapılandırılmış otomatik hazırlama',
         release2Date: '8 Şubat 2026',
         release2Title: 'Changelog ve Daha Fazlası',
-        release2Description: 'ClawHost hakkında güncel kalmanın yeni bir yolu.',
+        release2Description: 'ClawNode hakkında güncel kalmanın yeni bir yolu.',
         release2Feature1:
             'Tüm platform güncellemelerini ve sürümlerini takip etmek için değişiklik günlüğü sayfası',
         release3Date: '10 Şubat 2026',
@@ -1561,7 +1561,7 @@ const tr: Translations = {
             'Tek bir OpenClaw içinde birden fazla ajan çalıştırabileceğinizi biliyor muydunuz?',
         loadingTip2: "OpenClaw'un açık kaynak olduğunu biliyor muydunuz?",
         loadingTip3:
-            'ClawHost, tek tıkla OpenClaw barındırmaya izin veren ilk projedir.',
+            'ClawNode, tek tıkla OpenClaw barındırmaya izin veren ilk projedir.',
         loadingTip4:
             'Ajanınıza SSH veya yerleşik terminal aracılığıyla erişebilirsiniz.',
         loadingTip5: 'Ajanınız otomatik olarak kendi alt alan adını alır.',
@@ -1579,7 +1579,7 @@ const tr: Translations = {
         loadingTip12:
             'Güvenlik sekmesinden root şifrenizi ve ağ geçidi jetonunuzu değiştirebilirsiniz.',
         loadingTip13:
-            'ClawHost, Avrupa ve ABD genelinde birden fazla bölgede sunucuları destekler.',
+            'ClawNode, Avrupa ve ABD genelinde birden fazla bölgede sunucuları destekler.',
         tabSettings: 'Ayarlar',
         featureVersionUnsupported:
             '{{feature}} {{version}} üzerinde desteklenmiyor',
@@ -1727,14 +1727,14 @@ const tr: Translations = {
     privacy: {
         title: 'Gizlilik Politikası',
         description:
-            "ClawHost'un kişisel verilerinizi nasıl topladığını, kullandığını ve koruduğunu öğrenin.",
+            "ClawNode'un kişisel verilerinizi nasıl topladığını, kullandığını ve koruduğunu öğrenin.",
         lastUpdated: 'Son güncelleme: 14 Mart 2026',
         introTitle: '1. Giriş',
         introText:
-            'ClawHost ("biz", "bizim" veya "bizi") gizliliğinizi korumaya kararlıdır. Bu Gizlilik Politikası, Hizmetimizi kullanırken bilgilerinizi nasıl topladığımızı, kullandığımızı, ifşa ettiğimizi ve koruduğumuzu açıklar.',
+            'ClawNode ("biz", "bizim" veya "bizi") gizliliğinizi korumaya kararlıdır. Bu Gizlilik Politikası, Hizmetimizi kullanırken bilgilerinizi nasıl topladığımızı, kullandığımızı, ifşa ettiğimizi ve koruduğumuzu açıklar.',
         authTitle: '2. Kimlik Doğrulama',
         authText:
-            'ClawHost, kullanıcı hesaplarını yönetmek için Google Firebase Authentication kullanır. E-posta, Google veya GitHub ile giriş yapabilirsiniz. Bu giriş yöntemlerini kullanarak, ilgili şartlarını ve gizlilik politikalarını kabul edersiniz. Bu sağlayıcılar e-posta adresiniz, adınız ve cihaz bilgileriniz gibi temel veriler toplayabilir. Biz yalnızca e-posta adresinizi ve görünen adınızı saklarız.',
+            'ClawNode, kullanıcı hesaplarını yönetmek için Google Firebase Authentication kullanır. E-posta, Google veya GitHub ile giriş yapabilirsiniz. Bu giriş yöntemlerini kullanarak, ilgili şartlarını ve gizlilik politikalarını kabul edersiniz. Bu sağlayıcılar e-posta adresiniz, adınız ve cihaz bilgileriniz gibi temel veriler toplayabilir. Biz yalnızca e-posta adresinizi ve görünen adınızı saklarız.',
         collectTitle: '3. Topladığımız Bilgiler',
         collectText: 'Bilgileri aşağıdaki yollarla topluyoruz:',
         personalInfoTitle: 'Kişisel Bilgiler',
@@ -1788,7 +1788,7 @@ const tr: Translations = {
             'Bilgileriniz kendi ülkeniz dışındaki ülkelere aktarılabilir ve buralarda işlenebilir. Bu Gizlilik Politikasına uygun olarak verilerinizi korumak için uygun güvencelerin mevcut olmasını sağlıyoruz.',
         eligibilityTitle: '11. Uygunluk',
         eligibilityText:
-            'Hizmetimiz herkes için kullanılabilir. ClawHost kullanımı için yaş kısıtlaması yoktur.',
+            'Hizmetimiz herkes için kullanılabilir. ClawNode kullanımı için yaş kısıtlaması yoktur.',
         changesTitle: '12. Bu Politikadaki Değişiklikler',
         changesText:
             'Bu Gizlilik Politikasını zaman zaman güncelleyebiliriz. Yeni Gizlilik Politikasını bu sayfada yayınlayarak ve "Son güncelleme" tarihini güncelleyerek herhangi bir değişikliği size bildireceğiz.',
@@ -1799,17 +1799,17 @@ const tr: Translations = {
     terms: {
         title: 'Hizmet Şartları',
         description:
-            'ClawHost hizmetlerini kullanma şart ve koşullarını okuyun.',
+            'ClawNode hizmetlerini kullanma şart ve koşullarını okuyun.',
         lastUpdated: 'Son güncelleme: 14 Mart 2026',
         acceptanceTitle: '1. Şartların Kabulü',
         acceptanceText:
-            'ClawHost\'a ("Hizmet") erişerek ve kullanarak, bu sözleşmenin şart ve hükümlerine bağlı olmayı kabul edersiniz. Bu şartları kabul etmiyorsanız, lütfen Hizmetimizi kullanmayın.',
+            'ClawNode\'a ("Hizmet") erişerek ve kullanarak, bu sözleşmenin şart ve hükümlerine bağlı olmayı kabul edersiniz. Bu şartları kabul etmiyorsanız, lütfen Hizmetimizi kullanmayın.',
         serviceTitle: '2. Hizmet Açıklaması',
         serviceText:
-            'ClawHost, dedike sunucularda tek tıkla OpenClaw ve Hermes dağıtımı sunar. Kullanıcılarımızın tam root erişimine ve dedike kaynaklara sahip önceden yapılandırılmış OpenClaw ve Hermes örneklerini dağıtmasına, yönetmesine ve bunlara erişmesine olanak tanırız.',
+            'ClawNode, dedike sunucularda tek tıkla OpenClaw ve Hermes dağıtımı sunar. Kullanıcılarımızın tam root erişimine ve dedike kaynaklara sahip önceden yapılandırılmış OpenClaw ve Hermes örneklerini dağıtmasına, yönetmesine ve bunlara erişmesine olanak tanırız.',
         authTitle: '3. Kimlik Doğrulama',
         authText:
-            "ClawHost, giriş yönetimi için Google Firebase Authentication kullanır. E-posta, Google veya GitHub ile kimlik doğrulayabilirsiniz. Bu yöntemleri kullanarak, Google ve GitHub'ın ilgili şartlarını ve gizlilik politikalarını kabul edersiniz. Bu sağlayıcılar e-posta adresiniz, adınız ve cihaz verileriniz gibi temel bilgiler toplayabilir.",
+            "ClawNode, giriş yönetimi için Google Firebase Authentication kullanır. E-posta, Google veya GitHub ile kimlik doğrulayabilirsiniz. Bu yöntemleri kullanarak, Google ve GitHub'ın ilgili şartlarını ve gizlilik politikalarını kabul edersiniz. Bu sağlayıcılar e-posta adresiniz, adınız ve cihaz verileriniz gibi temel bilgiler toplayabilir.",
         responsibilitiesTitle: '4. Kullanıcı Sorumlulukları',
         responsibilitiesText: 'Şunları kabul edersiniz:',
         responsibilitiesAccurate: 'Doğru ve eksiksiz kayıt bilgileri sağlamak',
@@ -1841,19 +1841,19 @@ const tr: Translations = {
             'Yüksek kullanılabilirlik sağlamaya çalışıyoruz ancak Hizmete kesintisiz erişimi garanti etmiyoruz. Hizmetin herhangi bir bölümünü, bildirimli veya bildirimsiz, istediğimiz zaman değiştirme, askıya alma veya sonlandırma hakkımızı saklı tutuyoruz.',
         liabilityTitle: '8. Sorumluluk Sınırlaması',
         liabilityText:
-            'Yasaların izin verdiği azami ölçüde, ClawHost doğrudan veya dolaylı olarak ortaya çıkan herhangi bir dolaylı, arızi, özel, sonuç niteliğinde veya cezai zarar veya kâr veya gelir kaybından sorumlu olmayacaktır.',
+            'Yasaların izin verdiği azami ölçüde, ClawNode doğrudan veya dolaylı olarak ortaya çıkan herhangi bir dolaylı, arızi, özel, sonuç niteliğinde veya cezai zarar veya kâr veya gelir kaybından sorumlu olmayacaktır.',
         terminationTitle: '9. Sonlandırma',
         terminationText:
             'Bu Şartları ihlal ettiğine veya diğer kullanıcılara, bize veya üçüncü taraflara zararlı olduğuna inandığımız davranışlar veya herhangi bir başka nedenle, önceden bildirimde bulunmaksızın hesabınızı ve Hizmete erişiminizi derhal sonlandırabilir veya askıya alabiliriz.',
         affiliateTitle: '10. Affiliate Program',
         affiliateText:
-            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+            'ClawNode offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
         affiliateCodeUnique:
             'Each user receives a unique referral code upon registration, which can be customized once.',
         affiliateCodeOneChange:
             'The referral code can only be changed one time. Choose your custom code carefully.',
         affiliateReferralWindow:
-            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+            'A referral is valid for 6 months from when the referred user first visits ClawNode with your referral link. After 6 months, the referral expires.',
         affiliateNoSelfReferral:
             'Self-referrals are not permitted. You may not refer your own accounts.',
         affiliateAbuse:
@@ -1868,17 +1868,17 @@ const tr: Translations = {
     hermesBanner: {
         title: 'Hermes Agent',
         message:
-            'Hermes ajanları artık ClawHost üzerinde dağıtım için desteklenmektedir.'
+            'Hermes ajanları artık ClawNode üzerinde dağıtım için desteklenmektedir.'
     },
     compare: {
         title: 'Karşılaştırma',
         description:
-            "ClawHost'un diğer OpenClaw barındırma platformlarıyla nasıl karşılaştırıldığını görün.",
+            "ClawNode'un diğer OpenClaw barındırma platformlarıyla nasıl karşılaştırıldığını görün.",
         badge: 'Karşılaştırma',
         feature: 'Platform',
         compareWith: 'Şununla karşılaştır:',
         lastUpdated: 'Son güncelleme: Mart 2026',
-        competitorClawHost: 'ClawHost',
+        competitorClawNode: 'ClawNode',
         competitorLobsterFarm: 'LobsterFarm',
         competitorSimpleAgent: 'SimpleAgent',
         competitorMyAgentAi: 'MyAgent.ai',
@@ -2114,7 +2114,7 @@ const tr: Translations = {
     },
     affiliate: {
         title: 'Affiliate',
-        description: 'Earn rewards by referring friends to ClawHost.',
+        description: 'Earn rewards by referring friends to ClawNode.',
         subtitle: 'Share your referral link and earn rewards.',
         learnMore: 'Ortaklık programı hakkında daha fazla bilgi',
         referralCode: 'Referral Code',
@@ -2147,25 +2147,25 @@ const tr: Translations = {
     affiliateProgram: {
         title: 'Ortaklık Programı',
         description:
-            'ClawHost ortaklık programının nasıl çalıştığını, ne kadar kazanabileceğinizi ve katılım kurallarını öğrenin.',
+            'ClawNode ortaklık programının nasıl çalıştığını, ne kadar kazanabileceğinizi ve katılım kurallarını öğrenin.',
         lastUpdated: 'Son güncelleme: 1 Nisan 2026',
         overviewTitle: '1. Genel Bakış',
         overviewText:
-            "ClawHost Ortaklık Programı, yeni kullanıcıları ClawHost'a yönlendirerek ödüller kazanmanızı sağlar. Birisi yönlendirme bağlantınız aracılığıyla ClawHost'u ziyaret ettikten sonra bir satın alma yaptığında, ödemelerinden komisyon kazanırsınız. Program ücretsizdir ve tüm kayıtlı ClawHost kullanıcılarına açıktır.",
+            "ClawNode Ortaklık Programı, yeni kullanıcıları ClawNode'a yönlendirerek ödüller kazanmanızı sağlar. Birisi yönlendirme bağlantınız aracılığıyla ClawNode'u ziyaret ettikten sonra bir satın alma yaptığında, ödemelerinden komisyon kazanırsınız. Program ücretsizdir ve tüm kayıtlı ClawNode kullanıcılarına açıktır.",
         howItWorksTitle: '2. Nasıl Çalışır',
         howItWorksText: 'Ortaklık programına başlamak basittir:',
         howItWorksStep1:
-            'Bir ClawHost hesabı oluşturun. Sizin için otomatik olarak benzersiz bir yönlendirme kodu oluşturulur.',
+            'Bir ClawNode hesabı oluşturun. Sizin için otomatik olarak benzersiz bir yönlendirme kodu oluşturulur.',
         howItWorksStep2:
-            'Yönlendirme bağlantınızı arkadaşlarınız, meslektaşlarınız veya kitlenizle paylaşın. Bağlantınız şu formatı takip eder: clawhost.cloud?ref=YOUR_CODE.',
+            'Yönlendirme bağlantınızı arkadaşlarınız, meslektaşlarınız veya kitlenizle paylaşın. Bağlantınız şu formatı takip eder: clawnode.cloud?ref=YOUR_CODE.',
         howItWorksStep3:
-            "Birisi bağlantınız aracılığıyla ClawHost'u ziyaret ettikten sonra bir satın alma yaptığında, bu yönlendirmeniz olarak kaydedilir.",
+            "Birisi bağlantınız aracılığıyla ClawNode'u ziyaret ettikten sonra bir satın alma yaptığında, bu yönlendirmeniz olarak kaydedilir.",
         howItWorksStep4:
             'Yönlendirdiğiniz kullanıcı uygun bir satın alma yaptığında her seferinde komisyon kazanırsınız.',
         earningsTitle: '3. Kazançlar ve Ödemeler',
         earningsText: 'Ortaklık kazançları şöyle çalışır:',
         earningsCommission:
-            'Yönlendirdiğiniz kullanıcıların yaptığı her uygun satın alma üzerinden 15% komisyon kazanırsınız. Komisyonlar hem ClawHost Cloud hem de ClawHost Go planları için geçerlidir.',
+            'Yönlendirdiğiniz kullanıcıların yaptığı her uygun satın alma üzerinden 15% komisyon kazanırsınız. Komisyonlar hem ClawNode Cloud hem de ClawNode Go planları için geçerlidir.',
         earningsMonthly:
             'Aylık abonelikler için, yönlendirme tarihinden itibaren 1 yıl boyunca komisyon kazanırsınız.',
         earningsYearly:
@@ -2187,11 +2187,11 @@ const tr: Translations = {
             'Yönlendirme kodları yalnızca harfler, rakamlar, tireler ve alt çizgiler içerebilir.',
         referralWindowTitle: '5. Yönlendirme Atıf Penceresi',
         referralWindowText:
-            "Bir yönlendirme, yönlendirilen kullanıcının bağlantınız aracılığıyla ClawHost'u ilk ziyaret ettiği andan itibaren 3 ay boyunca size atfedilir. Yönlendirilen kullanıcı bu 3 aylık pencere içinde bir satın alma yapmazsa, yönlendirme sona erer ve komisyon kazanılmaz. Kullanıcı farklı bir yönlendirme bağlantısı aracılığıyla ziyaret ederse, yeni yönlendirme öncekinin yerini alır.",
+            "Bir yönlendirme, yönlendirilen kullanıcının bağlantınız aracılığıyla ClawNode'u ilk ziyaret ettiği andan itibaren 3 ay boyunca size atfedilir. Yönlendirilen kullanıcı bu 3 aylık pencere içinde bir satın alma yapmazsa, yönlendirme sona erer ve komisyon kazanılmaz. Kullanıcı farklı bir yönlendirme bağlantısı aracılığıyla ziyaret ederse, yeni yönlendirme öncekinin yerini alır.",
         eligibilityTitle: '6. Uygunluk',
         eligibilityText:
             'Ortaklık programına katılmak için aşağıdaki gereksinimleri karşılamanız gerekir:',
-        eligibilityAccount: 'Kayıtlı bir ClawHost hesabınız olmalıdır.',
+        eligibilityAccount: 'Kayıtlı bir ClawNode hesabınız olmalıdır.',
         eligibilityStanding:
             'Hesabınız iyi durumda olmalı ve politika ihlali geçmişi bulunmamalıdır.',
         eligibilityAge:
@@ -2206,30 +2206,30 @@ const tr: Translations = {
         rulesNoSpam:
             'Yönlendirme bağlantınızı tanıtmak için istenmeyen toplu mesajlar (spam) göndermek yasaktır.',
         rulesNoMisrepresentation:
-            "ClawHost'u, hizmetlerini veya ortaklık programını hiçbir şekilde yanlış tanıtamazsınız.",
+            "ClawNode'u, hizmetlerini veya ortaklık programını hiçbir şekilde yanlış tanıtamazsınız.",
         rulesNoIncentivized:
             'Doğrudan parasal teşvikler sunmak (örneğin, bağlantınız aracılığıyla kaydolmaları için kullanıcılara ödeme yapmak) yasaktır.',
         terminationTitle: '8. İhlal ve Fesih',
         terminationText:
-            'Bu kuralların herhangi birinin ihlali, bekleyen ve kazanılan tüm ödüllerin derhal kaybedilmesiyle sonuçlanır. ClawHost, hesabınızı ortaklık programından askıya alma veya kalıcı olarak yasaklama hakkını saklı tutar. Ciddi durumlarda ClawHost hesabınız da feshedilebilir. İhlallerle ilgili tüm kararlar kesindir.',
+            'Bu kuralların herhangi birinin ihlali, bekleyen ve kazanılan tüm ödüllerin derhal kaybedilmesiyle sonuçlanır. ClawNode, hesabınızı ortaklık programından askıya alma veya kalıcı olarak yasaklama hakkını saklı tutar. Ciddi durumlarda ClawNode hesabınız da feshedilebilir. İhlallerle ilgili tüm kararlar kesindir.',
         marketingTitle: '9. Nasıl Tanıtılır',
         marketingText:
             'Yönlendirme bağlantınızı paylaşmanın ve kazançlarınızı artırmanın birçok yaratıcı ve meşru yolu vardır:',
         marketingSocial:
-            'Bağlantınızı X, LinkedIn, Reddit ve Facebook gibi sosyal medya platformlarında paylaşın. ClawHost ile deneyiminiz hakkında yazın ve yönlendirme bağlantınızı ekleyin.',
+            'Bağlantınızı X, LinkedIn, Reddit ve Facebook gibi sosyal medya platformlarında paylaşın. ClawNode ile deneyiminiz hakkında yazın ve yönlendirme bağlantınızı ekleyin.',
         marketingBlog:
-            'ClawHost hakkında blog yazıları, öğreticiler veya incelemeler yazın. Yönlendirme bağlantınızı içeriğe doğal bir şekilde dahil edin.',
+            'ClawNode hakkında blog yazıları, öğreticiler veya incelemeler yazın. Yönlendirme bağlantınızı içeriğe doğal bir şekilde dahil edin.',
         marketingVideo:
-            "YouTube veya TikTok'ta ClawHost'u AI ajanlarını dağıtmak ve yönetmek için nasıl kullandığınızı gösteren video içerikleri oluşturun.",
+            "YouTube veya TikTok'ta ClawNode'u AI ajanlarını dağıtmak ve yönetmek için nasıl kullandığınızı gösteren video içerikleri oluşturun.",
         marketingCommunity:
-            "Geliştirici topluluklarına, forumlara ve Discord sunucularına katılın. Birisi bulut barındırma veya AI ajanı dağıtımı hakkında sorduğunda, bağlantınızla ClawHost'u önerin.",
+            "Geliştirici topluluklarına, forumlara ve Discord sunucularına katılın. Birisi bulut barındırma veya AI ajanı dağıtımı hakkında sorduğunda, bağlantınızla ClawNode'u önerin.",
         marketingNewsletter:
-            "Bir bülten veya e-posta listesi yönetiyorsanız, ilgili bir sayıda yönlendirme bağlantınızla ClawHost'tan bahsedin.",
+            "Bir bülten veya e-posta listesi yönetiyorsanız, ilgili bir sayıda yönlendirme bağlantınızla ClawNode'tan bahsedin.",
         marketingComparison:
-            "ClawHost'u diğer platformlardan farklı kılan özellikleri vurgulayan dürüst karşılaştırma makaleleri veya rehberler yazın.",
+            "ClawNode'u diğer platformlardan farklı kılan özellikleri vurgulayan dürüst karşılaştırma makaleleri veya rehberler yazın.",
         changesToProgramTitle: '10. Programdaki Değişiklikler',
         changesToProgramText:
-            'ClawHost, ortaklık programını herhangi bir zamanda önceden bildirimde bulunmaksızın değiştirme, askıya alma veya sonlandırma hakkını saklı tutar. Bu, komisyon oranları, yönlendirme pencereleri, ödeme eşikleri ve program kurallarındaki değişiklikleri içerir. Değişikliklerden sonra katılımın devam etmesi, güncellenen koşulların kabul edildiği anlamına gelir.',
+            'ClawNode, ortaklık programını herhangi bir zamanda önceden bildirimde bulunmaksızın değiştirme, askıya alma veya sonlandırma hakkını saklı tutar. Bu, komisyon oranları, yönlendirme pencereleri, ödeme eşikleri ve program kurallarındaki değişiklikleri içerir. Değişikliklerden sonra katılımın devam etmesi, güncellenen koşulların kabul edildiği anlamına gelir.',
         getStartedTitle: '11. Başlayın',
         getStartedText:
             'Kazanmaya hazır mısınız? Yönlendirme bağlantınızı almak için ortaklık panelinize gidin ve ağınızla paylaşmaya başlayın.',

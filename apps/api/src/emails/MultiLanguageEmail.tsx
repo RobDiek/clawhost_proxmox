@@ -42,7 +42,7 @@ const MultiLanguageEmail: FC = (): ReactNode => {
             </Section>
 
             <Section style={buttonContainer}>
-                <Button href='https://clawhost.cloud' style={button}>
+                <Button href='https://clawnode.cloud' style={button}>
                     {t('emails.features.multiLanguage.cta')}
                 </Button>
             </Section>

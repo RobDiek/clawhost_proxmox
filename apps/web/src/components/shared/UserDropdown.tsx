@@ -64,7 +64,7 @@ const UserDropdown: FC<UserDropdownProps> = ({
                     className='hover:bg-foreground/10 flex w-auto items-center gap-2 px-1.5 py-[18px]'
                 >
                     <Avatar className='h-7 w-7'>
-                        <AvatarFallback className='bg-gradient-to-br from-[#ef5350] to-[#c62828] text-xs text-white'>
+                        <AvatarFallback className='bg-gradient-to-br from-[#0072C6] to-[#29F49A] text-xs text-white'>
                             {getInitials(displayName)}
                         </AvatarFallback>
                     </Avatar>

@@ -1,11 +1,11 @@
 import { externalUrls } from '@openclaw/shared'
 
-const GENERALS = externalUrls.CLAWHOST.CDN_GENERALS
-const EMAILS = externalUrls.CLAWHOST.CDN_EMAILS
+const GENERALS = externalUrls.CLAWNODE.CDN_GENERALS
+const EMAILS = externalUrls.CLAWNODE.CDN_EMAILS
 
 const CDN_ASSETS = {
-    LOGO_DARK: `${GENERALS}/clawhost-logo-dark.png`,
-    LOGO_LIGHT: `${GENERALS}/clawhost-logo-light.png`,
+    LOGO_DARK: `${GENERALS}/clawnode-logo-dark.png`,
+    LOGO_LIGHT: `${GENERALS}/clawnode-logo-light.png`,
     FEATURE_TERMINAL: `${EMAILS}/features/terminal.gif`,
     FEATURE_LOGS: `${EMAILS}/features/logs.gif`,
     FEATURE_FILE_EXPLORER: `${EMAILS}/features/file-explorer.gif`,

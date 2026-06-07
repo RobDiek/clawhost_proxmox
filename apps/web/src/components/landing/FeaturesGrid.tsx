@@ -36,7 +36,7 @@ const FeaturesGrid: FC<FeaturesGridProps> = ({
                             key={i}
                             className='border-border bg-foreground/[0.02] rounded-xl border p-6'
                         >
-                            <feature.icon className='mb-4 h-8 w-8 text-[#ef5350]' />
+                            <feature.icon className='mb-4 h-8 w-8 text-[#0072C6]' />
                             <h3 className='font-clash text-foreground mb-2 text-lg font-semibold'>
                                 {feature.title}
                             </h3>

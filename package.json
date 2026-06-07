@@ -1,5 +1,5 @@
 {
-    "name": "clawhost",
+    "name": "clawnode",
     "private": true,
     "type": "module",
     "workspaces": [
@@ -11,14 +11,14 @@
         "build": "turbo build",
         "dev:web": "bun --filter web dev",
         "dev:api": "bun --filter api dev",
-        "dev:desktop": "bun --filter clawhostgo dev",
+        "dev:desktop": "bun --filter clawnodego dev",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write . && eslint . --fix",
         "format:check": "prettier --check .",
         "test": "turbo test",
         "test:watch": "turbo test:watch",
-        "check": "bun --filter api check && bun --filter web check && bun --filter clawhostgo check",
+        "check": "bun --filter api check && bun --filter web check && bun --filter clawnodego check",
         "version-patch": "bun scripts/version-patch.ts",
         "build-go-manifest": "bun scripts/build-go-manifest.ts",
         "prepare": "husky"

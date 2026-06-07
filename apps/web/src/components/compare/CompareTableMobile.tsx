@@ -7,7 +7,7 @@ import { t } from '@openclaw/i18n'
 
 const CompareTableMobile: FC<CompareTableMobileProps> = ({
     categories,
-    clawhost,
+    clawnode,
     selectedCompetitorId,
     selectedCompetitorNameKey,
     renderValue
@@ -20,7 +20,7 @@ const CompareTableMobile: FC<CompareTableMobileProps> = ({
                         {t('compare.feature')}
                     </th>
                     <th className='text-foreground px-4 py-3 text-center text-sm font-semibold'>
-                        {t(clawhost.nameKey as TranslationKey)}
+                        {t(clawnode.nameKey as TranslationKey)}
                     </th>
                     <th className='text-foreground px-4 py-3 text-center text-sm font-semibold'>
                         {t(selectedCompetitorNameKey as TranslationKey)}
@@ -46,7 +46,7 @@ const CompareTableMobile: FC<CompareTableMobileProps> = ({
                                     {t(feature.nameKey as TranslationKey)}
                                 </td>
                                 <td className='px-4 py-3'>
-                                    {renderValue(feature.values[clawhost.id])}
+                                    {renderValue(feature.values[clawnode.id])}
                                 </td>
                                 <td className='px-4 py-3'>
                                     {renderValue(

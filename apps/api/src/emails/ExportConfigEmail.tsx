@@ -40,7 +40,7 @@ const ExportConfigEmail: FC = (): ReactNode => {
             </Section>
 
             <Section style={buttonContainer}>
-                <Button href='https://clawhost.cloud' style={button}>
+                <Button href='https://clawnode.cloud' style={button}>
                     {t('emails.features.exportConfig.cta')}
                 </Button>
             </Section>

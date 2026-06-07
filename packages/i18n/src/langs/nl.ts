@@ -26,10 +26,10 @@ const nl: Translations = {
         pageNotFound: 'Pagina niet gevonden',
         closeNotification: 'Melding sluiten',
         beta: 'Beta',
-        brandName: 'ClawHost',
-        brandNameGo: 'ClawHost Go',
-        brandNameGoVersion: 'ClawHost Go {{version}}',
-        pageTitleWithBrand: '{{title}} - ClawHost',
+        brandName: 'ClawNode',
+        brandNameGo: 'ClawNode Go',
+        brandNameGoVersion: 'ClawNode Go {{version}}',
+        pageTitleWithBrand: '{{title}} - ClawNode',
         menuFile: 'Archief',
         menuEdit: 'Bewerk',
         menuView: 'Weergave',
@@ -82,14 +82,14 @@ const nl: Translations = {
         goSubtitle: 'Niet-technisch'
     },
     go: {
-        pageTitle: 'ClawHost Go',
+        pageTitle: 'ClawNode Go',
         heroTitle1: 'Implementeer OpenClaw.',
         heroTitle2: 'Lokaal. Direct.',
         badge: 'OpenClaw & Hermes lokaal',
         description:
             'Een lichte desktopclient om je OpenClaw-instanties te beheren. Deploy, monitor en beheer je claws — rechtstreeks vanaf je computer.',
         features: 'Functies',
-        whyClawHostGo: 'Alles-in-één functies',
+        whyClawNodeGo: 'Alles-in-één functies',
         featuresDescription:
             'Waarom we het proberen waard zijn, functies liegen hier niet.',
         zeroConfigDescription:
@@ -134,25 +134,25 @@ const nl: Translations = {
         comparisonUpdatesOthers: 'Automatische updates',
         faqTitle: 'Vragen',
         faqHeading: 'Veelgestelde vragen',
-        faqDescription: 'Alles wat je moet weten over ClawHost Go.',
-        faq1Question: 'Wat is ClawHost Go?',
+        faqDescription: 'Alles wat je moet weten over ClawNode Go.',
+        faq1Question: 'Wat is ClawNode Go?',
         faq1Answer:
-            'ClawHost Go is een lichte desktopapplicatie waarmee je OpenClaw lokaal op je eigen computer kunt draaien. Geen cloudservers nodig — installeren, starten en binnen seconden OpenClaw gebruiken.',
-        faq2Question: 'Hoe verschilt Go van ClawHost Cloud?',
+            'ClawNode Go is een lichte desktopapplicatie waarmee je OpenClaw lokaal op je eigen computer kunt draaien. Geen cloudservers nodig — installeren, starten en binnen seconden OpenClaw gebruiken.',
+        faq2Question: 'Hoe verschilt Go van ClawNode Cloud?',
         faq2Answer:
-            'ClawHost Cloud deployt OpenClaw op dedicated externe servers met 24/7 uptime en wereldwijde toegang. ClawHost Go draait alles lokaal op je apparaat — ideaal voor privacy, offline gebruik en eenvoudige opstellingen.',
+            'ClawNode Cloud deployt OpenClaw op dedicated externe servers met 24/7 uptime en wereldwijde toegang. ClawNode Go draait alles lokaal op je apparaat — ideaal voor privacy, offline gebruik en eenvoudige opstellingen.',
         faq3Question: 'Heb ik een internetverbinding nodig?',
         faq3Answer:
-            'ClawHost Go werkt offline voor lokaal gebruik. Een internetverbinding is alleen nodig voor de eerste installatie, updates en functies die externe API-aanroepen vereisen.',
+            'ClawNode Go werkt offline voor lokaal gebruik. Een internetverbinding is alleen nodig voor de eerste installatie, updates en functies die externe API-aanroepen vereisen.',
         faq4Question: 'Is de licentie een eenmalige betaling?',
         faq4Answer:
-            'Ja. Je betaalt eenmalig en krijgt levenslange toegang tot ClawHost Go, inclusief alle toekomstige updates. Geen abonnementen, geen terugkerende kosten.',
+            'Ja. Je betaalt eenmalig en krijgt levenslange toegang tot ClawNode Go, inclusief alle toekomstige updates. Geen abonnementen, geen terugkerende kosten.',
         faq5Question: 'Welke besturingssystemen worden ondersteund?',
         faq5Answer:
-            'ClawHost Go ondersteunt Windows en macOS. Beide platformen krijgen dezelfde functies en ontvangen gelijktijdig updates.',
+            'ClawNode Go ondersteunt Windows en macOS. Beide platformen krijgen dezelfde functies en ontvangen gelijktijdig updates.',
         faq6Question: 'Kan ik later overstappen van Go naar Cloud?',
         faq6Answer:
-            'Absoluut. Je kunt je OpenClaw-configuratie exporteren vanuit Go en op elk moment deployen op ClawHost Cloud. Beide platformen zijn volledig compatibel.',
+            'Absoluut. Je kunt je OpenClaw-configuratie exporteren vanuit Go en op elk moment deployen op ClawNode Cloud. Beide platformen zijn volledig compatibel.',
         statsPrice: '${{price}}',
         statsLifetime: 'Levenslang',
         statsOneTime: 'Eenmalig',
@@ -167,7 +167,7 @@ const nl: Translations = {
         downloadForMac: 'Downloaden voor Mac',
         downloadVersion: 'Versie {{version}}',
         downloadForWindows: 'Downloaden voor Windows',
-        deviceNotSupported: 'Je apparaat wordt nog niet ondersteund door ClawHost Go.',
+        deviceNotSupported: 'Je apparaat wordt nog niet ondersteund door ClawNode Go.',
         downloadFailed: 'Downloaden mislukt!',
         downloadStarted: 'Downloaden gestart.',
         appleSilicon: 'Apple Silicon',
@@ -220,7 +220,7 @@ const nl: Translations = {
     },
     footer: {
         website: 'Website',
-        copyrightName: 'ClawHost',
+        copyrightName: 'ClawNode',
         copyrightRights: 'Alle rechten voorbehouden.',
         termsOfService: 'Servicevoorwaarden',
         privacyPolicy: 'Privacybeleid',
@@ -240,7 +240,7 @@ const nl: Translations = {
         affiliateProgram: 'Partnerprogramma',
         documentation: 'Documentatie',
         productDescription:
-            'Deploy OpenClaw- en Hermes-agents in de cloud of lokaal met één klik — bouw, verbind en schaal je AI-agents sneller met ClawHost.',
+            'Deploy OpenClaw- en Hermes-agents in de cloud of lokaal met één klik — bouw, verbind en schaal je AI-agents sneller met ClawNode.',
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -523,12 +523,12 @@ const nl: Translations = {
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
     emails: {
-        otpSubject: 'Je ClawHost-inlogcode',
-        otpPreview: 'Je ClawHost-inlogcode: {{code}}',
+        otpSubject: 'Je ClawNode-inlogcode',
+        otpPreview: 'Je ClawNode-inlogcode: {{code}}',
         otpHeading: 'Je inlogcode is:',
         otpExpiry:
             'Code verloopt over 10 minuten. Als jij dit niet was, negeer deze e-mail.',
-        featureFooter: 'Je ontvangt dit omdat je een ClawHost-account hebt.',
+        featureFooter: 'Je ontvangt dit omdat je een ClawNode-account hebt.',
         features: {
             terminal: {
                 subject: 'Wist je dat? Je hebt een webterminal',
@@ -536,7 +536,7 @@ const nl: Translations = {
                 tag: 'Webterminal',
                 heading: 'Je server is \u00e9\u00e9n klik verwijderd',
                 description:
-                    'Krijg direct toegang tot je server vanuit je browser met onze ingebouwde terminal. Geen SSH-client nodig \u2014 open gewoon ClawHost en begin met typen.',
+                    'Krijg direct toegang tot je server vanuit je browser met onze ingebouwde terminal. Geen SSH-client nodig \u2014 open gewoon ClawNode en begin met typen.',
                 cta: 'Terminal openen'
             },
             logs: {
@@ -545,7 +545,7 @@ const nl: Translations = {
                 tag: 'Live Logs',
                 heading: 'Bekijk wat je server doet',
                 description:
-                    'Monitor je serverlogs in realtime vanuit het ClawHost-dashboard. Diagnose problemen, volg deployments en debug je applicaties zonder de browser te verlaten.',
+                    'Monitor je serverlogs in realtime vanuit het ClawNode-dashboard. Diagnose problemen, volg deployments en debug je applicaties zonder de browser te verlaten.',
                 cta: 'Logs bekijken'
             },
             fileExplorer: {
@@ -555,7 +555,7 @@ const nl: Translations = {
                 tag: 'Bestandsverkenner',
                 heading: 'Je bestanden, binnen handbereik',
                 description:
-                    'Blader, lees en bewerk bestanden op je server direct vanuit het ClawHost-dashboard. Syntaxmarkering, zoeken en direct opslaan \u2014 geen SSH nodig.',
+                    'Blader, lees en bewerk bestanden op je server direct vanuit het ClawNode-dashboard. Syntaxmarkering, zoeken en direct opslaan \u2014 geen SSH nodig.',
                 cta: 'Bestandsverkenner openen'
             },
             diagnostics: {
@@ -569,12 +569,12 @@ const nl: Translations = {
                 cta: 'Diagnostiek uitvoeren'
             },
             sshKeys: {
-                subject: 'Wist je dat? Beheer SSH-sleutels vanuit ClawHost',
+                subject: 'Wist je dat? Beheer SSH-sleutels vanuit ClawNode',
                 preview: 'Genereer en beheer SSH-sleutelparen in het dashboard',
                 tag: 'SSH-sleutels',
                 heading: 'SSH-sleutels, vereenvoudigd',
                 description:
-                    'Genereer SSH-sleutelparen, kopieer publieke sleutels en download priv\u00e9sleutels \u2014 alles vanuit het ClawHost-dashboard. Wijs sleutels toe aan claws voor veilige toegang.',
+                    'Genereer SSH-sleutelparen, kopieer publieke sleutels en download priv\u00e9sleutels \u2014 alles vanuit het ClawNode-dashboard. Wijs sleutels toe aan claws voor veilige toegang.',
                 cta: 'SSH-sleutels beheren'
             },
             exportConfig: {
@@ -588,12 +588,12 @@ const nl: Translations = {
                 cta: 'Configuratie exporteren'
             },
             multiLanguage: {
-                subject: 'Wist je dat? ClawHost spreekt jouw taal',
-                preview: 'Gebruik ClawHost in 14 talen',
+                subject: 'Wist je dat? ClawNode spreekt jouw taal',
+                preview: 'Gebruik ClawNode in 14 talen',
                 tag: 'Meertalig',
-                heading: 'ClawHost in jouw taal',
+                heading: 'ClawNode in jouw taal',
                 description:
-                    'Schakel het hele ClawHost-dashboard om naar een van de 14 talen. Van knoppen tot foutmeldingen \u2014 volledig vertaald.',
+                    'Schakel het hele ClawNode-dashboard om naar een van de 14 talen. Van knoppen tot foutmeldingen \u2014 volledig vertaald.',
                 cta: 'Taal wijzigen'
             },
             subdomain: {
@@ -607,12 +607,12 @@ const nl: Translations = {
                 cta: 'Je subdomein bekijken'
             },
             darkMode: {
-                subject: 'Wist je dat? ClawHost heeft een donkere modus',
+                subject: 'Wist je dat? ClawNode heeft een donkere modus',
                 preview: 'Schakel tussen licht en donker thema',
                 tag: 'Donkere Modus',
                 heading: 'Prettig voor de ogen',
                 description:
-                    'Schakel tussen licht en donker thema in het ClawHost-dashboard. Je voorkeur wordt opgeslagen en automatisch toegepast bij elk bezoek.',
+                    'Schakel tussen licht en donker thema in het ClawNode-dashboard. Je voorkeur wordt opgeslagen en automatisch toegepast bij elk bezoek.',
                 cta: 'Donkere modus proberen'
             },
             reinstall: {
@@ -641,7 +641,7 @@ const nl: Translations = {
     auth: {
         signIn: 'Authenticatie',
         signInDescription:
-            'Log in op je ClawHost-account om je OpenClaw-instanties te beheren.',
+            'Log in op je ClawNode-account om je OpenClaw-instanties te beheren.',
         signingIn: 'Authenticeren...',
         verifyCode: 'Code verifi\u00ebren',
         checkYourEmail: 'Controleer je e-mail',
@@ -650,7 +650,7 @@ const nl: Translations = {
         signInToDeployOpenClaw:
             'Authenticeer om agents met \u00e9\u00e9n klik te beheren en te deployen.',
         emailAddress: 'E-mailadres',
-        emailPlaceholder: 'voorbeeld@clawhost.cloud',
+        emailPlaceholder: 'voorbeeld@clawnode.cloud',
         continueWithEmail: 'Doorgaan met e-mail',
         otpDescription:
             'We sturen je een code om in te loggen. Geen wachtwoord nodig.',
@@ -673,7 +673,7 @@ const nl: Translations = {
     account: {
         title: 'Account',
         description:
-            'Beheer je ClawHost-accountinstellingen en profielinformatie.',
+            'Beheer je ClawNode-accountinstellingen en profielinformatie.',
         accountSettings: 'Account',
         manageYourAccount: 'Beheer je profiel- en accountinstellingen.',
         profileInformation: 'Profielinformatie',
@@ -749,7 +749,7 @@ const nl: Translations = {
         pageTitle: 'Licentie',
         pageDescription:
             'Koop je licentie voor het zelf hosten van OpenClaw-instanties lokaal met onze Go-app.',
-        planName: 'ClawHost Go Licentie',
+        planName: 'ClawNode Go Licentie',
         oneTimePurchase: 'Eenmalige aankoop',
         price: '${{price}}',
         priceNote: 'Betaal eenmalig, bezit voor altijd.',
@@ -767,7 +767,7 @@ const nl: Translations = {
         whatsIncluded: 'Wat is inbegrepen',
         gateTitle: 'Licentie vereist',
         gateDescription:
-            'Je hebt een ClawHost Go Licentie nodig om OpenClaw-instanties lokaal te deployen en te beheren.'
+            'Je hebt een ClawNode Go Licentie nodig om OpenClaw-instanties lokaal te deployen en te beheren.'
     },
     network: {
         offline: 'Geen internetverbinding',
@@ -944,7 +944,7 @@ const nl: Translations = {
             'Dit kan even duren. Het hangt af van OpenClaw, de serverlocatie en Cloudflare DNS.',
         paymentSuccess: 'Je claw wordt aangemaakt en geconfigureerd.',
         dnsSetupBanner:
-            'Stel lokale DNS in om je claws te bereiken via subdomein.clawhost.',
+            'Stel lokale DNS in om je claws te bereiken via subdomein.clawnode.',
         dnsSetupButton: 'DNS instellen',
         dnsSetupSuccess: 'DNS-resolver succesvol geconfigureerd.',
         dnsSetupError: 'DNS-resolver configureren mislukt!',
@@ -1102,14 +1102,14 @@ const nl: Translations = {
             'Deploy OpenClaw op je eigen VPS met \u00e9\u00e9n klik. Zelfhostbare cloudhosting met volledige root-toegang, wereldwijde locaties en transparante prijzen.',
         badge: 'OpenClaw & Hermes in de cloud',
         tutorialBadge: 'Bekijk. Deploy.',
-        tutorialVideoThumbnail: 'ClawHost handleiding videominiatuur',
-        clawhostGoLogoAlt: 'ClawHost Go',
+        tutorialVideoThumbnail: 'ClawNode handleiding videominiatuur',
+        clawnodeGoLogoAlt: 'ClawNode Go',
         trustMrrBadgeAlt: 'TrustMRR verified revenue badge',
         macosPreviewTime: '22:12',
         heroTitle1: 'Implementeer OpenClaw.',
         heroTitle2: 'E\u00e9n klik. Klaar.',
         heroDescription:
-            'Deploy OpenClaw- en Hermes-agents in de cloud of lokaal met \u00e9\u00e9n klik \u2014 bouw, verbind en schaal je AI-agents sneller met ClawHost.',
+            'Deploy OpenClaw- en Hermes-agents in de cloud of lokaal met \u00e9\u00e9n klik \u2014 bouw, verbind en schaal je AI-agents sneller met ClawNode.',
         selfHost: 'Open Source',
         startingPrice: 'Vanaf',
         locations: 'Locaties',
@@ -1117,7 +1117,7 @@ const nl: Translations = {
         zeroCount: 'Nul',
         zeroConfig: 'Geen configuratie',
         features: 'Functies',
-        whyClawHost: 'Alles-in-\u00e9\u00e9n functies',
+        whyClawNode: 'Alles-in-\u00e9\u00e9n functies',
         featuresDescription:
             'Waarom we het proberen waard zijn, functies liegen niet.',
         zeroConfigDescription:
@@ -1214,19 +1214,19 @@ const nl: Translations = {
         faqTitle: 'Vragen',
         frequentlyAskedQuestions: 'Veelgestelde vragen',
         faqDescription: 'Elke veelgestelde vraag, beantwoord.',
-        faq1Question: 'Wat is ClawHost?',
+        faq1Question: 'Wat is ClawNode?',
         faq1Answer:
-            'ClawHost is een platform dat OpenClaw en Hermes voor iedereen toegankelijk maakt. Zowel niet-technische gebruikers als ontwikkelaars kunnen ze draaien zonder infrastructuur te beheren. Wij regelen servers, uptime, beveiliging en onderhoud — jij gebruikt gewoon je agents.',
+            'ClawNode is een platform dat OpenClaw en Hermes voor iedereen toegankelijk maakt. Zowel niet-technische gebruikers als ontwikkelaars kunnen ze draaien zonder infrastructuur te beheren. Wij regelen servers, uptime, beveiliging en onderhoud — jij gebruikt gewoon je agents.',
         faq2Question: 'Wat is OpenClaw?',
         faq2Answer:
             'OpenClaw is een zelfgehoste beveiligde toegangslaag voor je AI-tools en -diensten. Het is voorgeconfigureerd voor beveiliging en prestaties, zodat je het kunt deployen en direct kunt verbinden.',
         faqHermesQuestion: 'Wat is Hermes?',
         faqHermesAnswer:
-            'Hermes is een autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering. Hij is op elke ClawHost-server vooraf geïnstalleerd naast OpenClaw.',
+            'Hermes is een autonome AI-agent met webbrowsing, agendabeheer, multi-model redenering en browserautomatisering. Hij is op elke ClawNode-server vooraf geïnstalleerd naast OpenClaw.',
         faq3Question:
             'Hoe verschilt dit van andere AI-tools of gehoste platforms?',
         faq3Answer:
-            'In tegenstelling tot gehoste AI-tools krijg je met ClawHost een echte server met OpenClaw en Hermes geïnstalleerd. Je bezit de infrastructuur, beheert alles en wordt niet beperkt door een gedeeld platform of model.',
+            'In tegenstelling tot gehoste AI-tools krijg je met ClawNode een echte server met OpenClaw en Hermes geïnstalleerd. Je bezit de infrastructuur, beheert alles en wordt niet beperkt door een gedeeld platform of model.',
         faq4Question: 'Heb ik technische kennis nodig?',
         faq4Answer:
             'Nee. Wij regelen alle infrastructuur, installatie en onderhoud. Je kunt OpenClaw via de UI configureren en beheren, terwijl Hermes via eenvoudige terminalcommando’s draait — zonder zelf servers of infrastructuur aan te raken.',
@@ -1285,9 +1285,9 @@ const nl: Translations = {
     changelog: {
         title: 'Changelog',
         description:
-            'Volg updates, nieuwe functies en verbeteringen aan ClawHost.',
+            'Volg updates, nieuwe functies en verbeteringen aan ClawNode.',
         subtitle:
-            'Alle updates, nieuwe functies en verbeteringen aan ClawHost.',
+            'Alle updates, nieuwe functies en verbeteringen aan ClawNode.',
         release14Date: '1 april 2026',
         release14Title: 'Hetzner-migratie, affiliate-systeem & nieuwe talen',
         release14Description:
@@ -1335,7 +1335,7 @@ const nl: Translations = {
         release15Description:
             'Vereenvoudiging van het platform door beheerde functies naar OpenClaw te migreren, de playground-weergave te verwijderen en aanpasbare subdomeinen te introduceren.',
         release15Feature1:
-            'Vereenvoudiging en migratie van beheerde functies naar OpenClaw, geen ClawHost-chat, agents, kanalen, variabelen en vaardigheden meer',
+            'Vereenvoudiging en migratie van beheerde functies naar OpenClaw, geen ClawNode-chat, agents, kanalen, variabelen en vaardigheden meer',
         release15Feature2:
             'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
         release15Feature3:
@@ -1345,13 +1345,13 @@ const nl: Translations = {
         release12Date: '14 maart 2026',
         release12Title: 'Jaarplannen, spraakmodus & meer',
         release12Description:
-            'Jaarabonnementen met 2 maanden gratis, spraakmodus, instantie herinstallatie en een eerste landingspagina voor ClawHost Go.',
+            'Jaarabonnementen met 2 maanden gratis, spraakmodus, instantie herinstallatie en een eerste landingspagina voor ClawNode Go.',
         release12Feature1:
-            'Landingspagina voor ClawHost Go, lokale hosting met ClawHost',
+            'Landingspagina voor ClawNode Go, lokale hosting met ClawNode',
         release12Feature2:
             'Jaarabonnement met 2 maanden gratis bij jaarlijks abonneren',
         release12Feature3:
-            'Spraakmodus om te communiceren met de OpenClaw-agents gehost op ClawHost',
+            'Spraakmodus om te communiceren met de OpenClaw-agents gehost op ClawNode',
         release12Feature4:
             'Herinstalleer OpenClaw op je instantie voor een nieuwe start, eenmaal per dag beschikbaar',
         release11Date: '28 februari 2026',
@@ -1423,7 +1423,7 @@ const nl: Translations = {
         release1Date: '8 februari 2026',
         release1Title: 'Eerste release',
         release1Description:
-            'De eerste offici\u00eble release van ClawHost. Deploy OpenClaw op je eigen VPS met \u00e9\u00e9n klik.',
+            'De eerste offici\u00eble release van ClawNode. Deploy OpenClaw op je eigen VPS met \u00e9\u00e9n klik.',
         release1Feature1: 'OpenClaw-deployment met \u00e9\u00e9n klik',
         release1Feature2:
             'Dashboard om claws te beheren, instanties starten, stoppen, herstarten en verwijderen',
@@ -1443,7 +1443,7 @@ const nl: Translations = {
         release2Date: '8 februari 2026',
         release2Title: 'Changelog & meer',
         release2Description:
-            'Een nieuwe manier om op de hoogte te blijven van alles rondom ClawHost.',
+            'Een nieuwe manier om op de hoogte te blijven van alles rondom ClawNode.',
         release2Feature1:
             'Changelogpagina om alle platformupdates en releases te volgen',
         release3Date: '10 februari 2026',
@@ -1578,7 +1578,7 @@ const nl: Translations = {
             'Wist je dat je meerdere agents kunt draaien binnen \u00e9\u00e9n OpenClaw?',
         loadingTip2: 'Wist je dat OpenClaw open-source is?',
         loadingTip3:
-            'ClawHost is het allereerste project dat OpenClaw-hosting met \u00e9\u00e9n klik mogelijk maakt.',
+            'ClawNode is het allereerste project dat OpenClaw-hosting met \u00e9\u00e9n klik mogelijk maakt.',
         loadingTip4:
             'Je kunt je agent bereiken via SSH of de ingebouwde terminal.',
         loadingTip5: 'Je agent krijgt automatisch een eigen subdomein.',
@@ -1595,7 +1595,7 @@ const nl: Translations = {
         loadingTip12:
             'Je kunt je root-wachtwoord en gateway-token roteren vanuit het Beveiliging-tabblad.',
         loadingTip13:
-            "ClawHost ondersteunt servers in meerdere regio's in Europa en de VS.",
+            "ClawNode ondersteunt servers in meerdere regio's in Europa en de VS.",
         tabSettings: 'Instellingen',
         featureVersionUnsupported:
             '{{feature}} niet ondersteund op {{version}}',
@@ -1743,14 +1743,14 @@ const nl: Translations = {
     privacy: {
         title: 'Privacybeleid',
         description:
-            'Lees hoe ClawHost je persoonlijke gegevens verzamelt, gebruikt en beschermt.',
+            'Lees hoe ClawNode je persoonlijke gegevens verzamelt, gebruikt en beschermt.',
         lastUpdated: 'Laatst bijgewerkt: 14 maart 2026',
         introTitle: '1. Inleiding',
         introText:
-            'ClawHost ("wij", "ons" of "onze") zet zich in voor de bescherming van je privacy. Dit Privacybeleid legt uit hoe wij je informatie verzamelen, gebruiken, openbaar maken en beschermen wanneer je onze Service gebruikt.',
+            'ClawNode ("wij", "ons" of "onze") zet zich in voor de bescherming van je privacy. Dit Privacybeleid legt uit hoe wij je informatie verzamelen, gebruiken, openbaar maken en beschermen wanneer je onze Service gebruikt.',
         authTitle: '2. Authenticatie',
         authText:
-            'ClawHost gebruikt Google Firebase Authentication om gebruikersaccounts te beheren. Je kunt inloggen met e-mail, Google of GitHub. Door deze inlogmethoden te gebruiken, ga je akkoord met hun respectieve voorwaarden en privacybeleid. Deze providers kunnen basisgegevens verzamelen zoals je e-mailadres, naam en apparaatinformatie. Wij slaan alleen je e-mailadres en weergavenaam op.',
+            'ClawNode gebruikt Google Firebase Authentication om gebruikersaccounts te beheren. Je kunt inloggen met e-mail, Google of GitHub. Door deze inlogmethoden te gebruiken, ga je akkoord met hun respectieve voorwaarden en privacybeleid. Deze providers kunnen basisgegevens verzamelen zoals je e-mailadres, naam en apparaatinformatie. Wij slaan alleen je e-mailadres en weergavenaam op.',
         collectTitle: '3. Informatie die wij verzamelen',
         collectText: 'Wij verzamelen informatie op de volgende manieren:',
         personalInfoTitle: 'Persoonlijke informatie',
@@ -1803,7 +1803,7 @@ const nl: Translations = {
             'Je informatie kan worden overgedragen naar en verwerkt in landen anders dan je eigen land. Wij zorgen ervoor dat passende waarborgen aanwezig zijn om je gegevens te beschermen in overeenstemming met dit Privacybeleid.',
         eligibilityTitle: '11. Geschiktheid',
         eligibilityText:
-            'Onze Service is beschikbaar voor iedereen. Er zijn geen leeftijdsbeperkingen voor het gebruik van ClawHost.',
+            'Onze Service is beschikbaar voor iedereen. Er zijn geen leeftijdsbeperkingen voor het gebruik van ClawNode.',
         changesTitle: '12. Wijzigingen in dit beleid',
         changesText:
             'Wij kunnen dit Privacybeleid van tijd tot tijd bijwerken. Wij zullen je op de hoogte stellen van wijzigingen door het nieuwe Privacybeleid op deze pagina te plaatsen en de datum "Laatst bijgewerkt" bij te werken.',
@@ -1814,17 +1814,17 @@ const nl: Translations = {
     terms: {
         title: 'Servicevoorwaarden',
         description:
-            'Lees de algemene voorwaarden voor het gebruik van ClawHost-diensten.',
+            'Lees de algemene voorwaarden voor het gebruik van ClawNode-diensten.',
         lastUpdated: 'Laatst bijgewerkt: 14 maart 2026',
         acceptanceTitle: '1. Acceptatie van voorwaarden',
         acceptanceText:
-            'Door ClawHost ("Service") te openen en te gebruiken, accepteer je en ga je akkoord met de voorwaarden en bepalingen van deze overeenkomst. Als je niet akkoord gaat met deze voorwaarden, gebruik onze Service dan niet.',
+            'Door ClawNode ("Service") te openen en te gebruiken, accepteer je en ga je akkoord met de voorwaarden en bepalingen van deze overeenkomst. Als je niet akkoord gaat met deze voorwaarden, gebruik onze Service dan niet.',
         serviceTitle: '2. Beschrijving van de Service',
         serviceText:
-            'ClawHost biedt one-click deployment van OpenClaw en Hermes op dedicated servers. We stellen gebruikers in staat om vooraf geconfigureerde OpenClaw- en Hermes-instanties met volledige root-toegang en dedicated resources te deployen, beheren en benaderen.',
+            'ClawNode biedt one-click deployment van OpenClaw en Hermes op dedicated servers. We stellen gebruikers in staat om vooraf geconfigureerde OpenClaw- en Hermes-instanties met volledige root-toegang en dedicated resources te deployen, beheren en benaderen.',
         authTitle: '3. Authenticatie',
         authText:
-            'ClawHost gebruikt Google Firebase Authentication om inloggen te beheren. Je kunt authenticeren met e-mail, Google of GitHub. Door deze methoden te gebruiken, ga je akkoord met de respectieve voorwaarden en het privacybeleid van Google en GitHub. Deze providers kunnen basisinformatie verzamelen zoals je e-mailadres, naam en apparaatgegevens.',
+            'ClawNode gebruikt Google Firebase Authentication om inloggen te beheren. Je kunt authenticeren met e-mail, Google of GitHub. Door deze methoden te gebruiken, ga je akkoord met de respectieve voorwaarden en het privacybeleid van Google en GitHub. Deze providers kunnen basisinformatie verzamelen zoals je e-mailadres, naam en apparaatgegevens.',
         responsibilitiesTitle: '4. Verantwoordelijkheden van de gebruiker',
         responsibilitiesText: 'Je gaat akkoord om:',
         responsibilitiesAccurate:
@@ -1858,19 +1858,19 @@ const nl: Translations = {
             'Wij streven naar hoge beschikbaarheid maar garanderen geen ononderbroken toegang tot de Service. Wij behouden ons het recht voor om elk onderdeel van de Service op elk moment te wijzigen, op te schorten of stop te zetten, met of zonder voorafgaande kennisgeving.',
         liabilityTitle: '8. Beperking van aansprakelijkheid',
         liabilityText:
-            'Voor zover maximaal toegestaan door de wet, is ClawHost niet aansprakelijk voor indirecte, incidentele, speciale, gevolg- of punitieve schade, of enig verlies van winst of inkomsten, hetzij direct of indirect geleden.',
+            'Voor zover maximaal toegestaan door de wet, is ClawNode niet aansprakelijk voor indirecte, incidentele, speciale, gevolg- of punitieve schade, of enig verlies van winst of inkomsten, hetzij direct of indirect geleden.',
         terminationTitle: '9. Be\u00ebindiging',
         terminationText:
             'Wij kunnen je account en toegang tot de Service onmiddellijk be\u00ebindigen of opschorten, zonder voorafgaande kennisgeving, voor gedrag waarvan wij geloven dat het deze Voorwaarden schendt of schadelijk is voor andere gebruikers, ons of derden, of om welke andere reden dan ook.',
         affiliateTitle: '10. Affiliate Program',
         affiliateText:
-            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+            'ClawNode offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
         affiliateCodeUnique:
             'Each user receives a unique referral code upon registration, which can be customized once.',
         affiliateCodeOneChange:
             'The referral code can only be changed one time. Choose your custom code carefully.',
         affiliateReferralWindow:
-            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+            'A referral is valid for 6 months from when the referred user first visits ClawNode with your referral link. After 6 months, the referral expires.',
         affiliateNoSelfReferral:
             'Self-referrals are not permitted. You may not refer your own accounts.',
         affiliateAbuse:
@@ -1885,17 +1885,17 @@ const nl: Translations = {
     hermesBanner: {
         title: 'Hermes Agent',
         message:
-            'Hermes-agenten worden nu ondersteund voor deployment op ClawHost.'
+            'Hermes-agenten worden nu ondersteund voor deployment op ClawNode.'
     },
     compare: {
         title: 'Vergelijking',
         description:
-            'Bekijk hoe ClawHost zich verhoudt tot andere OpenClaw-hostingplatforms.',
+            'Bekijk hoe ClawNode zich verhoudt tot andere OpenClaw-hostingplatforms.',
         badge: 'Vergelijking',
         feature: 'Platform',
         compareWith: 'Vergelijk met',
         lastUpdated: 'Laatst bijgewerkt: maart 2026',
-        competitorClawHost: 'ClawHost',
+        competitorClawNode: 'ClawNode',
         competitorLobsterFarm: 'LobsterFarm',
         competitorSimpleAgent: 'SimpleAgent',
         competitorMyAgentAi: 'MyAgent.ai',
@@ -2131,7 +2131,7 @@ const nl: Translations = {
     },
     affiliate: {
         title: 'Affiliate',
-        description: 'Earn rewards by referring friends to ClawHost.',
+        description: 'Earn rewards by referring friends to ClawNode.',
         subtitle: 'Share your referral link and earn rewards.',
         learnMore: 'Meer informatie over het partnerprogramma',
         referralCode: 'Referral Code',
@@ -2164,26 +2164,26 @@ const nl: Translations = {
     affiliateProgram: {
         title: 'Partnerprogramma',
         description:
-            'Ontdek hoe het ClawHost-partnerprogramma werkt, hoeveel je kunt verdienen en de regels voor deelname.',
+            'Ontdek hoe het ClawNode-partnerprogramma werkt, hoeveel je kunt verdienen en de regels voor deelname.',
         lastUpdated: 'Laatst bijgewerkt: 1 april 2026',
         overviewTitle: '1. Overzicht',
         overviewText:
-            'Het ClawHost-partnerprogramma laat je beloningen verdienen door nieuwe gebruikers naar ClawHost te verwijzen. Wanneer iemand een aankoop doet na ClawHost te hebben bezocht via jouw verwijzingslink, verdien je een commissie op hun betalingen. Het programma is gratis en beschikbaar voor alle geregistreerde ClawHost-gebruikers.',
+            'Het ClawNode-partnerprogramma laat je beloningen verdienen door nieuwe gebruikers naar ClawNode te verwijzen. Wanneer iemand een aankoop doet na ClawNode te hebben bezocht via jouw verwijzingslink, verdien je een commissie op hun betalingen. Het programma is gratis en beschikbaar voor alle geregistreerde ClawNode-gebruikers.',
         howItWorksTitle: '2. Hoe het werkt',
         howItWorksText:
             'Aan de slag gaan met het partnerprogramma is eenvoudig:',
         howItWorksStep1:
-            'Maak een ClawHost-account aan. Er wordt automatisch een unieke verwijzingscode voor je gegenereerd.',
+            'Maak een ClawNode-account aan. Er wordt automatisch een unieke verwijzingscode voor je gegenereerd.',
         howItWorksStep2:
-            "Deel je verwijzingslink met vrienden, collega's of je publiek. Je link volgt het formaat: clawhost.cloud?ref=YOUR_CODE.",
+            "Deel je verwijzingslink met vrienden, collega's of je publiek. Je link volgt het formaat: clawnode.cloud?ref=YOUR_CODE.",
         howItWorksStep3:
-            'Wanneer iemand een aankoop doet na ClawHost te hebben bezocht via jouw link, wordt dit als jouw verwijzing geregistreerd.',
+            'Wanneer iemand een aankoop doet na ClawNode te hebben bezocht via jouw link, wordt dit als jouw verwijzing geregistreerd.',
         howItWorksStep4:
             'Je verdient een commissie telkens wanneer je verwezen gebruiker een in aanmerking komende aankoop doet.',
         earningsTitle: '3. Verdiensten en uitbetalingen',
         earningsText: 'Zo werken de partnerverdiensten:',
         earningsCommission:
-            'Je verdient een commissie van 15% op elke in aanmerking komende aankoop van je verwezen gebruikers. Commissies zijn van toepassing op zowel ClawHost Cloud- als ClawHost Go-abonnementen.',
+            'Je verdient een commissie van 15% op elke in aanmerking komende aankoop van je verwezen gebruikers. Commissies zijn van toepassing op zowel ClawNode Cloud- als ClawNode Go-abonnementen.',
         earningsMonthly:
             'Voor maandelijkse abonnementen verdien je commissies gedurende 1 jaar vanaf de datum van de verwijzing.',
         earningsYearly:
@@ -2205,12 +2205,12 @@ const nl: Translations = {
             'Verwijzingscodes mogen alleen letters, cijfers, streepjes en underscores bevatten.',
         referralWindowTitle: '5. Verwijzings-attributievenster',
         referralWindowText:
-            'Een verwijzing wordt aan jou toegeschreven voor 3 maanden vanaf het moment dat de verwezen gebruiker ClawHost voor het eerst via jouw link bezoekt. Als de verwezen gebruiker geen aankoop doet binnen dit venster van 3 maanden, vervalt de verwijzing en wordt er geen commissie verdiend. Als de gebruiker via een andere verwijzingslink bezoekt, vervangt de nieuwe verwijzing de vorige.',
+            'Een verwijzing wordt aan jou toegeschreven voor 3 maanden vanaf het moment dat de verwezen gebruiker ClawNode voor het eerst via jouw link bezoekt. Als de verwezen gebruiker geen aankoop doet binnen dit venster van 3 maanden, vervalt de verwijzing en wordt er geen commissie verdiend. Als de gebruiker via een andere verwijzingslink bezoekt, vervangt de nieuwe verwijzing de vorige.',
         eligibilityTitle: '6. Geschiktheid',
         eligibilityText:
             'Om deel te nemen aan het partnerprogramma moet je aan de volgende vereisten voldoen:',
         eligibilityAccount:
-            'Je moet een geregistreerd ClawHost-account hebben.',
+            'Je moet een geregistreerd ClawNode-account hebben.',
         eligibilityStanding:
             'Je account moet in goede staat zijn zonder geschiedenis van beleidsschendingen.',
         eligibilityAge:
@@ -2225,30 +2225,30 @@ const nl: Translations = {
         rulesNoSpam:
             'Het versturen van ongevraagde bulkberichten (spam) om je verwijzingslink te promoten is niet toegestaan.',
         rulesNoMisrepresentation:
-            'Je mag ClawHost, zijn diensten of het partnerprogramma op geen enkele manier verkeerd voorstellen.',
+            'Je mag ClawNode, zijn diensten of het partnerprogramma op geen enkele manier verkeerd voorstellen.',
         rulesNoIncentivized:
             'Het aanbieden van directe financiële prikkels (bijv. gebruikers betalen om zich via jouw link aan te melden) is niet toegestaan.',
         terminationTitle: '8. Schending en beëindiging',
         terminationText:
-            'Elke schending van deze regels resulteert in het onmiddellijke verlies van alle openstaande en verdiende beloningen. ClawHost behoudt zich het recht voor om je account van het partnerprogramma op te schorten of permanent te verbannen. In ernstige gevallen kan ook je ClawHost-account worden beëindigd. Alle beslissingen met betrekking tot schendingen zijn definitief.',
+            'Elke schending van deze regels resulteert in het onmiddellijke verlies van alle openstaande en verdiende beloningen. ClawNode behoudt zich het recht voor om je account van het partnerprogramma op te schorten of permanent te verbannen. In ernstige gevallen kan ook je ClawNode-account worden beëindigd. Alle beslissingen met betrekking tot schendingen zijn definitief.',
         marketingTitle: '9. Hoe te promoten',
         marketingText:
             'Er zijn veel creatieve en legitieme manieren om je verwijzingslink te delen en je inkomsten te laten groeien:',
         marketingSocial:
-            'Deel je link op sociale mediaplatformen zoals X, LinkedIn, Reddit en Facebook. Schrijf over je ervaring met ClawHost en voeg je verwijzingslink toe.',
+            'Deel je link op sociale mediaplatformen zoals X, LinkedIn, Reddit en Facebook. Schrijf over je ervaring met ClawNode en voeg je verwijzingslink toe.',
         marketingBlog:
-            'Schrijf blogposts, tutorials of recensies over ClawHost. Verwerk je verwijzingslink op een natuurlijke manier in de content.',
+            'Schrijf blogposts, tutorials of recensies over ClawNode. Verwerk je verwijzingslink op een natuurlijke manier in de content.',
         marketingVideo:
-            'Maak videocontent op YouTube of TikTok waarin je laat zien hoe je ClawHost gebruikt om AI-agents te deployen en te beheren.',
+            'Maak videocontent op YouTube of TikTok waarin je laat zien hoe je ClawNode gebruikt om AI-agents te deployen en te beheren.',
         marketingCommunity:
-            'Neem deel aan ontwikkelaarscommunities, forums en Discord-servers. Wanneer iemand vraagt naar cloudhosting of het deployen van AI-agents, beveel ClawHost aan met je link.',
+            'Neem deel aan ontwikkelaarscommunities, forums en Discord-servers. Wanneer iemand vraagt naar cloudhosting of het deployen van AI-agents, beveel ClawNode aan met je link.',
         marketingNewsletter:
-            'Als je een nieuwsbrief of mailinglijst beheert, vermeld ClawHost dan in een relevant nummer met je verwijzingslink.',
+            'Als je een nieuwsbrief of mailinglijst beheert, vermeld ClawNode dan in een relevant nummer met je verwijzingslink.',
         marketingComparison:
-            'Schrijf eerlijke vergelijkingsartikelen of gidsen die benadrukken wat ClawHost onderscheidt van andere platformen.',
+            'Schrijf eerlijke vergelijkingsartikelen of gidsen die benadrukken wat ClawNode onderscheidt van andere platformen.',
         changesToProgramTitle: '10. Wijzigingen aan het programma',
         changesToProgramText:
-            'ClawHost behoudt zich het recht voor om het partnerprogramma op elk moment zonder voorafgaande kennisgeving te wijzigen, op te schorten of stop te zetten. Dit omvat wijzigingen in commissietarieven, verwijzingsvensters, uitbetalingsdrempels en programmaregels. Voortgezette deelname na wijzigingen houdt aanvaarding van de bijgewerkte voorwaarden in.',
+            'ClawNode behoudt zich het recht voor om het partnerprogramma op elk moment zonder voorafgaande kennisgeving te wijzigen, op te schorten of stop te zetten. Dit omvat wijzigingen in commissietarieven, verwijzingsvensters, uitbetalingsdrempels en programmaregels. Voortgezette deelname na wijzigingen houdt aanvaarding van de bijgewerkte voorwaarden in.',
         getStartedTitle: '11. Aan de slag',
         getStartedText:
             'Klaar om te gaan verdienen? Ga naar je partnerdashboard om je verwijzingslink op te halen en begin met delen met je netwerk.',

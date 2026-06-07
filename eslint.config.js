@@ -19,8 +19,8 @@ export default tseslint.config(
             '**/*.config.cjs',
             '**/out/**',
             '**/.vite/**',
-            'apps/clawhostgo/resources/**',
-            'apps/clawhostgo/scripts/*.js',
+            'apps/clawnodego/resources/**',
+            'apps/clawnodego/scripts/*.js',
             'resources/**'
         ]
     },
@@ -74,7 +74,7 @@ export default tseslint.config(
         }
     },
     {
-        files: ['apps/clawhostgo/src/renderer/**/*.{ts,tsx}'],
+        files: ['apps/clawnodego/src/renderer/**/*.{ts,tsx}'],
         plugins: {
             'react-hooks': reactHooks,
             'react-refresh': reactRefresh

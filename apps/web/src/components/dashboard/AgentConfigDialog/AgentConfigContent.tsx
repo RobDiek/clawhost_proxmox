@@ -78,7 +78,7 @@ const AgentConfigContent: FC<AgentFileExplorerContentProps> = ({
                                     placeholder={t(
                                         'dashboard.fileExplorerSearchFiles'
                                     )}
-                                    className='border-border bg-background text-foreground placeholder:text-muted-foreground w-full rounded-md border py-1.5 pl-7 pr-2 text-xs outline-none transition-colors focus:border-[#ef5350]/50'
+                                    className='border-border bg-background text-foreground placeholder:text-muted-foreground w-full rounded-md border py-1.5 pl-7 pr-2 text-xs outline-none transition-colors focus:border-[#0072C6]/50'
                                 />
                             </div>
                         </div>

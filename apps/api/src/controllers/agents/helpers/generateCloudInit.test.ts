@@ -5,7 +5,7 @@ describe('generateCloudInit', () => {
         const output = generateCloudInit(
             'myP@ss123',
             'test-claw',
-            'clawhost.cloud',
+            'clawnode.cloud',
             'tok_abc123'
         )
 
@@ -18,7 +18,7 @@ describe('generateCloudInit', () => {
         })
 
         it('includes the full domain', () => {
-            expect(output).toContain('test-claw.clawhost.cloud')
+            expect(output).toContain('test-claw.clawnode.cloud')
         })
 
         it('includes the gateway token in config', () => {
@@ -75,7 +75,7 @@ describe('generateCloudInit', () => {
         const output = generateCloudInit(
             'myP@ss123',
             'test-hermes',
-            'clawhost.cloud',
+            'clawnode.cloud',
             'tok_hermes456',
             'hermes'
         )
@@ -103,7 +103,7 @@ describe('generateCloudInit', () => {
             expect(output).toContain('hermes --version')
         })
 
-        it('does not write a clawhost-managed hermes config file', () => {
+        it('does not write a clawnode-managed hermes config file', () => {
             expect(output).not.toContain('hermes.json')
         })
 

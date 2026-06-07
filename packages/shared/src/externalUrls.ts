@@ -1,8 +1,8 @@
-const DOMAIN = 'clawhost.cloud'
+const DOMAIN = 'clawnode.cloud'
 const LINKS = `https://l.${DOMAIN}`
 
 const EXTERNAL_URLS = {
-    CLAWHOST: {
+    CLAWNODE: {
         DOMAIN,
         BASE: `https://${DOMAIN}`,
         WWW: `https://www.${DOMAIN}`,

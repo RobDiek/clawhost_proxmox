@@ -11,7 +11,7 @@ const start = (): void => {
     updateElectronApp({
         updateSource: {
             type: UpdateSourceType.StaticStorage,
-            baseUrl: 'https://cdn.clawhost.cloud/go/${platform}/${arch}'
+            baseUrl: 'https://cdn.clawnode.cloud/go/${platform}/${arch}'
         },
         updateInterval: '1 hour',
         notifyUser: false

@@ -169,6 +169,9 @@ const LandingFooter: FC = (): ReactNode => {
                             </span>
                             . {t('footer.copyrightRights')}
                         </p>
+                        <p className='text-muted-foreground mt-2 text-xs'>
+                            ClawNode by <a href="https://diekerit.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground underline transition-colors">DiekerIT</a>
+                        </p>
                     </div>
 
                     <nav aria-label={t('footer.product')}>

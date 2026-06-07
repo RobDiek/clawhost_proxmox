@@ -3,7 +3,7 @@ import type { GitHubStarsData } from '@/ts/Interfaces'
 import { useQuery } from '@tanstack/react-query'
 import GITHUB_STARS_QUERY_KEY from '@/hooks/useGitHubStars/GITHUB_STARS_QUERY_KEY'
 
-const GITHUB_REPO = 'bfzli/clawhost'
+const GITHUB_REPO = 'bfzli/clawnode'
 
 const formatStars = (count: number): string => {
     if (count >= 1000)

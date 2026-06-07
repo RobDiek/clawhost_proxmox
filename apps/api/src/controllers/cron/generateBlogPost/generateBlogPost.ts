@@ -37,7 +37,7 @@ const generateBlogPost = async (c: Context) => {
         `slug: ${slug}`,
         'description:',
         `    "${topic.angle.replace(/"/g, '\\"')}"`,
-        'author: ClawHost',
+        'author: ClawNode',
         `publishedAt: '${todayDate()}'`,
         'tags:',
         '    - openclaw',

@@ -32,10 +32,10 @@ const DemoTerminal: FC = (): ReactNode => {
             theme: {
                 background: termBg,
                 foreground: fg,
-                cursor: '#ef5350',
-                selectionBackground: '#ef535040',
+                cursor: '#0072C6',
+                selectionBackground: '#0072C640',
                 black: termBg,
-                red: '#ef5350',
+                red: '#0072C6',
                 green: '#4ade80',
                 yellow: '#facc15',
                 blue: '#60a5fa',

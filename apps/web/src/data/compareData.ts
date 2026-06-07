@@ -5,8 +5,8 @@ import { COMPARE_FEATURE_STATUS } from '@/lib/constants'
 const getCompareData = (): CompareData => ({
     competitors: [
         {
-            id: 'clawhost',
-            nameKey: 'compare.competitorClawHost',
+            id: 'clawnode',
+            nameKey: 'compare.competitorClawNode',
             highlighted: true
         },
         {
@@ -38,7 +38,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureServerOwnership',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.dedicatedVps'
                         },
@@ -63,7 +63,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureProviderChoice',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.threeProviders'
                         },
@@ -88,7 +88,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureDedicatedResources',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.fullyDedicated'
                         },
@@ -113,7 +113,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureRootAccess',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.fullRootSsh'
                         },
@@ -129,7 +129,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureServerLocations',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.thirtyPlusLocations'
                         },
@@ -151,7 +151,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureLocationSelection',
                     values: {
-                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        clawnode: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
                         simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
                         myagentai: { status: COMPARE_FEATURE_STATUS.NO },
@@ -161,7 +161,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureSubdomainAccess',
                     values: {
-                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        clawnode: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
                         simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
                         myagentai: { status: COMPARE_FEATURE_STATUS.NO },
@@ -177,7 +177,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureStartingPrice',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.fromTwentyFiveMonth'
                         },
@@ -202,7 +202,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureTransparentPricing',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.clearSpecsPricing'
                         },
@@ -227,7 +227,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featurePowerfulServers',
                     values: {
-                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        clawnode: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
                         simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
                         myagentai: { status: COMPARE_FEATURE_STATUS.NO },
@@ -243,7 +243,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureSetupTime',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.minutes'
                         },
@@ -268,7 +268,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureOneClickDeploy',
                     values: {
-                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        clawnode: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
                         simpleagent: { status: COMPARE_FEATURE_STATUS.YES },
                         myagentai: { status: COMPARE_FEATURE_STATUS.YES },
@@ -284,7 +284,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureMultipleInstances',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.unlimited'
                         },
@@ -309,7 +309,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureOneClickVersion',
                     values: {
-                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        clawnode: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
                         simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
                         myagentai: { status: COMPARE_FEATURE_STATUS.NO },
@@ -319,7 +319,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureWebTerminal',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.builtInTerminal'
                         },
@@ -338,7 +338,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureDataOwnership',
                     values: {
-                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        clawnode: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
                         simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
                         myagentai: { status: COMPARE_FEATURE_STATUS.PARTIAL },
@@ -348,7 +348,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureDataExport',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.zipExport'
                         },
@@ -364,7 +364,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureBackups',
                     values: {
-                        clawhost: { status: COMPARE_FEATURE_STATUS.NO },
+                        clawnode: { status: COMPARE_FEATURE_STATUS.NO },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
                         simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
                         myagentai: {
@@ -377,7 +377,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureSecurityHardening',
                     values: {
-                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        clawnode: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.managed'
@@ -393,7 +393,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureSslTls',
                     values: {
-                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        clawnode: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
                         simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
                         myagentai: { status: COMPARE_FEATURE_STATUS.YES },
@@ -403,7 +403,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureOpenSource',
                     values: {
-                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        clawnode: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
                         simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
                         myagentai: { status: COMPARE_FEATURE_STATUS.NO },
@@ -419,7 +419,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureAutoUpdates',
                     values: {
-                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        clawnode: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
                         simpleagent: {
                             status: COMPARE_FEATURE_STATUS.NO,
@@ -435,7 +435,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureDiagnostics',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.liveMonitoring'
                         },
@@ -448,7 +448,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureLogStreaming',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.liveLogs'
                         },
@@ -461,7 +461,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureRepairTools',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.oneClickRepair'
                         },
@@ -480,7 +480,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureSupportChannels',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.emailGithub'
                         },
@@ -505,7 +505,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureMultiLanguage',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.fourLanguages'
                         },
@@ -530,7 +530,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureThemes',
                     values: {
-                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        clawnode: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
                         simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
                         myagentai: { status: COMPARE_FEATURE_STATUS.NO },
@@ -540,7 +540,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureDesktopApp',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.comingSoon'
                         },
@@ -556,7 +556,7 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureSocials',
                     values: {
-                        clawhost: {
+                        clawnode: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.comingSoon'
                         },

@@ -14,7 +14,7 @@ jobs:
               run: |
                   curl -s -X GET \
                     -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-                    https://api.clawhost.cloud/cron/send-feature-emails
+                    https://api.clawnode.cloud/cron/send-feature-emails
 
     generate-blog-post:
         if: github.event.schedule == '0 * * * *'
@@ -24,7 +24,7 @@ jobs:
               run: |
                   curl -s -X GET \
                     -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-                    https://api.clawhost.cloud/cron/generate-blog-post
+                    https://api.clawnode.cloud/cron/generate-blog-post
 
     cleanup-expired-otps:
         if: github.event.schedule == '0 * * * *'
@@ -34,7 +34,7 @@ jobs:
               run: |
                   curl -s -X GET \
                     -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-                    https://api.clawhost.cloud/cron/cleanup-expired-otps
+                    https://api.clawnode.cloud/cron/cleanup-expired-otps
 
     cleanup-stale-rate-limits:
         if: github.event.schedule == '0 * * * *'
@@ -44,4 +44,4 @@ jobs:
               run: |
                   curl -s -X GET \
                     -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-                    https://api.clawhost.cloud/cron/cleanup-stale-rate-limits
+                    https://api.clawnode.cloud/cron/cleanup-stale-rate-limits

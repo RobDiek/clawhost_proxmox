@@ -7,7 +7,7 @@ import PATHS from '@/lib/paths'
 
 const DIST = path.resolve(import.meta.dirname, '../dist')
 const CONTENT = path.resolve(import.meta.dirname, '../content/posts')
-const SITE_URL = 'https://clawhost.cloud'
+const SITE_URL = 'https://clawnode.cloud'
 
 const template = fs.readFileSync(path.join(DIST, 'index.html'), 'utf-8')
 
@@ -28,7 +28,7 @@ function escapeHtml(str: string): string {
 }
 
 function injectMeta(html: string, meta: PrerenderMeta): string {
-    const fullTitle = `${meta.title} - ClawHost`
+    const fullTitle = `${meta.title} - ClawNode`
 
     html = html.replace(
         /<title>.*?<\/title>/,
@@ -123,7 +123,7 @@ const staticPages: { path: string; meta: PrerenderMeta }[] = [
             jsonLd: {
                 '@context': 'https://schema.org',
                 '@type': 'WebSite',
-                name: 'ClawHost',
+                name: 'ClawNode',
                 url: SITE_URL
             }
         }
@@ -133,7 +133,7 @@ const staticPages: { path: string; meta: PrerenderMeta }[] = [
         meta: {
             title: 'Changelog',
             description:
-                'Track updates, new features, and improvements to ClawHost.',
+                'Track updates, new features, and improvements to ClawNode.',
             url: `${SITE_URL}/${PATHS.CHANGELOG}`,
             type: 'website',
             image: `${SITE_URL}/og-image.webp`
@@ -144,7 +144,7 @@ const staticPages: { path: string; meta: PrerenderMeta }[] = [
         meta: {
             title: 'Full Comparison',
             description:
-                'See how ClawHost compares to other OpenClaw hosting platforms.',
+                'See how ClawNode compares to other OpenClaw hosting platforms.',
             url: `${SITE_URL}/${PATHS.COMPARE}`,
             type: 'website',
             image: `${SITE_URL}/og-image.webp`
@@ -153,7 +153,7 @@ const staticPages: { path: string; meta: PrerenderMeta }[] = [
     {
         path: PATHS.GO,
         meta: {
-            title: 'ClawHost Go',
+            title: 'ClawNode Go',
             description:
                 'A lightweight desktop client to manage your OpenClaw instances. Deploy, monitor, and control your claws — right from your machine.',
             url: `${SITE_URL}/${PATHS.GO}`,
@@ -166,7 +166,7 @@ const staticPages: { path: string; meta: PrerenderMeta }[] = [
         meta: {
             title: 'Terms of Service',
             description:
-                'Read the terms and conditions for using ClawHost services.',
+                'Read the terms and conditions for using ClawNode services.',
             url: `${SITE_URL}/${PATHS.TERMS}`,
             type: 'website',
             image: `${SITE_URL}/og-image.webp`
@@ -177,7 +177,7 @@ const staticPages: { path: string; meta: PrerenderMeta }[] = [
         meta: {
             title: 'Privacy Policy',
             description:
-                'Learn how ClawHost collects, uses, and protects your personal data.',
+                'Learn how ClawNode collects, uses, and protects your personal data.',
             url: `${SITE_URL}/${PATHS.PRIVACY}`,
             type: 'website',
             image: `${SITE_URL}/og-image.webp`
@@ -217,7 +217,7 @@ for (const post of posts) {
             url: `${SITE_URL}/${post.slug}`,
             publisher: {
                 '@type': 'Organization',
-                name: 'ClawHost',
+                name: 'ClawNode',
                 logo: { '@type': 'ImageObject', url: `${SITE_URL}/favicon.ico` }
             },
             mainEntityOfPage: {

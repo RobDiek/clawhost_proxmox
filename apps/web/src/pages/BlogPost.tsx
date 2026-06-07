@@ -61,7 +61,7 @@ const BlogPost: FC = (): ReactNode => {
                         {
                             '@type': 'ListItem',
                             position: 1,
-                            name: 'ClawHost',
+                            name: 'ClawNode',
                             item: SITE_URL
                         },
                         {
@@ -86,10 +86,10 @@ const BlogPost: FC = (): ReactNode => {
                     url: postUrl,
                     publisher: {
                         '@type': 'Organization',
-                        name: 'ClawHost',
+                        name: 'ClawNode',
                         logo: {
                             '@type': 'ImageObject',
-                            url: `${externalUrls.CLAWHOST.CDN_GENERALS}/clawhost-logo-light.png`
+                            url: `${externalUrls.CLAWNODE.CDN_GENERALS}/clawnode-logo-light.png`
                         }
                     },
                     mainEntityOfPage: {

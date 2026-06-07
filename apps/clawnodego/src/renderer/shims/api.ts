@@ -160,7 +160,7 @@ const api = {
 
     purchaseLicense: () =>
         Promise.reject(
-            new Error('Purchase from clawhost.cloud/account#license')
+            new Error('Purchase from clawnode.cloud/account#license')
         ),
 
     getSSHKeys: () => Promise.resolve([] as SSHKey[]),

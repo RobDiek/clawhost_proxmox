@@ -44,7 +44,7 @@ const ComparisonTable: FC<ComparisonTableProps> = ({
                                 <th className='px-6 py-4'>
                                     <div className='flex items-center justify-center gap-2'>
                                         <img
-                                            src={`${externalUrls.CLAWHOST.CDN_GENERALS}/clawhost-logo-light.png`}
+                                            src={`${externalUrls.CLAWNODE.CDN_GENERALS}/clawnode-logo-light.png`}
                                             alt={t('common.brandName')}
                                             className='h-6'
                                             loading='lazy'

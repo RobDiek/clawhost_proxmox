@@ -86,7 +86,7 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                                         }
                                         className={`shrink-0 border-l-2 px-1.5 py-0.5 transition-colors ${
                                             isSelected
-                                                ? 'border-[#ef5350]'
+                                                ? 'border-[#0072C6]'
                                                 : 'hover:bg-foreground/5 border-transparent'
                                         }`}
                                     >

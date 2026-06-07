@@ -58,7 +58,7 @@ const OtpCodeEmail: FC<OtpCodeEmailProps> = ({ code }): ReactNode => {
                         <Img
                             src={CDN_ASSETS.LOGO_DARK}
                             width='140'
-                            alt='ClawHost'
+                            alt='ClawNode'
                             style={logo}
                         />
                     </Section>

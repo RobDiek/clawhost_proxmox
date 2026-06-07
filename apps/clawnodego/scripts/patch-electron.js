@@ -9,7 +9,7 @@ if (!f.existsSync(electronDir)) {
 
 const distDir = p.join(electronDir, 'dist')
 const oldApp = p.join(distDir, 'Electron.app')
-const newApp = p.join(distDir, 'ClawHostGo.app')
+const newApp = p.join(distDir, 'ClawNodeGo.app')
 const pathFile = p.join(electronDir, 'path.txt')
 const src = p.join(__dirname, '..', 'resources', 'icon.icns')
 
@@ -18,18 +18,18 @@ if (f.existsSync(oldApp)) {
 }
 
 const appDir = f.existsSync(newApp) ? newApp : oldApp
-f.writeFileSync(pathFile, 'ClawHostGo.app/Contents/MacOS/Electron')
+f.writeFileSync(pathFile, 'ClawNodeGo.app/Contents/MacOS/Electron')
 
 const plist = p.join(appDir, 'Contents', 'Info.plist')
 if (f.existsSync(plist)) {
     let c = f.readFileSync(plist, 'utf8')
     c = c.replace(
         /<key>CFBundleDisplayName<\/key>\s*<string>[^<]*<\/string>/,
-        '<key>CFBundleDisplayName</key>\n\t<string>ClawHostGo</string>'
+        '<key>CFBundleDisplayName</key>\n\t<string>ClawNodeGo</string>'
     )
     c = c.replace(
         /<key>CFBundleName<\/key>\s*<string>[^<]*<\/string>/,
-        '<key>CFBundleName</key>\n\t<string>ClawHostGo</string>'
+        '<key>CFBundleName</key>\n\t<string>ClawNodeGo</string>'
     )
     f.writeFileSync(plist, c)
 }

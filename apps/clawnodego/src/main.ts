@@ -15,7 +15,7 @@ import { registerAllHandlers } from '@/main/ipc'
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string
 declare const MAIN_WINDOW_VITE_NAME: string
 
-app.setName('ClawHostGo')
+app.setName('ClawNodeGo')
 const gotLock = app.requestSingleInstanceLock()
 
 if (!gotLock) {

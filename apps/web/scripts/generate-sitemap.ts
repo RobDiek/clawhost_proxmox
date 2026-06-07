@@ -7,7 +7,7 @@ import PATHS from '@/lib/paths'
 
 const DIST = path.resolve(import.meta.dirname, '../dist')
 const CONTENT = path.resolve(import.meta.dirname, '../content/posts')
-const SITE_URL = 'https://clawhost.cloud'
+const SITE_URL = 'https://clawnode.cloud'
 
 const staticRoutes: SitemapRoute[] = [
     { path: PATHS.HOME, priority: '1.0', changefreq: 'weekly' },

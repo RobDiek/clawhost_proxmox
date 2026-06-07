@@ -158,9 +158,9 @@ const Landing: FC = (): ReactNode => {
                 data={{
                     '@context': 'https://schema.org',
                     '@type': 'Organization',
-                    name: 'ClawHost',
+                    name: 'ClawNode',
                     url: `https://${getBaseDomain()}`,
-                    logo: `${externalUrls.CLAWHOST.CDN_GENERALS}/clawhost-logo-light.png`,
+                    logo: `${externalUrls.CLAWNODE.CDN_GENERALS}/clawnode-logo-light.png`,
                     sameAs: [
                         TWITTER_URL,
                         FACEBOOK_URL,
@@ -175,7 +175,7 @@ const Landing: FC = (): ReactNode => {
                 data={{
                     '@context': 'https://schema.org',
                     '@type': 'WebSite',
-                    name: 'ClawHost',
+                    name: 'ClawNode',
                     url: `https://${getBaseDomain()}`
                 }}
             />
@@ -261,7 +261,7 @@ const Landing: FC = (): ReactNode => {
 
                 <FeaturesGrid
                     badge={t('landing.features')}
-                    heading={t('landing.whyClawHost')}
+                    heading={t('landing.whyClawNode')}
                     description={t('landing.featuresDescription')}
                     features={[
                         {

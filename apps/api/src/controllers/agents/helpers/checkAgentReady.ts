@@ -2,7 +2,7 @@ import executeSSH from '@/services/ssh'
 import getAgentConfig from '@/controllers/agents/helpers/getAgentConfig'
 import checkSubdomainReady from '@/controllers/agents/helpers/checkSubdomainReady'
 
-const READY_MARKER = 'CLAWHOST_AGENT_READY'
+const READY_MARKER = 'CLAWNODE_AGENT_READY'
 
 const checkAgentReady = async (
     agentType: string | null | undefined,

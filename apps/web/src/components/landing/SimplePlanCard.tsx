@@ -21,10 +21,10 @@ const SimplePlanCard: FC<SimplePlanCardProps> = ({
 
     return (
         <div
-            className={`border-border relative flex flex-col rounded-xl border p-6 ${popular ? 'border-[#ef5350]/50 bg-[#ef5350]/5' : 'bg-foreground/[0.02]'}`}
+            className={`border-border relative flex flex-col rounded-xl border p-6 ${popular ? 'border-[#0072C6]/50 bg-[#0072C6]/5' : 'bg-foreground/[0.02]'}`}
         >
             {popular && (
-                <Badge className='absolute -top-2.5 left-1/2 -translate-x-1/2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-xs text-white'>
+                <Badge className='absolute -top-2.5 left-1/2 -translate-x-1/2 border-0 bg-gradient-to-r from-[#0072C6] to-[#29F49A] text-xs text-white'>
                     {t('landing.mostPopular')}
                 </Badge>
             )}
@@ -74,7 +74,7 @@ const SimplePlanCard: FC<SimplePlanCardProps> = ({
                 ))}
             </div>
             <Button
-                className={`mt-auto w-full gap-2 ${popular ? 'border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-white hover:opacity-90' : 'bg-foreground/10 text-foreground hover:bg-foreground/20 border-0'}`}
+                className={`mt-auto w-full gap-2 ${popular ? 'border-0 bg-gradient-to-r from-[#0072C6] to-[#29F49A] text-white hover:opacity-90' : 'bg-foreground/10 text-foreground hover:bg-foreground/20 border-0'}`}
                 asChild
             >
                 <Link
