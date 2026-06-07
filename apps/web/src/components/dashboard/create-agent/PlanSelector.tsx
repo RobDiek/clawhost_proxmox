@@ -1,10 +1,9 @@
 import type { FC, ReactNode } from 'react'
 import type { PlanSelectorProps, Plan } from '@/ts/Interfaces'
 
-import { Fragment, useState } from 'react'
+import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
 import { billingInterval } from '@openclaw/shared'
-import { Button } from '@/components/ui'
 import {
     Label,
     Skeleton,
@@ -13,7 +12,6 @@ import {
     TooltipContent,
     TooltipProvider
 } from '@/components/ui'
-import { CaretDownIcon, CaretUpIcon } from '@phosphor-icons/react'
 
 const SIMPLE_PLAN_IDS = ['cx23', 'cpx21', 'ccx23', 'ccx33']
 
@@ -30,19 +28,14 @@ const PlanSelector: FC<PlanSelectorProps> = ({
     location,
     billingCycle,
     isLoading,
-    preselectedPlanId,
     isLocationAvailableForPlan,
     isPlanAvailable,
     onPlanChange,
     onLocationChange,
     getFirstAvailableLocation
 }): ReactNode => {
-    const preselectedIsAdvanced =
-        !!preselectedPlanId && !SIMPLE_PLAN_IDS.includes(preselectedPlanId)
-    const [showAllPlans, setShowAllPlans] = useState(preselectedIsAdvanced)
-
     const simplePlans = plans.filter((p) => SIMPLE_PLAN_IDS.includes(p.id))
-    const visiblePlans = showAllPlans ? plans : simplePlans
+    const visiblePlans = simplePlans
 
     const renderPlanCard = (
         plan: Plan,
@@ -51,7 +44,7 @@ const PlanSelector: FC<PlanSelectorProps> = ({
     ): ReactNode => {
         const nameKey = SIMPLE_PLAN_NAMES[plan.id]
         const displayName =
-            !showAllPlans && nameKey
+            nameKey
                 ? t(nameKey as 'landing.planStarter')
                 : plan.name.replace(/([A-Za-z])(\d)/, '$1 $2')
 
@@ -142,7 +135,7 @@ const PlanSelector: FC<PlanSelectorProps> = ({
                             const tierLabel = providerTiers?.[plan.id]
 
                             const separator =
-                                showAllPlans && tierLabel && index > 0 ? (
+                                tierLabel && index > 0 ? (
                                     <div
                                         key={`tier-${plan.id}`}
                                         className='pb-1 pt-4'
@@ -185,24 +178,6 @@ const PlanSelector: FC<PlanSelectorProps> = ({
                                 </Fragment>
                             )
                         })}
-                        <div className='flex justify-center pt-1'>
-                            <Button
-                                type='button'
-                                variant='ghost'
-                                size='sm'
-                                className='text-muted-foreground hover:text-foreground gap-1.5 text-xs'
-                                onClick={() => setShowAllPlans(!showAllPlans)}
-                            >
-                                {showAllPlans
-                                    ? t('landing.simplePricing')
-                                    : t('landing.showAllPlans')}
-                                {showAllPlans ? (
-                                    <CaretUpIcon size={12} />
-                                ) : (
-                                    <CaretDownIcon size={12} />
-                                )}
-                            </Button>
-                        </div>
                     </div>
                 </TooltipProvider>
             )}
