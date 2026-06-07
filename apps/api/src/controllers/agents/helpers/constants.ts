@@ -1,5 +1,5 @@
 import { externalUrls } from '@openclaw/shared'
 
-const DOMAIN = externalUrls.CLAWHOST.DOMAIN
+const DOMAIN = process.env.AGENT_DOMAIN || externalUrls.CLAWHOST.DOMAIN
 
 export default DOMAIN

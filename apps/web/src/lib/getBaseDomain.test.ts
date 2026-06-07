@@ -1,4 +1,4 @@
-import { getBaseDomain } from '@/lib'
+import getBaseDomain from './getBaseDomain'
 
 describe('getBaseDomain', () => {
     afterEach(() => {
@@ -24,6 +24,22 @@ describe('getBaseDomain', () => {
             writable: true
         })
         expect(getBaseDomain()).toBe('clawhost.cloud')
+    })
+
+    it('returns agents.clawnode.de for clawnode.de', () => {
+        Object.defineProperty(window, 'location', {
+            value: { hostname: 'clawnode.de' },
+            writable: true
+        })
+        expect(getBaseDomain()).toBe('agents.clawnode.de')
+    })
+
+    it('returns agents.clawnode.de for app.clawnode.de', () => {
+        Object.defineProperty(window, 'location', {
+            value: { hostname: 'app.clawnode.de' },
+            writable: true
+        })
+        expect(getBaseDomain()).toBe('agents.clawnode.de')
     })
 
     it('returns actual hostname for production', () => {

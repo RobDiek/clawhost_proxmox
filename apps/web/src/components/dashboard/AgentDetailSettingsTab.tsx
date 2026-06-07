@@ -16,7 +16,7 @@ import {
 } from '@/components/dashboard'
 import { useProfile, useAgentCardActions } from '@/hooks'
 import { useAuth } from '@/lib/auth'
-import { getLocale } from '@/lib'
+import { getLocale, getBaseDomain } from '@/lib'
 
 const AgentDetailSettingsTab: FC<AgentDetailSettingsTabProps> = ({
     agent,
@@ -125,7 +125,7 @@ const AgentDetailSettingsTab: FC<AgentDetailSettingsTabProps> = ({
                                 }`}
                             />
                             <span className='border-border bg-foreground/5 text-muted-foreground flex items-center rounded-r-md border px-3 py-2 text-sm'>
-                                .clawhost.cloud
+                                .{getBaseDomain()}
                             </span>
                         </div>
                         {settingsSubdomainError ? (
