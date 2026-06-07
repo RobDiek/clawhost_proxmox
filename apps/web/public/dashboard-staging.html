@@ -1109,6 +1109,13 @@ input{font-family:inherit}
                row stays hidden to avoid noise. -->
           <div id="aqK19Filters" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding:8px 10px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;font-size:0.74rem">
             <div style="display:flex;align-items:center;gap:4px">
+              <span style="color:#6B7280">גל ביצוע:</span>
+              <button class="aq-k19-chip aq-k19-wave active" data-wave="all" onclick="setAqK19Wave('all')">הכל</button>
+              <button class="aq-k19-chip aq-k19-wave" data-wave="0" onclick="setAqK19Wave('0')" style="background:#EDE9FE;color:#5B21B6;border-color:#C4B5FD" title="תשתית טכנית — מדידה, סכמה, On-Page בסיס">גל 0 · תשתית</button>
+              <button class="aq-k19-chip aq-k19-wave" data-wave="1" onclick="setAqK19Wave('1')" style="background:#DBEAFE;color:#1E40AF;border-color:#93C5FD" title="תוכן ו-On-Page — טיוטות">גל 1 · תוכן</button>
+              <button class="aq-k19-chip aq-k19-wave" data-wave="2" onclick="setAqK19Wave('2')" style="background:#FCE7F3;color:#9D174D;border-color:#F9A8D4" title="פרסום ואסטרטגיה">גל 2 · פרסום/אסטרטגיה</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px">
               <span style="color:#6B7280">עדיפות:</span>
               <button class="aq-k19-chip aq-k19-pri active" data-pri="all" onclick="setAqK19Priority('all')">הכל</button>
               <button class="aq-k19-chip aq-k19-pri" data-pri="P0" onclick="setAqK19Priority('P0')" style="background:#FEE2E2;color:#991B1B;border-color:#FCA5A5">P0</button>
@@ -6727,6 +6734,10 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
       // and dependency badge. Falls back to nulls if absent (legacy rows pre-K19).
       taskId: meta.taskId,
       priority: meta.priority,
+      // Execution wave (0/1/2) — computed server-side from the capability
+      // classifier + dependency graph (systemic). Falls back gracefully if absent.
+      wave: (typeof o.wave === 'number') ? o.wave : null,
+      waveLabel: o.waveLabel || o.wave_label || null,
       channel: meta.channel,
       weekOfMonth: meta.weekOfMonth,
       dependsOn: Array.isArray(meta.dependsOn) ? meta.dependsOn : [],
@@ -6747,6 +6758,7 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
         if (sched > todayIso) return false;
       }
       if (aqK19Priority !== 'all' && t.priority !== aqK19Priority) return false;
+      if (aqK19Wave !== 'all' && String(t.wave) !== aqK19Wave) return false;
       if (aqK19Week !== 'all' && String(t.weekOfMonth) !== aqK19Week) return false;
       if (aqK19Channel !== 'all' && t.channel !== aqK19Channel) return false;
       return true;
@@ -6759,6 +6771,17 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
     var _aqDeferSet = { defer: 1, needs_integration: 1, manual: 1 };
     aqDeferredTasks = tasks.filter(function(t) { return _aqDeferSet[_aqVerdict(t)]; });
     tasks = tasks.filter(function(t) { return !_aqDeferSet[_aqVerdict(t)]; });
+    // Order the operational queue by execution WAVE (0→1→2), then priority within
+    // a wave — so the technical foundation surfaces before content before paid.
+    var _prioRank = { P0: 0, P1: 1, P2: 2 };
+    tasks.sort(function(a, b) {
+      var wa = (typeof a.wave === 'number') ? a.wave : 99;
+      var wb = (typeof b.wave === 'number') ? b.wave : 99;
+      if (wa !== wb) return wa - wb;
+      var pa = (_prioRank[a.priority] != null) ? _prioRank[a.priority] : 9;
+      var pb = (_prioRank[b.priority] != null) ? _prioRank[b.priority] : 9;
+      return pa - pb;
+    });
   }
 
   // K19 — pre-compute "dep not done" lookup so the deps badge renders without
@@ -6938,6 +6961,7 @@ var aqFilterStatus = 'pending_review'; // default — show pending review
 
 // K19 — secondary filter state for the operational task queue.
 var aqK19Priority = 'all';      // 'all' | 'P0' | 'P1' | 'P2'
+var aqK19Wave = 'all';          // 'all' | '0' | '1' | '2' (execution wave)
 var aqK19Week = 'all';          // 'all' | '1' | '2' | '3' | '4'
 var aqK19Channel = 'all';       // 'all' | 'google_ads' | 'meta' | etc.
 var aqK19ShowFuture = false;    // hide scheduledFor > today by default
@@ -6953,6 +6977,13 @@ function setAqK19Priority(pri) {
   aqK19Priority = pri;
   document.querySelectorAll('.aq-k19-pri').forEach(function(btn) {
     btn.classList.toggle('active', btn.getAttribute('data-pri') === pri);
+  });
+  renderApprovalQueue();
+}
+function setAqK19Wave(w) {
+  aqK19Wave = w;
+  document.querySelectorAll('.aq-k19-wave').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-wave') === w);
   });
   renderApprovalQueue();
 }

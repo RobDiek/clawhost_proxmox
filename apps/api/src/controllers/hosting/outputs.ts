@@ -131,7 +131,32 @@ export const getOutputs = async (c: Context<HonoEnv>) => {
             .orderBy(desc(agentOutputs.createdAt))
             .limit(limit)
 
-        return ok(c, results)
+        // Attach the execution WAVE to monthly_task rows — systemic, read-time,
+        // derived from the capability classifier + the plan's dependency graph
+        // (so every tenant gets waves with no per-tenant work). The cabinet groups
+        // by wave instead of P0/P1/P2; priority becomes the in-wave sub-sort.
+        let enriched: unknown[] = results
+        try {
+            if (__agent && results.some(r => r.outputType === 'monthly_task')) {
+                const { readResearchData } = await import('@/services/agentContext')
+                const rd = (await readResearchData(__agent as never, instanceId)) as any || {}
+                const planTasks: any[] = rd?.monthlyPlan?.tasks || []
+                if (planTasks.length) {
+                    const { assignWaves, WAVE_LABELS_HE } = await import('@/services/executorCapabilities')
+                    const waveMap = assignWaves(planTasks)
+                    enriched = results.map(r => {
+                        if (r.outputType !== 'monthly_task') return r
+                        const tid = (r.metadata as any)?.taskId
+                        const w = tid != null ? waveMap.get(tid) : undefined
+                        return w == null ? r : { ...r, wave: w, waveLabel: WAVE_LABELS_HE[w] }
+                    })
+                }
+            }
+        } catch (err) {
+            console.warn('[getOutputs] wave enrichment skipped:', (err as Error).message)
+        }
+
+        return ok(c, enriched)
     } catch (err) {
         console.error('getOutputs error:', err)
         return fail(c, 'Failed to fetch outputs', 500)

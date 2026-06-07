@@ -59,6 +59,66 @@ export const CAPABILITIES: ExecutorCapability[] = [
     { id: 'site.perf', label_he: 'ביצועים/CWV (הצעה)', autonomy: 'propose_only', requires: ['wordpress|github'], match: isSitePerfTask },
 ]
 
+// ─── Execution waves ──────────────────────────────────────────────────────
+// Systemic, read-time grouping of a plan's tasks into 3 sequential waves —
+// derived from the SAME capability classifier (not per-tenant), so EVERY plan
+// (existing + future) gets waves with no per-tenant work. New capability → add
+// one line here. Wave 0 (technical foundation) must land before content drafts,
+// which land before paid/strategy. Replaces P0/P1/P2 as the primary grouping;
+// priority becomes the sub-sort within a wave.
+export type Wave = 0 | 1 | 2
+
+const CAPABILITY_WAVE: Record<string, Wave> = {
+    // Wave 0 — technical foundation (measurement + on-site structured/SEO base)
+    'tracking.setup': 0,
+    'seo.schema': 0, 'seo.product_schema': 0, 'seo.meta': 0,
+    'seo.image_alt': 0, 'seo.internal_links': 0,
+    'aeo.llms_txt': 0, 'aeo.citation_monitor': 0,
+    // Wave 1 — content & on-page (drafts the user reviews/publishes)
+    'content.create': 1, 'cms.page_refresh': 1, 'cms.landing_page': 1,
+    'cms.site_widget': 1, 'aeo.answer_first': 1, 'seo.slug': 1,
+    // Wave 2 — paid & strategy (depend on a sound foundation + content)
+    'paid.google_ads': 2, 'ads.analysis': 2, 'site.perf': 2, 'manual': 2,
+}
+
+export const WAVE_LABELS_HE: Record<Wave, string> = {
+    0: 'גל 0 — תשתית טכנית',
+    1: 'גל 1 — תוכן ו-On-Page',
+    2: 'גל 2 — פרסום ואסטרטגיה',
+}
+
+/** Base wave from the task's capability (before dependency adjustment). */
+export function baseWaveForTask(task: MonthlyTask): Wave {
+    const { capabilityId } = classifyTask(task)
+    return CAPABILITY_WAVE[capabilityId] ?? 2
+}
+
+/**
+ * Assign a wave to every task, keeping it dependency-consistent: a task never
+ * sits in an earlier wave than any task it depends on (so a paid task that
+ * depends on a tracking task can't render in Wave 0). Iterates to a fixpoint.
+ * Returns Map<taskId, Wave>.
+ */
+export function assignWaves(tasks: MonthlyTask[]): Map<string, Wave> {
+    const wave = new Map<string, Wave>()
+    for (const t of tasks) wave.set(t.id, baseWaveForTask(t))
+    let changed = true
+    let guard = 0
+    while (changed && guard++ <= tasks.length + 2) {
+        changed = false
+        for (const t of tasks) {
+            const deps = Array.isArray((t as any).dependsOn) ? (t as any).dependsOn as string[] : []
+            let w = wave.get(t.id) ?? 2
+            for (const d of deps) {
+                const dw = wave.get(d)
+                if (dw != null && dw > w) w = dw
+            }
+            if (w !== wave.get(t.id)) { wave.set(t.id, w); changed = true }
+        }
+    }
+    return wave
+}
+
 export function classifyTask(task: MonthlyTask): { capabilityId: string; autonomy: Autonomy } {
     // External outreach can never be auto — force manual even if a loose on-site
     // matcher would otherwise grab it (e.g. link-recovery mis-matched to seo.slug).
