@@ -33,12 +33,13 @@ const ADS_API = 'https://googleads.googleapis.com/v22'
 const GOAL_NAME_PREFIX = 'Flowmatic isolated — '
 
 export interface IsolationDecision {
-    status: 'applied' | 'proposed' | 'noop' | 'skipped' | 'error'
+    status: 'applied' | 'proposed' | 'noop' | 'skipped' | 'error' | 'resynced'
     reason: string
     siblingNames: string[]
     isolatedActionCount?: number
     campaignsIsolated?: string[]
     customGoalResource?: string
+    resyncedGoals?: string[]   // goals whose action membership we corrected
     taskId?: string
 }
 
@@ -92,6 +93,7 @@ interface Analysis {
     accountMode: boolean
     siblingNames: string[]
     isolatedActionResources: string[]   // this + none, primary+inConv (never siblings)
+    scopedCampaignIds: string[]          // all of this tenant's scoped campaigns
     hasAmbiguous: boolean                // any 'none'-affinity primary+inConv action
     campaignsNeedingIsolation: string[]  // scoped campaigns still on CUSTOMER level
 }
@@ -110,7 +112,7 @@ async function analyze(agent: MatehAgentRow, at: string): Promise<Analysis> {
 
     const base: Analysis = {
         ok: false, reason: 'unknown', operatingCustomerId, loginCustomerId, devToken,
-        accountMode, siblingNames: [], isolatedActionResources: [], hasAmbiguous: false,
+        accountMode, siblingNames: [], isolatedActionResources: [], scopedCampaignIds: campaignIds, hasAmbiguous: false,
         campaignsNeedingIsolation: [],
     }
     if (!operatingCustomerId || !devToken) return { ...base, reason: 'incomplete_ads_config' }
@@ -192,6 +194,38 @@ async function applyIsolation(
     return { customGoalResource: goalResource, isolated: campaignIds }
 }
 
+/**
+ * Re-sync the conversion-action membership of the custom goal(s) the tenant's
+ * already-isolated campaigns currently point at, to the CURRENT desired set
+ * (primary + in-conversions, non-sibling). Without this, a purchase action
+ * promoted/added AFTER the initial isolation (e.g. the offline store-orders
+ * bridge becoming primary) never enters the goal, so smart bidding keeps
+ * optimizing on a stale/lossy action. Targets the goal the campaigns ACTUALLY
+ * use (read from conversion_goal_campaign_config) — robust to goal naming.
+ */
+async function resyncIsolatedGoals(at: string, an: Analysis): Promise<string[]> {
+    const { operatingCustomerId: cust, loginCustomerId: login, devToken } = an
+    if (an.isolatedActionResources.length === 0 || an.scopedCampaignIds.length === 0) return []
+    const rows = await adsSearch(at, devToken, cust, login,
+        `SELECT campaign.id, conversion_goal_campaign_config.goal_config_level, conversion_goal_campaign_config.custom_conversion_goal FROM conversion_goal_campaign_config WHERE campaign.id IN (${an.scopedCampaignIds.join(',')})`)
+    const goalResources = Array.from(new Set(rows
+        .filter(r => r.conversionGoalCampaignConfig?.goalConfigLevel === 'CAMPAIGN' && r.conversionGoalCampaignConfig?.customConversionGoal)
+        .map(r => String(r.conversionGoalCampaignConfig.customConversionGoal))))
+    const desired = [...an.isolatedActionResources].sort()
+    const updated: string[] = []
+    for (const goalRes of goalResources) {
+        const g = await adsSearch(at, devToken, cust, login,
+            `SELECT custom_conversion_goal.resource_name, custom_conversion_goal.conversion_actions FROM custom_conversion_goal WHERE custom_conversion_goal.resource_name = '${goalRes}'`)
+        const current: string[] = (g[0]?.customConversionGoal?.conversionActions || []).map(String)
+        if (JSON.stringify([...current].sort()) === JSON.stringify(desired)) continue   // already correct
+        await adsMutate(at, devToken, cust, login, 'customConversionGoals:mutate', {
+            operations: [{ update: { resourceName: goalRes, conversionActions: an.isolatedActionResources }, updateMask: 'conversionActions' }],
+        })
+        updated.push(goalRes)
+    }
+    return updated
+}
+
 async function createProposalTask(agent: MatehAgentRow, an: Analysis): Promise<string> {
     const taskId = nanoid(12)
     const names = an.siblingNames.map(n => `«${n}»`).join(', ')
@@ -236,8 +270,23 @@ export async function ensureCampaignGoalIsolation(agent: MatehAgentRow, opts: { 
     catch (err) { return { status: 'error', reason: (err as Error).message, siblingNames: [] } }
 
     if (!an.ok) return { status: 'skipped', reason: an.reason, siblingNames: an.siblingNames }
-    if (an.reason === 'no_contamination' || an.reason === 'already_isolated') {
+    if (an.reason === 'no_contamination') {
         return { status: 'noop', reason: an.reason, siblingNames: an.siblingNames }
+    }
+    if (an.reason === 'already_isolated') {
+        // Campaigns are isolated, but the goal's action membership can drift when a
+        // conversion action is promoted/added later. Re-sync it to the current
+        // primary set (the only safe mutation here — no campaign re-pointing).
+        try {
+            const resynced = await resyncIsolatedGoals(at, an)
+            if (resynced.length) {
+                await notify(agent, `✅ *מטרת ההמרה עודכנה* (${agent.name})\nהקמפיינים שלכם מותאמים כעת לפעולת הרכישה המדויקת והעדכנית בלבד.`)
+                return { status: 'resynced', reason: 'goal_membership_resynced', siblingNames: an.siblingNames, isolatedActionCount: an.isolatedActionResources.length, resyncedGoals: resynced }
+            }
+            return { status: 'noop', reason: 'already_isolated', siblingNames: an.siblingNames }
+        } catch (err) {
+            return { status: 'noop', reason: `resync_failed:${(err as Error).message}`, siblingNames: an.siblingNames }
+        }
     }
     if (an.isolatedActionResources.length === 0) {
         // Contaminated but we can't identify the tenant's own actions → ask a human.
