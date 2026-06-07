@@ -13009,11 +13009,13 @@ function openExternalLinksPopup() {
 
   // ── DFS-stage records (collapsed; complementary intelligence) ─────
   if (dfsRecords.length > 0) {
-    html += '<details style="border:1px solid #E5E7EB;border-radius:8px;margin-top:12px">'
+    var lss = (la.extras && la.extras.link_strategy_summary) || null;
+    html += '<details open style="border:1px solid #E5E7EB;border-radius:8px;margin-top:12px">'
       + '<summary style="cursor:pointer;padding:8px 12px;background:#F9FAFB;border-radius:8px 8px 0 0;font-size:0.82rem;font-weight:600;color:#374151">' + dfsRecords.length + ' המלצות שלב Link Audit (DFS-sourced)</summary>'
       + '<div style="padding:8px 12px 12px;font-size:0.74rem;color:#6B7280">'
       + 'המלצות אלה כבר נכנסו לתוכנית החודשית. לצפייה במשימות הקונקרטיות — לוח התוכן או משימות פעילות.'
       + '</div>'
+      + (lss ? renderLinkStrategySummary(lss) : '')
       + '<div style="padding:0 12px 12px">' + renderLinkAuditRecords(dfsRecords) + '</div>'
       + '</details>';
   }
@@ -20268,11 +20270,21 @@ function renderLinkAuditRecords(records) {
 
 function renderLinkAuditRow(r) {
   var priColor = r.priority === 'high' ? '#10B981' : r.priority === 'medium' ? '#F59E0B' : '#9CA3AF';
+  var ANCHOR_HE = { branded: 'מותגי', partial: 'חלקי', exact: 'מדויק', generic: 'כללי' };
+  // Enriched per-link plan fields (link_audit post-processor): target money
+  // page, planned anchor + type, ₪cost by DR tier, build sequence/month.
+  var planBits = '';
+  if (r.target_page) planBits += '<span style="background:#EFF6FF;color:#1E40AF;padding:1px 6px;border-radius:4px">🎯 ' + escapeHtml(r.target_page) + '</span>';
+  if (r.anchor_keyword) planBits += '<span style="background:#F0FDF4;color:#166534;padding:1px 6px;border-radius:4px;direction:ltr">⚓ ' + escapeHtml(r.anchor_keyword) + (r.anchor_type ? ' · ' + (ANCHOR_HE[r.anchor_type] || r.anchor_type) : '') + '</span>';
+  if (r.estimated_cost_ils != null) planBits += '<span style="background:#FEF9C3;color:#854D0E;padding:1px 6px;border-radius:4px">₪' + Number(r.estimated_cost_ils).toLocaleString() + (r.tier ? ' · ' + escapeHtml(String(r.tier).replace('DR_', 'DR ')) : '') + '</span>';
+  if (r.sequence_order != null) planBits += '<span style="background:#F3E8FF;color:#6B21A8;padding:1px 6px;border-radius:4px">#' + r.sequence_order + (r.month ? ' · חודש ' + r.month : '') + '</span>';
+  var drBadge = (r.prospect_dr != null) ? ' <span style="font-size:0.7rem;color:#6B7280">DR ' + r.prospect_dr + '</span>'
+    : (r.current_rank != null && r.current_rank > 0 ? ' <span style="font-size:0.7rem;color:#6B7280">rank ' + r.current_rank + '</span>' : '');
   return '<div style="border-top:1px solid #F3F4F6;padding:8px 0;font-size:0.8rem">'
     + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;flex-wrap:wrap">'
     +   '<div style="flex:1;min-width:0">'
     +     '<strong style="direction:ltr">' + escapeHtml(r.domain || '—') + '</strong>'
-    +     (r.current_rank != null ? ' <span style="font-size:0.7rem;color:#6B7280">rank ' + r.current_rank + '</span>' : '')
+    +     drBadge
     +     ' <span style="font-size:0.66rem;color:' + priColor + ';background:#F3F4F6;padding:1px 5px;border-radius:3px">' + escapeHtml(r.priority || '—') + '</span>'
     +     (r._metric ? '<div style="font-size:0.7rem;color:#6B7280;margin-top:2px">' + escapeHtml(r._metric) + ': <strong>' + escapeHtml(String(r._metric_value || '—')) + '</strong></div>' : '')
     +   '</div>'
@@ -20281,10 +20293,39 @@ function renderLinkAuditRow(r) {
     +     (r.timeline ? '<div style="font-size:0.66rem;color:#6B7280">' + escapeHtml(r.timeline) + '</div>' : '')
     +   '</div>'
     + '</div>'
+    + (planBits ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;font-size:0.66rem">' + planBits + '</div>' : '')
     + (r.outreach_angle ? '<div style="font-size:0.74rem;color:#374151;margin-top:4px;line-height:1.5">' + escapeHtml(r.outreach_angle) + '</div>' : '')
     + (r.owner ? '<div style="font-size:0.66rem;color:#6B7280;margin-top:2px">owner: ' + escapeHtml(r.owner) + '</div>' : '')
     + (r.evidence && r.evidence.length ? '<div style="margin-top:2px;font-size:0.62rem;color:#9CA3AF">evidence: ' + r.evidence.map(escapeHtml).join(', ') + '</div>' : '')
     + '</div>';
+}
+
+// Strategy summary panel — planned link count, monthly budget, anchor mix,
+// tier distribution, months-to-complete (from link_audit post-processor).
+function renderLinkStrategySummary(s) {
+  if (!s) return '';
+  var ap = s.anchor_distribution_pct || {};
+  var anchorStr = 'מותגי ' + (ap.branded || 0) + '% · חלקי ' + (ap.partial || 0) + '% · מדויק ' + (ap.exact || 0) + '% · כללי ' + (ap.generic || 0) + '%';
+  var tiers = s.tier_distribution || {};
+  var tierStr = Object.keys(tiers).map(function(k) { return String(k).replace('DR_', 'DR ') + ': ' + tiers[k]; }).join(' · ');
+  function tile(label, val) {
+    return '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:6px;padding:6px 10px;min-width:90px">'
+      + '<div style="font-size:0.62rem;color:#6B7280">' + label + '</div>'
+      + '<strong style="font-size:0.9rem;color:#1F2937">' + val + '</strong></div>';
+  }
+  var html = '<div style="padding:6px 12px 0">'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">'
+    +   tile('סה"כ קישורים מתוכננים', s.planned_links_total || 0)
+    +   tile('~קישורים/חודש', s.links_per_month || 0)
+    +   tile('עלות כוללת', '₪' + Number(s.total_cost_ils || 0).toLocaleString())
+    +   tile('חודשים להשלמה', s.months_to_complete || 0)
+    + '</div>'
+    + '<div style="font-size:0.7rem;color:#6B7280;line-height:1.6">'
+    +   '<div>פיזור עוגנים מתוכנן: <strong style="color:#166534">' + anchorStr + '</strong>' + (s.over_optimization_guard_applied ? ' <span style="color:#B45309">⚠ הגנת over-optimization פעילה</span>' : '') + '</div>'
+    +   (tierStr ? '<div>פיזור tier: <strong>' + escapeHtml(tierStr) + '</strong></div>' : '')
+    +   (s.warnings && s.warnings.length ? '<div style="color:#B45309">⚠ ' + s.warnings.map(escapeHtml).join(' · ') + '</div>' : '')
+    + '</div></div>';
+  return html;
 }
 
 // ── audience_personas ───────────────────────────────────────────────────────
