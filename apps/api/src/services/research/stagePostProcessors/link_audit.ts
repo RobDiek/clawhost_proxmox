@@ -62,9 +62,17 @@ interface SkrRecord {
     keyword?: string
     cluster?: string
     page_type?: string
-    intent?: string
+    // intent is an OBJECT { primary, primary_normalized, jtbd, ... } in current
+    // seo_keyword_research output — not a bare string. Accept both shapes.
+    intent?: string | { primary?: string; primary_normalized?: string }
     opportunity?: number | { total?: number }
     [k: string]: unknown
+}
+
+function skrIntent(r: SkrRecord): string {
+    const i = r.intent
+    if (i && typeof i === 'object') return String(i.primary_normalized || i.primary || '')
+    return String(i || '')
 }
 
 // ── Output shape ────────────────────────────────────────────────────────────
@@ -320,15 +328,22 @@ interface TargetPage { label: string; anchorKeyword: string; cluster: string; op
 function extractPriorityTargetPages(rd: Record<string, unknown> | undefined): TargetPage[] {
     const skr = ((rd?.results as Record<string, unknown> | undefined)?.seo_keyword_research as Record<string, unknown> | undefined)
     const records = (skr?.records as SkrRecord[] | undefined) || []
-    const commercialTypes = new Set(['pillar', 'commercial', 'product', 'service', 'category', 'landing', 'homepage'])
-    const commercialIntents = new Set(['transactional', 'commercial_eval'])
+    // Money/linkable page types in the current seo_keyword_research taxonomy:
+    // pillar + comparison_spoke + pricing_explainer + local_page are the pages
+    // that earn from inbound link equity. (info_deep_spoke = informational,
+    // weak link target; excluded.) Plus generic e-com types for other tenants.
+    const commercialTypes = new Set([
+        'pillar', 'comparison_spoke', 'pricing_explainer', 'local_page',
+        'commercial', 'product', 'service', 'category', 'landing', 'homepage',
+    ])
+    const commercialIntents = new Set(['transactional', 'commercial_eval', 'local'])
 
     const scored = records
         .map(r => ({
             cluster: String(r.cluster || '').trim(),
             page_type: String(r.page_type || 'other').trim(),
             keyword: String(r.keyword || '').trim(),
-            intent: String(r.intent || '').trim(),
+            intent: skrIntent(r).trim(),
             opportunity: typeof r.opportunity === 'number'
                 ? r.opportunity
                 : (typeof r.opportunity === 'object' && r.opportunity ? Number((r.opportunity as { total?: number }).total) || 0 : 0),
