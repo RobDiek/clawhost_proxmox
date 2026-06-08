@@ -330,6 +330,13 @@ export async function executeTask(
         if (plan2 && plan2.tasks[taskIdx]) {
             plan2.tasks[taskIdx].status = finalStatus
             plan2.tasks[taskIdx].completedAt = completedAt
+            // Always refresh errorCategory to reflect THIS run's outcome. Was
+            // previously written ONLY inside the !result.ok branch → a re-run
+            // that now succeeds / awaits-manual left the stale failure category
+            // in place, so fixed tasks kept showing as systemic_bug/failed in
+            // the UI (e.g. the 3 negatives tasks). Clear failureReason on success.
+            ;(plan2.tasks[taskIdx] as any).errorCategory = result.errorCategory
+            if (result.ok) (plan2.tasks[taskIdx] as any).failureReason = undefined
             if (!result.ok) {
                 plan2.tasks[taskIdx].failureReason = result.error
                 // K20+K31: only increment retry counters when retry is appropriate.
