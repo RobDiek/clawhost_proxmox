@@ -2,7 +2,6 @@ import type { ForgeConfig } from '@electron-forge/shared-types'
 
 import path from 'path'
 import fs from 'fs'
-import { MakerDMG } from '@electron-forge/maker-dmg'
 import { MakerDeb } from '@electron-forge/maker-deb'
 import { MakerSquirrel } from '@electron-forge/maker-squirrel'
 import { VitePlugin } from '@electron-forge/plugin-vite'
@@ -34,8 +33,6 @@ const ICON_PATH = './resources/icon'
 const EXTRA_RESOURCES = ['./resources/node']
 const NODE_PTY_PACKAGE = 'node-pty'
 const NODE_PTY_ASAR_UNPACK = '**/node_modules/node-pty/**'
-const DMG_FORMAT = 'ULFO'
-const DARWIN_PLATFORMS: ['darwin'] = ['darwin']
 const MAIN_ENTRY = 'src/main.ts'
 const PRELOAD_ENTRY = 'src/preload.ts'
 const MAIN_VITE_CONFIG = 'vite.main.config.ts'
@@ -90,7 +87,6 @@ const config: ForgeConfig = {
             : {})
     },
     makers: [
-        new MakerDMG({ format: DMG_FORMAT }, DARWIN_PLATFORMS),
         new MakerSquirrel({ name: APP_NAME }),
         new MakerDeb({})
     ],
