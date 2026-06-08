@@ -312,13 +312,20 @@ function resolveDr(domain: string, drMap: Map<string, number>): { dr: number | n
     return { dr: null, source: 'unknown' }
 }
 
+const TIER_ORDER: LinkTier[] = ['DR_low', 'DR_mid', 'DR_high', 'DR_premium']
 function resolveTier(domain: string, dr: number | null): LinkTier {
-    // Floor guard: canonical IL tier-1 editorial domains are premium-cost
-    // publications regardless of any DFS-rank quirk; directories are low.
-    if (IL_TIER1_DOMAINS.has(domain)) return dr !== null && dr >= 70 ? 'DR_premium' : 'DR_high'
+    if (dr !== null) {
+        // Real DR available → trust it. Only floor UP for tier-1 editorial
+        // domains: their EDITORIAL placement costs more than a raw DFS rank
+        // implies (a sponsored piece on TheMarker ≠ a DR-49 guest post).
+        let tier = drToTier(dr)
+        if (IL_TIER1_DOMAINS.has(domain) && TIER_ORDER.indexOf(tier) < TIER_ORDER.indexOf('DR_high')) tier = 'DR_high'
+        return tier
+    }
+    // DR unknown → domain-class fallback (best-effort).
+    if (IL_TIER1_DOMAINS.has(domain)) return 'DR_high'
     if (IL_DIRECTORY_DOMAINS.has(domain)) return 'DR_low'
-    if (dr === null) return 'DR_mid'   // unknown → conservative midpoint
-    return drToTier(dr)
+    return 'DR_mid'   // conservative midpoint
 }
 
 function resolveRelevance(domain: string, r: RawLinkRecord, drMap: Map<string, number>): 'high' | 'medium' | 'low' {
