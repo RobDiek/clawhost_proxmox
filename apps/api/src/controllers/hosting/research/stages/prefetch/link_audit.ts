@@ -43,6 +43,14 @@ export interface OurDeepLinks {
     lostLinks?: ReferringDomainItem[]
     /** Domains linking to competitors but NOT us — outreach prospects. */
     linkGap?: BacklinksCompetitorItem[]
+    /**
+     * REAL link-gap prospect DOMAINS — derived by subtracting our referring
+     * domains from the union of competitors' referring domains. Each carries
+     * the actual domain name (so the LLM can name it + bulk_ranks can look up
+     * DR), how many competitors link to it (intersect), and its DFS rank.
+     * This is what makes link_gap_outreach records real instead of anonymized.
+     */
+    linkGapProspects?: Array<{ domain: string; rank: number; competitorsLinking: number }>
     enrichmentMissing: string[]
 }
 
@@ -176,7 +184,33 @@ export async function prefetchLinkAudit(
             return c
         }))
 
-        console.log(`[prefetch/link_audit] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} hit-rate competitors=${competitorResults.length}`)
+        // ─── Derive REAL link-gap prospect domains ──────────────────────
+        // Union of competitors' referring domains MINUS our referring domains.
+        // These are the actual sites to outreach (named domains the LLM can
+        // emit + bulk_ranks can rank), ranked by how many competitors link to
+        // them (the strongest gap signal) then by DFS rank.
+        const norm = (d?: string) => (d || '').trim().toLowerCase().replace(/^www\./, '')
+        const ourRefSet = new Set((ours.referringDomains || []).map(d => norm(d.domain)))
+        ourRefSet.add(norm(ourDomain))
+        const gapAgg = new Map<string, { rank: number; competitorsLinking: number }>()
+        for (const c of competitorResults) {
+            const seenForThisComp = new Set<string>()
+            for (const rd2 of c.referringDomains || []) {
+                const d = norm(rd2.domain)
+                if (!d || ourRefSet.has(d) || seenForThisComp.has(d)) continue
+                seenForThisComp.add(d)
+                const prev = gapAgg.get(d)
+                const rank = typeof rd2.rank === 'number' ? rd2.rank : 0
+                if (prev) { prev.competitorsLinking++; if (rank > prev.rank) prev.rank = rank }
+                else gapAgg.set(d, { rank, competitorsLinking: 1 })
+            }
+        }
+        ours.linkGapProspects = Array.from(gapAgg.entries())
+            .map(([domain, v]) => ({ domain, rank: v.rank, competitorsLinking: v.competitorsLinking }))
+            .sort((a, b) => (b.competitorsLinking - a.competitorsLinking) || (b.rank - a.rank))
+            .slice(0, 30)
+
+        console.log(`[prefetch/link_audit] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} hit-rate competitors=${competitorResults.length} linkGapProspects=${ours.linkGapProspects.length}`)
 
         return {
             ourDomain,

@@ -54,6 +54,7 @@ interface LinkAuditDfsShape {
         referringDomains?: DfsRefDomain[]
         lostLinks?: DfsRefDomain[]
         linkGap?: DfsRefDomain[]
+        linkGapProspects?: DfsRefDomain[]
     }
     competitors?: Array<{ referringDomains?: DfsRefDomain[] }>
     /** Per-prospect ranks fetched via backlinks/bulk_ranks for the record
@@ -296,6 +297,7 @@ function buildDrMap(dfs: LinkAuditDfsShape | undefined): Map<string, number> {
     // bulk_ranks first — most direct per-prospect DR (its `target` is the
     // prospect domain). add() reads it via the shared target/domain accessor.
     add(dfs?.bulkRanks)
+    add(dfs?.ours?.linkGapProspects)
     add(dfs?.ours?.referringDomains)
     add(dfs?.ours?.lostLinks)
     add(dfs?.ours?.linkGap)

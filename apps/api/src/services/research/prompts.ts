@@ -2083,6 +2083,7 @@ interface LinkAuditDfsShape {
         referringDomains?: Array<{ domain?: string; rank?: number; backlinks?: number; first_seen?: string; lost_date?: string; is_lost?: boolean }>
         lostLinks?: Array<{ domain?: string; rank?: number; lost_date?: string; is_lost?: boolean }>
         linkGap?: Array<{ domain?: string; rank?: number; intersections?: number }>
+        linkGapProspects?: Array<{ domain: string; rank: number; competitorsLinking: number }>
         enrichmentMissing: string[]
     }
     competitors: Array<{
@@ -2128,6 +2129,14 @@ function buildLinkAuditPrompt(opts: PromptOpts): PromptResult {
         ? renderLinkGapTable(dfs.ours.linkGap.slice(0, 30))
         : '*(אין link-gap data)*'
 
+    // Real link-gap PROSPECT domains (competitors' referring domains minus ours)
+    // — these are named, rank-carrying domains the model MUST use verbatim for
+    // link_gap_outreach records (no anonymizing / no "rank-NN candidate" labels).
+    const linkGapProspectsTable = dfs.ours.linkGapProspects && dfs.ours.linkGapProspects.length
+        ? '| domain | DFS rank | # competitors linking |\n|---|---|---|\n' +
+          dfs.ours.linkGapProspects.slice(0, 25).map(p => `| ${p.domain} | ${p.rank} | ${p.competitorsLinking} |`).join('\n')
+        : '*(אין רשימת prospect domains — השתמשו ב-link-gap candidates ובמקורות tier-1 IL)*'
+
     // ─ Render competitor comparison table ─
     const competitorTable = dfs.competitors.length
         ? renderCompetitorLinkTable(dfs.competitors)
@@ -2160,6 +2169,11 @@ ${lostLinksTable}
 
 **Top 30 link-gap candidates (linking to competitors but not us):**
 ${linkGapTable}
+
+**Top 25 REAL link-gap PROSPECT DOMAINS (named — USE THESE for link_gap_outreach):**
+${linkGapProspectsTable}
+
+⚠️ עבור רשומות \`link_gap_outreach\`: השתמשו ב-domain **האמיתי** מהטבלה שלמעלה (\`domain\` חייב להיות שם דומיין אמיתי כמו \`example.co.il\`). **אסור** לכתוב תיאורים כלליים כמו "link-gap candidate rank 56" או "tier-1 IL editorial" בשדה ה-domain — זה הופך את הרשומה לבלתי-שמישה לפנייה ול-DR lookup.
 
 ### Top ${dfs.competitors.length} competitors — link profile comparison
 ${competitorTable}

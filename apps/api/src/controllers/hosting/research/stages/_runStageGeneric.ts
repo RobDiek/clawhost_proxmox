@@ -330,7 +330,9 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                         (parsed.records as Array<Record<string, unknown>>)
                             .map(r => String(r.domain || '').trim().toLowerCase()
                                 .replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, ''))
-                            .filter(Boolean),
+                            // Only real domain syntax — anonymized/descriptive
+                            // record domains ("rank-56 candidate") would 40501 the call.
+                            .filter(d => /^[a-z0-9][a-z0-9-]*(\.[a-z0-9-]+)+$/.test(d)),
                     ))
                     if (domains.length > 0) {
                         const { backlinksBulkRanks } = await import('@/services/research/dataforseo')
