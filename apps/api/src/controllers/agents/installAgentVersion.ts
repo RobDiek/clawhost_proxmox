@@ -1,18 +1,15 @@
-import type { AuthenticatedContext } from '@/ts/Types'
 import type {
     InstallVersionBody,
     NpmRegistryTimeResponse
 } from '@/ts/Interfaces'
 
-import { eq } from 'drizzle-orm'
 import { externalUrls } from '@openclaw/shared'
-import { db } from '@/db'
-import { agents } from '@/db/schema'
 import executeSSH from '@/services/ssh'
 import {
     invalidateVersionCache,
     getAgentConfig,
-    DOMAIN
+    DOMAIN,
+    withAgent
 } from '@/controllers/agents/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
@@ -73,33 +70,16 @@ const buildGitHubInstallCommands = (
     ].join(' && ')
 }
 
-const installAgentVersion = async (c: AuthenticatedContext) => {
+const installAgentVersion = withAgent({
+    requireSSH: 'api.failedToInstallVersion'
+})(async (c, agent) => {
     try {
-        const id = c.req.param('id')!
         const { version } = await c.req.json<InstallVersionBody>()
 
         if (!version || !VERSION_REGEX.test(version))
             return fail(c, t('api.invalidVersion'), 400)
 
-        const [agentResult] = await Promise.all([
-            db.select().from(agents).where(eq(agents.id, id)).limit(1)
-        ])
-
-        const agent = agentResult
-
-        if (!agent[0]) return fail(c, t('api.agentNotFound'), 404)
-
-        if (!agent[0].ip || !agent[0].rootPassword) {
-            console.error(
-                'installAgentVersion',
-                new Error(
-                    `agent ${id} missing ip or rootPassword (ip=${!!agent[0].ip}, rootPassword=${!!agent[0].rootPassword})`
-                )
-            )
-            return fail(c, t('api.failedToInstallVersion'), 400)
-        }
-
-        const agentConfig = getAgentConfig(agent[0].agentType)
+        const agentConfig = getAgentConfig(agent.agentType)
 
         let installCommands: string
 
@@ -133,7 +113,7 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
             console.error(
                 'installAgentVersion',
                 new Error(
-                    `agent ${id} type ${agent[0].agentType} has no githubRepo or npmPackage configured`
+                    `agent ${agent.id} type ${agent.agentType} has no githubRepo or npmPackage configured`
                 )
             )
             return fail(c, t('api.failedToInstallVersion'), 400)
@@ -142,8 +122,8 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
         let output: string
         try {
             output = await executeSSH(
-                agent[0].ip,
-                agent[0].rootPassword,
+                agent.ip!,
+                agent.rootPassword!,
                 installCommands,
                 120000
             )
@@ -152,7 +132,7 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
             return fail(c, t('api.failedToInstallVersion'), 500)
         }
 
-        invalidateVersionCache(agent[0].ip)
+        invalidateVersionCache(agent.ip!)
 
         const success = output.includes('GATEWAY_OK')
 
@@ -161,7 +141,7 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
         console.error(
             'installAgentVersion',
             new Error(
-                `agent ${id} version ${version} install did not reach GATEWAY_OK. Output tail:\n${output.slice(-2000)}`
+                `agent ${agent.id} version ${version} install did not reach GATEWAY_OK. Output tail:\n${output.slice(-2000)}`
             )
         )
         return fail(c, t('api.failedToInstallVersion'), 500)
@@ -169,6 +149,6 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
         console.error('installAgentVersion', error)
         return fail(c, t('api.failedToInstallVersion'), 500)
     }
-}
+})
 
 export default installAgentVersion

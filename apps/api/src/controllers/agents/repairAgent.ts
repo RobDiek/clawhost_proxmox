@@ -1,30 +1,19 @@
-import type { AuthenticatedContext } from '@/ts/Types'
 
 import { eq } from 'drizzle-orm'
 import { agentStatus } from '@openclaw/shared'
 import { db } from '@/db'
 import { agents } from '@/db/schema'
 import executeSSH from '@/services/ssh'
-import { getAgentConfig } from '@/controllers/agents/helpers'
+import { getAgentConfig, withAgent } from '@/controllers/agents/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 import { gatewayDefaults } from '@/lib/constants'
 
-const repairAgent = async (c: AuthenticatedContext) => {
+const repairAgent = withAgent({
+    requireSSH: 'api.failedToRepairAgent'
+})(async (c, agent) => {
     try {
-        const id = c.req.param('id')!
-        const agent = await db
-            .select()
-            .from(agents)
-            .where(eq(agents.id, id))
-            .limit(1)
-
-        if (!agent[0]) return fail(c, t('api.agentNotFound'), 404)
-
-        if (!agent[0].ip || !agent[0].rootPassword)
-            return fail(c, t('api.failedToRepairAgent'), 400)
-
-        const agentConfig = getAgentConfig(agent[0].agentType)
+        const agentConfig = getAgentConfig(agent.agentType)
         const isHermes = !agentConfig.configFile
         const serviceFile = `/etc/systemd/system/${agentConfig.serviceName}.service`
         const successMarker = 'CLAWNODE_REPAIR_OK'
@@ -68,18 +57,18 @@ const repairAgent = async (c: AuthenticatedContext) => {
         ].join(' && ')
 
         const output = await executeSSH(
-            agent[0].ip,
-            agent[0].rootPassword,
+            agent.ip!,
+            agent.rootPassword!,
             repairCommands,
             30000
         )
         const success = output.includes(successMarker)
 
-        if (success && agent[0].status === agentStatus.configuring) {
+        if (success && agent.status === agentStatus.configuring) {
             await db
                 .update(agents)
                 .set({ status: agentStatus.running })
-                .where(eq(agents.id, id))
+                .where(eq(agents.id, agent.id))
         }
 
         if (success) return ok(c, null, t('api.repairSuccess'))
@@ -89,6 +78,6 @@ const repairAgent = async (c: AuthenticatedContext) => {
         console.error('repairAgent', error)
         return fail(c, t('api.failedToRepairAgent'), 500)
     }
-}
+})
 
 export default repairAgent
