@@ -14,7 +14,7 @@
  * Pure reads. No writes, no external IO beyond the DB.
  */
 import { db } from '@/db'
-import { matehAgents, agentIntegrations, gbpConfig } from '@/db/schema'
+import { matehAgents, agentIntegrations, gbpConfig, instances } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { ALL_STAGE_IDS } from '@/services/research/types'
 
@@ -38,10 +38,15 @@ async function main() {
     const ints = (await db.select().from(agentIntegrations).where(eq(agentIntegrations.instanceId, instanceId))) as any[]
     const myInts = ints.filter(r => r.agentId === agentId)
     const [gbp] = (await db.select().from(gbpConfig).where(eq(gbpConfig.instanceId, instanceId))) as any[]
+    // DataForSEO lives at the INSTANCE level (shared by all agents on the VPS).
+    const [inst] = (await db.select().from(instances).where(eq(instances.id, instanceId))) as any[]
     const istate: Record<string, any> = (rd.integrationsState || {})
     const gtok: any = agent.googleTokens || {}
     const scopes: string[] = Array.isArray(gtok.scopes) ? gtok.scopes : []
-    const hasScope = (frag: string) => scopes.some(s => String(s).includes(frag))
+    // googleTokens.scopes stores ALIAS keys (ads/gtm/analytics/gsc), not URLs.
+    // Match the alias OR the underlying URL fragment, to be storage-robust.
+    const SCOPE_URL: Record<string, string> = { ads: 'adwords', gtm: 'tagmanager', analytics: 'analytics', gsc: 'webmasters' }
+    const hasScope = (alias: string) => scopes.some(s => { const v = String(s); return v === alias || v.includes(SCOPE_URL[alias] || alias) })
     const adsCfg: any = agent.googleAdsConfig || {}
     const ghCfg: any = agent.githubConfig || {}
     const wp = (myInts.find(r => r.integrationType === 'wordpress')?.config || {}) as any
@@ -65,9 +70,9 @@ async function main() {
         `aiProviderType=${agent.aiProviderType || '-'} aiKey=${nonEmpty(agent.aiProviderKey) ? 'set' : '-'} openai=${nonEmpty(agent.openaiApiKey) ? 'set' : '-'}`)
     add('03 מוח/קול/נתונים', 'Telegram bot', (nonEmpty(agent.telegramBotToken) && nonEmpty(agent.telegramChatId)) ? 'pass' : (nonEmpty(agent.telegramBotToken) ? 'warn' : 'fail'),
         `botToken=${nonEmpty(agent.telegramBotToken) ? 'set' : '-'} chatId=${nonEmpty(agent.telegramChatId) ? 'set' : '-'}`)
-    const dfsOk = agent.dfsUseProxy ? (agent.dfsBalanceUsdCents > 0) : nonEmpty(agent.dataforseoKey)
+    const dfsOk = inst?.dfsUseProxy ? ((inst.dfsBalanceUsdCents || 0) > 0) : nonEmpty(inst?.dataforseoKey)
     add('03 מוח/קול/נתונים', 'DataForSEO data', dfsOk ? 'pass' : 'fail',
-        `mode=${agent.dfsUseProxy ? 'managed-proxy' : 'own-key'} balance=$${((agent.dfsBalanceUsdCents || 0) / 100).toFixed(2)} ownKey=${nonEmpty(agent.dataforseoKey) ? 'set' : '-'}`)
+        `[instance] mode=${inst?.dfsUseProxy ? 'managed-proxy' : 'own-key'} balance=$${((inst?.dfsBalanceUsdCents || 0) / 100).toFixed(2)} ownKey=${nonEmpty(inst?.dataforseoKey) ? 'set' : '-'}`)
 
     // ── Lesson 04 — channels: website ──
     add('04 ערוצים · אתר', 'Website URL', nonEmpty(rd.answers?.websiteUrl) ? 'pass' : 'fail', `url=${rd.answers?.websiteUrl || '-'}`)
@@ -79,14 +84,14 @@ async function main() {
 
     // ── Lesson 04 — channels: Google ──
     add('04 ערוצים · Google', 'Google OAuth', nonEmpty(gtok.email) ? 'pass' : 'fail', `email=${gtok.email || '-'} scopes=[${scopes.map(s => String(s).split('/').pop()).join(',') || '-'}]`)
-    add('04 ערוצים · Google', 'Google Ads', (hasScope('adwords') && nonEmpty(adsCfg.customerId) && nonEmpty(adsCfg.developerToken)) ? 'pass' : 'fail',
-        `scope=${hasScope('adwords') ? 'y' : 'n'} customerId=${adsCfg.customerId || '-'} devToken=${nonEmpty(adsCfg.developerToken) ? 'set' : '-'}`, 'google_ads')
-    add('04 ערוצים · Google', 'GA4', (hasScope('analytics') && nonEmpty(gtok.ga4PropertyId)) ? 'pass' : 'fail',
-        `scope=${hasScope('analytics') ? 'y' : 'n'} property=${gtok.ga4PropertyId || '-'}`, 'ga4')
-    add('04 ערוצים · Google', 'GTM', (hasScope('tagmanager') && nonEmpty(gtok.gtmContainerId)) ? 'pass' : 'fail',
-        `scope=${hasScope('tagmanager') ? 'y' : 'n'} container=${gtok.gtmContainerId || '-'}`, 'gtm')
-    add('04 ערוצים · Google', 'Search Console', (nonEmpty(agent.gscTokens) || hasScope('webmasters')) ? 'pass' : 'fail',
-        `gscTokens=${nonEmpty(agent.gscTokens) ? 'set' : '-'} scope=${hasScope('webmasters') ? 'y' : 'n'}`, 'gsc')
+    add('04 ערוצים · Google', 'Google Ads', (hasScope('ads') && nonEmpty(adsCfg.customerId) && nonEmpty(adsCfg.developerToken)) ? 'pass' : 'fail',
+        `scope=${hasScope('ads') ? 'y' : 'n'} customerId=${adsCfg.customerId || '-'} devToken=${nonEmpty(adsCfg.developerToken) ? 'set' : '-'}`, 'google_ads')
+    add('04 ערוצים · Google', 'GA4', hasScope('analytics') ? 'pass' : 'fail',
+        `scope=${hasScope('analytics') ? 'y' : 'n'} property=${gtok.ga4PropertyId || '(not picked)'}`, 'ga4')
+    add('04 ערוצים · Google', 'GTM', hasScope('gtm') ? 'pass' : 'fail',
+        `scope=${hasScope('gtm') ? 'y' : 'n'} container=${gtok.gtmContainerId || '(not picked)'}`, 'gtm')
+    add('04 ערוצים · Google', 'Search Console', (nonEmpty(agent.gscTokens) || hasScope('gsc')) ? 'pass' : 'fail',
+        `gscTokens=${nonEmpty(agent.gscTokens) ? 'set' : '-'} scope=${hasScope('gsc') ? 'y' : 'n'}`, 'gsc')
     add('04 ערוצים · Google', 'Google Business Profile', nonEmpty(gbp?.locationId) ? 'pass' : 'fail', `location=${gbp?.locationId || '-'} (instance-level)`, 'gbp')
 
     // ── Lesson 04 — channels: social (Meta OAuth deferred → informational) ──
