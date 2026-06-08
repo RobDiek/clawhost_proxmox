@@ -28,6 +28,7 @@ const copyNodePty = (
 }
 
 const APP_NAME = 'ClawNodeGo'
+const EXECUTABLE_NAME = 'clawnodego'
 const ENTITLEMENTS_PATH = './resources/entitlements.mac.plist'
 const ICON_PATH = './resources/icon'
 const EXTRA_RESOURCES = ['./resources/node']
@@ -48,6 +49,13 @@ const {
     APPLE_ID_PASSWORD,
     APPLE_TEAM_ID
 } = process.env
+const resourceExists = (resourcePath: string): boolean =>
+    fs.existsSync(path.resolve(__dirname, resourcePath))
+
+const iconExists = ['', '.icns', '.ico', '.png'].some((extension) =>
+    resourceExists(`${ICON_PATH}${extension}`)
+)
+const extraResources = EXTRA_RESOURCES.filter(resourceExists)
 
 const shouldSign = Boolean(
     APPLE_SIGNING_IDENTITY && APPLE_ID && APPLE_ID_PASSWORD && APPLE_TEAM_ID
@@ -59,8 +67,9 @@ const config: ForgeConfig = {
             unpack: NODE_PTY_ASAR_UNPACK
         },
         name: APP_NAME,
-        icon: ICON_PATH,
-        extraResource: EXTRA_RESOURCES,
+        executableName: EXECUTABLE_NAME,
+        ...(iconExists ? { icon: ICON_PATH } : {}),
+        ...(extraResources.length > 0 ? { extraResource: extraResources } : {}),
         afterCopy: [copyNodePty],
         ...(shouldSign
             ? {

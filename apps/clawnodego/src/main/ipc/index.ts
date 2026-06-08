@@ -1,5 +1,4 @@
-import { ipcMain, app, BrowserWindow, net } from 'electron'
-import { execFile } from 'child_process'
+import { ipcMain, app, BrowserWindow, net, shell } from 'electron'
 import registerAgentHandlers from '@/main/ipc/agents'
 import registerAgentProcessHandlers from '@/main/ipc/agentProcess'
 
@@ -20,7 +19,7 @@ const registerAllHandlers = (): void => {
         arch: process.arch
     }))
     ipcMain.handle(IPC_CHANNEL.OPEN_EXTERNAL, (_event: unknown, url: string) => {
-        execFile('open', [url])
+        return shell.openExternal(url)
     })
     ipcMain.handle(IPC_CHANNEL.OPEN_WINDOWED, (_event: unknown, url: string) => {
         const win = new BrowserWindow({
