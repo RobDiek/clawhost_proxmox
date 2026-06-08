@@ -122,13 +122,21 @@ export const telegramWebhook = async (c: Context) => {
                 } else {
                     await db.update(instances).set({ telegramChatId: chatId }).where(eq(instances.id, instanceId))
                 }
-                if ((update.message.text || '').trim().toLowerCase().startsWith('/start')) {
+                const msgText = (update.message.text || '').trim()
+                if (msgText.toLowerCase().startsWith('/start')) {
                     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: chatId, text: '✅ הסוכן מחובר! מעכשיו תקבלו כאן עדכונים ובקשות אישור.' }),
+                        body: JSON.stringify({ chat_id: chatId, text: '✅ הסוכן מחובר! מעכשיו תקבלו כאן עדכונים ובקשות אישור, ותוכלו לשאול אותי כל דבר על השיווק שלכם.' }),
                         signal: AbortSignal.timeout(10000),
                     }).catch(() => { /* best effort */ })
+                } else if (msgText && !msgText.startsWith('/')) {
+                    // Free-text → context-aware conversational reply. Fire-and-forget
+                    // so Telegram gets a fast 200 (the Claude call takes seconds);
+                    // the reply is sent by the handler when ready.
+                    import('@/services/telegramAgentChat').then(m =>
+                        m.handleAgentChatMessage({ agent: resolvedAgent, instanceId, chatId, text: msgText, botToken })
+                    ).catch(err => console.warn(`[telegramWebhook] agent chat dispatch failed: ${(err as Error).message}`))
                 }
             } catch (err) {
                 console.warn(`[telegramWebhook] ${instanceId} chatId capture failed: ${(err as Error).message}`)
