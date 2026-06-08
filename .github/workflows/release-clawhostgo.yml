@@ -21,9 +21,17 @@ jobs:
         with:
           bun-version: 1.3.2
       - run: bun install
-      - run: bun run build -- --platform darwin --arch arm64
+      - run: rm -rf out
         working-directory: apps/clawnodego
-      - run: bun run build -- --platform darwin --arch x64
+      - run: bun run package -- --platform darwin --arch arm64
+        working-directory: apps/clawnodego
+      - run: bash scripts/make-macos-artifacts.sh arm64
+        working-directory: apps/clawnodego
+      - run: bun run package -- --platform darwin --arch x64
+        working-directory: apps/clawnodego
+      - run: bash scripts/make-macos-artifacts.sh x64
+        working-directory: apps/clawnodego
+      - run: find out/make -type f
         working-directory: apps/clawnodego
       - uses: actions/upload-artifact@v4
         with:
