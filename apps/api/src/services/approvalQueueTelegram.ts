@@ -157,8 +157,16 @@ export async function sendApprovalQueueMessage(outputId: string): Promise<void> 
     const [output] = await db.select().from(agentOutputs).where(eq(agentOutputs.id, outputId))
     if (!output) return
 
+    // Agent-scoped: route to the OUTPUT's agent bot + chat, not instance-level
+    // (instance routing broke notifications for secondary agents).
+    const { resolveAgentById, resolvePrimaryAgent } = await import('@/services/agentContext')
+    const agent = output.agentId
+        ? (await resolveAgentById(output.instanceId, output.agentId)) || (await resolvePrimaryAgent(output.instanceId))
+        : await resolvePrimaryAgent(output.instanceId)
     const [instance] = await db.select().from(instances).where(eq(instances.id, output.instanceId))
-    if (!instance?.telegramBotToken || !instance?.telegramChatId) return
+    const botToken = agent?.telegramBotToken || instance?.telegramBotToken
+    const chatId = agent?.telegramChatId || instance?.telegramChatId
+    if (!botToken || !chatId) return
 
     // Don't double-send if already sent
     const md = (output.metadata as Record<string, unknown>) || {}
@@ -167,8 +175,8 @@ export async function sendApprovalQueueMessage(outputId: string): Promise<void> 
     const text = formatMessage(output as any)
     const keyboard = buildKeyboard(outputId, output.status, detailUrlFor(output.instanceId, outputId))
 
-    const res = await tgApi(instance.telegramBotToken, 'sendMessage', {
-        chat_id: instance.telegramChatId,
+    const res = await tgApi(botToken, 'sendMessage', {
+        chat_id: chatId,
         text,
         parse_mode: 'HTML',
         disable_web_page_preview: true,
@@ -180,7 +188,7 @@ export async function sendApprovalQueueMessage(outputId: string): Promise<void> 
             metadata: {
                 ...md,
                 telegram: {
-                    chatId: instance.telegramChatId,
+                    chatId: chatId,
                     messageId: res.result.message_id,
                     sentAt: new Date().toISOString(),
                 },
@@ -200,13 +208,18 @@ export async function updateApprovalQueueMessage(outputId: string): Promise<void
     const tgMeta = md.telegram as { chatId: string; messageId: number } | undefined
     if (!tgMeta?.messageId) return
 
+    const { resolveAgentById, resolvePrimaryAgent } = await import('@/services/agentContext')
+    const agent = output.agentId
+        ? (await resolveAgentById(output.instanceId, output.agentId)) || (await resolvePrimaryAgent(output.instanceId))
+        : await resolvePrimaryAgent(output.instanceId)
     const [instance] = await db.select().from(instances).where(eq(instances.id, output.instanceId))
-    if (!instance?.telegramBotToken) return
+    const botToken = agent?.telegramBotToken || instance?.telegramBotToken
+    if (!botToken) return
 
     const text = formatMessage(output as any)
     const keyboard = buildKeyboard(outputId, output.status, detailUrlFor(output.instanceId, outputId))
 
-    await tgApi(instance.telegramBotToken, 'editMessageText', {
+    await tgApi(botToken, 'editMessageText', {
         chat_id: tgMeta.chatId,
         message_id: tgMeta.messageId,
         text,
