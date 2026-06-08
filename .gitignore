@@ -36,3 +36,10 @@ apps/api/models/
 # Environment
 .env
 .env.local
+
+# CRITICAL: live container data dirs (postgres, uptime-kuma) live INSIDE the
+# repo tree at infra/data/. They MUST be git-ignored — otherwise prod-deploy.sh's
+# `git stash push -u` stashes the live postgres data dir mid-write, which trips
+# "data directory lock file is invalid" → immediate shutdown + WAL recovery on
+# EVERY deploy (root cause of the infra-postgres-1 restart loop, 276 restarts).
+infra/data/
