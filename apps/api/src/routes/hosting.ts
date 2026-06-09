@@ -514,6 +514,10 @@ app.get('/instances/:id/credits/balance', getCreditsBalance)
 app.get('/instances/:id/credits/ledger', getCreditsLedger)
 app.patch('/instances/:id/credits/settings', updateCreditsSettings)
 app.post('/instances/:id/credits/topup/checkout', createTopupCheckoutController)
+// DFS no-store metering relay (sovereignty Phase 1) — VPS-authenticated proxy to
+// the master DFS account. Additive; not wired until execution moves to the VPS.
+import { dfsRelay } from '@/controllers/hosting/dfsRelay'
+app.post('/instances/:id/dfs/relay', dfsRelay)
 app.post('/instances/:id/setup/agents/content-plan/regenerate', regenerateContentPlan)
 app.get('/instances/:id/setup/agents/content-plan', getContentPlan)
 app.post('/instances/:id/optimization/weekly', generateOptimizationReport)
