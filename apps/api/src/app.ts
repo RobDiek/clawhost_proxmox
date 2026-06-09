@@ -15,11 +15,9 @@ import { t } from '@openclaw/i18n'
 import {
     aiRoutes,
     authRoutes,
-    clawsRoutes,
     cronRoutes,
     hostingRoutes,
     plansRoutes,
-    sshKeysRoutes,
     usersRoutes,
     waitlistRoutes,
     webhooksRoutes
@@ -221,8 +219,6 @@ app.use('/*', async (c, next) => {
 })
 
 app.route('/ai', aiRoutes)
-app.route('/claws', clawsRoutes)
-app.route('/ssh-keys', sshKeysRoutes)
 app.route('/users', usersRoutes)
 
 app.notFound((c) => fail(c, t('api.notFound'), 404))
