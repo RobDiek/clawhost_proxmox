@@ -6,6 +6,8 @@ import { Client } from 'ssh2'
 import { eq } from 'drizzle-orm'
 import pg from 'pg'
 
+import { userIdFromJwt } from '@/controllers/hosting/authHelper'
+
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const DB_URL = process.env.DATABASE_URL || ''
 
@@ -17,10 +19,12 @@ function getSSHKey(): Buffer {
     return sshKeyCache
 }
 
-async function getInstanceInfo(instanceId: string): Promise<{ ip: string; password: string | null } | null> {
+// Client variant WITH ownership check — the instance must belong to the JWT user
+// AND be running. Closes the hole where any known instanceId opened a root shell.
+async function getOwnedInstanceInfo(instanceId: string, userId: string): Promise<{ ip: string; password: string | null } | null> {
     const client = await pool.connect()
     try {
-        const res = await client.query('SELECT ip, root_password FROM instances WHERE id = $1 AND status = $2', [instanceId, 'running'])
+        const res = await client.query('SELECT ip, root_password FROM instances WHERE id = $1 AND user_id = $2 AND status = $3', [instanceId, userId, 'running'])
         if (!res.rows[0]?.ip) return null
         return { ip: res.rows[0].ip, password: res.rows[0].root_password }
     } finally { client.release() }
@@ -149,14 +153,20 @@ export function setupTerminalServer(server: Server) {
             return
         }
 
-        // Client terminal (Developer plan): /ws/terminal/:id (existing)
-        const match = url.match(/^\/ws\/terminal\/([a-f0-9]+)/)
+        // Client terminal (Developer plan): /ws/terminal/:id?token=<userJwt>
+        // SECURITY: require the JWT user to OWN the instance. Previously this
+        // path only checked status='running' → any known instanceId opened a
+        // root shell to that VPS.
+        const match = url.match(/^\/ws\/terminal\/([a-f0-9]+)(?:\?(.*))?/)
         if (!match) return // Let other handlers process
 
         const instanceId = match[1]
+        const cqs = new URLSearchParams(match[2] || '')
+        const userId = userIdFromJwt(cqs.get('token') || '')
+        if (!userId) { socket.destroy(); return }
 
         try {
-            const info = await getInstanceInfo(instanceId)
+            const info = await getOwnedInstanceInfo(instanceId, userId)
             if (!info) { socket.destroy(); return }
 
             wss.handleUpgrade(request, socket, head, (ws) => {

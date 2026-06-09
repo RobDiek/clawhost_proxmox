@@ -33992,7 +33992,7 @@ function termConnect() {
   termFit.fit();
 
   // Connect WebSocket
-  var wsUrl = 'wss://api.clawflow.flowmatic.co.il/ws/terminal/' + instanceId;
+  var wsUrl = 'wss://api.clawflow.flowmatic.co.il/ws/terminal/' + instanceId + '?token=' + encodeURIComponent(localStorage.getItem('cf_token') || '');
   termWs = new WebSocket(wsUrl);
 
   termWs.onopen = function() {
