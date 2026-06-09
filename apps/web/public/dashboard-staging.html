@@ -4879,6 +4879,16 @@ function dashMascotOnTaskDone() {
       setTimeout(function() {
         if (typeof renderIntegrations === 'function') renderIntegrations();
       }, 800);
+    } else if (data.success && Array.isArray(data.data) && data.data.length === 0) {
+      // Server confirms this account has NO active instance. Clear any stale
+      // instance state cached in this browser — prevents the "phantom VPS" where
+      // a deleted/terminated instance's leftover localStorage kept rendering an
+      // active cabinet (cf_instance_id pointed at a server that no longer exists).
+      ['cf_instance_id','cf_instance_subdomain','cf_instance_plan','cf_instance_components','cf_openclaw_token','cf_active_mateh_agent_id','cf_active_agent'].forEach(function(k){ localStorage.removeItem(k); });
+      instanceId = '';
+      instanceData = null;
+      dataLoaded = true;
+      if (typeof renderHome === 'function') renderHome();
     }
   } catch(e) {
     console.error('Auto-load instance error:', e);

@@ -4,7 +4,7 @@ import crypto from 'crypto'
 import { randomBytes } from 'crypto'
 import { db } from '@/db'
 import { instances, payments } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, ne } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import { PLANS } from '@openclaw/shared'
 import getProvider from '@/services/provider/getProvider'
@@ -66,9 +66,11 @@ export const getInstances = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)
         if (!userId) return fail(c, 'Unauthorized.', 401)
+        // Exclude terminated — those VPSes are gone; surfacing them let the
+        // dashboard bind to a dead instance and render a phantom cabinet.
         const result = await db.select()
             .from(instances)
-            .where(eq(instances.userId, userId))
+            .where(and(eq(instances.userId, userId), ne(instances.status, 'terminated')))
 
         const sanitized = result.map(i => ({
             id: i.id,
