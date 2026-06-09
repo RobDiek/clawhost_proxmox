@@ -1259,14 +1259,34 @@ input{font-family:inherit}
         </div>
       </div>
 
-      <div id="claude-term-wrap" style="display:none;height:100%;flex-direction:column">
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 14px;background:#16213e;border-bottom:1px solid #2a3a5e;color:#e0e0e0;font-size:0.78rem;flex-shrink:0">
+      <div id="claude-stage" style="display:none;height:100%;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 14px;background:#16213e;border-bottom:1px solid #2a3a5e;color:#e0e0e0;font-size:0.78rem;flex-shrink:0">
           <span id="claude-term-status"><span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;display:inline-block"></span> מתחבר...</span>
           <span style="color:#6B7280">·</span>
-          <span style="color:#9CA3AF">Claude Code · VPS שלכם</span>
-          <button onclick="claudeDisconnect()" style="margin-inline-start:auto;background:transparent;border:1px solid #374151;color:#9CA3AF;border-radius:6px;padding:3px 10px;font-size:0.74rem;cursor:pointer;font-family:inherit">החלף מפתח</button>
+          <span style="color:#9CA3AF">Claude Code · Opus 4.8</span>
+          <div style="margin-inline-start:auto;display:flex;gap:6px;align-items:center">
+            <span id="claude-cost" style="color:#6EE7B7;font-size:0.72rem"></span>
+            <button id="claude-mode-chat" onclick="claudeSetMode('chat')" style="background:#2563EB;color:#fff;border:0;border-radius:6px;padding:3px 10px;font-size:0.74rem;cursor:pointer;font-family:inherit">צ'אט</button>
+            <button id="claude-mode-term" onclick="claudeSetMode('term')" style="background:#374151;color:#cbd5e1;border:0;border-radius:6px;padding:3px 10px;font-size:0.74rem;cursor:pointer;font-family:inherit">טרמינל</button>
+            <button onclick="claudeNewChat()" style="background:transparent;border:1px solid #374151;color:#9CA3AF;border-radius:6px;padding:3px 10px;font-size:0.74rem;cursor:pointer;font-family:inherit">צ'אט חדש</button>
+            <button onclick="claudeDisconnect()" style="background:transparent;border:1px solid #374151;color:#9CA3AF;border-radius:6px;padding:3px 10px;font-size:0.74rem;cursor:pointer;font-family:inherit">החלף מפתח</button>
+          </div>
         </div>
-        <div id="claude-term" style="flex:1;min-height:0;padding:6px"></div>
+
+        <div id="claude-chat-wrap" style="flex:1;min-height:0;display:flex;flex-direction:column">
+          <div id="claude-chat-msgs" style="flex:1;min-height:0;overflow:auto;padding:18px 16px;font-size:0.9rem;line-height:1.55"></div>
+          <div style="border-top:1px solid #2a3a5e;padding:10px 12px;background:#16213e;flex-shrink:0">
+            <div style="display:flex;gap:8px;align-items:flex-end;background:#0f1729;border:1px solid #2a3a5e;border-radius:12px;padding:8px 10px">
+              <textarea id="claude-chat-input" rows="1" placeholder="כתבו משימה לסוכן הפיתוח..." style="flex:1;background:transparent;border:0;color:#e0e0e0;font-family:inherit;font-size:0.9rem;resize:none;outline:none;max-height:150px;line-height:1.4"></textarea>
+              <button id="claude-send" onclick="claudeSend()" style="background:#2563EB;color:#fff;border:0;border-radius:8px;width:34px;height:34px;cursor:pointer;flex-shrink:0;font-size:1.05rem;line-height:1">↑</button>
+            </div>
+            <div style="color:#4b5563;font-size:0.68rem;margin-top:5px">עובד אוטונומית על ה-VPS שלכם · Enter לשליחה · Shift+Enter לשורה חדשה</div>
+          </div>
+        </div>
+
+        <div id="claude-term-stage" style="display:none;flex:1;min-height:0">
+          <div id="claude-term" style="height:100%;padding:6px"></div>
+        </div>
       </div>
     </div>
 
@@ -1277,24 +1297,24 @@ input{font-family:inherit}
       function tok(){ return localStorage.getItem('cf_token')||''; }
       function curInst(){ return (typeof instanceId!=='undefined'&&instanceId)?instanceId:''; }
       function el(id){ return document.getElementById(id); }
-      function show(id){ var e=el(id); if(e) e.style.display=(id==='claude-term-wrap')?'flex':'block'; }
+      function show(id){ var e=el(id); if(e) e.style.display=(id==='claude-stage'||id==='claude-chat-wrap')?'flex':'block'; }
       function hide(id){ var e=el(id); if(e) e.style.display='none'; }
       function seg(on,off){ on.style.background='#2563EB';on.style.color='#fff'; off.style.background='#F3F4F6';off.style.color='#374151'; }
 
       window.chatSwitchView=function(v){
         var oc=el('chat-view-openclaw'),cl=el('chat-view-claude'),bo=el('chatSeg-openclaw'),bc=el('chatSeg-claude');
         if(v==='claude'){ if(oc)oc.style.display='none'; if(cl)cl.style.display='block'; seg(bc,bo); claudeInit(); }
-        else { if(cl)cl.style.display='none'; if(oc)oc.style.display='block'; seg(bo,bc); closeWs(); }
+        else { if(cl)cl.style.display='none'; if(oc)oc.style.display='block'; seg(bo,bc); closeChat(); closeTermWs(); }
       };
 
       async function claudeInit(){
-        show('claude-loading'); hide('claude-connect'); hide('claude-term-wrap');
+        show('claude-loading'); hide('claude-connect'); hide('claude-stage');
         var inst=curInst();
         if(!inst){ hide('claude-loading'); show('claude-connect'); el('claude-connect-status').textContent='לא נמצא VPS'; return; }
         try{
           var r=await fetch(APIH+'/instances/'+inst+'/dev/status',{headers:{'Authorization':'Bearer '+tok()}});
           var d=await r.json();
-          if(d&&d.data&&d.data.connected){ openTerm(inst); } else { hide('claude-loading'); show('claude-connect'); }
+          if(d&&d.data&&d.data.connected){ openStage(); } else { hide('claude-loading'); show('claude-connect'); }
         }catch(e){ hide('claude-loading'); show('claude-connect'); }
       }
 
@@ -1306,7 +1326,7 @@ input{font-family:inherit}
         try{
           var r=await fetch(APIH+'/instances/'+curInst()+'/dev/connect',{method:'POST',headers:{'Authorization':'Bearer '+tok(),'Content-Type':'application/json'},body:JSON.stringify(body)});
           var d=await r.json();
-          if(r.ok&&d&&d.data&&d.data.connected){ st.style.color='#10B981'; st.textContent='מחובר! פותח...'; setTimeout(function(){openTerm(curInst());},600); }
+          if(r.ok&&d&&d.data&&d.data.connected){ st.style.color='#10B981'; st.textContent='מחובר! פותח...'; setTimeout(openStage,500); }
           else { st.style.color='#EF4444'; st.textContent=(d&&d.message)||'החיבור נכשל'; }
         }catch(e){ st.style.color='#EF4444'; st.textContent='שגיאה: '+e.message; }
       };
@@ -1314,28 +1334,100 @@ input{font-family:inherit}
       window.claudeDisconnect=async function(){
         if(!confirm('לנתק את Claude Developer ולהחליף מפתח?'))return;
         try{ await fetch(APIH+'/instances/'+curInst()+'/dev/disconnect',{method:'POST',headers:{'Authorization':'Bearer '+tok()}}); }catch(e){}
-        closeWs(); hide('claude-term-wrap'); show('claude-connect');
+        closeChat(); closeTermWs(); hide('claude-stage'); show('claude-connect');
       };
 
+      // ---- stage / mode ----
+      var mode='chat';
+      function openStage(){ hide('claude-loading'); hide('claude-connect'); show('claude-stage'); claudeSetMode('chat'); }
+      window.claudeSetMode=function(m){
+        mode=m;
+        var ch=el('claude-chat-wrap'), tm=el('claude-term-stage'), bch=el('claude-mode-chat'), btm=el('claude-mode-term');
+        if(m==='term'){ closeChat(); if(ch)ch.style.display='none'; if(tm)tm.style.display='block'; if(bch){bch.style.background='#374151';bch.style.color='#cbd5e1';} if(btm){btm.style.background='#2563EB';btm.style.color='#fff';} openTerm(); }
+        else { closeTermWs(); if(tm)tm.style.display='none'; if(ch)ch.style.display='flex'; if(btm){btm.style.background='#374151';btm.style.color='#cbd5e1';} if(bch){bch.style.background='#2563EB';bch.style.color='#fff';} openChat(); var i=el('claude-chat-input'); if(i)i.focus(); }
+      };
+      window.claudeNewChat=function(){ chatSession=null; var m=el('claude-chat-msgs'); if(m)m.innerHTML=''; totalCost=0; setCost(); closeChat(); openChat(); };
+
+      // ---- chat (stream-json) ----
+      var chatWs=null, chatSession=null, curTextEl=null, curText='', totalCost=0, busy=false;
+      function msgs(){ return el('claude-chat-msgs'); }
+      function scrollBottom(){ var m=msgs(); if(m) m.scrollTop=m.scrollHeight; }
+      function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+      function md(t){ var s=esc(t);
+        s=s.replace(/```([\s\S]*?)```/g,function(m,c){return '<pre style="background:#0b1020;border:1px solid #2a3a5e;border-radius:8px;padding:10px;overflow:auto;margin:6px 0;white-space:pre">'+c.replace(/^\n/,'')+'</pre>';});
+        s=s.replace(/`([^`\n]+)`/g,'<code style="background:#0b1020;padding:1px 5px;border-radius:4px">$1</code>');
+        s=s.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+        return s; }
+      function setCost(){ var c=el('claude-cost'); if(c)c.textContent=totalCost>0?('$'+totalCost.toFixed(3)):''; }
+      function setStatus(txt,color){ var s=el('claude-term-status'); if(s)s.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+color+';display:inline-block"></span> '+txt; }
+      function setBusy(b){ busy=b; var btn=el('claude-send'); if(btn){btn.disabled=b; btn.style.opacity=b?'0.5':'1';} }
+      function addUser(text){ var m=msgs(); if(!m)return; var d=document.createElement('div'); d.style.cssText='margin:0 0 14px;display:flex;justify-content:flex-start'; d.innerHTML='<div style="background:#2563EB;color:#fff;border-radius:12px;padding:9px 13px;max-width:85%;white-space:pre-wrap;word-break:break-word">'+esc(text)+'</div>'; m.appendChild(d); scrollBottom(); }
+      function newAssistantText(){ var m=msgs(); if(!m)return null; var d=document.createElement('div'); d.style.cssText='margin:0 0 12px;color:#e0e0e0;white-space:pre-wrap;word-break:break-word'; m.appendChild(d); scrollBottom(); return d; }
+      function newToolCard(id,name,summary){ var m=msgs(); if(!m)return; var d=document.createElement('div'); d.id='tc-'+id; d.style.cssText='margin:0 0 12px;background:#16213e;border:1px solid #2a3a5e;border-radius:10px;overflow:hidden;font-size:0.82rem';
+        d.innerHTML='<div style="padding:8px 12px;display:flex;gap:8px;align-items:center;color:#93C5FD"><span style="font-weight:700;flex-shrink:0">⚙ '+esc(name)+'</span><span style="color:#9CA3AF;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr">'+esc(summary||'')+'</span></div><div class="tc-out" style="display:none;border-top:1px solid #2a3a5e;padding:8px 12px;color:#9CA3AF;white-space:pre-wrap;word-break:break-word;max-height:240px;overflow:auto;font-family:monospace;font-size:0.76rem;direction:ltr"></div>';
+        m.appendChild(d); scrollBottom(); }
+      function toolSummary(name,input){ if(!input)return ''; return input.file_path||input.path||input.command||input.pattern||input.url||input.prompt||(typeof input==='object'?JSON.stringify(input).slice(0,140):String(input)); }
+      function fillTool(id,content,isErr){ var d=el('tc-'+id); if(!d)return; var o=d.querySelector('.tc-out'); if(!o)return; var txt=typeof content==='string'?content:(Array.isArray(content)?content.map(function(x){return x&&x.text?x.text:(typeof x==='string'?x:JSON.stringify(x));}).join('\n'):JSON.stringify(content)); o.textContent=String(txt).slice(0,4000); o.style.display='block'; if(isErr)o.style.color='#FCA5A5'; scrollBottom(); }
+
+      function handleEvt(ev){
+        if(ev.type==='system'&&ev.subtype==='init'){ chatSession=ev.session_id||chatSession; return; }
+        if(ev.type==='stream_event'&&ev.event){
+          var e=ev.event;
+          if(e.type==='content_block_start'&&e.content_block&&e.content_block.type==='text'){ curTextEl=newAssistantText(); curText=''; }
+          else if(e.type==='content_block_delta'&&e.delta&&e.delta.type==='text_delta'){ if(!curTextEl){curTextEl=newAssistantText();curText='';} curText+=e.delta.text||''; curTextEl.innerHTML=md(curText); scrollBottom(); }
+          return;
+        }
+        if(ev.type==='assistant'&&ev.message&&ev.message.content){
+          ev.message.content.forEach(function(b){ if(b.type==='tool_use'&&!el('tc-'+b.id)) newToolCard(b.id,b.name,toolSummary(b.name,b.input)); });
+          curTextEl=null; curText='';
+          return;
+        }
+        if(ev.type==='user'&&ev.message&&ev.message.content){
+          ev.message.content.forEach(function(b){ if(b.type==='tool_result') fillTool(b.tool_use_id,b.content,b.is_error); });
+          return;
+        }
+        if(ev.type==='result'){ if(typeof ev.total_cost_usd==='number'){ totalCost=ev.total_cost_usd; setCost(); } setBusy(false); curTextEl=null; return; }
+      }
+
+      function openChat(){
+        var inst=curInst(); if(!inst)return;
+        if(chatWs&&(chatWs.readyState===WebSocket.OPEN||chatWs.readyState===WebSocket.CONNECTING))return;
+        var url=WSB+'/ws/claude-chat/'+inst+'?token='+encodeURIComponent(tok())+(chatSession?('&session='+encodeURIComponent(chatSession)):'');
+        chatWs=new WebSocket(url);
+        chatWs.onopen=function(){ setStatus('מחובר','#10B981'); };
+        chatWs.onmessage=function(e){ var s=(''+e.data).trim(); if(!s)return; try{ handleEvt(JSON.parse(s)); }catch(err){} };
+        chatWs.onclose=function(){ setStatus('נותק','#EF4444'); setBusy(false); };
+        chatWs.onerror=function(){};
+      }
+      function closeChat(){ if(chatWs){try{chatWs.close()}catch(e){} chatWs=null;} }
+      window.claudeSend=function(){
+        var i=el('claude-chat-input'); if(!i)return; var text=(i.value||'').trim(); if(!text||busy)return;
+        if(!chatWs||chatWs.readyState!==WebSocket.OPEN){ openChat(); setTimeout(function(){sendRaw(text);},700); } else sendRaw(text);
+        i.value=''; i.style.height='auto';
+      };
+      function sendRaw(text){ if(!chatWs||chatWs.readyState!==WebSocket.OPEN)return; addUser(text); setBusy(true); chatWs.send(JSON.stringify({type:'user',message:{role:'user',content:[{type:'text',text:text}]}})); }
+      document.addEventListener('keydown',function(e){ if(e.target&&e.target.id==='claude-chat-input'&&e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); claudeSend(); } });
+      document.addEventListener('input',function(e){ if(e.target&&e.target.id==='claude-chat-input'){ e.target.style.height='auto'; e.target.style.height=Math.min(e.target.scrollHeight,150)+'px'; } });
+
+      // ---- terminal (fallback mode) ----
       var cTerm=null,cFit=null,cWs=null;
-      function closeWs(){ if(cWs){try{cWs.close()}catch(e){} cWs=null;} }
-      function sendResize(){ if(cWs&&cWs.readyState===WebSocket.OPEN&&cTerm){try{cWs.send(JSON.stringify({type:'resize',cols:cTerm.cols,rows:cTerm.rows}))}catch(e){}} }
-      function openTerm(inst){
-        hide('claude-loading'); hide('claude-connect'); show('claude-term-wrap');
-        if(cTerm){try{cTerm.dispose()}catch(e){} cTerm=null;} closeWs();
+      function closeTermWs(){ if(cWs){try{cWs.close()}catch(e){} cWs=null;} }
+      function termResize(){ if(cWs&&cWs.readyState===WebSocket.OPEN&&cTerm){try{cWs.send(JSON.stringify({type:'resize',cols:cTerm.cols,rows:cTerm.rows}))}catch(e){}} }
+      function openTerm(){
+        var inst=curInst(); if(!inst)return;
+        if(cTerm){try{cTerm.dispose()}catch(e){} cTerm=null;} closeTermWs();
         cTerm=new Terminal({cursorBlink:true,fontSize:13,fontFamily:"'SF Mono','Fira Code','Consolas',monospace",theme:{background:'#1a1a2e',foreground:'#e0e0e0',cursor:'#2563EB',selectionBackground:'#2563EB44'},allowTransparency:true});
         cFit=new FitAddon.FitAddon(); cTerm.loadAddon(cFit);
         try{ cTerm.loadAddon(new WebLinksAddon.WebLinksAddon()); }catch(e){}
         var c=el('claude-term'); c.innerHTML=''; cTerm.open(c);
-        setTimeout(function(){try{cFit.fit()}catch(e){} sendResize();},60);
+        setTimeout(function(){try{cFit.fit()}catch(e){} termResize();},60);
         cWs=new WebSocket(WSB+'/ws/claude/'+inst+'?token='+encodeURIComponent(tok()));
-        var stEl=el('claude-term-status');
-        cWs.onopen=function(){ if(stEl)stEl.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block"></span> מחובר'; cTerm.focus(); sendResize(); };
+        cWs.onopen=function(){ cTerm.focus(); termResize(); };
         cWs.onmessage=function(e){ cTerm.write(e.data); };
-        cWs.onclose=function(){ if(stEl)stEl.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:#EF4444;display:inline-block"></span> נותק'; if(cTerm)cTerm.write('\r\n\x1b[31m--- נותק ---\x1b[0m\r\n'); };
+        cWs.onclose=function(){ if(cTerm)cTerm.write('\r\n\x1b[31m--- נותק ---\x1b[0m\r\n'); };
         cTerm.onData(function(data){ if(cWs&&cWs.readyState===WebSocket.OPEN)cWs.send(data); });
-        if(cTerm.onResize)cTerm.onResize(sendResize);
-        window.addEventListener('resize',function(){ var v=el('chat-view-claude'); if(cFit&&v&&v.style.display!=='none'){try{cFit.fit()}catch(e){} sendResize();} });
+        if(cTerm.onResize)cTerm.onResize(termResize);
+        window.addEventListener('resize',function(){ var v=el('chat-view-claude'); if(cFit&&v&&v.style.display!=='none'&&mode==='term'){try{cFit.fit()}catch(e){} termResize();} });
       }
 
       // Pilot gate: only reveal the Claude Developer switcher when the backend
