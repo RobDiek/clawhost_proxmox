@@ -446,8 +446,10 @@ export const getMyInstances = async (c: Context) => {
             return 0
         })
 
-        // Filter out awaiting_payment
-        const filtered = result.filter(i => i.status !== 'awaiting_payment')
+        // Filter out awaiting_payment + terminated. Terminated instances are
+        // gone (VPS + DNS deleted) — leaking them here made the dashboard pick a
+        // dead instance as data.data[0] and render a "phantom" active cabinet.
+        const filtered = result.filter(i => i.status !== 'awaiting_payment' && i.status !== 'terminated')
 
         // Batch-fetch approved brand books for all filtered instances
         const approvedBrandBooks = filtered.length > 0
