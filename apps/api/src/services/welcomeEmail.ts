@@ -75,14 +75,6 @@ function buildHtml(args: {
             <div style="font-size:0.8rem;color:#6B7280;margin-bottom:4px">לוח הבקרה הראשי</div>
             <a href="${escapeHtml(DASHBOARD_URL)}" style="color:#2563EB;font-weight:700;font-size:0.95rem;text-decoration:none">${DASHBOARD_URL} →</a>
           </td></tr>
-          <tr><td style="background:#FAFAFA;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px">
-            <div style="font-size:0.8rem;color:#6B7280;margin-bottom:4px">OpenClaw — הסוכן שלכם</div>
-            <a href="https://${escapeHtml(args.agentUrl)}" style="color:#2563EB;font-weight:600;font-size:0.92rem;text-decoration:none;direction:ltr;display:inline-block">https://${escapeHtml(args.agentUrl)} →</a>
-          </td></tr>
-          <tr><td style="background:#FAFAFA;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px">
-            <div style="font-size:0.8rem;color:#6B7280;margin-bottom:4px">${escapeHtml(args.automationLabel)} — אוטומציות</div>
-            <a href="https://${escapeHtml(args.flowsUrl)}" style="color:#2563EB;font-weight:600;font-size:0.92rem;text-decoration:none;direction:ltr;display:inline-block">https://${escapeHtml(args.flowsUrl)} →</a>
-          </td></tr>
         </table>
       </td></tr>
 
@@ -98,11 +90,6 @@ function buildHtml(args: {
           <tr><td style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:14px 16px">
             <div style="font-size:0.8rem;color:#92400E;margin-bottom:4px">OpenClaw Token</div>
             <code style="display:block;background:#fff;border:1px solid #FDE68A;border-radius:6px;padding:8px 10px;font-family:'SF Mono',Consolas,monospace;font-size:0.78rem;color:#1F2937;direction:ltr;text-align:left;word-break:break-all">${escapeHtml(args.openclawToken)}</code>
-          </td></tr>
-          <tr><td style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:14px 16px">
-            <div style="font-size:0.8rem;color:#92400E;margin-bottom:4px">${escapeHtml(args.automationLabel)} — סיסמת admin</div>
-            <code style="display:block;background:#fff;border:1px solid #FDE68A;border-radius:6px;padding:8px 10px;font-family:'SF Mono',Consolas,monospace;font-size:0.85rem;color:#1F2937;direction:ltr;text-align:left">${escapeHtml(args.automationPassword)}</code>
-            <div style="font-size:0.74rem;color:#6B7280;margin-top:6px">שם משתמש: <code style="font-family:monospace;direction:ltr;display:inline-block">admin</code></div>
           </td></tr>
           ${args.rootPassword ? `<tr><td style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:14px 16px">
             <div style="font-size:0.8rem;color:#991B1B;margin-bottom:4px">סיסמת root (SSH) — למפתחים בלבד</div>
@@ -164,12 +151,9 @@ function buildPlainText(args: {
         '',
         '— קישורים מהירים —',
         `לוח הבקרה: ${DASHBOARD_URL}`,
-        `OpenClaw: https://${args.agentUrl}`,
-        `${args.automationLabel}: https://${args.flowsUrl}`,
         '',
         '— פרטי גישה —',
         `OpenClaw Token: ${args.openclawToken}`,
-        `${args.automationLabel} admin password: ${args.automationPassword}`,
     ]
     if (args.rootPassword) lines.push(`Root SSH password (advanced): ${args.rootPassword}`)
     lines.push('',
