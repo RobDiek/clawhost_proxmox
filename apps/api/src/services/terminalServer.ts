@@ -125,6 +125,57 @@ function handleTerminalConnection(ws: WebSocket, ip: string, password?: string |
     conn.connect(connectOpts)
 }
 
+// Claude Developer CHAT bridge — runs Claude Code headless in stream-json mode
+// (the protocol the VS Code extension uses) and relays line-delimited JSON both
+// ways. No PTY: the dashboard renders a custom chat UI. Optional resumeSession
+// continues a saved conversation.
+function handleClaudeChatConnection(ws: WebSocket, ip: string, password: string | null, resumeSession?: string) {
+    const conn = new Client()
+    let sshReady = false
+    const pingTimer = setInterval(() => { if (ws.readyState === WebSocket.OPEN) ws.ping() }, PING_INTERVAL)
+    ws.on('close', () => clearInterval(pingTimer))
+
+    conn.on('ready', () => {
+        sshReady = true
+        const resumeFlag = resumeSession ? ` --resume ${resumeSession}` : ''
+        const claudeCmd = `sudo -u developer bash -lc 'cd /home/developer/workspace && set -a && . /home/developer/.config/dev-agent.env 2>/dev/null && set +a && exec claude --print --input-format stream-json --output-format stream-json --verbose --include-partial-messages --permission-mode bypassPermissions${resumeFlag}'`
+        conn.exec(claudeCmd, (err, stream) => {
+            if (err) { ws.close(); conn.end(); return }
+            let buf = ''
+            stream.on('data', (data: Buffer) => {
+                buf += data.toString('utf-8')
+                let idx
+                while ((idx = buf.indexOf('\n')) >= 0) {
+                    const line = buf.slice(0, idx).trim()
+                    buf = buf.slice(idx + 1)
+                    if (line && ws.readyState === WebSocket.OPEN) ws.send(line)
+                }
+            })
+            if (stream.stderr) stream.stderr.on('data', (data: Buffer) => {
+                if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'stderr', text: data.toString('utf-8') }))
+            })
+            stream.on('close', () => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'closed' })); ws.close(); conn.end() })
+            ws.on('message', (msg: Buffer | string) => {
+                const str = typeof msg === 'string' ? msg : msg.toString('utf-8')
+                try { stream.write(str.endsWith('\n') ? str : str + '\n') } catch { /* channel closed */ }
+            })
+            ws.on('close', () => { try { stream.end() } catch {} ; conn.end() })
+        })
+    })
+
+    conn.on('error', () => { if (ws.readyState === WebSocket.OPEN) ws.close() })
+    ws.on('close', () => { if (sshReady) conn.end() })
+
+    const connectOpts: Record<string, unknown> = {
+        host: ip, port: 22, username: 'root', readyTimeout: 10000,
+        keepaliveInterval: 15000, keepaliveCountMax: 3,
+        algorithms: { serverHostKey: ['ssh-ed25519', 'ssh-rsa', 'ecdsa-sha2-nistp256'] },
+    }
+    if (password) connectOpts.password = password
+    try { connectOpts.privateKey = getSSHKey() } catch { /* key not available */ }
+    conn.connect(connectOpts)
+}
+
 export function setupTerminalServer(server: Server) {
     const wss = new WebSocketServer({ noServer: true })
 
@@ -155,6 +206,24 @@ export function setupTerminalServer(server: Server) {
                 } catch {}
                 wss.handleUpgrade(request, socket, head, (ws) => {
                     handleTerminalConnection(ws, info.ip, info.password)
+                })
+            } catch { socket.destroy() }
+            return
+        }
+
+        // Claude Developer CHAT (stream-json): /ws/claude-chat/:id?token=&session=
+        const chatMatch = url.match(/^\/ws\/claude-chat\/([a-f0-9]+)(?:\?(.*))?/)
+        if (chatMatch) {
+            const instanceId = chatMatch[1]
+            const cq = new URLSearchParams(chatMatch[2] || '')
+            const uid = userIdFromJwt(cq.get('token') || '')
+            if (!uid) { socket.destroy(); return }
+            try {
+                const info = await getOwnedInstanceInfo(instanceId, uid)
+                if (!info) { socket.destroy(); return }
+                const session = (cq.get('session') || '').replace(/[^a-zA-Z0-9-]/g, '').slice(0, 64) || undefined
+                wss.handleUpgrade(request, socket, head, (ws) => {
+                    handleClaudeChatConnection(ws, info.ip, info.password, session)
                 })
             } catch { socket.destroy() }
             return
