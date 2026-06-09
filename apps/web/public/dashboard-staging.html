@@ -1201,8 +1201,13 @@ input{font-family:inherit}
 
   </div>
 
-  <!-- Tab: Chat (embedded OpenClaw chat-only view) -->
+  <!-- Tab: Chat (OpenClaw chat + Claude Developer, screen switcher) -->
   <div class="tab-content hidden" id="tab-chat" style="padding:0;margin:0">
+    <div style="display:flex;gap:6px;padding:8px 16px;background:#fff;border-bottom:1px solid #E5E7EB">
+      <button id="chatSeg-openclaw" onclick="chatSwitchView('openclaw')" style="flex:1;padding:8px 12px;border:0;border-radius:8px;font-size:0.84rem;font-weight:600;cursor:pointer;background:#2563EB;color:#fff;font-family:inherit">💬 OpenClaw צ'אט</button>
+      <button id="chatSeg-claude" onclick="chatSwitchView('claude')" style="display:none;flex:1;padding:8px 12px;border:0;border-radius:8px;font-size:0.84rem;font-weight:600;cursor:pointer;background:#F3F4F6;color:#374151;font-family:inherit">⚡ Claude Developer</button>
+    </div>
+    <div id="chat-view-openclaw">
     <div style="background:#EFF6FF;border-bottom:1px solid #BFDBFE;padding:8px 16px;font-size:0.78rem;color:#1E40AF;display:flex;align-items:center;gap:6px">
       <svg viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="1.5" style="width:14px;height:14px;flex-shrink:0"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
       הצ'אט הזה מסונכרן עם בוט ה-Telegram שלכם — כל ההודעות מופיעות בשני הערוצים
@@ -1217,6 +1222,129 @@ input{font-family:inherit}
       </div>
       <iframe id="chat-iframe" src="" style="width:100%;height:100%;border:none;background:#fff" allow="clipboard-write"></iframe>
     </div>
+    </div><!-- /chat-view-openclaw -->
+
+    <!-- Claude Developer view -->
+    <div id="chat-view-claude" style="display:none;height:calc(100vh - 122px);position:relative;background:#1a1a2e">
+      <div id="claude-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9CA3AF;font-size:0.85rem;z-index:3">
+        <div style="text-align:center"><div style="width:30px;height:30px;border:3px solid #374151;border-top-color:#2563EB;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px"></div>בודק חיבור...</div>
+      </div>
+
+      <div id="claude-connect" style="display:none;position:absolute;inset:0;overflow:auto;padding:30px 20px;color:#e0e0e0">
+        <div style="max-width:560px;margin:0 auto">
+          <div style="font-size:1.4rem;font-weight:800;margin-bottom:6px">⚡ Claude Developer</div>
+          <p style="color:#9CA3AF;font-size:0.9rem;line-height:1.6;margin-bottom:22px">סוכן פיתוח אמיתי (Claude Code) שרץ על ה-VPS שלכם — גישה לכל הקבצים והרצת פקודות. הכול על השרת שלכם, באישורכם. בחרו איך לחבר את Claude:</p>
+
+          <div style="background:#16213e;border:1px solid #2a3a5e;border-radius:12px;padding:18px;margin-bottom:14px">
+            <div style="font-weight:700;margin-bottom:6px">המפתח שכבר חיברתם ✓</div>
+            <p style="color:#9CA3AF;font-size:0.82rem;margin-bottom:12px">השתמשו במפתח ה-Anthropic שכבר מחובר בכרטיס ה-AI — הדרך המהירה.</p>
+            <button onclick="claudeConnect('existing')" style="background:#2563EB;color:#fff;border:0;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:inherit">חברו עם המפתח הקיים</button>
+          </div>
+
+          <div style="background:#16213e;border:1px solid #2a3a5e;border-radius:12px;padding:18px;margin-bottom:14px">
+            <div style="font-weight:700;margin-bottom:6px">מפתח Anthropic API</div>
+            <p style="color:#9CA3AF;font-size:0.82rem;margin-bottom:10px">מ-console.anthropic.com (תשלום לפי שימוש).</p>
+            <input id="claude-apikey" type="password" placeholder="sk-ant-..." style="width:100%;box-sizing:border-box;background:#0f1729;border:1px solid #2a3a5e;border-radius:8px;padding:9px 12px;color:#e0e0e0;font-family:monospace;margin-bottom:10px">
+            <button onclick="claudeConnect('apikey')" style="background:#374151;color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;font-family:inherit">חברו עם מפתח API</button>
+          </div>
+
+          <div style="background:#16213e;border:1px solid #2a3a5e;border-radius:12px;padding:18px">
+            <div style="font-weight:700;margin-bottom:6px">מנוי Claude (Pro / Max)</div>
+            <p style="color:#9CA3AF;font-size:0.82rem;margin-bottom:10px">הריצו <code style="background:#0f1729;padding:2px 6px;border-radius:4px">claude setup-token</code> במחשב שלכם, אשרו ב-claude.ai, והדביקו את הטוקן (מחיר קבוע).</p>
+            <input id="claude-subtoken" type="password" placeholder="sk-ant-oat..." style="width:100%;box-sizing:border-box;background:#0f1729;border:1px solid #2a3a5e;border-radius:8px;padding:9px 12px;color:#e0e0e0;font-family:monospace;margin-bottom:10px">
+            <button onclick="claudeConnect('subscription')" style="background:#374151;color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;font-family:inherit">חברו עם מנוי</button>
+          </div>
+
+          <div id="claude-connect-status" style="margin-top:14px;font-size:0.85rem"></div>
+        </div>
+      </div>
+
+      <div id="claude-term-wrap" style="display:none;height:100%;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 14px;background:#16213e;border-bottom:1px solid #2a3a5e;color:#e0e0e0;font-size:0.78rem;flex-shrink:0">
+          <span id="claude-term-status"><span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;display:inline-block"></span> מתחבר...</span>
+          <span style="color:#6B7280">·</span>
+          <span style="color:#9CA3AF">Claude Code · VPS שלכם</span>
+          <button onclick="claudeDisconnect()" style="margin-inline-start:auto;background:transparent;border:1px solid #374151;color:#9CA3AF;border-radius:6px;padding:3px 10px;font-size:0.74rem;cursor:pointer;font-family:inherit">החלף מפתח</button>
+        </div>
+        <div id="claude-term" style="flex:1;min-height:0;padding:6px"></div>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      var APIH=(typeof API!=='undefined'?API:'https://api.clawflow.flowmatic.co.il')+'/hosting';
+      var WSB='wss://api.clawflow.flowmatic.co.il';
+      function tok(){ return localStorage.getItem('cf_token')||''; }
+      function curInst(){ return (typeof instanceId!=='undefined'&&instanceId)?instanceId:''; }
+      function el(id){ return document.getElementById(id); }
+      function show(id){ var e=el(id); if(e) e.style.display=(id==='claude-term-wrap')?'flex':'block'; }
+      function hide(id){ var e=el(id); if(e) e.style.display='none'; }
+      function seg(on,off){ on.style.background='#2563EB';on.style.color='#fff'; off.style.background='#F3F4F6';off.style.color='#374151'; }
+
+      window.chatSwitchView=function(v){
+        var oc=el('chat-view-openclaw'),cl=el('chat-view-claude'),bo=el('chatSeg-openclaw'),bc=el('chatSeg-claude');
+        if(v==='claude'){ if(oc)oc.style.display='none'; if(cl)cl.style.display='block'; seg(bc,bo); claudeInit(); }
+        else { if(cl)cl.style.display='none'; if(oc)oc.style.display='block'; seg(bo,bc); closeWs(); }
+      };
+
+      async function claudeInit(){
+        show('claude-loading'); hide('claude-connect'); hide('claude-term-wrap');
+        var inst=curInst();
+        if(!inst){ hide('claude-loading'); show('claude-connect'); el('claude-connect-status').textContent='לא נמצא VPS'; return; }
+        try{
+          var r=await fetch(APIH+'/instances/'+inst+'/dev/status',{headers:{'Authorization':'Bearer '+tok()}});
+          var d=await r.json();
+          if(d&&d.data&&d.data.connected){ openTerm(inst); } else { hide('claude-loading'); show('claude-connect'); }
+        }catch(e){ hide('claude-loading'); show('claude-connect'); }
+      }
+
+      window.claudeConnect=async function(mode){
+        var st=el('claude-connect-status'); st.style.color='#9CA3AF'; st.textContent='מתחבר ובודק את המפתח... (עד דקה)';
+        var body={authType:mode};
+        if(mode==='apikey'){ body.secret=(el('claude-apikey').value||'').trim(); if(!body.secret){st.style.color='#EF4444';st.textContent='הדביקו מפתח';return;} }
+        if(mode==='subscription'){ body.secret=(el('claude-subtoken').value||'').trim(); if(!body.secret){st.style.color='#EF4444';st.textContent='הדביקו טוקן';return;} }
+        try{
+          var r=await fetch(APIH+'/instances/'+curInst()+'/dev/connect',{method:'POST',headers:{'Authorization':'Bearer '+tok(),'Content-Type':'application/json'},body:JSON.stringify(body)});
+          var d=await r.json();
+          if(r.ok&&d&&d.data&&d.data.connected){ st.style.color='#10B981'; st.textContent='מחובר! פותח...'; setTimeout(function(){openTerm(curInst());},600); }
+          else { st.style.color='#EF4444'; st.textContent=(d&&d.message)||'החיבור נכשל'; }
+        }catch(e){ st.style.color='#EF4444'; st.textContent='שגיאה: '+e.message; }
+      };
+
+      window.claudeDisconnect=async function(){
+        if(!confirm('לנתק את Claude Developer ולהחליף מפתח?'))return;
+        try{ await fetch(APIH+'/instances/'+curInst()+'/dev/disconnect',{method:'POST',headers:{'Authorization':'Bearer '+tok()}}); }catch(e){}
+        closeWs(); hide('claude-term-wrap'); show('claude-connect');
+      };
+
+      var cTerm=null,cFit=null,cWs=null;
+      function closeWs(){ if(cWs){try{cWs.close()}catch(e){} cWs=null;} }
+      function sendResize(){ if(cWs&&cWs.readyState===WebSocket.OPEN&&cTerm){try{cWs.send(JSON.stringify({type:'resize',cols:cTerm.cols,rows:cTerm.rows}))}catch(e){}} }
+      function openTerm(inst){
+        hide('claude-loading'); hide('claude-connect'); show('claude-term-wrap');
+        if(cTerm){try{cTerm.dispose()}catch(e){} cTerm=null;} closeWs();
+        cTerm=new Terminal({cursorBlink:true,fontSize:13,fontFamily:"'SF Mono','Fira Code','Consolas',monospace",theme:{background:'#1a1a2e',foreground:'#e0e0e0',cursor:'#2563EB',selectionBackground:'#2563EB44'},allowTransparency:true});
+        cFit=new FitAddon.FitAddon(); cTerm.loadAddon(cFit);
+        try{ cTerm.loadAddon(new WebLinksAddon.WebLinksAddon()); }catch(e){}
+        var c=el('claude-term'); c.innerHTML=''; cTerm.open(c);
+        setTimeout(function(){try{cFit.fit()}catch(e){} sendResize();},60);
+        cWs=new WebSocket(WSB+'/ws/claude/'+inst+'?token='+encodeURIComponent(tok()));
+        var stEl=el('claude-term-status');
+        cWs.onopen=function(){ if(stEl)stEl.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block"></span> מחובר'; cTerm.focus(); sendResize(); };
+        cWs.onmessage=function(e){ cTerm.write(e.data); };
+        cWs.onclose=function(){ if(stEl)stEl.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:#EF4444;display:inline-block"></span> נותק'; if(cTerm)cTerm.write('\r\n\x1b[31m--- נותק ---\x1b[0m\r\n'); };
+        cTerm.onData(function(data){ if(cWs&&cWs.readyState===WebSocket.OPEN)cWs.send(data); });
+        if(cTerm.onResize)cTerm.onResize(sendResize);
+        window.addEventListener('resize',function(){ var v=el('chat-view-claude'); if(cFit&&v&&v.style.display!=='none'){try{cFit.fit()}catch(e){} sendResize();} });
+      }
+
+      // Pilot gate: only reveal the Claude Developer switcher when the backend
+      // marks this instance available (Developer plan / pilot allowlist).
+      function checkAvail(){ var b=el('chatSeg-claude'); var inst=curInst(); if(!b||!inst)return; fetch(APIH+'/instances/'+inst+'/dev/status',{headers:{'Authorization':'Bearer '+tok()}}).then(function(r){return r.json();}).then(function(d){ b.style.display=(d&&d.data&&d.data.available)?'':'none'; }).catch(function(){}); }
+      setTimeout(checkAvail,1500); setInterval(function(){ if(curInst())checkAvail(); },6000);
+    })();
+    </script>
+
     <script>
       // Pre-flight ping + auto-retry: agent gateway can be momentarily down
       // (~30s) when our backend rewrites OpenClaw config (adding agents,

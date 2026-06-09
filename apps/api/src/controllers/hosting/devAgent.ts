@@ -18,6 +18,14 @@ import { sshExec } from './agentSetup'
 
 const ENV_FILE = '/home/developer/.config/dev-agent.env'
 
+// Pilot gating: the Claude Developer feature is available on the Developer plan
+// and on explicitly allow-listed pilot instances (hello@flowmatic.co.il). Other
+// tenants don't see the switcher and cannot connect (their VPS has no setup).
+const DEV_PILOT_INSTANCES = new Set(['19c2481ba5'])
+function devAvailable(instance: { id: string; planKey?: string | null }): boolean {
+    return instance.planKey === 'developer' || DEV_PILOT_INSTANCES.has(instance.id)
+}
+
 function envVarFor(authType: string): string {
     return authType === 'subscription' ? 'CLAUDE_CODE_OAUTH_TOKEN' : 'ANTHROPIC_API_KEY'
 }
@@ -54,11 +62,18 @@ export const devConnect = async (c: Context) => {
         const instanceId = c.req.param('id')
         const instance = await getOwnedInstance(instanceId, resolveUserId(c))
         if (!instance) return fail(c, 'Instance not found', 404)
+        if (!devAvailable(instance)) return fail(c, 'התכונה אינה זמינה בתוכנית שלכם', 403)
         if (!instance.ip) return fail(c, 'ה-VPS עדיין לא מוכן', 409)
 
         const body = await c.req.json<{ authType?: string; secret?: string }>().catch(() => ({} as { authType?: string; secret?: string }))
+        // 'existing' → reuse the Anthropic key already connected in the AI card
+        // (server-side; the frontend never sees the key).
         const authType = body.authType === 'subscription' ? 'subscription' : 'apikey'
-        const secret = (body.secret || '').trim()
+        let secret = (body.secret || '').trim()
+        if (body.authType === 'existing') {
+            secret = (instance.aiProviderKey || '').trim()
+            if (!secret) return fail(c, 'אין מפתח Anthropic מחובר בכרטיס ה-AI', 400)
+        }
         if (!secret) return fail(c, 'חסר מפתח / טוקן', 400)
 
         await writeVpsEnv(instance.ip, instance.rootPassword, authType, secret)
@@ -86,6 +101,7 @@ export const devStatus = async (c: Context) => {
         const instance = await getOwnedInstance(instanceId, resolveUserId(c))
         if (!instance) return fail(c, 'Instance not found', 404)
         return ok(c, {
+            available: devAvailable(instance),
             connected: !!instance.devAuthType,
             authType: instance.devAuthType || null,
             connectedAt: instance.devConnectedAt || null,
