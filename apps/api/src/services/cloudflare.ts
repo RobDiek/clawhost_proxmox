@@ -91,7 +91,16 @@ const cloudflare = {
 
         const client = getClient()
         const zoneId = getZoneId()
-        const fullName = `${subdomain}.clawhost.cloud`
+        // Build the FQDN the same way createDNSRecord stores it: short names get
+        // the zone appended by Cloudflare, full names are used as-is. The old
+        // hardcoded `.clawhost.cloud` suffix predates the flowmatic.co.il domain
+        // migration, so it never matched a live record → every findDNSRecord
+        // returned null → terminate / agent-delete left DANGLING A records on
+        // recycled IPs (and sgtmProvisioner re-created instead of updating).
+        const zoneName = process.env.CLOUDFLARE_ZONE_NAME || 'flowmatic.co.il'
+        const fullName = subdomain.endsWith(`.${zoneName}`)
+            ? subdomain
+            : `${subdomain}.${zoneName}`
 
         const promise = client.dns.records
             .list({
