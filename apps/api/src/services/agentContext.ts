@@ -163,6 +163,20 @@ export async function readResearchData(
     instanceId: string,
 ): Promise<ResearchData> {
     if (agent) {
+        // Phase 2.2 — when data_home='vps', the on-VPS sovereign-store is the
+        // read source. Central is kept identical via dual-write (P2.1), so any
+        // miss/error transparently falls back to central — a read never breaks.
+        try {
+            const { instances } = await import('@/db/schema')
+            const [inst] = await db.select({ dh: instances.dataHome }).from(instances).where(eq(instances.id, instanceId))
+            if (inst?.dh === 'vps') {
+                const { readResearchData: readSovereign } = await import('./sovereign/client')
+                const remote = await readSovereign(instanceId, agent.id, 5000)
+                if (remote && typeof remote === 'object') return remote as ResearchData
+            }
+        } catch (err) {
+            console.error('[sovereign read] research_data → central fallback:', err instanceof Error ? err.message : err)
+        }
         return (agent.researchData as ResearchData) || {}
     }
     // Fallback: legacy instance with no agent row
