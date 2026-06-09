@@ -7,7 +7,6 @@ import { readFileSync } from 'fs'
 import { resolve } from 'path'
 
 import app from '@/app'
-import setupTerminalSocket from '@/services/terminalSocket'
 import { startOnboardingBot } from '@/services/onboardingBot'
 import { setupChatWebSocket } from '@/services/chatServer'
 import { setupTerminalServer } from '@/services/terminalServer'

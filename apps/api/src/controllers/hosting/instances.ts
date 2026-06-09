@@ -294,6 +294,31 @@ export const getInstance = async (c: Context<HonoEnv>) => {
         response.hasGtmScope = _scopeText.includes('tagmanager') || _scopeTokens.includes('gtm')
         response.hasGa4Scope = _scopeText.includes('analytics') || _scopeTokens.includes('ga4') || _scopeTokens.includes('analytics')
 
+        // Phase 0 — never echo high-value secrets to the browser. The dashboard
+        // renders connection state from the has* flags computed above; raw
+        // provider API keys and OAuth token bundles must not leave the server
+        // (previously they were returned here and cached in localStorage).
+        // Kept: openclawToken / automationPassword (the user's own VPS service
+        // logins, shown in the credentials card) and googleAdsConfig (its
+        // non-secret customerId drives the Ads UI). rootPassword already masked.
+        for (const k of [
+            'aiProviderKey',
+            'openaiApiKey',
+            'falApiKey',
+            'elevenlabsApiKey',
+            'dataforseoKey',
+            'firecrawlKey',
+            'googleTokens',
+            'metaTokens',
+            'microsoftTokens',
+            'gscTokens',
+            'githubConfig',
+            'telegramBotToken',
+            'telegramWebhookSecret'
+        ]) {
+            delete (response as Record<string, unknown>)[k]
+        }
+
         return ok(c, response, 'Instance retrieved.')
     } catch (err) {
         console.error('Get instance error:', err)

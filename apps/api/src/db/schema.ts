@@ -16,6 +16,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 import { userRole } from '@openclaw/shared'
+import { encryptedText, encryptedJsonb } from '@/db/encryptedColumn'
 
 export const users = pgTable('users', {
     id: text('id').primaryKey(),
@@ -37,102 +38,6 @@ export const users = pgTable('users', {
         .notNull()
 })
 
-export const claws = pgTable(
-    'claws',
-    {
-        id: text('id').primaryKey(),
-        userId: text('user_id')
-            .notNull()
-            .references(() => users.id, { onDelete: 'cascade' }),
-        name: text('name').notNull(),
-        provider: text('provider').notNull().default('hetzner'),
-        providerServerId: text('provider_server_id'),
-        status: text('status').notNull().default('creating'),
-        ip: text('ip'),
-        planId: text('plan_id').notNull(),
-        location: text('location'),
-        rootPassword: text('root_password'),
-        sshKeyId: text('ssh_key_id').references(() => sshKeys.id, {
-            onDelete: 'set null'
-        }),
-        subdomain: text('subdomain').unique(),
-        gatewayToken: text('gateway_token'),
-        polarSubscriptionId: text('polar_subscription_id').unique(),
-        polarProductId: text('polar_product_id'),
-        polarCustomerId: text('polar_customer_id'),
-        subscriptionStatus: text('subscription_status').default('pending'),
-        billingInterval: text('billing_interval'),
-        deletionScheduledAt: timestamp('deletion_scheduled_at', {
-            withTimezone: true
-        }),
-        lastReinstalledAt: timestamp('last_reinstalled_at', {
-            withTimezone: true
-        }),
-        createdAt: timestamp('created_at', { withTimezone: true })
-            .defaultNow()
-            .notNull()
-    },
-    (table) => [
-        index('claws_user_id_idx').on(table.userId),
-        index('claws_polar_subscription_id_idx').on(table.polarSubscriptionId),
-        index('claws_subdomain_idx').on(table.subdomain),
-        index('claws_deletion_scheduled_at_idx').on(table.deletionScheduledAt)
-    ]
-)
-
-export const pendingClaws = pgTable(
-    'pending_claws',
-    {
-        id: text('id').primaryKey(),
-        userId: text('user_id')
-            .notNull()
-            .references(() => users.id, { onDelete: 'cascade' }),
-        checkoutId: text('checkout_id').notNull().unique(),
-        name: text('name').notNull(),
-        provider: text('provider').notNull().default('hetzner'),
-        planId: text('plan_id').notNull(),
-        location: text('location').notNull(),
-        rootPassword: text('root_password'),
-        sshKeyId: text('ssh_key_id').references(() => sshKeys.id, {
-            onDelete: 'set null'
-        }),
-        volumeSize: integer('volume_size'),
-        priceMonthly: integer('price_monthly').notNull(),
-        billingInterval: text('billing_interval'),
-        createdAt: timestamp('created_at', { withTimezone: true })
-            .defaultNow()
-            .notNull(),
-        expiresAt: timestamp('expires_at', { withTimezone: true }).notNull()
-    },
-    (table) => [
-        index('pending_claws_user_id_idx').on(table.userId),
-        index('pending_claws_expires_at_idx').on(table.expiresAt)
-    ]
-)
-
-export const sshKeys = pgTable(
-    'ssh_keys',
-    {
-        id: text('id').primaryKey(),
-        userId: text('user_id')
-            .notNull()
-            .references(() => users.id, { onDelete: 'cascade' }),
-        name: text('name').notNull(),
-        publicKey: text('public_key').notNull(),
-        fingerprint: text('fingerprint').notNull(),
-        providerKeyId: integer('provider_key_id'),
-        digitaloceanKeyId: integer('digitalocean_key_id'),
-        vultrKeyId: integer('vultr_key_id'),
-        createdAt: timestamp('created_at', { withTimezone: true })
-            .defaultNow()
-            .notNull()
-    },
-    (table) => [
-        index('ssh_keys_user_id_idx').on(table.userId),
-        unique('ssh_keys_user_fingerprint').on(table.userId, table.fingerprint)
-    ]
-)
-
 export const rateLimits = pgTable('rate_limits', {
     key: text('key').primaryKey(),
     lastSentAt: timestamp('last_sent_at', { withTimezone: true }).notNull()
@@ -151,24 +56,6 @@ export const otpCodes = pgTable(
             .notNull()
     },
     (table) => [index('otp_codes_email_idx').on(table.email)]
-)
-
-export const clawExports = pgTable(
-    'claw_exports',
-    {
-        id: text('id').primaryKey(),
-        userId: text('user_id')
-            .notNull()
-            .references(() => users.id, { onDelete: 'cascade' }),
-        clawId: text('claw_id')
-            .notNull()
-            .references(() => claws.id, { onDelete: 'cascade' }),
-        fileSize: integer('file_size'),
-        createdAt: timestamp('created_at', { withTimezone: true })
-            .defaultNow()
-            .notNull()
-    },
-    (table) => [index('claw_exports_claw_id_idx').on(table.clawId)]
 )
 
 export const emails = pgTable(
@@ -202,31 +89,6 @@ export const waitlist = pgTable(
             .notNull()
     },
     (table) => [index('waitlist_email_idx').on(table.email)]
-)
-
-export const volumes = pgTable(
-    'volumes',
-    {
-        id: text('id').primaryKey(),
-        userId: text('user_id')
-            .notNull()
-            .references(() => users.id, { onDelete: 'cascade' }),
-        clawId: text('claw_id').references(() => claws.id, {
-            onDelete: 'cascade'
-        }),
-        name: text('name').notNull(),
-        size: integer('size').notNull(),
-        providerVolumeId: integer('provider_volume_id'),
-        location: text('location').notNull(),
-        status: text('status').notNull().default('creating'),
-        createdAt: timestamp('created_at', { withTimezone: true })
-            .defaultNow()
-            .notNull()
-    },
-    (table) => [
-        index('volumes_user_id_idx').on(table.userId),
-        index('volumes_claw_id_idx').on(table.clawId)
-    ]
 )
 
 // ═══════════════════════════════════════════════════
@@ -306,10 +168,11 @@ export const instances = pgTable(
         subdomainAgent: text('subdomain_agent'),
         subdomainFlows: text('subdomain_flows'),
 
-        // Credentials (encrypted at rest)
-        openclawToken: text('openclaw_token'),
-        automationPassword: text('automation_password'),
-        rootPassword: text('root_password'),
+        // Credentials — encrypted at rest via encryptedText/encryptedJsonb
+        // (db/encryptedColumn.ts → services/secretCrypto.ts, AES-256-GCM).
+        openclawToken: encryptedText('openclaw_token'),
+        automationPassword: encryptedText('automation_password'),
+        rootPassword: encryptedText('root_password'),
 
         // Billing (AllPay)
         allpaySubscriptionId: text('allpay_subscription_id'),
@@ -336,9 +199,9 @@ export const instances = pgTable(
         subdomainName: text('subdomain_name').unique(),
 
         // AI Provider keys (user's own keys)
-        aiProviderKey: text('ai_provider_key'),     // Anthropic key
+        aiProviderKey: encryptedText('ai_provider_key'),     // Anthropic key
         aiProviderType: text('ai_provider_type'),   // 'anthropic' | 'openai'
-        openaiApiKey: text('openai_api_key'),       // OpenAI key (separate, both can coexist)
+        openaiApiKey: encryptedText('openai_api_key'),       // OpenAI key (separate, both can coexist)
 
         // Claude Developer agent (roadmap/15) — BYO Claude for the on-VPS coding agent
         devAuthType: text('dev_auth_type'),         // 'apikey' | 'subscription' | null
@@ -346,24 +209,24 @@ export const instances = pgTable(
         devConnectedAt: timestamp('dev_connected_at'),
 
         // Creative generation BYOK (Phase B2)
-        falApiKey: text('fal_api_key'),              // fal.ai key for image/video generation
-        elevenlabsApiKey: text('elevenlabs_api_key'),// ElevenLabs key for Hebrew TTS
+        falApiKey: encryptedText('fal_api_key'),              // fal.ai key for image/video generation
+        elevenlabsApiKey: encryptedText('elevenlabs_api_key'),// ElevenLabs key for Hebrew TTS
 
         // Sub-agent model configuration (from dashboard selector)
         subAgentModels: jsonb('sub_agent_models'),  // { sayer: "anthropic/claude-opus-4-6", ... }
 
         // Google Workspace OAuth tokens
-        googleTokens: jsonb('google_tokens'),       // { accessToken, refreshToken, expiresAt, scopes[], email }
-        metaTokens: jsonb('meta_tokens'),             // { appId, appSecret, userAccessToken, pageAccessToken, pageId, instagramAccountId, adAccountId }
-        microsoftTokens: jsonb('microsoft_tokens'),   // { accessToken, refreshToken, expiresAt, scopes[], email }
+        googleTokens: encryptedJsonb('google_tokens'),       // { accessToken, refreshToken, expiresAt, scopes[], email }
+        metaTokens: encryptedJsonb('meta_tokens'),             // { appId, appSecret, userAccessToken, pageAccessToken, pageId, instagramAccountId, adAccountId }
+        microsoftTokens: encryptedJsonb('microsoft_tokens'),   // { accessToken, refreshToken, expiresAt, scopes[], email }
 
         // SEO/AEO integrations
-        gscTokens: jsonb('gsc_tokens'),               // { accessToken, refreshToken, expiresAt, email, siteUrl, sites[] }
+        gscTokens: encryptedJsonb('gsc_tokens'),               // { accessToken, refreshToken, expiresAt, email, siteUrl, sites[] }
         // DataForSEO: legacy direct-key field. Used only when dfsUseProxy=false (advanced mode).
         // Default flow uses Flowmatic-managed proxy with per-tenant USD balance.
-        dataforseoKey: text('dataforseo_key'),         // legacy: tenant's own DFS login:password
+        dataforseoKey: encryptedText('dataforseo_key'),         // legacy: tenant's own DFS login:password
         dataforseoKeyLegacy: text('dataforseo_key_legacy'),  // backup of pre-migration key
-        firecrawlKey: text('firecrawl_key'),           // Firecrawl API key
+        firecrawlKey: encryptedText('firecrawl_key'),           // Firecrawl API key
 
         // ── DataForSEO proxy + credits (Phase 3.6) ──
         // Source-of-truth balance, atomically debited per DFS call.
@@ -379,13 +242,13 @@ export const instances = pgTable(
         dfsAllpayPaymentToken:            text('dfs_allpay_payment_token'),
 
         // GitHub (content publishing)
-        githubConfig: jsonb('github_config'),           // { token, repo, branch, contentPath }
+        githubConfig: encryptedJsonb('github_config'),           // { token, repo, branch, contentPath }
 
         // Google Ads — self vs managed mode
         // self: user's own OAuth + Developer Token + Customer ID
         // managed: Flowmatic MCC + our env creds + auto-created sub-account (HaaS Silver/Gold)
         googleAdsMode: text('google_ads_mode').default('self'),  // 'self' | 'managed'
-        googleAdsConfig: jsonb('google_ads_config'),    // { customerId, developerToken?, linkedAt?, mccSubAccountId? }
+        googleAdsConfig: encryptedJsonb('google_ads_config'),    // { customerId, developerToken?, linkedAt?, mccSubAccountId? }
 
         // HaaS subscription tier (optional — drives ads mode + support level)
         // null              = no HaaS row chosen yet
@@ -399,10 +262,10 @@ export const instances = pgTable(
 
         // Telegram
         telegramChatId: text('telegram_chat_id'),
-        telegramBotToken: text('telegram_bot_token'),
+        telegramBotToken: encryptedText('telegram_bot_token'),
         // Secret token Telegram echoes back on every webhook call so we can
         // verify the request genuinely came from Telegram (not a rando).
-        telegramWebhookSecret: text('telegram_webhook_secret'),
+        telegramWebhookSecret: encryptedText('telegram_webhook_secret'),
 
         // Referral / Trial
         freeUntil: timestamp('free_until', { withTimezone: true }),
@@ -452,31 +315,31 @@ export const matehAgents = pgTable(
         subdomainAgent: text('subdomain_agent'),
         subdomainFlows: text('subdomain_flows'),
         gatewayPort: integer('gateway_port'),
-        openclawToken: text('openclaw_token'),
-        automationPassword: text('automation_password'),
-        aiProviderKey: text('ai_provider_key'),
+        openclawToken: encryptedText('openclaw_token'),
+        automationPassword: encryptedText('automation_password'),
+        aiProviderKey: encryptedText('ai_provider_key'),
         aiProviderType: text('ai_provider_type'),
-        openaiApiKey: text('openai_api_key'),
-        falApiKey: text('fal_api_key'),
-        elevenlabsApiKey: text('elevenlabs_api_key'),
-        dataforseoKey: text('dataforseo_key'),
-        firecrawlKey: text('firecrawl_key'),
+        openaiApiKey: encryptedText('openai_api_key'),
+        falApiKey: encryptedText('fal_api_key'),
+        elevenlabsApiKey: encryptedText('elevenlabs_api_key'),
+        dataforseoKey: encryptedText('dataforseo_key'),
+        firecrawlKey: encryptedText('firecrawl_key'),
         subAgentModels: jsonb('sub_agent_models'),
-        googleTokens: jsonb('google_tokens'),
-        metaTokens: jsonb('meta_tokens'),
-        microsoftTokens: jsonb('microsoft_tokens'),
-        gscTokens: jsonb('gsc_tokens'),
+        googleTokens: encryptedJsonb('google_tokens'),
+        metaTokens: encryptedJsonb('meta_tokens'),
+        microsoftTokens: encryptedJsonb('microsoft_tokens'),
+        gscTokens: encryptedJsonb('gsc_tokens'),
         // Phase 4.3-P: Google Ads config moved from instances → per-agent.
         // Same shape as instances.googleAdsConfig: { customerId, loginCustomerId,
         // developerToken, scope: { mode, operatingCustomerId, campaignIds[], ... } }.
         // Secondary agents (same MCC, different operatingCustomer + campaigns) now
         // have their own isolated config so cross-agent leak ends.
         googleAdsMode: text('google_ads_mode'),         // 'self' | 'managed' (no default — inherit from instance for legacy)
-        googleAdsConfig: jsonb('google_ads_config'),
-        githubConfig: jsonb('github_config'),
+        googleAdsConfig: encryptedJsonb('google_ads_config'),
+        githubConfig: encryptedJsonb('github_config'),
         telegramChatId: text('telegram_chat_id'),
-        telegramBotToken: text('telegram_bot_token'),
-        telegramWebhookSecret: text('telegram_webhook_secret'),
+        telegramBotToken: encryptedText('telegram_bot_token'),
+        telegramWebhookSecret: encryptedText('telegram_webhook_secret'),
         researchData: jsonb('research_data'),
         onboardingStep: integer('onboarding_step').notNull().default(0),
         onboardingCompleted: boolean('onboarding_completed').notNull().default(false),
@@ -1268,7 +1131,7 @@ export const dfsCache = pgTable('dfs_cache', {
     cacheKey:   text('cache_key').primaryKey(),       // sha256(instanceId + endpoint + paramsHash)
     instanceId: text('instance_id').notNull(),        // owning tenant
     endpoint:   text('endpoint').notNull(),           // e.g. "labs/keyword_ideas"
-    response:   jsonb('response').notNull(),          // raw DFS response payload
+    response:   encryptedJsonb('response').notNull(), // raw DFS response (encrypted at rest)
     cost:       text('cost'),                         // DFS-reported cost in USD (string for precision)
     expiresAt:  timestamp('expires_at', { withTimezone: true }).notNull(),
     createdAt:  timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
