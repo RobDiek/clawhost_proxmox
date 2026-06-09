@@ -230,6 +230,11 @@ export async function writeResearchData(
             .set({ researchData: next as never })
             .where(eq(instances.id, instanceId))
     }
+    // Phase 2.1 — best-effort shadow to the on-VPS sovereign-store when this
+    // instance's data_home != 'central'. Never throws; central stays canonical.
+    // Scope = agent id (per-agent research_data) with instanceId as legacy fallback.
+    const { shadowResearchData } = await import('./sovereign/dualWrite')
+    await shadowResearchData(instanceId, agent?.id ?? instanceId, next)
 }
 
 /**
