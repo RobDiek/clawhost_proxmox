@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { devConnect, devStatus, devDisconnect } from '@/controllers/hosting/devAgent'
 import {
     configureInstance,
     checkout,
@@ -432,6 +433,10 @@ app.get('/instances', getInstances)
 app.get('/instances/:id', getInstance)
 app.get('/instances/:id/status', getInstanceStatus)
 app.post('/instances/:id/restart', restartInstance)
+// Claude Developer agent (roadmap/15) — connect/status/disconnect
+app.post('/instances/:id/dev/connect', devConnect)
+app.get('/instances/:id/dev/status', devStatus)
+app.post('/instances/:id/dev/disconnect', devDisconnect)
 app.post('/instances/:id/upgrade-plan', upgradePlan)
 app.post('/instances/:id/add-storage', addStorage)
 app.delete('/instances/:id', deleteInstance)

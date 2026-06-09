@@ -340,6 +340,11 @@ export const instances = pgTable(
         aiProviderType: text('ai_provider_type'),   // 'anthropic' | 'openai'
         openaiApiKey: text('openai_api_key'),       // OpenAI key (separate, both can coexist)
 
+        // Claude Developer agent (roadmap/15) — BYO Claude for the on-VPS coding agent
+        devAuthType: text('dev_auth_type'),         // 'apikey' | 'subscription' | null
+        devAuthSecret: text('dev_auth_secret'),     // Anthropic API key OR Claude OAuth token
+        devConnectedAt: timestamp('dev_connected_at'),
+
         // Creative generation BYOK (Phase B2)
         falApiKey: text('fal_api_key'),              // fal.ai key for image/video generation
         elevenlabsApiKey: text('elevenlabs_api_key'),// ElevenLabs key for Hebrew TTS
