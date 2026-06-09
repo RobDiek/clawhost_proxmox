@@ -7,6 +7,7 @@ import { eq } from 'drizzle-orm'
 import pg from 'pg'
 
 import { userIdFromJwt } from '@/controllers/hosting/authHelper'
+import { decryptSecret } from '@/services/secretCrypto'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const DB_URL = process.env.DATABASE_URL || ''
@@ -26,7 +27,12 @@ async function getOwnedInstanceInfo(instanceId: string, userId: string): Promise
     try {
         const res = await client.query('SELECT ip, root_password FROM instances WHERE id = $1 AND user_id = $2 AND status = $3', [instanceId, userId, 'running'])
         if (!res.rows[0]?.ip) return null
-        return { ip: res.rows[0].ip, password: res.rows[0].root_password }
+        // root_password is an encryptedText column — this RAW pg query returns the
+        // ciphertext (Drizzle's transparent decrypt doesn't apply here). Decrypt it
+        // before using it as the SSH password, or auth fails and the console shows
+        // "נותק". decryptSecret() passes legacy plaintext through unchanged.
+        const pw = res.rows[0].root_password as string | null
+        return { ip: res.rows[0].ip, password: pw ? decryptSecret(pw) : null }
     } finally { client.release() }
 }
 
@@ -37,7 +43,12 @@ async function getInstanceInfoAdmin(instanceId: string): Promise<{ ip: string; p
     try {
         const res = await client.query('SELECT ip, root_password FROM instances WHERE id = $1', [instanceId])
         if (!res.rows[0]?.ip) return null
-        return { ip: res.rows[0].ip, password: res.rows[0].root_password }
+        // root_password is an encryptedText column — this RAW pg query returns the
+        // ciphertext (Drizzle's transparent decrypt doesn't apply here). Decrypt it
+        // before using it as the SSH password, or auth fails and the console shows
+        // "נותק". decryptSecret() passes legacy plaintext through unchanged.
+        const pw = res.rows[0].root_password as string | null
+        return { ip: res.rows[0].ip, password: pw ? decryptSecret(pw) : null }
     } finally { client.release() }
 }
 
