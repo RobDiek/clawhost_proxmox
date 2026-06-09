@@ -215,6 +215,13 @@ import { runConversionSetupAudit } from '@/services/conversionSetupAudit'
 setInterval(() => { runConversionSetupAudit().catch(err => console.error('[conversionAudit] cron error:', err)) }, 60 * 60 * 1000)
 setTimeout(() => { runConversionSetupAudit().catch(err => console.error('[conversionAudit] first run error:', err)) }, 420 * 1000)
 
+// Phase 2.1 — Sovereign reconcile: mirror canonical tenant content (research_data,
+// brand_book, agent_outputs) into each tenant's on-VPS sovereign-store for instances
+// with data_home != 'central'. No-op until an instance is opted into the soak.
+import { runSovereignReconcile } from '@/services/sovereign/reconcile'
+setInterval(() => { runSovereignReconcile().catch(err => console.error('[sovereignReconcile] cron error:', err)) }, 5 * 60 * 1000)
+setTimeout(() => { runSovereignReconcile().catch(err => console.error('[sovereignReconcile] first run error:', err)) }, 90 * 1000)
+
 // Trial manager — check trial expiry every hour
 import { runTrialManager } from '@/jobs/trialManager'
 setInterval(runTrialManager, 3600000) // every hour
