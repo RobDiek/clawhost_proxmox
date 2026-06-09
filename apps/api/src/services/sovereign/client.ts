@@ -101,12 +101,15 @@ async function call(
 async function readSingleton(
     instanceId: string,
     scope: string,
-    kind: SovereignKind
+    kind: SovereignKind,
+    timeoutMs?: number
 ): Promise<unknown | null> {
     const { status, json } = await call(
         instanceId,
         'GET',
-        `/singleton?scope=${encodeURIComponent(scope)}&kind=${kind}`
+        `/singleton?scope=${encodeURIComponent(scope)}&kind=${kind}`,
+        undefined,
+        timeoutMs
     )
     if (status === 404) return null
     if (status !== 200) {
@@ -141,8 +144,11 @@ async function writeSingleton(
     }
 }
 
-export const readResearchData = (instanceId: string, scope: string) =>
-    readSingleton(instanceId, scope, 'research_data')
+export const readResearchData = (
+    instanceId: string,
+    scope: string,
+    timeoutMs?: number
+) => readSingleton(instanceId, scope, 'research_data', timeoutMs)
 export const writeResearchData = (
     instanceId: string,
     scope: string,
