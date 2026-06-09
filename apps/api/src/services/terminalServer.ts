@@ -51,7 +51,9 @@ async function verifyAdminToken(token: string): Promise<{ ok: boolean; adminId?:
 
 const PING_INTERVAL = 5000
 
-function handleTerminalConnection(ws: WebSocket, ip: string, password?: string | null) {
+// startupCmd: when set, runs that command in a PTY (e.g. launch `claude` as the
+// developer user) instead of a plain login shell. Used by /ws/claude/:id.
+function handleTerminalConnection(ws: WebSocket, ip: string, password?: string | null, startupCmd?: string) {
     const conn = new Client()
     let sshReady = false
 
@@ -61,38 +63,43 @@ function handleTerminalConnection(ws: WebSocket, ip: string, password?: string |
 
     ws.on('close', () => clearInterval(pingTimer))
 
+    const onStream = (err: Error | undefined, stream: any) => {
+        if (err) { ws.close(); conn.end(); return }
+
+        stream.on('data', (data: Buffer) => {
+            if (ws.readyState === WebSocket.OPEN) ws.send(data.toString('utf-8'))
+        })
+        // exec channels also emit stderr — surface it in the terminal
+        if (stream.stderr) stream.stderr.on('data', (data: Buffer) => {
+            if (ws.readyState === WebSocket.OPEN) ws.send(data.toString('utf-8'))
+        })
+
+        stream.on('close', () => { ws.close(); conn.end() })
+
+        ws.on('message', (msg: Buffer | string) => {
+            const str = typeof msg === 'string' ? msg : msg.toString('utf-8')
+
+            if (str[0] === '{') {
+                try {
+                    const parsed = JSON.parse(str)
+                    if (parsed.type === 'resize' && parsed.cols && parsed.rows) {
+                        stream.setWindow(parsed.rows, parsed.cols, 0, 0)
+                        return
+                    }
+                } catch {}
+            }
+
+            stream.write(str)
+        })
+
+        ws.on('close', () => { stream.close(); conn.end() })
+    }
+
     conn.on('ready', () => {
         sshReady = true
-        conn.shell(
-            { term: 'xterm-256color', cols: 80, rows: 24 },
-            (err, stream) => {
-                if (err) { ws.close(); conn.end(); return }
-
-                stream.on('data', (data: Buffer) => {
-                    if (ws.readyState === WebSocket.OPEN) ws.send(data.toString('utf-8'))
-                })
-
-                stream.on('close', () => { ws.close(); conn.end() })
-
-                ws.on('message', (msg: Buffer | string) => {
-                    const str = typeof msg === 'string' ? msg : msg.toString('utf-8')
-
-                    if (str[0] === '{') {
-                        try {
-                            const parsed = JSON.parse(str)
-                            if (parsed.type === 'resize' && parsed.cols && parsed.rows) {
-                                stream.setWindow(parsed.rows, parsed.cols, 0, 0)
-                                return
-                            }
-                        } catch {}
-                    }
-
-                    stream.write(str)
-                })
-
-                ws.on('close', () => { stream.close(); conn.end() })
-            }
-        )
+        const ptyOpts = { term: 'xterm-256color', cols: 80, rows: 24 }
+        if (startupCmd) conn.exec(startupCmd, { pty: ptyOpts }, onStream)
+        else conn.shell(ptyOpts, onStream)
     })
 
     conn.on('error', () => {
@@ -153,6 +160,26 @@ export function setupTerminalServer(server: Server) {
             return
         }
 
+        // Claude Developer (roadmap/15): /ws/claude/:id?token=<userJwt>
+        // Same ownership gate as the terminal, but launches Claude Code headed
+        // (its TUI) as the jailed `developer` user, sourcing the BYO-key env file.
+        const claudeMatch = url.match(/^\/ws\/claude\/([a-f0-9]+)(?:\?(.*))?/)
+        if (claudeMatch) {
+            const instanceId = claudeMatch[1]
+            const cqs2 = new URLSearchParams(claudeMatch[2] || '')
+            const uid = userIdFromJwt(cqs2.get('token') || '')
+            if (!uid) { socket.destroy(); return }
+            try {
+                const info = await getOwnedInstanceInfo(instanceId, uid)
+                if (!info) { socket.destroy(); return }
+                const startupCmd = "sudo -u developer bash -lc 'cd /home/developer/workspace && set -a && . /home/developer/.config/dev-agent.env 2>/dev/null && set +a && exec claude'"
+                wss.handleUpgrade(request, socket, head, (ws) => {
+                    handleTerminalConnection(ws, info.ip, info.password, startupCmd)
+                })
+            } catch { socket.destroy() }
+            return
+        }
+
         // Client terminal (Developer plan): /ws/terminal/:id?token=<userJwt>
         // SECURITY: require the JWT user to OWN the instance. Previously this
         // path only checked status='running' → any known instanceId opened a
@@ -177,5 +204,5 @@ export function setupTerminalServer(server: Server) {
         }
     })
 
-    console.log('🖥  Terminal WebSocket server ready on /ws/terminal/:id and /ws/admin/terminal/:id')
+    console.log('🖥  Terminal WebSocket server ready on /ws/terminal/:id, /ws/admin/terminal/:id and /ws/claude/:id')
 }
