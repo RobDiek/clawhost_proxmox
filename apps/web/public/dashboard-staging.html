@@ -1349,7 +1349,7 @@ input{font-family:inherit}
       window.claudeNewChat=function(){ chatSession=null; var m=el('claude-chat-msgs'); if(m)m.innerHTML=''; totalCost=0; setCost(); closeChat(); openChat(); };
 
       // ---- chat (stream-json) ----
-      var chatWs=null, chatSession=null, curTextEl=null, curText='', totalCost=0, busy=false;
+      var chatWs=null, chatSession=null, curTextEl=null, curText='', curThinkEl=null, curThink='', totalCost=0, busy=false;
       function msgs(){ return el('claude-chat-msgs'); }
       function scrollBottom(){ var m=msgs(); if(m) m.scrollTop=m.scrollHeight; }
       function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -1363,23 +1363,49 @@ input{font-family:inherit}
       function setBusy(b){ busy=b; var btn=el('claude-send'); if(btn){btn.disabled=b; btn.style.opacity=b?'0.5':'1';} }
       function addUser(text){ var m=msgs(); if(!m)return; var d=document.createElement('div'); d.style.cssText='margin:0 0 14px;display:flex;justify-content:flex-start'; d.innerHTML='<div style="background:#2563EB;color:#fff;border-radius:12px;padding:9px 13px;max-width:85%;white-space:pre-wrap;word-break:break-word">'+esc(text)+'</div>'; m.appendChild(d); scrollBottom(); }
       function newAssistantText(){ var m=msgs(); if(!m)return null; var d=document.createElement('div'); d.style.cssText='margin:0 0 12px;color:#e0e0e0;white-space:pre-wrap;word-break:break-word'; m.appendChild(d); scrollBottom(); return d; }
-      function newToolCard(id,name,summary){ var m=msgs(); if(!m)return; var d=document.createElement('div'); d.id='tc-'+id; d.style.cssText='margin:0 0 12px;background:#16213e;border:1px solid #2a3a5e;border-radius:10px;overflow:hidden;font-size:0.82rem';
-        d.innerHTML='<div style="padding:8px 12px;display:flex;gap:8px;align-items:center;color:#93C5FD"><span style="font-weight:700;flex-shrink:0">⚙ '+esc(name)+'</span><span style="color:#9CA3AF;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr">'+esc(summary||'')+'</span></div><div class="tc-out" style="display:none;border-top:1px solid #2a3a5e;padding:8px 12px;color:#9CA3AF;white-space:pre-wrap;word-break:break-word;max-height:240px;overflow:auto;font-family:monospace;font-size:0.76rem;direction:ltr"></div>';
+      function newThink(){ var m=msgs(); if(!m)return null; var d=document.createElement('div'); d.style.cssText='margin:0 0 10px;font-size:0.8rem';
+        d.innerHTML='<div class="th-hd" style="color:#6B7280;cursor:pointer;display:flex;gap:6px;align-items:center"><span class="th-chev" style="transition:transform .15s">▸</span><span style="font-style:italic">💭 חשיבה</span></div><div class="th-body" style="display:none;margin-top:4px;padding:6px 10px;border-inline-start:2px solid #374151;color:#6B7280;white-space:pre-wrap;word-break:break-word;font-style:italic"></div>';
+        d.querySelector(".th-hd").onclick=function(){ var b=d.querySelector(".th-body"),ch=d.querySelector(".th-chev"); var open=b.style.display!=="none"; b.style.display=open?"none":"block"; ch.style.transform=open?"":"rotate(90deg)"; if(!open)scrollBottom(); };
+        m.appendChild(d); scrollBottom(); return d; }
+      function newToolCard(id,name,summary){ var m=msgs(); if(!m)return; var d=document.createElement('div'); d.id='tc-'+id; d.style.cssText='margin:0 0 10px;background:#16213e;border:1px solid #2a3a5e;border-radius:10px;overflow:hidden;font-size:0.82rem';
+        d.innerHTML='<div class="tc-hd" style="padding:8px 12px;display:flex;gap:8px;align-items:center;color:#93C5FD;cursor:pointer">'
+          +'<span class="tc-chev" style="color:#6B7280;flex-shrink:0;transition:transform .15s">▸</span>'
+          +'<span style="font-weight:700;flex-shrink:0">'+esc(name)+'</span>'
+          +'<span style="color:#9CA3AF;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;flex:1">'+esc(summary||'')+'</span>'
+          +'<span class="tc-stat" style="flex-shrink:0;color:#6B7280">…</span></div>'
+          +'<div class="tc-out" style="display:none;border-top:1px solid #2a3a5e;padding:8px 12px;color:#cbd5e1;white-space:pre-wrap;word-break:break-word;max-height:280px;overflow:auto;font-family:monospace;font-size:0.75rem;direction:ltr"></div>';
+        d.querySelector(".tc-hd").onclick=function(){ var o=d.querySelector(".tc-out"),ch=d.querySelector(".tc-chev"); var open=o.style.display!=="none"; o.style.display=open?"none":"block"; ch.style.transform=open?"":"rotate(90deg)"; if(!open)scrollBottom(); };
         m.appendChild(d); scrollBottom(); }
-      function toolSummary(name,input){ if(!input)return ''; return input.file_path||input.path||input.command||input.pattern||input.url||input.prompt||(typeof input==='object'?JSON.stringify(input).slice(0,140):String(input)); }
-      function fillTool(id,content,isErr){ var d=el('tc-'+id); if(!d)return; var o=d.querySelector('.tc-out'); if(!o)return; var txt=typeof content==='string'?content:(Array.isArray(content)?content.map(function(x){return x&&x.text?x.text:(typeof x==='string'?x:JSON.stringify(x));}).join('\n'):JSON.stringify(content)); o.textContent=String(txt).slice(0,4000); o.style.display='block'; if(isErr)o.style.color='#FCA5A5'; scrollBottom(); }
+      function toolSummary(name,input){ if(input==null)return ''; if(typeof input!=='object')return String(input).slice(0,140);
+        if(input.command)return input.command;
+        if(input.file_path)return input.file_path;
+        if(input.path)return input.path;
+        if(input.pattern)return input.pattern+(input.path?(' · '+input.path):'');
+        if(input.query)return '🔍 '+input.query;
+        if(input.url)return input.url;
+        if(input.prompt)return String(input.prompt).slice(0,120);
+        if(input.description)return String(input.description).slice(0,120);
+        var k=Object.keys(input); return k.length?(k[0]+': '+String(input[k[0]]).slice(0,100)):''; }
+      function fillTool(id,content,isErr){ var d=el('tc-'+id); if(!d)return; var o=d.querySelector('.tc-out'),stat=d.querySelector('.tc-stat'); if(!o)return;
+        var txt=typeof content==='string'?content:(Array.isArray(content)?content.map(function(x){return x&&x.text?x.text:(typeof x==='string'?x:JSON.stringify(x));}).join('\n'):JSON.stringify(content));
+        o.textContent=String(txt).slice(0,6000);
+        if(stat){ stat.textContent=isErr?'✗':'✓'; stat.style.color=isErr?'#FCA5A5':'#6EE7B7'; }
+        if(isErr){ o.style.color='#FCA5A5'; o.style.display='block'; var ch=d.querySelector('.tc-chev'); if(ch)ch.style.transform='rotate(90deg)'; }
+        scrollBottom(); }
 
       function handleEvt(ev){
         if(ev.type==='system'&&ev.subtype==='init'){ chatSession=ev.session_id||chatSession; return; }
         if(ev.type==='stream_event'&&ev.event){
           var e=ev.event;
           if(e.type==='content_block_start'&&e.content_block&&e.content_block.type==='text'){ curTextEl=newAssistantText(); curText=''; }
+          else if(e.type==='content_block_start'&&e.content_block&&e.content_block.type==='thinking'){ curThinkEl=newThink(); curThink=''; }
           else if(e.type==='content_block_delta'&&e.delta&&e.delta.type==='text_delta'){ if(!curTextEl){curTextEl=newAssistantText();curText='';} curText+=e.delta.text||''; curTextEl.innerHTML=md(curText); scrollBottom(); }
+          else if(e.type==='content_block_delta'&&e.delta&&e.delta.type==='thinking_delta'){ if(!curThinkEl){curThinkEl=newThink();curThink='';} curThink+=e.delta.thinking||''; var tb=curThinkEl&&curThinkEl.querySelector('.th-body'); if(tb)tb.textContent=curThink; }
           return;
         }
         if(ev.type==='assistant'&&ev.message&&ev.message.content){
           ev.message.content.forEach(function(b){ if(b.type==='tool_use'&&!el('tc-'+b.id)) newToolCard(b.id,b.name,toolSummary(b.name,b.input)); });
-          curTextEl=null; curText='';
+          curTextEl=null; curText=''; curThinkEl=null; curThink='';
           return;
         }
         if(ev.type==='user'&&ev.message&&ev.message.content){
