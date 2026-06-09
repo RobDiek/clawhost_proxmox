@@ -287,6 +287,16 @@ export const instances = pgTable(
         // behavior so adding the column changes nothing until explicitly set.
         dataHome: text('data_home').default('central').notNull(),
 
+        // ── Execution inversion (Phase 2.3, roadmap/17) ──
+        // Gates HOW research/orchestration runs for this instance.
+        //   'central' — clawflow-api orchestrates + root-SSHes `openclaw agent`
+        //               into the VPS (status quo).
+        //   'vps'     — execution runs on the VPS (local orchestrator / agent),
+        //               center sends an authenticated run-job signal instead of
+        //               root-SSH. Reached only after the VPS path is proven.
+        // Rollback lever; default keeps today's central SSH path until flipped.
+        execMode: text('exec_mode').default('central').notNull(),
+
         createdAt: timestamp('created_at', { withTimezone: true })
             .defaultNow()
             .notNull(),
