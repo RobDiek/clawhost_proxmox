@@ -474,6 +474,8 @@ export const getMyInstances = async (c: Context) => {
                 id: i.id,
                 planKey: i.planKey,
                 priceIls: i.priceIls,
+                subscriptionStatus: i.subscriptionStatus,
+                nextBillingAt: i.nextBillingAt,
                 status: i.status,
                 selectedComponents: i.selectedComponents,
                 automationTool: i.automationTool,

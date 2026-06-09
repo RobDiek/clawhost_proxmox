@@ -141,22 +141,29 @@ const provisioner = {
         console.log(`Health daemon deployed to ${ip}`)
     },
 
-    async pollUntilReady(instanceId: string, serverId: string, subdomainAgent?: string, ip?: string, maxWaitMs: number = 600_000): Promise<boolean> {
+    async pollUntilReady(instanceId: string, serverId: string, subdomainAgent?: string, ip?: string, maxWaitMs: number = 1_200_000): Promise<boolean> {
         const provider = getProvider('hetzner')
         const start = Date.now()
 
         while (Date.now() - start < maxWaitMs) {
             const status = await provider.getServer(serverId)
-            if (status.status === 'running' && ip) {
-                // Check gateway port directly (not Nginx which may respond before gateway is installed)
+            if (status.status === 'running' && subdomainAgent) {
+                // The gateway binds to loopback only (nginx proxies it), so the
+                // public IP:3000 is NEVER reachable from here — probing it always
+                // failed → every provision fired a false "failed to become ready"
+                // alert. Probe the agent subdomain over HTTPS instead: 200/302/301/
+                // 401 means DNS + SSL + nginx + gateway are all up (302 = the
+                // gateway's redirect to the dashboard).
                 try {
-                    const res = await fetch(`http://${ip}:3000`, { signal: AbortSignal.timeout(5000) })
-                    if (res.ok || res.status === 401) {
-                        // 200 or 401 (auth required) means gateway is running
+                    const res = await fetch(`https://${subdomainAgent}/`, {
+                        signal: AbortSignal.timeout(8000),
+                        redirect: 'manual',
+                    })
+                    if (res.ok || res.status === 301 || res.status === 302 || res.status === 401) {
                         return true
                     }
                 } catch {
-                    // gateway not ready yet — keep polling
+                    // DNS/SSL/gateway still coming up — keep polling
                 }
             }
             await sleep(15_000)

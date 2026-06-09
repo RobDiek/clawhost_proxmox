@@ -352,6 +352,15 @@ export const handleAllpayWebhook = async (c: Context) => {
                 .set({ status: 'paid', paidAt: new Date() })
                 .where(eq(payments.allpayOrderId, orderId))
 
+            // Advance the next monthly billing date on every successful charge
+            // (first + recurring) so the dashboard can show "next charge: <date>".
+            // Self-serve is billed monthly; AllPay re-charges each cycle.
+            const nextBilling = new Date()
+            nextBilling.setMonth(nextBilling.getMonth() + 1)
+            await db.update(instances)
+                .set({ nextBillingAt: nextBilling })
+                .where(eq(instances.id, instanceId))
+
             // Sync the new customer into Meta Custom Audiences + Google
             // Customer Match so cold paid campaigns exclude them automatically.
             // Non-blocking — webhook returns 200 even if sync fails.
