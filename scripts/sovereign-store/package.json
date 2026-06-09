@@ -1,0 +1,14 @@
+{
+  "name": "sovereign-store",
+  "version": "0.1.0",
+  "private": true,
+  "description": "On-VPS canonical store for tenant content (tenant sovereignty Phase 2). Loopback HTTP + SQLite (WAL).",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.0"
+  }
+}

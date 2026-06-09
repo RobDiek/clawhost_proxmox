@@ -276,6 +276,17 @@ export const instances = pgTable(
         lastHealthAt: timestamp('last_health_at', { withTimezone: true }),
         autoHeal: boolean('auto_heal').default(true),
 
+        // ── Tenant sovereignty (Phase 2, roadmap/16 + /17) ──
+        // Gates where research_data / agent_outputs / brand_books are canonical.
+        //   'central' — central Postgres is the source of truth (status quo).
+        //   'dual'    — central canonical + best-effort shadow write to the
+        //               on-VPS sovereign-store (P2.1; reads still from central).
+        //   'vps'     — VPS sovereign-store is canonical; central is shadow
+        //               during the rollback window (P2.2+).
+        // Every flip of this flag is the rollback lever; default keeps today's
+        // behavior so adding the column changes nothing until explicitly set.
+        dataHome: text('data_home').default('central').notNull(),
+
         createdAt: timestamp('created_at', { withTimezone: true })
             .defaultNow()
             .notNull(),
