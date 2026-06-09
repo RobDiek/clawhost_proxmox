@@ -56,9 +56,21 @@ const TEXT_COLS_AGENTS = TEXT_COLS_INSTANCES.filter((c) => c !== 'root_password'
 let textUpdated = 0
 let jsonbUpdated = 0
 
-const backfillText = async (table: string, col: string) => {
+// Optional staged rollout: ONLY_INSTANCE=<vps id> restricts the backfill to a
+// single instance (instances.id / mateh_agents.vps_instance_id) so it can be
+// verified on a non-critical instance before the rest.
+const ONLY = process.env.ONLY_INSTANCE
+
+const whereFilter = (filterCol: string) =>
+    ONLY ? sql` AND ${sql.identifier(filterCol)} = ${ONLY}` : sql``
+
+const backfillText = async (
+    table: string,
+    col: string,
+    filterCol: string
+) => {
     const rows = (await db.execute(
-        sql`SELECT id, ${sql.identifier(col)} AS v FROM ${sql.identifier(table)} WHERE ${sql.identifier(col)} IS NOT NULL`
+        sql`SELECT id, ${sql.identifier(col)} AS v FROM ${sql.identifier(table)} WHERE ${sql.identifier(col)} IS NOT NULL${whereFilter(filterCol)}`
     )) as unknown as { rows: Array<{ id: string; v: string }> }
     for (const r of rows.rows) {
         if (isEncrypted(r.v)) continue
@@ -70,9 +82,13 @@ const backfillText = async (table: string, col: string) => {
     }
 }
 
-const backfillJsonb = async (table: string, col: string) => {
+const backfillJsonb = async (
+    table: string,
+    col: string,
+    filterCol: string
+) => {
     const rows = (await db.execute(
-        sql`SELECT id, ${sql.identifier(col)} AS v FROM ${sql.identifier(table)} WHERE ${sql.identifier(col)} IS NOT NULL`
+        sql`SELECT id, ${sql.identifier(col)} AS v FROM ${sql.identifier(table)} WHERE ${sql.identifier(col)} IS NOT NULL${whereFilter(filterCol)}`
     )) as unknown as { rows: Array<{ id: string; v: unknown }> }
     for (const r of rows.rows) {
         // Already-encrypted rows come back as a JSON string scalar (enc:v1:...).
@@ -86,10 +102,14 @@ const backfillJsonb = async (table: string, col: string) => {
 }
 
 const main = async () => {
-    for (const col of TEXT_COLS_INSTANCES) await backfillText('instances', col)
-    for (const col of JSONB_COLS) await backfillJsonb('instances', col)
-    for (const col of TEXT_COLS_AGENTS) await backfillText('mateh_agents', col)
-    for (const col of JSONB_COLS) await backfillJsonb('mateh_agents', col)
+    if (ONLY) console.log(`Scoped to instance: ${ONLY}`)
+    for (const col of TEXT_COLS_INSTANCES)
+        await backfillText('instances', col, 'id')
+    for (const col of JSONB_COLS) await backfillJsonb('instances', col, 'id')
+    for (const col of TEXT_COLS_AGENTS)
+        await backfillText('mateh_agents', col, 'vps_instance_id')
+    for (const col of JSONB_COLS)
+        await backfillJsonb('mateh_agents', col, 'vps_instance_id')
     console.log(
         `Backfill complete: ${textUpdated} text + ${jsonbUpdated} jsonb secret values encrypted.`
     )
