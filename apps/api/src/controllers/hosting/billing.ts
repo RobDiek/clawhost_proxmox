@@ -353,6 +353,28 @@ export const handleAllpayWebhook = async (c: Context) => {
                 .set({ status: 'paid', paidAt: new Date() })
                 .where(eq(payments.allpayOrderId, orderId))
 
+            // DFS D1 — welcome credit: $10 granted on the FIRST successful payment,
+            // exactly once per instance. Idempotency via the synthetic order id
+            // `welcome-<instanceId>` (credit() dedupes on (instance_id, allpay_order_id)).
+            // Renewals → alreadyApplied → no-op, so a power-user who later switched to
+            // their own DFS key (dfsUseProxy=false) is never overridden. Non-fatal.
+            try {
+                const { credit } = await import('@/services/dfsCredits/ledger')
+                const grant = await credit({
+                    instanceId,
+                    amountUsdCents: 1000,
+                    kind: 'admin_credit',
+                    allpayOrderId: `welcome-${instanceId}`,
+                    note: 'welcome_starter_10usd',
+                })
+                if (!grant.alreadyApplied) {
+                    await db.update(instances).set({ dfsUseProxy: true }).where(eq(instances.id, instanceId))
+                    console.log(`[allpay-webhook] DFS welcome $10 granted to ${instanceId} (balance=${grant.newBalanceUsdCents}c)`)
+                }
+            } catch (err) {
+                console.error('[allpay-webhook] DFS welcome credit failed (non-fatal):', (err as Error).message)
+            }
+
             // Advance next billing on every successful charge so the dashboard can
             // show "next charge: <date>". Monthly auto-recurs via AllPay (+1mo each
             // cycle). Annual is a ONE-TIME yearly charge (AllPay can't auto-renew
