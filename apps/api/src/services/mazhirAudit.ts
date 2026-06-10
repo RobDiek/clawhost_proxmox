@@ -517,7 +517,9 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
         (async () => {
             try {
                 const { enrichKeywordsWithDFS } = await import('./dataforseoEnrich')
-                return await enrichKeywordsWithDFS((inst as any).dataforseoKey, seedKeywords)
+                // Metered proxy (master creds + balance gate + ledger debit) for
+                // proxy tenants; raw key only via the dfsUseProxy=false escape hatch.
+                return await enrichKeywordsWithDFS(instanceId, seedKeywords)
             } catch (e) { return { available: false, reason: 'enrichment failed', keywords: [], totalQueries: 0, locationCode: 0, languageCode: '' } }
         })(),
         (async () => {

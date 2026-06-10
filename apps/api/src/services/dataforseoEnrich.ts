@@ -3,12 +3,16 @@
 // Pulls real keyword search volumes, CPC, competition for a list of seed
 // keywords. Uses Google Ads Keyword Planner data via DataForSEO Labs API.
 //
-// Auth: client's own DataForSEO credentials (stored in instances.dataforseoKey
-// as "login:password" — pay-per-use on their account, not Flowmatic's).
+// Auth/billing: routed through the metered DFS proxy (`dfsPost`) — proxy-mode
+// tenants use Flowmatic's master DFS account with a per-tenant balance gate +
+// exact-cost ledger debit; the `dfsUseProxy=false` escape hatch uses the
+// tenant's own `instances.dataforseoKey`. This module no longer reads the raw
+// key directly (that bypassed metering — P3 sovereignty fix 2026-06-11).
 //
 // Usage from Mazhir prompts:
 //   const enrichment = await enrichKeywordsWithDFS(instanceId, seedKeywords)
 //   prompt += renderDFSContext(enrichment)
+import { dfsPost, DfsError } from '@/services/research/dataforseo/client'
 
 interface DFSKeyword {
     keyword: string
@@ -28,17 +32,26 @@ interface DFSResult {
     languageCode: string
 }
 
-const ENDPOINT = 'https://api.dataforseo.com/v3/keywords_data/google_ads/search_volume/live'
 const IL_LOCATION_CODE = 2376       // Israel
 const HE_LANGUAGE_CODE = 'he'
 
+// DFS task result shape for keywords_data/google_ads/search_volume/live
+interface DFSVolumeRow {
+    keyword: string
+    search_volume: number | null
+    cpc: number | null
+    competition: number | null
+    competition_level: string | null
+    monthly_searches?: Array<{ year: number; month: number; search_volume: number }>
+}
+
 export async function enrichKeywordsWithDFS(
-    dataforseoCredentials: string | null | undefined,
+    instanceId: string,
     seedKeywords: string[],
     options: { locationCode?: number; languageCode?: string } = {},
 ): Promise<DFSResult> {
-    if (!dataforseoCredentials) {
-        return { available: false, reason: 'DataForSEO not connected', keywords: [], totalQueries: 0, locationCode: 0, languageCode: '' }
+    if (!instanceId) {
+        return { available: false, reason: 'No instance', keywords: [], totalQueries: 0, locationCode: 0, languageCode: '' }
     }
     if (seedKeywords.length === 0) {
         return { available: false, reason: 'No seed keywords', keywords: [], totalQueries: 0, locationCode: 0, languageCode: '' }
@@ -53,7 +66,6 @@ export async function enrichKeywordsWithDFS(
         return { available: false, reason: 'No valid keywords after normalization', keywords: [], totalQueries: 0, locationCode, languageCode }
     }
 
-    const auth = 'Basic ' + Buffer.from(dataforseoCredentials).toString('base64')
     // Google Ads search_volume endpoint REJECTS language_code/language_name
     // for many country pairs (including IL — verified 2026-04-29). Location-
     // only is the safe shape; results include CPC + competition correctly.
@@ -64,28 +76,18 @@ export async function enrichKeywordsWithDFS(
     }]
 
     try {
-        const res = await fetch(ENDPOINT, {
-            method: 'POST',
-            headers: { 'Authorization': auth, 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-            signal: AbortSignal.timeout(45_000),
-        })
-        const json = await res.json() as { tasks?: Array<{ result?: Array<{ keyword: string; search_volume: number | null; cpc: number | null; competition: number | null; competition_level: string | null; monthly_searches?: Array<{ year: number; month: number; search_volume: number }> }> }>; status_code?: number; status_message?: string }
-        // DFS wraps task-level errors INSIDE tasks[0].status_code while
-        // top-level status_code stays 20000 ("Ok."). Surface task-level error.
-        const task = json.tasks?.[0]
-        const taskStatus = (task as any)?.status_code
-        const taskMsg = (task as any)?.status_message
-        if (json.status_code !== 20000) {
-            return { available: false, reason: `DFS API: ${json.status_message || json.status_code}`, keywords: [], totalQueries: cleaned.length, locationCode, languageCode }
-        }
-        if (taskStatus && taskStatus !== 20000) {
-            return { available: false, reason: `DFS task error ${taskStatus}: ${taskMsg || 'unknown'}`, keywords: [], totalQueries: cleaned.length, locationCode, languageCode }
-        }
-        if (!task?.result) {
+        // Metered proxy: dfsPost handles proxy-vs-legacy auth, the balance gate,
+        // top-/task-level DFS error mapping (throws DfsError), and the per-tenant
+        // ledger debit. We never touch the raw key here.
+        const { result } = await dfsPost<DFSVolumeRow>(
+            instanceId,
+            'keywords_data/google_ads/search_volume/live',
+            body,
+            45_000,
+        )
+        if (!result || result.length === 0) {
             return { available: false, reason: `DFS empty result (location_code=${locationCode})`, keywords: [], totalQueries: cleaned.length, locationCode, languageCode }
         }
-        const result = task.result as NonNullable<typeof task.result>
         const keywords: DFSKeyword[] = result.map(r => {
             const trend = (() => {
                 if (!r.monthly_searches || r.monthly_searches.length < 12) return undefined
@@ -106,6 +108,9 @@ export async function enrichKeywordsWithDFS(
         })
         return { available: true, keywords, totalQueries: cleaned.length, locationCode, languageCode }
     } catch (err) {
+        if (err instanceof DfsError) {
+            return { available: false, reason: err.userMessage || `DFS error: ${err.kind}`, keywords: [], totalQueries: cleaned.length, locationCode, languageCode }
+        }
         return { available: false, reason: `DFS fetch failed: ${(err as Error).message}`, keywords: [], totalQueries: cleaned.length, locationCode, languageCode }
     }
 }
