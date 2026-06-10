@@ -296,6 +296,17 @@ export const getInstance = async (c: Context<HonoEnv>) => {
         response.hasGtmScope = _scopeText.includes('tagmanager') || _scopeTokens.includes('gtm')
         response.hasGa4Scope = _scopeText.includes('analytics') || _scopeTokens.includes('ga4') || _scopeTokens.includes('analytics')
 
+        // Telegram connection flag — the bot token is scrubbed below for
+        // security, so the dashboard needs a boolean like every other
+        // integration. This was missed when Phase 0 added the has* flags,
+        // leaving "בוט Telegram מחובר" permanently red even when telegram is
+        // connected. Source: the per-agent token overlaid above (or instance
+        // token for legacy), OR the agent_integrations telegram row.
+        const _activeInts = response.activeAgentIntegrations as
+            | Record<string, { connected?: boolean }>
+            | undefined
+        response.hasTelegram = !!response.telegramBotToken || !!_activeInts?.telegram?.connected
+
         // Phase 0 — never echo high-value secrets to the browser. The dashboard
         // renders connection state from the has* flags computed above; raw
         // provider API keys and OAuth token bundles must not leave the server

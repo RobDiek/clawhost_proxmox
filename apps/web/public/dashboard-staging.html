@@ -4859,7 +4859,7 @@ function dashMascotOnTaskDone() {
       else intStorRemove('cf_api_key_saved');
       if (__syncSrc.hasOpenaiKey) intStorSet('cf_openai_saved', '1');
       else intStorRemove('cf_openai_saved');
-      if (__syncSrc.telegramBotToken) intStorSet('cf_telegram_saved', '1');
+      if (__syncSrc.hasTelegram || __syncSrc.telegramBotToken) intStorSet('cf_telegram_saved', '1');
       else intStorRemove('cf_telegram_saved');
       // Clear stale integration flags if server has no keys
       if (!__syncSrc.hasAnthropicKey && !__syncSrc.hasOpenaiKey && !__syncSrc.aiProviderType) {
@@ -4868,7 +4868,7 @@ function dashMascotOnTaskDone() {
         localStorage.removeItem('cf_api_key_provider');
         localStorage.removeItem('cf_ollama_backend');
       }
-      if (!__syncSrc.telegramBotToken) intStorRemove('cf_telegram_saved');
+      if (!(__syncSrc.hasTelegram || __syncSrc.telegramBotToken)) intStorRemove('cf_telegram_saved');
       // Note: WordPress, Resend, Brave are stored locally only (no DB field)
       // so we don't clear them here — they persist until user disconnects
       // Re-render all views with real data
@@ -4937,7 +4937,7 @@ async function refreshInstanceData() {
       else intStorRemove('cf_api_key_saved');
       if (__src.hasOpenaiKey) intStorSet('cf_openai_saved', '1');
       else intStorRemove('cf_openai_saved');
-      if (__src.telegramBotToken) intStorSet('cf_telegram_saved', '1');
+      if (__src.hasTelegram || __src.telegramBotToken) intStorSet('cf_telegram_saved', '1');
       else intStorRemove('cf_telegram_saved');
       if (!__src.hasAnthropicKey && !__src.hasOpenaiKey && !__src.aiProviderType) {
         intStorRemove('cf_groq_saved');
@@ -5035,7 +5035,7 @@ function updateWithLiveData() {
   }
   // Sync onboarding state from server — only if actually configured
   if (instanceData.aiProviderType || instanceData.hasAnthropicKey) intStorSet('cf_api_key_saved', instanceData.aiProviderType || 'anthropic');
-  if (instanceData.telegramBotToken) intStorSet('cf_telegram_saved', '1');
+  if (instanceData.hasTelegram || instanceData.telegramBotToken) intStorSet('cf_telegram_saved', '1');
   renderHome();
   renderAgentsTab();
   renderIntegrations();
@@ -5327,7 +5327,7 @@ function renderHome() {
   var hasGroqKey = !!(intStorGet('cf_groq_saved') && instanceData && instanceData.aiProviderKey);
   var hasCerebrasKey = !!(intStorGet('cf_cerebras_saved') && instanceData && instanceData.aiProviderKey);
   var hasAiProvider = hasApiKey || hasOllama || hasGroqKey || hasCerebrasKey;
-  var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
+  var hasTelegram = !!(instanceData && (instanceData.hasTelegram || instanceData.telegramBotToken));
   var isMATEH = components.indexOf('mt') !== -1;
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
   var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1 || instanceData.researchData.researchStage1 || instanceData.researchData.researchStage4))));
@@ -6377,7 +6377,7 @@ function getNotifications() {
   var hasApiKey = !!(instanceData && (instanceData.aiProviderType || instanceData.hasAnthropicKey || instanceData.hasOpenaiKey));
   var hasOllamaProvider = !!(instanceData && instanceData.hasOllama);
   var hasAnyAi = hasApiKey || hasOllamaProvider;
-  var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
+  var hasTelegram = !!(instanceData && (instanceData.hasTelegram || instanceData.telegramBotToken));
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
   var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1))));
   var hasGoogle = !!(instanceData && instanceData.googleTokens);
@@ -17311,7 +17311,7 @@ function renderIntegrations() {
 
   // Update Telegram status — backend overlay only (Phase 2.3.J: no localStorage
   // fallback, which caused desync with home tab task cards).
-  var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
+  var hasTelegram = !!(instanceData && (instanceData.hasTelegram || instanceData.telegramBotToken));
   if (hasTelegram) {
     var tgStatus = document.getElementById('telegram-status');
     if (tgStatus) { tgStatus.textContent = '\u2713 מחובר'; tgStatus.className = 'int-status connected'; }
@@ -17329,7 +17329,7 @@ function renderIntegrations() {
   // Update publishing channels status — backend overlay only (Phase 2.3.J)
   var pubTgStatus = document.getElementById('pub-telegram-status');
   if (pubTgStatus) {
-    if (instanceData && instanceData.telegramBotToken) {
+    if (instanceData && (instanceData.hasTelegram || instanceData.telegramBotToken)) {
       pubTgStatus.textContent = '\u2713 מחובר ופעיל';
       pubTgStatus.className = 'int-status connected';
       var pubTgCard = document.getElementById('pub-telegram-card');
@@ -18241,7 +18241,7 @@ function renderSettingsPage() {
   var connEl = document.getElementById('settingsConnectionsList');
   if (connEl) {
     var conns = [
-      { name: 'Telegram', connected: !!(instanceData && instanceData.telegramBotToken) || !!intStorGet('cf_telegram_saved'), detail: '' },
+      { name: 'Telegram', connected: !!(instanceData && (instanceData.hasTelegram || instanceData.telegramBotToken)) || !!intStorGet('cf_telegram_saved'), detail: '' },
       { name: 'Google Workspace', connected: !!(instanceData && instanceData.googleTokens), detail: instanceData && instanceData.googleTokens ? (instanceData.googleTokens.scopes || []).join(', ') : '' },
       { name: 'Meta Ads', connected: !!(instanceData && instanceData.metaTokens), detail: instanceData && instanceData.metaTokens ? instanceData.metaTokens.pageName || '' : '' },
       { name: 'WordPress', connected: !!intStorGet('cf_wordpress_saved'), detail: '' },
@@ -20927,7 +20927,7 @@ function getConnectedIntegrationIdsFromState() {
     ids.push('instagram');
     ids.push('facebook_pages');
   }
-  if (inst.telegramBotToken || intStorGet('cf_telegram_saved')) ids.push('telegram');
+  if (inst.hasTelegram || inst.telegramBotToken || intStorGet('cf_telegram_saved')) ids.push('telegram');
   // Built-in services (PageSpeed, Google Ads Transparency, Meta Ad Library) are
   // public APIs — no connection needed. We do NOT push them to `ids` so the UI
   // shows them as "✓ זמין" (available) rather than "✓ מחובר" (connected).
@@ -24921,7 +24921,7 @@ function computeConnectionsRequirements(scenario, inst) {
     id: 'telegram', icon: '💬', label: 'בוט Telegram',
     must: true, group: 'core',
     desc: 'ערוץ התקשורת הראשי — דו״ח יומי, אישורי פרסום, התראות',
-    status: st(!!inst.telegramBotToken),
+    status: st(!!(inst.hasTelegram || inst.telegramBotToken)),
     connectAction: "switchTab('integrations')"
   });
 
