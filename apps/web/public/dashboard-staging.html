@@ -6462,6 +6462,21 @@ function getNotifications() {
     }
   } catch (e) { /* defensive */ }
 
+  // S3 — available stack update as a dismissible opt-in card (keyed by version,
+  // so a NEW release re-appears after a previous dismiss). Set by renderVersionCard.
+  if (window.__availableUpdate && window.__availableUpdate.ver) {
+    var upId = 'update-' + window.__availableUpdate.ver;
+    if (dismissed.indexOf(upId) === -1) {
+      var upNotes = window.__availableUpdate.notes || [];
+      notifs.unshift({
+        id: upId, type: 'info', icon: '🆕',
+        title: 'עדכון זמין — v' + window.__availableUpdate.ver,
+        desc: (upNotes.length ? upNotes.join(' · ') + ' · ' : '') + 'מתעדכן ב-5-15 דק׳, עם גיבוי אוטומטי לפני. התקינו כשנוח לכם.',
+        action: 'cfStartUpgrade()', actionLabel: 'התקינו עדכון'
+      });
+    }
+  }
+
   return notifs;
 }
 
@@ -35116,37 +35131,19 @@ async function renderVersionCard() {
         '</div>';
       return;
     }
-    // Drift exists — show upgrade card
-    var drift = d.componentDrift || [];
-    var pending = d.pendingMigrations || [];
-    var notes = (latest.releaseNotes || []).slice(0, 3);
-    card.style.display = 'block';
-    var driftRows = drift.slice(0, 5).map(function(x) {
-      return '<div style="font-size:0.76rem;color:#374151;display:flex;justify-content:space-between;padding:3px 0">' +
-        '<span style="font-family:monospace">' + x.component + '</span>' +
-        '<span style="color:#6B7280">' + x.from + ' → <strong style="color:#1F2937">' + x.to + '</strong></span>' +
-      '</div>';
-    }).join('');
-    card.innerHTML =
-      '<div style="background:linear-gradient(180deg,#EFF6FF,#fff);border:1.5px solid #BFDBFE;border-radius:12px;padding:14px;font-family:inherit">' +
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
-          '<span style="font-size:1.2rem">🆕</span>' +
-          '<strong style="font-size:0.95rem;color:#1E3A5F">עדכון זמין</strong>' +
-        '</div>' +
-        (notes.length ? '<ul style="list-style:none;font-size:0.84rem;color:#374151;margin:0 0 10px;padding:0;line-height:1.7">' +
-            notes.map(function(n){return '<li style="margin-bottom:2px">' + cfEsc(n) + '</li>';}).join('') + '</ul>' : '') +
-        '<div style="font-size:0.76rem;color:#6B7280;margin-bottom:10px;padding:8px 10px;background:#F9FAFB;border-radius:8px;line-height:1.5">⏱ העדכון לוקח 5-15 דקות. <strong>יש גיבוי אוטומטי</strong> לפני העדכון — נשחזר אוטומטית אם משהו משתבש.</div>' +
-        '<div style="display:flex;gap:6px">' +
-          '<button onclick="cfStartUpgrade()" class="btn btn-primary btn-sm" style="flex:1">🔄 התקינו עדכון</button>' +
-          '<button onclick="renderVersionCard()" class="btn btn-outline btn-sm" style="font-size:0.76rem">רענון</button>' +
-        '</div>' +
-        // Power-user details — collapsed by default, no jargon in headline
-        (drift.length || pending.length ? '<details style="margin-top:10px"><summary style="font-size:0.72rem;color:#9CA3AF;cursor:pointer;outline:none;list-style:none">פרטים טכניים</summary>' +
-            (latest.stackVersion ? '<div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">גרסה: <code style="font-family:monospace;background:#F3F4F6;padding:1px 4px;border-radius:3px;color:#374151">v' + latest.stackVersion + '</code></div>' : '') +
-            (drift.length ? '<div style="background:#F9FAFB;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:0.72rem">' + driftRows + '</div>' : '') +
-            (pending.length ? '<div style="font-size:0.7rem;color:#9CA3AF;margin-top:6px">' + pending.length + ' מיגרציות פנימיות</div>' : '') +
-            '</details>' : '') +
-      '</div>';
+    // S3 — an available update is surfaced as a DISMISSIBLE opt-in card in the
+    // "עדכונים והמלצות" panel (via getNotifications), NOT a prominent forced card.
+    // The client reads the changelog and decides when to apply (sovereignty / I7).
+    window.__availableUpdate = {
+      ver: latest.stackVersion || '',
+      notes: (latest.releaseNotes || []).slice(0, 3).filter(Boolean),
+      drift: (d.componentDrift || []).length,
+      pending: (d.pendingMigrations || []).length,
+    };
+    card.style.display = 'none';
+    card.innerHTML = '';
+    if (typeof renderNotifications === 'function') renderNotifications();
+    return;
   } catch (err) {
     console.warn('renderVersionCard error:', err);
   }
