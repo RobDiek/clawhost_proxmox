@@ -78,38 +78,26 @@ export async function setLitellmApiKey(
     const safeKey = apiKey.replace(/[^a-zA-Z0-9_-]/g, '')
     if (!safeKey) throw new Error('Invalid API key format')
 
-    const envVar = provider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY'
+    const prefix = provider === 'anthropic' ? 'anthropic/' : 'openai/'
     const b64Key = Buffer.from(safeKey).toString('base64')
 
-    // Update environment in litellm docker-compose and restart
+    // Write the literal key directly into the tenant's litellm-config.yaml (the
+    // key BELONGS on the client VPS — sovereignty) for every <provider>/* model,
+    // then force-recreate the litellm container so it reloads.
+    //
+    // The previous approach string-edited docker-compose.litellm.yml's
+    // `environment:` block with node, but the indentation never matched the
+    // compose layout → the env var was silently NOT injected → litellm ran with
+    // no key (and `up -d` saw no change so it wasn't even recreated). This sed
+    // targets the inline `{ model: <provider>/…, api_key: <val> }` shape install.sh
+    // generates, replacing whatever the current value is (the os.environ
+    // placeholder OR an old key) — so re-keying works too. Key is sanitized to
+    // [A-Za-z0-9_-] so it is safe inside the sed replacement.
     await sshExec(ip, [
-        `cd /opt/openclaw`,
-        // Set env var in litellm compose file
-        `grep -q 'environment:' docker-compose.litellm.yml && true || sed -i '/command:/i\\            environment:' docker-compose.litellm.yml`,
-        // Add/update the env var using a helper script
         `KEY=$(echo '${b64Key}' | base64 -d)`,
-        `cat > /tmp/update-litellm-env.sh << 'UPDEOF'
-#!/bin/bash
-COMPOSE="/opt/openclaw/docker-compose.litellm.yml"
-ENV_VAR="${envVar}"
-ENV_VAL="$1"
-# Use node to safely update YAML-ish compose
-node -e "
-const fs = require('fs');
-let c = fs.readFileSync('$COMPOSE','utf-8');
-if (!c.includes('environment:')) {
-  c = c.replace('command:', 'environment:\\n              - ${envVar}=' + process.argv[1] + '\\n            command:');
-} else if (c.includes('${envVar}=')) {
-  c = c.replace(new RegExp('${envVar}=.*'), '${envVar}=' + process.argv[1]);
-} else {
-  c = c.replace('environment:', 'environment:\\n              - ${envVar}=' + process.argv[1]);
-}
-fs.writeFileSync('$COMPOSE', c);
-" "$ENV_VAL"
-UPDEOF`,
-        `chmod +x /tmp/update-litellm-env.sh && /tmp/update-litellm-env.sh "$KEY"`,
-        `docker compose -f docker-compose.yml -f docker-compose.qdrant.yml -f docker-compose.litellm.yml up -d litellm`
-    ].join(' && '), password, 60_000)
+        `sed -i -E "s#(model: ${prefix}[^,]+, api_key: )[^ }]+#\\1$KEY#g" /opt/openclaw/litellm-config.yaml`,
+        `cd /opt/openclaw && docker compose -f docker-compose.yml -f docker-compose.qdrant.yml -f docker-compose.litellm.yml up -d --force-recreate litellm 2>&1 | tail -3`,
+    ].join(' && '), password, 90_000)
 }
 
 // ── Get usage stats from LiteLLM ──

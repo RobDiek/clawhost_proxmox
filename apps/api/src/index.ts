@@ -227,6 +227,12 @@ import { runTrialManager } from '@/jobs/trialManager'
 setInterval(runTrialManager, 3600000) // every hour
 setTimeout(runTrialManager, 60000) // first run after 1 min
 
+// S3 — annual renewal reminder (AllPay can't auto-renew yearly): daily sweep,
+// email ~14d before an annual plan's next_billing_at.
+import { runRenewalReminder } from '@/jobs/renewalReminder'
+setInterval(() => { runRenewalReminder().catch(err => console.error('[renewalReminder] cron error:', err)) }, 24 * 3600 * 1000)
+setTimeout(() => { runRenewalReminder().catch(err => console.error('[renewalReminder] first run error:', err)) }, 120000)
+
 // Phase 3.6 — DFS credits: daily FX rate refresh + hourly auto-topup sweep
 import { startFxRefreshCron } from '@/services/dfsCredits/fxRefresh'
 import { startAutoTopupCron } from '@/services/dfsCredits/autoTopup'

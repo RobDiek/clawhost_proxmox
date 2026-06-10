@@ -137,6 +137,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
             priceIls: String(isAnnual ? Math.round(pricing.totalPrice * discount) : pricing.totalPrice),
             storageGb,
             status: 'awaiting_payment',
+            billingPeriod: isAnnual ? 'annual' : 'monthly',
             allpayOrderId: orderId,
             subdomainName: subdomainName || null,
             trialEndsAt,
@@ -351,6 +352,20 @@ export const handleAllpayWebhook = async (c: Context) => {
             await db.update(payments)
                 .set({ status: 'paid', paidAt: new Date() })
                 .where(eq(payments.allpayOrderId, orderId))
+
+            // Advance next billing on every successful charge so the dashboard can
+            // show "next charge: <date>". Monthly auto-recurs via AllPay (+1mo each
+            // cycle). Annual is a ONE-TIME yearly charge (AllPay can't auto-renew
+            // yearly) → set +1yr so the renewal-reminder cron fires before it ends;
+            // clear the reminder stamp for the fresh cycle.
+            const [billRow] = await db.select({ bp: instances.billingPeriod })
+                .from(instances).where(eq(instances.id, instanceId))
+            const nextBilling = new Date()
+            if (billRow?.bp === 'annual') nextBilling.setFullYear(nextBilling.getFullYear() + 1)
+            else nextBilling.setMonth(nextBilling.getMonth() + 1)
+            await db.update(instances)
+                .set({ nextBillingAt: nextBilling, renewalReminderSentAt: null })
+                .where(eq(instances.id, instanceId))
 
             // Sync the new customer into Meta Custom Audiences + Google
             // Customer Match so cold paid campaigns exclude them automatically.

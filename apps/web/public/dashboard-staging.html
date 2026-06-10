@@ -4879,6 +4879,16 @@ function dashMascotOnTaskDone() {
       setTimeout(function() {
         if (typeof renderIntegrations === 'function') renderIntegrations();
       }, 800);
+    } else if (data.success && Array.isArray(data.data) && data.data.length === 0) {
+      // Server confirms this account has NO active instance. Clear any stale
+      // instance state cached in this browser — prevents the "phantom VPS" where
+      // a deleted/terminated instance's leftover localStorage kept rendering an
+      // active cabinet (cf_instance_id pointed at a server that no longer exists).
+      ['cf_instance_id','cf_instance_subdomain','cf_instance_plan','cf_instance_components','cf_openclaw_token','cf_active_mateh_agent_id','cf_active_agent'].forEach(function(k){ localStorage.removeItem(k); });
+      instanceId = '';
+      instanceData = null;
+      dataLoaded = true;
+      if (typeof renderHome === 'function') renderHome();
     }
   } catch(e) {
     console.error('Auto-load instance error:', e);
@@ -6451,6 +6461,21 @@ function getNotifications() {
       }
     }
   } catch (e) { /* defensive */ }
+
+  // S3 — available stack update as a dismissible opt-in card (keyed by version,
+  // so a NEW release re-appears after a previous dismiss). Set by renderVersionCard.
+  if (window.__availableUpdate && window.__availableUpdate.ver && window.__availableUpdate.updateType !== 'silent') {
+    var upId = 'update-' + window.__availableUpdate.ver;
+    if (dismissed.indexOf(upId) === -1) {
+      var upNotes = window.__availableUpdate.notes || [];
+      notifs.unshift({
+        id: upId, type: 'info', icon: '🆕',
+        title: 'עדכון זמין — v' + window.__availableUpdate.ver,
+        desc: (upNotes.length ? upNotes.join(' · ') + ' · ' : '') + 'מתעדכן ב-5-15 דק׳, עם גיבוי אוטומטי לפני. התקינו כשנוח לכם.',
+        action: 'cfStartUpgrade()', actionLabel: 'התקינו עדכון'
+      });
+    }
+  }
 
   return notifs;
 }
@@ -18182,24 +18207,31 @@ function renderSettingsPage() {
   var nameDisplay = document.getElementById('settingsNameDisplay');
   if (nameDisplay) nameDisplay.textContent = localStorage.getItem('cf_user_name') || email || '—';
 
-  // Plan info + trial status
+  // Plan info + trial status. The product is a SINGLE self-serve plan
+  // ("שירות עצמי") billed at the actual charged price (instanceData.priceIls,
+  // ₪279/mo) — NOT the internal RAM-derived tier (עסקי/business) or its PLANS
+  // price (₪169). Showing the tier + tier-price mismatched what the customer
+  // actually pays, which read as broken.
   var planEl = document.getElementById('settingsPlan');
-  if (planEl && planKey) {
-    var planName = (PLANS[planKey] || {}).nameHe || planKey;
+  if (planEl) {
     if (instanceData && instanceData.trialEndsAt) {
       var trialEnd = new Date(instanceData.trialEndsAt);
       var daysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
-      planEl.innerHTML = planName + ' <span style="background:#ECFDF5;color:#065F46;font-size:0.72rem;padding:2px 8px;border-radius:8px;margin-right:6px">ניסיון — ' + daysLeft + ' ימים נותרו</span>';
+      planEl.innerHTML = 'שירות עצמי <span style="background:#ECFDF5;color:#065F46;font-size:0.72rem;padding:2px 8px;border-radius:8px;margin-right:6px">ניסיון — ' + daysLeft + ' ימים נותרו</span>';
     } else {
-      planEl.textContent = planName;
+      planEl.textContent = 'שירות עצמי';
     }
   }
   var priceEl = document.getElementById('settingsPlanPrice');
-  if (priceEl && planKey) {
+  if (priceEl) {
     if (instanceData && instanceData.trialEndsAt && new Date(instanceData.trialEndsAt) > new Date()) {
       priceEl.innerHTML = '<span style="color:#10B981;font-weight:600">חינם עד ' + new Date(instanceData.trialEndsAt).toLocaleDateString('he-IL') + '</span>';
     } else {
-      priceEl.textContent = '₪' + ((PLANS[planKey] || {}).price || '?') + '/חודש';
+      var price = (instanceData && instanceData.priceIls) || ((PLANS[planKey] || {}).price) || '?';
+      var nextBill = (instanceData && instanceData.nextBillingAt)
+        ? ' · החיוב הבא: ' + new Date(instanceData.nextBillingAt).toLocaleDateString('he-IL')
+        : '';
+      priceEl.textContent = '₪' + price + '/חודש · מתחדש אוטומטית' + nextBill;
     }
   }
   var ipEl = document.getElementById('settingsIP');
@@ -28076,10 +28108,10 @@ async function confirm2faDisable() {
 
 /* ===== Settings: Upgrade / Cancel / Delete ===== */
 var UPGRADE_PLANS = [
-  { key: 'personal', name: 'אישי', ram: 4, cpu: 2, cpuType: 'shared', nvme: 40, price: 79 },
-  { key: 'business', name: 'עסקי', ram: 8, cpu: 4, cpuType: 'shared', nvme: 80, price: 169 },
-  { key: 'pro', name: 'פרו', ram: 16, cpu: 4, cpuType: 'dedicated', nvme: 160, price: 349 },
-  { key: 'developer', name: 'מפתח', ram: 32, cpu: 8, cpuType: 'dedicated', nvme: 240, price: 599 },
+  { key: 'personal', name: 'אישי', ram: 4, cpu: 2, cpuType: 'shared', nvme: 40, price: 129 },
+  { key: 'business', name: 'עסקי', ram: 8, cpu: 4, cpuType: 'shared', nvme: 80, price: 279 },
+  { key: 'pro', name: 'פרו', ram: 16, cpu: 4, cpuType: 'dedicated', nvme: 160, price: 579 },
+  { key: 'developer', name: 'מפתח', ram: 32, cpu: 8, cpuType: 'dedicated', nvme: 240, price: 989 },
 ];
 
 var STORAGE_ADDONS = [
@@ -35099,37 +35131,21 @@ async function renderVersionCard() {
         '</div>';
       return;
     }
-    // Drift exists — show upgrade card
-    var drift = d.componentDrift || [];
-    var pending = d.pendingMigrations || [];
-    var notes = (latest.releaseNotes || []).slice(0, 3);
-    card.style.display = 'block';
-    var driftRows = drift.slice(0, 5).map(function(x) {
-      return '<div style="font-size:0.76rem;color:#374151;display:flex;justify-content:space-between;padding:3px 0">' +
-        '<span style="font-family:monospace">' + x.component + '</span>' +
-        '<span style="color:#6B7280">' + x.from + ' → <strong style="color:#1F2937">' + x.to + '</strong></span>' +
-      '</div>';
-    }).join('');
-    card.innerHTML =
-      '<div style="background:linear-gradient(180deg,#EFF6FF,#fff);border:1.5px solid #BFDBFE;border-radius:12px;padding:14px;font-family:inherit">' +
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
-          '<span style="font-size:1.2rem">🆕</span>' +
-          '<strong style="font-size:0.95rem;color:#1E3A5F">עדכון זמין</strong>' +
-        '</div>' +
-        (notes.length ? '<ul style="list-style:none;font-size:0.84rem;color:#374151;margin:0 0 10px;padding:0;line-height:1.7">' +
-            notes.map(function(n){return '<li style="margin-bottom:2px">' + cfEsc(n) + '</li>';}).join('') + '</ul>' : '') +
-        '<div style="font-size:0.76rem;color:#6B7280;margin-bottom:10px;padding:8px 10px;background:#F9FAFB;border-radius:8px;line-height:1.5">⏱ העדכון לוקח 5-15 דקות. <strong>יש גיבוי אוטומטי</strong> לפני העדכון — נשחזר אוטומטית אם משהו משתבש.</div>' +
-        '<div style="display:flex;gap:6px">' +
-          '<button onclick="cfStartUpgrade()" class="btn btn-primary btn-sm" style="flex:1">🔄 התקינו עדכון</button>' +
-          '<button onclick="renderVersionCard()" class="btn btn-outline btn-sm" style="font-size:0.76rem">רענון</button>' +
-        '</div>' +
-        // Power-user details — collapsed by default, no jargon in headline
-        (drift.length || pending.length ? '<details style="margin-top:10px"><summary style="font-size:0.72rem;color:#9CA3AF;cursor:pointer;outline:none;list-style:none">פרטים טכניים</summary>' +
-            (latest.stackVersion ? '<div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">גרסה: <code style="font-family:monospace;background:#F3F4F6;padding:1px 4px;border-radius:3px;color:#374151">v' + latest.stackVersion + '</code></div>' : '') +
-            (drift.length ? '<div style="background:#F9FAFB;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:0.72rem">' + driftRows + '</div>' : '') +
-            (pending.length ? '<div style="font-size:0.7rem;color:#9CA3AF;margin-top:6px">' + pending.length + ' מיגרציות פנימיות</div>' : '') +
-            '</details>' : '') +
-      '</div>';
+    // S3 — an available update is surfaced as a DISMISSIBLE opt-in card in the
+    // "עדכונים והמלצות" panel (via getNotifications), NOT a prominent forced card.
+    // The client reads the changelog and decides when to apply (sovereignty / I7).
+    window.__availableUpdate = {
+      ver: latest.stackVersion || '',
+      notes: (latest.releaseNotes || []).slice(0, 3).filter(Boolean),
+      drift: (d.componentDrift || []).length,
+      pending: (d.pendingMigrations || []).length,
+      // S3 — 'silent' = operator force-pushes it; no client card. 'optional' = opt-in card.
+      updateType: d.updateType || 'optional',
+    };
+    card.style.display = 'none';
+    card.innerHTML = '';
+    if (typeof renderNotifications === 'function') renderNotifications();
+    return;
   } catch (err) {
     console.warn('renderVersionCard error:', err);
   }

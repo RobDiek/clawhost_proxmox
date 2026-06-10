@@ -28,7 +28,9 @@ export const checkSubdomain = async (c: Context) => {
             .from(instances)
             .where(and(
                 eq(instances.subdomainName, name),
-                ne(instances.status, 'awaiting_payment')
+                ne(instances.status, 'awaiting_payment'),
+                // terminated instances are gone — their subdomain is free to reuse
+                ne(instances.status, 'terminated')
             ))
             .limit(1)
             .then(rows => rows[0])
