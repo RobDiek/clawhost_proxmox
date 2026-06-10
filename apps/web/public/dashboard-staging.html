@@ -6464,7 +6464,7 @@ function getNotifications() {
 
   // S3 — available stack update as a dismissible opt-in card (keyed by version,
   // so a NEW release re-appears after a previous dismiss). Set by renderVersionCard.
-  if (window.__availableUpdate && window.__availableUpdate.ver) {
+  if (window.__availableUpdate && window.__availableUpdate.ver && window.__availableUpdate.updateType !== 'silent') {
     var upId = 'update-' + window.__availableUpdate.ver;
     if (dismissed.indexOf(upId) === -1) {
       var upNotes = window.__availableUpdate.notes || [];
@@ -35139,6 +35139,8 @@ async function renderVersionCard() {
       notes: (latest.releaseNotes || []).slice(0, 3).filter(Boolean),
       drift: (d.componentDrift || []).length,
       pending: (d.pendingMigrations || []).length,
+      // S3 — 'silent' = operator force-pushes it; no client card. 'optional' = opt-in card.
+      updateType: d.updateType || 'optional',
     };
     card.style.display = 'none';
     card.innerHTML = '';
