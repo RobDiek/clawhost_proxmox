@@ -413,11 +413,16 @@ export const setupTelegram = async (c: Context) => {
         }
         if (__probe !== null) {
             const __tgLine = __probe.split('\n').find(l => /telegram/i.test(l)) || ''
-            if (/not configured/i.test(__tgLine) || !/configured/i.test(__tgLine)) {
+            // Hard-fail ONLY on the unambiguous failure signature ("not configured")
+            // so a green card never hides a dead bot. Be conservative across openclaw
+            // versions: if the probe yields no recognizable telegram line (older
+            // status format / command absent), treat as inconclusive and proceed —
+            // never false-fail a genuinely-working connect on the pinned client version.
+            if (/not configured/i.test(__tgLine)) {
                 console.error(`[setupTelegram] channel NOT configured on VPS for ${instanceId}: ${__tgLine || __probe.slice(0, 200)}`)
                 return fail(c, 'החיבור לטלגרם לא הושלם בצד השרת. נסו שוב — אם נמשך, פנו לתמיכה.', 500)
             }
-            console.log(`[setupTelegram] VPS channel verified configured: ${__tgLine.trim()}`)
+            console.log(`[setupTelegram] VPS channel probe: ${__tgLine.trim() || '(inconclusive — proceeding)'}`)
         }
 
         // Save telegram token + chat_id in our DB. Phase 2.3.E — for the
