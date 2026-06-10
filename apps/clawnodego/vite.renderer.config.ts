@@ -11,6 +11,7 @@ const keepAlive = () => ({
 })
 
 export default defineConfig({
+    base: './',
     plugins: [keepAlive(), react()],
     optimizeDeps: {
         exclude: ['@openclaw/i18n', '@openclaw/shared']
