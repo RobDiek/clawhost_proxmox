@@ -35,6 +35,14 @@ export interface VersionManifest {
     migrations?: string[]
     installedAt?: string
     appliedMigrations?: string[]
+    /**
+     * S3 update-channel release type:
+     *   'optional' (default) — client sees a dismissible opt-in card and applies
+     *      when they choose (I7 sovereignty).
+     *   'silent'             — critical systemic fix; NO client card. The operator
+     *      force-pushes it to all outdated VPSes (admin "push upgrade to all").
+     */
+    updateType?: 'silent' | 'optional'
 }
 
 export interface VersionDiff {
@@ -50,6 +58,8 @@ export interface VersionDiff {
     notes: string[]
     /** Master-canary instances are by definition at-latest (the master IS the source). UI should suppress upgrade prompts. */
     isMaster?: boolean
+    /** S3 — 'silent' (operator force-push, no client card) | 'optional' (opt-in card). */
+    updateType: 'silent' | 'optional'
 }
 
 export interface UpgradeProgress {
@@ -163,6 +173,7 @@ export async function getVersionStatus(instanceId: string): Promise<VersionDiff>
             reachable: false,
             notes,
             isMaster,
+            updateType: 'optional',
         }
     }
 
@@ -179,11 +190,12 @@ export async function getVersionStatus(instanceId: string): Promise<VersionDiff>
             reachable,
             notes: ['Master canary instance — always at latest by definition.'],
             isMaster: true,
+            updateType: latest.updateType || 'optional',
         }
     }
 
     const diff = diffVersions(installed, latest)
-    return { ...diff, installed, latest, reachable, notes, isMaster }
+    return { ...diff, installed, latest, reachable, notes, isMaster, updateType: latest.updateType || 'optional' }
 }
 
 // ─── Sprint B — Upgrade orchestration ────────────────────────────────────
