@@ -320,6 +320,15 @@ export const setupTelegram = async (c: Context) => {
         const __ocHome = isSecondary
             ? `/home/openclaw/agents/${__activeAgent!.id}/.openclaw`
             : '/home/openclaw/.openclaw'
+        // openclaw resolves config as $HOME/.openclaw. CLI MUST set HOME=baseHome
+        // (NOT OPENCLAW_HOME=ocHome): on openclaw 2026.6.x OPENCLAW_HOME is a base
+        // and .openclaw is appended → .openclaw/.openclaw/openclaw.json, which the
+        // gateway never reads → "Added account" but status "not configured"
+        // (silent no-op). HOME=base matches the gateway unit's Environment=HOME on
+        // both 2026.4.x and 2026.6.x.
+        const __baseHome = isSecondary
+            ? `/home/openclaw/agents/${__activeAgent!.id}`
+            : '/home/openclaw'
         const __short = isSecondary ? __activeAgent!.id.slice(4) : ''
         const __systemdUnit = isSecondary
             ? `openclaw-gateway-${__short}`
@@ -331,12 +340,12 @@ export const setupTelegram = async (c: Context) => {
             await ensureDevicePaired(instance.ip, instance.rootPassword || undefined)
         }
 
-        // Configure Telegram on VPS via OpenClaw CLI — point at the right
-        // OPENCLAW_HOME so secondary agent's openclaw.json gets the channel,
-        // not the primary's.
+        // Configure Telegram on VPS via OpenClaw CLI — run with HOME=baseHome so
+        // the CLI writes to the SAME $HOME/.openclaw/openclaw.json the (per-agent)
+        // gateway reads. See __baseHome note above.
         const sanitizedToken = botToken.replace(/[^a-zA-Z0-9:_-]/g, '')
         const result = await sshExec(instance.ip, `
-            su - openclaw -c 'OPENCLAW_HOME=${__ocHome} openclaw channels add --channel telegram --token "${sanitizedToken}" --name "telegram-main" 2>&1'
+            su - openclaw -c 'HOME=${__baseHome} openclaw channels add --channel telegram --token "${sanitizedToken}" --name "telegram-main" 2>&1'
         `, instance.rootPassword || undefined)
         console.log('Telegram add result:', result)
 
@@ -386,6 +395,30 @@ export const setupTelegram = async (c: Context) => {
         // Restart gateway will re-register webhook via OpenClaw
         await sshExec(instance.ip, `systemctl restart ${__systemdUnit}`, instance.rootPassword || undefined)
         await new Promise(r => setTimeout(r, 3000))
+
+        // Quality gate — verify the channel is ACTUALLY configured on the VPS
+        // before recording it as connected. `channels add` can report "Added"
+        // while the gateway still sees "not configured" (home-path drift, etc.),
+        // which would render a green card with a dead bot (silent no-op). Probe
+        // the gateway; if not configured, fail loudly instead of persisting a
+        // false "connected". A probe transport error is non-fatal (don't block on
+        // SSH flakiness right after a successful add).
+        let __probe: string | null = null
+        try {
+            __probe = await sshExec(instance.ip,
+                `su - openclaw -c 'HOME=${__baseHome} openclaw channels status --probe 2>&1'`,
+                instance.rootPassword || undefined)
+        } catch (e) {
+            console.warn('[setupTelegram] status probe failed (non-fatal):', (e as Error).message)
+        }
+        if (__probe !== null) {
+            const __tgLine = __probe.split('\n').find(l => /telegram/i.test(l)) || ''
+            if (/not configured/i.test(__tgLine) || !/configured/i.test(__tgLine)) {
+                console.error(`[setupTelegram] channel NOT configured on VPS for ${instanceId}: ${__tgLine || __probe.slice(0, 200)}`)
+                return fail(c, 'החיבור לטלגרם לא הושלם בצד השרת. נסו שוב — אם נמשך, פנו לתמיכה.', 500)
+            }
+            console.log(`[setupTelegram] VPS channel verified configured: ${__tgLine.trim()}`)
+        }
 
         // Save telegram token + chat_id in our DB. Phase 2.3.E — for the
         // active mateh_agent (primary writes also mirror to instances.* for

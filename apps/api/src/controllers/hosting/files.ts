@@ -6,45 +6,15 @@ import { db } from '@/db'
 import { instances, matehAgents } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
-import { resolveActiveAgent, type MatehAgentRow } from '@/services/agentContext'
+import { resolveActiveAgent, agentVpsPaths } from '@/services/agentContext'
 import { setAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const VPS_HOME = '/home/openclaw/.openclaw'
 
-/**
- * Phase 2.3.B — agent-aware paths on the VPS.
- *
- * Primary agent uses the legacy paths (the default openclaw-gateway service +
- * /home/openclaw/.openclaw/* that has been baked into provisioning since v1).
- * Secondary agents live in /home/openclaw/agents/<agentId>/ with their own
- * systemd unit `openclaw-gateway-<id8>.service` (created by the secondary
- * provisioner). saveIntegration etc. need to write into the right openclaw.json
- * + restart the right systemd unit.
- */
-function agentVpsPaths(agent: MatehAgentRow | null): {
-    home: string;
-    configFile: string;
-    systemdUnit: string;
-} {
-    if (!agent || agent.isPrimary) {
-        return {
-            home: '/home/openclaw/.openclaw',
-            configFile: '/home/openclaw/.openclaw/openclaw.json',
-            systemdUnit: 'openclaw-gateway',
-        }
-    }
-    const agentDir = `/home/openclaw/agents/${agent.id}`
-    // `short` is agentId.slice(4) — the 8-char tail after "mta_" prefix.
-    // Must match matehAgentProvisioner.ts which uses the same convention
-    // for systemd unit + nginx vhost names.
-    const short = agent.id.slice(4)
-    return {
-        home: `${agentDir}/.openclaw`,
-        configFile: `${agentDir}/.openclaw/openclaw.json`,
-        systemdUnit: `openclaw-gateway-${short}`,
-    }
-}
+// agentVpsPaths (primary vs secondary openclaw home / config / gateway unit) is
+// the canonical per-agent path helper — now shared from services/agentContext so
+// setup.ts / firecrawl.ts / dataforseo.ts use the exact same resolution.
 
 let sshKeyCache: Buffer | null = null
 function getSSHKey(): Buffer {
@@ -557,7 +527,7 @@ export const saveIntegration = async (c: Context) => {
             gemini: setEnvVar('GOOGLE_API_KEY'),
             groq: setEnvVar('GROQ_API_KEY'),
             cerebras: setEnvVar('CEREBRAS_API_KEY'),
-            telegram: `su - openclaw -c 'OPENCLAW_HOME=${VPS_HOME_FOR_AGENT} openclaw channels add --channel telegram --token "'\\''${safeKey}'\\'' --name "telegram-main" 2>/dev/null'`,
+            telegram: `su - openclaw -c 'HOME=${__paths.baseHome} openclaw channels add --channel telegram --token "'\\''${safeKey}'\\'' --name "telegram-main" 2>/dev/null'`,
             brave: `echo 'MCP deploy handles brave-search'`,
             brightdata: writeConfig(`${VPS_HOME_FOR_AGENT}/skills-config`, 'bright-data.json', { apiKey: key }),
             replicate: `echo 'MCP deploy handles replicate'`,

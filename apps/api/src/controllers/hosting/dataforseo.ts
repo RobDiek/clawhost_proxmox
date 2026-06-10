@@ -17,7 +17,7 @@ import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
 import { setAgentIntegration, removeAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
-import { resolveActiveAgent, writeAgentTokens } from '@/services/agentContext'
+import { resolveActiveAgent, writeAgentTokens, agentVpsPaths } from '@/services/agentContext'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -90,10 +90,13 @@ export const saveDataforseoKey = async (c: Context) => {
             'connected', __activeAgent?.id,
         ).catch(err => console.error('Failed to set agent dataforseo integration:', err))
 
-        // Deploy MCP to VPS
+        // Deploy MCP to VPS — agent-aware (active agent's config + gateway).
+        // NOTE: this legacy per-tenant DFS-key path is the dfs_use_proxy=false
+        // escape hatch; the default DFS model is the central proxy (dfsCredits).
         if (instance.ip) {
             try {
-                await deployDataforseoMcpToVPS(instance.ip, instance.rootPassword || undefined, login, apiPassword)
+                const paths = agentVpsPaths(__activeAgent)
+                await deployDataforseoMcpToVPS(instance.ip, instance.rootPassword || undefined, login, apiPassword, paths.configFile, paths.systemdUnit)
                 await updateSoulWithDataforseoTools(instance.ip, instance.rootPassword || undefined)
             } catch (deployErr) {
                 console.error('Failed to deploy DataForSEO MCP to VPS:', deployErr)
@@ -151,20 +154,21 @@ export const removeDataforseoKey = async (c: Context) => {
         const agentType = getPrimaryAgent((instance.selectedComponents as string[]) || [])
         await removeAgentIntegration(instanceId, agentType, 'dataforseo', __activeAgent?.id).catch(() => {})
 
-        // Remove MCP server from VPS
+        // Remove MCP server from VPS — agent-aware (the active agent's config + unit)
         if (instance.ip) {
             try {
+                const paths = agentVpsPaths(__activeAgent)
                 await sshExec(instance.ip, `
-                    systemctl stop openclaw-gateway &&
+                    systemctl stop ${paths.systemdUnit} &&
                     python3 -c "
 import json
-p = '/home/openclaw/.openclaw/openclaw.json'
+p = '${paths.configFile}'
 with open(p) as f: d = json.load(f)
 d.get('mcp', {}).get('servers', {}).pop('dataforseo', None)
 with open(p, 'w') as f: json.dump(d, f, indent=2)
 " &&
-                    chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
-                    systemctl start openclaw-gateway
+                    chown openclaw:openclaw '${paths.configFile}' &&
+                    systemctl start ${paths.systemdUnit}
                 `, instance.rootPassword || undefined)
             } catch { /* best effort */ }
         }
@@ -177,8 +181,11 @@ with open(p, 'w') as f: json.dump(d, f, indent=2)
 }
 
 // ── Deploy DataForSEO MCP server to VPS ──
-async function deployDataforseoMcpToVPS(ip: string, password: string | undefined, login: string, apiPassword: string): Promise<void> {
-    console.log(`Deploying DataForSEO MCP server to ${ip}...`)
+async function deployDataforseoMcpToVPS(
+    ip: string, password: string | undefined, login: string, apiPassword: string,
+    configFile: string, systemdUnit: string,
+): Promise<void> {
+    console.log(`Deploying DataForSEO MCP server to ${ip} (${configFile}, ${systemdUnit})...`)
 
     const mcpConfig = {
         command: 'npx',
@@ -192,19 +199,19 @@ async function deployDataforseoMcpToVPS(ip: string, password: string | undefined
     const mcpB64 = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
 
     await sshExec(ip, `
-        systemctl stop openclaw-gateway &&
+        systemctl stop ${systemdUnit} &&
         python3 -c "
 import json, base64, sys
 cfg = json.loads(base64.b64decode(sys.argv[1]))
-p = '/home/openclaw/.openclaw/openclaw.json'
+p = '${configFile}'
 with open(p) as f: d = json.load(f)
 d.setdefault('mcp', {}).setdefault('servers', {})
 d['mcp']['servers']['dataforseo'] = cfg
 with open(p, 'w') as f: json.dump(d, f, indent=2)
 print('dataforseo configured')
 " '${mcpB64}' &&
-        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
-        systemctl start openclaw-gateway
+        chown openclaw:openclaw '${configFile}' &&
+        systemctl start ${systemdUnit}
     `, password)
 
     console.log(`DataForSEO MCP server deployed to ${ip}`)

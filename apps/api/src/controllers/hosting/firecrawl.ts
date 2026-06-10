@@ -17,7 +17,7 @@ import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
 import { setAgentIntegration, removeAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
-import { resolveActiveAgent, writeAgentTokens } from '@/services/agentContext'
+import { resolveActiveAgent, writeAgentTokens, agentVpsPaths } from '@/services/agentContext'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -94,10 +94,12 @@ export const saveFirecrawlKey = async (c: Context) => {
             'connected', __activeAgent?.id,
         ).catch(err => console.error('Failed to set agent firecrawl integration:', err))
 
-        // Deploy MCP to VPS
+        // Deploy MCP to VPS — agent-aware (write the ACTIVE agent's openclaw.json
+        // + restart ITS gateway, not always the primary's).
         if (instance.ip) {
             try {
-                await deployFirecrawlMcpToVPS(instance.ip, instance.rootPassword || undefined, key)
+                const paths = agentVpsPaths(__activeAgent)
+                await deployFirecrawlMcpToVPS(instance.ip, instance.rootPassword || undefined, key, paths.configFile, paths.systemdUnit)
                 await updateSoulWithFirecrawlTools(instance.ip, instance.rootPassword || undefined)
             } catch (deployErr) {
                 console.error('Failed to deploy Firecrawl MCP to VPS:', deployErr)
@@ -157,20 +159,21 @@ export const removeFirecrawlKey = async (c: Context) => {
         const agentType = getPrimaryAgent((instance.selectedComponents as string[]) || [])
         await removeAgentIntegration(instanceId, agentType, 'firecrawl', __activeAgent?.id).catch(() => {})
 
-        // Remove MCP server from VPS
+        // Remove MCP server from VPS — agent-aware (the active agent's config + unit)
         if (instance.ip) {
             try {
+                const paths = agentVpsPaths(__activeAgent)
                 await sshExec(instance.ip, `
-                    systemctl stop openclaw-gateway &&
+                    systemctl stop ${paths.systemdUnit} &&
                     python3 -c "
 import json
-p = '/home/openclaw/.openclaw/openclaw.json'
+p = '${paths.configFile}'
 with open(p) as f: d = json.load(f)
 d.get('mcp', {}).get('servers', {}).pop('firecrawl', None)
 with open(p, 'w') as f: json.dump(d, f, indent=2)
 " &&
-                    chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
-                    systemctl start openclaw-gateway
+                    chown openclaw:openclaw '${paths.configFile}' &&
+                    systemctl start ${paths.systemdUnit}
                 `, instance.rootPassword || undefined)
             } catch { /* best effort */ }
         }
@@ -182,9 +185,12 @@ with open(p, 'w') as f: json.dump(d, f, indent=2)
     }
 }
 
-// ── Deploy Firecrawl MCP server to VPS ──
-async function deployFirecrawlMcpToVPS(ip: string, password: string | undefined, apiKey: string): Promise<void> {
-    console.log(`Deploying Firecrawl MCP server to ${ip}...`)
+// ── Deploy Firecrawl MCP server to VPS (agent-aware) ──
+async function deployFirecrawlMcpToVPS(
+    ip: string, password: string | undefined, apiKey: string,
+    configFile: string, systemdUnit: string,
+): Promise<void> {
+    console.log(`Deploying Firecrawl MCP server to ${ip} (${configFile}, ${systemdUnit})...`)
 
     const mcpConfig = {
         command: 'npx',
@@ -197,19 +203,19 @@ async function deployFirecrawlMcpToVPS(ip: string, password: string | undefined,
     const mcpB64 = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
 
     await sshExec(ip, `
-        systemctl stop openclaw-gateway &&
+        systemctl stop ${systemdUnit} &&
         python3 -c "
 import json, base64, sys
 cfg = json.loads(base64.b64decode(sys.argv[1]))
-p = '/home/openclaw/.openclaw/openclaw.json'
+p = '${configFile}'
 with open(p) as f: d = json.load(f)
 d.setdefault('mcp', {}).setdefault('servers', {})
 d['mcp']['servers']['firecrawl'] = cfg
 with open(p, 'w') as f: json.dump(d, f, indent=2)
 print('firecrawl configured')
 " '${mcpB64}' &&
-        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
-        systemctl start openclaw-gateway
+        chown openclaw:openclaw '${configFile}' &&
+        systemctl start ${systemdUnit}
     `, password)
 
     console.log(`Firecrawl MCP server deployed to ${ip}`)

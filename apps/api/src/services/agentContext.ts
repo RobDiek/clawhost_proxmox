@@ -26,6 +26,43 @@ export type MatehAgentRow = typeof matehAgents.$inferSelect
 export type InstanceRow = typeof instances.$inferSelect
 
 /**
+ * Canonical per-agent VPS paths. Single source of truth for the openclaw home,
+ * config file, the gateway's $HOME, and the systemd unit — used by every
+ * controller that writes channels/MCP/keys to a VPS so primary vs secondary
+ * agents always hit the right gateway.
+ *
+ * `baseHome` = the gateway unit's Environment=HOME (matehAgentProvisioner.ts).
+ * openclaw resolves config as $HOME/.openclaw, so any CLI invocation MUST run
+ * with HOME=baseHome — NOT OPENCLAW_HOME=home: on openclaw 2026.6.x OPENCLAW_HOME
+ * is treated as a base and `.openclaw` is appended → .openclaw/.openclaw, which
+ * the gateway never reads → "Added" but "not configured" (silent no-op). Writing
+ * the config FILE directly (configFile) is also safe (exact path the gateway reads).
+ */
+export function agentVpsPaths(agent: MatehAgentRow | null): {
+    home: string
+    baseHome: string
+    configFile: string
+    systemdUnit: string
+} {
+    if (!agent || agent.isPrimary) {
+        return {
+            home: '/home/openclaw/.openclaw',
+            baseHome: '/home/openclaw',
+            configFile: '/home/openclaw/.openclaw/openclaw.json',
+            systemdUnit: 'openclaw-gateway',
+        }
+    }
+    const agentDir = `/home/openclaw/agents/${agent.id}`
+    const short = agent.id.slice(4)
+    return {
+        home: `${agentDir}/.openclaw`,
+        baseHome: agentDir,
+        configFile: `${agentDir}/.openclaw/openclaw.json`,
+        systemdUnit: `openclaw-gateway-${short}`,
+    }
+}
+
+/**
  * Resolves which mateh_agents row to operate on for this request.
  * Looks up by `?agentId=` if provided (and validates it belongs to the
  * given VPS), otherwise returns the primary agent for the VPS.
