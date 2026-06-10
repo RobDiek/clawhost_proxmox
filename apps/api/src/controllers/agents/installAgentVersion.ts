@@ -59,11 +59,14 @@ const buildGitHubInstallCommands = (
     githubRepo: string,
     serviceName: string,
     user: string,
-    versionCommand: string
+    versionCommand: string,
+    homeDir: string
 ): string => {
+    const gitDir = `${homeDir}/.hermes/hermes-agent`
     return [
         `systemctl stop ${serviceName} 2>/dev/null || true`,
-        `su - ${user} -c 'curl -fsSL https://raw.githubusercontent.com/${githubRepo}/main/scripts/install.sh | HERMES_VERSION=${version} bash -s -- --skip-setup'`,
+        `su - ${user} -c 'curl -fsSL https://raw.githubusercontent.com/${githubRepo}/main/scripts/install.sh | bash -s -- --skip-setup'`,
+        `su - ${user} -c 'cd ${gitDir} && git fetch --tags && (git checkout v${version} || git checkout ${version})'`,
         `systemctl restart ${serviceName} 2>/dev/null || su - ${user} -c 'systemctl --user restart ${serviceName}' 2>/dev/null || true`,
         'sleep 5',
         `su - ${user} -c '${versionCommand}' >/dev/null 2>&1 && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"`
@@ -89,7 +92,8 @@ const installAgentVersion = withAgent({
                 agentConfig.githubRepo,
                 agentConfig.serviceName,
                 agentConfig.user,
-                agentConfig.versionCommand
+                agentConfig.versionCommand,
+                agentConfig.homeDir
             )
         } else if (agentConfig.npmPackage) {
             try {

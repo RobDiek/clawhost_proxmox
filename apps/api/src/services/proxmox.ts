@@ -135,7 +135,7 @@ const extractGatewayToken = (userData: string): string => {
 }
 
 const extractSubdomainAndDomain = (userData: string): { subdomain: string; domain: string } => {
-    const match = userData.match(/server_name\s+([^\s;]+)\.([^;]+);/)
+    const match = userData.match(/server_name\s+([^.\s;]+)\.([^;]+);/)
     if (match) {
         return { subdomain: match[1], domain: match[2].trim() }
     }

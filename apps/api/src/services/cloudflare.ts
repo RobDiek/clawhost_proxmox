@@ -23,6 +23,12 @@ const DNS_CACHE_TTL = 30_000
 const dnsCache = new Map<string, CacheEntry<CloudflareDNSLookup | null>>()
 const dnsInflight = new Map<string, Promise<CloudflareDNSLookup | null>>()
 
+const getFullName = (subdomain: string) => {
+    return subdomain.includes('.')
+        ? subdomain
+        : `${subdomain}.${process.env.AGENT_DOMAIN || 'clawnode.cloud'}`
+}
+
 const cloudflare = {
     async createDNSRecord(
         subdomain: string,
@@ -30,11 +36,12 @@ const cloudflare = {
     ): Promise<CloudflareDNSRecord> {
         const client = getClient()
         const zoneId = getZoneId()
+        const fullName = getFullName(subdomain)
 
         const record = await client.dns.records.create({
             zone_id: zoneId,
             type: 'A',
-            name: subdomain,
+            name: fullName,
             content: ip,
             proxied: false,
             ttl: 60
@@ -55,11 +62,12 @@ const cloudflare = {
     ): Promise<void> {
         const client = getClient()
         const zoneId = getZoneId()
+        const fullName = getFullName(subdomain)
 
         await client.dns.records.update(recordId, {
             zone_id: zoneId,
             type: 'A',
-            name: subdomain,
+            name: fullName,
             content: ip,
             ttl: 60
         })
@@ -87,7 +95,7 @@ const cloudflare = {
 
         const client = getClient()
         const zoneId = getZoneId()
-        const fullName = `${subdomain}.${process.env.AGENT_DOMAIN || 'clawnode.cloud'}`
+        const fullName = getFullName(subdomain)
 
         const promise = client.dns.records
             .list({

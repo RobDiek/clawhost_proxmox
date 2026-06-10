@@ -1,4 +1,3 @@
-
 import { eq } from 'drizzle-orm'
 import { agentStatus } from '@openclaw/shared'
 import { db } from '@/db'
