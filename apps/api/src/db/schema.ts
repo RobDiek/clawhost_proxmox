@@ -179,6 +179,12 @@ export const instances = pgTable(
         allpayOrderId: text('allpay_order_id'),
         subscriptionStatus: text('subscription_status').default('pending'),
         nextBillingAt: timestamp('next_billing_at', { withTimezone: true }),
+        // S3 — billing cadence. 'monthly' auto-recurs via AllPay; 'annual' is a
+        // ONE-TIME yearly charge (AllPay can't auto-renew yearly) → we email a
+        // renewal reminder before next_billing_at. renewal_reminder_sent_at is the
+        // idempotency stamp (cleared when a new payment lands → next cycle).
+        billingPeriod: text('billing_period').default('monthly'),
+        renewalReminderSentAt: timestamp('renewal_reminder_sent_at', { withTimezone: true }),
 
         // Onboarding
         onboardingStep: integer('onboarding_step').default(0),
