@@ -23,9 +23,10 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
-import { getSubAgentModel, formatHistoricalAssets, getAvailableTools } from '../../agentSetup'
+import { getSubAgentModel, formatHistoricalAssets } from '../../agentSetup'
 import {
     executeStage,
+    getToolsForStage,
     saveStageResult,
     acquireResearchLock,
     releaseResearchLock,
@@ -188,7 +189,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         const businessName = (answers.businessName as string) || 'העסק'
         const businessDesc = (answers.businessDescription as string) || ''
 
-        const tools = await getAvailableTools(instance.ip, instance.rootPassword || undefined)
+        const tools = await getToolsForStage(instanceId, instance.ip, instance.rootPassword, instance.execMode)
         const historicalAssetsBlock = formatHistoricalAssets(rd)
 
         // ─── DFS prefetch (manager goes to market) ──
@@ -233,6 +234,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                 ip: instance.ip,
                 rootPassword: instance.rootPassword,
                 researchData: rd,
+                execMode: instance.execMode,
             },
             stageId,
             prompt: promptResult.prompt,

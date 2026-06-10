@@ -33,6 +33,7 @@ import {
     getApiKeyForInstance,
     getAvailableTools,
 } from '@/controllers/hosting/agentSetup'
+import * as execClient from '@/services/sovereign/execClient'
 import type {
     StageId,
     StageResult,
@@ -273,6 +274,9 @@ export interface ExecuteStageInput {
         ip: string
         rootPassword?: string | null
         researchData?: unknown
+        /** S1 — 'vps' routes execution through the on-VPS exec-service (no root
+         *  SSH); 'central' (default) keeps the legacy root-SSH path. */
+        execMode?: string | null
     }
     /** Stable stage id used for logs + saved-file lookup. */
     stageId: StageId
@@ -342,6 +346,143 @@ export interface ExecuteStageOutput {
 
 // ────────────────────────────────────────────────────────────────────────────
 
+// ── S1 — exec_mode routing (vps → on-VPS exec-service; central → legacy root SSH) ──
+// Each helper tries the sovereign exec-service when exec_mode='vps' and AUTO-FALLS-BACK
+// to the legacy root-SSH path on any error, so flipping a tenant to 'vps' can never
+// break the pipeline. The S1 gate proves zero root-SSH on the happy path; the fallback
+// is the safety net while it's being proven.
+
+interface ExecCtx {
+    instanceId: string
+    ip: string
+    password?: string | null
+    execMode?: string | null
+    stageId: string
+}
+
+async function routedTools(ctx: ExecCtx): Promise<{ hasBrave: boolean; hasDataforseo: boolean; hasFirecrawl: boolean; hasGsc: boolean }> {
+    if (ctx.execMode === 'vps') {
+        try { return await execClient.tools(ctx.instanceId) }
+        catch (e) { console.warn(`[exec/tools ${ctx.stageId}] vps fallback:`, (e as Error).message) }
+    }
+    return getAvailableTools(ctx.ip, ctx.password || undefined)
+}
+
+async function routedReset(ctx: ExecCtx, agentId: string, brandSlug: string): Promise<void> {
+    if (ctx.execMode === 'vps') {
+        try { await execClient.resetWorkspace(ctx.instanceId, { agentId, brandSlug }); return }
+        catch (e) { console.warn(`[exec/reset ${ctx.stageId}] vps fallback:`, (e as Error).message) }
+    }
+    await sshExec(ctx.ip, `
+            rm -rf /home/openclaw/.openclaw/agents/${agentId}/sessions/* 2>/dev/null
+            rm -rf /home/openclaw/.openclaw/agents/${agentId}/output/* 2>/dev/null
+            mkdir -p /home/openclaw/.openclaw/agents/${agentId}/sessions
+            rm -rf /home/openclaw/.openclaw/workspace/content/* 2>/dev/null
+            rm -rf /home/openclaw/.openclaw/workspace/memory/* 2>/dev/null
+            rm -rf /home/openclaw/.openclaw/workspace/state/* 2>/dev/null
+            rm -f /home/openclaw/.openclaw/workspace/STRATEGY.md 2>/dev/null
+            if [ -d /home/openclaw/.openclaw/workspace/brands ]; then
+                for d in /home/openclaw/.openclaw/workspace/brands/*/; do
+                    slug=$(basename "$d")
+                    if [ "$slug" != "${brandSlug}" ]; then
+                        rm -rf "$d" 2>/dev/null
+                    fi
+                done
+            fi
+            if [ -f "/home/openclaw/.openclaw/workspace/brands/${brandSlug}/BRAND.md" ]; then
+                cp "/home/openclaw/.openclaw/workspace/brands/${brandSlug}/BRAND.md" /home/openclaw/.openclaw/workspace/BRAND.md
+            fi
+            chown -R openclaw:openclaw /home/openclaw/.openclaw/agents/${agentId} /home/openclaw/.openclaw/workspace 2>/dev/null
+        `, ctx.password || undefined, 15000)
+}
+
+async function routedAgent(ctx: ExecCtx, agentId: string, sessionId: string, prompt: string, timeoutSec: number): Promise<string> {
+    if (ctx.execMode === 'vps') {
+        try { return await execClient.runAgent(ctx.instanceId, { agentId, sessionId, prompt, timeoutSec }) }
+        catch (e) { console.warn(`[exec/agent ${ctx.stageId}] vps fallback:`, (e as Error).message) }
+    }
+    const b64Prompt = Buffer.from(prompt).toString('base64')
+    const promptFile = `/tmp/research-prompt-${sessionId}.txt`
+    await sshExec(ctx.ip,
+        `echo '${b64Prompt}' | base64 -d > ${promptFile} && chown openclaw:openclaw ${promptFile}`,
+        ctx.password || undefined,
+    )
+    return sshExec(ctx.ip,
+        `su - openclaw -c 'timeout ${timeoutSec} openclaw agent --agent ${agentId} --session-id ${sessionId} -m "$(cat ${promptFile})" --json 2>&1'; rm -f ${promptFile}`,
+        ctx.password || undefined,
+        (timeoutSec + 30) * 1000,
+    )
+}
+
+async function routedReadFile(ctx: ExecCtx, relPath: string): Promise<string | null> {
+    if (ctx.execMode === 'vps') {
+        try { return await execClient.readFile(ctx.instanceId, relPath) }
+        catch (e) { console.warn(`[exec/file ${ctx.stageId}] vps read fallback:`, (e as Error).message) }
+    }
+    const out = await sshExec(ctx.ip,
+        `cat /home/openclaw/.openclaw/${relPath} 2>/dev/null || echo ""`,
+        ctx.password || undefined,
+    )
+    return out || null
+}
+
+async function routedSessionDraft(ctx: ExecCtx, agentId: string): Promise<string> {
+    if (ctx.execMode === 'vps') {
+        try { return await execClient.sessionDraft(ctx.instanceId, agentId) }
+        catch (e) { console.warn(`[exec/draft ${ctx.stageId}] vps fallback:`, (e as Error).message) }
+    }
+    return sshExec(ctx.ip,
+        `ls -t /home/openclaw/.openclaw/agents/${agentId}/sessions/*.jsonl 2>/dev/null | head -1 | xargs -r cat 2>/dev/null | python3 -c "
+import json,sys
+out=[]
+for line in sys.stdin:
+    try:
+        j=json.loads(line)
+        if j.get('type')=='message' and j.get('message',{}).get('role')=='assistant':
+            for c in j['message'].get('content',[]):
+                if isinstance(c,dict) and c.get('type')=='text':
+                    t=c.get('text','').strip()
+                    if len(t)>50: out.append(t)
+    except: pass
+print('\n\n'.join(out))
+" 2>/dev/null || echo ""`,
+        ctx.password || undefined,
+        20000,
+    )
+}
+
+async function routedWriteFile(ctx: ExecCtx, relPath: string, body: string): Promise<void> {
+    if (ctx.execMode === 'vps') {
+        try { await execClient.writeFile(ctx.instanceId, relPath, body); return }
+        catch (e) { console.warn(`[exec/file ${ctx.stageId}] vps write fallback:`, (e as Error).message) }
+    }
+    const b64 = Buffer.from(body).toString('base64')
+    const dir = relPath.includes('/') ? relPath.slice(0, relPath.lastIndexOf('/')) : ''
+    await sshExec(ctx.ip,
+        `mkdir -p /home/openclaw/.openclaw/${dir} && echo ${b64} | base64 -d > /home/openclaw/.openclaw/${relPath} && chown -R openclaw:openclaw /home/openclaw/.openclaw/${dir}`,
+        ctx.password || undefined,
+    )
+}
+
+async function routedAnthropic(
+    ctx: ExecCtx, apiKey: string, model: string, prompt: string, maxTokens: number,
+): Promise<{ ok: true; text: string } | { ok: false; status: number; errorText: string }> {
+    if (ctx.execMode === 'vps') {
+        try { return await execClient.anthropic(ctx.instanceId, { model, prompt, maxTokens }) }
+        catch (e) { console.warn(`[exec/anthropic ${ctx.stageId}] vps fallback:`, (e as Error).message) }
+    }
+    return callAnthropicStreaming(apiKey, model.replace(/^anthropic\//, ''), prompt, maxTokens)
+}
+
+/** S1 — exec_mode-aware MCP tools probe for callers that build prompts BEFORE
+ *  executeStage (e.g. _runStageGeneric). Routes to the on-VPS exec-service when
+ *  exec_mode='vps', else the legacy root-SSH getAvailableTools. */
+export async function getToolsForStage(
+    instanceId: string, ip: string, password: string | null | undefined, execMode: string | null | undefined,
+): Promise<{ hasBrave: boolean; hasDataforseo: boolean; hasFirecrawl: boolean; hasGsc: boolean }> {
+    return routedTools({ instanceId, ip, password, execMode, stageId: 'prompt-build' })
+}
+
 /**
  * Run one research stage. Idempotent at the SSH level — repeated calls always
  * wipe the workspace before re-running. Concurrency control is the caller's
@@ -361,8 +502,14 @@ export async function executeStage(input: ExecuteStageInput): Promise<ExecuteSta
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '') || '__none__'
 
+    // S1 — execution routing context: 'vps' → on-VPS exec-service, else root SSH.
+    const ctx: ExecCtx = {
+        instanceId, ip: instance.ip, password: instance.rootPassword,
+        execMode: instance.execMode, stageId,
+    }
+
     // Detect available MCP tools — informs `integrationsUsed` for provenance.
-    const tools = await getAvailableTools(instance.ip, instance.rootPassword || undefined)
+    const tools = await routedTools(ctx)
 
     // ─── Pre-flight: clear all context sources ──
     // Why every run: "I already answered" cache, sibling-brand contamination,
@@ -377,27 +524,7 @@ export async function executeStage(input: ExecuteStageInput): Promise<ExecuteSta
         } catch { /* best-effort */ }
     }
     try {
-        await sshExec(instance.ip, `
-            rm -rf /home/openclaw/.openclaw/agents/${agentId}/sessions/* 2>/dev/null
-            rm -rf /home/openclaw/.openclaw/agents/${agentId}/output/* 2>/dev/null
-            mkdir -p /home/openclaw/.openclaw/agents/${agentId}/sessions
-            rm -rf /home/openclaw/.openclaw/workspace/content/* 2>/dev/null
-            rm -rf /home/openclaw/.openclaw/workspace/memory/* 2>/dev/null
-            rm -rf /home/openclaw/.openclaw/workspace/state/* 2>/dev/null
-            rm -f /home/openclaw/.openclaw/workspace/STRATEGY.md 2>/dev/null
-            if [ -d /home/openclaw/.openclaw/workspace/brands ]; then
-                for d in /home/openclaw/.openclaw/workspace/brands/*/; do
-                    slug=$(basename "$d")
-                    if [ "$slug" != "${currentBrandSlug}" ]; then
-                        rm -rf "$d" 2>/dev/null
-                    fi
-                done
-            fi
-            if [ -f "/home/openclaw/.openclaw/workspace/brands/${currentBrandSlug}/BRAND.md" ]; then
-                cp "/home/openclaw/.openclaw/workspace/brands/${currentBrandSlug}/BRAND.md" /home/openclaw/.openclaw/workspace/BRAND.md
-            fi
-            chown -R openclaw:openclaw /home/openclaw/.openclaw/agents/${agentId} /home/openclaw/.openclaw/workspace 2>/dev/null
-        `, instance.rootPassword || undefined, 15000)
+        await routedReset(ctx, agentId, currentBrandSlug)
         console.log(`[research/${stageId}] full context wipe + BRAND.md restored from brands/${currentBrandSlug}/`)
     } catch (err) {
         console.warn(`[research/${stageId}] pre-flight cleanup warning:`, (err as Error).message)
@@ -419,7 +546,7 @@ export async function executeStage(input: ExecuteStageInput): Promise<ExecuteSta
         }
         const anthropicModel = model.replace(/^anthropic\//, '')
         try {
-            const streamRes = await callAnthropicStreaming(apiKey, anthropicModel, prompt, 32000)
+            const streamRes = await routedAnthropic(ctx, apiKey, model, prompt, 32000)
             if (streamRes.ok) {
                 output = streamRes.text
                 console.log(`[research/${stageId}] direct API streaming: ${output.length} chars via ${anthropicModel}`)
@@ -470,18 +597,8 @@ export async function executeStage(input: ExecuteStageInput): Promise<ExecuteSta
         }
     } else {
         // OpenClaw CLI path — agent has access to Brave/DataForSEO/Firecrawl MCPs.
-        const b64Prompt = Buffer.from(prompt).toString('base64')
         const sessionId = `research-${stageId}-${Date.now()}`
-        const promptFile = `/tmp/research-prompt-${sessionId}.txt`
-        await sshExec(instance.ip,
-            `echo '${b64Prompt}' | base64 -d > ${promptFile} && chown openclaw:openclaw ${promptFile}`,
-            instance.rootPassword || undefined,
-        )
-        output = await sshExec(instance.ip,
-            `su - openclaw -c 'timeout 540 openclaw agent --agent ${agentId} --session-id ${sessionId} -m "$(cat ${promptFile})" --json 2>&1'; rm -f ${promptFile}`,
-            instance.rootPassword || undefined,
-            570000,
-        )
+        output = await routedAgent(ctx, agentId, sessionId, prompt, 540)
     }
 
     // ─── Parse ──
@@ -550,35 +667,15 @@ export async function executeStage(input: ExecuteStageInput): Promise<ExecuteSta
     const legacyFile = LEGACY_STAGE_FILENAME[stageId]
     if (result.length < minLength && legacyFile && (result.includes('.md') || result.includes('שמורה'))) {
         try {
-            const fileContent = await sshExec(instance.ip,
-                `cat /home/openclaw/.openclaw/workspace/${legacyFile} 2>/dev/null || echo ""`,
-                instance.rootPassword || undefined,
-            )
-            if (fileContent.length > minLength) result = fileContent
+            const fileContent = await routedReadFile(ctx, `workspace/${legacyFile}`)
+            if (fileContent && fileContent.length > minLength) result = fileContent
         } catch { /* best-effort */ }
     }
 
     // ─── Fallback B: assistant blocks from session jsonl ──
     if (!result || result.length < minLength) {
         try {
-            const draft = await sshExec(instance.ip,
-                `ls -t /home/openclaw/.openclaw/agents/${agentId}/sessions/*.jsonl 2>/dev/null | head -1 | xargs -r cat 2>/dev/null | python3 -c "
-import json,sys
-out=[]
-for line in sys.stdin:
-    try:
-        j=json.loads(line)
-        if j.get('type')=='message' and j.get('message',{}).get('role')=='assistant':
-            for c in j['message'].get('content',[]):
-                if isinstance(c,dict) and c.get('type')=='text':
-                    t=c.get('text','').strip()
-                    if len(t)>50: out.append(t)
-    except: pass
-print('\n\n'.join(out))
-" 2>/dev/null || echo ""`,
-                instance.rootPassword || undefined,
-                20000,
-            )
+            const draft = await routedSessionDraft(ctx, agentId)
             if (draft && draft.trim().length > minLength) {
                 console.log(`[research/${stageId}] session-draft fallback: ${draft.length} chars`)
                 result = draft.trim()
@@ -596,30 +693,14 @@ print('\n\n'.join(out))
         console.warn(`[research/${stageId}] CLI gave ${metaLeak ? 'meta-leak' : 'short'} result (${result?.length || 0} chars) — fallback to direct API`)
         try {
             const apiKey = await getApiKeyForInstance(instanceId)
-            if (apiKey) {
-                const anthropicModel = model.replace(/^anthropic\//, '')
-                const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': apiKey,
-                        'anthropic-version': '2023-06-01',
-                    },
-                    body: JSON.stringify({
-                        model: anthropicModel,
-                        max_tokens: 32000,  // Phase 3.18 — match primary path budget
-                        stream: true,       // Phase 3.20 — match primary path
-                        messages: [{ role: 'user', content: prompt }],
-                    }),
-                    signal: AbortSignal.timeout(720_000),  // Phase 3.19 — match primary path
-                })
-                if (apiRes.ok) {
-                    const directResult = await consumeAnthropicStream(apiRes)
-                    if (directResult && directResult.length >= 500) {
-                        console.log(`[research/${stageId}] direct-API fallback OK: ${directResult.length} chars`)
-                        result = directResult
-                        primarySource = 'anthropic'  // CLI failed → fallback owns provenance
-                    }
+            if (apiKey || ctx.execMode === 'vps') {
+                // S1 — route through exec_mode so 'vps' uses the on-VPS litellm
+                // (tenant key on the VPS); 'central' keeps the direct Anthropic call.
+                const fb = await routedAnthropic(ctx, apiKey, model, prompt, 32000)
+                if (fb.ok && fb.text && fb.text.length >= 500) {
+                    console.log(`[research/${stageId}] direct-API fallback OK: ${fb.text.length} chars`)
+                    result = fb.text
+                    primarySource = 'anthropic'  // CLI failed → fallback owns provenance
                 }
             }
         } catch (fbErr) {
@@ -661,11 +742,7 @@ print('\n\n'.join(out))
     // ─── Persist legacy RESEARCH_STAGE<n>.md file (downstream consumers) ──
     if (legacyFile) {
         try {
-            const b64Result = Buffer.from(result).toString('base64')
-            await sshExec(instance.ip,
-                `mkdir -p /home/openclaw/.openclaw/research-data && echo ${b64Result} | base64 -d > /home/openclaw/.openclaw/research-data/${legacyFile} && chown -R openclaw:openclaw /home/openclaw/.openclaw/research-data`,
-                instance.rootPassword || undefined,
-            )
+            await routedWriteFile(ctx, `research-data/${legacyFile}`, result)
         } catch { /* best-effort */ }
     }
 
