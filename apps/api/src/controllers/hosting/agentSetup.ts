@@ -10695,6 +10695,27 @@ export const setupAgents = async (c: Context) => {
             isSecondaryDeploy ? __setupAgentRow!.id : undefined,
         )
 
+        // D3 — register the on-VPS DFS MCP shim (sovereign DataForSEO) for MATEH
+        // agents. Agent-aware (HOME-based); the shim auths to the central relay
+        // with the INSTANCE token (relay owner of auth + balance). The CLI research
+        // agent runs on the VPS in both exec modes, so this gives it live DFS while
+        // the master DFS key stays central. Non-fatal — never block agent setup.
+        if (agentType === 'mt') {
+            try {
+                const { setupDfsShim } = await import('@/services/dfsShim')
+                await setupDfsShim({
+                    ip: instance.ip,
+                    password: instance.rootPassword || undefined,
+                    baseHome: isSecondaryDeploy ? `/home/openclaw/agents/${__setupAgentRow!.id}` : '/home/openclaw',
+                    instanceId,
+                    instanceToken: instance.openclawToken || '',
+                })
+                console.log(`[setupAgents] DFS MCP shim registered (agent=${__setupAgentRow?.id || 'primary'})`)
+            } catch (e) {
+                console.warn('[setupAgents] DFS shim setup failed (non-fatal):', (e as Error).message)
+            }
+        }
+
         // Register sub-agents (MATEH) via unified function — primary path only.
         // Secondary agents have their own workspace + their own systemd unit;
         // ensureAgentsRegistered targets primary paths and should not be reused.
