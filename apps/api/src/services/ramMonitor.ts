@@ -86,7 +86,7 @@ async function checkInstanceRam(instance: {
         const [usedStr, totalStr] = output.trim().split(/\s+/)
         const ramUsedMb = parseInt(usedStr) || 0
         const ramTotalMb = parseInt(totalStr) || 0
-        const planRamMb = PLAN_RAM_MB[instance.planKey || 'personal'] || 4096
+        const planRamMb = PLAN_RAM_MB[instance.planKey || 'business'] || 8192
         const usagePercent = ramTotalMb > 0 ? Math.round((ramUsedMb / ramTotalMb) * 100) : 0
 
         let level: 'ok' | 'warning' | 'critical' = 'ok'

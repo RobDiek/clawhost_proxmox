@@ -20,7 +20,8 @@ export interface ComponentInfo {
 }
 
 const PLANS: PlanInfo[] = [
-    { key: 'personal', nameHe: 'אישי', nameEn: 'Personal', ram: 4, cpu: 2, cpuType: 'shared', nvme: 40, hetznerType: 'cx23', priceIls: 129 },
+    // 'personal' (אישי) retired — self-serve floors at 'business' (₪279). Kept out
+    // of PLANS so calcPlan never sizes below business and no phantom 129 plan exists.
     { key: 'business', nameHe: 'עסקי', nameEn: 'Business', ram: 8, cpu: 4, cpuType: 'shared', nvme: 80, hetznerType: 'cx33', priceIls: 279 },
     { key: 'pro', nameHe: 'פרו', nameEn: 'Pro', ram: 16, cpu: 4, cpuType: 'dedicated', nvme: 160, hetznerType: 'ccx23', priceIls: 579 },
     { key: 'developer', nameHe: 'מפתח', nameEn: 'Developer', ram: 32, cpu: 8, cpuType: 'dedicated', nvme: 240, hetznerType: 'ccx33', priceIls: 989 },

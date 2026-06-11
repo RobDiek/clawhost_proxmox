@@ -10799,8 +10799,8 @@ export const addAgentToInstance = async (c: Context) => {
         const newRam = currentRam + getComponentRam(agentType)
 
         // Check plan capacity
-        const planInfo = PLANS.find((p: { key: string; ram: number }) => p.key === (instance.planKey || 'personal'))
-        const planRam = planInfo?.ram || 4
+        const planInfo = PLANS.find((p: { key: string; ram: number }) => p.key === (instance.planKey || 'business'))
+        const planRam = planInfo?.ram || 8
 
         if (newRam > planRam) {
             // Need plan upgrade — find the smallest plan that fits
