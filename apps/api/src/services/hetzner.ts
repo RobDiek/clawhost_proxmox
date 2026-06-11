@@ -168,40 +168,44 @@ const hetzner: CloudProvider = {
             await sleep(3000)
         }
 
-        // 2. Change type
-        console.log(`[Hetzner] Changing server ${serverId} to ${newType}...`)
-        const actionRes = await getClient().post<{ action: { id: number } }>(
-            `/servers/${serverId}/actions/change_type`,
-            { server_type: newType, upgrade_disk: true }
-        )
-
-        // 3. Wait for action to complete
-        const actionId = actionRes?.action?.id
-        if (actionId) {
-            for (let i = 0; i < 60; i++) {
-                try {
-                    const a = await getClient().get<{ action: { status: string } }>(`/actions/${actionId}`)
-                    if (a.action.status === 'success') break
-                    if (a.action.status === 'error') throw new Error('Hetzner change_type action failed')
-                } catch { /* retry */ }
-                await sleep(5000)
+        // 2-3. Change type — guarded so the server is ALWAYS powered back on, even
+        // if the resize fails (e.g. Hetzner dedicated-core quota). Without this, a
+        // failed upgrade leaves the customer's VPS powered OFF (step 1 shut it down).
+        try {
+            console.log(`[Hetzner] Changing server ${serverId} to ${newType}...`)
+            const actionRes = await getClient().post<{ action: { id: number } }>(
+                `/servers/${serverId}/actions/change_type`,
+                { server_type: newType, upgrade_disk: true }
+            )
+            const actionId = actionRes?.action?.id
+            if (actionId) {
+                for (let i = 0; i < 60; i++) {
+                    // GET is best-effort (tolerate transient errors); the action
+                    // status itself drives success/failure.
+                    const a = await getClient()
+                        .get<{ action: { status: string } }>(`/actions/${actionId}`)
+                        .catch(() => null)
+                    if (a?.action.status === 'success') break
+                    if (a?.action.status === 'error') throw new Error('Hetzner change_type action failed')
+                    await sleep(5000)
+                }
+            } else {
+                // Fallback: wait fixed time
+                await sleep(30000)
             }
-        } else {
-            // Fallback: wait fixed time
-            await sleep(30000)
+        } finally {
+            // 4-5. Power on — ALWAYS (recovery even when the resize threw) + wait running.
+            console.log(`[Hetzner] Powering on server ${serverId}...`)
+            await getClient()
+                .post(`/servers/${serverId}/actions/poweron`)
+                .catch((e) => console.error(`[Hetzner] poweron after change_type failed for ${serverId}:`, e))
+            for (let i = 0; i < 30; i++) {
+                const data = await getClient().get<HetznerServerResponse>(`/servers/${serverId}`).catch(() => null)
+                if (data?.server.status === 'running') break
+                await sleep(3000)
+            }
         }
-
-        // 4. Power on
-        console.log(`[Hetzner] Powering on server ${serverId}...`)
-        await getClient().post(`/servers/${serverId}/actions/poweron`)
-
-        // 5. Wait until running
-        for (let i = 0; i < 30; i++) {
-            const data = await getClient().get<HetznerServerResponse>(`/servers/${serverId}`)
-            if (data.server.status === 'running') break
-            await sleep(3000)
-        }
-        console.log(`[Hetzner] Server ${serverId} upgraded to ${newType} and running`)
+        console.log(`[Hetzner] Server ${serverId} change to ${newType} done`)
     },
 
     async getServerTypes(): Promise<ServerTypeInfo[]> {
