@@ -3671,7 +3671,7 @@ input{font-family:inherit}
       הזמינו חברים
     </div>
     <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;margin-bottom:20px;padding:16px">
-      <div style="font-size:0.82rem;color:#6B7280;margin-bottom:10px">הזמינו חבר → הוא מקבל 14 ימים בחינם, אתם מקבלים חודש בחינם</div>
+      <div style="font-size:0.82rem;color:#6B7280;margin-bottom:10px">הזמינו חבר → כשהוא רוכש מנוי, שניכם מקבלים חודש בחינם</div>
       <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px">
         <input class="int-input" id="referral-link" type="text" readonly dir="ltr" style="flex:1;font-size:0.82rem;background:#F9FAFB" value="טוען..."/>
         <button class="btn btn-outline btn-sm" onclick="copyReferralLink()" style="font-size:0.78rem">📋 העתקה</button>
@@ -18231,7 +18231,7 @@ function renderSettingsPage() {
       var nextBill = (instanceData && instanceData.nextBillingAt)
         ? ' · החיוב הבא: ' + new Date(instanceData.nextBillingAt).toLocaleDateString('he-IL')
         : '';
-      priceEl.textContent = '₪' + price + '/חודש · מתחדש אוטומטית' + nextBill;
+      priceEl.innerHTML = '₪' + price + '/חודש · מתחדש אוטומטית' + nextBill + ' · <span style="color:#10B981;font-weight:600">מחובר</span>';
     }
   }
   var ipEl = document.getElementById('settingsIP');
@@ -28108,7 +28108,6 @@ async function confirm2faDisable() {
 
 /* ===== Settings: Upgrade / Cancel / Delete ===== */
 var UPGRADE_PLANS = [
-  { key: 'personal', name: 'אישי', ram: 4, cpu: 2, cpuType: 'shared', nvme: 40, price: 129 },
   { key: 'business', name: 'עסקי', ram: 8, cpu: 4, cpuType: 'shared', nvme: 80, price: 279 },
   { key: 'pro', name: 'פרו', ram: 16, cpu: 4, cpuType: 'dedicated', nvme: 160, price: 579 },
   { key: 'developer', name: 'מפתח', ram: 32, cpu: 8, cpuType: 'dedicated', nvme: 240, price: 989 },
