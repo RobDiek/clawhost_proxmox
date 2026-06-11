@@ -712,7 +712,14 @@ try:
 except Exception:
     d = {"stackVersion":"unknown","schemaVersion":0,"components":{}}
 d['installedAt'] = datetime.datetime.utcnow().isoformat() + 'Z'
-d.setdefault('appliedMigrations', [])
+# A fresh install already contains everything the manifest's migrations do —
+# migrations exist ONLY to bring OLDER boxes up to this stack. So mark all of
+# the manifest's migrations as already-applied; otherwise diffVersions() sees
+# them as pending and the dashboard shows a FALSE "update available" on a
+# brand-new VPS. Future migrations added to the manifest AFTER this install
+# stay pending (this box's stored list won't contain them) → real updates
+# still surface correctly.
+d['appliedMigrations'] = list(d.get('migrations') or [])
 with open('/var/openclaw/version.json', 'w') as f:
     json.dump(d, f, indent=2)
 PYVER
