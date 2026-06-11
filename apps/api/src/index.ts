@@ -229,6 +229,11 @@ import { runRenewalReminder } from '@/jobs/renewalReminder'
 setInterval(() => { runRenewalReminder().catch(err => console.error('[renewalReminder] cron error:', err)) }, 24 * 3600 * 1000)
 setTimeout(() => { runRenewalReminder().catch(err => console.error('[renewalReminder] first run error:', err)) }, 120000)
 
+// Telegram chat_id backfill — recover chat_id from the agent's on-VPS session
+// when the connect-time getUpdates lost the race to the agent's poller.
+import { startTelegramChatIdBackfill } from '@/services/telegramChatIdBackfill'
+startTelegramChatIdBackfill()
+
 // Phase 3.6 — DFS credits: daily FX rate refresh + hourly auto-topup sweep
 import { startFxRefreshCron } from '@/services/dfsCredits/fxRefresh'
 import { startAutoTopupCron } from '@/services/dfsCredits/autoTopup'
