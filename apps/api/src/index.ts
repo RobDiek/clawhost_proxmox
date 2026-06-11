@@ -141,10 +141,6 @@ setTimeout(() => {
 import { startStrategyLearner } from '@/services/strategyLearner'
 startStrategyLearner()
 
-// Phase F — facts pusher (every 6h)
-import { startFactsPusher } from '@/services/factsPusher'
-startFactsPusher()
-
 // Phase B — content plan metrics collector (every 24h)
 import { startMetricsCollectorCron, startOptimizationCron } from '@/services/contentPlanMetrics'
 startMetricsCollectorCron()

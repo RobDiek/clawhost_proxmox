@@ -271,30 +271,43 @@ su - openclaw -c 'openclaw plugins install @mem0/openclaw-mem0 2>/dev/null || tr
 su - openclaw -c 'openclaw plugins enable openclaw-mem0 2>/dev/null || true'
 systemctl stop openclaw-gateway 2>/dev/null
 python3 - <<PYEOF
-import json
+import json, os
 p = '/home/openclaw/.openclaw/openclaw.json'
 with open(p) as f: cfg = json.load(f)
 plugins = cfg.setdefault('plugins', {})
 entries = plugins.setdefault('entries', {})
-entries['openclaw-mem0'] = {
-    'enabled': True,
-    'config': {
-        'mode': 'platform',
-        'apiKey': '${MEM0_API_KEY}',
-        'userId': '${INSTANCE_ID}',
-        'autoCapture': True,
-        'autoRecall': True,
-        'searchThreshold': 0.4,
-        'topK': 5,
-        'customInstructions': 'Store important facts about the user, business, preferences, decisions. Store in Hebrew when original is Hebrew. Never store API keys or passwords.'
+# Only point the memory slot at openclaw-mem0 if the plugin ACTUALLY installed.
+# The npm install above is best-effort (|| true); if it fails, a slot pointing at
+# a missing plugin is a FATAL "Config invalid" → gateway crash-loop. Fall back to
+# the built-in memory-core so the box always boots. (mem0 install reliability is
+# tracked separately; this self-heals once it installs.)
+mem0_ok = os.path.exists('/home/openclaw/.openclaw/extensions/openclaw-mem0/dist/index.js')
+if mem0_ok:
+    entries['openclaw-mem0'] = {
+        'enabled': True,
+        'config': {
+            'mode': 'platform',
+            'apiKey': '${MEM0_API_KEY}',
+            'userId': '${INSTANCE_ID}',
+            'autoCapture': True,
+            'autoRecall': True,
+            'searchThreshold': 0.4,
+            'topK': 5,
+            'customInstructions': 'Store important facts about the user, business, preferences, decisions. Store in Hebrew when original is Hebrew. Never store API keys or passwords.'
+        }
     }
-}
-entries.setdefault('memory-core', {})['enabled'] = False
-plugins.setdefault('slots', {})['memory'] = 'openclaw-mem0'
+    entries.setdefault('memory-core', {})['enabled'] = False
+    plugins.setdefault('slots', {})['memory'] = 'openclaw-mem0'
+    print('Mem0 Platform configured')
+else:
+    entries.pop('openclaw-mem0', None)
+    entries.setdefault('memory-core', {})['enabled'] = True
+    if isinstance(plugins.get('slots'), dict):
+        plugins['slots'].pop('memory', None)
+    print('Mem0 not installed — using built-in memory-core (no broken slot)')
 plugins['allow'] = list(entries.keys())
 cfg['plugins'] = plugins
 with open(p, 'w') as f: json.dump(cfg, f, indent=2)
-print('Mem0 Platform configured')
 PYEOF
 
 # Patch plugin to tolerate anonymousTelemetryId
@@ -312,7 +325,7 @@ chown -R openclaw:openclaw /home/openclaw/.openclaw
 systemctl start openclaw-gateway
 
 # ── Activepieces (Docker) ─────────────────────────────────────────────────
-mkdir -p /opt/openclaw/data/{ap-db,ap-redis,qdrant,neo4j/{data,logs,import,plugins}}
+mkdir -p /opt/openclaw/data/{ap-db,ap-redis,qdrant}
 cat > /opt/openclaw/docker-compose.yml <<DCEOF
 services:
   activepieces:
@@ -358,136 +371,9 @@ services:
     volumes: ["/opt/openclaw/data/qdrant:/qdrant/storage"]
 QDEOF
 
-cat > /opt/openclaw/docker-compose.neo4j.yml <<NEO4JEOF
-services:
-  neo4j:
-    image: neo4j:5-community
-    restart: unless-stopped
-    ports: ["127.0.0.1:7474:7474", "127.0.0.1:7687:7687"]
-    environment:
-      - NEO4J_AUTH=neo4j/${AUTOMATION_PASSWORD}
-      - NEO4J_server_memory_heap_initial__size=512m
-      - NEO4J_server_memory_heap_max__size=1g
-      - NEO4J_server_memory_pagecache_size=512m
-    volumes:
-      - /opt/openclaw/data/neo4j/data:/data
-      - /opt/openclaw/data/neo4j/logs:/logs
-      - /opt/openclaw/data/neo4j/import:/var/lib/neo4j/import
-      - /opt/openclaw/data/neo4j/plugins:/plugins
-    healthcheck:
-      test: ["CMD-SHELL", "cypher-shell -u neo4j -p '${AUTOMATION_PASSWORD}' 'RETURN 1' || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-NEO4JEOF
-
 cd /opt/openclaw
 docker compose up -d
 docker compose -f docker-compose.yml -f docker-compose.qdrant.yml up -d qdrant
-docker compose -f docker-compose.yml -f docker-compose.qdrant.yml -f docker-compose.neo4j.yml up -d neo4j
-
-# Wait for Neo4j + seed schema
-for i in $(seq 1 24); do
-    if docker exec openclaw-neo4j-1 cypher-shell -u neo4j -p "${AUTOMATION_PASSWORD}" 'RETURN 1' 2>/dev/null; then
-        echo "Neo4j ready after $i attempts"; break
-    fi
-    sleep 5
-done
-docker exec openclaw-neo4j-1 cypher-shell -u neo4j -p "${AUTOMATION_PASSWORD}" "
-    CREATE CONSTRAINT entity_id IF NOT EXISTS FOR (e:Entity) REQUIRE e.id IS UNIQUE;
-    CREATE INDEX entity_type IF NOT EXISTS FOR (e:Entity) ON (e.type);
-    CREATE INDEX entity_name IF NOT EXISTS FOR (e:Entity) ON (e.name);
-" 2>/dev/null || echo "Neo4j seed will retry via migration"
-
-# ── MCP plugins (facts, googleads, metaads, creative) ─────────────────────
-GH_BASE="https://raw.githubusercontent.com/synex-os/openclaw-hosting/Production/scripts"
-
-install_plugin() {
-    local NAME=$1 SRC_FILE=$2 CFG_JSON=$3 ALLOW_KEY=$4 EXTRA_DESC=$5 CATEGORY=${6:-plugin}
-    mkdir -p /home/openclaw/.openclaw/extensions/${NAME}/dist
-    cat > /home/openclaw/.openclaw/extensions/${NAME}/package.json <<PKGEOF
-{
-  "name": "${NAME}",
-  "version": "0.1.0",
-  "description": "${EXTRA_DESC}",
-  "main": "dist/index.js",
-  "openclaw": { "displayName": "${NAME}", "category": "plugin", "extensions": ["./dist/index.js"] }
-}
-PKGEOF
-    # openclaw >= 2026.6 requires an explicit plugin manifest next to the package.
-    # Without it the gateway rejects the config ("Invalid config ... plugin manifest
-    # not found") and crash-loops → 502 on the agent for every new instance.
-    # configSchema is permissive (we own the config we write) so it never rejects.
-    cat > /home/openclaw/.openclaw/extensions/${NAME}/openclaw.plugin.json <<MANEOF
-{
-  "id": "${NAME}",
-  "displayName": "${EXTRA_DESC}",
-  "category": "${CATEGORY}",
-  "enabledByDefault": false,
-  "configSchema": { "type": "object", "additionalProperties": true }
-}
-MANEOF
-    if curl -fsSL "${GH_BASE}/${SRC_FILE}" -o /home/openclaw/.openclaw/extensions/${NAME}/dist/index.js 2>/dev/null; then
-        chown -R openclaw:openclaw /home/openclaw/.openclaw/extensions
-        if [ "$NAME" = "openclaw-facts" ]; then
-            su - openclaw -c "cd /home/openclaw/.openclaw/extensions/${NAME} && npm install --omit=dev --silent 2>&1 | tail -3" || true
-        fi
-        systemctl stop openclaw-gateway 2>/dev/null
-        python3 - <<PYEOF
-import json
-p='/home/openclaw/.openclaw/openclaw.json'
-with open(p) as f: cfg=json.load(f)
-plugins=cfg.setdefault('plugins',{})
-entries=plugins.setdefault('entries',{})
-entries['${NAME}']={'enabled':True,'config':${CFG_JSON}}
-allow=plugins.setdefault('allow',[])
-if '${NAME}' not in allow: allow.append('${NAME}')
-with open(p,'w') as f: json.dump(cfg,f,indent=2)
-PYEOF
-        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json
-        systemctl start openclaw-gateway
-    fi
-}
-
-install_plugin "openclaw-facts"     "openclaw-facts-plugin.js"     "{'uri':'bolt://localhost:7687','user':'neo4j','password':'${AUTOMATION_PASSWORD}'}" "facts" "Temporal knowledge graph (Neo4j)" "memory"
-install_plugin "openclaw-googleads" "openclaw-googleads-plugin.js" "{}" "googleads" "Google Ads draft tools" "ads"
-install_plugin "openclaw-metaads"   "openclaw-metaads-plugin.js"   "{}" "metaads" "Meta Ads draft tools" "ads"
-mkdir -p /opt/openclaw/creatives && chown -R openclaw:openclaw /opt/openclaw/creatives
-install_plugin "openclaw-creative"  "openclaw-creative-plugin.js"  "{'tenantStoragePath':'/opt/openclaw/creatives'}" "creative" "Yotzer creative lifecycle" "creative"
-
-# ── Facts ingest cron ─────────────────────────────────────────────────────
-if curl -fsSL "${GH_BASE}/ingest-facts-cron.js" -o /opt/openclaw/ingest-facts-cron.js 2>/dev/null; then
-    chmod +x /opt/openclaw/ingest-facts-cron.js
-    cat > /etc/systemd/system/openclaw-facts-ingest.service <<SVCEOF
-[Unit]
-Description=OpenClaw facts ingest
-After=network.target
-[Service]
-Type=oneshot
-User=openclaw
-Group=openclaw
-WorkingDirectory=/home/openclaw/.openclaw
-ExecStart=/usr/bin/node /opt/openclaw/ingest-facts-cron.js
-StandardOutput=append:/var/log/openclaw-facts-ingest.log
-StandardError=append:/var/log/openclaw-facts-ingest.log
-SVCEOF
-    cat > /etc/systemd/system/openclaw-facts-ingest.timer <<'TIMEREOF'
-[Unit]
-Description=Run openclaw-facts-ingest every 30 minutes
-Requires=openclaw-facts-ingest.service
-[Timer]
-OnBootSec=10min
-OnUnitActiveSec=30min
-Unit=openclaw-facts-ingest.service
-[Install]
-WantedBy=timers.target
-TIMEREOF
-    touch /var/log/openclaw-facts-ingest.log
-    chown openclaw:openclaw /var/log/openclaw-facts-ingest.log
-    systemctl daemon-reload
-    systemctl enable openclaw-facts-ingest.timer
-    systemctl start openclaw-facts-ingest.timer
-fi
 
 # ── LiteLLM Gateway ───────────────────────────────────────────────────────
 mkdir -p /opt/openclaw/data/litellm
