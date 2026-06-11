@@ -90,6 +90,10 @@ export interface PromptCtx {
     tenantState: any
     seoResearch2026: string
     trigger: 'cron_monthly' | 'on_demand' | 'auto_refresh'
+    // P1 execution-inversion: carried so the LLM passes (skeleton/detailer/senior-bar)
+    // can route their Anthropic call onto the tenant VPS when exec_mode='vps'.
+    instanceId: string
+    execMode: string
     // Phase 4.3-N v8: baseline-delta context for month-over-month performance narrative.
     // baselineHistory[monthKey] holds frozen baselines from prior months.
     // baselineDelta is the computed comparison (current vs most-recent prior).
@@ -315,6 +319,7 @@ async function buildPromptCtx(
         contentPlan, previousMonthlyPlan,
         tenantState, seoResearch2026,
         trigger,
+        instanceId, execMode: (inst as any).execMode || 'central',
         baselineHistory, baselineDelta, completedTaskOutcomes,
     }
 

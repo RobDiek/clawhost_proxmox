@@ -17,7 +17,7 @@
  */
 
 import type { PromptCtx } from './monthlyPlanGenerator'
-import { callOpusStream } from './llmStream'
+import { routedOpusStream } from './routedLlm'
 import { extractLlmJson } from './llmJson'
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
 
@@ -540,7 +540,7 @@ export async function generateSkeleton(
     const { withHebrewStyleGuide } = await import('./hebrewStyleGuide')
     const fullSystem = withHebrewStyleGuide(SKELETON_SYSTEM)
     console.log(`[monthlyPlanSkeleton] starting Pass 1 (model=${model}, prompt=${fullSystem.length + userPrompt.length} chars, scenario=${ctx.chosenScenarioKey})`)
-    const raw = await callOpusStream({
+    const raw = await routedOpusStream({ instanceId: ctx.instanceId, execMode: ctx.execMode, label: 'monthlyPlanSkeleton' }, {
         label: 'monthlyPlanSkeleton',
         apiKey, model,
         system: fullSystem,

@@ -16,7 +16,7 @@
  */
 
 import type { PromptCtx } from './monthlyPlanGenerator'
-import { callOpusStream } from './llmStream'
+import { routedOpusStream } from './routedLlm'
 import { extractLlmJson } from './llmJson'
 import { withHebrewStyleGuide } from './hebrewStyleGuide'
 import { randomBytes } from 'crypto'
@@ -611,7 +611,7 @@ async function generateFill(
     const system = withHebrewStyleGuide(FILL_SYSTEM_BASE + '\n\n' + brief.systemAddon)
     console.log(`[monthlyPlanSeniorBarCheck] fill rule=${rule.id} starting (prompt=${system.length + userPrompt.length} chars)`)
     try {
-        const raw = await callOpusStream({
+        const raw = await routedOpusStream({ instanceId: ctx.instanceId, execMode: ctx.execMode, label: `monthlyPlanSeniorBarCheck:${rule.id}` }, {
             label: `monthlyPlanSeniorBarCheck:${rule.id}`,
             apiKey, model, system, user: userPrompt,
             maxTokens: 6000,

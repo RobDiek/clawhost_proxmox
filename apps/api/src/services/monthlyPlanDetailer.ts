@@ -22,7 +22,7 @@
 
 import type { PromptCtx } from './monthlyPlanGenerator'
 import type { TaskSkeleton } from './monthlyPlanSkeleton'
-import { callOpusStream } from './llmStream'
+import { routedOpusStream } from './routedLlm'
 import { extractLlmJson } from './llmJson'
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
 
@@ -442,7 +442,7 @@ async function elaborateBatch(
     const fullSystem = withHebrewStyleGuide(DETAILER_SYSTEM)
     console.log(`[monthlyPlanDetailer] batch=${batch.label} (${batch.skeletons.length} tasks) starting (prompt=${fullSystem.length + userPrompt.length} chars)`)
     try {
-        const raw = await callOpusStream({
+        const raw = await routedOpusStream({ instanceId: ctx.instanceId, execMode: ctx.execMode, label: `monthlyPlanDetailer:${batch.label}` }, {
             label: `monthlyPlanDetailer:${batch.label}`,
             apiKey, model,
             system: fullSystem,
