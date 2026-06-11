@@ -20,10 +20,10 @@ export interface ComponentInfo {
 }
 
 const PLANS: PlanInfo[] = [
-    { key: 'personal', nameHe: 'אישי', nameEn: 'Personal', ram: 4, cpu: 2, cpuType: 'shared', nvme: 40, hetznerType: 'cx23', priceIls: 79 },
-    { key: 'business', nameHe: 'עסקי', nameEn: 'Business', ram: 8, cpu: 4, cpuType: 'shared', nvme: 80, hetznerType: 'cx33', priceIls: 169 },
-    { key: 'pro', nameHe: 'פרו', nameEn: 'Pro', ram: 16, cpu: 4, cpuType: 'dedicated', nvme: 160, hetznerType: 'ccx23', priceIls: 349 },
-    { key: 'developer', nameHe: 'מפתח', nameEn: 'Developer', ram: 32, cpu: 8, cpuType: 'dedicated', nvme: 240, hetznerType: 'ccx33', priceIls: 599 },
+    { key: 'personal', nameHe: 'אישי', nameEn: 'Personal', ram: 4, cpu: 2, cpuType: 'shared', nvme: 40, hetznerType: 'cx23', priceIls: 129 },
+    { key: 'business', nameHe: 'עסקי', nameEn: 'Business', ram: 8, cpu: 4, cpuType: 'shared', nvme: 80, hetznerType: 'cx33', priceIls: 279 },
+    { key: 'pro', nameHe: 'פרו', nameEn: 'Pro', ram: 16, cpu: 4, cpuType: 'dedicated', nvme: 160, hetznerType: 'ccx23', priceIls: 579 },
+    { key: 'developer', nameHe: 'מפתח', nameEn: 'Developer', ram: 32, cpu: 8, cpuType: 'dedicated', nvme: 240, hetznerType: 'ccx33', priceIls: 989 },
 ]
 
 const COMPONENTS: ComponentInfo[] = [
@@ -41,9 +41,9 @@ const COMPONENTS: ComponentInfo[] = [
 
 const ADDONS = [
     { id: 'backup', nameHe: 'גיבוי יומי', nameEn: 'Daily Backup', priceIls: 19, ram: 0 },
-    { id: 'storage_20', nameHe: 'אחסון +20GB', nameEn: 'Storage +20GB', priceIls: 15, ram: 0 },
-    { id: 'storage_100', nameHe: 'אחסון +100GB', nameEn: 'Storage +100GB', priceIls: 49, ram: 0 },
-    { id: 'storage_500', nameHe: 'אחסון +500GB', nameEn: 'Storage +500GB', priceIls: 149, ram: 0 },
+    { id: 'storage_20', nameHe: 'אחסון +20GB', nameEn: 'Storage +20GB', priceIls: 9, ram: 0 },
+    { id: 'storage_100', nameHe: 'אחסון +100GB', nameEn: 'Storage +100GB', priceIls: 39, ram: 0 },
+    { id: 'storage_500', nameHe: 'אחסון +500GB', nameEn: 'Storage +500GB', priceIls: 199, ram: 0 },
 ]
 
 // HaaS (Human as a Service) — marketing management subscription tiers.
