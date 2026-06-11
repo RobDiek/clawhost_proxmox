@@ -184,7 +184,11 @@ const provisioner = {
         const flowsHost = subdomainFlows
             ? subdomainFlows.replace('.flowmatic.co.il', '')
             : `${instanceId}-flows.clawflow`
-        const obsHost = agentHost.replace('.clawflow', '-obs.clawflow')
+        // Insert "-obs" after the first label so it works for the real subdomain
+        // (flow → flow-obs) AND the legacy fallback (abc123.clawflow → abc123-obs.clawflow).
+        // The old `.replace('.clawflow', …)` was a no-op for flowmatic.co.il subdomains
+        // → the obs record was never matched and left dangling on the recycled IP.
+        const obsHost = agentHost.replace(/^([^.]+)/, '$1-obs')
 
         // Phase 4.3-O M11: log DNS lookup failures explicitly. Previously
         // `.catch(() => null)` silently treated transient Cloudflare API errors
