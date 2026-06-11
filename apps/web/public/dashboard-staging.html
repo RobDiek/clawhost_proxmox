@@ -18595,30 +18595,30 @@ function closePipeline() {
 // ════════════════════════════════════════════════════════════════════════
 
 var STAGE_CATALOG_V2 = {
-  competitor_landscape:   { titleHe: 'נוף תחרותי',                   descHe: 'מתחרים ישירים, מבנה שוק, נוכחות דיגיטלית, gaps' },
-  internal_seo_audit:     { titleHe: 'אודיט SEO פנימי',                descHe: 'on-page audit + schema coverage + duplicates + IA depth + technical debt' },
-  seo_keyword_research:   { titleHe: 'מחקר מילות מפתח (SEO)',         descHe: '30+ keywords עם volume/CPC/difficulty + SERP analysis' },
-  aeo_visibility:         { titleHe: 'נראות AI (AEO)',                descHe: 'citation probes ב-Anthropic + schema gap analysis + extractability audit' },
-  link_audit:             { titleHe: 'אודיט פרופיל קישורים',         descHe: 'profile audit + lost links + outreach roadmap. דורש DFS Backlinks API פעיל' },
-  paid_setup_fork:        { titleHe: 'הגדרת פרסום — נקודת התחלה',    descHe: 'בחירה מפורשת: יש קמפיינים פעילים/היסטוריה (≥30 יום), או מתחילים מאפס. נועלת את המסלול הבא.' },
-  paid_data_inventory:    { titleHe: 'מלאי נתונים — פרסום ממומן',     descHe: 'מיפוי חיבורים → קביעת tier T0-T4 → רשימת פעולות setup חסרות.' },
-  client_account_baseline:{ titleHe: 'מה אנחנו רואים בחשבון שלכם',    descHe: 'משיכת היסטוריה חיה: SQR, Auction Insights, היסטוריית שינויים, GA4 events/funnel.' },
-  paid_questionnaire:     { titleHe: 'שאלון פרסום — מתחילים מאפס',    descHe: 'מסלול A: 12 שדות סטנדרטיים שמזינים את setup_roadmap של 14 ימים.' },
-  paid_csv_ingest:        { titleHe: 'יבוא דוחות CSV — פרסום ממומן',  descHe: 'מסלול B-2: העלאת 4 קבצי CSV חובה + 2 אופציונליים. parser פנימי.' },
-  client_account_baseline_csv:{ titleHe: 'בייסליין חשבון — מקור CSV', descHe: 'תאום ל-client_account_baseline אבל מבוסס CSV במקום API חי.' },
-  paid_competitor_landscape:{ titleHe: 'נוף תחרותי — פרסום ממומן',   descHe: 'מי מפרסם, באילו פלטפורמות, יצירתיים, LPs (Meta Library + Google Transparency).' },
-  paid_keyword_research:  { titleHe: 'מחקר מילות מפתח — פרסום ממומן', descHe: 'paid keyword landscape, CPC estimates, intent ladder.' },
-  paid_budget_scenarios:  { titleHe: 'תרחישי תקציב — פרסום ממומן',    descHe: '3 דרגות (שמרני/מאוזן/אגרסיבי) עם KPI projection לפי benchmarks IL.' },
-  paid_audit:             { titleHe: 'אודיט פרסום ממומן',            descHe: 'Google Ads + Meta — היסטוריה, blockers, methodology' },
-  social_landscape:       { titleHe: 'נוף רשתות חברתיות',            descHe: 'מתחרים ב-IG/FB/LinkedIn, content patterns, tone' },
-  email_competitor_audit: { titleHe: 'אודיט ניוזלטרים מתחרים',       descHe: 'תדירות, טון, נושאים, CTAs של 5+ מתחרים' },
-  audience_personas:      { titleHe: 'פרסונות קהל יעד',              descHe: '1-3 פרסונות עם JTBD, כאבים, queries-by-stage, WTP' },
-  positioning:            { titleHe: 'מיצוב + Brand Foundation',      descHe: 'mission, positioning statement, value props, archetype' },
-  cost_timeline_modeling: { titleHe: 'מודל עלויות וזמנים',              descHe: 'calibrated ₪ + month-by-month KPI projection per scenario (Smart vs Aggressive)' },
-  strategy_options:       { titleHe: 'אופציות אסטרטגיה',             descHe: 'Smart vs All-In + KPI forecasts + budget tiers' },
-  validation:             { titleHe: 'אימות אסטרטגיה',               descHe: 'realism check, blindspots, confidence score' },
-  content_plan:           { titleHe: 'תוכנית תוכן',                  descHe: 'יומן עריכה — נושאים, פלטפורמות, תאריכים' },
-  media_plan:             { titleHe: 'תוכנית מדיה (פרסום)',          descHe: 'קמפיינים, ad groups, תקציבים, KPIs, gates' }
+  competitor_landscape:   { titleHe: 'נוף תחרותי',                   descHe: 'מתחרים ישירים, מבנה השוק והנוכחות הדיגיטלית' },
+  internal_seo_audit:     { titleHe: 'אודיט SEO פנימי',                descHe: 'תקינות האתר, schema, כפילויות וחוב טכני' },
+  seo_keyword_research:   { titleHe: 'מחקר מילות מפתח (SEO)',         descHe: 'נפח חיפוש, תחרותיות וניתוח תוצאות החיפוש' },
+  aeo_visibility:         { titleHe: 'נראות AI (AEO)',                descHe: 'אזכורים במנועי AI, schema ויכולת חילוץ תשובות' },
+  link_audit:             { titleHe: 'אודיט פרופיל קישורים',         descHe: 'פרופיל הקישורים, קישורים שאבדו ותוכנית בנייה' },
+  paid_setup_fork:        { titleHe: 'הגדרת פרסום — נקודת התחלה',    descHe: 'יש קמפיינים פעילים, או מתחילים מאפס' },
+  paid_data_inventory:    { titleHe: 'מלאי נתונים — פרסום ממומן',     descHe: 'מיפוי החיבורים והפעולות החסרות להקמה' },
+  client_account_baseline:{ titleHe: 'מה אנחנו רואים בחשבון שלכם',    descHe: 'היסטוריה חיה: שאילתות, תחרות ואירועי GA4' },
+  paid_questionnaire:     { titleHe: 'שאלון פרסום — מתחילים מאפס',    descHe: 'שאלון קצר שמזין תוכנית הקמה ל-14 יום' },
+  paid_csv_ingest:        { titleHe: 'יבוא דוחות CSV — פרסום ממומן',  descHe: 'העלאת דוחות מהחשבון (קובצי CSV)' },
+  client_account_baseline_csv:{ titleHe: 'בייסליין חשבון — מקור CSV', descHe: 'תמונת מצב של החשבון לפי דוחות CSV' },
+  paid_competitor_landscape:{ titleHe: 'נוף תחרותי — פרסום ממומן',   descHe: 'מי מפרסם, באילו פלטפורמות ובאילו יצירות' },
+  paid_keyword_research:  { titleHe: 'מחקר מילות מפתח — פרסום ממומן', descHe: 'מילות מפתח לפרסום, עלויות וכוונת חיפוש' },
+  paid_budget_scenarios:  { titleHe: 'תרחישי תקציב — פרסום ממומן',    descHe: 'שלושה תרחישי תקציב עם תחזית ביצועים' },
+  paid_audit:             { titleHe: 'אודיט פרסום ממומן',            descHe: 'אודיט פרסום קיים: היסטוריה, חסמים ושיטה' },
+  social_landscape:       { titleHe: 'נוף רשתות חברתיות',            descHe: 'מתחרים ברשתות: סוגי תוכן, טון וקצב' },
+  email_competitor_audit: { titleHe: 'אודיט ניוזלטרים מתחרים',       descHe: 'ניוזלטרים של מתחרים: תדירות, טון ונושאים' },
+  audience_personas:      { titleHe: 'פרסונות קהל יעד',              descHe: 'פרסונות עם צרכים, כאבים ושלבי קנייה' },
+  positioning:            { titleHe: 'מיצוב + Brand Foundation',      descHe: 'מיצוב המותג: ייעוד, הבטחה וערכים' },
+  cost_timeline_modeling: { titleHe: 'מודל עלויות וזמנים',              descHe: 'תקציב מכויל ותחזית חודשית לכל תרחיש' },
+  strategy_options:       { titleHe: 'אופציות אסטרטגיה',             descHe: 'אופציות אסטרטגיה עם תחזיות ותקציבים' },
+  validation:             { titleHe: 'אימות אסטרטגיה',               descHe: 'בדיקת היתכנות, נקודות עיוורון ורמת ביטחון' },
+  content_plan:           { titleHe: 'תוכנית תוכן',                  descHe: 'יומן תוכן: נושאים, פלטפורמות ותאריכים' },
+  media_plan:             { titleHe: 'תוכנית מדיה (פרסום)',          descHe: 'קמפיינים, תקציבים ויעדים' }
 };
 
 // Phase 2026.02 — stage → pipeline tab classification (Option C split).
@@ -18776,6 +18776,9 @@ async function loadPipelineV2() {
       // previous run's "completed" badge.
       if (!pipelineV2State.plan.status) pipelineV2State.plan.status = {};
       pipelineV2State.plan.status[runningSid] = { state: 'running' };
+      // Start the live elapsed-timer ticker — without this the timer froze
+      // after a reload/reopen (only the 15s poll was attached, not the 1s tick).
+      ensurePipelineTick();
       attachAutoRefreshPoll(iid, runningSid, (pipelineV2State.results[runningSid] && pipelineV2State.results[runningSid].runAt) || null);
     }
     renderPipelineV2();
@@ -18998,10 +19001,10 @@ function renderStageCardV2(sid, idx) {
   var qualBadge = '';
   if (!isLoading && result && result.qualityGate) {
     var qg = result.qualityGate;
-    if (qg.skipped) qualBadge = '<span title="self-critique skipped" style="font-size:0.7rem;color:#9CA3AF;margin-right:6px">QA: skipped</span>';
-    else if (qg.hardFailures && qg.hardFailures.length) qualBadge = '<span title="' + (qg.hardFailures.join(' / ')) + '" style="font-size:0.7rem;color:#991B1B;background:#FEE2E2;padding:1px 6px;border-radius:4px;margin-right:6px">QA: ' + qg.hardFailures.length + ' hard</span>';
-    else if (qg.warnings && qg.warnings.length) qualBadge = '<span title="' + (qg.warnings.join(' / ')) + '" style="font-size:0.7rem;color:#92400E;background:#FEF3C7;padding:1px 6px;border-radius:4px;margin-right:6px">QA: ' + qg.warnings.length + ' warnings</span>';
-    else qualBadge = '<span title="all checks passed" style="font-size:0.7rem;color:#065F46;background:#D1FAE5;padding:1px 6px;border-radius:4px;margin-right:6px">QA ✓</span>';
+    if (qg.skipped) qualBadge = '<span title="בקרת איכות דולגה" style="font-size:0.7rem;color:#9CA3AF;margin-right:6px">איכות: דולג</span>';
+    else if (qg.hardFailures && qg.hardFailures.length) qualBadge = '<span title="' + escapeHtml(qg.hardFailures.join(' / ')) + '" style="font-size:0.7rem;color:#991B1B;background:#FEE2E2;padding:1px 6px;border-radius:4px;margin-right:6px">' + qg.hardFailures.length + ' כשלים</span>';
+    else if (qg.warnings && qg.warnings.length) qualBadge = '<span title="' + escapeHtml(qg.warnings.join(' / ')) + '" style="font-size:0.7rem;color:#92400E;background:#FEF3C7;padding:1px 6px;border-radius:4px;margin-right:6px">' + qg.warnings.length + ' אזהרות</span>';
+    else qualBadge = '<span title="עברה את כל הבדיקות" style="font-size:0.7rem;color:#065F46;background:#D1FAE5;padding:1px 6px;border-radius:4px;margin-right:6px">איכות ✓</span>';
   }
 
   // Phase 4.0(fix5) — also hide cost while loading (was showing previous run's $)
@@ -19017,7 +19020,7 @@ function renderStageCardV2(sid, idx) {
     var startedAt = pipelineV2State.loadingStartedAt && pipelineV2State.loadingStartedAt[sid];
     var elapsedSec = startedAt ? Math.round((Date.now() - startedAt) / 1000) : 0;
     var elapsedLabel = elapsedSec < 60 ? elapsedSec + ' שנ׳' : Math.floor(elapsedSec / 60) + ':' + String(elapsedSec % 60).padStart(2, '0');
-    actions = '<div style="font-size:0.78rem;color:#3730A3">רץ ' + elapsedLabel + ' · משוער 8-15 דקות (DFS prefetch + Opus generation + critic + cleanup)</div>';
+    actions = '<div style="font-size:0.78rem;color:#3730A3">⏳ רץ · ' + elapsedLabel + ' · משוער 8–15 דק׳</div>';
   } else if (status.state === 'completed' || status.state === 'degraded') {
     // Phase 4.7 — rerun goes through impact-aware wrapper that prompts the
     // user when downstream stages/wrapper-artifacts would be invalidated.
@@ -19301,6 +19304,23 @@ async function runResearchPreflight(manual) {
  * the elapsed counter. The poll clears it on completion so the timer
  * doesn't keep ticking after the stage is done.
  */
+// Global 1-second ticker that re-renders the pipeline while ANY stage is
+// loading, so the elapsed timer counts up live. Idempotent + self-clearing:
+// safe to call from every place that adds a stage to the loading set
+// (fresh run AND post-reload restore). The old code only created this
+// interval inside runStageV2, so a page reload / modal reopen during a run
+// left the timer frozen — it rendered once and never ticked again.
+var _pipelineTickHandle = null;
+function ensurePipelineTick() {
+  if (_pipelineTickHandle) return;
+  _pipelineTickHandle = setInterval(function() {
+    if (!pipelineV2State.loading || pipelineV2State.loading.size === 0) {
+      clearInterval(_pipelineTickHandle); _pipelineTickHandle = null; return;
+    }
+    renderPipelineV2();
+  }, 1000);
+}
+
 function attachAutoRefreshPoll(iid, sid, preRunAt, tickHandle) {
   var pollHandle = setInterval(async function() {
     if (!pipelineV2State.loading.has(sid)) { clearInterval(pollHandle); return; }
@@ -19506,11 +19526,9 @@ async function runStageV2(sid) {
   // baseline the poll would immediately think it's done if a previous
   // run had already saved data.
   var preRunAt = (pipelineV2State.results[sid] && pipelineV2State.results[sid].runAt) || null;
-  // Tick every 1s while this stage is loading so the elapsed timer updates.
-  var tickHandle = setInterval(function() {
-    if (!pipelineV2State.loading.has(sid)) { clearInterval(tickHandle); return; }
-    renderPipelineV2();
-  }, 1000);
+  // Tick every 1s while any stage is loading so the elapsed timer updates.
+  // Global ticker — survives modal reopen / reload (see ensurePipelineTick).
+  ensurePipelineTick();
 
   // Phase 4.0 — server-side poll runs in parallel with the synchronous
   // POST. If the POST connection drops (browser/proxy timeout on long
@@ -19518,7 +19536,7 @@ async function runStageV2(sid) {
   // defaults), the poll keeps watching /research/plan and adopts the
   // saved result the moment the server is done. Without this, users
   // had to manually reload the page to see completion.
-  var pollHandle = attachAutoRefreshPoll(iid, sid, preRunAt, tickHandle);
+  var pollHandle = attachAutoRefreshPoll(iid, sid, preRunAt);
 
   renderPipelineV2();
 
@@ -28108,8 +28126,8 @@ async function confirm2faDisable() {
 /* ===== Settings: Upgrade / Cancel / Delete ===== */
 var UPGRADE_PLANS = [
   { key: 'business', name: 'עסקי', ram: 8, cpu: 4, cpuType: 'shared', nvme: 80, price: 279 },
-  { key: 'pro', name: 'פרו', ram: 16, cpu: 4, cpuType: 'dedicated', nvme: 160, price: 579 },
-  { key: 'developer', name: 'מפתח', ram: 32, cpu: 8, cpuType: 'dedicated', nvme: 240, price: 989 },
+  { key: 'pro', name: 'פרו', ram: 16, cpu: 4, cpuType: 'dedicated', nvme: 160, price: 579, soon: true },
+  { key: 'developer', name: 'מפתח', ram: 32, cpu: 8, cpuType: 'dedicated', nvme: 240, price: 989, soon: true },
 ];
 
 var STORAGE_ADDONS = [
@@ -28119,7 +28137,7 @@ var STORAGE_ADDONS = [
 ];
 
 function showUpgradeDialog() {
-  var currentPlan = instanceData ? instanceData.planKey : 'personal';
+  var currentPlan = instanceData ? instanceData.planKey : 'business';
   var currentIdx = UPGRADE_PLANS.findIndex(function(p) { return p.key === currentPlan; });
 
   var html = '<div style="display:flex;flex-direction:column;gap:10px">';
@@ -28128,7 +28146,7 @@ function showUpgradeDialog() {
   html += '<div style="font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:2px">תוכניות</div>';
   UPGRADE_PLANS.forEach(function(plan, i) {
     var isCurrent = plan.key === currentPlan;
-    var isUpgrade = i > currentIdx;
+    var isUpgrade = i > currentIdx && !plan.soon;
     var border = isCurrent ? '#2563EB' : isUpgrade ? '#E5E7EB' : '#F3F4F6';
     var bg = isCurrent ? '#EFF6FF' : '#fff';
     var cursor = isUpgrade ? 'pointer' : 'default';
@@ -28148,6 +28166,7 @@ function showUpgradeDialog() {
       '</div>' +
       (isCurrent ? '<div style="font-size:0.78rem;color:#2563EB;margin-top:4px">התוכנית הנוכחית שלכם</div>' : '') +
       (isUpgrade ? '<div style="font-size:0.78rem;color:#10B981;margin-top:4px">לחצו לשדרוג</div>' : '') +
+      (plan.soon ? '<div style="font-size:0.78rem;color:#9CA3AF;margin-top:4px">בקרוב</div>' : '') +
     '</div>';
   });
 

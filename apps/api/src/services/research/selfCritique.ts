@@ -164,7 +164,132 @@ export async function runSelfCritique(input: RunInput): Promise<QualityGateOutco
         return { pass: true, checks: {}, hardFailures: [], warnings: [], skipped: true }
     }
 
-    return parseCriticResponse(raw, content, stageId)
+    const outcome = parseCriticResponse(raw, content, stageId)
+
+    // Phase QA round-10 — if hard failures were found, run a SEPARATE
+    // revision pass that returns RAW corrected content (not JSON-wrapped).
+    // This is what makes revisions actually land: the full 32K-token output
+    // budget goes to the content, so it no longer truncates mid-string the
+    // way the old in-JSON revised_content did.
+    if (!outcome.pass && outcome.hardFailures.length > 0) {
+        try {
+            const revised = await runRevision({
+                content,
+                hardFailures: outcome.hardFailures,
+                stageId,
+                anthropicModel,
+                apiKey,
+            })
+            if (revised) outcome.revisedContent = revised
+        } catch (err) {
+            console.warn(`[selfCritique/${stageId}] revision pass failed — shipping original with hard-failure banner:`, (err as Error).message)
+        }
+    }
+
+    return outcome
+}
+
+/**
+ * Phase QA round-10 — separate raw-text revision call. Given the original
+ * content + the hard failures the critic found, produce a corrected full
+ * version. Output is RAW markdown (no JSON envelope) so the model's entire
+ * output budget goes to content — the fix that the old in-JSON
+ * revised_content kept truncating on.
+ *
+ * Guards: reject if the revision is <50% of the original (truncation) or
+ * identical. Returns null in those cases → caller keeps original + banner.
+ */
+async function runRevision(args: {
+    content: string
+    hardFailures: string[]
+    stageId: StageId
+    anthropicModel: string
+    apiKey: string
+}): Promise<string | null> {
+    const { content, hardFailures, stageId, anthropicModel, apiKey } = args
+
+    const prompt = `אתם עורך בכיר. הפלט שלמטה עבר בקרת איכות ונמצאו בו הכשלים הקשים הבאים שחובה לתקן:
+
+${hardFailures.map((f, i) => `${i + 1}. ${f}`).join('\n')}
+
+תקנו **רק** את הכשלים האלה. שמרו על כל שאר התוכן זהה לחלוטין — אותו מבנה, אותם sections, אותם code-blocks של JSON, אותה שפה (עברית). אל תקצרו ואל תשמיטו תוכן.
+
+## הפלט לתיקון
+
+${content}
+
+---
+
+החזירו את **כל התוכן המתוקן** כפי שהוא (markdown + code-blocks), בלי שום הקדמה, בלי הסבר, בלי JSON עוטף. רק התוכן עצמו.`
+
+    let raw = ''
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+            model: anthropicModel,
+            max_tokens: 32000,
+            stream: true,
+            messages: [{ role: 'user', content: prompt }],
+        }),
+        signal: AbortSignal.timeout(720_000),
+    })
+    if (!res.ok || !res.body) {
+        console.warn(`[selfCritique/${stageId}] revision HTTP ${res.status} — keeping original`)
+        return null
+    }
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buf = ''
+    try {
+        for (;;) {
+            const { done, value } = await reader.read()
+            if (done) break
+            buf += decoder.decode(value, { stream: true })
+            let nl: number
+            while ((nl = buf.indexOf('\n\n')) >= 0) {
+                const event = buf.substring(0, nl)
+                buf = buf.substring(nl + 2)
+                for (const line of event.split('\n')) {
+                    if (!line.startsWith('data: ')) continue
+                    const data = line.substring(6).trim()
+                    if (!data || data === '[DONE]') continue
+                    try {
+                        const j = JSON.parse(data) as { type?: string; delta?: { type?: string; text?: string } }
+                        if (j.type === 'content_block_delta' && j.delta?.type === 'text_delta' && j.delta.text) {
+                            raw += j.delta.text
+                        }
+                    } catch { /* skip non-JSON SSE chatter */ }
+                }
+            }
+        }
+    } finally {
+        try { reader.releaseLock() } catch { /* noop */ }
+    }
+
+    // Strip an accidental markdown fence wrapper if the model added one.
+    let revised = raw.trim()
+    const fence = revised.match(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```\s*$/i)
+    if (fence) revised = fence[1].trim()
+
+    if (revised.length < 200) {
+        console.warn(`[selfCritique/${stageId}] revision empty/too short — keeping original`)
+        return null
+    }
+    if (revised.length < content.length * 0.5) {
+        console.warn(`[selfCritique/${stageId}] revision too short (${revised.length} vs ${content.length}) — keeping original`)
+        return null
+    }
+    if (revised === content.trim()) {
+        console.warn(`[selfCritique/${stageId}] revision identical to original — skipping`)
+        return null
+    }
+    console.log(`[selfCritique/${stageId}] revision applied (${content.length}→${revised.length} chars)`)
+    return revised
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -215,14 +340,20 @@ ${content.length > 60000 ? `\n_(הפלט קוצץ ל-60K תווים — בדקו
 | 9 | out_loud_read | warning | האם זה רק מילים יפות, או אמירות קונקרטיות? |
 | 10 | so_what_test | warning | האם כל major section מסתיים ב-clear decision? |
 
-## כללי revision
+## כלל ה-reason — קריטי
 
-- אם **בדיקה hard נכשלה** → הפיקו \`revised_content\` שמתקן אותה (שמרו את שאר התוכן זהה).
-- אם **רק warnings** — אל תפיקו revised_content; ה-warnings יוצגו למשתמש.
-- אם הפלט "ok in spirit" אבל יש מינוס פרטים — זה warning, לא hard.
-- אסור revised_content קצר מ-50% מהמקור (סימן לאיבוד תוכן).
+\`reason\` נקרא ע"י **בעל העסק** (לא מתכנת). לכן בכל בדיקה שנכשלה:
+- **משפט אחד קצר בעברית פשוטה, עד 140 תווים.**
+- בלי רשימות של מילים באנגלית, בלי snake_case, בלי ציטוט מספרים ארוכים.
+- מסביר *מה הבעיה במילים אנושיות*, לא *איזו בדיקה רצה*.
 
-## פורמט תשובה — JSON only
+דוגמה גרועה (אסור): "language_script_qa: מילים אסורות: dominate, advantage, rollout, audit, native, recovery campaign…"
+דוגמה טובה (נכון): "יש ערבוב של מילים באנגלית בתוך משפטים בעברית — כדאי לתרגם."
+
+דוגמה גרועה: "contradiction_pass: scorecard totals (79.20, 73.05) contradict narrative rank ordering"
+דוגמה טובה: "ציוני הסיכום לא תואמים את סדר הדירוג בטקסט."
+
+## פורמט תשובה — JSON only (בדיקות בלבד, בלי תוכן מתוקן)
 
 \`\`\`json
 {
@@ -237,18 +368,44 @@ ${content.length > 60000 ? `\n_(הפלט קוצץ ל-60K תווים — בדקו
     "stakeholder_readout_test": { "pass": true, "severity": "warning" },
     "out_loud_read": { "pass": true, "severity": "warning" },
     "so_what_test": { "pass": true, "severity": "warning" }
-  },
-  "summary": {
-    "hard_failures": [],
-    "warnings": []
-  },
-  "revised_content": null
+  }
 }
 \`\`\`
 
-**במקרה כשל hard:** \`{ "pass": false, "reason": "תיאור 1-משפט", "severity": "hard" }\` + \`revised_content\` עם הפלט המתוקן (כל הפלט המתוקן, לא רק החלק הבעייתי).
+**במקרה כשל:** \`{ "pass": false, "reason": "משפט עברי קצר אחד", "severity": "hard|warning" }\`.
 
-**אסור text מחוץ ל-JSON.** רק JSON code-block.`
+**אל תפיקו תוכן מתוקן כאן** — אם יש כשל hard, התיקון נעשה בקריאה נפרדת. כאן רק ה-JSON של הבדיקות. **אסור text מחוץ ל-JSON.**`
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Short, human Hebrew label per quality check — used to build a warning/
+ * failure string a business owner can read. The raw snake_case check id
+ * (contradiction_pass, language_script_qa…) is never shown to users.
+ */
+const CHECK_LABEL_HE: Record<string, string> = {
+    source_spot_check: 'אימות מקורות',
+    contradiction_pass: 'סתירות בנתונים',
+    actionability_pass: 'ישימות ההמלצות',
+    language_script_qa: 'ניקיון עברית',
+    math_sanity: 'בדיקת חישובים',
+    intent_integrity: 'עקביות כוונת חיפוש',
+    thinness_novelty: 'ייחודיות תוכן',
+    stakeholder_readout_test: 'בהירות',
+    out_loud_read: 'קונקרטיות',
+    so_what_test: 'מסקנה ברורה',
+}
+
+/** Build the short user-facing line: "<label>: <reason>", reason capped. */
+function formatCheckLine(checkName: string, reason?: string): string {
+    const label = CHECK_LABEL_HE[checkName] || checkName
+    let r = (reason || '').trim()
+    if (!r) return label
+    // Defensive cap — even if the critic ignores the 140-char instruction,
+    // never surface a giant dump to the user.
+    if (r.length > 180) r = r.slice(0, 177).trimEnd() + '…'
+    return `${label}: ${r}`
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -323,7 +480,7 @@ function parseCriticResponse(raw: string, originalContent: string, stageId: Stag
         result.skipped = true
         return result
     }
-    const obj = parsed as { checks?: Record<string, CheckResult>; revised_content?: string | null; summary?: { hard_failures?: string[]; warnings?: string[] } }
+    const obj = parsed as { checks?: Record<string, CheckResult> }
 
     // Process checks. Iterate over the canonical list so missing keys default to "pass".
     for (const checkName of QUALITY_GATE_CHECKS) {
@@ -341,7 +498,7 @@ function parseCriticResponse(raw: string, originalContent: string, stageId: Stag
             severity,
         }
         if (!passed) {
-            const label = `${checkName}: ${c.reason || 'failed'}`
+            const label = formatCheckLine(checkName, c.reason)
             if (severity === 'hard') result.hardFailures.push(label)
             else result.warnings.push(label)
         }
@@ -349,22 +506,15 @@ function parseCriticResponse(raw: string, originalContent: string, stageId: Stag
 
     result.pass = result.hardFailures.length === 0
 
-    // Accept revised_content only if:
-    //   - hard failures present (otherwise revision is pointless)
-    //   - revision is not suspiciously short
-    //   - revision is meaningfully different from original
-    if (!result.pass && typeof obj.revised_content === 'string' && obj.revised_content.length > 200) {
-        const revised = obj.revised_content
-        if (revised.length < originalContent.length * 0.5) {
-            console.warn(`[selfCritique/${stageId}] rejected revision: too short (${revised.length} vs original ${originalContent.length})`)
-        } else if (revised === originalContent) {
-            console.warn(`[selfCritique/${stageId}] revision identical to original — skipping`)
-        } else {
-            result.revisedContent = revised
-        }
-    }
-
-    console.log(`[selfCritique/${stageId}] pass=${result.pass} hardFailures=${result.hardFailures.length} warnings=${result.warnings.length} revised=${!!result.revisedContent}`)
+    // Revision is no longer produced inside this JSON (Phase QA round-10).
+    // Wrapping the full revised content in a JSON string blew past the
+    // 32K-token output cap → the response truncated mid-JSON → Tier-4 repair
+    // dropped the revised_content entirely → revised=false every time the
+    // fix was actually needed. Hard-failure revision now runs as a separate
+    // RAW-text call in runSelfCritique(), where the whole token budget goes
+    // to content instead of fighting JSON escaping.
+    void originalContent
+    console.log(`[selfCritique/${stageId}] checks parsed — pass=${result.pass} hardFailures=${result.hardFailures.length} warnings=${result.warnings.length}`)
     return result
 }
 

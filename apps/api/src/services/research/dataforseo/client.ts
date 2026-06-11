@@ -313,3 +313,114 @@ export async function dfsPost<TResult>(
         cost: envelope.cost || 0,
     }
 }
+
+// ── Task-based POST + poll ──────────────────────────────────────────────────
+
+/**
+ * Task-based DataForSEO flow for endpoints that have NO `/live` variant
+ * (e.g. business_data/google/reviews — review crawling is too heavy for a
+ * synchronous call, so DFS only exposes task_post → task_get/advanced).
+ *
+ * Historical bug (fixed here): googleReviews() used to POST to
+ * `business_data/google/reviews/live`, which DOES NOT EXIST → DFS returned
+ * HTTP 404 for every call (both business-name and CID inputs), so reviews=0
+ * on every competitor_landscape run. The endpoint is task-based only.
+ *
+ * Flow:
+ *   1. POST `${family}/task_post` with the task body → DFS queues it and
+ *      returns a task id. We debit the reported cost here (DFS bills at post).
+ *   2. Poll GET `${family}/task_get/advanced/${id}` until the task's
+ *      status_code flips to 20000 (ready) or a terminal "no results" code,
+ *      or we hit the timeout. task_get is free.
+ *
+ * Best-effort: on timeout / queue-stuck we return an empty result rather
+ * than throwing, so the caller (prefetch) degrades gracefully — reviews are
+ * an enrichment, not a hard requirement.
+ */
+export async function dfsTaskPostAndPoll<TResult>(
+    instanceId: string,
+    family: string,
+    body: object,
+    opts: { pollIntervalMs?: number; timeoutMs?: number } = {},
+): Promise<{ result: TResult[]; cost: number }> {
+    const pollIntervalMs = opts.pollIntervalMs ?? 4000
+    const timeoutMs = opts.timeoutMs ?? 60_000
+
+    const ctx = await loadInstanceDfsContext(instanceId)
+    const auth = ctx.useProxy ? await proxyAuthHeader() : await legacyAuthHeader(ctx.legacyKey)
+    if (ctx.useProxy) await preflightBalanceCheck(instanceId)
+
+    // ── 1. task_post ──
+    let postEnv: DfsEnvelope<TResult>
+    try {
+        const res = await fetch(`${DFS_BASE_URL}/${family}/task_post`, {
+            method: 'POST',
+            headers: { 'Authorization': auth, 'Content-Type': 'application/json' },
+            body: JSON.stringify([body]),
+            signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+        })
+        if (!res.ok) {
+            throw new DfsError('http_error', `DataForSEO החזיר HTTP ${res.status} (task_post). נסו שוב.`, res.status)
+        }
+        postEnv = await res.json() as DfsEnvelope<TResult>
+    } catch (err) {
+        if (err instanceof DfsError) throw err
+        const e = err as Error
+        throw new DfsError('http_error', `שגיאת רשת מול DataForSEO (task_post): ${e.message}.`, undefined, err)
+    }
+    if (postEnv.status_code !== 20000 || !postEnv.tasks || postEnv.tasks.length === 0) {
+        throw new DfsError('task_failed', `DataForSEO task_post נכשל: ${postEnv.status_message} (${postEnv.status_code})`, postEnv.status_code)
+    }
+    const taskId = postEnv.tasks[0].id
+    let cost = postEnv.cost || 0
+
+    // Debit the post cost (DFS bills at task_post). Best-effort — same policy
+    // as dfsPost: a failed debit logs but doesn't lose the data.
+    if (ctx.useProxy && cost > 0) {
+        try {
+            await debit({ instanceId, costUsdRaw: cost, endpoint: `${family}/task_post` })
+        } catch (err) {
+            if (err instanceof LedgerError) console.warn(`[dfs/debit] post-call ledger error for ${instanceId} ${family}/task_post:`, err.kind)
+            else console.error(`[dfs/debit] unexpected debit failure for ${instanceId} ${family}/task_post:`, (err as Error).message)
+        }
+    }
+
+    // ── 2. poll task_get/advanced/{id} ──
+    const deadline = Date.now() + timeoutMs
+    // DFS task status codes: 20000 = ready; 20100 = created; 40601/40602 =
+    // handed/in-queue (still processing). Anything else terminal.
+    const PENDING_CODES = new Set([20100, 40601, 40602])
+    for (;;) {
+        await new Promise(r => setTimeout(r, pollIntervalMs))
+        let getEnv: DfsEnvelope<TResult>
+        try {
+            const res = await fetch(`${DFS_BASE_URL}/${family}/task_get/advanced/${taskId}`, {
+                method: 'GET',
+                headers: { 'Authorization': auth },
+                signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+            })
+            if (!res.ok) {
+                // Transient — keep polling until deadline.
+                if (Date.now() >= deadline) return { result: [], cost }
+                continue
+            }
+            getEnv = await res.json() as DfsEnvelope<TResult>
+        } catch {
+            if (Date.now() >= deadline) return { result: [], cost }
+            continue
+        }
+        const t = getEnv.tasks && getEnv.tasks[0]
+        if (t) {
+            cost += getEnv.cost || 0
+            if (t.status_code === 20000) {
+                return { result: t.result || [], cost }
+            }
+            if (!PENDING_CODES.has(t.status_code)) {
+                // Terminal non-success (e.g. 40102 No Search Results) — no
+                // reviews for this business. Return empty, not an error.
+                return { result: [], cost }
+            }
+        }
+        if (Date.now() >= deadline) return { result: [], cost }
+    }
+}

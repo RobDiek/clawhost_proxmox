@@ -16,7 +16,7 @@
  * over cost. Caller can pass `limit` to trim if needed.
  */
 
-import { dfsPost } from './client'
+import { dfsPost, dfsTaskPostAndPoll } from './client'
 import { cacheGet, cacheSet } from './cache'
 import {
     LOCATION_IL, LANGUAGE_HE, LOCATION_NAME_IL, languageName,
@@ -670,15 +670,17 @@ export async function trustpilotReviews(
 /**
  * Google Business reviews — Phase E2.4. Per-place customer reviews.
  *
- * Endpoint: business_data/google/reviews/live
+ * Endpoint family: business_data/google/reviews  (TASK-BASED — no `/live`).
  *
- * Phase 4.0(fix4): DFS's docs claim `keyword` accepts business name,
- * CID, or place_id — but in practice CIDs return 404 ("No Search
- * Results") roughly half the time even when the CID is valid (verified
- * against Google Maps). Empirically the business NAME with location_code
- * is the most reliable strategy. Caller is expected to try
- * matchedTitle first (from googleMyBusiness response.title) and only
- * fall back to CID/place_id when title isn't available.
+ * Phase 4.0(fix10) — root-cause fix. Earlier code POSTed to
+ * `business_data/google/reviews/live`, which DOES NOT EXIST on DataForSEO.
+ * Every call returned HTTP 404 (for business-name AND CID inputs alike), so
+ * reviews=0 on every competitor_landscape run. The "CID 404s half the time"
+ * theory in fix4 was wrong — the whole endpoint path was invalid. Google
+ * Reviews is task-based only (task_post → task_get/advanced); we now go
+ * through dfsTaskPostAndPoll. `keyword` accepts business name, CID, or
+ * place_id; the caller still tries the matched business title first (most
+ * reliable), then the CID.
  *
  * For IL businesses, this is the most reliable review source — Trustpilot
  * coverage is sparse for the Israeli market while almost every brick-and-
@@ -691,14 +693,22 @@ export async function googleReviews(
 ): Promise<CallResult<GoogleReviewItem>> {
     const params: Record<string, unknown> = {
         keyword: keywordOrCidOrPlaceId,
-        depth: opts.limit ?? 100,
+        depth: opts.limit ?? 50,
         sort_by: opts.sortBy ?? 'newest',
     }
     if (opts.location_code) params.location_code = opts.location_code
     if (opts.language_code) params.language_code = opts.language_code
-    return cachedCall<GoogleReviewItem>(
-        instanceId,
-        'business_data/google/reviews/live',
-        params,
+
+    const endpoint = 'business_data/google/reviews'
+    const cached = await cacheGet<{ items: GoogleReviewItem[]; cost: number }>(instanceId, endpoint, params)
+    if (cached) return { items: cached.items, cost: 0, cached: true }
+
+    // Reviews crawl can take 20-60s; cap the poll so a stuck task doesn't
+    // block the whole prefetch. Empty result on timeout — caller degrades.
+    const { result, cost } = await dfsTaskPostAndPoll<{ items?: GoogleReviewItem[] }>(
+        instanceId, endpoint, params, { timeoutMs: 60_000, pollIntervalMs: 4000 },
     )
+    const items = extractDefault<GoogleReviewItem>(result)
+    await cacheSet(instanceId, endpoint, params, { items, cost }, cost)
+    return { items, cost, cached: false }
 }

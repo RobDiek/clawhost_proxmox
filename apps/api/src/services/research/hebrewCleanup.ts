@@ -138,18 +138,13 @@ const CLEANUP_PROMPT_TEMPLATE = (content: string, recordsJson: string | null, st
 ✅ "campaign.id = '23184792647'" — נשאר (numeric ID, technical context)
 ✅ JSON field names באנגלית — נשארים: { "campaignId": "...", "status": "..." }
 
-## פלט
+## פלט — טקסט גולמי, לא JSON עוטף
 
-החזר JSON אחד עם המבנה הבא:
+⚠ **אל תעטוף את הפלט ב-JSON.** החזר ישירות את התוכן הנקי כפי שהוא (markdown narrative + JSON code-blocks פנימיים ככתוב במקור), רק עם תרגום לעברית של מילים אנגליות שאינן ב-allowlist. בלי הקדמה, בלי הסבר, בלי code-fence עוטף סביב הכל.
 
-\`\`\`json
-{
-  "cleaned_content": "<התוכן הנקי — markdown narrative + JSON code-blocks ככתוב במקור, רק עם תרגום לעברית של מילים אנגליות שאינן ב-allowlist>",
-  "cleaned_records_json": "<אם סופקו records, כאן ה-JSON.stringify של מערך records נקי. אחרת null.>"
-}
-\`\`\`
-
-⚠ \`cleaned_content\` ו-\`cleaned_records_json\` חייבים להיות parseable ב-JSON.parse. בלי trailing commas, בלי הערות.
+${recordsJson
+    ? `אחרי כל התוכן, הוסף שורה אחת בדיוק שמכילה רק את הסמן הזה:\n\n<<<CLEANED_RECORDS_JSON>>>\n\nואחרי הסמן — את מערך ה-records כ-JSON תקין (JSON.parse-able, בלי trailing commas, בלי הערות), נקי באותו אופן. אם אין שינוי — החזר את המערך כפי שהוא.`
+    : `אין records לשכתב — החזר רק את התוכן, בלי הסמן.`}
 
 ## תוכן לשכתוב (stageId: ${stageId})
 
@@ -159,25 +154,27 @@ ${content}
 
 ${recordsJson ? `## רשומות לשכתוב (records JSON)\n\n\`\`\`json\n${recordsJson}\n\`\`\`` : ''}
 
-החזר JSON אחד עם cleaned_content ו-cleaned_records_json. ${recordsJson ? '' : '(records לא סופקו → cleaned_records_json: null)'}`
+החזר את התוכן הנקי${recordsJson ? ' ואחריו <<<CLEANED_RECORDS_JSON>>> + מערך ה-records הנקי' : ''}, בלי שום עטיפה נוספת.`
 
 /**
- * Phase 4.0(fix9) — Hebrew cleanup is wrapped in a JSON envelope:
- *   { "cleaned_content": "<full markdown>", "cleaned_records_json": "<...>" }
+ * Phase QA round-10 — output is now RAW text, not a JSON envelope.
  *
- * When `content` is >50K chars (internal_seo_audit with 50 URLs hits 66K),
- * the model must emit OVER 50K chars of cleaned content inside a JSON
- * string + the records JSON + envelope overhead. That pushes the model
- * past Sonnet's 32K-token output cap (~96K chars), so the stream gets
- * truncated mid-JSON ("Unterminated string at position 68597"), the
- * parser fails, and we fall through to the fail-safe.
+ * The old format wrapped the whole cleaned report inside a JSON string
+ * (`{ "cleaned_content": "<full markdown>", ... }`). That doubled the
+ * effective output pressure (the model re-emitted the entire report PLUS
+ * escaped every \n and "), so a ~66K-char internal_seo_audit overran
+ * Sonnet's 32K-token cap and truncated mid-JSON ("Unterminated string at
+ * position 66149") → parse failed → whole cleanup lost.
  *
- * That fail-safe IS working — content survives — but we lose the
- * cleanup pass entirely. Better: skip the cleanup proactively when
- * we know the input would overflow. Scrubber + critic still cover
- * the most-common filler patterns.
+ * Now the model returns the cleaned markdown verbatim, optionally followed
+ * by a `<<<CLEANED_RECORDS_JSON>>>` sentinel + the records array. No
+ * escaping overhead, and the content (emitted FIRST) survives even if the
+ * trailing records JSON gets cut — we just fall back to original records in
+ * that case. So the threshold can be much higher; content up to ~80K chars
+ * fits comfortably in the 32K-token output budget as raw text.
  */
-const SKIP_THRESHOLD_CHARS = 50_000
+const SKIP_THRESHOLD_CHARS = 90_000
+const RECORDS_SENTINEL = '<<<CLEANED_RECORDS_JSON>>>'
 
 export async function runHebrewCleanup(input: HebrewCleanupInput): Promise<HebrewCleanupResult> {
     const { content, records, instanceId, stageId } = input
@@ -260,30 +257,40 @@ export async function runHebrewCleanup(input: HebrewCleanupInput): Promise<Hebre
 
     const outputTokensApprox = Math.ceil(raw.length / 3.5)
 
-    // Parse the JSON response — find the first top-level { ... }
-    const jsonStart = raw.indexOf('{')
-    const jsonEnd = raw.lastIndexOf('}')
-    if (jsonStart < 0 || jsonEnd <= jsonStart) {
-        console.warn(`[hebrewCleanup/${stageId}] response had no JSON object — skipping`)
-        return { cleanedContent: content, cleanedRecords: records, applied: false, skipped: true, inputTokensApprox, outputTokensApprox }
-    }
-    let parsed: { cleaned_content?: string; cleaned_records_json?: string | null }
-    try {
-        parsed = JSON.parse(raw.substring(jsonStart, jsonEnd + 1))
-    } catch (err) {
-        console.warn(`[hebrewCleanup/${stageId}] JSON parse failed — skipping:`, (err as Error).message)
+    if (!raw.trim()) {
+        console.warn(`[hebrewCleanup/${stageId}] empty response — skipping`)
         return { cleanedContent: content, cleanedRecords: records, applied: false, skipped: true, inputTokensApprox, outputTokensApprox }
     }
 
-    const cleanedContent = typeof parsed.cleaned_content === 'string' ? parsed.cleaned_content : content
+    // Split on the records sentinel. Content comes FIRST so it survives even
+    // if the trailing records JSON was truncated — in that case we keep the
+    // original records. Strip an accidental whole-output markdown fence.
+    const stripWrapFence = (s: string): string => {
+        const m = s.trim().match(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```\s*$/i)
+        return m ? m[1].trim() : s.trim()
+    }
+    const sentinelIdx = raw.indexOf(RECORDS_SENTINEL)
+    let cleanedContent: string
     let cleanedRecords: unknown[] | undefined = records
-    if (parsed.cleaned_records_json && typeof parsed.cleaned_records_json === 'string') {
-        try {
-            const parsedRecs = JSON.parse(parsed.cleaned_records_json)
-            if (Array.isArray(parsedRecs)) cleanedRecords = parsedRecs
-        } catch (err) {
-            console.warn(`[hebrewCleanup/${stageId}] records JSON parse failed — keeping originals:`, (err as Error).message)
+    if (sentinelIdx >= 0) {
+        cleanedContent = stripWrapFence(raw.slice(0, sentinelIdx))
+        if (records && records.length > 0) {
+            let recsRaw = raw.slice(sentinelIdx + RECORDS_SENTINEL.length).trim()
+            const fence = recsRaw.match(/```(?:json)?\s*([\s\S]*?)```/i)
+            if (fence) recsRaw = fence[1].trim()
+            const arrStart = recsRaw.indexOf('[')
+            const arrEnd = recsRaw.lastIndexOf(']')
+            if (arrStart >= 0 && arrEnd > arrStart) {
+                try {
+                    const parsedRecs = JSON.parse(recsRaw.substring(arrStart, arrEnd + 1))
+                    if (Array.isArray(parsedRecs)) cleanedRecords = parsedRecs
+                } catch (err) {
+                    console.warn(`[hebrewCleanup/${stageId}] records JSON parse failed — keeping originals:`, (err as Error).message)
+                }
+            }
         }
+    } else {
+        cleanedContent = stripWrapFence(raw)
     }
 
     // Phase 4.0(fix8) — safety guard. If the model output is dramatically
