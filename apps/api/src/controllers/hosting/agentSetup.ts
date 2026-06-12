@@ -255,7 +255,7 @@ ${answers.clarifications}` : ''}
 - פלטפורמות מומלצות עם סדר עדיפויות
 - KPIs מומלצים
 - timezone: Asia/Jerusalem
-- שפה: עברית, English
+- שפה: עברית בלבד
 
 ===BRAND.MD===
 קובץ BRAND.md מלא הכולל:
@@ -268,7 +268,7 @@ ${answers.clarifications}` : ''}
 - מבנה פוסט מומלץ לכל פלטפורמה
 - תדירות פרסום מומלצת
 
-כתוב בעברית טבעית וישראלית. היה ספציפי ואקשנאבילי — לא גנרי.
+כתוב בעברית בלבד — בלי ערבוב אנגלית בתוך משפט עברי. אנגלית אך ורק לראשי-תיבות שאין להם תרגום (SEO, AI, CTA, KPI). היה ספציפי ואקשנאבילי — לא גנרי.
 
 חשוב מאוד — מגבלות גודל:
 - USER.md: מקסימום 1,500 תווים. תמציתי — רק מידע שמשפיע על החלטות
@@ -1105,11 +1105,6 @@ export async function ensureAgentsRegistered(instance: {
     // Restart gateway if we changed anything
     if (result.registered.length > 0 || result.updated.length > 0) {
         await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
-    }
-
-    // Append brand-design playbook so mekhayev knows the brand onboarding flow
-    if (result.registered.includes('mekhayev') || result.updated.includes('mekhayev')) {
-        await updateSoulWithBrandTools(instance.ip, instance.rootPassword || undefined)
     }
 
     console.log(`[ensureAgents] ${instance.id}: registered=${result.registered.join(',')}, updated=${result.updated.join(',')}, skipped=${result.skipped.join(',')}`)
@@ -3214,95 +3209,6 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
     } catch (err) {
         console.error('runOpsBriefForInstance error:', err)
         return { ok: false, reason: 'Brief failed.', status: 500 }
-    }
-}
-
-// ── SOUL.md playbook for mekhayev (brand designer) ──
-export async function updateSoulWithBrandTools(ip: string, password?: string): Promise<void> {
-    try {
-        const soul = await sshExec(ip, 'cat /home/openclaw/.openclaw/workspace/SOUL.md 2>/dev/null || echo ""', password)
-        if (soul.includes('openclaw-brand MCP')) {
-            console.log('SOUL already contains brand section — skip')
-            return
-        }
-
-        const section = `
-
-## openclaw-brand MCP — מעצב (mekhayev) — Brand System Builder
-
-שרת openclaw-brand מותקן. **תפקיד mekhayev:** לבנות ולתחזק brand book מלא לעסק. כל עדכון עובר HITL approval בדשבורד.
-
-**שימוש:**
-- **On-demand only** — mekhayev לא רץ בcron. הוא מופעל:
-  1. אוטומטית בסוף שלב 5 של research (brand foundation)
-  2. בבקשה ידנית: "עדכן brand book", "נתח אתר חדש של לקוח", "צור מערכת מותג מאפס"
-
-**Tools (3):**
-
-### \`extract_brand_signals({ url })\`
-סורק אתר, מחזיר signals: logo candidates, color palette, typography, copy samples, meta.
-זה **לא** brand book — רק raw extraction.
-
-### \`analyze_logo({ logoUrl })\`
-מנתח לוגו ספציפי (בדרך כלל הבחירה המובילה מ-extract_brand_signals):
-- Style (wordmark/lettermark/pictorial/abstract/combination/emblem)
-- Dominant colors, transparent background, aspect ratio
-- Usage rules: minSizePx, safeZonePx, allowedBackgrounds, forbiddenContexts
-- Composition: default overlay position, dark/light bg requirements
-
-### \`draft_brand_book({ scraped, logoAnalysis, research, userInputs })\`
-מקבל את כל הsignals + research context + user preferences, מחזיר brand_book draft מלא עם:
-- Identity (name, tagline, mission, manifesto, positioning)
-- Colors (primary, secondary, accent, neutrals, semantic + palette)
-- Typography (heading, body, hebrewSupport, rules)
-- Imagery (photography style, mood keywords, doNotUse)
-- Voice (tone, personality, vocabularyDo/Dont, signaturePhrases, hebrewRegister)
-- Principles (brand constitution — 3-5 hard rules)
-- Gaps (critical/important/nice_to_have — מה חסר עדיין)
-
-**הטיוטה נשמרת בתור HITL approval בדשבורד — המשתמש מאשר / מתקן / מבקש iteration.**
-
-**שגרת עבודה למשל:**
-\`\`\`
-// אחרי שלב 5 של research — הפעל אוטומטית:
-entity_list({ type: 'persona' })             // שלוף פרסונות
-entity_list({ type: 'competitor' })          // שלוף מתחרים
-fact_query({ subjectType: 'brand' })         // שלוף brand signals אם קיימים
-
-// אם יש URL של האתר:
-signals = extract_brand_signals({ url: clientWebsiteUrl })
-logoInfo = analyze_logo({ logoUrl: signals.logo.candidates[0].url })
-
-// בנה draft
-draft_brand_book({
-  scraped: signals,
-  logoAnalysis: logoInfo,
-  research: { personas, competitors, positioning },
-  userInputs: { businessName, vibePreset, hebrewFontPreference }
-})
-// → מחזיר { draft, gaps, rationale, confidence, approvalRequired: true }
-
-// כתוב את ה-draft בפלט שלך. המשתמש יראה אותו בתור האישורים.
-\`\`\`
-
-**כללי זהב:**
-1. **עברית קודם.** כל שדה \`*He\` חייב להיות בעברית נכונה.
-2. **Hebrew fonts חובה.** אל תמצא English-only font ל-heading ללא hebrewSupport fallback.
-3. **Research trumps scraping.** אם scraped signals סותרים research positioning (למשל אתר מינימליסטי אבל positioning=playful), תן עדיפות ל-research ותסביר ב-rationale.
-4. **Gaps honest.** סמן critical gap אם logo/primary color/heading חסרים — אל תמציא.
-5. **Principles ספציפיים.** לא generic. נובעים מ-research + personas.
-6. **אחרי אישור המשתמש** — brand_book זה יוזן אוטומטית לכל יצירת תוכן (ayat, yotzer, shaliach). מכאן החשיבות של consistency.
-7. **Versioning** — אם brand book כבר קיים ו-approved, draft_brand_book מחזיר version+1 כ-draft. גרסה ישנה נארכבת.
-`
-        const b64 = Buffer.from(section, 'utf8').toString('base64')
-        await sshExec(ip,
-            `echo '${b64}' | base64 -d >> /home/openclaw/.openclaw/workspace/SOUL.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/SOUL.md`,
-            password, 15000
-        )
-        await sshExec(ip, 'systemctl restart openclaw-gateway', password, 15000)
-        console.log('SOUL.md updated with openclaw-brand tools section')
-    } catch (err) {
-        console.error('updateSoulWithBrandTools error (non-fatal):', err)
     }
 }
 
