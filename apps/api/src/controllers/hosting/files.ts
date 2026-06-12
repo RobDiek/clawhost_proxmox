@@ -586,8 +586,8 @@ export const saveIntegration = async (c: Context) => {
                     },
                 },
                 anthropic: {
-                    primary: 'anthropic/claude-haiku-4-5-20251001',
-                    fallbacks: ['anthropic/claude-sonnet-4-6'],
+                    primary: 'anthropic/claude-sonnet-4-6',
+                    fallbacks: ['anthropic/claude-haiku-4-5-20251001'],
                     models: {
                         'anthropic/claude-opus-4-6': { alias: 'opus' },
                         'anthropic/claude-sonnet-4-6': { alias: 'sonnet' },

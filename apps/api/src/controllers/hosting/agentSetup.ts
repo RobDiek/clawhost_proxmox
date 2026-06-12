@@ -922,7 +922,7 @@ ${landingContent}
 // - Sonnet 4.6: fast high-quality research, content writing
 // - Haiku 4.5: coordination, quick distribution, lightweight tasks
 const DEFAULT_ROLE_MODELS: Record<string, string> = {
-    'mateh': 'anthropic/claude-haiku-4-5-20251001',    // coordinator — fast routing
+    'mateh': 'anthropic/claude-sonnet-4-6',             // orchestrator chat — quality + instruction-following
     'sayer': 'anthropic/claude-sonnet-4-6',             // internet research — speed+quality
     'meater': 'anthropic/claude-sonnet-4-6',            // SERP research — speed+quality
     'maazin': 'anthropic/claude-haiku-4-5-20251001',   // social listening — high volume
