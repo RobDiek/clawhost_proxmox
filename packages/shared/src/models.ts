@@ -5,14 +5,19 @@
  * Backend, frontend, agent setup, and monitoring all read from this.
  *
  * When a model is deprecated/renamed:
- * 1. Update the ID here
- * 2. Run model sync to update all VPS instances
- * 3. No other code changes needed
+ * 1. Update the ID here (or apply a tier override from Admin → Models, no deploy)
+ * 2. modelMonitor re-checks availability + detects newer models via /v1/models
+ * 3. No other code changes needed — agentSetup/dashboard read from here
+ *
+ * Tier strategy (keep IDs current; the *mapping* below is the stable part):
+ * - opus   → heavy analytical work (strategy, AEO audit) — best reasoning, 1M ctx
+ * - sonnet → fast high-quality research, content, creative, orchestrator chat
+ * - haiku  → coordination, social listening, quick distribution (high volume)
  */
 
 export interface ModelDef {
-    id: string           // API model ID (e.g. 'claude-opus-4-6')
-    label: string        // Display name (e.g. 'Claude Opus 4.6')
+    id: string           // API model ID (e.g. 'claude-opus-4-8')
+    label: string        // Display name (e.g. 'Claude Opus 4.8')
     labelHe: string      // Hebrew label
     provider: 'anthropic' | 'openai' | 'google' | 'ollama'
     tier: 'premium' | 'standard' | 'economy'
@@ -26,16 +31,17 @@ export interface ModelDef {
 }
 
 // ── Anthropic Models ──
+// Pricing/context verified 2026-06-12 against the Anthropic model catalog.
 export const ANTHROPIC_OPUS: ModelDef = {
-    id: 'claude-opus-4-6',
-    label: 'Claude Opus 4.6',
-    labelHe: 'Claude Opus 4.6 (מתקדם)',
+    id: 'claude-opus-4-8',
+    label: 'Claude Opus 4.8',
+    labelHe: 'Claude Opus 4.8 (מתקדם)',
     provider: 'anthropic',
     tier: 'premium',
-    maxTokens: 32768,
-    contextWindow: 200000,
-    costPer1kInput: 0.015,
-    costPer1kOutput: 0.075,
+    maxTokens: 128000,
+    contextWindow: 1000000,
+    costPer1kInput: 0.005,
+    costPer1kOutput: 0.025,
     supportsVision: true,
     supportsTools: true,
     fallbackTo: 'claude-sonnet-4-6',
@@ -47,8 +53,8 @@ export const ANTHROPIC_SONNET: ModelDef = {
     labelHe: 'Claude Sonnet 4.6 (מומלץ)',
     provider: 'anthropic',
     tier: 'standard',
-    maxTokens: 16384,
-    contextWindow: 200000,
+    maxTokens: 64000,
+    contextWindow: 1000000,
     costPer1kInput: 0.003,
     costPer1kOutput: 0.015,
     supportsVision: true,
@@ -62,7 +68,7 @@ export const ANTHROPIC_HAIKU: ModelDef = {
     labelHe: 'Claude Haiku 4.5 (חסכוני)',
     provider: 'anthropic',
     tier: 'economy',
-    maxTokens: 8192,
+    maxTokens: 64000,
     contextWindow: 200000,
     costPer1kInput: 0.001,
     costPer1kOutput: 0.005,
@@ -137,18 +143,51 @@ export function getModelsByProvider(provider: string): ModelDef[] {
     return Object.values(MODEL_REGISTRY).filter(m => m.provider === provider)
 }
 
-// ── Agent default models (for AGENTS.md generation) ──
-export const AGENT_DEFAULT_MODELS: Record<string, string> = {
-    mateh: ANTHROPIC_OPUS.id,
-    sayer: ANTHROPIC_OPUS.id,
-    menateach: ANTHROPIC_OPUS.id,
-    meater: ANTHROPIC_SONNET.id,
-    maazin: ANTHROPIC_SONNET.id,
-    et: ANTHROPIC_SONNET.id,
-    yotzer: ANTHROPIC_SONNET.id,
-    shaliach: ANTHROPIC_HAIKU.id,
-    migdalor: ANTHROPIC_SONNET.id,
+// ── Tier aliases (the stable indirection) ──
+// Sub-agents and the dashboard reference a TIER, never a concrete ID. Bumping
+// a model version = changing the ID above (or an Admin override) and the whole
+// platform follows. This is what keeps the 45+ call-sites from drifting.
+export const TIER_MODELS = {
+    opus: ANTHROPIC_OPUS.id,
+    sonnet: ANTHROPIC_SONNET.id,
+    haiku: ANTHROPIC_HAIKU.id,
+} as const
+
+export type Tier = keyof typeof TIER_MODELS
+
+// ── Per-sub-agent tier assignment (single source of truth for linkage) ──
+// agentSetup builds the provider-prefixed model string from this + the registry.
+// "Quality" lives here (which agent gets which tier); "currency" lives in the
+// ModelDefs above (which concrete model each tier points at).
+export const ROLE_TIERS: Record<string, Tier> = {
+    mateh: 'sonnet',     // orchestrator chat — quality + instruction-following
+    sayer: 'sonnet',     // internet research — speed + quality
+    meater: 'sonnet',    // SERP research — speed + quality
+    maazin: 'haiku',     // social listening — high volume
+    menateach: 'opus',   // strategic analysis — deep thinking
+    et: 'sonnet',        // content writing — quality
+    yotzer: 'sonnet',    // creative — quality
+    shaliach: 'haiku',   // distribution — fast
+    migdalor: 'opus',    // AEO audit — precision reasoning
+    mekhayev: 'sonnet',  // brand design — reasoning + visual judgment
+    mazhir: 'sonnet',    // Paid Ads Manager — judgment + math
 }
+
+/**
+ * Resolve a sub-agent role → OpenClaw-format model string ('anthropic/<id>'),
+ * honouring optional admin tier overrides (tier → modelId, applied without deploy
+ * from Admin → Models). Unknown roles default to the sonnet tier.
+ */
+export function roleModel(role: string, tierOverrides?: Partial<Record<Tier, string>>): string {
+    const tier = ROLE_TIERS[role] || 'sonnet'
+    const id = (tierOverrides && tierOverrides[tier]) || TIER_MODELS[tier]
+    return `anthropic/${id}`
+}
+
+// ── Agent default models (bare ids, derived from the tier mapping) ──
+export const AGENT_DEFAULT_MODELS: Record<string, string> = Object.fromEntries(
+    Object.keys(ROLE_TIERS).map(role => [role, TIER_MODELS[ROLE_TIERS[role]]]),
+)
 
 // ── Strategy model (direct API call) ──
 export const STRATEGY_MODELS = {

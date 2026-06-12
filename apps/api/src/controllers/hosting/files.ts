@@ -8,6 +8,7 @@ import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveActiveAgent, agentVpsPaths } from '@/services/agentContext'
 import { setAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
+import { roleModel } from '@openclaw/shared'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const VPS_HOME = '/home/openclaw/.openclaw'
@@ -452,18 +453,11 @@ export const deployCustomAgent = async (c: Context) => {
 function getDefaultModelsForProvider(provider: string): Record<string, string> {
     const AGENTS = ['mateh', 'sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor']
     // Per-agent role priorities: coordinator, researcher, researcher, listener, analyst, writer, creative, distributor, auditor
+    // Anthropic defaults are DERIVED from the @openclaw/shared registry (ROLE_TIERS ×
+    // current model IDs) — never hardcode model strings here or they drift. Bump the
+    // registry (or apply a tier override) and connect-time assignment follows.
     const providerDefaults: Record<string, Record<string, string>> = {
-        anthropic: {
-            mateh: 'anthropic/claude-haiku-4-5-20251001',       // fast coordination
-            sayer: 'anthropic/claude-sonnet-4-6',               // quality research
-            meater: 'anthropic/claude-sonnet-4-6',              // quality SERP analysis
-            maazin: 'anthropic/claude-haiku-4-5-20251001',      // fast stream processing
-            menateach: 'anthropic/claude-opus-4-7',             // deep analysis — Opus 4.7
-            et: 'anthropic/claude-sonnet-4-6',                  // quality writing
-            yotzer: 'anthropic/claude-sonnet-4-6',              // creative content
-            shaliach: 'anthropic/claude-haiku-4-5-20251001',    // simple distribution
-            migdalor: 'anthropic/claude-opus-4-7',              // precise AEO audit — Opus 4.7
-        },
+        anthropic: Object.fromEntries(AGENTS.map(role => [role, roleModel(role)])),
         openai: {
             mateh: 'openai/gpt-4o-mini', sayer: 'openai/gpt-4o', meater: 'openai/gpt-4o',
             maazin: 'openai/gpt-4o-mini', menateach: 'openai/gpt-4o', et: 'openai/gpt-4o',
@@ -589,7 +583,7 @@ export const saveIntegration = async (c: Context) => {
                     primary: 'anthropic/claude-sonnet-4-6',
                     fallbacks: ['anthropic/claude-haiku-4-5-20251001'],
                     models: {
-                        'anthropic/claude-opus-4-6': { alias: 'opus' },
+                        'anthropic/claude-opus-4-8': { alias: 'opus' },
                         'anthropic/claude-sonnet-4-6': { alias: 'sonnet' },
                         'anthropic/claude-haiku-4-5-20251001': { alias: 'haiku' },
                     },

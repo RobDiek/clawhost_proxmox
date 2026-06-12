@@ -140,7 +140,7 @@ cat > /home/openclaw/.openclaw/openclaw.json <<OCEOF
     "defaults": {
       "model": { "primary": "anthropic/claude-sonnet-4-6", "fallbacks": ["anthropic/claude-haiku-4-5-20251001", "openai/gpt-4o-mini"] },
       "models": {
-        "anthropic/claude-opus-4-6": { "alias": "opus" },
+        "anthropic/claude-opus-4-8": { "alias": "opus" },
         "anthropic/claude-sonnet-4-6": { "alias": "sonnet" },
         "anthropic/claude-haiku-4-5-20251001": { "alias": "haiku" },
         "openai/gpt-4o": { "alias": "gpt4o" },
@@ -378,7 +378,7 @@ model_list:
   - model_name: default
     litellm_params: { model: anthropic/claude-sonnet-4-6, api_key: os.environ/ANTHROPIC_API_KEY }
   - model_name: opus
-    litellm_params: { model: anthropic/claude-opus-4-6, api_key: os.environ/ANTHROPIC_API_KEY }
+    litellm_params: { model: anthropic/claude-opus-4-8, api_key: os.environ/ANTHROPIC_API_KEY }
   - model_name: sonnet
     litellm_params: { model: anthropic/claude-sonnet-4-6, api_key: os.environ/ANTHROPIC_API_KEY }
   - model_name: haiku

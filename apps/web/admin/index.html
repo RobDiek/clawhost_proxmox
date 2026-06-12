@@ -241,6 +241,10 @@ tbody tr:hover{background:var(--panel-2)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
         Health
       </div>
+      <div class="nav-item" data-route="models">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>
+        Models
+      </div>
       <div class="nav-item" data-route="releases">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
         Releases
@@ -343,6 +347,7 @@ var routes = {
   tenants:   { title: 'Tenants',   render: renderTenants },
   revenue:   { title: 'Revenue',   render: renderRevenue },
   health:    { title: 'Health',    render: renderHealth },
+  models:    { title: 'Models',    render: renderModels },
   releases:  { title: 'Releases',  render: renderReleases },
   audit:     { title: 'Audit log', render: renderAudit },
 };
@@ -859,6 +864,127 @@ async function renderHealth() {
   html += '</div>';
   if (!r.data.clients.length) html = '<div class="empty">No running instances</div>';
   document.getElementById('content').innerHTML = html;
+}
+
+// ─── Models ────────────────────────────────────────────────────────────────
+// Single source of truth = packages/shared/src/models.ts (tier → concrete id).
+// modelMonitor detects newer models via /v1/models; admin applies to a tier here
+// (no deploy). Applies to NEW provisioning + sub-agent resolution; existing VPS
+// keep their model until re-provisioned/upgraded.
+var _modelsCache = null;
+async function renderModels() {
+  var r = await api('/admin/models');
+  if (!r || !r.success) { document.getElementById('content').innerHTML = '<div class="empty">Failed to load.</div>'; return; }
+  _modelsCache = r.data;
+  var tiers = r.data.tiers || [];
+  var roles = r.data.roles || [];
+  var disc = (r.data.discovery && r.data.discovery.models) || [];
+  var discAt = r.data.discovery && r.data.discovery.discoveredAt;
+  var health = r.data.health || [];
+  var newer = disc.filter(function(d){ return d.isNewer; });
+
+  var html = '';
+
+  // Banner if newer models detected
+  if (newer.length) {
+    html += '<div style="margin-bottom:16px;padding:12px 16px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:10px;color:#FBBF24;font-size:0.88rem">' +
+      '🆕 <strong>' + newer.length + ' newer model(s) available</strong> — review the discovery table below and apply to a tier.' +
+      '</div>';
+  }
+
+  // ── Tier cards (the linkage source of truth) ──
+  html += '<div class="section-head"><div class="section-title">Tiers — registry vs effective</div>' +
+    '<div class="section-foot"><button class="btn btn-sm" onclick="refreshModels()">⟳ Refresh discovery</button></div></div>';
+  html += '<div class="kpi-grid">';
+  tiers.forEach(function(t){
+    var ov = t.overridden;
+    html += '<div class="kpi">' +
+      '<div class="kpi-label">' + escapeHtml(t.tier) + (ov ? ' · <span style="color:#FBBF24">override</span>' : '') + '</div>' +
+      '<div class="kpi-val mono" style="font-size:1rem;color:' + (ov?'#FBBF24':'#10B981') + '">' + escapeHtml(t.effectiveId) + '</div>' +
+      '<div class="kpi-sub">' + escapeHtml(t.label) + '</div>' +
+      (ov ? '<div class="kpi-sub" style="margin-top:4px">registry: <span class="mono">' + escapeHtml(t.registryId) + '</span> · <a href="#" onclick="clearModelTier(\''+escapeHtml(t.tier)+'\');return false" style="color:var(--text-3)">revert</a></div>' : '') +
+    '</div>';
+  });
+  html += '</div>';
+
+  // ── Discovery table ──
+  html += '<div class="section-head"><div class="section-title">Discovered models (/v1/models)</div>' +
+    '<div class="section-foot">' + (discAt ? 'checked ' + fmtAge(discAt) : 'not yet checked') + '</div></div>';
+  if (!disc.length) {
+    html += '<div class="table-wrap"><div class="empty">No discovery yet — click “Refresh discovery”.</div></div>';
+  } else {
+    html += '<div class="table-wrap"><table><thead><tr><th>Model ID</th><th>Family</th><th>Ver</th><th>Registry</th><th>Created</th><th></th></tr></thead><tbody>';
+    disc.forEach(function(d){
+      var badge = d.isNewer
+        ? '<span class="badge" style="background:rgba(251,191,36,0.14);color:#FBBF24;border-color:rgba(251,191,36,0.4)">🆕 newer</span>'
+        : (d.inRegistry ? '<span class="badge badge-running">in use</span>' : '<span style="color:var(--text-3)">—</span>');
+      var apply = (d.family==='opus'||d.family==='sonnet'||d.family==='haiku')
+        ? '<button class="btn btn-sm '+(d.isNewer?'btn-success':'')+'" onclick="applyModelTier(\''+escapeHtml(d.family)+'\',\''+escapeHtml(d.id)+'\')">Apply → '+escapeHtml(d.family)+'</button>'
+        : '';
+      html += '<tr>' +
+        '<td class="mono cell-strong">'+escapeHtml(d.id)+'</td>' +
+        '<td>'+escapeHtml(d.family)+'</td>' +
+        '<td class="mono">'+escapeHtml(d.versionLabel||'—')+'</td>' +
+        '<td>'+badge+'</td>' +
+        '<td>'+(d.createdAt?fmtDate(d.createdAt):'—')+'</td>' +
+        '<td>'+apply+'</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
+  // ── Per-agent linkage ──
+  html += '<div class="section-head"><div class="section-title">Agent → model linkage</div>' +
+    '<div class="section-foot">applies to new provisioning + sub-agent resolution</div></div>';
+  html += '<div class="table-wrap"><table><thead><tr><th>Agent</th><th>Tier</th><th>Model</th></tr></thead><tbody>';
+  roles.forEach(function(ro){
+    html += '<tr>' +
+      '<td class="cell-strong" dir="rtl" style="text-align:right">'+escapeHtml(ro.labelHe)+'</td>' +
+      '<td><span class="badge badge-'+(ro.tier==='opus'?'master':ro.tier==='sonnet'?'running':'suspended')+'">'+escapeHtml(ro.tier)+'</span></td>' +
+      '<td class="mono">'+escapeHtml(ro.modelId)+'</td>' +
+    '</tr>';
+  });
+  html += '</tbody></table></div>';
+
+  // ── Availability health ──
+  html += '<div class="section-head"><div class="section-title">Availability (every 6h)</div></div>';
+  if (!health.length) {
+    html += '<div class="table-wrap"><div class="empty">No health check yet (first runs ~30s after API boot).</div></div>';
+  } else {
+    html += '<div class="table-wrap"><table><thead><tr><th>Model</th><th>Provider</th><th>Status</th><th>Latency</th><th>Checked</th></tr></thead><tbody>';
+    health.forEach(function(h){
+      var ok2 = h.available;
+      html += '<tr>' +
+        '<td class="mono">'+escapeHtml(h.modelId)+'</td>' +
+        '<td>'+escapeHtml(h.provider)+'</td>' +
+        '<td>'+(ok2?'<span class="badge badge-running">ok'+(h.error?' · '+escapeHtml(h.error):'')+'</span>':'<span class="badge badge-failed">'+escapeHtml(h.error||'down')+'</span>')+'</td>' +
+        '<td class="mono">'+(h.latencyMs?h.latencyMs+'ms':'—')+'</td>' +
+        '<td>'+(h.checkedAt?fmtAge(h.checkedAt):'—')+'</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
+  document.getElementById('content').innerHTML = html;
+}
+
+async function applyModelTier(tier, modelId) {
+  if (!confirm('Apply ' + modelId + ' to tier "' + tier + '"?\n\nAll NEW provisioning + sub-agent resolution will use it immediately. Existing VPS keep their model until re-provisioned/upgraded.')) return;
+  var r = await api('/admin/models/apply-tier', { method:'POST', body: { tier: tier, modelId: modelId } });
+  if (r && r.success) { toast('Applied: ' + tier + ' → ' + modelId, 'success'); renderModels(); }
+  else toast(r?.message || 'Failed', 'error');
+}
+async function clearModelTier(tier) {
+  if (!confirm('Revert tier "' + tier + '" to the compiled registry default?')) return;
+  var r = await api('/admin/models/clear-tier', { method:'POST', body: { tier: tier } });
+  if (r && r.success) { toast('Reverted ' + tier, 'success'); renderModels(); }
+  else toast(r?.message || 'Failed', 'error');
+}
+async function refreshModels() {
+  toast('Refreshing discovery…');
+  var r = await api('/admin/models/refresh', { method:'POST' });
+  if (r && r.success) { toast('Discovery refreshed', 'success'); renderModels(); }
+  else toast(r?.message || 'Failed', 'error');
 }
 
 // ─── Releases ──────────────────────────────────────────────────────────────

@@ -10,9 +10,9 @@ import userRole from './userRole'
 
 export type { ApiEnvelope, RequestOptions, RequestConfig } from './types'
 export type { PlanInfo, ComponentInfo } from './plans'
-export type { ModelDef } from './models'
+export type { ModelDef, Tier } from './models'
 export { calcPlan, calcTotal, PLANS, COMPONENTS, ADDONS, INSTALLMENTS, SELF_SERVE_PRICE_ILS, SELF_SERVE_COMPONENTS, SELF_SERVE_NAME_HE } from './plans'
-export { MODEL_REGISTRY, AGENT_DEFAULT_MODELS, STRATEGY_MODELS, getModel, getFallbackModel, getFallbackChain, getModelsByProvider, toOpenClawFormat } from './models'
+export { MODEL_REGISTRY, AGENT_DEFAULT_MODELS, STRATEGY_MODELS, TIER_MODELS, ROLE_TIERS, roleModel, getModel, getFallbackModel, getFallbackChain, getModelsByProvider, toOpenClawFormat } from './models'
 
 // Marketing data fabric — intents, integrations, pipelines, relevance.
 export * from './marketing'

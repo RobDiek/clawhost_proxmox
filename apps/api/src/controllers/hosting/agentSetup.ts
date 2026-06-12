@@ -15,6 +15,8 @@ import {
     shimResearchWrite,
     shimResearchWriteWithExtra,
 } from '@/services/agentContext'
+import { roleModel, ROLE_TIERS } from '@openclaw/shared'
+import { getTierOverrides } from '@/services/modelOverrides'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const TEMPLATES_BASE = resolve(process.cwd(), '../../templates')
@@ -916,24 +918,13 @@ ${landingContent}
 }
 
 // ── Helper: get model for a specific sub-agent role ──
-// Reads from DB (sub_agent_models) first, falls back to defaults
-// Model tier strategy (April 2026):
-// - Opus 4.7: heavy analytical work (strategy, deep analysis, audit) — 1M context, best reasoning
-// - Sonnet 4.6: fast high-quality research, content writing
-// - Haiku 4.5: coordination, quick distribution, lightweight tasks
-const DEFAULT_ROLE_MODELS: Record<string, string> = {
-    'mateh': 'anthropic/claude-sonnet-4-6',             // orchestrator chat — quality + instruction-following
-    'sayer': 'anthropic/claude-sonnet-4-6',             // internet research — speed+quality
-    'meater': 'anthropic/claude-sonnet-4-6',            // SERP research — speed+quality
-    'maazin': 'anthropic/claude-haiku-4-5-20251001',   // social listening — high volume
-    'menateach': 'anthropic/claude-opus-4-7',           // strategic analysis — deep thinking
-    'et': 'anthropic/claude-sonnet-4-6',                // content writing — quality
-    'yotzer': 'anthropic/claude-sonnet-4-6',            // creative — quality
-    'shaliach': 'anthropic/claude-haiku-4-5-20251001', // distribution — fast
-    'migdalor': 'anthropic/claude-opus-4-7',            // AEO audit — precision reasoning
-    'mekhayev': 'anthropic/claude-sonnet-4-6',          // brand design — reasoning + visual judgment
-    'mazhir': 'anthropic/claude-sonnet-4-6',            // Paid Ads Manager — judgment + math (bids, exclude lists)
-}
+// Resolution order (most specific → most general):
+//   1. instances.sub_agent_models[role]  — per-tenant override from dashboard
+//   2. @openclaw/shared roleModel(role)  — tier mapping (ROLE_TIERS) × registry,
+//      honouring admin tier overrides (Admin → Models, applied without deploy)
+// The tier→concrete-model linkage lives in packages/shared/src/models.ts; the
+// per-role tier assignment (which agent is opus/sonnet/haiku) is ROLE_TIERS there.
+// This function no longer hardcodes model IDs — bump the registry, everything follows.
 
 export async function getSubAgentModel(instanceId: string, role: string): Promise<string> {
     // Try to read from DB (user's custom config from dashboard)
@@ -942,10 +933,11 @@ export async function getSubAgentModel(instanceId: string, role: string): Promis
         const customModels = (inst?.subAgentModels as Record<string, string>) || {}
         if (customModels[role]) return customModels[role]
     } catch { /* fallback */ }
-    return DEFAULT_ROLE_MODELS[role] || 'openai/gpt-4o'
+    const overrides = await getTierOverrides()
+    return roleModel(role, overrides)
 }
 
-// Same mapping but returns the provider-less model id (e.g. 'claude-opus-4-7')
+// Same mapping but returns the provider-less model id (e.g. 'claude-opus-4-8')
 // for direct Anthropic API calls that don't route through the OpenClaw gateway.
 // Strips "anthropic/" / "openai/" prefix. If user picked an OpenAI model for a
 // role we currently only use Anthropic for, we fall back to the role's Anthropic
@@ -955,9 +947,12 @@ export async function resolveDirectModel(instanceId: string, role: string): Prom
     const bare = raw.replace(/^(anthropic|openai)\//, '')
     if (bare.startsWith('claude-')) return bare
     // User picked OpenAI for this role — fall back to the role's Anthropic default
-    const fallback = (DEFAULT_ROLE_MODELS[role] || 'anthropic/claude-sonnet-4-6').replace(/^anthropic\//, '')
-    return fallback
+    const overrides = await getTierOverrides()
+    return roleModel(role, overrides).replace(/^anthropic\//, '')
 }
+
+// Re-export so callers that imported DEFAULT_ROLE_MODELS-era roles still have the list.
+export const SUB_AGENT_ROLES = Object.keys(ROLE_TIERS)
 
 // ── SINGLE SOURCE OF TRUTH: ensure all expected agents are registered on VPS ──
 // Called from: setupAgents (deploy), saveIntegration (first API key), addAgentToInstance (upgrade)
@@ -1078,9 +1073,11 @@ export async function ensureAgentsRegistered(instance: {
         instance.rootPassword || undefined
     )
 
-    // Register or update each agent
+    // Register or update each agent. Model resolution: per-tenant override first,
+    // else the shared registry tier mapping (honouring admin tier overrides).
+    const __tierOverrides = await getTierOverrides()
     for (const agentName of MATEH_AGENTS) {
-        const expectedModel = customModels[agentName] || DEFAULT_ROLE_MODELS[agentName] || 'anthropic/claude-haiku-4-5-20251001'
+        const expectedModel = customModels[agentName] || roleModel(agentName, __tierOverrides)
         const currentModel = registeredAgents[agentName]
 
         if (!currentModel) {

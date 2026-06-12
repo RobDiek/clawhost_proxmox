@@ -21,7 +21,45 @@ interface ModelCheckResult {
     checkedAt: string
 }
 
+// A model returned by the provider's /v1/models endpoint, classified against
+// our registry. `isNewer` = a model in a family (opus/sonnet/haiku) whose
+// version exceeds what the registry currently pins for that family — i.e. a
+// candidate the admin should review + apply.
+interface DiscoveredModel {
+    id: string
+    family: string          // 'opus' | 'sonnet' | 'haiku' | 'other'
+    version: number         // major*1000 + minor, for comparison
+    versionLabel: string    // e.g. '4.8'
+    inRegistry: boolean
+    isNewer: boolean
+    createdAt?: string
+}
+
 let lastCheckResults: ModelCheckResult[] = []
+let lastDiscovered: DiscoveredModel[] = []
+let lastDiscoveryAt = ''
+const alertedNewModelIds = new Set<string>()
+
+// claude-opus-4-8 → {family:'opus', major:4, minor:8}; trailing -<date> ignored.
+function parseClaudeId(id: string): { family: string; major: number; minor: number } | null {
+    const m = /^claude-(opus|sonnet|haiku)-(\d+)-(\d+)/.exec(id)
+    if (!m) return null
+    return { family: m[1], major: parseInt(m[2], 10), minor: parseInt(m[3], 10) }
+}
+const verNum = (major: number, minor: number) => major * 1000 + minor
+
+// Highest version per claude family currently pinned in the registry.
+function registryMaxByFamily(): Record<string, number> {
+    const max: Record<string, number> = {}
+    for (const def of Object.values(MODEL_REGISTRY)) {
+        if (def.provider !== 'anthropic') continue
+        const p = parseClaudeId(def.id)
+        if (!p) continue
+        const v = verNum(p.major, p.minor)
+        if (v > (max[p.family] ?? -1)) max[p.family] = v
+    }
+    return max
+}
 
 /**
  * Check if an Anthropic model is available
@@ -169,6 +207,84 @@ async function alertAdmin(unavailable: ModelCheckResult[]): Promise<void> {
 }
 
 /**
+ * Discover NEW models via the provider /v1/models endpoint.
+ *
+ * The availability check above only tells us "is my pinned model still alive" —
+ * it stays green forever while a stale-but-working model (Opus 4.7 when 4.8 ships)
+ * rots. This is the forward-looking half: list what the provider actually offers,
+ * flag any claude family version newer than the registry pins, and alert the admin
+ * to review/apply via Admin → Models. We never auto-switch — picking which tier a
+ * brand-new model belongs to is a human judgment call.
+ */
+async function fetchAnthropicModelList(): Promise<Array<{ id: string; created_at?: string }>> {
+    const key = process.env.ANTHROPIC_API_KEY || ''
+    if (!key) return []
+    try {
+        const res = await fetch('https://api.anthropic.com/v1/models?limit=100', {
+            headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+        })
+        if (!res.ok) return []
+        const data = await res.json() as { data?: Array<{ id: string; created_at?: string }> }
+        return data.data || []
+    } catch (err) {
+        console.warn('[modelMonitor] /v1/models fetch failed:', String(err).substring(0, 100))
+        return []
+    }
+}
+
+async function discoverNewModels(): Promise<void> {
+    const list = await fetchAnthropicModelList()
+    if (!list.length) return
+
+    const regMax = registryMaxByFamily()
+    const discovered: DiscoveredModel[] = []
+
+    for (const m of list) {
+        const p = parseClaudeId(m.id)
+        const family = p ? p.family : 'other'
+        const version = p ? verNum(p.major, p.minor) : 0
+        const versionLabel = p ? `${p.major}.${p.minor}` : ''
+        const inRegistry = !!MODEL_REGISTRY[m.id]
+        const isNewer = !!p && version > (regMax[family] ?? -1)
+        discovered.push({ id: m.id, family, version, versionLabel, inRegistry, isNewer, createdAt: m.created_at })
+    }
+
+    discovered.sort((a, b) => (b.version - a.version) || a.id.localeCompare(b.id))
+    lastDiscovered = discovered
+    lastDiscoveryAt = new Date().toISOString()
+
+    // Alert once per newly-seen newer model.
+    const freshNewer = discovered.filter(d => d.isNewer && !alertedNewModelIds.has(d.id))
+    if (freshNewer.length) {
+        freshNewer.forEach(d => alertedNewModelIds.add(d.id))
+        await alertNewModels(freshNewer, regMax)
+    }
+}
+
+async function alertNewModels(models: DiscoveredModel[], regMax: Record<string, number>): Promise<void> {
+    if (!ADMIN_BOT_TOKEN || !ADMIN_CHAT_ID) return
+    const familyLabel = (fam: string) => {
+        const v = regMax[fam]
+        if (v == null) return '(none in registry)'
+        return `${Math.floor(v / 1000)}.${v % 1000}`
+    }
+    const lines = models.map(d =>
+        `🆕 ${d.id} (${d.family} ${d.versionLabel}) — registry pins ${d.family}=${familyLabel(d.family)}`
+    )
+    const message = `🆕 *New model(s) available*\n\n${lines.join('\n')}\n\n` +
+        `Review + apply linkage in *Admin → Models* (no deploy needed).`
+    try {
+        await fetch(`https://api.telegram.org/bot${ADMIN_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: message, parse_mode: 'Markdown' }),
+        })
+    } catch (err) {
+        console.error('Failed to send new-model alert:', err)
+    }
+}
+
+/**
  * Run scheduled model health check
  */
 async function runModelCheck(): Promise<void> {
@@ -185,6 +301,15 @@ async function runModelCheck(): Promise<void> {
     } else {
         console.log(`Model health: all ${results.length} models OK`)
     }
+
+    // Forward-looking: detect newer models the registry hasn't adopted yet.
+    try {
+        await discoverNewModels()
+        const newer = lastDiscovered.filter(d => d.isNewer).length
+        console.log(`Model discovery: ${lastDiscovered.length} models listed, ${newer} newer than registry`)
+    } catch (err) {
+        console.warn('Model discovery failed:', String(err).substring(0, 120))
+    }
 }
 
 /**
@@ -192,6 +317,20 @@ async function runModelCheck(): Promise<void> {
  */
 export function getModelHealth(): ModelCheckResult[] {
     return lastCheckResults
+}
+
+/**
+ * Get last /v1/models discovery (for Admin → Models). `newer` are candidates
+ * the admin should review and apply to a tier.
+ */
+export function getModelDiscovery(): { models: DiscoveredModel[]; discoveredAt: string } {
+    return { models: lastDiscovered, discoveredAt: lastDiscoveryAt }
+}
+
+/** Force a discovery pass now (admin "refresh" button). */
+export async function refreshModelDiscovery(): Promise<{ models: DiscoveredModel[]; discoveredAt: string }> {
+    await discoverNewModels()
+    return getModelDiscovery()
 }
 
 /**

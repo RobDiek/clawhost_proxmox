@@ -18,6 +18,9 @@ import {
     adminListTenants, adminGetTenant, adminCreateTenant, adminUpdateTenant,
     adminDeleteTenant, adminAssignInstanceToTenant, adminListUnassignedInstances,
 } from '@/controllers/admin/tenants'
+import {
+    adminModels, adminApplyModelTier, adminClearModelTier, adminRefreshModels,
+} from '@/controllers/admin/models'
 
 const app = new Hono()
 
@@ -46,6 +49,8 @@ app.use('/payments/*', requireAdmin2FA)
 app.use('/audit', requireAdmin2FA)
 app.use('/tenants', requireAdmin2FA)
 app.use('/tenants/*', requireAdmin2FA)
+app.use('/models', requireAdmin2FA)
+app.use('/models/*', requireAdmin2FA)
 
 app.get('/me', adminMe)
 app.post('/logout', adminLogout)
@@ -74,6 +79,12 @@ app.get('/clients/:id/upgrade-progress', adminUpgradeProgress)
 app.post('/upgrades/bulk', adminBulkUpgrade)
 
 app.get('/audit', adminListAudit)
+
+// ── Models: registry health, linkage, detect-new + apply-without-deploy ──
+app.get('/models', adminModels)
+app.post('/models/apply-tier', adminApplyModelTier)
+app.post('/models/clear-tier', adminClearModelTier)
+app.post('/models/refresh', adminRefreshModels)
 
 // ── Phase 1: Tenants (multi-tenant org layer) ──
 app.get('/tenants', adminListTenants)

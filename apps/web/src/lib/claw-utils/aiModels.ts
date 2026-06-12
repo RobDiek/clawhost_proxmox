@@ -2,14 +2,14 @@ import type { AIModelOption } from '@/ts/Interfaces'
 
 const aiModels: AIModelOption[] = [
     {
-        id: 'anthropic/claude-opus-4-6',
-        name: 'Claude Opus 4.6',
+        id: 'anthropic/claude-opus-4-8',
+        name: 'Claude Opus 4.8',
         provider: 'Anthropic',
         envVar: 'ANTHROPIC_API_KEY'
     },
     {
-        id: 'anthropic/claude-sonnet-4-5',
-        name: 'Claude Sonnet 4.5',
+        id: 'anthropic/claude-sonnet-4-6',
+        name: 'Claude Sonnet 4.6',
         provider: 'Anthropic',
         envVar: 'ANTHROPIC_API_KEY'
     },
@@ -98,8 +98,8 @@ const aiModels: AIModelOption[] = [
         envVar: 'MISTRAL_API_KEY'
     },
     {
-        id: 'opencode/claude-opus-4-6',
-        name: 'Claude Opus 4.6',
+        id: 'opencode/claude-opus-4-8',
+        name: 'Claude Opus 4.8',
         provider: 'OpenCode Zen',
         envVar: 'OPENCODE_API_KEY'
     },
@@ -152,8 +152,8 @@ const aiModels: AIModelOption[] = [
         envVar: 'MINIMAX_API_KEY'
     },
     {
-        id: 'vercel-ai-gateway/anthropic/claude-opus-4.6',
-        name: 'Claude Opus 4.6',
+        id: 'vercel-ai-gateway/anthropic/claude-opus-4.8',
+        name: 'Claude Opus 4.8',
         provider: 'Vercel AI Gateway',
         envVar: 'AI_GATEWAY_API_KEY'
     },
@@ -164,14 +164,14 @@ const aiModels: AIModelOption[] = [
         envVar: 'COPILOT_GITHUB_TOKEN'
     },
     {
-        id: 'openrouter/anthropic/claude-opus-4-6',
-        name: 'Claude Opus 4.6',
+        id: 'openrouter/anthropic/claude-opus-4-8',
+        name: 'Claude Opus 4.8',
         provider: 'OpenRouter',
         envVar: 'OPENROUTER_API_KEY'
     },
     {
-        id: 'openrouter/anthropic/claude-sonnet-4-5',
-        name: 'Claude Sonnet 4.5',
+        id: 'openrouter/anthropic/claude-sonnet-4-6',
+        name: 'Claude Sonnet 4.6',
         provider: 'OpenRouter',
         envVar: 'OPENROUTER_API_KEY'
     },

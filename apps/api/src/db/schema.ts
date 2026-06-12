@@ -1502,3 +1502,15 @@ export const paidLearnings = pgTable(
         index('paid_learnings_inject_idx').on(table.instanceId, table.injectIntoPrompts, table.windowEnd),
     ],
 )
+
+// ── Model tier overrides (admin "apply without deploy") ──
+// One row per tier (opus/sonnet/haiku). When set, agentSetup.roleModel() reads
+// this over the compiled registry default — so admins can promote a newly-released
+// model (detected by modelMonitor via /v1/models) to a tier from Admin → Models,
+// and all new provisioning follows, no code deploy needed.
+export const modelOverrides = pgTable('model_overrides', {
+    tier:      text('tier').primaryKey(),          // 'opus' | 'sonnet' | 'haiku'
+    modelId:   text('model_id').notNull(),         // e.g. 'claude-opus-4-9'
+    updatedBy: text('updated_by'),                 // admin email
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+})
