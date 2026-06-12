@@ -1706,7 +1706,7 @@ input{font-family:inherit}
             <div class="form-group"><label>14. מה הכי מתסכל בשיווק? <span style="color:#9CA3AF;font-weight:400">(אופציונלי)</span></label><textarea id="q-challenges" placeholder="אין זמן? לא יודעים מה לכתוב? אין תוצאות?" rows="2"></textarea></div>
             <button class="btn btn-primary" onclick="submitAgentSetup()" id="btn-setup-submit">עדכנו את הסוכנים &rarr;</button>
           </div>
-          <div class="hidden" id="setup-step2"><div style="text-align:center;margin:20px 0"><div class="gear-spinner" style="display:inline-block;font-size:2rem;animation:spin 2s linear infinite">&#9881;&#65039;</div></div><h3 style="text-align:center;margin:8px 0">מגדירים את הסוכנים...</h3><p style="text-align:center;color:#6B7280;font-size:0.85rem">זה ייקח כ-30 שניות</p></div>
+          <div class="hidden" id="setup-step2"><div style="text-align:center;margin:20px 0"><div class="gear-spinner" style="display:inline-block;font-size:2rem;animation:spin 2s linear infinite">&#9881;&#65039;</div></div><h3 style="text-align:center;margin:8px 0">מגדירים את הסוכנים...</h3><p style="text-align:center;color:#6B7280;font-size:0.85rem">זה עשוי לקחת כמה דקות. אפשר לסגור את החלון — ההגדרה תמשיך ברקע, ונעדכן אתכם כשתסתיים.</p></div>
           </div>
         </div>
       </div>
@@ -29490,6 +29490,12 @@ async function deployAgentsDashboard(answers) {
       // pre-save cache. Without the await, a fast user clicking 'ערכו' right
       // after Save sees their previous values.
       try { await refreshInstanceData(); } catch (_) { /* swallow */ }
+      // Re-render the views that gate on the saved answers — refreshInstanceData
+      // updates the data but the agent-detail profile card + home don't re-render
+      // on their own, so a user who closed the modal during the (multi-minute)
+      // setup would otherwise keep seeing the stale "מלאו את השאלון" prompt.
+      try { renderAgentProfile(); } catch (_) {}
+      try { if (typeof renderHome === 'function') renderHome(); } catch (_) {}
     } else {
       showToast(data.message || 'שגיאה בהגדרת הסוכנים', 'error');
       document.getElementById('setup-step2').classList.add('hidden');
