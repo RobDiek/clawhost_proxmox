@@ -183,3 +183,23 @@ export function listConnectedIntegrationIds(
         .filter(([, rec]) => rec?.connected)
         .map(([id]) => id)
 }
+
+// Integrations that are available WITHOUT an explicit user connection, so they
+// must be counted as "connected" even though they never appear in
+// integrationsState (which only records integrations the user actively connects):
+//   • public no-auth services Flowmatic queries centrally — PageSpeed, Google Ads
+//     Transparency, Meta Ad Library ('builtin' auth in the registry).
+//   • DataForSEO when the tenant is on the Flowmatic proxy: auto-provisioned for
+//     every tenant with a starter balance (dfs_use_proxy=true). Without this it
+//     renders as "מומלץ לחיבור" even though it is connected by default.
+// NOTE: telegram is also 'builtin' in the registry but genuinely needs a bot
+// token, so it is NOT auto-connected here — its status stays token-driven.
+export const ALWAYS_ON_INTEGRATION_IDS = ['pagespeed', 'google_ads_transparency', 'meta_ad_library']
+
+export function autoConnectedIntegrationIds(
+    inst: { dfsUseProxy?: boolean | null } | null | undefined
+): string[] {
+    const ids = [...ALWAYS_ON_INTEGRATION_IDS]
+    if (inst?.dfsUseProxy) ids.push('dataforseo')
+    return ids
+}

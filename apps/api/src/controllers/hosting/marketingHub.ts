@@ -18,6 +18,7 @@ import {
     deriveIntents,
     isValidIntent,
     listConnectedIntegrationIds,
+    autoConnectedIntegrationIds,
     pipelineNamespacesWithData,
     relevanceForIntegrations,
     pipelineStatuses,
@@ -233,7 +234,7 @@ export const getIntegrationHub = async (c: Context) => {
         const rd = (inst.researchData || {}) as MarketingResearchData
         const agents: string[] = Array.isArray(inst.selectedComponents) ? (inst.selectedComponents as string[]) : []
         const intents = currentIntents(rd, agents)
-        const connected = listConnectedIntegrationIds(rd)
+        const connected = Array.from(new Set([...listConnectedIntegrationIds(rd), ...autoConnectedIntegrationIds(inst)]))
         const hub = buildHub(intents, connected)
         const pipelineStats = pipelineStatuses(intents, connected)
         const stored = Array.isArray(rd.marketingIntents) ? rd.marketingIntents.filter(isValidIntent) : null
@@ -381,7 +382,7 @@ export const pipelinePrecheck = async (c: Context) => {
         const rd = (inst.researchData || {}) as MarketingResearchData
         const agents: string[] = Array.isArray(inst.selectedComponents) ? (inst.selectedComponents as string[]) : []
         const intents = currentIntents(rd, agents)
-        const connected = listConnectedIntegrationIds(rd)
+        const connected = Array.from(new Set([...listConnectedIntegrationIds(rd), ...autoConnectedIntegrationIds(inst)]))
         const check = checkPipelineLaunch(pipelineId, intents, connected)
         if (!check) return fail(c, 'Could not compute precheck', 500)
         return ok(c, { pipelineId, ...check })
@@ -438,7 +439,7 @@ export const previewHubForIntents = async (c: Context) => {
         const inst = await loadInstance(instanceId, c)
         if (!inst) return fail(c, 'Instance not found', 404)
         const rd = (inst.researchData || {}) as MarketingResearchData
-        const connected = listConnectedIntegrationIds(rd)
+        const connected = Array.from(new Set([...listConnectedIntegrationIds(rd), ...autoConnectedIntegrationIds(inst)]))
         const hub = buildHub(cleaned, connected)
         const pipelineStats = pipelineStatuses(cleaned, connected)
         const relevance = relevanceForIntegrations(cleaned)

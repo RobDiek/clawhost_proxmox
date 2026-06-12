@@ -61,4 +61,6 @@ export {
     pipelineStateUpdate,
     readIntegrationConnection,
     listConnectedIntegrationIds,
+    autoConnectedIntegrationIds,
+    ALWAYS_ON_INTEGRATION_IDS,
 } from './pipelineState'

@@ -32,7 +32,7 @@ async function getAllIntegrationsForInstance(instanceId: string) {
         if (!inst) return null  // unknown — preserve original status
         switch (integrationType) {
             case 'firecrawl':  return !!inst.firecrawlKey
-            case 'dataforseo': return !!inst.dataforseoKey
+            case 'dataforseo': return !!(inst.dataforseoKey || inst.dfsUseProxy)
             case 'api_key':    return !!inst.aiProviderKey
             // For OAuth-shaped integrations (gsc, telegram, reddit, meta, google,
             // microsoft) the secret lives inside agent_integrations.config itself
