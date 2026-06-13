@@ -40,11 +40,18 @@ let lastDiscovered: DiscoveredModel[] = []
 let lastDiscoveryAt = ''
 const alertedNewModelIds = new Set<string>()
 
-// claude-opus-4-8 → {family:'opus', major:4, minor:8}; trailing -<date> ignored.
+// claude-opus-4-8 → {family:'opus', major:4, minor:8}. Handles the three id shapes:
+//   claude-opus-4-8                 → 4.8
+//   claude-haiku-4-5-20251001       → 4.5  (trailing 8-digit date snapshot)
+//   claude-opus-4-20250514          → 4.0  (legacy .0 release; the group after the
+//                                            major IS the date, not a minor version)
+// A numeric group ≥5 digits is a date, not a minor — otherwise "4-20250514" would
+// parse as minor 20250514 and falsely flag the original 4.0 model as "newer".
 function parseClaudeId(id: string): { family: string; major: number; minor: number } | null {
     const m = /^claude-(opus|sonnet|haiku)-(\d+)-(\d+)/.exec(id)
     if (!m) return null
-    return { family: m[1], major: parseInt(m[2], 10), minor: parseInt(m[3], 10) }
+    const minor = m[3].length >= 5 ? 0 : parseInt(m[3], 10)
+    return { family: m[1], major: parseInt(m[2], 10), minor }
 }
 const verNum = (major: number, minor: number) => major * 1000 + minor
 
