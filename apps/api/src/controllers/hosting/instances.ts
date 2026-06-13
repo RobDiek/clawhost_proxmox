@@ -6,7 +6,15 @@ import { db } from '@/db'
 import { instances, payments } from '@/db/schema'
 import { eq, and, ne } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
-import { PLANS } from '@openclaw/shared'
+import {
+    PLANS,
+    essentialReadiness,
+    listConnectedIntegrationIds,
+    autoConnectedIntegrationIds,
+    deriveIntents,
+    isValidIntent,
+    pipelineNamespacesWithData,
+} from '@openclaw/shared'
 import getProvider from '@/services/provider/getProvider'
 import provisioner from '@/services/provisioner'
 import telegram from '@/services/telegram'
@@ -260,6 +268,38 @@ export const getInstance = async (c: Context<HonoEnv>) => {
                 ))
                 .limit(1)
             response.hasBrandBook = !!approvedBb
+
+            // Marketing readiness — gate "מחקר ואסטרטגיה" on the chosen channels'
+            // essential integrations being connected (group-aware: WordPress|GitHub
+            // etc.), so research runs on REAL data, not LLM fallback. Computed
+            // server-side from the registry (single source) + actual connections.
+            try {
+                const rdMR = (activeAgent.researchData as Record<string, any>) || {}
+                let mrIntents = Array.isArray(rdMR.marketingIntents)
+                    ? rdMR.marketingIntents.filter(isValidIntent)
+                    : []
+                if (mrIntents.length === 0) {
+                    const pp = rdMR.paidProfile as { goal?: string; primaryGoal?: string; launchPath?: string } | undefined
+                    mrIntents = deriveIntents({
+                        agents: [],
+                        paidProfile: pp ? { goal: pp.goal || pp.primaryGoal, launchPath: pp.launchPath } : null,
+                        existingNamespaces: pipelineNamespacesWithData(rdMR),
+                        answers: (rdMR.answers as { platforms?: string; marketingGoals?: string }) || null,
+                    })
+                }
+                const connectedSet = new Set<string>([
+                    ...listConnectedIntegrationIds(rdMR),
+                    ...autoConnectedIntegrationIds(instance as never),
+                ])
+                // GitHub publishing is stored in githubConfig, not integrationsState.
+                const ghConnected = !!(activeAgent.githubConfig || (instance as { githubConfig?: unknown }).githubConfig)
+                if (ghConnected) connectedSet.add('github')
+                response.hasGithub = ghConnected
+                response.marketingIntents = mrIntents
+                response.marketingReadiness = essentialReadiness(mrIntents, Array.from(connectedSet))
+            } catch (e) {
+                console.warn('[instances] marketingReadiness compute failed:', (e as Error).message)
+            }
         }
 
         // Phase 4.2.1-K — surfacing of API readiness signals.

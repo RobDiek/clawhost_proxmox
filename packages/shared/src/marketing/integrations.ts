@@ -39,6 +39,7 @@ export type AuthMethod =
     | 'oauth_shopify'
     | 'oauth_hubspot'
     | 'oauth_youtube'
+    | 'github_repo'
     | 'apikey'
     | 'builtin'
 
@@ -214,10 +215,23 @@ export const INTEGRATIONS: IntegrationInfo[] = [
         id: 'wordpress',
         nameHe: 'WordPress',
         nameEn: 'WordPress',
-        descHe: 'גישה ל-WP REST API — פרסום מאמרים, audit לדפי נחיתה, schema',
+        descHe: 'גישה ל-WP REST API — פרסום מאמרים, audit לדפי נחיתה, schema. **חלופה ל-GitHub** עבור אתרי WordPress — חברו אחד מהשניים, לפי הפלטפורמה של האתר שלכם.',
         icon: '🌐',
         capabilities: ['cms'],
         auth: 'apikey',
+        cost: 'free',
+        available: true,
+        essentialFor: ['content'],
+        recommendedFor: ['seo', 'lead_generation'],
+    },
+    {
+        id: 'github',
+        nameHe: 'GitHub',
+        nameEn: 'GitHub',
+        descHe: 'פרסום תוכן לאתר מבוסס-Git (Next.js / Cloudflare Pages / Vercel / Netlify) — הסוכן דוחף מאמר/דף ל-repo ו-build רץ אוטומטית. **חלופה ל-WordPress** עבור אתרים סטטיים — חברו אחד מהשניים, לפי הפלטפורמה של האתר שלכם.',
+        icon: '🐙',
+        capabilities: ['cms'],
+        auth: 'github_repo',
         cost: 'free',
         available: true,
         essentialFor: ['content'],

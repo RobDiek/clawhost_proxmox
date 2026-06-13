@@ -69,6 +69,60 @@ export function relevanceForIntegrations(intents: MarketingIntent[]): Integratio
     }).sort((a, b) => b.score - a.score)
 }
 
+// Integrations that are INTERCHANGEABLE for the same capability — connecting any
+// one satisfies the requirement, so the readiness gate must not ask for both.
+// e.g. publish content to a WordPress site OR a Git-based static site (GitHub).
+export const ALTERNATIVE_GROUPS: string[][] = [
+    ['wordpress', 'github'],          // content publishing target (CMS vs Git/static)
+    ['instagram', 'facebook_pages'],  // social publishing surface (both under Meta)
+    ['shopify', 'woocommerce'],       // ecommerce catalog
+]
+
+export interface EssentialReadiness {
+    ready: boolean
+    // Each entry = one unmet ESSENTIAL requirement. `ids` are interchangeable
+    // options (≥1 must be connected); `namesHe` are their display names.
+    unmet: Array<{ ids: string[]; namesHe: string[]; intents: MarketingIntent[] }>
+}
+
+// Are all ESSENTIAL integrations for the chosen intents connected? Group-aware:
+// wordpress|github (etc.) count as satisfied when ANY member is connected. Builtin
+// / auto-connected integrations (telegram, pagespeed, …) are excluded — they need
+// no user action. This drives the "connect your channels' tools before research"
+// onboarding gate, so research runs on real data, not LLM fallback.
+export function essentialReadiness(
+    intents: MarketingIntent[],
+    connectedIntegrations: string[]
+): EssentialReadiness {
+    const connected = new Set(connectedIntegrations)
+    const essential = INTEGRATIONS
+        .filter(i => i.available && i.auth !== 'builtin')
+        .map(i => ({ i, t: tierForIntegration(i, intents) }))
+        .filter(x => x.t.tier === 'essential')
+
+    const groups: Array<{ ids: string[]; intents: MarketingIntent[] }> = []
+    const grouped = new Set<string>()
+    for (const grp of ALTERNATIVE_GROUPS) {
+        const members = essential.filter(x => grp.includes(x.i.id))
+        if (members.length === 0) continue
+        members.forEach(x => grouped.add(x.i.id))
+        groups.push({ ids: grp, intents: Array.from(new Set(members.flatMap(x => x.t.relevantIntents))) })
+    }
+    for (const x of essential) {
+        if (grouped.has(x.i.id)) continue
+        groups.push({ ids: [x.i.id], intents: x.t.relevantIntents })
+    }
+
+    const unmet = groups
+        .filter(g => !g.ids.some(id => connected.has(id)))
+        .map(g => ({
+            ids: g.ids,
+            namesHe: g.ids.map(id => INTEGRATIONS.find(i => i.id === id)?.nameHe || id),
+            intents: g.intents,
+        }))
+    return { ready: unmet.length === 0, unmet }
+}
+
 // Resolve `requires` strings — supports `'a|b|c'` meaning "any of a, b, c".
 function resolveRequirement(req: string, connected: Set<string>): boolean {
     if (req.includes('|')) return req.split('|').some(r => connected.has(r.trim()))

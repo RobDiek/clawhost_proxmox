@@ -5408,12 +5408,22 @@ function renderHome() {
         hasMktConfig = true;
       }
 
+      // Authoritative gate: ALL essential integrations for the chosen channels
+      // connected (group-aware WordPress|GitHub). Server-computed in instanceData
+      // (marketingReadiness) from the shared registry — single source of truth.
+      var mrCfg = instanceData && instanceData.marketingReadiness;
+      if (mrCfg && typeof mrCfg.ready === 'boolean') hasMktConfig = mrCfg.ready;
+      var mktUnmetNames = (mrCfg && Array.isArray(mrCfg.unmet))
+        ? mrCfg.unmet.map(function(u){ return (u.namesHe || []).join(' / '); }).filter(Boolean)
+        : [];
       tasks.push({
         id: 'marketing_config', label: 'ניהול שיווק — ערוצים וחיבורים',
         done: !!hasMktConfig,
         action: "switchTab('marketing')",
         actionLabel: 'הגדירו',
-        desc: 'בחרו ערוצים (Google Ads / SEO / תוכן / רשתות) וחברו את הכלים הנדרשים. הסוכנים יתחילו לפעול אוטומטית. מומלץ להגדיר חיבורים לפני מחקר ואסטרטגיה — כך תקבלו נתונים אמיתיים מ-GSC/GA4 ולא fallback של LLM.'
+        desc: (!hasMktConfig && mktUnmetNames.length)
+          ? 'חסרים חיבורים נדרשים לערוצים שבחרתם: ' + mktUnmetNames.join(', ') + '. חברו אותם — ורק אז המחקר והאסטרטגיה ירוצו על נתונים אמיתיים (לא fallback של LLM). עבור פרסום תוכן — חברו WordPress או GitHub, לפי הפלטפורמה של האתר.'
+          : 'בחרו ערוצים (Google Ads / SEO / תוכן / רשתות) וחברו את הכלים הנדרשים. הסוכנים יתחילו לפעול אוטומטית.'
       });
     }
 
@@ -5438,7 +5448,19 @@ function renderHome() {
       var hasPipelineComplete = !!(instanceData && instanceData.hasPipelineComplete);
       var rsDone = !!hasResearch && !!hasStrategy && (!!hasChosenScenario || hasPipelineComplete);
 
-      if (!hasResearch) {
+      // Gate (Q2 2026.06): research must NOT run until the chosen channels'
+      // essential tools are connected — otherwise it falls back to LLM guesses.
+      // marketingReadiness is server-computed (group-aware WordPress|GitHub).
+      var mrRes = instanceData && instanceData.marketingReadiness;
+      var researchLocked = !hasResearch && mrRes && mrRes.ready === false
+        && Array.isArray(mrRes.unmet) && mrRes.unmet.length > 0;
+      if (!hasResearch && researchLocked) {
+        var unmetResNames = mrRes.unmet.map(function(u){ return (u.namesHe || []).join(' / '); }).filter(Boolean).join(', ');
+        rsLabel = 'מחקר ואסטרטגיה — נדרשים חיבורים';
+        rsAction = "switchTab('marketing')";
+        rsActionLabel = '🔒 חברו כלים תחילה';
+        rsDesc = 'כדי שהמחקר והאסטרטגיה ירוצו במלוא העוצמה (נתונים אמיתיים, לא ניחושי LLM) — חברו קודם את הכלים הנדרשים לערוצים שבחרתם: ' + unmetResNames + '. אחרי החיבור הכרטיס ייפתח אוטומטית.';
+      } else if (!hasResearch) {
         rsLabel = 'מחקר ואסטרטגיה';
         rsAction = 'runChainResearch()';
         rsActionLabel = 'התחילו';
@@ -20948,6 +20970,7 @@ function getConnectedIntegrationIdsFromState() {
   // Brave: per-agent integration record + per-tenant cache fallback
   if (intStorGet('cf_brave_saved') || (inst.agentIntegrations && Object.values(inst.agentIntegrations || {}).some(function(a) { return a && a.brave && a.brave.connected; }))) ids.push('brave_search');
   if (inst.hasWordpress || intStorGet('cf_wordpress_saved')) ids.push('wordpress');
+  if (inst.hasGithub || intStorGet('cf_github_saved')) ids.push('github');
   if (inst.hasCanva || intStorGet('cf_canva_saved')) ids.push('canva');
   if (inst.hasResend || intStorGet('cf_resend_saved')) ids.push('resend');
   // Google services — granular by OAuth scopes. Backend stores SCOPE_MAP
@@ -32634,6 +32657,8 @@ function ghWizardFinish() {
 }
 
 function showGithubConnected(data) {
+  try { intStorSet('cf_github_saved', '1'); } catch (_) {}
+  try { if (instanceData) instanceData.hasGithub = true; syncMarketingIntegrationsToBackend(); } catch (_) {}
   document.getElementById('github-not-connected').style.display = 'none';
   document.getElementById('github-connected').style.display = '';
   document.getElementById('github-repo-display').textContent = data.repo || '';
@@ -32704,6 +32729,8 @@ async function disconnectGithubIntegration() {
       body: JSON.stringify({ instanceId: iid })
     });
     showToast('GitHub נותק', 'success');
+    try { intStorSet('cf_github_saved', ''); } catch (_) {}
+    try { if (instanceData) instanceData.hasGithub = false; syncMarketingIntegrationsToBackend(); } catch (_) {}
     document.getElementById('github-not-connected').style.display = '';
     document.getElementById('github-connected').style.display = 'none';
     var statusEl = document.getElementById('github-status');

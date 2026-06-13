@@ -25,6 +25,7 @@ export type {
     PreLaunchCheck,
     CapabilityGroup,
     HubGroupView,
+    EssentialReadiness,
 } from './relevance'
 export {
     tierForIntegration,
@@ -34,6 +35,8 @@ export {
     CAPABILITY_GROUP_LABELS_HE,
     groupForIntegration,
     buildHub,
+    ALTERNATIVE_GROUPS,
+    essentialReadiness,
 } from './relevance'
 
 export type { AutoDeriveInput } from './autoDerive'
