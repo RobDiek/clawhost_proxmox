@@ -286,12 +286,16 @@ export const selectGA4Property = async (c: Context) => {
             return fail(c, 'propertyId required (numeric string)', 400)
         }
 
-        // Read existing google integration config (per-agent)
+        // Resolve the connected Google config the SAME way the picker does
+        // (agent_integration + instance-level reconciliation). The previous
+        // single getAgentIntegration() 404'd when the per-agent row was keyed
+        // differently than the current agentId — even though the picker had
+        // just listed properties via the reconciled token. setAgentIntegration
+        // below upserts, so a missing/stale row is rewritten correctly.
         const __agent = await resolveActiveAgent(c, instanceId)
         const agentType: 'mt' | 'oc' = __agent?.agentType === 'mateh' ? 'mt' : 'oc'
-        const integration = await getAgentIntegration(instanceId, agentType, 'google', __agent?.id)
-        if (!integration) return fail(c, 'Google integration not found', 404)
-        const cfg = (integration.config as unknown as GoogleTokensConfig) || {} as GoogleTokensConfig
+        const { config: cfg } = await getFreshAccessToken(instanceId, __agent?.id)
+        if (!cfg) return fail(c, 'Google not connected. Connect first.', 400)
 
         const nextCfg: GoogleTokensConfig = {
             ...cfg,
@@ -418,11 +422,11 @@ export const selectGTMContainer = async (c: Context) => {
             return fail(c, 'accountId + containerId required', 400)
         }
 
+        // Same robust resolution as GA4 select — reconciled config, upsert-safe.
         const __agent = await resolveActiveAgent(c, instanceId)
         const agentType: 'mt' | 'oc' = __agent?.agentType === 'mateh' ? 'mt' : 'oc'
-        const integration = await getAgentIntegration(instanceId, agentType, 'google', __agent?.id)
-        if (!integration) return fail(c, 'Google integration not found', 404)
-        const cfg = (integration.config as unknown as GoogleTokensConfig) || {} as GoogleTokensConfig
+        const { config: cfg } = await getFreshAccessToken(instanceId, __agent?.id)
+        if (!cfg) return fail(c, 'Google not connected. Connect first.', 400)
 
         const nextCfg: GoogleTokensConfig = {
             ...cfg,
