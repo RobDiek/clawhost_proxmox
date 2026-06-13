@@ -5409,13 +5409,11 @@ function renderHome() {
       }
 
       // Authoritative gate: ALL essential integrations for the chosen channels
-      // connected (group-aware WordPress|GitHub). Server-computed in instanceData
-      // (marketingReadiness) from the shared registry — single source of truth.
-      var mrCfg = instanceData && instanceData.marketingReadiness;
-      if (mrCfg && typeof mrCfg.ready === 'boolean') hasMktConfig = mrCfg.ready;
-      var mktUnmetNames = (mrCfg && Array.isArray(mrCfg.unmet))
-        ? mrCfg.unmet.map(function(u){ return (u.namesHe || []).join(' / '); }).filter(Boolean)
-        : [];
+      // satisfied (group-aware WordPress|GitHub). Uses the LIVE hub so it flips
+      // green the moment the last required tool connects — no page refresh. Don't
+      // regress a tenant who's already past this step (legacy hasMktConfig).
+      hasMktConfig = isMarketingReady() || hasMktConfig;
+      var mktUnmetNames = hasMktConfig ? [] : marketingUnmetNames();
       tasks.push({
         id: 'marketing_config', label: 'ניהול שיווק — ערוצים וחיבורים',
         done: !!hasMktConfig,
@@ -5452,10 +5450,11 @@ function renderHome() {
       // essential tools are connected — otherwise it falls back to LLM guesses.
       // marketingReadiness is server-computed (group-aware WordPress|GitHub).
       var mrRes = instanceData && instanceData.marketingReadiness;
-      var researchLocked = !hasResearch && mrRes && mrRes.ready === false
-        && Array.isArray(mrRes.unmet) && mrRes.unmet.length > 0;
+      // Live-hub gate (group-aware, refreshes on connect) so research unlocks the
+      // moment the last required tool connects — not stuck on stale instanceData.
+      var researchLocked = !hasResearch && !isMarketingReady();
       if (!hasResearch && researchLocked) {
-        var unmetResNames = mrRes.unmet.map(function(u){ return (u.namesHe || []).join(' / '); }).filter(Boolean).join(', ');
+        var unmetResNames = marketingUnmetNames().join(', ');
         rsLabel = 'מחקר ואסטרטגיה — נדרשים חיבורים';
         rsAction = "switchTab('marketing')";
         rsActionLabel = '🔒 חברו כלים תחילה';
@@ -20990,6 +20989,45 @@ function getConnectedIntegrationIdsFromState() {
   // public APIs — no connection needed. We do NOT push them to `ids` so the UI
   // shows them as "✓ זמין" (available) rather than "✓ מחובר" (connected).
   return ids;
+}
+
+// Are all ESSENTIAL integrations for the chosen channels satisfied? Prefers the
+// LIVE marketing hub (refreshes on every connect; group-aware via
+// coveredByAlternative — WordPress↔GitHub etc.), so it's never stale after a
+// connect. Falls back to the server-computed instanceData.marketingReadiness
+// when the hub isn't loaded yet (e.g. first home visit before opening the tab).
+function isMarketingReady() {
+  try {
+    var hub = (typeof marketingHubState !== 'undefined' && marketingHubState.hub) || [];
+    if (hub.length > 0) {
+      return hub.every(function(g) {
+        return g.integrations.every(function(i) {
+          return i.tier !== 'essential' || i.connected || i.coveredByAlternative || i.integration.auth === 'builtin';
+        });
+      });
+    }
+  } catch (e) { /* fall through */ }
+  var mr = instanceData && instanceData.marketingReadiness;
+  return !!(mr && mr.ready);
+}
+
+// Names of the still-missing essential requirements (group-aware). Prefers the
+// server-grouped list ("WordPress / GitHub" as one); falls back to the live hub.
+function marketingUnmetNames() {
+  var mr = instanceData && instanceData.marketingReadiness;
+  if (mr && Array.isArray(mr.unmet) && mr.unmet.length) {
+    return mr.unmet.map(function(u) { return (u.namesHe || []).join(' / '); }).filter(Boolean);
+  }
+  try {
+    var hub = (typeof marketingHubState !== 'undefined' && marketingHubState.hub) || [];
+    var names = [];
+    hub.forEach(function(g) { g.integrations.forEach(function(i) {
+      if (i.tier === 'essential' && !i.connected && !i.coveredByAlternative && i.integration.auth !== 'builtin') {
+        var n = i.integration.nameHe; if (names.indexOf(n) === -1) names.push(n);
+      }
+    }); });
+    return names;
+  } catch (e) { return []; }
 }
 
 // Push current connection state to backend (researchData.integrationsState).
