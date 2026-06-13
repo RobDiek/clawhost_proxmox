@@ -100,6 +100,7 @@ const HEBREW_FONTS_HINT = ['Heebo', 'Rubik', 'Assistant', 'Open Sans Hebrew', 'F
 interface FirecrawlResult {
     markdown?: string
     html?: string
+    rawHtml?: string
     links?: string[]
     metadata?: {
         title?: string
@@ -120,7 +121,10 @@ async function firecrawlScrape(apiKey: string, url: string): Promise<FirecrawlRe
             headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 url,
-                formats: ['markdown', 'html'],
+                // rawHtml = full document incl. <head> (where <link rel=stylesheet>
+                // + <meta theme-color> live). The cleaned `html` strips the head,
+                // which is why external-CSS / theme-color extraction found nothing.
+                formats: ['markdown', 'html', 'rawHtml'],
                 onlyMainContent: false,
             }),
             signal: AbortSignal.timeout(60_000),
@@ -868,9 +872,12 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     // Tailwind / Next.js / CSS-in-JS compile brand colors + fonts into external
     // .css bundles that the inline-only extractor never sees — the reason a
     // Next site returned 1 ad-hoc color and no fonts. Fetch + parse them.
-    const cssLinks = extractStylesheetLinks(homepageHtml, websiteUrl)
+    // Use rawHtml (full doc incl. <head>) for head-only signals; the cleaned
+    // `html` strips <head>, so <link>/<meta theme-color> aren't there.
+    const headHtml = homepage.rawHtml || homepageHtml
+    const cssLinks = extractStylesheetLinks(headHtml, websiteUrl)
     const externalCss = cssLinks.length ? await fetchCssBundle(cssLinks) : ''
-    const themeColor = extractThemeColor(homepageHtml)
+    const themeColor = extractThemeColor(headHtml)
     notes.push(`External CSS: ${cssLinks.length} sheets (${externalCss.length} chars) · theme-color: ${themeColor || 'none'}`)
 
     // ── Visual extraction ──
@@ -879,7 +886,7 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     const cssPalette = mergePalette(themeColor, brandVarColors, inlinePalette)
     notes.push(`Palette: ${cssPalette.length} colors (theme=${themeColor || '∅'}, css-vars=${brandVarColors.length}, inline=${inlinePalette.length}) → top ${cssPalette[0]?.hex || 'none'}`)
 
-    const fonts = extractFonts(homepageHtml + '\n' + externalCss)
+    const fonts = extractFonts(headHtml + '\n' + externalCss)
     notes.push(`Fonts detected: he=${fonts.he || '(none)'}, en=${fonts.en || '(none)'}`)
 
     const logoCandidates = discoverLogoCandidates(homepageHtml, meta, websiteUrl)
