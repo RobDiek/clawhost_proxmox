@@ -43,6 +43,26 @@ import type { BrandBookV2 } from '../../../../packages/shared/src/brand/brandBoo
 const FIRECRAWL_API = 'https://api.firecrawl.dev/v1/scrape'
 const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages'
 
+/**
+ * Normalize a user-entered website URL to a canonical absolute URL.
+ * Firecrawl tolerates a bare domain ("example.com"), but Node's `new URL()`
+ * (used for logo/link resolution) throws "Invalid URL" without a scheme — so a
+ * profile saved as "flowmatic.co.il" blew up mid-scan. Prepend https:// when no
+ * scheme is present and validate the host. Returns null when unsalvageable.
+ */
+export function normalizeWebsiteUrl(raw: string | null | undefined): string | null {
+    let s = (raw || '').trim()
+    if (!s) return null
+    if (!/^https?:\/\//i.test(s)) s = 'https://' + s.replace(/^\/+/, '')
+    try {
+        const u = new URL(s)
+        if (!u.hostname || !u.hostname.includes('.')) return null
+        return s
+    } catch {
+        return null
+    }
+}
+
 interface ScanArgs {
     instanceId: string
     websiteUrl: string
@@ -647,7 +667,11 @@ const META = (confidence: 'high' | 'medium' | 'low' = 'high') => ({
 })
 
 export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
-    const { instanceId, websiteUrl, agentId } = args
+    const { instanceId, agentId } = args
+    // Defensive: normalize even though the controller already does — a bare
+    // domain reaching new URL() here is what produced the "Invalid URL" 500.
+    const websiteUrl = normalizeWebsiteUrl(args.websiteUrl)
+    if (!websiteUrl) throw new Error('כתובת אתר לא תקינה')
     const notes: string[] = []
     const extractedKeys: string[] = []
 

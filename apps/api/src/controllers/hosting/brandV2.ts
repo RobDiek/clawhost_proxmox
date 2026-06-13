@@ -276,6 +276,21 @@ export const scanWebsiteForBrandV2 = async (c: Context) => {
             }, 'Website URL missing')
         }
 
+        // Normalize: a bare domain ("flowmatic.co.il") passes Firecrawl but blows
+        // up new URL() mid-scan → "Invalid URL". Prepend scheme + validate here so
+        // the user gets a clean message + manual fallback instead of a 500.
+        const { normalizeWebsiteUrl } = await import('@/services/brandWebsiteScanner')
+        const normalizedUrl = normalizeWebsiteUrl(websiteUrl)
+        if (!normalizedUrl) {
+            return ok(c, {
+                ok: false,
+                requiresField: 'websiteUrl',
+                fallbackFlow: 'uploaded',
+                message: `כתובת האתר "${websiteUrl}" אינה תקינה — תקנו בפרופיל העסקי או המשיכו ידני.`,
+            }, 'Invalid website URL')
+        }
+        websiteUrl = normalizedUrl
+
         // Phase 4.3-T: resolve active agent ONCE at top of function so all
         // downstream brand-V2 helpers operate on the right agent. Was the
         // root cause of Packing-scrapes-Storage-URL bug.
