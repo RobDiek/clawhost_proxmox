@@ -32435,22 +32435,23 @@ function ghBuildHintCard(result, repo) {
   };
 
   if (result.diagnosis === 'org_pat_pending_approval') {
-    var urlActive  = 'https://github.com/orgs/' + encodeURIComponent(repoOwner) + '/settings/personal-access-tokens/active';
-    var urlPending = 'https://github.com/orgs/' + encodeURIComponent(repoOwner) + '/settings/personal-access-tokens/pending_requests';
-    var urlPolicy  = 'https://github.com/organizations/' + encodeURIComponent(repoOwner) + '/settings/personal-access-tokens';
+    // Canonical org-settings base is /organizations/{org}/settings/ — the
+    // /orgs/{org}/settings/... form 404s for these deep pages. The classic
+    // token needs NO org approval at all, so it's the foolproof primary path.
+    var urlClassic    = 'https://github.com/settings/tokens/new?scopes=repo&description=Flowmatic';
+    var urlOrgPat     = 'https://github.com/organizations/' + encodeURIComponent(repoOwner) + '/settings/personal-access-tokens/active';
     return amber('🏢 ה-Token חסום על ידי ה-Organization',
-      'ה-repo ב-organization <strong>' + escapeHtml(repoOwner) + '</strong>. GitHub החזיר "Resource not accessible by personal access token" — כלומר ה-organization חוסם את ה-Token שלכם.<br><br>' +
-      '<strong>3 אפשרויות:</strong>' +
-      '<ol style="margin:6px 16px;padding:0">' +
-      '<li><strong>אם אתם admin של ה-org:</strong> בדקו <a href="' + urlPending + '" target="_blank" style="color:#2563EB">Pending requests</a> → אשרו את ה-Token</li>' +
-      '<li><strong>אם ה-org לא דורש approval:</strong> ייתכן ש-"Fine-grained PAT access" מושבת לחלוטין. בדקו ב-<a href="' + urlPolicy + '" target="_blank" style="color:#2563EB">Organization PAT policy</a></li>' +
-      '<li><strong>אם אתם לא admin:</strong> בקשו מה-owner של ' + escapeHtml(repoOwner) + ' לאשר את ה-Token</li>' +
-      '</ol>' +
-      '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">' +
-      '<a href="' + urlPending + '" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.78rem">Pending Requests ↗</a>' +
-      '<a href="' + urlPolicy + '" target="_blank" class="btn btn-outline btn-sm" style="font-size:0.78rem">Org PAT Policy ↗</a>' +
+      'ה-repo שייך ל-organization <strong>' + escapeHtml(repoOwner) + '</strong>, ו-GitHub חוסם fine-grained tokens ללא אישור הארגון ("Resource not accessible by personal access token").<br><br>' +
+      '<strong>✅ הדרך הקלה (מומלצת) — Classic Token:</strong> לא דורש שום אישור ארגון.' +
+      '<div style="display:flex;gap:6px;margin:6px 0 4px;flex-wrap:wrap">' +
+      '<a href="' + urlClassic + '" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.78rem">צרו Classic Token (scope: repo) ↗</a>' +
       '</div>' +
-      '<div style="font-size:0.72rem;color:#6B7280;margin-top:6px">💡 אם הדפים נותנים 404 — אתם לא admin של ה-org</div>'
+      '<div style="font-size:0.74rem;color:#374151;margin-bottom:10px">בדף שנפתח ה-scope <code style="background:#fff;padding:1px 5px;border-radius:3px">repo</code> כבר מסומן — צרו, והדביקו את ה-Token כאן.</div>' +
+      '<strong>או — לאשר את ה-fine-grained token</strong> (רק אם אתם admin של ' + escapeHtml(repoOwner) + '):' +
+      '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">' +
+      '<a href="' + urlOrgPat + '" target="_blank" class="btn btn-outline btn-sm" style="font-size:0.78rem">הגדרות PAT של הארגון ↗</a>' +
+      '</div>' +
+      '<div style="font-size:0.72rem;color:#6B7280;margin-top:6px">שם: לשונית <strong>Pending requests</strong> לאישור ה-Token, או <strong>Settings</strong> כדי לאפשר fine-grained access. (זמין רק ל-owner/admin של הארגון.)</div>'
     );
   }
 
@@ -32483,7 +32484,7 @@ function ghBuildHintCard(result, repo) {
       '<strong>3 סיבות אפשריות:</strong><ol style="margin:4px 16px;padding:0">' +
       '<li>Resource owner של ה-Token שגוי (בחרו ' + escapeHtml(repoOwner) + ' במקום חשבון אישי)</li>' +
       '<li>הרשאות Contents / Pull requests לא Read+Write</li>' +
-      '<li>Organization דורשת approval — חפשו ב-<a href="https://github.com/organizations/' + encodeURIComponent(repoOwner) + '/settings/personal-access-tokens-requests" target="_blank" style="color:#2563EB">Pending requests</a></li>' +
+      '<li>Organization דורשת approval — חפשו ב-<a href="https://github.com/organizations/' + encodeURIComponent(repoOwner) + '/settings/personal-access-tokens/active" target="_blank" style="color:#2563EB">הגדרות PAT של הארגון</a> (לשונית Pending requests). הדרך הקלה: צרו <a href="https://github.com/settings/tokens/new?scopes=repo&description=Flowmatic" target="_blank" style="color:#2563EB">Classic Token</a> שלא דורש אישור.</li>' +
       '</ol>'
     );
   }

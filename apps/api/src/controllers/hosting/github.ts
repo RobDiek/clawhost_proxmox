@@ -574,7 +574,7 @@ export const testGithubIntegration = async (c: Context) => {
                 // Doesn't require repoOwnerType check (which can fail with the same 403).
                 if (errMsg.includes('resource not accessible by personal access token') || errMsg.includes('resource not accessible by integration')) {
                     diagnosis = 'org_pat_pending_approval'
-                    hint = `ה-Token חסום מכתיבה — ההודעה הרשמית של GitHub: "Resource not accessible by personal access token". בדרך כלל זה אומר שהorganization "${owner}" דורשת אישור ה-Token לפני שהוא יכול לכתוב. אשרו ב-github.com/organizations/${owner}/settings/personal-access-tokens-requests.`
+                    hint = `ה-Token חסום מכתיבה — "Resource not accessible by personal access token". ה-organization "${owner}" חוסם fine-grained tokens ללא אישור. הדרך הקלה: צרו Classic Token (scope: repo) ב-github.com/settings/tokens/new — לא דורש אישור ארגון. או אשרו ב-github.com/organizations/${owner}/settings/personal-access-tokens/active (לשונית Pending requests).`
                 }
                 // Priority 2: explicit owner mismatch (authed user ≠ repo owner for org repo)
                 else if (repoOwnerType === 'Organization' && authedUser) {
