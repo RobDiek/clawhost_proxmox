@@ -108,8 +108,32 @@ async function getFreshAccessToken(instanceId: string, agentId?: string): Promis
     // Try agent_integrations first (canonical), then fall back via primary agent
     const integration = await getAgentIntegration(instanceId, 'mt', 'google', agentId)
         || await getAgentIntegration(instanceId, 'oc', 'google', agentId)
-    if (!integration || !integration.config) return { token: null, config: null }
-    const cfg = integration.config as unknown as GoogleTokensConfig
+    let cfg = (integration?.config as unknown as GoogleTokensConfig) || null
+
+    // Reconcile dual-store desync. The OAuth callback writes BOTH the per-agent
+    // integration AND instances.googleTokens — but a later additive OAuth (e.g.
+    // "+ analytics" for GA4) can land in instances.googleTokens while the agent
+    // row goes stale, so the picker reads ["ads"] and 400s "missing analytics
+    // scope" even though the grant exists. If the instance-level token is a
+    // STRICT scope-superset of the agent row, it's the fuller/newer grant — use
+    // it. Strict-superset (not just "has more") avoids handing a secondary
+    // agent the primary's broader token (per-agent isolation stays intact).
+    try {
+        const { db } = await import('@/db')
+        const { instances } = await import('@/db/schema')
+        const { eq } = await import('drizzle-orm')
+        const [inst] = await db.select({ gt: instances.googleTokens }).from(instances).where(eq(instances.id, instanceId))
+        const instCfg = (inst?.gt as unknown as GoogleTokensConfig) || null
+        if (instCfg?.refreshToken) {
+            const agentScopes = (cfg?.scopes || []).map(String)
+            const instScopes = (instCfg.scopes || []).map(String)
+            const instSet = new Set(instScopes)
+            const instIsSuperset = agentScopes.every(s => instSet.has(s)) && instScopes.length > agentScopes.length
+            if (!cfg || !cfg.refreshToken || instIsSuperset) cfg = instCfg
+        }
+    } catch { /* best-effort reconciliation */ }
+
+    if (!cfg) return { token: null, config: null }
     if (!cfg.refreshToken) return { token: null, config: cfg }
     // Use existing accessToken if not expired
     if (cfg.accessToken && cfg.expiresAt && cfg.expiresAt > Date.now() + 60_000) {
