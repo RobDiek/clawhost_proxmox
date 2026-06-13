@@ -24611,7 +24611,7 @@ function showValidationChoice() {
               '<span style="background:#2563EB;color:white;padding:2px 8px;border-radius:4px;font-size:0.68rem;margin-right:6px">מומלץ להתחלה</span>' +
             '</div>' +
             '<div style="font-size:0.85rem;color:#1E3A8A;line-height:1.5">' +
-              'Opus 4.7 משחק תפקיד של 3 הפרסונות שלך ועונה על 10 שאלות אימות לכל אחת — ביקורתית, בלי "כן כן".<br>' +
+              'Opus 4.8 משחק תפקיד של 3 הפרסונות שלך ועונה על 10 שאלות אימות לכל אחת — ביקורתית, בלי "כן כן".<br>' +
               '<strong>זמן:</strong> 3-5 דקות. <strong>עלות:</strong> 0. <strong>דיוק:</strong> טוב — תופס 70%+ מהחורים.' +
             '</div>' +
           '</div>' +
@@ -24691,7 +24691,7 @@ var STRATEGY_STAGES_UI = [
 ];
 var strategyPipelineStage = 0;
 
-var strategyModelChoice = 'claude-opus-4-7'; // default — highest quality
+var strategyModelChoice = 'claude-opus-4-8'; // default — highest quality
 
 async function runChainStrategy() {
   // Phase 4.3-Q: redirect to V2 pipeline (openPipelineV2). The legacy
@@ -24878,7 +24878,7 @@ async function runStrategyStage(stage) {
         '<div style="text-align:center;font-size:2rem;margin-bottom:12px">🛑</div>' +
         '<div style="text-align:center;font-weight:700;font-size:1.1rem;color:#DC2626;margin-bottom:12px">ציון אמון נמוך מדי: ' + cs + '/100</div>' +
         '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:14px;font-size:0.88rem;color:#7F1D1D;line-height:1.6;margin-bottom:16px">' +
-        'האסטרטגיה תיבנה על פרסונות לא מאומתות — זה יצריך אותך לשלם כ-$3-5 במודל Opus 4.7 על תוכן שיהיה ככל הנראה לא שמיש.<br><br>' +
+        'האסטרטגיה תיבנה על פרסונות לא מאומתות — זה יצריך אותך לשלם כ-$3-5 במודל Opus 4.8 על תוכן שיהיה ככל הנראה לא שמיש.<br><br>' +
         '<strong>המלצתי:</strong> הריצו שלב 5 של המחקר במצב "ראיונות אמיתיים" (Mom-Test), עם 5 לקוחות פוטנציאליים אמיתיים. תוצאות חיות > פרסונות AI לא מאומתות.' +
         '</div>' +
         '<div style="display:flex;gap:8px;flex-direction:column">' +
@@ -25249,7 +25249,7 @@ async function runFactsSeed() {
   document.getElementById('pipelineBody').innerHTML =
     '<div style="text-align:center;padding:40px">' +
     '<div style="font-size:2rem;animation:spin 2s linear infinite;display:inline-block;margin-bottom:12px">🧠</div>' +
-    '<div style="font-weight:600;font-size:1rem;margin-bottom:4px">Claude Opus 4.7 מחלץ עובדות מובנות מהמחקר</div>' +
+    '<div style="font-weight:600;font-size:1rem;margin-bottom:4px">Claude Opus 4.8 מחלץ עובדות מובנות מהמחקר</div>' +
     '<div style="color:#9CA3AF;font-size:0.78rem">מתחרים · פרסונות · מילות מפתח · ערוצים — ~30-60 שניות</div></div>';
   document.getElementById('pipelineNextBtn').style.display = 'none';
 
@@ -25528,7 +25528,7 @@ async function generateOpsBrief() {
   document.getElementById('pipelineBody').innerHTML =
     '<div style="text-align:center;padding:40px">' +
     '<div style="font-size:2rem;animation:spin 2s linear infinite;display:inline-block;margin-bottom:12px">📊</div>' +
-    '<div style="font-weight:600;margin-bottom:4px">Opus 4.7 מנתח ביצועים מול המסלול</div>' +
+    '<div style="font-weight:600;margin-bottom:4px">Opus 4.8 מנתח ביצועים מול המסלול</div>' +
     '<div style="color:#9CA3AF;font-size:0.78rem">~30-60 שניות</div></div>';
   try {
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/ops-brief', {
@@ -28767,22 +28767,21 @@ var SUB_AGENTS = [
   { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית',
     priority: ['anthropic/claude-haiku-4-5-20251001', 'groq/openai/gpt-oss-20b', 'openai/gpt-4o-mini', 'cerebras/llama3.1-8b'] },
   { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות',
-    priority: ['anthropic/claude-opus-4-7', 'anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b', 'openai/gpt-4o', 'cerebras/gpt-oss-120b'] },
+    priority: ['anthropic/claude-opus-4-8', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b', 'openai/gpt-4o', 'cerebras/gpt-oss-120b'] },
   { id: 'et', name: 'עט', role: 'כתיבת תוכן',
-    priority: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-7', 'anthropic/claude-opus-4-6', 'groq/qwen/qwen3-32b', 'openai/gpt-4o', 'cerebras/qwen-3-235b-a22b-instruct-2507'] },
+    priority: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-8', 'groq/qwen/qwen3-32b', 'openai/gpt-4o', 'cerebras/qwen-3-235b-a22b-instruct-2507'] },
   { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב',
-    priority: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-7', 'anthropic/claude-opus-4-6', 'groq/qwen/qwen3-32b', 'openai/gpt-4o', 'cerebras/qwen-3-235b-a22b-instruct-2507'] },
+    priority: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-8', 'groq/qwen/qwen3-32b', 'openai/gpt-4o', 'cerebras/qwen-3-235b-a22b-instruct-2507'] },
   { id: 'shaliach', name: 'שליח', role: 'הפצה',
     priority: ['anthropic/claude-haiku-4-5-20251001', 'groq/openai/gpt-oss-20b', 'openai/gpt-4o-mini', 'cerebras/llama3.1-8b'] },
   { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO',
-    priority: ['anthropic/claude-opus-4-7', 'anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b', 'openai/gpt-4o', 'cerebras/gpt-oss-120b'] },
+    priority: ['anthropic/claude-opus-4-8', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b', 'openai/gpt-4o', 'cerebras/gpt-oss-120b'] },
 ];
 
 // All possible models — always show all, dim unavailable
 var ALL_MODELS = [
   // Anthropic
-  { value: 'anthropic/claude-opus-4-7', label: 'Claude Opus 4.7', provider: 'anthropic', tag: 'הטוב ביותר — ניתוח עמוק' },
-  { value: 'anthropic/claude-opus-4-6', label: 'Claude Opus 4.6', provider: 'anthropic', tag: 'מתקדם' },
+  { value: 'anthropic/claude-opus-4-8', label: 'Claude Opus 4.8', provider: 'anthropic', tag: 'הטוב ביותר — ניתוח עמוק' },
   { value: 'anthropic/claude-sonnet-4-6', label: 'Claude Sonnet 4.6', provider: 'anthropic', tag: 'מומלץ לתוכן' },
   { value: 'anthropic/claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5', provider: 'anthropic', tag: 'חסכוני' },
   // Groq
@@ -28932,7 +28931,7 @@ function loadModelPrefs() {
 
   // Tags for simple vs complex recommendations
   var simpleTags = ['anthropic/claude-haiku-4-5-20251001', 'openai/gpt-4o-mini', 'groq/openai/gpt-oss-20b', 'groq/meta-llama/llama-4-scout-17b-16e-instruct', 'cerebras/llama3.1-8b'];
-  var complexTags = ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6', 'openai/gpt-4o', 'groq/openai/gpt-oss-120b', 'cerebras/gpt-oss-120b', 'cerebras/qwen-3-235b-a22b-instruct-2507'];
+  var complexTags = ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-8', 'openai/gpt-4o', 'groq/openai/gpt-oss-120b', 'cerebras/gpt-oss-120b', 'cerebras/qwen-3-235b-a22b-instruct-2507'];
 
   function buildOpts(selectId, recommended, defaultVal) {
     var el = document.getElementById(selectId);
