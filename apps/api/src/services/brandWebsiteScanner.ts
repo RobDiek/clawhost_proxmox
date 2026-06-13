@@ -328,6 +328,113 @@ function isNeutral(hex: string): boolean {
     return false
 }
 
+// ─── Brand-name from domain (strongest, never-a-category signal) ──────────
+// flowmatic.co.il → "Flowmatic". The domain root is the most reliable brand
+// signal on Israeli sites, where the Hebrew title/h1 is usually the SEO
+// category ("פלטפורמת AI לשיווק") rather than the brand name.
+function domainBrandName(url: string): string | null {
+    try {
+        const host = new URL(url).hostname.replace(/^www\./i, '')
+        const stripped = host
+            .replace(/\.(co|org|net|gov|ac|muni|idf|k12)\.il$/i, '')
+            .replace(/\.(com|net|org|io|ai|app|dev|biz|info|co|me|shop|store|online|site)$/i, '')
+        const label = (stripped.split('.').pop() || stripped).trim()
+        if (!label || label.length < 2) return null
+        return label.charAt(0).toUpperCase() + label.slice(1)
+    } catch { return null }
+}
+
+// A name that looks like a category/SEO description, not a brand. Used to keep
+// "פלטפורמת AI לשיווק וקידום דיגיטלי" out of the businessName field.
+function isCategoryLike(s: string): boolean {
+    const t = (s || '').trim()
+    if (!t) return true
+    if (/^(פלטפורמ|שירות[יו]?|חבר[תה]\s|מערכת|סוכנות|פתרונ|מוצר|בית עסק|אתר\s|ספק|יבואן|חנות online)/.test(t)) return true
+    // A 4+ word phrase with no Latin token is almost always a category line.
+    if (t.split(/\s+/).filter(Boolean).length >= 4 && !/[A-Za-z]/.test(t)) return true
+    return false
+}
+
+// ─── External CSS + theme-color (modern sites hide brand styles here) ─────
+function extractThemeColor(html: string): string | null {
+    const m = html.match(/<meta[^>]*name=["']theme-color["'][^>]*content=["'](#[0-9a-fA-F]{3,8})["']/i)
+        || html.match(/<meta[^>]*content=["'](#[0-9a-fA-F]{3,8})["'][^>]*name=["']theme-color["']/i)
+    return m ? normalizeHex(m[1]) : null
+}
+
+function extractStylesheetLinks(html: string, baseUrl: string): string[] {
+    const out: string[] = []
+    const seen = new Set<string>()
+    const linkTags = html.match(/<link\b[^>]*>/gi) || []
+    for (const tag of linkTags) {
+        if (!/rel=["']?[^"'>]*stylesheet/i.test(tag)) continue
+        const href = tag.match(/href=["']([^"']+)["']/i)?.[1]
+        if (!href) continue
+        try {
+            const abs = new URL(href, baseUrl).toString()
+            if (seen.has(abs)) continue
+            seen.add(abs)
+            out.push(abs)
+        } catch { /* skip bad href */ }
+    }
+    return out.slice(0, 5)
+}
+
+async function fetchCssBundle(urls: string[]): Promise<string> {
+    const parts: string[] = []
+    let total = 0
+    for (const u of urls) {
+        if (total > 400_000) break
+        try {
+            const res = await fetch(u, { signal: AbortSignal.timeout(10_000) })
+            if (!res.ok) continue
+            const ct = res.headers.get('content-type') || ''
+            if (!/css|text/i.test(ct)) continue
+            const txt = await res.text()
+            parts.push(txt)
+            total += txt.length
+        } catch { /* skip unreachable sheet */ }
+    }
+    return parts.join('\n')
+}
+
+// Brand-named CSS custom properties — the cleanest color signal in compiled
+// CSS. Avoids the utility-class color flood (Tailwind's .text-red-500 etc.).
+function extractBrandColorsFromCss(cssText: string): Array<{ hex: string; weight: number }> {
+    const out: Array<{ hex: string; weight: number }> = []
+    const re = /--[\w-]*(?:brand|primary|accent|secondary|main|theme|cta|highlight|link)[\w-]*\s*:\s*(#[0-9a-fA-F]{3,8})/gi
+    let m: RegExpExecArray | null
+    while ((m = re.exec(cssText)) !== null) {
+        const hex = normalizeHex(m[1])
+        if (hex && !isNeutral(hex)) out.push({ hex, weight: 12 })
+    }
+    return out
+}
+
+// Merge color signals by hex, weighting declared brand colors above ad-hoc
+// inline ones. theme-color (the browser-chrome brand color) ranks highest.
+function mergePalette(
+    themeColor: string | null,
+    brandVars: Array<{ hex: string; weight: number }>,
+    inline: Array<{ hex: string; occurrences: number; sourcePages: string[] }>,
+): Array<{ hex: string; occurrences: number; sourcePages: string[] }> {
+    const map = new Map<string, { score: number; pages: Set<string> }>()
+    const add = (hex: string | null, score: number, page: string) => {
+        if (!hex || isNeutral(hex)) return
+        const cur = map.get(hex) || { score: 0, pages: new Set<string>() }
+        cur.score += score
+        cur.pages.add(page)
+        map.set(hex, cur)
+    }
+    if (themeColor) add(themeColor, 30, 'theme-color')
+    for (const b of brandVars) add(b.hex, b.weight, 'css-var')
+    for (const c of inline) add(c.hex, c.occurrences, c.sourcePages[0] || 'inline')
+    return [...map.entries()]
+        .map(([hex, v]) => ({ hex, occurrences: v.score, sourcePages: [...v.pages] }))
+        .sort((a, b) => b.occurrences - a.occurrences)
+        .slice(0, 8)
+}
+
 // ─── Font extraction (DOM-priority weighted) ──────────────────────────────
 
 function extractFonts(html: string): { he?: string; en?: string; weights: number[] } {
@@ -344,11 +451,29 @@ function extractFonts(html: string): { he?: string; en?: string; weights: number
         }
     }
 
+    // Font custom properties (--ff / --font*: "Heebo", …). Modern sites declare
+    // the real font ONCE as a CSS var and reference it everywhere via var(--ff)
+    // — which the font-family matcher above skips. This is the actual brand font.
+    const fontVarMatches = html.match(/--(?:ff|font)[\w-]*\s*:\s*([^;}]+)/gi) || []
+    for (const m of fontVarMatches) {
+        const val = m.replace(/--[\w-]+\s*:\s*/i, '').trim()
+        const first = val.split(',')[0].replace(/['"]/g, '').trim()
+        if (first && first.length < 50 && !/system|sans-serif|serif|monospace|inherit|initial|var\(/i.test(first)) {
+            fonts.add(first)
+        }
+    }
+
     // Google Fonts <link> declarations
     const gfontMatch = html.match(/fonts\.googleapis\.com\/css2?\?family=([^&"']+)/g) || []
     for (const m of gfontMatch) {
         const fam = m.match(/family=([^&:"']+)/)?.[1]
         if (fam) fonts.add(decodeURIComponent(fam.replace(/\+/g, ' ')).split(':')[0])
+    }
+    // @font-face family declarations (self-hosted fonts).
+    const faceMatches = html.match(/@font-face[^}]*font-family\s*:\s*([^;}]+)/gi) || []
+    for (const m of faceMatches) {
+        const fam = m.match(/font-family\s*:\s*([^;}]+)$/i)?.[1]?.split(',')[0].replace(/['"]/g, '').trim()
+        if (fam && fam.length < 50 && !/system|sans-serif|serif|monospace|inherit|var\(/i.test(fam)) fonts.add(fam)
     }
 
     // Weight declarations
@@ -361,7 +486,9 @@ function extractFonts(html: string): { he?: string; en?: string; weights: number
     const list = [...fonts]
     const isHebFont = (n: string) => HEBREW_FONTS_HINT.some(h => n.toLowerCase().includes(h.toLowerCase()))
     const heFont = list.find(isHebFont) || list[0]
-    const enFont = list.find(f => !isHebFont(f)) || list[0]
+    // For EN, prefer a non-Hebrew, non-mono body font; fall back to the HE font
+    // (many IL sites use one Latin+Hebrew family for both) rather than a mono accent.
+    const enFont = list.find(f => !isHebFont(f) && !/mono/i.test(f)) || heFont
     return { he: heFont, en: enFont, weights: [...weights].sort((a, b) => a - b) }
 }
 
@@ -737,11 +864,22 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
     }
     notes.push(`Pass B complete: ${scrapedUrls.length} pages scraped`)
 
-    // ── Visual extraction ──
-    const cssPalette = extractCssPalette(allHtml)
-    notes.push(`Extracted ${cssPalette.length} non-neutral colors from CSS (top: ${cssPalette[0]?.hex || 'none'})`)
+    // ── External stylesheets + theme-color (modern sites keep brand here) ──
+    // Tailwind / Next.js / CSS-in-JS compile brand colors + fonts into external
+    // .css bundles that the inline-only extractor never sees — the reason a
+    // Next site returned 1 ad-hoc color and no fonts. Fetch + parse them.
+    const cssLinks = extractStylesheetLinks(homepageHtml, websiteUrl)
+    const externalCss = cssLinks.length ? await fetchCssBundle(cssLinks) : ''
+    const themeColor = extractThemeColor(homepageHtml)
+    notes.push(`External CSS: ${cssLinks.length} sheets (${externalCss.length} chars) · theme-color: ${themeColor || 'none'}`)
 
-    const fonts = extractFonts(homepageHtml)
+    // ── Visual extraction ──
+    const inlinePalette = extractCssPalette(allHtml)
+    const brandVarColors = extractBrandColorsFromCss(externalCss)
+    const cssPalette = mergePalette(themeColor, brandVarColors, inlinePalette)
+    notes.push(`Palette: ${cssPalette.length} colors (theme=${themeColor || '∅'}, css-vars=${brandVarColors.length}, inline=${inlinePalette.length}) → top ${cssPalette[0]?.hex || 'none'}`)
+
+    const fonts = extractFonts(homepageHtml + '\n' + externalCss)
     notes.push(`Fonts detected: he=${fonts.he || '(none)'}, en=${fonts.en || '(none)'}`)
 
     const logoCandidates = discoverLogoCandidates(homepageHtml, meta, websiteUrl)
@@ -856,7 +994,10 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
         corpus,
         siteCitations,
         heroSlogans,
-        businessNameHints: { he: logoAlt && HEBREW_RANGE.test(logoAlt) ? logoAlt : undefined },
+        businessNameHints: {
+            he: logoAlt && HEBREW_RANGE.test(logoAlt) ? logoAlt : undefined,
+            en: domainBrandName(websiteUrl) || undefined,
+        },
         research: rd,
         auditDemographics: rd.mazhirAudit?.sourceCoverage?.ga4Demographics,
     })
@@ -1059,22 +1200,32 @@ export async function scanWebsiteForBrand(args: ScanArgs): Promise<ScanResult> {
         return eng || null
     }
 
+    const domainName = domainBrandName(websiteUrl)   // e.g. 'Flowmatic'
     function chooseName(prefer: 'he' | 'en'): string | null {
-        const sources = [logoAlt, ogSiteName, ogTitleStr, titleStr, rd.answers?.businessName].filter(Boolean) as string[]
+        // Brand signals, strongest first. og:site_name + logo alt are explicit
+        // brand commitments; the domain is a category-proof anchor; title/og:title
+        // come last because they're usually "Category — Brand" SEO strings.
+        const sources = [ogSiteName, logoAlt, ogTitleStr, titleStr, rd.answers?.businessName].filter(Boolean) as string[]
+        // Pass 1 — a NON-category segment in the preferred script.
         for (const s of sources) {
+            if (isCategoryLike(s)) continue
             const seg = prefer === 'he' ? pickHebrewSegment(s) : pickEnglishSegment(s)
-            if (seg) return seg
+            if (seg && !isCategoryLike(seg)) return seg
         }
-        // Fallback: first segment of any non-empty source.
+        // Pass 2 — no real brand name in the preferred script (common: Hebrew
+        // text is all category, brand lives only in the Latin domain/logo). Use
+        // the domain brand instead of falling into the SEO category.
+        if (domainName) return domainName
+        // Pass 3 — last resort: first non-category segment of any source.
         for (const s of sources) {
             const seg = splitOnSep(s)[0]
-            if (seg) return seg
+            if (seg && !isCategoryLike(seg)) return seg
         }
-        return null
+        return sources[0] ? splitOnSep(sources[0])[0] : null
     }
     const businessNameHe = chooseName('he')
     const businessNameEn = chooseName('en')
-    notes.push(`Business name resolved: he="${businessNameHe || '∅'}", en="${businessNameEn || '∅'}" (logoAlt="${logoAlt || '∅'}", ogSiteName="${ogSiteName || '∅'}")`)
+    notes.push(`Business name resolved: he="${businessNameHe || '∅'}", en="${businessNameEn || '∅'}" (domain="${domainName || '∅'}", logoAlt="${logoAlt || '∅'}", ogSiteName="${ogSiteName || '∅'}")`)
     if (businessNameEn || businessNameHe) {
         book.identity!.businessName = {
             he: businessNameHe || businessNameEn,
