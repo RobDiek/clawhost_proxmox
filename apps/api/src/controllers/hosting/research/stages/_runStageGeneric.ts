@@ -594,6 +594,7 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                 hardFailures: remainingHardFailures,
                 warnings: critique.warnings,
                 revised: !!critique.revisedContent,
+                ...(critique.revisionSkipReason ? { revisionSkipReason: critique.revisionSkipReason } : {}),
                 ...(autoCorrected.length ? { autoCorrected } : {}),
             }
             if (stillHasHardFailures && !critique.revisedContent) {

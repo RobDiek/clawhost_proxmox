@@ -324,6 +324,9 @@ export interface ExecuteStageOutput {
         warnings: string[]
         revised: boolean
         skipped?: boolean
+        /** Why a hard-failure revision was NOT applied (http_error | too_short |
+         *  truncated | identical | exception). Observability for revised:false. */
+        revisionSkipReason?: string
         /**
          * Phase 3.14 — hard failures the server resolved post-critic
          * (e.g. math_sanity dropped after recomputeCompetitorScorecards

@@ -47,6 +47,10 @@ export interface QualityGateOutcome {
      * uses this in place of the original content. Undefined = use original.
      */
     revisedContent?: string
+    /** Why a hard-failure revision was NOT applied: http_error | too_short |
+     *  truncated | identical | exception. Absent when revision landed or no
+     *  hard failures. Observability for the "revised:false" cases. */
+    revisionSkipReason?: string
     /** Diagnostic — true if critic call itself failed (rate limit, malformed). */
     skipped: boolean
     /** USD cost of the critic call. Logging only — same balance as main call. */
@@ -173,15 +177,17 @@ export async function runSelfCritique(input: RunInput): Promise<QualityGateOutco
     // way the old in-JSON revised_content did.
     if (!outcome.pass && outcome.hardFailures.length > 0) {
         try {
-            const revised = await runRevision({
+            const rev = await runRevision({
                 content,
                 hardFailures: outcome.hardFailures,
                 stageId,
                 anthropicModel,
                 apiKey,
             })
-            if (revised) outcome.revisedContent = revised
+            if (rev.revised) outcome.revisedContent = rev.revised
+            else outcome.revisionSkipReason = rev.reason
         } catch (err) {
+            outcome.revisionSkipReason = 'exception'
             console.warn(`[selfCritique/${stageId}] revision pass failed — shipping original with hard-failure banner:`, (err as Error).message)
         }
     }
@@ -205,14 +211,19 @@ async function runRevision(args: {
     stageId: StageId
     anthropicModel: string
     apiKey: string
-}): Promise<string | null> {
+}): Promise<{ revised: string | null; reason: string }> {
     const { content, hardFailures, stageId, anthropicModel, apiKey } = args
 
-    const prompt = `אתם עורך בכיר. הפלט שלמטה עבר בקרת איכות ונמצאו בו הכשלים הקשים הבאים שחובה לתקן:
+    // Model-aware output budget so large stage outputs aren't truncated mid-fix
+    // (Opus 4.8 → 128K, Sonnet/Haiku → 64K). 32K was below some stage outputs.
+    const maxTokens = /opus/i.test(anthropicModel) ? 120000 : 60000
 
-${hardFailures.map((f, i) => `${i + 1}. ${f}`).join('\n')}
+    const failuresBlock = hardFailures.map((f, i) => `${i + 1}. ${f}`).join('\n')
+    const basePrompt = `אתם עורך בכיר. הפלט שלמטה עבר בקרת איכות ונמצאו בו הכשלים הקשים הבאים שחובה לתקן:
 
-תקנו **רק** את הכשלים האלה. שמרו על כל שאר התוכן זהה לחלוטין — אותו מבנה, אותם sections, אותם code-blocks של JSON, אותה שפה (עברית). אל תקצרו ואל תשמיטו תוכן.
+${failuresBlock}
+
+תקנו **רק** את הכשלים האלה. אם הכשל הוא חישובי (math/ניקוד/עדיפות) — **חשבו מחדש את כל המספרים הרלוונטיים מהרכיבים** ודאגו שכל המופעים של אותו ערך (בטבלאות, ב-records, ובטקסט) **זהים ועקביים**. שמרו על כל שאר התוכן זהה לחלוטין — אותו מבנה, אותם sections, אותם code-blocks של JSON, אותה שפה (עברית). אל תקצרו ואל תשמיטו תוכן.
 
 ## הפלט לתיקון
 
@@ -222,74 +233,88 @@ ${content}
 
 החזירו את **כל התוכן המתוקן** כפי שהוא (markdown + code-blocks), בלי שום הקדמה, בלי הסבר, בלי JSON עוטף. רק התוכן עצמו.`
 
-    let raw = ''
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-            model: anthropicModel,
-            max_tokens: 32000,
-            stream: true,
-            messages: [{ role: 'user', content: prompt }],
-        }),
-        signal: AbortSignal.timeout(720_000),
-    })
-    if (!res.ok || !res.body) {
-        console.warn(`[selfCritique/${stageId}] revision HTTP ${res.status} — keeping original`)
-        return null
-    }
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    let buf = ''
-    try {
-        for (;;) {
-            const { done, value } = await reader.read()
-            if (done) break
-            buf += decoder.decode(value, { stream: true })
-            let nl: number
-            while ((nl = buf.indexOf('\n\n')) >= 0) {
-                const event = buf.substring(0, nl)
-                buf = buf.substring(nl + 2)
-                for (const line of event.split('\n')) {
-                    if (!line.startsWith('data: ')) continue
-                    const data = line.substring(6).trim()
-                    if (!data || data === '[DONE]') continue
-                    try {
-                        const j = JSON.parse(data) as { type?: string; delta?: { type?: string; text?: string } }
-                        if (j.type === 'content_block_delta' && j.delta?.type === 'text_delta' && j.delta.text) {
-                            raw += j.delta.text
-                        }
-                    } catch { /* skip non-JSON SSE chatter */ }
+    const escalatedPrompt = `הפלט הקודם שהחזרתם היה **זהה למקור** — לא תיקנתם כלום. זו טעות.
+חובה לתקן את הכשלים הקשים הבאים, בעיקר ע"י **חישוב מחדש מפורש** של כל המספרים שאינם עקביים, כך שאותו ערך יופיע זהה בכל מקום (טבלאות + records + טקסט):
+
+${failuresBlock}
+
+## הפלט לתיקון
+
+${content}
+
+---
+
+החזירו את **כל התוכן המתוקן** (markdown + code-blocks), בלי הקדמה ובלי JSON עוטף.`
+
+    async function callRevise(promptText: string): Promise<string | null> {
+        let raw = ''
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+            body: JSON.stringify({ model: anthropicModel, max_tokens: maxTokens, stream: true, messages: [{ role: 'user', content: promptText }] }),
+            signal: AbortSignal.timeout(720_000),
+        })
+        if (!res.ok || !res.body) {
+            console.warn(`[selfCritique/${stageId}] revision HTTP ${res.status} — keeping original`)
+            return null
+        }
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        let buf = ''
+        try {
+            for (;;) {
+                const { done, value } = await reader.read()
+                if (done) break
+                buf += decoder.decode(value, { stream: true })
+                let nl: number
+                while ((nl = buf.indexOf('\n\n')) >= 0) {
+                    const event = buf.substring(0, nl)
+                    buf = buf.substring(nl + 2)
+                    for (const line of event.split('\n')) {
+                        if (!line.startsWith('data: ')) continue
+                        const data = line.substring(6).trim()
+                        if (!data || data === '[DONE]') continue
+                        try {
+                            const j = JSON.parse(data) as { type?: string; delta?: { type?: string; text?: string } }
+                            if (j.type === 'content_block_delta' && j.delta?.type === 'text_delta' && j.delta.text) raw += j.delta.text
+                        } catch { /* skip non-JSON SSE chatter */ }
+                    }
                 }
             }
+        } finally {
+            try { reader.releaseLock() } catch { /* noop */ }
         }
-    } finally {
-        try { reader.releaseLock() } catch { /* noop */ }
+        let revised = raw.trim()
+        const fence = revised.match(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```\s*$/i)
+        if (fence) revised = fence[1].trim()
+        return revised
     }
 
-    // Strip an accidental markdown fence wrapper if the model added one.
-    let revised = raw.trim()
-    const fence = revised.match(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```\s*$/i)
-    if (fence) revised = fence[1].trim()
+    // Validate a candidate; returns the reason it's unusable, or '' if good.
+    const reject = (r: string | null): string => {
+        if (r === null) return 'http_error'
+        if (r.length < 200) return 'too_short'
+        if (r.length < content.length * 0.5) return 'truncated'
+        if (r === content.trim()) return 'identical'
+        return ''
+    }
 
-    if (revised.length < 200) {
-        console.warn(`[selfCritique/${stageId}] revision empty/too short — keeping original`)
-        return null
+    let candidate = await callRevise(basePrompt)
+    let reason = reject(candidate)
+    // Retry ONCE on identical — the most common "didn't engage" failure (the LLM
+    // echoes the input on math/consistency fixes). The escalated prompt forces a
+    // recompute. (Don't retry http/truncated — those are infra/size, not engagement.)
+    if (reason === 'identical') {
+        console.warn(`[selfCritique/${stageId}] revision identical — retrying with escalated prompt`)
+        candidate = await callRevise(escalatedPrompt)
+        reason = reject(candidate)
     }
-    if (revised.length < content.length * 0.5) {
-        console.warn(`[selfCritique/${stageId}] revision too short (${revised.length} vs ${content.length}) — keeping original`)
-        return null
+    if (reason) {
+        console.warn(`[selfCritique/${stageId}] revision unusable (${reason}) — keeping original`)
+        return { revised: null, reason }
     }
-    if (revised === content.trim()) {
-        console.warn(`[selfCritique/${stageId}] revision identical to original — skipping`)
-        return null
-    }
-    console.log(`[selfCritique/${stageId}] revision applied (${content.length}→${revised.length} chars)`)
-    return revised
+    console.log(`[selfCritique/${stageId}] revision applied (${content.length}→${candidate!.length} chars)`)
+    return { revised: candidate, reason: 'ok' }
 }
 
 // ────────────────────────────────────────────────────────────────────────────

@@ -361,6 +361,8 @@ export interface StageResult {
         warnings: string[]
         revised: boolean
         skipped?: boolean
+        /** Why a hard-failure revision was NOT applied — observability for revised:false. */
+        revisionSkipReason?: string
         /** Phase 3.14 — failures resolved by server-side post-processing. */
         autoCorrected?: string[]
     }
