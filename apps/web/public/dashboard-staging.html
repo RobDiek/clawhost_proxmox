@@ -6476,6 +6476,24 @@ function getNotifications() {
     }
   }
 
+  // Model-currency — opt-in card when a sub-agent runs an outdated model vs the
+  // current registry (e.g. Opus 4.7 after 4.8 shipped). Keyed by target model so
+  // it re-appears on the NEXT release after a dismiss. Never silent — the client
+  // chooses (a model change alters their token quality + cost).
+  try {
+    var mu = computeStaleModelAgents();
+    if (mu && dismissed.indexOf(mu.key) === -1) {
+      var muNames = mu.agents.map(function(x) { return x.name; }).join(', ');
+      var muTo = mu.targets.map(prettifyModel).join(', ');
+      notifs.unshift({
+        id: mu.key, type: 'info', icon: '🆕',
+        title: 'מודל חדש זמין — ' + muTo,
+        desc: mu.agents.length + ' סוכנים (' + muNames + ') רצים על גרסה ישנה. שדרגו לאיכות החדשה — אותו מחיר לטוקן, רישום מחדש אוטומטי.',
+        action: 'applyModelUpgrade()', actionLabel: 'שדרגו ל-' + muTo
+      });
+    }
+  } catch (e) { /* defensive — never block the notif list */ }
+
   return notifs;
 }
 
@@ -28911,6 +28929,67 @@ async function saveSubAgentModels() {
   } catch (e) {
     showToast('שגיאת תקשורת — נשמר מקומית', 'error');
   }
+}
+
+// ── Model upgrade opt-in (עדכונים והמלצות card) ──
+// A sub-agent whose saved model is an anthropic model that's NO LONGER in
+// ALL_MODELS (we retired it from the options, e.g. opus-4-7 after 4-8 shipped)
+// is "behind". The client opts in to upgrade — never silent (sovereignty: a
+// model change alters their token quality + cost). The apply re-registers the
+// agents on their VPS via the same sub-agent-models save path.
+function prettifyModel(v) {
+  var m = ALL_MODELS.find(function(x) { return x.value === v; });
+  if (m) return m.label;
+  var id = (v || '').split('/').pop().replace(/^claude-/, '').replace(/-\d{8}$/, '');
+  var parts = id.split('-'); // ['opus','4','8']
+  if (parts.length >= 3) return 'Claude ' + parts[0].charAt(0).toUpperCase() + parts[0].slice(1) + ' ' + parts[1] + '.' + parts[2];
+  return v;
+}
+function computeStaleModelAgents() {
+  var saved = (instanceData && instanceData.subAgentModels) || {};
+  var optionValues = ALL_MODELS.map(function(m) { return m.value; });
+  var agents = [];
+  SUB_AGENTS.forEach(function(a) {
+    var cur = saved[a.id];
+    if (!cur || cur.indexOf('anthropic/claude-') !== 0) return; // only anthropic upgrades
+    if (optionValues.indexOf(cur) !== -1) return;               // still a current option → fine
+    var to = getBestAvailableModel(a.id);                       // priority[0] = current recommended
+    if (!to || to === cur || to.indexOf('anthropic/claude-') !== 0) return;
+    agents.push({ id: a.id, name: a.name, from: cur, to: to });
+  });
+  if (!agents.length) return null;
+  var targets = agents.map(function(x) { return x.to; }).filter(function(v, i, arr) { return arr.indexOf(v) === i; });
+  return { agents: agents, targets: targets, key: 'model-update-' + targets.join('|') };
+}
+async function applyModelUpgrade() {
+  var token = localStorage.getItem('cf_token');
+  var iid = localStorage.getItem('cf_instance_id');
+  var mu = computeStaleModelAgents();
+  if (!mu || !iid || !token) return;
+  var saved = (instanceData && instanceData.subAgentModels) || {};
+  var models = {};
+  Object.keys(saved).forEach(function(k) { models[k] = saved[k]; });
+  mu.agents.forEach(function(x) { models[x.id] = x.to; });
+  showToast('משדרג מודלים ורושם מחדש את הסוכנים...', 'success');
+  try {
+    // DB write + VPS re-registration (same path as the models tab Save)
+    var res = await fetch(API + '/hosting/instances/' + iid + '/integrations/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ type: 'sub-agent-models', key: JSON.stringify(models) })
+    });
+    var d = await res.json().catch(function() { return {}; });
+    if (res.ok && d.success !== false) {
+      if (instanceData) instanceData.subAgentModels = models;
+      localStorage.setItem('cf_sub_agent_models', JSON.stringify(models));
+      showToast('המודלים שודרגו ונרשמו מחדש בסוכנים', 'success');
+      try { renderSubAgents(); } catch (_) {}
+      renderNotifications();
+      if (typeof refreshInstanceData === 'function') { try { refreshInstanceData(); } catch (_) {} }
+    } else {
+      showToast('שגיאה בשדרוג — נסו שוב', 'error');
+    }
+  } catch (e) { showToast('שגיאת תקשורת', 'error'); }
 }
 
 // ── Model Preferences (Personal/Bare agents) ──
