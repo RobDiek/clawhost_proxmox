@@ -21381,8 +21381,10 @@ function renderMarketingIntegrationsHealthSection() {
   rows.forEach(function(item) {
     var info = item.integration;
     var connected = item.connected;
+    var covered = !!item.coveredByAlternative;   // satisfied via either/or alt (WordPress covered by GitHub)
+    var satisfied = connected || covered;
     var isBuiltin = info.auth === 'builtin';
-    var connectFn = !isBuiltin && !connected ? getIntegrationConnectAction(info.id) : null;
+    var connectFn = !isBuiltin && !satisfied ? getIntegrationConnectAction(info.id) : null;
     var hasConnect = !!connectFn;
     var tier = item.tier;
     var relIntents = item.relevantIntents || [];
@@ -21396,7 +21398,7 @@ function renderMarketingIntegrationsHealthSection() {
 
     // Tier label (small, only when not connected)
     var tierBadge = '';
-    if (!connected && !isBuiltin) {
+    if (!satisfied && !isBuiltin) {
       if (tier === 'essential') tierBadge = '<span style="font-size:0.66rem;font-weight:700;color:#DC2626;background:#FEF2F2;padding:2px 7px;border-radius:5px;border:1px solid #FCA5A5">נדרש</span>';
       else if (tier === 'recommended') tierBadge = '<span style="font-size:0.66rem;font-weight:600;color:#D97706;background:#FFFBEB;padding:2px 7px;border-radius:5px;border:1px solid #FDE68A">מומלץ</span>';
       else tierBadge = '<span style="font-size:0.66rem;font-weight:500;color:#6B7280;background:#F9FAFB;padding:2px 7px;border-radius:5px;border:1px solid #E5E7EB">אופציונלי</span>';
@@ -21405,13 +21407,15 @@ function renderMarketingIntegrationsHealthSection() {
     // Status pill
     var statusPill = connected
       ? '<span style="font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:999px;background:#D1FAE5;color:#065F46">✓ מחובר</span>'
-      : (isBuiltin
-          ? '<span style="font-size:0.72rem;font-weight:600;padding:3px 9px;border-radius:999px;background:#DBEAFE;color:#1E40AF">✓ זמין</span>'
-          : '');
+      : (covered
+          ? '<span style="font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:999px;background:#D1FAE5;color:#065F46" title="מסופק דרך חלופה (למשל GitHub במקום WordPress)">✓ מסופק (חלופה)</span>'
+          : (isBuiltin
+              ? '<span style="font-size:0.72rem;font-weight:600;padding:3px 9px;border-radius:999px;background:#DBEAFE;color:#1E40AF">✓ זמין</span>'
+              : ''));
 
     // Right-side action
     var action;
-    if (connected || isBuiltin) {
+    if (satisfied || isBuiltin) {
       action = statusPill;
     } else if (hasConnect) {
       action = (tier === 'essential')
@@ -21441,8 +21445,10 @@ function renderMarketingIntegrationsHealthSection() {
   mount.innerHTML = html;
 
   // Live status footer — single sentence summary
-  var requiredTotal = rows.filter(function(r) { return r.tier === 'essential' && r.integration.auth !== 'builtin'; }).length;
-  var requiredOk = rows.filter(function(r) { return r.tier === 'essential' && r.connected; }).length;
+  // Group-aware: an essential covered by an either/or alternative (WordPress↔GitHub)
+  // counts as satisfied, so connecting ONE never leaves the other "missing".
+  var requiredTotal = rows.filter(function(r) { return r.tier === 'essential' && r.integration.auth !== 'builtin' && !r.coveredByAlternative; }).length;
+  var requiredOk = rows.filter(function(r) { return r.tier === 'essential' && r.connected && !r.coveredByAlternative; }).length;
   var allRequiredMet = requiredTotal === 0 || requiredOk === requiredTotal;
   var recTotal = rows.filter(function(r) { return r.tier === 'recommended' && r.integration.auth !== 'builtin'; }).length;
   var recOk = rows.filter(function(r) { return r.tier === 'recommended' && r.connected; }).length;
@@ -21493,7 +21499,7 @@ function renderMarketingHomeCard() {
   });
   var hub = marketingHubState.hub || [];
   var essentialMissing = 0;
-  hub.forEach(function(g) { g.integrations.forEach(function(i) { if (i.tier === 'essential' && !i.connected) essentialMissing++; }); });
+  hub.forEach(function(g) { g.integrations.forEach(function(i) { if (i.tier === 'essential' && !i.connected && !i.coveredByAlternative) essentialMissing++; }); });
 
   var intentChips = intents.length === 0
     ? '<span style="color:#9CA3AF;font-size:0.82rem">לא הוגדרו מטרות</span>'

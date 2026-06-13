@@ -232,7 +232,11 @@ export function groupForIntegration(integration: IntegrationInfo): CapabilityGro
 export interface HubGroupView {
     group: CapabilityGroup
     labelHe: string
-    integrations: Array<IntegrationRelevance & { connected: boolean }>
+    // `coveredByAlternative`: this integration isn't connected itself, but an
+    // interchangeable ALTERNATIVE_GROUPS member is (e.g. WordPress is "covered"
+    // once GitHub is connected). Callers must treat connected||coveredByAlternative
+    // as satisfied — so an either/or requirement never blocks once one is done.
+    integrations: Array<IntegrationRelevance & { connected: boolean; coveredByAlternative: boolean }>
     isRelevantToIntents: boolean         // true if any integration in group has tier != not_relevant
 }
 
@@ -241,12 +245,19 @@ export function buildHub(
     connectedIntegrations: string[]
 ): HubGroupView[] {
     const connected = new Set(connectedIntegrations)
+    // Mark integrations covered by a connected alternative (either/or groups).
+    const covered = new Set<string>()
+    for (const grp of ALTERNATIVE_GROUPS) {
+        if (grp.some(id => connected.has(id))) {
+            for (const id of grp) if (!connected.has(id)) covered.add(id)
+        }
+    }
     const relevance = relevanceForIntegrations(intents)
-    const byGroup = new Map<CapabilityGroup, Array<IntegrationRelevance & { connected: boolean }>>()
+    const byGroup = new Map<CapabilityGroup, Array<IntegrationRelevance & { connected: boolean; coveredByAlternative: boolean }>>()
     for (const r of relevance) {
         const g = groupForIntegration(r.integration)
         const arr = byGroup.get(g) || []
-        arr.push({ ...r, connected: connected.has(r.integration.id) })
+        arr.push({ ...r, connected: connected.has(r.integration.id), coveredByAlternative: covered.has(r.integration.id) })
         byGroup.set(g, arr)
     }
     const groupOrder: CapabilityGroup[] = ['search_intelligence', 'paid_ads', 'analytics', 'cms_site', 'social', 'email_crm', 'creative', 'comms']
