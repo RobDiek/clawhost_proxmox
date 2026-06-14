@@ -2341,8 +2341,13 @@ function oursSummary_safe(v: unknown): string {
     return String(v)
 }
 
-function renderAnchorsTable(anchors: Array<{ anchor: string; backlinks?: number; referring_domains?: number }>): string {
-    const rows = anchors.map(a => `| ${a.anchor.replace(/\|/g, '\\|')} | ${a.backlinks ?? '—'} | ${a.referring_domains ?? '—'} |`).join('\n')
+function renderAnchorsTable(anchors: Array<{ anchor?: string | null; backlinks?: number; referring_domains?: number }>): string {
+    // DFS returns anchor records with a null/empty anchor (image links, bare-URL
+    // anchors) — guard before .replace() or the whole stage 500s.
+    const rows = anchors.map(a => {
+        const text = String(a.anchor ?? '').replace(/\|/g, '\\|') || '(עוגן ריק)'
+        return `| ${text} | ${a.backlinks ?? '—'} | ${a.referring_domains ?? '—'} |`
+    }).join('\n')
     return `| anchor | backlinks | referring_domains |\n|---|---|---|\n${rows}`
 }
 
