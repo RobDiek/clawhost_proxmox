@@ -85,6 +85,67 @@ function currentIntents(rd: MarketingResearchData, agents: string[]): MarketingI
     })
 }
 
+// ─── self-healing: keep marketingIntents + plan.stages consistent ─────────
+// Root fix for "the hub shows a paid channel (Google Ads/Meta) selected but the
+// pipeline's paid tab is empty / says 'add a channel in ניהול שיווק'". The hub
+// derives intents (deriveIntents — liberal, can include paid_search from the
+// goals bridge) while plan.stages was built ONCE from the conservative
+// planResolver.detectIntent → usually seo_organic, so paid stages never enter
+// the plan. saveMarketingIntents already regenerates the plan on explicit
+// toggle, but the auto-derive path (user never toggled) left the plan stale.
+//
+// This heals both on every hub GET:
+//   • persist marketingIntents when not yet stored (downstream gates read it),
+//   • ADDITIVELY add stages the intents imply but the plan lacks (as 'pending').
+// Non-destructive: NEVER drops or resets an existing stage, so completed
+// research + strategy + validation stay completed. Writes only on a real
+// divergence, so it is safe to call on every (frequent) hub GET.
+async function healIntentsAndPlan(
+    c: Context,
+    instanceId: string,
+    rd: MarketingResearchData,
+    intents: MarketingIntent[],
+    alreadyStored: boolean,
+): Promise<void> {
+    if (!intents.length) return
+    const { planFromMarketingIntents } = await import('@/services/research/planResolver')
+    const pf = planFromMarketingIntents(intents)
+    const prevPlan = ((rd as unknown as { plan?: { stages?: string[]; status?: Record<string, unknown> } }).plan) || {}
+    const prevStages: string[] = Array.isArray(prevPlan.stages) ? prevPlan.stages : []
+    // Heal ONLY the paid-tab stages. The reported failure is "paid tab empty
+    // even though a paid channel is selected". Adding research/social stages
+    // here would also flip a completed research tab (10/10 → 10/11), which is a
+    // surprise — so scope the additive heal to the paid pipeline only.
+    const isPaidStage = (s: string) => /^paid_|^client_account|^media_plan$/.test(s)
+    const missing = (pf.stages as string[]).filter(s => !prevStages.includes(s) && isPaidStage(s))
+    const needPlanWrite = prevStages.length > 0 && missing.length > 0
+    const needIntentsWrite = !alreadyStored
+    if (!needPlanWrite && !needIntentsWrite) return
+    try {
+        await patchResearchData(c, instanceId, prev => {
+            const out = { ...prev } as MarketingResearchData
+            if (needIntentsWrite) (out as { marketingIntents?: MarketingIntent[] }).marketingIntents = intents
+            if (needPlanWrite) {
+                const pPlan = ((prev as unknown as { plan?: { stages?: string[]; status?: Record<string, unknown> } }).plan) || {}
+                const pStages: string[] = Array.isArray(pPlan.stages) ? pPlan.stages : []
+                // Keep all existing stages (preserve completed research +
+                // strategy + validation) and APPEND the missing paid stages in
+                // their canonical (planForIntents) order.
+                const addNow = (pf.stages as string[]).filter(s => !pStages.includes(s) && isPaidStage(s))
+                const merged = [...pStages, ...addNow]
+                const pStatus = (pPlan.status || {}) as Record<string, unknown>
+                const nextStatus: Record<string, unknown> = {}
+                for (const s of merged) nextStatus[s] = pStatus[s] || { state: 'pending' }
+                ;(out as { intent?: string }).intent = pf.intent
+                ;(out as { plan?: unknown }).plan = { ...pPlan, stages: merged, status: nextStatus }
+            }
+            return out
+        })
+    } catch (e) {
+        console.warn('[healIntentsAndPlan] non-fatal:', (e as Error).message)
+    }
+}
+
 // ════════════════════════════════════════════════════════════════════════
 // GET /hosting/instances/:id/marketing-intents
 // Returns current (stored or auto-derived) intents + the catalog for UI.
@@ -99,21 +160,11 @@ export const getMarketingIntents = async (c: Context) => {
         const agents: string[] = Array.isArray(inst.selectedComponents) ? (inst.selectedComponents as string[]) : []
         const stored = Array.isArray(rd.marketingIntents) ? rd.marketingIntents.filter(isValidIntent) : null
         const derived = currentIntents(rd, agents)
-        // Phase 4.1 — self-healing auto-persist. If user has Q9/Q10 answers
-        // but rd.marketingIntents wasn't yet stored (legacy tenants saved
-        // before bidirectional sync existed), persist derived to DB so
-        // downstream gates (renderMazhirCard etc.) can read rd.marketingIntents
-        // directly without depending on hub-state in-memory.
-        if (!stored && derived.length > 0) {
-            try {
-                await patchResearchData(c, instanceId, prev => ({
-                    ...prev,
-                    marketingIntents: derived,
-                }))
-            } catch (e) {
-                console.warn('[getMarketingIntents] auto-persist failed (non-fatal):', (e as Error).message)
-            }
-        }
+        // Phase 2026.06 — self-healing persist + plan reconcile. Persists derived
+        // intents (so downstream gates read rd.marketingIntents) AND additively
+        // syncs plan.stages so paid stages appear when the hub shows a paid
+        // channel selected. See healIntentsAndPlan.
+        await healIntentsAndPlan(c, instanceId, rd, derived, !!stored)
         return ok(c, {
             intents: derived,
             isExplicit: !!stored,                        // user has explicitly set vs auto-derived
@@ -238,6 +289,10 @@ export const getIntegrationHub = async (c: Context) => {
         const hub = buildHub(intents, connected)
         const pipelineStats = pipelineStatuses(intents, connected)
         const stored = Array.isArray(rd.marketingIntents) ? rd.marketingIntents.filter(isValidIntent) : null
+        // Self-heal: keep plan.stages consistent with the hub's effective intents
+        // so the pipeline's paid tab isn't empty when a paid channel is selected
+        // here. Additive + non-destructive; writes only on real divergence.
+        await healIntentsAndPlan(c, instanceId, rd, intents, !!stored)
         const pipelineActivation = (rd.pipelineActivation as Record<string, boolean> | undefined) || {}
         return ok(c, {
             intents,
