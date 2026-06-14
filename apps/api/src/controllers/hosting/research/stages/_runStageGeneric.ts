@@ -327,20 +327,6 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                 console.warn('[research/internal_seo_audit] augment failed (non-fatal):', (err as Error).message)
             }
         }
-        // paid_competitor_landscape — drop placeholder/unverified competitor
-        // records. The model pads thin markets with template domains
-        // ("example-il-agency.co.il", "(no_international_reference)") instead of
-        // honestly reporting "no direct paid competitor found". Strip them so
-        // a fabricated competitor never reaches the user / downstream.
-        if (stageId === 'paid_competitor_landscape' && parsed.records) {
-            const isPlaceholder = (d: string): boolean =>
-                !d || /^\(|example[-.]|placeholder|\bsample\b|your[-_]?(domain|agency|competitor|brand)|competitor[-_]?name|no_international|no_reference|^n\/?a$|^unknown$|^tbd$|^xxx/i.test(d.trim())
-            const before = (parsed.records as Array<Record<string, unknown>>).length
-            parsed.records = (parsed.records as Array<Record<string, unknown>>)
-                .filter(r => !isPlaceholder(String(r.domain || r.name || '')))
-            const dropped = before - parsed.records.length
-            if (dropped > 0) console.log(`[research/paid_competitor_landscape] dropped ${dropped} placeholder competitor record(s)`)
-        }
         // External-links upgrade — deterministic per-link enrichment for
         // link_audit: prospect DR (from DFS), cost tier (ilCostConstants),
         // target money page (seo_keyword_research), anchor + distributed type
@@ -523,6 +509,21 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             console.warn(`[research/${stageId}] hebrewCleanup unexpectedly threw:`, (err as Error).message)
         }
         if (parsed.records) output.records = parsed.records
+        // paid_competitor_landscape — drop placeholder/unverified competitor
+        // records. Runs AFTER hebrewCleanup (which re-parses records from the
+        // content JSON and would otherwise restore them). The model pads thin
+        // markets with template domains ("example-il-agency.co.il",
+        // "(no_international_reference)") instead of honestly reporting none.
+        if (stageId === 'paid_competitor_landscape' && Array.isArray(output.records)) {
+            const isPlaceholder = (d: string): boolean =>
+                !d || /^\(|example[-.]|placeholder|\bsample\b|your[-_]?(domain|agency|competitor|brand)|competitor[-_]?name|no_international|no_reference|^n\/?a$|^unknown$|^tbd$|^xxx/i.test(d.trim())
+            const before = output.records.length
+            output.records = (output.records as Array<Record<string, unknown>>)
+                .filter(r => !isPlaceholder(String(r.domain || r.name || '')))
+            parsed.records = output.records
+            const dropped = before - output.records.length
+            if (dropped > 0) console.log(`[research/paid_competitor_landscape] dropped ${dropped} placeholder competitor record(s)`)
+        }
         // Capture non-records JSON sibling fields (Phase 3.10b: our_link_profile,
         // link_gap_targets, cross_validation_matrix, etc.). UI per-stage
         // renderers read these to show structured panels beyond records[].
