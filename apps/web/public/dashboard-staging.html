@@ -5956,8 +5956,13 @@ function renderHome() {
           || (instanceData.activeAgentIntegrations && instanceData.activeAgentIntegrations.meta && instanceData.activeAgentIntegrations.meta.connected)));
         var ds_googleAdsOk = !!(instanceData && (instanceData.hasGoogleAds || instanceData.googleAdsCustomerId
           || (instanceData.googleAdsConfig && instanceData.googleAdsConfig.customerId)));
-        var ds_ga4Ok = !!(instanceData && instanceData.activeAgentIntegrations
-          && instanceData.activeAgentIntegrations.google && instanceData.activeAgentIntegrations.google.connected);
+        // GA4 = analytics scope on the active Google OAuth — the SAME canonical
+        // signal the GA4 card uses (server-computed hasGa4Scope). The old check
+        // read activeAgentIntegrations.google.connected (generic "Google linked",
+        // per-active-agent) which showed "לא מחובר" even when GA4/analytics was
+        // connected + a property selected. Mirror ds_googleAdsOk's hasGoogleAds.
+        var ds_ga4Ok = !!(instanceData && (instanceData.hasGa4Scope
+          || (instanceData.googleAdsConfig && instanceData.googleAdsConfig.ga4PropertyId)));
         var ds_reports = (ds_rd.paidProfile && Array.isArray(ds_rd.paidProfile.historicalReports))
           ? ds_rd.paidProfile.historicalReports : [];
         var ds_reportCount = ds_reports.length;
