@@ -516,7 +516,13 @@ function parseCriticResponse(raw: string, originalContent: string, stageId: Stag
             continue
         }
         const passed = c.pass !== false
-        const severity = c.severity === 'hard' ? 'hard' : (isHard ? 'hard' : 'warning')
+        let severity: 'hard' | 'warning' = c.severity === 'hard' ? 'hard' : (isHard ? 'hard' : 'warning')
+        // language_script_qa is methodology-mandated WARNING-only (Phase QA round-5):
+        // IL SEO content legitimately code-switches with hundreds of English terms,
+        // and the server scrubs filler deterministically. The critic is told never
+        // to mark it hard, but it occasionally does anyway — enforce it here so a
+        // Hebrew-mixing nitpick can never block a stage as a hard failure.
+        if (checkName === 'language_script_qa') severity = 'warning'
         result.checks[checkName] = {
             pass: passed,
             ...(c.reason ? { reason: c.reason } : {}),
