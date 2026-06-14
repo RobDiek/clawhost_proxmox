@@ -20090,6 +20090,18 @@ function _humanizeKey(k) {
     intent_classification: 'סיווג כוונה', why_chosen: 'למה נבחר', intent_tier: 'שכבת כוונה',
     ad_group_label: 'קבוצת מודעות', negative_keywords: 'מילות שלילה', keywords: 'מילות מפתח',
     bid_strategy_recommended: 'אסטרטגיית הצעה', ad_group_bid_range_ils: 'טווח הצעות',
+    // paid_budget_scenarios
+    tier_key: 'תרחיש', tier_label: 'שם התרחיש', monthly_budget_ils: 'תקציב חודשי',
+    phase_allocation: 'הקצאה לפי שלבים', phase: 'שלב', weeks: 'שבועות', week_range: 'טווח שבועות',
+    channel_split_pct: 'פיצול ערוצים (%)', tracking_setup_weeks: 'שבועות הקמת מעקב',
+    adjusted_year1_kpis: 'יעדי שנה 1', expected_roas_range: 'טווח ROAS צפוי', expected_conversions: 'המרות צפויות',
+    expected_cpa_ils_range: 'טווח CPA צפוי', il_budget_tier_band: 'רצועת תקציב', bid_strategy_migration: 'מעבר אסטרטגיית הצעה',
+    strategy: 'אסטרטגיה', adjusted_allocation_ils: 'הקצאת תקציב', search_brand: 'חיפוש מותג',
+    search_nonbrand: 'חיפוש לא-מותג', meta_prospecting: 'Meta פרוספקטינג', meta_retargeting: 'Meta רימרקטינג',
+    recommended_rationale: 'נימוק', il_seasonality_adjustments: 'התאמות עונתיות (IL)', dates: 'תאריכים',
+    event: 'אירוע', budget_adjustment_pct: 'שינוי תקציב (%)', month1_launch_checklist: 'צ׳קליסט חודש 1',
+    recommended_for_this_business: 'מומלץ לעסק זה', il_risks: 'סיכונים (IL)', rationale: 'נימוק',
+    total: 'סה״כ', low: 'נמוך', high: 'גבוה', median: 'חציון', score: 'ציון',
   };
   if (map[k]) return map[k];
   // Normalize: drop leading _, trailing _he/_en, then retry the map.
@@ -20102,24 +20114,45 @@ function _humanizeKey(k) {
     .replace(/_pct$/i, ' (%)')
     .replace(/_/g, ' ');
 }
+// Translate common English enum VALUES for display only (the data keeps the
+// English enum — executors/downstream rely on it). Acronyms (CPA/ROAS/CTR/B2B/
+// SaaS) and product names fall through unchanged.
+function _humanizeEnum(s) {
+  var m = {
+    manual_cpc: 'הצעות ידניות (CPC)', max_clicks: 'מקסום קליקים', max_conversions: 'מקסום המרות',
+    target_cpa: 'יעד CPA', target_roas: 'יעד ROAS', maximize_conversion_value: 'מקסום ערך המרה',
+    conservative: 'שמרני', balanced: 'מאוזן', aggressive: 'אגרסיבי',
+    search: 'חיפוש', brand: 'מותג', pmax: 'PMax', display: 'דיספליי', demand_gen: 'Demand Gen',
+    meta: 'Meta', search_brand: 'חיפוש מותג', search_nonbrand: 'חיפוש לא-מותג',
+    meta_prospecting: 'Meta פרוספקטינג', meta_retargeting: 'Meta רימרקטינג',
+    'tishrei holidays': 'חגי תשרי', passover: 'פסח', 'black friday il': 'בלאק פריידי', 'summer dip': 'שפל קיץ',
+    high: 'גבוה', medium: 'בינוני', low: 'נמוך', none: 'ללא', unknown: 'לא ידוע', tbd: 'לקביעה',
+    take_now: 'לבצע עכשיו', leadgen: 'גיוס לידים', sales: 'מכירות', navigational: 'ניווטי',
+    working_hypothesis: 'השערת עבודה', exact: 'מדויק', phrase: 'ביטוי', broad: 'רחב',
+  };
+  var key = String(s).trim().toLowerCase();
+  return m[key] || String(s);
+}
 function _humanizeVal(v, depth) {
   depth = depth || 0;
   if (v === true) return '✓';
   if (v === false) return '✗';
   if (typeof v === 'number') return escapeHtml(v.toLocaleString());
-  if (typeof v === 'string') return escapeHtml(v);
+  if (typeof v === 'string') return escapeHtml(_humanizeEnum(v));
   if (Array.isArray(v)) {
     if (v.length === 0) return '—';
     if (v.every(function(x){ return typeof x === 'string' || typeof x === 'number'; })) {
-      return '<ul style="margin:2px 0 2px 0;padding-inline-start:16px">' + v.map(function(x){ return '<li>' + escapeHtml(String(x)) + '</li>'; }).join('') + '</ul>';
+      return '<ul style="margin:2px 0 2px 0;padding-inline-start:16px">' + v.map(function(x){ return '<li>' + escapeHtml(_humanizeEnum(String(x))) + '</li>'; }).join('') + '</ul>';
     }
-    if (depth < 1) return v.map(function(x){ return '<div style="margin:3px 0;padding-inline-start:8px;border-inline-start:2px solid #E5E7EB">' + _humanizeVal(x, depth+1) + '</div>'; }).join('');
+    if (depth < 2) return v.map(function(x){ return '<div style="margin:3px 0;padding-inline-start:8px;border-inline-start:2px solid #E5E7EB">' + _humanizeVal(x, depth+1) + '</div>'; }).join('');
     return escapeHtml(JSON.stringify(v));
   }
   if (v && typeof v === 'object') {
-    if (depth < 2) {
-      return Object.keys(v).filter(function(k){ var x=v[k]; return !(x===null||x===undefined||x===''||(Array.isArray(x)&&!x.length)); })
-        .map(function(k){ return '<div style="font-size:0.76rem"><span style="color:#6B7280">' + escapeHtml(_humanizeKey(k)) + ':</span> ' + _humanizeVal(v[k], depth+1) + '</div>'; }).join('');
+    if (depth < 3) {
+      // Skip empty + zero entries (zeros in %/budget splits are just noise).
+      var keys = Object.keys(v).filter(function(k){ var x=v[k]; return !(x===null||x===undefined||x===''||x===0||(Array.isArray(x)&&!x.length)); });
+      if (keys.length === 0) return '—';
+      return keys.map(function(k){ return '<div style="font-size:0.76rem"><span style="color:#6B7280">' + escapeHtml(_humanizeKey(k)) + ':</span> ' + _humanizeVal(v[k], depth+1) + '</div>'; }).join('');
     }
     return escapeHtml(JSON.stringify(v));
   }
