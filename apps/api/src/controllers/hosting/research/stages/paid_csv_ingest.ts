@@ -62,5 +62,16 @@ export async function run(c: Context): Promise<Response> {
     await writeResearchData(agent, instanceId, { ...rd, results, plan: { ...plan, status } })
     console.log(`[research/paid_csv_ingest] ${instanceId} agent=${agent?.id} files=${aggs.length} usable=${usable.length}`)
 
-    return ok(c, { fileCount: aggs.length, usableCount: usable.length, next_stage: 'client_account_baseline_csv' }, 'דוחות ה-CSV נקלטו.')
+    return ok(c, {
+        content,
+        records: [],
+        extras: { aggregates: aggs, fileCount: aggs.length, usableCount: usable.length },
+        source: 'csv',
+        confidence: usable.length > 0 ? 'medium' : 'working_hypothesis',
+        integrationsUsed: [],
+        status: { state: 'completed', runAt },
+        fileCount: aggs.length,
+        usableCount: usable.length,
+        next_stage: 'client_account_baseline_csv',
+    }, 'דוחות ה-CSV נקלטו.')
 }

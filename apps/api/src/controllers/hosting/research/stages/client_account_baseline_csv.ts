@@ -93,5 +93,10 @@ export async function run(c: Context): Promise<Response> {
     await writeResearchData(agent, instanceId, { ...rd, results, plan: { ...plan, status } })
     console.log(`[research/client_account_baseline_csv] ${instanceId} agent=${agent?.id} hasAds=${hasAds} cost=${round2(cost)} clicks=${clicks} conv=${round2(conversions)}`)
 
-    return ok(c, { accountMetrics, next_stage: 'paid_competitor_landscape' }, 'בוסס בסיס הנתונים מהדוחות.')
+    return ok(c, {
+        ...baselineResult,
+        status: { state: 'completed', runAt },
+        accountMetrics,
+        next_stage: 'paid_competitor_landscape',
+    }, 'בוסס בסיס הנתונים מהדוחות.')
 }

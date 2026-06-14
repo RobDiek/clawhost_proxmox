@@ -168,5 +168,17 @@ export async function run(c: Context): Promise<Response> {
 
     console.log(`[research/paid_questionnaire] ${instanceId} agent=${agent?.id} derived: budget=${monthlyBudgetIls} deal=${avgDealValueIls} maxCpa=${maxCpaIls} goal=${primaryGoal} tracking=[${trackingStack.join(',')}]`)
 
-    return ok(c, { paidProfile, next_stage: 'paid_competitor_landscape' }, 'פרופיל הפרסום נגזר מהמחקר.')
+    // Return the full result shape so runStageV2 (frontend) renders content
+    // immediately from the POST response — it reads d.data.content/records/etc.
+    return ok(c, {
+        content,
+        records: [],
+        extras: { ...paidProfile },
+        source: 'derived',
+        confidence: 'medium',
+        integrationsUsed: trackingStack,
+        status: { state: 'completed', runAt },
+        paidProfile,
+        next_stage: 'paid_competitor_landscape',
+    }, 'פרופיל הפרסום נגזר מהמחקר.')
 }
