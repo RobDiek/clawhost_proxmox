@@ -133,16 +133,25 @@ outputs:
       hreflang_he_il_present:          bool
       bdi_wrapping_for_numbers_urls:   bool
 
-    top_priority_actions:
-      type: array<{ url, priority_score, action_he, effort_hours, confidence }>
+    top_10_priority_actions:
+      type: array<{ rank, url_or_scope, action_he, category, reach_score_0_100, impact_score_0_100, confidence_0_to_1, effort_dev_days, priority_score, owner, expected_outcome_he }>
       max_count: 10
-      ordering: priority_score desc
+      ordering: priority_score desc (server-enforced — see priority_score_formula.emitted_fields)
 
 # ----------------------------------------------------------------------------
 # Priority formula (Reach × Impact × Confidence / Effort)
 # ----------------------------------------------------------------------------
 priority_score_formula:
-  base_formula: (reach * impact * confidence) / max(effort, 1.0)
+  # Classic RICE — quick wins (sub-day effort) legitimately outrank big tasks.
+  # NO clamp on effort. effort<=0 is guarded to 1 server-side (divide-by-zero).
+  base_formula: (reach * impact * confidence) / effort / 100
+  emitted_fields: |
+    Each top_10_priority_actions row MUST carry these exact numeric fields:
+      reach_score_0_100, impact_score_0_100, confidence_0_to_1, effort_dev_days
+    and a derived priority_score. The SERVER recomputes priority_score from these
+    components, sorts the array by priority_score DESC, and re-assigns rank=1..N.
+    So: emit honest component values; do NOT hand-rank — ordering is authoritative
+    server-side. Inconsistent hand-math/ordering will be overwritten, not shipped.
 
   reach:
     type: float

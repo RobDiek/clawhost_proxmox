@@ -252,19 +252,20 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             return fail(c, output.errorMessage || 'Stage failed', code as 400 | 500)
         }
 
-        // ─── Deterministic priority_score recompute (Phase QA round-11) ──
-        // Fix (reach×impact×confidence)/max(effort,1)/100 arithmetic BEFORE the
-        // critic sees it. The model miscomputes it on non-1-effort rows and the
-        // LLM revision can't reliably fix arithmetic — so do it deterministically.
+        // ─── Deterministic priority-action recompute (Phase QA round-11/12) ──
+        // RICE priority_score = (reach×impact×confidence)/effort/100, then sort
+        // descending + re-rank. Done BEFORE the critic so it sees a consistent
+        // table (no math_sanity flag, no wasted revision). Re-run again at the
+        // very end (after the LLM re-emissions) so the shipped numbers stick.
         try {
-            const { recomputePriorityScores } = await import('@/services/research/recomputeScores')
-            const pr = recomputePriorityScores(output.content)
+            const { recomputePriorityScoresInText } = await import('@/services/research/recomputeScores')
+            const pr = recomputePriorityScoresInText(output.content)
             if (pr.fixed > 0) {
                 output.content = pr.content
-                console.log(`[research/${stageId}] recomputed ${pr.fixed} priority_score value(s) deterministically`)
+                console.log(`[research/${stageId}] pre-critic priority recompute: ${pr.fixed} value(s) fixed`)
             }
         } catch (e) {
-            console.warn(`[research/${stageId}] priority_score recompute skipped:`, (e as Error).message)
+            console.warn(`[research/${stageId}] priority recompute (pre-critic) skipped:`, (e as Error).message)
         }
 
         // ─── Self-critique gate (Phase 3.5e) ──
@@ -521,6 +522,30 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             if (Object.keys(extras).length > 0) output.extras = extras
         }
 
+        // ─── Final deterministic priority recompute (Phase QA round-12) ──
+        // The self-critique revision and Hebrew cleanup both re-emit content via
+        // an LLM AFTER the pre-critic pass — re-introducing bad arithmetic and
+        // un-sorted ranks (and dropping the ```json fences). Re-run the fixer
+        // LAST so the SHIPPED content + structured siblings are authoritative
+        // and mutually consistent. Idempotent.
+        try {
+            const { recomputePriorityScoresInText, recomputePriorityScoresDeep } =
+                await import('@/services/research/recomputeScores')
+            const t = recomputePriorityScoresInText(output.content)
+            output.content = t.content
+            let structFixed = 0
+            if (output.extras) structFixed += recomputePriorityScoresDeep(output.extras)
+            if (output.records) structFixed += recomputePriorityScoresDeep(output.records)
+            if (parsed.records && parsed.records !== output.records) {
+                structFixed += recomputePriorityScoresDeep(parsed.records)
+            }
+            if (t.fixed > 0 || structFixed > 0) {
+                console.log(`[research/${stageId}] final priority recompute: text=${t.fixed} struct=${structFixed}`)
+            }
+        } catch (e) {
+            console.warn(`[research/${stageId}] priority recompute (final) skipped:`, (e as Error).message)
+        }
+
         // Phase 4.0 — sync the markdown's embedded JSON code-block with the
         // canonical recomputed records + extras. Without this the prose report
         // shows the LLM's original totals (e.g. scorecard.total=79.50) while
@@ -565,7 +590,8 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                 const stageHasRecompute = stageId === 'competitor_landscape'
                     || stageId === 'seo_keyword_research'
                     || stageId === 'cost_timeline_modeling'
-                if (stageHasRecompute && /math_sanity|formula_verification|scorecard.*total|opportunity.*total|aeo.*total|monthly_budget|total_program|duration_months|monthly_kpi/i.test(f)) {
+                    || stageId === 'internal_seo_audit'
+                if (stageHasRecompute && /math_sanity|בדיקת חישוב|formula_verification|scorecard.*total|opportunity.*total|aeo.*total|monthly_budget|total_program|duration_months|monthly_kpi|priority_score|priority.*rank|rank.*priority|דירוג.*עדיפות|עדיפות.*דירוג/i.test(f)) {
                     autoCorrected.push(f)
                     continue
                 }
