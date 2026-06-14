@@ -315,7 +315,15 @@ export async function fetchPaidKeywordLandscape(opts: FetchOpts): Promise<PaidKe
     }
 
     const maxKw = opts.maxKeywords ?? 80
-    const allCandidates = new Set<string>(opts.seedKeywords.map(s => s.trim().toLowerCase()).filter(Boolean))
+    // Google Ads / DataForSEO keyword limit: ≤80 chars, ≤10 words. A single
+    // over-long "keyword" (e.g. a business description that leaked into the
+    // seeds) makes the ENTIRE searchVolume call fail with 40501 → no data at
+    // all. Filter every keyword that reaches a DFS call.
+    const isValidKw = (k: string): boolean => {
+        const t = (k || '').trim()
+        return t.length >= 2 && t.length <= 80 && t.split(/\s+/).length <= 10
+    }
+    const allCandidates = new Set<string>(opts.seedKeywords.map(s => s.trim().toLowerCase()).filter(isValidKw))
 
     // 1. Pull competitor rankedKeywords (top 30 per competitor — their paid-relevant
     //    organic landscape; if they rank for it organically, they likely bid for it too).
@@ -341,7 +349,7 @@ export async function fetchPaidKeywordLandscape(opts: FetchOpts): Promise<PaidKe
     }
 
     // 2. Seed expansion — keywordIdeas on the 5 strongest seeds (best coverage / cost balance)
-    const topSeeds = opts.seedKeywords.slice(0, 5).filter(s => s.trim().length >= 3)
+    const topSeeds = opts.seedKeywords.filter(s => isValidKw(s) && s.trim().length >= 3).slice(0, 5)
     if (topSeeds.length > 0) {
         diagnostics.callsAttempted++
         try {
@@ -373,7 +381,7 @@ export async function fetchPaidKeywordLandscape(opts: FetchOpts): Promise<PaidKe
     }
 
     // 3. Cap to top N candidates + bulk searchVolume call (gets CPC + competition)
-    const candidates = Array.from(allCandidates).slice(0, Math.min(maxKw * 1.5, 200))
+    const candidates = Array.from(allCandidates).filter(isValidKw).slice(0, Math.min(maxKw * 1.5, 200))
     diagnostics.callsAttempted++
     let volumeItems: SearchVolumeItem[] = []
     try {
