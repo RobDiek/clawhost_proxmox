@@ -160,16 +160,16 @@ function summaryMd(path: ForkPath, hasIntegration: boolean): string {
     if (path === 'no_history') {
         return `# הגדרת פרסום — מתחילים מאפס
 
-**מסלול שנבחר:** ${path} (אין היסטוריה משמעותית של פרסום ממומן)
+**המסלול שנבחר:** מתחילים מאפס (אין היסטוריה משמעותית של פרסום ממומן)
 
-השלב הבא: שאלון paid_questionnaire — ${`12 שדות סטנדרטיים`}.
-לאחר השאלון: setup_roadmap של 14 ימים על בסיס §1.2 של playbook.`
+השלב הבא: שאלון קצר של 12 שדות לאפיון הפעילות הממומנת.
+לאחריו ניצור מפת דרכים להקמה תוך 14 ימים, מותאמת לעסק שלכם.`
     }
     return `# הגדרת פרסום — יש היסטוריה / קמפיינים פעילים
 
-**מסלול שנבחר:** ${path}
-**מצב חיבור (auto-detected):** ${hasIntegration ? 'מחובר (Google Ads / Meta OAuth)' : 'לא מחובר — נדרשת העלאת CSV'}
+**המסלול שנבחר:** יש היסטוריה (קמפיינים פעילים או נתוני עבר)
+**מצב חיבור:** ${hasIntegration ? 'מחובר (Google Ads / Meta)' : 'לא מחובר — נדרשת העלאת דוחות'}
 
-השלב הבא: ${hasIntegration ? 'paid_data_inventory (קריאה ישירה מה-API)' : 'paid_csv_ingest (העלאת 4-6 קבצי CSV)'}.
-בהמשך: client_account_baseline${hasIntegration ? '' : '_csv'} → paid_competitor_landscape → paid_keyword_research → paid_audit.`
+השלב הבא: ${hasIntegration ? 'מיפוי הנתונים ישירות מחשבון הפרסום' : 'העלאת 4-6 דוחות מחשבון הפרסום (CSV)'}.
+בהמשך: ביסוס נתוני בסיס ← מחקר מתחרים ממומן ← מחקר מילות מפתח ← אודיט פרסום ממומן.`
 }
