@@ -198,22 +198,6 @@ export async function listCampaigns(
     const loginHeader = loginCustomerId || customerId
     const queryTarget = operatingCustomerId || customerId
 
-    // ─── TEMP DIAGNOSTIC (remove after resolving USER_PERMISSION_DENIED) ──
-    // Logs the exact params + what the OAuth user can actually reach, so a
-    // persistent 403 can be pinned to: wrong OAuth account, MCC not set, or
-    // operating account not linked under the dev-token's MCC.
-    console.log(`[ads-diag] queryTarget=${queryTarget} loginHeader=${loginHeader} devToken=…${(developerToken || '').slice(-6)}`)
-    try {
-        const accRes = await fetch('https://googleads.googleapis.com/v22/customers:listAccessibleCustomers', {
-            headers: { Authorization: `Bearer ${at}`, 'developer-token': developerToken },
-            signal: AbortSignal.timeout(30000),
-        })
-        const accBody = await accRes.text()
-        console.log(`[ads-diag] listAccessibleCustomers status=${accRes.status} body=${accBody.slice(0, 600)}`)
-    } catch (e) {
-        console.log(`[ads-diag] listAccessibleCustomers threw: ${(e as Error).message}`)
-    }
-
     try {
         // Pull all non-removed campaigns + last 30d performance
         const campaignQuery = `
