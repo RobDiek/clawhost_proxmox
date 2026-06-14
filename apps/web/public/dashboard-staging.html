@@ -20081,9 +20081,26 @@ function _humanizeKey(k) {
     median_ad_run_days: 'חציון ימי ריצה', longest_running_ad_days: 'מודעה ותיקה ביותר (ימים)',
     questions_for_user: 'שאלות אליכם', name: 'שם', title: 'כותרת', keyword: 'מילת מפתח',
     priority_score: 'ציון עדיפות', confidence: 'רמת ודאות', recommended_action: 'פעולה מומלצת',
+    // paid_audit
+    dimension: 'ממד', score_label: 'דירוג', evidence: 'ראיה', actionable: 'המלצה לפעולה',
+    playbook_section: 'סעיף Playbook',
+    // paid_keyword_research
+    match_type: 'סוג התאמה', monthly_volume: 'חיפושים/חודש', cpc_estimate_ils: 'CPC משוער',
+    recommended_max_cpc_ils: 'CPC מקסימלי מומלץ', competition_index: 'מדד תחרות',
+    intent_classification: 'סיווג כוונה', why_chosen: 'למה נבחר', intent_tier: 'שכבת כוונה',
+    ad_group_label: 'קבוצת מודעות', negative_keywords: 'מילות שלילה', keywords: 'מילות מפתח',
+    bid_strategy_recommended: 'אסטרטגיית הצעה', ad_group_bid_range_ils: 'טווח הצעות',
   };
   if (map[k]) return map[k];
-  return String(k).replace(/^_+/, '').replace(/_/g, ' ');
+  // Normalize: drop leading _, trailing _he/_en, then retry the map.
+  var base = String(k).replace(/^_+/, '').replace(/_(he|en)$/i, '');
+  if (map[base]) return map[base];
+  // Generic suffix cleanup: units, score-range.
+  return base
+    .replace(/_0_100$/i, ' (0-100)')
+    .replace(/_ils$/i, ' (₪)')
+    .replace(/_pct$/i, ' (%)')
+    .replace(/_/g, ' ');
 }
 function _humanizeVal(v, depth) {
   depth = depth || 0;
