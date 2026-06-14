@@ -19774,6 +19774,9 @@ function viewStageResultV2(sid) {
       .replace(/```json[\s\S]*$/g, '')
       // Stripped section heading too if it remained.
       .replace(/##\s*רשומות מובנות[\s\S]*$/g, '')
+      // "Part 2 — JSON" / "חלק 2" structured-output section → drop to end
+      // (it's the raw record dump, already shown as humanized cards above).
+      .replace(/\n#{0,4}\s*(Part\s*2\b|חלק\s*2\b)[\s\S]*$/i, '')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
     contentEl.innerHTML = renderMarkdown(cleanedContent);
@@ -20064,8 +20067,70 @@ function renderContentPlanRecords(records) {
     + '</div>';
 }
 
+// Generic record renderer — humanized key:value cards (NEVER raw JSON by
+// default; see displayHe convention). Used for any stage without a bespoke
+// renderer (paid_competitor_landscape, paid_keyword_research, paid_audit, …).
+// Raw JSON kept behind a toggle for power users.
+function _humanizeKey(k) {
+  var map = {
+    domain: 'דומיין', bucket: 'קטגוריה', strategic_threat_level: 'רמת איום',
+    strategic_threat_rationale_he: 'נימוק', active_ads_google: 'מודעות Google פעילות',
+    active_ads_meta: 'מודעות Meta פעילות', platforms_active: 'פלטפורמות פעילות',
+    landing_page_strengths: 'חוזקות דף נחיתה', landing_page_weaknesses: 'חולשות דף נחיתה',
+    creative_angles_observed: 'זוויות קריאייטיב', page_names: 'דפים',
+    median_ad_run_days: 'חציון ימי ריצה', longest_running_ad_days: 'מודעה ותיקה ביותר (ימים)',
+    questions_for_user: 'שאלות אליכם', name: 'שם', title: 'כותרת', keyword: 'מילת מפתח',
+    priority_score: 'ציון עדיפות', confidence: 'רמת ודאות', recommended_action: 'פעולה מומלצת',
+  };
+  if (map[k]) return map[k];
+  return String(k).replace(/^_+/, '').replace(/_/g, ' ');
+}
+function _humanizeVal(v, depth) {
+  depth = depth || 0;
+  if (v === true) return '✓';
+  if (v === false) return '✗';
+  if (typeof v === 'number') return escapeHtml(v.toLocaleString());
+  if (typeof v === 'string') return escapeHtml(v);
+  if (Array.isArray(v)) {
+    if (v.length === 0) return '—';
+    if (v.every(function(x){ return typeof x === 'string' || typeof x === 'number'; })) {
+      return '<ul style="margin:2px 0 2px 0;padding-inline-start:16px">' + v.map(function(x){ return '<li>' + escapeHtml(String(x)) + '</li>'; }).join('') + '</ul>';
+    }
+    if (depth < 1) return v.map(function(x){ return '<div style="margin:3px 0;padding-inline-start:8px;border-inline-start:2px solid #E5E7EB">' + _humanizeVal(x, depth+1) + '</div>'; }).join('');
+    return escapeHtml(JSON.stringify(v));
+  }
+  if (v && typeof v === 'object') {
+    if (depth < 2) {
+      return Object.keys(v).filter(function(k){ var x=v[k]; return !(x===null||x===undefined||x===''||(Array.isArray(x)&&!x.length)); })
+        .map(function(k){ return '<div style="font-size:0.76rem"><span style="color:#6B7280">' + escapeHtml(_humanizeKey(k)) + ':</span> ' + _humanizeVal(v[k], depth+1) + '</div>'; }).join('');
+    }
+    return escapeHtml(JSON.stringify(v));
+  }
+  return '—';
+}
+function _renderRecordHuman(rec, i) {
+  if (typeof rec === 'string') return escapeHtml(rec);
+  if (rec && typeof rec.displayHe === 'string' && rec.displayHe.trim()) return typeof renderMarkdown === 'function' ? renderMarkdown(rec.displayHe) : escapeHtml(rec.displayHe);
+  if (!rec || typeof rec !== 'object') return escapeHtml(String(rec));
+  var title = rec.name || rec.title || rec.domain || rec.keyword || rec.target || rec.cluster || rec.persona_name || rec.scenario || ('פריט ' + (i + 1));
+  var rows = Object.keys(rec).filter(function(k){
+    if (k === 'displayHe') return false;
+    if (rec[k] === title && (k === 'name' || k === 'title' || k === 'domain')) return false;
+    var v = rec[k];
+    return !(v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0));
+  }).map(function(k){
+    return '<div style="font-size:0.8rem;margin:3px 0;line-height:1.5"><span style="color:#6B7280;font-weight:600">' + escapeHtml(_humanizeKey(k)) + ':</span> ' + _humanizeVal(rec[k], 0) + '</div>';
+  }).join('');
+  return '<div style="font-weight:700;font-size:0.9rem;color:#1F2937;margin-bottom:4px">' + escapeHtml(String(title)) + '</div>' + rows;
+}
 function renderJsonFallback(records) {
-  return '<details style="margin:8px 0;background:#fff;border:1px solid #E5E7EB;border-radius:6px"><summary style="cursor:pointer;padding:8px 12px;font-size:0.82rem;font-weight:500;color:#374151">📊 רשומות (' + records.length + ')</summary><pre style="margin:0;padding:10px 12px;background:#F9FAFB;font-size:0.72rem;overflow-x:auto;direction:ltr;text-align:left;max-height:340px">' + escapeHtml(JSON.stringify(records, null, 2)) + '</pre></details>';
+  var cap = 30;
+  var cards = records.slice(0, cap).map(function(rec, i){
+    return '<div style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:11px 13px;margin-bottom:8px">' + _renderRecordHuman(rec, i) + '</div>';
+  }).join('');
+  var more = records.length > cap ? '<div style="font-size:0.78rem;color:#9CA3AF;text-align:center;padding:6px">+' + (records.length - cap) + ' רשומות נוספות</div>' : '';
+  var raw = '<details style="margin:6px 0"><summary style="cursor:pointer;font-size:0.74rem;color:#9CA3AF">הצגת JSON גולמי</summary><pre style="margin:4px 0 0;padding:10px 12px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;font-size:0.72rem;overflow-x:auto;direction:ltr;text-align:left;max-height:340px">' + escapeHtml(JSON.stringify(records, null, 2)) + '</pre></details>';
+  return '<div style="margin:8px 0"><div style="font-size:0.78rem;color:#6B7280;margin-bottom:6px">' + records.length + ' רשומות</div>' + cards + more + raw + '</div>';
 }
 
 function confidencePill(c) {

@@ -327,6 +327,20 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                 console.warn('[research/internal_seo_audit] augment failed (non-fatal):', (err as Error).message)
             }
         }
+        // paid_competitor_landscape — drop placeholder/unverified competitor
+        // records. The model pads thin markets with template domains
+        // ("example-il-agency.co.il", "(no_international_reference)") instead of
+        // honestly reporting "no direct paid competitor found". Strip them so
+        // a fabricated competitor never reaches the user / downstream.
+        if (stageId === 'paid_competitor_landscape' && parsed.records) {
+            const isPlaceholder = (d: string): boolean =>
+                !d || /^\(|example[-.]|placeholder|\bsample\b|your[-_]?(domain|agency|competitor|brand)|competitor[-_]?name|no_international|no_reference|^n\/?a$|^unknown$|^tbd$|^xxx/i.test(d.trim())
+            const before = (parsed.records as Array<Record<string, unknown>>).length
+            parsed.records = (parsed.records as Array<Record<string, unknown>>)
+                .filter(r => !isPlaceholder(String(r.domain || r.name || '')))
+            const dropped = before - parsed.records.length
+            if (dropped > 0) console.log(`[research/paid_competitor_landscape] dropped ${dropped} placeholder competitor record(s)`)
+        }
         // External-links upgrade — deterministic per-link enrichment for
         // link_audit: prospect DR (from DFS), cost tier (ilCostConstants),
         // target money page (seo_keyword_research), anchor + distributed type
