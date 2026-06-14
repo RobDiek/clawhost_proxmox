@@ -581,54 +581,89 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
         // when the SHIPPED state is actually clean, even if the model's first
         // draft tripped a check.
         if (critique && !critique.skipped) {
-            const remainingHardFailures: string[] = []
-            const autoCorrected: string[] = []
-            for (const f of critique.hardFailures) {
-                // Math sanity is auto-corrected for stages where server-side
-                // recompute owns the totals: competitor_landscape (scorecard)
-                // and seo_keyword_research (opportunity + aeo).
-                const stageHasRecompute = stageId === 'competitor_landscape'
-                    || stageId === 'seo_keyword_research'
-                    || stageId === 'cost_timeline_modeling'
-                    || stageId === 'internal_seo_audit'
-                if (stageHasRecompute && /math_sanity|בדיקת חישוב|formula_verification|scorecard.*total|opportunity.*total|aeo.*total|monthly_budget|total_program|duration_months|monthly_kpi|priority_score|priority.*rank|rank.*priority|דירוג.*עדיפות|עדיפות.*דירוג/i.test(f)) {
-                    autoCorrected.push(f)
-                    continue
-                }
-                // Phase QA round-5 — language_script_qa is ALWAYS demoted out
-                // of hardFailures. Modern IL SEO content is inherently
-                // code-switching (audience, brand, citation, comparison are
-                // all legitimate jargon). The previous "scrubber resolves all
-                // → autoCorrected, else hard" logic chased a long tail and
-                // kept blocking legitimate content. Now: if scrubber resolved
-                // everything → autoCorrected. Else → warning (NOT hard) with
-                // the survived words logged so we can iterate the dictionary.
-                // Critic's own severity in the prompt also dropped to warning;
-                // this code is the defense-in-depth in case the LLM still
-                // listed it under hard_failures despite the prompt change.
-                if (/language_script_qa|hebrew.script|filler/i.test(f)) {
-                    const result = checkLanguageScriptResolution(f, output.content, parsed.records || [])
-                    if (result.allResolved) {
-                        autoCorrected.push(`${f} → resolved server-side (scrubber + allowlist)`)
-                    } else {
-                        // Demote to warning instead of failing. Survived words logged.
-                        critique.warnings.push(`${f} | survived: ${result.surviving.join(', ')}`)
+            // Filter critic hard-failures: strip ones server-side post-processing
+            // already resolved (→ autoCorrected) and demote language/source noise
+            // to warnings; return the genuinely-remaining blockers. Extracted to a
+            // closure so the post-revision re-critique below reuses identical logic.
+            const applyAutoCorrect = (failures: string[], warningsSink: string[]) => {
+                const remaining: string[] = []
+                const autoCorrected: string[] = []
+                for (const f of failures) {
+                    // Math sanity is auto-corrected for stages where server-side
+                    // recompute owns the totals: competitor_landscape (scorecard),
+                    // seo_keyword_research (opportunity + aeo), cost_timeline_modeling,
+                    // and internal_seo_audit (priority_score + ranking).
+                    const stageHasRecompute = stageId === 'competitor_landscape'
+                        || stageId === 'seo_keyword_research'
+                        || stageId === 'cost_timeline_modeling'
+                        || stageId === 'internal_seo_audit'
+                    if (stageHasRecompute && /math_sanity|בדיקת חישוב|formula_verification|scorecard.*total|opportunity.*total|aeo.*total|monthly_budget|total_program|duration_months|monthly_kpi|priority_score|priority.*rank|rank.*priority|דירוג.*עדיפות|עדיפות.*דירוג/i.test(f)) {
+                        autoCorrected.push(f)
+                        continue
                     }
-                    continue
+                    // Phase QA round-5 — language_script_qa is ALWAYS demoted out
+                    // of hardFailures. Modern IL SEO content is inherently
+                    // code-switching (audience, brand, citation, comparison are
+                    // all legitimate jargon). If the scrubber resolved everything
+                    // → autoCorrected. Else → warning (NOT hard) with survivors
+                    // logged so we can iterate the dictionary.
+                    if (/language_script_qa|hebrew.script|filler/i.test(f)) {
+                        const result = checkLanguageScriptResolution(f, output.content, parsed.records || [])
+                        if (result.allResolved) {
+                            autoCorrected.push(`${f} → resolved server-side (scrubber + allowlist)`)
+                        } else {
+                            warningsSink.push(`${f} | survived: ${result.surviving.join(', ')}`)
+                        }
+                        continue
+                    }
+                    // Phase 4.0(fix7) — critic keeps flagging ourGmb-sourced numbers
+                    // (e.g. "522 reviews 5/5" for our own business) as fabrication
+                    // because it confuses ourGmb.rating with palsRating's rating
+                    // (different competitor). Demote those flags to warnings —
+                    // the server-rendered prompt actually contains those numbers.
+                    if (/source_spot_check/i.test(f) && /(reviews?|ביקור[ות]|\d+\/5|\b\d{2,4}r\b)/i.test(f)) {
+                        autoCorrected.push(`${f} → demoted: critic-vs-prompt-data mismatch (Phase 4.0 fix7 — ourGmb numbers are valid evidence even if critic doesn't see them in palsRating block)`)
+                        continue
+                    }
+                    remaining.push(f)
                 }
-                // Phase 4.0(fix7) — critic keeps flagging ourGmb-sourced numbers
-                // (e.g. "522 reviews 5/5" for our own business) as fabrication
-                // because it confuses ourGmb.rating with palsRating's rating
-                // (different competitor). Demote those flags to warnings —
-                // server-rendered prompt actually contains those numbers,
-                // they're not invented. Pattern: source_spot_check + a
-                // sentence mentioning a number alongside a competitor name.
-                if (/source_spot_check/i.test(f) && /(reviews?|ביקור[ות]|\d+\/5|\b\d{2,4}r\b)/i.test(f)) {
-                    autoCorrected.push(`${f} → demoted: critic-vs-prompt-data mismatch (Phase 4.0 fix7 — ourGmb numbers are valid evidence even if critic doesn't see them in palsRating block)`)
-                    continue
-                }
-                remainingHardFailures.push(f)
+                return { remaining, autoCorrected }
             }
+
+            const first = applyAutoCorrect(critique.hardFailures, critique.warnings)
+            let remainingHardFailures = first.remaining
+            let autoCorrected = first.autoCorrected
+
+            // ─── Post-revision re-critique (Phase QA round-12) ──────────────
+            // Closes the stale-verdict gap: the verdict above was computed on the
+            // PRE-revision draft. When a revision WAS applied yet blockers remain,
+            // the revision may have already resolved them (e.g. it removed an
+            // unverified claim) — so the pre-revision fail is stale. Re-run the
+            // critic VERDICT-ONLY (no further rewrite) on the FINAL content and
+            // trust that authoritative call. Bounded: only fires when a revision
+            // happened AND something still looks unresolved.
+            if (remainingHardFailures.length > 0 && critique.revisedContent) {
+                try {
+                    const recheck = await runSelfCritique({
+                        content: output.content,
+                        stageId,
+                        originalPrompt: promptResult.prompt,
+                        model,
+                        instanceId,
+                        businessName,
+                        skipRevision: true,
+                    })
+                    if (!recheck.skipped) {
+                        const refiltered = applyAutoCorrect(recheck.hardFailures, critique.warnings)
+                        console.log(`[research/${stageId}] post-revision re-critique: ${remainingHardFailures.length}→${refiltered.remaining.length} blocker(s)`)
+                        remainingHardFailures = refiltered.remaining
+                        autoCorrected = autoCorrected.concat(refiltered.autoCorrected)
+                    }
+                } catch (e) {
+                    console.warn(`[research/${stageId}] re-critique failed (keeping pre-revision verdict):`, (e as Error).message)
+                }
+            }
+
             const stillHasHardFailures = remainingHardFailures.length > 0
             output.qualityGate = {
                 pass: !stillHasHardFailures,

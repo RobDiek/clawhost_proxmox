@@ -68,13 +68,20 @@ interface RunInput {
     instanceId: string
     /** Apparent business name — for context echo. */
     businessName?: string
+    /**
+     * Verdict-only mode: run the critic checks but DON'T trigger a revision
+     * pass. Used for the post-revision re-critique — we want the authoritative
+     * verdict on the already-finalized content, not another rewrite (which
+     * would loop). Default false.
+     */
+    skipRevision?: boolean
 }
 
 /**
  * Run the self-critique pass. Always returns — never throws.
  */
 export async function runSelfCritique(input: RunInput): Promise<QualityGateOutcome> {
-    const { content, stageId, originalPrompt, model, instanceId, businessName } = input
+    const { content, stageId, originalPrompt, model, instanceId, businessName, skipRevision } = input
 
     if (!content || content.length < 200) {
         return {
@@ -175,7 +182,7 @@ export async function runSelfCritique(input: RunInput): Promise<QualityGateOutco
     // This is what makes revisions actually land: the full 32K-token output
     // budget goes to the content, so it no longer truncates mid-string the
     // way the old in-JSON revised_content did.
-    if (!outcome.pass && outcome.hardFailures.length > 0) {
+    if (!outcome.pass && outcome.hardFailures.length > 0 && !skipRevision) {
         try {
             const rev = await runRevision({
                 content,
