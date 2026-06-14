@@ -3052,8 +3052,8 @@ input{font-family:inherit}
 
                     <!-- Login Customer ID -->
                     <div style="margin-bottom:14px">
-                      <label for="gads-login-customer-id" style="display:block;font-size:0.78rem;font-weight:600;color:#1F2937;margin-bottom:3px">Login Customer ID <span style="font-weight:400;color:#9CA3AF">(אופציונלי)</span></label>
-                      <div style="font-size:0.72rem;color:#6B7280;line-height:1.45;margin-bottom:5px">רק אם הגישה לחשבון נעשית דרך <strong>Manager Account (MCC)</strong>. במקרה זה הזינו את ה-Customer ID של ה-MCC עצמו (10 ספרות, ללא מקפים). אם זה חשבון רגיל ללא MCC — השאירו ריק.</div>
+                      <label for="gads-login-customer-id" style="display:block;font-size:0.78rem;font-weight:600;color:#1F2937;margin-bottom:3px">Login Customer ID <span style="font-weight:400;color:#9CA3AF">(MCC)</span></label>
+                      <div style="font-size:0.72rem;color:#6B7280;line-height:1.45;margin-bottom:5px">ה-Customer ID של ה-<strong>Manager Account (MCC)</strong> שאליו שייך ה-Developer Token (10 ספרות, ללא מקפים). <strong>חובה כש-ה-Developer Token שייך ל-MCC</strong> — גם אם החשבון שתבחרו הוא ה"חשבון הרגיל" שלכם, הגישה דרך ה-Developer Token עוברת דרך ה-MCC. השאירו ריק רק אם ה-Token הונפק ישירות על חשבון בודד ללא MCC.</div>
                       <input type="text" id="gads-login-customer-id" placeholder="0987654321" dir="ltr" class="int-input" style="margin-bottom:0" maxlength="12"/>
                     </div>
 
