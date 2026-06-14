@@ -252,6 +252,21 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             return fail(c, output.errorMessage || 'Stage failed', code as 400 | 500)
         }
 
+        // ─── Deterministic priority_score recompute (Phase QA round-11) ──
+        // Fix (reach×impact×confidence)/max(effort,1)/100 arithmetic BEFORE the
+        // critic sees it. The model miscomputes it on non-1-effort rows and the
+        // LLM revision can't reliably fix arithmetic — so do it deterministically.
+        try {
+            const { recomputePriorityScores } = await import('@/services/research/recomputeScores')
+            const pr = recomputePriorityScores(output.content)
+            if (pr.fixed > 0) {
+                output.content = pr.content
+                console.log(`[research/${stageId}] recomputed ${pr.fixed} priority_score value(s) deterministically`)
+            }
+        } catch (e) {
+            console.warn(`[research/${stageId}] priority_score recompute skipped:`, (e as Error).message)
+        }
+
         // ─── Self-critique gate (Phase 3.5e) ──
         // 2nd Anthropic call audits content against 10 quality_gate checks.
         // On hard failures (math/script/intent/source), critic produces a
