@@ -58,16 +58,19 @@ export async function run(c: Context): Promise<Response> {
         ?? firstNum(asArr(chosen.budget_allocation_ils).map(b => asRec(b).channel_1_ils).find(Boolean))
         ?? 3000
 
-    // ── deal value + max CPA: from persona pricing + chosen KPI CAC ──
+    // ── deal value (LTV) + max CPA — kept on the SAME basis ──
     const personas = asArr(asRec(results.audience_personas).records) as Rec[]
     const pricing = personas.map(p => asRec(p.pricing_validation)).find(p => Object.keys(p).length > 0) || {}
-    const avgDealValueIls = firstNum(pricing.recommended_price_point_ils)
-        ?? firstNum(pricing.wtp_range_ils)
-        ?? 279
+    const entryMonthlyIls = firstNum(pricing.recommended_price_point_ils) ?? firstNum(pricing.wtp_range_ils) ?? 279
+    // avgDealValue = lifetime value (entry price × retention), NOT the monthly
+    // entry price — otherwise it sits BELOW the CAC-derived maxCpa and the budget
+    // scenarios read every acquisition as a loss.
+    const RETENTION_MONTHS = 12
+    const avgDealValueIls = Math.round(entryMonthlyIls * RETENTION_MONTHS)
     const kpiMetrics = asArr(asRec(chosen.kpis_90_day).metrics) as Rec[]
     const cacMetric = kpiMetrics.find(m => /cac/i.test(String(m.name || '')) && !/ltv/i.test(String(m.name || '')))
-    const maxCpaIls = firstNum(asRec(cacMetric?.scenarios_90d).base)
-        ?? Math.round(avgDealValueIls * 0.6)
+    let maxCpaIls = firstNum(asRec(cacMetric?.scenarios_90d).base) ?? Math.round(avgDealValueIls * 0.4)
+    if (maxCpaIls >= avgDealValueIls) maxCpaIls = Math.round(avgDealValueIls * 0.5) // never above LTV
 
     // ── goal ──
     const goalsText = String(answers.marketingGoals || '').toLowerCase()
@@ -78,18 +81,26 @@ export async function run(c: Context): Promise<Response> {
     const valueProps = asArr(positioning.value_props) as Rec[]
     const keyOffer = String(valueProps[0]?.name || positioning.brand_promise || 'מוצר כניסה ₪279 בלי התחייבות')
 
-    // ── tracking stack: from the active agent's connected scopes ──
-    const gScope = (() => {
-        const gt = asRec((agent as unknown as { googleTokens?: unknown })?.googleTokens)
-        const raw = gt.scopes || gt.scope || ''
-        return (Array.isArray(raw) ? raw.join(' ') : String(raw)).toLowerCase()
-    })()
-    const metaTok = asRec((agent as unknown as { metaTokens?: unknown })?.metaTokens)
+    // ── tracking stack: from connected agent_integrations (instance-level —
+    // works even when there is no per-agent mateh_agents row, as for flow). The
+    // old check read agent.googleTokens which is empty for legacy instances. ──
     const trackingStack: string[] = []
-    if (/analytics|ga4/.test(gScope)) trackingStack.push('ga4')
-    if (/tagmanager|gtm/.test(gScope)) trackingStack.push('gtm')
-    if (/adwords|\bads\b/.test(gScope)) trackingStack.push('google_ads')
-    if (metaTok.adAccountId || (metaTok.grantedScopes && /ads/.test(String(metaTok.grantedScopes)))) trackingStack.push('meta')
+    try {
+        const { db } = await import('@/db')
+        const { agentIntegrations } = await import('@/db/schema')
+        const { eq } = await import('drizzle-orm')
+        const rows = await db.select().from(agentIntegrations).where(eq(agentIntegrations.instanceId, instanceId))
+        const conn = rows.filter(r => r.status === 'connected')
+        const gScopes = conn.filter(r => r.integrationType === 'google')
+            .flatMap(r => { const s = asRec(r.config).scopes; return Array.isArray(s) ? s.map(String) : [String(asRec(r.config).scope || '')] })
+            .join(' ').toLowerCase()
+        if (/analytics|ga4/.test(gScopes)) trackingStack.push('ga4')
+        if (/tagmanager|gtm/.test(gScopes)) trackingStack.push('gtm')
+        if (/adwords|\bads\b/.test(gScopes)) trackingStack.push('google_ads')
+        if (conn.some(r => r.integrationType === 'meta')) trackingStack.push('meta')
+    } catch (e) {
+        console.warn('[paid_questionnaire] trackingStack derive failed:', (e as Error).message)
+    }
 
     // ── consent mode + geography + name ──
     const cmp = asRec(chosen.conversion_measurement_plan)
@@ -124,8 +135,8 @@ export async function run(c: Context): Promise<Response> {
 
 **יעד עיקרי:** ${primaryGoal === 'sales' ? 'מכירות ישירות' : 'גיוס לידים'}
 **תקציב מדיה חודשי:** ₪${monthlyBudgetIls.toLocaleString()} _(מתוך פירוק התקציב של התרחיש הנבחר)_
-**שווי עסקה ממוצע:** ₪${avgDealValueIls.toLocaleString()} _(מתומחור הפרסונה — ⚠ כדאי לוודא: מחיר כניסה מול LTV)_
-**CPA מקסימלי:** ₪${maxCpaIls.toLocaleString()} _(מיעד ה-CAC של התרחיש — ⚠ ניתן לכוונן)_
+**שווי עסקה ממוצע (LTV):** ₪${avgDealValueIls.toLocaleString()} _(₪${entryMonthlyIls.toLocaleString()}/חודש × ${RETENTION_MONTHS} חודשי ריטנשן — ⚠ עדכנו אם הריטנשן שונה)_
+**CPA מקסימלי:** ₪${maxCpaIls.toLocaleString()} _(מיעד ה-CAC של התרחיש, מוגבל מתחת ל-LTV — ⚠ ניתן לכוונן)_
 **הצעה מרכזית:** ${keyOffer}
 **גאוגרפיה:** ${geography}
 **Tracking:** ${trackingStack.length ? trackingStack.join(', ') : 'טרם חובר'}
