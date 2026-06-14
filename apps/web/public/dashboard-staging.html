@@ -3222,25 +3222,34 @@ input{font-family:inherit}
           <div><strong>Meta Business Manager</strong><div class="int-status" id="pub-metaads-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden">
-          <div style="font-size:0.78rem;color:#1E40AF;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.55">
-            <strong>חיבור אחד = שליטה מלאה.</strong> Meta Business Manager OAuth מעניק גישה ל:
-            <ul style="margin:4px 0 0;padding-inline-start:18px;font-size:0.78rem;color:#374151">
-              <li>דפי Facebook (פרסום, תגובות, אנליטיקס)</li>
-              <li>חשבונות Instagram Business (פוסטים, Stories, Reels, DMs)</li>
-              <li>חשבונות פרסום — קמפיינים, ad sets, מודעות</li>
-              <li>Pixel + Conversion API (CAPI) — מדידת המרות מצד שרת</li>
-              <li>Lead Forms, Catalogs, Custom Audiences, Lookalikes</li>
-            </ul>
-            <div style="margin-top:6px;color:#6B7280">חיבור נפרד ל-Facebook Pages / Instagram אינו נדרש — הכל זמין דרך OAuth זה.</div>
-          </div>
+          <div style="font-size:0.76rem;color:#6B7280;margin-bottom:10px;line-height:1.5">בחרו איך לחבר את Meta — לפי רמת הבידוד שתעדיפו.</div>
           <div id="metaads-not-connected">
-            <input type="text" id="metaads-app-id" placeholder="Meta App ID" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
-            <input type="password" id="metaads-app-secret" placeholder="Meta App Secret" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
-            <button class="btn btn-primary btn-sm" onclick="startMetaOAuth()">→ חברו Meta Business</button>
-            <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('meta');return false" style="color:#2563EB">📖 מדריך חיבור מפורט</a></div>
-            <div style="background:#FEF9C3;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:0.78rem;color:#92400E;line-height:1.5">
-              💡 <strong>אין גישה כרגע?</strong> ניתן לדלג ולהעלות במקום זאת <strong>דוחות היסטוריים</strong> מ-Meta Ads Manager (PDF/CSV). אנחנו נפענח אוטומטית את הנתונים (CTR, CPC, CVR, top-performing creatives, audiences) ונגזור מהם מסקנות איכותיות עד שתשיגו גישה מלאה.
-              <div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="openHistoricalReportsUpload('meta')" style="font-size:0.74rem;color:#92400E;border-color:#FDE68A">📄 העלאת דוחות היסטוריים →</button></div>
+            <!-- Mode A: Managed by Flowmatic — Soon -->
+            <div style="border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#F9FAFB">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
+                <strong style="font-size:0.85rem;color:#374151">חיבור מנוהל של Flowmatic — בלחיצה אחת</strong>
+                <span style="font-size:0.66rem;font-weight:700;padding:2px 9px;border-radius:999px;background:#E5E7EB;color:#6B7280;flex-shrink:0">בקרוב</span>
+              </div>
+              <div style="font-size:0.76rem;color:#6B7280;line-height:1.5">חיבור בלחיצה אחת דרך אפליקציית Meta המאומתת של Flowmatic — בלי להקים אפליקציה משלכם. בתהליך אישור מול Meta, יופעל בקרוב.</div>
+              <button class="btn btn-sm" disabled style="margin-top:8px;background:#E5E7EB;color:#9CA3AF;border:none;cursor:not-allowed;font-size:0.78rem">בקרוב</button>
+            </div>
+            <!-- Mode B: Your own Meta app — full isolation -->
+            <div style="border:1px solid #BFDBFE;border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fff">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px">
+                <strong style="font-size:0.85rem;color:#1E40AF">חיבור עם אפליקציית Meta משלכם — בידוד מלא</strong>
+                <span style="font-size:0.64rem;font-weight:600;padding:2px 8px;border-radius:5px;background:#EFF6FF;color:#1E40AF;border:1px solid #BFDBFE;flex-shrink:0">מתקדם</span>
+              </div>
+              <div style="font-size:0.76rem;color:#6B7280;line-height:1.5;margin-bottom:8px">מקימים אפליקציית Meta בבעלותכם ומתחברים דרכה — הגישה והנתונים נשארים לגמרי אצלכם, בלי תיווך. נותן שליטה מלאה על דפי Facebook, חשבונות Instagram וחשבונות הפרסום.</div>
+              <input type="text" id="metaads-app-id" placeholder="Meta App ID" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
+              <input type="password" id="metaads-app-secret" placeholder="Meta App Secret" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
+              <button class="btn btn-primary btn-sm" onclick="startMetaOAuth()">→ חברו עם האפליקציה שלכם</button>
+              <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('meta');return false" style="color:#2563EB">📖 מדריך הקמת אפליקציה</a></div>
+            </div>
+            <!-- Mode C: Upload reports for analysis — no connection -->
+            <div style="background:#FEF9C3;border:1px solid #FDE68A;border-radius:10px;padding:12px 14px;font-size:0.78rem;color:#92400E;line-height:1.5">
+              <strong>📄 ניתוח דוחות שהעלאתם — בלי חיבור</strong>
+              <div style="margin-top:4px;color:#92400E">מעדיפים לא לחבר כלום עכשיו? העלו דוחות היסטוריים מ-Meta Ads Manager (PDF/CSV) ואנחנו נפענח אותם אוטומטית — שיעורי הקלקה, עלות-להקלקה, המרות, והקריאייטיבים והקהלים המנצחים — ונגזור מהם מסקנות איכותיות.</div>
+              <div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="openHistoricalReportsUpload('meta')" style="font-size:0.74rem;color:#92400E;border-color:#FDE68A">העלאת דוחות לניתוח →</button></div>
             </div>
           </div>
           <div id="metaads-connected" style="display:none">
