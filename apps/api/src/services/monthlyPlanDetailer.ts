@@ -24,6 +24,7 @@ import type { PromptCtx } from './monthlyPlanGenerator'
 import type { TaskSkeleton } from './monthlyPlanSkeleton'
 import { routedOpusStream } from './routedLlm'
 import { extractLlmJson } from './llmJson'
+import { buildConnectedStackDirective } from './connectedStack'
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
 
 interface BatchOutput {
@@ -88,6 +89,11 @@ function buildChannelContextBlock(ctx: PromptCtx, channels: MonthlyTask['channel
     const wantCross = channels.includes('cross') || channels.length > 2
 
     const parts: string[] = []
+
+    // Always first — integration grounding. Every batch's actionPlan steps must
+    // match the connected stack (git/markdown vs WordPress; the connected Ads
+    // account; never "create new"). Highest salience → placed before everything.
+    parts.push(buildConnectedStackDirective(ctx.connectedStack))
 
     // Always include — every batch needs brand voice + scenario + audit highlights
     parts.push(`═══ BRAND BOOK (voice / USPs / banned phrases / vocabulary — every creative MUST follow) ═══
@@ -342,6 +348,7 @@ DO NOT add new tasks. DO NOT remove tasks. DO NOT change ids / types / channels 
 4. ActionPlan: 5-8 ordered steps. Last step = monitoring/verification with explicit metric + horizon + kill threshold.
 5. Link budgets — chosenScenario VERBATIM (Smart 2-3 mid-DR links ~₪1K/mo; Aggressive 5-8 multi-tier ~₪3K/mo). Never invent.
 6. Hebrew strings — 2nd person plural (אתם/לכם/תוכלו) or impersonal infinitive. English technical terms expanded inline on first occurrence.
+7. Integration-grounded — obey the CONNECTED STACK block. actionPlan implementation steps MUST match the publish channel: git commits / pull requests to markdown/code when it is GitHub (NEVER name WordPress/WooCommerce/Yoast/RankMath then); WordPress REST/plugin only when WordPress is connected. Reference the connected Google Ads account; never "create a new account". For a missing integration, the step is "לחבר X", not an assumption it exists.
 
 ═══ HEBREW UX STANDARDS ═══
 

@@ -16,15 +16,14 @@
  * + idempotent. Runs awaited post-save in the generator (verdicts ready when the
  * plan returns) and is exposed standalone (reviewSavedPlan / script).
  */
-import { and, eq, gt } from 'drizzle-orm'
+import { and, eq, gt, isNull } from 'drizzle-orm'
 import { db } from '@/db'
-import { agentOutputs, instances } from '@/db/schema'
+import { agentOutputs } from '@/db/schema'
 import type { MatehAgentRow } from '@/services/agentContext'
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
 import { classifyTask } from '@/services/executorCapabilities'
 import { isExternalOutreachTask } from '@/services/monthlyTaskExecutor'
-import { loadWpConfig } from '@/services/seoMetaBatch'
-import { getApiKeyForInstance } from '@/controllers/hosting/agentSetup'
+import { resolveConnectedStack, stackToIntegrationsRecord } from '@/services/connectedStack'
 
 export type ReviewVerdict =
     | 'recommend_now'      // deps met, integration ready, low risk → do it now
@@ -54,28 +53,11 @@ interface ReviewCtx {
     knownTaskIds: Set<string>
 }
 
-/** Probe the tenant's real integration connections (mirrors what the executor checks). */
-async function gatherIntegrations(agent: MatehAgentRow, instanceId: string): Promise<Record<string, boolean>> {
-    const rd: any = agent.researchData || {}
-    const wp = await loadWpConfig(instanceId, agent.id).catch(() => null)
-    let adsCfg: any = agent.googleAdsConfig
-    if (!adsCfg?.customerId) {
-        try { adsCfg = (await db.select().from(instances).where(eq(instances.id, instanceId)))[0]?.googleAdsConfig } catch { /* ignore */ }
-    }
-    let apiKey = false
-    try { apiKey = !!(await getApiKeyForInstance(instanceId)) } catch { apiKey = false }
-    const gtmTarget = rd.mazhirGtm?.target || {}
-    return {
-        wordpress: !!wp,
-        github: !!((agent as any).githubConfig?.repo || rd.githubConfig?.repo),
-        google_ads: !!(adsCfg?.customerId && adsCfg?.developerToken),
-        gtm: !!gtmTarget.containerId,
-        ga4: !!gtmTarget.measurementId,
-        meta: !!((agent as any).metaTokens || rd.metaConfig?.pixelId),
-        whatsapp: !!(rd.waConfig?.phoneNumberId || rd.integrationsState?.whatsapp?.connected),
-        gbp: !!(rd.gbpConfig?.locationId || rd.integrationsState?.gbp?.connected),
-        api_key: apiKey,
-    }
+/** Probe the tenant's real integration connections via the shared resolver.
+ *  Null-safe: `agent` may be null for agentless tenants (no mateh_agents row). */
+async function gatherIntegrations(agent: MatehAgentRow | null, instanceId: string): Promise<Record<string, boolean>> {
+    const stack = await resolveConnectedStack(agent, instanceId)
+    return stackToIntegrationsRecord(stack)
 }
 
 const INTEGRATION_HE: Record<string, string> = {
@@ -176,13 +158,24 @@ export interface ReviewResult {
     dryRun?: boolean
 }
 
-/** Review the latest saved plan's tasks for an agent; write metadata.agentReview. */
-export async function reviewSavedPlan(agent: MatehAgentRow, opts: { dryRun?: boolean } = {}): Promise<ReviewResult> {
+/** Review the latest saved plan's tasks for an agent; write metadata.agentReview.
+ *  `agent` may be null for agentless tenants — pass `instanceId` explicitly so the
+ *  query can scope by instance (rows are written with agentId=null in that case). */
+export async function reviewSavedPlan(
+    agent: MatehAgentRow | null,
+    instanceId: string,
+    opts: { dryRun?: boolean } = {},
+): Promise<ReviewResult> {
     const dryRun = !!opts.dryRun
-    const instanceId = agent.vpsInstanceId
+    if (!instanceId) return { status: 'error', reason: 'no instanceId' }
     const since = new Date(Date.now() - 36 * 3600 * 1000)
+    // Agentless tenants persist monthly_task rows with agentId=null scoped by
+    // instanceId — scope the lookup the same way; agented tenants scope by agentId.
+    const scope = agent
+        ? eq(agentOutputs.agentId, agent.id)
+        : and(eq(agentOutputs.instanceId, instanceId), isNull(agentOutputs.agentId))
     const rows = await db.select().from(agentOutputs)
-        .where(and(eq(agentOutputs.agentId, agent.id), eq(agentOutputs.outputType, 'monthly_task'), gt(agentOutputs.createdAt, since))) as any[]
+        .where(and(scope, eq(agentOutputs.outputType, 'monthly_task'), gt(agentOutputs.createdAt, since))) as any[]
     if (!rows.length) return { status: 'no_plan', reason: 'no recent monthly_task rows' }
     let latestGen = ''
     for (const r of rows) { const g = (r.metadata as any)?.monthlyPlanGeneratedAt || ''; if (g > latestGen) latestGen = g }
@@ -220,7 +213,7 @@ export async function reviewSavedPlan(agent: MatehAgentRow, opts: { dryRun?: boo
             await db.update(agentOutputs).set({ metadata: { ...md, agentReview: review } }).where(eq(agentOutputs.id, r.id))
         }
     }
-    console.log(`[monthlyPlanReview] ${agent.id}: ${dryRun ? 'DRY ' : ''}reviewed ${planRows.length} tasks · ${JSON.stringify(byVerdict)} (gen=${latestGen})`)
+    console.log(`[monthlyPlanReview] ${agent?.id || instanceId}: ${dryRun ? 'DRY ' : ''}reviewed ${planRows.length} tasks · ${JSON.stringify(byVerdict)} (gen=${latestGen})`)
     return { status: 'ok', scanned: planRows.length, byVerdict, reviews, dryRun }
 }
 
@@ -229,5 +222,5 @@ export async function reviewSavedPlanForAgent(agentId: string, opts: { dryRun?: 
     const { matehAgents } = await import('@/db/schema')
     const [agent] = await db.select().from(matehAgents).where(eq(matehAgents.id, agentId)) as any[]
     if (!agent) return { status: 'error', reason: `agent_not_found:${agentId}` }
-    return reviewSavedPlan(agent as MatehAgentRow, opts)
+    return reviewSavedPlan(agent as MatehAgentRow, (agent as MatehAgentRow).vpsInstanceId, opts)
 }

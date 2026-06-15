@@ -12,7 +12,7 @@
  * batched cleanup (runMonthlyPlanHebrewCleanup — 90s/batch timeout, per-batch
  * fallback), and write the cleaned strings back, preserving the priority prefix.
  */
-import { and, eq, gt } from 'drizzle-orm'
+import { and, eq, gt, isNull } from 'drizzle-orm'
 import { db } from '@/db'
 import { agentOutputs } from '@/db/schema'
 import { runMonthlyPlanHebrewCleanup } from './monthlyPlanHebrewCleanup'
@@ -28,12 +28,18 @@ export interface SavedCleanupResult {
     samples?: Array<{ before: string; after: string }>
 }
 
-export async function runSavedPlanHebrewCleanup(agentId: string, opts: { dryRun?: boolean; instanceId?: string } = {}): Promise<SavedCleanupResult> {
+export async function runSavedPlanHebrewCleanup(agentId: string | null, opts: { dryRun?: boolean; instanceId?: string } = {}): Promise<SavedCleanupResult> {
     const dryRun = !!opts.dryRun
+    // Agentless tenants (no mateh_agents row) have no agentId — their rows are
+    // written with agentId=null scoped by instanceId. Require one of the two.
+    if (!agentId && !opts.instanceId) return { status: 'error', reason: 'need agentId or instanceId' }
     // Load this agent's monthly_task rows from the LATEST plan generation only.
     const since = new Date(Date.now() - 36 * 3600 * 1000)
+    const scope = agentId
+        ? eq(agentOutputs.agentId, agentId)
+        : and(eq(agentOutputs.instanceId, opts.instanceId!), isNull(agentOutputs.agentId))
     const rows = await db.select().from(agentOutputs)
-        .where(and(eq(agentOutputs.agentId, agentId), eq(agentOutputs.outputType, 'monthly_task'), gt(agentOutputs.createdAt, since))) as any[]
+        .where(and(scope, eq(agentOutputs.outputType, 'monthly_task'), gt(agentOutputs.createdAt, since))) as any[]
     if (!rows.length) return { status: 'no_plan', reason: 'no recent monthly_task rows' }
     // scope to the most recent plan generation
     let latestGen = ''
@@ -79,6 +85,6 @@ export async function runSavedPlanHebrewCleanup(agentId: string, opts: { dryRun?
         }
         updated++
     }
-    console.log(`[savedPlanHebrewCleanup] ${agentId}: ${dryRun ? 'DRY ' : ''}updated ${updated}/${planRows.length} rows (gen=${latestGen})`)
+    console.log(`[savedPlanHebrewCleanup] ${agentId || instanceId}: ${dryRun ? 'DRY ' : ''}updated ${updated}/${planRows.length} rows (gen=${latestGen})`)
     return { status: 'ok', scanned: planRows.length, updated, dryRun, samples }
 }

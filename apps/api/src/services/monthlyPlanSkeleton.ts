@@ -19,6 +19,7 @@
 import type { PromptCtx } from './monthlyPlanGenerator'
 import { routedOpusStream } from './routedLlm'
 import { extractLlmJson } from './llmJson'
+import { buildConnectedStackDirective } from './connectedStack'
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
 
 export type TaskType = MonthlyTask['type']
@@ -197,6 +198,8 @@ Business: ${ctx.businessName}
 Website: ${ctx.websiteUrl}
 Description: ${(ctx.businessDesc || '').slice(0, 600)}
 Trigger: ${ctx.trigger}
+
+${buildConnectedStackDirective(ctx.connectedStack)}
 
 ${scenarioBlock}
 ${baselineDeltaBlock}
@@ -384,6 +387,7 @@ const SKELETON_SYSTEM = `You are the senior strategic marketing director for an 
 3. Atomic — 1 task = 1 atomic action. "Add 23 negatives" is ONE task. "Switch bid strategy" is ANOTHER. "Publish 5 city LPs" → 5 separate tasks.
 4. Link budgets — read chosenScenario + cost_timeline_modeling VERBATIM. Never invent.
 5. Hebrew for all user-facing strings (title / summary / overview.hebrew / focusAreas / _oneLineRationale). English technical terms (campaign, schema, RSA, CPA, GTM) get HEBREW inline expansions on first occurrence — see standards below.
+6. Integration-grounded — obey the CONNECTED STACK block in the user prompt. NEVER propose a channel/tool the connected stack can't execute (e.g. WordPress/WooCommerce steps when the publish channel is GitHub), and NEVER propose creating an account/integration that is already connected (e.g. "open a new Google Ads account" when one is linked). For a MISSING integration a task needs, emit an explicit "לחבר X" prerequisite task instead.
 
 ═══ HEBREW UX STANDARDS ═══
 

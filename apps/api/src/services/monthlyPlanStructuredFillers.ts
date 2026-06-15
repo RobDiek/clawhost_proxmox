@@ -26,16 +26,81 @@
 
 import { randomBytes } from 'crypto'
 import type { MonthlyTask, MonthlyTaskActionStep } from '@/controllers/hosting/agentSetup'
+import type { ConnectedStack } from './connectedStack'
 
 // ─── Filler contract ──────────────────────────────────────────────────────
 export interface StructuredFiller {
     stageId: string
     description: string
     /**
-     * Returns NEW MonthlyTask objects to append. Receives existingTasks so
-     * the filler can skip records already covered (idempotency).
+     * Optional tactic tag. When set, the filler is SKIPPED if the tactic appears
+     * in the tenant's deferral set (rd.deferredTactics / rd.strategy.deferredTactics).
+     * This is the rail for Phase-0 rule #3 (respect upstream decisions): a strategy
+     * that rejected a tactic (e.g. city_pages for a national B2B) must not have it
+     * re-added by a deterministic filler.
      */
-    fill(rd: any, existingTasks: MonthlyTask[]): MonthlyTask[]
+    tactic?: string
+    /**
+     * Optional precondition. When provided and it returns false, the filler is
+     * skipped. Used to ground archetype-implied tactics in real signals (e.g. only
+     * spawn city pages when there is an actual local-geo signal — facts > priors).
+     */
+    appliesWhen?(rd: any, stack?: ConnectedStack): boolean
+    /**
+     * Returns NEW MonthlyTask objects to append. Receives existingTasks so
+     * the filler can skip records already covered (idempotency), and the resolved
+     * connected stack so deterministic copy stays integration-grounded (a filler
+     * with fewer params is still assignable — only stack-aware fillers declare it).
+     */
+    fill(rd: any, existingTasks: MonthlyTask[], stack?: ConnectedStack): MonthlyTask[]
+}
+
+// ─── Integration-grounding + deferral helpers (Phase 0) ───────────────────
+/**
+ * Channel-aware phrasing for filler action steps. Deterministic filler copy used
+ * to hardcode WordPress/WooCommerce/Yoast plugin instructions — wrong when the
+ * tenant publishes via GitHub (or has no CMS). Branch the wording to the resolved
+ * publish channel so every spawned task is integration-grounded.
+ */
+function cmsHint(stack: ConnectedStack | undefined, opts: { wp: string; git: string; generic?: string }): string {
+    const ch = stack?.publishChannel
+    if (ch === 'wordpress') return opts.wp
+    if (ch === 'github') return opts.git
+    return opts.generic ?? opts.git
+}
+
+/**
+ * True only when there is a concrete local-geo signal — explicit service-area
+ * cities or an `il_local` delivery-locality classification. Deliberately strict:
+ * a persona that merely mentions a city is NOT enough to justify a whole
+ * city-pages architecture (that was the speculative bug). National/B2B tenants
+ * (no such signal) return false → local-only fillers are skipped.
+ */
+function hasLocalGeoSignal(rd: any): boolean {
+    try {
+        const cities = rd?.paidProfile?.geography?.cities
+        if (Array.isArray(cities) && cities.length > 0) return true
+        const loc = rd?.businessClassification?.delivery_locality
+            || rd?.results?.business_classification?.delivery_locality
+            || rd?.results?.positioning?.delivery_locality
+        if (loc === 'il_local') return true
+        return false
+    } catch { return false }
+}
+
+/** Collect explicitly-deferred tactic names from research_data (Phase-0 rail;
+ *  Phase-1 strategy will populate these). Tolerant of string[] or {tactic}[] shapes. */
+function collectDeferredTactics(rd: any): Set<string> {
+    const out = new Set<string>()
+    const sources = [rd?.deferredTactics, rd?.strategy?.deferredTactics, rd?.results?.strategy_options?.deferredTactics]
+    for (const src of sources) {
+        if (!Array.isArray(src)) continue
+        for (const entry of src) {
+            const name = typeof entry === 'string' ? entry : (entry?.tactic || entry?.id || entry?.name)
+            if (name && typeof name === 'string') out.add(name.trim().toLowerCase())
+        }
+    }
+    return out
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -78,7 +143,7 @@ function _step(step: string, automated = false, minutes = 30): MonthlyTaskAction
 const INTERNAL_SEO_FILLER: StructuredFiller = {
     stageId: 'internal_seo_audit',
     description: 'Cluster URL-level SEO audit findings into actionable monthly tasks',
-    fill(rd, existingTasks) {
+    fill(rd, existingTasks, stack) {
         const records: any[] = rd?.results?.internal_seo_audit?.records || []
         if (records.length === 0) return []
 
@@ -115,7 +180,11 @@ const INTERNAL_SEO_FILLER: StructuredFiller = {
                 ],
                 dependsOn: [],
                 actionPlan: [
-                    _step('בחנו את תבנית WooCommerce — הפעילו אפשרות הזרקת Product schema אוטומטית (פלאגין Rank Math / Yoast / RankMath Pro).', false, 30),
+                    _step(cmsHint(stack, {
+                        wp: 'בחנו את תבנית WooCommerce — הפעילו הזרקת Product schema אוטומטית (פלאגין Rank Math / Yoast).',
+                        git: 'הוסיפו Product schema (JSON-LD) לתבנית דף המוצר בקוד — בלוק אחד שמיוצר לכל דף מוצר — ובצעו commit/PR ב-GitHub.',
+                        generic: 'הוסיפו Product schema (JSON-LD) לתבנית דף המוצר — בלוק אחד שמיוצר אוטומטית לכל דף מוצר.',
+                    }), false, 30),
                     _step('בדקו ב-Schema.org Validator שכל הדפים מתקבלים תקין: name, image, price (priceCurrency=ILS), availability, brand.', false, 45),
                     _step(`עברו על דוגמת ${urls.length || 'N'} דפים (השארנו רשימה ב-sources) ואמתו שה-schema fields מאוכלסים בערכים נכונים.`, false, 60),
                     _step('בקשו אינדוקס מחדש דרך Search Console URL Inspection לדפים מובילים (top-10 by traffic).', false, 30),
@@ -200,7 +269,11 @@ const INTERNAL_SEO_FILLER: StructuredFiller = {
                 actionPlan: [
                     _step('עבדו עם הרשימה מ-sources — לכל דף כתבו meta description 150-160 תווים בעברית.', false, 90),
                     _step('כללו: keyword עיקרי + value prop + CTA (לדוגמה: "משלוח חינם", "הזמינו עכשיו").', false, 30),
-                    _step('הכניסו דרך Yoast/RankMath / WooCommerce product fields. שמרו רשימת הדפים המעודכנים.', false, 60),
+                    _step(cmsHint(stack, {
+                        wp: 'הכניסו דרך Yoast/RankMath / שדות המוצר ב-WooCommerce. שמרו רשימת הדפים המעודכנים.',
+                        git: 'עדכנו את שדה ה-meta description ב-frontmatter/תבנית הדף בקוד ובצעו commit/PR ב-GitHub. שמרו רשימת הדפים המעודכנים.',
+                        generic: 'עדכנו את שדה ה-meta description בכל דף דרך מערכת הניהול. שמרו רשימת הדפים המעודכנים.',
+                    }), false, 60),
                     _step('בקשו crawl מחדש דרך GSC URL Inspection ל-10 הדפים החשובים ביותר.', false, 20),
                     _step('ניטור: 30 ימים — השוו CTR ב-GSC לפני/אחרי על הדפים שהשתנו.', false, 15),
                 ],
@@ -679,6 +752,12 @@ const QUOTABILITY_FILLER: StructuredFiller = {
 const CITY_PAGES_FILLER: StructuredFiller = {
     stageId: 'k25_city_pages',
     description: 'Spawn city page architecture task for top IL cities',
+    tactic: 'city_pages',
+    // Local SEO city pages are an archetype-implied tactic — only valid when the
+    // tenant actually serves local geographies. Without a concrete local-geo
+    // signal (national/B2B tenants) this used to spawn speculative city pages
+    // off hardcoded IL metros. Gate it: facts > priors.
+    appliesWhen: (rd) => hasLocalGeoSignal(rd),
     fill(rd, existingTasks) {
         if (_existingTaskMatches(existingTasks, [/city page|דף עיר|local seo.*דף|דפי ערים|local landing|דף עירוני/i])) {
             return []
@@ -740,6 +819,7 @@ const CITY_PAGES_FILLER: StructuredFiller = {
 const PERSONA_LP_FILLER: StructuredFiller = {
     stageId: 'k25_persona_lps',
     description: 'Spawn dedicated landing pages per primary persona',
+    tactic: 'persona_lps',
     fill(rd, existingTasks) {
         const personas: any[] = rd?.results?.audience_personas?.records || []
         if (personas.length === 0) return []
@@ -844,7 +924,7 @@ const INTERNAL_LINKING_FILLER: StructuredFiller = {
 const IMAGE_SEO_FILLER: StructuredFiller = {
     stageId: 'k26_image_seo',
     description: 'Image SEO audit: alt text, WebP/AVIF, lazy loading, image sitemap',
-    fill(_rd, existingTasks) {
+    fill(_rd, existingTasks, stack) {
         if (_existingTaskMatches(existingTasks, [/image seo|alt text|תמונות.*alt|webp|avif|image sitemap|sitemap.*תמונות|תמונות.*מהירות/i])) return []
         return [{
             id: newTaskId('tsk_k26_image_seo'),
@@ -855,14 +935,26 @@ const IMAGE_SEO_FILLER: StructuredFiller = {
             priority: 'P1',
             estimatedEffort: '1_day',
             expectedImpact: { metric: 'organic_traffic_pct', value: 12, horizon: '60d', confidence: 'medium', rationale: 'אופטימיזציית תמונות מורידה LCP ב-30-50%, פותחת image_pack ל-15-25% משאילתות, ומעלה accessibility score.' },
-            sources: [{ type: 'other' as const, ref: 'core_web_vitals.image_baseline', excerpt: 'תמונות = 50-70% ממשקל דף ב-WooCommerce/e-commerce.' }],
+            sources: [{ type: 'other' as const, ref: 'core_web_vitals.image_baseline', excerpt: 'תמונות = 50-70% ממשקל דף באתרי מסחר.' }],
             dependsOn: [],
             actionPlan: [
                 _step('ביצוע סריקה: כמה תמונות באתר ללא alt text? (השתמשו ב-Screaming Frog / Sitebulb / Ahrefs Audit).', false, 30),
                 _step('כתבו alt text בעברית לכל תמונה — descriptive (לא keyword stuffing), 5-12 מילים, כולל context.', false, 240),
-                _step('המירו תמונות JPG/PNG ל-WebP (קומפרסיה 25-35% טובה יותר). פלאגין WordPress: ShortPixel / WebP Express / Imagify.', false, 60),
-                _step('הפעילו lazy loading (native HTML loading="lazy" על כל img צו-fold + iframe). WordPress 5.5+ עושה אוטומטית.', false, 30),
-                _step('צרו image-sitemap.xml (נוסף ל-sitemap הראשי) ושלחו ל-GSC. RankMath/Yoast יוצרים אוטומטית.', false, 30),
+                _step(cmsHint(stack, {
+                    wp: 'המירו תמונות JPG/PNG ל-WebP (קומפרסיה 25-35% טובה יותר). פלאגין WordPress: ShortPixel / WebP Express / Imagify.',
+                    git: 'המירו תמונות JPG/PNG ל-WebP (קומפרסיה 25-35% טובה יותר) בשלב ה-build / סקריפט עיבוד תמונות, ובצעו commit ל-GitHub.',
+                    generic: 'המירו תמונות JPG/PNG ל-WebP (קומפרסיה 25-35% טובה יותר) דרך כלי עיבוד התמונות של האתר.',
+                }), false, 60),
+                _step(cmsHint(stack, {
+                    wp: 'הפעילו lazy loading (native HTML loading="lazy" על כל img מתחת ל-fold + iframe). WordPress 5.5+ עושה אוטומטית.',
+                    git: 'הוסיפו loading="lazy" לכל תגית img מתחת ל-fold + iframe בתבניות הקוד, ובצעו commit ל-GitHub.',
+                    generic: 'הוסיפו loading="lazy" לכל תגית img מתחת ל-fold + iframe.',
+                }), false, 30),
+                _step(cmsHint(stack, {
+                    wp: 'צרו image-sitemap.xml (נוסף ל-sitemap הראשי) ושלחו ל-GSC. RankMath/Yoast יוצרים אוטומטית.',
+                    git: 'צרו image-sitemap.xml (נוסף ל-sitemap הראשי) בשלב ה-build ושלחו ל-GSC.',
+                    generic: 'צרו image-sitemap.xml (נוסף ל-sitemap הראשי) ושלחו ל-GSC.',
+                }), false, 30),
                 _step('הוסיפו תמונת og:image לכל דף עם תוכן (1200×630 WebP) ו-twitter:image לשיתופים.', false, 45),
                 _step('ניטור 60 יום: GSC → Performance → Search appearance "Images" — מדדו clicks/impressions delta. CWV → LCP delta.', false, 15),
             ],
@@ -913,6 +1005,7 @@ const VIDEO_SCHEMA_FILLER: StructuredFiller = {
 const COMPARISON_PAGES_FILLER: StructuredFiller = {
     stageId: 'k26_comparison_pages',
     description: 'BOFU comparison pages for top-3 competitors not already covered',
+    tactic: 'comparison_pages',
     fill(rd, existingTasks) {
         const records: any[] = rd?.results?.paid_competitor_landscape?.records || []
         const competitors: any[] = records.filter(r => r?.domain && (r.strategic_threat_level === 'high' || r.strategic_threat_level === 'medium'))
@@ -962,7 +1055,7 @@ const COMPARISON_PAGES_FILLER: StructuredFiller = {
 const TECHNICAL_SCHEMA_FILLER: StructuredFiller = {
     stageId: 'k26_technical_schema',
     description: 'BreadcrumbList + WebSite SearchAction schema (sitelinks search box)',
-    fill(_rd, existingTasks) {
+    fill(_rd, existingTasks, stack) {
         const hasContent = existingTasks.some(t => /pillar|spoke|דף עוגן|דף נושא|landing|דף נחיתה|דף עיר/i.test(`${t.title || ''} ${t.summary || ''}`))
         if (!hasContent) return []
         if (_existingTaskMatches(existingTasks, [/breadcrumblist|breadcrumb schema|searchaction|website schema|sitelinks search|תיוג.*נתיב|searchbox/i])) return []
@@ -978,8 +1071,16 @@ const TECHNICAL_SCHEMA_FILLER: StructuredFiller = {
             sources: [{ type: 'other' as const, ref: 'technical_schema_baseline', excerpt: 'שתי הסכמות הללו = low-effort high-impact technical SEO.' }],
             dependsOn: [],
             actionPlan: [
-                _step('BreadcrumbList: הוסיפו על כל category / product / spoke / city page. RankMath/Yoast עושים אוטומטית — בדקו ב-Rich Results Test.', false, 45),
-                _step('WebSite schema + potentialAction (SearchAction): הוסיפו על דף הבית. target = /?s={query} (WordPress) או /search?q={query}.', false, 30),
+                _step(cmsHint(stack, {
+                    wp: 'BreadcrumbList: הוסיפו על כל קטגוריה / מוצר / דף נושא / דף עיר. RankMath/Yoast עושים אוטומטית — בדקו ב-Rich Results Test.',
+                    git: 'BreadcrumbList (JSON-LD): הוסיפו לתבניות הדפים בקוד ובצעו commit/PR ב-GitHub — בדקו ב-Rich Results Test.',
+                    generic: 'BreadcrumbList (JSON-LD): הוסיפו על כל קטגוריה / מוצר / דף נושא / דף עיר — בדקו ב-Rich Results Test.',
+                }), false, 45),
+                _step(cmsHint(stack, {
+                    wp: 'WebSite schema + potentialAction (SearchAction): הוסיפו על דף הבית. target = /?s={query} (WordPress).',
+                    git: 'WebSite schema + potentialAction (SearchAction): הוסיפו ל-JSON-LD של דף הבית בקוד. target = /search?q={query}.',
+                    generic: 'WebSite schema + potentialAction (SearchAction): הוסיפו על דף הבית. target = /search?q={query}.',
+                }), false, 30),
                 _step('הוסיפו Organization schema על כל דף footer-wide (לא רק הבית) — sameAs + logo + contactPoint.', false, 30),
                 _step('בדקו ב-Rich Results Test על 5 דפים representative — וודאו שאין warnings.', false, 30),
                 _step('בקשו re-crawl ל-GSC לדפים הראשיים. עקבו אחרי "Sitelinks searchbox" ב-Search appearance.', false, 15),
@@ -995,7 +1096,7 @@ const TECHNICAL_SCHEMA_FILLER: StructuredFiller = {
 const REVIEW_SCHEMA_FILLER: StructuredFiller = {
     stageId: 'k26_review_schema',
     description: 'AggregateRating + Review schema for product pages',
-    fill(rd, existingTasks) {
+    fill(rd, existingTasks, stack) {
         const records: any[] = rd?.results?.internal_seo_audit?.records || []
         const productPages = records.filter(r => r?.page_type === 'product' || /\/product\//i.test(r?.url || ''))
         if (productPages.length < 10) return []
@@ -1012,8 +1113,16 @@ const REVIEW_SCHEMA_FILLER: StructuredFiller = {
             sources: [{ type: 'other' as const, ref: `internal_seo_audit.records[].page_type=product (n=${productPages.length})`, excerpt: `${productPages.length} דפי מוצר זוהו.` }],
             dependsOn: [],
             actionPlan: [
-                _step('סנכרנו עם source-of-truth של ביקורות (Google Reviews API / WooCommerce reviews / Trustpilot).', false, 45),
-                _step('עדכנו את תבנית WooCommerce להוסיף AggregateRating: ratingValue, reviewCount, bestRating=5. כללו ב-Product schema.', false, 90),
+                _step(cmsHint(stack, {
+                    wp: 'סנכרנו עם source-of-truth של ביקורות (Google Reviews API / ביקורות WooCommerce / Trustpilot).',
+                    git: 'סנכרנו עם source-of-truth של ביקורות (Google Reviews API / Trustpilot / קובץ נתוני ביקורות במאגר).',
+                    generic: 'סנכרנו עם source-of-truth של ביקורות (Google Reviews API / Trustpilot / מערכת הביקורות באתר).',
+                }), false, 45),
+                _step(cmsHint(stack, {
+                    wp: 'עדכנו את תבנית WooCommerce להוסיף AggregateRating: ratingValue, reviewCount, bestRating=5. כללו ב-Product schema.',
+                    git: 'הוסיפו AggregateRating (ratingValue, reviewCount, bestRating=5) ל-JSON-LD של דף המוצר בקוד, כחלק מ-Product schema, ובצעו commit/PR.',
+                    generic: 'הוסיפו AggregateRating (ratingValue, reviewCount, bestRating=5) לתבנית דף המוצר, כחלק מ-Product schema.',
+                }), false, 90),
                 _step('הוסיפו Review schema לפחות לחמש ביקורות פר מוצר (top by helpfulness): author Person, datePublished, reviewBody, reviewRating.', false, 90),
                 _step('בדקו ב-Rich Results Test על 3 דפי מוצר — וודאו star rating מוצג. fix warnings.', false, 30),
                 _step('בקשו re-crawl ב-GSC לדפי מוצר עליונים. עקבו אחרי "Review snippet" ב-Search appearance.', false, 20),
@@ -1029,7 +1138,7 @@ const REVIEW_SCHEMA_FILLER: StructuredFiller = {
 const SITEMAP_VALIDATION_FILLER: StructuredFiller = {
     stageId: 'k26_sitemap_validation',
     description: 'Sitemap.xml validation + GSC submission cadence',
-    fill(_rd, existingTasks) {
+    fill(_rd, existingTasks, stack) {
         if (_existingTaskMatches(existingTasks, [/sitemap.*validat|sitemap.*xml|תוקפ.*sitemap|sitemap submission|sitemap.*gsc/i])) return []
         return [{
             id: newTaskId('tsk_k26_sitemap'),
@@ -1043,7 +1152,11 @@ const SITEMAP_VALIDATION_FILLER: StructuredFiller = {
             sources: [{ type: 'other' as const, ref: 'sitemap_indexing_baseline', excerpt: 'GSC sitemap ping + IndexNow protocol מתועדים כ-baseline.' }],
             dependsOn: [],
             actionPlan: [
-                _step('וודאו ש-sitemap.xml הראשי מתעדכן אוטומטית אחרי כל פרסום (RankMath / Yoast / WP Sitemaps).', false, 30),
+                _step(cmsHint(stack, {
+                    wp: 'וודאו ש-sitemap.xml הראשי מתעדכן אוטומטית אחרי כל פרסום (RankMath / Yoast / WP Sitemaps).',
+                    git: 'וודאו ש-sitemap.xml נוצר ומתעדכן אוטומטית בשלב ה-build בכל deploy ל-GitHub.',
+                    generic: 'וודאו ש-sitemap.xml הראשי מתעדכן אוטומטית אחרי כל פרסום.',
+                }), false, 30),
                 _step('הוסיפו image-sitemap.xml + video-sitemap.xml אם רלוונטי (e-commerce עם תמונות מוצר).', false, 30),
                 _step('הקימו IndexNow integration (Bing/Yandex) — פלאגין: IndexNow / Cloudflare worker.', false, 45),
                 _step('שלחו את ה-sitemaps ל-GSC + Bing Webmaster. וודאו status=Success.', false, 20),
@@ -1225,19 +1338,41 @@ export interface FillerRunResult {
 /**
  * Invoked after Pass 3 ensureCoverage. Runs every registered filler;
  * appends spawned tasks to the plan. Logs per-stage counts.
+ *
+ * Phase-0 gating (rule #3 — respect upstream decisions): a filler is skipped when
+ * its `tactic` is in the tenant's deferral set, or its `appliesWhen` precondition
+ * is false. `stack` (resolved connected stack) is threaded so deterministic copy
+ * stays integration-grounded (rule #1).
  */
-export function runStructuredFillers(rd: any, existingTasks: MonthlyTask[]): FillerRunResult {
+export function runStructuredFillers(rd: any, existingTasks: MonthlyTask[], stack?: ConnectedStack): FillerRunResult {
     const spawned: MonthlyTask[] = []
     const perStageStats: Array<{ stageId: string; spawnedCount: number }> = []
+    const deferred = collectDeferredTactics(rd)
+    const skipped: string[] = []
     for (const f of ALL_FILLERS) {
+        // Gate 1 — explicit deferral of this tactic by upstream strategy.
+        if (f.tactic && deferred.has(f.tactic.toLowerCase())) {
+            skipped.push(`${f.stageId}(deferred:${f.tactic})`)
+            perStageStats.push({ stageId: f.stageId, spawnedCount: 0 })
+            continue
+        }
+        // Gate 2 — precondition not met (e.g. no local-geo signal for city pages).
+        if (f.appliesWhen && !f.appliesWhen(rd, stack)) {
+            skipped.push(`${f.stageId}(precondition)`)
+            perStageStats.push({ stageId: f.stageId, spawnedCount: 0 })
+            continue
+        }
         try {
-            const tasks = f.fill(rd, [...existingTasks, ...spawned])
+            const tasks = f.fill(rd, [...existingTasks, ...spawned], stack)
             spawned.push(...tasks)
             perStageStats.push({ stageId: f.stageId, spawnedCount: tasks.length })
         } catch (err) {
             console.error(`[structuredFillers] ${f.stageId} fill error:`, (err as Error).message)
             perStageStats.push({ stageId: f.stageId, spawnedCount: 0 })
         }
+    }
+    if (skipped.length > 0) {
+        console.log(`[structuredFillers] skipped ${skipped.length} filler(s): ${skipped.join(', ')}`)
     }
     return { spawned, perStageStats }
 }

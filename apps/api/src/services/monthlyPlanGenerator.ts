@@ -42,6 +42,7 @@ import type {
     MonthlyMarketingPlan,
     MonthlyTask,
 } from '@/controllers/hosting/agentSetup'
+import type { ConnectedStack } from './connectedStack'
 
 // ─── Shared types ─────────────────────────────────────────────────────────
 // Exported so the per-pass modules (monthlyPlanSkeleton / Detailer /
@@ -94,6 +95,11 @@ export interface PromptCtx {
     // can route their Anthropic call onto the tenant VPS when exec_mode='vps'.
     instanceId: string
     execMode: string
+    // Phase 0 (Archetype Strategy Framework) — integration-grounding. The resolved
+    // connected stack (publish channel, Google Ads account, tracking/channels) so the
+    // LLM passes + fillers never recommend a tool the tenant can't run, nor "create
+    // a new account" for one that's already connected.
+    connectedStack: ConnectedStack
     // Phase 4.3-N v8: baseline-delta context for month-over-month performance narrative.
     // baselineHistory[monthKey] holds frozen baselines from prior months.
     // baselineDelta is the computed comparison (current vs most-recent prior).
@@ -303,6 +309,23 @@ async function buildPromptCtx(
 
     const seoResearch2026 = loadSeoResearch2026()
 
+    // Phase 0 — resolve the connected stack (publish channel / Google Ads account /
+    // tracking) so every pass + filler stays integration-grounded. Agent may be null
+    // (agentless tenant) — resolveConnectedStack handles the instance-level fallback.
+    let connectedStack: ConnectedStack
+    try {
+        const { resolveConnectedStack } = await import('./connectedStack')
+        connectedStack = await resolveConnectedStack(agent, instanceId)
+        console.log(`[monthlyPlanGenerator] ${instanceId}: connectedStack publish=${connectedStack.publishChannel} ads=${connectedStack.googleAds ? (connectedStack.googleAdsOperatingCustomerId || connectedStack.googleAdsCustomerId) : 'none'} gtm=${connectedStack.gtm} ga4=${connectedStack.ga4} meta=${connectedStack.meta} gbp=${connectedStack.gbp}`)
+    } catch (e) {
+        console.warn('[monthlyPlanGenerator] connectedStack resolution failed (non-fatal, defaulting to none):', (e as Error).message)
+        connectedStack = {
+            wordpress: false, github: false, publishChannel: 'none',
+            googleAds: false, googleAdsExecutable: false,
+            gtm: false, ga4: false, meta: false, whatsapp: false, gbp: false, apiKey: false,
+        }
+    }
+
     const ctx: PromptCtx = {
         businessName, websiteUrl, businessDesc,
         paidProfile, audit, mediaPlan, strategy,
@@ -320,6 +343,7 @@ async function buildPromptCtx(
         tenantState, seoResearch2026,
         trigger,
         instanceId, execMode: (inst as any).execMode || 'central',
+        connectedStack,
         baselineHistory, baselineDelta, completedTaskOutcomes,
     }
 
@@ -604,7 +628,7 @@ export async function generateMonthlyPlan(
     let pass4Tasks = pass3Tasks
     try {
         const { runStructuredFillers } = await import('./monthlyPlanStructuredFillers')
-        const fillerResult = runStructuredFillers(rd, pass3Tasks as any)
+        const fillerResult = runStructuredFillers(rd, pass3Tasks as any, ctx.connectedStack)
         if (fillerResult.spawned.length > 0) {
             pass4Tasks = [...pass3Tasks, ...(fillerResult.spawned as unknown as typeof pass3Tasks)]
             console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 4 (structured fillers) added ${fillerResult.spawned.length} tasks — ${fillerResult.perStageStats.map(s => `${s.stageId}=${s.spawnedCount}`).join(', ')}`)
@@ -705,7 +729,7 @@ export async function generateMonthlyPlan(
     // so the kabinet surfaces only what's sensible to do now. No LLM → never blocks.
     try {
         const { reviewSavedPlan } = await import('./monthlyPlanReview')
-        const rev = await reviewSavedPlan(agent, {})
+        const rev = await reviewSavedPlan(agent, instanceId, {})
         console.log(`[monthlyPlanGenerator] ${instanceId}: agent-review → ${JSON.stringify(rev.byVerdict || {})}`)
     } catch (e) {
         console.warn(`[monthlyPlanGenerator] ${instanceId}: agent-review failed (non-fatal):`, (e as Error).message)
@@ -718,7 +742,7 @@ export async function generateMonthlyPlan(
     // SKIP_PLAN_HEBREW_CLEANUP=1 opts out (e.g. budget-constrained reruns).
     if (process.env.SKIP_PLAN_HEBREW_CLEANUP !== '1') {
         void import('./monthlyPlanCleanupSaved')
-            .then(({ runSavedPlanHebrewCleanup }) => runSavedPlanHebrewCleanup(agent.id, { instanceId }))
+            .then(({ runSavedPlanHebrewCleanup }) => runSavedPlanHebrewCleanup(agent?.id ?? null, { instanceId }))
             .then(r => console.log(`[monthlyPlanGenerator] ${instanceId}: post-save Hebrew cleanup → ${r.status} (updated ${r.updated || 0}/${r.scanned || 0})`))
             .catch(e => console.warn(`[monthlyPlanGenerator] ${instanceId}: post-save Hebrew cleanup failed (non-fatal):`, (e as Error).message))
     }
