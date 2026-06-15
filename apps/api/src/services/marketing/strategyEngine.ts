@@ -42,7 +42,11 @@ export function resolveArchetypeStrategy(rd: any, stack: ConnectedStack, nowIso?
     })
 
     const primaryEntry = perOffer.find(p => p.offer.isPrimary) || perOffer[0]
-    const primary = primaryEntry.strategy
+    // SHALLOW COPY for the top-level aggregate — must NOT be one of the per-offer
+    // strategy objects, otherwise primary.offerStrategies[i].strategy === primary
+    // and research_data serialization hits a circular structure. The per-offer
+    // entries stay plain (no offerStrategies of their own).
+    const primary: ArchetypeStrategy = { ...primaryEntry.strategy }
     primary.allOffers = offers
     primary.offerStrategies = perOffer
 
