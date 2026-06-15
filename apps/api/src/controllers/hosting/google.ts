@@ -137,6 +137,15 @@ export const googleAuth = async (c: Context) => {
             scope: scopes.join(' '),
             access_type: 'offline',         // get refresh_token
             prompt: 'consent',              // always show consent (ensures refresh_token)
+            // Incremental authorization — CRITICAL when one Google identity connects
+            // several integrations (GA + GTM + Ads). Without this, each connect
+            // requests ONLY its own scope and the resulting token REPLACES the
+            // prior scopes — e.g. connecting GA dropped tagmanager+adwords off the
+            // token, breaking GTM/Ads for that agent. With include_granted_scopes,
+            // Google returns a token carrying the UNION of all previously-granted
+            // scopes for this user+client, so integrations accumulate instead of
+            // cannibalizing each other.
+            include_granted_scopes: 'true',
             state,
         })
 
@@ -248,14 +257,30 @@ export const googleCallback = async (c: Context) => {
         // The callback request from Google has no `?agentId=` so falling back
         // to `resolveActiveAgent(c, ...)` would default to primary and leak
         // tokens between agents on multi-MATEH-per-VPS setups.
+        let connectedAgentId: string | null = agentIdFromState || null
         if (agentIdFromState) {
             await setAgentIntegration(instanceId, agentType, 'google', googleTokens as any, 'connected', agentIdFromState)
             await writeAgentTokensFor(agentIdFromState, instanceId, { googleTokens: googleTokens as never })
         } else {
             // Legacy / no agent in state — fall back to old behaviour.
             const __activeAgent = await resolveActiveAgent(c, instanceId)
+            connectedAgentId = __activeAgent?.id || null
             await setAgentIntegration(instanceId, agentType, 'google', googleTokens as any, 'connected', __activeAgent?.id)
             await writeAgentTokens(c, instanceId, { googleTokens: googleTokens as never })
+        }
+
+        // True per-agent isolation for a SHARED Google identity: Google revokes
+        // the prior refresh token whenever the same email re-consents, so a
+        // sibling agent using this email would be left with a dead token. With
+        // include_granted_scopes the new token carries the union of all granted
+        // scopes — mirror it onto every sibling agent on the same email so the
+        // whole instance stays on ONE live grant. Resource selections (which
+        // GTM container / GA4 property / Ads account) remain per-agent.
+        try {
+            const { propagateGoogleGrant } = await import('@/services/googleGrantSync')
+            await propagateGoogleGrant({ instanceId, sourceAgentId: connectedAgentId, email, googleTokens })
+        } catch (e) {
+            console.warn('[google] grant propagation failed:', (e as Error).message)
         }
 
         console.log(`Google connected for instance ${instanceId}, agent ${agentType}: ${email} (scopes: ${scopes})`)
@@ -310,11 +335,24 @@ export const googleDisconnect = async (c: Context) => {
         const agentInt = await getAgentIntegration(instanceId, agentType, 'google', __activeAgentForDisc?.id)
         const tokens = agentInt?.config as any
         if (tokens?.accessToken) {
+            // Revoking at Google kills the SHARED grant for every sibling agent
+            // on the same email — only do it when THIS is the last agent using
+            // that email. Otherwise just drop this agent's link below.
+            let safeToRevoke = true
             try {
-                await fetch(`https://oauth2.googleapis.com/revoke?token=${tokens.accessToken}`, {
-                    method: 'POST',
-                })
-            } catch { /* best effort */ }
+                const { googleEmailStillInUse } = await import('@/services/googleGrantSync')
+                if (tokens.email && await googleEmailStillInUse({ instanceId, excludeAgentId: __activeAgentForDisc?.id, email: tokens.email })) {
+                    safeToRevoke = false
+                    console.log(`[google] skip Google revoke on disconnect — sibling agent still uses ${tokens.email}`)
+                }
+            } catch { /* on doubt, fall through to revoke */ }
+            if (safeToRevoke) {
+                try {
+                    await fetch(`https://oauth2.googleapis.com/revoke?token=${tokens.accessToken}`, {
+                        method: 'POST',
+                    })
+                } catch { /* best effort */ }
+            }
         }
 
         // Remove from per-agent integrations — Phase 2.3.E: pass agentId
