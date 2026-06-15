@@ -334,6 +334,9 @@ REQUIRED COVERAGE (skeleton must include at least one task for each):
       - link acquisition tasks calibrated to chosenScenario (Smart=2-3, Aggressive=5-8/month)
   · MANDATORY channel minimums per chosenScenario (skip a channel ONLY if in do_not_channels):
       google_ads ≥8, seo ≥4, content ≥3, gbp ≥2, meta ≥2 (or "connect Meta" P1), gtm/ga4 as needed
+  · ARCHETYPE STRATEGY coverage — ≥1 task for EVERY primary channel in the BUSINESS ARCHETYPE STRATEGY block (incl. LinkedIn / organic short-video / webinar / email when listed as primary). For a CONNECT-FIRST channel: emit a "לחבר X" prerequisite + a first-use task with a concrete description. NEVER leave a primary channel with zero tasks.
+  · MULTI-OFFER — if the strategy block lists multiple offers, build a DISTINCT task set per offer (e.g. a product-led self-serve funnel for one, a high-touch done-for-you motion for the other). Do NOT blend them into one generic plan.
+  · RECURRING revenue — if any offer is recurring, include onboarding/activation, churn/win-back, and expansion/upsell tasks (retention compounds LTV).
 
 DEDUPE: do NOT re-propose tasks already proposed/skipped/approved/in_progress in previousMonthlyPlan.
 Carry them over with same id when still relevant.

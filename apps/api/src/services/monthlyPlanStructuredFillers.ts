@@ -1305,6 +1305,178 @@ const SCHEMA_PRIORITY_FILLER: StructuredFiller = {
     },
 }
 
+// ═══ K28 — ARCHETYPE COVERAGE FILLERS (Phase 6) ═══════════════════════════
+// Deterministic guarantees that the archetype strategy's intent is actually
+// represented in the plan, regardless of what the LLM passes produced:
+//   • every connect-first / uncovered PRIMARY+SECONDARY channel → an activation task
+//   • recurring-revenue offers → onboarding/retention/expansion tasks
+//   • active paid search → an ongoing search-query-report mining cadence
+
+interface ChannelMeta { key: string; he: string; detect: RegExp }
+/** Map a registry channel description → a canonical key + Hebrew label + a
+ *  coverage-detection regex (Hebrew + English) for the "is it already in the plan?" check. */
+function channelMeta(channel: string): ChannelMeta | null {
+    const c = channel.toLowerCase()
+    if (/linkedin/.test(c)) return { key: 'linkedin', he: 'LinkedIn', detect: /linkedin|לינקדאין/i }
+    if (/organic short-video|reels|tiktok|youtube|short-video/.test(c)) return { key: 'social_video', he: 'וידאו קצר אורגני (Reels/TikTok/YouTube)', detect: /reel|tiktok|youtube|וידאו קצר|סרטון קצר|אורגני.*וידאו/i }
+    if (/webinar|masterclass/.test(c)) return { key: 'webinar', he: 'וובינר / מאסטרקלאס', detect: /webinar|וובינר|מאסטרקלאס/i }
+    if (/affiliate|jv/.test(c)) return { key: 'affiliate', he: 'שותפים / JV', detect: /affiliate|שותפים|partner.*program/i }
+    if (/email/.test(c)) return { key: 'email', he: 'רשימת אימייל + נרטור', detect: /email|אימייל|רשימת תפוצה|מייל|רצף מיילים|נרטור/i }
+    if (/business profile|gbp/.test(c)) return { key: 'gbp', he: 'Google Business Profile', detect: /business profile|gbp|דף עסק|פרופיל עסק/i }
+    if (/meta|advantage|dpa/.test(c)) return { key: 'meta', he: 'Meta', detect: /\bmeta\b|facebook|instagram|reels/i }
+    // SEO/content/search are heavily covered by other fillers + the LLM — skip
+    // to avoid duplicate activation noise; the channel detection below also guards.
+    return null
+}
+
+function collectStrategyChannels(rd: any): Array<{ channel: string; action: string; blockedBy?: string; tier: string }> {
+    const strat = rd?.archetypeStrategy
+    if (!strat) return []
+    const out: Array<{ channel: string; action: string; blockedBy?: string; tier: string }> = []
+    const fromStrategy = (s: any) => {
+        for (const c of (s?.rankedChannels || [])) {
+            if (c.tier === 'primary' || c.tier === 'secondary') out.push({ channel: c.channel, action: c.action, blockedBy: c.blockedBy, tier: c.tier })
+        }
+    }
+    if (Array.isArray(strat.offerStrategies) && strat.offerStrategies.length > 1) {
+        for (const os of strat.offerStrategies) fromStrategy(os.strategy)
+    } else {
+        fromStrategy(strat)
+    }
+    return out
+}
+
+// K28-a: channel activation guarantee. Every archetype primary/secondary channel
+// that the plan does not already cover gets an explicit "set up + first use" task
+// (connect-first → connect then first campaign/content). Closes the "LinkedIn was
+// a primary channel but produced zero tasks" gap.
+const CHANNEL_ACTIVATION_FILLER: StructuredFiller = {
+    stageId: 'k28_channel_activation',
+    description: 'Ensure every primary/secondary archetype channel is operationalized (connect + first use)',
+    tactic: 'channel_activation',
+    fill(rd, existingTasks) {
+        const channels = collectStrategyChannels(rd)
+        if (channels.length === 0) return []
+        const out: MonthlyTask[] = []
+        const seen = new Set<string>()
+        for (const ch of channels) {
+            const meta = channelMeta(ch.channel)
+            if (!meta || seen.has(meta.key)) continue
+            seen.add(meta.key)
+            // already covered by an existing task? skip.
+            if (_existingTaskMatches(existingTasks, [meta.detect])) continue
+            const connectFirst = ch.action === 'connect_first'
+            const title = connectFirst
+                ? `הקמה והפעלה ראשונית של ${meta.he}`
+                : `הקמת נוכחות והפעלה ראשונית ב-${meta.he}`
+            out.push({
+                id: newTaskId('tsk_k28_chan'),
+                type: connectFirst ? 'tracking_setup' : 'cross_channel_amplification',
+                title: title.slice(0, 80),
+                summary: `${meta.he} הוא ערוץ ${ch.tier === 'primary' ? 'ראשי' : 'משני'} באסטרטגיית הארכיטיפ אך אין לו עדיין משימה — ${connectFirst ? 'נדרש חיבור/הקמה ואז שימוש ראשון' : 'נדרשת הקמת נוכחות ושימוש ראשון'}.`,
+                channel: 'cross',
+                priority: ch.tier === 'primary' ? 'P1' : 'P2',
+                estimatedEffort: '2_3_hours',
+                expectedImpact: { metric: 'other', value: 1, horizon: '30d', confidence: 'medium', rationale: `הפעלת ערוץ ${meta.he} פותחת זרם לידים/חשיפה שתואם לארכיטיפ — חיוני שלא להשאיר ערוץ ראשי ריק.` },
+                sources: [{ type: 'other', ref: `archetypeStrategy.${ch.tier}Channel`, excerpt: `${ch.channel} (${ch.action})` }],
+                dependsOn: [],
+                actionPlan: connectFirst ? [
+                    _step(`חברו את ${meta.he} (חשבון/הרשאות/אינטגרציה) — בלי זה הערוץ לא פעיל.`, false, 30),
+                    _step(`הגדירו את היעד הראשון בערוץ: קהל/מילות מפתח/פורמט בהתאם לפרסונה הראשית.`, false, 45),
+                    _step(`הפיקו נכס ראשון (קמפיין/פוסט/וידאו) עם מסר מותאם-מותג ו-CTA ברור.`, false, 90),
+                    _step(`חברו מדידה: UTM/אירוע המרה ל-${meta.he} כדי לייחס לידים.`, false, 30),
+                    _step(`ניטור 30 יום: חשיפה→קליק→ליד; החליטו אם להגדיל לפי ROMI.`, false, 20),
+                ] : [
+                    _step(`פתחו/אמתו פרופיל ${meta.he} עם מיתוג מלא (תיאור, לוגו, קישורים).`, false, 30),
+                    _step(`בנו לוח תוכן ראשוני (3-5 נכסים) מבוסס JTBD של הפרסונה הראשית.`, false, 60),
+                    _step(`פרסמו נכס ראשון + CTA לאתר/וואטסאפ; מדדו מעורבות.`, false, 60),
+                    _step(`קבעו קצב פרסום שבועי ומדידת חשיפה/מעורבות/הפניות.`, false, 20),
+                    _step(`ניטור 30 יום: גידול עוקבים + תנועה מהערוץ; החליטו על הגברה.`, false, 20),
+                ],
+                status: 'proposed', proposedAt: nowIso(), weekOfMonth: ch.tier === 'primary' ? 2 : 3,
+            })
+            if (out.length >= 5) break
+        }
+        return out
+    },
+}
+
+// K28-b: retention/expansion for recurring-revenue offers (subscription/repeat).
+const RETENTION_FILLER: StructuredFiller = {
+    stageId: 'k28_retention',
+    description: 'Onboarding/activation + churn win-back + expansion tasks for recurring-revenue offers',
+    tactic: 'retention',
+    fill(rd, existingTasks) {
+        const strat = rd?.archetypeStrategy
+        const recurring = !!(strat?.modifiers?.recurring
+            || (Array.isArray(strat?.allOffers) && strat.allOffers.some((o: any) => o?.recurring))
+            || (Array.isArray(strat?.offerStrategies) && strat.offerStrategies.some((os: any) => os?.strategy?.modifiers?.recurring)))
+        if (!recurring) return []
+        const out: MonthlyTask[] = []
+        const add = (id: string, title: string, summary: string, detect: RegExp, steps: MonthlyTaskActionStep[], metric: any, value: number, week: 1 | 2 | 3 | 4) => {
+            if (_existingTaskMatches(existingTasks, [detect])) return
+            out.push({
+                id: newTaskId(id), type: 'cross_channel_amplification', title: title.slice(0, 80), summary, channel: 'email',
+                priority: 'P1', estimatedEffort: '1_day',
+                expectedImpact: { metric, value, horizon: '90d', confidence: 'medium', rationale: 'בהכנסה חוזרת (מנוי) השימור והרחבת הלקוח מכפילים LTV — לרוב זול פי 5 מגיוס חדש.' },
+                sources: [{ type: 'other', ref: 'archetypeStrategy.recurring', excerpt: 'מודל הכנסה חוזר זוהה (מנוי/חזרה).' }],
+                dependsOn: [], actionPlan: steps, status: 'proposed', proposedAt: nowIso(), weekOfMonth: week,
+            })
+        }
+        add('tsk_k28_onboard', 'רצף onboarding/הפעלה ללקוח חדש (7 ימים)', 'רצף 4-5 הודעות (מייל/וואטסאפ) שמובילות את הלקוח החדש ל-"רגע הערך" הראשון — הפעלה = שימור.', /onboarding|הפעל.*לקוח|רצף.*קליטה|activation.*flow|רגע הערך/i, [
+            _step('מפו את "רגע הערך" הראשון של המוצר (הפעולה שמנבאת שימור).', false, 45),
+            _step('כתבו רצף 4-5 הודעות (יום 0/1/3/5/7) שמובילות לרגע הזה.', false, 120),
+            _step('הוסיפו checklist/וידאו קצר "התחלה מהירה" + ערוץ תמיכה (וואטסאפ).', false, 60),
+            _step('הגדירו אירוע "activated" ב-GA4 ומדדו % הפעלה תוך 7 ימים.', true, 20),
+            _step('ניטור 90 יום: שיעור הפעלה ↔ שימור חודש 1; שפרו את הצעד עם הנשירה.', false, 20),
+        ], 'other', 1, 1)
+        add('tsk_k28_winback', 'מניעת נטישה + win-back — זיהוי סיכון ורצף החזרה', 'זיהוי לקוחות בסיכון נטישה (ירידה בשימוש) + רצף win-back; הפחתת churn ישירות מגדילה LTV.', /churn|נטישה|win.?back|שימור.*לקוח|בסיכון נטישה/i, [
+            _step('הגדירו סיגנל סיכון (אי-כניסה X ימים / ירידת שימוש) ב-GA4/מערכת.', false, 45),
+            _step('בנו רצף win-back 3 הודעות: תזכורת ערך, סיוע, הצעה/שדרוג.', false, 90),
+            _step('הוסיפו פנייה אישית (וואטסאפ/טלפון) ללקוחות בעלי ACV גבוה.', false, 30),
+            _step('מדדו win-back rate + churn חודשי לפני/אחרי.', false, 20),
+            _step('ניטור 90 יום: יעד הפחתת churn ב-15-25%.', false, 15),
+        ], 'other', 1, 3)
+        add('tsk_k28_expansion', 'הרחבת לקוח — מסע cross-sell/upsell בין המוצרים', 'מסע ייעודי שמעלה לקוחות קיימים בין רמות/מוצרים (למשל self-serve → done-for-you) — הכנסה זולה ורווחית.', /cross.?sell|upsell|הרחב.*לקוח|שדרוג.*לקוח|expansion/i, [
+            _step('זהו קריטריון מוכנות לשדרוג (שימוש/תוצאה/גודל) פר לקוח.', false, 45),
+            _step('בנו הצעת שדרוג + רצף 3 הודעות שמראה ROI של הרמה הבאה.', false, 90),
+            _step('הגדירו קהל Ads/Email של לקוחות מתאימים לשדרוג.', false, 30),
+            _step('מדדו expansion MRR + שיעור שדרוג.', false, 20),
+            _step('ניטור 90 יום: יעד 5-10% מהלקוחות משדרגים.', false, 15),
+        ], 'conversions', 3, 3)
+        return out
+    },
+}
+
+// K28-c: ongoing search-query-report (SQR) mining when paid search is active.
+const SQR_FILLER: StructuredFiller = {
+    stageId: 'k28_sqr',
+    description: 'Ongoing search-query-report mining cadence when paid search is live',
+    tactic: 'sqr',
+    fill(rd, existingTasks, stack) {
+        const paidSearchActive = !!stack?.googleAds && existingTasks.some(t => t.channel === 'google_ads')
+        if (!paidSearchActive) return []
+        if (_existingTaskMatches(existingTasks, [/search.?query.?report|sqr|דוח שאילתות|מיינ.*שאילתות|שאילתות חיפוש.*שבועי/i])) return []
+        return [{
+            id: newTaskId('tsk_k28_sqr'), type: 'paid_optimization',
+            title: 'קצב מיון דוח שאילתות חיפוש (SQR) — שבועי',
+            summary: 'בחשבון חדש דליפות התקציב הגדולות ביותר בשבועות הראשונים — מיון SQR שבועי חושף מונחים מבזבזים והזדמנויות מילים חדשות.',
+            channel: 'google_ads', priority: 'P1', estimatedEffort: '1_hour',
+            expectedImpact: { metric: 'spend_savings_ils', value: 600, horizon: '30d', confidence: 'high', rationale: 'מיון SQR שבועי בחשבון חדש חוסך בדרך כלל 10-20% מהתקציב ומזין מילים חדשות איכותיות.' },
+            sources: [{ type: 'other', ref: 'paid_search_active', excerpt: 'קמפיין חיפוש ממומן פעיל בתוכנית.' }],
+            dependsOn: [],
+            actionPlan: [
+                _step('הגדירו רוטינה שבועית (יום א׳): Google Ads → Search terms.', false, 10),
+                _step('סמנו מונחים מבזבזים (0 המרות, הוצאה גבוהה) → הוסיפו כשליליים.', false, 20),
+                _step('סמנו מונחים ממירים שאינם keyword → הוסיפו ככוונה מדויקת/ביטוי.', false, 20),
+                _step('תעדו דפוסים חוזרים → עדכנו רשימת שליליים ברמת החשבון.', false, 15),
+                _step('ניטור 30 יום: ירידת spend מבוזבז + עליית שיעור המרה.', false, 15),
+            ],
+            status: 'proposed', proposedAt: nowIso(), weekOfMonth: 1,
+        }]
+    },
+}
+
 const ALL_FILLERS: StructuredFiller[] = [
     INTERNAL_SEO_FILLER,
     SEO_KW_FILLER,
@@ -1328,6 +1500,10 @@ const ALL_FILLERS: StructuredFiller[] = [
     CONTENT_REFRESH_FILLER,
     // K27 — Extras-level schema priority plan consumer
     SCHEMA_PRIORITY_FILLER,
+    // K28 — Archetype coverage (Phase 6): channel activation, retention, SQR
+    CHANNEL_ACTIVATION_FILLER,
+    RETENTION_FILLER,
+    SQR_FILLER,
 ]
 
 export interface FillerRunResult {

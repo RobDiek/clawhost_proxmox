@@ -17,6 +17,10 @@ import type { ConnectedStack } from '../connectedStack'
 import { ARCHETYPES } from './archetypeRegistry'
 import type { ArchetypeClassificationResult, OfferClassification } from './archetypeClassifier'
 import type { GroundedStrategy, GroundedChannel, NicheFacts } from './nicheGrounding'
+import type { Offer } from './offerExtractor'
+
+/** A single offer paired with its fully-synthesized strategy (Phase 6). */
+export interface OfferStrategy { offer: Offer; strategy: ArchetypeStrategy }
 
 export type ChannelAction = 'fund' | 'organic' | 'connect_first' | 'defer'
 export type IntegrationNeed = 'google_ads' | 'meta' | 'gbp' | 'publish' | 'whatsapp' | null
@@ -53,7 +57,13 @@ export interface ArchetypeStrategy {
     antiPatterns: string[]
     deferredTactics: string[]
     prerequisites: Prerequisite[]
+    /** GTM-motion guidance (Phase 6): how this offer is actually taken to market. */
+    motionGuidance?: string
     offers: OfferClassification[]
+    /** Phase 6 multi-offer: all offers + each offer's own strategy. Set only on
+     *  the PRIMARY offer's strategy (the engine's top-level return). */
+    allOffers?: Offer[]
+    offerStrategies?: OfferStrategy[]
     facts: NicheFacts
     appliedOverrides: GroundedStrategy['appliedOverrides']
     overallConfidence: GroundedStrategy['overallConfidence']
@@ -124,17 +134,24 @@ export function synthesizeStrategy(
         return { channel: gc.channel, tier: gc.tier, action, needs, rationale: gc.rationale, whenYes: gc.whenYes, notes: gc.notes, blockedBy }
     })
 
-    // ── deferredTactics: archetype prior × locality fact × stack ────────────
+    // ── deferredTactics: archetype prior × locality fact × motion × stack ────
     const deferred = new Set<string>(playbook.deferTacticsPrior)
-    // Locality fact dominates the prior: a non-local tenant should never spawn
-    // city pages, regardless of archetype default.
     const loc = classification.modifiers.locality
-    if (loc === 'national' || loc === 'global') deferred.add('city_pages')
-    // A genuinely local tenant un-defers city pages even if its archetype prior deferred it
+    const motion = classification.modifiers.motion
+    // Locality fact dominates the prior: a non-local OFFER should not spawn city
+    // pages — EXCEPT a done-for-you / sales-assisted offer, whose CLIENTS are often
+    // local SMBs, so local tactics stay on the table for that offer.
+    if ((loc === 'national' || loc === 'global') && motion !== 'done_for_you' && motion !== 'sales_assisted') {
+        deferred.add('city_pages')
+    }
+    // A genuinely local offer un-defers city pages even if its archetype prior deferred it
     // (e.g. a local ecommerce / hybrid_local_ecom) — facts > priors.
     if ((loc === 'local' || loc === 'regional') || classification.modifiers.hybrid === 'hybrid_local_ecom') {
         if (grounded.facts.serp.localPack || classification.signals.hasPhysicalLocation) deferred.delete('city_pages')
     }
+    // Done-for-you / sales-assisted offers acquire local SMB clients → local tactics
+    // stay on the table even if the archetype prior defers them.
+    if (motion === 'done_for_you' || motion === 'sales_assisted') deferred.delete('city_pages')
     // Honor any pre-existing explicit deferrals already in research_data.
     const existingDeferrals: string[] = Array.isArray(rd?.deferredTactics) ? rd.deferredTactics : []
     for (const t of existingDeferrals) if (typeof t === 'string') deferred.add(t.toLowerCase())
@@ -147,6 +164,25 @@ export function synthesizeStrategy(
     }
     if (stack.publishChannel === 'github') {
         antiPatterns.push('no WordPress/CMS-plugin steps — author content via git/markdown (the connected publish channel is GitHub)')
+    }
+
+    // ── motion guidance (Phase 6): how THIS offer is taken to market ────────
+    let motionGuidance: string | undefined
+    switch (motion) {
+        case 'self_serve':
+            motionGuidance = 'Product-led (self-serve): lead magnet / free guide → trial/signup → in-product ACTIVATION → self-serve conversion. Emphasize content + SEO authority, email nurture, pricing-page CRO, and the signup/activation funnel (instrument trial-start + activation events). Lower-touch — no heavy sales-assist.'
+            break
+        case 'done_for_you':
+        case 'sales_assisted':
+            motionGuidance = 'High-touch (done-for-you / sales-assisted): LinkedIn (ICP targeting + founder thought leadership) + result-led case studies + referral/JV + high-intent search + demo/consult CTA. The CLIENTS are often local SMBs → local channels (Google Business Profile, "[service] [city]" search) ARE relevant for acquiring them. Low volume, high ACV — qualify hard.'
+            break
+        case 'transactional':
+            motionGuidance = 'Transactional: feed-driven prospecting (Shopping/PMax + Advantage+) → dynamic retargeting → email lifecycle for repeat/LTV.'
+            break
+    }
+    if (classification.modifiers.recurring) {
+        antiPatterns.push('recurring revenue — do NOT ignore onboarding/activation, churn/win-back, and expansion/upsell: retention compounds LTV')
+        motionGuidance = (motionGuidance ? motionGuidance + ' ' : '') + 'RECURRING revenue: include onboarding/activation, retention/win-back, and expansion/upsell tasks.'
     }
 
     // ── budget logic, annotated with the chosen scenario if present ─────────
@@ -170,6 +206,7 @@ export function synthesizeStrategy(
         antiPatterns,
         deferredTactics: [...deferred],
         prerequisites: [...prereqMap.values()],
+        motionGuidance,
         offers: classification.offers,
         facts: grounded.facts,
         appliedOverrides: grounded.appliedOverrides,

@@ -68,13 +68,17 @@ function txt(...parts: Array<unknown>): string {
 }
 
 // ─── Signal extraction ─────────────────────────────────────────────────────
-export function extractSignals(rd: any, stack?: ConnectedStack): ExtractedSignals {
+// `offerText` (Phase 6) lets the caller scope signals to ONE offer's text so a
+// multi-offer tenant classifies each offer independently — the offer text leads,
+// tenant-level positioning/brand stays as supporting context.
+export function extractSignals(rd: any, stack?: ConnectedStack, offerText?: string): ExtractedSignals {
     const answers = rd?.answers || {}
     const positioning = rd?.results?.positioning
     const brand = rd?.brandBook || rd?.results?.brand_book
     const evidence: string[] = []
 
     const description = txt(
+        offerText,
         answers.businessDescription, answers.whatYouSell, answers.businessName,
         positioning?.summary, positioning?.category, positioning?.positioningStatement,
         brand?.usps, brand?.tagline, rd?.businessDesc,
@@ -180,8 +184,11 @@ function confidenceFromMargin(top: number, second: number): Confidence {
 }
 
 // ─── Public entry ──────────────────────────────────────────────────────────
-export function classifyArchetypes(rd: any, stack?: ConnectedStack, nowIso?: string): ArchetypeClassificationResult {
-    const signals = extractSignals(rd, stack)
+// `offer` (Phase 6) scopes the classification to a single offer: its text leads
+// signal extraction and its GTM motion becomes a modifier (+ a light archetype
+// nudge). Omit it to classify the whole tenant (legacy single-offer behavior).
+export function classifyArchetypes(rd: any, stack?: ConnectedStack, nowIso?: string, offer?: import('./offerExtractor').Offer): ArchetypeClassificationResult {
+    const signals = extractSignals(rd, stack, offer?.text)
 
     const scores = {} as Record<ArchetypeId, number>
     const matchedById = {} as Record<ArchetypeId, string[]>
@@ -191,6 +198,15 @@ export function classifyArchetypes(rd: any, stack?: ConnectedStack, nowIso?: str
         matchedById[id] = r.matched
     }
 
+    // Light motion nudge: a done-for-you / sales-assisted offer is a service
+    // delivered for clients → leans b2b_service; an explicit self-serve product
+    // (SaaS) also leans b2b_service over ecommerce. The signals still dominate.
+    if (offer?.motion === 'done_for_you' || offer?.motion === 'sales_assisted') {
+        scores.b2b_service += 2; matchedById.b2b_service.push(`offer motion=${offer.motion}`)
+    } else if (offer?.motion === 'self_serve') {
+        scores.b2b_service += 1; matchedById.b2b_service.push('offer motion=self_serve')
+    }
+
     const ranked = [...ARCHETYPE_IDS].sort((a, b) => scores[b] - scores[a])
     const primaryArchetype = ranked[0]
     const confidence = confidenceFromMargin(scores[ranked[0]], scores[ranked[1]] ?? 0)
@@ -198,28 +214,25 @@ export function classifyArchetypes(rd: any, stack?: ConnectedStack, nowIso?: str
     const intent: ArchetypeModifiers['intent'] =
         (primaryArchetype === 'ecommerce' || primaryArchetype === 'local_business') ? 'impulse' : 'considered'
     const hybrid = (primaryArchetype === 'local_business' && signals.sellsProducts) ? 'hybrid_local_ecom' : null
-    const modifiers: ArchetypeModifiers = { b2x: signals.b2x, locality: signals.locality, intent, hybrid }
+    const modifiers: ArchetypeModifiers = {
+        b2x: signals.b2x, locality: signals.locality, intent, hybrid,
+        motion: offer?.motion, recurring: offer?.recurring,
+    }
 
-    // Single-offer by default (whole tenant). Multi-offer support: if the
-    // onboarding answers carry an explicit offers[] list, classify each against
-    // the same signal set (offers within one archetype is the common case; the
-    // engine blends by ROMI downstream).
-    const offerLabels: string[] = Array.isArray(rd?.answers?.offers) && rd.answers.offers.length > 0
-        ? rd.answers.offers.map((o: any) => (typeof o === 'string' ? o : o?.name || o?.label || 'offer')).filter(Boolean)
-        : [rd?.answers?.businessName || rd?.businessName || 'primary offer']
-
-    const offers: OfferClassification[] = offerLabels.map(offer => ({
-        offer,
+    const offerLabel = offer?.name || rd?.answers?.businessName || rd?.businessName || 'primary offer'
+    const offers: OfferClassification[] = [{
+        offer: offerLabel,
         archetype: primaryArchetype,
         confidence,
         score: scores[primaryArchetype],
         matchedSignals: matchedById[primaryArchetype],
         rationale: `archetype=${ARCHETYPES[primaryArchetype].nameEn} · ${matchedById[primaryArchetype].join('; ') || 'no strong signal — defaulted'}`,
-    }))
+    }]
 
-    const rationale = `Primary archetype: ${ARCHETYPES[primaryArchetype].nameEn} (${ARCHETYPES[primaryArchetype].nameHe}), confidence=${confidence}. `
+    const rationale = `${offer ? `Offer "${offerLabel}" (${offer.motion}${offer.recurring ? ', recurring' : ''})${offer.priceIls ? ` ₪${offer.priceIls}` : ''} → ` : ''}`
+        + `archetype: ${ARCHETYPES[primaryArchetype].nameEn} (${ARCHETYPES[primaryArchetype].nameHe}), confidence=${confidence}. `
         + `Matched: ${matchedById[primaryArchetype].join('; ') || 'none — defaulted to highest score'}. `
-        + `Modifiers: ${modifiers.b2x}/${modifiers.locality}/${modifiers.intent}${hybrid ? `/${hybrid}` : ''}. `
+        + `Modifiers: ${modifiers.b2x}/${modifiers.locality}/${modifiers.intent}${hybrid ? `/${hybrid}` : ''}${modifiers.motion ? `/${modifiers.motion}` : ''}. `
         + `Scores: ${ranked.map(id => `${id}=${scores[id]}`).join(', ')}.`
 
     return {

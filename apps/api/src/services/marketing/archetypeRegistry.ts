@@ -297,9 +297,21 @@ export type IntentModifier = 'impulse' | 'considered'
 /** hybrid_local_ecom = local store that ALSO sells online (modifier, not archetype). */
 export type HybridModifier = 'hybrid_local_ecom' | null
 
+/**
+ * Go-to-market motion of an OFFER (Phase 6 — per-offer planning). Same archetype
+ * can be sold self-serve (product-led) or done-for-you (high-touch) — the motion
+ * shifts channel emphasis + whether retention/onboarding tasks apply, NOT the base
+ * archetype. "autopilot vs self-service" is exactly this axis.
+ */
+export type OfferMotion = 'self_serve' | 'done_for_you' | 'sales_assisted' | 'transactional' | 'unknown'
+
 export interface ArchetypeModifiers {
     b2x: B2xModifier
     locality: LocalityModifier
     intent: IntentModifier
     hybrid: HybridModifier
+    /** the offer's GTM motion (per-offer planning); undefined at tenant level. */
+    motion?: OfferMotion
+    /** subscription / repeat-purchase revenue → retention & expansion matter. */
+    recurring?: boolean
 }
