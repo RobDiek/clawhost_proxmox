@@ -701,6 +701,20 @@ export async function generateMonthlyPlan(
         console.warn(`[monthlyPlanGenerator] ${instanceId}: Pass 4b link-stamp error (non-fatal):`, (err as Error).message)
     }
 
+    // ─── Pass 4c: deterministic scheduling (front-load foundation) ────────
+    // Override scheduledFor on EVERY task: foundational/technical work (analytics,
+    // GTM/GA4, conversions, pixels, on-site SEO/AEO) front-loaded & dense from day 1,
+    // then the rest ≥5/business-day, dependencies respected. Fixes the empty-calendar
+    // problem (filler tasks had no scheduledFor) and packs the fast agent-executable
+    // foundation up front. Deterministic, no LLM.
+    try {
+        const { scheduleTasks } = await import('./monthlyPlanScheduler')
+        const sched = scheduleTasks(finalTasks as any, new Date())
+        console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 4c scheduled ${sched.scheduled} tasks across ${sched.days} business days (foundation=${sched.foundationCount} front-loaded) — day1=${sched.perDay[0]?.count || 0}, day2=${sched.perDay[1]?.count || 0}, day3=${sched.perDay[2]?.count || 0}`)
+    } catch (err) {
+        console.warn(`[monthlyPlanGenerator] ${instanceId}: Pass 4c scheduling error (non-fatal):`, (err as Error).message)
+    }
+
     // ─── Assemble plan + apply guardrails ────────────────────────────────
     const qualityWarnings: string[] = [
         ...(skeleton.qualityWarnings || []),
