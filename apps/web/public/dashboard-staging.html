@@ -5911,7 +5911,18 @@ function renderHome() {
           // through monthly_plan as Phase-1 tracking-first tasks per playbook
           // §6 — they belong in משימות פעילות (approval queue), not in a
           // parallel setup checklist that demands re-doing what's already done.
-          var newSchemaPaidComplete = hasBaseline && hasPaidComp && hasPaidKw
+          // Fork-path-aware "baseline" satisfaction: no_history never runs
+          // client_account_baseline (the questionnaire replaces it), and the
+          // CSV path uses client_account_baseline_csv. Without this the card
+          // could never reach 100%/hide on the no_history path (hasBaseline
+          // stays false forever) — it sat at 67% with every relevant step done.
+          var _forkPath = (rd.results && rd.results.paid_setup_fork && rd.results.paid_setup_fork.extras && rd.results.paid_setup_fork.extras.path) || null;
+          var _hasQuestionnaire = !!(rd.results && rd.results.paid_questionnaire);
+          var _hasCsvBaseline = !!(rd.results && rd.results.client_account_baseline_csv);
+          var _baselineSatisfied = hasBaseline
+            || (_forkPath === 'no_history' && _hasQuestionnaire)
+            || (_forkPath === 'has_history' && _hasCsvBaseline);
+          var newSchemaPaidComplete = _baselineSatisfied && hasPaidComp && hasPaidKw
             && hasPaidBud && hasPaidAuditNew && hasMediaPlanNew;
           if (!newSchemaPaidComplete) {
             tasks.push({
