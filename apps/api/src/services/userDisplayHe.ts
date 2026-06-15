@@ -53,6 +53,17 @@ const KEY_LABELS_HE: Record<string, string> = {
     tasks: 'משימות', task: 'משימה', count: 'כמות', total: 'סך הכול', items: 'פריטים',
     name: 'שם', label: 'תווית', detail: 'פירוט', details: 'פירוט', message: 'הודעה',
     week_over_week: 'שבוע מול שבוע', month_over_month: 'חודש מול חודש',
+    // weekly ops-brief / report schema keys (code contract = English keys; we
+    // translate at DISPLAY time since the stored object must keep them in English).
+    critical: 'קריטי', deviations: 'חריגות', deviation: 'חריגה', deviationpct: 'אחוז חריגה',
+    severity: 'חומרה', topactions: 'פעולות מובילות', actions: 'פעולות', action: 'פעולה',
+    owner: 'אחראי', deadline: 'מועד יעד',
+    gatekeeperstatus: 'סטטוס שער', gatekeeper: 'שער', active: 'פעיל',
+    organiccustomerstarget: 'יעד לקוחות אורגניים', organiccustomersactual: 'לקוחות אורגניים בפועל',
+    costspendnote: 'הערת עלויות', nextreviewat: 'סקירה הבאה', nextreview: 'סקירה הבאה',
+    customers: 'לקוחות', deviationspct: 'אחוז חריגה', durationms: 'משך (אלפיות שנייה)', ranat: 'הורץ בתאריך',
+    delta: 'שינוי', trend: 'מגמה', forecast: 'תחזית', verdict: 'הכרעה', overall: 'כללי',
+    competitors: 'מתחרים', persona: 'פרסונה', personas: 'פרסונות', offer: 'הצעה', offers: 'הצעות',
 }
 
 // English enum / scalar values → Hebrew.
@@ -66,6 +77,7 @@ const VALUE_HE: Record<string, string> = {
     success: 'הצלחה', error: 'שגיאה', warning: 'אזהרה', ok: 'תקין', active: 'פעיל', inactive: 'לא פעיל',
     yes: 'כן', no: 'לא', true: 'כן', false: 'לא', unknown: 'לא ידוע', tbd: 'לקביעה',
     ship_ready: 'מוכן', has_issues: 'יש בעיות', not_ready: 'לא מוכן',
+    ready: 'מוכן', activated: 'הופעל', founder: 'מייסד', stable: 'יציב', improving: 'משתפר', declining: 'יורד',
 }
 
 // Free-text English jargon → Hebrew (whole-word, case-insensitive). Abbreviations
@@ -83,6 +95,12 @@ const JARGON_HE: Record<string, string> = {
     optimization: 'אופטימיזציה', engagement: 'מעורבות', reach: 'חשיפה', placement: 'מיקום',
     snippet: 'קטע קוד', integration: 'אינטגרציה', dashboard: 'לוח בקרה', report: 'דוח',
     pending: 'ממתין', approved: 'אושר', recommended: 'מומלץ', deferred: 'נדחה למועד מאוחר',
+    // common free-text jargon seen in ops briefs / reports
+    tokens: 'טוקנים', token: 'טוקן', tools: 'כלים', paid: 'ממומן', pipeline: 'תהליך',
+    generation: 'הפקה', cap: 'תקרה', provider: 'ספק', outreach: 'פנייה יזומה', founder: 'מייסד',
+    contract: 'חוזה', proposal: 'הצעה', signed: 'נחתם', accepted: 'התקבל', blocked: 'חסום',
+    data: 'נתונים', driven: 'מונחה', spend: 'הוצאה', budget: 'תקציב', organic: 'אורגני',
+    gatekeeper: 'שער', deviation: 'חריגה', severity: 'חומרה', target: 'יעד', actual: 'בפועל',
 }
 
 const ABBR_RE = /^[A-Z0-9]{2,6}$/   // ALL-CAPS short token = abbreviation → keep

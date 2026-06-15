@@ -3115,7 +3115,8 @@ ${recentOutputs.slice(0, 15).map(o => `- [${o.agentRole}] ${o.title || o.outputT
 - אם אין data ל-week 1: onTrack=["יישום התחיל"], behind=[], actions ספציפיות להפעלה
 - severity: "high" אם |dev| >= 50, "medium" אם >= 25, "low" אחרת
 ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי outputs שמעידים על לקוחות חדשים (proposal accepted, contract signed etc.). אם 0 → status=blocked + action להעצמת אורגני. אם >=2 → status=ready + action להפעלת paid.' : ''}
-- הפרד Tokens/Tools מ-Paid Ads בניתוח העלויות — הלקוח משלם נפרד לכל ספק`
+- הפרד Tokens/Tools מ-Paid Ads בניתוח העלויות — הלקוח משלם נפרד לכל ספק
+- **שפה:** מפתחות ה-JSON נשארים באנגלית כפי שמופיע במבנה (חוזה קוד). אבל כל הערכים הטקסטואליים (statusReason, onTrack, behind, action, costSpendNote וכו') חייבים להיות **בעברית בלבד**. אנגלית מותרת אך ורק לראשי-תיבות (P0, GA4, GTM, KPI, ROAS, SEO) ולשמות מוצר (BigQuery, WhatsApp). אל תכתוב מילים אנגליות כמו outputs/tokens/pipeline/capability — כתוב פלטים/טוקנים/תהליך/יכולת.`
 
         // Ops Brief: menateach's job (strategic analysis). User can upgrade
         // via Settings → תת-סוכנים if they want deeper reasoning.
