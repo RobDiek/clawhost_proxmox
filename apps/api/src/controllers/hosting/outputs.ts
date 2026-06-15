@@ -9,8 +9,15 @@ import { createCampaign, type CampaignPlan, type GoogleTokens } from '@/services
 import { Client } from 'ssh2'
 import { readFileSync } from 'fs'
 import { resolveActiveAgent, readResearchData, writeResearchData } from '@/services/agentContext'
+import { ensureDisplayHeOnRow } from '@/services/userDisplayHe'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
+
+// Operator/dev-only output types — internal telemetry that must NOT clutter the
+// client kabinet (the user has no action to take on them). Filtered out of the
+// user-facing outputs list. `audit_findings` = the self-QA that checks whether
+// OUR deterministic claims about the tenant's pages were false positives.
+const OPERATOR_ONLY_OUTPUT_TYPES = ['audit_findings']
 
 function sshExecForPublish(ip: string, command: string, password?: string): Promise<string> {
     return new Promise((resolve) => {
@@ -95,6 +102,10 @@ export const getOutputs = async (c: Context<HonoEnv>) => {
         } else if (excludeArchived) {
             conditions.push(ne(agentOutputs.status, 'archived'))
         }
+        // Hide operator-only telemetry (e.g. audit_findings) from the client kabinet.
+        for (const t of OPERATOR_ONLY_OUTPUT_TYPES) {
+            conditions.push(ne(agentOutputs.outputType, t))
+        }
         // Filter by agent type
         if (agentFilter === 'mt') {
             conditions.push(inArray(agentOutputs.agentRole, MATEH_ROLES))
@@ -156,6 +167,12 @@ export const getOutputs = async (c: Context<HonoEnv>) => {
             console.warn('[getOutputs] wave enrichment skipped:', (err as Error).message)
         }
 
+        // Systemic Hebrew display: backfill a clean Hebrew displayHe for any output
+        // whose content is a structured object without one — so the kabinet never
+        // renders raw English keys/enums/jargon. No-op for plain-text content and
+        // content that already carries displayHe.
+        enriched = enriched.map(r => ensureDisplayHeOnRow(r as { content?: unknown }))
+
         return ok(c, enriched)
     } catch (err) {
         console.error('getOutputs error:', err)
@@ -173,7 +190,7 @@ export const getOutput = async (c: Context<HonoEnv>) => {
             .where(eq(agentOutputs.id, outputId))
 
         if (!output) return fail(c, 'Output not found', 404)
-        return ok(c, output)
+        return ok(c, ensureDisplayHeOnRow(output as { content?: unknown }))
     } catch (err) {
         console.error('getOutput error:', err)
         return fail(c, 'Failed to fetch output', 500)

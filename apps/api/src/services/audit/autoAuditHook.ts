@@ -68,11 +68,14 @@ export async function runAndPersistAudit(
     })
 
     const body = buildPlainLanguageReport(report)
+    // agentName may be empty for agentless tenants — fall back to a readable label
+    // so the operator view never shows "undefined"/"(unknown)".
+    const who = (report.agentName && report.agentName.trim()) || 'בדיקת מערכת'
     const title = report.overall === 'ship_ready'
-        ? `✅ בדיקת איכות — ${report.agentName} מוכן`
+        ? `✅ בדיקת איכות — ${who} מוכן`
         : report.overall === 'has_issues'
-            ? `⚠ בדיקת איכות — ${report.agentName} (${report.counts.warn} אזהרות)`
-            : `🛑 בדיקת איכות — ${report.agentName} (${report.counts.fail} חוסמים)`
+            ? `⚠ בדיקת איכות — ${who} (${report.counts.warn} אזהרות)`
+            : `🛑 בדיקת איכות — ${who} (${report.counts.fail} חוסמים)`
 
     // Pending_review status only when there's something the user needs to
     // act on. Otherwise we still write the row but as `approved` so it

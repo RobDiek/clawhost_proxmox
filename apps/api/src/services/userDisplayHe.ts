@@ -1,0 +1,187 @@
+/**
+ * Systemic Hebrew display layer for user-facing agent_outputs.
+ *
+ * THE PROBLEM (recurring): producers emit structured content (English keys +
+ * enum values + jargon) and forget to set `content.displayHe`, so the dashboard
+ * fallback renderer dumps raw `weekNum: 1 / overallStatus: at_risk / onTrack: …`
+ * — a mix of English and Hebrew the user should never see.
+ *
+ * THE FIX (once, for all output types): a server-side renderer that BACKFILLS a
+ * clean Hebrew `displayHe` for any output whose content is a structured object
+ * without one. Applied at the kabinet READ endpoint (outputs.ts) so it covers
+ * every output type, reaches every tenant immediately (no dashboard Publish),
+ * and is self-healing — producers no longer need to remember displayHe.
+ *
+ * Rule (Sergei): user-facing content is Hebrew; English is allowed ONLY for
+ * abbreviations / product names (P0, GA4, GTM, KPI, ROAS, BigQuery, WhatsApp…).
+ */
+
+// Abbreviations + product/brand names kept verbatim (the only allowed English).
+const KEEP_VERBATIM = new Set([
+    // priorities / tiers
+    'p0', 'p1', 'p2', 'p3',
+    // analytics / ads / tracking acronyms
+    'ga4', 'gtm', 'gsc', 'kpi', 'cpa', 'cpc', 'ctr', 'cpm', 'cpl', 'roas', 'roi', 'romi',
+    'seo', 'aeo', 'sem', 'sea', 'serp', 'utm', 'gclid', 'lsa', 'cro', 'ugc', 'gbp', 'dpa',
+    'pmax', 'rsa', 'ltv', 'cac', 'aov', 'sov', 'sql', 'mql', 'qa', 'vps', 'api', 'url',
+    'ai', 'llm', 'b2b', 'b2c', 'cms', 'crm', 'cdp', 'cwv', 'inp', 'lcp', 'cls', 'h1', 'h2',
+    // product / brand names
+    'bigquery', 'whatsapp', 'github', 'wordpress', 'woocommerce', 'google', 'meta',
+    'facebook', 'instagram', 'tiktok', 'youtube', 'linkedin', 'telegram', 'shopify',
+    'anthropic', 'openai', 'claude', 'yoast', 'rankmath', 'elementor', 'wix', 'flowmatic',
+    'analytics', 'ads', 'shopping', 'merchant', 'pixel', 'reels', 'wikidata',
+])
+
+// English structural keys → Hebrew labels.
+const KEY_LABELS_HE: Record<string, string> = {
+    weeknum: 'שבוע', weekofmonth: 'שבוע בחודש', week: 'שבוע', month: 'חודש',
+    overallstatus: 'סטטוס כללי', status: 'סטטוס', statusreason: 'סיבת הסטטוס', reason: 'סיבה',
+    ontrack: 'במסלול', behind: 'בפיגור', atrisk: 'בסיכון', offtrack: 'מחוץ למסלול', blocked: 'חסום',
+    summary: 'תקציר', overview: 'סקירה', title: 'כותרת', description: 'תיאור', headline: 'כותרת',
+    rationale: 'נימוק', recommendation: 'המלצה', recommendations: 'המלצות', nextsteps: 'צעדים הבאים',
+    findings: 'ממצאים', issues: 'בעיות', warnings: 'אזהרות', blockers: 'חוסמים', risks: 'סיכונים',
+    wins: 'הצלחות', highlights: 'דגשים', achievements: 'הישגים', alerts: 'התראות', notes: 'הערות',
+    metric: 'מדד', metrics: 'מדדים', value: 'ערך', target: 'יעד', actual: 'בפועל', baseline: 'בסיס',
+    channel: 'ערוץ', channels: 'ערוצים', priority: 'עדיפות', effort: 'מאמץ', impact: 'השפעה',
+    expectedimpact: 'השפעה צפויה', estimatedeffort: 'מאמץ משוער', horizon: 'טווח זמן',
+    confidence: 'רמת ביטחון', evidence: 'ראיה', source: 'מקור', sources: 'מקורות',
+    actionplan: 'תוכנית פעולה', steps: 'צעדים', step: 'צעד', type: 'סוג', category: 'קטגוריה',
+    generatedat: 'נוצר בתאריך', createdat: 'נוצר', updatedat: 'עודכן', date: 'תאריך', period: 'תקופה',
+    goal: 'מטרה', goals: 'מטרות', objective: 'יעד', kpis: 'מדדי יעד', progress: 'התקדמות',
+    budget: 'תקציב', spend: 'הוצאה', cost: 'עלות', revenue: 'הכנסה', leads: 'לידים',
+    conversions: 'המרות', clicks: 'קליקים', impressions: 'חשיפות', traffic: 'תנועה',
+    tasks: 'משימות', task: 'משימה', count: 'כמות', total: 'סך הכול', items: 'פריטים',
+    name: 'שם', label: 'תווית', detail: 'פירוט', details: 'פירוט', message: 'הודעה',
+    week_over_week: 'שבוע מול שבוע', month_over_month: 'חודש מול חודש',
+}
+
+// English enum / scalar values → Hebrew.
+const VALUE_HE: Record<string, string> = {
+    at_risk: 'בסיכון', on_track: 'במסלול', behind: 'בפיגור', off_track: 'מחוץ למסלול',
+    ahead: 'מקדים', blocked: 'חסום', critical: 'קריטי',
+    high: 'גבוה', medium: 'בינוני', low: 'נמוך', none: 'אין',
+    pending_review: 'ממתין לאישור', pending: 'ממתין', approved: 'אושר', rejected: 'נדחה',
+    published: 'פורסם', draft: 'טיוטה', in_progress: 'בתהליך', completed: 'הושלם',
+    failed: 'נכשל', proposed: 'מוצע', archived: 'בארכיון', skipped: 'דולג', done: 'בוצע',
+    success: 'הצלחה', error: 'שגיאה', warning: 'אזהרה', ok: 'תקין', active: 'פעיל', inactive: 'לא פעיל',
+    yes: 'כן', no: 'לא', true: 'כן', false: 'לא', unknown: 'לא ידוע', tbd: 'לקביעה',
+    ship_ready: 'מוכן', has_issues: 'יש בעיות', not_ready: 'לא מוכן',
+}
+
+// Free-text English jargon → Hebrew (whole-word, case-insensitive). Abbreviations
+// and product names are protected by KEEP_VERBATIM and never touched.
+const JARGON_HE: Record<string, string> = {
+    outputs: 'פלטים', output: 'פלט', capability: 'יכולת', capabilities: 'יכולות',
+    tracking: 'מעקב', measurement: 'מדידה', attribution: 'ייחוס', funnel: 'משפך',
+    scaling: 'הגדלה', launch: 'השקה', authority: 'סמכות', awareness: 'מודעות',
+    retargeting: 'פנייה חוזרת', remarketing: 'פנייה חוזרת', audience: 'קהל יעד',
+    bidding: 'הצעות מחיר', keyword: 'מילת מפתח', keywords: 'מילות מפתח', campaign: 'קמפיין',
+    campaigns: 'קמפיינים', creative: 'קריאייטיב', landing: 'נחיתה', schema: 'תיוג מובנה',
+    review: 'סקירה', reviews: 'ביקורות', conversion: 'המרה', backlink: 'קישור נכנס',
+    backlinks: 'קישורים נכנסים', publish: 'פרסום', draft: 'טיוטה', baseline: 'בסיס',
+    benchmark: 'מדד ייחוס', insight: 'תובנה', insights: 'תובנות', performance: 'ביצועים',
+    optimization: 'אופטימיזציה', engagement: 'מעורבות', reach: 'חשיפה', placement: 'מיקום',
+    snippet: 'קטע קוד', integration: 'אינטגרציה', dashboard: 'לוח בקרה', report: 'דוח',
+    pending: 'ממתין', approved: 'אושר', recommended: 'מומלץ', deferred: 'נדחה למועד מאוחר',
+}
+
+const ABBR_RE = /^[A-Z0-9]{2,6}$/   // ALL-CAPS short token = abbreviation → keep
+
+function isAbbreviation(token: string): boolean {
+    const lower = token.toLowerCase().replace(/[^a-z0-9]/g, '')
+    return KEEP_VERBATIM.has(lower) || ABBR_RE.test(token)
+}
+
+/** Translate the common English jargon tokens inside a free-text string,
+ *  keeping abbreviations + product names verbatim. */
+export function humanizeStringHe(input: string): string {
+    if (!input) return input
+    return input.replace(/[A-Za-z][A-Za-z0-9_]*/g, (word) => {
+        if (isAbbreviation(word)) return word
+        const lower = word.toLowerCase()
+        if (VALUE_HE[lower]) return VALUE_HE[lower]
+        if (JARGON_HE[lower]) return JARGON_HE[lower]
+        return word   // unknown English word: leave as-is (rare; can't translate arbitrarily)
+    })
+}
+
+function labelFor(key: string): string {
+    const norm = key.toLowerCase().replace(/[^a-z0-9]/g, '')
+    if (KEY_LABELS_HE[norm]) return KEY_LABELS_HE[norm]
+    // snake/camel → spaced, then jargon-translate as a fallback label.
+    const spaced = key.replace(/[_-]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')
+    return humanizeStringHe(spaced)
+}
+
+function valueToHe(v: unknown): string {
+    if (v === null || v === undefined || v === '') return '—'
+    if (typeof v === 'boolean') return v ? 'כן' : 'לא'
+    if (typeof v === 'number') return String(v)
+    const s = String(v).trim()
+    const enumHit = VALUE_HE[s.toLowerCase()]
+    if (enumHit && /^[a-z_ ]+$/i.test(s)) return enumHit
+    return humanizeStringHe(s)
+}
+
+const SKIP_KEYS = new Set(['displayhe', 'id', '_id', 'outputid', 'instanceid', 'agentid', 'taskid'])
+
+/** Render a structured content object as clean Hebrew markdown. Recursive,
+ *  depth/length-capped. Used to backfill displayHe. */
+export function buildDisplayHe(obj: unknown, depth = 0): string {
+    if (obj === null || obj === undefined) return ''
+    if (typeof obj !== 'object') return valueToHe(obj)
+
+    const indent = depth > 0 ? '  '.repeat(depth) : ''
+
+    if (Array.isArray(obj)) {
+        return obj.slice(0, 30).map(item => {
+            if (item && typeof item === 'object') {
+                const inner = buildDisplayHe(item, depth + 1)
+                return `${indent}- ${inner.replace(/^\s+/, '')}`
+            }
+            return `${indent}- ${valueToHe(item)}`
+        }).join('\n')
+    }
+
+    const lines: string[] = []
+    for (const [key, val] of Object.entries(obj as Record<string, unknown>)) {
+        if (SKIP_KEYS.has(key.toLowerCase())) continue
+        if (val === null || val === undefined || val === '') continue
+        const label = labelFor(key)
+        if (Array.isArray(val)) {
+            if (val.length === 0) continue
+            lines.push(`**${label}:**`)
+            lines.push(buildDisplayHe(val, depth + 1))
+        } else if (typeof val === 'object') {
+            lines.push(`**${label}:**`)
+            lines.push(buildDisplayHe(val, depth + 1))
+        } else {
+            lines.push(`**${label}:** ${valueToHe(val)}`)
+        }
+    }
+    return lines.join('\n')
+}
+
+/**
+ * Ensure a kabinet output row carries a clean Hebrew `displayHe`. If `content`
+ * is a structured JSON object WITHOUT displayHe, inject one (built server-side).
+ * Plain-text content and content that already has displayHe pass through
+ * untouched. Returns a shallow clone; never throws (best-effort per row).
+ */
+export function ensureDisplayHeOnRow<T extends { content?: unknown }>(row: T): T {
+    try {
+        const content = (row as any).content
+        if (typeof content !== 'string') return row
+        const s = content.trim()
+        if (!(s.charAt(0) === '{' || s.charAt(0) === '[')) return row   // plain text — leave it
+        let obj: any
+        try { obj = JSON.parse(s) } catch { return row }                 // unparseable — leave for the dashboard's raw extractor
+        if (obj && typeof obj === 'object' && !Array.isArray(obj) && obj.displayHe) return row
+        const displayHe = buildDisplayHe(obj)
+        if (!displayHe.trim()) return row
+        const next = Array.isArray(obj) ? { displayHe, items: obj } : { displayHe, ...obj }
+        return { ...row, content: JSON.stringify(next) }
+    } catch {
+        return row
+    }
+}
