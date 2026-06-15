@@ -152,9 +152,16 @@ export function synthesizeStrategy(
     // Done-for-you / sales-assisted offers acquire local SMB clients → local tactics
     // stay on the table even if the archetype prior defers them.
     if (motion === 'done_for_you' || motion === 'sales_assisted') deferred.delete('city_pages')
-    // Honor any pre-existing explicit deferrals already in research_data.
-    const existingDeferrals: string[] = Array.isArray(rd?.deferredTactics) ? rd.deferredTactics : []
-    for (const t of existingDeferrals) if (typeof t === 'string') deferred.add(t.toLowerCase())
+    // Honor explicit deferrals from an UPSTREAM strategy stage / human decision.
+    // Deliberately NOT rd.deferredTactics — that key is the engine's OWN merged
+    // output from the previous run; re-reading it creates a feedback loop that
+    // re-defers per-offer tactics the motion/locality logic just un-deferred
+    // (e.g. a done-for-you offer's city_pages getting re-added every regen).
+    const upstreamDeferrals: string[] = [
+        ...(Array.isArray(rd?.strategy?.deferredTactics) ? rd.strategy.deferredTactics : []),
+        ...(Array.isArray(rd?.results?.strategy_options?.deferredTactics) ? rd.results.strategy_options.deferredTactics : []),
+    ]
+    for (const t of upstreamDeferrals) if (typeof t === 'string') deferred.add(t.toLowerCase())
 
     // ── anti-patterns: archetype + stack-derived guardrails ─────────────────
     const antiPatterns = [...playbook.antiPatterns]

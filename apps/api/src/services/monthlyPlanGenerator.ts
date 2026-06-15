@@ -339,11 +339,11 @@ async function buildPromptCtx(
     try {
         const { resolveArchetypeStrategy } = await import('./marketing/strategyEngine')
         archetypeStrategy = resolveArchetypeStrategy(rd, connectedStack, new Date().toISOString())
-        const mergedDeferrals = Array.from(new Set([
-            ...((Array.isArray(rd.deferredTactics) ? rd.deferredTactics : []) as string[]),
-            ...archetypeStrategy.deferredTactics,
-        ]))
-        rd.deferredTactics = mergedDeferrals
+        // Replace (do NOT merge with the old value): the engine recomputes the
+        // authoritative deferral set each run from prior×locality×motion×stack +
+        // genuine upstream deferrals. Merging the previous run's output back in
+        // would re-defer tactics the engine just un-deferred (feedback loop).
+        rd.deferredTactics = [...archetypeStrategy.deferredTactics]
         rd.archetypeStrategy = archetypeStrategy
         console.log(`[monthlyPlanGenerator] ${instanceId}: archetype=${archetypeStrategy.archetype} (conf=${archetypeStrategy.confidence}, ${archetypeStrategy.modifiers.b2x}/${archetypeStrategy.modifiers.locality}) deferred=[${archetypeStrategy.deferredTactics.join(',')}] prereqs=[${archetypeStrategy.prerequisites.map(p => p.integration).join(',')}]`)
     } catch (e) {
