@@ -101,6 +101,8 @@ const JARGON_HE: Record<string, string> = {
     contract: 'חוזה', proposal: 'הצעה', signed: 'נחתם', accepted: 'התקבל', blocked: 'חסום',
     data: 'נתונים', driven: 'מונחה', spend: 'הוצאה', budget: 'תקציב', organic: 'אורגני',
     gatekeeper: 'שער', deviation: 'חריגה', severity: 'חומרה', target: 'יעד', actual: 'בפועל',
+    feedback: 'משוב', loop: 'לולאה', fix: 'תיקון', gap: 'פער', bottleneck: 'צוואר בקבוק',
+    upsell: 'מכירה נוספת', churn: 'נטישה', retention: 'שימור', onboarding: 'הצטרפות',
 }
 
 const ABBR_RE = /^[A-Z0-9]{2,6}$/   // ALL-CAPS short token = abbreviation → keep
