@@ -43,6 +43,7 @@ import type {
     MonthlyTask,
 } from '@/controllers/hosting/agentSetup'
 import type { ConnectedStack } from './connectedStack'
+import type { ArchetypeStrategy } from './marketing/strategyEngine'
 
 // ─── Shared types ─────────────────────────────────────────────────────────
 // Exported so the per-pass modules (monthlyPlanSkeleton / Detailer /
@@ -100,6 +101,10 @@ export interface PromptCtx {
     // LLM passes + fillers never recommend a tool the tenant can't run, nor "create
     // a new account" for one that's already connected.
     connectedStack: ConnectedStack
+    // Archetype Strategy Framework — the deterministic strategic spine (archetype
+    // prior × niche facts × connected stack × ROMI). Injected as a prompt directive
+    // and its deferredTactics gate the structured fillers.
+    archetypeStrategy: ArchetypeStrategy
     // Phase 4.3-N v8: baseline-delta context for month-over-month performance narrative.
     // baselineHistory[monthKey] holds frozen baselines from prior months.
     // baselineDelta is the computed comparison (current vs most-recent prior).
@@ -326,6 +331,36 @@ async function buildPromptCtx(
         }
     }
 
+    // Archetype Strategy Framework — resolve the strategic spine (classify → ground
+    // → synthesize). Deterministic. The deferredTactics it produces are merged back
+    // into `rd` so Pass 4 (runStructuredFillers) honors them, and the whole strategy
+    // is persisted on research_data (persistAndEmit writes {...rd}).
+    let archetypeStrategy: ArchetypeStrategy
+    try {
+        const { resolveArchetypeStrategy } = await import('./marketing/strategyEngine')
+        archetypeStrategy = resolveArchetypeStrategy(rd, connectedStack, new Date().toISOString())
+        const mergedDeferrals = Array.from(new Set([
+            ...((Array.isArray(rd.deferredTactics) ? rd.deferredTactics : []) as string[]),
+            ...archetypeStrategy.deferredTactics,
+        ]))
+        rd.deferredTactics = mergedDeferrals
+        rd.archetypeStrategy = archetypeStrategy
+        console.log(`[monthlyPlanGenerator] ${instanceId}: archetype=${archetypeStrategy.archetype} (conf=${archetypeStrategy.confidence}, ${archetypeStrategy.modifiers.b2x}/${archetypeStrategy.modifiers.locality}) deferred=[${archetypeStrategy.deferredTactics.join(',')}] prereqs=[${archetypeStrategy.prerequisites.map(p => p.integration).join(',')}]`)
+    } catch (e) {
+        console.warn('[monthlyPlanGenerator] archetype strategy resolution failed (non-fatal):', (e as Error).message)
+        const { ARCHETYPES } = await import('./marketing/archetypeRegistry')
+        const pb = ARCHETYPES.b2b_service
+        archetypeStrategy = {
+            archetype: 'b2b_service', archetypeNameHe: pb.nameHe, archetypeNameEn: pb.nameEn,
+            confidence: 'low', modifiers: { b2x: 'b2b', locality: 'national', intent: 'considered', hybrid: null },
+            rankedChannels: [], budgetLogic: pb.budgetLogic, funnelMotion: pb.funnelMotion,
+            primaryKpi: pb.primaryKpi, romiModel: pb.romiModel, leadMechanism: pb.leadMechanism,
+            antiPatterns: pb.antiPatterns, deferredTactics: [], prerequisites: [], offers: [],
+            facts: { competitorPlatforms: { googleAdvertisers: 0, metaAdvertisers: 0, sample: [], hasData: false }, searchDemand: { totalVolume: 0, avgCpcIls: null, thin: false, highCpc: false, hasData: false }, serp: { localPack: false, aiOverview: false, shopping: false, hasData: false }, roas: { value: null, hasData: false } },
+            appliedOverrides: [], overallConfidence: 'low', classificationRationale: 'fallback (engine error)',
+        }
+    }
+
     const ctx: PromptCtx = {
         businessName, websiteUrl, businessDesc,
         paidProfile, audit, mediaPlan, strategy,
@@ -343,7 +378,7 @@ async function buildPromptCtx(
         tenantState, seoResearch2026,
         trigger,
         instanceId, execMode: (inst as any).execMode || 'central',
-        connectedStack,
+        connectedStack, archetypeStrategy,
         baselineHistory, baselineDelta, completedTaskOutcomes,
     }
 

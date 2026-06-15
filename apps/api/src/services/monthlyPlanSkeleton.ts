@@ -20,6 +20,7 @@ import type { PromptCtx } from './monthlyPlanGenerator'
 import { routedOpusStream } from './routedLlm'
 import { extractLlmJson } from './llmJson'
 import { buildConnectedStackDirective } from './connectedStack'
+import { buildArchetypeStrategyDirective } from './marketing/strategyEngine'
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
 
 export type TaskType = MonthlyTask['type']
@@ -200,6 +201,8 @@ Description: ${(ctx.businessDesc || '').slice(0, 600)}
 Trigger: ${ctx.trigger}
 
 ${buildConnectedStackDirective(ctx.connectedStack)}
+
+${buildArchetypeStrategyDirective(ctx.archetypeStrategy)}
 
 ${scenarioBlock}
 ${baselineDeltaBlock}

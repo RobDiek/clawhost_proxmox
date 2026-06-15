@@ -25,6 +25,7 @@ import type { TaskSkeleton } from './monthlyPlanSkeleton'
 import { routedOpusStream } from './routedLlm'
 import { extractLlmJson } from './llmJson'
 import { buildConnectedStackDirective } from './connectedStack'
+import { buildArchetypeStrategyDirective } from './marketing/strategyEngine'
 import type { MonthlyTask } from '@/controllers/hosting/agentSetup'
 
 interface BatchOutput {
@@ -90,10 +91,12 @@ function buildChannelContextBlock(ctx: PromptCtx, channels: MonthlyTask['channel
 
     const parts: string[] = []
 
-    // Always first — integration grounding. Every batch's actionPlan steps must
-    // match the connected stack (git/markdown vs WordPress; the connected Ads
-    // account; never "create new"). Highest salience → placed before everything.
+    // Always first — integration grounding + archetype spine. Every batch's
+    // actionPlan steps must match the connected stack (git/markdown vs WordPress;
+    // the connected Ads account; never "create new") AND the archetype channel
+    // priorities. Highest salience → placed before everything.
     parts.push(buildConnectedStackDirective(ctx.connectedStack))
+    parts.push(buildArchetypeStrategyDirective(ctx.archetypeStrategy))
 
     // Always include — every batch needs brand voice + scenario + audit highlights
     parts.push(`═══ BRAND BOOK (voice / USPs / banned phrases / vocabulary — every creative MUST follow) ═══
