@@ -715,6 +715,21 @@ export async function generateMonthlyPlan(
         console.warn(`[monthlyPlanGenerator] ${instanceId}: Pass 4c scheduling error (non-fatal):`, (err as Error).message)
     }
 
+    // ─── Pass 4d: user-facing Hebrew cleanup (deterministic) ──────────────
+    // The kabinet task popup reads summary / sources / actionPlan straight from
+    // research_data.monthlyPlan.tasks, bypassing the displayHe humanizer — so the
+    // raw LLM English/Hebrew mix shows there. Clean the user-facing text fields
+    // (English only for abbreviations / product names) + humanize internal source
+    // refs to readable Hebrew origins. Deterministic backstop to the post-save LLM
+    // cleanup (which only touches agent_outputs rows, not research_data).
+    try {
+        const { cleanPlanTasksForUser } = await import('./userDisplayHe')
+        const cleaned = cleanPlanTasksForUser(finalTasks as any)
+        console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 4d cleaned ${cleaned} tasks (user-facing Hebrew)`)
+    } catch (err) {
+        console.warn(`[monthlyPlanGenerator] ${instanceId}: Pass 4d cleanup error (non-fatal):`, (err as Error).message)
+    }
+
     // ─── Assemble plan + apply guardrails ────────────────────────────────
     const qualityWarnings: string[] = [
         ...(skeleton.qualityWarnings || []),

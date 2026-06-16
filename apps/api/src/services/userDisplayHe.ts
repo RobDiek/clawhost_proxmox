@@ -103,6 +103,85 @@ const JARGON_HE: Record<string, string> = {
     gatekeeper: 'שער', deviation: 'חריגה', severity: 'חומרה', target: 'יעד', actual: 'בפועל',
     feedback: 'משוב', loop: 'לולאה', fix: 'תיקון', gap: 'פער', bottleneck: 'צוואר בקבוק',
     upsell: 'מכירה נוספת', churn: 'נטישה', retention: 'שימור', onboarding: 'הצטרפות',
+    // domain terms that leak into monthly-task summaries / source excerpts
+    entity: 'ישות', disambiguation: 'הבחנה', extractability: 'יכולת חילוץ',
+    grade: 'דרגה', score: 'ציון', signals: 'סיגנלים', signal: 'סיגנל', lift: 'שיפור',
+    anchor: 'עוגן', citation: 'ציטוט', citations: 'ציטוטים', quotability: 'ציטוטיות',
+    network: 'רשת', foundation: 'בסיס', boost: 'הגברה', visibility: 'נראות',
+    competitor: 'מתחרה', competitors: 'מתחרים', advantage: 'יתרון', lesson: 'לקח',
+    immediate: 'מיידי', expected: 'צפוי',
+    software: 'תוכנה', country: 'מדינה', official: 'רשמי', properties: 'מאפיינים',
+    validator: 'מאמת', merge: 'מיזוג', deploy: 'פריסה', threshold: 'סף', kill: 'עצירה',
+}
+
+// Internal source-ref prefixes (data pointers the LLM cites) → human Hebrew label.
+// These are NOT user vocabulary — strip the technical path, keep a readable origin.
+const SOURCE_REF_HE: Array<[RegExp, string]> = [
+    [/^aeo_audit|aeo_visibility/i, 'בדיקת נראות ב-AI (AEO)'],
+    [/^internal_seo_audit/i, 'בדיקת SEO פנימית באתר'],
+    [/^seo_keyword_research|dfs\.keywords/i, 'מחקר מילות מפתח'],
+    [/^paid_keyword_research/i, 'מחקר מילות מפתח לפרסום'],
+    [/^paid_competitor_landscape|transparency\.competitor/i, 'ניתוח מתחרים בפרסום'],
+    [/^competitor_landscape|competitor_aeo/i, 'ניתוח מתחרים'],
+    [/^link_audit/i, 'בדיקת קישורים'],
+    [/^audit\.recommendedActions|mazhirAudit|^audit\./i, 'המלצות מבדיקת החשבון'],
+    [/^seo_research/i, 'מחקר SEO'],
+    [/^audience_personas|strategy\.persona/i, 'פרסונות קהל היעד'],
+    [/^positioning|strategy\.positioning/i, 'מיצוב'],
+    [/^chosenScenario|cost_timeline/i, 'התרחיש והתקציב שנבחרו'],
+    [/^archetypeStrategy/i, 'אסטרטגיית הארכיטיפ'],
+    [/^client_account_baseline|baseline/i, 'נתוני הבסיס של החשבון'],
+    [/^ga4\.|gsc\.|^integrations\./i, 'נתוני מדידה'],
+]
+
+/** Humanize an internal source-ref pointer to a readable Hebrew origin label. */
+export function humanizeSourceRef(ref: string): string {
+    if (!ref) return ref
+    for (const [re, he] of SOURCE_REF_HE) if (re.test(ref)) return he
+    // Unknown → strip the technical path/brackets and translate residual jargon.
+    const head = ref.replace(/\[.*$/, '').replace(/[._]/g, ' ').trim()
+    return humanizeStringHe(head) || ref
+}
+
+interface CleanableTask {
+    title?: string
+    summary?: string
+    expectedImpact?: { rationale?: string } | null
+    actionPlan?: Array<{ step?: string } | null> | null
+    sources?: Array<{ ref?: string; excerpt?: string } | null> | null
+}
+
+/**
+ * Deterministically clean a monthly-task's USER-FACING text to Hebrew (English
+ * only for abbreviations / product names). The kabinet task popup reads these
+ * fields straight from research_data.monthlyPlan.tasks — bypassing the displayHe
+ * humanizer — so this pass is what keeps that card readable. Mutates in place.
+ */
+export function cleanTaskForUser<T extends CleanableTask>(task: T): T {
+    if (task.title) task.title = humanizeStringHe(task.title)
+    if (task.summary) task.summary = humanizeStringHe(task.summary)
+    if (task.expectedImpact && task.expectedImpact.rationale) {
+        task.expectedImpact.rationale = humanizeStringHe(task.expectedImpact.rationale)
+    }
+    if (Array.isArray(task.actionPlan)) {
+        for (const s of task.actionPlan) if (s && s.step) s.step = humanizeStringHe(s.step)
+    }
+    if (Array.isArray(task.sources)) {
+        for (const src of task.sources) {
+            if (!src) continue
+            if (src.excerpt) src.excerpt = humanizeStringHe(src.excerpt)
+            if (src.ref) src.ref = humanizeSourceRef(src.ref)
+        }
+    }
+    return task
+}
+
+/** Clean every task in a plan (in place). Returns the count cleaned. */
+export function cleanPlanTasksForUser(tasks: CleanableTask[]): number {
+    if (!Array.isArray(tasks)) return 0
+    let n = 0
+    for (const t of tasks) { if (t) { cleanTaskForUser(t); n++ } }
+    return n
 }
 
 const ABBR_RE = /^[A-Z0-9]{2,6}$/   // ALL-CAPS short token = abbreviation → keep

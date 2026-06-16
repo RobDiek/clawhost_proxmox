@@ -229,6 +229,30 @@ export const getInstance = async (c: Context<HonoEnv>) => {
                 return acc
             }, {} as Record<string, { connected: boolean; config: Record<string, unknown> }>)
 
+            // Overlay the CANONICAL connected stack so column-stored connections
+            // (instances.githubConfig, instances.googleAdsConfig, …) that aren't
+            // rows in agent_integrations still surface as connected. Fixes the
+            // monthly-task popup wrongly showing "GitHub / WordPress — not connected
+            // → manual" for agentless tenants whose GitHub lives in instances.githubConfig.
+            try {
+                const { resolveConnectedStack } = await import('@/services/connectedStack')
+                const __stack = await resolveConnectedStack(activeAgent || null, instanceId)
+                const __ov = response.activeAgentIntegrations as Record<string, { connected: boolean; config: Record<string, unknown> }>
+                const __setInt = (k: string, on: boolean, cfg?: Record<string, unknown>) => {
+                    if (on && !(__ov[k] && __ov[k].connected)) __ov[k] = { connected: true, config: cfg || {} }
+                }
+                __setInt('github', __stack.github, __stack.githubRepo ? { repo: __stack.githubRepo } : {})
+                __setInt('wordpress', __stack.wordpress)
+                __setInt('gtm', __stack.gtm)
+                __setInt('gbp', __stack.gbp)
+                __setInt('meta', __stack.meta)
+                __setInt('whatsapp', __stack.whatsapp)
+                if (__stack.github) response.hasGithub = true
+                if (__stack.wordpress) response.hasWordpress = true
+            } catch (e) {
+                console.warn('[getInstance] connectedStack overlay failed (non-fatal):', (e as Error).message)
+            }
+
             // Profile / research / strategy / brand book — derived from per-agent
             // research_data and from a per-agent brand_books query.
             //
