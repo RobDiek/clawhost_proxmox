@@ -347,7 +347,7 @@ DO NOT add new tasks. DO NOT remove tasks. DO NOT change ids / types / channels 
 
 1. Human-in-the-loop — every task is approval-gated. The user decides.
 2. Read-only verifications are NEVER user tasks — they're auto pre-check steps inside other tasks' actionPlan.
-3. Source citation MANDATORY — ≥3 sources per task (target 4-6), each excerpt = real number/quote (not "see audit"). Mix source types.
+3. Source citation MANDATORY — ≥3 sources per task (target 4-6), each excerpt = real number/quote (not "see audit"). Mix source types. The excerpt MUST be a HEBREW sentence the end-user can read — NEVER paste raw record field names or key=value (no 'expected_aio_lift', 'priority=high', 'brand_visibility_score=25', 'lesson_to_apply'); translate the meaning to Hebrew (numbers/abbreviations like GA4/CPA may stay). A technical pointer belongs ONLY in the ref field, never in the excerpt.
 4. ActionPlan: 5-8 ordered steps. Last step = monitoring/verification with explicit metric + horizon + kill threshold.
 5. Link budgets — chosenScenario VERBATIM (Smart 2-3 mid-DR links ~₪1K/mo; Aggressive 5-8 multi-tier ~₪3K/mo). Never invent.
 6. Hebrew strings — 2nd person plural (אתם/לכם/תוכלו) or impersonal infinitive. English technical terms expanded inline on first occurrence.

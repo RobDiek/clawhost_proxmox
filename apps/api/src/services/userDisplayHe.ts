@@ -25,6 +25,7 @@ const KEEP_VERBATIM = new Set([
     'seo', 'aeo', 'sem', 'sea', 'serp', 'utm', 'gclid', 'lsa', 'cro', 'ugc', 'gbp', 'dpa',
     'pmax', 'rsa', 'ltv', 'cac', 'aov', 'sov', 'sql', 'mql', 'qa', 'vps', 'api', 'url',
     'ai', 'llm', 'b2b', 'b2c', 'cms', 'crm', 'cdp', 'cwv', 'inp', 'lcp', 'cls', 'h1', 'h2',
+    'aio', 'sge', 'rtl', 'ltr', 'json', 'jsonld', 'html', 'css', 'cta', 'faq', 'nap', 'mcc',
     // product / brand names
     'bigquery', 'whatsapp', 'github', 'wordpress', 'woocommerce', 'google', 'meta',
     'facebook', 'instagram', 'tiktok', 'youtube', 'linkedin', 'telegram', 'shopify',
@@ -109,7 +110,10 @@ const JARGON_HE: Record<string, string> = {
     anchor: 'עוגן', citation: 'ציטוט', citations: 'ציטוטים', quotability: 'ציטוטיות',
     network: 'רשת', foundation: 'בסיס', boost: 'הגברה', visibility: 'נראות',
     competitor: 'מתחרה', competitors: 'מתחרים', advantage: 'יתרון', lesson: 'לקח',
-    immediate: 'מיידי', expected: 'צפוי',
+    immediate: 'מיידי', expected: 'צפוי', priority: 'עדיפות', brand: 'מותג',
+    apply: 'ליישם', plan: 'תוכנית', state: 'מצב', current: 'נוכחי', strong: 'חזק',
+    missing: 'חסר', present: 'קיים', high: 'גבוה', medium: 'בינוני', low: 'נמוך',
+    pages: 'דפים', page: 'דף', with: 'עם', without: 'ללא', strength: 'חוזק',
     software: 'תוכנה', country: 'מדינה', official: 'רשמי', properties: 'מאפיינים',
     validator: 'מאמת', merge: 'מיזוג', deploy: 'פריסה', threshold: 'סף', kill: 'עצירה',
 }
@@ -191,16 +195,26 @@ function isAbbreviation(token: string): boolean {
     return KEEP_VERBATIM.has(lower) || ABBR_RE.test(token)
 }
 
+function translateToken(word: string): string {
+    if (isAbbreviation(word)) return word
+    const lower = word.toLowerCase()
+    if (VALUE_HE[lower]) return VALUE_HE[lower]
+    if (JARGON_HE[lower]) return JARGON_HE[lower]
+    return word   // unknown English word: leave as-is (rare; can't translate arbitrarily)
+}
+
 /** Translate the common English jargon tokens inside a free-text string,
- *  keeping abbreviations + product names verbatim. */
+ *  keeping abbreviations + product names verbatim. snake_case identifiers that
+ *  the LLM occasionally dumps into excerpts (e.g. `expected_aio_lift`) are split
+ *  and translated part-by-part so no raw English identifier survives. */
 export function humanizeStringHe(input: string): string {
     if (!input) return input
     return input.replace(/[A-Za-z][A-Za-z0-9_]*/g, (word) => {
-        if (isAbbreviation(word)) return word
-        const lower = word.toLowerCase()
-        if (VALUE_HE[lower]) return VALUE_HE[lower]
-        if (JARGON_HE[lower]) return JARGON_HE[lower]
-        return word   // unknown English word: leave as-is (rare; can't translate arbitrarily)
+        if (word.indexOf('_') !== -1) {
+            // snake_case identifier → translate each part (keep abbreviations).
+            return word.split('_').filter(Boolean).map(translateToken).join(' ')
+        }
+        return translateToken(word)
     })
 }
 
