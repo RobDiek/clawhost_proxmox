@@ -33,15 +33,22 @@ function requiresSatisfied(requires: string[], stack: ConnectedStack): boolean {
     return requires.every(entry => entry.split('|').some(tok => (STACK_HAS[tok.trim()] || (() => false))(stack)))
 }
 
-// A whole TASK is external (every step manual) when its core action lives off the
-// platform: outreach / PR / directory listings (isExternalOutreachTask) OR persona
-// interviews / talking to real people.
-const EXTERNAL_TASK = /ראיון|תיקוף פרסונ|\binterview\b|שיחות? עם|בקשו? ביקורת מ|פיץ'|פוסט אורח|guest post/i
+// A whole TASK is external (every step manual) when its core action requires a
+// HUMAN to interact with external parties/platforms: outreach / PR / link recovery /
+// directory registration / persona interviews / asking customers for reviews.
+// NOTE: reading external data (competitor monitoring, Transparency Center) is NOT
+// external — that's our integrations reading → automated.
+const EXTERNAL_OUTREACH = 'פנייה יזומה|פנייה ל-?\\s*\\S|outreach|פיץ\'|\\bpitch\\b|פוסט אורח|guest post|יח"?צ\\b|שחזור קישור|הצעת תוכן ל'
+const EXTERNAL_DIRECTORY = 'רישום ב-?\\s*\\S|directory|דירקטוריון|דפי זהב|\\bb144\\b|\\bzap\\b'
+const EXTERNAL_PEOPLE = 'ראיון|\\binterview\\b|תיקוף פרסונ|שיחות? עם|בקשו? ביקורת מ|ask .*review'
+const EXTERNAL_TASK = new RegExp(`${EXTERNAL_OUTREACH}|${EXTERNAL_DIRECTORY}|${EXTERNAL_PEOPLE}`, 'i')
 
 // A STEP inside an otherwise-internal task that is itself external/off-platform.
-// Deliberately TIGHT: merge / monitoring / indexing / schema / content / code are
-// NOT here — they are platform actions and must stay automated.
-const EXTERNAL_STEP = /wikidata|knowledge panel|מנוע ידע|ויקיפדיה|wikipedia|ראיון|\binterview\b|שיחה עם|פנייה ל|outreach|פיץ'|\bpitch\b|guest post|פוסט אורח|רישום ב|directory|דירקטוריון|דפי זהב|\bb144\b|\bzap\b|בקשו? ביקורת מ|ask .*review|פיזי|offline|צרו פרופיל|פתחו פרופיל|open .*(profile|account)|crunchbase entr/i
+// Deliberately TIGHT: merge / monitoring / indexing / schema / content / code /
+// reading-external-data are NOT here — they are platform actions → automated.
+const EXTERNAL_STEP = new RegExp(
+    `wikidata|knowledge panel|מנוע ידע|ויקיפדיה|wikipedia|פיזי|offline|צרו פרופיל|פתחו פרופיל|open .*(profile|account)|crunchbase entr|`
+    + `${EXTERNAL_OUTREACH}|${EXTERNAL_DIRECTORY}|${EXTERNAL_PEOPLE}`, 'i')
 
 export interface AutoAnnotateResult { autoTasks: number; externalTasks: number; executorGaps: number }
 
