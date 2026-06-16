@@ -36,7 +36,11 @@ function requiresSatisfied(requires: string[], stack: ConnectedStack): boolean {
     return requires.every(entry => entry.split('|').some(tok => (STACK_HAS[tok.trim()] || (() => false))(stack)))
 }
 
-type Bucket = 'PASS' | 'BRIEF' | 'GAP' | 'EXTERNAL'
+type Bucket = 'PASS' | 'CONNECT' | 'BRIEF' | 'GAP' | 'EXTERNAL'
+
+// Integrations the user can connect themselves from the dashboard → an
+// "integration not connected" auto task is an honest connect-CTA, not a dead GAP.
+const USER_CONNECTABLE = new Set(['wordpress', 'github', 'google_ads', 'gtm', 'ga4', 'meta', 'gbp', 'whatsapp', 'api_key'])
 
 async function main() {
     const instanceId = process.argv[2] || 'a3d2b01d02'
@@ -54,7 +58,7 @@ async function main() {
     console.log(`tasks: ${tasks.length}\n`)
 
     const rows: Array<{ n: number; bucket: Bucket; cap: string; autonomy: Autonomy; title: string; note: string }> = []
-    const counts: Record<Bucket, number> = { PASS: 0, BRIEF: 0, GAP: 0, EXTERNAL: 0 }
+    const counts: Record<Bucket, number> = { PASS: 0, CONNECT: 0, BRIEF: 0, GAP: 0, EXTERNAL: 0 }
 
     tasks.forEach((t, i) => {
         const title = (t.title || '').slice(0, 64)
@@ -77,15 +81,19 @@ async function main() {
             bucket = 'PASS'; note = `requires ${cap?.requires.join('|')} ✓`
         } else if (cap && cap.requires.includes('dataforseo')) {
             bucket = 'BRIEF'; note = 'needs DataForSEO subscription (intentional)'
+        } else if (cap && cap.requires.every(entry => entry.split('|').some(tok => USER_CONNECTABLE.has(tok.trim())))) {
+            // auto badged + integration not connected, but the user CAN connect it
+            // → executor surfaces an honest connect-CTA (no silent brief). Acceptable.
+            bucket = 'CONNECT'; note = `honest connect-CTA — requires ${cap.requires.join('|')} (not yet connected)`
         } else {
-            // auto_write/auto_partial badged but required integration NOT connected.
-            bucket = 'GAP'; note = `BADGED AUTO but requires ${cap?.requires.join('|')} — none connected`
+            // auto badged but NO real path and NO user-connectable integration → true gap.
+            bucket = 'GAP'; note = `BADGED AUTO but requires ${cap?.requires.join('|')} — no path`
         }
         rows.push({ n: i + 1, bucket, cap: capabilityId, autonomy, title, note })
         counts[bucket]++
     })
 
-    for (const b of ['GAP', 'PASS', 'BRIEF', 'EXTERNAL'] as Bucket[]) {
+    for (const b of ['GAP', 'PASS', 'CONNECT', 'BRIEF', 'EXTERNAL'] as Bucket[]) {
         const arr = rows.filter(r => r.bucket === b)
         if (!arr.length) continue
         console.log(`----- ${b} (${arr.length}) -----`)
@@ -94,8 +102,8 @@ async function main() {
     }
 
     console.log(`===== SUMMARY (${tasks.length} tasks) =====`)
-    console.log(`  PASS=${counts.PASS} · BRIEF=${counts.BRIEF} · GAP=${counts.GAP} · EXTERNAL=${counts.EXTERNAL}`)
-    console.log(`  ACCEPTANCE: badged-auto-but-gap = ${counts.GAP}  (target: 0)`)
+    console.log(`  PASS=${counts.PASS} · CONNECT=${counts.CONNECT} · BRIEF=${counts.BRIEF} · GAP=${counts.GAP} · EXTERNAL=${counts.EXTERNAL}`)
+    console.log(`  ACCEPTANCE: badged-auto-but-gap (no path, no CTA) = ${counts.GAP}  (target: 0)`)
     if (counts.GAP > 0) {
         console.log('  GAP tasks (must close or re-route):')
         for (const r of rows.filter(r => r.bucket === 'GAP')) console.log(`    #${r.n} ${r.cap} — ${r.title}`)

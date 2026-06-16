@@ -32090,8 +32090,12 @@ function connectGoogleAds() {
   var iid = localStorage.getItem('cf_instance_id');
   var tk = localStorage.getItem('cf_token');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
-  // Step 1: Google OAuth with 'ads' scope
-  window.location.href = withActiveAgent(API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=ads&token=' + encodeURIComponent(tk || ''));
+  // Step 1: Google OAuth — request the FULL marketing scope set in one consent:
+  // Ads + Tag Manager + Analytics + Search Console. Tracking setup (GTM/GA4
+  // property creation, Enhanced Conversions, Consent Mode) needs gtm+analytics;
+  // requesting ads-only here is why those tasks could never auto-run. Server
+  // sets include_granted_scopes=true, so re-consent accumulates (no scope loss).
+  window.location.href = withActiveAgent(API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=ads,gtm,analytics,gsc&token=' + encodeURIComponent(tk || ''));
 }
 
 // ── Google Ads mode picker (self-managed DIY vs HaaS managed) ──

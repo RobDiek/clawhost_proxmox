@@ -1320,8 +1320,14 @@ async function runTrackingSetupAdapter(
             const tokens = (agent as any)?.googleTokens || (inst as any)?.googleTokens
             if (!target) {
                 if (!tokens?.refreshToken) {
-                    stepResults.push({ step: 'GTM auto-discover', ok: false, detail: 'No Google OAuth tokens — reconnect Google in Integrations' })
-                    return { ok: false, outputDescription: 'GTM tokens missing', error: 'no GTM tokens', stepResults }
+                    stepResults.push({ step: 'GTM auto-discover', ok: false, detail: 'No Google OAuth tokens — reconnect Google with Analytics + Tag Manager permissions' })
+                    return {
+                        ok: false,
+                        outputDescription: 'Google לא מחובר עם הרשאות מדידה — חברו Google עם הרשאות Analytics + Tag Manager כדי שהמערכת תקים GA4/GTM אוטומטית.',
+                        error: 'no GTM tokens', errorCategory: 'integration_missing',
+                        userAction: { title_he: 'נדרשת התחברות Google עם הרשאות מדידה', cta_he: 'חברו Google (Ads + Analytics + Tag Manager) →', action_path: '#integrations/google_ads', integrationKey: 'google' },
+                        stepResults,
+                    }
                 }
                 try {
                     const { listGtmTargets, saveGtmTarget } = await import('./mazhirGtmSetup')
@@ -1359,6 +1365,18 @@ async function runTrackingSetupAdapter(
                 } catch (e) {
                     const msg = (e as Error).message
                     stepResults.push({ step: 'GTM auto-discover', ok: false, detail: `Discovery failed: ${msg.slice(0, 300)}` })
+                    // Insufficient scope (Ads-only token, no tagmanager/analytics) →
+                    // honest connect-CTA, not a raw 403. This is GAP B for flow:
+                    // Google connected with Ads scope only.
+                    if (/\b(401|403)\b|insufficient|scope|permission|forbidden|unauthor/i.test(msg)) {
+                        return {
+                            ok: false,
+                            outputDescription: 'ל-Google המחובר אין הרשאות Tag Manager/Analytics — חברו מחדש את Google עם הרשאות מדידה כדי שהמערכת תקים ותפרסם GTM/GA4 אוטומטית.',
+                            error: 'google tracking scope missing', errorCategory: 'integration_missing',
+                            userAction: { title_he: 'נדרשות הרשאות Google למדידה (Analytics + Tag Manager)', cta_he: 'חברו מחדש את Google →', action_path: '#integrations/google_ads', integrationKey: 'google' },
+                            stepResults,
+                        }
+                    }
                     return { ok: false, outputDescription: 'GTM discovery failed', error: msg, stepResults }
                 }
             }
