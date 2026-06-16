@@ -374,7 +374,14 @@ export function buildCompetitorLandscapePrompt(opts: PromptOpts): PromptResult {
         : 'Firecrawl: **לא זמין** — deepPages חסר; הסתמכו רק על onpage homepage + backlinks'
     const dfsAvailability = dfs.hasCompetitorData
         ? `**מקור הנתונים:** DataForSEO live data, ${new Date().toISOString().slice(0, 10)} | ${dfs.competitors.length} מתחרים | top ${dfs.topEnriched.length} מועשרים | ${firecrawlNote} | $${dfs.totalCostUsd.toFixed(4)} (${dfs.cacheHits}/${dfs.cacheHits + dfs.cacheMisses} cache hits)`
-        : `**זהירות:** לא נמצא domain להזרים DataForSEO competitorsDomain (websiteUrl ריק או לא תקין). הניתוח יסתמך על שם העסק וההקשר ב-prompt בלבד — סמנו את כל ה-records כ-confidence: working_hypothesis.`
+        : dfs.ourDomain
+            // Domain IS valid, but DFS returned 0 domain-overlap competitors → the
+            // site is new / has near-zero organic footprint (not yet ranking, so no
+            // SERP overlap to mine competitors from). This is NOT a domain error.
+            // Without this, the model wrote "לא נמצא דומיין תקין" — a misleading
+            // "broken" message on the stage card for a perfectly valid new site.
+            ? `**הערה על הנתונים:** הדומיין **${dfs.ourDomain}** תקין, אך DataForSEO לא החזיר מתחרים ברמת דומיין. המשמעות: האתר **חדש / עם טביעת רגל אורגנית מינימלית** — עדיין לא מדורג על מילות מפתח, ולכן אין חפיפת SERP שממנה לחלץ מתחרים. **זו אינה שגיאת דומיין — אל תכתבו "לא נמצא דומיין תקין".** בססו את ניתוח המתחרים על ידע אנכי + המתחרים שציין המשתמש + ההקשר, וסמנו records כ-confidence: working_hypothesis. ציינו במפורש שהיעדר הנתונים נובע מאתר חדש (לא מבעיה טכנית).`
+            : `**זהירות:** לא הוגדר אתר (websiteUrl ריק) — אין דומיין להזרים ל-DataForSEO. הניתוח יסתמך על שם העסק וההקשר בלבד; סמנו records כ-working_hypothesis.`
 
     return {
         agentId: 'menateach',

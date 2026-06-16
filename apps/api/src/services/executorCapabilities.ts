@@ -40,7 +40,7 @@ const TRACKING_TYPES = new Set(['tracking_setup', 'measurement_gap'])
 // Order matters — first match wins (mirrors executor dispatch: SEO detectors
 // run BEFORE the type switch).
 export const CAPABILITIES: ExecutorCapability[] = [
-    { id: 'cms.page_refresh', label_he: 'רענון/העמקת דף קיים', autonomy: 'auto_write', requires: ['wordpress'], match: isPageRefreshTask },
+    { id: 'cms.page_refresh', label_he: 'רענון/העמקת דף קיים', autonomy: 'auto_write', requires: ['wordpress|github'], match: isPageRefreshTask },
     { id: 'cms.site_widget', label_he: 'ווידג\'ט אתר (WhatsApp/חיוג/popup)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isSiteWidgetTask },
     { id: 'cms.landing_page', label_he: 'דף נחיתה (טיוטה)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isLandingPageTask },
     { id: 'seo.meta', label_he: 'תיאורי מטא (batch)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isSeoMetaBatchTask },
@@ -48,9 +48,9 @@ export const CAPABILITIES: ExecutorCapability[] = [
     { id: 'seo.schema', label_he: 'סכמת JSON-LD (batch)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isSeoSchemaTask },
     { id: 'seo.internal_links', label_he: 'קישורים פנימיים', autonomy: 'auto_write', requires: ['wordpress|github'], match: isInternalLinksTask },
     { id: 'seo.slug', label_he: 'תעתיק slug + 301 (הצעה)', autonomy: 'propose_only', requires: ['wordpress|github'], match: isSlugProposeTask },
-    { id: 'seo.image_alt', label_he: 'טקסט חלופי לתמונות (batch)', autonomy: 'auto_write', requires: ['wordpress'], match: isImageAltTask },
+    { id: 'seo.image_alt', label_he: 'טקסט חלופי לתמונות (batch)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isImageAltTask },
     { id: 'aeo.llms_txt', label_he: 'llms.txt למנועי AI', autonomy: 'auto_write', requires: ['wordpress|github'], match: isLlmsTxtTask },
-    { id: 'aeo.answer_first', label_he: 'פסקת תשובה (AEO)', autonomy: 'auto_write', requires: ['wordpress'], match: isAnswerFirstTask },
+    { id: 'aeo.answer_first', label_he: 'פסקת תשובה (AEO)', autonomy: 'auto_write', requires: ['wordpress|github'], match: isAnswerFirstTask },
     { id: 'aeo.citation_monitor', label_he: 'מעקב ציטוטים ב-AI (AEO)', autonomy: 'auto_partial', requires: ['dataforseo'], match: isAeoCitationMonitorTask },
     { id: 'paid.google_ads', label_he: 'אופטימיזציית Google Ads', autonomy: 'auto_partial', requires: ['google_ads'], match: t => PAID_TYPES.has(t.type) },
     { id: 'tracking.setup', label_he: 'מדידה — GTM/GA4/Pixel', autonomy: 'auto_partial', requires: ['gtm', 'ga4'], match: t => TRACKING_TYPES.has(t.type) },

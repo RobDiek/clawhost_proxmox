@@ -1466,7 +1466,13 @@ async function runTrackingSetupAdapter(
 export function isExternalOutreachTask(task: MonthlyTask): boolean {
     if (/מעקב|ניטור|ניתוח|סקירה/i.test(task.title || '')) return false
     const text = `${task.title} ${task.summary}`
-    return /שחזור קישור|יחסי ציבור|יח"?צ\b|פיץ'|פנייה ל.{0,4}אתרים|הרחבת פרופיל הקישורים|פוסט אורח|guest post|רישום ב-?\s*(zap|b144|זאפ|ספרי|מדריך|אינדקס|השוואת)|השוואת מחירים|שיתוף פעולה עם|התאחדות/i.test(text)
+    // Named-publisher / PR outreach: "פנייה tier-1 ל-Geektime", "פנייה יזומה ל…",
+    // "pitch ל…", "הצעת תוכן ל…". A Latin/quoted brand name right after "ל" (or an
+    // explicit media outlet) signals an external party we can't auto-edit. Kept
+    // tighter than a bare "פנייה" (which also means an internal audience appeal).
+    const namedOutreach = /פנייה\s+(יזומה|אישית|קרה|tier|ל[-\s]*["“']?[A-Za-z])|הצעת תוכן ל|\bpitch\b|פיץ['’]|tier[-\s]?1|geektime|calcalist|כלכליסט|the\s*marker|דה.?מרקר|globes|גלובס|ynet|וואלה|מגזין|עיתונא/i
+    return namedOutreach.test(text)
+        || /שחזור קישור|יחסי ציבור|יח"?צ\b|פנייה ל.{0,4}אתרים|הרחבת פרופיל הקישורים|פוסט אורח|guest post|רישום ב-?\s*(zap|b144|זאפ|ספרי|מדריך|אינדקס|השוואת)|השוואת מחירים|שיתוף פעולה עם|התאחדות/i.test(text)
 }
 
 // Aggregate multiple A2 sub-adapter results into one task result.
@@ -1520,6 +1526,8 @@ async function runPageRefreshAdapter(
     const res = await runPageRefresh(instanceId, { agentId: agent?.id, businessName, targetWords })
 
     if (res.integrationMissing) {
+        const gh = await runGithubSeoFallback(instanceId, 'body_expand', task, _plan, agent, { targetWords })
+        if (gh) return gh
         return {
             ok: false,
             outputDescription: 'WordPress לא מחובר — לא ניתן לרענן דפים קיימים אוטומטית.',
@@ -1712,8 +1720,9 @@ export function isSeoMetaBatchTask(task: MonthlyTask): boolean {
  * not GitHub-connected (caller then surfaces the normal integration_missing).
  */
 async function runGithubSeoFallback(
-    instanceId: string, op: 'meta' | 'schema' | 'links' | 'slug',
+    instanceId: string, op: 'meta' | 'schema' | 'links' | 'slug' | 'body_expand' | 'image_alt' | 'answer_first',
     task: MonthlyTask, plan: MonthlyMarketingPlan, agent: { id?: string } | null,
+    extra: { targetWords?: number } = {},
 ): Promise<ExecutorResult | null> {
     const { loadGithubConfig, runSeoGithubBatch } = await import('./seoGithubBatch')
     if (!(await loadGithubConfig(instanceId, agent?.id))) return null
@@ -1725,8 +1734,8 @@ async function runGithubSeoFallback(
         businessName = rd?.answers?.businessName
     } catch { /* fallback name */ }
 
-    const res = await runSeoGithubBatch(instanceId, op, { agentId: agent?.id, businessName })
-    const opHe: Record<string, string> = { meta: 'תיאורי מטא', schema: 'סכמת JSON-LD', links: 'קישורים פנימיים', slug: 'הצעות slug' }
+    const res = await runSeoGithubBatch(instanceId, op, { agentId: agent?.id, businessName, targetWords: extra.targetWords })
+    const opHe: Record<string, string> = { meta: 'תיאורי מטא', schema: 'סכמת JSON-LD', links: 'קישורים פנימיים', slug: 'הצעות slug', body_expand: 'הרחבת תוכן דף', image_alt: 'טקסט חלופי לתמונות', answer_first: 'פסקת תשובה (AEO)' }
 
     if (res.error && res.changed.length === 0 && res.proposals.length === 0) {
         return { ok: false, outputDescription: `שגיאה בגישה ל-GitHub: ${res.error}`, error: res.error, errorCategory: 'systemic_bug' }
@@ -1898,6 +1907,8 @@ async function runAnswerFirstAdapter(
     const res = await runAnswerFirst(instanceId, { agentId: agent?.id, businessName })
 
     if (res.integrationMissing) {
+        const gh = await runGithubSeoFallback(instanceId, 'answer_first', task, _plan, agent)
+        if (gh) return gh
         return { ok: false, outputDescription: 'WordPress לא מחובר — לא ניתן להוסיף פסקת תשובה.', error: 'wordpress integration missing', errorCategory: 'integration_missing', userAction: { title_he: 'WordPress לא מחובר', cta_he: 'חברו את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' } }
     }
     if (res.authError && res.updated.length === 0) {
@@ -1988,7 +1999,9 @@ async function runImageAltAdapter(
 
     if (res.integrationMissing) {
         // image alt is WP-media-specific; GitHub static sites carry alt inline in
-        // markdown — route those through the GitHub fallback's links/body path later.
+        // markdown — route those through the GitHub fallback's image_alt op.
+        const gh = await runGithubSeoFallback(instanceId, 'image_alt', task, _plan, agent)
+        if (gh) return gh
         return {
             ok: false, outputDescription: 'WordPress לא מחובר — לא ניתן לעדכן טקסט חלופי לתמונות.',
             error: 'wordpress integration missing', errorCategory: 'integration_missing',

@@ -789,10 +789,18 @@ export interface QualityGateResult {
     }>
 }
 
-/** Hard-failure checks — content cannot ship if any fails. Others = warnings. */
+/** Hard-failure checks — content cannot ship if any fails. Others = warnings.
+ *
+ * `language_script_qa` was REMOVED (2026-06-16): it is a COSMETIC check
+ * (English words mixed into Hebrew prose). The critic prompt already mandates
+ * it stay a warning ("אסור לציין language_script_qa ב-hard_failures — תמיד
+ * ל-warnings בלבד"), but keeping it here forced isHard=true so a Hebrew-mixing
+ * nit hard-FAILED otherwise-fine stages (e.g. flow competitor_landscape showed
+ * a red "1 כשל איכות" purely on language). A revision pass can't reliably scrub
+ * every English term either, so it would never clear. Cosmetic Hebrew issues
+ * are warnings; the deterministic scrubber + hebrewCleanup handle the cleanup. */
 export const HARD_FAILURE_CHECKS: ReadonlySet<QualityCheck> = new Set([
     'math_sanity',
-    'language_script_qa',
     'intent_integrity',
     'source_spot_check',
 ])

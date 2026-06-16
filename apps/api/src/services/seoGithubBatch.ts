@@ -4,10 +4,13 @@
  * GitHub parity for the WordPress SEO suite. For tenants whose site is a repo
  * (not WordPress), the same four operations apply to the markdown/MDX files:
  *
- *   - 'meta'   : add a `description:` frontmatter key where missing
- *   - 'schema' : add a `schema:` frontmatter key (full JSON-LD @graph) where missing
- *   - 'slug'   : PROPOSE clean Latin slugs for Hebrew/encoded filenames (no write)
- *   - 'links'  : insert contextual internal markdown links into the body
+ *   - 'meta'        : add a `description:` frontmatter key where missing
+ *   - 'schema'      : add a `schema:` frontmatter key (full JSON-LD @graph) where missing
+ *   - 'slug'        : PROPOSE clean Latin slugs for Hebrew/encoded filenames (no write)
+ *   - 'links'       : insert contextual internal markdown links into the body
+ *   - 'body_expand' : deepen/expand thin page bodies (page-refresh parity)
+ *   - 'image_alt'   : fill missing alt text on inline markdown / <img> images
+ *   - 'answer_first': prepend a concise answer paragraph (AEO/featured snippet)
  *
  * Write operations land on a NEW branch + Pull Request (never a direct push to
  * the default branch) — matching the GitHub safety rules Flowmatic writes into
@@ -27,7 +30,7 @@ const MIN_ANCHOR_LEN = 12
 
 export interface GithubCfg { token: string; repo: string; branch: string; contentPath: string }
 
-export type GithubSeoOp = 'meta' | 'schema' | 'links' | 'slug'
+export type GithubSeoOp = 'meta' | 'schema' | 'links' | 'slug' | 'body_expand' | 'image_alt' | 'answer_first'
 
 export interface GithubSeoResult {
     ok: boolean
@@ -100,6 +103,17 @@ function fmGet(fm: string, key: string): string | null {
 }
 function yamlSingle(v: string): string { return `'${v.replace(/'/g, "''")}'` }
 function rebuild(fm: string, body: string): string { return `---\n${fm}\n---\n${body}` }
+
+// Plain-text word count (strip markdown punctuation first).
+function countWords(s: string): number { return ((s || '').replace(/[#*_>`[\]()]/g, ' ').match(/\S+/g) || []).length }
+// Strip an LLM-returned ```code fence``` wrapper if present.
+function stripFences(s: string): string { return (s || '').replace(/^```[a-z]*\r?\n?/i, '').replace(/```\s*$/i, '').trim() }
+// Nearest preceding markdown heading text before a body offset (for image-alt context).
+function headingBefore(body: string, idx: number): string {
+    const before = body.slice(0, idx)
+    const matches = Array.from(before.matchAll(/^#{1,4}\s+(.+)$/gm))
+    return matches.length ? matches[matches.length - 1][1].trim() : ''
+}
 
 function deriveTitle(file: { name: string; fm: string }): string {
     const t = fmGet(file.fm, 'title')
@@ -181,7 +195,7 @@ async function commitViaPR(cfg: GithubCfg, opLabel: string, changes: Array<{ pat
 export async function runSeoGithubBatch(
     instanceId: string,
     op: GithubSeoOp,
-    opts: { agentId?: string | null; businessName?: string; dryRun?: boolean } = {},
+    opts: { agentId?: string | null; businessName?: string; dryRun?: boolean; targetWords?: number } = {},
 ): Promise<GithubSeoResult> {
     const result: GithubSeoResult = { ok: false, integrationMissing: false, op, scanned: 0, candidates: 0, changed: [], proposals: [], failures: [] }
     const cfg = await loadGithubConfig(instanceId, opts.agentId)
@@ -280,6 +294,122 @@ export async function runSeoGithubBatch(
         }
         if (!opts.dryRun && changes.length) {
             try { result.prUrl = await commitViaPR(cfg, 'links', changes) } catch (err) { result.error = (err as Error).message; result.changed = []; result.failures.push({ path: '(commit)', error: (err as Error).message }) }
+        }
+        result.ok = result.changed.length > 0 || result.failures.length === 0
+        return result
+    }
+
+    // ── body_expand: deepen/expand thin pages (page-refresh parity) ──
+    if (op === 'body_expand') {
+        const target = opts.targetWords && opts.targetWords > 200 ? opts.targetWords : 800
+        const cands = files.filter(f => { const { body, hasFm } = splitFrontmatter(f.text); return hasFm && countWords(body) < target })
+        result.candidates = cands.length
+        const changes: Array<{ path: string; sha: string; content: string }> = []
+        for (const f of cands.slice(0, MAX_FILES_PER_RUN)) {
+            if (!apiKey) { result.failures.push({ path: f.path, error: 'no API key' }); continue }
+            const { fm, body } = splitFrontmatter(f.text)
+            const before = countWords(body)
+            const out = await callAnthropic(apiKey, model,
+                `אתם עורכי תוכן SEO בכירים. הרחיבו והעמיקו את גוף המאמר הבא בעברית ל-~${target} מילים: שמרו על כל התוכן הקיים, הוסיפו עומק, כותרות H2 בפורמט שאלה, ומקטע "שאלות נפוצות" בסוף. אל תשנו את ה-frontmatter. החזירו אך ורק את גוף ה-markdown המורחב (ללא frontmatter, ללא code fences).\n\nכותרת: ${f.title}\nעסק: ${businessName}\n\nגוף קיים:\n${body.slice(0, 6000)}`,
+                8000)
+            const expanded = stripFences(out)
+            const after = countWords(expanded)
+            if (after <= before + 50) { result.failures.push({ path: f.path, error: 'expansion too small / empty' }); continue }
+            const newText = rebuild(fm, expanded.startsWith('\n') ? expanded : '\n' + expanded + '\n')
+            if (opts.dryRun) { result.changed.push({ path: f.path, detail: `${before}→${after} מילים` }); continue }
+            changes.push({ path: f.path, sha: f.sha, content: newText })
+            result.changed.push({ path: f.path, detail: `${before}→${after} מילים` })
+        }
+        if (!opts.dryRun && changes.length) {
+            try { result.prUrl = await commitViaPR(cfg, 'body-expand', changes) } catch (err) { result.error = (err as Error).message; result.changed = []; result.failures.push({ path: '(commit)', error: (err as Error).message }) }
+        }
+        result.ok = result.changed.length > 0 || result.failures.length === 0
+        return result
+    }
+
+    // ── image_alt: fill missing alt on inline markdown / <img> images ──
+    if (op === 'image_alt') {
+        const IMG_PER_FILE = 6
+        const changes: Array<{ path: string; sha: string; content: string }> = []
+        let scannedImgs = 0
+        for (const f of files.slice(0, MAX_FILES_PER_RUN)) {
+            const { fm, body, hasFm } = splitFrontmatter(f.text)
+            if (!hasFm) continue
+            // Collect alt-less images: markdown ![](url) with empty/whitespace alt, and <img> without alt=.
+            const targets: Array<{ start: number; end: number; url: string; kind: 'md' | 'html' }> = []
+            for (const m of body.matchAll(/!\[[ \t]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
+                targets.push({ start: m.index!, end: m.index! + m[0].length, url: m[1], kind: 'md' })
+            }
+            for (const m of body.matchAll(/<img(?![^>]*\balt\s*=)[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/gi)) {
+                targets.push({ start: m.index!, end: m.index! + m[0].length, url: m[1], kind: 'html' })
+            }
+            if (targets.length === 0) continue
+            targets.sort((a, b) => a.start - b.start)
+            const use = targets.slice(0, IMG_PER_FILE)
+            scannedImgs += targets.length
+            // Generate alts, then splice from the end so earlier offsets stay valid.
+            const filled: Array<{ start: number; end: number; replacement: string; alt: string }> = []
+            for (const t of use) {
+                if (!apiKey) { result.failures.push({ path: f.path, error: 'no API key' }); break }
+                const fname = decodeURIComponent(t.url.split('/').pop() || '').replace(/\.[a-z0-9]+$/i, '').replace(/[-_]/g, ' ')
+                const ctx = headingBefore(body, t.start)
+                const out = await callAnthropic(apiKey, model,
+                    `כתבו טקסט חלופי (alt) קצר בעברית, עד 12 מילים, המתאר ענייני את תוכן התמונה לנגישות ו-SEO. JSON בלבד: {"alt":"..."}\n\nעסק: ${businessName}\nכותרת עמוד: ${f.title}\nכותרת קטע: ${ctx || '—'}\nשם קובץ: ${fname || '—'}`,
+                    200)
+                const alt = (extractJson(out)?.alt || '').toString().trim().replace(/["\n]/g, ' ').slice(0, 120)
+                if (alt.length < 3) { result.failures.push({ path: f.path, error: `no alt for ${t.url}` }); continue }
+                const orig = body.slice(t.start, t.end)
+                const replacement = t.kind === 'md'
+                    ? orig.replace(/!\[[ \t]*\]/, `![${alt}]`)
+                    : orig.replace(/<img/i, `<img alt="${alt}"`)
+                filled.push({ start: t.start, end: t.end, replacement, alt })
+            }
+            if (filled.length === 0) continue
+            let newBody = body
+            for (const fl of filled.sort((a, b) => b.start - a.start)) {
+                newBody = newBody.slice(0, fl.start) + fl.replacement + newBody.slice(fl.end)
+            }
+            const newText = rebuild(fm, newBody)
+            if (opts.dryRun) { result.changed.push({ path: f.path, detail: filled.map(x => x.alt).join(' · ') }); continue }
+            changes.push({ path: f.path, sha: f.sha, content: newText })
+            result.changed.push({ path: f.path, detail: `${filled.length} תמונות: ${filled.map(x => x.alt).join(' · ')}` })
+        }
+        result.candidates = scannedImgs
+        if (!opts.dryRun && changes.length) {
+            try { result.prUrl = await commitViaPR(cfg, 'image-alt', changes) } catch (err) { result.error = (err as Error).message; result.changed = []; result.failures.push({ path: '(commit)', error: (err as Error).message }) }
+        }
+        result.ok = result.changed.length > 0 || result.failures.length === 0
+        return result
+    }
+
+    // ── answer_first: prepend a concise answer paragraph (AEO/featured snippet) ──
+    if (op === 'answer_first') {
+        const MARK = '<!-- answer-first -->'
+        const cands = files.filter(f => { const { body, hasFm } = splitFrontmatter(f.text); return hasFm && !body.includes(MARK) })
+        result.candidates = cands.length
+        const changes: Array<{ path: string; sha: string; content: string }> = []
+        for (const f of cands.slice(0, MAX_FILES_PER_RUN)) {
+            if (!apiKey) { result.failures.push({ path: f.path, error: 'no API key' }); continue }
+            const { fm, body } = splitFrontmatter(f.text)
+            const snippet = body.replace(/[#*_>`[\]]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1500)
+            const out = await callAnthropic(apiKey, model,
+                `כתבו פסקת תשובה ישירה וקצרה (40-55 מילים) בעברית שעונה מיד על שאלת/נושא העמוד — מתאים ל-Featured Snippet ולמנועי AI. ללא מילות מעבר, ישר לעניין. JSON בלבד: {"answer":"..."}\n\nכותרת: ${f.title}\nתוכן: ${snippet}`,
+                400)
+            const answer = (extractJson(out)?.answer || '').toString().trim()
+            if (countWords(answer) < 15) { result.failures.push({ path: f.path, error: 'no answer generated' }); continue }
+            const block = `${MARK}\n> **בקצרה:** ${answer}\n`
+            // Insert after a leading H1 if present, else at the very top of the body.
+            const h1 = body.match(/^\s*(#\s+[^\n]+\n)/)
+            const newBody = h1
+                ? body.slice(0, h1.index! + h1[0].length) + '\n' + block + '\n' + body.slice(h1.index! + h1[0].length)
+                : block + '\n' + body.replace(/^\n+/, '')
+            const newText = rebuild(fm, newBody)
+            if (opts.dryRun) { result.changed.push({ path: f.path, detail: answer }); continue }
+            changes.push({ path: f.path, sha: f.sha, content: newText })
+            result.changed.push({ path: f.path, detail: answer })
+        }
+        if (!opts.dryRun && changes.length) {
+            try { result.prUrl = await commitViaPR(cfg, 'answer-first', changes) } catch (err) { result.error = (err as Error).message; result.changed = []; result.failures.push({ path: '(commit)', error: (err as Error).message }) }
         }
         result.ok = result.changed.length > 0 || result.failures.length === 0
         return result

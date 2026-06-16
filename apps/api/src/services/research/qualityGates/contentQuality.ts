@@ -134,7 +134,25 @@ export function validateInternalSeoAudit(stage: Record_): ContentQualityWarning[
 
 // ── Stage 3: seo_keyword_research ─────────────────────────────────────────
 
-export function validateSeoKeywordResearch(stage: Record_): ContentQualityWarning[] {
+/**
+ * True when the business has NO local/city presence (national SaaS / B2B /
+ * online-only) — so local-pack keywords are irrelevant and "missing_local"
+ * must NOT fire. Flagging it for a national product (e.g. flow = SaaS,
+ * geography "ישראל") is a false positive that surfaced a bogus אזהרה on the
+ * stage card. Conservative default: if no clear non-local signal, keep the
+ * check (a genuine local business shouldn't lose the nudge).
+ */
+function isNationalOrNonLocal(rd?: Record_): boolean {
+    const ans = (rd?.answers as Record_ | undefined) || {}
+    const model = String(ans.businessModel || '').toLowerCase()
+    if (/saas|b2b|software|online|digital|agency|platform|marketplace/.test(model)) return true
+    const geo = String(ans.geography || '').toLowerCase().trim()
+    // National-level geography (whole country / online) with no city named.
+    if (geo.length <= 24 && /ישראל|כל הארץ|ארצי|כלל.?ארצי|אונליין|online|דיגיטלי|national|nationwide/.test(geo)) return true
+    return false
+}
+
+export function validateSeoKeywordResearch(stage: Record_, rd?: Record_): ContentQualityWarning[] {
     const out: ContentQualityWarning[] = []
     const records = rec(stage.records)
     const intents = records.map(r => String(((r.intent as Record_ | undefined) || {}).primary || ''))
@@ -145,7 +163,7 @@ export function validateSeoKeywordResearch(stage: Record_): ContentQualityWarnin
             'אין keyword עם intent="conversational_aio"',
             'AEO funnel חסר. 2026 spec דורש ≥1 keyword long-form FAQ-style ("איך, מה, האם"). זה ה-cornerstone ל-Hebrew AIO citation.'))
     }
-    if (!hasLocal) {
+    if (!hasLocal && !isNationalOrNonLocal(rd)) {
         out.push(warn('seo_keyword_research', 'important', 'missing_local',
             'אין keyword עם intent="local"',
             'IL Local Pack לא יילקח. אם יש city presence — חובה ≥1 keyword עם intent=local (e.g. "X פתח תקווה").'))
