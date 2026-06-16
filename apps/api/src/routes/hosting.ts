@@ -310,6 +310,7 @@ import {
     googleAdsListAdGroups,
     triggerWeeklyReport,
     getLatestWeeklyReport,
+    taskChat,
     triggerYotzer,
     getMarketingIntents,
     saveMarketingIntents,
@@ -800,6 +801,7 @@ app.get('/instances/:id/creative/google/ad-groups',                 googleAdsLis
 // ── Weekly Creative Report (Phase D) ──
 app.post('/instances/:id/creative/weekly-report/generate',          triggerWeeklyReport)
 app.get('/instances/:id/creative/weekly-report/latest',             getLatestWeeklyReport)
+app.post('/instances/:id/task-chat',                                taskChat)
 
 // ── Yotzer Trigger (Phase E) — user-invoked brief from dashboard ──
 app.post('/instances/:id/creative/yotzer/trigger',                  triggerYotzer)

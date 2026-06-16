@@ -9344,19 +9344,109 @@ function renderMonthlyTaskFooter(task) {
       '</div>';
     }
     return '<span style="color:#92400E;font-weight:600;padding:8px;background:#FEF3C7;border-radius:6px;border:1px solid #FDE68A">⏳ ממתין לפעולה ידנית</span>' +
+           _taskChatBtn(task) +
            '<button class="aq-btn approve" onclick="apiMarkManualDone(\'' + task.id + '\');closeTaskPopup()" style="background:#10B981;color:#fff">✓ ביצעתי ידנית</button>';
   }
   if (task.status === 'completed') return '<span style="color:#10B981;font-weight:600;padding:8px">✓ הושלם</span>';
   if (task.status === 'approved') return '<span style="color:#10B981;font-weight:600;padding:8px">✓ אושר</span>';
   if (task.status === 'rejected') return '<span style="color:#EF4444;font-weight:600;padding:8px">✗ נדחה</span>';
   if (task.status === 'failed') return '<span style="color:#EF4444;font-weight:600;padding:8px">✗ נכשל</span>' +
+    _taskChatBtn(task) +
     '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()" title="נסו לבצע מחדש">↻ הריצו מחדש</button>';
   if (task.status === 'awaiting') {
     return '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()">✗ דחו</button>' +
            '<button class="aq-btn edit" onclick="skipMonthlyTaskUI(\'' + task.id + '\');closeTaskPopup()" style="background:#FEF3C7;color:#78350F;border-color:#FDE68A">⏭ דחו לחודש הבא</button>' +
+           _taskChatBtn(task) +
            '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">✓ אשרו</button>';
   }
-  return '';
+  return _taskChatBtn(task);
+}
+
+// "שאלו AI" footer button — opens the per-task assistant sidebar. taskId = the
+// monthly-plan task id (metadata.taskId), which the chat endpoint resolves.
+function _taskChatBtn(task) {
+  var tid = (task && task.metadata && task.metadata.taskId) || (task && task.id) || '';
+  if (!tid) return '';
+  return '<button class="aq-btn" onclick="openTaskChat(\'' + tid + '\')" style="background:#EEF2FF;color:#3730A3;border-color:#C7D2FE" title="שאלו את ה-AI כל שאלה על המשימה הזו">💬 שאלו AI</button>';
+}
+
+// ── שאלו AI — per-task assistant (sidebar) ────────────────────────────────
+var _taskChat = { taskId: null, messages: [], busy: false };
+function _ensureTaskChatPanel() {
+  if (document.getElementById('taskChatPanel')) return;
+  if (!document.getElementById('taskChatStyle')) {
+    var st = document.createElement('style'); st.id = 'taskChatStyle';
+    st.textContent = '.task-chat-panel{position:fixed;top:0;bottom:0;inset-inline-end:0;width:min(420px,94vw);background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.18);transform:translateX(110%);transition:transform .25s ease;z-index:100000;display:flex;flex-direction:column}'
+      + '[dir=rtl] .task-chat-panel{transform:translateX(-110%)}'
+      + '.task-chat-panel.open{transform:none}'
+      + '.tc-head{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #E5E7EB}'
+      + '.tc-title{font-weight:700;font-size:.92rem;color:#0F172A;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+      + '.tc-close{background:none;border:none;font-size:1.05rem;cursor:pointer;color:#6B7280;line-height:1}'
+      + '.tc-messages{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:#F9FAFB}'
+      + '.tc-msg{max-width:90%;padding:9px 12px;border-radius:12px;font-size:.86rem;line-height:1.65;word-break:break-word}'
+      + '.tc-ai{background:#fff;border:1px solid #E5E7EB;align-self:flex-start}'
+      + '.tc-user{background:#2563EB;color:#fff;align-self:flex-end}'
+      + '.tc-input-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid #E5E7EB}'
+      + '.tc-input{flex:1;resize:none;border:1px solid #D1D5DB;border-radius:8px;padding:8px 10px;font-size:.86rem;font-family:inherit}'
+      + '.tc-send{background:#2563EB;color:#fff;border:none;border-radius:8px;padding:0 16px;font-weight:600;cursor:pointer}'
+      + '.tc-send:disabled{opacity:.5;cursor:default}';
+    document.head.appendChild(st);
+  }
+  var div = document.createElement('div');
+  div.id = 'taskChatPanel'; div.className = 'task-chat-panel';
+  div.innerHTML =
+    '<div class="tc-head"><div id="taskChatTitle" class="tc-title">שאלו AI</div>'
+    + '<button class="tc-close" onclick="closeTaskChat()" aria-label="סגור">✕</button></div>'
+    + '<div id="taskChatMessages" class="tc-messages"></div>'
+    + '<div class="tc-input-row"><textarea id="taskChatInput" class="tc-input" rows="2" placeholder="שאלו על המשימה… (Enter לשליחה)" onkeydown="if(event.key===&quot;Enter&quot;&&!event.shiftKey){event.preventDefault();sendTaskChatMessage();}"></textarea>'
+    + '<button id="taskChatSend" class="tc-send" onclick="sendTaskChatMessage()">שלחו</button></div>';
+  document.body.appendChild(div);
+}
+function openTaskChat(taskId) {
+  if (!taskId) return;
+  _ensureTaskChatPanel();
+  _taskChat.taskId = taskId; _taskChat.messages = []; _taskChat.busy = false;
+  var title = ''; var tp = document.getElementById('taskPopupTitle'); if (tp) title = tp.textContent || '';
+  document.getElementById('taskChatTitle').textContent = title || 'שאלו AI';
+  document.getElementById('taskChatMessages').innerHTML = '';
+  _appendChat('ai', 'שלום! אני כאן כדי לעזור עם המשימה הזו — איך לבצע אותה, למה היא חשובה, וכל שאלה אחרת. מה תרצו לדעת?');
+  document.getElementById('taskChatPanel').classList.add('open');
+  setTimeout(function () { var i = document.getElementById('taskChatInput'); if (i) i.focus(); }, 60);
+}
+function closeTaskChat() { var p = document.getElementById('taskChatPanel'); if (p) p.classList.remove('open'); }
+function _appendChat(who, text, id) {
+  var box = document.getElementById('taskChatMessages'); if (!box) return;
+  var d = document.createElement('div'); d.className = 'tc-msg ' + (who === 'user' ? 'tc-user' : 'tc-ai'); if (id) d.id = id;
+  if (who === 'ai' && typeof renderMarkdown === 'function') { d.innerHTML = renderMarkdown(String(text)); }
+  else { d.textContent = String(text); }
+  box.appendChild(d); box.scrollTop = box.scrollHeight;
+}
+function sendTaskChatMessage() {
+  if (_taskChat.busy || !_taskChat.taskId) return;
+  var input = document.getElementById('taskChatInput'); if (!input) return;
+  var text = (input.value || '').trim(); if (!text) return;
+  input.value = '';
+  _taskChat.messages.push({ role: 'user', content: text });
+  _appendChat('user', text);
+  _taskChat.busy = true;
+  var sendBtn = document.getElementById('taskChatSend'); if (sendBtn) sendBtn.disabled = true;
+  _appendChat('ai', '…', 'taskChatTyping');
+  var agentParam = window.activeAgentId ? '?agentId=' + window.activeAgentId : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/task-chat' + agentParam, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ taskId: _taskChat.taskId, agentId: window.activeAgentId || undefined, messages: _taskChat.messages.slice(-12) })
+  }).then(function (r) { return r.json(); }).then(function (d) {
+    var t = document.getElementById('taskChatTyping'); if (t) t.remove();
+    var reply = (d && d.data && d.data.reply) || (d && d.reply) || (d && d.message) || 'מצטערים, לא הצלחתי להשיב כרגע.';
+    _taskChat.messages.push({ role: 'assistant', content: reply });
+    _appendChat('ai', reply);
+    _taskChat.busy = false; if (sendBtn) sendBtn.disabled = false;
+  }).catch(function () {
+    var t = document.getElementById('taskChatTyping'); if (t) t.remove();
+    _appendChat('ai', 'שגיאת תקשורת. נסו שוב.');
+    _taskChat.busy = false; if (sendBtn) sendBtn.disabled = false;
+  });
 }
 
 // Phase 2026.02 Block 6 Pattern F — promote awaiting_manual → completed.

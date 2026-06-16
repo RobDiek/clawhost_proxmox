@@ -68,6 +68,7 @@ export {
     publishToGoogleAds, googleAdsListAccounts, googleAdsListCampaigns, googleAdsListAdGroups,
 } from './publishing'
 export { triggerWeeklyReport, getLatestWeeklyReport } from './weeklyReport'
+export { taskChat } from './taskChat'
 export { triggerYotzer } from './yotzerTrigger'
 export {
     getMarketingIntents, saveMarketingIntents,
