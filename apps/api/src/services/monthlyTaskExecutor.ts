@@ -244,9 +244,15 @@ export async function executeTask(
             case 'website_change':
             case 'cross_channel_amplification':
             case 'other':
-            default:
-                result = await runManualTodoAdapter(instanceId, task, plan)
+            default: {
+                // GitHub-connected tenant → try the general code-change executor
+                // (opens a PR for review). Skipped for external-outreach tasks
+                // (directory/link/PR outreach can never be auto). Falls back to
+                // the manual brief when not GitHub or no confident edit.
+                const ghCode = isExternalOutreachTask(task) ? null : await runGithubCodeChangeAdapter(instanceId, task, agent)
+                result = ghCode || await runManualTodoAdapter(instanceId, task, plan)
                 break
+            }
         }
         }
     } catch (err) {
@@ -1729,6 +1735,35 @@ export function isSeoMetaBatchTask(task: MonthlyTask): boolean {
     const bulkOrExisting = /קיימ|existing|כל ה|batch|bulk|עמודים|דפים|פוסטים|posts|pages|all pages/i.test(text)
     const channelOk = task.channel === 'seo' || task.channel === 'website' || task.channel === 'content'
     return channelOk && bulkOrExisting
+}
+
+/**
+ * General GitHub code/content executor wrapper — the "any code change via PR"
+ * fallback for bespoke website_change / other tasks the canned SEO ops don't
+ * cover. Opens a PR (never auto-merges). Returns null when the tenant is NOT
+ * GitHub-connected OR the model can't produce a confident edit → caller then
+ * surfaces the normal manual brief (honest, not a fake "done").
+ */
+async function runGithubCodeChangeAdapter(instanceId: string, task: MonthlyTask, agent: { id?: string } | null): Promise<ExecutorResult | null> {
+    try {
+        const { runGithubCodeChange } = await import('./githubCodeChange')
+        const r = await runGithubCodeChange(instanceId, { id: task.id, title: task.title, summary: task.summary, actionPlan: task.actionPlan }, { agentId: agent?.id })
+        if (r.integrationMissing) return null   // not a GitHub tenant
+        if (r.ok && r.prUrl) {
+            const prLine = r.prUrl.startsWith('http') ? r.prUrl : `branch ${r.prUrl.replace('branch:', '')}`
+            return {
+                ok: true,
+                awaitingManual: true,   // PR is open — needs the owner to review + merge
+                errorCategory: 'awaiting_user_action',
+                outputDescription: `נפתח Pull Request ב-GitHub עם השינוי${r.summaryHe ? ': ' + r.summaryHe : ''}.\nבדקו ומזגו: ${prLine}`,
+                stepResults: [
+                    { step: 'GitHub code-change', ok: true, detail: r.edits.map(e => e.path).join(', ') || '—' },
+                    { step: 'Pull Request', ok: true, detail: prLine },
+                ],
+            }
+        }
+        return null   // noConfidentEdit / error → manual brief
+    } catch { return null }
 }
 
 /**
