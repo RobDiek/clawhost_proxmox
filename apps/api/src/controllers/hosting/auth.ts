@@ -470,8 +470,32 @@ export const getMyInstances = async (c: Context) => {
                 metaTokens: i.metaTokens,
             })
 
+            // Canonical connected-stack overlay. This LIST endpoint is the
+            // dashboard's PRIMARY instanceData source (data.data[0]) when no
+            // secondary agent is selected — so without this, agentless tenants
+            // (e.g. flow) get NO activeAgentIntegrations and the monthly-task
+            // popup shows every channel "not connected → ידני" even when GitHub /
+            // Google Ads are connected via instances.githubConfig / googleAdsConfig.
+            const __stack = await (async () => {
+                try { const { resolveConnectedStack } = await import('@/services/connectedStack'); return await resolveConnectedStack(null, i.id) }
+                catch { return null }
+            })()
+            const __aai: Record<string, { connected: boolean }> = {}
+            if (__stack) {
+                if (__stack.github) __aai.github = { connected: true }
+                if (__stack.wordpress) __aai.wordpress = { connected: true }
+                if (__stack.gtm) __aai.gtm = { connected: true }
+                if (__stack.ga4) __aai.ga4 = { connected: true }
+                if (__stack.ga4 || __stack.googleAds) __aai.google = { connected: true }
+                if (__stack.gbp) __aai.gbp = { connected: true }
+                if (__stack.meta) __aai.meta = { connected: true }
+                if (__stack.whatsapp) __aai.whatsapp = { connected: true }
+            }
+
             return {
                 id: i.id,
+                activeAgentIntegrations: __aai,
+                hasGithub: !!__stack?.github,
                 planKey: i.planKey,
                 priceIls: i.priceIls,
                 subscriptionStatus: i.subscriptionStatus,
@@ -527,7 +551,7 @@ export const getMyInstances = async (c: Context) => {
                     if (scopes.includes('adwords')) return true
                     const tokens = scopes.split(/[\s,]+/)
                     return tokens.includes('ads')
-                })(),
+                })() || !!__stack?.googleAds,
                 haasTier: i.haasTier,
                 googleAdsMode: i.googleAdsMode || 'self',
                 // Phase 4.3-O fix: gate customerId on hasGoogleAds (primary's
@@ -539,14 +563,14 @@ export const getMyInstances = async (c: Context) => {
                     const hasAds = scopes.includes('adwords') || scopes.split(/[\s,]+/).includes('ads')
                     if (!hasAds) return null
                     return ((i.googleAdsConfig as Record<string, unknown> | null) || {}).customerId || null
-                })(),
+                })() || __stack?.googleAdsCustomerId || null,
                 googleAdsHasDevToken: (() => {
                     const gt = i.googleTokens as any
                     const scopes = (gt?.scopes || gt?.scope || '').toString().toLowerCase()
                     const hasAds = scopes.includes('adwords') || scopes.split(/[\s,]+/).includes('ads')
                     if (!hasAds) return false
                     return !!((i.googleAdsConfig as Record<string, unknown> | null) || {}).developerToken
-                })(),
+                })() || !!__stack?.googleAdsExecutable,
                 // Phase 4.2.1-L — per-API OAuth scope booleans so the dashboard
                 // can render proactive "connect X" buttons instead of letting
                 // users discover missing scopes mid-flow.
