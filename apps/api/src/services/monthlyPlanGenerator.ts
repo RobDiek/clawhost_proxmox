@@ -737,8 +737,8 @@ export async function generateMonthlyPlan(
     // 1/6 steps as automatic. Post-publish steps (merge/index/monitor) stay manual.
     try {
         const { annotateAutoExecution } = await import('./monthlyPlanAutoAnnotate')
-        const autoCount = annotateAutoExecution(finalTasks as any, ctx.connectedStack)
-        console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 4e annotated ${autoCount}/${finalTasks.length} tasks auto-executable`)
+        const a = annotateAutoExecution(finalTasks as any, ctx.connectedStack)
+        console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 4e — ${a.autoTasks} internal/auto, ${a.externalTasks} external/manual, ${a.executorGaps} executor-gap (auto-displayed but executor not wired for the connected channel)`)
     } catch (err) {
         console.warn(`[monthlyPlanGenerator] ${instanceId}: Pass 4e annotate error (non-fatal):`, (err as Error).message)
     }
