@@ -3154,6 +3154,7 @@ input{font-family:inherit}
           </div>
           <!-- Top action bar -->
           <div id="gtm-diagnostic-toolbar" style="display:flex;gap:6px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-outline btn-sm" onclick="openGtmTargetPicker()" style="font-size:0.82rem;font-weight:600;border-color:#BFDBFE;color:#1D4ED8">📦 בחרו / החלפת container</button>
             <button class="btn btn-primary btn-sm" id="gtm-autofix-btn" onclick="runGtmAutoFixFromCard()" style="font-size:0.82rem">🚀 הגדירו הכל אוטומטית</button>
             <button class="btn btn-outline btn-sm" onclick="loadGtmDiagnostic(true)" style="font-size:0.78rem">🔄 רענן diagnostic</button>
             <button class="btn btn-outline btn-sm" onclick="disconnectGoogleScope('gtm')" style="color:#EF4444;border-color:#FECACA;font-size:0.74rem;margin-inline-start:auto">נתק GTM</button>
@@ -27334,13 +27335,21 @@ function _googleScopeUrlToAlias(scopeUrl) {
 
 function _currentGoogleScopeAliases() {
   var current = [];
-  if (instanceData && instanceData.googleTokens && Array.isArray(instanceData.googleTokens.scopes)) {
-    var seen = {};
-    instanceData.googleTokens.scopes.forEach(function(s) {
-      var alias = _googleScopeUrlToAlias(s);
-      if (alias && !seen[alias]) { seen[alias] = true; current.push(alias); }
-    });
-  }
+  // Server exposes a non-secret per-agent `googleScopes` list. The raw
+  // googleTokens bundle is scrubbed from the API response (carries the refresh
+  // token), so reading googleTokens.scopes here returned undefined → every
+  // Google sub-card showed "לא מחובר". Prefer googleScopes; keep the legacy
+  // path as a fallback for older cached responses.
+  var src = (instanceData && Array.isArray(instanceData.googleScopes))
+    ? instanceData.googleScopes
+    : (instanceData && instanceData.googleTokens && Array.isArray(instanceData.googleTokens.scopes))
+      ? instanceData.googleTokens.scopes
+      : [];
+  var seen = {};
+  src.forEach(function(s) {
+    var alias = _googleScopeUrlToAlias(s);
+    if (alias && !seen[alias]) { seen[alias] = true; current.push(alias); }
+  });
   return current;
 }
 
@@ -27631,8 +27640,10 @@ async function _refreshGoogleSelectionDisplays() {
 // Sync GTM + GA4 card UI from instanceData.googleTokens.scopes
 function updateGoogleScopeCards() {
   var aliases = _currentGoogleScopeAliases();
-  var hasGtm = aliases.indexOf('gtm') !== -1;
-  var hasGa4 = aliases.indexOf('analytics') !== -1;
+  // OR the server-computed per-agent booleans (authoritative, scope-derived) so
+  // the cards reflect the LIVE token even if the alias list is momentarily empty.
+  var hasGtm = aliases.indexOf('gtm') !== -1 || !!(instanceData && instanceData.hasGtmScope);
+  var hasGa4 = aliases.indexOf('analytics') !== -1 || !!(instanceData && instanceData.hasGa4Scope);
   // Phase 4.2.2-C — GTM card now diagnostic-driven. Status text/class is
   // updated by renderGtmDiagnosticGates(); we just kick off the load here.
   var gtmCard = document.getElementById('gtm-card');

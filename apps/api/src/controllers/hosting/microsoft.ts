@@ -217,13 +217,29 @@ export const microsoftCallback = async (c: Context) => {
         // Phase 2.3.J — write to the SPECIFIC agent pinned via OAuth state.
         // Microsoft's redirect strips `?agentId=` so falling back to
         // resolveActiveAgent would leak tokens to primary by default.
+        let connectedAgentId: string | null = agentIdFromState || null
         if (agentIdFromState) {
             await setAgentIntegration(instanceId, agentType, 'microsoft', microsoftTokens as any, 'connected', agentIdFromState)
             await writeAgentTokensFor(agentIdFromState, instanceId, { microsoftTokens: microsoftTokens as never })
         } else {
             const __msAgent = await resolveActiveAgent(c, instanceId)
+            connectedAgentId = __msAgent?.id || null
             await setAgentIntegration(instanceId, agentType, 'microsoft', microsoftTokens as any, 'connected', __msAgent?.id)
             await writeAgentTokens(c, instanceId, { microsoftTokens: microsoftTokens as never })
+        }
+
+        // Per-agent isolation for a shared Microsoft identity: Azure AD rotates
+        // the refresh token on re-consent, so a sibling agent using this email
+        // would be left with a dead token. Mirror the fresh token onto every
+        // sibling on the same email (selections stay per-agent). Same fix as
+        // Google — see services/googleGrantSync.ts.
+        if (email) {
+            try {
+                const { propagateMicrosoftGrant } = await import('@/services/googleGrantSync')
+                await propagateMicrosoftGrant({ instanceId, sourceAgentId: connectedAgentId, email, microsoftTokens })
+            } catch (e) {
+                console.warn('[microsoft] grant propagation failed:', (e as Error).message)
+            }
         }
 
         console.log(`Microsoft 365 connected for instance ${instanceId}, agent ${agentType}: ${email} (scopes: ${scopes})`)

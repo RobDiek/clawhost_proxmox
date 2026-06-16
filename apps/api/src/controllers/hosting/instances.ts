@@ -335,6 +335,16 @@ export const getInstance = async (c: Context<HonoEnv>) => {
         const _scopeTokens = _scopeText.split(/[\s,]+/)
         response.hasGtmScope = _scopeText.includes('tagmanager') || _scopeTokens.includes('gtm')
         response.hasGa4Scope = _scopeText.includes('analytics') || _scopeTokens.includes('ga4') || _scopeTokens.includes('analytics')
+        // Phase 4.2.x — expose the per-agent Google SCOPE list (non-secret) so the
+        // dashboard cards can derive connected state per service. The raw
+        // googleTokens bundle is scrubbed below (it carries the refresh token),
+        // which previously left the frontend reading `undefined` scopes →
+        // every Google sub-card showed "לא מחובר" even when actually connected.
+        response.googleScopes = _activeGt
+            ? (Array.isArray(_activeGt.scopes)
+                ? _activeGt.scopes
+                : String(_activeGt.scopes || _activeGt.scope || '').split(/[\s,]+/)).filter(Boolean)
+            : []
 
         // Telegram connection flag — the bot token is scrubbed below for
         // security, so the dashboard needs a boolean like every other
