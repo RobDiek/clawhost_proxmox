@@ -730,6 +730,19 @@ export async function generateMonthlyPlan(
         console.warn(`[monthlyPlanGenerator] ${instanceId}: Pass 4d cleanup error (non-fatal):`, (err as Error).message)
     }
 
+    // ─── Pass 4e: honest per-step automation flags (deterministic) ────────
+    // The LLM's per-step `automated` guesses are inconsistent (only the obvious
+    // adapter step gets flagged). Re-derive them from the task's REAL executor
+    // capability + the connected stack so an auto-executable task doesn't show
+    // 1/6 steps as automatic. Post-publish steps (merge/index/monitor) stay manual.
+    try {
+        const { annotateAutoExecution } = await import('./monthlyPlanAutoAnnotate')
+        const autoCount = annotateAutoExecution(finalTasks as any, ctx.connectedStack)
+        console.log(`[monthlyPlanGenerator] ${instanceId}: Pass 4e annotated ${autoCount}/${finalTasks.length} tasks auto-executable`)
+    } catch (err) {
+        console.warn(`[monthlyPlanGenerator] ${instanceId}: Pass 4e annotate error (non-fatal):`, (err as Error).message)
+    }
+
     // ─── Assemble plan + apply guardrails ────────────────────────────────
     const qualityWarnings: string[] = [
         ...(skeleton.qualityWarnings || []),
