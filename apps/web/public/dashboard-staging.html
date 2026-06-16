@@ -9151,21 +9151,15 @@ function renderMonthlyTaskPopup(task) {
   // ── Expected impact ───────────────────────────────────────────────
   if (fullTask.expectedImpact) {
     var imp = fullTask.expectedImpact;
-    var impLabel = '';
-    if (imp.metric === 'spend_savings_ils') impLabel = '₪' + Math.round(imp.value).toLocaleString() + ' חיסכון';
-    else if (imp.metric === 'extra_conversions') impLabel = '+' + Math.round(imp.value) + ' המרות';
-    else if (imp.metric === 'extra_leads') impLabel = '+' + Math.round(imp.value) + ' לידים';
-    else if (imp.metric === 'cpa_reduction_pct') impLabel = 'CPA ↓ ' + Math.round(imp.value) + '%';
-    else if (imp.metric === 'extra_organic_traffic_pct') impLabel = 'תנועה אורגנית ↑ ' + Math.round(imp.value) + '%';
-    else impLabel = imp.value + ' ' + (imp.metric || '');
+    var impLabel = humanizeImpactMetric(imp.metric, imp.value);
     var confColor = imp.confidence === 'high' ? '#10B981' : imp.confidence === 'medium' ? '#F59E0B' : '#9CA3AF';
     h += '<div style="background:linear-gradient(180deg,#F0FDF4,#FFFFFF);border:1px solid #BBF7D0;border-radius:8px;padding:12px 14px;margin-bottom:14px">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
-        '<div style="font-size:0.82rem;color:#15803D;font-weight:700">📊 השפעה צפויה (' + _esc(imp.horizon || '30d') + ')</div>' +
+        '<div style="font-size:0.82rem;color:#15803D;font-weight:700">📊 השפעה צפויה (תוך ' + _esc(humanizeHorizon(imp.horizon)) + ')</div>' +
         '<div style="font-size:1.05rem;font-weight:700;color:#15803D">' + _esc(impLabel) + '</div>' +
       '</div>' +
       (imp.rationale ? '<div style="font-size:0.78rem;color:#4B5563;line-height:1.5;margin-top:4px">' + _esc(imp.rationale) + '</div>' : '') +
-      (imp.confidence ? '<div style="font-size:0.72rem;margin-top:6px"><span style="color:' + confColor + ';font-weight:600">●</span> ביטחון: ' + _esc(imp.confidence) + '</div>' : '') +
+      (imp.confidence ? '<div style="font-size:0.72rem;margin-top:6px"><span style="color:' + confColor + ';font-weight:600">●</span> ביטחון: ' + _esc(humanizeConfidence(imp.confidence)) + '</div>' : '') +
     '</div>';
   }
 
@@ -9173,7 +9167,8 @@ function renderMonthlyTaskPopup(task) {
   if (Array.isArray(fullTask.sources) && fullTask.sources.length > 0) {
     var srcHtml = fullTask.sources.map(function(s, i) {
       return '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:10px 12px;margin-bottom:6px">' +
-        '<div style="font-size:0.72rem;color:#6B7280;font-weight:600;margin-bottom:4px">[' + (i + 1) + '] ' + _esc(s.type || 'source') + ' · <code style="font-family:monospace;color:#0EA5E9;background:#F0F9FF;padding:1px 5px;border-radius:3px">' + _esc(s.ref || '') + '</code></div>' +
+        '<div style="font-size:0.72rem;color:#6B7280;font-weight:600;margin-bottom:4px">[' + (i + 1) + '] ' + _esc(humanizeSourceType(s.type)) +
+          (s.ref ? ' · <code style="font-family:monospace;color:#0EA5E9;background:#F0F9FF;padding:1px 5px;border-radius:3px">' + _esc(s.ref) + '</code>' : '') + '</div>' +
         '<div style="font-size:0.82rem;color:#374151;line-height:1.5">' + _esc(s.excerpt || '') + '</div>' +
       '</div>';
     }).join('');
@@ -12330,6 +12325,78 @@ function renderContentCalendar() {
   el.innerHTML = html;
 }
 
+// ── Monthly-task humanizers ───────────────────────────────────────────
+// Task records carry machine-shaped fields (metric=organic_traffic_pct,
+// source.type=audit.recommendedActions.immediate, horizon=60d). Never show
+// those raw — they read as gibberish in the client cabinet. These map the
+// bounded set of known keys to clean Hebrew, with a safe prettify fallback.
+function _prettifyKey(k) {
+  return String(k || '')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_.\-]+/g, ' ')
+    .replace(/\b\w/g, function(c) { return c.toUpperCase(); })
+    .trim();
+}
+function humanizeImpactMetric(metric, value) {
+  var v = Math.round(Number(value) || 0);
+  var n = v.toLocaleString('he-IL');
+  switch (metric) {
+    case 'spend_savings_ils': return '₪' + n + ' חיסכון';
+    case 'extra_conversions': return '+' + n + ' המרות';
+    case 'extra_leads': return '+' + n + ' לידים';
+    case 'cpa_reduction_pct': return 'CPA ↓ ' + v + '%';
+    case 'extra_organic_traffic_pct':
+    case 'organic_traffic_pct': return 'תנועה אורגנית ↑ ' + v + '%';
+    case 'ctr_pct':
+    case 'ctr': return 'CTR ↑ ' + v + '%';
+    case 'impressions': return '+' + n + ' חשיפות';
+    case 'clicks': return '+' + n + ' קליקים';
+    case 'keyword_rankings':
+    case 'rankings': return n + ' שיפורי דירוג';
+    case 'roas': return 'ROAS ' + v;
+    case 'revenue_ils': return '₪' + n + ' הכנסה';
+    default: return metric ? (n + ' · ' + _prettifyKey(metric)) : n;
+  }
+}
+function humanizeHorizon(h) {
+  if (!h) return '30 יום';
+  var d = String(h).match(/^(\d+)\s*d$/i); if (d) return d[1] + ' יום';
+  var w = String(h).match(/^(\d+)\s*w$/i); if (w) return w[1] + ' שבועות';
+  var m = String(h).match(/^(\d+)\s*m(o|onth)?s?$/i); if (m) return m[1] + ' חודשים';
+  return String(h);
+}
+function humanizeConfidence(c) {
+  return ({ high: 'גבוה', medium: 'בינוני', low: 'נמוך' })[c] || (c || '');
+}
+function humanizeSourceType(t) {
+  if (!t) return 'מקור';
+  var MAP = {
+    'audit': 'אודיט SEO',
+    'audit.recommendedActions.immediate': 'אודיט — פעולה מיידית',
+    'audit.recommendedActions.shortTerm': 'אודיט — טווח קצר',
+    'audit.recommendedActions.ongoing': 'אודיט — פעולה מתמשכת',
+    'contentPlan': 'תוכנית תוכן',
+    'contentPlan.item': 'תוכנית תוכן',
+    'strategy': 'אסטרטגיה',
+    'strategy.positioning': 'אסטרטגיית מיצוב',
+    'keywordResearch': 'מחקר מילות מפתח',
+    'seoKeywordResearch': 'מחקר מילות מפתח',
+    'competitorLandscape': 'ניתוח מתחרים',
+    'competitor': 'ניתוח מתחרים',
+    'gscData': 'נתוני Search Console',
+    'gsc': 'נתוני Search Console',
+    'ga4': 'נתוני GA4',
+    'googleAds': 'נתוני Google Ads',
+    'brandFoundation': 'בסיס מותג',
+    'audienceResearch': 'מחקר קהל',
+    'paidStrategy': 'אסטרטגיית פרסום ממומן'
+  };
+  if (MAP[t]) return MAP[t];
+  var seg = String(t).split('.');
+  var head = MAP[seg[0]] || _prettifyKey(seg[0]);
+  return seg.length > 1 ? head + ' — ' + _prettifyKey(seg[seg.length - 1]) : head;
+}
+
 // Phase 4.3-G: open a monthly task in a dedicated popup from calendar click.
 // Shows full task details (sources, actionPlan, dependencies, expected impact)
 // + the approve/skip/reject controls.
@@ -12351,8 +12418,12 @@ function openMonthlyTaskFromCalendar(taskId) {
   }[task.status] || task.status;
 
   var sourcesHtml = (task.sources || []).map(function(s) {
-    return '<li><strong>' + escapeHtml(s.type) + ':</strong> ' + escapeHtml(s.ref || '') +
-      (s.excerpt ? ' — <em style="color:#4B5563">"' + escapeHtml(s.excerpt) + '"</em>' : '') + '</li>';
+    // Prefer the human excerpt; fall back to the raw ref only when there's no
+    // excerpt. Never lead with the machine ref (decision=refresh, url paths…).
+    var detail = s.excerpt ? '<span style="color:#4B5563">' + escapeHtml(s.excerpt) + '</span>'
+      : (s.ref ? escapeHtml(s.ref) : '');
+    return '<li><strong>' + escapeHtml(humanizeSourceType(s.type)) + '</strong>' +
+      (detail ? ': ' + detail : '') + '</li>';
   }).join('');
 
   var stepsHtml = (task.actionPlan || []).map(function(s, i) {
@@ -12415,8 +12486,10 @@ function openMonthlyTaskFromCalendar(taskId) {
       '<h3 style="margin:0 0 6px;font-size:1.05rem;color:#111827">' + escapeHtml(task.title) + '</h3>' +
       '<div style="font-size:0.85rem;color:#4B5563;line-height:1.6;margin-bottom:14px">' + escapeHtml(task.summary || '') + '</div>' +
       (task.expectedImpact ? '<div style="padding:8px 12px;background:#EFF6FF;border-right:3px solid #2563EB;border-radius:6px;font-size:0.82rem;color:#1E40AF;margin-bottom:14px">' +
-        '<strong>השפעה צפויה:</strong> ' + escapeHtml(task.expectedImpact.metric || '') + ' = ' + (task.expectedImpact.value || 0) + ' (' + (task.expectedImpact.horizon || '?') + ', ' + (task.expectedImpact.confidence || '?') + ')<br>' +
-        '<em style="font-size:0.78rem;opacity:0.9">' + escapeHtml(task.expectedImpact.rationale || '') + '</em>' +
+        '<strong>השפעה צפויה:</strong> ' + escapeHtml(humanizeImpactMetric(task.expectedImpact.metric, task.expectedImpact.value)) +
+        ' · תוך ' + escapeHtml(humanizeHorizon(task.expectedImpact.horizon)) +
+        (task.expectedImpact.confidence ? ' · ביטחון ' + escapeHtml(humanizeConfidence(task.expectedImpact.confidence)) : '') +
+        (task.expectedImpact.rationale ? '<br><em style="font-size:0.78rem;opacity:0.9">' + escapeHtml(task.expectedImpact.rationale) + '</em>' : '') +
         '</div>' : '') +
       (sourcesHtml ? '<div style="margin-bottom:14px"><strong style="font-size:0.85rem;color:#1F2937">מקורות נתונים:</strong><ul style="margin:6px 0 0 18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' + sourcesHtml + '</ul></div>' : '') +
       (stepsHtml ? '<div style="margin-bottom:14px"><strong style="font-size:0.85rem;color:#1F2937">תוכנית הביצוע:</strong><ol style="margin:6px 0 0;padding-inline-start:8px;font-size:0.84rem;color:#1F2937;line-height:1.7;list-style:none">' + stepsHtml + '</ol></div>' : '') +
