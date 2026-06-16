@@ -12153,13 +12153,20 @@ function renderContentCalendar() {
       return it.channel === calendarFilter;
     });
 
-  // Group plan items + monthly tasks by date
+  // Group plan items + monthly tasks by date. NORMALIZE the key to date-only
+  // (YYYY-MM-DD) — monthly tasks carry a full ISO timestamp (…T09:00:00Z) while the
+  // day cells look up byDate[day.toISOString().split('T')[0]] (date-only). Without
+  // this slice the keys never match and every scheduled task vanishes from the grid
+  // (the filter-pill counts still show because they use _inWeek which already slices).
   var byDate = {};
+  var _dayKey = function(d) { return String(d || '').slice(0, 10); };
   filtered.forEach(function(it) {
-    (byDate[it.date] = byDate[it.date] || []).push(it);
+    var k = _dayKey(it.date);
+    (byDate[k] = byDate[k] || []).push(it);
   });
   monthlyAsCalendarItems.forEach(function(it) {
-    (byDate[it.date] = byDate[it.date] || []).push(it);
+    var k = _dayKey(it.date);
+    (byDate[k] = byDate[k] || []).push(it);
   });
   Object.keys(byDate).forEach(function(d) {
     byDate[d].sort(function(a, b) { return (a.time || '').localeCompare(b.time || ''); });
