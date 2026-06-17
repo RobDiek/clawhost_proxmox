@@ -127,6 +127,17 @@ const JARGON_HE: Record<string, string> = {
     duplication: 'כפילות', internal: 'פנימי', external: 'חיצוני', inbound: 'נכנס', outbound: 'יוצא',
     title: 'כותרת', heading: 'כותרת', body: 'גוף', word: 'מילה', words: 'מילים', count: 'כמות',
     quality: 'איכות', technical: 'טכני', structured: 'מובנה', markup: 'תיוג', cluster: 'אשכול',
+    // Google-Ads / ops workflow words that recur in action-plan steps
+    automated: 'אוטומטי', automation: 'אוטומציה', rule: 'כלל', rules: 'כללים', pause: 'השהיה',
+    paused: 'מושהה', search: 'חיפוש', settings: 'הגדרות', action: 'פעולה', actions: 'פעולות',
+    condition: 'תנאי', conditions: 'תנאים', cost: 'עלות', type: 'סוג', group: 'קבוצה', groups: 'קבוצות',
+    total: 'סך הכול', first: 'ראשון', conservative: 'שמרני', extrapolated: 'מוערך', rolling: 'מתגלגל',
+    days: 'ימים', day: 'יום', smart: 'חכם', bulk: 'בכמות', form: 'טופס', submit: 'שליחה',
+    negatives: 'מילות שלילה', negative: 'שלילי', brands: 'מותגים', terms: 'מונחים', term: 'מונח',
+    match: 'התאמה', phrase: 'ביטוי', exact: 'מדויק', broad: 'רחב', sheet: 'גיליון', weekly: 'שבועי',
+    monthly: 'חודשי', daily: 'יומי', records: 'רשומות', record: 'רשומה', queries: 'שאילתות',
+    query: 'שאילתה', tab: 'לשונית', column: 'עמודה', row: 'שורה', filter: 'מסנן', sort: 'מיון',
+    account: 'חשבון', client: 'לקוח', adhoc: 'אד-הוק', verdict: 'הכרעה',
 }
 
 // Internal source-ref prefixes (data pointers the LLM cites) → human Hebrew label.
