@@ -16,6 +16,7 @@ import { and, eq, gt, isNull } from 'drizzle-orm'
 import { db } from '@/db'
 import { agentOutputs } from '@/db/schema'
 import { runMonthlyPlanHebrewCleanup } from './monthlyPlanHebrewCleanup'
+import { sanitizeTaskInPlace, residualEnglishWords } from './monthlyPlanTextSanitizer'
 
 const PREFIX_RE = /^(P\d+)\s*·\s*/
 
@@ -61,16 +62,28 @@ export async function runSavedPlanHebrewCleanup(agentId: string | null, opts: { 
     const forClean = tasks.map(t => ({ title: t.title, summary: t.summary, actionPlan: t.actionPlan, expectedImpact: t.expectedImpact, sources: t.sources }))
 
     const cleanup = await runMonthlyPlanHebrewCleanup({ tasks: forClean as unknown as Array<Record<string, unknown>>, instanceId })
-    if (!cleanup.applied || !cleanup.cleanedTasks || cleanup.cleanedTasks.length !== planRows.length) {
-        return { status: 'skipped', reason: cleanup.reason || 'cleanup not applied / count mismatch', scanned: planRows.length, dryRun }
-    }
+    const llmApplied = !!(cleanup.applied && cleanup.cleanedTasks && cleanup.cleanedTasks.length === planRows.length)
+
+    // The deterministic text floor ALWAYS runs — on the LLM-cleaned tasks when
+    // available, otherwise on the reconstructed originals. This guarantees the
+    // saved rows are free of machine tokens even when the LLM cleanup was
+    // skipped/timed-out (the previous early-return left raw rows in place).
+    const base: any[] = llmApplied ? (cleanup.cleanedTasks as any[]) : (forClean as any[])
 
     const samples: Array<{ before: string; after: string }> = []
+    const residualSet = new Set<string>()
     let updated = 0
     for (let i = 0; i < planRows.length; i++) {
         const row = planRows[i]
-        const cleaned: any = cleanup.cleanedTasks[i]
+        const cleaned: any = base[i] || {}
+        sanitizeTaskInPlace(cleaned)   // deterministic floor (mutates in place)
         const orig = tasks[i]
+
+        // collect residual English for visibility (non-blocking)
+        for (const field of [cleaned.title, cleaned.summary, cleaned.expectedImpact?.rationale]) {
+            for (const w of residualEnglishWords(typeof field === 'string' ? field : '')) residualSet.add(w)
+        }
+
         const newTitle = orig._prefix ? `${orig._prefix} · ${cleaned.title || orig.title}` : (cleaned.title || orig.title)
         // rebuild content: original parsed content + cleaned string fields (content has NO title field)
         const newContent = { ...orig._content }
@@ -78,13 +91,18 @@ export async function runSavedPlanHebrewCleanup(agentId: string | null, opts: { 
         if (cleaned.actionPlan !== undefined) newContent.actionPlan = cleaned.actionPlan
         if (cleaned.expectedImpact !== undefined) newContent.expectedImpact = cleaned.expectedImpact
         if (cleaned.sources !== undefined) newContent.sources = cleaned.sources
-        const changed = newTitle !== row.title
-        if (samples.length < 6 && changed) samples.push({ before: row.title, after: newTitle })
-        if (!dryRun) {
-            await db.update(agentOutputs).set({ title: newTitle, content: JSON.stringify(newContent) }).where(eq(agentOutputs.id, row.id))
+
+        const newContentJson = JSON.stringify(newContent)
+        const changed = newTitle !== row.title || newContentJson !== (typeof row.content === 'string' ? row.content : JSON.stringify(row.content))
+        if (samples.length < 6 && newTitle !== row.title) samples.push({ before: row.title, after: newTitle })
+        if (changed) {
+            if (!dryRun) {
+                await db.update(agentOutputs).set({ title: newTitle, content: newContentJson }).where(eq(agentOutputs.id, row.id))
+            }
+            updated++
         }
-        updated++
     }
-    console.log(`[savedPlanHebrewCleanup] ${agentId || instanceId}: ${dryRun ? 'DRY ' : ''}updated ${updated}/${planRows.length} rows (gen=${latestGen})`)
+    const residual = Array.from(residualSet).slice(0, 25)
+    console.log(`[savedPlanHebrewCleanup] ${agentId || instanceId}: ${dryRun ? 'DRY ' : ''}updated ${updated}/${planRows.length} rows (gen=${latestGen}; llm=${llmApplied ? 'applied' : 'skipped:' + (cleanup.reason || '?')}; floor=deterministic)${residual.length ? `; residual-English: ${residual.join(', ')}` : ''}`)
     return { status: 'ok', scanned: planRows.length, updated, dryRun, samples }
 }

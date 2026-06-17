@@ -608,11 +608,11 @@ const ENTITY_AUTHORITY_FILLER: StructuredFiller = {
                 value: 3,
                 horizon: '90d',
                 confidence: 'medium',
-                rationale: 'מותגים עם Wikidata entity + Knowledge Panel מקבלים 3-10× יותר citation במנועי AI לעומת בלי.',
+                rationale: 'מותגים עם ישות Wikidata ופאנל ידע (Knowledge Panel) מקבלים פי 3-10 יותר ציטוטים במנועי AI לעומת מותגים בלעדיהם.',
             },
             sources: [
                 { type: 'other', ref: 'aeo_citation_authority_baseline', excerpt: 'מותגים בעלי ישות אנציקלופדית מצוטטים על ידי מודלי שפה כמקור סמכותי.' },
-                { type: 'other', ref: 'knowledge_graph_entry_door', excerpt: 'Wikidata = שער כניסה ל-Google Knowledge Graph + Wikipedia.' },
+                { type: 'other', ref: 'knowledge_graph_entry_door', excerpt: 'Wikidata היא שער הכניסה לגרף הידע (Knowledge Graph) של Google ולוויקיפדיה.' },
             ],
             dependsOn: [],
             actionPlan: [
@@ -661,7 +661,7 @@ const AEO_PROBE_FILLER: StructuredFiller = {
                 rationale: 'ללא מדידה אין שיפור. 20 prompts × 4 מנועים = 80 data points/שבוע על visibility במנועי AI.',
             },
             sources: [
-                { type: 'other', ref: 'aeo_measurement_baseline', excerpt: 'Citation tracking הוא המקבילה ל-GSC עבור מנועי AI.' },
+                { type: 'other', ref: 'aeo_measurement_baseline', excerpt: 'מעקב ציטוטים (Citation tracking) הוא המקבילה ל-GSC עבור מנועי AI.' },
                 { type: 'strategy.persona', ref: 'audience_personas.jtbd_statements', excerpt: 'הפרומפטים מבוססים על JTBD של הפרסונות שלכם.' },
             ],
             dependsOn: [],
@@ -935,7 +935,7 @@ const IMAGE_SEO_FILLER: StructuredFiller = {
             priority: 'P1',
             estimatedEffort: '1_day',
             expectedImpact: { metric: 'organic_traffic_pct', value: 12, horizon: '60d', confidence: 'medium', rationale: 'אופטימיזציית תמונות מורידה LCP ב-30-50%, פותחת image_pack ל-15-25% משאילתות, ומעלה accessibility score.' },
-            sources: [{ type: 'other' as const, ref: 'core_web_vitals.image_baseline', excerpt: 'תמונות = 50-70% ממשקל דף באתרי מסחר.' }],
+            sources: [{ type: 'other' as const, ref: 'core_web_vitals.image_baseline', excerpt: 'תמונות מהוות 50-70% ממשקל הדף באתרי מסחר.' }],
             dependsOn: [],
             actionPlan: [
                 _step('ביצוע סריקה: כמה תמונות באתר ללא alt text? (השתמשו ב-Screaming Frog / Sitebulb / Ahrefs Audit).', false, 30),
@@ -984,7 +984,7 @@ const VIDEO_SCHEMA_FILLER: StructuredFiller = {
             priority: 'P2',
             estimatedEffort: '2_3_hours',
             expectedImpact: { metric: 'organic_traffic_pct', value: 8, horizon: '60d', confidence: 'medium', rationale: 'VideoObject schema פותח video carousel ב-SERP, מעלה CTR ב-15-25%. transcript מוסיף 500-1500 מילים entity-rich לדף.' },
-            sources: [{ type: 'other' as const, ref: 'serp_video_carousel_opportunity', excerpt: 'Video carousel ב-SERP מוצג ל-15-30% משאילתות how-to / tutorial.' }],
+            sources: [{ type: 'other' as const, ref: 'serp_video_carousel_opportunity', excerpt: 'סבב וידאו (Video carousel) ב-SERP מוצג ב-15-30% משאילתות "איך לעשות" והדרכות.' }],
             dependsOn: [],
             actionPlan: [
                 _step('לכל סרטון מהתוכנית: יצרו transcript מלא בעברית (פלאגין: Otter.ai / Whisper API).', false, 60),
@@ -1068,7 +1068,7 @@ const TECHNICAL_SCHEMA_FILLER: StructuredFiller = {
             priority: 'P1',
             estimatedEffort: '2_3_hours',
             expectedImpact: { metric: 'ctr_pct', value: 10, horizon: '30d', confidence: 'high', rationale: 'BreadcrumbList ב-SERP מעלה CTR ב-10-15% (path מציע context). sitelinks search box על branded queries = +CTR + brand trust.' },
-            sources: [{ type: 'other' as const, ref: 'technical_schema_baseline', excerpt: 'שתי הסכמות הללו = low-effort high-impact technical SEO.' }],
+            sources: [{ type: 'other' as const, ref: 'technical_schema_baseline', excerpt: 'שתי הסכמות הללו הן SEO טכני במאמץ נמוך ובהשפעה גבוהה.' }],
             dependsOn: [],
             actionPlan: [
                 _step(cmsHint(stack, {
@@ -1149,7 +1149,7 @@ const SITEMAP_VALIDATION_FILLER: StructuredFiller = {
             priority: 'P2',
             estimatedEffort: '2_3_hours',
             expectedImpact: { metric: 'organic_traffic_pct', value: 5, horizon: '30d', confidence: 'high', rationale: 'Indexing מהיר על דפים חדשים = compounding traffic. תהליך אוטומטי = zero ongoing effort.' },
-            sources: [{ type: 'other' as const, ref: 'sitemap_indexing_baseline', excerpt: 'GSC sitemap ping + IndexNow protocol מתועדים כ-baseline.' }],
+            sources: [{ type: 'other' as const, ref: 'sitemap_indexing_baseline', excerpt: 'שליחת מפת אתר (sitemap) ל-GSC ופרוטוקול IndexNow מתועדים כבסיס.' }],
             dependsOn: [],
             actionPlan: [
                 _step(cmsHint(stack, {
@@ -1184,7 +1184,7 @@ const CONTENT_REFRESH_FILLER: StructuredFiller = {
             priority: 'P2',
             estimatedEffort: '1_hour',
             expectedImpact: { metric: 'organic_traffic_pct', value: 10, horizon: '90d', confidence: 'medium', rationale: 'דפים שמתעדכנים אחת לרבעון שומרים על top-10. דפים שלא מתעדכנים יורדים 3-7 מיקומים תוך 12 חודשים.' },
-            sources: [{ type: 'other' as const, ref: 'evergreen_refresh_baseline', excerpt: 'Content decay = 15-30% traffic loss תוך שנה ללא רענון.' }],
+            sources: [{ type: 'other' as const, ref: 'evergreen_refresh_baseline', excerpt: 'דעיכת תוכן (Content decay) גורמת לאובדן 15-30% מהתנועה תוך שנה ללא רענון.' }],
             dependsOn: [],
             actionPlan: [
                 _step('סנו רשימת top-20 evergreen pages לפי clicks (GSC → Performance → Pages, last 90d).', false, 30),

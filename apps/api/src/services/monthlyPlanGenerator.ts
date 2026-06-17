@@ -778,6 +778,19 @@ export async function generateMonthlyPlan(
         qualityWarnings.push(`⚠ Plan built with stale upstream stages: ${staleUpstream.join('; ')}. Re-run these stages and regenerate the plan for full accuracy.`)
     }
 
+    // Deterministic text floor — strip incidental machine tokens (decision=refresh,
+    // records[], internal_seo_audit.*, n=233…) from every user-facing string
+    // BEFORE persist, so the saved plan is clean even if the async Hebrew cleanup
+    // below is skipped/times-out. English PROSE (audit, carousel) is left to the
+    // LLM cleanup; this only guarantees the unambiguously-machine debris is gone.
+    try {
+        const { sanitizeTasksInPlace } = await import('./monthlyPlanTextSanitizer')
+        const nSan = sanitizeTasksInPlace(finalTasks as unknown as Array<Record<string, unknown>>)
+        if (nSan > 0) console.log(`[monthlyPlanGenerator] ${instanceId}: deterministic text floor cleaned ${nSan}/${finalTasks.length} tasks`)
+    } catch (e) {
+        console.warn(`[monthlyPlanGenerator] ${instanceId}: text sanitizer failed (non-fatal):`, (e as Error).message)
+    }
+
     let plan: MonthlyMarketingPlan = {
         generatedAt: new Date().toISOString(),
         generatedBy: trigger,
