@@ -75,12 +75,15 @@ async function cleanResearchData(agent: MatehAgentRow | null, instanceId: string
 }
 
 async function main(): Promise<void> {
-    const instanceId = process.argv.slice(2).find(a => !a.startsWith('--'))
-    if (!instanceId) { console.error('usage: backfill-plan-readability <instanceId>'); process.exit(1) }
+    const args = process.argv.slice(2)
+    const instanceId = args.find(a => !a.startsWith('--'))
+    const agentFilter = args.find(a => a.startsWith('--agent='))?.split('=')[1] || null
+    if (!instanceId) { console.error('usage: backfill-plan-readability <instanceId> [--agent=<agentId>]'); process.exit(1) }
 
-    console.log(`\n=== plan-readability backfill — instance ${instanceId} ===\n`)
+    console.log(`\n=== plan-readability backfill — instance ${instanceId}${agentFilter ? ` agent ${agentFilter}` : ''} ===\n`)
 
-    const agents = await db.select().from(matehAgents).where(eq(matehAgents.vpsInstanceId, instanceId)) as unknown as MatehAgentRow[]
+    let agents = await db.select().from(matehAgents).where(eq(matehAgents.vpsInstanceId, instanceId)) as unknown as MatehAgentRow[]
+    if (agentFilter) agents = agents.filter(a => a.id === agentFilter)
 
     // ── research_data.monthlyPlan.tasks (modal display) ──
     if (agents.length > 0) {
