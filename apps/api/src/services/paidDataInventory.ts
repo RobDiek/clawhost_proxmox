@@ -463,9 +463,11 @@ export async function runPaidDataInventory(
     // Detect each adapter from one or more sources, in priority order.
     const adapters: AdapterStatus[] = []
 
-    // Google Ads — primary signal: instance.googleAdsConfig.customerId OR
-    // agent_integrations row of type 'google' with adwords scope.
-    const adsCfg: any = inst.googleAdsConfig || {}
+    // Google Ads — primary signal: the ACTIVE agent's googleAdsConfig.customerId
+    // (secondary agents keep their own config on mateh_agents; reading the
+    // instance row would surface the primary's account) OR an agent_integrations
+    // 'google' row with adwords scope.
+    const adsCfg: any = (agent as { googleAdsConfig?: unknown } | null)?.googleAdsConfig || inst.googleAdsConfig || {}
     const googleInt = integrations.get('google')
     const googleAdsConnected = !!adsCfg.customerId || !!(googleInt && Array.isArray(googleInt.config.scopes)
         && (googleInt.config.scopes as string[]).some((s: string) => /adwords|\/ads/i.test(s)))
@@ -496,15 +498,23 @@ export async function runPaidDataInventory(
         },
     })
 
-    // GTM — Tag Manager scope
-    const gtmConnected = !!(googleInt && Array.isArray(googleInt.config.scopes)
+    // GTM — connected if the user picked a container (rd.mazhirGtm.target — the
+    // authoritative signal, set when GTM is wired) OR the Google grant includes
+    // a Tag Manager scope. NOTE: agent_integrations.config.scopes is a snapshot
+    // that is NOT refreshed on incremental re-consent — when GTM is added after
+    // the first Google connect, its scope never lands there, so the scopes check
+    // alone wrongly reports "not connected". The picked-container signal fixes it.
+    const gtmTargetPicked = !!(rd?.mazhirGtm?.target?.containerId)
+    const gtmScopeGranted = !!(googleInt && Array.isArray(googleInt.config.scopes)
         && (googleInt.config.scopes as string[]).some((s: string) => /tagmanager/i.test(s)))
+    const gtmConnected = gtmTargetPicked || gtmScopeGranted
     adapters.push({
         id: 'gtm',
         label: 'Google Tag Manager',
         severity: 'critical',
         connected: gtmConnected,
-        source: googleInt ? 'agent_integrations' : null,
+        source: gtmTargetPicked ? 'instance_field' : (googleInt ? 'agent_integrations' : null),
+        metadata: gtmTargetPicked ? { containerPublicId: rd.mazhirGtm.target.publicId } : undefined,
     })
 
     // sGTM — server-side; clients own and bring their own (D2 directive).
