@@ -20089,7 +20089,14 @@ function renderQualityGateBanner(qg) {
     ? '<details style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:6px;padding:6px 10px;margin-bottom:8px;font-size:0.72rem;color:#065F46"><summary style="cursor:pointer">✓ ' + qg.autoCorrected.length + ' בעיות זוהו ותוקנו אוטומטית (audit trail)</summary><ul style="margin:4px 0 0;padding:0 18px 0 0">' + qg.autoCorrected.map(function(a) { return '<li>' + escapeHtml(a) + '</li>'; }).join('') + '</ul></details>'
     : '';
   if (qg.hardFailures && qg.hardFailures.length) {
-    return autoNote + '<div style="background:#FEE2E2;border:1px solid #FECACA;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:0.78rem;color:#991B1B"><strong>⚠ ' + qg.hardFailures.length + ' כשלי איכות (hard):</strong><ul style="margin:4px 0 0;padding:0 18px 0 0">' + qg.hardFailures.map(function(f) { return '<li>' + escapeHtml(f) + '</li>'; }).join('') + '</ul>' + (qg.revised ? '<div style="margin-top:4px;color:#374151;font-weight:500">תוקן אוטומטית ע"י self-critique ✓</div>' : '') + '</div>';
+    // The failures listed here are the ones that STILL REMAIN after the revision
+    // pass (pass=false). So a revision having run does NOT mean they were fixed —
+    // claiming "תוקן אוטומטית ✓" here is misleading. Be honest: a fix was
+    // attempted but the issue persists → recommend re-run / manual check.
+    var revisedNote = qg.revised
+      ? '<div style="margin-top:4px;color:#92400E;font-weight:500">⚠ בוצע ניסיון תיקון אוטומטי (self-critique), אך הכשל עדיין קיים — מומלץ להריץ מחדש או לבדוק ידנית.</div>'
+      : '<div style="margin-top:4px;color:#92400E;font-weight:500">לא בוצע תיקון אוטומטי — מומלץ להריץ מחדש או לבדוק ידנית.</div>';
+    return autoNote + '<div style="background:#FEE2E2;border:1px solid #FECACA;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:0.78rem;color:#991B1B"><strong>⚠ ' + qg.hardFailures.length + ' כשלי איכות (hard):</strong><ul style="margin:4px 0 0;padding:0 18px 0 0">' + qg.hardFailures.map(function(f) { return '<li>' + escapeHtml(f) + '</li>'; }).join('') + '</ul>' + revisedNote + '</div>';
   }
   if (qg.warnings && qg.warnings.length) {
     return autoNote + '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:0.78rem;color:#92400E"><strong>⚠ ' + qg.warnings.length + ' אזהרות איכות:</strong><ul style="margin:4px 0 0;padding:0 18px 0 0">' + qg.warnings.map(function(w) { return '<li>' + escapeHtml(w) + '</li>'; }).join('') + '</ul></div>';
