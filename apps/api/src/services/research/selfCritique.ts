@@ -209,6 +209,25 @@ export async function runSelfCritique(input: RunInput): Promise<QualityGateOutco
         }
     }
 
+    // source_spot_check is the most false-positive-prone check. Keep it BLOCKING
+    // only when a proposed correction actually LANDED (a real, locatable, now-fixed
+    // issue → the post-revision re-critique confirms it's gone). When nothing was
+    // located/fixable — no correction emitted, OR its `find` references text that
+    // isn't even in the output (the critic confused account-shared source data,
+    // e.g. a sibling brand's conversion action, for the agent's output) — demote
+    // it to a WARNING so a phantom mismatch can't block the gate or show a red
+    // banner on correct content.
+    if ((outcome.correctionsApplied || 0) === 0 && outcome.hardFailures.length > 0) {
+        const SRC = (CHECK_LABEL_HE.source_spot_check || 'source_spot_check') + ':'
+        const bogus = outcome.hardFailures.filter(f => f.startsWith(SRC))
+        if (bogus.length) {
+            outcome.hardFailures = outcome.hardFailures.filter(f => !f.startsWith(SRC))
+            for (const b of bogus) outcome.warnings.push(b + ' — לא אומת מול הפלט / לא ניתן לתיקון אוטומטי (ייתכן זיהוי שגוי).')
+            outcome.pass = outcome.hardFailures.length === 0
+            console.log(`[selfCritique/${stageId}] demoted ${bogus.length} source_spot_check failure(s) to warning — no actionable correction landed`)
+        }
+    }
+
     // Phase QA round-10 — if hard failures were found, run a SEPARATE
     // revision pass that returns RAW corrected content (not JSON-wrapped).
     // Runs on the already-corrected content so any remaining math/intent fixes
