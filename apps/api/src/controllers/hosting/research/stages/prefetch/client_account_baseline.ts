@@ -157,21 +157,34 @@ export interface ClientAccountBaseline {
 export async function prefetchClientAccountBaseline(
     instanceId: string,
     rd: ResearchDataV2,
+    agentId?: string | null,
 ): Promise<ClientAccountBaseline> {
     const startedAtMs = Date.now()
     const startedAt = new Date(startedAtMs).toISOString()
 
-    // 1. Pull credentials + scope from DB
+    // 1. Pull credentials + scope — per ACTIVE AGENT. Secondary agents (e.g. a
+    //    Moving Station mateh on a shared master VPS) keep their OWN Google Ads
+    //    config + OAuth tokens on mateh_agents; the instances.* columns are only
+    //    the PRIMARY agent's mirror. Reading the instance row for a secondary
+    //    agent used the WRONG account/token → "token refresh failed" + "GA4 missing
+    //    scope" even though the agent's own connection was healthy. Fall back to
+    //    the instance row when there's no agent (legacy single-tenant).
+    const { resolveAgentById, resolvePrimaryAgent } = await import('@/services/agentContext')
+    const agent = agentId
+        ? await resolveAgentById(instanceId, agentId)
+        : await resolvePrimaryAgent(instanceId)
     const [instance] = await db.select({
         googleAdsConfig: instances.googleAdsConfig,
         googleTokens: instances.googleTokens,
     }).from(instances).where(eq(instances.id, instanceId))
 
-    const gadsCfg = (instance?.googleAdsConfig as Record<string, unknown> | null) || {}
+    const agentAds = (agent as { googleAdsConfig?: unknown } | null)?.googleAdsConfig as Record<string, unknown> | null | undefined
+    const agentTokens = (agent as { googleTokens?: unknown } | null)?.googleTokens as Record<string, unknown> | null | undefined
+    const gadsCfg = agentAds || (instance?.googleAdsConfig as Record<string, unknown> | null) || {}
     const customerId = gadsCfg.customerId as string | undefined
     const loginCustomerId = (gadsCfg.loginCustomerId as string | undefined) || customerId
     const developerToken = gadsCfg.developerToken as string | undefined
-    const gt = (instance?.googleTokens as Record<string, unknown> | null) || {}
+    const gt = agentTokens || (instance?.googleTokens as Record<string, unknown> | null) || {}
     const refreshToken = (gt.refreshToken as string | undefined) || (gt.refresh_token as string | undefined)
     const googleTokens = refreshToken ? { refreshToken } : null
 

@@ -175,6 +175,7 @@ function resolveDomains(rd: ResearchDataV2): {
 export async function prefetchPaidCompetitorLandscape(
     instanceId: string,
     rd: ResearchDataV2,
+    agentId?: string | null,
 ): Promise<PaidCompetitorLandscapePrefetch> {
     const startedAt = Date.now()
 
@@ -215,8 +216,16 @@ export async function prefetchPaidCompetitorLandscape(
         googleAdsConfig: instances.googleAdsConfig,
         googleTokens: instances.googleTokens,
     }).from(instances).where(eq(instances.id, instanceId))
+    // Per-active-agent Ads creds (secondary agents keep their own on
+    // mateh_agents; the instance row is the primary's mirror). Fall back to
+    // the instance row for legacy single-tenant.
+    const { resolveAgentById, resolvePrimaryAgent } = await import('@/services/agentContext')
+    const agent = agentId
+        ? await resolveAgentById(instanceId, agentId)
+        : await resolvePrimaryAgent(instanceId)
     const firecrawlKey = instance?.firecrawlKey || process.env.FIRECRAWL_API_KEY || null
-    const gadsCfg = (instance?.googleAdsConfig as { customerId?: string; loginCustomerId?: string; developerToken?: string; scope?: { mode?: string; campaignIds?: string[]; operatingCustomerId?: string } } | null) || {}
+    const gadsCfg = ((agent as { googleAdsConfig?: unknown } | null)?.googleAdsConfig
+        || instance?.googleAdsConfig) as { customerId?: string; loginCustomerId?: string; developerToken?: string; scope?: { mode?: string; campaignIds?: string[]; operatingCustomerId?: string } } | null || {}
     const gadsCustomerId = gadsCfg.customerId
     const gadsLoginCustomerId = gadsCfg.loginCustomerId
     const gadsDeveloperToken = gadsCfg.developerToken
@@ -224,7 +233,8 @@ export async function prefetchPaidCompetitorLandscape(
     const gadsScope = gadsCfg.scope?.mode === 'account'
         ? { mode: 'account' as const, operatingCustomerId: gadsOperatingCustomerId }
         : { mode: 'campaigns' as const, operatingCustomerId: gadsOperatingCustomerId, campaignIds: (gadsCfg.scope?.campaignIds || []).filter(id => /^\d+$/.test(id)) }
-    const googleTokens = instance?.googleTokens as { refreshToken?: string } | null
+    const googleTokens = ((agent as { googleTokens?: unknown } | null)?.googleTokens
+        || instance?.googleTokens) as { refreshToken?: string } | null
 
     // Determine target country for Meta Ad Library policy gate.
     // paidProfile.geography or answers.geography may carry country codes.
