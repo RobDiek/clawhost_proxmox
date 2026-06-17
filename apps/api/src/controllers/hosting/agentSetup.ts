@@ -3235,6 +3235,29 @@ export const saveGoogleAdsConfig = async (c: Context) => {
         }
         const refreshToken = gt.refreshToken || gt.refresh_token
 
+        // Resolve the correct login-customer-id (manager / MCC). The form has no
+        // separate MCC field, so without this it defaults to customerId — which
+        // 403s (USER_PERMISSION_DENIED) whenever the account is a client UNDER an
+        // agency MCC (the typical case). We probe the user's accessible accounts +
+        // their managed clients and pick the right manager automatically. The
+        // user only needs to enter the Customer ID. Falls back to the provided
+        // value (or customerId) when resolution can't run.
+        let resolvedLoginCustomerId = (loginCustomerId || '').trim()
+        try {
+            const { resolveLoginCustomerId } = await import('@/services/googleAdsDeepEnrich')
+            const r = await resolveLoginCustomerId(refreshToken, developerToken, customerId)
+            if (r) {
+                resolvedLoginCustomerId = r.loginCustomerId
+                console.log(`[saveGoogleAdsConfig] login-customer-id auto-resolved: ${resolvedLoginCustomerId} (via=${r.via}, customer=${customerId})`)
+            } else {
+                if (!resolvedLoginCustomerId) resolvedLoginCustomerId = customerId
+                console.warn(`[saveGoogleAdsConfig] no access path found for customer ${customerId} — using ${resolvedLoginCustomerId} (campaign calls may 403; verify the Customer ID or MCC invite)`)
+            }
+        } catch (e) {
+            if (!resolvedLoginCustomerId) resolvedLoginCustomerId = customerId
+            console.warn('[saveGoogleAdsConfig] login-customer-id resolve failed (non-fatal):', (e as Error).message)
+        }
+
         // Update plugin config in openclaw.json on VPS
         const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID || ''
         const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
@@ -3245,7 +3268,7 @@ export const saveGoogleAdsConfig = async (c: Context) => {
             refreshToken,
             developerToken,
             customerId,
-            loginCustomerId: loginCustomerId || customerId,
+            loginCustomerId: resolvedLoginCustomerId,
         }
 
         const script = `
@@ -3271,7 +3294,7 @@ print('Google Ads config updated')
         const { config: prevCfg, agent } = await readGoogleAdsConfigForActive(c, instanceId)
         const dbConfig = {
             customerId,
-            loginCustomerId: loginCustomerId || customerId,
+            loginCustomerId: resolvedLoginCustomerId,
             developerToken,
             linkedAt: new Date().toISOString(),
             // Preserve previous scope selection if it exists (campaign picker)
@@ -3279,8 +3302,11 @@ print('Google Ads config updated')
         }
         await writeGoogleAdsConfig(agent, instanceId, { config: dbConfig, mode: 'self' })
 
-        console.log(`Google Ads config saved for ${instanceId} agent=${agent?.id || 'legacy'}: customerId=${customerId}`)
-        return ok(c, { customerId, connected: true, scopeConfigured: !!dbConfig.scope }, 'Google Ads מוגדר.')
+        console.log(`Google Ads config saved for ${instanceId} agent=${agent?.id || 'legacy'}: customerId=${customerId} loginCustomerId=${resolvedLoginCustomerId}`)
+        const mccNote = resolvedLoginCustomerId && resolvedLoginCustomerId !== customerId
+            ? ` (זוהה חשבון ניהול MCC: ${resolvedLoginCustomerId})`
+            : ''
+        return ok(c, { customerId, loginCustomerId: resolvedLoginCustomerId, connected: true, scopeConfigured: !!dbConfig.scope }, `Google Ads מוגדר${mccNote}.`)
     } catch (err) {
         console.error('saveGoogleAdsConfig error:', err)
         return fail(c, 'Save failed', 500)

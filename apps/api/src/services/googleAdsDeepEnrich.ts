@@ -175,6 +175,71 @@ export interface CampaignListResult {
     subAccounts?: SubAccountSummary[]
 }
 
+/**
+ * Resolve the correct login-customer-id (manager / MCC) for a target customer.
+ *
+ * Google Ads requires the request's login-customer-id to be EITHER the target
+ * account itself (direct access) OR a manager account that manages it. The
+ * connect form defaults loginCustomerId = customerId — which 403s
+ * (USER_PERMISSION_DENIED) for the very common case of a client account that
+ * sits UNDER an agency/manager MCC (the user has access via the MCC, not the
+ * client directly). This probes the user's actually-accessible accounts +
+ * their managed clients to find the right login-customer-id automatically.
+ *
+ * Returns { loginCustomerId, via } or null when the user has no access path to
+ * the customer at all (wrong id / not invited).
+ */
+export async function resolveLoginCustomerId(
+    refreshToken: string,
+    developerToken: string,
+    customerId: string,
+): Promise<{ loginCustomerId: string; via: 'direct' | 'manager' } | null> {
+    const cust = String(customerId || '').replace(/\D/g, '')
+    if (!cust || !refreshToken || !developerToken) return null
+    const at = await refreshAccessToken(refreshToken)
+    if (!at) return null
+
+    // 1. Accounts the user can access directly (MCCs + standalone accounts).
+    let accessible: string[] = []
+    try {
+        const res = await fetch(`${GOOGLE_ADS_API}/customers:listAccessibleCustomers`, {
+            headers: { Authorization: `Bearer ${at}`, 'developer-token': developerToken },
+            signal: AbortSignal.timeout(30_000),
+        })
+        if (!res.ok) return null
+        const j = await res.json() as { resourceNames?: string[] }
+        accessible = (j.resourceNames || []).map(r => String(r).split('/').pop() || '').filter(Boolean)
+    } catch { return null }
+
+    // 2. Direct access wins.
+    if (accessible.includes(cust)) return { loginCustomerId: cust, via: 'direct' }
+
+    // 3. Find the accessible manager (MCC) that manages this client. customer_client
+    //    on an MCC lists every account under it (any depth). login-customer-id MUST
+    //    be the MCC for this query.
+    for (const mcc of accessible) {
+        try {
+            const res = await fetch(`${GOOGLE_ADS_API}/customers/${mcc}/googleAds:searchStream`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${at}`,
+                    'developer-token': developerToken,
+                    'login-customer-id': mcc,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: 'SELECT customer_client.id FROM customer_client' }),
+                signal: AbortSignal.timeout(30_000),
+            })
+            if (!res.ok) continue
+            const txt = await res.text()
+            if (new RegExp(`"id"\\s*:\\s*"${cust}"`).test(txt)) {
+                return { loginCustomerId: mcc, via: 'manager' }
+            }
+        } catch { /* not a manager / no access — skip */ }
+    }
+    return null
+}
+
 export async function listCampaigns(
     customerId: string | undefined,         // could be MCC (top-level) — used as login-customer-id
     tokens: GoogleTokens | null | undefined,
