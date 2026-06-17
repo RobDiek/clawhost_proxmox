@@ -177,7 +177,13 @@ async function applyIsolation(
     // Find existing goal by our naming convention → reuse/update; else create.
     const existing = await adsSearch(at, devToken, cust, login,
         `SELECT custom_conversion_goal.resource_name, custom_conversion_goal.name, custom_conversion_goal.conversion_actions FROM custom_conversion_goal`)
+    // Match by NAME first; else by the exact conversion-action LIST. Google Ads
+    // rejects creating a second goal with an identical action list
+    // (DUPLICATE_CONVERSION_ACTION_LIST), so a prior goal carrying this set under
+    // a different name must be reused, not re-created.
+    const desiredSet = JSON.stringify([...isolatedActionResources].sort())
     const match = existing.find(r => r.customConversionGoal?.name === goalName)
+        || existing.find(r => JSON.stringify([...(r.customConversionGoal?.conversionActions || [])].map(String).sort()) === desiredSet)
 
     let goalResource: string
     if (match) {
