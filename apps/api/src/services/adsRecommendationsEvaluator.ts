@@ -239,6 +239,17 @@ export async function evaluateAdsRecommendations(agent: MatehAgentRow, opts: { c
                 metadata: { evaluatedAt: new Date().toISOString(), applyResourceNames: apply.map(a => a.resourceName), maturity: result.maturity } as any,
             }).returning()
             result.taskId = row?.id
+            // Systemic delivery: push the weekly Ads report to the agent's
+            // integrated Telegram (agent chat → instance chat fallback), the
+            // same pattern every other output creator uses (weekly creative
+            // report, bid/objective proposals, monthly plan). Without this the
+            // ads_recommendations_review task landed in the kabinet but was
+            // never pushed to Telegram — so no tenant ever got the weekly report.
+            if (row?.id) {
+                import('@/services/approvalQueueTelegram')
+                    .then(m => m.sendApprovalQueueMessage(row.id))
+                    .catch((err: Error) => console.warn('[adsRecEvaluator] telegram send failed:', err.message))
+            }
         } catch (e) { console.warn('[adsRecEvaluator] task create failed:', (e as Error).message) }
     }
     return result
