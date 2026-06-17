@@ -179,6 +179,12 @@ export async function runMonthlyPlanHebrewCleanup(input: MonthlyPlanCleanupInput
     if (!Array.isArray(tasks) || tasks.length === 0) {
         return { applied: false, skipped: true, reason: 'no tasks' }
     }
+    // Deterministic-only mode (set by backfill --no-llm): skip the slow LLM
+    // round-trips; callers' deterministic floor (jargon dict + sanitizer) runs
+    // regardless and is the actual readability guarantee.
+    if (process.env.PLAN_CLEANUP_NO_LLM === '1') {
+        return { applied: false, skipped: true, reason: 'no-llm mode' }
+    }
 
     let apiKey: string
     try { apiKey = await getApiKeyForInstance(instanceId) } catch (e) {

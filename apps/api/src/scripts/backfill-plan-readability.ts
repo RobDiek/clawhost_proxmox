@@ -40,7 +40,7 @@ function collectResidual(tasks: Array<Record<string, any>>): string[] {
 }
 
 // Clean research_data.monthlyPlan.tasks for one scope (agent row, or null=agentless).
-async function cleanResearchData(agent: MatehAgentRow | null, instanceId: string): Promise<string> {
+async function cleanResearchData(agent: MatehAgentRow | null, instanceId: string, noLlm: boolean): Promise<string> {
     const rdAny: any = agent ? (agent.researchData || {}) : null
     let tasks: any[] | undefined = rdAny?.monthlyPlan?.tasks
     if (!agent) {
@@ -53,14 +53,20 @@ async function cleanResearchData(agent: MatehAgentRow | null, instanceId: string
 
     const before = collectResidual(tasks)
 
-    // LLM cleanup (chunked) — translates English prose.
+    // LLM cleanup (chunked) — translates arbitrary English prose the dictionary
+    // misses. Optional: the deterministic layer below is the actual guarantee,
+    // so --no-llm gives an instant clean (skips the slow per-batch round-trips).
     const cleanedAll: any[] = []
     let cleanedBatches = 0, keptBatches = 0
-    for (let i = 0; i < tasks.length; i += CHUNK_SIZE) {
-        const batch = tasks.slice(i, i + CHUNK_SIZE)
-        const r = await runMonthlyPlanHebrewCleanup({ tasks: batch, instanceId })
-        if (r.applied && r.cleanedTasks && r.cleanedTasks.length === batch.length) { cleanedAll.push(...r.cleanedTasks); cleanedBatches++ }
-        else { cleanedAll.push(...batch); keptBatches++ }
+    if (noLlm) {
+        cleanedAll.push(...tasks)
+    } else {
+        for (let i = 0; i < tasks.length; i += CHUNK_SIZE) {
+            const batch = tasks.slice(i, i + CHUNK_SIZE)
+            const r = await runMonthlyPlanHebrewCleanup({ tasks: batch, instanceId })
+            if (r.applied && r.cleanedTasks && r.cleanedTasks.length === batch.length) { cleanedAll.push(...r.cleanedTasks); cleanedBatches++ }
+            else { cleanedAll.push(...batch); keptBatches++ }
+        }
     }
 
     // Deterministic floor — ALWAYS (independent of LLM success):
@@ -82,9 +88,11 @@ async function main(): Promise<void> {
     const args = process.argv.slice(2)
     const instanceId = args.find(a => !a.startsWith('--'))
     const agentFilter = args.find(a => a.startsWith('--agent='))?.split('=')[1] || null
-    if (!instanceId) { console.error('usage: backfill-plan-readability <instanceId> [--agent=<agentId>]'); process.exit(1) }
+    const noLlm = args.includes('--no-llm')
+    if (noLlm) process.env.PLAN_CLEANUP_NO_LLM = '1'   // also skips the agent_outputs internal LLM pass
+    if (!instanceId) { console.error('usage: backfill-plan-readability <instanceId> [--agent=<agentId>] [--no-llm]'); process.exit(1) }
 
-    console.log(`\n=== plan-readability backfill — instance ${instanceId}${agentFilter ? ` agent ${agentFilter}` : ''} ===\n`)
+    console.log(`\n=== plan-readability backfill — instance ${instanceId}${agentFilter ? ` agent ${agentFilter}` : ''}${noLlm ? ' (deterministic only)' : ''} ===\n`)
 
     let agents = await db.select().from(matehAgents).where(eq(matehAgents.vpsInstanceId, instanceId)) as unknown as MatehAgentRow[]
     if (agentFilter) agents = agents.filter(a => a.id === agentFilter)
@@ -93,13 +101,13 @@ async function main(): Promise<void> {
     if (agents.length > 0) {
         for (const agent of agents) {
             try {
-                const msg = await cleanResearchData(agent, instanceId)
+                const msg = await cleanResearchData(agent, instanceId, noLlm)
                 console.log(`[research_data] agent=${agent.id}${(agent as any).isPrimary ? ' (primary)' : ''}: ${msg}`)
             } catch (e) { console.error(`[research_data] agent=${agent.id}: FAILED — ${(e as Error).message}`) }
         }
     } else {
         try {
-            const msg = await cleanResearchData(null, instanceId)
+            const msg = await cleanResearchData(null, instanceId, noLlm)
             console.log(`[research_data] agentless: ${msg}`)
         } catch (e) { console.error(`[research_data] agentless: FAILED — ${(e as Error).message}`) }
     }
