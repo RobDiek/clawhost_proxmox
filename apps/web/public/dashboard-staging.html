@@ -564,6 +564,9 @@ input{font-family:inherit}
 .cal-legend-item { display:inline-flex; align-items:center; gap:4px; }
 .cal-empty-day { font-size:0.7rem; color:#D1D5DB; padding:6px 4px; font-style:italic; }
 .cal-shabbat-cell { background:repeating-linear-gradient(135deg, transparent 0 8px, rgba(203,213,225,.15) 8px 16px); }
+.cal-cell.cal-drop-target { background:#DBEAFE; outline:2px dashed #60A5FA; outline-offset:-3px; }
+.cal-event.is-monthly-task { cursor:grab; }
+.cal-event.is-monthly-task:active { cursor:grabbing; }
 @media(max-width:768px) { .cal-cell { min-height:110px; } .cal-event { font-size:0.65rem; padding:3px 5px; } }
 
 /* ===== Task Detail Popup ===== */
@@ -12271,7 +12274,8 @@ function renderContentCalendar() {
       (isShabbat ? ' weekend' : '');
     var cellCls = 'cal-cell' + (isShabbat ? ' cal-shabbat-cell' : '');
 
-    html += '<div class="' + cellCls + '">';
+    // Day cell is a drop target — drag a monthly-task pill here to reschedule it.
+    html += '<div class="' + cellCls + '" ondragover="calCellDragOver(event)" ondragleave="calCellDragLeave(event)" ondrop="calCellDrop(event,\'' + dayStr + '\')">';
     html += '<div class="' + dateCls + '">' + day.getDate() + '</div>';
     html += '<div class="cal-events">';
 
@@ -12296,9 +12300,12 @@ function renderContentCalendar() {
         var pColor = ev._priority === 'P0' ? '#DC2626' : ev._priority === 'P1' ? '#D97706' : '#0EA5E9';
         pillExtra = ' style="border-inline-start:3px solid ' + pColor + '"';
       }
+      // Monthly-task pills are draggable → drop on another day to reschedule.
+      var dragAttr = ev._isMonthlyTask ? ' draggable="true" ondragstart="calTaskDragStart(event,\'' + ev.id + '\')" ondragend="calTaskDragEnd(event)"' : '';
       html += '<div class="cal-event ch-' + ev.channel + ' st-' + effectiveStatus + (ev._isMonthlyTask ? ' is-monthly-task' : '') + '"' +
         ' title="' + titleAttr + '"' +
         ' onclick="' + clickHandler + '"' +
+        dragAttr +
         pillExtra + '>' +
           '<span class="cal-event-icon">' + icon + '</span>' +
           '<span class="cal-event-time">' + (ev.time || '') + '</span>' +
@@ -12323,6 +12330,102 @@ function renderContentCalendar() {
   '</div>';
 
   el.innerHTML = html;
+}
+
+// ── Calendar reschedule — drag-drop a monthly-task pill onto another day, OR
+// change its date from the date-picker icon inside the task card. Both call
+// rescheduleMonthlyTaskTo(), which optimistically updates the local plan and
+// POSTs to /monthly-plan/tasks/:id/reschedule. ───────────────────────────────
+var _calDragTaskId = null;
+function calTaskDragStart(ev, taskId) {
+  _calDragTaskId = taskId;
+  try { ev.dataTransfer.setData('text/plain', taskId); ev.dataTransfer.effectAllowed = 'move'; } catch (e) {}
+  if (ev.currentTarget && ev.currentTarget.style) ev.currentTarget.style.opacity = '0.45';
+}
+function calTaskDragEnd(ev) {
+  _calDragTaskId = null;
+  if (ev.currentTarget && ev.currentTarget.style) ev.currentTarget.style.opacity = '';
+}
+function calCellDragOver(ev) {
+  if (!_calDragTaskId) return;
+  ev.preventDefault();
+  try { ev.dataTransfer.dropEffect = 'move'; } catch (e) {}
+  var cell = ev.currentTarget;
+  if (cell && cell.classList) cell.classList.add('cal-drop-target');
+}
+function calCellDragLeave(ev) {
+  var cell = ev.currentTarget;
+  if (cell && cell.classList) cell.classList.remove('cal-drop-target');
+}
+function calCellDrop(ev, dayIso) {
+  ev.preventDefault();
+  var cell = ev.currentTarget;
+  if (cell && cell.classList) cell.classList.remove('cal-drop-target');
+  var taskId = _calDragTaskId || (ev.dataTransfer && ev.dataTransfer.getData('text/plain'));
+  _calDragTaskId = null;
+  if (!taskId || !dayIso) return;
+  rescheduleMonthlyTaskTo(taskId, dayIso);
+}
+
+async function rescheduleMonthlyTaskTo(taskId, isoDate) {
+  if (!instanceId || !taskId || !isoDate) return;
+  var plan = instanceData && instanceData.researchData && instanceData.researchData.monthlyPlan;
+  var tasks = (plan && Array.isArray(plan.tasks)) ? plan.tasks : [];
+  var t = tasks.find(function(x) { return x && x.id === taskId; });
+  if (!t) return;
+  var prev = t.scheduledFor;
+  var dayOnly = String(isoDate).slice(0, 10);
+  if (String(prev || '').slice(0, 10) === dayOnly) return;   // no change
+  // Optimistic update + immediate re-render of the calendar.
+  t.scheduledFor = dayOnly + 'T09:00:00.000Z';
+  renderContentCalendar();
+  showToast('מעדכן תאריך...', 'info');
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/monthly-plan/tasks/' + encodeURIComponent(taskId) + '/reschedule', {
+      method: 'POST',
+      body: JSON.stringify({ scheduledFor: dayOnly }),
+    });
+    if (!r.success) throw new Error(r.message || 'עדכון נכשל');
+    showToast('✓ התאריך עודכן', 'success');
+  } catch (err) {
+    t.scheduledFor = prev;   // rollback on failure
+    renderContentCalendar();
+    showToast('שגיאה בעדכון התאריך: ' + err.message, 'error');
+  }
+}
+
+// Date-picker modal opened from the calendar icon inside a task card.
+function openTaskDatePicker(taskId) {
+  var plan = instanceData && instanceData.researchData && instanceData.researchData.monthlyPlan;
+  var tasks = (plan && Array.isArray(plan.tasks)) ? plan.tasks : [];
+  var t = tasks.find(function(x) { return x && x.id === taskId; });
+  var cur = (t && t.scheduledFor) ? String(t.scheduledFor).slice(0, 10) : '';
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);display:flex;align-items:center;justify-content:center;z-index:100000;direction:rtl;font-family:Arial, "Arial Hebrew", Helvetica, sans-serif';
+  overlay.innerHTML =
+    '<div role="dialog" aria-modal="true" style="background:#fff;border-radius:14px;max-width:340px;width:92%;padding:20px 22px 16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:right">' +
+      '<div style="font-size:1.02rem;font-weight:700;color:#1F2937;margin-bottom:12px">📅 שינוי תאריך המשימה</div>' +
+      '<input id="tdp-date" type="date" value="' + cur + '" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid #E5E7EB;border-radius:8px;font-size:0.9rem;font-family:inherit;margin-bottom:16px">' +
+      '<div style="display:flex;gap:8px;justify-content:flex-start">' +
+        '<button id="tdp-ok" style="background:#2563EB;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:0.86rem;font-weight:600;cursor:pointer">עדכנו</button>' +
+        '<button id="tdp-cancel" style="background:#F3F4F6;color:#374151;border:none;padding:8px 18px;border-radius:8px;font-size:0.86rem;font-weight:500;cursor:pointer">ביטול</button>' +
+      '</div>' +
+    '</div>';
+  function close() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
+  document.body.appendChild(overlay);
+  overlay.querySelector('#tdp-cancel').addEventListener('click', close);
+  overlay.querySelector('#tdp-ok').addEventListener('click', function() {
+    var v = (overlay.querySelector('#tdp-date').value || '').trim();
+    close();
+    if (v) {
+      // Close the task modal too (its scheduled-date line is now stale) then reschedule.
+      var tm = document.getElementById('monthly-task-modal');
+      if (tm) tm.remove();
+      rescheduleMonthlyTaskTo(taskId, v);
+    }
+  });
+  setTimeout(function() { var d = overlay.querySelector('#tdp-date'); if (d) d.focus(); }, 0);
 }
 
 // ── Monthly-task humanizers ───────────────────────────────────────────
@@ -12480,7 +12583,10 @@ function openMonthlyTaskFromCalendar(taskId) {
       '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">' +
         '<span style="font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:6px;background:' + prioColor + '15;color:' + prioColor + ';border:1px solid ' + prioColor + '40;flex-shrink:0">' + task.priority + ' · ' + prioLabel + '</span>' +
         '<span style="font-size:0.72rem;color:#6B7280">' + effortLabel + '</span>' +
-        '<span style="font-size:0.72rem;color:#9CA3AF;margin-inline-start:auto">תזמון: ' + (task.scheduledFor || '?') + '</span>' +
+        '<span style="font-size:0.72rem;color:#9CA3AF;margin-inline-start:auto;display:inline-flex;align-items:center;gap:5px">תזמון: ' +
+          (task.scheduledFor ? new Date(task.scheduledFor).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '?') +
+          '<button onclick="openTaskDatePicker(\'' + task.id + '\')" title="שינוי תאריך" style="background:none;border:none;cursor:pointer;font-size:0.95rem;padding:0 2px;line-height:1">📅</button>' +
+        '</span>' +
         '<button onclick="document.getElementById(\'monthly-task-modal\').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#9CA3AF;margin-inline-start:6px">×</button>' +
       '</div>' +
       '<h3 style="margin:0 0 6px;font-size:1.05rem;color:#111827">' + escapeHtml(task.title) + '</h3>' +
@@ -13330,16 +13436,18 @@ async function rerunResearchStage(stageId) {
       return;
     }
   }
-  var ok = await hebrewConfirm({
-    title: 'רענון שלב מחקר',
-    body: 'לרענן את השלב "' + (STAGE_TITLES_HE[stageId] || stageId) + '"? שלבים תלויים יסומנו לרענון.',
-    confirmLabel: 'רענן',
-    cancelLabel: 'ביטול',
+  var res = await promptForRegenContext({
+    title: 'צרו מחדש: ' + (STAGE_TITLES_HE[stageId] || stageId),
+    body: 'שלבים תלויים יסומנו לרענון.',
+    confirmLabel: 'צרו מחדש',
   });
-  if (!ok) return;
+  if (!res.confirmed) return;
   showToast('מריץ ' + (STAGE_TITLES_HE[stageId] || stageId) + ' ברקע...', 'info');
   try {
-    var r = await apiFetch('/hosting/instances/' + instanceId + '/research/stage/' + encodeURIComponent(stageId), { method: 'POST' });
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/research/stage/' + encodeURIComponent(stageId), {
+      method: 'POST',
+      body: JSON.stringify(res.context ? { feedback: res.context } : {}),
+    });
     if (!r.success) throw new Error(r.message || 'הרצה נכשלה');
     showToast('השלב רץ — מרענן את לוח הבקרה', 'success');
     setTimeout(function() { refreshInstanceData(); renderHome(); }, 1500);
@@ -19685,98 +19793,69 @@ function attachAutoRefreshPoll(iid, sid, preRunAt, tickHandle) {
  */
 async function rerunStageV2WithImpactCheck(sid) {
   var iid = localStorage.getItem('cf_instance_id');
-  if (!iid) { runStageV2(sid); return; }
-
-  // First-run optimization: no result yet means no downstream impact possible.
-  var current = pipelineV2State.results && pipelineV2State.results[sid];
-  if (!current) { runStageV2(sid); return; }
-
-  // Fetch impact list from server
-  var impact;
-  try {
-    var r = await apiFetch('/hosting/instances/' + iid + '/research/stage/' + sid + '/impact');
-    if (!r.success) throw new Error(r.message || 'impact fetch failed');
-    impact = r.data;
-  } catch (e) {
-    // If impact endpoint is unavailable (older backend) fall back to direct run.
-    runStageV2(sid);
-    return;
-  }
-
-  if (!impact.hasAnyImpact) {
-    // Re-running this stage doesn't affect anything that currently has data.
-    runStageV2(sid);
-    return;
-  }
-
   var STAGE_TITLES = (typeof STAGE_CATALOG_V2 !== 'undefined') ? STAGE_CATALOG_V2 : {};
+  var stageTitle = (STAGE_TITLES[sid] && STAGE_TITLES[sid].titleHe) || sid;
+
+  // Downstream impact only exists once the stage already has a result.
+  var current = pipelineV2State.results && pipelineV2State.results[sid];
+  var impact = null;
+  if (iid && current) {
+    try {
+      var r = await apiFetch('/hosting/instances/' + iid + '/research/stage/' + sid + '/impact');
+      if (r.success) impact = r.data;
+    } catch (e) { impact = null; }
+  }
+  var hasImpact = !!(impact && impact.hasAnyImpact);
+
+  // Build the affected-stages/wrappers warning (shown inside the regen modal).
   var WRAPPER_HE = {
-    mazhirAudit: 'אודיט Mazhir',
-    mediaPlan: 'תוכנית מדיה',
-    contentPlan: 'תוכנית תוכן',
-    chosenScenario: 'תרחיש שנבחר',
-    marketingIntents: 'מטרות שיווק',
-    brandSemanticFields: 'שדות סמנטיים של המותג',
+    mazhirAudit: 'אודיט Mazhir', mediaPlan: 'תוכנית מדיה', contentPlan: 'תוכנית תוכן',
+    chosenScenario: 'תרחיש שנבחר', marketingIntents: 'מטרות שיווק', brandSemanticFields: 'שדות סמנטיים של המותג',
   };
-
-  var stagesList = (impact.currentlyAffectedStages || []).map(function(s) {
-    var t = (STAGE_TITLES[s] && STAGE_TITLES[s].titleHe) || s;
-    return '• ' + t;
-  }).join('\n');
-  var wrappersList = (impact.currentlyAffectedWrappers || []).map(function(w) {
-    return '• ' + (WRAPPER_HE[w] || w);
-  }).join('\n');
-
-  var title = 'הרצה מחדש של "' + ((STAGE_TITLES[sid] && STAGE_TITLES[sid].titleHe) || sid) + '" תשפיע על הבאים:';
   var body = '';
-  if (stagesList) body += 'שלבים תלויים שיתבטלו:\n' + stagesList + '\n\n';
-  if (wrappersList) body += 'תוצרים נלווים שיימחקו:\n' + wrappersList + '\n\n';
-  body += 'לאחר ההרצה תצטרכו להריץ מחדש את כל השלבים הללו כדי להחזיר את העקביות.';
-
-  // Phase 2026.01 — Hebrew RTL modal instead of native browser confirm
-  // (browser confirm shows OS chrome in locale language e.g. "Подтвердите
-  // действие на clawflow.flowmatic.co.il" — breaks Hebrew UX).
-  var ok = await hebrewConfirm({
-    title: title,
-    body: body,
-    confirmLabel: 'הריצו מחדש',
-    cancelLabel: 'ביטול',
-    destructive: true,
-  });
-  if (!ok) return;
-
-  // Wipe downstream server-side BEFORE re-running so the next plan-poll
-  // reflects the cleared state and the UI doesn't show stale data flickering.
-  try {
-    var w = await apiFetch('/hosting/instances/' + iid + '/research/stage/' + sid + '/wipe-downstream', {
-      method: 'POST',
-      body: '{}',
-    });
-    if (!w.success) {
-      showToast('שגיאת ניקוי תלויות: ' + (w.message || ''), 'error');
-      return;
-    }
-    // Clear local plan state for the wiped stages so UI updates immediately
-    var wipedStages = (w.data && w.data.wipedStages) || [];
-    var wipedWrappers = (w.data && w.data.wipedWrappers) || [];
-    wipedStages.forEach(function(s) {
-      if (pipelineV2State.results) delete pipelineV2State.results[s];
-      if (pipelineV2State.plan && pipelineV2State.plan.status) {
-        pipelineV2State.plan.status[s] = { state: 'pending' };
-      }
-    });
-    renderPipelineV2();
-    showToast('נוקו ' + wipedStages.length + ' שלבים + ' + wipedWrappers.length + ' תוצרים. מתחיל הרצה...', 'info');
-  } catch (e) {
-    showToast('שגיאה: ' + (e.message || ''), 'error');
-    return;
+  if (hasImpact) {
+    var stagesList = (impact.currentlyAffectedStages || []).map(function(s) { return '• ' + ((STAGE_TITLES[s] && STAGE_TITLES[s].titleHe) || s); }).join('\n');
+    var wrappersList = (impact.currentlyAffectedWrappers || []).map(function(w) { return '• ' + (WRAPPER_HE[w] || w); }).join('\n');
+    if (stagesList) body += '⚠ שלבים תלויים שיתבטלו:\n' + stagesList + '\n\n';
+    if (wrappersList) body += 'תוצרים נלווים שיימחקו:\n' + wrappersList + '\n\n';
+    body += 'תצטרכו להריץ אותם מחדש כדי להחזיר עקביות.';
   }
 
-  // Now run the actual stage
-  runStageV2(sid);
+  // Single modal: optional regenerate-context + confirm (destructive styling
+  // when there's downstream impact). The context is threaded to the stage
+  // prompt as feedback so the re-run honours the user's guidance.
+  var res = await promptForRegenContext({
+    title: 'צרו מחדש: ' + stageTitle,
+    body: body,
+    confirmLabel: 'צרו מחדש',
+    destructive: hasImpact,
+  });
+  if (!res.confirmed) return;
+  var feedback = res.context;
+
+  // Wipe downstream server-side BEFORE re-running (only when there's impact).
+  if (hasImpact && iid) {
+    try {
+      var w = await apiFetch('/hosting/instances/' + iid + '/research/stage/' + sid + '/wipe-downstream', {
+        method: 'POST', body: '{}',
+      });
+      if (!w.success) { showToast('שגיאת ניקוי תלויות: ' + (w.message || ''), 'error'); return; }
+      var wipedStages = (w.data && w.data.wipedStages) || [];
+      var wipedWrappers = (w.data && w.data.wipedWrappers) || [];
+      wipedStages.forEach(function(s) {
+        if (pipelineV2State.results) delete pipelineV2State.results[s];
+        if (pipelineV2State.plan && pipelineV2State.plan.status) { pipelineV2State.plan.status[s] = { state: 'pending' }; }
+      });
+      renderPipelineV2();
+      showToast('נוקו ' + wipedStages.length + ' שלבים + ' + wipedWrappers.length + ' תוצרים. מתחיל הרצה...', 'info');
+    } catch (e) { showToast('שגיאה: ' + (e.message || ''), 'error'); return; }
+  }
+
+  // Run the stage with the user's context.
+  runStageV2(sid, feedback);
 }
 
-async function runStageV2(sid) {
+async function runStageV2(sid, feedback) {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) return;
 
@@ -19850,7 +19929,9 @@ async function runStageV2(sid) {
     var res = await fetch(API + '/hosting/instances/' + iid + '/research/stage/' + sid, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
-      body: '{}'
+      // feedback (optional) = the user's regenerate-context; backend injects it
+      // into the stage prompt as "הערות המשתמש".
+      body: JSON.stringify(feedback ? { feedback: String(feedback).slice(0, 1500) } : {})
     });
     var d = await res.json();
     // Poll may have already adopted the result while POST was in flight.
@@ -35075,6 +35156,47 @@ function hebrewConfirm(opts) {
     overlay.querySelector('#hc-ok').addEventListener('click', function() { close(true); });
     overlay.querySelector('#hc-cancel').addEventListener('click', function() { close(false); });
     setTimeout(function() { var b = overlay.querySelector('#hc-ok'); if (b) b.focus(); }, 0);
+  });
+}
+
+// Regenerate-with-context modal — confirm + an optional free-text instruction
+// the user can add so the re-run takes their guidance into account (threaded to
+// the backend as `feedback`, injected into the stage/plan prompt). Same mechanic
+// as the media "צרו מחדש" input. Resolves { confirmed:bool, context:string }.
+function promptForRegenContext(opts) {
+  return new Promise(function(resolve) {
+    var title = (opts && opts.title) || 'צרו מחדש';
+    var body = (opts && opts.body) || '';
+    var ok = (opts && opts.confirmLabel) || 'צרו מחדש';
+    var cancel = (opts && opts.cancelLabel) || 'ביטול';
+    var placeholder = (opts && opts.placeholder) || 'הוסיפו הקשר או הנחיה (אופציונלי): מה לשנות, לחדד או להדגיש בהרצה הזו?';
+    var destructive = !!(opts && opts.destructive);
+    var okBg = destructive ? '#DC2626' : '#2563EB';
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);display:flex;align-items:center;justify-content:center;z-index:99999;direction:rtl;font-family:Arial, "Arial Hebrew", Helvetica, sans-serif';
+    overlay.innerHTML =
+      '<div role="dialog" aria-modal="true" style="background:#fff;border-radius:14px;max-width:520px;width:92%;padding:22px 24px 18px;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:right">' +
+        '<div style="font-size:1.05rem;font-weight:700;color:#1F2937;margin-bottom:10px">' + title + '</div>' +
+        (body ? '<div style="font-size:0.86rem;color:#4B5563;line-height:1.55;margin-bottom:12px;white-space:pre-line">' + body + '</div>' : '') +
+        '<textarea id="rgc-input" rows="3" placeholder="' + placeholder.replace(/"/g, '&quot;') + '" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid #E5E7EB;border-radius:8px;font-size:0.85rem;font-family:inherit;resize:vertical;direction:rtl;text-align:right;margin-bottom:6px"></textarea>' +
+        '<div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:14px">💡 אפשר להשאיר ריק — אז ההרצה תתבצע ללא הנחיה נוספת.</div>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-start">' +
+          '<button id="rgc-ok" style="background:' + okBg + ';color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:0.86rem;font-weight:600;cursor:pointer">' + ok + '</button>' +
+          '<button id="rgc-cancel" style="background:#F3F4F6;color:#374151;border:none;padding:8px 18px;border-radius:8px;font-size:0.86rem;font-weight:500;cursor:pointer">' + cancel + '</button>' +
+        '</div>' +
+      '</div>';
+    function close(confirmed) {
+      var val = '';
+      var ta = overlay.querySelector('#rgc-input');
+      if (ta) val = (ta.value || '').trim().slice(0, 1500);
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      resolve({ confirmed: confirmed, context: confirmed ? val : '' });
+    }
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) close(false); });
+    document.body.appendChild(overlay);
+    overlay.querySelector('#rgc-ok').addEventListener('click', function() { close(true); });
+    overlay.querySelector('#rgc-cancel').addEventListener('click', function() { close(false); });
+    setTimeout(function() { var t = overlay.querySelector('#rgc-input'); if (t) t.focus(); }, 0);
   });
 }
 

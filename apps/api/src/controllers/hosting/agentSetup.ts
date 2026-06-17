@@ -8717,6 +8717,59 @@ export const skipMonthlyTask = async (c: Context) => {
     }
 }
 
+// ─── POST /hosting/instances/:id/monthly-plan/tasks/:taskId/reschedule ─────
+// Move a single monthly task to a different day (calendar drag-drop + the
+// date-picker icon inside the task card). Sets task.scheduledFor on the
+// canonical research_data.monthlyPlan and mirrors the date onto the per-task
+// agent_outputs row so the approval queue / content calendar stay in sync.
+export const rescheduleMonthlyTask = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const taskId = c.req.param('taskId')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        let body: any = {}
+        try { body = await c.req.json() } catch { /* allow empty body */ }
+        // Accept YYYY-MM-DD or full ISO; normalize to an ISO date string.
+        const raw = typeof body.scheduledFor === 'string' ? body.scheduledFor.trim() : ''
+        const d = raw ? new Date(raw.length === 10 ? raw + 'T09:00:00.000Z' : raw) : null
+        if (!d || isNaN(d.getTime())) return fail(c, 'scheduledFor חייב להיות תאריך תקין (YYYY-MM-DD)', 400)
+        const scheduledForIso = d.toISOString()
+
+        const agentId = (c.req.query('agentId') || '').trim() || undefined
+        const { resolvePrimaryAgent, resolveAgentById, mutateResearchData } = await import('@/services/agentContext')
+        const agent = agentId
+            ? (await resolveAgentById(instanceId, agentId)) || (await resolvePrimaryAgent(instanceId))
+            : await resolvePrimaryAgent(instanceId)
+
+        let task: any = null
+        let outputId: string | undefined
+        await mutateResearchData(agent, instanceId, (rd: any) => {
+            const plan = rd.monthlyPlan
+            if (!plan?.tasks) return rd
+            const t = plan.tasks.find((x: any) => x.id === taskId)
+            if (!t) return rd
+            t.scheduledFor = scheduledForIso
+            task = t
+            outputId = t.executionOutputId
+            return rd
+        })
+        if (!task) return fail(c, `Task ${taskId} not found in monthlyPlan`, 404)
+
+        // Mirror onto the per-task agent_outputs row (content calendar reads it).
+        if (outputId) {
+            try {
+                await db.update(agentOutputs).set({ scheduledFor: d }).where(eq(agentOutputs.id, outputId))
+            } catch (err) {
+                console.warn('[rescheduleMonthlyTask] failed to update output row:', (err as Error).message)
+            }
+        }
+        return ok(c, { task, scheduledFor: scheduledForIso }, 'Task rescheduled')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/mazhir/media-plan — generate plan ────────
 export const generateMazhirMediaPlan = async (c: Context) => {
     try {

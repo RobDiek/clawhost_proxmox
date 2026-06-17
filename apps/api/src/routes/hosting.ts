@@ -79,6 +79,7 @@ import {
     rejectMonthlyTask,
     skipMonthlyTask,
     completeMonthlyTaskManually,
+    rescheduleMonthlyTask,
     generateMazhirMediaPlan,
     getMazhirMediaPlan,
     approveMazhirMediaPlan,
@@ -542,6 +543,8 @@ app.post('/instances/:id/monthly-plan/tasks/:taskId/reject', rejectMonthlyTask)
 app.post('/instances/:id/monthly-plan/tasks/:taskId/skip', skipMonthlyTask)
 // Phase 4.3-N v8: manual-done flow (task done outside the system; unblocks dependsOn chain).
 app.post('/instances/:id/monthly-plan/tasks/:taskId/complete', completeMonthlyTaskManually)
+// Calendar reschedule — drag-drop a task to another day / change date from the task card.
+app.post('/instances/:id/monthly-plan/tasks/:taskId/reschedule', rescheduleMonthlyTask)
 app.post('/instances/:id/mazhir/media-plan', generateMazhirMediaPlan)
 app.get('/instances/:id/mazhir/media-plan', getMazhirMediaPlan)
 app.post('/instances/:id/mazhir/media-plan/approve', approveMazhirMediaPlan)
