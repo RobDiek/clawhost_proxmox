@@ -26,6 +26,7 @@ const KEEP_VERBATIM = new Set([
     'pmax', 'rsa', 'ltv', 'cac', 'aov', 'sov', 'sql', 'mql', 'qa', 'vps', 'api', 'url',
     'ai', 'llm', 'b2b', 'b2c', 'cms', 'crm', 'cdp', 'cwv', 'inp', 'lcp', 'cls', 'h1', 'h2',
     'aio', 'sge', 'rtl', 'ltr', 'json', 'jsonld', 'html', 'css', 'cta', 'faq', 'nap', 'mcc',
+    'tofu', 'mofu', 'bofu', 'usp', 'romi', 'ocid', 'gmb', 'pmax', 'dsa', 'gdn',
     // product / brand names
     'bigquery', 'whatsapp', 'github', 'wordpress', 'woocommerce', 'google', 'meta',
     'facebook', 'instagram', 'tiktok', 'youtube', 'linkedin', 'telegram', 'shopify',
@@ -138,6 +139,15 @@ const JARGON_HE: Record<string, string> = {
     monthly: 'חודשי', daily: 'יומי', records: 'רשומות', record: 'רשומה', queries: 'שאילתות',
     query: 'שאילתה', tab: 'לשונית', column: 'עמודה', row: 'שורה', filter: 'מסנן', sort: 'מיון',
     account: 'חשבון', client: 'לקוח', adhoc: 'אד-הוק', verdict: 'הכרעה',
+    // round-2 residuals (free-text words surfaced by the residual detector)
+    strategy: 'אסטרטגיה', clicks: 'קליקים', click: 'קליק', conv: 'המרות', email: 'אימייל',
+    send: 'שליחה', frequency: 'תדירות', preview: 'תצוגה מקדימה', positives: 'חיוביות', exempt: 'פטור',
+    defense: 'הגנה', enhanced: 'משופר', lists: 'רשימות', list: 'רשימה', login: 'התחברות',
+    download: 'הורדה', shared: 'משותף', library: 'ספרייה', research: 'מחקר', language: 'שפה',
+    share: 'שיתוף', locations: 'מיקומים', location: 'מיקום', enter: 'הזנה', another: 'נוסף',
+    level: 'רמה', jobs: 'עבודות', secondhand: 'יד שנייה', free: 'חינם', impressions: 'חשיפות',
+    types: 'סוגים', imported: 'מיובא', objective: 'יעד', transition: 'מעבר', presence: 'נוכחות',
+    alternative: 'חלופה', multi: 'רב', defensive: 'הגנתי', branded: 'ממותג', generic: 'גנרי',
 }
 
 // Internal source-ref prefixes (data pointers the LLM cites) → human Hebrew label.
