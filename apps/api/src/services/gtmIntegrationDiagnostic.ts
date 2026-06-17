@@ -432,15 +432,32 @@ export async function runGtmDiagnostic(instanceId: string, agentId: string | nul
         installStatus = 'warn'
         installMessage = 'אתר לא הוגדר ב-profile — לא ניתן לבדוק התקנה'
     }
-    gates.push({
-        id: 'gtm_install_detected',
-        label: 'Snippet מותקן על האתר',
-        status: installStatus,
-        message: installMessage,
-        detail: installDetail,
-        blocking: false,    // not blocking — tags can be created in container regardless;
-                            // only firing requires install. We warn but proceed.
-        action: installStatus === 'pass' || installStatus === 'pending' ? undefined : {
+    // If the snippet isn't on the site yet, check whether we can auto-install it:
+    //   - WordPress + our companion plugin (loadWpConfig returns writable creds)
+    //   - a connected GitHub repo (loadGithubConfig) → install via a PR
+    // When a channel is available the card offers a one-click install instead of
+    // manual paste. Detection reads stored config only (no network) → cheap.
+    let installChannel: 'wordpress' | 'github' | null = null
+    if (installStatus === 'warn') {
+        try {
+            const { loadWpConfig } = await import('./seoMetaBatch')
+            if (await loadWpConfig(instanceId, agent?.id || null)) {
+                installChannel = 'wordpress'
+            } else {
+                const { loadGithubConfig } = await import('./seoGithubBatch')
+                if (await loadGithubConfig(instanceId, agent?.id || null)) installChannel = 'github'
+            }
+        } catch { /* detection best-effort — fall back to manual paste */ }
+    }
+    const installAction: DiagnosticAction | undefined =
+        (installStatus === 'pass' || installStatus === 'pending') ? undefined
+        : installChannel ? {
+            type: 'auto_fix',
+            endpoint: `/hosting/instances/${instanceId}/mazhir/gtm/install-snippet`,
+            label: installChannel === 'wordpress'
+                ? '🚀 התקינו אוטומטית באתר'
+                : '🚀 התקינו אוטומטית (PR ב-GitHub)',
+        } : {
             type: 'manual',
             label: 'הציגו snippet להתקנה',
             steps: [
@@ -449,7 +466,22 @@ export async function runGtmDiagnostic(instanceId: string, agentId: string | nul
                 'הדביקו את ה-Body מיד אחרי <body> בכל עמוד',
                 'שמרו → publish → חזרו לכאן ולחצו "רענן diagnostic"',
             ],
-        },
+        }
+    gates.push({
+        id: 'gtm_install_detected',
+        label: 'Snippet מותקן על האתר',
+        status: installStatus,
+        message: (installChannel && installStatus === 'warn')
+            ? installMessage + ' — אפשר להתקין בלחיצה'
+            : installMessage,
+        detail: installChannel === 'github'
+            ? (installDetail ? installDetail + ' · נתקין דרך PR ב-GitHub.' : 'נתקין דרך PR ב-GitHub.')
+            : installChannel === 'wordpress'
+                ? (installDetail ? installDetail + ' · נתקין אוטומטית דרך הפלאגין שלנו ב-WordPress.' : 'נתקין אוטומטית דרך הפלאגין שלנו ב-WordPress.')
+                : installDetail,
+        blocking: false,    // not blocking — tags can be created in container regardless;
+                            // only firing requires install. We warn but proceed.
+        action: installAction,
     })
 
     // ── Gate 7: Publish permission on the picked container ──

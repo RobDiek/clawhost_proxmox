@@ -9612,6 +9612,71 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
 }
 
+// ─── POST /hosting/instances/:id/mazhir/gtm/install-snippet ────────────────
+// One-click auto-install of the GTM container snippet on the tenant's site,
+// so the user never has to paste code. Two channels (WordPress preferred,
+// GitHub fallback):
+//   - WordPress + our companion plugin → push the snippet via the companion
+//     REST endpoint (installs in <head>/<body> site-wide).
+//   - GitHub-connected site → open a PR that injects the snippet into the
+//     site's root layout / index template (two-pass LLM finds the right file).
+// Returns the channel + (for GitHub) the PR URL. The GTM diagnostic card only
+// surfaces this as an auto_fix action when one of the two channels is available.
+export const installGtmSnippetAuto = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd, agent } = await readResearchDataForActive(c, instanceId)
+        const gtmId: string | undefined = (rd as any)?.mazhirGtm?.target?.publicId
+        if (!gtmId) return fail(c, 'לא נבחר container — בחרו container לפני התקנת snippet.', 400)
+
+        // Standard GTM container snippet (head loader + body noscript fallback).
+        const head = `<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtmId}');</script>
+<!-- End Google Tag Manager -->`
+        const body = `<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${gtmId}" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->`
+
+        // ── Channel 1: WordPress companion ──
+        const { loadWpConfig } = await import('@/services/seoMetaBatch')
+        const wpCfg = await loadWpConfig(instanceId, agent?.id || null)
+        if (wpCfg) {
+            const { installGtmSnippet } = await import('@/services/wpCompanionInstaller')
+            const r = await installGtmSnippet(wpCfg, gtmId, head, body)
+            if (r.ok) return ok(c, { channel: 'wordpress', publicId: gtmId }, `✓ ה-snippet הותקן אוטומטית באתר ה-WordPress (${gtmId}).`)
+            return fail(c, `התקנה דרך WordPress נכשלה: ${r.error || 'לא ידוע'}. נסו שוב או התקינו ידנית.`, 502)
+        }
+
+        // ── Channel 2: GitHub PR ──
+        const { loadGithubConfig } = await import('@/services/seoGithubBatch')
+        const ghCfg = await loadGithubConfig(instanceId, agent?.id || null)
+        if (ghCfg) {
+            const { runGithubCodeChange } = await import('@/services/githubCodeChange')
+            const task = {
+                id: 'gtm_snippet_install',
+                title: `Install Google Tag Manager (${gtmId}) site-wide`,
+                summary: `Add the Google Tag Manager container snippet so GTM (${gtmId}) loads on every page. Insert the HEAD <script> as the first element inside the document <head> (root layout / _document / _app / index template), and the BODY <noscript> immediately after the opening <body>. If a different GTM-XXXX id is already present, replace it with ${gtmId}; do not create a duplicate.`,
+                actionPlan: [
+                    { step: `HEAD snippet — place first inside <head>:\n${head}` },
+                    { step: `BODY snippet — place immediately after <body>:\n${body}` },
+                ],
+            }
+            const res = await runGithubCodeChange(instanceId, task, { agentId: agent?.id || null })
+            if (res.ok && res.prUrl) return ok(c, { channel: 'github', prUrl: res.prUrl }, `✓ נפתח PR להתקנת ה-snippet ב-GitHub — אשרו ומזגו אותו כדי להפעיל את GTM.`)
+            if (res.noConfidentEdit) return fail(c, 'לא הצלחנו לזהות אוטומטית איפה להזריק את ה-snippet ב-repo. התקינו ידנית.', 422)
+            return fail(c, `התקנה דרך GitHub נכשלה: ${res.error || 'לא ידוע'}.`, 502)
+        }
+
+        // ── Neither channel ──
+        return fail(c, 'אין ערוץ להתקנה אוטומטית. חברו את אתר ה-WordPress (עם הפלאגין שלנו) או את ה-GitHub, או התקינו את ה-snippet ידנית.', 409)
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/content-plan/items/:itemId/archive ───────
 // Soft-archive a plan item: sets status to 'archived' + stamps archivedAt.
 // The calendar hides archived items by default; the user can restore by
