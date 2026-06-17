@@ -20392,10 +20392,17 @@ function _humanizeKey(k) {
     event: 'אירוע', budget_adjustment_pct: 'שינוי תקציב (%)', month1_launch_checklist: 'צ׳קליסט חודש 1',
     recommended_for_this_business: 'מומלץ לעסק זה', il_risks: 'סיכונים (IL)', rationale: 'נימוק',
     total: 'סה״כ', low: 'נמוך', high: 'גבוה', median: 'חציון', score: 'ציון',
+    // paid_data_inventory actions + generic gap/setup fields
+    owner: 'אחראי', severity: 'חומרה', rationale: 'נימוק', estimatedMinutes: 'זמן משוער (דק׳)',
+    estimated_minutes: 'זמן משוער (דק׳)', unlocksCapabilities: 'יכולות שנפתחות',
+    unlocks_capabilities: 'יכולות שנפתחות', capability: 'יכולת', capabilities: 'יכולות',
+    gapType: 'סוג פער', gap_type: 'סוג פער', tier: 'רמה', adapter: 'מקור נתונים', adapters: 'מקורות נתונים',
+    setup_cost_monthly_ils: 'עלות חודשית (₪)', connected: 'מחובר', blocked: 'חסום', actions: 'פעולות',
+    description: 'תיאור', note: 'הערה', notes: 'הערות', steps: 'שלבים', step: 'שלב', category: 'קטגוריה',
   };
   if (map[k]) return map[k];
-  // Normalize: drop leading _, trailing _he/_en, then retry the map.
-  var base = String(k).replace(/^_+/, '').replace(/_(he|en)$/i, '');
+  // Normalize: drop leading _, trailing _he/_en + camelCase He/En, then retry.
+  var base = String(k).replace(/^_+/, '').replace(/_(he|en)$/i, '').replace(/(He|En)$/, '');
   if (map[base]) return map[base];
   // Generic suffix cleanup: units, score-range.
   return base
@@ -20419,9 +20426,18 @@ function _humanizeEnum(s) {
     high: 'גבוה', medium: 'בינוני', low: 'נמוך', none: 'ללא', unknown: 'לא ידוע', tbd: 'לקביעה',
     take_now: 'לבצע עכשיו', leadgen: 'גיוס לידים', sales: 'מכירות', navigational: 'ניווטי',
     working_hypothesis: 'השערת עבודה', exact: 'מדויק', phrase: 'ביטוי', broad: 'רחב',
+    // severity / owner / readiness enums (paid_data_inventory + gaps)
+    critical: 'קריטי', recommended: 'מומלץ', advanced: 'מתקדם', optional: 'אופציונלי',
+    user: 'המשתמש', platform_auto: 'הפלטפורמה (אוטומטי)', platform: 'הפלטפורמה', system: 'המערכת',
+    connected: 'מחובר', missing: 'חסר', blocked: 'חסום', available: 'זמין', active: 'פעיל', inactive: 'לא פעיל',
+    enhanced_conversions_web: 'המרות משופרות (אתר)', enhanced_conversions_leads: 'המרות משופרות (לידים)',
+    conversion_tracking: 'מעקב המרות', remarketing: 'רימרקטינג', audience_signals: 'אותות קהל',
   };
   var key = String(s).trim().toLowerCase();
-  return m[key] || String(s);
+  if (m[key]) return m[key];
+  // Unmapped machine slug (snake_case, no spaces) → spaced for readability.
+  if (/^[a-z0-9]+(_[a-z0-9]+)+$/.test(key)) return String(s).replace(/_/g, ' ');
+  return String(s);
 }
 function _humanizeVal(v, depth) {
   depth = depth || 0;
@@ -20448,14 +20464,22 @@ function _humanizeVal(v, depth) {
   }
   return '—';
 }
+// Machine-only record fields the user should never see (ids/keys executors use).
+var _RECORD_MACHINE_KEYS = { id: 1, _id: 1, actionId: 1, actionKey: 1, key: 1, slug: 1, displayHe: 1, taskId: 1, outputId: 1, instanceId: 1, agentId: 1, uid: 1 };
 function _renderRecordHuman(rec, i) {
   if (typeof rec === 'string') return escapeHtml(rec);
   if (rec && typeof rec.displayHe === 'string' && rec.displayHe.trim()) return typeof renderMarkdown === 'function' ? renderMarkdown(rec.displayHe) : escapeHtml(rec.displayHe);
   if (!rec || typeof rec !== 'object') return escapeHtml(String(rec));
-  var title = rec.name || rec.title || rec.domain || rec.keyword || rec.target || rec.cluster || rec.persona_name || rec.scenario || ('פריט ' + (i + 1));
+  // Title — Hebrew-first (titleHe/nameHe before the English title/name).
+  var titleKey = ['titleHe', 'nameHe', 'labelHe', 'name', 'title', 'domain', 'keyword', 'target', 'cluster', 'persona_name', 'scenario', 'label'].find(function(k) { return rec[k]; });
+  var title = (titleKey && rec[titleKey]) || ('פריט ' + (i + 1));
   var rows = Object.keys(rec).filter(function(k){
-    if (k === 'displayHe') return false;
-    if (rec[k] === title && (k === 'name' || k === 'title' || k === 'domain')) return false;
+    if (_RECORD_MACHINE_KEYS[k]) return false;
+    if (k === titleKey) return false;
+    // Skip an English field when its Hebrew sibling (<k>He) carries the value —
+    // e.g. drop `title`/`rationale`/`description` when titleHe/rationaleHe exist.
+    var he = rec[k + 'He'];
+    if (he !== undefined && he !== null && he !== '') return false;
     var v = rec[k];
     return !(v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0));
   }).map(function(k){
