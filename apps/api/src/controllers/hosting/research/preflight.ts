@@ -291,7 +291,16 @@ export const researchPreflight = async (c: Context) => {
     // wasn't reliable). Warn only when actually under the realistic floor.
     const balanceCents = inst.dfsBalanceUsdCents ?? 0
     const balanceUsd = balanceCents / 100
-    if (balanceUsd < 1) {
+    if (inst.isMaster && inst.dfsUseProxy !== false) {
+        // Master instance is unmetered — it runs on Flowmatic's own master DFS
+        // account (client.ts skips the ledger), so it carries no per-tenant
+        // prepaid balance. Never block it on a $0 balance.
+        checks.push({
+            name: 'dfs_balance',
+            status: 'ok',
+            label_he: 'DataForSEO — חשבון Master (ללא מדידת יתרה) ✓',
+        })
+    } else if (balanceUsd < 1) {
         checks.push({
             name: 'dfs_balance',
             status: 'fail',
