@@ -216,9 +216,25 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             }
         }
 
+        // Sibling-brand awareness — for competitor/strategy stages, list the
+        // client's OWN other brands (other agents on this instance) so they're
+        // excluded from competitors and keyword overlap reads as a portfolio
+        // ALLOCATION decision (anti-cannibalization), not a threat.
+        let siblingBrandsBlock = ''
+        let siblingDomains: string[] = []
+        try {
+            const { getSiblingBrands, buildSiblingBrandsPromptBlock } = await import('@/services/siblingBrands')
+            const siblings = await getSiblingBrands(instanceId, __agent?.id || null)
+            siblingDomains = siblings.map(s => s.domain)
+            siblingBrandsBlock = buildSiblingBrandsPromptBlock(siblings)
+            if (siblings.length) console.log(`[research/${stageId}] sibling brands: ${siblingDomains.join(', ')}`)
+        } catch (e) {
+            console.warn(`[research/${stageId}] sibling-brand resolve failed (non-fatal):`, (e as Error).message)
+        }
+
         const promptResult = buildPromptForStage(stageId, {
             businessName, businessDesc, answers, rd, feedback: body.feedback,
-            tools, historicalAssetsBlock, dfsData,
+            tools, historicalAssetsBlock, dfsData, siblingBrandsBlock,
         })
         if (!promptResult) {
             await _abortStage(instanceId, stageId, __agent?.id, 'prompt builder missing')
@@ -509,20 +525,29 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
             console.warn(`[research/${stageId}] hebrewCleanup unexpectedly threw:`, (err as Error).message)
         }
         if (parsed.records) output.records = parsed.records
-        // paid_competitor_landscape — drop placeholder/unverified competitor
-        // records. Runs AFTER hebrewCleanup (which re-parses records from the
-        // content JSON and would otherwise restore them). The model pads thin
-        // markets with template domains ("example-il-agency.co.il",
-        // "(no_international_reference)") instead of honestly reporting none.
-        if (stageId === 'paid_competitor_landscape' && Array.isArray(output.records)) {
+        // Competitor stages — drop records that aren't real competitors:
+        //   (a) the client's OWN sibling brands (other agents on this instance) —
+        //       treating them as competitors produces self-competition advice;
+        //   (b) generic-platform noise (facebook.com, instagram.com…) that surfaces
+        //       in organic scans but is never a real competitor;
+        //   (c) placeholder/template domains the model pads thin markets with.
+        // Runs AFTER hebrewCleanup (which re-parses records from the content JSON
+        // and would otherwise restore them).
+        if ((stageId === 'competitor_landscape' || stageId === 'paid_competitor_landscape') && Array.isArray(output.records)) {
+            const { isSiblingOrNoise } = await import('@/services/siblingBrands')
             const isPlaceholder = (d: string): boolean =>
                 !d || /^\(|example[-.]|placeholder|\bsample\b|your[-_]?(domain|agency|competitor|brand)|competitor[-_]?name|no_international|no_reference|^n\/?a$|^unknown$|^tbd$|^xxx/i.test(d.trim())
             const before = output.records.length
-            output.records = (output.records as Array<Record<string, unknown>>)
-                .filter(r => !isPlaceholder(String(r.domain || r.name || '')))
+            let siblingDropped = 0
+            output.records = (output.records as Array<Record<string, unknown>>).filter(r => {
+                const dom = String(r.domain || r.name || '')
+                if (isSiblingOrNoise(dom, siblingDomains)) { siblingDropped++; return false }
+                if (stageId === 'paid_competitor_landscape' && isPlaceholder(dom)) return false
+                return true
+            })
             parsed.records = output.records
             const dropped = before - output.records.length
-            if (dropped > 0) console.log(`[research/paid_competitor_landscape] dropped ${dropped} placeholder competitor record(s)`)
+            if (dropped > 0) console.log(`[research/${stageId}] dropped ${dropped} non-competitor record(s) (${siblingDropped} sibling/noise)`)
         }
         // Capture non-records JSON sibling fields (Phase 3.10b: our_link_profile,
         // link_gap_targets, cross_validation_matrix, etc.). UI per-stage

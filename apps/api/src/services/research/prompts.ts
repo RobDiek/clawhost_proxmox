@@ -68,6 +68,13 @@ interface PromptOpts {
      * Undefined when stage doesn't need DFS or prefetch failed gracefully.
      */
     dfsData?: unknown
+    /**
+     * Pre-rendered Hebrew block naming the client's OWN sibling brands (other
+     * agents on the same instance) so competitor/strategy prompts exclude them
+     * and frame keyword overlap as a portfolio ALLOCATION decision, not a
+     * threat. Empty/undefined when the client has no sibling brands.
+     */
+    siblingBrandsBlock?: string
 }
 
 export interface PromptResult {
@@ -4825,7 +4832,25 @@ Edge cases (§5.2):
 // belong here when they ship (Phase 4).
 // ────────────────────────────────────────────────────────────────────────────
 
+// Stages whose prompt should carry the client's sibling-brand awareness:
+// competitor stages exclude them; strategy/keyword/positioning frame overlap
+// as a portfolio allocation (anti-cannibalization) decision, not a threat.
+const SIBLING_AWARE_STAGES = new Set<StageId>([
+    'competitor_landscape', 'paid_competitor_landscape',
+    'seo_keyword_research', 'paid_keyword_research',
+    'positioning', 'strategy_options',
+])
+
 export function buildPromptForStage(stageId: StageId, opts: PromptOpts): PromptResult | null {
+    const result = buildPromptForStageInner(stageId, opts)
+    // Append the sibling-brands block once, centrally, for the stages that need it.
+    if (result && opts.siblingBrandsBlock && SIBLING_AWARE_STAGES.has(stageId)) {
+        result.prompt = result.prompt + opts.siblingBrandsBlock
+    }
+    return result
+}
+
+function buildPromptForStageInner(stageId: StageId, opts: PromptOpts): PromptResult | null {
     switch (stageId) {
         case 'competitor_landscape':       return buildCompetitorLandscapePrompt(opts)
         case 'internal_seo_audit':         return buildInternalSeoAuditPrompt(opts)
