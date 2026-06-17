@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Flowmatic Companion
  * Plugin URI: https://flowmatic.co.il
- * Description: Flowmatic platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
- * Version: 1.12.0
+ * Description: Flowmatic platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, first-party GCLID capture (survives payment-gateway redirect → order meta for the offline Ads bridge), server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
+ * Version: 1.13.0
  * Author: Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -470,15 +470,61 @@ function clawflow_capture_attribution($order) {
     if (!$order || !is_object($order)) return;
     $cid = clawflow_parse_ga_client_id(isset($_COOKIE['_ga']) ? sanitize_text_field(wp_unslash($_COOKIE['_ga'])) : '');
     if ($cid && !$order->get_meta('_clawflow_ga_client_id')) $order->update_meta_data('_clawflow_ga_client_id', $cid);
+    // gclid priority: our first-party capture cookie (set from the landing URL,
+    // survives the payment-gateway round-trip) > raw `gclid` cookie > Google's
+    // `_gcl_aw` (extract the raw gclid from its GCL.<ts>.<gclid> wrapper).
     $gclid = '';
-    foreach (['gclid', '_gcl_aw'] as $ck) {
-        if (!empty($_COOKIE[$ck])) { $gclid = sanitize_text_field(wp_unslash($_COOKIE[$ck])); break; }
+    if (!empty($_COOKIE['clawflow_gclid'])) {
+        $gclid = sanitize_text_field(wp_unslash($_COOKIE['clawflow_gclid']));
+    } else {
+        foreach (['gclid', '_gcl_aw'] as $ck) {
+            if (empty($_COOKIE[$ck])) continue;
+            $raw = sanitize_text_field(wp_unslash($_COOKIE[$ck]));
+            if ($ck === '_gcl_aw' && strpos($raw, '.') !== false) {
+                $parts = explode('.', $raw);
+                $raw = end($parts);   // GCL.<ts>.<gclid> -> <gclid>
+            }
+            $gclid = $raw;
+            break;
+        }
     }
     if ($gclid && !$order->get_meta('_clawflow_gclid')) $order->update_meta_data('_clawflow_gclid', $gclid);
     $order->save();
 }
 add_action('woocommerce_checkout_create_order', function ($order) { clawflow_capture_attribution($order); }, 10, 1);
 add_action('woocommerce_store_api_checkout_update_order_from_request', function ($order, $request) { clawflow_capture_attribution($order); }, 10, 2);
+
+/**
+ * First-party GCLID capture (v1.13.0).
+ *
+ * The offline store->Ads bridge needs the gclid persisted ON THE ORDER. Relying
+ * on Google's `_gcl_aw` cookie is unreliable (Conversion Linker may not fire,
+ * consent-mode may block it), and the order is created AFTER the payment-gateway
+ * redirect — by which time any checkout form field is gone. So we capture the
+ * gclid from the LANDING URL into a first-party cookie (90d) that survives the
+ * gateway round-trip (same origin, SameSite=Lax → sent on the top-level return)
+ * and is readable server-side at woocommerce_checkout_create_order.
+ *
+ * Two writers for robustness: client JS (runs even on full-page-cached pages)
+ * + server-side setcookie on init (non-JS fallback).
+ */
+add_action('wp_head', function () {
+    ?>
+<script>(function(){try{var p=new URLSearchParams(location.search);var g=p.get('gclid')||p.get('gbraid')||p.get('wbraid');if(g){document.cookie='clawflow_gclid='+encodeURIComponent(g)+';path=/;max-age=7776000;samesite=lax'+(location.protocol==='https:'?';secure':'');}}catch(e){}})();</script>
+    <?php
+}, 1);
+
+add_action('init', function () {
+    if (headers_sent() || !empty($_COOKIE['clawflow_gclid'])) return;
+    foreach (['gclid', 'gbraid', 'wbraid'] as $k) {
+        if (empty($_GET[$k])) continue;
+        $v = sanitize_text_field(wp_unslash($_GET[$k]));
+        if ($v === '') continue;
+        setcookie('clawflow_gclid', $v, time() + 90 * 24 * 3600, '/', '', is_ssl(), false);
+        $_COOKIE['clawflow_gclid'] = $v;   // available within the same request
+        break;
+    }
+}, 1);
 
 function clawflow_send_mp_purchase($order_id) {
     $mid = get_option('clawflow_mp_measurement_id', '');
@@ -694,7 +740,7 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.11.0',
+                'pluginVersion'       => '1.13.0',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'siteWidgetsServable' => true,
                 'siteWidgetsActive'   => !empty(get_option('clawflow_site_widgets', '')),
