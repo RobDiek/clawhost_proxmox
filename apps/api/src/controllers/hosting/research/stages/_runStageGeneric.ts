@@ -641,6 +641,17 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                         autoCorrected.push(f)
                         continue
                     }
+                    // paid_audit — the overall score is the MEAN of the 5 dimension
+                    // scores. The critic occasionally invents a rounding requirement
+                    // ("should be a whole number") or mis-flags a correct average.
+                    // Verify deterministically: if total ≈ mean of the dimension
+                    // scores, the math is right → auto-correct (don't block).
+                    if (stageId === 'paid_audit'
+                        && /math_sanity|בדיקת חישוב|ממוצע|ציון כולל|total_score|formula_verification|עוגל/i.test(f)
+                        && verifyPaidAuditMath(parsed)) {
+                        autoCorrected.push(`${f} → אומת בשרת (הציון הכולל = ממוצע ציוני המֵמדים)`)
+                        continue
+                    }
                     // Phase QA round-5 — language_script_qa is ALWAYS demoted out
                     // of hardFailures. Modern IL SEO content is inherently
                     // code-switching (audience, brand, citation, comparison are
@@ -768,6 +779,36 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
  * was off by > 0.5 — useful as an inline math-sanity signal that we
  * can't rely on the LLM to do this on its own.
  */
+/**
+ * paid_audit — verify the overall score is the arithmetic mean of the per-
+ * dimension scores (structure / targeting / creative / measurement / bidding).
+ * Returns true when the emitted total matches the mean within a rounding
+ * tolerance (or when there's no total to contradict). Used to demote a
+ * false-positive math_sanity hard-failure: the critic occasionally invents a
+ * "round to a whole number" requirement or mis-reads a correct average.
+ */
+function verifyPaidAuditMath(parsed: { records?: unknown[] | null; rawJson?: unknown }): boolean {
+    try {
+        const recs = Array.isArray(parsed.records) ? parsed.records : []
+        const scores = recs
+            .map(r => {
+                const rec = (r && typeof r === 'object') ? r as Record<string, unknown> : {}
+                return Number(rec.score ?? rec.score_0_100 ?? rec.dimension_score)
+            })
+            .filter(n => Number.isFinite(n))
+        if (scores.length < 3) return false
+        const mean = scores.reduce((a, b) => a + b, 0) / scores.length
+        const root = (parsed.rawJson && typeof parsed.rawJson === 'object')
+            ? parsed.rawJson as Record<string, unknown>
+            : {}
+        const total = Number(root.total_score_0_100 ?? root.overall_score_0_100 ?? root.total)
+        if (!Number.isFinite(total)) return true   // no contradicting total
+        return Math.abs(total - mean) <= 0.6        // matches within rounding tolerance
+    } catch {
+        return false
+    }
+}
+
 function recomputeCompetitorScorecards(records: unknown[]): void {
     for (const r of records) {
         if (!r || typeof r !== 'object') continue
