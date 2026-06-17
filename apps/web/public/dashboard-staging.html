@@ -20399,17 +20399,37 @@ function _humanizeKey(k) {
     gapType: 'סוג פער', gap_type: 'סוג פער', tier: 'רמה', adapter: 'מקור נתונים', adapters: 'מקורות נתונים',
     setup_cost_monthly_ils: 'עלות חודשית (₪)', connected: 'מחובר', blocked: 'חסום', actions: 'פעולות',
     description: 'תיאור', note: 'הערה', notes: 'הערות', steps: 'שלבים', step: 'שלב', category: 'קטגוריה',
+    // client_account_baseline + generic record-metadata fields
+    detail: 'פירוט', headline: 'כותרת', ground_truth_source: 'מקור אמת', ground_truth: 'מקור אמת',
+    conv_value_quality_flag: 'איכות ערך ההמרה', actionable_for_downstream: 'רלוונטי לשלב הבא',
+    actionable: 'פעולה אפשרית', tracking: 'מעקב', metrics: 'מדדים', metric: 'מדד', account: 'חשבון',
+    historical_data: 'נתונים היסטוריים', data_source: 'מקור נתונים', readiness: 'מוכנות', freshness: 'רעננות',
   };
   if (map[k]) return map[k];
   // Normalize: drop leading _, trailing _he/_en + camelCase He/En, then retry.
   var base = String(k).replace(/^_+/, '').replace(/_(he|en)$/i, '').replace(/(He|En)$/, '');
   if (map[base]) return map[base];
-  // Generic suffix cleanup: units, score-range.
-  return base
-    .replace(/_0_100$/i, ' (0-100)')
-    .replace(/_ils$/i, ' (₪)')
-    .replace(/_pct$/i, ' (%)')
-    .replace(/_/g, ' ');
+  // Word-by-word fallback so ANY remaining snake_case key reads as Hebrew
+  // instead of raw English (e.g. "data_freshness_pct" → "נתונים רעננות (%)").
+  // Known words translate; unknown words pass through unchanged.
+  base = base.replace(/_0_100$/i, ' 0-100');
+  var WORD_HE = {
+    ground:'בסיס', truth:'אמת', source:'מקור', sources:'מקורות', conv:'המרות', conversion:'המרה', conversions:'המרות',
+    value:'ערך', quality:'איכות', flag:'סימון', actionable:'לפעולה', downstream:'המשך', headline:'כותרת',
+    detail:'פירוט', details:'פרטים', category:'קטגוריה', tracking:'מעקב', account:'חשבון', metrics:'מדדים', metric:'מדד',
+    spend:'הוצאה', clicks:'קליקים', impressions:'חשיפות', revenue:'הכנסה', cost:'עלות', rate:'שיעור', match:'התאמה',
+    status:'סטטוס', reason:'סיבה', note:'הערה', notes:'הערות', summary:'תקציר', current:'נוכחי', historical:'היסטורי',
+    baseline:'בסיס', readiness:'מוכנות', signal:'סיגנל', signals:'סיגנלים', count:'כמות', name:'שם', type:'סוג',
+    label:'תווית', date:'תאריך', period:'תקופה', target:'יעד', actual:'בפועל', recommended:'מומלץ', action:'פעולה',
+    actions:'פעולות', estimated:'משוער', minutes:'דקות', data:'נתונים', freshness:'רעננות', performance:'ביצועים',
+    audience:'קהל', budget:'תקציב', campaign:'קמפיין', keyword:'מילת מפתח', keywords:'מילות מפתח', competitor:'מתחרה',
+    competitors:'מתחרים', insight:'תובנה', insights:'תובנות', recommendation:'המלצה', priority:'עדיפות',
+    confidence:'ביטחון', evidence:'ראיה', setup:'הקמה', monthly:'חודשי', daily:'יומי', weekly:'שבועי',
+    avg:'ממוצע', total:'סך הכול', ils:'(₪)', pct:'(%)', for:'ל', of:'של', per:'לכל', the:''
+  };
+  return base.split(/[_\s]+/).filter(Boolean)
+    .map(function(w){ var lw = w.toLowerCase(); return WORD_HE.hasOwnProperty(lw) ? WORD_HE[lw] : w; })
+    .join(' ').replace(/\s+/g, ' ').trim();
 }
 // Translate common English enum VALUES for display only (the data keeps the
 // English enum — executors/downstream rely on it). Acronyms (CPA/ROAS/CTR/B2B/
@@ -20432,9 +20452,17 @@ function _humanizeEnum(s) {
     connected: 'מחובר', missing: 'חסר', blocked: 'חסום', available: 'זמין', active: 'פעיל', inactive: 'לא פעיל',
     enhanced_conversions_web: 'המרות משופרות (אתר)', enhanced_conversions_leads: 'המרות משופרות (לידים)',
     conversion_tracking: 'מעקב המרות', remarketing: 'רימרקטינג', audience_signals: 'אותות קהל',
+    // quality / readiness flag values
+    clean: 'תקין', dirty: 'בעייתי', partial: 'חלקי', broken: 'שבור', mature: 'בוגר', ready: 'מוכן',
+    thin: 'דליל', insufficient: 'לא מספיק', healthy: 'תקין', degraded: 'מוגבל',
+    mazhir_audit: 'אודיט Mazhir', google_ads_account_metrics: 'מדדי חשבון Google Ads',
   };
   var key = String(s).trim().toLowerCase();
   if (m[key]) return m[key];
+  // Try the underscore-normalized form too, so "google ads account metrics"
+  // matches a "google_ads_account_metrics" entry (and vice-versa).
+  var keyU = key.replace(/\s+/g, '_');
+  if (m[keyU]) return m[keyU];
   // Unmapped machine slug (snake_case, no spaces) → spaced for readability.
   if (/^[a-z0-9]+(_[a-z0-9]+)+$/.test(key)) return String(s).replace(/_/g, ' ');
   return String(s);
