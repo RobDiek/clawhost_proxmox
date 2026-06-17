@@ -289,7 +289,7 @@ type CheckSource = {
     instance: Pick<InstanceRow,
         | 'aiProviderKey' | 'openaiApiKey' | 'firecrawlKey' | 'dataforseoKey'
         | 'gscTokens' | 'googleTokens' | 'metaTokens' | 'githubConfig' | 'researchData'
-        | 'dfsBalanceUsdCents' | 'dfsUseProxy'
+        | 'dfsBalanceUsdCents' | 'dfsUseProxy' | 'isMaster'
     >
     agent: MatehAgentRow | null
     /**
@@ -363,13 +363,18 @@ export function checkRequirementStatus(
             return (tokens?.refreshToken || tokens?.accessToken) ? 'connected' : 'missing'
         }
         case 'dataforseo': {
+            // Master instance = the platform's OWN agents (Flowmatic's master
+            // DFS account). It is unmetered (client.ts skips the ledger
+            // balance/debit), so it's always "connected" in proxy mode — never
+            // gate it on a per-tenant prepaid balance it doesn't carry.
+            const proxyOn = inst.dfsUseProxy !== false
+            if (proxyOn && inst.isMaster) return 'connected'
             // Phase 2.3.J — recognize BOTH modes:
             //   1. Managed proxy (default): inst.dfsUseProxy && balance > 0
             //      → user pays-as-you-go through Flowmatic credits (shared
             //        across agents on the same instance/tenant).
             //   2. Legacy direct key: per-agent dataforseoKey set
             //      → escape hatch for power users with their own DFS account.
-            const proxyOn = inst.dfsUseProxy !== false
             const balanceCents = inst.dfsBalanceUsdCents ?? 0
             if (proxyOn && balanceCents > 0) return 'connected'
             const directKey = read('dataforseoKey') as string | null

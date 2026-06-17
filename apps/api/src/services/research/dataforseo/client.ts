@@ -65,16 +65,26 @@ export class DfsError extends Error {
 interface InstanceDfsContext {
     useProxy: boolean
     legacyKey: string | null
+    /**
+     * Master instance — the platform's OWN agents (Flowmatic's master DFS
+     * account). It is never metered against a per-tenant prepaid balance:
+     * proxy auth (master creds) is used, but the ledger balance check + debit
+     * are skipped. Without this, a master instance with a 0 balance can't run
+     * any DFS-dependent stage even though it owns the underlying DFS account.
+     */
+    isMaster: boolean
 }
 
 async function loadInstanceDfsContext(instanceId: string): Promise<InstanceDfsContext> {
     const [inst] = await db.select({
         dataforseoKey: instances.dataforseoKey,
         dfsUseProxy: instances.dfsUseProxy,
+        isMaster: instances.isMaster,
     }).from(instances).where(eq(instances.id, instanceId))
     return {
         useProxy: inst?.dfsUseProxy ?? true,
         legacyKey: inst?.dataforseoKey ?? null,
+        isMaster: !!inst?.isMaster,
     }
 }
 
@@ -172,11 +182,12 @@ export async function dfsPost<TResult>(
         ? await proxyAuthHeader()
         : await legacyAuthHeader(ctx.legacyKey)
 
-    // Pre-flight balance gate — proxy mode only. Cheap call (single SELECT).
-    // We don't pre-charge or pre-estimate; just refuse if balance ≤ 0 OR
-    // monthly cap already exceeded. Per-call cost is tiny (~$0.001-$0.05);
+    // Pre-flight balance gate — proxy mode only, and NEVER for the master
+    // instance (unmetered — owns the master DFS account). Cheap call (single
+    // SELECT). We don't pre-charge or pre-estimate; just refuse if balance ≤ 0
+    // OR monthly cap already exceeded. Per-call cost is tiny (~$0.001-$0.05);
     // post-call debit handles actual billing.
-    if (ctx.useProxy) {
+    if (ctx.useProxy && !ctx.isMaster) {
         await preflightBalanceCheck(instanceId)
     }
 
@@ -289,7 +300,7 @@ export async function dfsPost<TResult>(
     // re-throw — we already got the data, the user already gets it. The
     // balance/ledger remain accurate via the SQL UPDATE which is atomic;
     // only the audit row may be missed (recoverable via dfs_cache).
-    if (ctx.useProxy && (envelope.cost || 0) > 0) {
+    if (ctx.useProxy && !ctx.isMaster && (envelope.cost || 0) > 0) {
         try {
             await debit({
                 instanceId,
@@ -348,7 +359,7 @@ export async function dfsTaskPostAndPoll<TResult>(
 
     const ctx = await loadInstanceDfsContext(instanceId)
     const auth = ctx.useProxy ? await proxyAuthHeader() : await legacyAuthHeader(ctx.legacyKey)
-    if (ctx.useProxy) await preflightBalanceCheck(instanceId)
+    if (ctx.useProxy && !ctx.isMaster) await preflightBalanceCheck(instanceId)
 
     // ── 1. task_post ──
     let postEnv: DfsEnvelope<TResult>
@@ -376,7 +387,7 @@ export async function dfsTaskPostAndPoll<TResult>(
 
     // Debit the post cost (DFS bills at task_post). Best-effort — same policy
     // as dfsPost: a failed debit logs but doesn't lose the data.
-    if (ctx.useProxy && cost > 0) {
+    if (ctx.useProxy && !ctx.isMaster && cost > 0) {
         try {
             await debit({ instanceId, costUsdRaw: cost, endpoint: `${family}/task_post` })
         } catch (err) {
