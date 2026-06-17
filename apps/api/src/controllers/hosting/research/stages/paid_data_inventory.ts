@@ -65,6 +65,26 @@ ${inventory.tierRationaleHe}
 **עלות setup חודשית משוערת:** ₪${inventory.summary.estimatedSetupCostMonthlyIls} / חודש
 **ימים משוערים ל-tier הבא:** ${inventory.summary.estimatedDaysToNextTier ?? 'ב-tier הגבוה ביותר'}`
 
+        const extras = {
+            tier: inventory.tier,
+            tier_rationale_he: inventory.tierRationaleHe,
+            tier_warnings: inventory.tierWarnings || [],
+            fork_path: inventory.forkPath || null,
+            fork_has_integration: inventory.forkHasIntegration ?? null,
+            adapters_summary: {
+                connected: inventory.adapters.filter(a => a.connected).length,
+                total: inventory.adapters.length,
+                critical_connected: inventory.adapters.filter(a => a.severity === 'critical' && a.connected).length,
+                critical_total: inventory.adapters.filter(a => a.severity === 'critical').length,
+            },
+            capabilities_available_count: inventory.capabilities.available.length,
+            capabilities_blocked_count: inventory.capabilities.blocked.length,
+            estimated_setup_cost_monthly_ils: inventory.summary.estimatedSetupCostMonthlyIls,
+        }
+        const confidence: 'high' | 'medium' | 'working_hypothesis' =
+            inventory.summary.criticalGaps === 0 ? 'high' :
+            inventory.summary.criticalGaps <= 2 ? 'medium' : 'working_hypothesis'
+
         // Surface as records[] so the unified pipeline UI renders action items
         await markWrapperStageCompleted({
             instanceId,
@@ -73,28 +93,23 @@ ${inventory.tierRationaleHe}
             integrationsUsed: [],
             agentId: __agent?.id,
             records: inventory.actions as unknown[],
-            extras: {
-                tier: inventory.tier,
-                tier_rationale_he: inventory.tierRationaleHe,
-                tier_warnings: inventory.tierWarnings || [],
-                fork_path: inventory.forkPath || null,
-                fork_has_integration: inventory.forkHasIntegration ?? null,
-                adapters_summary: {
-                    connected: inventory.adapters.filter(a => a.connected).length,
-                    total: inventory.adapters.length,
-                    critical_connected: inventory.adapters.filter(a => a.severity === 'critical' && a.connected).length,
-                    critical_total: inventory.adapters.filter(a => a.severity === 'critical').length,
-                },
-                capabilities_available_count: inventory.capabilities.available.length,
-                capabilities_blocked_count: inventory.capabilities.blocked.length,
-                estimated_setup_cost_monthly_ils: inventory.summary.estimatedSetupCostMonthlyIls,
-            },
-            confidence: inventory.summary.criticalGaps === 0 ? 'high' :
-                inventory.summary.criticalGaps <= 2 ? 'medium' : 'working_hypothesis',
+            extras,
+            confidence,
         })
 
         releaseResearchLock(instanceId)
-        return ok(c, { inventory }, 'Paid data inventory ready')
+        // Return the SAME shape the generic stage runner returns so the frontend
+        // result panel renders immediately (was { inventory } → content undefined
+        // → "אין תוכן" until a page reload re-read the saved summary).
+        return ok(c, {
+            stageId: 'paid_data_inventory',
+            content: summaryMd,
+            records: inventory.actions,
+            extras,
+            confidence,
+            status: { state: 'completed', runAt: new Date().toISOString() },
+            inventory,
+        }, 'Paid data inventory ready')
     } catch (err) {
         releaseResearchLock(instanceId)
         console.error(`[research/paid_data_inventory] error:`, err)

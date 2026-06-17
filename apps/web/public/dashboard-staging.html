@@ -9171,7 +9171,10 @@ function renderMonthlyTaskPopup(task) {
     var srcHtml = fullTask.sources.map(function(s, i) {
       return '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:10px 12px;margin-bottom:6px">' +
         '<div style="font-size:0.72rem;color:#6B7280;font-weight:600;margin-bottom:4px">[' + (i + 1) + '] ' + _esc(humanizeSourceType(s.type)) +
-          (s.ref ? ' · <code style="font-family:monospace;color:#0EA5E9;background:#F0F9FF;padding:1px 5px;border-radius:3px">' + _esc(s.ref) + '</code>' : '') + '</div>' +
+          // Show the ref only as a fallback when there is no human excerpt — the
+          // humanized type + excerpt is the readable provenance; the raw ref
+          // (paidProfile maxCpaIls, dfs.keywords…) is machine noise otherwise.
+          ((!s.excerpt && s.ref) ? ' · <span style="color:#9CA3AF;font-weight:400">' + _esc(s.ref) + '</span>' : '') + '</div>' +
         '<div style="font-size:0.82rem;color:#374151;line-height:1.5">' + _esc(s.excerpt || '') + '</div>' +
       '</div>';
     }).join('');
@@ -12473,6 +12476,7 @@ function humanizeConfidence(c) {
 }
 function humanizeSourceType(t) {
   if (!t) return 'מקור';
+  // Exact-match map for the full machine type string.
   var MAP = {
     'audit': 'אודיט SEO',
     'audit.recommendedActions.immediate': 'אודיט — פעולה מיידית',
@@ -12482,22 +12486,45 @@ function humanizeSourceType(t) {
     'contentPlan.item': 'תוכנית תוכן',
     'strategy': 'אסטרטגיה',
     'strategy.positioning': 'אסטרטגיית מיצוב',
+    'strategy.persona': 'פרסונת קהל יעד',
     'keywordResearch': 'מחקר מילות מפתח',
     'seoKeywordResearch': 'מחקר מילות מפתח',
     'competitorLandscape': 'ניתוח מתחרים',
     'competitor': 'ניתוח מתחרים',
     'gscData': 'נתוני Search Console',
     'gsc': 'נתוני Search Console',
+    'gsc.pages': 'נתוני Search Console — דפים',
     'ga4': 'נתוני GA4',
     'googleAds': 'נתוני Google Ads',
     'brandFoundation': 'בסיס מותג',
     'audienceResearch': 'מחקר קהל',
-    'paidStrategy': 'אסטרטגיית פרסום ממומן'
+    'paidStrategy': 'אסטרטגיית פרסום ממומן',
+    'paidProfile': 'פרופיל הפרסום',
+    'dfs.keywords': 'מחקר מילות מפתח',
+    'sqr.waste': 'דוח שאילתות חיפוש',
+    'transparency.competitor': 'שקיפות מתחרים',
+    'other': 'מקור נתונים'
   };
   if (MAP[t]) return MAP[t];
+  // Dotted fallback: translate the leading domain + trailing facet to Hebrew.
+  var HEAD = {
+    dfs: 'מחקר מילות מפתח', sqr: 'דוח שאילתות חיפוש', gsc: 'נתוני Search Console',
+    ga4: 'נתוני GA4', strategy: 'אסטרטגיה', transparency: 'שקיפות מתחרים',
+    audit: 'אודיט', paid: 'פרסום ממומן', paidProfile: 'פרופיל הפרסום',
+    competitor: 'ניתוח מתחרים', internal_seo_audit: 'בדיקת SEO פנימית', link: 'בדיקת קישורים',
+    integrations: 'נתוני מדידה'
+  };
+  var TAIL = {
+    keywords: 'מילות מפתח', waste: 'בזבוז', pages: 'דפים', persona: 'פרסונה',
+    competitor: 'מתחרה', positioning: 'מיצוב', queries: 'שאילתות', records: 'רשומות',
+    immediate: 'מיידי', shortTerm: 'טווח קצר', ongoing: 'מתמשך', item: ''
+  };
   var seg = String(t).split('.');
-  var head = MAP[seg[0]] || _prettifyKey(seg[0]);
-  return seg.length > 1 ? head + ' — ' + _prettifyKey(seg[seg.length - 1]) : head;
+  var head = HEAD[seg[0]] || MAP[seg[0]] || _prettifyKey(seg[0]);
+  if (seg.length === 1) return head;
+  var tail = TAIL[seg[seg.length - 1]];
+  if (tail === undefined) tail = _prettifyKey(seg[seg.length - 1]);
+  return tail ? head + ' — ' + tail : head;
 }
 
 // Phase 4.3-G: open a monthly task in a dedicated popup from calendar click.
