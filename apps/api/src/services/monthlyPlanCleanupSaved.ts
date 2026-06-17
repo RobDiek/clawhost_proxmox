@@ -17,6 +17,7 @@ import { db } from '@/db'
 import { agentOutputs } from '@/db/schema'
 import { runMonthlyPlanHebrewCleanup } from './monthlyPlanHebrewCleanup'
 import { sanitizeTaskInPlace, residualEnglishWords } from './monthlyPlanTextSanitizer'
+import { cleanTaskForUser } from './userDisplayHe'
 
 const PREFIX_RE = /^(P\d+)\s*·\s*/
 
@@ -76,7 +77,12 @@ export async function runSavedPlanHebrewCleanup(agentId: string | null, opts: { 
     for (let i = 0; i < planRows.length; i++) {
         const row = planRows[i]
         const cleaned: any = base[i] || {}
-        sanitizeTaskInPlace(cleaned)   // deterministic floor (mutates in place)
+        // Deterministic floor (mutates in place), regardless of LLM success:
+        //   1. jargon dictionary — translates known English jargon + humanizes
+        //      machine source-refs to Hebrew labels (userDisplayHe)
+        //   2. machine-token strip — removes residual key=value / refs / arrays
+        cleanTaskForUser(cleaned)
+        sanitizeTaskInPlace(cleaned)
         const orig = tasks[i]
 
         // collect residual English for visibility (non-blocking)

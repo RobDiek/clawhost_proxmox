@@ -27,6 +27,7 @@ import { eq } from 'drizzle-orm'
 
 import { db } from '@/db'
 import { agentOutputs, instances } from '@/db/schema'
+import { buildDisplayHe } from '@/services/userDisplayHe'
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://app.flowmatic.co.il'
 const API_URL = process.env.API_URL || 'https://api.clawflow.flowmatic.co.il'
@@ -84,8 +85,10 @@ function formatMessage(output: {
         ? `📅 ${new Date(output.scheduledFor).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`
         : ''
 
-    // Body preview — strip markdown and cap
-    const bodyRaw = (output.content || '').replace(/[*_`#>]/g, '').replace(/\n+/g, ' ').trim()
+    // Body preview — NEVER dump raw JSON. Structured content (weekly reports,
+    // ops briefs…) is rendered to clean Hebrew via displayHe / buildDisplayHe;
+    // plain text passes through. Then strip markdown + cap.
+    const bodyRaw = humanBody(output.content).replace(/[*_`#>]/g, '').replace(/\n+/g, ' ').trim()
     const bodyPreview = bodyRaw.length > 280 ? bodyRaw.substring(0, 277) + '…' : bodyRaw
 
     const statusLine = statusLineFor(output.status)
@@ -97,6 +100,25 @@ function formatMessage(output: {
         (pillar ? `🎯 ${escapeHtml(pillar)}\n` : '') +
         (persona ? `👤 ${escapeHtml(persona)}\n` : '') +
         (schedLine ? `${schedLine}\n` : '')
+}
+
+// Derive a human-readable Hebrew body from an output's stored content. JSON
+// content (weekly reports / ops briefs) is rendered via the shared displayHe
+// layer instead of being dumped raw; plain text passes through unchanged.
+function humanBody(content: string | null): string {
+    const s = (content || '').trim()
+    if (!s) return ''
+    if (s.charAt(0) === '{' || s.charAt(0) === '[') {
+        try {
+            const obj = JSON.parse(s)
+            if (obj && typeof obj === 'object' && !Array.isArray(obj) && typeof obj.displayHe === 'string' && obj.displayHe.trim()) {
+                return obj.displayHe
+            }
+            const he = buildDisplayHe(obj)
+            if (he.trim()) return he
+        } catch { /* not valid JSON — fall through to raw text */ }
+    }
+    return s
 }
 
 function statusLineFor(status: string): string {

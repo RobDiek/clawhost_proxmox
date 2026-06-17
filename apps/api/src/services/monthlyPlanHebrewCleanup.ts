@@ -121,9 +121,12 @@ async function cleanupOneBatch(batch: Array<Record<string, unknown>>, apiKey: st
 ${tasksJson}
 \`\`\``
 
-    // Up to 2 attempts; each fetch has a hard 90s timeout so a stalled/hung
-    // Anthropic connection (socket open, no response) can NEVER block the whole
-    // regen — it aborts, we retry once, then fall back to the original batch.
+    // Up to 2 attempts; each fetch has a hard 180s timeout. The cleanup asks
+    // Sonnet to echo the FULL cleaned tasks JSON (up to 16K out tokens) which on
+    // 3 verbose tasks can take >90s — the old 90s cap made every batch abort,
+    // silently leaving English in place. 180s lets a normal batch complete; a
+    // genuinely-hung socket still aborts, retries once, then keeps the original
+    // (the deterministic floor + jargon dictionary still clean it downstream).
     let lastErr = ''
     for (let attempt = 1; attempt <= 2; attempt++) {
         try {
@@ -139,7 +142,7 @@ ${tasksJson}
                     max_tokens: 16000,
                     messages: [{ role: 'user', content: prompt }],
                 }),
-                signal: AbortSignal.timeout(90000),
+                signal: AbortSignal.timeout(180000),
             })
             if (!res.ok) {
                 const text = await res.text().catch(() => '')

@@ -22,6 +22,7 @@ import { matehAgents } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { runMonthlyPlanHebrewCleanup } from '@/services/monthlyPlanHebrewCleanup'
 import { sanitizeTasksInPlace, residualEnglishWords } from '@/services/monthlyPlanTextSanitizer'
+import { cleanPlanTasksForUser } from '@/services/userDisplayHe'
 import { runSavedPlanHebrewCleanup } from '@/services/monthlyPlanCleanupSaved'
 import { mutateResearchData, type MatehAgentRow } from '@/services/agentContext'
 
@@ -62,7 +63,10 @@ async function cleanResearchData(agent: MatehAgentRow | null, instanceId: string
         else { cleanedAll.push(...batch); keptBatches++ }
     }
 
-    // Deterministic floor — ALWAYS (guaranteed machine-token removal).
+    // Deterministic floor — ALWAYS (independent of LLM success):
+    //   jargon dictionary (translate known English + humanize source-refs)
+    //   then machine-token strip (key=value / refs / arrays).
+    cleanPlanTasksForUser(cleanedAll as any)
     const nSan = sanitizeTasksInPlace(cleanedAll)
     const after = collectResidual(cleanedAll)
 

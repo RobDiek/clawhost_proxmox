@@ -52,7 +52,7 @@ const KEY_LABELS_HE: Record<string, string> = {
     budget: 'תקציב', spend: 'הוצאה', cost: 'עלות', revenue: 'הכנסה', leads: 'לידים',
     conversions: 'המרות', clicks: 'קליקים', impressions: 'חשיפות', traffic: 'תנועה',
     tasks: 'משימות', task: 'משימה', count: 'כמות', total: 'סך הכול', items: 'פריטים',
-    name: 'שם', label: 'תווית', detail: 'פירוט', details: 'פירוט', message: 'הודעה',
+    name: 'שם', label: 'תווית', detail: 'פירוט', details: 'פירוט', message: 'הודעה', note: 'הערה',
     week_over_week: 'שבוע מול שבוע', month_over_month: 'חודש מול חודש',
     // weekly ops-brief / report schema keys (code contract = English keys; we
     // translate at DISPLAY time since the stored object must keep them in English).
@@ -70,6 +70,8 @@ const KEY_LABELS_HE: Record<string, string> = {
 // English enum / scalar values → Hebrew.
 const VALUE_HE: Record<string, string> = {
     at_risk: 'בסיכון', on_track: 'במסלול', behind: 'בפיגור', off_track: 'מחוץ למסלול',
+    // no-underscore variants (weekly-report overallStatus uses these)
+    atrisk: 'בסיכון', ontrack: 'במסלול', offtrack: 'מחוץ למסלול', onhold: 'בהמתנה',
     ahead: 'מקדים', blocked: 'חסום', critical: 'קריטי',
     high: 'גבוה', medium: 'בינוני', low: 'נמוך', none: 'אין',
     pending_review: 'ממתין לאישור', pending: 'ממתין', approved: 'אושר', rejected: 'נדחה',
@@ -98,6 +100,7 @@ const JARGON_HE: Record<string, string> = {
     pending: 'ממתין', approved: 'אושר', recommended: 'מומלץ', deferred: 'נדחה למועד מאוחר',
     // common free-text jargon seen in ops briefs / reports
     tokens: 'טוקנים', token: 'טוקן', tools: 'כלים', paid: 'ממומן', pipeline: 'תהליך',
+    tasks: 'משימות', task: 'משימה',
     generation: 'הפקה', cap: 'תקרה', provider: 'ספק', outreach: 'פנייה יזומה', founder: 'מייסד',
     contract: 'חוזה', proposal: 'הצעה', signed: 'נחתם', accepted: 'התקבל', blocked: 'חסום',
     data: 'נתונים', driven: 'מונחה', spend: 'הוצאה', budget: 'תקציב', organic: 'אורגני',
@@ -116,6 +119,14 @@ const JARGON_HE: Record<string, string> = {
     pages: 'דפים', page: 'דף', with: 'עם', without: 'ללא', strength: 'חוזק',
     software: 'תוכנה', country: 'מדינה', official: 'רשמי', properties: 'מאפיינים',
     validator: 'מאמת', merge: 'מיזוג', deploy: 'פריסה', threshold: 'סף', kill: 'עצירה',
+    // common SEO / ops words that leak into report + task text (seen in plans)
+    audit: 'אודיט', refresh: 'רענון', decision: 'החלטה', thin: 'דליל', duplicate: 'כפול',
+    canonical: 'קנוני', redirect: 'הפניה', sitemap: 'מפת אתר', crawl: 'סריקה', render: 'רינדור',
+    expand: 'הרחבה', expansion: 'הרחבה', homepage: 'דף הבית', commercial: 'מסחרי', meta: 'מטא',
+    description: 'תיאור', headline: 'כותרת', refreshed: 'רוענן', indexing: 'אינדוקס',
+    duplication: 'כפילות', internal: 'פנימי', external: 'חיצוני', inbound: 'נכנס', outbound: 'יוצא',
+    title: 'כותרת', heading: 'כותרת', body: 'גוף', word: 'מילה', words: 'מילים', count: 'כמות',
+    quality: 'איכות', technical: 'טכני', structured: 'מובנה', markup: 'תיוג', cluster: 'אשכול',
 }
 
 // Internal source-ref prefixes (data pointers the LLM cites) → human Hebrew label.
