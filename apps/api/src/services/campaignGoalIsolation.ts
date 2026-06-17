@@ -72,6 +72,21 @@ async function adsSearch(at: string, devToken: string, customerId: string, login
     return out
 }
 
+// Surface the SPECIFIC Google Ads failure (errorCode + field path), not just the
+// generic top-level "Request contains an invalid argument." message — the detail
+// lives in error.details[].errors[] and is essential for diagnosing which op/field
+// the API rejected (e.g. PMax campaigns refusing campaign-level custom goals).
+function extractAdsError(data: any, status: number, label: string): string {
+    const top = data?.error?.message
+    const det = data?.error?.details?.[0]?.errors?.[0]
+    if (det) {
+        const code = det.errorCode ? Object.entries(det.errorCode).map(([k, v]) => `${k}=${v}`).join(',') : ''
+        const field = det.location?.fieldPathElements?.map((f: any) => f.fieldName).join('.') || ''
+        return `${det.message || top}${code ? ` [${code}]` : ''}${field ? ` @${field}` : ''}`
+    }
+    return top || `Ads ${label} ${status}: ${JSON.stringify(data).slice(0, 300)}`
+}
+
 async function adsMutate(at: string, devToken: string, customerId: string, loginCustomerId: string, path: string, body: any): Promise<any> {
     const r = await fetch(`${ADS_API}/customers/${customerId}/${path}`, {
         method: 'POST',
@@ -80,7 +95,7 @@ async function adsMutate(at: string, devToken: string, customerId: string, login
         signal: AbortSignal.timeout(30000),
     })
     const data = await r.json() as any
-    if (!r.ok) throw new Error(data?.error?.message || `Ads mutate ${r.status}: ${JSON.stringify(data).slice(0, 300)}`)
+    if (!r.ok) throw new Error(extractAdsError(data, r.status, 'mutate'))
     return data
 }
 
