@@ -29,6 +29,7 @@ export type IlVertical =
     | 'ecommerce_apparel'
     | 'ecommerce_food_grocery'
     | 'ecommerce_electronics'
+    | 'ecommerce_physical'         // generic physical-goods ecom (home goods, moving supplies, packaging, hardware…)
     | 'b2b_saas'
     | 'b2b_services'               // accounting, marketing services, HR
     | 'beauty_services'            // salon, spa, esthetician
@@ -300,6 +301,24 @@ export const IL_VERTICAL_BENCHMARKS: Record<IlVertical, VerticalBenchmark> = {
         il_notes: 'Regulated category (Meta + Google ad policy). Compliance review on every creative. Phone calls dominate; offline conv import mandatory.',
         min_viable_monthly_budget_ils: 8000,
     },
+    ecommerce_physical: {
+        label_he: 'מסחר אלקטרוני — מוצרים פיזיים (כללי)',
+        label_en: 'Ecommerce — physical goods (general)',
+        // DRAFT benchmarks (Sergei to verify) — low-to-mid AOV physical goods
+        // sold online (home goods, moving/packaging supplies, hardware). Tuned
+        // to align with the paid_audit cross-stage gate floors: CPA floor ≈ ₪70,
+        // ROAS floor 3.5×, physical-store CVR band 1.8-2.8%.
+        search_cpc: { p25: 2.5, median: 6, p75: 14 },
+        meta_cpc: { p25: 1.5, median: 3.5, p75: 8 },
+        display_cpm: { p25: 9, median: 16, p75: 30 },
+        cvr: { p25: 0.012, median: 0.022, p75: 0.04 },     // 1.2% / 2.2% / 4.0% (physical-store realistic)
+        cpa: { p25: 70, median: 110, p75: 200 },           // p25 floor matches gate ₪70
+        ltv: { p25: 150, median: 320, p75: 700 },          // low-AOV, low retention (single purchase)
+        roas_target_minimum: 3.5,
+        typical_conversion: 'purchase',
+        il_notes: 'Low-AOV physical goods: ROAS-sensitive, thin margins. Real purchase CR ≈ 1.8-2.8% — anything far above signals micro-conversion pollution (count phone/WhatsApp/form at distinct values, not flat). Sharp seasonality common (e.g. moving supplies peak Jun-Aug). Shopping/PMax feed quality + product_schema drive performance more than ad copy.',
+        min_viable_monthly_budget_ils: 3000,
+    },
     unknown: {
         label_he: 'עסק כללי (לא סווג)',
         label_en: 'General business (unclassified)',
@@ -324,6 +343,11 @@ export function classifyIlVertical(opts: {
     businessName: string
     businessDesc: string
     productsText: string
+    /** Optional: explicit business model from the questionnaire
+     * ('ecommerce' | 'saas' | 'local' | 'service' | 'content'). Used as a
+     * fallback when the Hebrew/English lexicon doesn't match — avoids
+     * defaulting to 'unknown' when we already KNOW the model. */
+    businessModel?: string | null
 }): { vertical: IlVertical; confidence: 'high' | 'medium' | 'low'; rationale: string } {
     const txt = `${opts.businessName} ${opts.businessDesc} ${opts.productsText}`.toLowerCase()
 
@@ -337,6 +361,7 @@ export function classifyIlVertical(opts: {
         { vertical: 'ecommerce_apparel', he: /בגדים|אופנה|נעליים|תכשיטים|אקססוריז/u, en: /\b(apparel|fashion|shoes|jewelry|accessories)\b/i },
         { vertical: 'ecommerce_food_grocery', he: /מזון|מצרכים|סופר|פירות|ירקות|משלוח אוכל/u, en: /\b(grocery|food delivery|meal kit)\b/i },
         { vertical: 'ecommerce_electronics', he: /אלקטרוניקה|מחשב|טלפון|מכשירים|מוצרי חשמל/u, en: /\b(electronics|computers|appliances|phones|gadgets)\b/i },
+        { vertical: 'ecommerce_physical', he: /קרטונים|חומרי אריזה|ציוד אריזה|ארגזים|מוצרי בית|כלי בית|חומרה|כלי עבודה|ציוד למעבר דירה/u, en: /\b(moving boxes|packing supplies|home goods|houseware|hardware|packaging)\b/i },
         { vertical: 'b2b_saas', he: /תוכנה|פלטפורמה|SaaS|מערכת|אפליקציית עסקים/u, en: /\b(saas|software|platform|api|b2b tool)\b/i },
         { vertical: 'b2b_services', he: /יעוץ עסקי|רואה חשבון|שיווק עסקי|HR|משאבי אנוש/u, en: /\b(consulting|accounting|marketing services|hr)\b/i },
         { vertical: 'beauty_services', he: /קוסמטיקה|מספרה|מעצבת שיער|מניקור|שעוות|אסתטיקאית/u, en: /\b(salon|spa|esthetician|hair stylist|nails)\b/i },
@@ -352,6 +377,20 @@ export function classifyIlVertical(opts: {
         if (heHit) return { vertical: r.vertical, confidence: 'high', rationale: 'Hebrew vertical lexicon matched in business description' }
         if (enHit) return { vertical: r.vertical, confidence: 'medium', rationale: 'English vertical keywords matched (Hebrew preferred — possible mismatch)' }
     }
+
+    // Fallback: no lexicon match, but the questionnaire gave us an explicit
+    // business model. Map the unambiguous ones to a vertical so we don't fall
+    // all the way to 'unknown' (which disqualifies the aggressive tier and
+    // renders generic SMB benchmarks). Only the safe mappings — 'local' /
+    // 'service' are too broad to pin to a single vertical, so they stay unknown.
+    const model = (opts.businessModel || '').toLowerCase().trim()
+    if (model === 'ecommerce') {
+        return { vertical: 'ecommerce_physical', confidence: 'low', rationale: 'No vertical lexicon match — businessModel=ecommerce → generic physical-goods ecom benchmarks' }
+    }
+    if (model === 'saas') {
+        return { vertical: 'b2b_saas', confidence: 'low', rationale: 'No vertical lexicon match — businessModel=saas → B2B SaaS benchmarks' }
+    }
+
     return { vertical: 'unknown', confidence: 'low', rationale: 'No vertical lexicon match — using general IL SMB benchmarks' }
 }
 

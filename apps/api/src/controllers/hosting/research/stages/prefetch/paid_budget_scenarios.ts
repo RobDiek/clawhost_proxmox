@@ -36,8 +36,11 @@ export async function prefetchPaidBudgetScenarios(
         .map(p => `${p?.name || ''} ${p?.description || ''}`)
         .join(' ')
 
-    // Classify vertical
-    const verticalResult = classifyIlVertical({ businessName, businessDesc, productsText })
+    // Classify vertical. Pass businessModel as a fallback so a clear model
+    // (e.g. 'ecommerce') resolves to a vertical instead of 'unknown' when the
+    // free-text description doesn't hit the lexicon (e.g. "קרטונים למעבר דירה").
+    const businessModel = typeof answers.businessModel === 'string' ? answers.businessModel : null
+    const verticalResult = classifyIlVertical({ businessName, businessDesc, productsText, businessModel })
 
     // Pull keyword landscape from upstream (paid_keyword_research stage output)
     const paidKwResult = rd.results?.paid_keyword_research
