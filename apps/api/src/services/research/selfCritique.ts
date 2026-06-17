@@ -51,6 +51,16 @@ export interface QualityGateOutcome {
      *  truncated | identical | exception. Absent when revision landed or no
      *  hard failures. Observability for the "revised:false" cases. */
     revisionSkipReason?: string
+    /**
+     * Deterministic source-fidelity corrections the critic emitted for
+     * source_spot_check failures — exact verbatim find/replace pairs (wrong term
+     * as it appears in the output → correct value from the source). These are
+     * applied as a string replace BEFORE the LLM revision, guaranteeing the fix
+     * lands (a full re-emission often echoes the wrong term unchanged).
+     */
+    corrections?: Array<{ find: string; replace: string }>
+    /** Count of corrections actually applied (find matched in content). */
+    correctionsApplied?: number
     /** Diagnostic — true if critic call itself failed (rate limit, malformed). */
     skipped: boolean
     /** USD cost of the critic call. Logging only — same balance as main call. */
@@ -177,25 +187,47 @@ export async function runSelfCritique(input: RunInput): Promise<QualityGateOutco
 
     const outcome = parseCriticResponse(raw, content, stageId)
 
+    // Phase 2026.06 — deterministic source-fidelity corrections FIRST. The critic
+    // emits exact find/replace pairs for source_spot_check (e.g. a hallucinated
+    // term swapped for the real one from the source). Applying them as a verbatim
+    // string replace GUARANTEES the fix lands — the full LLM re-emission below
+    // historically echoed the wrong term unchanged. records re-parse downstream
+    // from this corrected content, so the embedded JSON gets fixed too.
+    let workingContent = content
+    if (outcome.corrections && outcome.corrections.length) {
+        let applied = 0
+        for (const c of outcome.corrections) {
+            if (c.find && c.replace && c.find !== c.replace && workingContent.includes(c.find)) {
+                workingContent = workingContent.split(c.find).join(c.replace)
+                applied++
+            }
+        }
+        outcome.correctionsApplied = applied
+        if (workingContent !== content) {
+            outcome.revisedContent = workingContent
+            console.log(`[selfCritique/${stageId}] applied ${applied}/${outcome.corrections.length} deterministic source corrections`)
+        }
+    }
+
     // Phase QA round-10 — if hard failures were found, run a SEPARATE
     // revision pass that returns RAW corrected content (not JSON-wrapped).
-    // This is what makes revisions actually land: the full 32K-token output
-    // budget goes to the content, so it no longer truncates mid-string the
-    // way the old in-JSON revised_content did.
+    // Runs on the already-corrected content so any remaining math/intent fixes
+    // build on top of the deterministic term fixes. If it can't produce a usable
+    // revision, the deterministic-corrected content (if any) is still shipped.
     if (!outcome.pass && outcome.hardFailures.length > 0 && !skipRevision) {
         try {
             const rev = await runRevision({
-                content,
+                content: workingContent,
                 hardFailures: outcome.hardFailures,
                 stageId,
                 anthropicModel,
                 apiKey,
             })
             if (rev.revised) outcome.revisedContent = rev.revised
-            else outcome.revisionSkipReason = rev.reason
+            else if (!outcome.revisedContent) outcome.revisionSkipReason = rev.reason
         } catch (err) {
-            outcome.revisionSkipReason = 'exception'
-            console.warn(`[selfCritique/${stageId}] revision pass failed — shipping original with hard-failure banner:`, (err as Error).message)
+            if (!outcome.revisedContent) outcome.revisionSkipReason = 'exception'
+            console.warn(`[selfCritique/${stageId}] revision pass failed — shipping ${outcome.revisedContent ? 'deterministically-corrected' : 'original'} content with hard-failure banner:`, (err as Error).message)
         }
     }
 
@@ -406,7 +438,19 @@ ${content.length > 60000 ? `\n_(הפלט קוצץ ל-60K תווים — בדקו
 
 **במקרה כשל:** \`{ "pass": false, "reason": "משפט עברי קצר אחד", "severity": "hard|warning" }\`.
 
-**אל תפיקו תוכן מתוקן כאן** — אם יש כשל hard, התיקון נעשה בקריאה נפרדת. כאן רק ה-JSON של הבדיקות. **אסור text מחוץ ל-JSON.**`
+## corrections — תיקונים מדויקים (חובה כש-source_spot_check נכשל)
+
+כש-\`source_spot_check\` נכשל בגלל **מונח/שם/מספר שגוי שיש לו ערך נכון ידוע מהמקור** (לדוגמה הפלט כתב 'רכישת ארגזים לאחסון' אבל במקור 'רכישת ארגזים למעבר דירה') — הוסיפו מערך \`corrections\` עם זוגות find/replace:
+- \`find\` = המחרוזת **המדויקת בדיוק כפי שהיא מופיעה בפלט** (העתק מילולי, כולל הקשר מינימלי שמזהה אותה; חייבת להופיע בפלט מילה-במילה).
+- \`replace\` = הערך הנכון מהמקור.
+
+אלו יוחלפו **מילולית (verbatim, string replace)** בפלט לפני הצגה למשתמש — לכן \`find\` חייב להיות מדויק. אל תכניסו ל-corrections שינויי ניסוח/סגנון — **רק תיקוני נתון/מקור**. אם אין כשל כזה — השמיטו את \`corrections\` או החזירו \`[]\`.
+
+\`\`\`json
+{ "checks": { ... }, "corrections": [ { "find": "רכישת ארגזים לאחסון", "replace": "רכישת ארגזים למעבר דירה" } ] }
+\`\`\`
+
+**אל תפיקו תוכן מתוקן מלא כאן** — תיקון מלא (math וכו') נעשה בקריאה נפרדת. כאן רק ה-JSON של הבדיקות + corrections. **אסור text מחוץ ל-JSON.**`
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -512,7 +556,22 @@ function parseCriticResponse(raw: string, originalContent: string, stageId: Stag
         result.skipped = true
         return result
     }
-    const obj = parsed as { checks?: Record<string, CheckResult> }
+    const obj = parsed as { checks?: Record<string, CheckResult>; corrections?: Array<{ find?: unknown; replace?: unknown }> }
+
+    // Deterministic source-fidelity corrections (verbatim find/replace). Validated
+    // strictly: both non-empty strings, different, and a sane length so a wild
+    // critic entry can't corrupt the whole document.
+    if (Array.isArray(obj.corrections)) {
+        const corr: Array<{ find: string; replace: string }> = []
+        for (const c of obj.corrections) {
+            const find = typeof c?.find === 'string' ? c.find : ''
+            const replace = typeof c?.replace === 'string' ? c.replace : ''
+            if (find && replace && find !== replace && find.length <= 400 && replace.length <= 400) {
+                corr.push({ find, replace })
+            }
+        }
+        if (corr.length) result.corrections = corr.slice(0, 20)
+    }
 
     // Process checks. Iterate over the canonical list so missing keys default to "pass".
     for (const checkName of QUALITY_GATE_CHECKS) {
