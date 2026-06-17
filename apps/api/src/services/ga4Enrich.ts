@@ -84,7 +84,13 @@ export async function enrichWithGA4(
         return { available: false, reason: 'GA4 not connected (no refresh token)', daysAnalyzed: 0, totalConversions: 0, events: [] }
     }
     const { normalizeGoogleScopes } = await import('./googleScopes')
-    if (!normalizeGoogleScopes(googleTokens.scopes).analytics) {
+    // Only block when we KNOW the scopes and analytics is absent. When the caller
+    // passes a minimal token object without a scopes list (common — prefetchers
+    // build { refreshToken } only), don't false-negative here: the actual GA4 API
+    // call is the ground truth. Previously this returned "Missing analytics OAuth
+    // scope" even for accounts whose grant DID include analytics.
+    const scopesKnown = Array.isArray(googleTokens.scopes) && googleTokens.scopes.length > 0
+    if (scopesKnown && !normalizeGoogleScopes(googleTokens.scopes).analytics) {
         return { available: false, reason: 'Missing analytics OAuth scope', daysAnalyzed: 0, totalConversions: 0, events: [] }
     }
 
