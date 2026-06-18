@@ -143,7 +143,7 @@ async function writeContent(cfg: WpCfg, t: Target, html: string): Promise<void> 
 
 export async function runPageRefresh(
     instanceId: string,
-    opts: { agentId?: string | null; businessName?: string; targetWords?: number; namedPages?: string[]; dryRun?: boolean } = {},
+    opts: { agentId?: string | null; businessName?: string; targetWords?: number; namedPages?: string[]; dryRun?: boolean; limit?: number } = {},
 ): Promise<PageRefreshResult> {
     const result: PageRefreshResult = { ok: false, integrationMissing: false, authError: false, scanned: 0, candidates: 0, targetWords: opts.targetWords || DEFAULT_TARGET_WORDS, updated: [], failures: [] }
     const cfg = await loadWpConfig(instanceId, opts.agentId) as WpCfg | null
@@ -169,7 +169,7 @@ export async function runPageRefresh(
 
     result.candidates = targets.length
     if (targets.length === 0) { result.ok = true; return result }   // idempotent no-op
-    targets = targets.slice(0, MAX_REFRESH_PER_RUN)
+    targets = targets.slice(0, Math.min(opts.limit || MAX_REFRESH_PER_RUN, MAX_REFRESH_PER_RUN))
 
     const apiKey = await getApiKeyForInstance(instanceId)
     if (!apiKey) { result.error = 'no API key for instance'; return result }

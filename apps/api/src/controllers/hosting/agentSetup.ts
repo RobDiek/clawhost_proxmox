@@ -9852,10 +9852,10 @@ export const previewPageRefresh = async (c: Context) => {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const agent = await resolveActiveAgent(c, instanceId)
-        const body = await c.req.json<{ targetWords?: number; namedPages?: string[] }>().catch(() => ({} as any))
+        const body = await c.req.json<{ targetWords?: number; namedPages?: string[]; limit?: number }>().catch(() => ({} as any))
         const rd: any = (agent && agent.researchData) || {}
         const { runPageRefresh } = await import('@/services/seoPageRefresh')
-        const res = await runPageRefresh(instanceId, { agentId: agent?.id, businessName: rd?.answers?.businessName, targetWords: body.targetWords, namedPages: body.namedPages, dryRun: true })
+        const res = await runPageRefresh(instanceId, { agentId: agent?.id, businessName: rd?.answers?.businessName, targetWords: body.targetWords, namedPages: body.namedPages, limit: body.limit || 3, dryRun: true })
         return ok(c, res, res.integrationMissing ? 'WordPress לא מחובר' : (res.updated.length ? `${res.updated.length} טיוטות מוכנות לבדיקה` : 'אין דפים דקים לרענון'))
     } catch (err) {
         return fail(c, (err as Error).message, 500)
