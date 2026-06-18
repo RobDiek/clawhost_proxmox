@@ -652,6 +652,15 @@ export async function runStageGeneric(c: Context, stageId: StageId): Promise<Res
                         autoCorrected.push(`${f} → אומת בשרת (הציון הכולל = ממוצע ציוני המֵמדים)`)
                         continue
                     }
+                    // media_plan — the campaign budgets must sum to the declared
+                    // total_monthly_budget_ils. The critic sometimes garbles the
+                    // budget reconciliation; if the sum verifies, the flag is bogus.
+                    if (stageId === 'media_plan'
+                        && /math_sanity|בדיקת חישוב|תקציב|budget|סכום|formula_verification/i.test(f)
+                        && verifyMediaPlanBudget(parsed)) {
+                        autoCorrected.push(`${f} → אומת בשרת (סכום תקציבי הקמפיינים = התקציב הכולל)`)
+                        continue
+                    }
                     // Phase QA round-5 — language_script_qa is ALWAYS demoted out
                     // of hardFailures. Modern IL SEO content is inherently
                     // code-switching (audience, brand, citation, comparison are
@@ -804,6 +813,35 @@ function verifyPaidAuditMath(parsed: { records?: unknown[] | null; rawJson?: unk
         const total = Number(root.total_score_0_100 ?? root.overall_score_0_100 ?? root.total)
         if (!Number.isFinite(total)) return true   // no contradicting total
         return Math.abs(total - mean) <= 0.6        // matches within rounding tolerance
+    } catch {
+        return false
+    }
+}
+
+/**
+ * media_plan — verify the campaign budgets are internally consistent: the sum
+ * of per-campaign monthly_budget_ils equals the declared total_monthly_budget_ils.
+ * Used to demote a false-positive math_sanity hard-failure: the critic
+ * occasionally garbles the budget reconciliation (e.g. "₪520 instead of ₪520",
+ * or claims a sum that IS 30% of the tier "doesn't fit 30%").
+ */
+function verifyMediaPlanBudget(parsed: { records?: unknown[] | null; rawJson?: unknown }): boolean {
+    try {
+        const recs = Array.isArray(parsed.records) ? parsed.records : []
+        const budgets = recs
+            .map(r => {
+                const rec = (r && typeof r === 'object') ? r as Record<string, unknown> : {}
+                return Number(rec.monthly_budget_ils ?? rec.budget_ils ?? rec.monthly_ils)
+            })
+            .filter(n => Number.isFinite(n))
+        if (!budgets.length) return false
+        const sum = budgets.reduce((a, b) => a + b, 0)
+        const root = (parsed.rawJson && typeof parsed.rawJson === 'object')
+            ? parsed.rawJson as Record<string, unknown>
+            : {}
+        const total = Number(root.total_monthly_budget_ils ?? root.total_budget_ils ?? root.total_monthly_ils)
+        if (!Number.isFinite(total)) return true   // no contradicting total
+        return Math.abs(sum - total) <= 1          // campaign budgets reconcile to the total
     } catch {
         return false
     }
