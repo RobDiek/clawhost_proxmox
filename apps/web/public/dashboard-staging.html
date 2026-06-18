@@ -3174,6 +3174,18 @@ input{font-family:inherit}
         </div>
       </div>
 
+      <!-- Setup Readiness — holistic reality-scan (scope + tracking conflicts + health) -->
+      <div class="int-card" id="setup-readiness-card" data-tooltip="מוכנות המדידה — סריקה כוללת שמזהה חוסמים לפני הרצת קמפיינים: שיוך קמפיינים שגוי, כלי מעקב מתחרים, GA4/המרות לא תקינים. כל ממצא בשפה פשוטה עם מה לעשות.">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#EEF2FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#4F46E5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="#4F46E5" stroke-width="1.5"/></svg></div>
+          <div style="flex:1"><strong>מוכנות המדידה</strong><div class="int-status" id="readiness-status">בודק...</div></div>
+        </div>
+        <div class="int-card-body">
+          <div id="setup-readiness-body"><div style="font-size:0.82rem;color:#6B7280;text-align:center;padding:14px">⏳ טוען...</div></div>
+          <div style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="loadSetupReadiness(true)" style="font-size:0.78rem">🔄 בדיקה מחדש</button></div>
+        </div>
+      </div>
+
       <!-- Tracking Health — systemic verification suite (kabinet indications) -->
       <div class="int-card" id="tracking-health-card" data-tooltip="תקינות מדידה — בדיקת מערכת אוטומטית של כל מנגנוני המדידה והאטריבוציה: רכישות, מקור תנועה, וואטסאפ/חיוג, פעולות המרה ב-Google Ads, וגשר הזמנות אופליין. אותה בדיקה רצה בסיום ההגדרה.">
         <div class="int-card-header">
@@ -27993,6 +28005,58 @@ async function _refreshGoogleSelectionDisplays() {
   } catch (e) {}
 }
 
+// ── Setup Readiness panel — holistic reality-scan (GET /setup-readiness) ──
+var _readinessLoading = false;
+async function loadSetupReadiness(force) {
+  var el = document.getElementById('setup-readiness-body');
+  if (!el) return;
+  if (_readinessLoading && !force) return;
+  _readinessLoading = true;
+  if (force) el.innerHTML = '<div style="font-size:0.82rem;color:#6B7280;text-align:center;padding:14px">⏳ בודק...</div>';
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/setup-readiness');
+    if (r && r.success && r.data) renderSetupReadiness(r.data);
+    else el.innerHTML = '<div style="font-size:0.8rem;color:#9CA3AF">לא ניתן לבדוק כרגע.</div>';
+  } catch (e) {
+    el.innerHTML = '<div style="font-size:0.8rem;color:#9CA3AF">שגיאה בבדיקה.</div>';
+  } finally { _readinessLoading = false; }
+}
+function renderSetupReadiness(d) {
+  var el = document.getElementById('setup-readiness-body');
+  var st = document.getElementById('readiness-status');
+  if (!el) return;
+  var score = d.score || 0;
+  var blockers = d.blockers || [];
+  var col = score >= 85 ? '#10B981' : score >= 60 ? '#F59E0B' : '#EF4444';
+  if (st) st.textContent = 'ציון ' + score + '/100 · ' + (blockers.length ? blockers.length + ' נושאים' : 'מוכן ✓');
+  // score bar (always)
+  var h = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">' +
+    '<div style="font-size:1.4rem;font-weight:700;color:' + col + ';line-height:1">' + score + '<span style="font-size:0.66rem;color:#9CA3AF">/100</span></div>' +
+    '<div style="flex:1;height:8px;background:#E5E7EB;border-radius:4px;overflow:hidden"><div style="height:100%;width:' + score + '%;background:' + col + '"></div></div>' +
+  '</div>';
+  if (!blockers.length) {
+    h += '<div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px 12px;font-size:0.84rem;color:#065F46">✓ הכל תקין — המדידה מוכנה לקמפיינים.</div>';
+    el.innerHTML = h;
+    return;
+  }
+  var ICON = { critical: '🔴', high: '🟠', medium: '🟡' };
+  var HEB = { critical: 'דחוף', high: 'חשוב', medium: 'מומלץ' };
+  ['critical', 'high', 'medium'].forEach(function(sev) {
+    var g = blockers.filter(function(b) { return b.severity === sev; });
+    if (!g.length) return;
+    h += '<div style="font-size:0.76rem;font-weight:700;margin:10px 0 4px;color:#374151">' + ICON[sev] + ' ' + HEB[sev] + '</div>';
+    g.forEach(function(b) {
+      h += '<div style="border:1px solid #E5E7EB;border-radius:8px;padding:8px 10px;margin-bottom:6px;background:#FAFAFA">' +
+        '<div style="font-size:0.82rem;font-weight:600;color:#1F2937">' + escapeHtml(b.titleHe) + '</div>' +
+        (b.whyHe ? '<div style="font-size:0.72rem;color:#6B7280;margin-top:2px;line-height:1.45">' + escapeHtml(b.whyHe) + '</div>' : '') +
+        (b.actionHe ? '<div style="font-size:0.72rem;color:#1D4ED8;margin-top:3px;line-height:1.45">↳ ' + escapeHtml(b.actionHe) + '</div>' : '') +
+        (b.area === 'tracking' ? '<button class="btn btn-outline btn-sm" style="font-size:0.7rem;margin-top:6px" onclick="(document.getElementById(\'gtm-card\')||{}).scrollIntoView&&document.getElementById(\'gtm-card\').scrollIntoView({behavior:\'smooth\',block:\'center\'})">← לכרטיס GTM לפתרון</button>' : '') +
+      '</div>';
+    });
+  });
+  el.innerHTML = h;
+}
+
 // Sync GTM + GA4 card UI from instanceData.googleTokens.scopes
 function updateGoogleScopeCards() {
   var aliases = _currentGoogleScopeAliases();
@@ -28007,6 +28071,7 @@ function updateGoogleScopeCards() {
     if (hasGtm) {
       gtmCard.classList.add('connected-card');
       if (typeof loadGtmDiagnostic === 'function') loadGtmDiagnostic(false);
+      if (typeof loadSetupReadiness === 'function') loadSetupReadiness(false);
     } else {
       gtmCard.classList.remove('connected-card');
       var gtmStatus = document.getElementById('gtm-status');
