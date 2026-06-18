@@ -9175,6 +9175,23 @@ export const saveMazhirGtmTarget = async (c: Context) => {
         if (!body.accountId || !body.containerId) return fail(c, 'accountId + containerId required', 400)
         const { resolveActiveAgent } = await import('@/services/agentContext')
         const __agent = await resolveActiveAgent(c, instanceId)
+        // Auto-capture the GA4 Measurement ID by site domain when the frontend
+        // didn't supply one — otherwise the target keeps an empty measurementId
+        // and the platform can't see GA4 (the bug that left Moving Station's GA4
+        // "not connected"). Best-effort; reads the agent's GA4 data streams.
+        let measurementId: string | undefined = body.measurementId || undefined
+        if (!measurementId && __agent) {
+            try {
+                const rd: any = __agent.researchData || {}
+                const siteUrl = rd.answers?.websiteUrl || rd.paidProfile?.websiteUrl
+                const tokens = __agent.googleTokens
+                if (siteUrl && tokens) {
+                    const { findGa4MeasurementId } = await import('@/services/ga4Admin')
+                    const found = await findGa4MeasurementId(tokens as any, siteUrl)
+                    if (found.measurementId) measurementId = found.measurementId
+                }
+            } catch { /* best-effort */ }
+        }
         const { saveGtmTarget } = await import('@/services/mazhirGtmSetup')
         await saveGtmTarget(instanceId, {
             accountId: String(body.accountId),
@@ -9182,9 +9199,9 @@ export const saveMazhirGtmTarget = async (c: Context) => {
             publicId: String(body.publicId || ''),
             name: String(body.name || ''),
             usageContext: Array.isArray(body.usageContext) ? body.usageContext : ['web'],
-            measurementId: body.measurementId,
+            measurementId,
         }, __agent?.id)
-        return ok(c, {}, 'GTM target saved')
+        return ok(c, { measurementId: measurementId || null }, measurementId ? `GTM target saved · GA4 ${measurementId}` : 'GTM target saved')
     } catch (err) {
         return fail(c, (err as Error).message, 500)
     }
@@ -9306,7 +9323,7 @@ export const autoSetupMazhirGtm = async (c: Context) => {
         // no awct tags to wire. autoSetupGtmContainer still creates baseline
         // infrastructure (Conversion Linker, GCLID Capture) and publishes —
         // useful for Enhanced Conversions to work cleanly.
-        const { autoSetupGtmContainer, saveGtmSetupResult, detectSiteCmp } = await import('@/services/mazhirGtmSetup')
+        const { autoSetupGtmContainer, saveGtmSetupResult, detectSiteCmp, saveGtmTarget } = await import('@/services/mazhirGtmSetup')
         // Detect a CMP on the tenant's site → it owns Google Consent Mode, so we
         // skip our own consent default/update tags (double-management suppressed
         // measurement on Packing). Resolve the site URL from answers, else WP.
@@ -9315,6 +9332,19 @@ export const autoSetupMazhirGtm = async (c: Context) => {
             try { const { loadWpConfig } = await import('@/services/seoMetaBatch'); siteUrl = (await loadWpConfig(instanceId, __agent?.id || null))?.url } catch { /* best-effort */ }
         }
         const cmpDetected = await detectSiteCmp(siteUrl).catch(() => false)
+        // Self-heal: if the saved GTM target has no GA4 Measurement ID (captured
+        // before auto-capture existed, e.g. Moving Station), resolve it by site
+        // domain now so the GA4 base tag wires correctly + GA4 becomes visible.
+        if (target && !target.measurementId && siteUrl) {
+            try {
+                const { findGa4MeasurementId } = await import('@/services/ga4Admin')
+                const found = await findGa4MeasurementId(googleTokens as any, siteUrl)
+                if (found.measurementId) {
+                    target.measurementId = found.measurementId
+                    await saveGtmTarget(instanceId, target, __agent?.id)
+                }
+            } catch { /* best-effort */ }
+        }
         // Detect a WooCommerce store → create the GA4 purchase event tag
         // out-of-the-box (the companion already pushes a `purchase` dataLayer
         // event; without a tag listening for it GA4 never records purchases).
