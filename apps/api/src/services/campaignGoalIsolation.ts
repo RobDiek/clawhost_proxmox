@@ -223,8 +223,16 @@ async function applyIsolation(
  * bridge becoming primary) never enters the goal, so smart bidding keeps
  * optimizing on a stale/lossy action. Targets the goal the campaigns ACTUALLY
  * use (read from conversion_goal_campaign_config) — robust to goal naming.
+ *
+ * SHARED-GOAL GUARD (2026-06-18): before overwriting a goal's membership, verify
+ * it is used ONLY by THIS brand's scoped campaigns. If a sibling-brand campaign
+ * (mis-scope leftover, e.g. Moving's campaign inheriting Packing's goal) also
+ * points at the same custom goal, a blind overwrite contaminates the sibling's
+ * bidding. In that case we DON'T touch the shared goal — we split: create/reuse
+ * a dedicated goal for this brand's actions and re-point only this brand's
+ * scoped campaigns at it, leaving the shared goal intact for the siblings.
  */
-async function resyncIsolatedGoals(at: string, an: Analysis): Promise<string[]> {
+async function resyncIsolatedGoals(at: string, an: Analysis, brandName: string): Promise<string[]> {
     const { operatingCustomerId: cust, loginCustomerId: login, devToken } = an
     if (an.isolatedActionResources.length === 0 || an.scopedCampaignIds.length === 0) return []
     const rows = await adsSearch(at, devToken, cust, login,
@@ -233,8 +241,26 @@ async function resyncIsolatedGoals(at: string, an: Analysis): Promise<string[]> 
         .filter(r => r.conversionGoalCampaignConfig?.goalConfigLevel === 'CAMPAIGN' && r.conversionGoalCampaignConfig?.customConversionGoal)
         .map(r => String(r.conversionGoalCampaignConfig.customConversionGoal))))
     const desired = [...an.isolatedActionResources].sort()
+    const scopedSet = new Set(an.scopedCampaignIds)
     const updated: string[] = []
     for (const goalRes of goalResources) {
+        // ── guard: is this goal SHARED with non-scoped (sibling) campaigns? ──
+        const usersRows = await adsSearch(at, devToken, cust, login,
+            `SELECT campaign.id FROM conversion_goal_campaign_config WHERE conversion_goal_campaign_config.custom_conversion_goal = '${goalRes}'`)
+        const usingIds = usersRows.map(r => String(r.campaign?.id)).filter(Boolean)
+        const sharedWithSiblings = usingIds.some(id => !scopedSet.has(id))
+        if (sharedWithSiblings) {
+            // Don't overwrite a shared goal. Split: dedicate a goal to THIS
+            // brand + re-point only this brand's campaigns that use the shared
+            // goal. Leaves the shared goal untouched for the sibling campaigns.
+            const ours = usingIds.filter(id => scopedSet.has(id))
+            if (!ours.length) continue
+            const res = await applyIsolation(at, { operatingCustomerId: cust, loginCustomerId: login, devToken }, brandName, an.isolatedActionResources, ours)
+            console.warn(`[goalIsolation] shared-goal guard: ${goalRes} shared with siblings → split brand=${brandName} → ${res.customGoalResource} (re-pointed ${ours.join(',')})`)
+            updated.push(`split:${res.customGoalResource}`)
+            continue
+        }
+        // not shared → safe to overwrite this brand's own goal in place
         const g = await adsSearch(at, devToken, cust, login,
             `SELECT custom_conversion_goal.resource_name, custom_conversion_goal.conversion_actions FROM custom_conversion_goal WHERE custom_conversion_goal.resource_name = '${goalRes}'`)
         const current: string[] = (g[0]?.customConversionGoal?.conversionActions || []).map(String)
@@ -297,9 +323,11 @@ export async function ensureCampaignGoalIsolation(agent: MatehAgentRow, opts: { 
     if (an.reason === 'already_isolated') {
         // Campaigns are isolated, but the goal's action membership can drift when a
         // conversion action is promoted/added later. Re-sync it to the current
-        // primary set (the only safe mutation here — no campaign re-pointing).
+        // primary set. Overwrites in place when the goal is this brand's alone;
+        // if the goal is shared with sibling campaigns, the guard splits instead
+        // of contaminating them (see resyncIsolatedGoals).
         try {
-            const resynced = await resyncIsolatedGoals(at, an)
+            const resynced = await resyncIsolatedGoals(at, an, agent.name || 'agent')
             if (resynced.length) {
                 await notify(agent, `✅ *מטרת ההמרה עודכנה* (${agent.name})\nהקמפיינים שלכם מותאמים כעת לפעולת הרכישה המדויקת והעדכנית בלבד.`)
                 return { status: 'resynced', reason: 'goal_membership_resynced', siblingNames: an.siblingNames, isolatedActionCount: an.isolatedActionResources.length, resyncedGoals: resynced }
