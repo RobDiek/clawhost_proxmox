@@ -124,6 +124,9 @@ startOfflineConversionRunner()
 import { startAdsRecommendationsRunner } from '@/services/adsRecommendationsRunner'
 startAdsRecommendationsRunner()
 
+import { startFoundationRunner } from '@/services/foundationTaskGenerator'
+startFoundationRunner()
+
 // One-shot research data migration: legacy researchData.stage1..stage5
 // → new intent + plan + results shape (docs/research-pipeline-design.md §10).
 // Idempotent — already-migrated rows are skipped. Deferred 30s after boot

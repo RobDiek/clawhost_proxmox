@@ -2135,6 +2135,33 @@ async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
         return
     }
 
+    // Campaign Foundation review approved → apply the foundation deltas
+    // (sibling/account negatives, broad→phrase, PAUSED ad-group creates +
+    // keywords) on the PER-AGENT operating account. Creates land PAUSED.
+    if (output.outputType === 'ads_foundation_review') {
+        console.log(`Foundation review approved: ${output.id} → applying deltas`)
+        try {
+            const { applyFoundationFromTask } = await import('@/services/foundationApplier')
+            const r = await applyFoundationFromTask(output)
+            await db.update(agentOutputs).set({
+                metadata: {
+                    ...(meta || {}),
+                    liveApiStatus: r.ok ? 'applied' : (r.applied.length ? 'partial' : 'failed'),
+                    applyResult: { applied: r.applied, failed: r.failed, error: r.error },
+                    appliedAt: new Date().toISOString(),
+                } as any,
+                updatedAt: new Date(),
+            }).where(eq(agentOutputs.id, output.id))
+        } catch (err) {
+            console.error('applyFoundationFromTask error:', err)
+            await db.update(agentOutputs).set({
+                metadata: { ...(meta || {}), liveApiStatus: 'failed', applyError: (err as Error).message } as any,
+                updatedAt: new Date(),
+            }).where(eq(agentOutputs.id, output.id))
+        }
+        return
+    }
+
     // Imported-campaign objective transition approved → apply tROAS/tCPA to an
     // existing (non-Flowmatic-launched) campaign, handling Pmax vs standard fields
     // and the MCC operating/login customer ids.
