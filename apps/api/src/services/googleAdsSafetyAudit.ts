@@ -282,15 +282,23 @@ export async function auditGoogleAdsSafety(opts: AdsSafetyAuditInput): Promise<A
 
     // 2. Change history velocity
     try {
+        // v22 — change_event rejects `DURING LAST_7_DAYS` (needs an explicit
+        // BETWEEN datetime range, requires ORDER BY + LIMIT, and the field is
+        // `change_resource_type`, not `resource_type`). Mirrors the working
+        // query in googleAdsDeepEnrich.pullChangeHistory.
+        const _end = new Date()
+        const _start = new Date(_end.getTime() - 7 * 24 * 3600 * 1000)
+        const _fmt = (d: Date) => `${d.toISOString().slice(0, 10)} ${d.toISOString().slice(11, 19)}`
         const changeRows = await gadsQuery(
             opts.operatingCustomerId,
             opts.loginCustomerId,
             opts.developerToken,
             opts.tokens,
             `SELECT change_event.change_date_time, change_event.user_email,
-                    change_event.changed_fields, change_event.resource_type
+                    change_event.changed_fields, change_event.change_resource_type
              FROM change_event
-             WHERE change_event.change_date_time DURING LAST_7_DAYS
+             WHERE change_event.change_date_time BETWEEN '${_fmt(_start)}' AND '${_fmt(_end)}'
+             ORDER BY change_event.change_date_time DESC
              LIMIT 100`,
         )
         snap.changeEventsLast7d = changeRows.length
