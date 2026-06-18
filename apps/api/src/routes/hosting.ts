@@ -117,6 +117,8 @@ import {
     resolveTrackingConflictHandler,
     getSetupReadiness,
     runSetupReadinessAuditHandler,
+    previewPageRefresh,
+    publishPageRefreshDraftHandler,
     getAgentStats,
     draftContentPlanItem,
     getMediaSettings,
@@ -589,6 +591,8 @@ app.get('/instances/:id/mazhir/gtm/conflicts', getTrackingConflicts)
 app.post('/instances/:id/mazhir/gtm/resolve-conflict', resolveTrackingConflictHandler)
 app.get('/instances/:id/setup-readiness', getSetupReadiness)
 app.post('/instances/:id/setup-readiness/audit', runSetupReadinessAuditHandler)
+app.post('/instances/:id/mazhir/page-refresh/preview', previewPageRefresh)
+app.post('/instances/:id/mazhir/page-refresh/publish', publishPageRefreshDraftHandler)
 app.get('/instances/:id/stats', getAgentStats)
 app.get('/instances/:id/media/settings', getMediaSettings)
 app.post('/instances/:id/media/settings', updateMediaSettings)

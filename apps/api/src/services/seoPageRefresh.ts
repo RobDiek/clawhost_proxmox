@@ -31,7 +31,7 @@ export interface PageRefreshResult {
     scanned: number
     candidates: number
     targetWords: number
-    updated: Array<{ type: string; id: number; title: string; link: string; beforeWords: number; afterWords: number }>
+    updated: Array<{ type: string; id: number; title: string; link: string; beforeWords: number; afterWords: number; draftHtml?: string }>
     failures: Array<{ type: string; id: number; error: string }>
     error?: string
 }
@@ -183,7 +183,10 @@ export async function runPageRefresh(
             const html = await expandContent(apiKey, model, businessName, t, targetWords)
             if (!html) { result.failures.push({ type: t.type, id: t.id, error: 'expansion did not increase length' }); continue }
             if (!opts.dryRun) await writeContent(cfg, t, html)
-            result.updated.push({ type: t.type, id: t.id, title: t.title, link: t.link, beforeWords: t.words, afterWords: wordCount(html) })
+            // Return the generated draft so it can be PREVIEWED before publishing
+            // (publish-only-after-quality-check). On a real (non-dryRun) write the
+            // html is already live, but we still return it for the output record.
+            result.updated.push({ type: t.type, id: t.id, title: t.title, link: t.link, beforeWords: t.words, afterWords: wordCount(html), draftHtml: html })
         } catch (err) {
             const msg = (err as Error).message
             if (/^(401|403)\b/.test(msg)) result.authError = true
@@ -192,4 +195,28 @@ export async function runPageRefresh(
     }
     result.ok = result.updated.length > 0 || result.failures.length === 0
     return result
+}
+
+/**
+ * Publish-after-review: write the EXACT drafts the user reviewed (no
+ * regeneration → what's published is what was approved). Used by the
+ * preview-before-publish flow.
+ */
+export async function publishPageRefreshDraft(
+    instanceId: string,
+    opts: { agentId?: string | null },
+    drafts: Array<{ type: WpType; id: number; html: string }>,
+): Promise<{ ok: boolean; integrationMissing?: boolean; published: Array<{ type: string; id: number }>; failures: Array<{ type: string; id: number; error: string }> }> {
+    const out = { ok: false, published: [] as Array<{ type: string; id: number }>, failures: [] as Array<{ type: string; id: number; error: string }> }
+    const cfg = await loadWpConfig(instanceId, opts.agentId) as WpCfg | null
+    if (!cfg) return { ...out, integrationMissing: true }
+    for (const d of drafts) {
+        if (!d || !d.id || !d.html) { out.failures.push({ type: d?.type || '?', id: d?.id || 0, error: 'missing id/html' }); continue }
+        try {
+            await writeContent(cfg, { type: d.type, id: d.id } as Target, d.html)
+            out.published.push({ type: d.type, id: d.id })
+        } catch (err) { out.failures.push({ type: d.type, id: d.id, error: (err as Error).message }) }
+    }
+    out.ok = out.published.length > 0
+    return out
 }

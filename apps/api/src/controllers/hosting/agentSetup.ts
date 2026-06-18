@@ -9844,6 +9844,42 @@ export const runSetupReadinessAuditHandler = async (c: Context) => {
     }
 }
 
+// ─── POST /hosting/instances/:id/mazhir/page-refresh/preview ───────────────
+// Generate the page-refresh DRAFTS (dryRun, NOT published) so the user can
+// review the actual content before it goes live (publish-after-quality-check).
+export const previewPageRefresh = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const agent = await resolveActiveAgent(c, instanceId)
+        const body = await c.req.json<{ targetWords?: number; namedPages?: string[] }>().catch(() => ({} as any))
+        const rd: any = (agent && agent.researchData) || {}
+        const { runPageRefresh } = await import('@/services/seoPageRefresh')
+        const res = await runPageRefresh(instanceId, { agentId: agent?.id, businessName: rd?.answers?.businessName, targetWords: body.targetWords, namedPages: body.namedPages, dryRun: true })
+        return ok(c, res, res.integrationMissing ? 'WordPress לא מחובר' : (res.updated.length ? `${res.updated.length} טיוטות מוכנות לבדיקה` : 'אין דפים דקים לרענון'))
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/page-refresh/publish ───────────────
+// Publish the EXACT reviewed drafts (no regeneration) — only after the user's
+// explicit OK. Body: { drafts: [{ type, id, html }] }.
+export const publishPageRefreshDraftHandler = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const agent = await resolveActiveAgent(c, instanceId)
+        const body = await c.req.json<{ drafts: Array<{ type: 'posts' | 'pages'; id: number; html: string }> }>().catch(() => ({ drafts: [] as any }))
+        if (!Array.isArray(body.drafts) || !body.drafts.length) return fail(c, 'drafts required', 400)
+        const { publishPageRefreshDraft } = await import('@/services/seoPageRefresh')
+        const r = await publishPageRefreshDraft(instanceId, { agentId: agent?.id }, body.drafts)
+        return ok(c, r, r.integrationMissing ? 'WordPress לא מחובר' : (r.ok ? `פורסמו ${r.published.length} דפים` : 'הפרסום נכשל'))
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/content-plan/items/:itemId/archive ───────
 // Soft-archive a plan item: sets status to 'archived' + stamps archivedAt.
 // The calendar hides archived items by default; the user can restore by
