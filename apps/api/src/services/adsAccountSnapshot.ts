@@ -32,6 +32,7 @@ import type { MatehAgentRow } from '@/services/agentContext'
 import { pullSearchTermsReport, type CampaignScope } from '@/services/googleAdsDeepEnrich'
 import { auditGoogleAdsSafety, type AdsSafetyReport } from '@/services/googleAdsSafetyAudit'
 import { getSiblingBrands, type SiblingBrand } from '@/services/siblingBrands'
+import { analyzeScopeIntegrity, renderScopeIntegrity, type ScopeIntegrityReport } from '@/services/adsScopeIntegrity'
 
 const ADS = 'https://googleads.googleapis.com/v22'
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
@@ -178,6 +179,8 @@ export interface AccountSnapshot {
     perf14dTotal: Perf
     searchTerms?: Awaited<ReturnType<typeof pullSearchTermsReport>>
     safety?: AdsSafetyReport
+    // account-wide scope-integrity guard (mis-scope / shared / orphaned campaigns)
+    scopeIntegrity?: ScopeIntegrityReport
     // which sources failed (per-source resilience — a failing query never sinks the snapshot)
     sourceErrors: Record<string, string>
 }
@@ -455,6 +458,11 @@ export async function buildAccountSnapshot(agent: MatehAgentRow): Promise<Accoun
         snap.siblingBrands = await getSiblingBrands(agent.vpsInstanceId, agent.id)
     } catch (e) { err('siblingBrands', e) }
 
+    // ── Scope-integrity guard (systemic — runs for any tenant) ────────────────
+    try {
+        snap.scopeIntegrity = await analyzeScopeIntegrity(agent.vpsInstanceId)
+    } catch (e) { err('scopeIntegrity', e) }
+
     return snap
 }
 
@@ -506,6 +514,7 @@ export function renderSnapshotReport(s: AccountSnapshot): string {
         L.push(`── SQR WASTE (14d): ${s.searchTerms.estimatedWastedSpendPct}% est. waste · top: ${s.searchTerms.wasteByPattern.slice(0, 5).map(w => `"${w.pattern}"`).join(', ') || 'none'}`)
     } else L.push(`── SQR WASTE (14d): unavailable (${s.searchTerms?.reason || 'n/a'})`)
     if (s.safety) L.push(`── SAFETY: ${s.safety.summary} (${s.safety.findings.length} findings)`)
+    if (s.scopeIntegrity) { L.push(''); L.push(renderScopeIntegrity(s.scopeIntegrity)) }
     if (Object.keys(s.sourceErrors).length) {
         L.push('')
         L.push(`⚠ SOURCE ERRORS: ${Object.entries(s.sourceErrors).map(([k, v]) => `${k}=${v}`).join(' | ')}`)
