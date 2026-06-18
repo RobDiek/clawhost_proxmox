@@ -9734,6 +9734,40 @@ export const installGtmSnippetAuto = async (c: Context) => {
     }
 }
 
+// ─── GET /hosting/instances/:id/mazhir/gtm/conflicts ──────────────────────
+// Conflict-aware analytics setup: detect a FOREIGN GTM container / competing
+// tracking plugin on the live site before installing ours (avoids double-GTM).
+export const getTrackingConflicts = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const agent = await resolveActiveAgent(c, instanceId)
+        const { detectTrackingConflicts } = await import('@/services/trackingConflictResolver')
+        const r = await detectTrackingConflicts(instanceId, agent?.id || null)
+        return ok(c, r, r.hasConflict ? 'זוהה קונפליקט מעקב' : 'אין קונפליקט מעקב')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/mazhir/gtm/resolve-conflict ───────────────
+// The user's fork: { mode: 'integrate' | 'replace' }.
+export const resolveTrackingConflictHandler = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const body = await c.req.json<{ mode: 'integrate' | 'replace' }>().catch(() => ({} as any))
+        if (body.mode !== 'integrate' && body.mode !== 'replace') return fail(c, "mode חייב להיות 'integrate' או 'replace'", 400)
+        const agent = await resolveActiveAgent(c, instanceId)
+        const { resolveTrackingConflict } = await import('@/services/trackingConflictResolver')
+        const r = await resolveTrackingConflict(instanceId, agent?.id || null, body.mode)
+        // 200 with the structured result either way — the card inspects r.ok/r.clean.
+        return ok(c, r, r.ok ? (r.clean ? '✓ הסתיים — קונטיינר יחיד (שלנו) באתר' : '✓ בוצע') : (r.error || 'הפעולה נכשלה'))
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/content-plan/items/:itemId/archive ───────
 // Soft-archive a plan item: sets status to 'archived' + stamps archivedAt.
 // The calendar hides archived items by default; the user can restore by

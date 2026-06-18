@@ -311,6 +311,29 @@ export async function installGtmSnippet(
     }
 }
 
+/**
+ * Point a third-party tracking plugin's GTM container at OURS (the "integrate"
+ * conflict-resolution path) — keeps the plugin + its Meta/Woo, swaps only the
+ * GTM container id. `probe:true` asks the companion whether it supports the
+ * endpoint (older companions return 404 → supported:false → caller falls back
+ * to "replace" or prompts a companion update). Currently knows PixelYourSite.
+ */
+export async function setPluginGtmContainer(
+    cfg: WpCfg,
+    plugin: string,
+    publicId: string,
+    opts: { probe?: boolean } = {},
+): Promise<{ ok: boolean; supported: boolean; error?: string; changes?: string[] }> {
+    try {
+        const res = await wpPostJson(cfg, '/wp-json/clawflow/v1/set-plugin-gtm', { plugin, publicId, probe: !!opts.probe })
+        return { ok: !!res.ok, supported: true, changes: res.changes }
+    } catch (err) {
+        const msg = (err as Error).message
+        if (/\b404\b|rest_no_route|no route|not.?found/i.test(msg)) return { ok: false, supported: false, error: 'endpoint_not_available' }
+        return { ok: false, supported: true, error: msg }
+    }
+}
+
 export interface WpCapabilities {
     pluginVersion: string
     wordpressVersion: string

@@ -113,6 +113,8 @@ import {
     executeMazhirPlan,
     getMazhirWpSnippet,
     installGtmSnippetAuto,
+    getTrackingConflicts,
+    resolveTrackingConflictHandler,
     getAgentStats,
     draftContentPlanItem,
     getMediaSettings,
@@ -581,6 +583,8 @@ app.post('/instances/:id/mazhir/execute', executeMazhirPlan)
 app.get('/instances/:id/mazhir/wp-snippet', getMazhirWpSnippet)
 // One-click auto-install of the GTM snippet (WordPress companion or GitHub PR).
 app.post('/instances/:id/mazhir/gtm/install-snippet', installGtmSnippetAuto)
+app.get('/instances/:id/mazhir/gtm/conflicts', getTrackingConflicts)
+app.post('/instances/:id/mazhir/gtm/resolve-conflict', resolveTrackingConflictHandler)
 app.get('/instances/:id/stats', getAgentStats)
 app.get('/instances/:id/media/settings', getMediaSettings)
 app.post('/instances/:id/media/settings', updateMediaSettings)

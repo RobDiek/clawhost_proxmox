@@ -50,7 +50,18 @@ export interface DiagnosticActionOAuth {
     endpoint: string                   // OAuth initiation URL
 }
 
-export type DiagnosticAction = DiagnosticActionAutoFix | DiagnosticActionManual | DiagnosticActionOAuth
+// A fork: the user chooses ONE path (e.g. integrate vs replace). The frontend
+// renders one button per option; each POSTs `{ [optionKey]: option.value }` to
+// `endpoint`. Used by the tracking-conflict gate.
+export interface DiagnosticActionFork {
+    type: 'fork'
+    label: string                      // chip/heading label
+    endpoint: string
+    optionKey: string                  // body key to send (e.g. 'mode')
+    options: Array<{ value: string; label: string; description?: string; recommended?: boolean }>
+}
+
+export type DiagnosticAction = DiagnosticActionAutoFix | DiagnosticActionManual | DiagnosticActionOAuth | DiagnosticActionFork
 
 export interface DiagnosticGate {
     id: string
@@ -483,6 +494,44 @@ export async function runGtmDiagnostic(instanceId: string, agentId: string | nul
                             // only firing requires install. We warn but proceed.
         action: installAction,
     })
+
+    // ── Gate 6.5: No conflicting tracking (foreign GTM container / competing
+    // plugin) ── A blind "install our snippet" alongside an existing container
+    // (e.g. PixelYourSite's) yields a DOUBLE GTM / double-GA4. Detect it and
+    // offer the integrate-vs-replace fork instead of silently double-installing.
+    if (pickedOk && siteUrl) {
+        try {
+            const { detectTrackingConflicts } = await import('./trackingConflictResolver')
+            const conf = await detectTrackingConflicts(instanceId, agent?.id || null)
+            if (conf.ok && conf.hasConflict) {
+                const competitors = conf.competingPlugins.map(p => p.name).filter(Boolean)
+                gates.push({
+                    id: 'gtm_no_conflict',
+                    label: 'אין מעקב כפול',
+                    status: 'warn',
+                    blocking: true,    // block blind install — must resolve the fork first
+                    message: conf.foreignContainers.length
+                        ? `זוהה קונטיינר GTM אחר באתר (${conf.foreignContainers.join(', ')})${competitors.length ? ` — ${competitors.join(', ')}` : ''} — התקנה ישירה תיצור מעקב כפול`
+                        : `זוהו תוספי מעקב מתחרים: ${competitors.join(', ')}`,
+                    detail: conf.recommendedMode === 'integrate'
+                        ? 'מומלץ "שילוב": נשאיר את התוסף הקיים (כולל Meta Pixel) ונפנה את ה-GTM שלו לקונטיינר שלנו — מינימום שינוי.'
+                        : 'מומלץ "החלפה": ננטרל את המעקב המתחרה ונתקין רק את הקונטיינר שלנו — שליטה מלאה, אך נאבד תכונות של התוסף הקיים.',
+                    action: {
+                        type: 'fork',
+                        label: 'בחרו דרך',
+                        endpoint: `/hosting/instances/${instanceId}/mazhir/gtm/resolve-conflict`,
+                        optionKey: 'mode',
+                        options: [
+                            { value: 'integrate', label: '🔧 שילוב (שמירה על הקיים)', description: 'הפניית ה-GTM של התוסף הקיים לקונטיינר שלנו; Meta/Woo נשמרים', recommended: conf.recommendedMode === 'integrate' && conf.canIntegrate },
+                            { value: 'replace', label: '🧹 החלפה (ניקוי והתקנה שלנו)', description: 'נטרול המעקב המתחרה + התקנת הקונטיינר שלנו בלבד', recommended: conf.recommendedMode === 'replace' },
+                        ],
+                    },
+                })
+            } else if (conf.ok) {
+                gates.push({ id: 'gtm_no_conflict', label: 'אין מעקב כפול', status: 'pass', blocking: false, message: 'קונטיינר יחיד (שלנו) — אין מעקב כפול' })
+            }
+        } catch { /* detection best-effort — never block the diagnostic itself */ }
+    }
 
     // ── Gate 7: Publish permission on the picked container ──
     // Phase 4.2.2-C2 fix: this gate is NEVER hard-`fail` from historical
