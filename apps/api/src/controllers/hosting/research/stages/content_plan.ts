@@ -67,7 +67,7 @@ export async function run(c: Context): Promise<Response> {
         const weeksAhead = body.weeksAhead || 4
 
         const { generateContentPlan } = await import('../../agentSetup')
-        const plan = await generateContentPlan(instanceId, { weeksAhead, startDate })
+        const plan = await generateContentPlan(instanceId, { weeksAhead, startDate, agentId: __agent?.id })
 
         // Persist the new plan items, preserving in-progress items (matches
         // the existing regenerateContentPlan handler's preservation logic so

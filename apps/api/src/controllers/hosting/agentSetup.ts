@@ -3,7 +3,7 @@ import { readFileSync, readdirSync, statSync } from 'fs'
 import { resolve, join, relative } from 'path'
 import { eq, and, notInArray } from 'drizzle-orm'
 import { db } from '@/db'
-import { instances, tenants, agentOutputs, brandBooks } from '@/db/schema'
+import { instances, tenants, agentOutputs, brandBooks, matehAgents } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
@@ -7515,12 +7515,22 @@ JSON only.`
 // Monthly revision: re-call with performanceContext to adjust next 4 weeks.
 export async function generateContentPlan(
     instanceId: string,
-    opts: { weeksAhead?: number; startDate?: Date; performanceContext?: string } = {}
+    opts: { weeksAhead?: number; startDate?: Date; performanceContext?: string; agentId?: string } = {}
 ): Promise<ContentPlanItem[]> {
     const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!instance) throw new Error('Instance not found')
 
-    const rd = (instance.researchData as any) || {}
+    // Per-agent research_data: a secondary agent (e.g. a sibling brand) keeps
+    // its research + chosenScenario in mateh_agents.researchData, NOT the
+    // instance row. Read the ACTIVE agent's rd when an agentId is given;
+    // fall back to the instance row for legacy single-agent instances.
+    // Without this, content_plan for a secondary agent derives 0 pillars
+    // (chosenScenario/positioning live on the agent, not the instance).
+    let rd = (instance.researchData as any) || {}
+    if (opts.agentId) {
+        const [agentRow] = await db.select().from(matehAgents).where(eq(matehAgents.id, opts.agentId))
+        if (agentRow?.researchData) rd = agentRow.researchData as any
+    }
     const answers = rd.answers || {}
     const scenario = rd.chosenScenario || {}
     const products = answers.products || []
