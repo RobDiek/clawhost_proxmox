@@ -3,7 +3,7 @@
  * Plugin Name: Flowmatic Companion
  * Plugin URI: https://flowmatic.co.il
  * Description: Flowmatic platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, first-party GCLID capture (survives payment-gateway redirect → order meta for the offline Ads bridge), server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
- * Version: 1.13.0
+ * Version: 1.14.0
  * Author: Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -1094,6 +1094,37 @@ add_action('rest_api_init', function () {
                 }
             }
             return ['ok' => true, 'deleted' => $deleted, 'rejected' => $rejected];
+        },
+    ]);
+
+    // POST /clawflow/v1/set-plugin-gtm — point a third-party tracking plugin's
+    // GTM container at OURS (the conflict-aware "integrate" path). Keeps the
+    // plugin + its Meta/Woo; swaps only the GTM container id, so the site loads
+    // a single container (ours) with our fixtures. `probe:true` lets the platform
+    // feature-detect this endpoint without changing anything.
+    register_rest_route('clawflow/v1', '/set-plugin-gtm', [
+        'methods'             => 'POST',
+        'permission_callback' => function () { return current_user_can('manage_options'); },
+        'callback'            => function (WP_REST_Request $req) {
+            $plugin   = sanitize_text_field((string)$req->get_param('plugin'));
+            $publicId = sanitize_text_field((string)$req->get_param('publicId'));
+            if ((bool)$req->get_param('probe')) return ['ok' => true, 'supported' => true, 'changes' => []];
+            if (!$plugin || !preg_match('/^GTM-[A-Z0-9]{4,}$/', $publicId)) {
+                return new WP_Error('bad_args', 'plugin + valid GTM-XXXX publicId required', ['status' => 400]);
+            }
+            $changes = [];
+            if ($plugin === 'pixelyoursite') {
+                // PixelYourSite stores its GTM container in pys_core_settings.
+                $core = get_option('pys_core_settings', []);
+                if (!is_array($core)) $core = [];
+                $core['gtm_id'] = $publicId;
+                $core['gtm_enabled'] = '1';
+                update_option('pys_core_settings', $core, false);
+                $changes[] = 'pys_core_settings.gtm_id → ' . $publicId . ' (enabled)';
+            } else {
+                return new WP_Error('unsupported_plugin', "integrate not supported for {$plugin} — use replace", ['status' => 422]);
+            }
+            return ['ok' => true, 'supported' => true, 'changes' => $changes];
         },
     ]);
 

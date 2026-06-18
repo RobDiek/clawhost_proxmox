@@ -28384,7 +28384,20 @@ function _gtmGateRowHtml(gate) {
   };
   var c = COLORS[gate.status] || COLORS.pending;
   var actionBtn = '';
-  if (gate.action && gate.status !== 'pass' && gate.status !== 'skipped') {
+  if (gate.action && gate.action.type === 'fork' && gate.status !== 'pass' && gate.status !== 'skipped') {
+    // Fork: render one button per option (e.g. integrate vs replace).
+    actionBtn = '<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">' +
+      (gate.action.options || []).map(function(opt) {
+        var gidJson = JSON.stringify(gate.id).replace(/"/g, '&quot;');
+        var valJson = JSON.stringify(opt.value).replace(/"/g, '&quot;');
+        var recStyle = opt.recommended ? 'border:2px solid #2563EB' : 'border:1px solid #D1D5DB';
+        return '<button onclick="_gtmForkClick(' + gidJson + ',' + valJson + ')" style="font-size:0.76rem;text-align:right;background:#fff;color:#1F2937;border-radius:7px;padding:7px 10px;cursor:pointer;' + recStyle + '">' +
+          '<div style="font-weight:600">' + _escapeHtml(opt.label) + (opt.recommended ? ' <span style="font-size:0.66rem;color:#2563EB">(מומלץ)</span>' : '') + '</div>' +
+          (opt.description ? '<div style="font-size:0.68rem;opacity:0.7;font-weight:400;margin-top:2px;line-height:1.4">' + _escapeHtml(opt.description) + '</div>' : '') +
+        '</button>';
+      }).join('') +
+    '</div>';
+  } else if (gate.action && gate.status !== 'pass' && gate.status !== 'skipped') {
     var label = _escapeHtml(gate.action.label || 'פעולה');
     actionBtn = '<button class="btn btn-outline btn-sm" onclick="_gtmGateActionClick(' + JSON.stringify(gate.id).replace(/"/g, '&quot;') + ')" style="font-size:0.74rem;margin-top:6px">' + label + ' →</button>';
   }
@@ -28486,6 +28499,32 @@ async function _gtmGateActionClick(gateId) {
   }
   // ── manual: show modal with steps + open external URL in new tab
   _showGtmManualInstructions(gate);
+}
+
+// Fork action (e.g. the tracking-conflict gate): user picks one path
+// (integrate / replace) → POST { [optionKey]: value } to the gate endpoint.
+async function _gtmForkClick(gateId, modeValue) {
+  var btn = event && event.target && event.target.closest ? event.target.closest('button') : (event && event.target);
+  var r = await apiFetch('/hosting/instances/' + instanceId + '/integrations/gtm/diagnostic');
+  if (!r.success) { showToast('שגיאה: ' + r.message, 'error'); return; }
+  var gate = ((r.data || {}).gates || []).find(function(g) { return g.id === gateId; });
+  if (!gate || !gate.action || gate.action.type !== 'fork') { showToast('פעולה לא זמינה', 'warning'); return; }
+  var opt = (gate.action.options || []).find(function(o) { return o.value === modeValue; });
+  var warn = modeValue === 'replace'
+    ? '\n\n⚠ "החלפה" תנטרל את תוסף המעקב המתחרה (כולל ה-Meta Pixel שלו אם קיים).'
+    : '';
+  if (!confirm((opt ? opt.label : modeValue) + (opt && opt.description ? '\n\n' + opt.description : '') + warn + '\n\nלהמשיך?')) return;
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+  try {
+    var body = {}; body[gate.action.optionKey || 'mode'] = modeValue;
+    var actR = await apiFetch(gate.action.endpoint, { method: 'POST', body: JSON.stringify(body) });
+    if (!actR.success) throw new Error(actR.message || 'failed');
+    showToast(actR.message || 'בוצע ✓', 'success');
+    await loadGtmDiagnostic(true);
+  } catch (err) {
+    showToast('שגיאה: ' + (err.message || err), 'error');
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+  }
 }
 
 function _showGtmManualInstructions(gate) {
