@@ -46,7 +46,28 @@ export async function chooseScenario(c: Context): Promise<Response> {
         _autoSelected: false,
     }
 
-    await writeResearchData(agent, instanceId, { ...rd, chosenScenario })
+    // Picking a scenario IS the decision that makes the strategy fresh — clear
+    // the staleness markers that the strategy_options run cascaded onto its
+    // dependent wrappers (chosenScenario, marketingIntents, …). Otherwise the
+    // "שלבים שיש לרענן" banner lingers after a deliberate choice even though
+    // nothing actually needs refreshing. (Mirrors scripts/pick-scenario.ts.)
+    const rdNext = { ...rd, chosenScenario } as Record<string, unknown>
+    const fr = rdNext._artifactFreshness as Record<string, { stale?: { sourceStage?: string } }> | undefined
+    if (fr) {
+        for (const k of Object.keys(fr)) {
+            if (fr[k]?.stale?.sourceStage === 'strategy_options') delete fr[k].stale
+        }
+    }
+    const plan = rdNext.plan as { stale?: Record<string, { stale?: unknown }>; staleWrappers?: Record<string, { stale?: unknown }> } & Record<string, { stale?: unknown }> | undefined
+    for (const holder of [plan?.stale, plan?.staleWrappers, plan]) {
+        if (!holder || typeof holder !== 'object') continue
+        for (const key of ['chosenScenario', 'marketingIntents']) {
+            const h = holder as Record<string, { stale?: unknown }>
+            if (h[key]?.stale) delete h[key].stale
+        }
+    }
+
+    await writeResearchData(agent, instanceId, rdNext)
     console.log(`[research/chooseScenario] ${instanceId} agent=${agent?.id} → scenario=${scenario}`)
     return ok(c, { scenario, chosenScenario }, 'תרחיש נשמר.')
 }
