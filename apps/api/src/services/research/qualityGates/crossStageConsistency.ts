@@ -98,6 +98,22 @@ function normalizeForCompare(v: unknown): string {
  * Returns true if values diverged (i.e. upstream stage hasn't been
  * patched to match validation recommendation).
  */
+/**
+ * The strategy_options.records[] index the user actually committed
+ * (rd.chosenScenario.scenario → matching record). Used to ignore validation
+ * patches that target a scenario the user did NOT pick — otherwise switching
+ * smart↔aggressive leaves the old scenario's patches blocking forever.
+ */
+function chosenScenarioIndex(rd: Record_): number | null {
+    const chosen = (rd.chosenScenario as { scenario?: string } | undefined)?.scenario
+    if (!chosen) return null
+    const recs = ((rd.results as Record<string, { records?: Array<{ scenario?: string }> }> | undefined) || {})
+        .strategy_options?.records
+    if (!Array.isArray(recs)) return null
+    const idx = recs.findIndex(r => r?.scenario === chosen)
+    return idx >= 0 ? idx : null
+}
+
 function detectDivergence(change: Record_, rd: Record_): UnresolvedPatch | null {
     const field = String(change.field || '')
     if (!field) return null
@@ -105,6 +121,18 @@ function detectDivergence(change: Record_, rd: Record_): UnresolvedPatch | null 
     // Only process changes targeting patchable upstream stages.
     const inScope = PATCHABLE_STAGE_PREFIXES.some(p => field.startsWith(p))
     if (!inScope) return null
+
+    // Ignore patches targeting a strategy_options scenario record the user did
+    // NOT choose. The validation stage scores both scenarios (smart +
+    // aggressive); only the committed one gates downstream. Without this, a
+    // patch for records[0] (smart) keeps freezing content_plan / monthly_plan
+    // even after the user switched to records[1] (aggressive).
+    const recIdxMatch = field.match(/strategy_options\.records\[(\d+)\]/)
+    if (recIdxMatch) {
+        const patchIdx = Number(recIdxMatch[1])
+        const chosenIdx = chosenScenarioIndex(rd)
+        if (chosenIdx !== null && patchIdx !== chosenIdx) return null
+    }
 
     const actualCurrent = resolvePath(rd, field)
     const expectedTo = change.to
