@@ -9768,6 +9768,39 @@ export const resolveTrackingConflictHandler = async (c: Context) => {
     }
 }
 
+// ─── GET /hosting/instances/:id/setup-readiness ───────────────────────────
+// Self-serve "reality scan": run the detectors → readable blocker list (no
+// task creation; for the dashboard readiness panel).
+export const getSetupReadiness = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const agent = await resolveActiveAgent(c, instanceId)
+        if (!agent) return fail(c, 'Agent not found', 404)
+        const { runSetupReadinessAudit } = await import('@/services/setupReadinessAudit')
+        const r = await runSetupReadinessAudit(agent, { createTask: false })
+        return ok(c, r, r.blockers.length ? `${r.blockers.length} נושאים למוכנות` : 'מוכן ✓')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/setup-readiness/audit ─────────────────────
+// "Re-audit" button: run + create/refresh the cabinet blocker task.
+export const runSetupReadinessAuditHandler = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const agent = await resolveActiveAgent(c, instanceId)
+        if (!agent) return fail(c, 'Agent not found', 404)
+        const { runSetupReadinessAudit } = await import('@/services/setupReadinessAudit')
+        const r = await runSetupReadinessAudit(agent, { createTask: true, force: true })
+        return ok(c, r, r.taskId ? 'נוצרה משימת מוכנות' : (r.skipped === 'all_clear' ? 'הכל תקין ✓' : 'בוצע'))
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/content-plan/items/:itemId/archive ───────
 // Soft-archive a plan item: sets status to 'archived' + stamps archivedAt.
 // The calendar hides archived items by default; the user can restore by
