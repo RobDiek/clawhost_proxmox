@@ -90,18 +90,19 @@ export async function detectTrackingConflicts(instanceId: string, agentId?: stri
         const audit: any = await probeTrackingAudit(cfg).catch(() => null)
         for (const d of (audit?.detected || [])) {
             const sends = (d.sends || []).map((s: any) => s.platform || '').filter(Boolean)
-            const ownsGtm = sends.includes('gtm') || /pixelyoursite|gtm4wp|tag.?manager|site.?kit/i.test(d.plugin + d.name)
+            // ownsGtm strictly = the plugin injects a GTM container (audit says so).
+            const ownsGtm = sends.includes('gtm')
             const ownsMeta = sends.includes('meta_pixel') || /pixelyoursite/i.test(d.plugin)
-            // a plugin only matters as a conflict if it sends GTM/GA4/Ads
-            if (ownsGtm || sends.includes('ga4') || sends.includes('google_ads')) {
-                competingPlugins.push({ plugin: d.plugin, name: d.name, ownsGtm, ownsMeta, sends, resolutionHint: d.resolutionHint || '' })
-            }
+            competingPlugins.push({ plugin: d.plugin, name: d.name, ownsGtm, ownsMeta, sends, resolutionHint: d.resolutionHint || '' })
         }
         // does this companion expose the integrate endpoint?
         canIntegrate = await setPluginGtmContainer(cfg, '__probe__', 'GTM-PROBE', { probe: true }).then(r => !!r.supported).catch(() => false)
     }
 
-    const hasConflict = foreignContainers.length > 0 || competingPlugins.some(p => p.ownsGtm || p.sends.includes('ga4') || p.sends.includes('google_ads'))
+    // The reliable double-GTM signal is a FOREIGN container actually on the page.
+    // Plugin "sends" from the audit list capability (incl. disabled features) →
+    // too noisy to block on; we keep them as informational context only.
+    const hasConflict = foreignContainers.length > 0
     // recommend integrate when a competing plugin also runs Meta (replacing would
     // drop the Meta pixel) AND we can point it at our container; else replace.
     const hasMeta = competingPlugins.some(p => p.ownsMeta)
@@ -133,9 +134,17 @@ export async function resolveTrackingConflict(
     const det = await detectTrackingConflicts(instanceId, agentId)
     const head = buildGtmHeadSnippet(ourPublicId), body = buildGtmBodySnippet(ourPublicId)
 
+    // For the RESOLUTION action (the user explicitly chose a mode), attribute
+    // the foreign container to a known GTM-injecting plugin by name too — the
+    // audit's `sends:['gtm']` is unreliable (PixelYourSite stores GTM inside
+    // pys_core_settings and may not surface it). This name list is only used to
+    // ACT on the user's choice, never to raise a false-positive conflict.
+    const isGtmOwner = (p: CompetingPlugin) => p.ownsGtm
+        || /pixelyoursite|gtm4wp|duracelltomi|site.?kit|tag.?manager|google.?tag.?manager/i.test(p.plugin + ' ' + p.name)
+
     if (mode === 'integrate') {
         // Point each GTM-owning competing plugin at OUR container; keep the plugin.
-        const owners = det.competingPlugins.filter(p => p.ownsGtm)
+        const owners = det.competingPlugins.filter(isGtmOwner)
         if (!owners.length) {
             // no plugin owns GTM — just install ours via companion
             const r = await installGtmSnippet(cfg, ourPublicId, head, body)
@@ -149,7 +158,7 @@ export async function resolveTrackingConflict(
     } else {
         // REPLACE: neutralize competing tracking, then install only ours.
         for (const p of det.competingPlugins) {
-            if (p.ownsGtm) {
+            if (isGtmOwner(p)) {
                 // a GTM-owning plugin (e.g. PixelYourSite) injects its container from
                 // its own settings → deactivate it entirely (keeps the site working;
                 // its Meta goes too — that's the Replace trade-off).
