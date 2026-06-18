@@ -59,7 +59,7 @@ function classifyHookPattern(hook: string): string {
 }
 
 // ─── Main entry — run for one instance ─────────────────────────────────────
-export async function runStrategyLearnerForInstance(instanceId: string): Promise<{
+export async function runStrategyLearnerForInstance(instanceId: string, agentId?: string | null): Promise<{
     ok: boolean
     learningsWritten: number
     dataPoints: number
@@ -72,7 +72,14 @@ export async function runStrategyLearnerForInstance(instanceId: string): Promise
     // Pull instance to get content plan metadata
     const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!instance) return { ok: false, learningsWritten: 0, dataPoints: 0, reason: 'Instance not found' }
-    const rd: any = instance.researchData || {}
+    // Per-agent: learnings are derived from (and written for) the ACTIVE agent's
+    // content plan, not the primary mirror. The agent's plan items also scope
+    // which creativePerformance rows count (via planByItemId match below).
+    const { resolveAgentById, resolvePrimaryAgent, readResearchData } = await import('./agentContext')
+    const __slAgent = agentId
+        ? (await resolveAgentById(instanceId, agentId)) || (await resolvePrimaryAgent(instanceId))
+        : await resolvePrimaryAgent(instanceId)
+    const rd: any = (await readResearchData(__slAgent, instanceId)) || {}
     const plan: any[] = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
     const planByItemId: Record<string, any> = {}
     for (const it of plan) if (it?.id) planByItemId[it.id] = it
@@ -129,6 +136,7 @@ export async function runStrategyLearnerForInstance(instanceId: string): Promise
         rowsToWrite.push({
             id: 'sl_' + randomBytes(5).toString('hex'),
             instanceId,
+            agentId: __slAgent?.id || null,
             dimension: dim,
             winnerValue: learning.winner,
             loserValue: learning.loser,
@@ -283,18 +291,24 @@ export async function runAllStrategyLearners(): Promise<{ instances: number; wro
     const rows = await db.select({ id: instances.id, status: instances.status, rd: instances.researchData })
         .from(instances)
         .where(isNotNull(instances.researchData))
+    const { listAgentsForInstance } = await import('./agentContext')
     for (const r of rows) {
         if (r.status !== 'running') continue
-        const rd = (r.rd as any) || {}
-        if (!rd.chosenScenario) continue
-        stats.instances++
-        try {
-            const result = await runStrategyLearnerForInstance(r.id)
-            if (result.ok && result.learningsWritten > 0) stats.wrote += result.learningsWritten
-            else stats.skipped++
-        } catch (err) {
-            console.error(`[strategyLearner] ${r.id} failed:`, err)
-            stats.skipped++
+        // Per-agent: each agent (primary + secondary brands) gets its own
+        // strategy learnings from its own plan + chosenScenario.
+        const agents = await listAgentsForInstance(r.id)
+        for (const agent of (agents.length ? agents : [null])) {
+            const rd = ((agent ? agent.researchData : r.rd) as any) || {}
+            if (!rd.chosenScenario) continue
+            stats.instances++
+            try {
+                const result = await runStrategyLearnerForInstance(r.id, agent?.id)
+                if (result.ok && result.learningsWritten > 0) stats.wrote += result.learningsWritten
+                else stats.skipped++
+            } catch (err) {
+                console.error(`[strategyLearner] ${r.id}/${agent?.id || 'primary'} failed:`, err)
+                stats.skipped++
+            }
         }
     }
     console.log(`[strategyLearner] ${JSON.stringify(stats)}`)
@@ -313,10 +327,12 @@ export function startStrategyLearner(): void {
 
 // ─── Helper for content plan prompt injection ──────────────────────────────
 // Read last learning per dimension, build Hebrew block. ~600 chars max.
-export async function formatStrategyLearningsForPlan(instanceId: string): Promise<string> {
+export async function formatStrategyLearningsForPlan(instanceId: string, agentId?: string | null): Promise<string> {
     const rows = await db.select()
         .from(strategyLearnings)
-        .where(eq(strategyLearnings.instanceId, instanceId))
+        .where(agentId
+            ? and(eq(strategyLearnings.instanceId, instanceId), eq(strategyLearnings.agentId, agentId))
+            : eq(strategyLearnings.instanceId, instanceId))
         .orderBy(desc(strategyLearnings.createdAt))
         .limit(12)   // latest run produces up to 6 rows; 2 runs covers all dims
     if (rows.length === 0) return ''

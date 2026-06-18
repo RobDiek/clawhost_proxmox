@@ -107,6 +107,21 @@ export async function resolvePrimaryAgent(vpsInstanceId: string): Promise<MatehA
 }
 
 /**
+ * ALL mateh_agents on a VPS (primary + secondaries), primary first. Used by
+ * cron sweeps that must process EACH agent's per-agent data (research /
+ * content plan / metrics / ops briefs), not just the primary mirror. A sweep
+ * that iterates `instances` and processes only the primary silently skips
+ * every secondary brand on a multi-agent VPS.
+ */
+export async function listAgentsForInstance(vpsInstanceId: string): Promise<MatehAgentRow[]> {
+    const rows = await db
+        .select()
+        .from(matehAgents)
+        .where(eq(matehAgents.vpsInstanceId, vpsInstanceId))
+    return rows.sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0))
+}
+
+/**
  * Resolves a specific mateh_agent by id (validating it belongs to the
  * given VPS). Used by background jobs that were spawned with an
  * explicit agentId hint (e.g., scheduled tasks pinned to a specific

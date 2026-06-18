@@ -40,38 +40,44 @@ export async function runWeeklyOpsBriefs(): Promise<{
         }).from(instances).where(isNotNull(instances.researchData))
 
         const { isPipelineEnabled } = await import('./pipelineActivation')
+        const { listAgentsForInstance } = await import('./agentContext')
+        const { shouldEmitToReviewQueue } = await import('./instanceReadinessGate')
         for (const row of rows) {
             if (row.status !== 'running') continue
-            const rd = (row.researchData as any) || {}
-            if (!rd.chosenScenario) continue
-            stats.eligible++
-            // Gate: ops brief is content-driven; skip tenants where
-            // content_calendar pipeline is disabled (e.g. paid-only clients).
-            const enabled = await isPipelineEnabled(row.id, 'content_calendar')
-            if (!enabled) {
-                stats.skipped++
-                continue
-            }
-            // Phase 4.3-K: instance-readiness gate. weekly_ops_brief compares
-            // actual KPIs vs target. Without a monthlyPlan in place, there are
-            // no targets — brief is noise. Skip emit until user has plan.
-            const { shouldEmitToReviewQueue } = await import('./instanceReadinessGate')
-            const gate = await shouldEmitToReviewQueue(row.id, 'weekly_ops_brief')
-            if (!gate.allow) {
-                stats.skipped++
-                console.log(`[weeklyOpsBrief] ${row.id} skipped: ${gate.reason} (${gate.detail || ''})`)
-                continue
-            }
-            try {
-                const r = await runOpsBriefForInstance(row.id)
-                if (r.ok) stats.generated++
-                else {
+            // Per-agent: each agent (primary + secondary brands) gets its OWN
+            // weekly ops brief from its own scenario / monthly plan / KPIs.
+            const agents = await listAgentsForInstance(row.id)
+            for (const agent of (agents.length ? agents : [null])) {
+                const rd = ((agent ? agent.researchData : row.researchData) as any) || {}
+                if (!rd.chosenScenario) continue
+                stats.eligible++
+                // Gate: ops brief is content-driven; skip agents where
+                // content_calendar pipeline is disabled (e.g. paid-only clients).
+                const enabled = await isPipelineEnabled(row.id, 'content_calendar', agent)
+                if (!enabled) {
                     stats.skipped++
-                    console.warn(`[weeklyOpsBrief] ${row.id} skipped: ${r.reason}`)
+                    continue
                 }
-            } catch (err) {
-                stats.errors++
-                console.error(`[weeklyOpsBrief] ${row.id} failed:`, err)
+                // Phase 4.3-K: instance-readiness gate. weekly_ops_brief compares
+                // actual KPIs vs target. Without a monthlyPlan in place, there are
+                // no targets — brief is noise. Skip emit until user has plan.
+                const gate = await shouldEmitToReviewQueue(row.id, 'weekly_ops_brief', agent)
+                if (!gate.allow) {
+                    stats.skipped++
+                    console.log(`[weeklyOpsBrief] ${row.id}/${agent?.id || 'primary'} skipped: ${gate.reason} (${gate.detail || ''})`)
+                    continue
+                }
+                try {
+                    const r = await runOpsBriefForInstance(row.id, agent?.id)
+                    if (r.ok) stats.generated++
+                    else {
+                        stats.skipped++
+                        console.warn(`[weeklyOpsBrief] ${row.id}/${agent?.id || 'primary'} skipped: ${r.reason}`)
+                    }
+                } catch (err) {
+                    stats.errors++
+                    console.error(`[weeklyOpsBrief] ${row.id}/${agent?.id || 'primary'} failed:`, err)
+                }
             }
         }
         console.log(`[weeklyOpsBrief] ${JSON.stringify(stats)}`)

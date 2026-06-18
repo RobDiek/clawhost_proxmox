@@ -48,14 +48,19 @@ export async function runMonthlyReaudits(): Promise<{
         }).from(instances).where(isNotNull(instances.researchData))
 
         const { isPipelineEnabled } = await import('./pipelineActivation')
+        const { listAgentsForInstance, readResearchData, mutateResearchData } = await import('./agentContext')
 
         for (const row of rows) {
             if (row.status !== 'running') continue
-            const rd = (row.researchData as any) || {}
+            // Per-agent: each agent re-audits its OWN account + regenerates its
+            // OWN monthly plan (a secondary brand keeps separate Ads/baseline).
+            const agents = await listAgentsForInstance(row.id)
+            for (const agent of (agents.length ? agents : [null])) {
+            const rd = ((agent ? await readResearchData(agent, row.id) : row.researchData) as any) || {}
             if (!rd.mazhirAudit) continue
             stats.eligible++
 
-            const enabled = await isPipelineEnabled(row.id, 'mazhir_audit')
+            const enabled = await isPipelineEnabled(row.id, 'mazhir_audit', agent)
             if (!enabled) {
                 stats.skippedNoPaid++
                 continue
@@ -75,8 +80,6 @@ export async function runMonthlyReaudits(): Promise<{
                 // Phase 4.3-O H7: use mutateResearchData (NOT raw db.update) per
                 // feedback_research_data_dual_write — secondary agents on this VPS
                 // need to see the stamp too.
-                const { resolvePrimaryAgent, mutateResearchData } = await import('./agentContext')
-                const agent = await resolvePrimaryAgent(row.id)
                 await mutateResearchData(agent, row.id, (rd2: any) => {
                     rd2.lastMonthlyReauditAt = currentMonthKey
                     return rd2
@@ -107,7 +110,7 @@ export async function runMonthlyReaudits(): Promise<{
                 // Re-pull baseline (current month) — without this the audit + plan see stale numbers.
                 try {
                     const { prefetchClientAccountBaseline } = await import('@/controllers/hosting/research/stages/prefetch/client_account_baseline')
-                    const newBaseline = await prefetchClientAccountBaseline(row.id, rd)
+                    const newBaseline = await prefetchClientAccountBaseline(row.id, rd, agent?.id)
                     await mutateResearchData(agent, row.id, (rd2: any) => {
                         const results = rd2.results || {}
                         results.client_account_baseline = newBaseline
@@ -120,13 +123,12 @@ export async function runMonthlyReaudits(): Promise<{
                 }
 
                 const { runMazhirAudit } = await import('./mazhirAudit')
-                await runMazhirAudit(row.id)
+                await runMazhirAudit(row.id, agent?.id)
                 stats.fired++
 
-                // Re-read for diff inspection below (audit + baseline writes happened in-loop)
-                const updated = (await db.select({ researchData: instances.researchData })
-                    .from(instances).where(eq(instances.id, row.id)))[0]
-                const nextRd: any = updated?.researchData || {}
+                // Re-read for diff inspection below (audit + baseline writes
+                // happened in-loop) — per-agent, not the instance mirror.
+                const nextRd: any = (await readResearchData(agent, row.id)) || {}
 
                 // Notify if diff has material changes
                 const diff = nextRd.mazhirAuditDiff
@@ -144,9 +146,8 @@ export async function runMonthlyReaudits(): Promise<{
                 if (nextRd.chosenScenario) {
                     try {
                         const { generateMonthlyPlan } = await import('./monthlyPlanGenerator')
-                        // Phase 4.3-T: cron-monthly path operates on primary by design.
-                        // Pass null explicitly so brandWhere() falls back via warning log.
-                        const r = await generateMonthlyPlan(row.id, 'cron_monthly', null)
+                        // Per-agent: regenerate THIS agent's monthly plan.
+                        const r = await generateMonthlyPlan(row.id, 'cron_monthly', agent?.id)
                         stats.planFired++
                         console.log(`[monthlyReauditRunner] ${row.id}: monthly plan refreshed (${r.monthlyPlan.summary.totalTasks} tasks)`)
                         // Notify on plan regenerate
@@ -165,7 +166,8 @@ export async function runMonthlyReaudits(): Promise<{
                 }
             } catch (err) {
                 stats.errors++
-                console.error(`[monthlyReauditRunner] ${row.id} failed:`, err)
+                console.error(`[monthlyReauditRunner] ${row.id}/${agent?.id || 'primary'} failed:`, err)
+            }
             }
         }
         console.log(`[monthlyReauditRunner] ${currentMonthKey} ${JSON.stringify(stats)}`)

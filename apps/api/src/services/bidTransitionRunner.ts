@@ -65,21 +65,23 @@ export async function runBidTransitionCheck(): Promise<{
     try {
         const rows = await db.select({
             id: instances.id,
-            researchData: instances.researchData,
-            googleTokens: instances.googleTokens,
-            googleAdsConfig: instances.googleAdsConfig,
             status: instances.status,
         }).from(instances).where(isNotNull(instances.researchData))
 
         const { isPipelineEnabled } = await import('./pipelineActivation')
         const { getCampaignMetrics } = await import('./googleAds')
+        const { listAgentsForInstance } = await import('./agentContext')
 
         for (const row of rows) {
             if (row.status !== 'running') continue
-            const rd = (row.researchData as any) || {}
+            // Per-agent: each agent has its OWN media plan + Google Ads account
+            // + tokens (a secondary brand runs separate campaigns).
+            const agents = await listAgentsForInstance(row.id)
+            for (const agent of agents) {
+            const rd = (agent.researchData as any) || {}
             const plan = rd.mediaPlan
             if (!plan || !Array.isArray(plan.campaigns)) continue
-            const enabled = await isPipelineEnabled(row.id, 'mazhir_executor')
+            const enabled = await isPipelineEnabled(row.id, 'mazhir_executor', agent)
             if (!enabled) continue
             const campaignsWithContracts: CampaignWithContract[] = plan.campaigns.filter((c: any) =>
                 c.googleAdsCampaignId && c.bidContract && !c.transitionedAt
@@ -87,8 +89,8 @@ export async function runBidTransitionCheck(): Promise<{
             if (campaignsWithContracts.length === 0) continue
             stats.eligible++
 
-            const customerId = (row.googleAdsConfig as any)?.customerId
-            const tokens = row.googleTokens as any
+            const customerId = (agent.googleAdsConfig as any)?.customerId
+            const tokens = agent.googleTokens as any
             if (!customerId || !tokens?.refreshToken) continue
 
             // Gate 1: tracking blockers cleared (Enhanced Conversions, Consent Mode v2)?
@@ -147,12 +149,10 @@ export async function runBidTransitionCheck(): Promise<{
                         `אם תאשרו, האסטרטגיה תופעל אוטומטית. בלי אישור הקמפיין יישאר ב-${c.bidContract.week1to4}.`,
                     ].filter(Boolean).join('\n')
                     try {
-                        const { resolvePrimaryAgent: __rp } = await import('@/services/agentContext')
-                        const __bidAgent = await __rp(row.id)
                         await db.insert(agentOutputs).values({
                             id: proposalId,
                             instanceId: row.id,
-                            agentId: __bidAgent?.id || null,
+                            agentId: agent.id,
                             agentRole: 'mazhir',
                             outputType: 'bid_transition_proposal',
                             platform: 'google_ads',
@@ -185,7 +185,8 @@ export async function runBidTransitionCheck(): Promise<{
                 }
             } catch (err) {
                 stats.errors++
-                console.error(`[bidTransitionRunner] ${row.id} metrics fetch failed:`, err)
+                console.error(`[bidTransitionRunner] ${row.id}/${agent.id} metrics fetch failed:`, err)
+            }
             }
         }
         console.log(`[bidTransitionRunner] ${JSON.stringify(stats)}`)

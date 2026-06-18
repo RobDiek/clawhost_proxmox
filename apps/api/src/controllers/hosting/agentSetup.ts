@@ -7628,7 +7628,7 @@ export async function generateContentPlan(
     let learningsBlock = ''
     try {
         const { formatStrategyLearningsForPlan } = await import('@/services/strategyLearner')
-        learningsBlock = await formatStrategyLearningsForPlan(instanceId)
+        learningsBlock = await formatStrategyLearningsForPlan(instanceId, opts.agentId)
     } catch (e) {
         console.warn('[contentPlan] strategy learnings load failed (non-fatal):', (e as Error).message)
     }
@@ -8471,7 +8471,9 @@ export const runMazhirAuditController = async (c: Context) => {
 
         // Lazy import — keeps cold-start light when paid features unused
         const { runMazhirAudit } = await import('@/services/mazhirAudit')
-        const { audit, cost } = await runMazhirAudit(instanceId)
+        const { resolveActiveAgent: __resolveMaAgent } = await import('@/services/agentContext')
+        const __maAgent = await __resolveMaAgent(c, instanceId)
+        const { audit, cost } = await runMazhirAudit(instanceId, __maAgent?.id)
         return ok(c, { audit, cost }, 'Audit complete')
     } catch (err) {
         console.error('runMazhirAudit error:', err)

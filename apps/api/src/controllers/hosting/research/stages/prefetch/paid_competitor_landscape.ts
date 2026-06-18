@@ -223,7 +223,7 @@ export async function prefetchPaidCompetitorLandscape(
     const agent = agentId
         ? await resolveAgentById(instanceId, agentId)
         : await resolvePrimaryAgent(instanceId)
-    const firecrawlKey = instance?.firecrawlKey || process.env.FIRECRAWL_API_KEY || null
+    const firecrawlKey = (agent as { firecrawlKey?: string } | null)?.firecrawlKey || instance?.firecrawlKey || process.env.FIRECRAWL_API_KEY || null
     const gadsCfg = ((agent as { googleAdsConfig?: unknown } | null)?.googleAdsConfig
         || instance?.googleAdsConfig) as { customerId?: string; loginCustomerId?: string; developerToken?: string; scope?: { mode?: string; campaignIds?: string[]; operatingCustomerId?: string } } | null || {}
     const gadsCustomerId = gadsCfg.customerId

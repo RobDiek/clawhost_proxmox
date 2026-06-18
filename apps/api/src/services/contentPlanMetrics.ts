@@ -276,29 +276,35 @@ export function startOptimizationCron(): void {
 async function optimizeAllInstances(): Promise<void> {
     const { generateOptimizationReportCore } = await import('@/controllers/hosting/agentSetup')
     const { isPipelineEnabled } = await import('./pipelineActivation')
-    const live = await db.select({ id: instances.id, researchData: instances.researchData }).from(instances)
+    const { listAgentsForInstance, readResearchData } = await import('./agentContext')
+    const live = await db.select({ id: instances.id }).from(instances)
     let generated = 0
     let skipped = 0
     let skippedDisabled = 0
     for (const row of live) {
-        try {
-            // Gate: optimization synthesis is content-driven (consumes
-            // contentPlan results). Skip when content_calendar disabled.
-            const enabled = await isPipelineEnabled(row.id, 'content_calendar')
-            if (!enabled) { skippedDisabled++; continue }
-            const rd = (row.researchData as Record<string, unknown> | null) || {}
-            const plan = (Array.isArray(rd.contentPlan) ? rd.contentPlan : []) as Array<{ results?: { engagement?: number } }>
-            const measured = plan.filter(it => it.results && typeof it.results.engagement === 'number').length
-            if (measured < 5) { skipped++; continue }
+        // Per-agent: each agent gets its OWN optimization report from its own
+        // measured content plan (not the primary's).
+        const agents = await listAgentsForInstance(row.id)
+        for (const agent of (agents.length ? agents : [null])) {
+            try {
+                // Gate: optimization synthesis is content-driven (consumes
+                // contentPlan results). Skip when content_calendar disabled.
+                const enabled = await isPipelineEnabled(row.id, 'content_calendar', agent)
+                if (!enabled) { skippedDisabled++; continue }
+                const rd = ((await readResearchData(agent, row.id)) as Record<string, unknown> | null) || {}
+                const plan = (Array.isArray(rd.contentPlan) ? rd.contentPlan : []) as Array<{ results?: { engagement?: number } }>
+                const measured = plan.filter(it => it.results && typeof it.results.engagement === 'number').length
+                if (measured < 5) { skipped++; continue }
 
-            // Fresh metrics first
-            await collectContentPlanMetrics(row.id).catch(() => { /* non-fatal */ })
-            // Then optimization synthesis
-            await generateOptimizationReportCore(row.id)
-            generated++
-            console.log(`[autoOptimization] ${row.id}: report generated (${measured} measured items)`)
-        } catch (err) {
-            console.warn(`[autoOptimization] ${row.id} error:`, (err as Error).message)
+                // Fresh metrics first
+                await collectContentPlanMetrics(row.id, agent?.id).catch(() => { /* non-fatal */ })
+                // Then optimization synthesis
+                await generateOptimizationReportCore(row.id, agent?.id)
+                generated++
+                console.log(`[autoOptimization] ${row.id}/${agent?.id || 'primary'}: report generated (${measured} measured items)`)
+            } catch (err) {
+                console.warn(`[autoOptimization] ${row.id}/${agent?.id || 'primary'} error:`, (err as Error).message)
+            }
         }
     }
     if (skippedDisabled > 0) {
@@ -314,22 +320,28 @@ async function collectAllInstances(): Promise<void> {
     let totalFailed = 0
     let totalSkipped = 0
     const { isPipelineEnabled } = await import('./pipelineActivation')
+    const { listAgentsForInstance } = await import('./agentContext')
     for (const row of live) {
-        try {
-            // Gate: metrics collector pulls performance for content_calendar
-            // outputs (IG/FB posts, blog articles via GSC). Skip tenants
-            // where content_calendar is disabled — saves API calls.
-            const enabled = await isPipelineEnabled(row.id, 'content_calendar')
-            if (!enabled) { totalSkipped++; continue }
-            const res = await collectContentPlanMetrics(row.id)
-            totalFetched += res.fetched
-            totalFailed += res.failed
-            if (res.fetched > 0) {
-                console.log(`[metricsCollector] ${row.id}: fetched=${res.fetched} skipped=${res.skipped} failed=${res.failed}`)
+        // Per-agent: process EACH agent's content plan (a multi-agent VPS has
+        // secondary brands with their own plans/tokens — not just the primary).
+        const agents = await listAgentsForInstance(row.id)
+        for (const agent of (agents.length ? agents : [null])) {
+            try {
+                // Gate: metrics collector pulls performance for content_calendar
+                // outputs (IG/FB posts, blog articles via GSC). Skip agents
+                // where content_calendar is disabled — saves API calls.
+                const enabled = await isPipelineEnabled(row.id, 'content_calendar', agent)
+                if (!enabled) { totalSkipped++; continue }
+                const res = await collectContentPlanMetrics(row.id, agent?.id)
+                totalFetched += res.fetched
+                totalFailed += res.failed
+                if (res.fetched > 0) {
+                    console.log(`[metricsCollector] ${row.id}/${agent?.id || 'primary'}: fetched=${res.fetched} skipped=${res.skipped} failed=${res.failed}`)
+                }
+            } catch (err) {
+                console.warn(`[metricsCollector] ${row.id}/${agent?.id || 'primary'} error:`, (err as Error).message)
+                totalFailed++
             }
-        } catch (err) {
-            console.warn(`[metricsCollector] ${row.id} error:`, (err as Error).message)
-            totalFailed++
         }
     }
     if (totalSkipped > 0) {

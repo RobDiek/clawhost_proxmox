@@ -196,7 +196,10 @@ export const publishToGithub = async (c: Context) => {
         const instance = await getOwnedInstance(instanceId, userId)
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const config = instance.githubConfig as any
+        // Per-agent: a secondary brand publishes to ITS OWN GitHub repo.
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __ghAgent = await resolveActiveAgent(c, instanceId)
+        const config = ((__ghAgent as { githubConfig?: { token?: string } } | null)?.githubConfig || instance.githubConfig) as any
         if (!config?.token) return fail(c, 'GitHub not connected', 400)
 
         const body = await c.req.json<{

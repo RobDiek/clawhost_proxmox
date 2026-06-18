@@ -277,6 +277,7 @@ export interface SerpOwnershipEntry {
 export async function prefetchCompetitorLandscape(
     instanceId: string,
     rd: ResearchDataV2,
+    agentId?: string | null,
 ): Promise<CompetitorLandscapeDfsData> {
     const answers = (rd.answers || {}) as Record<string, unknown>
     const businessName = String(answers.businessName || '')
@@ -448,9 +449,19 @@ export async function prefetchCompetitorLandscape(
     let firecrawlAvailable = false
     let firecrawlPagesScraped = 0
     try {
-        const [inst] = await db.select({ firecrawlKey: instances.firecrawlKey })
-            .from(instances).where(eq(instances.id, instanceId))
-        const firecrawlKey = inst?.firecrawlKey
+        // Per-agent firecrawl key (secondary brands may bring their own);
+        // fall back to the instance/primary key.
+        let firecrawlKey: string | null = null
+        if (agentId) {
+            const { resolveAgentById } = await import('@/services/agentContext')
+            const ag = await resolveAgentById(instanceId, agentId)
+            firecrawlKey = (ag as { firecrawlKey?: string } | null)?.firecrawlKey || null
+        }
+        if (!firecrawlKey) {
+            const [inst] = await db.select({ firecrawlKey: instances.firecrawlKey })
+                .from(instances).where(eq(instances.id, instanceId))
+            firecrawlKey = inst?.firecrawlKey || null
+        }
         if (firecrawlKey) {
             firecrawlAvailable = true
             for (const enrich of topEnriched) {

@@ -2794,6 +2794,13 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
         if (!instance) return fail(c, 'Instance not found', 404)
         if (!instance.ip) return fail(c, 'Instance has no IP', 400)
 
+        // Per-agent: publish with the credentials of the agent that OWNS this
+        // output (a secondary brand publishes to its own Meta/GitHub account),
+        // falling back to the instance/primary mirror.
+        const __pubAgent = output.agentId
+            ? await (await import('@/services/agentContext')).resolveAgentById(instanceId, output.agentId)
+            : null
+
         const content = output.editedContent || output.content || ''
         const platform = output.platform || 'telegram'
         let publishSuccess = false
@@ -2843,7 +2850,7 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
 
         // ── Instagram / Facebook / Meta publish ──
         else if (platform === 'instagram' || platform === 'facebook' || platform === 'meta_ads') {
-            const metaTokens = instance.metaTokens as any
+            const metaTokens = ((__pubAgent as { metaTokens?: unknown } | null)?.metaTokens || instance.metaTokens) as any
             if (!metaTokens || metaTokens.status !== 'connected') {
                 publishError = 'Meta Ads לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → Meta Ads.'
                 publishErrorType = 'missing_integration'

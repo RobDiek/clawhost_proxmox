@@ -21,7 +21,7 @@
  *   - PMax-for-leadgen requested + no offline qualified-lead upload → blocker
  */
 
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { buildDataGaps, renderDataGapsForPrompt } from './enrichmentContract'
 import { db } from '@/db'
 import { instances, brandBooks } from '@/db/schema'
@@ -290,7 +290,7 @@ async function pullExistingAccountSnapshot(
 }
 
 // ─── Main entry point ─────────────────────────────────────────────────────
-export async function runMazhirAudit(instanceId: string): Promise<{ audit: MazhirAudit; cost: { model: string; usdEstimate: number } }> {
+export async function runMazhirAudit(instanceId: string, agentId?: string | null): Promise<{ audit: MazhirAudit; cost: { model: string; usdEstimate: number } }> {
     const t0 = Date.now()
 
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
@@ -307,20 +307,28 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
     // silently dropped data for secondary agents AND got overwritten by
     // the wrapper's markWrapperStageCompleted (which uses agent-routed
     // writes that overwrote mazhirAudit with stale rd).
-    const { resolvePrimaryAgent, readResearchData, writeResearchData } =
+    const { resolvePrimaryAgent, resolveAgentById, readResearchData, writeResearchData } =
         await import('./agentContext')
-    const agent = await resolvePrimaryAgent(instanceId)
+    // Per-agent: resolve the ACTIVE agent (a secondary brand has its own paid
+    // profile / Ads account / brand book); fall back to primary.
+    const agent = agentId
+        ? (await resolveAgentById(instanceId, agentId)) || (await resolvePrimaryAgent(instanceId))
+        : await resolvePrimaryAgent(instanceId)
     const rd: any = await readResearchData(agent, instanceId) || {}
     const pp: PaidProfile | undefined = rd.paidProfile
     if (!pp) throw new Error('paidProfile required — fill it in onboarding first')
 
-    const [brand] = await db.select().from(brandBooks).where(eq(brandBooks.instanceId, instanceId))
+    const [brand] = await db.select().from(brandBooks).where(
+        agent?.id
+            ? and(eq(brandBooks.instanceId, instanceId), eq(brandBooks.agentId, agent.id))
+            : eq(brandBooks.instanceId, instanceId),
+    )
 
     // Token sources are migrating from instance.googleTokens (legacy) to
     // agent_integrations table (current). Legacy field can be stale (missing
     // scopes added later). Prefer agent_integrations + merge scopes from both.
-    let googleTokensForAudit: any = inst.googleTokens
-    let gscTokens: any = (inst as any).gscTokens
+    let googleTokensForAudit: any = (agent as any)?.googleTokens || inst.googleTokens
+    let gscTokens: any = (agent as any)?.gscTokens ?? (inst as any).gscTokens
     try {
         const { getAgentIntegration } = await import('./agentIntegrations')
         // Phase 4.3-T: pass primary's agent id explicitly. mazhirAudit is an
@@ -344,7 +352,7 @@ export async function runMazhirAudit(instanceId: string): Promise<{ audit: Mazhi
     // Existing account snapshot — Phase 4.2.1-K: same ground-truth check as
     // the SQR/changeHistory gate further down. pp.hasExistingAccount was set
     // by the form modal based on a snapshot of instanceData that may be stale.
-    const googleAdsConfig: any = inst.googleAdsConfig || {}
+    const googleAdsConfig: any = (agent as any)?.googleAdsConfig || inst.googleAdsConfig || {}
     const _baselineCheck = (rd.results as Record<string, unknown> | undefined)?.client_account_baseline as
         { dfsData?: { googleAds?: { available?: boolean; accountMetrics?: { available?: boolean; cost?: number; clicks?: number; conversions?: number; impressions?: number; avgCpcIls?: number; ctrPct?: number; conversionRatePct?: number; cpaIls?: number; daysAnalyzed?: number } } } } | undefined
     const _baselineGads = _baselineCheck?.dfsData?.googleAds
