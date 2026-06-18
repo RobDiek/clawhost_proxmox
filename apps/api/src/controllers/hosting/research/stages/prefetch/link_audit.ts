@@ -34,6 +34,9 @@ import {
     type BacklinksCompetitorItem,
 } from '@/services/research/dataforseo'
 import type { ResearchDataV2 } from '@/services/research/types'
+import { db } from '@/db'
+import { instances } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 
 export interface OurDeepLinks {
     summary?: BacklinksSummary
@@ -79,6 +82,7 @@ export interface LinkAuditDfsData {
 export async function prefetchLinkAudit(
     instanceId: string,
     rd: ResearchDataV2,
+    agentId?: string | null,
 ): Promise<LinkAuditDfsData> {
     const answers = (rd.answers || {}) as Record<string, unknown>
     const websiteUrl = String(answers.websiteUrl || '').trim()
@@ -209,6 +213,57 @@ export async function prefetchLinkAudit(
             .map(([domain, v]) => ({ domain, rank: v.rank, competitorsLinking: v.competitorsLinking }))
             .sort((a, b) => (b.competitorsLinking - a.competitorsLinking) || (b.rank - a.rank))
             .slice(0, 30)
+
+        // ─── Live-verify DFS "lost" backlinks (false-positive guard) ──────
+        // DFS lost-backlink signals lag + false-positive, especially on
+        // JS-rendered IL editorial "recommended" widgets (israelhayom / maariv
+        // מומלצים) DFS can't render. Before any recovery task is proposed,
+        // fetch the actual source pages and DROP links that are still live —
+        // otherwise we'd recommend paying to "recover" a link that never left.
+        if (ours.lostLinks && ours.lostLinks.length > 0) {
+            try {
+                const { backlinksLost } = await import('@/services/research/dataforseo/endpoints')
+                const { verifyLostBacklinks, normalizeDomain } = await import('@/services/research/lostLinkVerifier')
+                const lostPages = await backlinksLost(instanceId, ourDomain, { limit: 100 }).catch(() => null)
+                if (lostPages) trackCall(lostPages)
+                const lostByDomain = new Map<string, string[]>()
+                for (const b of (lostPages?.items || [])) {
+                    if (b.is_lost === false) continue
+                    const d = normalizeDomain(b.domain_from || '')
+                    const u = String(b.url_from || '').trim()
+                    if (!d || !u) continue
+                    const arr = lostByDomain.get(d) || []
+                    if (!arr.includes(u)) arr.push(u)
+                    lostByDomain.set(d, arr)
+                }
+                // Per-agent firecrawl key (rendered fetch catches JS widgets).
+                let firecrawlKey: string | null = null
+                if (agentId) {
+                    const { resolveAgentById } = await import('@/services/agentContext')
+                    const ag = await resolveAgentById(instanceId, agentId)
+                    firecrawlKey = (ag as { firecrawlKey?: string } | null)?.firecrawlKey || null
+                }
+                if (!firecrawlKey) {
+                    const [inst] = await db.select({ firecrawlKey: instances.firecrawlKey }).from(instances).where(eq(instances.id, instanceId))
+                    firecrawlKey = inst?.firecrawlKey || null
+                }
+                const verdicts = await verifyLostBacklinks({ ourDomain, lostByDomain, firecrawlKey, maxDomains: 15, maxUrlsPerDomain: 2 })
+                const kept: ReferringDomainItem[] = []
+                let stillLive = 0, confirmed = 0, unverified = 0
+                for (const ll of ours.lostLinks) {
+                    const v = verdicts.get(norm(ll.domain))
+                    ll._verification = v?.verdict || 'unverified'
+                    ll._verifiedSourceUrls = v?.checkedUrls || []
+                    if (ll._verification === 'still_live') { stillLive++; continue }   // DFS false positive — drop
+                    if (ll._verification === 'confirmed_lost') confirmed++; else unverified++
+                    kept.push(ll)
+                }
+                ours.lostLinks = kept
+                console.log(`[prefetch/link_audit] lost-link verify: ${stillLive} still-live dropped, ${confirmed} confirmed-lost, ${unverified} unverified`)
+            } catch (verErr) {
+                console.warn(`[prefetch/link_audit] lost-link verification failed (non-fatal): ${(verErr as Error).message}`)
+            }
+        }
 
         console.log(`[prefetch/link_audit] cost=$${totalCostUsd.toFixed(4)} cache=${cacheHits}/${cacheHits + cacheMisses} hit-rate competitors=${competitorResults.length} linkGapProspects=${ours.linkGapProspects.length}`)
 

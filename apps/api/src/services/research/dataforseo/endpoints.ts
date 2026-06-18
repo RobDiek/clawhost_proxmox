@@ -30,6 +30,7 @@ import {
     type BacklinksSummary,
     type BacklinksAnchorItem,
     type ReferringDomainItem,
+    type LostBacklinkItem,
     type BacklinksCompetitorItem,
     type OnPageItem,
     type GoogleMyBusinessItem,
@@ -543,6 +544,33 @@ export async function backlinksReferringDomains(
     return cachedCall<ReferringDomainItem>(
         instanceId,
         'backlinks/referring_domains/live',
+        params,
+    )
+}
+
+/**
+ * Page-level LOST backlinks — the individual backlinks DFS marks as lost,
+ * WITH their source page URL (`url_from`). Needed to live-verify DFS "lost"
+ * classifications before recommending costly recovery outreach: DFS lost
+ * signals lag + false-positive on JS-rendered IL editorial widgets, so we
+ * fetch url_from and confirm the link is actually gone.
+ * Endpoint: backlinks/backlinks/live  (backlinks_status_type=lost)
+ */
+export async function backlinksLost(
+    instanceId: string,
+    target: string,
+    opts: { limit?: number } = {},
+): Promise<CallResult<LostBacklinkItem>> {
+    const params = {
+        target,
+        limit: opts.limit ?? 100,
+        mode: 'as_is' as const,
+        backlinks_status_type: 'lost' as const,
+        order_by: ['rank,desc'],
+    }
+    return cachedCall<LostBacklinkItem>(
+        instanceId,
+        'backlinks/backlinks/live',
         params,
     )
 }

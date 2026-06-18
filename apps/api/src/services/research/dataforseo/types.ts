@@ -287,6 +287,27 @@ export interface ReferringDomainItem {
     lost_date?: string
     is_lost?: boolean
     referring_pages?: number
+    /** Live-verification of a DFS "lost" classification (link_audit). DFS lost
+     * signals are lagging + false-positive-prone (esp. JS-rendered IL editorial
+     * widgets). 'still_live' = source page still links to us (DFS false positive);
+     * 'confirmed_lost' = fetched the source, link genuinely gone; 'unverified' =
+     * couldn't fetch/render. Only 'confirmed_lost' should drive a paid recovery. */
+    _verification?: 'still_live' | 'confirmed_lost' | 'unverified'
+    /** Source page URLs (url_from) checked during verification. */
+    _verifiedSourceUrls?: string[]
+    [key: string]: unknown
+}
+
+/** A single page-level backlink (backlinks/backlinks/live), incl. lost ones. */
+export interface LostBacklinkItem {
+    domain_from?: string
+    url_from?: string
+    url_to?: string
+    anchor?: string
+    is_lost?: boolean
+    dofollow?: boolean
+    last_seen?: string
+    first_seen?: string
     [key: string]: unknown
 }
 

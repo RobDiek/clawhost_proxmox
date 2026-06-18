@@ -2181,6 +2181,11 @@ ${oursAnchorsTable}
 **Top 30 lost referring domains (recovery candidates):**
 ${lostLinksTable}
 
+⚠ עמודת **verification** — DFS מסמן "lost" עם השהיה והרבה false-positives (במיוחד וידג'טים עורכתיים מבוססי-JS כמו "מומלצים" ב-ynet/ישראל היום). לכן כל קישור "lost" עבר אימות חי מול דף המקור:
+- \`confirmed_lost\` = שלפנו את דף המקור והקישור באמת נעלם → מותר \`lost_link_recovery\` עם \`confidence: "high"\`.
+- \`unverified\` = לא הצלחנו לשלוף/לרנדר את הדף → \`lost_link_recovery\` מותר אך **\`confidence: "medium"\`** והצעד הראשון ב-actionPlan חייב להיות "לאמת ידנית שהדף כבר לא מקשר אלינו לפני פנייה בתשלום".
+- קישורים שעדיין חיים כבר הוסרו מהטבלה — **אסור להמציא lost links שלא מופיעים כאן**.
+
 **Top 30 link-gap candidates (linking to competitors but not us):**
 ${linkGapTable}
 
@@ -2365,9 +2370,9 @@ function renderAnchorsTable(anchors: Array<{ anchor?: string | null; backlinks?:
     return `| anchor | backlinks | referring_domains |\n|---|---|---|\n${rows}`
 }
 
-function renderLostLinksTable(lost: Array<{ domain?: string; rank?: number; lost_date?: string; is_lost?: boolean }>): string {
-    const rows = lost.map(l => `| ${l.domain ?? '—'} | ${l.rank ?? '—'} | ${l.lost_date ?? '—'} | ${l.is_lost ? 'yes' : 'no'} |`).join('\n')
-    return `| domain | rank | lost_date | is_lost |\n|---|---|---|---|\n${rows}`
+function renderLostLinksTable(lost: Array<{ domain?: string; rank?: number; lost_date?: string; is_lost?: boolean; _verification?: string }>): string {
+    const rows = lost.map(l => `| ${l.domain ?? '—'} | ${l.rank ?? '—'} | ${l.lost_date ?? '—'} | ${l._verification ?? 'unverified'} |`).join('\n')
+    return `| domain | rank | lost_date | verification |\n|---|---|---|---|\n${rows}`
 }
 
 function renderLinkGapTable(gap: Array<{ domain?: string; rank?: number; intersections?: number }>): string {
