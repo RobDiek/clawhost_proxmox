@@ -73,7 +73,7 @@ export async function runTrackingHealthCheck(instanceId: string, agentId: string
 
     // GA4 connectivity
     if (!at) add('ga4_oauth', 'fail', 'אין חיבור Google פעיל לסוכן.', 'התחברו מחדש ל-Google בכרטיס האינטגרציה.')
-    else if (!prop) add('ga4_property', 'fail', `נכס GA4 ל-${mid} לא נמצא.`, 'בדקו שה-GA4 מחובר ושה-Measurement ID נכון.')
+    else if (!prop) add('ga4_property', 'fail', mid ? `נכס GA4 (${mid}) לא נמצא בחשבון.` : 'GA4 אינו מחובר לסוכן — חסר מזהה מדידה (Measurement ID).', 'חברו את GA4 והגדירו את ה-Measurement ID הנכון בכרטיס האינטגרציה.')
 
     if (at && prop) {
         // purchase firing + attribution (7d)
