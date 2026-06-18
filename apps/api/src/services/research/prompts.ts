@@ -4432,7 +4432,12 @@ ${trackingFirstActive ? `
 🚨 **tracking_first_active=TRUE** → phase 1 of media_plan MUST be setup-only:
    - Bidding: manual_cpc / max_clicks ONLY (no Smart Bidding)
    - Budget allocation: minimal active campaigns; majority budget allocated to tracking-fix execution
-   - measurement_fixes_first from audit (${measurementFixesFirst.length} items) — these run BEFORE any new campaign launches
+   - measurement_fixes_first from audit (${measurementFixesFirst.length} items) — these run BEFORE any new campaign launches. List them VERBATIM in tracking_fix_dependencies (do NOT emit "(לא סופק)" placeholders — the actual items are below):
+${(measurementFixesFirst as unknown[]).slice(0, 6).map((f, i) => {
+        const o = f as Record<string, unknown>
+        const txt = typeof f === 'string' ? f : (o?.fix_he || o?.text_he || o?.text || o?.he || JSON.stringify(f))
+        return `     ${i + 1}. ${String(txt).substring(0, 240)}`
+    }).join('\n')}
    - Top 5 audit action_plan.changes preview:
 ${(auditChanges as Array<Record<string, unknown>>).slice(0, 5).map((c, i) => `     ${i + 1}. ${(c.change_he || c.change_en || '').toString().substring(0, 120)}`).join('\n')}
 ` : `
