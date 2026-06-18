@@ -24,11 +24,17 @@ const TEMPLATES_DIR = resolve(TEMPLATES_BASE, 'mateh-system') // default for bac
 const PERSONAL_TEMPLATES_DIR = resolve(TEMPLATES_BASE, 'personal-system')
 
 // Get API key for an instance: DB first, then env fallback
-export async function getApiKeyForInstance(instanceId: string): Promise<string> {
+export async function getApiKeyForInstance(instanceId: string, agentId?: string | null): Promise<string> {
     // Phase 1 resolution chain (most specific → most general):
+    //   0. agent.aiProviderKey          (per-agent override — secondary brands)
     //   1. instance.aiProviderKey       (per-instance override — explicit)
     //   2. tenant.defaultAnthropicKey   (per-tenant default — agency / portfolio)
     //   3. process.env.ANTHROPIC_API_KEY (master fallback — for system tasks)
+    if (agentId) {
+        const [agentRow] = await db.select({ k: matehAgents.aiProviderKey })
+            .from(matehAgents).where(eq(matehAgents.id, agentId))
+        if (agentRow?.k) return agentRow.k
+    }
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (inst?.aiProviderKey) return inst.aiProviderKey
     if (inst?.tenantId) {
@@ -2086,9 +2092,12 @@ ${extracted.validation}`
         } else {
             const errBody = await res.text().catch(() => 'no body')
             console.error(`Anthropic failed (${res.status}): ${errBody.substring(0, 500)}`)
-            // Try OpenAI
+            // Try OpenAI — prefer the active agent's key (secondary brands may
+            // carry their own OpenAI key); fall back to the instance/primary key.
+            const { resolveActiveAgent: __resolveOaiAgent } = await import('@/services/agentContext')
+            const __oaiAgent = await __resolveOaiAgent(c, instanceId)
             const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-            const openaiKey = inst?.openaiApiKey
+            const openaiKey = (__oaiAgent as { openaiApiKey?: string } | null)?.openaiApiKey || inst?.openaiApiKey
             if (openaiKey) {
                 const oaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
@@ -3658,7 +3667,8 @@ export const getApiUsage = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const rd = (instance.researchData as any) || {}
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = (await readResearchDataForActive(c, instanceId)) as { rd: any }
         const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
         // 1. Direct-API usage (strategy/scenarios/ops-brief from mgmt)
@@ -3735,7 +3745,8 @@ export const getOpsBrief = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
-        const rd = (instance.researchData as any) || {}
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = (await readResearchDataForActive(c, instanceId)) as { rd: any }
         return ok(c, {
             latest: rd.latestOpsBrief || null,
             history: (rd.opsBriefs || []).map((b: any) => ({
@@ -5093,7 +5104,8 @@ export const getMediaSettings = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
-        const rd = (instance.researchData as any) || {}
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = (await readResearchDataForActive(c, instanceId)) as { rd: any }
         return ok(c, { settings: resolveMediaSettings(rd), defaults: DEFAULT_MEDIA_SETTINGS }, 'Settings')
     } catch (err) {
         return fail(c, (err as Error).message, 500)
@@ -5333,7 +5345,8 @@ export const regenerateItemMedia = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const rd = (instance.researchData as any) || {}
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = (await readResearchDataForActive(c, instanceId)) as { rd: any }
         const plan: ContentPlanItem[] = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
         const item = plan.find(p => p.id === itemId)
         if (!item) return fail(c, 'Plan item not found', 404)
@@ -5567,7 +5580,8 @@ export const getHistoricalAssets = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
-        const rd = (instance.researchData as any) || {}
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = (await readResearchDataForActive(c, instanceId)) as { rd: any }
         return ok(c, { assets: rd.historicalAssets || {} }, 'Assets fetched')
     } catch (err) {
         return fail(c, (err as Error).message, 500)
@@ -8106,7 +8120,8 @@ export const getAgentStats = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
-        const rd = (instance.researchData as any) || {}
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = (await readResearchDataForActive(c, instanceId)) as { rd: any }
         const filter: GetMyStatsFilter = {
             pillar: c.req.query('pillar') || undefined,
             channel: c.req.query('channel') || undefined,
@@ -8158,7 +8173,9 @@ export const collectMetrics = async (c: Context) => {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const { collectContentPlanMetrics } = await import('@/services/contentPlanMetrics')
-        const result = await collectContentPlanMetrics(instanceId)
+        const { resolveActiveAgent: __resolveCmAgent } = await import('@/services/agentContext')
+        const __cmActiveAgent = await __resolveCmAgent(c, instanceId)
+        const result = await collectContentPlanMetrics(instanceId, __cmActiveAgent?.id)
         return ok(c, result, `Metrics refreshed: ${result.fetched} updated, ${result.skipped} skipped, ${result.failed} failed`)
     } catch (err) {
         console.error('collectMetrics error:', err)
@@ -8846,7 +8863,9 @@ export const generateMazhirMediaPlan = async (c: Context) => {
         }
 
         const { generateMediaPlan } = await import('@/services/mazhirMediaPlan')
-        const result = await generateMediaPlan(instanceId)
+        const { resolveActiveAgent: __resolveMpAgent } = await import('@/services/agentContext')
+        const __mpAgent = await __resolveMpAgent(c, instanceId)
+        const result = await generateMediaPlan(instanceId, __mpAgent?.id)
         return ok(c, result, 'Media plan generated')
     } catch (err) {
         console.error('generateMazhirMediaPlan error:', err)
@@ -8967,7 +8986,7 @@ export const reviseMazhirMediaPlan = async (c: Context) => {
         ;(async () => {
             try {
                 const { generateMediaPlan } = await import('@/services/mazhirMediaPlan')
-                await generateMediaPlan(instanceId)
+                await generateMediaPlan(instanceId, __agent?.id)
             } catch (err) {
                 console.error('[reviseMazhirMediaPlan] regen failed:', err)
             }
@@ -9887,7 +9906,8 @@ export const getLatestOptimizationReport = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
-        const rd = (instance.researchData as any) || {}
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = (await readResearchDataForActive(c, instanceId)) as { rd: any }
         const reports = Array.isArray(rd.optimizationReports) ? rd.optimizationReports : []
         return ok(c, { report: reports[0] || null, history: reports.slice(1) }, 'Latest report')
     } catch (err) {
@@ -9992,7 +10012,7 @@ async function prefetchCreativeBriefsForPaidItems(instanceId: string, plan: Cont
                 persona: item.persona,
                 productRef: item.productRef,
                 ctaType: item.ctaType,
-            })
+            }, agentId)
             if (brief) briefs[item.id] = brief
         } catch (err) {
             console.error(`[prefetchCreativeBriefs] item ${item.id} failed:`, (err as Error).message)
@@ -10031,7 +10051,8 @@ export const getContentPlan = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const rd = (instance.researchData as any) || {}
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { rd } = (await readResearchDataForActive(c, instanceId)) as { rd: any }
         return ok(c, {
             plan: Array.isArray(rd.contentPlan) ? rd.contentPlan : [],
             generatedAt: rd.contentPlanGeneratedAt || null,

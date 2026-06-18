@@ -67,10 +67,17 @@ export interface CleanupResult {
 // Used by the frontend confirm dialog before user commits intent change.
 export async function previewOrphanedItems(
     instanceId: string,
-    nextIntents: MarketingIntent[]
+    nextIntents: MarketingIntent[],
+    agentId?: string | null,
 ): Promise<CleanupResult> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) return { outputsArchived: 0, contentPlanArchived: 0, affectedChannels: [] }
+
+    // Per-agent: scope to the active agent's content plan + outputs.
+    const { resolveAgentById, resolvePrimaryAgent, readResearchData } = await import('@/services/agentContext')
+    const __agent = agentId
+        ? (await resolveAgentById(instanceId, agentId)) || (await resolvePrimaryAgent(instanceId))
+        : await resolvePrimaryAgent(instanceId)
 
     const activeIntentSet = new Set(nextIntents)
     const affectedChannels = new Set<string>()
@@ -78,7 +85,11 @@ export async function previewOrphanedItems(
     // Outputs
     const outs = await db.select({ id: agentOutputs.id, platform: agentOutputs.platform, outputType: agentOutputs.outputType, status: agentOutputs.status })
         .from(agentOutputs)
-        .where(and(eq(agentOutputs.instanceId, instanceId), inArray(agentOutputs.status, ACTIVE_OUTPUT_STATES)))
+        .where(and(
+            eq(agentOutputs.instanceId, instanceId),
+            __agent?.id ? eq(agentOutputs.agentId, __agent.id) : undefined,
+            inArray(agentOutputs.status, ACTIVE_OUTPUT_STATES),
+        ))
     let outputsArchived = 0
     for (const o of outs) {
         const ch = _normalizeChannel(o.platform || o.outputType || '')
@@ -89,8 +100,8 @@ export async function previewOrphanedItems(
         }
     }
 
-    // Content plan items in researchData jsonb
-    const rd = (inst.researchData as Record<string, unknown> | null) || {}
+    // Content plan items in researchData jsonb (active agent)
+    const rd = ((await readResearchData(__agent, instanceId)) as Record<string, unknown> | null) || {}
     const plan = Array.isArray(rd.contentPlan) ? (rd.contentPlan as Array<Record<string, unknown>>) : []
     let contentPlanArchived = 0
     for (const it of plan) {
@@ -110,10 +121,20 @@ export async function previewOrphanedItems(
 // Execute archive — flip statuses to 'archived'. Idempotent.
 export async function archiveOrphanedItems(
     instanceId: string,
-    nextIntents: MarketingIntent[]
+    nextIntents: MarketingIntent[],
+    agentId?: string | null,
 ): Promise<CleanupResult> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst) return { outputsArchived: 0, contentPlanArchived: 0, affectedChannels: [] }
+
+    // Per-agent: content plan + agent outputs are agent-scoped. Resolve the
+    // active agent, read its research_data, and scope outputs to it (a raw
+    // instance read/write hit the primary mirror only).
+    const { resolveAgentById, resolvePrimaryAgent, readResearchData, writeResearchData } = await import('@/services/agentContext')
+    const __agent = agentId
+        ? (await resolveAgentById(instanceId, agentId)) || (await resolvePrimaryAgent(instanceId))
+        : await resolvePrimaryAgent(instanceId)
+    const rdAgent = ((await readResearchData(__agent, instanceId)) as Record<string, unknown> | null) || {}
 
     const activeIntentSet = new Set(nextIntents)
     const affectedChannels = new Set<string>()
@@ -121,7 +142,11 @@ export async function archiveOrphanedItems(
     // Step 1: agentOutputs
     const outs = await db.select({ id: agentOutputs.id, platform: agentOutputs.platform, outputType: agentOutputs.outputType })
         .from(agentOutputs)
-        .where(and(eq(agentOutputs.instanceId, instanceId), inArray(agentOutputs.status, ACTIVE_OUTPUT_STATES)))
+        .where(and(
+            eq(agentOutputs.instanceId, instanceId),
+            __agent?.id ? eq(agentOutputs.agentId, __agent.id) : undefined,
+            inArray(agentOutputs.status, ACTIVE_OUTPUT_STATES),
+        ))
     const orphanedOutputIds: string[] = []
     for (const o of outs) {
         const ch = _normalizeChannel(o.platform || o.outputType || '')
@@ -138,7 +163,7 @@ export async function archiveOrphanedItems(
     }
 
     // Step 2: researchData.contentPlan
-    const rd = (inst.researchData as Record<string, unknown> | null) || {}
+    const rd = rdAgent
     const plan = Array.isArray(rd.contentPlan) ? (rd.contentPlan as Array<Record<string, unknown>>) : []
     let contentPlanArchived = 0
     let planMutated = false
@@ -156,9 +181,7 @@ export async function archiveOrphanedItems(
         return it
     })
     if (planMutated) {
-        await db.update(instances)
-            .set({ researchData: { ...rd, contentPlan: nextPlan } as never })
-            .where(eq(instances.id, instanceId))
+        await writeResearchData(__agent, instanceId, { ...rd, contentPlan: nextPlan } as never)
     }
 
     return {

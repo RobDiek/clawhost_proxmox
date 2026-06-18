@@ -114,19 +114,21 @@ export async function getEnabledPipelinesForInstance(
 export async function setPipelineActivation(
     instanceId: string,
     pipelineId: PipelineId,
-    enabled: boolean
+    enabled: boolean,
+    agentId?: string | null,
 ): Promise<void> {
-    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-    if (!inst) throw new Error('Instance not found')
-    const rd = (inst.researchData || {}) as MarketingResearchData
-    const next: MarketingResearchData = {
+    // Per-agent: pipeline activation is per-agent state. Resolve the active
+    // agent and persist via mutateResearchData (a raw db.update(instances)
+    // wrote the primary mirror AND got clobbered by the next agentContext write).
+    const { resolveAgentById, resolvePrimaryAgent, mutateResearchData } = await import('@/services/agentContext')
+    const agent = agentId
+        ? (await resolveAgentById(instanceId, agentId)) || (await resolvePrimaryAgent(instanceId))
+        : await resolvePrimaryAgent(instanceId)
+    await mutateResearchData(agent, instanceId, (rd: any) => ({
         ...rd,
         pipelineActivation: {
-            ...((rd.pipelineActivation as Record<string, boolean>) || {}),
+            ...((rd?.pipelineActivation as Record<string, boolean>) || {}),
             [pipelineId]: enabled,
         },
-    }
-    await db.update(instances)
-        .set({ researchData: next as never })
-        .where(eq(instances.id, instanceId))
+    }))
 }

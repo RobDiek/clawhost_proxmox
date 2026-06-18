@@ -257,7 +257,7 @@ export async function generateMediaForPlanItem(
     const variants = opts.numVariantsPerChannel ?? 3
 
     // Pass 1: Creative brief — Opus picks modelHint + overlay strategy
-    const brief = await generateCreativeBrief(instanceId, item)
+    const brief = await generateCreativeBrief(instanceId, item, opts.agentId)
     if (!brief) {
         console.warn(`[mediaOrchestrator] ${item.id}: brief generation failed; skipping`)
         return null

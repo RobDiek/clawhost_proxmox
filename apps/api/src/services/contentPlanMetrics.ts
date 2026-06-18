@@ -338,15 +338,22 @@ async function collectAllInstances(): Promise<void> {
     console.log(`[metricsCollector] sweep done: +${totalFetched} fetched, ${totalFailed} failed`)
 }
 
-export async function collectContentPlanMetrics(instanceId: string): Promise<CollectResult> {
+export async function collectContentPlanMetrics(instanceId: string, agentId?: string | null): Promise<CollectResult> {
     const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!instance) throw new Error('Instance not found')
 
-    const rd = (instance.researchData as Record<string, unknown>) || {}
+    // Per-agent: a secondary agent has its OWN content plan + Meta/GSC tokens.
+    // Resolve the active agent (cron callers pass none → primary); read/write
+    // its research_data and read its publishing tokens, not the instance mirror.
+    const { resolveAgentById, resolvePrimaryAgent, readResearchData, writeResearchData } = await import('@/services/agentContext')
+    const __cmAgent = agentId
+        ? (await resolveAgentById(instanceId, agentId)) || (await resolvePrimaryAgent(instanceId))
+        : await resolvePrimaryAgent(instanceId)
+    const rd = ((await readResearchData(__cmAgent, instanceId)) as Record<string, unknown>) || {}
     const plan = (Array.isArray(rd.contentPlan) ? rd.contentPlan : []) as PlanItem[]
-    const metaTokens = (instance.metaTokens as Record<string, unknown> | null) || {}
+    const metaTokens = ((__cmAgent as { metaTokens?: Record<string, unknown> } | null)?.metaTokens ?? (instance.metaTokens as Record<string, unknown> | null)) || {}
     const pageToken = (metaTokens.pageAccessToken || metaTokens.userAccessToken || metaTokens.accessToken) as string | undefined
-    const gscTokens = (instance.gscTokens as Record<string, unknown> | null) || null
+    const gscTokens = ((__cmAgent as { gscTokens?: Record<string, unknown> } | null)?.gscTokens ?? (instance.gscTokens as Record<string, unknown> | null)) || null
 
     const updates: CollectResult['updates'] = []
     let fetched = 0, skipped = 0, failed = 0
@@ -383,11 +390,9 @@ export async function collectContentPlanMetrics(instanceId: string): Promise<Col
         }
     }
 
-    // Persist plan only if any item was updated
+    // Persist plan only if any item was updated (via agent-aware writer)
     if (fetched > 0) {
-        await db.update(instances).set({
-            researchData: { ...(rd as object), contentPlan: plan, metricsLastCollectedAt: new Date().toISOString() } as unknown as Record<string, unknown>,
-        }).where(eq(instances.id, instanceId))
+        await writeResearchData(__cmAgent, instanceId, { ...(rd as object), contentPlan: plan, metricsLastCollectedAt: new Date().toISOString() } as never)
     }
 
     return { fetched, skipped, failed, updates }

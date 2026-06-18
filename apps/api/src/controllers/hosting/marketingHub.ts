@@ -233,7 +233,9 @@ export const saveMarketingIntents = async (c: Context) => {
         // ideally call previewOrphanedItems first to confirm with the user,
         // but we run the archive unconditionally here as the source of truth
         // (intent change is a deliberate action; orphans must not linger).
-        const cleanup = await archiveOrphanedItems(instanceId, cleaned).catch(err => {
+        const { resolveActiveAgent: __resolveMiAgent } = await import('@/services/agentContext')
+        const __miAgent = await __resolveMiAgent(c, instanceId)
+        const cleanup = await archiveOrphanedItems(instanceId, cleaned, __miAgent?.id).catch(err => {
             console.warn('archiveOrphanedItems failed:', err)
             return { outputsArchived: 0, contentPlanArchived: 0, affectedChannels: [] }
         })
@@ -262,7 +264,9 @@ export const previewIntentCleanup = async (c: Context) => {
         const body = await c.req.json<{ intents?: unknown }>()
         if (!Array.isArray(body.intents)) return fail(c, 'intents[] required', 400)
         const cleaned = (body.intents as unknown[]).filter((s): s is MarketingIntent => typeof s === 'string' && isValidIntent(s))
-        const cleanup = await previewOrphanedItems(instanceId, cleaned)
+        const { resolveActiveAgent: __resolvePcAgent } = await import('@/services/agentContext')
+        const __pcAgent = await __resolvePcAgent(c, instanceId)
+        const cleanup = await previewOrphanedItems(instanceId, cleaned, __pcAgent?.id)
         return ok(c, cleanup)
     } catch (err) {
         console.error('previewIntentCleanup error:', err)
@@ -325,7 +329,9 @@ export const setPipelineActivationEndpoint = async (c: Context) => {
         const raw = await c.req.json<{ enabled?: boolean }>()
         const body = raw as { enabled?: boolean }
         if (typeof body.enabled !== 'boolean') return fail(c, 'enabled (boolean) required', 400)
-        await setPipelineActivation(instanceId, pipelineId, body.enabled)
+        const { resolveActiveAgent } = await import('@/services/agentContext')
+        const __paAgent = await resolveActiveAgent(c, instanceId)
+        await setPipelineActivation(instanceId, pipelineId, body.enabled, __paAgent?.id)
         return ok(c, { pipelineId, enabled: body.enabled }, 'Activation saved')
     } catch (err) {
         console.error('setPipelineActivationEndpoint error:', err)

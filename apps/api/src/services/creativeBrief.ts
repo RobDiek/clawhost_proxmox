@@ -14,7 +14,7 @@
  *
  * See: project_media_pipeline.md for the architectural decisions.
  */
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances, brandBooks } from '@/db/schema'
 import { getApiKeyForInstance, formatLatestOptimizationReport, formatAgentStats, resolveDirectModel } from '@/controllers/hosting/agentSetup'
@@ -68,8 +68,14 @@ export interface CreativeBriefOutput {
     }
 }
 
-async function loadBrandBook(instanceId: string): Promise<Record<string, unknown> | null> {
-    const rows = await db.select().from(brandBooks).where(eq(brandBooks.instanceId, instanceId))
+async function loadBrandBook(instanceId: string, agentId?: string | null): Promise<Record<string, unknown> | null> {
+    // Per-agent: a secondary brand has its OWN brand book (agentId-scoped row).
+    // Without the agentId filter the loader can return the primary's brand book.
+    const rows = await db.select().from(brandBooks).where(
+        agentId
+            ? and(eq(brandBooks.instanceId, instanceId), eq(brandBooks.agentId, agentId))
+            : eq(brandBooks.instanceId, instanceId),
+    )
     if (rows.length === 0) return null
     const approved = rows.find(r => r.status === 'approved')
     return (approved || rows.sort((a, b) => (b.version || 0) - (a.version || 0))[0]) as unknown as Record<string, unknown>
@@ -135,17 +141,28 @@ ${vocabDo ? `**Use words:** ${vocabDo}\n` : ''}${vocabDont ? `**Avoid words:** $
 export async function generateCreativeBrief(
     instanceId: string,
     item: PlanItemContext,
+    agentId?: string | null,
 ): Promise<CreativeBriefOutput | null> {
-    const apiKey = await getApiKeyForInstance(instanceId)
+    const apiKey = await getApiKeyForInstance(instanceId, agentId)
     if (!apiKey) return null
 
-    const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
-    if (!instance) return null
-    const rd = (instance.researchData as Record<string, unknown> | null) || {}
+    // Per-agent isolation: read the ACTIVE agent's research_data + brand book,
+    // not the instance row (= primary mirror). A secondary brand otherwise
+    // generates creatives off the primary agent's research + brand voice.
+    let rd: Record<string, unknown> = {}
+    if (agentId) {
+        const { resolveAgentById, readResearchData } = await import('@/services/agentContext')
+        const agent = await resolveAgentById(instanceId, agentId)
+        rd = ((await readResearchData(agent, instanceId)) as Record<string, unknown>) || {}
+    } else {
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return null
+        rd = (instance.researchData as Record<string, unknown> | null) || {}
+    }
     const answers = (rd.answers as Record<string, unknown> | null) || {}
     const businessName = (answers.businessName as string) || 'the business'
 
-    const brandBook = await loadBrandBook(instanceId)
+    const brandBook = await loadBrandBook(instanceId, agentId)
     const brandBlock = compactBrandBlock(brandBook)
     const optBlock = formatLatestOptimizationReport(rd)
     const statsBlock = formatAgentStats(rd, { channel: item.channel, sinceDays: 60 })
