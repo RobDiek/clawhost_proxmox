@@ -20411,6 +20411,20 @@ function _humanizeKey(k) {
     conv_value_quality_flag: 'איכות ערך ההמרה', actionable_for_downstream: 'רלוונטי לשלב הבא',
     actionable: 'פעולה אפשרית', tracking: 'מעקב', metrics: 'מדדים', metric: 'מדד', account: 'חשבון',
     historical_data: 'נתונים היסטוריים', data_source: 'מקור נתונים', readiness: 'מוכנות', freshness: 'רעננות',
+    // chosenScenario / strategy + action plan
+    scenario: 'תרחיש', scenario_label_he: 'שם התרחיש', chosenAt: 'נבחר בתאריך', chosen_at: 'נבחר בתאריך',
+    evidence: 'מקורות', '30_day_plan': 'תוכנית 30 יום', kpis_90_day: 'יעדי 90 יום', day_range: 'טווח ימים',
+    do_not_channels: 'ערוצים שלא עכשיו', when_yes_month: 'מתי כן (חודש)', why_not_now: 'למה לא עכשיו', when_yes: 'מתי כן',
+    channel_priority_list: 'סדר עדיפות ערוצים', channel_priority: 'עדיפות ערוץ', first_win_channel: 'ערוץ הזכייה הראשונה',
+    specific_action: 'פעולה ספציפית', must_pass_tests: 'תנאי סף', seasonality_play: 'אסטרטגיית עונתיות',
+    low_windows: 'חלונות שפל', peak_windows: 'חלונות שיא', budget_allocation_ils: 'הקצאת תקציב (₪)',
+    risks_mitigations: 'סיכונים והקלות', risk: 'סיכון', mitigation: 'הקלה', impact: 'השפעה', probability: 'הסתברות',
+    funnel_for_primary_persona: 'משפך לפרסונה הראשית', comparison_pages_plan: 'תוכנית עמודי השוואה',
+    programmatic_city_pages_plan: 'תוכנית עמודי ערים', conversion_measurement_plan: 'תוכנית מדידת המרות',
+    primary_persona: 'פרסונה ראשית', linked_persona: 'פרסונה מקושרת', primary_keywords: 'מילות מפתח עיקריות',
+    linked_keywords: 'מילות מפתח מקושרות', linked_competitors: 'מתחרים מקושרים', content_formula: 'נוסחת תוכן',
+    expected_first_5_customers_days: '5 לקוחות ראשונים (ימים)', expected_30_60_90_outcomes: 'תוצאות 30/60/90',
+    stage: 'שלב', trigger_or_cta: 'טריגר / קריאה לפעולה', rationale_he: 'נימוק', label: 'כותרת', channel: 'ערוץ',
   };
   if (map[k]) return map[k];
   // Normalize: drop leading _, trailing _he/_en + camelCase He/En, then retry.
@@ -26816,26 +26830,31 @@ function viewStrategy() {
   //   1. rd.strategy (legacy single-blob)
   //   2. rd.strategyStage4 (Phase 4.2 — synthesized strategy stage)
   //   3. rd.strategyStage1..3 (older intermediate stages, concatenated)
-  var strategy = rd.strategy || '';
-  if (!strategy) {
-    var stratParts = [];
-    function stageBlob(label, val) {
-      if (!val) return '';
-      var body = (typeof val === 'string') ? val : ('```json\n' + JSON.stringify(val, null, 2) + '\n```');
-      return '## ' + label + '\n\n' + body;
-    }
-    if (rd.strategyStage4) stratParts.push(stageBlob('אסטרטגיה — סינתזה', rd.strategyStage4));
-    ['strategyStage1','strategyStage2','strategyStage3'].forEach(function(k, i) {
-      var blob = stageBlob('שלב הכנה ' + (i + 1), rd[k]);
-      if (blob) stratParts.push(blob);
-    });
-    if (rd.chosenScenario) {
-      stratParts.push(stageBlob('תרחיש שנבחר', rd.chosenScenario));
-    }
-    strategy = stratParts.filter(Boolean).join('\n\n---\n\n');
+  // Render each strategy source as readable Hebrew (never a raw JSON dump):
+  //   strings → markdown; objects → _renderRecordHuman (humanized key:value,
+  //   honours displayHe, translates keys/enums, hides machine fields).
+  function stageHtml(label, val) {
+    if (val === null || val === undefined || val === '') return '';
+    var body = (typeof val === 'string')
+      ? ((typeof renderMarkdown === 'function') ? renderMarkdown(val) : escapeHtml(val))
+      : _renderRecordHuman(val, 0);
+    return '<div style="margin:12px 0;padding:12px 14px;background:#fff;border:1px solid #E5E7EB;border-radius:8px">'
+      + '<div style="font-weight:700;font-size:0.95rem;color:#1F2937;margin-bottom:8px">' + escapeHtml(label) + '</div>'
+      + body + '</div>';
   }
-  if (!strategy) { showToast('אין אסטרטגיה — בנו אותה קודם', 'error'); return; }
-  openReportModal('אסטרטגיה ותוכנית פעולה', strategy, 'strategy');
+  var stratParts = [];
+  if (rd.strategy) {
+    stratParts.push(stageHtml('אסטרטגיה', rd.strategy));
+  } else {
+    if (rd.strategyStage4) stratParts.push(stageHtml('אסטרטגיה — סינתזה', rd.strategyStage4));
+    ['strategyStage1','strategyStage2','strategyStage3'].forEach(function(k, i) {
+      if (rd[k]) stratParts.push(stageHtml('שלב הכנה ' + (i + 1), rd[k]));
+    });
+  }
+  if (rd.chosenScenario) stratParts.push(stageHtml('תרחיש שנבחר', rd.chosenScenario));
+  var html = stratParts.filter(Boolean).join('');
+  if (!html) { showToast('אין אסטרטגיה — בנו אותה קודם', 'error'); return; }
+  openReportModal('אסטרטגיה ותוכנית פעולה', html, 'strategy', { html: true });
 }
 
 // View Mazhir audit results — full structured render across blockers,
