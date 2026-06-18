@@ -102,7 +102,7 @@ export async function analyzeScopeIntegrity(instanceId: string): Promise<ScopeIn
         raws.push({
             agentId: a.id, name: a.name || '',
             domain: rd.answers?.websiteUrl || rd.paidProfile?.websiteUrl || '',
-            operating, manager: String(cfg.customerId || '').replace(/\D/g, ''),
+            operating, manager: String(cfg.loginCustomerId || cfg.customerId || '').replace(/\D/g, ''),
             dev: String(cfg.developerToken || process.env.GOOGLE_ADS_DEVELOPER_TOKEN || ''),
             rt: (a.googleTokens as any)?.refreshToken || (a.googleTokens as any)?.refresh_token || '',
             campaignIds: (cfg.scope?.campaignIds || []).map((x: any) => String(x).replace(/\D/g, '')).filter(Boolean),

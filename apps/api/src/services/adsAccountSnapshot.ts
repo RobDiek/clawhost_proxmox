@@ -66,7 +66,7 @@ async function resolveCtx(agent: MatehAgentRow): Promise<SnapshotCtx | null> {
     const cfg: any = (agent.googleAdsConfig as any)
         || (await db.select().from(instances).where(eq(instances.id, agent.vpsInstanceId)))[0]?.googleAdsConfig
         || {}
-    const manager = String(cfg.customerId || '').replace(/\D/g, '')
+    const manager = String(cfg.loginCustomerId || cfg.customerId || '').replace(/\D/g, '')
     const operating = String(cfg.scope?.operatingCustomerId || cfg.mccSubAccountId || manager).replace(/\D/g, '')
     const dev = String(cfg.developerToken || process.env.GOOGLE_ADS_DEVELOPER_TOKEN || '')
     const rt = (agent.googleTokens as any)?.refreshToken || (agent.googleTokens as any)?.refresh_token

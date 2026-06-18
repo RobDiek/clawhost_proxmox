@@ -97,7 +97,7 @@ export async function buildWeeklyReport(instanceId: string, agentId: string, opt
 
     // ═══ gather: paid ═══
     const cfg: any = a.googleAdsConfig || (await db.select().from(instances).where(eq(instances.id, a.vpsInstanceId)))[0]?.googleAdsConfig || {}
-    const manager = String(cfg.customerId || ''); const operating = String(cfg.scope?.operatingCustomerId || cfg.mccSubAccountId || manager); const dev = cfg.developerToken
+    const manager = String(cfg.loginCustomerId || cfg.customerId || ''); const operating = String(cfg.scope?.operatingCustomerId || cfg.mccSubAccountId || manager); const dev = cfg.developerToken
     let paid: any = null
     if (at && operating && dev) {
         try {

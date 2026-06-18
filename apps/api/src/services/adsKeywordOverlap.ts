@@ -24,7 +24,7 @@ export async function runAdsAnalysis(instanceId: string, opts: { agentId?: strin
     const result: AdsAnalysisResult = { ok: false, analyzedTerms: 0, wasteful: 0, wastedSpend: 0, proposalHe: '' }
     const [a] = await db.select().from(matehAgents).where(eq(matehAgents.id, String(opts.agentId || '')))
     const cfg: any = (a?.googleAdsConfig as any) || (await db.select().from(instances).where(eq(instances.id, instanceId)))[0]?.googleAdsConfig || {}
-    const manager = String(cfg.customerId || '')
+    const manager = String(cfg.loginCustomerId || cfg.customerId || '')
     const operating = String(cfg.scope?.operatingCustomerId || cfg.mccSubAccountId || manager)
     const dev = cfg.developerToken
     const rt = (a?.googleTokens as any)?.refreshToken || (a?.googleTokens as any)?.refresh_token

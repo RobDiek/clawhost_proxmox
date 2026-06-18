@@ -63,7 +63,7 @@ async function accessToken(rt: string): Promise<string | null> {
 
 async function resolveAdsCtx(agent: MatehAgentRow): Promise<AdsCtx | null> {
     const cfg: any = (agent.googleAdsConfig as any) || (await db.select().from(instances).where(eq(instances.id, agent.vpsInstanceId)))[0]?.googleAdsConfig || {}
-    const manager = String(cfg.customerId || '')
+    const manager = String(cfg.loginCustomerId || cfg.customerId || '')
     const operating = String(cfg.scope?.operatingCustomerId || cfg.mccSubAccountId || manager)
     const dev = cfg.developerToken
     const rt = (agent.googleTokens as any)?.refreshToken || (agent.googleTokens as any)?.refresh_token

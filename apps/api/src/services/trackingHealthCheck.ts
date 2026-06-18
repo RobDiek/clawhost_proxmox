@@ -113,7 +113,7 @@ export async function runTrackingHealthCheck(instanceId: string, agentId: string
 
     // conversion-action roles + enhanced conversions (Ads)
     const cfg: any = a?.googleAdsConfig || (await db.select().from(instances).where(eq(instances.id, instanceId)))[0]?.googleAdsConfig || {}
-    const manager = String(cfg.customerId || ''); const operating = String(cfg.scope?.operatingCustomerId || cfg.mccSubAccountId || manager); const dev = cfg.developerToken
+    const manager = String(cfg.loginCustomerId || cfg.customerId || ''); const operating = String(cfg.scope?.operatingCustomerId || cfg.mccSubAccountId || manager); const dev = cfg.developerToken
     if (at && operating && dev) {
         try {
             const acts = await adsQuery(operating, manager, dev, at, `SELECT conversion_action.name, conversion_action.category, conversion_action.primary_for_goal, conversion_action.status FROM conversion_action WHERE conversion_action.status = 'ENABLED'`)

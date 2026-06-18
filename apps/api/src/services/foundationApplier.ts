@@ -34,7 +34,7 @@ async function resolveCustomer(agent: MatehAgentRow): Promise<ApplyCustomer | { 
         || (await db.select().from(instances).where(eq(instances.id, agent.vpsInstanceId)))[0]?.googleAdsConfig
         || {}
     const cid = String(cfg.scope?.operatingCustomerId || cfg.mccSubAccountId || cfg.customerId || '').replace(/\D/g, '')
-    const login = String(cfg.customerId || cfg.loginCustomerId || cid).replace(/\D/g, '')
+    const login = String(cfg.loginCustomerId || cfg.customerId || cid).replace(/\D/g, '')
     const dev = cfg.developerToken || process.env.GOOGLE_ADS_DEVELOPER_TOKEN
     const rt = (agent.googleTokens as any)?.refreshToken || (agent.googleTokens as any)?.refresh_token
     if (!cid || !dev || !rt) return { error: 'google_ads_not_connected' }
