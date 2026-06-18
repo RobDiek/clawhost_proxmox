@@ -346,8 +346,8 @@ export async function buildAccountSnapshot(agent: MatehAgentRow): Promise<Accoun
                 const setIds = [...setMeta.keys()]
                 const crit = await adsStream(ctx, `
                     SELECT shared_set.id, shared_criterion.keyword.text, shared_criterion.keyword.match_type
-                    FROM shared_set_criterion
-                    WHERE shared_set.id IN ${inClause(setIds)}`)
+                    FROM shared_criterion
+                    WHERE shared_set.id IN ${inClause(setIds)} AND shared_criterion.type = 'KEYWORD'`)
                 for (const r of crit) {
                     const sid = String(r.sharedSet?.id || ''), kw = r.sharedCriterion?.keyword || {}
                     snap.negatives.push({ level: 'shared_set', sharedSetId: sid, sharedSetName: setMeta.get(sid), text: kw.text || '', matchType: kw.matchType || '?' })
