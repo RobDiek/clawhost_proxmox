@@ -9315,12 +9315,25 @@ export const autoSetupMazhirGtm = async (c: Context) => {
             try { const { loadWpConfig } = await import('@/services/seoMetaBatch'); siteUrl = (await loadWpConfig(instanceId, __agent?.id || null))?.url } catch { /* best-effort */ }
         }
         const cmpDetected = await detectSiteCmp(siteUrl).catch(() => false)
+        // Detect a WooCommerce store → create the GA4 purchase event tag
+        // out-of-the-box (the companion already pushes a `purchase` dataLayer
+        // event; without a tag listening for it GA4 never records purchases).
+        let ecommerce = false
+        try {
+            const { loadWpConfig } = await import('@/services/seoMetaBatch')
+            const wpCfg = await loadWpConfig(instanceId, __agent?.id || null)
+            if (wpCfg) {
+                const { probeWpCapabilities } = await import('@/services/wpCompanionInstaller')
+                ecommerce = !!(await probeWpCapabilities(wpCfg))?.wooCommerceActive
+            }
+        } catch { /* best-effort */ }
         const result = await autoSetupGtmContainer(googleTokens, {
             target,
             measurementId: target.measurementId,
             conversions: gtmConfigs,
             enhancedConversions: true,
             cmpDetected,
+            ecommerce,
         })
         await saveGtmSetupResult(instanceId, result, __agent?.id)
 

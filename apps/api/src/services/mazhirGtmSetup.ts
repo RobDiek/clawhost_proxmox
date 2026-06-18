@@ -166,6 +166,9 @@ export interface GtmAutoSetupRequest {
     metaPixel?: MetaPixelConfig          // Meta Pixel base init + per-event Custom HTML tags
     cmpDetected?: boolean                // site runs a CMP (Cookiebot/OneTrust/…) → it OWNS
                                          // Consent Mode; skip our consent default/update tags
+    ecommerce?: boolean                  // WooCommerce/store: the companion pushes a `purchase`
+                                         // dataLayer event → create a GA4 purchase event tag
+                                         // out-of-the-box (closes the store↔GA4 gap)
 }
 
 export interface GtmAutoSetupResult {
@@ -593,11 +596,15 @@ export async function autoSetupGtmContainer(
             }
             const trigId = triggerIdByAction[conv.actionKey]
             if (!trigId) continue
+            // For `purchase` send the full GA4 ecommerce object from the
+            // dataLayer (items/value/transaction_id) so GA4 reports revenue.
+            const isPurchase = conv.actionKey === 'purchase'
             const params: any[] = [
                 { type: 'template', key: 'eventName', value: conv.actionKey },
                 { type: 'template', key: 'measurementIdOverride', value: req.measurementId },
-                { type: 'boolean', key: 'sendEcommerceData', value: 'false' },
+                { type: 'boolean', key: 'sendEcommerceData', value: isPurchase ? 'true' : 'false' },
             ]
+            if (isPurchase) params.push({ type: 'template', key: 'ecommerceMacroData', value: 'dataLayer' })
             if (conv.sendValue) {
                 params.push({
                     type: 'list', key: 'eventParameters',
@@ -623,6 +630,47 @@ export async function autoSetupGtmContainer(
                 result.created.push({ type: 'tag:gaawe', name: evName, id: String(tag.tagId) })
             } catch (err) {
                 result.errors.push({ step: `gaawe:${conv.actionKey}`, error: (err as Error).message })
+            }
+        }
+    }
+
+    // ── 7.6. GA4 ecommerce PURCHASE tag (out-of-the-box for stores) ──
+    // When this is a store (companion pushes a `purchase` dataLayer event) but
+    // no purchase conversion was configured, the loop above didn't create a
+    // purchase event tag → GA4 never records purchases (the store↔GA4 gap that
+    // bit Moving Station). Create it here. No awct: Google Ads purchase is owned
+    // by the offline-conversion bridge (avoids a gateway-gclid-loss double-count).
+    if (req.measurementId && req.ecommerce && !req.conversions.some(c => c.actionKey === 'purchase')) {
+        const evName = 'Mazhir GA4 — purchase'
+        const existingPurchase = findTagByName(evName) || findGaaweByEventName('purchase')
+        if (existingPurchase) {
+            result.skipped.push({ type: 'tag:gaawe', name: existingPurchase.name, reason: 'GA4 purchase tag already present' })
+        } else {
+            let purchaseTrigId: string | undefined = findCustomEventTrigByEventName('purchase')?.triggerId
+            if (!purchaseTrigId) {
+                try {
+                    const tr = await gtmFetch(`${wsBase}/triggers`, accessToken, 'POST', {
+                        name: 'Mazhir CE — purchase', type: 'customEvent',
+                        customEventFilter: [{ type: 'equals', parameter: [{ type: 'template', key: 'arg0', value: '{{_event}}' }, { type: 'template', key: 'arg1', value: 'purchase' }] }],
+                    })
+                    purchaseTrigId = String(tr.triggerId)
+                    result.created.push({ type: 'trigger:customEvent', name: 'Mazhir CE — purchase', id: purchaseTrigId })
+                } catch (err) { result.errors.push({ step: 'trigger:purchase', error: (err as Error).message }) }
+            }
+            if (purchaseTrigId) {
+                try {
+                    const tag = await gtmFetch(`${wsBase}/tags`, accessToken, 'POST', {
+                        name: evName, type: 'gaawe',
+                        parameter: [
+                            { type: 'template', key: 'eventName', value: 'purchase' },
+                            { type: 'template', key: 'measurementIdOverride', value: req.measurementId },
+                            { type: 'boolean', key: 'sendEcommerceData', value: 'true' },
+                            { type: 'template', key: 'ecommerceMacroData', value: 'dataLayer' },
+                        ],
+                        firingTriggerId: [purchaseTrigId],
+                    })
+                    result.created.push({ type: 'tag:gaawe', name: evName, id: String(tag.tagId) })
+                } catch (err) { result.errors.push({ step: 'gaawe:purchase', error: (err as Error).message }) }
             }
         }
     }
