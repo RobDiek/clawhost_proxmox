@@ -740,7 +740,7 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('manage_options'); },
         'callback'            => function () {
             return [
-                'pluginVersion'       => '1.13.0',
+                'pluginVersion'       => '1.15.0',
                 'wordpressVersion'    => get_bloginfo('version'),
                 'siteWidgetsServable' => true,
                 'siteWidgetsActive'   => !empty(get_option('clawflow_site_widgets', '')),
