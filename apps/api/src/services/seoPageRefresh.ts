@@ -19,6 +19,7 @@
 import { loadWpConfig } from '@/services/seoMetaBatch'
 import { assembleSchemaGraph } from '@/services/seoSchemaBatch'
 import { getBuilderInfo, elementorAppendContent } from '@/services/wpBuilderInfo'
+import { isSystemPage as isSystemPageShared } from '@/services/seoPageClassify'
 import { getApiKeyForInstance, resolveDirectModel } from '@/controllers/hosting/agentSetup'
 
 const THIN_WORD_THRESHOLD = 300
@@ -111,19 +112,8 @@ function builderFromContent(html: string): string {
 
 // System / functional pages must NEVER be "expanded" with SEO content — cart,
 // checkout, account, shop, thank-you, contact, accessibility, blog index, etc.
-// Detected by slug, title, or (most robustly) a functional shortcode/block in
-// the body (WooCommerce + form pages always carry these).
-const SYSTEM_SLUG = /^(cart|checkout|my-account|account|shop|store|thank-?you|order-received|wishlist|login|log-in|register|lost-password|basket|wc-|sample-page|blog|home|homepage|front-page)$/i
-const SYSTEM_TITLE = /סל קניות|עגלת קניות|סיכום רכישה|תשלום|קופה|החשבון שלי|התחבר|הרשמ|נגישות|צור קשר|צרו קשר|יצירת קשר|מדיניות פרטיות|פרטיות|תקנון|תנאי שימוש|תודה|דף הבית|^בלוג$|^חנות$/
-const FUNCTIONAL_SHORTCODE = /\[(woocommerce_|product[s_]|add_to_cart|sale_products|featured_products|contact-form-7|wpforms|gravityform|ninja_form|cart|checkout|my_account|account)/i
-
-function isSystemPage(t: Target): boolean {
-    const slug = decodeURIComponent((t.link.match(/\/([^/]+)\/?$/)?.[1] || '')).toLowerCase()
-    if (SYSTEM_SLUG.test(slug)) return true
-    if (SYSTEM_TITLE.test((t.title || '').trim())) return true
-    if (FUNCTIONAL_SHORTCODE.test(t.content || '')) return true
-    return false
-}
+// (Shared classifier — see seoPageClassify.)
+const isSystemPage = (t: Target): boolean => isSystemPageShared(t.link, t.title, t.content)
 
 // Pull the word target from the task text if it states one (e.g. "→ 1,200",
 // "ל-1200 מילים", "1,500 מילים"). Else default.

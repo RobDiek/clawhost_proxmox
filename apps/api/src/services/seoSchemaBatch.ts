@@ -16,6 +16,7 @@
 import { getApiKeyForInstance, resolveDirectModel } from '@/controllers/hosting/agentSetup'
 import { loadWpConfig, type WpCfg } from '@/services/seoMetaBatch'
 import { getBuilderInfo } from '@/services/wpBuilderInfo'
+import { isFunctionalPage } from '@/services/seoPageClassify'
 
 const MAX_UPDATES_PER_RUN = 15
 const MAX_SCAN_PAGES = 5
@@ -188,9 +189,10 @@ async function listSchemaCandidates(cfg: WpCfg): Promise<{ candidates: SchemaIte
         }
     }
     // Candidate when: no Flowmatic schema yet (new) OR an existing graph is stale
-    // (missing a base node / SearchAction / below current generator version) so it
-    // gets enriched. Complete, up-to-date graphs are skipped — still idempotent.
-    const candidates = all.filter(it => !it.hasOurSchema || it.stale)
+    // (missing a base node / below current generator version) so it gets enriched.
+    // Complete, up-to-date graphs are skipped — still idempotent. Transactional /
+    // no-index pages (cart, checkout, thank-you) are skipped entirely.
+    const candidates = all.filter(it => (!it.hasOurSchema || it.stale) && !isFunctionalPage(it.link, it.title))
     return { candidates, scanned }
 }
 

@@ -18,6 +18,7 @@ import { db } from '@/db'
 import { agentIntegrations } from '@/db/schema'
 import { getApiKeyForInstance, resolveDirectModel } from '@/controllers/hosting/agentSetup'
 import { getBuilderInfo } from '@/services/wpBuilderInfo'
+import { isFunctionalPage } from '@/services/seoPageClassify'
 
 // Empty OR shorter than this many chars counts as "weak" → candidate for rewrite.
 const WEAK_META_THRESHOLD = 100
@@ -168,9 +169,14 @@ async function listWeakItems(cfg: WpCfg): Promise<{ candidates: WpItem[]; scanne
     // excerpt as a conservative proxy — only items with an empty excerpt qualify,
     // to avoid clobbering descriptions we cannot inspect.
     const weak = candidates.filter(it =>
-        detectorAvailable
-            ? it.currentMeta.length < WEAK_META_THRESHOLD
-            : it.excerpt.length === 0,
+        // Skip transactional / no-index pages (cart, checkout, thank-you, order
+        // summary) — they shouldn't be meta-optimized. Real pages (contact,
+        // about, privacy) are kept.
+        !isFunctionalPage(it.link, it.title) && (
+            detectorAvailable
+                ? it.currentMeta.length < WEAK_META_THRESHOLD
+                : it.excerpt.length === 0
+        ),
     )
     return { candidates: weak, scanned, detectorAvailable }
 }
