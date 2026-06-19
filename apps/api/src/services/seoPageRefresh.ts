@@ -31,12 +31,14 @@ export interface PageRefreshResult {
     scanned: number
     candidates: number
     targetWords: number
-    updated: Array<{ type: string; id: number; title: string; link: string; beforeWords: number; afterWords: number; draftHtml?: string }>
+    updated: Array<{ type: string; id: number; title: string; link: string; beforeWords: number; afterWords: number; draftHtml?: string; writeMode?: WriteMode; builder?: string }>
     failures: Array<{ type: string; id: number; error: string }>
+    skipped?: Array<{ type: string; id: number; title: string; reason: string }>
     error?: string
 }
 
 type WpType = 'posts' | 'pages'
+type WriteMode = 'post_content' | 'elementor_append'
 interface WpCfg { url: string; user: string; appPassword: string }
 const norm = (u: string) => u.replace(/\/+$/, '')
 const auth = (c: WpCfg) => 'Basic ' + Buffer.from(`${c.user}:${c.appPassword}`).toString('base64')
@@ -44,6 +46,70 @@ const stripHtml = (h: string) => h.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi
 const wordCount = (h: string) => stripHtml(h).trim().split(/\s+/).filter(Boolean).length
 
 interface Target { type: WpType; id: number; title: string; link: string; content: string; words: number }
+
+// ── Page-builder awareness ──────────────────────────────────────────────────
+// A page built with Elementor/Divi/etc. keeps its real content in widgets, NOT
+// in post_content (which holds only a thin leftover). Appending SEO text into
+// post_content there is useless or breaks the render. We ask the companion
+// plugin how each page is built (and the RENDERED word count, so "thin" is
+// judged on the real content), then route writes accordingly.
+interface BuilderInfo {
+    ok: boolean
+    builder: string                 // 'classic'|'gutenberg'|'elementor'|'divi'|'wpbakery'|'beaver'
+    isBuilder: boolean
+    isFrontPage: boolean
+    renderedWords: number
+    renderedExcerpt: string
+    canAppend: boolean
+}
+
+/** Ask the companion plugin how a page is built. null = companion absent/unreachable. */
+async function companionBuilderInfo(cfg: WpCfg, postId: number): Promise<BuilderInfo | null> {
+    try {
+        const res = await fetch(`${norm(cfg.url)}/wp-json/clawflow/v1/builder-info?post_id=${postId}`, {
+            headers: { Authorization: auth(cfg) }, signal: AbortSignal.timeout(25000),
+        })
+        if (res.status === 404) return null   // companion not installed / too old
+        if (!res.ok) return null
+        const j = await res.json().catch(() => null) as any
+        if (!j || !j.ok) return null
+        return {
+            ok: true,
+            builder: String(j.builder || 'classic'),
+            isBuilder: !!j.is_builder,
+            isFrontPage: !!j.is_front_page,
+            renderedWords: Number(j.rendered_words || 0),
+            renderedExcerpt: String(j.rendered_excerpt || ''),
+            canAppend: !!j.can_append,
+        }
+    } catch { return null }
+}
+
+/** Native Elementor append via the companion Document API. */
+async function elementorAppend(cfg: WpCfg, postId: number, html: string): Promise<{ ok: boolean; newWords?: number; error?: string }> {
+    try {
+        const res = await fetch(`${norm(cfg.url)}/wp-json/clawflow/v1/elementor-append`, {
+            method: 'POST',
+            headers: { Authorization: auth(cfg), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ post_id: postId, html }),
+            signal: AbortSignal.timeout(45000),
+        })
+        if (!res.ok) return { ok: false, error: `${res.status}: ${(await res.text().catch(() => '')).slice(0, 200)}` }
+        const j = await res.json().catch(() => ({})) as any
+        return { ok: !!j.ok, newWords: Number(j.new_rendered_words || 0) }
+    } catch (err) { return { ok: false, error: (err as Error).message } }
+}
+
+/** Content-signature builder guess for when the companion plugin is absent. */
+function builderFromContent(html: string): string {
+    const h = html || ''
+    if (/data-elementor-type|elementor-element|class="elementor/i.test(h)) return 'elementor'
+    if (/\[vc_row|\[vc_column/i.test(h)) return 'wpbakery'
+    if (/et_pb_section|et_pb_row/i.test(h)) return 'divi'
+    if (/fl-builder|fl-row-content/i.test(h)) return 'beaver'
+    if (/<!--\s*wp:/.test(h)) return 'gutenberg'
+    return 'classic'
+}
 
 // System / functional pages must NEVER be "expanded" with SEO content — cart,
 // checkout, account, shop, thank-you, contact, accessibility, blog index, etc.
@@ -96,9 +162,33 @@ async function fetchType(cfg: WpCfg, type: WpType, search?: string): Promise<Tar
     return out
 }
 
-/** Claude expands an existing page toward the word target. Returns new HTML or null. */
-async function expandContent(apiKey: string, model: string, businessName: string, t: Target, targetWords: number): Promise<string | null> {
-    const prompt = `אתם עורך תוכן SEO בכיר של ${businessName}. לפניכם עמוד קיים שצריך להעמיק ולהרחיב — לא לכתוב מחדש מאפס, אלא לשמר את כל המידע, הקישורים והעובדות הקיימים, ולהוסיף עומק.
+/**
+ * Claude generates the new body. Two modes:
+ *  - 'replace' (classic/post_content): preserve all existing content + deepen
+ *    toward the word target → returns the FULL new body.
+ *  - 'append' (Elementor): the existing content stays in its widgets untouched;
+ *    we generate ADDITIONAL, complementary sections to add BELOW it (no repeats).
+ * Returns new HTML or null if it didn't actually produce enough content.
+ */
+async function expandContent(apiKey: string, model: string, businessName: string, t: Target, targetWords: number, mode: WriteMode = 'post_content'): Promise<string | null> {
+    const prompt = mode === 'elementor_append'
+        ? `אתם עורך תוכן SEO בכיר של ${businessName}. לעמוד הקיים כבר יש תוכן (שנבנה בבונה אתרים Elementor), והוא יישאר כמו שהוא. המשימה: לכתוב מקטע תוכן SEO **חדש ומשלים** שיתווסף **מתחת** לתוכן הקיים — בלי לחזור על מה שכבר נאמר.
+
+## העמוד הקיים (לעיון בלבד — אל תשכפלו אותו)
+כותרת: ${t.title}
+תוכן קיים (מקוצר):
+${t.content.slice(0, 8000)}
+
+## מה לכתוב (תוכן חדש בלבד)
+- 2-4 כותרות משנה H2 בפורמט שאלה (כמו שמשתמשים מקלידים בגוגל), שמכסות זוויות ש**עוד לא** מכוסות בעמוד.
+- תחת כל כותרת — פסקאות עם ערך פרקטי אמיתי, דוגמאות, פירוט.
+- מקטע "שאלות נפוצות" בסוף (H2 "שאלות נפוצות", שאלות ב-H3).
+- עברית בלבד (חוץ משמות מותג). טון מקצועי, ידידותי. פנייה בלשון רבים.
+- כ-${targetWords} מילים של תוכן חדש.
+
+## תפוקה
+החזירו אך ורק HTML תקין של התוכן החדש (<p>, <h2>/<h3>, <ul>/<li>). בלי markdown, בלי \`\`\`, בלי טקסט הסבר לפני או אחרי.`
+        : `אתם עורך תוכן SEO בכיר של ${businessName}. לפניכם עמוד קיים שצריך להעמיק ולהרחיב — לא לכתוב מחדש מאפס, אלא לשמר את כל המידע, הקישורים והעובדות הקיימים, ולהוסיף עומק.
 
 ## העמוד הקיים
 כותרת: ${t.title}
@@ -127,7 +217,10 @@ ${t.content.slice(0, 12000)}
     const data = await res.json() as { content?: Array<{ type?: string; text?: string }> }
     let html = (data.content?.find(c => c.type === 'text')?.text || '').trim()
     html = html.replace(/^```html?\s*/i, '').replace(/```\s*$/i, '').trim()
-    if (wordCount(html) < Math.max(t.words, THIN_WORD_THRESHOLD)) return null   // didn't actually expand
+    // 'append' is net-new content → just require a meaningful block. 'replace'
+    // must actually exceed the prior length (else it shrank/no-op'd).
+    const minWords = mode === 'elementor_append' ? Math.min(targetWords * 0.5, 300) : Math.max(t.words, THIN_WORD_THRESHOLD)
+    if (wordCount(html) < minWords) return null
     return html
 }
 
@@ -145,7 +238,7 @@ export async function runPageRefresh(
     instanceId: string,
     opts: { agentId?: string | null; businessName?: string; targetWords?: number; namedPages?: string[]; dryRun?: boolean; limit?: number } = {},
 ): Promise<PageRefreshResult> {
-    const result: PageRefreshResult = { ok: false, integrationMissing: false, authError: false, scanned: 0, candidates: 0, targetWords: opts.targetWords || DEFAULT_TARGET_WORDS, updated: [], failures: [] }
+    const result: PageRefreshResult = { ok: false, integrationMissing: false, authError: false, scanned: 0, candidates: 0, targetWords: opts.targetWords || DEFAULT_TARGET_WORDS, updated: [], failures: [], skipped: [] }
     const cfg = await loadWpConfig(instanceId, opts.agentId) as WpCfg | null
     if (!cfg) { result.integrationMissing = true; return result }
 
@@ -169,7 +262,11 @@ export async function runPageRefresh(
 
     result.candidates = targets.length
     if (targets.length === 0) { result.ok = true; return result }   // idempotent no-op
-    targets = targets.slice(0, Math.min(opts.limit || MAX_REFRESH_PER_RUN, MAX_REFRESH_PER_RUN))
+    // Target N *successful* drafts (not N examined) — builder skips (homepage,
+    // rich widget pages, unsupported builders) shouldn't starve the result.
+    const wantDrafts = Math.min(opts.limit || MAX_REFRESH_PER_RUN, MAX_REFRESH_PER_RUN)
+    const maxExamine = Math.min(targets.length, wantDrafts + 20)
+    targets = targets.slice(0, maxExamine)
 
     const apiKey = await getApiKeyForInstance(instanceId)
     if (!apiKey) { result.error = 'no API key for instance'; return result }
@@ -178,15 +275,63 @@ export async function runPageRefresh(
     const targetWords = opts.targetWords || DEFAULT_TARGET_WORDS
     result.targetWords = targetWords
 
+    const skip = (t: Target, reason: string) => result.skipped!.push({ type: t.type, id: t.id, title: t.title, reason })
+
     for (const t of targets) {
+        if (result.updated.length >= wantDrafts) break
         try {
-            const html = await expandContent(apiKey, model, businessName, t, targetWords)
-            if (!html) { result.failures.push({ type: t.type, id: t.id, error: 'expansion did not increase length' }); continue }
-            if (!opts.dryRun) await writeContent(cfg, t, html)
+            // ── Builder-aware routing ──────────────────────────────────────────
+            // Decide WHERE the content goes (post_content vs native Elementor
+            // append) and re-judge thinness on the RENDERED content for builder
+            // pages, so we never touch a homepage or a rich widget-built page.
+            let writeMode: WriteMode = 'post_content'
+            let baseContent = t.content
+            let baseWords = t.words
+            let builderLabel = 'classic'
+
+            const bi = await companionBuilderInfo(cfg, t.id)
+            if (bi) {
+                builderLabel = bi.builder
+                if (bi.isFrontPage) { skip(t, 'דף הבית — לא מרחיבים אותו במקום (תוכן ייעודי נפרד)'); continue }
+                if (bi.isBuilder) {
+                    // Real content lives in widgets — judge thinness on rendered text.
+                    baseWords = bi.renderedWords || t.words
+                    baseContent = bi.renderedExcerpt || t.content
+                    if (baseWords >= THIN_WORD_THRESHOLD) { skip(t, `לא דק — ${baseWords} מילים בווידג'טים של ${bi.builder}`); continue }
+                    if (bi.builder === 'elementor' && bi.canAppend) {
+                        writeMode = 'elementor_append'
+                    } else {
+                        skip(t, `בנוי ב-${bi.builder} — הרחבה במקום עדיין לא נתמכת (מומלץ מאמר ייעודי)`); continue
+                    }
+                }
+                // classic / gutenberg → post_content (default path)
+            } else {
+                // Companion absent — fall back to URL + content-signature heuristics.
+                if (norm(t.link) === norm(cfg.url)) { skip(t, 'דף הבית — לא מרחיבים במקום'); continue }
+                const heur = builderFromContent(t.content)
+                if (heur !== 'classic' && heur !== 'gutenberg') {
+                    builderLabel = heur
+                    skip(t, `בנוי ב-${heur} — נדרש תוסף Flowmatic Companion כדי לערוך בבטחה`); continue
+                }
+            }
+
+            const tForExpand: Target = { ...t, content: baseContent, words: baseWords }
+            const html = await expandContent(apiKey, model, businessName, tForExpand, targetWords, writeMode)
+            if (!html) { result.failures.push({ type: t.type, id: t.id, error: 'expansion did not produce enough content' }); continue }
+
+            if (!opts.dryRun) {
+                if (writeMode === 'elementor_append') {
+                    const r = await elementorAppend(cfg, t.id, html)
+                    if (!r.ok) throw new Error(`elementor-append: ${r.error || 'failed'}`)
+                } else {
+                    await writeContent(cfg, t, html)
+                }
+            }
             // Return the generated draft so it can be PREVIEWED before publishing
-            // (publish-only-after-quality-check). On a real (non-dryRun) write the
-            // html is already live, but we still return it for the output record.
-            result.updated.push({ type: t.type, id: t.id, title: t.title, link: t.link, beforeWords: t.words, afterWords: wordCount(html), draftHtml: html })
+            // (publish-only-after-quality-check). writeMode tells the publish path
+            // how to write it. For append mode afterWords = base + new block.
+            const afterWords = writeMode === 'elementor_append' ? baseWords + wordCount(html) : wordCount(html)
+            result.updated.push({ type: t.type, id: t.id, title: t.title, link: t.link, beforeWords: baseWords, afterWords, draftHtml: html, writeMode, builder: builderLabel })
         } catch (err) {
             const msg = (err as Error).message
             if (/^(401|403)\b/.test(msg)) result.authError = true
@@ -205,7 +350,7 @@ export async function runPageRefresh(
 export async function publishPageRefreshDraft(
     instanceId: string,
     opts: { agentId?: string | null },
-    drafts: Array<{ type: WpType; id: number; html: string }>,
+    drafts: Array<{ type: WpType; id: number; html: string; writeMode?: WriteMode }>,
 ): Promise<{ ok: boolean; integrationMissing?: boolean; published: Array<{ type: string; id: number }>; failures: Array<{ type: string; id: number; error: string }> }> {
     const out = { ok: false, published: [] as Array<{ type: string; id: number }>, failures: [] as Array<{ type: string; id: number; error: string }> }
     const cfg = await loadWpConfig(instanceId, opts.agentId) as WpCfg | null
@@ -213,7 +358,12 @@ export async function publishPageRefreshDraft(
     for (const d of drafts) {
         if (!d || !d.id || !d.html) { out.failures.push({ type: d?.type || '?', id: d?.id || 0, error: 'missing id/html' }); continue }
         try {
-            await writeContent(cfg, { type: d.type, id: d.id } as Target, d.html)
+            if (d.writeMode === 'elementor_append') {
+                const r = await elementorAppend(cfg, d.id, d.html)
+                if (!r.ok) throw new Error(`elementor-append: ${r.error || 'failed'}`)
+            } else {
+                await writeContent(cfg, { type: d.type, id: d.id } as Target, d.html)
+            }
             out.published.push({ type: d.type, id: d.id })
         } catch (err) { out.failures.push({ type: d.type, id: d.id, error: (err as Error).message }) }
     }

@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Flowmatic Companion
  * Plugin URI: https://flowmatic.co.il
- * Description: Flowmatic platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, first-party GCLID capture (survives payment-gateway redirect → order meta for the offline Ads bridge), server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup.
- * Version: 1.14.0
+ * Description: Flowmatic platform companion — GTM snippet injection, recursive legacy GTM scanning + cleanup, WooCommerce ecommerce dataLayer auto-push, first-party GCLID capture (survives payment-gateway redirect → order meta for the offline Ads bridge), server-side GA4 Measurement Protocol purchase backfill (captures redirect-gateway orders the client-side tag misses, deduped by transaction_id), tracking conflict detection + surgical resolution + manual snippet (IHAF) detection + orphaned wp_options cleanup, page-builder awareness (builder-info) + native Elementor content append.
+ * Version: 1.15.0
  * Author: Flowmatic
  * Author URI: https://flowmatic.co.il
  * License: MIT
@@ -1331,6 +1331,157 @@ add_action('rest_api_init', function () {
             }
 
             return ['ok' => true, 'changes' => $changes];
+        },
+    ]);
+
+    /**
+     * GET /clawflow/v1/builder-info?post_id=X — report how a post/page is built
+     * so the platform never appends SEO text into post_content of a page-builder
+     * page (where the real content lives in widgets, not post_content).
+     *
+     * Returns: builder type, whether it's the site front page, and — crucially —
+     * rendered_words / rendered_excerpt computed by running the_content filter
+     * (so Elementor/Divi/etc. render their widgets). This makes "thin content"
+     * judged on the REAL rendered text, not the leftover post_content.
+     */
+    register_rest_route('clawflow/v1', '/builder-info', [
+        'methods'             => 'GET',
+        'permission_callback' => function () { return current_user_can('manage_options'); },
+        'callback'            => function (WP_REST_Request $req) {
+            $post_id = (int)$req->get_param('post_id');
+            if ((bool)$req->get_param('probe')) return ['ok' => true, 'supported' => true];
+            $p = $post_id ? get_post($post_id) : null;
+            if (!$p) return new WP_Error('not_found', 'post not found', ['status' => 404]);
+
+            // Detect builder.
+            $builder = 'classic';
+            $elementor_active = (defined('ELEMENTOR_VERSION') || class_exists('\\Elementor\\Plugin'));
+            if ($elementor_active && get_post_meta($post_id, '_elementor_edit_mode', true) === 'builder') {
+                $builder = 'elementor';
+            } elseif (get_post_meta($post_id, '_et_pb_use_builder', true) === 'on') {
+                $builder = 'divi';
+            } elseif (get_post_meta($post_id, '_fl_builder_enabled', true)) {
+                $builder = 'beaver';
+            } elseif (strpos((string)$p->post_content, '[vc_row') !== false) {
+                $builder = 'wpbakery';
+            } elseif (strpos((string)$p->post_content, '<!-- wp:') !== false) {
+                $builder = 'gutenberg';
+            }
+
+            // Render the real content via the_content filter (Elementor/Divi hook
+            // in here to output their widget markup), then strip to plain words.
+            // Builders read the GLOBAL $post / get_the_ID(), so set it up first.
+            global $post;
+            $prev_post = $post;
+            $post = $p;
+            setup_postdata($post);
+            $rendered = (string)apply_filters('the_content', $p->post_content);
+            wp_reset_postdata();
+            $post = $prev_post;
+            $text = trim(preg_replace('/\s+/u', ' ', wp_strip_all_tags($rendered)));
+            $words = $text === '' ? 0 : count(preg_split('/\s+/u', $text));
+
+            $front_id = (int)get_option('page_on_front');
+            $is_front = ($front_id && $front_id === $post_id);
+
+            return [
+                'ok'              => true,
+                'post_id'         => $post_id,
+                'builder'         => $builder,
+                'is_builder'      => in_array($builder, ['elementor', 'divi', 'beaver', 'wpbakery'], true),
+                'is_front_page'   => (bool)$is_front,
+                'rendered_words'  => $words,
+                'rendered_excerpt'=> mb_substr($text, 0, 6000),
+                'can_append'      => ($builder === 'elementor' && $elementor_active),
+            ];
+        },
+    ]);
+
+    /**
+     * POST /clawflow/v1/elementor-append — natively append SEO content to an
+     * Elementor page: add one new section → column → text-editor widget holding
+     * our HTML, then save THROUGH Elementor's Document API (which regenerates the
+     * page CSS + _elementor_data correctly). Never touches post_content.
+     *
+     * Body: { post_id, html }  →  { ok, added, new_rendered_words }
+     */
+    register_rest_route('clawflow/v1', '/elementor-append', [
+        'methods'             => 'POST',
+        'permission_callback' => function () { return current_user_can('manage_options'); },
+        'callback'            => function (WP_REST_Request $req) {
+            if ((bool)$req->get_param('probe')) {
+                return ['ok' => true, 'supported' => class_exists('\\Elementor\\Plugin')];
+            }
+            $post_id = (int)$req->get_param('post_id');
+            $html    = (string)$req->get_param('html');
+            if (!$post_id || trim($html) === '') {
+                return new WP_Error('bad_args', 'post_id + html required', ['status' => 400]);
+            }
+            if (!class_exists('\\Elementor\\Plugin')) {
+                return new WP_Error('no_elementor', 'Elementor is not active on this site', ['status' => 422]);
+            }
+            if (get_post_meta($post_id, '_elementor_edit_mode', true) !== 'builder') {
+                return new WP_Error('not_elementor_page', 'post is not an Elementor page', ['status' => 422]);
+            }
+
+            $gen = function () {
+                if (class_exists('\\Elementor\\Utils') && method_exists('\\Elementor\\Utils', 'generate_random_string')) {
+                    return \Elementor\Utils::generate_random_string();
+                }
+                return substr(md5(uniqid('', true)), 0, 7);
+            };
+
+            // Sanitize: allow the rich-but-safe subset our generator emits.
+            $allowed = [
+                'p' => [], 'br' => [], 'strong' => [], 'em' => [], 'b' => [], 'i' => [],
+                'h2' => [], 'h3' => [], 'h4' => [], 'ul' => [], 'ol' => [], 'li' => [],
+                'a' => ['href' => [], 'title' => [], 'rel' => [], 'target' => []],
+                'blockquote' => [], 'table' => [], 'thead' => [], 'tbody' => [],
+                'tr' => [], 'th' => [], 'td' => [],
+            ];
+            $clean = wp_kses($html, $allowed);
+
+            $widget = [
+                'id'         => $gen(),
+                'elType'     => 'widget',
+                'widgetType' => 'text-editor',
+                'settings'   => ['editor' => $clean],
+                'elements'   => [],
+            ];
+            $column = [
+                'id'       => $gen(),
+                'elType'   => 'column',
+                'settings' => ['_column_size' => 100, '_inline_size' => null],
+                'elements' => [$widget],
+            ];
+            $section = [
+                'id'       => $gen(),
+                'elType'   => 'section',
+                'settings' => [],
+                'elements' => [$column],
+            ];
+
+            try {
+                $document = \Elementor\Plugin::$instance->documents->get($post_id);
+                if (!$document) return new WP_Error('no_document', 'could not load Elementor document', ['status' => 500]);
+                $data = $document->get_elements_data();
+                if (!is_array($data)) $data = [];
+                $data[] = $section;
+                $document->save(['elements' => $data]);
+                if (isset(\Elementor\Plugin::$instance->files_manager)) {
+                    \Elementor\Plugin::$instance->files_manager->clear_cache();
+                }
+            } catch (\Throwable $e) {
+                return new WP_Error('save_failed', $e->getMessage(), ['status' => 500]);
+            }
+
+            // Re-render to confirm the new word count.
+            $post = get_post($post_id);
+            $rendered = (string)apply_filters('the_content', $post ? $post->post_content : '');
+            $text = trim(preg_replace('/\s+/u', ' ', wp_strip_all_tags($rendered)));
+            $words = $text === '' ? 0 : count(preg_split('/\s+/u', $text));
+
+            return ['ok' => true, 'added' => 1, 'new_rendered_words' => $words];
         },
     ]);
 });
