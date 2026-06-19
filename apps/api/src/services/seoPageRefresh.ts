@@ -17,6 +17,7 @@
  * via WP REST. Idempotent: pages already ≥ target are skipped unless named.
  */
 import { loadWpConfig } from '@/services/seoMetaBatch'
+import { assembleSchemaGraph } from '@/services/seoSchemaBatch'
 import { getApiKeyForInstance, resolveDirectModel } from '@/controllers/hosting/agentSetup'
 
 const THIN_WORD_THRESHOLD = 300
@@ -31,10 +32,23 @@ export interface PageRefreshResult {
     scanned: number
     candidates: number
     targetWords: number
-    updated: Array<{ type: string; id: number; title: string; link: string; beforeWords: number; afterWords: number; draftHtml?: string; writeMode?: WriteMode; builder?: string }>
+    updated: Array<{ type: string; id: number; title: string; link: string; beforeWords: number; afterWords: number; draftHtml?: string; writeMode?: WriteMode; builder?: string; seo?: EditSeo }>
     failures: Array<{ type: string; id: number; error: string }>
     skipped?: Array<{ type: string; id: number; title: string; reason: string }>
     error?: string
+}
+
+// Edit-time SEO/AEO technicals applied alongside a content edit — so a page we
+// refresh also gets the structured data, meta description and internal links it
+// needs, instead of just more body text. (Closes the "FAQ without FAQPage / empty
+// meta description" gap surfaced on the MS /blog/ page.)
+export interface EditSeo {
+    faqCount: number
+    schemaTypes: string[]
+    schemaWritten?: boolean
+    metaDescription?: string
+    internalLinks?: number
+    errors?: string[]
 }
 
 type WpType = 'posts' | 'pages'
@@ -234,6 +248,127 @@ async function writeContent(cfg: WpCfg, t: Target, html: string): Promise<void> 
     if (!res.ok) throw new Error(`${res.status}: ${(await res.text().catch(() => '')).slice(0, 200)}`)
 }
 
+// Pull the FAQ Q&A pairs out of the generated body so we can emit FAQPage
+// structured data for EXACTLY what we wrote (no re-read, works for Elementor too).
+function extractFaqFromHtml(html: string): Array<{ question: string; answer: string }> {
+    const out: Array<{ question: string; answer: string }> = []
+    const idx = html.search(/<h2[^>]*>\s*שאלות נפוצות/i)
+    const region = idx >= 0 ? html.slice(idx) : html
+    const re = /<h3[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<h3|<h2|$)/gi
+    let m: RegExpExecArray | null
+    while ((m = re.exec(region)) !== null) {
+        const q = stripHtml(m[1]).replace(/\s+/g, ' ').trim()
+        const a = stripHtml(m[2]).replace(/\s+/g, ' ').trim()
+        if (q.length >= 5 && a.length >= 10) out.push({ question: q, answer: a.slice(0, 600) })
+        if (out.length >= 10) break
+    }
+    return out
+}
+
+function firstParagraphText(html: string): string {
+    const m = html.match(/<p[^>]*>([\s\S]*?)<\/p>/i)
+    return m ? stripHtml(m[1]).replace(/\s+/g, ' ').trim() : ''
+}
+
+/** One short LLM call → a real Hebrew meta description from the content we have. */
+async function generateMetaDescription(apiKey: string, model: string, businessName: string, title: string, contentText: string): Promise<string | null> {
+    const prompt = `כתבו meta description אחת ל-SEO (עד 155 תווים) לעמוד "${title}" של ${businessName}. עברית, משכנע, כולל את מילת המפתח המרכזית, פנייה בלשון רבים. החזירו אך ורק את הטקסט — בלי מירכאות, בלי הסבר.
+
+תוכן העמוד: ${contentText.slice(0, 1500)}`
+    try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+            body: JSON.stringify({ model, max_tokens: 300, messages: [{ role: 'user', content: prompt }] }),
+            signal: AbortSignal.timeout(60000),
+        })
+        if (!res.ok) return null
+        const data = await res.json() as { content?: Array<{ type?: string; text?: string }> }
+        const txt = (data.content?.find(c => c.type === 'text')?.text || '').trim().replace(/^["']|["']$/g, '')
+        return txt ? txt.slice(0, 160) : null
+    } catch { return null }
+}
+
+/** Brand social/entity URLs for Organization.sameAs (AEO entity linking). Best-effort. */
+async function resolveSameAs(agentId?: string | null): Promise<string[] | undefined> {
+    if (!agentId) return undefined
+    try {
+        const { db } = await import('@/db')
+        const { matehAgents } = await import('@/db/schema')
+        const { eq } = await import('drizzle-orm')
+        const [a] = await db.select().from(matehAgents).where(eq(matehAgents.id, agentId))
+        const rd: any = a?.researchData || {}
+        const cand = [rd?.brandBook?.socialLinks, rd?.answers?.socialLinks, rd?.results?.brand?.sameAs, rd?.answers?.social]
+            .flat().filter((u: unknown) => typeof u === 'string' && /^https?:\/\//.test(u as string)) as string[]
+        const uniq = Array.from(new Set(cand))
+        return uniq.length ? uniq.slice(0, 10) : undefined
+    } catch { return undefined }
+}
+
+async function writeMetaFields(cfg: WpCfg, type: WpType, id: number, meta: Record<string, string>): Promise<void> {
+    const res = await fetch(`${norm(cfg.url)}/wp-json/wp/v2/${type}/${id}`, {
+        method: 'POST',
+        headers: { Authorization: auth(cfg), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ meta }),
+        signal: AbortSignal.timeout(30000),
+    })
+    if (!res.ok) throw new Error(`${res.status}: ${(await res.text().catch(() => '')).slice(0, 160)}`)
+}
+
+/**
+ * Apply the SEO/AEO technicals that belong WITH a content edit: FAQPage + page-type
+ * schema (always, works classic + Elementor via the `_clawflow_schema_jsonld` meta
+ * the companion renders), a generated meta description (Yoast + RankMath keys), and
+ * internal links (classic posts only — the links service skips Elementor/pages).
+ * When doWrite=false only the deterministic preview fields are computed (no writes,
+ * no LLM) so the preview can say what WILL be added.
+ */
+async function applyEditTimeSeo(
+    cfg: WpCfg,
+    ctx: { instanceId: string; agentId?: string | null; businessName: string; apiKey?: string; model?: string; sameAs?: string[] },
+    page: { type: WpType; id: number; title: string; link: string; builder?: string },
+    html: string,
+    doWrite: boolean,
+): Promise<EditSeo> {
+    const faq = extractFaqFromHtml(html)
+    const primaryType = page.type === 'posts' ? 'Article' : 'WebPage'
+    const out: EditSeo = { faqCount: faq.length, schemaTypes: ['Organization', 'WebSite', 'BreadcrumbList', primaryType, ...(faq.length ? ['FAQPage'] : [])] }
+    if (!doWrite) return out
+
+    const errors: string[] = []
+    const firstPara = firstParagraphText(html)
+    // 1) Structured data
+    try {
+        const primaryNode: Record<string, unknown> = { '@type': primaryType }
+        primaryNode[primaryType === 'Article' ? 'headline' : 'name'] = page.title
+        if (firstPara) primaryNode.description = firstPara.slice(0, 200)
+        const jsonLd = assembleSchemaGraph(
+            { name: ctx.businessName, siteUrl: cfg.url, sameAs: ctx.sameAs },
+            { title: page.title, link: page.link, excerpt: firstPara },
+            { primaryType, primaryNode, faq },
+        )
+        await writeMetaFields(cfg, page.type, page.id, { _clawflow_schema_jsonld: jsonLd })
+        out.schemaWritten = true
+    } catch (e) { errors.push('schema: ' + (e as Error).message) }
+    // 2) Meta description
+    if (ctx.apiKey && ctx.model) {
+        try {
+            const desc = await generateMetaDescription(ctx.apiKey, ctx.model, ctx.businessName, page.title, stripHtml(html))
+            if (desc) { await writeMetaFields(cfg, page.type, page.id, { _yoast_wpseo_metadesc: desc, rank_math_description: desc }); out.metaDescription = desc }
+        } catch (e) { errors.push('meta: ' + (e as Error).message) }
+    }
+    // 3) Internal links — classic posts only (service skips Elementor + pages)
+    if (page.type === 'posts' && page.builder !== 'elementor') {
+        try {
+            const { runInternalLinks } = await import('@/services/seoInternalLinks')
+            const r = await runInternalLinks(ctx.instanceId, { agentId: ctx.agentId, onlyIds: [page.id] }) as { updated?: unknown[] }
+            out.internalLinks = Array.isArray(r?.updated) ? r.updated.length : 0
+        } catch (e) { errors.push('links: ' + (e as Error).message) }
+    }
+    if (errors.length) out.errors = errors
+    return out
+}
+
 export async function runPageRefresh(
     instanceId: string,
     opts: { agentId?: string | null; businessName?: string; targetWords?: number; namedPages?: string[]; dryRun?: boolean; limit?: number } = {},
@@ -272,6 +407,7 @@ export async function runPageRefresh(
     if (!apiKey) { result.error = 'no API key for instance'; return result }
     const model = await resolveDirectModel(instanceId, 'yotzer')
     const businessName = opts.businessName || 'העסק'
+    const sameAs = await resolveSameAs(opts.agentId)
     const targetWords = opts.targetWords || DEFAULT_TARGET_WORDS
     result.targetWords = targetWords
 
@@ -327,11 +463,19 @@ export async function runPageRefresh(
                     await writeContent(cfg, t, html)
                 }
             }
+            // Edit-time SEO/AEO: on a real write apply schema + meta + internal
+            // links; on dryRun just compute what WILL be added (preview).
+            const seo = await applyEditTimeSeo(
+                cfg,
+                { instanceId, agentId: opts.agentId, businessName, apiKey, model, sameAs },
+                { type: t.type, id: t.id, title: t.title, link: t.link, builder: builderLabel },
+                html, !opts.dryRun,
+            )
             // Return the generated draft so it can be PREVIEWED before publishing
             // (publish-only-after-quality-check). writeMode tells the publish path
             // how to write it. For append mode afterWords = base + new block.
             const afterWords = writeMode === 'elementor_append' ? baseWords + wordCount(html) : wordCount(html)
-            result.updated.push({ type: t.type, id: t.id, title: t.title, link: t.link, beforeWords: baseWords, afterWords, draftHtml: html, writeMode, builder: builderLabel })
+            result.updated.push({ type: t.type, id: t.id, title: t.title, link: t.link, beforeWords: baseWords, afterWords, draftHtml: html, writeMode, builder: builderLabel, seo })
         } catch (err) {
             const msg = (err as Error).message
             if (/^(401|403)\b/.test(msg)) result.authError = true
@@ -349,12 +493,18 @@ export async function runPageRefresh(
  */
 export async function publishPageRefreshDraft(
     instanceId: string,
-    opts: { agentId?: string | null },
-    drafts: Array<{ type: WpType; id: number; html: string; writeMode?: WriteMode }>,
-): Promise<{ ok: boolean; integrationMissing?: boolean; published: Array<{ type: string; id: number }>; failures: Array<{ type: string; id: number; error: string }> }> {
-    const out = { ok: false, published: [] as Array<{ type: string; id: number }>, failures: [] as Array<{ type: string; id: number; error: string }> }
+    opts: { agentId?: string | null; businessName?: string },
+    drafts: Array<{ type: WpType; id: number; html: string; writeMode?: WriteMode; title?: string; link?: string; builder?: string }>,
+): Promise<{ ok: boolean; integrationMissing?: boolean; published: Array<{ type: string; id: number; seo?: EditSeo }>; failures: Array<{ type: string; id: number; error: string }> }> {
+    const out = { ok: false, published: [] as Array<{ type: string; id: number; seo?: EditSeo }>, failures: [] as Array<{ type: string; id: number; error: string }> }
     const cfg = await loadWpConfig(instanceId, opts.agentId) as WpCfg | null
     if (!cfg) return { ...out, integrationMissing: true }
+    // Resolve the edit-time-SEO context once (same technicals applied on publish
+    // as on a direct execute, so reviewed drafts get schema + meta + links too).
+    const apiKey = await getApiKeyForInstance(instanceId).catch(() => null)
+    const model = apiKey ? await resolveDirectModel(instanceId, 'yotzer').catch(() => '') : ''
+    const businessName = opts.businessName || 'העסק'
+    const sameAs = await resolveSameAs(opts.agentId)
     for (const d of drafts) {
         if (!d || !d.id || !d.html) { out.failures.push({ type: d?.type || '?', id: d?.id || 0, error: 'missing id/html' }); continue }
         try {
@@ -364,7 +514,17 @@ export async function publishPageRefreshDraft(
             } else {
                 await writeContent(cfg, { type: d.type, id: d.id } as Target, d.html)
             }
-            out.published.push({ type: d.type, id: d.id })
+            // Same holistic SEO/AEO pass as the execute path (schema + meta + links).
+            let seo: EditSeo | undefined
+            if (d.title && d.link) {
+                seo = await applyEditTimeSeo(
+                    cfg,
+                    { instanceId, agentId: opts.agentId, businessName, apiKey: apiKey || undefined, model: model || undefined, sameAs },
+                    { type: d.type, id: d.id, title: d.title, link: d.link, builder: d.builder },
+                    d.html, true,
+                )
+            }
+            out.published.push({ type: d.type, id: d.id, seo })
         } catch (err) { out.failures.push({ type: d.type, id: d.id, error: (err as Error).message }) }
     }
     out.ok = out.published.length > 0

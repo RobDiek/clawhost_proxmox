@@ -9870,10 +9870,11 @@ export const publishPageRefreshDraftHandler = async (c: Context) => {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const agent = await resolveActiveAgent(c, instanceId)
-        const body = await c.req.json<{ drafts: Array<{ type: 'posts' | 'pages'; id: number; html: string; writeMode?: 'post_content' | 'elementor_append' }> }>().catch(() => ({ drafts: [] as any }))
+        const body = await c.req.json<{ drafts: Array<{ type: 'posts' | 'pages'; id: number; html: string; writeMode?: 'post_content' | 'elementor_append'; title?: string; link?: string; builder?: string }> }>().catch(() => ({ drafts: [] as any }))
         if (!Array.isArray(body.drafts) || !body.drafts.length) return fail(c, 'drafts required', 400)
+        const rd: any = (agent && agent.researchData) || {}
         const { publishPageRefreshDraft } = await import('@/services/seoPageRefresh')
-        const r = await publishPageRefreshDraft(instanceId, { agentId: agent?.id }, body.drafts)
+        const r = await publishPageRefreshDraft(instanceId, { agentId: agent?.id, businessName: rd?.answers?.businessName }, body.drafts)
         return ok(c, r, r.integrationMissing ? 'WordPress לא מחובר' : (r.ok ? `פורסמו ${r.published.length} דפים` : 'הפרסום נכשל'))
     } catch (err) {
         return fail(c, (err as Error).message, 500)

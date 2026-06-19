@@ -219,36 +219,6 @@ async function generateSchema(
     business: { name: string; siteUrl: string; sameAs?: string[] },
     item: SchemaItem,
 ): Promise<string | null> {
-    const base = normalizeUrl(business.siteUrl)
-    // Deterministic breadcrumb from the URL path segments.
-    const path = (() => { try { return new URL(item.link).pathname } catch { return '/' } })()
-    const segs = path.split('/').filter(Boolean).map(s => decodeURIComponent(s))
-    const breadcrumb = {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-            { '@type': 'ListItem', position: 1, name: business.name, item: base + '/' },
-            ...(segs.length ? [{ '@type': 'ListItem', position: 2, name: item.title, item: item.link }] : []),
-        ],
-    }
-    // Brand entity (AEO): Organization + sameAs (Wikidata/social) so AI engines
-    // resolve the brand as a known entity. sameAs comes from research_data when
-    // available; omitted otherwise (no fabricated links).
-    const org: Record<string, unknown> = {
-        '@type': 'Organization', '@id': base + '/#organization',
-        name: business.name, url: base + '/',
-    }
-    if (business.sameAs && business.sameAs.length) org.sameAs = business.sameAs.slice(0, 10)
-    // WebSite + SearchAction = sitelinks searchbox (technical structured markup).
-    const website = {
-        '@type': 'WebSite', '@id': base + '/#website', url: base + '/', name: business.name,
-        publisher: { '@id': base + '/#organization' }, inLanguage: 'he-IL',
-        potentialAction: {
-            '@type': 'SearchAction',
-            target: { '@type': 'EntryPoint', urlTemplate: `${base}/?s={search_term_string}` },
-            'query-input': 'required name=search_term_string',
-        },
-    }
-
     const prompt = `אתם עורך SEO טכני. צרו את צומת ה-schema.org הספציפי לעמוד הבא (סוג העמוד + FAQ אם קיים). עברית.
 
 עמוד: "${item.title}"
@@ -295,6 +265,49 @@ URL: ${item.link}
         return null
     }
 
+    return assembleSchemaGraph(business, { title: item.title, link: item.link, excerpt: item.excerpt }, parsed, item.videos)
+}
+
+/**
+ * Assemble a full schema.org @graph JSON-LD doc from deterministic structural
+ * nodes (Organization, WebSite + SearchAction, BreadcrumbList) plus a page-type
+ * node and optional FAQPage / VideoObject. Shared by the batch task AND the
+ * edit-time enrichment in seoPageRefresh (so a page we just edited gets the SAME
+ * complete graph — critical because the companion suppresses Yoast/RankMath
+ * schema once `_clawflow_schema_jsonld` is set; a partial graph would LOSE the
+ * org/breadcrumb nodes). Works identically for classic and Elementor pages
+ * because it takes the content facts as input (no re-read of the page body).
+ */
+export function assembleSchemaGraph(
+    business: { name: string; siteUrl: string; sameAs?: string[] },
+    item: { title: string; link: string; excerpt?: string },
+    parsed: { primaryType?: string; primaryNode?: Record<string, unknown>; faq?: Array<{ question?: string; answer?: string }> },
+    videos: VideoRef[] = [],
+): string {
+    const base = normalizeUrl(business.siteUrl)
+    const path = (() => { try { return new URL(item.link).pathname } catch { return '/' } })()
+    const segs = path.split('/').filter(Boolean).map(s => decodeURIComponent(s))
+    const breadcrumb = {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: business.name, item: base + '/' },
+            ...(segs.length ? [{ '@type': 'ListItem', position: 2, name: item.title, item: item.link }] : []),
+        ],
+    }
+    const org: Record<string, unknown> = {
+        '@type': 'Organization', '@id': base + '/#organization',
+        name: business.name, url: base + '/',
+    }
+    if (business.sameAs && business.sameAs.length) org.sameAs = business.sameAs.slice(0, 10)
+    const website = {
+        '@type': 'WebSite', '@id': base + '/#website', url: base + '/', name: business.name,
+        publisher: { '@id': base + '/#organization' }, inLanguage: 'he-IL',
+        potentialAction: {
+            '@type': 'SearchAction',
+            target: { '@type': 'EntryPoint', urlTemplate: `${base}/?s={search_term_string}` },
+            'query-input': 'required name=search_term_string',
+        },
+    }
     const graph: Record<string, unknown>[] = [org, website, breadcrumb]
     if (parsed.primaryNode && typeof parsed.primaryNode === 'object') {
         const node = { ...parsed.primaryNode } as Record<string, unknown>
@@ -314,24 +327,16 @@ URL: ${item.link}
             })
         }
     }
-    // VideoObject — only from REAL embeds found in the page. name/description come
-    // from the page itself; uploadDate is OMITTED when unknown (never fabricated —
-    // a wrong uploadDate risks a structured-data manual action).
-    for (const v of item.videos.slice(0, 2)) {
+    for (const v of videos.slice(0, 2)) {
         const node: Record<string, unknown> = {
-            '@type': 'VideoObject',
-            name: item.title,
+            '@type': 'VideoObject', name: item.title,
             description: (item.excerpt || item.title).slice(0, 200),
-            contentUrl: v.contentUrl,
-            inLanguage: 'he-IL',
+            contentUrl: v.contentUrl, inLanguage: 'he-IL',
         }
         if (v.embedUrl) node.embedUrl = v.embedUrl
         if (v.thumbnailUrl) node.thumbnailUrl = v.thumbnailUrl
         graph.push(node)
     }
-    // `_fmSchemaV` at doc root → lets the next scan know which generator version
-    // produced this graph (drives the stale/enrich check). Search engines read
-    // `@graph`; this extra root key is ignored by JSON-LD parsers.
     const doc = { '@context': 'https://schema.org', '@graph': graph, _fmSchemaV: SCHEMA_GEN_VERSION }
     return JSON.stringify(doc)
 }
