@@ -12601,7 +12601,13 @@ function openMonthlyTaskFromCalendar(taskId) {
       ? '<button class="btn btn-primary btn-sm" onclick="approveMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem">✓ אשרו והריצו</button>'
       : '';
     var manualDone = '<button class="btn btn-outline btn-sm" onclick="completeMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem;color:#065F46;border-color:#A7F3D0;background:#F0FDF4">✓ בוצע ידנית</button>';
-    actionsHtml = primary + manualDone;
+    // Page-refresh tasks: let the user PREVIEW the generated content before it
+    // goes live (publish-only-after-quality-check). The button generates drafts
+    // (dryRun, nothing published) and opens a review modal.
+    var previewBtn = isPageRefreshTaskUI(task)
+      ? '<button class="btn btn-outline btn-sm" onclick="previewPageRefreshTask(\'' + task.id + '\')" style="font-size:0.85rem;color:#1E40AF;border-color:#BFDBFE;background:#EFF6FF">👁 תצוגה מקדימה של התוכן</button>'
+      : '';
+    actionsHtml = previewBtn + primary + manualDone;
     if (task.status === 'proposed') {
       actionsHtml +=
         '<button class="btn btn-outline btn-sm" onclick="skipMonthlyTaskFromModal(\'' + task.id + '\')" style="font-size:0.85rem;color:#92400E;border-color:#FDE68A">⏭ דחו לחודש הבא</button>' +
@@ -12692,6 +12698,149 @@ function completeMonthlyTaskFromModal(taskId) {
       setTimeout(function() { refreshInstanceData(); renderMonthlyPlanCard(); renderContentCalendar(); renderApprovalQueue(); }, 500);
     })
     .catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
+}
+
+// ─── Page-refresh preview-before-publish ───────────────────────────────────
+// Mirror of the backend isPageRefreshTask() so the preview CTA shows only on
+// "רענון/הרחבת דפים קיימים" tasks (NOT new-article creation).
+function isPageRefreshTaskUI(task) {
+  if (!task) return false;
+  var steps = Array.isArray(task.actionPlan) ? task.actionPlan.map(function(s){ return (s && s.step) || ''; }).join(' ') : '';
+  var text = (task.title || '') + ' ' + (task.summary || '') + ' ' + steps;
+  var refresh = /רענון|רענ(נ|ו)|הרחב(ת|ו|ה)?\s*\d|תוכן דק|דפים קיימ|העמק|עדכון תוכן קיים|\d{2,4}\s*→\s*[\d,]{3,5}|מ-?\s*\d{2,4}\s*ל-?\s*[\d,]{3,5}\s*מילים/.test(text);
+  if (!refresh) return false;
+  var channelOk = task.channel === 'seo' || task.channel === 'content' || task.channel === 'website';
+  var isNew = /מאמר חדש|כתבו מאמר|צרו מאמר|דף נושא|דף נחיתה|דף השוואה|דפי ערים|דף עיר|מאמר דף/.test(text);
+  return channelOk && !isNew;
+}
+
+// Holds the drafts currently shown in the preview modal (publish references by index).
+var _prPreview = { taskId: null, drafts: [] };
+
+function previewPageRefreshTask(taskId) {
+  var plan = instanceData && instanceData.researchData && instanceData.researchData.monthlyPlan;
+  var task = plan && Array.isArray(plan.tasks) ? plan.tasks.find(function(t){ return t.id === taskId; }) : null;
+  // Parse an explicit word target from the task text if present ("325→1,200").
+  var targetWords;
+  var tx = task ? ((task.title||'') + ' ' + (task.summary||'')) : '';
+  var m = tx.match(/(?:→|ל-?|עד)\s*([\d,]{3,6})\s*מילים?/) || tx.match(/→\s*([\d,]{3,6})/);
+  if (m) { var n = parseInt(m[1].replace(/,/g,''),10); if (n >= 300 && n <= 5000) targetWords = n; }
+
+  showToast('מייצרים טיוטות לבדיקה (לא מתפרסם)...', 'info');
+  apiFetch('/hosting/instances/' + instanceId + '/mazhir/page-refresh/preview', {
+    method: 'POST',
+    body: JSON.stringify({ limit: 2, targetWords: targetWords })
+  }).then(function(r) {
+    if (!r.success) throw new Error(r.message || 'תצוגה מקדימה נכשלה');
+    var res = r.data || {};
+    if (res.integrationMissing) { showToast('WordPress לא מחובר', 'error'); return; }
+    _prPreview = { taskId: taskId, drafts: (res.updated || []) };
+    renderPageRefreshPreviewModal(res, taskId);
+  }).catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
+}
+
+function renderPageRefreshPreviewModal(res, taskId) {
+  var drafts = res.updated || [];
+  var skipped = res.skipped || [];
+  var existing = document.getElementById('pr-preview-modal');
+  if (existing) existing.remove();
+
+  var builderLabel = function(b) {
+    if (b === 'elementor') return 'Elementor (הוספה נייטיב)';
+    if (b === 'gutenberg') return 'Gutenberg';
+    if (b === 'divi' || b === 'wpbakery' || b === 'beaver') return b;
+    return 'קלאסי';
+  };
+
+  var draftsHtml = drafts.map(function(d, i) {
+    var modeBadge = d.writeMode === 'elementor_append'
+      ? '<span style="font-size:0.68rem;background:#Fef3C7;color:#92400E;border:1px solid #FDE68A;border-radius:5px;padding:2px 7px">➕ הוספה לעמוד Elementor</span>'
+      : '<span style="font-size:0.68rem;background:#E0E7FF;color:#3730A3;border:1px solid #C7D2FE;border-radius:5px;padding:2px 7px">📝 עדכון תוכן העמוד</span>';
+    var iframe = '<iframe sandbox="" style="width:100%;height:340px;border:1px solid #E5E7EB;border-radius:8px;background:#fff" srcdoc="' +
+      escapeHtml('<!doctype html><html dir="rtl" lang="he"><head><meta charset="utf-8"><style>body{font-family:Arial,\'Arial Hebrew\',sans-serif;padding:16px;line-height:1.7;color:#1F2937}h1,h2,h3{color:#111827}h2{font-size:1.15rem;margin-top:20px}ul{padding-inline-start:22px}</style></head><body>' + (d.draftHtml || '') + '</body></html>') + '"></iframe>';
+    return '<div style="border:1px solid #E5E7EB;border-radius:10px;padding:14px;margin-bottom:14px;background:#FAFAFA">' +
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
+        '<strong style="font-size:0.92rem;color:#111827">' + escapeHtml(d.title || ('#' + d.id)) + '</strong>' +
+        modeBadge +
+        '<span style="font-size:0.7rem;color:#6B7280">' + builderLabel(d.builder) + '</span>' +
+        '<span style="font-size:0.7rem;color:#059669;margin-inline-start:auto">' + (d.beforeWords||0) + ' → ' + (d.afterWords||0) + ' מילים</span>' +
+      '</div>' +
+      (d.link ? '<a href="' + escapeHtml(d.link) + '" target="_blank" style="font-size:0.74rem;color:#2563EB;text-decoration:none;word-break:break-all">' + escapeHtml(d.link) + ' ↗</a>' : '') +
+      iframe +
+      '<div style="display:flex;gap:8px;margin-top:10px">' +
+        '<button class="btn btn-primary btn-sm" onclick="publishOnePageRefreshDraft(' + i + ')" style="font-size:0.82rem">✓ פרסמו את העמוד הזה</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  var skippedHtml = skipped.length
+    ? '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.8rem;color:#6B7280">דפים שדולגו (' + skipped.length + ') — ולמה</summary>' +
+      '<ul style="margin:8px 0 0;padding-inline-start:18px;font-size:0.78rem;color:#6B7280;line-height:1.7">' +
+      skipped.map(function(s){ return '<li>' + escapeHtml(s.title||('#'+s.id)) + ' — ' + escapeHtml(s.reason||'') + '</li>'; }).join('') +
+      '</ul></details>'
+    : '';
+
+  var bodyHtml;
+  if (!drafts.length) {
+    bodyHtml = '<div style="padding:18px;background:#F9FAFB;border-radius:8px;font-size:0.86rem;color:#4B5563">לא נמצאו דפים דקים מתאימים לרענון כרגע. ' +
+      (skipped.length ? 'חלק מהדפים דולגו מסיבות בטיחות (ראו למטה).' : '') + '</div>' + skippedHtml;
+  } else {
+    bodyHtml = '<div style="font-size:0.8rem;color:#6B7280;margin-bottom:12px">אלו טיוטות בלבד — שום דבר לא פורסם. בדקו את התוכן ולחצו «פרסמו» על מה שמתאים.</div>' +
+      draftsHtml +
+      (drafts.length > 1 ? '<button class="btn btn-primary btn-sm" onclick="publishAllPageRefreshDrafts(\'' + (taskId||'') + '\')" style="font-size:0.85rem;margin-top:4px">✓ פרסמו את כל הטיוטות</button>' : '') +
+      skippedHtml;
+  }
+
+  var modal = document.createElement('div');
+  modal.id = 'pr-preview-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML =
+    '<div style="background:#FFF;border-radius:12px;max-width:860px;width:100%;max-height:92vh;overflow-y:auto;padding:22px;direction:rtl;text-align:right">' +
+      '<div style="display:flex;align-items:center;margin-bottom:12px">' +
+        '<h3 style="margin:0;font-size:1.05rem;color:#111827">תצוגה מקדימה — רענון תוכן</h3>' +
+        '<button onclick="document.getElementById(\'pr-preview-modal\').remove()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#9CA3AF;margin-inline-start:auto">×</button>' +
+      '</div>' +
+      bodyHtml +
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+function publishOnePageRefreshDraft(idx) {
+  var d = _prPreview.drafts[idx];
+  if (!d) { showToast('הטיוטה לא נמצאה', 'error'); return; }
+  if (!confirm('לפרסם את «' + (d.title || d.id) + '» באתר עכשיו?')) return;
+  showToast('מפרסמים...', 'info');
+  apiFetch('/hosting/instances/' + instanceId + '/mazhir/page-refresh/publish', {
+    method: 'POST',
+    body: JSON.stringify({ drafts: [{ type: d.type, id: d.id, html: d.draftHtml, writeMode: d.writeMode }] })
+  }).then(function(r) {
+    if (!r.success) throw new Error(r.message || 'פרסום נכשל');
+    var data = r.data || {};
+    if (data.published && data.published.length) showToast('פורסם ✓ — ' + (d.title || d.id), 'success');
+    else throw new Error((data.failures && data.failures[0] && data.failures[0].error) || 'הפרסום לא הושלם');
+  }).catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
+}
+
+function publishAllPageRefreshDrafts(taskId) {
+  var drafts = (_prPreview.drafts || []).map(function(d){ return { type: d.type, id: d.id, html: d.draftHtml, writeMode: d.writeMode }; });
+  if (!drafts.length) return;
+  if (!confirm('לפרסם את כל ' + drafts.length + ' הדפים באתר עכשיו?')) return;
+  showToast('מפרסמים את כל הטיוטות...', 'info');
+  apiFetch('/hosting/instances/' + instanceId + '/mazhir/page-refresh/publish', {
+    method: 'POST',
+    body: JSON.stringify({ drafts: drafts })
+  }).then(function(r) {
+    if (!r.success) throw new Error(r.message || 'פרסום נכשל');
+    var data = r.data || {};
+    var n = (data.published || []).length;
+    showToast('פורסמו ' + n + ' דפים ✓', n ? 'success' : 'error');
+    var modal = document.getElementById('pr-preview-modal'); if (modal) modal.remove();
+    if (n && taskId) {
+      // Close the loop: mark the task completed (publishing IS the execution).
+      apiFetch('/hosting/instances/' + instanceId + '/monthly-plan/tasks/' + encodeURIComponent(taskId) + '/complete', { method: 'POST', body: JSON.stringify({ note: 'פורסמו ' + n + ' דפים מרועננים דרך תצוגה מקדימה' }) })
+        .then(function(){ refreshInstanceData(); renderMonthlyPlanCard(); renderContentCalendar(); }).catch(function(){});
+    }
+  }).catch(function(err) { showToast('שגיאה: ' + err.message, 'error'); });
 }
 
 // Open a content plan item in the task popup — bridges plan item → existing
