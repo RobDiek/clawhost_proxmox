@@ -65,10 +65,13 @@ async function loopBatch(fn: () => Promise<BatchResult>, dryRun: boolean, maxRou
     return { ran, updated, failures, remaining }
 }
 
+export type SweepStageName = 'schema' | 'meta' | 'internalLinks' | 'imageAlt' | 'productSchema'
+
 export async function runFullSiteSeoSweep(
     instanceId: string,
-    opts: { agentId?: string | null; businessName?: string; sameAs?: string[]; dryRun?: boolean; ecommerce?: boolean } = {},
+    opts: { agentId?: string | null; businessName?: string; sameAs?: string[]; dryRun?: boolean; ecommerce?: boolean; only?: SweepStageName[] } = {},
 ): Promise<FullSiteSweepResult> {
+    const want = (s: SweepStageName) => !opts.only || opts.only.includes(s)
     const dryRun = !!opts.dryRun
     const errors: string[] = []
     const out: FullSiteSweepResult = {
@@ -91,15 +94,15 @@ export async function runFullSiteSeoSweep(
     if (!cfg) { out.integrationMissing = true; return out }
 
     // 1) Structured data (Org+WebSite+Breadcrumb+page-node+FAQ/Product) — every page.
-    out.stages.schema = await loopBatch(() => runSeoSchemaBatch(instanceId, { agentId, businessName, sameAs, dryRun }), dryRun)
+    if (want('schema')) out.stages.schema = await loopBatch(() => runSeoSchemaBatch(instanceId, { agentId, businessName, sameAs, dryRun }), dryRun)
     // 2) Meta descriptions — every weak/empty page.
-    out.stages.meta = await loopBatch(() => runSeoMetaBatch(instanceId, { agentId, businessName, dryRun }), dryRun)
+    if (want('meta')) out.stages.meta = await loopBatch(() => runSeoMetaBatch(instanceId, { agentId, businessName, dryRun }), dryRun)
     // 3) Internal links — classic/Gutenberg posts (Elementor skipped, by design).
-    out.stages.internalLinks = await loopBatch(() => runInternalLinks(instanceId, { agentId, dryRun }), dryRun)
+    if (want('internalLinks')) out.stages.internalLinks = await loopBatch(() => runInternalLinks(instanceId, { agentId, dryRun }), dryRun)
     // 4) Image alt — accessibility + image SEO.
-    out.stages.imageAlt = await loopBatch(() => runImageAltBatch(instanceId, { agentId, businessName, dryRun }), dryRun)
+    if (want('imageAlt')) out.stages.imageAlt = await loopBatch(() => runImageAltBatch(instanceId, { agentId, businessName, dryRun }), dryRun)
     // 5) Product schema (ecommerce only) — runs once (paginates internally).
-    if (opts.ecommerce && agentId) {
+    if (want('productSchema') && opts.ecommerce && agentId) {
         try {
             // ProductSchemaResult uses numeric updated/failures (not arrays) and
             // paginates internally over the whole catalog in one call.
