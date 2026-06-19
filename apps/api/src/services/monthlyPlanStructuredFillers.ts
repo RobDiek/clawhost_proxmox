@@ -1058,7 +1058,11 @@ const COMPARISON_PAGES_FILLER: StructuredFiller = {
 const FULL_SITE_SEO_FILLER: StructuredFiller = {
     stageId: 'k26_full_site_seo',
     description: 'Full-site internal SEO/AEO optimization (one task → whole sweep)',
-    fill(_rd, existingTasks) {
+    fill(_rd, existingTasks, stack) {
+        // WordPress-only: the sweep writes via WP REST + companion. GitHub/Next.js
+        // sites (no WP) optimize via seoGithubBatch / code PRs, not this task.
+        // (Shopify routing is handled at execute time once a shopify stack flag exists.)
+        if (!stack?.wordpress) return []
         if (existingTasks.some(t => (t as { taskKind?: string }).taskKind === 'full_site_seo')) return []
         if (_existingTaskMatches(existingTasks, [/אופטימיזציה\s+(פנימית\s+)?מלאה|מנוע\s+seo\s+פנימי|full[- ]site\s+seo|פריסת\s+seo\s+מלאה/i])) return []
         const task = {
