@@ -101,9 +101,12 @@ export async function runFullSiteSeoSweep(
     // 5) Product schema (ecommerce only) — runs once (paginates internally).
     if (opts.ecommerce && agentId) {
         try {
-            const r = await runProductSchemaForAgent(agentId, { dryRun }) as BatchResult
-            out.stages.productSchema = { ran: 1, updated: Array.isArray(r.updated) ? r.updated.length : 0, failures: Array.isArray(r.failures) ? r.failures.length : 0, remaining: 0 }
-            if (r.integrationMissing) errors.push('product schema: WooCommerce not reachable')
+            // ProductSchemaResult uses numeric updated/failures (not arrays) and
+            // paginates internally over the whole catalog in one call.
+            const r = await runProductSchemaForAgent(agentId, { dryRun })
+            out.stages.productSchema = { ran: 1, updated: Number(r.updated || 0), failures: Number(r.failures || 0), remaining: 0 }
+            if (r.status === 'no_store') errors.push('product schema: WooCommerce not reachable')
+            else if (r.status === 'error') errors.push('product schema: ' + (r.reason || 'error'))
         } catch (e) { errors.push('product schema: ' + (e as Error).message) }
     }
 
