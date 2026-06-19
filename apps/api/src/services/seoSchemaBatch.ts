@@ -15,6 +15,7 @@
  */
 import { getApiKeyForInstance, resolveDirectModel } from '@/controllers/hosting/agentSetup'
 import { loadWpConfig, type WpCfg } from '@/services/seoMetaBatch'
+import { getBuilderInfo } from '@/services/wpBuilderInfo'
 
 const MAX_UPDATES_PER_RUN = 15
 const MAX_SCAN_PAGES = 5
@@ -200,6 +201,14 @@ async function listSchemaCandidates(cfg: WpCfg): Promise<{ candidates: SchemaIte
 async function fetchContent(cfg: WpCfg, type: WpContentType, id: number): Promise<{ snippet: string; videos: VideoRef[] }> {
     const base = normalizeUrl(cfg.url)
     try {
+        // Page-builder pages (Elementor/Divi/…) keep real content in widgets, so
+        // wp/v2 content.rendered is a thin/garbage leftover. Source the snippet
+        // from the companion's RENDERED output instead, so their schema (FAQ,
+        // primary-entity description) is generated from real content.
+        const bi = await getBuilderInfo(cfg, id)
+        if (bi?.isBuilder && bi.renderedExcerpt && bi.renderedExcerpt.length > 60) {
+            return { snippet: bi.renderedExcerpt.slice(0, 1800), videos: [] }
+        }
         const res = await fetchRetry(`${base}/wp-json/wp/v2/${type}/${id}?_fields=content`, {
             headers: { Authorization: authHeader(cfg) }, signal: AbortSignal.timeout(30000),
         })

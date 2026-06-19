@@ -17,6 +17,7 @@ import { and, eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { agentIntegrations } from '@/db/schema'
 import { getApiKeyForInstance, resolveDirectModel } from '@/controllers/hosting/agentSetup'
+import { getBuilderInfo } from '@/services/wpBuilderInfo'
 
 // Empty OR shorter than this many chars counts as "weak" → candidate for rewrite.
 const WEAK_META_THRESHOLD = 100
@@ -340,6 +341,16 @@ export async function runSeoMetaBatch(
     }
     const model = await resolveDirectModel(instanceId, 'yotzer')
     const businessName = opts.businessName || 'העסק'
+
+    // Elementor-aware: items with a thin/empty excerpt (typical of page-builder
+    // pages, where content lives in widgets) get their content from the
+    // companion's RENDERED output so the description isn't generated from junk.
+    // Bounded to the processed set (≤MAX_UPDATES_PER_RUN).
+    for (const it of toProcess) {
+        if (it.excerpt && it.excerpt.length >= 60) continue
+        const bi = await getBuilderInfo(cfg, it.id)
+        if (bi?.isBuilder && bi.renderedExcerpt && bi.renderedExcerpt.length > 60) it.excerpt = bi.renderedExcerpt.slice(0, 400)
+    }
 
     // Generate in chunks, then write each item we got a description for.
     for (let i = 0; i < toProcess.length; i += GEN_CHUNK_SIZE) {

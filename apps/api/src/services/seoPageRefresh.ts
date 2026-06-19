@@ -18,6 +18,7 @@
  */
 import { loadWpConfig } from '@/services/seoMetaBatch'
 import { assembleSchemaGraph } from '@/services/seoSchemaBatch'
+import { getBuilderInfo, elementorAppendContent } from '@/services/wpBuilderInfo'
 import { getApiKeyForInstance, resolveDirectModel } from '@/controllers/hosting/agentSetup'
 
 const THIN_WORD_THRESHOLD = 300
@@ -92,56 +93,10 @@ const isStrikingDistance = (o?: GscOpp) => !!o && o.position >= 3.5 && o.positio
 
 // ── Page-builder awareness ──────────────────────────────────────────────────
 // A page built with Elementor/Divi/etc. keeps its real content in widgets, NOT
-// in post_content (which holds only a thin leftover). Appending SEO text into
-// post_content there is useless or breaks the render. We ask the companion
-// plugin how each page is built (and the RENDERED word count, so "thin" is
-// judged on the real content), then route writes accordingly.
-interface BuilderInfo {
-    ok: boolean
-    builder: string                 // 'classic'|'gutenberg'|'elementor'|'divi'|'wpbakery'|'beaver'
-    isBuilder: boolean
-    isFrontPage: boolean
-    renderedWords: number
-    renderedExcerpt: string
-    canAppend: boolean
-}
-
-/** Ask the companion plugin how a page is built. null = companion absent/unreachable. */
-async function companionBuilderInfo(cfg: WpCfg, postId: number): Promise<BuilderInfo | null> {
-    try {
-        const res = await fetch(`${norm(cfg.url)}/wp-json/clawflow/v1/builder-info?post_id=${postId}`, {
-            headers: { Authorization: auth(cfg) }, signal: AbortSignal.timeout(25000),
-        })
-        if (res.status === 404) return null   // companion not installed / too old
-        if (!res.ok) return null
-        const j = await res.json().catch(() => null) as any
-        if (!j || !j.ok) return null
-        return {
-            ok: true,
-            builder: String(j.builder || 'classic'),
-            isBuilder: !!j.is_builder,
-            isFrontPage: !!j.is_front_page,
-            renderedWords: Number(j.rendered_words || 0),
-            renderedExcerpt: String(j.rendered_excerpt || ''),
-            canAppend: !!j.can_append,
-        }
-    } catch { return null }
-}
-
-/** Native Elementor append via the companion Document API. */
-async function elementorAppend(cfg: WpCfg, postId: number, html: string): Promise<{ ok: boolean; newWords?: number; error?: string }> {
-    try {
-        const res = await fetch(`${norm(cfg.url)}/wp-json/clawflow/v1/elementor-append`, {
-            method: 'POST',
-            headers: { Authorization: auth(cfg), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ post_id: postId, html }),
-            signal: AbortSignal.timeout(45000),
-        })
-        if (!res.ok) return { ok: false, error: `${res.status}: ${(await res.text().catch(() => '')).slice(0, 200)}` }
-        const j = await res.json().catch(() => ({})) as any
-        return { ok: !!j.ok, newWords: Number(j.new_rendered_words || 0) }
-    } catch (err) { return { ok: false, error: (err as Error).message } }
-}
+// in post_content. Builder detection + native Elementor append live in the
+// shared wpBuilderInfo module (reused by seoSchemaBatch / seoMetaBatch).
+const companionBuilderInfo = (cfg: WpCfg, postId: number) => getBuilderInfo(cfg, postId)
+const elementorAppend = (cfg: WpCfg, postId: number, html: string) => elementorAppendContent(cfg, postId, html)
 
 /** Content-signature builder guess for when the companion plugin is absent. */
 function builderFromContent(html: string): string {
