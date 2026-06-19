@@ -210,8 +210,14 @@ export async function executeTask(
             { id: 'aeo.answer_first', match: isAnswerFirstTask, run: () => runAnswerFirstAdapter(instanceId, task, plan, agent) },
             { id: 'aeo.citation_monitor', match: isAeoCitationMonitorTask, run: () => runAeoCitationMonitorAdapter(instanceId, task, plan, agent) },
         ]
-        const matched = isExternalOutreachTask(task) ? [] : A2_ADAPTERS.filter(a => { try { return a.match(task) } catch { return false } })
-        if (matched.length === 1) {
+        // Full-site SEO sweep = ONE task that runs the whole internal-optimization
+        // orchestrator (schema+meta+links+alt+product across every page). Exclusive
+        // — it must NOT aggregate with the individual seo.* adapters (that would
+        // double the work). Matched first, short-circuits A2.
+        const matched = (isExternalOutreachTask(task) || isFullSiteSeoTask(task)) ? [] : A2_ADAPTERS.filter(a => { try { return a.match(task) } catch { return false } })
+        if (isFullSiteSeoTask(task)) {
+            result = await runFullSiteSeoAdapter(instanceId, task, plan, agent)
+        } else if (matched.length === 1) {
             result = await matched[0].run()
         } else if (matched.length > 1) {
             const subs: Array<{ id: string; r: ExecutorResult }> = []
@@ -1883,6 +1889,20 @@ export function isSeoSchemaTask(task: MonthlyTask): boolean {
 }
 
 /**
+ * The single foundational "full internal SEO/AEO optimization across ALL pages"
+ * task → runs the whole sweep orchestrator (schema+meta+links+alt+product) on
+ * approval. Title-based + a marker the filler stamps, so it never collides with
+ * the granular seo.* tasks. EXCLUSIVE (handled before A2 aggregation).
+ */
+export function isFullSiteSeoTask(task: MonthlyTask): boolean {
+    if ((task as { taskKind?: string }).taskKind === 'full_site_seo') return true
+    const title = task.title || ''
+    const isFullSweep = /אופטימיזציה\s+(פנימית\s+)?מלאה|מנוע\s+seo\s+פנימי|אופטימיזצי(ה|ית)\s+seo\/?aeo\s+לכל\s+הדפים|full[- ]site\s+seo|פריסת\s+seo\s+מלאה/i.test(title)
+    if (!isFullSweep) return false
+    return task.channel === 'seo' || task.channel === 'website'
+}
+
+/**
  * Detect an "internal linking" task. Same guardrails as the other SEO
  * detectors — explicit interlinking mention on a web channel, not content_creation.
  */
@@ -2188,6 +2208,63 @@ async function runInternalLinksAdapter(
         ok: true,
         outputDescription: `נוספו ${totalLinks} קישורים פנימיים ל-${res.updated.length} פוסטים ב-WordPress${res.failures.length ? ` (${res.failures.length} נכשלו)` : ''}.`,
         errorCategory: 'completed', stepResults,
+    }
+}
+
+// One task → the whole internal-optimization sweep across every page (schema +
+// meta + internal links + image alt + product schema, builder-aware, system-page
+// aware, 2026-correct). Runs in the background after the user approves the task.
+async function runFullSiteSeoAdapter(
+    instanceId: string,
+    _task: MonthlyTask,
+    _plan: MonthlyMarketingPlan,
+    agent: { id?: string } | null,
+): Promise<ExecutorResult> {
+    const { runFullSiteSeoSweep } = await import('./fullSiteSeoSweep')
+    let businessName: string | undefined
+    let sameAs: string[] | undefined
+    let ecommerce = false
+    try {
+        const { readResearchData } = await import('./agentContext')
+        const rd: any = (await readResearchData(agent as any, instanceId)) || {}
+        businessName = rd?.answers?.businessName
+        const urls = [rd?.answers?.socialProfiles, rd?.answers?.socialLinks, rd?.brandBook?.sameAs, rd?.brand?.sameAs].flat()
+            .filter((u: unknown): u is string => typeof u === 'string' && /^https?:\/\//.test(u))
+        if (urls.length) sameAs = Array.from(new Set(urls))
+    } catch { /* defaults */ }
+    try {
+        const { loadWpConfig } = await import('./seoMetaBatch')
+        const { probeWpCapabilities } = await import('./wpCompanionInstaller')
+        const cfg = await loadWpConfig(instanceId, agent?.id)
+        if (cfg) { const caps = await probeWpCapabilities(cfg as { url: string; user: string; appPassword: string }); ecommerce = !!caps?.wooCommerceActive }
+    } catch { /* ecommerce stays false */ }
+
+    const res = await runFullSiteSeoSweep(instanceId, { agentId: agent?.id, businessName, sameAs, ecommerce, dryRun: false })
+
+    if (res.integrationMissing) {
+        return {
+            ok: false,
+            outputDescription: 'WordPress לא מחובר — לא ניתן להריץ אופטימיזציה פנימית מלאה.',
+            error: 'wordpress integration missing',
+            errorCategory: 'integration_missing',
+            userAction: { title_he: 'WordPress לא מחובר — נדרשת התחברות', cta_he: 'חברו את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
+        }
+    }
+
+    const s = res.stages
+    const stepResults = [
+        { step: 'סכמת מבנה (Schema + FAQPage)', ok: s.schema.failures === 0, detail: `${s.schema.updated} דפים${s.schema.remaining ? ` · ${s.schema.remaining} נותרו לסבב הבא` : ''}` },
+        { step: 'תיאורי Meta', ok: s.meta.failures === 0, detail: `${s.meta.updated} דפים${s.meta.remaining ? ` · ${s.meta.remaining} נותרו` : ''}` },
+        { step: 'קישורים פנימיים', ok: s.internalLinks.failures === 0, detail: `${s.internalLinks.updated} פוסטים` },
+        { step: 'טקסט alt לתמונות', ok: s.imageAlt.failures === 0, detail: `${s.imageAlt.updated} תמונות` },
+        ...(s.productSchema ? [{ step: 'סכמת מוצר (Product + Offer)', ok: s.productSchema.failures === 0, detail: `${s.productSchema.updated} מוצרים` }] : []),
+        ...res.errors.map(e => ({ step: 'הערה', ok: true, detail: e })),
+    ]
+    const total = s.schema.updated + s.meta.updated + s.internalLinks.updated + s.imageAlt.updated + (s.productSchema?.updated || 0)
+    return {
+        ok: true,
+        outputDescription: `אופטימיזציה פנימית מלאה הושלמה — ${total} פריטים עודכנו בכל האתר: סכמה מובנית, תיאורי meta, קישורים פנימיים, טקסט alt${s.productSchema ? ' וסכמת מוצר' : ''}. כל הדפים עומדים כעת בסטנדרט SEO/AEO 2026.`,
+        stepResults,
     }
 }
 

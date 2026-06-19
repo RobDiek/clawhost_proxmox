@@ -48,7 +48,7 @@ type BatchResult = { updated?: unknown[]; failures?: unknown[]; candidates?: num
  * dryRun we run ONCE (a dryRun never shrinks the candidate set, so looping would
  * repeat the same items) and report the candidate count as "remaining".
  */
-async function loopBatch(fn: () => Promise<BatchResult>, dryRun: boolean, maxRounds = 8): Promise<SweepStage> {
+async function loopBatch(fn: () => Promise<BatchResult>, dryRun: boolean, maxRounds = 30): Promise<SweepStage> {
     let updated = 0, failures = 0, ran = 0, remaining = 0
     const rounds = dryRun ? 1 : maxRounds
     for (let i = 0; i < rounds; i++) {

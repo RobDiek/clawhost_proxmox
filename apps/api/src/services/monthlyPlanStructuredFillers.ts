@@ -1050,6 +1050,42 @@ const COMPARISON_PAGES_FILLER: StructuredFiller = {
     },
 }
 
+// K26-FOUNDATION: the single "full internal SEO/AEO optimization across ALL
+// pages" task. One approval → the orchestrator runs the whole sweep in the
+// background (schema+FAQPage, meta, internal links, image alt, product schema —
+// builder-aware, system-page-aware, 2026-correct). This is Layer 0: the
+// foundation that should run before content deepening. Idempotent: one per plan.
+const FULL_SITE_SEO_FILLER: StructuredFiller = {
+    stageId: 'k26_full_site_seo',
+    description: 'Full-site internal SEO/AEO optimization (one task → whole sweep)',
+    fill(_rd, existingTasks) {
+        if (existingTasks.some(t => (t as { taskKind?: string }).taskKind === 'full_site_seo')) return []
+        if (_existingTaskMatches(existingTasks, [/אופטימיזציה\s+(פנימית\s+)?מלאה|מנוע\s+seo\s+פנימי|full[- ]site\s+seo|פריסת\s+seo\s+מלאה/i])) return []
+        const task = {
+            id: newTaskId('tsk_full_site_seo'),
+            taskKind: 'full_site_seo',
+            type: 'website_change',
+            title: 'מנוע SEO פנימי — אופטימיזציה מלאה לכל הדפים',
+            summary: 'אישור אחד → המערכת עוברת על כל הדפים והמוצרים באתר ומביאה כל אחד לסטנדרט SEO/AEO 2026: סכמת מבנה (Organization+WebSite+Breadcrumb+Article/WebPage, ו-FAQPage היכן שיש שאלות), תיאורי meta, קישורים פנימיים, טקסט alt לתמונות, וסכמת Product למוצרים. רץ ברקע. דפי מערכת (עגלה/תשלום/תודה) מדולגים אוטומטית.',
+            channel: 'seo',
+            priority: 'P0',
+            estimatedEffort: 'system',
+            expectedImpact: { metric: 'organic_traffic_pct', value: 18, horizon: '60d', confidence: 'high', rationale: 'תשתית פנימית מלאה (structured data + meta + קישורים) על כל עמוד = הבסיס לדירוג אורגני ולציטוט במנועי AI. נדרש לפני העמקת תוכן.' },
+            sources: [{ type: 'other' as const, ref: 'full_site_internal_baseline', excerpt: 'אופטימיזציה פנימית לכל הדפים — הפעולה הראשונה בכל אסטרטגיית SEO/AEO.' }],
+            dependsOn: [],
+            actionPlan: [
+                _step('סריקת כל הדפים והמוצרים והוספת סכמת מבנה (Organization+WebSite+Breadcrumb+Article/WebPage; FAQPage היכן שיש שאלות) — כולל דפי Elementor.', true, 0),
+                _step('יצירת/עדכון תיאור meta לכל דף ללא תיאור איכותי (דפי מערכת מדולגים).', true, 0),
+                _step('הוספת קישורים פנימיים רלוונטיים בין דפי תוכן.', true, 0),
+                _step('יצירת טקסט alt בעברית לתמונות ללא תיאור + סכמת Product+Offer לכל המוצרים.', true, 0),
+                _step('דוח כיסוי בסיום — כמה דפים/מוצרים עודכנו בכל שכבה.', true, 0),
+            ],
+            status: 'proposed', proposedAt: nowIso(), weekOfMonth: 1,
+        }
+        return [task as unknown as MonthlyTask]
+    },
+}
+
 // K26-e: BreadcrumbList + brand-entity (Organization + sameAs) schema. For any
 // tenant with pillar/spoke content tasks, spawn aggregate technical schema task.
 // NOTE: WebSite SearchAction (Sitelinks Searchbox) was RETIRED by Google
@@ -1475,7 +1511,17 @@ const SQR_FILLER: StructuredFiller = {
     },
 }
 
+// Technical-SEO fillers fully subsumed by the one-task full-site sweep — skipped
+// when that foundational task is in the plan (no redundant granular tasks).
+const FULL_SWEEP_OVERLAP_STAGES = new Set<string>([
+    'k26_technical_schema', 'k26_internal_linking', 'k26_image_seo', 'k26_review_schema', 'k27_schema_priority',
+])
+
 const ALL_FILLERS: StructuredFiller[] = [
+    // Foundation FIRST — the one-task full-site sweep. Registered before the
+    // granular technical fillers so they can detect it and skip (no redundant
+    // schema/meta/links/alt tasks when the sweep already covers them).
+    FULL_SITE_SEO_FILLER,
     INTERNAL_SEO_FILLER,
     SEO_KW_FILLER,
     PAID_KW_FILLER,
@@ -1533,6 +1579,15 @@ export function runStructuredFillers(rd: any, existingTasks: MonthlyTask[], stac
         // Gate 2 — precondition not met (e.g. no local-geo signal for city pages).
         if (f.appliesWhen && !f.appliesWhen(rd, stack)) {
             skipped.push(`${f.stageId}(precondition)`)
+            perStageStats.push({ stageId: f.stageId, spawnedCount: 0 })
+            continue
+        }
+        // Gate 3 — covered by the one-task full-site sweep. When that foundational
+        // task is present, the purely-technical fillers it subsumes (schema/links/
+        // image-alt/review schema) don't also spawn separate tasks → clean plan.
+        if (FULL_SWEEP_OVERLAP_STAGES.has(f.stageId)
+            && [...existingTasks, ...spawned].some(t => (t as { taskKind?: string }).taskKind === 'full_site_seo')) {
+            skipped.push(`${f.stageId}(covered-by-full-sweep)`)
             perStageStats.push({ stageId: f.stageId, spawnedCount: 0 })
             continue
         }
