@@ -323,7 +323,7 @@ async function writeMetaFields(cfg: WpCfg, type: WpType, id: number, meta: Recor
  * When doWrite=false only the deterministic preview fields are computed (no writes,
  * no LLM) so the preview can say what WILL be added.
  */
-async function applyEditTimeSeo(
+export async function applyEditTimeSeo(
     cfg: WpCfg,
     ctx: { instanceId: string; agentId?: string | null; businessName: string; apiKey?: string; model?: string; sameAs?: string[] },
     page: { type: WpType; id: number; title: string; link: string; builder?: string },
