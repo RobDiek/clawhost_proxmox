@@ -274,6 +274,10 @@ import {
     getGithubStatus,
     disconnectGithub,
     publishToGithub,
+    saveShopifyConfig,
+    getShopifyStatus,
+    testShopify,
+    disconnectShopify,
     testGithubIntegration,
     extractBrand,
     analyzeLogoEndpoint,
@@ -756,6 +760,10 @@ app.get('/integrations/github/status', getGithubStatus)
 app.post('/integrations/github/disconnect', disconnectGithub)
 app.post('/instances/:id/integrations/github/test', testGithubIntegration)
 app.post('/instances/:id/github/publish', publishToGithub)
+app.post('/instances/:id/shopify', saveShopifyConfig)
+app.get('/instances/:id/shopify/status', getShopifyStatus)
+app.post('/instances/:id/shopify/test', testShopify)
+app.delete('/instances/:id/shopify', disconnectShopify)
 
 // ── Schedules (bundle-managed) ──
 app.get('/instances/:id/schedules', getSchedules)

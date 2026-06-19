@@ -40,6 +40,7 @@ export {
 export { saveRedditCredentials, getRedditStatus, disconnectReddit, testReddit } from './reddit'
 export { getSchedules, saveSchedules } from './schedules'
 export { saveGithubConfig, getGithubStatus, disconnectGithub, publishToGithub, testGithubIntegration } from './github'
+export { saveShopifyConfig, getShopifyStatus, testShopify, disconnectShopify } from './shopify'
 export { seoValidate, seoFirstRun, seoStatus } from './seoFirstRun'
 export { getMyReferralCode, getMyReferrals, validateReferralCode, activateReferralTrial } from './referrals'
 export { saveGbpConfig, getGbpConfig, createGbpPost, getGbpReviews, replyToGbpReview } from './gbp'

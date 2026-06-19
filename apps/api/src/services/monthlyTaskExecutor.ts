@@ -2242,12 +2242,29 @@ async function runFullSiteSeoAdapter(
     const res = await runFullSiteSeoSweep(instanceId, { agentId: agent?.id, businessName, sameAs, ecommerce, dryRun: false })
 
     if (res.integrationMissing) {
+        // Platform routing — no WordPress? Try Shopify (same task, different writer).
+        const { loadShopifyConfig } = await import('./shopify')
+        const sc = await loadShopifyConfig(instanceId, agent?.id)
+        if (sc) {
+            const { runShopifySeoSweep } = await import('./shopifySeoSweep')
+            const sr = await runShopifySeoSweep(instanceId, { agentId: agent?.id, businessName })
+            if (sr.error) return { ok: false, outputDescription: `Shopify: ${sr.error}`, error: sr.error, errorCategory: 'integration_missing' }
+            return {
+                ok: true,
+                outputDescription: `אופטימיזציה פנימית (Shopify${sr.shopName ? ` · ${sr.shopName}` : ''}) — ${sr.updated.length} מוצרים עודכנו עם כותרת SEO ותיאור meta ייחודיים.`,
+                stepResults: [
+                    { step: 'סריקת מוצרי Shopify', ok: true, detail: `${sr.scanned} מוצרים · ${sr.candidates} לעדכון` },
+                    { step: 'כותרת SEO + תיאור meta', ok: sr.failures.length === 0, detail: `${sr.updated.length} מוצרים עודכנו` },
+                    ...sr.failures.slice(0, 5).map(f => ({ step: 'נכשל', ok: false, detail: `${f.id}: ${f.error}` })),
+                ],
+            }
+        }
         return {
             ok: false,
-            outputDescription: 'WordPress לא מחובר — לא ניתן להריץ אופטימיזציה פנימית מלאה.',
-            error: 'wordpress integration missing',
+            outputDescription: 'אין אתר מחובר (WordPress/Shopify) — לא ניתן להריץ אופטימיזציה פנימית מלאה.',
+            error: 'no site integration (wordpress/shopify)',
             errorCategory: 'integration_missing',
-            userAction: { title_he: 'WordPress לא מחובר — נדרשת התחברות', cta_he: 'חברו את WordPress →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
+            userAction: { title_he: 'אין אתר מחובר — חברו WordPress או Shopify', cta_he: 'חברו אתר →', action_path: '/dashboard#integrations', integrationKey: 'wordpress' },
         }
     }
 
