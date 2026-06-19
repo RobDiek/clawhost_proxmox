@@ -12765,6 +12765,7 @@ function renderPageRefreshPreviewModal(res, taskId) {
         '<span style="font-size:0.7rem;color:#6B7280">' + builderLabel(d.builder) + '</span>' +
         '<span style="font-size:0.7rem;color:#059669;margin-inline-start:auto">' + (d.beforeWords||0) + ' → ' + (d.afterWords||0) + ' מילים</span>' +
       '</div>' +
+      (d.opportunity ? '<div style="font-size:0.72rem;color:#7C3AED;margin-bottom:6px">🎯 ' + escapeHtml(d.opportunity) + '</div>' : '') +
       (d.link ? '<a href="' + escapeHtml(d.link) + '" target="_blank" style="font-size:0.74rem;color:#2563EB;text-decoration:none;word-break:break-all">' + escapeHtml(d.link) + ' ↗</a>' : '') +
       (d.seo ? '<div style="font-size:0.72rem;color:#047857;margin:6px 0;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:6px;padding:6px 9px">🧩 יתווסף אוטומטית בפרסום: ' +
         'סכמת מבנה (' + (d.seo.schemaTypes||[]).filter(function(s){return ['Article','WebPage','FAQPage'].indexOf(s)>=0;}).join(' + ') + ')' +

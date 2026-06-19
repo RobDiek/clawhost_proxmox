@@ -32,9 +32,10 @@ export interface PageRefreshResult {
     scanned: number
     candidates: number
     targetWords: number
-    updated: Array<{ type: string; id: number; title: string; link: string; beforeWords: number; afterWords: number; draftHtml?: string; writeMode?: WriteMode; builder?: string; seo?: EditSeo }>
+    updated: Array<{ type: string; id: number; title: string; link: string; beforeWords: number; afterWords: number; draftHtml?: string; writeMode?: WriteMode; builder?: string; seo?: EditSeo; opportunity?: string }>
     failures: Array<{ type: string; id: number; error: string }>
     skipped?: Array<{ type: string; id: number; title: string; reason: string }>
+    gscOpportunityPages?: number | null   // striking-distance pages found (null = GSC unavailable)
     error?: string
 }
 
@@ -59,7 +60,35 @@ const auth = (c: WpCfg) => 'Basic ' + Buffer.from(`${c.user}:${c.appPassword}`).
 const stripHtml = (h: string) => h.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ')
 const wordCount = (h: string) => stripHtml(h).trim().split(/\s+/).filter(Boolean).length
 
-interface Target { type: WpType; id: number; title: string; link: string; content: string; words: number }
+interface Target { type: WpType; id: number; title: string; link: string; content: string; words: number; opportunity?: string }
+
+// ── GSC opportunity (striking distance) ─────────────────────────────────────
+// The smartest page to refresh isn't the THINNEST — it's the one with proven
+// search demand sitting just off page 1 (positions ~4-20 with impressions). A
+// content refresh there pushes it up where it converts. We pull GSC page data
+// and prioritise those, falling back to thin-content when GSC is unavailable
+// (greenfield sites). This is the "know where to hit" selection.
+interface GscOpp { position: number; impressions: number; clicks: number; ctr: number }
+const normMatch = (u: string) => { try { return decodeURIComponent(u).replace(/\/+$/, '').toLowerCase() } catch { return (u || '').replace(/\/+$/, '').toLowerCase() } }
+
+async function loadGscOpportunity(instanceId: string, agentId?: string | null): Promise<Map<string, GscOpp> | null> {
+    try {
+        const { db } = await import('@/db')
+        const { matehAgents, instances } = await import('@/db/schema')
+        const { eq } = await import('drizzle-orm')
+        let tokens: any = null
+        if (agentId) { const [a] = await db.select().from(matehAgents).where(eq(matehAgents.id, agentId)); tokens = a?.gscTokens }
+        if (!tokens?.refreshToken) { const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId)); tokens = (inst as any)?.gscTokens }
+        if (!tokens?.refreshToken) return null
+        const { pullGSCPages } = await import('@/services/gscPagesEnrich')
+        const r = await pullGSCPages(tokens, tokens.siteUrl || '', 90)
+        if (!r.available) return null
+        const map = new Map<string, GscOpp>()
+        for (const p of r.pages) map.set(normMatch(p.page), { position: p.position, impressions: p.impressions, clicks: p.clicks, ctr: p.ctr })
+        return map
+    } catch { return null }
+}
+const isStrikingDistance = (o?: GscOpp) => !!o && o.position >= 3.5 && o.position <= 20 && o.impressions >= 10
 
 // ── Page-builder awareness ──────────────────────────────────────────────────
 // A page built with Elementor/Divi/etc. keeps its real content in widgets, NOT
@@ -388,10 +417,33 @@ export async function runPageRefresh(
         } else {
             const all = [...await fetchType(cfg, 'posts'), ...await fetchType(cfg, 'pages')]
             result.scanned = all.length
-            // Thin CONTENT only — exclude system/functional pages (cart, checkout,
-            // account, thank-you, contact, accessibility, blog index, …) which must
-            // never be expanded with SEO content.
-            targets = all.filter(t => t.words < THIN_WORD_THRESHOLD && !isSystemPage(t)).sort((a, b) => a.words - b.words)
+            // Smart selection: prioritise GSC striking-distance pages (proven demand
+            // just off page 1) over pure thinness; fall back to thin-content when GSC
+            // is unavailable. Always exclude system/functional pages.
+            const gsc = await loadGscOpportunity(instanceId, opts.agentId)
+            const nonSystem = all.filter(t => !isSystemPage(t))
+            const scored = nonSystem.map(t => {
+                const o = gsc?.get(normMatch(t.link))
+                const striking = isStrikingDistance(o)
+                const thin = t.words < THIN_WORD_THRESHOLD
+                return { t, o, striking, thin }
+            }).filter(x => x.striking || x.thin)
+            let strikingCount = 0
+            for (const x of scored) {
+                if (x.striking && x.o) {
+                    strikingCount++
+                    // Higher impressions + closer to page 1 = bigger win. +1000 floor
+                    // keeps demand-backed pages ahead of thin-only pages.
+                    ;(x as any).score = 1000 + x.o.impressions * (21 - x.o.position)
+                    x.t.opportunity = `GSC: pos ${x.o.position}, ${x.o.impressions} impr/90d (striking distance)`
+                } else {
+                    ;(x as any).score = THIN_WORD_THRESHOLD - x.t.words
+                    x.t.opportunity = `תוכן דק (${x.t.words} מילים)`
+                }
+            }
+            scored.sort((a, b) => (b as any).score - (a as any).score)
+            targets = scored.map(x => x.t)
+            result.gscOpportunityPages = gsc ? strikingCount : null
         }
     } catch (err) { result.error = (err as Error).message; return result }
 
@@ -433,7 +485,10 @@ export async function runPageRefresh(
                     // Real content lives in widgets — judge thinness on rendered text.
                     baseWords = bi.renderedWords || t.words
                     baseContent = bi.renderedExcerpt || t.content
-                    if (baseWords >= THIN_WORD_THRESHOLD) { skip(t, `לא דק — ${baseWords} מילים בווידג'טים של ${bi.builder}`); continue }
+                    // A GSC striking-distance page is worth refreshing even if not
+                    // thin (that's the whole point); only skip rich pages with no demand.
+                    const strikingOpp = (t.opportunity || '').includes('striking')
+                    if (baseWords >= THIN_WORD_THRESHOLD && !strikingOpp) { skip(t, `לא דק — ${baseWords} מילים בווידג'טים של ${bi.builder}`); continue }
                     if (bi.builder === 'elementor' && bi.canAppend) {
                         writeMode = 'elementor_append'
                     } else {
@@ -475,7 +530,7 @@ export async function runPageRefresh(
             // (publish-only-after-quality-check). writeMode tells the publish path
             // how to write it. For append mode afterWords = base + new block.
             const afterWords = writeMode === 'elementor_append' ? baseWords + wordCount(html) : wordCount(html)
-            result.updated.push({ type: t.type, id: t.id, title: t.title, link: t.link, beforeWords: baseWords, afterWords, draftHtml: html, writeMode, builder: builderLabel, seo })
+            result.updated.push({ type: t.type, id: t.id, title: t.title, link: t.link, beforeWords: baseWords, afterWords, draftHtml: html, writeMode, builder: builderLabel, seo, opportunity: t.opportunity })
         } catch (err) {
             const msg = (err as Error).message
             if (/^(401|403)\b/.test(msg)) result.authError = true
