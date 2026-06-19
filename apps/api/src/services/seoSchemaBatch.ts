@@ -24,7 +24,9 @@ const MAX_SCAN_PAGES = 5
 // as stale → re-generated once so it picks up the newer node types (this is the
 // "enrich, don't skip-if-any" rollout). After re-gen it stamps the current
 // version and is stable. v2 = added VideoObject (from real embedded video).
-const SCHEMA_GEN_VERSION = 2
+// v3 (2026-06): removed retired WebSite SearchAction (Sitelinks Searchbox,
+// retired by Google 2024-11-21). Bump → existing v2 graphs re-generate without it.
+const SCHEMA_GEN_VERSION = 3
 
 type WpContentType = 'posts' | 'pages'
 
@@ -97,9 +99,9 @@ function stripHtml(s: string): string {
 /**
  * Inspect a stored `_clawflow_schema_jsonld` value (already returned by the list
  * scan — no extra fetch). Returns whether it's ours and whether it's STALE, i.e.
- * missing a base node we now always emit, missing the WebSite SearchAction, or
- * stamped below the current generator version. Stale graphs are re-generated so
- * existing pages gain newer node types ("enrich, don't skip-if-any").
+ * missing a base node we now always emit OR stamped below the current generator
+ * version. Stale graphs are re-generated so existing pages gain newer node types
+ * (and shed retired ones like SearchAction). "Enrich, don't skip-if-any".
  */
 export function analyzeStored(raw: string): { hasOurSchema: boolean; stale: boolean } {
     const s = (raw || '').trim()
@@ -109,11 +111,11 @@ export function analyzeStored(raw: string): { hasOurSchema: boolean; stale: bool
     const graph = Array.isArray(doc['@graph']) ? doc['@graph'] : []
     const typeOf = (n: Record<string, unknown>) => String(n['@type'] || '')
     const types = new Set(graph.map(typeOf))
-    const website = graph.find(n => typeOf(n) === 'WebSite')
-    const hasSearchAction = !!(website && website.potentialAction)
     const version = typeof doc._fmSchemaV === 'number' ? doc._fmSchemaV : 0
     const missingBase = !types.has('Organization') || !types.has('WebSite') || !types.has('BreadcrumbList')
-    const stale = missingBase || !hasSearchAction || version < SCHEMA_GEN_VERSION
+    // Version stamp drives staleness — v2 graphs (with the retired SearchAction)
+    // are < v3 → re-generated without it.
+    const stale = missingBase || version < SCHEMA_GEN_VERSION
     return { hasOurSchema: true, stale }
 }
 
@@ -299,14 +301,12 @@ export function assembleSchemaGraph(
         name: business.name, url: base + '/',
     }
     if (business.sameAs && business.sameAs.length) org.sameAs = business.sameAs.slice(0, 10)
+    // WebSite node kept as the graph hub (site name + entity binding). The
+    // SearchAction / Sitelinks Searchbox was RETIRED by Google 2024-11-21 — it no
+    // longer renders anything, so we no longer emit it (dead weight / noise).
     const website = {
         '@type': 'WebSite', '@id': base + '/#website', url: base + '/', name: business.name,
         publisher: { '@id': base + '/#organization' }, inLanguage: 'he-IL',
-        potentialAction: {
-            '@type': 'SearchAction',
-            target: { '@type': 'EntryPoint', urlTemplate: `${base}/?s={search_term_string}` },
-            'query-input': 'required name=search_term_string',
-        },
     }
     const graph: Record<string, unknown>[] = [org, website, breadcrumb]
     if (parsed.primaryNode && typeof parsed.primaryNode === 'object') {

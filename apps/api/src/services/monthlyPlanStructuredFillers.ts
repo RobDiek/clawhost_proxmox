@@ -1050,25 +1050,27 @@ const COMPARISON_PAGES_FILLER: StructuredFiller = {
     },
 }
 
-// K26-e: BreadcrumbList + WebSite SearchAction schema. For any tenant with
-// pillar/spoke content tasks, spawn aggregate technical schema task.
+// K26-e: BreadcrumbList + brand-entity (Organization + sameAs) schema. For any
+// tenant with pillar/spoke content tasks, spawn aggregate technical schema task.
+// NOTE: WebSite SearchAction (Sitelinks Searchbox) was RETIRED by Google
+// 2024-11-21 — no longer emitted. Entity (Organization/sameAs) is the 2026 value.
 const TECHNICAL_SCHEMA_FILLER: StructuredFiller = {
     stageId: 'k26_technical_schema',
-    description: 'BreadcrumbList + WebSite SearchAction schema (sitelinks search box)',
+    description: 'BreadcrumbList + brand-entity (Organization + sameAs) schema',
     fill(_rd, existingTasks, stack) {
         const hasContent = existingTasks.some(t => /pillar|spoke|דף עוגן|דף נושא|landing|דף נחיתה|דף עיר/i.test(`${t.title || ''} ${t.summary || ''}`))
         if (!hasContent) return []
-        if (_existingTaskMatches(existingTasks, [/breadcrumblist|breadcrumb schema|searchaction|website schema|sitelinks search|תיוג.*נתיב|searchbox/i])) return []
+        if (_existingTaskMatches(existingTasks, [/breadcrumblist|breadcrumb schema|website schema|תיוג.*נתיב|ישות מותג|organization.*sameas|brand entity/i])) return []
         return [{
             id: newTaskId('tsk_k26_tech_schema'),
             type: 'website_change',
-            title: 'תיוג מובנה טכני — BreadcrumbList + WebSite SearchAction',
-            summary: 'שתי סכמות "תשתית" שמשפיעות על כל אתר: BreadcrumbList (פותח path display ב-SERP) + WebSite SearchAction (sitelinks search box על שאילתות brand).',
+            title: 'תיוג מובנה טכני — BreadcrumbList + ישות מותג (Organization + sameAs)',
+            summary: 'שתי סכמות "תשתית" לכל האתר: BreadcrumbList (path display ב-SERP, מעלה CTR) + Organization עם sameAs (זיהוי המותג כישות מוכרת ע"י גוגל ומנועי AI — הסיגנל החזק ביותר ל-AI Overviews ב-2026). הערה: WebSite SearchAction (sitelinks searchbox) הוצא משימוש ע"י גוגל בנוב׳ 2024 — לא מוסיפים יותר.',
             channel: 'seo',
             priority: 'P1',
             estimatedEffort: '2_3_hours',
-            expectedImpact: { metric: 'ctr_pct', value: 10, horizon: '30d', confidence: 'high', rationale: 'BreadcrumbList ב-SERP מעלה CTR ב-10-15% (path מציע context). sitelinks search box על branded queries = +CTR + brand trust.' },
-            sources: [{ type: 'other' as const, ref: 'technical_schema_baseline', excerpt: 'שתי הסכמות הללו הן SEO טכני במאמץ נמוך ובהשפעה גבוהה.' }],
+            expectedImpact: { metric: 'ctr_pct', value: 10, horizon: '30d', confidence: 'high', rationale: 'BreadcrumbList ב-SERP מעלה CTR ב-10-15% (path מציע context). Organization+sameAs קושר את המותג לישות בגרף הידע → אזכור ע"י מנועי AI (קורלציה 0.66 לעומת 0.22 לבק-לינקים).' },
+            sources: [{ type: 'other' as const, ref: 'technical_schema_baseline', excerpt: 'SEO טכני במאמץ נמוך ובהשפעה גבוהה (entity grounding ל-AI).' }],
             dependsOn: [],
             actionPlan: [
                 _step(cmsHint(stack, {
@@ -1076,15 +1078,11 @@ const TECHNICAL_SCHEMA_FILLER: StructuredFiller = {
                     git: 'BreadcrumbList (JSON-LD): הוסיפו לתבניות הדפים בקוד ובצעו commit/PR ב-GitHub — בדקו ב-Rich Results Test.',
                     generic: 'BreadcrumbList (JSON-LD): הוסיפו על כל קטגוריה / מוצר / דף נושא / דף עיר — בדקו ב-Rich Results Test.',
                 }), false, 45),
-                _step(cmsHint(stack, {
-                    wp: 'WebSite schema + potentialAction (SearchAction): הוסיפו על דף הבית. target = /?s={query} (WordPress).',
-                    git: 'WebSite schema + potentialAction (SearchAction): הוסיפו ל-JSON-LD של דף הבית בקוד. target = /search?q={query}.',
-                    generic: 'WebSite schema + potentialAction (SearchAction): הוסיפו על דף הבית. target = /search?q={query}.',
-                }), false, 30),
-                _step('הוסיפו Organization schema על כל דף footer-wide (לא רק הבית) — sameAs + logo + contactPoint.', false, 30),
-                _step('בדקו ב-Rich Results Test על 5 דפים representative — וודאו שאין warnings.', false, 30),
-                _step('בקשו re-crawl ל-GSC לדפים הראשיים. עקבו אחרי "Sitelinks searchbox" ב-Search appearance.', false, 15),
-                _step('ניטור 30 יום: CTR delta בשאילתות branded.', false, 15),
+                _step('Organization schema (sitewide, לא רק הבית): name, logo, contactPoint, ו-sameAs → פרופילים מאמתים (Wikidata, LinkedIn, רשתות רשמיות, Google Business). זה הליבה לזיהוי המותג ע"י מנועי AI.', false, 45),
+                _step('ודאו inLanguage=he-IL ו-@id יציבים (#organization / #website) כך שכל הצמתים מקושרים לגרף אחד.', false, 20),
+                _step('בדקו ב-Rich Results Test + Schema.org validator על 5 דפים representative — וודאו שאין warnings.', false, 30),
+                _step('בקשו re-crawl ל-GSC לדפים הראשיים. עקבו אחרי breadcrumb ב-Search appearance.', false, 15),
+                _step('ניטור 30 יום: CTR delta + נוכחות המותג ב-AI Overviews על שאילתות branded.', false, 15),
             ],
             status: 'proposed', proposedAt: nowIso(), weekOfMonth: 1,
         }]
