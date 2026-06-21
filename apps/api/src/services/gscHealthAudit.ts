@@ -110,7 +110,12 @@ async function resolveSite(accessToken: string, siteUrl: string): Promise<string
 
 function normCanonical(u?: string): string {
     if (!u) return ''
-    return u.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').toLowerCase()
+    // Decode first: userCanonical (from the page) is percent-encoded while
+    // googleCanonical comes back DECODED — comparing raw produced false
+    // "Google chose a different canonical" on every Hebrew-slug page.
+    let s = u
+    try { s = decodeURIComponent(u) } catch { /* keep raw */ }
+    return s.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').toLowerCase()
 }
 
 /** Functional / system pages that are INTENTIONALLY noindex (WooCommerce cart,
