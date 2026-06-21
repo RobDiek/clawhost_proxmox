@@ -7980,11 +7980,20 @@ function renderTaskPopup(task) {
     }
   }
 
+  // One-click auto-fix button — shown when the task carries an autoFixAction
+  // (e.g. GSC health findings: gsc_refresh_page / gsc_regen_schema). Reuses the
+  // generic applySafetyFix() → POST /safety/apply-fix dispatcher.
+  var autoFixBtn = '';
+  if (task.metadata && task.metadata.autoFixable && task.metadata.autoFixAction && task.metadata.autoFixAction.kind) {
+    autoFixBtn = '<button class="aq-btn approve" data-payload=\'' + escapeHtml(JSON.stringify(task.metadata.autoFixAction.payload || {})) + '\' onclick="applySafetyFix(\'' + escapeHtml(task.metadata.autoFixAction.kind) + '\', this)" title="הריצו תיקון אוטומטי">⚡ תקנו אוטומטית</button>';
+  }
+
   if (task.status === 'awaiting' || task.status === 'pending_review') {
     footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
       '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()"><kbd>ד</kbd> דחו</button>' +
       '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\')"><kbd>ת</kbd> תקנו</button>' +
       manualPublishBtns +
+      autoFixBtn +
       '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()"><kbd>א</kbd> אשרו</button>';
   } else if (task.status === 'approved') {
     var reportTypes = ['daily_brief', 'weekly_report', 'aeo_audit', 'competitive_scan'];
