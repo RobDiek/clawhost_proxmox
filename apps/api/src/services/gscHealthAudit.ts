@@ -129,6 +129,15 @@ function sampleList(urls: string[], n = 5): string {
     return urls.slice(0, n).join(', ') + (urls.length > n ? ` ועוד ${urls.length - n}` : '')
 }
 
+/** URL Inspection matches Google's KNOWN URL form. For non-Latin (Hebrew) slugs
+ *  Google stores the DECODED UTF-8 URL, but sitemaps emit percent-encoded <loc> —
+ *  inspecting the encoded form falsely returns "URL is unknown to Google".
+ *  Always inspect the decoded form. (Verified via A/B: encoded=unknown,
+ *  decoded=Submitted and indexed.) */
+function decodeForInspect(u: string): string {
+    try { return decodeURIComponent(u) } catch { return u }
+}
+
 /** A coverageState string means "indexed and fine" — guard against the many
  *  "... not indexed" variants. */
 function isIndexedOk(coverageState?: string): boolean {
@@ -221,7 +230,7 @@ export async function auditGscHealth(opts: GscAuditInput): Promise<GscHealthRepo
     // Bucket per-URL signals, then emit ONE aggregated finding per category —
     // mirrors GSC's own emails ("N pages have issue X") and avoids spamming a
     // task per URL. System/functional pages are excluded (intentionally noindex).
-    const urls = (opts.inspectUrls || []).filter(u => !isSystemUrl(u)).slice(0, maxInspect)
+    const urls = (opts.inspectUrls || []).map(decodeForInspect).filter(u => !isSystemUrl(u)).slice(0, maxInspect)
     const buckets = {
         noindex: [] as string[],
         robots: [] as string[],
