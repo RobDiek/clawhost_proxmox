@@ -113,6 +113,22 @@ function normCanonical(u?: string): string {
     return u.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').toLowerCase()
 }
 
+/** Functional / system pages that are INTENTIONALLY noindex (WooCommerce cart,
+ *  checkout, account, login, feeds, add-to-cart links). Never flag these. */
+function isSystemUrl(u: string): boolean {
+    return /\/(cart|checkout|my-account|account|wishlist|basket|wp-admin|wp-login|login|lost-password|order-received|kifud-tashlum)(\/|$|\?)/i.test(u)
+        || /[?&](add-to-cart|orderby|filter_|s)=/i.test(u)
+        || /\/feed\/?$/i.test(u)
+}
+
+/** Real Google fetch-error states (vs *_UNSPECIFIED which means "no data yet",
+ *  NOT a failure — flagging those produced false "crawl failed" on new pages). */
+const REAL_FETCH_ERRORS = new Set(['SOFT_404', 'NOT_FOUND', 'ACCESS_DENIED', 'ACCESS_FORBIDDEN', 'SERVER_ERROR', 'REDIRECT_ERROR', 'BLOCKED_4XX', 'INTERNAL_CRAWL_ERROR', 'INVALID_URL', 'BLOCKED_ROBOTS_TXT'])
+
+function sampleList(urls: string[], n = 5): string {
+    return urls.slice(0, n).join(', ') + (urls.length > n ? ` ועוד ${urls.length - n}` : '')
+}
+
 /** A coverageState string means "indexed and fine" — guard against the many
  *  "... not indexed" variants. */
 function isIndexedOk(coverageState?: string): boolean {
@@ -202,7 +218,18 @@ export async function auditGscHealth(opts: GscAuditInput): Promise<GscHealthRepo
     }
 
     // ── 2. URL Inspection (per-URL coverage / canonical / rich-results) ────
-    const urls = (opts.inspectUrls || []).slice(0, maxInspect)
+    // Bucket per-URL signals, then emit ONE aggregated finding per category —
+    // mirrors GSC's own emails ("N pages have issue X") and avoids spamming a
+    // task per URL. System/functional pages are excluded (intentionally noindex).
+    const urls = (opts.inspectUrls || []).filter(u => !isSystemUrl(u)).slice(0, maxInspect)
+    const buckets = {
+        noindex: [] as string[],
+        robots: [] as string[],
+        crawlErr: [] as Array<{ url: string; state: string }>,
+        notIndexed: [] as Array<{ url: string; cov: string; thin: boolean }>,
+        canonical: [] as Array<{ url: string; user: string; google: string }>,
+        richFail: [] as Array<{ url: string; types: string }>,
+    }
     for (const url of urls) {
         try {
             const r = await fetch(INSPECT, {
@@ -211,8 +238,7 @@ export async function auditGscHealth(opts: GscAuditInput): Promise<GscHealthRepo
             })
             const j = await r.json() as any
             if (!r.ok) {
-                // 429 = rate limit; stop further inspection this run (avoid burning quota).
-                if (r.status === 429) break
+                if (r.status === 429) break   // rate limit → stop, resume next run
                 continue
             }
             inspectedUrls.push(url)
@@ -220,60 +246,83 @@ export async function auditGscHealth(opts: GscAuditInput): Promise<GscHealthRepo
             const rr = j.inspectionResult?.richResultsResult
 
             if (idx.robotsTxtState === 'DISALLOWED') {
-                findings.push({
-                    id: `robots:${url}`, severity: 'high', category: 'robots', url,
-                    summary: 'הדף חסום ב-robots.txt',
-                    detail: `גוגל לא יכול לסרוק את ${url} כי robots.txt חוסם אותו. אם הדף אמור להופיע בחיפוש — הסירו את חוק ה-Disallow המתאים.`,
-                    autoFixable: false,
-                })
-            } else if (idx.indexingState === 'BLOCKED_BY_META_TAG' || idx.indexingState === 'BLOCKED_BY_ROBOTS_TXT' || idx.indexingState === 'BLOCKED_BY_HTTP_HEADER') {
-                findings.push({
-                    id: `noindex:${url}`, severity: 'high', category: 'noindex', url,
-                    summary: 'הדף מסומן noindex / חסום מאינדוקס',
-                    detail: `${url} מכיל תג/כותרת noindex (${idx.indexingState}) ולכן לא יופיע בגוגל. אם זה לא מכוון — הסירו את ה-noindex (לרוב בהגדרות SEO של הדף).`,
-                    autoFixable: false,
-                })
-            } else if (idx.pageFetchState && idx.pageFetchState !== 'SUCCESSFUL') {
-                findings.push({
-                    id: `crawl:${url}`, severity: 'high', category: 'crawl', url,
-                    summary: 'גוגל נכשל בטעינת הדף',
-                    detail: `מצב הסריקה של ${url} הוא ${idx.pageFetchState} (לא SUCCESSFUL). גוגל לא הצליח לטעון את הדף — בדקו זמינות שרת / שגיאות / הפניות.`,
-                    autoFixable: false,
-                })
+                buckets.robots.push(url)
+            } else if (idx.indexingState === 'BLOCKED_BY_META_TAG' || idx.indexingState === 'BLOCKED_BY_HTTP_HEADER') {
+                buckets.noindex.push(url)
+            } else if (idx.pageFetchState && REAL_FETCH_ERRORS.has(idx.pageFetchState)) {
+                buckets.crawlErr.push({ url, state: idx.pageFetchState })
             } else if (!isIndexedOk(idx.coverageState)) {
-                // Not indexed for a non-config reason → usually quality/thin/discovery.
                 const cov = idx.coverageState || idx.verdict || 'לא מאונדקס'
-                const thinish = /crawled|discovered|not indexed/i.test(cov)
-                findings.push({
-                    id: `indexing:${url}`, severity: thinish ? 'medium' : 'high', category: 'indexing', url,
-                    summary: `דף לא מאונדקס: ${cov}`,
-                    detail: `גוגל לא אינדקס את ${url} (סטטוס: "${cov}"). ${thinish ? 'לרוב הסיבה היא תוכן דק/חלש או חוסר קישורים פנימיים. רענון התוכן + קישורים פנימיים מעלים את הסיכוי לאינדוקס.' : 'בדקו חסימות / קנוניקל / איכות הדף.'}`,
-                    autoFixable: thinish,
-                    autoFixAction: thinish ? { kind: 'gsc_refresh_page', payload: { url } } : undefined,
-                })
+                // thin/discovery → page refresh helps; "unknown to Google" = not yet discovered.
+                const thin = /crawled|discovered|not indexed|unknown/i.test(cov)
+                buckets.notIndexed.push({ url, cov, thin })
             } else if (idx.userCanonical && idx.googleCanonical && normCanonical(idx.userCanonical) !== normCanonical(idx.googleCanonical)) {
-                findings.push({
-                    id: `canonical:${url}`, severity: 'medium', category: 'canonical', url,
-                    summary: 'גוגל בחר קנוניקל שונה מזה שהוגדר',
-                    detail: `עבור ${url} הגדרתם קנוניקל ${idx.userCanonical} אך גוגל בחר ${idx.googleCanonical}. ייתכן תוכן כפול. ודאו שהקנוניקל נכון ושאין דפים כמעט-זהים.`,
-                    autoFixable: false,
-                })
+                buckets.canonical.push({ url, user: idx.userCanonical, google: idx.googleCanonical })
             }
 
-            // Rich results / enhancements
             if (rr && rr.verdict === 'FAIL') {
-                const types = (rr.detectedItems || []).map((d: any) => d.richResultType).filter(Boolean)
-                findings.push({
-                    id: `rich_results:${url}`, severity: 'high', category: 'rich_results', url,
-                    summary: `שגיאות בתוצאות עשירות (${types.join(', ') || 'schema'})`,
-                    detail: `ב-${url} יש פריטי schema לא תקינים (${types.join(', ') || 'לא ידוע'}) — גוגל לא יציג עבורם תוצאות עשירות. אפשר לייצר מחדש את ה-schema לדף.`,
-                    autoFixable: true,
-                    autoFixAction: { kind: 'gsc_regen_schema', payload: { url } },
-                })
+                const types = (rr.detectedItems || []).map((d: any) => d.richResultType).filter(Boolean).join(', ')
+                buckets.richFail.push({ url, types })
             }
         } catch {
             // per-URL non-fatal
         }
+    }
+
+    // ── Aggregate buckets → findings (stable per-category IDs for dedup) ────
+    if (buckets.robots.length) {
+        findings.push({
+            id: 'robots_bulk', severity: 'high', category: 'robots',
+            summary: `${buckets.robots.length} דפים חסומים ב-robots.txt`,
+            detail: `גוגל לא יכול לסרוק ${buckets.robots.length} דפים בגלל robots.txt (לדוגמה: ${sampleList(buckets.robots)}). אם הם אמורים להופיע בחיפוש — הסירו את חוקי ה-Disallow.`,
+            autoFixable: false,
+        })
+    }
+    if (buckets.noindex.length) {
+        findings.push({
+            id: 'noindex_bulk', severity: 'high', category: 'noindex',
+            summary: `${buckets.noindex.length} דפי תוכן מסומנים noindex`,
+            detail: `${buckets.noindex.length} דפים (לא דפי מערכת) מכילים תג noindex ולכן לא יופיעו בגוגל (לדוגמה: ${sampleList(buckets.noindex)}). אם זה לא מכוון — הסירו את ה-noindex בהגדרות ה-SEO של הדפים.`,
+            autoFixable: false,
+        })
+    }
+    if (buckets.crawlErr.length) {
+        const sample = buckets.crawlErr.slice(0, 5).map(x => `${x.url} (${x.state})`).join(', ')
+        findings.push({
+            id: 'crawl_errors', severity: 'high', category: 'crawl',
+            summary: `${buckets.crawlErr.length} דפים עם שגיאת סריקה`,
+            detail: `גוגל נכשל בטעינת ${buckets.crawlErr.length} דפים (לדוגמה: ${sample}). בדקו זמינות שרת / שגיאות 4xx-5xx / הפניות שבורות.`,
+            autoFixable: false,
+        })
+    }
+    if (buckets.notIndexed.length) {
+        const all = buckets.notIndexed.map(x => x.url)
+        const thinUrls = buckets.notIndexed.filter(x => x.thin).map(x => x.url)
+        findings.push({
+            id: 'not_indexed_bulk', severity: 'medium', category: 'indexing',
+            summary: `${all.length} דפים לא מאונדקסים בגוגל`,
+            detail: `גוגל לא אינדקס ${all.length} דפים (לדוגמה: ${sampleList(all)}). סיבות נפוצות: דף חדש שטרם נסרק, תוכן דק, או מעט קישורים פנימיים. רענון תוכן + קישורים פנימיים מזרז אינדוקס.`,
+            autoFixable: thinUrls.length > 0,
+            autoFixAction: thinUrls.length > 0 ? { kind: 'gsc_refresh_page', payload: { urls: thinUrls.slice(0, 20) } } : undefined,
+        })
+    }
+    if (buckets.canonical.length) {
+        findings.push({
+            id: 'canonical_bulk', severity: 'medium', category: 'canonical',
+            summary: `${buckets.canonical.length} דפים: גוגל בחר קנוניקל אחר`,
+            detail: `ב-${buckets.canonical.length} דפים גוגל בחר כתובת קנונית שונה מזו שהוגדרה (לדוגמה: ${sampleList(buckets.canonical.map(x => x.url))}). ייתכן תוכן כפול — ודאו קנוניקל נכון ושאין דפים כמעט-זהים.`,
+            autoFixable: false,
+        })
+    }
+    if (buckets.richFail.length) {
+        const types = Array.from(new Set(buckets.richFail.flatMap(x => x.types.split(', ').filter(Boolean))))
+        findings.push({
+            id: 'rich_results_bulk', severity: 'high', category: 'rich_results',
+            summary: `${buckets.richFail.length} דפים עם שגיאות schema / תוצאות עשירות`,
+            detail: `ב-${buckets.richFail.length} דפים יש פריטי schema לא תקינים (${types.join(', ') || 'schema'}) — גוגל לא יציג עבורם תוצאות עשירות. אפשר לייצר מחדש את ה-schema אוטומטית.`,
+            autoFixable: true,
+            autoFixAction: { kind: 'gsc_regen_schema', payload: { urls: buckets.richFail.map(x => x.url).slice(0, 20) } },
+        })
     }
 
     return finalize(findings, site, inspectedUrls, sitemaps)

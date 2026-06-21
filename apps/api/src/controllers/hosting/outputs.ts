@@ -1466,14 +1466,15 @@ export const applySafetyFix = async (c: Context<HonoEnv>) => {
             await enableEnhancedMeasurementAll({ refreshToken: tokens.refreshToken }, String(payload.propertyId || ''), String(payload.streamId || ''))
             result = { ok: true, propertyId: payload.propertyId, streamId: payload.streamId }
         } else if (kind === 'gsc_refresh_page') {
-            // GSC finding: page not indexed (thin / crawled-not-indexed). Fix =
-            // refresh that specific page's content (builder-aware, non-destructive).
-            const url = String(payload.url || '')
-            if (!url) return fail(c, 'url required for gsc_refresh_page', 400)
-            const clean = url.split(/[?#]/)[0].replace(/\/$/, '')
-            const slug = decodeURIComponent(clean.split('/').pop() || url)
+            // GSC finding: page(s) not indexed (thin / crawled-not-indexed). Fix =
+            // refresh the page content (builder-aware, non-destructive). Accepts a
+            // single url or a urls[] list (aggregated finding).
+            const list: string[] = Array.isArray(payload.urls) ? payload.urls.map(String)
+                : payload.url ? [String(payload.url)] : []
+            if (!list.length) return fail(c, 'url or urls[] required for gsc_refresh_page', 400)
+            const slugs = list.slice(0, 20).map(u => decodeURIComponent(u.split(/[?#]/)[0].replace(/\/$/, '').split('/').pop() || u))
             const { runPageRefresh } = await import('@/services/seoPageRefresh')
-            result = await runPageRefresh(instanceId, { agentId: agent.id, namedPages: [slug] })
+            result = await runPageRefresh(instanceId, { agentId: agent.id, namedPages: slugs })
         } else if (kind === 'gsc_regen_schema') {
             // GSC finding: invalid rich-results / schema. Fix = regenerate the
             // page's structured data (additive, idempotent — companion renders it).
