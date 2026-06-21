@@ -200,9 +200,19 @@ export interface CtrOptimizerOpts {
     excludeSlugs?: string[]     // skip these slugs (e.g. just-refreshed pages)
 }
 
-export async function runCtrOptimizer(instanceId: string, opts: CtrOptimizerOpts = {}): Promise<CtrOptimizerResult> {
-    const result: CtrOptimizerResult = { ok: false, scanned: 0, candidates: 0, updated: [], skipped: [], failures: [] }
-    const limit = Math.min(opts.limit ?? 8, ADS_MAX)
+export interface CtrDetectResult {
+    ok: boolean
+    reason?: string
+    siteUrl?: string
+    scanned: number
+    candidates: CtrCandidate[]
+    businessName?: string
+}
+
+/** GSC-only selection of CTR-gap pages — NO LLM, NO WP writes. Fast; used by the
+ *  weekly opportunity sweep to decide whether to raise a task. */
+export async function detectCtrCandidates(instanceId: string, opts: CtrOptimizerOpts = {}): Promise<CtrDetectResult> {
+    const out: CtrDetectResult = { ok: false, scanned: 0, candidates: [] }
     const minImp = opts.minImpressions ?? 80
     const gap = opts.gapFactor ?? 0.5
     const days = opts.days ?? 90
@@ -210,16 +220,14 @@ export async function runCtrOptimizer(instanceId: string, opts: CtrOptimizerOpts
     const [agent] = await db.select().from(matehAgents).where(eq(matehAgents.id, String(opts.agentId || ''))) as any[]
     const gt: any = agent?.gscTokens || {}
     const rt = gt.refreshToken || gt.refresh_token
-    if (!rt || !gt.siteUrl) { result.reason = 'gsc_not_connected'; result.ok = true; return result }
-    const cfg = await loadWpConfig(instanceId, opts.agentId)
-    if (!cfg) { result.reason = 'wordpress_not_connected'; result.ok = true; return result }
+    if (!rt || !gt.siteUrl) { out.reason = 'gsc_not_connected'; out.ok = true; return out }
+    out.businessName = opts.businessName || (agent?.researchData as any)?.answers?.businessName || 'העסק'
 
     const token = await refreshToken(rt)
-    if (!token) { result.reason = 'token_refresh_failed'; return result }
+    if (!token) { out.reason = 'token_refresh_failed'; return out }
     const site = await resolveSite(token, gt.siteUrl)
-    result.siteUrl = site
+    out.siteUrl = site
 
-    // Pull page+query rows, aggregate per page.
     const end = new Date().toISOString().slice(0, 10)
     const start = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10)
     let rows: any[] = []
@@ -230,11 +238,10 @@ export async function runCtrOptimizer(instanceId: string, opts: CtrOptimizerOpts
             signal: AbortSignal.timeout(30_000),
         })
         const j = await r.json() as any
-        if (j.error) { result.reason = `gsc_api: ${j.error.message}`; return result }
+        if (j.error) { out.reason = `gsc_api: ${j.error.message}`; return out }
         rows = j.rows || []
-    } catch (e) { result.reason = `gsc_fetch_failed: ${(e as Error).message}`; return result }
+    } catch (e) { out.reason = `gsc_fetch_failed: ${(e as Error).message}`; return out }
 
-    // Aggregate per page; track top query by impressions.
     const byPage = new Map<string, { imp: number; clk: number; posW: number; top: { q: string; imp: number } }>()
     for (const row of rows) {
         const page = row.keys?.[0], query = row.keys?.[1]
@@ -245,9 +252,9 @@ export async function runCtrOptimizer(instanceId: string, opts: CtrOptimizerOpts
         if (imp > cur.top.imp) cur.top = { q: query || '', imp }
         byPage.set(page, cur)
     }
-    result.scanned = byPage.size
+    out.scanned = byPage.size
 
-    // Select CTR-gap candidates.
+    const exclude = new Set((opts.excludeSlugs || []).map(s => decodeSafe(s)))
     const cands: CtrCandidate[] = []
     for (const [url, a] of byPage) {
         const pos = a.imp ? a.posW / a.imp : 99
@@ -256,23 +263,35 @@ export async function runCtrOptimizer(instanceId: string, opts: CtrOptimizerOpts
         const exp = expectedCtr(pos)
         if (ctr >= exp * gap) continue
         if (!a.top.q) continue
+        if (exclude.has(slugOf(url))) continue
         cands.push({ url, topQuery: a.top.q, impressions: a.imp, clicks: a.clk, ctr, position: pos, expectedCtr: exp })
     }
-    // Biggest opportunity first: impressions × CTR shortfall.
     cands.sort((x, y) => (y.impressions * (y.expectedCtr - y.ctr)) - (x.impressions * (x.expectedCtr - x.ctr)))
-    result.candidates = cands.length
+    out.candidates = cands
+    out.ok = true
+    return out
+}
 
+export async function runCtrOptimizer(instanceId: string, opts: CtrOptimizerOpts = {}): Promise<CtrOptimizerResult> {
+    const result: CtrOptimizerResult = { ok: false, scanned: 0, candidates: 0, updated: [], skipped: [], failures: [] }
+    const limit = Math.min(opts.limit ?? 8, ADS_MAX)
+
+    const det = await detectCtrCandidates(instanceId, opts)
+    result.siteUrl = det.siteUrl
+    result.scanned = det.scanned
+    result.candidates = det.candidates.length
+    if (!det.ok) { result.reason = det.reason; return result }
+    if (det.reason) { result.reason = det.reason; result.ok = true; return result }   // not connected → no-op
+
+    const cfg = await loadWpConfig(instanceId, opts.agentId)
+    if (!cfg) { result.reason = 'wordpress_not_connected'; result.ok = true; return result }
     const apiKey = await getApiKeyForInstance(instanceId)
     if (!apiKey) { result.reason = 'no_api_key'; return result }
     const model = await resolveDirectModel(instanceId, 'yotzer')
-    const businessName = opts.businessName || (agent?.researchData as any)?.answers?.businessName || 'העסק'
-    const exclude = new Set((opts.excludeSlugs || []).map(s => decodeSafe(s)))
+    const businessName = det.businessName || 'העסק'
 
-    for (const c of cands.slice(0, limit + exclude.size)) {
-        if (result.updated.length >= limit) break
-        const slug = slugOf(c.url)
-        if (exclude.has(slug)) { result.skipped.push({ url: c.url, reason: 'excluded' }); continue }
-        const resolved = await resolveBySlug(cfg, slug)
+    for (const c of det.candidates.slice(0, limit)) {
+        const resolved = await resolveBySlug(cfg, slugOf(c.url))
         if (!resolved) { result.skipped.push({ url: c.url, reason: 'wp_post_not_found_by_slug' }); continue }
         c.type = resolved.type; c.id = resolved.id; c.currentTitle = resolved.title
         const gen = await generateTitleMeta(apiKey, model, businessName, c)

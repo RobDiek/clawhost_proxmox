@@ -1480,6 +1480,16 @@ export const applySafetyFix = async (c: Context<HonoEnv>) => {
             // page's structured data (additive, idempotent — companion renders it).
             const { runSeoSchemaBatch } = await import('@/services/seoSchemaBatch')
             result = await runSeoSchemaBatch(instanceId, { agentId: agent.id })
+        } else if (kind === 'apply_ctr_optimization') {
+            // CTR opportunity: rewrite title+meta for ranking-but-low-CTR pages,
+            // anchored on each page's real GSC query.
+            const { runCtrOptimizer } = await import('@/services/seoCtrOptimizer')
+            result = await runCtrOptimizer(instanceId, {
+                agentId: agent.id,
+                limit: Number(payload.limit) || 8,
+                minImpressions: Number(payload.minImpressions) || 100,
+                excludeSlugs: Array.isArray(payload.excludeSlugs) ? payload.excludeSlugs.map(String) : undefined,
+            })
         } else {
             return fail(c, `Unknown fix kind: ${kind}`, 400)
         }

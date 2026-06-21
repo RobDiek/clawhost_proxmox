@@ -313,6 +313,70 @@ export async function runGscHealthForAgent(agentId: string, opts: { createTasks?
     return { ok: true, gscHealth: (after?.researchData as any)?.seoMonitoring?.gscHealth }
 }
 
+// ─── CTR opportunity sweep (ranking-but-low-CTR → propose title/meta rewrite) ──
+// Systemic companion to seoCtrOptimizer: weekly, GSC-only detection (no LLM),
+// raises ONE approval task with a one-click apply (apply_ctr_optimization) that
+// runs the optimizer. Deduped: skips while an open opportunity task exists.
+async function runCtrOpportunitySweep(agent: MatehAgentRow, instanceId: string, nowIso: string, opts: { createTasks?: boolean } = {}): Promise<void> {
+    const { eq, and } = await import('drizzle-orm')
+    if (opts.createTasks) {
+        const open = await db.select().from(agentOutputs).where(and(
+            eq(agentOutputs.agentId, agent.id),
+            eq(agentOutputs.outputType, 'seo_ctr_opportunity'),
+            eq(agentOutputs.status, 'pending_review'),
+        ))
+        if (open.length) return   // already an open opportunity task — don't spam
+    }
+    const { detectCtrCandidates } = await import('./seoCtrOptimizer')
+    const det = await detectCtrCandidates(instanceId, { agentId: agent.id, minImpressions: 100 })
+    if (!det.ok || det.reason || det.candidates.length < 3) return   // not connected / too few to bother
+
+    const top = det.candidates.slice(0, 10)
+    const { mutateResearchData } = await import('./agentContext')
+    await mutateResearchData(agent, instanceId, (rd: any) => {
+        const c = rd || {}; const sm = c.seoMonitoring || {}
+        sm.ctrOpportunity = { lastRun: nowIso, shown: top.length, total: det.candidates.length }
+        return { ...c, seoMonitoring: sm }
+    })
+    if (!opts.createTasks) return
+
+    const lines = top.map(c => `• מיקום ${c.position.toFixed(0)} · ${c.impressions} חשיפות · CTR ${(c.ctr * 100).toFixed(1)}% · "${c.topQuery}"`).join('\n')
+    const displayHe = [
+        '## 🎯 הזדמנות CTR — דפים מדורגים שלא מקבלים קליקים',
+        '',
+        `${det.candidates.length} דפים מדורגים במיקום טוב (4-15) אך עם CTR נמוך מהצפוי — הדירוג כבר הושג, רק הכותרת/תיאור ב-SERP לא גורמים לקליק. שכתוב כותרת+תיאור הוא הטראפיק האורגני הזול ביותר.`,
+        '',
+        '### הדפים המובילים',
+        lines,
+        '',
+        '_אשרו כדי לשכתב כותרת + תיאור אוטומטית, מעוגן בביטוי החיפוש האמיתי של כל דף._',
+    ].join('\n')
+    const [row] = await db.insert(agentOutputs).values({
+        id: 'ctr_' + randomBytes(6).toString('hex'),
+        instanceId,
+        agentId: agent.id,
+        agentRole: 'mazhir',
+        outputType: 'seo_ctr_opportunity',
+        platform: 'gsc',
+        status: 'pending_review',
+        title: `🎯 CTR: ${det.candidates.length} דפים מדורגים ללא קליקים`,
+        content: JSON.stringify({ displayHe, candidates: top.map(c => ({ url: c.url, query: c.topQuery, imp: c.impressions, ctr: c.ctr, pos: c.position })) }, null, 2),
+        metadata: { autoFixable: true, autoFixAction: { kind: 'apply_ctr_optimization', payload: { agentId: agent.id, limit: 8, minImpressions: 100 } }, candidateCount: det.candidates.length, detectedAt: nowIso } as any,
+    }).returning()
+    if (row?.id) {
+        import('./approvalQueueTelegram').then(m => m.sendApprovalQueueMessage(row.id)).catch((err: Error) => console.warn('[ctrOpportunity] telegram send failed:', err.message))
+    }
+}
+
+/** Script/cron convenience — run the CTR opportunity sweep for one agent. */
+export async function runCtrOpportunityForAgent(agentId: string, opts: { createTasks?: boolean } = {}): Promise<any> {
+    const { eq } = await import('drizzle-orm')
+    const [agent] = await db.select().from(matehAgents).where(eq(matehAgents.id, agentId))
+    if (!agent) return { ok: false, error: `agent_not_found:${agentId}` }
+    await runCtrOpportunitySweep(agent as MatehAgentRow, agent.vpsInstanceId, new Date().toISOString(), opts)
+    return { ok: true }
+}
+
 // ─── Helpful Content vulnerability score ─────────────────────────────────
 async function runHelpfulContentScore(agent: MatehAgentRow, instanceId: string, nowIso: string): Promise<void> {
     const { mutateResearchData } = await import('./agentContext')
@@ -510,6 +574,8 @@ export async function runSeoMonitoring(): Promise<MonitorStats> {
                 catch (err) { stats.errors++; console.error(`[seoMonitoring] ${row.id} HC error:`, (err as Error).message) }
                 try { await runAeoProbe(row as MatehAgentRow, row.vpsInstanceId, nowIso); stats.aeoProbeRuns++ }
                 catch (err) { stats.errors++; console.error(`[seoMonitoring] ${row.id} AEO error:`, (err as Error).message) }
+                try { await runCtrOpportunitySweep(row as MatehAgentRow, row.vpsInstanceId, nowIso, { createTasks: true }) }
+                catch (err) { stats.errors++; console.error(`[seoMonitoring] ${row.id} CTR-opportunity error:`, (err as Error).message) }
             }
             if (runMonthly) {
                 try { await runKnowledgePanelStatus(row as MatehAgentRow, row.vpsInstanceId, nowIso); stats.kpStatusRuns++ }
