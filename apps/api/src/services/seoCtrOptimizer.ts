@@ -20,6 +20,7 @@ import { db } from '@/db'
 import { matehAgents } from '@/db/schema'
 import { getApiKeyForInstance, resolveDirectModel } from '@/controllers/hosting/agentSetup'
 import { loadWpConfig, type WpCfg } from '@/services/seoMetaBatch'
+import { isSystemPage } from '@/services/seoPageClassify'
 
 const WM = 'https://www.googleapis.com/webmasters/v3'
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
@@ -255,6 +256,20 @@ export async function detectCtrCandidates(instanceId: string, opts: CtrOptimizer
     out.scanned = byPage.size
 
     const exclude = new Set((opts.excludeSlugs || []).map(s => decodeSafe(s)))
+    // Brand aliases (Hebrew brand + Latin brand derived from the domain) — used to
+    // skip brand/navigational queries on non-home pages (those impressions belong
+    // to the HOMEPAGE; rewriting a sub-page won't win the click and risks
+    // mislabeling utility pages). e.g. packing-station.co.il → "packing station".
+    const hostBrand = site.replace(/^sc-domain:/, '').replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+        .replace(/^www\./, '').split('.')[0].replace(/-/g, ' ')
+    const brandAliases = [out.businessName || '', hostBrand].map(b => b.toLowerCase().replace(/\s+/g, '')).filter(b => b.length >= 4)
+    const isBrandNav = (q: string): boolean => {
+        const n = q.toLowerCase().replace(/\s+/g, '')
+        return brandAliases.some(b => n.includes(b) || b.includes(n))
+    }
+    const homePath = (() => { try { return new URL(site.replace(/^sc-domain:/, 'https://')).pathname.replace(/\/$/, '') } catch { return '' } })()
+    const pathOf = (u: string): string => { try { return new URL(u).pathname.replace(/\/$/, '') } catch { return u } }
+
     const cands: CtrCandidate[] = []
     for (const [url, a] of byPage) {
         const pos = a.imp ? a.posW / a.imp : 99
@@ -264,6 +279,13 @@ export async function detectCtrCandidates(instanceId: string, opts: CtrOptimizer
         if (ctr >= exp * gap) continue
         if (!a.top.q) continue
         if (exclude.has(slugOf(url))) continue
+        // Never marketing-rewrite system/utility/legal pages (cart, checkout,
+        // contact, terms, privacy, about, account, pagination…).
+        if (isSystemPage(url, '')) continue
+        // Brand/navigational query on a non-home page → the click belongs to the
+        // homepage; skip (prevents retitling sub-pages for the brand term).
+        const isHome = pathOf(url) === homePath
+        if (!isHome && isBrandNav(a.top.q)) continue
         cands.push({ url, topQuery: a.top.q, impressions: a.imp, clicks: a.clk, ctr, position: pos, expectedCtr: exp })
     }
     cands.sort((x, y) => (y.impressions * (y.expectedCtr - y.ctr)) - (x.impressions * (x.expectedCtr - x.ctr)))
