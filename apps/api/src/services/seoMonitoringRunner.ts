@@ -256,15 +256,16 @@ async function runGscHealthSweep(agent: MatehAgentRow, instanceId: string, nowIs
     const cliff = detectTrafficCliff(agent)
     const allFindings: GscFinding[] = [...report.findings, ...(cliff ? [cliff] : [])]
 
-    // Dedup against open findings. Only RESOLVE a finding if it was in scope this
-    // run (sitemaps + traffic always; URL findings only if that URL was inspected).
+    // Dedup against open findings. Findings are aggregated per-category (stable
+    // IDs) and recomputed each run over a rotating URL window — so resolve with a
+    // 1-run grace (a finding can transiently drop when its URLs aren't in this
+    // run's slice). Resolve only after 2 consecutive misses.
     const open: Record<string, any> = { ...(state.openFindings || {}) }
-    const inspectedSet = new Set(report.inspectedUrls)
     const currentIds = new Set(allFindings.map(f => f.id))
     for (const id of Object.keys(open)) {
-        const rec = open[id]
-        const inScope = rec.category === 'sitemap' || rec.category === 'traffic' || (rec.url && inspectedSet.has(rec.url))
-        if (inScope && !currentIds.has(id)) delete open[id]   // resolved
+        if (currentIds.has(id)) { open[id].misses = 0; continue }
+        open[id].misses = (open[id].misses || 0) + 1
+        if (open[id].misses >= 2) delete open[id]   // resolved
     }
     const newFindings = allFindings.filter(f => !open[f.id])
     for (const f of newFindings) {
@@ -273,7 +274,11 @@ async function runGscHealthSweep(agent: MatehAgentRow, instanceId: string, nowIs
             try { taskId = await createGscHealthTask(agent, instanceId, f, report.siteUrl || siteUrl, nowIso) }
             catch (e) { console.warn(`[gscHealth] task create failed for ${f.id}:`, (e as Error).message) }
         }
-        open[f.id] = { firstSeen: nowIso, severity: f.severity, category: f.category, url: f.url || null, summary: f.summary, taskId: taskId || null, baselined: isBaseline }
+        open[f.id] = { firstSeen: nowIso, lastSeen: nowIso, severity: f.severity, category: f.category, url: f.url || null, summary: f.summary, taskId: taskId || null, baselined: isBaseline, misses: 0 }
+    }
+    // Refresh summary/severity/lastSeen on still-open findings so state mirrors latest.
+    for (const f of allFindings) {
+        if (open[f.id]) { open[f.id].severity = f.severity; open[f.id].summary = f.summary; open[f.id].lastSeen = nowIso }
     }
 
     await mutateResearchData(agent, instanceId, (cur: any) => {
