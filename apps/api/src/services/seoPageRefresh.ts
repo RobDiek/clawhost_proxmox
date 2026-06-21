@@ -150,6 +150,32 @@ async function fetchType(cfg: WpCfg, type: WpType, search?: string): Promise<Tar
     return out
 }
 
+/** Resolve a target by EXACT WP slug (?slug=). Used when refreshing a specific
+ *  URL (e.g. a GSC "not indexed" finding) — ?search= phrase-matching fails on
+ *  dash-joined / non-Latin (Hebrew) slugs, so we look the slug up directly. */
+async function fetchBySlug(cfg: WpCfg, slug: string): Promise<Target[]> {
+    const out: Target[] = []
+    const base = norm(cfg.url)
+    for (const type of ['posts', 'pages'] as WpType[]) {
+        try {
+            const url = `${base}/wp-json/wp/v2/${type}?slug=${encodeURIComponent(slug)}&status=publish&context=edit&_fields=id,title,link,content`
+            const res = await fetch(url, { headers: { Authorization: auth(cfg) }, signal: AbortSignal.timeout(30000) })
+            if (!res.ok) continue
+            const items = await res.json().catch(() => []) as any[]
+            for (const it of (Array.isArray(items) ? items : [])) {
+                if (typeof it.id !== 'number') continue
+                const html = it.content?.raw || it.content?.rendered || ''
+                out.push({
+                    type, id: it.id,
+                    title: stripHtml(it.title?.rendered || it.title?.raw || `#${it.id}`).trim(),
+                    link: it.link || '', content: html, words: wordCount(html),
+                })
+            }
+        } catch { /* try next type */ }
+    }
+    return out
+}
+
 /**
  * Claude generates the new body. Two modes:
  *  - 'replace' (classic/post_content): preserve all existing content + deepen
@@ -359,7 +385,10 @@ export async function runPageRefresh(
     try {
         if (opts.namedPages && opts.namedPages.length) {
             for (const phrase of opts.namedPages.slice(0, MAX_REFRESH_PER_RUN)) {
-                const found = [...await fetchType(cfg, 'posts', phrase), ...await fetchType(cfg, 'pages', phrase)]
+                // Try exact slug first (specific-URL fixes), fall back to phrase
+                // search (human-named page titles in a task).
+                const bySlug = await fetchBySlug(cfg, phrase)
+                const found = bySlug.length ? bySlug : [...await fetchType(cfg, 'posts', phrase), ...await fetchType(cfg, 'pages', phrase)]
                 if (found[0]) targets.push(found[0])
             }
         } else {
