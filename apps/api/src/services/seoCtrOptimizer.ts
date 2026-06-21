@@ -128,16 +128,42 @@ async function writeTitleMeta(cfg: WpCfg, type: WpType, id: number, title: strin
     }
 }
 
+const TITLE_MAX = 60          // SERP title pixel-safe cap
+const META_MAX = 160
+
+/** Trim to the last full word within max chars (never mid-word). */
+function trimWords(s: string, max: number): string {
+    if (s.length <= max) return s
+    const cut = s.slice(0, max)
+    const sp = cut.lastIndexOf(' ')
+    return (sp > max * 0.6 ? cut.slice(0, sp) : cut).replace(/[\s|–\-,:;]+$/, '').trim()
+}
+
+/** Brand-name policy: append "| <brand>" only when it fits within TITLE_MAX and
+ *  the brand isn't already present — consistent branding without truncation. */
+function applyBrandPolicy(title: string, brand: string): string {
+    const t = title.trim()
+    if (!brand) return trimWords(t, TITLE_MAX)
+    const has = t.toLowerCase().includes(brand.toLowerCase())
+    if (has) return trimWords(t, TITLE_MAX)
+    const withBrand = `${t} | ${brand}`
+    return withBrand.length <= TITLE_MAX ? withBrand : trimWords(t, TITLE_MAX)
+}
+
 async function generateTitleMeta(apiKey: string, model: string, businessName: string, c: CtrCandidate): Promise<{ title: string; meta: string } | null> {
+    // Is the ranking query just the brand name? Then it's a brand/about page —
+    // present the company + its core offering, NOT a literal translation.
+    const brandQuery = !!businessName && c.topQuery.toLowerCase().replace(/\s+/g, '').includes(businessName.toLowerCase().replace(/\s+/g, '').slice(0, 6))
     const prompt = `אתם עורך SEO בכיר של "${businessName}". עמוד מדורג בגוגל במיקום ${c.position.toFixed(0)} על הביטוי "${c.topQuery}" עם ${c.impressions} חשיפות אך כמעט בלי קליקים (CTR ${(c.ctr * 100).toFixed(1)}%). הדירוג כבר הושג — הכותרת/תיאור ב-SERP פשוט לא גורמים לקליק. שכתבו אותם כדי למקסם קליקים.
 
 ## נתונים
 כותרת נוכחית: ${c.currentTitle || '—'}
 ביטוי החיפוש שעליו מדורגים: ${c.topQuery}
+${brandQuery ? 'שימו לב: זהו חיפוש של שם המותג (עמוד אודות/בית). הציגו את החברה ואת השירות המרכזי שלה (ציוד/שירות למעבר דירה) — לא תרגום מילולי של שם המותג.' : ''}
 
 ## חוקים
-- title: עד 60 תווים, עברית, מתחיל בביטוי החיפוש או קרוב אליו, עם וו קליק (מספר/תועלת/דחיפות/מיקום). בלי שם המותג אלא אם קצר ומוסיף.
-- meta: 140-160 תווים, עברית, ממשיך את ההבטחה, כולל CTA עדין. בלי גרשיים כפולים, בלי שורות חדשות.
+- title: עד 55 תווים (קצר!), עברית, מתחיל בביטוי החיפוש או קרוב אליו, עם וו קליק (מספר/תועלת/דחיפות/מיקום). אל תוסיפו את שם המותג — אנחנו נוסיף אותו בנפרד.
+- meta: 150-160 תווים בדיוק, עברית, ממשיך את ההבטחה, כולל CTA עדין. בלי גרשיים כפולים, בלי שורות חדשות.
 - 100% עברית (חוץ משמות מותג). אל תמציאו עובדות/מחירים/רייטינג.
 
 ## פלט
@@ -155,10 +181,11 @@ async function generateTitleMeta(apiKey: string, model: string, businessName: st
         const m = text.match(/\{[\s\S]*\}/)
         if (!m) return null
         const obj = JSON.parse(m[0])
-        const title = String(obj.title || '').trim()
-        const meta = String(obj.meta || '').trim()
+        let title = String(obj.title || '').replace(/\s+/g, ' ').trim()
+        const meta = trimWords(String(obj.meta || '').replace(/\s+/g, ' ').trim(), META_MAX)
         if (!title || !meta) return null
-        return { title: title.slice(0, 70), meta: meta.slice(0, 165) }
+        title = applyBrandPolicy(title, businessName)   // deterministic brand + ≤60 enforcement
+        return { title, meta }
     } catch { return null }
 }
 
@@ -170,6 +197,7 @@ export interface CtrOptimizerOpts {
     minImpressions?: number     // default 80
     gapFactor?: number          // candidate if ctr < expectedCtr*gapFactor (default 0.5)
     days?: number               // GSC window, default 90
+    excludeSlugs?: string[]     // skip these slugs (e.g. just-refreshed pages)
 }
 
 export async function runCtrOptimizer(instanceId: string, opts: CtrOptimizerOpts = {}): Promise<CtrOptimizerResult> {
@@ -238,9 +266,13 @@ export async function runCtrOptimizer(instanceId: string, opts: CtrOptimizerOpts
     if (!apiKey) { result.reason = 'no_api_key'; return result }
     const model = await resolveDirectModel(instanceId, 'yotzer')
     const businessName = opts.businessName || (agent?.researchData as any)?.answers?.businessName || 'העסק'
+    const exclude = new Set((opts.excludeSlugs || []).map(s => decodeSafe(s)))
 
-    for (const c of cands.slice(0, limit)) {
-        const resolved = await resolveBySlug(cfg, slugOf(c.url))
+    for (const c of cands.slice(0, limit + exclude.size)) {
+        if (result.updated.length >= limit) break
+        const slug = slugOf(c.url)
+        if (exclude.has(slug)) { result.skipped.push({ url: c.url, reason: 'excluded' }); continue }
+        const resolved = await resolveBySlug(cfg, slug)
         if (!resolved) { result.skipped.push({ url: c.url, reason: 'wp_post_not_found_by_slug' }); continue }
         c.type = resolved.type; c.id = resolved.id; c.currentTitle = resolved.title
         const gen = await generateTitleMeta(apiKey, model, businessName, c)
