@@ -1465,6 +1465,20 @@ export const applySafetyFix = async (c: Context<HonoEnv>) => {
             const { enableEnhancedMeasurementAll } = await import('@/services/ga4HealthAudit')
             await enableEnhancedMeasurementAll({ refreshToken: tokens.refreshToken }, String(payload.propertyId || ''), String(payload.streamId || ''))
             result = { ok: true, propertyId: payload.propertyId, streamId: payload.streamId }
+        } else if (kind === 'gsc_refresh_page') {
+            // GSC finding: page not indexed (thin / crawled-not-indexed). Fix =
+            // refresh that specific page's content (builder-aware, non-destructive).
+            const url = String(payload.url || '')
+            if (!url) return fail(c, 'url required for gsc_refresh_page', 400)
+            const clean = url.split(/[?#]/)[0].replace(/\/$/, '')
+            const slug = decodeURIComponent(clean.split('/').pop() || url)
+            const { runPageRefresh } = await import('@/services/seoPageRefresh')
+            result = await runPageRefresh(instanceId, { agentId: agent.id, namedPages: [slug] })
+        } else if (kind === 'gsc_regen_schema') {
+            // GSC finding: invalid rich-results / schema. Fix = regenerate the
+            // page's structured data (additive, idempotent — companion renders it).
+            const { runSeoSchemaBatch } = await import('@/services/seoSchemaBatch')
+            result = await runSeoSchemaBatch(instanceId, { agentId: agent.id })
         } else {
             return fail(c, `Unknown fix kind: ${kind}`, 400)
         }

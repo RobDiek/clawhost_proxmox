@@ -37,7 +37,7 @@ const INSPECT = 'https://searchconsole.googleapis.com/v1/urlInspection/index:ins
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
 
 export type GscSeverity = 'critical' | 'high' | 'medium' | 'info'
-export type GscCategory = 'sitemap' | 'indexing' | 'noindex' | 'robots' | 'canonical' | 'crawl' | 'rich_results'
+export type GscCategory = 'sitemap' | 'indexing' | 'noindex' | 'robots' | 'canonical' | 'crawl' | 'rich_results' | 'traffic'
 
 export interface GscFinding {
     id: string                 // STABLE dedup key (e.g. "noindex:https://site/x")

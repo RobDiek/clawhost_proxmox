@@ -31,10 +31,12 @@
  *   - Monthly tick (1st): KP/Wikidata status
  */
 
+import { randomBytes } from 'crypto'
 import { isNotNull } from 'drizzle-orm'
 import { db } from '@/db'
-import { matehAgents } from '@/db/schema'
+import { matehAgents, agentOutputs } from '@/db/schema'
 import type { MatehAgentRow } from '@/services/agentContext'
+import type { GscFinding, GscSeverity } from './gscHealthAudit'
 
 const MAX_HISTORY_ENTRIES = 90       // Keep ~3 months of daily history
 const AEO_PROBE_PROMPTS_DEFAULT = 20  // 20 JTBD prompts per tenant per run
@@ -42,6 +44,7 @@ const AEO_PROBE_PROMPTS_DEFAULT = 20  // 20 JTBD prompts per tenant per run
 interface MonitorStats {
     agentsScanned: number
     gscDigestRuns: number
+    gscHealthRuns: number
     hcScoreRuns: number
     aeoProbeRuns: number
     kpStatusRuns: number
@@ -102,6 +105,207 @@ async function runGscDigest(agent: MatehAgentRow, instanceId: string, nowIso: st
         sm.gscDigest = gsc
         return { ...cur, seoMonitoring: sm }
     })
+}
+
+// ─── GSC Health Sweep (sitemaps + URL inspection → notify + task) ─────────
+// Closes the gap where the platform only read Search Analytics and never saw
+// the indexing/coverage/sitemap/rich-result issues Google emails about.
+// Systemic: runs for EVERY agent with a connected GSC. Baseline-then-alert —
+// the first run per agent records current issues silently (baseline); only
+// issues that appear AFTER baseline raise a task + Telegram (mirrors how GSC
+// emails only NEW problems).
+
+/** Pull page URLs from a site's sitemap (follows one level of nested index). */
+async function fetchSitemapUrls(homeUrl: string, cap = 1000): Promise<string[]> {
+    const origin = homeUrl.replace(/\/$/, '')
+    const candidates = [`${origin}/sitemap_index.xml`, `${origin}/sitemap.xml`]
+    const out: string[] = []
+    const seen = new Set<string>()
+    const grab = async (url: string, depth: number): Promise<void> => {
+        if (out.length >= cap || seen.has(url)) return
+        seen.add(url)
+        let xml = ''
+        try {
+            const r = await fetch(url, { signal: AbortSignal.timeout(15_000) })
+            if (!r.ok) return
+            xml = await r.text()
+        } catch { return }
+        const locs = [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map(m => m[1])
+        for (const loc of locs) {
+            if (out.length >= cap) break
+            if (/\.xml($|\?)/i.test(loc) || /sitemap/i.test(loc)) {
+                if (depth < 1) await grab(loc, depth + 1)
+            } else {
+                out.push(loc)
+            }
+        }
+    }
+    for (const c of candidates) {
+        if (out.length < cap) await grab(c, 0)
+        if (out.length) break
+    }
+    return out
+}
+
+/** Detect a sudden organic-traffic cliff from gscDigest history — the only
+ *  API-visible proxy for a manual action / deindex / penalty (GSC has no
+ *  public manual-actions API). Conservative thresholds avoid false alarms. */
+function detectTrafficCliff(agent: MatehAgentRow): GscFinding | null {
+    const hist: any[] = (agent.researchData as any)?.seoMonitoring?.gscDigest?.dailyHistory || []
+    const connected = hist.filter(h => h?.source === 'connected' && Array.isArray(h.topQueries))
+    if (connected.length < 10) return null
+    const dayClicks = (h: any) => h.topQueries.reduce((s: number, q: any) => s + (q.clicks || 0), 0)
+    const recent = connected.slice(-3)
+    const prior = connected.slice(-17, -3)
+    if (prior.length < 7) return null
+    const recentAvg = recent.reduce((s, h) => s + dayClicks(h), 0) / recent.length
+    const priorAvg = prior.reduce((s, h) => s + dayClicks(h), 0) / prior.length
+    if (priorAvg < 30) return null
+    const dropPct = (priorAvg - recentAvg) / priorAvg
+    if (dropPct < 0.5) return null
+    return {
+        id: 'traffic_cliff',
+        severity: 'high',
+        category: 'traffic',
+        summary: `צניחה חדה בתנועה האורגנית (−${Math.round(dropPct * 100)}%)`,
+        detail: `קליקים אורגניים ירדו מ~${Math.round(priorAvg)}/יום ל~${Math.round(recentAvg)}/יום (−${Math.round(dropPct * 100)}%). צניחה כזו עלולה להעיד על דה-אינדוקס, פעולה ידנית (Manual Action) או עדכון אלגוריתם. ל-GSC אין API לפעולות ידניות — בדקו ב-Search Console → Security & Manual Actions, ואם קיבלתם מייל מגוגל העבירו אותו אלינו.`,
+        autoFixable: false,
+    }
+}
+
+/** Create a pending_review task + push it to the tenant's Telegram. Mirrors the
+ *  adsRecommendationsEvaluator output pattern (content.displayHe + metadata). */
+async function createGscHealthTask(agent: MatehAgentRow, instanceId: string, f: GscFinding, siteUrl: string, nowIso: string): Promise<string | undefined> {
+    const sigil = f.severity === 'critical' ? '🔴' : f.severity === 'high' ? '🟠' : f.severity === 'medium' ? '🟡' : 'ℹ️'
+    const displayHe = [
+        `## ${sigil} בעיה ב-Google Search Console`,
+        '',
+        `**${f.summary}**`,
+        f.url ? `כתובת: ${f.url}` : '',
+        '',
+        f.detail,
+        '',
+        f.autoFixable ? '_ניתן לתיקון אוטומטי — אשרו את המשימה._' : '_דורש בדיקה/תיקון ידני (ראו הסבר)._',
+    ].filter(Boolean).join('\n')
+    const [row] = await db.insert(agentOutputs).values({
+        id: 'gsc_' + randomBytes(6).toString('hex'),
+        instanceId,
+        agentId: agent.id,
+        agentRole: 'mazhir',
+        outputType: 'gsc_health_issue',
+        platform: 'gsc',
+        status: 'pending_review',
+        title: `${sigil} GSC: ${f.summary}`.slice(0, 200),
+        content: JSON.stringify({ displayHe, finding: { id: f.id, severity: f.severity, category: f.category, url: f.url, summary: f.summary, detail: f.detail, autoFixable: f.autoFixable } }, null, 2),
+        metadata: { findingId: f.id, severity: f.severity, category: f.category, url: f.url, autoFixable: f.autoFixable, autoFixAction: f.autoFixAction, siteUrl, detectedAt: nowIso } as any,
+    }).returning()
+    if (row?.id) {
+        import('./approvalQueueTelegram')
+            .then(m => m.sendApprovalQueueMessage(row.id))
+            .catch((err: Error) => console.warn('[gscHealth] telegram send failed:', err.message))
+    }
+    return row?.id
+}
+
+async function runGscHealthSweep(agent: MatehAgentRow, instanceId: string, nowIso: string, opts: { createTasks?: boolean } = {}): Promise<void> {
+    const { mutateResearchData } = await import('./agentContext')
+
+    // Resolve GSC tokens (same path as runGscDigest — per-agent isolation).
+    let gscCfg: any = null
+    try {
+        const { getAgentIntegration } = await import('./agentIntegrations')
+        const gscInt = await getAgentIntegration(instanceId, 'mt' as any, 'gsc' as any, agent.id || null)
+        if (gscInt?.config) gscCfg = gscInt.config
+    } catch { /* not connected */ }
+    const refreshToken = gscCfg?.refreshToken || gscCfg?.refresh_token
+    const siteUrl = gscCfg?.siteUrl
+    if (!refreshToken || !siteUrl) return   // GSC not connected → skip silently
+
+    const tokens = { refreshToken, accessToken: gscCfg.accessToken, expiresAt: gscCfg.expiresAt, siteUrl, sites: gscCfg.sites }
+
+    const state: any = (agent.researchData as any)?.seoMonitoring?.gscHealth || {}
+    const isBaseline = !state.openFindings   // first run per agent → record silently
+    const cursor = Number(state.cursor || 0)
+    const PER_RUN = 30
+
+    // Priority URLs: homepage + a rotating slice of sitemap URLs.
+    const bare = siteUrl.replace(/^sc-domain:/, '').replace(/\/$/, '')
+    const home = (bare.startsWith('http') ? bare : `https://${bare}`) + '/'
+    let allUrls: string[] = []
+    try { allUrls = await fetchSitemapUrls(home) } catch { /* ignore */ }
+    let slice: string[] = []
+    if (allUrls.length) {
+        slice = allUrls.slice(cursor, cursor + PER_RUN)
+        if (slice.length < PER_RUN) slice = slice.concat(allUrls.slice(0, Math.max(0, PER_RUN - slice.length)))
+    }
+    const inspectUrls = Array.from(new Set([home, ...slice]))
+    const nextCursor = allUrls.length ? (cursor + PER_RUN) % allUrls.length : 0
+
+    const { auditGscHealth } = await import('./gscHealthAudit')
+    const report = await auditGscHealth({ tokens, inspectUrls })
+    if (!report.ok) {
+        await mutateResearchData(agent, instanceId, (cur: any) => {
+            const c = cur || {}
+            const sm = c.seoMonitoring || {}
+            sm.gscHealth = { ...(sm.gscHealth || {}), lastRun: nowIso, lastReason: report.reason }
+            return { ...c, seoMonitoring: sm }
+        })
+        return
+    }
+
+    const cliff = detectTrafficCliff(agent)
+    const allFindings: GscFinding[] = [...report.findings, ...(cliff ? [cliff] : [])]
+
+    // Dedup against open findings. Only RESOLVE a finding if it was in scope this
+    // run (sitemaps + traffic always; URL findings only if that URL was inspected).
+    const open: Record<string, any> = { ...(state.openFindings || {}) }
+    const inspectedSet = new Set(report.inspectedUrls)
+    const currentIds = new Set(allFindings.map(f => f.id))
+    for (const id of Object.keys(open)) {
+        const rec = open[id]
+        const inScope = rec.category === 'sitemap' || rec.category === 'traffic' || (rec.url && inspectedSet.has(rec.url))
+        if (inScope && !currentIds.has(id)) delete open[id]   // resolved
+    }
+    const newFindings = allFindings.filter(f => !open[f.id])
+    for (const f of newFindings) {
+        let taskId: string | undefined
+        if (opts.createTasks && !isBaseline) {
+            try { taskId = await createGscHealthTask(agent, instanceId, f, report.siteUrl || siteUrl, nowIso) }
+            catch (e) { console.warn(`[gscHealth] task create failed for ${f.id}:`, (e as Error).message) }
+        }
+        open[f.id] = { firstSeen: nowIso, severity: f.severity, category: f.category, url: f.url || null, summary: f.summary, taskId: taskId || null, baselined: isBaseline }
+    }
+
+    await mutateResearchData(agent, instanceId, (cur: any) => {
+        const c = cur || {}
+        const sm = c.seoMonitoring || {}
+        const gh = sm.gscHealth || {}
+        gh.lastRun = nowIso
+        gh.siteUrl = report.siteUrl
+        gh.cursor = nextCursor
+        gh.counts = report.counts
+        gh.openFindings = open
+        gh.history = _trimHistory([...(gh.history || []), {
+            date: nowIso.slice(0, 10),
+            counts: report.counts,
+            newCount: isBaseline ? 0 : newFindings.length,
+            baselinedCount: isBaseline ? newFindings.length : 0,
+            inspected: report.inspectedUrls.length,
+            openTotal: Object.keys(open).length,
+        }], 60)
+        sm.gscHealth = gh
+        return { ...c, seoMonitoring: sm }
+    })
+}
+
+/** Script/cron convenience — run the GSC health sweep for one agent. */
+export async function runGscHealthForAgent(agentId: string, opts: { createTasks?: boolean } = {}): Promise<any> {
+    const { eq } = await import('drizzle-orm')
+    const [agent] = await db.select().from(matehAgents).where(eq(matehAgents.id, agentId))
+    if (!agent) return { ok: false, error: `agent_not_found:${agentId}` }
+    await runGscHealthSweep(agent as MatehAgentRow, agent.vpsInstanceId, new Date().toISOString(), opts)
+    const [after] = await db.select().from(matehAgents).where(eq(matehAgents.id, agentId))
+    return { ok: true, gscHealth: (after?.researchData as any)?.seoMonitoring?.gscHealth }
 }
 
 // ─── Helpful Content vulnerability score ─────────────────────────────────
@@ -278,7 +482,7 @@ async function runKnowledgePanelStatus(agent: MatehAgentRow, instanceId: string,
 
 // ─── Main scheduler ──────────────────────────────────────────────────────
 export async function runSeoMonitoring(): Promise<MonitorStats> {
-    const stats: MonitorStats = { agentsScanned: 0, gscDigestRuns: 0, hcScoreRuns: 0, aeoProbeRuns: 0, kpStatusRuns: 0, errors: 0 }
+    const stats: MonitorStats = { agentsScanned: 0, gscDigestRuns: 0, gscHealthRuns: 0, hcScoreRuns: 0, aeoProbeRuns: 0, kpStatusRuns: 0, errors: 0 }
     const now = new Date()
     const nowIso = now.toISOString()
     const runWeekly = _shouldRunWeekly(now)
@@ -292,6 +496,10 @@ export async function runSeoMonitoring(): Promise<MonitorStats> {
                 await runGscDigest(row as MatehAgentRow, row.vpsInstanceId, nowIso)
                 stats.gscDigestRuns++
             } catch (err) { stats.errors++; console.error(`[seoMonitoring] ${row.id} GSC error:`, (err as Error).message) }
+            try {
+                await runGscHealthSweep(row as MatehAgentRow, row.vpsInstanceId, nowIso, { createTasks: true })
+                stats.gscHealthRuns++
+            } catch (err) { stats.errors++; console.error(`[seoMonitoring] ${row.id} GSC health error:`, (err as Error).message) }
             if (runWeekly) {
                 try { await runHelpfulContentScore(row as MatehAgentRow, row.vpsInstanceId, nowIso); stats.hcScoreRuns++ }
                 catch (err) { stats.errors++; console.error(`[seoMonitoring] ${row.id} HC error:`, (err as Error).message) }
