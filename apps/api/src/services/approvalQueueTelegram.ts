@@ -116,7 +116,16 @@ function humanBody(content: string | null): string {
             }
             const he = buildDisplayHe(obj)
             if (he.trim()) return he
-        } catch { /* not valid JSON — fall through to raw text */ }
+        } catch {
+            // Truncated / invalid JSON (e.g. oversized content cut mid-structure).
+            // NEVER dump raw JSON to the user — salvage a displayHe field via regex
+            // if the producer set one; otherwise drop the body (title + buttons
+            // still render). This is the systemic guarantee: no scenario leaks JSON.
+            const m = s.match(/"displayHe"\s*:\s*"((?:[^"\\]|\\.)*)"/)
+            if (m) { try { return JSON.parse(`"${m[1]}"`) } catch { return m[1] } }
+        }
+        // JSON-shaped content we could not humanize → never return the raw braces.
+        return ''
     }
     return s
 }

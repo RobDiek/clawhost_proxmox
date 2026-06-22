@@ -579,6 +579,21 @@ async function persistAndEmit(
         // Hebrew title — only acronyms in Latin letters (P0/P1/P2). Plan's
         // keyTheme is allowed in Hebrew + acronyms. Truncated for length.
         const summaryText = `${plan.summary.totalTasks} משימות · ${plan.summary.byPriority.P0} P0 · ${plan.summary.byPriority.P1} P1 · ${plan.summary.byPriority.P2} P2`
+        // Human-readable Hebrew summary (content.displayHe convention). Keep the
+        // stored content SMALL + valid — the full task list lives in
+        // research_data.monthlyPlan.tasks. Stuffing all task titles here overflowed
+        // the size cap → truncated, unparseable JSON → raw dump in Telegram/kabinet.
+        const CHAN_HE: Record<string, string> = { google_ads: 'גוגל אדס', seo: 'SEO', content: 'תוכן', gtm: 'GTM', ga4: 'GA4', email: 'אימייל', website: 'אתר', cross: 'חוצה-ערוצי', whatsapp: 'וואטסאפ', meta: 'מטא', social: 'רשתות' }
+        const chanLine = Object.entries(plan.summary.byChannel || {}).map(([c, n]) => `${CHAN_HE[c] || c} ${n}`).join(' · ')
+        const planDisplayHe = [
+            `## תוכנית חודשית — ${plan.summary.totalTasks} משימות`,
+            '',
+            `**עדיפויות:** ${plan.summary.byPriority.P0} P0 · ${plan.summary.byPriority.P1} P1 · ${plan.summary.byPriority.P2} P2`,
+            plan.overview?.keyTheme ? `**נושא מרכזי:** ${plan.overview.keyTheme}` : '',
+            chanLine ? `**לפי ערוץ:** ${chanLine}` : '',
+            '',
+            'המשימות מחכות בלוח הבקרה לאישור והרצה.',
+        ].filter(Boolean).join('\n')
         const [outputRow] = await db.insert(agentOutputs).values({
             id: 'mp_month_' + randomBytes(6).toString('hex'),
             instanceId,
@@ -588,11 +603,7 @@ async function persistAndEmit(
             platform: 'multi',
             status: 'published',
             title: `תוכנית חודשית — ${summaryText} · ${(plan.overview?.keyTheme || '').slice(0, 60)}`,
-            content: JSON.stringify({
-                summary: plan.summary,
-                overview: plan.overview,
-                taskTitles: plan.tasks.map(t => ({ id: t.id, priority: t.priority, channel: t.channel, title: t.title })),
-            }, null, 2).slice(0, 12000),
+            content: JSON.stringify({ displayHe: planDisplayHe, summary: plan.summary }, null, 2),
             metadata: {
                 totalTasks: plan.summary.totalTasks,
                 P0: plan.summary.byPriority.P0,
