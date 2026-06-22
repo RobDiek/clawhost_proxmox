@@ -8965,7 +8965,8 @@ export const getAgentChatFeedController = async (c: Context) => {
 export const postAgentChat = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
-        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const instance = await getOwnedInstance(instanceId, resolveUserId(c))
+        if (!instance) return fail(c, 'Instance not found', 404)
         const body = await c.req.json<{ message?: string }>().catch(() => ({} as { message?: string }))
         const message = (body.message || '').trim()
         if (!message) return fail(c, 'הודעה ריקה', 400)
@@ -8975,7 +8976,7 @@ export const postAgentChat = async (c: Context) => {
         // Share the Telegram conversation when present → one unified conversation.
         // agent may be null (agentless instances like Flow) — generateAgentReply
         // falls back to instance-level key + research_data.
-        const chatKey = (agent as any)?.telegramChatId || 'web'
+        const chatKey = (agent as any)?.telegramChatId || (instance as any)?.telegramChatId || 'web'
         const r = await generateAgentReply({ agent: (agent as any) || null, instanceId, text: message, chatKey })
         if (!r.ok || !r.reply) {
             const msg = r.error === 'no_key'
@@ -8983,6 +8984,22 @@ export const postAgentChat = async (c: Context) => {
                 : 'מצטערים, הייתה תקלה רגעית. נסו שוב בעוד רגע 🙏'
             return fail(c, msg, r.error === 'no_key' ? 400 : 502)
         }
+        // If Telegram is connected, mirror the exchange there too → the user sees
+        // the SAME conversation in both surfaces (the web message is marked 🌐;
+        // Telegram bots can't post as the user, so it appears as a bot message).
+        try {
+            const botToken = (agent as any)?.telegramBotToken || (instance as any)?.telegramBotToken
+            const tgChatId = (agent as any)?.telegramChatId || (instance as any)?.telegramChatId
+            if (botToken && tgChatId) {
+                const tgSend = (txt: string) => fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: tgChatId, text: txt, disable_web_page_preview: true }),
+                    signal: AbortSignal.timeout(10000),
+                }).catch(() => { /* best effort */ })
+                await tgSend(`🌐 ${message}`)
+                await tgSend(r.reply)
+            }
+        } catch { /* non-fatal — never block the web reply on Telegram delivery */ }
         return ok(c, { reply: r.reply }, 'ok')
     } catch (err) {
         return fail(c, (err as Error).message, 500)
