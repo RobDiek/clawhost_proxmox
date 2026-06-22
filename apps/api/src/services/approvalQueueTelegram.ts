@@ -229,6 +229,13 @@ export async function sendApprovalQueueMessage(outputId: string): Promise<void> 
     } else {
         console.warn(`[approvalTg] sendApprovalQueueMessage ${outputId} failed:`, res.description || res.error)
     }
+
+    // Mirror into the in-app agent chat feed so "צ'אט עם סוכן" shows the exact
+    // same message as Telegram (HTML stripped to plain text for the feed).
+    if (res.ok) {
+        const { recordAgentChatFeed } = await import('@/services/agentChatFeed')
+        await recordAgentChatFeed(output.instanceId, output.agentId, text.replace(/<[^>]+>/g, ''), { kind: 'approval', outputId })
+    }
 }
 
 // ─── Public: update existing message (after status change) ─────────────────
@@ -258,6 +265,10 @@ export async function updateApprovalQueueMessage(outputId: string): Promise<void
         disable_web_page_preview: true,
         reply_markup: keyboard,
     })
+
+    // Keep the in-app feed in sync with the edited Telegram message.
+    const { recordAgentChatFeed } = await import('@/services/agentChatFeed')
+    await recordAgentChatFeed(output.instanceId, output.agentId, text.replace(/<[^>]+>/g, ''), { kind: 'approval', outputId })
 }
 
 // ─── Public: answer a callback_query (removes the loading spinner) ─────────

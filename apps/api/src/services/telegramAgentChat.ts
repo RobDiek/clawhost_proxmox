@@ -133,6 +133,11 @@ ${context}`
         if (!reply) { await tgSend(botToken, chatId, 'מצטערים, לא הצלחנו לנסח תשובה. נסו לנסח מחדש 🙏'); return }
 
         await tgSend(botToken, chatId, reply)
+        // Mirror the live conversation (user msg + agent reply) into the in-app
+        // "צ'אט עם סוכן" feed so it matches Telegram exactly.
+        const { recordAgentChatFeed } = await import('@/services/agentChatFeed')
+        await recordAgentChatFeed(instanceId, agent.id, text, { kind: 'agent', direction: 'in' })
+        await recordAgentChatFeed(instanceId, agent.id, reply, { kind: 'agent', direction: 'out' })
 
         // Persist conversation history on the agent (dual-write safe).
         await mutateResearchData(agent, instanceId, (r: any) => {

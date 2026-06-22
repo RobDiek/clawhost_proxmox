@@ -8940,6 +8940,24 @@ export const getMazhirMediaPlanManualHtml = async (c: Context) => {
     }
 }
 
+// ─── GET /hosting/instances/:id/agent-feed ────────────────────────────────
+// In-app mirror of the platform→Telegram message stream (the "צ'אט עם סוכן"
+// feed). Identical content to what the tenant's Telegram bot receives, captured
+// at every per-tenant send point via recordAgentChatFeed.
+export const getAgentChatFeedController = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { readResearchDataForActive } = await import('@/services/agentContext')
+        const { agent } = await readResearchDataForActive(c, instanceId)
+        const { getAgentChatFeed } = await import('@/services/agentChatFeed')
+        const feed = await getAgentChatFeed(instanceId, agent?.id || null)
+        return ok(c, { feed }, 'ok')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/mazhir/media-plan/approve ────────────────
 // Marks the plan as approved. Executor (separate, future) reads only approved plans.
 export const approveMazhirMediaPlan = async (c: Context) => {

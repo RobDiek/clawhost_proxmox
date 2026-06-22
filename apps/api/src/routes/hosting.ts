@@ -84,6 +84,7 @@ import {
     getMazhirMediaPlan,
     approveMazhirMediaPlan,
     getMazhirMediaPlanManualHtml,
+    getAgentChatFeedController,
     reviseMazhirMediaPlan,
     startBrandV2, getBrandV2Draft, getBrandV2Approved, getBrandV2History,
     patchBrandV2Draft, uploadBrandAsset, normalizeBrandLogo, extractColorsFromImage,
@@ -561,6 +562,7 @@ app.get('/instances/:id/mazhir/media-plan', getMazhirMediaPlan)
 app.post('/instances/:id/mazhir/media-plan/approve', approveMazhirMediaPlan)
 app.post('/instances/:id/mazhir/media-plan/revise', reviseMazhirMediaPlan)
 app.get('/instances/:id/mazhir/media-plan/manual.html', getMazhirMediaPlanManualHtml)
+app.get('/instances/:id/agent-feed', getAgentChatFeedController)
 app.get('/instances/:id/mazhir/gtm/targets', listMazhirGtmTargets)
 app.post('/instances/:id/mazhir/gtm/target', saveMazhirGtmTarget)
 // Phase 4.2.1-M — create new GTM container + retrieve install snippet

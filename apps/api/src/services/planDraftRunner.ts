@@ -74,6 +74,8 @@ async function notifyDraftReady(
             }),
             signal: AbortSignal.timeout(10000),
         })
+        const { recordAgentChatFeed } = await import('@/services/agentChatFeed')
+        await recordAgentChatFeed(instance.id, null, text.replace(/\*/g, ''), { kind: 'plan' })
     } catch {
         // Swallow — never block pipeline on notification failure
     }
