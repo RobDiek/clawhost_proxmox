@@ -481,6 +481,20 @@ export async function getCampaignMetrics(
     dateRange: string = 'LAST_30_DAYS',
     loginCustomerId?: string
 ): Promise<unknown[]> {
+    // GAQL relative date literals only go up to LAST_30_DAYS. Anything longer
+    // (e.g. the snapshot's LAST_90_DAYS) is NOT a valid DURING literal → 400
+    // "Invalid date literal". Compute an explicit BETWEEN range for those.
+    const VALID_DURING = new Set(['TODAY', 'YESTERDAY', 'LAST_7_DAYS', 'LAST_14_DAYS', 'LAST_30_DAYS', 'THIS_MONTH', 'LAST_MONTH', 'THIS_WEEK_SUN_TODAY', 'THIS_WEEK_MON_TODAY', 'LAST_WEEK_SUN_SAT', 'LAST_WEEK_MON_SUN'])
+    let dateClause: string
+    if (VALID_DURING.has(dateRange)) {
+        dateClause = `segments.date DURING ${dateRange}`
+    } else {
+        const days = (/^LAST_(\d+)_DAYS$/.exec(dateRange)?.[1] && parseInt(/^LAST_(\d+)_DAYS$/.exec(dateRange)![1], 10)) || 30
+        const end = new Date()
+        const start = new Date(); start.setDate(start.getDate() - days)
+        const fmt = (d: Date) => d.toISOString().slice(0, 10)
+        dateClause = `segments.date BETWEEN '${fmt(start)}' AND '${fmt(end)}'`
+    }
     let query = `
         SELECT
             campaign.id, campaign.name, campaign.status,
@@ -490,7 +504,7 @@ export async function getCampaignMetrics(
             metrics.search_impression_share
         FROM campaign
         WHERE campaign.status != 'REMOVED'
-        AND segments.date DURING ${dateRange}
+        AND ${dateClause}
     `
 
     if (campaignId) {
