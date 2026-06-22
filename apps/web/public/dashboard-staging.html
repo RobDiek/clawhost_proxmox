@@ -7193,8 +7193,13 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
   var aqDeferredTasks = [];   // B: agent-review verdict defer/needs_integration/manual
   if (aqFilterStatus === 'pending_review') {
     var todayIso = new Date().toISOString().slice(0, 10);
+    // An explicit slice filter (channel/priority/week/wave) means "show me ALL of
+    // this slice" — including future-scheduled tasks. The future-gate only
+    // declutters the DEFAULT unfiltered view. Without this, filtering by e.g. Meta
+    // (whose tasks are scheduled next week) returned an empty list with no hint.
+    var _explicitFilter = (aqK19Channel !== 'all' || aqK19Priority !== 'all' || aqK19Week !== 'all' || aqK19Wave !== 'all');
     tasks = tasks.filter(function(t) {
-      if (!aqK19ShowFuture && t.scheduledFor) {
+      if (!aqK19ShowFuture && !_explicitFilter && t.scheduledFor) {
         var sched = String(t.scheduledFor).slice(0, 10);
         if (sched > todayIso) return false;
       }
