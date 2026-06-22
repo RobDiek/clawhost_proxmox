@@ -1252,6 +1252,11 @@ const CONTENT_REFRESH_FILLER: StructuredFiller = {
 // Earlier fillers consumed records[] but NOT these extras — this filler
 // unlocks them. For each high|medium-priority schema gap NOT already covered
 // by existing tasks, spawn an aggregate "implement [Schema] on N URLs" task.
+// Schema types that imply a physical/local presence — only valid for local-geo
+// tenants. Skipped for national/non-local (e.g. B2B SaaS) regardless of what a
+// research stage suggested.
+const LOCAL_ONLY_SCHEMA = /^(localbusiness|selfstorage|restaurant|store|autorepair|professionalservice|medicalbusiness|lodgingbusiness|hotel|dentist|attorney)$/i
+
 const SCHEMA_PRIORITY_FILLER: StructuredFiller = {
     stageId: 'k27_schema_priority',
     description: 'Consume aeo_visibility.schema_priority_plan + internal_seo_audit.schema_gap_analysis for missing schemas',
@@ -1298,6 +1303,10 @@ const SCHEMA_PRIORITY_FILLER: StructuredFiller = {
             if (seen.has(key)) continue
             seen.add(key)
             if (c.priority === 'low') continue
+            // Local-only schema types (storefront/physical presence) are wrong for
+            // national / non-local tenants (e.g. B2B SaaS) even if a research stage
+            // suggested them. Gate by the same local-geo signal as city pages.
+            if (LOCAL_ONLY_SCHEMA.test(c.schema.replace(/\s+/g, '')) && !hasLocalGeoSignal(rd)) continue
             const schemaPattern = new RegExp(`\\b${c.schema.toLowerCase().replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i')
             // Skip if any existing task title/summary mentions this schema name.
             if (existingTasks.some(t => schemaPattern.test(`${t.title || ''} ${t.summary || ''}`))) continue
