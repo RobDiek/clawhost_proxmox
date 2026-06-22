@@ -291,13 +291,29 @@ export async function executeTask(
             // ok:false без явных integration/stack маркеров — assume systemic.
             result.errorCategory = 'systemic_bug'
         } else {
-            // ok:true with steps — real completion (or idempotent noop if all
-            // stepResults indicate "already exists" / "no-op").
-            const allNoop = stepCount > 0 && (result.stepResults || []).every(s => {
+            // ok:true with steps. Detect a genuine no-op (adapter scanned but
+            // changed nothing). Match BOTH English and the Hebrew phrasings the
+            // adapters actually emit ("אין מה לעדכן", "0 מועמדים", "כבר כולל"…) —
+            // previously the regex was English-only, so a Hebrew no-op slipped
+            // through as a plain "completed" (the duplicate-titles false success).
+            const noChange = stepCount > 0 && (result.stepResults || []).every(s => {
                 const det = String(s.detail || '').toLowerCase()
-                return /no-op|already exists|already present|preserved|skipped|fully idempotent/.test(det)
+                return /no-op|already exists|already present|preserved|skipped|fully idempotent|nothing to|no candidates|0 candidates|אין מה ל|כבר כולל|כבר מעל|0 מועמדים|לא נמצא|אין הזדמנ/.test(det)
             })
-            result.errorCategory = allNoop ? 'completed_idempotent_noop' : 'completed'
+            // GUARD (Defect C/F): a CORRECTIVE task — generated to FIX a detected
+            // problem (dedup/cannibalization, "fix/rewrite", make-unique) — that
+            // changed NOTHING did not actually do its job. NEVER report it as
+            // "completed": surface it for review. Stops the system from claiming a
+            // P0 fix is done while the problem is still live (e.g. duplicate titles
+            // on a Next.js App Router site the markdown adapter can't even see).
+            const isCorrective = /תיקון|פתרון|לתקן|כפול|duplicate|cannibal|קניבל|dedup|דדופ|ייחודי|unique|לכתוב מחדש|rewrite/i.test(`${task.title || ''} ${task.summary || ''}`)
+            if (noChange && isCorrective) {
+                result.errorCategory = 'awaiting_user_action'
+                result.awaitingManual = true
+                result.outputDescription = `⚠️ האוטומציה רצה אך לא ביצעה שינוי בפועל, בעוד שהמשימה דרשה תיקון מפורש — ייתכן שמבנה האתר אינו נתמך אוטומטית (למשל Next.js App Router) או שהיעדים לא זוהו. המשימה לא בוצעה בפועל ודורשת בדיקה.\n\n${result.outputDescription || ''}`.trim()
+            } else {
+                result.errorCategory = noChange ? 'completed_idempotent_noop' : 'completed'
+            }
         }
     }
 
