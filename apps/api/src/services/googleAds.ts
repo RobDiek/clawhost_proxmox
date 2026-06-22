@@ -174,7 +174,9 @@ export async function createCampaign(
         const biddingConfig: Record<string, unknown> = {}
         switch (plan.biddingStrategy) {
             case 'MAXIMIZE_CLICKS':
-                biddingConfig.maximizeClicks = {}
+                // "Maximize Clicks" is the TargetSpend strategy in the Ads API —
+                // there is no `maximizeClicks` campaign field (400 Cannot find field).
+                biddingConfig.targetSpend = {}
                 break
             case 'MAXIMIZE_CONVERSIONS':
                 biddingConfig.maximizeConversions = {}
