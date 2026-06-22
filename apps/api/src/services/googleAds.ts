@@ -196,6 +196,9 @@ export async function createCampaign(
             advertisingChannelType: plan.campaignType,
             status: plan.launchMode,
             campaignBudget: budgetResourceName,
+            // Required since Ads API v17+ (EU political ad transparency). Omitting
+            // it 400s "required field not present" on every campaign create.
+            containsEuPoliticalAdvertising: 'DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING',
             ...biddingConfig,
         }
 
