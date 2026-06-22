@@ -7019,6 +7019,32 @@ var CHANNEL_NAMES_HE = {
   google_ads: 'גוגל אדס', meta_ads: 'מטא אדס', reddit: 'רדיט', whatsapp: 'וואטסאפ'
 };
 
+// Canonical channel-group matcher — ONE source of truth for every channel
+// filter (approval queue / calendar / counts). META content lives under several
+// channel values (meta_ads / facebook / instagram); filters previously did
+// strict equality vs the option value 'meta', so filtering by META returned
+// nothing. Any filter that needs channel matching MUST use chMatch().
+var CHANNEL_GROUPS = {
+  meta: ['meta','meta_ads','facebook','instagram','fb','ig'],
+  google_ads: ['google_ads','google','gads'],
+  ads: ['google_ads','google','gads','meta','meta_ads','facebook','instagram','fb','ig'],
+  seo: ['seo','organic'],
+  content: ['content','blog'],
+  blog: ['blog','content','seo'],
+  gtm: ['gtm','tagmanager','tag_manager'],
+  ga4: ['ga4','analytics'],
+  website: ['website','site','cms'],
+  gbp: ['gbp','gmb','google_business'],
+  whatsapp: ['whatsapp','wa'],
+  email: ['email','newsletter']
+};
+function chMatch(channel, filter){
+  if (!filter || filter === 'all') return true;
+  var c = String(channel||'').toLowerCase();
+  var g = CHANNEL_GROUPS[String(filter).toLowerCase()];
+  return g ? g.indexOf(c) !== -1 : c === String(filter).toLowerCase();
+}
+
 // Format/type → Hebrew display name
 var FORMAT_NAMES_HE = {
   post: 'פוסט', reel: 'ריל', story: 'סטורי', carousel: 'קרוסלה', article: 'מאמר',
@@ -7175,7 +7201,7 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
       if (aqK19Priority !== 'all' && t.priority !== aqK19Priority) return false;
       if (aqK19Wave !== 'all' && String(t.wave) !== aqK19Wave) return false;
       if (aqK19Week !== 'all' && String(t.weekOfMonth) !== aqK19Week) return false;
-      if (aqK19Channel !== 'all' && t.channel !== aqK19Channel) return false;
+      if (!chMatch(t.channel, aqK19Channel)) return false;
       return true;
     });
     // B (agent-review): pull defer / needs_integration / manual out of the
@@ -12123,11 +12149,8 @@ function renderContentCalendar() {
   var plan = getContentPlan();
   var filtered = plan.filter(function(it) {
     if (calendarFilter === 'all') return true;
-    if (calendarFilter === 'ads') return it.channel === 'google_ads' || it.channel === 'meta_ads';
-    // Phase 4.3-N v8: 'meta' tab covers BOTH FB+IG legacy channels + meta_ads.
-    if (calendarFilter === 'meta') return it.channel === 'facebook' || it.channel === 'instagram' || it.channel === 'meta_ads';
     if (calendarFilter === 'reports') return it.type === 'report' || it.agentRole === 'menateach' || it.agentRole === 'sayer';
-    return it.channel === calendarFilter;
+    return chMatch(it.channel, calendarFilter);
   });
 
   // Phase 4.3-G: also fold in monthlyPlan.tasks (each task has scheduledFor ISO date)
@@ -12166,13 +12189,8 @@ function renderContentCalendar() {
     })
     .filter(function(it) {
       if (calendarFilter === 'all') return true;
-      if (calendarFilter === 'ads') return it.channel === 'google_ads' || it.channel === 'meta';
-      // Phase 4.3-N v8: FB+IG merged into 'meta' tab — monthly tasks use the 'meta' channel.
-      if (calendarFilter === 'meta') return it.channel === 'meta';
-      // Blog tab includes seo + content (organic publishing channels).
-      if (calendarFilter === 'blog') return it.channel === 'seo' || it.channel === 'content';
       if (calendarFilter === 'reports') return false; // legacy-only filter
-      return it.channel === calendarFilter;
+      return chMatch(it.channel, calendarFilter);
     });
 
   // Group plan items + monthly tasks by date. NORMALIZE the key to date-only
@@ -12222,22 +12240,16 @@ function renderContentCalendar() {
     plan.forEach(function(it) {
       if (!_inWeek(it.date)) return;
       if (filterKey === 'all') n++;
-      else if (filterKey === 'ads' && (it.channel === 'google_ads' || it.channel === 'meta_ads')) n++;
-      else if (filterKey === 'meta' && (it.channel === 'facebook' || it.channel === 'instagram' || it.channel === 'meta_ads')) n++;
-      else if (filterKey === 'blog' && it.channel === 'blog') n++;
-      else if (filterKey === 'email' && it.channel === 'email') n++;
-      else if (filterKey === 'reports' && (it.type === 'report' || it.agentRole === 'menateach' || it.agentRole === 'sayer')) n++;
+      else if (filterKey === 'reports') { if (it.type === 'report' || it.agentRole === 'menateach' || it.agentRole === 'sayer') n++; }
+      else if (chMatch(it.channel, filterKey)) n++;
     });
     // Monthly tasks in THIS week (same status set the grid shows: all live).
     var allMonthly = monthlyTasks
       .filter(function(t) { return t && t.scheduledFor && t.status !== 'archived' && t.status !== 'rejected' && _inWeek(t.scheduledFor); });
     allMonthly.forEach(function(t) {
       if (filterKey === 'all') n++;
-      else if (filterKey === 'ads' && (t.channel === 'google_ads' || t.channel === 'meta')) n++;
-      else if (filterKey === 'meta' && t.channel === 'meta') n++;
-      else if (filterKey === 'blog' && (t.channel === 'seo' || t.channel === 'content')) n++;
-      else if (filterKey === 'email' && t.channel === 'email') n++;
-      // reports tab is legacy-only; monthly tasks don't contribute
+      else if (filterKey === 'reports') { /* legacy-only; monthly tasks don't contribute */ }
+      else if (chMatch(t.channel, filterKey)) n++;
     });
     return n;
   };
@@ -14241,6 +14253,20 @@ function renderMazhirCard() {
     var _planMode = mediaPlan.planMode || 'build_new';
     var _optCount = (mediaPlan.campaignOptimizations || []).length;
     var _campCount = mediaPlan.campaigns ? mediaPlan.campaigns.length : 0;
+    var _metaCount = (mediaPlan.metaCampaigns || []).length;
+    var _metaInline = _metaCount ? (
+      '<div style="margin-top:10px;padding:10px;background:#FDF2F8;border:1px solid #FBCFE8;border-radius:8px">' +
+        '<div style="font-weight:600;color:#9D174D;font-size:0.84rem;margin-bottom:6px">📱 Meta / Instagram · ' + _metaCount + ' קמפיינים (משפך מלא)</div>' +
+        (mediaPlan.metaCampaigns || []).map(function(m){
+          var tierHe = m.funnelTier==='awareness'?'מודעות (קר)':m.funnelTier==='lead_magnet'?'מגנט לידים':m.funnelTier==='retargeting'?'ריטרגטינג':(m.funnelTier||'');
+          var ccs = m.creativeConcepts || [];
+          var offers = ccs.filter(function(c){return c && c.kind==='offer_product';}).length;
+          var mags = ccs.length - offers;
+          return '<div style="font-size:0.78rem;color:#6B7280;padding:2px 0">• <b>'+escapeHtml(m.name||'')+'</b> · '+tierHe+' · ₪'+(m.dailyBudgetIls||0)+'/יום · '+offers+' קריאייטיב הצעה + '+mags+' מגנט</div>';
+        }).join('') +
+        '<div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">תסריטי וידאו מלאים ב-📄 מסמך ידני</div>' +
+      '</div>'
+    ) : '';
     var _modeBadgeBg = _planMode === 'optimize_existing' ? '#0EA5E9'
                      : _planMode === 'hybrid' ? '#8B5CF6'
                      : '#10B981';
@@ -14256,7 +14282,7 @@ function renderMazhirCard() {
       '<div style="margin-top:14px;padding:14px 16px;background:#F9FAFB;border-radius:10px;border:1px solid #E5E7EB">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">' +
           '<div style="display:flex;align-items:center;gap:8px;font-weight:600;color:#1F2937;font-size:0.92rem">' +
-            '<span>תוכנית מדיה · ' + _titleStats + '</span>' +
+            '<span>תוכנית מדיה · ' + _titleStats + (_metaCount ? ' · ' + _metaCount + ' Meta' : '') + '</span>' +
             '<span style="font-size:0.7rem;font-weight:600;padding:2px 8px;border-radius:999px;background:' + _modeBadgeBg + '15;color:' + _modeBadgeBg + ';border:1px solid ' + _modeBadgeBg + '40">' + _modeBadgeLabel + '</span>' +
             '<span style="color:' + statusColor + '">' + statusLabel + '</span>' +
           '</div>' +
@@ -14269,6 +14295,7 @@ function renderMazhirCard() {
           '</div>' +
         '</div>' +
         '<div style="font-size:0.82rem;color:#6B7280;line-height:1.6">' + escapeHtml((mediaPlan.methodology && mediaPlan.methodology.rationale) || '') + '</div>' +
+        _metaInline +
         blockerHtml2 +
         execHtml +
         (mediaPlan.status === 'approved'
