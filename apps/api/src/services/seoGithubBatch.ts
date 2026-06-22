@@ -192,6 +192,153 @@ async function commitViaPR(cfg: GithubCfg, opLabel: string, changes: Array<{ pat
     return ((await pr.json()) as { html_url?: string }).html_url || `branch:${newBranch}`
 }
 
+// ─── Next.js App Router metadata (title/description) DEDUP ───────────────────
+// Next.js App Router sites (flowmatic.co.il etc.) keep per-page SEO in
+// `export const metadata` inside app/**/page.tsx — NOT markdown frontmatter. A
+// page WITHOUT its own metadata inherits the root layout default → multiple
+// pages share the SAME title/description = cannibalization. The markdown 'meta'
+// op above is blind to this. This scans the app/ tree, finds pages that collide
+// (or inherit the default), generates UNIQUE metadata, and opens a PR.
+interface AppPage { path: string; sha: string; text: string; routePath: string; title: string | null; description: string | null; hasExport: boolean }
+
+function routeFromPath(p: string): string {
+    const seg = p.replace(/^app\//, '').replace(/\/page\.(tsx|jsx|ts|js)$/, '')
+    const clean = seg.split('/').filter(s => s && !/^\(.*\)$/.test(s)).join('/')   // drop route groups (x)
+    return '/' + clean
+}
+function jsString(s: string): string { return `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'` }
+// Best-effort brace match for `export const metadata = {…}`.
+function metadataObjectBody(text: string): string | null {
+    const i = text.search(/export\s+const\s+metadata\b[^=]*=\s*\{/)
+    if (i < 0) return null
+    const open = text.indexOf('{', i)
+    let depth = 0
+    for (let j = open; j < text.length; j++) {
+        const c = text[j]
+        if (c === '{') depth++
+        else if (c === '}') { depth--; if (depth === 0) return text.slice(open, j + 1) }
+    }
+    return null
+}
+function tsStringField(src: string, key: string): string | null {
+    const m = src.match(new RegExp(`\\b${key}\\s*:\\s*(['"\`])([\\s\\S]*?)\\1`))
+    return m ? m[2].trim() : null
+}
+function parseAppMetadata(text: string): { hasExport: boolean; title: string | null; description: string | null; titleIsObject: boolean } {
+    const body = metadataObjectBody(text)
+    if (!body) return { hasExport: false, title: null, description: null, titleIsObject: false }
+    let title = tsStringField(body, 'title')
+    const titleIsObject = !title && /\btitle\s*:\s*\{/.test(body)
+    if (titleIsObject) title = tsStringField(body, 'default') || tsStringField(body, 'absolute')
+    return { hasExport: true, title, description: tsStringField(body, 'description'), titleIsObject }
+}
+function ensureMetadataImport(text: string): string {
+    if (/\bMetadata\b[^=]*from\s*['"]next['"]/.test(text)) return text
+    return `import type { Metadata } from 'next'\n` + text
+}
+// Insert (no existing export) or update title/description in-place. Returns null
+// if the shape is too complex to edit safely (caller records a failure).
+function upsertAppMetadata(text: string, title: string, description: string, hadExport: boolean, titleIsObject: boolean): string | null {
+    if (!hadExport) {
+        const out = ensureMetadataImport(text)
+        const block = `export const metadata: Metadata = {\n  title: ${jsString(title)},\n  description: ${jsString(description)},\n}`
+        const lines = out.split('\n')
+        let lastImport = -1
+        for (let i = 0; i < lines.length; i++) if (/^\s*import\b/.test(lines[i])) lastImport = i
+        lines.splice(lastImport >= 0 ? lastImport + 1 : 0, 0, '', block)
+        return lines.join('\n')
+    }
+    if (titleIsObject) return null   // object title (template/default) — don't risk an in-place rewrite
+    const body = metadataObjectBody(text)
+    if (!body) return null
+    let nb = body
+    const setField = (k: string, v: string) => {
+        const re = new RegExp(`(\\b${k}\\s*:\\s*)(['"\`])[\\s\\S]*?\\2`)
+        nb = re.test(nb) ? nb.replace(re, `$1${jsString(v)}`) : nb.replace(/\{/, `{\n  ${k}: ${jsString(v)},`)
+    }
+    setField('title', title)
+    setField('description', description)
+    return text.replace(body, nb)
+}
+async function listAppPages(cfg: GithubCfg): Promise<{ pages: AppPage[]; layout: { title: string | null; description: string | null } | null }> {
+    const tree = await gh(cfg, `/repos/${cfg.repo}/git/trees/${encodeURIComponent(cfg.branch)}?recursive=1`)
+    if (!tree.ok) throw new Error(`tree ${tree.status}: ${(await tree.text().catch(() => '')).slice(0, 120)}`)
+    const items = ((await tree.json()) as { tree?: Array<{ path?: string; type?: string }> }).tree || []
+    const pagePaths = items.filter(t => t.type === 'blob' && t.path && /^app\/.*page\.(tsx|jsx|ts|js)$/.test(t.path)).map(t => t.path as string)
+    const layoutPath = items.find(t => t.path === 'app/layout.tsx' || t.path === 'app/layout.jsx')?.path
+    const fetchFile = async (path: string) => {
+        const f = await gh(cfg, `/repos/${cfg.repo}/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}?ref=${encodeURIComponent(cfg.branch)}`)
+        if (!f.ok) return null
+        const j = await f.json() as { sha?: string; content?: string; encoding?: string }
+        return { sha: j.sha || '', text: j.content && j.encoding === 'base64' ? Buffer.from(j.content, 'base64').toString('utf-8') : '' }
+    }
+    const pages: AppPage[] = []
+    for (const p of pagePaths.slice(0, 60)) {
+        const f = await fetchFile(p); if (!f) continue
+        const md = parseAppMetadata(f.text)
+        pages.push({ path: p, sha: f.sha, text: f.text, routePath: routeFromPath(p), title: md.title, description: md.description, hasExport: md.hasExport })
+    }
+    let layout: { title: string | null; description: string | null } | null = null
+    if (layoutPath) { const lf = await fetchFile(layoutPath); if (lf) { const m = parseAppMetadata(lf.text); layout = { title: m.title, description: m.description } } }
+    return { pages, layout }
+}
+
+export async function runNextAppRouterMetaDedup(
+    instanceId: string,
+    opts: { agentId?: string | null; businessName?: string; dryRun?: boolean; targetRoutes?: string[] } = {},
+): Promise<GithubSeoResult> {
+    const result: GithubSeoResult = { ok: false, integrationMissing: false, op: 'meta', scanned: 0, candidates: 0, changed: [], proposals: [], failures: [] }
+    const cfg = await loadGithubConfig(instanceId, opts.agentId)
+    if (!cfg) { result.integrationMissing = true; return result }
+    let scan: { pages: AppPage[]; layout: { title: string | null; description: string | null } | null }
+    try { scan = await listAppPages(cfg) } catch (err) { result.error = (err as Error).message; return result }
+    const { pages, layout } = scan
+    result.scanned = pages.length
+    if (pages.length === 0) { result.ok = true; return result }   // not an App Router site
+
+    const effTitle = (p: AppPage) => p.title || layout?.title || null
+    const effDesc = (p: AppPage) => p.description || layout?.description || null
+    const titleCount = new Map<string, number>(), descCount = new Map<string, number>()
+    for (const p of pages) { const t = effTitle(p), d = effDesc(p); if (t) titleCount.set(t, (titleCount.get(t) || 0) + 1); if (d) descCount.set(d, (descCount.get(d) || 0) + 1) }
+    // A page needs unique metadata when it has no own title/desc (inherits the
+    // shared default) OR its effective value collides with another page.
+    let cands = pages.filter(p => {
+        if (p.routePath === '/') return false   // homepage legitimately owns the default
+        const t = effTitle(p), d = effDesc(p)
+        const dupTitle = !p.title || (!!t && (titleCount.get(t) || 0) > 1)
+        const dupDesc = !p.description || (!!d && (descCount.get(d) || 0) > 1)
+        return dupTitle || dupDesc
+    })
+    if (opts.targetRoutes?.length) cands = cands.filter(p => opts.targetRoutes!.some(r => p.routePath === r || p.routePath.endsWith(r.replace(/^\//, '/'))))
+    result.candidates = cands.length
+    if (cands.length === 0) { result.ok = true; return result }
+
+    const apiKey = await getApiKeyForInstance(instanceId)
+    const model = await resolveDirectModel(instanceId, 'yotzer')
+    const businessName = opts.businessName || 'העסק'
+    const changes: Array<{ path: string; sha: string; content: string }> = []
+    for (const p of cands.slice(0, 20)) {
+        if (!apiKey) { result.failures.push({ path: p.path, error: 'no API key' }); continue }
+        const md = parseAppMetadata(p.text)
+        const hint = p.text.replace(/import[^\n]*\n/g, '').replace(/<[^>]+>/g, ' ').replace(/[{}();=]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1200)
+        const prompt = `אתם עורכי SEO מקצועיים. צרו כותרת ותיאור מטא ייחודיים בעברית לעמוד "${p.routePath}" של "${businessName}".\nדרישות: כותרת ≤60 תווים, ייחודית לעמוד הזה בלבד, כוללת את הנושא המרכזי של העמוד + שם המותג. תיאור 140-160 תווים, ייחודי, עם תועלת ו-CTA. אל תחזרו על נוסח של עמודים אחרים.\nJSON בלבד: {"title":"...","description":"..."}\n\nרמז לתוכן העמוד: ${hint}`
+        const out = await callAnthropic(apiKey, model, prompt, 400)
+        const j = extractJson(out) || {}
+        const title = String(j.title || '').trim().slice(0, 70)
+        const description = String(j.description || '').trim().slice(0, 180)
+        if (title.length < 5 || description.length < 60) { result.failures.push({ path: p.path, error: 'generation failed' }); continue }
+        const edited = upsertAppMetadata(p.text, title, description, md.hasExport, md.titleIsObject)
+        if (!edited || edited === p.text) { result.failures.push({ path: p.path, error: 'could not edit metadata safely (complex shape)' }); continue }
+        changes.push({ path: p.path, sha: p.sha, content: edited })
+        result.changed.push({ path: p.path, detail: `${p.routePath} → ${title}` })
+    }
+    if (changes.length && !opts.dryRun) {
+        try { result.prUrl = await commitViaPR(cfg, 'meta-dedup', changes) } catch (err) { result.error = (err as Error).message; result.failures.push({ path: '(PR)', error: (err as Error).message }) }
+    }
+    result.ok = true
+    return result
+}
+
 export async function runSeoGithubBatch(
     instanceId: string,
     op: GithubSeoOp,

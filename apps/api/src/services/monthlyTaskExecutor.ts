@@ -1892,6 +1892,24 @@ async function runGithubSeoFallback(
     const res = await runSeoGithubBatch(instanceId, op, { agentId: agent?.id, businessName, targetWords: extra.targetWords })
     const opHe: Record<string, string> = { meta: 'תיאורי מטא', schema: 'סכמת JSON-LD', links: 'קישורים פנימיים', slug: 'הצעות slug', body_expand: 'הרחבת תוכן דף', image_alt: 'טקסט חלופי לתמונות', answer_first: 'פסקת תשובה (AEO)' }
 
+    // App Router parity: Next.js sites keep per-page SEO in app/**/page.tsx
+    // `export const metadata` (title/description) — invisible to the markdown
+    // batch above, and where title cannibalization actually lives. For meta
+    // tasks ALSO run the App Router title/description dedup and merge results,
+    // so duplicate/inherited-default titles get unique metadata via the same PR.
+    if (op === 'meta') {
+        try {
+            const { runNextAppRouterMetaDedup } = await import('./seoGithubBatch')
+            const ar = await runNextAppRouterMetaDedup(instanceId, { agentId: agent?.id, businessName })
+            res.scanned += ar.scanned
+            res.candidates += ar.candidates
+            res.changed.push(...ar.changed)
+            res.failures.push(...ar.failures)
+            if (ar.prUrl && !res.prUrl) res.prUrl = ar.prUrl
+            if (ar.error && !res.error) res.error = ar.error
+        } catch { /* non-fatal — the markdown result stands */ }
+    }
+
     if (res.error && res.changed.length === 0 && res.proposals.length === 0) {
         return { ok: false, outputDescription: `שגיאה בגישה ל-GitHub: ${res.error}`, error: res.error, errorCategory: 'systemic_bug' }
     }
