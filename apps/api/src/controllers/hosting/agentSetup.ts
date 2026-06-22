@@ -5857,6 +5857,22 @@ export interface MediaPlan {
     }
 
     campaigns: CampaignBriefDraft[]
+    // Meta/Instagram full-funnel (2026) — awareness / lead_magnet / retargeting.
+    // Google + Meta share one monthlyBudget. Consumed by the creative pipeline
+    // (concepts → assets) + metaAdsExecutor (build when connected, else brief).
+    metaCampaigns?: Array<{
+        name: string
+        funnelTier: 'awareness' | 'lead_magnet' | 'retargeting' | string
+        objective: string
+        dailyBudgetIls: number
+        optimization?: string
+        audience?: Record<string, unknown>
+        placements?: string
+        creativeConcepts?: Array<Record<string, unknown>>
+        attribution?: string
+        rationale?: string
+        status?: string
+    }>
     campaignOptimizations?: CampaignOptimizationBrief[]
 
     negativeKeywordLibrary: {
