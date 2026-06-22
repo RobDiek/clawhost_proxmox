@@ -1211,15 +1211,14 @@ input{font-family:inherit}
       <button id="chatSeg-claude" onclick="chatSwitchView('claude')" style="display:none;flex:1;padding:8px 12px;border:0;border-radius:8px;font-size:0.84rem;font-weight:600;cursor:pointer;background:#F3F4F6;color:#374151;font-family:inherit">⚡ Developer agent</button>
     </div>
     <div id="chat-view-openclaw">
-    <div id="chat-container" style="position:relative;height:calc(100vh - 45px)">
-      <div id="chat-loading" style="position:absolute;inset:0;background:#FAFAFA;display:flex;align-items:center;justify-content:center;z-index:2;transition:opacity .4s">
-        <div style="text-align:center">
-          <div style="width:32px;height:32px;border:3px solid #E5E7EB;border-top-color:#2563EB;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px"></div>
-          <div id="chat-loading-msg" style="color:#9CA3AF;font-size:0.85rem">טוען צ'אט עם סוכן...</div>
-          <div id="chat-loading-detail" style="color:#D1D5DB;font-size:0.74rem;margin-top:6px;line-height:1.5"></div>
-        </div>
+    <div id="agentchat-wrap" style="display:flex;flex-direction:column;height:calc(100vh - 45px);background:#F8FAFC">
+      <div id="agentchat-msgs" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px">
+        <div id="agentchat-empty" style="margin:auto;color:#9CA3AF;font-size:0.85rem;text-align:center;max-width:340px;line-height:1.7">שלום! אני הסוכן השיווקי שלכם 😊<br>שאלו אותי כל דבר על הקמפיינים, התוכן או הביצועים — אותה שיחה בדיוק כמו בטלגרם.</div>
       </div>
-      <iframe id="chat-iframe" src="" style="width:100%;height:100%;border:none;background:#fff" allow="clipboard-write"></iframe>
+      <div style="border-top:1px solid #E5E7EB;padding:10px 14px;display:flex;gap:8px;background:#fff;align-items:flex-end">
+        <textarea id="agentchat-input" rows="1" placeholder="כתבו הודעה לסוכן..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();agentChatSend();}" style="flex:1;resize:none;border:1px solid #D1D5DB;border-radius:10px;padding:10px 12px;font-family:inherit;font-size:0.9rem;max-height:120px;line-height:1.4"></textarea>
+        <button id="agentchat-send" onclick="agentChatSend()" style="background:#2563EB;color:#fff;border:0;border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">שליחה</button>
+      </div>
     </div>
     </div><!-- /chat-view-openclaw -->
 
@@ -18587,29 +18586,52 @@ function revealFlowsPassword() {
 /* ===== Chat tab ===== */
 var chatLoaded = false;
 function loadChatTab() {
-  var iframe = document.getElementById('chat-iframe');
-  var container = document.getElementById('chat-container');
-  var notReady = document.getElementById('chat-not-ready');
-  if (!agentUrl || agentUrl === '#' || !openclawToken) {
-    container.style.display = 'none';
-    notReady.style.display = 'block';
-    return;
-  }
-  // Use /embed/chat path which strips sidebar via Nginx sub_filter
-  var embedUrl = agentUrl.replace(/\/$/, '') + '/embed/chat?session=main&token=' + encodeURIComponent(openclawToken);
-  if (!chatLoaded) {
-    // Use resilient loader — handles transient 502s during gateway config
-    // edits with auto-retry. Falls back to direct iframe.src if loader missing.
-    if (typeof window._chatLoadResilient === 'function') {
-      window._chatLoadResilient(embedUrl);
-    } else {
-      iframe.src = embedUrl;
-    }
-    chatLoaded = true;
-  }
-  container.style.display = 'block';
-  notReady.style.display = 'none';
+  // The agent chat uses the SAME engine as Telegram (POST /agent-chat) — clean
+  // business replies, shared conversation history. (Replaced the raw OpenClaw
+  // iframe, which showed OpenClaw's own noisy system context.)
+  if (window.agentChatLoad) window.agentChatLoad();
+  var ta = document.getElementById('agentchat-input'); if (ta) ta.focus();
 }
+
+function _agentChatBubble(role, text) {
+  var out = (role !== 'user' && role !== 'in');
+  var bg = out ? '#ffffff' : '#2563EB', col = out ? '#1F2937' : '#ffffff', bd = out ? '#E5E7EB' : '#2563EB', al = out ? 'flex-start' : 'flex-end';
+  var div = document.createElement('div');
+  div.style.cssText = 'align-self:' + al + ';max-width:80%;background:' + bg + ';color:' + col + ';border:1px solid ' + bd + ';border-radius:12px;padding:9px 13px;font-size:0.88rem;line-height:1.55;white-space:pre-wrap;word-break:break-word';
+  div.textContent = text;
+  return div;
+}
+
+window.agentChatLoad = async function() {
+  var msgs = document.getElementById('agentchat-msgs'); if (!msgs || !instanceId) return;
+  try {
+    var r = await fetch(API + '/hosting/instances/' + instanceId + '/agent-feed', { headers: { Authorization: 'Bearer ' + token } });
+    var j = await r.json(); var feed = ((j && j.data && j.data.feed) || []).filter(function(m){ return m.kind === 'agent'; });
+    var empty = document.getElementById('agentchat-empty');
+    msgs.querySelectorAll('[data-feedmsg]').forEach(function(n){ n.remove(); });
+    if (!feed.length) { if (empty) empty.style.display = ''; return; }
+    if (empty) empty.style.display = 'none';
+    feed.forEach(function(m){ var b = _agentChatBubble(m.direction === 'in' ? 'user' : 'assistant', m.text); b.setAttribute('data-feedmsg','1'); msgs.appendChild(b); });
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch (e) {}
+};
+
+window.agentChatSend = async function() {
+  var ta = document.getElementById('agentchat-input'), msgs = document.getElementById('agentchat-msgs'), btn = document.getElementById('agentchat-send');
+  if (!ta || !msgs || !instanceId) return;
+  var text = (ta.value || '').trim(); if (!text) return;
+  var empty = document.getElementById('agentchat-empty'); if (empty) empty.style.display = 'none';
+  msgs.appendChild(_agentChatBubble('user', text)); msgs.scrollTop = msgs.scrollHeight;
+  ta.value = ''; ta.style.height = 'auto'; ta.disabled = true; if (btn) btn.disabled = true;
+  var typing = _agentChatBubble('assistant', '…'); typing.style.opacity = '0.6'; msgs.appendChild(typing); msgs.scrollTop = msgs.scrollHeight;
+  try {
+    var r = await fetch(API + '/hosting/instances/' + instanceId + '/agent-chat', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ message: text }) });
+    var j = await r.json(); typing.remove();
+    if (j && j.success && j.data && j.data.reply) { msgs.appendChild(_agentChatBubble('assistant', j.data.reply)); }
+    else { var e = _agentChatBubble('assistant', (j && j.message) || 'מצטערים, הייתה תקלה. נסו שוב.'); e.style.background = '#FEF2F2'; e.style.borderColor = '#FECACA'; e.style.color = '#991B1B'; msgs.appendChild(e); }
+  } catch (err) { typing.remove(); var e2 = _agentChatBubble('assistant', 'מצטערים, הייתה תקלה ברשת. נסו שוב.'); e2.style.background = '#FEF2F2'; e2.style.color = '#991B1B'; msgs.appendChild(e2); }
+  ta.disabled = false; if (btn) btn.disabled = false; ta.focus(); msgs.scrollTop = msgs.scrollHeight;
+};
 
 /* ===== Home logs preview ===== */
 function loadHomeLogs() {

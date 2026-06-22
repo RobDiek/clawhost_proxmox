@@ -78,12 +78,39 @@ export async function handleAgentChatMessage(opts: {
 }): Promise<void> {
     const { agent, instanceId, chatId, text, botToken } = opts
     if (!agent) return
-    const apiKey = agent.aiProviderKey
-    // Anthropic-only for now (the recommended + default provider). If the agent
-    // uses another provider or has no key, fall back to a polite holding reply.
-    if (!apiKey || (agent.aiProviderType && agent.aiProviderType !== 'anthropic')) {
-        await tgSend(botToken, chatId, 'קיבלנו את ההודעה 🙏 — נחזור אליכם דרך הדשבורד.')
+    await tgTyping(botToken, chatId)
+    const r = await generateAgentReply({ agent, instanceId, text, chatKey: chatId })
+    if (!r.ok || !r.reply) {
+        const msg = r.error === 'no_key'
+            ? 'קיבלנו את ההודעה 🙏 — נחזור אליכם דרך הדשבורד.'
+            : 'מצטערים, הייתה תקלה. נסו שוב מאוחר יותר 🙏'
+        await tgSend(botToken, chatId, msg)
         return
+    }
+    await tgSend(botToken, chatId, r.reply)
+}
+
+/**
+ * Generate the agent's conversational reply — the SINGLE engine behind BOTH the
+ * Telegram bot and the in-app dashboard chat, so the two surfaces behave
+ * identically (same business context, Hebrew 2nd-person-plural, approval-flow
+ * wording) and SHARE one conversation history (keyed by chatKey — pass the
+ * Telegram chatId so the dashboard and Telegram are literally one conversation).
+ * Does NOT deliver anywhere — the caller sends the reply. Records both turns into
+ * the agent chat feed + the shared history.
+ */
+export async function generateAgentReply(opts: {
+    agent: MatehAgentRow | null
+    instanceId: string
+    text: string
+    chatKey: string
+}): Promise<{ ok: boolean; reply?: string; error?: string }> {
+    const { agent, instanceId, text, chatKey } = opts
+    if (!agent) return { ok: false, error: 'no_agent' }
+    const apiKey = agent.aiProviderKey
+    // Anthropic-only for now (the recommended + default provider).
+    if (!apiKey || (agent.aiProviderType && agent.aiProviderType !== 'anthropic')) {
+        return { ok: false, error: 'no_key' }
     }
     try {
         const rd: any = (agent.researchData as any) || {}
@@ -100,17 +127,15 @@ export async function handleAgentChatMessage(opts: {
         } catch { /* non-fatal */ }
 
         const context = buildContextBlock(rd, recent)
-        const history: ChatTurn[] = Array.isArray(rd.telegramChats?.[chatId]) ? rd.telegramChats[chatId].slice(-MAX_TURNS) : []
+        const history: ChatTurn[] = Array.isArray(rd.telegramChats?.[chatKey]) ? rd.telegramChats[chatKey].slice(-MAX_TURNS) : []
 
-        const system = `אתם הסוכן השיווקי החכם של "${businessName}" בפלטפורמת Flowmatic. אתם משוחחים עם בעל/ת העסק בטלגרם.
+        const system = `אתם הסוכן השיווקי החכם של "${businessName}" בפלטפורמת Flowmatic. אתם משוחחים עם בעל/ת העסק.
 ענו תמיד בעברית, בפנייה בלשון רבים (אתם/תוכלו/לכם), בטון מקצועי, חם ותמציתי — 2-5 משפטים אלא אם ביקשו פירוט.
 יש לכם הקשר מלא על העסק (למטה). אל תמציאו נתונים — אם משהו לא ידוע, אמרו זאת בכנות.
 אם המשתמש מבקש שינוי או פעולה (קמפיין, תוכן, תקציב, אתר וכו') — אשרו שהבנתם, הסבירו בקצרה מה תעשו, וציינו שזה יופיע כמשימה לאישור ב"משימות פעילות" בדשבורד (כל שינוי עובר אישור).
 
 == הקשר העסק ==
 ${context}`
-
-        await tgTyping(botToken, chatId)
 
         const res = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
@@ -124,32 +149,30 @@ ${context}`
             signal: AbortSignal.timeout(60000),
         })
         if (!res.ok) {
-            console.warn(`[telegramAgentChat] ${agent.id} anthropic ${res.status}`)
-            await tgSend(botToken, chatId, 'מצטערים, הייתה תקלה רגעית. נסו שוב בעוד רגע 🙏')
-            return
+            console.warn(`[agentChat] ${agent.id} anthropic ${res.status}`)
+            return { ok: false, error: 'anthropic_' + res.status }
         }
         const data = await res.json() as { content?: Array<{ type?: string; text?: string }> }
         const reply = (data.content?.find(c => c.type === 'text')?.text || '').trim()
-        if (!reply) { await tgSend(botToken, chatId, 'מצטערים, לא הצלחנו לנסח תשובה. נסו לנסח מחדש 🙏'); return }
+        if (!reply) return { ok: false, error: 'empty' }
 
-        await tgSend(botToken, chatId, reply)
-        // Mirror the live conversation (user msg + agent reply) into the in-app
-        // "צ'אט עם סוכן" feed so it matches Telegram exactly.
+        // Mirror both turns into the in-app feed.
         const { recordAgentChatFeed } = await import('@/services/agentChatFeed')
         await recordAgentChatFeed(instanceId, agent.id, text, { kind: 'agent', direction: 'in' })
         await recordAgentChatFeed(instanceId, agent.id, reply, { kind: 'agent', direction: 'out' })
 
-        // Persist conversation history on the agent (dual-write safe).
-        await mutateResearchData(agent, instanceId, (r: any) => {
-            const tc = (r.telegramChats && typeof r.telegramChats === 'object') ? r.telegramChats : {}
-            const h: ChatTurn[] = Array.isArray(tc[chatId]) ? tc[chatId] : []
+        // Persist conversation history (dual-write safe) under the shared key.
+        await mutateResearchData(agent, instanceId, (rr: any) => {
+            const tc = (rr.telegramChats && typeof rr.telegramChats === 'object') ? rr.telegramChats : {}
+            const h: ChatTurn[] = Array.isArray(tc[chatKey]) ? tc[chatKey] : []
             h.push({ role: 'user', text: clip(text, 1500) }, { role: 'assistant', text: clip(reply, 2000) })
-            tc[chatId] = h.slice(-MAX_TURNS * 2)
-            r.telegramChats = tc
-            return r
+            tc[chatKey] = h.slice(-MAX_TURNS * 2)
+            rr.telegramChats = tc
+            return rr
         })
+        return { ok: true, reply }
     } catch (err) {
-        console.warn(`[telegramAgentChat] ${agent.id} error:`, (err as Error).message)
-        await tgSend(botToken, chatId, 'מצטערים, הייתה תקלה. נסו שוב מאוחר יותר 🙏')
+        console.warn(`[agentChat] ${agent.id} error:`, (err as Error).message)
+        return { ok: false, error: (err as Error).message }
     }
 }
