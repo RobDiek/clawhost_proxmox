@@ -202,7 +202,7 @@ async function commitViaPR(cfg: GithubCfg, opLabel: string, changes: Array<{ pat
 interface AppPage { path: string; sha: string; text: string; routePath: string; title: string | null; description: string | null; hasExport: boolean }
 
 function routeFromPath(p: string): string {
-    const seg = p.replace(/^app\//, '').replace(/\/page\.(tsx|jsx|ts|js)$/, '')
+    const seg = p.replace(/^app\//, '').replace(/\/?page\.(tsx|jsx|ts|js)$/, '')   // root: "page.tsx" → ""
     const clean = seg.split('/').filter(s => s && !/^\(.*\)$/.test(s)).join('/')   // drop route groups (x)
     return '/' + clean
 }
@@ -264,7 +264,9 @@ async function listAppPages(cfg: GithubCfg): Promise<{ pages: AppPage[]; layout:
     const tree = await gh(cfg, `/repos/${cfg.repo}/git/trees/${encodeURIComponent(cfg.branch)}?recursive=1`)
     if (!tree.ok) throw new Error(`tree ${tree.status}: ${(await tree.text().catch(() => '')).slice(0, 120)}`)
     const items = ((await tree.json()) as { tree?: Array<{ path?: string; type?: string }> }).tree || []
-    const pagePaths = items.filter(t => t.type === 'blob' && t.path && /^app\/.*page\.(tsx|jsx|ts|js)$/.test(t.path)).map(t => t.path as string)
+    // Skip DYNAMIC routes ([slug], [...catchall]) — they set per-item SEO via a
+    // generateMetadata() function, not a static export, so a one-off rewrite is wrong.
+    const pagePaths = items.filter(t => t.type === 'blob' && t.path && /^app\/.*page\.(tsx|jsx|ts|js)$/.test(t.path) && !t.path.includes('[')).map(t => t.path as string)
     const layoutPath = items.find(t => t.path === 'app/layout.tsx' || t.path === 'app/layout.jsx')?.path
     const fetchFile = async (path: string) => {
         const f = await gh(cfg, `/repos/${cfg.repo}/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}?ref=${encodeURIComponent(cfg.branch)}`)
