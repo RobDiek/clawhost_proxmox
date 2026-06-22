@@ -616,6 +616,38 @@ export async function backlinksBulkRanks(
     )
 }
 
+/**
+ * Bulk spam score — toxicity (0-100) per target domain. Used to qualify
+ * link-gap PROSPECTS before they become paid outreach tasks: never recommend
+ * buying a link on a spammy domain. Endpoint: backlinks/bulk_spam_score/live
+ */
+export async function backlinksBulkSpamScore(
+    instanceId: string,
+    targets: string[],
+): Promise<CallResult<{ target: string; spam_score: number }>> {
+    return cachedCall<{ target: string; spam_score: number }>(
+        instanceId,
+        'backlinks/bulk_spam_score/live',
+        { targets: targets.slice(0, 1000) },
+    )
+}
+
+/**
+ * Bulk organic traffic estimation (IL) per target domain — a link from a site
+ * nobody visits passes negligible authority. Used to drop "dead" link-gap
+ * prospects. Endpoint: dataforseo_labs/google/bulk_traffic_estimation/live
+ */
+export async function bulkTrafficEstimation(
+    instanceId: string,
+    targets: string[],
+): Promise<CallResult<{ target: string; metrics?: { organic?: { etv?: number; count?: number } } }>> {
+    return cachedCall<{ target: string; metrics?: { organic?: { etv?: number; count?: number } } }>(
+        instanceId,
+        'dataforseo_labs/google/bulk_traffic_estimation/live',
+        { targets: targets.slice(0, 1000), location_code: LOCATION_IL, language_code: LANGUAGE_HE },
+    )
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // On-Page audit
 // ────────────────────────────────────────────────────────────────────────────

@@ -53,7 +53,19 @@ export interface OurDeepLinks {
      * DR), how many competitors link to it (intersect), and its DFS rank.
      * This is what makes link_gap_outreach records real instead of anonymized.
      */
-    linkGapProspects?: Array<{ domain: string; rank: number; competitorsLinking: number }>
+    linkGapProspects?: Array<{
+        domain: string; rank: number; competitorsLinking: number
+        /** Toxicity (0-100) — qualify before any paid outreach. */
+        spam_score?: number | null
+        /** Estimated IL organic traffic/mo — a dead site passes ~no authority. */
+        organic_traffic_mo?: number | null
+        /** ok = worth pursuing; spammy/dead = drop from paid outreach. */
+        _quality?: 'ok' | 'spammy' | 'dead'
+        /** Outreach contacts (best-effort scrape) — makes the task actionable. */
+        contact_email?: string
+        contact_phone?: string
+        contact_page?: string
+    }>
     enrichmentMissing: string[]
 }
 
@@ -213,6 +225,51 @@ export async function prefetchLinkAudit(
             .map(([domain, v]) => ({ domain, rank: v.rank, competitorsLinking: v.competitorsLinking }))
             .sort((a, b) => (b.competitorsLinking - a.competitorsLinking) || (b.rank - a.rank))
             .slice(0, 30)
+
+        // ─── Qualify + enrich link-gap prospects (systemic — every tenant) ──
+        // Spam/traffic so the plan never proposes a PAID link on a spammy or
+        // dead domain; + outreach contacts so the task is actionable ("here's
+        // who to email") instead of an abstract "do outreach". Best-effort,
+        // non-fatal — failures leave prospects unqualified, never break the stage.
+        if (ours.linkGapProspects.length > 0) {
+            try {
+                const { backlinksBulkSpamScore, bulkTrafficEstimation } = await import('@/services/research/dataforseo')
+                const { findContact } = await import('@/services/research/lostLinkVerifier')
+                const pdoms = ours.linkGapProspects.map(p => p.domain).filter(Boolean)
+                const [spamRes, trafRes] = await Promise.all([
+                    backlinksBulkSpamScore(instanceId, pdoms).catch(() => null),
+                    bulkTrafficEstimation(instanceId, pdoms).catch(() => null),
+                ])
+                if (spamRes) trackCall(spamRes)
+                if (trafRes) trackCall(trafRes)
+                const spamMap: Record<string, number> = {}
+                for (const it of (spamRes?.items || [])) spamMap[it.target] = it.spam_score
+                const trafMap: Record<string, number> = {}
+                for (const it of (trafRes?.items || [])) trafMap[it.target] = it.metrics?.organic?.etv || 0
+                for (const p of ours.linkGapProspects) {
+                    const sp = spamMap[p.domain]
+                    const tr = trafMap[p.domain]
+                    p.spam_score = sp ?? null
+                    p.organic_traffic_mo = tr != null ? Math.round(tr) : null
+                    p._quality = (sp != null && sp >= 30) ? 'spammy'
+                        : (tr != null && tr < 100 && (p.rank || 0) < 150) ? 'dead'
+                        : 'ok'
+                }
+                // Contact-scrape the strongest 'ok' prospects (bounded).
+                const okTop = ours.linkGapProspects
+                    .filter(p => p._quality === 'ok')
+                    .sort((a, b) => (b.competitorsLinking - a.competitorsLinking) || (b.rank - a.rank))
+                    .slice(0, 12)
+                for (let i = 0; i < okTop.length; i += 6) {
+                    const part = okTop.slice(i, i + 6)
+                    const contacts = await Promise.all(part.map(p => findContact(p.domain).catch(() => ({ email: '', phone: '', page: '' }))))
+                    part.forEach((p, j) => { p.contact_email = contacts[j].email; p.contact_phone = contacts[j].phone; p.contact_page = contacts[j].page })
+                }
+                console.log(`[prefetch/link_audit] prospects qualified: ${pdoms.length} (spammy/dead dropped from paid outreach), contacts: ${okTop.length}`)
+            } catch (enrErr) {
+                console.warn(`[prefetch/link_audit] prospect enrichment failed (non-fatal): ${(enrErr as Error).message}`)
+            }
+        }
 
         // ─── Live-verify DFS "lost" backlinks (false-positive guard) ──────
         // DFS lost-backlink signals lag + false-positive, especially on

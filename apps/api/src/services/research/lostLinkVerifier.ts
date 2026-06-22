@@ -71,6 +71,37 @@ function pageReferencesUs(content: string, ourDomain: string): boolean {
 }
 
 /**
+ * Find outreach contact details for a prospect domain — so a link-gap task is
+ * actionable ("here's who to email"), not an abstract "do outreach". Fetches
+ * the homepage, follows a contact-page link if present, and extracts the best
+ * email / IL phone / WhatsApp. Best-effort; blanks when nothing is found.
+ */
+export async function findContact(domain: string, _firecrawlKey?: string | null): Promise<{ email: string; phone: string; page: string }> {
+    const base = 'https://' + normalizeDomain(domain)
+    let html = await fetchPlain(base, 9000)
+    let page = base
+    if (html) {
+        const m = html.match(/href=["']([^"']*(?:contact|%D7%A6%D7%95%D7%A8|kesher|about)[^"']*)["']/i)
+        if (m) {
+            let u = m[1].replace(/&amp;/g, '&')
+            if (u.startsWith('//')) u = 'https:' + u
+            else if (u.startsWith('/')) u = base + u
+            else if (!/^https?:/i.test(u)) u = base + '/' + u
+            const ch = await fetchPlain(u, 8000)
+            if (ch) { html = ch; page = u }
+        }
+    }
+    if (!html) return { email: '', phone: '', page: '' }
+    const emails = [...new Set((html.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) || [])
+        .map(e => e.toLowerCase())
+        .filter(e => !/\.(png|jpe?g|gif|svg|webp|css|js)$/i.test(e) && !/sentry|example|wixpress|godaddy|@2x|yourdomain|domain\.com/i.test(e)))]
+    const wa = (html.match(/(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)(\d{7,15})/i) || [])[1] || ''
+    const ilph = (html.match(/(0[2-9][\d]{1,2}[-\s]?\d{3}[-\s]?\d{3,4})/) || [])[0] || ''
+    const phone = (ilph || (wa ? '+' + wa : '')).trim()
+    return { email: emails[0] || '', phone, page: (emails.length || phone) ? page : '' }
+}
+
+/**
  * Verify per referring-domain whether its DFS-"lost" backlink is actually gone.
  * @param lostByDomain  referring domain → its lost source page URLs (url_from)
  */

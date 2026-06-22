@@ -49,12 +49,22 @@ interface RawLinkRecord {
 }
 
 interface DfsRefDomain { domain?: string; rank?: number; intersections?: number; target?: string }
+/** Link-gap prospect enriched by the prefetch (spam/traffic/contacts). */
+interface LinkProspect extends DfsRefDomain {
+    competitorsLinking?: number
+    spam_score?: number | null
+    organic_traffic_mo?: number | null
+    _quality?: 'ok' | 'spammy' | 'dead'
+    contact_email?: string
+    contact_phone?: string
+    contact_page?: string
+}
 interface LinkAuditDfsShape {
     ours?: {
         referringDomains?: DfsRefDomain[]
         lostLinks?: DfsRefDomain[]
         linkGap?: DfsRefDomain[]
-        linkGapProspects?: DfsRefDomain[]
+        linkGapProspects?: LinkProspect[]
     }
     competitors?: Array<{ referringDomains?: DfsRefDomain[] }>
     /** Per-prospect ranks fetched via backlinks/bulk_ranks for the record
@@ -96,6 +106,14 @@ export interface AugmentedLinkRecord extends RawLinkRecord {
     sequence_order: number                // 1-based build order within the plan
     month: number                         // 1-based month the link is scheduled
     month_week: number                    // 1-4 week within that month
+    // Prospect qualification + outreach actionability (from prefetch enrichment).
+    spam_score?: number | null            // toxicity 0-100 (null = unknown)
+    organic_traffic_mo?: number | null    // IL organic traffic/mo
+    contact_email?: string                // best-effort scraped outreach contact
+    contact_phone?: string
+    contact_page?: string
+    penalty_risk?: boolean                // true on the anchor_remediation record when
+                                          // current exact-match share is dangerously high
 }
 
 export interface LinkStrategySummary {
@@ -143,13 +161,42 @@ function normDomain(d: string | undefined | null): string {
 // ── Main ────────────────────────────────────────────────────────────────────
 
 export function augmentLinkAuditRecords(
-    records: RawLinkRecord[],
+    inputRecords: RawLinkRecord[],
     dfsData: LinkAuditDfsShape | undefined,
     rd: Record<string, unknown> | undefined,
     businessName: string,
-    anchorProfile?: { exact_match_pct?: number; risk_flags?: string[] },
+    anchorProfile?: { exact_match_pct?: number; risk_flags?: string[]; _note?: unknown; [k: string]: unknown },
 ): AugmentLinkAuditResult {
     const warnings: string[] = []
+    // The model emits exact-match share either as a numeric field OR buried in a
+    // free-text _note ("...exact-match (61%)" / "85/119"). Parse robustly so the
+    // over-optimization guard fires on the real number, not a missing field.
+    const exactMatchPct = resolveExactMatchPct(anchorProfile)
+
+    // 0) Prospect qualification join (systemic — every tenant). The prefetch
+    // enriched link-gap prospects with spam/traffic/contacts. Build a lookup so
+    // we (a) DROP records whose prospect is spammy/dead — never create a PAID
+    // outreach task for a toxic or dead domain — and (b) attach outreach
+    // contacts so the surviving tasks are actionable.
+    const prospectMap = new Map<string, LinkProspect>()
+    for (const p of (dfsData?.ours?.linkGapProspects || [])) {
+        const d = normDomain(p.domain)
+        if (d) prospectMap.set(d, p)
+    }
+    const droppedJunk: string[] = []
+    const records = inputRecords.filter((r) => {
+        const p = prospectMap.get(normDomain(r.domain))
+        // Only drop link-gap prospects we positively qualified as junk; never
+        // drop lost-link recovery / anchor remediation / un-enriched tier-1.
+        if (p && (p._quality === 'spammy' || p._quality === 'dead') && String(r.type || '') === 'link_gap_outreach') {
+            droppedJunk.push(`${normDomain(r.domain)} (${p._quality}, spam ${p.spam_score ?? '?'})`)
+            return false
+        }
+        return true
+    })
+    if (droppedJunk.length > 0) {
+        warnings.push(`dropped ${droppedJunk.length} spammy/dead link-gap prospect(s) from paid outreach: ${droppedJunk.slice(0, 8).join(', ')}`)
+    }
 
     // 1) Build a domain → DFS rank map from every available source.
     const drMap = buildDrMap(dfsData)
@@ -200,14 +247,21 @@ export function augmentLinkAuditRecords(
     })
 
     // 5) Anchor distribution planner across the WHOLE set (anti-over-optimization).
-    const overOpt = (anchorProfile?.exact_match_pct ?? 0) > 30 ||
+    const overOpt = exactMatchPct > 30 ||
         (anchorProfile?.risk_flags || []).some(f => /over_optimization/i.test(String(f)))
+    // SEVERE over-optimization (>45% exact-match) is a LIVE penalty risk — the
+    // anchor-dilution fix must run FIRST, not be sequenced near-last behind a
+    // months-long outreach drip. (PS sat at 71% exact yet remediation was month 7.)
+    const severeOverOpt = exactMatchPct > 45 ||
+        (anchorProfile?.risk_flags || []).some(f => /severe|critical/i.test(String(f)))
     const anchorTypes = planAnchorDistribution(enriched.length, overOpt, enriched)
 
     // 6) Build sequence + pack into the monthly budget.
-    //    Order: lost_link_recovery (cheap, high ROI) → high-DR link_gap →
-    //    tier-1 editorial → everything else.
-    const order = [...enriched.keys()].sort((a, b) => sequenceRank(enriched[a]) - sequenceRank(enriched[b]))
+    //    Order: [severe: anchor_remediation FIRST] → lost_link_recovery (cheap,
+    //    high ROI) → high-DR link_gap → tier-1 editorial → everything else.
+    const seqOf = (e: typeof enriched[number]) =>
+        (severeOverOpt && String(e.raw.type || '') === 'anchor_remediation') ? -1000 : sequenceRank(e)
+    const order = [...enriched.keys()].sort((a, b) => seqOf(enriched[a]) - seqOf(enriched[b]))
 
     const augmented_records: AugmentedLinkRecord[] = new Array(enriched.length)
     let runningCost = 0
@@ -226,6 +280,8 @@ export function augmentLinkAuditRecords(
         inMonthCount++
         runningCost += e.estimated_cost_ils
         const anchor_type = anchorTypes[idx]
+        const prospect = prospectMap.get(e.domain)
+        const isAnchorRemediation = String(e.raw.type || '') === 'anchor_remediation'
         augmented_records[idx] = {
             ...e.raw,
             prospect_dr: e.dr,
@@ -239,8 +295,17 @@ export function augmentLinkAuditRecords(
             sequence_order: seq + 1,
             month,
             month_week: ((inMonthCount - 1) % 4) + 1,
+            spam_score: prospect?.spam_score ?? null,
+            organic_traffic_mo: prospect?.organic_traffic_mo ?? null,
+            contact_email: prospect?.contact_email || undefined,
+            contact_phone: prospect?.contact_phone || undefined,
+            contact_page: prospect?.contact_page || undefined,
+            ...(severeOverOpt && isAnchorRemediation ? { penalty_risk: true, priority: 'high' } : {}),
         }
     })
+    if (severeOverOpt) {
+        warnings.push(`SEVERE over-optimization: exact-match ${exactMatchPct}% > 45% — anchor dilution escalated to month 1 (live penalty risk)`)
+    }
 
     // 7) Summary + quality gate.
     const total_cost_ils = augmented_records.reduce((s, r) => s + r.estimated_cost_ils, 0)
@@ -466,4 +531,19 @@ function averageLinkCost(enriched: Array<{ estimated_cost_ils: number }>): numbe
 
 function tally<T extends string>(arr: T[]): Record<T, number> {
     return arr.reduce((m, k) => { m[k] = (m[k] || 0) + 1; return m }, {} as Record<T, number>)
+}
+
+/** Robustly recover the CURRENT exact-match anchor share (%) from the model's
+ * anchor_distribution_analysis — numeric field if present, else parsed from the
+ * free-text _note ("...exact-match (61%)" or "85/119 anchors"). 0 when absent. */
+function resolveExactMatchPct(ap?: { exact_match_pct?: number; _note?: unknown; [k: string]: unknown }): number {
+    if (typeof ap?.exact_match_pct === 'number' && isFinite(ap.exact_match_pct)) return ap.exact_match_pct
+    const note = typeof ap?._note === 'string' ? ap._note : ''
+    if (!note) return 0
+    // Prefer an explicit "(NN%)"; else derive from an "NN/NN" fraction.
+    const pct = note.match(/\((\d{1,3})\s*%\)/) || note.match(/(\d{1,3})\s*%/)
+    if (pct) return Math.min(100, Number(pct[1]))
+    const frac = note.match(/(\d{1,4})\s*\/\s*(\d{1,4})/)
+    if (frac && Number(frac[2]) > 0) return Math.round((Number(frac[1]) / Number(frac[2])) * 100)
+    return 0
 }
