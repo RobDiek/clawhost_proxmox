@@ -1215,7 +1215,12 @@ input{font-family:inherit}
       <svg viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="1.5" style="width:14px;height:14px;flex-shrink:0"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
       הצ'אט הזה מסונכרן עם בוט ה-Telegram שלכם — כל ההודעות מופיעות בשני הערוצים
     </div>
-    <div id="chat-container" style="position:relative;height:calc(100vh - 82px)">
+    <div id="agent-feed-panel" style="height:40vh;overflow-y:auto;background:#F9FAFB;border-bottom:1px solid #E5E7EB;padding:10px 14px">
+      <div style="font-size:0.74rem;color:#6B7280;font-weight:700;margin-bottom:8px">📨 הודעות הסוכן · מסונכרן עם Telegram</div>
+      <div id="agent-feed-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div id="agent-feed-empty" style="color:#9CA3AF;font-size:0.8rem;text-align:center;padding:18px">עדיין אין הודעות. אישורים, דוחות והשיחה עם הסוכן יופיעו כאן — בדיוק כמו בטלגרם.</div>
+    </div>
+    <div id="chat-container" style="position:relative;height:calc(100vh - 82px - 40vh)">
       <div id="chat-loading" style="position:absolute;inset:0;background:#FAFAFA;display:flex;align-items:center;justify-content:center;z-index:2;transition:opacity .4s">
         <div style="text-align:center">
           <div style="width:32px;height:32px;border:3px solid #E5E7EB;border-top-color:#2563EB;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px"></div>
@@ -1437,6 +1442,31 @@ input{font-family:inherit}
       function sendRaw(text){ if(!chatWs||chatWs.readyState!==WebSocket.OPEN)return; addUser(text); setBusy(true); chatWs.send(JSON.stringify({type:'user',message:{role:'user',content:[{type:'text',text:text}]}})); }
       document.addEventListener('keydown',function(e){ if(e.target&&e.target.id==='claude-chat-input'&&e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); claudeSend(); } });
       document.addEventListener('input',function(e){ if(e.target&&e.target.id==='claude-chat-input'){ e.target.style.height='auto'; e.target.style.height=Math.min(e.target.scrollHeight,150)+'px'; } });
+
+      // ── Agent chat feed (mirror of the platform→Telegram stream) ──
+      (function(){
+        function feedEsc(s){ var d=document.createElement('div'); d.textContent=String(s==null?'':s); return d.innerHTML; }
+        function feedInst(){ try{ return (typeof curInst==='function'?curInst():((window.instanceData&&window.instanceData.id)||'')); }catch(e){ return ''; } }
+        window.loadAgentFeed=async function(){
+          var inst=feedInst(); var list=document.getElementById('agent-feed-list'); var empty=document.getElementById('agent-feed-empty');
+          if(!inst||!list) return;
+          try{
+            var r=await fetch((window.API||'')+'/hosting/instances/'+inst+'/agent-feed',{headers:{Authorization:'Bearer '+(localStorage.getItem('cf_token')||'')}});
+            var j=await r.json(); var feed=(j&&j.data&&j.data.feed)||[];
+            if(!feed.length){ if(empty)empty.style.display='block'; list.innerHTML=''; return; }
+            if(empty)empty.style.display='none';
+            list.innerHTML=feed.map(function(m){
+              var out=(m.direction!=='in');
+              var bg=out?'#EFF6FF':'#FFFFFF', bd=out?'#BFDBFE':'#E5E7EB', al=out?'flex-start':'flex-end', who=out?'🤖 הסוכן':'אתם';
+              var when=m.at?new Date(m.at).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+              return '<div style="align-self:'+al+';max-width:88%;background:'+bg+';border:1px solid '+bd+';border-radius:10px;padding:8px 11px;font-size:0.82rem;color:#1F2937;line-height:1.5"><div style="font-size:0.66rem;color:#9CA3AF;margin-bottom:3px">'+who+' · '+when+'</div>'+feedEsc(m.text).replace(/\n/g,'<br>')+'</div>';
+            }).join('');
+            list.scrollTop=list.scrollHeight;
+          }catch(e){}
+        };
+        var feedTimer=null;
+        window.startAgentFeedPoll=function(){ window.loadAgentFeed(); if(feedTimer)clearInterval(feedTimer); feedTimer=setInterval(function(){ var tc=document.getElementById('tab-chat'); if(tc&&!tc.classList.contains('hidden'))window.loadAgentFeed(); },15000); };
+      })();
 
       // ---- terminal (fallback mode) ----
       var cTerm=null,cFit=null,cWs=null;
@@ -18566,6 +18596,8 @@ function revealFlowsPassword() {
 /* ===== Chat tab ===== */
 var chatLoaded = false;
 function loadChatTab() {
+  // Telegram-mirror feed loads regardless of OpenClaw iframe readiness.
+  if (window.startAgentFeedPoll) window.startAgentFeedPoll();
   var iframe = document.getElementById('chat-iframe');
   var container = document.getElementById('chat-container');
   var notReady = document.getElementById('chat-not-ready');
