@@ -15,7 +15,7 @@
 
 import { db } from '@/db'
 import { agentIntegrations, instances } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, desc } from 'drizzle-orm'
 
 export type AgentType = 'oc' | 'mt' | 'bare'
 export type IntegrationType = 'telegram' | 'google' | 'meta' | 'microsoft' | 'whatsapp' | 'gbp' | 'api_key' | 'brave' | 'smtp' | 'wordpress' | 'gsc' | 'dataforseo' | 'firecrawl' | 'reddit' | 'resend' | 'replicate' | 'brightdata' | 'gemini' | 'canva' | 'shopify'
@@ -49,7 +49,11 @@ export async function getAgentIntegration(
         if (!row) return null
         return { config: row.config as Record<string, unknown>, status: row.status }
     }
-    // Legacy fallback (no mateh_agent row exists yet)
+    // Legacy fallback (no mateh_agent row exists yet — e.g. agentless instance).
+    // Pick the MOST RECENTLY UPDATED row: with include_granted_scopes the freshest
+    // OAuth grant carries the broadest scope union, and duplicate rows from repeat
+    // re-consents would otherwise be returned in arbitrary order (could hand back a
+    // stale/narrow-scope token).
     const [row] = await db.select()
         .from(agentIntegrations)
         .where(and(
@@ -57,6 +61,8 @@ export async function getAgentIntegration(
             eq(agentIntegrations.agentType, agentType),
             eq(agentIntegrations.integrationType, integrationType)
         ))
+        .orderBy(desc(agentIntegrations.updatedAt))
+        .limit(1)
     if (!row) return null
     return { config: row.config as Record<string, unknown>, status: row.status }
 }

@@ -243,12 +243,18 @@ export const googleCallback = async (c: Context) => {
             email = userData.email || ''
         } catch { /* non-critical */ }
 
-        // Save tokens to DB
+        // Save tokens to DB. Store the ACTUAL granted scopes (tokenData.scope is
+        // the union Google returns thanks to include_granted_scopes), not just the
+        // aliases requested THIS time — otherwise a "+analytics" reconnect stores
+        // ["analytics"] and drops the ads/gtm the same grant still carries, so
+        // downstream scope checks (GA4/GTM pickers) falsely report "missing scope".
+        const grantedScopeUrls = String(tokenData.scope || '').split(/\s+/).filter(Boolean)
+        const scopesUnion = [...new Set([...scopes.split(','), ...grantedScopeUrls])]
         const googleTokens = {
             accessToken: tokenData.access_token,
             refreshToken: tokenData.refresh_token || '',
             expiresAt: Date.now() + (tokenData.expires_in || 3600) * 1000,
-            scopes: scopes.split(','),
+            scopes: scopesUnion,
             email,
             connectedAt: new Date().toISOString(),
         }
