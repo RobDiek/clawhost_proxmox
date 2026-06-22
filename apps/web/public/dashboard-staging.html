@@ -7276,6 +7276,23 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
   };
 
   if (tasks.length === 0) {
+    // Main actionable list is empty — BUT matching tasks may exist in the
+    // deferred/blocked group (e.g. filtering by a channel like Meta whose tasks
+    // are all verdict defer/needs_integration/manual). Previously this returned
+    // a bare "no tasks" state and the deferred group (rendered later) was never
+    // reached → filtering by such a channel showed nothing. Surface them here.
+    if (aqFilterStatus === 'pending_review' && aqDeferredTasks.length) {
+      var _vmE = { defer: { icon: '⏳', label: 'מושהה (תלות)', color: '#92400E', bg: '#FEF3C7' }, needs_integration: { icon: '🔌', label: 'דרוש חיבור', color: '#1E40AF', bg: '#DBEAFE' }, manual: { icon: '✋', label: 'ידני', color: '#6B7280', bg: '#F3F4F6' } };
+      var _defE = aqDeferredTasks.map(function(t) {
+        var ar = (t.metadata && t.metadata.agentReview) || {};
+        var vm = _vmE[ar.verdict] || { icon: '•', label: '', color: '#6B7280', bg: '#F3F4F6' };
+        return '<div class="aq-item" onclick="openTaskPopup(\'' + t.id + '\')"><div class="aq-body"><div class="aq-title" style="font-size:0.82rem">' +
+          '<span style="font-size:0.64rem;font-weight:600;padding:1px 6px;border-radius:999px;background:' + vm.bg + ';color:' + vm.color + ';margin-inline-end:6px">' + vm.icon + ' ' + vm.label + '</span>' +
+          t.title + '</div><div class="aq-agent" style="font-size:0.7rem;color:#9CA3AF">' + (ar.reasonHe || '') + '</div></div></div>';
+      }).join('');
+      el.innerHTML = '<div style="padding:10px 4px;font-size:0.8rem;color:#6B7280">אין משימות פעילות כעת לפי הסינון — אך יש ' + aqDeferredTasks.length + ' משימות מושהות/חסומות תואמות:</div>' + _defE;
+      return;
+    }
     el.innerHTML = '<div class="aq-empty">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;color:#D1D5DB;margin-bottom:8px"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>' +
       '<div>אין משימות פעילות כרגע</div>' +
