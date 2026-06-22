@@ -547,6 +547,34 @@ async function runGoogleAdsAdapter(instanceId: string, task: MonthlyTask, _plan:
     const changeType: string = mpOpt?.changes?.[0]?.change || _inferChangeFromActionPlan(task)
 
     try {
+        // Greenfield campaign creation. Launch / brand / RSA-variation / sitelink
+        // tasks all resolve to "ensure the greenfield campaigns exist" — the
+        // builder creates each campaign WITH its ad group, keywords, account
+        // negatives, geo (IL) + language (Hebrew) and RSA, PAUSED. Idempotent:
+        // the first such task creates the campaigns, subsequent ones skip
+        // already-existing names. This replaces the Phase-C brief for the
+        // create-campaign intent with a real (PAUSED, approval-gated) build.
+        const launchText = `${task.title || ''} ${task.summary || ''}`
+        if (/השקת קמפיין|launch.*campaign|קמפיין חיפוש|קמפיין הגנת מותג|brand.*defense|וריאציית RSA|RSA variation|sitelink|sitelinks|callout/i.test(launchText)) {
+            const { createGreenfieldCampaigns } = await import('./greenfieldCampaignBuilder')
+            const res = await createGreenfieldCampaigns(instanceId, (task as any).agentId || null, { dryRun: false })
+            if (!res.ok && res.error) {
+                return runManualTodoAdapter(instanceId, task, _plan, `בניית קמפיינים אוטומטית לא הושלמה: ${res.error}. בצעו מהממשק של Google Ads.`,
+                    { stepResults: [{ step: 'greenfield campaign build', ok: false, detail: res.error }] })
+            }
+            const built = res.created.filter(c => c.status === 'SUCCESS' || c.status === 'PARTIAL')
+            const buildSteps = [
+                ...built.map(c => ({ step: `קמפיין נוצר: ${c.name}`, ok: true, detail: `PAUSED · ${c.campaignId}` })),
+                ...(res.skipped || []).map(n => ({ step: `קמפיין כבר קיים: ${n}`, ok: true, detail: 'דילוג — idempotent' })),
+                ...res.created.filter(c => c.status === 'FAILED').map(c => ({ step: `קמפיין נכשל: ${c.name}`, ok: false, detail: (c.errors || []).join('; ').slice(0, 160) })),
+            ]
+            return {
+                ok: true,
+                outputDescription: `${built.length} קמפיינים נוצרו ב-Google Ads (PAUSED — לא רצים עד הפעלה ידנית)${res.skipped?.length ? `, ${res.skipped.length} כבר היו קיימים` : ''}. פתחו את Google Ads כדי לבדוק מילות מפתח/מודעות ולהפעיל.`,
+                errorCategory: 'completed',
+                stepResults: buildSteps,
+            }
+        }
         switch (changeType) {
             case 'add_negatives': {
                 // Extract the list of negatives from title / summary / actionPlan / change.what

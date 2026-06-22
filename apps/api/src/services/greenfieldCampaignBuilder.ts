@@ -22,6 +22,29 @@ import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
+const TOKEN_URL = 'https://oauth2.googleapis.com/token'
+const ADS_API = 'https://googleads.googleapis.com/v22'
+
+/** Existing non-removed campaign names on the operating account — for idempotency. */
+async function fetchExistingCampaignNames(ctx: { operating: string; login: string; tokens: GoogleTokens; developerToken: string }): Promise<Set<string>> {
+    try {
+        const tr = await fetch(TOKEN_URL, {
+            method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ client_id: process.env.GOOGLE_CLIENT_ID || '', client_secret: process.env.GOOGLE_CLIENT_SECRET || '', refresh_token: (ctx.tokens as any).refreshToken, grant_type: 'refresh_token' }),
+        })
+        const at = ((await tr.json()) as { access_token?: string }).access_token
+        if (!at) return new Set()
+        const headers: Record<string, string> = { Authorization: `Bearer ${at}`, 'developer-token': ctx.developerToken, 'Content-Type': 'application/json' }
+        if (ctx.login && ctx.login !== ctx.operating) headers['login-customer-id'] = ctx.login
+        const res = await fetch(`${ADS_API}/customers/${ctx.operating}/googleAds:search`, {
+            method: 'POST', headers,
+            body: JSON.stringify({ query: 'SELECT campaign.name FROM campaign WHERE campaign.status != "REMOVED"' }),
+        })
+        const j = await res.json() as { results?: Array<{ campaign?: { name?: string } }> }
+        return new Set((j.results || []).map(r => r.campaign?.name || '').filter(Boolean))
+    } catch { return new Set() }
+}
+
 interface KwRec {
     keyword?: string
     text?: string
@@ -169,6 +192,7 @@ export interface GreenfieldBuildResult {
     dryRun: boolean
     plans: Array<{ name: string; dailyBudget: number; keywords: number; negatives: number; headlines: number }>
     created: Array<{ name: string; campaignId: string; status: string; errors: string[] }>
+    skipped?: string[]   // campaigns that already existed (idempotency)
     error?: string
 }
 
@@ -201,10 +225,16 @@ export async function createGreenfieldCampaigns(
     const ctx = await resolveAdsWriteContext(instanceId, agentId)
     if (!ctx) return { ok: false, dryRun: false, plans: planSummary, created: [], error: 'could not resolve Ads write context (operating account / token / dev token)' }
 
+    // Idempotency: never recreate a campaign that already exists by name. Makes
+    // approving the launch task (or retrying) safe — no duplicate campaigns.
+    const existingNames = await fetchExistingCampaignNames(ctx)
     const created: GreenfieldBuildResult['created'] = []
+    const skipped: string[] = []
     for (const plan of plans) {
+        if (existingNames.has(plan.campaignName)) { skipped.push(plan.campaignName); continue }
         const res = await createCampaign(ctx.operating, ctx.tokens, plan, ctx.login)
         created.push({ name: plan.campaignName, campaignId: res.campaignId || '', status: res.status, errors: res.errors || [] })
     }
-    return { ok: created.every(c => c.status === 'SUCCESS' || c.status === 'PARTIAL'), dryRun: false, plans: planSummary, created }
+    const createdOk = created.every(c => c.status === 'SUCCESS' || c.status === 'PARTIAL')
+    return { ok: createdOk && (created.length > 0 || skipped.length > 0), dryRun: false, plans: planSummary, created, skipped }
 }
