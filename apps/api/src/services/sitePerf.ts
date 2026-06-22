@@ -22,9 +22,14 @@ export interface SitePerfResult {
 
 async function resolveSiteUrl(instanceId: string, agentId?: string | null): Promise<string | null> {
     try {
-        const { db } = await import('@/db'); const { matehAgents } = await import('@/db/schema'); const { eq } = await import('drizzle-orm')
-        const [row] = agentId ? await db.select().from(matehAgents).where(eq(matehAgents.id, agentId)) : []
-        const rd: any = (row?.researchData as any) || {}
+        // Canonical reader: for a per-agent tenant → that agent's research_data;
+        // for an agentless/instance-level tenant (agentId null) → instances.research_data.
+        // The previous code read matehAgents ONLY (and only when agentId was given),
+        // so agentless tenants (e.g. Flow) always fell through to "no site URL"
+        // even though answers.websiteUrl was set on the instance.
+        const { resolvePrimaryAgent, resolveAgentById, readResearchData } = await import('@/services/agentContext')
+        const agent = agentId ? await resolveAgentById(instanceId, agentId) : await resolvePrimaryAgent(instanceId)
+        const rd: any = (await readResearchData(agent, instanceId)) || {}
         const u = rd?.answers?.websiteUrl || rd?.answers?.website || rd?.answers?.site || rd?.paidProfile?.siteUrl
         if (u) return String(u)
     } catch { /* */ }
