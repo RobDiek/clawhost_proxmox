@@ -1380,7 +1380,7 @@ async function runTrackingSetupAdapter(
                     const candidates = await listGtmTargets(tokens)
                     if (candidates.length === 0) {
                         stepResults.push({ step: 'GTM auto-discover', ok: false, detail: 'No GTM containers found in this Google account — create one at tagmanager.google.com first' })
-                        return { ok: false, outputDescription: 'no GTM containers', error: 'no containers in account', stepResults }
+                        return { ok: false, errorCategory: 'awaiting_user_action', awaitingManual: true, outputDescription: 'no GTM containers', error: 'no containers in account', stepResults }
                     } else if (candidates.length === 1) {
                         target = candidates[0]
                         stepResults.push({
@@ -1403,6 +1403,11 @@ async function runTrackingSetupAdapter(
                         })
                         return {
                             ok: false,
+                            // User must pick a container — a normal selection step,
+                            // NOT a code bug. awaiting_user_action avoids the false
+                            // systemic_bug + K31 owner alert.
+                            errorCategory: 'awaiting_user_action',
+                            awaitingManual: true,
                             outputDescription: `${candidates.length} GTM containers — user must pick`,
                             error: 'multiple containers — user pick required',
                             stepResults,
