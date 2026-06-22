@@ -291,30 +291,28 @@ export async function executeTask(
             // ok:false без явных integration/stack маркеров — assume systemic.
             result.errorCategory = 'systemic_bug'
         } else {
-            // ok:true with steps. Detect a genuine no-op (adapter scanned but
-            // changed nothing). Match BOTH English and the Hebrew phrasings the
-            // adapters actually emit ("אין מה לעדכן", "0 מועמדים", "כבר כולל"…) —
-            // previously the regex was English-only, so a Hebrew no-op slipped
-            // through as a plain "completed" (the duplicate-titles false success).
-            const noChange = stepCount > 0 && (result.stepResults || []).every(s => {
-                const det = String(s.detail || '').toLowerCase()
-                return /no-op|already exists|already present|preserved|skipped|fully idempotent|nothing to|no candidates|0 candidates|אין מה ל|כבר כולל|כבר מעל|0 מועמדים|לא נמצא|אין הזדמנ/.test(det)
-            })
-            // GUARD (Defect C/F): a CORRECTIVE task — generated to FIX a detected
-            // problem (dedup/cannibalization, "fix/rewrite", make-unique) — that
-            // changed NOTHING did not actually do its job. NEVER report it as
-            // "completed": surface it for review. Stops the system from claiming a
-            // P0 fix is done while the problem is still live (e.g. duplicate titles
-            // on a Next.js App Router site the markdown adapter can't even see).
-            const isCorrective = /תיקון|פתרון|לתקן|כפול|duplicate|cannibal|קניבל|dedup|דדופ|ייחודי|unique|לכתוב מחדש|rewrite/i.test(`${task.title || ''} ${task.summary || ''}`)
-            if (noChange && isCorrective) {
-                result.errorCategory = 'awaiting_user_action'
-                result.awaitingManual = true
-                result.outputDescription = `⚠️ האוטומציה רצה אך לא ביצעה שינוי בפועל, בעוד שהמשימה דרשה תיקון מפורש — ייתכן שמבנה האתר אינו נתמך אוטומטית (למשל Next.js App Router) או שהיעדים לא זוהו. המשימה לא בוצעה בפועל ודורשת בדיקה.\n\n${result.outputDescription || ''}`.trim()
-            } else {
-                result.errorCategory = noChange ? 'completed_idempotent_noop' : 'completed'
-            }
+            // ok:true with steps. Distinguish a real change from a no-op (adapter
+            // scanned but changed nothing) — EN + the Hebrew phrasings adapters
+            // emit (was English-only, so a Hebrew no-op slipped through as a plain
+            // "completed" — the duplicate-titles false success).
+            result.errorCategory = isNoChangeResult(result) ? 'completed_idempotent_noop' : 'completed'
         }
+    }
+
+    // POST-GUARD (Defect C/F) — runs regardless of WHO set errorCategory (adapter,
+    // the A2 aggregate, or the classifier above). A CORRECTIVE task — generated to
+    // FIX a detected problem (dedup/cannibalization, fix/rewrite, make-unique) —
+    // that changed NOTHING did not do its job. NEVER report it as completed:
+    // surface it for review, so a P0 fix can't read "done" while the problem is
+    // still live (e.g. duplicate titles on a Next.js App Router site the markdown
+    // adapter can't even see). The A2 aggregate sets 'completed' directly, which
+    // is why this must live OUTSIDE the `!result.errorCategory` block.
+    if (result.ok
+        && (result.errorCategory === 'completed' || result.errorCategory === 'completed_idempotent_noop')
+        && isNoChangeResult(result) && isCorrectiveTask(task)) {
+        result.errorCategory = 'awaiting_user_action'
+        result.awaitingManual = true
+        result.outputDescription = `⚠️ האוטומציה רצה אך לא ביצעה שינוי בפועל, בעוד שהמשימה דרשה תיקון מפורש — ייתכן שמבנה האתר אינו נתמך אוטומטית (למשל Next.js App Router) או שהיעדים לא זוהו. המשימה לא בוצעה בפועל ודורשת בדיקה.\n\n${result.outputDescription || ''}`.trim()
     }
 
     // Map errorCategory → agent_outputs.status. blocked_integration is a NEW
@@ -1586,6 +1584,21 @@ export function isExternalOutreachTask(task: MonthlyTask): boolean {
     const namedOutreach = /פנייה\s+(יזומה|אישית|קרה|tier|ל[-\s]*["“']?[A-Za-z])|הצעת תוכן ל|\bpitch\b|פיץ['’]|tier[-\s]?1|geektime|calcalist|כלכליסט|the\s*marker|דה.?מרקר|globes|גלובס|ynet|וואלה|מגזין|עיתונא/i
     return namedOutreach.test(text)
         || /שחזור קישור|יחסי ציבור|יח"?צ\b|פנייה ל.{0,4}אתרים|הרחבת פרופיל הקישורים|פוסט אורח|guest post|רישום ב-?\s*(zap|b144|זאפ|ספרי|מדריך|אינדקס|השוואת)|השוואת מחירים|שיתוף פעולה עם|התאחדות/i.test(text)
+}
+
+// A result is a genuine no-op when every step says "scanned but changed nothing"
+// — in English OR the Hebrew phrasings the SEO adapters emit. Used by the
+// completed-vs-noop split AND the corrective-task false-success guard.
+function isNoChangeResult(result: ExecutorResult): boolean {
+    const steps = (result.stepResults || []) as Array<{ detail?: string }>
+    if (steps.length === 0) return false
+    return steps.every(s => /no-op|already exists|already present|preserved|skipped|fully idempotent|nothing to|no candidates|0 candidates|אין מה ל|כבר כולל|כבר מעל|0 מועמדים|לא נמצא|אין הזדמנ/.test(String(s.detail || '').toLowerCase()))
+}
+// A CORRECTIVE task is one generated to FIX a detected problem (dedup /
+// cannibalization, fix/rewrite, make-unique). If such a task changes nothing it
+// did NOT do its job and must not be reported as completed.
+function isCorrectiveTask(task: MonthlyTask): boolean {
+    return /תיקון|פתרון|לתקן|כפול|duplicate|cannibal|קניבל|dedup|דדופ|ייחודי|unique|לכתוב מחדש|rewrite/i.test(`${task.title || ''} ${task.summary || ''}`)
 }
 
 // Aggregate multiple A2 sub-adapter results into one task result.
