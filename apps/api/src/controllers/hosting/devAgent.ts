@@ -17,13 +17,41 @@ import { resolveUserId, getOwnedInstance } from './authHelper'
 import { sshExec } from './agentSetup'
 
 const ENV_FILE = '/home/developer/.config/dev-agent.env'
+const WORKSPACE = '/home/developer/workspace'
 
-// Pilot gating: the Claude Developer feature is available on the Developer plan
-// and on explicitly allow-listed pilot instances (hello@flowmatic.co.il). Other
-// tenants don't see the switcher and cannot connect (their VPS has no setup).
-const DEV_PILOT_INSTANCES = new Set(['19c2481ba5'])
-function devAvailable(instance: { id: string; planKey?: string | null }): boolean {
-    return instance.planKey === 'developer' || DEV_PILOT_INSTANCES.has(instance.id)
+// Systemic rollout (2026-06-22): the Claude Developer agent is available to ALL
+// tenants. It is BYO-key, runs as a non-root `developer` user jailed to the
+// tenant's OWN single-tenant VPS (ownership enforced on every WS bridge; no
+// cross-tenant secrets on the box), and the VPS is self-provisioned lazily on
+// first connect (ensureDevAgentSetup) — so existing VPSes need no separate
+// backfill and new ones work even before any cloud-init change lands.
+function devAvailable(_instance: { id: string; planKey?: string | null; status?: string | null }): boolean {
+    return true
+}
+
+/**
+ * Idempotently prepare a tenant VPS for the Claude Developer agent: a non-root
+ * `developer` user + workspace + config dir, Node 18+ (for claude-code), and the
+ * `@anthropic-ai/claude-code` CLI installed globally. Safe to re-run. No
+ * passwordless sudo is granted (workspace-scoped by default — a guarded sudo
+ * rule is a later refinement per roadmap/15). Returns the last lines for debug.
+ */
+async function ensureDevAgentSetup(ip: string, password: string | null): Promise<{ ok: boolean; detail: string }> {
+    const script = [
+        'set +e',
+        'id developer >/dev/null 2>&1 || useradd -m -s /bin/bash developer',
+        `mkdir -p ${WORKSPACE} /home/developer/.config`,
+        'chown -R developer:developer /home/developer',
+        // Node 18+ is required by claude-code; install Node 20 from NodeSource if missing/old.
+        'NODE_MAJOR=$(node -v 2>/dev/null | sed "s/v//; s/\\..*//")',
+        'if ! command -v node >/dev/null 2>&1 || [ "${NODE_MAJOR:-0}" -lt 18 ]; then curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null 2>&1 && DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs >/dev/null 2>&1; fi',
+        // Install the Claude Code CLI globally (skip if already present).
+        'command -v claude >/dev/null 2>&1 || npm install -g @anthropic-ai/claude-code >/dev/null 2>&1',
+        'if command -v claude >/dev/null 2>&1; then echo "SETUP_OK node=$(node -v 2>/dev/null) claude=$(claude --version 2>/dev/null | head -c 40)"; else echo "SETUP_FAIL node=$(node -v 2>/dev/null)"; fi',
+    ].join('\n')
+    const cmd = `bash -lc ${shSingleQuote(script)}`
+    const out = (await sshExec(ip, cmd, password || undefined, 240000)).trim()
+    return { ok: /SETUP_OK/.test(out), detail: out.slice(-300) }
 }
 
 function envVarFor(authType: string): string {
@@ -64,6 +92,11 @@ export const devConnect = async (c: Context) => {
         if (!instance) return fail(c, 'Instance not found', 404)
         if (!devAvailable(instance)) return fail(c, 'התכונה אינה זמינה בתוכנית שלכם', 403)
         if (!instance.ip) return fail(c, 'ה-VPS עדיין לא מוכן', 409)
+
+        // Lazily provision the developer user + Claude Code CLI on this VPS
+        // (idempotent; systemic — works for any existing or new VPS).
+        const setup = await ensureDevAgentSetup(instance.ip, instance.rootPassword)
+        if (!setup.ok) return fail(c, `הכנת סביבת המפתח על ה-VPS נכשלה — נסו שוב. (${setup.detail.slice(0, 140)})`, 500)
 
         const body = await c.req.json<{ authType?: string; secret?: string }>().catch(() => ({} as { authType?: string; secret?: string }))
         // 'existing' → reuse the Anthropic key already connected in the AI card
