@@ -98,6 +98,36 @@ export function exportPlanAsManualHtml(args: {
     </section>`
     }).join('')
 
+    // ── Meta / Instagram full-funnel (rendered in Hebrew as a manual brief) ──
+    const metaCampaigns = ((plan as any).metaCampaigns || []) as any[]
+    const metaSection = metaCampaigns.length ? `
+  <h2>📱 Meta / Instagram — משפך מלא (Facebook + Instagram)</h2>
+  <p style="background:#FEF3C7;padding:10px;border-radius:6px">אם חשבון Meta Business עדיין לא מחובר — זהו <strong>בריף ביצוע ידני</strong>: הקימו את הקמפיינים ב-Meta Ads Manager לפי הפירוט (התסריטים מוכנים להפקה), או חברו את Meta תחת "חיבורים" והמערכת תקים אותם אוטומטית (PAUSED).</p>
+  ${metaCampaigns.map((m: any, i: number) => {
+        const tierHe = m.funnelTier === 'awareness' ? 'מודעות (קהל קר)' : m.funnelTier === 'lead_magnet' ? 'מגנט לידים (חימום)' : m.funnelTier === 'retargeting' ? 'ריטרגטינג' : esc(m.funnelTier)
+        const concepts = (m.creativeConcepts || []).map((cc: any) => {
+            const script = (cc.videoScript || []).map((b: string) => `<li>${esc(b)}</li>`).join('')
+            const kindHe = cc.kind === 'offer_product' ? `קריאייטיב הצעה — ${esc(cc.forProduct || 'מוצר')}` : 'קריאייטיב מגנט לידים'
+            return `<div class="ad-group">
+          <h4>${kindHe} · ${esc(cc.format)}</h4>
+          ${cc.hook ? `<p><strong>הוק (0-3 ש'):</strong> ${esc(cc.hook)}</p>` : ''}
+          ${cc.primaryText ? `<p><strong>טקסט ראשי:</strong> ${esc(cc.primaryText)}</p>` : ''}
+          ${cc.headline ? `<p><strong>כותרת:</strong> ${esc(cc.headline)} · <strong>CTA:</strong> ${esc(cc.cta || '')}</p>` : ''}
+          ${cc.leadMagnet ? `<p><strong>מגנט לידים:</strong> ${esc(cc.leadMagnet)}</p>` : ''}
+          ${script ? `<p><strong>תסריט וידאו (Reel):</strong></p><ol>${script}</ol>` : ''}
+        </div>`
+        }).join('')
+        const aud = m.audience ? `<p><strong>קהל:</strong> ${esc(m.audience.type || '')} — ${esc(m.audience.definition || '')}</p>` : ''
+        return `<section class="campaign">
+      <h3>Meta ${i + 1}: ${esc(m.name)} · ${tierHe}</h3>
+      <div class="meta"><span><strong>מטרה:</strong> ${esc(m.objective)}</span> <span><strong>תקציב:</strong> ₪${esc(m.dailyBudgetIls)}/יום</span> <span><strong>אופטימיזציה:</strong> ${esc(m.optimization || 'lowest_cost')}</span> <span><strong>שיוך:</strong> 7d-click/1d-view</span></div>
+      ${aud}
+      ${m.rationale ? `<p class="theme">${esc(m.rationale)}</p>` : ''}
+      ${concepts}
+    </section>`
+    }).join('')}
+` : ''
+
     const lpBlock = lpRecs.length ? `
   <section class="lp-recs">
     <h2>🌐 המלצות לעמודי נחיתה</h2>
@@ -195,8 +225,10 @@ export function exportPlanAsManualHtml(args: {
   ${escalationBlock}
   ${lpBlock}
 
-  <h2>קמפיינים ופירוט מלא</h2>
+  <h2>קמפיינים ופירוט מלא — Google</h2>
   ${campaigns}
+
+  ${metaSection}
 
   <hr>
   <p style="font-size:0.74rem;color:#9CA3AF;text-align:center;margin-top:30px">
