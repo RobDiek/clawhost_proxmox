@@ -260,7 +260,7 @@ function upsertAppMetadata(text: string, title: string, description: string, had
     setField('description', description)
     return text.replace(body, nb)
 }
-async function listAppPages(cfg: GithubCfg): Promise<{ pages: AppPage[]; layout: { title: string | null; description: string | null } | null }> {
+async function listAppPages(cfg: GithubCfg): Promise<{ pages: AppPage[]; layout: { title: string | null; description: string | null; template: string | null } | null }> {
     const tree = await gh(cfg, `/repos/${cfg.repo}/git/trees/${encodeURIComponent(cfg.branch)}?recursive=1`)
     if (!tree.ok) throw new Error(`tree ${tree.status}: ${(await tree.text().catch(() => '')).slice(0, 120)}`)
     const items = ((await tree.json()) as { tree?: Array<{ path?: string; type?: string }> }).tree || []
@@ -280,8 +280,18 @@ async function listAppPages(cfg: GithubCfg): Promise<{ pages: AppPage[]; layout:
         const md = parseAppMetadata(f.text)
         pages.push({ path: p, sha: f.sha, text: f.text, routePath: routeFromPath(p), title: md.title, description: md.description, hasExport: md.hasExport })
     }
-    let layout: { title: string | null; description: string | null } | null = null
-    if (layoutPath) { const lf = await fetchFile(layoutPath); if (lf) { const m = parseAppMetadata(lf.text); layout = { title: m.title, description: m.description } } }
+    let layout: { title: string | null; description: string | null; template: string | null } | null = null
+    if (layoutPath) {
+        const lf = await fetchFile(layoutPath)
+        if (lf) {
+            const m = parseAppMetadata(lf.text)
+            const body = metadataObjectBody(lf.text) || ''
+            const titleObj = (body.match(/title\s*:\s*\{[\s\S]*?\}/) || [''])[0]
+            // template like "%s | Flowmatic" — Next appends it to EVERY page title,
+            // so per-page titles must NOT include the brand suffix (else doubled).
+            layout = { title: m.title, description: m.description, template: tsStringField(titleObj, 'template') }
+        }
+    }
     return { pages, layout }
 }
 
@@ -292,7 +302,7 @@ export async function runNextAppRouterMetaDedup(
     const result: GithubSeoResult = { ok: false, integrationMissing: false, op: 'meta', scanned: 0, candidates: 0, changed: [], proposals: [], failures: [] }
     const cfg = await loadGithubConfig(instanceId, opts.agentId)
     if (!cfg) { result.integrationMissing = true; return result }
-    let scan: { pages: AppPage[]; layout: { title: string | null; description: string | null } | null }
+    let scan: { pages: AppPage[]; layout: { title: string | null; description: string | null; template: string | null } | null }
     try { scan = await listAppPages(cfg) } catch (err) { result.error = (err as Error).message; return result }
     const { pages, layout } = scan
     result.scanned = pages.length
@@ -317,16 +327,26 @@ export async function runNextAppRouterMetaDedup(
 
     const apiKey = await getApiKeyForInstance(instanceId)
     const model = await resolveDirectModel(instanceId, 'yotzer')
-    const businessName = opts.businessName || 'העסק'
+    // Template-awareness: when the layout sets title.template ("%s | Brand"),
+    // Next appends the brand to EVERY page title — so each per-page title must NOT
+    // include it (else "… | Brand | Brand"). Derive the brand, tell the model not
+    // to add it, and strip a trailing brand suffix defensively.
+    const brand = opts.businessName || (layout?.template ? layout.template.replace(/%s/g, '').replace(/[|\-–—]/g, '').trim() : '') || 'Flowmatic'
+    const hasTemplate = !!layout?.template
+    const brandEsc = brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const stripBrand = (t: string) => hasTemplate ? t.replace(new RegExp(`\\s*[|\\-–—]\\s*${brandEsc}\\s*$`, 'i'), '').trim() : t
     const changes: Array<{ path: string; sha: string; content: string }> = []
     for (const p of cands.slice(0, 20)) {
         if (!apiKey) { result.failures.push({ path: p.path, error: 'no API key' }); continue }
         const md = parseAppMetadata(p.text)
         const hint = p.text.replace(/import[^\n]*\n/g, '').replace(/<[^>]+>/g, ' ').replace(/[{}();=]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1200)
-        const prompt = `אתם עורכי SEO מקצועיים. צרו כותרת ותיאור מטא ייחודיים בעברית לעמוד "${p.routePath}" של "${businessName}".\nדרישות: כותרת ≤60 תווים, ייחודית לעמוד הזה בלבד, כוללת את הנושא המרכזי של העמוד + שם המותג. תיאור 140-160 תווים, ייחודי, עם תועלת ו-CTA. אל תחזרו על נוסח של עמודים אחרים.\nJSON בלבד: {"title":"...","description":"..."}\n\nרמז לתוכן העמוד: ${hint}`
+        const brandRule = hasTemplate
+            ? `אל תכללו את שם המותג "${brand}" בכותרת — הוא מתווסף אוטומטית על-ידי תבנית ה-layout (הכללתו תיצור כפל "| ${brand} | ${brand}").`
+            : `כללו את שם המותג בסוף הכותרת.`
+        const prompt = `אתם עורכי SEO מקצועיים. צרו כותרת ותיאור מטא ייחודיים בעברית לעמוד "${p.routePath}" של "${brand}".\nדרישות: כותרת ≤${hasTemplate ? 50 : 60} תווים, ייחודית לעמוד הזה בלבד, כוללת את הנושא המרכזי של העמוד. ${brandRule} תיאור 140-160 תווים, ייחודי, עם תועלת ו-CTA. אל תחזרו על נוסח של עמודים אחרים.\nJSON בלבד: {"title":"...","description":"..."}\n\nרמז לתוכן העמוד: ${hint}`
         const out = await callAnthropic(apiKey, model, prompt, 400)
         const j = extractJson(out) || {}
-        const title = String(j.title || '').trim().slice(0, 70)
+        const title = stripBrand(String(j.title || '').trim()).slice(0, 70)
         const description = String(j.description || '').trim().slice(0, 180)
         if (title.length < 5 || description.length < 60) { result.failures.push({ path: p.path, error: 'generation failed' }); continue }
         const edited = upsertAppMetadata(p.text, title, description, md.hasExport, md.titleIsObject)
