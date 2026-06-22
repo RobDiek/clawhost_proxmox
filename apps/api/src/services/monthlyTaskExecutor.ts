@@ -1077,16 +1077,24 @@ async function runTrackingSetupAdapter(
             // CAMPAIGN-level custom goal, not account flags. So: ensure that goal is
             // correct (re-sync) and SKIP the account-wide reconcile. Only run the
             // reconcile when we CONFIRM the account is single-brand (no siblings).
-            const { ensureCampaignGoalIsolation } = await import('./campaignGoalIsolation')
-            const iso = await ensureCampaignGoalIsolation(agent as never, { source: 'primary_reconcile' })
-            if (iso.reason !== 'no_contamination') {
-                stepResults.push({ step: 'חשבון Ads משותף — בדיקת בטיחות', ok: true, detail: iso.siblingNames.length ? `מותגים נוספים בחשבון: ${iso.siblingNames.join(', ')}` : `סטטוס בידוד: ${iso.status}/${iso.reason}` })
-                stepResults.push({ step: 'מטרת המרה מבודדת ברמת קמפיין', ok: true, detail: `${iso.status}/${iso.reason}${iso.resyncedGoals?.length ? ` · עודכנו ${iso.resyncedGoals.length} מטרות` : ''} — דילוג על reconcile ברמת החשבון` })
-                return {
-                    ok: true,
-                    outputDescription: 'הרכישה מוגדרת כיעד ההמרה הראשי דרך מטרת קמפיין ייעודית (החשבון משותף עם מותגים נוספים). לא בוצע reconcile ברמת החשבון — כך שהאופטימיזציה של המותגים האחרים לא נפגעת, והקמפיינים שלכם מתאמנים רק על פעולת הרכישה שלכם.',
-                    errorCategory: 'completed',
-                    stepResults,
+            // Campaign-goal isolation is agent-sibling-based (it detects OTHER
+            // agents sharing this operating account). Agentless instances have no
+            // agent siblings — their operating account is dedicated — and the gate
+            // reads agent.googleTokens, NPE-ing on a null agent. Skip it for
+            // agentless tenants and fall through to the single-brand reconcile
+            // below (agentless-safe — it uses the already-resolved tokens).
+            if (agent) {
+                const { ensureCampaignGoalIsolation } = await import('./campaignGoalIsolation')
+                const iso = await ensureCampaignGoalIsolation(agent, { source: 'primary_reconcile' })
+                if (iso.reason !== 'no_contamination') {
+                    stepResults.push({ step: 'חשבון Ads משותף — בדיקת בטיחות', ok: true, detail: iso.siblingNames.length ? `מותגים נוספים בחשבון: ${iso.siblingNames.join(', ')}` : `סטטוס בידוד: ${iso.status}/${iso.reason}` })
+                    stepResults.push({ step: 'מטרת המרה מבודדת ברמת קמפיין', ok: true, detail: `${iso.status}/${iso.reason}${iso.resyncedGoals?.length ? ` · עודכנו ${iso.resyncedGoals.length} מטרות` : ''} — דילוג על reconcile ברמת החשבון` })
+                    return {
+                        ok: true,
+                        outputDescription: 'הרכישה מוגדרת כיעד ההמרה הראשי דרך מטרת קמפיין ייעודית (החשבון משותף עם מותגים נוספים). לא בוצע reconcile ברמת החשבון — כך שהאופטימיזציה של המותגים האחרים לא נפגעת, והקמפיינים שלכם מתאמנים רק על פעולת הרכישה שלכם.',
+                        errorCategory: 'completed',
+                        stepResults,
+                    }
                 }
             }
 
