@@ -1123,6 +1123,11 @@ async function runTrackingSetupAdapter(
             let ga4Demoted = 0
             const ga4Failures: Array<{ name: string; reason: string }> = []
             const codelessAction: Array<{ name: string; resourceName: string; category: string }> = []
+            // Google-managed/system conversion actions (auto-created by Smart/Local
+            // campaigns) reject mutates by design — "Mutates are not allowed for the
+            // requested resource". Same class as codeless: a known Google limit, not
+            // a real failure. Tracked separately so they don't fail the task.
+            const googleManaged: Array<{ name: string; category: string; type: string; error: string }> = []
             const otherReadOnly: Array<{ name: string; category: string; type: string; error: string }> = []
 
             if (report.failed.length > 0) {
@@ -1134,6 +1139,8 @@ async function runTrackingSetupAdapter(
                     if (ga4Eligible.includes(f)) continue
                     if (f.type === 'WEBPAGE_CODELESS') {
                         codelessAction.push({ name: f.name, resourceName: f.resourceName, category: f.category })
+                    } else if (/not allowed for the requested resource|mutates are not allowed/i.test(f.error || '')) {
+                        googleManaged.push({ name: f.name, category: f.category, type: f.type, error: f.error })
                     } else {
                         otherReadOnly.push({ name: f.name, category: f.category, type: f.type, error: f.error })
                     }
@@ -1193,6 +1200,13 @@ async function runTrackingSetupAdapter(
                     })
                 }
 
+                if (googleManaged.length > 0) {
+                    stepResults.push({
+                        step: 'פעולות המרה מנוהלות-Google (Smart/Local) — לא ניתנות לשינוי ב-API',
+                        ok: true,
+                        detail: `${googleManaged.length} פעולות נוצרו אוטומטית ע"י קמפיינים Smart/Local ישנים ולא ניתנות להורדה ל-Secondary דרך API (מגבלת Google). אינן משפיעות על המכרז של קמפייני החיפוש שלכם (היעד מוגדר ברמת הקמפיין): ${googleManaged.map(f => f.name).join(', ').slice(0, 300)}`,
+                    })
+                }
                 if (otherReadOnly.length > 0) {
                     stepResults.push({
                         step: 'Other read-only actions — manual review',
@@ -1210,11 +1224,14 @@ async function runTrackingSetupAdapter(
             //       requiring manual UI step), OR
             //   (c) progress was made AND only remaining failures are codeless.
             const totalApplied = report.promoted.length + report.demoted.length + ga4Demoted
+            // "Real" failures are otherReadOnly + ga4Failures. Codeless and
+            // Google-managed (Smart/Local) actions are known Google API limits —
+            // they don't fail the task.
             const onlyCodelessRemains = otherReadOnly.length === 0 && ga4Failures.length === 0
             const alreadyDone = totalApplied === 0
                 && report.unchanged.length > 0
                 && onlyCodelessRemains
-                && codelessAction.length === report.failed.length
+                && (codelessAction.length + googleManaged.length) === report.failed.length
             const overallOk = totalApplied > 0 || alreadyDone
 
             const manualCount = codelessAction.length + otherReadOnly.length + ga4Failures.length
