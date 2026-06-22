@@ -154,7 +154,9 @@ export async function createCampaign(
         const budgetRes = await adsApiCall('POST', 'campaignBudgets:mutate', customerId, tokens, {
             operations: [{
                 create: {
-                    name: `Budget — ${plan.campaignName}`,
+                    // Unique suffix — Ads rejects duplicate budget names, so a
+                    // retry after a partial failure would 400 on the collision.
+                    name: `Budget — ${plan.campaignName} — ${Date.now().toString(36)}`,
                     amountMicros: String(Math.round(plan.dailyBudget * 1_000_000)), // micros
                     deliveryMethod: 'STANDARD',
                 }
