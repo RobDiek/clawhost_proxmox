@@ -1137,9 +1137,15 @@ async function runTrackingSetupAdapter(
                 )
                 for (const f of report.failed) {
                     if (ga4Eligible.includes(f)) continue
+                    // Google-managed/system conversion actions are immutable by
+                    // design — identify by TYPE (Smart-campaign auto actions,
+                    // Google-hosted/Local actions, app/Firebase) or the canonical
+                    // immutability errors. These are known limits, not failures.
+                    const isGoogleManaged = /^(SMART_CAMPAIGN_|GOOGLE_HOSTED|FIREBASE|THIRD_PARTY_APP|ANDROID_|IOS_)/.test(f.type || '')
+                        || /IMMUTABLE_FIELD|MUTATE_NOT_ALLOWED|not allowed for the requested resource|mutates are not allowed/i.test(f.error || '')
                     if (f.type === 'WEBPAGE_CODELESS') {
                         codelessAction.push({ name: f.name, resourceName: f.resourceName, category: f.category })
-                    } else if (/not allowed for the requested resource|mutates are not allowed/i.test(f.error || '')) {
+                    } else if (isGoogleManaged) {
                         googleManaged.push({ name: f.name, category: f.category, type: f.type, error: f.error })
                     } else {
                         otherReadOnly.push({ name: f.name, category: f.category, type: f.type, error: f.error })
