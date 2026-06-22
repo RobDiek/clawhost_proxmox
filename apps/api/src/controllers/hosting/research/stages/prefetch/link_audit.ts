@@ -59,8 +59,9 @@ export interface OurDeepLinks {
         spam_score?: number | null
         /** Estimated IL organic traffic/mo — a dead site passes ~no authority. */
         organic_traffic_mo?: number | null
-        /** ok = worth pursuing; spammy/dead = drop from paid outreach. */
-        _quality?: 'ok' | 'spammy' | 'dead'
+        /** ok = pursue; risky (spam 30-49) = keep but flag for human judgment;
+         *  spammy (toxic ≥50) / dead = drop from paid outreach. */
+        _quality?: 'ok' | 'risky' | 'spammy' | 'dead'
         /** Outreach contacts (best-effort scrape) — makes the task actionable. */
         contact_email?: string
         contact_phone?: string
@@ -251,13 +252,18 @@ export async function prefetchLinkAudit(
                     const tr = trafMap[p.domain]
                     p.spam_score = sp ?? null
                     p.organic_traffic_mo = tr != null ? Math.round(tr) : null
-                    p._quality = (sp != null && sp >= 30) ? 'spammy'
+                    // Toxic (≥50) and dead (no traffic + DR<15) → drop from paid
+                    // outreach. Risky (30-49) → keep but flag for human judgment
+                    // (matches the toxic-vs-risky vendor-audit gradation).
+                    p._quality = (sp != null && sp >= 50) ? 'spammy'
                         : (tr != null && tr < 100 && (p.rank || 0) < 150) ? 'dead'
+                        : (sp != null && sp >= 30) ? 'risky'
                         : 'ok'
                 }
-                // Contact-scrape the strongest 'ok' prospects (bounded).
+                // Contact-scrape the strongest kept prospects (ok + risky — both
+                // stay in the plan; toxic/dead are dropped so skip them). Bounded.
                 const okTop = ours.linkGapProspects
-                    .filter(p => p._quality === 'ok')
+                    .filter(p => p._quality === 'ok' || p._quality === 'risky')
                     .sort((a, b) => (b.competitorsLinking - a.competitorsLinking) || (b.rank - a.rank))
                     .slice(0, 12)
                 for (let i = 0; i < okTop.length; i += 6) {

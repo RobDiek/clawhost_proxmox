@@ -54,7 +54,7 @@ interface LinkProspect extends DfsRefDomain {
     competitorsLinking?: number
     spam_score?: number | null
     organic_traffic_mo?: number | null
-    _quality?: 'ok' | 'spammy' | 'dead'
+    _quality?: 'ok' | 'risky' | 'spammy' | 'dead'
     contact_email?: string
     contact_phone?: string
     contact_page?: string
@@ -114,6 +114,7 @@ export interface AugmentedLinkRecord extends RawLinkRecord {
     contact_page?: string
     penalty_risk?: boolean                // true on the anchor_remediation record when
                                           // current exact-match share is dangerously high
+    link_risk?: 'risky_spam'              // prospect spam 30-49 — kept, flagged for human
 }
 
 export interface LinkStrategySummary {
@@ -300,6 +301,7 @@ export function augmentLinkAuditRecords(
             contact_email: prospect?.contact_email || undefined,
             contact_phone: prospect?.contact_phone || undefined,
             contact_page: prospect?.contact_page || undefined,
+            ...(prospect?._quality === 'risky' ? { link_risk: 'risky_spam' as const } : {}),
             ...(severeOverOpt && isAnchorRemediation ? { penalty_risk: true, priority: 'high' } : {}),
         }
     })
