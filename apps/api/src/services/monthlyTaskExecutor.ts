@@ -1028,11 +1028,14 @@ async function runTrackingSetupAdapter(
             // Infer desired primary category from task text.
             // For Packing Station: רכישה → PURCHASE. For a SaaS lead: → LEAD/SUBMIT_LEAD_FORM.
             // Defaults to PURCHASE which matches the most common eCom playbook.
-            const desiredCategory: 'PURCHASE' | 'LEAD' | 'SUBMIT_LEAD_FORM' | 'PHONE_CALL_LEAD' | 'QUALIFIED_LEAD' =
+            // Google Ads API v22 has no plain 'LEAD' ConversionActionCategory — the
+            // canonical generic lead category is SUBMIT_LEAD_FORM. Using 'LEAD'
+            // 400s on conversionActions:mutate (broke every greenfield lead tenant).
+            const desiredCategory: 'PURCHASE' | 'SUBMIT_LEAD_FORM' | 'PHONE_CALL_LEAD' | 'QUALIFIED_LEAD' =
                 /רכישה|purchase|order|הזמנה/i.test(text) ? 'PURCHASE'
                 : /טופס|form/i.test(text) ? 'SUBMIT_LEAD_FORM'
                 : /qualified|מוסמך/i.test(text) ? 'QUALIFIED_LEAD'
-                : 'LEAD'
+                : 'SUBMIT_LEAD_FORM'
 
             const { listConversionActions, ensureConversionAction, reconcilePrimaryConversionActions } =
                 await import('./mazhirConversions')

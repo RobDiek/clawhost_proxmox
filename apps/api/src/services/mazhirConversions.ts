@@ -123,7 +123,7 @@ interface ActionMeta {
 
 const ACTION_META: Record<PrimaryActionKey, ActionMeta> = {
     form_submit:        { category: 'SUBMIT_LEAD_FORM', type: 'WEBPAGE',       countingType: 'ONE_PER_CLICK',  clickThroughDays: 30, viewThroughDays: 1, primaryForGoal: true },
-    generate_lead:      { category: 'LEAD',             type: 'WEBPAGE',       countingType: 'ONE_PER_CLICK',  clickThroughDays: 30, viewThroughDays: 1, primaryForGoal: true },
+    generate_lead:      { category: 'SUBMIT_LEAD_FORM', type: 'WEBPAGE',       countingType: 'ONE_PER_CLICK',  clickThroughDays: 30, viewThroughDays: 1, primaryForGoal: true },
     phone_call:         { category: 'PHONE_CALL_LEAD',  type: 'WEBPAGE',       countingType: 'ONE_PER_CLICK',  clickThroughDays: 30, viewThroughDays: 1, primaryForGoal: true },
     phone_call_offline: { category: 'PHONE_CALL_LEAD',  type: 'UPLOAD_CALLS',  countingType: 'ONE_PER_CLICK',  clickThroughDays: 30, viewThroughDays: 1, primaryForGoal: true },
     purchase:           { category: 'PURCHASE',         type: 'WEBPAGE',       countingType: 'MANY_PER_CLICK', clickThroughDays: 30, viewThroughDays: 1, primaryForGoal: true },
