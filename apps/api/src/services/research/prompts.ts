@@ -3747,6 +3747,12 @@ const IL_KEYWORD_SIGNALS = `**IL-specific keyword risks**:
 - **Voice search**: longer queries (5+ words, question marks) trend mobile and are often discovery — TOFU/MOFU bias.
 - **Avoid Israel-specific dirt**: Hebrew transliterations of English brands ("גוגל אדס") tend to be navigational, not commercial. Don't bid unless our service IS Google Ads management.`
 
+const KEYWORD_RELEVANCE_FILTER = `**מסנן רלוונטיות (חובה)** — the DFS landscape is an automated expansion and routinely leaks keywords from UNRELATED verticals (hardware, networking, generic tech, other industries' jargon) that merely share a token with a seed. Every keyword placed in ANY ad group MUST plausibly be searched by someone looking for THIS business's offering (see "תיאור העסק" above).
+- DROP any keyword unrelated to the offering — do NOT place it in an ad group. Example: for a marketing-automation SaaS, "access point מחיר", "ip קבוע", "router", "מודם", "salesforce login" are OFF-TARGET → drop entirely.
+- If an off-target term is a genuine confusion/waste risk (clickers who will never convert), add it to negative_keywords instead of an ad group.
+- Each kept keyword's why_chosen_he MUST state the concrete link to the offering. "shares a word with the seed" is NOT relevance.
+- When unsure, EXCLUDE. A tight relevant set beats a broad noisy one (Quality Score + wasted spend).`
+
 export function buildPaidKeywordResearchPrompt(opts: PromptOpts): PromptResult {
     const { businessName, businessDesc, answers, feedback, historicalAssetsBlock, rd } = opts
     const haBlock = historicalAssetsBlock || ''
@@ -3806,6 +3812,8 @@ ${KEYWORD_TIER_DISCIPLINE}
 ${SERP_AD_DENSITY_RULE}
 
 ${IL_KEYWORD_SIGNALS}
+
+${KEYWORD_RELEVANCE_FILTER}
 
 ${CONFIDENCE_INTEGRITY_RULE}
 
