@@ -8971,11 +8971,12 @@ export const postAgentChat = async (c: Context) => {
         if (!message) return fail(c, 'הודעה ריקה', 400)
         const { readResearchDataForActive } = await import('@/services/agentContext')
         const { agent } = await readResearchDataForActive(c, instanceId)
-        if (!agent) return fail(c, 'לא נמצא סוכן פעיל', 404)
         const { generateAgentReply } = await import('@/services/telegramAgentChat')
         // Share the Telegram conversation when present → one unified conversation.
-        const chatKey = (agent as any).telegramChatId || 'web'
-        const r = await generateAgentReply({ agent: agent as any, instanceId, text: message, chatKey })
+        // agent may be null (agentless instances like Flow) — generateAgentReply
+        // falls back to instance-level key + research_data.
+        const chatKey = (agent as any)?.telegramChatId || 'web'
+        const r = await generateAgentReply({ agent: (agent as any) || null, instanceId, text: message, chatKey })
         if (!r.ok || !r.reply) {
             const msg = r.error === 'no_key'
                 ? 'כדי לשוחח עם הסוכן יש לחבר מפתח Anthropic בכרטיס ה-AI.'

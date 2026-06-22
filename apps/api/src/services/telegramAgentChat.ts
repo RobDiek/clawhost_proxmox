@@ -12,9 +12,9 @@
  * (Telegram needs a fast ack) and this runs async, sending the reply when ready.
  */
 import { db } from '@/db'
-import { agentOutputs } from '@/db/schema'
+import { agentOutputs, instances } from '@/db/schema'
 import { eq, desc } from 'drizzle-orm'
-import { mutateResearchData, type MatehAgentRow } from '@/services/agentContext'
+import { mutateResearchData, readResearchData, type MatehAgentRow } from '@/services/agentContext'
 
 const CHAT_MODEL = 'claude-sonnet-4-6'
 const MAX_TURNS = 12   // keep last N exchanges per chat
@@ -106,22 +106,33 @@ export async function generateAgentReply(opts: {
     chatKey: string
 }): Promise<{ ok: boolean; reply?: string; error?: string }> {
     const { agent, instanceId, text, chatKey } = opts
-    if (!agent) return { ok: false, error: 'no_agent' }
-    const apiKey = agent.aiProviderKey
+    // Agentless-safe: Flow & platform-owned agents have no mateh_agent row — the
+    // AI key + research_data live at instance level. Resolve from agent OR instance.
+    let apiKey = agent?.aiProviderKey || null
+    let aiType = agent?.aiProviderType || null
+    let brandSlug = agent?.brandSlug || null
+    if (!apiKey) {
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (inst) {
+            apiKey = (inst as any).aiProviderKey || null
+            aiType = aiType || (inst as any).aiProviderType || null
+            brandSlug = brandSlug || (inst as any).subdomainAgent || null
+        }
+    }
     // Anthropic-only for now (the recommended + default provider).
-    if (!apiKey || (agent.aiProviderType && agent.aiProviderType !== 'anthropic')) {
+    if (!apiKey || (aiType && aiType !== 'anthropic')) {
         return { ok: false, error: 'no_key' }
     }
     try {
-        const rd: any = (agent.researchData as any) || {}
-        const businessName = rd.answers?.businessName || agent.brandSlug || 'העסק'
+        const rd: any = (await readResearchData(agent, instanceId)) || {}
+        const businessName = rd.answers?.businessName || brandSlug || 'העסק'
 
         // Recent activity (last 3 outputs) for situational awareness.
         let recent: Array<{ title: string | null; outputType: string | null; status: string | null }> = []
         try {
             recent = await db.select({ title: agentOutputs.title, outputType: agentOutputs.outputType, status: agentOutputs.status })
                 .from(agentOutputs)
-                .where(eq(agentOutputs.agentId, agent.id))
+                .where(agent ? eq(agentOutputs.agentId, agent.id) : eq(agentOutputs.instanceId, instanceId))
                 .orderBy(desc(agentOutputs.createdAt))
                 .limit(3) as any
         } catch { /* non-fatal */ }
@@ -149,7 +160,7 @@ ${context}`
             signal: AbortSignal.timeout(60000),
         })
         if (!res.ok) {
-            console.warn(`[agentChat] ${agent.id} anthropic ${res.status}`)
+            console.warn(`[agentChat] ${agent?.id || instanceId} anthropic ${res.status}`)
             return { ok: false, error: 'anthropic_' + res.status }
         }
         const data = await res.json() as { content?: Array<{ type?: string; text?: string }> }
@@ -158,8 +169,8 @@ ${context}`
 
         // Mirror both turns into the in-app feed.
         const { recordAgentChatFeed } = await import('@/services/agentChatFeed')
-        await recordAgentChatFeed(instanceId, agent.id, text, { kind: 'agent', direction: 'in' })
-        await recordAgentChatFeed(instanceId, agent.id, reply, { kind: 'agent', direction: 'out' })
+        await recordAgentChatFeed(instanceId, agent?.id || null, text, { kind: 'agent', direction: 'in' })
+        await recordAgentChatFeed(instanceId, agent?.id || null, reply, { kind: 'agent', direction: 'out' })
 
         // Persist conversation history (dual-write safe) under the shared key.
         await mutateResearchData(agent, instanceId, (rr: any) => {
@@ -172,7 +183,7 @@ ${context}`
         })
         return { ok: true, reply }
     } catch (err) {
-        console.warn(`[agentChat] ${agent.id} error:`, (err as Error).message)
+        console.warn(`[agentChat] ${agent?.id || instanceId} error:`, (err as Error).message)
         return { ok: false, error: (err as Error).message }
     }
 }
