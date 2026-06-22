@@ -114,7 +114,8 @@ export interface AugmentedLinkRecord extends RawLinkRecord {
     contact_page?: string
     penalty_risk?: boolean                // true on the anchor_remediation record when
                                           // current exact-match share is dangerously high
-    link_risk?: 'risky_spam'              // prospect spam 30-49 — kept, flagged for human
+    link_risk?: 'risky_spam' | 'low_traffic'  // kept-but-flagged: spam 30-49, or
+                                          // low-traffic small site — human decides
 }
 
 export interface LinkStrategySummary {
@@ -187,16 +188,19 @@ export function augmentLinkAuditRecords(
     const droppedJunk: string[] = []
     const records = inputRecords.filter((r) => {
         const p = prospectMap.get(normDomain(r.domain))
-        // Only drop link-gap prospects we positively qualified as junk; never
+        // Hard-drop ONLY toxic (spam ≥50) link-gap prospects. Low-traffic "dead"
+        // and risky (30-49) domains are KEPT with a flag — in the IL market small
+        // low-traffic sites are routinely used for link placement and do move the
+        // needle (Sergei's call), so the human decides, not an auto-filter. Never
         // drop lost-link recovery / anchor remediation / un-enriched tier-1.
-        if (p && (p._quality === 'spammy' || p._quality === 'dead') && String(r.type || '') === 'link_gap_outreach') {
-            droppedJunk.push(`${normDomain(r.domain)} (${p._quality}, spam ${p.spam_score ?? '?'})`)
+        if (p && p._quality === 'spammy' && String(r.type || '') === 'link_gap_outreach') {
+            droppedJunk.push(`${normDomain(r.domain)} (toxic, spam ${p.spam_score ?? '?'})`)
             return false
         }
         return true
     })
     if (droppedJunk.length > 0) {
-        warnings.push(`dropped ${droppedJunk.length} spammy/dead link-gap prospect(s) from paid outreach: ${droppedJunk.slice(0, 8).join(', ')}`)
+        warnings.push(`dropped ${droppedJunk.length} toxic (spam≥50) link-gap prospect(s) from paid outreach: ${droppedJunk.slice(0, 8).join(', ')}`)
     }
 
     // 1) Build a domain → DFS rank map from every available source.
@@ -301,7 +305,8 @@ export function augmentLinkAuditRecords(
             contact_email: prospect?.contact_email || undefined,
             contact_phone: prospect?.contact_phone || undefined,
             contact_page: prospect?.contact_page || undefined,
-            ...(prospect?._quality === 'risky' ? { link_risk: 'risky_spam' as const } : {}),
+            ...(prospect?._quality === 'risky' ? { link_risk: 'risky_spam' as const }
+                : prospect?._quality === 'dead' ? { link_risk: 'low_traffic' as const } : {}),
             ...(severeOverOpt && isAnchorRemediation ? { penalty_risk: true, priority: 'high' } : {}),
         }
     })

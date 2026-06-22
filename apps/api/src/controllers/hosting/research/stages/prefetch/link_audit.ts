@@ -252,18 +252,20 @@ export async function prefetchLinkAudit(
                     const tr = trafMap[p.domain]
                     p.spam_score = sp ?? null
                     p.organic_traffic_mo = tr != null ? Math.round(tr) : null
-                    // Toxic (≥50) and dead (no traffic + DR<15) → drop from paid
-                    // outreach. Risky (30-49) → keep but flag for human judgment
-                    // (matches the toxic-vs-risky vendor-audit gradation).
+                    // Only toxic (spam ≥50) is dropped downstream. Dead (low
+                    // traffic + DR<15) and risky (30-49) are KEPT but flagged —
+                    // IL low-traffic small sites are routinely used and do work,
+                    // so the human decides, not an auto-filter.
                     p._quality = (sp != null && sp >= 50) ? 'spammy'
                         : (tr != null && tr < 100 && (p.rank || 0) < 150) ? 'dead'
                         : (sp != null && sp >= 30) ? 'risky'
                         : 'ok'
                 }
-                // Contact-scrape the strongest kept prospects (ok + risky — both
-                // stay in the plan; toxic/dead are dropped so skip them). Bounded.
+                // Contact-scrape the strongest KEPT prospects — everything except
+                // toxic (spam≥50). In the IL market low-traffic small sites are
+                // routinely used and kept (flagged), so they need contacts too.
                 const okTop = ours.linkGapProspects
-                    .filter(p => p._quality === 'ok' || p._quality === 'risky')
+                    .filter(p => p._quality !== 'spammy')
                     .sort((a, b) => (b.competitorsLinking - a.competitorsLinking) || (b.rank - a.rank))
                     .slice(0, 12)
                 for (let i = 0; i < okTop.length; i += 6) {
