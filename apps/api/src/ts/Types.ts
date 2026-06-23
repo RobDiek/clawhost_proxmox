@@ -1,7 +1,7 @@
 import type { Context } from 'hono'
 import type { billingInterval, userRole } from '@openclaw/shared'
 
-export type ProviderType = 'hetzner' | 'digitalocean' | 'vultr'
+export type ProviderType = 'hetzner' | 'digitalocean' | 'vultr' | 'proxmox'
 
 export type HonoEnv = { Variables: { userId: string; isAdmin: boolean } }
 
