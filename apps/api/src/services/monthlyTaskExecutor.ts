@@ -1879,8 +1879,11 @@ async function runGithubSeoFallback(
     task: MonthlyTask, plan: MonthlyMarketingPlan, agent: { id?: string } | null,
     extra: { targetWords?: number } = {},
 ): Promise<ExecutorResult | null> {
-    const { loadGithubConfig, runSeoGithubBatch } = await import('./seoGithubBatch')
+    const { loadGithubConfig, runSeoGithubBatch, hasAppRouterPages } = await import('./seoGithubBatch')
     if (!(await loadGithubConfig(instanceId, agent?.id))) return null
+    // App Router sites: the markdown-only ops (all except 'meta', which is App
+    // Router-aware) cannot see app/**/page.tsx — used for an honest verdict below.
+    const appRouter = op !== 'meta' ? await hasAppRouterPages(instanceId, agent?.id) : false
 
     let businessName: string | undefined
     try {
@@ -1930,6 +1933,16 @@ async function runGithubSeoFallback(
         ...res.failures.map(f => ({ step: f.path, ok: false, detail: f.error })),
     ]
     if (res.candidates === 0 || (res.changed.length === 0 && res.failures.length === 0)) {
+        // Honesty guard (#4): on a Next.js App Router site a markdown no-op means
+        // "app/ pages not covered by this op", NOT "already optimal" — never claim
+        // completed; surface for review (catches the image_seo false-success class).
+        if (appRouter) {
+            return {
+                ok: true, awaitingManual: true, errorCategory: 'awaiting_user_action',
+                outputDescription: `נסרקו ${res.scanned} קבצי markdown ללא צורך בעדכון — אך האתר בנוי ב-Next.js App Router (app/*), ואופרציית ${opHe[op]} עדיין לא מכסה דפי app/ אוטומטית. נדרשת בדיקה/ביצוע ידני לדפי האפליקציה.`,
+                stepResults,
+            }
+        }
         return { ok: true, outputDescription: `כל ${res.scanned} הקבצים ב-GitHub כבר כוללים ${opHe[op]} — אין מה לעדכן.`, errorCategory: 'completed_idempotent_noop', stepResults }
     }
     if (res.changed.length === 0) {
@@ -1937,7 +1950,7 @@ async function runGithubSeoFallback(
     }
     return {
         ok: true,
-        outputDescription: `נוצר Pull Request ב-GitHub עם ${opHe[op]} ל-${res.changed.length} קבצים${res.prUrl ? `:\n${res.prUrl}` : ''}\n\n⚠️ סקרו ומזגו את ה-PR כדי להחיל את השינויים.`,
+        outputDescription: `נוצר Pull Request ב-GitHub עם ${opHe[op]} ל-${res.changed.length} קבצים${res.prUrl ? `:\n${res.prUrl}` : ''}${appRouter ? '\n\nℹ️ הערה: דפי ה-Next.js App Router (app/*) אינם מכוסים על-ידי אופרציה זו — רק קבצי markdown.' : ''}\n\n⚠️ סקרו ומזגו את ה-PR כדי להחיל את השינויים.`,
         errorCategory: 'completed', stepResults,
     }
 }

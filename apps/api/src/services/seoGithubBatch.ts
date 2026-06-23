@@ -90,6 +90,20 @@ export async function loadGithubConfig(instanceId: string, agentId?: string | nu
     return { token: cfg.token, repo: cfg.repo, branch: cfg.branch || 'main', contentPath: (cfg.contentPath || 'content').replace(/^\/+|\/+$/g, '') }
 }
 
+// True if the repo is a Next.js App Router site (has app/**/page.tsx). The
+// markdown-only SEO ops can't see these pages, so a "0 candidates" there is "not
+// covered", NOT "already optimal" — callers use this for an honest verdict.
+export async function hasAppRouterPages(instanceId: string, agentId?: string | null): Promise<boolean> {
+    const cfg = await loadGithubConfig(instanceId, agentId)
+    if (!cfg) return false
+    try {
+        const tree = await gh(cfg, `/repos/${cfg.repo}/git/trees/${encodeURIComponent(cfg.branch)}?recursive=1`)
+        if (!tree.ok) return false
+        const items = ((await tree.json()) as { tree?: Array<{ path?: string }> }).tree || []
+        return items.some(t => !!t.path && /^app\/.*page\.(tsx|jsx|ts|js)$/.test(t.path))
+    } catch { return false }
+}
+
 // ─── frontmatter (append-only; never rewrite existing YAML) ──────────────────
 function splitFrontmatter(text: string): { fm: string; body: string; hasFm: boolean } {
     const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/)
