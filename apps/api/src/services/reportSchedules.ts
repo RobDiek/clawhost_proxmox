@@ -171,10 +171,10 @@ export async function applyReportSchedules(
     const namesArg = touchedNames.join(' ')
     const purge =
         `IDS=$(openclaw cron list --json 2>/dev/null | python3 -c "import sys,json; ` +
-        `d=json.load(sys.stdin); items=d if isinstance(d,list) else d.get('crons',d.get('items',[])); ` +
+        `d=json.load(sys.stdin); items=d.get('jobs', d if isinstance(d,list) else []); ` +
         `names=set('${namesArg}'.split()); ` +
         `print(' '.join(x.get('id','') for x in items if x.get('name') in names))" 2>/dev/null)\n` +
-        `for cid in $IDS; do openclaw cron remove "$cid" 2>/dev/null; done`
+        `for cid in $IDS; do openclaw cron rm "$cid" 2>/dev/null; done`
 
     const script = ['#!/bin/bash', 'set +e', purge, ...addBlocks].join('\n')
     const b64 = Buffer.from(script).toString('base64')
