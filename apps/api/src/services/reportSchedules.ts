@@ -139,16 +139,14 @@ export async function applyReportSchedules(
 ): Promise<{ applied: string[]; removed: string[] }> {
     const applied: string[] = []
     const removed: string[] = []
-    const lines: string[] = ['#!/bin/bash', 'set +e']
+    const touchedNames: string[] = []   // every name we re-issue → purge first
+    const addBlocks: string[] = []
 
     for (const def of REPORT_CRONS) {
         const bundle = (allSchedules?.[def.bundleId] as Record<string, ReportScheduleCfg> | undefined) || {}
         const cfg = bundle[def.scheduleKey]
         if (!cfg) continue // not configured this save → leave as-is
-
-        // Always delete the existing cron of this name first (so timing edits
-        // replace rather than duplicate).
-        lines.push(`openclaw cron delete --name "${def.cronName}" --force 2>/dev/null`)
+        touchedNames.push(def.cronName)
 
         if (cfg.enabled === false) { removed.push(def.cronName); continue }
 
@@ -157,21 +155,30 @@ export async function applyReportSchedules(
 
         // Hebrew message via heredoc env var (safe for quotes/specials).
         const tag = `MSG_${def.cronName.replace(/[^A-Za-z0-9]/g, '_').toUpperCase()}`
-        lines.push(
-            `${tag}=$(cat <<'CLAWEOF_${def.cronName}'`,
-            def.message,
-            `CLAWEOF_${def.cronName}`,
-            `)`,
+        addBlocks.push(
+            `${tag}=$(cat <<'CLAWEOF_${def.cronName}'\n${def.message}\nCLAWEOF_${def.cronName}\n)`,
             `openclaw cron add --name "${def.cronName}" --description "${def.description}" --cron "${expr}" --tz "Asia/Jerusalem" --model "${def.model}" --message "$${tag}" --session isolated 2>&1 | head -2`,
         )
         applied.push(`${def.cronName}:${expr}`)
     }
 
-    if (applied.length === 0 && removed.length === 0) return { applied, removed }
+    if (touchedNames.length === 0) return { applied, removed }
 
-    const script = lines.join('\n')
+    // `openclaw cron delete --name` is unreliable (leaves duplicates); remove by
+    // ID instead. List once, take the IDs whose name we're re-issuing, remove
+    // each, THEN add — so an edit REPLACES (never duplicates) the cron, and any
+    // duplicates from earlier buggy runs get cleaned up too.
+    const namesArg = touchedNames.join(' ')
+    const purge =
+        `IDS=$(openclaw cron list --json 2>/dev/null | python3 -c "import sys,json; ` +
+        `d=json.load(sys.stdin); items=d if isinstance(d,list) else d.get('crons',d.get('items',[])); ` +
+        `names=set('${namesArg}'.split()); ` +
+        `print(' '.join(x.get('id','') for x in items if x.get('name') in names))" 2>/dev/null)\n` +
+        `for cid in $IDS; do openclaw cron remove "$cid" 2>/dev/null; done`
+
+    const script = ['#!/bin/bash', 'set +e', purge, ...addBlocks].join('\n')
     const b64 = Buffer.from(script).toString('base64')
     // Run as the openclaw user (crons live in its home).
-    await exec(`echo '${b64}' | base64 -d > /tmp/_report_sched.sh && chmod +x /tmp/_report_sched.sh && chown openclaw:openclaw /tmp/_report_sched.sh && su - openclaw -c 'bash /tmp/_report_sched.sh' 2>&1 | tail -6; rm -f /tmp/_report_sched.sh`)
+    await exec(`echo '${b64}' | base64 -d > /tmp/_report_sched.sh && chmod +x /tmp/_report_sched.sh && chown openclaw:openclaw /tmp/_report_sched.sh && su - openclaw -c 'bash /tmp/_report_sched.sh' 2>&1 | tail -8; rm -f /tmp/_report_sched.sh`)
     return { applied, removed }
 }
