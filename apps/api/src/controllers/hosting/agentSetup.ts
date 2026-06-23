@@ -653,15 +653,23 @@ async function activateAgentCrons(
     // to a temp script file via base64 and execute as openclaw user.
     const activated: string[] = []
     const skipped: string[] = []
+    // Single source for the 3 user-facing report messages (goal-vs-actual +
+    // 3 actions w/ owner+due) — keep onboarding consistent with edit-time
+    // re-issue in services/reportSchedules.ts.
+    const { REPORT_CRONS } = await import('@/services/reportSchedules')
+    const reportMsgByCron: Record<string, string> = {}
+    for (const r of REPORT_CRONS) reportMsgByCron[r.cronName] = r.message
+
     const cmdLines: string[] = ['#!/bin/bash', 'set +e']
     for (const def of MATEH_AGENT_CRONS) {
         const cadenceStr = (roster && roster[def.agentId]?.cadence) || def.defaultCadence
         const cronExpr = cadenceToCron(cadenceStr)
         if (!cronExpr) { skipped.push(def.agentId); continue }
+        const message = reportMsgByCron[def.name] || def.message
         // Write message to stdin via here-doc-free approach: use env var
         cmdLines.push(
             `MSG_${def.agentId.toUpperCase()}=$(cat <<'CLAWMSG_${def.agentId}'`,
-            def.message,
+            message,
             `CLAWMSG_${def.agentId}`,
             `)`,
             `openclaw cron add --name "${def.name}" --description "${def.description}" --cron "${cronExpr}" --tz "Asia/Jerusalem" --model "${def.model}" --message "$MSG_${def.agentId.toUpperCase()}" --session isolated 2>&1 | head -3`

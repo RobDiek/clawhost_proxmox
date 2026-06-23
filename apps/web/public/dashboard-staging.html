@@ -30141,22 +30141,72 @@ async function saveToolProfile() {
   }
 }
 
-function saveSchedule(type) {
+async function saveSchedule(type) {
+  if (!instanceId) { showToast('אין סוכן פעיל', 'error'); return; }
+  var bundleId, schedules, label;
   if (type === 'daily') {
     var time = document.getElementById('sched-daily-time').value;
-    var days = Array.from(document.querySelectorAll('input[name="sched-daily-day"]:checked')).map(function(el) { return el.value; });
-    showToast('דו״ח יומי: ' + time + ' בימים ' + days.join(','), 'success');
+    var days = Array.from(document.querySelectorAll('input[name="sched-daily-day"]:checked')).map(function(el) { return parseInt(el.value); });
+    bundleId = 'core';
+    schedules = { daily_brief: { enabled: true, time: time, days: days } };
+    label = 'דו״ח יומי';
   } else if (type === 'weekly') {
     var time = document.getElementById('sched-weekly-time').value;
-    var day = document.getElementById('sched-weekly-day').value;
-    var dayNames = ['ראשון','שני','שלישי','רביעי','חמישי'];
-    showToast('דוח שבועי: יום ' + dayNames[day] + ' ב-' + time, 'success');
+    var weekday = parseInt(document.getElementById('sched-weekly-day').value);
+    bundleId = 'core';
+    schedules = { weekly_competitive: { enabled: true, time: time, weekday: weekday } };
+    label = 'דוח תחרותי שבועי';
   } else if (type === 'monthly') {
-    var day = document.getElementById('sched-monthly-day').value;
+    var monthday = parseInt(document.getElementById('sched-monthly-day').value);
     var time = document.getElementById('sched-monthly-time').value;
-    showToast('ביקורת AEO: ' + day + ' לחודש ב-' + time, 'success');
-  }
-  // TODO: update cron jobs on VPS via API
+    bundleId = 'seo';
+    schedules = { aeo_deep_audit: { enabled: true, time: time, monthday: monthday } };
+    label = 'ביקורת AEO';
+  } else { return; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/schedules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ bundleId: bundleId, schedules: schedules })
+    });
+    var data = await res.json();
+    if (res.ok && data.success) { showToast(label + ' נשמר ✓ — מתעדכן בשרת', 'success'); }
+    else { showToast((data && data.message) || 'שגיאה בשמירה', 'error'); }
+  } catch (e) { showToast('שגיאת תקשורת', 'error'); }
+}
+
+// Populate the schedule inputs from the saved per-agent config on load, so the
+// user sees their actual chosen hour/days (not just hardcoded defaults).
+async function loadReportSchedules() {
+  if (!instanceId || !token) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/schedules', { headers: { 'Authorization': 'Bearer ' + token } });
+    var data = await res.json();
+    if (!data || !data.success || !data.data) return;
+    var core = data.data.core || {}, seo = data.data.seo || {};
+    var d = core.daily_brief;
+    if (d) {
+      if (d.time) { var e1 = document.getElementById('sched-daily-time'); if (e1) e1.value = d.time; }
+      if (Array.isArray(d.days)) {
+        document.querySelectorAll('input[name="sched-daily-day"]').forEach(function(cb) {
+          var on = d.days.indexOf(parseInt(cb.value)) !== -1;
+          cb.checked = on;
+          var chip = cb.nextElementSibling;
+          if (chip && chip.classList.contains('day-chip')) chip.classList.toggle('active', on);
+        });
+      }
+    }
+    var w = core.weekly_competitive;
+    if (w) {
+      if (w.time) { var e2 = document.getElementById('sched-weekly-time'); if (e2) e2.value = w.time; }
+      if (typeof w.weekday === 'number') { var e3 = document.getElementById('sched-weekly-day'); if (e3) e3.value = String(w.weekday); }
+    }
+    var a = seo.aeo_deep_audit;
+    if (a) {
+      if (a.time) { var e4 = document.getElementById('sched-monthly-time'); if (e4) e4.value = a.time; }
+      if (typeof a.monthday === 'number') { var e5 = document.getElementById('sched-monthly-day'); if (e5) e5.value = String(a.monthday); }
+    }
+  } catch (e) {}
 }
 
 // Day chip toggle handler
@@ -30777,6 +30827,8 @@ async function restoreSeoIntegrationStates() {
   // Load bundle schedules and refresh UI
   await loadBundleSchedules();
   refreshBundleUI();
+  // Populate the 3 report-schedule inputs from saved per-agent config.
+  loadReportSchedules();
 }
 
 // ── GSC ──

@@ -98,7 +98,12 @@ export const saveSchedules = async (c: Context) => {
             ? ((agent.schedules as Record<string, unknown>) || {})
             : ((instance.schedules as Record<string, unknown>) || {})
         const current: Record<string, unknown> = { ...currentRaw }
-        current[body.bundleId] = body.schedules
+        // MERGE at key level — saving one report (e.g. aeo_deep_audit under
+        // 'seo') must not wipe the bundle's other schedules (gsc_daily_check…).
+        current[body.bundleId] = {
+            ...((currentRaw[body.bundleId] as Record<string, unknown>) || {}),
+            ...body.schedules,
+        }
 
         if (agent) {
             // Write to agent row, mirror to instance only when primary
@@ -132,6 +137,20 @@ export const saveSchedules = async (c: Context) => {
                 console.log(`HEARTBEAT.md updated at ${heartbeatPath} for instance ${instanceId}`)
             } catch (deployErr) {
                 console.error('Failed to update HEARTBEAT.md:', deployErr)
+            }
+
+            // Re-issue the actual openclaw crons so the user's hour/days choice
+            // TAKES EFFECT (HEARTBEAT.md alone is just a doc). Best-effort —
+            // a failure here doesn't fail the save (config is already persisted).
+            try {
+                const { applyReportSchedules } = await import('@/services/reportSchedules')
+                const exec = (cmd: string) => sshExec(instance.ip!, cmd, instance.rootPassword || undefined, 60000)
+                const r = await applyReportSchedules(exec, current)
+                if (r.applied.length || r.removed.length) {
+                    console.log(`[schedules] crons re-issued for ${instanceId}: applied=[${r.applied.join(', ')}] removed=[${r.removed.join(', ')}]`)
+                }
+            } catch (cronErr) {
+                console.error('[schedules] cron re-issue failed (non-fatal):', (cronErr as Error).message)
             }
         }
 
