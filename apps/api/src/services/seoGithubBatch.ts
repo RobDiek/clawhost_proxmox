@@ -238,10 +238,13 @@ function ensureMetadataImport(text: string): string {
 }
 // Insert (no existing export) or update title/description in-place. Returns null
 // if the shape is too complex to edit safely (caller records a failure).
-function upsertAppMetadata(text: string, title: string, description: string, hadExport: boolean, titleIsObject: boolean): string | null {
+function upsertAppMetadata(text: string, title: string, description: string, hadExport: boolean, titleIsObject: boolean, canonicalPath?: string): string | null {
     if (!hadExport) {
         const out = ensureMetadataImport(text)
-        const block = `export const metadata: Metadata = {\n  title: ${jsString(title)},\n  description: ${jsString(description)},\n}`
+        // Self-canonical too (the dedup task explicitly asks for it; fixes the
+        // audit's "non-self canonical" finding). Only on the safe insert path.
+        const canon = canonicalPath ? `\n  alternates: { canonical: ${jsString(canonicalPath)} },` : ''
+        const block = `export const metadata: Metadata = {\n  title: ${jsString(title)},\n  description: ${jsString(description)},${canon}\n}`
         const lines = out.split('\n')
         let lastImport = -1
         for (let i = 0; i < lines.length; i++) if (/^\s*import\b/.test(lines[i])) lastImport = i
@@ -349,7 +352,7 @@ export async function runNextAppRouterMetaDedup(
         const title = stripBrand(String(j.title || '').trim()).slice(0, 70)
         const description = String(j.description || '').trim().slice(0, 180)
         if (title.length < 5 || description.length < 60) { result.failures.push({ path: p.path, error: 'generation failed' }); continue }
-        const edited = upsertAppMetadata(p.text, title, description, md.hasExport, md.titleIsObject)
+        const edited = upsertAppMetadata(p.text, title, description, md.hasExport, md.titleIsObject, p.routePath)
         if (!edited || edited === p.text) { result.failures.push({ path: p.path, error: 'could not edit metadata safely (complex shape)' }); continue }
         changes.push({ path: p.path, sha: p.sha, content: edited })
         result.changed.push({ path: p.path, detail: `${p.routePath} → ${title}` })
