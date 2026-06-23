@@ -173,7 +173,7 @@ function extractJson(text: string): any | null {
 }
 
 // ─── commit changed files on a new branch + open a PR ────────────────────────
-async function commitViaPR(cfg: GithubCfg, opLabel: string, changes: Array<{ path: string; sha: string; content: string }>): Promise<string> {
+async function commitViaPR(cfg: GithubCfg, opLabel: string, changes: Array<{ path: string; sha?: string; content: string }>): Promise<string> {
     // base branch head sha
     const refRes = await gh(cfg, `/repos/${cfg.repo}/git/ref/heads/${encodeURIComponent(cfg.branch)}`)
     if (!refRes.ok) throw new Error(`get ref ${refRes.status}`)
@@ -190,7 +190,8 @@ async function commitViaPR(cfg: GithubCfg, opLabel: string, changes: Array<{ pat
             body: JSON.stringify({
                 message: `SEO ${opLabel}: ${ch.path.split('/').pop()}`,
                 content: Buffer.from(ch.content, 'utf-8').toString('base64'),
-                sha: ch.sha, branch: newBranch,
+                ...(ch.sha ? { sha: ch.sha } : {}),   // omit sha → create new file
+                branch: newBranch,
             }),
         })
         if (!put.ok) throw new Error(`put ${ch.path} ${put.status}: ${(await put.text().catch(() => '')).slice(0, 160)}`)
@@ -214,7 +215,16 @@ async function commitViaPR(cfg: GithubCfg, opLabel: string, changes: Array<{ pat
 // pages share the SAME title/description = cannibalization. The markdown 'meta'
 // op above is blind to this. This scans the app/ tree, finds pages that collide
 // (or inherit the default), generates UNIQUE metadata, and opens a PR.
-interface AppPage { path: string; sha: string; text: string; routePath: string; title: string | null; description: string | null; hasExport: boolean }
+interface AppPage { path: string; sha: string; text: string; routePath: string; title: string | null; description: string | null; hasExport: boolean; isClient: boolean }
+
+// A 'use client' page is a client component — `export const metadata` is IGNORED
+// by Next there (and an import before the directive breaks the build). Its SEO
+// metadata must live in a co-located server layout.tsx instead.
+function isClientComponent(text: string): boolean { return /^\s*['"]use client['"]/m.test(text.slice(0, 300)) }
+async function fileExists(cfg: GithubCfg, path: string): Promise<boolean> {
+    const f = await gh(cfg, `/repos/${cfg.repo}/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}?ref=${encodeURIComponent(cfg.branch)}`)
+    return f.ok
+}
 
 function routeFromPath(p: string): string {
     const seg = p.replace(/^app\//, '').replace(/\/?page\.(tsx|jsx|ts|js)$/, '')   // root: "page.tsx" → ""
@@ -296,7 +306,7 @@ async function listAppPages(cfg: GithubCfg): Promise<{ pages: AppPage[]; layout:
     for (const p of pagePaths.slice(0, 60)) {
         const f = await fetchFile(p); if (!f) continue
         const md = parseAppMetadata(f.text)
-        pages.push({ path: p, sha: f.sha, text: f.text, routePath: routeFromPath(p), title: md.title, description: md.description, hasExport: md.hasExport })
+        pages.push({ path: p, sha: f.sha, text: f.text, routePath: routeFromPath(p), title: md.title, description: md.description, hasExport: md.hasExport, isClient: isClientComponent(f.text) })
     }
     let layout: { title: string | null; description: string | null; template: string | null } | null = null
     if (layoutPath) {
@@ -353,7 +363,7 @@ export async function runNextAppRouterMetaDedup(
     const hasTemplate = !!layout?.template
     const brandEsc = brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const stripBrand = (t: string) => hasTemplate ? t.replace(new RegExp(`\\s*[|\\-–—]\\s*${brandEsc}\\s*$`, 'i'), '').trim() : t
-    const changes: Array<{ path: string; sha: string; content: string }> = []
+    const changes: Array<{ path: string; sha?: string; content: string }> = []
     for (const p of cands.slice(0, 20)) {
         if (!apiKey) { result.failures.push({ path: p.path, error: 'no API key' }); continue }
         const md = parseAppMetadata(p.text)
@@ -367,6 +377,18 @@ export async function runNextAppRouterMetaDedup(
         const title = stripBrand(String(j.title || '').trim()).slice(0, 70)
         const description = String(j.description || '').trim().slice(0, 180)
         if (title.length < 5 || description.length < 60) { result.failures.push({ path: p.path, error: 'generation failed' }); continue }
+        // Client component ('use client') → metadata is ignored on the page +
+        // editing it breaks the build. Put it in a co-located server layout.tsx
+        // instead (create new; skip if one already exists to avoid clobbering).
+        if (p.isClient) {
+            const dir = p.path.replace(/\/page\.(tsx|jsx|ts|js)$/, '')
+            const layoutPath = `${dir}/layout.tsx`
+            if (await fileExists(cfg, layoutPath)) { result.failures.push({ path: layoutPath, error: 'client page; layout.tsx already exists — manual merge needed' }); continue }
+            const layoutContent = `import type { Metadata } from 'next'\n\nexport const metadata: Metadata = {\n  title: ${jsString(title)},\n  description: ${jsString(description)},\n  alternates: { canonical: ${jsString(p.routePath)} },\n}\n\nexport default function Layout({ children }: { children: React.ReactNode }) {\n  return children\n}\n`
+            changes.push({ path: layoutPath, content: layoutContent })   // new file → no sha
+            result.changed.push({ path: layoutPath, detail: `${p.routePath} → ${title} (server layout)` })
+            continue
+        }
         const edited = upsertAppMetadata(p.text, title, description, md.hasExport, md.titleIsObject, p.routePath)
         if (!edited || edited === p.text) { result.failures.push({ path: p.path, error: 'could not edit metadata safely (complex shape)' }); continue }
         changes.push({ path: p.path, sha: p.sha, content: edited })
