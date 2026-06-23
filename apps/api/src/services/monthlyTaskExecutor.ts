@@ -1610,13 +1610,22 @@ function aggregateA2Results(subs: Array<{ id: string; r: ExecutorResult }>): Exe
     ])
     const lines = subs.map(s => `${s.r.ok ? '✓' : '✗'} ${s.id}: ${(s.r.outputDescription || s.r.error || '').slice(0, 200)}`)
     const anyIntegration = subs.some(s => s.r.errorCategory === 'integration_missing')
+    // Propagate sub-op honesty into the aggregate (was: always 'completed' on
+    // okCount>0, which MASKED a sub-op that needed review — e.g. an App Router
+    // "not covered" awaiting result — as a clean "completed").
+    const anyAwaiting = subs.some(s => s.r.awaitingManual || s.r.errorCategory === 'awaiting_user_action')
+    const okSubs = subs.filter(s => s.r.ok)
+    const allNoop = okSubs.length > 0 && okSubs.every(s => s.r.errorCategory === 'completed_idempotent_noop' || isNoChangeResult(s.r))
     let errorCategory: ExecutorResult['errorCategory'] = 'completed'
     if (okCount === 0) errorCategory = anyIntegration ? 'integration_missing' : 'systemic_bug'
+    else if (anyAwaiting) errorCategory = 'awaiting_user_action'   // a sub-op needs review → never claim completed
+    else if (allNoop) errorCategory = 'completed_idempotent_noop'  // every sub changed nothing
     const userAction = subs.find(s => s.r.userAction)?.r.userAction
     return {
         ok: okCount > 0,
         outputDescription: `בוצעו ${okCount}/${subs.length} פעולות אוטומטיות במשימה:\n${lines.join('\n')}`,
         errorCategory,
+        ...(anyAwaiting ? { awaitingManual: true } : {}),
         stepResults: steps,
         ...(userAction ? { userAction } : {}),
     }
