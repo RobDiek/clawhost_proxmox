@@ -1884,6 +1884,7 @@ async function runGithubSeoFallback(
     // App Router sites: the markdown-only ops (all except 'meta', which is App
     // Router-aware) cannot see app/**/page.tsx — used for an honest verdict below.
     const appRouter = op !== 'meta' ? await hasAppRouterPages(instanceId, agent?.id) : false
+    let appRouterSchemaOptimal = false   // set when App Router layout already renders JSON-LD
 
     let businessName: string | undefined
     try {
@@ -1892,7 +1893,14 @@ async function runGithubSeoFallback(
         businessName = rd?.answers?.businessName
     } catch { /* fallback name */ }
 
-    const res = await runSeoGithubBatch(instanceId, op, { agentId: agent?.id, businessName, targetWords: extra.targetWords })
+    // App Router schema: markdown `schema:` frontmatter is NOT consumed (the page
+    // components render their own JSON-LD) → skip the markdown batch and rely on
+    // the layout-level injection below. Other ops edit the rendered md BODY, so
+    // they still run normally.
+    const emptyRes = { ok: true, integrationMissing: false, op, scanned: 0, candidates: 0, changed: [], proposals: [], failures: [] } as Awaited<ReturnType<typeof runSeoGithubBatch>>
+    const res = (op === 'schema' && appRouter)
+        ? emptyRes
+        : await runSeoGithubBatch(instanceId, op, { agentId: agent?.id, businessName, targetWords: extra.targetWords })
     const opHe: Record<string, string> = { meta: 'תיאורי מטא', schema: 'סכמת JSON-LD', links: 'קישורים פנימיים', slug: 'הצעות slug', body_expand: 'הרחבת תוכן דף', image_alt: 'טקסט חלופי לתמונות', answer_first: 'פסקת תשובה (AEO)' }
 
     // App Router parity: Next.js sites keep per-page SEO in app/**/page.tsx
@@ -1919,6 +1927,7 @@ async function runGithubSeoFallback(
         try {
             const { runNextAppRouterSchema } = await import('./seoGithubBatch')
             const ar = await runNextAppRouterSchema(instanceId, { agentId: agent?.id, businessName })
+            appRouterSchemaOptimal = !!ar.alreadyOptimal
             res.scanned += ar.scanned
             res.candidates += ar.candidates
             res.changed.push(...ar.changed)
@@ -1948,6 +1957,11 @@ async function runGithubSeoFallback(
         ...res.failures.map(f => ({ step: f.path, ok: false, detail: f.error })),
     ]
     if (res.candidates === 0 || (res.changed.length === 0 && res.failures.length === 0)) {
+        // Schema is genuinely already optimal when the App Router layout/components
+        // render their own JSON-LD — honest "no need", not "needs review".
+        if (op === 'schema' && appRouterSchemaOptimal) {
+            return { ok: true, outputDescription: `האתר (Next.js App Router) כבר כולל סכמת JSON-LD ברמת ה-layout — אין צורך בהוספה.`, errorCategory: 'completed_idempotent_noop', stepResults }
+        }
         // Honesty guard (#4): on a Next.js App Router site a markdown no-op means
         // "app/ pages not covered by this op", NOT "already optimal" — never claim
         // completed; surface for review (catches the image_seo false-success class).

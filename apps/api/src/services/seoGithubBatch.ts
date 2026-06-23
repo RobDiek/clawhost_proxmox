@@ -43,6 +43,7 @@ export interface GithubSeoResult {
     prUrl?: string
     failures: Array<{ path: string; error: string }>
     error?: string
+    alreadyOptimal?: boolean   // App Router schema: layout/components already render JSON-LD
 }
 
 interface MdFile { path: string; name: string; sha: string; text: string; title: string }
@@ -401,7 +402,7 @@ export async function runNextAppRouterSchema(
     const layout = (await tryFetch('app/layout.tsx')) || (await tryFetch('app/layout.jsx'))
     if (!layout) { result.ok = true; return result }   // not an App Router layout
     result.scanned = 1
-    if (/application\/ld\+json/.test(layout.text)) { result.ok = true; return result }   // already has JSON-LD (genuine no-op)
+    if (/application\/ld\+json/.test(layout.text)) { result.ok = true; result.alreadyOptimal = true; return result }   // already has JSON-LD (genuine no-op, not "uncovered")
     if (!/<\/body>/.test(layout.text)) { result.failures.push({ path: layout.path, error: 'no </body> tag to inject into' }); result.ok = true; return result }
     result.candidates = 1
 
