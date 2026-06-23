@@ -378,6 +378,55 @@ export async function runNextAppRouterMetaDedup(
     return result
 }
 
+// ─── Next.js App Router SCHEMA (JSON-LD) ─────────────────────────────────────
+// Real automation for the 'schema' op on App Router sites: inject site-level
+// Organization + WebSite JSON-LD into the root layout (app/layout.tsx) as a
+// single <script type="application/ld+json">, deterministically (no LLM → no
+// hallucinated facts), idempotently (skips if ld+json already present), via PR.
+// This is the safe, highest-entity-value schema; per-page FAQ/WebPage injection
+// (riskier JSX edits) is deferred to the honesty path until explicitly built.
+export async function runNextAppRouterSchema(
+    instanceId: string,
+    opts: { agentId?: string | null; businessName?: string; dryRun?: boolean } = {},
+): Promise<GithubSeoResult> {
+    const result: GithubSeoResult = { ok: false, integrationMissing: false, op: 'schema', scanned: 0, candidates: 0, changed: [], proposals: [], failures: [] }
+    const cfg = await loadGithubConfig(instanceId, opts.agentId)
+    if (!cfg) { result.integrationMissing = true; return result }
+    const tryFetch = async (path: string) => {
+        const f = await gh(cfg, `/repos/${cfg.repo}/contents/${path}?ref=${encodeURIComponent(cfg.branch)}`)
+        if (!f.ok) return null
+        const j = await f.json() as { sha?: string; content?: string; encoding?: string }
+        return { path, sha: j.sha || '', text: j.content && j.encoding === 'base64' ? Buffer.from(j.content, 'base64').toString('utf-8') : '' }
+    }
+    const layout = (await tryFetch('app/layout.tsx')) || (await tryFetch('app/layout.jsx'))
+    if (!layout) { result.ok = true; return result }   // not an App Router layout
+    result.scanned = 1
+    if (/application\/ld\+json/.test(layout.text)) { result.ok = true; return result }   // already has JSON-LD (genuine no-op)
+    if (!/<\/body>/.test(layout.text)) { result.failures.push({ path: layout.path, error: 'no </body> tag to inject into' }); result.ok = true; return result }
+    result.candidates = 1
+
+    const mb = layout.text.match(/metadataBase\s*:\s*new URL\((['"`])([^'"`]+)\1\)/)
+    const url = (mb ? mb[2] : 'https://example.com').replace(/\/$/, '')
+    const businessName = opts.businessName || 'העסק'
+    const graph = {
+        '@context': 'https://schema.org',
+        '@graph': [
+            { '@type': 'Organization', '@id': `${url}/#organization`, name: businessName, url: `${url}/` },
+            { '@type': 'WebSite', '@id': `${url}/#website`, name: businessName, url: `${url}/`, publisher: { '@id': `${url}/#organization` }, inLanguage: 'he-IL' },
+        ],
+    }
+    const json = JSON.stringify(graph)
+    const script = `        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ${JSON.stringify(json)} }} />\n      `
+    const edited = layout.text.replace('</body>', script + '</body>')
+    if (edited === layout.text) { result.failures.push({ path: layout.path, error: 'injection failed' }); result.ok = true; return result }
+    result.changed.push({ path: layout.path, detail: 'Organization + WebSite JSON-LD' })
+    if (!opts.dryRun) {
+        try { result.prUrl = await commitViaPR(cfg, 'schema-jsonld', [{ path: layout.path, sha: layout.sha, content: edited }]) } catch (err) { result.error = (err as Error).message; result.failures.push({ path: layout.path, error: (err as Error).message }) }
+    }
+    result.ok = true
+    return result
+}
+
 export async function runSeoGithubBatch(
     instanceId: string,
     op: GithubSeoOp,
