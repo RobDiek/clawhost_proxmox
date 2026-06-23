@@ -5289,7 +5289,7 @@ function renderHome() {
   }
   if (!instanceData.hasResearch && instanceData.researchData) {
     var _rd = instanceData.researchData;
-    if (_rd.report || _rd.stage1 || _rd.researchStage1 || _rd.researchStage2 || _rd.researchStage3 || _rd.researchStage4 || _rd.researchStage5) {
+    if (_rd.report || _rd.stage1 || _rd.researchStage1 || _rd.researchStage2 || _rd.researchStage3 || _rd.researchStage4 || _rd.researchStage5 || cfHasResearch(_rd)) {
       instanceData.hasResearch = true;
     }
   }
@@ -5316,8 +5316,8 @@ function renderHome() {
   var hasTelegram = !!(instanceData && (instanceData.hasTelegram || instanceData.telegramBotToken));
   var isMATEH = components.indexOf('mt') !== -1;
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
-  var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1 || instanceData.researchData.researchStage1 || instanceData.researchData.researchStage4))));
-  var hasStrategy = !!(instanceData && (instanceData.hasStrategy || (instanceData.researchData && (instanceData.researchData.strategy || instanceData.researchData.strategyStage4))));
+  var hasResearch = !!(instanceData && (instanceData.hasResearch || cfHasResearch(instanceData.researchData)));
+  var hasStrategy = !!(instanceData && (instanceData.hasStrategy || cfHasStrategy(instanceData.researchData)));
   var hasScenarios = !!(instanceData && instanceData.researchData && instanceData.researchData.scenarios);
   var hasChosenScenario = !!(instanceData && instanceData.researchData && instanceData.researchData.chosenScenario);
   var onboardingDone = !!(instanceData && instanceData.onboardingCompleted);
@@ -6425,7 +6425,7 @@ function getNotifications() {
   var hasAnyAi = hasApiKey || hasOllamaProvider;
   var hasTelegram = !!(instanceData && (instanceData.hasTelegram || instanceData.telegramBotToken));
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
-  var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1))));
+  var hasResearch = !!(instanceData && (instanceData.hasResearch || cfHasResearch(instanceData.researchData)));
   var hasGoogle = !!(instanceData && instanceData.googleTokens);
   var dismissed = JSON.parse(localStorage.getItem('cf_dismissed_notifs') || '[]');
 
@@ -12064,7 +12064,7 @@ function renderContentCalendar() {
   // the calendar then shows as empty (or only manually-added items).
   var section = document.getElementById('home-calendar-section');
   var hasProfile = !!(instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.businessName);
-  var hasResearch = !!(instanceData && instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1));
+  var hasResearch = cfHasResearch(instanceData && instanceData.researchData);
   // Phase 4.3-G: also activate calendar when monthlyPlan exists (Storage Station
   // case — has monthlyPlan but legacy report/stage1 fields may not be set).
   var hasMonthlyPlan = !!(instanceData && instanceData.researchData && instanceData.researchData.monthlyPlan);
@@ -25151,8 +25151,8 @@ function toggleRebuildCard() {
   var card = document.getElementById('agent-rebuild-card');
   if (!card) return;
   var rd = (instanceData && instanceData.researchData) || {};
-  var hasResearch = !!(rd.report || rd.stage1 || rd.stage2 || rd.stage3 || rd.stage4 || rd.stage5);
-  var hasStrategy = !!(rd.strategy || rd.strategyStage1 || rd.scenarios);
+  var hasResearch = cfHasResearch(rd);
+  var hasStrategy = cfHasStrategy(rd);
   card.style.display = (hasResearch || hasStrategy) ? '' : 'none';
 
   // Disable strategy-only button if no strategy exists (nothing to rebuild).
@@ -29440,6 +29440,27 @@ function toggleSeoAccordion() {
 }
 
 // Overview → research + strategy status chips
+// V2-aware research/strategy completion. Legacy instances carry report/stage1/
+// strategy/scenarios; the V2 pipeline (and agentless instances like Flow) only
+// carry research_data.results.* + chosenScenario + monthlyPlan. Checking legacy
+// keys alone falsely shows "מחקר עוד לא בוצע" for fully-researched V2 agents.
+function cfHasResearch(rd) {
+  if (!rd) return false;
+  var r = rd.results || {};
+  return !!(rd.report || rd.stage1 || rd.researchStage1 || rd.researchStage4 ||
+            r.competitor_landscape || r.audience_personas || r.seo_keyword_research);
+}
+function cfHasStrategy(rd) {
+  if (!rd) return false;
+  var r = rd.results || {};
+  return !!(rd.strategy || rd.strategyStage4 || rd.chosenScenario || r.strategy_options || rd.monthlyPlan);
+}
+function cfHasScenarios(rd) {
+  if (!rd) return false;
+  var r = rd.results || {};
+  return !!(rd.scenarios || (r.strategy_options && r.strategy_options.records && r.strategy_options.records.length));
+}
+
 function renderAgentResearchChips() {
   var host = document.getElementById('agent-research-chips');
   var content = document.getElementById('agent-research-chips-content');
@@ -29447,9 +29468,9 @@ function renderAgentResearchChips() {
   if (currentAgentType !== 'mt') { host.style.display = 'none'; return; }
   host.style.display = '';
   var rd = (instanceData && instanceData.researchData) || {};
-  var hasResearch = !!(rd.report || rd.stage1);
-  var hasStrategy = !!rd.strategy;
-  var hasScenarios = !!rd.scenarios;
+  var hasResearch = cfHasResearch(rd);
+  var hasStrategy = cfHasStrategy(rd);
+  var hasScenarios = cfHasScenarios(rd);
 
   var rows = [];
   // Research chip
@@ -29466,7 +29487,7 @@ function renderAgentResearchChips() {
   }
   // Strategy chip
   if (hasStrategy) {
-    var scenName = (rd.chosenScenario && rd.chosenScenario.name) || (hasScenarios ? 'לא נבחר עדיין' : 'מוכנה');
+    var scenName = (rd.chosenScenario && (rd.chosenScenario.name || rd.chosenScenario.scenario || rd.chosenScenario.key)) || (hasScenarios ? 'לא נבחר עדיין' : 'מוכנה');
     rows.push('<div class="agent-chip-row">' +
       '<div class="agent-chip-left"><span class="agent-chip-dot ok"></span><div><div class="agent-chip-title">אסטרטגיה ' + (rd.chosenScenario ? '· ' + escapeHtml(scenName) : '') + '</div><div class="agent-chip-sub">ערוצים · KPI · לוח תוכן</div></div></div>' +
       '<div class="agent-chip-right"><button class="btn btn-outline btn-sm" onclick="viewStrategy()" style="font-size:0.76rem">צפו →</button>' +
@@ -34247,7 +34268,7 @@ async function renderJourneyBanner() {
 
   // Gather state
   var hasProfile = !!(instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.businessName);
-  var hasResearch = !!(instanceData && instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1));
+  var hasResearch = cfHasResearch(instanceData && instanceData.researchData);
   var hasGsc = isIntConnected('gsc');
   var hasDfs = isIntConnected('dataforseo');
   var hasFc = isIntConnected('firecrawl');
