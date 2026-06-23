@@ -172,8 +172,51 @@ function extractJson(text: string): any | null {
     try { return JSON.parse(text.substring(f, l + 1)) } catch { return null }
 }
 
+// ─── BUILD-GATE: static safety check on a changed file before opening a PR ────
+// Catches the classes of breakage that actually shipped (PR#9): a malformed/
+// truncated edit (syntax error) and a misplaced 'use client' / metadata-in-a-
+// client-component. Not a full `next build` (no clone/toolchain here), but it
+// blocks the real failure modes cheaply + universally. Returns an error string
+// to REJECT the change, or null if it passes.
+export async function validateCodeChange(path: string, content: string): Promise<string | null> {
+    if (!content || !content.trim()) return 'empty file content'
+    const isCode = /\.(tsx?|jsx?|mts|cts)$/.test(path)
+    // 'use client'/'use server' must be the FIRST statement (only comments/blank
+    // may precede it) — and a client component must NOT export metadata (Next
+    // silently ignores it → looks done but isn't). This is exactly the PR#9 bug.
+    const ucIdx = content.search(/(['"])use (client|server)\1/)
+    if (ucIdx >= 0 && /(['"])use client\1/.test(content)) {
+        const before = content.slice(0, ucIdx).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '').trim()
+        if (before.length > 0) return `'use client' is not the first statement (code/import precedes it) — breaks the directive`
+        if (/export\s+(const\s+metadata\b|async\s+function\s+generateMetadata\b)/.test(content)) {
+            return `client component exports metadata — Next ignores it; put metadata in a server layout.tsx`
+        }
+    }
+    // Syntax sanity for code files (catches malformed/truncated LLM edits).
+    if (isCode) {
+        try {
+            const ts: any = (await import('typescript')).default ?? (await import('typescript'))
+            const out = ts.transpileModule(content, {
+                compilerOptions: { jsx: ts.JsxEmit.Preserve, target: ts.ScriptTarget.ESNext, isolatedModules: true },
+                reportDiagnostics: true,
+                fileName: path,
+            })
+            const err = (out.diagnostics || []).find((d: any) => d.category === ts.DiagnosticCategory.Error)
+            if (err) return `syntax error: ${ts.flattenDiagnosticMessageText(err.messageText, ' ').slice(0, 160)}`
+        } catch { /* if the compiler isn't loadable, fall back to the checks above */ }
+    }
+    return null
+}
+
 // ─── commit changed files on a new branch + open a PR ────────────────────────
 async function commitViaPR(cfg: GithubCfg, opLabel: string, changes: Array<{ path: string; sha?: string; content: string }>): Promise<string> {
+    // BUILD-GATE: validate EVERY change before creating anything. One bad file
+    // aborts the whole PR (no broken branch/PR is ever opened) — the class of
+    // failure that let PR#9 break the build and still be mergeable.
+    for (const ch of changes) {
+        const err = await validateCodeChange(ch.path, ch.content)
+        if (err) throw new Error(`build-gate rejected ${ch.path}: ${err}`)
+    }
     // base branch head sha
     const refRes = await gh(cfg, `/repos/${cfg.repo}/git/ref/heads/${encodeURIComponent(cfg.branch)}`)
     if (!refRes.ok) throw new Error(`get ref ${refRes.status}`)

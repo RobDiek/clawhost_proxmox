@@ -81,6 +81,14 @@ async function getFile(cfg: GithubCfg, path: string): Promise<{ sha: string; tex
 }
 
 async function commitViaPR(cfg: GithubCfg, label: string, prTitle: string, prBody: string, edits: Array<{ path: string; sha: string; content: string }>): Promise<string> {
+    // BUILD-GATE: validate every LLM-generated edit before opening a PR (these
+    // are the riskiest — free-form code edits). One bad file aborts the PR so a
+    // build-breaking change can never be opened/merged (the PR#9 lesson).
+    const { validateCodeChange } = await import('./seoGithubBatch')
+    for (const e of edits) {
+        const err = await validateCodeChange(e.path, e.content)
+        if (err) throw new Error(`build-gate rejected ${e.path}: ${err}`)
+    }
     const refRes = await gh(cfg, `/repos/${cfg.repo}/git/ref/heads/${encodeURIComponent(cfg.branch)}`)
     if (!refRes.ok) throw new Error(`get ref ${refRes.status}`)
     const baseSha = ((await refRes.json()) as { object?: { sha?: string } }).object?.sha
